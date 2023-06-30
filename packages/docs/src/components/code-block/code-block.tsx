@@ -1,5 +1,7 @@
 import { component$, useStyles$ } from '@builder.io/qwik';
 import prismjs from 'prismjs';
+import 'prismjs/components/prism-jsx'; // needs PRISM global
+import 'prismjs/components/prism-tsx'; // needs PRISM global
 // Set to global so that prism language plugins can find it.
 const _global =
   (typeof globalThis !== 'undefined' && globalThis) ||
@@ -8,8 +10,6 @@ const _global =
   (typeof this !== 'undefined' && this) ||
   (typeof window !== 'undefined' && window);
 (_global as any).PRISM = prismjs;
-import 'prismjs/components/prism-jsx'; // needs PRISM global
-import 'prismjs/components/prism-tsx'; // needs PRISM global
 
 import styles from './code-block.css?inline';
 interface CodeBlockProps {

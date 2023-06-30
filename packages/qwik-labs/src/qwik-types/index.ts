@@ -1,1 +1,1 @@
-export { untypedAppUrl, omitProps } from './public-api';
+export { omitProps, untypedAppUrl } from './public-api';

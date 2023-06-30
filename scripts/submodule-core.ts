@@ -1,9 +1,17 @@
-import { type BuildConfig, rollupOnWarn } from './util';
 import { build, type BuildOptions } from 'esbuild';
-import { getBanner, fileSize, readFile, target, watcher, writeFile } from './util';
-import { type InputOptions, type OutputOptions, rollup } from 'rollup';
 import { join } from 'node:path';
+import { rollup, type InputOptions, type OutputOptions } from 'rollup';
 import { minify } from 'terser';
+import {
+  fileSize,
+  getBanner,
+  readFile,
+  rollupOnWarn,
+  target,
+  watcher,
+  writeFile,
+  type BuildConfig,
+} from './util';
 
 /**
  * Build the core package which is also the root package: @builder.io/qwik

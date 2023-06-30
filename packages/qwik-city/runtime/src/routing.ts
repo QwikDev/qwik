@@ -5,9 +5,9 @@ import type {
   MenuData,
   MenuModule,
   ModuleLoader,
+  PathParams,
   RouteData,
   RouteModule,
-  PathParams,
 } from './types';
 
 export const CACHE = new Map<RouteData, Promise<any>>();

@@ -1,7 +1,7 @@
-import { component$, Slot, type QwikIntrinsicElements, untrack, event$ } from '@builder.io/qwik';
-import { getClientNavPath, getPrefetchDataset } from './utils';
+import { Slot, component$, event$, untrack, type QwikIntrinsicElements } from '@builder.io/qwik';
 import { loadClientData } from './use-endpoint';
 import { useLocation, useNavigate } from './use-functions';
+import { getClientNavPath, getPrefetchDataset } from './utils';
 
 /**
  * @public

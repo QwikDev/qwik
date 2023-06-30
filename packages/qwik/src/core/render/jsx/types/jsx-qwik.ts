@@ -1,5 +1,5 @@
-import type { DOMAttributes } from './jsx-qwik-attributes';
 import type { JSXNode } from './jsx-node';
+import type { DOMAttributes } from './jsx-qwik-attributes';
 import type { QwikIntrinsicAttributes, QwikIntrinsicElements } from './jsx-qwik-elements';
 
 /**

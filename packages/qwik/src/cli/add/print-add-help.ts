@@ -1,10 +1,10 @@
 /* eslint-disable no-console */
-import { magenta, dim } from 'kleur/colors';
-import { loadIntegrations, sortIntegrationsAndReturnAsClackOptions } from '../utils/integrations';
-import { pmRunCmd, note, bye, limitLength } from '../utils/utils';
 import { confirm, intro, isCancel, select } from '@clack/prompts';
+import { dim, magenta } from 'kleur/colors';
 import type { IntegrationData } from '../types';
 import type { AppCommand } from '../utils/app-command';
+import { loadIntegrations, sortIntegrationsAndReturnAsClackOptions } from '../utils/integrations';
+import { bye, limitLength, note, pmRunCmd } from '../utils/utils';
 import { runAddInteractive } from './run-add-interactive';
 
 const SPACE_TO_HINT = 25;

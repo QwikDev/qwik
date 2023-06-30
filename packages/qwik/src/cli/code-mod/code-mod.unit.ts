@@ -1,7 +1,7 @@
-import { updateViteConfig } from './code-mod';
-import { test } from 'uvu';
-import { match, equal } from 'uvu/assert';
 import ts from 'typescript';
+import { test } from 'uvu';
+import { equal, match } from 'uvu/assert';
+import { updateViteConfig } from './code-mod';
 
 const prepareOutput = (str: string) =>
   str

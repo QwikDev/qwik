@@ -1,6 +1,6 @@
-import type { NormalizedPluginOptions, BuildContext, PluginOptions } from './types';
 import { isAbsolute, resolve } from 'node:path';
 import { normalizePath } from '../utils/fs';
+import type { BuildContext, NormalizedPluginOptions, PluginOptions } from './types';
 
 export function createBuildContext(
   rootDir: string,

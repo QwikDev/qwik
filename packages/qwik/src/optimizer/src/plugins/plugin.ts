@@ -1,5 +1,7 @@
-import { createOptimizer } from '../optimizer';
+import type { Rollup } from 'vite';
+import { hashCode } from '../../../core/util/hash_code';
 import { generateManifestFromBundles, getValidManifest } from '../manifest';
+import { createOptimizer } from '../optimizer';
 import type {
   Diagnostic,
   EntryStrategy,
@@ -16,8 +18,6 @@ import type {
   TransformOutput,
 } from '../types';
 import { createLinter, type QwikLinter } from './eslint-plugin';
-import type { Rollup } from 'vite';
-import { hashCode } from '../../../core/util/hash_code';
 
 const REG_CTX_NAME = ['server'];
 

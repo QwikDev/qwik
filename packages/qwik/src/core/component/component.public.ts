@@ -1,15 +1,14 @@
-import { $, type PropFnInterface, type QRL } from '../qrl/qrl.public';
-import type { JSXNode } from '../render/jsx/types/jsx-node';
-import { OnRenderProp, QSlot } from '../util/markers';
-import type { ComponentBaseProps, JSXChildren } from '../render/jsx/types/jsx-qwik-attributes';
-import type { FunctionComponent } from '../render/jsx/types/jsx-node';
-import { Virtual, _jsxC } from '../render/jsx/jsx-runtime';
 import { SERIALIZABLE_STATE } from '../container/serializers';
-import { qTest } from '../util/qdev';
-import { assertQrl } from '../qrl/qrl-class';
-import type { ValueOrPromise } from '../util/types';
-import { _IMMUTABLE } from '../state/constants';
 import { assertNumber } from '../error/assert';
+import { assertQrl } from '../qrl/qrl-class';
+import { $, type PropFnInterface, type QRL } from '../qrl/qrl.public';
+import { Virtual, _jsxC } from '../render/jsx/jsx-runtime';
+import type { FunctionComponent, JSXNode } from '../render/jsx/types/jsx-node';
+import type { ComponentBaseProps, JSXChildren } from '../render/jsx/types/jsx-qwik-attributes';
+import { _IMMUTABLE } from '../state/constants';
+import { OnRenderProp, QSlot } from '../util/markers';
+import { qTest } from '../util/qdev';
+import type { ValueOrPromise } from '../util/types';
 
 /**
  * Infers `Props` from the component.

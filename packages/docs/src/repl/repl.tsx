@@ -1,20 +1,20 @@
 /* eslint-disable no-console */
 import {
+  $,
   component$,
   noSerialize,
-  useStyles$,
   useStore,
+  useStyles$,
   useTask$,
   useVisibleTask$,
-  $,
 } from '@builder.io/qwik';
+import { ReplDetailPanel } from './repl-detail-panel';
 import { ReplInputPanel } from './repl-input-panel';
 import { ReplOutputPanel } from './repl-output-panel';
-import styles from './repl.css?inline';
-import type { ReplStore, ReplUpdateMessage, ReplMessage, ReplAppInput } from './types';
-import { ReplDetailPanel } from './repl-detail-panel';
-import { getReplVersion } from './repl-version';
 import { updateReplOutput } from './repl-output-update';
+import { getReplVersion } from './repl-version';
+import styles from './repl.css?inline';
+import type { ReplAppInput, ReplMessage, ReplStore, ReplUpdateMessage } from './types';
 
 export const Repl = component$((props: ReplProps) => {
   useStyles$(styles);

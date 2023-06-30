@@ -5,11 +5,11 @@ import {
   type PlatformBinding,
 } from './platform';
 import type {
-  TransformModulesOptions,
-  TransformFsOptions,
   Optimizer,
-  OptimizerSystem,
   OptimizerOptions,
+  OptimizerSystem,
+  TransformFsOptions,
+  TransformModulesOptions,
 } from './types';
 
 /**

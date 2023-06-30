@@ -1,10 +1,10 @@
+import { _getContainerState } from '../container/container';
+import { resumeIfNeeded } from '../container/resume';
 import { assertDefined } from '../error/assert';
 import { inflateQrl, parseQRL } from '../qrl/qrl';
-import { getWrappingContainer, getInvokeContext } from './use-core';
 import { assertQrl } from '../qrl/qrl-class';
 import { getContext } from '../state/context';
-import { resumeIfNeeded } from '../container/resume';
-import { _getContainerState } from '../container/container';
+import { getInvokeContext, getWrappingContainer } from './use-core';
 
 // <docs markdown="../readme.md#useLexicalScope">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!

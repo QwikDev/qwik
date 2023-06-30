@@ -1,4 +1,4 @@
-import { component$, useVisibleTask$, useContext, type Signal } from '@builder.io/qwik';
+import { component$, useContext, useVisibleTask$, type Signal } from '@builder.io/qwik';
 
 import { MAX_QUERY_SIZE } from './constants';
 import { SearchContext } from './context';

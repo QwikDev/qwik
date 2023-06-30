@@ -1,5 +1,5 @@
-import type { Rollup } from 'vite';
 import type { ESLint, Linter } from 'eslint';
+import type { Rollup } from 'vite';
 import type { OptimizerSystem } from '../types';
 
 export interface QwikLinter {

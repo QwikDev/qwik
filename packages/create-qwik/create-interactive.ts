@@ -1,23 +1,23 @@
 /* eslint-disable no-console */
-import fs from 'node:fs';
-import { join, relative } from 'node:path';
 import {
-  text,
-  select,
+  cancel,
   confirm,
   intro,
-  outro,
-  cancel,
-  spinner,
   isCancel,
   log,
+  outro,
+  select,
+  spinner,
+  text,
 } from '@clack/prompts';
-import { bgBlue, red, gray } from 'kleur/colors';
+import { bgBlue, gray, red } from 'kleur/colors';
+import fs from 'node:fs';
+import { join, relative } from 'node:path';
 import type { CreateAppOptions } from '../qwik/src/cli/types';
 import { backgroundInstallDeps, installDeps } from '../qwik/src/cli/utils/install-deps';
-import { createApp, getOutDir, logCreateAppResult } from './create-app';
-import { getPackageManager, note, runCommand, wait } from '../qwik/src/cli/utils/utils';
 import { loadIntegrations } from '../qwik/src/cli/utils/integrations';
+import { getPackageManager, note, runCommand, wait } from '../qwik/src/cli/utils/utils';
+import { createApp, getOutDir, logCreateAppResult } from './create-app';
 
 export async function runCreateInteractiveCli() {
   intro(`Let's create a ${bgBlue(' Qwik App ')} ✨ (v${(globalThis as any).QWIK_VERSION})`);

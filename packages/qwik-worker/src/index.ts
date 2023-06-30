@@ -1,9 +1,9 @@
 import {
   $,
-  implicit$FirstArg,
-  type QRL,
   _getContextElement,
   _serializeData,
+  implicit$FirstArg,
+  type QRL,
 } from '@builder.io/qwik';
 
 //@ts-ignore

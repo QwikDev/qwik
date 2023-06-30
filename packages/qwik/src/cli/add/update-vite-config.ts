@@ -1,8 +1,8 @@
-import type { FsUpdates, IntegrationData } from '../types';
 import fs from 'fs';
 import { join } from 'path';
-import { updateViteConfig } from '../code-mod/code-mod';
 import type { Options } from 'prettier';
+import { updateViteConfig } from '../code-mod/code-mod';
+import type { FsUpdates, IntegrationData } from '../types';
 import { panic } from '../utils/utils';
 
 export async function updateViteConfigs(

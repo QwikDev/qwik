@@ -1,9 +1,9 @@
 import path, { resolve } from 'node:path';
 import { suite } from 'uvu';
-import type { QwikManifest } from '../types';
-import { createPlugin } from './plugin';
 import { equal } from 'uvu/assert';
 import { normalizePath } from '../../../testing/util';
+import type { QwikManifest } from '../types';
+import { createPlugin } from './plugin';
 
 const cwd = process.cwd();
 const test = suite('normalizeOptions');

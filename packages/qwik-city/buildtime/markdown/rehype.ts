@@ -1,16 +1,16 @@
-import type { Transformer } from 'unified';
-import Slugger from 'github-slugger';
-import type { Root } from 'mdast';
-import type { MdxjsEsm } from 'mdast-util-mdx';
 import { valueToEstree } from 'estree-util-value-to-estree';
+import Slugger from 'github-slugger';
 import { headingRank } from 'hast-util-heading-rank';
 import { toString } from 'hast-util-to-string';
+import type { Root } from 'mdast';
+import type { MdxjsEsm } from 'mdast-util-mdx';
+import type { Transformer } from 'unified';
 import { visit } from 'unist-util-visit';
 import type { ContentHeading } from '../../runtime/src';
-import type { BuildContext, NormalizedPluginOptions } from '../types';
 import { getExtension, isMarkdownExt, normalizePath } from '../../utils/fs';
-import { frontmatterAttrsToDocumentHead } from './frontmatter';
 import { isSameOriginUrl } from '../../utils/pathname';
+import type { BuildContext, NormalizedPluginOptions } from '../types';
+import { frontmatterAttrsToDocumentHead } from './frontmatter';
 import { getMarkdownRelativeUrl } from './markdown-url';
 
 export function rehypeSlug(): Transformer {

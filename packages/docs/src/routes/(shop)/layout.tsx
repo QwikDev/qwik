@@ -6,9 +6,13 @@ import {
   useStore,
   useVisibleTask$,
 } from '@builder.io/qwik';
-import { Header } from '../../components/header/header';
-import { Footer } from '../../components/footer/footer';
 import { routeLoader$, type RequestHandler } from '@builder.io/qwik-city';
+import { useImageProvider, type ImageTransformerProps } from 'qwik-image';
+import { Footer } from '../../components/footer/footer';
+import { Header } from '../../components/header/header';
+import { checkoutCreateMutation } from './mutation';
+import { checkoutQuery, productsQuery } from './query';
+import type { CheckoutCreateMutation, CheckoutQuery, ProductsQuery, ShopApp } from './types';
 import {
   COOKIE_CART_ID_KEY,
   fetchFromShopify,
@@ -17,10 +21,6 @@ import {
   setCookie,
   SHOP_CONTEXT,
 } from './utils';
-import { checkoutQuery, productsQuery } from './query';
-import { checkoutCreateMutation } from './mutation';
-import { useImageProvider, type ImageTransformerProps } from 'qwik-image';
-import type { CheckoutQuery, ProductsQuery, CheckoutCreateMutation, ShopApp } from './types';
 
 export const onRequest: RequestHandler = async (request) => {
   request.cacheControl(600);

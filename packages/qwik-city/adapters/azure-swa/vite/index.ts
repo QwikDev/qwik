@@ -1,7 +1,7 @@
 import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
-import { type ServerAdapterOptions, viteAdapter } from '../../shared/vite';
-import { join } from 'node:path';
 import fs from 'node:fs';
+import { join } from 'node:path';
+import { viteAdapter, type ServerAdapterOptions } from '../../shared/vite';
 
 /**
  * @public

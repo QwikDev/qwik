@@ -1,13 +1,11 @@
 import {
+  SkipRender,
+  _jsxBranch,
   component$,
   jsx,
-  type JSXNode,
-  SkipRender,
   useContext,
-  _IMMUTABLE,
-  _jsxBranch,
-  _jsxQ,
   useServerData,
+  type JSXNode,
 } from '@builder.io/qwik';
 
 import { ContentInternalContext } from './contexts';

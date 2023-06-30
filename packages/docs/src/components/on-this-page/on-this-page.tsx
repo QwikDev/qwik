@@ -1,10 +1,10 @@
-import { useContent, useLocation } from '@builder.io/qwik-city';
 import { component$, useStyles$ } from '@builder.io/qwik';
+import { useContent, useLocation } from '@builder.io/qwik-city';
 import { ChatIcon } from '../svgs/chat-icon';
+import { EditIcon } from '../svgs/edit-icon';
 import { GithubLogo } from '../svgs/github-logo';
 import { TwitterLogo } from '../svgs/twitter-logo';
 import styles from './on-this-page.css?inline';
-import { EditIcon } from '../svgs/edit-icon';
 
 const makeEditPageUrl = (url: string): string => {
   const qwikDocsPathnames = [

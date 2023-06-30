@@ -1,6 +1,6 @@
 import { type RequestHandler } from '@builder.io/qwik-city';
-import { getBundleGrouping } from './chunks';
 import { getDB } from '../../../../../db';
+import { getBundleGrouping } from './chunks';
 
 export const onGet: RequestHandler = async ({ exit, json, params }) => {
   json(

@@ -1,18 +1,18 @@
+import { suite } from 'uvu';
+import { equal, match } from 'uvu/assert';
 import { ElementFixture, trigger } from '../../../testing/element-fixture';
 import { expectDOM } from '../../../testing/expect-dom.unit';
 import { component$ } from '../../component/component.public';
+import { pauseContainer } from '../../container/pause';
 import { inlinedQrl } from '../../qrl/qrl';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
-import { useStore } from '../../use/use-store.public';
-import { useVisibleTask$, useTask$ } from '../../use/use-task';
 import { useOn } from '../../use/use-on';
+import { useSignal } from '../../use/use-signal';
+import { useStore } from '../../use/use-store.public';
+import { useStylesQrl, useStylesScopedQrl } from '../../use/use-styles';
+import { useTask$, useVisibleTask$ } from '../../use/use-task';
 import { Slot } from '../jsx/slot.public';
 import { render } from './render.public';
-import { useStylesQrl, useStylesScopedQrl } from '../../use/use-styles';
-import { equal, match } from 'uvu/assert';
-import { suite } from 'uvu';
-import { pauseContainer } from '../../container/pause';
-import { useSignal } from '../../use/use-signal';
 
 const renderSuite = suite('render');
 renderSuite('should render basic content', async () => {

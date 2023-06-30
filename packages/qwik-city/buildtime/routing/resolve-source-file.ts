@@ -1,4 +1,10 @@
 import { dirname } from 'node:path';
+import {
+  createFileId,
+  getPathnameFromDirPath,
+  normalizePath,
+  parseRouteIndexName,
+} from '../../utils/fs';
 import { resolveMenu } from '../markdown/menu';
 import type {
   BuildEntry,
@@ -8,12 +14,6 @@ import type {
   NormalizedPluginOptions,
   RouteSourceFile,
 } from '../types';
-import {
-  createFileId,
-  getPathnameFromDirPath,
-  parseRouteIndexName,
-  normalizePath,
-} from '../../utils/fs';
 import { parseRoutePathname } from './parse-pathname';
 import { routeSortCompare } from './sort-routes';
 

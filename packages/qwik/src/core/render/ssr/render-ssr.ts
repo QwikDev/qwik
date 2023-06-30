@@ -1,10 +1,42 @@
+import {
+  createContainerState,
+  getEventName,
+  setRef,
+  type ContainerState,
+} from '../../container/container';
+import { assertDefined, assertElement } from '../../error/assert';
+import { QError_canNotRenderHTML, qError } from '../../error/error';
+import { serializeQRLs } from '../../qrl/qrl';
+import { _IMMUTABLE, _IMMUTABLE_PREFIX } from '../../state/constants';
+import {
+  HOST_FLAG_DYNAMIC,
+  HOST_FLAG_NEED_ATTACH_LISTENER,
+  Q_CTX,
+  createContext,
+  type QContext,
+} from '../../state/context';
+import {
+  PREVENT_DEFAULT,
+  groupListeners,
+  isOnProp,
+  setEvent,
+  type Listener,
+} from '../../state/listeners';
+import { isSignal } from '../../state/signal';
+import { createPropsState, createProxy } from '../../state/store';
+import { serializeSStyle } from '../../style/qrl-styles';
+import { invoke, newInvokeContext, trackSignal, type InvokeContext } from '../../use/use-core';
+import { EMPTY_OBJ } from '../../util/flyweight';
+import { logError, logWarn } from '../../util/log';
+import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS, QStyle } from '../../util/markers';
 import { isPromise, then } from '../../util/promises';
-import { type InvokeContext, newInvokeContext, invoke, trackSignal } from '../../use/use-core';
-import { Virtual, _jsxC, _jsxQ, createJSXError, isJSXNode } from '../jsx/jsx-runtime';
+import { qDev, qInspector, seal } from '../../util/qdev';
 import { isArray, isFunction, isString, type ValueOrPromise } from '../../util/types';
-import type { JSXNode } from '../jsx/types/jsx-node';
+import { version } from '../../version';
+import type { QwikElement } from '../dom/virtual-element';
 import {
   createRenderContext,
+  dangerouslySetInnerHTML,
   executeComponent,
   getNextIndex,
   isAriaAttribute,
@@ -14,43 +46,11 @@ import {
   shouldWrapFunctional,
   static_subtree,
   stringifyStyle,
-  dangerouslySetInnerHTML,
 } from '../execute-component';
-import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS, QStyle } from '../../util/markers';
+import { Virtual, _jsxC, _jsxQ, createJSXError, isJSXNode } from '../jsx/jsx-runtime';
+import type { JSXNode } from '../jsx/types/jsx-node';
 import { InternalSSRStream, SSRRaw } from '../jsx/utils.public';
-import { logError, logWarn } from '../../util/log';
-import {
-  groupListeners,
-  isOnProp,
-  type Listener,
-  PREVENT_DEFAULT,
-  setEvent,
-} from '../../state/listeners';
-import { version } from '../../version';
-import {
-  type ContainerState,
-  createContainerState,
-  setRef,
-  getEventName,
-} from '../../container/container';
 import type { RenderContext } from '../types';
-import { assertDefined, assertElement } from '../../error/assert';
-import { serializeSStyle } from '../../style/qrl-styles';
-import { qDev, qInspector, seal } from '../../util/qdev';
-import { qError, QError_canNotRenderHTML } from '../../error/error';
-import { isSignal } from '../../state/signal';
-import { serializeQRLs } from '../../qrl/qrl';
-import type { QwikElement } from '../dom/virtual-element';
-import { EMPTY_OBJ } from '../../util/flyweight';
-import {
-  createContext,
-  HOST_FLAG_DYNAMIC,
-  HOST_FLAG_NEED_ATTACH_LISTENER,
-  type QContext,
-  Q_CTX,
-} from '../../state/context';
-import { createPropsState, createProxy } from '../../state/store';
-import { _IMMUTABLE, _IMMUTABLE_PREFIX } from '../../state/constants';
 
 const FLUSH_COMMENT = '<!--qkssr-f-->';
 

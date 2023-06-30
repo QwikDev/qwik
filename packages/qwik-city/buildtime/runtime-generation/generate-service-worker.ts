@@ -1,8 +1,8 @@
-import type { BuildContext } from '../types';
-import swRegister from '@qwik-city-sw-register-build';
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
+import swRegister from '@qwik-city-sw-register-build';
 import type { AppBundle } from '../../runtime/src/service-worker/types';
 import { removeExtension } from '../../utils/fs';
+import type { BuildContext } from '../types';
 
 export function generateServiceWorkerRegister(ctx: BuildContext) {
   let swReg: string;

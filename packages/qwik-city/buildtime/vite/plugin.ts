@@ -1,24 +1,8 @@
-import { createMdxTransformer, type MdxTransform } from '../markdown/mdx';
-import { basename, join, resolve } from 'node:path';
-import type { Plugin, PluginOption, UserConfig, Rollup } from 'vite';
-import { loadEnv } from 'vite';
-import { generateQwikCityPlan } from '../runtime-generation/generate-qwik-city-plan';
-import type { BuildContext } from '../types';
-import { createBuildContext, resetBuildContext } from '../context';
-import { isMenuFileName, normalizePath, removeExtension } from '../../utils/fs';
-import { validatePlugin } from './validate-plugin';
-import type { QwikCityPluginApi, QwikCityVitePluginOptions } from './types';
-import { build } from '../build';
-import { ssrDevMiddleware, staticDistMiddleware } from './dev-server';
-import { transformMenu } from '../markdown/menu';
-import { generateQwikCityEntries } from '../runtime-generation/generate-entries';
-import { patchGlobalThis } from '../../middleware/node/node-fetch';
 import type { QwikVitePlugin } from '@builder.io/qwik/optimizer';
 import fs from 'node:fs';
-import {
-  generateServiceWorkerRegister,
-  prependManifestToServiceWorker,
-} from '../runtime-generation/generate-service-worker';
+import { basename, join, resolve } from 'node:path';
+import type { Plugin, PluginOption, Rollup, UserConfig } from 'vite';
+import { loadEnv } from 'vite';
 import {
   NOT_FOUND_PATHS_ID,
   RESOLVED_NOT_FOUND_PATHS_ID,
@@ -26,7 +10,23 @@ import {
   STATIC_PATHS_ID,
 } from '../../adapters/shared/vite';
 import { postBuild } from '../../adapters/shared/vite/post-build';
+import { patchGlobalThis } from '../../middleware/node/node-fetch';
+import { isMenuFileName, normalizePath, removeExtension } from '../../utils/fs';
+import { build } from '../build';
+import { createBuildContext, resetBuildContext } from '../context';
+import { createMdxTransformer, type MdxTransform } from '../markdown/mdx';
+import { transformMenu } from '../markdown/menu';
+import { generateQwikCityEntries } from '../runtime-generation/generate-entries';
+import { generateQwikCityPlan } from '../runtime-generation/generate-qwik-city-plan';
+import {
+  generateServiceWorkerRegister,
+  prependManifestToServiceWorker,
+} from '../runtime-generation/generate-service-worker';
+import type { BuildContext } from '../types';
+import { ssrDevMiddleware, staticDistMiddleware } from './dev-server';
 import { imagePlugin } from './image-jsx';
+import type { QwikCityPluginApi, QwikCityVitePluginOptions } from './types';
+import { validatePlugin } from './validate-plugin';
 
 /**
  * @public

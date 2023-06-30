@@ -1,3 +1,9 @@
+import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
+import type { ServerRequestEvent } from '@builder.io/qwik-city/middleware/request-handler';
+import { requestHandler } from '@builder.io/qwik-city/middleware/request-handler';
+import { WritableStream } from 'node:stream/web';
+import { pathToFileURL } from 'node:url';
+import type { ClientPageData } from '../runtime/src/types';
 import type {
   StaticGenerateHandlerOptions,
   StaticRoute,
@@ -5,12 +11,6 @@ import type {
   StaticWorkerRenderResult,
   System,
 } from './types';
-import type { ClientPageData } from '../runtime/src/types';
-import type { ServerRequestEvent } from '@builder.io/qwik-city/middleware/request-handler';
-import { requestHandler } from '@builder.io/qwik-city/middleware/request-handler';
-import { pathToFileURL } from 'node:url';
-import { WritableStream } from 'node:stream/web';
-import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
 
 export async function workerThread(sys: System) {
   const ssgOpts = sys.getOptions();

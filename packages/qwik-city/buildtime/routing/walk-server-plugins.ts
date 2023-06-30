@@ -1,6 +1,5 @@
 import fs from 'node:fs';
 import { join } from 'node:path';
-import type { BuildServerPlugin, NormalizedPluginOptions } from '../types';
 import {
   createFileId,
   getExtension,
@@ -9,6 +8,7 @@ import {
   normalizePath,
   removeExtension,
 } from '../../utils/fs';
+import type { BuildServerPlugin, NormalizedPluginOptions } from '../types';
 
 export async function walkServerPlugins(opts: NormalizedPluginOptions) {
   const dirPath = opts.serverPluginsDir;

@@ -1,27 +1,27 @@
 import type { Plugin, WatchMode } from 'esbuild';
-import { join } from 'node:path';
+import { execa, type Options } from 'execa';
 import mri from 'mri';
 import {
+  existsSync,
   access as fsAccess,
   copyFile as fsCopyFile,
-  existsSync,
+  mkdir as fsMkdir,
+  readFile as fsReadFile,
+  readdir as fsReaddir,
+  stat as fsStat,
+  unlink as fsUnlink,
+  writeFile as fsWriteFile,
   mkdirSync,
   readdirSync,
-  readdir as fsReaddir,
-  readFile as fsReadFile,
   rmdirSync,
-  stat as fsStat,
   statSync,
-  unlink as fsUnlink,
   unlinkSync,
-  writeFile as fsWriteFile,
-  mkdir as fsMkdir,
 } from 'node:fs';
-import { promisify } from 'util';
-import { minify, type MinifyOptions } from 'terser';
-import type { Plugin as RollupPlugin } from 'rollup';
-import { execa, type Options } from 'execa';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import type { Plugin as RollupPlugin } from 'rollup';
+import { minify, type MinifyOptions } from 'terser';
+import { promisify } from 'util';
 
 /**
  * Contains information about the build we're generating by parsing

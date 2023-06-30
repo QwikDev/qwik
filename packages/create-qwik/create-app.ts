@@ -1,17 +1,17 @@
-import type { CreateAppOptions, CreateAppResult, IntegrationData } from '../qwik/src/cli/types';
+import { bgMagenta, bold, cyan, magenta } from 'kleur/colors';
 import fs from 'node:fs';
-import { bgMagenta, magenta, cyan, bold } from 'kleur/colors';
+import os from 'node:os';
 import { isAbsolute, join, relative, resolve } from 'node:path';
+import { updateApp } from '../qwik/src/cli/add/update-app';
+import type { CreateAppOptions, CreateAppResult, IntegrationData } from '../qwik/src/cli/types';
+import { loadIntegrations } from '../qwik/src/cli/utils/integrations';
+import { logSuccessFooter } from '../qwik/src/cli/utils/log';
 import {
   cleanPackageJson,
   getPackageManager,
   panic,
   writePackageJson,
 } from '../qwik/src/cli/utils/utils';
-import { loadIntegrations } from '../qwik/src/cli/utils/integrations';
-import { logSuccessFooter } from '../qwik/src/cli/utils/log';
-import { updateApp } from '../qwik/src/cli/add/update-app';
-import os from 'node:os';
 
 export async function runCreateCli(starterId: string, outDir: string) {
   if (writeToCwd()) {

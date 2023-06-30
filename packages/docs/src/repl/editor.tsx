@@ -1,23 +1,23 @@
 import {
   component$,
-  type NoSerialize,
-  type PropFunction,
-  useVisibleTask$,
   useContext,
   useSignal,
   useStore,
   useTask$,
+  useVisibleTask$,
+  type NoSerialize,
+  type PropFunction,
 } from '@builder.io/qwik';
+import { GlobalStore } from '../context';
 import type { IStandaloneCodeEditor } from './monaco';
 import {
   addQwikLibs,
   getEditorTheme,
-  type ICodeEditorViewState,
   initMonacoEditor,
   updateMonacoEditor,
+  type ICodeEditorViewState,
 } from './monaco';
 import type { ReplAppInput, ReplStore } from './types';
-import { GlobalStore } from '../context';
 
 export const Editor = component$((props: EditorProps) => {
   const hostRef = useSignal<Element>();

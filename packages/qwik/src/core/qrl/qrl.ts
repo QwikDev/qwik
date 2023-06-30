@@ -1,19 +1,19 @@
-import { EMPTY_ARRAY } from '../util/flyweight';
-import type { QRL } from './qrl.public';
-import { assertQrl, createQRL, emitEvent, getSymbolHash, type QRLInternal } from './qrl-class';
-import { isFunction, isString } from '../util/types';
+import type { MustGetObjID } from '../container/container';
+import { mapJoin } from '../container/pause';
+import { assertDefined, assertElement, assertTrue } from '../error/assert';
 import {
-  qError,
   QError_dynamicImportFailed,
   QError_qrlMissingChunk,
   QError_unknownTypeArgument,
+  qError,
 } from '../error/error';
-import { qRuntimeQrl, qSerialize } from '../util/qdev';
 import { getPlatform } from '../platform/platform';
-import { assertDefined, assertTrue, assertElement } from '../error/assert';
-import type { MustGetObjID } from '../container/container';
 import type { QContext } from '../state/context';
-import { mapJoin } from '../container/pause';
+import { EMPTY_ARRAY } from '../util/flyweight';
+import { qRuntimeQrl, qSerialize } from '../util/qdev';
+import { isFunction, isString } from '../util/types';
+import { assertQrl, createQRL, emitEvent, getSymbolHash, type QRLInternal } from './qrl-class';
+import type { QRL } from './qrl.public';
 
 // https://regexr.com/68v72
 const EXTRACT_IMPORT_PATH = /\(\s*(['"])([^\1]+)\1\s*\)/;

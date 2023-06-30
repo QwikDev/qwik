@@ -2,7 +2,7 @@ import { Extractor, ExtractorConfig } from '@microsoft/api-extractor';
 import { readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { generateApiMarkdownDocs } from './api-docs';
-import { type BuildConfig, panic } from './util';
+import { panic, type BuildConfig } from './util';
 
 /**
  * Create each submodule's bundled dts file, and ensure

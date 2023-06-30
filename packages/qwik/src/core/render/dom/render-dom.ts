@@ -1,20 +1,20 @@
 import { qError, QError_invalidJsxNodeType } from '../../error/error';
-import { type InvokeContext, newInvokeContext, invoke } from '../../use/use-core';
+import { HOST_FLAG_MOUNTED, type QContext } from '../../state/context';
+import { isSignal, type Signal } from '../../state/signal';
+import { invoke, newInvokeContext, type InvokeContext } from '../../use/use-core';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../../util/flyweight';
 import { logWarn } from '../../util/log';
 import { isNotNullable, isPromise, promiseAll, then } from '../../util/promises';
 import { qDev, qInspector, seal } from '../../util/qdev';
 import { isArray, isFunction, isObject, isString, type ValueOrPromise } from '../../util/types';
-import { domToVnode, smartUpdateChildren } from './visitor';
-import { SkipRender } from '../jsx/utils.public';
-import { isJSXNode, SKIP_RENDER_TYPE, _jsxC, Virtual } from '../jsx/jsx-runtime';
-import type { DevJSX, JSXNode } from '../jsx/types/jsx-node';
 import { executeComponent, shouldWrapFunctional } from '../execute-component';
+import { _jsxC, isJSXNode, SKIP_RENDER_TYPE, Virtual } from '../jsx/jsx-runtime';
+import type { DevJSX, JSXNode } from '../jsx/types/jsx-node';
+import { SkipRender } from '../jsx/utils.public';
 import type { RenderContext } from '../types';
-import { type QwikElement, VIRTUAL, type VirtualElement } from './virtual-element';
 import { appendHeadStyle } from './operations';
-import { isSignal, type Signal } from '../../state/signal';
-import { HOST_FLAG_MOUNTED, type QContext } from '../../state/context';
+import { VIRTUAL, type QwikElement, type VirtualElement } from './virtual-element';
+import { domToVnode, smartUpdateChildren } from './visitor';
 
 export const renderComponent = (
   rCtx: RenderContext,

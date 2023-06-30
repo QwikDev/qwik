@@ -1,14 +1,15 @@
-import { type BuildConfig, ensureDir, panic } from './util';
 import { apiExtractor } from './api';
-import { buildCreateQwikCli } from './create-qwik-cli';
-import { buildEslint } from './eslint';
 import { buildPlatformBinding, copyPlatformBindingWasm } from './binding-platform';
-import { buildQwikCity } from './qwik-city';
-import { buildQwikReact } from './qwik-react';
 import { buildWasmBinding } from './binding-wasm';
 import { copyFiles } from './copy-files';
-import { emptyDir } from './util';
+import { buildCreateQwikCli } from './create-qwik-cli';
+import { buildEslint } from './eslint';
 import { generatePackageJson } from './package-json';
+import { buildQwikAuth } from './qwik-auth';
+import { buildQwikCity } from './qwik-city';
+import { buildQwikLabs } from './qwik-labs';
+import { buildQwikReact } from './qwik-react';
+import { buildQwikWorker } from './qwik-worker';
 import {
   commitPrepareReleaseVersion,
   prepareReleaseVersion,
@@ -24,12 +25,10 @@ import { submoduleOptimizer } from './submodule-optimizer';
 import { submoduleQwikLoader } from './submodule-qwikloader';
 import { submoduleServer } from './submodule-server';
 import { submoduleTesting } from './submodule-testing';
-import { tsc } from './tsc';
-import { validateBuild } from './validate-build';
-import { buildQwikAuth } from './qwik-auth';
 import { buildSupabaseAuthHelpers } from './supabase-auth-helpers';
-import { buildQwikWorker } from './qwik-worker';
-import { buildQwikLabs } from './qwik-labs';
+import { tsc } from './tsc';
+import { emptyDir, ensureDir, panic, type BuildConfig } from './util';
+import { validateBuild } from './validate-build';
 
 /**
  * Complete a full build for all of the package's submodules. Passed in

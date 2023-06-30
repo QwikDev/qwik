@@ -1,5 +1,5 @@
-import type { BuildContext } from '../types';
 import { createFileId } from '../../utils/fs';
+import type { BuildContext } from '../types';
 import { getImportPath } from './utils';
 
 export function createMenus(ctx: BuildContext, c: string[], esmImports: string[]) {

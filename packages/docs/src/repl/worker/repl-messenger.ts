@@ -1,4 +1,4 @@
-import type { ReplMessageBase, ReplMessage } from '../types';
+import type { ReplMessage, ReplMessageBase } from '../types';
 import { appUpdate } from './app-update';
 
 export const receiveMessageFromMain = (ev: MessageEvent) => {

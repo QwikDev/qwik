@@ -1,6 +1,6 @@
-import type { QwikVitePlugin, QwikManifest } from '@builder.io/qwik/optimizer';
-import type { BuildContext, BuildRoute } from '../types';
+import type { QwikManifest, QwikVitePlugin } from '@builder.io/qwik/optimizer';
 import { isModuleExt, isPageExt, removeExtension } from '../../utils/fs';
+import type { BuildContext, BuildRoute } from '../types';
 import { getImportPath } from './utils';
 
 export function createRoutes(

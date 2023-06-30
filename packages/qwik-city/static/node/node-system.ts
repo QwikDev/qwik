@@ -1,11 +1,11 @@
 /* eslint-disable no-console */
-import type { StaticGenerateOptions, System } from '../types';
 import fs from 'node:fs';
 import { dirname, join } from 'node:path';
 import { patchGlobalThis } from '../../middleware/node/node-fetch';
+import { normalizePath } from '../../utils/fs';
+import type { StaticGenerateOptions, System } from '../types';
 import { createNodeMainProcess } from './node-main';
 import { createNodeWorkerProcess } from './node-worker';
-import { normalizePath } from '../../utils/fs';
 
 /**
  * @public

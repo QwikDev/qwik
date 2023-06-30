@@ -1,9 +1,9 @@
-import { h } from './factory';
-import { isJSXNode, Fragment } from './jsx-runtime';
-import type { FunctionComponent } from './types/jsx-node';
-import { equal } from 'uvu/assert';
 import { suite } from 'uvu';
-import { type ProcessedJSXNode, processNode } from '../dom/render-dom';
+import { equal } from 'uvu/assert';
+import { processNode, type ProcessedJSXNode } from '../dom/render-dom';
+import { h } from './factory';
+import { Fragment, isJSXNode } from './jsx-runtime';
+import type { FunctionComponent } from './types/jsx-node';
 
 const jsxSuite = suite('classic jsx factory h()');
 jsxSuite('map multiple nodes, flatten', () => {

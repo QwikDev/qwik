@@ -1,16 +1,16 @@
-import { build, type Plugin, transform } from 'esbuild';
+import { build, transform, type Plugin } from 'esbuild';
 import { execa } from 'execa';
 import { copyFile, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { rollup } from 'rollup';
 import { readPackageJson, writePackageJson } from './package-json';
 import {
-  type BuildConfig,
   emptyDir,
   importPath,
   nodeTarget,
   panic,
   watcher,
+  type BuildConfig,
   type PackageJSON,
 } from './util';
 

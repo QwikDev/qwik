@@ -1,8 +1,8 @@
 /* eslint-disable no-console */
-import { createApp, runCreateCli } from './create-app';
-import { panic, printHeader } from '../qwik/src/cli/utils/utils';
-import { runCreateInteractiveCli } from './create-interactive';
 import { red, yellow } from 'kleur/colors';
+import { panic, printHeader } from '../qwik/src/cli/utils/utils';
+import { createApp, runCreateCli } from './create-app';
+import { runCreateInteractiveCli } from './create-interactive';
 
 export async function runCli() {
   console.clear();

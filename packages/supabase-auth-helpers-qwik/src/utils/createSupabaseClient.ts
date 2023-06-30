@@ -1,8 +1,8 @@
 import type { RequestEventBase } from '@builder.io/qwik-city';
 import {
-  type CookieOptions,
-  createServerSupabaseClient,
   createBrowserSupabaseClient,
+  createServerSupabaseClient,
+  type CookieOptions,
   type SupabaseClientOptionsWithoutAuth,
 } from '@supabase/auth-helpers-shared';
 import type { SupabaseClient } from '@supabase/supabase-js';

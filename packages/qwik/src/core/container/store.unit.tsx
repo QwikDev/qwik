@@ -1,18 +1,18 @@
-import { createDocument } from '../../testing/document';
-import { useStore } from '../use/use-store.public';
-import { useLexicalScope } from '../use/use-lexical-scope.public';
-import { component$ } from '../component/component.public';
-import { $ } from '../qrl/qrl.public';
-import { logDebug } from '../util/log';
-import { inlinedQrl } from '../qrl/qrl';
 import { suite } from 'uvu';
-import { render } from '../render/dom/render.public';
-import { expectDOM } from '../../testing/expect-dom.unit';
-import { pauseContainer } from './pause';
-import { noSerialize } from '../state/common';
-import { useSignal } from '../use/use-signal';
-import { getQwikJSON } from './resume';
 import { equal } from 'uvu/assert';
+import { createDocument } from '../../testing/document';
+import { expectDOM } from '../../testing/expect-dom.unit';
+import { component$ } from '../component/component.public';
+import { inlinedQrl } from '../qrl/qrl';
+import { $ } from '../qrl/qrl.public';
+import { render } from '../render/dom/render.public';
+import { noSerialize } from '../state/common';
+import { useLexicalScope } from '../use/use-lexical-scope.public';
+import { useSignal } from '../use/use-signal';
+import { useStore } from '../use/use-store.public';
+import { logDebug } from '../util/log';
+import { pauseContainer } from './pause';
+import { getQwikJSON } from './resume';
 
 const storeSuite = suite('store');
 

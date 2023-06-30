@@ -6,14 +6,14 @@ import type { QRLInternal } from '../qrl/qrl-class';
 import type { QRL } from '../qrl/qrl.public';
 import type { QwikElement } from '../render/dom/virtual-element';
 import type { RenderContext } from '../render/types';
+import type { Subscriber } from '../state/common';
 import { getContext, HOST_FLAG_DYNAMIC } from '../state/context';
+import type { Signal } from '../state/signal';
 import { QContainerSelector, QLocaleAttr, RenderEvent } from '../util/markers';
 import { isPromise } from '../util/promises';
 import { seal } from '../util/qdev';
 import { isArray } from '../util/types';
 import { setLocale } from './use-locale';
-import type { Subscriber } from '../state/common';
-import type { Signal } from '../state/signal';
 
 declare const document: QwikDocument;
 

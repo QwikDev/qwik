@@ -1,10 +1,10 @@
-import { type BuildConfig, ensureDir } from './util';
 import spawn from 'cross-spawn';
-import { join } from 'node:path';
-import { fetch } from 'undici';
-import semver from 'semver';
-import { existsSync } from 'node:fs';
 import { copyFile, readdir, writeFile } from 'fs/promises';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+import semver from 'semver';
+import { fetch } from 'undici';
+import { ensureDir, type BuildConfig } from './util';
 
 export async function buildPlatformBinding(config: BuildConfig) {
   await new Promise((resolve, reject) => {

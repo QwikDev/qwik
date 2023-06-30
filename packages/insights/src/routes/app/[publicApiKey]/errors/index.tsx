@@ -1,7 +1,7 @@
 import { component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
-import { getDB, errorTable } from '~/db';
 import { eq } from 'drizzle-orm';
+import { errorTable, getDB } from '~/db';
 
 export const useErrors = routeLoader$(async ({ params }) => {
   const db = getDB();

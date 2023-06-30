@@ -1,8 +1,8 @@
-import type { AppBundle, LinkBundle, ServiceWorkerMessageEvent } from './types';
-import { awaitingRequests, qBuildCacheName } from './constants';
 import { cachedFetch } from './cached-fetch';
-import { computeAppSymbols, getCacheToDelete, isAppBundleRequest, resolveSymbols } from './utils';
+import { awaitingRequests, qBuildCacheName } from './constants';
 import { prefetchBundleNames, prefetchLinkBundles, prefetchWaterfall } from './prefetch';
+import type { AppBundle, LinkBundle, ServiceWorkerMessageEvent } from './types';
+import { computeAppSymbols, getCacheToDelete, isAppBundleRequest, resolveSymbols } from './utils';
 
 export const setupServiceWorkerScope = (
   swScope: ServiceWorkerGlobalScope,

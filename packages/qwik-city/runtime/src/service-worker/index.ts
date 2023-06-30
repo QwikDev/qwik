@@ -1,5 +1,5 @@
-import type { AppBundle, LinkBundle } from './types';
 import { setupServiceWorkerScope } from './setup';
+import type { AppBundle, LinkBundle } from './types';
 
 /**
  * @public

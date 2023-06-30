@@ -1,10 +1,10 @@
 import { component$ } from '@builder.io/qwik';
 import { routeLoader$, useLocation } from '@builder.io/qwik-city';
 import { formAction$, useForm, zodForm$, type InitialValues } from '@modular-forms/qwik';
-import { applicationTable, getDB } from '~/db';
-import { ApplicationForm } from '../../[publicApiKey]/app.form';
 import { eq } from 'drizzle-orm';
+import { applicationTable, getDB } from '~/db';
 import { appUrl } from '~/routes.config';
+import { ApplicationForm } from '../../[publicApiKey]/app.form';
 
 export const useFormLoader = routeLoader$<InitialValues<ApplicationForm>>(async ({ params }) => {
   if (isCreateMode(params)) {

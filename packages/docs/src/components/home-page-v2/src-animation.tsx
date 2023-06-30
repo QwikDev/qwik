@@ -1,19 +1,19 @@
 import {
-  component$,
-  useSignal,
   $,
+  component$,
   useComputed$,
-  useStore,
-  useTask$,
-  useStyles$,
   useOnDocument,
+  useSignal,
+  useStore,
+  useStyles$,
+  useTask$,
   type QwikMouseEvent,
 } from '@builder.io/qwik';
 import { isBrowser } from '@builder.io/qwik/build';
-import { type Callout, getCallout } from './callout';
+import { getCallout, type Callout } from './callout';
 import { setPosition } from './layers';
-import { srcLayer0, srcLayer1, srcLayer2 } from './syntax';
 import STYLES from './src-animation.css?inline';
+import { srcLayer0, srcLayer1, srcLayer2 } from './syntax';
 
 export const SrcAnimation = component$(() => {
   useStyles$(STYLES);

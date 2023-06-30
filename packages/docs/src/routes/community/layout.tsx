@@ -1,9 +1,9 @@
 import { component$, Slot, useStyles$ } from '@builder.io/qwik';
-import { SideBar } from '../../components/sidebar/sidebar';
+import { ContentNav } from '../../components/content-nav/content-nav';
 import { Footer } from '../../components/footer/footer';
 import { Header } from '../../components/header/header';
 import { OnThisPage } from '../../components/on-this-page/on-this-page';
-import { ContentNav } from '../../components/content-nav/content-nav';
+import { SideBar } from '../../components/sidebar/sidebar';
 import styles from '../docs/docs.css?inline';
 
 export default component$(() => {

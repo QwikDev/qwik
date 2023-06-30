@@ -1,11 +1,11 @@
 /* eslint-disable no-console */
-import { red, dim, cyan, bgMagenta } from 'kleur/colors';
-import { AppCommand } from './utils/app-command';
+import { confirm, intro, isCancel, select } from '@clack/prompts';
+import { bgMagenta, cyan, dim, red } from 'kleur/colors';
 import { runAddCommand } from './add/run-add-command';
-import { runNewCommand } from './new/run-new-command';
-import { note, panic, pmRunCmd, printHeader, bye } from './utils/utils';
 import { runBuildCommand } from './build/run-build-command';
-import { intro, isCancel, select, confirm } from '@clack/prompts';
+import { runNewCommand } from './new/run-new-command';
+import { AppCommand } from './utils/app-command';
+import { bye, note, panic, pmRunCmd, printHeader } from './utils/utils';
 
 const SPACE_TO_HINT = 18;
 const COMMANDS = [

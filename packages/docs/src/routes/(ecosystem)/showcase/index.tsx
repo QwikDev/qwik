@@ -1,7 +1,7 @@
 import { component$, useStyles$ } from '@builder.io/qwik';
 import type { DocumentHead } from '@builder.io/qwik-city';
-import styles from './styles.css?inline';
 import pages from './generated-pages.json';
+import styles from './styles.css?inline';
 
 export interface MediaEntry {
   title: string;

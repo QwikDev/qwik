@@ -1,11 +1,11 @@
-import { createDOM } from '../../testing/library';
-import { expectDOM } from '../../testing/expect-dom.unit';
-import { inlinedQrl } from '../qrl/qrl';
-import { useStylesQrl } from '../use/use-styles';
-import { type PropsOf, component$ } from './component.public';
 import { suite } from 'uvu';
-import { useStore } from '../use/use-store.public';
+import { expectDOM } from '../../testing/expect-dom.unit';
+import { createDOM } from '../../testing/library';
+import { inlinedQrl } from '../qrl/qrl';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
+import { useStore } from '../use/use-store.public';
+import { useStylesQrl } from '../use/use-styles';
+import { component$, type PropsOf } from './component.public';
 
 /**
  * Applying new unit test library/layer

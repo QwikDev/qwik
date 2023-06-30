@@ -4,20 +4,20 @@ import type {
   Diagnostic,
   EntryStrategy,
   OptimizerOptions,
-  QwikManifest,
-  TransformModuleInput,
   Path,
+  QwikManifest,
   TransformModule,
+  TransformModuleInput,
 } from '../types';
+import { versions } from '../versions';
 import {
+  Q_MANIFEST_FILENAME,
   createPlugin,
   type NormalizedQwikPluginOptions,
   type QwikBuildMode,
   type QwikBuildTarget,
   type QwikPluginOptions,
-  Q_MANIFEST_FILENAME,
 } from './plugin';
-import { versions } from '../versions';
 
 /**
  * @public

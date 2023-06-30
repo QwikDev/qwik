@@ -1,17 +1,17 @@
-import { type InputOptions, type OutputOptions, rollup } from 'rollup';
+import { transform } from 'esbuild';
+import { join } from 'node:path';
+import { rollup, type InputOptions, type OutputOptions } from 'rollup';
+import { writePackageJson } from './package-json';
 import {
-  type BuildConfig,
   ensureDir,
   fileSize,
-  type PackageJSON,
   readFile,
   rollupOnWarn,
   terser,
   writeFile,
+  type BuildConfig,
+  type PackageJSON,
 } from './util';
-import { join } from 'node:path';
-import { transform } from 'esbuild';
-import { writePackageJson } from './package-json';
 
 /**
  * Builds the qwikloader javascript files. These files can be used

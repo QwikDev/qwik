@@ -2,4 +2,4 @@
 export { createBrowserClient, createServerClient } from './utils/createSupabaseClient';
 
 // Types
-export type { Session, User, SupabaseClient } from '@supabase/supabase-js';
+export type { Session, SupabaseClient, User } from '@supabase/supabase-js';

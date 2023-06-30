@@ -1,33 +1,33 @@
 import { setPlatform } from '@builder.io/qwik';
-import { createPlatform } from './platform';
 import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
+import { createPlatform } from './platform';
 import { resolveManifest } from './render';
 import type { QwikManifest } from './types';
 
+export { renderToStream, renderToString, resolveManifest } from './render';
+export { getQwikLoaderScript } from './scripts';
 export type {
-  PrefetchResource,
-  PrefetchImplementation,
-  PrefetchStrategy,
-  RenderToStringOptions,
-  RenderToStringResult,
-  Render,
-  RenderToStream,
-  RenderToString,
-  RenderOptions,
-  RenderResult,
-  RenderToStreamOptions,
-  SerializeDocumentOptions,
-  RenderToStreamResult,
-  QwikLoaderOptions,
-  StreamingOptions,
   InOrderAuto,
   InOrderDisabled,
   InOrderStreaming,
+  PrefetchImplementation,
+  PrefetchResource,
+  PrefetchStrategy,
+  QwikLoaderOptions,
+  Render,
+  RenderOptions,
+  RenderResult,
+  RenderToStream,
+  RenderToStreamOptions,
+  RenderToStreamResult,
+  RenderToString,
+  RenderToStringOptions,
+  RenderToStringResult,
+  SerializeDocumentOptions,
+  StreamingOptions,
   SymbolsToPrefetch,
 } from './types';
-export { renderToString, renderToStream, resolveManifest } from './render';
 export { versions } from './utils';
-export { getQwikLoaderScript } from './scripts';
 
 /**
  * @public

@@ -1,7 +1,7 @@
 import { verifySerializable } from '../state/common';
 import { getContext, type QContext } from '../state/context';
 import { qDev, qSerialize } from '../util/qdev';
-import { type RenderInvokeContext, useInvokeContext } from './use-core';
+import { useInvokeContext, type RenderInvokeContext } from './use-core';
 
 export interface SequentialScope<T> {
   readonly get: T | undefined;

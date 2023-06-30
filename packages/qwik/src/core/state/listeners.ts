@@ -1,11 +1,11 @@
+import { assertTrue } from '../error/assert';
 import { inflateQrl, parseQRL } from '../qrl/qrl';
 import { assertQrl, isQrl, type QRLInternal } from '../qrl/qrl-class';
 import { $ } from '../qrl/qrl.public';
-import { isArray } from '../util/types';
-import { assertTrue } from '../error/assert';
+import { fromCamelToKebabCase } from '../util/case';
 import { EMPTY_ARRAY } from '../util/flyweight';
 import { qRuntimeQrl, qSerialize } from '../util/qdev';
-import { fromCamelToKebabCase } from '../util/case';
+import { isArray } from '../util/types';
 import type { QContext } from './context';
 
 const ON_PROP_REGEX = /^(on|window:|document:)/;

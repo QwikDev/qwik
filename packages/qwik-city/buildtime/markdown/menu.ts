@@ -1,6 +1,6 @@
-import type { NormalizedPluginOptions, BuildMenu, ParsedMenuItem, RouteSourceFile } from '../types';
 import { marked } from 'marked';
 import { createFileId, getMenuPathname } from '../../utils/fs';
+import type { BuildMenu, NormalizedPluginOptions, ParsedMenuItem, RouteSourceFile } from '../types';
 import { getMarkdownRelativeUrl } from './markdown-url';
 
 export function createMenu(opts: NormalizedPluginOptions, filePath: string) {

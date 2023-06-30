@@ -1,6 +1,6 @@
 import { type RequestHandler } from '@builder.io/qwik-city';
-import { getDB, symbolTable } from '~/db';
 import { InsightsPayload } from '@builder.io/qwik-labs';
+import { getDB, symbolTable } from '~/db';
 
 export const onPost: RequestHandler = async ({ exit, json, request }) => {
   // console.log('API: POST: symbol');

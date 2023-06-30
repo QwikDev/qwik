@@ -1,6 +1,6 @@
-import type { TestPlatform } from './types';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import type { TestPlatform } from './types';
 
 function createPlatform() {
   interface Queue<T> {

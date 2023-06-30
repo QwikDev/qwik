@@ -5,7 +5,7 @@ import { jsxToString, serializeClassWithHost, stringifyStyle } from '../execute-
 import type { RenderStaticContext } from '../types';
 import { setProperty } from './operations';
 import { getVdom } from './render-dom';
-import { smartSetProperty, SVG_NS } from './visitor';
+import { SVG_NS, smartSetProperty } from './visitor';
 
 export const executeSignalOperation = (
   staticCtx: RenderStaticContext,

@@ -6,8 +6,8 @@ import type { NormalizedPluginOptions } from '../buildtime/types';
 import {
   createFileId,
   getExtension,
-  getPathnameFromDirPath,
   getMenuPathname,
+  getPathnameFromDirPath,
   isGroupedLayoutName,
   isMarkdownExt,
   isMenuFileName,

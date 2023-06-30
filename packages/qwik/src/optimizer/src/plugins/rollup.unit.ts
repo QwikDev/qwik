@@ -1,11 +1,11 @@
 import path, { resolve } from 'node:path';
-import { qwikRollup } from './rollup';
-import type { Rollup } from 'vite';
-import type { OptimizerOptions } from '../types';
-import type { NormalizedQwikPluginOptions } from './plugin';
 import { suite } from 'uvu';
 import { equal } from 'uvu/assert';
+import type { Rollup } from 'vite';
 import { normalizePath } from '../../../testing/util';
+import type { OptimizerOptions } from '../types';
+import type { NormalizedQwikPluginOptions } from './plugin';
+import { qwikRollup } from './rollup';
 
 const rollup = suite('rollup');
 const cwd = process.cwd();

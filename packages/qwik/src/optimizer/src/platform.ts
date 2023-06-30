@@ -1,11 +1,11 @@
+import { createPath } from './path';
+import { QWIK_BINDING_MAP } from './qwik-binding-map';
 import type {
   OptimizerSystem,
   SystemEnvironment,
   TransformModuleInput,
   TransformOutput,
 } from './types';
-import { createPath } from './path';
-import { QWIK_BINDING_MAP } from './qwik-binding-map';
 import { versions } from './versions';
 
 export async function getSystem() {

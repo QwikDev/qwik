@@ -1,19 +1,19 @@
-import { assertEqual, assertNumber, assertTrue } from '../error/assert';
-import { qError, QError_immutableProps } from '../error/error';
-import { tryGetInvokeContext } from '../use/use-core';
-import { qDev, qSerialize } from '../util/qdev';
-import { ComputedEvent, RenderEvent, ResourceEvent } from '../util/markers';
-import { isArray, isObject, isSerializableObject } from '../util/types';
 import type { ContainerState } from '../container/container';
+import { assertEqual, assertNumber, assertTrue } from '../error/assert';
+import { QError_immutableProps, qError } from '../error/error';
+import { tryGetInvokeContext } from '../use/use-core';
+import { logError, logWarn } from '../util/log';
+import { ComputedEvent, RenderEvent, ResourceEvent } from '../util/markers';
+import { qDev, qSerialize } from '../util/qdev';
+import { isArray, isObject, isSerializableObject } from '../util/types';
 import {
-  fastSkipSerialize,
   LocalSubscriptionManager,
-  type Subscriber,
-  type Subscriptions,
+  fastSkipSerialize,
   unwrapProxy,
   verifySerializable,
+  type Subscriber,
+  type Subscriptions,
 } from './common';
-import { isSignal } from './signal';
 import {
   QObjectFlagsSymbol,
   QObjectImmutable,
@@ -23,7 +23,7 @@ import {
   _IMMUTABLE,
   _IMMUTABLE_PREFIX,
 } from './constants';
-import { logError, logWarn } from '../util/log';
+import { isSignal } from './signal';
 
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
 

@@ -1,7 +1,7 @@
-import { type BuildConfig, copyFile, watcher, run, nodeTarget } from './util';
-import { join } from 'node:path';
 import { build } from 'esbuild';
+import { join } from 'node:path';
 import { readPackageJson, writePackageJson } from './package-json';
+import { copyFile, nodeTarget, run, watcher, type BuildConfig } from './util';
 
 const PACKAGE = 'eslint-plugin-qwik';
 

@@ -1,16 +1,16 @@
 import { withLocale } from '@builder.io/qwik';
 import type {
+  ActionInternal,
+  ClientPageData,
   ContentModule,
-  RouteLocation,
-  EndpointResponse,
-  ResolvedDocumentHead,
   DocumentHeadProps,
   DocumentHeadValue,
-  ClientPageData,
-  LoaderInternal,
   Editable,
+  EndpointResponse,
+  LoaderInternal,
   ResolveSyncValue,
-  ActionInternal,
+  ResolvedDocumentHead,
+  RouteLocation,
 } from './types';
 
 export const resolveHead = (

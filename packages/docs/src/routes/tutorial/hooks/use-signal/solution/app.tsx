@@ -1,4 +1,4 @@
-import { component$, useVisibleTask$, useSignal, useStore } from '@builder.io/qwik';
+import { component$, useSignal, useStore, useVisibleTask$ } from '@builder.io/qwik';
 
 export default component$(() => {
   const store = useStore({

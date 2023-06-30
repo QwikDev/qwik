@@ -1,7 +1,7 @@
-import type { SerializeDocumentOptions } from './types';
 import { setPlatform } from '@builder.io/qwik';
 import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
 import type { CorePlatformServer } from '../core/platform/types';
+import type { SerializeDocumentOptions } from './types';
 
 declare const require: (module: string) => Record<string, any>;
 

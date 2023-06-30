@@ -1,9 +1,9 @@
 import { noSerialize } from '@builder.io/qwik';
 import type { Diagnostic } from '@builder.io/qwik/optimizer';
 import type MonacoTypes from 'monaco-editor';
+import { getColorPreference } from '../components/theme-toggle/theme-toggle';
 import type { EditorProps, EditorStore } from './editor';
 import type { ReplStore } from './types';
-import { getColorPreference } from '../components/theme-toggle/theme-toggle';
 
 export const initMonacoEditor = async (
   containerElm: any,

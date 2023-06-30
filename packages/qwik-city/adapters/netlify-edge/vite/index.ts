@@ -1,8 +1,8 @@
 import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
-import { getParentDir, type ServerAdapterOptions, viteAdapter } from '../../shared/vite';
+import { basePathname } from '@qwik-city-plan';
 import fs, { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { basePathname } from '@qwik-city-plan';
+import { getParentDir, viteAdapter, type ServerAdapterOptions } from '../../shared/vite';
 
 /**
  * @public

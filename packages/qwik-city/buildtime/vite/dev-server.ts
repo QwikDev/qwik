@@ -1,6 +1,20 @@
-import type { ViteDevServer, Connect } from 'vite';
+import type { QwikManifest, QwikViteDevResponse } from '@builder.io/qwik/optimizer';
+import fs from 'node:fs';
 import type { ServerResponse } from 'node:http';
-import type { BuildContext, BuildRoute } from '../types';
+import { join, resolve } from 'node:path';
+import type { Connect, ViteDevServer } from 'vite';
+import { fromNodeHttp, getUrl } from '../../middleware/node/http';
+import {
+  checkBrand,
+  resolveRequestHandlers,
+} from '../../middleware/request-handler/resolve-request-handlers';
+import { getQwikCityServerData } from '../../middleware/request-handler/response-page';
+import {
+  QDATA_JSON,
+  getRouteMatchPathname,
+  runQwikCity,
+} from '../../middleware/request-handler/user-response';
+import { getMenuLoader, getPathParams } from '../../runtime/src/routing';
 import type {
   ActionInternal,
   ContentMenu,
@@ -13,23 +27,9 @@ import type {
   RequestEvent,
   RouteModule,
 } from '../../runtime/src/types';
-import type { QwikManifest, QwikViteDevResponse } from '@builder.io/qwik/optimizer';
-import fs from 'node:fs';
-import { join, resolve } from 'node:path';
-import {
-  getRouteMatchPathname,
-  QDATA_JSON,
-  runQwikCity,
-} from '../../middleware/request-handler/user-response';
-import { getQwikCityServerData } from '../../middleware/request-handler/response-page';
-import { updateBuildContext } from '../build';
 import { getExtension, normalizePath } from '../../utils/fs';
-import { getMenuLoader, getPathParams } from '../../runtime/src/routing';
-import { fromNodeHttp, getUrl } from '../../middleware/node/http';
-import {
-  checkBrand,
-  resolveRequestHandlers,
-} from '../../middleware/request-handler/resolve-request-handlers';
+import { updateBuildContext } from '../build';
+import type { BuildContext, BuildRoute } from '../types';
 import { formatError } from './format-error';
 
 export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {

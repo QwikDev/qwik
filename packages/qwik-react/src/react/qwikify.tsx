@@ -1,20 +1,20 @@
 import {
+  RenderOnce,
+  SkipRender,
+  Slot,
   component$,
   implicit$FirstArg,
-  type NoSerialize,
   noSerialize,
-  type QRL,
-  useTask$,
-  SkipRender,
   useSignal,
-  Slot,
-  RenderOnce,
   useStylesScoped$,
+  useTask$,
+  type NoSerialize,
+  type QRL,
 } from '@builder.io/qwik';
 
 import { isBrowser, isServer } from '@builder.io/qwik/build';
-import type { Root } from 'react-dom/client';
 import type { FunctionComponent } from 'react';
+import type { Root } from 'react-dom/client';
 import * as client from './client';
 import { renderFromServer } from './server-render';
 import { getHostProps, main, mainExactProps, useWakeupSignal } from './slot';

@@ -1,13 +1,13 @@
-import { type BuildConfig, panic, run } from './util';
+import { Octokit } from '@octokit/action';
 import { execa } from 'execa';
 import { join } from 'node:path';
-import { Octokit } from '@octokit/action';
 import prompts from 'prompts';
-import { readPackageJson, writePackageJson } from './package-json';
 import semver from 'semver';
-import { validateBuild } from './validate-build';
 import { publishCreateQwikCli } from './create-qwik-cli';
 import { publishEslint } from './eslint';
+import { readPackageJson, writePackageJson } from './package-json';
+import { panic, run, type BuildConfig } from './util';
+import { validateBuild } from './validate-build';
 
 export async function setDevVersion(config: BuildConfig) {
   const distTag = config.setDistTag;

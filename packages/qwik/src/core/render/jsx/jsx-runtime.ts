@@ -1,20 +1,19 @@
+import { isBrowser } from '@builder.io/qwik/build';
+import { isQwikComponent } from '../../component/component.public';
+import { assertString } from '../../error/assert';
+import { isQrl } from '../../qrl/qrl-class';
+import { verifySerializable } from '../../state/common';
+import { isSignal } from '../../state/signal';
+import { invoke, untrack } from '../../use/use-core';
+import { EMPTY_OBJ } from '../../util/flyweight';
+import { logError, logOnceWarn, logWarn } from '../../util/log';
+import { isPromise } from '../../util/promises';
+import { qDev, qRuntimeQrl, seal } from '../../util/qdev';
+import { isArray, isFunction, isObject, isString } from '../../util/types';
+import { static_subtree } from '../execute-component';
 import type { DevJSX, FunctionComponent, JSXNode } from './types/jsx-node';
 import type { QwikJSX } from './types/jsx-qwik';
-import { qDev, qRuntimeQrl, seal } from '../../util/qdev';
-import { logError, logOnceWarn, logWarn } from '../../util/log';
-import { isArray, isFunction, isObject, isString } from '../../util/types';
-import { isQrl } from '../../qrl/qrl-class';
-import { invoke, untrack } from '../../use/use-core';
-import { verifySerializable } from '../../state/common';
-import { isQwikComponent } from '../../component/component.public';
-import { isSignal } from '../../state/signal';
-import { isPromise } from '../../util/promises';
 import { SkipRender } from './utils.public';
-import { EMPTY_OBJ } from '../../util/flyweight';
-import { _IMMUTABLE } from '../../internal';
-import { isBrowser } from '@builder.io/qwik/build';
-import { assertString } from '../../error/assert';
-import { static_subtree } from '../execute-component';
 
 /**
  * @internal

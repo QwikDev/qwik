@@ -1,7 +1,7 @@
 import { join } from 'node:path';
 import * as assert from 'uvu/assert';
-import { createMenu, parseMenu } from './menu';
 import { suite } from '../../utils/test-suite';
+import { createMenu, parseMenu } from './menu';
 
 const test = suite();
 

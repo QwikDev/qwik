@@ -1,6 +1,6 @@
-import { cyan, magenta, gray, dim } from 'kleur/colors';
+import { cyan, dim, gray, magenta } from 'kleur/colors';
 import { loadTemplates } from '../utils/templates';
-import { pmRunCmd, note } from '../utils/utils';
+import { note, pmRunCmd } from '../utils/utils';
 
 export async function printNewHelp() {
   const pmRun = pmRunCmd();

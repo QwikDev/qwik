@@ -1,8 +1,8 @@
+import { reshape } from '@algolia/autocomplete-core/dist/esm/reshape';
+import { postResolve, preResolve, resolve } from '@algolia/autocomplete-core/dist/esm/resolve';
 // @ts-ignore
 import algoliasearch from 'algoliasearch/dist/algoliasearch-lite.esm.browser';
 import type { SearchClient } from 'algoliasearch/lite';
-import { preResolve, postResolve, resolve } from '@algolia/autocomplete-core/dist/esm/resolve';
-import { reshape } from '@algolia/autocomplete-core/dist/esm/reshape';
 import type { DocSearchHit } from './types';
 import { groupBy, removeHighlightTags } from './utils';
 

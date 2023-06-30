@@ -1,8 +1,8 @@
-import type { OutputFormat } from 'vite-imagetools';
-import type { PluginOption } from 'vite';
-import { optimize } from 'svgo';
 import fs from 'node:fs';
 import { parseId } from 'packages/qwik/src/optimizer/src/plugins/plugin';
+import { optimize } from 'svgo';
+import type { PluginOption } from 'vite';
+import type { OutputFormat } from 'vite-imagetools';
 
 /**
  * @public

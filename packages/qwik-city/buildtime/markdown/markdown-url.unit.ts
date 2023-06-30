@@ -1,9 +1,9 @@
-import { test } from 'uvu';
-import { equal } from 'uvu/assert';
-import { getMarkdownRelativeUrl } from './markdown-url';
-import type { NormalizedPluginOptions } from '../types';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { test } from 'uvu';
+import { equal } from 'uvu/assert';
+import type { NormalizedPluginOptions } from '../types';
+import { getMarkdownRelativeUrl } from './markdown-url';
 
 const routesDir = tmpdir();
 const serverPluginsDir = tmpdir();

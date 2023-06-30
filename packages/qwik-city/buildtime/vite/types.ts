@@ -1,5 +1,5 @@
 import type { MdxTransform } from '../markdown/mdx';
-import type { BuildContext, BuildEntry, BuildRoute, PluginOptions, MdxPlugins } from '../types';
+import type { BuildContext, BuildEntry, BuildRoute, MdxPlugins, PluginOptions } from '../types';
 
 /**
  * @public

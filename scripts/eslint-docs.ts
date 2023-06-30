@@ -1,8 +1,7 @@
 import * as fs from 'fs';
 import { resolve } from 'path';
-import { format } from 'prettier';
-import { rules, configs } from '../packages/eslint-plugin-qwik/index';
 import { examples, type QwikEslintExample } from '../packages/eslint-plugin-qwik/examples';
+import { configs, rules } from '../packages/eslint-plugin-qwik/index';
 
 const mdx = [];
 

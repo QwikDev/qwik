@@ -1,25 +1,25 @@
-import { isDocument } from '../../util/element';
-import { isJSXNode, jsx } from '../jsx/jsx-runtime';
-import type { JSXNode, FunctionComponent } from '../jsx/types/jsx-node';
-import { cleanupTree, domToVnode, smartUpdateChildren } from './visitor';
+import {
+  _getContainerState,
+  removeContainerState,
+  type ContainerState,
+} from '../../container/container';
+import { appendQwikDevTools } from '../../container/resume';
+import { QError_cannotRenderOverExistingContainer, qError } from '../../error/error';
 import { getDocument } from '../../util/dom';
+import { isDocument } from '../../util/element';
+import { logError } from '../../util/log';
+import { QContainerAttr } from '../../util/markers';
 import { qDev } from '../../util/qdev';
 import { version } from '../../version';
-import { QContainerAttr } from '../../util/markers';
-import { qError, QError_cannotRenderOverExistingContainer } from '../../error/error';
-import { directRemoveAttribute, directSetAttribute } from '../fast-calls';
-import { processData, wrapJSX } from './render-dom';
-import {
-  type ContainerState,
-  removeContainerState,
-  _getContainerState,
-} from '../../container/container';
-import { postRendering } from './notify-render';
 import { createRenderContext } from '../execute-component';
-import { executeDOMRender, printRenderStats } from './operations';
-import { logError } from '../../util/log';
-import { appendQwikDevTools } from '../../container/resume';
+import { directRemoveAttribute, directSetAttribute } from '../fast-calls';
+import { isJSXNode, jsx } from '../jsx/jsx-runtime';
+import type { FunctionComponent, JSXNode } from '../jsx/types/jsx-node';
 import type { RenderContext } from '../types';
+import { postRendering } from './notify-render';
+import { executeDOMRender, printRenderStats } from './operations';
+import { processData, wrapJSX } from './render-dom';
+import { cleanupTree, domToVnode, smartUpdateChildren } from './visitor';
 
 /**
  * @public

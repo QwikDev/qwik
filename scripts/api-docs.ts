@@ -1,8 +1,8 @@
 import { execa } from 'execa';
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { type BuildConfig } from './util';
 import { format } from 'prettier';
+import { type BuildConfig } from './util';
 // import { toSnakeCase } from '../packages/docs/src/utils/utils';
 
 export async function generateApiMarkdownDocs(config: BuildConfig, apiJsonInputDir: string) {

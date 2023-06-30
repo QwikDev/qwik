@@ -3,9 +3,9 @@ import type { ReplInputOptions, ReplResult } from '../types';
 import { appBundleClient } from './app-bundle-client';
 import { appBundleSsr } from './app-bundle-ssr';
 import { appSsrHtml } from './app-ssr-html';
+import { QWIK_REPL_RESULT_CACHE } from './repl-constants';
 import { loadDependencies } from './repl-dependencies';
 import { sendMessageToReplServer, type WindowClient } from './repl-messenger';
-import { QWIK_REPL_RESULT_CACHE } from './repl-constants';
 
 export const appUpdate = async (
   source: WindowClient,

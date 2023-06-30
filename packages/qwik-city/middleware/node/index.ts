@@ -1,6 +1,7 @@
+import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
 import type {
-  ServerRenderOptions,
   ClientConn,
+  ServerRenderOptions,
 } from '@builder.io/qwik-city/middleware/request-handler';
 import { requestHandler } from '@builder.io/qwik-city/middleware/request-handler';
 import { setServerPlatform } from '@builder.io/qwik/server';
@@ -10,10 +11,9 @@ import { createReadStream } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { extname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { fromNodeHttp, getUrl } from './http';
 import { MIME_TYPES } from '../request-handler/mime-types';
+import { fromNodeHttp, getUrl } from './http';
 import { patchGlobalThis } from './node-fetch';
-import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
 
 // @builder.io/qwik-city/middleware/node
 

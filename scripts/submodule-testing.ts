@@ -1,8 +1,15 @@
-import { getBanner, importPath, nodeTarget, target, watcher } from './util';
 import { build, type BuildOptions } from 'esbuild';
-import { type BuildConfig, type PackageJSON } from './util';
 import { join } from 'node:path';
 import { writePackageJson } from './package-json';
+import {
+  getBanner,
+  importPath,
+  nodeTarget,
+  target,
+  watcher,
+  type BuildConfig,
+  type PackageJSON,
+} from './util';
 
 /**
  * Builds @builder.io/testing

@@ -1,6 +1,6 @@
 import { component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
-import { eq, desc, gt } from 'drizzle-orm';
+import { desc, eq, gt } from 'drizzle-orm';
 import { getDB, symbolTable } from '~/db';
 
 export const useSymbols = routeLoader$(async ({ params }) => {

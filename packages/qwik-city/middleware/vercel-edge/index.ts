@@ -1,3 +1,4 @@
+import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
 import type {
   ServerRenderOptions,
   ServerRequestEvent,
@@ -6,10 +7,9 @@ import {
   mergeHeadersCookies,
   requestHandler,
 } from '@builder.io/qwik-city/middleware/request-handler';
+import { setServerPlatform } from '@builder.io/qwik/server';
 import { getNotFound } from '@qwik-city-not-found-paths';
 import { isStaticPath } from '@qwik-city-static-paths';
-import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
-import { setServerPlatform } from '@builder.io/qwik/server';
 
 // @builder.io/qwik-city/middleware/vercel-edge
 const COUNTRY_HEADER_NAME = 'x-vercel-ip-country';

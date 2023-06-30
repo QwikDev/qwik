@@ -1,10 +1,10 @@
-import type { Plugin } from 'rollup';
 import type { QwikRollupPluginOptions } from '@builder.io/qwik/optimizer';
-import type { QwikWorkerGlobal } from './repl-service-worker';
+import type { Plugin } from 'rollup';
 import type { MinifyOptions } from 'terser';
 import type { ReplInputOptions } from '../types';
-import { depResponse } from './repl-dependencies';
 import { QWIK_REPL_DEPS_CACHE } from './repl-constants';
+import { depResponse } from './repl-dependencies';
+import type { QwikWorkerGlobal } from './repl-service-worker';
 
 export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 'ssr'): Plugin => {
   const srcInputs = options.srcInputs;

@@ -1,20 +1,20 @@
-import {
-  type BuildConfig,
-  copyFile,
-  emptyDir,
-  mkdir,
-  nodeTarget,
-  stat,
-  getBanner,
-  readdir,
-  run,
-  watcher,
-} from './util';
 import { build } from 'esbuild';
 import { existsSync } from 'node:fs';
 import { rm } from 'node:fs/promises';
 import { basename, join } from 'node:path';
 import { readPackageJson, writePackageJson } from './package-json';
+import {
+  copyFile,
+  emptyDir,
+  getBanner,
+  mkdir,
+  nodeTarget,
+  readdir,
+  run,
+  stat,
+  watcher,
+  type BuildConfig,
+} from './util';
 
 const PACKAGE = 'create-qwik';
 

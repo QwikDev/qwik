@@ -1,7 +1,7 @@
+import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
 import { fromCamelToKebabCase } from './../core/util/case';
 import { ElementFixture, dispatch } from './element-fixture';
-import { setTestPlatform, getTestPlatform } from './platform';
-import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
+import { getTestPlatform, setTestPlatform } from './platform';
 
 /**
  *

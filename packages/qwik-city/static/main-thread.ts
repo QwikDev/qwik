@@ -1,14 +1,14 @@
-import type { PageModule, QwikCityPlan, RouteData, PathParams } from '@builder.io/qwik-city';
-import type { StaticGenerateOptions, StaticGenerateResult, StaticRoute, System } from './types';
-import { createRouteTester } from './routes';
-import { generateNotFoundPages } from './not-found';
-import { getPathnameForDynamicRoute } from '../utils/pathname';
-import { msToString } from '../utils/format';
-import { pathToFileURL } from 'node:url';
+import type { PageModule, PathParams, QwikCityPlan, RouteData } from '@builder.io/qwik-city';
+import { bold, dim, green, magenta, red } from 'kleur/colors';
 import { relative } from 'node:path';
-import { bold, green, dim, red, magenta } from 'kleur/colors';
-import { formatError } from '../buildtime/vite/format-error';
+import { pathToFileURL } from 'node:url';
 import { buildErrorMessage } from 'vite';
+import { formatError } from '../buildtime/vite/format-error';
+import { msToString } from '../utils/format';
+import { getPathnameForDynamicRoute } from '../utils/pathname';
+import { generateNotFoundPages } from './not-found';
+import { createRouteTester } from './routes';
+import type { StaticGenerateOptions, StaticGenerateResult, StaticRoute, System } from './types';
 
 export async function mainThread(sys: System) {
   const opts = sys.getOptions();

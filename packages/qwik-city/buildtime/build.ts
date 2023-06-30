@@ -1,8 +1,8 @@
-import type { BuildContext } from './types';
 import { addError, addWarning } from '../utils/format';
-import { walkRoutes } from './routing/walk-routes-dir';
 import { resolveSourceFiles } from './routing/resolve-source-file';
+import { walkRoutes } from './routing/walk-routes-dir';
 import { walkServerPlugins } from './routing/walk-server-plugins';
+import type { BuildContext } from './types';
 
 export async function build(ctx: BuildContext) {
   try {

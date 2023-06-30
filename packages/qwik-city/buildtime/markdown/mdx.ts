@@ -1,11 +1,11 @@
 import type { CompileOptions } from '@mdx-js/mdx/lib/compile';
+import { createHash } from 'node:crypto';
 import { SourceMapGenerator } from 'source-map';
-import { rehypePage, rehypeSlug, renameClassname, wrapTableWithDiv } from './rehype';
-import { rehypeSyntaxHighlight } from './syntax-highlight';
+import { getExtension } from '../../utils/fs';
 import type { BuildContext } from '../types';
 import { parseFrontmatter } from './frontmatter';
-import { getExtension } from '../../utils/fs';
-import { createHash } from 'node:crypto';
+import { rehypePage, rehypeSlug, renameClassname, wrapTableWithDiv } from './rehype';
+import { rehypeSyntaxHighlight } from './syntax-highlight';
 
 export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransform> {
   const { createFormatAwareProcessors } = await import(

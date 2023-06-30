@@ -1,6 +1,6 @@
 import * as CSS from 'csstype';
 import type { Signal } from '../../../state/signal';
-import type { DOMAttributes, ClassList } from './jsx-qwik-attributes';
+import type { ClassList, DOMAttributes } from './jsx-qwik-attributes';
 interface HTMLWebViewElement extends HTMLElement {}
 export type Booleanish = boolean | `${boolean}`;
 export type Size = number | string;

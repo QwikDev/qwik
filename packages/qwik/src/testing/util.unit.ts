@@ -1,6 +1,6 @@
-import { normalizeUrl } from './util';
 import { suite } from 'uvu';
 import { equal } from 'uvu/assert';
+import { normalizeUrl } from './util';
 
 const normalizeUrlSuite = suite('normalizeUrl');
 normalizeUrlSuite('no url', () => {

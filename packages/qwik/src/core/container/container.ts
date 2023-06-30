@@ -1,19 +1,19 @@
 import { qError, QError_invalidRefValue } from '../error/error';
-import type { ResourceReturnInternal, SubscriberEffect } from '../use/use-task';
-import { seal } from '../util/qdev';
-import { isFunction, isObject } from '../util/types';
 import type { QRL } from '../qrl/qrl.public';
-import { fromKebabToCamelCase } from '../util/case';
-import { QContainerAttr } from '../util/markers';
-import { isElement } from '../util/element';
+import { directGetAttribute } from '../render/fast-calls';
 import {
   createSubscriptionManager,
   type SubscriberSignal,
   type SubscriptionManager,
 } from '../state/common';
-import type { Signal } from '../state/signal';
-import { directGetAttribute } from '../render/fast-calls';
 import type { QContext } from '../state/context';
+import type { Signal } from '../state/signal';
+import type { ResourceReturnInternal, SubscriberEffect } from '../use/use-task';
+import { fromKebabToCamelCase } from '../util/case';
+import { isElement } from '../util/element';
+import { QContainerAttr } from '../util/markers';
+import { seal } from '../util/qdev';
+import { isFunction, isObject } from '../util/types';
 
 export type GetObject = (id: string) => any;
 export type GetObjID = (obj: any) => string | null;

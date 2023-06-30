@@ -1,6 +1,6 @@
-import type { AppBundle, Fetch, LinkBundle } from './types';
-import { awaitingRequests, existingPrefetchUrls, prefetchQueue } from './constants';
 import { cachedFetch } from './cached-fetch';
+import { awaitingRequests, existingPrefetchUrls, prefetchQueue } from './constants';
+import type { AppBundle, Fetch, LinkBundle } from './types';
 import { getAppBundleByName, getAppBundlesNamesFromIds } from './utils';
 
 export const prefetchBundleNames = (

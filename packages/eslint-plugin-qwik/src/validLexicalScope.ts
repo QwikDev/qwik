@@ -1,10 +1,10 @@
 /* eslint-disable no-console */
 import { ESLintUtils } from '@typescript-eslint/utils';
+import type { RuleContext } from '@typescript-eslint/utils/dist/ts-eslint';
 import type { Scope } from '@typescript-eslint/utils/dist/ts-eslint-scope';
-import ts from 'typescript';
 import type { Identifier } from 'estree';
 import redent from 'redent';
-import type { RuleContext } from '@typescript-eslint/utils/dist/ts-eslint';
+import ts from 'typescript';
 import { QwikEslintExamples } from '../examples';
 
 const createRule = ESLintUtils.RuleCreator(

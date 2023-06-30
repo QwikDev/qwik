@@ -1,9 +1,9 @@
 import { assertQrl } from '../qrl/qrl-class';
 import type { QRL } from '../qrl/qrl.public';
-import { getContext, HOST_FLAG_NEED_ATTACH_LISTENER } from '../state/context';
-import { type Listener, normalizeOnProp } from '../state/listeners';
-import { useInvokeContext } from './use-core';
 import { type PascalCaseEventLiteralType } from '../render/jsx/types/jsx-qwik-events';
+import { getContext, HOST_FLAG_NEED_ATTACH_LISTENER } from '../state/context';
+import { normalizeOnProp, type Listener } from '../state/listeners';
+import { useInvokeContext } from './use-core';
 
 // <docs markdown="../readme.md#useOn">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!

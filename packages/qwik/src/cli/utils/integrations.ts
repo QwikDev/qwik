@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import { join } from 'node:path';
 import type { IntegrationData, IntegrationType } from '../types';
-import { dashToTitleCase, readPackageJson, limitLength } from './utils';
+import { dashToTitleCase, limitLength, readPackageJson } from './utils';
 
 let integrations: IntegrationData[] | null = null;
 

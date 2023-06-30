@@ -1,9 +1,9 @@
 /* eslint-disable no-console */
-import type { InputOptions, OutputAsset, OutputChunk } from 'rollup';
 import type { Diagnostic, QwikRollupPluginOptions } from '@builder.io/qwik/optimizer';
+import type { InputOptions, OutputAsset, OutputChunk } from 'rollup';
 import type { ReplInputOptions, ReplModuleOutput, ReplResult } from '../types';
-import type { QwikWorkerGlobal } from './repl-service-worker';
 import { replCss, replMinify, replResolver } from './repl-plugins';
+import type { QwikWorkerGlobal } from './repl-service-worker';
 
 export const appBundleClient = async (
   options: ReplInputOptions,

@@ -6,15 +6,15 @@
 // it to the desired comment location
 //
 
+import { isBrowser, isServer } from '../build';
 import { component$ } from './component/component.public';
 import { qrl } from './qrl/qrl';
 import { $, type QRL } from './qrl/qrl.public';
 import { useOn, useOnDocument, useOnWindow } from './use/use-on';
 import { useStore } from './use/use-store.public';
 import { useStyles$, useStylesScoped$ } from './use/use-styles';
-import { useVisibleTask$, useTask$ } from './use/use-task';
+import { useTask$, useVisibleTask$ } from './use/use-task';
 import { implicit$FirstArg } from './util/implicit_dollar';
-import { isServer, isBrowser } from '../build';
 
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////

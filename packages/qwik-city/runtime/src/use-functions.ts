@@ -7,11 +7,11 @@ import {
   RouteNavigateContext,
 } from './contexts';
 import type {
-  RouteLocation,
-  ResolvedDocumentHead,
-  RouteNavigate,
   QwikCityEnvData,
+  ResolvedDocumentHead,
   RouteAction,
+  RouteLocation,
+  RouteNavigate,
 } from './types';
 
 /**

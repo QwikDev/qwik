@@ -1,6 +1,6 @@
 import { build, type BuildOptions } from 'esbuild';
 import { join } from 'node:path';
-import { type BuildConfig, importPath, target, watcher } from './util';
+import { importPath, target, watcher, type BuildConfig } from './util';
 
 /**
  * Builds @builder.io/qwik/jsx-runtime

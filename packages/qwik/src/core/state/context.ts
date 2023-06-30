@@ -1,20 +1,20 @@
+import { isElement } from '../../testing/html';
 import type { OnRenderFn } from '../component/component.public';
-import { destroyTask, type SubscriberEffect } from '../use/use-task';
+import type { ContainerState } from '../container/container';
+import { assertQwikElement, assertTrue } from '../error/assert';
 import type { QRLInternal } from '../qrl/qrl-class';
 import type { QRL } from '../qrl/qrl.public';
-import type { StyleAppend } from '../use/use-core';
 import type { ProcessedJSXNode } from '../render/dom/render-dom';
 import type { QwikElement, VirtualElement } from '../render/dom/virtual-element';
-import { getProxyTarget, type SubscriptionManager } from './common';
-import type { ContainerState } from '../container/container';
-import { getDomListeners, type Listener } from './listeners';
-import { seal } from '../util/qdev';
 import { directGetAttribute } from '../render/fast-calls';
-import { isElement } from '../../testing/html';
-import { assertQwikElement, assertTrue } from '../error/assert';
+import type { StyleAppend } from '../use/use-core';
+import { destroyTask, type SubscriberEffect } from '../use/use-task';
 import { QScopedStyle } from '../util/markers';
+import { seal } from '../util/qdev';
+import { getProxyTarget, type SubscriptionManager } from './common';
+import { QObjectImmutable, _IMMUTABLE, _IMMUTABLE_PREFIX } from './constants';
+import { getDomListeners, type Listener } from './listeners';
 import { createPropsState, createProxy, setObjectFlags } from './store';
-import { _IMMUTABLE, _IMMUTABLE_PREFIX, QObjectImmutable } from './constants';
 
 export const Q_CTX = '_qc_';
 

@@ -1,4 +1,4 @@
-import { component$, useStyles$, useStore } from '@builder.io/qwik';
+import { component$, useStore, useStyles$ } from '@builder.io/qwik';
 
 export default component$(() => {
   useStyles$(AppCSS);

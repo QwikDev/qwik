@@ -1,5 +1,8 @@
+import { component$, useContext, useStyles$, useVisibleTask$ } from '@builder.io/qwik';
 import { useLocation } from '@builder.io/qwik-city';
-import { component$, useStyles$, useContext, useVisibleTask$ } from '@builder.io/qwik';
+import BuilderContentComp from '../../components/builder-content';
+import { BUILDER_PUBLIC_API_KEY, BUILDER_TOP_BAR_MODEL } from '../../constants';
+import { GlobalStore } from '../../context';
 import { DocSearch } from '../docsearch/doc-search';
 import { CloseIcon } from '../svgs/close-icon';
 import { DiscordLogo } from '../svgs/discord-logo';
@@ -7,16 +10,13 @@ import { GithubLogo } from '../svgs/github-logo';
 import { MoreIcon } from '../svgs/more-icon';
 import { QwikLogo } from '../svgs/qwik-logo';
 import { TwitterLogo } from '../svgs/twitter-logo';
-import styles from './header.css?inline';
-import { GlobalStore } from '../../context';
 import {
+  ThemeToggle,
   colorSchemeChangeListener,
   getColorPreference,
   setPreference,
-  ThemeToggle,
 } from '../theme-toggle/theme-toggle';
-import BuilderContentComp from '../../components/builder-content';
-import { BUILDER_TOP_BAR_MODEL, BUILDER_PUBLIC_API_KEY } from '../../constants';
+import styles from './header.css?inline';
 
 export const Header = component$(() => {
   useStyles$(styles);

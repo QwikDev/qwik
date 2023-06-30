@@ -1,9 +1,9 @@
-import fs from 'node:fs';
-import { join } from 'node:path';
-import { red, blue, magenta, white, gray, reset, green } from 'kleur/colors';
 import { log, outro } from '@clack/prompts';
 import spawn from 'cross-spawn';
+import { blue, gray, green, magenta, red, reset, white } from 'kleur/colors';
 import type { ChildProcess } from 'node:child_process';
+import fs from 'node:fs';
+import { join } from 'node:path';
 import detectPackageManager from 'which-pm-runs';
 import type { IntegrationPackageJson } from '../types';
 

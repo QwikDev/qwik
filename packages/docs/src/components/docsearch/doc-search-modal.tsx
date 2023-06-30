@@ -1,8 +1,8 @@
 import {
   component$,
-  useSignal,
   noSerialize,
   useContextProvider,
+  useSignal,
   useVisibleTask$,
 } from '@builder.io/qwik';
 import { MAX_QUERY_SIZE } from './constants';
@@ -15,9 +15,9 @@ import type { SearchBoxTranslations } from './search-box';
 import { SearchBox } from './search-box';
 import type { DocSearchHit } from './types';
 
+import { AIButton } from './result';
 import { identity } from './utils';
 import { clearStalled, setStalled } from './utils/stalledControl';
-import { AIButton } from './result';
 
 export type ModalTranslations = Partial<{
   searchBox: SearchBoxTranslations;

@@ -6,28 +6,28 @@ import { ELEMENT_ID, QContainerAttr } from '../util/markers';
 
 import { emitEvent } from '../util/event';
 
-import { isArray, isSerializableObject, isString } from '../util/types';
-import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
-import { createParser, OBJECT_TRANSFORMS, type Parser, UNDEFINED_PREFIX } from './serializers';
-import {
-  type ContainerState,
-  _getContainerState,
-  type GetObject,
-  isContainer,
-  SHOW_COMMENT,
-  type SnapshotState,
-  strToInt,
-} from './container';
-import { findClose, VirtualElementImpl } from '../render/dom/virtual-element';
-import { getSubscriptionManager, parseSubscription, type Subscriptions } from '../state/common';
-import { createProxy, setObjectFlags } from '../state/store';
-import { qDev, qSerialize } from '../util/qdev';
-import { pauseContainer } from './pause';
 import { isPrimitive } from '../render/dom/render-dom';
-import { getWrappingContainer } from '../use/use-core';
-import { getContext } from '../state/context';
-import { EMPTY_ARRAY } from '../util/flyweight';
+import { VirtualElementImpl, findClose } from '../render/dom/virtual-element';
 import { SVG_NS } from '../render/dom/visitor';
+import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
+import { getSubscriptionManager, parseSubscription, type Subscriptions } from '../state/common';
+import { getContext } from '../state/context';
+import { createProxy, setObjectFlags } from '../state/store';
+import { getWrappingContainer } from '../use/use-core';
+import { EMPTY_ARRAY } from '../util/flyweight';
+import { qDev, qSerialize } from '../util/qdev';
+import { isArray, isSerializableObject, isString } from '../util/types';
+import {
+  SHOW_COMMENT,
+  _getContainerState,
+  isContainer,
+  strToInt,
+  type ContainerState,
+  type GetObject,
+  type SnapshotState,
+} from './container';
+import { pauseContainer } from './pause';
+import { OBJECT_TRANSFORMS, UNDEFINED_PREFIX, createParser, type Parser } from './serializers';
 
 export const resumeIfNeeded = (containerEl: Element): void => {
   const isResumed = directGetAttribute(containerEl, QContainerAttr);

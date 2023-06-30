@@ -1,10 +1,10 @@
 import path, { resolve } from 'node:path';
-import { qwikVite } from './vite';
-import type { OptimizerOptions } from '../types';
-import type { Rollup } from 'vite';
 import { suite } from 'uvu';
 import { equal } from 'uvu/assert';
+import type { Rollup } from 'vite';
 import { normalizePath } from '../../../testing/util';
+import type { OptimizerOptions } from '../types';
+import { qwikVite } from './vite';
 
 const cwd = process.cwd();
 

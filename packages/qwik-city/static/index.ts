@@ -1,6 +1,6 @@
 import type {
-  StaticGenerateRenderOptions,
   StaticGenerateOptions,
+  StaticGenerateRenderOptions,
   StaticGenerateResult,
 } from './types';
 

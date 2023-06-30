@@ -1,11 +1,11 @@
-import { green, bgMagenta, dim } from 'kleur/colors';
+import { intro, isCancel, log, select, text } from '@clack/prompts';
+import { bgMagenta, dim, green } from 'kleur/colors';
 import fs from 'node:fs';
 import { join } from 'path';
-import { isCancel, select, text, log, intro } from '@clack/prompts';
-import { bye } from '../utils/utils';
 import type { Template } from '../types';
 import type { AppCommand } from '../utils/app-command';
 import { loadTemplates } from '../utils/templates';
+import { bye } from '../utils/utils';
 import { printNewHelp } from './print-new-help';
 import { POSSIBLE_TYPES } from './utils';
 

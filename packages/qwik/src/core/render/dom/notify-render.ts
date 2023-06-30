@@ -1,34 +1,34 @@
+import { _getContainerState, type ContainerState } from '../../container/container';
+import { resumeIfNeeded } from '../../container/resume';
 import { assertDefined, assertTrue } from '../../error/assert';
-import { executeContextWithScrollAndTransition, IS_HEAD, IS_SVG, SVG_NS } from './visitor';
-import { getDocument } from '../../util/dom';
-import { logError, logWarn } from '../../util/log';
+import { getPlatform, isServerPlatform } from '../../platform/platform';
+import type { SubscriberSignal, Subscriptions } from '../../state/common';
+import { getContext, HOST_FLAG_DIRTY, type QContext } from '../../state/context';
 import { getWrappingContainer } from '../../use/use-core';
+import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import {
+  isSubscriberDescriptor,
   runSubscriber,
-  type SubscriberEffect,
   TaskFlagsIsDirty,
-  TaskFlagsIsVisibleTask,
   TaskFlagsIsResource,
   TaskFlagsIsTask,
-  isSubscriberDescriptor,
+  TaskFlagsIsVisibleTask,
+  type SubscriberEffect,
 } from '../../use/use-task';
-import { then } from '../../util/promises';
-import type { ValueOrPromise } from '../../util/types';
-import { useLexicalScope } from '../../use/use-lexical-scope.public';
-import { renderComponent } from './render-dom';
-import type { RenderContext } from '../types';
-import { type ContainerState, _getContainerState } from '../../container/container';
-import { createRenderContext } from '../execute-component';
-import { getRootNode, type QwikElement } from './virtual-element';
-import { appendChild, printRenderStats } from './operations';
-import { executeSignalOperation } from './signals';
-import { getPlatform, isServerPlatform } from '../../platform/platform';
-import { qDev } from '../../util/qdev';
-import type { SubscriberSignal, Subscriptions } from '../../state/common';
-import { resumeIfNeeded } from '../../container/resume';
-import { getContext, HOST_FLAG_DIRTY, type QContext } from '../../state/context';
-import { directGetAttribute } from '../fast-calls';
+import { getDocument } from '../../util/dom';
+import { logError, logWarn } from '../../util/log';
 import { QStyle } from '../../util/markers';
+import { then } from '../../util/promises';
+import { qDev } from '../../util/qdev';
+import type { ValueOrPromise } from '../../util/types';
+import { createRenderContext } from '../execute-component';
+import { directGetAttribute } from '../fast-calls';
+import type { RenderContext } from '../types';
+import { appendChild, printRenderStats } from './operations';
+import { renderComponent } from './render-dom';
+import { executeSignalOperation } from './signals';
+import { getRootNode, type QwikElement } from './virtual-element';
+import { executeContextWithScrollAndTransition, IS_HEAD, IS_SVG, SVG_NS } from './visitor';
 
 export const notifyChange = (subAction: Subscriptions, containerState: ContainerState) => {
   if (subAction[0] === 0) {

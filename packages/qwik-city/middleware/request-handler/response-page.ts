@@ -1,5 +1,4 @@
 import type { QwikCityEnvData } from '../../runtime/src/types';
-import type { RequestEvent } from './types';
 import {
   getRequestLoaders,
   getRequestRoute,
@@ -7,6 +6,7 @@ import {
   RequestEvSharedActionId,
   RequestEvSharedNonce,
 } from './request-event';
+import type { RequestEvent } from './types';
 
 export function getQwikCityServerData(requestEv: RequestEvent) {
   const { url, params, request, status, locale } = requestEv;

@@ -1,21 +1,21 @@
-import { assertFail, assertTrue } from '../error/assert';
-import { qError, QError_verifySerializable } from '../error/error';
-import { isNode } from '../util/element';
-import { seal } from '../util/qdev';
-import { isArray, isFunction, isObject, isSerializableObject } from '../util/types';
-import { isPromise } from '../util/promises';
+import type { ContainerState, GetObjID, GetObject } from '../container/container';
 import { canSerialize } from '../container/serializers';
-import type { ContainerState, GetObject, GetObjID } from '../container/container';
+import { assertFail, assertTrue } from '../error/assert';
+import { QError_verifySerializable, qError } from '../error/error';
+import { notifyChange } from '../render/dom/notify-render';
+import type { QwikElement } from '../render/dom/virtual-element';
 import {
   isSubscriberDescriptor,
   type SubscriberEffect,
   type SubscriberHost,
 } from '../use/use-task';
-import type { QwikElement } from '../render/dom/virtual-element';
-import { notifyChange } from '../render/dom/notify-render';
+import { isNode } from '../util/element';
 import { createError, logError } from '../util/log';
-import { tryGetContext } from './context';
+import { isPromise } from '../util/promises';
+import { seal } from '../util/qdev';
+import { isArray, isFunction, isObject, isSerializableObject } from '../util/types';
 import { QObjectFlagsSymbol, QObjectManagerSymbol, QOjectTargetSymbol } from './constants';
+import { tryGetContext } from './context';
 import type { Signal } from './signal';
 
 export interface SubscriptionManager {

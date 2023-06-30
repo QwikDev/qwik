@@ -1,7 +1,7 @@
-import { component$, useContext, useSignal, $ } from '@builder.io/qwik';
-import { SHOP_CONTEXT, fetchFromShopify, formatPrice } from '../utils';
+import { $, component$, useContext, useSignal } from '@builder.io/qwik';
 import { Image } from 'qwik-image';
 import { modifyLineItemMutation, removeLineItemMutation } from '../mutation';
+import { SHOP_CONTEXT, fetchFromShopify, formatPrice } from '../utils';
 
 export const ShopCartRows = component$(() => {
   const loadingSignal = useSignal(false);

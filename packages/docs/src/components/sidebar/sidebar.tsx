@@ -1,5 +1,5 @@
 import { component$, useContext, useStyles$ } from '@builder.io/qwik';
-import { type ContentMenu, useContent, useLocation } from '@builder.io/qwik-city';
+import { useContent, useLocation, type ContentMenu } from '@builder.io/qwik-city';
 import { GlobalStore } from '../../context';
 import { CloseIcon } from '../svgs/close-icon';
 import styles from './sidebar.css?inline';

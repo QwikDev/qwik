@@ -1,12 +1,12 @@
-import { validLexicalScope } from './src/validLexicalScope';
-import { useMethodUsage } from './src/useMethodUsage';
+import { jsxImg } from './src/jsxImg';
+import { jsxKey } from './src/jsxKey';
+import { jsxNoScriptUrl } from './src/jsxNoScriptUrl';
 import { loaderLocation } from './src/loaderLocation';
 import { noReactProps } from './src/noReactProps';
 import { preferClasslist } from './src/preferClasslist';
-import { jsxNoScriptUrl } from './src/jsxNoScriptUrl';
-import { jsxKey } from './src/jsxKey';
 import { unusedServer } from './src/unusedServer';
-import { jsxImg } from './src/jsxImg';
+import { useMethodUsage } from './src/useMethodUsage';
+import { validLexicalScope } from './src/validLexicalScope';
 
 export const rules = {
   'use-method-usage': useMethodUsage,

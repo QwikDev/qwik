@@ -1,30 +1,30 @@
+import type { QRL } from '@builder.io/qwik';
+import type { Render, RenderToStringResult } from '@builder.io/qwik/server';
+import { QACTION_KEY, QFN_KEY } from '../../runtime/src/constants';
 import type {
+  ActionInternal,
   ClientPageData,
+  DataValidator,
+  JSONObject,
   LoadedRoute,
+  LoaderInternal,
   PageModule,
   RouteModule,
-  ActionInternal,
-  LoaderInternal,
-  JSONObject,
   ValidatorReturn,
-  DataValidator,
 } from '../../runtime/src/types';
-import type { QwikSerializer, RequestEvent, RequestEventBase, RequestHandler } from './types';
+import { HttpStatus } from './http-status-codes';
+import { RedirectMessage } from './redirect-handler';
 import {
+  RequestEvQwikSerializer,
+  RequestEvSharedActionId,
   getRequestLoaders,
   getRequestMode,
   getRequestTrailingSlash,
   type RequestEventInternal,
-  RequestEvQwikSerializer,
-  RequestEvSharedActionId,
 } from './request-event';
-import { QACTION_KEY, QFN_KEY } from '../../runtime/src/constants';
-import { IsQData, QDATA_JSON } from './user-response';
-import { HttpStatus } from './http-status-codes';
-import type { Render, RenderToStringResult } from '@builder.io/qwik/server';
-import type { QRL, _deserializeData, _serializeData } from '@builder.io/qwik';
 import { getQwikCityServerData } from './response-page';
-import { RedirectMessage } from './redirect-handler';
+import type { QwikSerializer, RequestEvent, RequestEventBase, RequestHandler } from './types';
+import { IsQData, QDATA_JSON } from './user-response';
 
 export const resolveRequestHandlers = (
   serverPlugins: RouteModule[] | undefined,

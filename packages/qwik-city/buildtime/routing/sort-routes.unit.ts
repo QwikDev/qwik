@@ -1,7 +1,7 @@
 import { test } from 'uvu';
 import { equal } from 'uvu/assert';
-import type { BuildRoute } from '../types';
 import { createFileId } from '../../utils/fs';
+import type { BuildRoute } from '../types';
 import { parseRoutePathname } from './parse-pathname';
 import { routeSortCompare } from './sort-routes';
 

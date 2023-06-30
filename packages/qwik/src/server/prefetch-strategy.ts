@@ -1,13 +1,13 @@
-import { getBuildBase } from './utils';
 import type {
   PrefetchResource,
   QwikManifest,
   RenderToStringOptions,
   SnapshotResult,
 } from './types';
+import { getBuildBase } from './utils';
 
-import type { QRLInternal } from '../core/qrl/qrl-class';
 import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
+import type { QRLInternal } from '../core/qrl/qrl-class';
 
 export function getPrefetchResources(
   snapshotResult: SnapshotResult | null,

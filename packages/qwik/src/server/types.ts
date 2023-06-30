@@ -1,9 +1,9 @@
 import type { SnapshotResult, StreamWriter } from '@builder.io/qwik';
 import type {
   QwikManifest,
-  SymbolMapperFn,
-  SymbolMapper,
   ResolvedManifest,
+  SymbolMapper,
+  SymbolMapperFn,
 } from '@builder.io/qwik/optimizer';
 
 /**
@@ -221,4 +221,4 @@ export type RenderToStream = (opts: RenderToStreamOptions) => Promise<RenderToSt
  */
 export type Render = RenderToString | RenderToStream;
 
-export type { SnapshotResult, SymbolMapper, QwikManifest, StreamWriter };
+export type { QwikManifest, SnapshotResult, StreamWriter, SymbolMapper };

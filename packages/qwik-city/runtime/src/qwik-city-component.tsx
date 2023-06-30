@@ -1,21 +1,22 @@
 import {
   $,
+  Slot,
+  _getContextElement,
+  _waitUntilRendered,
+  _weakSerialize,
   component$,
   getLocale,
   noSerialize,
-  Slot,
   useContextProvider,
   useServerData,
   useSignal,
   useStore,
-  useTask$,
-  _getContextElement,
-  _weakSerialize,
   useStyles$,
-  _waitUntilRendered,
+  useTask$,
 } from '@builder.io/qwik';
 import { isBrowser, isDev, isServer } from '@builder.io/qwik/build';
 import * as qwikCity from '@qwik-city-plan';
+import { clientNavigate } from './client-navigate';
 import { CLIENT_DATA_CACHE } from './constants';
 import {
   ContentContext,
@@ -29,6 +30,13 @@ import {
 } from './contexts';
 import { createDocumentHead, resolveHead } from './head';
 import { loadRoute } from './routing';
+import {
+  currentScrollState,
+  getScrollHistory,
+  restoreScroll,
+  saveScrollHistory,
+} from './scroll-restoration';
+import spaInit from './spa-init';
 import type {
   ClientPageData,
   ContentModule,
@@ -48,14 +56,6 @@ import type {
 import { loadClientData } from './use-endpoint';
 import { useQwikCityEnv } from './use-functions';
 import { isSameOrigin, isSamePath, isSamePathname, toUrl } from './utils';
-import { clientNavigate } from './client-navigate';
-import {
-  currentScrollState,
-  getScrollHistory,
-  saveScrollHistory,
-  restoreScroll,
-} from './scroll-restoration';
-import spaInit from './spa-init';
 
 /**
  * @public

@@ -1,8 +1,8 @@
+import { log } from '@clack/prompts';
 import { bgRed, cyan, red } from 'kleur/colors';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { log } from '@clack/prompts';
 import type { IntegrationData } from '../types';
 import { runCommand } from './utils';
 

@@ -1,5 +1,5 @@
 // import { basename } from 'node:path';
-import { type ConfigEnv, mergeConfig, type UserConfigExport } from 'vite';
+import { mergeConfig, type ConfigEnv, type UserConfigExport } from 'vite';
 
 /**
  * @public

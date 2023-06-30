@@ -1,4 +1,5 @@
-import type { Plugin as VitePlugin, UserConfig, ViteDevServer } from 'vite';
+import type { UserConfig, ViteDevServer, Plugin as VitePlugin } from 'vite';
+import { QWIK_LOADER_DEFAULT_DEBUG, QWIK_LOADER_DEFAULT_MINIFIED } from '../scripts';
 import type {
   EntryStrategy,
   GlobalInjections,
@@ -8,29 +9,28 @@ import type {
   QwikManifest,
   TransformModule,
 } from '../types';
-import {
-  createPlugin,
-  type NormalizedQwikPluginOptions,
-  parseId,
-  type QwikBuildMode,
-  type QwikPluginOptions,
-  type QwikBuildTarget,
-  QWIK_CORE_ID,
-  Q_MANIFEST_FILENAME,
-  QWIK_CLIENT_MANIFEST_ID,
-  QWIK_BUILD_ID,
-  type QwikPackages,
-  QWIK_JSX_RUNTIME_ID,
-  CLIENT_OUT_DIR,
-  QWIK_JSX_DEV_RUNTIME_ID,
-  SSR_OUT_DIR,
-  QWIK_CORE_SERVER,
-} from './plugin';
-import { createRollupError, normalizeRollupOutputOptions } from './rollup';
-import { configureDevServer, configurePreviewServer, VITE_DEV_CLIENT_QS } from './vite-server';
-import { QWIK_LOADER_DEFAULT_DEBUG, QWIK_LOADER_DEFAULT_MINIFIED } from '../scripts';
 import { versions } from '../versions';
 import { getImageSizeServer } from './image-size-server';
+import {
+  CLIENT_OUT_DIR,
+  QWIK_BUILD_ID,
+  QWIK_CLIENT_MANIFEST_ID,
+  QWIK_CORE_ID,
+  QWIK_CORE_SERVER,
+  QWIK_JSX_DEV_RUNTIME_ID,
+  QWIK_JSX_RUNTIME_ID,
+  Q_MANIFEST_FILENAME,
+  SSR_OUT_DIR,
+  createPlugin,
+  parseId,
+  type NormalizedQwikPluginOptions,
+  type QwikBuildMode,
+  type QwikBuildTarget,
+  type QwikPackages,
+  type QwikPluginOptions,
+} from './plugin';
+import { createRollupError, normalizeRollupOutputOptions } from './rollup';
+import { VITE_DEV_CLIENT_QS, configureDevServer, configurePreviewServer } from './vite-server';
 
 const DEDUPE = [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID, QWIK_JSX_DEV_RUNTIME_ID];
 

@@ -1,6 +1,5 @@
-import { type BuildConfig, ensureDir, type PackageJSON } from './util';
-import { readFile, writeFile } from './util';
 import { join } from 'node:path';
+import { ensureDir, readFile, writeFile, type BuildConfig, type PackageJSON } from './util';
 
 /**
  * The published build does not use the package.json found in the root directory.

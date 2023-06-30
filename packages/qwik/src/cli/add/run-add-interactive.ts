@@ -1,14 +1,14 @@
 /* eslint-disable no-console */
-import type { AppCommand } from '../utils/app-command';
-import { loadIntegrations, sortIntegrationsAndReturnAsClackOptions } from '../utils/integrations';
-import { bgBlue, bold, magenta, cyan, bgMagenta, green } from 'kleur/colors';
-import { bye, getPackageManager, panic, printHeader, note } from '../utils/utils';
-import { updateApp } from './update-app';
-import type { IntegrationData, UpdateAppResult } from '../types';
+import { intro, isCancel, log, outro, select, spinner } from '@clack/prompts';
+import { bgBlue, bgMagenta, bold, cyan, green, magenta } from 'kleur/colors';
 import { relative } from 'node:path';
-import { logNextStep } from '../utils/log';
+import type { IntegrationData, UpdateAppResult } from '../types';
+import type { AppCommand } from '../utils/app-command';
 import { runInPkg } from '../utils/install-deps';
-import { intro, isCancel, select, log, spinner, outro } from '@clack/prompts';
+import { loadIntegrations, sortIntegrationsAndReturnAsClackOptions } from '../utils/integrations';
+import { logNextStep } from '../utils/log';
+import { bye, getPackageManager, note, panic, printHeader } from '../utils/utils';
+import { updateApp } from './update-app';
 
 export async function runAddInteractive(app: AppCommand, id: string | undefined) {
   const pkgManager = getPackageManager();

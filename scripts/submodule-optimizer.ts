@@ -1,22 +1,22 @@
+import { platformArchTriples } from '@napi-rs/triples';
 import { build, type BuildOptions } from 'esbuild';
+import RawPlugin from 'esbuild-plugin-raw';
+import { constants } from 'node:fs';
+import { join } from 'node:path';
+import { watch } from 'rollup';
+import { minify } from 'terser';
+import { readPackageJson } from './package-json';
+import { inlineQwikScriptsEsBuild } from './submodule-qwikloader';
 import {
   access,
-  type BuildConfig,
   getBanner,
   nodeTarget,
   readFile,
   target,
   watcher,
   writeFile,
+  type BuildConfig,
 } from './util';
-import { join } from 'node:path';
-import { minify } from 'terser';
-import { platformArchTriples } from '@napi-rs/triples';
-import { readPackageJson } from './package-json';
-import { watch } from 'rollup';
-import { constants } from 'node:fs';
-import { inlineQwikScriptsEsBuild } from './submodule-qwikloader';
-import RawPlugin from 'esbuild-plugin-raw';
 
 /**
  * Builds @builder.io/optimizer

@@ -1,7 +1,7 @@
-import { component$, useContext, useStylesScoped$, Slot, useSignal } from '@builder.io/qwik';
-import CSS from './index.css?inline';
+import { Slot, component$, useContext, useSignal, useStylesScoped$ } from '@builder.io/qwik';
 import { GlobalStore } from '../../context';
 import { EditIcon } from '../svgs/edit-icon';
+import CSS from './index.css?inline';
 
 export default component$<{
   src?: string;

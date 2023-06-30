@@ -1,6 +1,6 @@
+import { Request as NodeRequest, Response as NodeResponse } from 'undici';
 import { test } from 'uvu';
 import { equal } from 'uvu/assert';
-import { Request as NodeRequest, Response as NodeResponse } from 'undici';
 import type { AppBundle } from './types';
 import { getCacheToDelete, isAppBundleRequest, useCache } from './utils';
 

@@ -1,9 +1,9 @@
 /* eslint-disable no-console */
-import { fetch } from 'undici';
+import matter from 'gray-matter';
 import fs from 'node:fs';
 import path from 'node:path';
 import url from 'node:url';
-import matter from 'gray-matter';
+import { fetch } from 'undici';
 
 const rootDir = path.join(path.dirname(url.fileURLToPath(import.meta.url)), '..', '..');
 

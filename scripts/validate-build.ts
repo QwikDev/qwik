@@ -1,11 +1,10 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { createRequire } from 'node:module';
-import { type BuildConfig, type PackageJSON, panic } from './util';
-import { access, readFile } from './util';
 import { basename, extname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { rollup } from 'rollup';
 import ts from 'typescript';
+import { access, panic, readFile, type BuildConfig, type PackageJSON } from './util';
 
 /**
  * This will validate a completed production build by triple checking all the

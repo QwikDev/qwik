@@ -1,7 +1,7 @@
-import { parseRoutePathname } from '../../buildtime/routing/parse-pathname';
 import { suite, test } from 'uvu';
 import { equal } from 'uvu/assert';
-import { getPathParams, getMenuLoader } from './routing';
+import { parseRoutePathname } from '../../buildtime/routing/parse-pathname';
+import { getMenuLoader, getPathParams } from './routing';
 import type { MenuData } from './types';
 
 const routingTest = suite('routing');

@@ -1,8 +1,7 @@
-import { parseQRL, serializeQRL } from './qrl';
-import { createQRL } from './qrl-class';
-import { qrl } from './qrl';
 import { suite } from 'uvu';
 import { equal } from 'uvu/assert';
+import { parseQRL, qrl, serializeQRL } from './qrl';
+import { createQRL } from './qrl-class';
 
 const qrlSuite = suite('serialization');
 

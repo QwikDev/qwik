@@ -1,8 +1,8 @@
 import { component$, useComputed$, useSignal, useTask$ } from '@builder.io/qwik';
-import { qwikGPT, rateResponse } from './search';
-import { CodeBlock } from '../code-block/code-block';
 import { isBrowser } from '@builder.io/qwik/build';
 import snarkdown from 'snarkdown';
+import { CodeBlock } from '../code-block/code-block';
+import { qwikGPT, rateResponse } from './search';
 
 const snarkdownEnhanced = (md: string) => {
   const htmls = md

@@ -1,7 +1,7 @@
-import type { AppCommand } from '../utils/app-command';
 import { red } from 'kleur/colors';
-import { runAddInteractive } from './run-add-interactive';
+import type { AppCommand } from '../utils/app-command';
 import { printAddHelp } from './print-add-help';
+import { runAddInteractive } from './run-add-interactive';
 
 export async function runAddCommand(app: AppCommand) {
   try {

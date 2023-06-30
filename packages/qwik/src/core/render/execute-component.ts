@@ -1,20 +1,20 @@
+import { intToStr, type ContainerState } from '../container/container';
 import { assertDefined } from '../error/assert';
+import { QError_stringifyClassOrStyle, qError } from '../error/error';
+import { HOST_FLAG_DIRTY, HOST_FLAG_MOUNTED, type QContext } from '../state/context';
+import { SignalUnassignedException, isSignal } from '../state/signal';
+import { newInvokeContext } from '../use/use-core';
+import { fromCamelToKebabCase } from '../util/case';
 import { RenderEvent } from '../util/markers';
 import { safeCall } from '../util/promises';
-import { newInvokeContext } from '../use/use-core';
+import { seal } from '../util/qdev';
 import { isArray, isFunction, isString, type ValueOrPromise } from '../util/types';
+import { handleError } from './error-handling';
+import { isJSXNode } from './jsx/jsx-runtime';
 import type { JSXNode } from './jsx/types/jsx-node';
 import type { ClassList } from './jsx/types/jsx-qwik-attributes';
-import type { RenderContext } from './types';
-import { type ContainerState, intToStr } from '../container/container';
-import { fromCamelToKebabCase } from '../util/case';
-import { qError, QError_stringifyClassOrStyle } from '../error/error';
-import { seal } from '../util/qdev';
 import { SkipRender } from './jsx/utils.public';
-import { handleError } from './error-handling';
-import { HOST_FLAG_DIRTY, HOST_FLAG_MOUNTED, type QContext } from '../state/context';
-import { isSignal, SignalUnassignedException } from '../state/signal';
-import { isJSXNode } from './jsx/jsx-runtime';
+import type { RenderContext } from './types';
 
 export interface ExecuteComponentOutput {
   node: JSXNode | null;

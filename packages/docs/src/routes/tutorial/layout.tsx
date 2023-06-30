@@ -1,15 +1,15 @@
 import { component$, Slot, useStore, useStyles$, useTask$ } from '@builder.io/qwik';
 import type { RequestHandler } from '@builder.io/qwik-city';
 import { useLocation } from '@builder.io/qwik-city';
+import tutorialSections, { type TutorialApp } from '@tutorial-data';
+import { Header } from '../../components/header/header';
+import { PanelToggle } from '../../components/panel-toggle/panel-toggle';
+import { EditIcon } from '../../components/svgs/edit-icon';
 import { Repl } from '../../repl/repl';
-import styles from './tutorial.css?inline';
+import type { ReplAppInput, ReplModuleInput } from '../../repl/types';
 import { TutorialContentFooter } from './tutorial-content-footer';
 import { TutorialContentHeader } from './tutorial-content-header';
-import tutorialSections, { type TutorialApp } from '@tutorial-data';
-import { PanelToggle } from '../../components/panel-toggle/panel-toggle';
-import { Header } from '../../components/header/header';
-import type { ReplAppInput, ReplModuleInput } from '../../repl/types';
-import { EditIcon } from '../../components/svgs/edit-icon';
+import styles from './tutorial.css?inline';
 
 export default component$(() => {
   useStyles$(styles);

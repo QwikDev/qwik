@@ -1,19 +1,19 @@
+import fs from 'node:fs';
+import { cpus as nodeCpus } from 'node:os';
+import { isAbsolute, resolve } from 'node:path';
+import { Worker } from 'node:worker_threads';
+import { normalizePath } from '../../utils/fs';
 import type {
   MainContext,
   StaticGenerateOptions,
   StaticRoute,
   StaticWorkerRenderResult,
-  WorkerOutputMessage,
-  WorkerInputMessage,
   System,
+  WorkerInputMessage,
+  WorkerOutputMessage,
 } from '../types';
-import fs from 'node:fs';
-import { cpus as nodeCpus } from 'node:os';
-import { Worker } from 'node:worker_threads';
-import { isAbsolute, resolve } from 'node:path';
-import { ensureDir } from './node-system';
-import { normalizePath } from '../../utils/fs';
 import { createSingleThreadWorker } from '../worker-thread';
+import { ensureDir } from './node-system';
 
 export async function createNodeMainProcess(sys: System, opts: StaticGenerateOptions) {
   const ssgWorkers: StaticGeneratorWorker[] = [];

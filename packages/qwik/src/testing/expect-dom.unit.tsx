@@ -1,7 +1,7 @@
+import { format } from 'prettier';
+import { snapshot } from 'uvu/assert';
 import { QSlot } from '../core/util/markers';
 import { isHtmlElement } from '../core/util/types';
-import { snapshot } from 'uvu/assert';
-import { format } from 'prettier';
 
 /**
  * Returns true if the `node` is `Element` and of the right `tagName`.

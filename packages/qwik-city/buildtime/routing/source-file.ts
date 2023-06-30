@@ -1,17 +1,17 @@
-import type { RouteSourceFileName, RouteSourceType } from '../types';
 import {
-  isModuleExt,
+  getExtension,
   isEntryName,
   isErrorName,
-  isMarkdownExt,
-  isMenuFileName,
-  isPageModuleExt,
-  isServiceWorkerName,
-  getExtension,
-  removeExtension,
   isIndexModule,
   isLayoutModule,
+  isMarkdownExt,
+  isMenuFileName,
+  isModuleExt,
+  isPageModuleExt,
+  isServiceWorkerName,
+  removeExtension,
 } from '../../utils/fs';
+import type { RouteSourceFileName, RouteSourceType } from '../types';
 
 export function getSourceFile(fileName: string) {
   const ext = getExtension(fileName);

@@ -1,7 +1,7 @@
-import * as assert from 'uvu/assert';
 import { test } from 'uvu';
-import { frontmatterAttrsToDocumentHead, parseFrontmatterAttrs } from './frontmatter';
+import * as assert from 'uvu/assert';
 import type { FrontmatterAttrs } from '../types';
+import { frontmatterAttrsToDocumentHead, parseFrontmatterAttrs } from './frontmatter';
 
 test('frontmatter, one line', async () => {
   const yaml = 'title: Some Title';

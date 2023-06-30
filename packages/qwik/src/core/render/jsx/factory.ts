@@ -1,8 +1,8 @@
 /* eslint-disable */
-import { jsx } from './jsx-runtime';
-import type { QwikJSX } from './types/jsx-qwik';
-import type { FunctionComponent, JSXNode } from './types/jsx-node';
 import { isArray } from '../../util/types';
+import { jsx } from './jsx-runtime';
+import type { FunctionComponent, JSXNode } from './types/jsx-node';
+import type { QwikJSX } from './types/jsx-qwik';
 
 export const flattenArray = <T>(array: (T | T[])[], dst?: T[]): T[] => {
   // Yes this function is just Array.flat, but we need to run on old versions of Node.

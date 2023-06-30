@@ -1,6 +1,6 @@
-import { type BuildConfig, copyDir, panic } from './util';
-import { join } from 'node:path';
 import { execa } from 'execa';
+import { join } from 'node:path';
+import { copyDir, panic, type BuildConfig } from './util';
 
 const PACKAGE = 'qwik-auth';
 

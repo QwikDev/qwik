@@ -1,9 +1,9 @@
-import type { StaticGenerateOptions } from '../types';
-import { createSystem } from './node-system';
 import { isMainThread, workerData } from 'node:worker_threads';
-import { mainThread } from '../main-thread';
-import { workerThread } from '../worker-thread';
 import { patchGlobalThis } from 'packages/qwik-city/middleware/node/node-fetch';
+import { mainThread } from '../main-thread';
+import type { StaticGenerateOptions } from '../types';
+import { workerThread } from '../worker-thread';
+import { createSystem } from './node-system';
 
 export async function generate(opts: StaticGenerateOptions) {
   if (isMainThread) {

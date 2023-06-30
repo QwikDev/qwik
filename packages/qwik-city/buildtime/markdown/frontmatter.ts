@@ -1,10 +1,10 @@
+import type { DocumentMeta, Editable } from 'packages/qwik-city/runtime/src/types';
 import type { Transformer } from 'unified';
-import type { BuildContext, FrontmatterAttrs } from '../types';
-import { normalizePath } from '../../utils/fs';
 import { visit } from 'unist-util-visit';
 import { parse as parseYaml } from 'yaml';
 import type { ResolvedDocumentHead } from '../../runtime/src';
-import type { DocumentMeta, Editable } from 'packages/qwik-city/runtime/src/types';
+import { normalizePath } from '../../utils/fs';
+import type { BuildContext, FrontmatterAttrs } from '../types';
 
 export function parseFrontmatter(ctx: BuildContext): Transformer {
   return (mdast, vfile) => {

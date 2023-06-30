@@ -1,8 +1,8 @@
 import { component$, event$, useContext, useStyles$ } from '@builder.io/qwik';
-import { SunAndMoon } from './sun-and-moon';
-import { themeStorageKey } from '../router-head/theme-script';
-import themeToggle from './theme-toggle.css?inline';
 import { GlobalStore } from '../../context';
+import { themeStorageKey } from '../router-head/theme-script';
+import { SunAndMoon } from './sun-and-moon';
+import themeToggle from './theme-toggle.css?inline';
 
 export type ThemePreference = 'dark' | 'light';
 

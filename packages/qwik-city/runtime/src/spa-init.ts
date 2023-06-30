@@ -2,8 +2,8 @@ import type { ClientSPAWindow } from './qwik-city-component';
 import type { ScrollHistoryState } from './scroll-restoration';
 import type { ScrollState } from './types';
 
-import { isDev } from '@builder.io/qwik/build';
 import { $ } from '@builder.io/qwik';
+import { isDev } from '@builder.io/qwik/build';
 
 // TODO Dedupe handler code from here and QwikCityProvider?
 // TODO Navigation API; check for support & simplify.

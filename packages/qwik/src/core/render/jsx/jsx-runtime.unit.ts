@@ -1,7 +1,7 @@
 import { suite } from 'uvu';
 import { equal } from 'uvu/assert';
-import { type ProcessedJSXNode, processNode } from '../dom/render-dom';
-import { jsx, isJSXNode, Fragment } from './jsx-runtime';
+import { processNode, type ProcessedJSXNode } from '../dom/render-dom';
+import { Fragment, isJSXNode, jsx } from './jsx-runtime';
 import type { FunctionComponent } from './types/jsx-node';
 
 const jsxSuite = suite('jsx-runtime');

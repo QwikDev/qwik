@@ -1,26 +1,26 @@
-import { $, type QRL } from '../qrl/qrl.public';
+import { isServerPlatform } from '../platform/platform';
 import { assertQrl } from '../qrl/qrl-class';
-import {
-  type ResourceReturn,
-  type ResourceDescriptor,
-  type ResourceFn,
-  runResource,
-  TaskFlagsIsDirty,
-  TaskFlagsIsResource,
-  Task,
-  type ResourceReturnInternal,
-} from './use-task';
+import { $, type QRL } from '../qrl/qrl.public';
 import { Fragment, jsx } from '../render/jsx/jsx-runtime';
 import type { JSXNode } from '../render/jsx/types/jsx-node';
-import { isServerPlatform } from '../platform/platform';
 import { untrack, useBindInvokeContext } from './use-core';
+import {
+  Task,
+  TaskFlagsIsDirty,
+  TaskFlagsIsResource,
+  runResource,
+  type ResourceDescriptor,
+  type ResourceFn,
+  type ResourceReturn,
+  type ResourceReturnInternal,
+} from './use-task';
 
 import type { ContainerState, GetObjID } from '../container/container';
-import { useSequentialScope } from './use-sequential-scope';
-import { createProxy } from '../state/store';
 import { getProxyTarget } from '../state/common';
 import { isSignal, type Signal } from '../state/signal';
+import { createProxy } from '../state/store';
 import { isObject } from '../util/types';
+import { useSequentialScope } from './use-sequential-scope';
 
 /**
  * Options to pass to `useResource$()`

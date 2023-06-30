@@ -1,7 +1,7 @@
+import { deepEqual } from 'assert';
 import { suite } from 'uvu';
 import { equal } from 'uvu/assert';
 import { clientNavigate, newScrollState } from './client-navigate';
-import { deepEqual } from 'assert';
 
 const navTest = suite('clientNavigate');
 

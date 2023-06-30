@@ -1,2 +1,2 @@
-export { jsx, jsxs, jsxDEV, Fragment } from '@builder.io/qwik';
-export type { QwikJSX as JSX, JSXNode, FunctionComponent } from '@builder.io/qwik';
+export { Fragment, jsx, jsxDEV, jsxs } from '@builder.io/qwik';
+export type { FunctionComponent, QwikJSX as JSX, JSXNode } from '@builder.io/qwik';

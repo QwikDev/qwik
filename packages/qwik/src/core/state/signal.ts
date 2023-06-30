@@ -1,19 +1,18 @@
+import type { ContainerState } from '../container/container';
 import { assertEqual, assertTrue } from '../error/assert';
 import { tryGetInvokeContext } from '../use/use-core';
 import { logWarn } from '../util/log';
-import { qDev, qSerialize } from '../util/qdev';
 import { ComputedEvent, RenderEvent, ResourceEvent } from '../util/markers';
+import { qDev, qSerialize } from '../util/qdev';
 import { isObject } from '../util/types';
-import type { ContainerState } from '../container/container';
 import {
-  getSubscriptionManager,
-  getProxyTarget,
   LocalSubscriptionManager,
-  type Subscriptions,
+  getProxyTarget,
+  getSubscriptionManager,
   verifySerializable,
+  type Subscriptions,
 } from './common';
 import { QObjectManagerSymbol, _IMMUTABLE, _IMMUTABLE_PREFIX } from './constants';
-import { _fnSignal } from '../qrl/inlined-fn';
 
 /**
  * @public

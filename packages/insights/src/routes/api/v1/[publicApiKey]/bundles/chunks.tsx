@@ -1,5 +1,5 @@
 import { eq } from 'drizzle-orm';
-import { type AppDatabase, symbolTable } from '~/db';
+import { symbolTable, type AppDatabase } from '~/db';
 
 const SEP = ' ';
 

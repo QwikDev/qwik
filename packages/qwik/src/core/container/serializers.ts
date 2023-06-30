@@ -1,17 +1,21 @@
-import { type Component, componentQrl, isQwikComponent } from '../component/component.public';
+import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
+import { componentQrl, isQwikComponent, type Component } from '../component/component.public';
+import { assertString, assertTrue } from '../error/assert';
+import { serializeDerivedSignalFunc } from '../qrl/inlined-fn';
 import { parseQRL, serializeQRL } from '../qrl/qrl';
 import { isQrl, type QRLInternal } from '../qrl/qrl-class';
 import type { QRL } from '../qrl/qrl.public';
-import { intToStr, type ContainerState, type GetObject, type MustGetObjID } from './container';
-import { isResourceReturn, parseResourceReturn, serializeResource } from '../use/use-resource';
+import type { QwikElement } from '../render/dom/virtual-element';
+import { Fragment, JSXNodeImpl, isJSXNode } from '../render/jsx/jsx-runtime';
+import { Slot } from '../render/jsx/slot.public';
 import {
-  isSubscriberDescriptor,
-  parseTask,
-  type ResourceReturnInternal,
-  serializeTask,
-  type SubscriberEffect,
-} from '../use/use-task';
-import { isDocument } from '../util/element';
+  LocalSubscriptionManager,
+  fastWeakSerialize,
+  getSubscriptionManager,
+  type SubscriptionManager,
+  type Subscriptions,
+} from '../state/common';
+import { QObjectManagerSymbol } from '../state/constants';
 import {
   QObjectSignalFlags,
   SIGNAL_IMMUTABLE,
@@ -19,22 +23,18 @@ import {
   SignalImpl,
   SignalWrapper,
 } from '../state/signal';
-import { type Collector, collectSubscriptions, collectValue, mapJoin } from './pause';
-import {
-  fastWeakSerialize,
-  getSubscriptionManager,
-  LocalSubscriptionManager,
-  type SubscriptionManager,
-  type Subscriptions,
-} from '../state/common';
 import { getOrCreateProxy } from '../state/store';
-import { QObjectManagerSymbol } from '../state/constants';
-import { serializeDerivedSignalFunc } from '../qrl/inlined-fn';
-import type { QwikElement } from '../render/dom/virtual-element';
-import { assertString, assertTrue } from '../error/assert';
-import { Fragment, JSXNodeImpl, isJSXNode } from '../render/jsx/jsx-runtime';
-import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
-import { Slot } from '../render/jsx/slot.public';
+import { isResourceReturn, parseResourceReturn, serializeResource } from '../use/use-resource';
+import {
+  isSubscriberDescriptor,
+  parseTask,
+  serializeTask,
+  type ResourceReturnInternal,
+  type SubscriberEffect,
+} from '../use/use-task';
+import { isDocument } from '../util/element';
+import { intToStr, type ContainerState, type GetObject, type MustGetObjID } from './container';
+import { collectSubscriptions, collectValue, mapJoin, type Collector } from './pause';
 
 /**
  * 0, 8, 9, A, B, C, D

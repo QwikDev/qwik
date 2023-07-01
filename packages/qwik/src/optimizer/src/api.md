@@ -72,6 +72,8 @@ export interface HookAnalysis {
     // (undocumented)
     hash: string;
     // (undocumented)
+    loc: [number, number];
+    // (undocumented)
     name: string;
     // (undocumented)
     origin: string;
@@ -262,6 +264,8 @@ export interface QwikSymbol {
     displayName: string;
     // (undocumented)
     hash: string;
+    // (undocumented)
+    loc: [number, number];
     // (undocumented)
     origin: string;
     // (undocumented)

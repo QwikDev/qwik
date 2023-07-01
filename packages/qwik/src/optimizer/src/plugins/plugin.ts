@@ -380,7 +380,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     _ctx: Rollup.PluginContext,
     id: string,
     importer: string | undefined,
-    resolveIdOpts?: { ssr?: boolean }
+    ssrOpts?: { ssr?: boolean }
   ) => {
     log(`resolveId()`, 'Start', id, importer);
 
@@ -421,6 +421,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
 
     const path = getPath();
+    const isSSR = ssrOpts?.ssr ?? opts.target === 'ssr';
 
     if (importer) {
       // Only process relative links
@@ -440,7 +441,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         } else {
           importeePathId = normalizePath(path.resolve(dir, importeePathId));
         }
-        const transformedOutput = resolveIdOpts?.ssr
+        const transformedOutput = isSSR
           ? ssrTransformedOutputs.get(importeePathId)
           : transformedOutputs.get(importeePathId);
 
@@ -457,7 +458,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       const ext = path.extname(importeePathId);
       if (RESOLVE_EXTS[ext]) {
         log(`resolveId("${importeePathId}", "${importer}")`);
-        const transformedOutput = resolveIdOpts?.ssr
+        const transformedOutput = isSSR
           ? ssrTransformedOutputs.get(importeePathId)
           : transformedOutputs.get(importeePathId);
 
@@ -472,15 +473,16 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     return null;
   };
 
-  const load = async (_ctx: any, id: string, loadOpts: { ssr?: boolean } = {}) => {
+  const load = async (_ctx: any, id: string, ssrOpts: { ssr?: boolean } = {}) => {
     if (id.startsWith('\0') || id.startsWith('/@fs/')) {
       return;
     }
+    const isSSR = ssrOpts?.ssr ?? opts.target === 'ssr';
     if (opts.resolveQwikBuild && id.endsWith(QWIK_BUILD_ID)) {
       log(`load()`, QWIK_BUILD_ID, opts.buildMode);
       return {
         moduleSideEffects: false,
-        code: getQwikBuildModule(loadOpts, opts.target),
+        code: getQwikBuildModule(isSSR, opts.target),
       };
     }
 
@@ -488,16 +490,17 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       log(`load()`, QWIK_CLIENT_MANIFEST_ID, opts.buildMode);
       return {
         moduleSideEffects: false,
-        code: await getQwikServerManifestModule(loadOpts),
+        code: await getQwikServerManifestModule(isSSR),
       };
     }
     const parsedId = parseId(id);
     const path = getPath();
     id = normalizePath(parsedId.pathId);
 
-    const transformedModule = loadOpts?.ssr
+    const transformedModule = isSSR
       ? ssrTransformedOutputs.get(id)
       : transformedOutputs.get(id);
+
     if (transformedModule) {
       log(`load()`, 'Found', id);
 
@@ -531,7 +534,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     if (id.startsWith('\0') || id.startsWith('/@fs/')) {
       return;
     }
-    const isSSR = !!ssrOpts.ssr;
+    const isSSR = ssrOpts.ssr ?? opts.target === 'ssr';
     const currentOutputs = isSSR ? ssrTransformedOutputs : transformedOutputs;
     if (currentOutputs.has(id)) {
       return;
@@ -757,8 +760,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     return id;
   };
 
-  function getQwikBuildModule(loadOpts: { ssr?: boolean }, target: QwikBuildTarget) {
-    const isServer = !!loadOpts.ssr || target === 'test';
+  function getQwikBuildModule(isSSR: boolean, target: QwikBuildTarget) {
+    const isServer = isSSR || target === 'test';
     const isDev = opts.buildMode === 'development';
     return `// @builder.io/qwik/build
 export const isServer = ${JSON.stringify(isServer)};
@@ -767,9 +770,8 @@ export const isDev = ${JSON.stringify(isDev)};
 `;
   }
 
-  async function getQwikServerManifestModule(loadOpts: { ssr?: boolean }) {
-    const isServer = opts.target === 'ssr' || !!loadOpts.ssr;
-    const manifest = isServer ? opts.manifestInput : null;
+  async function getQwikServerManifestModule(isSSR: boolean) {
+    const manifest = isSSR ? opts.manifestInput : null;
     return `// @qwik-client-manifest
 export const manifest = ${JSON.stringify(manifest)};\n`;
   }

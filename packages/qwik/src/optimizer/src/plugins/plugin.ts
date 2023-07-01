@@ -860,6 +860,10 @@ const LIB_OUT_DIR = 'lib';
 
 export const Q_MANIFEST_FILENAME = 'q-manifest.json';
 
+export interface QwikPluginDevTools {
+  clickToSource?: string[] | false;
+}
+
 export interface QwikPluginOptions {
   buildMode?: QwikBuildMode;
   debug?: boolean;
@@ -879,9 +883,7 @@ export interface QwikPluginOptions {
   transformedModuleOutput?:
     | ((transformedModules: TransformModule[]) => Promise<void> | void)
     | null;
-  devTools?: {
-    clickToSource?: string[] | false;
-  };
+  devTools?: QwikPluginDevTools;
 }
 
 export interface NormalizedQwikPluginOptions extends Required<QwikPluginOptions> {

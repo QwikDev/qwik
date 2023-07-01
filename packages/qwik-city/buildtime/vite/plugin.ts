@@ -32,7 +32,7 @@ import { imagePlugin } from './image-jsx';
  * @public
  */
 export function qwikCity(userOpts?: QwikCityVitePluginOptions): PluginOption[] {
-  return [qwikCityPlugin(userOpts), ...imagePlugin()];
+  return [qwikCityPlugin(userOpts), ...imagePlugin(userOpts)];
 }
 
 function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {

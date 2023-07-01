@@ -292,6 +292,9 @@
       }
       return p;
     }
+    function isDefinedUnit(value) {
+      return value.endsWith('px');
+    }
     async function doImg(node) {
       const scrollX = window.scrollX;
       const scrollY = window.scrollY;
@@ -305,15 +308,11 @@
         const loc = node.getAttribute('data-qwik-inspector');
         if (!node.hasAttribute('width') || !node.hasAttribute('height')) {
           skip = true;
-          node.src = '';
-          const rect2 = node.getBoundingClientRect();
-          layoutInvalidation =
-            rect.x !== rect2.x ||
-            rect.y !== rect2.y ||
-            rect.width !== rect2.width ||
-            rect.height !== rect2.height;
-
-          node.src = originalSrc;
+          const computedStyles = node.computedStyleMap();
+          const hasAspect = computedStyles.get('aspect-ratio').toString() !== 'auto';
+          const hasWidth = isDefinedUnit(computedStyles.get('width').toString());
+          const hasHeight = isDefinedUnit(computedStyles.get('height').toString());
+          layoutInvalidation = !hasAspect && (!hasWidth || !hasHeight);
         }
         const browserArea = rect.width * rect.height;
         const realArea = info.width && info.height;

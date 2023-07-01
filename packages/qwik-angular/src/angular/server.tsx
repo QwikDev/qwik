@@ -1,4 +1,3 @@
-import 'zone.js/bundles/zone-node.umd.js';
 import { type QRL, type Signal, SSRRaw, Slot } from '@builder.io/qwik';
 import { isServer } from '@builder.io/qwik/build';
 import {
@@ -10,6 +9,8 @@ import {
   ɵRender3ComponentFactory,
   type Injector,
   type Type,
+  NgZone,
+  ɵNoopNgZone,
 } from '@angular/core';
 import {
   BEFORE_APP_SERIALIZED,
@@ -19,6 +20,7 @@ import {
 import { bootstrapApplication } from '@angular/platform-browser';
 import { DOCUMENT } from '@angular/common';
 import { getHostProps } from './slot';
+import { BehaviorSubject } from 'rxjs';
 
 const SLOT_MARK = 'SLOT';
 const SLOT_COMMENT = `<!--${SLOT_MARK}-->`;
@@ -85,6 +87,10 @@ const STATIC_PROPS_HOOK_PROVIDER: Provider = {
   multi: true,
 };
 
+class MockApplicationRef extends ApplicationRef {
+  isStable = new BehaviorSubject(true);
+}
+
 export async function renderFromServer(
   Host: any,
   angularCmp$: QRL<Type<unknown>>,
@@ -103,9 +109,21 @@ export async function renderFromServer(
     const appId = mirror?.selector || component.name.toString().toLowerCase();
     const document = `<${appId}></${appId}>`;
 
+    // There're certain issues with setting up zone.js in the qwik's node runtime
+    // thus dropping it entirely for now
+    // It might affect SSR in some sense, but should not be critical in most of the cases
+    const mockZoneProviders = [
+      {
+        provide: ApplicationRef,
+        useFactory: () => new MockApplicationRef(),
+      },
+      { provide: NgZone, useClass: ɵNoopNgZone },
+    ];
+
     const bootstrap = () =>
       bootstrapApplication(component, {
         providers: [
+          ...mockZoneProviders,
           {
             provide: QWIK_ANGULAR_STATIC_PROPS,
             useValue: { props, mirror },

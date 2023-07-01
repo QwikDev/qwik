@@ -48,7 +48,15 @@ function analogQwikPlugin(options: PluginOptions) {
 
       return {
         optimizeDeps: {
-          include: ['@angular/core', '@angular/platform-browser', '@angular/compiler'],
+          include: [
+            "@angular/core",
+            "@angular/platform-browser",
+            "@angular/platform-browser/animations",
+            "@angular/compiler",
+            "@angular/common",
+            "@angular/animations",
+            "@angular/animations/browser",
+          ],
           exclude: ['@angular/platform-server'],
         },
       };

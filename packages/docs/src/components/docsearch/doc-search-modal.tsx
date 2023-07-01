@@ -1,11 +1,4 @@
-import {
-  component$,
-  useSignal,
-  noSerialize,
-  useContextProvider,
-  useVisibleTask$,
-  useTask$,
-} from '@builder.io/qwik';
+import { component$, useSignal, noSerialize, useContextProvider, useTask$ } from '@builder.io/qwik';
 import { MAX_QUERY_SIZE } from './constants';
 import { SearchContext } from './context';
 import type { DocSearchProps, DocSearchState } from './doc-search';
@@ -139,13 +132,13 @@ export const DocSearchModal = component$(
     // See https://css-tricks.com/the-trick-to-viewport-units-on-mobile/
     useTask$(() => {
       if (isBrowser) {
-        function setFullViewportHeight() {
+        const setFullViewportHeight = () => {
           if (modalRef.value) {
             const vh = window.innerHeight * 0.01;
             // @ts-ignore
             modalRef.value.style.setProperty('--docsearch-vh', `${vh}px`);
           }
-        }
+        };
 
         setFullViewportHeight();
 

@@ -9,7 +9,7 @@ export const useSymbols = routeLoader$(async ({ params }) => {
     .select()
     .from(symbolTable)
     .where(eq(symbolTable.publicApiKey, params.publicApiKey))
-    .limit(1000)
+    .limit(10000)
     .all();
   return symbols;
 });

@@ -31,6 +31,6 @@
     "redent": "^4.0.0"
   },
   "dependencies": {
-    "jsx-ast-utils": "^3.3.3"
+    "jsx-ast-utils": "^3.3.4"
   }
 }

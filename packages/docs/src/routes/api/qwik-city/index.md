@@ -329,12 +329,13 @@ export interface LinkProps extends AnchorAttributes
 
 **Extends:** AnchorAttributes
 
-| Property           | Modifiers | Type    | Description  |
-| ------------------ | --------- | ------- | ------------ |
-| [prefetch?](#)     |           | boolean | _(Optional)_ |
-| [reload?](#)       |           | boolean | _(Optional)_ |
-| [replaceState?](#) |           | boolean | _(Optional)_ |
-| [scroll?](#)       |           | boolean | _(Optional)_ |
+| Property              | Modifiers | Type    | Description                                                                                                                                                                                                                      |
+| --------------------- | --------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [prefetch?](#)        |           | boolean | _(Optional)_ Whether Link should prefetch and cache the data (routeLoader$, onGet, etc.) for this page. This occurs when the Link receives a mouseover or focus event on desktop, or when visible on mobile. (defaults to false) |
+| [prefetchSymbols?](#) |           | boolean | _(Optional)_ Whether Link should prefetch the javascript bundles required to render this page. This occurs when the Link becomes visible on the page. (defaults to true)                                                         |
+| [reload?](#)          |           | boolean | _(Optional)_                                                                                                                                                                                                                     |
+| [replaceState?](#)    |           | boolean | _(Optional)_                                                                                                                                                                                                                     |
+| [scroll?](#)          |           | boolean | _(Optional)_                                                                                                                                                                                                                     |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/link-component.tsx)
 

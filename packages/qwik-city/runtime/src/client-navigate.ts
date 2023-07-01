@@ -1,7 +1,7 @@
 import { isBrowser } from '@builder.io/qwik/build';
-import type { QPrefetchData } from './service-worker/types';
 import type { NavigationType, ScrollState } from './types';
 import { isSamePath, toPath } from './utils';
+import { PREFETCHED_NAVIGATE_PATHS } from './constants';
 
 export const clientNavigate = (
   win: Window,
@@ -40,8 +40,12 @@ export const newScrollState = (): ScrollState => {
   };
 };
 
-export const dispatchPrefetchEvent = (prefetchData: QPrefetchData) => {
+export const prefetchSymbols = (path: string) => {
   if (isBrowser) {
-    document.dispatchEvent(new CustomEvent('qprefetch', { detail: prefetchData }));
+    path = path.endsWith('/') ? path.slice(0, -1) : path;
+    if (!PREFETCHED_NAVIGATE_PATHS.has(path)) {
+      PREFETCHED_NAVIGATE_PATHS.add(path);
+      document.dispatchEvent(new CustomEvent('qprefetch', { detail: { links: [path] } }));
+    }
   }
 };

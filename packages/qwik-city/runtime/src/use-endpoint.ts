@@ -1,33 +1,36 @@
 import { getClientDataPath } from './utils';
-import { dispatchPrefetchEvent } from './client-navigate';
 import { CLIENT_DATA_CACHE } from './constants';
 import type { ClientPageData, RouteActionValue } from './types';
 import { _deserializeData } from '@builder.io/qwik';
+import { prefetchSymbols } from './client-navigate';
 
 export const loadClientData = async (
   url: URL,
   element: unknown,
-  clearCache?: boolean,
-  action?: RouteActionValue
+  opts?: {
+    action?: RouteActionValue;
+    clearCache?: boolean;
+    prefetchSymbols?: boolean;
+  }
 ) => {
   const pagePathname = url.pathname;
   const pageSearch = url.search;
-  const clientDataPath = getClientDataPath(pagePathname, pageSearch, action);
+  const clientDataPath = getClientDataPath(pagePathname, pageSearch, opts?.action);
   let qData = undefined;
-  if (!action) {
+  if (!opts?.action) {
     qData = CLIENT_DATA_CACHE.get(clientDataPath);
   }
 
-  dispatchPrefetchEvent({
-    links: [pagePathname],
-  });
+  if (opts?.prefetchSymbols !== false) {
+    prefetchSymbols(pagePathname);
+  }
 
   if (!qData) {
-    const options = getFetchOptions(action);
-    if (action) {
-      action.data = undefined;
+    const fetchOptions = getFetchOptions(opts?.action);
+    if (opts?.action) {
+      opts.action.data = undefined;
     }
-    qData = fetch(clientDataPath, options).then((rsp) => {
+    qData = fetch(clientDataPath, fetchOptions).then((rsp) => {
       const redirectedURL = new URL(rsp.url);
       const isQData = redirectedURL.pathname.endsWith('/q-data.json');
       if (redirectedURL.origin !== location.origin || !isQData) {
@@ -42,14 +45,14 @@ export const loadClientData = async (
             location.href = url.href;
             return;
           }
-          if (clearCache) {
+          if (opts?.clearCache) {
             CLIENT_DATA_CACHE.delete(clientDataPath);
           }
           if (clientData.redirect) {
             location.href = clientData.redirect;
-          } else if (action) {
-            const actionData = clientData.loaders[action.id];
-            action.resolve!({ status: rsp.status, result: actionData });
+          } else if (opts?.action) {
+            const actionData = clientData.loaders[opts.action.id];
+            opts.action.resolve!({ status: rsp.status, result: actionData });
           }
           return clientData;
         });
@@ -59,7 +62,7 @@ export const loadClientData = async (
       }
     });
 
-    if (!action) {
+    if (!opts?.action) {
       CLIENT_DATA_CACHE.set(clientDataPath, qData);
     }
   }

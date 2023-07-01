@@ -4,6 +4,7 @@ import {
   useContext,
   useSignal,
   useStore,
+  useTask$,
   useVisibleTask$,
 } from '@builder.io/qwik';
 import { QwikGPT } from '../qwik-gpt';
@@ -115,11 +116,11 @@ export const AIButton = component$(({ state }: { state: DocSearchState }) => {
   const gpt = useSignal<string>();
   const aiResultOpen = useContext(AiResultOpenContext);
 
-  useVisibleTask$(({ track }) => {
+  useTask$(({ track }) => {
     aiResultOpen.value = Boolean(track(() => gpt.value?.trim()));
   });
 
-  useVisibleTask$(({ track }) => {
+  useTask$(({ track }) => {
     // When query changes, reset gpt value
     track(() => state.query);
     gpt.value = '';

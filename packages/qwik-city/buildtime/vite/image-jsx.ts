@@ -3,11 +3,12 @@ import type { PluginOption } from 'vite';
 import { optimize } from 'svgo';
 import fs from 'node:fs';
 import { parseId } from 'packages/qwik/src/optimizer/src/plugins/plugin';
+import type { QwikCityVitePluginOptions } from './types';
 
 /**
  * @public
  */
-export function imagePlugin(): PluginOption[] {
+export function imagePlugin(userOpts?: QwikCityVitePluginOptions): PluginOption[] {
   const supportedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'avif', 'tiff'].map(
     (ext) => `.${ext}?jsx`
   );
@@ -41,10 +42,14 @@ export function imagePlugin(): PluginOption[] {
         },
         defaultDirectives: (url) => {
           if (url.searchParams.has('jsx')) {
+            const { jsx, ...params } = Object.fromEntries(url.searchParams.entries());
             return new URLSearchParams({
               format: 'webp',
               quality: '75',
               w: '200;400;800;1200',
+              withoutEnlargement: '',
+              ...userOpts?.imageOptimization?.jsxDirectives,
+              ...params,
               as: 'jsx',
             });
           }

@@ -33,7 +33,7 @@
 }
 
 .shop .product .title {
-  @apply mt-4 px-5 text-xl tracking-tight text-center;
+  @apply mt-4 px-5 text-xl tracking-tight text-center truncate;
 }
 
 .shop .product .info {

@@ -11,10 +11,13 @@ export const Link = component$<LinkProps>((props) => {
   const nav = useNavigate();
   const loc = useLocation();
   const originalHref = props.href;
-  const { onClick$, prefetchSymbols, reload, replaceState, scroll, ...linkProps } = (() => props)();
+  const { onClick$, prefetch, prefetchSymbols, reload, replaceState, scroll, ...linkProps } = (() =>
+    props)();
   const clientNavPath = untrack(() => getClientNavPath(linkProps, loc));
   const prefetchResources = untrack(() => prefetchSymbols !== false && !!clientNavPath);
-  const prefetchDataset = untrack(() => getPrefetchDataset(props, clientNavPath, loc));
+  const prefetchDataset = untrack(
+    () => prefetch === true && getPrefetchDataset(clientNavPath, loc)
+  );
   linkProps['preventdefault:click'] = !!clientNavPath;
   linkProps.href = clientNavPath || originalHref;
   const onPrefetch =

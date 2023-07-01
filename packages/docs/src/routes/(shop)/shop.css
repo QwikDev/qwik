@@ -56,6 +56,6 @@
 }
 
 .header-open .shop-cart,
-.DocSearch--active .shop-cart{
+.DocSearch--active .shop-cart {
   z-index: 99;
 }

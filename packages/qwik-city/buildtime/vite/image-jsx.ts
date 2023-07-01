@@ -46,7 +46,7 @@ export function imagePlugin(userOpts?: QwikCityVitePluginOptions): PluginOption[
             return new URLSearchParams({
               format: 'webp',
               quality: '75',
-              w: '200;400;800;1200',
+              w: '200;400;600;800;1200',
               withoutEnlargement: '',
               ...userOpts?.imageOptimization?.jsxDirectives,
               ...params,

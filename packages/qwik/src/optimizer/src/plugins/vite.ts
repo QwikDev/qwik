@@ -470,6 +470,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
                       href: baseFilename,
                       as: 'font',
                       type: `font/${selectedFont.slice(1)}`,
+                      crossorigin: '',
                     },
                   });
                 }

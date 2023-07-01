@@ -139,6 +139,7 @@ export interface HookAnalysis {
   ctxKind: 'event' | 'function';
   ctxName: string;
   captures: boolean;
+  loc: [number, number];
 }
 
 // RESULT OUTPUT ***************
@@ -298,6 +299,7 @@ export interface QwikSymbol {
   ctxName: string;
   captures: boolean;
   parent: string | null;
+  loc: [number, number];
 }
 
 /**

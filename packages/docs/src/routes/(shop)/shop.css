@@ -55,6 +55,7 @@
   @apply fixed right-6 z-[100] pt-[55px];
 }
 
-.header-open .shop-cart {
+.header-open .shop-cart,
+.DocSearch--active .shop-cart{
   z-index: 99;
 }

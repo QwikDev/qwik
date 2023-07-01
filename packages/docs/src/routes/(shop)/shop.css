@@ -33,7 +33,7 @@
 }
 
 .shop .product .title {
-  @apply mt-4 px-5 text-xl tracking-tight text-center;
+  @apply mt-4 px-5 text-xl tracking-tight text-center truncate;
 }
 
 .shop .product .info {
@@ -49,4 +49,13 @@
   @apply flex items-center justify-center rounded-md px-5 py-2.5 text-center text-sm font-medium bg-slate-900 focus:outline-none focus:ring-4 focus:ring-blue-300 w-full h-[40px];
   background-color: var(--text-color);
   color: var(--bg-color);
+}
+
+.shop-cart {
+  @apply fixed right-6 z-[100] pt-[55px];
+}
+
+.header-open .shop-cart,
+.DocSearch--active .shop-cart {
+  z-index: 99;
 }

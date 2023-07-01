@@ -497,9 +497,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     const path = getPath();
     id = normalizePath(parsedId.pathId);
 
-    const transformedModule = isSSR
-      ? ssrTransformedOutputs.get(id)
-      : transformedOutputs.get(id);
+    const transformedModule = isSSR ? ssrTransformedOutputs.get(id) : transformedOutputs.get(id);
 
     if (transformedModule) {
       log(`load()`, 'Found', id);

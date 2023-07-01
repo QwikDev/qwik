@@ -286,6 +286,7 @@ export function generateManifestFromBundles(
         ctxName: hook.ctxName,
         captures: hook.captures,
         parent: hook.parent,
+        loc: hook.loc,
       };
 
       addBundleToManifest(path, manifest, outputBundle, bundleFileName);

@@ -164,7 +164,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface HookAnalysis \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [canonicalFilename](#) |  | string |  |\n|  [captures](#) |  | boolean |  |\n|  [ctxKind](#) |  | 'event' \\| 'function' |  |\n|  [ctxName](#) |  | string |  |\n|  [displayName](#) |  | string |  |\n|  [entry](#) |  | string \\| null |  |\n|  [extension](#) |  | string |  |\n|  [hash](#) |  | string |  |\n|  [name](#) |  | string |  |\n|  [origin](#) |  | string |  |\n|  [parent](#) |  | string \\| null |  |",
+      "content": "```typescript\nexport interface HookAnalysis \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [canonicalFilename](#) |  | string |  |\n|  [captures](#) |  | boolean |  |\n|  [ctxKind](#) |  | 'event' \\| 'function' |  |\n|  [ctxName](#) |  | string |  |\n|  [displayName](#) |  | string |  |\n|  [entry](#) |  | string \\| null |  |\n|  [extension](#) |  | string |  |\n|  [hash](#) |  | string |  |\n|  [loc](#) |  | \\[number, number\\] |  |\n|  [name](#) |  | string |  |\n|  [origin](#) |  | string |  |\n|  [parent](#) |  | string \\| null |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
       "mdFile": "qwik.hookanalysis.md"
     },
@@ -428,7 +428,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikSymbol \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [canonicalFilename](#) |  | string |  |\n|  [captures](#) |  | boolean |  |\n|  [ctxKind](#) |  | 'function' \\| 'event' |  |\n|  [ctxName](#) |  | string |  |\n|  [displayName](#) |  | string |  |\n|  [hash](#) |  | string |  |\n|  [origin](#) |  | string |  |\n|  [parent](#) |  | string \\| null |  |",
+      "content": "```typescript\nexport interface QwikSymbol \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [canonicalFilename](#) |  | string |  |\n|  [captures](#) |  | boolean |  |\n|  [ctxKind](#) |  | 'function' \\| 'event' |  |\n|  [ctxName](#) |  | string |  |\n|  [displayName](#) |  | string |  |\n|  [hash](#) |  | string |  |\n|  [loc](#) |  | \\[number, number\\] |  |\n|  [origin](#) |  | string |  |\n|  [parent](#) |  | string \\| null |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
       "mdFile": "qwik.qwiksymbol.md"
     },

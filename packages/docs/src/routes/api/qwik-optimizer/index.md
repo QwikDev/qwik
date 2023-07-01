@@ -160,6 +160,7 @@ export interface HookAnalysis
 | [entry](#)             |           | string \| null        |             |
 | [extension](#)         |           | string                |             |
 | [hash](#)              |           | string                |             |
+| [loc](#)               |           | [number, number]      |             |
 | [name](#)              |           | string                |             |
 | [origin](#)            |           | string                |             |
 | [parent](#)            |           | string \| null        |             |
@@ -444,6 +445,7 @@ export interface QwikSymbol
 | [ctxName](#)           |           | string                |             |
 | [displayName](#)       |           | string                |             |
 | [hash](#)              |           | string                |             |
+| [loc](#)               |           | [number, number]      |             |
 | [origin](#)            |           | string                |             |
 | [parent](#)            |           | string \| null        |             |
 

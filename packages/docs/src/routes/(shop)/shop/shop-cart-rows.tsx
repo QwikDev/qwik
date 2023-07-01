@@ -88,7 +88,7 @@ export const ShopCartRows = component$(() => {
                       >
                         <svg
                           viewBox="0 0 24 24"
-                          class="h-8"
+                          class="h-8 text-red-400"
                           style="fill: none; stroke: currentcolor;"
                         >
                           <path
@@ -110,7 +110,7 @@ export const ShopCartRows = component$(() => {
                       >
                         <svg
                           viewBox="0 0 24 24"
-                          class="h-8"
+                          class="h-8 text-green-300"
                           style="fill: none; stroke: currentcolor;"
                         >
                           <path
@@ -126,7 +126,7 @@ export const ShopCartRows = component$(() => {
                       <button
                         disabled={loadingSignal.value}
                         value={lineItem.id}
-                        class="font-medium text-[color:var(--text-color)] disabled:cursor-not-allowed hover:opacity-70"
+                        class="font-medium text-red-400 disabled:cursor-not-allowed hover:opacity-70 hover:text-red-500"
                         onClick$={async () => {
                           if (!loadingSignal.value) {
                             await onRemoveLineItemMutation(lineItem.id);

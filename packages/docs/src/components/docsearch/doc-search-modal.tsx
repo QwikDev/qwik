@@ -1,10 +1,4 @@
-import {
-  component$,
-  useSignal,
-  noSerialize,
-  useContextProvider,
-  useVisibleTask$,
-} from '@builder.io/qwik';
+import { component$, useSignal, noSerialize, useContextProvider, useTask$ } from '@builder.io/qwik';
 import { MAX_QUERY_SIZE } from './constants';
 import { SearchContext } from './context';
 import type { DocSearchProps, DocSearchState } from './doc-search';
@@ -18,6 +12,7 @@ import type { DocSearchHit } from './types';
 import { identity } from './utils';
 import { clearStalled, setStalled } from './utils/stalledControl';
 import { AIButton } from './result';
+import { isBrowser } from '@builder.io/qwik/build';
 
 export type ModalTranslations = Partial<{
   searchBox: SearchBoxTranslations;
@@ -108,45 +103,51 @@ export const DocSearchModal = component$(
     // TODO:
     // useTrapFocus(containerRef as any);
 
-    useVisibleTask$(() => {
-      document.body.classList.add('DocSearch--active');
-      const isMobileMediaQuery = window.matchMedia('(max-width: 768px)');
+    useTask$(() => {
+      if (isBrowser) {
+        document.body.classList.add('DocSearch--active');
+        const isMobileMediaQuery = window.matchMedia('(max-width: 768px)');
 
-      if (isMobileMediaQuery.matches) {
-        state.snippetLength = 5;
+        if (isMobileMediaQuery.matches) {
+          state.snippetLength = 5;
+        }
+
+        return () => {
+          document.body.classList.remove('DocSearch--active');
+        };
       }
-
-      return () => {
-        document.body.classList.remove('DocSearch--active');
-      };
     });
 
-    useVisibleTask$(({ track }) => {
-      track(() => state.query);
-      if (dropdownRef.value) {
-        dropdownRef.value.scrollTop = 0;
+    useTask$(({ track }) => {
+      if (isBrowser) {
+        track(() => state.query);
+        if (dropdownRef.value) {
+          dropdownRef.value.scrollTop = 0;
+        }
       }
     });
 
     // We rely on a CSS property to set the modal height to the full viewport height
     // because all mobile browsers don't compute their height the same way.
     // See https://css-tricks.com/the-trick-to-viewport-units-on-mobile/
-    useVisibleTask$(() => {
-      function setFullViewportHeight() {
-        if (modalRef.value) {
-          const vh = window.innerHeight * 0.01;
-          // @ts-ignore
-          modalRef.value.style.setProperty('--docsearch-vh', `${vh}px`);
-        }
+    useTask$(() => {
+      if (isBrowser) {
+        const setFullViewportHeight = () => {
+          if (modalRef.value) {
+            const vh = window.innerHeight * 0.01;
+            // @ts-ignore
+            modalRef.value.style.setProperty('--docsearch-vh', `${vh}px`);
+          }
+        };
+
+        setFullViewportHeight();
+
+        window.addEventListener('resize', setFullViewportHeight);
+
+        return () => {
+          window.removeEventListener('resize', setFullViewportHeight);
+        };
       }
-
-      setFullViewportHeight();
-
-      window.addEventListener('resize', setFullViewportHeight);
-
-      return () => {
-        window.removeEventListener('resize', setFullViewportHeight);
-      };
     });
 
     return (

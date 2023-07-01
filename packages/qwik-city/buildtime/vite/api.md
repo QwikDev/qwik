@@ -32,6 +32,10 @@ export interface QwikCityPlugin {
 //
 // @public (undocumented)
 export interface QwikCityVitePluginOptions extends Omit<PluginOptions, 'basePathname'> {
+    // Warning: (ae-forgotten-export) The symbol "ImageOptimizationOptions" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    imageOptimization?: ImageOptimizationOptions;
     // (undocumented)
     mdx?: MdxOptions;
     // Warning: (ae-forgotten-export) The symbol "MdxPlugins" needs to be exported by the entry point index.d.ts

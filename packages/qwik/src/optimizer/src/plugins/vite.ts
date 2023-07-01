@@ -34,6 +34,8 @@ import { getImageSizeServer } from './image-size-server';
 
 const DEDUPE = [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID, QWIK_JSX_DEV_RUNTIME_ID];
 
+const STYLING = ['.css', '.scss', '.sass', '.less'];
+const FONTS = ['.woff', '.woff2', '.ttf'];
 const CSS_EXTENSIONS = ['.css', '.scss', '.sass'];
 /**
  * @public
@@ -436,8 +438,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
                 size: b.code.length,
               });
             } else {
-              if (['.css', '.scss', '.sass', '.less'].some((ext) => fileName.endsWith(ext))) {
-                const baseFilename = basePathname + fileName;
+              const baseFilename = basePathname + fileName;
+              if (STYLING.some((ext) => fileName.endsWith(ext))) {
                 if (typeof b.source === 'string' && b.source.length < 20000) {
                   injections.push({
                     tag: 'style',
@@ -454,6 +456,20 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
                     attributes: {
                       rel: 'stylesheet',
                       href: baseFilename,
+                    },
+                  });
+                }
+              } else {
+                const selectedFont = FONTS.find((ext) => fileName.endsWith(ext));
+                if (selectedFont) {
+                  injections.unshift({
+                    tag: 'link',
+                    location: 'head',
+                    attributes: {
+                      rel: 'preload',
+                      href: baseFilename,
+                      as: 'font',
+                      type: `font/${selectedFont.slice(1)}`,
                     },
                   });
                 }

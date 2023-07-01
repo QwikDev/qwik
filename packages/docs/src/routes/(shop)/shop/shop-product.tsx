@@ -18,7 +18,7 @@ export const ShopProduct = component$<Props>(({ product }) => {
   );
   return (
     <div class="product">
-      <h5 class="title">{product.title}</h5>
+      <h5 class="title font-semibold">{product.title}</h5>
       <div class={`info ${showProductSignal.value ? 'overflow-hidden' : 'overflow-auto'}`}>
         {showProductSignal.value ? (
           <Image
@@ -38,7 +38,7 @@ export const ShopProduct = component$<Props>(({ product }) => {
       </div>
       <div class="py-2 px-5 flex items-center">
         <span
-          class="font-medium hover:underline text-[color:var(--text-color)]"
+          class="font-medium hover:underline text-[color:var(--text-color)] cursor-pointer"
           onClick$={() => {
             showProductSignal.value = !showProductSignal.value;
           }}

@@ -89,7 +89,7 @@ export const ShopCart = component$(() => {
                             <ShopCartRows />
                           ) : (
                             <div class="flex items-center justify-center h-48 text-xl">
-                              Your cart is empty
+                              🛒 Your cart is empty
                             </div>
                           )}
                         </div>
@@ -105,7 +105,7 @@ export const ShopCart = component$(() => {
                               )}
                             </p>
                           </div>
-                          <p class="mt-0.5 text-sm">Shipping will be calculated at checkout.</p>
+                          <p class="mt-0.5 text-sm">🚛 Shipping will be calculated at checkout.</p>
                           <a
                             target="_blank"
                             rel="noopener noreferrer"

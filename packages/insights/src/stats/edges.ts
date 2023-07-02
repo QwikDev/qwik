@@ -146,8 +146,6 @@ export function computeSymbolVectors(symbols: Symbol[]): SymbolVectors {
   ////////////////////////////////////////
 
   function processChildren(symbol: Symbol, edgePath: Edge[], alreadyVisited: Set<Symbol>) {
-    if (alreadyVisited.has(symbol)) return;
-    alreadyVisited.add(symbol);
     const symbolIdx = symbolVectorIdxMap.get(symbol);
     if (symbolIdx !== undefined) {
       let weight = 1;
@@ -168,6 +166,9 @@ export function computeSymbolVectors(symbols: Symbol[]): SymbolVectors {
         }
       }
     }
+
+    if (alreadyVisited.has(symbol)) return;
+    alreadyVisited.add(symbol);
 
     symbol.children.forEach((edge) => {
       edgePath.push(edge);

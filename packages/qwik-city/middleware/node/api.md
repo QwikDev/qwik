@@ -38,7 +38,7 @@ export interface PlatformNode {
 // @public (undocumented)
 export interface QwikCityNodeRequestOptions extends ServerRenderOptions {
     getClientConn?: (req: IncomingMessage | Http2ServerRequest) => ClientConn;
-    getOrigin?: (req: IncomingMessage | Http2ServerRequest) => string | null;
+    getOrigin?: (req: IncomingMessage | Http2ServerRequest) => string;
     // @deprecated (undocumented)
     origin?: string;
     static?: {

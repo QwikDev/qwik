@@ -8,7 +8,7 @@ import { getNotFound } from '@qwik-city-not-found-paths';
 import { isStaticPath } from '@qwik-city-static-paths';
 import { createReadStream } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { extname, join, basename } from 'node:path';
+import { extname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { computeOrigin, fromNodeHttp, getUrl } from './http';
 import { MIME_TYPES } from '../request-handler/mime-types';
@@ -98,17 +98,9 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
       const origin = computeOrigin(req, opts);
       const url = getUrl(req, origin);
       if (isStaticPath(req.method || 'GET', url)) {
-        const pathname = url.pathname;
-        let filePath: string;
-        if (basename(pathname).includes('.')) {
-          filePath = join(staticFolder, pathname);
-        } else if (opts.qwikCityPlan.trailingSlash) {
-          filePath = join(staticFolder, pathname + 'index.html');
-        } else {
-          filePath = join(staticFolder, pathname, 'index.html');
-        }
-        const stream = createReadStream(filePath);
-        const ext = extname(filePath).replace(/^\./, '');
+        const target = join(staticFolder, url.pathname);
+        const stream = createReadStream(target);
+        const ext = extname(url.pathname).replace(/^\./, '');
 
         const contentType = MIME_TYPES[ext];
 
@@ -169,7 +161,7 @@ export interface QwikCityNodeRequestOptions extends ServerRenderOptions {
    * If `ORIGIN` is not set, it's derived from the incoming request, which is not recommended for production use.
    * You can specify the `PROTOCOL_HEADER`, `HOST_HEADER` to `X-Forwarded-Proto` and `X-Forwarded-Host` respectively to override the default behavior.
    */
-  getOrigin?: (req: IncomingMessage | Http2ServerRequest) => string | null;
+  getOrigin?: (req: IncomingMessage | Http2ServerRequest) => string;
 
   /**
    * Provide a function that returns a `ClientConn` for the given request.

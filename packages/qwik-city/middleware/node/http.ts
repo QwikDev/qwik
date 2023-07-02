@@ -11,7 +11,13 @@ export function computeOrigin(
   req: IncomingMessage | Http2ServerRequest,
   opts?: QwikCityNodeRequestOptions
 ) {
-  return opts?.getOrigin?.(req) ?? opts?.origin ?? process.env.ORIGIN ?? fallbackOrigin(req);
+  if (opts?.getOrigin) {
+    return opts.getOrigin(req);
+  }
+  if (opts?.origin) {
+    return opts.origin;
+  }
+  return process.env.ORIGIN ?? fallbackOrigin(req);
 }
 
 function fallbackOrigin(req: IncomingMessage | Http2ServerRequest) {

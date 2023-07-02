@@ -21,3 +21,8 @@ header .logo {
 header .title {
   font-weight: 800;
 }
+
+header .avatar {
+  margin-left: auto;
+  line-height: 0;
+}

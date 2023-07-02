@@ -1,11 +1,13 @@
-import { component$ } from '@builder.io/qwik';
-import { routeLoader$ } from '@builder.io/qwik-city';
+import { applicationTable, getDB } from '~/db';
+
+import { AppLink } from '~/routes.config';
 import { EditIcon } from '~/components/icons/edit';
 import { ErrorIcon } from '~/components/icons/error';
+import Layout from '~/components/layout';
 import { SlowIcon } from '~/components/icons/slow';
 import { SymbolIcon } from '~/components/icons/symbol';
-import { applicationTable, getDB } from '~/db';
-import { AppLink } from '~/routes.config';
+import { component$ } from '@builder.io/qwik';
+import { routeLoader$ } from '@builder.io/qwik-city';
 
 export const useApps = routeLoader$(async () => {
   const db = getDB();
@@ -15,7 +17,7 @@ export const useApps = routeLoader$(async () => {
 export default component$(() => {
   const apps = useApps();
   return (
-    <div>
+    <Layout>
       <h1>Apps</h1>[{' '}
       <AppLink route="/app/[publicApiKey]/edit/" param:publicApiKey="__new__">
         new
@@ -64,6 +66,6 @@ export default component$(() => {
           ))}
         </tbody>
       </table>
-    </div>
+    </Layout>
   );
 });

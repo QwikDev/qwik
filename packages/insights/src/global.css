@@ -1,21 +1,163 @@
-/**
- * WHAT IS THIS FILE?
- *
- * Globally applied styles. No matter which components are in the page or matching route,
- * the styles in here will be applied to the Document, without any sort of CSS scoping.
- *
- */
-html {
-  -webkit-text-size-adjust: 100%;
-  -moz-tab-size: 4;
-  -o-tab-size: 4;
-  tab-size: 4;
-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-    'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-    'Segoe UI Symbol', 'Noto Color Emoji';
+:root {
+  --link-offset: 0.15rem;
+  --primary-50: #f0f9ff;
+  --primary-100: #dff3ff;
+  --primary-200: #b9e8fe;
+  --primary-300: #7ad7ff;
+  --primary-400: #34c3fc;
+  --primary-500: #18b6f6;
+  --primary-600: #008acb;
+  --primary-700: #006ea4;
+  --primary-800: #045d88;
+  --primary-900: #0a4d70;
+  --primary-950: #07304a;
+
+  --secondary-50: #f9f6fe;
+  --secondary-100: #f1e9fe;
+  --secondary-200: #e5d7fd;
+  --secondary-300: #d1b8fa;
+  --secondary-400: #ac7ef4;
+  --secondary-500: #985eee;
+  --secondary-600: #803edf;
+  --secondary-700: #6c2cc4;
+  --secondary-800: #5d29a0;
+  --secondary-900: #4d2281;
+  --secondary-950: #310c5f;
+
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+  --gray-950: #030712;
+
+  --white: #ffffff;
+  --black: #000000;
+
+  --spacing-0: 0;
+  --spacing-px: 1px;
+  --spacing-0_5: 0.125rem;
+  --spacing-1: 0.25rem;
+  --spacing-1_5: 0.375rem;
+  --spacing-2: 0.5rem;
+  --spacing-2_5: 0.625rem;
+  --spacing-3: 0.75rem;
+  --spacing-3_5: 0.875rem;
+  --spacing-4: 1rem;
+  --spacing-5: 1.25rem;
+  --spacing-6: 1.5rem;
+  --spacing-7: 1.75rem;
+  --spacing-8: 2rem;
+  --spacing-9: 2.25rem;
+  --spacing-10: 2.5rem;
+
+  --spacing-layout-sm: var(--spacing-1) var(--spacing-4);
+  --spacing-layout-md: var(--spacing-2) var(--spacing-8);
+
+  --bg-color-default: var(--gray-100);
+  --bg-color-bright: var(--white);
+  --text-color-default: var(--black);
+  --border-color-default: var(--gray-200);
 }
 
+html,
 body {
-  padding: 0;
-  line-height: inherit;
+  height: 100%;
+  font-family: "Poppins", sans-serif;
+  color: var(--text-color-default);
+}
+
+body.dark {
+  --bg-color-default: var(--gray-800);
+  --bg-color-bright: var(--gray-900);
+  --text-color-default: var(--white);
+  --border-color-default: var(--gray-700);
+}
+
+/* Global CSS Reset */
+/*
+  1. Use a more-intuitive box-sizing model.
+*/
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+/*
+  2. Remove default margin
+*/
+* {
+  margin: 0;
+}
+/*
+  Typographic tweaks!
+  3. Add accessible line-height
+  4. Improve text rendering
+*/
+body {
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+/*
+  5. Improve media defaults
+*/
+img,
+picture,
+video,
+canvas {
+  display: block;
+  max-width: 100%;
+}
+/*
+  6. Remove built-in form typography styles
+*/
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+/*
+  7. Avoid text overflows
+*/
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  overflow-wrap: break-word;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  line-height: 1.2;
+}
+
+h1 {
+  font-weight: 700;
+}
+
+a {
+  color: inherit;
+}
+
+.section {
+  padding: var(--spacing-layout-sm);
+}
+
+@media screen and (min-width: 768px) {
+  .section {
+    padding: var(--spacing-layout-md);
+  }
 }

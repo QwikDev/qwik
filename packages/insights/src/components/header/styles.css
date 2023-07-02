@@ -1,0 +1,23 @@
+header {
+  align-items: center;
+  background: var(--bg-color-bright);
+  border-bottom: 1px solid var(--border-color-default);
+  display: flex;
+  gap: var(--spacing-4);
+  flex-direction: row;
+  justify-content: flex-start;
+}
+
+@media screen and (min-width: 768px) {
+  header {
+    /* tbd */
+  }
+}
+
+header .logo {
+  line-height: 0;
+}
+
+header .title {
+  font-weight: 800;
+}

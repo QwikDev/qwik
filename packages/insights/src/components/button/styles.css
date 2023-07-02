@@ -1,0 +1,42 @@
+.button {
+  background-color: #fff;
+  border: 1px solid #000;
+  border-radius: 8px;
+  color: #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-2_5);
+  padding: var(--spacing-2_5) var(--spacing-10);
+  cursor: pointer;
+}
+
+.button svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+/* THEMES */
+.button.primary {
+  /* tbd */
+}
+.button.secondary {
+  /* tbd */
+}
+.button.success {
+  /* tbd */
+}
+.button.danger {
+  /* tbd */
+}
+.button.warning {
+  /* tbd */
+}
+.button.info {
+  /* tbd */
+}
+
+.button.github {
+  background-color: var(--black);
+  color: var(--white);
+}

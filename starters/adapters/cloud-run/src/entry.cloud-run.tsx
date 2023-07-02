@@ -57,6 +57,12 @@ const { router, notFound, staticFile } = createQwikCity({
   static: {
     cacheControl: "public, max-age=31557600",
   },
+  getOrigin(req) {
+    // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Proto
+    const protocol = req.headers["x-forwarded-proto"] ?? "http";
+    const host = req.headers["host"];
+    return `${protocol}://${host}`;
+  },
   getClientConn: (conn) => {
     const xForwardedFor = conn.headers["x-forwarded-for"];
     if (typeof xForwardedFor === "string") {

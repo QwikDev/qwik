@@ -587,10 +587,11 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         scope: opts.scope ? opts.scope : void 0,
       };
       if (isSSR) {
+        transformOpts.isServer = isSSR;
         transformOpts.entryStrategy = { type: 'hoist' };
       }
-      transformOpts.isServer = isSSR;
       if (strip) {
+        transformOpts.isServer = isSSR;
         if (isSSR) {
           transformOpts.stripCtxName = CLIENT_STRIP_CTX_NAME;
           transformOpts.stripEventHandlers = true;

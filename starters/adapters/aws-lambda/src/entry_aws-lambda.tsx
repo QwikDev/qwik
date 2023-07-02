@@ -32,12 +32,30 @@ const { router, notFound, staticFile } = createQwikCity({
   },
 });
 
-export const qwikApp = serverless({
-  handle: (req: any, res: any) => {
-    staticFile(req, res, () => {
-      router(req, res, () => {
-        notFound(req, res, () => {});
+export const qwikApp = serverless(
+  {
+    handle: (req: any, res: any) => {
+      req.url = fixPath(req.url);
+      staticFile(req, res, () => {
+        router(req, res, () => {
+          notFound(req, res, () => {});
+        });
       });
-    });
+    },
   },
-});
+  {
+    binary: true,
+  }
+);
+
+function fixPath(url: string) {
+  if (qwikCityPlan.trailingSlash) {
+    if (url.slice(url.lastIndexOf("/")).includes(".")) {
+      return url;
+    }
+    if (!url.endsWith("/")) {
+      return url + "/";
+    }
+  }
+  return url;
+}

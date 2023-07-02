@@ -21,18 +21,22 @@ const { router, notFound, staticFile } = createQwikCity({
 });
 
 // Allow for dynamic port
-const port = Number(Deno.env.get("PORT") ?? 8080);
+const port = Number(Deno.env.get("PORT") ?? 3009);
 
 // Start the Deno server
 const server = Deno.listen({ port });
 
 /* eslint-disable */
-console.log(`Server started: http://localhost:${port}/`);
+console.log(`Server starter: http://localhost:${port}/app/`);
 
 // https://deno.com/manual/examples/http_server
 // Connections to the server will be yielded up as an async iterable.
 for await (const conn of server) {
-  serveHttp(conn);
+  try {
+    serveHttp(conn);
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 async function serveHttp(conn: any) {
@@ -41,22 +45,26 @@ async function serveHttp(conn: any) {
   // Each request sent over the HTTP connection will be yielded as an
   // async iterator from the HTTP connection.
   for await (const requestEvent of httpConn) {
-    const staticResponse = await staticFile(requestEvent.request, conn);
-    if (staticResponse) {
-      // Serve static file
-      requestEvent.respondWith(staticResponse);
-      continue;
-    }
+    try {
+      const staticResponse = await staticFile(requestEvent.request);
+      if (staticResponse) {
+        // Serve static file
+        requestEvent.respondWith(staticResponse);
+        continue;
+      }
 
-    // Server-side render this request with Qwik City
-    const qwikCityResponse = await router(requestEvent.request);
-    if (qwikCityResponse) {
-      requestEvent.respondWith(qwikCityResponse);
-      continue;
-    }
+      // Server-side render this request with Qwik City
+      const qwikCityResponse = await router(requestEvent.request, conn);
+      if (qwikCityResponse) {
+        requestEvent.respondWith(qwikCityResponse);
+        continue;
+      }
 
-    // Path not found
-    requestEvent.respondWith(notFound(requestEvent.request));
+      // Path not found
+      requestEvent.respondWith(notFound(requestEvent.request));
+    } catch (error) {
+      console.error(error);
+    }
   }
 }
 

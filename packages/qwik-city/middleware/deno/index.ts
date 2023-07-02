@@ -51,7 +51,6 @@ export function createQwikCity(opts: QwikCityDenoOptions) {
   async function router(request: Request, conn: ConnInfo) {
     try {
       const url = new URL(request.url);
-
       const serverRequestEv: ServerRequestEvent<Response> = {
         mode: 'server',
         locale: undefined,
@@ -183,5 +182,9 @@ export interface QwikCityDenoOptions extends ServerRenderOptions {
     /** Set the Cache-Control header for all static files */
     cacheControl?: string;
   };
+
+  /**
+   * Provide a function that returns a `ClientConn` for the given request.
+   */
   getClientConn?: (request: Request, conn: ConnInfo) => ClientConn;
 }

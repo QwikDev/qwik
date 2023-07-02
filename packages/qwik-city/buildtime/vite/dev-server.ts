@@ -25,7 +25,7 @@ import { getQwikCityServerData } from '../../middleware/request-handler/response
 import { updateBuildContext } from '../build';
 import { getExtension, normalizePath } from '../../utils/fs';
 import { getMenuLoader, getPathParams } from '../../runtime/src/routing';
-import { fromNodeHttp, getUrl } from '../../middleware/node/http';
+import { computeOrigin, fromNodeHttp, getUrl } from '../../middleware/node/http';
 import {
   checkBrand,
   resolveRequestHandlers,
@@ -62,7 +62,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
 
   return async (req: Connect.IncomingMessage, res: ServerResponse, next: Connect.NextFunction) => {
     try {
-      const url = getUrl(req);
+      const url = getUrl(req, computeOrigin(req));
 
       if (skipRequest(url.pathname) || isVitePing(url.pathname, req.headers)) {
         next();

@@ -12,7 +12,7 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\nexport declare function createQwikCity(opts: QwikCityNodeRequestOptions): {\n    router: (req: IncomingMessage, res: ServerResponse, next: NodeRequestNextFunction) => Promise<void>;\n    notFound: (req: IncomingMessage, res: ServerResponse, next: (e: any) => void) => Promise<void>;\n    staticFile: (req: IncomingMessage, res: ServerResponse, next: (e?: any) => void) => Promise<void>;\n};\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  opts | [QwikCityNodeRequestOptions](#qwikcitynoderequestoptions) |  |\n\n**Returns:**\n\n{ router: (req: IncomingMessage, res: ServerResponse, next: [NodeRequestNextFunction](#noderequestnextfunction)<!-- -->) =&gt; Promise&lt;void&gt;; notFound: (req: IncomingMessage, res: ServerResponse, next: (e: any) =&gt; void) =&gt; Promise&lt;void&gt;; staticFile: (req: IncomingMessage, res: ServerResponse, next: (e?: any) =&gt; void) =&gt; Promise&lt;void&gt;; }",
+      "content": "```typescript\nexport declare function createQwikCity(opts: QwikCityNodeRequestOptions): {\n    router: (req: IncomingMessage | Http2ServerRequest, res: ServerResponse, next: NodeRequestNextFunction) => Promise<void>;\n    notFound: (req: IncomingMessage | Http2ServerRequest, res: ServerResponse, next: (e: any) => void) => Promise<void>;\n    staticFile: (req: IncomingMessage | Http2ServerRequest, res: ServerResponse, next: (e?: any) => void) => Promise<void>;\n};\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  opts | [QwikCityNodeRequestOptions](#qwikcitynoderequestoptions) |  |\n\n**Returns:**\n\n{ router: (req: IncomingMessage \\| Http2ServerRequest, res: ServerResponse, next: [NodeRequestNextFunction](#noderequestnextfunction)<!-- -->) =&gt; Promise&lt;void&gt;; notFound: (req: IncomingMessage \\| Http2ServerRequest, res: ServerResponse, next: (e: any) =&gt; void) =&gt; Promise&lt;void&gt;; staticFile: (req: IncomingMessage \\| Http2ServerRequest, res: ServerResponse, next: (e?: any) =&gt; void) =&gt; Promise&lt;void&gt;; }",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/node/index.ts",
       "mdFile": "qwik-city.createqwikcity.md"
     },
@@ -40,7 +40,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface PlatformNode \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [incomingMessage?](#) |  | IncomingMessage | _(Optional)_ |\n|  [node?](#) |  | string | _(Optional)_ |\n|  [ssr?](#) |  | true | _(Optional)_ |",
+      "content": "```typescript\nexport interface PlatformNode \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [incomingMessage?](#) |  | IncomingMessage \\| Http2ServerRequest | _(Optional)_ |\n|  [node?](#) |  | string | _(Optional)_ |\n|  [ssr?](#) |  | true | _(Optional)_ |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/node/index.ts",
       "mdFile": "qwik-city.platformnode.md"
     },
@@ -54,7 +54,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikCityNodeRequestOptions extends ServerRenderOptions \n```\n**Extends:** ServerRenderOptions\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [getClientConn?](#) |  | (req: IncomingMessage) =&gt; ClientConn | _(Optional)_ |\n|  [origin?](#) |  | string | <p>_(Optional)_ Origin of the server, used to resolve relative URLs and validate the request origin against CSRF attacks.</p><p>When not specified, it defaults to the <code>ORIGIN</code> environment variable (if set) or derived from the incoming request.</p> |\n|  [static?](#) |  | { root?: string; cacheControl?: string; } | _(Optional)_ Options for serving static files |",
+      "content": "```typescript\nexport interface QwikCityNodeRequestOptions extends ServerRenderOptions \n```\n**Extends:** ServerRenderOptions\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [getClientConn?](#) |  | (req: IncomingMessage \\| Http2ServerRequest) =&gt; ClientConn | _(Optional)_ Provide a function that returns a <code>ClientConn</code> for the given request. |\n|  [getOrigin?](#) |  | (req: IncomingMessage \\| Http2ServerRequest) =&gt; string | <p>_(Optional)_ Provide a function that computes the origin of the server, used to resolve relative URLs and validate the request origin against CSRF attacks.</p><p>When not specified, it defaults to the <code>ORIGIN</code> environment variable (if set).</p><p>If <code>ORIGIN</code> is not set, it's derived from the incoming request, which is not recommended for production use. You can specify the <code>PROTOCOL_HEADER</code>, <code>HOST_HEADER</code> to <code>X-Forwarded-Proto</code> and <code>X-Forwarded-Host</code> respectively to override the default behavior.</p> |\n|  [origin?](#) |  | string | _(Optional)_ |\n|  [static?](#) |  | { root?: string; cacheControl?: string; } | _(Optional)_ Options for serving static files |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/node/index.ts",
       "mdFile": "qwik-city.qwikcitynoderequestoptions.md"
     }

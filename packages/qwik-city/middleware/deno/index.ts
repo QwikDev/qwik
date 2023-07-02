@@ -121,20 +121,20 @@ export function createQwikCity(opts: QwikCityDenoOptions) {
     }
   };
 
-  const readStaticFile = async (url: URL) => {
-    const parts = url.pathname.split('/');
-    const fileName = parts[parts.length - 1];
+  const openStaticFile = async (url: URL) => {
+    const pathname = url.pathname;
+    const fileName = pathname.slice(url.pathname.lastIndexOf('/'));
     let filePath: string;
     if (fileName.includes('.')) {
-      filePath = join(staticFolder, url.pathname);
+      filePath = join(staticFolder, pathname);
     } else if (opts.qwikCityPlan.trailingSlash) {
-      filePath = join(staticFolder, url.pathname + 'index.html');
+      filePath = join(staticFolder, pathname + 'index.html');
     } else {
-      filePath = join(staticFolder, url.pathname, 'index.html');
+      filePath = join(staticFolder, pathname, 'index.html');
     }
     return {
       filePath,
-      content: await Deno.readFile(filePath),
+      content: await Deno.open(filePath, { read: true }),
     };
   };
 
@@ -143,10 +143,10 @@ export function createQwikCity(opts: QwikCityDenoOptions) {
       const url = new URL(request.url);
 
       if (isStaticPath(request.method || 'GET', url)) {
-        const { filePath, content } = await readStaticFile(url);
+        const { filePath, content } = await openStaticFile(url);
         const ext = extname(filePath).replace(/^\./, '');
 
-        return new Response(content, {
+        return new Response(content.readable, {
           status: 200,
           headers: {
             'content-type': MIME_TYPES[ext] || 'text/plain; charset=utf-8',

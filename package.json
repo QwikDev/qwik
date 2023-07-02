@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "qwik-monorepo",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "scripts": {
     "build": "tsm scripts/index.ts --tsc --build --qwikcity --qwiklabs --api --platform-binding-wasm-copy",
     "build.vite": "tsm scripts/index.ts --tsc --build --qwikcity --qwiklabs --platform-binding-wasm-copy",

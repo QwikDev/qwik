@@ -105,7 +105,7 @@ export async function configureDevServer(
                 url += `?t=${v.lastHMRTimestamp}`;
               }
               if (hook) {
-                manifest.mapping[hook.name] = url;
+                manifest.mapping[hook.name] = relativeURL(url, opts.rootDir);
               }
 
               const { pathId, query } = parseId(v.url);
@@ -126,6 +126,7 @@ export async function configureDevServer(
           const srcBase = opts.srcDir
             ? path.relative(opts.rootDir, opts.srcDir).replace(/\\/g, '/')
             : 'src';
+
           const renderOpts: RenderToStreamOptions = {
             debug: true,
             locale: serverData.locale,
@@ -318,6 +319,16 @@ declare global {
       hoveredElement?: EventTarget | null;
     };
   }
+}
+
+function relativeURL(url: string, base: string) {
+  if (url.startsWith(base)) {
+    url = url.slice(base.length);
+    if (!url.startsWith('/')) {
+      url = '/' + url;
+    }
+  }
+  return url;
 }
 
 const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools'], srcDir: string) => {

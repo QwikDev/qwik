@@ -26,6 +26,7 @@ export const Link = component$<LinkProps>((props) => {
           prefetchLinkResources(elm as HTMLAnchorElement, ev.type === 'qvisible')
         )
       : undefined;
+  const onPrefetchData = prefetchDataset != null ? onPrefetch : undefined;
   const handleClick = clientNavPath
     ? event$(async (event: any, elm: HTMLAnchorElement) => {
         if (!(event as PointerEvent).defaultPrevented) {
@@ -48,8 +49,8 @@ export const Link = component$<LinkProps>((props) => {
       {...linkProps}
       onClick$={[onClick$, handleClick]}
       data-prefetch={prefetchDataset}
-      onMouseOver$={onPrefetch}
-      onFocus$={onPrefetch}
+      onMouseOver$={onPrefetchData}
+      onFocus$={onPrefetchData}
       onQVisible$={onPrefetch}
     >
       <Slot />

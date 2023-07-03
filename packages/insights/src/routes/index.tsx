@@ -52,11 +52,11 @@ export default component$(() => {
   const gitHubAction = useGitHubAction();
   const singOut = useSingOut();
 
-  const userContext = useContext(UserContext);
+  const userCtx = useContext(UserContext);
 
   useTask$(async ({ track }) => {
     track(() => userSig.value);
-    userContext.value = userSig.value;
+    userCtx.value = userSig.value;
   });
 
   useVisibleTask$(async () => {
@@ -92,7 +92,7 @@ export default component$(() => {
     <Layout mode="bright">
       <h1>Log in to Qwik Insights</h1>
 
-      {userContext.value?.id ? (
+      {userCtx.value?.id ? (
         <>
           <Button onClick$={() => navigate('/app')}>
             <AppsIcon /> Go to the Dashboard
@@ -119,7 +119,7 @@ export default component$(() => {
         </Button>
       )}
 
-      <pre>{JSON.stringify(userContext, null, 2)}</pre>
+      <pre>{JSON.stringify(userCtx, null, 2)}</pre>
     </Layout>
   );
 });

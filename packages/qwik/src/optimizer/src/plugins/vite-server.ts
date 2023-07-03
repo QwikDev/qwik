@@ -18,9 +18,10 @@ function getOrigin(req: IncomingMessage) {
   const { PROTOCOL_HEADER, HOST_HEADER } = process.env;
   const headers = req.headers;
   const protocol =
-    (PROTOCOL_HEADER && headers[PROTOCOL_HEADER]) ||
+    (PROTOCOL_HEADER && headers[PROTOCOL_HEADER.toLowerCase()]) ||
     ((req.socket as any).encrypted || (req.connection as any).encrypted ? 'https' : 'http');
-  const host = (HOST_HEADER && headers[HOST_HEADER]) || headers[':authority'] || headers['host'];
+  const host =
+    (HOST_HEADER && headers[HOST_HEADER.toLowerCase()]) || headers[':authority'] || headers['host'];
 
   return `${protocol}://${host}`;
 }

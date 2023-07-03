@@ -5,8 +5,16 @@ import type {
   ServerRequestEvent,
 } from '@builder.io/qwik-city/middleware/request-handler';
 import type { ClientConn } from '../request-handler/types';
+import type { QwikCityNodeRequestOptions } from './index';
 
-function getOrigin(req: IncomingMessage) {
+export function computeOrigin(
+  req: IncomingMessage | Http2ServerRequest,
+  opts?: QwikCityNodeRequestOptions
+) {
+  return opts?.getOrigin?.(req) ?? opts?.origin ?? process.env.ORIGIN ?? fallbackOrigin(req);
+}
+
+function fallbackOrigin(req: IncomingMessage | Http2ServerRequest) {
   const { PROTOCOL_HEADER, HOST_HEADER } = process.env;
   const headers = req.headers;
   const protocol =
@@ -18,10 +26,7 @@ function getOrigin(req: IncomingMessage) {
   return `${protocol}://${host}`;
 }
 
-export function getUrl(
-  req: IncomingMessage,
-  origin: string = process.env.ORIGIN ?? getOrigin(req)
-) {
+export function getUrl(req: IncomingMessage | Http2ServerRequest, origin: string) {
   return normalizeUrl((req as any).originalUrl || req.url || '/', origin);
 }
 
@@ -37,10 +42,10 @@ export function normalizeUrl(url: string, base: string) {
 
 export async function fromNodeHttp(
   url: URL,
-  req: IncomingMessage,
+  req: IncomingMessage | Http2ServerRequest,
   res: ServerResponse,
   mode: ServerRequestMode,
-  getClientConn?: (req: IncomingMessage) => ClientConn
+  getClientConn?: (req: IncomingMessage | Http2ServerRequest) => ClientConn
 ) {
   const requestHeaders = new Headers();
   const nodeRequestHeaders = req.headers;

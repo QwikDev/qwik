@@ -3,7 +3,7 @@ header {
   background: var(--bg-color-bright);
   border-bottom: 1px solid var(--border-color-default);
   display: flex;
-  gap: var(--spacing-4);
+  gap: var(--size-4);
   flex-direction: row;
   justify-content: flex-start;
 }

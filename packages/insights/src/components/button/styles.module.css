@@ -3,11 +3,11 @@
   border: 1px solid #000;
   border-radius: 8px;
   color: #000;
-  display: flex;
+  display: inline-flex;
   justify-content: center;
   align-items: center;
-  gap: var(--spacing-2_5);
-  padding: var(--spacing-2_5) var(--spacing-10);
+  gap: var(--size-2_5);
+  padding: var(--size-2_5) var(--size-10);
   cursor: pointer;
 }
 

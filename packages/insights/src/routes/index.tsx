@@ -4,10 +4,12 @@ import { globalAction$, routeLoader$, useNavigate, z, zod$ } from '@builder.io/q
 
 import AppsIcon from '~/components/icons/apps';
 import Button from '~/components/button';
+import Container from '~/components/container';
 import GithubIcon from '~/components/icons/github';
 import Layout from '~/components/layout';
 import { UserContext } from '~/context/user';
 import { createSupabase } from '~/supabase/auth';
+import styles from './styles.module.css';
 
 export const useUser = routeLoader$((event) => {
   return getUserFromEvent(event);
@@ -54,11 +56,13 @@ export default component$(() => {
 
   const userCtx = useContext(UserContext);
 
+  // update user context
   useTask$(async ({ track }) => {
     track(() => userSig.value);
     userCtx.value = userSig.value;
   });
 
+  // handle login
   useVisibleTask$(async () => {
     const hash = window.location.hash.substring(1);
 
@@ -90,36 +94,40 @@ export default component$(() => {
 
   return (
     <Layout mode="bright">
-      <h1>Log in to Qwik Insights</h1>
+      <Container position="center" width="small">
+        <div class={styles.wrapper}>
+          <h1 class="h4">Log in to Qwik Insights</h1>
 
-      {userCtx.value?.id ? (
-        <>
-          <Button onClick$={() => navigate('/app')}>
-            <AppsIcon /> Go to the Dashboard
-          </Button>
+          {userCtx.value?.id ? (
+            <>
+              <Button onClick$={() => navigate('/app')}>
+                <AppsIcon /> Go to the Dashboard
+              </Button>
+              <br />
+              <Button
+                onClick$={() => {
+                  singOut.submit();
+                }}
+              >
+                Sign Out
+              </Button>
+            </>
+          ) : (
+            <Button
+              theme="github"
+              onClick$={async () => {
+                const { value } = await gitHubAction.submit();
+                window.open(value.url, '_self');
+              }}
+            >
+              <GithubIcon />
+              Continue with GitHub
+            </Button>
+          )}
+        </div>
+      </Container>
 
-          <Button
-            onClick$={() => {
-              singOut.submit();
-            }}
-          >
-            Sign Out
-          </Button>
-        </>
-      ) : (
-        <Button
-          theme="github"
-          onClick$={async () => {
-            const { value } = await gitHubAction.submit();
-            window.open(value.url, '_self');
-          }}
-        >
-          <GithubIcon />
-          Continue with GitHub
-        </Button>
-      )}
-
-      <pre>{JSON.stringify(userCtx, null, 2)}</pre>
+      {/* <pre>{JSON.stringify(userCtx, null, 2)}</pre> */}
     </Layout>
   );
 });

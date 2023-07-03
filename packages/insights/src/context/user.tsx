@@ -5,4 +5,8 @@ export type UserData = {
   value: User | null;
 };
 
+export const initialUserData: UserData = {
+  value: null,
+};
+
 export const UserContext = createContextId<UserData>('insights.user-context');

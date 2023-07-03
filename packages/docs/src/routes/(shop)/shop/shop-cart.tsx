@@ -54,7 +54,7 @@ export const ShopCart = component$(() => {
             <div class="fixed inset-0 overflow-hidden z-[100]">
               <div class="absolute inset-0 overflow-hidden">
                 <div class="absolute inset-0 bg-gray-500 bg-opacity-75 transition-opacity opacity-100"></div>
-                <div class="fixed inset-y-0 right-0 pl-10 max-w-full flex">
+                <div class="fixed inset-y-0 right-0 max-w-full flex">
                   <div class="w-screen max-w-md translate-x-0">
                     <div class="h-full flex flex-col text-[color:var(--text-color)] bg-[color:var(--bg-color)] shadow-xl overflow-y-scroll">
                       <div class="flex-1 py-6 overflow-y-auto px-4 sm:px-6">

@@ -1,23 +1,19 @@
-import {
-  z,
-  type CookieOptions,
-  type RequestEventCommon,
-} from "@builder.io/qwik-city";
-import type { Session, User } from "@supabase/supabase-js";
-import { createSupabase } from ".";
+import { z, type CookieOptions, type RequestEventCommon } from '@builder.io/qwik-city';
+import type { Session, User } from '@supabase/supabase-js';
+import { createSupabase } from '.';
 
-const cookieName = "_session";
+const cookieName = '_session';
 
 const options: CookieOptions = {
   httpOnly: true,
   maxAge: 610000,
-  path: "/",
-  sameSite: "lax",
+  path: '/',
+  sameSite: 'lax',
 };
 
 export const updateAuthCookies = (
   event: RequestEventCommon,
-  session: Pick<Session, "refresh_token" | "expires_in" | "access_token">
+  session: Pick<Session, 'refresh_token' | 'expires_in' | 'access_token'>
 ) => {
   event.cookie.set(cookieName, session, options);
 };
@@ -26,16 +22,14 @@ export const removeAuthCookies = (event: RequestEventCommon) => {
   event.cookie.delete(cookieName, options);
 };
 
-export const getUserFromEvent = (
-  event: RequestEventCommon
-): Promise<User | null> => {
-  const cachedPromise = event.sharedMap.get("user");
+export const getUserFromEvent = (event: RequestEventCommon): Promise<User | null> => {
+  const cachedPromise = event.sharedMap.get('user');
   if (cachedPromise) {
     return cachedPromise;
   }
 
   const promise = getUserByCookie(event);
-  event.sharedMap.set("user", promise);
+  event.sharedMap.set('user', promise);
 
   return promise;
 };
@@ -43,9 +37,7 @@ export const getUserFromEvent = (
 const getUserByCookie = async (event: RequestEventCommon) => {
   const value = event.cookie.get(cookieName)?.json();
 
-  const parsed = z
-    .object({ access_token: z.string(), refresh_token: z.string() })
-    .safeParse(value);
+  const parsed = z.object({ access_token: z.string(), refresh_token: z.string() }).safeParse(value);
 
   if (!parsed.success) {
     return null;

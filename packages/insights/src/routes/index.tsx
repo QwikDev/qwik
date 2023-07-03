@@ -1,10 +1,12 @@
-import { globalAction$, routeLoader$, useNavigate, z, zod$ } from '@builder.io/qwik-city';
-import { component$, useVisibleTask$ } from '@builder.io/qwik';
+import { component$, useContext, useTask$, useVisibleTask$ } from '@builder.io/qwik';
 import { getUserFromEvent, removeAuthCookies, updateAuthCookies } from '~/supabase/auth/auth';
-import Layout from '~/components/layout';
-import Button from '~/components/button';
+import { globalAction$, routeLoader$, useNavigate, z, zod$ } from '@builder.io/qwik-city';
+
 import AppsIcon from '~/components/icons/apps';
+import Button from '~/components/button';
 import GithubIcon from '~/components/icons/github';
+import Layout from '~/components/layout';
+import { UserContext } from '~/context/user';
 import { createSupabase } from '~/supabase/auth';
 
 export const useUser = routeLoader$((event) => {
@@ -50,6 +52,13 @@ export default component$(() => {
   const gitHubAction = useGitHubAction();
   const singOut = useSingOut();
 
+  const userContext = useContext(UserContext);
+
+  useTask$(async ({ track }) => {
+    track(() => userSig.value);
+    userContext.value = userSig.value;
+  });
+
   useVisibleTask$(async () => {
     const hash = window.location.hash.substring(1);
 
@@ -81,29 +90,36 @@ export default component$(() => {
 
   return (
     <Layout mode="bright">
-      <h1>Log in to Qwik Insights {userSig.value?.email} </h1>
+      <h1>Log in to Qwik Insights</h1>
 
-      <Button onClick$={() => console.log('navigate to dashboard')}>
-        <AppsIcon /> Go to the Dashboard
-      </Button>
+      {userContext.value?.id ? (
+        <>
+          <Button onClick$={() => navigate('/app')}>
+            <AppsIcon /> Go to the Dashboard
+          </Button>
 
-      <Button
-        theme="github"
-        onClick$={async () => {
-          const { value } = await gitHubAction.submit();
-          window.open(value.url, '_self');
-        }}
-      >
-        <GithubIcon />
-        Continue with GitHub
-      </Button>
-      <Button
-        onClick$={() => {
-          singOut.submit();
-        }}
-      >
-        Sign Out
-      </Button>
+          <Button
+            onClick$={() => {
+              singOut.submit();
+            }}
+          >
+            Sign Out
+          </Button>
+        </>
+      ) : (
+        <Button
+          theme="github"
+          onClick$={async () => {
+            const { value } = await gitHubAction.submit();
+            window.open(value.url, '_self');
+          }}
+        >
+          <GithubIcon />
+          Continue with GitHub
+        </Button>
+      )}
+
+      <pre>{JSON.stringify(userContext, null, 2)}</pre>
     </Layout>
   );
 });

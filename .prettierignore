@@ -5,6 +5,7 @@
 .history
 .yarn
 .yarnrc.yml
+.pnpm-store
 pnpm-lock.yaml
 .mf
 dist

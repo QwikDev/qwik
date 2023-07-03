@@ -13,7 +13,7 @@ import qwikCityPlan from "@qwik-city-plan";
 import { manifest } from "@qwik-client-manifest";
 import render from "./entry.ssr";
 // @ts-ignore
-import { serve } from "https://deno.land/std@0.119.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.192.0/http/server.ts";
 
 // Create the Qwik City Deno middleware
 const { router, notFound, staticFile } = createQwikCity({

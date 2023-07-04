@@ -1,4 +1,4 @@
-import { component$, useContext, useVisibleTask$ } from '@builder.io/qwik';
+import { component$, useContext, useTask$, useVisibleTask$ } from '@builder.io/qwik';
 import { getUserFromEvent, removeAuthCookies, updateAuthCookies } from '~/supabase/auth/auth';
 import { globalAction$, routeLoader$, useNavigate, z, zod$ } from '@builder.io/qwik-city';
 
@@ -55,7 +55,12 @@ export default component$(() => {
   const singOut = useSingOut();
 
   const userCtx = useContext(UserContext);
-  userCtx.value = userSig.value;
+
+  // update user context
+  useTask$(async ({ track }) => {
+    track(() => userSig.value);
+    userCtx.value = userSig.value;
+  });
 
   // handle login
   useVisibleTask$(async () => {

@@ -25,4 +25,23 @@ header .title {
 header .avatar {
   margin-left: auto;
   line-height: 0;
+  padding-left: 0.5rem;
+}
+
+header .user_section {
+  position: absolute;
+  right: 1rem;
+  display: flex;
+  align-items: center;
+}
+
+header .user_section .link {
+  cursor: pointer;
+  padding: 0 1rem 0 0.5rem;
+  text-decoration: unset;
+}
+
+header .user_section .link:hover {
+  opacity: 0.6;
+  text-decoration: underline;
 }

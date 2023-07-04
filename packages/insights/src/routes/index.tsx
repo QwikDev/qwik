@@ -39,10 +39,6 @@ export const useGitHubAction = globalAction$(async (_, event) => {
   };
 });
 
-export const useSingOut = globalAction$(async (_, event) => {
-  removeAuthCookies(event);
-});
-
 export const useAuthRoute = routeLoader$(async (event) => {
   const user = await getUserFromEvent(event);
   return user;
@@ -53,7 +49,6 @@ export default component$(() => {
   const navigate = useNavigate();
   const action = useSetSessionAction();
   const gitHubAction = useGitHubAction();
-  const singOut = useSingOut();
 
   const userCtx = useContext(UserContext);
 
@@ -104,14 +99,7 @@ export default component$(() => {
               <Button onClick$={() => navigate('/app')}>
                 <AppsIcon /> Go to the Dashboard
               </Button>
-              <br />
-              <Button
-                onClick$={() => {
-                  singOut.submit();
-                }}
-              >
-                Sign Out
-              </Button>
+
               <Gauge radius={40} label="#1" value={20} />
               <Gauge radius={60} label="RZ" value={20} />
               <Gauge radius={120} label="GB" value={80} />

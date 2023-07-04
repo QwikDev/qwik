@@ -98,6 +98,7 @@
 - [Build Directory](/docs/(qwik)/advanced/custom-build-dir/index.mdx)
 - [Vite](/docs/(qwik)/advanced/vite/index.mdx)
 - [Advanced Routing](/docs/(qwikcity)/advanced/routing/index.mdx)
+- [Request Handling](/docs/(qwikcity)/advanced/request-handling/index.mdx)
 - [Speculative Module Fetching](/docs/(qwikcity)/advanced/speculative-module-fetching/index.mdx)
 - [Menus](/docs/(qwikcity)/advanced/menu/index.mdx)
 - [Static Assets](/docs/(qwikcity)/advanced/static-assets/index.mdx)

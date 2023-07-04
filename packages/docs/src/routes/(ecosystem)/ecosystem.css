@@ -6,7 +6,6 @@
   position: relative;
   z-index: 1;
   margin: 0 auto 80px auto;
-  scroll-margin-top: 100px;
 }
 
 .qwik-plus-logo {
@@ -31,6 +30,7 @@
     rgba(46, 55, 114, 0) 63.22%
   );
   transform: rotate(5deg);
+  pointer-events: none;
 }
 
 .ecosystem .blue-gradient {
@@ -47,10 +47,6 @@
   transform: rotate(-5deg);
 }
 
-.ecosystem aside {
-  position: relative;
-}
-
 .ecosystem-menu {
   position: sticky;
   z-index: 1;
@@ -59,6 +55,49 @@
   height: 700px;
   background: transparent;
   padding: 125px 20px 20px 20px;
+}
+
+.moblie-ecosystem-menu summary,
+.moblie-ecosystem-menu ul {
+  background: linear-gradient(var(--qwik-dark-purple-bg), var(--qwik-dark-purple-bg)) padding-box,
+    linear-gradient(to bottom, #ac7ff4, #18b6f6) border-box;
+}
+
+.moblie-ecosystem-menu summary {
+  padding: 1rem;
+  display: block;
+  padding-left: 2.2rem;
+  position: relative;
+  cursor: pointer;
+}
+
+.moblie-ecosystem-menu summary:before {
+  content: '';
+  border-width: 0.4rem;
+  border-style: solid;
+  border-color: transparent transparent transparent #ac7ff4;
+  position: absolute;
+  top: 1.3rem;
+  left: 1rem;
+  transform: rotate(0);
+  transition-property: transform, border-color;
+  transform-origin: 0.2rem 50%;
+  transition: 0.25s transform ease;
+}
+
+.ecosystem details[open] > summary:before {
+  transform: rotate(90deg);
+  border-color: transparent transparent transparent #18b6f6;
+}
+
+.ecosystem details summary::-webkit-details-marker {
+  display: none;
+}
+
+.moblie-ecosystem-menu li a {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .ecosystem h2,

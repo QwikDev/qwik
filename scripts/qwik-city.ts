@@ -31,6 +31,7 @@ export async function buildQwikCity(config: BuildConfig) {
     buildAdapterSharedVite(config),
     buildAdapterStaticVite(config),
     buildAdapterVercelEdgeVite(config),
+    buildAdapterVercelServerlessVite(config),
     buildMiddlewareCloudflarePages(config),
     buildMiddlewareNetlifyEdge(config),
     buildMiddlewareAzureSwa(config),
@@ -38,6 +39,7 @@ export async function buildQwikCity(config: BuildConfig) {
     buildMiddlewareNode(config),
     buildMiddlewareRequestHandler(config),
     buildMiddlewareVercelEdge(config),
+    buildMiddlewareVercelServerless(config),
     buildStatic(config),
     buildStaticNode(config),
     buildStaticDeno(config),
@@ -557,6 +559,36 @@ async function buildAdapterVercelEdgeVite(config: BuildConfig) {
   });
 }
 
+async function buildAdapterVercelServerlessVite(config: BuildConfig) {
+  const entryPoints = [
+    join(config.srcQwikCityDir, 'adapters', 'vercel-serverless', 'vite', 'index.ts'),
+  ];
+
+  await build({
+    entryPoints,
+    outfile: join(config.distQwikCityPkgDir, 'adapters', 'vercel-serverless', 'vite', 'index.mjs'),
+    bundle: true,
+    platform: 'node',
+    target: nodeTarget,
+    format: 'esm',
+    watch: watcher(config),
+    external: ADAPTER_EXTERNALS,
+    plugins: [resolveAdapterShared('../../shared/vite/index.mjs')],
+  });
+
+  await build({
+    entryPoints,
+    outfile: join(config.distQwikCityPkgDir, 'adapters', 'vercel-serverless', 'vite', 'index.cjs'),
+    bundle: true,
+    platform: 'node',
+    target: nodeTarget,
+    format: 'cjs',
+    watch: watcher(config),
+    external: ADAPTER_EXTERNALS,
+    plugins: [resolveAdapterShared('../../shared/vite/index.cjs')],
+  });
+}
+
 async function buildMiddlewareAzureSwa(config: BuildConfig) {
   const entryPoints = [join(config.srcQwikCityDir, 'middleware', 'azure-swa', 'index.ts')];
 
@@ -683,6 +715,22 @@ async function buildMiddlewareVercelEdge(config: BuildConfig) {
   await build({
     entryPoints,
     outfile: join(config.distQwikCityPkgDir, 'middleware', 'vercel-edge', 'index.mjs'),
+    bundle: true,
+    platform: 'node',
+    target: nodeTarget,
+    format: 'esm',
+    external: MIDDLEWARE_EXTERNALS,
+    watch: watcher(config),
+    plugins: [resolveRequestHandler('../request-handler/index.mjs')],
+  });
+}
+
+async function buildMiddlewareVercelServerless(config: BuildConfig) {
+  const entryPoints = [join(config.srcQwikCityDir, 'middleware', 'vercel-serverless', 'index.ts')];
+
+  await build({
+    entryPoints,
+    outfile: join(config.distQwikCityPkgDir, 'middleware', 'vercel-serverless', 'index.mjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,

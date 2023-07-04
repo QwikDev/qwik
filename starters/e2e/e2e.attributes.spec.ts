@@ -265,6 +265,36 @@ test.describe("attributes", () => {
       const select = page.locator("#issue-3622-result");
       await expect(select).toHaveValue("option1");
     });
+
+    test("issue 4718 (null)", async ({ page }) => {
+      const button = page.locator("#issue-4718-null-result");
+
+      await expect(button).toHaveAttribute("data-works", "some value");
+      await expect(button).toHaveAttribute("aria-label", "some value");
+      await expect(button).toHaveAttribute("title", "some value");
+
+      await button.click();
+      await page.waitForTimeout(100);
+
+      await expect(button).not.hasAttribute("data-works");
+      await expect(button).not.hasAttribute("aria-label");
+      await expect(button).not.hasAttribute("title");
+    });
+
+    test("issue 4718 (undefined)", async ({ page }) => {
+      const button = page.locator("#issue-4718-undefined-result");
+
+      await expect(button).toHaveAttribute("data-works", "some value");
+      await expect(button).toHaveAttribute("aria-label", "some value");
+      await expect(button).toHaveAttribute("title", "some value");
+
+      await button.click();
+      await page.waitForTimeout(100);
+
+      await expect(button).not.hasAttribute("data-works");
+      await expect(button).not.hasAttribute("aria-label");
+      await expect(button).not.hasAttribute("title");
+    });
   }
 
   tests();

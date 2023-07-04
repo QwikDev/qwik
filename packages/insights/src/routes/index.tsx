@@ -38,10 +38,6 @@ export const useGitHubAction = globalAction$(async (_, event) => {
   };
 });
 
-export const useSingOut = globalAction$(async (_, event) => {
-  removeAuthCookies(event);
-});
-
 export const useAuthRoute = routeLoader$(async (event) => {
   const user = await getUserFromEvent(event);
   return user;
@@ -52,7 +48,6 @@ export default component$(() => {
   const navigate = useNavigate();
   const action = useSetSessionAction();
   const gitHubAction = useGitHubAction();
-  const singOut = useSingOut();
 
   const userCtx = useContext(UserContext);
 
@@ -99,19 +94,9 @@ export default component$(() => {
           <h1 class="h4">Log in to Qwik Insights</h1>
 
           {userCtx.value?.id ? (
-            <>
-              <Button onClick$={() => navigate('/app')}>
-                <AppsIcon /> Go to the Dashboard
-              </Button>
-              <br />
-              <Button
-                onClick$={() => {
-                  singOut.submit();
-                }}
-              >
-                Sign Out
-              </Button>
-            </>
+            <Button onClick$={() => navigate('/app')}>
+              <AppsIcon /> Go to the Dashboard
+            </Button>
           ) : (
             <Button
               theme="github"

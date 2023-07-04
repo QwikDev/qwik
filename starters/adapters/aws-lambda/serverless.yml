@@ -22,7 +22,8 @@ custom:
 package:
   excludeDevDependencies: true
   patterns:
-    - "./!**"
+    - "!*"
+    - "!*/**"
     - "server/**"
     - "dist/**"
 

@@ -54,14 +54,15 @@ export const qwikApp = serverless(
   }
 );
 
-function fixPath(url: string) {
+function fixPath(path: string) {
   if (qwikCityPlan.trailingSlash) {
-    if (url.slice(url.lastIndexOf("/")).includes(".")) {
-      return url;
+    const url = new URL(path, "http://aws-qwik.local");
+    if (url.pathname.includes(".", url.pathname.lastIndexOf("/"))) {
+      return path;
     }
-    if (!url.endsWith("/")) {
-      return url + "/";
+    if (!url.pathname.endsWith("/")) {
+      return url.pathname + "/" + url.search;
     }
   }
-  return url;
+  return path;
 }

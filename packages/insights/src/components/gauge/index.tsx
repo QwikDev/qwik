@@ -10,7 +10,7 @@ type GaugeProps = {
 export default component$<GaugeProps>(({ value = 50, radius = 120, label = value }) => {
   const safeValue = value < 0 || value > 100 ? 50 : value;
 
-  const progressBorderWidth = Math.min(radius / 5, 26);
+  const progressBorderWidth = radius / 6;
 
   return (
     <div class={styles.wrapper} style={{ width: `${radius * 2}px`, height: `${radius * 2}px` }}>

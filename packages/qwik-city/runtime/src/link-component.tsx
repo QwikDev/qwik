@@ -14,7 +14,20 @@ export const Link = component$<LinkProps>((props) => {
   const { onClick$, prefetch, prefetchSymbols, reload, replaceState, scroll, ...linkProps } = (() =>
     props)();
   const clientNavPath = untrack(() => getClientNavPath(linkProps, loc));
-  const prefetchResources = untrack(() => prefetchSymbols !== false && !!clientNavPath);
+
+  const prefetchResources = untrack(() => {
+    if (prefetchSymbols !== false && !!clientNavPath) {
+      let target = clientNavPath.split('?')[0];
+      target = target.endsWith('/') ? target : target + '/';
+
+      let current = loc.url.pathname;
+      current = current.endsWith('/') ? current : current + '/';
+
+      return target !== current;
+    }
+    return false;
+  });
+
   const prefetchDataset = untrack(() =>
     prefetch === true ? getPrefetchDataset(clientNavPath, loc) : null
   );

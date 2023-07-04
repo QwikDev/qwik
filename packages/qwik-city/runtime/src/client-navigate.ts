@@ -42,7 +42,7 @@ export const newScrollState = (): ScrollState => {
 
 export const prefetchSymbols = (path: string) => {
   if (isBrowser) {
-    path = path.endsWith('/') ? path.slice(0, -1) : path;
+    path = path.endsWith('/') ? path : path + '/';
     if (!PREFETCHED_NAVIGATE_PATHS.has(path)) {
       PREFETCHED_NAVIGATE_PATHS.add(path);
       document.dispatchEvent(new CustomEvent('qprefetch', { detail: { links: [path] } }));

@@ -44,6 +44,7 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
       };
 
       const pluginOpts: QwikPluginOptions = {
+        csr: qwikRollupOpts.csr,
         target: qwikRollupOpts.target,
         buildMode: qwikRollupOpts.buildMode,
         debug: qwikRollupOpts.debug,
@@ -241,6 +242,7 @@ export function createRollupError(id: string, diagnostic: Diagnostic) {
  * @public
  */
 export interface QwikRollupPluginOptions {
+  csr?: boolean;
   /**
    * Build `production` or `development`.
    * Default `development`

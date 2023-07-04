@@ -70,7 +70,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
         const url = new URL(qrl, base);
         const symbolName = url.hash.replace(/^#?([^?[|]*).*$/, '$1') || 'default';
         const reqTime = performance.now();
-        const module = import(url.href.split('#')[0]);
+        const module = import(/* @vite-ignore */ url.href.split('#')[0]);
         resolveContainer(container);
         const handler = (await module)[symbolName];
         const previousCtx = (doc as any)[Q_CONTEXT];

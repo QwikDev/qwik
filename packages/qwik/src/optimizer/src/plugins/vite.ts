@@ -76,10 +76,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       const sys = qwikPlugin.getSys();
       const path = qwikPlugin.getPath();
 
-      if (viteCommand === 'serve') {
-        qwikViteOpts.entryStrategy = { type: 'hook' };
-      }
-
       let target: QwikBuildTarget;
       if (viteConfig.build?.ssr || viteEnv.mode === 'ssr') {
         target = 'ssr';
@@ -109,6 +105,16 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
       qwikPlugin.log(`vite config(), command: ${viteCommand}, env.mode: ${viteEnv.mode}`);
 
+      if (viteCommand === 'serve') {
+        qwikViteOpts.entryStrategy = { type: 'hook' };
+      } else {
+        if (target === 'ssr') {
+          qwikViteOpts.entryStrategy = { type: 'hoist' };
+        } else if (target === 'lib') {
+          qwikViteOpts.entryStrategy = { type: 'inline' };
+        }
+      }
+
       const shouldFindVendors = target !== 'lib' || viteCommand === 'serve';
       const vendorRoots = shouldFindVendors
         ? await findQwikRoots(sys, path.join(sys.cwd(), 'package.json'))
@@ -128,14 +134,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         devTools: qwikViteOpts.devTools,
       };
       if (!qwikViteOpts.csr) {
-        if (viteCommand !== 'serve') {
-          if (target === 'ssr') {
-            qwikViteOpts.entryStrategy = { type: 'hoist' };
-          } else if (target === 'lib') {
-            qwikViteOpts.entryStrategy = { type: 'inline' };
-          }
-        }
-
         if (target === 'ssr') {
           // ssr
           if (typeof viteConfig.build?.ssr === 'string') {

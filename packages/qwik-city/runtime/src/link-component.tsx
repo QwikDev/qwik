@@ -3,6 +3,7 @@ import { getClientNavPath, getPrefetchDataset } from './utils';
 import { loadClientData } from './use-endpoint';
 import { useLocation, useNavigate } from './use-functions';
 import { prefetchSymbols } from './client-navigate';
+import { isDev } from '@builder.io/qwik/build';
 
 /**
  * @public
@@ -16,7 +17,7 @@ export const Link = component$<LinkProps>((props) => {
   const clientNavPath = untrack(() => getClientNavPath(linkProps, loc));
 
   const prefetchResources = untrack(() => {
-    if (prefetchSymbols !== false && !!clientNavPath) {
+    if (!isDev && prefetchSymbols !== false && !!clientNavPath) {
       let target = clientNavPath.split('?')[0];
       target = target.endsWith('/') ? target : target + '/';
 
@@ -110,7 +111,7 @@ export interface LinkProps extends AnchorAttributes {
 
   /**
    * Whether Link should prefetch the javascript bundles required to render this page.
-   * This occurs when the Link becomes visible on the page.
+   * This occurs when the Link becomes visible on the page. Symbols are not prefetched in dev mode.
    * (defaults to true)
    */
   prefetchSymbols?: boolean;

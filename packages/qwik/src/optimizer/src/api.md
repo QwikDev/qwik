@@ -237,6 +237,8 @@ export function qwikRollup(qwikRollupOpts?: QwikRollupPluginOptions): any;
 // @public (undocumented)
 export interface QwikRollupPluginOptions {
     buildMode?: QwikBuildMode;
+    // (undocumented)
+    csr?: boolean;
     debug?: boolean;
     entryStrategy?: EntryStrategy;
     manifestInput?: QwikManifest;

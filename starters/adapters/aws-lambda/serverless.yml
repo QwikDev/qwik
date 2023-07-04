@@ -20,9 +20,12 @@ custom:
     httpPort: 4000
 
 package:
-  excludeDevDependencies: false
+  excludeDevDependencies: true
+  patterns:
+    - "!*"
+    - "!*/**"
+    - "server/**"
+    - "dist/**"
 
 plugins:
   - serverless-offline
-  - serverless-plugin-common-excludes
-  - serverless-plugin-include-dependencies

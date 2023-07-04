@@ -37,6 +37,15 @@ export const MEDIA = mediaObj({
       language: 'en',
       promoted: true,
     },
+    youtube('Qwik 1.0 - новый подход frontend разработки?', 'FF4D4tppyag', { language: 'ru', promoted: true }),
+    {
+      href: 'https://www.youtube.com/watch?v=ajTNL88BN5E&t=204s',
+      imgSrc: 'https://i.ytimg.com/vi/ajTNL88BN5E/hq720.jpg',
+      title: 'Qwik 1.0 - новый подход frontend разработки?',
+      language: 'ru',
+      promoted: true,
+    },
+    
     youtube('🇪🇸 Qwik en 2 horas', 'FF3D4tppyag', { language: 'es', promoted: true }),
     {
       href: 'https://cursos.devtalles.com/courses/qwik-introduccion',

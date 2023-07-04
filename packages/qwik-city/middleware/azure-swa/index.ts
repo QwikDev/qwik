@@ -1,8 +1,6 @@
 import type { AzureFunction, Context, HttpRequest } from '@azure/functions';
 import { setServerPlatform } from '@builder.io/qwik/server';
-import {
-  requestHandler,
-} from '@builder.io/qwik-city/middleware/request-handler';
+import { requestHandler } from '@builder.io/qwik-city/middleware/request-handler';
 import type {
   ServerRenderOptions,
   ServerRequestEvent,
@@ -82,7 +80,7 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
             status,
             body: new Uint8Array(),
             headers: {},
-            cookies: cookies.headers().map(header => parseString(header))
+            cookies: cookies.headers().map((header) => parseString(header)),
           };
           headers.forEach((value, key) => (response.headers[key] = value));
           return new WritableStream({

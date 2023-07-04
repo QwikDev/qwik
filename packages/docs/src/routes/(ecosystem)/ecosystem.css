@@ -94,6 +94,12 @@
   display: none;
 }
 
+.moblie-ecosystem-menu li a {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 .ecosystem h2,
 .ecosystem-menu h3 {
   font-size: 18px;

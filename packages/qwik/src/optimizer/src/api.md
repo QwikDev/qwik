@@ -309,32 +309,11 @@ export interface QwikVitePluginApi {
     getRootDir: () => string | null;
 }
 
+// Warning: (ae-forgotten-export) The symbol "QwikVitePluginCSROptions" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "QwikVitePluginSSROptions" needs to be exported by the entry point index.d.ts
+//
 // @public (undocumented)
-export interface QwikVitePluginOptions {
-    // (undocumented)
-    client?: {
-        input?: string[] | string;
-        devInput?: string;
-        outDir?: string;
-        manifestOutput?: (manifest: QwikManifest) => Promise<void> | void;
-    };
-    debug?: boolean;
-    // (undocumented)
-    devTools?: {
-        clickToSource: string[] | false;
-    };
-    entryStrategy?: EntryStrategy;
-    optimizerOptions?: OptimizerOptions;
-    srcDir?: string;
-    // (undocumented)
-    ssr?: {
-        input?: string;
-        outDir?: string;
-        manifestInput?: QwikManifest;
-    };
-    transformedModuleOutput?: ((transformedModules: TransformModule[]) => Promise<void> | void) | null;
-    vendorRoots?: string[];
-}
+export type QwikVitePluginOptions = QwikVitePluginCSROptions | QwikVitePluginSSROptions;
 
 // @public (undocumented)
 export interface ResolvedManifest {

@@ -1,15 +1,13 @@
 import type { AzureFunction, Context, HttpRequest } from '@azure/functions';
 import { setServerPlatform } from '@builder.io/qwik/server';
-import {
-  mergeHeadersCookies,
-  requestHandler,
-} from '@builder.io/qwik-city/middleware/request-handler';
+import { requestHandler } from '@builder.io/qwik-city/middleware/request-handler';
 import type {
   ServerRenderOptions,
   ServerRequestEvent,
 } from '@builder.io/qwik-city/middleware/request-handler';
 import { getNotFound } from '@qwik-city-not-found-paths';
 import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
+import { parseString } from 'set-cookie-parser';
 
 // @builder.io/qwik-city/middleware/azure-swa
 
@@ -17,6 +15,32 @@ interface AzureResponse {
   status: number;
   headers: { [key: string]: any };
   body?: string | Uint8Array;
+  cookies?: AzureCookie[];
+}
+
+interface AzureCookie {
+  /** Cookie name */
+  name: string;
+  /** Cookie value */
+  value: string;
+  /** Specifies allowed hosts to receive the cookie */
+  domain?: string;
+  /** Specifies URL path that must exist in the requested URL */
+  path?: string;
+  /**
+   * NOTE: It is generally recommended that you use maxAge over expires.
+   * Sets the cookie to expire at a specific date instead of when the client closes.
+   * This can be a Javascript Date or Unix time in milliseconds.
+   */
+  expires?: Date | number;
+  /** Sets the cookie to only be sent with an encrypted request */
+  secure?: boolean;
+  /** Sets the cookie to be inaccessible to JavaScript's Document.cookie API */
+  httpOnly?: boolean;
+  /** Can restrict the cookie to not be sent with cross-site requests */
+  sameSite?: string | undefined;
+  /** Number of seconds until the cookie expires. A zero or negative number will expire the cookie immediately. */
+  maxAge?: number;
 }
 
 /**
@@ -56,10 +80,9 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
             status,
             body: new Uint8Array(),
             headers: {},
+            cookies: cookies.headers().map((header) => parseString(header)),
           };
-          mergeHeadersCookies(headers, cookies).forEach(
-            (value, key) => (response.headers[key] = value)
-          );
+          headers.forEach((value, key) => (response.headers[key] = value));
           return new WritableStream({
             write(chunk: Uint8Array) {
               if (response.body instanceof Uint8Array) {

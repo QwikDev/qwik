@@ -425,7 +425,7 @@ export const Section = component$(
   }) => {
     const entriesInOtherLanguages: MediaEntry[] = [];
     return (
-      <section id={props.id} class="md:scroll-m-20">
+      <section id={props.id} class="scroll-m-16 md:scroll-m-20">
         <h2>
           <a class="capitalize" href={`#${props.id}`}>
             {props.id}

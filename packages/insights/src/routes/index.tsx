@@ -5,6 +5,7 @@ import { globalAction$, routeLoader$, useNavigate, z, zod$ } from '@builder.io/q
 import AppsIcon from '~/components/icons/apps';
 import Button from '~/components/button';
 import Container from '~/components/container';
+import Gauge from '~/components/gauge';
 import GithubIcon from '~/components/icons/github';
 import Layout from '~/components/layout';
 import { UserContext } from '~/context/user';
@@ -111,6 +112,11 @@ export default component$(() => {
               >
                 Sign Out
               </Button>
+              <Gauge radius={40} label="#1" value={20} />
+              <Gauge radius={60} label="RZ" value={20} />
+              <Gauge radius={120} label="GB" value={80} />
+              <Gauge radius={160} label="JS" value={90} />
+              <Gauge radius={200} label="QW" value={100} />
             </>
           ) : (
             <Button

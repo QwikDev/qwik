@@ -720,9 +720,11 @@ export interface ValidatorConstructorQRL {
  */
 export interface ZodConstructor {
   <T extends zod.ZodRawShape>(schema: T): TypedDataValidator<zod.ZodObject<T>>;
-  <T extends zod.ZodRawShape>(schema: (z: typeof zod) => T): TypedDataValidator<zod.ZodObject<T>>;
+  <T extends zod.ZodRawShape>(schema: (z: typeof zod, ev: RequestEvent) => T): TypedDataValidator<
+    zod.ZodObject<T>
+  >;
   <T extends zod.Schema>(schema: T): TypedDataValidator<T>;
-  <T extends zod.Schema>(schema: (z: typeof zod) => T): TypedDataValidator<T>;
+  <T extends zod.Schema>(schema: (z: typeof zod, ev: RequestEvent) => T): TypedDataValidator<T>;
 }
 
 /**
@@ -730,11 +732,13 @@ export interface ZodConstructor {
  */
 export interface ZodConstructorQRL {
   <T extends zod.ZodRawShape>(schema: QRL<T>): TypedDataValidator<zod.ZodObject<T>>;
-  <T extends zod.ZodRawShape>(schema: QRL<(zs: typeof zod) => T>): TypedDataValidator<
-    zod.ZodObject<T>
-  >;
+  <T extends zod.ZodRawShape>(
+    schema: QRL<(zs: typeof zod, ev: RequestEvent) => T>
+  ): TypedDataValidator<zod.ZodObject<T>>;
   <T extends zod.Schema>(schema: QRL<T>): TypedDataValidator<T>;
-  <T extends zod.Schema>(schema: QRL<(z: typeof zod) => T>): TypedDataValidator<T>;
+  <T extends zod.Schema>(
+    schema: QRL<(z: typeof zod, ev: RequestEvent) => T>
+  ): TypedDataValidator<T>;
 }
 
 export interface ServerFunction {

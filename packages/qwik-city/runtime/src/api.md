@@ -450,11 +450,11 @@ export interface ZodConstructor {
     // (undocumented)
     <T extends zod.ZodRawShape>(schema: T): TypedDataValidator<zod.ZodObject<T>>;
     // (undocumented)
-    <T extends zod.ZodRawShape>(schema: (z: typeof zod) => T): TypedDataValidator<zod.ZodObject<T>>;
+    <T extends zod.ZodRawShape>(schema: (z: typeof zod, ev: RequestEvent) => T): TypedDataValidator<zod.ZodObject<T>>;
     // (undocumented)
     <T extends zod.Schema>(schema: T): TypedDataValidator<T>;
     // (undocumented)
-    <T extends zod.Schema>(schema: (z: typeof zod) => T): TypedDataValidator<T>;
+    <T extends zod.Schema>(schema: (z: typeof zod, ev: RequestEvent) => T): TypedDataValidator<T>;
 }
 
 // Warning: (ae-forgotten-export) The symbol "ZodConstructorQRL" needs to be exported by the entry point index.d.ts

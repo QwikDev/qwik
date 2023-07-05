@@ -183,6 +183,12 @@ To use your build in your project, follow these steps:
    pnpm link.dist.npm
    ```
 
+   or
+
+   ```shell
+   pnpm link.dist.yarn
+   ```
+
 2. Inside the root of your project run:
 
    ```shell
@@ -195,6 +201,13 @@ To use your build in your project, follow these steps:
    ```shell
     pnpm install
     pnpm link --global @builder.io/qwik @builder.io/qwik-city
+   ```
+
+   or
+
+   ```shell
+    yarn install
+    yarn link @builder.io/qwik @builder.io/qwik-city
    ```
 
 If you can't use package linking (npm link) just copy the contents of `package/qwik/dist` into your projects' `node_modules/@builder.io/qwik` folder.

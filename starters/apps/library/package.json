@@ -43,7 +43,8 @@
     "np": "7.6.1",
     "prettier": "latest",
     "typescript": "latest",
-    "vite": "latest"
+    "vite": "latest",
+    "vite-tsconfig-paths": "4.2.0"
   },
   "__qwik__": {
     "displayName": "Component library",

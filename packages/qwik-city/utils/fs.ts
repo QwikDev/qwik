@@ -157,19 +157,19 @@ export function isLayoutModule(extlessName: string) {
 }
 
 export function isPageModuleExt(ext: string) {
-  return !!PAGE_MODULE_EXTS[ext];
+  return ext in PAGE_MODULE_EXTS;
 }
 
 export function isModuleExt(ext: string) {
-  return !!MODULE_EXTS[ext];
+  return ext in MODULE_EXTS;
 }
 
 export function isMarkdownExt(ext: string) {
-  return !!MARKDOWN_EXTS[ext];
+  return ext in MARKDOWN_EXTS;
 }
 
 export function isPageExt(ext: string) {
-  return !!PAGE_MODULE_EXTS[ext] || !!MARKDOWN_EXTS[ext];
+  return ext in PAGE_MODULE_EXTS || ext in MARKDOWN_EXTS;
 }
 
 export function isMenuFileName(fileName: string) {

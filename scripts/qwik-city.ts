@@ -107,6 +107,11 @@ export async function buildQwikCity(config: BuildConfig) {
         import: './adapters/vercel-edge/vite/index.mjs',
         require: './adapters/vercel-edge/vite/index.cjs',
       },
+      './adapters/vercel-serverless/vite': {
+        types: './adapters/vercel-serverless/vite/index.d.ts',
+        import: './adapters/vercel-serverless/vite/index.mjs',
+        require: './adapters/vercel-serverless/vite/index.cjs',
+      },
       './middleware/azure-swa': {
         types: './middleware/azure-swa/index.d.ts',
         import: './middleware/azure-swa/index.mjs',

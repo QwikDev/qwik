@@ -73,7 +73,9 @@ mdx.push(`import './styles.css';\n\n`);
 mdx.push('<div>');
 
 mdx.push('<h1 id="smth">ESLint-Rules</h1>');
-mdx.push('<p>Qwik comes with an own set of ESLint rules to help developers write better code.</p>');
+mdx.push(
+  '<p>Qwik comes with its own set of ESLint rules to help developers write better code.</p>'
+);
 
 mdx.push(`
 <div class="ruleset-legend panel">

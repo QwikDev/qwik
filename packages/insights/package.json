@@ -2,7 +2,7 @@
   "name": "my-qwik-empty-starter",
   "description": "App with Routing built-in ready to create your app",
   "engines": {
-    "node": ">=15.0.0"
+    "node": ">=16.8.0 <18.0.0 || >=18.11"
   },
   "private": true,
   "scripts": {

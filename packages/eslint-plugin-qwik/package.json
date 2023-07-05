@@ -23,7 +23,7 @@
     "eslint"
   ],
   "engines": {
-    "node": ">=16"
+    "node": ">=16.8.0 <18.0.0 || >=18.11"
   },
   "devDependencies": {
     "@types/eslint": "8.40.2",

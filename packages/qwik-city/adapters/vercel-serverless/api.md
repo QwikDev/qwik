@@ -10,14 +10,20 @@ import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
 export { StaticGenerateRenderOptions }
 
 // @public (undocumented)
-export function vercelEdgeAdapter(opts?: VercelEdgeAdapterOptions): any;
+export function vercelServerlessAdapter(opts?: VercelServerlessAdapterOptions): any;
 
 // @public (undocumented)
-export interface VercelEdgeAdapterOptions extends ServerAdapterOptions {
+export interface VercelServerlessAdapterOptions extends ServerAdapterOptions {
+    environment?: Record<string, string>[];
+    maxDuration?: number;
+    memory?: number;
     outputConfig?: boolean;
+    regions?: string[];
+    runtime?: string;
     staticPaths?: string[];
+    supportsResponseStreaming?: boolean;
+    supportsWrapper?: boolean;
     vcConfigEntryPoint?: string;
-    vcConfigEnvVarsInUse?: string[];
 }
 
 // (No @packageDocumentation comment for this package)

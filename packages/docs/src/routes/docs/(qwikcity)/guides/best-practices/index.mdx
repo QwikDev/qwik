@@ -61,16 +61,16 @@ When using `useVisibleTask` to programmatically register events, we are download
 
 ```tsx title="Suboptimal implementation"
 // Don't do this!
-useVisibleTask$(() => {
+useVisibleTask$(({ cleanup }) => {
   const listener = (event) => {
     const mouseEvent = event as MouseEvent;
     console.log(mouseEvent.x, mouseEvent.y);
   };
   document.addEventListener('mousemove', listener);
 
-  return () => {
+  cleanup(() => {
     document.removeEventListener('mousemove', listener);
-  };
+  });
 });
 ```
 

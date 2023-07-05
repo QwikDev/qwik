@@ -24,7 +24,7 @@
     "vite"
   ],
   "engines": {
-    "node": ">=16"
+    "node": ">=16.8.0 <18.0.0 || >=18.11"
   },
   "private": false,
   "scripts": {

@@ -667,7 +667,7 @@ export async function render(document, rootNode, opts) {
 
   if (!window.__qwikViteLog) {
     window.__qwikViteLog = true;
-    console.debug("%c⭐️ Qwik Client Mode","background: #0c75d2; color: white; padding: 2px 3px; border-radius: 2px; font-size: 0.8em;","Do not use this mode in production!\n - No portion of the application is pre-rendered on the server\n - All of the application is running eagerly in the browser\n - Optimizer/Serialization/Deserialization code is not exercised!");
+    console.debug("%c⭐️ Qwik Client Mode","background: #0c75d2; color: white; padding: 2px 3px; border-radius: 2px; font-size: 0.8em;","Do not use this mode in production!\\n - No portion of the application is pre-rendered on the server\\n - All of the application is running eagerly in the browser\\n - Optimizer/Serialization/Deserialization code is not exercised!");
   }
 }`;
 }

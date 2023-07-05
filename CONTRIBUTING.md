@@ -182,6 +182,7 @@ To use your build in your project, follow these steps:
    ```shell
    pnpm link.dist.npm
    ```
+
    or
 
    ```shell
@@ -201,6 +202,7 @@ To use your build in your project, follow these steps:
     pnpm install
     pnpm link --global @builder.io/qwik @builder.io/qwik-city
    ```
+
    or
 
    ```shell

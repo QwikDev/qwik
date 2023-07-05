@@ -11,6 +11,7 @@ contributors:
   - thejackshelton
   - adnanebrahimi
   - mhevery
+  - tzdesign
 ---
 
 # `routeAction$()`
@@ -235,6 +236,44 @@ export default component$(() => {
 When submitting data to a `routeAction()`, the data is validated against the Zod schema. If the data is invalid, the action will put the validation error in the `routeAction.value` property.
 
 Please refer to the [Zod documentation](https://zod.dev/) for more information on how to use Zod schemas.
+
+
+### Advanced event based validation
+
+The constructor of ```zod$``` can also take a function, as the first argument is zod itself, so you can use this directly to build the schema. 
+The second parameter is the RequestEvent to construct an event-based zod schema.
+Especially in combination with ```refine``` and ```superDefine``` in zod, the only limit is your imagination.
+
+
+```tsx {5-5} /ev/#a  title="Advanced event based validation"
+export const useAddUser = routeAction$(
+  async (user) => {
+    // The "user" is still strongly typed, but firstname 
+    // is now optional: { firstName?: string | undefined, lastName: string }
+    const userID = await db.users.add({
+      firstName: user.firstName,
+      lastName: user.lastName,
+    });
+    return {
+      success: true,
+      userID,
+    };
+  },
+  // Zod schema is used to validate that the FormData includes "firstName" and "lastName"
+  zod$((z, ev) => {
+    // The first name is optional if the url contains the query parameter "firstname=optional"
+    const firstName =
+      ev.url.searchParams.get("firstname") === "optional"
+        ? z.string().optional()
+        : z.string().nonempty();
+
+    return z.object({
+      firstName,
+      lastName: z.string(),
+    });
+  })
+);
+```
 
 ## HTTP request and response
 

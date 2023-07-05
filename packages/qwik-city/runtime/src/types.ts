@@ -723,6 +723,9 @@ export interface ZodConstructor {
   <T extends zod.ZodRawShape>(schema: (z: typeof zod) => T): TypedDataValidator<zod.ZodObject<T>>;
   <T extends zod.Schema>(schema: T): TypedDataValidator<T>;
   <T extends zod.Schema>(schema: (z: typeof zod) => T): TypedDataValidator<T>;
+  <T extends zod.Schema>(schema: {
+    validate: (ev: RequestEvent, data: unknown) => T;
+  }): TypedDataValidator<T>;
 }
 
 /**

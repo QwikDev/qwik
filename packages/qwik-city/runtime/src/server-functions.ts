@@ -231,24 +231,51 @@ export const validatorQrl = ((
 export const validator$: ValidatorConstructor = /*#__PURE__*/ implicit$FirstArg(validatorQrl);
 
 /**
+ * The common type to use with zod$.
+ * @private
+ */
+export type ZodQRLInput = z.ZodRawShape | z.Schema | ((z: typeof import('zod').z) => z.ZodRawShape);
+
+/**
+ * The advanced type to use with zod$. I need to use an object here, because TypeScript can't differentiate between two function signatures.
+ * @private
+ */
+export type ZodQRLAdvancedInput = {
+  validate: (event: RequestEvent, inputData: unknown) => z.Schema;
+};
+
+/**
+ * Differentiate between ZodQRLInput and ZodQRLAdvancedInput
+ *
+ * @param obj is ZodQRLInput | ZodQRLAdvancedInput
+ * @private
+ */
+export function isZodQRLAdvancedInput(
+  obj: ZodQRLInput | ZodQRLAdvancedInput
+): obj is ZodQRLAdvancedInput {
+  return typeof obj === 'object' && 'validate' in obj && typeof obj.validate === 'function';
+}
+
+/**
  * @public
  */
-export const zodQrl = ((
-  qrl: QRL<z.ZodRawShape | z.Schema | ((z: typeof import('zod').z) => z.ZodRawShape)>
-): DataValidator => {
+export const zodQrl = ((qrl: QRL<ZodQRLInput | ZodQRLAdvancedInput>): DataValidator => {
   if (isServer) {
-    const schema: Promise<z.Schema> = qrl.resolve().then((obj) => {
-      if (typeof obj === 'function') {
-        obj = obj(z);
-      }
-      if (obj instanceof z.Schema) {
-        return obj;
-      } else {
-        return z.object(obj);
-      }
-    });
     return {
       async validate(ev, inputData) {
+        const schema: Promise<z.Schema> = qrl.resolve().then((obj) => {
+          if (typeof obj === 'function') {
+            obj = obj(z);
+          }
+          if (obj instanceof z.Schema) {
+            return obj;
+          } else if (isZodQRLAdvancedInput(obj)) {
+            return obj.validate(ev, inputData);
+          } else {
+            return z.object(obj);
+          }
+        });
+
         const data = inputData ?? (await ev.parseBody());
         const result = await (await schema).safeParseAsync(data);
         if (result.success) {

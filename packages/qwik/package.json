@@ -1,6 +1,6 @@
 {
   "name": "@builder.io/qwik",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "description": "An Open-Source sub-framework designed with a focus on server-side-rendering, lazy-loading, and styling/animation.",
   "main": "./dist/core.mjs",
   "types": "./dist/core.d.ts",

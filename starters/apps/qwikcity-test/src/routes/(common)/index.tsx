@@ -12,9 +12,9 @@ export default component$(() => {
     <div>
       <h1 onClick$={() => console.warn("hola")}>Welcome to Qwik City</h1>
       <p>The meta-framework for Qwik.</p>
-      <ImageJpeg />
-      <ImageSvg />
-      <ImageJpegResized />
+      <ImageJpeg id="image-jpeg" />
+      <ImageSvg id="image-svg" />
+      <ImageJpegResized id="image-avif" />
     </div>
   );
 });

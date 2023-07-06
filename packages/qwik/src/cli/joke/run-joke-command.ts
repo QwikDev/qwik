@@ -4,5 +4,5 @@ import { magenta } from 'kleur/colors';
 
 export async function runJokeCommand() {
   const [setup, punchline] = getRandomJoke();
-  note(magenta(`${setup!.trim()}\n${punchline!.trim()}`), '🤡');
+  note(magenta(`${setup!.trim()}\n${punchline!.trim()}`), '🙈');
 }

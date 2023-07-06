@@ -4,14 +4,17 @@ import type { DocumentHead } from "@builder.io/qwik-city";
 import ImageJpeg from "../../media/test.jpeg?jsx";
 // @ts-ignore
 import ImageSvg from "../../media/qwik-logo.svg?jsx";
+// @ts-ignore
+import ImageJpegResized from "../../media/test.jpeg?jsx&w=100&h=100&format=avif";
 
 export default component$(() => {
   return (
     <div>
       <h1 onClick$={() => console.warn("hola")}>Welcome to Qwik City</h1>
       <p>The meta-framework for Qwik.</p>
-      <ImageJpeg />
-      <ImageSvg />
+      <ImageJpeg id="image-jpeg" />
+      <ImageSvg id="image-svg" />
+      <ImageJpegResized id="image-avif" />
     </div>
   );
 });

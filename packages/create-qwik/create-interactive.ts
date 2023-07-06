@@ -129,7 +129,7 @@ export async function runCreateInteractiveCli() {
       });
       if (!isCancel(joke) && joke) {
         const [setup, punchline] = getRandomJoke();
-        note(magenta(`${setup!.trim()}\n${punchline!.trim()}`), '🤡');
+        note(magenta(`${setup!.trim()}\n${punchline!.trim()}`), '🙈');
       }
     } catch (e) {
       // Never crash on jokes

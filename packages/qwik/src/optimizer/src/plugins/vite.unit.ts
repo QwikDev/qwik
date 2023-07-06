@@ -58,7 +58,7 @@ vite('command: serve, mode: development', async () => {
 
   equal(build.outDir, normalizePath(resolve(cwd, 'dist')));
   equal(rollupOptions.input, normalizePath(resolve(cwd, 'src', 'entry.dev.tsx')));
-  equal(outputOptions.assetFileNames, 'build/[name].[ext]');
+  equal(outputOptions.assetFileNames, 'build/q-[hash].[ext]');
   equal(outputOptions.chunkFileNames, 'build/[name].js');
   equal(outputOptions.entryFileNames, 'build/[name].js');
   equal(outputOptions.format, 'es');
@@ -128,7 +128,7 @@ vite('command: build, mode: development', async () => {
   equal(build.outDir, normalizePath(resolve(cwd, 'dist')));
   equal(build.emptyOutDir, undefined);
   equal(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'root.tsx'))]);
-  equal(outputOptions.assetFileNames, 'build/[name].[ext]');
+  equal(outputOptions.assetFileNames, 'build/q-[hash].[ext]');
   equal(outputOptions.chunkFileNames, 'build/[name].js');
   equal(outputOptions.entryFileNames, 'build/[name].js');
   equal(build.dynamicImportVarsOptions?.exclude, [/./]);
@@ -229,7 +229,7 @@ vite('command: build, --ssr entry.server.tsx', async () => {
   equal(build.outDir, normalizePath(resolve(cwd, 'server')));
   equal(build.emptyOutDir, undefined);
   equal(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'entry.server.tsx'))]);
-  equal(outputOptions.assetFileNames, undefined);
+  equal(outputOptions.assetFileNames, 'build/q-[hash].[ext]');
   equal(outputOptions.chunkFileNames, undefined);
   equal(outputOptions.entryFileNames, undefined);
   equal(build.outDir, normalizePath(resolve(cwd, 'server')));

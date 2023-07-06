@@ -333,6 +333,30 @@ test.describe("actions", () => {
       await expect(page.locator("#route")).toHaveText("should render");
       expect(await res?.headerValue("X-Qwikcity-Test")).toEqual("issue4531");
     });
+
+    test("media in home page", async ({ page }) => {
+      await page.goto("/qwikcity-test/");
+
+      await expect(page.locator("#image-jpeg")).toHaveJSProperty(
+        "naturalWidth",
+        520
+      );
+      await expect(page.locator("#image-jpeg")).toHaveJSProperty(
+        "naturalHeight",
+        520
+      );
+
+      await expect(page.locator("#image-avif")).toHaveJSProperty("width", 100);
+      await expect(page.locator("#image-avif")).toHaveJSProperty("height", 100);
+      await expect(page.locator("#image-avif")).toHaveJSProperty(
+        "naturalWidth",
+        520
+      );
+      await expect(page.locator("#image-avif")).toHaveJSProperty(
+        "naturalHeight",
+        520
+      );
+    });
   }
 });
 

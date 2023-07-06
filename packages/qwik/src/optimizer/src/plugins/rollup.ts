@@ -173,23 +173,16 @@ export function normalizeRollupOutputOptions(
   if (rollupOutputOpts && !Array.isArray(rollupOutputOpts)) {
     Object.assign(outputOpts, rollupOutputOpts);
   }
-  if (opts.target === 'ssr') {
-    // ssr output
-    if (opts.buildMode === 'production') {
-      if (!outputOpts.assetFileNames) {
-        outputOpts.assetFileNames = 'build/q-[hash].[ext]';
-      }
-    }
-  } else if (opts.target === 'client') {
+  if (!outputOpts.assetFileNames) {
+    outputOpts.assetFileNames = 'build/q-[hash].[ext]';
+  }
+  if (opts.target === 'client') {
     // client output
 
     if (opts.buildMode === 'production') {
       // client production output
       if (!outputOpts.entryFileNames) {
         outputOpts.entryFileNames = 'build/q-[hash].js';
-      }
-      if (!outputOpts.assetFileNames) {
-        outputOpts.assetFileNames = 'build/q-[hash].[ext]';
       }
       if (!outputOpts.chunkFileNames) {
         outputOpts.chunkFileNames = 'build/q-[hash].js';
@@ -198,9 +191,6 @@ export function normalizeRollupOutputOptions(
       // client development output
       if (!outputOpts.entryFileNames) {
         outputOpts.entryFileNames = 'build/[name].js';
-      }
-      if (!outputOpts.assetFileNames) {
-        outputOpts.assetFileNames = 'build/[name].[ext]';
       }
       if (!outputOpts.chunkFileNames) {
         outputOpts.chunkFileNames = 'build/[name].js';

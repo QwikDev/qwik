@@ -471,10 +471,8 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
             win._qCityBootstrap?.remove();
             win._qCityBootstrap = undefined;
 
-            if (!isDev) {
-              // Cache SPA recovery script.
-              spaInit.resolve();
-            }
+            // Cache SPA recovery script.
+            spaInit.resolve();
           }
 
           if (navType !== 'popstate') {

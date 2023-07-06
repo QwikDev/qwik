@@ -42,17 +42,17 @@
     "qwik": "qwik"
   },
   "devDependencies": {
-    "@builder.io/qwik": "1.2.3",
+    "@builder.io/qwik": "1.2.5",
     "@types/eslint": "8.40.2",
-    "@types/node": "^20.3.3",
-    "@typescript-eslint/eslint-plugin": "5.60.1",
-    "@typescript-eslint/parser": "5.60.1",
+    "@types/node": "^20.4.0",
+    "@typescript-eslint/eslint-plugin": "5.61.0",
+    "@typescript-eslint/parser": "5.61.0",
     "eslint": "8.44.0",
-    "eslint-plugin-qwik": "^1.2.3",
+    "eslint-plugin-qwik": "^1.2.5",
     "np": "7.6.1",
     "prettier": "2.8.8",
     "typescript": "5.1.6",
     "undici": "5.22.1",
-    "vite": "4.3.9"
+    "vite": "4.4.0"
   }
 }

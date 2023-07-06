@@ -15,8 +15,8 @@
   ],
   "author": "Qwik Team",
   "devDependencies": {
-    "@builder.io/qwik": "1.2.3",
-    "@builder.io/qwik-city": "1.2.3",
+    "@builder.io/qwik": "1.2.5",
+    "@builder.io/qwik-city": "1.2.5",
     "@supabase/supabase-js": "2.24.0"
   },
   "dependencies": {

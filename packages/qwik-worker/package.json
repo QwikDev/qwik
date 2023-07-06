@@ -7,7 +7,7 @@
   },
   "devDependencies": {
     "@builder.io/qwik": "workspace:*",
-    "vite": "4.3.9",
+    "vite": "4.4.0",
     "vite-plugin-static-copy": "^0.16.0"
   },
   "peerDependencies": {

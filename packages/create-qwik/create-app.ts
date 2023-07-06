@@ -20,7 +20,7 @@ export async function runCreateCli(starterId: string, outDir: string) {
   } else {
     // create a sub directory
     outDir = getOutDir(outDir);
-    if (fs.existsSync(outDir)) {
+    if (fs.existsSync(outDir) && fs.readdirSync(outDir).length > 0) {
       panic(
         `Directory "${outDir}" already exists. Please either remove this directory, or choose another location.`
       );

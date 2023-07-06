@@ -1,6 +1,6 @@
 {
   "name": "create-qwik",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "description": "Interactive CLI for create Qwik projects and adding features.",
   "bin": "./create-qwik.cjs",
   "main": "./index.cjs",

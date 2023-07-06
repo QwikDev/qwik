@@ -144,7 +144,7 @@ export const getImageSizeServer = (
         const column = parseInt(locParts[locParts.length - 1], 10) - 1;
         let line = parseInt(locParts[locParts.length - 2], 10) - 1;
         const filePath = path.resolve(srcDir, locParts.slice(0, locParts.length - 2).join(':'));
-        const extension = path.extname(filePath);
+        const extension = path.extname(filePath).toLowerCase();
         const buffer = fs.readFileSync(filePath);
         let text = buffer.toString('utf-8');
 

@@ -2,6 +2,7 @@ import type { OutputFormat } from 'vite-imagetools';
 import type { PluginOption } from 'vite';
 import { optimize } from 'svgo';
 import fs from 'node:fs';
+import path from 'node:path';
 import { parseId } from 'packages/qwik/src/optimizer/src/plugins/plugin';
 import type { QwikCityVitePluginOptions } from './types';
 
@@ -60,9 +61,9 @@ export function imagePlugin(userOpts?: QwikCityVitePluginOptions): PluginOption[
       load: {
         order: 'pre',
         handler: async (id) => {
-          id = id.toLowerCase();
           const { params, pathId } = parseId(id);
-          if (pathId.endsWith('.svg') && params.has('jsx')) {
+          const extension = path.extname(pathId).toLowerCase();
+          if (extension === '.svg' && params.has('jsx')) {
             const code = await fs.promises.readFile(pathId, 'utf-8');
             return {
               code,
@@ -75,7 +76,9 @@ export function imagePlugin(userOpts?: QwikCityVitePluginOptions): PluginOption[
         id = id.toLowerCase();
         const { params, pathId } = parseId(id);
         if (params.has('jsx')) {
-          if (supportedExtensions.some((ext) => pathId.endsWith(ext))) {
+          const extension = path.extname(pathId).toLowerCase();
+
+          if (supportedExtensions.includes(extension)) {
             if (!code.includes('srcSet')) {
               this.error(`Image '${id}' could not be optimized to JSX`);
             }
@@ -89,7 +92,7 @@ export function imagePlugin(userOpts?: QwikCityVitePluginOptions): PluginOption[
     return _jsxQ('img', props, PROPS, undefined, 3, key, dev);
   }`
             );
-          } else if (pathId.endsWith('.svg')) {
+          } else if (extension === '.svg') {
             const svgAttributes: Record<string, string> = {};
             const data = optimize(code, {
               plugins: [

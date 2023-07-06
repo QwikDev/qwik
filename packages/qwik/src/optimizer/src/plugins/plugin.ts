@@ -434,8 +434,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       }
       const parsedId = parseId(id);
       let importeePathId = normalizePath(parsedId.pathId);
-      const ext = path.extname(importeePathId);
-      if (RESOLVE_EXTS[ext]) {
+      const ext = path.extname(importeePathId).toLowerCase();
+      if (ext in RESOLVE_EXTS) {
         importer = normalizePath(importer);
         log(`resolveId("${importeePathId}", "${importer}")`);
         const parsedImporterId = parseId(importer);
@@ -459,8 +459,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     } else if (path.isAbsolute(id)) {
       const parsedId = parseId(id);
       const importeePathId = normalizePath(parsedId.pathId);
-      const ext = path.extname(importeePathId);
-      if (RESOLVE_EXTS[ext]) {
+      const ext = path.extname(importeePathId).toLowerCase();
+      if (ext in RESOLVE_EXTS) {
         log(`resolveId("${importeePathId}", "${importer}")`);
         const transformedOutput = isSSR
           ? ssrTransformedOutputs.get(importeePathId)
@@ -545,10 +545,12 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     const path = getPath();
 
     const { pathId } = parseId(id);
-    const { ext, dir, base } = path.parse(pathId);
-
+    const parsedPathId = path.parse(pathId);
+    const dir = parsedPathId.dir;
+    const base = parsedPathId.base;
+    const ext = parsedPathId.ext.toLowerCase();
     if (
-      TRANSFORM_EXTS[ext] ||
+      ext in TRANSFORM_EXTS ||
       TRANSFORM_REGEX.test(pathId) ||
       insideRoots(ext, dir, opts.srcDir, opts.vendorRoots)
     ) {

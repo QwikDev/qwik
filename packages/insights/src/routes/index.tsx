@@ -1,5 +1,5 @@
 import { component$, useContext, useTask$, useVisibleTask$ } from '@builder.io/qwik';
-import { getUserFromEvent, removeAuthCookies, updateAuthCookies } from '~/supabase/auth/auth';
+import { getUserFromEvent, updateAuthCookies } from '~/supabase/auth/auth';
 import { globalAction$, routeLoader$, useNavigate, z, zod$ } from '@builder.io/qwik-city';
 
 import AppsIcon from '~/components/icons/apps';
@@ -99,13 +99,6 @@ export default component$(() => {
               <Button onClick$={() => navigate('/app')}>
                 <AppsIcon /> Go to the Dashboard
               </Button>
-
-              <Gauge radius={40} label="#1" value={20} />
-              <Gauge radius={40} label="#2" value={80} />
-              <Gauge radius={60} label="RZ" value={20} />
-              <Gauge radius={120} label="GB" value={80} />
-              <Gauge radius={160} label="JS" value={90} />
-              <Gauge radius={200} label="QW" value={100} />
             </>
           ) : (
             <Button
@@ -121,7 +114,6 @@ export default component$(() => {
           )}
         </div>
       </Container>
-
       {/* <pre>{JSON.stringify(userCtx, null, 2)}</pre> */}
     </Layout>
   );

@@ -1,0 +1,21 @@
+.wrapper {
+  background-color: var(--bg-color-bright);
+  border-radius: 8px;
+  padding: var(--size-8);
+  display: flex;
+  gap: var(--size-6);
+  align-items: center;
+}
+
+.wrapper .gauge-wrapper {
+  min-width: 80px; /* gauge radius * 2 */
+}
+
+.wrapper .title {
+  margin-bottom: var(--size-1_5);
+}
+
+.wrapper .api-key {
+  color: var(--gray-500);
+  font-size: var(--size-3);
+}

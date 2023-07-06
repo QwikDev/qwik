@@ -1,13 +1,11 @@
 import { applicationTable, getDB } from '~/db';
 
-import { AppLink } from '~/routes.config';
-import { EditIcon } from '~/components/icons/edit';
-import { ErrorIcon } from '~/components/icons/error';
+import AppCard from '~/components/app-card';
+import Container from '~/components/container';
 import Layout from '~/components/layout';
-import { SlowIcon } from '~/components/icons/slow';
-import { SymbolIcon } from '~/components/icons/symbol';
 import { component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
+import styles from './styles.module.css';
 
 export const useApps = routeLoader$(async () => {
   const db = getDB();
@@ -18,54 +16,16 @@ export default component$(() => {
   const apps = useApps();
   return (
     <Layout>
-      <h1>Apps</h1>[{' '}
-      <AppLink route="/app/[publicApiKey]/edit/" param:publicApiKey="__new__">
-        new
-      </AppLink>{' '}
-      ]
-      <table>
-        <tbody>
-          <tr>
-            <th>Name</th>
-            <th>Description</th>
-            <th>API Key</th>
-            <th></th>
-          </tr>
+      <Container position="center" width="medium">
+        <div class={styles.wrapper}>
+          {/* existing apps */}
           {apps.value.map((app) => (
-            <tr key={app.id}>
-              <td>
-                <AppLink route="/app/[publicApiKey]/" param:publicApiKey={app.publicApiKey}>
-                  {app.name}
-                </AppLink>
-              </td>
-              <td>{app.description}</td>
-              <td>
-                <code>{app.publicApiKey}</code>
-              </td>
-              <td>
-                <AppLink route="/app/[publicApiKey]/symbols/" param:publicApiKey={app.publicApiKey}>
-                  <SymbolIcon />
-                </AppLink>
-                <AppLink
-                  route="/app/[publicApiKey]/symbols/slow/"
-                  param:publicApiKey={app.publicApiKey}
-                >
-                  <SlowIcon />
-                </AppLink>
-                <AppLink
-                  route={`/app/[publicApiKey]/errors/`}
-                  param:publicApiKey={app.publicApiKey}
-                >
-                  <ErrorIcon />
-                </AppLink>
-                <AppLink route={`/app/[publicApiKey]/edit/`} param:publicApiKey={app.publicApiKey}>
-                  <EditIcon />
-                </AppLink>
-              </td>
-            </tr>
+            <AppCard key={app.id} title={app.name} publicApiKey={app.publicApiKey} />
           ))}
-        </tbody>
-      </table>
+          {/* add new app */}
+          <AppCard title="Add new App" />
+        </div>
+      </Container>
     </Layout>
   );
 });

@@ -14,7 +14,7 @@ export default component$<LayoutProps>(({ mode = 'default' }) => {
       <main class={['section', mode === 'bright' && styles.bright]}>
         <Slot />
       </main>
-      <footer>footer</footer>
+      {/* <footer>footer</footer> */}
     </>
   );
 });

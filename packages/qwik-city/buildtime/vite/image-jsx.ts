@@ -9,9 +9,7 @@ import type { QwikCityVitePluginOptions } from './types';
  * @public
  */
 export function imagePlugin(userOpts?: QwikCityVitePluginOptions): PluginOption[] {
-  const supportedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'avif', 'tiff'].map(
-    (ext) => `.${ext}?jsx`
-  );
+  const supportedExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.avif', '.tiff'];
   return [
     import('vite-imagetools').then(({ imagetools }) =>
       imagetools({
@@ -62,8 +60,10 @@ export function imagePlugin(userOpts?: QwikCityVitePluginOptions): PluginOption[
       load: {
         order: 'pre',
         handler: async (id) => {
-          if (id.endsWith('.svg?jsx')) {
-            const code = await fs.promises.readFile(parseId(id).pathId, 'utf-8');
+          id = id.toLowerCase();
+          const { params, pathId } = parseId(id);
+          if (pathId.endsWith('.svg') && params.has('jsx')) {
+            const code = await fs.promises.readFile(pathId, 'utf-8');
             return {
               code,
               moduleSideEffects: false,
@@ -73,8 +73,9 @@ export function imagePlugin(userOpts?: QwikCityVitePluginOptions): PluginOption[
       },
       transform(code, id) {
         id = id.toLowerCase();
-        if (id.endsWith('?jsx')) {
-          if (supportedExtensions.some((ext) => id.endsWith(ext))) {
+        const { params, pathId } = parseId(id);
+        if (params.has('jsx')) {
+          if (supportedExtensions.some((ext) => pathId.endsWith(ext))) {
             if (!code.includes('srcSet')) {
               this.error(`Image '${id}' could not be optimized to JSX`);
             }
@@ -88,7 +89,7 @@ export function imagePlugin(userOpts?: QwikCityVitePluginOptions): PluginOption[
     return _jsxQ('img', props, PROPS, undefined, 3, key, dev);
   }`
             );
-          } else if (id.endsWith('.svg?jsx')) {
+          } else if (pathId.endsWith('.svg')) {
             const svgAttributes: Record<string, string> = {};
             const data = optimize(code, {
               plugins: [

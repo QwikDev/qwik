@@ -1,5 +1,5 @@
 import { createMdxTransformer, type MdxTransform } from '../markdown/mdx';
-import { basename, join, resolve } from 'node:path';
+import { basename, join, resolve, extname } from 'node:path';
 import type { Plugin, PluginOption, UserConfig, Rollup } from 'vite';
 import { loadEnv } from 'vite';
 import { generateQwikCityPlan } from '../runtime-generation/generate-qwik-city-plan';
@@ -190,7 +190,8 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
       if (id.startsWith('\0')) {
         return;
       }
-      const isMD = id.endsWith('.md') || id.endsWith('.mdx');
+      const ext = extname(id).toLowerCase();
+      const isMD = ext === '.md' || ext === '.mdx';
       if (ctx && isMD) {
         const fileName = basename(id);
         if (isMenuFileName(fileName)) {

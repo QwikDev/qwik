@@ -39,7 +39,7 @@
     "eslint": "8.44.0",
     "eslint-plugin-qwik": "^1.2.5",
     "netlify-cli": "^15.8.0",
-    "prettier": "3.0.0",
+    "prettier": "2.8.8",
     "typescript": "5.1.6",
     "undici": "5.22.1",
     "uvu": "0.5.6",

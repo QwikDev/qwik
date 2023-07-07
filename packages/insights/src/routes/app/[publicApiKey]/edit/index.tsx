@@ -5,6 +5,9 @@ import { applicationTable, getDB } from '~/db';
 import { ApplicationForm } from '../../[publicApiKey]/app.form';
 import { eq } from 'drizzle-orm';
 import { appUrl } from '~/routes.config';
+import Container from '~/components/container';
+import Layout from '~/components/layout';
+import AppCard from '~/components/app-card';
 
 export const useFormLoader = routeLoader$<InitialValues<ApplicationForm>>(async ({ params }) => {
   if (isCreateMode(params)) {
@@ -53,6 +56,7 @@ export const useFormAction = formAction$<ApplicationForm>(
 );
 
 export default component$(() => {
+  const form =  useFormLoader();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [loginForm, { Form, Field, FieldArray }] = useForm<ApplicationForm>({
     loader: useFormLoader(),
@@ -60,30 +64,41 @@ export default component$(() => {
     validate: zodForm$(ApplicationForm),
   });
   const location = useLocation();
+  location.params
   const isCreate = isCreateMode(location.params);
 
   return (
-    <div>
-      <h1>Create new application</h1>
-      <Form>
+    <Layout>
+      <Container position="center" width="medium">
+        {JSON.stringify(location)}
+        <AppCard
+          title={form.value.name || ''}
+          publicApiKey={location.params.publicApiKey}
+          description={form.value.description}
+        />
         <div>
-          <label>Name:</label>
-          <Field name="name">
-            {(field, props) => <input {...props} type="text" value={field.value} />}
-          </Field>
+          <h1>Create new application</h1>
+          <Form>
+            <div>
+              <label>Name:</label>
+              <Field name="name">
+                {(field, props) => <input {...props} type="text" value={field.value} />}
+              </Field>
+            </div>
+            <div>
+              <label>Description:</label>
+              <Field name="description">
+                {(field, props) => <textarea {...props} value={field.value} />}
+              </Field>
+            </div>
+            <div>
+              <label></label>
+              <button type="submit">{isCreate ? 'Create' : 'Save'}</button>
+            </div>
+          </Form>
         </div>
-        <div>
-          <label>Description:</label>
-          <Field name="description">
-            {(field, props) => <textarea {...props} value={field.value} />}
-          </Field>
-        </div>
-        <div>
-          <label></label>
-          <button type="submit">{isCreate ? 'Create' : 'Save'}</button>
-        </div>
-      </Form>
-    </div>
+      </Container>
+    </Layout>
   );
 });
 

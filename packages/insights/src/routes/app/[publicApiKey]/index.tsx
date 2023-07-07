@@ -1,8 +1,11 @@
 import { component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
+import AppCard from '~/components/app-card';
+import Container from '~/components/container';
 import { ErrorIcon } from '~/components/icons/error';
 import { SlowIcon } from '~/components/icons/slow';
 import { SymbolIcon } from '~/components/icons/symbol';
+import Layout from '~/components/layout';
 import { getDB } from '~/db';
 import { getAppInfo, getSymbolEdgeCount } from '~/db/query';
 import { AppLink } from '~/routes.config';
@@ -20,54 +23,59 @@ export const useAppData = routeLoader$(async ({ params }) => {
 export default component$(() => {
   const data = useAppData();
   return (
-    <div>
-      <h1>
-        App: {data.value.app.name} (<code>{data.value.app.publicApiKey}</code>)
-      </h1>
-      <p>{data.value.app.description}</p>
-      <span>Edge count: {data.value.symbolCount}</span>
-      <ul>
-        <li>
-          <AppLink
-            route="/app/[publicApiKey]/symbols/"
-            param:publicApiKey={data.value.app.publicApiKey}
-          >
-            <SymbolIcon /> Symbols View
-          </AppLink>
-        </li>
-        <li>
-          <AppLink
-            route="/app/[publicApiKey]/symbols/edge/"
-            param:publicApiKey={data.value.app.publicApiKey}
-          >
-            <SymbolIcon /> Edge View
-          </AppLink>
-        </li>
-        <li>
-          <AppLink
-            route="/app/[publicApiKey]/symbols/bundles/"
-            param:publicApiKey={data.value.app.publicApiKey}
-          >
-            <SymbolIcon /> Bundles View
-          </AppLink>
-        </li>
-        <li>
-          <AppLink
-            route="/app/[publicApiKey]/symbols/slow/"
-            param:publicApiKey={data.value.app.publicApiKey}
-          >
-            <SlowIcon /> Slow Symbols View
-          </AppLink>
-        </li>
-        <li>
-          <AppLink
-            route="/app/[publicApiKey]/errors/"
-            param:publicApiKey={data.value.app.publicApiKey}
-          >
-            <ErrorIcon /> Errors View
-          </AppLink>
-        </li>
-      </ul>
-    </div>
+    <Layout>
+      <Container position="center" width="medium">
+        <AppCard
+          title={data.value.app.name}
+          publicApiKey={data.value.app.publicApiKey}
+          description={data.value.app.description}
+        />
+        <div>
+          <span>Edge count: {data.value.symbolCount}</span>
+          <ul>
+            <li>
+              <AppLink
+                route="/app/[publicApiKey]/symbols/"
+                param:publicApiKey={data.value.app.publicApiKey}
+              >
+                <SymbolIcon /> Symbols View
+              </AppLink>
+            </li>
+            <li>
+              <AppLink
+                route="/app/[publicApiKey]/symbols/edge/"
+                param:publicApiKey={data.value.app.publicApiKey}
+              >
+                <SymbolIcon /> Edge View
+              </AppLink>
+            </li>
+            <li>
+              <AppLink
+                route="/app/[publicApiKey]/symbols/bundles/"
+                param:publicApiKey={data.value.app.publicApiKey}
+              >
+                <SymbolIcon /> Bundles View
+              </AppLink>
+            </li>
+            <li>
+              <AppLink
+                route="/app/[publicApiKey]/symbols/slow/"
+                param:publicApiKey={data.value.app.publicApiKey}
+              >
+                <SlowIcon /> Slow Symbols View
+              </AppLink>
+            </li>
+            <li>
+              <AppLink
+                route="/app/[publicApiKey]/errors/"
+                param:publicApiKey={data.value.app.publicApiKey}
+              >
+                <ErrorIcon /> Errors View
+              </AppLink>
+            </li>
+          </ul>
+        </div>
+      </Container>
+    </Layout>
   );
 });

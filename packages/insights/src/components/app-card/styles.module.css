@@ -13,9 +13,30 @@
 
 .wrapper .title {
   margin-bottom: var(--size-1_5);
+  font-size: var(--size-3_5);
+  font-weight: 700;
 }
 
 .wrapper .api-key {
-  color: var(--gray-500);
+  display: flex;
   font-size: var(--size-3);
 }
+
+.wrapper .description {
+  margin-top: var(--size-3);
+  font-size: var(--size-3);
+  color: var(--gray-500);
+  margin-bottom: var(--size-1_5);
+  line-height: 1rem;
+  max-height: 3rem;
+  overflow: hidden;
+}
+
+.wrapper .copy-icon {
+  margin-left: var(--size-3);
+  margin-right: var(--size-1);
+  width: 1rem;
+  height: 1rem;
+}
+
+

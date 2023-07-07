@@ -128,6 +128,11 @@ export async function apiExtractor(config: BuildConfig) {
   );
   createTypesApi(
     config,
+    join(config.packagesDir, 'qwik-city', 'middleware', 'aws-lambda'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'aws-lambda', 'index.d.ts')
+  );
+  createTypesApi(
+    config,
     join(config.packagesDir, 'qwik-city', 'middleware', 'cloudflare-pages'),
     join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'cloudflare-pages', 'index.d.ts')
   );

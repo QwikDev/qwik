@@ -51,6 +51,9 @@
     "./middleware/azure-swa": {
       "import": "./lib/middleware/azure-swa/index.mjs"
     },
+    "./middleware/aws-lambda": {
+      "import": "./lib/middleware/aws-lambda/index.mjs"
+    },
     "./middleware/cloudflare-pages": {
       "import": "./lib/middleware/cloudflare-pages/index.mjs"
     },
@@ -115,6 +118,8 @@
     "remark-frontmatter": "4.0.1",
     "remark-gfm": "3.0.1",
     "set-cookie-parser": "^2.6.0",
+    "serverless-http":"^3.2.0",
+    "source-map-support":"^0.5.21",
     "tsm": "2.3.0",
     "typescript": "5.1.6",
     "unified": "10.1.2",

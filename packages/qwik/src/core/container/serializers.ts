@@ -489,7 +489,7 @@ const serializers: Serializer<any>[] = [
   QRLSerializer, ////////////// \u0002
   SignalSerializer, /////////// \u0012
   SignalWrapperSerializer, //// \u0013
-  TaskSerializer, //////////// \u0003
+  TaskSerializer, ///////////// \u0003
   ResourceSerializer, ///////// \u0004
   URLSerializer, ////////////// \u0005
   DateSerializer, ///////////// \u0006

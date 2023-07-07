@@ -594,7 +594,6 @@ async function buildMiddlewareAwsLambda(config: BuildConfig) {
   });
 }
 
-
 async function buildMiddlewareCloudflarePages(config: BuildConfig) {
   const entryPoints = [join(config.srcQwikCityDir, 'middleware', 'cloudflare-pages', 'index.ts')];
 

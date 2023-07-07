@@ -777,6 +777,14 @@ interface IntrinsicElements extends QwikJSX.IntrinsicElements
 
 **Extends:** [QwikJSX.IntrinsicElements](#)
 
+## isSignal
+
+```typescript
+isSignal: (obj: any) => obj is Signal<any>
+```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/state/signal.ts)
+
 ## jsx
 
 ```typescript

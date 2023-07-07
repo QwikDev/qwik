@@ -320,6 +320,9 @@ export const inlinedQrl: <T>(symbol: T, symbolName: string, lexicalScopeCapture?
 export const inlinedQrlDEV: <T = any>(symbol: T, symbolName: string, opts: QRLDev, lexicalScopeCapture?: any[]) => QRL<T>;
 
 // @public (undocumented)
+export const isSignal: (obj: any) => obj is Signal<any>;
+
+// @public (undocumented)
 const jsx: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>, key?: string | number | null) => JSXNode<T>;
 export { jsx }
 export { jsx as jsxs }

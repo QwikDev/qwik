@@ -263,6 +263,15 @@ declare module '*?jsx' {
   export const height: number;
   export const srcSet: string;
 }
+
+// Image &jsx
+declare module '*&jsx' {
+  const Cmp: import('./core').FunctionComponent<Omit<import('./core').QwikIntrinsicElements['img'], 'src' | 'width' | 'height' | 'srcSet'>>
+  export default Cmp;
+  export const width: number;
+  export const height: number;
+  export const srcSet: string;
+}
 `;
 
   const destServerModulesPath = join(config.distQwikPkgDir, 'server-modules.d.ts');

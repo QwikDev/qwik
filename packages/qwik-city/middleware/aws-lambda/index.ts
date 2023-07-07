@@ -16,7 +16,9 @@ export function createQwikCity(opts: any) {
         cacheControl: 'public, max-age=31557600',
       },
       getOrigin(req) {
-        if (process.env.IS_OFFLINE) return `http://${req.headers.host}`;
+        if (process.env.IS_OFFLINE) {
+          return `http://${req.headers.host}`;
+        }
         return null;
       },
     });

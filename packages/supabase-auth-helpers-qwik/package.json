@@ -15,12 +15,12 @@
   ],
   "author": "Qwik Team",
   "devDependencies": {
-    "@builder.io/qwik": "1.2.5",
-    "@builder.io/qwik-city": "1.2.5",
-    "@supabase/supabase-js": "2.24.0"
+    "@builder.io/qwik": "1.2.6",
+    "@builder.io/qwik-city": "1.2.6",
+    "@supabase/supabase-js": "2.26.0"
   },
   "dependencies": {
-    "@supabase/auth-helpers-shared": "^0.3.4"
+    "@supabase/auth-helpers-shared": "0.4.1"
   },
   "peerDependencies": {
     "@supabase/supabase-js": "^2.0.4"

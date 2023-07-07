@@ -12,12 +12,13 @@ import {
   isCancel,
   log,
 } from '@clack/prompts';
-import { bgBlue, red, gray } from 'kleur/colors';
+import { bgBlue, red, gray, magenta } from 'kleur/colors';
 import type { CreateAppOptions } from '../qwik/src/cli/types';
 import { backgroundInstallDeps, installDeps } from '../qwik/src/cli/utils/install-deps';
 import { createApp, getOutDir, logCreateAppResult } from './create-app';
 import { getPackageManager, note, runCommand, wait } from '../qwik/src/cli/utils/utils';
 import { loadIntegrations } from '../qwik/src/cli/utils/integrations';
+import { getRandomJoke } from './jokes';
 
 export async function runCreateInteractiveCli() {
   intro(`Let's create a ${bgBlue(' Qwik App ')} ✨ (v${(globalThis as any).QWIK_VERSION})`);
@@ -120,6 +121,19 @@ export async function runCreateInteractiveCli() {
 
   if (!runDepInstall) {
     backgroundInstall.abort();
+  } else {
+    try {
+      const joke = await confirm({
+        message: `Finishing the install. Wanna hear a joke?`,
+        initialValue: true,
+      });
+      if (!isCancel(joke) && joke) {
+        const [setup, punchline] = getRandomJoke();
+        note(magenta(`${setup!.trim()}\n${punchline!.trim()}`), '🙈');
+      }
+    } catch (e) {
+      // Never crash on jokes
+    }
   }
 
   const opts: CreateAppOptions = {

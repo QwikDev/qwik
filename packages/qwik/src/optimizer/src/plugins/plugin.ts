@@ -75,6 +75,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   ) => void = () => {};
 
   const opts: NormalizedQwikPluginOptions = {
+    csr: false,
     target: 'client',
     buildMode: 'development',
     debug: false,
@@ -191,44 +192,46 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.srcDir = normalizePath(path.resolve(opts.rootDir, normalizePath(opts.srcDir)));
     }
 
-    if (Array.isArray(updatedOpts.input)) {
-      opts.input = [...updatedOpts.input];
-    } else if (typeof updatedOpts.input === 'string') {
-      opts.input = [updatedOpts.input];
-    } else {
-      if (opts.target === 'ssr') {
-        // ssr input default
-        opts.input = [path.resolve(srcDir, 'entry.ssr.tsx')];
-      } else if (opts.target === 'client') {
-        // client input default
-        opts.input = [path.resolve(srcDir, 'root.tsx')];
-      } else if (opts.target === 'lib') {
-        // lib input default
-        opts.input = [path.resolve(srcDir, 'index.ts')];
+    if (!updatedOpts.csr) {
+      if (Array.isArray(updatedOpts.input)) {
+        opts.input = [...updatedOpts.input];
+      } else if (typeof updatedOpts.input === 'string') {
+        opts.input = [updatedOpts.input];
       } else {
-        opts.input = [];
+        if (opts.target === 'ssr') {
+          // ssr input default
+          opts.input = [path.resolve(srcDir, 'entry.ssr.tsx')];
+        } else if (opts.target === 'client') {
+          // client input default
+          opts.input = [path.resolve(srcDir, 'root.tsx')];
+        } else if (opts.target === 'lib') {
+          // lib input default
+          opts.input = [path.resolve(srcDir, 'index.ts')];
+        } else {
+          opts.input = [];
+        }
       }
-    }
-    opts.input = opts.input.reduce((inputs, i) => {
-      let input = i;
-      if (!i.startsWith('@') && !i.startsWith('~')) {
-        input = normalizePath(path.resolve(opts.rootDir, i));
-      }
-      if (!inputs.includes(input)) {
-        inputs.push(input);
-      }
-      return inputs;
-    }, [] as string[]);
+      opts.input = opts.input.reduce((inputs, i) => {
+        let input = i;
+        if (!i.startsWith('@') && !i.startsWith('~')) {
+          input = normalizePath(path.resolve(opts.rootDir, i));
+        }
+        if (!inputs.includes(input)) {
+          inputs.push(input);
+        }
+        return inputs;
+      }, [] as string[]);
 
-    if (typeof updatedOpts.outDir === 'string') {
-      opts.outDir = normalizePath(path.resolve(opts.rootDir, normalizePath(updatedOpts.outDir)));
-    } else {
-      if (opts.target === 'ssr') {
-        opts.outDir = normalizePath(path.resolve(opts.rootDir, SSR_OUT_DIR));
-      } else if (opts.target === 'lib') {
-        opts.outDir = normalizePath(path.resolve(opts.rootDir, LIB_OUT_DIR));
+      if (typeof updatedOpts.outDir === 'string') {
+        opts.outDir = normalizePath(path.resolve(opts.rootDir, normalizePath(updatedOpts.outDir)));
       } else {
-        opts.outDir = normalizePath(path.resolve(opts.rootDir, CLIENT_OUT_DIR));
+        if (opts.target === 'ssr') {
+          opts.outDir = normalizePath(path.resolve(opts.rootDir, SSR_OUT_DIR));
+        } else if (opts.target === 'lib') {
+          opts.outDir = normalizePath(path.resolve(opts.rootDir, LIB_OUT_DIR));
+        } else {
+          opts.outDir = normalizePath(path.resolve(opts.rootDir, CLIENT_OUT_DIR));
+        }
       }
     }
 
@@ -257,6 +260,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         opts.devTools.clickToSource = updatedOpts.devTools.clickToSource;
       }
     }
+    opts.csr = !!updatedOpts.csr;
 
     return { ...opts };
   };
@@ -430,8 +434,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       }
       const parsedId = parseId(id);
       let importeePathId = normalizePath(parsedId.pathId);
-      const ext = path.extname(importeePathId);
-      if (RESOLVE_EXTS[ext]) {
+      const ext = path.extname(importeePathId).toLowerCase();
+      if (ext in RESOLVE_EXTS) {
         importer = normalizePath(importer);
         log(`resolveId("${importeePathId}", "${importer}")`);
         const parsedImporterId = parseId(importer);
@@ -455,8 +459,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     } else if (path.isAbsolute(id)) {
       const parsedId = parseId(id);
       const importeePathId = normalizePath(parsedId.pathId);
-      const ext = path.extname(importeePathId);
-      if (RESOLVE_EXTS[ext]) {
+      const ext = path.extname(importeePathId).toLowerCase();
+      if (ext in RESOLVE_EXTS) {
         log(`resolveId("${importeePathId}", "${importer}")`);
         const transformedOutput = isSSR
           ? ssrTransformedOutputs.get(importeePathId)
@@ -541,10 +545,12 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     const path = getPath();
 
     const { pathId } = parseId(id);
-    const { ext, dir, base } = path.parse(pathId);
-
+    const parsedPathId = path.parse(pathId);
+    const dir = parsedPathId.dir;
+    const base = parsedPathId.base;
+    const ext = parsedPathId.ext.toLowerCase();
     if (
-      TRANSFORM_EXTS[ext] ||
+      ext in TRANSFORM_EXTS ||
       TRANSFORM_REGEX.test(pathId) ||
       insideRoots(ext, dir, opts.srcDir, opts.vendorRoots)
     ) {
@@ -866,6 +872,7 @@ export interface QwikPluginDevTools {
 }
 
 export interface QwikPluginOptions {
+  csr?: boolean;
   buildMode?: QwikBuildMode;
   debug?: boolean;
   entryStrategy?: EntryStrategy;

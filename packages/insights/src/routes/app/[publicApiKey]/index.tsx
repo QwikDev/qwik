@@ -22,6 +22,7 @@ export const useAppData = routeLoader$(async ({ params }) => {
 
 export default component$(() => {
   const data = useAppData();
+  console.log;
   return (
     <Layout>
       <Container position="center" width="medium">
@@ -29,10 +30,19 @@ export default component$(() => {
           title={data.value.app.name}
           publicApiKey={data.value.app.publicApiKey}
           description={data.value.app.description}
+          mode="show"
         />
         <div>
           <span>Edge count: {data.value.symbolCount}</span>
           <ul>
+            <li>
+              <AppLink
+                route="/app/[publicApiKey]/edit/"
+                param:publicApiKey={data.value.app.publicApiKey}
+              >
+                <SymbolIcon /> Edit
+              </AppLink>
+            </li>
             <li>
               <AppLink
                 route="/app/[publicApiKey]/symbols/"

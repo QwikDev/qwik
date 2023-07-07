@@ -5,7 +5,6 @@ import { globalAction$, routeLoader$, useNavigate, z, zod$ } from '@builder.io/q
 import AppsIcon from '~/components/icons/apps';
 import Button from '~/components/button';
 import Container from '~/components/container';
-import Gauge from '~/components/gauge';
 import GithubIcon from '~/components/icons/github';
 import Layout from '~/components/layout';
 import { UserContext } from '~/context/user';

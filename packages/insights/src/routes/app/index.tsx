@@ -20,10 +20,10 @@ export default component$(() => {
         <div class={styles.wrapper}>
           {/* existing apps */}
           {apps.value.map((app) => (
-            <AppCard key={app.id} title={app.name} publicApiKey={app.publicApiKey} description={app.description} />
+            <AppCard mode="show" key={app.id} title={app.name} publicApiKey={app.publicApiKey} />
           ))}
-          {/* add new app */}
-          <AppCard title="Add new App" />
+          {/* create new app */}
+          <AppCard mode="create" title="Add new App" />
         </div>
       </Container>
     </Layout>

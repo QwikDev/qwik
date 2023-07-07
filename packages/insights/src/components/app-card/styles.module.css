@@ -1,10 +1,21 @@
-.wrapper {
+.card {
   background-color: var(--bg-color-bright);
   border-radius: 8px;
   padding: var(--size-8);
-  display: flex;
-  gap: var(--size-6);
+  padding-bottom: var(--size-3);
+  display: column;
   align-items: center;
+}
+
+.card.pointer {
+  cursor: pointer;
+}
+
+.wrapper {
+  display: flex;
+  gap: var(--size-5);
+  align-items: center;
+  margin-bottom: var(--size-3);
 }
 
 .wrapper .gauge-wrapper {
@@ -38,5 +49,3 @@
   width: 1rem;
   height: 1rem;
 }
-
-

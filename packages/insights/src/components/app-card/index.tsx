@@ -1,42 +1,59 @@
 import Gauge from '../gauge';
-import { $, component$ } from '@builder.io/qwik';
+import { $, Slot, component$ } from '@builder.io/qwik';
 import styles from './styles.module.css';
 import { CopyIcon } from '../icons/copy';
+import { AppLink } from '~/routes.config';
 
 type AppCardProps = {
-  title: string;
+  mode: 'show' | 'edit' | 'new' | 'create';
+  title?: string;
   publicApiKey?: string;
   description?: string | null;
 };
 
-export default component$<AppCardProps>(({ title, publicApiKey = '__new__', description }) => {
-  const isExistingApp = publicApiKey !== '__new__';
-  const link = isExistingApp ? `/app/[publicApiKey]/` : `/app/[publicApiKey]/edit/`;
-  const label = isExistingApp ? title.substring(0, 2).toUpperCase() : '+';
-  const gaugeColor = isExistingApp ? 'default' : 'gray';
+export default component$<AppCardProps>(({ mode, title = '', publicApiKey = '__new__', description }) => {
+  const link = mode === 'show' ? `/app/[publicApiKey]/` : `/app/[publicApiKey]/edit/`;
+  const label = mode === 'create' ? '+' : title.substring(0, 2).toUpperCase();
+  const gaugeColor = mode === 'create' ? 'gray' : 'default';
 
-  return (
-    // <AppLink route={link} param:publicApiKey={publicApiKey}>
-    <div class={styles.wrapper}>
-      <div class={styles['gauge-wrapper']}>
-        <Gauge radius={40} value={70} label={label} color={gaugeColor} />
-      </div>
-      <div>
-        <div class={[styles.title, 'h5']}>{title}</div>
-        {isExistingApp && (
-          <div class={styles['api-key']}>
-            API-Key: {publicApiKey}{' '}
-            <CopyIcon
-              class={styles['copy-icon']}
-              onClick$={$(() => {
-                navigator.clipboard.writeText(publicApiKey);
-              })}
-            />
-          </div>
-        )}
-        {description && <div class={[styles.description]}>{description}</div>}
+  const appCard = (
+    <div class={[styles.card, `${mode === 'create' || mode === 'show' ? styles.pointer : ''}`]}>
+      <div class={styles.wrapper}>
+        <div class={styles['gauge-wrapper']}>
+          <Gauge radius={40} value={70} label={label} color={gaugeColor} />
+        </div>
+        <div>
+          {mode === 'show' ? (
+            <>
+              <div class={[styles.title, 'h5']}>{title}</div>
+              <div class={styles['api-key']}>
+                Token: {publicApiKey}
+                <CopyIcon
+                  class={styles['copy-icon']}
+                  onClick$={$(() => {
+                    navigator.clipboard.writeText(publicApiKey);
+                  })}
+                />
+              </div>
+              {description && <div class={[styles.description]}>{description}</div>}
+            </>
+          ) : mode === 'create' ? (
+            <div class={[styles.title, 'h5']}>{title}</div>
+          ) : mode === 'new' ? (
+            <div class={[styles.title, 'h5']}>{title}</div>
+          ) : (
+            <Slot />
+          )}
+        </div>
       </div>
     </div>
-    // </AppLink>
+  );
+
+  return mode === 'create' || mode === 'show' ? (
+    <AppLink route={link} param:publicApiKey={publicApiKey}>
+      {appCard}
+    </AppLink>
+  ) : (
+    appCard
   );
 });

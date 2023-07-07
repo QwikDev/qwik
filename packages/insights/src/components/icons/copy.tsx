@@ -16,6 +16,7 @@ export const CopyIcon = component$<CopyIconProps>(({ onClick$, ...props }) => {
         height="1em"
         viewBox="0 0 24 24"
         aria-hidden="true"
+        preventdefault:click
         onClick$={() => {
           onClick$();
           copiedSig.value = true;

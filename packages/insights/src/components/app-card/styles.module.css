@@ -24,8 +24,6 @@
 
 .wrapper .title {
   margin-bottom: var(--size-1_5);
-  font-size: var(--size-3_5);
-  font-weight: 700;
 }
 
 .wrapper .api-key {

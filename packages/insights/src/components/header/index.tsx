@@ -1,10 +1,11 @@
-import { component$, useContext } from '@builder.io/qwik';
-import Avatar from '../avatar';
 import { Link, globalAction$ } from '@builder.io/qwik-city';
+import { component$, useContext } from '@builder.io/qwik';
+
+import Avatar from '../avatar';
 import { QwikIcon } from '../icons/qwik';
 import { UserContext } from '~/context/user';
-import styles from './styles.module.css';
 import { removeAuthCookies } from '~/supabase/auth/auth';
+import styles from './styles.module.css';
 
 export const useSingOut = globalAction$(async (_, event) => {
   removeAuthCookies(event);
@@ -15,7 +16,7 @@ export default component$(() => {
   const userCtx = useContext(UserContext);
 
   return (
-    <header class="section">
+    <header>
       <Link href="/" class={styles.logo}>
         <QwikIcon width="46" height="50" />
       </Link>

@@ -17,10 +17,10 @@
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  margin: var(--size-0_5) 0;
   padding: var(--size-4);
   height: 100%;
   background-color: var(--bg-color-bright);
+  border-bottom: 1px solid var(--border-color-default);
 }
 
 .aside .menu .menu-item {

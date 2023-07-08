@@ -12,7 +12,7 @@ export default component$<LayoutProps>(({ mode = 'default', ...props }) => {
   return (
     <>
       <Header />
-      <main class={['section', mode === 'bright' && styles.bright, props.class]}>
+      <main class={[mode === 'bright' && styles.bright, props.class]}>
         <Slot />
       </main>
       {/* <footer>footer</footer> */}

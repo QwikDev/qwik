@@ -204,13 +204,3 @@ a {
   color: inherit;
   text-decoration: none;
 }
-
-.section {
-  padding: var(--size-layout-sm);
-}
-
-@media screen and (min-width: 768px) {
-  .section {
-    padding: var(--size-layout-md);
-  }
-}

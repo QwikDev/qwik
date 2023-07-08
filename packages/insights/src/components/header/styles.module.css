@@ -6,11 +6,12 @@ header {
   gap: var(--size-4);
   flex-direction: row;
   justify-content: flex-start;
+  padding: var(--size-2);
 }
 
 @media screen and (min-width: 768px) {
   header {
-    /* tbd */
+    padding: var(--size-2) var(--size-4);
   }
 }
 

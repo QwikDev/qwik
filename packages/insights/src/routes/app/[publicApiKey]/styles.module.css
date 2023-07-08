@@ -1,0 +1,31 @@
+.container {
+  display: flex;
+  height: 100vh;
+}
+
+.no-padding-left {
+  padding-left: 0;
+}
+
+.aside {
+  width: 16rem;
+  padding-right: var(--size-8);
+}
+
+.aside .menu {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  margin: var(--size-0_5) var(--size-3);
+  padding: var(--size-4);
+  height: 100%;
+  background-color: var(--bg-color-bright);
+}
+
+.aside .menu .menu-item {
+  padding: var(--size-1_5) var(--size-3);
+}
+
+.aside .menu .menu-item .menu-item-label {
+  padding: 0 0 0 var(--size-3);
+}

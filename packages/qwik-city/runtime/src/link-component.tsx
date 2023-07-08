@@ -28,7 +28,7 @@ export const Link = component$<LinkProps>((props) => {
     () =>
       (!!clientNavPath &&
         prefetchProp !== false &&
-        prefetchProp !== 'symbols' &&
+        prefetchProp !== 'js' &&
         shouldPrefetchData(clientNavPath, loc)) ||
       undefined
   );
@@ -101,14 +101,14 @@ export interface LinkProps extends AnchorAttributes {
    * This **improves UX performance** for client-side (**SPA**) navigations.
    *
    * Prefetching occurs when a the Link enters the viewport in production (**`on:qvisibile`**),
-   * or with **`mouseover`** during development.
+   * or with **`mouseover`/`focus`** during dev.
    *
    * Prefetching will not occur if the user has the **data saver** setting enabled.
    *
-   * Setting this value to **`"symbols"`** will only prefetch javascript bundles
-   * required to render this page on the client.
+   * Setting this value to **`"js"`** will prefetch only javascript bundles
+   * required to render this page on the client, **`false`** will disable prefetching altogether.
    */
-  prefetch?: boolean | 'symbols';
+  prefetch?: boolean | 'js';
 
   reload?: boolean;
   replaceState?: boolean;

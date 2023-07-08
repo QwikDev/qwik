@@ -40,6 +40,7 @@
 }
 
 .wrapper {
+  margin: var(--size-4) 0;
   width: calc(100% - 18rem);
   overflow-x: hidden;
 }

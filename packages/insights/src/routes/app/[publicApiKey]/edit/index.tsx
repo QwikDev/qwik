@@ -2,10 +2,12 @@ import { component$ } from '@builder.io/qwik';
 import { routeLoader$, useLocation } from '@builder.io/qwik-city';
 import { formAction$, useForm, zodForm$, type InitialValues } from '@modular-forms/qwik';
 import { applicationTable, getDB } from '~/db';
-import { ApplicationForm } from '../../[publicApiKey]/app.form';
+import { ApplicationForm } from '../app.form';
 import { eq } from 'drizzle-orm';
 import { appUrl } from '~/routes.config';
 import AppCard from '~/components/app-card';
+import styles from './styles.module.css';
+import { DiskIcon } from '~/components/icons/disk';
 
 export const useFormLoader = routeLoader$<InitialValues<ApplicationForm>>(async ({ params }) => {
   if (isCreateMode(params)) {
@@ -65,34 +67,36 @@ export default component$(() => {
   const isCreate = isCreateMode(location.params);
 
   return (
-    <AppCard
-      mode="edit"
-      title={form.value.name || ''}
-      publicApiKey={location.params.publicApiKey}
-      description={form.value.description}
-    >
-      <div>
-        <div>Create/edit your app</div>
-        <Form>
-          <div>
-            <label>Name:</label>
-            <Field name="name">
-              {(field, props) => <input {...props} type="text" value={field.value} />}
-            </Field>
-          </div>
-          <div>
-            <label>Description:</label>
-            <Field name="description">
-              {(field, props) => <textarea {...props} value={field.value} />}
-            </Field>
-          </div>
-          <div>
-            <label></label>
-            <button type="submit">{isCreate ? 'Create' : 'Save'}</button>
-          </div>
-        </Form>
-      </div>
-    </AppCard>
+    <div>
+      <h1 class="h3">{isCreate ? 'Create' : 'Edit'} Application</h1>
+      <Form>
+        <div class={styles['app-card-wrapper']}>
+          <AppCard
+            mode="show"
+            title={loginForm.internal.fields.name?.value}
+            publicApiKey={location.params.publicApiKey}
+          />
+        </div>
+        <div>
+          <label>Name</label>
+          <Field name="name">
+            {(field, props) => <input {...props} type="text" value={field.value} />}
+          </Field>
+        </div>
+        <div>
+          <label>Description</label>
+          <Field name="description">
+            {(field, props) => <input {...props} type="text" value={field.value} />}
+          </Field>
+        </div>
+        <div style={{ 'margin-top': 'calc(var(--form-element-margin-bottom) * 2)' }}>
+          <button type="submit">
+            <DiskIcon />
+            {isCreate ? 'Create' : 'Save'}
+          </button>
+        </div>
+      </Form>
+    </div>
   );
 });
 

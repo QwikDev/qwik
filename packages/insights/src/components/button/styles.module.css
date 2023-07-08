@@ -1,20 +1,4 @@
-.button {
-  background-color: #fff;
-  border: 1px solid #000;
-  border-radius: 8px;
-  color: #000;
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  gap: var(--size-2_5);
-  padding: var(--size-2_5) var(--size-10);
-  cursor: pointer;
-}
-
-.button svg {
-  width: 1.5rem;
-  height: 1.5rem;
-}
+/* default button stylings is in global.css */
 
 /* THEMES */
 .button.primary {

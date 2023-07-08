@@ -17,7 +17,7 @@ type ButtonProps = QwikIntrinsicElements['button'] & {
 
 export default component$<ButtonProps>((props) => {
   return (
-    <button {...props} class={[styles.button, props.theme === 'github' && styles.github]}>
+    <button {...props} class={['button', props.theme === 'github' && styles.github]}>
       <Slot />
     </button>
   );

@@ -62,7 +62,10 @@
   --bg-color-default: var(--gray-100);
   --bg-color-bright: var(--white);
   --text-color-default: var(--black);
+  --text-color-light: var(--gray-600);
   --border-color-default: var(--gray-200);
+
+  --form-element-margin-bottom: var(--size-4);
 }
 
 /* latin */
@@ -203,4 +206,43 @@ h6 {
 a {
   color: inherit;
   text-decoration: none;
+}
+
+form > div {
+  margin-bottom: var(--form-element-margin-bottom);
+}
+
+label {
+  color: var(--text-color-light);
+  display: block;
+}
+
+input,
+button,
+.button {
+  background-color: #fff;
+  border: 1px solid var(--border-color-default);
+  border-radius: var(--size-2);
+  color: inherit;
+}
+
+input {
+  padding: var(--size-2) var(--size-4);
+  width: 100%;
+}
+
+button,
+.button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: ceter;
+  gap: var(--size-2_5);
+  padding: var(--size-2) var(--size-10);
+  cursor: pointer;
+}
+
+button svg,
+.button svg {
+  width: 1.5rem;
+  height: 1.5rem;
 }

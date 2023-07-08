@@ -7,6 +7,7 @@ import { MEDIA, type MediaEntry } from '../media/index';
 import SHOWCASE from '../showcase/generated-pages.json';
 import { EcosystemMenu } from './ecosystem-menu';
 import { QwikPlusLogo } from './qwik-plus-logo';
+import { MobileEcosystemMenu } from './mobile-ecosystem-menu';
 
 export default component$(() => {
   useStyles$(styles);
@@ -21,16 +22,17 @@ export default component$(() => {
 
   return (
     <>
-      <div class="ecosystem lg:grid grid-cols-[240px,1fr] px-6 m-auto max-w-screen-xl gap-8">
+      <div class="ecosystem lg:grid grid-cols-[240px,1fr] m-auto max-w-screen-xl gap-8">
         <EcosystemMenu />
+        <MobileEcosystemMenu />
 
-        <article>
+        <article class="px-6">
           <QwikPlusLogo />
 
           <div class="purple-gradient" role="presentation" />
           <div class="blue-gradient" role="presentation" />
 
-          <section id="deployments">
+          <section class="scroll-m-20 lg:scroll-m-24" id="deployments">
             <h2>
               <Link href="/docs/deployments/">Deployments</Link>
             </h2>
@@ -51,7 +53,7 @@ export default component$(() => {
             </ul>
           </section>
 
-          <section id="integrations">
+          <section class="scroll-m-20 lg:scroll-m-24" id="integrations">
             <h2>
               <span>
                 <Link href="/docs/integrations/">Integrations</Link>
@@ -79,7 +81,7 @@ export default component$(() => {
             </ul>
           </section>
 
-          <section id="libraries">
+          <section class="scroll-m-20 lg:scroll-m-24" id="libraries">
             <h2>
               <span>Libraries</span>
               <span></span>
@@ -99,7 +101,7 @@ export default component$(() => {
             </ul>
           </section>
 
-          <section>
+          <section class="scroll-m-20 lg:scroll-m-24">
             <h2>Newsletter</h2>
             <a href="https://qwiknewsletter.com" target="_blank">
               <div class="flex flex-col items-center gap-8">
@@ -118,7 +120,7 @@ export default component$(() => {
             </a>
           </section>
 
-          <section id="courses">
+          <section class="scroll-m-20 lg:scroll-m-24" id="courses">
             <h2>
               <span>
                 <Link href="/media/#courses">Courses</Link>
@@ -147,7 +149,7 @@ export default component$(() => {
             </ul>
           </section>
 
-          <section id="videos">
+          <section class="scroll-m-20 lg:scroll-m-24" id="videos">
             <h2>
               <span>
                 <Link href="/media/#videos">Videos</Link>
@@ -176,7 +178,7 @@ export default component$(() => {
             </ul>
           </section>
 
-          <section id="podcasts">
+          <section class="scroll-m-20 lg:scroll-m-24" id="podcasts">
             <h2>
               <span>
                 <Link href="/media/#podcasts">Podcasts</Link>
@@ -205,7 +207,7 @@ export default component$(() => {
             </ul>
           </section>
 
-          <section id="showcase">
+          <section class="scroll-m-20 lg:scroll-m-24" id="showcase">
             <h2>
               <span>
                 <Link href="/showcase/">Showcase</Link>
@@ -234,7 +236,7 @@ export default component$(() => {
             </ul>
           </section>
 
-          <section id="presentations">
+          <section class="scroll-m-20 lg:scroll-m-24" id="presentations">
             <h2>
               <span>
                 <Link href="/media/#presentations">Presentations</Link>
@@ -263,7 +265,7 @@ export default component$(() => {
             </ul>
           </section>
 
-          <section id="community">
+          <section class="scroll-m-20 lg:scroll-m-24" id="community">
             <h2>
               <Link href="/community/groups/">Community</Link>
             </h2>
@@ -288,7 +290,7 @@ export default component$(() => {
             </aside>
           </section>
 
-          <section id="social">
+          <section class="scroll-m-20 lg:scroll-m-24" id="social">
             <h2>
               <Link href="/community/groups/">Social</Link>
             </h2>

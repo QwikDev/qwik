@@ -192,12 +192,6 @@ export const MEDIA = mediaObj({
   /*****************************************/
   blogs: [
     {
-      href: 'https://tzdesign.de/en/blog/how-10-engineers-deliver-exactly-what-the-browser-wants-with-qwik',
-      imgSrc: '',
-      title:
-        'How 10 Engineers Deliver Exactly What the Browser Wants with Qwik - by Tobias Zimmermann',
-    },
-    {
       href: 'https://www.builder.io/blog/resumability-from-ground-up',
       imgSrc:
         'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fa6d8c3bacc3c4cf88446e41a71cda21c?format=webp&width=1200',
@@ -343,6 +337,31 @@ export const MEDIA = mediaObj({
   ],
 
   /*****************************************/
+  /* Case Studies
+  /*****************************************/
+
+  ['case studies']: [
+    {
+      href: 'https://tzdesign.de/en/blog/how-10-engineers-deliver-exactly-what-the-browser-wants-with-qwik',
+      imgSrc: '',
+      title:
+        'How 10 Engineers Deliver Exactly What the Browser Wants with Qwik - by Tobias Zimmermann',
+    },
+    {
+      href: 'https://www.theseus.fi/bitstream/handle/10024/795367/Cao_Xuan-An.pdf',
+      imgSrc: '',
+      title:
+        'HEADLESS CMS AND QWIK FRAMEWORK; their practicalities in the future of application development - by Xuan-An Cao',
+    },
+    {
+      href: 'https://www.dropbox.com/s/fsznus0ynnbui1z/sci_2023_lonka_touko.pdf',
+      imgSrc: '',
+      title:
+        'Improving the Initial Rendering Performance of React Applications Through Contemporary Rendering Approaches - by Touko Lonka',
+    },
+  ],
+
+  /*****************************************/
   /* Resources
   /*****************************************/
   resources: [
@@ -404,12 +423,13 @@ export const Section = component$(
     listStyle: 'thumbnails' | 'bullets';
     imgLoading?: 'eager';
   }) => {
-    const capitalized = [props.id[0].toUpperCase(), ...props.id.slice(1)].join('');
     const entriesInOtherLanguages: MediaEntry[] = [];
     return (
-      <section id={props.id}>
+      <section id={props.id} class="scroll-m-16 md:scroll-m-20">
         <h2>
-          <a href={`#${props.id}`}>{capitalized}</a>
+          <a class="capitalize" href={`#${props.id}`}>
+            {props.id}
+          </a>
         </h2>
 
         <ul class={props.listStyle}>
@@ -460,6 +480,8 @@ export default component$(() => {
       <Section id="presentations" listStyle="thumbnails" />
 
       <Section id="blogs" listStyle="thumbnails" />
+
+      <Section id="case studies" listStyle="bullets" />
 
       <Section id="resources" listStyle="bullets" />
 

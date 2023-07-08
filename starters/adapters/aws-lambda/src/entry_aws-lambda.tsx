@@ -14,41 +14,55 @@ import {
 } from "@builder.io/qwik-city/middleware/node";
 import qwikCityPlan from "@qwik-city-plan";
 import { manifest } from "@qwik-client-manifest";
-import serverlessExpress from "@vendia/serverless-express";
+import serverless from "serverless-http";
 import render from "./entry.ssr";
-import express from "express";
-import { fileURLToPath } from "node:url";
-import { join } from "node:path";
 
 declare global {
   interface QwikCityPlatform extends PlatformNode {}
 }
 
-// import compression from 'compression';
+// Create the Qwik City router
+const { router, notFound, staticFile } = createQwikCity({
+  render,
+  qwikCityPlan,
 
-// Directories where the static assets are located
-const distDir = join(fileURLToPath(import.meta.url), "..", "..", "dist");
-const buildDir = join(distDir, "build");
+  manifest,
+  static: {
+    cacheControl: "public, max-age=31557600",
+  },
+  getOrigin(req) {
+    if (process.env.IS_OFFLINE) {
+      return `http://${req.headers.host}`;
+    }
+    return null;
+  },
+});
 
-// Create the Qwik City Node middleware
-const { router, notFound } = createQwikCity({ render, qwikCityPlan, manifest });
+export const qwikApp = serverless(
+  {
+    handle: (req: any, res: any) => {
+      req.url = fixPath(req.url);
+      staticFile(req, res, () => {
+        router(req, res, () => {
+          notFound(req, res, () => {});
+        });
+      });
+    },
+  },
+  {
+    binary: true,
+  }
+);
 
-// Create the express server
-// https://expressjs.com/
-const app = express();
-
-// Enable gzip compression
-// app.use(compression());
-
-// Static asset handlers
-// https://expressjs.com/en/starter/static-files.html
-app.use(`/build`, express.static(buildDir, { immutable: true, maxAge: "1y" }));
-app.use(express.static(distDir, { redirect: false }));
-
-// Use Qwik City's page and endpoint request handler
-app.use(router);
-
-// Use Qwik City's 404 handler
-app.use(notFound);
-
-export const qwikApp = serverlessExpress({ app });
+function fixPath(path: string) {
+  if (qwikCityPlan.trailingSlash) {
+    const url = new URL(path, "http://aws-qwik.local");
+    if (url.pathname.includes(".", url.pathname.lastIndexOf("/"))) {
+      return path;
+    }
+    if (!url.pathname.endsWith("/")) {
+      return url.pathname + "/" + url.search;
+    }
+  }
+  return path;
+}

@@ -40,6 +40,6 @@
 }
 
 .wrapper {
-  width: calc(100% - 20rem);
-  max-width: calc(100% - 20rem);
+  width: calc(100% - 18rem);
+  overflow-x: hidden;
 }

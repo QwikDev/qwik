@@ -9,6 +9,7 @@
 
 .aside {
   width: 16rem;
+  min-width: 16rem;
   padding-right: var(--size-8);
 }
 
@@ -16,7 +17,7 @@
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  margin: var(--size-0_5) var(--size-3);
+  margin: var(--size-0_5) 0;
   padding: var(--size-4);
   height: 100%;
   background-color: var(--bg-color-bright);
@@ -24,8 +25,21 @@
 
 .aside .menu .menu-item {
   padding: var(--size-1_5) var(--size-3);
+  color: var(--gray-600);
+  font-weight: 700;
+  font-size: var(--size-4);
+}
+
+.aside .menu .menu-item.active {
+  background-color: var(--gray-200);
+  border-radius: var(--size-1_5);
 }
 
 .aside .menu .menu-item .menu-item-label {
   padding: 0 0 0 var(--size-3);
+}
+
+.wrapper {
+  width: calc(100% - 20rem);
+  max-width: calc(100% - 20rem);
 }

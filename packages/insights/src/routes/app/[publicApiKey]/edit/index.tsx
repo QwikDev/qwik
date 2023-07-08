@@ -5,8 +5,6 @@ import { applicationTable, getDB } from '~/db';
 import { ApplicationForm } from '../../[publicApiKey]/app.form';
 import { eq } from 'drizzle-orm';
 import { appUrl } from '~/routes.config';
-import Container from '~/components/container';
-import Layout from '~/components/layout';
 import AppCard from '~/components/app-card';
 
 export const useFormLoader = routeLoader$<InitialValues<ApplicationForm>>(async ({ params }) => {
@@ -67,38 +65,34 @@ export default component$(() => {
   const isCreate = isCreateMode(location.params);
 
   return (
-    <Layout>
-      <Container position="center" width="medium">
-        <AppCard
-          mode="edit"
-          title={form.value.name || ''}
-          publicApiKey={location.params.publicApiKey}
-          description={form.value.description}
-        >
+    <AppCard
+      mode="edit"
+      title={form.value.name || ''}
+      publicApiKey={location.params.publicApiKey}
+      description={form.value.description}
+    >
+      <div>
+        <div>Create/edit your app</div>
+        <Form>
           <div>
-            <div>Create/edit your app</div>
-            <Form>
-              <div>
-                <label>Name:</label>
-                <Field name="name">
-                  {(field, props) => <input {...props} type="text" value={field.value} />}
-                </Field>
-              </div>
-              <div>
-                <label>Description:</label>
-                <Field name="description">
-                  {(field, props) => <textarea {...props} value={field.value} />}
-                </Field>
-              </div>
-              <div>
-                <label></label>
-                <button type="submit">{isCreate ? 'Create' : 'Save'}</button>
-              </div>
-            </Form>
+            <label>Name:</label>
+            <Field name="name">
+              {(field, props) => <input {...props} type="text" value={field.value} />}
+            </Field>
           </div>
-        </AppCard>
-      </Container>
-    </Layout>
+          <div>
+            <label>Description:</label>
+            <Field name="description">
+              {(field, props) => <textarea {...props} value={field.value} />}
+            </Field>
+          </div>
+          <div>
+            <label></label>
+            <button type="submit">{isCreate ? 'Create' : 'Save'}</button>
+          </div>
+        </Form>
+      </div>
+    </AppCard>
   );
 });
 

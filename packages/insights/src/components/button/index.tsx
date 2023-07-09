@@ -1,3 +1,4 @@
+import { log } from 'console';
 import styles from './styles.module.css';
 
 import { type QwikIntrinsicElements, Slot, component$ } from '@builder.io/qwik';
@@ -16,6 +17,7 @@ type ButtonProps = QwikIntrinsicElements['button'] & {
  */
 
 export default component$<ButtonProps>((props) => {
+  log(props);
   return (
     <button {...props} class={['button', props.theme === 'github' && styles.github]}>
       <Slot />

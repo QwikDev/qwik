@@ -36,3 +36,6 @@ pnpm-lock.yaml
 package-lock.json
 yarn.lock
 server
+
+# Panda CSS
+src/styled-system

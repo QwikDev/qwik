@@ -20,7 +20,7 @@
   /* tbd */
 }
 
-.button.github {
-  background-color: var(--black);
-  color: var(--white);
+.github {
+  background-color: var(--black) !important;
+  color: var(--white) !important;
 }

@@ -90,7 +90,7 @@ export default component$(() => {
           </Field>
         </div>
         <div style={{ 'margin-top': 'calc(var(--form-element-margin-bottom) * 2)' }}>
-          <button type="submit">
+          <button type="submit" class="button">
             <DiskIcon />
             {isCreate ? 'Create' : 'Save'}
           </button>

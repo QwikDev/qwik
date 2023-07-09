@@ -1,8 +1,9 @@
-import { Slot, component$ } from '@builder.io/qwik';
 import { Link, useLocation } from '@builder.io/qwik-city';
+import { Slot, component$ } from '@builder.io/qwik';
+
+import { EditIcon } from '~/components/icons/edit';
 import Layout from '~/components/layout';
 import styles from './styles.module.css';
-import { EditIcon } from '~/components/icons/edit';
 
 export default component$(() => {
   const location = useLocation();
@@ -13,51 +14,52 @@ export default component$(() => {
       <div class={styles.container}>
         <aside class={styles.aside}>
           <div class={styles.menu}>
+            {/* TODO: render this in a loop */}
             <Link href={path} class={[styles['menu-item'], subPath === '' ? styles.active : '']}>
               <EditIcon />
-              <span class={styles['menu-item-label']}>Dashboard</span>
+              <span>Dashboard</span>
             </Link>
             <Link
               href={path + 'edit/'}
               class={[styles['menu-item'], subPath === 'edit/' ? styles.active : '']}
             >
               <EditIcon />
-              <span class={styles['menu-item-label']}>Edit</span>
+              <span>Edit</span>
             </Link>
             <Link
               href={path + 'symbols/'}
               class={[styles['menu-item'], subPath === 'symbols/' ? styles.active : '']}
             >
               <EditIcon />
-              <span class={styles['menu-item-label']}>Symbols</span>
+              <span>Symbols</span>
             </Link>
             <Link
               href={path + 'symbols/edge/'}
               class={[styles['menu-item'], subPath === 'symbols/edge/' ? styles.active : '']}
             >
               <EditIcon />
-              <span class={styles['menu-item-label']}>Edge</span>
+              <span>Edge</span>
             </Link>
             <Link
               href={path + 'symbols/bundles/'}
               class={[styles['menu-item'], subPath === 'symbols/bundles/' ? styles.active : '']}
             >
               <EditIcon />
-              <span class={styles['menu-item-label']}>Bundles</span>
+              <span>Bundles</span>
             </Link>
             <Link
               href={path + 'symbols/slow/'}
               class={[styles['menu-item'], subPath === 'symbols/slow/' ? styles.active : '']}
             >
               <EditIcon />
-              <span class={styles['menu-item-label']}>Slow Symbols</span>
+              <span>Slow Symbols</span>
             </Link>
             <Link
               href={path + 'errors/'}
               class={[styles['menu-item'], subPath === 'errors/' ? styles.active : '']}
             >
               <EditIcon />
-              <span class={styles['menu-item-label']}>Errors</span>
+              <span>Errors</span>
             </Link>
           </div>
         </aside>

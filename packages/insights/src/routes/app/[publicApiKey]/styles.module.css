@@ -21,22 +21,26 @@
   height: 100%;
   background-color: var(--bg-color-bright);
   border-bottom: 1px solid var(--border-color-default);
+  gap: var(--size-2);
 }
 
 .aside .menu .menu-item {
   padding: var(--size-1_5) var(--size-3);
   color: var(--gray-600);
+  display: flex;
+  align-items: center;
   font-weight: 700;
   font-size: var(--size-4);
+  gap: var(--size-3);
+}
+
+.aside .menu .menu-item svg {
+  display: inline-block;
 }
 
 .aside .menu .menu-item.active {
   background-color: var(--gray-200);
   border-radius: var(--size-1_5);
-}
-
-.aside .menu .menu-item .menu-item-label {
-  padding: 0 0 0 var(--size-3);
 }
 
 .wrapper {

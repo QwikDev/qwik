@@ -1,5 +1,5 @@
 import { type AppDatabase } from '~/db';
-import { getSymbolEdges } from '~/db/query';
+import { getEdges } from '~/db/query';
 import { computeBundles, computeSymbolGraph, computeSymbolVectors } from '~/stats/edges';
 
 export async function getBundleGrouping({
@@ -9,8 +9,7 @@ export async function getBundleGrouping({
   publicApiKey: string;
   db: AppDatabase;
 }): Promise<Record<string, string>> {
-  const symbols = await getSymbolEdges(db, publicApiKey);
-  console.log(symbols.length);
+  const symbols = await getEdges(db, publicApiKey);
   const rootSymbol = computeSymbolGraph(symbols);
   const vectors = computeSymbolVectors(rootSymbol);
   const bundles = computeBundles(vectors);

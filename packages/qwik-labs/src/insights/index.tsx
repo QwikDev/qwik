@@ -11,6 +11,10 @@ export interface InsightsPayload {
    */
   sessionID: string;
   /**
+   * Manifest Hash of the container.
+   */
+  manifestHash: string;
+  /**
    * API key of the application which we are trying to profile.
    *
    * This key can be used for sharding the data.
@@ -41,12 +45,12 @@ export interface InsightSymbol {
   /**
    * Time delta since last symbol. Can be used to stich symbol requests together
    */
-  timeDelta: number;
+  delay: number;
 
   /**
    * Number of ms between the time the symbol was requested and it was loaded.
    */
-  loadDelay: number;
+  latency: number;
 
   /**
    * Current pathname of location. Used to cluster by route.
@@ -85,14 +89,15 @@ export const InsightsError = z.object({
 
 export const InsightSymbol = z.object({
   symbol: z.string(),
-  timeDelta: z.number(),
-  loadDelay: z.number(),
+  delay: z.number(),
+  latency: z.number(),
   pathname: z.string(),
   interaction: z.boolean(),
 });
 
 export const InsightsPayload = z.object({
   sessionID: z.string(),
+  manifestHash: z.string(),
   publicApiKey: z.string(),
   previousSymbol: z.string().nullable(),
   symbols: z.array(InsightSymbol),
@@ -141,6 +146,8 @@ function symbolTracker(
   postUrl: string
 ) {
   const sessionID = Math.random().toString(36).slice(2);
+  const manifestHash =
+    document.querySelector('[q\\:manifest-hash]')?.getAttribute('q:manifest-hash') || 'dev';
   const qSymbols: InsightSymbol[] = [];
   const existingSymbols: Set<string> = new Set();
   let flushSymbolIndex: number = 0;
@@ -157,6 +164,7 @@ function symbolTracker(
       const payload = {
         sessionID,
         publicApiKey,
+        manifestHash,
         previousSymbol: flushSymbolIndex == 0 ? null : qSymbols[flushSymbolIndex - 1].symbol,
         symbols: qSymbols.slice(flushSymbolIndex),
       } satisfies InsightsPayload;
@@ -185,8 +193,8 @@ function symbolTracker(
       existingSymbols.add(symbol);
       qSymbols.push({
         symbol: symbol,
-        timeDelta: Math.round(0 - lastReqTime + symbolRequestTime),
-        loadDelay: Math.round(symbolDeliveredTime - symbolRequestTime),
+        delay: Math.round(0 - lastReqTime + symbolRequestTime),
+        latency: Math.round(symbolDeliveredTime - symbolRequestTime),
         pathname: location.pathname,
         interaction: !!detail.element,
       });

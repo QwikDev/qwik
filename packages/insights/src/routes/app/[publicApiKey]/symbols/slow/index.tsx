@@ -2,14 +2,21 @@ import { component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
 import Histogram, { latencyColors } from '~/components/histogram';
 import { getDB } from '~/db';
-import { getSlowEdges } from '~/db/query';
+import { getSlowEdges, getSymbolDetails } from '~/db/query';
 import { BUCKETS, vectorAvg } from '~/stats/vector';
 import { css } from '~/styled-system/css';
 
 export const useSymbols = routeLoader$(async ({ params }) => {
   const db = getDB();
-  const edges = await getSlowEdges(db, params.publicApiKey);
-  return edges;
+  const [edges, details] = await Promise.all([
+    getSlowEdges(db, params.publicApiKey),
+    getSymbolDetails(db, params.publicApiKey),
+  ]);
+  const detailsMap: Record<string, (typeof details)[0] | undefined> = {};
+  details.forEach((detail) => {
+    detailsMap[detail.hash] = detail;
+  });
+  return { edges, detailsMap };
 });
 
 export default component$(() => {
@@ -25,7 +32,8 @@ export default component$(() => {
             <th>Latency</th>
             <th>Histogram</th>
           </tr>
-          {errors.value.map((edge) => {
+          {errors.value.edges.map((edge) => {
+            const detail = errors.value.detailsMap[edge.to];
             return (
               <tr key={edge.to}>
                 <td
@@ -38,9 +46,15 @@ export default component$(() => {
                 <td
                   class={css({
                     padding: '2px',
+                    fontFamily: 'monospace',
+                    fontSize: '10px',
                   })}
                 >
                   {edge.to}
+                  <br />
+                  {detail?.fullName}
+                  <br />
+                  {detail?.origin}
                 </td>
                 <td
                   class={css({

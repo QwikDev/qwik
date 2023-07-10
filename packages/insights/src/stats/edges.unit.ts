@@ -119,8 +119,8 @@ function edge(name: string): SymbolPairs {
   return {
     from: parts[0] || null,
     to: parts[1],
-    delay: 0,
-    latency: 0,
+    delay: [1],
+    latency: [1],
   };
 }
 

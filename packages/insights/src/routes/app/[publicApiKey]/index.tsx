@@ -4,7 +4,7 @@ import { ErrorIcon } from '~/components/icons/error';
 import { SlowIcon } from '~/components/icons/slow';
 import { SymbolIcon } from '~/components/icons/symbol';
 import { getDB } from '~/db';
-import { getAppInfo, getSymbolEdgeCount } from '~/db/query';
+import { getAppInfo, getEdgeCount } from '~/db/query';
 import { AppLink } from '~/routes.config';
 
 export const useAppData = routeLoader$(async ({ params }) => {
@@ -12,7 +12,7 @@ export const useAppData = routeLoader$(async ({ params }) => {
   const publicApiKey = params.publicApiKey;
   const [app, symbolCount] = await Promise.all([
     getAppInfo(db, publicApiKey),
-    getSymbolEdgeCount(db, publicApiKey),
+    getEdgeCount(db, publicApiKey),
   ]);
   return { app, symbolCount };
 });

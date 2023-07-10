@@ -1,19 +1,15 @@
 import { component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
-import { eq, desc, gt } from 'drizzle-orm';
-import { getDB, symbolTable } from '~/db';
+import Histogram, { latencyColors } from '~/components/histogram';
+import { getDB } from '~/db';
+import { getSlowEdges } from '~/db/query';
+import { BUCKETS, vectorAvg } from '~/stats/vector';
+import { css } from '~/styled-system/css';
 
 export const useSymbols = routeLoader$(async ({ params }) => {
   const db = getDB();
-  const symbols = await db
-    .select()
-    .from(symbolTable)
-    .where(eq(symbolTable.publicApiKey, params.publicApiKey))
-    .limit(1000)
-    .where(gt(symbolTable.loadDelay, 20))
-    .orderBy(desc(symbolTable.loadDelay))
-    .all();
-  return symbols;
+  const edges = await getSlowEdges(db, params.publicApiKey);
+  return edges;
 });
 
 export default component$(() => {
@@ -24,25 +20,45 @@ export default component$(() => {
       <table>
         <tbody>
           <tr>
-            <th>id</th>
-            <th>Session ID</th>
-            <th>symbol</th>
-            <th>previous symbol</th>
-            <th>load delay</th>
-            <th>time delta</th>
-            <th>interaction</th>
+            <th>Manifest</th>
+            <th>Symbol</th>
+            <th>Latency</th>
+            <th>Histogram</th>
           </tr>
-          {errors.value.map((symbol) => (
-            <tr key={symbol.id}>
-              <td>{symbol.id}</td>
-              <td>{symbol.sessionID}</td>
-              <td>{symbol.symbol}</td>
-              <td>{symbol.previousSymbol}</td>
-              <td>{symbol.loadDelay}</td>
-              <td>{symbol.timeDelta}</td>
-              <td>{symbol.interaction > 0 ? '👆' : ''}</td>
-            </tr>
-          ))}
+          {errors.value.map((edge) => {
+            return (
+              <tr key={edge.to}>
+                <td
+                  class={css({
+                    padding: '2px',
+                  })}
+                >
+                  {edge.manifestHash}
+                </td>
+                <td
+                  class={css({
+                    padding: '2px',
+                  })}
+                >
+                  {edge.to}
+                </td>
+                <td
+                  class={css({
+                    padding: '2px',
+                  })}
+                >
+                  {Math.round(vectorAvg(edge.latency))}ms
+                </td>
+                <td
+                  class={css({
+                    padding: '2px',
+                  })}
+                >
+                  <Histogram vector={edge.latency} colors={latencyColors} buckets={BUCKETS} />
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

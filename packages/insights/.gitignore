@@ -42,3 +42,6 @@ lerna-debug.log*
 # Netlify
 .netlify
 .env.local
+
+# Panda CSS
+src/styled-system

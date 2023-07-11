@@ -19,4 +19,4 @@ declare global {
   interface QwikCityPlatform extends PlatformAwsLambda {}
 }
 
-export const qwikApp =  createQwikCity({ render, qwikCityPlan, manifest });
+export const qwikApp = createQwikCity({ render, qwikCityPlan, manifest });

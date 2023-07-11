@@ -714,7 +714,6 @@ async function buildMiddlewareFirebase(config: BuildConfig) {
   });
 }
 
-
 async function buildStatic(config: BuildConfig) {
   const entryPoints = [join(config.srcQwikCityDir, 'static', 'index.ts')];
 

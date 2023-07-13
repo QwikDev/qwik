@@ -15,6 +15,7 @@ export type AppRoutes =
   | "/app/[publicApiKey]/symbols/"
   | "/app/[publicApiKey]/symbols/bundles/"
   | "/app/[publicApiKey]/symbols/edge/"
+  | "/app/[publicApiKey]/symbols/outgoing/"
   | "/app/[publicApiKey]/symbols/slow/"
   | "/test/"
   | "/test/counter/"
@@ -33,6 +34,7 @@ export interface AppRouteMap {
   "/app/[publicApiKey]/symbols/": { publicApiKey: string };
   "/app/[publicApiKey]/symbols/bundles/": { publicApiKey: string };
   "/app/[publicApiKey]/symbols/edge/": { publicApiKey: string };
+  "/app/[publicApiKey]/symbols/outgoing/": { publicApiKey: string };
   "/app/[publicApiKey]/symbols/slow/": { publicApiKey: string };
   "/test/": {};
   "/test/counter/": {};
@@ -80,6 +82,10 @@ export interface AppRouteParamsFunction {
     params: { publicApiKey: string }
   ): string;
   (
+    route: "/app/[publicApiKey]/symbols/outgoing/",
+    params: { publicApiKey: string }
+  ): string;
+  (
     route: "/app/[publicApiKey]/symbols/slow/",
     params: { publicApiKey: string }
   ): string;
@@ -110,6 +116,10 @@ export type AppLinkProps =
       "param:publicApiKey": string;
     }
   | { route: "/app/[publicApiKey]/symbols/edge/"; "param:publicApiKey": string }
+  | {
+      route: "/app/[publicApiKey]/symbols/outgoing/";
+      "param:publicApiKey": string;
+    }
   | { route: "/app/[publicApiKey]/symbols/slow/"; "param:publicApiKey": string }
   | { route: "/test/" }
   | { route: "/test/counter/" }

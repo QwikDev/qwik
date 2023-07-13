@@ -1,11 +1,16 @@
-import { component$, useStore, useStylesScoped$ } from '@builder.io/qwik';
+import { component$, useStore, type JSXNode } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
+import { BundleCmp } from '~/components/bundle';
+import { SymbolCmp } from '~/components/symbol';
 import { getDB } from '~/db';
-import CSS from './index.css?inline';
-import { computeBundles, computeSymbolGraph, computeSymbolVectors } from '~/stats/edges';
-import { getSymbolDetails, getEdges } from '~/db/query';
+import { getEdges, getSymbolDetails } from '~/db/query';
+import {
+  computeBundles,
+  computeSymbolGraph,
+  computeSymbolVectors,
+  type Symbol,
+} from '~/stats/edges';
 import { css } from '~/styled-system/css';
-import { type Symbol } from '~/stats/edges';
 
 export const useData = routeLoader$(async ({ params }) => {
   const db = getDB();
@@ -21,7 +26,6 @@ export const useData = routeLoader$(async ({ params }) => {
 
 export default component$(() => {
   const data = useData();
-  useStylesScoped$(CSS);
   return (
     <div
       class={css({
@@ -41,7 +45,7 @@ export default component$(() => {
         {data.value.bundles.map((bundle) => {
           return (
             <li key={bundle.name}>
-              <h3>{bundle.name}</h3>
+              <BundleCmp name={bundle.name} />
               <ul
                 class={css({
                   listStyle: 'circle',
@@ -50,11 +54,11 @@ export default component$(() => {
               >
                 {bundle.symbols.map((symbol) => (
                   <li key={symbol.name}>
-                    <code>{symbol.name}</code>
+                    <SymbolCmp symbol={symbol.name} />
                     {' ( '}
-                    <code>{symbol.fullName}</code>
+                    <code class={css({ fontFamily: 'monospace' })}>{symbol.fullName}</code>
                     {' / '}
-                    <code>{symbol.fileSrc}</code>
+                    <code class={css({ fontFamily: 'monospace' })}>{symbol.fileSrc}</code>
                     {' )'}
                   </li>
                 ))}
@@ -69,17 +73,15 @@ export default component$(() => {
 });
 
 export const CorelationMatrix = component$<{
-  size?: number;
   matrix: number[][];
   symbols: Symbol[];
-}>(({ matrix, size = 10, symbols }) => {
+}>(({ matrix, symbols }) => {
   const callout = useStore({ visible: false, value: 0, rowSymbol: '', colSymbol: '', x: 0, y: 0 });
   return (
     <>
       <div
         class={css({
           border: `1px solid black`,
-          display: 'flex',
           height: 'calc(100vmin - 20px)',
           width: 'calc(100vmin - 20px)',
           flexDirection: 'column',
@@ -97,31 +99,11 @@ export const CorelationMatrix = component$<{
           callout.rowSymbol = row.dataset.rowSymbol!;
         }}
       >
-        {matrix.map((row, rowIdx) => (
-          <div
-            class={css({ display: 'flex' })}
-            key={rowIdx}
-            style={{ height: 100 / size + '%' }}
-            data-row-symbol={symbols[rowIdx].name}
-          >
-            {row.map((value, colIdx) => (
-              <div
-                key={colIdx}
-                class={css({ height: '100%' })}
-                style={{
-                  width: 100 / size + '%',
-                  backgroundColor: toRGB(value),
-                }}
-                data-col-symbol={symbols[colIdx].name}
-                data-value={value}
-              ></div>
-            ))}
-          </div>
-        ))}
+        <MatrixCells matrix={matrix} symbols={symbols} />
       </div>
       <div
         style={{
-          display: callout.visible ? 'inline-block' : 'none',
+          display: callout.visible && !isNaN(callout.value) ? 'inline-block' : 'none',
           top: callout.y + 5 + 'px',
           left: callout.x + 5 + 'px',
         }}
@@ -164,6 +146,56 @@ export const CorelationMatrix = component$<{
     </>
   );
 });
+
+export const MatrixCells = component$<{ matrix: number[][]; symbols: Symbol[] }>(
+  ({ matrix, symbols }) => {
+    const size = matrix.length;
+    return (
+      <>
+        {matrix.map((row, rowIdx) => (
+          <div
+            class={css({ display: 'flex' })}
+            style={{ height: 100 / size + '%' }}
+            key={rowIdx}
+            data-row-symbol={symbols[rowIdx].name}
+          >
+            {cells(row, symbols)}
+          </div>
+        ))}
+      </>
+    );
+  }
+);
+
+function cells(row: number[], symbols: Symbol[]) {
+  const size = row.length;
+  const cells: JSXNode[] = [];
+  let sparseSize = 0;
+  for (let colIdx = 0; colIdx < row.length; colIdx++) {
+    const value = row[colIdx];
+    if (value) {
+      if (sparseSize) {
+        cells.push(<div style={{ width: (sparseSize * 100) / size + '%' }} />);
+        sparseSize = 0;
+      }
+      cells.push(
+        <div
+          key={colIdx}
+          class={css({ height: '100%', display: 'inline-block' })}
+          style={{
+            width: 100 / size + '%',
+            backgroundColor: toRGB(value),
+          }}
+          data-col-symbol={symbols[colIdx].name}
+          data-value={value}
+        ></div>
+      );
+    } else {
+      sparseSize++;
+    }
+  }
+  return cells;
+}
 
 function toRGB(value: number): string {
   const color = Math.round((1 - value) * 255);

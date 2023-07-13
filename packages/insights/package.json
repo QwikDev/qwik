@@ -11,6 +11,8 @@
     "build.preview": "vite build --ssr src/entry.preview.tsx",
     "build.server": "vite build -c adapters/netlify-edge/vite.config.ts",
     "build.types": "tsc --incremental --noEmit",
+    "qManifest.post": "curl -X POST -H 'Content-Type: application/json' -d @./dist/q-manifest.json https://qwik-insights.builder.io/api/v1/221smyuj5gl/post/manifest/",
+    "qManifest.post.local": "curl -X POST -H 'Content-Type: application/json' -d @./dist/q-manifest.json http://localhost:5173/api/v1/221smyuj5gl/post/manifest/",
     "db.local": "turso dev --db-file ./tmp/local.db",
     "db.migrate": "node scripts/db.migrate.cjs",
     "db.migrate.generate": "./node_modules/.bin/drizzle-kit generate:sqlite --schema='src/db/schema.ts'",

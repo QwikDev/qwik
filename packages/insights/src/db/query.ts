@@ -1,4 +1,4 @@
-import { and, eq, isNull, sql } from 'drizzle-orm';
+import { and, eq, isNull, sql, inArray } from 'drizzle-orm';
 import { type AppDatabase } from '.';
 import { applicationTable, edgeTable, symbolDetailTable, symbolTable } from './schema';
 import {
@@ -23,7 +23,11 @@ export async function getEdges(db: AppDatabase, publicApiKey: string) {
   }));
 }
 
-export async function getSlowEdges(db: AppDatabase, publicApiKey: string) {
+export async function getSlowEdges(db: AppDatabase, publicApiKey: string, manifests: string[]) {
+  let where = eq(edgeTable.publicApiKey, publicApiKey);
+  if (manifests.length) {
+    where = and(where, inArray(edgeTable.manifestHash, manifests))!;
+  }
   const query = db
     .select({
       manifestHash: edgeTable.manifestHash,
@@ -31,7 +35,7 @@ export async function getSlowEdges(db: AppDatabase, publicApiKey: string) {
       ...latencyColumnSums,
     })
     .from(edgeTable)
-    .where(eq(edgeTable.publicApiKey, publicApiKey))
+    .where(where)
     .groupBy(edgeTable.manifestHash, edgeTable.to)
     .orderBy(sql`${computeLatency} DESC`)
     .limit(50);
@@ -48,6 +52,8 @@ export function getSymbolDetails(db: AppDatabase, publicApiKey: string) {
       hash: symbolDetailTable.hash,
       fullName: symbolDetailTable.fullName,
       origin: symbolDetailTable.origin,
+      lo: symbolDetailTable.lo,
+      hi: symbolDetailTable.hi,
     })
     .from(symbolDetailTable)
     .where(eq(symbolDetailTable.publicApiKey, publicApiKey))
@@ -58,7 +64,13 @@ export async function getAppInfo(
   db: AppDatabase,
   publicApiKey: string,
   options: { autoCreate?: boolean } = {}
-): Promise<{ id: number; name: string; description: string | null; publicApiKey: string }> {
+): Promise<{
+  id: number;
+  name: string;
+  description: string | null;
+  publicApiKey: string;
+  github: string | null;
+}> {
   let app = await db
     .select()
     .from(applicationTable)
@@ -76,7 +88,13 @@ export async function getAppInfo(
       ...appFields,
     };
   }
-  return app;
+  return {
+    github:
+      publicApiKey == '221smyuj5gl'
+        ? 'https://github.com/BuilderIO/qwik/blob/main/packages/docs/src'
+        : null,
+    ...app,
+  };
 }
 
 export async function getEdgeCount(db: AppDatabase, publicApiKey: string): Promise<number> {

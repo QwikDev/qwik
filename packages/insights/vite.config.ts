@@ -24,10 +24,5 @@ export default defineConfig(async () => {
         'Cache-Control': 'public, max-age=600',
       },
     },
-    build: {
-      rollupOptions: {
-        external: ['@libsql/client'],
-      },
-    },
   };
 });

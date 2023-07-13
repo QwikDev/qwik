@@ -1,4 +1,4 @@
-import { integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
+import { integer, sqliteTable, text, uniqueIndex, index } from 'drizzle-orm/sqlite-core';
 
 export type DatabaseSchema = {
   applicationTable: typeof applicationTable;
@@ -34,6 +34,7 @@ export const symbolTable = sqliteTable('symbols', {
 export const errorTable = sqliteTable('errors', {
   id: integer('id').primaryKey(),
   publicApiKey: text('public_api_key').references(() => applicationTable.publicApiKey),
+  manifestHash: text('manifest_hash').references(() => manifestTable.hash),
   timestamp: integer('timestamp').notNull(),
   sessionID: text('session_id').notNull(),
   url: text('url').notNull(),
@@ -45,12 +46,28 @@ export const errorTable = sqliteTable('errors', {
   stack: text('stack').notNull(),
 });
 
+export const manifestTable = sqliteTable(
+  'manifests',
+  {
+    id: integer('id').primaryKey(),
+    publicApiKey: text('public_api_key').references(() => applicationTable.publicApiKey),
+    hash: text('hash').notNull(),
+    timestamp: integer('timestamp').notNull(),
+  },
+  (table) => ({
+    publicApiKeyIndex: uniqueIndex('hashIndex').on(table.hash),
+  })
+);
+
 export const symbolDetailTable = sqliteTable('symbolDetail', {
   id: integer('id').primaryKey(),
   hash: text('hash').notNull(),
   publicApiKey: text('public_api_key').references(() => applicationTable.publicApiKey),
+  manifestHash: text('manifest_hash').references(() => manifestTable.hash),
   fullName: text('full_name').notNull(),
   origin: text('origin').notNull(),
+  lo: integer('lo').notNull(),
+  hi: integer('hi').notNull(),
 });
 
 export const edgeTable = sqliteTable(
@@ -164,6 +181,11 @@ export const edgeTable = sqliteTable(
     latencyCount49: integer('latency_count_49').notNull(),
   },
   (table) => ({
+    publicApiKyIndex: index('edgeIndex_PublicApiKey').on(table.publicApiKey),
+    publicApiKyManifestHashIndex: index('edgeIndex_PublicApiKey_manifestHash').on(
+      table.publicApiKey,
+      table.manifestHash
+    ),
     edgeIndex: uniqueIndex('edgeIndex').on(
       table.publicApiKey,
       table.manifestHash,

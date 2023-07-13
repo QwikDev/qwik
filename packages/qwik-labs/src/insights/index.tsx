@@ -65,6 +65,10 @@ export interface InsightSymbol {
 
 export interface InsightsError {
   sessionID: string;
+  /**
+   * Manifest Hash of the container.
+   */
+  manifestHash: string;
   timestamp: number;
   url: string;
   source: string;
@@ -76,6 +80,7 @@ export interface InsightsError {
 }
 
 export const InsightsError = z.object({
+  manifestHash: z.string(),
   sessionID: z.string(),
   url: z.string(),
   timestamp: z.number(),
@@ -111,6 +116,7 @@ export const Insights = component$<{ publicApiKey: string; postUrl?: string }>(
   ({ publicApiKey, postUrl }) => {
     return (
       <script
+        data-insights={publicApiKey}
         dangerouslySetInnerHTML={`(${symbolTracker.toString()})(window, document, location, navigator, ${JSON.stringify(
           publicApiKey
         )},
@@ -207,6 +213,7 @@ function symbolTracker(
     const payload = {
       url: location.toString(),
       sessionID: sessionID,
+      manifestHash,
       timestamp: new Date().getTime(),
       source: event.filename,
       line: event.lineno,

@@ -8,7 +8,7 @@ export const QManifestSymbol = z.object({
   ctxKind: z.string(),
   ctxName: z.string(),
   captures: z.boolean(),
-  // parent: z.string(),
+  loc: z.array(z.number()),
 });
 
 export const QManifestBundle = z.object({
@@ -42,6 +42,7 @@ export const QManifestPlatform = z.object({
 });
 
 export const QManifest = z.object({
+  manifestHash: z.string(),
   symbols: z.record(z.string(), QManifestSymbol),
   mapping: z.record(z.string(), z.string()),
   bundles: z.record(z.string(), QManifestBundle),

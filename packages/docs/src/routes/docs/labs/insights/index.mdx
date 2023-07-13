@@ -77,7 +77,7 @@ export default defineConfig(async () => {
     plugins: [
       qwikVite({
         entryStrategy: await insightsEntryStrategy({
-          publicApiKey: loadEnv('', '.').PUBLIC_QWIK_INSIGHTS_KEY,
+          publicApiKey: loadEnv('', '.', '').PUBLIC_QWIK_INSIGHTS_KEY,
         }),
       }), 
       //...

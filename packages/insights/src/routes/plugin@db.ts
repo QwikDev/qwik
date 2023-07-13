@@ -1,5 +1,5 @@
 import { type RequestHandler } from '@builder.io/qwik-city';
-import { createClient } from '@libsql/client';
+import { createClient } from '@libsql/client/web';
 import { drizzle } from 'drizzle-orm/libsql';
 import { type AppDatabase, initializeDbIfNeeded } from '~/db';
 

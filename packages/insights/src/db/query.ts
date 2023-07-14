@@ -9,11 +9,24 @@ import {
   latencyBucketField,
   toVector,
   latencyColumnSums,
+  latencyColumns,
+  delayColumns,
 } from './query-helpers';
 
 export async function getEdges(db: AppDatabase, publicApiKey: string) {
   return (
-    await db.select().from(edgeTable).where(eq(edgeTable.publicApiKey, publicApiKey)).all()
+    await db
+      .select({
+        manifestHash: edgeTable.manifestHash,
+        from: edgeTable.from,
+        to: edgeTable.to,
+        ...latencyColumns,
+        ...delayColumns,
+      })
+      .from(edgeTable)
+      .where(eq(edgeTable.publicApiKey, publicApiKey))
+      .limit(3000) // TODO: Remove this limit after Turso fixes the issue.
+      .all()
   ).map((e) => ({
     manifestHash: e.manifestHash,
     from: e.from,
@@ -37,8 +50,7 @@ export async function getSlowEdges(db: AppDatabase, publicApiKey: string, manife
     .from(edgeTable)
     .where(where)
     .groupBy(edgeTable.manifestHash, edgeTable.to)
-    .orderBy(sql`${computeLatency} DESC`)
-    .limit(50);
+    .orderBy(sql`${computeLatency} DESC`);
   return (await query.all()).map((e) => ({
     manifestHash: e.manifestHash,
     to: e.to,

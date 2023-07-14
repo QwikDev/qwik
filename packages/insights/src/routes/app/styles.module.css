@@ -1,0 +1,17 @@
+.wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: center;
+  gap: var(--size-9);
+  height: 90vh;
+}
+
+.wrapper > * {
+  width: 100%;
+}
+
+@media screen and (min-width: 768px) {
+  .wrapper > * {
+    width: calc(50% - var(--size-9) / 2);
+  }
+}

@@ -1,0 +1,8 @@
+main {
+  background: var(--bg-color-default);
+  height: 100%;
+}
+
+main.bright {
+  background: var(--bg-color-bright);
+}

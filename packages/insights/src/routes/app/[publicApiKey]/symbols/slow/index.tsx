@@ -60,7 +60,7 @@ export default component$(() => {
                   {detail?.fullName}
                   <br />
                   {data.value.app.github && detail?.origin ? (
-                    <a href={toUrl(data.value.app.github, detail.origin)}>{detail?.origin}</a>
+                    <a href={toUrl(data.value.app.github, detail.origin)}>{detail.origin}</a>
                   ) : (
                     detail?.origin
                   )}

@@ -1,0 +1,49 @@
+.card {
+  background-color: var(--bg-color-bright);
+  border-radius: 8px;
+  padding: var(--size-8);
+  padding-bottom: var(--size-3);
+  display: column;
+  align-items: center;
+}
+
+.card.pointer {
+  cursor: pointer;
+}
+
+.wrapper {
+  display: flex;
+  gap: var(--size-5);
+  align-items: center;
+  margin-bottom: var(--size-3);
+}
+
+.wrapper .gauge-wrapper {
+  min-width: 80px; /* gauge radius * 2 */
+}
+
+.wrapper .title {
+  margin-bottom: var(--size-1_5);
+}
+
+.wrapper .api-key {
+  display: flex;
+  font-size: var(--size-3);
+}
+
+.wrapper .description {
+  margin-top: var(--size-3);
+  font-size: var(--size-3);
+  color: var(--gray-500);
+  margin-bottom: var(--size-1_5);
+  line-height: 1rem;
+  max-height: 3rem;
+  overflow: hidden;
+}
+
+.wrapper .copy-icon {
+  margin-left: var(--size-3);
+  margin-right: var(--size-1);
+  width: 1rem;
+  height: 1rem;
+}

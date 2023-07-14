@@ -1,0 +1,15 @@
+.container {
+  width: 100%;
+}
+
+.container.center {
+  margin: 0 auto;
+}
+
+.container.small {
+  max-width: 600px;
+}
+
+.container.medium {
+  max-width: 800px;
+}

@@ -2,9 +2,12 @@ import { component$ } from '@builder.io/qwik';
 import { routeLoader$, useLocation } from '@builder.io/qwik-city';
 import { formAction$, useForm, zodForm$, type InitialValues } from '@modular-forms/qwik';
 import { applicationTable, getDB } from '~/db';
-import { ApplicationForm } from '../../[publicApiKey]/app.form';
+import { ApplicationForm } from '../app.form';
 import { eq } from 'drizzle-orm';
 import { appUrl } from '~/routes.config';
+import AppCard from '~/components/app-card';
+import styles from './styles.module.css';
+import { DiskIcon } from '~/components/icons/disk';
 
 export const useFormLoader = routeLoader$<InitialValues<ApplicationForm>>(async ({ params }) => {
   if (isCreateMode(params)) {
@@ -53,6 +56,7 @@ export const useFormAction = formAction$<ApplicationForm>(
 );
 
 export default component$(() => {
+  // const form = useFormLoader();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [loginForm, { Form, Field, FieldArray }] = useForm<ApplicationForm>({
     loader: useFormLoader(),
@@ -64,23 +68,32 @@ export default component$(() => {
 
   return (
     <div>
-      <h1>Create new application</h1>
+      <h1 class="h3">{isCreate ? 'Create' : 'Edit'} Application</h1>
       <Form>
+        <div class={styles['app-card-wrapper']}>
+          <AppCard
+            mode="show"
+            title={loginForm.internal.fields.name?.value}
+            publicApiKey={location.params.publicApiKey}
+          />
+        </div>
         <div>
-          <label>Name:</label>
+          <label>Name</label>
           <Field name="name">
             {(field, props) => <input {...props} type="text" value={field.value} />}
           </Field>
         </div>
         <div>
-          <label>Description:</label>
+          <label>Description</label>
           <Field name="description">
-            {(field, props) => <textarea {...props} value={field.value} />}
+            {(field, props) => <input {...props} type="text" value={field.value} />}
           </Field>
         </div>
-        <div>
-          <label></label>
-          <button type="submit">{isCreate ? 'Create' : 'Save'}</button>
+        <div style={{ 'margin-top': 'calc(var(--form-element-margin-bottom) * 2)' }}>
+          <button type="submit" class="button">
+            <DiskIcon />
+            {isCreate ? 'Create' : 'Save'}
+          </button>
         </div>
       </Form>
     </div>

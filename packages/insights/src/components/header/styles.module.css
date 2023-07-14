@@ -1,0 +1,48 @@
+header {
+  align-items: center;
+  background: var(--bg-color-bright);
+  border-bottom: 1px solid var(--border-color-default);
+  display: flex;
+  gap: var(--size-4);
+  flex-direction: row;
+  justify-content: flex-start;
+  padding: var(--size-2);
+}
+
+@media screen and (min-width: 768px) {
+  header {
+    padding: var(--size-2) var(--size-4);
+  }
+}
+
+header .logo {
+  line-height: 0;
+}
+
+header .title {
+  font-weight: 800;
+}
+
+header .avatar {
+  margin-left: auto;
+  line-height: 0;
+  padding-left: 0.5rem;
+}
+
+header .user_section {
+  position: absolute;
+  right: 1rem;
+  display: flex;
+  align-items: center;
+}
+
+header .user_section .link {
+  cursor: pointer;
+  padding: 0 1rem 0 0.5rem;
+  text-decoration: unset;
+}
+
+header .user_section .link:hover {
+  opacity: 0.6;
+  text-decoration: underline;
+}

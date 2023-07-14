@@ -1,0 +1,26 @@
+/* default button stylings is in global.css */
+
+/* THEMES */
+.button.primary {
+  /* tbd */
+}
+.button.secondary {
+  /* tbd */
+}
+.button.success {
+  /* tbd */
+}
+.button.danger {
+  /* tbd */
+}
+.button.warning {
+  /* tbd */
+}
+.button.info {
+  /* tbd */
+}
+
+.github {
+  background-color: var(--black) !important;
+  color: var(--white) !important;
+}

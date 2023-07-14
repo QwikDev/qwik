@@ -1,0 +1,6 @@
+.avatar {
+  border-radius: 50%;
+  border: 1px solid var(--gray-300);
+  overflow: hidden;
+  line-height: 0;
+}

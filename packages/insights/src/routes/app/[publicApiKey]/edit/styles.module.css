@@ -1,0 +1,3 @@
+.app-card-wrapper {
+  margin-bottom: calc(var(--size-4) * 2);
+}

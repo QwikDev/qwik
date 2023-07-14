@@ -56,7 +56,7 @@ export const useFormAction = formAction$<ApplicationForm>(
 );
 
 export default component$(() => {
-  const form = useFormLoader();
+  // const form = useFormLoader();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [loginForm, { Form, Field, FieldArray }] = useForm<ApplicationForm>({
     loader: useFormLoader(),

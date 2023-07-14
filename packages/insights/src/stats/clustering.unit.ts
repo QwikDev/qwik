@@ -19,7 +19,6 @@ test('dbscan', () => {
   const dbscan = new DBSCAN();
 
   const clusters = dbscan.run(dataset, 5, 2);
-  console.log(clusters, dbscan.noise);
   assert.equal(clusters, [
     [0, 1, 2],
     [3, 4, 5],

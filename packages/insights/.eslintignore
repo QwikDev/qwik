@@ -39,3 +39,7 @@ server
 
 # Panda CSS
 src/styled-system
+panda.config.ts
+
+# Drizzle
+drizzle.config.ts

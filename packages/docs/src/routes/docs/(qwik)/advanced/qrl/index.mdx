@@ -36,7 +36,7 @@ Qwik uses `q:base` to resolve a QRL into an absolute URL if the URL is relative.
 QRLs can also restore lexically scoped variables. In that case, the variables are encoded in the QRL at the end in the form of an array of indexes into the `q:obj` attribute.
 
 ```
-./path/to/chunk.js#SymbolName[0,2]
+./path/to/chunk.js#SymbolName[0,1]
 ```
 
 The array is used by `useLexicalScope()` to restore the variables.
@@ -110,7 +110,7 @@ The main thing to note is the `on:click` attribute. This attribute gets read by 
 2. User clicks on the `<button>`. This fires a `click` event which bubbles up and is handled by the Qwikloader.
 3. Qwikloader retraces the event bubble path and looks for `on:click` attribute, which it finds on `<button>`.
 4. Qwikloader now tries to load the corresponding chunk. To do that, the Qwikloader needs to resolve the relative path of `./chunk-c.js`. It uses these values to build an absolute path starting at `<button>` and walking towards the document.
-   - `on:click="./chunk-c.js#Counter_onClick[0,2]"`
+   - `on:click="./chunk-c.js#Counter_onClick[0,1]"`
    - `<body q:base="/build/">`
    - `document.baseURI = "http://localhost/index.html"`
    - The resulting absolute URL is `http://localhost/build/chunk-c.js` which Qwikloader fetches.

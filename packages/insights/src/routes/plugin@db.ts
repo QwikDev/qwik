@@ -15,6 +15,16 @@ function initLibSql(url: string, authToken: string): () => Promise<AppDatabase> 
       createClient({
         url,
         authToken,
-      })
+      }),
+      {
+        // logger: {
+        //   logQuery(query: string, params: unknown[]): void {
+        //     console.debug('___QUERY___');
+        //     console.debug(query);
+        //     console.debug(params);
+        //     console.debug('___END_QUERY___');
+        //   },
+        // },
+      }
     );
 }

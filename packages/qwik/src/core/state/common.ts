@@ -21,8 +21,8 @@ import type { Signal } from './signal';
 export interface SubscriptionManager {
   $groupToManagers$: GroupToManagersMap;
   $createManager$(map?: Subscriptions[]): LocalSubscriptionManager;
-  $clearSub$: (sub: SubscriberEffect | SubscriberHost | Node) => void;
-  $clearSignal$: (sub: SubscriberSignal) => void;
+  $clearSub$: (group: Group) => void;
+  $clearSignal$: (signal: SubscriberSignal) => void;
 }
 
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
@@ -235,10 +235,9 @@ export type SubscriberSignal = B | C;
 
 export type Subscriptions = A | SubscriberSignal;
 
-export type GroupToManagersMap = Map<
-  SubscriberHost | SubscriberEffect | Node,
-  LocalSubscriptionManager[]
->;
+type Group = SubscriberEffect | SubscriberHost | Node;
+
+export type GroupToManagersMap = Map<Group, LocalSubscriptionManager[]>;
 
 export const serializeSubscription = (sub: Subscriptions, getObjId: GetObjID) => {
   const type = sub[0];
@@ -311,7 +310,7 @@ export const createSubscriptionManager = (containerState: ContainerState): Subsc
     $createManager$: (initialMap?: Subscriptions[]) => {
       return new LocalSubscriptionManager(groupToManagers, containerState, initialMap);
     },
-    $clearSub$: (group: SubscriberHost | SubscriberEffect | Node) => {
+    $clearSub$: (group: Group) => {
       const managers = groupToManagers.get(group);
       if (managers) {
         for (const manager of managers) {
@@ -357,7 +356,7 @@ export class LocalSubscriptionManager {
     }
   }
 
-  $addToGroup$(group: SubscriberHost | SubscriberEffect | Node, manager: LocalSubscriptionManager) {
+  $addToGroup$(group: Group, manager: LocalSubscriptionManager) {
     let managers = this.$groupToManagers$.get(group);
     if (!managers) {
       this.$groupToManagers$.set(group, (managers = []));
@@ -367,7 +366,7 @@ export class LocalSubscriptionManager {
     }
   }
 
-  $unsubGroup$(group: SubscriberEffect | SubscriberHost | Node) {
+  $unsubGroup$(group: Group) {
     const subs = this.$subs$;
     for (let i = 0; i < subs.length; i++) {
       const found = subs[i][1] === group;

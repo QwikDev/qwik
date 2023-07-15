@@ -146,20 +146,22 @@ Notice that JSX is not React. In fact, JSX is only syntax without semantics. We 
 
 The answer is somewhere in between:
 
-- React uses vDOM for everything all the time, and is part of the reason why it is slow.
+You can think of it as a spectrum:
+- On one extreme is React which uses vDOM for everything all the time. (Good argument can be made that [vDOM is slow](https://svelte.dev/blog/virtual-dom-is-pure-overhead).)
+- On the other extreme is SolidJS which does not use vDOM at all. (Resulting in a very impressive performance.)
 
-- Qwik uses vDOM only sometimes, and other times it does what Solid does.
+Qwik uses vDOM only sometimes, and other times it does what SolidJS does (direct DOM update.)
 
-The way to think about it is as following:
+The way to think about it is as follows:
 
-1. If the change in state does not have a structural change then Qwik will most likely not use vDOM. For example: 
+If the change in state does not have a structural change then Qwik will most likely not use vDOM. For example: 
 ```ts title="No DOM structure change, only update value"
 export const NoStructuralChange = component$(() => {
   const count = useSignal(0);
 
   return (
     <>
-    {/* This will not cause vDOM to activate. (No DOM structure change, only update value) */}
+    {/* This will not cause vDOM to activate. (No DOM structure change, only update text value) */}
      <div>Count: {count.value}</div>
      <button onClick$={() => count.value++}>+1</button>
     </>
@@ -167,7 +169,7 @@ export const NoStructuralChange = component$(() => {
 });
 ```
 
-2. Qwik will use vDOM when the change is structural. In this following example the DOM structure needs to be updated and so vDOM will be used for rendering:
+Qwik will use vDOM when the change is structural. In the following example the DOM structure needs to be updated (replace `<h1>` with `<button>`) and so vDOM will be used for rendering:
 ```ts title="DOM structure change"
 export const StructuralChange = component$(() => {
   const isLoggedIn = useSignal(false);
@@ -180,24 +182,26 @@ export const StructuralChange = component$(() => {
 
 ```
 
-3. The big thing to understand (and the reason vDOM is not a performance problem in Qwik) is that in React when you invalidate a root component the vDOM for the whole tree gets created. In Qwik the decision is made on per component basis.  And only for components which have structural change AND are actualy changing their structure. If a component is structural (vDOM) but no change in structure is detected, then Qwik does nothing.
+The big thing to understand (and the reason vDOM is not a performance problem in Qwik) is that in React when you invalidate a root component the vDOM for the whole tree gets created. In Qwik, the decision is made on a per-component basis.  And only for components that have structural change AND are actually changing their structure. If a component is structural (vDOM) but no change in structure is detected, then Qwik skips the component. You can think of it as auto-memoization of all components, this means that vDOM is only employed when the view is changing structurally. This is rare because in most cases the view only changes its values. 
 
 > In short, Qwik uses vDOM, but significantly less than React in comparable situations.
 
 ### Why use vDOM despite its negative reputation?
-Because vDOM has attractive DX properties, especially when you need dynamic components. For example:
-  
-  ```ts title="Dynamic components"
-  const DynamicList = [ CompA, CompB, ...];
+1. Because vDOM has attractive DX properties, especially when you need dynamic components. 
+2. Because non-vDOM solution would require executing code at least once on startup to learn about the component structure. (Something which Qwik explicitly avoids.)
 
-  export const DynamicExample = component$(() => {
-    const idx = Math.floor(Math.random() * DynamicList.length);
-    const Component = DynamicList[idx];
-    {/* Dynamically chose which component to render */}
-    return <Component/>; 
+For example:
+
+```ts title="Dynamic components"
+const DynamicList = [ CompA, CompB, ...];
+export const DynamicExample = component$(() => {
+  const idx = Math.floor(Math.random() * DynamicList.length);
+  const Component = DynamicList[idx];
+  {/* Dynamically chose which component to render */}
+  return <Component/>; 
 })
 ```
-The above code `<Component/>` is super easy to understand. We are dynamically choosing a component to place there. But in [Solid](https://www.solidjs.com/docs/latest/api#dynamic), [Svelte](https://svelte.dev/tutorial/svelte-component), [Vue](https://v2.vuejs.org/v2/guide/components-dynamic-async.html), and [Angualr](https://angular.io/api/common/NgTemplateOutlet), this gets complex (see links).
+The above code `<Component/>` is super easy to understand. We are dynamically choosing a component to place there. But in [Solid](https://www.solidjs.com/docs/latest/api#dynamic), [Svelte](https://svelte.dev/tutorial/svelte-component), [Vue](https://v2.vuejs.org/v2/guide/components-dynamic-async.html), and [Angular](https://angular.io/api/common/NgTemplateOutlet), this gets complex (see links).
 
 We have the best of both worlds by using vDOM sparingly. During creation, we employ SSR, and most client updates are non-structural. When structural updates are necessary, they are localized to the specific component without affecting its children, thus containing any potential slowdown caused by vDOM.
 

@@ -190,7 +190,7 @@ export const routeLoaderQrl = ((
   function loader() {
     return useContext(RouteStateContext, (state) => {
       if (!(id in state)) {
-        throw new Error(`routeLoader$ "${loaderQrl.getSymbol()}" was invoked in a route where the it was not declared.
+        throw new Error(`routeLoader$ "${loaderQrl.getSymbol()}" was invoked in a route where it was not declared.
     This is because the routeLoader$ was not exported in a 'layout.tsx' or 'index.tsx' file of the existing route.
     For more information check: https://qwik.builder.io/qwikcity/route-loader/`);
       }

@@ -163,6 +163,8 @@ export interface DocumentLink {
     type?: string;
 }
 
+type MetaNames =  "application-name" | "author" | "description" | "generator" | "keywords" | "referrer" | "theme-color" | "color-scheme" | "viewport" | "creator" | "googlebot" | "publisher" | "robots";
+
 // @public (undocumented)
 export interface DocumentMeta {
     // (undocumented)
@@ -174,7 +176,7 @@ export interface DocumentMeta {
     // (undocumented)
     readonly key?: string;
     // (undocumented)
-    readonly name?: string;
+    readonly name?: MetaNames;
     // (undocumented)
     readonly property?: string;
 }

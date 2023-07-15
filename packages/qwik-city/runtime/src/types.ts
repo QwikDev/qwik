@@ -120,13 +120,28 @@ export interface DocumentHeadValue {
  */
 export type ResolvedDocumentHead = Required<DocumentHeadValue>;
 
+type MetaNames =
+  | 'application-name'
+  | 'author'
+  | 'description'
+  | 'generator'
+  | 'keywords'
+  | 'referrer'
+  | 'theme-color'
+  | 'color-scheme'
+  | 'viewport'
+  | 'creator'
+  | 'googlebot'
+  | 'publisher'
+  | 'robots';
+
 /**
  * @public
  */
 export interface DocumentMeta {
   readonly content?: string;
   readonly httpEquiv?: string;
-  readonly name?: string;
+  readonly name?: MetaNames;
   readonly property?: string;
   readonly key?: string;
   readonly itemprop?: string;

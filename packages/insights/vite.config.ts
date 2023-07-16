@@ -25,7 +25,7 @@ export default defineConfig(async () => {
       },
     },
     optimizeDeps: {
-      include: [ "@auth/core" ]
-    }
+      include: ['@auth/core'],
+    },
   };
 });

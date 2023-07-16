@@ -16,7 +16,7 @@ async function migrateLibSql(url, authToken) {
   const db = drizzle(client);
   console.log('Migrating DB...');
   try {
-    await migrate(db, { migrationsFolder: './drizzle'});
+    await migrate(db, { migrationsFolder: './drizzle' });
   } catch (e) {
     console.error(e);
   }

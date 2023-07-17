@@ -61,16 +61,6 @@ export function logCreateAppResult(
   }
   outString.push(``);
 
-  outString.push(`🐰 ${cyan(`Next steps:`)}`);
-  if (!isCwdDir) {
-    outString.push(`   cd ${relativeProjectPath}`);
-  }
-  if (!ranInstall) {
-    outString.push(`   ${pkgManager} install`);
-  }
-  outString.push(`   ${pkgManager} start`);
-  outString.push(``);
-
   const qwikAdd = pkgManager !== 'npm' ? `${pkgManager} qwik add` : `npm run qwik add`;
   outString.push(`🤍 ${cyan('Integrations? Add Netlify, Cloudflare, Tailwind...')}`);
   outString.push(`   ${qwikAdd}`);
@@ -80,6 +70,16 @@ export function logCreateAppResult(
 
   outString.push(`👀 ${cyan('Presentations, Podcasts and Videos:')}`);
   outString.push(`   https://qwik.builder.io/media/`);
+  outString.push(``);
+
+  outString.push(`🐰 ${cyan(`Next steps:`)}`);
+  if (!isCwdDir) {
+    outString.push(`   cd ${relativeProjectPath}`);
+  }
+  if (!ranInstall) {
+    outString.push(`   ${pkgManager} install`);
+  }
+  outString.push(`   ${pkgManager} start`);
   outString.push(``);
 
   return outString.join('\n');

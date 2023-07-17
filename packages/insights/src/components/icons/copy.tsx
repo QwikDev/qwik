@@ -1,4 +1,4 @@
-import { component$, useSignal, type PropFunction } from '@builder.io/qwik';
+import { component$, useSignal, type PropFunction, useStylesScoped$ } from '@builder.io/qwik';
 
 interface CopyIconProps {
   class?: string;
@@ -6,10 +6,23 @@ interface CopyIconProps {
 }
 
 export const CopyIcon = component$<CopyIconProps>(({ onClick$, ...props }) => {
+  useStylesScoped$(`
+    .wrapper {
+      display: flex;
+    }
+  `);
   const copiedSig = useSignal(false);
 
   return (
-    <>
+    <span
+      class="wrapper"
+      preventdefault:click
+      onClick$={() => {
+        onClick$();
+        copiedSig.value = true;
+        setTimeout(() => (copiedSig.value = false), 2000);
+      }}
+    >
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="1rem"
@@ -17,11 +30,6 @@ export const CopyIcon = component$<CopyIconProps>(({ onClick$, ...props }) => {
         viewBox="0 0 24 24"
         aria-hidden="true"
         preventdefault:click
-        onClick$={() => {
-          onClick$();
-          copiedSig.value = true;
-          setTimeout(() => (copiedSig.value = false), 2000);
-        }}
         {...props}
       >
         <path
@@ -30,6 +38,6 @@ export const CopyIcon = component$<CopyIconProps>(({ onClick$, ...props }) => {
         ></path>
       </svg>
       &nbsp;{copiedSig.value ? 'Copied' : 'Copy'}
-    </>
+    </span>
   );
 });

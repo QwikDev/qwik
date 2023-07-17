@@ -1,10 +1,79 @@
 /**
- * WHAT IS THIS FILE?
- *
- * Globally applied styles. No matter which components are in the page or matching route,
- * the styles in here will be applied to the Document, without any sort of CSS scoping.
- *
+ * PandaCSS CSS layers
+ * View the full documentation at https://panda-css.com/docs/concepts/cascade-layers#layer-css
  */
+@layer reset, base, tokens, recipes, utilities;
+
+:root {
+  --link-offset: 0.15rem;
+  --primary-50: #f0f9ff;
+  --primary-100: #dff3ff;
+  --primary-200: #b9e8fe;
+  --primary-300: #7ad7ff;
+  --primary-400: #34c3fc;
+  --primary-500: #18b6f6;
+  --primary-600: #008acb;
+  --primary-700: #006ea4;
+  --primary-800: #045d88;
+  --primary-900: #0a4d70;
+  --primary-950: #07304a;
+
+  --secondary-50: #f9f6fe;
+  --secondary-100: #f1e9fe;
+  --secondary-200: #e5d7fd;
+  --secondary-300: #d1b8fa;
+  --secondary-400: #ac7ef4;
+  --secondary-500: #985eee;
+  --secondary-600: #803edf;
+  --secondary-700: #6c2cc4;
+  --secondary-800: #5d29a0;
+  --secondary-900: #4d2281;
+  --secondary-950: #310c5f;
+
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+  --gray-950: #030712;
+
+  --white: #ffffff;
+  --black: #000000;
+
+  --size-0: 0;
+  --size-px: 1px;
+  --size-0_5: 0.125rem;
+  --size-1: 0.25rem;
+  --size-1_5: 0.375rem;
+  --size-2: 0.5rem;
+  --size-2_5: 0.625rem;
+  --size-3: 0.75rem;
+  --size-3_5: 0.875rem;
+  --size-4: 1rem;
+  --size-5: 1.25rem;
+  --size-6: 1.5rem;
+  --size-7: 1.75rem;
+  --size-8: 2rem;
+  --size-9: 2.25rem;
+  --size-10: 2.5rem;
+
+  --size-layout-sm: var(--size-1) var(--size-4);
+  --size-layout-md: var(--size-2) var(--size-8);
+
+  --bg-color-default: var(--gray-100);
+  --bg-color-bright: var(--white);
+  --text-color-default: var(--black);
+  --text-color-light: var(--gray-600);
+  --border-color-default: var(--gray-200);
+
+  --form-element-margin-bottom: var(--size-4);
+}
+
 html {
   -webkit-text-size-adjust: 100%;
   -moz-tab-size: 4;
@@ -15,7 +84,123 @@ html {
     'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
+/* latin */
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./fonts/poppins-400.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F,
+    U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* latin */
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 500;
+  src: url(./fonts/poppins-500.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F,
+    U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* latin */
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 700;
+  src: url(./fonts/poppins-700.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F,
+    U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+html,
 body {
-  padding: 0;
-  line-height: inherit;
+  height: 100%;
+  font-family: 'Poppins', Helvetica, Arial, sans-serif;
+  color: var(--text-color-default);
+}
+
+body.dark {
+  --bg-color-default: var(--gray-800);
+  --bg-color-bright: var(--gray-900);
+  --text-color-default: var(--white);
+  --border-color-default: var(--gray-700);
+}
+
+.h1,
+.h2,
+.h3,
+.h4,
+.h5,
+.h6 {
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.h1 {
+  font-size: var(--size-10);
+  margin-bottom: var(--size-8);
+}
+.h2 {
+  font-size: var(--size-8);
+  margin-bottom: var(--size-6);
+}
+.h3 {
+  font-size: var(--size-7);
+  margin-bottom: var(--size-5);
+}
+.h4 {
+  font-size: var(--size-6);
+  margin-bottom: var(--size-4);
+}
+.h5 {
+  font-size: var(--size-5);
+  margin-bottom: var(--size-3);
+}
+.h6 {
+  font-size: var(--size-4);
+  margin-bottom: var(--size-2_5);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+form > div {
+  margin-bottom: var(--form-element-margin-bottom);
+}
+
+label {
+  color: var(--text-color-light);
+  display: block;
+}
+
+input,
+button,
+.button {
+  background-color: #fff;
+  border: 1px solid var(--border-color-default);
+  border-radius: var(--size-2);
+  color: inherit;
+}
+
+input {
+  padding: var(--size-2) var(--size-4);
+  width: 100%;
+}
+
+.button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--size-2_5);
+  padding: var(--size-2) var(--size-10);
+  cursor: pointer;
+}
+
+.button svg {
+  width: 1.5rem;
+  height: 1.5rem;
 }

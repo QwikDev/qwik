@@ -1,4 +1,5 @@
 import { DBSCAN } from 'density-clustering';
+import { vectorSum2 } from './vector';
 
 export interface Symbol {
   name: string;
@@ -27,9 +28,9 @@ export interface Symbol {
 }
 
 export interface Edge {
-  count: number;
   from: Symbol;
   to: Symbol;
+  count: number;
   // latency: number;
   // delay: number;
 }
@@ -37,8 +38,8 @@ export interface Edge {
 export interface SymbolPairs {
   from: string | null;
   to: string;
-  delay: number;
-  latency: number;
+  delay: number[];
+  latency: number[];
 }
 
 export interface SymbolDetail {
@@ -56,11 +57,23 @@ export function computeSymbolGraph(rows: SymbolPairs[], details?: SymbolDetail[]
   const rootSymbol = getSymbol('<synthetic.root.symbol>');
   for (const row of rows) {
     fixNames(row);
+    const [countRelated, countUnrelated] = vectorSum2(
+      row.delay,
+      // If previous symbol occurred less than x ms than assume that they are related.
+      // if more than x ms than assume that they are unrelated (parent is null).
+      250
+    );
     const self = getSymbol(row.to);
-    self.count++;
-    const parent = getSymbol(row.from);
-    const edge = getEdge(parent, self);
-    edge.count++;
+    self.count += countRelated + countUnrelated;
+    if (countRelated) {
+      const parent = getSymbol(row.from);
+      const edge = getEdge(parent, self);
+      edge.count += countRelated;
+    }
+    if (countUnrelated) {
+      const edge = getEdge(rootSymbol, self);
+      edge.count += countUnrelated;
+    }
   }
 
   computeDepth(rootSymbol, 0);

@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX `hashIndex` ON `manifests` (`hash`);

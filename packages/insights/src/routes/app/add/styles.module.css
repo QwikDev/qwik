@@ -1,0 +1,3 @@
+.add-app-wrapper {
+  margin: calc(var(--size-4) * 2);
+}

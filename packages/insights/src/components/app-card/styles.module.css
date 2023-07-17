@@ -30,6 +30,9 @@
   display: flex;
   font-size: var(--size-3);
 }
+.wrapper .api-key span {
+  margin: 0 var(--size-1_5);
+}
 
 .wrapper .description {
   margin-top: var(--size-3);

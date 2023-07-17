@@ -2,6 +2,7 @@ import { AppLink } from '~/routes.config';
 import Gauge from '../gauge';
 import { component$ } from '@builder.io/qwik';
 import styles from './styles.module.css';
+import { CopyIcon } from '../icons/copy';
 
 type AppCardProps = {
   mode: 'show' | 'create';
@@ -27,7 +28,14 @@ export default component$<AppCardProps>(
               {mode === 'show' ? (
                 <>
                   <div class={[styles.title, 'h6']}>{title}</div>
-                  <div class={styles['api-key']}>Token: {publicApiKey}</div>
+                  <div class={styles['api-key']}>
+                    <span>Token: {publicApiKey}</span>
+                    <CopyIcon
+                      onClick$={() => {
+                        navigator.clipboard.writeText(publicApiKey);
+                      }}
+                    />
+                  </div>
                   {description && <div class={[styles.description]}>{description}</div>}
                 </>
               ) : (

@@ -10,47 +10,27 @@ import styles from './styles.module.css';
 import { DiskIcon } from '~/components/icons/disk';
 
 export const useFormLoader = routeLoader$<InitialValues<ApplicationForm>>(async ({ params }) => {
-  if (isCreateMode(params)) {
-    return {
-      name: '',
-      description: '',
-    };
-  } else {
-    const db = getDB();
-    const app = await db
-      .select()
-      .from(applicationTable)
-      .where(eq(applicationTable.publicApiKey, params.publicApiKey))
-      .limit(1)
-      .get();
-    return app as ApplicationForm;
-  }
+  const db = getDB();
+  const app = await db
+    .select()
+    .from(applicationTable)
+    .where(eq(applicationTable.publicApiKey, params.publicApiKey))
+    .limit(1)
+    .get();
+  return app as ApplicationForm;
 });
 
 export const useFormAction = formAction$<ApplicationForm>(
   async ({ name, description }, { redirect, params }) => {
     const db = getDB();
-    if (isCreateMode(params)) {
-      const publicApiKey = Math.round(Math.random() * Number.MAX_SAFE_INTEGER).toString(36);
-      await db
-        .insert(applicationTable)
-        .values({
-          name,
-          description,
-          publicApiKey,
-        })
-        .run();
-      redirect(302, appUrl(`/app/[publicApiKey]/`, { publicApiKey }));
-    } else {
-      db.update(applicationTable)
-        .set({
-          name,
-          description,
-        })
-        .where(eq(applicationTable.publicApiKey, params.publicApiKey))
-        .run();
-      throw redirect(302, appUrl(`/app/[publicApiKey]/`, { publicApiKey: params.publicApiKey }));
-    }
+    db.update(applicationTable)
+      .set({
+        name,
+        description,
+      })
+      .where(eq(applicationTable.publicApiKey, params.publicApiKey))
+      .run();
+    throw redirect(302, appUrl(`/app/[publicApiKey]/`, { publicApiKey: params.publicApiKey }));
   },
   zodForm$(ApplicationForm)
 );
@@ -64,11 +44,10 @@ export default component$(() => {
     validate: zodForm$(ApplicationForm),
   });
   const location = useLocation();
-  const isCreate = isCreateMode(location.params);
 
   return (
     <div>
-      <h1 class="h3">{isCreate ? 'Create' : 'Edit'} Application</h1>
+      <h1 class="h3">Edit Application</h1>
       <Form>
         <div class={styles['app-card-wrapper']}>
           <AppCard
@@ -92,14 +71,10 @@ export default component$(() => {
         <div style={{ 'margin-top': 'calc(var(--form-element-margin-bottom) * 2)' }}>
           <button type="submit" class="button">
             <DiskIcon />
-            {isCreate ? 'Create' : 'Save'}
+            Save
           </button>
         </div>
       </Form>
     </div>
   );
 });
-
-function isCreateMode(params: Readonly<Record<string, string>>) {
-  return params.publicApiKey == '__new__';
-}

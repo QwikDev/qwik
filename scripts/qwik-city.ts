@@ -181,7 +181,20 @@ export async function buildQwikCity(config: BuildConfig) {
 }
 
 async function buildRuntime(config: BuildConfig) {
-  const result = await execa('pnpm', ['build'], {
+  const execOptions = {
+    win: {
+      manager: 'npm',
+      command: ['run', 'build'],
+    },
+    other: {
+      manager: 'pnpm',
+      command: ['build'],
+    },
+  };
+  const isWindows = process.platform.includes('win32');
+  const runOptions = isWindows ? execOptions.win : execOptions.other;
+
+  const result = await execa(runOptions.manager, runOptions.command, {
     stdout: 'inherit',
     cwd: config.srcQwikCityDir,
   });

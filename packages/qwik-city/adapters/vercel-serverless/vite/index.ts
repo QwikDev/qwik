@@ -18,22 +18,9 @@ export function vercelServerlessAdapter(opts: VercelServerlessAdapterOptions = {
       const outDir =
         config.build?.outDir || join('.vercel', 'output', 'functions', '_qwik-city.func');
       return {
-        resolve: {
-          conditions: ['webworker', 'worker'],
-        },
-        ssr: {
-          target: 'webworker',
-          noExternal: true,
-        },
         build: {
           ssr: true,
           outDir,
-          rollupOptions: {
-            output: {
-              format: 'es',
-              hoistTransitiveImports: false,
-            },
-          },
         },
         publicDir: false,
       };

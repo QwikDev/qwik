@@ -346,6 +346,15 @@ test.describe("actions", () => {
         520
       );
 
+      await expect(page.locator("#image-jpeg")).toHaveJSProperty(
+        "loading",
+        "eager"
+      );
+      await expect(page.locator("#image-jpeg")).toHaveJSProperty(
+        "decoding",
+        "auto"
+      );
+
       await expect(page.locator("#image-avif")).toHaveJSProperty("width", 100);
       await expect(page.locator("#image-avif")).toHaveJSProperty("height", 100);
       await expect(page.locator("#image-avif")).toHaveJSProperty(

@@ -12,7 +12,7 @@ export default component$(() => {
     <div>
       <h1 onClick$={() => console.warn("hola")}>Welcome to Qwik City</h1>
       <p>The meta-framework for Qwik.</p>
-      <ImageJpeg id="image-jpeg" />
+      <ImageJpeg id="image-jpeg" loading="eager" decoding="auto" />
       <ImageSvg id="image-svg" />
       <ImageJpegResized id="image-avif" />
     </div>

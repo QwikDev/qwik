@@ -141,30 +141,31 @@ export async function updateEdge(
     latencyBucket: number;
   }
 ): Promise<void> {
-  db.transaction(async (tx) => {
-    const latencyField = latencyBucketField(edge.latencyBucket);
-    const delayField = delayBucketField(edge.delayBucket);
-    const result = await tx
-      .update(edgeTable)
-      .set({
-        [latencyField]: sql`${edgeTable[latencyField]} + 1`,
-        [delayField]: sql`${edgeTable[delayField]} + 1`,
-      })
-      .where(
-        and(
-          eq(edgeTable.manifestHash, edge.manifestHash),
-          eq(edgeTable.publicApiKey, edge.publicApiKey),
-          edge.from === null ? isNull(edgeTable.from) : eq(edgeTable.from, edge.from),
-          eq(edgeTable.to, edge.to)
-        )
+  // This may look like a good idea to run in a transaction, but it causes a lot of contention
+  // and than other queries timeout. Yes not running in TX there is a risk of missed update, but
+  // since we are a statistical model, it should not make much of a difference.
+  const latencyField = latencyBucketField(edge.latencyBucket);
+  const delayField = delayBucketField(edge.delayBucket);
+  const result = await db
+    .update(edgeTable)
+    .set({
+      [latencyField]: sql`${edgeTable[latencyField]} + 1`,
+      [delayField]: sql`${edgeTable[delayField]} + 1`,
+    })
+    .where(
+      and(
+        eq(edgeTable.manifestHash, edge.manifestHash),
+        eq(edgeTable.publicApiKey, edge.publicApiKey),
+        edge.from === null ? isNull(edgeTable.from) : eq(edgeTable.from, edge.from),
+        eq(edgeTable.to, edge.to)
       )
-      .run();
-    if (result.rowsAffected === 0) {
-      // No row was updated, so insert a new one
-      const edgeRow = createEdgeRow(edge);
-      edgeRow[latencyBucketField(edge.latencyBucket)]++;
-      edgeRow[delayBucketField(edge.latencyBucket)]++;
-      await tx.insert(edgeTable).values(edgeRow).run();
-    }
-  });
+    )
+    .run();
+  if (result.rowsAffected === 0) {
+    // No row was updated, so insert a new one
+    const edgeRow = createEdgeRow(edge);
+    edgeRow[latencyBucketField(edge.latencyBucket)]++;
+    edgeRow[delayBucketField(edge.latencyBucket)]++;
+    await db.insert(edgeTable).values(edgeRow).run();
+  }
 }

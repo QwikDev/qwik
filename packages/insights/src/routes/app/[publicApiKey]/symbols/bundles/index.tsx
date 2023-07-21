@@ -10,6 +10,7 @@ import {
   computeSymbolVectors,
   type Symbol,
 } from '~/stats/edges';
+import { vectorSum } from '~/stats/vector';
 import { css } from '~/styled-system/css';
 
 export const useData = routeLoader$(async ({ params }) => {
@@ -32,8 +33,8 @@ export default component$(() => {
         margin: '5px',
       })}
     >
-      <h2>Corelation Matrix</h2>
-      <CorelationMatrix matrix={data.value.vectors.vectors} symbols={data.value.vectors.symbols} />
+      <h2>Correlation Matrix</h2>
+      <CorrelationMatrix matrix={data.value.vectors.vectors} symbols={data.value.vectors.symbols} />
 
       <h2>Bundles</h2>
       <ol
@@ -72,7 +73,7 @@ export default component$(() => {
   );
 });
 
-export const CorelationMatrix = component$<{
+export const CorrelationMatrix = component$<{
   matrix: number[][];
   symbols: Symbol[];
 }>(({ matrix, symbols }) => {
@@ -170,10 +171,11 @@ export const MatrixCells = component$<{ matrix: number[][]; symbols: Symbol[] }>
 function cells(row: number[], symbols: Symbol[]) {
   const size = row.length;
   const cells: JSXNode[] = [];
+  const total = vectorSum(row);
   let sparseSize = 0;
   for (let colIdx = 0; colIdx < row.length; colIdx++) {
     const value = row[colIdx];
-    if (value) {
+    if (value / total > 0.05) {
       if (sparseSize) {
         cells.push(<div style={{ width: (sparseSize * 100) / size + '%' }} />);
         sparseSize = 0;

@@ -1,100 +1,50 @@
-import {
-  $,
-  Resource,
-  Slot,
-  component$,
-  createContextId,
-  useContext,
-  useContextProvider,
-  useResource$,
-  useStore,
-  type ContextId,
-  type QwikMouseEvent,
-} from '@builder.io/qwik';
+import { Resource, component$, useResource$, useStore } from '@builder.io/qwik';
 import { server$, useLocation } from '@builder.io/qwik-city';
 import { and, eq } from 'drizzle-orm';
 import { getDB, symbolDetailTable } from '~/db';
 import { css } from '~/styled-system/css';
 import { SymbolIcon } from '../icons/symbol';
+import { type PopupEvent } from '../popup-manager';
 
-const symbolHoverContext = createContextId<{
-  visible: boolean;
-  symbolHash: string;
-  x: number;
-  y: number;
-}>('SymbolHoverContext');
-
-export const SymbolProvider = component$(() => {
-  const symbolHover = useStore<typeof symbolHoverContext extends ContextId<infer T> ? T : unknown>({
-    visible: false,
-    symbolHash: '',
-    x: 0,
-    y: 0,
-  });
-  useContextProvider(symbolHoverContext, symbolHover);
+export const SymbolPopup = component$<{ symbolHash: string }>(({ symbolHash }) => {
   return (
-    <>
-      <Slot />
-      <div
-        style={{
-          display: symbolHover.visible ? 'block' : 'none',
-          top: symbolHover.y + 4 + 'px',
-          left: symbolHover.x + 4 + 'px',
-        }}
+    <div
+      class={css({
+        minWidth: '300px',
+        minHeight: '300px',
+      })}
+    >
+      <h1
         class={css({
-          display: 'none',
-          position: 'fixed',
-          background: 'white',
-          border: '1px solid black',
-          borderRadius: '8px',
-          padding: '5px',
-          width: '50vw',
-          height: '50vh',
-          overflow: 'scroll',
+          fontWeight: 'bold',
+          fontSize: '14px',
         })}
       >
-        <button
+        Symbol:{' '}
+        <code
           class={css({
-            float: 'right',
-            padding: '2px 4px',
-            cursor: 'pointer',
-          })}
-          onClick$={() => (symbolHover.visible = false)}
-        >
-          ❌
-        </button>
-        <h1
-          class={css({
+            fontFamily: 'monospace',
             fontWeight: 'bold',
             fontSize: '14px',
+            padding: '2px 4px',
+            backgroundColor: '#EEE',
+            border: '1px solid #CCC',
+            borderRadius: '5px',
           })}
         >
-          Symbol:{' '}
-          <code
-            class={css({
-              fontFamily: 'monospace',
-              fontWeight: 'bold',
-              fontSize: '14px',
-              padding: '2px 4px',
-              backgroundColor: '#EEE',
-              border: '1px solid #CCC',
-              borderRadius: '5px',
-            })}
-          >
-            {symbolHover.symbolHash}
-          </code>
-        </h1>
-        <div
-          class={css({
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'flex-start',
-          })}
-        >
-          <SymbolSource symbolHash={symbolHover.symbolHash} />
-        </div>
+          {symbolHash}
+        </code>
+      </h1>
+      <div
+        class={css({
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'flex-start',
+        })}
+      >
+        <SymbolSource symbolHash={symbolHash} />
       </div>
-    </>
+    </div>
   );
 });
 
@@ -190,24 +140,8 @@ export const SymbolSource = component$<{ symbolHash: string }>(({ symbolHash }) 
 });
 
 export const SymbolCmp = component$<{ symbol: string }>(({ symbol }) => {
-  const symbolHover = useContext(symbolHoverContext);
-  const onMouseMove = $((event: QwikMouseEvent) => {
-    if (event.shiftKey) return;
-    symbolHover.x = event.clientX;
-    symbolHover.y = event.clientY;
-  });
   return (
     <code
-      onMouseEnter$={async (e, target) => {
-        symbolHover.visible = true;
-        symbolHover.symbolHash = target.textContent!;
-        await onMouseMove(e);
-      }}
-      onMouseLeave$={(event) => {
-        if (event.shiftKey) return;
-        symbolHover.visible = false;
-      }}
-      onMouseMove$={onMouseMove}
       class={css({
         fontFamily: 'monospace',
         fontWeight: 'bold',
@@ -218,6 +152,7 @@ export const SymbolCmp = component$<{ symbol: string }>(({ symbol }) => {
         borderRadius: '5px',
         whiteSpace: 'nowrap',
       })}
+      onPopup$={(e: PopupEvent) => e.detail.show(SymbolPopup, { symbolHash: symbol })}
     >
       <SymbolIcon
         class={css({ display: 'inline-block', marginBottom: '1px', marginRight: '2px' })}

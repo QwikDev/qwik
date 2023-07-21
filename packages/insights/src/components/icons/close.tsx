@@ -1,10 +1,7 @@
 import { type QwikIntrinsicElements } from '@builder.io/qwik';
 import { css, cx } from '~/styled-system/css';
 
-export const ErrorIcon = function MaterialSymbolsChatErrorSharp(
-  props: QwikIntrinsicElements['svg'],
-  key: string
-) {
+export function CloseIcon(props: QwikIntrinsicElements['svg'], key: string) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -13,18 +10,18 @@ export const ErrorIcon = function MaterialSymbolsChatErrorSharp(
       viewBox="0 0 24 24"
       {...props}
       class={cx(
-        String(props.class),
         css({
           display: 'inline-block',
           margin: '4px 2px',
-        })
+        }),
+        String(props.class)
       )}
       key={key}
     >
       <path
-        fill="darkred"
-        d="M2 22V2h20v16H6l-4 4Zm7.4-8l2.6-2.6l2.6 2.6l1.4-1.4l-2.6-2.6L16 7.4L14.6 6L12 8.6L9.4 6L8 7.4l2.6 2.6L8 12.6L9.4 14Z"
+        fill="currentColor"
+        d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2m-3.4 14L12 13.4L8.4 17L7 15.6l3.6-3.6L7 8.4L8.4 7l3.6 3.6L15.6 7L17 8.4L13.4 12l3.6 3.6l-1.4 1.4Z"
       ></path>
     </svg>
   );
-};
+}

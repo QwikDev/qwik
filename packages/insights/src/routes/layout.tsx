@@ -1,12 +1,12 @@
 import { Slot, component$ } from '@builder.io/qwik';
-import { SymbolProvider } from '~/components/symbol';
+import { PopupManager } from '~/components/popup-manager';
 
 export default component$(() => {
   return (
     <div>
-      <SymbolProvider>
+      <PopupManager>
         <Slot />
-      </SymbolProvider>
+      </PopupManager>
     </div>
   );
 });

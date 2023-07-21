@@ -1,6 +1,38 @@
-import { eq, and, type InferModel } from 'drizzle-orm';
+import { eq, and, type InferModel, sql } from 'drizzle-orm';
 import { type AppDatabase } from './index';
-import { manifestTable } from './schema';
+import { edgeTable, manifestTable } from './schema';
+import { latencyColumnSums, toVector } from './query-helpers';
+
+export async function dbGetManifests(
+  db: AppDatabase,
+  publicApiKey: string
+): Promise<InferModel<typeof manifestTable, 'select'>[]> {
+  const manifests = await db
+    .select()
+    .from(manifestTable)
+    .where(and(eq(manifestTable.publicApiKey, publicApiKey)))
+    .orderBy(sql`${manifestTable.timestamp} DESC`)
+    .all();
+  return manifests;
+}
+
+export async function dbGetManifestStats(db: AppDatabase, publicApiKey: string) {
+  const manifests = await db
+    .select({ hash: manifestTable.hash, timestamp: manifestTable.timestamp, ...latencyColumnSums })
+    .from(manifestTable)
+    .innerJoin(edgeTable, eq(edgeTable.manifestHash, manifestTable.hash))
+    .where(and(eq(manifestTable.publicApiKey, publicApiKey)))
+    .groupBy(manifestTable.hash)
+    .orderBy(sql`${manifestTable.timestamp} DESC`)
+    .all();
+  return manifests.map((manifest) => {
+    return {
+      hash: manifest.hash,
+      timestamp: manifest.timestamp,
+      latency: toVector('sumLatencyCount' as const, manifest),
+    };
+  });
+}
 
 export async function dbGetManifestInfo(
   db: AppDatabase,
@@ -18,7 +50,7 @@ export async function dbGetManifestInfo(
     const manifestFields = {
       publicApiKey,
       hash: manifestHash,
-      timestamp: Date.now(),
+      timestamp: new Date(),
     };
     const response = await db.insert(manifestTable).values(manifestFields).run();
     return {

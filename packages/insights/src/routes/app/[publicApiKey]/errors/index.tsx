@@ -87,10 +87,6 @@ export default component$(() => {
                 <a href={error.url}>{error.url}</a>
               </td>
               <td class={cx(css({}), columnMessageCell)}>{error.message}</td>
-              {/* <td>{error.error}</td>
-              <td>
-                <pre>{error.stack}</pre>
-              </td> */}
             </tr>
           ))}
         </tbody>

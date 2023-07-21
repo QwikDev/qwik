@@ -215,6 +215,12 @@ export const Issue4824 = component$(() => {
   return (
     <div>
       <button
+        id="issue-4824-toggle"
+        onClick$={() => (disabled.value = !disabled.value)}
+      >
+        Toggle
+      </button>
+      <button
         id="issue-4824-result"
         disabled={(disabled.value ? false : "") as any}
       >

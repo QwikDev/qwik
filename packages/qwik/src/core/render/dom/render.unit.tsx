@@ -79,6 +79,12 @@ renderSuite('should serialize boolean attributes correctly', async () => {
   await expectRendered(fixture, '<input required="" />');
 });
 
+renderSuite('should serialize empty string correctly for boolean property', async () => {
+  const fixture = new ElementFixture();
+  await render(fixture.host, <button disabled={'' as any}></button>);
+  await expectRendered(fixture, '<button disabled=""></button>');
+});
+
 renderSuite('should render aria', async () => {
   const fixture = new ElementFixture();
   await render(

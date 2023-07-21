@@ -157,6 +157,7 @@ export const AttributesChild = component$(() => {
       <Issue3622 />
       <Issue4718Null />
       <Issue4718Undefined />
+      <Issue4824 />
     </>
   );
 });
@@ -205,5 +206,17 @@ export const Issue4718Null = component$(() => {
     >
       Click Me
     </button>
+  );
+});
+
+export const Issue4824 = component$(() => {
+  const disabled = useSignal(false);
+
+  return (
+    <div>
+      <button id="issue-4824-result" disabled={(disabled.value ? false : '') as any}>
+        target
+      </button>
+    </div>
   );
 });

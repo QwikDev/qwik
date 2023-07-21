@@ -7,7 +7,7 @@ import { isElement, isNode, isQwikElement } from '../../util/element';
 import { logDebug, logError, logWarn } from '../../util/log';
 import { QSlot, QSlotRef, QStyle } from '../../util/markers';
 import { qDev } from '../../util/qdev';
-import { directGetAttribute, directSetAttribute } from '../fast-calls';
+import { directGetAttribute, directRemoveAttribute, directSetAttribute } from '../fast-calls';
 import type { RenderStaticContext } from '../types';
 import type { QwikElement, VirtualElement } from './virtual-element';
 import {
@@ -36,7 +36,7 @@ export const setAttribute = (
 
 const _setAttribute = (el: QwikElement, prop: string, value: any) => {
   if (value == null || value === false) {
-    el.removeAttribute(prop);
+    directRemoveAttribute(el, prop);
   } else {
     const str = value === true ? '' : String(value);
     directSetAttribute(el, prop, str);
@@ -65,8 +65,12 @@ export const setPropertyPost = (
 const _setProperty = (node: any, key: string, value: any) => {
   try {
     node[key] = value == null ? '' : value;
-    if (value == null && isNode(node) && isElement(node)) {
-      node.removeAttribute(key);
+    if (isNode(node) && isElement(node)) {
+      if (value == null) {
+        node.removeAttribute(key);
+      } else if (typeof node[key as keyof Element] === 'boolean' && String(value).length === 0) {
+        directSetAttribute(node, key, '');
+      }
     }
   } catch (err) {
     logError(codeToText(QError_setProperty), { node, key, value }, err);

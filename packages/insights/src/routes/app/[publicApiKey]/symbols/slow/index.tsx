@@ -1,7 +1,7 @@
 import { component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
 import Histogram, { latencyColors } from '~/components/histogram';
-import { SymbolCmp } from '~/components/symbol';
+import { SymbolTile } from '~/components/symbol-tile';
 import { getDB } from '~/db';
 import { getSlowEdges, getSymbolDetails, getAppInfo } from '~/db/query';
 import { BUCKETS, vectorAvg, vectorSum } from '~/stats/vector';
@@ -55,15 +55,9 @@ export default component$(() => {
                     fontSize: '10px',
                   })}
                 >
-                  <SymbolCmp symbol={edge.to} />
+                  <SymbolTile symbol={edge.to} />
                   <br />
                   {detail?.fullName}
-                  <br />
-                  {data.value.app.github && detail?.origin ? (
-                    <a href={toUrl(data.value.app.github, detail.origin)}>{detail.origin}</a>
-                  ) : (
-                    detail?.origin
-                  )}
                 </td>
                 <td
                   class={css({
@@ -94,12 +88,3 @@ export default component$(() => {
     </div>
   );
 });
-
-function toUrl(base: string, file: string) {
-  const url = new URL(base);
-  if (!url.pathname.endsWith('/') || !file.startsWith('/')) {
-    url.pathname += '/';
-  }
-  url.pathname += file;
-  return url.toString();
-}

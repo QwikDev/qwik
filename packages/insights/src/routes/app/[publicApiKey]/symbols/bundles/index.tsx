@@ -1,7 +1,7 @@
 import { component$, useStore, type JSXNode } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
 import { BundleCmp } from '~/components/bundle';
-import { SymbolCmp } from '~/components/symbol';
+import { SymbolTile } from '~/components/symbol-tile';
 import { getDB } from '~/db';
 import { getEdges, getSymbolDetails } from '~/db/query';
 import {
@@ -13,10 +13,14 @@ import {
 import { vectorSum } from '~/stats/vector';
 import { css } from '~/styled-system/css';
 
-export const useData = routeLoader$(async ({ params }) => {
+export const useData = routeLoader$(async ({ params, url }) => {
   const db = getDB();
+  const limit = url.searchParams.get('limit')
+    ? parseInt(url.searchParams.get('limit')!)
+    : undefined;
+
   const [edges, details] = await Promise.all([
-    getEdges(db, params.publicApiKey),
+    getEdges(db, params.publicApiKey, { limit }),
     getSymbolDetails(db, params.publicApiKey),
   ]);
   const rootSymbol = computeSymbolGraph(edges, details);
@@ -55,7 +59,7 @@ export default component$(() => {
               >
                 {bundle.symbols.map((symbol) => (
                   <li key={symbol.name}>
-                    <SymbolCmp symbol={symbol.name} />
+                    <SymbolTile symbol={symbol.name} />
                     {' ( '}
                     <code class={css({ fontFamily: 'monospace' })}>{symbol.fullName}</code>
                     {' / '}

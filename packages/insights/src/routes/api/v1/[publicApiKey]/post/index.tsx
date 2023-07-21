@@ -2,6 +2,7 @@ import { type RequestHandler } from '@builder.io/qwik-city';
 import { InsightsPayload } from '@builder.io/qwik-labs';
 import { getDB } from '~/db';
 import { getAppInfo, updateEdge } from '~/db/query';
+import { dbGetManifestInfo } from '~/db/sql-manifest';
 import { toBucket } from '~/stats/vector';
 
 export const onPost: RequestHandler = async ({ exit, json, request }) => {
@@ -12,6 +13,8 @@ export const onPost: RequestHandler = async ({ exit, json, request }) => {
   const db = getDB();
   let previousSymbol = payload.previousSymbol;
   const publicApiKey = payload.publicApiKey;
+  const manifestHash = payload.manifestHash;
+  await dbGetManifestInfo(db, publicApiKey, manifestHash);
   if (publicApiKey && publicApiKey.length > 4) {
     await getAppInfo(db, publicApiKey, { autoCreate: true });
     for (const event of payload.symbols) {
@@ -19,7 +22,7 @@ export const onPost: RequestHandler = async ({ exit, json, request }) => {
       if (symbolHash) {
         await updateEdge(db, {
           publicApiKey,
-          manifestHash: payload.manifestHash,
+          manifestHash,
           from: previousSymbol,
           to: symbolHash,
           interaction: event.interaction,

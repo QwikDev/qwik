@@ -35,7 +35,7 @@ export const errorTable = sqliteTable('errors', {
   id: integer('id').primaryKey(),
   publicApiKey: text('public_api_key').references(() => applicationTable.publicApiKey),
   manifestHash: text('manifest_hash').references(() => manifestTable.hash),
-  timestamp: integer('timestamp').notNull(),
+  timestamp: integer('timestamp', { mode: 'timestamp_ms' }).notNull(),
   sessionID: text('session_id').notNull(),
   url: text('url').notNull(),
   source: text('source').notNull(),
@@ -52,7 +52,7 @@ export const manifestTable = sqliteTable(
     id: integer('id').primaryKey(),
     publicApiKey: text('public_api_key').references(() => applicationTable.publicApiKey),
     hash: text('hash').notNull(),
-    timestamp: integer('timestamp').notNull(),
+    timestamp: integer('timestamp', { mode: 'timestamp_ms' }).notNull(),
   },
   (table) => ({
     publicApiKeyIndex: uniqueIndex('hashIndex').on(table.hash),

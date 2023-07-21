@@ -9,6 +9,8 @@ export const onRequest: RequestHandler = async ({ env }) => {
   await initializeDbIfNeeded(initLibSql(url, authToken));
 };
 
+const LOG_QUERY: boolean = false;
+
 function initLibSql(url: string, authToken: string): () => Promise<AppDatabase> {
   return async () =>
     drizzle(
@@ -16,15 +18,17 @@ function initLibSql(url: string, authToken: string): () => Promise<AppDatabase> 
         url,
         authToken,
       }),
-      {
-        // logger: {
-        //   logQuery(query: string, params: unknown[]): void {
-        //     console.debug('___QUERY___');
-        //     console.debug(query);
-        //     console.debug(params);
-        //     console.debug('___END_QUERY___');
-        //   },
-        // },
-      }
+      LOG_QUERY
+        ? {
+            logger: {
+              logQuery(query: string, params: unknown[]): void {
+                console.debug('___QUERY___');
+                console.debug(query);
+                console.debug(params);
+                console.debug('___END_QUERY___');
+              },
+            },
+          }
+        : undefined
     );
 }

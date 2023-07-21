@@ -5,7 +5,7 @@ import { dbGetOutgoingEdges } from '~/db/sql-edges';
 import { BUCKETS, vectorSum } from '~/stats/vector';
 import Histogram, { delayColors, latencyColors } from '~/components/histogram';
 import { css } from '~/styled-system/css';
-import { SymbolCmp } from '~/components/symbol';
+import { SymbolTile } from '~/components/symbol-tile';
 import { ManifestIcon } from '~/components/icons/manifest';
 
 export const useData = routeLoader$(async ({ params, query }) => {
@@ -23,7 +23,7 @@ export default component$(() => {
   return (
     <div>
       <h1>
-        Outgoing Symbols: <SymbolCmp symbol={data.value.symbol} />
+        Outgoing Symbols: <SymbolTile symbol={data.value.symbol} />
         <table>
           <tbody>
             <tr>
@@ -47,7 +47,7 @@ export default component$(() => {
                 </td>
                 <td>
                   <a href={`/app/${data.value.publicApiKey}/symbols/outgoing/?symbol=${edge.to}`}>
-                    <SymbolCmp symbol={edge.to} />
+                    <SymbolTile symbol={edge.to} />
                   </a>
                 </td>
                 <td class={css({ paddingLeft: '1em' })}>

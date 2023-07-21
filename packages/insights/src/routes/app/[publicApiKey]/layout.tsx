@@ -10,6 +10,8 @@ import { BundleIcon } from '~/components/icons/bundle';
 import { SlowIcon } from '~/components/icons/slow';
 import { ErrorIcon } from '~/components/icons/error';
 import { DashboardIcon } from '~/components/icons/dashboard';
+import { ManifestIcon } from '~/components/icons/manifest';
+import { AppLink } from '~/routes.config';
 
 export default component$(() => {
   const location = useLocation();
@@ -32,6 +34,14 @@ export default component$(() => {
               <EditIcon />
               <span>Edit</span>
             </Link>
+            <AppLink
+              route={'/app/[publicApiKey]/manifests/'}
+              param:publicApiKey={location.params.publicApiKey}
+              class={[styles['menu-item'], subPath === 'manifests/' ? styles.active : '']}
+            >
+              <ManifestIcon />
+              <span>Manifests</span>
+            </AppLink>
             <Link
               href={path + 'symbols/'}
               class={[styles['menu-item'], subPath === 'symbols/' ? styles.active : '']}

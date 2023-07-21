@@ -139,7 +139,7 @@ export const SymbolSource = component$<{ symbolHash: string }>(({ symbolHash }) 
   );
 });
 
-export const SymbolCmp = component$<{ symbol: string }>(({ symbol }) => {
+export const SymbolTile = component$<{ symbol: string }>(({ symbol }) => {
   return (
     <code
       class={css({

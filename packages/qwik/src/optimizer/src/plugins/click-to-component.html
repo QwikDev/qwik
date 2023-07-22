@@ -99,6 +99,15 @@
       { capture: true }
     );
 
+    window.addEventListener(
+      'blur',
+      (event) => {
+        window.__qwik_inspector_state.pressedKeys.clear();
+        updateOverlay();
+      },
+      { capture: true }
+    );
+
     document.addEventListener(
       'mouseover',
       (event) => {

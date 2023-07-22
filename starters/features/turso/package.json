@@ -1,0 +1,12 @@
+{
+  "description": "Use Turso in your Qwik app",
+  "dependencies": {
+    "@libsql/client": "^0.3.0"
+  },
+  "devDependencies": {
+    "@builder.io/qwik-city": "^1.2.6"
+  },
+  "__qwik__": {
+    "priority": "-1"
+  }
+}

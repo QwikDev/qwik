@@ -30,20 +30,20 @@ It also adds new files inside your project folder:
 and adds or modifies a `.env.local` file to include
 
 ```txt title=".env.local"
-TURSO_DB_URL=
-TURSO_DB_AUTH_TOKEN=
+PRIVATE_TURSO_DB_URL=
+PRIVATE_TURSO_DB_AUTH_TOKEN=
 ```
 
 ## Using file databases
 
-For local development and CI integration it is ideal to use local database files.
+For local development and CI integration, it is ideal to use local database files.
 
-First check if SQLite is installed in your machine by running `sqlite3
+First, check if SQLite is installed in your machine by running `sqlite3
 --version`. If you get anything other than a version number (e.g `0-14 20:58:05
 554764a6e721fab307c63a4f98cd958c8428a5d9d8edfde951858d6fd02daapl`), visit [this
 link for installation instructions].
 
-Proceed to creating a SQLite file database by running the following command.
+Proceed to create an SQLite file database by running the following command.
 
 ```sh
 sqlite3 foo.db
@@ -64,11 +64,11 @@ sqlite> insert into todo(id, task) values(2, "Buy groceries");
 
 Quit the shell `.quit`
 
-Then, assign the database file path to the `TURSO_DB_URL` environment variable
+Then, assign the database file path to the `PRIVATE_TURSO_DB_URL` environment variable
 inside `.env.local`.
 
 ```
-TURSO_DB_URL=file:foo.db
+PRIVATE_TURSO_DB_URL=file:foo.db
 ```
 
 > ***Note***: A database token is not needed when working with file databases.
@@ -108,7 +108,7 @@ Starting with the database url, run the following command.
 turso db show <database-name> --url
 ```
 
-Copy the resulting url and assign it to the `TURSO_DB_URL` environment variable.
+Copy the resulting URL and assign it to the `PRIVATE_TURSO_DB_URL` environment variable.
 
 And, for the database authentication token, run the command.
 
@@ -116,7 +116,7 @@ And, for the database authentication token, run the command.
 turso db tokens create <database-name>
 ```
 
-Copy the resulting token and assign it to the `TURSO_DB_AUTH_TOKEN` environment
+Copy the resulting token and assign it to the `PRIVATE_TURSO_DB_AUTH_TOKEN` environment
 variable.
 
 ## How to use Turso inside Qwik

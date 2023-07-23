@@ -324,20 +324,20 @@ In Qwik, a [task](/docs/components/tasks/#usetask) is work that needs to happen 
 2. Add a `track` call to re-execute the task on `isFavoriteSignal` state change:
    ```tsx /track/
    useTask$(({ track }) => {
-     track(()=> isFavoriteSignal.value);
+     track(() => isFavoriteSignal.value);
    });
    ```
 3. Add the work that you want to execute on state change:
    ```tsx {3}
    useTask$(({ track }) => {
-     track(()=> isFavoriteSignal.value);
+     track(() => isFavoriteSignal.value);
      console.log('FAVORITE (isomorphic)', isFavoriteSignal.value);
    });
    ```
 4. If you want to have work happen on the server only, wrap it in `server$()`
    ```tsx /server\$/ {4-6}
    useTask$(({ track }) => {
-     track(()=> isFavoriteSignal.value);
+     track(() => isFavoriteSignal.value);
      console.log('FAVORITE (isomorphic)', isFavoriteSignal.value);
      server$(() => {
        console.log('FAVORITE (server)', isFavoriteSignal.value);

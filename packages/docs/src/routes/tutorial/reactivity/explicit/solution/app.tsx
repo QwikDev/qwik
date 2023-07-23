@@ -11,10 +11,10 @@ export default component$(() => {
     delayCount: 0,
   });
   console.log('Render: <App>');
-  useTask$(({ track }) => {
+  useTask$(({ track, cleanup }) => {
     track(() => store.count);
     const id = setTimeout(() => (store.delayCount = store.count), 2000);
-    return () => clearTimeout(id);
+    cleanup(() => clearTimeout(id));
   });
   return (
     <>

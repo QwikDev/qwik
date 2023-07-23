@@ -56,6 +56,7 @@
 - [Supabase](integrations/supabase/index.mdx)
 - [Tailwind](integrations/tailwind/index.mdx)
 - [Tauri](integrations/tauri/index.mdx)
+- [Turso](integrations/turso/index.mdx)
 - [Vitest](integrations/vitest/index.mdx)
 
 ## Deployments

@@ -596,26 +596,24 @@ export const runResource = <T>(
   let done = false;
 
   const setState = (resolved: boolean, value: any) => {
-    if (!done) {
-      done = true;
-      if (resolved) {
-        done = true;
-        resource.loading = false;
-        resource._state = 'resolved';
-        resource._resolved = value;
-        resource._error = undefined;
-
-        resolve(value);
-      } else {
-        done = true;
-        resource.loading = false;
-        resource._state = 'rejected';
-        resource._error = value;
-        reject(value);
-      }
-      return true;
+    if (done) {
+      return false;
     }
-    return false;
+    done = true;
+    
+    resource.loading = false;  
+    if (resolved) {
+      resource._state = 'resolved';
+      resource._resolved = value;
+      resource._error = undefined;
+      resolve(value);
+    } else {
+      resource._state = 'rejected';
+      resource._error = value;
+      reject(value);
+    }
+
+    return true;
   };
 
   // Execute mutation inside empty invocation
@@ -635,10 +633,10 @@ export const runResource = <T>(
 
   const promise = safeCall(
     () => then(waitOn, () => taskFn(opts)),
-    (value) => {
+    (value: T) => {
       setState(true, value);
     },
-    (reason) => {
+    (reason: any) => {
       setState(false, reason);
     }
   );

@@ -192,15 +192,15 @@ To use your build in your project, follow these steps:
 2. Inside the root of your project run:
 
    ```shell
-   npm install
-   npm link @builder.io/qwik @builder.io/qwik-city
+    pnpm install
+    pnpm link --global @builder.io/qwik @builder.io/qwik-city
    ```
 
    or
 
    ```shell
-    pnpm install
-    pnpm link --global @builder.io/qwik @builder.io/qwik-city
+   npm install
+   npm link @builder.io/qwik @builder.io/qwik-city
    ```
 
    or

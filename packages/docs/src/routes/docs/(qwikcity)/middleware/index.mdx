@@ -449,7 +449,7 @@ export const onGet: RequestHandler = async ({ status, getWritableStream }) => {
 
 ### `redirect()` 
 
-Redirect to a new URL. Notice the importance of throwing to prevent other middleware functions from running. he `redirect()` method will automatically set the `Location` header to the redirect URL.
+Redirect to a new URL. Notice the importance of throwing to prevent other middleware functions from running. The `redirect()` method will automatically set the `Location` header to the redirect URL.
 
 <CodeSandbox src="/src/routes/demo/qwikcity/middleware/redirect/index.tsx">
 ```tsx

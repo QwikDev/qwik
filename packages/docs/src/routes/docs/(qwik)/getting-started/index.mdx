@@ -22,6 +22,7 @@ contributors:
   - sreeisalso
   - dustinsgoodman
   - nsdonato
+  - seqshem
 ---
 
 import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
@@ -150,7 +151,7 @@ NOTE: `routeAction$` is the preferred way to send data to the server because it 
 To declare an action, add this code:
 
 ```tsx /routeAction\$/ title="src/routes/joke/index.tsx"
-import { routeAction$, Form } from '@builder.io/qwik-city';
+import { routeLoader$, Form, routeAction$ } from '@builder.io/qwik-city';
 
 export const useJokeVoteAction = routeAction$((props) => {
   // Leave it as an exercise for the reader to implement this.
@@ -317,24 +318,27 @@ export default component$(() => {
 
 In Qwik, a [task](/docs/components/tasks/#usetask) is work that needs to happen when a state changes. (This is similar to an "effect" in other frameworks.) In this example, we use the task to invoke code on the server.
 
-1. Create a new task that tracks the `isFavoriteSignal` state:
+1. Import `useTask$` from `qwik`.
+   ```tsx /useTask$/
+   import { component$, useSignal, useTask$ } from "@builder.io/qwik";
+2. Create a new task that tracks the `isFavoriteSignal` state:
    ```tsx /useTask\$/
    useTask$(({ track }) => {});
    ```
-2. Add a `track` call to re-execute the task on `isFavoriteSignal` state change:
+3. Add a `track` call to re-execute the task on `isFavoriteSignal` state change:
    ```tsx /track/
    useTask$(({ track }) => {
      track(() => isFavoriteSignal.value);
    });
    ```
-3. Add the work that you want to execute on state change:
+4. Add the work that you want to execute on state change:
    ```tsx {3}
    useTask$(({ track }) => {
      track(() => isFavoriteSignal.value);
      console.log('FAVORITE (isomorphic)', isFavoriteSignal.value);
    });
    ```
-4. If you want to have work happen on the server only, wrap it in `server$()`
+5. If you want to have work happen on the server only, wrap it in `server$()`
    ```tsx /server\$/ {4-6}
    useTask$(({ track }) => {
      track(() => isFavoriteSignal.value);
@@ -435,7 +439,10 @@ To add styles:
     ```tsx
     import styles from "./index.css?inline";
     ```
-3. Tell the component to load the styles:
+3. Import `useStylesScoped$` from `qwik`.
+   ```tsx /useStylesScoped$/
+   import { component$, useSignal, useStylesScoped$, useTask$ } from "@builder.io/qwik";
+4. Tell the component to load the styles:
    ```tsx
    useStylesScoped$(styles);
    ```

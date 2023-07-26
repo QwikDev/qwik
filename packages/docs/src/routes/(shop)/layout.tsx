@@ -1,18 +1,10 @@
-import {
-  $,
-  component$,
-  Slot,
-  useContextProvider,
-  useStore,
-  useVisibleTask$,
-} from '@builder.io/qwik';
+import { $, component$, Slot, useContextProvider, useStore, useTask$ } from '@builder.io/qwik';
 import { Header } from '../../components/header/header';
 import { Footer } from '../../components/footer/footer';
 import { routeLoader$, type RequestHandler } from '@builder.io/qwik-city';
 import {
   COOKIE_CART_ID_KEY,
   fetchFromShopify,
-  getCookie,
   mapProducts,
   setCookie,
   SHOP_CONTEXT,
@@ -34,22 +26,28 @@ const useProductsLoader = routeLoader$(async () => {
   return mapProducts(node.products.edges);
 });
 
+const useCartLoader = routeLoader$(async ({ cookie }) => {
+  const cartId = cookie.get(COOKIE_CART_ID_KEY)?.value;
+  const body = cartId ? checkoutQuery(cartId) : checkoutCreateMutation();
+  const response = await fetchFromShopify(body);
+  const { data }: CheckoutQuery | CheckoutCreateMutation = await response.json();
+
+  const cart = 'node' in data ? data.node : data.checkoutCreate.checkout;
+
+  if (!cartId && cart.id) {
+    setCookie(cookie, cart.id);
+  }
+  return cart;
+});
+
 export default component$(() => {
+  const cart = useCartLoader();
   useImageProvider({ imageTransformer$: $(({ src }: ImageTransformerProps): string => src) });
   const appShop = useStore<ShopApp>({ products: useProductsLoader().value });
   useContextProvider(SHOP_CONTEXT, appShop);
 
-  useVisibleTask$(async () => {
-    const cartId = getCookie(COOKIE_CART_ID_KEY);
-    const body = cartId ? checkoutQuery(cartId) : checkoutCreateMutation();
-    const response = await fetchFromShopify(body);
-    const { data }: CheckoutQuery | CheckoutCreateMutation = await response.json();
-
-    appShop.cart = 'node' in data ? data.node : data.checkoutCreate.checkout;
-
-    if (!cartId && appShop.cart?.id) {
-      setCookie(COOKIE_CART_ID_KEY, appShop.cart.id, 30);
-    }
+  useTask$(() => {
+    appShop.cart = cart.value;
   });
 
   return (

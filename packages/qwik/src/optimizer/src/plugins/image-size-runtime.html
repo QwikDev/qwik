@@ -314,7 +314,8 @@
           const hasWidth = isDefinedUnit(computedStyles.get('width').toString());
           const hasHeight = isDefinedUnit(computedStyles.get('height').toString());
           const isAbsolute = computedStyles.get('position').toString() === 'absolute';
-          layoutInvalidation = browserArea > 1000 && !isAbsolute && !hasAspect && (!hasWidth || !hasHeight);
+          layoutInvalidation =
+            browserArea > 1000 && !isAbsolute && !hasAspect && (!hasWidth || !hasHeight);
         }
         const realArea = info.width && info.height;
         const threshholdArea = realArea * 0.5;

@@ -10,6 +10,7 @@ import {
   useResource$,
   type QwikIntrinsicElements,
   Resource,
+  useComputed$,
 } from "@builder.io/qwik";
 import { delay } from "../resource/resource";
 import {
@@ -132,6 +133,7 @@ export const SignalsChildren = component$(() => {
       <Issue4249 />
       <Issue4228 />
       <Issue4368 />
+      <Issue4868 />
     </div>
   );
 });
@@ -1159,5 +1161,81 @@ export const Issue4368 = component$(() => {
         )}
       />
     </>
+  );
+});
+
+export const __CFG__ = { noImg: "https://placehold.co/600x400?text=No%20IMG" };
+
+export type PropsType = {
+  data: { id: number; src?: string };
+};
+
+const options = [
+  {
+    src: "https://placehold.co/400x400?text=1",
+    id: 1,
+  },
+  {
+    src: "https://placehold.co/500x500?text=2",
+    id: 2,
+  },
+];
+
+export const Issue4868 = component$(() => {
+  const selected = useSignal<{ id: number; src?: string }>(options[0]);
+  return (
+    <div>
+      <Issue4868BigCard data={selected.value} />
+      {options.map((d) => (
+        <>
+          <button
+            key={d.id}
+            onClick$={() => (selected.value = d)}
+            style={{ padding: "2rem", cursor: "pointer" }}
+            id={`issue-4868-btn-${d.id}`}
+          >
+            {d.id}
+          </button>
+        </>
+      ))}
+    </div>
+  );
+});
+
+export const Issue4868BigCard = component$<PropsType>((props) => {
+  // Using a reference to another const will somehow prevent the useComputed$ in the Card element to use the correct context
+  const noImg = __CFG__.noImg;
+
+  // Assigning static value here will make the Card component and useComputed$ within work as expected
+  // const noImg = 'https://placehold.co/600x400?text=No%20IMG';
+
+  return (
+    <div
+      style={{
+        flexDirection: "column",
+        border: "1px solid red",
+        padding: "1rem",
+        gap: "1rem",
+      }}
+    >
+      <Issue4868Card src={props.data.src || noImg} />
+      <div id="issue-4868-json">{JSON.stringify(props.data)}</div>
+    </div>
+  );
+});
+
+export const Issue4868Card = component$((props: { src: string }) => {
+  const { src } = props;
+
+  const src$ = useComputed$(() => {
+    // do something very important with the src
+    return props.src + "&useComputed$";
+  });
+
+  return (
+    <div style={{ border: "1px solid white", padding: "1rem" }}>
+      <p id="issue-4868-props">Card props.src: {src}</p>
+      <p id="issue-4868-usecomputed">Card useComputed$: {src$.value}</p>
+    </div>
   );
 });

@@ -106,7 +106,7 @@ export const HelloWorld = component$(async () => {
         });`,
       `export const HelloWorld = component$(async () => {
           const test = useFunction() as string;
-        
+
           });
           `,
       `export const InsideTask = component$(() => {
@@ -440,6 +440,21 @@ export default component$(() => {
             return <div></div>;
           });`,
         errors: [{ messageId: 'referencesOutside' }],
+      },
+      {
+        code: `
+          export const HelloWorld = component$(() => {
+            let startX: number | undefined = 0;
+
+            const handleMouseDown = $((e: QwikMouseEvent) => {
+              console.log('working');
+              startX = e.pageX - divRef.value!.offsetLeft;
+            });
+            return <div
+              onMouseDown$={handleMouseDown}
+            ></div>;
+          });`,
+        errors: [{ messageId: 'mutableIdentifier' }],
       },
       {
         code: `

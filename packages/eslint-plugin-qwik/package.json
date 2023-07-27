@@ -10,6 +10,8 @@
   "devDependencies": {
     "@types/eslint": "8.44.1",
     "@types/estree": "^1.0.1",
+    "@typescript-eslint/rule-tester": "^6.2.0",
+    "@typescript-eslint/utils": "6.2.0",
     "redent": "^4.0.0"
   },
   "engines": {

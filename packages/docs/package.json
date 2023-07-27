@@ -41,7 +41,7 @@
     "shiki": "^0.14.3",
     "snarkdown": "^2.0.0",
     "tailwindcss": "3.3.3",
-    "tsm": "2.3.0",
+    "tsm": "2.2.2",
     "typescript": "5.1.6",
     "undici": "5.22.1",
     "uvu": "0.5.6",

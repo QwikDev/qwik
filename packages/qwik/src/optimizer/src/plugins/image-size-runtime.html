@@ -445,7 +445,13 @@
     } else {
       window.addEventListener('load', activate);
     }
-    if (typeof PerformanceObserver !== 'undefined') {
+    const pageAccessedByReload =
+      performance?.navigation.type === 1 ||
+      performance
+        .getEntriesByType('navigation')
+        .map((nav) => nav.type)
+        .includes('reload');
+    if (typeof PerformanceObserver !== 'undefined' && !pageAccessedByReload) {
       const shiftsMap = new Map();
       perfObserver = new PerformanceObserver((list) => {
         list.getEntries().forEach((entry) => {

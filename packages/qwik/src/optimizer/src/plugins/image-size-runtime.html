@@ -306,15 +306,16 @@
       if (info && wideScreen) {
         let layoutInvalidation = false;
         const loc = node.getAttribute('data-qwik-inspector');
+        const browserArea = rect.width * rect.height;
         if (!node.hasAttribute('width') || !node.hasAttribute('height')) {
           skip = true;
           const computedStyles = node.computedStyleMap();
           const hasAspect = computedStyles.get('aspect-ratio').toString() !== 'auto';
           const hasWidth = isDefinedUnit(computedStyles.get('width').toString());
           const hasHeight = isDefinedUnit(computedStyles.get('height').toString());
-          layoutInvalidation = !hasAspect && (!hasWidth || !hasHeight);
+          const isAbsolute = computedStyles.get('position').toString() === 'absolute';
+          layoutInvalidation = browserArea > 1000 && !isAbsolute && !hasAspect && (!hasWidth || !hasHeight);
         }
-        const browserArea = rect.width * rect.height;
         const realArea = info.width && info.height;
         const threshholdArea = realArea * 0.5;
         const tooBig = browserArea < threshholdArea;

@@ -46,7 +46,7 @@ export const SignalsChildren = component$(() => {
     {
       count: 0,
     },
-    { reactive: false }
+    { reactive: false },
   );
   const store = useStore({
     foo: 10,
@@ -153,7 +153,7 @@ export const Child = component$((props: ChildProps) => {
     {
       count: 0,
     },
-    { reactive: false }
+    { reactive: false },
   );
   renders.count++;
   const rerenders = renders.count + 0;
@@ -381,7 +381,7 @@ export const Test1 = component$(
         </span>
       </p>
     );
-  }
+  },
 );
 export const Test1Sig = component$((props: { sig: Signal }) => {
   return (
@@ -659,7 +659,7 @@ export const Issue2928 = component$(() => {
     },
     {
       deep: true,
-    }
+    },
   );
   const group = {
     controls: store.controls,
@@ -702,7 +702,7 @@ export const Issue2930 = component$(() => {
     },
     {
       deep: true,
-    }
+    },
   );
 
   return (
@@ -739,7 +739,7 @@ export const Stringify = component$<{
 export const Issue3212Child = component$(
   (props: { signal: Signal<number> }) => {
     return <>{props.signal.value}</>;
-  }
+  },
 );
 
 export function useMySignal() {
@@ -948,7 +948,7 @@ export const Issue4174 = component$(() => {
     () => {
       storeWithoutInit.value = "visible-task";
     },
-    { strategy: "document-ready" }
+    { strategy: "document-ready" },
   );
 
   return (
@@ -1088,7 +1088,7 @@ export const Issue4228 = component$(() => {
     },
     {
       strategy: "document-ready",
-    }
+    },
   );
   return (
     <>
@@ -1124,7 +1124,7 @@ const MyButton = component$<QwikIntrinsicElements["button"]>(
         <Slot />
       </button>
     );
-  }
+  },
 );
 
 const MyTextButton = component$<{ text: string }>((props) => {

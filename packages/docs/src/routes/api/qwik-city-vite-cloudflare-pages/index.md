@@ -8,7 +8,7 @@ title: \@builder.io/qwik-city/vite/cloudflare-pages API Reference
 
 ```typescript
 export declare function cloudflarePagesAdapter(
-  opts?: CloudflarePagesAdapterOptions
+  opts?: CloudflarePagesAdapterOptions,
 ): any;
 ```
 

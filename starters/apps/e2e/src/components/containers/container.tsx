@@ -52,7 +52,7 @@ export const Container = component$((props: ContainerProps) => {
         url,
         html: await res.text(),
       };
-    }
+    },
   );
 
   return (

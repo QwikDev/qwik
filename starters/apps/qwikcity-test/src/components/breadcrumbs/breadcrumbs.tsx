@@ -31,7 +31,7 @@ export const Breadcrumbs = component$(() => {
 
 export function createBreadcrumbs(
   menu: ContentMenu | undefined,
-  pathname: string
+  pathname: string,
 ) {
   if (menu?.items) {
     for (const breadcrumbA of menu.items) {

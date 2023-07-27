@@ -68,7 +68,7 @@ function tests() {
     /***********  Docs: overview  ***********/
     await linkNavigate(
       ctx,
-      '[data-test-menu-link="/qwikcity-test/docs/overview/"]'
+      '[data-test-menu-link="/qwikcity-test/docs/overview/"]',
     );
     await assertPage(ctx, {
       pathname: "/qwikcity-test/docs/overview/",

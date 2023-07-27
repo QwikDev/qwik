@@ -9,7 +9,7 @@ export const MountRoot = component$(() => {
     },
     {
       reactive: false,
-    }
+    },
   );
   const store = useStore({
     logs: "",

@@ -14,19 +14,19 @@ export function useDocumentMouse() {
     $((event: Event) => {
       mousePosition.x = (event as MouseEvent).clientX;
       mousePosition.y = (event as MouseEvent).clientY;
-    })
+    }),
   );
   useOnDocument(
     "mouseenter",
     $(() => {
       mousePosition.inside = "true";
-    })
+    }),
   );
   useOnDocument(
     "mouseleave",
     $(() => {
       mousePosition.inside = "false";
-    })
+    }),
   );
   return mousePosition;
 }
@@ -38,19 +38,19 @@ export function useWindowMouse() {
     $((event: Event) => {
       mousePosition.x = (event as MouseEvent).clientX;
       mousePosition.y = (event as MouseEvent).clientY;
-    })
+    }),
   );
   useOnWindow(
     "mouseenter",
     $(() => {
       mousePosition.inside = "true";
-    })
+    }),
   );
   useOnWindow(
     "mouseleave",
     $(() => {
       mousePosition.inside = "false";
-    })
+    }),
   );
   return mousePosition;
 }
@@ -62,19 +62,19 @@ export function useSelfMouse() {
     $((event: Event) => {
       mousePosition.x = (event as MouseEvent).clientX;
       mousePosition.y = (event as MouseEvent).clientY;
-    })
+    }),
   );
   useOn(
     "mouseenter",
     $(() => {
       mousePosition.inside = "true";
-    })
+    }),
   );
   useOn(
     "mouseleave",
     $(() => {
       mousePosition.inside = "false";
-    })
+    }),
   );
   return mousePosition;
 }

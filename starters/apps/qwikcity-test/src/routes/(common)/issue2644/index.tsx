@@ -11,7 +11,7 @@ export const useRootAction = routeAction$(
   },
   {
     id: "root-action",
-  }
+  },
 );
 
 export default component$(() => {

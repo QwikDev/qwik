@@ -32,5 +32,5 @@ export function isQSLotTemplateElement(node: Node | null | undefined): node is H
 
 export async function expectDOM(actual: Element, expected: string) {
   const options = { parser: 'html', htmlWhitespaceSensitivity: 'ignore' as const };
-  snapshot(format(actual.outerHTML, options), format(expected, options));
+  snapshot(await format(actual.outerHTML, options), await format(expected, options));
 }

@@ -90,7 +90,7 @@ export const Listener = component$((props: { name: string }) => {
     "click",
     $(() => {
       count.value++;
-    })
+    }),
   );
 
   return (

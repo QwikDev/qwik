@@ -98,7 +98,7 @@ export default function (opts: RenderToStreamOptions) {
           events: ["click"],
         },
         ...opts,
-      }
+      },
     );
   }
 
@@ -115,6 +115,6 @@ export default function (opts: RenderToStreamOptions) {
     {
       debug: true,
       ...opts,
-    }
+    },
   );
 }

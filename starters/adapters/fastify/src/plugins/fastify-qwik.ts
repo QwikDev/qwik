@@ -15,7 +15,7 @@ const { router, notFound } = createQwikCity({ render, qwikCityPlan });
 
 const qwikPlugin: FastifyPluginAsync<FastifyQwikOptions> = async (
   fastify,
-  options
+  options,
 ) => {
   const { buildDir, distDir } = options;
 

@@ -10,7 +10,7 @@ Use this function when SSG should be generated from another module, such as a Vi
 
 ```typescript
 export declare function generate(
-  opts: StaticGenerateOptions
+  opts: StaticGenerateOptions,
 ): Promise<StaticGenerateResult>;
 ```
 

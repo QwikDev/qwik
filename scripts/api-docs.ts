@@ -63,10 +63,10 @@ async function generateApiMarkdownSubPackageDocs(
     }
   );
 
-  createApiData(config, docsApiJsonPath, apiOuputDir, subPkgName);
+  await createApiData(config, docsApiJsonPath, apiOuputDir, subPkgName);
 }
 
-function createApiData(
+async function createApiData(
   config: BuildConfig,
   docsApiJsonPath: string,
   apiOuputDir: string,
@@ -185,10 +185,10 @@ function createApiData(
   writeFileSync(apiJsonPath, JSON.stringify(apiData, null, 2));
 
   const apiMdPath = join(docsDir, `index.md`);
-  writeFileSync(apiMdPath, createApiMarkdown(apiData));
+  writeFileSync(apiMdPath, await createApiMarkdown(apiData));
 }
 
-function createApiMarkdown(a: ApiData) {
+async function createApiMarkdown(a: ApiData) {
   let md: string[] = [];
 
   md.push(`---`);
@@ -219,7 +219,7 @@ function createApiMarkdown(a: ApiData) {
     }
   }
 
-  const mdOutput = format(md.join('\n'), {
+  const mdOutput = await format(md.join('\n'), {
     parser: 'markdown',
   });
   return mdOutput;

@@ -59,7 +59,8 @@
 
 .moblie-ecosystem-menu summary,
 .moblie-ecosystem-menu ul {
-  background: linear-gradient(var(--qwik-dark-purple-bg), var(--qwik-dark-purple-bg)) padding-box,
+  background:
+    linear-gradient(var(--qwik-dark-purple-bg), var(--qwik-dark-purple-bg)) padding-box,
     linear-gradient(to bottom, #ac7ff4, #18b6f6) border-box;
 }
 
@@ -156,7 +157,8 @@
   aspect-ratio: 16/9;
   position: relative;
 
-  background: linear-gradient(var(--qwik-dark-purple-bg), var(--qwik-dark-purple-bg)) padding-box,
+  background:
+    linear-gradient(var(--qwik-dark-purple-bg), var(--qwik-dark-purple-bg)) padding-box,
     linear-gradient(to bottom, #ac7ff4, #18b6f6) border-box;
   border-radius: 5px;
   border: 1px solid transparent;

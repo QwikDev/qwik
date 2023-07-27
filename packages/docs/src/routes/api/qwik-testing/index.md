@@ -12,13 +12,13 @@ CreatePlatform and CreateDocument
 createDOM: () =>
   Promise<{
     render: (
-      jsxElement: JSXNode
+      jsxElement: JSXNode,
     ) => Promise<import("@builder.io/qwik").RenderResult>;
     screen: HTMLElement;
     userEvent: (
       queryOrElement: string | Element | keyof HTMLElementTagNameMap | null,
       eventNameCamel: string | keyof WindowEventMap,
-      eventPayload?: any
+      eventPayload?: any,
     ) => Promise<void>;
   }>;
 ```

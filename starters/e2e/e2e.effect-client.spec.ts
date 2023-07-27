@@ -54,7 +54,7 @@ test.describe("effect-client", () => {
     const order = page.locator("#issue-2015-order");
     await page.waitForTimeout(300);
     await expect(order).toHaveText(
-      "Order: start 1 start 2 start 3 finish 1 finish 2 finish 3"
+      "Order: start 1 start 2 start 3 finish 1 finish 2 finish 3",
     );
   });
 
@@ -83,7 +83,7 @@ test.describe("effect-client", () => {
     await button.click();
     await page.waitForTimeout(500);
     await expect(logs).toHaveText(
-      "VisibleTask ChildA /\nCleanup ChildA /other\n"
+      "VisibleTask ChildA /\nCleanup ChildA /other\n",
     );
   });
 });

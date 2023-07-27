@@ -230,7 +230,7 @@ export type FailReturn<T> = T & {
 ```typescript
 Form: <O, I>(
   { action, spaReset, reloadDocument, onSubmit$, ...rest }: FormProps<O, I>,
-  key: string | null
+  key: string | null,
 ) => QwikJSX.Element;
 ```
 
@@ -492,7 +492,7 @@ export type RouteData =
       loaders: ModuleLoader[],
       paramNames: string[],
       originalPathname: string,
-      routeBundleNames: string[]
+      routeBundleNames: string[],
     ];
 ```
 
@@ -542,7 +542,7 @@ export type RouteNavigate = QRL<
           replaceState?: boolean;
           scroll?: boolean;
         }
-      | boolean
+      | boolean,
   ) => Promise<void>
 >;
 ```

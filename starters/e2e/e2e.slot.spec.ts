@@ -311,12 +311,12 @@ test.describe("slot", () => {
       }
 
       await expect(getNamespaceURI()).resolves.toBe(
-        "http://www.w3.org/2000/svg"
+        "http://www.w3.org/2000/svg",
       );
       await toggle.click();
       await toggle.click();
       await expect(getNamespaceURI()).resolves.toBe(
-        "http://www.w3.org/2000/svg"
+        "http://www.w3.org/2000/svg",
       );
     });
 
@@ -326,7 +326,7 @@ test.describe("slot", () => {
         `Hide until visible\n\nContent\n\nindex page`,
         {
           useInnerText: true,
-        }
+        },
       );
     });
 

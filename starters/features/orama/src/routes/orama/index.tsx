@@ -48,7 +48,7 @@ export default component$(() => {
   const onSearch = $(async (term: string) => {
     const response = await execSearch(term);
     pokedexSig.value = (response.hits || []).map(
-      (hit) => hit.document as unknown as Pokemon
+      (hit) => hit.document as unknown as Pokemon,
     );
   });
 

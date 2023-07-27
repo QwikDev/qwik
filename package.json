@@ -93,6 +93,11 @@
     "pnpm": ">=8.0.0"
   },
   "packageManager": "pnpm@8.6.1",
+  "pnpm": {
+    "overrides": {
+      "vfile": "6.0.1"
+    }
+  },
   "private": true,
   "scripts": {
     "api.update": "tsm scripts/index.ts --tsc --api --dev",
@@ -148,10 +153,5 @@
     "tsc.trace": "tsc -p tsconfig.json --traceResolution > tsc.log",
     "tsc.watch": "tsc --noEmit --watch --preserveWatchOutput"
   },
-  "type": "module",
-  "pnpm": {
-    "overrides": {
-      "vfile": "6.0.1"
-    }
-  }
+  "type": "module"
 }

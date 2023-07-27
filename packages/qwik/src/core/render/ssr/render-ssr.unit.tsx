@@ -46,21 +46,6 @@ renderSSRSuite('render aria value', async () => {
   );
 });
 
-renderSSRSuite('render string value for boolean property', async () => {
-  await testSSR(
-    <body id="stuff">
-      <button disabled={'' as any}></button>
-    </body>,
-    `
-        <html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
-          <body id="stuff">
-            <button disabled></button>
-          </body>
-        </html>
-        `
-  );
-});
-
 renderSSRSuite('render className', async () => {
   await testSSR(
     <body class="stuff"></body>,

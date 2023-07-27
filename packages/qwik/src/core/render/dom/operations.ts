@@ -69,7 +69,7 @@ const _setProperty = (node: any, key: string, value: any) => {
       if (value == null) {
         node.removeAttribute(key);
       } else if (typeof node[key as keyof Element] === 'boolean' && String(value).length === 0) {
-        directSetAttribute(node, key, '');
+        logWarn(`Set a boolean property instead of an empty string!`);
       }
     }
   } catch (err) {

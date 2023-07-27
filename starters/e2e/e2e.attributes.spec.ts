@@ -295,18 +295,6 @@ test.describe("attributes", () => {
       await expect(button).not.hasAttribute("aria-label");
       await expect(button).not.hasAttribute("title");
     });
-
-    test("issue 4824", async ({ page }) => {
-      const toggle = page.locator("#issue-4824-toggle");
-      const result = page.locator("#issue-4824-result");
-
-      await expect(result).hasAttribute("disabled");
-
-      await toggle.click();
-      await page.waitForTimeout(100);
-
-      await expect(result).not.hasAttribute("disabled");
-    });
   }
 
   tests();

@@ -111,7 +111,7 @@ export async function configureDevServer(
 
               const { pathId, query } = parseId(v.url);
               if (query === '' && ['.css', '.scss', '.sass'].some((ext) => pathId.endsWith(ext))) {
-                added.add(url);
+                added.add(v.url);
                 manifest.injections!.push({
                   tag: 'link',
                   location: 'head',

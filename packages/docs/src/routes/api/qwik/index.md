@@ -17,7 +17,7 @@ Qwik Optimizer marker function.
 Use `$(...)` to tell Qwik Optimizer to extract the expression in `$(...)` into a lazy-loadable resource referenced by `QRL`.
 
 ```typescript
-$: <T>(expression: T) => QRL<T>;
+$: <T,>(expression: T) => QRL<T>;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
@@ -259,9 +259,9 @@ See also: `component`, `useCleanup`, `onResume`, `onPause`, `useOn`, `useOnDocum
 ```typescript
 component$: <
   PROPS = unknown,
-  ARG extends {} = PROPS extends {} ? PropFunctionProps<PROPS> : {}
+  ARG extends {} = PROPS extends {} ? PropFunctionProps<PROPS> : {},
 >(
-  onMount: OnRenderFn<ARG>
+  onMount: OnRenderFn<ARG>,
 ) => Component<PROPS extends {} ? PROPS : ARG>;
 ```
 
@@ -354,7 +354,7 @@ export const App = component$(() => {
     TodosContext,
     useStore<TodosStore>({
       items: ["Learn Qwik", "Build Qwik app", "Profit"],
-    })
+    }),
   );
 
   return <Items />;
@@ -433,7 +433,7 @@ export const App = component$(() => {
     TodosContext,
     useStore<TodosStore>({
       items: ["Learn Qwik", "Build Qwik app", "Profit"],
-    })
+    }),
   );
 
   return <Items />;
@@ -453,7 +453,7 @@ export const Items = component$(() => {
 ```
 
 ```typescript
-createContextId: <STATE = unknown>(name: string) => ContextId<STATE>;
+createContextId: <STATE = unknown,>(name: string) => ContextId<STATE>;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-context.ts)
@@ -524,7 +524,7 @@ export interface ErrorBoundaryStore
 ## event$
 
 ```typescript
-event$: <T>(first: T) => QRL<T>;
+event$: <T,>(first: T) => QRL<T>;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
@@ -532,7 +532,7 @@ event$: <T>(first: T) => QRL<T>;
 ## eventQrl
 
 ```typescript
-eventQrl: <T>(qrl: QRL<T>) => QRL<T>;
+eventQrl: <T,>(qrl: QRL<T>) => QRL<T>;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
@@ -753,7 +753,7 @@ export const callback = () => console.log("callback");
 
 ```typescript
 implicit$FirstArg: <FIRST, REST extends any[], RET>(
-    fn: (first: QRL<FIRST>, ...rest: REST) => RET
+    fn: (first: QRL<FIRST>, ...rest: REST) => RET,
   ) =>
   (first: FIRST, ...rest: REST) =>
     RET;
@@ -783,7 +783,7 @@ interface IntrinsicElements extends QwikJSX.IntrinsicElements
 jsx: <T extends string | FunctionComponent<any>>(
   type: T,
   props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>,
-  key?: string | number | null
+  key?: string | number | null,
 ) => JSXNode<T>;
 ```
 
@@ -832,7 +832,7 @@ jsxDEV: <T extends string | FunctionComponent<any>>(
   key: string | number | null | undefined,
   _isStatic: boolean,
   opts: JsxDevOpts,
-  _ctx: any
+  _ctx: any,
 ) => JSXNode<T>;
 ```
 
@@ -998,7 +998,7 @@ noSerialize: <T extends object | undefined>(input: T) => NoSerialize<T>;
 
 ```typescript
 export type OnRenderFn<PROPS extends {}> = (
-  props: PROPS
+  props: PROPS,
 ) => JSXNode<any> | null;
 ```
 
@@ -1098,11 +1098,11 @@ Used by Qwik Optimizer to point to lazy-loaded resources.
 This function should be used by the Qwik Optimizer only. The function should not be directly referred to in the source code of the application.
 
 ```typescript
-qrl: <T = any>(
+qrl: <T = any,>(
   chunkOrFn: string | (() => Promise<any>),
   symbol: string,
   lexicalScopeCapture?: any[],
-  stackOffset?: number
+  stackOffset?: number,
 ) => QRL<T>;
 ```
 
@@ -1115,11 +1115,11 @@ Used by Qwik Optimizer to point to lazy-loaded resources.
 This function should be used by the Qwik Optimizer only. The function should not be directly referred to in the source code of the application.
 
 ```typescript
-qrl: <T = any>(
+qrl: <T = any,>(
   chunkOrFn: string | (() => Promise<any>),
   symbol: string,
   lexicalScopeCapture?: any[],
-  stackOffset?: number
+  stackOffset?: number,
 ) => QRL<T>;
 ```
 
@@ -1455,7 +1455,7 @@ Use this method to render JSX. This function does reconciling which means it alw
 render: (
   parent: Element | Document,
   jsxNode: JSXNode | FunctionComponent<any>,
-  opts?: RenderOptions
+  opts?: RenderOptions,
 ) => Promise<RenderResult>;
 ```
 
@@ -1576,7 +1576,7 @@ const Cmp = component$(() => {
 ```
 
 ```typescript
-Resource: <T>(props: ResourceProps<T>) => JSXNode;
+Resource: <T,>(props: ResourceProps<T>) => JSXNode;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
@@ -1952,7 +1952,7 @@ export interface Tracker
 ## untrack
 
 ```typescript
-untrack: <T>(fn: () => T) => T;
+untrack: <T,>(fn: () => T) => T;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-core.ts)
@@ -1996,7 +1996,7 @@ export const App = component$(() => {
     TodosContext,
     useStore<TodosStore>({
       items: ["Learn Qwik", "Build Qwik app", "Profit"],
-    })
+    }),
   );
 
   return <Items />;
@@ -2046,7 +2046,7 @@ export const App = component$(() => {
     TodosContext,
     useStore<TodosStore>({
       items: ["Learn Qwik", "Build Qwik app", "Profit"],
-    })
+    }),
   );
 
   return <Items />;
@@ -2172,7 +2172,7 @@ const Cmp = component$(() => {
 ```
 
 ```typescript
-useResource$: <T>(generatorFn: ResourceFn<T>, opts?: ResourceOptions) =>
+useResource$: <T,>(generatorFn: ResourceFn<T>, opts?: ResourceOptions) =>
   ResourceReturn<T>;
 ```
 
@@ -2227,7 +2227,7 @@ const Cmp = component$(() => {
 ```
 
 ```typescript
-useResourceQrl: <T>(qrl: QRL<ResourceFn<T>>, opts?: ResourceOptions) =>
+useResourceQrl: <T,>(qrl: QRL<ResourceFn<T>>, opts?: ResourceOptions) =>
   ResourceReturn<T>;
 ```
 
@@ -2325,7 +2325,7 @@ function useCounter(step: number) {
 ```typescript
 useStore: <STATE extends object>(
   initialState: STATE | (() => STATE),
-  opts?: UseStoreOptions
+  opts?: UseStoreOptions,
 ) => STATE;
 ```
 

@@ -5,7 +5,7 @@ test.describe("Qwik City API", () => {
     const rsp = (await api.goto("/qwikcity-test/api/data.json"))!;
     expect(rsp.status()).toBe(200);
     expect(rsp.headers()["content-type"]).toBe(
-      "application/json; charset=utf-8"
+      "application/json; charset=utf-8",
     );
 
     const data = await rsp.json();
@@ -18,7 +18,7 @@ test.describe("Qwik City API", () => {
     const rsp = (await api.goto("/qwikcity-test/api/builder.io/oss.json"))!;
     expect(rsp.status()).toBe(200);
     expect(rsp.headers()["content-type"]).toBe(
-      "application/json; charset=utf-8"
+      "application/json; charset=utf-8",
     );
 
     const data = await rsp.json();
@@ -32,7 +32,7 @@ test.describe("Qwik City API", () => {
     const rsp = (await api.goto("/qwikcity-test/products/hat/?json=true"))!;
     expect(rsp.status()).toBe(200);
     expect(rsp.headers()["content-type"]).toBe(
-      "application/json; charset=utf-8"
+      "application/json; charset=utf-8",
     );
 
     const clientData = await rsp.json();
@@ -59,7 +59,7 @@ test.describe("Qwik City API", () => {
 
     const btnPut = page.locator("[data-test-api-onpost]");
     expect(await btnPut.textContent()).toBe(
-      "onPost (accept: application/json)"
+      "onPost (accept: application/json)",
     );
     await btnPut.click();
     await page.waitForSelector(".onpost-success");
@@ -70,7 +70,7 @@ test.describe("Qwik City API", () => {
     page,
   }) => {
     const rsp = (await page.goto(
-      "/qwikcity-test/products/hat/?querystring-test=true"
+      "/qwikcity-test/products/hat/?querystring-test=true",
     ))!;
     expect(new URL(rsp.url()).pathname).toBe("/qwikcity-test/");
   });

@@ -135,7 +135,11 @@ export class SignalImpl<T> extends SignalBase implements Signal<T> {
 }
 
 export class SignalDerived<T = any, ARGS extends any[] = any[]> extends SignalBase {
-  constructor(public $func$: (...args: ARGS) => T, public $args$: ARGS, public $funcStr$?: string) {
+  constructor(
+    public $func$: (...args: ARGS) => T,
+    public $args$: ARGS,
+    public $funcStr$?: string
+  ) {
     super();
   }
 
@@ -145,7 +149,10 @@ export class SignalDerived<T = any, ARGS extends any[] = any[]> extends SignalBa
 }
 
 export class SignalWrapper<T extends Record<string, any>, P extends keyof T> extends SignalBase {
-  constructor(public ref: T, public prop: P) {
+  constructor(
+    public ref: T,
+    public prop: P
+  ) {
     super();
   }
 

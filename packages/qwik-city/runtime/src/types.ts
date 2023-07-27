@@ -259,7 +259,7 @@ export type RouteData =
       loaders: ModuleLoader[],
       paramNames: string[],
       originalPathname: string,
-      routeBundleNames: string[]
+      routeBundleNames: string[],
     ];
 
 /**
@@ -292,7 +292,7 @@ export type LoadedRoute = [
   params: PathParams,
   mods: (RouteModule | ContentModule)[],
   menu: ContentMenu | undefined,
-  routeBundleNames: string[] | undefined
+  routeBundleNames: string[] | undefined,
 ];
 
 export interface LoadedContent extends LoadedRoute {
@@ -426,7 +426,7 @@ export interface ActionConstructor {
   <
     O extends Record<string, any> | void | null,
     B extends TypedDataValidator,
-    REST extends DataValidator[]
+    REST extends DataValidator[],
   >(
     actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>,
     options: B,
@@ -472,7 +472,7 @@ export interface ActionConstructorQRL {
   <
     O extends Record<string, any> | void | null,
     B extends TypedDataValidator,
-    REST extends DataValidator[]
+    REST extends DataValidator[],
   >(
     actionQrl: QRL<(data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>>,
     options: B,
@@ -720,9 +720,9 @@ export interface ValidatorConstructorQRL {
  */
 export interface ZodConstructor {
   <T extends zod.ZodRawShape>(schema: T): TypedDataValidator<zod.ZodObject<T>>;
-  <T extends zod.ZodRawShape>(schema: (z: typeof zod, ev: RequestEvent) => T): TypedDataValidator<
-    zod.ZodObject<T>
-  >;
+  <T extends zod.ZodRawShape>(
+    schema: (z: typeof zod, ev: RequestEvent) => T
+  ): TypedDataValidator<zod.ZodObject<T>>;
   <T extends zod.Schema>(schema: T): TypedDataValidator<T>;
   <T extends zod.Schema>(schema: (z: typeof zod, ev: RequestEvent) => T): TypedDataValidator<T>;
 }

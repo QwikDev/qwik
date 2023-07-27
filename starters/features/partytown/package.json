@@ -1,8 +1,5 @@
 {
   "description": "Use Partytown in your Qwik app",
-  "devDependencies": {
-    "@builder.io/partytown": "^0.8.0"
-  },
   "__qwik__": {
     "displayName": "Integration: Partytown (3rd-party scripts)",
     "priority": -20,
@@ -37,5 +34,8 @@
         " https://partytown.builder.io/configuration"
       ]
     }
+  },
+  "devDependencies": {
+    "@builder.io/partytown": "^0.8.0"
   }
 }

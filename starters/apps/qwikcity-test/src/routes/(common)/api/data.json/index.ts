@@ -22,7 +22,7 @@ export const onRequest: RequestHandler = ({
       path.dirname(url.fileURLToPath(import.meta.url)),
       "..",
       "public",
-      "favicon.ico"
+      "favicon.ico",
     );
 
     status(200);

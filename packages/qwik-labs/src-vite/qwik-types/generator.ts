@@ -9,6 +9,42 @@ export async function generateRouteTypes(srcDir: string, routesDir: string, rout
 }
 
 async function generateSrcRoutesConfig(srcDir: string) {
+  const CONFIG_FILE = await prettify`
+/**
+ * This file is created as part of the typed routes, but it is intended to be modified by the developer.
+ *
+ * @fileoverview
+ */
+import { untypedAppUrl, omitProps } from '@builder.io/qwik-labs';
+import { type AppLinkProps, type AppRouteParamsFunction } from './routes.gen';
+import { type QwikIntrinsicElements } from '@builder.io/qwik';
+
+/**
+ * Configure \`appUrl\` with the typed information of routes.
+ */
+export const appUrl = untypedAppUrl as AppRouteParamsFunction;
+
+/**
+ * Configure \`<AppLink/>\` component with the typed information of routes.
+ *
+ * NOTE: you may consider changing \`<a>\` to \`<Link>\` to be globally applied across your application.
+ */
+export function AppLink(props: AppLinkProps & QwikIntrinsicElements['a']) {
+  return (
+    <a
+      href={(appUrl as (route: string, props: any, prefix: string) => string)(
+        props.route,
+        props,
+        'param:'
+      )}
+      {...omitProps(props, ['href'])}
+    >
+      {props.children}
+    </a>
+  );
+}
+`;
+
   const file = join(srcDir, 'routes.config.tsx');
   const fileExists = await exists(file);
   console.log('File exists', file, fileExists);
@@ -28,7 +64,7 @@ async function exists(file: string): Promise<boolean> {
 async function generateSrcRoutesGen(srcDir: string, routes: string[]) {
   await writeFile(
     join(srcDir, 'routes.gen.d.ts'),
-    prettify`
+    await prettify`
 ${GENERATED_HEADER}
 
 export type AppRoutes = ${routes.map((r) => s(r)).join('|')};
@@ -83,39 +119,3 @@ const GENERATED_HEADER = `
 function s(text: string): string {
   return JSON.stringify(text);
 }
-
-const CONFIG_FILE = prettify`
-/**
- * This file is created as part of the typed routes, but it is intended to be modified by the developer.
- *
- * @fileoverview
- */
-import { untypedAppUrl, omitProps } from '@builder.io/qwik-labs';
-import { type AppLinkProps, type AppRouteParamsFunction } from './routes.gen';
-import { type QwikIntrinsicElements } from '@builder.io/qwik';
-
-/**
- * Configure \`appUrl\` with the typed information of routes.
- */
-export const appUrl = untypedAppUrl as AppRouteParamsFunction;
-
-/**
- * Configure \`<AppLink/>\` component with the typed information of routes.
- *
- * NOTE: you may consider changing \`<a>\` to \`<Link>\` to be globally applied across your application.
- */
-export function AppLink(props: AppLinkProps & QwikIntrinsicElements['a']) {
-  return (
-    <a
-      href={(appUrl as (route: string, props: any, prefix: string) => string)(
-        props.route,
-        props,
-        'param:'
-      )}
-      {...omitProps(props, ['href'])}
-    >
-      {props.children}
-    </a>
-  );
-}
-`;

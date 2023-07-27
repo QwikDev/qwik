@@ -529,37 +529,37 @@ test.describe("signals", () => {
       const usecomputed = page.locator("#issue-4868-usecomputed");
 
       await expect(json).toHaveText(
-        `{"src":"https://placehold.co/400x400?text=1","id":1}`
+        `{"src":"https://placehold.co/400x400?text=1","id":1}`,
       );
       await expect(props).toHaveText(
-        `Card props.src: https://placehold.co/400x400?text=1`
+        `Card props.src: https://placehold.co/400x400?text=1`,
       );
       await expect(usecomputed).toHaveText(
-        `Card useComputed$: https://placehold.co/400x400?text=1&useComputed$`
+        `Card useComputed$: https://placehold.co/400x400?text=1&useComputed$`,
       );
 
       await btn2.click();
 
       await expect(json).toHaveText(
-        `{"src":"https://placehold.co/500x500?text=2","id":2}`
+        `{"src":"https://placehold.co/500x500?text=2","id":2}`,
       );
       await expect(props).toHaveText(
-        `Card props.src: https://placehold.co/500x500?text=2`
+        `Card props.src: https://placehold.co/500x500?text=2`,
       );
       await expect(usecomputed).toHaveText(
-        `Card useComputed$: https://placehold.co/500x500?text=2&useComputed$`
+        `Card useComputed$: https://placehold.co/500x500?text=2&useComputed$`,
       );
 
       await btn1.click();
 
       await expect(json).toHaveText(
-        `{"src":"https://placehold.co/400x400?text=1","id":1}`
+        `{"src":"https://placehold.co/400x400?text=1","id":1}`,
       );
       await expect(props).toHaveText(
-        `Card props.src: https://placehold.co/400x400?text=1`
+        `Card props.src: https://placehold.co/400x400?text=1`,
       );
       await expect(usecomputed).toHaveText(
-        `Card useComputed$: https://placehold.co/400x400?text=1&useComputed$`
+        `Card useComputed$: https://placehold.co/400x400?text=1&useComputed$`,
       );
     });
   }

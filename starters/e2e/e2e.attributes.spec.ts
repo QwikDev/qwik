@@ -36,7 +36,7 @@ test.describe("attributes", () => {
       await expect(svg).toHaveAttribute("height", "15");
       await expect(svg).toHaveAttribute(
         "preserveAspectRatio",
-        "xMidYMin slice"
+        "xMidYMin slice",
       );
       await expect(svg).toHaveClass("is-svg");
       await expect(svg).toHaveAttribute("aria-hidden", "true");
@@ -71,7 +71,7 @@ test.describe("attributes", () => {
       await expect(svg).toHaveAttribute("height", "15");
       await expect(svg).toHaveAttribute(
         "preserveAspectRatio",
-        "xMidYMin slice"
+        "xMidYMin slice",
       );
       await expect(svg).toHaveClass("is-svg");
       await expect(svg).toHaveAttribute("aria-hidden", "true");
@@ -213,7 +213,7 @@ test.describe("attributes", () => {
       await expect(svg).toHaveAttribute("height", "15");
       await expect(svg).toHaveAttribute(
         "preserveAspectRatio",
-        "xMidYMin slice"
+        "xMidYMin slice",
       );
       await expect(svg).toHaveClass("is-svg");
       await expect(svg).toHaveAttribute("aria-hidden", "true");
@@ -253,7 +253,7 @@ test.describe("attributes", () => {
       await expect(svg).toHaveAttribute("height", "15");
       await expect(svg).toHaveAttribute(
         "preserveAspectRatio",
-        "xMidYMin slice"
+        "xMidYMin slice",
       );
       await expect(svg).toHaveClass("is-svg");
       await expect(svg).toHaveAttribute("aria-hidden", "true");

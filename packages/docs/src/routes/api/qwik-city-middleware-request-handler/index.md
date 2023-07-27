@@ -308,7 +308,7 @@ export interface RequestEventLoader<PLATFORM = QwikCityPlatform> extends Request
 
 ```typescript
 export type RequestHandler<PLATFORM = QwikCityPlatform> = (
-  ev: RequestEvent<PLATFORM>
+  ev: RequestEvent<PLATFORM>,
 ) => Promise<void> | void;
 ```
 
@@ -320,7 +320,7 @@ export type RequestHandler<PLATFORM = QwikCityPlatform> = (
 
 ```typescript
 export type RequestHandler<PLATFORM = QwikCityPlatform> = (
-  ev: RequestEvent<PLATFORM>
+  ev: RequestEvent<PLATFORM>,
 ) => Promise<void> | void;
 ```
 
@@ -397,7 +397,7 @@ export type ServerResponseHandler<T = any> = (
   headers: Headers,
   cookies: Cookie,
   resolve: (response: T) => void,
-  requestEv: RequestEventInternal
+  requestEv: RequestEventInternal,
 ) => WritableStream<Uint8Array>;
 ```
 

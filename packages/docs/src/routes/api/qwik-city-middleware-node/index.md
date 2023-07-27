@@ -11,17 +11,17 @@ export declare function createQwikCity(opts: QwikCityNodeRequestOptions): {
   router: (
     req: IncomingMessage | Http2ServerRequest,
     res: ServerResponse,
-    next: NodeRequestNextFunction
+    next: NodeRequestNextFunction,
   ) => Promise<void>;
   notFound: (
     req: IncomingMessage | Http2ServerRequest,
     res: ServerResponse,
-    next: (e: any) => void
+    next: (e: any) => void,
   ) => Promise<void>;
   staticFile: (
     req: IncomingMessage | Http2ServerRequest,
     res: ServerResponse,
-    next: (e?: any) => void
+    next: (e?: any) => void,
   ) => Promise<void>;
 };
 ```

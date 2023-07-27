@@ -8,7 +8,7 @@ title: \@builder.io/qwik-city/middleware/azure-swa API Reference
 
 ```typescript
 export declare function createQwikCity(
-  opts: QwikCityAzureOptions
+  opts: QwikCityAzureOptions,
 ): AzureFunction;
 ```
 

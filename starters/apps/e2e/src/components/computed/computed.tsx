@@ -69,7 +69,7 @@ export const TextContent = component$(
         <div id="issue-3482-class">class: {props.class}</div>
       </div>
     );
-  }
+  },
 );
 
 export const Issue3488 = component$(() => {

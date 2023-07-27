@@ -45,8 +45,8 @@ export const useSigninAction = globalAction$(
             message: "The passwords did not match",
           });
         }
-      })
-  )
+      }),
+  ),
 );
 
 export const useResetPasswordAction = globalAction$(
@@ -55,7 +55,7 @@ export const useResetPasswordAction = globalAction$(
   },
   zod$({
     email: z.string().email(),
-  })
+  }),
 );
 
 export default component$(() => {

@@ -10,7 +10,7 @@ import { Host, odd, pride, Range, Square } from "./flower.css";
 type StoredInputProps<
   T,
   Cmp extends FunctionComponent,
-  Name extends string = "value"
+  Name extends string = "value",
 > = Parameters<Cmp>[0] & {
   store: { [value in Name]?: T };
   name?: Name;

@@ -224,7 +224,7 @@ export const Issue2688 = component$(({ count }: { count: number }) => {
 });
 
 const Issue2751Context = createContextId<Signal<number>>(
-  "CleanupCounterContext"
+  "CleanupCounterContext",
 );
 
 export const Issue2751 = component$(() => {
@@ -438,7 +438,7 @@ export const HideUntilVisible = component$(() => {
     },
     {
       strategy: "document-ready",
-    }
+    },
   );
 
   // NOTE: if you comment the line below,

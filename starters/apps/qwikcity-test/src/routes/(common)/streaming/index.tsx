@@ -13,7 +13,7 @@ export const useOther = routeLoader$(({ defer }) => {
   return defer(
     delay(2000).then(() => {
       return { name: "other" };
-    })
+    }),
   );
 });
 

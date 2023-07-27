@@ -43,7 +43,7 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
     },
     {
       deep: true,
-    }
+    },
   );
   Object.freeze(immutable);
   const state = useStore({

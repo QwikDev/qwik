@@ -1,4 +1,4 @@
-import { getBanner, importPath, nodeTarget, target, watcher } from './util';
+import { getBanner, importPath, nodeTarget, target } from './util';
 import { build, type BuildOptions } from 'esbuild';
 import { type BuildConfig, type PackageJSON } from './util';
 import { join } from 'node:path';
@@ -31,7 +31,6 @@ export async function submoduleTesting(config: BuildConfig) {
       importPath(/^@builder\.io\/qwik\/optimizer$/, '../optimizer.mjs'),
       importPath(/^@builder\.io\/qwik\/server$/, '../server.mjs'),
     ],
-    watch: watcher(config, submodule),
     define: {
       'globalThis.MODULE_EXT': `"mjs"`,
       'globalThis.RUNNER': `false`,
@@ -51,7 +50,6 @@ export async function submoduleTesting(config: BuildConfig) {
       importPath(/^@builder\.io\/qwik\/optimizer$/, '../optimizer.cjs'),
       importPath(/^@builder\.io\/qwik\/server$/, '../server.cjs'),
     ],
-    watch: watcher(config),
     define: {
       'globalThis.MODULE_EXT': `"cjs"`,
       'globalThis.RUNNER': `false`,

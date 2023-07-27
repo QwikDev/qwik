@@ -293,7 +293,7 @@ type StateArc = [
   /// Then transition to this state:
   number,
   /// Optional look ahead strings
-  ...string[]
+  ...string[],
 ];
 
 const STRINGS_COMMENTS: StateArc[] = /*__PURE__*/ (() => [

@@ -34,6 +34,6 @@ function partyTownExampleWhichBlocksMainThreadForOneSecond() {
   // eslint-disable-next-line no-console
   console.log("Expensive computation ended at:", end);
   document.dispatchEvent(
-    new Event("expensiveComputationDone", { bubbles: true })
+    new Event("expensiveComputationDone", { bubbles: true }),
   );
 }

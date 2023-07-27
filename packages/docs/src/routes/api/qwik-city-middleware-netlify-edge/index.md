@@ -8,7 +8,7 @@ title: \@builder.io/qwik-city/middleware/netlify-edge API Reference
 
 ```typescript
 export declare function createQwikCity(
-  opts: QwikCityNetlifyOptions
+  opts: QwikCityNetlifyOptions,
 ): (request: Request, context: Context) => Promise<Response>;
 ```
 

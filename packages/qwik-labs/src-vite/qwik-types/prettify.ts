@@ -1,12 +1,15 @@
 import { format } from 'prettier/standalone';
 
-export function prettify(template: TemplateStringsArray, ...substitutions: any[]): string {
+export async function prettify(
+  template: TemplateStringsArray,
+  ...substitutions: any[]
+): Promise<string> {
   let source = '';
   for (let i = 0; i < template.length; i++) {
     source += template[i] + (i < substitutions.length ? String(substitutions[i]) : '');
   }
   try {
-    source = format(source, {
+    source = await format(source, {
       parser: 'typescript',
       plugins: [
         // To support running in browsers

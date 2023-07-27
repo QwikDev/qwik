@@ -8,7 +8,7 @@ title: \@builder.io/qwik-city/vite/netlify-edge API Reference
 
 ```typescript
 export declare function netlifyEdgeAdapter(
-  opts?: NetlifyEdgeAdapterOptions
+  opts?: NetlifyEdgeAdapterOptions,
 ): any;
 ```
 

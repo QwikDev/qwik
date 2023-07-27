@@ -1843,8 +1843,8 @@ async function testSSR(
   if (typeof expected === 'string') {
     const options = { parser: 'html', htmlWhitespaceSensitivity: 'ignore' } as const;
     snapshot(
-      format(chunks.join(''), options),
-      format(expected.replace(/(\n|^)\s+/gm, ''), options)
+      await format(chunks.join(''), options),
+      await format(expected.replace(/(\n|^)\s+/gm, ''), options)
     );
   } else {
     equal(chunks, expected);

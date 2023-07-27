@@ -1,11 +1,5 @@
 {
   "description": "Use Playwright to run E2E tests into your Qwik app",
-  "devDependencies": {
-    "@playwright/test": "^1.35.1"
-  },
-  "scripts": {
-    "test.e2e": "playwright test"
-  },
   "__qwik__": {
     "displayName": "Integration: Playwright (E2E Test)",
     "priority": -10,
@@ -14,5 +8,11 @@
     "docs": [
       "https://playwright.dev/docs/writing-tests"
     ]
+  },
+  "devDependencies": {
+    "@playwright/test": "1.36.2"
+  },
+  "scripts": {
+    "test.e2e": "playwright test"
   }
 }

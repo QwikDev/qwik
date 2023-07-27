@@ -1,4 +1,4 @@
-import { type BuildConfig, ensureDir, watcher, target, copyFile, type PackageJSON } from './util';
+import { type BuildConfig, ensureDir, target, copyFile, type PackageJSON } from './util';
 import { join } from 'node:path';
 import { type BuildOptions, build } from 'esbuild';
 import { writePackageJson } from './package-json';
@@ -48,7 +48,6 @@ export async function bundleIndex(config: BuildConfig, entryName: string) {
     ...opts,
     format: 'esm',
     outExtension: { '.js': '.mjs' },
-    watch: watcher(config, submodule),
   });
 
   const cjs = build({
@@ -62,7 +61,6 @@ export async function bundleIndex(config: BuildConfig, entryName: string) {
       js: `return module.exports; })(typeof module === 'object' && module.exports ? module : { exports: {} });`,
     },
     outExtension: { '.js': '.cjs' },
-    watch: watcher(config),
   });
 
   await Promise.all([esm, cjs]);

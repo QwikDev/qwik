@@ -37,7 +37,7 @@ function tests() {
     /***********  Docs: overview  ***********/
     await linkNavigate(
       ctx,
-      '[data-test-menu-link="/qwikcity-test/docs/overview/"]'
+      '[data-test-menu-link="/qwikcity-test/docs/overview/"]',
     );
     await assertPage(ctx, {
       pathname: "/qwikcity-test/docs/overview/",
@@ -59,7 +59,7 @@ function tests() {
     /***********  Docs: getting-started  ***********/
     await linkNavigate(
       ctx,
-      '[data-test-menu-link="/qwikcity-test/docs/getting-started/"]'
+      '[data-test-menu-link="/qwikcity-test/docs/getting-started/"]',
     );
     await assertPage(ctx, {
       pathname: "/qwikcity-test/docs/getting-started/",
@@ -81,7 +81,7 @@ function tests() {
     /***********  Docs: components/basics  ***********/
     await linkNavigate(
       ctx,
-      '[data-test-menu-link="/qwikcity-test/docs/components/basics/"]'
+      '[data-test-menu-link="/qwikcity-test/docs/components/basics/"]',
     );
     await assertPage(ctx, {
       pathname: "/qwikcity-test/docs/components/basics/",
@@ -103,7 +103,7 @@ function tests() {
     /***********  Docs: components/listeners  ***********/
     await linkNavigate(
       ctx,
-      '[data-test-menu-link="/qwikcity-test/docs/components/listeners/"]'
+      '[data-test-menu-link="/qwikcity-test/docs/components/listeners/"]',
     );
     await assertPage(ctx, {
       pathname: "/qwikcity-test/docs/components/listeners/",

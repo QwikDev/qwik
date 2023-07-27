@@ -25,7 +25,7 @@ test.describe("Todo", () => {
     await addTodoItem(page, "New Item");
     await assertItemCount(page, 4);
     await expect(page.locator(".todo-list>li:last-child label")).toContainText(
-      "New Item"
+      "New Item",
     );
   });
 
@@ -95,10 +95,10 @@ test.describe("Todo", () => {
 });
 async function assertItemCount(page: Page, count: number, total?: number) {
   await expect(page.locator(".todo-count > strong")).toContainText(
-    String(count)
+    String(count),
   );
   await expect(page.locator(".todo-list>li")).toHaveCount(
-    total == undefined ? count : total
+    total == undefined ? count : total,
   );
 }
 

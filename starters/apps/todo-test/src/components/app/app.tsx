@@ -30,7 +30,7 @@ export const App = component$(() => {
       ],
       nextItemId: 3,
     },
-    { deep: true }
+    { deep: true },
   );
   useContextProvider(TODOS, todos);
 

@@ -12,7 +12,7 @@ test("rendered", async ({ page }) => {
   const congrats = page.locator(".congrats");
   const state = page.locator("#state");
   await expect(congrats).toContainText(
-    "Congratulations Qwik with Partytown is working!"
+    "Congratulations Qwik with Partytown is working!",
   );
   await expect(state).toHaveText("running");
 

@@ -15,7 +15,7 @@ export const useCmp1 = routeLoader$(
   },
   {
     id: "cmp-1",
-  }
+  },
 );
 
 export const useCmp2 = routeLoader$(() => {

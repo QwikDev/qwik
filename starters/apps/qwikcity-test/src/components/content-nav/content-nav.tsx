@@ -41,7 +41,7 @@ export const ContentNav = component$(() => {
 export const getNav = (
   items: ContentMenu[],
   currentPathname: string,
-  direction: -1 | 1
+  direction: -1 | 1,
 ) => {
   const currentIndex = items.findIndex((p) => p.href === currentPathname);
   if (currentIndex > -1) {

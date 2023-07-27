@@ -1,4 +1,4 @@
-import type { Plugin, WatchMode } from 'esbuild';
+import type { Plugin } from 'esbuild';
 import { join } from 'node:path';
 import mri from 'mri';
 import {
@@ -135,23 +135,6 @@ export function importPath(filter: RegExp, newModulePath: string) {
     },
   };
   return plugin;
-}
-
-/**
- * Esbuild plugin to print out console logs the rebuild has finished or if it has errors.
- */
-export function watcher(config: BuildConfig, filename?: string): WatchMode | boolean {
-  if (config.watch) {
-    return {
-      onRebuild(error) {
-        if (error) console.error('watch build failed:', error);
-        else {
-          if (filename) console.log('rebuilt:', filename);
-        }
-      },
-    };
-  }
-  return false;
 }
 
 /**

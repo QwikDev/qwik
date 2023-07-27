@@ -28,7 +28,7 @@ export const useAddToListAction = routeAction$(
   },
   zod$({
     text: z.string().trim().min(1),
-  })
+  }),
 );
 
 export default component$(() => {

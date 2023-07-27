@@ -18,7 +18,7 @@ function tests() {
     const status = response.status();
     expect(status).toBe(200);
     await expect(page.locator('[data-test-params="catchall"]')).toHaveText(
-      "catchall"
+      "catchall",
     );
   });
 

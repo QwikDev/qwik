@@ -1,20 +1,17 @@
 {
   "name": "@builder.io/qwik-dom",
-  "version": "2.1.19",
-  "license": "BSD-2-Clause",
-  "author": "Felix Gnass <fgnass@gmail.com>",
   "description": "Server-side DOM implementation based on Mozilla's dom.js",
-  "homepage": "https://github.com/fgnass/domino",
-  "main": "./lib",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/fgnass/domino.git"
-  },
+  "version": "2.1.19",
+  "author": "Felix Gnass <fgnass@gmail.com>",
   "files": [
     "CHANGELOG.md",
     "LICENSE",
     "README.md",
     "lib"
   ],
+  "homepage": "https://github.com/fgnass/domino",
+  "license": "BSD-2-Clause",
+  "main": "./lib",
+  "repository": "fgnass/domino.git",
   "types": "lib/index.d.ts"
 }

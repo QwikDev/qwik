@@ -90,7 +90,7 @@ export const appSsrHtml = async (options: ReplInputOptions, cache: Cache, result
 
   if (options.buildMode !== 'production') {
     try {
-      const html = self.prettier?.format(result.html, {
+      const html = await self.prettier?.format(result.html, {
         parser: 'html',
         plugins: self.prettierPlugins,
       });

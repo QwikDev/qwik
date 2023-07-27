@@ -10,7 +10,7 @@ import {
 import { isBrowser, isServer } from "@builder.io/qwik/build";
 
 export const CTX = createContextId<{ message: string; count: number }>(
-  "toggle"
+  "toggle",
 );
 
 export const CTX_LOCAL = createContextId<{ logs: string }>("logs");

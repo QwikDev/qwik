@@ -1,38 +1,36 @@
 {
   "name": "create-qwik",
-  "version": "1.2.6",
   "description": "Interactive CLI for create Qwik projects and adding features.",
-  "bin": "./create-qwik.cjs",
-  "main": "./index.cjs",
-  "files": [
-    "create-qwik.cjs",
-    "index.cjs",
-    "starters/"
-  ],
+  "version": "1.2.6",
   "author": "Builder.io Team",
-  "license": "MIT",
-  "keywords": [
-    "qwik",
-    "generator",
-    "builder.io",
-    "starters",
-    "template"
-  ],
-  "homepage": "https://qwik.builder.io/",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/BuilderIO/qwik.git",
-    "directory": "packages/create-qwik"
-  },
-  "bugs": {
-    "url": "https://github.com/BuilderIO/qwik/issues"
-  },
+  "bin": "./create-qwik.cjs",
+  "bugs": "https://github.com/BuilderIO/qwik/issues",
   "devDependencies": {
-    "@clack/prompts": "0.6.3",
+    "@clack/prompts": "^0.6.3",
     "kleur": "4.1.5"
   },
   "engines": {
     "node": ">=16.8.0 <18.0.0 || >=18.11",
     "npm": ">=6.0.0"
+  },
+  "files": [
+    "create-qwik.cjs",
+    "index.cjs",
+    "starters/"
+  ],
+  "homepage": "https://qwik.builder.io/",
+  "keywords": [
+    "builder.io",
+    "generator",
+    "qwik",
+    "starters",
+    "template"
+  ],
+  "license": "MIT",
+  "main": "./index.cjs",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BuilderIO/qwik.git",
+    "directory": "packages/create-qwik"
   }
 }

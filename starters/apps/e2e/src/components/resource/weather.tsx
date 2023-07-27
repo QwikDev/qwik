@@ -49,7 +49,7 @@ export const Weather = component$(() => {
       cleanup(() => controller.abort());
       const value = await fetchWeather(city, controller.signal);
       return value;
-    }
+    },
   );
 
   return (
@@ -90,7 +90,7 @@ export const WeatherResults = component$(
         />
       </div>
     );
-  }
+  },
 );
 
 export const WeatherResults2 = component$(
@@ -121,12 +121,12 @@ export const WeatherResults2 = component$(
         />
       </div>
     );
-  }
+  },
 );
 
 export async function fetchWeather(
   city: string,
-  signal: AbortSignal
+  signal: AbortSignal,
 ): Promise<WeatherData> {
   const url = new URL("https://api.openweathermap.org/data/2.5/weather");
   url.searchParams.set("q", city);

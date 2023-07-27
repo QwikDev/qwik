@@ -1,11 +1,5 @@
 {
   "description": "Use Turso in your Qwik app",
-  "dependencies": {
-    "@libsql/client": "^0.3.0"
-  },
-  "devDependencies": {
-    "@builder.io/qwik-city": "^1.2.6"
-  },
   "__qwik__": {
     "displayName": "Integration: Turso (database)",
     "priority": -10,
@@ -26,5 +20,11 @@
         "   turso db tokens create <db-name>"
       ]
     }
+  },
+  "dependencies": {
+    "@libsql/client": "^0.3.1"
+  },
+  "devDependencies": {
+    "@builder.io/qwik-city": "1.2.6"
   }
 }

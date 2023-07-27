@@ -11,7 +11,7 @@ import {
 import { delay } from "../../actions/login";
 
 export const useDateLoader = routeLoader$(
-  () => new Date("2021-01-01T00:00:00.000Z")
+  () => new Date("2021-01-01T00:00:00.000Z"),
 );
 
 export const useDependencyLoader = routeLoader$(
@@ -29,7 +29,7 @@ export const useDependencyLoader = routeLoader$(
       nu: 42,
       name: formData?.name ?? params.id,
     };
-  }
+  },
 );
 
 const useLoader = routeLoader$(() => {
@@ -156,7 +156,7 @@ export const useForm = routeAction$(
   },
   zod$({
     name: z.string(),
-  })
+  }),
 );
 
 export const useFormWithError = routeAction$(async (stuff, { fail }) => {

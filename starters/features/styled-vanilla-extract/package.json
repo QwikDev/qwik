@@ -1,9 +1,5 @@
 {
   "description": "Zero-cost CSS-in-JS for Qwik",
-  "devDependencies": {
-    "@vanilla-extract/css": "^1.11.1",
-    "styled-vanilla-extract": "^0.5.4"
-  },
   "__qwik__": {
     "displayName": "Integration: Styled-Vanilla-Extract (styling)",
     "priority": -10,
@@ -24,5 +20,9 @@
       "https://github.com/wmertens/styled-vanilla-extract/blob/main/README.md",
       "https://vanilla-extract.style/"
     ]
+  },
+  "devDependencies": {
+    "@vanilla-extract/css": "^1.12.0",
+    "styled-vanilla-extract": "^0.5.4"
   }
 }

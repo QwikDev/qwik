@@ -39,7 +39,7 @@ export default component$(() => {
       if ((e as KeyboardEvent).key === "Alt") {
         gettingStartedStep.value = 1;
       }
-    })
+    }),
   );
 
   return (

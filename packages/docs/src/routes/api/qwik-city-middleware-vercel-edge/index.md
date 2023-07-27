@@ -8,7 +8,7 @@ title: \@builder.io/qwik-city/middleware/vercel-edge API Reference
 
 ```typescript
 export declare function createQwikCity(
-  opts: QwikCityVercelEdgeOptions
+  opts: QwikCityVercelEdgeOptions,
 ): (request: Request) => Promise<Response>;
 ```
 

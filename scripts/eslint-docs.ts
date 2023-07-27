@@ -1,6 +1,5 @@
 import * as fs from 'fs';
 import { resolve } from 'path';
-import { format } from 'prettier';
 import { rules, configs } from '../packages/eslint-plugin-qwik/index';
 import { examples, type QwikEslintExample } from '../packages/eslint-plugin-qwik/examples';
 
@@ -103,7 +102,7 @@ mdx.push(`<p>These rules are available.</p>`);
 
 mdx.push(`<div class="my-6">`);
 rulesMap.forEach((rule) => {
-  mdx.push(`  
+  mdx.push(`
     <a href="#${rule.name}" class="p-4 flex panel">
       <div class="flex-1">
         <code>${rule.name}</code>
@@ -114,7 +113,7 @@ rulesMap.forEach((rule) => {
           class={{
             'icon': ${rule.recommended === false},
             'icon icon-inactive': ${rule.recommended === 'warn'},
-          }}     
+          }}
         >
           ✅
         </span>

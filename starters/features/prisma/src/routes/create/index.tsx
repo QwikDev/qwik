@@ -13,7 +13,7 @@ export const useCreateUser = routeAction$(
   zod$({
     name: z.string(),
     email: z.string().email(),
-  })
+  }),
 );
 
 export default component$(() => {

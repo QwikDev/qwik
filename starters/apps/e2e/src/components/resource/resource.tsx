@@ -125,7 +125,7 @@ export const Results = component$(
         <div class="logs">{logscontent}</div>
       </div>
     );
-  }
+  },
 );
 
 export function mutable(value: any) {

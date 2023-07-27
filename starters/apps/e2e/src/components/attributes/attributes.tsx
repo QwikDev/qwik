@@ -20,7 +20,7 @@ export const AttributesChild = component$(() => {
     },
     {
       reactive: false,
-    }
+    },
   );
 
   const title = useSignal<string>();

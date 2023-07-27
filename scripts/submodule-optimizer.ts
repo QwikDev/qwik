@@ -6,14 +6,12 @@ import {
   nodeTarget,
   readFile,
   target,
-  watcher,
   writeFile,
 } from './util';
 import { join } from 'node:path';
 import { minify } from 'terser';
 import { platformArchTriples } from '@napi-rs/triples';
 import { readPackageJson } from './package-json';
-import { watch } from 'rollup';
 import { constants } from 'node:fs';
 import { inlineQwikScriptsEsBuild } from './submodule-qwikloader';
 import RawPlugin from 'esbuild-plugin-raw';
@@ -38,7 +36,6 @@ export async function submoduleOptimizer(config: BuildConfig) {
         /* no Node.js built-in externals allowed! */
         'espree',
       ],
-      incremental: config.watch,
     };
 
     const qwikloaderScripts = await inlineQwikScriptsEsBuild(config);
@@ -55,7 +52,6 @@ export async function submoduleOptimizer(config: BuildConfig) {
         ...qwikloaderScripts,
       },
       plugins: [RawPlugin()],
-      watch: watcher(config, submodule),
     });
 
     const cjsBanner = [`globalThis.qwikOptimizer = (function (module) {`].join('\n');
@@ -74,13 +70,12 @@ export async function submoduleOptimizer(config: BuildConfig) {
         'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
         ...qwikloaderScripts,
       },
-      watch: watcher(config),
       platform: 'node',
       target: nodeTarget,
       plugins: [RawPlugin()],
     });
 
-    const [esm, cjs] = await Promise.all([esmBuild, cjsBuild]);
+    await Promise.all([esmBuild, cjsBuild]);
 
     if (!config.dev) {
       const esmDist = join(config.distQwikPkgDir, 'optimizer.mjs');
@@ -122,16 +117,6 @@ export async function submoduleOptimizer(config: BuildConfig) {
     }
 
     console.log('🐹', submodule);
-
-    if (config.watch) {
-      const watcher = watch({ input: join(config.distQwikPkgDir, 'prefetch.debug.js') });
-      watcher.on('change', () => {
-        esm.stop!();
-        cjs.stop!();
-        watcher.close();
-        setTimeout(buildOptimizer);
-      });
-    }
   }
 
   await Promise.all([buildOptimizer()]);

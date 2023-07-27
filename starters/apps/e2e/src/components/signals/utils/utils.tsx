@@ -85,7 +85,7 @@ export const TestCWithFlag = component$(
         <Slot />
       </p>
     );
-  }
+  },
 );
 export const TestACWithFlag = component$(
   (props: { color: string; flag: boolean }) => {
@@ -96,7 +96,7 @@ export const TestACWithFlag = component$(
         <Slot />
       </p>
     );
-  }
+  },
 );
 export const TestCStrWithFlag = component$(
   (props: { color: string; flag: boolean }) => {
@@ -107,7 +107,7 @@ export const TestCStrWithFlag = component$(
         <Slot />
       </p>
     );
-  }
+  },
 );
 export const TestACStrWithFlag = component$(
   (props: { color: string; flag: boolean }) => {
@@ -120,7 +120,7 @@ export const TestACStrWithFlag = component$(
         <Slot />
       </p>
     );
-  }
+  },
 );
 
 export const TestCNWithFlag = component$(
@@ -132,7 +132,7 @@ export const TestCNWithFlag = component$(
         <Slot />
       </p>
     );
-  }
+  },
 );
 export const TestACNWithFlag = component$(
   (props: { color: string; flag: boolean }) => {
@@ -145,7 +145,7 @@ export const TestACNWithFlag = component$(
         <Slot />
       </p>
     );
-  }
+  },
 );
 export const TestCNStrWithFlag = component$(
   (props: { color: string; flag: boolean }) => {
@@ -156,7 +156,7 @@ export const TestCNStrWithFlag = component$(
         <Slot />
       </p>
     );
-  }
+  },
 );
 export const TestACNStrWithFlag = component$(
   (props: { color: string; flag: boolean }) => {
@@ -169,5 +169,5 @@ export const TestACNStrWithFlag = component$(
         <Slot />
       </p>
     );
-  }
+  },
 );

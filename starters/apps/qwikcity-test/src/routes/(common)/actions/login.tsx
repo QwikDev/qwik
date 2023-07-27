@@ -27,7 +27,7 @@ export const useSecretAction = globalAction$(
     username: z.string().min(3).max(10),
     code: z.coerce.number(),
     button: z.string().startsWith("hello"),
-  })
+  }),
 );
 
 export const SecretForm = component$(() => {

@@ -16,11 +16,11 @@ test.describe("build-variables", () => {
     const button = page.locator("#build-variables-button");
 
     await expect(result).toHaveText(
-      '{"isServer":true,"isBrowser":false,"isDev":true,"buildIsServer":true,"buildIsBrowser":false,"buildIsDev":true,"count":0}'
+      '{"isServer":true,"isBrowser":false,"isDev":true,"buildIsServer":true,"buildIsBrowser":false,"buildIsDev":true,"count":0}',
     );
     await button.click();
     await expect(result).toHaveText(
-      '{"isServer":false,"isBrowser":true,"isDev":true,"buildIsServer":false,"buildIsBrowser":true,"buildIsDev":true,"count":1}'
+      '{"isServer":false,"isBrowser":true,"isDev":true,"buildIsServer":false,"buildIsBrowser":true,"buildIsDev":true,"count":1}',
     );
   });
 });

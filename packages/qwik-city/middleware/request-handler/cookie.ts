@@ -111,10 +111,13 @@ export class Cookie implements CookieInterface {
   }
 
   getAll(live: boolean = true) {
-    return Object.keys(this[live ? LIVE_COOKIE : REQ_COOKIE]).reduce((cookies, cookieName) => {
-      cookies[cookieName] = this.get(cookieName)!;
-      return cookies;
-    }, {} as Record<string, CookieValue>);
+    return Object.keys(this[live ? LIVE_COOKIE : REQ_COOKIE]).reduce(
+      (cookies, cookieName) => {
+        cookies[cookieName] = this.get(cookieName)!;
+        return cookies;
+      },
+      {} as Record<string, CookieValue>
+    );
   }
 
   has(cookieName: string, live: boolean = true) {

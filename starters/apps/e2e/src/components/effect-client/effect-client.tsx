@@ -96,7 +96,7 @@ export const Eager = component$(() => {
     },
     {
       strategy: "document-ready",
-    }
+    },
   );
 
   return (
@@ -122,7 +122,7 @@ export const ClientSide = component$(() => {
     },
     {
       strategy: "document-ready",
-    }
+    },
   );
 
   useVisibleTask$(() => {
@@ -135,7 +135,7 @@ export const ClientSide = component$(() => {
     },
     {
       strategy: "document-idle",
-    }
+    },
   );
 
   return (
@@ -186,7 +186,7 @@ export const Issue1717 = component$(() => {
     {
       count: 0,
     },
-    { reactive: false }
+    { reactive: false },
   );
   const signal = useSignal(0);
   useTask$(async () => {
@@ -271,11 +271,11 @@ export const CleanupEffectsChild = component$(
       });
     });
     return <div>Hello</div>;
-  }
+  },
 );
 
 const ContextIssue4432 = createContextId<{ url: URL; logs: string }>(
-  "issue-4432"
+  "issue-4432",
 );
 
 export const Issue4432 = component$(() => {
@@ -318,7 +318,7 @@ export const Issue4432Child = component$(() => {
     },
     {
       strategy: "document-ready",
-    }
+    },
   );
 
   return (

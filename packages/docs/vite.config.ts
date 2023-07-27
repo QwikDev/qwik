@@ -186,9 +186,12 @@ export const repl = bundle('repl', [
 ]);
 
 function bundle(bundleName: string, symbols: string[]) {
-  return symbols.reduce((obj, key) => {
-    // Sometimes symbols are prefixed with `s_`, remove it.
-    obj[key.replace('s_', '')] = obj[key] = bundleName;
-    return obj;
-  }, {} as Record<string, string>);
+  return symbols.reduce(
+    (obj, key) => {
+      // Sometimes symbols are prefixed with `s_`, remove it.
+      obj[key.replace('s_', '')] = obj[key] = bundleName;
+      return obj;
+    },
+    {} as Record<string, string>
+  );
 }

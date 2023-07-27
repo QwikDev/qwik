@@ -35,18 +35,18 @@ export async function assertPage(ctx: TestContext, test: AssertPage) {
       parentLocator = parentLocator.locator(selector);
       expect(
         await parentLocator.isVisible(),
-        `Incorrect layout hierarchy, did not find "${selector}", pathname: ${pageUrl.pathname}`
+        `Incorrect layout hierarchy, did not find "${selector}", pathname: ${pageUrl.pathname}`,
       ).toBe(true);
     }
 
     const noFindChildLayout = parentLocator.locator(`[data-test-layout]`);
     if (await noFindChildLayout.isVisible()) {
       const layoutName = await noFindChildLayout.getAttribute(
-        "data-test-layout"
+        "data-test-layout",
       )!;
       expect(
         layoutName,
-        `Should not be another nested layout, but found [data-test-layout="${layoutName}"], pathname: ${pageUrl.pathname}`
+        `Should not be another nested layout, but found [data-test-layout="${layoutName}"], pathname: ${pageUrl.pathname}`,
       ).toBe(null);
     }
   }
@@ -58,14 +58,14 @@ export async function assertPage(ctx: TestContext, test: AssertPage) {
 
   const activeLink = locator(
     ctx,
-    `header [data-test-header-links] a[class="active"]`
+    `header [data-test-header-links] a[class="active"]`,
   );
   if (typeof test.activeHeaderLink === "string") {
     if (await activeLink.isVisible()) {
       expect(await activeLink.innerText()).toBe(test.activeHeaderLink);
     } else {
       expect(true, `Header link "${test.activeHeaderLink}" not active`).toBe(
-        false
+        false,
       );
     }
   } else if (test.activeHeaderLink === false) {
@@ -86,7 +86,7 @@ interface AssertPage {
 export async function linkNavigate(
   ctx: TestContext,
   linkSelector: string,
-  responseStatus = 200
+  responseStatus = 200,
 ) {
   const page = getPage(ctx);
   const link = page.locator(linkSelector);
@@ -110,7 +110,7 @@ export async function linkNavigate(
     if (rspStatus !== responseStatus) {
       const content = await rsp?.text();
       expect(rspStatus, `${href} (${rspStatus})\n${content}`).toBe(
-        responseStatus
+        responseStatus,
       );
     }
   }
@@ -118,7 +118,7 @@ export async function linkNavigate(
 
 export async function getScrollHeight(page: Page) {
   return await page.evaluate(
-    () => document.documentElement.scrollHeight - window.innerHeight
+    () => document.documentElement.scrollHeight - window.innerHeight,
   );
 }
 
@@ -132,7 +132,7 @@ export async function getWindowScrollXY(page: Page) {
 export async function scrollTo(page: Page, x: number, y: number) {
   return await page.evaluate<void, [number, number]>(
     ([x, y]) => window.scrollTo(x, y),
-    [x, y]
+    [x, y],
   );
 }
 
@@ -140,8 +140,8 @@ export async function scrollDetector(page: Page) {
   return page.evaluate(
     () =>
       new Promise<void>((resolve) =>
-        document.addEventListener("scroll", () => resolve(), { once: true })
-      )
+        document.addEventListener("scroll", () => resolve(), { once: true }),
+      ),
   );
 }
 
@@ -170,10 +170,10 @@ export function getPage(ctx: TestContext) {
 export async function load(
   browserContext: BrowserContext,
   javaScriptEnabled: boolean | undefined,
-  pathname: string
+  pathname: string,
 ): Promise<TestContext> {
   console.log(
-    `Load: ${pathname} (js ${javaScriptEnabled ? "enabled" : "disabled"})`
+    `Load: ${pathname} (js ${javaScriptEnabled ? "enabled" : "disabled"})`,
   );
 
   const page = await browserContext.newPage();

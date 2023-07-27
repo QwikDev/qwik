@@ -666,12 +666,16 @@ const collectProps = (elCtx: QContext, collector: Collector) => {
     const subs = getSubscriptionManager(props)?.$subs$;
     const el = elCtx.$element$ as VirtualElement;
     if (subs) {
-      for (const sub of subs) {
-        if (sub[0] === 0) {
-          if (sub[1] !== el) {
+      for (const [type, host] of subs) {
+        if (type === 0) {
+          if (host !== el) {
             collectSubscriptions(getSubscriptionManager(props)!, collector, false);
           }
-          collectElement(sub[1] as VirtualElement, collector);
+          if (isNode(host)) {
+            collectElement(host, collector);
+          } else {
+            collectValue(host, collector, true);
+          }
         } else {
           collectValue(props, collector, false);
           collectSubscriptions(getSubscriptionManager(props)!, collector, false);
@@ -712,7 +716,7 @@ const collectDeferElement = (el: VirtualElement, collector: Collector) => {
   collector.$prefetch$--;
 };
 
-const collectElement = (el: VirtualElement, collector: Collector) => {
+const collectElement = (el: QwikElement, collector: Collector) => {
   const ctx = tryGetContext(el);
   if (ctx) {
     if (collector.$elements$.includes(ctx)) {

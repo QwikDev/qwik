@@ -21,7 +21,7 @@ Rather than showing a blank page, by default Qwik City provides a generic 404 pa
 
 ### Custom 404 Page
 
-Instead of showing the generic (boring) 404 response, it's possible to provide a custom 404 page using the same familar layouts as the rest of your site.
+Instead of showing the generic (boring) 404 response, it's possible to provide a custom 404 page using the same familiar layouts as the rest of your site.
 
 To create a custom 404 page, add a `404.tsx` file to the root `src/routes` directory.
 
@@ -37,7 +37,7 @@ In the example above, the `404.tsx` page will also use the `layout.tsx` layout, 
 
 Additionally, using Qwik City's directory-based routing allows for custom 404 pages to be created at different paths. For example, if `src/routes/account/404.tsx` was also added to the structure, then the custom account 404 page would only be applied to the `/account/*` routes, while all other 404s would use the root `404.tsx` page.
 
-> Note: During development and in preview mode, the custom 404 pages will be not render, but instead the default Qwik City 404 page will show. However, when building the app for production, the custom 404 page will be statically generated as a static `404.html` file.
+> Note: During development and in preview mode, the custom 404 pages will not be rendered, but instead the default Qwik City 404 page will show. However, when building the app for production, the custom 404 page will be statically generated as a static `404.html` file.
 
 ```bash
 src/
@@ -239,7 +239,7 @@ The above example would render the html:
 
 `plugin.ts` and `plugin@<name>.ts` files can be created in the root of the `src/routes` directory to handle any incoming request before even the root layout executes.
 
-You can have multiple `plugin.ts` files, each with a different name. For example, `plugin@auth.ts` and `plugin@security.ts`. The `@<name>` is optional and and it's only used for developers to help identify the plugin.
+You can have multiple `plugin.ts` files, each with a different name. For example, `plugin@auth.ts` and `plugin@security.ts`. The `@<name>` is optional and it's only used for developers to help identify the plugin.
 
 Requests handlers like `onRequest`, `onGet`, `onPost`, etc. are called before `server$` functions are executed.
 

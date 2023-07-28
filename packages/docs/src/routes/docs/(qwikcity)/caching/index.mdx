@@ -2,6 +2,7 @@
 title: Caching | QwikCity
 contributors:
   - steve8708
+  - harishkrishnan24
 ---
 
 # Caching Responses
@@ -76,7 +77,7 @@ You can see the full [API reference](https://qwik.builder.io/api/qwik-city-middl
 
 Caching is a good default, but not right for every page all the time. If you have URLs on your site that will show different content to different people - such as pages only for logged in users, or pages that show different content based on the user's location, you should not cache those pages using cache-control headers in the response, and server side render the contents of those pages on a per-visitor basis.
 
-For high traffic pages that look the same to everyone, such as a homepage, caching is the best thing to do for performance and cost. But for pages only for loggeed in users, and as a result probably have some degree less traffic, disabling caching may be wise.
+For high traffic pages that look the same to everyone, such as a homepage, caching is the best thing to do for performance and cost. But for pages only for logged in users, and as a result probably have some degree less traffic, disabling caching may be wise.
 
 You can conditionally change cache behaviors with any logic you like:
 

@@ -35,7 +35,7 @@ Tasks can also be used to perform work when a component state changes. In this c
 
 Sometimes a task needs to run only on the browser and after rendering, in that case, you should use [`useVisibleTask$()`](#usevisibletask).
 
-Sometimes a task should fetch data asynchronously and produce a signal (and not block rendering), in that case, you should use [`useResource$()`](#useresource).
+Sometimes a task should fetch data asynchronously and produce a signal (and not block rendering), in that case, you should use [`useResource$()`](/docs/(qwik)/components/state/#useresource).
 
 ## Lifecycle
 
@@ -140,7 +140,7 @@ Use `useTask$()` when you need to:
 - Run code only once before the component is first rendered
 - Programmatically run side-effect code when state changes
 
-> Note, if you're thinking about loading data (like using `fetch()`) inside of `useTask$`, consider using [`useResource$()`](#useresource) instead. This API is more efficient in terms of leveraging SSR streaming and parallel data fetching.
+> Note, if you're thinking about loading data (like using `fetch()`) inside of `useTask$`, consider using [`useResource$()`](/docs/(qwik)/components/state/#useresource) instead. This API is more efficient in terms of leveraging SSR streaming and parallel data fetching.
 
 ### On mount
 

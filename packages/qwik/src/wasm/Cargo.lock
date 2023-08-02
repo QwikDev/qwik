@@ -305,8 +305,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "be4136b2a15dd319360be1c07d9933517ccf0be8f16bf62a3bee4f0d618df427"
 dependencies = [
  "cfg-if 1.0.0",
+ "js-sys",
  "libc",
  "wasi",
+ "wasm-bindgen",
 ]
 
 [[package]]
@@ -739,6 +741,7 @@ name = "qwik-wasm"
 version = "0.1.0"
 dependencies = [
  "console_error_panic_hook",
+ "getrandom",
  "js-sys",
  "parking_lot_core",
  "qwik-core",

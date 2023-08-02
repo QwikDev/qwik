@@ -12,6 +12,7 @@ export function cloudflarePagesAdapter(opts?: CloudflarePagesAdapterOptions): an
 
 // @public (undocumented)
 export interface CloudflarePagesAdapterOptions extends ServerAdapterOptions {
+    entryPoint?: string;
     functionRoutes?: boolean;
     staticPaths?: string[];
 }

@@ -53,7 +53,10 @@ export function cloudflarePagesAdapter(opts: CloudflarePagesAdapterOptions = {})
       const workerJsPath = join(clientOutDir, '_worker.js');
       const hasWorkerJs = fs.existsSync(workerJsPath);
       if (!hasWorkerJs) {
-        const importPath = relative(clientOutDir, join(serverOutDir, 'entry.cloudflare-pages'));
+        const importPath = relative(
+          clientOutDir,
+          join(serverOutDir, opts.entryPoint ?? 'entry.cloudflare-pages')
+        );
         await fs.promises.writeFile(
           workerJsPath,
           `import { fetch } from "${normalizePathSlash(importPath)}"; export default { fetch };`
@@ -81,6 +84,12 @@ export interface CloudflarePagesAdapterOptions extends ServerAdapterOptions {
    * come from a static file, rather than a server-side rendered response.
    */
   staticPaths?: string[];
+  /**
+   * Allow for customization of the name for the Cloudflare Pages entrypoint,
+   * traditionally named `entry.cloudflare-pages-tsx`. If you change this, you
+   * should also update your Rollup settings.
+   */
+  entryPoint?: string;
 }
 
 /**

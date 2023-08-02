@@ -1,4 +1,5 @@
 import { component$, useStyles$ } from '@builder.io/qwik';
+
 import type { DocumentHead } from '@builder.io/qwik-city';
 import styles from './media.css?inline';
 
@@ -52,6 +53,10 @@ export const MEDIA = mediaObj({
       title: '🇪🇸 manuelsanchezweb: Qwik intermedio-avanzado con proyectos',
       language: 'es',
     },
+    youtube('🇷🇺 Qwik 1.0 - новый подход frontend разработки?', 'FF4D4tppyag', {
+      language: 'ru',
+      promoted: true,
+    }),
     youtube('QwikJS course in Arabic', 'irQDABJZw5c', {
       playlist: 'PLJaZ4a7YGFlJIxcL0br5FPsh5f9qFKKdd',
       language: 'ar',

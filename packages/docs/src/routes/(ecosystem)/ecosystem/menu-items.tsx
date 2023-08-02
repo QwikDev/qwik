@@ -305,7 +305,7 @@ export const MenuItems = () => {
             height="20px"
             viewBox="0 0 512 512"
             xml:space="preserve"
-            fill="#fff"
+            fill="currentColor"
           >
             <g id="SVGRepo_bgCarrier" stroke-width="0" />
 

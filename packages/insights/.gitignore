@@ -13,6 +13,7 @@ node_modules
 .mf
 .rollup.cache
 tsconfig.tsbuildinfo
+tmp
 
 # Logs
 logs
@@ -41,3 +42,6 @@ lerna-debug.log*
 # Netlify
 .netlify
 .env.local
+
+# Panda CSS
+src/styled-system

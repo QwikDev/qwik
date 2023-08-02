@@ -8,7 +8,6 @@ import {
   getBanner,
   readdir,
   run,
-  watcher,
 } from './util';
 import { build } from 'esbuild';
 import { existsSync } from 'node:fs';
@@ -69,7 +68,6 @@ async function bundleCreateQwikCli(config: BuildConfig, srcCliDir: string, distC
     banner: {
       js: getBanner(PACKAGE, config.distVersion),
     },
-    watch: watcher(config),
   });
 }
 

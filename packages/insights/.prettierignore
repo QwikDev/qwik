@@ -39,3 +39,6 @@ yarn.lock
 server
 drizzle
 **/*.gen.d.ts
+
+# Panda CSS
+src/styled-system

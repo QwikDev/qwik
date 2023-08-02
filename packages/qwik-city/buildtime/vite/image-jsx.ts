@@ -2,18 +2,19 @@ import type { OutputFormat } from 'vite-imagetools';
 import type { PluginOption } from 'vite';
 import { optimize } from 'svgo';
 import fs from 'node:fs';
+import path from 'node:path';
 import { parseId } from 'packages/qwik/src/optimizer/src/plugins/plugin';
+import type { QwikCityVitePluginOptions } from './types';
 
 /**
  * @public
  */
-export function imagePlugin(): PluginOption[] {
-  const supportedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'avif', 'tiff'].map(
-    (ext) => `.${ext}?jsx`
-  );
+export function imagePlugin(userOpts?: QwikCityVitePluginOptions): PluginOption[] {
+  const supportedExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.avif', '.tiff'];
   return [
     import('vite-imagetools').then(({ imagetools }) =>
       imagetools({
+        exclude: [],
         extendOutputFormats(builtins) {
           const jsx: OutputFormat = () => (metadatas) => {
             const srcSet = metadatas.map((meta) => `${meta.src} ${meta.width}w`).join(', ');
@@ -40,10 +41,14 @@ export function imagePlugin(): PluginOption[] {
         },
         defaultDirectives: (url) => {
           if (url.searchParams.has('jsx')) {
+            const { jsx, ...params } = Object.fromEntries(url.searchParams.entries());
             return new URLSearchParams({
               format: 'webp',
               quality: '75',
-              w: '200;400;800;1200',
+              w: '200;400;600;800;1200',
+              withoutEnlargement: '',
+              ...userOpts?.imageOptimization?.jsxDirectives,
+              ...params,
               as: 'jsx',
             });
           }
@@ -52,12 +57,14 @@ export function imagePlugin(): PluginOption[] {
       })
     ),
     {
-      name: 'qwik-city-image',
+      name: 'qwik-city-image-jsx',
       load: {
         order: 'pre',
         handler: async (id) => {
-          if (id.endsWith('.svg?jsx')) {
-            const code = await fs.promises.readFile(parseId(id).pathId, 'utf-8');
+          const { params, pathId } = parseId(id);
+          const extension = path.extname(pathId).toLowerCase();
+          if (extension === '.svg' && params.has('jsx')) {
+            const code = await fs.promises.readFile(pathId, 'utf-8');
             return {
               code,
               moduleSideEffects: false,
@@ -65,21 +72,27 @@ export function imagePlugin(): PluginOption[] {
           }
         },
       },
-      transform: (code, id) => {
+      transform(code, id) {
         id = id.toLowerCase();
-        if (id.endsWith('?jsx')) {
-          if (supportedExtensions.some((ext) => id.endsWith(ext))) {
+        const { params, pathId } = parseId(id);
+        if (params.has('jsx')) {
+          const extension = path.extname(pathId).toLowerCase();
+
+          if (supportedExtensions.includes(extension)) {
+            if (!code.includes('srcSet')) {
+              this.error(`Image '${id}' could not be optimized to JSX`);
+            }
             const index = code.indexOf('export default');
             return (
               code.slice(0, index) +
               `
   import { _jsxQ } from '@builder.io/qwik';
-  const PROPS = {decoding: 'async', loading: 'lazy', srcSet, width, height};
+  const PROPS = {srcSet, width, height};
   export default function (props, key, _, dev) {
-    return _jsxQ('img', props, PROPS, undefined, 3, key, dev);
+    return _jsxQ('img', {...{decoding: 'async', loading: 'lazy'}, ...props}, PROPS, undefined, 3, key, dev);
   }`
             );
-          } else if (id.endsWith('.svg?jsx')) {
+          } else if (extension === '.svg') {
             const svgAttributes: Record<string, string> = {};
             const data = optimize(code, {
               plugins: [

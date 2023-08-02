@@ -12,6 +12,8 @@ import { createQwikCity } from "@builder.io/qwik-city/middleware/deno";
 import qwikCityPlan from "@qwik-city-plan";
 import { manifest } from "@qwik-client-manifest";
 import render from "./entry.ssr";
+// @ts-ignore
+import { serve } from "https://deno.land/std@0.192.0/http/server.ts";
 
 // Create the Qwik City Deno middleware
 const { router, notFound, staticFile } = createQwikCity({
@@ -21,43 +23,28 @@ const { router, notFound, staticFile } = createQwikCity({
 });
 
 // Allow for dynamic port
-const port = Number(Deno.env.get("PORT") ?? 8080);
-
-// Start the Deno server
-const server = Deno.listen({ port });
+const port = Number(Deno.env.get("PORT") ?? 3009);
 
 /* eslint-disable */
-console.log(`Server started: http://localhost:${port}/`);
+console.log(`Server starter: http://localhost:${port}/app/`);
 
-// https://deno.com/manual/examples/http_server
-// Connections to the server will be yielded up as an async iterable.
-for await (const conn of server) {
-  serveHttp(conn);
-}
-
-async function serveHttp(conn: any) {
-  const httpConn = Deno.serveHttp(conn);
-
-  // Each request sent over the HTTP connection will be yielded as an
-  // async iterator from the HTTP connection.
-  for await (const requestEvent of httpConn) {
-    const staticResponse = await staticFile(requestEvent.request, conn);
+serve(
+  async (request: Request, conn: any) => {
+    const staticResponse = await staticFile(request);
     if (staticResponse) {
-      // Serve static file
-      requestEvent.respondWith(staticResponse);
-      continue;
+      return staticResponse;
     }
 
     // Server-side render this request with Qwik City
-    const qwikCityResponse = await router(requestEvent.request);
+    const qwikCityResponse = await router(request, conn);
     if (qwikCityResponse) {
-      requestEvent.respondWith(qwikCityResponse);
-      continue;
+      return qwikCityResponse;
     }
 
     // Path not found
-    requestEvent.respondWith(notFound(requestEvent.request));
-  }
-}
+    return notFound(request);
+  },
+  { port },
+);
 
 declare const Deno: any;

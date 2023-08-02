@@ -20,7 +20,7 @@ app.use(
   express.static(join(__dirname, "..", "dist", "build"), {
     immutable: true,
     maxAge: "1y",
-  })
+  }),
 );
 
 /**

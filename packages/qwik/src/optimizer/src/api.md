@@ -72,6 +72,8 @@ export interface HookAnalysis {
     // (undocumented)
     hash: string;
     // (undocumented)
+    loc: [number, number];
+    // (undocumented)
     name: string;
     // (undocumented)
     origin: string;
@@ -204,6 +206,8 @@ export interface QwikManifest {
     // (undocumented)
     injections?: GlobalInjections[];
     // (undocumented)
+    manifestHash: string;
+    // (undocumented)
     mapping: {
         [symbolName: string]: string;
     };
@@ -233,6 +237,8 @@ export function qwikRollup(qwikRollupOpts?: QwikRollupPluginOptions): any;
 // @public (undocumented)
 export interface QwikRollupPluginOptions {
     buildMode?: QwikBuildMode;
+    // (undocumented)
+    csr?: boolean;
     debug?: boolean;
     entryStrategy?: EntryStrategy;
     manifestInput?: QwikManifest;
@@ -260,6 +266,8 @@ export interface QwikSymbol {
     displayName: string;
     // (undocumented)
     hash: string;
+    // (undocumented)
+    loc: [number, number];
     // (undocumented)
     origin: string;
     // (undocumented)
@@ -303,32 +311,11 @@ export interface QwikVitePluginApi {
     getRootDir: () => string | null;
 }
 
+// Warning: (ae-forgotten-export) The symbol "QwikVitePluginCSROptions" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "QwikVitePluginSSROptions" needs to be exported by the entry point index.d.ts
+//
 // @public (undocumented)
-export interface QwikVitePluginOptions {
-    // (undocumented)
-    client?: {
-        input?: string[] | string;
-        devInput?: string;
-        outDir?: string;
-        manifestOutput?: (manifest: QwikManifest) => Promise<void> | void;
-    };
-    debug?: boolean;
-    // (undocumented)
-    devTools?: {
-        clickToSource: string[] | false;
-    };
-    entryStrategy?: EntryStrategy;
-    optimizerOptions?: OptimizerOptions;
-    srcDir?: string;
-    // (undocumented)
-    ssr?: {
-        input?: string;
-        outDir?: string;
-        manifestInput?: QwikManifest;
-    };
-    transformedModuleOutput?: ((transformedModules: TransformModule[]) => Promise<void> | void) | null;
-    vendorRoots?: string[];
-}
+export type QwikVitePluginOptions = QwikVitePluginCSROptions | QwikVitePluginSSROptions;
 
 // @public (undocumented)
 export interface ResolvedManifest {

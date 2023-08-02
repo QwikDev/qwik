@@ -14,6 +14,7 @@ contributors:
   - mhevery
   - AnthonyPAlicea
   - amatiash
+  - harishkrishnan24
 ---
 
 import CodeSandbox from '../../../../../components/code-sandbox/index.tsx';
@@ -188,7 +189,7 @@ export default component$(() => {
 ```
 </CodeSandbox>
 
-> **Note:** `currentTarget` in the DOM points to the element that the event listener was attached to. In the example above it will always be the `<DIV>` element.
+> **Note:** `currentTarget` in the DOM points to the element that the event listener was attached to. In the example above it will always be the `<SECTION>` element.
 
 ### Synchronous event handling
 
@@ -231,7 +232,7 @@ export default component$(() => {
 ```
 </CodeSandbox>
 
-> **NOTE** Using `VisibleTask` to listen for events in an anti-pattern in Qwik because it causes eager execution of code in the browser defeating [resumability](/docs/(qwik)/concepts/resumable/index.mdx). Only use it when you have no other choice. most of the time, you should use JSX to listen for events: `<div onClick$={...}>` or `useOn(...)` event methods if you need to listen programmatically.
+> **NOTE** Using `VisibleTask` to listen for events is an anti-pattern in Qwik because it causes eager execution of code in the browser defeating [resumability](/docs/(qwik)/concepts/resumable/index.mdx). Only use it when you have no other choice. Most of the time, you should use JSX to listen for events: `<div onClick$={...}>` or `useOn(...)` event methods if you need to listen programmatically.
 
 ## `PropFunction`
 

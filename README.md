@@ -12,6 +12,7 @@
    <a href="https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/vercel.yml"><img src="https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/vercel.yml/badge.svg" alt="Vercel Server"></a>
    <a href="https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/cli.yml"><img src="https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/cli.yml/badge.svg" alt="Create Qwik CLI"></a>
    <a href="https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/deno.yml"><img src="https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/deno.yml/badge.svg" alt="Deno Server"></a>
+   <a href="https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/aws.yml"><img src="https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/aws.yml/badge.svg" alt="AWS Server"></a>
 </p>
 <br>
 <br>

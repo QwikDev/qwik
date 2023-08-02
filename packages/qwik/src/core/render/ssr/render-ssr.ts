@@ -77,6 +77,7 @@ export interface RenderSSROptions {
     containsDynamic: boolean,
     textNodes: Map<string, string>
   ) => Promise<JSXNode>;
+  manifestHash: string;
 }
 
 export interface SSRContext {
@@ -163,6 +164,7 @@ export const _renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
     'q:render': qRender,
     'q:base': opts.base,
     'q:locale': opts.serverData?.locale,
+    'q:manifest-hash': opts.manifestHash,
   };
   const children = root === 'html' ? [node] : [headNodes, node];
   if (root !== 'html') {

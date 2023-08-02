@@ -88,7 +88,7 @@ export const qrl = <T = any>(
     throw qError(QError_unknownTypeArgument, chunkOrFn);
   }
 
-  if (announcedQRL.has(symbol)) {
+  if (!announcedQRL.has(symbol)) {
     // Emit event
     announcedQRL.add(symbol);
     emitEvent('qprefetch', {

@@ -230,7 +230,7 @@ export type FailReturn<T> = T & {
 ```typescript
 Form: <O, I>(
   { action, spaReset, reloadDocument, onSubmit$, ...rest }: FormProps<O, I>,
-  key: string | null
+  key: string | null,
 ) => QwikJSX.Element;
 ```
 
@@ -334,6 +334,7 @@ export interface LinkProps extends AnchorAttributes
 | [prefetch?](#)     |           | boolean | _(Optional)_ |
 | [reload?](#)       |           | boolean | _(Optional)_ |
 | [replaceState?](#) |           | boolean | _(Optional)_ |
+| [scroll?](#)       |           | boolean | _(Optional)_ |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/link-component.tsx)
 
@@ -491,7 +492,7 @@ export type RouteData =
       loaders: ModuleLoader[],
       paramNames: string[],
       originalPathname: string,
-      routeBundleNames: string[]
+      routeBundleNames: string[],
     ];
 ```
 
@@ -539,8 +540,9 @@ export type RouteNavigate = QRL<
           type?: Exclude<NavigationType, "initial">;
           forceReload?: boolean;
           replaceState?: boolean;
+          scroll?: boolean;
         }
-      | boolean
+      | boolean,
   ) => Promise<void>
 >;
 ```

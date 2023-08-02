@@ -1,4 +1,5 @@
 import { component$, useStyles$ } from '@builder.io/qwik';
+
 import type { DocumentHead } from '@builder.io/qwik-city';
 import styles from './media.css?inline';
 
@@ -37,15 +38,6 @@ export const MEDIA = mediaObj({
       language: 'en',
       promoted: true,
     },
-    youtube('Qwik 1.0 - новый подход frontend разработки?', 'FF4D4tppyag', { language: 'ru', promoted: true }),
-    {
-      href: 'https://www.youtube.com/watch?v=ajTNL88BN5E&t=204s',
-      imgSrc: 'https://i.ytimg.com/vi/ajTNL88BN5E/hq720.jpg',
-      title: 'Qwik 1.0 - новый подход frontend разработки?',
-      language: 'ru',
-      promoted: true,
-    },
-    
     youtube('🇪🇸 Qwik en 2 horas', 'FF3D4tppyag', { language: 'es', promoted: true }),
     {
       href: 'https://cursos.devtalles.com/courses/qwik-introduccion',
@@ -61,6 +53,10 @@ export const MEDIA = mediaObj({
       title: '🇪🇸 manuelsanchezweb: Qwik intermedio-avanzado con proyectos',
       language: 'es',
     },
+    youtube('🇷🇺 Qwik 1.0 - новый подход frontend разработки?', 'FF4D4tppyag', {
+      language: 'ru',
+      promoted: true,
+    }),
     youtube('QwikJS course in Arabic', 'irQDABJZw5c', {
       playlist: 'PLJaZ4a7YGFlJIxcL0br5FPsh5f9qFKKdd',
       language: 'ar',

@@ -11,6 +11,7 @@ contributors:
   - thejackshelton
   - adnanebrahimi
   - mhevery
+  - CoralWombat
   - tzdesign
 ---
 
@@ -377,7 +378,7 @@ We recommend starting with `routeAction$()` and only use `globalAction$()` when 
 
 ### `routeAction$()`
 
-`routeAction$()` can only be declared inside the `src/routes` folder, in a `layout.tsx` or `index.tsx` file, and they MUST be exported, just like a `routeLoader$()`. Since `routeAction$()` are only accessible within the route it's declared, they are recommended when the action needs to access some user data, or it's a protected route. Think about it like a "private" action.
+`routeAction$()` can only be declared inside the `src/routes` folder, in a `layout.tsx` or `index.tsx` file, and they MUST be exported, just like a `routeLoader$()`. Since `routeAction$()`s are only accessible within the route it's declared, they are recommended when the action needs to access some user data, or it's a protected route. Think about it like a "private" action.
 
 ```tsx title="src/routes/form/index.tsx"
 import { routeAction$ } from '@builder.io/qwik-city';

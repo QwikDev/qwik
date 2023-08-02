@@ -139,7 +139,11 @@ export class VirtualElementImpl implements VirtualElement {
   private $attributes$: Record<string, string>;
   private $template$: HTMLTemplateElement;
 
-  constructor(readonly open: Comment, readonly close: Comment, readonly isSvg: boolean) {
+  constructor(
+    readonly open: Comment,
+    readonly close: Comment,
+    readonly isSvg: boolean
+  ) {
     const doc = (this.ownerDocument = open.ownerDocument);
     this.$template$ = createElement(doc, 'template', false) as HTMLTemplateElement;
     this.$attributes$ = parseVirtualAttributes(open.data.slice(3));

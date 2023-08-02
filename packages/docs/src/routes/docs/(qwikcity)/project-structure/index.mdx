@@ -83,3 +83,51 @@ The `tsconfig.json` file contains the TypeScript compiler configuration. It's st
 ### `vite.config.ts`
 
 Qwik uses Vite to build the project. The `vite.config.ts` file contains the Vite configuration. It's standard for any Vite project. Please refer to the [Vite documentation](https://vitejs.dev/config/) for more information.
+
+## Utilities
+
+Qwik has a utility command called `new` that allows developers to easily create new components and routes. 
+
+Let's say you wanted to create a new component called `Button`, you would run the command:
+```tsx
+pnpm qwik new Button
+```
+
+Maybe you want to create a new route for the /contact page. To do that, you could use the command:
+```tsx
+pnpm qwik new /contact
+```
+
+The following commands are consistent with Qwik's directory file structure, allowing you to scaffold components more quickly.
+
+If we compare our `qwik-app-demo` from the top of the page, the additional changes would look like this:
+
+```bash
+qwik-app-demo
+├── README.md
+├── package.json
+├── public
+│   └── favicon.svg
+├── src
+│   ├── components
+│   │   └── router-head
+│   │       └── router-head.tsx
+│   │       Button
+│   │       └── index.tsx  
+│   ├── entry.ssr.tsx
+│   ├── global.css
+│   ├── root.tsx
+│   └── routes
+│       ├── flower
+│       │   ├── flower.css
+│       │   └── index.tsx
+│       ├── contact
+│       │   └── index.tsx
+│       ├── index.tsx
+│       ├── layout.tsx
+│       └── service-worker.ts
+├── tsconfig.json
+└── vite.config.ts
+```
+
+> This feature was added in Qwik v1.2, and those using an older version will not see this functionality.

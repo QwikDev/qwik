@@ -19,7 +19,9 @@
     color: white;
     padding: 10px 20px;
     border-radius: 8px;
-    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 34%), 0 8px 10px -6px rgb(0 0 0 / 24%);
+    box-shadow:
+      0 20px 25px -5px rgb(0 0 0 / 34%),
+      0 8px 10px -6px rgb(0 0 0 / 24%);
     backdrop-filter: blur(4px);
     -webkit-animation: fadeOut 0.3s 3s ease-in-out forwards;
     animation: fadeOut 0.3s 3s ease-in-out forwards;
@@ -94,6 +96,15 @@
       'keyup',
       (event) => {
         window.__qwik_inspector_state.pressedKeys.delete(event.code);
+        updateOverlay();
+      },
+      { capture: true }
+    );
+
+    window.addEventListener(
+      'blur',
+      (event) => {
+        window.__qwik_inspector_state.pressedKeys.clear();
         updateOverlay();
       },
       { capture: true }

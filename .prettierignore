@@ -2,10 +2,10 @@
 **/*.log
 **/.DS_Store
 *.
-.vscode/settings.json
 .history
 .yarn
 .yarnrc.yml
+.pnpm-store
 pnpm-lock.yaml
 .mf
 dist
@@ -20,7 +20,6 @@ output
 rollup.config.js
 build
 .cache
-.vscode
 .rollup.cache
 tsconfig.tsbuildinfo
 packages/docs/api/**/*

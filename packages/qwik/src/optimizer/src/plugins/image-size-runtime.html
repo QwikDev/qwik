@@ -292,6 +292,9 @@
       }
       return p;
     }
+    function isDefinedUnit(value) {
+      return value.endsWith('px');
+    }
     async function doImg(node) {
       const scrollX = window.scrollX;
       const scrollY = window.scrollY;
@@ -303,19 +306,17 @@
       if (info && wideScreen) {
         let layoutInvalidation = false;
         const loc = node.getAttribute('data-qwik-inspector');
+        const browserArea = rect.width * rect.height;
         if (!node.hasAttribute('width') || !node.hasAttribute('height')) {
           skip = true;
-          node.src = '';
-          const rect2 = node.getBoundingClientRect();
+          const computedStyles = node.computedStyleMap();
+          const hasAspect = computedStyles.get('aspect-ratio').toString() !== 'auto';
+          const hasWidth = isDefinedUnit(computedStyles.get('width').toString());
+          const hasHeight = isDefinedUnit(computedStyles.get('height').toString());
+          const isAbsolute = computedStyles.get('position').toString() === 'absolute';
           layoutInvalidation =
-            rect.x !== rect2.x ||
-            rect.y !== rect2.y ||
-            rect.width !== rect2.width ||
-            rect.height !== rect2.height;
-
-          node.src = originalSrc;
+            browserArea > 1000 && !isAbsolute && !hasAspect && (!hasWidth || !hasHeight);
         }
-        const browserArea = rect.width * rect.height;
         const realArea = info.width && info.height;
         const threshholdArea = realArea * 0.5;
         const tooBig = browserArea < threshholdArea;
@@ -444,7 +445,13 @@
     } else {
       window.addEventListener('load', activate);
     }
-    if (typeof PerformanceObserver !== 'undefined') {
+    const pageAccessedByReload =
+      performance?.navigation.type === 1 ||
+      performance
+        .getEntriesByType('navigation')
+        .map((nav) => nav.type)
+        .includes('reload');
+    if (typeof PerformanceObserver !== 'undefined' && !pageAccessedByReload) {
       const shiftsMap = new Map();
       perfObserver = new PerformanceObserver((list) => {
         list.getEntries().forEach((entry) => {

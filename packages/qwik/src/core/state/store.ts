@@ -196,7 +196,7 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     return true;
   }
 
-  has(target: TargetType, property: string | symbol) {
+  has(target: TargetType, property: string | symbol): boolean {
     if (property === QOjectTargetSymbol) {
       return true;
     }
@@ -234,7 +234,10 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     });
   }
 
-  getOwnPropertyDescriptor(target: TargetType, prop: string) {
+  getOwnPropertyDescriptor(
+    target: TargetType,
+    prop: string | symbol
+  ): PropertyDescriptor | undefined {
     if (isArray(target) || typeof prop === 'symbol') {
       return Object.getOwnPropertyDescriptor(target, prop);
     }

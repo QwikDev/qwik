@@ -174,7 +174,7 @@ export interface RenderResult
 
 ```typescript
 export type RenderToStream = (
-  opts: RenderToStreamOptions
+  opts: RenderToStreamOptions,
 ) => Promise<RenderToStreamResult>;
 ```
 
@@ -186,7 +186,7 @@ export type RenderToStream = (
 
 ```typescript
 export type RenderToStream = (
-  opts: RenderToStreamOptions
+  opts: RenderToStreamOptions,
 ) => Promise<RenderToStreamResult>;
 ```
 
@@ -229,7 +229,7 @@ export interface RenderToStreamResult extends RenderResult
 
 ```typescript
 export type RenderToString = (
-  opts: RenderToStringOptions
+  opts: RenderToStringOptions,
 ) => Promise<RenderToStringResult>;
 ```
 
@@ -241,7 +241,7 @@ export type RenderToString = (
 
 ```typescript
 export type RenderToString = (
-  opts: RenderToStringOptions
+  opts: RenderToStringOptions,
 ) => Promise<RenderToStringResult>;
 ```
 
@@ -278,7 +278,7 @@ export interface RenderToStringResult extends RenderResult
 
 ```typescript
 export declare function resolveManifest(
-  manifest: QwikManifest | ResolvedManifest | undefined
+  manifest: QwikManifest | ResolvedManifest | undefined,
 ): ResolvedManifest | undefined;
 ```
 
@@ -310,7 +310,7 @@ export interface SerializeDocumentOptions
 
 ```typescript
 export declare function setServerPlatform(
-  manifest: QwikManifest | ResolvedManifest | undefined
+  manifest: QwikManifest | ResolvedManifest | undefined,
 ): Promise<void>;
 ```
 

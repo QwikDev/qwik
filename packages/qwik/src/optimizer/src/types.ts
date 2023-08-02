@@ -139,6 +139,7 @@ export interface HookAnalysis {
   ctxKind: 'event' | 'function';
   ctxName: string;
   captures: boolean;
+  loc: [number, number];
 }
 
 // RESULT OUTPUT ***************
@@ -259,6 +260,7 @@ export interface SmartEntryStrategy {
  * @public
  */
 export interface QwikManifest {
+  manifestHash: string;
   symbols: { [symbolName: string]: QwikSymbol };
   mapping: { [symbolName: string]: string };
   bundles: { [fileName: string]: QwikBundle };
@@ -297,6 +299,7 @@ export interface QwikSymbol {
   ctxName: string;
   captures: boolean;
   parent: string | null;
+  loc: [number, number];
 }
 
 /**

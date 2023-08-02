@@ -18,9 +18,10 @@ function getOrigin(req: IncomingMessage) {
   const { PROTOCOL_HEADER, HOST_HEADER } = process.env;
   const headers = req.headers;
   const protocol =
-    (PROTOCOL_HEADER && headers[PROTOCOL_HEADER]) ||
+    (PROTOCOL_HEADER && headers[PROTOCOL_HEADER.toLowerCase()]) ||
     ((req.socket as any).encrypted || (req.connection as any).encrypted ? 'https' : 'http');
-  const host = (HOST_HEADER && headers[HOST_HEADER]) || headers[':authority'] || headers['host'];
+  const host =
+    (HOST_HEADER && headers[HOST_HEADER.toLowerCase()]) || headers[':authority'] || headers['host'];
 
   return `${protocol}://${host}`;
 }
@@ -88,6 +89,7 @@ export async function configureDevServer(
 
         if (typeof render === 'function') {
           const manifest: QwikManifest = {
+            manifestHash: '',
             symbols: {},
             mapping: {},
             bundles: {},
@@ -104,12 +106,12 @@ export async function configureDevServer(
                 url += `?t=${v.lastHMRTimestamp}`;
               }
               if (hook) {
-                manifest.mapping[hook.name] = url;
+                manifest.mapping[hook.name] = relativeURL(url, opts.rootDir);
               }
 
               const { pathId, query } = parseId(v.url);
               if (query === '' && ['.css', '.scss', '.sass'].some((ext) => pathId.endsWith(ext))) {
-                added.add(url);
+                added.add(v.url);
                 manifest.injections!.push({
                   tag: 'link',
                   location: 'head',
@@ -125,6 +127,7 @@ export async function configureDevServer(
           const srcBase = opts.srcDir
             ? path.relative(opts.rootDir, opts.srcDir).replace(/\\/g, '/')
             : 'src';
+
           const renderOpts: RenderToStreamOptions = {
             debug: true,
             locale: serverData.locale,
@@ -317,6 +320,16 @@ declare global {
       hoveredElement?: EventTarget | null;
     };
   }
+}
+
+function relativeURL(url: string, base: string) {
+  if (url.startsWith(base)) {
+    url = url.slice(base.length);
+    if (!url.startsWith('/')) {
+      url = '/' + url;
+    }
+  }
+  return url;
 }
 
 const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools'], srcDir: string) => {

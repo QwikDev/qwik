@@ -11,7 +11,7 @@
       "skipFiles": ["<node_internals>/**"],
       "cwd": "${workspaceFolder}",
       "program": "${workspaceFolder}/node_modules/vite/bin/vite.js",
-      "args": ["--mode", "ssr", "--force"],
-    },
+      "args": ["--mode", "ssr", "--force"]
+    }
   ]
 }

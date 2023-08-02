@@ -20,7 +20,7 @@ export const AttributesChild = component$(() => {
     },
     {
       reactive: false,
-    }
+    },
   );
 
   const title = useSignal<string>();
@@ -155,6 +155,8 @@ export const AttributesChild = component$(() => {
       <div id="input-value">{input.value}</div>
       <input id="input-copy" value={input.value} />
       <Issue3622 />
+      <Issue4718Null />
+      <Issue4718Undefined />
     </>
   );
 });
@@ -167,5 +169,41 @@ export const Issue3622 = component$(() => {
         <option value="option2">Option 2</option>
       </select>
     </div>
+  );
+});
+
+export const Issue4718Undefined = component$(() => {
+  const signal = useSignal<string | undefined>("some value");
+
+  return (
+    <button
+      id="issue-4718-undefined-result"
+      data-works={signal.value}
+      aria-label={signal.value}
+      title={signal.value}
+      onClick$={() => {
+        signal.value = undefined;
+      }}
+    >
+      Click Me
+    </button>
+  );
+});
+
+export const Issue4718Null = component$(() => {
+  const signal = useSignal<string | null>("some value");
+
+  return (
+    <button
+      id="issue-4718-null-result"
+      data-works={signal.value as any}
+      aria-label={signal.value as any}
+      title={signal.value as any}
+      onClick$={() => {
+        signal.value = null;
+      }}
+    >
+      Click Me
+    </button>
   );
 });

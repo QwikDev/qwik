@@ -1,35 +1,19 @@
 import { component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
-import { eq } from 'drizzle-orm';
-import { SymbolIcon } from '~/components/icons/symbol';
-import { applicationTable, getDB } from '~/db';
-import { AppLink } from '~/routes.config';
+import { getDB } from '~/db';
+import { getAppInfo, getEdgeCount } from '~/db/query';
 
-export const useApplication = routeLoader$(async ({ params }) => {
+export const useAppData = routeLoader$(async ({ params }) => {
   const db = getDB();
-  const app = await db
-    .select()
-    .from(applicationTable)
-    .where(eq(applicationTable.publicApiKey, params.publicApiKey))
-    .get();
-  return app;
+  const publicApiKey = params.publicApiKey;
+  const [app, symbolCount] = await Promise.all([
+    getAppInfo(db, publicApiKey),
+    getEdgeCount(db, publicApiKey),
+  ]);
+  return { app, symbolCount };
 });
 
 export default component$(() => {
-  const app = useApplication();
-  return (
-    <div>
-      <h1>
-        App: {app.value.name} (<code>{app.value.publicApiKey}</code>)
-      </h1>
-      <p>{app.value.description}</p>
-      <ul>
-        <li>
-          <AppLink route="/app/[publicApiKey]/symbols/" param:publicApiKey={app.value.publicApiKey}>
-            <SymbolIcon /> Symbols View
-          </AppLink>
-        </li>
-      </ul>
-    </div>
-  );
+  const data = useAppData();
+  return <div>App: {data.value.app.name}</div>;
 });

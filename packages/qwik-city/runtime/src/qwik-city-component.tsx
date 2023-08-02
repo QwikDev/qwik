@@ -348,7 +348,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
               const replaceState = history.replaceState;
 
               const prepareState = (state: any) => {
-                if (state === null || typeof state === undefined) {
+                if (state === null || typeof state === 'undefined') {
                   state = {};
                 } else if (state?.constructor !== Object) {
                   state = { _data: state };
@@ -471,10 +471,8 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
             win._qCityBootstrap?.remove();
             win._qCityBootstrap = undefined;
 
-            if (!isDev) {
-              // Cache SPA recovery script.
-              spaInit.resolve();
-            }
+            // Cache SPA recovery script.
+            spaInit.resolve();
           }
 
           if (navType !== 'popstate') {

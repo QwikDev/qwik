@@ -202,14 +202,14 @@ type SubscriberB = readonly [
   host: SubscriberHost,
   signal: Signal,
   elm: QwikElement,
-  prop: string
+  prop: string,
 ];
 
 type SubscriberC = readonly [
   type: 3 | 4,
   host: SubscriberHost | Text,
   signal: Signal,
-  elm: Node | string | QwikElement
+  elm: Node | string | QwikElement,
 ];
 
 export type Subscriber = SubscriberA | SubscriberB | SubscriberC;
@@ -221,14 +221,14 @@ type B = [
   signal: Signal,
   elm: QwikElement,
   prop: string,
-  key: string | undefined
+  key: string | undefined,
 ];
 type C = [
   type: 3 | 4,
   host: SubscriberHost | Text,
   signal: Signal,
   elm: Node | QwikElement,
-  key: string | undefined
+  key: string | undefined,
 ];
 
 export type SubscriberSignal = B | C;

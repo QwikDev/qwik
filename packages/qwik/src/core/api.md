@@ -742,6 +742,8 @@ export interface RenderSSROptions {
     // (undocumented)
     containerTagName: string;
     // (undocumented)
+    manifestHash: string;
+    // (undocumented)
     serverData?: Record<string, any>;
     // (undocumented)
     stream: StreamWriter;

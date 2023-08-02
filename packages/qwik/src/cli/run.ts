@@ -3,6 +3,7 @@ import { red, dim, cyan, bgMagenta } from 'kleur/colors';
 import { AppCommand } from './utils/app-command';
 import { runAddCommand } from './add/run-add-command';
 import { runNewCommand } from './new/run-new-command';
+import { runJokeCommand } from './joke/run-joke-command';
 import { note, panic, pmRunCmd, printHeader, bye } from './utils/utils';
 import { runBuildCommand } from './build/run-build-command';
 import { intro, isCancel, select, confirm } from '@clack/prompts';
@@ -35,6 +36,13 @@ const COMMANDS = [
     label: 'new',
     hint: 'Create a new component or route',
     run: (app: AppCommand) => runNewCommand(app),
+    showInHelp: true,
+  },
+  {
+    value: 'joke',
+    label: 'joke',
+    hint: 'Tell a random dad joke',
+    run: () => runJokeCommand(),
     showInHelp: true,
   },
   {
@@ -85,6 +93,10 @@ async function runCommand(app: AppCommand) {
     }
     case 'new': {
       await runNewCommand(app);
+      return;
+    }
+    case 'joke': {
+      await runJokeCommand();
       return;
     }
     case 'version': {

@@ -1,5 +1,5 @@
 import { createMdxTransformer, type MdxTransform } from '../markdown/mdx';
-import { basename, join, resolve } from 'node:path';
+import { basename, join, resolve, extname } from 'node:path';
 import type { Plugin, PluginOption, UserConfig, Rollup } from 'vite';
 import { loadEnv } from 'vite';
 import { generateQwikCityPlan } from '../runtime-generation/generate-qwik-city-plan';
@@ -32,7 +32,7 @@ import { imagePlugin } from './image-jsx';
  * @public
  */
 export function qwikCity(userOpts?: QwikCityVitePluginOptions): PluginOption[] {
-  return [qwikCityPlugin(userOpts), ...imagePlugin()];
+  return [qwikCityPlugin(userOpts), ...imagePlugin(userOpts)];
 }
 
 function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
@@ -150,7 +150,7 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
       return null;
     },
 
-    async load(id) {
+    async load(id, opts) {
       if (ctx) {
         if (id.endsWith(QWIK_CITY_ENTRIES_ID)) {
           // @qwik-city-entries
@@ -174,7 +174,7 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
 
           if (isCityPlan) {
             // @qwik-city-plan
-            return generateQwikCityPlan(ctx, qwikPlugin!);
+            return generateQwikCityPlan(ctx, qwikPlugin!, opts?.ssr ?? false);
           }
 
           if (isSwRegister) {
@@ -187,7 +187,11 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
     },
 
     async transform(code, id) {
-      const isMD = id.endsWith('.md') || id.endsWith('.mdx');
+      if (id.startsWith('\0')) {
+        return;
+      }
+      const ext = extname(id).toLowerCase();
+      const isMD = ext === '.md' || ext === '.mdx';
       if (ctx && isMD) {
         const fileName = basename(id);
         if (isMenuFileName(fileName)) {

@@ -20,7 +20,7 @@ export async function runCreateCli(starterId: string, outDir: string) {
   } else {
     // create a sub directory
     outDir = getOutDir(outDir);
-    if (fs.existsSync(outDir)) {
+    if (fs.existsSync(outDir) && fs.readdirSync(outDir).length > 0) {
       panic(
         `Directory "${outDir}" already exists. Please either remove this directory, or choose another location.`
       );
@@ -61,16 +61,6 @@ export function logCreateAppResult(
   }
   outString.push(``);
 
-  outString.push(`🐰 ${cyan(`Next steps:`)}`);
-  if (!isCwdDir) {
-    outString.push(`   cd ${relativeProjectPath}`);
-  }
-  if (!ranInstall) {
-    outString.push(`   ${pkgManager} install`);
-  }
-  outString.push(`   ${pkgManager} start`);
-  outString.push(``);
-
   const qwikAdd = pkgManager !== 'npm' ? `${pkgManager} qwik add` : `npm run qwik add`;
   outString.push(`🤍 ${cyan('Integrations? Add Netlify, Cloudflare, Tailwind...')}`);
   outString.push(`   ${qwikAdd}`);
@@ -80,6 +70,16 @@ export function logCreateAppResult(
 
   outString.push(`👀 ${cyan('Presentations, Podcasts and Videos:')}`);
   outString.push(`   https://qwik.builder.io/media/`);
+  outString.push(``);
+
+  outString.push(`🐰 ${cyan(`Next steps:`)}`);
+  if (!isCwdDir) {
+    outString.push(`   cd ${relativeProjectPath}`);
+  }
+  if (!ranInstall) {
+    outString.push(`   ${pkgManager} install`);
+  }
+  outString.push(`   ${pkgManager} start`);
   outString.push(``);
 
   return outString.join('\n');

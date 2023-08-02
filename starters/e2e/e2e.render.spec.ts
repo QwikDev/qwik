@@ -66,7 +66,7 @@ test.describe("render", () => {
         "1. Before\n2. Some text\nMiddle\n3 After\n\nStuff",
         {
           useInnerText: true,
-        }
+        },
       );
     });
 
@@ -257,14 +257,14 @@ test.describe("render", () => {
       const toggle = page.locator("#issue-3398-button");
       await expect(page.locator("h1#issue-3398-tag")).toHaveText("Hello h1");
       await expect(page.locator("h1#issue-3398-tag")).not.hasAttribute(
-        "children"
+        "children",
       );
 
       await toggle.click();
       await expect(page.locator("h1#issue-3398-tag")).not.toBeVisible();
       await expect(page.locator("h2#issue-3398-tag")).toHaveText("Hello h2");
       await expect(page.locator("h2#issue-3398-tag")).not.hasAttribute(
-        "children"
+        "children",
       );
 
       await toggle.click();
@@ -272,7 +272,7 @@ test.describe("render", () => {
       await expect(page.locator("h1#issue-3398-tag")).toBeVisible();
       await expect(page.locator("h1#issue-3398-tag")).toHaveText("Hello h1");
       await expect(page.locator("h1#issue-3398-tag")).not.hasAttribute(
-        "children"
+        "children",
       );
     });
 
@@ -455,11 +455,11 @@ test.describe("render", () => {
       const mounted = await result.getAttribute("data-mounted");
       if (mounted === "server") {
         await expect(await result.innerHTML()).toEqual(
-          "<!--qv--><b>html fragment test</b><!--/qv-->"
+          "<!--qv--><b>html fragment test</b><!--/qv-->",
         );
       } else if (mounted === "browser") {
         await expect(await result.innerHTML()).toEqual(
-          "<!--qv --><b>html fragment test</b><!--/qv-->"
+          "<!--qv --><b>html fragment test</b><!--/qv-->",
         );
       } else {
         throw new Error("Unexpected mounted value");

@@ -38,7 +38,7 @@ impl VisitMut for CleanMarker {
 
 impl VisitMut for CleanSideEffects {
     fn visit_mut_module(&mut self, node: &mut ast::Module) {
-        node.body.drain_filter(|item| {
+        let _ = node.body.extract_if(|item| {
             if item.span().has_mark(self.mark) {
                 return false;
             }

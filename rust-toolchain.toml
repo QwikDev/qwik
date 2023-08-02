@@ -1,0 +1,3 @@
+[toolchain]
+channel = "nightly"
+date = "2023-08-01"

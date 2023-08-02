@@ -1,5 +1,5 @@
 [workspace]
-
+resolver = "2"
 members = [
     "packages/qwik/src/napi",
     "packages/qwik/src/optimizer/cli",
@@ -9,4 +9,3 @@ exclude = ["packages/qwik/src/wasm"]
 
 [profile.release]
 debug = 0
-

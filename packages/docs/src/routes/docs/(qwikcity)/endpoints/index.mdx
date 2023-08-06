@@ -4,6 +4,7 @@ contributors:
   - adamdbradley
   - manucorporat
   - mhevery
+  - CoralWombat
   - hamatoyogi
 ---
 
@@ -13,9 +14,9 @@ import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
 # Endpoints
 
 
-A [middleware function](/docs/middleware) that returns a response is called an endpoint. Endpoints are useful for returning data such as  RESTful API, GraphQL API, JSON, XML, reverse proxy or any other time of API where you need to control all aspects of the HTTP response. Returning a response (using `json` for example) will stop the execution of subsequent middleware functions past this point in the middleware chain. 
+A [middleware function](/docs/middleware) that returns a response is called an endpoint. Endpoints are useful for returning data such as  RESTful API, GraphQL API, JSON, XML, reverse proxy or any other type of API where you need to control all aspects of the HTTP response. Returning a response (using `json` for example) will stop the execution of subsequent middleware functions past this point in the middleware chain. 
 
-All endpoints receive an [`RequestEvent`](/docs/middleware/#requestevent) API for controlling the response of the endpoint. 
+All endpoints receive a [`RequestEvent`](/docs/middleware/#requestevent) API for controlling the response of the endpoint. 
 
 
 For example, when navigating to `/greet/` URL this endpoint will return `{"hello":"world"}`.

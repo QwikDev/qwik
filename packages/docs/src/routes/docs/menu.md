@@ -44,6 +44,7 @@
 - [i18n](integrations/i18n/index.mdx)
 - [Modular Forms](integrations/modular-forms/index.mdx)
 - [Nx Monorepos](integrations/nx/index.mdx)
+- [Orama](integrations/orama/index.mdx)
 - [Panda CSS](integrations/panda-css/index.mdx)
 - [Partytown](integrations/partytown/index.mdx)
 - [Playwright](integrations/playwright/index.mdx)
@@ -55,6 +56,7 @@
 - [Supabase](integrations/supabase/index.mdx)
 - [Tailwind](integrations/tailwind/index.mdx)
 - [Tauri](integrations/tauri/index.mdx)
+- [Turso](integrations/turso/index.mdx)
 - [Vitest](integrations/vitest/index.mdx)
 
 ## Deployments

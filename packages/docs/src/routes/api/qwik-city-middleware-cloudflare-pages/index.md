@@ -14,7 +14,7 @@ export declare function createQwikCity(opts: QwikCityCloudflarePagesOptions): (
       fetch: (req: Request) => Response;
     };
   },
-  ctx: PlatformCloudflarePages["ctx"]
+  ctx: PlatformCloudflarePages["ctx"],
 ) => Promise<Response>;
 ```
 

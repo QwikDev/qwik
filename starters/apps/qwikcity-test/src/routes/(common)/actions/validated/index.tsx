@@ -41,7 +41,7 @@ export const useAction2 = routeAction$(
   zod$({
     name: z.string(),
   }),
-  queryContainsSecret
+  queryContainsSecret,
 );
 
 export const useAction3 = routeAction$((input, { fail }) => {

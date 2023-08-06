@@ -1,15 +1,11 @@
 import type { RequestEventBase } from '@builder.io/qwik-city';
 import type {
-  CookieOptions,
   CookieOptionsWithName,
   SupabaseClientOptionsWithoutAuth,
 } from '@supabase/auth-helpers-shared';
 import {
   BrowserCookieAuthStorageAdapter,
-  CookieAuthStorageAdapter,
   createSupabaseClient,
-  parseCookies,
-  serializeCookie,
 } from '@supabase/auth-helpers-shared';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { GenericSchema } from '@supabase/supabase-js/dist/module/lib/types';
@@ -22,7 +18,7 @@ export function createBrowserClient<
     : string & keyof Database,
   Schema extends GenericSchema = Database[SchemaName] extends GenericSchema
     ? Database[SchemaName]
-    : any
+    : any,
 >(
   supabaseUrl: string,
   supabaseKey: string,
@@ -129,7 +125,7 @@ export function createServerClient<
     : string & keyof Database,
   Schema extends GenericSchema = Database[SchemaName] extends GenericSchema
     ? Database[SchemaName]
-    : any
+    : any,
 >(
   supabaseUrl: string,
   supabaseKey: string,

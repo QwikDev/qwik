@@ -14,7 +14,7 @@ interface Signin {
 
 export const signIn = async (
   { username, password }: Signin,
-  cookie: Cookie
+  cookie: Cookie,
 ): Promise<AuthResult> => {
   if (username === "qwik" && password === "dev") {
     // super secret username/password (Testing purposes only, DO NOT DO THIS!!)

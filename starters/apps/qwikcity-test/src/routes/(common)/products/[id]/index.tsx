@@ -162,5 +162,5 @@ export const useProductLoader = routeLoader$(
       json(200, data);
     }
     return data;
-  }
+  },
 );

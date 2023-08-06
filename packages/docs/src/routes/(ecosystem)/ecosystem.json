@@ -73,6 +73,11 @@
   ],
   "deployments": [
     {
+      "title": "Aws",
+      "href": "/docs/deployments/aws-lambda/",
+      "imgSrc": "/ecosystem/aws.svg"
+    },
+    {
       "title": "Azure",
       "href": "/docs/deployments/azure-swa/",
       "imgSrc": "/ecosystem/azure.svg"

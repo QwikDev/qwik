@@ -106,7 +106,7 @@ export default $((currentScript: HTMLScriptElement) => {
       const replaceState = history.replaceState;
 
       const prepareState = (state: any) => {
-        if (state === null || typeof state === undefined) {
+        if (state === null || typeof state === 'undefined') {
           state = {};
         } else if (state?.constructor !== Object) {
           state = { _data: state };

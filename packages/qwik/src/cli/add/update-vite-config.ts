@@ -32,7 +32,7 @@ export async function updateViteConfigs(
             prettierOpts = { ...opts, ...prettierOpts };
           }
 
-          updatedContent = prettier.format(updatedContent, prettierOpts);
+          updatedContent = await prettier.format(updatedContent, prettierOpts);
 
           updatedContent = updatedContent.replace(`export default`, `\nexport default`);
         } catch (e) {

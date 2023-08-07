@@ -670,7 +670,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type StaticGenerateHandler = () => Promise<StaticGenerate> | StaticGenerate;\n```\n**References:** [StaticGenerate](#staticgenerate)",
+      "content": "```typescript\nexport type StaticGenerateHandler = ({ env, }: {\n    env: EnvGetter;\n}) => Promise<StaticGenerate> | StaticGenerate;\n```\n**References:** [StaticGenerate](#staticgenerate)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik-city.staticgeneratehandler.md"
     },

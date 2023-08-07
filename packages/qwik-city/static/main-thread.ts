@@ -183,7 +183,13 @@ export async function mainThread(sys: System) {
           if (Array.isArray(paramNames) && paramNames.length > 0) {
             if (typeof pageModule.onStaticGenerate === 'function' && paramNames.length > 0) {
               // dynamic route page module
-              const staticGenerate = await pageModule.onStaticGenerate();
+              const staticGenerate = await pageModule.onStaticGenerate({
+                env: {
+                  get(key: string) {
+                    return sys.getEnv(key);
+                  },
+                },
+              });
               if (Array.isArray(staticGenerate.params)) {
                 for (const params of staticGenerate.params) {
                   const pathname = getPathnameForDynamicRoute(

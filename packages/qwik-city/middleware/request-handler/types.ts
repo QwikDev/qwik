@@ -5,6 +5,9 @@ import type { AbortMessage, RedirectMessage } from './redirect-handler';
 import type { RequestEventInternal } from './request-event';
 import type { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
 
+/**
+ * @public
+ */
 export interface EnvGetter {
   get(key: string): string | undefined;
 }

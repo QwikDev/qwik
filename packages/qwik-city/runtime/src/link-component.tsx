@@ -7,7 +7,6 @@ import { useLocation, useNavigate } from './use-functions';
  * @public
  */
 export const Link = component$<LinkProps>((props) => {
-  console.log('Link', props);
   const nav = useNavigate();
   const loc = useLocation();
   const originalHref = props.href;

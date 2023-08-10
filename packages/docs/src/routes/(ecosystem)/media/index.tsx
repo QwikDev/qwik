@@ -53,7 +53,7 @@ export const MEDIA = mediaObj({
       title: '🇪🇸 manuelsanchezweb: Qwik intermedio-avanzado con proyectos',
       language: 'es',
     },
-    youtube('🇷🇺 Qwik 1.0 - новый подход frontend разработки?', 'FF4D4tppyag', {
+    youtube('🇷🇺 Qwik 1.0 - новый подход frontend разработки?', 'ajTNL88BN5E', {
       language: 'ru',
       promoted: true,
     }),

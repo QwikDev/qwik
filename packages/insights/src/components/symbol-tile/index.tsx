@@ -182,7 +182,7 @@ const serverGetSourceSnippet = server$(async function (publicApiKey: string, sym
       )
       .get(),
   ]);
-  if (!(symbolDetail as any)) {
+  if (!symbolDetail) {
     symbolDetail = {
       fullName: 'unknown',
       origin: 'unknown',

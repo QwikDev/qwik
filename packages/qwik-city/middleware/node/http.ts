@@ -4,10 +4,18 @@ import type {
   ServerRequestMode,
   ServerRequestEvent,
 } from '@builder.io/qwik-city/middleware/request-handler';
+import type { ClientConn } from '../request-handler/types';
+import type { QwikCityNodeRequestOptions } from './index';
 
-const { ORIGIN, PROTOCOL_HEADER, HOST_HEADER } = process.env;
+export function computeOrigin(
+  req: IncomingMessage | Http2ServerRequest,
+  opts?: QwikCityNodeRequestOptions
+) {
+  return opts?.getOrigin?.(req) ?? opts?.origin ?? process.env.ORIGIN ?? fallbackOrigin(req);
+}
 
-function getOrigin(req: IncomingMessage) {
+function fallbackOrigin(req: IncomingMessage | Http2ServerRequest) {
+  const { PROTOCOL_HEADER, HOST_HEADER } = process.env;
   const headers = req.headers;
   const protocol =
     (PROTOCOL_HEADER && headers[PROTOCOL_HEADER]) ||
@@ -18,8 +26,7 @@ function getOrigin(req: IncomingMessage) {
   return `${protocol}://${host}`;
 }
 
-export function getUrl(req: IncomingMessage) {
-  const origin = ORIGIN ?? getOrigin(req);
+export function getUrl(req: IncomingMessage | Http2ServerRequest, origin: string) {
   return normalizeUrl((req as any).originalUrl || req.url || '/', origin);
 }
 
@@ -35,9 +42,10 @@ export function normalizeUrl(url: string, base: string) {
 
 export async function fromNodeHttp(
   url: URL,
-  req: IncomingMessage,
+  req: IncomingMessage | Http2ServerRequest,
   res: ServerResponse,
-  mode: ServerRequestMode
+  mode: ServerRequestMode,
+  getClientConn?: (req: IncomingMessage | Http2ServerRequest) => ClientConn
 ) {
   const requestHeaders = new Headers();
   const nodeRequestHeaders = req.headers;
@@ -59,12 +67,17 @@ export async function fromNodeHttp(
   };
 
   const body = req.method === 'HEAD' || req.method === 'GET' ? undefined : getRequestBody();
+  const controller = new AbortController();
   const options = {
     method: req.method,
     headers: requestHeaders,
     body: body as any,
+    signal: controller.signal,
     duplex: 'half' as any,
   };
+  res.on('close', () => {
+    controller.abort();
+  });
   const serverRequestEv: ServerRequestEvent<boolean> = {
     mode,
     url,
@@ -81,15 +94,25 @@ export async function fromNodeHttp(
       if (cookieHeaders.length > 0) {
         res.setHeader('Set-Cookie', cookieHeaders);
       }
-      const stream = new WritableStream<Uint8Array>({
+      return new WritableStream<Uint8Array>({
         write(chunk) {
-          res.write(chunk);
+          res.write(chunk, (error) => {
+            if (error) {
+              console.error(error);
+            }
+          });
         },
         close() {
           res.end();
         },
       });
-      return stream;
+    },
+    getClientConn: () => {
+      return getClientConn
+        ? getClientConn(req)
+        : {
+            ip: req.socket.remoteAddress,
+          };
     },
     platform: {
       ssr: true,

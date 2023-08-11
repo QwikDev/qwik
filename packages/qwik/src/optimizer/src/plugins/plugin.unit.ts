@@ -14,7 +14,6 @@ test('defaults', async () => {
   equal(opts.target, 'client');
   equal(opts.buildMode, 'development');
   equal(opts.entryStrategy, { type: 'hook' });
-  equal(opts.forceFullBuild, false);
   equal(opts.debug, false);
   equal(opts.rootDir, normalizePath(cwd));
   equal(opts.input, [normalizePath(resolve(cwd, 'src', 'root.tsx'))]);
@@ -31,7 +30,6 @@ test('defaults (buildMode: production)', async () => {
   equal(opts.target, 'client');
   equal(opts.buildMode, 'production');
   equal(opts.entryStrategy, { type: 'smart' });
-  equal(opts.forceFullBuild, true);
   equal(opts.resolveQwikBuild, true);
   equal(opts.debug, false);
   equal(opts.rootDir, normalizePath(cwd));
@@ -50,7 +48,6 @@ test('defaults (target: ssr)', async () => {
   equal(opts.target, 'ssr');
   equal(opts.buildMode, 'development');
   equal(opts.entryStrategy, { type: 'hoist' });
-  equal(opts.forceFullBuild, false);
   equal(opts.resolveQwikBuild, true);
   equal(opts.debug, false);
   equal(opts.rootDir, normalizePath(cwd));
@@ -68,7 +65,6 @@ test('defaults (buildMode: production, target: ssr)', async () => {
   equal(opts.target, 'ssr');
   equal(opts.buildMode, 'production');
   equal(opts.entryStrategy, { type: 'hoist' });
-  equal(opts.forceFullBuild, false);
   equal(opts.resolveQwikBuild, true);
   equal(opts.debug, false);
   equal(opts.rootDir, normalizePath(cwd));
@@ -99,17 +95,14 @@ test('entryStrategy, smart', async () => {
   const plugin = await mockPlugin();
   const opts = plugin.normalizeOptions({
     entryStrategy: { type: 'smart' },
-    forceFullBuild: false,
   });
   equal(opts.entryStrategy.type, 'smart');
-  equal(opts.forceFullBuild, true);
 });
 
 test('entryStrategy, hook no forceFullBuild', async () => {
   const plugin = await mockPlugin();
   const opts = plugin.normalizeOptions({ entryStrategy: { type: 'hook' } });
   equal(opts.entryStrategy.type, 'hook');
-  equal(opts.forceFullBuild, false);
 });
 
 test('entryStrategy, hook and srcInputs', async () => {
@@ -119,19 +112,6 @@ test('entryStrategy, hook and srcInputs', async () => {
     srcInputs: [],
   });
   equal(opts.entryStrategy.type, 'hook');
-  equal(opts.forceFullBuild, true);
-});
-
-test('entryStrategy, forceFullBuild false', async () => {
-  const plugin = await mockPlugin();
-  const opts = plugin.normalizeOptions({ forceFullBuild: false });
-  equal(opts.forceFullBuild, false);
-});
-
-test('entryStrategy, forceFullBuild true', async () => {
-  const plugin = await mockPlugin();
-  const opts = plugin.normalizeOptions({ forceFullBuild: true });
-  equal(opts.forceFullBuild, true);
 });
 
 test('rootDir, abs path', async () => {
@@ -180,7 +160,13 @@ test('manifestOutput', async () => {
 
 test('manifestInput', async () => {
   const plugin = await mockPlugin();
-  const manifestInput: QwikManifest = { mapping: {}, symbols: {}, bundles: {}, version: '1' };
+  const manifestInput: QwikManifest = {
+    manifestHash: '',
+    mapping: {},
+    symbols: {},
+    bundles: {},
+    version: '1',
+  };
   const opts = plugin.normalizeOptions({ manifestInput });
   equal(opts.manifestInput, manifestInput);
 });

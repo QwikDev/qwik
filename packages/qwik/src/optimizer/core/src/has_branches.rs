@@ -10,14 +10,22 @@ macro_rules! id {
     };
 }
 
-pub fn is_conditional_jsx(expr: &ast::BlockStmtOrExpr, jsx_functions: &HashSet<Id>) -> bool {
-    let mut collector = HasBranches::new(jsx_functions);
+pub fn is_conditional_jsx(
+    expr: &ast::BlockStmtOrExpr,
+    jsx_functions: &HashSet<Id>,
+    immutable_function_cmp: &HashSet<Id>,
+) -> bool {
+    let mut collector = HasBranches::new(jsx_functions, immutable_function_cmp);
     expr.visit_with(&mut collector);
     collector.conditional
 }
 
-pub fn is_conditional_jsx_block(expr: &ast::BlockStmt, jsx_functions: &HashSet<Id>) -> bool {
-    let mut collector = HasBranches::new(jsx_functions);
+pub fn is_conditional_jsx_block(
+    expr: &ast::BlockStmt,
+    jsx_functions: &HashSet<Id>,
+    immutable_function_cmp: &HashSet<Id>,
+) -> bool {
+    let mut collector = HasBranches::new(jsx_functions, immutable_function_cmp);
     expr.visit_with(&mut collector);
     collector.conditional
 }
@@ -25,14 +33,16 @@ pub fn is_conditional_jsx_block(expr: &ast::BlockStmt, jsx_functions: &HashSet<I
 pub struct HasBranches<'a> {
     under_conditional: i32,
     jsx_functions: &'a HashSet<Id>,
+    immutable_function_cmp: &'a HashSet<Id>,
     conditional: bool,
     found_return: bool,
 }
 
 impl<'a> HasBranches<'a> {
-    const fn new(jsx_functions: &'a HashSet<Id>) -> Self {
+    const fn new(jsx_functions: &'a HashSet<Id>, immutable_function_cmp: &'a HashSet<Id>) -> Self {
         Self {
             jsx_functions,
+            immutable_function_cmp,
             under_conditional: 0,
             conditional: false,
             found_return: false,
@@ -119,18 +129,10 @@ impl<'a> Visit for HasBranches<'a> {
                 if self.jsx_functions.contains(&id!(ident)) {
                     let first_arg = node.args.first();
                     if let Some(name) = first_arg {
-                        if let ast::Expr::Ident(_) = &*name.expr {
-                            self.conditional = true;
-                        }
-                    }
-                }
-            }
-            if let ast::Callee::Expr(box ast::Expr::Ident(ident)) = &node.callee {
-                if self.jsx_functions.contains(&id!(ident)) {
-                    let first_arg = node.args.first();
-                    if let Some(name) = first_arg {
-                        if let ast::Expr::Ident(_) = &*name.expr {
-                            self.conditional = true;
+                        if let ast::Expr::Ident(jsx_id) = &*name.expr {
+                            if !self.immutable_function_cmp.contains(&id!(jsx_id)) {
+                                self.conditional = true;
+                            }
                         }
                     }
                 }

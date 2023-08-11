@@ -520,11 +520,12 @@ export const Works = component$(({
     some = 1+2,
     hello = CONST,
     stuff: hey,
+    stuffDefault: hey2 = 123,
     ...rest}) => {
     console.log(hey, some);
     useTask$(({track}) => {
         track(() => count);
-        console.log(count, rest, hey, some);
+        console.log(count, rest, hey, some, hey2);
     });
     return (
         <div some={some} params={{ some }} class={count} {...rest}>{count}</div>
@@ -612,6 +613,34 @@ export const Issue3561 = component$(() => {
     console.log(variantImage, variantNumber, setContents)
 
     return <p></p>;
+  });
+"#
+        .to_string(),
+        transpile_jsx: false,
+        entry_strategy: EntryStrategy::Inline,
+        transpile_ts: true,
+        is_server: Some(false),
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_optimization_issue_4386() {
+    test_input!(TestInput {
+        code: r#"
+import { component$ } from '@builder.io/qwik';
+
+export const FOO_MAPPING = {
+    A: 1,
+    B: 2,
+    C: 3,
+  };
+
+  export default component$(() => {
+    const key = 'A';
+    const value = FOO_MAPPING[key];
+
+    return <>{value}</>;
   });
 "#
         .to_string(),
@@ -1994,6 +2023,7 @@ fn example_immutable_analysis() {
         code: r#"
 import { component$, useStore, $ } from '@builder.io/qwik';
 import importedValue from 'v';
+import styles from './styles.module.css';
 
 export const App = component$((props) => {
     const {Model} = props;
@@ -2009,7 +2039,10 @@ export const App = component$((props) => {
         <>
             <p class="stuff" onClick$={props.onClick$}>Hello Qwik</p>
             <Div
+                class={styles.foo}
+                document={window.document}
                 onClick$={props.onClick$}
+                onEvent$={() => console.log('stuff')}
                 transparent$={() => {console.log('stuff')}}
                 immutable1="stuff"
                 immutable2={{
@@ -2327,8 +2360,8 @@ export const App = component$((props: Stuff) => {
 fn example_mutable_children() {
     test_input!(TestInput {
         code: r#"
-import { component$, useStore } from '@builder.io/qwik';
-
+import { component$, useStore, Slot, Fragment } from '@builder.io/qwik';
+import Image from './image.jpg?jsx';
 
 export function Fn1(props: Stuff) {
     return (
@@ -2409,7 +2442,10 @@ export const AppStatic = component$((props: Stuff) => {
             <div>Static {f ? 1 : 3}</div>
             <div>{prop < 2 ? <p>1</p> : <p>2</p>}</div>
 
-            <div>{prop.value && <div></div>}<div></div></div>
+            <div>{prop.value && <div></div>}</div>
+            <div>{prop.value && <Fragment><Slot></Slot></Fragment>}</div>
+            <div>{prop.value && <><div></div></>}</div>
+            <div>{prop.value && <Image/>}</div>
             <div>Static {f ? 1 : 3}</div>
             <div>Static</div>
             <div>Static {props.value}</div>
@@ -2428,6 +2464,28 @@ export const AppStatic = component$((props: Stuff) => {
     });
 }
 
+#[test]
+fn example_immutable_function_components() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore, Slot } from '@builder.io/qwik';
+
+export const App = component$((props: Stuff) => {
+    return (
+        <div>
+            <Slot/>
+        </div>
+    );
+});
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Hoist,
+        transpile_ts: true,
+        transpile_jsx: true,
+        explicit_extensions: true,
+        ..TestInput::default()
+    });
+}
 #[test]
 fn example_transpile_ts_only() {
     test_input!(TestInput {
@@ -2584,6 +2642,7 @@ fn example_derived_signals_div() {
 import { component$, useStore, mutable } from '@builder.io/qwik';
 
 import {dep} from './file';
+import styles from './styles.module.css';
 
 export const App = component$(() => {
     const signal = useSignal(0);
@@ -2598,6 +2657,8 @@ export const App = component$(() => {
                 stable0: true,
                 hidden: false,
             }}
+            staticClass={styles.foo}
+            staticDocument={window.document}
             staticText="text"
             staticText2={`text`}
             staticNumber={1}
@@ -2627,6 +2688,30 @@ export const App = component$(() => {
             noInline4={signal.value + dep}
         />
 
+    );
+});
+"#
+        .to_string(),
+        transpile_jsx: true,
+        transpile_ts: true,
+        entry_strategy: EntryStrategy::Hoist,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_issue_4438() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useSignal } from '@builder.io/qwik';
+
+export const App = component$(() => {
+    const toggle = useSignal(false);
+    return (
+        <>
+            <div data-nu={toggle.value ? $localize`singular` : 'plural'}></div>
+            <div>{toggle.value ? $localize`singular` : $localize`plural`}</div>
+        </>
     );
 });
 "#

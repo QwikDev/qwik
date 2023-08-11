@@ -1,0 +1,88 @@
+---
+title: 🧪 Insights | Qwik Labs
+contributors:
+  - mhevery
+  - gioboa
+---
+
+# 🧪 Insights 
+**Stage:** `prototyping`
+
+Insights allow your application to collect real user usage information to optimize the creation of bundles. By observing real user behavior, the Qwik build system can then do a better job of placing symbols, which are used together, into the same chunk, thus minimizing the waterfall effect that could occur if there are too many small files needing to be downloaded.
+
+## Architecture
+
+The optimization consists of these parts:
+- A `<Insights>` component which collects real user usage data.
+- A registered application inside the builder.io database.
+- A qwikVite configuration to load real user usage data during the build process.
+
+> NOTE:
+> To try this new feature please drop a message inside the [Qwik Discord server](https://qwik.builder.io/chat)
+> Currently Insights info are hosted into builder database. This information are about the execution of symbols/chunks in the application.
+> The implementation of the service is open-source and you have the choice to use ours or host your own.
+> (Please note, this may become a paid service in the future.)
+
+
+## `<Insights>` component
+
+The `<Insights>` component should be added to your `root.tsx` file.
+
+```typescript
+// ...
+import { Insights } from '@builder.io/qwik-labs';
+
+export default component$(() => {
+  // ...
+  return (
+    <QwikCityProvider>
+      <head>
+        // ...
+        <Insights
+          publicApiKey={import.meta.env.PUBLIC_QWIK_INSIGHTS_KEY}
+        />
+      </head>
+      <body lang="en">
+        // ...
+      </body>
+    </QwikCityProvider>
+  );
+});
+```
+
+You can get `PUBLIC_QWIK_INSIGHTS_KEY` by asking it in inside the [Qwik Discord server](https://qwik.builder.io/chat)
+
+The `<Insights>` component collects this data:
+- Timing information of symbols.
+- The `pathname` part of the URL.
+- Random sessionID which identifies which symbol loads came from the same browser session.
+
+NOTE: The `<Insights>` component does not collect any user identifiable information.
+
+The information collected is sent to builder.io database for storage.
+
+## Vite integration
+
+Once the application is running for a while and it collects sufficient information on symbol usage, the stats can be used to improve the bundles of the future version of the application. This is done by connecting the vite build with Insights like so:
+
+file: `vite.config.js`
+```typescript
+//..
+import { defineConfig, loadEnv } from 'vite';
+import { insightsEntryStrategy } from '@builder.io/qwik-labs/vite';
+
+
+export default defineConfig(async () => {
+  return {
+    plugins: [
+      qwikVite({
+        entryStrategy: await insightsEntryStrategy({
+          publicApiKey: loadEnv('', '.', '').PUBLIC_QWIK_INSIGHTS_KEY,
+        }),
+      }), 
+      //...
+    ],
+    // ...
+  };
+});
+```

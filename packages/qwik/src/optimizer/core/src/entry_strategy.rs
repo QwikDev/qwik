@@ -78,17 +78,31 @@ impl EntryPolicy for SingleStrategy {
     }
 }
 
-#[derive(Default, Clone)]
-pub struct PerHookStrategy {}
+#[derive(Clone)]
+pub struct PerHookStrategy {
+    map: Option<HashMap<String, JsWord>>,
+}
+
+impl PerHookStrategy {
+    pub const fn new(map: Option<HashMap<String, JsWord>>) -> Self {
+        Self { map }
+    }
+}
 
 impl EntryPolicy for PerHookStrategy {
     fn get_entry_for_sym(
         &self,
-        _hash: &str,
+        hash: &str,
         _path: &PathData,
         _context: &[String],
         _hook_data: &HookData,
     ) -> Option<JsWord> {
+        if let Some(map) = &self.map {
+            let entry = map.get(hash);
+            if let Some(entry) = entry {
+                return Some(entry.clone());
+            }
+        }
         None
     }
 }
@@ -169,8 +183,8 @@ pub fn parse_entry_strategy(
     manual_chunks: Option<HashMap<String, JsWord>>,
 ) -> Box<dyn EntryPolicy> {
     match strategy {
-        EntryStrategy::Hook => Box::new(PerHookStrategy::default()),
         EntryStrategy::Inline | EntryStrategy::Hoist => Box::new(InlineStrategy::default()),
+        EntryStrategy::Hook => Box::new(PerHookStrategy::new(manual_chunks)),
         EntryStrategy::Single => Box::new(SingleStrategy::new(manual_chunks)),
         EntryStrategy::Component => Box::new(PerComponentStrategy::new(manual_chunks)),
         EntryStrategy::Smart => Box::new(SmartStrategy::new(manual_chunks)),

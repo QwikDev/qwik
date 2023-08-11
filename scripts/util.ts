@@ -1,4 +1,4 @@
-import type { Plugin, WatchMode } from 'esbuild';
+import type { Plugin } from 'esbuild';
 import { join } from 'node:path';
 import mri from 'mri';
 import {
@@ -33,12 +33,15 @@ export interface BuildConfig {
   packagesDir: string;
   tmpDir: string;
   srcNapiDir: string;
-  srcDir: string;
+  srcQwikDir: string;
+  srcQwikCityDir: string;
+  srcQwikLabsDir: string;
   scriptsDir: string;
   startersDir: string;
   tscDir: string;
   dtsDir: string;
-  distPkgDir: string;
+  distQwikPkgDir: string;
+  distQwikCityPkgDir: string;
   distBindingsDir: string;
   esmNode: boolean;
   distVersion: string;
@@ -48,7 +51,9 @@ export interface BuildConfig {
   build?: boolean;
   qwikcity?: boolean;
   qwikreact?: boolean;
+  qwiklabs?: boolean;
   qwikauth?: boolean;
+  qwikworker?: boolean;
   supabaseauthhelpers?: boolean;
   cli?: boolean;
   eslint?: boolean;
@@ -78,12 +83,15 @@ export function loadConfig(args: string[] = []) {
   config.rootDir = join(__dirname, '..');
   config.packagesDir = join(config.rootDir, 'packages');
   config.tmpDir = join(config.rootDir, 'dist-dev');
-  config.srcDir = join(config.packagesDir, 'qwik', 'src');
-  config.srcNapiDir = join(config.srcDir, 'napi');
+  config.srcQwikDir = join(config.packagesDir, 'qwik', 'src');
+  config.srcQwikCityDir = join(config.packagesDir, 'qwik-city');
+  config.srcQwikLabsDir = join(config.packagesDir, 'qwik-labs');
+  config.srcNapiDir = join(config.srcQwikDir, 'napi');
   config.scriptsDir = join(config.rootDir, 'scripts');
   config.startersDir = join(config.rootDir, 'starters');
-  config.distPkgDir = join(config.packagesDir, 'qwik', 'dist');
-  config.distBindingsDir = join(config.distPkgDir, 'bindings');
+  config.distQwikPkgDir = join(config.packagesDir, 'qwik', 'dist');
+  config.distQwikCityPkgDir = join(config.packagesDir, 'qwik-city', 'lib');
+  config.distBindingsDir = join(config.distQwikPkgDir, 'bindings');
   config.tscDir = join(config.tmpDir, 'tsc-out');
   config.dtsDir = join(config.tmpDir, 'dts-out');
   config.esmNode = parseInt(process.version.slice(1).split('.')[0], 10) >= 14;
@@ -127,23 +135,6 @@ export function importPath(filter: RegExp, newModulePath: string) {
     },
   };
   return plugin;
-}
-
-/**
- * Esbuild plugin to print out console logs the rebuild has finished or if it has errors.
- */
-export function watcher(config: BuildConfig, filename?: string): WatchMode | boolean {
-  if (config.watch) {
-    return {
-      onRebuild(error) {
-        if (error) console.error('watch build failed:', error);
-        else {
-          if (filename) console.log('rebuilt:', filename);
-        }
-      },
-    };
-  }
-  return false;
 }
 
 /**

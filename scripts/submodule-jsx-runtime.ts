@@ -1,6 +1,6 @@
 import { build, type BuildOptions } from 'esbuild';
 import { join } from 'node:path';
-import { type BuildConfig, importPath, target, watcher } from './util';
+import { type BuildConfig, importPath, target } from './util';
 
 /**
  * Builds @builder.io/qwik/jsx-runtime
@@ -17,9 +17,9 @@ export async function submoduleJsxRuntime(config: BuildConfig) {
   const submodule = 'jsx-runtime';
 
   const opts: BuildOptions = {
-    entryPoints: [join(config.srcDir, 'jsx-runtime', 'index.ts')],
+    entryPoints: [join(config.srcQwikDir, 'jsx-runtime', 'index.ts')],
     entryNames: 'jsx-runtime',
-    outdir: config.distPkgDir,
+    outdir: config.distQwikPkgDir,
     bundle: true,
     sourcemap: true,
     target,
@@ -30,7 +30,6 @@ export async function submoduleJsxRuntime(config: BuildConfig) {
     format: 'esm',
     outExtension: { '.js': '.mjs' },
     plugins: [importPath(/^@builder\.io\/qwik$/, '@builder.io/qwik')],
-    watch: watcher(config, submodule),
   });
 
   const cjs = build({
@@ -38,7 +37,6 @@ export async function submoduleJsxRuntime(config: BuildConfig) {
     format: 'cjs',
     outExtension: { '.js': '.cjs' },
     plugins: [importPath(/^@builder\.io\/qwik$/, '@builder.io/qwik')],
-    watch: watcher(config),
   });
 
   await Promise.all([esm, cjs]);

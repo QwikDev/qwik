@@ -33,6 +33,16 @@ export async function runBuildCommand(app: AppCommand) {
   const lint = getScript('lint');
   const mode = app.getArg('mode');
 
+  const prebuildScripts = Object.keys(pkgJsonScripts)
+    .filter(s => s.startsWith('prebuild.'))
+    .map(getScript)
+    .filter(isString);
+
+  const postbuildScripts = Object.keys(pkgJsonScripts)
+    .filter(s => s.startsWith('postbuild.'))
+    .map(getScript)
+    .filter(isString);
+
   const scripts = [
     buildTypes,
     buildClientScript,
@@ -41,7 +51,7 @@ export async function runBuildCommand(app: AppCommand) {
     buildServerScript,
     buildStaticScript,
     lint,
-  ].filter((s) => typeof s === 'string' && s.trim().length > 0)!;
+  ].filter(isString);
 
   if (!isLibraryBuild && !buildClientScript) {
     console.log(pkgJsonScripts);
@@ -55,12 +65,33 @@ export async function runBuildCommand(app: AppCommand) {
   }
 
   console.log(``);
+  for (const script of prebuildScripts) {
+    console.log(dim(script!));
+  }
   for (const script of scripts) {
+    console.log(dim(script!));
+  }
+  for (const script of postbuildScripts) {
     console.log(dim(script!));
   }
   console.log(``);
 
   let typecheck: Promise<Step> | null = null;
+
+  for (const script of prebuildScripts) {
+    try {
+      await execaCommand(script, {
+        cwd: app.rootDir,
+        stdout: 'inherit',
+        env: {
+          FORCE_COLOR: 'true',
+        },
+      });
+    } catch (e) {
+      console.error(script, 'failed');
+      process.exit(1);
+    }
+  }
 
   if (buildTypes) {
     let copyScript = buildTypes;
@@ -264,6 +295,21 @@ export async function runBuildCommand(app: AppCommand) {
     });
   }
 
+  for (const script of postbuildScripts) {
+    try {
+      await execaCommand(script, {
+        cwd: app.rootDir,
+        stdout: 'inherit',
+        env: {
+          FORCE_COLOR: 'true',
+        },
+      });
+    } catch (e) {
+      console.error(script, 'failed');
+      process.exit(1);
+    }
+  }
+
   console.log(``);
 }
 
@@ -274,3 +320,6 @@ function attachArg(command: string, key: string, value?: string): string {
   return command
 }
 
+function isString(s: string | null | undefined): s is string {
+  return typeof s === 'string' && s.trim().length > 0;
+}

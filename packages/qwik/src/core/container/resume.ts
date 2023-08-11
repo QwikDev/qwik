@@ -2,7 +2,7 @@ import { assertDefined, assertTrue } from '../error/assert';
 import { getDocument } from '../util/dom';
 import { isComment, isElement, isNode, isQwikElement, isText } from '../util/element';
 import { logDebug, logWarn } from '../util/log';
-import { ELEMENT_ID, QContainerAttr, QStyle } from '../util/markers';
+import { ELEMENT_ID, QContainerAttr } from '../util/markers';
 
 import { emitEvent } from '../util/event';
 
@@ -19,7 +19,7 @@ import {
   strToInt,
 } from './container';
 import { findClose, VirtualElementImpl } from '../render/dom/virtual-element';
-import { getProxyManager, parseSubscription, type Subscriptions } from '../state/common';
+import { getSubscriptionManager, parseSubscription, type Subscriptions } from '../state/common';
 import { createProxy, setObjectFlags } from '../state/store';
 import { qDev, qSerialize } from '../util/qdev';
 import { pauseContainer } from './pause';
@@ -27,6 +27,7 @@ import { isPrimitive } from '../render/dom/render-dom';
 import { getWrappingContainer } from '../use/use-core';
 import { getContext } from '../state/context';
 import { EMPTY_ARRAY } from '../util/flyweight';
+import { SVG_NS } from '../render/dom/visitor';
 
 export const resumeIfNeeded = (containerEl: Element): void => {
   const isResumed = directGetAttribute(containerEl, QContainerAttr);
@@ -114,10 +115,10 @@ export const resumeContainer = (containerEl: Element) => {
 
   const inlinedFunctions = getQwikInlinedFuncs(parentJSON);
   const containerState = _getContainerState(containerEl);
-  moveStyles(containerEl, containerState);
 
   // Collect all elements
   const elements = new Map<number, Node>();
+  const text = new Map<number, string>();
   let node: Comment | null = null;
   let container = 0;
 
@@ -135,7 +136,9 @@ export const resumeContainer = (containerEl: Element) => {
       } else if (data.startsWith('t=')) {
         const id = data.slice(2);
         const index = strToInt(id);
-        elements.set(index, getTextNode(node));
+        const textNode = getTextNode(node);
+        elements.set(index, textNode);
+        text.set(index, textNode.data);
       }
     }
     if (data === 'cq') {
@@ -190,7 +193,11 @@ export const resumeContainer = (containerEl: Element) => {
           return undefined;
         }
         const close = findClose(rawElement);
-        const virtual = new VirtualElementImpl(rawElement, close);
+        const virtual = new VirtualElementImpl(
+          rawElement,
+          close,
+          rawElement.parentElement?.namespaceURI === SVG_NS
+        );
         finalized.set(id, virtual);
         getContext(virtual, containerState);
         return virtual;
@@ -207,6 +214,14 @@ export const resumeContainer = (containerEl: Element) => {
       const func = inlinedFunctions[index];
       assertDefined(func, `missing inlined function for id:`, funcId);
       return func;
+    } else if (id.startsWith('*')) {
+      const elementId = id.slice(1);
+      const index = strToInt(elementId);
+      assertTrue(elements.has(index), `missing element for id:`, elementId);
+      const str = text.get(index);
+      assertDefined(str, `missing element for id:`, elementId);
+      finalized.set(id, str);
+      return str;
     }
     const index = strToInt(id);
     const objs = pauseState.objs;
@@ -274,7 +289,7 @@ const reviveSubscriptions = (
     if (!parser.subs(value, converted)) {
       const proxy = containerState.$proxyMap$.get(value);
       if (proxy) {
-        getProxyManager(proxy)!.$addSubs$(converted);
+        getSubscriptionManager(proxy)!.$addSubs$(converted);
       } else {
         createProxy(value, containerState, converted);
       }
@@ -298,14 +313,6 @@ const reviveNestedObjects = (obj: any, getObject: GetObject, parser: Parser) => 
       }
     }
   }
-};
-
-export const moveStyles = (containerEl: Element, containerState: ContainerState) => {
-  const head = containerEl.ownerDocument.head;
-  containerEl.querySelectorAll('style[q\\:style]').forEach((el) => {
-    containerState.$styleIds$.add(directGetAttribute(el, QStyle)!);
-    head.appendChild(el);
-  });
 };
 
 const unescapeText = (str: string) => {

@@ -1,4 +1,5 @@
 ---
+title: Qwik in a nutshell | Introduction
 contributors:
   - manucorporat
   - AnthonyPAlicea
@@ -16,6 +17,16 @@ Qwik components are very similar to React components. They are functions that re
 - For `<input>`, the `onChange` event is called `onInput$` in Qwik.
 - JSX prefers HTML attributes. `class` instead of `className`. `for` instead of `htmlFor`.
 - Conditional rendering is done with the ternary operator `?` and the `&&` operator, just like React.
+
+
+```tsx title="src/components/my-other-component/index.tsx"
+import { component$, Slot } from '@builder.io/qwik';
+import type { ClassList } from '@builder.io/qwik'
+
+export component$((props: { class?: ClassList }) => { // ✅
+  return <div class={class}><Slot /></div>;
+});
+```
 
 ```tsx
 import { component$, useSignal } from '@builder.io/qwik';
@@ -48,7 +59,7 @@ export const MyComponent = component$((props: MyComponentProps) => {
         }}
       >
         <h1>Count: {count.value}</h1>
-        <MyOtherComponent>
+        <MyOtherComponent class="correct-way" /> {/* ✅ */}
           {count.value > 10 && <p>Count is greater than 10</p>}
           {count.value > 10 ? <p>Count is greater than 10</p> : <p>Count is less than 10</p>}
         </MyOtherComponent>
@@ -170,7 +181,6 @@ To use CSS modules, simply create a `.module.css` file. For example, `src/compon
 Then, import the CSS module in your component.
 
 ```tsx title="src/components/MyComponent/MyComponent.tsx"
-
 import { component$ } from '@builder.io/qwik';
 import styles from './MyComponent.module.css';
 
@@ -253,7 +263,7 @@ export default component$(() => {
 
 ### `useSignal(initialValue?)`
 
-`useSignal()` is the main way to create reactive state. Signals can be shared across components, and any component or task that reads the signal (executing: `signal.value`) will be render when the signal changes.
+`useSignal()` is the main way to create reactive state. Signals can be shared across components, and any component or task that reads the signal (executing: `signal.value`) will be rendered when the signal changes.
 
 ```ts
 // Typescript definition for `Signal<T>` and `useSignal<T>`
@@ -290,7 +300,7 @@ In practice, `useSignal` and `useStore` are very similar -- `useSignal(0) === us
 - When you want a reactive object that you can easily add properties to.
 
 ```tsx
-import { component$, useSignal } from '@builder.io/qwik';
+import { component$, useStore } from '@builder.io/qwik';
 
 export const Counter = component$(() => {
   // The `useStore` hook is used to create a reactive store.
@@ -336,7 +346,7 @@ export const Counter = component$(() => {
 import { component$, useSignal, useTask$ } from '@builder.io/qwik';
 
 export const Counter = component$(() => {
-  const currentPage = useSignal(0);
+  const page = useSignal(0);
   const listOfUsers = useSignal([]);
 
   // The `useTask$` hook is used to create a task.
@@ -347,7 +357,7 @@ export const Counter = component$(() => {
 
   // You can create multiple tasks, and they can be async.
   useTask$(async (taskContext) => {
-    // Since we want to re-run the task whenever the `page` changes, 
+    // Since we want to re-run the task whenever the `page` changes,
     // we need to track it.
     taskContext.track(() => page.value);
     console.log('Task executed before the first render AND when page changes');
@@ -387,7 +397,7 @@ export const Counter = component$(() => {
 import { component$, useSignal, useVisibleTask$ } from '@builder.io/qwik';
 
 export const Clock = component$(() => {
-  const seconds = useSignal(0);
+  const time = useSignal(0);
 
   // The `useVisibleTask$` hook is used to create a task that runs eagarly on the client.
   useVisibleTask$((taskContext) => {

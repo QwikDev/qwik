@@ -1,12 +1,11 @@
 /* eslint-disable */
 // @ts-ignore
-import Utils from '@typescript-eslint/utils';
+import { RuleTester } from '@typescript-eslint/rule-tester';
 import { fileURLToPath } from 'node:url';
-import { test } from 'uvu';
+import { suite } from 'uvu';
 import { rules } from './index';
 
-const RuleTester = Utils.ESLintUtils.RuleTester;
-
+const lintSuite = suite('lint');
 const testConfig = {
   parser: '@typescript-eslint/parser',
   env: {
@@ -23,11 +22,17 @@ const testConfig = {
   },
 };
 
+RuleTester.afterAll = lintSuite.after;
+RuleTester.it = lintSuite;
+RuleTester.itOnly = lintSuite.only;
+RuleTester.describe = function (_, method) {
+  return method.call(this);
+};
+
 const ruleTester = new RuleTester(testConfig as any);
-test('use-method-usage', () => {
-  ruleTester.run('my-rule', rules['use-method-usage'] as any, {
-    valid: [
-      `
+ruleTester.run('use-method-usage', rules['use-method-usage'] as any, {
+  valid: [
+    `
 export function useSession1() {
   useContext();
 }
@@ -38,7 +43,7 @@ export function useSession3() {
   return useContext().value;
 }
 `,
-      `
+    `
 export const useSession1 = () => {
   useContext();
 }
@@ -55,7 +60,7 @@ export const useSession5 = () => useContext().value + 10;
 
 `,
 
-      `
+    `
 export const useSession1 = () => {
   useContext()?.value;
 }
@@ -71,7 +76,7 @@ export const useSession4 = () => useContext()?.value;
 export const useSession5 = () => useContext()?.value; + 10;
 
 `,
-      `
+    `
 export const HelloWorld = component$(async () => {
   const [todoForm, { Form, Field, FieldArray }] = useForm<TodoForm>({
     loader: useFormLoader(),
@@ -81,7 +86,7 @@ export const HelloWorld = component$(async () => {
 
   });
   `,
-      `
+    `
       export const HelloWorld = component$(async () => {
           useMethod();
           await something();
@@ -96,7 +101,7 @@ export const HelloWorld = component$(async () => {
           A();
         }
         `,
-      `export const HelloWorld = component$(async () => {
+    `export const HelloWorld = component$(async () => {
           useMethod();
           await something();
           await stuff();
@@ -104,10 +109,28 @@ export const HelloWorld = component$(async () => {
             return <div></div>
           });
         });`,
-    ],
-    invalid: [
-      {
-        code: `export const HelloWorld = component$(async () => {
+    `export const HelloWorld = component$(async () => {
+          const test = useFunction() as string;
+
+          });
+          `,
+    `export const InsideTask = component$(() => {
+          const mySig = useSignal(0);
+          useTask$(async function initTask(){
+            if (isServer){
+              await fetch('/url');
+            }
+          })
+
+          useTask$(({track})=>{
+            track(()=> mySig.value);
+          })
+          return <div></div>;
+      });`,
+  ],
+  invalid: [
+    {
+      code: `export const HelloWorld = component$(async () => {
             await something();
             useMethod();
             return $(() => {
@@ -118,10 +141,10 @@ export const HelloWorld = component$(async () => {
               );
             });
           });`,
-        errors: [{ messageId: 'use-after-await' }],
-      },
-      {
-        code: `export const HelloWorld = component$(async () => {
+      errors: [{ messageId: 'use-after-await' }],
+    },
+    {
+      code: `export const HelloWorld = component$(async () => {
             if (stuff) {
               await something();
             }
@@ -134,49 +157,46 @@ export const HelloWorld = component$(async () => {
               );
             });
           });`,
-        errors: [{ messageId: 'use-after-await' }],
-      },
+      errors: [{ messageId: 'use-after-await' }],
+    },
 
-      {
-        code: `export function noUseSession() {
+    {
+      code: `export function noUseSession() {
           useContext();
         }`,
-        errors: [{ messageId: 'use-wrong-function' }],
-      },
-      {
-        code: `export const noUseSession = () => {
+      errors: [{ messageId: 'use-wrong-function' }],
+    },
+    {
+      code: `export const noUseSession = () => {
           useContext();
         }`,
-        errors: [{ messageId: 'use-wrong-function' }],
-      },
-      {
-        code: `export const noUseSession = () => {
+      errors: [{ messageId: 'use-wrong-function' }],
+    },
+    {
+      code: `export const noUseSession = () => {
          return useContext();
         }`,
-        errors: [{ messageId: 'use-wrong-function' }],
-      },
-      {
-        code: `export const noUseSession = () => useContext();`,
-        errors: [{ messageId: 'use-wrong-function' }],
-      },
-      {
-        code: `export const noUseSession = () => useContext().value;`,
-        errors: [{ messageId: 'use-wrong-function' }],
-      },
-      {
-        code: `export const noUseSession = () => {
+      errors: [{ messageId: 'use-wrong-function' }],
+    },
+    {
+      code: `export const noUseSession = () => useContext();`,
+      errors: [{ messageId: 'use-wrong-function' }],
+    },
+    {
+      code: `export const noUseSession = () => useContext().value;`,
+      errors: [{ messageId: 'use-wrong-function' }],
+    },
+    {
+      code: `export const noUseSession = () => {
          return useContext();
         }`,
-        errors: [{ messageId: 'use-wrong-function' }],
-      },
-    ],
-  });
+      errors: [{ messageId: 'use-wrong-function' }],
+    },
+  ],
 });
-
-test('valid-lexical-scope', () => {
-  ruleTester.run('valid-lexical-scope', rules['valid-lexical-scope'], {
-    valid: [
-      `
+ruleTester.run('valid-lexical-scope', rules['valid-lexical-scope'], {
+  valid: [
+    `
       import { component$, useTask$, useSignal } from '@builder.io/qwik';
       enum Color {
         Red,
@@ -193,7 +213,7 @@ test('valid-lexical-scope', () => {
         return <></>
       })
       `,
-      `
+    `
       import { component$, SSRStream } from "@builder.io/qwik";
 import { Readable } from "stream";
 
@@ -223,7 +243,7 @@ export const RemoteApp = component$(({ name }: { name: string }) => {
   );
 });
 `,
-      `
+    `
       export type NoSerialize<T> = (T & { __no_serialize__: true }) | undefined;
       import { useMethod, component$ } from 'stuff';
       export interface Value {
@@ -241,7 +261,7 @@ export const RemoteApp = component$(({ name }: { name: string }) => {
         });
         return <div></div>
       });`,
-      `
+    `
         import { useMethod, component$ } from 'stuff';
         interface Value {
           value: 12;
@@ -256,7 +276,7 @@ export const RemoteApp = component$(({ name }: { name: string }) => {
           useMethod(foo, bar);
           return <div></div>
         });`,
-      `export const HelloWorld = component$(() => {
+    `export const HelloWorld = component$(() => {
           const getMethod = () => {
             return 'value';
           }
@@ -267,7 +287,7 @@ export const RemoteApp = component$(({ name }: { name: string }) => {
           return <div></div>;
         });`,
 
-      `export const HelloWorld = component$(() => {
+    `export const HelloWorld = component$(() => {
           const getMethod = () => {
             return {
               value: 'string',
@@ -284,7 +304,7 @@ export const RemoteApp = component$(({ name }: { name: string }) => {
           });
           return <div></div>;
         });`,
-      `
+    `
         export const useMethod = () => {
           console.log('');
         }
@@ -293,7 +313,7 @@ export const RemoteApp = component$(({ name }: { name: string }) => {
           useMethod(foo);
           return <div></div>
         });`,
-      `
+    `
           import { useTask$ } from '@builder.io/qwik';
           export const HelloWorld = component$(() => {
             function getValue(): number | string | null | undefined | { prop: string } {
@@ -305,7 +325,7 @@ export const RemoteApp = component$(({ name }: { name: string }) => {
             });
             return <div></div>;
           });`,
-      `
+    `
           export const HelloWorld = component$(() => {
             const getMethod = () => {
               return Promise.resolve();
@@ -329,7 +349,7 @@ export const RemoteApp = component$(({ name }: { name: string }) => {
             });
             return <div></div>;
           });`,
-      `
+    `
           import { useTask$ } from '@builder.io/qwik';
           export const HelloWorld = component$(() => {
             async function getValue() {
@@ -341,7 +361,7 @@ export const RemoteApp = component$(({ name }: { name: string }) => {
             }}></div>;
           });`,
 
-      `
+    `
   export interface PropFnInterface<ARGS extends any[], RET> {
     (...args: ARGS): Promise<RET>
   }
@@ -366,8 +386,8 @@ export const RemoteApp = component$(({ name }: { name: string }) => {
     }}></div>;
   });
       `,
-      ``,
-      `
+    ``,
+    `
 import { component$ } from "@builder.io/qwik";
 
 export const version = "0.13";
@@ -378,7 +398,7 @@ export default component$(() => {
   };
 });
 `,
-      `
+    `
         import { component$ } from "@builder.io/qwik";
 
         export interface Props {
@@ -391,7 +411,7 @@ export default component$(() => {
           );
         });
       `,
-      `
+    `
       import { component$ } from "@builder.io/qwik";
 
       export const HelloWorld = component$(({onClick}: any) => {
@@ -400,17 +420,17 @@ export default component$(() => {
         );
       });
     `,
-      `
+    `
           const useMethod = 12;
           export const HelloWorld = component$(() => {
             const foo = 'bar';
             useMethod(foo);
             return <div></div>
           });`,
-    ],
-    invalid: [
-      {
-        code: `
+  ],
+  invalid: [
+    {
+      code: `
           export const HelloWorld = component$(() => {
             const getMethod = () => {
               return () => {};
@@ -421,10 +441,25 @@ export default component$(() => {
             });
             return <div></div>;
           });`,
-        errors: [{ messageId: 'referencesOutside' }],
-      },
-      {
-        code: `
+      errors: [{ messageId: 'referencesOutside' }],
+    },
+    {
+      code: `
+          export const HelloWorld = component$(() => {
+            let startX: number | undefined = 0;
+
+            const handleMouseDown = $((e: QwikMouseEvent) => {
+              console.log('working');
+              startX = e.pageX - divRef.value!.offsetLeft;
+            });
+            return <div
+              onMouseDown$={handleMouseDown}
+            ></div>;
+          });`,
+      errors: [{ messageId: 'mutableIdentifier' }],
+    },
+    {
+      code: `
           export const HelloWorld = component$(() => {
             function useMethod() {
               console.log('stuff');
@@ -435,10 +470,10 @@ export default component$(() => {
             return <div></div>;
           });`,
 
-        errors: [{ messageId: 'referencesOutside' }],
-      },
-      {
-        code: `
+      errors: [{ messageId: 'referencesOutside' }],
+    },
+    {
+      code: `
           export const HelloWorld = component$(() => {
             class Stuff { }
             useTask$(() => {
@@ -447,10 +482,10 @@ export default component$(() => {
             return <div></div>;
           });`,
 
-        errors: [{ messageId: 'referencesOutside' }],
-      },
-      {
-        code: `
+      errors: [{ messageId: 'referencesOutside' }],
+    },
+    {
+      code: `
           export const HelloWorld = component$(() => {
             class Stuff { }
             const stuff = new Stuff();
@@ -460,10 +495,10 @@ export default component$(() => {
             return <div></div>;
           });`,
 
-        errors: [{ messageId: 'referencesOutside' }],
-      },
-      {
-        code: `
+      errors: [{ messageId: 'referencesOutside' }],
+    },
+    {
+      code: `
           import { useTask$ } from '@builder.io/qwik';
           export const HelloWorld = component$(() => {
             const a = Symbol();
@@ -473,10 +508,10 @@ export default component$(() => {
             return <div></div>;
           });`,
 
-        errors: [{ messageId: 'referencesOutside' }],
-      },
-      {
-        code: `
+      errors: [{ messageId: 'referencesOutside' }],
+    },
+    {
+      code: `
         import { component$, useTask$, useSignal } from '@builder.io/qwik';
 
         export default component$(() => {
@@ -491,10 +526,10 @@ export default component$(() => {
           });
           return <></>
         })`,
-        errors: [{ messageId: 'referencesOutside' }],
-      },
-      {
-        code: `
+      errors: [{ messageId: 'referencesOutside' }],
+    },
+    {
+      code: `
           import { useTask$ } from '@builder.io/qwik';
           export const HelloWorld = component$(() => {
             function getValue() {
@@ -511,10 +546,10 @@ export default component$(() => {
             return <div></div>;
           });`,
 
-        errors: [{ messageId: 'referencesOutside' }],
-      },
-      {
-        code: `
+      errors: [{ messageId: 'referencesOutside' }],
+    },
+    {
+      code: `
         import { useMethod, component$ } from 'stuff';
         export interface Value {
           value: () => void;
@@ -526,10 +561,10 @@ export default component$(() => {
           });
           return <div></div>
         });`,
-        errors: [{ messageId: 'referencesOutside' }],
-      },
-      {
-        code: `
+      errors: [{ messageId: 'referencesOutside' }],
+    },
+    {
+      code: `
         import { component$ } from 'stuff';
         export const HelloWorld = component$(() => {
           const click = () => console.log();
@@ -538,14 +573,14 @@ export default component$(() => {
             </button>
           );
         });`,
-        errors: [
-          {
-            messageId: 'invalidJsxDollar',
-          },
-        ],
-      },
-      {
-        code: `
+      errors: [
+        {
+          messageId: 'invalidJsxDollar',
+        },
+      ],
+    },
+    {
+      code: `
         import { component$ } from 'stuff';
         export const HelloWorld = component$(() => {
           let click: string = '';
@@ -557,14 +592,14 @@ export default component$(() => {
             </button>
           );
         });`,
-        errors: [
-          {
-            messageId: 'mutableIdentifier',
-          },
-        ],
-      },
-      {
-        code: `
+      errors: [
+        {
+          messageId: 'mutableIdentifier',
+        },
+      ],
+    },
+    {
+      code: `
         import { component$ } from "@builder.io/qwik";
 
         export interface Props {
@@ -576,10 +611,37 @@ export default component$(() => {
             <button onClick$={() => props.nonserializableTuple}></button>
           );
         });`,
-        errors: [{ messageId: 'referencesOutside' }],
-      },
-    ],
-  });
+      errors: [{ messageId: 'referencesOutside' }],
+    },
+  ],
 });
+
+ruleTester.run('jsx-img', rules['jsx-img'], {
+  valid: [
+    `<img width={200} height={200} />`,
+    `<img width="200" height="200" />`,
+    `<img {...props}/>`,
+  ],
+  invalid: [
+    {
+      code: `<img height={200} />`,
+      errors: [{ messageId: 'noWidthHeight' }],
+    },
+    {
+      code: `<img width={200} />`,
+      errors: [{ messageId: 'noWidthHeight' }],
+    },
+    {
+      code: `<img />`,
+      errors: [{ messageId: 'noWidthHeight' }],
+    },
+    {
+      code: `<img src='./file.png' />`,
+      errors: [{ messageId: 'noWidthHeight' }],
+    },
+  ],
+});
+
+lintSuite.run();
 
 export {};

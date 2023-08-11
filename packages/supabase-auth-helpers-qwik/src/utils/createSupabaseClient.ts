@@ -78,7 +78,7 @@ export function createBrowserClient<
   Database = any,
   SchemaName extends string & keyof Database = 'public' extends keyof Database
     ? 'public'
-    : string & keyof Database
+    : string & keyof Database,
 >(
   supabaseUrl: string,
   supabaseKey: string,
@@ -117,7 +117,7 @@ export function createServerClient<
   Database = any,
   SchemaName extends string & keyof Database = 'public' extends keyof Database
     ? 'public'
-    : string & keyof Database
+    : string & keyof Database,
 >(
   supabaseUrl: string,
   supabaseKey: string,
@@ -140,7 +140,7 @@ export function createServerClient<
     supabaseUrl,
     supabaseKey,
     getRequestHeader: (key) => {
-      return requestEv.headers.get(key) ?? undefined;
+      return requestEv.request.headers.get(key) ?? undefined;
     },
     getCookie: (name) => {
       return requestEv.cookie.get(name)?.value;

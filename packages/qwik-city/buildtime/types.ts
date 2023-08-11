@@ -9,7 +9,7 @@ export interface BuildContext {
   menus: BuildMenu[];
   frontmatter: Map<string, FrontmatterAttrs>;
   diagnostics: Diagnostic[];
-  target: 'ssr' | 'client';
+  target: 'ssr' | 'client' | undefined;
   isDevServer: boolean;
   isDevServerClientOnly: boolean;
   isDirty: boolean;

@@ -132,7 +132,9 @@
   font-family: Menlo, Monaco, 'Lucida Console', Consolas, 'Courier New', monospace;
   font-weight: normal;
   font-size: 12px;
-  font-feature-settings: 'liga' 0, 'calt' 0;
+  font-feature-settings:
+    'liga' 0,
+    'calt' 0;
   line-height: 18px;
   letter-spacing: 0px;
 }

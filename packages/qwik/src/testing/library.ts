@@ -38,8 +38,8 @@ export const createDOM = async function () {
     },
     screen: host,
     userEvent: async function (
-      queryOrElement: string | Element | null,
-      eventNameCamel: string,
+      queryOrElement: string | Element | keyof HTMLElementTagNameMap | null,
+      eventNameCamel: string | keyof WindowEventMap,
       eventPayload: any = {}
     ) {
       if (typeof queryOrElement === 'string') {

@@ -174,6 +174,8 @@ export interface DocumentMeta {
     // (undocumented)
     readonly key?: string;
     // (undocumented)
+    readonly media?: string;
+    // (undocumented)
     readonly name?: string;
     // (undocumented)
     readonly property?: string;
@@ -247,6 +249,10 @@ export interface LinkProps extends AnchorAttributes {
     prefetch?: boolean;
     // (undocumented)
     reload?: boolean;
+    // (undocumented)
+    replaceState?: boolean;
+    // (undocumented)
+    scroll?: boolean;
 }
 
 // @public (undocumented)
@@ -263,6 +269,9 @@ export type LoaderSignal<T> = T extends () => ValueOrPromise<infer B> ? Readonly
 //
 // @public (undocumented)
 export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
+
+// @public (undocumented)
+export type NavigationType = 'initial' | 'form' | 'link' | 'popstate';
 
 // Warning: (ae-forgotten-export) The symbol "RouteModule" needs to be exported by the entry point index.d.ts
 //
@@ -283,8 +292,14 @@ export interface PageModule extends RouteModule {
 // @public (undocumented)
 export type PathParams = Record<string, string>;
 
-// Warning: (ae-forgotten-export) The symbol "QwikCityMockProps" needs to be exported by the entry point index.d.ts
-//
+// @public (undocumented)
+export interface QwikCityMockProps {
+    // (undocumented)
+    params?: Record<string, string>;
+    // (undocumented)
+    url?: string;
+}
+
 // @public (undocumented)
 export const QwikCityMockProvider: Component<QwikCityMockProps>;
 
@@ -367,7 +382,12 @@ export interface RouteLocation {
 }
 
 // @public (undocumented)
-export type RouteNavigate = QRL<(path?: string, forceReload?: boolean) => Promise<void>>;
+export type RouteNavigate = QRL<(path?: string, options?: {
+    type?: Exclude<NavigationType, 'initial'>;
+    forceReload?: boolean;
+    replaceState?: boolean;
+    scroll?: boolean;
+} | boolean) => Promise<void>>;
 
 // @public (undocumented)
 export const RouterOutlet: Component<    {}>;
@@ -430,11 +450,11 @@ export interface ZodConstructor {
     // (undocumented)
     <T extends zod.ZodRawShape>(schema: T): TypedDataValidator<zod.ZodObject<T>>;
     // (undocumented)
-    <T extends zod.ZodRawShape>(schema: (z: typeof zod) => T): TypedDataValidator<zod.ZodObject<T>>;
+    <T extends zod.ZodRawShape>(schema: (z: typeof zod, ev: RequestEvent) => T): TypedDataValidator<zod.ZodObject<T>>;
     // (undocumented)
     <T extends zod.Schema>(schema: T): TypedDataValidator<T>;
     // (undocumented)
-    <T extends zod.Schema>(schema: (z: typeof zod) => T): TypedDataValidator<T>;
+    <T extends zod.Schema>(schema: (z: typeof zod, ev: RequestEvent) => T): TypedDataValidator<T>;
 }
 
 // Warning: (ae-forgotten-export) The symbol "ZodConstructorQRL" needs to be exported by the entry point index.d.ts

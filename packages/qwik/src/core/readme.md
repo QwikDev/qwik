@@ -85,7 +85,7 @@ The `useTask` function is used to observe the `state.count` property. Any change
 
 <docs code="./examples.tsx#use-task"/>
 
-@param watch - Function which should be re-executed when changes to the inputs are detected
+@param task - Function which should be re-executed when changes to the inputs are detected
 @public
 
 # `useVisibleTask`
@@ -383,7 +383,7 @@ Use `createContextId()` to create a `ContextId`. A `ContextId` is just a seriali
 
 Assign a value to a Context.
 
-Use `useContextProvider()` to assign a value to a context. The assignment happens in the component's function. Once assign use `useContext()` in any child component to retrieve the value.
+Use `useContextProvider()` to assign a value to a context. The assignment happens in the component's function. Once assigned, use `useContext()` in any child component to retrieve the value.
 
 Context is a way to pass stores to the child components without prop-drilling.
 

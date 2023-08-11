@@ -1007,36 +1007,36 @@ export const UseEvents = component$(() => {
 
 //////////////////////////////////////////////////////////////////////////////////////////
 export const Hooks = component$(() => {
-  const watchDestroyDiv = useSignal<HTMLElement>();
-  const effectDiv = useSignal<HTMLElement>();
-  const effectDestroyDiv = useSignal<HTMLElement>();
+  const taskDestroyDiv = useSignal<HTMLElement>();
+  const visibleTaskDiv = useSignal<HTMLElement>();
+  const visibleTaskDestroyDiv = useSignal<HTMLElement>();
 
   const state = useStore({
-    watch: 'false',
+    task: 'false',
     server: 'false',
   });
 
   useTask$(() => {
-    state.watch = 'true';
+    state.task = 'true';
     return () => {
-      watchDestroyDiv.value!.textContent = 'true';
+      taskDestroyDiv.value!.textContent = 'true';
     };
   });
 
   useVisibleTask$(() => {
-    effectDiv.value!.textContent = 'true';
+    visibleTaskDiv.value!.textContent = 'true';
     return () => {
-      effectDestroyDiv.value!.textContent = 'true';
+      visibleTaskDestroyDiv.value!.textContent = 'true';
     };
   });
 
   return (
     <div>
-      <div id="effect" ref={effectDiv}></div>
-      <div id="effect-destroy" ref={effectDestroyDiv}></div>
+      <div id="effect" ref={visibleTaskDiv}></div>
+      <div id="effect-destroy" ref={visibleTaskDestroyDiv}></div>
 
-      <div id="watch">{state.watch}</div>
-      <div id="watch-destroy" ref={watchDestroyDiv}></div>
+      <div id="watch">{state.task}</div>
+      <div id="watch-destroy" ref={taskDestroyDiv}></div>
 
       <div id="server-mount">{state.server}</div>
 

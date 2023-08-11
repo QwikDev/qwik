@@ -1,4 +1,4 @@
-@import 'base.css';
+@import "base.css";
 
 html,
 body {
@@ -23,7 +23,11 @@ button {
 }
 
 body {
-  font: 14px 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font:
+    14px "Helvetica Neue",
+    Helvetica,
+    Arial,
+    sans-serif;
   line-height: 1.4em;
   background: #f5f5f5;
   color: #111111;
@@ -47,7 +51,9 @@ body {
   background: #fff;
   margin: 130px 0 40px 0;
   position: relative;
-  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 25px 50px 0 rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 2px 4px 0 rgba(0, 0, 0, 0.2),
+    0 25px 50px 0 rgba(0, 0, 0, 0.1);
 }
 
 .todoapp input::-webkit-input-placeholder {
@@ -134,7 +140,7 @@ body {
 }
 
 .toggle-all + label:before {
-  content: '❯';
+  content: "❯";
   font-size: 22px;
   color: #e6e6e6;
   padding: 10px 27px 10px 27px;
@@ -199,13 +205,13 @@ body {
 		Firefox requires `#` to be escaped - https://bugzilla.mozilla.org/show_bug.cgi?id=922433
 		IE and Edge requires *everything* to be escaped to render, so we do that instead of just the `#` - https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/7157459/
 	*/
-  background-image: url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2240%22%20height%3D%2240%22%20viewBox%3D%22-10%20-18%20100%20135%22%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2250%22%20r%3D%2250%22%20fill%3D%22none%22%20stroke%3D%22%23ededed%22%20stroke-width%3D%223%22/%3E%3C/svg%3E');
+  background-image: url("data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2240%22%20height%3D%2240%22%20viewBox%3D%22-10%20-18%20100%20135%22%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2250%22%20r%3D%2250%22%20fill%3D%22none%22%20stroke%3D%22%23ededed%22%20stroke-width%3D%223%22/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: center left;
 }
 
 .todo-list li .toggle:checked + label {
-  background-image: url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2240%22%20height%3D%2240%22%20viewBox%3D%22-10%20-18%20100%20135%22%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2250%22%20r%3D%2250%22%20fill%3D%22none%22%20stroke%3D%22%23bddad5%22%20stroke-width%3D%223%22/%3E%3Cpath%20fill%3D%22%235dc2af%22%20d%3D%22M72%2025L42%2071%2027%2056l-4%204%2020%2020%2034-52z%22/%3E%3C/svg%3E');
+  background-image: url("data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2240%22%20height%3D%2240%22%20viewBox%3D%22-10%20-18%20100%20135%22%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2250%22%20r%3D%2250%22%20fill%3D%22none%22%20stroke%3D%22%23bddad5%22%20stroke-width%3D%223%22/%3E%3Cpath%20fill%3D%22%235dc2af%22%20d%3D%22M72%2025L42%2071%2027%2056l-4%204%2020%2020%2034-52z%22/%3E%3C/svg%3E");
 }
 
 .todo-list li label {
@@ -243,7 +249,7 @@ body {
 }
 
 .todo-list li .destroy:after {
-  content: '×';
+  content: "×";
 }
 
 .todo-list li:hover .destroy {
@@ -267,15 +273,19 @@ body {
 }
 
 .footer:before {
-  content: '';
+  content: "";
   position: absolute;
   right: 0;
   bottom: 0;
   left: 0;
   height: 50px;
   overflow: hidden;
-  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2), 0 8px 0 -3px #f6f6f6, 0 9px 1px -3px rgba(0, 0, 0, 0.2),
-    0 16px 0 -6px #f6f6f6, 0 17px 2px -6px rgba(0, 0, 0, 0.2);
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.2),
+    0 8px 0 -3px #f6f6f6,
+    0 9px 1px -3px rgba(0, 0, 0, 0.2),
+    0 16px 0 -6px #f6f6f6,
+    0 17px 2px -6px rgba(0, 0, 0, 0.2);
 }
 
 .todo-count {

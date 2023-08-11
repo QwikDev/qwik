@@ -1,6 +1,7 @@
 import type {
   ServerRenderOptions,
   ServerRequestEvent,
+  ClientConn,
 } from '@builder.io/qwik-city/middleware/request-handler';
 import {
   mergeHeadersCookies,
@@ -18,6 +19,23 @@ import { extname, fromFileUrl, join } from 'https://deno.land/std/path/mod.ts';
 /**
  * @public
  */
+export interface Addr {
+  transport: 'tcp' | 'udp';
+  hostname: string;
+  port: number;
+}
+
+/**
+ * @public
+ */
+export interface ConnInfo {
+  readonly localAddr: Addr;
+  readonly remoteAddr: Addr;
+}
+
+/**
+ * @public
+ */
 export function createQwikCity(opts: QwikCityDenoOptions) {
   const qwikSerializer = {
     _deserializeData,
@@ -30,7 +48,7 @@ export function createQwikCity(opts: QwikCityDenoOptions) {
 
   const staticFolder = opts.static?.root ?? join(fromFileUrl(import.meta.url), '..', '..', 'dist');
 
-  async function router(request: Request) {
+  async function router(request: Request, conn: ConnInfo) {
     try {
       const url = new URL(request.url);
 
@@ -51,6 +69,13 @@ export function createQwikCity(opts: QwikCityDenoOptions) {
         },
         platform: {
           ssr: true,
+        },
+        getClientConn: () => {
+          return opts.getClientConn
+            ? opts.getClientConn(request, conn)
+            : {
+                ip: conn.remoteAddr.hostname,
+              };
         },
       };
 
@@ -96,20 +121,20 @@ export function createQwikCity(opts: QwikCityDenoOptions) {
     }
   };
 
-  const readStaticFile = async (url: URL) => {
-    const parts = url.pathname.split('/');
-    const fileName = parts[parts.length - 1];
+  const openStaticFile = async (url: URL) => {
+    const pathname = url.pathname;
+    const fileName = pathname.slice(url.pathname.lastIndexOf('/'));
     let filePath: string;
     if (fileName.includes('.')) {
-      filePath = join(staticFolder, url.pathname);
+      filePath = join(staticFolder, pathname);
     } else if (opts.qwikCityPlan.trailingSlash) {
-      filePath = join(staticFolder, url.pathname + 'index.html');
+      filePath = join(staticFolder, pathname + 'index.html');
     } else {
-      filePath = join(staticFolder, url.pathname, 'index.html');
+      filePath = join(staticFolder, pathname, 'index.html');
     }
     return {
       filePath,
-      content: await Deno.readTextFile(filePath),
+      content: await Deno.open(filePath, { read: true }),
     };
   };
 
@@ -118,10 +143,10 @@ export function createQwikCity(opts: QwikCityDenoOptions) {
       const url = new URL(request.url);
 
       if (isStaticPath(request.method || 'GET', url)) {
-        const { filePath, content } = await readStaticFile(url);
+        const { filePath, content } = await openStaticFile(url);
         const ext = extname(filePath).replace(/^\./, '');
 
-        return new Response(content, {
+        return new Response(content.readable, {
           status: 200,
           headers: {
             'content-type': MIME_TYPES[ext] || 'text/plain; charset=utf-8',
@@ -158,4 +183,5 @@ export interface QwikCityDenoOptions extends ServerRenderOptions {
     /** Set the Cache-Control header for all static files */
     cacheControl?: string;
   };
+  getClientConn?: (request: Request, conn: ConnInfo) => ClientConn;
 }

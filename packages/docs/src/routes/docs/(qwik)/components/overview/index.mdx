@@ -1,5 +1,5 @@
 ---
-title: Overview
+title: Overview | Components
 contributors:
   - RATIU5
   - leifermendez
@@ -241,6 +241,8 @@ export const Parent = component$(() => {
     </section>
   );
 });
+
+export default Parent;
 ```
 </CodeSandbox>
 
@@ -315,7 +317,7 @@ You can think of inline components as being inlined into the component where the
 Inline components come with some limitations that the standard `component$()`
 does not have. Inline components:
 - Cannot use `use*` methods such as `useSignal` or `useStore`.
-- Cannot project content with a `<Slot>`
+- Cannot project content with a `<Slot>`.
 
 As the name implies, inline components are best used sparingly for
 lightweight pieces of markup since they offer the convenience of being
@@ -339,15 +341,15 @@ bundled with the parent component.
 
 ### Events
 
-- [`useOn()`](../events/index.mdx) - appends a listener to the current component programatically
-- [`useOnWindow()`](../events/index.mdx) - appends a listener to the window object programatically
-- [`useOnDocument()`](../events/index.mdx) - appends a listener to the document object programatically
+- [`useOn()`](../events/index.mdx) - appends a listener to the current component programmatically
+- [`useOnWindow()`](../events/index.mdx) - appends a listener to the window object programmatically
+- [`useOnDocument()`](../events/index.mdx) - appends a listener to the document object programmatically
 
 ### Tasks/Lifecycle
 
 - [`useTask$()`](../tasks/index.mdx#usetask) - defines a callback that will be called before render and/or when a watched store changes
 - [`useVisibleTask$()`](../tasks/index.mdx#usevisibletask) - defines a callback that will be called after rendering in the client only (browser)
-- [`useResource$()`](../tasks/index.mdx#useresource) - creates a resource to asynchronously load data
+- [`useResource$()`](../state/index.mdx#useresource) - creates a resource to asynchronously load data
 
 ### Other
 

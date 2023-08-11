@@ -1,4 +1,4 @@
-import { style, styled } from 'styled-vanilla-extract/qwik';
+import { style, styled } from "styled-vanilla-extract/qwik";
 
 export const header = style({});
 
@@ -35,7 +35,9 @@ export const Square = styled.div`
   display: block;
   width: var(--size);
   height: var(--size);
-  transform: rotateZ(calc(var(--rotation) * var(--state) * (var(--center) - var(--index))));
+  transform: rotateZ(
+    calc(var(--rotation) * var(--state) * (var(--center) - var(--index)))
+  );
   transition-property: transform, border-color;
   transition-duration: 5s;
   transition-timing-function: ease-in-out;
@@ -50,7 +52,9 @@ export const Square = styled.div`
   contain: strict;
 
   &${odd} {
-    --luminance: calc(1 - calc(calc(var(--index) * var(--odd-color-step)) / 256));
+    --luminance: calc(
+      1 - calc(calc(var(--index) * var(--odd-color-step)) / 256)
+    );
     background: rgb(
       calc(172 * var(--luminance)),
       calc(127 * var(--luminance)),

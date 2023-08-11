@@ -1,11 +1,11 @@
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { type BuildConfig, type PackageJSON, panic } from './util';
 import { access, readFile } from './util';
 import { basename, extname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { createRequire } from 'node:module';
-import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
-import ts from 'typescript';
 import { rollup } from 'rollup';
+import ts from 'typescript';
 
 /**
  * This will validate a completed production build by triple checking all the
@@ -14,14 +14,28 @@ import { rollup } from 'rollup';
  */
 export async function validateBuild(config: BuildConfig) {
   console.log('🕵️ validating build...');
-  const pkgPath = join(config.distPkgDir, 'package.json');
+  const pkgPath = join(config.distQwikPkgDir, 'package.json');
   const pkg: PackageJSON = JSON.parse(await readFile(pkgPath, 'utf-8'));
   const errors: string[] = [];
   const require = createRequire(import.meta.url);
 
   // triple checks these package files all exist and parse
   const pkgFiles = [...pkg.files!, 'LICENSE', 'README.md', 'package.json'];
-  const expectedFiles = pkgFiles.map((f) => join(config.distPkgDir, f));
+  const expectedFiles = pkgFiles.map((f) => join(config.distQwikPkgDir, f));
+
+  const dependencies = ['csstype'];
+  const pkgDependencies = Object.keys(pkg.dependencies!);
+  if (pkgDependencies.length !== dependencies.length) {
+    errors.push(
+      `Expected ${dependencies.length} dependencies, but found ${pkgDependencies.length}.`
+    );
+  } else {
+    for (const dep of dependencies) {
+      if (!pkgDependencies.includes(dep)) {
+        errors.push(`Expected ${dep} to be a dependency.`);
+      }
+    }
+  }
 
   for (const filePath of expectedFiles) {
     try {
@@ -82,16 +96,16 @@ export async function validateBuild(config: BuildConfig) {
 
   await validatePackageJson(config, pkg, errors);
   await Promise.all([
-    validateModuleTreeshake(config, join(config.distPkgDir, 'core.min.mjs')),
-    validateModuleTreeshake(config, join(config.distPkgDir, 'core.prod.mjs')),
-    validateModuleTreeshake(config, join(config.distPkgDir, 'core.mjs')),
-    validateModuleTreeshake(config, join(config.distPkgDir, 'server.mjs')),
+    validateModuleTreeshake(config, join(config.distQwikPkgDir, 'core.min.mjs')),
+    validateModuleTreeshake(config, join(config.distQwikPkgDir, 'core.prod.mjs')),
+    validateModuleTreeshake(config, join(config.distQwikPkgDir, 'core.mjs')),
+    validateModuleTreeshake(config, join(config.distQwikPkgDir, 'server.mjs')),
   ]);
   if (config.qwikcity) {
     await validateModuleTreeshake(
       config,
       join(config.packagesDir, 'qwik-city', 'lib', 'index.qwik.mjs'),
-      ['@qwik-city-plan', '@qwik-city-sw-register', 'zod']
+      ['@qwik-city-plan', '@qwik-city-sw-register', 'zod', '@builder.io/qwik/jsx-runtime']
     );
   }
 
@@ -103,7 +117,7 @@ export async function validateBuild(config: BuildConfig) {
         const s = statSync(filePath);
         if (s.isDirectory()) {
           const dirName = basename(filePath);
-          if (dirName !== 'starters') {
+          if (dirName !== 'starters' && dirName !== 'templates') {
             getFiles(filePath);
           }
         } else if (s.isFile()) {
@@ -113,7 +127,7 @@ export async function validateBuild(config: BuildConfig) {
         }
       });
   }
-  getFiles(config.distPkgDir);
+  getFiles(config.distQwikPkgDir);
   const unexpectedFiles = allFiles.filter((f) => !expectedFiles.includes(f));
 
   if (unexpectedFiles.length > 0) {
@@ -170,7 +184,7 @@ export function validateTypeScriptFile(config: BuildConfig, tsFilePath: string) 
 async function validatePackageJson(config: BuildConfig, pkg: PackageJSON, errors: string[]) {
   async function validatePath(path: string) {
     try {
-      await access(join(config.distPkgDir, path));
+      await access(join(config.distQwikPkgDir, path));
     } catch (e: any) {
       errors.push(
         `Error loading file "${path}" referenced in package.json: ${String(

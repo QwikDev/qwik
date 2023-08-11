@@ -24,6 +24,7 @@ export async function generatePackageJson(config: BuildConfig) {
     peerDependencies: {
       undici: '^5.14.0',
     },
+    dependencies: rootPkg.dependencies,
     exports: {
       '.': {
         types: './core.d.ts',
@@ -123,8 +124,8 @@ export async function generatePackageJson(config: BuildConfig) {
     engines: rootPkg.engines,
   };
 
-  await writePackageJson(config.distPkgDir, distPkg);
-  console.log(config.distPkgDir);
+  await writePackageJson(config.distQwikPkgDir, distPkg);
+  console.log(config.distQwikPkgDir);
 
   await generateLegacyCjsSubmodule(config, 'core');
   await generateLegacyCjsSubmodule(config, 'jsx-runtime');
@@ -159,7 +160,7 @@ export async function generateLegacyCjsSubmodule(
       },
     },
   };
-  const submoduleDistDir = join(config.distPkgDir, pkgName);
+  const submoduleDistDir = join(config.distQwikPkgDir, pkgName);
   ensureDir(submoduleDistDir);
   await writePackageJson(submoduleDistDir, pkg);
 }

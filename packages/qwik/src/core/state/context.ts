@@ -1,20 +1,20 @@
 import type { OnRenderFn } from '../component/component.public';
-import { destroyWatch, type SubscriberEffect } from '../use/use-task';
+import { destroyTask, type SubscriberEffect } from '../use/use-task';
 import type { QRLInternal } from '../qrl/qrl-class';
 import type { QRL } from '../qrl/qrl.public';
 import type { StyleAppend } from '../use/use-core';
 import type { ProcessedJSXNode } from '../render/dom/render-dom';
 import type { QwikElement, VirtualElement } from '../render/dom/virtual-element';
-import type { SubscriptionManager } from './common';
+import { getProxyTarget, type SubscriptionManager } from './common';
 import type { ContainerState } from '../container/container';
 import { getDomListeners, type Listener } from './listeners';
 import { seal } from '../util/qdev';
 import { directGetAttribute } from '../render/fast-calls';
 import { isElement } from '../../testing/html';
-import { assertQwikElement } from '../util/element';
-import { assertTrue } from '../error/assert';
+import { assertQwikElement, assertTrue } from '../error/assert';
 import { QScopedStyle } from '../util/markers';
-import { createPropsState, createProxy } from './store';
+import { createPropsState, createProxy, setObjectFlags } from './store';
+import { _IMMUTABLE, _IMMUTABLE_PREFIX, QObjectImmutable } from './constants';
 
 export const Q_CTX = '_qc_';
 
@@ -37,7 +37,7 @@ export interface QContext {
   $componentQrl$: QRLInternal<OnRenderFn<any>> | null;
   li: Listener[];
   $seq$: any[] | null;
-  $watches$: SubscriberEffect[] | null;
+  $tasks$: SubscriberEffect[] | null;
   $contexts$: Map<string, any> | null;
   $appendStyles$: StyleAppend[] | null;
   $scopeIds$: string[] | null;
@@ -81,12 +81,12 @@ export const getContext = (el: QwikElement, containerState: ContainerState): QCo
           const seq = ctxMeta.s;
           const host = ctxMeta.h;
           const contexts = ctxMeta.c;
-          const watches = ctxMeta.w;
+          const tasks = ctxMeta.w;
           if (seq) {
             elCtx.$seq$ = seq.split(' ').map(getObject);
           }
-          if (watches) {
-            elCtx.$watches$ = watches.split(' ').map(getObject);
+          if (tasks) {
+            elCtx.$tasks$ = tasks.split(' ').map(getObject);
           }
           if (contexts) {
             elCtx.$contexts$ = new Map();
@@ -104,7 +104,10 @@ export const getContext = (el: QwikElement, containerState: ContainerState): QCo
               elCtx.$componentQrl$ = getObject(renderQrl);
             }
             if (props) {
-              elCtx.$props$ = getObject(props);
+              const propsObj = getObject(props);
+              elCtx.$props$ = propsObj;
+              setObjectFlags(propsObj, QObjectImmutable);
+              propsObj[_IMMUTABLE] = getImmutableFromProps(propsObj);
             } else {
               elCtx.$props$ = createProxy(createPropsState(), containerState);
             }
@@ -117,6 +120,17 @@ export const getContext = (el: QwikElement, containerState: ContainerState): QCo
   return elCtx;
 };
 
+const getImmutableFromProps = (props: Record<string, any>): Record<string, any> => {
+  const immutable: Record<string, any> = {};
+  const target = getProxyTarget(props);
+  for (const key in target) {
+    if (key.startsWith(_IMMUTABLE_PREFIX)) {
+      immutable[key.slice(_IMMUTABLE_PREFIX.length)] = target[key];
+    }
+  }
+  return immutable;
+};
+
 export const createContext = (element: Element | VirtualElement): QContext => {
   const ctx = {
     $flags$: 0,
@@ -124,7 +138,7 @@ export const createContext = (element: Element | VirtualElement): QContext => {
     $element$: element,
     $refMap$: [],
     li: [],
-    $watches$: null,
+    $tasks$: null,
     $seq$: null,
     $slots$: null,
     $scopeIds$: null,
@@ -143,11 +157,11 @@ export const createContext = (element: Element | VirtualElement): QContext => {
 };
 
 export const cleanupContext = (elCtx: QContext, subsManager: SubscriptionManager) => {
-  elCtx.$watches$?.forEach((watch) => {
-    subsManager.$clearSub$(watch);
-    destroyWatch(watch);
+  elCtx.$tasks$?.forEach((task) => {
+    subsManager.$clearSub$(task);
+    destroyTask(task);
   });
   elCtx.$componentQrl$ = null;
   elCtx.$seq$ = null;
-  elCtx.$watches$ = null;
+  elCtx.$tasks$ = null;
 };

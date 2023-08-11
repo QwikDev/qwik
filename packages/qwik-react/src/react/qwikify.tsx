@@ -24,7 +24,7 @@ export function qwikifyQrl<PROPS extends {}>(
   reactCmp$: QRL<FunctionComponent<PROPS & { children?: any }>>,
   opts?: QwikifyOptions
 ) {
-  return component$<QwikifyProps<PROPS>>((props) => {
+  return component$((props: QwikifyProps<PROPS>) => {
     const { scopeId } = useStylesScoped$(
       `q-slot{display:none} q-slotc,q-slotc>q-slot{display:contents}`
     );
@@ -35,7 +35,7 @@ export function qwikifyQrl<PROPS extends {}>(
     const hydrationKeys = {};
     const TagName = opts?.tagName ?? ('qwik-react' as any);
 
-    // Watch takes cares of updates and partial hydration
+    // Task takes cares of updates and partial hydration
     useTask$(async ({ track }) => {
       const trackedProps = track(() => ({ ...props }));
       track(signal);

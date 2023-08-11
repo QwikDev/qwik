@@ -96,7 +96,7 @@ export default component$(() => {
 });
 
 export const Popup = component$<{
-  timestamp: number;
+  timestamp: Date;
   url: string;
   manifestHash: string | null;
   message: string;
@@ -113,7 +113,7 @@ export const Popup = component$<{
       })}
     >
       <h1 class={labelStyle}>
-        Timestamp: <code class={codeStyle}>{new Date(timestamp).toLocaleString()}</code>
+        Timestamp: <code class={codeStyle}>{timestamp.toLocaleString()}</code>
       </h1>
       <h1 class={labelStyle}>
         URL:{' '}

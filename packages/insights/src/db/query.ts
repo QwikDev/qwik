@@ -29,7 +29,6 @@ export async function getEdges(
     .groupBy(edgeTable.from, edgeTable.to)
     .limit(limit || Number.MAX_SAFE_INTEGER);
   const rows = await query.all();
-  console.log('COUNT', rows.length);
   return rows.map((e) => ({
     from: e.from,
     to: e.to,
@@ -91,7 +90,7 @@ export async function getAppInfo(
     .from(applicationTable)
     .where(eq(applicationTable.publicApiKey, publicApiKey))
     .get();
-  if (!(app as {} | undefined) && options.autoCreate) {
+  if (!app && options.autoCreate) {
     const appFields = {
       name: 'Auto create: ' + publicApiKey,
       description: 'Auto create: ' + publicApiKey,
@@ -108,28 +107,24 @@ export async function getAppInfo(
       publicApiKey == '221smyuj5gl'
         ? 'https://github.com/BuilderIO/qwik/blob/main/packages/docs/src'
         : null,
-    ...app,
+    ...app!,
   };
 }
 
 export async function getEdgeCount(db: AppDatabase, publicApiKey: string): Promise<number> {
-  return (
-    await db
-      .select({ count: edgeTableDelayCount })
-      .from(edgeTable)
-      .where(eq(edgeTable.publicApiKey, publicApiKey))
-      .get()
-  ).count;
+  return (await db
+    .select({ count: edgeTableDelayCount })
+    .from(edgeTable)
+    .where(eq(edgeTable.publicApiKey, publicApiKey))
+    .get())!.count;
 }
 
 export async function getSymbolEdgeCount(db: AppDatabase, publicApiKey: string): Promise<number> {
-  return (
-    await db
-      .select({ count: sql<number>`count(*)` })
-      .from(symbolTable)
-      .where(eq(symbolTable.publicApiKey, publicApiKey))
-      .get()
-  ).count;
+  return (await db
+    .select({ count: sql<number>`count(*)` })
+    .from(symbolTable)
+    .where(eq(symbolTable.publicApiKey, publicApiKey))
+    .get())!.count;
 }
 
 export async function updateEdge(

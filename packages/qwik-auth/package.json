@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "bugs": "https://github.com/BuilderIO/qwik/issues",
   "devDependencies": {
-    "@auth/core": "^0.7.1",
+    "@auth/core": "^0.12.0",
     "@builder.io/qwik": "workspace:*",
     "@builder.io/qwik-city": "workspace:*",
     "@types/set-cookie-parser": "^2.4.3",
@@ -35,7 +35,7 @@
   "license": "MIT",
   "main": "./lib/index.qwik.mjs",
   "peerDependencies": {
-    "@auth/core": "^0.7.1"
+    "@auth/core": "^0.12.0"
   },
   "qwik": "./lib/index.qwik.mjs",
   "repository": {

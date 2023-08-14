@@ -33,6 +33,11 @@
 - [Env variables](/docs/(qwikcity)/env-variables/index.mdx)
 - [API reference](/docs/(qwikcity)/api/index.mdx)
 
+## Cookbook
+- [Overview](/docs/cookbook/index.mdx)
+- [Modals](/docs/cookbook/modal/index.mdx)
+
+
 ## Integrations
 
 - [Overview](integrations/index.mdx)

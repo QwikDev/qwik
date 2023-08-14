@@ -55,7 +55,7 @@ export const manifestTable = sqliteTable(
     timestamp: integer('timestamp', { mode: 'timestamp_ms' }).notNull(),
   },
   (table) => ({
-    publicApiKeyIndex: uniqueIndex('hashIndex').on(table.hash),
+    publicApiKeyIndex: uniqueIndex('hashIndex').on(table.hash, table.publicApiKey),
   })
 );
 

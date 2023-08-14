@@ -9,7 +9,7 @@ export default component$(() => {
   const imageTransformer$ = $(
     ({ src, width, height }: ImageTransformerProps): string => {
       // Here you can set your favorite image loaders service
-      return `https://cdn.builder.io/api/v1/${src}?height=${height}&width=${width}}&format=webp&fit=fill`;
+      return `https://cdn.builder.io/api/v1/${src}?height=${height}&width=${width}&format=webp&fit=fill`;
     }
   );
 

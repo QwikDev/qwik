@@ -166,7 +166,10 @@ export const ensureAuthMiddleware = (req: RequestEvent) => {
   }
 };
 
-const getCurrentPageForAction = (req: RequestEventCommon) => req.url.href.split('q-')[0];
+const getCurrentPageForAction = (req: RequestEventCommon) => {
+  req.url.searchParams.delete('qaction');
+  return req.url.href;
+};
 
 async function getSessionData(req: Request, options: AuthConfig): GetSessionResult {
   options.secret ??= process.env.AUTH_SECRET;

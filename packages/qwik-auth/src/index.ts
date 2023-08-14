@@ -34,7 +34,7 @@ export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikA
           '\x1b[33mWARNING: callbackUrl is deprecated - use options.callbackUrl instead\x1b[0m'
         );
       }
-      const { callbackUrl = deprecated ?? getCurrentPageForAction(req), ...rest } = options ?? {};
+      const { callbackUrl = deprecated ?? defaultCallbackURL(req), ...rest } = options ?? {};
 
       const isCredentials = providerId === 'credentials';
 
@@ -73,7 +73,7 @@ export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikA
 
   const useAuthSignout = globalAction$(
     async ({ callbackUrl }, req) => {
-      callbackUrl ??= getCurrentPageForAction(req);
+      callbackUrl ??= defaultCallbackURL(req);
       const auth = await authOptions(req);
       const body = new URLSearchParams({ callbackUrl });
       await authAction(body, req, `/api/auth/signout`, auth);
@@ -166,7 +166,7 @@ export const ensureAuthMiddleware = (req: RequestEvent) => {
   }
 };
 
-const getCurrentPageForAction = (req: RequestEventCommon) => {
+const defaultCallbackURL = (req: RequestEventCommon) => {
   req.url.searchParams.delete('qaction');
   return req.url.href;
 };

@@ -5,7 +5,7 @@ import { routeLoader$ } from '@builder.io/qwik-city';
 export const useIsAuthUser = routeLoader$(({ sharedMap, redirect }) => {
   const session = sharedMap.get('session') as Session | null;
   if (!session) {
-    throw redirect(308, '/');
+    throw redirect(307, '/');
   }
 });
 

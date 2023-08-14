@@ -1,6 +1,6 @@
 name: 🐞 Bug Report
 description: Something does not work or is flaky! let us know!
-labels: [bug, triage]
+labels: ['TYPE: bug', 'STATUS: needs triage']
 title: '[🐞]'
 body:
   - type: markdown

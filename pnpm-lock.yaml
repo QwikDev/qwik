@@ -1,4 +1,4 @@
-lockfileVersion: '6.0'
+lockfileVersion: '6.1'
 
 settings:
   autoInstallPeers: false
@@ -198,9 +198,15 @@ importers:
       '@clack/prompts':
         specifier: ^0.6.3
         version: 0.6.3
+      '@types/yargs':
+        specifier: 17.0.24
+        version: 17.0.24
       kleur:
         specifier: 4.1.5
         version: 4.1.5
+      yargs:
+        specifier: 17.7.2
+        version: 17.7.2
 
   packages/docs:
     devDependencies:
@@ -215,13 +221,13 @@ importers:
         version: 0.8.0
       '@builder.io/qwik':
         specifier: github:BuilderIo/qwik-build#main
-        version: github.com/BuilderIo/qwik-build/145cd79bd410820e0e31266e3c9fb67720384ff2(undici@5.22.1)
+        version: github.com/BuilderIo/qwik-build/118f7579fd125ceff396879272fe15a5c464786e(undici@5.22.1)
       '@builder.io/qwik-city':
         specifier: github:BuilderIo/qwik-city-build#main
-        version: github.com/BuilderIo/qwik-city-build/f67bac49724b0b982e978cdfe0ae6bf0f67b44f2(rollup@3.26.3)
+        version: github.com/BuilderIo/qwik-city-build/ffc6b1176863993315fbb69c5fa58ceafa7104d8(rollup@3.26.3)
       '@builder.io/qwik-labs':
         specifier: github:BuilderIo/qwik-labs-build#main
-        version: github.com/BuilderIo/qwik-labs-build/a4ffb82e825c4d9f21509c655c1fbdd9c88543c4
+        version: github.com/BuilderIo/qwik-labs-build/24076027f9e086a0d2971503bacb8deb4405da1a
       '@builder.io/qwik-react':
         specifier: 0.5.0
         version: 0.5.0(@builder.io/qwik@1.2.6)(@types/react-dom@18.2.7)(@types/react@18.2.17)(react-dom@18.2.0)(react@18.2.0)
@@ -239,7 +245,7 @@ importers:
         version: 11.11.0(@emotion/react@11.11.1)(@types/react@18.2.17)(react@18.2.0)
       '@modular-forms/qwik':
         specifier: ^0.12.0
-        version: 0.12.0(@builder.io/qwik-city@1.2.6-dev20230801200553)(@builder.io/qwik@1.2.6)
+        version: 0.12.0(@builder.io/qwik-city@1.2.6-dev20230811231809)(@builder.io/qwik@1.2.6)
       '@mui/material':
         specifier: ^5.13.0
         version: 5.13.0(@emotion/react@11.11.1)(@emotion/styled@11.11.0)(@types/react@18.2.17)(react-dom@18.2.0)(react@18.2.0)
@@ -363,13 +369,13 @@ importers:
         version: 0.7.1
       '@builder.io/qwik-auth':
         specifier: 0.1.0
-        version: 0.1.0(@auth/core@0.7.1)(@builder.io/qwik-city@1.2.6-dev20230801200553)(@builder.io/qwik@1.2.6)
+        version: 0.1.0(@auth/core@0.7.1)(@builder.io/qwik-city@1.2.6-dev20230811231809)(@builder.io/qwik@1.2.6)
       '@libsql/client':
         specifier: ^0.3.1
         version: 0.3.1
       '@modular-forms/qwik':
         specifier: ^0.12.0
-        version: 0.12.0(@builder.io/qwik-city@1.2.6-dev20230801200553)(@builder.io/qwik@1.2.6)
+        version: 0.12.0(@builder.io/qwik-city@1.2.6-dev20230811231809)(@builder.io/qwik@1.2.6)
       '@typescript/analyze-trace':
         specifier: ^0.10.0
         version: 0.10.0
@@ -391,10 +397,10 @@ importers:
     devDependencies:
       '@builder.io/qwik':
         specifier: github:BuilderIo/qwik-build#main
-        version: github.com/BuilderIo/qwik-build/145cd79bd410820e0e31266e3c9fb67720384ff2(undici@5.22.1)
+        version: github.com/BuilderIo/qwik-build/118f7579fd125ceff396879272fe15a5c464786e(undici@5.22.1)
       '@builder.io/qwik-city':
         specifier: github:BuilderIo/qwik-city-build#main
-        version: github.com/BuilderIo/qwik-city-build/f67bac49724b0b982e978cdfe0ae6bf0f67b44f2(rollup@3.26.3)
+        version: github.com/BuilderIo/qwik-city-build/ffc6b1176863993315fbb69c5fa58ceafa7104d8(rollup@3.26.3)
       '@builder.io/qwik-labs':
         specifier: workspace:*
         version: link:../qwik-labs
@@ -1291,7 +1297,7 @@ packages:
     hasBin: true
     dev: true
 
-  /@builder.io/qwik-auth@0.1.0(@auth/core@0.7.1)(@builder.io/qwik-city@1.2.6-dev20230801200553)(@builder.io/qwik@1.2.6):
+  /@builder.io/qwik-auth@0.1.0(@auth/core@0.7.1)(@builder.io/qwik-city@1.2.6-dev20230811231809)(@builder.io/qwik@1.2.6):
     resolution: {integrity: sha512-uwwVbam6yQs9evtmof/+SpRT7DzoxD+2DSwsndGcm9JBU4Sh1xMyzll6F9QbivKVboglx+4X05OzJG7QTttWMQ==}
     engines: {node: '>=16.8.0 <18.0.0 || >=18.11'}
     peerDependencies:
@@ -1300,8 +1306,8 @@ packages:
       '@builder.io/qwik-city': '>=0.6.0'
     dependencies:
       '@auth/core': 0.7.1
-      '@builder.io/qwik': github.com/BuilderIo/qwik-build/145cd79bd410820e0e31266e3c9fb67720384ff2(undici@5.22.1)
-      '@builder.io/qwik-city': github.com/BuilderIo/qwik-city-build/f67bac49724b0b982e978cdfe0ae6bf0f67b44f2(rollup@3.26.3)
+      '@builder.io/qwik': github.com/BuilderIo/qwik-build/118f7579fd125ceff396879272fe15a5c464786e(undici@5.22.1)
+      '@builder.io/qwik-city': github.com/BuilderIo/qwik-city-build/ffc6b1176863993315fbb69c5fa58ceafa7104d8(rollup@3.26.3)
     dev: false
 
   /@builder.io/qwik-city@1.2.6(rollup@3.26.3):
@@ -1330,7 +1336,7 @@ packages:
       react: '>=18.0.0'
       react-dom: '>=18.0.0'
     dependencies:
-      '@builder.io/qwik': github.com/BuilderIo/qwik-build/145cd79bd410820e0e31266e3c9fb67720384ff2(undici@5.22.1)
+      '@builder.io/qwik': github.com/BuilderIo/qwik-build/118f7579fd125ceff396879272fe15a5c464786e(undici@5.22.1)
       '@types/react': 18.2.17
       '@types/react-dom': 18.2.7
       react: 18.2.0
@@ -1353,7 +1359,7 @@ packages:
     peerDependencies:
       '@builder.io/qwik': '>=1.0.0'
     dependencies:
-      '@builder.io/qwik': github.com/BuilderIo/qwik-build/145cd79bd410820e0e31266e3c9fb67720384ff2(undici@5.22.1)
+      '@builder.io/qwik': github.com/BuilderIo/qwik-build/118f7579fd125ceff396879272fe15a5c464786e(undici@5.22.1)
     dev: true
 
   /@builder.io/vite-plugin-macro@0.0.7(@types/node@20.4.5)(rollup@3.26.3)(terser@5.19.2):
@@ -2695,14 +2701,14 @@ packages:
     resolution: {integrity: sha512-9b8mPpKrfeGRuhFH5iO1iwCLeIIsV6+H1sRfxbkoGXIyQE2BTsPd9zqSqQJ+pv5sJ/hT5M1zvOFL02MnEezFug==}
     dev: true
 
-  /@modular-forms/qwik@0.12.0(@builder.io/qwik-city@1.2.6-dev20230801200553)(@builder.io/qwik@1.2.6):
+  /@modular-forms/qwik@0.12.0(@builder.io/qwik-city@1.2.6-dev20230811231809)(@builder.io/qwik@1.2.6):
     resolution: {integrity: sha512-IJi5Uvm1Z1tJZLOpYM8jWza40Viac6tblnMre0pdrslVv7tW3MnXFgQgO539YksooOsn1Jn1KjVUVmhiMuXXuA==}
     peerDependencies:
       '@builder.io/qwik': ^1.0.0
       '@builder.io/qwik-city': ^1.0.0
     dependencies:
-      '@builder.io/qwik': github.com/BuilderIo/qwik-build/145cd79bd410820e0e31266e3c9fb67720384ff2(undici@5.22.1)
-      '@builder.io/qwik-city': github.com/BuilderIo/qwik-city-build/f67bac49724b0b982e978cdfe0ae6bf0f67b44f2(rollup@3.26.3)
+      '@builder.io/qwik': github.com/BuilderIo/qwik-build/118f7579fd125ceff396879272fe15a5c464786e(undici@5.22.1)
+      '@builder.io/qwik-city': github.com/BuilderIo/qwik-city-build/ffc6b1176863993315fbb69c5fa58ceafa7104d8(rollup@3.26.3)
 
   /@mui/base@5.0.0-beta.0(@types/react@18.2.17)(react-dom@18.2.0)(react@18.2.0):
     resolution: {integrity: sha512-ap+juKvt8R8n3cBqd/pGtZydQ4v2I/hgJKnvJRGjpSh3RvsvnDHO4rXov8MHQlH6VqpOekwgilFLGxMZjNTucA==}
@@ -5170,6 +5176,12 @@ packages:
       '@types/yargs-parser': 21.0.0
     dev: true
 
+  /@types/yargs@17.0.24:
+    resolution: {integrity: sha512-6i0aC7jV6QzQB8ne1joVZ0eSFIstHsCrobmOtghM11yGlH0j43FKL2UhWdELkyps0zuf7qVTUVCCR+tgSlyLLw==}
+    dependencies:
+      '@types/yargs-parser': 21.0.0
+    dev: true
+
   /@types/yauzl@2.10.0:
     resolution: {integrity: sha512-Cn6WYCm0tXv8p6k+A8PvbDG763EDpBoTzHdA+Q/MF6H3sapGjCm9NzoaJncJS9tUKSuCoDs9XHxYYsQDgxR6kw==}
     requiresBuild: true
@@ -5388,7 +5400,7 @@ packages:
     peerDependencies:
       '@builder.io/qwik': '*'
     dependencies:
-      '@builder.io/qwik': github.com/BuilderIo/qwik-build/145cd79bd410820e0e31266e3c9fb67720384ff2(undici@5.22.1)
+      '@builder.io/qwik': github.com/BuilderIo/qwik-build/118f7579fd125ceff396879272fe15a5c464786e(undici@5.22.1)
     dev: true
 
   /@vercel/nft@0.22.6(supports-color@9.4.0):
@@ -18758,9 +18770,9 @@ packages:
   /zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
 
-  github.com/BuilderIo/qwik-build/145cd79bd410820e0e31266e3c9fb67720384ff2(undici@5.22.1):
-    resolution: {tarball: https://codeload.github.com/BuilderIo/qwik-build/tar.gz/145cd79bd410820e0e31266e3c9fb67720384ff2}
-    id: github.com/BuilderIo/qwik-build/145cd79bd410820e0e31266e3c9fb67720384ff2
+  github.com/BuilderIo/qwik-build/118f7579fd125ceff396879272fe15a5c464786e(undici@5.22.1):
+    resolution: {tarball: https://codeload.github.com/BuilderIo/qwik-build/tar.gz/118f7579fd125ceff396879272fe15a5c464786e}
+    id: github.com/BuilderIo/qwik-build/118f7579fd125ceff396879272fe15a5c464786e
     name: '@builder.io/qwik'
     version: 1.2.6
     engines: {node: '>=16.8.0 <18.0.0 || >=18.11'}
@@ -18771,11 +18783,11 @@ packages:
       csstype: 3.1.2
       undici: 5.22.1
 
-  github.com/BuilderIo/qwik-city-build/f67bac49724b0b982e978cdfe0ae6bf0f67b44f2(rollup@3.26.3):
-    resolution: {tarball: https://codeload.github.com/BuilderIo/qwik-city-build/tar.gz/f67bac49724b0b982e978cdfe0ae6bf0f67b44f2}
-    id: github.com/BuilderIo/qwik-city-build/f67bac49724b0b982e978cdfe0ae6bf0f67b44f2
+  github.com/BuilderIo/qwik-city-build/ffc6b1176863993315fbb69c5fa58ceafa7104d8(rollup@3.26.3):
+    resolution: {tarball: https://codeload.github.com/BuilderIo/qwik-city-build/tar.gz/ffc6b1176863993315fbb69c5fa58ceafa7104d8}
+    id: github.com/BuilderIo/qwik-city-build/ffc6b1176863993315fbb69c5fa58ceafa7104d8
     name: '@builder.io/qwik-city'
-    version: 1.2.6-dev20230801200553
+    version: 1.2.6-dev20230811231809
     engines: {node: '>=16.8.0 <18.0.0 || >=18.11'}
     dependencies:
       '@mdx-js/mdx': 2.3.0
@@ -18789,8 +18801,8 @@ packages:
       - rollup
       - supports-color
 
-  github.com/BuilderIo/qwik-labs-build/a4ffb82e825c4d9f21509c655c1fbdd9c88543c4:
-    resolution: {tarball: https://codeload.github.com/BuilderIo/qwik-labs-build/tar.gz/a4ffb82e825c4d9f21509c655c1fbdd9c88543c4}
+  github.com/BuilderIo/qwik-labs-build/24076027f9e086a0d2971503bacb8deb4405da1a:
+    resolution: {tarball: https://codeload.github.com/BuilderIo/qwik-labs-build/tar.gz/24076027f9e086a0d2971503bacb8deb4405da1a}
     name: '@builder.io/qwik-labs'
     version: 0.0.1
     engines: {node: '>=16.8.0 <18.0.0 || >=18.11'}

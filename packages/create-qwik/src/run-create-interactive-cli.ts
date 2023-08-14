@@ -1,31 +1,27 @@
 /* eslint-disable no-console */
 import fs from 'node:fs';
 import { join, relative } from 'node:path';
-import {
-  text,
-  select,
-  confirm,
-  intro,
-  outro,
-  cancel,
-  spinner,
-  isCancel,
-  log,
-} from '@clack/prompts';
+import { text, select, confirm, intro, cancel, spinner, isCancel, log } from '@clack/prompts';
 import { bgBlue, red, gray, magenta } from 'kleur/colors';
-import type { CreateAppOptions } from '../qwik/src/cli/types';
-import { backgroundInstallDeps, installDeps } from '../qwik/src/cli/utils/install-deps';
-import { createApp, getOutDir, logCreateAppResult } from './create-app';
-import { getPackageManager, note, runCommand, wait } from '../qwik/src/cli/utils/utils';
-import { loadIntegrations } from '../qwik/src/cli/utils/integrations';
-import { getRandomJoke } from './jokes';
+import type { CreateAppOptions, CreateAppResult } from '../../qwik/src/cli/types';
+import { backgroundInstallDeps, installDeps } from '../../qwik/src/cli/utils/install-deps';
+import { createApp } from './create-app';
+import { getPackageManager, note, runCommand, wait } from '../../qwik/src/cli/utils/utils';
+import { getRandomJoke } from './helpers/jokes';
+import { clearDir } from './helpers/clearDir';
+import { loadTemplates } from './helpers/loadTemplates';
+import { resolveRelativeDir } from './helpers/resolveRelativeDir';
+import { logAppCreated } from './helpers/logAppCreated';
+import { installDepsCli } from './helpers/installDepsCli';
 
-export async function runCreateInteractiveCli() {
+export async function runCreateInteractiveCli(): Promise<CreateAppResult> {
+  const pkgManager = getPackageManager();
+  const defaultProjectName = './qwik-app';
+
   intro(`Let's create a ${bgBlue(' Qwik App ')} ✨ (v${(globalThis as any).QWIK_VERSION})`);
 
   await wait(500);
 
-  const defaultProjectName = './qwik-app';
   const projectNameAnswer =
     (await text({
       message: `Where would you like to create your new project? ${gray(
@@ -39,16 +35,12 @@ export async function runCreateInteractiveCli() {
     process.exit(0);
   }
 
-  const pkgManager = getPackageManager();
-
-  const integrations = await loadIntegrations();
-  const starterApps = integrations.filter((i) => i.type === 'app');
-  const baseApp = starterApps.find((a) => a.id === 'base')!;
-  const apps = starterApps.filter((a) => a.id !== baseApp!.id);
+  const { baseApp, templates } = await loadTemplates('app');
+  const starterApps = templates.filter((a) => a.id !== baseApp.id);
 
   const backgroundInstall = backgroundInstallDeps(pkgManager, baseApp);
 
-  const outDir: string = getOutDir(projectNameAnswer.trim());
+  const outDir: string = resolveRelativeDir(projectNameAnswer.trim());
 
   log.info(`Creating new project in ${bgBlue(' ' + outDir + ' ')} ... 🐇`);
 
@@ -72,21 +64,12 @@ export async function runCreateInteractiveCli() {
     }
 
     if (existingOutDirAnswer === 'replace') {
-      removeExistingOutDirPromise = fs.promises
-        .readdir(outDir)
-        .then((filePaths) =>
-          Promise.all(
-            filePaths.map((pathToFile) =>
-              fs.promises.rm(join(outDir, pathToFile), { recursive: true })
-            )
-          )
-        );
+      removeExistingOutDirPromise = clearDir(outDir);
     }
   }
-
   const starterIdAnswer = await select({
     message: 'Select a starter',
-    options: apps.map((s) => {
+    options: starterApps.map((s) => {
       return { label: s.name, value: s.id, hint: s.pkgJson?.description };
     }),
   });
@@ -136,10 +119,7 @@ export async function runCreateInteractiveCli() {
     }
   }
 
-  const opts: CreateAppOptions = {
-    starterId,
-    outDir,
-  };
+  const opts: CreateAppOptions = { starterId, outDir };
 
   const s = spinner();
 
@@ -172,23 +152,23 @@ export async function runCreateInteractiveCli() {
   }
 
   let successfulDepsInstall = false;
+
   if (runDepInstall) {
-    s.start(`Installing ${pkgManager} dependencies...`);
-    successfulDepsInstall = await backgroundInstall.complete(result.outDir);
+    successfulDepsInstall = await installDepsCli(
+      async () => {
+        const success = await backgroundInstall.complete(result.outDir);
 
-    if (successfulDepsInstall) {
-      const finalInstall = installDeps(pkgManager, result.outDir);
-      successfulDepsInstall = await finalInstall.install;
-    }
+        if (success) {
+          return await installDeps(pkgManager, result.outDir).install;
+        }
 
-    s.stop(
-      `${successfulDepsInstall ? 'Installed' : 'Failed to install'} ${pkgManager} dependencies 📋`
+        return success;
+      },
+      { pkgManager, spinner: s }
     );
   }
 
-  note(logCreateAppResult(pkgManager, result, successfulDepsInstall), 'Result');
-
-  outro('Happy coding! 🐇');
+  logAppCreated(pkgManager, result, successfulDepsInstall);
 
   return result;
 }

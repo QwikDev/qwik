@@ -1,7 +1,8 @@
 /* eslint-disable no-console */
-import { createApp, runCreateCli } from './create-app';
+import { createApp } from './src/create-app';
+import { runCreateCli } from './src/run-create-cli';
+import { runCreateInteractiveCli } from './src/run-create-interactive-cli';
 import { panic, printHeader } from '../qwik/src/cli/utils/utils';
-import { runCreateInteractiveCli } from './create-interactive';
 import { red, yellow } from 'kleur/colors';
 
 export async function runCli() {
@@ -14,9 +15,8 @@ export async function runCli() {
   try {
     const args = process.argv.slice(2);
 
-    if (args.length >= 2) {
-      // npm create qwik [starterId] [projectName]
-      await runCreateCli(args[0], args[1]);
+    if (args.length > 0) {
+      await runCreateCli(...args);
     } else {
       // npm create qwik
       await runCreateInteractiveCli();

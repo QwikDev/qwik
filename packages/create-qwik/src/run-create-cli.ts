@@ -93,7 +93,7 @@ export async function runCreateCli(...args: string[]): Promise<CreateAppResult> 
     );
   }
 
-  logAppCreated(result.pkgManager, result, isDepsInstalled);
+  logAppCreated(result.pkgManager, result, isDepsInstalled, true);
 
   return result;
 }

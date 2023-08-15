@@ -1,18 +1,19 @@
-/* eslint-disable no-console */
-import fs from 'node:fs';
-import { join, relative } from 'node:path';
-import { text, select, confirm, intro, cancel, spinner, isCancel, log } from '@clack/prompts';
-import { bgBlue, red, gray, magenta } from 'kleur/colors';
 import type { CreateAppOptions, CreateAppResult } from '../../qwik/src/cli/types';
 import { backgroundInstallDeps, installDeps } from '../../qwik/src/cli/utils/install-deps';
-import { createApp } from './create-app';
+import { bgBlue, gray, magenta, red } from 'kleur/colors';
+import { cancel, confirm, intro, isCancel, log, select, spinner, text } from '@clack/prompts';
 import { getPackageManager, note, runCommand, wait } from '../../qwik/src/cli/utils/utils';
-import { getRandomJoke } from './helpers/jokes';
+import { join, relative } from 'node:path';
+
 import { clearDir } from './helpers/clearDir';
-import { loadTemplates } from './helpers/loadTemplates';
-import { resolveRelativeDir } from './helpers/resolveRelativeDir';
-import { logAppCreated } from './helpers/logAppCreated';
+import { createApp } from './create-app';
+/* eslint-disable no-console */
+import fs from 'node:fs';
+import { getRandomJoke } from './helpers/jokes';
 import { installDepsCli } from './helpers/installDepsCli';
+import { loadTemplates } from './helpers/loadTemplates';
+import { logAppCreated } from './helpers/logAppCreated';
+import { resolveRelativeDir } from './helpers/resolveRelativeDir';
 
 export async function runCreateInteractiveCli(): Promise<CreateAppResult> {
   const pkgManager = getPackageManager();
@@ -168,7 +169,7 @@ export async function runCreateInteractiveCli(): Promise<CreateAppResult> {
     );
   }
 
-  logAppCreated(pkgManager, result, successfulDepsInstall);
+  logAppCreated(pkgManager, result, successfulDepsInstall, false);
 
   return result;
 }

@@ -1,8 +1,9 @@
-import type { CreateAppResult } from '../../../qwik/src/cli/types';
-import { bgMagenta, magenta, cyan, bold } from 'kleur/colors';
-import { relative } from 'node:path';
-import { logSuccessFooter } from '../../../qwik/src/cli/utils/log';
+import { bgMagenta, bold, cyan, magenta } from 'kleur/colors';
 import { note, outro } from '@clack/prompts';
+
+import type { CreateAppResult } from '../../../qwik/src/cli/types';
+import { logSuccessFooter } from '../../../qwik/src/cli/utils/log';
+import { relative } from 'node:path';
 
 export function logAppCreated(pkgManager: string, result: CreateAppResult, ranInstall: boolean) {
   const isCwdDir = process.cwd() === result.outDir;
@@ -43,5 +44,5 @@ export function logAppCreated(pkgManager: string, result: CreateAppResult, ranIn
 
   note(outString.join('\n'), 'Result');
 
-  outro('Happy coding! 👨‍💻');
+  outro('Happy coding! 🎉');
 }

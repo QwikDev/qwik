@@ -1,14 +1,14 @@
-import yargs from 'yargs';
-import { logAppCreated } from './helpers/logAppCreated';
-import fs from 'node:fs';
-import { resolveRelativeDir } from './helpers/resolveRelativeDir';
-import { panic } from '../../qwik/src/cli/utils/utils';
+import type { CreateAppResult } from 'packages/qwik/src/cli/types';
 import { clearDir } from './helpers/clearDir';
 import { createApp } from './create-app';
+import fs from 'node:fs';
 import { installDepsCli } from './helpers/installDepsCli';
 import { installDeps as installDepsFn } from 'packages/qwik/src/cli/utils/install-deps';
+import { logAppCreated } from './helpers/logAppCreated';
+import { panic } from '../../qwik/src/cli/utils/utils';
+import { resolveRelativeDir } from './helpers/resolveRelativeDir';
 import { spinner as spinnerPrompt } from '@clack/prompts';
-import type { CreateAppResult } from 'packages/qwik/src/cli/types';
+import yargs from 'yargs';
 
 type Args = {
   outDir: string;
@@ -43,7 +43,7 @@ function parseArgs(args: string[]) {
           type: 'boolean',
           desc: 'Install dependencies',
         })
-        .usage('npm create qwik@latest base ./my-project --installDeps');
+        .usage('npm create qwik@latest base ./my-project <options>');
     }
   ).argv as unknown as Args;
 

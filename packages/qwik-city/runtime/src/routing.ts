@@ -1,4 +1,5 @@
 import { MODULE_CACHE } from './constants';
+import { matchRoute } from './route-matcher';
 import type {
   ContentMenu,
   LoadedRoute,
@@ -7,7 +8,6 @@ import type {
   ModuleLoader,
   RouteData,
   RouteModule,
-  PathParams,
 } from './types';
 
 export const CACHE = new Map<RouteData, Promise<any>>();
@@ -22,11 +22,11 @@ export const loadRoute = async (
 ): Promise<LoadedRoute | null> => {
   if (Array.isArray(routes)) {
     for (const route of routes) {
-      const match = route[0].exec(pathname);
-      if (match) {
+      const routeName = route[0];
+      const params = matchRoute(routeName, pathname);
+      if (params) {
         const loaders = route[1];
-        const params = getPathParams(route[2], match);
-        const routeBundleNames = route[4];
+        const routeBundleNames = route[3];
         const mods: RouteModule[] = new Array(loaders.length);
         const pendingLoads: Promise<any>[] = [];
         const menuLoader = getMenuLoader(menus, pathname);
@@ -52,7 +52,7 @@ export const loadRoute = async (
           await Promise.all(pendingLoads);
         }
 
-        return [params, mods, menu, routeBundleNames];
+        return [routeName, params, mods, menu, routeBundleNames];
       }
     }
   }
@@ -97,17 +97,4 @@ export const getMenuLoader = (menus: MenuData[] | undefined, pathname: string) =
       return menu[1];
     }
   }
-};
-
-export const getPathParams = (paramNames: string[] | undefined, match: RegExpExecArray | null) => {
-  const params: PathParams = {};
-  if (paramNames) {
-    for (let i = 0; i < paramNames.length; i++) {
-      const param = match?.[i + 1] ?? '';
-      const v = param.endsWith('/') ? param.slice(0, -1) : param;
-      // `decodeURIComponent(...)` should not throw here
-      params[paramNames[i]] = decodeURIComponent(v);
-    }
-  }
-  return params;
 };

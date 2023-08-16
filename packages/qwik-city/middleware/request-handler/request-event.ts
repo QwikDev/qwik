@@ -28,6 +28,7 @@ const RequestEvMode = Symbol('RequestEvMode');
 const RequestEvRoute = Symbol('RequestEvRoute');
 export const RequestEvQwikSerializer = Symbol('RequestEvQwikSerializer');
 export const RequestEvTrailingSlash = Symbol('RequestEvTrailingSlash');
+export const RequestRouteName = '@routeName';
 export const RequestEvSharedActionId = '@actionId';
 export const RequestEvSharedActionFormData = '@actionFormData';
 export const RequestEvSharedNonce = '@nonce';
@@ -126,7 +127,7 @@ export function createRequestEvent(
     env,
     method: request.method,
     signal: request.signal,
-    params: loadedRoute?.[0] ?? {},
+    params: loadedRoute?.[1] ?? {},
     pathname: url.pathname,
     platform,
     query: url.searchParams,

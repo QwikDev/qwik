@@ -485,12 +485,10 @@ routeActionQrl: ActionConstructorQRL;
 
 ```typescript
 export type RouteData =
-  | [pattern: RegExp, loaders: ModuleLoader[]]
-  | [pattern: RegExp, loaders: ModuleLoader[], paramNames: string[]]
+  | [routeName: string, loaders: ModuleLoader[]]
   | [
-      pattern: RegExp,
+      routeName: string,
       loaders: ModuleLoader[],
-      paramNames: string[],
       originalPathname: string,
       routeBundleNames: string[],
     ];

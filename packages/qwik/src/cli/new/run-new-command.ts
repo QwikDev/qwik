@@ -2,7 +2,7 @@ import { green, bgMagenta, dim } from 'kleur/colors';
 import fs from 'node:fs';
 import { join } from 'path';
 import { isCancel, select, text, log, intro } from '@clack/prompts';
-import { bye } from '../utils/utils';
+import { bye, isAskingForHelp } from '../utils/utils';
 import type { Template } from '../types';
 import type { AppCommand } from '../utils/app-command';
 import { loadTemplates } from '../utils/templates';
@@ -15,7 +15,7 @@ const NAME_KEY = '[name]';
 export async function runNewCommand(app: AppCommand) {
   try {
     // render help
-    if (app.args.length > 1 && ['-h', '--help'].includes(app.args[1])) {
+    if (isAskingForHelp(app.args)) {
       intro(`🔭  ${bgMagenta(' Qwik Help ')}`);
       await printNewHelp();
       bye();

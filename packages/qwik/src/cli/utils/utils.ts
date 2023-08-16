@@ -64,6 +64,10 @@ export function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+export function isAskingForHelp(args: string[]) {
+  return args.length > 1 && (args.includes('-h') || args.includes('--help'));
+}
+
 export function cleanPackageJson(srcPkg: IntegrationPackageJson) {
   srcPkg = { ...srcPkg };
 

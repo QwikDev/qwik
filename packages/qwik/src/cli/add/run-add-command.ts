@@ -5,11 +5,10 @@ import { printAddHelp } from './print-add-help';
 
 export async function runAddCommand(app: AppCommand) {
   try {
-    const id = app.args[1];
-    if (id === 'help') {
+    if (app.args.length > 1 && ['-h', '--help'].includes(app.args[1])) {
       await printAddHelp(app);
     } else {
-      await runAddInteractive(app, id);
+      await runAddInteractive(app, app.args[1]);
     }
   } catch (e) {
     console.error(`❌ ${red(String(e))}\n`);

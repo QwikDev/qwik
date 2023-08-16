@@ -15,7 +15,7 @@ const NAME_KEY = '[name]';
 export async function runNewCommand(app: AppCommand) {
   try {
     // render help
-    if (app.args.length > 1 && app.args[1] === 'help') {
+    if (app.args.length > 1 && ['-h', '--help'].includes(app.args[1])) {
       intro(`🔭  ${bgMagenta(' Qwik Help ')}`);
       await printNewHelp();
       bye();

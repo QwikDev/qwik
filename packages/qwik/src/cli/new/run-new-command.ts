@@ -123,9 +123,20 @@ async function selectType() {
 }
 
 async function selectName(type: 'route' | 'component' | 'markdown') {
-  const message =
-    type === 'route' || type === 'markdown' ? 'New route path' : 'Name your component';
-  const placeholder = type === 'route' || type === 'markdown' ? '/product/[id]' : 'my-component';
+  const messages = {
+    route: 'New route path',
+    markdown: 'New Markdown route path',
+    component: 'Name your component',
+  };
+  const message = messages[type];
+
+  const placeholders = {
+    route: '/product/[id]',
+    markdown: '/some/page:md',
+    component: 'my-component',
+  };
+  const placeholder = placeholders[type];
+
   const nameAnswer = await text({
     message,
     placeholder,
@@ -145,7 +156,10 @@ async function selectName(type: 'route' | 'component' | 'markdown') {
   if (type === 'route' && !(nameAnswer as string).startsWith('/')) {
     return `/${nameAnswer as string}`;
   }
-  return nameAnswer as string;
+  if (type === 'markdown' && !(nameAnswer as string).startsWith('/')) {
+    return `/${nameAnswer.replace(':md', '') as string}`;
+  }
+  return nameAnswer.replace(':md', '') as string;
 }
 
 async function selectTemplate(typeArg: (typeof POSSIBLE_TYPES)[number]) {

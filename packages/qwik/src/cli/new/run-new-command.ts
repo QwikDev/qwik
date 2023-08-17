@@ -26,16 +26,22 @@ export async function runNewCommand(app: AppCommand) {
     const args = app.args.filter((a) => !a.startsWith('--'));
 
     const mainInput = args.slice(1).join(' ');
-    let typeArg: 'route' | 'component' | undefined = undefined;
+    let typeArg: 'route' | 'component' | 'markdown' | undefined = undefined;
     let nameArg: string | undefined;
     let outDir: string | undefined;
     if (mainInput && mainInput.startsWith('/')) {
-      typeArg = 'route';
-      nameArg = mainInput;
+      if (mainInput.endsWith(':md')) {
+        typeArg = 'markdown';
+        nameArg = mainInput.replace(':md', '');
+      } else {
+        typeArg = 'route';
+        nameArg = mainInput;
+      }
     } else if (mainInput) {
       typeArg = 'component';
       nameArg = mainInput;
     }
+
     let templateArg = app.args
       .filter((a) => a.startsWith('--'))
       .map((a) => a.substring(2))
@@ -78,13 +84,19 @@ export async function runNewCommand(app: AppCommand) {
 
     if (typeArg === 'route') {
       outDir = join(app.rootDir, 'src', `routes`, nameArg);
+    } else if (typeArg === 'markdown') {
+      outDir = join(app.rootDir, 'src', `routes`, nameArg);
     } else {
       outDir = join(app.rootDir, 'src', `components`, nameArg);
     }
 
     const fileOutput = await writeToFile(name, slug, template, outDir);
 
-    log.success(`${green(`${toPascal([typeArg])} "${name}" created!`)}`);
+    if (typeArg === 'markdown') {
+      log.success(`${green(`Markdown route "${name}" created!`)}`);
+    } else {
+      log.success(`${green(`${toPascal([typeArg])} "${name}" created!`)}`);
+    }
     log.message(`Emitted in ${dim(fileOutput)}`);
   } catch (e) {
     log.error(String(e));
@@ -99,6 +111,7 @@ async function selectType() {
     options: [
       { value: 'component', label: 'Component' },
       { value: 'route', label: 'Route' },
+      { value: 'markdown', label: 'Route (Markdown)' },
     ],
   });
 
@@ -109,9 +122,10 @@ async function selectType() {
   return typeAnswer as (typeof POSSIBLE_TYPES)[number];
 }
 
-async function selectName(type: 'route' | 'component') {
-  const message = type === 'route' ? 'New route path' : 'Name your component';
-  const placeholder = type === 'route' ? '/product/[id]' : 'my-component';
+async function selectName(type: 'route' | 'component' | 'markdown') {
+  const message =
+    type === 'route' || type === 'markdown' ? 'New route path' : 'Name your component';
+  const placeholder = type === 'route' || type === 'markdown' ? '/product/[id]' : 'my-component';
   const nameAnswer = await text({
     message,
     placeholder,

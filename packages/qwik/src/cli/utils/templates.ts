@@ -41,13 +41,16 @@ export async function loadTemplates() {
 export async function readTemplates(rootDir: string) {
   const componentDir = join(rootDir, 'component');
   const routeDir = join(rootDir, 'route');
+  const markdownDir = join(rootDir, 'markdown');
 
   const component = await getFilesDeep(componentDir);
   const route = await getFilesDeep(routeDir);
+  const markdown = await getFilesDeep(markdownDir);
 
   return {
     component: component.map((c) => parseTemplatePath(c, 'component')),
     route: route.map((r) => parseTemplatePath(r, 'route')),
+    markdown: markdown.map((m) => parseTemplatePath(m, 'markdown')),
   };
 }
 

@@ -108,4 +108,5 @@ export interface TemplateSet {
   id: string;
   component: Template[];
   route: Template[];
+  markdown: Template[];
 }

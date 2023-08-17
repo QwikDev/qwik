@@ -12,7 +12,7 @@ import {
 import { isServer } from '@builder.io/qwik/build';
 import { parseString, splitCookiesString } from 'set-cookie-parser';
 
-export type GetSessionResult = Promise<Session | null>;
+export type GetSessionResult = Promise<{ data: Session | null; cookie: any }>;
 export type QwikAuthConfig = AuthConfig;
 
 const actions: AuthAction[] = [
@@ -104,7 +104,12 @@ export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikA
         }
         throw req.send(res);
       } else {
-        req.sharedMap.set('session', await getSessionData(req.request, auth));
+        const { data, cookie } = await getSessionData(req.request, auth);
+        req.sharedMap.set('session', data);
+        if (cookie) {
+          req.headers.set('set-cookie', cookie);
+          fixCookies(req);
+        }
       }
     }
   };
@@ -178,11 +183,13 @@ async function getSessionData(req: Request, options: AuthConfig): GetSessionResu
   const { status = 200 } = response;
 
   const data = await response.json();
+  const cookie = response.headers.get('set-cookie');
   if (!data || !Object.keys(data).length) {
-    return null;
+    return { data: null, cookie };
   }
   if (status === 200) {
-    return data;
+    return { data, cookie };
   }
+
   throw new Error(data.message);
 }

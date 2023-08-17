@@ -6,60 +6,72 @@ import { TwitterLogo } from '../svgs/twitter-logo';
 import styles from './on-this-page.css?inline';
 import { EditIcon } from '../svgs/edit-icon';
 
+const QWIK_GROUP = ['components', 'concepts', 'faq', 'getting-started', 'think-qwik'];
+
+const QWIK_ADVANCED_GROUP = [
+  'containers',
+  'custom-build-dir',
+  'dollar',
+  'eslint',
+  'library',
+  'optimizer',
+  'prefetching',
+  'qrl',
+  'qwikloader',
+  'vite',
+];
+
+const QWIKCITY_GROUP = [
+  'action',
+  'api',
+  'caching',
+  'endpoints',
+  'env-variables',
+  'guides',
+  'layout',
+  'middleware',
+  'pages',
+  'project-structure',
+  'qwikcity',
+  'qwikcity-deprecated-features',
+  'route-loader',
+  'routing',
+  'server$',
+  'troubleshooting',
+];
+const QWIKCITY_ADVANCED_GROUP = [
+  'content-security-policy',
+  'menu',
+  'request-handling',
+  'routing',
+  'sitemaps',
+  'speculative-module-fetching',
+  'static-assets',
+];
+
 const makeEditPageUrl = (url: string): string => {
-  const qwikDocsPathnames = [
-    'advanced',
-    'components',
-    'concepts',
-    'faq',
-    'getting-started',
-    'think-qwik',
-    'docs', // for docs/(qwik)/index.mdx
-  ];
-
-  const advancedQwikCityPathnames = [
-    'environment-variables',
-    'menu',
-    'request-handling',
-    'routing',
-    'speculative-module-fetching',
-    'static-assets',
-    'sitemaps',
-  ];
-
-  const whitelistedDirectories = ['integrations', 'deployments', 'community', 'labs'];
-
-  const urlPathnames = url.split('/').filter((pathname) => pathname !== '');
-
-  if (!(urlPathnames.length >= 2)) {
-    urlPathnames.splice(1, 0, '(qwik)');
-    return urlPathnames.join('/');
+  const segments = url.split('/').filter((part) => part !== '');
+  if (segments[0] !== 'docs') {
+    throw new Error("Expecting URL to start with '/docs/'");
+  }
+  let group = '';
+  if (segments[1] == 'advanced') {
+    if (QWIK_ADVANCED_GROUP.includes(segments[2])) {
+      group = '(qwik)';
+    } else if (QWIKCITY_ADVANCED_GROUP.includes(segments[2])) {
+      group = '(qwikcity)';
+    }
+  } else if (QWIK_GROUP.includes(segments[1])) {
+    group = '(qwik)';
+  } else if (QWIKCITY_GROUP.includes(segments[1])) {
+    group = '(qwikcity)';
   }
 
-  const qwikDocsPathname = urlPathnames.at(1) as string;
-
-  if (
-    whitelistedDirectories.includes(urlPathnames.at(0) as string) ||
-    whitelistedDirectories.includes(qwikDocsPathname)
-  ) {
-    return urlPathnames.join('/');
+  if (group) {
+    segments.splice(1, 0, group);
   }
 
-  if (qwikDocsPathname.includes('advanced')) {
-    // since we advanced named folder in (qwik) and (qwikcity) this will ensure both are not conflicting.
-    const advancedDocsPathname = urlPathnames.at(2) as string;
-    const isQwikCityPath = advancedQwikCityPathnames.includes(advancedDocsPathname);
-
-    !isQwikCityPath ? urlPathnames.splice(1, 0, '(qwik)') : urlPathnames.splice(1, 0, '(qwikcity)');
-
-    return urlPathnames.join('/');
-  }
-
-  const isQwikPath = qwikDocsPathnames.includes(qwikDocsPathname);
-
-  isQwikPath ? urlPathnames.splice(1, 0, '(qwik)') : urlPathnames.splice(1, 0, '(qwikcity)');
-
-  return urlPathnames.join('/');
+  return segments.join('/');
 };
 
 export const OnThisPage = component$(() => {

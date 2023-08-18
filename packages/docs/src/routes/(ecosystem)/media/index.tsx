@@ -534,15 +534,15 @@ export const ThumbnailLink = component$((props: { entry: MediaEntry; imgLoading?
             src={props.entry.imgSrc ? props.entry.imgSrc : '/ecosystem/qwik-blog-fallback.png'}
             loading={props.imgLoading === 'eager' ? undefined : 'lazy'}
             decoding={props.imgLoading === 'eager' ? undefined : 'async'}
-            class="thumbnail "
+            class="thumbnail"
             aria-hidden="true"
           />
-          <div class="absolute bottom-4 right-2 inline-flex gap-x-2">
-            <span class="uppercase text-white backdrop-blur-md px-1 rounded-md">
+          <div class="info">
+            <span class="info-bg">
               {props.entry.country ? props.entry.country : '🌐'}
             </span>
             {props.entry.language ? (
-              <span class="uppercase text-white backdrop-blur-md px-1 rounded-md font-bold">
+              <span class="info-bg font-bold">
                 {props.entry.language}
               </span>
             ) : null}

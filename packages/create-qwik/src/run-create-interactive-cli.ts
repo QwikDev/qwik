@@ -1,18 +1,18 @@
-import type { CreateAppResult } from '../../qwik/src/cli/types';
 import { backgroundInstallDeps, installDeps } from '../../qwik/src/cli/utils/install-deps';
 import { bgBlue, gray, magenta, red } from 'kleur/colors';
 import { cancel, confirm, intro, isCancel, log, select, spinner, text } from '@clack/prompts';
 import { getPackageManager, note, runCommand, wait } from '../../qwik/src/cli/utils/utils';
 import { join, relative } from 'node:path';
 
+import type { CreateAppResult } from '../../qwik/src/cli/types';
 import { clearDir } from './helpers/clearDir';
 import { createApp } from './create-app';
 /* eslint-disable no-console */
 import fs from 'node:fs';
 import { getRandomJoke } from './helpers/jokes';
 import { installDepsCli } from './helpers/installDepsCli';
-import { makeTemplateManager } from './helpers/templateManager';
 import { logAppCreated } from './helpers/logAppCreated';
+import { makeTemplateManager } from './helpers/templateManager';
 import { resolveRelativeDir } from './helpers/resolveRelativeDir';
 
 export async function runCreateInteractiveCli(): Promise<CreateAppResult> {
@@ -175,7 +175,7 @@ export async function runCreateInteractiveCli(): Promise<CreateAppResult> {
     );
   }
 
-  logAppCreated(pkgManager, result, successfulDepsInstall, false);
+  logAppCreated(pkgManager, result, successfulDepsInstall);
 
   return result;
 }

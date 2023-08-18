@@ -1,15 +1,17 @@
+import { intro, log, spinner as spinnerPrompt } from '@clack/prompts';
+
 import type { CreateAppResult } from 'packages/qwik/src/cli/types';
+import { bgBlue } from 'kleur/colors';
 import { clearDir } from './helpers/clearDir';
 import { createApp } from './create-app';
 import fs from 'node:fs';
+import { getPackageManager } from '../../qwik/src/cli/utils/utils';
 import { installDepsCli } from './helpers/installDepsCli';
 import { installDeps as installDepsFn } from 'packages/qwik/src/cli/utils/install-deps';
 import { logAppCreated } from './helpers/logAppCreated';
-import { getPackageManager, panic } from '../../qwik/src/cli/utils/utils';
-import { resolveRelativeDir } from './helpers/resolveRelativeDir';
-import { spinner as spinnerPrompt } from '@clack/prompts';
-import yargs from 'yargs';
 import { makeTemplateManager } from './helpers/templateManager';
+import { resolveRelativeDir } from './helpers/resolveRelativeDir';
+import yargs from 'yargs';
 
 type Args = {
   outDir: string;
@@ -65,6 +67,8 @@ export async function runCreateCli(...args: string[]): Promise<CreateAppResult> 
 
   let outDir = parsedArgs.outDir;
 
+  intro(`Let's create a ${bgBlue(' Qwik App ')} ✨ (v${(globalThis as any).QWIK_VERSION})`);
+
   if (writeToCwd()) {
     // write to the current working directory
     outDir = process.cwd();
@@ -76,7 +80,7 @@ export async function runCreateCli(...args: string[]): Promise<CreateAppResult> 
       if (force) {
         await clearDir(outDir);
       } else {
-        panic(
+        log.error(
           `Directory "${outDir}" already exists. Please either remove this directory, or choose another location.`
         );
       }
@@ -95,7 +99,7 @@ export async function runCreateCli(...args: string[]): Promise<CreateAppResult> 
     );
   }
 
-  logAppCreated(pkgManager, result, isDepsInstalled, true);
+  logAppCreated(pkgManager, result, isDepsInstalled);
 
   return result;
 }

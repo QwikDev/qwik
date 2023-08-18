@@ -1,23 +1,15 @@
-import { bgBlue, bgMagenta, bold, cyan, magenta } from 'kleur/colors';
-import { intro, note, outro } from '@clack/prompts';
+import { bgMagenta, bold, cyan, magenta } from 'kleur/colors';
 
 import type { CreateAppResult } from '../../../qwik/src/cli/types';
 import { logSuccessFooter } from '../../../qwik/src/cli/utils/log';
+import { note } from '../../../qwik/src/cli/utils/utils';
+import { outro } from '@clack/prompts';
 import { relative } from 'node:path';
 
-export function logAppCreated(
-  pkgManager: string,
-  result: CreateAppResult,
-  ranInstall: boolean,
-  prependIntro = false
-) {
+export function logAppCreated(pkgManager: string, result: CreateAppResult, ranInstall: boolean) {
   const isCwdDir = process.cwd() === result.outDir;
   const relativeProjectPath = relative(process.cwd(), result.outDir);
   const outString = [];
-
-  if (prependIntro) {
-    intro(`Let's create a ${bgBlue(' Qwik App ')} ✨ (v${(globalThis as any).QWIK_VERSION})`);
-  }
 
   if (isCwdDir) {
     outString.push(`🦄 ${bgMagenta(' Success! ')}`);

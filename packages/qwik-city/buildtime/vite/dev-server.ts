@@ -35,11 +35,17 @@ import { matchRoute } from 'packages/qwik-city/runtime/src/route-matcher';
 
 export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
   const matchRouteRequest = (pathname: string) => {
-    pathname += ctx.opts.trailingSlash && !pathname.endsWith('/') ? '/' : '';
     for (const route of ctx.routes) {
-      const params = matchRoute(route.pathname, pathname);
+      let params = matchRoute(route.pathname, pathname);
       if (params) {
         return { route, params };
+      }
+
+      if (ctx.opts.trailingSlash && !pathname.endsWith('/')) {
+        params = matchRoute(route.pathname, pathname + '/');
+        if (params) {
+          return { route, params };
+        }
       }
     }
 

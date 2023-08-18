@@ -1,9 +1,7 @@
-import { component$, useContext, useStyles$ } from '@builder.io/qwik';
+import { component$, useStyles$ } from '@builder.io/qwik';
 
 import { type DocumentHead } from '@builder.io/qwik-city';
 import styles from './media.css?inline';
-import { log } from 'console';
-import { GlobalStore } from 'packages/docs/src/context';
 
 /*************************************************************/
 /* This file is used to generate the ecosystem and media pages.

@@ -17,6 +17,7 @@ import {
   type RequestEventInternal,
   RequestEvQwikSerializer,
   RequestEvSharedActionId,
+  RequestRouteName,
 } from './request-event';
 import { QACTION_KEY, QFN_KEY } from '../../runtime/src/constants';
 import { IsQData, QDATA_JSON } from './user-response';
@@ -37,7 +38,7 @@ export const resolveRequestHandlers = (
   const routeActions: ActionInternal[] = [];
 
   const requestHandlers: RequestHandler[] = [];
-  const isPageRoute = !!(route && isLastModulePageRoute(route[1]));
+  const isPageRoute = !!(route && isLastModulePageRoute(route[2]));
   if (serverPlugins) {
     _resolveRequestHandlers(
       routeLoaders,
@@ -50,6 +51,7 @@ export const resolveRequestHandlers = (
   }
 
   if (route) {
+    const routeName = route[0];
     if (
       checkOrigin &&
       (method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE')
@@ -68,11 +70,15 @@ export const resolveRequestHandlers = (
       routeLoaders,
       routeActions,
       requestHandlers,
-      route[1],
+      route[2],
       isPageRoute,
       method
     );
     if (isPageRoute) {
+      requestHandlers.push((ev) => {
+        // Set the current route name
+        ev.sharedMap.set(RequestRouteName, routeName);
+      });
       requestHandlers.push(actionsMiddleware(routeLoaders, routeActions) as any);
       requestHandlers.push(renderHandler);
     }
@@ -424,12 +430,14 @@ export function renderQwikMiddleware(render: Render) {
     const status = requestEv.status();
     try {
       const isStatic = getRequestMode(requestEv) === 'static';
+      const serverData = getQwikCityServerData(requestEv);
       const result = await render({
         base: requestEv.basePathname + 'build/',
         stream,
-        serverData: getQwikCityServerData(requestEv),
+        serverData,
         containerAttributes: {
           ['q:render']: isStatic ? 'static' : '',
+          ...serverData.containerAttributes,
         },
       });
       const qData: ClientPageData = {

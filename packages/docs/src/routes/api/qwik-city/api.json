@@ -530,7 +530,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type RouteData = [pattern: RegExp, loaders: ModuleLoader[]] | [pattern: RegExp, loaders: ModuleLoader[], paramNames: string[]] | [\n    pattern: RegExp,\n    loaders: ModuleLoader[],\n    paramNames: string[],\n    originalPathname: string,\n    routeBundleNames: string[]\n];\n```",
+      "content": "```typescript\nexport type RouteData = [routeName: string, loaders: ModuleLoader[]] | [\n    routeName: string,\n    loaders: ModuleLoader[],\n    originalPathname: string,\n    routeBundleNames: string[]\n];\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik-city.routedata.md"
     },

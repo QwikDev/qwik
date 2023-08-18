@@ -9,6 +9,7 @@ import { relative } from 'node:path';
 import { bold, green, dim, red, magenta } from 'kleur/colors';
 import { formatError } from '../buildtime/vite/format-error';
 import { buildErrorMessage } from 'vite';
+import { extractParamNames } from './extract-params';
 
 export async function mainThread(sys: System) {
   const opts = sys.getOptions();
@@ -170,9 +171,10 @@ export async function mainThread(sys: System) {
       };
 
       const loadStaticRoute = async (route: RouteData) => {
-        const [_, loaders, paramNames, originalPathname] = route;
+        const [routeName, loaders, originalPathname] = route;
         const modules = await Promise.all(loaders.map((loader) => loader()));
         const pageModule: PageModule = modules[modules.length - 1] as any;
+        const paramNames = extractParamNames(routeName);
 
         // if a module has a "default" export, it's a page module
         // if a module has a "onGet" or "onRequest" export, it's an endpoint module for static generation

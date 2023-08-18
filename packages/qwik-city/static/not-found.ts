@@ -11,7 +11,7 @@ export async function generateNotFoundPages(
     const basePathname = opts.basePathname || '/';
     const rootNotFoundPathname = basePathname + '404.html';
 
-    const hasRootNotFound = routes.some((r) => r[3] === rootNotFoundPathname);
+    const hasRootNotFound = routes.some((r) => r[2] === rootNotFoundPathname);
     if (!hasRootNotFound) {
       const filePath = sys.getRouteFilePath(rootNotFoundPathname, true);
 

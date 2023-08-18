@@ -252,12 +252,10 @@ export type MenuModuleLoader = () => Promise<MenuModule>;
  * @public
  */
 export type RouteData =
-  | [pattern: RegExp, loaders: ModuleLoader[]]
-  | [pattern: RegExp, loaders: ModuleLoader[], paramNames: string[]]
+  | [routeName: string, loaders: ModuleLoader[]]
   | [
-      pattern: RegExp,
+      routeName: string,
       loaders: ModuleLoader[],
-      paramNames: string[],
       originalPathname: string,
       routeBundleNames: string[],
     ];
@@ -289,6 +287,7 @@ export type ContentModule = PageModule | LayoutModule;
 export type ContentModuleHead = DocumentHead | ResolvedDocumentHead;
 
 export type LoadedRoute = [
+  routeName: string,
   params: PathParams,
   mods: (RouteModule | ContentModule)[],
   menu: ContentMenu | undefined,
@@ -333,6 +332,7 @@ export interface StaticGenerate {
 export interface QwikCityRenderDocument extends Document {}
 
 export interface QwikCityEnvData {
+  routeName: string;
   ev: RequestEvent;
   params: PathParams;
   response: EndpointResponse;

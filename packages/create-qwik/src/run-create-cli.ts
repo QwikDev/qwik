@@ -5,10 +5,11 @@ import fs from 'node:fs';
 import { installDepsCli } from './helpers/installDepsCli';
 import { installDeps as installDepsFn } from 'packages/qwik/src/cli/utils/install-deps';
 import { logAppCreated } from './helpers/logAppCreated';
-import { panic } from '../../qwik/src/cli/utils/utils';
+import { getPackageManager, panic } from '../../qwik/src/cli/utils/utils';
 import { resolveRelativeDir } from './helpers/resolveRelativeDir';
 import { spinner as spinnerPrompt } from '@clack/prompts';
 import yargs from 'yargs';
+import { makeTemplateManager } from './helpers/templateManager';
 
 type Args = {
   outDir: string;
@@ -17,7 +18,7 @@ type Args = {
   force: boolean;
 };
 
-function parseArgs(args: string[]) {
+function parseArgs(args: string[], templates: string[]) {
   const parsedArgs = yargs(args).command(
     '* <template> <outDir>',
     'Create a new project powered by qwik',
@@ -26,6 +27,7 @@ function parseArgs(args: string[]) {
         .positional('template', {
           type: 'string',
           desc: 'Starter template',
+          choices: templates,
         })
         .positional('outDir', {
           type: 'string',
@@ -54,9 +56,13 @@ function parseArgs(args: string[]) {
  * @param args pass here process.argv.slice(2)
  */
 export async function runCreateCli(...args: string[]): Promise<CreateAppResult> {
-  const parsedArgs = parseArgs(args);
+  const pkgManager = getPackageManager();
+  const templateManager = await makeTemplateManager('app');
+  const templateVariants = templateManager.templates.map(({ id }) => id);
 
+  const parsedArgs = parseArgs(args, templateVariants);
   const { force, installDeps, template } = parsedArgs;
+
   let outDir = parsedArgs.outDir;
 
   if (writeToCwd()) {
@@ -77,8 +83,7 @@ export async function runCreateCli(...args: string[]): Promise<CreateAppResult> 
     }
   }
 
-  const result = await createApp({ outDir, starterId: template });
-  const pkgManager = result.pkgManager;
+  const result = await createApp({ outDir, appId: template, pkgManager, templateManager });
   const spinner = spinnerPrompt();
 
   let isDepsInstalled = false;
@@ -86,14 +91,11 @@ export async function runCreateCli(...args: string[]): Promise<CreateAppResult> 
   if (installDeps) {
     isDepsInstalled = await installDepsCli(
       async () => await installDepsFn(pkgManager, outDir).install,
-      {
-        pkgManager,
-        spinner,
-      }
+      { pkgManager, spinner }
     );
   }
 
-  logAppCreated(result.pkgManager, result, isDepsInstalled, true);
+  logAppCreated(pkgManager, result, isDepsInstalled, true);
 
   return result;
 }

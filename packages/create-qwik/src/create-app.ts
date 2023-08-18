@@ -1,62 +1,29 @@
-import type { CreateAppOptions, CreateAppResult, IntegrationData } from '../../qwik/src/cli/types';
+import type { CreateAppResult, IntegrationData } from '../../qwik/src/cli/types';
 import fs from 'node:fs';
 import { isAbsolute, join } from 'node:path';
-import {
-  cleanPackageJson,
-  getPackageManager,
-  writePackageJson,
-} from '../../qwik/src/cli/utils/utils';
+import { cleanPackageJson, writePackageJson } from '../../qwik/src/cli/utils/utils';
 import { updateApp } from '../../qwik/src/cli/add/update-app';
-import { loadTemplates } from './helpers/loadTemplates';
+import { type TemplateManager } from './helpers/templateManager';
 
-export async function createApp(opts: CreateAppOptions) {
-  const isLibrary = opts.starterId === 'library';
-  const pkgManager = getPackageManager();
+type Options = {
+  appId: string;
+  templateManager: TemplateManager;
+  outDir: string;
+  pkgManager: string;
+};
 
-  validateOptions(opts);
-
-  if (!fs.existsSync(opts.outDir)) {
-    fs.mkdirSync(decodeURIComponent(opts.outDir), { recursive: true });
-  }
-
-  const result: CreateAppResult = {
-    starterId: opts.starterId,
-    outDir: opts.outDir,
-    pkgManager,
-    docs: [],
-  };
-
-  const { baseApp, libraryApp, templates } = await loadTemplates('app');
-
-  if (isLibrary) {
-    await createFromStarter(pkgManager, result, libraryApp);
-    return result;
-  }
-
-  const starterApp = templates.find((s) => s.id === opts.starterId);
-
-  if (!starterApp) {
-    throw new Error(
-      `Invalid starter id "${opts.starterId}". It can only be one of${templates.map(
-        (app) => ` "${app.id}"`
-      )}.`
-    );
-  }
-
-  await createFromStarter(pkgManager, result, baseApp, starterApp);
-
-  return result;
-}
+type CreateFromStarterOptions = {
+  pkgManager: string;
+  baseApp: IntegrationData;
+  starterApp?: IntegrationData;
+  outDir: string;
+};
 
 function isValidOption(value: any) {
   return typeof value === 'string' && value.trim().length > 0;
 }
 
-function validateOptions(opts: CreateAppOptions) {
-  if (!isValidOption(opts.starterId)) {
-    throw new Error(`Missing starter id`);
-  }
-
+function validateOptions(opts: Options) {
   if (!isValidOption(opts.outDir)) {
     throw new Error(`Missing outDir`);
   }
@@ -66,14 +33,32 @@ function validateOptions(opts: CreateAppOptions) {
   }
 }
 
-async function createFromStarter(
-  pkgManager: string,
-  result: CreateAppResult,
-  baseApp: IntegrationData,
-  starterApp?: IntegrationData
-) {
-  result.docs.push(...baseApp.docs);
+export async function createApp(opts: Options): Promise<CreateAppResult> {
+  const { appId, outDir, pkgManager, templateManager } = opts;
+
+  const { baseApp, starterApp } = templateManager.getBootstrapApps(appId);
+
+  validateOptions(opts);
+
+  if (!fs.existsSync(outDir)) {
+    fs.mkdirSync(decodeURIComponent(outDir), { recursive: true });
+  }
+
+  const docs = await createFromStarter({ baseApp, starterApp, pkgManager, outDir });
+
+  return { starterId: baseApp.id, outDir, pkgManager, docs };
+}
+
+async function createFromStarter({
+  baseApp,
+  starterApp,
+  outDir,
+  pkgManager,
+}: CreateFromStarterOptions): Promise<string[]> {
+  const docs = [...baseApp.docs];
+
   const appInfo = starterApp ?? baseApp;
+
   const appPkgJson = cleanPackageJson({
     ...baseApp.pkgJson,
     name: `my-${appInfo.pkgJson.name}`,
@@ -82,13 +67,14 @@ async function createFromStarter(
     dependencies: undefined,
     devDependencies: undefined,
   });
-  await writePackageJson(result.outDir, appPkgJson);
 
-  const readmePath = join(result.outDir, 'README.md');
+  await writePackageJson(outDir, appPkgJson);
+
+  const readmePath = join(outDir, 'README.md');
   await fs.promises.writeFile(readmePath, '');
 
   const baseUpdate = await updateApp(pkgManager, {
-    rootDir: result.outDir,
+    rootDir: outDir,
     integration: baseApp.id,
     installDeps: false,
   });
@@ -96,13 +82,16 @@ async function createFromStarter(
   await baseUpdate.commit(false);
 
   if (starterApp) {
-    result.docs.push(...starterApp.docs);
+    docs.push(...starterApp.docs);
+
     const starterUpdate = await updateApp(pkgManager, {
-      rootDir: result.outDir,
+      rootDir: outDir,
       integration: starterApp.id,
       installDeps: false,
     });
 
     await starterUpdate.commit(false);
   }
+
+  return docs;
 }

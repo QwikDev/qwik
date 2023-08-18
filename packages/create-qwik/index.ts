@@ -1,9 +1,9 @@
 /* eslint-disable no-console */
-import { createApp } from './src/create-app';
 import { runCreateCli } from './src/run-create-cli';
 import { runCreateInteractiveCli } from './src/run-create-interactive-cli';
 import { panic, printHeader } from '../qwik/src/cli/utils/utils';
 import { red, yellow } from 'kleur/colors';
+import { createAppFacade } from './src/create-app-facade';
 
 export async function runCli() {
   console.clear();
@@ -53,4 +53,4 @@ function checkNodeVersion() {
   }
 }
 
-export { createApp, runCreateCli, runCreateInteractiveCli };
+export { createAppFacade as createApp, runCreateCli, runCreateInteractiveCli };

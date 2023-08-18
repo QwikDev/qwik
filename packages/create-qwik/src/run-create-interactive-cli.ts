@@ -1,4 +1,4 @@
-import type { CreateAppOptions, CreateAppResult } from '../../qwik/src/cli/types';
+import type { CreateAppResult } from '../../qwik/src/cli/types';
 import { backgroundInstallDeps, installDeps } from '../../qwik/src/cli/utils/install-deps';
 import { bgBlue, gray, magenta, red } from 'kleur/colors';
 import { cancel, confirm, intro, isCancel, log, select, spinner, text } from '@clack/prompts';
@@ -11,12 +11,13 @@ import { createApp } from './create-app';
 import fs from 'node:fs';
 import { getRandomJoke } from './helpers/jokes';
 import { installDepsCli } from './helpers/installDepsCli';
-import { loadTemplates } from './helpers/loadTemplates';
+import { makeTemplateManager } from './helpers/templateManager';
 import { logAppCreated } from './helpers/logAppCreated';
 import { resolveRelativeDir } from './helpers/resolveRelativeDir';
 
 export async function runCreateInteractiveCli(): Promise<CreateAppResult> {
   const pkgManager = getPackageManager();
+  const templateManager = await makeTemplateManager('app');
   const defaultProjectName = './qwik-app';
 
   intro(`Let's create a ${bgBlue(' Qwik App ')} ✨ (v${(globalThis as any).QWIK_VERSION})`);
@@ -36,8 +37,13 @@ export async function runCreateInteractiveCli(): Promise<CreateAppResult> {
     process.exit(0);
   }
 
-  const { baseApp, templates } = await loadTemplates('app');
-  const starterApps = templates.filter((a) => a.id !== baseApp.id);
+  const baseApp = templateManager.getBaseApp();
+
+  if (!baseApp) {
+    throw new Error('Base app not found');
+  }
+
+  const starterApps = templateManager.templates.filter((a) => a.id !== baseApp.id);
 
   const backgroundInstall = backgroundInstallDeps(pkgManager, baseApp);
 
@@ -120,12 +126,12 @@ export async function runCreateInteractiveCli(): Promise<CreateAppResult> {
     }
   }
 
-  const opts: CreateAppOptions = { starterId, outDir };
-
   const s = spinner();
 
   s.start('Creating App...');
-  const result = await createApp(opts);
+
+  const result = await createApp({ appId: starterId, outDir, pkgManager, templateManager });
+
   s.stop('App Created 🐰');
 
   if (gitInitAnswer) {

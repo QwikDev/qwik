@@ -94,9 +94,9 @@
 }
 
 .info {
-  @apply absolute bottom-4 right-2 inline-flex gap-x-2
+  @apply absolute bottom-4 right-2 inline-flex gap-x-2;
 }
 
 .info-bg {
-  @apply uppercase text-white bg-black bg-opacity-40 backdrop-blur-md px-1 rounded-md
+  @apply uppercase text-white bg-black bg-opacity-40 backdrop-blur-md px-1 rounded-md;
 }

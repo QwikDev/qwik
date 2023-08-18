@@ -538,13 +538,9 @@ export const ThumbnailLink = component$((props: { entry: MediaEntry; imgLoading?
             aria-hidden="true"
           />
           <div class="info">
-            <span class="info-bg">
-              {props.entry.country ? props.entry.country : '🌐'}
-            </span>
+            <span class="info-bg">{props.entry.country ? props.entry.country : '🌐'}</span>
             {props.entry.language ? (
-              <span class="info-bg font-bold">
-                {props.entry.language}
-              </span>
+              <span class="info-bg font-bold">{props.entry.language}</span>
             ) : null}
           </div>
         </div>

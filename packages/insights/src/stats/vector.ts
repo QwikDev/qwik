@@ -17,7 +17,7 @@ export const TIMELINE_MAX_VALUE = 60000 * 15;
  */
 const VALUE_OFFSET = Math.floor(Math.pow(2, 2.5));
 
-const getResultOffsetAndScale = (maxValue: number)=> {
+const getResultOffsetAndScale = (maxValue: number) => {
   let previousResultOffset = -1;
   let resultOffset = 0;
   let scale = 1;
@@ -28,18 +28,18 @@ const getResultOffsetAndScale = (maxValue: number)=> {
     resultOffset = Math.floor(scale * Math.log2(VALUE_OFFSET));
   }
   return { RESULT_OFFSET: resultOffset, SCALE: scale };
-}
+};
 
 /**
  * A computed constant which is used for scaling so that we spread MAX_VALUE into BUCKETS.
  */
 const { RESULT_OFFSET, SCALE } = (() => getResultOffsetAndScale(MAX_VALUE))();
 
-
 /**
  * A computed constant which is used for timeline scaling so that we spread TIMELINE_MAX_VALUE into BUCKETS.
  */
-const { RESULT_OFFSET: TIMELINE_RESULT_OFFSET, SCALE: TIMELINE_SCALE } = (() => getResultOffsetAndScale(TIMELINE_MAX_VALUE))();
+const { RESULT_OFFSET: TIMELINE_RESULT_OFFSET, SCALE: TIMELINE_SCALE } = (() =>
+  getResultOffsetAndScale(TIMELINE_MAX_VALUE))();
 
 /**
  * Quantize the value into one of the buckets

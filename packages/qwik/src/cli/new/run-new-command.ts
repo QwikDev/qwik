@@ -11,6 +11,7 @@ import { POSSIBLE_TYPES } from './utils';
 
 const SLUG_KEY = '[slug]';
 const NAME_KEY = '[name]';
+const MARKDOWN_SUFFIX = '.md';
 
 export async function runNewCommand(app: AppCommand) {
   try {
@@ -30,9 +31,9 @@ export async function runNewCommand(app: AppCommand) {
     let nameArg: string | undefined;
     let outDir: string | undefined;
     if (mainInput && mainInput.startsWith('/')) {
-      if (mainInput.endsWith(':md')) {
+      if (mainInput.endsWith(MARKDOWN_SUFFIX)) {
         typeArg = 'markdown';
-        nameArg = mainInput.replace(':md', '');
+        nameArg = mainInput.replace(MARKDOWN_SUFFIX, '');
       } else {
         typeArg = 'route';
         nameArg = mainInput;
@@ -130,7 +131,7 @@ async function selectName(type: 'route' | 'component' | 'markdown') {
 
   const placeholders = {
     route: '/product/[id]',
-    markdown: '/some/page:md',
+    markdown: '/some/page' + MARKDOWN_SUFFIX,
     component: 'my-component',
   };
   const placeholder = placeholders[type];
@@ -155,9 +156,9 @@ async function selectName(type: 'route' | 'component' | 'markdown') {
     return `/${nameAnswer as string}`;
   }
   if (type === 'markdown' && !(nameAnswer as string).startsWith('/')) {
-    return `/${nameAnswer.replace(':md', '') as string}`;
+    return `/${nameAnswer.replace(MARKDOWN_SUFFIX, '') as string}`;
   }
-  return nameAnswer.replace(':md', '') as string;
+  return nameAnswer.replace(MARKDOWN_SUFFIX, '') as string;
 }
 
 async function selectTemplate(typeArg: (typeof POSSIBLE_TYPES)[number]) {

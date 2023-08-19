@@ -10,6 +10,8 @@ import {
   toVector,
   latencyColumnSums,
   delayColumnSums,
+  timelineBucketField,
+  createRouteRow,
 } from './query-helpers';
 
 export async function getEdges(
@@ -178,29 +180,28 @@ export async function updateRoutes(
     timeline: number;
   }
 ): Promise<void> {
-  const whereConditions = and(
-    eq(routesTable.publicApiKey, row.publicApiKey),
-    eq(routesTable.manifestHash, row.manifestHash),
-    eq(routesTable.route, row.route),
-    eq(routesTable.symbol, row.symbol)
-  );
+  // This may look like a good idea to run in a transaction, but it causes a lot of contention
+  // and than other queries timeout. Yes not running in TX there is a risk of missed update, but
+  // since we are a statistical model, it should not make much of a difference.
+  const timelineField = timelineBucketField(row.timeline);
   const result = await db
-    .select({ interactions: routesTable.interactions })
-    .from(routesTable)
-    .where(whereConditions)
-    .limit(1)
+    .update(routesTable)
+    .set({
+      [timelineField]: sql`${routesTable[timelineField]} + 1`,
+    })
+    .where(
+      and(
+        eq(routesTable.publicApiKey, row.publicApiKey),
+        eq(routesTable.manifestHash, row.manifestHash),
+        eq(routesTable.route, row.route),
+        eq(routesTable.symbol, row.symbol)
+      )
+    )
     .run();
-
-  if (result.rows.length === 0) {
-    await db
-      .insert(routesTable)
-      .values({ ...row, interactions: 1 })
-      .run();
-  } else {
-    await db
-      .update(routesTable)
-      .set({ interactions: (result.rows[0].interactions as number) + 1, timeline: row.timeline })
-      .where(whereConditions)
-      .run();
+  if (result.rowsAffected === 0) {
+    // No row was updated, so insert a new one
+    const routeRow = createRouteRow(row);
+    routeRow[timelineBucketField(row.timeline)]++;
+    await db.insert(routesTable).values(routeRow).run();
   }
 }

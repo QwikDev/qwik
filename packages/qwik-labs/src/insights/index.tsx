@@ -43,7 +43,7 @@ export interface InsightSymbol {
    * Symbol name
    */
   symbol: string;
-  
+
   /**
    * Current route so we can have a better understanding of
    * which symbols are needed for each route.

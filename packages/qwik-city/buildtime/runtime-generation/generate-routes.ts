@@ -82,7 +82,7 @@ function createRouteData(
     return `[ ${routeName}, ${moduleLoaders}, ${originalPathname}, ${clientBundleNames} ]`;
   }
 
-  // simple RouteData, only pattern regex and module loaders
+  // simple RouteData, only route name and module loaders
   return `[ ${routeName}, ${moduleLoaders} ]`;
 }
 

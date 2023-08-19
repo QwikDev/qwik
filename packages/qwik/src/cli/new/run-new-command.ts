@@ -82,9 +82,7 @@ export async function runNewCommand(app: AppCommand) {
       template = templates[0][typeArg][0];
     }
 
-    if (typeArg === 'route') {
-      outDir = join(app.rootDir, 'src', `routes`, nameArg);
-    } else if (typeArg === 'markdown') {
+    if (typeArg === 'route' || typeArg === 'markdown') {
       outDir = join(app.rootDir, 'src', `routes`, nameArg);
     } else {
       outDir = join(app.rootDir, 'src', `components`, nameArg);

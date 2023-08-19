@@ -194,3 +194,24 @@ export const edgeTable = sqliteTable(
     ),
   })
 );
+
+export const routesTable = sqliteTable(
+  'routes',
+  {
+    id: integer('id').primaryKey(),
+    publicApiKey: text('public_api_key').references(() => applicationTable.publicApiKey),
+    manifestHash: text('manifest_hash').notNull(),
+    route: text('route').notNull(),
+    symbol: text('symbol').notNull(),
+    interactions: integer('interactions').notNull(),
+    timeline: integer('timeline').notNull(),
+  },
+  (table) => ({
+    routeSymbolIndex: uniqueIndex('routeIndex_Symbol').on(
+      table.publicApiKey,
+      table.manifestHash,
+      table.route,
+      table.symbol,
+    ),
+  })
+);

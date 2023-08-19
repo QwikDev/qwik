@@ -1,6 +1,6 @@
 import { and, eq, isNull, sql, inArray } from 'drizzle-orm';
 import { type AppDatabase } from '.';
-import { applicationTable, edgeTable, symbolDetailTable, symbolTable } from './schema';
+import { applicationTable, edgeTable, routesTable, symbolDetailTable, symbolTable } from './schema';
 import {
   createEdgeRow,
   delayBucketField,
@@ -165,5 +165,43 @@ export async function updateEdge(
     edgeRow[latencyBucketField(edge.latencyBucket)]++;
     edgeRow[delayBucketField(edge.latencyBucket)]++;
     await db.insert(edgeTable).values(edgeRow).run();
+  }
+}
+
+export async function updateRoutes(
+  db: AppDatabase,
+  row: {
+    publicApiKey: string;
+    manifestHash: string;
+    route: string;
+    symbol: string;
+    timeline: number;
+  }
+): Promise<void> {
+  console.log(row);
+  const whereConditions = and(
+    eq(routesTable.publicApiKey, row.publicApiKey),
+    eq(routesTable.manifestHash, row.manifestHash),
+    eq(routesTable.route, row.route),
+    eq(routesTable.symbol, row.symbol)
+  );
+  const result = await db
+    .select({ interactions: routesTable.interactions })
+    .from(routesTable)
+    .where(whereConditions)
+    .limit(1)
+    .run();
+
+  if (result.rows.length === 0) {
+    await db
+      .insert(routesTable)
+      .values({ ...row, interactions: 1 })
+      .run();
+  } else {
+    await db
+      .update(routesTable)
+      .set({ interactions: (result.rows[0].interactions as number) + 1, timeline: row.timeline })
+      .where(whereConditions)
+      .run();
   }
 }

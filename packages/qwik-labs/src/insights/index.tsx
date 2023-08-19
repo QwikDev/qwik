@@ -15,6 +15,11 @@ export interface InsightsPayload {
    */
   manifestHash: string;
   /**
+   * Current route so we can have a better understanding of
+   * which symbols are needed for each route.
+   */
+  route: string;
+  /**
    * API key of the application which we are trying to profile.
    *
    * This key can be used for sharding the data.
@@ -53,9 +58,9 @@ export interface InsightSymbol {
   latency: number;
 
   /**
-   * Current pathname of location. Used to cluster by route.
+   * Number of ms between the q:route attribute change and the qsymbol event
    */
-  pathname: string;
+  timeline: number;
 
   /**
    * Was this symbol as a result of user interaction. User interactions represent roots for clouters.
@@ -96,13 +101,14 @@ export const InsightSymbol = z.object({
   symbol: z.string(),
   delay: z.number(),
   latency: z.number(),
-  pathname: z.string(),
+  timeline: z.number(),
   interaction: z.boolean(),
 });
 
 export const InsightsPayload = z.object({
   sessionID: z.string(),
   manifestHash: z.string(),
+  route: z.string(),
   publicApiKey: z.string(),
   previousSymbol: z.string().nullable(),
   symbols: z.array(InsightSymbol),
@@ -164,13 +170,26 @@ function symbolTracker(
     sessionID,
   };
   let timeoutID: ReturnType<typeof setTimeout> | null;
+  let qRouteChangeTime = new Date().getTime();
+  const qRouteEl = document.querySelector('[q\\:route]');
+  if (qRouteEl) {
+    const observer = new MutationObserver((mutations) => {
+      const mutation = mutations.find((m) => m.attributeName === 'q:route');
+      if (mutation) {
+        qRouteChangeTime = new Date().getTime();
+      }
+    });
+    observer.observe(qRouteEl, { attributes: true });
+  }
   function flush() {
     timeoutID = null;
     if (qSymbols.length > flushSymbolIndex) {
+      const route = qRouteEl?.getAttribute('q:route') || '/';
       const payload = {
         sessionID,
         publicApiKey,
         manifestHash,
+        route,
         previousSymbol: flushSymbolIndex == 0 ? null : qSymbols[flushSymbolIndex - 1].symbol,
         symbols: qSymbols.slice(flushSymbolIndex),
       } satisfies InsightsPayload;
@@ -195,13 +214,14 @@ function symbolTracker(
     const symbolRequestTime = detail.reqTime;
     const symbolDeliveredTime = event.timeStamp;
     const symbol = detail.symbol;
+    const timeline =  new Date().getTime() - qRouteChangeTime;
     if (!existingSymbols.has(symbol)) {
       existingSymbols.add(symbol);
       qSymbols.push({
         symbol: symbol,
         delay: Math.round(0 - lastReqTime + symbolRequestTime),
         latency: Math.round(symbolDeliveredTime - symbolRequestTime),
-        pathname: location.pathname,
+        timeline,
         interaction: !!detail.element,
       });
       lastReqTime = symbolDeliveredTime;

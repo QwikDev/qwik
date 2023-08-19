@@ -214,7 +214,7 @@ function symbolTracker(
     const symbolRequestTime = detail.reqTime;
     const symbolDeliveredTime = event.timeStamp;
     const symbol = detail.symbol;
-    const timeline =  new Date().getTime() - qRouteChangeTime;
+    const timeline = new Date().getTime() - qRouteChangeTime;
     if (!existingSymbols.has(symbol)) {
       existingSymbols.add(symbol);
       qSymbols.push({

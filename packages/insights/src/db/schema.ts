@@ -211,7 +211,7 @@ export const routesTable = sqliteTable(
       table.publicApiKey,
       table.manifestHash,
       table.route,
-      table.symbol,
+      table.symbol
     ),
   })
 );

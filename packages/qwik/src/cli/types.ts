@@ -109,4 +109,5 @@ export interface TemplateSet {
   component: Template[];
   route: Template[];
   markdown: Template[];
+  mdx: Template[];
 }

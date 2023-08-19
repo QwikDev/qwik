@@ -12,6 +12,7 @@ import { POSSIBLE_TYPES } from './utils';
 const SLUG_KEY = '[slug]';
 const NAME_KEY = '[name]';
 const MARKDOWN_SUFFIX = '.md';
+const MDX_SUFFIX = '.mdx';
 
 export async function runNewCommand(app: AppCommand) {
   try {
@@ -27,13 +28,16 @@ export async function runNewCommand(app: AppCommand) {
     const args = app.args.filter((a) => !a.startsWith('--'));
 
     const mainInput = args.slice(1).join(' ');
-    let typeArg: 'route' | 'component' | 'markdown' | undefined = undefined;
+    let typeArg: 'route' | 'component' | 'markdown' | 'mdx' | undefined = undefined;
     let nameArg: string | undefined;
     let outDir: string | undefined;
     if (mainInput && mainInput.startsWith('/')) {
       if (mainInput.endsWith(MARKDOWN_SUFFIX)) {
         typeArg = 'markdown';
         nameArg = mainInput.replace(MARKDOWN_SUFFIX, '');
+      } else if (mainInput.endsWith(MDX_SUFFIX)) {
+        typeArg = 'mdx';
+        nameArg = mainInput.replace(MDX_SUFFIX, '');
       } else {
         typeArg = 'route';
         nameArg = mainInput;
@@ -83,7 +87,7 @@ export async function runNewCommand(app: AppCommand) {
       template = templates[0][typeArg][0];
     }
 
-    if (typeArg === 'route' || typeArg === 'markdown') {
+    if (typeArg === 'route' || typeArg === 'markdown' || typeArg === 'mdx') {
       outDir = join(app.rootDir, 'src', `routes`, nameArg);
     } else {
       outDir = join(app.rootDir, 'src', `components`, nameArg);
@@ -111,6 +115,7 @@ async function selectType() {
       { value: 'component', label: 'Component' },
       { value: 'route', label: 'Route' },
       { value: 'markdown', label: 'Route (Markdown)' },
+      { value: 'mdx', label: 'Route (MDX)' },
     ],
   });
 
@@ -121,10 +126,11 @@ async function selectType() {
   return typeAnswer as (typeof POSSIBLE_TYPES)[number];
 }
 
-async function selectName(type: 'route' | 'component' | 'markdown') {
+async function selectName(type: 'route' | 'component' | 'markdown' | 'mdx') {
   const messages = {
     route: 'New route path',
     markdown: 'New Markdown route path',
+    mdx: 'New MDX route path',
     component: 'Name your component',
   };
   const message = messages[type];
@@ -132,6 +138,7 @@ async function selectName(type: 'route' | 'component' | 'markdown') {
   const placeholders = {
     route: '/product/[id]',
     markdown: '/some/page' + MARKDOWN_SUFFIX,
+    mdx: '/some/page' + MDX_SUFFIX,
     component: 'my-component',
   };
   const placeholder = placeholders[type];
@@ -152,12 +159,17 @@ async function selectName(type: 'route' | 'component' | 'markdown') {
   if (typeof nameAnswer !== 'string') {
     bye();
   }
+
   if (type === 'route' && !(nameAnswer as string).startsWith('/')) {
     return `/${nameAnswer as string}`;
   }
   if (type === 'markdown' && !(nameAnswer as string).startsWith('/')) {
     return `/${nameAnswer.replace(MARKDOWN_SUFFIX, '') as string}`;
   }
+  if (type === 'mdx' && !(nameAnswer as string).startsWith('/')) {
+    return `/${nameAnswer.replace(MDX_SUFFIX, '') as string}`;
+  }
+
   return nameAnswer.replace(MARKDOWN_SUFFIX, '') as string;
 }
 

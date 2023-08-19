@@ -173,13 +173,13 @@ function symbolTracker(
     sessionID,
   };
   let timeoutID: ReturnType<typeof setTimeout> | null;
-  let qRouteChangeTime = new Date().getTime();
+  let qRouteChangeTime = performance.now();
   const qRouteEl = document.querySelector('[q\\:route]');
   if (qRouteEl) {
     const observer = new MutationObserver((mutations) => {
       const mutation = mutations.find((m) => m.attributeName === 'q:route');
       if (mutation) {
-        qRouteChangeTime = new Date().getTime();
+        qRouteChangeTime = performance.now();
       }
     });
     observer.observe(qRouteEl, { attributes: true });
@@ -215,7 +215,6 @@ function symbolTracker(
     const symbolRequestTime = detail.reqTime;
     const symbolDeliveredTime = event.timeStamp;
     const symbol = detail.symbol;
-    const timeline = new Date().getTime() - qRouteChangeTime;
     if (!existingSymbols.has(symbol)) {
       existingSymbols.add(symbol);
       const route = qRouteEl?.getAttribute('q:route') || '/';
@@ -224,7 +223,7 @@ function symbolTracker(
         route,
         delay: Math.round(0 - lastReqTime + symbolRequestTime),
         latency: Math.round(symbolDeliveredTime - symbolRequestTime),
-        timeline,
+        timeline: Math.round(0 - qRouteChangeTime + symbolRequestTime),
         interaction: !!detail.element,
       });
       lastReqTime = symbolDeliveredTime;

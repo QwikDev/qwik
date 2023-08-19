@@ -178,7 +178,6 @@ export async function updateRoutes(
     timeline: number;
   }
 ): Promise<void> {
-  console.log(row);
   const whereConditions = and(
     eq(routesTable.publicApiKey, row.publicApiKey),
     eq(routesTable.manifestHash, row.manifestHash),

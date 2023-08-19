@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "sqlite",
-  "id": "5efde0af-530f-4fee-b123-c37499b06d6b",
+  "id": "d449626c-ce26-4a45-97e3-d9cefd38f5e8",
   "prevId": "411eda3c-50ef-40b4-a6f8-902c0b06cffd",
   "tables": {
     "applications": {
@@ -1054,13 +1054,6 @@
         "symbol": {
           "name": "symbol",
           "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "interactions": {
-          "name": "interactions",
-          "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false

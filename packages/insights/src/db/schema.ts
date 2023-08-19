@@ -203,7 +203,6 @@ export const routesTable = sqliteTable(
     manifestHash: text('manifest_hash').notNull(),
     route: text('route').notNull(),
     symbol: text('symbol').notNull(),
-    interactions: integer('interactions').notNull(),
     timeline00: integer('timeline_00').notNull(),
     timeline01: integer('timeline_01').notNull(),
     timeline02: integer('timeline_02').notNull(),

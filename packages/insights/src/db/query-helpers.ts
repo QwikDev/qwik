@@ -636,7 +636,6 @@ export function createRouteRow({
     manifestHash,
     route,
     symbol,
-    interactions: 1,
     timeline00: 0,
     timeline01: 0,
     timeline02: 0,

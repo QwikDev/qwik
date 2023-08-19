@@ -4,7 +4,6 @@ CREATE TABLE `routes` (
 	`manifest_hash` text NOT NULL,
 	`route` text NOT NULL,
 	`symbol` text NOT NULL,
-	`interactions` integer NOT NULL,
 	`timeline_00` integer NOT NULL,
 	`timeline_01` integer NOT NULL,
 	`timeline_02` integer NOT NULL,

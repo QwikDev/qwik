@@ -616,11 +616,8 @@ export function toVector<PREFIX extends string>(prefix: PREFIX, dat: VectorField
   ];
 }
 
-export function timelineBucketField(timeline: number): VectorKeys<`timeline`> {
-  const MS_SCALE = 5000;
-  const TIMELINE_COLS = 49;
-  timeline = Math.min(TIMELINE_COLS, Math.floor(timeline / MS_SCALE));
-  return ('timeline' + pad(timeline)) as any;
+export function timelineBucketField(bucket: number): VectorKeys<`timeline`> {
+  return ('timeline' + pad(bucket)) as any;
 }
 
 export function createRouteRow({

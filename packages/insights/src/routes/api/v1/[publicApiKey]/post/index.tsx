@@ -3,7 +3,7 @@ import { InsightsPayload } from '@builder.io/qwik-labs';
 import { getDB } from '~/db';
 import { getAppInfo, updateEdge, updateRoutes } from '~/db/query';
 import { dbGetManifestInfo } from '~/db/sql-manifest';
-import { toBucket } from '~/stats/vector';
+import { toBucket, toBucketTimeline } from '~/stats/vector';
 
 export const onPost: RequestHandler = async ({ exit, json, request }) => {
   const payload = InsightsPayload.parse(await request.json());
@@ -33,7 +33,7 @@ export const onPost: RequestHandler = async ({ exit, json, request }) => {
           manifestHash,
           route: event.route,
           symbol: symbolHash,
-          timeline: event.timeline,
+          timelineBucket: toBucketTimeline(event.timeline),
         });
       }
       previousSymbol = symbolHash;

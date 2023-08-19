@@ -177,13 +177,13 @@ export async function updateRoutes(
     manifestHash: string;
     route: string;
     symbol: string;
-    timeline: number;
+    timelineBucket: number;
   }
 ): Promise<void> {
   // This may look like a good idea to run in a transaction, but it causes a lot of contention
   // and than other queries timeout. Yes not running in TX there is a risk of missed update, but
   // since we are a statistical model, it should not make much of a difference.
-  const timelineField = timelineBucketField(row.timeline);
+  const timelineField = timelineBucketField(row.timelineBucket);
   const result = await db
     .update(routesTable)
     .set({
@@ -201,7 +201,7 @@ export async function updateRoutes(
   if (result.rowsAffected === 0) {
     // No row was updated, so insert a new one
     const routeRow = createRouteRow(row);
-    routeRow[timelineBucketField(row.timeline)]++;
+    routeRow[timelineBucketField(row.timelineBucket)]++;
     await db.insert(routesTable).values(routeRow).run();
   }
 }

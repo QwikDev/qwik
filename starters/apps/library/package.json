@@ -27,9 +27,10 @@
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",
     "lint": "eslint \"src/**/*.ts*\"",
+    "test": "echo \"No test specified\" && exit 0",
     "start": "vite --open --mode ssr",
     "qwik": "qwik",
-    "release": "np --no-tests"
+    "release": "np"
   },
   "devDependencies": {
     "@builder.io/qwik": "latest",

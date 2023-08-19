@@ -12,7 +12,7 @@ export const onPost: RequestHandler = async ({ exit, json, request }) => {
   json(200, { code: 200, message: 'OK' });
   const db = getDB();
   let previousSymbol = payload.previousSymbol;
-  const { publicApiKey, manifestHash, route } = payload;
+  const { publicApiKey, manifestHash } = payload;
   await dbGetManifestInfo(db, publicApiKey, manifestHash);
   if (publicApiKey && publicApiKey.length > 4) {
     await getAppInfo(db, publicApiKey, { autoCreate: true });
@@ -29,9 +29,9 @@ export const onPost: RequestHandler = async ({ exit, json, request }) => {
           latencyBucket: toBucket(event.latency),
         });
         await updateRoutes(db, {
-          route,
           publicApiKey,
           manifestHash,
+          route: event.route,
           symbol: symbolHash,
           timeline: event.timeline,
         });

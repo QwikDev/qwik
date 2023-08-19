@@ -10,15 +10,12 @@ export interface InsightsPayload {
    * NOTE: A user session implies same route URL.
    */
   sessionID: string;
+
   /**
    * Manifest Hash of the container.
    */
   manifestHash: string;
-  /**
-   * Current route so we can have a better understanding of
-   * which symbols are needed for each route.
-   */
-  route: string;
+
   /**
    * API key of the application which we are trying to profile.
    *
@@ -46,6 +43,12 @@ export interface InsightSymbol {
    * Symbol name
    */
   symbol: string;
+  
+  /**
+   * Current route so we can have a better understanding of
+   * which symbols are needed for each route.
+   */
+  route: string;
 
   /**
    * Time delta since last symbol. Can be used to stich symbol requests together
@@ -99,6 +102,7 @@ export const InsightsError = z.object({
 
 export const InsightSymbol = z.object({
   symbol: z.string(),
+  route: z.string(),
   delay: z.number(),
   latency: z.number(),
   timeline: z.number(),
@@ -108,7 +112,6 @@ export const InsightSymbol = z.object({
 export const InsightsPayload = z.object({
   sessionID: z.string(),
   manifestHash: z.string(),
-  route: z.string(),
   publicApiKey: z.string(),
   previousSymbol: z.string().nullable(),
   symbols: z.array(InsightSymbol),
@@ -184,12 +187,10 @@ function symbolTracker(
   function flush() {
     timeoutID = null;
     if (qSymbols.length > flushSymbolIndex) {
-      const route = qRouteEl?.getAttribute('q:route') || '/';
       const payload = {
         sessionID,
         publicApiKey,
         manifestHash,
-        route,
         previousSymbol: flushSymbolIndex == 0 ? null : qSymbols[flushSymbolIndex - 1].symbol,
         symbols: qSymbols.slice(flushSymbolIndex),
       } satisfies InsightsPayload;
@@ -217,8 +218,10 @@ function symbolTracker(
     const timeline = new Date().getTime() - qRouteChangeTime;
     if (!existingSymbols.has(symbol)) {
       existingSymbols.add(symbol);
+      const route = qRouteEl?.getAttribute('q:route') || '/';
       qSymbols.push({
         symbol: symbol,
+        route,
         delay: Math.round(0 - lastReqTime + symbolRequestTime),
         latency: Math.round(symbolDeliveredTime - symbolRequestTime),
         timeline,

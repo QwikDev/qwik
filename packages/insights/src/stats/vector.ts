@@ -16,16 +16,17 @@ export const TIMELINE_MAX_VALUE = 60000 * 15;
  * buckets are not skipped.
  */
 const VALUE_OFFSET = Math.floor(Math.pow(2, 2.5));
+const TIMELINE_VALUE_OFFSET = Math.floor(Math.pow(2, 10));
 
-const getResultOffsetAndScale = (maxValue: number) => {
+const getResultOffsetAndScale = (maxValue: number, valueOffset: number) => {
   let previousResultOffset = -1;
   let resultOffset = 0;
   let scale = 1;
   let count = 10;
   while (previousResultOffset !== resultOffset && count-- > 0) {
     previousResultOffset = resultOffset;
-    scale = (NUMBER_OF_BUCKETS + resultOffset - 1) / Math.log2(maxValue + VALUE_OFFSET);
-    resultOffset = Math.floor(scale * Math.log2(VALUE_OFFSET));
+    scale = (NUMBER_OF_BUCKETS + resultOffset - 1) / Math.log2(maxValue + valueOffset);
+    resultOffset = Math.floor(scale * Math.log2(valueOffset));
   }
   return { RESULT_OFFSET: resultOffset, SCALE: scale };
 };
@@ -33,13 +34,13 @@ const getResultOffsetAndScale = (maxValue: number) => {
 /**
  * A computed constant which is used for scaling so that we spread MAX_VALUE into BUCKETS.
  */
-const { RESULT_OFFSET, SCALE } = (() => getResultOffsetAndScale(MAX_VALUE))();
+const { RESULT_OFFSET, SCALE } = (() => getResultOffsetAndScale(MAX_VALUE, VALUE_OFFSET))();
 
 /**
  * A computed constant which is used for timeline scaling so that we spread TIMELINE_MAX_VALUE into BUCKETS.
  */
 const { RESULT_OFFSET: TIMELINE_RESULT_OFFSET, SCALE: TIMELINE_SCALE } = (() =>
-  getResultOffsetAndScale(TIMELINE_MAX_VALUE))();
+  getResultOffsetAndScale(TIMELINE_MAX_VALUE, TIMELINE_VALUE_OFFSET))();
 
 /**
  * Quantize the value into one of the buckets
@@ -56,7 +57,7 @@ export function toBucketTimeline(value: number): number {
   value = Math.max(0, value);
   return Math.min(
     NUMBER_OF_BUCKETS - 1, // Make sure we never return a value greater than number of buckets
-    Math.floor(TIMELINE_SCALE * Math.log2(value + VALUE_OFFSET)) - TIMELINE_RESULT_OFFSET
+    Math.floor(TIMELINE_SCALE * Math.log2(value + TIMELINE_VALUE_OFFSET)) - TIMELINE_RESULT_OFFSET
   );
 }
 

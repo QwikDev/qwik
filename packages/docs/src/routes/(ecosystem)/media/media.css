@@ -44,6 +44,7 @@
   overflow: hidden;
   border: 1px solid black;
   box-shadow: var(--qwik-purple) 2px 2px 2px 0px;
+  transition: ease-in-out 250ms;
 }
 
 .media li a {
@@ -58,7 +59,8 @@
 
 .media li a:hover .thumbnail {
   opacity: 0.9;
-  box-shadow: var(--media-video-shadow-color) 2px 2px 2px 0px;
+  border: 2.5px solid var(--media-video-shadow-color);
+  box-shadow: none;
 }
 
 .media .edit-page {
@@ -94,7 +96,7 @@
 }
 
 .info {
-  @apply absolute bottom-4 right-2 inline-flex gap-x-2;
+  @apply absolute bottom-4 right-2;
 }
 
 .info-bg {

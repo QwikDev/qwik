@@ -45,7 +45,6 @@ export const MEDIA = mediaObj({
     youtube('Qwik en 2 horas', 'FF3D4tppyag', {
       language: 'es',
       promoted: true,
-      country: '🇪🇸',
       author: 'Leifer Mendez',
     }),
     {
@@ -53,7 +52,6 @@ export const MEDIA = mediaObj({
       imgSrc:
         'https://import.cdn.thinkific.com/643563/courses/2285840/hD0Nof2mTK2cVOWvRJg2_QWIK-COVER-CURSO.jpg',
       title: 'Fernando Herrera + DevTalles',
-      country: '🇪🇸',
       language: 'es',
       author: 'Dev Talles',
       promoted: true,
@@ -68,12 +66,10 @@ export const MEDIA = mediaObj({
       title: 'Qwik intermedio-avanzado con proyectos',
       language: 'es',
       author: 'Manuel Sánchez',
-      country: '🇪🇸',
     },
     youtube('Qwik 1.0 - новый подход frontend разработки?', 'ajTNL88BN5E', {
       language: 'ru',
       promoted: true,
-      country: '🇷🇺',
       author: 'PurpleSchool | Anton Larichev',
     }),
     youtube('QwikJS course in Arabic', 'irQDABJZw5c', {
@@ -127,42 +123,34 @@ export const MEDIA = mediaObj({
     }),
     youtube('Qwik - nuevo framework para Js', 'GzUMPnsDopM', {
       language: 'es',
-      country: '🇪🇸',
       author: 'DacarSoft',
     }),
     youtube('Qwik Framework, Un nuevo Framework Super Rápido (Lazy Loading)', 'kT-Y17mEUZs', {
       language: 'es',
-      country: '🇪🇸',
       author: 'Fazt',
     }),
     youtube('Construindo Apps instantâneos com Qwik', 'yrROy1vLwkE', {
       language: 'es',
-      country: '🇪🇸',
       author: 'dogcode',
     }),
     youtube('Après Angular : place à Qwik!', 'Ts2IWXMYiXk', {
       language: 'es',
-      country: '🇪🇸',
       author: 'codeconcept',
     }),
     youtube('Hablemos de Qwik', 'XMLMS2NVC1g', {
       language: 'es',
-      country: '🇪🇸',
       author: 'Leifer Mendez',
     }),
     youtube('Qwik el framework más rápido para aplicaciones web', 'On5P_xw8zSw', {
       language: 'es',
-      country: '🇪🇸',
       author: 'Leifer Mendez',
     }),
     youtube('Introducción a QwikJS', 'fX7bM4iuuUQ', {
       language: 'es',
-      country: '🇪🇸',
       author: 'Domini Code',
     }),
     youtube('¿Qué onda Qwik?', 'H7TL4SqcC3E', {
       language: 'es',
-      country: '🇪🇸',
       author: 'La comu dev',
     }),
     youtube('Introduction to Qwik for JS Developers ft. Miško Hevery | JS Drops', 'DxJgXw91cCQ', {
@@ -519,7 +507,6 @@ export interface MediaEntry {
   href: string;
   author?: string;
   language?: string;
-  country?: string;
   imgSrc?: string;
   promoted?: boolean;
 }
@@ -538,7 +525,6 @@ export const ThumbnailLink = component$((props: { entry: MediaEntry; imgLoading?
             aria-hidden="true"
           />
           <div class="info">
-            <span class="info-bg">{props.entry.country ? props.entry.country : '🌐'}</span>
             {props.entry.language ? (
               <span class="info-bg font-bold">{props.entry.language}</span>
             ) : null}
@@ -665,7 +651,6 @@ export function youtube(
     startTime,
     playlist,
     author,
-    country,
     language = 'en',
     promoted = false,
   }: {
@@ -673,7 +658,6 @@ export function youtube(
     playlist?: string;
     language?: string;
     promoted?: boolean;
-    country?: string;
     author?: string;
   } = {}
 ): MediaEntry {
@@ -692,7 +676,6 @@ export function youtube(
     title,
     author,
     language,
-    country,
     promoted,
   };
 }

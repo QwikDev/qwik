@@ -60,7 +60,7 @@ function parseArgs(args: string[], templates: string[]) {
 export async function runCreateCli(...args: string[]): Promise<CreateAppResult> {
   const pkgManager = getPackageManager();
   const templateManager = await makeTemplateManager('app');
-  const templateVariants = templateManager.templates.map(({ id }) => id);
+  const templateVariants = templateManager.standaloneTemplates.map(({ id }) => id);
 
   const parsedArgs = parseArgs(args, templateVariants);
   const { force, installDeps, template } = parsedArgs;

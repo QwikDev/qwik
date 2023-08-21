@@ -1,4 +1,5 @@
 import type { IntegrationData, IntegrationType } from 'packages/qwik/src/cli/types';
+
 import { loadIntegrations } from 'packages/qwik/src/cli/utils/integrations';
 
 let integrations: IntegrationData[] | undefined = undefined;
@@ -22,8 +23,15 @@ export const makeTemplateManager = async (type: IntegrationType) => {
   }
 
   const templates = integrations.filter((i) => i.type === type);
+  const standaloneTemplates = templates.filter((i) => i.id !== BASE_ID);
 
-  function getAppById(id: string): IntegrationData | undefined {
+  function getAppById(
+    id: string,
+    isStandaloneInstallable: boolean = true
+  ): IntegrationData | undefined {
+    if (isStandaloneInstallable) {
+      return standaloneTemplates.find((t) => t.id === id);
+    }
     return templates.find((t) => t.id === id);
   }
 
@@ -41,21 +49,21 @@ export const makeTemplateManager = async (type: IntegrationType) => {
       const libApp = getAppById(id);
 
       if (!libApp) {
-        throw new AppNotFoundError(id, templates);
+        throw new AppNotFoundError(id, standaloneTemplates);
       }
 
       return { baseApp: libApp };
     }
 
-    const baseApp = getAppById(BASE_ID);
+    const baseApp = getAppById(BASE_ID, false);
     const starterApp = getAppById(id);
 
     if (!baseApp) {
-      throw new AppNotFoundError(BASE_ID, templates);
+      throw new AppNotFoundError(BASE_ID, standaloneTemplates);
     }
 
     if (!starterApp) {
-      throw new AppNotFoundError(id, templates);
+      throw new AppNotFoundError(id, standaloneTemplates);
     }
 
     return { baseApp, starterApp };
@@ -63,6 +71,7 @@ export const makeTemplateManager = async (type: IntegrationType) => {
 
   return {
     templates,
+    standaloneTemplates,
     getAppById,
     getBootstrapApps,
     getBaseApp,

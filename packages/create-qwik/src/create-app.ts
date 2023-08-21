@@ -46,7 +46,7 @@ export async function createApp(opts: Options): Promise<CreateAppResult> {
 
   const docs = await createFromStarter({ baseApp, starterApp, pkgManager, outDir });
 
-  return { starterId: baseApp.id, outDir, pkgManager, docs };
+  return { starterId: opts.appId, outDir, pkgManager, docs };
 }
 
 async function createFromStarter({

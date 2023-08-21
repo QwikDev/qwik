@@ -127,6 +127,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         entryStrategy: qwikViteOpts.entryStrategy,
         srcDir: qwikViteOpts.srcDir,
         rootDir: viteConfig.root,
+        tsconfigFileNames: qwikViteOpts.tsconfigFileNames,
         resolveQwikBuild: true,
         transformedModuleOutput: qwikViteOpts.transformedModuleOutput,
         vendorRoots: [...(qwikViteOpts.vendorRoots ?? []), ...vendorRoots.map((v) => v.path)],
@@ -731,6 +732,11 @@ interface QwikVitePluginCommonOptions {
    * Default `src`
    */
   srcDir?: string;
+  /**
+   * List of tsconfig.json files to use for ESLint warnings during development.
+   * Default `['tsconfig.json']`
+   */
+  tsconfigFileNames?: string[];
   /**
    * List of directories to recursively search for Qwik components or Vendors.
    * Default `[]`

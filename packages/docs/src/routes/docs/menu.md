@@ -35,7 +35,7 @@
 
 ## Cookbook
 - [Overview](/docs/cookbook/index.mdx)
-- [Modals](/docs/cookbook/modal/index.mdx)
+- [Portal](/docs/cookbook/portal/index.mdx)
 
 
 ## Integrations

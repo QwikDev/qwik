@@ -1,5 +1,5 @@
 import { sql, type InferModel } from 'drizzle-orm';
-import { edgeTable, routesTable } from './schema';
+import { edgeTable, type routesTable } from './schema';
 import { BUCKETS } from '~/stats/vector';
 
 export type VectorKeys<PREFIX extends string> =

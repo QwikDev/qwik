@@ -53,9 +53,6 @@ const createSetCookieValue = (cookieName: string, cookieValue: string, options: 
 };
 
 function tryDecodeUriComponent(str: string) {
-  if (str.indexOf('%') === -1) {
-    return str;
-  }
   try {
     return decodeURIComponent(str);
   } catch {

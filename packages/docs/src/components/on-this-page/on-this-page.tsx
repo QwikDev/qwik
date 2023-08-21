@@ -52,7 +52,7 @@ const QWIKCITY_ADVANCED_GROUP = [
 const makeEditPageUrl = (url: string): string => {
   const segments = url.split('/').filter((part) => part !== '');
   if (segments[0] !== 'docs') {
-    throw new Error("Expecting URL to start with '/docs/'");
+    return url;
   }
   let group = '';
   if (segments[1] == 'advanced') {

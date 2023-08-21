@@ -702,6 +702,9 @@ export interface QwikWheelEvent<T = Element> extends QwikMouseEvent<T, NativeWhe
     deltaZ: number;
 }
 
+// @public (undocumented)
+export type ReadonlySignal<T = any> = Readonly<Signal<T>>;
+
 // @internal (undocumented)
 export const _regSymbol: (symbol: any, hash: string) => any;
 

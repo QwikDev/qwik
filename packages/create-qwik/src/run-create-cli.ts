@@ -1,4 +1,4 @@
-import { intro, log, spinner as spinnerPrompt } from '@clack/prompts';
+import { cancel, intro, log, spinner as spinnerPrompt } from '@clack/prompts';
 
 import type { CreateAppResult } from 'packages/qwik/src/cli/types';
 import { bgBlue } from 'kleur/colors';
@@ -83,6 +83,8 @@ export async function runCreateCli(...args: string[]): Promise<CreateAppResult> 
         log.error(
           `Directory "${outDir}" already exists. Please either remove this directory, or choose another location.`
         );
+        cancel();
+        process.exit(1);
       }
     }
   }

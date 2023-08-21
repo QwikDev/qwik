@@ -15,6 +15,7 @@ test('parses cookie', () => {
     a: 'hello=world',
     b: '25',
     c: '{"hello": "world"}',
+    d: '%badencoding',
   };
   const cookieString = Object.entries(cookieValues)
     .reduce((prev: string[], [key, value]) => {
@@ -28,10 +29,11 @@ test('parses cookie', () => {
   Object.entries(cookieValues).forEach(([key, value]) => {
     equal(cookie.get(key)?.value, value);
   });
-  equal(Object.keys(cookie.getAll()).length, 3);
+  equal(Object.keys(cookie.getAll()).length, 4);
   equal(cookie.getAll().a.value, 'hello=world');
   equal(cookie.getAll().b.number(), 25);
   equal(cookie.getAll().c.json(), { hello: 'world' });
+  equal(cookie.getAll().d.value, '%badencoding');
 });
 
 test('creates correct headers', () => {

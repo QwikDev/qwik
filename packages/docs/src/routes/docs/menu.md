@@ -112,6 +112,7 @@
 - [Sitemaps](/docs/(qwikcity)/advanced/sitemaps/index.mdx)
 - [ESLint-Rules](/docs/(qwik)/advanced/eslint/index.mdx)
 - [Content Security Policy](/docs/(qwikcity)/advanced/content-security-policy/index.mdx)
+- [Complex Forms](/docs/(qwikcity)/advanced/complex-forms/index.mdx)
 
 ## Reference
 

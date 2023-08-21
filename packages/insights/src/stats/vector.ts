@@ -8,7 +8,7 @@ export const NUMBER_OF_BUCKETS = 50;
  * result in the last bucket.
  */
 export const MAX_VALUE = 10000;
-export const TIMELINE_MAX_VALUE = 60000 * 15;
+export const TIMELINE_MAX_VALUE = 15 * 60 * 1000;
 
 /**
  * Without offset Math.log2(0) is -Infinity, and Math.Log(1) and Math.Log(2)

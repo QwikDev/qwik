@@ -1217,6 +1217,20 @@
       "mdFile": "qwik.qwikwheelevent.md"
     },
     {
+      "name": "ReadonlySignal",
+      "id": "readonlysignal",
+      "hierarchy": [
+        {
+          "name": "ReadonlySignal",
+          "id": "readonlysignal"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type ReadonlySignal<T = any> = Readonly<Signal<T>>;\n```\n**References:** [Signal](#signal)",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/state/signal.ts",
+      "mdFile": "qwik.readonlysignal.md"
+    },
+    {
       "name": "render",
       "id": "render",
       "hierarchy": [

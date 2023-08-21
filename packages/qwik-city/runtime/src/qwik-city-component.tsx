@@ -288,6 +288,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
         documentHead.links = resolvedHead.links;
         documentHead.meta = resolvedHead.meta;
         documentHead.styles = resolvedHead.styles;
+        documentHead.scripts = resolvedHead.scripts;
         documentHead.title = resolvedHead.title;
         documentHead.frontmatter = resolvedHead.frontmatter;
 

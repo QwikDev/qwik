@@ -175,7 +175,7 @@ test.describe("actions", () => {
         await expect(success).toBeHidden();
         await page.locator("#issue3183-button").click();
         await expect(success).toHaveText(
-          '{"arrayOld":["0","1"],"arrayNew":["0","1"],"people":[{"name":"Fred"},{"name":"Sam"}]}'
+          '{"arrayOld":["0","1"],"arrayNew":["0","1"],"people":[{"name":"Fred"},{"name":"Sam"}]}',
         );
       });
     });

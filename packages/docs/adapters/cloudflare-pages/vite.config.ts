@@ -14,7 +14,7 @@ export default extendConfig(baseConfig, () => {
     plugins: [
       cloudflarePagesAdapter({
         ssg: {
-          include: ['/*'],
+          include: ['/', '/*'],
           exclude: ['/demo/*', '/shop/*'],
           origin:
             (process.env.CF_PAGES_BRANCH !== 'main' ? process.env.CF_PAGES_URL : null) ??

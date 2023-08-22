@@ -1,6 +1,6 @@
 import { and, eq, isNull, sql, inArray } from 'drizzle-orm';
 import { type AppDatabase } from '.';
-import { applicationTable, edgeTable, symbolDetailTable, symbolTable } from './schema';
+import { applicationTable, edgeTable, routesTable, symbolDetailTable, symbolTable } from './schema';
 import {
   createEdgeRow,
   delayBucketField,
@@ -10,6 +10,8 @@ import {
   toVector,
   latencyColumnSums,
   delayColumnSums,
+  timelineBucketField,
+  createRouteRow,
 } from './query-helpers';
 
 export async function getEdges(
@@ -29,7 +31,6 @@ export async function getEdges(
     .groupBy(edgeTable.from, edgeTable.to)
     .limit(limit || Number.MAX_SAFE_INTEGER);
   const rows = await query.all();
-  console.log('COUNT', rows.length);
   return rows.map((e) => ({
     from: e.from,
     to: e.to,
@@ -91,7 +92,7 @@ export async function getAppInfo(
     .from(applicationTable)
     .where(eq(applicationTable.publicApiKey, publicApiKey))
     .get();
-  if (!(app as {} | undefined) && options.autoCreate) {
+  if (!app && options.autoCreate) {
     const appFields = {
       name: 'Auto create: ' + publicApiKey,
       description: 'Auto create: ' + publicApiKey,
@@ -108,28 +109,24 @@ export async function getAppInfo(
       publicApiKey == '221smyuj5gl'
         ? 'https://github.com/BuilderIO/qwik/blob/main/packages/docs/src'
         : null,
-    ...app,
+    ...app!,
   };
 }
 
 export async function getEdgeCount(db: AppDatabase, publicApiKey: string): Promise<number> {
-  return (
-    await db
-      .select({ count: edgeTableDelayCount })
-      .from(edgeTable)
-      .where(eq(edgeTable.publicApiKey, publicApiKey))
-      .get()
-  ).count;
+  return (await db
+    .select({ count: edgeTableDelayCount })
+    .from(edgeTable)
+    .where(eq(edgeTable.publicApiKey, publicApiKey))
+    .get())!.count;
 }
 
 export async function getSymbolEdgeCount(db: AppDatabase, publicApiKey: string): Promise<number> {
-  return (
-    await db
-      .select({ count: sql<number>`count(*)` })
-      .from(symbolTable)
-      .where(eq(symbolTable.publicApiKey, publicApiKey))
-      .get()
-  ).count;
+  return (await db
+    .select({ count: sql<number>`count(*)` })
+    .from(symbolTable)
+    .where(eq(symbolTable.publicApiKey, publicApiKey))
+    .get())!.count;
 }
 
 export async function updateEdge(
@@ -170,5 +167,41 @@ export async function updateEdge(
     edgeRow[latencyBucketField(edge.latencyBucket)]++;
     edgeRow[delayBucketField(edge.latencyBucket)]++;
     await db.insert(edgeTable).values(edgeRow).run();
+  }
+}
+
+export async function updateRoutes(
+  db: AppDatabase,
+  row: {
+    publicApiKey: string;
+    manifestHash: string;
+    route: string;
+    symbol: string;
+    timelineBucket: number;
+  }
+): Promise<void> {
+  // This may look like a good idea to run in a transaction, but it causes a lot of contention
+  // and than other queries timeout. Yes not running in TX there is a risk of missed update, but
+  // since we are a statistical model, it should not make much of a difference.
+  const timelineField = timelineBucketField(row.timelineBucket);
+  const result = await db
+    .update(routesTable)
+    .set({
+      [timelineField]: sql`${routesTable[timelineField]} + 1`,
+    })
+    .where(
+      and(
+        eq(routesTable.publicApiKey, row.publicApiKey),
+        eq(routesTable.manifestHash, row.manifestHash),
+        eq(routesTable.route, row.route),
+        eq(routesTable.symbol, row.symbol)
+      )
+    )
+    .run();
+  if (result.rowsAffected === 0) {
+    // No row was updated, so insert a new one
+    const routeRow = createRouteRow(row);
+    routeRow[timelineBucketField(row.timelineBucket)]++;
+    await db.insert(routesTable).values(routeRow).run();
   }
 }

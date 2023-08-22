@@ -44,7 +44,7 @@ export async function dbGetManifestInfo(
     .from(manifestTable)
     .where(and(eq(manifestTable.publicApiKey, publicApiKey), eq(manifestTable.hash, manifestHash)))
     .get();
-  if (manifest as {} | undefined) {
+  if (manifest) {
     return manifest;
   } else {
     const manifestFields = {

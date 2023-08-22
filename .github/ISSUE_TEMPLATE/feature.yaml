@@ -1,6 +1,6 @@
 name: ✨ Feature Request
 description: Suggest an idea for this project.
-labels: [enhancement, triage]
+labels: ['TYPE: enhancement', 'STATUS-1: needs triage']
 title: '[✨]'
 body:
   - type: textarea

@@ -6,6 +6,7 @@ import {
   RequestEvSharedActionFormData,
   RequestEvSharedActionId,
   RequestEvSharedNonce,
+  RequestRouteName,
 } from './request-event';
 
 export function getQwikCityServerData(requestEv: RequestEvent) {
@@ -15,14 +16,30 @@ export function getQwikCityServerData(requestEv: RequestEvent) {
 
   const action = requestEv.sharedMap.get(RequestEvSharedActionId) as string;
   const formData = requestEv.sharedMap.get(RequestEvSharedActionFormData);
+  const routeName = requestEv.sharedMap.get(RequestRouteName) as string;
   const nonce = requestEv.sharedMap.get(RequestEvSharedNonce);
+  const headers = requestEv.request.headers;
+  const reconstructedUrl = new URL(url.pathname + url.search, url);
+  const host = headers.get('X-Forwarded-Host')!;
+  const protocol = headers.get('X-Forwarded-Proto')!;
+  if (host) {
+    reconstructedUrl.port = '';
+    reconstructedUrl.host = host;
+  }
+  if (protocol) {
+    reconstructedUrl.protocol = protocol;
+  }
 
   return {
-    url: new URL(url.pathname + url.search, url).href,
+    url: reconstructedUrl.href,
     requestHeaders,
     locale: locale(),
     nonce,
+    containerAttributes: {
+      'q:route': routeName,
+    },
     qwikcity: {
+      routeName,
       ev: requestEv,
       params: { ...params },
       loadedRoute: getRequestRoute(requestEv),

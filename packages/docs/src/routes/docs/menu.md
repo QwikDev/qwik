@@ -33,6 +33,11 @@
 - [Env variables](/docs/(qwikcity)/env-variables/index.mdx)
 - [API reference](/docs/(qwikcity)/api/index.mdx)
 
+## Cookbook
+- [Overview](/docs/cookbook/index.mdx)
+- [Portal](/docs/cookbook/portal/index.mdx)
+
+
 ## Integrations
 
 - [Overview](integrations/index.mdx)
@@ -107,6 +112,7 @@
 - [Sitemaps](/docs/(qwikcity)/advanced/sitemaps/index.mdx)
 - [ESLint-Rules](/docs/(qwik)/advanced/eslint/index.mdx)
 - [Content Security Policy](/docs/(qwikcity)/advanced/content-security-policy/index.mdx)
+- [Complex Forms](/docs/(qwikcity)/advanced/complex-forms/index.mdx)
 
 ## Reference
 

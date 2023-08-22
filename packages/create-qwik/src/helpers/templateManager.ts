@@ -36,7 +36,7 @@ export const makeTemplateManager = async (type: IntegrationType) => {
   }
 
   function getBaseApp(): IntegrationData | undefined {
-    return getAppById(BASE_ID);
+    return getAppById(BASE_ID, false);
   }
 
   function getBootstrapApps(id: string): {

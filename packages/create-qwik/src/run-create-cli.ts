@@ -21,10 +21,9 @@ type Args = {
 };
 
 function parseArgs(args: string[], templates: string[]) {
-  const parsedArgs = yargs(args).command(
-    '* <template> <outDir>',
-    'Create a new project powered by qwik',
-    (yargs) => {
+  const parsedArgs = yargs(args)
+    .strict()
+    .command('* <template> <outDir>', 'Create a new project powered by qwik', (yargs) => {
       return yargs
         .positional('template', {
           type: 'string',
@@ -48,8 +47,7 @@ function parseArgs(args: string[], templates: string[]) {
           desc: 'Install dependencies',
         })
         .usage('npm create qwik@latest base ./my-project <options>');
-    }
-  ).argv as unknown as Args;
+    }).argv as unknown as Args;
 
   return parsedArgs;
 }
@@ -80,8 +78,9 @@ export async function runCreateCli(...args: string[]): Promise<CreateAppResult> 
       if (force) {
         await clearDir(outDir);
       } else {
-        log.error(
-          `Directory "${outDir}" already exists. Please either remove this directory, or choose another location.`
+        log.error(`Directory "${outDir}" already exists.`);
+        log.info(
+          `Please either remove this directory, choose another location or run the command again with '--force | -f' flag.`
         );
         cancel();
         process.exit(1);

@@ -1,15 +1,15 @@
 import { assertDefined, assertTrue } from '../../error/assert';
-import { executeContextWithTransition, IS_HEAD, IS_SVG, SVG_NS } from './visitor';
+import { executeContextWithScrollAndTransition, IS_HEAD, IS_SVG, SVG_NS } from './visitor';
 import { getDocument } from '../../util/dom';
 import { logError, logWarn } from '../../util/log';
 import { getWrappingContainer } from '../../use/use-core';
 import {
   runSubscriber,
   type SubscriberEffect,
-  WatchFlagsIsDirty,
-  WatchFlagsIsVisibleTask,
-  WatchFlagsIsResource,
-  WatchFlagsIsTask,
+  TaskFlagsIsDirty,
+  TaskFlagsIsVisibleTask,
+  TaskFlagsIsResource,
+  TaskFlagsIsTask,
   isSubscriberDescriptor,
 } from '../../use/use-task';
 import { then } from '../../util/promises';
@@ -20,19 +20,21 @@ import type { RenderContext } from '../types';
 import { type ContainerState, _getContainerState } from '../../container/container';
 import { createRenderContext } from '../execute-component';
 import { getRootNode, type QwikElement } from './virtual-element';
-import { printRenderStats } from './operations';
+import { appendChild, printRenderStats } from './operations';
 import { executeSignalOperation } from './signals';
 import { getPlatform, isServerPlatform } from '../../platform/platform';
 import { qDev } from '../../util/qdev';
 import type { SubscriberSignal, Subscriptions } from '../../state/common';
 import { resumeIfNeeded } from '../../container/resume';
 import { getContext, HOST_FLAG_DIRTY, type QContext } from '../../state/context';
+import { directGetAttribute } from '../fast-calls';
+import { QStyle } from '../../util/markers';
 
 export const notifyChange = (subAction: Subscriptions, containerState: ContainerState) => {
   if (subAction[0] === 0) {
     const host = subAction[1];
     if (isSubscriberDescriptor(host)) {
-      notifyWatch(host, containerState);
+      notifyTask(host, containerState);
     } else {
       notifyRender(host, containerState);
     }
@@ -91,17 +93,17 @@ const notifySignalOperation = (op: SubscriberSignal, containerState: ContainerSt
     scheduleFrame(containerState);
   }
 };
-export const notifyWatch = (watch: SubscriberEffect, containerState: ContainerState) => {
-  if (watch.$flags$ & WatchFlagsIsDirty) {
+export const notifyTask = (task: SubscriberEffect, containerState: ContainerState) => {
+  if (task.$flags$ & TaskFlagsIsDirty) {
     return;
   }
-  watch.$flags$ |= WatchFlagsIsDirty;
+  task.$flags$ |= TaskFlagsIsDirty;
 
   const activeRendering = containerState.$hostsRendering$ !== undefined;
   if (activeRendering) {
-    containerState.$watchStaging$.add(watch);
+    containerState.$taskStaging$.add(task);
   } else {
-    containerState.$watchNext$.add(watch);
+    containerState.$taskNext$.add(task);
     scheduleFrame(containerState);
   }
 };
@@ -121,19 +123,20 @@ const scheduleFrame = (containerState: ContainerState): Promise<void> => {
  *
  */
 export const _hW = () => {
-  const [watch] = useLexicalScope<[SubscriberEffect]>();
-  notifyWatch(watch, _getContainerState(getWrappingContainer(watch.$el$)!));
+  const [task] = useLexicalScope<[SubscriberEffect]>();
+  notifyTask(task, _getContainerState(getWrappingContainer(task.$el$)!));
 };
 
 const renderMarked = async (containerState: ContainerState): Promise<void> => {
-  const doc = getDocument(containerState.$containerEl$);
+  const containerEl = containerState.$containerEl$;
+  const doc = getDocument(containerEl);
 
   try {
     const rCtx = createRenderContext(doc, containerState);
     const staticCtx = rCtx.$static$;
     const hostsRendering = (containerState.$hostsRendering$ = new Set(containerState.$hostsNext$));
     containerState.$hostsNext$.clear();
-    await executeWatchesBefore(containerState, rCtx);
+    await executeTasksBefore(containerState, rCtx);
 
     containerState.$hostsStaging$.forEach((host) => {
       hostsRendering.add(host);
@@ -145,6 +148,15 @@ const renderMarked = async (containerState: ContainerState): Promise<void> => {
 
     const renderingQueue = Array.from(hostsRendering);
     sortNodes(renderingQueue);
+
+    if (!containerState.$styleMoved$ && renderingQueue.length > 0) {
+      containerState.$styleMoved$ = true;
+      const parentJSON = containerEl === doc.documentElement ? doc.body : containerEl;
+      parentJSON.querySelectorAll('style[q\\:style]').forEach((el) => {
+        containerState.$styleIds$.add(directGetAttribute(el, QStyle)!);
+        appendChild(staticCtx, doc.head, el);
+      });
+    }
 
     for (const elCtx of renderingQueue) {
       const el = elCtx.$element$;
@@ -179,7 +191,7 @@ const renderMarked = async (containerState: ContainerState): Promise<void> => {
       return;
     }
 
-    await executeContextWithTransition(staticCtx);
+    await executeContextWithScrollAndTransition(staticCtx);
     printRenderStats(staticCtx);
     return postRendering(containerState, rCtx);
   } catch (err) {
@@ -203,12 +215,12 @@ const getFlags = (el: Element | null) => {
 export const postRendering = async (containerState: ContainerState, rCtx: RenderContext) => {
   const hostElements = rCtx.$static$.$hostElements$;
 
-  await executeWatchesAfter(containerState, rCtx, (watch, stage) => {
-    if ((watch.$flags$ & WatchFlagsIsVisibleTask) === 0) {
+  await executeTasksAfter(containerState, rCtx, (task, stage) => {
+    if ((task.$flags$ & TaskFlagsIsVisibleTask) === 0) {
       return false;
     }
     if (stage) {
-      return hostElements.has(watch.$el$);
+      return hostElements.has(task.$el$);
     }
     return true;
   });
@@ -224,7 +236,7 @@ export const postRendering = async (containerState: ContainerState, rCtx: Render
 
   const pending =
     containerState.$hostsNext$.size +
-    containerState.$watchNext$.size +
+    containerState.$taskNext$.size +
     containerState.$opsNext$.size;
 
   if (pending > 0) {
@@ -233,92 +245,96 @@ export const postRendering = async (containerState: ContainerState, rCtx: Render
   }
 };
 
-const executeWatchesBefore = async (containerState: ContainerState, rCtx: RenderContext) => {
+const executeTasksBefore = async (containerState: ContainerState, rCtx: RenderContext) => {
   const containerEl = containerState.$containerEl$;
   const resourcesPromises: ValueOrPromise<SubscriberEffect>[] = [];
-  const watchPromises: ValueOrPromise<SubscriberEffect>[] = [];
-  const isWatch = (watch: SubscriberEffect) => (watch.$flags$ & WatchFlagsIsTask) !== 0;
-  const isResourceWatch = (watch: SubscriberEffect) => (watch.$flags$ & WatchFlagsIsResource) !== 0;
+  const taskPromises: ValueOrPromise<SubscriberEffect>[] = [];
+  const isTask = (task: SubscriberEffect) => (task.$flags$ & TaskFlagsIsTask) !== 0;
+  const isResourceTask = (task: SubscriberEffect) => (task.$flags$ & TaskFlagsIsResource) !== 0;
 
-  containerState.$watchNext$.forEach((watch) => {
-    if (isWatch(watch)) {
-      watchPromises.push(then(watch.$qrl$.$resolveLazy$(containerEl), () => watch));
-      containerState.$watchNext$.delete(watch);
+  containerState.$taskNext$.forEach((task) => {
+    if (isTask(task)) {
+      taskPromises.push(then(task.$qrl$.$resolveLazy$(containerEl), () => task));
+      containerState.$taskNext$.delete(task);
     }
-    if (isResourceWatch(watch)) {
-      resourcesPromises.push(then(watch.$qrl$.$resolveLazy$(containerEl), () => watch));
-      containerState.$watchNext$.delete(watch);
+    if (isResourceTask(task)) {
+      resourcesPromises.push(then(task.$qrl$.$resolveLazy$(containerEl), () => task));
+      containerState.$taskNext$.delete(task);
     }
   });
   do {
     // Run staging effected
-    containerState.$watchStaging$.forEach((watch) => {
-      if (isWatch(watch)) {
-        watchPromises.push(then(watch.$qrl$.$resolveLazy$(containerEl), () => watch));
-      } else if (isResourceWatch(watch)) {
-        resourcesPromises.push(then(watch.$qrl$.$resolveLazy$(containerEl), () => watch));
+    containerState.$taskStaging$.forEach((task) => {
+      if (isTask(task)) {
+        taskPromises.push(then(task.$qrl$.$resolveLazy$(containerEl), () => task));
+      } else if (isResourceTask(task)) {
+        resourcesPromises.push(then(task.$qrl$.$resolveLazy$(containerEl), () => task));
       } else {
-        containerState.$watchNext$.add(watch);
+        containerState.$taskNext$.add(task);
       }
     });
 
-    containerState.$watchStaging$.clear();
+    containerState.$taskStaging$.clear();
 
     // Wait for all promises
-    if (watchPromises.length > 0) {
-      const watches = await Promise.all(watchPromises);
-      sortWatches(watches);
+    if (taskPromises.length > 0) {
+      const tasks = await Promise.all(taskPromises);
+      sortTasks(tasks);
       await Promise.all(
-        watches.map((watch) => {
-          return runSubscriber(watch, containerState, rCtx);
+        tasks.map((task) => {
+          return runSubscriber(task, containerState, rCtx);
         })
       );
-      watchPromises.length = 0;
+      taskPromises.length = 0;
     }
-  } while (containerState.$watchStaging$.size > 0);
+  } while (containerState.$taskStaging$.size > 0);
 
   if (resourcesPromises.length > 0) {
     const resources = await Promise.all(resourcesPromises);
-    sortWatches(resources);
-    resources.forEach((watch) => runSubscriber(watch, containerState, rCtx));
+    sortTasks(resources);
+    resources.forEach((task) => runSubscriber(task, containerState, rCtx));
   }
 };
 
-const executeWatchesAfter = async (
+const executeTasksAfter = async (
   containerState: ContainerState,
   rCtx: RenderContext,
-  watchPred: (watch: SubscriberEffect, staging: boolean) => boolean
+  taskPred: (task: SubscriberEffect, staging: boolean) => boolean
 ) => {
-  const watchPromises: ValueOrPromise<SubscriberEffect>[] = [];
+  const taskPromises: ValueOrPromise<SubscriberEffect>[] = [];
   const containerEl = containerState.$containerEl$;
 
-  containerState.$watchNext$.forEach((watch) => {
-    if (watchPred(watch, false)) {
-      watchPromises.push(then(watch.$qrl$.$resolveLazy$(containerEl), () => watch));
-      containerState.$watchNext$.delete(watch);
+  containerState.$taskNext$.forEach((task) => {
+    if (taskPred(task, false)) {
+      if (task.$el$.isConnected) {
+        taskPromises.push(then(task.$qrl$.$resolveLazy$(containerEl), () => task));
+      }
+      containerState.$taskNext$.delete(task);
     }
   });
   do {
     // Run staging effected
-    containerState.$watchStaging$.forEach((watch) => {
-      if (watchPred(watch, true)) {
-        watchPromises.push(then(watch.$qrl$.$resolveLazy$(containerEl), () => watch));
-      } else {
-        containerState.$watchNext$.add(watch);
+    containerState.$taskStaging$.forEach((task) => {
+      if (task.$el$.isConnected) {
+        if (taskPred(task, true)) {
+          taskPromises.push(then(task.$qrl$.$resolveLazy$(containerEl), () => task));
+        } else {
+          containerState.$taskNext$.add(task);
+        }
       }
     });
-    containerState.$watchStaging$.clear();
+    containerState.$taskStaging$.clear();
 
     // Wait for all promises
-    if (watchPromises.length > 0) {
-      const watches = await Promise.all(watchPromises);
-      sortWatches(watches);
-      for (const watch of watches) {
-        await runSubscriber(watch, containerState, rCtx);
+    if (taskPromises.length > 0) {
+      const tasks = await Promise.all(taskPromises);
+      sortTasks(tasks);
+      for (const task of tasks) {
+        runSubscriber(task, containerState, rCtx);
       }
-      watchPromises.length = 0;
+      taskPromises.length = 0;
     }
-  } while (containerState.$watchStaging$.size > 0);
+  } while (containerState.$taskStaging$.size > 0);
 };
 
 const sortNodes = (elements: QContext[]) => {
@@ -327,8 +343,8 @@ const sortNodes = (elements: QContext[]) => {
   );
 };
 
-const sortWatches = (watches: SubscriberEffect[]) => {
-  watches.sort((a, b) => {
+const sortTasks = (tasks: SubscriberEffect[]) => {
+  tasks.sort((a, b) => {
     if (a.$el$ === b.$el$) {
       return a.$index$ < b.$index$ ? -1 : 1;
     }

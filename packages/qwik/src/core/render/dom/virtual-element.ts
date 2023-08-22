@@ -139,7 +139,11 @@ export class VirtualElementImpl implements VirtualElement {
   private $attributes$: Record<string, string>;
   private $template$: HTMLTemplateElement;
 
-  constructor(readonly open: Comment, readonly close: Comment, readonly isSvg: boolean) {
+  constructor(
+    readonly open: Comment,
+    readonly close: Comment,
+    readonly isSvg: boolean
+  ) {
     const doc = (this.ownerDocument = open.ownerDocument);
     this.$template$ = createElement(doc, 'template', false) as HTMLTemplateElement;
     this.$attributes$ = parseVirtualAttributes(open.data.slice(3));
@@ -162,11 +166,12 @@ export class VirtualElementImpl implements VirtualElement {
   remove() {
     const parent = this.parentElement;
     if (parent) {
-      // const ch = this.childNodes;
       const ch = this.childNodes;
       assertEqual(this.$template$.childElementCount, 0, 'children should be empty');
       parent.removeChild(this.open);
-      this.$template$.append(...ch);
+      for (let i = 0; i < ch.length; i++) {
+        this.$template$.appendChild(ch[i]);
+      }
       parent.removeChild(this.close);
     }
   }

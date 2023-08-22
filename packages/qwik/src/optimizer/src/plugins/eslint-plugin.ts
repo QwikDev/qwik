@@ -51,6 +51,9 @@ export async function createLinter(
 
         report.forEach((file) => {
           for (const message of file.messages) {
+            if (message.ruleId != null && !message.ruleId.startsWith('qwik/')) {
+              continue;
+            }
             const err = createRollupError(file.filePath, message);
             ctx.warn(err);
           }

@@ -4,10 +4,25 @@ import type { BuildContext, BuildEntry, BuildRoute, PluginOptions, MdxPlugins } 
 /**
  * @public
  */
+export interface ImageOptimizationOptions {
+  jsxDirectives?: {
+    quality?: `${number}`;
+    format?: 'webp' | 'avif' | 'png';
+    w?: string;
+    h?: string;
+    [key: string]: string | undefined;
+  };
+  enabled?: boolean | 'only-production';
+}
+
+/**
+ * @public
+ */
 export interface QwikCityVitePluginOptions extends Omit<PluginOptions, 'basePathname'> {
   mdxPlugins?: MdxPlugins;
   mdx?: MdxOptions;
   platform?: Record<string, unknown>;
+  imageOptimization?: ImageOptimizationOptions;
 }
 
 /**

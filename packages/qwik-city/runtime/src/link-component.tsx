@@ -10,7 +10,7 @@ export const Link = component$<LinkProps>((props) => {
   const nav = useNavigate();
   const loc = useLocation();
   const originalHref = props.href;
-  const { onClick$, reload, ...linkProps } = (() => props)();
+  const { onClick$, reload, replaceState, scroll, ...linkProps } = (() => props)();
   const clientNavPath = untrack(() => getClientNavPath(linkProps, loc));
   const prefetchDataset = untrack(() => getPrefetchDataset(props, clientNavPath, loc));
   linkProps['preventdefault:click'] = !!clientNavPath;
@@ -22,9 +22,17 @@ export const Link = component$<LinkProps>((props) => {
         )
       : undefined;
   const handleClick = event$(async (_: any, elm: HTMLAnchorElement) => {
-    if (elm.href) {
+    if (!elm.hasAttribute('preventdefault:click')) {
+      // Do not enter the nav pipeline if this is not a clientNavPath.
+      return;
+    }
+
+    if (elm.hasAttribute('q:nbs')) {
+      // Allow bootstrapping into useNavigate.
+      await nav(location.href, { type: 'popstate' });
+    } else if (elm.href) {
       elm.setAttribute('aria-pressed', 'true');
-      await nav(elm.href, reload);
+      await nav(elm.href, { forceReload: reload, replaceState, scroll });
       elm.removeAttribute('aria-pressed');
     }
   });
@@ -69,4 +77,6 @@ type AnchorAttributes = QwikIntrinsicElements['a'];
 export interface LinkProps extends AnchorAttributes {
   prefetch?: boolean;
   reload?: boolean;
+  replaceState?: boolean;
+  scroll?: boolean;
 }

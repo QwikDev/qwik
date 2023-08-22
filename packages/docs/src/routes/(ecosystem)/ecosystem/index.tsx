@@ -3,32 +3,36 @@ import type { DocumentHead } from '@builder.io/qwik-city';
 import { Link } from '@builder.io/qwik-city';
 import styles from '../ecosystem.css?inline';
 import data from '../ecosystem.json';
-import { MEDIA } from '../media/index';
+import { MEDIA, type MediaEntry } from '../media/index';
 import SHOWCASE from '../showcase/generated-pages.json';
 import { EcosystemMenu } from './ecosystem-menu';
 import { QwikPlusLogo } from './qwik-plus-logo';
+import { MobileEcosystemMenu } from './mobile-ecosystem-menu';
 
 export default component$(() => {
   useStyles$(styles);
 
-  const courses = MEDIA.courses.slice(0, 6);
-  const videos = MEDIA.videos.slice(0, 6);
-  const podcasts = MEDIA.podcasts.slice(0, 6);
-  const presentations = MEDIA.presentations.slice(0, 6);
+  const mediaFilter = (item: MediaEntry) => item?.promoted;
+
+  const courses = MEDIA.courses.filter(mediaFilter);
+  const videos = MEDIA.videos.filter(mediaFilter);
+  const podcasts = MEDIA.podcasts.filter(mediaFilter);
+  const presentations = MEDIA.presentations.filter(mediaFilter);
   const showcaseSites = SHOWCASE.slice(0, 6);
 
   return (
     <>
-      <div class="ecosystem lg:grid grid-cols-[240px,1fr] px-6 m-auto max-w-screen-xl gap-8">
+      <div class="ecosystem lg:grid grid-cols-[240px,1fr] m-auto max-w-screen-xl gap-8">
         <EcosystemMenu />
+        <MobileEcosystemMenu />
 
-        <article>
+        <article class="px-6">
           <QwikPlusLogo />
 
           <div class="purple-gradient" role="presentation" />
           <div class="blue-gradient" role="presentation" />
 
-          <section id="deployments">
+          <section class="scroll-m-20 lg:scroll-m-24" id="deployments">
             <h2>
               <Link href="/docs/deployments/">Deployments</Link>
             </h2>
@@ -49,7 +53,7 @@ export default component$(() => {
             </ul>
           </section>
 
-          <section id="integrations">
+          <section class="scroll-m-20 lg:scroll-m-24" id="integrations">
             <h2>
               <span>
                 <Link href="/docs/integrations/">Integrations</Link>
@@ -77,7 +81,7 @@ export default component$(() => {
             </ul>
           </section>
 
-          <section id="libraries">
+          <section class="scroll-m-20 lg:scroll-m-24" id="libraries">
             <h2>
               <span>Libraries</span>
               <span></span>
@@ -97,7 +101,7 @@ export default component$(() => {
             </ul>
           </section>
 
-          <section>
+          <section class="scroll-m-20 lg:scroll-m-24">
             <h2>Newsletter</h2>
             <a href="https://qwiknewsletter.com" target="_blank">
               <div class="flex flex-col items-center gap-8">
@@ -116,7 +120,7 @@ export default component$(() => {
             </a>
           </section>
 
-          <section id="courses">
+          <section class="scroll-m-20 lg:scroll-m-24" id="courses">
             <h2>
               <span>
                 <Link href="/media/#courses">Courses</Link>
@@ -145,7 +149,7 @@ export default component$(() => {
             </ul>
           </section>
 
-          <section id="videos">
+          <section class="scroll-m-20 lg:scroll-m-24" id="videos">
             <h2>
               <span>
                 <Link href="/media/#videos">Videos</Link>
@@ -174,7 +178,7 @@ export default component$(() => {
             </ul>
           </section>
 
-          <section id="podcasts">
+          <section class="scroll-m-20 lg:scroll-m-24" id="podcasts">
             <h2>
               <span>
                 <Link href="/media/#podcasts">Podcasts</Link>
@@ -203,7 +207,7 @@ export default component$(() => {
             </ul>
           </section>
 
-          <section id="showcase">
+          <section class="scroll-m-20 lg:scroll-m-24" id="showcase">
             <h2>
               <span>
                 <Link href="/showcase/">Showcase</Link>
@@ -232,7 +236,7 @@ export default component$(() => {
             </ul>
           </section>
 
-          <section id="presentations">
+          <section class="scroll-m-20 lg:scroll-m-24" id="presentations">
             <h2>
               <span>
                 <Link href="/media/#presentations">Presentations</Link>
@@ -261,7 +265,7 @@ export default component$(() => {
             </ul>
           </section>
 
-          <section id="community">
+          <section class="scroll-m-20 lg:scroll-m-24" id="community">
             <h2>
               <Link href="/community/groups/">Community</Link>
             </h2>
@@ -286,7 +290,7 @@ export default component$(() => {
             </aside>
           </section>
 
-          <section id="social">
+          <section class="scroll-m-20 lg:scroll-m-24" id="social">
             <h2>
               <Link href="/community/groups/">Social</Link>
             </h2>
@@ -311,7 +315,7 @@ export const GridItem: FunctionComponent<GridItemProps> = (props) => {
     <li class="grid-item">
       <Link href={props.href}>
         <div class={{ thumbnail: props.thumbnailBg, cover: props.imgCover }}>
-          <img src={props.imgSrc} alt={props.title} loading="lazy" />
+          <img src={props.imgSrc} alt={props.title} width="250" height="120" loading="lazy" />
         </div>
         <div class="text">{props.title}</div>
       </Link>

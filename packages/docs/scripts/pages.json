@@ -1,7 +1,7 @@
 [
   {
     "href": "https://wope.com/",
-    "tags": "sass"
+    "tags": "saas"
   },
   {
     "href": "https://www.builder.io/",
@@ -17,6 +17,14 @@
   },
   {
     "href": "https://reflect.app/",
+    "tags": "saas"
+  },
+  {
+    "href": "https://realmof.tech/",
+    "tags": "portfolio"
+  },
+  {
+    "href": "https://www.hexa.center/",
     "tags": "saas"
   },
   {
@@ -55,7 +63,13 @@
   },
   {
     "href": "https://www.burgersonfleek.ca/",
-    "tags": "site"
+    "tags": "site",
+    "repo": "https://github.com/saboooor/burgersonfleek"
+  },
+  {
+    "href": "https://simplymc.art/",
+    "tags": "site",
+    "repo": "https://github.com/LuminescentDev/SimplyMC"
   },
   {
     "href": "https://goshi.dev/",
@@ -116,6 +130,10 @@
     "tags": "site"
   },
   {
+    "href": "https://ss-link.netlify.app/",
+    "tags": "app"
+  },
+  {
     "href": "https://necatikcl.dev/",
     "tags": "personal",
     "size": "large"
@@ -127,6 +145,10 @@
   {
     "href": "https://keyboardz.co/",
     "tags": "ecommerce"
+  },
+  {
+    "href": "https://itbusinesshub.com/",
+    "tags": "blog"
   },
   {
     "href": "https://travelcalc.pages.dev",
@@ -146,6 +168,23 @@
   },
   {
     "href": "https://leonerd.blog",
+    "tags": "portfolio"
+  },
+  {
+    "href": "https://seifen.vercel.app/",
+    "tags": "site"
+  },
+  {
+    "href": "https://builtwith.appwrite.io/",
+    "tags": "site",
+    "repo": "https://github.com/appwrite/builtwith"
+  },
+  {
+    "href": "https://radixstream.com/",
+    "tags": "site"
+  },
+  {
+    "href": "https://www.anirbandas.in/",
     "tags": "portfolio"
   }
 ]

@@ -1,3 +1,4 @@
+import type { ContainerState } from '../../container/container';
 import { assertDefined } from '../../error/assert';
 import { codeToText, QError_setProperty } from '../../error/error';
 import type { StyleAppend } from '../../use/use-core';
@@ -120,7 +121,7 @@ export const appendHeadStyle = (staticCtx: RenderStaticContext, styleTask: Style
   staticCtx.$containerState$.$styleIds$.add(styleTask.styleId);
   staticCtx.$postOperations$.push({
     $operation$: _appendHeadStyle,
-    $args$: [staticCtx.$containerState$.$containerEl$, styleTask],
+    $args$: [staticCtx.$containerState$, styleTask],
   });
 };
 
@@ -142,7 +143,8 @@ export const _setClasslist = (elm: Element, toRemove: string[], toAdd: string[])
   classList.add(...toAdd);
 };
 
-export const _appendHeadStyle = (containerEl: Element, styleTask: StyleAppend) => {
+export const _appendHeadStyle = (containerState: ContainerState, styleTask: StyleAppend) => {
+  const containerEl = containerState.$containerEl$;
   const doc = getDocument(containerEl);
   const isDoc = doc.documentElement === containerEl;
   const headEl = doc.head;
@@ -232,8 +234,8 @@ export const resolveSlotProjection = (staticCtx: RenderStaticContext) => {
       if (hostCtx) {
         const hostElm = hostCtx.$element$;
         if (hostElm.isConnected) {
-          const hasTemplate = Array.from(hostElm.childNodes).some(
-            (node) => isSlotTemplate(node) && directGetAttribute(node, QSlot) === key
+          const hasTemplate = getChildren(hostElm, isSlotTemplate).some(
+            (node: any) => directGetAttribute(node, QSlot) === key
           );
 
           if (!hasTemplate) {
@@ -261,12 +263,11 @@ export const resolveSlotProjection = (staticCtx: RenderStaticContext) => {
     const key = getKey(slotEl);
     assertDefined(key, 'slots must have a key');
 
-    const template = Array.from(hostElm.childNodes).find((node) => {
-      return isSlotTemplate(node) && node.getAttribute(QSlot) === key;
+    const template = getChildren(hostElm, isSlotTemplate).find((node: any) => {
+      return node.getAttribute(QSlot) === key;
     }) as Element | undefined;
     if (template) {
-      const children = getChildren(template, isChildComponent);
-      children.forEach((child) => {
+      getChildren(template, isChildComponent).forEach((child) => {
         directAppendChild(slotEl, child);
       });
       template.remove();

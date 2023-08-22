@@ -1,7 +1,7 @@
 name: 📖 Documentation Suggestion
 description: Suggestions on how we can improve the documentation.
 title: '[📖]'
-labels: ['COMP: docs']
+labels: ['COMP: docs', 'STATUS-1: needs triage']
 body:
   - type: markdown
     attributes:

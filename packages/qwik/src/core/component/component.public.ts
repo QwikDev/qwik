@@ -227,7 +227,7 @@ export type PropFunctionProps<PROPS extends {}> = {
 // </docs>
 export const component$ = <
   PROPS = unknown,
-  ARG extends {} = PROPS extends {} ? PropFunctionProps<PROPS> : {}
+  ARG extends {} = PROPS extends {} ? PropFunctionProps<PROPS> : {},
 >(
   onMount: OnRenderFn<ARG>
 ): Component<PROPS extends {} ? PROPS : ARG> => {

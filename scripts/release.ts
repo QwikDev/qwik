@@ -149,6 +149,11 @@ export async function publish(config: BuildConfig) {
   // dry-run does everything the same except actually publish to npm
   const npmPublishArgs = ['publish', '--tag', distTag, '--access', 'public'];
 
+  // fix qwik-city version
+  const distCityPkg = await readPackageJson(config.distQwikCityPkgDir);
+  distCityPkg.version = distPkg.version;
+  await writePackageJson(config.distQwikCityPkgDir, distCityPkg);
+
   // publish @builder.io/qwik-city (dry-run)
   await run('npm', npmPublishArgs, true, true, { cwd: config.distQwikCityPkgDir });
 

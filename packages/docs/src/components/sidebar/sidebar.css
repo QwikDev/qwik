@@ -5,12 +5,16 @@
 .sidebar summary {
   cursor: pointer;
   display: block;
+  padding-top: 3px;
+  margin-bottom: 3px;
+}
+
+.sidebar summary h5 {
+  transition: color 0.2s ease-in-out;
 }
 
 .sidebar summary:hover h5 {
-  text-decoration: underline;
-  text-decoration-thickness: 2px;
-  text-decoration-color: currentColor;
+  color: var(--text-color);
 }
 
 .sidebar summary::marker,
@@ -81,7 +85,7 @@
 
   padding-top: 30px;
   top: 8rem;
-  border-right: 2px solid #18b6f6;
+  border-right: 1px solid #8c8c8c66;
 }
 
 .menu h5 {
@@ -91,7 +95,6 @@
 
 .menu ul {
   @apply border-slate-100;
-  padding-left: 10px;
   padding-bottom: 15px;
 }
 
@@ -101,6 +104,8 @@
 
 details li {
   @apply py-1 pl-3 block overflow-hidden text-ellipsis;
+  padding: unset;
+  transition: background-color 0.2s ease-in-out;
 }
 
 details li:hover {
@@ -113,10 +118,13 @@ details li a {
 
 .menu li a {
   color: var(--secondary-text-color);
+  padding: 0.5rem 20px;
+  border-radius: 4px;
 }
 
 .menu li a.is-active {
   font-weight: 800;
+  background-color: #b1b1b13a;
 }
 
 @media (max-width: 1023px) {

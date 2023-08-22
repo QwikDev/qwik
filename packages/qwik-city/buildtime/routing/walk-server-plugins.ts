@@ -5,6 +5,7 @@ import {
   createFileId,
   getExtension,
   isModuleExt,
+  isPageModuleExt,
   isPluginModule,
   normalizePath,
   removeExtension,
@@ -20,9 +21,9 @@ export async function walkServerPlugins(opts: NormalizedPluginOptions) {
       const ext = getExtension(itemName);
       const extlessName = removeExtension(itemName);
 
-      if (isModuleExt(ext) && isPluginModule(extlessName)) {
+      if ((isModuleExt(ext) || isPageModuleExt(ext)) && isPluginModule(extlessName)) {
         sourceFiles.push({
-          id: createFileId(opts.serverPluginsDir, itemPath),
+          id: createFileId(opts.serverPluginsDir, itemPath, 'Plugin'),
           filePath: itemPath,
           ext,
         });

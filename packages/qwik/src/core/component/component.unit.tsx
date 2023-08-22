@@ -20,8 +20,7 @@ qComponent('should declare and render basic component', async () => {
     `
     <host q:version="dev" q:container="resumed" q:render="dom-dev">
         <style q:style="pfkgyr-0" hidden="">
-           {
-          }
+          {}
         </style>
         <!--qv -->
         <span>Hello World</span>

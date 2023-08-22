@@ -1,4 +1,11 @@
-import type { NoSerialize, QRL, Signal, ValueOrPromise } from '@builder.io/qwik';
+import type {
+  NoSerialize,
+  QRL,
+  QwikIntrinsicElements,
+  Signal,
+  ValueOrPromise,
+  ReadonlySignal,
+} from '@builder.io/qwik';
 import type {
   RequestEvent,
   RequestEventAction,
@@ -7,7 +14,6 @@ import type {
   RequestHandler,
   ResolveSyncValue,
 } from '@builder.io/qwik-city/middleware/request-handler';
-import type { ReadonlySignal } from 'packages/qwik/src/core/state/signal';
 import type * as zod from 'zod';
 
 export type {
@@ -68,7 +74,42 @@ export interface RouteLocation {
 /**
  * @public
  */
-export type RouteNavigate = QRL<(path?: string, forceReload?: boolean) => Promise<void>>;
+export type NavigationType = 'initial' | 'form' | 'link' | 'popstate';
+
+/**
+ * @internal
+ */
+export type RouteStateInternal = {
+  type: NavigationType;
+  dest: URL;
+  forceReload?: boolean;
+  replaceState?: boolean;
+  scroll?: boolean;
+};
+
+export type ScrollState = {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+};
+
+/**
+ * @public
+ */
+export type RouteNavigate = QRL<
+  (
+    path?: string,
+    options?:
+      | {
+          type?: Exclude<NavigationType, 'initial'>;
+          forceReload?: boolean;
+          replaceState?: boolean;
+          scroll?: boolean;
+        }
+      | boolean
+  ) => Promise<void>
+>;
 
 export type RouteAction = Signal<RouteActionValue>;
 
@@ -109,6 +150,10 @@ export interface DocumentHeadValue {
    */
   readonly styles?: readonly DocumentStyle[];
   /**
+   * Used to manually append `<script>` elements to the `<head>`.
+   */
+  readonly scripts?: readonly DocumentScript[];
+  /**
    * Arbitrary object containing custom data. When the document head is created from
    * markdown files, the frontmatter attributes that are not recognized as a well-known
    * meta names (such as title, description, author, etc...), are stored in this property.
@@ -131,6 +176,7 @@ export interface DocumentMeta {
   readonly property?: string;
   readonly key?: string;
   readonly itemprop?: string;
+  readonly media?: string;
 }
 
 /**
@@ -161,7 +207,16 @@ export interface DocumentLink {
  */
 export interface DocumentStyle {
   readonly style: string;
-  readonly props?: Readonly<{ [propName: string]: string }>;
+  readonly props?: Readonly<QwikIntrinsicElements['style']>;
+  readonly key?: string;
+}
+
+/**
+ * @alpha
+ */
+export interface DocumentScript {
+  readonly script?: string;
+  readonly props?: Readonly<QwikIntrinsicElements['script']>;
   readonly key?: string;
 }
 
@@ -216,14 +271,12 @@ export type MenuModuleLoader = () => Promise<MenuModule>;
  * @public
  */
 export type RouteData =
-  | [pattern: RegExp, loaders: ModuleLoader[]]
-  | [pattern: RegExp, loaders: ModuleLoader[], paramNames: string[]]
+  | [routeName: string, loaders: ModuleLoader[]]
   | [
-      pattern: RegExp,
+      routeName: string,
       loaders: ModuleLoader[],
-      paramNames: string[],
       originalPathname: string,
-      routeBundleNames: string[]
+      routeBundleNames: string[],
     ];
 
 /**
@@ -253,10 +306,11 @@ export type ContentModule = PageModule | LayoutModule;
 export type ContentModuleHead = DocumentHead | ResolvedDocumentHead;
 
 export type LoadedRoute = [
+  routeName: string,
   params: PathParams,
   mods: (RouteModule | ContentModule)[],
   menu: ContentMenu | undefined,
-  routeBundleNames: string[] | undefined
+  routeBundleNames: string[] | undefined,
 ];
 
 export interface LoadedContent extends LoadedRoute {
@@ -297,6 +351,7 @@ export interface StaticGenerate {
 export interface QwikCityRenderDocument extends Document {}
 
 export interface QwikCityEnvData {
+  routeName: string;
   ev: RequestEvent;
   params: PathParams;
   response: EndpointResponse;
@@ -390,7 +445,7 @@ export interface ActionConstructor {
   <
     O extends Record<string, any> | void | null,
     B extends TypedDataValidator,
-    REST extends DataValidator[]
+    REST extends DataValidator[],
   >(
     actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>,
     options: B,
@@ -436,7 +491,7 @@ export interface ActionConstructorQRL {
   <
     O extends Record<string, any> | void | null,
     B extends TypedDataValidator,
-    REST extends DataValidator[]
+    REST extends DataValidator[],
   >(
     actionQrl: QRL<(data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>>,
     options: B,
@@ -684,9 +739,11 @@ export interface ValidatorConstructorQRL {
  */
 export interface ZodConstructor {
   <T extends zod.ZodRawShape>(schema: T): TypedDataValidator<zod.ZodObject<T>>;
-  <T extends zod.ZodRawShape>(schema: (z: typeof zod) => T): TypedDataValidator<zod.ZodObject<T>>;
+  <T extends zod.ZodRawShape>(
+    schema: (z: typeof zod, ev: RequestEvent) => T
+  ): TypedDataValidator<zod.ZodObject<T>>;
   <T extends zod.Schema>(schema: T): TypedDataValidator<T>;
-  <T extends zod.Schema>(schema: (z: typeof zod) => T): TypedDataValidator<T>;
+  <T extends zod.Schema>(schema: (z: typeof zod, ev: RequestEvent) => T): TypedDataValidator<T>;
 }
 
 /**
@@ -694,11 +751,13 @@ export interface ZodConstructor {
  */
 export interface ZodConstructorQRL {
   <T extends zod.ZodRawShape>(schema: QRL<T>): TypedDataValidator<zod.ZodObject<T>>;
-  <T extends zod.ZodRawShape>(schema: QRL<(zs: typeof zod) => T>): TypedDataValidator<
-    zod.ZodObject<T>
-  >;
+  <T extends zod.ZodRawShape>(
+    schema: QRL<(zs: typeof zod, ev: RequestEvent) => T>
+  ): TypedDataValidator<zod.ZodObject<T>>;
   <T extends zod.Schema>(schema: QRL<T>): TypedDataValidator<T>;
-  <T extends zod.Schema>(schema: QRL<(z: typeof zod) => T>): TypedDataValidator<T>;
+  <T extends zod.Schema>(
+    schema: QRL<(z: typeof zod, ev: RequestEvent) => T>
+  ): TypedDataValidator<T>;
 }
 
 export interface ServerFunction {

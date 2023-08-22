@@ -13,6 +13,7 @@ import { JSXNode } from '@builder.io/qwik';
 import { QRL } from '@builder.io/qwik';
 import { QwikIntrinsicElements } from '@builder.io/qwik';
 import { QwikJSX } from '@builder.io/qwik';
+import type { ReadonlySignal } from '@builder.io/qwik';
 import { RequestEvent } from '@builder.io/qwik-city/middleware/request-handler';
 import { RequestEventAction } from '@builder.io/qwik-city/middleware/request-handler';
 import { RequestEventBase } from '@builder.io/qwik-city/middleware/request-handler';
@@ -121,6 +122,8 @@ export interface DocumentHeadValue {
     readonly frontmatter?: Readonly<Record<string, any>>;
     readonly links?: readonly DocumentLink[];
     readonly meta?: readonly DocumentMeta[];
+    // Warning: (ae-incompatible-release-tags) The symbol "scripts" is marked as @public, but its signature references "DocumentScript" which is marked as @alpha
+    readonly scripts?: readonly DocumentScript[];
     readonly styles?: readonly DocumentStyle[];
     readonly title?: string;
 }
@@ -174,9 +177,21 @@ export interface DocumentMeta {
     // (undocumented)
     readonly key?: string;
     // (undocumented)
+    readonly media?: string;
+    // (undocumented)
     readonly name?: string;
     // (undocumented)
     readonly property?: string;
+}
+
+// @alpha (undocumented)
+export interface DocumentScript {
+    // (undocumented)
+    readonly key?: string;
+    // (undocumented)
+    readonly props?: Readonly<QwikIntrinsicElements['script']>;
+    // (undocumented)
+    readonly script?: string;
 }
 
 // @public (undocumented)
@@ -184,9 +199,7 @@ export interface DocumentStyle {
     // (undocumented)
     readonly key?: string;
     // (undocumented)
-    readonly props?: Readonly<{
-        [propName: string]: string;
-    }>;
+    readonly props?: Readonly<QwikIntrinsicElements['style']>;
     // (undocumented)
     readonly style: string;
 }
@@ -247,6 +260,10 @@ export interface LinkProps extends AnchorAttributes {
     prefetch?: boolean;
     // (undocumented)
     reload?: boolean;
+    // (undocumented)
+    replaceState?: boolean;
+    // (undocumented)
+    scroll?: boolean;
 }
 
 // @public (undocumented)
@@ -254,8 +271,6 @@ export interface Loader<RETURN> {
     (): LoaderSignal<RETURN>;
 }
 
-// Warning: (ae-forgotten-export) The symbol "ReadonlySignal" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
 export type LoaderSignal<T> = T extends () => ValueOrPromise<infer B> ? ReadonlySignal<ValueOrPromise<B>> : ReadonlySignal<T>;
 
@@ -263,6 +278,9 @@ export type LoaderSignal<T> = T extends () => ValueOrPromise<infer B> ? Readonly
 //
 // @public (undocumented)
 export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
+
+// @public (undocumented)
+export type NavigationType = 'initial' | 'form' | 'link' | 'popstate';
 
 // Warning: (ae-forgotten-export) The symbol "RouteModule" needs to be exported by the entry point index.d.ts
 //
@@ -283,8 +301,14 @@ export interface PageModule extends RouteModule {
 // @public (undocumented)
 export type PathParams = Record<string, string>;
 
-// Warning: (ae-forgotten-export) The symbol "QwikCityMockProps" needs to be exported by the entry point index.d.ts
-//
+// @public (undocumented)
+export interface QwikCityMockProps {
+    // (undocumented)
+    params?: Record<string, string>;
+    // (undocumented)
+    url?: string;
+}
+
 // @public (undocumented)
 export const QwikCityMockProvider: Component<QwikCityMockProps>;
 
@@ -336,10 +360,9 @@ export const routeActionQrl: ActionConstructorQRL;
 // Warning: (ae-forgotten-export) The symbol "ModuleLoader" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export type RouteData = [pattern: RegExp, loaders: ModuleLoader[]] | [pattern: RegExp, loaders: ModuleLoader[], paramNames: string[]] | [
-pattern: RegExp,
+export type RouteData = [routeName: string, loaders: ModuleLoader[]] | [
+routeName: string,
 loaders: ModuleLoader[],
-paramNames: string[],
 originalPathname: string,
 routeBundleNames: string[]
 ];
@@ -367,7 +390,12 @@ export interface RouteLocation {
 }
 
 // @public (undocumented)
-export type RouteNavigate = QRL<(path?: string, forceReload?: boolean) => Promise<void>>;
+export type RouteNavigate = QRL<(path?: string, options?: {
+    type?: Exclude<NavigationType, 'initial'>;
+    forceReload?: boolean;
+    replaceState?: boolean;
+    scroll?: boolean;
+} | boolean) => Promise<void>>;
 
 // @public (undocumented)
 export const RouterOutlet: Component<    {}>;
@@ -430,11 +458,11 @@ export interface ZodConstructor {
     // (undocumented)
     <T extends zod.ZodRawShape>(schema: T): TypedDataValidator<zod.ZodObject<T>>;
     // (undocumented)
-    <T extends zod.ZodRawShape>(schema: (z: typeof zod) => T): TypedDataValidator<zod.ZodObject<T>>;
+    <T extends zod.ZodRawShape>(schema: (z: typeof zod, ev: RequestEvent) => T): TypedDataValidator<zod.ZodObject<T>>;
     // (undocumented)
     <T extends zod.Schema>(schema: T): TypedDataValidator<T>;
     // (undocumented)
-    <T extends zod.Schema>(schema: (z: typeof zod) => T): TypedDataValidator<T>;
+    <T extends zod.Schema>(schema: (z: typeof zod, ev: RequestEvent) => T): TypedDataValidator<T>;
 }
 
 // Warning: (ae-forgotten-export) The symbol "ZodConstructorQRL" needs to be exported by the entry point index.d.ts

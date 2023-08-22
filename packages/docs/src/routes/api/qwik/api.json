@@ -189,7 +189,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "Low-level API for platform abstraction.\n\nDifferent platforms (browser, node, service workers) may have different ways of handling things such as `requestAnimationFrame` and imports. To make Qwik platform-independent Qwik uses the `CorePlatform` API to access the platform API.\n\n`CorePlatform` also is responsible for importing symbols. The import map is different on the client (browser) then on the server. For this reason, the server has a manifest that is used to map symbols to javascript chunks. The manifest is encapsulated in `CorePlatform`<!-- -->, for this reason, the `CorePlatform` can't be global as there may be multiple applications running at server concurrently.\n\nThis is a low-level API and there should not be a need for you to access this.\n\n\n```typescript\nexport interface CorePlatform \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [chunkForSymbol](#) |  | (symbolName: string, chunk: string \\| null) =&gt; readonly \\[symbol: string, chunk: string\\] \\| undefined | <p>Retrieve chunk name for the symbol.</p><p>When the application is running on the server the symbols may be imported from different files (as server build is typically a single javascript chunk.) For this reason, it is necessary to convert the chunks from server format to client (browser) format. This is done by looking up symbols (which are globally unique) in the manifest. (Manifest is the mapping of symbols to the client chunk names.)</p> |\n|  [importSymbol](#) |  | (containerEl: Element \\| undefined, url: string \\| URL \\| undefined \\| null, symbol: string) =&gt; [ValueOrPromise](#valueorpromise)<!-- -->&lt;any&gt; | <p>Retrieve a symbol value from QRL.</p><p>Qwik needs to lazy load data and closures. For this Qwik uses QRLs that are serializable references of resources that are needed. The QRLs contain all the information necessary to retrieved the reference using <code>importSymbol</code>.</p><p>Why not use <code>import()</code>? Because <code>import()</code> is relative to the current file, and the current file is always the Qwik framework. So QRLs have additional information that allows them to serialize imports relative to application base rather than the Qwik framework file.</p> |\n|  [isServer](#) |  | boolean | True of running on the server platform. |\n|  [nextTick](#) |  | (fn: () =&gt; any) =&gt; Promise&lt;any&gt; | Perform operation on next tick. |\n|  [raf](#) |  | (fn: () =&gt; any) =&gt; Promise&lt;any&gt; | Perform operation on next request-animation-frame. |",
+      "content": "Low-level API for platform abstraction.\n\nDifferent platforms (browser, node, service workers) may have different ways of handling things such as `requestAnimationFrame` and imports. To make Qwik platform-independent Qwik uses the `CorePlatform` API to access the platform API.\n\n`CorePlatform` also is responsible for importing symbols. The import map is different on the client (browser) then on the server. For this reason, the server has a manifest that is used to map symbols to javascript chunks. The manifest is encapsulated in `CorePlatform`<!-- -->, for this reason, the `CorePlatform` can't be global as there may be multiple applications running at server concurrently.\n\nThis is a low-level API and there should not be a need for you to access this.\n\n\n```typescript\nexport interface CorePlatform \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [chunkForSymbol](#) |  | (symbolName: string, chunk: string \\| null) =&gt; readonly \\[symbol: string, chunk: string\\] \\| undefined | <p>Retrieve chunk name for the symbol.</p><p>When the application is running on the server the symbols may be imported from different files (as server build is typically a single javascript chunk.) For this reason, it is necessary to convert the chunks from server format to client (browser) format. This is done by looking up symbols (which are globally unique) in the manifest. (Manifest is the mapping of symbols to the client chunk names.)</p> |\n|  [importSymbol](#) |  | (containerEl: Element \\| undefined, url: string \\| URL \\| undefined \\| null, symbol: string) =&gt; [ValueOrPromise](#valueorpromise)<!-- -->&lt;any&gt; | <p>Retrieve a symbol value from QRL.</p><p>Qwik needs to lazy load data and closures. For this Qwik uses QRLs that are serializable references of resources that are needed. The QRLs contain all the information necessary to retrieve the reference using <code>importSymbol</code>.</p><p>Why not use <code>import()</code>? Because <code>import()</code> is relative to the current file, and the current file is always the Qwik framework. So QRLs have additional information that allows them to serialize imports relative to application base rather than the Qwik framework file.</p> |\n|  [isServer](#) |  | boolean | True of running on the server platform. |\n|  [nextTick](#) |  | (fn: () =&gt; any) =&gt; Promise&lt;any&gt; | Perform operation on next tick. |\n|  [raf](#) |  | (fn: () =&gt; any) =&gt; Promise&lt;any&gt; | Perform operation on next request-animation-frame. |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/platform/types.ts",
       "mdFile": "qwik.coreplatform.md"
     },
@@ -208,6 +208,20 @@
       "mdFile": "qwik.createcontextid.md"
     },
     {
+      "name": "CSSProperties",
+      "id": "cssproperties",
+      "hierarchy": [
+        {
+          "name": "CSSProperties",
+          "id": "cssproperties"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface CSSProperties extends CSS.Properties<string | number>, CSS.PropertiesHyphen<string | number> \n```\n**Extends:** CSS.Properties&lt;string \\| number&gt;, CSS.PropertiesHyphen&lt;string \\| number&gt;",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts",
+      "mdFile": "qwik.cssproperties.md"
+    },
+    {
       "name": "DOMAttributes",
       "id": "domattributes",
       "hierarchy": [
@@ -217,7 +231,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface DOMAttributes<T> extends QwikProps<T>, QwikEvents<T> \n```\n**Extends:** QwikProps&lt;T&gt;, QwikEvents&lt;T&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [children?](#) |  | [JSXChildren](#jsxchildren) | _(Optional)_ |\n|  [key?](#) |  | string \\| number \\| null \\| undefined | _(Optional)_ |",
+      "content": "```typescript\nexport interface DOMAttributes<T extends Element> extends QwikProps<T>, QwikEvents<T> \n```\n**Extends:** QwikProps&lt;T&gt;, QwikEvents&lt;T&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [children?](#) |  | [JSXChildren](#jsxchildren) | _(Optional)_ |\n|  [key?](#) |  | string \\| number \\| null \\| undefined | _(Optional)_ |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts",
       "mdFile": "qwik.domattributes.md"
     },
@@ -467,7 +481,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> \n```\n**Extends:** [AriaAttributes](#ariaattributes)<!-- -->, [DOMAttributes](#domattributes)<!-- -->&lt;T&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [about?](#) |  | string \\| undefined | _(Optional)_ |\n|  [accessKey?](#) |  | string \\| undefined | _(Optional)_ |\n|  [autoCapitalize?](#) |  | string \\| undefined | _(Optional)_ |\n|  [autoCorrect?](#) |  | string \\| undefined | _(Optional)_ |\n|  [autoSave?](#) |  | string \\| undefined | _(Optional)_ |\n|  [color?](#) |  | string \\| undefined | _(Optional)_ |\n|  [contentEditable?](#) |  | 'true' \\| 'false' \\| 'inherit' \\| undefined | _(Optional)_ |\n|  [contextMenu?](#) |  | string \\| undefined | _(Optional)_ |\n|  [datatype?](#) |  | string \\| undefined | _(Optional)_ |\n|  [dir?](#) |  | 'ltr' \\| 'rtl' \\| 'auto' \\| undefined | _(Optional)_ |\n|  [draggable?](#) |  | boolean \\| undefined | _(Optional)_ |\n|  [hidden?](#) |  | boolean \\| 'hidden' \\| 'until-found' \\| undefined | _(Optional)_ |\n|  [id?](#) |  | string \\| undefined | _(Optional)_ |\n|  [inlist?](#) |  | any | _(Optional)_ |\n|  [inputMode?](#) |  | 'none' \\| 'text' \\| 'tel' \\| 'url' \\| 'email' \\| 'numeric' \\| 'decimal' \\| 'search' \\| undefined | _(Optional)_ Hints at the type of data that might be entered by the user while editing the element or its contents |\n|  [is?](#) |  | string \\| undefined | _(Optional)_ Specify that a standard HTML element should behave like a defined custom built-in element |\n|  [itemID?](#) |  | string \\| undefined | _(Optional)_ |\n|  [itemProp?](#) |  | string \\| undefined | _(Optional)_ |\n|  [itemRef?](#) |  | string \\| undefined | _(Optional)_ |\n|  [itemScope?](#) |  | boolean \\| undefined | _(Optional)_ |\n|  [itemType?](#) |  | string \\| undefined | _(Optional)_ |\n|  [lang?](#) |  | string \\| undefined | _(Optional)_ |\n|  [placeholder?](#) |  | string \\| undefined | _(Optional)_ |\n|  [prefix?](#) |  | string \\| undefined | _(Optional)_ |\n|  [property?](#) |  | string \\| undefined | _(Optional)_ |\n|  [radioGroup?](#) |  | string \\| undefined | _(Optional)_ |\n|  [resource?](#) |  | string \\| undefined | _(Optional)_ |\n|  [results?](#) |  | number \\| undefined | _(Optional)_ |\n|  [role?](#) |  | [AriaRole](#ariarole) \\| undefined | _(Optional)_ |\n|  [security?](#) |  | string \\| undefined | _(Optional)_ |\n|  [slot?](#) |  | string \\| undefined | _(Optional)_ |\n|  [spellcheck?](#) |  | boolean \\| undefined | _(Optional)_ |\n|  [style?](#) |  | Record&lt;string, string \\| number \\| undefined&gt; \\| string \\| undefined | _(Optional)_ |\n|  [tabIndex?](#) |  | number \\| undefined | _(Optional)_ |\n|  [title?](#) |  | string \\| undefined | _(Optional)_ |\n|  [translate?](#) |  | 'yes' \\| 'no' \\| undefined | _(Optional)_ |\n|  [typeof?](#) |  | string \\| undefined | _(Optional)_ |\n|  [unselectable?](#) |  | 'on' \\| 'off' \\| undefined | _(Optional)_ |\n|  [vocab?](#) |  | string \\| undefined | _(Optional)_ |",
+      "content": "```typescript\nexport interface HTMLAttributes<T extends Element> extends AriaAttributes, DOMAttributes<T> \n```\n**Extends:** [AriaAttributes](#ariaattributes)<!-- -->, [DOMAttributes](#domattributes)<!-- -->&lt;T&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [about?](#) |  | string \\| undefined | _(Optional)_ |\n|  [accessKey?](#) |  | string \\| undefined | _(Optional)_ |\n|  [autoCapitalize?](#) |  | string \\| undefined | _(Optional)_ |\n|  [autoCorrect?](#) |  | string \\| undefined | _(Optional)_ |\n|  [autoSave?](#) |  | string \\| undefined | _(Optional)_ |\n|  [color?](#) |  | string \\| undefined | _(Optional)_ |\n|  [contentEditable?](#) |  | 'true' \\| 'false' \\| 'inherit' \\| undefined | _(Optional)_ |\n|  [contextMenu?](#) |  | string \\| undefined | _(Optional)_ |\n|  [datatype?](#) |  | string \\| undefined | _(Optional)_ |\n|  [dir?](#) |  | 'ltr' \\| 'rtl' \\| 'auto' \\| undefined | _(Optional)_ |\n|  [draggable?](#) |  | boolean \\| undefined | _(Optional)_ |\n|  [hidden?](#) |  | boolean \\| 'hidden' \\| 'until-found' \\| undefined | _(Optional)_ |\n|  [id?](#) |  | string \\| undefined | _(Optional)_ |\n|  [inlist?](#) |  | any | _(Optional)_ |\n|  [inputMode?](#) |  | 'none' \\| 'text' \\| 'tel' \\| 'url' \\| 'email' \\| 'numeric' \\| 'decimal' \\| 'search' \\| undefined | _(Optional)_ Hints at the type of data that might be entered by the user while editing the element or its contents |\n|  [is?](#) |  | string \\| undefined | _(Optional)_ Specify that a standard HTML element should behave like a defined custom built-in element |\n|  [itemID?](#) |  | string \\| undefined | _(Optional)_ |\n|  [itemProp?](#) |  | string \\| undefined | _(Optional)_ |\n|  [itemRef?](#) |  | string \\| undefined | _(Optional)_ |\n|  [itemScope?](#) |  | boolean \\| undefined | _(Optional)_ |\n|  [itemType?](#) |  | string \\| undefined | _(Optional)_ |\n|  [lang?](#) |  | string \\| undefined | _(Optional)_ |\n|  [placeholder?](#) |  | string \\| undefined | _(Optional)_ |\n|  [prefix?](#) |  | string \\| undefined | _(Optional)_ |\n|  [property?](#) |  | string \\| undefined | _(Optional)_ |\n|  [radioGroup?](#) |  | string \\| undefined | _(Optional)_ |\n|  [resource?](#) |  | string \\| undefined | _(Optional)_ |\n|  [results?](#) |  | number \\| undefined | _(Optional)_ |\n|  [role?](#) |  | [AriaRole](#ariarole) \\| undefined | _(Optional)_ |\n|  [security?](#) |  | string \\| undefined | _(Optional)_ |\n|  [slot?](#) |  | string \\| undefined | _(Optional)_ |\n|  [spellcheck?](#) |  | boolean \\| undefined | _(Optional)_ |\n|  [style?](#) |  | [CSSProperties](#cssproperties) \\| string \\| undefined | _(Optional)_ |\n|  [tabIndex?](#) |  | number \\| undefined | _(Optional)_ |\n|  [title?](#) |  | string \\| undefined | _(Optional)_ |\n|  [translate?](#) |  | 'yes' \\| 'no' \\| undefined | _(Optional)_ |\n|  [typeof?](#) |  | string \\| undefined | _(Optional)_ |\n|  [unselectable?](#) |  | 'on' \\| 'off' \\| undefined | _(Optional)_ |\n|  [vocab?](#) |  | string \\| undefined | _(Optional)_ |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts",
       "mdFile": "qwik.htmlattributes.md"
     },
@@ -1016,7 +1030,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikDOMAttributes extends DOMAttributes<any> \n```\n**Extends:** [DOMAttributes](#domattributes)<!-- -->&lt;any&gt;",
+      "content": "```typescript\nexport interface QwikDOMAttributes extends DOMAttributes<Element> \n```\n**Extends:** [DOMAttributes](#domattributes)<!-- -->&lt;Element&gt;",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik.ts",
       "mdFile": "qwik.qwikdomattributes.md"
     },
@@ -1058,7 +1072,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikIntrinsicElements extends IntrinsicHTMLElements \n```\n**Extends:** IntrinsicHTMLElements\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [script](#) |  | QwikScriptHTMLAttributes&lt;HTMLScriptElement&gt; |  |",
+      "content": "The interface holds available attributes of both native DOM elements and custom Qwik elements. An example showing how to define a customizable wrapper component:\n\n```tsx\nimport { component$, Slot, type QwikIntrinsicElements } from \"@builder.io/qwik\";\n\ntype WrapperProps = {\n  attributes?: QwikIntrinsicElements[\"div\"];\n};\n\nexport default component$<WrapperProps>(({ attributes }) => {\n  return (\n    <div {...attributes} class=\"p-2\">\n      <Slot />\n    </div>\n  );\n});\n```\n\n\n```typescript\nexport interface QwikIntrinsicElements extends IntrinsicHTMLElements \n```\n**Extends:** IntrinsicHTMLElements",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-elements.ts",
       "mdFile": "qwik.qwikintrinsicelements.md"
     },
@@ -1100,7 +1114,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikKeyboardEvent<T = Element> extends SyntheticEvent<T, NativeKeyboardEvent> \n```\n**Extends:** SyntheticEvent&lt;T, [NativeKeyboardEvent](#nativekeyboardevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [altKey](#) |  | boolean |  |\n|  [charCode](#) |  | number |  |\n|  [ctrlKey](#) |  | boolean |  |\n|  [key](#) |  | string | See the \\[DOM Level 3 Events spec\\](https://www.w3.org/TR/uievents-key/\\#named-key-attribute-values). for possible values |\n|  [keyCode](#) |  | number |  |\n|  [locale](#) |  | string |  |\n|  [location](#) |  | number |  |\n|  [metaKey](#) |  | boolean |  |\n|  [repeat](#) |  | boolean |  |\n|  [shiftKey](#) |  | boolean |  |\n|  [which](#) |  | number |  |\n\n\n|  Method | Description |\n|  --- | --- |\n|  [getModifierState(key)](#qwikkeyboardevent-getmodifierstate) | See \\[DOM Level 3 Events spec\\](https://www.w3.org/TR/uievents-key/\\#keys-modifier). for a list of valid (case-sensitive) arguments to this method. |",
+      "content": "```typescript\nexport interface QwikKeyboardEvent<T = Element> extends SyntheticEvent<T, NativeKeyboardEvent> \n```\n**Extends:** SyntheticEvent&lt;T, [NativeKeyboardEvent](#nativekeyboardevent)<!-- -->&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [altKey](#) |  | boolean |  |\n|  [charCode](#) |  | number |  |\n|  [ctrlKey](#) |  | boolean |  |\n|  [isComposing](#) |  | boolean |  |\n|  [key](#) |  | string | See the \\[DOM Level 3 Events spec\\](https://www.w3.org/TR/uievents-key/\\#named-key-attribute-values). for possible values |\n|  [keyCode](#) |  | number |  |\n|  [locale](#) |  | string |  |\n|  [location](#) |  | number |  |\n|  [metaKey](#) |  | boolean |  |\n|  [repeat](#) |  | boolean |  |\n|  [shiftKey](#) |  | boolean |  |\n|  [which](#) |  | number |  |\n\n\n|  Method | Description |\n|  --- | --- |\n|  [getModifierState(key)](#qwikkeyboardevent-getmodifierstate) | See \\[DOM Level 3 Events spec\\](https://www.w3.org/TR/uievents-key/\\#keys-modifier). for a list of valid (case-sensitive) arguments to this method. |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwikkeyboardevent.md"
     },
@@ -1203,6 +1217,20 @@
       "mdFile": "qwik.qwikwheelevent.md"
     },
     {
+      "name": "ReadonlySignal",
+      "id": "readonlysignal",
+      "hierarchy": [
+        {
+          "name": "ReadonlySignal",
+          "id": "readonlysignal"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type ReadonlySignal<T = any> = Readonly<Signal<T>>;\n```\n**References:** [Signal](#signal)",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/state/signal.ts",
+      "mdFile": "qwik.readonlysignal.md"
+    },
+    {
       "name": "render",
       "id": "render",
       "hierarchy": [
@@ -1268,7 +1296,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface RenderSSROptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [base?](#) |  | string | _(Optional)_ |\n|  [beforeClose?](#) |  | (contexts: QContext\\[\\], containerState: ContainerState, containsDynamic: boolean, textNodes: Map&lt;string, string&gt;) =&gt; Promise&lt;[JSXNode](#jsxnode)<!-- -->&gt; | _(Optional)_ |\n|  [beforeContent?](#) |  | [JSXNode](#jsxnode)<!-- -->&lt;string&gt;\\[\\] | _(Optional)_ |\n|  [containerAttributes](#) |  | Record&lt;string, string&gt; |  |\n|  [containerTagName](#) |  | string |  |\n|  [serverData?](#) |  | Record&lt;string, any&gt; | _(Optional)_ |\n|  [stream](#) |  | [StreamWriter](#streamwriter) |  |\n|  [url?](#) |  | string | _(Optional)_ |",
+      "content": "```typescript\nexport interface RenderSSROptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [base?](#) |  | string | _(Optional)_ |\n|  [beforeClose?](#) |  | (contexts: QContext\\[\\], containerState: ContainerState, containsDynamic: boolean, textNodes: Map&lt;string, string&gt;) =&gt; Promise&lt;[JSXNode](#jsxnode)<!-- -->&gt; | _(Optional)_ |\n|  [beforeContent?](#) |  | [JSXNode](#jsxnode)<!-- -->&lt;string&gt;\\[\\] | _(Optional)_ |\n|  [containerAttributes](#) |  | Record&lt;string, string&gt; |  |\n|  [containerTagName](#) |  | string |  |\n|  [manifestHash](#) |  | string |  |\n|  [serverData?](#) |  | Record&lt;string, any&gt; | _(Optional)_ |\n|  [stream](#) |  | [StreamWriter](#streamwriter) |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/ssr/render-ssr.ts",
       "mdFile": "qwik.renderssroptions.md"
     },

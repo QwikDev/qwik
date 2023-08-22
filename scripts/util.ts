@@ -1,4 +1,4 @@
-import type { Plugin, WatchMode } from 'esbuild';
+import type { Plugin } from 'esbuild';
 import { join } from 'node:path';
 import mri from 'mri';
 import {
@@ -35,6 +35,7 @@ export interface BuildConfig {
   srcNapiDir: string;
   srcQwikDir: string;
   srcQwikCityDir: string;
+  srcQwikLabsDir: string;
   scriptsDir: string;
   startersDir: string;
   tscDir: string;
@@ -50,6 +51,7 @@ export interface BuildConfig {
   build?: boolean;
   qwikcity?: boolean;
   qwikreact?: boolean;
+  qwiklabs?: boolean;
   qwikauth?: boolean;
   qwikworker?: boolean;
   supabaseauthhelpers?: boolean;
@@ -83,6 +85,7 @@ export function loadConfig(args: string[] = []) {
   config.tmpDir = join(config.rootDir, 'dist-dev');
   config.srcQwikDir = join(config.packagesDir, 'qwik', 'src');
   config.srcQwikCityDir = join(config.packagesDir, 'qwik-city');
+  config.srcQwikLabsDir = join(config.packagesDir, 'qwik-labs');
   config.srcNapiDir = join(config.srcQwikDir, 'napi');
   config.scriptsDir = join(config.rootDir, 'scripts');
   config.startersDir = join(config.rootDir, 'starters');
@@ -132,23 +135,6 @@ export function importPath(filter: RegExp, newModulePath: string) {
     },
   };
   return plugin;
-}
-
-/**
- * Esbuild plugin to print out console logs the rebuild has finished or if it has errors.
- */
-export function watcher(config: BuildConfig, filename?: string): WatchMode | boolean {
-  if (config.watch) {
-    return {
-      onRebuild(error) {
-        if (error) console.error('watch build failed:', error);
-        else {
-          if (filename) console.log('rebuilt:', filename);
-        }
-      },
-    };
-  }
-  return false;
 }
 
 /**

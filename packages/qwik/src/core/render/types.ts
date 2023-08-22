@@ -37,7 +37,7 @@ export interface RenderStaticContext {
  */
 export interface RenderContext2 {}
 
-// Polyfills for ViewTransition API
+// Polyfills for ViewTransition API & scroll restoration
 declare global {
   interface ViewTransition {
     ready: Promise<void>;
@@ -49,5 +49,6 @@ declare global {
   interface Document {
     startViewTransition?: (callback: () => void | Promise<void>) => ViewTransition;
     __q_view_transition__?: true | undefined;
+    __q_scroll_restore__?: (() => void) | undefined;
   }
 }

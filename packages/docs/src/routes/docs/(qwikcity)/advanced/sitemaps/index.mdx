@@ -1,5 +1,5 @@
 ---
-title: Generating Sitemaps
+title: Generating Sitemaps | Advanced
 contributors:
   - adamdbradley
 ---
@@ -24,13 +24,13 @@ The sitemap can be configured using the adapter's vite config file. The example 
   ]
 ```
 
-The `include` option is used to specify which pages should are built, which also adds them to the sitemap. Any pages added to the `exclude` option will also exclude them from the sitemap. 
+The `include` option is used to specify which pages should be built, which also adds them to the sitemap. Any pages added to the `exclude` option will also exclude them from the sitemap. 
 
 The `origin` option is used to specify the origin of the site and is used to generate the absolute URLs for the sitemap.
 
 ## robots.txt
 
-Depending on your site setup, you'll probably want to add a [robots.txt](https://en.wikipedia.org/wiki/Robots.txt) file to your site. This can be done by adding a `robots.txt` file to the `public` directory. Any file in the `public` directory is treated as a static file and deploy along side the build. The following is an example of a `public/robots.txt` file:
+Depending on your site setup, you'll probably want to add a [robots.txt](https://en.wikipedia.org/wiki/Robots.txt) file to your site. This can be done by adding a `robots.txt` file to the `public` directory. Any file in the `public` directory is treated as a static file and deploy alongside the build. The following is an example of a `public/robots.txt` file:
 
 ```bash
 User-agent: *

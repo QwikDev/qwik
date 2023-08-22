@@ -520,11 +520,12 @@ export const Works = component$(({
     some = 1+2,
     hello = CONST,
     stuff: hey,
+    stuffDefault: hey2 = 123,
     ...rest}) => {
     console.log(hey, some);
     useTask$(({track}) => {
         track(() => count);
-        console.log(count, rest, hey, some);
+        console.log(count, rest, hey, some, hey2);
     });
     return (
         <div some={some} params={{ some }} class={count} {...rest}>{count}</div>
@@ -612,6 +613,34 @@ export const Issue3561 = component$(() => {
     console.log(variantImage, variantNumber, setContents)
 
     return <p></p>;
+  });
+"#
+        .to_string(),
+        transpile_jsx: false,
+        entry_strategy: EntryStrategy::Inline,
+        transpile_ts: true,
+        is_server: Some(false),
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_optimization_issue_4386() {
+    test_input!(TestInput {
+        code: r#"
+import { component$ } from '@builder.io/qwik';
+
+export const FOO_MAPPING = {
+    A: 1,
+    B: 2,
+    C: 3,
+  };
+
+  export default component$(() => {
+    const key = 'A';
+    const value = FOO_MAPPING[key];
+
+    return <>{value}</>;
   });
 "#
         .to_string(),
@@ -2013,6 +2042,7 @@ export const App = component$((props) => {
                 class={styles.foo}
                 document={window.document}
                 onClick$={props.onClick$}
+                onEvent$={() => console.log('stuff')}
                 transparent$={() => {console.log('stuff')}}
                 immutable1="stuff"
                 immutable2={{
@@ -2330,8 +2360,8 @@ export const App = component$((props: Stuff) => {
 fn example_mutable_children() {
     test_input!(TestInput {
         code: r#"
-import { component$, useStore } from '@builder.io/qwik';
-
+import { component$, useStore, Slot, Fragment } from '@builder.io/qwik';
+import Image from './image.jpg?jsx';
 
 export function Fn1(props: Stuff) {
     return (
@@ -2412,7 +2442,10 @@ export const AppStatic = component$((props: Stuff) => {
             <div>Static {f ? 1 : 3}</div>
             <div>{prop < 2 ? <p>1</p> : <p>2</p>}</div>
 
-            <div>{prop.value && <div></div>}<div></div></div>
+            <div>{prop.value && <div></div>}</div>
+            <div>{prop.value && <Fragment><Slot></Slot></Fragment>}</div>
+            <div>{prop.value && <><div></div></>}</div>
+            <div>{prop.value && <Image/>}</div>
             <div>Static {f ? 1 : 3}</div>
             <div>Static</div>
             <div>Static {props.value}</div>
@@ -2431,6 +2464,28 @@ export const AppStatic = component$((props: Stuff) => {
     });
 }
 
+#[test]
+fn example_immutable_function_components() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore, Slot } from '@builder.io/qwik';
+
+export const App = component$((props: Stuff) => {
+    return (
+        <div>
+            <Slot/>
+        </div>
+    );
+});
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Hoist,
+        transpile_ts: true,
+        transpile_jsx: true,
+        explicit_extensions: true,
+        ..TestInput::default()
+    });
+}
 #[test]
 fn example_transpile_ts_only() {
     test_input!(TestInput {
@@ -2633,6 +2688,30 @@ export const App = component$(() => {
             noInline4={signal.value + dep}
         />
 
+    );
+});
+"#
+        .to_string(),
+        transpile_jsx: true,
+        transpile_ts: true,
+        entry_strategy: EntryStrategy::Hoist,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_issue_4438() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useSignal } from '@builder.io/qwik';
+
+export const App = component$(() => {
+    const toggle = useSignal(false);
+    return (
+        <>
+            <div data-nu={toggle.value ? $localize`singular` : 'plural'}></div>
+            <div>{toggle.value ? $localize`singular` : $localize`plural`}</div>
+        </>
     );
 });
 "#

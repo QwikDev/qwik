@@ -18,4 +18,4 @@ export namespace QwikJSX {
 /**
  * @public
  */
-export interface QwikDOMAttributes extends DOMAttributes<any> {}
+export interface QwikDOMAttributes extends DOMAttributes<Element> {}

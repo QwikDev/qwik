@@ -99,6 +99,7 @@ pub struct QwikTransform<'a> {
     in_component: bool,
     marker_functions: HashMap<Id, JsWord>,
     jsx_functions: HashSet<Id>,
+    immutable_function_cmp: HashSet<Id>,
     qcomponent_fn: Option<Id>,
     qhook_fn: Option<Id>,
     inlined_qrl_fn: Option<Id>,
@@ -183,6 +184,37 @@ impl<'a> QwikTransform<'a> {
             })
             .collect();
 
+        let immutable_function_cmp = options
+            .global_collect
+            .imports
+            .iter()
+            .flat_map(|(id, import)| {
+                match (
+                    import.kind,
+                    import.source.as_ref(),
+                    import.specifier.as_ref(),
+                ) {
+                    (
+                        ImportKind::Named,
+                        "@builder.io/qwik/jsx-runtime" | "@builder.io/qwik/jsx-dev-runtime",
+                        "Fragment",
+                    ) => Some(id.clone()),
+                    (
+                        ImportKind::Named,
+                        "@builder.io/qwik",
+                        "Fragment" | "RenderOnce" | "HTMLFragment",
+                    ) => Some(id.clone()),
+                    (ImportKind::Named, "@builder.io/qwik-city", "Link") => Some(id.clone()),
+                    (_, source, _) => {
+                        if source.ends_with("?jsx") || source.ends_with(".md") {
+                            Some(id.clone())
+                        } else {
+                            None
+                        }
+                    }
+                }
+            })
+            .collect();
         QwikTransform {
             file_hash: hasher.finish(),
             jsx_key_counter: 0,
@@ -212,6 +244,7 @@ impl<'a> QwikTransform<'a> {
                 .get_imported_local(&FRAGMENT, &options.core_module),
             marker_functions,
             jsx_functions,
+            immutable_function_cmp,
             root_jsx_mode: true,
             jsx_mutable: false,
             options,
@@ -486,6 +519,9 @@ impl<'a> QwikTransform<'a> {
                 return (None, false);
             } else if decl_collect.iter().any(|entry| entry.0 == *ident) {
                 set.insert(ident.clone());
+            } else if ident.0.starts_with('$') {
+                // TODO: remove, this is a workaround for $localize to work
+                return (None, false);
             }
         }
         let mut scoped_idents: Vec<Id> = set.into_iter().collect();
@@ -724,7 +760,9 @@ impl<'a> QwikTransform<'a> {
             }
             ast::Expr::Ident(ident) => {
                 self.stack_ctxt.push(ident.sym.to_string());
-                self.jsx_mutable = true;
+                if !self.immutable_function_cmp.contains(&id!(ident)) {
+                    self.jsx_mutable = true;
+                }
                 (true, true, false)
             }
             _ => {
@@ -1459,6 +1497,10 @@ impl<'a> QwikTransform<'a> {
                 } else {
                     mutable_props.extend(event_handlers.into_iter());
                 }
+
+                mutable_props.sort_by(sort_props);
+                immutable_props.sort_by(sort_props);
+
                 if static_subtree {
                     flags |= 1 << 1;
                 }
@@ -1780,7 +1822,8 @@ impl<'a> Fold for QwikTransform<'a> {
     fn fold_function(&mut self, node: ast::Function) -> ast::Function {
         let mut node = node.fold_children_with(self);
         if let Some(body) = &mut node.body {
-            let is_condition = is_conditional_jsx_block(body, &self.jsx_functions);
+            let is_condition =
+                is_conditional_jsx_block(body, &self.jsx_functions, &self.immutable_function_cmp);
             if is_condition {
                 body.stmts.insert(
                     0,
@@ -1808,7 +1851,11 @@ impl<'a> Fold for QwikTransform<'a> {
 
         let is_component = self.in_component;
         self.in_component = false;
-        let is_condition = is_conditional_jsx(&node.body, &self.jsx_functions);
+        let is_condition = is_conditional_jsx(
+            &node.body,
+            &self.jsx_functions,
+            &self.immutable_function_cmp,
+        );
         let current_scope = self
             .decl_stack
             .last_mut()
@@ -2355,4 +2402,29 @@ fn is_text_only(node: &str) -> bool {
         node,
         "text" | "textarea" | "title" | "option" | "script" | "style" | "noscript"
     )
+}
+
+fn sort_props(a: &ast::PropOrSpread, b: &ast::PropOrSpread) -> std::cmp::Ordering {
+    match (a, b) {
+        (
+            ast::PropOrSpread::Prop(box ast::Prop::KeyValue(ref a)),
+            ast::PropOrSpread::Prop(box ast::Prop::KeyValue(ref b)),
+        ) => {
+            let a_key = match &a.key {
+                ast::PropName::Ident(ident) => Some(ident.sym.as_ref()),
+                ast::PropName::Str(s) => Some(s.value.as_ref()),
+                _ => None,
+            };
+            let b_key = match b.key {
+                ast::PropName::Ident(ref ident) => Some(ident.sym.as_ref()),
+                ast::PropName::Str(ref s) => Some(s.value.as_ref()),
+                _ => None,
+            };
+            match (a_key, b_key) {
+                (Some(a_key), Some(b_key)) => a_key.cmp(b_key),
+                _ => std::cmp::Ordering::Equal,
+            }
+        }
+        _ => std::cmp::Ordering::Equal,
+    }
 }

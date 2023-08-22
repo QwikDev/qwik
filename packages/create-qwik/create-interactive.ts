@@ -12,12 +12,13 @@ import {
   isCancel,
   log,
 } from '@clack/prompts';
-import { bgBlue, red, gray } from 'kleur/colors';
+import { bgBlue, red, gray, magenta } from 'kleur/colors';
 import type { CreateAppOptions } from '../qwik/src/cli/types';
-import { backgroundInstallDeps } from '../qwik/src/cli/utils/install-deps';
+import { backgroundInstallDeps, installDeps } from '../qwik/src/cli/utils/install-deps';
 import { createApp, getOutDir, logCreateAppResult } from './create-app';
 import { getPackageManager, note, runCommand, wait } from '../qwik/src/cli/utils/utils';
 import { loadIntegrations } from '../qwik/src/cli/utils/integrations';
+import { getRandomJoke } from './jokes';
 
 export async function runCreateInteractiveCli() {
   intro(`Let's create a ${bgBlue(' Qwik App ')} ✨ (v${(globalThis as any).QWIK_VERSION})`);
@@ -51,7 +52,7 @@ export async function runCreateInteractiveCli() {
 
   log.info(`Creating new project in ${bgBlue(' ' + outDir + ' ')} ... 🐇`);
 
-  let removeExistingOutDirPromise: Promise<void> | null = null;
+  let removeExistingOutDirPromise: Promise<void | void[]> | null = null;
 
   if (fs.existsSync(outDir) && fs.readdirSync(outDir).length > 0) {
     const existingOutDirAnswer = await select({
@@ -61,7 +62,7 @@ export async function runCreateInteractiveCli() {
       )}" already exists and is not empty. What would you like to do?`,
       options: [
         { value: 'exit', label: 'Do not overwrite this directory and exit' },
-        { value: 'replace', label: 'Overwrite and replace this directory' },
+        { value: 'replace', label: 'Remove contents of this directory' },
       ],
     });
 
@@ -71,7 +72,15 @@ export async function runCreateInteractiveCli() {
     }
 
     if (existingOutDirAnswer === 'replace') {
-      removeExistingOutDirPromise = fs.promises.rm(outDir, { recursive: true });
+      removeExistingOutDirPromise = fs.promises
+        .readdir(outDir)
+        .then((filePaths) =>
+          Promise.all(
+            filePaths.map((pathToFile) =>
+              fs.promises.rm(join(outDir, pathToFile), { recursive: true })
+            )
+          )
+        );
     }
   }
 
@@ -112,6 +121,19 @@ export async function runCreateInteractiveCli() {
 
   if (!runDepInstall) {
     backgroundInstall.abort();
+  } else {
+    try {
+      const joke = await confirm({
+        message: `Finishing the install. Wanna hear a joke?`,
+        initialValue: true,
+      });
+      if (!isCancel(joke) && joke) {
+        const [setup, punchline] = getRandomJoke();
+        note(magenta(`${setup!.trim()}\n${punchline!.trim()}`), '🙈');
+      }
+    } catch (e) {
+      // Never crash on jokes
+    }
   }
 
   const opts: CreateAppOptions = {
@@ -153,6 +175,12 @@ export async function runCreateInteractiveCli() {
   if (runDepInstall) {
     s.start(`Installing ${pkgManager} dependencies...`);
     successfulDepsInstall = await backgroundInstall.complete(result.outDir);
+
+    if (successfulDepsInstall) {
+      const finalInstall = installDeps(pkgManager, result.outDir);
+      successfulDepsInstall = await finalInstall.install;
+    }
+
     s.stop(
       `${successfulDepsInstall ? 'Installed' : 'Failed to install'} ${pkgManager} dependencies 📋`
     );

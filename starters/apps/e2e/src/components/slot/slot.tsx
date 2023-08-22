@@ -10,7 +10,8 @@ import {
   _jsxBranch,
   jsx,
   type JSXNode,
-} from '@builder.io/qwik';
+  useVisibleTask$,
+} from "@builder.io/qwik";
 
 export const SlotParent = component$(() => {
   const state = useStore({
@@ -43,7 +44,9 @@ export const SlotParent = component$(() => {
           </Projector>
 
           <Projector state={state} id="btn2">
-            {!state.removeContent && <div q:slot="start">START {state.count}</div>}
+            {!state.removeContent && (
+              <div q:slot="start">START {state.count}</div>
+            )}
           </Projector>
 
           <Thing state={state} id="btn3">
@@ -58,6 +61,10 @@ export const SlotParent = component$(() => {
           <Issue3607 />
           <Issue3727 />
           <Issue4215 />
+          <Issue4283>
+            <p>index page</p>
+          </Issue4283>
+          <Issue4658 />
         </>
       )}
       <div>
@@ -88,7 +95,11 @@ export const SlotParent = component$(() => {
         </button>
       </div>
       <div>
-        <button id="btn-count" class="border border-cyan-600" onClick$={() => state.count++}>
+        <button
+          id="btn-count"
+          class="border border-cyan-600"
+          onClick$={() => state.count++}
+        >
           Count
         </button>
       </div>
@@ -110,7 +121,10 @@ export const Issue1630 = component$(() => {
 
   return (
     <>
-      <button id="toggle-child-slot" onClick$={() => (store.open = !store.open)}>
+      <button
+        id="toggle-child-slot"
+        onClick$={() => (store.open = !store.open)}
+      >
         Toggle Non-Slotted Content
       </button>
       <Slot name="slot-content" />
@@ -193,11 +207,14 @@ export const Issue2688 = component$(({ count }: { count: number }) => {
 
   return (
     <>
-      <button id="issue-2688-button" onClick$={() => (store.flip = !store.flip)}>
+      <button
+        id="issue-2688-button"
+        onClick$={() => (store.flip = !store.flip)}
+      >
         Toggle switch
       </button>
       <div id="issue-2688-result">
-        <Switch name={store.flip ? 'b' : 'a'}>
+        <Switch name={store.flip ? "b" : "a"}>
           <div q:slot="a">Alpha {count}</div>
           <div q:slot="b">Bravo {count}</div>
         </Switch>
@@ -206,7 +223,9 @@ export const Issue2688 = component$(({ count }: { count: number }) => {
   );
 });
 
-const Issue2751Context = createContextId<Signal<number>>('CleanupCounterContext');
+const Issue2751Context = createContextId<Signal<number>>(
+  "CleanupCounterContext",
+);
 
 export const Issue2751 = component$(() => {
   const signal = useSignal(0);
@@ -251,7 +270,7 @@ export const Bogus = component$(() => {
   );
 });
 
-const Issue3565Model = component$(() => {
+export const Issue3565Model = component$(() => {
   return (
     <div id="issue-3565-result">
       Own content
@@ -279,7 +298,7 @@ export const Issue3607 = component$(() => {
         show.value = !show.value;
       }}
     >
-      {show.value ? 'Loading...' : 'Load more'}
+      {show.value ? "Loading..." : "Load more"}
     </Issue3607Button>
   );
 });
@@ -294,7 +313,7 @@ export const Issue3607Button = component$(({ onClick$ }: any) => {
   );
 });
 
-const CTX = createContextId<Signal<any[]>>('content-Issue3727');
+const CTX = createContextId<Signal<any[]>>("content-Issue3727");
 
 export const Issue3727 = component$(() => {
   const content = useSignal<any[]>([Issue3727ParentA, Issue3727ChildA]);
@@ -374,7 +393,7 @@ export const QwikSvgWithSlot = component$(() => {
       id="issue-4215-svg"
       viewBox="0 0 24 24"
       xmlns="http://www.w3.org/2000/svg"
-      style={{ width: '24px', height: '24px' }}
+      style={{ width: "24px", height: "24px" }}
     >
       <Slot />
     </svg>
@@ -404,6 +423,85 @@ export const Issue4215 = component$(() => {
           )}
         </QwikSvgWithSlot>
       </div>
+    </>
+  );
+});
+
+export const HideUntilVisible = component$(() => {
+  const isNotVisible = useSignal(true);
+
+  useVisibleTask$(
+    () => {
+      if (isNotVisible.value) {
+        isNotVisible.value = false;
+      }
+    },
+    {
+      strategy: "document-ready",
+    },
+  );
+
+  // NOTE: if you comment the line below,
+  // there will only be one "Content"
+  if (isNotVisible.value) {
+    return <div></div>;
+  }
+
+  return (
+    <div id="issue-4283-result">
+      <p>Hide until visible</p>
+      <Slot />
+    </div>
+  );
+});
+
+export const Issue4283 = component$(() => {
+  return (
+    <HideUntilVisible>
+      <p>Content</p>
+      <Slot />
+    </HideUntilVisible>
+  );
+});
+
+export const Issue4658Context =
+  createContextId<Signal<boolean>>("issue-4658-context");
+export const Issue4658Inner = component$(() => {
+  const toggle = useContext(Issue4658Context);
+  return (
+    <>
+      <main>
+        <Slot />
+      </main>
+      {toggle.value ? (
+        <h3 id="issue-4658-inner">CCC</h3>
+      ) : (
+        <h3 id="issue-4658-inner">DDD</h3>
+      )}
+    </>
+  );
+});
+
+export const Issue4658 = component$(() => {
+  const toggle = useSignal(false);
+  useContextProvider(Issue4658Context, toggle);
+  return (
+    <>
+      <Issue4658Inner>
+        {toggle.value ? (
+          <h1 id="issue-4658-top">AAA</h1>
+        ) : (
+          <h1 id="issue-4658-top">BBB</h1>
+        )}
+      </Issue4658Inner>
+      <button
+        id="issue-4658-toggle"
+        onClick$={() => {
+          toggle.value = !toggle.value;
+        }}
+      >
+        Toggle
+      </button>
     </>
   );
 });

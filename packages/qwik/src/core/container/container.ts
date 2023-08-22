@@ -85,8 +85,8 @@ export interface ContainerState {
   readonly $proxyMap$: ObjToProxyMap;
   $subsManager$: SubscriptionManager;
 
-  readonly $watchNext$: Set<SubscriberEffect>;
-  readonly $watchStaging$: Set<SubscriberEffect>;
+  readonly $taskNext$: Set<SubscriberEffect>;
+  readonly $taskStaging$: Set<SubscriberEffect>;
 
   readonly $opsNext$: Set<SubscriberSignal>;
 
@@ -101,6 +101,7 @@ export interface ContainerState {
   $elementIndex$: number;
 
   $pauseCtx$: PauseContext | undefined;
+  $styleMoved$: boolean;
   readonly $styleIds$: Set<string>;
   readonly $events$: Set<string>;
 }
@@ -126,13 +127,14 @@ export const createContainerState = (containerEl: Element, base: string) => {
     $containerEl$: containerEl,
 
     $elementIndex$: 0,
+    $styleMoved$: false,
 
     $proxyMap$: new WeakMap(),
 
     $opsNext$: new Set(),
 
-    $watchNext$: new Set(),
-    $watchStaging$: new Set(),
+    $taskNext$: new Set(),
+    $taskStaging$: new Set(),
 
     $hostsNext$: new Set(),
     $hostsStaging$: new Set(),

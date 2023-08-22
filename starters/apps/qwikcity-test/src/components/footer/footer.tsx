@@ -1,12 +1,14 @@
-import { component$, useStyles$, useTask$ } from '@builder.io/qwik';
-import { Link } from '@builder.io/qwik-city';
-import { useUserLoader } from '../../routes/layout';
-import { useRootLoader } from '../../routes/plugin@header';
-import styles from './footer.css?inline';
+import { component$, useStyles$, useTask$ } from "@builder.io/qwik";
+import { Link } from "@builder.io/qwik-city";
+import { useUserLoader } from "../../routes/layout";
+import { useRootLoader } from "../../routes/plugin@header";
+import styles from "./footer.css?inline";
+import { usePlugin } from "../../routes/plugin@issue4722";
 
 export default component$(() => {
   const serverData = useRootLoader();
   const userData = useUserLoader();
+  const plugin = usePlugin();
 
   useStyles$(styles);
 
@@ -53,6 +55,7 @@ export default component$(() => {
       <ul>
         <li>{serverData.value.serverTime.toISOString()}</li>
         <li>Node {serverData.value.nodeVersion}</li>
+        <li>{plugin.value.message}</li>
       </ul>
     </footer>
   );

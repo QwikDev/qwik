@@ -139,6 +139,7 @@ export interface HookAnalysis {
   ctxKind: 'event' | 'function';
   ctxName: string;
   captures: boolean;
+  loc: [number, number];
 }
 
 // RESULT OUTPUT ***************
@@ -228,6 +229,7 @@ export interface HoistEntryStrategy {
  */
 export interface HookEntryStrategy {
   type: 'hook';
+  manual?: Record<string, string>;
 }
 
 /**
@@ -258,6 +260,7 @@ export interface SmartEntryStrategy {
  * @public
  */
 export interface QwikManifest {
+  manifestHash: string;
   symbols: { [symbolName: string]: QwikSymbol };
   mapping: { [symbolName: string]: string };
   bundles: { [fileName: string]: QwikBundle };
@@ -266,7 +269,6 @@ export interface QwikManifest {
   options?: {
     target?: string;
     buildMode?: string;
-    forceFullBuild?: boolean;
     entryStrategy?: { [key: string]: any };
   };
   platform?: { [name: string]: string };
@@ -297,6 +299,7 @@ export interface QwikSymbol {
   ctxName: string;
   captures: boolean;
   parent: string | null;
+  loc: [number, number];
 }
 
 /**

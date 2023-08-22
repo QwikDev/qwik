@@ -2,7 +2,7 @@ import { assertDefined, assertTrue } from '../error/assert';
 import { getDocument } from '../util/dom';
 import { isComment, isElement, isNode, isQwikElement, isText } from '../util/element';
 import { logDebug, logWarn } from '../util/log';
-import { ELEMENT_ID, QContainerAttr, QStyle } from '../util/markers';
+import { ELEMENT_ID, QContainerAttr } from '../util/markers';
 
 import { emitEvent } from '../util/event';
 
@@ -19,7 +19,7 @@ import {
   strToInt,
 } from './container';
 import { findClose, VirtualElementImpl } from '../render/dom/virtual-element';
-import { getProxyManager, parseSubscription, type Subscriptions } from '../state/common';
+import { getSubscriptionManager, parseSubscription, type Subscriptions } from '../state/common';
 import { createProxy, setObjectFlags } from '../state/store';
 import { qDev, qSerialize } from '../util/qdev';
 import { pauseContainer } from './pause';
@@ -115,7 +115,6 @@ export const resumeContainer = (containerEl: Element) => {
 
   const inlinedFunctions = getQwikInlinedFuncs(parentJSON);
   const containerState = _getContainerState(containerEl);
-  moveStyles(containerEl, containerState);
 
   // Collect all elements
   const elements = new Map<number, Node>();
@@ -290,7 +289,7 @@ const reviveSubscriptions = (
     if (!parser.subs(value, converted)) {
       const proxy = containerState.$proxyMap$.get(value);
       if (proxy) {
-        getProxyManager(proxy)!.$addSubs$(converted);
+        getSubscriptionManager(proxy)!.$addSubs$(converted);
       } else {
         createProxy(value, containerState, converted);
       }
@@ -314,14 +313,6 @@ const reviveNestedObjects = (obj: any, getObject: GetObject, parser: Parser) => 
       }
     }
   }
-};
-
-export const moveStyles = (containerEl: Element, containerState: ContainerState) => {
-  const head = containerEl.ownerDocument.head;
-  containerEl.querySelectorAll('style[q\\:style]').forEach((el) => {
-    containerState.$styleIds$.add(directGetAttribute(el, QStyle)!);
-    head.appendChild(el);
-  });
 };
 
 const unescapeText = (str: string) => {

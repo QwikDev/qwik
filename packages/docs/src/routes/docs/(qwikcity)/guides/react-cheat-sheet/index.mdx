@@ -61,6 +61,12 @@ export const Button = component$(() => {
 });
 ```
 
+<details>
+  <summary style={{color: "#17ADF5"}}>Remember $?</summary>
+  <p>Event handlers in qwik behave in the same way as in other frameworks, you just have to keep in mind that their content will be loaded in a lazy way thanks to the dollar suffix.</p>
+  <p>Attention ⚠️: JSX <a href="https://qwik.builder.io/docs/components/events/#inline-handler">handlers</a> such as onClick$ and onInput$ are only executed on the client. This is because they are DOM events, since there is no DOM on the server, they will not be executed on the server.</p>
+</details>
+
 ## Using Props
 
 ### ⚛️ From React
@@ -112,6 +118,11 @@ export const Child = component$<ChildProps>(({ userData }) => {
 });
 ```
 
+<details>
+  <summary style={{color: "#17ADF5"}}>Wait, I don't need to pass the handler as a prop?</summary>
+  <p>The reactive signal returned by <a href="https://qwik.builder.io/docs/components/state/#usesignal">useSignal()</a> consists of an object with a single property .value. If you change the value property of the signal, any component that depends on it will be updated automatically.</p>
+</details>
+
 ## Declare local state
 
 ### ⚛️ From React
@@ -131,6 +142,11 @@ export const LocalStateExample = component$(() => {
   return <div>Value is: {count.value}</div>;
 });
 ```
+
+<details>
+  <summary style={{color: "#17ADF5"}}>What if I have a more complex state?</summary>
+  <p><a href="https://qwik.builder.io/docs/components/state/#usestore">useStore()</a> Works very similarly to useSignal(), but it takes an object as its initial value and the reactivity extends to nested objects and arrays by default. One can think of a store as a multiple-value signal or an object made of several signals.</p>
+</details>
 
 ## Create a counter component
 
@@ -203,11 +219,13 @@ export const Clock = component$(() => {
 export function Fetch() {
   const [url, setUrl] = useState('https://api.github.com/repos/BuilderIO/qwik');
   const [responseJson, setResponseJson] = useState(undefined);
+
   useEffect(() => {
     fetch(url)
       .then((res) => res.json())
       .then((json) => setResponseJson(json));
   }, [url]);
+
   return (
     <>
       <p>{responseJson?.name} has {responseJson?.stargazers_count} ✨'s</p>
@@ -239,6 +257,12 @@ export const Fetch = component$(() => {
   );
 });
 ```
+
+<details>
+  <summary style={{color: "#17ADF5"}}>What is useTask$ and bind?</summary>
+  <p><a href="https://qwik.builder.io/docs/components/tasks/#usetask">useTask$()</a> registers a hook to be executed upon component creation, it will run at least once either in the server or in the browser, depending on where the component is initially rendered.</p>
+  <p><a href="https://qwik.builder.io/docs/components/rendering/#bind-attribute">bind attribute</a> It is a convenient API to two-way data bind the value of a `input` to a Signal.</p>
+</details>
 
 ## Declare some context and consume it
 
@@ -282,9 +306,13 @@ export const Child = component$(() => {
 });
 ```
 
-## Create a debounced input
+<details>
+  <summary style={{color: "#17ADF5"}}>How can I avoid prop drilling?</summary>
+  <p>You simply need to create a <a href="https://qwik.builder.io/docs/components/context/#context">context</a>.</p>
+  <p>Just create the context in the component where you need to store the information and then, in its descendants, get the information through the corresponding ContextId.</p>
+</details>
 
-### ⚡️ To Qwik
+## Create a debounced input
 
 ### ⚛️ From React
 
@@ -295,18 +323,22 @@ export const DebouncedInput = () => {
 
   useEffect(() => {
     const debounced = setTimeout(() => setDebouncedValue(value), 1000);
-
     return () => clearTimeout(debounced);
   }, [value]);
 
   return (
     <>
-      <input value={value} onChange={(ev) => setValue((ev.target as HTMLInputElement).value)} />
+      <input
+        value={value}
+        onChange={(ev) => setValue((ev.target as HTMLInputElement).value)}
+      />
       <p>{debouncedValue}</p>
     </>
   );
 };
 ```
+
+### ⚡️ To Qwik
 
 ```tsx
 export const DebouncedInput = component$(() => {
@@ -319,7 +351,6 @@ export const DebouncedInput = component$(() => {
     const debounced = setTimeout(() => {
       debouncedValue.value = inputText.value;
     }, 1000);
-
     cleanup(() => clearTimeout(debounced));
   });
 

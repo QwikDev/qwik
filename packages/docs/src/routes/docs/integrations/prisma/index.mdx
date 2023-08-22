@@ -137,16 +137,3 @@ export default component$(() => {
   )
 });
 ```
-
-## Limitations
-
-### Big WASM binary
-
-Prisma Client needs a 14MB WASM binary that might be too big if you plan to deploy your app to a serverless environment. We recommend using Prisma only if you deploy to a Node.js environment, such as Google Cloud Run, Express, or Azure.
-
-Check out [this blog post for more details](https://dev.to/nexxeln/typesafe-database-queries-on-the-edge-5bbn)
-
-### Prisma Client might not work great with `pnpm`
-
-The way Prisma generates the client types abuses how `npm` node_modules work, which is different from how `pnpm` works. We recommend using `npm` is you plan to use Prisma.
-

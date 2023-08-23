@@ -21,4 +21,5 @@ export type {
   DeferReturn,
   RequestEventBase,
   ClientConn,
+  EnvGetter,
 } from './types';

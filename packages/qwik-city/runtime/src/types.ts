@@ -13,6 +13,7 @@ import type {
   RequestEventLoader,
   RequestHandler,
   ResolveSyncValue,
+  EnvGetter,
 } from '@builder.io/qwik-city/middleware/request-handler';
 import type * as zod from 'zod';
 
@@ -339,7 +340,11 @@ export interface ClientPageData extends Omit<EndpointResponse, 'status'> {
 /**
  * @public
  */
-export type StaticGenerateHandler = () => Promise<StaticGenerate> | StaticGenerate;
+export type StaticGenerateHandler = ({
+  env,
+}: {
+  env: EnvGetter;
+}) => Promise<StaticGenerate> | StaticGenerate;
 
 /**
  * @public

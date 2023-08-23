@@ -33,9 +33,9 @@ export async function qwikInsights(qwikInsightsOpts: {
       }
     },
     closeBundle: async () => {
-      if (isProd && existsSync(INSIGHTS_Q_MANIFEST_FILENAME)) {
-        const qManifest = await readFile(INSIGHTS_Q_MANIFEST_FILENAME, 'utf-8');
-        await unlink(INSIGHTS_Q_MANIFEST_FILENAME);
+      const Q_MANIFEST_FILENAME = './dist/q-manifest.json';
+      if (isProd && existsSync('./dist/q-manifest.json')) {
+        const qManifest = await readFile(Q_MANIFEST_FILENAME, 'utf-8');
 
         try {
           await fetch(`${baseUrl}/api/v1/${publicApiKey}/post/manifest`, {

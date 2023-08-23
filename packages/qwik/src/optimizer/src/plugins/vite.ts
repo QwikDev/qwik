@@ -115,6 +115,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           if (entryStrategy) {
             qwikViteOpts.entryStrategy = entryStrategy;
           }
+          await fs.promises.unlink(INSIGHTS_Q_MANIFEST_FILENAME);
         } catch (e) {
           // ok to ignore
         }

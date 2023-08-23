@@ -20,7 +20,7 @@ export interface PlatformCloudflarePages {
         waitUntil: (promise: Promise<any>) => void;
     };
     // (undocumented)
-    env: Record<string, any>;
+    env?: Record<string, any>;
     // (undocumented)
     request: Request;
 }

@@ -34,11 +34,11 @@ export declare function createQwikCity(opts: QwikCityCloudflarePagesOptions): (
 export interface PlatformCloudflarePages
 ```
 
-| Property     | Modifiers | Type                                                     | Description |
-| ------------ | --------- | -------------------------------------------------------- | ----------- |
-| [ctx](#)     |           | { waitUntil: (promise: Promise&lt;any&gt;) =&gt; void; } |             |
-| [env](#)     |           | Record&lt;string, any&gt;                                |             |
-| [request](#) |           | Request                                                  |             |
+| Property     | Modifiers | Type                                                     | Description  |
+| ------------ | --------- | -------------------------------------------------------- | ------------ |
+| [ctx](#)     |           | { waitUntil: (promise: Promise&lt;any&gt;) =&gt; void; } |              |
+| [env?](#)    |           | Record&lt;string, any&gt;                                | _(Optional)_ |
+| [request](#) |           | Request                                                  |              |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/cloudflare-pages/index.ts)
 

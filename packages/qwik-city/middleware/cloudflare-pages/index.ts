@@ -135,7 +135,7 @@ export interface QwikCityCloudflarePagesOptions extends ServerRenderOptions {}
  */
 export interface PlatformCloudflarePages {
   request: Request;
-  env: Record<string, any>;
+  env?: Record<string, any>;
   ctx: { waitUntil: (promise: Promise<any>) => void };
 }
 

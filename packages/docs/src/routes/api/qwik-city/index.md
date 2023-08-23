@@ -598,9 +598,11 @@ export interface StaticGenerate
 ## StaticGenerateHandler
 
 ```typescript
-export type StaticGenerateHandler = () =>
-  | Promise<StaticGenerate>
-  | StaticGenerate;
+export type StaticGenerateHandler = ({
+  env,
+}: {
+  env: EnvGetter;
+}) => Promise<StaticGenerate> | StaticGenerate;
 ```
 
 **References:** [StaticGenerate](#staticgenerate)

@@ -1,8 +1,9 @@
 import { parseRoutePathname } from '../../buildtime/routing/parse-pathname';
 import { suite, test } from 'uvu';
 import { equal } from 'uvu/assert';
-import { getPathParams, getMenuLoader } from './routing';
+import { getMenuLoader } from './routing';
 import type { MenuData } from './types';
+import { matchRoute } from './route-matcher';
 
 const routingTest = suite('routing');
 
@@ -108,13 +109,8 @@ const routeTests = [
 for (const t of routeTests) {
   routingTest(`matches ${t.pathname} with ${t.pattern}`, () => {
     const actual = parseRoutePathname(t.basenamePath, t.pattern);
-    const matched = actual.pattern.exec(t.pathname);
-
-    if (matched === null) {
-      equal(t.result, null);
-    } else {
-      equal(getPathParams(actual.paramNames, matched), t.result);
-    }
+    const params = matchRoute(actual.routeName, t.pathname);
+    equal(params, t.result);
   });
 }
 

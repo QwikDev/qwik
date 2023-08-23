@@ -24,35 +24,27 @@ import {
 import { getQwikCityServerData } from '../../middleware/request-handler/response-page';
 import { updateBuildContext } from '../build';
 import { getExtension, normalizePath } from '../../utils/fs';
-import { getMenuLoader, getPathParams } from '../../runtime/src/routing';
+import { getMenuLoader } from '../../runtime/src/routing';
 import { computeOrigin, fromNodeHttp, getUrl } from '../../middleware/node/http';
 import {
   checkBrand,
   resolveRequestHandlers,
 } from '../../middleware/request-handler/resolve-request-handlers';
 import { formatError } from './format-error';
+import { matchRoute } from 'packages/qwik-city/runtime/src/route-matcher';
 
 export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
   const matchRouteRequest = (pathname: string) => {
     for (const route of ctx.routes) {
-      const match = route.pattern.exec(pathname);
-      if (match) {
-        return {
-          route,
-          params: getPathParams(route.paramNames, match),
-        };
+      let params = matchRoute(route.pathname, pathname);
+      if (params) {
+        return { route, params };
       }
-    }
 
-    if (ctx.opts.trailingSlash && !pathname.endsWith('/')) {
-      const pathnameWithSlash = pathname + '/';
-      for (const route of ctx.routes) {
-        const match = route.pattern.exec(pathnameWithSlash);
-        if (match) {
-          return {
-            route,
-            params: getPathParams(route.paramNames, match),
-          };
+      if (ctx.opts.trailingSlash && !pathname.endsWith('/')) {
+        params = matchRoute(route.pathname, pathname + '/');
+        if (params) {
+          return { route, params };
         }
       }
     }
@@ -118,6 +110,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
         }
 
         const renderFn = async (requestEv: RequestEvent) => {
+          // routeResult && requestEv.sharedMap.set('@routeName', routeResult.route.pathname);
           const isPageDataReq = requestEv.pathname.endsWith(QDATA_JSON);
           if (!isPageDataReq) {
             const serverData = getQwikCityServerData(requestEv);
@@ -175,7 +168,13 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
           menu = menuModule?.default;
         }
 
-        const loadedRoute = [params, routeModules, menu, undefined] satisfies LoadedRoute;
+        const loadedRoute = [
+          routeResult ? routeResult.route.pathname : '',
+          params,
+          routeModules,
+          menu,
+          undefined,
+        ] satisfies LoadedRoute;
         const requestHandlers = resolveRequestHandlers(
           serverPlugins,
           loadedRoute,

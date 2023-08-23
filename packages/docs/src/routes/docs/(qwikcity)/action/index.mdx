@@ -11,6 +11,7 @@ contributors:
   - thejackshelton
   - adnanebrahimi
   - mhevery
+  - ulic75
   - CoralWombat
   - tzdesign
 ---
@@ -92,6 +93,8 @@ export default component$(() => {
 Under the hood, the `<Form/>` component uses a native HTML `<form>` element, so it will work without JavaScript.
 
 When JS is enabled, the `<Form/>` component will intercept the form submission and trigger the action in SPA mode, allowing to have a full SPA experience.
+
+[Complex forms](/docs/advanced/complex-forms) can be created using dot notation.
 
 ## Using actions programmatically
 
@@ -237,7 +240,6 @@ export default component$(() => {
 When submitting data to a `routeAction()`, the data is validated against the Zod schema. If the data is invalid, the action will put the validation error in the `routeAction.value` property.
 
 Please refer to the [Zod documentation](https://zod.dev/) for more information on how to use Zod schemas.
-
 
 ### Advanced event based validation
 

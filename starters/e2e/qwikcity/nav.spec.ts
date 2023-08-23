@@ -1,4 +1,3 @@
-import { expect, test } from "@playwright/test";
 import {
   assertPage,
   getScrollHeight,
@@ -9,6 +8,7 @@ import {
   scrollDetector,
   scrollTo,
 } from "./util.js";
+import { expect, test } from "@playwright/test";
 
 test.describe("actions", () => {
   test.describe("mpa", () => {
@@ -332,6 +332,13 @@ test.describe("actions", () => {
       const res = await page.goto("/qwikcity-test/issue4531/");
       await expect(page.locator("#route")).toHaveText("should render");
       expect(await res?.headerValue("X-Qwikcity-Test")).toEqual("issue4531");
+    });
+
+    test("issue4792", async ({ page }) => {
+      const site = "/qwikcity-test/issue4792/";
+      await page.goto(site);
+      const href = page.locator("#reload");
+      await expect(href).toHaveAttribute("href", site);
     });
 
     test("media in home page", async ({ page }) => {

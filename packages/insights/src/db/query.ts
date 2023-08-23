@@ -1,6 +1,6 @@
 import { and, eq, isNull, sql, inArray } from 'drizzle-orm';
 import { type AppDatabase } from '.';
-import { applicationTable, edgeTable, symbolDetailTable, symbolTable } from './schema';
+import { applicationTable, edgeTable, routesTable, symbolDetailTable, symbolTable } from './schema';
 import {
   createEdgeRow,
   delayBucketField,
@@ -10,6 +10,8 @@ import {
   toVector,
   latencyColumnSums,
   delayColumnSums,
+  timelineBucketField,
+  createRouteRow,
 } from './query-helpers';
 
 export async function getEdges(
@@ -165,5 +167,41 @@ export async function updateEdge(
     edgeRow[latencyBucketField(edge.latencyBucket)]++;
     edgeRow[delayBucketField(edge.latencyBucket)]++;
     await db.insert(edgeTable).values(edgeRow).run();
+  }
+}
+
+export async function updateRoutes(
+  db: AppDatabase,
+  row: {
+    publicApiKey: string;
+    manifestHash: string;
+    route: string;
+    symbol: string;
+    timelineBucket: number;
+  }
+): Promise<void> {
+  // This may look like a good idea to run in a transaction, but it causes a lot of contention
+  // and than other queries timeout. Yes not running in TX there is a risk of missed update, but
+  // since we are a statistical model, it should not make much of a difference.
+  const timelineField = timelineBucketField(row.timelineBucket);
+  const result = await db
+    .update(routesTable)
+    .set({
+      [timelineField]: sql`${routesTable[timelineField]} + 1`,
+    })
+    .where(
+      and(
+        eq(routesTable.publicApiKey, row.publicApiKey),
+        eq(routesTable.manifestHash, row.manifestHash),
+        eq(routesTable.route, row.route),
+        eq(routesTable.symbol, row.symbol)
+      )
+    )
+    .run();
+  if (result.rowsAffected === 0) {
+    // No row was updated, so insert a new one
+    const routeRow = createRouteRow(row);
+    routeRow[timelineBucketField(row.timelineBucket)]++;
+    await db.insert(routesTable).values(routeRow).run();
   }
 }

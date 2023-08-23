@@ -150,6 +150,9 @@ export async function configureDevServer(
                 },
             prefetchStrategy: null,
             serverData,
+            containerAttributes: {
+              ...serverData.containerAttributes,
+            },
           };
 
           res.setHeader('Content-Type', 'text/html; charset=utf-8');

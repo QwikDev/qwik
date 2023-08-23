@@ -1,0 +1,45 @@
+---
+title: HTML attributes | QwikCity
+contributors:
+  - bab2683
+---
+
+# HTML attributes
+
+Sometimes we need to add attributes to set some functionalities in the website, be it to control the theme of the application, decide the direction of text (`dir` attribute), or set up the language of (`lang` attribute). More often than not, it is practical to add these attributes to the `html` tag as it's usually the [container](../../(qwik)/advanced/containers/index.mdx) of the application.
+
+To do this with Qwik city, go to `src/entry.ssr.tsx` and add them to `containerAttributes` like so:
+
+```tsx
+export default function (opts: RenderToStreamOptions) {
+  return renderToStream(<Root />, {
+    manifest,
+    ...opts,
+    // Use container attributes to set attributes on the html tag.
+    containerAttributes: {
+      lang: "en-us",
+      ...opts.containerAttributes,
+    },
+  });
+}
+```
+
+In addition to that, from the `opts.serverData` object (and nested objects) you can get information about the request, like `request headers`, `url`, `route params`, etc. 
+By leveraging this information, now we can do the following:
+
+```tsx
+export default function (opts: RenderToStreamOptions) {
+  // With this route structure src/routes/[locale]/post/[id]/index.tsx
+  const isRTL = opts.serverData?.qwikcity.params.locale === 'ar';
+
+  return renderToStream(<Root />, {
+    manifest,
+    ...opts,
+    containerAttributes: {
+      dir: isRTL ? 'rtl' : 'ltr'
+      ...opts.containerAttributes,
+    },
+  });
+}
+```
+

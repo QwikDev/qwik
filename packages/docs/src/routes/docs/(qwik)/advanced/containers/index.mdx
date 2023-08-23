@@ -22,7 +22,7 @@ Every Qwik application is contained inside a element, usually the `<html>` eleme
 
 ## Container Attributes
 
-Since containers are implicitally rendered by the Qwik runtime, it's not possible to define custom HTML attributes using JSX, however, the SSR render APIs, like `renderToString` and `renderToStream`, provide the `containerAttributes` option to define custom attributes:
+Since containers are implicitly rendered by the Qwik runtime, it's not possible to define custom HTML attributes using JSX, however, the SSR render APIs, like `renderToString` and `renderToStream`, provide the `containerAttributes` option to define custom attributes:
 
 ```tsx
 renderToStream(<Root />, {

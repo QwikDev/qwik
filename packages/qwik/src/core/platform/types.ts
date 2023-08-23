@@ -40,7 +40,7 @@ export interface CorePlatform {
    *
    * Qwik needs to lazy load data and closures. For this Qwik uses QRLs that are serializable
    * references of resources that are needed. The QRLs contain all the information necessary to
-   * retrieved the reference using `importSymbol`.
+   * retrieve the reference using `importSymbol`.
    *
    * Why not use `import()`? Because `import()` is relative to the current file, and the current
    * file is always the Qwik framework. So QRLs have additional information that allows them to

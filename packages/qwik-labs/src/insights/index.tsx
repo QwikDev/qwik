@@ -10,10 +10,12 @@ export interface InsightsPayload {
    * NOTE: A user session implies same route URL.
    */
   sessionID: string;
+
   /**
    * Manifest Hash of the container.
    */
   manifestHash: string;
+
   /**
    * API key of the application which we are trying to profile.
    *
@@ -43,6 +45,12 @@ export interface InsightSymbol {
   symbol: string;
 
   /**
+   * Current route so we can have a better understanding of
+   * which symbols are needed for each route.
+   */
+  route: string;
+
+  /**
    * Time delta since last symbol. Can be used to stich symbol requests together
    */
   delay: number;
@@ -53,9 +61,9 @@ export interface InsightSymbol {
   latency: number;
 
   /**
-   * Current pathname of location. Used to cluster by route.
+   * Number of ms between the q:route attribute change and the qsymbol event
    */
-  pathname: string;
+  timeline: number;
 
   /**
    * Was this symbol as a result of user interaction. User interactions represent roots for clouters.
@@ -65,6 +73,10 @@ export interface InsightSymbol {
 
 export interface InsightsError {
   sessionID: string;
+  /**
+   * Manifest Hash of the container.
+   */
+  manifestHash: string;
   timestamp: number;
   url: string;
   source: string;
@@ -76,6 +88,7 @@ export interface InsightsError {
 }
 
 export const InsightsError = z.object({
+  manifestHash: z.string(),
   sessionID: z.string(),
   url: z.string(),
   timestamp: z.number(),
@@ -89,9 +102,10 @@ export const InsightsError = z.object({
 
 export const InsightSymbol = z.object({
   symbol: z.string(),
+  route: z.string(),
   delay: z.number(),
   latency: z.number(),
-  pathname: z.string(),
+  timeline: z.number(),
   interaction: z.boolean(),
 });
 
@@ -111,6 +125,7 @@ export const Insights = component$<{ publicApiKey: string; postUrl?: string }>(
   ({ publicApiKey, postUrl }) => {
     return (
       <script
+        data-insights={publicApiKey}
         dangerouslySetInnerHTML={`(${symbolTracker.toString()})(window, document, location, navigator, ${JSON.stringify(
           publicApiKey
         )},
@@ -158,6 +173,17 @@ function symbolTracker(
     sessionID,
   };
   let timeoutID: ReturnType<typeof setTimeout> | null;
+  let qRouteChangeTime = performance.now();
+  const qRouteEl = document.querySelector('[q\\:route]');
+  if (qRouteEl) {
+    const observer = new MutationObserver((mutations) => {
+      const mutation = mutations.find((m) => m.attributeName === 'q:route');
+      if (mutation) {
+        qRouteChangeTime = performance.now();
+      }
+    });
+    observer.observe(qRouteEl, { attributes: true });
+  }
   function flush() {
     timeoutID = null;
     if (qSymbols.length > flushSymbolIndex) {
@@ -191,11 +217,13 @@ function symbolTracker(
     const symbol = detail.symbol;
     if (!existingSymbols.has(symbol)) {
       existingSymbols.add(symbol);
+      const route = qRouteEl?.getAttribute('q:route') || '/';
       qSymbols.push({
         symbol: symbol,
+        route,
         delay: Math.round(0 - lastReqTime + symbolRequestTime),
         latency: Math.round(symbolDeliveredTime - symbolRequestTime),
-        pathname: location.pathname,
+        timeline: Math.round(0 - qRouteChangeTime + symbolRequestTime),
         interaction: !!detail.element,
       });
       lastReqTime = symbolDeliveredTime;
@@ -207,6 +235,7 @@ function symbolTracker(
     const payload = {
       url: location.toString(),
       sessionID: sessionID,
+      manifestHash,
       timestamp: new Date().getTime(),
       source: event.filename,
       line: event.lineno,

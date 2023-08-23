@@ -8,7 +8,7 @@ import {
 import { CUSTOM_COMPONENTS } from "../../components/builder-registry";
 
 // This page is a catch-all for all routes that don't have a pre-defined route.
-// Using a catch-all route allows you to dynamically create enw pages in Builder.
+// Using a catch-all route allows you to dynamically create new pages in Builder.
 
 // Use the `useBuilderContent` route loader to get your content from Builder.
 // `routeLoader$()` takes an async function to fetch content
@@ -41,7 +41,7 @@ export const useBuilderContent = routeLoader$(async ({ url, error }) => {
 export default component$(() => {
   const builderContent = useBuilderContent();
 
-  // RenderContent component uses `content` prop to render
+  // RenderContent component uses the `content` prop to render
   // the page, specified by the API Key, at the current URL path.
   return (
     <RenderContent

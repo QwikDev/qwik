@@ -35,7 +35,7 @@ test.describe("loaders", () => {
       await expect(nestedDep).toHaveText("dep: 84");
       await expect(metaDate).toHaveAttribute(
         "content",
-        "2021-01-01T00:00:00.000Z"
+        "2021-01-01T00:00:00.000Z",
       );
       await expect(metaDep).toHaveAttribute("content", "42");
 

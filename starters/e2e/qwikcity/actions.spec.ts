@@ -40,7 +40,7 @@ test.describe("actions", () => {
           await btn.click();
           await expect(success).toHaveText("Success");
           await expect(page.locator("#other-store")).toHaveText(
-            'false:::{"success":true}'
+            'false:::{"success":true}',
           );
         }
       });
@@ -59,7 +59,7 @@ test.describe("actions", () => {
         await expect(other).toHaveText("false:::");
         await submit.click();
         await expect(usernameError).toHaveText(
-          "String must contain at least 3 character(s)"
+          "String must contain at least 3 character(s)",
         );
         await expect(codeError).toBeHidden();
         await expect(other).toHaveText("false:::");
@@ -77,7 +77,7 @@ test.describe("actions", () => {
         await username.fill("Ma");
         await submit.click();
         await expect(usernameError).toHaveText(
-          "String must contain at least 3 character(s)"
+          "String must contain at least 3 character(s)",
         );
         await expect(codeError).toHaveText("Expected number, received nan");
         await expect(username).toHaveValue("Ma");
@@ -159,9 +159,24 @@ test.describe("actions", () => {
         await expect(success).toBeHidden();
         await page.locator("#issue3497-button").click();
         await expect(success).toHaveText(
-          '{"credentials":{"username":"user","password":"pass"},"array":["1","2"]}'
+          '{"credentials":{"username":"user","password":"pass"},"array":["1","2"]}',
         );
         await expect(true).toBeTruthy();
+      });
+    });
+
+    test.describe("issue3183", () => {
+      test("should parse dot notation index array formdata", async ({
+        page,
+      }) => {
+        await page.goto("/qwikcity-test/actions/issue3183/");
+        const success = page.locator("#issue3183-success");
+
+        await expect(success).toBeHidden();
+        await page.locator("#issue3183-button").click();
+        await expect(success).toHaveText(
+          '{"arrayOld":["0","1"],"arrayNew":["0","1"],"people":[{"name":"Fred"},{"name":"Sam"}]}',
+        );
       });
     });
   }

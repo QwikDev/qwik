@@ -36,7 +36,7 @@ const DEDUPE = [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID, QWIK_JSX_DEV_RUNTIME_ID];
 
 const STYLING = ['.css', '.scss', '.sass', '.less'];
 const FONTS = ['.woff', '.woff2', '.ttf'];
-const CSS_EXTENSIONS = ['.css', '.scss', '.sass'];
+
 /**
  * @public
  */
@@ -614,24 +614,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
               ctx.server.moduleGraph.invalidateModule(mod);
             }
           }
-        } else if (
-          mod.type === 'js' &&
-          Array.from(mod.importers).every(
-            (m) => m.type === 'css' || CSS_EXTENSIONS.some((ext) => m.file?.endsWith(ext))
-          )
-        ) {
-          // invalidate all modules that import this module
-          ctx.server.moduleGraph.invalidateAll();
         }
-      }
-
-      if (CSS_EXTENSIONS.some((ext) => ctx.file.endsWith(ext))) {
-        qwikPlugin.log('handleHotUpdate()', 'force css reload');
-
-        ctx.server.ws.send({
-          type: 'full-reload',
-        });
-        return [];
       }
     },
   };

@@ -69,29 +69,21 @@ function createRouteData(
   loaders: string[],
   isSsr: boolean
 ) {
-  const pattern = r.pattern.toString();
+  const routeName = JSON.stringify(r.routeName);
   const moduleLoaders = `[ ${loaders.join(', ')} ]`;
 
   // Use RouteData interface
 
   if (isSsr) {
-    const paramNames =
-      r.paramNames && r.paramNames.length > 0 ? JSON.stringify(r.paramNames) : `undefined`;
     const originalPathname = JSON.stringify(r.pathname);
     const clientBundleNames = JSON.stringify(getClientRouteBundleNames(qwikPlugin, r));
 
     // SSR also adds the originalPathname and clientBundleNames to the RouteData
-    return `[ ${pattern}, ${moduleLoaders}, ${paramNames}, ${originalPathname}, ${clientBundleNames} ]`;
+    return `[ ${routeName}, ${moduleLoaders}, ${originalPathname}, ${clientBundleNames} ]`;
   }
 
-  if (r.paramNames.length > 0) {
-    // only add the params to the RouteData if there are any
-    const paramNames = JSON.stringify(r.paramNames);
-    return `[ ${pattern}, ${moduleLoaders}, ${paramNames} ]`;
-  }
-
-  // simple RouteData, only pattern regex and module loaders
-  return `[ ${pattern}, ${moduleLoaders} ]`;
+  // simple RouteData, only route name and module loaders
+  return `[ ${routeName}, ${moduleLoaders} ]`;
 }
 
 function getClientRouteBundleNames(qwikPlugin: QwikVitePlugin, r: BuildRoute) {

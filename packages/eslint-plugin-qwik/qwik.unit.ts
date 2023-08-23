@@ -360,7 +360,6 @@ export const RemoteApp = component$(({ name }: { name: string }) => {
               console.log(a);
             }}></div>;
           });`,
-
     `
   export interface PropFnInterface<ARGS extends any[], RET> {
     (...args: ARGS): Promise<RET>
@@ -386,7 +385,6 @@ export const RemoteApp = component$(({ name }: { name: string }) => {
     }}></div>;
   });
       `,
-    ``,
     `
 import { component$ } from "@builder.io/qwik";
 
@@ -427,6 +425,29 @@ export default component$(() => {
             useMethod(foo);
             return <div></div>
           });`,
+    `
+      import {Component, component$, useStore} from '@builder.io/qwik';
+      export const PopupManager = component$(() => {
+        const popup = useStore({
+            component: null as null | Component<any>,
+            props: null as any,
+            visible: false,
+            x: 0,
+            y: 0,
+        });
+        return (
+            <div
+                document:onMouseEnter$={(e) => {
+                popup.visible = true;
+            }}
+                document:onMouseLeave$={(e) => {
+                popup.visible = true;
+            }}
+            >
+            </div>
+        );
+      });
+    `,
   ],
   invalid: [
     {

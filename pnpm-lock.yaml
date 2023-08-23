@@ -1,4 +1,4 @@
-lockfileVersion: '6.0'
+lockfileVersion: '6.1'
 
 settings:
   autoInstallPeers: false
@@ -198,9 +198,15 @@ importers:
       '@clack/prompts':
         specifier: ^0.6.3
         version: 0.6.3
+      '@types/yargs':
+        specifier: 17.0.24
+        version: 17.0.24
       kleur:
         specifier: 4.1.5
         version: 4.1.5
+      yargs:
+        specifier: 17.7.2
+        version: 17.7.2
 
   packages/docs:
     devDependencies:
@@ -5166,6 +5172,12 @@ packages:
 
   /@types/yargs@16.0.5:
     resolution: {integrity: sha512-AxO/ADJOBFJScHbWhq2xAhlWP24rY4aCEG/NFaMvbT3X2MgRsLjhjQwsn0Zi5zn0LG9jUhCCZMeX9Dkuw6k+vQ==}
+    dependencies:
+      '@types/yargs-parser': 21.0.0
+    dev: true
+
+  /@types/yargs@17.0.24:
+    resolution: {integrity: sha512-6i0aC7jV6QzQB8ne1joVZ0eSFIstHsCrobmOtghM11yGlH0j43FKL2UhWdELkyps0zuf7qVTUVCCR+tgSlyLLw==}
     dependencies:
       '@types/yargs-parser': 21.0.0
     dev: true

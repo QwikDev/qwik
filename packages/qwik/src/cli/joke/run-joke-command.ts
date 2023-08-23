@@ -1,4 +1,4 @@
-import { getRandomJoke } from '../../../../create-qwik/jokes';
+import { getRandomJoke } from '../../../../create-qwik/src/helpers/jokes';
 import { note } from '../utils/utils';
 import { magenta } from 'kleur/colors';
 

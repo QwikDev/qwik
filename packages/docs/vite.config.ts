@@ -40,6 +40,7 @@ export default defineConfig(async () => {
         'algoliasearch',
         '@algolia/autocomplete-core/dist/esm/reshape',
         'algoliasearch/dist/algoliasearch-lite.esm.browser',
+        '@supabase/node-fetch',
       ],
     },
 

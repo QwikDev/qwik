@@ -8,7 +8,7 @@ title: \@builder.io/qwik-city/middleware/firebase API Reference
 
 ```typescript
 export declare function createQwikCity(
-  opts: QwikCityFirebaseOptions
+  opts: QwikCityFirebaseOptions,
 ): (req: any, res: any) => Promise<void>;
 ```
 

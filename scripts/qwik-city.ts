@@ -692,7 +692,6 @@ async function buildMiddlewareFirebase(config: BuildConfig) {
     target: nodeTarget,
     format: 'esm',
     external: MIDDLEWARE_EXTERNALS,
-    watch: watcher(config),
     plugins: [resolveRequestHandler('../request-handler/index.mjs')],
   });
 }

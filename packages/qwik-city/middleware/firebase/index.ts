@@ -1,7 +1,6 @@
 import { createQwikCity as createQwikCityNode } from '@builder.io/qwik-city/middleware/node';
 
 import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
-import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
 
 /**
  * @public

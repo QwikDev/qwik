@@ -1,4 +1,4 @@
-import { defineConfig, loadEnv, Plugin } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import { qwikVite } from '@builder.io/qwik/optimizer';
 import path, { resolve } from 'node:path';
 import { qwikCity } from '@builder.io/qwik-city/vite';

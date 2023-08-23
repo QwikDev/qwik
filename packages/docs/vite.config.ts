@@ -40,7 +40,6 @@ export default defineConfig(async () => {
         'algoliasearch',
         '@algolia/autocomplete-core/dist/esm/reshape',
         'algoliasearch/dist/algoliasearch-lite.esm.browser',
-        '@supabase/node-fetch',
       ],
     },
 
@@ -124,6 +123,11 @@ export default defineConfig(async () => {
     clearScreen: false,
     server: {
       port: 3000,
+    },
+    build: {
+      rollupOptions: {
+        external: ['@supabase/node-fetch'],
+      },
     },
   };
 });

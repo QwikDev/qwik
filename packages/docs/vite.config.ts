@@ -1,4 +1,4 @@
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig, loadEnv, Plugin } from 'vite';
 import { qwikVite } from '@builder.io/qwik/optimizer';
 import path, { resolve } from 'node:path';
 import { qwikCity } from '@builder.io/qwik-city/vite';
@@ -40,11 +40,12 @@ export default defineConfig(async () => {
         'algoliasearch',
         '@algolia/autocomplete-core/dist/esm/reshape',
         'algoliasearch/dist/algoliasearch-lite.esm.browser',
-        '@supabase/node-fetch',
+        // '@supabase/node-fetch',
       ],
     },
 
     plugins: [
+      ignoreNodeFetch(),
       qwikCity({
         mdxPlugins: {
           rehypeSyntaxHighlight: false,
@@ -127,7 +128,7 @@ export default defineConfig(async () => {
     },
     build: {
       rollupOptions: {
-        external: ['@supabase/node-fetch'],
+        // external: ['@supabase/node-fetch'],
       },
     },
   };
@@ -200,4 +201,20 @@ function bundle(bundleName: string, symbols: string[]) {
     },
     {} as Record<string, string>
   );
+}
+
+function ignoreNodeFetch(): Plugin {
+  return {
+    name: 'ignore-node-fetch',
+    resolveId(id) {
+      if (id === '@supabase/node-fetch') {
+        return id;
+      }
+    },
+    load(id) {
+      if (id === '@supabase/node-fetch') {
+        return `export default undefined;`;
+      }
+    },
+  };
 }

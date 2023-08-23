@@ -153,6 +153,11 @@ export async function apiExtractor(config: BuildConfig) {
   );
   createTypesApi(
     config,
+    join(config.packagesDir, 'qwik-city', 'middleware', 'firebase'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'firebase', 'index.d.ts')
+  );
+  createTypesApi(
+    config,
     join(config.packagesDir, 'qwik-city', 'static'),
     join(config.packagesDir, 'qwik-city', 'lib', 'static', 'index.d.ts')
   );

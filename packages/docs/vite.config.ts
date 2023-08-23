@@ -27,6 +27,13 @@ export default defineConfig(async () => {
           find: '~',
           replacement: path.resolve(__dirname, 'src'),
         },
+        {
+          // HACK: For some reason supabase imports node-fetch but only in CloudFlare build
+          // This hack is here to prevent the import from happening since we don't need to
+          // polyfill fetch in the edge.
+          find: '@supabase/node-fetch',
+          replacement: path.resolve(__dirname, 'src', 'empty.ts'),
+        },
       ],
     },
     ssr: {

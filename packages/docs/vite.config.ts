@@ -27,6 +27,10 @@ export default defineConfig(async () => {
           find: '~',
           replacement: path.resolve(__dirname, 'src'),
         },
+        {
+          find: '@supabase/node-fetch',
+          replacement: path.resolve(__dirname, 'src', 'empty.ts'),
+        },
       ],
     },
     ssr: {
@@ -40,12 +44,10 @@ export default defineConfig(async () => {
         'algoliasearch',
         '@algolia/autocomplete-core/dist/esm/reshape',
         'algoliasearch/dist/algoliasearch-lite.esm.browser',
-        // '@supabase/node-fetch',
       ],
     },
 
     plugins: [
-      ignoreNodeFetch(),
       qwikCity({
         mdxPlugins: {
           rehypeSyntaxHighlight: false,
@@ -126,11 +128,6 @@ export default defineConfig(async () => {
     server: {
       port: 3000,
     },
-    build: {
-      rollupOptions: {
-        // external: ['@supabase/node-fetch'],
-      },
-    },
   };
 });
 
@@ -201,20 +198,4 @@ function bundle(bundleName: string, symbols: string[]) {
     },
     {} as Record<string, string>
   );
-}
-
-function ignoreNodeFetch(): Plugin {
-  return {
-    name: 'ignore-node-fetch',
-    resolveId(id) {
-      if (id === '@supabase/node-fetch') {
-        return id;
-      }
-    },
-    load(id) {
-      if (id === '@supabase/node-fetch') {
-        return `export default undefined;`;
-      }
-    },
-  };
 }

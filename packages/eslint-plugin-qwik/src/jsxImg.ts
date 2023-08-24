@@ -23,7 +23,7 @@ export const jsxImg = createRule({
   import {{importName}} from '{{importSrc}}';
   <{{importName}} />
 
-See https://qwik.builder.io/docs/advanced/images/#importing-images`,
+See https://qwik.builder.io/docs/integrations/image-optimization/#responsive-images`,
       noWidthHeight:
         'Missing "width" or "height" attribute.\nFor performance reasons, always provide width and height attributes for <img> elements, it will prevent layout shifts, boosting performance and UX.',
     },

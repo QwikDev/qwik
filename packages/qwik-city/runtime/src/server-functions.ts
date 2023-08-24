@@ -41,6 +41,7 @@ import type {
 } from './types';
 import { useAction, useLocation, useQwikCityEnv } from './use-functions';
 import { z } from 'zod';
+import * as v from 'valibot';
 import { isDev, isServer } from '@builder.io/qwik/build';
 import type { FormSubmitCompletedDetail } from './form-component';
 
@@ -229,6 +230,58 @@ export const validatorQrl = ((
  * @public
  */
 export const validator$: ValidatorConstructor = /*#__PURE__*/ implicit$FirstArg(validatorQrl);
+
+/**
+ * @public
+ */
+export const valibotQrl = (
+  qrl: QRL<v.ObjectShape | v.BaseSchema | ((z: any, ev: RequestEvent) => v.ObjectShape)>
+): DataValidator => {
+  if (isServer) {
+    return {
+      async validate(ev, inputData) {
+        const schema: Promise<v.BaseSchema | v.ObjectShape> = qrl.resolve().then((obj) => {
+          if (typeof obj === 'function') {
+            obj = obj(z, ev);
+          }
+          // @ts-expect-error
+          return v.object(obj);
+          /* if (typeof obj === 'object') {
+            return obj;
+          } else {
+            return v.object(obj);
+          } */
+        });
+
+        const data = inputData ?? (await ev.parseBody());
+        // @ts-expect-error
+        const result = await v.safeParseAsync(await schema, data);
+        if (result.success) {
+          return result;
+        } else {
+          if (isDev) {
+            console.error(
+              '\nVALIDATION ERROR\naction$() valibot validated failed',
+              '\n  - Issues:',
+              result.issues
+            );
+          }
+          return {
+            success: false,
+            status: 400,
+            error: { fieldErrors: { ...v.flatten(result.issues).nested } },
+          };
+        }
+      },
+    };
+  }
+  return undefined as any;
+};
+
+/**
+ * @public
+ */
+export const valibot$ = /*#__PURE__*/ implicit$FirstArg(valibotQrl) as any;
 
 /**
  * @public

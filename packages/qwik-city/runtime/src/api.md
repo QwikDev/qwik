@@ -22,6 +22,7 @@ import { RequestEventCommon } from '@builder.io/qwik-city/middleware/request-han
 import { RequestEventLoader } from '@builder.io/qwik-city/middleware/request-handler';
 import { RequestHandler } from '@builder.io/qwik-city/middleware/request-handler';
 import type { ResolveSyncValue } from '@builder.io/qwik-city/middleware/request-handler';
+import * as v from 'valibot';
 import { ValueOrPromise } from '@builder.io/qwik';
 import { z } from 'zod';
 import type * as zod from 'zod';
@@ -440,6 +441,12 @@ export const useLocation: () => RouteLocation;
 
 // @public (undocumented)
 export const useNavigate: () => RouteNavigate;
+
+// @public (undocumented)
+export const valibot$: any;
+
+// @public (undocumented)
+export const valibotQrl: (qrl: QRL<v.ObjectShape | v.BaseSchema | ((z: any, ev: RequestEvent) => v.ObjectShape)>) => DataValidator;
 
 // Warning: (ae-forgotten-export) The symbol "ValidatorConstructor" needs to be exported by the entry point index.d.ts
 //

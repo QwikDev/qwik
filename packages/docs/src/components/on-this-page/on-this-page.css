@@ -1,6 +1,6 @@
 .on-this-page {
   @apply z-20 bottom-0 pb-8;
-  @apply text-sm;
+  @apply text-base;
 }
 
 @media screen and (min-width: 1280px) {
@@ -10,38 +10,17 @@
 }
 
 .on-this-page h6 {
-  @apply font-semibold pb-3 uppercase;
+  @apply font-bold text-center pb-3 uppercase;
 }
 
-.on-this-page ul {
-  @apply pb-6;
+.on-this-page li {
+  @apply rounded-lg;
 }
 
-.on-this-page a {
-  position: relative;
-  display: block;
-  color: var(--interactive-text-color);
-  border: 0 solid var(--qwik-light-blue);
-  border-left-width: 2px;
-  padding: 4px 2px 4px 12px;
+.on-this-page-item {
+  @apply block px-3 py-2 whitespace-nowrap overflow-hidden text-ellipsis;
 }
 
-.on-this-page a.indent {
-  padding-left: 30px;
-}
-
-.on-this-page a:hover {
-  background-color: var(--on-this-page-hover-bg-color);
-  border-color: var(--interactive-text-color);
-}
-
-.on-this-page svg {
-  display: inline-block;
-  position: absolute;
-  top: 7px;
-}
-
-.on-this-page span {
-  display: inline-block;
-  padding: 3px 0 2px 28px;
+.more-item {
+  @apply inline-flex gap-x-2 px-3 py-2 items-center;
 }

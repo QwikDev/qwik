@@ -7,6 +7,7 @@ keywords: >-
 contributors:
   - mhevery
   - gioboa
+  - fabiobiondi
 ---
 import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
 
@@ -111,3 +112,125 @@ export default component$(() => {
 </CodeSandbox>
 
 Here is the Github repository with detailed instructions on usage and customizations: [qwikifiers/qwik-image](https://github.com/qwikifiers/qwik-image)
+
+
+
+
+---
+
+## Responsive Images
+
+Qwik supports responsive images.
+
+This is a built-in feature that relies on the [`vite-imagetools`](https://www.npmjs.com/package/vite-imagetools) module, so no additional packages or components need to be installed.
+
+
+
+#### How it works
+
+* Import any image from the `src` folder
+* The image is converted in several webp images, one for each breakpoint (200px, 400px, 600px, 800px, 1200px)
+* The image is processed and optimized to reduce its size
+* An `<img>` element is rendered, using the `srcset` attribute to sets the image source for several resolutions
+* Now the browser will load the most suitable image for the resolution in use
+
+#### Usage
+
+Add the `?jsx` suffix at the end of the import
+
+```tsx
+import Image from '[IMAGE_PATH]?jsx';
+```
+
+Use the image in the template as a component:
+
+```tsx
+<Image />
+````
+
+#### Result
+
+```tsx
+<img
+  width="1200"
+  height="1200"
+  decoding="async"
+  loading="lazy"
+  srcset="
+    /@imagetools/141464b77ebd76570693f2e1a6b0364f4b4feea7 200w,
+    /@imagetools/e70ec011d10add2ba28f9c6973b7dc0f11894307 400w,
+    /@imagetools/1f0dd65f511ffd34415a391bf350e7934ce496a1 600w,
+    /@imagetools/493154354e7e89c3f639c751e934d1be4fc05827 800w,
+    /@imagetools/324867f8f1af03474a17a9d19035e28a4c241aa1 1200w"
+>
+```
+
+The browser will load the most suitable image for the resolution.
+
+
+
+<img width="100%" src="/docs/integrations/image-optimization/image-network.png"/>
+
+> The original source size was 1.5Mb but its size is just few kilobytes
+
+#### Example
+
+```tsx
+import { component$ } from '@builder.io/qwik';
+import Image from '~/media/your_image.png?jsx';
+
+export default component$(() => {
+  return (
+    <div>
+      <Image />
+    </div>
+  );
+});
+```
+
+
+#### Image `width`  and `height`
+
+You may need to set a custom `width` to the image:
+
+```tsx
+<Image style={{ width: '300px'}} />
+```
+
+but in that case you need to manually specify the `height` as well to avoid it being stretched:
+
+
+```tsx
+<Image style={{ width: '300px', height: '200px'}} />
+```
+
+A simple trick to avoid setting the `height` could be the following:
+
+```tsx
+import { component$ } from '@builder.io/qwik';
+import Image from '~/media/emote.png?jsx';
+
+export default component$(() => {
+  return (
+    <>
+      <h1>Image Example</h1>
+      <div class="image-wrapper" >
+        <Image />
+      </div>
+    </>
+  );
+});
+```
+
+```css
+.image-wrapper {
+  width: 300px; /* Set the desired width of the wrapper */
+  position: relative; /* Required for absolute positioning */
+}
+
+.image-wrapper img {
+  width: 100%; /* Make the image fill the width of its container */
+  height: auto; /* Let the browser calculate the height to maintain aspect ratio */
+  display: block; /* Remove any extra white space below the image */
+}
+````

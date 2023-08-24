@@ -17,107 +17,6 @@ import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
 Image optimization is the process of reducing the number of bytes that represent an image. The smaller the image size, the faster it will load on a page. The smaller the image size, the less bandwidth it consumes. The less bandwidth it consumes, the better the experience for your users especially on mobile networks.
 
 
-## `@unpic/qwik`
-
-- Site with detailed instructions on usage: [@unpic/qwik](https://unpic.pics/img/qwik/)
-- Installation: `npm install @unpic/qwik`
-
-Unpic is a third-party image optimization library that works with existing image optimization CDNs. It provides an `Image` component that can be used to optimize images.
-
-<CodeSandbox src="/src/routes/demo/integration/img/unpic/simple/index.tsx" style={{ height: '40em' }}>
-```tsx {6} /Slot/
-import { component$ } from '@builder.io/qwik';
-import { Image } from '@unpic/qwik';
-
-export default component$(() => {
-  return (
-    <Image
-      src="https://cdn.shopify.com/static/sample-images/bath_grande_crop_center.jpeg"
-      layout="constrained"
-      width={800}
-      height={600}
-      alt="A lovely bath"
-    />
-  );
-});
-```
-</CodeSandbox>
-
-> **Note:** qwik-image and unpic are not a CDN and does not host your images. They work with existing image optimization CDNs. We suggest using some of the popular CDNs:
-> - Cloudinary
-> - Cloudflare
-> - Bunny.net
-> - Vercel / Next.js
-> - Imgix, including Unsplash, DatoCMS, Sanity and Prismic
-> - Shopify
-> - Kontent.ai
-> - Builder.io
-> - Contentful
-> - Storyblok
-> - WordPress.com and Jetpack Site Accelerator
-
-## `qwik-image`
-
-Performant images with automatic optimisation.
-
-```bash
-npm install qwik-image
-or
-yarn install qwik-image
-or
-pnpm install qwik-image
-```
-
-> This is a pluggable component so devs could connect different image loaders to it (like builder.io or other CDNs)
-
-<CodeSandbox src="/src/routes/demo/integration/img/qwik-image/index.tsx" style={{ height: '40em' }}>
-```tsx
-import { $, component$ } from '@builder.io/qwik';
-import {
-  Image,
-  type ImageTransformerProps,
-  useImageProvider,
-} from 'qwik-image';
-
-export default component$(() => {
-  const imageTransformer$ = $(
-    ({ src, width, height }: ImageTransformerProps): string => {
-      // Here you can set your favorite image loaders service
-      return `https://cdn.builder.io/api/v1/${src}?height=${height}&width=${width}&format=webp&fit=fill`;
-    }
-  );
-
-  // Global Provider (required)
-  useImageProvider({
-    // You can set this prop to overwrite default values [3840, 1920, 1280, 960, 640]
-    resolutions: [640],
-    imageTransformer$,
-  });
-
-  return (
-    <Image
-      layout="constrained"
-      objectFit="fill"
-      width={400}
-      height={500}
-      alt="Tropical paradise"
-      placeholder="#e6e6e6"
-      src={
-        'image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fe5113e1c02db40e5bac75146fa46386f'
-      }
-    />
-  );
-});
-```
-</CodeSandbox>
-
-Here is the Github repository with detailed instructions on usage and customizations: [qwikifiers/qwik-image](https://github.com/qwikifiers/qwik-image)
-
-
-
-
----
-
 ## Responsive Images
 
 Qwik supports responsive images.
@@ -234,3 +133,102 @@ export default component$(() => {
   display: block; /* Remove any extra white space below the image */
 }
 ````
+
+
+## `@unpic/qwik`
+
+- Site with detailed instructions on usage: [@unpic/qwik](https://unpic.pics/img/qwik/)
+- Installation: `npm install @unpic/qwik`
+
+Unpic is a third-party image optimization library that works with existing image optimization CDNs. It provides an `Image` component that can be used to optimize images.
+
+<CodeSandbox src="/src/routes/demo/integration/img/unpic/simple/index.tsx" style={{ height: '40em' }}>
+```tsx {6} /Slot/
+import { component$ } from '@builder.io/qwik';
+import { Image } from '@unpic/qwik';
+
+export default component$(() => {
+  return (
+    <Image
+      src="https://cdn.shopify.com/static/sample-images/bath_grande_crop_center.jpeg"
+      layout="constrained"
+      width={800}
+      height={600}
+      alt="A lovely bath"
+    />
+  );
+});
+```
+</CodeSandbox>
+
+> **Note:** qwik-image and unpic are not a CDN and does not host your images. They work with existing image optimization CDNs. We suggest using some of the popular CDNs:
+> - Cloudinary
+> - Cloudflare
+> - Bunny.net
+> - Vercel / Next.js
+> - Imgix, including Unsplash, DatoCMS, Sanity and Prismic
+> - Shopify
+> - Kontent.ai
+> - Builder.io
+> - Contentful
+> - Storyblok
+> - WordPress.com and Jetpack Site Accelerator
+
+## `qwik-image`
+
+Performant images with automatic optimisation.
+
+```bash
+npm install qwik-image
+or
+yarn install qwik-image
+or
+pnpm install qwik-image
+```
+
+> This is a pluggable component so devs could connect different image loaders to it (like builder.io or other CDNs)
+
+<CodeSandbox src="/src/routes/demo/integration/img/qwik-image/index.tsx" style={{ height: '40em' }}>
+```tsx
+import { $, component$ } from '@builder.io/qwik';
+import {
+  Image,
+  type ImageTransformerProps,
+  useImageProvider,
+} from 'qwik-image';
+
+export default component$(() => {
+  const imageTransformer$ = $(
+    ({ src, width, height }: ImageTransformerProps): string => {
+      // Here you can set your favorite image loaders service
+      return `https://cdn.builder.io/api/v1/${src}?height=${height}&width=${width}&format=webp&fit=fill`;
+    }
+  );
+
+  // Global Provider (required)
+  useImageProvider({
+    // You can set this prop to overwrite default values [3840, 1920, 1280, 960, 640]
+    resolutions: [640],
+    imageTransformer$,
+  });
+
+  return (
+    <Image
+      layout="constrained"
+      objectFit="fill"
+      width={400}
+      height={500}
+      alt="Tropical paradise"
+      placeholder="#e6e6e6"
+      src={
+        'image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fe5113e1c02db40e5bac75146fa46386f'
+      }
+    />
+  );
+});
+```
+</CodeSandbox>
+
+Here is the Github repository with detailed instructions on usage and customizations: [qwikifiers/qwik-image](https://github.com/qwikifiers/qwik-image)
+
+

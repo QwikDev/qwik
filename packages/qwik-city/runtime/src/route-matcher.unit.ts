@@ -15,9 +15,21 @@ routeMatchSuite('should match /foo/', () => {
   equal(matchRoute('/foo', '/foo/extra'), null, 'should not match extra');
 });
 
+routeMatchSuite('should match /foo/ with trailing slash', () => {
+  equal(matchRoute('/foo/', '/foo/'), {});
+  equal(matchRoute('/foo/', '/foo'), {});
+  equal(matchRoute('foo/', '/foo/'), {});
+  equal(matchRoute('/foo/', '/foo/extra'), null, 'should not match extra');
+});
+
 routeMatchSuite('should match /seg/[slug]/', () => {
   equal(matchRoute('/seg/[slug]', '/seg/extract-text/'), { slug: 'extract-text' });
   equal(matchRoute('/seg/[slug]', '/seg/[slug]/extra'), null, 'should not match extra');
+});
+
+routeMatchSuite('should match /seg/[slug]/ with trailing slash', () => {
+  equal(matchRoute('/seg/[slug]/', '/seg/extract-text/'), { slug: 'extract-text' });
+  equal(matchRoute('/seg/[slug]/', '/seg/[slug]/extra'), null, 'should not match extra');
 });
 
 routeMatchSuite('should match /seg/[slug]/[param]/', () => {
@@ -28,8 +40,20 @@ routeMatchSuite('should match /seg/[slug]/[param]/', () => {
   equal(matchRoute('/seg/[slug]/[param]', '/seg/slug/param/extra'), null, 'should not match extra');
 });
 
+routeMatchSuite('should match /seg/[slug]/[param]/ with trailing slash', () => {
+  equal(matchRoute('/seg/[slug]/[param]/', '/seg/extract-text/param-text/'), {
+    slug: 'extract-text',
+    param: 'param-text',
+  });
+  equal(matchRoute('/seg/[slug]/[param]/', '/seg/slug/param/extra'), null, 'should not match extra');
+});
+
 routeMatchSuite('should match /seg/[...rest]', () => {
   equal(matchRoute('/seg/[...rest]', '/seg/a/b/c'), { rest: 'a/b/c' });
+});
+
+routeMatchSuite('should match /seg/[...rest] with trailing slash', () => {
+  equal(matchRoute('/seg/[...rest]/', '/seg/a/b/c'), { rest: 'a/b/c' });
 });
 
 routeMatchSuite('should match /stuff/[...param]', () => {
@@ -37,8 +61,17 @@ routeMatchSuite('should match /stuff/[...param]', () => {
   equal(matchRoute('/stuff/[...param]', '/stuff'), { param: '' }, '2');
 });
 
+routeMatchSuite('should match /stuff/[...param] with trailing slash', () => {
+  equal(matchRoute('/stuff/[...param]/', '/stuff/'), { param: '' }, '1');
+  equal(matchRoute('/stuff/[...param]/', '/stuff'), { param: '' }, '2');
+});
+
 routeMatchSuite('should match /seg/[paramA]/[...rest]', () => {
   equal(matchRoute('/seg/[paramA]/[...rest]', '/seg/a/b/c'), { paramA: 'a', rest: 'b/c' });
+});
+
+routeMatchSuite('should match /seg/[paramA]/[...rest] with trailing slash', () => {
+  equal(matchRoute('/seg/[paramA]/[...rest]/', '/seg/a/b/c'), { paramA: 'a', rest: 'b/c' });
 });
 
 routeMatchSuite('regressions', () => {
@@ -67,8 +100,20 @@ routeMatchSuite('/a/pre[infix]post', () => {
   });
 });
 
+routeMatchSuite('should match /a/pre[infix]post with trailing slash', () => {
+  equal(matchRoute('/a/pre[infix]post/', '/a/preINpost'), {
+    infix: 'IN',
+  });
+  equal(matchRoute('/a/pre[infix]post/', '/a/prepost'), {
+    infix: '',
+  });
+});
+
 routeMatchSuite('/[...rest] ignore trailing slash', () => {
   equal(matchRoute('/[...rest]', '/a/b/c/'), {
+    rest: 'a/b/c',
+  });
+  equal(matchRoute('/[...rest]/', '/a/b/c/'), {
     rest: 'a/b/c',
   });
 });

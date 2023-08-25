@@ -6,9 +6,24 @@ import { css, cx } from '~/styled-system/css';
 import { ErrorIcon } from '~/components/icons/error';
 import { type PopupEvent } from '~/components/popup-manager';
 
-export const useErrors = routeLoader$(async ({ params }) => {
+interface ErrorRow {
+  id: number;
+  timestamp: Date;
+  publicApiKey: string | null;
+  manifestHash: string | null;
+  sessionID: string;
+  url: string;
+  source: string;
+  line: number;
+  column: number;
+  message: string;
+  error: string;
+  stack: string;
+}
+
+export const useErrors = routeLoader$<ErrorRow[]>(async ({ params }) => {
   const db = getDB();
-  const errors = await db
+  const errors: ErrorRow[] = await db
     .select()
     .from(errorTable)
     .where(eq(errorTable.publicApiKey, params.publicApiKey))
@@ -60,6 +75,7 @@ const columnMessageCell = cx(
 );
 
 export default component$(() => {
+  useErrors;
   const errors = useErrors();
   return (
     <div>

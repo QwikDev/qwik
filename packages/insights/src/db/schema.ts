@@ -1,4 +1,4 @@
-import { type InferSelectModel, type InferInsertModel } from 'drizzle-orm';
+import { type InferModel } from 'drizzle-orm';
 import {
   integer,
   sqliteTable,
@@ -17,13 +17,13 @@ export type DatabaseSchema = {
 };
 
 export type DatabaseInsert = {
-  edgeTable: InferInsertModel<typeof edgeTable>;
-  routesTable: InferInsertModel<typeof routesTable>;
+  edgeTable: InferModel<typeof edgeTable, 'insert'>;
+  routesTable: InferModel<typeof routesTable, 'insert'>;
 };
 
 export type DatabaseSelect = {
-  edgeTable: InferSelectModel<typeof edgeTable>;
-  manifestTable: InferSelectModel<typeof manifestTable>;
+  edgeTable: InferModel<typeof edgeTable, 'select'>;
+  manifestTable: InferModel<typeof manifestTable, 'select'>;
 };
 
 export const applicationTable = sqliteTable(

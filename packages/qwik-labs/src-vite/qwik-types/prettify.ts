@@ -13,6 +13,7 @@ export async function prettify(
       parser: 'typescript',
       plugins: [
         // To support running in browsers
+        require('prettier/plugins/estree'),
         require('prettier/parser-typescript'),
         require('prettier/parser-postcss'),
         require('prettier/parser-html'),

@@ -1,27 +1,12 @@
-import { component$ } from '@builder.io/qwik';
+import { type ReadonlySignal, component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
-import { getDB, errorTable } from '~/db';
+import { getDB, errorTable, type ErrorRow } from '~/db';
 import { eq, sql } from 'drizzle-orm';
 import { css, cx } from '~/styled-system/css';
 import { ErrorIcon } from '~/components/icons/error';
 import { type PopupEvent } from '~/components/popup-manager';
 
-interface ErrorRow {
-  id: number;
-  timestamp: Date;
-  publicApiKey: string | null;
-  manifestHash: string | null;
-  sessionID: string;
-  url: string;
-  source: string;
-  line: number;
-  column: number;
-  message: string;
-  error: string;
-  stack: string;
-}
-
-export const useErrors = routeLoader$<ErrorRow[]>(async ({ params }) => {
+export const useErrors = routeLoader$(async ({ params }) => {
   const db = getDB();
   const errors: ErrorRow[] = await db
     .select()
@@ -75,8 +60,7 @@ const columnMessageCell = cx(
 );
 
 export default component$(() => {
-  useErrors;
-  const errors = useErrors();
+  const errors: ReadonlySignal<ErrorRow[]> = useErrors();
   return (
     <div>
       <h1>

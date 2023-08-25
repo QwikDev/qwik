@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { type DatabaseInsert, edgeTable, type routesTable } from './schema';
+import { type EdgeRowSansId, edgeTable, type RouteRowSansId } from './schema';
 import { BUCKETS } from '~/stats/vector';
 
 export type VectorKeys<PREFIX extends string> =
@@ -81,7 +81,7 @@ export function createEdgeRow({
   interaction: boolean;
   delayBucket: number;
   latencyBucket: number;
-}): DatabaseInsert['edgeTable'] {
+}): EdgeRowSansId {
   return {
     publicApiKey,
     manifestHash,
@@ -630,7 +630,7 @@ export function createRouteRow({
   manifestHash: string;
   route: string;
   symbol: string;
-}): DatabaseInsert['routesTable'] {
+}): RouteRowSansId {
   return {
     publicApiKey,
     manifestHash,

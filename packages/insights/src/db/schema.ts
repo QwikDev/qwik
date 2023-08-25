@@ -1,4 +1,4 @@
-import { type InferModel } from 'drizzle-orm';
+import { type InferSelectModel, type InferInsertModel } from 'drizzle-orm';
 import {
   integer,
   sqliteTable,
@@ -16,16 +16,6 @@ export type DatabaseSchema = {
   errorTable: typeof errorTable;
 };
 
-export type DatabaseInsert = {
-  edgeTable: InferModel<typeof edgeTable, 'insert'>;
-  routesTable: InferModel<typeof routesTable, 'insert'>;
-};
-
-export type DatabaseSelect = {
-  edgeTable: InferModel<typeof edgeTable, 'select'>;
-  manifestTable: InferModel<typeof manifestTable, 'select'>;
-};
-
 export const applicationTable = sqliteTable(
   'applications',
   {
@@ -39,6 +29,9 @@ export const applicationTable = sqliteTable(
   })
 );
 
+export type ApplicationRow = InferSelectModel<typeof applicationTable>;
+export type ApplicationRowSansId = InferInsertModel<typeof applicationTable>;
+
 export const symbolTable = sqliteTable('symbols', {
   id: integer('id').primaryKey(),
   publicApiKey: text('public_api_key').references(() => applicationTable.publicApiKey),
@@ -50,6 +43,9 @@ export const symbolTable = sqliteTable('symbols', {
   timeDelta: integer('time_delta_ms').notNull(),
   loadDelay: integer('load_delay_ms').notNull(),
 });
+
+export type SymbolRow = InferSelectModel<typeof symbolTable>;
+export type SymbolRowSansId = InferInsertModel<typeof symbolTable>;
 
 // event, source, lineno, colno, error
 export const errorTable = sqliteTable('errors', {
@@ -67,6 +63,8 @@ export const errorTable = sqliteTable('errors', {
   stack: text('stack').notNull(),
 });
 
+export type ErrorRow = InferSelectModel<typeof errorTable>;
+
 export const manifestTable = sqliteTable(
   'manifests',
   {
@@ -79,6 +77,8 @@ export const manifestTable = sqliteTable(
     publicApiKeyIndex: uniqueIndex('hashIndex').on(table.hash, table.publicApiKey),
   })
 );
+
+export type ManifestRow = InferSelectModel<typeof manifestTable>;
 
 export const symbolDetailTable = sqliteTable(
   'symbolDetail',
@@ -105,6 +105,9 @@ export const symbolDetailTable = sqliteTable(
     };
   }
 );
+
+export type SymbolDetailRow = InferSelectModel<typeof symbolDetailTable>;
+export type SymbolDetailRowSansId = InferInsertModel<typeof symbolDetailTable>;
 
 export const edgeTable = sqliteTable(
   'edges',
@@ -231,6 +234,9 @@ export const edgeTable = sqliteTable(
   })
 );
 
+export type EdgeRow = InferSelectModel<typeof edgeTable>;
+export type EdgeRowSansId = InferInsertModel<typeof edgeTable>;
+
 export const routesTable = sqliteTable(
   'routes',
   {
@@ -299,3 +305,6 @@ export const routesTable = sqliteTable(
     ),
   })
 );
+
+export type RouteRow = InferSelectModel<typeof routesTable>;
+export type RouteRowSansId = InferInsertModel<typeof routesTable>;

@@ -1,12 +1,12 @@
 import { eq, and, sql } from 'drizzle-orm';
 import { type AppDatabase } from './index';
-import { type DatabaseSelect, edgeTable, manifestTable } from './schema';
+import { type ManifestRow, edgeTable, manifestTable } from './schema';
 import { latencyColumnSums, toVector } from './query-helpers';
 
 export async function dbGetManifests(
   db: AppDatabase,
   publicApiKey: string
-): Promise<DatabaseSelect['manifestTable'][]> {
+): Promise<ManifestRow[]> {
   const manifests = await db
     .select()
     .from(manifestTable)
@@ -16,7 +16,16 @@ export async function dbGetManifests(
   return manifests;
 }
 
-export async function dbGetManifestStats(db: AppDatabase, publicApiKey: string) {
+export interface ManifestStatsRow {
+  hash: string;
+  timestamp: Date;
+  latency: number[];
+}
+
+export async function dbGetManifestStats(
+  db: AppDatabase,
+  publicApiKey: string
+): Promise<ManifestStatsRow[]> {
   const manifests = await db
     .select({ hash: manifestTable.hash, timestamp: manifestTable.timestamp, ...latencyColumnSums })
     .from(manifestTable)
@@ -38,7 +47,7 @@ export async function dbGetManifestInfo(
   db: AppDatabase,
   publicApiKey: string,
   manifestHash: string
-): Promise<DatabaseSelect['manifestTable']> {
+): Promise<ManifestRow> {
   const manifest = await db
     .select()
     .from(manifestTable)

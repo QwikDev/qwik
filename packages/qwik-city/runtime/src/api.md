@@ -445,8 +445,10 @@ export const useNavigate: () => RouteNavigate;
 // @public (undocumented)
 export const valibot$: any;
 
+// Warning: (ae-forgotten-export) The symbol "ValibotObjectSchema" needs to be exported by the entry point index.d.ts
+//
 // @public (undocumented)
-export const valibotQrl: (qrl: QRL<v.ObjectShape | v.BaseSchema | ((z: any, ev: RequestEvent) => v.ObjectShape)>) => DataValidator;
+export const valibotQrl: (qrl: QRL<v.ObjectShape | ValibotObjectSchema | ((z: any, ev: RequestEvent) => v.ObjectShape | ValibotObjectSchema)>) => DataValidator;
 
 // Warning: (ae-forgotten-export) The symbol "ValidatorConstructor" needs to be exported by the entry point index.d.ts
 //

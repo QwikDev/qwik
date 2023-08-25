@@ -1,6 +1,13 @@
 import { and, eq, isNull, sql, inArray } from 'drizzle-orm';
 import { type AppDatabase } from '.';
-import { applicationTable, edgeTable, routesTable, symbolDetailTable, symbolTable } from './schema';
+import {
+  type SymbolDetailRow,
+  applicationTable,
+  edgeTable,
+  routesTable,
+  symbolDetailTable,
+  symbolTable,
+} from './schema';
 import {
   createEdgeRow,
   delayBucketField,
@@ -39,7 +46,17 @@ export async function getEdges(
   }));
 }
 
-export async function getSlowEdges(db: AppDatabase, publicApiKey: string, manifests: string[]) {
+export interface SlowEdge {
+  manifestHash: string;
+  to: string;
+  latency: number[];
+}
+
+export async function getSlowEdges(
+  db: AppDatabase,
+  publicApiKey: string,
+  manifests: string[]
+): Promise<SlowEdge[]> {
   let where = eq(edgeTable.publicApiKey, publicApiKey);
   if (manifests.length) {
     where = and(where, inArray(edgeTable.manifestHash, manifests))!;
@@ -62,7 +79,15 @@ export async function getSlowEdges(db: AppDatabase, publicApiKey: string, manife
   }));
 }
 
-export function getSymbolDetails(db: AppDatabase, publicApiKey: string) {
+export type SymbolDetailForApp = Pick<
+  SymbolDetailRow,
+  'hash' | 'fullName' | 'origin' | 'lo' | 'hi'
+>;
+
+export async function getSymbolDetails(
+  db: AppDatabase,
+  publicApiKey: string
+): Promise<SymbolDetailForApp[]> {
   return db
     .select({
       hash: symbolDetailTable.hash,

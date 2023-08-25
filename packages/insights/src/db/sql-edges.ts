@@ -3,12 +3,19 @@ import { type AppDatabase } from './index';
 import { edgeTableDelayCount, latencyColumnSums, delayColumnSums, toVector } from './query-helpers';
 import { edgeTable } from './schema';
 
+export interface OutgoingEdge {
+  manifestHash: string;
+  to: string;
+  latency: number[];
+  delay: number[];
+}
+
 export async function dbGetOutgoingEdges(
   db: AppDatabase,
   publicApiKey: string,
   symbol: string,
   manifests: string[]
-) {
+): Promise<OutgoingEdge[]> {
   let where = and(eq(edgeTable.publicApiKey, publicApiKey), eq(edgeTable.from, symbol));
   if (manifests.length) {
     where = and(where, inArray(edgeTable.manifestHash, manifests))!;

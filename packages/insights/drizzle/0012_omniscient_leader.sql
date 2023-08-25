@@ -10,6 +10,22 @@ CREATE TABLE `symbolDetailTmp` (
 	FOREIGN KEY (`public_api_key`) REFERENCES `applications`(`public_api_key`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`public_api_key`,`manifest_hash`) REFERENCES `manifests`(`public_api_key`,`hash`) ON UPDATE no action ON DELETE no action
 );--> statement-breakpoint
-INSERT INTO `symbolDetailTmp` SELECT * FROM `symbolDetail`;--> statement-breakpoint
+INSERT INTO `symbolDetailTmp` (
+	`hash`,
+	`public_api_key`,
+	`manifest_hash`,
+	`full_name`,
+	`origin`,
+	`lo`,
+	`hi`
+) SELECT 
+	`hash`,
+	`public_api_key`,
+	`manifest_hash`,
+	`full_name`,
+	`origin`,
+	`lo`,
+	`hi`
+ FROM `symbolDetail`;--> statement-breakpoint
 DROP TABLE `symbolDetail`;--> statement-breakpoint
 ALTER TABLE `symbolDetailTmp` RENAME TO `symbolDetail`;

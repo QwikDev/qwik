@@ -1,4 +1,4 @@
-import { component$, useStore, type JSXNode } from '@builder.io/qwik';
+import { component$, useStore, type JSXNode, type ReadonlySignal } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
 import { BundleCmp } from '~/components/bundle';
 import { SymbolTile } from '~/components/symbol-tile';
@@ -8,12 +8,19 @@ import {
   computeBundles,
   computeSymbolGraph,
   computeSymbolVectors,
+  type SymbolVectors,
   type Symbol,
+  type Bundle,
 } from '~/stats/edges';
 import { vectorSum } from '~/stats/vector';
 import { css } from '~/styled-system/css';
 
-export const useData = routeLoader$(async ({ params, url }) => {
+interface BundleInfo {
+  vectors: SymbolVectors;
+  bundles: Bundle[];
+}
+
+export const useData = routeLoader$<BundleInfo>(async ({ params, url }) => {
   const db = getDB();
   const limit = url.searchParams.get('limit')
     ? parseInt(url.searchParams.get('limit')!)
@@ -30,7 +37,7 @@ export const useData = routeLoader$(async ({ params, url }) => {
 });
 
 export default component$(() => {
-  const data = useData();
+  const data: ReadonlySignal<BundleInfo> = useData();
   return (
     <div
       class={css({

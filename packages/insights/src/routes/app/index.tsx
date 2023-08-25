@@ -1,19 +1,18 @@
-import { applicationTable, getDB } from '~/db';
-
+import { type ApplicationRow, applicationTable, getDB } from '~/db';
 import AppCard from '~/components/app-card';
 import Container from '~/components/container';
 import Layout from '~/components/layout';
-import { component$ } from '@builder.io/qwik';
+import { type ReadonlySignal, component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
 import styles from './styles.module.css';
 
-export const useApps = routeLoader$(async () => {
+export const useApps = routeLoader$<ApplicationRow[]>(async () => {
   const db = getDB();
   return await db.select().from(applicationTable).orderBy(applicationTable.name).all();
 });
 
 export default component$(() => {
-  const apps = useApps();
+  const apps: ReadonlySignal<ApplicationRow[]> = useApps();
   return (
     <Layout>
       <Container position="center" width="medium">

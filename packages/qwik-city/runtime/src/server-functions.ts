@@ -232,16 +232,13 @@ export const validatorQrl = ((
 export const validator$: ValidatorConstructor = /*#__PURE__*/ implicit$FirstArg(validatorQrl);
 
 type ValibotObjectSchema = v.ObjectSchema<v.ObjectShape>;
+type ValibotObjectShapeOrSchema = v.ObjectShape | ValibotObjectSchema;
 
 /**
  * @public
  */
 export const valibotQrl = (
-  qrl: QRL<
-    | v.ObjectShape
-    | ValibotObjectSchema
-    | ((z: any, ev: RequestEvent) => v.ObjectShape | ValibotObjectSchema)
-  >
+  qrl: QRL<ValibotObjectShapeOrSchema | ((z: any, ev: RequestEvent) => ValibotObjectShapeOrSchema)>
 ): DataValidator => {
   if (isServer) {
     return {

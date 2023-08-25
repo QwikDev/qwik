@@ -109,13 +109,15 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
         try {
           const INSIGHTS_Q_MANIFEST_FILENAME = './dist/q-insights.json';
-          const entryStrategy = JSON.parse(
-            await fs.promises.readFile(INSIGHTS_Q_MANIFEST_FILENAME, 'utf-8')
-          );
-          if (entryStrategy) {
-            qwikViteOpts.entryStrategy = entryStrategy;
+          if (fs.existsSync(INSIGHTS_Q_MANIFEST_FILENAME)) {
+            const entryStrategy = JSON.parse(
+              await fs.promises.readFile(INSIGHTS_Q_MANIFEST_FILENAME, 'utf-8')
+            );
+            if (entryStrategy) {
+              qwikViteOpts.entryStrategy = entryStrategy;
+            }
+            await fs.promises.unlink(INSIGHTS_Q_MANIFEST_FILENAME);
           }
-          await fs.promises.unlink(INSIGHTS_Q_MANIFEST_FILENAME);
         } catch (e) {
           // ok to ignore
         }

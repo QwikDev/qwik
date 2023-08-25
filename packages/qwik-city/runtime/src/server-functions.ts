@@ -255,7 +255,7 @@ export const valibotQrl = (
         });
 
         const data = inputData ?? (await ev.parseBody());
-        const result = await v.safeParseAsync(await schema, data);
+        const result = v.safeParse(await schema, data);
         if (result.success) {
           return result;
         } else {

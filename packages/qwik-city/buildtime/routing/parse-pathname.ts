@@ -8,6 +8,7 @@ export function parseRoutePathname(basePathname: string, pathname: string): Pars
   if (pathname === basePathname) {
     return {
       pattern: new RegExp('^' + pathname.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$'),
+      routeName: pathname,
       paramNames: [],
       segments: [[{ content: '', dynamic: false, rest: false }]],
     };
@@ -72,6 +73,7 @@ export function parseRoutePathname(basePathname: string, pathname: string): Pars
 
   return {
     pattern,
+    routeName: pathname,
     paramNames,
     segments: segments.map((segment) => {
       const parts: PathnameSegmentPart[] = [];

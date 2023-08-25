@@ -105,6 +105,22 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
       qwikPlugin.log(`vite config(), command: ${viteCommand}, env.mode: ${viteEnv.mode}`);
 
+      if (sys.env === 'node' && !qwikViteOpts.entryStrategy) {
+        const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
+        try {
+          const INSIGHTS_Q_MANIFEST_FILENAME = './dist/q-insights.json';
+          const entryStrategy = JSON.parse(
+            await fs.promises.readFile(INSIGHTS_Q_MANIFEST_FILENAME, 'utf-8')
+          );
+          if (entryStrategy) {
+            qwikViteOpts.entryStrategy = entryStrategy;
+          }
+          await fs.promises.unlink(INSIGHTS_Q_MANIFEST_FILENAME);
+        } catch (e) {
+          // ok to ignore
+        }
+      }
+
       if (viteCommand === 'serve') {
         qwikViteOpts.entryStrategy = { type: 'hook' };
       } else {
@@ -127,6 +143,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         entryStrategy: qwikViteOpts.entryStrategy,
         srcDir: qwikViteOpts.srcDir,
         rootDir: viteConfig.root,
+        tsconfigFileNames: qwikViteOpts.tsconfigFileNames,
         resolveQwikBuild: true,
         transformedModuleOutput: qwikViteOpts.transformedModuleOutput,
         vendorRoots: [...(qwikViteOpts.vendorRoots ?? []), ...vendorRoots.map((v) => v.path)],
@@ -731,6 +748,11 @@ interface QwikVitePluginCommonOptions {
    * Default `src`
    */
   srcDir?: string;
+  /**
+   * List of tsconfig.json files to use for ESLint warnings during development.
+   * Default `['tsconfig.json']`
+   */
+  tsconfigFileNames?: string[];
   /**
    * List of directories to recursively search for Qwik components or Vendors.
    * Default `[]`

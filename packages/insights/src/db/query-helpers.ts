@@ -1,5 +1,5 @@
-import { sql, type InferModel } from 'drizzle-orm';
-import { edgeTable } from './schema';
+import { sql, type InferInsertModel } from 'drizzle-orm';
+import { edgeTable, type routesTable } from './schema';
 import { BUCKETS } from '~/stats/vector';
 
 export type VectorKeys<PREFIX extends string> =
@@ -81,7 +81,7 @@ export function createEdgeRow({
   interaction: boolean;
   delayBucket: number;
   latencyBucket: number;
-}): InferModel<typeof edgeTable, 'insert'> {
+}): InferInsertModel<typeof edgeTable> {
   return {
     publicApiKey,
     manifestHash,
@@ -614,4 +614,77 @@ export function toVector<PREFIX extends string>(prefix: PREFIX, dat: VectorField
     obj[prefix + '48'],
     obj[prefix + '49'],
   ];
+}
+
+export function timelineBucketField(bucket: number): VectorKeys<`timeline`> {
+  return ('timeline' + pad(bucket)) as any;
+}
+
+export function createRouteRow({
+  publicApiKey,
+  manifestHash,
+  route,
+  symbol,
+}: {
+  publicApiKey: string;
+  manifestHash: string;
+  route: string;
+  symbol: string;
+}): InferInsertModel<typeof routesTable> {
+  return {
+    publicApiKey,
+    manifestHash,
+    route,
+    symbol,
+    timeline00: 0,
+    timeline01: 0,
+    timeline02: 0,
+    timeline03: 0,
+    timeline04: 0,
+    timeline05: 0,
+    timeline06: 0,
+    timeline07: 0,
+    timeline08: 0,
+    timeline09: 0,
+    timeline10: 0,
+    timeline11: 0,
+    timeline12: 0,
+    timeline13: 0,
+    timeline14: 0,
+    timeline15: 0,
+    timeline16: 0,
+    timeline17: 0,
+    timeline18: 0,
+    timeline19: 0,
+    timeline20: 0,
+    timeline21: 0,
+    timeline22: 0,
+    timeline23: 0,
+    timeline24: 0,
+    timeline25: 0,
+    timeline26: 0,
+    timeline27: 0,
+    timeline28: 0,
+    timeline29: 0,
+    timeline30: 0,
+    timeline31: 0,
+    timeline32: 0,
+    timeline33: 0,
+    timeline34: 0,
+    timeline35: 0,
+    timeline36: 0,
+    timeline37: 0,
+    timeline38: 0,
+    timeline39: 0,
+    timeline40: 0,
+    timeline41: 0,
+    timeline42: 0,
+    timeline43: 0,
+    timeline44: 0,
+    timeline45: 0,
+    timeline46: 0,
+    timeline47: 0,
+    timeline48: 0,
+    timeline49: 0,
+  };
 }

@@ -1,0 +1,309 @@
+---
+title: Cookbook | Portal
+contributors:
+  - mhevery
+---
+
+import CodeSandbox, {CodeFile} from '../../../../components/code-sandbox/index.tsx';
+
+# Portal
+
+A common problem in front-end development is to pop up a modal dialog from a component. The complication is that the modal dialog needs to be rendered in a different part of the DOM tree, and the component that triggers the model needs to a way to affect the location of rendering.
+
+In other frameworks, this is often solved by dedicated API such as [`createPortal()`](https://react.dev/reference/react-dom/createPortal). However such APIs don't work well with server-side rendering and so an alternative approach is needed.
+
+## Alternatives
+
+You may want to consider these modern browser alternatives to modals:
+- https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog
+- https://developer.chrome.com/blog/introducing-popover-api/
+
+## Problem
+
+The fundamental problems to solve are:
+1. decide where the popup should be rendered in the application. (Let's call this `<Portal>`)
+2. have a way to communicate with the `<Portal>` to let it know when and what component should be rendered (from the component that triggers the popup.) This is achieved through `<PortalProvider/>` component.
+
+## Solution
+
+<CodeSandbox url="/demo/cookbook/portal/"  style={{ height: '15em' }}>
+</CodeSandbox>
+
+
+Let's break down the solution into steps:
+1. Create a `PortalProvider` component that is responsible for managing the portals.
+1. Place the `<PortalProvider>` into the top-level `layout.tsx` component.
+1. Create a `PortalAPI` that can be used to communicate with the `PortalProvider`.
+1. Create `<Portal>` component which renders the portal content.
+
+
+### Using the PortalProvider
+
+Let's assume that we already have a `PortalProvider` and let's focus on how it is used first.
+1. We get a hold of the `PortalProvider` API through: 
+   ```tsx
+   const portal = useContext(PortalAPI);
+   ```
+2. We then use the `PortalProvider` API to show a popup:
+   ```tsx
+   portal('modal', <PopupExample name="World" />)
+   ```
+3. Finally we can use `PortalCloseAPI` API to hide the popup:
+   ```tsx
+   const portalClose = useContext(PortalCloseAPI);
+   portalClose();
+   ```
+
+The full source code can be found here:
+
+<CodeFile src="/src/routes/demo/cookbook/portal/index.tsx">
+```tsx
+import {
+  $,
+  component$,
+  useContext,
+  useStylesScoped$,
+  useTask$,
+} from '@builder.io/qwik';
+import { PortalCloseAPI, PortalAPI } from './portal-provider';
+import PopupExampleCSS from './popup-example.css?inline';
+import { useLocation } from '@builder.io/qwik-city';
+
+export default component$(() => {
+  // Retrieve the portal API
+  const portal = useContext(PortalAPI);
+  // This function is used to open the modal.
+  // Portals can be named and each portal can have multiple items rendered into it.
+  const openModal = $(() => portal('modal', <PopupExample name="World" />));
+
+  // Conditionally open the <Portal/> on the server to demonstrate SSR of portals.
+  const location = useLocation();
+  useTask$(() => {
+    location.url.searchParams.get('modal') && openModal();
+  });
+  return (
+    <>
+      <div>
+        [ <a href="?modal=true">render portal as part of SSR</a> |{' '}
+        <a href="?">render portal as part of client interaction</a> ]
+      </div>
+      <button onClick$={openModal}>Show Modal</button>
+    </>
+  );
+});
+
+// This component is shown as a modal.
+export const PopupExample = component$<{ name: string }>(({ name }) => {
+  useStylesScoped$(PopupExampleCSS);
+  // To close a portal retrieve the close API.
+  const portalClose = useContext(PortalCloseAPI);
+  return (
+    <div class="popup-example">
+      <h1>MODAL</h1>
+      <p>Hello {name}!</p>
+      <button onClick$={() => portalClose()}>X</button>
+    </div>
+  );
+});
+```
+</CodeFile>
+
+
+The styling for the `PopupExample` component is (`portal-provider.css`):
+<CodeFile src="/src/routes/demo/cookbook/portal/portal-provider.css">
+```css
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  outline: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.5);
+  -webkit-tap-highlight-color: transparent;
+}
+```
+</CodeFile>
+
+## Implementing the `PortalProvider`
+
+A `PortalProvider` is a component that is responsible for rendering the popup. It also provides a context API that can be used to show/hide the popup.
+
+1. Create the `PortalProviderContext` that will be used to communicate with the `PortalProvider`.
+   ```tsx
+   useContextProvider(PortalProviderContext, {
+    show: $(<T extends {}>(component: Component<T>, props: T) => {...}),
+    hide: $(() => {...})
+   });
+   ```
+2. Conditionally render the component:
+   ```tsx
+   {
+     // Conditionally render the modal
+     modal.value && <div class="modal">
+       <modal.value.Component {...modal.value.props} />
+     </div>
+   }
+   ```
+
+Full implementation can be found here:
+
+<CodeFile src="/src/routes/demo/cookbook/portal/portal-provider.tsx">
+```tsx
+import {
+  $,
+  Slot,
+  component$,
+  createContextId,
+  useContext,
+  useContextProvider,
+  useSignal,
+  useStylesScoped$,
+  type ContextId,
+  type QRL,
+  type Signal,
+} from '@builder.io/qwik';
+import { type JSXNode } from '@builder.io/qwik/jsx-runtime';
+import CSS from './portal-provider.css?inline';
+
+// Define public API for opening up Portals
+export const PortalAPI = createContextId<
+  /**
+   * Add JSX to a portal.
+   * @param name portal name.
+   * @param jsx to add.
+   * @param contexts to add to the portal.
+   * @returns A function used for closing the portal.
+   */
+  QRL<
+    (name: string, jsx: JSXNode, contexts?: ContextPair<any>[]) => () => void
+  >
+>('PortalProviderAPI');
+
+export type ContextPair<T> = { id: ContextId<T>; value: T };
+
+// Define public API for closing Portals
+export const PortalCloseAPI =
+  createContextId<QRL<() => void>>('PortalCloseAPI');
+
+// internal context for managing portals
+const Portals = createContextId<Signal<Portal[]>>('Portals');
+
+interface Portal {
+  name: string;
+  jsx: JSXNode;
+  close: QRL<() => void>;
+  contexts: Array<ContextPair<unknown>>;
+}
+
+export const PortalProvider = component$(() => {
+  const portals = useSignal<Portal[]>([]);
+  useContextProvider(Portals, portals);
+
+  // Provide the public API for the PopupManager for other components.
+  useContextProvider(
+    PortalAPI,
+    $((name: string, jsx: JSXNode, contexts?: ContextPair<any>[]) => {
+      const portal: Portal = {
+        name,
+        jsx,
+        close: null!,
+        contexts: [...(contexts || [])],
+      };
+      portal.close = $(() => {
+        portals.value = portals.value.filter((p) => p !== portal);
+      });
+      portal.contexts.push({ id: PortalCloseAPI, value: portal.close });
+      portals.value = [...portals.value, portal];
+      return portal.close;
+    })
+  );
+  return <Slot />;
+});
+
+/**
+ * IMPORTANT: In order for the <Portal> to correctly render in SSR, it needs
+ * to be rendered AFTER the call to open portal. (Setting content to portal
+ * AFTER the portal is rendered can't be done in SSR, because it is not possible
+ * to return back to the <Portal/> after it has been streamed to the client.)
+ */
+export const Portal = component$<{ name: string }>(({ name }) => {
+  const portals = useContext(Portals);
+  useStylesScoped$(CSS);
+  const myPortals = portals.value.filter((portal) => portal.name === name);
+  return (
+    <>
+      {myPortals.map((portal) => (
+        <div class="modal">
+          <WrapJsxInContext jsx={portal.jsx} contexts={portal.contexts} />
+        </div>
+      ))}
+    </>
+  );
+});
+
+export const WrapJsxInContext = component$<{
+  jsx: JSXNode;
+  contexts: Array<ContextPair<any>>;
+}>(({ jsx, contexts }) => {
+  contexts.forEach(({ id, value }) => useContextProvider(id, value));
+  return (
+    <>
+      {/* Workaround: https://github.com/BuilderIO/qwik/issues/4966 */}
+      {/* {jsx} */}
+      {[jsx].map((jsx) => jsx)}
+    </>
+  );
+});
+```
+</CodeFile>
+
+The styling for the `PortalProvider` component is (`portal-provider.css`):
+<CodeFile src="/src/routes/demo/cookbook/portal/portal-provider.css">
+```tsx
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  outline: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.5);
+  -webkit-tap-highlight-color: transparent;
+}
+```
+</CodeFile>
+
+
+## Adding `PortalProvider` to root `layout.tsx`
+
+<CodeFile src="/src/routes/demo/cookbook/portal/layout.tsx">
+```tsx
+import { Slot, component$ } from '@builder.io/qwik';
+import { Portal, PortalProvider } from './portal-provider';
+
+export default component$(() => {
+  // 1. Wrap a root component with a <PortalProvider> to enable portal API.
+  //    The <PortalProvider> component will provide a context API to
+  //    allow other components to create portals.
+  // 2. Add <Portal/> to where you want the portals to be rendered.
+  //    (<Portal/>s have names and so you can have multiple <Portal/> locations.)
+  return (
+    <PortalProvider>
+      <Slot />
+      <Portal name="modal" />
+    </PortalProvider>
+  );
+});
+```
+</CodeFile>

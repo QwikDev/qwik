@@ -1,4 +1,11 @@
-import type { NoSerialize, QRL, Signal, ValueOrPromise } from '@builder.io/qwik';
+import type {
+  NoSerialize,
+  QRL,
+  QwikIntrinsicElements,
+  Signal,
+  ValueOrPromise,
+  ReadonlySignal,
+} from '@builder.io/qwik';
 import type {
   RequestEvent,
   RequestEventAction,
@@ -6,8 +13,8 @@ import type {
   RequestEventLoader,
   RequestHandler,
   ResolveSyncValue,
+  EnvGetter,
 } from '@builder.io/qwik-city/middleware/request-handler';
-import type { ReadonlySignal } from 'packages/qwik/src/core/state/signal';
 import type * as zod from 'zod';
 
 export type {
@@ -144,6 +151,10 @@ export interface DocumentHeadValue {
    */
   readonly styles?: readonly DocumentStyle[];
   /**
+   * Used to manually append `<script>` elements to the `<head>`.
+   */
+  readonly scripts?: readonly DocumentScript[];
+  /**
    * Arbitrary object containing custom data. When the document head is created from
    * markdown files, the frontmatter attributes that are not recognized as a well-known
    * meta names (such as title, description, author, etc...), are stored in this property.
@@ -197,7 +208,16 @@ export interface DocumentLink {
  */
 export interface DocumentStyle {
   readonly style: string;
-  readonly props?: Readonly<{ [propName: string]: string }>;
+  readonly props?: Readonly<QwikIntrinsicElements['style']>;
+  readonly key?: string;
+}
+
+/**
+ * @alpha
+ */
+export interface DocumentScript {
+  readonly script?: string;
+  readonly props?: Readonly<QwikIntrinsicElements['script']>;
   readonly key?: string;
 }
 
@@ -252,12 +272,10 @@ export type MenuModuleLoader = () => Promise<MenuModule>;
  * @public
  */
 export type RouteData =
-  | [pattern: RegExp, loaders: ModuleLoader[]]
-  | [pattern: RegExp, loaders: ModuleLoader[], paramNames: string[]]
+  | [routeName: string, loaders: ModuleLoader[]]
   | [
-      pattern: RegExp,
+      routeName: string,
       loaders: ModuleLoader[],
-      paramNames: string[],
       originalPathname: string,
       routeBundleNames: string[],
     ];
@@ -289,6 +307,7 @@ export type ContentModule = PageModule | LayoutModule;
 export type ContentModuleHead = DocumentHead | ResolvedDocumentHead;
 
 export type LoadedRoute = [
+  routeName: string,
   params: PathParams,
   mods: (RouteModule | ContentModule)[],
   menu: ContentMenu | undefined,
@@ -321,7 +340,11 @@ export interface ClientPageData extends Omit<EndpointResponse, 'status'> {
 /**
  * @public
  */
-export type StaticGenerateHandler = () => Promise<StaticGenerate> | StaticGenerate;
+export type StaticGenerateHandler = ({
+  env,
+}: {
+  env: EnvGetter;
+}) => Promise<StaticGenerate> | StaticGenerate;
 
 /**
  * @public
@@ -333,6 +356,7 @@ export interface StaticGenerate {
 export interface QwikCityRenderDocument extends Document {}
 
 export interface QwikCityEnvData {
+  routeName: string;
   ev: RequestEvent;
   params: PathParams;
   response: EndpointResponse;

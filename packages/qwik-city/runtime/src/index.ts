@@ -62,6 +62,7 @@ export { zod$, zodQrl, valibot$, valibotQrl } from './server-functions';
 export { validator$, validatorQrl } from './server-functions';
 
 export { z } from 'zod';
+export * as v from 'valibot';
 
 export { Form } from './form-component';
 export type { FormProps } from './form-component';

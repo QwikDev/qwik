@@ -231,8 +231,8 @@ export const validatorQrl = ((
  */
 export const validator$: ValidatorConstructor = /*#__PURE__*/ implicit$FirstArg(validatorQrl);
 
-type ValibotObjectSchema = v.ObjectSchema<v.ObjectShape>;
-type ValibotObjectShapeOrSchema = v.ObjectShape | ValibotObjectSchema;
+type ValibotObjectSchema = v.ObjectSchemaAsync<v.ObjectShapeAsync>;
+type ValibotObjectShapeOrSchema = v.ObjectShapeAsync | ValibotObjectSchema;
 
 /**
  * @public
@@ -250,12 +250,12 @@ export const valibotQrl = (
           if (obj.schema === 'object') {
             return obj as ValibotObjectSchema;
           } else {
-            return v.object(obj as v.ObjectShape);
+            return v.objectAsync(obj as v.ObjectShapeAsync);
           }
         });
 
         const data = inputData ?? (await ev.parseBody());
-        const result = v.safeParse(await schema, data);
+        const result = await v.safeParseAsync(await schema, data);
         if (result.success) {
           return result;
         } else {

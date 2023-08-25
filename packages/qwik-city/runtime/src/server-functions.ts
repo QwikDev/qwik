@@ -231,8 +231,9 @@ export const validatorQrl = ((
  */
 export const validator$: ValidatorConstructor = /*#__PURE__*/ implicit$FirstArg(validatorQrl);
 
-type ValibotObjectSchema = v.ObjectSchemaAsync<v.ObjectShapeAsync>;
-type ValibotObjectShapeOrSchema = v.ObjectShapeAsync | ValibotObjectSchema;
+type ValibotObjectSchema = v.ObjectSchema<v.ObjectShape> | v.ObjectSchemaAsync<v.ObjectShapeAsync>;
+type ValibotObjectShape = v.ObjectShape | v.ObjectShapeAsync;
+type ValibotObjectShapeOrSchema = ValibotObjectShape | ValibotObjectSchema;
 
 /**
  * @public

@@ -191,13 +191,13 @@ In this example, `onSubmitCompleted$` is used to reset the editingIdSignal value
 
 ## Validation and type safety
 
-Qwik comes with built-in support for [Zod](https://zod.dev/), a TypeScript-first schema validation that can be used directly with actions, using the `zod$()` function.
+Qwik comes with built-in support for [Zod](https://zod.dev/) and [Valibot](https://valibot.dev): TypeScript-first schema validations that can be used directly with actions, using the `zod$()` and `valibot$()` functions.
 
-Actions + [Zod](https://zod.dev/) allows to create type safe forms, where the data is validated server side before the action is executed.
+Actions + [Zod](https://zod.dev/) or [Valibot](https://valibot.dev) allow you to create type-safe forms, where data is validated server-side before actions are executed.
 
 ```tsx {16-20} /firstName/#a /lastName/#b title="src/routes/index.tsx"
 import { component$ } from '@builder.io/qwik';
-import { routeAction$, zod$, z, Form } from '@builder.io/qwik-city';
+import { routeAction$, zod$, z, valibot$, v, Form } from '@builder.io/qwik-city';
 
 export const useAddUser = routeAction$(
   async (user) => {
@@ -216,6 +216,11 @@ export const useAddUser = routeAction$(
     firstName: z.string(),
     lastName: z.string(),
   })
+  // Or, with Valibot:
+  // valibot$({
+  //   firstName: v.string(),
+  //   lastName: v.string(),
+  // })
 );
 
 export default component$(() => {
@@ -247,6 +252,7 @@ The constructor of ```zod$``` can also take a function, as the first argument is
 The second parameter is the RequestEvent to construct an event-based zod schema.
 Especially in combination with ```refine``` and ```superDefine``` in zod, the only limit is your imagination.
 
+The ```valibot$``` constructor will take function too. It works the same as its zod counterpart. 
 
 ```tsx {5-5} /ev/#a  title="Advanced event based validation"
 export const useAddUser = routeAction$(
@@ -275,6 +281,20 @@ export const useAddUser = routeAction$(
       lastName: z.string(),
     });
   })
+  // Valibot version
+  /*
+    valibot$((v, ev) => {
+      const firstName =
+          ev.url.searchParams.get("firstname") === "optional"
+          ? v.optional(v.string())
+          : v.string([v.minLength(1)])
+
+      return z.object({
+        firstName,
+        lastName: v.string(),
+      });
+    })
+  */
 );
 ```
 
@@ -305,7 +325,7 @@ export const useProductRecommendations = routeAction$(
 In order to return non-success values, the action must use the `fail()` method.
 
 ```tsx /fail/
-import { routeAction$, zod$, z } from '@builder.io/qwik-city';
+import { routeAction$, zod$, z, valibot$, v } from '@builder.io/qwik-city';
 
 export const useAddUser = routeAction$(
   async (user, { fail }) => {
@@ -323,10 +343,15 @@ export const useAddUser = routeAction$(
   zod$({
     name: z.string(),
   })
+  /* Or for Valibot: 
+    valibot$({
+      name: v.string()
+    })
+  */
 );
 ```
 
-Failures are stored in the `action.value` property, just like the success value. However, the `action.value.failed` property is set to `true` when the action fails. Futhermore, failure messages can be found in the `fieldErrors` object according to properties defined in your Zod schema.
+Failures are stored in the `action.value` property, just like the success value. However, the `action.value.failed` property is set to `true` when the action fails. Futhermore, failure messages can be found in the `fieldErrors` object (when using Zod) or the `nested` object when using Valibot according to the properties defined in your Zod schema.
 
 ```tsx
 import { component$ } from '@builder.io/qwik';
@@ -338,7 +363,7 @@ export default component$(() => {
     <Form action={action}>
       <input name="name" />
       <button type="submit">Add user</button>
-      {action.value?.failed && <p>{action.value.fieldErrors.name}</p>}
+      {action.value?.failed && <p>{action.value.fieldErrors.name}</p>} // or action.value.nested.name when using Valibot
       {action.value?.userID && <p>User added successfully</p>}
     </Form>
   );
@@ -353,7 +378,7 @@ When an action is triggered, the previous state is stored in the `action.formDat
 
 ```tsx {12} /action.formData/
 import { component$ } from '@builder.io/qwik';
-import { routeAction$, Form, zod$, z } from '@builder.io/qwik-city';
+import { routeAction$, Form, zod$, z, valibot$, v } from '@builder.io/qwik-city';
 
 export const useAddUser = routeAction$(async (user) => {
   // handle action...

@@ -654,9 +654,8 @@ valibot$: any;
 ```typescript
 valibotQrl: (
   qrl: QRL<
-    | v.ObjectShape
-    | ValibotObjectSchema
-    | ((z: any, ev: RequestEvent) => v.ObjectShape | ValibotObjectSchema)
+    | ValibotObjectShapeOrSchema
+    | ((z: any, ev: RequestEvent) => ValibotObjectShapeOrSchema)
   >,
 ) => DataValidator;
 ```

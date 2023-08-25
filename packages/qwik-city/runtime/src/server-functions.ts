@@ -231,30 +231,33 @@ export const validatorQrl = ((
  */
 export const validator$: ValidatorConstructor = /*#__PURE__*/ implicit$FirstArg(validatorQrl);
 
+type ValibotObjectSchema = v.ObjectSchema<v.ObjectShape>;
+
 /**
  * @public
  */
 export const valibotQrl = (
-  qrl: QRL<v.ObjectShape | v.BaseSchema | ((z: any, ev: RequestEvent) => v.ObjectShape)>
+  qrl: QRL<
+    | v.ObjectShape
+    | ValibotObjectSchema
+    | ((z: any, ev: RequestEvent) => v.ObjectShape | ValibotObjectSchema)
+  >
 ): DataValidator => {
   if (isServer) {
     return {
       async validate(ev, inputData) {
-        const schema: Promise<v.BaseSchema | v.ObjectShape> = qrl.resolve().then((obj) => {
+        const schema: Promise<ValibotObjectSchema> = qrl.resolve().then((obj) => {
           if (typeof obj === 'function') {
             obj = obj(z, ev);
           }
-          // @ts-expect-error
-          return v.object(obj);
-          /* if (typeof obj === 'object') {
-            return obj;
+          if (obj.schema === 'object') {
+            return obj as ValibotObjectSchema;
           } else {
-            return v.object(obj);
-          } */
+            return v.object(obj as v.ObjectShape);
+          }
         });
 
         const data = inputData ?? (await ev.parseBody());
-        // @ts-expect-error
         const result = await v.safeParseAsync(await schema, data);
         if (result.success) {
           return result;

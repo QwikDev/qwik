@@ -1,4 +1,4 @@
-import { eq, and, type InferModel, sql } from 'drizzle-orm';
+import { eq, and, type InferSelectModel, sql } from 'drizzle-orm';
 import { type AppDatabase } from './index';
 import { edgeTable, manifestTable } from './schema';
 import { latencyColumnSums, toVector } from './query-helpers';
@@ -6,7 +6,7 @@ import { latencyColumnSums, toVector } from './query-helpers';
 export async function dbGetManifests(
   db: AppDatabase,
   publicApiKey: string
-): Promise<InferModel<typeof manifestTable, 'select'>[]> {
+): Promise<InferSelectModel<typeof manifestTable>[]> {
   const manifests = await db
     .select()
     .from(manifestTable)
@@ -38,7 +38,7 @@ export async function dbGetManifestInfo(
   db: AppDatabase,
   publicApiKey: string,
   manifestHash: string
-): Promise<InferModel<typeof manifestTable, 'select'>> {
+): Promise<InferSelectModel<typeof manifestTable>> {
   const manifest = await db
     .select()
     .from(manifestTable)

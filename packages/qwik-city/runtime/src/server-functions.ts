@@ -264,7 +264,7 @@ export const valibotQrl = (
         } else {
           if (isDev) {
             console.error(
-              '\nVALIDATION ERROR\naction$() valibot validated failed',
+              '\nVALIDATION ERROR\naction$() Valibot validation failed.',
               '\n  - Issues:',
               result.issues
             );

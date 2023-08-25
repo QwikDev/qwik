@@ -1,4 +1,4 @@
-import { sql, type InferModel } from 'drizzle-orm';
+import { sql, type InferInsertModel } from 'drizzle-orm';
 import { edgeTable, type routesTable } from './schema';
 import { BUCKETS } from '~/stats/vector';
 
@@ -81,7 +81,7 @@ export function createEdgeRow({
   interaction: boolean;
   delayBucket: number;
   latencyBucket: number;
-}): InferModel<typeof edgeTable, 'insert'> {
+}): InferInsertModel<typeof edgeTable> {
   return {
     publicApiKey,
     manifestHash,
@@ -630,7 +630,7 @@ export function createRouteRow({
   manifestHash: string;
   route: string;
   symbol: string;
-}): InferModel<typeof routesTable, 'insert'> {
+}): InferInsertModel<typeof routesTable> {
   return {
     publicApiKey,
     manifestHash,

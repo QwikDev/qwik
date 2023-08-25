@@ -15,7 +15,7 @@ Insights allow your application to collect real user usage information to optimi
 The optimization consists of these parts:
 - A `<Insights>` component which collects real user usage data.
 - A registered application inside the builder.io database.
-- A qwikVite configuration to load real user usage data during the build process.
+- A `qwikInsights` Vite Plugin to load and save real user usage data during the build process.
 
 > NOTE:
 > To try this new feature please drop a message inside the [Qwik Discord server](https://qwik.builder.io/chat)
@@ -69,17 +69,14 @@ file: `vite.config.js`
 ```typescript
 //..
 import { defineConfig, loadEnv } from 'vite';
-import { insightsEntryStrategy } from '@builder.io/qwik-labs/vite';
-
+import { qwikInsights } from '@builder.io/qwik-labs/vite';
 
 export default defineConfig(async () => {
   return {
     plugins: [
-      qwikVite({
-        entryStrategy: await insightsEntryStrategy({
-          publicApiKey: loadEnv('', '.', '').PUBLIC_QWIK_INSIGHTS_KEY,
-        }),
-      }), 
+      qwikInsights({
+        publicApiKey: loadEnv('', '.', '').PUBLIC_QWIK_INSIGHTS_KEY,
+      }),
       //...
     ],
     // ...

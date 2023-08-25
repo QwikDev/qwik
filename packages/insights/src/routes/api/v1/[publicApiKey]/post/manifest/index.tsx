@@ -1,5 +1,5 @@
 import { type RequestHandler } from '@builder.io/qwik-city';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { getDB, symbolDetailTable } from '~/db';
 import { dbGetManifestInfo } from '~/db/sql-manifest';
 import { QManifest } from '~/types/q-manifest';
@@ -16,7 +16,12 @@ export const onPost: RequestHandler = async ({ exit, json, request, params }) =>
     const existing = await db
       .select()
       .from(symbolDetailTable)
-      .where(eq(symbolDetailTable.publicApiKey, publicApiKey))
+      .where(
+        and(
+          eq(symbolDetailTable.publicApiKey, publicApiKey),
+          eq(symbolDetailTable.manifestHash, manifestHash)
+        )
+      )
       .all();
     const existingMap = new Map<string, (typeof existing)[0]>();
     existing.forEach((row) => existingMap.set(row.hash, row));

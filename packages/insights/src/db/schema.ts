@@ -1,3 +1,4 @@
+import { type InferModel } from 'drizzle-orm';
 import {
   integer,
   sqliteTable,
@@ -10,6 +11,17 @@ import {
 export type DatabaseSchema = {
   applicationTable: typeof applicationTable;
   symbolTable: typeof symbolTable;
+  symbolDetailTable: typeof symbolDetailTable;
+  errorTable: typeof errorTable;
+};
+
+export type DatabaseInsert = {
+  edgeTable: InferModel<typeof edgeTable, 'insert'>;
+};
+
+export type DatabaseSelect = {
+  edgeTable: InferModel<typeof edgeTable, 'select'>;
+  manifestTable: InferModel<typeof manifestTable, 'select'>;
 };
 
 export const applicationTable = sqliteTable(

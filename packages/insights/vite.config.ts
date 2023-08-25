@@ -13,7 +13,7 @@ export default defineConfig(async () => {
       qwikTypes(),
       qwikVite(),
       tsconfigPaths({ projects: ['.'] }),
-      qwikInsights({ publicApiKey: loadEnv('', '.', '').PUBLIC_QWIK_INSIGHTS_KEY }),
+      // qwikInsights({ publicApiKey: loadEnv('', '.', '').PUBLIC_QWIK_INSIGHTS_KEY }),
     ],
     preview: {
       headers: {
@@ -22,6 +22,11 @@ export default defineConfig(async () => {
     },
     optimizeDeps: {
       include: ['@auth/core'],
+    },
+    build: {
+      rollupOptions: {
+        external: ['@libsql/client'],
+      },
     },
   };
 });

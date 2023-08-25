@@ -10,7 +10,7 @@ import type { PathParams } from './types';
 export function matchRoute(route: string, path: string): PathParams | null {
   const params: PathParams = {};
   let routeIdx: number = startIdxSkipSlash(route);
-  const routeLength = route.length;
+  const routeLength = lengthNoTrailingSlash(route);
   let pathIdx: number = startIdxSkipSlash(path);
   const pathLength = lengthNoTrailingSlash(path);
   while (routeIdx < routeLength) {

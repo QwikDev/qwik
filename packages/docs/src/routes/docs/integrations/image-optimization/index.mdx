@@ -33,6 +33,22 @@ This is a built-in feature that relies on the [`vite-imagetools`](https://www.np
 * An `<img>` element is rendered, using the `srcset` attribute to sets the image source for several resolutions
 * Now the browser will load the most suitable image for the resolution in use
 
+#### Key Points
+The community and the Qwik team love this API for a number of reasons:
+
+
+* Zero runtime, zero JS
+* Zero props by default, simple API
+* Zero 404, strongly typed API
+* Zero layout reflows (Automatic width/height)
+* Hashed images, immutable cached
+* Automatic `.webp` / `.avif` format optimization
+* Automated `srcSet` generation
+* Extendable (use any `<img>` attribute)
+* Loading lazy and async decoding by default
+* Lightweight, a single `<img>` node in the HTML
+
+
 #### Usage
 
 Add the `?jsx` suffix at the end of the import
@@ -49,10 +65,11 @@ Use the image in the template as a component:
 
 #### Result
 
+This script will generate the following `<img>` element:
+
 ```tsx
 <img
-  width="1200"
-  height="1200"
+
   decoding="async"
   loading="lazy"
   srcset="
@@ -61,16 +78,24 @@ Use the image in the template as a component:
     /@imagetools/1f0dd65f511ffd34415a391bf350e7934ce496a1 600w,
     /@imagetools/493154354e7e89c3f639c751e934d1be4fc05827 800w,
     /@imagetools/324867f8f1af03474a17a9d19035e28a4c241aa1 1200w"
+  width="1200"
+  height="1200"
 >
 ```
 
-The browser will load the most suitable image for the resolution.
+> - `decoding="async"`: indicates that the image will not block the rendering of the page while the image is being decoded. For further reference, please check the [MDN web docs](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/decoding).
+> - `loading="lazy"`: allows the browser to delay the loading of an image until it is visible in the viewport, which helps improve [page loading performance](https://web.dev/browser-level-image-lazy-loading/)
+> - `srcset`: this attribute allows to choose the most appropriate image based on the device's screen size and resolution
+> - `width` and `height`: setting `width` and `height` attributes prevents layout reflow, which hurts the [CLS](https://web.dev/cls/) score
 
+> **Note:** You can also change the default behavior by manually setting the value of these properties:
+> * ```<Image decoding="sync" loading="eager" />```
 
+Thanks to `srcset` attribute the browser will load the most suitable image for the device's resolution:
 
 <img width="100%" src="/docs/integrations/image-optimization/image-network.png"/>
 
-> The original source size was 1.5Mb but its size is just few kilobytes
+> The original source size was 1.5Mb but its size is now just few kilobytes
 
 #### Example
 
@@ -88,7 +113,7 @@ export default component$(() => {
 ```
 
 
-#### Image `width`  and `height`
+#### Customize image `width`  and `height`
 
 You may need to set a custom `width` to the image:
 
@@ -103,7 +128,10 @@ but in that case you need to manually specify the `height` as well to avoid it b
 <Image style={{ width: '300px', height: '200px'}} />
 ```
 
-A simple trick to avoid setting the `height` could be the following:
+Below you can see a simple trick to avoid having to manually set the `height`, while also maintaining the aspect ratio:
+
+> **TIP:** you should always specify `width` and `height` values to prevents layout reflow
+
 
 ```tsx
 import { component$ } from '@builder.io/qwik';
@@ -133,7 +161,6 @@ export default component$(() => {
   display: block; /* Remove any extra white space below the image */
 }
 ````
-
 
 ## `@unpic/qwik`
 

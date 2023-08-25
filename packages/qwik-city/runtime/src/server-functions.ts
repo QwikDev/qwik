@@ -272,7 +272,7 @@ export const valibotQrl = (
           return {
             success: false,
             status: 400,
-            error: { fieldErrors: { ...v.flatten(result.issues).nested } },
+            error: v.flatten(result.issues),
           };
         }
       },

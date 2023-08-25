@@ -3,7 +3,7 @@ import { existsSync } from 'fs';
 import { readFile, writeFile } from 'fs/promises';
 import { PluginOption } from 'vite';
 
-const INSIGHTS_Q_MANIFEST_FILENAME = './dist/insights-q-manifest.json';
+const INSIGHTS_Q_MANIFEST_FILENAME = './dist/q-insights.json';
 
 const logWarn = (message?: any) => {
   console.warn('\x1b[33m%s\x1b[0m', `\n\nQWIK WARN: ${message}\n`);

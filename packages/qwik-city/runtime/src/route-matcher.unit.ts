@@ -45,7 +45,11 @@ routeMatchSuite('should match /seg/[slug]/[param]/ with trailing slash', () => {
     slug: 'extract-text',
     param: 'param-text',
   });
-  equal(matchRoute('/seg/[slug]/[param]/', '/seg/slug/param/extra'), null, 'should not match extra');
+  equal(
+    matchRoute('/seg/[slug]/[param]/', '/seg/slug/param/extra'),
+    null,
+    'should not match extra'
+  );
 });
 
 routeMatchSuite('should match /seg/[...rest]', () => {

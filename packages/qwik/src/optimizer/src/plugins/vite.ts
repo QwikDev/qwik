@@ -108,7 +108,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       if (sys.env === 'node' && !qwikViteOpts.entryStrategy) {
         const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
         try {
-          const INSIGHTS_Q_MANIFEST_FILENAME = './dist/insights-q-manifest.json';
+          const INSIGHTS_Q_MANIFEST_FILENAME = './dist/q-insights.json';
           const entryStrategy = JSON.parse(
             await fs.promises.readFile(INSIGHTS_Q_MANIFEST_FILENAME, 'utf-8')
           );

@@ -1,4 +1,11 @@
-import { integer, sqliteTable, text, uniqueIndex, index } from 'drizzle-orm/sqlite-core';
+import {
+  integer,
+  sqliteTable,
+  text,
+  uniqueIndex,
+  index,
+  foreignKey,
+} from 'drizzle-orm/sqlite-core';
 
 export type DatabaseSchema = {
   applicationTable: typeof applicationTable;
@@ -59,16 +66,31 @@ export const manifestTable = sqliteTable(
   })
 );
 
-export const symbolDetailTable = sqliteTable('symbolDetail', {
-  id: integer('id').primaryKey(),
-  hash: text('hash').notNull(),
-  publicApiKey: text('public_api_key').references(() => applicationTable.publicApiKey),
-  manifestHash: text('manifest_hash').references(() => manifestTable.hash),
-  fullName: text('full_name').notNull(),
-  origin: text('origin').notNull(),
-  lo: integer('lo').notNull(),
-  hi: integer('hi').notNull(),
-});
+export const symbolDetailTable = sqliteTable(
+  'symbolDetail',
+  {
+    id: integer('id').primaryKey(),
+    hash: text('hash').notNull(),
+    publicApiKey: text('public_api_key'),
+    manifestHash: text('manifest_hash'),
+    fullName: text('full_name').notNull(),
+    origin: text('origin').notNull(),
+    lo: integer('lo').notNull(),
+    hi: integer('hi').notNull(),
+  },
+  (symbolDetailTable) => {
+    return {
+      publicApiKeyReference: foreignKey(() => ({
+        columns: [symbolDetailTable.publicApiKey],
+        foreignColumns: [applicationTable.publicApiKey],
+      })),
+      manifestHashReference: foreignKey(() => ({
+        columns: [symbolDetailTable.publicApiKey, symbolDetailTable.manifestHash],
+        foreignColumns: [manifestTable.publicApiKey, manifestTable.hash],
+      })),
+    };
+  }
+);
 
 export const edgeTable = sqliteTable(
   'edges',

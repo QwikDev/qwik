@@ -38,7 +38,7 @@ export async function dbGetManifestInfo(
   db: AppDatabase,
   publicApiKey: string,
   manifestHash: string
-): Promise<InferSelectModel<typeof manifestTable>> {
+): Promise<DatabaseSelect['manifestTable']> {
   const manifest = await db
     .select()
     .from(manifestTable)

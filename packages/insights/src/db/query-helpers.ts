@@ -630,7 +630,7 @@ export function createRouteRow({
   manifestHash: string;
   route: string;
   symbol: string;
-}): InferInsertModel<typeof routesTable> {
+}): DatabaseInsert['routesTable'] {
   return {
     publicApiKey,
     manifestHash,

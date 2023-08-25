@@ -16,6 +16,7 @@ test('defaults', async () => {
   equal(opts.entryStrategy, { type: 'hook' });
   equal(opts.debug, false);
   equal(opts.rootDir, normalizePath(cwd));
+  equal(opts.tsconfigFileNames, ['./tsconfig.json']);
   equal(opts.input, [normalizePath(resolve(cwd, 'src', 'root.tsx'))]);
   equal(opts.outDir, normalizePath(resolve(cwd, 'dist')));
   equal(opts.manifestInput, null);
@@ -33,6 +34,7 @@ test('defaults (buildMode: production)', async () => {
   equal(opts.resolveQwikBuild, true);
   equal(opts.debug, false);
   equal(opts.rootDir, normalizePath(cwd));
+  equal(opts.tsconfigFileNames, ['./tsconfig.json']);
   equal(opts.input, [normalizePath(resolve(cwd, 'src', 'root.tsx'))]);
   equal(opts.outDir, normalizePath(resolve(cwd, 'dist')));
   equal(opts.manifestInput, null);
@@ -51,6 +53,7 @@ test('defaults (target: ssr)', async () => {
   equal(opts.resolveQwikBuild, true);
   equal(opts.debug, false);
   equal(opts.rootDir, normalizePath(cwd));
+  equal(opts.tsconfigFileNames, ['./tsconfig.json']);
   equal(opts.input, [normalizePath(resolve(cwd, 'src', 'entry.ssr.tsx'))]);
   equal(opts.outDir, normalizePath(resolve(cwd, 'server')));
   equal(opts.manifestInput, null);
@@ -68,6 +71,7 @@ test('defaults (buildMode: production, target: ssr)', async () => {
   equal(opts.resolveQwikBuild, true);
   equal(opts.debug, false);
   equal(opts.rootDir, normalizePath(cwd));
+  equal(opts.tsconfigFileNames, ['./tsconfig.json']);
   equal(opts.input, [normalizePath(resolve(cwd, 'src', 'entry.ssr.tsx'))]);
   equal(opts.outDir, normalizePath(resolve(cwd, 'server')));
   equal(opts.manifestInput, null);
@@ -126,6 +130,22 @@ test('rootDir, rel path', async () => {
   const customRoot = 'rel-path';
   const opts = plugin.normalizeOptions({ rootDir: customRoot });
   equal(opts.rootDir, normalizePath(resolve(cwd, customRoot)));
+});
+
+test('tsconfigFileNames', async () => {
+  const plugin = await mockPlugin();
+  const opts = plugin.normalizeOptions({
+    tsconfigFileNames: ['./tsconfig.json', './tsconfig.app.json'],
+  });
+  equal(opts.tsconfigFileNames, ['./tsconfig.json', './tsconfig.app.json']);
+});
+
+test('tsconfigFileNames, empty array fallback to default', async () => {
+  const plugin = await mockPlugin();
+  const opts = plugin.normalizeOptions({
+    tsconfigFileNames: [],
+  });
+  equal(opts.tsconfigFileNames, ['./tsconfig.json']);
 });
 
 test('input string', async () => {

@@ -184,6 +184,10 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.srcDir = srcDir;
     }
 
+    if (Array.isArray(updatedOpts.tsconfigFileNames) && updatedOpts.tsconfigFileNames.length > 0) {
+      opts.tsconfigFileNames = updatedOpts.tsconfigFileNames;
+    }
+
     if (Array.isArray(opts.srcInputs)) {
       opts.srcInputs.forEach((i) => {
         i.path = normalizePath(path.resolve(opts.rootDir, i.path));

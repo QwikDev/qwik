@@ -23,10 +23,5 @@ export default defineConfig(async () => {
     optimizeDeps: {
       include: ['@auth/core'],
     },
-    build: {
-      rollupOptions: {
-        external: ['@libsql/client'],
-      },
-    },
   };
 });

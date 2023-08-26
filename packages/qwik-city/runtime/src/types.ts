@@ -429,7 +429,7 @@ export interface ActionConstructor {
     actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>,
     options: {
       readonly id?: string;
-      validation: [B, ...REST];
+      readonly validation: [B, ...REST];
     }
   ): Action<
     StrictUnion<O | FailReturn<zod.typeToFlattenedError<GetValidatorType<B>>> | FailOfRest<REST>>,
@@ -442,7 +442,7 @@ export interface ActionConstructor {
     actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>,
     options: {
       readonly id?: string;
-      validation: [B];
+      readonly validation: [B];
     }
   ): Action<
     StrictUnion<O | FailReturn<zod.typeToFlattenedError<GetValidatorType<B>>>>,
@@ -455,7 +455,7 @@ export interface ActionConstructor {
     actionQrl: (data: JSONObject, event: RequestEventAction) => ValueOrPromise<O>,
     options: {
       readonly id?: string;
-      validation: REST;
+      readonly validation: REST;
     }
   ): Action<StrictUnion<O | FailReturn<FailOfRest<REST>>>>;
 
@@ -491,8 +491,11 @@ export interface ActionConstructor {
   ): Action<StrictUnion<O | FailReturn<FailOfRest<REST>>>>;
 
   // No validators
-  <O extends Record<string, any> | void | null>(
-    actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<O>
+  <O>(
+    actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<O>,
+    options?: {
+      readonly id?: string;
+    }
   ): Action<StrictUnion<O>>;
 }
 
@@ -509,7 +512,7 @@ export interface ActionConstructorQRL {
     actionQrl: QRL<(data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>>,
     options: {
       readonly id?: string;
-      validation: [B, ...REST];
+      readonly validation: [B, ...REST];
     }
   ): Action<
     StrictUnion<O | FailReturn<zod.typeToFlattenedError<GetValidatorType<B>>> | FailOfRest<REST>>,
@@ -522,7 +525,7 @@ export interface ActionConstructorQRL {
     actionQrl: QRL<(data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>>,
     options: {
       readonly id?: string;
-      validation: [B];
+      readonly validation: [B];
     }
   ): Action<
     StrictUnion<O | FailReturn<zod.typeToFlattenedError<GetValidatorType<B>>>>,
@@ -535,7 +538,7 @@ export interface ActionConstructorQRL {
     actionQrl: QRL<(data: JSONObject, event: RequestEventAction) => ValueOrPromise<O>>,
     options: {
       readonly id?: string;
-      validation: REST;
+      readonly validation: REST;
     }
   ): Action<StrictUnion<O | FailReturn<FailOfRest<REST>>>>;
 
@@ -571,8 +574,11 @@ export interface ActionConstructorQRL {
   ): Action<StrictUnion<O | FailReturn<FailOfRest<REST>>>>;
 
   // No validators
-  <O extends Record<string, any> | void | null>(
-    actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => ValueOrPromise<O>>
+  <O>(
+    actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => ValueOrPromise<O>>,
+    options?: {
+      readonly id?: string;
+    }
   ): Action<StrictUnion<O>>;
 }
 

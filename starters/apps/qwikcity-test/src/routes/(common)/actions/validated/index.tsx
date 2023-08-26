@@ -64,6 +64,10 @@ export const useAction4 = routeAction$(
 export const useAction5 = routeAction$(actionQrl, typedDataValidator);
 export const useAction6 = routeAction$(actionQrl, dataValidator);
 export const useAction7 = routeAction$(actionQrl);
+export const useAction8 = routeAction$(() => true);
+export const useAction9 = routeAction$(() => true, {
+  id: "route-action",
+});
 
 export default component$(() => {
   const loader = useLoader();

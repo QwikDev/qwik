@@ -91,9 +91,9 @@
     "node": ">=16.8.0 <18.0.0 || >=18.11",
     "npm": "please-use-pnpm",
     "yarn": "please-use-pnpm",
-    "pnpm": ">=8.0.0"
+    "pnpm": ">=8.6.12"
   },
-  "packageManager": "pnpm@8.6.1",
+  "packageManager": "pnpm@8.6.12",
   "pnpm": {
     "overrides": {
       "vfile": "6.0.1"

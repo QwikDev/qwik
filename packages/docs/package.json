@@ -53,11 +53,11 @@
     "node": ">=18.11",
     "npm": "please-use-pnpm",
     "yarn": "please-use-pnpm",
-    "pnpm": ">=8.0.0"
+    "pnpm": ">=8.6.12"
   },
   "homepage": "https://qwik.builder.io/",
   "license": "MIT",
-  "packageManager": "pnpm@8.6.1",
+  "packageManager": "pnpm@8.6.12",
   "private": true,
   "scripts": {
     "build": "qwik build",

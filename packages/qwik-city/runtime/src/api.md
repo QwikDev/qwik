@@ -450,7 +450,7 @@ export const valibot$: any;
 // Warning: (ae-forgotten-export) The symbol "ValibotObjectShapeOrSchema" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export const valibotQrl: (qrl: QRL<ValibotObjectShapeOrSchema | ((z: any, ev: RequestEvent) => ValibotObjectShapeOrSchema)>) => DataValidator;
+export const valibotQrl: (qrl: QRL<ValibotObjectShapeOrSchema | ((v: any, ev: RequestEvent) => ValibotObjectShapeOrSchema)>) => DataValidator;
 
 // Warning: (ae-forgotten-export) The symbol "ValidatorConstructor" needs to be exported by the entry point index.d.ts
 //

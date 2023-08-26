@@ -655,7 +655,7 @@ valibot$: any;
 valibotQrl: (
   qrl: QRL<
     | ValibotObjectShapeOrSchema
-    | ((z: any, ev: RequestEvent) => ValibotObjectShapeOrSchema)
+    | ((v: any, ev: RequestEvent) => ValibotObjectShapeOrSchema)
   >,
 ) => DataValidator;
 ```

@@ -231,7 +231,7 @@ export const validatorQrl = ((
  */
 export const validator$: ValidatorConstructor = /*#__PURE__*/ implicit$FirstArg(validatorQrl);
 
-type ValibotObjectSchema = v.ObjectSchema<v.ObjectShape> | v.ObjectSchemaAsync<v.ObjectShapeAsync>;
+type ValibotObjectSchema = v.BaseSchema | v.BaseSchemaAsync;
 type ValibotObjectShape = v.ObjectShape | v.ObjectShapeAsync;
 type ValibotObjectShapeOrSchema = ValibotObjectShape | ValibotObjectSchema;
 
@@ -239,23 +239,24 @@ type ValibotObjectShapeOrSchema = ValibotObjectShape | ValibotObjectSchema;
  * @public
  */
 export const valibotQrl = (
-  qrl: QRL<ValibotObjectShapeOrSchema | ((z: any, ev: RequestEvent) => ValibotObjectShapeOrSchema)>
+  qrl: QRL<ValibotObjectShapeOrSchema | ((v: any, ev: RequestEvent) => ValibotObjectShapeOrSchema)>
 ): DataValidator => {
   if (isServer) {
     return {
       async validate(ev, inputData) {
+        const data = inputData ?? (await ev.parseBody());
         const schema: Promise<ValibotObjectSchema> = qrl.resolve().then((obj) => {
           if (typeof obj === 'function') {
-            obj = obj(z, ev);
+            obj = obj(v, ev);
           }
-          if (obj.schema === 'object') {
+
+          if (typeof obj._parse === 'function') {
             return obj as ValibotObjectSchema;
           } else {
-            return v.objectAsync(obj as v.ObjectShapeAsync);
+            return v.objectAsync(obj as ValibotObjectShape);
           }
         });
 
-        const data = inputData ?? (await ev.parseBody());
         const result = await v.safeParseAsync(await schema, data);
         if (result.success) {
           return result;

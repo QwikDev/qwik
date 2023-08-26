@@ -31,8 +31,6 @@ export type {
   ActionStore,
   LoaderSignal,
   ActionConstructor,
-  ActionOptions,
-  ActionOptionsWithValidation,
   FailReturn,
   ZodConstructor,
   StaticGenerate,

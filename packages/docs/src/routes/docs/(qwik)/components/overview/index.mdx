@@ -231,6 +231,7 @@ export default component$(() => {
   useVisibleTask$(() => {
     const elem = document.getElementById(elemId);
     elemIdSignal.value = elem?.getAttribute('id') || null;
+    console.log('client-side id:', elemIdSignal.value);
   });
 
   return (

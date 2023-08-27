@@ -49,53 +49,53 @@ export interface AppRouteParamsFunction {
   (route: "/", params?: {}): string;
   (
     route: "/api/v1/[publicApiKey]/bundles/",
-    params: { publicApiKey: string }
+    params: { publicApiKey: string },
   ): string;
   (
     route: "/api/v1/[publicApiKey]/post/",
-    params: { publicApiKey: string }
+    params: { publicApiKey: string },
   ): string;
   (
     route: "/api/v1/[publicApiKey]/post/error/",
-    params: { publicApiKey: string }
+    params: { publicApiKey: string },
   ): string;
   (
     route: "/api/v1/[publicApiKey]/post/manifest/",
-    params: { publicApiKey: string }
+    params: { publicApiKey: string },
   ): string;
   (route: "/app/", params?: {}): string;
   (route: "/app/[publicApiKey]/", params: { publicApiKey: string }): string;
   (
     route: "/app/[publicApiKey]/edit/",
-    params: { publicApiKey: string }
+    params: { publicApiKey: string },
   ): string;
   (
     route: "/app/[publicApiKey]/errors/",
-    params: { publicApiKey: string }
+    params: { publicApiKey: string },
   ): string;
   (
     route: "/app/[publicApiKey]/manifests/",
-    params: { publicApiKey: string }
+    params: { publicApiKey: string },
   ): string;
   (
     route: "/app/[publicApiKey]/symbols/",
-    params: { publicApiKey: string }
+    params: { publicApiKey: string },
   ): string;
   (
     route: "/app/[publicApiKey]/symbols/bundles/",
-    params: { publicApiKey: string }
+    params: { publicApiKey: string },
   ): string;
   (
     route: "/app/[publicApiKey]/symbols/edge/",
-    params: { publicApiKey: string }
+    params: { publicApiKey: string },
   ): string;
   (
     route: "/app/[publicApiKey]/symbols/outgoing/",
-    params: { publicApiKey: string }
+    params: { publicApiKey: string },
   ): string;
   (
     route: "/app/[publicApiKey]/symbols/slow/",
-    params: { publicApiKey: string }
+    params: { publicApiKey: string },
   ): string;
   (route: "/app/add/", params?: {}): string;
   (route: "/test/", params?: {}): string;

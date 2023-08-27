@@ -263,7 +263,7 @@ export const resumeContainer = (containerEl: Element) => {
 
 const reviveSubscriptions = (
   value: any,
-  i: any,
+  i: number,
   objsSubs: any[],
   getObject: GetObject,
   containerState: ContainerState,

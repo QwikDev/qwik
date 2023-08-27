@@ -338,7 +338,8 @@ function _isTypeCapturable(
     if (
       symbolName === 'PropFnInterface' ||
       symbolName === 'RefFnInterface' ||
-      symbolName === 'bivarianceHack'
+      symbolName === 'bivarianceHack' ||
+      symbolName === 'FunctionComponent'
     ) {
       return;
     }

@@ -533,7 +533,7 @@ export const ThumbnailLink = component$((props: { entry: MediaEntry; imgLoading?
         <div class="flex gap-2">
           <img
             src={`https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://${itemURL.host}&size=128`}
-            alt="Youtube"
+            alt={`${itemURL.host.split('.').at(1)} logo`}
             class="icon"
           />
           <div class="flex flex-col">

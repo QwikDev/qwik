@@ -1,14 +1,23 @@
-import { component$ } from '@builder.io/qwik';
+import { type ReadonlySignal, component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
 import { getDB } from '~/db';
-import { dbGetOutgoingEdges } from '~/db/sql-edges';
+import { type OutgoingEdge, dbGetOutgoingEdges } from '~/db/sql-edges';
 import { BUCKETS, vectorSum } from '~/stats/vector';
 import Histogram, { delayColors, latencyColors } from '~/components/histogram';
 import { css } from '~/styled-system/css';
 import { SymbolTile } from '~/components/symbol-tile';
 import { ManifestIcon } from '~/components/icons/manifest';
 
-export const useData = routeLoader$(async ({ params, query }) => {
+interface OutgoingInfo {
+  symbol: string;
+  edges: OutgoingEdge[];
+  total: number;
+  manifestHashes: string[];
+  buckets: typeof BUCKETS;
+  publicApiKey: string;
+}
+
+export const useData = routeLoader$<OutgoingInfo>(async ({ params, query }) => {
   const db = getDB();
   const symbol = query.get('symbol') || '';
   const publicApiKey = params.publicApiKey;
@@ -19,7 +28,7 @@ export const useData = routeLoader$(async ({ params, query }) => {
 });
 
 export default component$(() => {
-  const data = useData();
+  const data: ReadonlySignal<OutgoingInfo> = useData();
   return (
     <div>
       <h1>

@@ -29,7 +29,7 @@
     "eslint-plugin-qwik": "1.2.6",
     "netlify-cli": "^15.9.1",
     "prettier": "3.0.0",
-    "typescript": "5.1.6",
+    "typescript": "5.2.2",
     "undici": "5.22.1",
     "uvu": "0.5.6",
     "vite": "4.4.7",

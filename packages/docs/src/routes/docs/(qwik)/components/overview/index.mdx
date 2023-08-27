@@ -208,6 +208,45 @@ export default component$(() => {
 ```
 </CodeSandbox>
 
+## Accessing Elements by `id` Across Server and Client Environments
+
+In server and client environments, elements must sometimes be accessed by their `id`. Use the `useId()` function to get a unique identifier for the current component that remains consistent across server-side rendering (SSR) and client-side operations. This is pivotal when server-rendered components need client-side scripting, such as:
+
+1. **Animation Engines**
+2. **Accessibility Enhancement**
+3. **Other Client-Side Libraries**
+
+In a microfrontends setup, where multiple fragments run concurrently, `useId()` ensures unique and consistent IDs across execution environements, eliminating conflicts.
+
+<CodeSandbox src="/src/routes/demo/component/useId/index.tsx" style={{ height: '10em' }}>
+```tsx /const outputRef = useSignal<Element>();/ /ref={outputRef}/
+import { component$, useId, useSignal, useVisibleTask$ } from '@builder.io/qwik';
+
+export default component$(() => {
+  const elemIdSignal = useSignal<string | null>(null);
+  const id = useId();
+  const elemId = `${id}-example`;
+  console.log('server-side id:', elemId);
+
+  useVisibleTask$(() => {
+    const elem = document.getElementById(elemId);
+    elemIdSignal.value = elem?.getAttribute('id') || null;
+    console.log('client-side id:', elemIdSignal.value);
+  });
+
+  return (
+    <section>
+      <div id={elemId}>
+        Both server-side and client-side console should match this id:
+        <br />
+        <b>{elemIdSignal.value || null}</b>
+      </div>
+    </section>
+  );
+});
+```
+</CodeSandbox>
+
 ## Lazy Loading
 
 The component also serves an important role when breaking parent-child relationships for bundling purposes.

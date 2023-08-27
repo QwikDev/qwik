@@ -128,3 +128,11 @@ A `server$()` wraps a function and returns an async proxy to the function. On th
 On the client, the proxy function invokes the wrapped function via an HTTP request, using `fetch()`.
 
 > Note: The `server$()` function must ensure that the server and client have the same version of the code executing. If there is a version skew the behavior is undefined and may result in an error. If version skew is a common problem then a more formal RPC mechanism should be used such as a tRPC or other library.
+
+## Middleware and `server$`
+
+When using `server$`, it's important to understand how [middleware functions](/docs/middleware/#middleware-function) are executed. Middleware functions defined in `layout` files do not run for `server$` requests. This can lead to confusion, especially when developers expect certain middleware to be executed for both page requests and `server$` requests.
+
+To ensure that a middleware function runs for both types of requests, it should be defined in the `plugin.ts` file. This ensures that the middleware is executed consistently for all incoming requests, regardless of whether they are normal page requests or `server$` requests.
+
+By [defining middleware in the `plugin.ts`](/docs/advanced/routing/#plugints) file, developers can maintain a centralized location for shared middleware logic, ensuring consistency and reducing potential errors or oversights.

@@ -7,17 +7,20 @@ function useCloseDropdown() {
   const isOpen = useSignal(false);
   // Signal to hold a reference to the dropdown toggle button
   const dropdownToggleBtn = useSignal<HTMLElement | null>(null);
-  
+
   // Event listener function for window clicks
   const closeDropdown = $((event: Event): void => {
     // If the clicked element is not contained within the dropdown toggle button, close the dropdown
-    if (dropdownToggleBtn.value && !dropdownToggleBtn.value.contains(event.target as Node)) {
+    if (
+      dropdownToggleBtn.value &&
+      !dropdownToggleBtn.value.contains(event.target as Node)
+    ) {
       isOpen.value = false;
     }
   });
   // Attach the window click event listener
   useOnWindow('click', closeDropdown);
-  
+
   return {
     isOpen,
     dropdownToggleBtn,
@@ -27,26 +30,30 @@ function useCloseDropdown() {
 export default component$(() => {
   // Use the custom hook in the component
   const { isOpen, dropdownToggleBtn } = useCloseDropdown();
-  
+
   // Function to set the reference of the dropdown toggle button
   const setDropdownToggleBtnRef = (item: Element): void => {
     dropdownToggleBtn.value = item as HTMLElement;
   };
-  
+
   return (
     <div>
-      <button ref={ setDropdownToggleBtnRef } onClick$={ () => isOpen.value = true }>
+      <button
+        ref={setDropdownToggleBtnRef}
+        onClick$={() => (isOpen.value = true)}
+      >
         Click me!
       </button>
-      {
-        isOpen.value &&
+      {isOpen.value && (
         <>
-          <div><i>The dropdown is open!</i></div>
-          <div style={ { margin: '1.5rem', marginLeft: '1.5rem' } }>
+          <div>
+            <i>The dropdown is open!</i>
+          </div>
+          <div style={{ margin: '1.5rem', marginLeft: '1.5rem' }}>
             <b>CLICK OUTSIDE</b>
           </div>
         </>
-      }
-      </div>
+      )}
+    </div>
   );
 });

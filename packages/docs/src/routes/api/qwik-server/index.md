@@ -15,9 +15,9 @@ export declare function getQwikLoaderScript(opts?: {
 }): string;
 ```
 
-| Parameter | Type                                      | Description  |
-| --------- | ----------------------------------------- | ------------ |
-| opts      | { events?: string\[\]; debug?: boolean; } | _(Optional)_ |
+| Parameter | Type                                    | Description  |
+| --------- | --------------------------------------- | ------------ |
+| opts      | { events?: string[]; debug?: boolean; } | _(Optional)_ |
 
 **Returns:**
 
@@ -90,10 +90,10 @@ export interface PrefetchImplementation
 export interface PrefetchResource
 ```
 
-| Property     | Modifiers | Type                                      | Description |
-| ------------ | --------- | ----------------------------------------- | ----------- |
-| [imports](#) |           | [PrefetchResource](#prefetchresource)\[\] |             |
-| [url](#)     |           | string                                    |             |
+| Property     | Modifiers | Type                                    | Description |
+| ------------ | --------- | --------------------------------------- | ----------- |
+| [imports](#) |           | [PrefetchResource](#prefetchresource)[] |             |
+| [url](#)     |           | string                                  |             |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts)
 
@@ -118,7 +118,7 @@ export interface QwikLoaderOptions
 
 | Property       | Modifiers | Type                          | Description  |
 | -------------- | --------- | ----------------------------- | ------------ |
-| [events?](#)   |           | string\[\]                    | _(Optional)_ |
+| [events?](#)   |           | string[]                      | _(Optional)_ |
 | [include?](#)  |           | 'always' \| 'never' \| 'auto' | _(Optional)_ |
 | [position?](#) |           | 'top' \| 'bottom'             | _(Optional)_ |
 
@@ -161,12 +161,12 @@ export interface RenderOptions extends SerializeDocumentOptions
 export interface RenderResult
 ```
 
-| Property               | Modifiers | Type                                      | Description  |
-| ---------------------- | --------- | ----------------------------------------- | ------------ |
-| [isStatic](#)          |           | boolean                                   |              |
-| [manifest?](#)         |           | QwikManifest                              | _(Optional)_ |
-| [prefetchResources](#) |           | [PrefetchResource](#prefetchresource)\[\] |              |
-| [snapshotResult](#)    |           | SnapshotResult \| undefined               |              |
+| Property               | Modifiers | Type                                    | Description  |
+| ---------------------- | --------- | --------------------------------------- | ------------ |
+| [isStatic](#)          |           | boolean                                 |              |
+| [manifest?](#)         |           | QwikManifest                            | _(Optional)_ |
+| [prefetchResources](#) |           | [PrefetchResource](#prefetchresource)[] |              |
+| [snapshotResult](#)    |           | SnapshotResult \| undefined             |              |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts)
 
@@ -174,7 +174,7 @@ export interface RenderResult
 
 ```typescript
 export type RenderToStream = (
-  opts: RenderToStreamOptions
+  opts: RenderToStreamOptions,
 ) => Promise<RenderToStreamResult>;
 ```
 
@@ -186,7 +186,7 @@ export type RenderToStream = (
 
 ```typescript
 export type RenderToStream = (
-  opts: RenderToStreamOptions
+  opts: RenderToStreamOptions,
 ) => Promise<RenderToStreamResult>;
 ```
 
@@ -229,7 +229,7 @@ export interface RenderToStreamResult extends RenderResult
 
 ```typescript
 export type RenderToString = (
-  opts: RenderToStringOptions
+  opts: RenderToStringOptions,
 ) => Promise<RenderToStringResult>;
 ```
 
@@ -241,7 +241,7 @@ export type RenderToString = (
 
 ```typescript
 export type RenderToString = (
-  opts: RenderToStringOptions
+  opts: RenderToStringOptions,
 ) => Promise<RenderToStringResult>;
 ```
 
@@ -278,7 +278,7 @@ export interface RenderToStringResult extends RenderResult
 
 ```typescript
 export declare function resolveManifest(
-  manifest: QwikManifest | ResolvedManifest | undefined
+  manifest: QwikManifest | ResolvedManifest | undefined,
 ): ResolvedManifest | undefined;
 ```
 
@@ -310,7 +310,7 @@ export interface SerializeDocumentOptions
 
 ```typescript
 export declare function setServerPlatform(
-  manifest: QwikManifest | ResolvedManifest | undefined
+  manifest: QwikManifest | ResolvedManifest | undefined,
 ): Promise<void>;
 ```
 

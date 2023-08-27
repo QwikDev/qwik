@@ -6,9 +6,11 @@
 
 import type { Action } from '@builder.io/qwik-city';
 import type { _deserializeData } from '@builder.io/qwik';
+import type { EnvGetter as EnvGetter_2 } from '@builder.io/qwik-city/middleware/request-handler';
 import type { FailReturn } from '@builder.io/qwik-city';
 import type { Loader } from '@builder.io/qwik-city';
 import type { QwikCityPlan } from '@builder.io/qwik-city';
+import type { QwikIntrinsicElements } from '@builder.io/qwik';
 import type { Render } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik/server';
 import type { RequestEvent as RequestEvent_2 } from '@builder.io/qwik-city';
@@ -26,6 +28,14 @@ export class AbortMessage {
 //
 // @public (undocumented)
 export type CacheControl = CacheControlOptions | number | 'day' | 'week' | 'month' | 'year' | 'no-cache' | 'immutable' | 'private';
+
+// @public (undocumented)
+export interface ClientConn {
+    // (undocumented)
+    country?: string;
+    // (undocumented)
+    ip?: string;
+}
 
 // @public (undocumented)
 export interface Cookie {
@@ -62,6 +72,12 @@ export interface CookieValue {
 export type DeferReturn<T> = () => Promise<T>;
 
 // @public (undocumented)
+export interface EnvGetter {
+    // (undocumented)
+    get(key: string): string | undefined;
+}
+
+// @public (undocumented)
 export function getErrorHtml(status: number, e: any): string;
 
 // @public (undocumented)
@@ -73,12 +89,9 @@ export class RedirectMessage extends AbortMessage {
 
 // @public (undocumented)
 export interface RequestEvent<PLATFORM = QwikCityPlatform> extends RequestEventCommon<PLATFORM> {
-    // (undocumented)
     readonly exited: boolean;
     readonly getWritableStream: () => WritableStream<Uint8Array>;
-    // (undocumented)
     readonly headersSent: boolean;
-    // (undocumented)
     readonly next: () => Promise<void>;
 }
 
@@ -92,8 +105,8 @@ export interface RequestEventAction<PLATFORM = QwikCityPlatform> extends Request
 export interface RequestEventBase<PLATFORM = QwikCityPlatform> {
     readonly basePathname: string;
     readonly cacheControl: (cacheControl: CacheControl) => void;
+    readonly clientConn: ClientConn;
     readonly cookie: Cookie;
-    // Warning: (ae-forgotten-export) The symbol "EnvGetter" needs to be exported by the entry point index.d.ts
     readonly env: EnvGetter;
     readonly headers: Headers;
     readonly method: string;
@@ -104,6 +117,7 @@ export interface RequestEventBase<PLATFORM = QwikCityPlatform> {
     readonly query: URLSearchParams;
     readonly request: Request;
     readonly sharedMap: Map<string, any>;
+    readonly signal: AbortSignal;
     readonly url: URL;
 }
 
@@ -172,6 +186,8 @@ export interface ServerRenderOptions extends RenderOptions {
 export interface ServerRequestEvent<T = any> {
     // (undocumented)
     env: EnvGetter;
+    // (undocumented)
+    getClientConn: () => ClientConn;
     // (undocumented)
     getWritableStream: ServerResponseHandler<T>;
     // (undocumented)

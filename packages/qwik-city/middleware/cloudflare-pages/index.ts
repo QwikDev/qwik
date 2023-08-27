@@ -73,6 +73,12 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
           resolve(response);
           return writable;
         },
+        getClientConn: () => {
+          return {
+            ip: request.headers.get('CF-connecting-ip') || '',
+            country: request.headers.get('CF-IPCountry') || '',
+          };
+        },
         platform: {
           request,
           env,
@@ -129,7 +135,7 @@ export interface QwikCityCloudflarePagesOptions extends ServerRenderOptions {}
  */
 export interface PlatformCloudflarePages {
   request: Request;
-  env: Record<string, any>;
+  env?: Record<string, any>;
   ctx: { waitUntil: (promise: Promise<any>) => void };
 }
 

@@ -1,4 +1,5 @@
-import { TSESLint, ASTUtils } from '@typescript-eslint/utils';
+import { ASTUtils } from '@typescript-eslint/utils';
+import { QwikEslintExamples } from '../examples';
 const { getStaticValue } = ASTUtils;
 
 // A javascript: URL can contain leading C0 control or \u0020 SPACE,
@@ -22,7 +23,7 @@ export const jsxNoScriptUrl = {
     docs: {
       recommended: 'error',
       description: 'Disallow javascript: URLs.',
-      url: 'https://github.com/solidjs-community/eslint-plugin-solid/blob/main/docs/jsx-no-script-url.md',
+      url: 'https://qwik.builder.io/docs/advanced/eslint/#jsx-no-script-url',
     },
     schema: [],
     messages: {
@@ -46,5 +47,27 @@ export const jsxNoScriptUrl = {
         }
       },
     };
+  },
+};
+
+const noJSURLGood = `
+<button onClick$={() => alert('open the door please')>ring</button>`.trim();
+
+const noJSURLBad = `
+<button onClick$="javascript:alert('open the door please')">ring</button>`.trim();
+
+export const jsxNoScriptUrlExamples: QwikEslintExamples = {
+  noJSURL: {
+    good: [
+      {
+        code: noJSURLGood,
+      },
+    ],
+    bad: [
+      {
+        codeHighlight: '/javascript:/#a',
+        code: noJSURLBad,
+      },
+    ],
   },
 };

@@ -5,6 +5,6 @@ import { setupServiceWorker } from '@builder.io/qwik-city/service-worker';
 
 setupServiceWorker();
 
-addEventListener('install', () => self.skipWaiting());
+self.addEventListener('install', () => self.skipWaiting());
 
-addEventListener('activate', () => self.clients.claim());
+self.addEventListener('activate', (ev) => ev.waitUntil(self.clients.claim()));

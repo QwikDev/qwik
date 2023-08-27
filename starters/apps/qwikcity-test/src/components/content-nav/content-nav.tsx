@@ -1,6 +1,11 @@
-import { type ContentMenu, Link, useContent, useLocation } from '@builder.io/qwik-city';
-import { component$, useStyles$ } from '@builder.io/qwik';
-import styles from './content-nav.css?inline';
+import {
+  type ContentMenu,
+  Link,
+  useContent,
+  useLocation,
+} from "@builder.io/qwik-city";
+import { component$, useStyles$ } from "@builder.io/qwik";
+import styles from "./content-nav.css?inline";
 
 export const ContentNav = component$(() => {
   useStyles$(styles);
@@ -33,7 +38,11 @@ export const ContentNav = component$(() => {
   );
 });
 
-export const getNav = (items: ContentMenu[], currentPathname: string, direction: -1 | 1) => {
+export const getNav = (
+  items: ContentMenu[],
+  currentPathname: string,
+  direction: -1 | 1,
+) => {
   const currentIndex = items.findIndex((p) => p.href === currentPathname);
   if (currentIndex > -1) {
     let item = items[currentIndex + direction];

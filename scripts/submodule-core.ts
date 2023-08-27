@@ -1,6 +1,6 @@
 import { type BuildConfig, rollupOnWarn } from './util';
 import { build, type BuildOptions } from 'esbuild';
-import { getBanner, fileSize, readFile, target, watcher, writeFile } from './util';
+import { getBanner, fileSize, readFile, target, writeFile } from './util';
 import { type InputOptions, type OutputOptions, rollup } from 'rollup';
 import { join } from 'node:path';
 import { minify } from 'terser';
@@ -224,14 +224,12 @@ async function submoduleCoreDev(config: BuildConfig) {
     ...opts,
     format: 'esm',
     outExtension: { '.js': '.mjs' },
-    watch: watcher(config, submodule),
   });
 
   const cjs = build({
     ...opts,
     format: 'cjs',
     outExtension: { '.js': '.cjs' },
-    watch: watcher(config),
     banner: {
       js: `globalThis.qwikCore = (function (module) {`,
     },

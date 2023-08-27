@@ -4,7 +4,7 @@ export interface SyntheticEvent<T = Element, E = Event>
   extends BaseSyntheticEvent<E, EventTarget & T, EventTarget> {}
 
 interface BaseSyntheticEvent<E = object, C = any, T = any> {
-  nativeEvent: E;
+  nativeEvent: E | undefined;
   target: T;
   bubbles: boolean;
   cancelable: boolean;
@@ -118,6 +118,7 @@ export interface QwikChangeEvent<T = Element> extends SyntheticEvent<T> {
  * @public
  */
 export interface QwikKeyboardEvent<T = Element> extends SyntheticEvent<T, NativeKeyboardEvent> {
+  isComposing: boolean;
   altKey: boolean;
   charCode: number;
   ctrlKey: boolean;

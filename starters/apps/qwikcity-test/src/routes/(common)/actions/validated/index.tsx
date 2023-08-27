@@ -1,9 +1,15 @@
-import { component$ } from '@builder.io/qwik';
-import { routeAction$, routeLoader$, validator$, z, zod$ } from '@builder.io/qwik-city';
-import type { JSONObject } from 'packages/qwik-city/runtime/src/types';
+import { component$ } from "@builder.io/qwik";
+import {
+  routeAction$,
+  routeLoader$,
+  validator$,
+  z,
+  zod$,
+} from "@builder.io/qwik-city";
+import type { JSONObject } from "packages/qwik-city/runtime/src/types";
 
 const queryContainsSecret = validator$((ev) => {
-  if (ev.query.get('secret') === '123') {
+  if (ev.query.get("secret") === "123") {
     return {
       success: true,
     };
@@ -11,14 +17,14 @@ const queryContainsSecret = validator$((ev) => {
   return {
     success: false,
     error: {
-      message: 'Secret not found',
+      message: "Secret not found",
     },
   };
 });
 
 export const useLoader = routeLoader$(() => {
   return {
-    stuff: 'hello',
+    stuff: "hello",
   };
 }, queryContainsSecret);
 
@@ -35,13 +41,13 @@ export const useAction2 = routeAction$(
   zod$({
     name: z.string(),
   }),
-  queryContainsSecret
+  queryContainsSecret,
 );
 
 export const useAction3 = routeAction$((input, { fail }) => {
   if (Math.random() > 1.0) {
     return fail(500, {
-      error: 'Random error',
+      error: "Random error",
     });
   }
   return {

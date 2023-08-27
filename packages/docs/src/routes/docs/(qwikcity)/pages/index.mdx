@@ -1,5 +1,5 @@
 ---
-title: Qwik City - Pages
+title: Pages | Qwik City
 contributors:
   - adamdbradley
   - manucorporat
@@ -57,7 +57,7 @@ export const head: DocumentHead = {
       content: 'This is the about page',
     },
   ],
-  link: [
+  links: [
     {
       rel: 'canonical',
       href: 'https://example.com/about',
@@ -74,7 +74,7 @@ Look into `useDocumentHead()` to read and consume the `DocumentHead` object from
 
 ### Dynamic head
 
-You can also export a function that returns a `DocumentHead` object, allowing to programatically set the `<title>`, `<meta>` or `<link>` tags.
+You can also export a function that returns a `DocumentHead` object, allowing to programmatically set the `<title>`, `<meta>` or `<link>` tags.
 
 This allows to configure the `<head>`, including the title, meta or links using data from `routeLoader$()` or `routeAction$()`.
 

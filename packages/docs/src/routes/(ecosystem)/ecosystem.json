@@ -73,6 +73,11 @@
   ],
   "deployments": [
     {
+      "title": "Aws",
+      "href": "/docs/deployments/aws-lambda/",
+      "imgSrc": "/ecosystem/aws.svg"
+    },
+    {
       "title": "Azure",
       "href": "/docs/deployments/azure-swa/",
       "imgSrc": "/ecosystem/azure.svg"
@@ -86,6 +91,11 @@
       "title": "Deno",
       "href": "/docs/deployments/deno/",
       "imgSrc": "/ecosystem/deno.svg"
+    },
+    {
+      "title": "Firebase",
+      "href": "/docs/deployments/firebase/",
+      "imgSrc": "/ecosystem/firebase.svg"
     },
     {
       "title": "Google Cloud Run",
@@ -156,6 +166,12 @@
       "github": "https://github.com/qwikifiers/qwik-ui",
       "imgSrc": "/ecosystem/qwik-ui.png",
       "description": "Headless UI library"
+    },
+    {
+      "title": "@qwikbits/headless-ui",
+      "github": "https://github.com/genie-design/qwikbits",
+      "imgSrc": "/ecosystem/qwikbits.svg",
+      "description": "Headless UI components and other helpers"
     }
   ],
   "communities": [
@@ -183,6 +199,21 @@
       "title": "Amsterdam",
       "href": "https://www.meetup.com/qwik-amsterdam-meetup-group/",
       "imgSrc": "/ecosystem/qwik-amsterdam.svg"
+    },
+    {
+      "title": "India",
+      "href": "https://www.meetup.com/qwik-india/",
+      "imgSrc": "/ecosystem/qwik-india.svg"
+    },
+    {
+      "title": "Uruguay",
+      "href": "https://www.meetup.com/qwik-uruguay/",
+      "imgSrc": "/ecosystem/qwik-uruguay.svg"
+    },
+    {
+      "title": "Argentina",
+      "href": "https://www.meetup.com/qwik-argentina/",
+      "imgSrc": "/ecosystem/qwik-argentina.svg"
     }
   ],
   "social": [

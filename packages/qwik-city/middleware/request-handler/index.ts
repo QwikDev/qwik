@@ -20,4 +20,6 @@ export type {
   ServerResponseHandler,
   DeferReturn,
   RequestEventBase,
+  ClientConn,
+  EnvGetter,
 } from './types';

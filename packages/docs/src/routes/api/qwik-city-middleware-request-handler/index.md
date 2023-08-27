@@ -29,6 +29,19 @@ export type CacheControl =
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
 
+## ClientConn
+
+```typescript
+export interface ClientConn
+```
+
+| Property      | Modifiers | Type   | Description  |
+| ------------- | --------- | ------ | ------------ |
+| [country?](#) |           | string | _(Optional)_ |
+| [ip?](#)      |           | string | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
+
 ## Cookie
 
 ```typescript
@@ -54,15 +67,15 @@ https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
 export interface CookieOptions
 ```
 
-| Property       | Modifiers | Type                                                                         | Description                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| -------------- | --------- | ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [domain?](#)   |           | string                                                                       | _(Optional)_ Defines the host to which the cookie will be sent. If omitted, this attribute defaults to the host of the current document URL, not including subdomains.                                                                                                                                                                                                                                                                 |
-| [expires?](#)  |           | Date \| string                                                               | _(Optional)_ Indicates the maximum lifetime of the cookie as an HTTP-date timestamp. If both <code>expires</code> and <code>maxAge</code> are set, <code>maxAge</code> has precedence.                                                                                                                                                                                                                                                 |
-| [httpOnly?](#) |           | boolean                                                                      | _(Optional)_ Forbids JavaScript from accessing the cookie, for example, through the <code>document.cookie</code> property.                                                                                                                                                                                                                                                                                                             |
-| [maxAge?](#)   |           | number \| \[number, 'seconds' \| 'minutes' \| 'hours' \| 'days' \| 'weeks'\] | _(Optional)_ Indicates the number of seconds until the cookie expires. A zero or negative number will expire the cookie immediately. If both <code>expires</code> and <code>maxAge</code> are set, <code>maxAge</code> has precedence. You can also use the array syntax to set the max-age using minutes, hours, days or weeks. For example, <code>{ maxAge: [3, &quot;days&quot;] }</code> would set the cookie to expire in 3 days. |
-| [path?](#)     |           | string                                                                       | _(Optional)_ Indicates the path that must exist in the requested URL for the browser to send the Cookie header.                                                                                                                                                                                                                                                                                                                        |
-| [sameSite?](#) |           | 'strict' \| 'lax' \| 'none' \| boolean                                       | _(Optional)_ Controls whether or not a cookie is sent with cross-site requests, providing some protection against cross-site request forgery attacks (CSRF).                                                                                                                                                                                                                                                                           |
-| [secure?](#)   |           | boolean                                                                      | _(Optional)_ Indicates that the cookie is sent to the server only when a request is made with the <code>https:</code> scheme (except on localhost)                                                                                                                                                                                                                                                                                     |
+| Property       | Modifiers | Type                                                                       | Description                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| -------------- | --------- | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [domain?](#)   |           | string                                                                     | _(Optional)_ Defines the host to which the cookie will be sent. If omitted, this attribute defaults to the host of the current document URL, not including subdomains.                                                                                                                                                                                                                                                                 |
+| [expires?](#)  |           | Date \| string                                                             | _(Optional)_ Indicates the maximum lifetime of the cookie as an HTTP-date timestamp. If both <code>expires</code> and <code>maxAge</code> are set, <code>maxAge</code> has precedence.                                                                                                                                                                                                                                                 |
+| [httpOnly?](#) |           | boolean                                                                    | _(Optional)_ Forbids JavaScript from accessing the cookie, for example, through the <code>document.cookie</code> property.                                                                                                                                                                                                                                                                                                             |
+| [maxAge?](#)   |           | number \| [number, 'seconds' \| 'minutes' \| 'hours' \| 'days' \| 'weeks'] | _(Optional)_ Indicates the number of seconds until the cookie expires. A zero or negative number will expire the cookie immediately. If both <code>expires</code> and <code>maxAge</code> are set, <code>maxAge</code> has precedence. You can also use the array syntax to set the max-age using minutes, hours, days or weeks. For example, <code>{ maxAge: [3, &quot;days&quot;] }</code> would set the cookie to expire in 3 days. |
+| [path?](#)     |           | string                                                                     | _(Optional)_ Indicates the path that must exist in the requested URL for the browser to send the Cookie header.                                                                                                                                                                                                                                                                                                                        |
+| [sameSite?](#) |           | 'strict' \| 'lax' \| 'none' \| boolean                                     | _(Optional)_ Controls whether or not a cookie is sent with cross-site requests, providing some protection against cross-site request forgery attacks (CSRF).                                                                                                                                                                                                                                                                           |
+| [secure?](#)   |           | boolean                                                                    | _(Optional)_ Indicates that the cookie is sent to the server only when a request is made with the <code>https:</code> scheme (except on localhost)                                                                                                                                                                                                                                                                                     |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
 
@@ -104,6 +117,18 @@ delete(name: string, options?: Pick<CookieOptions, 'path' | 'domain'>): void;
 **Returns:**
 
 void
+
+## EnvGetter
+
+```typescript
+export interface EnvGetter
+```
+
+| Method        | Description |
+| ------------- | ----------- |
+| [get(key)](#) |             |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
 
 ## get
 
@@ -176,7 +201,7 @@ headers(): string[];
 
 **Returns:**
 
-string\[\]
+string[]
 
 ## mergeHeadersCookies
 
@@ -206,10 +231,10 @@ export interface RequestEvent<PLATFORM = QwikCityPlatform> extends RequestEventC
 
 | Property               | Modifiers             | Type                                      | Description                                                                                                                                                                                 |
 | ---------------------- | --------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [exited](#)            | <code>readonly</code> | boolean                                   |                                                                                                                                                                                             |
+| [exited](#)            | <code>readonly</code> | boolean                                   | True if the middleware chain has finished executing.                                                                                                                                        |
 | [getWritableStream](#) | <code>readonly</code> | () =&gt; WritableStream&lt;Uint8Array&gt; | Low-level access to write to the HTTP response stream. Once <code>getWritableStream()</code> is called, the status and headers can no longer be modified and will be sent over the network. |
-| [headersSent](#)       | <code>readonly</code> | boolean                                   |                                                                                                                                                                                             |
-| [next](#)              | <code>readonly</code> | () =&gt; Promise&lt;void&gt;              |                                                                                                                                                                                             |
+| [headersSent](#)       | <code>readonly</code> | boolean                                   | True if headers have been sent, preventing any more headers from being set.                                                                                                                 |
+| [next](#)              | <code>readonly</code> | () =&gt; Promise&lt;void&gt;              | <p>Invoke the next middleware function in the chain.</p><p>NOTE: Ensure that the call to <code>next()</code> is <code>await</code>ed.</p>                                                   |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
 
@@ -237,8 +262,9 @@ export interface RequestEventBase<PLATFORM = QwikCityPlatform>
 | ----------------- | --------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [basePathname](#) | <code>readonly</code> | string                                                   | The base pathname of the request, which can be configured at build time. Defaults to <code>/</code>.                                                                                                                                                                                                                                                                |
 | [cacheControl](#) | <code>readonly</code> | (cacheControl: [CacheControl](#cachecontrol)) =&gt; void | <p>Convenience method to set the Cache-Control header.</p><p>https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control</p>                                                                                                                                                                                                                            |
+| [clientConn](#)   | <code>readonly</code> | [ClientConn](#clientconn)                                | Provides information about the client connection, such as the IP address and the country the request originated from.                                                                                                                                                                                                                                               |
 | [cookie](#)       | <code>readonly</code> | [Cookie](#cookie)                                        | <p>HTTP request and response cookie. Use the <code>get()</code> method to retrieve a request cookie value. Use the <code>set()</code> method to set a response cookie value.</p><p>https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies</p>                                                                                                                    |
-| [env](#)          | <code>readonly</code> | EnvGetter                                                | Platform provided environment variables.                                                                                                                                                                                                                                                                                                                            |
+| [env](#)          | <code>readonly</code> | [EnvGetter](#envgetter)                                  | Platform provided environment variables.                                                                                                                                                                                                                                                                                                                            |
 | [headers](#)      | <code>readonly</code> | Headers                                                  | <p>HTTP response headers. Notice it will be empty until you first add a header. If you want to read the request headers, use <code>request.headers</code> instead.</p><p>https://developer.mozilla.org/en-US/docs/Glossary/Response\_header</p>                                                                                                                     |
 | [method](#)       | <code>readonly</code> | string                                                   | <p>HTTP request method.</p><p>https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods</p>                                                                                                                                                                                                                                                                         |
 | [params](#)       | <code>readonly</code> | Readonly&lt;Record&lt;string, string&gt;&gt;             | URL path params which have been parsed from the current url pathname segments. Use <code>query</code> to instead retrieve the query string search params.                                                                                                                                                                                                           |
@@ -248,6 +274,7 @@ export interface RequestEventBase<PLATFORM = QwikCityPlatform>
 | [query](#)        | <code>readonly</code> | URLSearchParams                                          | <p>URL Query Strings (URL Search Params). Use <code>params</code> to instead retrieve the route params found in the url pathname.</p><p>https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams</p>                                                                                                                                                        |
 | [request](#)      | <code>readonly</code> | Request                                                  | HTTP request information.                                                                                                                                                                                                                                                                                                                                           |
 | [sharedMap](#)    | <code>readonly</code> | Map&lt;string, any&gt;                                   | Shared Map across all the request handlers. Every HTTP request will get a new instance of the shared map. The shared map is useful for sharing data between request handlers.                                                                                                                                                                                       |
+| [signal](#)       | <code>readonly</code> | AbortSignal                                              | Request's AbortSignal (same as <code>request.signal</code>). This signal indicates that the request has been aborted.                                                                                                                                                                                                                                               |
 | [url](#)          | <code>readonly</code> | URL                                                      | HTTP request URL.                                                                                                                                                                                                                                                                                                                                                   |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
@@ -293,7 +320,7 @@ export interface RequestEventLoader<PLATFORM = QwikCityPlatform> extends Request
 
 ```typescript
 export type RequestHandler<PLATFORM = QwikCityPlatform> = (
-  ev: RequestEvent<PLATFORM>
+  ev: RequestEvent<PLATFORM>,
 ) => Promise<void> | void;
 ```
 
@@ -305,7 +332,7 @@ export type RequestHandler<PLATFORM = QwikCityPlatform> = (
 
 ```typescript
 export type RequestHandler<PLATFORM = QwikCityPlatform> = (
-  ev: RequestEvent<PLATFORM>
+  ev: RequestEvent<PLATFORM>,
 ) => Promise<void> | void;
 ```
 
@@ -355,7 +382,8 @@ export interface ServerRequestEvent<T = any>
 
 | Property               | Modifiers | Type                                                     | Description |
 | ---------------------- | --------- | -------------------------------------------------------- | ----------- |
-| [env](#)               |           | EnvGetter                                                |             |
+| [env](#)               |           | [EnvGetter](#envgetter)                                  |             |
+| [getClientConn](#)     |           | () =&gt; [ClientConn](#clientconn)                       |             |
 | [getWritableStream](#) |           | [ServerResponseHandler](#serverresponsehandler)&lt;T&gt; |             |
 | [locale](#)            |           | string \| undefined                                      |             |
 | [mode](#)              |           | [ServerRequestMode](#serverrequestmode)                  |             |
@@ -381,7 +409,7 @@ export type ServerResponseHandler<T = any> = (
   headers: Headers,
   cookies: Cookie,
   resolve: (response: T) => void,
-  requestEv: RequestEventInternal
+  requestEv: RequestEventInternal,
 ) => WritableStream<Uint8Array>;
 ```
 

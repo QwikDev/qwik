@@ -5,8 +5,19 @@ import type { AbortMessage, RedirectMessage } from './redirect-handler';
 import type { RequestEventInternal } from './request-event';
 import type { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
 
+/**
+ * @public
+ */
 export interface EnvGetter {
   get(key: string): string | undefined;
+}
+
+/**
+ * @public
+ */
+export interface ClientConn {
+  ip?: string;
+  country?: string;
 }
 
 /**
@@ -20,6 +31,7 @@ export interface ServerRequestEvent<T = any> {
   platform: any;
   request: Request;
   env: EnvGetter;
+  getClientConn: () => ClientConn;
   getWritableStream: ServerResponseHandler<T>;
 }
 
@@ -337,6 +349,16 @@ export interface RequestEventBase<PLATFORM = QwikCityPlatform> {
    * https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
    */
   readonly cacheControl: (cacheControl: CacheControl) => void;
+
+  /**
+   * Provides information about the client connection, such as the IP address and the country the request originated from.
+   */
+  readonly clientConn: ClientConn;
+
+  /**
+   * Request's AbortSignal (same as `request.signal`). This signal indicates that the request has been aborted.
+   */
+  readonly signal: AbortSignal;
 }
 
 /**
@@ -374,6 +396,11 @@ export interface CacheControlOptions {
   staleWhileRevalidate?: number;
 
   /**
+   * The stale-if-error response directive that indicates if a stale response can be used when there's an error from the origin.
+   */
+  staleIfError?: number;
+
+  /**
    * The no-store response directive indicates that any caches of any kind (private or shared) should not store this response.
    */
   noStore?: boolean;
@@ -408,7 +435,14 @@ export interface CacheControlOptions {
  * @public
  */
 export interface RequestEvent<PLATFORM = QwikCityPlatform> extends RequestEventCommon<PLATFORM> {
+  /**
+   * True if headers have been sent, preventing any more headers from being set.
+   */
   readonly headersSent: boolean;
+
+  /**
+   * True if the middleware chain has finished executing.
+   */
   readonly exited: boolean;
   /**
    * Low-level access to write to the HTTP response stream. Once `getWritableStream()` is called,
@@ -416,6 +450,11 @@ export interface RequestEvent<PLATFORM = QwikCityPlatform> extends RequestEventC
    */
   readonly getWritableStream: () => WritableStream<Uint8Array>;
 
+  /**
+   * Invoke the next middleware function in the chain.
+   *
+   * NOTE: Ensure that the call to `next()` is `await`ed.
+   */
   readonly next: () => Promise<void>;
 }
 

@@ -1,11 +1,11 @@
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { type BuildConfig, type PackageJSON, panic } from './util';
 import { access, readFile } from './util';
 import { basename, extname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { createRequire } from 'node:module';
-import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
-import ts from 'typescript';
 import { rollup } from 'rollup';
+import ts from 'typescript';
 
 /**
  * This will validate a completed production build by triple checking all the
@@ -22,6 +22,20 @@ export async function validateBuild(config: BuildConfig) {
   // triple checks these package files all exist and parse
   const pkgFiles = [...pkg.files!, 'LICENSE', 'README.md', 'package.json'];
   const expectedFiles = pkgFiles.map((f) => join(config.distQwikPkgDir, f));
+
+  const dependencies = ['csstype'];
+  const pkgDependencies = Object.keys(pkg.dependencies!);
+  if (pkgDependencies.length !== dependencies.length) {
+    errors.push(
+      `Expected ${dependencies.length} dependencies, but found ${pkgDependencies.length}.`
+    );
+  } else {
+    for (const dep of dependencies) {
+      if (!pkgDependencies.includes(dep)) {
+        errors.push(`Expected ${dep} to be a dependency.`);
+      }
+    }
+  }
 
   for (const filePath of expectedFiles) {
     try {
@@ -103,7 +117,7 @@ export async function validateBuild(config: BuildConfig) {
         const s = statSync(filePath);
         if (s.isDirectory()) {
           const dirName = basename(filePath);
-          if (dirName !== 'starters') {
+          if (dirName !== 'starters' && dirName !== 'templates') {
             getFiles(filePath);
           }
         } else if (s.isFile()) {

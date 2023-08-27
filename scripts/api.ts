@@ -153,6 +153,11 @@ export async function apiExtractor(config: BuildConfig) {
   );
   createTypesApi(
     config,
+    join(config.packagesDir, 'qwik-city', 'middleware', 'firebase'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'firebase', 'index.d.ts')
+  );
+  createTypesApi(
+    config,
     join(config.packagesDir, 'qwik-city', 'static'),
     join(config.packagesDir, 'qwik-city', 'lib', 'static', 'index.d.ts')
   );
@@ -239,22 +244,38 @@ declare module '@qwik-city-plan' {
 function generateServerReferenceModules(config: BuildConfig) {
   // server-modules.d.ts
   const referenceDts = `/// <reference types="./server" />
-/// <reference types="./core" />
 declare module '@qwik-client-manifest' {
   const manifest: import('./optimizer').QwikManifest;
   export { manifest };
 }
 // MD
 declare module '*.md' {
-  const node: FunctionComponent;
+  const node: import('./core').FunctionComponent;
   export const frontmatter: Record<string, any>;
   export default node;
 }
 // MDX
 declare module '*.mdx' {
-  const node: FunctionComponent;
+  const node: import('./core').FunctionComponent;
   export const frontmatter: Record<string, any>;
   export default node;
+}
+// Image ?jsx
+declare module '*?jsx' {
+  const Cmp: import('./core').FunctionComponent<Omit<import('./core').QwikIntrinsicElements['img'], 'src' | 'width' | 'height' | 'srcSet'>>
+  export default Cmp;
+  export const width: number;
+  export const height: number;
+  export const srcSet: string;
+}
+
+// Image &jsx
+declare module '*&jsx' {
+  const Cmp: import('./core').FunctionComponent<Omit<import('./core').QwikIntrinsicElements['img'], 'src' | 'width' | 'height' | 'srcSet'>>
+  export default Cmp;
+  export const width: number;
+  export const height: number;
+  export const srcSet: string;
 }
 `;
 

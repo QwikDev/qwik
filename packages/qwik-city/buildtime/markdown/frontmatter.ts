@@ -57,6 +57,7 @@ export function frontmatterAttrsToDocumentHead(attrs: FrontmatterAttrs | undefin
         meta: [],
         styles: [],
         links: [],
+        scripts: [],
         frontmatter: {},
       };
 

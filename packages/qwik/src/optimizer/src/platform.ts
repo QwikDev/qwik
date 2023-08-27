@@ -99,7 +99,7 @@ export const getPlatformInputFiles = async (sys: OptimizerSystem) => {
         } else {
           flatted.push(dir);
         }
-        return flatted.filter((a) => extensions[sys.path.extname(a)]);
+        return flatted.filter((a) => sys.path.extname(a).toLowerCase() in extensions);
       };
 
       const filePaths = await getChildFilePaths(rootDir);

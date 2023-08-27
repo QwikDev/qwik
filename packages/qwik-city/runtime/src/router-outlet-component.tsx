@@ -7,30 +7,37 @@ import {
   _IMMUTABLE,
   _jsxBranch,
   _jsxQ,
+  useServerData,
 } from '@builder.io/qwik';
 
 import { ContentInternalContext } from './contexts';
-import popStateScript from './init-popstate.txt?raw';
+import shim from './spa-shim';
 
 /**
  * @public
  */
 export const RouterOutlet = component$(() => {
+  // TODO Option to remove this shim, especially for MFEs.
+  const shimScript = shim();
+
   _jsxBranch();
 
+  const nonce = useServerData<string | undefined>('nonce');
   const { value } = useContext(ContentInternalContext);
   if (value && value.length > 0) {
     const contentsLen = value.length;
     let cmp: JSXNode | null = null;
     for (let i = contentsLen - 1; i >= 0; i--) {
-      cmp = jsx(value[i].default, {
-        children: cmp,
-      });
+      if (value[i].default) {
+        cmp = jsx(value[i].default, {
+          children: cmp,
+        });
+      }
     }
     return (
       <>
         {cmp}
-        <script dangerouslySetInnerHTML={popStateScript}></script>
+        <script dangerouslySetInnerHTML={shimScript} nonce={nonce}></script>
       </>
     );
   }

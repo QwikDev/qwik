@@ -1,4 +1,4 @@
-import { component$ } from '@builder.io/qwik';
+import { component$, useSignal, useTask$ } from '@builder.io/qwik';
 import { useDocumentHead, useLocation } from '@builder.io/qwik-city';
 import { Social } from './social';
 import { Vendor } from './vendor';
@@ -7,11 +7,54 @@ import { ThemeScript } from './theme-script';
 export const RouterHead = component$(() => {
   const { url } = useLocation();
   const head = useDocumentHead();
-  const title = head.title ? `${head.title} - Qwik` : `Qwik - Framework reimagined for the edge`;
+  const title = head.title
+    ? `${head.title} 📚 Qwik Documentation`
+    : `Qwik - Framework reimagined for the edge`;
   const description =
     head.meta.find((m) => m.name === 'description')?.content ||
     `No hydration, auto lazy-loading, edge-optimized, and fun 🎉!`;
 
+  const pageTitle = head.title;
+
+  const ogImageUrl = new URL('https://opengraphqwik.vercel.app/api/og');
+
+  //turn the title into array
+  const arrayedTitle = pageTitle.split(' | ');
+
+  //check if we are on home page or level 0 or 1 route
+  let isBaseRoute = true;
+  isBaseRoute = arrayedTitle.length > 0 ? false : true;
+
+  // set the text for the ogimage
+  const biggerTitle = isBaseRoute ? undefined : arrayedTitle[0];
+  const smallerTitle = isBaseRoute ? undefined : arrayedTitle[1];
+
+  const routeLevel = useSignal(0);
+
+  const imageUrl = useSignal('');
+  const ogImgTitle = useSignal('');
+  const ogImgSubTitle = useSignal('');
+
+  useTask$(() => {
+    //change the value of the title and subtitle
+    ogImgTitle.value = biggerTitle!;
+    ogImgSubTitle.value = smallerTitle!;
+
+    //decide whether or not to show subtitle
+    if (ogImgSubTitle.value == undefined || ogImgTitle == undefined) {
+      ogImgTitle.value = biggerTitle!;
+
+      routeLevel.value = 0;
+      imageUrl.value = new URL(`/logos/social-card.jpg`, url).href;
+    } else {
+      routeLevel.value = 1;
+      ogImageUrl.searchParams.set('title', ogImgTitle.value);
+      ogImageUrl.searchParams.set('subtitle', ogImgSubTitle.value);
+      ogImageUrl.searchParams.set('level', routeLevel.value.toString());
+
+      imageUrl.value = ogImageUrl.toString();
+    }
+  });
   return (
     <>
       <title>{title}</title>
@@ -29,7 +72,12 @@ export const RouterHead = component$(() => {
 
       {import.meta.env.PROD && (
         <>
-          <Social title={title} description={description} href={url.href} />
+          <Social
+            title={title}
+            description={description}
+            href={url.href}
+            ogImage={imageUrl.value}
+          />
           <Vendor />
         </>
       )}

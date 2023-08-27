@@ -1,4 +1,9 @@
-import { component$, useId, useSignal, useVisibleTask$ } from '@builder.io/qwik';
+import {
+  component$,
+  useId,
+  useSignal,
+  useVisibleTask$,
+} from '@builder.io/qwik';
 
 export default component$(() => {
   const elemIdSignal = useSignal<string | null>(null);
@@ -9,6 +14,7 @@ export default component$(() => {
   useVisibleTask$(() => {
     const elem = document.getElementById(elemId);
     elemIdSignal.value = elem?.getAttribute('id') || null;
+    console.log('client-side id:', elemIdSignal.value);
   });
 
   return (

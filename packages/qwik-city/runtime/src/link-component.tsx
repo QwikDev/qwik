@@ -11,7 +11,7 @@ export const Link = component$<LinkProps>((props) => {
   const loc = useLocation();
   const originalHref = props.href;
   const { onClick$, reload, replaceState, scroll, ...linkProps } = (() => props)();
-  const clientNavPath = untrack(() => getClientNavPath(linkProps, loc));
+  const clientNavPath = untrack(() => getClientNavPath({ ...linkProps, reload }, loc));
   const prefetchDataset = untrack(() => getPrefetchDataset(props, clientNavPath, loc));
   linkProps['preventdefault:click'] = !!clientNavPath;
   linkProps.href = clientNavPath || originalHref;

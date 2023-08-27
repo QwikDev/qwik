@@ -86,10 +86,12 @@ export default component$(() => {
   return <p>Example: {params.id}</p>;
 });
 
-export const onStaticGenerate: StaticGenerateHandler = async () => {
+export const onStaticGenerate: StaticGenerateHandler = async ({ env }) => {
   // example of loading params for this use case
   // every implementation will be different
-  const ids = await loadProductIds();
+  const ids = await loadProductIds({
+    apiKey: env.get('API_KEY'),
+  });
 
   return {
     params: ids.map((id) => {
@@ -99,7 +101,8 @@ export const onStaticGenerate: StaticGenerateHandler = async () => {
 };
 ```
 
-In the above example, the `onStaticGenerate()` function is loading the product IDs from a `loadProductIds()` function. This function would be custom for each implementation, but the general idea is that you'll need to load the data for each product ID, and then generate HTML files for each product ID.
+In the above example, the `onStaticGenerate()` function is loading the product IDs from a `loadProductIds()` function by requesting an API behind an API key retrieved from an environment variable.
+This function would be custom for each implementation, but the general idea is that you'll need to load the data for each product ID, and then generate HTML files for each product ID.
 
 The `onStaticGenerate` function should be exported from the top-level of the module, and should return an object with a `params` property. The `params` property should be an array of objects, where each object is a set of params for the route path. For example, if the route path is `/product/:id`, then the `params` array should be an array of objects with an `id` property.
 

@@ -110,6 +110,7 @@ details li {
 
 details li:hover {
   background-color: var(--bg-secondary-color);
+  border-radius: 4px;
 }
 
 details li a {

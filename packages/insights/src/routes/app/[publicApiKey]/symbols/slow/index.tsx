@@ -1,13 +1,25 @@
-import { component$ } from '@builder.io/qwik';
+import { type ReadonlySignal, component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
 import Histogram, { latencyColors } from '~/components/histogram';
 import { SymbolTile } from '~/components/symbol-tile';
-import { getDB } from '~/db';
-import { getSlowEdges, getSymbolDetails, getAppInfo } from '~/db/query';
+import { type ApplicationRow, getDB } from '~/db';
+import {
+  getSlowEdges,
+  getSymbolDetails,
+  getAppInfo,
+  type SlowEdge,
+  type SymbolDetailForApp,
+} from '~/db/query';
 import { BUCKETS, vectorAvg, vectorSum } from '~/stats/vector';
 import { css } from '~/styled-system/css';
 
-export const useData = routeLoader$(async ({ params, query }) => {
+interface SlowSymbol {
+  app: ApplicationRow;
+  edges: SlowEdge[];
+  detailsMap: Record<string, SymbolDetailForApp | undefined>;
+}
+
+export const useData = routeLoader$<SlowSymbol>(async ({ params, query }) => {
   const manifest = query.get('manifest');
   const manifests = manifest ? manifest.split(',') : [];
   const db = getDB();
@@ -16,7 +28,7 @@ export const useData = routeLoader$(async ({ params, query }) => {
     getSlowEdges(db, params.publicApiKey, manifests),
     getSymbolDetails(db, params.publicApiKey),
   ]);
-  const detailsMap: Record<string, (typeof details)[0] | undefined> = {};
+  const detailsMap: Record<string, SymbolDetailForApp | undefined> = {};
   details.forEach((detail) => {
     detailsMap[detail.hash] = detail;
   });
@@ -24,7 +36,7 @@ export const useData = routeLoader$(async ({ params, query }) => {
 });
 
 export default component$(() => {
-  const data = useData();
+  const data: ReadonlySignal<SlowSymbol> = useData();
   return (
     <div>
       <h1>Slow Symbols</h1>

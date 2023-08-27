@@ -118,6 +118,18 @@ delete(name: string, options?: Pick<CookieOptions, 'path' | 'domain'>): void;
 
 void
 
+## EnvGetter
+
+```typescript
+export interface EnvGetter
+```
+
+| Method        | Description |
+| ------------- | ----------- |
+| [get(key)](#) |             |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
+
 ## get
 
 Gets a `Request` cookie header value by name.
@@ -252,7 +264,7 @@ export interface RequestEventBase<PLATFORM = QwikCityPlatform>
 | [cacheControl](#) | <code>readonly</code> | (cacheControl: [CacheControl](#cachecontrol)) =&gt; void | <p>Convenience method to set the Cache-Control header.</p><p>https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control</p>                                                                                                                                                                                                                            |
 | [clientConn](#)   | <code>readonly</code> | [ClientConn](#clientconn)                                | Provides information about the client connection, such as the IP address and the country the request originated from.                                                                                                                                                                                                                                               |
 | [cookie](#)       | <code>readonly</code> | [Cookie](#cookie)                                        | <p>HTTP request and response cookie. Use the <code>get()</code> method to retrieve a request cookie value. Use the <code>set()</code> method to set a response cookie value.</p><p>https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies</p>                                                                                                                    |
-| [env](#)          | <code>readonly</code> | EnvGetter                                                | Platform provided environment variables.                                                                                                                                                                                                                                                                                                                            |
+| [env](#)          | <code>readonly</code> | [EnvGetter](#envgetter)                                  | Platform provided environment variables.                                                                                                                                                                                                                                                                                                                            |
 | [headers](#)      | <code>readonly</code> | Headers                                                  | <p>HTTP response headers. Notice it will be empty until you first add a header. If you want to read the request headers, use <code>request.headers</code> instead.</p><p>https://developer.mozilla.org/en-US/docs/Glossary/Response\_header</p>                                                                                                                     |
 | [method](#)       | <code>readonly</code> | string                                                   | <p>HTTP request method.</p><p>https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods</p>                                                                                                                                                                                                                                                                         |
 | [params](#)       | <code>readonly</code> | Readonly&lt;Record&lt;string, string&gt;&gt;             | URL path params which have been parsed from the current url pathname segments. Use <code>query</code> to instead retrieve the query string search params.                                                                                                                                                                                                           |
@@ -370,7 +382,7 @@ export interface ServerRequestEvent<T = any>
 
 | Property               | Modifiers | Type                                                     | Description |
 | ---------------------- | --------- | -------------------------------------------------------- | ----------- |
-| [env](#)               |           | EnvGetter                                                |             |
+| [env](#)               |           | [EnvGetter](#envgetter)                                  |             |
 | [getClientConn](#)     |           | () =&gt; [ClientConn](#clientconn)                       |             |
 | [getWritableStream](#) |           | [ServerResponseHandler](#serverresponsehandler)&lt;T&gt; |             |
 | [locale](#)            |           | string \| undefined                                      |             |

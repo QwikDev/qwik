@@ -131,7 +131,7 @@ On the client, the proxy function invokes the wrapped function via an HTTP reque
 
 ## Middleware and `server$`
 
-When using `server$`, it's important to understand how middleware functions are executed. Middleware functions defined in `layout` files do not run for `server$` requests. This can lead to confusion, especially when developers expect certain middleware to be executed for both page requests and `server$` requests.
+When using `server$`, it's important to understand how [middleware functions](/docs/middleware/#middleware-function) are executed. Middleware functions defined in `layout` files do not run for `server$` requests. This can lead to confusion, especially when developers expect certain middleware to be executed for both page requests and `server$` requests.
 
 To ensure that a middleware function runs for both types of requests, it should be defined in the `plugin.ts` file. This ensures that the middleware is executed consistently for all incoming requests, regardless of whether they are normal page requests or `server$` requests.
 

@@ -324,9 +324,11 @@ export interface Loader<RETURN>
 ## LoaderSignal
 
 ```typescript
-export type LoaderSignal<T> = T extends () => ValueOrPromise<infer B>
-  ? ReadonlySignal<ValueOrPromise<B>>
-  : ReadonlySignal<T>;
+export type LoaderSignal<TYPE> = TYPE extends () => ValueOrPromise<
+  infer VALIDATOR
+>
+  ? ReadonlySignal<ValueOrPromise<VALIDATOR>>
+  : ReadonlySignal<TYPE>;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)

@@ -20,32 +20,6 @@ export interface ActionConstructor
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
-## ActionOptions
-
-```typescript
-export interface ActionOptions
-```
-
-| Property         | Modifiers             | Type            | Description  |
-| ---------------- | --------------------- | --------------- | ------------ |
-| [id?](#)         | <code>readonly</code> | string          | _(Optional)_ |
-| [validation?](#) | <code>readonly</code> | DataValidator[] | _(Optional)_ |
-
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
-
-## ActionOptionsWithValidation
-
-```typescript
-export interface ActionOptionsWithValidation<B extends TypedDataValidator = TypedDataValidator>
-```
-
-| Property        | Modifiers             | Type                            | Description  |
-| --------------- | --------------------- | ------------------------------- | ------------ |
-| [id?](#)        | <code>readonly</code> | string                          | _(Optional)_ |
-| [validation](#) | <code>readonly</code> | [val: B, ...a: DataValidator[]] |              |
-
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
-
 ## ActionStore
 
 ```typescript
@@ -350,9 +324,11 @@ export interface Loader<RETURN>
 ## LoaderSignal
 
 ```typescript
-export type LoaderSignal<T> = T extends () => ValueOrPromise<infer B>
-  ? ReadonlySignal<ValueOrPromise<B>>
-  : ReadonlySignal<T>;
+export type LoaderSignal<TYPE> = TYPE extends () => ValueOrPromise<
+  infer VALIDATOR
+>
+  ? ReadonlySignal<ValueOrPromise<VALIDATOR>>
+  : ReadonlySignal<TYPE>;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)

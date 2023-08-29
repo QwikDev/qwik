@@ -3448,7 +3448,6 @@ fn issue_5008() {
     });
 }
 
-
 fn get_hash(name: &str) -> String {
     name.split('_').last().unwrap().into()
 }

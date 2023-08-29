@@ -18,7 +18,7 @@ export const CALLOUTS: Record<string, Callout> = {
   },
   onInput$: {
     html: `Listen to <code>input</code> events. The <code>$</code> allows the listener to be resumeb
-  on the client. The listener is eagrely loaded in browser chache, but is broght into the application only when
+  on the client. The listener is eagerly loaded in browser chache, but is broght into the application only when
   event happens.`,
   },
   server$: {

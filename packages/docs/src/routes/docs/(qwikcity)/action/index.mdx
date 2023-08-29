@@ -1,5 +1,5 @@
 ---
-title: Qwik City - routeAction$()
+title: RouteAction$ | QwikCity
 contributors:
   - manucorporat
   - cunzaizhuyi
@@ -11,11 +11,14 @@ contributors:
   - thejackshelton
   - adnanebrahimi
   - mhevery
+  - ulic75
+  - CoralWombat
+  - tzdesign
 ---
 
 # `routeAction$()`
 
-Actions allows to handle form submissions, allowing to perform side effects such as writing to a database, or sending an email.
+Actions allow to handle form submissions, allowing to perform side effects such as writing to a database or sending an email.
 
 Actions can also return data back to the client/browser, allowing to update the UI accordingly, i.e. showing a success message after a form submission.
 
@@ -26,7 +29,7 @@ import { component$ } from '@builder.io/qwik';
 import { routeAction$, Form } from '@builder.io/qwik-city';
 
 export const useAddUser = routeAction$(async (data, requestEvent) => {
-  // This will only run on the server when the user submits the form (or when the action is called programatically)
+  // This will only run on the server when the user submits the form (or when the action is called programmatically)
   const userID = await db.users.add({
     firstName: data.firstName,
     lastName: data.lastName,
@@ -91,9 +94,11 @@ Under the hood, the `<Form/>` component uses a native HTML `<form>` element, so 
 
 When JS is enabled, the `<Form/>` component will intercept the form submission and trigger the action in SPA mode, allowing to have a full SPA experience.
 
-## Using actions programatically
+[Complex forms](/docs/advanced/complex-forms) can be created using dot notation.
 
-Actions can also be triggered programatically using the `action.submit()` method, i.e. you don't need a `<Form/>` component, but you can trigger the action from a button click or any other event, just like you would do with a function.
+## Using actions programmatically
+
+Actions can also be triggered programmatically using the `action.submit()` method, i.e. you don't need a `<Form/>` component, but you can trigger the action from a button click or any other event, just like you would do with a function.
 
 ```tsx {18} title="src/routes/index.tsx"
 import { component$ } from '@builder.io/qwik';
@@ -127,6 +132,63 @@ export default component$(() => {
 
 In the example above, the `addUser` action is triggered when the user clicks the button. The `action.submit()` method returns a `Promise` that resolves when the action is done.
 
+## Actions with Event Handlers
+
+We can use the `onSubmitCompleted$` event handler after an action is executed successfully and returns some data. It is particularly useful when you need to perform additional tasks, such as resetting UI elements or updating the application state, once an action has been completed successfully.
+
+Here's an example of the `onSubmitCompleted$` handler used to edit an item in a EditForm component of a todo app.
+
+```tsx title="src/components/EditForm.tsx"
+import { component$, type Signal, useSignal } from '@builder.io/qwik';
+import { Form } from '@builder.io/qwik-city';
+import { type ListItem, useEditFromListAction } from '../../routes/index';
+
+export interface EditFormProps {
+  item: listItem;
+  editingIdSignal: Signal<string>;
+}
+
+const EditForm = component$(
+  ({ item, editingIdSignal }: EditFormProps) => {
+    const editAction = useEditFromListAction();
+
+    return (
+      <div>
+        <Form
+          action={editAction}
+          onSubmitCompleted$={() => {
+            editingIdSignal.value = '';
+          }}
+          spaReset
+        >
+          <input
+            type="text"
+            value={item.text}
+            name="text"
+            id={`edit-${item.id}`}
+          />
+          {/* Sends item.id with form data on submission. */}
+          <input type="hidden" name="id" value={item.id} />
+          <button type="submit">
+            Submit
+          </button>
+        </Form>
+
+        <div>
+          <button onClick$={() => (editingIdSignal.value = '')}>
+            Cancel
+          </button>
+        </div>
+      </div>
+    );
+  }
+);
+
+export default EditForm;
+```
+
+In this example, `onSubmitCompleted$` is used to reset the editingIdSignal value to an empty string once the form submission is completed successfully. This allows the application to update its state and return to the default view.
+
 ## Validation and type safety
 
 Qwik comes with built-in support for [Zod](https://zod.dev/), a TypeScript-first schema validation that can be used directly with actions, using the `zod$()` function.
@@ -141,8 +203,8 @@ export const useAddUser = routeAction$(
   async (user) => {
     // The "user" is strongly typed: { firstName: string, lastName: string }
     const userID = await db.users.add({
-      firstName: data.firstName,
-      lastName: data.lastName,
+      firstName: user.firstName,
+      lastName: user.lastName,
     });
     return {
       success: true,
@@ -179,6 +241,43 @@ When submitting data to a `routeAction()`, the data is validated against the Zod
 
 Please refer to the [Zod documentation](https://zod.dev/) for more information on how to use Zod schemas.
 
+### Advanced event based validation
+
+The constructor of ```zod$``` can also take a function, as the first argument is zod itself, so you can use this directly to build the schema. 
+The second parameter is the RequestEvent to construct an event-based zod schema.
+Especially in combination with ```refine``` and ```superDefine``` in zod, the only limit is your imagination.
+
+
+```tsx {5-5} /ev/#a  title="Advanced event based validation"
+export const useAddUser = routeAction$(
+  async (user) => {
+    // The "user" is still strongly typed, but firstname 
+    // is now optional: { firstName?: string | undefined, lastName: string }
+    const userID = await db.users.add({
+      firstName: user.firstName,
+      lastName: user.lastName,
+    });
+    return {
+      success: true,
+      userID,
+    };
+  },
+  // Zod schema is used to validate that the FormData includes "firstName" and "lastName"
+  zod$((z, ev) => {
+    // The first name is optional if the url contains the query parameter "firstname=optional"
+    const firstName =
+      ev.url.searchParams.get("firstname") === "optional"
+        ? z.string().optional()
+        : z.string().nonempty();
+
+    return z.object({
+      firstName,
+      lastName: z.string(),
+    });
+  })
+);
+```
+
 ## HTTP request and response
 
 `routeAction$` and `globalAction$` have access to the `RequestEvent` object which includes information about the current HTTP request and response.
@@ -191,7 +290,7 @@ import { routeAction$ } from '@builder.io/qwik-city';
 // The second argument of the action is the `RequestEvent` object
 export const useProductRecommendations = routeAction$(
   async (_data, requestEvent) => {
-    console.log('Request headers:', requestEvent.headers);
+    console.log('Request headers:', requestEvent.request.headers);
     console.log('Request cookies:', requestEvent.cookie);
     console.log('Request url:', requestEvent.url);
     console.log('Request params:', requestEvent.params);
@@ -281,7 +380,7 @@ We recommend starting with `routeAction$()` and only use `globalAction$()` when 
 
 ### `routeAction$()`
 
-`routeAction$()` can only be declared inside the `src/routes` folder, in a `layout.tsx` or `index.tsx` file, and they MUST be exported, just like a `routeLoader$()`. Since `routeAction$()` are only accessible within the route it's declared, they are recommended when the action needs to access some user data, or it's a protected route. Think about it like a "private" action.
+`routeAction$()` can only be declared inside the `src/routes` folder, in a `layout.tsx` or `index.tsx` file, and they MUST be exported, just like a `routeLoader$()`. Since `routeAction$()`s are only accessible within the route it's declared, they are recommended when the action needs to access some user data, or it's a protected route. Think about it like a "private" action.
 
 ```tsx title="src/routes/form/index.tsx"
 import { routeAction$ } from '@builder.io/qwik-city';

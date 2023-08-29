@@ -6,6 +6,9 @@ on:
     branches:
       - main
       - next
+      - qwik-labs
+      - vercelserverless
+      - 'build/**'
   workflow_dispatch:
     inputs:
       disttag:
@@ -50,6 +53,10 @@ jobs:
               - 'packages/qwik/src/**/*.rs'
               - 'packages/qwik-city/**/*.ts'
               - 'packages/qwik-city/**/*.tsx'
+              - 'packages/qwik-labs/package.json'
+              - 'packages/qwik-labs/src/**/*.ts'
+              - 'packages/qwik-labs/src/**/*.tsx'
+              - 'packages/qwik-labs/src-vite/**/*.ts'
               - 'packages/eslint-plugin-qwik/**/*.ts'
               - 'starters/apps/**/*.ts'
               - 'starters/apps/**/*.tsx'
@@ -59,8 +66,11 @@ jobs:
               - 'Cargo.yaml'
               - '.github/workflows/*.yaml'
               - 'scripts/*.ts'
-      - name: Print fullbuild output
-        run: echo ${{ steps.filter.outputs.fullbuild == 'true' || github.event.inputs.disttag != '' }}
+      - name: Print variables output
+        run: |
+          echo fullbuild=${{ steps.filter.outputs.fullbuild }}
+          echo disttag=${{ github.event.inputs.disttag }}
+          echo event_name=${{ github.event_name }}
 
   ############ BUILD PACKAGE ############
   build-package:
@@ -75,7 +85,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 18.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -142,7 +152,7 @@ jobs:
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 18.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -236,7 +246,7 @@ jobs:
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 18.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -324,7 +334,7 @@ jobs:
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 18.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -372,9 +382,9 @@ jobs:
           path: packages/qwik/dist/*
           if-no-files-found: error
 
-      - name: Build QwikCity
+      - name: Build QwikCity / QwikLabs
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: pnpm tsm scripts/index.ts --tsc --qwikcity --api
+        run: pnpm tsm scripts/index.ts --tsc --qwikcity --qwiklabs --api
 
       - name: Print QwikCity Lib Build
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -388,7 +398,23 @@ jobs:
           path: packages/qwik-city/lib/
           if-no-files-found: error
 
-  ############ RELEASE ############
+      - name: Print QwikLabs Lib Build
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        run: tree packages/qwik-labs/lib/ packages/qwik-labs/lib-types/ packages/qwik-labs/vite/
+
+      - name: Upload QwikLabs Build Artifacts
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        uses: actions/upload-artifact@master
+        with:
+          name: builderio-qwiklabs-distribution
+          path: |
+            packages/qwik-labs/lib/
+            packages/qwik-labs/lib-types/
+            packages/qwik-labs/vite/
+            packages/qwik-labs/package.json
+          if-no-files-found: error
+
+    ############ RELEASE ############
   release:
     name: Release
     runs-on: ubuntu-latest
@@ -408,7 +434,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 18.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -433,6 +459,9 @@ jobs:
           mv dist-dev-create-qwik/* packages/create-qwik/dist/
           mkdir -p packages/eslint-plugin-qwik/dist/
           mv dist-dev-eslint-plugin-qwik/* packages/eslint-plugin-qwik/dist/
+          mv builderio-qwiklabs-distribution/lib packages/qwik-labs/lib
+          mv builderio-qwiklabs-distribution/lib-types packages/qwik-labs/lib-types
+          mv builderio-qwiklabs-distribution/vite/* packages/qwik-labs/vite/
 
       - name: Install NPM Dependencies
         run: pnpm install --frozen-lockfile
@@ -443,14 +472,14 @@ jobs:
           QWIK_API_TOKEN_GITHUB: ${{ secrets.QWIK_API_TOKEN_GITHUB }}
         run: pnpm run qwik-save-artifacts
 
-      - name: Dry-Run Publish @builder.io/qwik
+      - name: Dry-Run Publish
         if: ${{ github.event_name != 'workflow_dispatch' }}
         run: pnpm tsm scripts/index.ts --set-dist-tag="${{ github.event.inputs.disttag }}" --validate --release --dry-run
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Publish @builder.io/qwik
+      - name: Publish
         if: ${{ github.event_name == 'workflow_dispatch' }}
         run: pnpm tsm scripts/index.ts --set-dist-tag="${{ github.event.inputs.disttag }}" --validate --release
         env:
@@ -469,10 +498,10 @@ jobs:
         settings:
           - host: ubuntu-latest
             browser: chromium
-            node: 16.x
+            node: 18.x
           - host: macos-latest
             browser: webkit
-            node: 16.x
+            node: 18.x
 
     runs-on: ${{ matrix.settings.host }}
 
@@ -544,7 +573,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 18.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -634,7 +663,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 18.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 

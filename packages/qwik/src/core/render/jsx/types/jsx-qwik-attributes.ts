@@ -161,33 +161,34 @@ export type QwikEventMap<T> = {
   Waiting: Event;
 };
 
-export type PreventDefault<T> = {
+export type PreventDefault<T extends Element> = {
   [K in keyof QwikEventMap<T> as `preventdefault:${Lowercase<K>}`]?: boolean;
 };
+
+export type QwikKeysEvents = Lowercase<keyof QwikEventMap<any>>;
 
 export type BaseClassList =
   | string
   | undefined
   | null
+  | false
   | Record<string, boolean | string | number | null | undefined>
   | BaseClassList[];
+
+/**
+ * @public
+ */
 export type ClassList = BaseClassList | BaseClassList[];
 
-export interface QwikProps<T> extends PreventDefault<T> {
+export interface QwikProps<T extends Element> extends PreventDefault<T> {
   class?: ClassList | Signal<ClassList> | undefined;
   dangerouslySetInnerHTML?: string | undefined;
-  ref?: Signal<Element | undefined> | ((el: Element) => void) | undefined;
+  ref?: Ref<T> | undefined;
 
   /**
-   *
+   * Corresponding slot name used to project the element into.
    */
   'q:slot'?: string;
-
-  /**
-   * URL against which relative QRLs should be resolved to.
-   */
-  'q:version'?: string;
-  'q:container'?: '';
 }
 
 // Allows for Event Handlers to by typed as QwikEventMap[Key] or Event
@@ -264,7 +265,16 @@ export type JSXChildren =
 /**
  * @public
  */
-export interface DOMAttributes<T> extends QwikProps<T>, QwikEvents<T> {
+export interface DOMAttributes<T extends Element> extends QwikProps<T>, QwikEvents<T> {
   children?: JSXChildren;
   key?: string | number | null | undefined;
 }
+
+interface RefFnInterface {
+  (el: Element): void;
+}
+
+/**
+ * @public
+ */
+export type Ref<T extends Element = Element> = Signal<Element | undefined> | RefFnInterface;

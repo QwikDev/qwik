@@ -8,6 +8,7 @@ import {
   invoke,
   type InvokeTuple,
   newInvokeContextFromTuple,
+  tryGetInvokeContext,
 } from '../use/use-core';
 import { then } from '../util/promises';
 import { qDev, qSerialize, qTest, seal } from '../util/qdev';
@@ -106,11 +107,14 @@ export const createQRL = <TYPE>(
           if (beforeFn && beforeFn() === false) {
             return;
           }
-          const baseContext = createInvocationContext(currentCtx);
+          const baseContext = createOrReuseInvocationContext(currentCtx);
           const context: InvokeContext = {
             ...baseContext,
             $qrl$: QRL as QRLInternal<any>,
           };
+          if (context.$event$ === undefined) {
+            context.$event$ = this;
+          }
           emitUsedSymbol(symbol, context.$element$, start);
           return invoke.call(this, context, fn as any, ...args);
         }
@@ -119,7 +123,7 @@ export const createQRL = <TYPE>(
     }) as any;
   }
 
-  const createInvocationContext = (invoke: InvokeContext | InvokeTuple | undefined) => {
+  const createOrReuseInvocationContext = (invoke: InvokeContext | InvokeTuple | undefined) => {
     if (invoke == null) {
       return newInvokeContext();
     } else if (isArray(invoke)) {
@@ -130,7 +134,7 @@ export const createQRL = <TYPE>(
   };
 
   const invokeQRL = async function (this: any, ...args: any) {
-    const fn = invokeFn.call(this);
+    const fn = invokeFn.call(this, tryGetInvokeContext());
     const result = await fn(...args);
     return result;
   };

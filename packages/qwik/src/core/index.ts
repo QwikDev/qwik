@@ -3,7 +3,13 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 export { componentQrl, component$ } from './component/component.public';
 
-export type { PropsOf, OnRenderFn, Component, PublicProps } from './component/component.public';
+export type {
+  PropsOf,
+  OnRenderFn,
+  Component,
+  PublicProps,
+  PropFunctionProps,
+} from './component/component.public';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Event API
@@ -46,13 +52,19 @@ export {
 } from './render/jsx/utils.public';
 export type { SSRStreamProps, SSRHintProps } from './render/jsx/utils.public';
 export { Slot } from './render/jsx/slot.public';
-export { Fragment, RenderOnce, jsx, jsxDEV, jsxs } from './render/jsx/jsx-runtime';
-export type { HTMLAttributes, AriaAttributes, AriaRole } from './render/jsx/types/jsx-generated';
+export { Fragment, HTMLFragment, RenderOnce, jsx, jsxDEV, jsxs } from './render/jsx/jsx-runtime';
+export type {
+  CSSProperties,
+  HTMLAttributes,
+  AriaAttributes,
+  AriaRole,
+} from './render/jsx/types/jsx-generated';
 export type {
   DOMAttributes,
   JSXTagName,
   JSXChildren,
   ComponentBaseProps,
+  ClassList,
 } from './render/jsx/types/jsx-qwik-attributes';
 export type { FunctionComponent, JSXNode } from './render/jsx/types/jsx-node';
 export type { QwikDOMAttributes, QwikJSX } from './render/jsx/types/jsx-qwik';
@@ -106,7 +118,7 @@ export type { ErrorBoundaryStore } from './render/error-handling';
 // Developer Low-Level API
 //////////////////////////////////////////////////////////////////////////////////////////
 export type { ValueOrPromise } from './util/types';
-export type { Signal } from './state/signal';
+export type { Signal, ReadonlySignal } from './state/signal';
 export type { NoSerialize } from './state/common';
 export { noSerialize } from './state/common';
 export { version } from './version';

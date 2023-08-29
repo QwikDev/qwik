@@ -50,7 +50,7 @@ function findCodeSandboxes(
   for (let lineNo = 0; lineNo < lines.length; lineNo++) {
     const line = lines[lineNo];
     newLines.push(line);
-    const match = line.match(/(.*)<(CodeSandbox|CodeFile) src=["']([^"']*)["'][^/]*>$/);
+    const match = line.match(/(.*)<(CodeSandbox|CodeFile) src=["']([^"']*)["'].*>$/);
     if (match) {
       const [, prefix, tag, srcPath] = match;
       const content: string[] = [];

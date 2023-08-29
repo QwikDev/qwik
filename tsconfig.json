@@ -3,9 +3,10 @@
     "incremental": true,
     "target": "ES2020",
     "module": "ES2020",
-    "lib": ["es2021", "DOM", "webworker"],
+    "lib": ["es2021", "DOM", "webworker", "DOM.Iterable"],
     "resolveJsonModule": true,
     "jsx": "react-jsx",
+    "allowArbitraryExtensions": true,
     "jsxImportSource": "@builder.io/qwik",
     "declaration": true,
     "outDir": "./dist-dev/tsc-out",
@@ -88,6 +89,7 @@
     "packages/qwik/src",
     "packages/qwik-city",
     "packages/qwik-auth",
+    "packages/qwik-worker",
     "packages/supabase-auth-helpers-qwik",
     "packages/qwik-react/src",
     "scripts",
@@ -97,5 +99,10 @@
     "packages/qwik-react/vite",
     "@types/deno.d.ts"
   ],
-  "exclude": ["packages/create-qwik/dist", "**/lib", "packages/qwik/**/*.d.ts"]
+  "exclude": [
+    "packages/create-qwik/dist",
+    "**/lib",
+    "packages/qwik/**/*.d.ts",
+    "scripts/eslint-docs.ts"
+  ]
 }

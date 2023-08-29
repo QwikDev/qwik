@@ -1,36 +1,36 @@
 {
   "name": "eslint-plugin-qwik",
-  "version": "0.105.0",
   "description": "An Open-Source sub-framework designed with a focus on server-side-rendering, lazy-loading, and styling/animation.",
-  "main": "index.js",
+  "version": "1.2.10",
   "author": "Builder Team",
-  "license": "MIT",
-  "peerDependencies": {
-    "eslint": ">= 8"
+  "bugs": "https://github.com/BuilderIO/qwik/issues",
+  "dependencies": {
+    "jsx-ast-utils": "^3.3.4"
+  },
+  "devDependencies": {
+    "@types/eslint": "8.44.1",
+    "@types/estree": "^1.0.1",
+    "@typescript-eslint/rule-tester": "^6.2.0",
+    "@typescript-eslint/utils": "6.2.0",
+    "redent": "^4.0.0"
+  },
+  "engines": {
+    "node": ">=16.8.0 <18.0.0 || >=18.11"
   },
   "homepage": "https://github.com/BuilderIO/qwik#readme",
+  "keywords": [
+    "builder.io",
+    "eslint",
+    "qwik"
+  ],
+  "license": "MIT",
+  "main": "index.js",
+  "peerDependencies": {
+    "eslint": "8.45.0"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/BuilderIO/qwik.git",
     "directory": "packages/eslint-rules"
-  },
-  "bugs": {
-    "url": "https://github.com/BuilderIO/qwik/issues"
-  },
-  "keywords": [
-    "builder.io",
-    "qwik",
-    "eslint"
-  ],
-  "engines": {
-    "node": ">=16"
-  },
-  "devDependencies": {
-    "@types/eslint": "8.37.0",
-    "@types/estree": "^1.0.1",
-    "redent": "^4.0.0"
-  },
-  "dependencies": {
-    "jsx-ast-utils": "^3.3.3"
   }
 }

@@ -1,9 +1,11 @@
 import type { ViteDevServer, Connect } from 'vite';
 import type { ServerResponse } from 'node:http';
-import type { BuildContext } from '../types';
+import type { BuildContext, BuildRoute } from '../types';
 import type {
+  ActionInternal,
   ContentMenu,
   LoadedRoute,
+  LoaderInternal,
   MenuData,
   MenuModule,
   MenuModuleLoader,
@@ -11,7 +13,7 @@ import type {
   RequestEvent,
   RouteModule,
 } from '../../runtime/src/types';
-import type { QwikViteDevResponse } from '@builder.io/qwik/optimizer';
+import type { QwikManifest, QwikViteDevResponse } from '@builder.io/qwik/optimizer';
 import fs from 'node:fs';
 import { join, resolve } from 'node:path';
 import {
@@ -21,34 +23,28 @@ import {
 } from '../../middleware/request-handler/user-response';
 import { getQwikCityServerData } from '../../middleware/request-handler/response-page';
 import { updateBuildContext } from '../build';
-import { getErrorHtml } from '../../middleware/request-handler/error-handler';
 import { getExtension, normalizePath } from '../../utils/fs';
-import { getMenuLoader, getPathParams } from '../../runtime/src/routing';
-import { fromNodeHttp, getUrl } from '../../middleware/node/http';
-import { resolveRequestHandlers } from '../../middleware/request-handler/resolve-request-handlers';
+import { getMenuLoader } from '../../runtime/src/routing';
+import { computeOrigin, fromNodeHttp, getUrl } from '../../middleware/node/http';
+import {
+  checkBrand,
+  resolveRequestHandlers,
+} from '../../middleware/request-handler/resolve-request-handlers';
 import { formatError } from './format-error';
+import { matchRoute } from 'packages/qwik-city/runtime/src/route-matcher';
 
 export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
   const matchRouteRequest = (pathname: string) => {
     for (const route of ctx.routes) {
-      const match = route.pattern.exec(pathname);
-      if (match) {
-        return {
-          route,
-          params: getPathParams(route.paramNames, match),
-        };
+      let params = matchRoute(route.pathname, pathname);
+      if (params) {
+        return { route, params };
       }
-    }
 
-    if (ctx.opts.trailingSlash && !pathname.endsWith('/')) {
-      const pathnameWithSlash = pathname + '/';
-      for (const route of ctx.routes) {
-        const match = route.pattern.exec(pathnameWithSlash);
-        if (match) {
-          return {
-            route,
-            params: getPathParams(route.paramNames, match),
-          };
+      if (ctx.opts.trailingSlash && !pathname.endsWith('/')) {
+        params = matchRoute(route.pathname, pathname + '/');
+        if (params) {
+          return { route, params };
         }
       }
     }
@@ -58,7 +54,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
 
   return async (req: Connect.IncomingMessage, res: ServerResponse, next: Connect.NextFunction) => {
     try {
-      const url = getUrl(req);
+      const url = getUrl(req, computeOrigin(req));
 
       if (skipRequest(url.pathname) || isVitePing(url.pathname, req.headers)) {
         next();
@@ -82,12 +78,13 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
         const qwikSerializer = { _deserializeData, _serializeData, _verifySerializable };
 
         // use vite to dynamically load each layout/page module in this route's hierarchy
-
+        const loaderMap = new Map<string, string>();
         const serverPlugins: RouteModule[] = [];
         for (const file of ctx.serverPlugins) {
           const layoutModule = await server.ssrLoadModule(file.filePath);
           serverPlugins.push(layoutModule);
           routeModulePaths.set(layoutModule, file.filePath);
+          checkModule(loaderMap, layoutModule, file.filePath);
         }
 
         const matchPathname = getRouteMatchPathname(url.pathname, ctx.opts.trailingSlash);
@@ -104,13 +101,16 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
             const layoutModule = await server.ssrLoadModule(layout.filePath);
             routeModules.push(layoutModule);
             routeModulePaths.set(layoutModule, layout.filePath);
+            checkModule(loaderMap, layoutModule, layout.filePath);
           }
           const endpointModule = await server.ssrLoadModule(route.filePath);
           routeModules.push(endpointModule);
           routeModulePaths.set(endpointModule, route.filePath);
+          checkModule(loaderMap, endpointModule, route.filePath);
         }
 
         const renderFn = async (requestEv: RequestEvent) => {
+          // routeResult && requestEv.sharedMap.set('@routeName', routeResult.route.pathname);
           const isPageDataReq = requestEv.pathname.endsWith(QDATA_JSON);
           if (!isPageDataReq) {
             const serverData = getQwikCityServerData(requestEv);
@@ -125,6 +125,15 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
               res.setHeader('Set-Cookie', cookieHeaders);
             }
 
+            const serverTiming = requestEv.sharedMap.get('@serverTiming') as
+              | [string, number][]
+              | undefined;
+            if (serverTiming) {
+              res.setHeader(
+                'Server-Timing',
+                serverTiming.map((a) => `${a[0]};dur=${a[1]}`).join(',')
+              );
+            }
             (res as QwikViteDevResponse)._qwikEnvData = {
               ...(res as QwikViteDevResponse)._qwikEnvData,
               ...serverData,
@@ -159,24 +168,38 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
           menu = menuModule?.default;
         }
 
-        const loadedRoute = [params, routeModules, menu, undefined] satisfies LoadedRoute;
+        const loadedRoute = [
+          routeResult ? routeResult.route.pathname : '',
+          params,
+          routeModules,
+          menu,
+          undefined,
+        ] satisfies LoadedRoute;
         const requestHandlers = resolveRequestHandlers(
           serverPlugins,
           loadedRoute,
           req.method ?? 'GET',
+          false,
           renderFn
         );
 
         if (requestHandlers.length > 0) {
           const serverRequestEv = await fromNodeHttp(url, req, res, 'dev');
-          if (ctx.opts.platform) {
-            serverRequestEv.platform = ctx.opts.platform;
-          }
+          Object.assign(serverRequestEv.platform, ctx.opts.platform);
 
+          const manifest: QwikManifest = {
+            manifestHash: '',
+            symbols: {},
+            mapping: {},
+            bundles: {},
+            injections: [],
+            version: '1',
+          };
           const { completion, requestEv } = runQwikCity(
             serverRequestEv,
             loadedRoute,
             requestHandlers,
+            manifest,
             ctx.opts.trailingSlash,
             ctx.opts.basePathname,
             qwikSerializer
@@ -232,7 +255,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
         //       there's two ways handling HMR for page endpoint with error
         // 1. Html response inject `import.meta.hot.accept('./pageEndpoint_FILE_URL', () => { location.reload })`
         // 2. watcher, diff previous & current file content, a bit expensive
-        const html = getErrorHtml(404, new Error('not found'));
+        const html = getUnmatchedRouteHtml(url, ctx);
         res.statusCode = 404;
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
         res.end(html);
@@ -245,6 +268,105 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
     }
   };
 }
+
+const checkModule = (loaderMap: Map<string, string>, routeModule: any, filePath: string) => {
+  for (const loader of Object.values(routeModule)) {
+    if (checkBrand(loader, 'server_action') || checkBrand(loader, 'server_loader')) {
+      checkUniqueLoader(loaderMap, loader as any, filePath);
+    }
+  }
+};
+
+const checkUniqueLoader = (
+  loaderMap: Map<string, string>,
+  loader: LoaderInternal | ActionInternal,
+  filePath: string
+) => {
+  const prev = loaderMap.get(loader.__id);
+  if (prev) {
+    const type = loader.__brand === 'server_loader' ? 'routeLoader$' : 'routeAction$';
+    throw new Error(
+      `The same ${type} (${loader.__qrl.getSymbol()}) was exported in multiple modules:
+      - ${prev}
+      - ${filePath}`
+    );
+  }
+  loaderMap.set(loader.__id, filePath);
+};
+
+export function getUnmatchedRouteHtml(url: URL, ctx: BuildContext): string {
+  const blue = '#006ce9';
+  const routesAndDistance = sortRoutesByDistance(ctx.routes, url);
+  return `
+  <html>
+    <head>
+      <meta charset="utf-8">
+      <meta http-equiv="Status" content="404">
+      <title>404 Not Found</title>
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      <style>
+        body { color: ${blue}; background-color: #fafafa; padding: 30px; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif; }
+        div, p { max-width: 70vw; margin: 60px auto 30px auto; background: white; border-radius: 4px; box-shadow: 0px 0px 50px -20px ${blue}; word-break: break-word; }
+        div { display: flex; flex-direction: column; }
+        strong { display: inline-block; padding: 15px; background: ${blue}; color: white; }
+        span { display: inline-block; padding: 15px; }
+        a { padding: 15px; }
+        a:hover { background-color: rgba(0, 108, 233, 0.125); }
+        .recommended { font-size: 0.8em; font-weight: 700; padding: 10px; }
+      </style>
+    </head>
+    <body>
+      <p><strong>404</strong> <span>${url.pathname} not found.</span></p>
+
+      <div>
+        <strong>Available Routes</strong>
+
+        ${routesAndDistance
+          .map(
+            ([route, distance], i) =>
+              `<a href="${route.pathname}">${route.pathname}${
+                i === 0 && distance < 3
+                  ? '<span class="recommended"> 👈 maybe you meant this?</span>'
+                  : ''
+              } </a>`
+          )
+          .join('')}
+      </div>
+    </body>
+  </html>`;
+}
+
+const sortRoutesByDistance = (routes: BuildRoute[], url: URL) => {
+  const pathname = url.pathname;
+  const routesWithDistance = routes.map(
+    (route) => [route, levenshteinDistance(pathname, route.pathname)] as const
+  );
+  return routesWithDistance.sort((a, b) => a[1] - b[1]);
+};
+
+const levenshteinDistance = (s: string, t: string) => {
+  if (!s.endsWith('/')) {
+    s = s + '/';
+  }
+  if (!t.endsWith('/')) {
+    t = t + '/';
+  }
+  const arr = [];
+  for (let i = 0; i <= t.length; i++) {
+    arr[i] = [i];
+    for (let j = 1; j <= s.length; j++) {
+      arr[i][j] =
+        i === 0
+          ? j
+          : Math.min(
+              arr[i - 1][j] + 1,
+              arr[i][j - 1] + 1,
+              arr[i - 1][j - 1] + (s[j - 1] === t[i - 1] ? 0 : 1)
+            );
+    }
+  }
+  return arr[t.length][s.length];
+};
 
 /**
  * Static file server for files written directly to the 'dist' dir.
@@ -391,6 +513,6 @@ const STATIC_CONTENT_TYPES: { [ext: string]: string } = {
 };
 
 const DEV_SERVICE_WORKER = `/* Qwik City Dev Service Worker */
-addEventListener('install', () => self.skipWaiting());
-addEventListener('activate', () => self.clients.claim());
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', (ev) => ev.waitUntil(self.clients.claim()));
 `;

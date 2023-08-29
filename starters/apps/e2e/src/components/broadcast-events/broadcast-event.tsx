@@ -1,73 +1,80 @@
-import { component$, useOnDocument, useStore, $, useOnWindow, useOn } from '@builder.io/qwik';
+import {
+  component$,
+  useOnDocument,
+  useStore,
+  $,
+  useOnWindow,
+  useOn,
+} from "@builder.io/qwik";
 
 export function useDocumentMouse() {
-  const mousePosition = useStore({ x: 0, y: 0, inside: 'false' });
+  const mousePosition = useStore({ x: 0, y: 0, inside: "false" });
   useOnDocument(
-    'mousemove',
+    "mousemove",
     $((event: Event) => {
       mousePosition.x = (event as MouseEvent).clientX;
       mousePosition.y = (event as MouseEvent).clientY;
-    })
+    }),
   );
   useOnDocument(
-    'mouseenter',
+    "mouseenter",
     $(() => {
-      mousePosition.inside = 'true';
-    })
+      mousePosition.inside = "true";
+    }),
   );
   useOnDocument(
-    'mouseleave',
+    "mouseleave",
     $(() => {
-      mousePosition.inside = 'false';
-    })
+      mousePosition.inside = "false";
+    }),
   );
   return mousePosition;
 }
 
 export function useWindowMouse() {
-  const mousePosition = useStore({ x: 0, y: 0, inside: 'false' });
+  const mousePosition = useStore({ x: 0, y: 0, inside: "false" });
   useOnWindow(
-    'mousemove',
+    "mousemove",
     $((event: Event) => {
       mousePosition.x = (event as MouseEvent).clientX;
       mousePosition.y = (event as MouseEvent).clientY;
-    })
+    }),
   );
   useOnWindow(
-    'mouseenter',
+    "mouseenter",
     $(() => {
-      mousePosition.inside = 'true';
-    })
+      mousePosition.inside = "true";
+    }),
   );
   useOnWindow(
-    'mouseleave',
+    "mouseleave",
     $(() => {
-      mousePosition.inside = 'false';
-    })
+      mousePosition.inside = "false";
+    }),
   );
   return mousePosition;
 }
 
 export function useSelfMouse() {
-  const mousePosition = useStore({ x: 0, y: 0, inside: 'false' });
+  const mousePosition = useStore({ x: 0, y: 0, inside: "false" });
   useOn(
-    'mousemove',
+    "mousemove",
     $((event: Event) => {
       mousePosition.x = (event as MouseEvent).clientX;
       mousePosition.y = (event as MouseEvent).clientY;
-    })
+    }),
   );
   useOn(
-    'mouseenter',
+    "mouseenter",
     $(() => {
-      mousePosition.inside = 'true';
-    })
+      mousePosition.inside = "true";
+    }),
   );
   useOn(
-    'mouseleave',
+    "mouseleave",
     $(() => {
-      mousePosition.inside = 'false';
-    })
+      mousePosition.inside = "false";
+    }),
   );
   return mousePosition;
 }
@@ -90,7 +97,11 @@ export const BroadcastEvents = component$(() => {
         <li>1</li>
         <li>1</li>
       </ul>
-      <button id="btn-toggle-render" type="button" onClick$={() => state.count++}>
+      <button
+        id="btn-toggle-render"
+        type="button"
+        onClick$={() => state.count++}
+      >
         Rerender
       </button>
       <MouseEvents key={state.count} />

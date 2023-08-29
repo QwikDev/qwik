@@ -133,12 +133,23 @@ export interface QRL<TYPE = any> {
 
   /**
    * Resolve the QRL of closure and invoke it.
+   * @param signal - An AbortSignal object.
    * @param args - Closure arguments.
    * @returns A promise of the return value of the closure.
    */
-  (...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never): Promise<
-    TYPE extends (...args: any[]) => infer RETURN ? Awaited<RETURN> : never
-  >;
+  (
+    signal: AbortSignal,
+    ...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never
+  ): Promise<TYPE extends (...args: any[]) => infer RETURN ? Awaited<RETURN> : never>;
+
+  /**
+   * Resolve the QRL of closure and invoke it.
+   * @param args - Closure arguments.
+   * @returns A promise of the return value of the closure.
+   */
+  (
+    ...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never
+  ): Promise<TYPE extends (...args: any[]) => infer RETURN ? Awaited<RETURN> : never>;
 
   /**
    * Resolve the QRL and return the actual value.
@@ -165,7 +176,7 @@ let runtimeSymbolId = 0;
 export type PropFunction<T extends Function = (...args: any[]) => any> = T extends (
   ...args: infer ARGS
 ) => infer RET
-  ? PropFnInterface<ARGS, RET>
+  ? PropFnInterface<ARGS, Awaited<RET>>
   : never;
 
 // <docs markdown="../readme.md#$">

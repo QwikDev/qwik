@@ -208,10 +208,6 @@ export const setQId = (rCtx: RenderContext, elCtx: QContext) => {
   elCtx.$id$ = id;
 };
 
-export const hasStyle = (containerState: ContainerState, styleId: string) => {
-  return containerState.$styleIds$.has(styleId);
-};
-
 export const jsxToString = (data: any): string => {
   if (isSignal(data)) {
     return jsxToString(data.value);
@@ -232,3 +228,4 @@ export const shouldWrapFunctional = (res: unknown, node: JSXNode) => {
 
 export const static_listeners = 1 << 0;
 export const static_subtree = 1 << 1;
+export const dangerouslySetInnerHTML = 'dangerouslySetInnerHTML';

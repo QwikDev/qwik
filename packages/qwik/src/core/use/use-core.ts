@@ -145,18 +145,17 @@ export const newInvokeContext = (
   event?: any,
   url?: URL
 ): InvokeContext => {
-  const ctx = {
+  const ctx: InvokeContext = {
     $seq$: 0,
     $hostElement$: hostElement,
     $element$: element,
     $event$: event,
     $url$: url,
+    $locale$: locale,
     $qrl$: undefined,
-    $props$: undefined,
     $renderCtx$: undefined,
     $subscriber$: undefined,
     $waitOn$: undefined,
-    $locale$: locale,
   };
   seal(ctx);
   return ctx;
@@ -173,7 +172,7 @@ export const untrack = <T>(fn: () => T): T => {
   return invoke(undefined, fn);
 };
 
-const trackInvocation = /*@__PURE__*/ newInvokeContext(
+const trackInvocation = /*#__PURE__*/ newInvokeContext(
   undefined,
   undefined,
   undefined,
@@ -203,6 +202,16 @@ export const _getContextElement = (): unknown => {
 /**
  * @internal
  */
+export const _getContextEvent = (): unknown => {
+  const iCtx = tryGetInvokeContext();
+  if (iCtx) {
+    return iCtx.$event$;
+  }
+};
+
+/**
+ * @internal
+ */
 export const _jsxBranch = (input?: any) => {
   const iCtx = tryGetInvokeContext();
   if (iCtx && iCtx.$hostElement$ && iCtx.$renderCtx$) {
@@ -211,4 +220,16 @@ export const _jsxBranch = (input?: any) => {
     elCtx.$flags$ |= HOST_FLAG_DYNAMIC;
   }
   return input;
+};
+
+/**
+ * @internal
+ */
+export const _waitUntilRendered = (elm: Element) => {
+  const containerEl = getWrappingContainer(elm);
+  if (!containerEl) {
+    return Promise.resolve();
+  }
+  const containerState = _getContainerState(containerEl);
+  return containerState.$renderPromise$ ?? Promise.resolve();
 };

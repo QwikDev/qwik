@@ -70,9 +70,9 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
         const url = new URL(qrl, base);
         const symbolName = url.hash.replace(/^#?([^?[|]*).*$/, '$1') || 'default';
         const reqTime = performance.now();
-        const module = import(url.href.split('#')[0]);
+        const module = import(/* @vite-ignore */ url.href.split('#')[0]);
         resolveContainer(container);
-        const handler = findSymbol(await module, symbolName);
+        const handler = (await module)[symbolName];
         const previousCtx = (doc as any)[Q_CONTEXT];
         if (element.isConnected) {
           try {
@@ -93,17 +93,6 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
 
   const emitEvent = (eventName: string, detail?: any) => {
     doc.dispatchEvent(createEvent(eventName, detail));
-  };
-
-  const findSymbol = (module: any, symbol: string) => {
-    if (symbol in module) {
-      return module[symbol];
-    }
-    for (const v of Object.values(module)) {
-      if (typeof v === 'object' && v && symbol in v) {
-        return (v as any)[symbol];
-      }
-    }
   };
 
   const camelToKebab = (str: string) => str.replace(/([A-Z])/g, (a) => '-' + a.toLowerCase());
@@ -164,7 +153,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
     handler: (ev: Event) => void,
     capture = false
   ) => {
-    return el.addEventListener(eventName, handler, { capture });
+    return el.addEventListener(eventName, handler, { capture, passive: false });
   };
 
   const push = (eventNames: string[]) => {

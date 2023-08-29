@@ -81,6 +81,11 @@
   line-height: 1;
 }
 
+.docs article .card .intro-icon {
+  position: relative;
+  margin: auto;
+}
+
 .docs article h1 {
   @apply mb-7;
   @apply relative;
@@ -188,6 +193,12 @@ h6 a:hover .icon {
   margin: 20px 0;
 }
 
+[data-rehype-pretty-code-fragment] pre {
+  overflow: auto;
+  border-radius: 8px;
+  max-height: var(--pretty-code-fragment-max-height);
+}
+
 [data-rehype-pretty-code-title] {
   padding: 5px 15px;
   background: #4199d3;
@@ -197,6 +208,7 @@ h6 a:hover .icon {
 
 .docs article pre {
   padding: 18px 15px;
+  overflow: auto;
 }
 
 :root {

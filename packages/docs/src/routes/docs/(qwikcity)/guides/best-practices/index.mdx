@@ -1,5 +1,5 @@
 ---
-title: Best Practices
+title: Best Practices | Guides
 contributors:
   - mhevery
   - the-r3aper7
@@ -11,6 +11,7 @@ contributors:
   - reemardelarosa
   - un33k
   - egmaleta
+  - mugan86
 ---
 
 # Best Practices
@@ -23,12 +24,12 @@ Qwik optimizer can better optimize the reactivity of the application if the oper
 // Don't do this!
 export default component$(() => {
   const signal = useSignal(0);
-  const isBiggerThanZero = signal > 0 ? 'Bigger than zero' : 'Smaller than zero';
+  const isBiggerThanZero = signal.value > 0 ? 'Bigger than zero' : 'Smaller than zero';
   return (
     <div>
-      <button onClick={increment}>+</button>
-      <button onClick={decrement}>-</button>
-      <div>{isBiggerThanZero}</div>
+      <button onClick$={() => signal.value++}>+</button>
+      <button onClick$={() => signal.value--}>-</button>
+      <div>{isBiggerThanZero} - Current value: { signal.value }</div>
     </div>
   );
 });
@@ -41,9 +42,12 @@ export default component$(() => {
   const signal = useSignal(0);
   return (
     <div>
-      <button onClick={increment}>+</button>
-      <button onClick={decrement}>-</button>
-      <div>{signal > 0 ? 'Bigger than zero' : 'Smaller than zero'}</div>
+      <button onClick$={() => signal.value++}>+</button>
+        <button onClick$={() => signal.value--}>-</button>
+        <div>
+          {signal.value > 0 ? 'Bigger than zero' : 'Smaller than zero'} - Current
+          value: {signal.value}
+        </div>
     </div>
   );
 });
@@ -53,20 +57,20 @@ export default component$(() => {
 
 Qwik allows to register event listeners in a declarative way, using the `useOn()` or using JSX.
 
-When using `useVisibleTask` to programatically register events, we are downloading and executing JavaScript eagerly, even if the event is not triggered.
+When using `useVisibleTask` to programmatically register events, we are downloading and executing JavaScript eagerly, even if the event is not triggered.
 
 ```tsx title="Suboptimal implementation"
 // Don't do this!
-useVisibleTask$(() => {
+useVisibleTask$(({ cleanup }) => {
   const listener = (event) => {
     const mouseEvent = event as MouseEvent;
     console.log(mouseEvent.x, mouseEvent.y);
   };
   document.addEventListener('mousemove', listener);
 
-  return () => {
+  cleanup(() => {
     document.removeEventListener('mousemove', listener);
-  };
+  });
 });
 ```
 
@@ -117,7 +121,7 @@ Many actions related to location information can be executed during the initial 
 
 By forcing this logic to run on the client side, it introduces increased upfront JavaScript and leads to eager loading.
 
-Using the if typeof window !== "undefined" pattern may cause the code to be skipped. On the server, the code block will be skipped since the window is always undefined.
+Using the `if typeof window !== "undefined"` pattern may cause the code to be skipped. On the server, the code block will be skipped since the window is always undefined.
 
 While developers may be accustomed to code running twice, Qwik eliminates this necessity by providing a more efficient approach.
 

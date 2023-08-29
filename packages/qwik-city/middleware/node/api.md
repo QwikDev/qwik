@@ -6,15 +6,17 @@
 
 /// <reference types="node" />
 
+import type { ClientConn } from '@builder.io/qwik-city/middleware/request-handler';
+import type { Http2ServerRequest } from 'node:http2';
 import type { IncomingMessage } from 'node:http';
 import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
 import type { ServerResponse } from 'node:http';
 
 // @public (undocumented)
 export function createQwikCity(opts: QwikCityNodeRequestOptions): {
-    router: (req: IncomingMessage, res: ServerResponse, next: NodeRequestNextFunction) => Promise<void>;
-    notFound: (req: IncomingMessage, res: ServerResponse, next: (e: any) => void) => Promise<void>;
-    staticFile: (req: IncomingMessage, res: ServerResponse, next: (e?: any) => void) => Promise<void>;
+    router: (req: IncomingMessage | Http2ServerRequest, res: ServerResponse, next: NodeRequestNextFunction) => Promise<void>;
+    notFound: (req: IncomingMessage | Http2ServerRequest, res: ServerResponse, next: (e: any) => void) => Promise<void>;
+    staticFile: (req: IncomingMessage | Http2ServerRequest, res: ServerResponse, next: (e?: any) => void) => Promise<void>;
 };
 
 // @public (undocumented)
@@ -26,7 +28,7 @@ export interface NodeRequestNextFunction {
 // @public (undocumented)
 export interface PlatformNode {
     // (undocumented)
-    incomingMessage?: IncomingMessage;
+    incomingMessage?: IncomingMessage | Http2ServerRequest;
     // (undocumented)
     node?: string;
     // (undocumented)
@@ -35,6 +37,10 @@ export interface PlatformNode {
 
 // @public (undocumented)
 export interface QwikCityNodeRequestOptions extends ServerRenderOptions {
+    getClientConn?: (req: IncomingMessage | Http2ServerRequest) => ClientConn;
+    getOrigin?: (req: IncomingMessage | Http2ServerRequest) => string | null;
+    // @deprecated (undocumented)
+    origin?: string;
     static?: {
         root?: string;
         cacheControl?: string;

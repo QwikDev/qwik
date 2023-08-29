@@ -1,5 +1,6 @@
 export { getErrorHtml } from './error-handler';
 export { mergeHeadersCookies } from './cookie';
+export { AbortMessage, RedirectMessage } from './redirect-handler';
 export { requestHandler } from './request-handler';
 export type {
   CacheControl,
@@ -19,4 +20,6 @@ export type {
   ServerResponseHandler,
   DeferReturn,
   RequestEventBase,
+  ClientConn,
+  EnvGetter,
 } from './types';

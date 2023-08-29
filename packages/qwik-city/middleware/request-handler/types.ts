@@ -5,8 +5,19 @@ import type { AbortMessage, RedirectMessage } from './redirect-handler';
 import type { RequestEventInternal } from './request-event';
 import type { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
 
+/**
+ * @public
+ */
 export interface EnvGetter {
   get(key: string): string | undefined;
+}
+
+/**
+ * @public
+ */
+export interface ClientConn {
+  ip?: string;
+  country?: string;
 }
 
 /**
@@ -20,6 +31,7 @@ export interface ServerRequestEvent<T = any> {
   platform: any;
   request: Request;
   env: EnvGetter;
+  getClientConn: () => ClientConn;
   getWritableStream: ServerResponseHandler<T>;
 }
 
@@ -45,6 +57,17 @@ export type ServerResponseHandler<T = any> = (
 export interface ServerRenderOptions extends RenderOptions {
   render: Render;
   qwikCityPlan: QwikCityPlan;
+  /**
+   * Protection against cross-site request forgery (CSRF) attacks.
+   *
+   * When `true`, for every incoming POST, PUT, PATCH, or DELETE form submissions,
+   * the request origin is checked to match the server's origin.
+   *
+   * Be careful when disabling this option as it may lead to CSRF attacks.
+   *
+   * Defaults to `true`.
+   */
+  checkOrigin?: boolean;
 }
 
 /**
@@ -58,11 +81,111 @@ export type RequestHandler<PLATFORM = QwikCityPlatform> = (
  * @public
  */
 export interface SendMethod {
-  (statusCode: number, data: any): AbortMessage;
+  (statusCode: StatusCodes, data: any): AbortMessage;
   (response: Response): AbortMessage;
 }
 
-export type RedirectCode = 301 | 302 | 303 | 307 | 308;
+export type StatusCodes =
+  | InformationalCode
+  | SuccessCode
+  | ClientErrorCode
+  | ServerErrorCode
+  | RedirectCode
+  | number;
+
+export type ErrorCodes = ClientErrorCode | ServerErrorCode;
+
+/**
+ * HTTP Informational Status Codes
+ * Status codes in the 1xx range indicate that the server has received and is processing the request, but no response is available yet.
+ */
+export type InformationalCode =
+  | 100 // Continue
+  | 101 // Switching Protocols
+  | 102 // Processing
+  | 103; // Early Hints
+
+/**
+ * HTTP Success Status Codes
+ * Status codes in the 2xx range indicate that the client's request was successfully received, understood, and accepted by the server.
+ */
+type SuccessCode =
+  | 200 // OK
+  | 201 // Created
+  | 202 // Accepted
+  | 203 // Non-Authoritative Information
+  | 204 // No Content
+  | 205 // Reset Content
+  | 206 // Partial Content
+  | 207 // Multi-Status
+  | 208 // Already Reported
+  | 226; // IM Used;
+
+/**
+ * HTTP Redirect Status Codes
+ * Status codes in the 3xx range indicate that further action must be taken by the client to complete the request.
+ */
+export type RedirectCode =
+  | 300 // Multiple Choices
+  | 301 // Moved Permanently
+  | 302 // Found
+  | 303 // See Other
+  | 304 // Not Modified
+  | 305 // Use Proxy
+  | 307 // Temporary Redirect
+  | 308; // Permanent Redirect
+
+/**
+ * HTTP Client Error Status Codes
+ * Status codes in the 4xx range indicate that the client's request was malformed or invalid and could not be understood or processed by the server.
+ */
+export type ClientErrorCode =
+  | 400 // Bad Request
+  | 401 // Unauthorized
+  | 402 // Payment Required
+  | 403 // Forbidden
+  | 404 // Not Found
+  | 405 // Method Not Allowed
+  | 406 // Not Acceptable
+  | 407 // Proxy Authentication Required
+  | 408 // Request Timeout
+  | 409 // Conflict
+  | 410 // Gone
+  | 411 // Length Required
+  | 412 // Precondition Failed
+  | 413 // Payload Too Large
+  | 414 // URI Too Long
+  | 415 // Unsupported Media Type
+  | 416 // Range Not Satisfiable
+  | 417 // Expectation Failed
+  | 418 // I'm a teapot
+  | 421 // Misdirected Request
+  | 422 // Unprocessable Entity
+  | 423 // Locked
+  | 424 // Failed Dependency
+  | 425 // Too Early
+  | 426 // Upgrade Required
+  | 428 // Precondition Required
+  | 429 // Too Many Requests
+  | 431 // Request Header Fields Too Large
+  | 451; // Unavailable For Legal Reasons
+
+/**
+ * HTTP Server Error Status Codes
+ * Status codes in the 5xx range indicate that the server encountered an error or was unable to fulfill the request due to unexpected conditions.
+ */
+export type ServerErrorCode =
+  | 500 // Internal Server Error
+  | 501 // Not Implemented
+  | 502 // Bad Gateway
+  | 503 // Service Unavailable
+  | 504 // Gateway Timeout
+  | 505 // HTTP Version Not Supported
+  | 506 // Variant Also Negotiates
+  | 507 // Insufficient Storage
+  | 508 // Loop Detected
+  | 510 // Not Extended
+  | 511; // Network Authentication Required
 
 /**
  * @public
@@ -76,7 +199,7 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform>
    *
    * https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
    */
-  readonly status: (statusCode?: number) => number;
+  readonly status: (statusCode?: StatusCodes) => number;
 
   /**
    * Which locale the content is in.
@@ -100,28 +223,28 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform>
    * See https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
    * for which status code should be used.
    */
-  readonly error: (statusCode: number, message: string) => ErrorResponse;
+  readonly error: (statusCode: ErrorCodes, message: string) => ErrorResponse;
 
   /**
    * Convenience method to send an text body response. The response will be automatically
    * set the `Content-Type` header to`text/plain; charset=utf-8`.
    *  An `text()` response can only be called once.
    */
-  readonly text: (statusCode: number, text: string) => AbortMessage;
+  readonly text: (statusCode: StatusCodes, text: string) => AbortMessage;
 
   /**
    * Convenience method to send an HTML body response. The response will be automatically
    * set the `Content-Type` header to`text/html; charset=utf-8`.
    *  An `html()` response can only be called once.
    */
-  readonly html: (statusCode: number, html: string) => AbortMessage;
+  readonly html: (statusCode: StatusCodes, html: string) => AbortMessage;
 
   /**
    * Convenience method to JSON stringify the data and send it in the response.
    * The response will be automatically set the `Content-Type` header to
    * `application/json; charset=utf-8`. A `json()` response can only be called once.
    */
-  readonly json: (statusCode: number, data: any) => AbortMessage;
+  readonly json: (statusCode: StatusCodes, data: any) => AbortMessage;
 
   /**
    * Send a body response. The `Content-Type` response header is not automatically set
@@ -137,7 +260,8 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform>
  */
 export interface RequestEventBase<PLATFORM = QwikCityPlatform> {
   /**
-   * HTTP response headers.
+   * HTTP response headers. Notice it will be empty until you first add a header.
+   * If you want to read the request headers, use `request.headers` instead.
    *
    * https://developer.mozilla.org/en-US/docs/Glossary/Response_header
    */
@@ -225,6 +349,16 @@ export interface RequestEventBase<PLATFORM = QwikCityPlatform> {
    * https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
    */
   readonly cacheControl: (cacheControl: CacheControl) => void;
+
+  /**
+   * Provides information about the client connection, such as the IP address and the country the request originated from.
+   */
+  readonly clientConn: ClientConn;
+
+  /**
+   * Request's AbortSignal (same as `request.signal`). This signal indicates that the request has been aborted.
+   */
+  readonly signal: AbortSignal;
 }
 
 /**
@@ -262,6 +396,11 @@ export interface CacheControlOptions {
   staleWhileRevalidate?: number;
 
   /**
+   * The stale-if-error response directive that indicates if a stale response can be used when there's an error from the origin.
+   */
+  staleIfError?: number;
+
+  /**
    * The no-store response directive indicates that any caches of any kind (private or shared) should not store this response.
    */
   noStore?: boolean;
@@ -296,7 +435,14 @@ export interface CacheControlOptions {
  * @public
  */
 export interface RequestEvent<PLATFORM = QwikCityPlatform> extends RequestEventCommon<PLATFORM> {
+  /**
+   * True if headers have been sent, preventing any more headers from being set.
+   */
   readonly headersSent: boolean;
+
+  /**
+   * True if the middleware chain has finished executing.
+   */
   readonly exited: boolean;
   /**
    * Low-level access to write to the HTTP response stream. Once `getWritableStream()` is called,
@@ -304,6 +450,11 @@ export interface RequestEvent<PLATFORM = QwikCityPlatform> extends RequestEventC
    */
   readonly getWritableStream: () => WritableStream<Uint8Array>;
 
+  /**
+   * Invoke the next middleware function in the chain.
+   *
+   * NOTE: Ensure that the call to `next()` is `await`ed.
+   */
   readonly next: () => Promise<void>;
 }
 

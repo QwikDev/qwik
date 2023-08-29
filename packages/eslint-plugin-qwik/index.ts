@@ -6,6 +6,8 @@ import { preferClasslist } from './src/preferClasslist';
 import { jsxNoScriptUrl } from './src/jsxNoScriptUrl';
 import { jsxKey } from './src/jsxKey';
 import { unusedServer } from './src/unusedServer';
+import { jsxImg } from './src/jsxImg';
+import { jsxAtag } from './src/jsxAtag';
 
 export const rules = {
   'use-method-usage': useMethodUsage,
@@ -16,6 +18,8 @@ export const rules = {
   'jsx-no-script-url': jsxNoScriptUrl,
   'jsx-key': jsxKey,
   'unused-server': unusedServer,
+  'jsx-img': jsxImg,
+  'jsx-a': jsxAtag,
 };
 
 export const configs = {
@@ -30,6 +34,8 @@ export const configs = {
       'qwik/loader-location': 'warn',
       'qwik/jsx-key': 'warn',
       'qwik/unused-server': 'error',
+      'qwik/jsx-img': 'warn',
+      'qwik/jsx-a': 'warn',
     },
   },
   strict: {
@@ -43,6 +49,8 @@ export const configs = {
       'qwik/jsx-no-script-url': 'error',
       'qwik/jsx-key': 'error',
       'qwik/unused-server': 'error',
+      'qwik/jsx-img': 'error',
+      'qwik/jsx-a': 'error',
     },
   },
 };

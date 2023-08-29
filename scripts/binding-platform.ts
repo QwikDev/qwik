@@ -9,7 +9,7 @@ import { copyFile, readdir, writeFile } from 'fs/promises';
 export async function buildPlatformBinding(config: BuildConfig) {
   await new Promise((resolve, reject) => {
     try {
-      ensureDir(config.distPkgDir);
+      ensureDir(config.distQwikPkgDir);
       ensureDir(config.distBindingsDir);
 
       const cmd = `napi`;
@@ -51,7 +51,7 @@ export async function buildPlatformBinding(config: BuildConfig) {
 }
 
 export async function copyPlatformBindingWasm(config: BuildConfig) {
-  ensureDir(config.distPkgDir);
+  ensureDir(config.distQwikPkgDir);
   ensureDir(config.distBindingsDir);
   const cacheDir = join(config.tmpDir, `cached-bindings`);
 

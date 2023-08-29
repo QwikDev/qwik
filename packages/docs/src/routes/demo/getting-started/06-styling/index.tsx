@@ -10,7 +10,7 @@ import {
   routeAction$,
   server$,
 } from '@builder.io/qwik-city';
-import STYLES from './index.css?inline';
+import styles from './index.css?inline';
 
 export const useDadJoke = routeLoader$(async () => {
   const response = await fetch('https://icanhazdadjoke.com/', {
@@ -28,7 +28,7 @@ export const useJokeVoteAction = routeAction$((props) => {
 });
 
 export default component$(() => {
-  useStylesScoped$(STYLES);
+  useStylesScoped$(styles);
   const isFavoriteSignal = useSignal(false);
   // Calling our `useDadJoke` hook, will return a reactive signal to the loaded data.
   const dadJokeSignal = useDadJoke();

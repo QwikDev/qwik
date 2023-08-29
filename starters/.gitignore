@@ -4,3 +4,4 @@ pnpm-lock.yaml
 videos/
 build
 dist
+.history

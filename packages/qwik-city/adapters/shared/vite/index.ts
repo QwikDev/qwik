@@ -120,8 +120,10 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
           const routes = qwikCityPlugin.api.getRoutes();
           const basePathname = qwikCityPlugin.api.getBasePathname();
           const clientOutDir = qwikVitePlugin.api.getClientOutDir()!;
+          const clientPublicOutDir = qwikVitePlugin.api.getClientPublicOutDir()!;
+
           const rootDir = qwikVitePlugin.api.getRootDir() ?? undefined;
-          if (renderModulePath && qwikCityPlanModulePath && clientOutDir) {
+          if (renderModulePath && qwikCityPlanModulePath && clientOutDir && clientPublicOutDir) {
             let ssgOrigin = opts.ssg?.origin ?? opts.origin;
             if (!ssgOrigin) {
               ssgOrigin = `https://yoursite.qwik.builder.io`;
@@ -146,7 +148,7 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
             const generateOpts: StaticGenerateOptions = {
               maxWorkers: opts.maxWorkers,
               basePathname,
-              outDir: clientOutDir,
+              outDir: clientPublicOutDir,
               rootDir,
               ...opts.ssg,
               origin: ssgOrigin,
@@ -166,7 +168,7 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
             staticPaths.push(...staticGenerateResult.staticPaths);
 
             const { staticPathsCode, notFoundPathsCode } = await postBuild(
-              clientOutDir,
+              clientPublicOutDir,
               basePathname,
               staticPaths,
               format,
@@ -185,6 +187,7 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
                 outputEntries,
                 serverOutDir,
                 clientOutDir,
+                clientPublicOutDir,
                 basePathname,
                 routes,
                 warn: (message) => this.warn(message),
@@ -232,6 +235,7 @@ interface ViteAdapterPluginOptions {
   generate?: (generateOpts: {
     outputEntries: string[];
     clientOutDir: string;
+    clientPublicOutDir: string;
     serverOutDir: string;
     basePathname: string;
     routes: BuildRoute[];

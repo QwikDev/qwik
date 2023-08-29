@@ -575,3 +575,12 @@ test.describe("signals", () => {
     tests();
   });
 });
+
+test.describe("regressions", () => {
+  test("issue 5001", async ({ page }) => {
+    await page.goto("/e2e/signals/issue-5001");
+    await expect(page.locator(".count")).toHaveText("0");
+    await page.locator("button").click();
+    await expect(page.locator(".count")).toHaveText("1");
+  });
+});

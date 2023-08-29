@@ -75,6 +75,9 @@ export const Root = component$(() => {
         <a href="/e2e/signals">Signals</a>
       </p>
       <p>
+        <a href="/e2e/signals/issue-5001">Signals: Issue #5001</a>
+      </p>
+      <p>
         <a href="/e2e/attributes">Attributes</a>
       </p>
       <p>

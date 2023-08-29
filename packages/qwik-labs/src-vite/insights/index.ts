@@ -28,14 +28,13 @@ export async function qwikInsights(qwikInsightsOpts: {
         } catch (e) {
           logWarn('fail to fetch manifest from Insights DB');
         }
-        const INSIGHTS_Q_MANIFEST_FILENAME = 'q-insights.json';
-        await writeFile(join(process.cwd(), 'dist', INSIGHTS_Q_MANIFEST_FILENAME), JSON.stringify(qManifest));
+        await writeFile(join(process.cwd(), 'dist', 'q-insights.json'), JSON.stringify(qManifest));
       }
     },
     closeBundle: async () => {
-      const Q_MANIFEST_FILENAME = 'q-manifest.json';
-      if (isProd && existsSync(join(process.cwd(), 'dist', Q_MANIFEST_FILENAME))) {
-        const qManifest = await readFile(join(process.cwd(), 'dist', Q_MANIFEST_FILENAME), 'utf-8');
+      const path = join(process.cwd(), 'dist', 'q-manifest.json');
+      if (isProd && existsSync(path)) {
+        const qManifest = await readFile(path, 'utf-8');
 
         try {
           await fetch(`${baseUrl}/api/v1/${publicApiKey}/post/manifest`, {

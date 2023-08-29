@@ -108,15 +108,15 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       if (sys.env === 'node' && !qwikViteOpts.entryStrategy) {
         const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
         try {
-          const INSIGHTS_Q_MANIFEST_FILENAME = 'q-insights.json';
-          if (fs.existsSync(sys.path.join(process.cwd(), 'dist', INSIGHTS_Q_MANIFEST_FILENAME))) {
+          const path = sys.path.join(process.cwd(), 'dist', 'q-insights.json')
+          if (fs.existsSync(path)) {
             const entryStrategy = JSON.parse(
-              await fs.promises.readFile(sys.path.join(process.cwd(), 'dist', INSIGHTS_Q_MANIFEST_FILENAME), 'utf-8')
+              await fs.promises.readFile(path, 'utf-8')
             );
             if (entryStrategy) {
               qwikViteOpts.entryStrategy = entryStrategy;
             }
-            await fs.promises.unlink(sys.path.join(process.cwd(), 'dist', INSIGHTS_Q_MANIFEST_FILENAME));
+            await fs.promises.unlink(path);
           }
         } catch (e) {
           // ok to ignore

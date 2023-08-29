@@ -93,6 +93,11 @@
       "imgSrc": "/ecosystem/deno.svg"
     },
     {
+      "title": "Firebase",
+      "href": "/docs/deployments/firebase/",
+      "imgSrc": "/ecosystem/firebase.svg"
+    },
+    {
       "title": "Google Cloud Run",
       "href": "/docs/deployments/gcp-cloud-run/",
       "imgSrc": "/ecosystem/google-cloud.svg"

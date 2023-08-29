@@ -200,7 +200,7 @@ export default component$(() => {
     validate: zodForm$(loginSchema),
   });
 
-  const handleSubmit: SubmitHandler<LoginForm> = $((values, event) => {
+  const handleSubmit = $<SubmitHandler<LoginForm>>((values, event) => {
     // Runs on client
     console.log(values);
   });

@@ -7,7 +7,6 @@ import { examplesData, playgroundData, tutorialData } from './vite.repl-apps';
 import { sourceResolver } from './vite.source-resolver';
 import { qwikReact } from '@builder.io/qwik-react/vite';
 import Inspect from 'vite-plugin-inspect';
-// import { insightsEntryStrategy } from '@builder.io/qwik-labs';
 
 export const PUBLIC_QWIK_INSIGHT_KEY = loadEnv('', '.', 'PUBLIC').PUBLIC_QWIK_INSIGHTS_KEY;
 
@@ -26,6 +25,13 @@ export default defineConfig(async () => {
         {
           find: '~',
           replacement: path.resolve(__dirname, 'src'),
+        },
+        {
+          // HACK: For some reason supabase imports node-fetch but only in CloudFlare build
+          // This hack is here to prevent the import from happening since we don't need to
+          // polyfill fetch in the edge.
+          find: '@supabase/node-fetch',
+          replacement: path.resolve(__dirname, 'src', 'empty.ts'),
         },
       ],
     },
@@ -97,9 +103,6 @@ export default defineConfig(async () => {
         },
       }),
       qwikVite({
-        // entryStrategy: await insightsEntryStrategy({
-        //   publicApiKey: PUBLIC_QWIK_INSIGHT_KEY,
-        // }),
         entryStrategy: {
           type: 'smart',
           manual: {

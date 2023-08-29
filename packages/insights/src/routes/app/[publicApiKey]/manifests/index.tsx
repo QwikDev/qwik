@@ -1,9 +1,9 @@
-import { component$ } from '@builder.io/qwik';
+import { type ReadonlySignal, component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
 import Histogram, { latencyColors } from '~/components/histogram';
 import { ManifestTile } from '~/components/minifest-tile';
 import { getDB } from '~/db';
-import { dbGetManifestStats } from '~/db/sql-manifest';
+import { type ManifestStatsRow, dbGetManifestStats } from '~/db/sql-manifest';
 import { vectorAvg, vectorSum, BUCKETS } from '~/stats/vector';
 import { css, cx } from '~/styled-system/css';
 
@@ -60,7 +60,7 @@ const columnHistogram = cx(
 );
 
 export default component$(() => {
-  const data = useData();
+  const data: ReadonlySignal<ManifestStatsRow[]> = useData();
   return (
     <div>
       <h1>Manifests</h1>

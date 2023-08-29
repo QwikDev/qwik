@@ -13,6 +13,7 @@ import type {
   RequestEventLoader,
   RequestHandler,
   ResolveSyncValue,
+  EnvGetter,
 } from '@builder.io/qwik-city/middleware/request-handler';
 import type * as zod from 'zod';
 
@@ -339,7 +340,11 @@ export interface ClientPageData extends Omit<EndpointResponse, 'status'> {
 /**
  * @public
  */
-export type StaticGenerateHandler = () => Promise<StaticGenerate> | StaticGenerate;
+export type StaticGenerateHandler = ({
+  env,
+}: {
+  env: EnvGetter;
+}) => Promise<StaticGenerate> | StaticGenerate;
 
 /**
  * @public
@@ -391,27 +396,8 @@ export type JSONValue = string | number | boolean | { [x: string]: JSONValue } |
  */
 export type JSONObject = { [x: string]: JSONValue };
 
-export type GetValidatorType<B extends TypedDataValidator> = B extends TypedDataValidator<
-  infer TYPE
->
-  ? zod.infer<TYPE>
-  : never;
-
-/**
- * @public
- */
-export interface ActionOptions {
-  readonly id?: string;
-  readonly validation?: DataValidator[];
-}
-
-/**
- * @public
- */
-export interface ActionOptionsWithValidation<B extends TypedDataValidator = TypedDataValidator> {
-  readonly id?: string;
-  readonly validation: [val: B, ...a: DataValidator[]];
-}
+export type GetValidatorType<VALIDATOR extends TypedDataValidator> =
+  VALIDATOR extends TypedDataValidator<infer TYPE> ? zod.infer<TYPE> : never;
 
 /**
  * @public
@@ -431,90 +417,194 @@ export type FailOfRest<REST extends readonly DataValidator[]> = REST extends rea
  * @public
  */
 export interface ActionConstructor {
-  // With validation
-  <O extends Record<string, any> | void | null, B extends TypedDataValidator>(
-    actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>,
-    options: B | ActionOptionsWithValidation<B>
-  ): Action<
-    StrictUnion<O | FailReturn<zod.typeToFlattenedError<GetValidatorType<B>>>>,
-    GetValidatorType<B>,
-    false
-  >;
-
-  // With multiple validators
+  // Use options object, use typed data validator, use data validator
   <
-    O extends Record<string, any> | void | null,
-    B extends TypedDataValidator,
-    REST extends DataValidator[],
+    OBJ extends Record<string, any> | void | null,
+    VALIDATOR extends TypedDataValidator,
+    REST extends [DataValidator, ...DataValidator[]],
   >(
-    actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>,
-    options: B,
-    ...rest: REST
+    actionQrl: (
+      data: GetValidatorType<VALIDATOR>,
+      event: RequestEventAction
+    ) => ValueOrPromise<OBJ>,
+    options: {
+      readonly id?: string;
+      readonly validation: [VALIDATOR, ...REST];
+    }
   ): Action<
-    StrictUnion<O | FailReturn<zod.typeToFlattenedError<GetValidatorType<B>>> | FailOfRest<REST>>,
-    GetValidatorType<B>,
+    StrictUnion<
+      OBJ | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>> | FailOfRest<REST>
+    >,
+    GetValidatorType<VALIDATOR>,
     false
   >;
 
-  // Without validation
-  <O>(
+  // Use options object, use typed data validator
+  <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator>(
     actionQrl: (
-      form: JSONObject,
-      event: RequestEventAction,
-      options: ActionOptions
-    ) => ValueOrPromise<O>,
-    options?: ActionOptions
-  ): Action<StrictUnion<O>>;
+      data: GetValidatorType<VALIDATOR>,
+      event: RequestEventAction
+    ) => ValueOrPromise<OBJ>,
+    options: {
+      readonly id?: string;
+      readonly validation: [VALIDATOR];
+    }
+  ): Action<
+    StrictUnion<OBJ | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>>>,
+    GetValidatorType<VALIDATOR>,
+    false
+  >;
 
-  // Without validation
-  <O extends Record<string, any> | void | null, REST extends DataValidator[]>(
-    actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<O>,
+  // Use options object, use data validator
+  <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(
+    actionQrl: (data: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>,
+    options: {
+      readonly id?: string;
+      readonly validation: REST;
+    }
+  ): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;
+
+  // Use typed data validator, use data validator
+  <
+    OBJ extends Record<string, any> | void | null,
+    VALIDATOR extends TypedDataValidator,
+    REST extends [DataValidator, ...DataValidator[]],
+  >(
+    actionQrl: (
+      data: GetValidatorType<VALIDATOR>,
+      event: RequestEventAction
+    ) => ValueOrPromise<OBJ>,
+    options: VALIDATOR,
     ...rest: REST
-  ): Action<StrictUnion<O | FailReturn<FailOfRest<REST>>>>;
+  ): Action<
+    StrictUnion<
+      OBJ | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>> | FailOfRest<REST>
+    >,
+    GetValidatorType<VALIDATOR>,
+    false
+  >;
+
+  // Use typed data validator
+  <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator>(
+    actionQrl: (
+      data: GetValidatorType<VALIDATOR>,
+      event: RequestEventAction
+    ) => ValueOrPromise<OBJ>,
+    options: VALIDATOR
+  ): Action<
+    StrictUnion<OBJ | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>>>,
+    GetValidatorType<VALIDATOR>,
+    false
+  >;
+
+  // Use data validator
+  <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(
+    actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>,
+    ...rest: REST
+  ): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;
+
+  // No validators
+  <OBJ>(
+    actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>,
+    options?: {
+      readonly id?: string;
+    }
+  ): Action<StrictUnion<OBJ>>;
 }
 
 /**
  * @public
  */
 export interface ActionConstructorQRL {
-  // With validation
-  <O extends Record<string, any> | void | null, B extends TypedDataValidator>(
-    actionQrl: QRL<(data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>>,
-    options: B | ActionOptionsWithValidation<B>
-  ): Action<
-    StrictUnion<O | FailReturn<zod.typeToFlattenedError<GetValidatorType<B>>>>,
-    GetValidatorType<B>,
-    false
-  >;
-
-  // With multiple validators
+  // Use options object, use typed data validator, use data validator
   <
-    O extends Record<string, any> | void | null,
-    B extends TypedDataValidator,
-    REST extends DataValidator[],
+    OBJ extends Record<string, any> | void | null,
+    VALIDATOR extends TypedDataValidator,
+    REST extends [DataValidator, ...DataValidator[]],
   >(
-    actionQrl: QRL<(data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>>,
-    options: B,
-    ...rest: REST
+    actionQrl: QRL<
+      (data: GetValidatorType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>
+    >,
+    options: {
+      readonly id?: string;
+      readonly validation: [VALIDATOR, ...REST];
+    }
   ): Action<
-    StrictUnion<O | FailReturn<zod.typeToFlattenedError<GetValidatorType<B>>> | FailOfRest<REST>>,
-    GetValidatorType<B>,
+    StrictUnion<
+      OBJ | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>> | FailOfRest<REST>
+    >,
+    GetValidatorType<VALIDATOR>,
     false
   >;
 
-  // Without validation
-  <O>(
+  // Use options object, use typed data validator
+  <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator>(
     actionQrl: QRL<
-      (form: JSONObject, event: RequestEventAction, options: ActionOptions) => ValueOrPromise<O>
+      (data: GetValidatorType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>
     >,
-    options?: ActionOptions
-  ): Action<O>;
+    options: {
+      readonly id?: string;
+      readonly validation: [VALIDATOR];
+    }
+  ): Action<
+    StrictUnion<OBJ | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>>>,
+    GetValidatorType<VALIDATOR>,
+    false
+  >;
 
-  // Without validation
-  <O extends Record<string, any> | void | null, REST extends DataValidator[]>(
-    actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => ValueOrPromise<O>>,
+  // Use options object, use data validator
+  <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(
+    actionQrl: QRL<(data: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>>,
+    options: {
+      readonly id?: string;
+      readonly validation: REST;
+    }
+  ): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;
+
+  // Use typed data validator, use data validator
+  <
+    OBJ extends Record<string, any> | void | null,
+    VALIDATOR extends TypedDataValidator,
+    REST extends [DataValidator, ...DataValidator[]],
+  >(
+    actionQrl: QRL<
+      (data: GetValidatorType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>
+    >,
+    options: VALIDATOR,
     ...rest: REST
-  ): Action<StrictUnion<O | FailReturn<FailOfRest<REST>>>>;
+  ): Action<
+    StrictUnion<
+      OBJ | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>> | FailOfRest<REST>
+    >,
+    GetValidatorType<VALIDATOR>,
+    false
+  >;
+
+  // Use typed data validator
+  <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator>(
+    actionQrl: QRL<
+      (data: GetValidatorType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>
+    >,
+    options: VALIDATOR
+  ): Action<
+    StrictUnion<OBJ | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>>>,
+    GetValidatorType<VALIDATOR>,
+    false
+  >;
+
+  // Use data validator
+  <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(
+    actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>>,
+    ...rest: REST
+  ): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;
+
+  // No validators
+  <OBJ>(
+    actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>>,
+    options?: {
+      readonly id?: string;
+    }
+  ): Action<StrictUnion<OBJ>>;
 }
 
 /**
@@ -529,16 +619,16 @@ export interface LoaderOptions {
  */
 export interface LoaderConstructor {
   // Without validation
-  <O>(
-    loaderFn: (event: RequestEventLoader) => ValueOrPromise<O>,
+  <OBJ>(
+    loaderFn: (event: RequestEventLoader) => ValueOrPromise<OBJ>,
     options?: LoaderOptions
-  ): Loader<O>;
+  ): Loader<OBJ>;
 
   // With validation
-  <O extends Record<string, any> | void | null, REST extends readonly DataValidator[]>(
-    loaderFn: (event: RequestEventLoader) => ValueOrPromise<O>,
+  <OBJ extends Record<string, any> | void | null, REST extends readonly DataValidator[]>(
+    loaderFn: (event: RequestEventLoader) => ValueOrPromise<OBJ>,
     ...rest: REST
-  ): Loader<StrictUnion<O | FailReturn<FailOfRest<REST>>>>;
+  ): Loader<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;
 }
 
 /**
@@ -546,16 +636,16 @@ export interface LoaderConstructor {
  */
 export interface LoaderConstructorQRL {
   // Without validation
-  <O>(
-    loaderQrl: QRL<(event: RequestEventLoader) => ValueOrPromise<O>>,
+  <OBJ>(
+    loaderQrl: QRL<(event: RequestEventLoader) => ValueOrPromise<OBJ>>,
     options?: LoaderOptions
-  ): Loader<O>;
+  ): Loader<OBJ>;
 
   // With validation
-  <O extends Record<string, any> | void | null, REST extends readonly DataValidator[]>(
-    loaderQrl: QRL<(event: RequestEventLoader) => ValueOrPromise<O>>,
+  <OBJ extends Record<string, any> | void | null, REST extends readonly DataValidator[]>(
+    loaderQrl: QRL<(event: RequestEventLoader) => ValueOrPromise<OBJ>>,
     ...rest: REST
-  ): Loader<StrictUnion<O | FailReturn<FailOfRest<REST>>>>;
+  ): Loader<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;
 }
 
 export type LoaderStateHolder = Record<string, Signal<any>>;
@@ -649,9 +739,9 @@ export type FailReturn<T> = T & {
 /**
  * @public
  */
-export type LoaderSignal<T> = T extends () => ValueOrPromise<infer B>
-  ? ReadonlySignal<ValueOrPromise<B>>
-  : ReadonlySignal<T>;
+export type LoaderSignal<TYPE> = TYPE extends () => ValueOrPromise<infer VALIDATOR>
+  ? ReadonlySignal<ValueOrPromise<VALIDATOR>>
+  : ReadonlySignal<TYPE>;
 
 /**
  * @public

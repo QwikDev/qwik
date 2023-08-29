@@ -108,15 +108,15 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       if (sys.env === 'node' && !qwikViteOpts.entryStrategy) {
         const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
         try {
-          const INSIGHTS_Q_MANIFEST_FILENAME = './dist/q-insights.json';
-          if (fs.existsSync(INSIGHTS_Q_MANIFEST_FILENAME)) {
+          const INSIGHTS_Q_MANIFEST_FILENAME = 'q-insights.json';
+          if (fs.existsSync(sys.path.join(process.cwd(), 'dist', INSIGHTS_Q_MANIFEST_FILENAME))) {
             const entryStrategy = JSON.parse(
-              await fs.promises.readFile(INSIGHTS_Q_MANIFEST_FILENAME, 'utf-8')
+              await fs.promises.readFile(sys.path.join(process.cwd(), 'dist', INSIGHTS_Q_MANIFEST_FILENAME), 'utf-8')
             );
             if (entryStrategy) {
               qwikViteOpts.entryStrategy = entryStrategy;
             }
-            await fs.promises.unlink(INSIGHTS_Q_MANIFEST_FILENAME);
+            await fs.promises.unlink(sys.path.join(process.cwd(), 'dist', INSIGHTS_Q_MANIFEST_FILENAME));
           }
         } catch (e) {
           // ok to ignore
@@ -281,9 +281,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           viteCommand === 'serve'
             ? false
             : {
-                logLevel: 'error',
-                jsx: 'automatic',
-              },
+              logLevel: 'error',
+              jsx: 'automatic',
+            },
         optimizeDeps: {
           exclude: [
             '@vite/client',
@@ -770,8 +770,8 @@ interface QwikVitePluginCommonOptions {
    * modules that were used before bundling.
    */
   transformedModuleOutput?:
-    | ((transformedModules: TransformModule[]) => Promise<void> | void)
-    | null;
+  | ((transformedModules: TransformModule[]) => Promise<void> | void)
+  | null;
   devTools?: {
     /**
      * Press-hold the defined keys to enable qwik dev inspector.

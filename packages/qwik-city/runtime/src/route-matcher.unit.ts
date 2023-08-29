@@ -123,3 +123,35 @@ routeMatchSuite('/[...rest] ignore trailing slash', () => {
 });
 
 routeMatchSuite.run();
+
+const regression2951 = suite('routeMatcher/#2951');
+
+regression2951('/[...rest]', () => {
+  equal(matchRoute('/[...rest]', '/'), { rest: '' });
+});
+
+regression2951('/[...rest]/path', () => {
+  equal(matchRoute('/[...rest]/path', '/path'), { rest: '' });
+});
+
+regression2951('[...rest]/path', () => {
+  equal(matchRoute('[...rest]/path', '/path'), { rest: '' });
+});
+
+regression2951('/[...rest]/path', () => {
+  equal(matchRoute('/[...rest]/path', '/a/b/c/path'), { rest: 'a/b/c' });
+});
+
+regression2951('[...rest]/path', () => {
+  equal(matchRoute('[...rest]/path', 'a/b/c/path'), { rest: 'a/b/c' });
+});
+
+regression2951('/[...any]_suffix/path', () => {
+  equal(matchRoute('/[...rest]_suffix/path', '/a/b/c_suffix/path'), { rest: 'a/b/c' });
+});
+
+regression2951('/[...a]/[...b]/path', () => {
+  equal(matchRoute('/[...a]/[...b]/path', '/a/b/c/path'), { a: 'a/b/c', b: '' });
+});
+
+regression2951.run();

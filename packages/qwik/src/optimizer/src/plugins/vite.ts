@@ -108,11 +108,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       if (sys.env === 'node' && !qwikViteOpts.entryStrategy) {
         const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
         try {
-          const path = sys.path.join(process.cwd(), 'dist', 'q-insights.json')
+          const path = sys.path.join(process.cwd(), 'dist', 'q-insights.json');
           if (fs.existsSync(path)) {
-            const entryStrategy = JSON.parse(
-              await fs.promises.readFile(path, 'utf-8')
-            );
+            const entryStrategy = JSON.parse(await fs.promises.readFile(path, 'utf-8'));
             if (entryStrategy) {
               qwikViteOpts.entryStrategy = entryStrategy;
             }
@@ -281,9 +279,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           viteCommand === 'serve'
             ? false
             : {
-              logLevel: 'error',
-              jsx: 'automatic',
-            },
+                logLevel: 'error',
+                jsx: 'automatic',
+              },
         optimizeDeps: {
           exclude: [
             '@vite/client',
@@ -770,8 +768,8 @@ interface QwikVitePluginCommonOptions {
    * modules that were used before bundling.
    */
   transformedModuleOutput?:
-  | ((transformedModules: TransformModule[]) => Promise<void> | void)
-  | null;
+    | ((transformedModules: TransformModule[]) => Promise<void> | void)
+    | null;
   devTools?: {
     /**
      * Press-hold the defined keys to enable qwik dev inspector.

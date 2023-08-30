@@ -74,5 +74,8 @@
     "preview.only": "NODE_DEBUG=net,http node --inspect-brk ../../node_modules/vite/bin/vite.js preview",
     "preview.wrangler": "wrangler pages dev ./dist",
     "start": "pnpm dev"
+  },
+  "dependencies": {
+    "valibot": "^0.13.0"
   }
 }

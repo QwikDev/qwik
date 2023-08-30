@@ -17,6 +17,8 @@ contributors:
   - brandonpittman
 ---
 
+import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
+
 # `routeAction$()`
 
 Actions allow to handle form submissions, allowing to perform side effects such as writing to a database or sending an email.
@@ -250,6 +252,7 @@ Qwik comes with built-in support for [Valibot](https://valibot.dev/), a TypeScri
 
 Actions + [Valibot](https://valibot.dev/) allows to create type safe forms, where the data is validated server side before the action is executed.
 
+<CodeSandbox src="/src/routes/demo/valibot/simple/index.tsx">
 ```tsx {16-20} /firstName/#a /lastName/#b title="src/routes/index.tsx"
 import { component$ } from '@builder.io/qwik';
 import { routeAction$, valibot$, Form } from '@builder.io/qwik-city';
@@ -258,13 +261,9 @@ import { string } from 'valibot';
 export const useAddUser = routeAction$(
   async (user) => {
     // The "user" is strongly typed: { firstName: string, lastName: string }
-    const userID = await db.users.add({
-      firstName: user.firstName,
-      lastName: user.lastName,
-    });
     return {
       success: true,
-      userID,
+      firstName: user.firstName,
     };
   },
   // Valibot schema is used to validate that the FormData includes "firstName" and "lastName"
@@ -285,13 +284,12 @@ export default component$(() => {
         {action.value?.failed && <p>{action.value.nested?.firstName}</p>}
         <button type="submit">Add user</button>
       </Form>
-      {action.value?.success && (
-        <p>User {action.value.userID} added successfully.</p>
-      )}
+      {action.value?.success && <p>User {action.value.firstName} added successfully.</p>}
     </>
   );
 });
 ```
+</CodeSandbox>
 
 When submitting data to a `routeAction()`, the data is validated against the Valibot schema. If the data is invalid, the action will put the validation error in the `routeAction.value` property.
 

@@ -284,7 +284,7 @@ export const valibotQrl = (
 /**
  * @public
  */
-export const valibot$ = /*#__PURE__*/ implicit$FirstArg(valibotQrl) as any;
+export const valibot$ = /*#__PURE__*/ implicit$FirstArg(valibotQrl);
 
 /**
  * @public

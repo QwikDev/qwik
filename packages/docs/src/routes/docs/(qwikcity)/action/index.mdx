@@ -340,7 +340,7 @@ export const useAddUser = routeAction$(
 
 #### Valibot
 
-The constructor of ```valibot$``` can also take a function that takes a `RequestEvent` that you can use build the schema. 
+The constructor of ```valibot$``` can also take a function that takes a `RequestEvent` that you can use to build your schema. 
 
 ```tsx {5-5} /ev/#a  title="Advanced event based validation with Valibot"
 import { object, string, optional, minLength } from 'valibot';

@@ -14,6 +14,7 @@ contributors:
   - ulic75
   - CoralWombat
   - tzdesign
+  - brandonpittman
 ---
 
 # `routeAction$()`
@@ -191,9 +192,7 @@ In this example, `onSubmitCompleted$` is used to reset the editingIdSignal value
 
 ## Validation and type safety
 
-### Basic validation
-
-#### Zod
+### Simple (Zod)
 
 Qwik comes with built-in support for [Zod](https://zod.dev/), a TypeScript-first schema validation that can be used directly with actions, using the `zod$()` function.
 
@@ -245,7 +244,7 @@ When submitting data to a `routeAction()`, the data is validated against the Zod
 
 Please refer to the [Zod documentation](https://zod.dev/) for more information on how to use Zod schemas.
 
-#### Valibot
+### Simple (Valibot)
 
 Qwik comes with built-in support for [Valibot](https://valibot.dev/), a TypeScript-first schema validation that can be used directly with actions, using the `valibot$()` function.
 
@@ -298,10 +297,7 @@ When submitting data to a `routeAction()`, the data is validated against the Val
 
 Please refer to the [Valibot documentation](https://valibot.dev/) for more information on how to use Valibot schemas.
 
-### Advanced event based validation
-
-
-#### Zod
+### Advanced (Zod)
 
 The constructor of ```zod$``` can also take a function, as the first argument is zod itself, so you can use this directly to build the schema. 
 The second parameter is the RequestEvent to construct an event-based zod schema.
@@ -338,11 +334,12 @@ export const useAddUser = routeAction$(
 );
 ```
 
-#### Valibot
+### Advanced (Valibot)
 
 The constructor of ```valibot$``` can also take a function that takes a `RequestEvent` that you can use to build your schema. 
 
 ```tsx {5-5} /ev/#a  title="Advanced event based validation with Valibot"
+import { routeAction$, valibot$ } from '@builder.io/qwik-city';
 import { object, string, optional, minLength } from 'valibot';
 
 export const useAddUser = routeAction$(
@@ -484,7 +481,7 @@ export default component$(() => {
     <Form action={action}>
       <input name="name" />
       <button type="submit">Add user</button>
-      {action.value?.failed && <p>{action.value.nested.name}</p>}
+      {action.value?.failed && <p>{action.value.nested?.name}</p>}
       {action.value?.userID && <p>User added successfully</p>}
     </Form>
   );
@@ -518,7 +515,7 @@ export default component$(() => {
 });
 ```
 
-The `action.formData` is specially useful as it allows to keep the form data filled by the user even on a page refresh, allowing to have a full SPA experience, even with JS disabled.
+The `action.formData` is specially useful as it allows to keep the form data filled by the user even on a page refresh, ensuring a full SPA experience, even with JS disabled.
 
 ### Valibot
 
@@ -544,7 +541,7 @@ export default component$(() => {
 });
 ```
 
-The `action.formData` is specially useful as it allows to keep the form data filled by the user even on a page refresh, allowing to have a full SPA experience, even with JS disabled.
+The `action.formData` is specially useful as it allows to keep the form data filled by the user even on a page refresh, ensuring a full SPA experience, even with JS disabled.
 
 ## Route vs Global actions
 

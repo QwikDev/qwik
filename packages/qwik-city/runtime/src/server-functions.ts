@@ -41,9 +41,10 @@ import type {
 } from './types';
 import { useAction, useLocation, useQwikCityEnv } from './use-functions';
 import { z } from 'zod';
-import * as v from 'valibot';
+import { objectAsync, safeParseAsync, flatten } from 'valibot';
 import { isDev, isServer } from '@builder.io/qwik/build';
 import type { FormSubmitCompletedDetail } from './form-component';
+import type { BaseSchema, BaseSchemaAsync, ObjectShape, ObjectShapeAsync } from 'valibot';
 
 /**
  * @public
@@ -231,15 +232,15 @@ export const validatorQrl = ((
  */
 export const validator$: ValidatorConstructor = /*#__PURE__*/ implicit$FirstArg(validatorQrl);
 
-type ValibotObjectSchema = v.BaseSchema | v.BaseSchemaAsync;
-type ValibotObjectShape = v.ObjectShape | v.ObjectShapeAsync;
+type ValibotObjectSchema = BaseSchema | BaseSchemaAsync;
+type ValibotObjectShape = ObjectShape | ObjectShapeAsync;
 type ValibotObjectShapeOrSchema = ValibotObjectShape | ValibotObjectSchema;
 
 /**
  * @public
  */
 export const valibotQrl = (
-  qrl: QRL<ValibotObjectShapeOrSchema | ((v: any, ev: RequestEvent) => ValibotObjectShapeOrSchema)>
+  qrl: QRL<ValibotObjectShapeOrSchema | ((ev: RequestEvent) => ValibotObjectShapeOrSchema)>
 ): DataValidator => {
   if (isServer) {
     return {
@@ -247,17 +248,17 @@ export const valibotQrl = (
         const data = inputData ?? (await ev.parseBody());
         const schema: Promise<ValibotObjectSchema> = qrl.resolve().then((obj) => {
           if (typeof obj === 'function') {
-            obj = obj(v, ev);
+            obj = obj(ev);
           }
 
           if (typeof obj._parse === 'function') {
             return obj as ValibotObjectSchema;
           } else {
-            return v.objectAsync(obj as ValibotObjectShape);
+            return objectAsync(obj as ValibotObjectShape);
           }
         });
 
-        const result = await v.safeParseAsync(await schema, data);
+        const result = await safeParseAsync(await schema, data);
         if (result.success) {
           return result;
         } else {
@@ -271,7 +272,7 @@ export const valibotQrl = (
           return {
             success: false,
             status: 400,
-            error: v.flatten(result.issues),
+            error: flatten(result.issues),
           };
         }
       },

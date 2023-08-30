@@ -9,6 +9,7 @@ contributors:
   - hamatoyogi
   - steve8708
   - iamyuu
+  - n8sabes
 ---
 
 # `routeLoader$()`
@@ -202,6 +203,29 @@ export default component$(() => {
 });
 ```
 
+## Handling Relative URLs in Loaders
+
+In the server-side execution environment, it's crucial to convert relative URLs to absolute URLs for proper functionality. This can be achieved by prefixing the relative URL with the `origin` from the `useLocation()` function.
+
+<CodeSandbox src="/src/routes/demo/component/relativeUrl/index.tsx" style={{ height: '10em' }}>
+```tsx
+import { component$ } from '@builder.io/qwik';
+import { useLocation } from '@builder.io/qwik-city';
+
+export default component$(() => {
+  const loc = useLocation();
+  const relativeUrl = '/mock';
+  const absoluteUrl = loc.url.origin + relativeUrl;
+
+  return (
+    <section>
+      <div>Relative URL: {relativeUrl}</div>
+      <div>Absolute URL: {absoluteUrl}</div>
+    </section>
+  );
+});
+```
+</CodeSandbox>
 
 ## Performance considerations
 

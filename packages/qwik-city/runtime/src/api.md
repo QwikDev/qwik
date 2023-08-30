@@ -26,7 +26,6 @@ import { RequestEventCommon } from '@builder.io/qwik-city/middleware/request-han
 import { RequestEventLoader } from '@builder.io/qwik-city/middleware/request-handler';
 import { RequestHandler } from '@builder.io/qwik-city/middleware/request-handler';
 import type { ResolveSyncValue } from '@builder.io/qwik-city/middleware/request-handler';
-import * as v from 'valibot';
 import { ValueOrPromise } from '@builder.io/qwik';
 import { z } from 'zod';
 import type * as zod from 'zod';
@@ -445,8 +444,6 @@ export const useLocation: () => RouteLocation;
 
 // @public (undocumented)
 export const useNavigate: () => RouteNavigate;
-
-export { v }
 
 // Warning: (ae-forgotten-export) The symbol "ValibotObjectShapeOrSchema" needs to be exported by the entry point index.d.ts
 //

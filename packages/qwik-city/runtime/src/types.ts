@@ -622,7 +622,7 @@ export interface LoaderConstructor {
   <OBJ>(
     loaderFn: (event: RequestEventLoader) => ValueOrPromise<OBJ>,
     options?: LoaderOptions
-  ): Loader<OBJ>;
+  ): Loader<[Extract<OBJ, Failed>] extends [never] ? OBJ : StrictUnion<OBJ>>;
 
   // With validation
   <OBJ extends Record<string, any> | void | null, REST extends readonly DataValidator[]>(
@@ -729,12 +729,14 @@ export interface ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> {
   >;
 }
 
+type Failed = {
+  failed: true;
+};
+
 /**
  * @public
  */
-export type FailReturn<T> = T & {
-  failed: true;
-};
+export type FailReturn<T> = T & Failed;
 
 /**
  * @public

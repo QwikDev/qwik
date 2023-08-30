@@ -4,6 +4,8 @@
 
 ```ts
 
+import type { BaseSchema } from 'valibot';
+import type { BaseSchemaAsync } from 'valibot';
 import { Component } from '@builder.io/qwik';
 import { Cookie } from '@builder.io/qwik-city/middleware/request-handler';
 import { CookieOptions } from '@builder.io/qwik-city/middleware/request-handler';
@@ -11,6 +13,8 @@ import { CookieValue } from '@builder.io/qwik-city/middleware/request-handler';
 import { DeferReturn } from '@builder.io/qwik-city/middleware/request-handler';
 import type { EnvGetter } from '@builder.io/qwik-city/middleware/request-handler';
 import { JSXNode } from '@builder.io/qwik';
+import type { ObjectShape } from 'valibot';
+import type { ObjectShapeAsync } from 'valibot';
 import { QRL } from '@builder.io/qwik';
 import { QwikIntrinsicElements } from '@builder.io/qwik';
 import { QwikJSX } from '@builder.io/qwik';
@@ -444,13 +448,13 @@ export const useNavigate: () => RouteNavigate;
 
 export { v }
 
-// @public (undocumented)
-export const valibot$: any;
-
 // Warning: (ae-forgotten-export) The symbol "ValibotObjectShapeOrSchema" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export const valibotQrl: (qrl: QRL<ValibotObjectShapeOrSchema | ((v: any, ev: RequestEvent) => ValibotObjectShapeOrSchema)>) => DataValidator;
+export const valibot$: (first: ValibotObjectShapeOrSchema | ((ev: RequestEvent) => ValibotObjectShapeOrSchema)) => DataValidator<{}>;
+
+// @public (undocumented)
+export const valibotQrl: (qrl: QRL<ValibotObjectShapeOrSchema | ((ev: RequestEvent) => ValibotObjectShapeOrSchema)>) => DataValidator;
 
 // Warning: (ae-forgotten-export) The symbol "ValidatorConstructor" needs to be exported by the entry point index.d.ts
 //

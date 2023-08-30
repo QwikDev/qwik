@@ -644,7 +644,11 @@ useNavigate: () => RouteNavigate;
 ## valibot$
 
 ```typescript
-valibot$: any;
+valibot$: (
+  first:
+    | ValibotObjectShapeOrSchema
+    | ((ev: RequestEvent) => ValibotObjectShapeOrSchema),
+) => DataValidator<{}>;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts)
@@ -655,7 +659,7 @@ valibot$: any;
 valibotQrl: (
   qrl: QRL<
     | ValibotObjectShapeOrSchema
-    | ((v: any, ev: RequestEvent) => ValibotObjectShapeOrSchema)
+    | ((ev: RequestEvent) => ValibotObjectShapeOrSchema)
   >,
 ) => DataValidator;
 ```

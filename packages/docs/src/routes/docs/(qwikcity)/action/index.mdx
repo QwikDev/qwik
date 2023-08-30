@@ -254,9 +254,10 @@ Actions + [Valibot](https://valibot.dev/) allows to create type safe forms, wher
 
 <CodeSandbox src="/src/routes/demo/valibot/simple/index.tsx">
 ```tsx {16-20} /firstName/#a /lastName/#b title="src/routes/index.tsx"
-import { component$ } from '@builder.io/qwik';
+import { component$, useStylesScoped$ } from '@builder.io/qwik';
 import { routeAction$, valibot$, Form } from '@builder.io/qwik-city';
-import { string } from 'valibot';
+import styles from './styles.css';
+import { string, minLength } from 'valibot';
 
 export const useAddUser = routeAction$(
   async (user) => {
@@ -268,23 +269,42 @@ export const useAddUser = routeAction$(
   },
   // Valibot schema is used to validate that the FormData includes "firstName" and "lastName"
   valibot$({
-    firstName: string(),
-    lastName: string(),
+    firstName: string([minLength(1)]),
+    lastName: string([minLength(1)]),
   })
 );
 
 export default component$(() => {
   const action = useAddUser();
+  useStylesScoped$(styles);
+
   return (
     <>
-      <Form action={action}>
-        <input name="firstName" />
-        <input name="lastName" />
+      <Form action={action} class="flow">
+        <label>
+          <span>First name:</span>
+          <input name="firstName" />
+          <p data-status="error">
+            {action.value?.failed && <p>{action.value.nested?.firstName}</p>}
+          </p>
+        </label>
 
-        {action.value?.failed && <p>{action.value.nested?.firstName}</p>}
+        <label>
+          <span>Last name:</span>
+          <input name="lastName" />
+        </label>
+        <p data-status="error">
+          {action.value?.failed && <p>{action.value.nested?.lastName}</p>}
+        </p>
+
         <button type="submit">Add user</button>
+
+        {action.value?.success && (
+          <p data-status="success">
+            User {action.value.firstName} added successfully.
+          </p>
+        )}
       </Form>
-      {action.value?.success && <p>User {action.value.firstName} added successfully.</p>}
     </>
   );
 });
@@ -336,38 +356,74 @@ export const useAddUser = routeAction$(
 
 The constructor of ```valibot$``` can also take a function that takes a `RequestEvent` that you can use to build your schema. 
 
+<CodeSandbox src="/src/routes/demo/valibot/advanced/index.tsx">
 ```tsx {5-5} /ev/#a  title="Advanced event based validation with Valibot"
-import { routeAction$, valibot$ } from '@builder.io/qwik-city';
-import { object, string, optional, minLength } from 'valibot';
+import { component$, useStylesScoped$ } from '@builder.io/qwik';
+import { routeAction$, valibot$, Form } from '@builder.io/qwik-city';
+import styles from './styles.css';
+import { string, object, optional, minLength } from 'valibot';
 
 export const useAddUser = routeAction$(
   async (user) => {
-    // The "user" is still strongly typed, but firstname 
+    // The "user" is still strongly typed, but firstname
     // is now optional: { firstName?: string | undefined, lastName: string }
-    const userID = await db.users.add({
-      firstName: user.firstName,
-      lastName: user.lastName,
-    });
     return {
       success: true,
-      userID,
+      firstName: user.firstName,
     };
   },
   // Valibot schema is used to validate that the FormData includes "firstName" and "lastName"
   valibot$((ev) => {
-    // The first name is optional if the url contains the query parameter "firstname=optional"
-    const firstName =
-      ev.url.searchParams.get("firstname") === "optional"
+    // lastName is optional the query parameter "lastname=optional" is present
+    const firstName = string([minLength(1)]);
+    const lastName =
+      ev.url.searchParams.get('lastname') === 'optional'
         ? optional(string())
-        : string([minLength(1)])
+        : string([minLength(1)]);
 
     return object({
       firstName,
-      lastName: string(),
+      lastName,
     });
   })
 );
+
+export default component$(() => {
+  const action = useAddUser();
+  useStylesScoped$(styles);
+
+  return (
+    <>
+      <Form action={action} class="flow">
+        <label>
+          <span>First name:</span>
+          <input name="firstName" />
+          <p data-status="error">
+            {action.value?.failed && <p>{action.value.nested?.firstName}</p>}
+          </p>
+        </label>
+
+        <label>
+          <span>Last name:</span>
+          <input name="lastName" />
+        </label>
+        <p data-status="error">
+          {action.value?.failed && <p>{action.value.nested?.lastName}</p>}
+        </p>
+
+        <button type="submit">Add user</button>
+
+        {action.value?.success && (
+          <p data-status="success">
+            User {action.value.firstName} added successfully.
+          </p>
+        )}
+      </Form>
+    </>
+  );
+});
 ```
+</CodeSandbox>
 
 ## HTTP request and response
 

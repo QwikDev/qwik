@@ -37,6 +37,7 @@
 ## Cookbook
 - [Overview](/docs/cookbook/index.mdx)
 - [Portal](/docs/cookbook/portal/index.mdx)
+- [Media Controller](/docs/cookbook/mediaController/index.mdx)
 
 
 ## Integrations

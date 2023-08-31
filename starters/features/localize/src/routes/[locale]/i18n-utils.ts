@@ -20,7 +20,6 @@ const $localizeFn = $localize as any as {
   TRANSLATION_BY_LOCALE: Map<string, Record<string, any>>;
 };
 
-
 /**
  * This solution uses the `@angular/localize` package for translations, however out of the box
  * `$localize` works with a single translation only. This code adds support for multiple locales
@@ -29,8 +28,8 @@ const $localizeFn = $localize as any as {
  */
 
 if (!$localizeFn.TRANSLATION_BY_LOCALE) {
-  $localizeFn.TRANSLATION_BY_LOCALE = new Map([['', {}]]);
-  Object.defineProperty($localize, 'TRANSLATIONS', {
+  $localizeFn.TRANSLATION_BY_LOCALE = new Map([["", {}]]);
+  Object.defineProperty($localize, "TRANSLATIONS", {
     get: function () {
       const locale = getLocale(DEFAULT_LOCALE);
       let translations = $localizeFn.TRANSLATION_BY_LOCALE.get(locale);
@@ -60,7 +59,9 @@ export function initTranslations() {
  * @returns The locale to use which will be stored in the `useEnvData('locale')`.
  */
 export function extractLang(locale: string): string {
-  return locale && $localizeFn.TRANSLATION_BY_LOCALE.has(locale) ? locale : DEFAULT_LOCALE;
+  return locale && $localizeFn.TRANSLATION_BY_LOCALE.has(locale)
+    ? locale
+    : DEFAULT_LOCALE;
 }
 
 /**
@@ -74,9 +75,9 @@ export function extractLang(locale: string): string {
  */
 export function extractBase({ serverData }: RenderOptions): string {
   if (import.meta.env.DEV) {
-    return '/build';
+    return "/build";
   } else {
-    return '/build/' + serverData!.locale;
+    return "/build/" + serverData!.locale;
   }
 }
 
@@ -86,7 +87,7 @@ export function useI18n() {
     return initTranslations;
   }
   // Otherwise, will return a noop
-  return () => { };
+  return () => {};
 }
 
 // We always need the translations on the server

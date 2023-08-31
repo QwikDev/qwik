@@ -205,10 +205,10 @@ export interface DocumentStyle {
     readonly style: string;
 }
 
+// Warning: (ae-forgotten-export) The symbol "Failed" needs to be exported by the entry point index.d.ts
+//
 // @public (undocumented)
-export type FailReturn<T> = T & {
-    failed: true;
-};
+export type FailReturn<T> = T & Failed;
 
 // @public (undocumented)
 export const Form: <O, I>({ action, spaReset, reloadDocument, onSubmit$, ...rest }: FormProps<O, I>, key: string | null) => QwikJSX.Element;

@@ -1,6 +1,6 @@
 import { component$, useStylesScoped$ } from '@builder.io/qwik';
 import { routeAction$, valibot$, Form } from '@builder.io/qwik-city';
-import styles from './styles.css';
+import styles from './styles.css?inline';
 import { string, object, optional, minLength } from 'valibot';
 
 export const useAddUser = routeAction$(

@@ -19,6 +19,7 @@ import { RouteStateContext } from './contexts';
 import type {
   ActionConstructor,
   ZodConstructor,
+  ValibotConstructor,
   JSONObject,
   RouteActionResolver,
   RouteLocation,
@@ -38,6 +39,10 @@ import type {
   ZodConstructorQRL,
   ValidatorConstructorQRL,
   ServerConstructorQRL,
+  ValibotConstructorQRL,
+  ValibotObjectShapeOrSchema,
+  ValibotSchema,
+  ValibotObjectShape,
 } from './types';
 import { useAction, useLocation, useQwikCityEnv } from './use-functions';
 import { z } from 'zod';
@@ -232,27 +237,23 @@ export const validatorQrl = ((
  */
 export const validator$: ValidatorConstructor = /*#__PURE__*/ implicit$FirstArg(validatorQrl);
 
-type ValibotObjectSchema = BaseSchema | BaseSchemaAsync;
-type ValibotObjectShape = ObjectShape | ObjectShapeAsync;
-type ValibotObjectShapeOrSchema = ValibotObjectShape | ValibotObjectSchema;
-
 /**
  * @public
  */
-export const valibotQrl = (
+export const valibotQrl = ((
   qrl: QRL<ValibotObjectShapeOrSchema | ((ev: RequestEvent) => ValibotObjectShapeOrSchema)>
 ): DataValidator => {
   if (isServer) {
     return {
       async validate(ev, inputData) {
         const data = inputData ?? (await ev.parseBody());
-        const schema: Promise<ValibotObjectSchema> = qrl.resolve().then((obj) => {
+        const schema: Promise<ValibotSchema> = qrl.resolve().then((obj) => {
           if (typeof obj === 'function') {
             obj = obj(ev);
           }
 
           if (typeof obj._parse === 'function') {
-            return obj as ValibotObjectSchema;
+            return obj as ValibotSchema;
           } else {
             return objectAsync(obj as ValibotObjectShape);
           }
@@ -279,12 +280,12 @@ export const valibotQrl = (
     };
   }
   return undefined as any;
-};
+}) as ValibotConstructorQRL;
 
 /**
  * @public
  */
-export const valibot$ = /*#__PURE__*/ implicit$FirstArg(valibotQrl);
+export const valibot$: ValibotConstructor = /*#__PURE__*/ implicit$FirstArg(valibotQrl);
 
 /**
  * @public

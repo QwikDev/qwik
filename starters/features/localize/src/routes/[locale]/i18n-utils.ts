@@ -45,7 +45,6 @@ if (!$localizeFn.TRANSLATION_BY_LOCALE) {
  * Function used to load all translations variants.
  */
 export function initTranslations() {
-  console.log("Loading translations...");
   [EN, IT].forEach(({ translations, locale }) => {
     withLocale(locale, () => loadTranslations(translations));
   });

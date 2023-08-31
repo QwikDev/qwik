@@ -400,6 +400,14 @@ export const _pauseFromContexts = async (
     return key;
   };
 
+  const getOrCreateObjId = (obj: any): string => {
+    let key = getObjId(obj);
+    if (key === null) {
+      objToId.set(obj, (key = String(objToId.size)));
+    }
+    return key;
+  };
+
   // Compute subscriptions
   const subsMap = new Map<any, (Subscriptions | number)[]>();
   for (const obj of objs) {
@@ -535,7 +543,7 @@ export const _pauseFromContexts = async (
       if (elementCaptured) {
         assertDefined(renderQrl, 'renderQrl must be defined');
         const propsId = getObjId(props);
-        metaValue.h = mustGetObjId(renderQrl) + (propsId ? ' ' + propsId : '');
+        metaValue.h = getOrCreateObjId(renderQrl) + (propsId ? ' ' + propsId : '');
         add = true;
       } else {
         const propsId = getObjId(props);

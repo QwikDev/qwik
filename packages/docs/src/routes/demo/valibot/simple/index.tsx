@@ -29,10 +29,7 @@ export default component$(() => {
           <span>First name:</span>
           <input name="firstName" />
           <p data-status="error">
-            {
-              // @ts-expect-error
-              action.value?.failed && <p>{action.value.nested?.firstName}</p>
-            }
+            {action.value?.failed && <p>{action.value.nested?.firstName}</p>}
           </p>
         </label>
 
@@ -41,17 +38,14 @@ export default component$(() => {
           <input name="lastName" />
         </label>
         <p data-status="error">
-          {
-            // @ts-expect-error
-            action.value?.failed && <p>{action.value.nested?.lastName}</p>
-          }
+          {action.value?.failed && <p>{action.value.nested?.lastName}</p>}
         </p>
 
         <button type="submit">Add user</button>
 
         {action.value?.success && (
           <p data-status="success">
-            User {action.value?.firstName as string} added successfully.
+            User {action.value?.firstName} added successfully.
           </p>
         )}
       </Form>

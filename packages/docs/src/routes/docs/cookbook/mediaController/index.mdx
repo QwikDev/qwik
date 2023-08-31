@@ -1,0 +1,167 @@
+---
+title: Cookbook | Media Controller with iOS Support
+contributors:
+  - n8sabes
+---
+
+import CodeSandbox, {CodeFile} from '../../../../components/code-sandbox/index.tsx';
+
+# Media Controller
+
+Navigating the intricacies of cross-browser and cross-device code development presents its unique set of challenges. A prominent example is the management of media playback, especially on Apple iOS devices.
+
+### Understanding iOS's Auto-play Restrictions
+
+Apple's iOS platform enforces specific guidelines concerning the playback of audio and video content. These restrictions are rooted in:
+
+1. **User Experience**: To prevent any unexpected disruptions, especially in serene environments, iOS doesn't allow media to auto-play. This ensures that users are not taken by surprise with sudden audio.
+2. **Data Management**: Streaming media can be data-intensive. To prevent inadvertent high data consumption, iOS mandates that users must initiate media playback, a crucial feature for those on capped or metered data plans.
+
+### The iOS Playback Challenge
+
+The crux of the challenge with iOS lies in its requirement for media playback. Any play action, such as starting a video, must be a direct result of a user-initiated event, like a tap. However, when using asynchronous event handlers, such as `onClick$` (QRL), there's a separation between the user's action and the subsequent playback command. This asynchronous behavior often leads to iOS denying playback on the initial tap, necessitating a second tap, which is not an intuitive user experience.
+
+## A Universal Solution
+
+For a seamless and consistent media playback experience across diverse browsers and devices, it's imperative to employ a more universal strategy. This guide offers a method that addresses this need. To activate playback when a user interacts with a button, the `.play()` function must be executed in a synchronous manner. This synchronization is achieved by directly attaching the `click` handler within the `useVisibleTask$` function. Presented below is a prototype of an audio and video controller designed to offer a consistent user experience across a range of platforms:
+
+<CodeSandbox url="/demo/cookbook/mediaController/"  style={{ height: '600px' }}>
+</CodeSandbox>
+
+Media controller code compatible with iOS devices looks like this:
+
+<CodeFile src="/src/routes/demo/cookbook/mediaController/index.tsx">
+```tsx
+import { component$, useSignal, useStylesScoped$, useVisibleTask$ } from '@builder.io/qwik';
+import { useLocation } from '@builder.io/qwik-city';
+
+const AUDIO_SRC =
+  'https://cdn.builder.io/o/assets%2F5b8073f890b043be81574f96cfd1250b%2Fafe011812da146a5b2263196cb25f263?alt=media&token=c017cd87-0598-4af2-8afd-e9b5a3fba078&apiKey=5b8073f890b043be81574f96cfd1250b';
+const VIDEO_SRC =
+  'https://cdn.builder.io/o/assets%2F5b8073f890b043be81574f96cfd1250b%2F06f32f252e7d46a48954e5939b7292e1%2Fcompressed?apiKey=5b8073f890b043be81574f96cfd1250b&token=06f32f252e7d46a48954e5939b7292e1&alt=media&optimized=true';
+
+export default component$(() => {
+  const audioElementSignal = useSignal<HTMLAudioElement | undefined>();
+  const audioPlayButtonSignal = useSignal<HTMLButtonElement | undefined>();
+  const audioIsPlayingSignal = useSignal(false);
+  const videoElementSignal = useSignal<HTMLAudioElement | undefined>();
+  const videoPlayButtonSignal = useSignal<HTMLButtonElement | undefined>();
+  const videoIsPlayingSignal = useSignal(false);
+  const location = useLocation();
+
+  const videoPoster =
+    location.url.origin + '/sample-media/qwik-koi-poster.jpg';
+  console.log('videoPoster', videoPoster);
+  useStylesScoped$(`
+        segment {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+          width: 100%;
+          padding: 20px;
+          color: #1dacf2
+        }
+        .content {
+          width: 50%;
+        }   
+        button {
+          padding: 20px;
+          font-weight: bold;
+          font-size: 1.2em;
+          width: 100%;
+          background: #1dacf2;
+          color: white;
+        }
+        .video-container {
+          position: relative;
+          width: 100%;
+          height: 0;
+          padding-bottom: calc(56.25% + 1px);
+        }
+        video {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          box-sizing: border-box;
+          border: 1px solid gray;
+        }
+        `);
+
+  useVisibleTask$(({ track }) => {
+    track(() => audioPlayButtonSignal.value);
+    track(() => audioElementSignal.value);
+    if (!audioElementSignal.value) return;
+
+    const play = () =>
+      audioIsPlayingSignal.value
+        ? audioElementSignal.value?.pause()
+        : audioElementSignal.value?.play();
+
+    audioPlayButtonSignal.value?.removeEventListener('click', play);
+    audioPlayButtonSignal.value?.addEventListener('click', play);
+
+    return () =>
+      audioPlayButtonSignal.value?.removeEventListener('click', play);
+  });
+
+  useVisibleTask$(({ track }) => {
+    track(() => videoPlayButtonSignal.value);
+    track(() => videoElementSignal.value);
+    if (!videoElementSignal.value || !videoPlayButtonSignal.value) return;
+
+    const play = () =>
+      videoIsPlayingSignal.value
+        ? videoElementSignal.value!.pause()
+        : videoElementSignal.value?.play();
+
+    videoPlayButtonSignal.value?.addEventListener('click', play);
+    return () =>
+      videoPlayButtonSignal.value?.removeEventListener('click', play);
+  });
+
+  return (
+    <segment>
+      <div class="content">
+        <h1>Media Controller</h1>
+        <h3>
+          <i>with iOS Support</i>
+        </h3>
+        <br />
+        <div class="video-container">
+          <video
+            ref={videoElementSignal}
+            src={VIDEO_SRC}
+            poster={videoPoster}
+            playsInline
+            onPlay$={() => (videoIsPlayingSignal.value = true)}
+            onPause$={() => (videoIsPlayingSignal.value = false)}
+            onEnded$={() => (videoIsPlayingSignal.value = false)}
+          />
+        </div>
+
+        <audio
+          ref={audioElementSignal}
+          src={AUDIO_SRC}
+          onPlay$={() => (audioIsPlayingSignal.value = true)}
+          onPause$={() => (audioIsPlayingSignal.value = false)}
+          onEnded$={() => (audioIsPlayingSignal.value = false)}
+        />
+        <br />
+        <button ref={videoPlayButtonSignal}>
+          {videoIsPlayingSignal.value ? 'Pause' : 'Play'} Video
+        </button>
+        <br />
+        <br />
+        <button ref={audioPlayButtonSignal}>
+          {audioIsPlayingSignal.value ? 'Pause' : 'Play'} Audio
+        </button>
+      </div>
+    </segment>
+  );
+});
+```
+</CodeFile>
+

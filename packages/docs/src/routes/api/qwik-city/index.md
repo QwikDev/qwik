@@ -193,9 +193,7 @@ export interface DocumentStyle
 ## FailReturn
 
 ```typescript
-export type FailReturn<T> = T & {
-  failed: true;
-};
+export type FailReturn<T> = T & Failed;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)

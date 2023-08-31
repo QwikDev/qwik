@@ -432,9 +432,7 @@ export interface ActionConstructor {
       readonly validation: [VALIDATOR, ...REST];
     }
   ): Action<
-    StrictUnion<
-      OBJ | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>> | FailOfRest<REST>
-    >,
+    OBJ | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>> | FailOfRest<REST>,
     GetValidatorType<VALIDATOR>,
     false
   >;
@@ -450,7 +448,7 @@ export interface ActionConstructor {
       readonly validation: [VALIDATOR];
     }
   ): Action<
-    StrictUnion<OBJ | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>>>,
+    OBJ | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>>,
     GetValidatorType<VALIDATOR>,
     false
   >;
@@ -477,9 +475,7 @@ export interface ActionConstructor {
     options: VALIDATOR,
     ...rest: REST
   ): Action<
-    StrictUnion<
-      OBJ | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>> | FailOfRest<REST>
-    >,
+    OBJ | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>> | FailOfRest<REST>,
     GetValidatorType<VALIDATOR>,
     false
   >;
@@ -492,7 +488,7 @@ export interface ActionConstructor {
     ) => ValueOrPromise<OBJ>,
     options: VALIDATOR
   ): Action<
-    StrictUnion<OBJ | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>>>,
+    OBJ | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>>,
     GetValidatorType<VALIDATOR>,
     false
   >;
@@ -501,7 +497,7 @@ export interface ActionConstructor {
   <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(
     actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>,
     ...rest: REST
-  ): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;
+  ): Action<OBJ | FailReturn<FailOfRest<REST>>>;
 
   // No validators
   <OBJ>(
@@ -509,7 +505,7 @@ export interface ActionConstructor {
     options?: {
       readonly id?: string;
     }
-  ): Action<StrictUnion<OBJ>>;
+  ): Action<OBJ>;
 }
 
 /**

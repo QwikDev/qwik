@@ -639,7 +639,7 @@ export interface LoaderConstructorQRL {
   <OBJ>(
     loaderQrl: QRL<(event: RequestEventLoader) => ValueOrPromise<OBJ>>,
     options?: LoaderOptions
-  ): Loader<OBJ>;
+  ): Loader<[Extract<OBJ, Failed>] extends [never] ? OBJ : StrictUnion<OBJ>>;
 
   // With validation
   <OBJ extends Record<string, any> | void | null, REST extends readonly DataValidator[]>(

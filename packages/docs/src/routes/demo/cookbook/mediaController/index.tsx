@@ -18,6 +18,7 @@ export default component$(() => {
   const videoElementSignal = useSignal<HTMLAudioElement | undefined>();
   const videoPlayButtonSignal = useSignal<HTMLButtonElement | undefined>();
   const videoIsPlayingSignal = useSignal(false);
+  const playsInlineSignal = useSignal(true);
   const location = useLocation();
 
   const videoPoster =
@@ -34,7 +35,8 @@ export default component$(() => {
           color: #1dacf2
         }
         .content {
-          width: 50%;
+          width: 60%;
+          min-width: 250px;
         }   
         button {
           padding: 20px;
@@ -43,6 +45,16 @@ export default component$(() => {
           width: 100%;
           background: #1dacf2;
           color: white;
+        }
+        .checkbox-container {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .checkbox {
+          width: 20px;
+          height: 20px;
+          margin-right: 8px;
         }
         .video-container {
           position: relative;
@@ -64,7 +76,6 @@ export default component$(() => {
   useVisibleTask$(({ track }) => {
     track(() => audioPlayButtonSignal.value);
     track(() => audioElementSignal.value);
-    if (!audioElementSignal.value) return;
 
     const play = () =>
       audioIsPlayingSignal.value
@@ -81,11 +92,10 @@ export default component$(() => {
   useVisibleTask$(({ track }) => {
     track(() => videoPlayButtonSignal.value);
     track(() => videoElementSignal.value);
-    if (!videoElementSignal.value || !videoPlayButtonSignal.value) return;
 
     const play = () =>
       videoIsPlayingSignal.value
-        ? videoElementSignal.value!.pause()
+        ? videoElementSignal.value?.pause()
         : videoElementSignal.value?.play();
 
     videoPlayButtonSignal.value?.addEventListener('click', play);
@@ -106,13 +116,12 @@ export default component$(() => {
             ref={videoElementSignal}
             src={VIDEO_SRC}
             poster={videoPoster}
-            playsInline
+            playsInline={playsInlineSignal.value}
             onPlay$={() => (videoIsPlayingSignal.value = true)}
             onPause$={() => (videoIsPlayingSignal.value = false)}
             onEnded$={() => (videoIsPlayingSignal.value = false)}
           />
         </div>
-
         <audio
           ref={audioElementSignal}
           src={AUDIO_SRC}
@@ -120,6 +129,21 @@ export default component$(() => {
           onPause$={() => (audioIsPlayingSignal.value = false)}
           onEnded$={() => (audioIsPlayingSignal.value = false)}
         />
+        <br />
+        <div class="checkbox-container">
+          <input
+            type="checkbox"
+            id="playsInlineCheckbox"
+            class="checkbox"
+            checked={playsInlineSignal.value}
+            onchange$={() => {
+              videoElementSignal.value?.pause();
+              playsInlineSignal.value = !playsInlineSignal.value;
+            }}
+          />
+          <label for="playsInlineCheckbox">playsInline (iOS)</label>
+        </div>
+
         <br />
         <button ref={videoPlayButtonSignal}>
           {videoIsPlayingSignal.value ? 'Pause' : 'Play'} Video

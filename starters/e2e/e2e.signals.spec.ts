@@ -520,6 +520,48 @@ test.describe("signals", () => {
       await expect(button).toHaveText("Example button");
       await expect(button).not.toBeDisabled();
     });
+
+    test("issue 4868", async ({ page }) => {
+      const btn1 = page.locator("#issue-4868-btn-1");
+      const btn2 = page.locator("#issue-4868-btn-2");
+      const json = page.locator("#issue-4868-json");
+      const props = page.locator("#issue-4868-props");
+      const usecomputed = page.locator("#issue-4868-usecomputed");
+
+      await expect(json).toHaveText(
+        `{"src":"https://placehold.co/400x400?text=1","id":1}`,
+      );
+      await expect(props).toHaveText(
+        `Card props.src: https://placehold.co/400x400?text=1`,
+      );
+      await expect(usecomputed).toHaveText(
+        `Card useComputed$: https://placehold.co/400x400?text=1&useComputed$`,
+      );
+
+      await btn2.click();
+
+      await expect(json).toHaveText(
+        `{"src":"https://placehold.co/500x500?text=2","id":2}`,
+      );
+      await expect(props).toHaveText(
+        `Card props.src: https://placehold.co/500x500?text=2`,
+      );
+      await expect(usecomputed).toHaveText(
+        `Card useComputed$: https://placehold.co/500x500?text=2&useComputed$`,
+      );
+
+      await btn1.click();
+
+      await expect(json).toHaveText(
+        `{"src":"https://placehold.co/400x400?text=1","id":1}`,
+      );
+      await expect(props).toHaveText(
+        `Card props.src: https://placehold.co/400x400?text=1`,
+      );
+      await expect(usecomputed).toHaveText(
+        `Card useComputed$: https://placehold.co/400x400?text=1&useComputed$`,
+      );
+    });
   }
 
   tests();
@@ -531,5 +573,14 @@ test.describe("signals", () => {
       await page.waitForTimeout(200);
     });
     tests();
+  });
+});
+
+test.describe("regressions", () => {
+  test("issue 5001", async ({ page }) => {
+    await page.goto("/e2e/signals/issue-5001");
+    await expect(page.locator(".count")).toHaveText("0");
+    await page.locator("button").click();
+    await expect(page.locator(".count")).toHaveText("1");
   });
 });

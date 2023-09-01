@@ -45,11 +45,11 @@ export const validLexicalScope = createRule({
 
     messages: {
       referencesOutside:
-        'Seems like you are referencing "{{varName}}" inside a different scope ({{dollarName}}), when this happens, Qwik needs to serialize the value, however {{reason}}.\nCheck out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
+        'When referencing "{{varName}}" inside a different scope ({{dollarName}}), Qwik needs to serialize the value, however {{reason}}.\nCheck out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
       invalidJsxDollar:
-        'Seems like you are using "{{varName}}" as an event handler, however functions are not serializable.\nDid you mean to wrap it in `$()`?\n\n{{solution}}\nCheck out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
+        'Using "{{varName}}" as an event handler, however functions are not serializable.\nDid you mean to wrap it in `$()`?\n\n{{solution}}\nCheck out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
       mutableIdentifier:
-        'Seems like you are mutating the value of ("{{varName}}"), but this is not possible when captured by the ({{dollarName}}) closure, instead create an object and mutate one of its properties.\nCheck out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
+        'Mutating let "{{varName}}" within the ({{dollarName}}) closure is not allowed, instead create an object/store/signal and mutate one of its properties.\nCheck out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
     },
   },
   create(context) {
@@ -338,7 +338,8 @@ function _isTypeCapturable(
     if (
       symbolName === 'PropFnInterface' ||
       symbolName === 'RefFnInterface' ||
-      symbolName === 'bivarianceHack'
+      symbolName === 'bivarianceHack' ||
+      symbolName === 'FunctionComponent'
     ) {
       return;
     }

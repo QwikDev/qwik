@@ -77,7 +77,7 @@ export const WatchShell = component$(
         <Issue2972 />
       </div>
     );
-  }
+  },
 );
 
 export const Child = component$((props: { state: State }) => {

@@ -36,7 +36,7 @@ const DEDUPE = [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID, QWIK_JSX_DEV_RUNTIME_ID];
 
 const STYLING = ['.css', '.scss', '.sass', '.less'];
 const FONTS = ['.woff', '.woff2', '.ttf'];
-const CSS_EXTENSIONS = ['.css', '.scss', '.sass'];
+
 /**
  * @public
  */
@@ -105,6 +105,22 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
       qwikPlugin.log(`vite config(), command: ${viteCommand}, env.mode: ${viteEnv.mode}`);
 
+      if (sys.env === 'node' && !qwikViteOpts.entryStrategy) {
+        const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
+        try {
+          const path = sys.path.join(process.cwd(), 'dist', 'q-insights.json');
+          if (fs.existsSync(path)) {
+            const entryStrategy = JSON.parse(await fs.promises.readFile(path, 'utf-8'));
+            if (entryStrategy) {
+              qwikViteOpts.entryStrategy = entryStrategy;
+            }
+            await fs.promises.unlink(path);
+          }
+        } catch (e) {
+          // ok to ignore
+        }
+      }
+
       if (viteCommand === 'serve') {
         qwikViteOpts.entryStrategy = { type: 'hook' };
       } else {
@@ -127,6 +143,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         entryStrategy: qwikViteOpts.entryStrategy,
         srcDir: qwikViteOpts.srcDir,
         rootDir: viteConfig.root,
+        tsconfigFileNames: qwikViteOpts.tsconfigFileNames,
         resolveQwikBuild: true,
         transformedModuleOutput: qwikViteOpts.transformedModuleOutput,
         vendorRoots: [...(qwikViteOpts.vendorRoots ?? []), ...vendorRoots.map((v) => v.path)],
@@ -614,24 +631,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
               ctx.server.moduleGraph.invalidateModule(mod);
             }
           }
-        } else if (
-          mod.type === 'js' &&
-          Array.from(mod.importers).every(
-            (m) => m.type === 'css' || CSS_EXTENSIONS.some((ext) => m.file?.endsWith(ext))
-          )
-        ) {
-          // invalidate all modules that import this module
-          ctx.server.moduleGraph.invalidateAll();
         }
-      }
-
-      if (CSS_EXTENSIONS.some((ext) => ctx.file.endsWith(ext))) {
-        qwikPlugin.log('handleHotUpdate()', 'force css reload');
-
-        ctx.server.ws.send({
-          type: 'full-reload',
-        });
-        return [];
       }
     },
   };
@@ -748,6 +748,11 @@ interface QwikVitePluginCommonOptions {
    * Default `src`
    */
   srcDir?: string;
+  /**
+   * List of tsconfig.json files to use for ESLint warnings during development.
+   * Default `['tsconfig.json']`
+   */
+  tsconfigFileNames?: string[];
   /**
    * List of directories to recursively search for Qwik components or Vendors.
    * Default `[]`

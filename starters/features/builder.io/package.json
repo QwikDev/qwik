@@ -1,12 +1,8 @@
 {
   "description": "Visual headless CMS",
-  "devDependencies": {
-    "@builder.io/dev-tools": "^0.0.7",
-    "@builder.io/sdk-qwik": "^0.4.1"
-  },
   "__qwik__": {
     "displayName": "Integration: Builder.io",
-    "priority": -1,
+    "priority": -10,
     "viteConfig": {
       "imports": [
         {
@@ -23,5 +19,9 @@
     "docs": [
       "https://www.builder.io/c/docs/quickstart"
     ]
+  },
+  "devDependencies": {
+    "@builder.io/dev-tools": "^0.0.44",
+    "@builder.io/sdk-qwik": "^0.4.5"
   }
 }

@@ -1,8 +1,19 @@
-import { integer, sqliteTable, text, uniqueIndex, index } from 'drizzle-orm/sqlite-core';
+import { type InferSelectModel, type InferInsertModel } from 'drizzle-orm';
+import {
+  integer,
+  sqliteTable,
+  text,
+  uniqueIndex,
+  index,
+  foreignKey,
+} from 'drizzle-orm/sqlite-core';
 
 export type DatabaseSchema = {
   applicationTable: typeof applicationTable;
+  manifestTabes: typeof manifestTable;
   symbolTable: typeof symbolTable;
+  symbolDetailTable: typeof symbolDetailTable;
+  errorTable: typeof errorTable;
 };
 
 export const applicationTable = sqliteTable(
@@ -18,6 +29,9 @@ export const applicationTable = sqliteTable(
   })
 );
 
+export type ApplicationRow = InferSelectModel<typeof applicationTable>;
+export type ApplicationRowSansId = InferInsertModel<typeof applicationTable>;
+
 export const symbolTable = sqliteTable('symbols', {
   id: integer('id').primaryKey(),
   publicApiKey: text('public_api_key').references(() => applicationTable.publicApiKey),
@@ -30,12 +44,15 @@ export const symbolTable = sqliteTable('symbols', {
   loadDelay: integer('load_delay_ms').notNull(),
 });
 
+export type SymbolRow = InferSelectModel<typeof symbolTable>;
+export type SymbolRowSansId = InferInsertModel<typeof symbolTable>;
+
 // event, source, lineno, colno, error
 export const errorTable = sqliteTable('errors', {
   id: integer('id').primaryKey(),
   publicApiKey: text('public_api_key').references(() => applicationTable.publicApiKey),
   manifestHash: text('manifest_hash').references(() => manifestTable.hash),
-  timestamp: integer('timestamp').notNull(),
+  timestamp: integer('timestamp', { mode: 'timestamp_ms' }).notNull(),
   sessionID: text('session_id').notNull(),
   url: text('url').notNull(),
   source: text('source').notNull(),
@@ -46,29 +63,51 @@ export const errorTable = sqliteTable('errors', {
   stack: text('stack').notNull(),
 });
 
+export type ErrorRow = InferSelectModel<typeof errorTable>;
+
 export const manifestTable = sqliteTable(
   'manifests',
   {
     id: integer('id').primaryKey(),
     publicApiKey: text('public_api_key').references(() => applicationTable.publicApiKey),
     hash: text('hash').notNull(),
-    timestamp: integer('timestamp').notNull(),
+    timestamp: integer('timestamp', { mode: 'timestamp_ms' }).notNull(),
   },
   (table) => ({
-    publicApiKeyIndex: uniqueIndex('hashIndex').on(table.hash),
+    publicApiKeyIndex: uniqueIndex('hashIndex').on(table.hash, table.publicApiKey),
   })
 );
 
-export const symbolDetailTable = sqliteTable('symbolDetail', {
-  id: integer('id').primaryKey(),
-  hash: text('hash').notNull(),
-  publicApiKey: text('public_api_key').references(() => applicationTable.publicApiKey),
-  manifestHash: text('manifest_hash').references(() => manifestTable.hash),
-  fullName: text('full_name').notNull(),
-  origin: text('origin').notNull(),
-  lo: integer('lo').notNull(),
-  hi: integer('hi').notNull(),
-});
+export type ManifestRow = InferSelectModel<typeof manifestTable>;
+
+export const symbolDetailTable = sqliteTable(
+  'symbolDetail',
+  {
+    id: integer('id').primaryKey(),
+    hash: text('hash').notNull(),
+    publicApiKey: text('public_api_key'),
+    manifestHash: text('manifest_hash'),
+    fullName: text('full_name').notNull(),
+    origin: text('origin').notNull(),
+    lo: integer('lo').notNull(),
+    hi: integer('hi').notNull(),
+  },
+  (symbolDetailTable) => {
+    return {
+      publicApiKeyReference: foreignKey(() => ({
+        columns: [symbolDetailTable.publicApiKey],
+        foreignColumns: [applicationTable.publicApiKey],
+      })),
+      manifestHashReference: foreignKey(() => ({
+        columns: [symbolDetailTable.publicApiKey, symbolDetailTable.manifestHash],
+        foreignColumns: [manifestTable.publicApiKey, manifestTable.hash],
+      })),
+    };
+  }
+);
+
+export type SymbolDetailRow = InferSelectModel<typeof symbolDetailTable>;
+export type SymbolDetailRowSansId = InferInsertModel<typeof symbolDetailTable>;
 
 export const edgeTable = sqliteTable(
   'edges',
@@ -194,3 +233,78 @@ export const edgeTable = sqliteTable(
     ),
   })
 );
+
+export type EdgeRow = InferSelectModel<typeof edgeTable>;
+export type EdgeRowSansId = InferInsertModel<typeof edgeTable>;
+
+export const routesTable = sqliteTable(
+  'routes',
+  {
+    id: integer('id').primaryKey(),
+    publicApiKey: text('public_api_key').references(() => applicationTable.publicApiKey),
+    manifestHash: text('manifest_hash').notNull(),
+    route: text('route').notNull(),
+    symbol: text('symbol').notNull(),
+    timeline00: integer('timeline_00').notNull(),
+    timeline01: integer('timeline_01').notNull(),
+    timeline02: integer('timeline_02').notNull(),
+    timeline03: integer('timeline_03').notNull(),
+    timeline04: integer('timeline_04').notNull(),
+    timeline05: integer('timeline_05').notNull(),
+    timeline06: integer('timeline_06').notNull(),
+    timeline07: integer('timeline_07').notNull(),
+    timeline08: integer('timeline_08').notNull(),
+    timeline09: integer('timeline_09').notNull(),
+    timeline10: integer('timeline_10').notNull(),
+    timeline11: integer('timeline_11').notNull(),
+    timeline12: integer('timeline_12').notNull(),
+    timeline13: integer('timeline_13').notNull(),
+    timeline14: integer('timeline_14').notNull(),
+    timeline15: integer('timeline_15').notNull(),
+    timeline16: integer('timeline_16').notNull(),
+    timeline17: integer('timeline_17').notNull(),
+    timeline18: integer('timeline_18').notNull(),
+    timeline19: integer('timeline_19').notNull(),
+    timeline20: integer('timeline_20').notNull(),
+    timeline21: integer('timeline_21').notNull(),
+    timeline22: integer('timeline_22').notNull(),
+    timeline23: integer('timeline_23').notNull(),
+    timeline24: integer('timeline_24').notNull(),
+    timeline25: integer('timeline_25').notNull(),
+    timeline26: integer('timeline_26').notNull(),
+    timeline27: integer('timeline_27').notNull(),
+    timeline28: integer('timeline_28').notNull(),
+    timeline29: integer('timeline_29').notNull(),
+    timeline30: integer('timeline_30').notNull(),
+    timeline31: integer('timeline_31').notNull(),
+    timeline32: integer('timeline_32').notNull(),
+    timeline33: integer('timeline_33').notNull(),
+    timeline34: integer('timeline_34').notNull(),
+    timeline35: integer('timeline_35').notNull(),
+    timeline36: integer('timeline_36').notNull(),
+    timeline37: integer('timeline_37').notNull(),
+    timeline38: integer('timeline_38').notNull(),
+    timeline39: integer('timeline_39').notNull(),
+    timeline40: integer('timeline_40').notNull(),
+    timeline41: integer('timeline_41').notNull(),
+    timeline42: integer('timeline_42').notNull(),
+    timeline43: integer('timeline_43').notNull(),
+    timeline44: integer('timeline_44').notNull(),
+    timeline45: integer('timeline_45').notNull(),
+    timeline46: integer('timeline_46').notNull(),
+    timeline47: integer('timeline_47').notNull(),
+    timeline48: integer('timeline_48').notNull(),
+    timeline49: integer('timeline_49').notNull(),
+  },
+  (table) => ({
+    routeSymbolIndex: uniqueIndex('routeIndex_Symbol').on(
+      table.publicApiKey,
+      table.manifestHash,
+      table.route,
+      table.symbol
+    ),
+  })
+);
+
+export type RouteRow = InferSelectModel<typeof routesTable>;
+export type RouteRowSansId = InferInsertModel<typeof routesTable>;

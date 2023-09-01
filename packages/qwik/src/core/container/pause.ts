@@ -666,12 +666,16 @@ const collectProps = (elCtx: QContext, collector: Collector) => {
     const subs = getSubscriptionManager(props)?.$subs$;
     const el = elCtx.$element$ as VirtualElement;
     if (subs) {
-      for (const sub of subs) {
-        if (sub[0] === 0) {
-          if (sub[1] !== el) {
+      for (const [type, host] of subs) {
+        if (type === 0) {
+          if (host !== el) {
             collectSubscriptions(getSubscriptionManager(props)!, collector, false);
           }
-          collectElement(sub[1] as VirtualElement, collector);
+          if (isNode(host)) {
+            collectElement(host, collector);
+          } else {
+            collectValue(host, collector, true);
+          }
         } else {
           collectValue(props, collector, false);
           collectSubscriptions(getSubscriptionManager(props)!, collector, false);
@@ -712,7 +716,7 @@ const collectDeferElement = (el: VirtualElement, collector: Collector) => {
   collector.$prefetch$--;
 };
 
-const collectElement = (el: VirtualElement, collector: Collector) => {
+const collectElement = (el: QwikElement, collector: Collector) => {
   const ctx = tryGetContext(el);
   if (ctx) {
     if (collector.$elements$.includes(ctx)) {
@@ -862,10 +866,11 @@ export const collectValue = (obj: any, collector: Collector, leaks: boolean | Qw
         const target = getProxyTarget(obj);
         if (target) {
           obj = target;
-          if (seen.has(obj)) {
-            return;
-          }
-          seen.add(obj);
+          // NOTE: You may be tempted to add the `target` to the `seen` set,
+          // but that would not work as it is possible for the `target` object
+          // to already be in `seen` set if it was passed in directly, so
+          // we can't short circuit and need to do the work.
+          // Issue: https://github.com/BuilderIO/qwik/issues/5001
           const mutable = (getProxyFlags(obj)! & QObjectImmutable) === 0;
           if (leaks && mutable) {
             collectSubscriptions(getSubscriptionManager(input)!, collector, leaks);

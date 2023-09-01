@@ -11,12 +11,14 @@ contributors:
   - thejackshelton
   - adnanebrahimi
   - mhevery
+  - ulic75
+  - CoralWombat
   - tzdesign
 ---
 
 # `routeAction$()`
 
-Actions allows to handle form submissions, allowing to perform side effects such as writing to a database, or sending an email.
+Actions allow to handle form submissions, allowing to perform side effects such as writing to a database or sending an email.
 
 Actions can also return data back to the client/browser, allowing to update the UI accordingly, i.e. showing a success message after a form submission.
 
@@ -91,6 +93,8 @@ export default component$(() => {
 Under the hood, the `<Form/>` component uses a native HTML `<form>` element, so it will work without JavaScript.
 
 When JS is enabled, the `<Form/>` component will intercept the form submission and trigger the action in SPA mode, allowing to have a full SPA experience.
+
+[Complex forms](/docs/advanced/complex-forms) can be created using dot notation.
 
 ## Using actions programmatically
 
@@ -237,7 +241,6 @@ When submitting data to a `routeAction()`, the data is validated against the Zod
 
 Please refer to the [Zod documentation](https://zod.dev/) for more information on how to use Zod schemas.
 
-
 ### Advanced event based validation
 
 The constructor of ```zod$``` can also take a function, as the first argument is zod itself, so you can use this directly to build the schema. 
@@ -377,7 +380,7 @@ We recommend starting with `routeAction$()` and only use `globalAction$()` when 
 
 ### `routeAction$()`
 
-`routeAction$()` can only be declared inside the `src/routes` folder, in a `layout.tsx` or `index.tsx` file, and they MUST be exported, just like a `routeLoader$()`. Since `routeAction$()` are only accessible within the route it's declared, they are recommended when the action needs to access some user data, or it's a protected route. Think about it like a "private" action.
+`routeAction$()` can only be declared inside the `src/routes` folder, in a `layout.tsx` or `index.tsx` file, and they MUST be exported, just like a `routeLoader$()`. Since `routeAction$()`s are only accessible within the route it's declared, they are recommended when the action needs to access some user data, or it's a protected route. Think about it like a "private" action.
 
 ```tsx title="src/routes/form/index.tsx"
 import { routeAction$ } from '@builder.io/qwik-city';

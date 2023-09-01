@@ -184,6 +184,10 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.srcDir = srcDir;
     }
 
+    if (Array.isArray(updatedOpts.tsconfigFileNames) && updatedOpts.tsconfigFileNames.length > 0) {
+      opts.tsconfigFileNames = updatedOpts.tsconfigFileNames;
+    }
+
     if (Array.isArray(opts.srcInputs)) {
       opts.srcInputs.forEach((i) => {
         i.path = normalizePath(path.resolve(opts.rootDir, i.path));
@@ -295,7 +299,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     log(`buildStart()`, opts.buildMode, opts.scope);
     const optimizer = getOptimizer();
 
-    if (optimizer.sys.env === 'node' && opts.target !== 'ssr') {
+    if (optimizer.sys.env === 'node' && opts.target === 'ssr') {
       try {
         linter = await createLinter(optimizer.sys, opts.rootDir, opts.tsconfigFileNames);
       } catch (err) {

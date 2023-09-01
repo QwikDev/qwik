@@ -1,5 +1,5 @@
 ---
-title: Modular Forms | Intergrations
+title: Modular Forms | Integrations
 keywords: 'form, library, validation, type-safe'
 contributors:
   - fabian-hiller
@@ -146,7 +146,7 @@ export default component$(() => {
     validate: zodForm$(loginSchema),
   });
 
-  const handleSubmit: SubmitHandler<LoginForm> = $((values, event) => {
+  const handleSubmit = $<SubmitHandler<LoginForm>>((values, event) => {
     // Runs on client
   });
 
@@ -200,7 +200,7 @@ export default component$(() => {
     validate: zodForm$(loginSchema),
   });
 
-  const handleSubmit: SubmitHandler<LoginForm> = $((values, event) => {
+  const handleSubmit = $<SubmitHandler<LoginForm>>((values, event) => {
     // Runs on client
     console.log(values);
   });

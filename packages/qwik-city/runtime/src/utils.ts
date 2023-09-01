@@ -1,6 +1,7 @@
-import { QACTION_KEY } from './constants';
-import type { LinkProps } from './link-component';
 import type { RouteActionValue, SimpleURL } from './types';
+
+import type { LinkProps } from './link-component';
+import { QACTION_KEY } from './constants';
 
 /**
  * Gets an absolute url path string (url.pathname + url.search + url.hash)
@@ -53,7 +54,7 @@ export const getClientDataPath = (
 
 export const getClientNavPath = (props: Record<string, any>, baseUrl: { url: URL }) => {
   const href = props.href;
-  if (typeof href === 'string' && typeof props.target !== 'string') {
+  if (typeof href === 'string' && typeof props.target !== 'string' && !props.reload) {
     try {
       const linkUrl = toUrl(href.trim(), baseUrl.url);
       const currentUrl = toUrl('', baseUrl.url)!;

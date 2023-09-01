@@ -1,8 +1,8 @@
-import { component$ } from '@builder.io/qwik';
+import { type ReadonlySignal, component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
 import Histogram, { delayColors, latencyColors } from '~/components/histogram';
 import { ManifestIcon } from '~/components/icons/manifest';
-import { SymbolCmp } from '~/components/symbol';
+import { SymbolTile } from '~/components/symbol-tile';
 import { getDB } from '~/db';
 import { getEdges, getSymbolDetails } from '~/db/query';
 import { BUCKETS, vectorAdd, vectorNew } from '~/stats/vector';
@@ -23,19 +23,28 @@ interface Manifest {
   latency: number[];
 }
 
-export const useData = routeLoader$(async ({ params }) => {
+interface SymbolsInfo {
+  symbols: Symbol[];
+  manifests: Manifest[];
+  buckets: typeof BUCKETS;
+}
+
+export const useData = routeLoader$<SymbolsInfo>(async ({ params, url }) => {
   const db = getDB();
+  const limit = url.searchParams.get('limit')
+    ? parseInt(url.searchParams.get('limit')!)
+    : undefined;
   const [edges, details] = await Promise.all([
-    getEdges(db, params.publicApiKey),
+    getEdges(db, params.publicApiKey, { limit }),
     getSymbolDetails(db, params.publicApiKey),
   ]);
 
   const symbolMap = new Map<string, Symbol>();
   const manifests = new Map<string, Manifest>();
   edges.forEach((edge) => {
-    const manifest = getManifest(edge.manifestHash);
+    const manifest = getManifest('<UNKNOWN>');
     const symbol = getSymbol(edge.to);
-    const symbolManifest = getSymbolManifest(symbol, edge.manifestHash);
+    const symbolManifest = getSymbolManifest(symbol, '<UNKNOWN>');
     vectorAdd(manifest.delay, edge.delay);
     vectorAdd(manifest.latency, edge.latency);
     vectorAdd(symbolManifest.delay, edge.delay);
@@ -100,7 +109,7 @@ export const useData = routeLoader$(async ({ params }) => {
 });
 
 export default component$(() => {
-  const data = useData();
+  const data: ReadonlySignal<SymbolsInfo> = useData();
   return (
     <div>
       <h1>Manifests</h1>
@@ -159,7 +168,7 @@ export default component$(() => {
                 />
               </td>
               <td>
-                <SymbolCmp symbol={symbol.hash} />(
+                <SymbolTile symbol={symbol.hash} />(
                 <code>
                   {symbol.origin}/{symbol.fullName}
                 </code>

@@ -5,15 +5,15 @@ export default component$(() => {
     value: '',
     debouncedValue: '',
   });
-  useTask$(({ track }) => {
+  useTask$(({ track, cleanup }) => {
     // Use track to rerun this function when store's `value` property changes.
 
     // Setup a timer to copy `value => debouncedValue` after half a second.
 
     // Return cleanup function in case `value` property changes before time is up.
-    return () => {
+    cleanup(() => {
       // cleanup code
-    };
+    });
   });
   return (
     <>

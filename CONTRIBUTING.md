@@ -120,7 +120,7 @@ If you're not able to use the dev container, follow these instructions:
 
 1. Make sure [Rust](https://www.rust-lang.org/tools/install) is installed.
 2. Install [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/) with `cargo install wasm-pack` .
-3. Node version >= `16.8.0`.
+3. Node version >= `18`.
 4. Make sure you have [pnpm](https://pnpm.io/installation) installed.
 5. run `pnpm install`
 
@@ -192,15 +192,15 @@ To use your build in your project, follow these steps:
 2. Inside the root of your project run:
 
    ```shell
-   npm install
-   npm link @builder.io/qwik @builder.io/qwik-city
+    pnpm install
+    pnpm link --global @builder.io/qwik @builder.io/qwik-city
    ```
 
    or
 
    ```shell
-    pnpm install
-    pnpm link --global @builder.io/qwik @builder.io/qwik-city
+   npm install
+   npm link @builder.io/qwik @builder.io/qwik-city
    ```
 
    or

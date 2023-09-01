@@ -1,21 +1,33 @@
-import { component$, useStore, type JSXNode } from '@builder.io/qwik';
+import { component$, useStore, type JSXNode, type ReadonlySignal } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
 import { BundleCmp } from '~/components/bundle';
-import { SymbolCmp } from '~/components/symbol';
+import { SymbolTile } from '~/components/symbol-tile';
 import { getDB } from '~/db';
 import { getEdges, getSymbolDetails } from '~/db/query';
 import {
   computeBundles,
   computeSymbolGraph,
   computeSymbolVectors,
+  type SymbolVectors,
   type Symbol,
+  type Bundle,
 } from '~/stats/edges';
+import { vectorSum } from '~/stats/vector';
 import { css } from '~/styled-system/css';
 
-export const useData = routeLoader$(async ({ params }) => {
+interface BundleInfo {
+  vectors: SymbolVectors;
+  bundles: Bundle[];
+}
+
+export const useData = routeLoader$<BundleInfo>(async ({ params, url }) => {
   const db = getDB();
+  const limit = url.searchParams.get('limit')
+    ? parseInt(url.searchParams.get('limit')!)
+    : undefined;
+
   const [edges, details] = await Promise.all([
-    getEdges(db, params.publicApiKey),
+    getEdges(db, params.publicApiKey, { limit }),
     getSymbolDetails(db, params.publicApiKey),
   ]);
   const rootSymbol = computeSymbolGraph(edges, details);
@@ -25,15 +37,15 @@ export const useData = routeLoader$(async ({ params }) => {
 });
 
 export default component$(() => {
-  const data = useData();
+  const data: ReadonlySignal<BundleInfo> = useData();
   return (
     <div
       class={css({
         margin: '5px',
       })}
     >
-      <h2>Corelation Matrix</h2>
-      <CorelationMatrix matrix={data.value.vectors.vectors} symbols={data.value.vectors.symbols} />
+      <h2>Correlation Matrix</h2>
+      <CorrelationMatrix matrix={data.value.vectors.vectors} symbols={data.value.vectors.symbols} />
 
       <h2>Bundles</h2>
       <ol
@@ -54,7 +66,7 @@ export default component$(() => {
               >
                 {bundle.symbols.map((symbol) => (
                   <li key={symbol.name}>
-                    <SymbolCmp symbol={symbol.name} />
+                    <SymbolTile symbol={symbol.name} />
                     {' ( '}
                     <code class={css({ fontFamily: 'monospace' })}>{symbol.fullName}</code>
                     {' / '}
@@ -72,7 +84,7 @@ export default component$(() => {
   );
 });
 
-export const CorelationMatrix = component$<{
+export const CorrelationMatrix = component$<{
   matrix: number[][];
   symbols: Symbol[];
 }>(({ matrix, symbols }) => {
@@ -170,10 +182,11 @@ export const MatrixCells = component$<{ matrix: number[][]; symbols: Symbol[] }>
 function cells(row: number[], symbols: Symbol[]) {
   const size = row.length;
   const cells: JSXNode[] = [];
+  const total = vectorSum(row);
   let sparseSize = 0;
   for (let colIdx = 0; colIdx < row.length; colIdx++) {
     const value = row[colIdx];
-    if (value) {
+    if (value / total > 0.05) {
       if (sparseSize) {
         cells.push(<div style={{ width: (sparseSize * 100) / size + '%' }} />);
         sparseSize = 0;

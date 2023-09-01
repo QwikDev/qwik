@@ -242,7 +242,7 @@ export const PropsDestructuring = component$(
       { renders: 0 },
       {
         reactive: false,
-      }
+      },
     );
     renders.renders++;
     const rerenders = renders.renders + 0;
@@ -255,7 +255,7 @@ export const PropsDestructuring = component$(
         <div class="renders">{rerenders}</div>
       </div>
     );
-  }
+  },
 );
 
 export const PropsDestructuringNo = component$(
@@ -264,7 +264,7 @@ export const PropsDestructuringNo = component$(
       { renders: 0 },
       {
         reactive: false,
-      }
+      },
     );
     renders.renders++;
     const rerenders = renders.renders + 0;
@@ -276,7 +276,7 @@ export const PropsDestructuringNo = component$(
         <div class="renders">{rerenders}</div>
       </div>
     );
-  }
+  },
 );
 
 export const Issue2563 = component$(() => {
@@ -345,7 +345,7 @@ export const Issue2889 = component$(() => {
         { created: new Date(2022, 1, 26), count: 6 },
       ],
     },
-    { deep: true }
+    { deep: true },
   );
 
   const filteredEvents = useSignal<{ created: Date; count: number }[]>();
@@ -353,7 +353,7 @@ export const Issue2889 = component$(() => {
   useTask$(({ track }) => {
     const list = track(() => appState.events);
     filteredEvents.value = list.filter(
-      (x) => x.created >= new Date(2022, 1, 20)
+      (x) => x.created >= new Date(2022, 1, 20),
     );
   });
 
@@ -500,7 +500,7 @@ const Issue3178 = component$(() => {
     {
       elements: [] as Element[],
     },
-    { deep: true }
+    { deep: true },
   );
 
   return (
@@ -613,7 +613,7 @@ export const Pr3475 = component$(() =>
     <button id="pr-3475-button" onClick$={() => delete store.key}>
       {store.key}
     </button>
-  ))(useStore<{ key?: string }>({ key: "data" }))
+  ))(useStore<{ key?: string }>({ key: "data" })),
 );
 
 export const Issue3561 = component$(() => {

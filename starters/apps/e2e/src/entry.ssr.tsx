@@ -3,37 +3,38 @@ import {
   renderToStream,
   type RenderToStreamOptions,
 } from "@builder.io/qwik/server";
-import { Root } from "./root";
-import { UseId } from "./components/useid/useid";
-import { LexicalScope } from "./components/lexical-scope/lexicalScope";
-import { SlotParent } from "./components/slot/slot";
-import { TwoListeners } from "./components/two-listeners/twolisteners";
-import { Render } from "./components/render/render";
-import { Events } from "./components/events/events";
 import { Async } from "./components/async/async";
-import { Containers } from "./components/containers/container";
-import { Factory } from "./components/factory/factory";
-import { Watch } from "./components/watch/watch";
-import { EffectClient } from "./components/effect-client/effect-client";
-import { ContextRoot } from "./components/context/context";
-import { Toggle } from "./components/toggle/toggle";
-import { Styles } from "./components/styles/styles";
-import { BroadcastEvents } from "./components/broadcast-events/broadcast-event";
-import { Weather } from "./components/resource/weather";
-import { ResourceApp } from "./components/resource/resource";
-import { TreeshakingApp } from "./components/treeshaking/treeshaking";
-import { StreamingRoot } from "./components/streaming/streaming";
-import { ResourceSerialization } from "./components/resource/resource-serialization";
-import { MountRoot } from "./components/mount/mount";
-import { RefRoot } from "./components/ref/ref";
-import { Signals } from "./components/signals/signals";
 import { Attributes } from "./components/attributes/attributes";
-import { EventsClient } from "./components/events/events-client";
-import { NoResume } from "./components/no-resume/no-resume";
-import { Resuming1 } from "./components/resuming/resuming";
-import { ResourceFn } from "./components/resource/resource-fn";
-import { ComputedRoot } from "./components/computed/computed";
+import { BroadcastEvents } from "./components/broadcast-events/broadcast-event";
 import { BuildVariables } from "./components/build-variables/build";
+import { ComputedRoot } from "./components/computed/computed";
+import { Containers } from "./components/containers/container";
+import { ContextRoot } from "./components/context/context";
+import { EffectClient } from "./components/effect-client/effect-client";
+import { Events } from "./components/events/events";
+import { EventsClient } from "./components/events/events-client";
+import { Factory } from "./components/factory/factory";
+import { LexicalScope } from "./components/lexical-scope/lexicalScope";
+import { MountRoot } from "./components/mount/mount";
+import { NoResume } from "./components/no-resume/no-resume";
+import { RefRoot } from "./components/ref/ref";
+import { Render } from "./components/render/render";
+import { ResourceApp } from "./components/resource/resource";
+import { ResourceFn } from "./components/resource/resource-fn";
+import { ResourceSerialization } from "./components/resource/resource-serialization";
+import { Weather } from "./components/resource/weather";
+import { Resuming1 } from "./components/resuming/resuming";
+import Issue5001 from "./components/signals/Issue_5001";
+import { Signals } from "./components/signals/signals";
+import { SlotParent } from "./components/slot/slot";
+import { StreamingRoot } from "./components/streaming/streaming";
+import { Styles } from "./components/styles/styles";
+import { Toggle } from "./components/toggle/toggle";
+import { TreeshakingApp } from "./components/treeshaking/treeshaking";
+import { TwoListeners } from "./components/two-listeners/twolisteners";
+import { UseId } from "./components/useid/useid";
+import { Watch } from "./components/watch/watch";
+import { Root } from "./root";
 
 /**
  * Entry point for server-side pre-rendering.
@@ -67,6 +68,7 @@ export default function (opts: RenderToStreamOptions) {
     "/e2e/mount": () => <MountRoot />,
     "/e2e/ref": () => <RefRoot />,
     "/e2e/signals": () => <Signals />,
+    "/e2e/signals/issue-5001": () => <Issue5001 />,
     "/e2e/attributes": () => <Attributes />,
     "/e2e/events-client": () => <EventsClient />,
     "/e2e/no-resume": () => <NoResume />,
@@ -98,7 +100,7 @@ export default function (opts: RenderToStreamOptions) {
           events: ["click"],
         },
         ...opts,
-      }
+      },
     );
   }
 
@@ -115,6 +117,6 @@ export default function (opts: RenderToStreamOptions) {
     {
       debug: true,
       ...opts,
-    }
+    },
   );
 }

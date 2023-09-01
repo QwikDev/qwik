@@ -4,6 +4,7 @@ contributors:
   - adamdbradley
   - manucorporat
   - mhevery
+  - CoralWombat
   - hamatoyogi
 ---
 
@@ -13,9 +14,9 @@ import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
 # Endpoints
 
 
-A [middleware function](/docs/middleware) that returns a response is called an endpoint. Endpoints are useful for returning data such as  RESTful API, GraphQL API, JSON, XML, reverse proxy or any other time of API where you need to control all aspects of the HTTP response. Returning a response (using `json` for example) will stop the execution of subsequent middleware functions past this point in the middleware chain. 
+A [middleware function](/docs/middleware) that returns a response is called an endpoint. Endpoints are useful for returning data such as  RESTful API, GraphQL API, JSON, XML, reverse proxy or any other type of API where you need to control all aspects of the HTTP response. Returning a response (using `json` for example) will stop the execution of subsequent middleware functions past this point in the middleware chain. 
 
-All endpoints receive an [`RequestEvent`](/docs/middleware/#requestevent) API for controlling the response of the endpoint. 
+All endpoints receive a [`RequestEvent`](/docs/middleware/#requestevent) API for controlling the response of the endpoint. 
 
 
 For example, when navigating to `/greet/` URL this endpoint will return `{"hello":"world"}`.
@@ -47,7 +48,7 @@ export const onGet: RequestHandler = async ({ send, url }) => {
   const response = await fetch(
     new URL('/demo/qwikcity/middleware/json/', url)
   );
-  send(response);
+  send(response.status, await response.text());
 };
 ```
 </CodeSandbox>
@@ -65,11 +66,11 @@ export const onGet: RequestHandler = async (requestEvent) => {
   const writer = writableStream.getWriter();
   const encoder = new TextEncoder();
 
-  writer.write(encoder.encode('Hello World'));
+  writer.write(encoder.encode('Hello World\n'));
   await wait(100);
-  writer.write(encoder.encode('After 100ms'));
+  writer.write(encoder.encode('After 100ms\n'));
   await wait(100);
-  writer.write(encoder.encode('After 200ms'));
+  writer.write(encoder.encode('After 200ms\n'));
   await wait(100);
   writer.write(encoder.encode('END'));
   writer.close();

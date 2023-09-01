@@ -13,7 +13,7 @@ import {
 } from '../use/use-task';
 import type { QwikElement } from '../render/dom/virtual-element';
 import { notifyChange } from '../render/dom/notify-render';
-import { createError, logError } from '../util/log';
+import { logError, throwErrorAndStop } from '../util/log';
 import { tryGetContext } from './context';
 import { QObjectFlagsSymbol, QObjectManagerSymbol, QOjectTargetSymbol } from './constants';
 import type { Signal } from './signal';
@@ -101,7 +101,7 @@ const _verifySerializable = <T>(value: T, seen: Set<any>, ctx: string, preMessag
       )});\n\nPlease check out https://qwik.builder.io/docs/advanced/qrl/ for more information.`;
     }
     console.error('Trying to serialize', value);
-    throw createError(message);
+    throwErrorAndStop(message);
   }
   return value;
 };
@@ -202,14 +202,14 @@ type SubscriberB = readonly [
   host: SubscriberHost,
   signal: Signal,
   elm: QwikElement,
-  prop: string
+  prop: string,
 ];
 
 type SubscriberC = readonly [
   type: 3 | 4,
   host: SubscriberHost | Text,
   signal: Signal,
-  elm: Node | string | QwikElement
+  elm: Node | string | QwikElement,
 ];
 
 export type Subscriber = SubscriberA | SubscriberB | SubscriberC;
@@ -221,14 +221,14 @@ type B = [
   signal: Signal,
   elm: QwikElement,
   prop: string,
-  key: string | undefined
+  key: string | undefined,
 ];
 type C = [
   type: 3 | 4,
   host: SubscriberHost | Text,
   signal: Signal,
   elm: Node | QwikElement,
-  key: string | undefined
+  key: string | undefined,
 ];
 
 export type SubscriberSignal = B | C;

@@ -20,7 +20,7 @@ export const ResourceSerialization = component$(() => {
     },
     {
       timeout: 1000,
-    }
+    },
   );
   const resourceFailure = useResource$(async () => {
     await delay(100);
@@ -33,7 +33,7 @@ export const ResourceSerialization = component$(() => {
     },
     {
       timeout: 100,
-    }
+    },
   );
 
   return (

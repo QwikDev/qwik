@@ -69,6 +69,7 @@ const resolveDocumentHead = (
   mergeArray(resolvedHead.meta as any, updatedHead.meta);
   mergeArray(resolvedHead.links as any, updatedHead.links);
   mergeArray(resolvedHead.styles as any, updatedHead.styles);
+  mergeArray(resolvedHead.scripts as any, updatedHead.scripts);
   Object.assign(resolvedHead.frontmatter, updatedHead.frontmatter);
 };
 
@@ -95,5 +96,6 @@ export const createDocumentHead = (): ResolvedDocumentHead => ({
   meta: [],
   links: [],
   styles: [],
+  scripts: [],
   frontmatter: {},
 });

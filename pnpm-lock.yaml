@@ -226,8 +226,8 @@ importers:
         specifier: github:BuilderIo/qwik-city-build#main
         version: github.com/BuilderIo/qwik-city-build/5484f953dba829fe49d76636b37d832f9a85b43c(rollup@3.26.3)
       '@builder.io/qwik-labs':
-        specifier: github:BuilderIo/qwik-labs-build#main
-        version: github.com/BuilderIo/qwik-labs-build/c776e3bdc4b88a48a8ac11cb8e8e19773d6c27cb
+        specifier: github:BuilderIo/qwik-labs-build#a487845dd5039e3e178f69755f603cbc2edef2c2
+        version: github.com/BuilderIo/qwik-labs-build/a487845dd5039e3e178f69755f603cbc2edef2c2
       '@builder.io/qwik-react':
         specifier: 0.5.0
         version: 0.5.0(@builder.io/qwik@1.2.10)(@types/react-dom@18.2.7)(@types/react@18.2.17)(react-dom@18.2.0)(react@18.2.0)
@@ -288,6 +288,9 @@ importers:
       postcss:
         specifier: 8.4.27
         version: 8.4.27
+      prettier:
+        specifier: 3.0.0
+        version: 3.0.0
       prism-themes:
         specifier: 1.9.0
         version: 1.9.0
@@ -19022,8 +19025,8 @@ packages:
       - rollup
       - supports-color
 
-  github.com/BuilderIo/qwik-labs-build/c776e3bdc4b88a48a8ac11cb8e8e19773d6c27cb:
-    resolution: {tarball: https://codeload.github.com/BuilderIo/qwik-labs-build/tar.gz/c776e3bdc4b88a48a8ac11cb8e8e19773d6c27cb}
+  github.com/BuilderIo/qwik-labs-build/a487845dd5039e3e178f69755f603cbc2edef2c2:
+    resolution: {tarball: https://codeload.github.com/BuilderIo/qwik-labs-build/tar.gz/a487845dd5039e3e178f69755f603cbc2edef2c2}
     name: '@builder.io/qwik-labs'
     version: 0.0.1
     engines: {node: '>=16.8.0 <18.0.0 || >=18.11'}

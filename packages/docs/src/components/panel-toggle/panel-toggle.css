@@ -4,15 +4,15 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: var(--qwik-light-blue);
+  background-color: var(--panel-toggle-background-color);
   width: 100vw;
   height: var(--panel-toggle-height);
 }
 
 .panel-toggle button {
-  background-color: white;
-  color: var(--qwik-dark-blue);
-  border: 1px solid var(--qwik-dark-blue);
+  background-color: var(--tutorial-nav-button-bg-color);
+  color: var(--tutorial-nav-button-text-color);
+  border: 1px solid var(--tutorial-nav-button-text-color);
   border-radius: 3px;
   min-width: 60px;
   overflow: hidden;
@@ -24,8 +24,8 @@
 
 .panel-toggle button.active,
 .panel-toggle button:hover {
-  background-color: var(--qwik-dark-blue);
-  color: white;
+  background-color: var(--tutorial-nav-button-hover-bg-color);
+  color: var(--qwik-blue);
 }
 
 @media (min-width: 380px) {

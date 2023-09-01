@@ -1,97 +1,98 @@
 {
-	"Qwik component": {
-		"scope": "typescriptreact",
-		"prefix": "q:component w/props",
-		"description": "Qwik component w/ props",
-		"body": [
-			"export interface ${1:${TM_FILENAME_BASE/(.*)/${1:/capitalize}/}}Props {",
-			"  $2",
-			"}",
-			"",
-			"export const $1 = component$((props: $1Props) => {",
-			"  const state = useStore({",
-			"    $3",
-			"  });",
-			"  ",
-			"  return <${4:button} on${5:Click}$={(${6:e}) => {$7}}>$8</${4}>",
-			"});"
-		]
-	},
-	"Qwik component (simple)": {
-		"scope": "javascriptreact,typescriptreact",
-		"prefix": "q:component simple",
-		"description": "Simple Qwik component",
-		"body": [
-			"export const ${1:${TM_FILENAME_BASE/(.*)/${1:/capitalize}/}} = component$(() => {",
-			"  return <${2:button}>$4</$2>",
-			"});"
-		]
-	},
-	"Qwik state": {
-		"scope": "javascriptreact,typescriptreact",
-		"prefix": "q:useStore$",
-		"description": "useStore() declaration",
-		"body": [
-			"const ${1:state} = useStore({",
-			"  $2",
-			"});",
-			"$0"
-		]
-	},
-	"$ hook": {
-		"scope": "javascriptreact,typescriptreact",
-		"prefix": "q:$",
-		"description": "$() function hook",
-		"body": [
-			"$(() => {",
-			"  $0",
-			"});",
-			""
-		]
-	},
-	"useClientEffect": {
-		"scope": "javascriptreact,typescriptreact",
-		"prefix": "q:useClientEffect",
-		"description": "useClientEffect$() function hook",
-		"body": [
-			"useClientEffect$(({ track }) => {",
-			"  $0",
-			"});",
-			""
-		]
-	},
-	"useWatch": {
-		"scope": "javascriptreact,typescriptreact",
-		"prefix": "q:useWatch",
-		"description": "useWatch$() function hook",
-		"body": [
-			"useWatch$(({ track }) => {",
-			"  track($1);",
-			"  $0",
-			"});",
-			""
-		]
-	},
-	"useResource": {
-		"scope": "javascriptreact,typescriptreact",
-		"prefix": "q:useResource$",
-		"description": "useResource$() declaration",
-		"body": [
-			"const $1 = useResource$(({ track, previous, cleanup }) => {",
-			"  $0",
-			"});",
-			""
-		]
-	},
-	"useServerMount": {
-		"scope": "javascriptreact,typescriptreact",
-		"prefix": "q:useServerMount",
-		"description": "useServerMount$() function hook",
-		"body": [
-			"useServerMount$(() => {",
-			"  $0",
-			"});",
-			""
-		]
-	}
+  "Qwik component": {
+    "scope": "typescriptreact",
+    "prefix": "q:component w/props",
+    "description": "Qwik component w/ props",
+    "body": [
+      "export interface ${1:${TM_FILENAME_BASE/(.*)/${1:/capitalize}/}}Props {",
+      "  $2",
+      "}",
+      "",
+      "export const $1 = component$((props: $1Props) => {",
+      "  const state = useStore({",
+      "    $3",
+      "  });",
+      "  ",
+      "  return <${4:button} on${5:Click}$={(${6:e}) => {$7}}>$8</${4}>",
+      "});"
+    ]
+  },
+  "Qwik component (simple)": {
+    "scope": "javascriptreact,typescriptreact",
+    "prefix": "q:component simple",
+    "description": "Simple Qwik component",
+    "body": [
+      "export const ${1:${TM_FILENAME_BASE/(.*)/${1:/capitalize}/}} = component$(() => {",
+      "  return <${2:button}>$4</$2>",
+      "});"
+    ]
+  },
+  "Qwik state": {
+    "scope": "javascriptreact,typescriptreact",
+    "prefix": "q:useStore$",
+    "description": "useStore() declaration",
+    "body": ["const ${1:state} = useStore({", "  $2", "});", "$0"]
+  },
+  "Qwik signal": {
+    "scope": "javascriptreact,typescriptreact",
+    "prefix": "q:useSignal",
+    "description": "useSignal() declaration",
+    "body": ["const ${1:signal} = useSignal($2);", "$0"]
+  },
+  "$ hook": {
+    "scope": "javascriptreact,typescriptreact",
+    "prefix": "q:$",
+    "description": "$() function hook",
+    "body": ["$(() => {", "  $0", "});", ""]
+  },
+  "useVisibleTask": {
+    "scope": "javascriptreact,typescriptreact",
+    "prefix": "q:useVisibleTask",
+    "description": "useVisibleTask$() function hook",
+    "body": ["useVisibleTask$(({ track }) => {", "  $0", "});", ""]
+  },
+  "useTask": {
+    "scope": "javascriptreact,typescriptreact",
+    "prefix": "q:useTask",
+    "description": "useTask$() function hook",
+    "body": ["useTask$(({ track }) => {", "  track(() => $1);", "  $0", "});", ""]
+  },
+  "useResource": {
+    "scope": "javascriptreact,typescriptreact",
+    "prefix": "q:useResource$",
+    "description": "useResource$() declaration",
+    "body": ["const $1 = useResource$(({ track, previous, cleanup }) => {", "  $0", "});", ""]
+  },
+  "useOn": {
+    "scope": "javascriptreact,typescriptreact",
+    "prefix": "q:useOn",
+    "description": "useOn declaration",
+    "body": ["useOn(", "'$1',", "$((event) => {", "  const { $3 } = event as $2;", "  })", ");"]
+  },
+  "useOnDocument": {
+    "scope": "javascriptreact,typescriptreact",
+    "prefix": "q:useOnDocument",
+    "description": "useOnDocument declaration",
+    "body": [
+      "useOnDocument(",
+      "'$1',",
+      "$((event) => {",
+      "  const { $3 } = event as $2;",
+      "  })",
+      ");"
+    ]
+  },
+  "useOnWindow": {
+    "scope": "javascriptreact,typescriptreact",
+    "prefix": "q:useOnWindow",
+    "description": "useOnWindow declaration",
+    "body": [
+      "useOnWindow(",
+      "'$1',",
+      "$((event) => {",
+      "  const { $3 } = event as $2;",
+      "  })",
+      ");"
+    ]
+  }
 }

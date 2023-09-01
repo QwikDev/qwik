@@ -1,0 +1,145 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import GitHub from '@auth/core/providers/github'
+import Facebook from 'next-auth/providers/facebook'
+import Google from 'next-auth/providers/google'
+import {serverAuth$, auth$} from '@auth/qwik';
+
+export const { onRequest, logout, getSession, signup } = serverAuth$({
+    providers: [
+    GitHub({
+        clientId: process.env.GITHUB_ID,
+        clientSecret: process.env.GITHUB_SECRET
+    }),
+    Facebook({
+        clientId: import.meta.env.FACEBOOK_ID,
+        clientSecret: import.meta.env.FACEBOOK_SECRET
+    }),
+    Google({
+        clientId: process.env.GOOGLE_ID,
+        clientSecret: process.env.GOOGLE_SECRET
+    })
+    ]
+});
+
+export const { onRequest, logout, getSession, signup } = auth$({
+    providers: [
+    GitHub({
+        clientId: process.env.GITHUB_ID,
+        clientSecret: process.env.GITHUB_SECRET
+    }),
+    Facebook({
+        clientId: process.env.FACEBOOK_ID,
+        clientSecret: process.env.FACEBOOK_SECRET
+    }),
+    Google({
+        clientId: process.env.GOOGLE_ID,
+        clientSecret: process.env.GOOGLE_SECRET
+    })
+    ]
+});
+
+============================= test.js ==
+
+import { serverAuthQrl } from "@auth/qwik";
+import { qrl } from "@builder.io/qwik";
+import { authQrl } from "@auth/qwik";
+export const { onRequest , logout , getSession , signup  } = serverAuthQrl(/*#__PURE__*/ qrl(()=>import("./serverauth_qvqpx2a0p9y"), "serverAuth_qVqpX2a0p9Y"));
+export const { onRequest , logout , getSession , signup  } = authQrl(/*#__PURE__*/ qrl(()=>import("./auth_gu0ay5qcety"), "auth_GU0aY5QCETY"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAMA,OAAO,MAAM,EAAE,UAAS,EAAE,OAAM,EAAE,WAAU,EAAE,OAAM,EAAE,GAAG,mGAetD;AAEH,OAAO,MAAM,EAAE,UAAS,EAAE,OAAM,EAAE,WAAU,EAAE,OAAM,EAAE,GAAG,iFAetD\"}")
+============================= auth_gu0ay5qcety.js (ENTRY POINT)==
+
+import Facebook from "next-auth/providers/facebook";
+import GitHub from "@auth/core/providers/github";
+import Google from "next-auth/providers/google";
+export const auth_GU0aY5QCETY = {
+    providers: [
+        GitHub({
+            clientId: process.env.GITHUB_ID,
+            clientSecret: process.env.GITHUB_SECRET
+        }),
+        Facebook({
+            clientId: process.env.FACEBOOK_ID,
+            clientSecret: process.env.FACEBOOK_SECRET
+        }),
+        Google({
+            clientId: process.env.GOOGLE_ID,
+            clientSecret: process.env.GOOGLE_SECRET
+        })
+    ]
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;gCAuB+D;IAC3D,WAAW;QACX,OAAO;YACH,UAAU,QAAQ,GAAG,CAAC,SAAS;YAC/B,cAAc,QAAQ,GAAG,CAAC,aAAa;QAC3C;QACA,SAAS;YACL,UAAU,QAAQ,GAAG,CAAC,WAAW;YACjC,cAAc,QAAQ,GAAG,CAAC,eAAe;QAC7C;QACA,OAAO;YACH,UAAU,QAAQ,GAAG,CAAC,SAAS;YAC/B,cAAc,QAAQ,GAAG,CAAC,aAAa;QAC3C;KACC;AACL\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "auth_GU0aY5QCETY",
+  "entry": null,
+  "displayName": "auth",
+  "hash": "GU0aY5QCETY",
+  "canonicalFilename": "auth_gu0ay5qcety",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "auth$",
+  "captures": false,
+  "loc": [
+    704,
+    1065
+  ]
+}
+*/
+============================= serverauth_qvqpx2a0p9y.js (ENTRY POINT)==
+
+import Facebook from "next-auth/providers/facebook";
+import GitHub from "@auth/core/providers/github";
+import Google from "next-auth/providers/google";
+export const serverAuth_qVqpX2a0p9Y = {
+    providers: [
+        GitHub({
+            clientId: process.env.GITHUB_ID,
+            clientSecret: process.env.GITHUB_SECRET
+        }),
+        Facebook({
+            clientId: import.meta.env.FACEBOOK_ID,
+            clientSecret: import.meta.env.FACEBOOK_SECRET
+        }),
+        Google({
+            clientId: process.env.GOOGLE_ID,
+            clientSecret: process.env.GOOGLE_SECRET
+        })
+    ]
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;sCAMqE;IACjE,WAAW;QACX,OAAO;YACH,UAAU,QAAQ,GAAG,CAAC,SAAS;YAC/B,cAAc,QAAQ,GAAG,CAAC,aAAa;QAC3C;QACA,SAAS;YACL,UAAU,YAAY,GAAG,CAAC,WAAW;YACrC,cAAc,YAAY,GAAG,CAAC,eAAe;QACjD;QACA,OAAO;YACH,UAAU,QAAQ,GAAG,CAAC,SAAS;YAC/B,cAAc,QAAQ,GAAG,CAAC,aAAa;QAC3C;KACC;AACL\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "serverAuth_qVqpX2a0p9Y",
+  "entry": null,
+  "displayName": "serverAuth",
+  "hash": "qVqpX2a0p9Y",
+  "canonicalFilename": "serverauth_qvqpx2a0p9y",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "serverAuth$",
+  "captures": false,
+  "loc": [
+    268,
+    637
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

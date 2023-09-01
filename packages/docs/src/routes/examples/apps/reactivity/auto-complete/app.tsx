@@ -1,17 +1,17 @@
-import { component$, useStore, useWatch$ } from '@builder.io/qwik';
+import { component$, useStore, useTask$ } from '@builder.io/qwik';
 
-export const App = component$(() => {
+export default component$(() => {
   return (
-    <div>
+    <article>
       This example features an auto-complete component with a debounce of 150 ms.
       <br />
-      The function `debouncedGetPeople` needs to be exported because it is used in `useWatch$`.
+      The function `debouncedGetPeople` needs to be exported because it is used in `useTask$`.
       <br />
       <br />
       Go ahead, search for Star Wars characters such as "Luke Skywalker", it uses the{' '}
       <a href="https://swapi.dev/">Star Wars API</a>
       <AutoComplete></AutoComplete>
-    </div>
+    </article>
   );
 });
 
@@ -28,7 +28,7 @@ export const AutoComplete = component$(() => {
     selectedValue: '',
   });
 
-  useWatch$(async ({ track }) => {
+  useTask$(async ({ track }) => {
     const searchInput = track(() => state.searchInput);
 
     if (!searchInput) {
@@ -64,9 +64,9 @@ export const SuggestionsListComponent = (props: { state: IState }) => {
       })}
     </ul>
   ) : (
-    <div class="no-results">
+    <p class="no-results">
       <em>No suggestions, you re on your own!</em>
-    </div>
+    </p>
   );
 };
 

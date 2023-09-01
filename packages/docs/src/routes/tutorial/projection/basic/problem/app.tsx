@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { component$, useStore } from '@builder.io/qwik';
 
-export const App = component$(() => {
+export default component$(() => {
   const store = useStore({ count: 0 });
   console.log('Render: <App>');
   return (
@@ -15,8 +15,9 @@ export const Panel = component$(() => {
   console.log('Render: <Panel>');
   return (
     <div style={{ border: '2px solid red;', padding: '1em' }}>
-      Currently the <tt>&lt;Panel&gt;</tt> component controls the content here. Replace this text
-      with <tt>&lt;Slot&gt;</tt> element to see the content projected from the <tt>&lt;App&gt;</tt>.
+      Currently the <code>&lt;Panel&gt;</code> component controls the content here. Replace this
+      text with <code>&lt;Slot&gt;</code> element to see the content projected from the{' '}
+      <code>&lt;App&gt;</code>.
     </div>
   );
 });

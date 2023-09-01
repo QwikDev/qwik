@@ -1,25 +1,31 @@
-import { createSignal, Signal } from '../state/signal';
+import { isQwikComponent } from '../component/component.public';
+import { _createSignal, type Signal } from '../state/signal';
+import { isFunction } from '../util/types';
+import { invoke } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';
 
 /**
- * @alpha
+ * @public
  */
 export interface UseSignal {
   <T>(): Signal<T | undefined>;
-  <T>(value: T): Signal<T>;
+  <T>(value: T | (() => T)): Signal<T>;
 }
 
 /**
- * @alpha
+ * @public
  */
 export const useSignal: UseSignal = <STATE>(initialState?: STATE): Signal<STATE> => {
-  const { get, set, rCtx: ctx } = useSequentialScope<Signal<STATE>>();
+  const { get, set, iCtx } = useSequentialScope<Signal<STATE>>();
   if (get != null) {
     return get;
   }
 
-  const containerState = ctx.$renderCtx$.$static$.$containerState$;
-  const signal = createSignal(initialState, containerState, undefined) as Signal<STATE>;
-  set(signal);
-  return signal;
+  const containerState = iCtx.$renderCtx$.$static$.$containerState$;
+  const value =
+    isFunction(initialState) && !isQwikComponent(initialState)
+      ? invoke(undefined, initialState as any)
+      : initialState;
+  const signal = _createSignal(value, containerState, 0, undefined) as Signal<STATE>;
+  return set(signal);
 };

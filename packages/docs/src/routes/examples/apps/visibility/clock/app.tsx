@@ -1,12 +1,15 @@
-import { component$, useStore, useStyles$, useClientEffect$ } from '@builder.io/qwik';
+import { component$, useStore, useStyles$, useVisibleTask$ } from '@builder.io/qwik';
 import styles from './clock.css';
 
-export const App = component$(() => {
-  const items = new Array(40).fill(null).map((_, index) => 'item ' + index);
+export default component$(() => {
+  const items = new Array(60).fill(null).map((_, index) => 'item ' + index);
 
+  console.log('PARENT');
   return (
     <div>
-      <p>This is an example of Lazy executing code on component when component becomes visible.</p>
+      <p onClick$={() => console.log('test')}>
+        This is an example of Lazy executing code on component when component becomes visible.
+      </p>
 
       <p>
         ⬇️ <strong>Scroll down</strong> until the clock is in view.
@@ -27,12 +30,12 @@ export const Clock = component$(() => {
   useStyles$(styles);
 
   const store = useStore({
-    hour: 10,
-    minute: 20,
-    second: 30,
+    hour: 0,
+    minute: 0,
+    second: 0,
   });
 
-  useClientEffect$(() => {
+  useVisibleTask$(() => {
     const update = () => {
       const now = new Date();
       store.second = now.getSeconds() * (360 / 60);
@@ -44,6 +47,7 @@ export const Clock = component$(() => {
     return () => clearInterval(tmrId);
   });
 
+  console.log('Render Clock');
   return (
     <div class="clock">
       <div class="twelve"></div>

@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "include": ["/*"],
+  "exclude": [
+    "/chat",
+    "/examples",
+    "/guide",
+    "/tutorial",
+    "/tutorials",
+    "/tutorial/hooks/use-client-effect/",
+    "/docs/overview/",
+    "/docs/cheat/qwik-react/",
+    "/docs/cheat/best-practices/",
+    "/docs/cheat/serialization/",
+    "/docs/components/lifecycle/",
+    "/docs/components/projection/",
+    "/docs/components/resource/",
+    "/qwikcity/*",
+    "/integrations/*",
+    "/deployments/*",
+    "/repl/*"
+  ]
+}

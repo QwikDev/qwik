@@ -1,49 +1,50 @@
 import type { ViteDevServer, Connect } from 'vite';
 import type { ServerResponse } from 'node:http';
+import type { BuildContext, BuildRoute } from '../types';
+import type {
+  ActionInternal,
+  ContentMenu,
+  LoadedRoute,
+  LoaderInternal,
+  MenuData,
+  MenuModule,
+  MenuModuleLoader,
+  PathParams,
+  RequestEvent,
+  RouteModule,
+} from '../../runtime/src/types';
+import type { QwikManifest, QwikViteDevResponse } from '@builder.io/qwik/optimizer';
 import fs from 'node:fs';
 import { join, resolve } from 'node:path';
-import type { BuildContext } from '../types';
-import type { RouteModule } from '../../runtime/src/library/types';
-import type { QwikViteDevResponse } from '../../../qwik/src/optimizer/src/plugins/vite';
-import { loadUserResponse, updateRequestCtx } from '../../middleware/request-handler/user-response';
-import { getQwikCityEnvData, pageHandler } from '../../middleware/request-handler/page-handler';
+import {
+  getRouteMatchPathname,
+  QDATA_JSON,
+  runQwikCity,
+} from '../../middleware/request-handler/user-response';
+import { getQwikCityServerData } from '../../middleware/request-handler/response-page';
 import { updateBuildContext } from '../build';
-import { endpointHandler } from '../../middleware/request-handler/endpoint-handler';
-import {
-  errorResponse,
-  ErrorResponse,
-  notFoundHandler,
-} from '../../middleware/request-handler/error-handler';
-import {
-  redirectResponse,
-  RedirectResponse,
-} from '../../middleware/request-handler/redirect-handler';
 import { getExtension, normalizePath } from '../../utils/fs';
-import type { RenderToStringResult } from '@builder.io/qwik/server';
-import { getRouteParams } from '../../runtime/src/library/routing';
-import { fromNodeHttp } from '../../middleware/node/http';
+import { getMenuLoader } from '../../runtime/src/routing';
+import { computeOrigin, fromNodeHttp, getUrl } from '../../middleware/node/http';
+import {
+  checkBrand,
+  resolveRequestHandlers,
+} from '../../middleware/request-handler/resolve-request-handlers';
+import { formatError } from './format-error';
+import { matchRoute } from 'packages/qwik-city/runtime/src/route-matcher';
 
 export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
   const matchRouteRequest = (pathname: string) => {
     for (const route of ctx.routes) {
-      const match = route.pattern.exec(pathname);
-      if (match) {
-        return {
-          route,
-          params: getRouteParams(route.paramNames, match),
-        };
+      let params = matchRoute(route.pathname, pathname);
+      if (params) {
+        return { route, params };
       }
-    }
 
-    if (ctx.opts.trailingSlash && !pathname.endsWith('/')) {
-      const pathnameWithSlash = pathname + '/';
-      for (const route of ctx.routes) {
-        const match = route.pattern.exec(pathnameWithSlash);
-        if (match) {
-          return {
-            route,
-            params: getRouteParams(route.paramNames, match),
-          };
+      if (ctx.opts.trailingSlash && !pathname.endsWith('/')) {
+        params = matchRoute(route.pathname, pathname + '/');
+        if (params) {
+          return { route, params };
         }
       }
     }
@@ -53,15 +54,12 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
 
   return async (req: Connect.IncomingMessage, res: ServerResponse, next: Connect.NextFunction) => {
     try {
-      const url = new URL(req.originalUrl!, `http://${req.headers.host}`);
+      const url = getUrl(req, computeOrigin(req));
 
       if (skipRequest(url.pathname) || isVitePing(url.pathname, req.headers)) {
         next();
         return;
       }
-
-      const requestCtx = fromNodeHttp(url, req, res);
-      updateRequestCtx(requestCtx, ctx.opts.trailingSlash);
 
       await updateBuildContext(ctx);
 
@@ -73,95 +71,175 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
         }
       }
 
-      const routeResult = matchRouteRequest(requestCtx.url.pathname);
-      if (routeResult) {
-        // found a matching route
-        const { route, params } = routeResult;
+      const routeModulePaths = new WeakMap<RouteModule, string>();
+      try {
+        const { _deserializeData, _serializeData, _verifySerializable } =
+          await server.ssrLoadModule('@qwik-serializer');
+        const qwikSerializer = { _deserializeData, _serializeData, _verifySerializable };
 
         // use vite to dynamically load each layout/page module in this route's hierarchy
+        const loaderMap = new Map<string, string>();
+        const serverPlugins: RouteModule[] = [];
+        for (const file of ctx.serverPlugins) {
+          const layoutModule = await server.ssrLoadModule(file.filePath);
+          serverPlugins.push(layoutModule);
+          routeModulePaths.set(layoutModule, file.filePath);
+          checkModule(loaderMap, layoutModule, file.filePath);
+        }
+
+        const matchPathname = getRouteMatchPathname(url.pathname, ctx.opts.trailingSlash);
+        const routeResult = matchRouteRequest(matchPathname);
         const routeModules: RouteModule[] = [];
-        for (const layout of route.layouts) {
-          const layoutModule = await server.ssrLoadModule(layout.filePath, {
-            fixStacktrace: true,
-          });
-          routeModules.push(layoutModule);
+
+        let params: PathParams = {};
+        if (routeResult) {
+          const route = routeResult.route;
+          params = routeResult.params;
+
+          // found a matching route
+          for (const layout of route.layouts) {
+            const layoutModule = await server.ssrLoadModule(layout.filePath);
+            routeModules.push(layoutModule);
+            routeModulePaths.set(layoutModule, layout.filePath);
+            checkModule(loaderMap, layoutModule, layout.filePath);
+          }
+          const endpointModule = await server.ssrLoadModule(route.filePath);
+          routeModules.push(endpointModule);
+          routeModulePaths.set(endpointModule, route.filePath);
+          checkModule(loaderMap, endpointModule, route.filePath);
         }
-        const endpointModule = await server.ssrLoadModule(route.filePath, {
-          fixStacktrace: true,
-        });
-        routeModules.push(endpointModule);
 
-        try {
-          const userResponse = await loadUserResponse(
-            requestCtx,
-            params,
-            routeModules,
-            ctx.opts.trailingSlash,
-            ctx.opts.basePathname
-          );
+        const renderFn = async (requestEv: RequestEvent) => {
+          // routeResult && requestEv.sharedMap.set('@routeName', routeResult.route.pathname);
+          const isPageDataReq = requestEv.pathname.endsWith(QDATA_JSON);
+          if (!isPageDataReq) {
+            const serverData = getQwikCityServerData(requestEv);
 
-          if (userResponse.type === 'pagedata') {
-            // dev server endpoint handler
-            await pageHandler(requestCtx, userResponse, noopDevRender);
-            return;
+            res.statusCode = requestEv.status();
+            requestEv.headers.forEach((value, key) => {
+              res.setHeader(key, value);
+            });
+
+            const cookieHeaders = requestEv.cookie.headers();
+            if (cookieHeaders.length > 0) {
+              res.setHeader('Set-Cookie', cookieHeaders);
+            }
+
+            const serverTiming = requestEv.sharedMap.get('@serverTiming') as
+              | [string, number][]
+              | undefined;
+            if (serverTiming) {
+              res.setHeader(
+                'Server-Timing',
+                serverTiming.map((a) => `${a[0]};dur=${a[1]}`).join(',')
+              );
+            }
+            (res as QwikViteDevResponse)._qwikEnvData = {
+              ...(res as QwikViteDevResponse)._qwikEnvData,
+              ...serverData,
+            };
+
+            const qwikRenderPromise = new Promise<void>((resolve) => {
+              (res as QwikViteDevResponse)._qwikRenderResolve = resolve;
+            });
+
+            next();
+
+            return qwikRenderPromise;
           }
+        };
 
-          if (userResponse.type === 'endpoint') {
-            // dev server endpoint handler
-            await endpointHandler(requestCtx, userResponse);
-            return;
-          }
-
-          // qwik city vite plugin should handle dev ssr rendering
-          // but add the qwik city user context to the response object
-          const envData = getQwikCityEnvData(userResponse);
-          if (ctx.isDevServerClientOnly) {
-            // because we stringify this content for the client only
-            // dev server, there's some potential stringify issues
-            // client only dev server will re-fetch anyways, so reset
-            envData.qwikcity.response.body = undefined;
-          }
-
-          (res as QwikViteDevResponse)._qwikEnvData = {
-            ...(res as QwikViteDevResponse)._qwikEnvData,
-            ...envData,
+        let menu: ContentMenu | undefined = undefined;
+        const menus = ctx.menus.map((buildMenu) => {
+          const menuLoader: MenuModuleLoader = async () => {
+            const m = await server.ssrLoadModule(buildMenu.filePath);
+            const menuModule: MenuModule = {
+              default: m.default,
+            };
+            return menuModule;
           };
+          const menuData: MenuData = [buildMenu.pathname, menuLoader];
+          return menuData;
+        });
 
-          // update node response with status and headers
-          // but do not end() it, call next() so qwik plugin handles rendering
-          res.statusCode = userResponse.status;
-          userResponse.headers.forEach((value, key) => res.setHeader(key, value));
-          for (const header in userResponse.cookie.headers()) {
-            res.setHeader('Set-Cookie', header);
-          }
-          next();
-          return;
-        } catch (e: any) {
-          if (e instanceof RedirectResponse) {
-            redirectResponse(requestCtx, e);
-          } else if (e instanceof ErrorResponse) {
-            errorResponse(requestCtx, e);
-          } else {
-            next(e);
-          }
-          return;
+        const menuLoader = getMenuLoader(menus, url.pathname);
+        if (menuLoader) {
+          const menuModule = await menuLoader();
+          menu = menuModule?.default;
         }
-      } else {
-        // no matching route
 
-        // test if this is a dev service-worker.js request
-        for (const sw of ctx.serviceWorkers) {
-          const match = sw.pattern.exec(requestCtx.url.pathname);
-          if (match) {
-            res.setHeader('Content-Type', 'text/javascript');
-            res.end(DEV_SERVICE_WORKER);
+        const loadedRoute = [
+          routeResult ? routeResult.route.pathname : '',
+          params,
+          routeModules,
+          menu,
+          undefined,
+        ] satisfies LoadedRoute;
+        const requestHandlers = resolveRequestHandlers(
+          serverPlugins,
+          loadedRoute,
+          req.method ?? 'GET',
+          false,
+          renderFn
+        );
+
+        if (requestHandlers.length > 0) {
+          const serverRequestEv = await fromNodeHttp(url, req, res, 'dev');
+          Object.assign(serverRequestEv.platform, ctx.opts.platform);
+
+          const manifest: QwikManifest = {
+            manifestHash: '',
+            symbols: {},
+            mapping: {},
+            bundles: {},
+            injections: [],
+            version: '1',
+          };
+          const { completion, requestEv } = runQwikCity(
+            serverRequestEv,
+            loadedRoute,
+            requestHandlers,
+            manifest,
+            ctx.opts.trailingSlash,
+            ctx.opts.basePathname,
+            qwikSerializer
+          );
+          const result = await completion;
+          if (result != null) {
+            throw result;
+          }
+
+          if (requestEv.headersSent || res.headersSent) {
             return;
           }
+        } else {
+          // no matching route
+
+          // test if this is a dev service-worker.js request
+          for (const sw of ctx.serviceWorkers) {
+            const match = sw.pattern.exec(req.originalUrl!);
+            if (match) {
+              res.setHeader('Content-Type', 'text/javascript');
+              res.end(DEV_SERVICE_WORKER);
+              return;
+            }
+          }
         }
+      } catch (e: any) {
+        if (e instanceof Error) {
+          server.ssrFixStacktrace(e);
+          formatError(e);
+        }
+        if (e instanceof Error && (e as any).id === 'DEV_SERIALIZE') {
+          next(formatDevSerializeError(e, routeModulePaths));
+        } else {
+          next(e);
+        }
+        return;
       }
 
       // simple test if it's a static file
-      const ext = getExtension(requestCtx.url.pathname);
+      const ext = getExtension(req.originalUrl!);
       if (STATIC_CONTENT_TYPES[ext]) {
         // let the static asset middleware handle this
         next();
@@ -177,7 +255,10 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
         //       there's two ways handling HMR for page endpoint with error
         // 1. Html response inject `import.meta.hot.accept('./pageEndpoint_FILE_URL', () => { location.reload })`
         // 2. watcher, diff previous & current file content, a bit expensive
-        notFoundHandler(requestCtx);
+        const html = getUnmatchedRouteHtml(url, ctx);
+        res.statusCode = 404;
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        res.end(html);
         return;
       }
 
@@ -188,17 +269,104 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
   };
 }
 
-export function dev404Middleware() {
-  return async (req: Connect.IncomingMessage, res: ServerResponse, next: Connect.NextFunction) => {
-    try {
-      const url = new URL(req.originalUrl!, `http://${req.headers.host}`);
-      const requestCtx = fromNodeHttp(url, req, res);
-      await notFoundHandler(requestCtx);
-    } catch (e) {
-      next(e);
+const checkModule = (loaderMap: Map<string, string>, routeModule: any, filePath: string) => {
+  for (const loader of Object.values(routeModule)) {
+    if (checkBrand(loader, 'server_action') || checkBrand(loader, 'server_loader')) {
+      checkUniqueLoader(loaderMap, loader as any, filePath);
     }
-  };
+  }
+};
+
+const checkUniqueLoader = (
+  loaderMap: Map<string, string>,
+  loader: LoaderInternal | ActionInternal,
+  filePath: string
+) => {
+  const prev = loaderMap.get(loader.__id);
+  if (prev) {
+    const type = loader.__brand === 'server_loader' ? 'routeLoader$' : 'routeAction$';
+    throw new Error(
+      `The same ${type} (${loader.__qrl.getSymbol()}) was exported in multiple modules:
+      - ${prev}
+      - ${filePath}`
+    );
+  }
+  loaderMap.set(loader.__id, filePath);
+};
+
+export function getUnmatchedRouteHtml(url: URL, ctx: BuildContext): string {
+  const blue = '#006ce9';
+  const routesAndDistance = sortRoutesByDistance(ctx.routes, url);
+  return `
+  <html>
+    <head>
+      <meta charset="utf-8">
+      <meta http-equiv="Status" content="404">
+      <title>404 Not Found</title>
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      <style>
+        body { color: ${blue}; background-color: #fafafa; padding: 30px; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif; }
+        div, p { max-width: 70vw; margin: 60px auto 30px auto; background: white; border-radius: 4px; box-shadow: 0px 0px 50px -20px ${blue}; word-break: break-word; }
+        div { display: flex; flex-direction: column; }
+        strong { display: inline-block; padding: 15px; background: ${blue}; color: white; }
+        span { display: inline-block; padding: 15px; }
+        a { padding: 15px; }
+        a:hover { background-color: rgba(0, 108, 233, 0.125); }
+        .recommended { font-size: 0.8em; font-weight: 700; padding: 10px; }
+      </style>
+    </head>
+    <body>
+      <p><strong>404</strong> <span>${url.pathname} not found.</span></p>
+
+      <div>
+        <strong>Available Routes</strong>
+
+        ${routesAndDistance
+          .map(
+            ([route, distance], i) =>
+              `<a href="${route.pathname}">${route.pathname}${
+                i === 0 && distance < 3
+                  ? '<span class="recommended"> 👈 maybe you meant this?</span>'
+                  : ''
+              } </a>`
+          )
+          .join('')}
+      </div>
+    </body>
+  </html>`;
 }
+
+const sortRoutesByDistance = (routes: BuildRoute[], url: URL) => {
+  const pathname = url.pathname;
+  const routesWithDistance = routes.map(
+    (route) => [route, levenshteinDistance(pathname, route.pathname)] as const
+  );
+  return routesWithDistance.sort((a, b) => a[1] - b[1]);
+};
+
+const levenshteinDistance = (s: string, t: string) => {
+  if (!s.endsWith('/')) {
+    s = s + '/';
+  }
+  if (!t.endsWith('/')) {
+    t = t + '/';
+  }
+  const arr = [];
+  for (let i = 0; i <= t.length; i++) {
+    arr[i] = [i];
+    for (let j = 1; j <= s.length; j++) {
+      arr[i][j] =
+        i === 0
+          ? j
+          : Math.min(
+              arr[i - 1][j] + 1,
+              arr[i][j - 1] + 1,
+              arr[i - 1][j - 1] + (s[j - 1] === t[i - 1] ? 0 : 1)
+            );
+    }
+  }
+  return arr[t.length][s.length];
+};
 
 /**
  * Static file server for files written directly to the 'dist' dir.
@@ -249,17 +417,40 @@ export function staticDistMiddleware({ config }: ViteDevServer) {
   };
 }
 
-async function noopDevRender() {
-  const result: RenderToStringResult = {
-    html: '',
-    timing: {
-      render: 0,
-      snapshot: 0,
-    },
-    prefetchResources: [],
-    snapshotResult: null,
-  };
-  return result;
+function formatDevSerializeError(err: any, routeModulePaths: WeakMap<RouteModule, string>) {
+  const requestHandler = err.requestHandler;
+
+  if (requestHandler?.name) {
+    let errMessage = `Data returned from the ${requestHandler.name}() endpoint must be serializable `;
+    errMessage += `so it can also be transferred over the network in an HTTP response. `;
+    errMessage += `Please ensure that the data returned from ${requestHandler.name}() is limited to only strings, numbers, booleans, arrays or objects, and does not have any circular references. `;
+    errMessage += `Error: ${err.message}`;
+    err.message = errMessage;
+
+    const endpointModule = err.endpointModule;
+    const filePath = routeModulePaths.get(endpointModule);
+    if (filePath) {
+      try {
+        const code = fs.readFileSync(filePath, 'utf-8');
+        err.plugin = 'vite-plugin-qwik-city';
+        err.id = normalizePath(filePath);
+        err.loc = {
+          file: err.id,
+          line: undefined,
+          column: undefined,
+        };
+        err.stack = '';
+        const lines = code.split('\n');
+        const line = lines.findIndex((line) => line.includes(requestHandler.name));
+        if (line > -1) {
+          err.loc.line = line + 1;
+        }
+      } catch (e) {
+        // nothing
+      }
+    }
+  }
+  return err;
 }
 
 const FS_PREFIX = `/@fs/`;
@@ -269,7 +460,14 @@ const internalPrefixes = [FS_PREFIX, VALID_ID_PREFIX, VITE_PUBLIC_PATH];
 const InternalPrefixRE = new RegExp(`^(?:${internalPrefixes.join('|')})`);
 
 function skipRequest(pathname: string) {
-  if (pathname.includes('__open-in-editor') || InternalPrefixRE.test(pathname)) {
+  if (pathname.startsWith('/@qwik-city-')) {
+    return true;
+  }
+  if (
+    pathname.includes('__open-in-editor') ||
+    InternalPrefixRE.test(pathname) ||
+    pathname.startsWith('/node_modules/')
+  ) {
     return true;
   }
   if (pathname.includes('favicon')) {
@@ -315,6 +513,6 @@ const STATIC_CONTENT_TYPES: { [ext: string]: string } = {
 };
 
 const DEV_SERVICE_WORKER = `/* Qwik City Dev Service Worker */
-addEventListener('install', () => self.skipWaiting());
-addEventListener('activate', () => self.clients.claim());
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', (ev) => ev.waitUntil(self.clients.claim()));
 `;

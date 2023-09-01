@@ -1,13 +1,16 @@
-import { component$, useServerMount$, useStore, useStyles$ } from '@builder.io/qwik';
-import HackerNewsCSS from './hacker-news.css';
+import { component$, useTask$, useStore, useStyles$ } from '@builder.io/qwik';
+import { isServer } from '@builder.io/qwik/build';
+import HackerNewsCSS from './hacker-news.css?inline';
 
 export const HackerNews = component$(() => {
   useStyles$(HackerNewsCSS);
   const store = useStore({ data: null });
 
-  useServerMount$(async () => {
-    const response = await fetch('https://node-hnapi.herokuapp.com/news?page=0');
-    store.data = await response.json();
+  useTask$(async () => {
+    if (isServer) {
+      const response = await fetch('https://node-hnapi.herokuapp.com/news?page=0');
+      store.data = await response.json();
+    }
   });
 
   return (
@@ -57,8 +60,8 @@ export const Stories = component$((props: { data: any }) => {
   const type = 'list';
   const stories = props.data;
   return (
-    <div class="news-view">
-      <div class="news-list-nav">
+    <main class="news-view">
+      <section class="news-list-nav">
         {page > 1 ? (
           <a class="page-link" href={`/?type=${type}&page=${page - 1}`} aria-label="Previous Page">
             {'<'} prev
@@ -78,8 +81,8 @@ export const Stories = component$((props: { data: any }) => {
             more {'>'}
           </span>
         )}
-      </div>
-      <main class="news-list">
+      </section>
+      <article class="news-list">
         {stories && (
           <ul>
             {stories.map((story: IStory) => (
@@ -87,8 +90,8 @@ export const Stories = component$((props: { data: any }) => {
             ))}
           </ul>
         )}
-      </main>
-    </div>
+      </article>
+    </main>
   );
 });
 

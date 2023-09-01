@@ -1,19 +1,19 @@
-import { BuildConfig, copyFile, emptyDir, ensureDir } from './util';
+import { type BuildConfig, copyFile, emptyDir, ensureDir } from './util';
 import spawn from 'cross-spawn';
 import { join } from 'node:path';
 import { rollup } from 'rollup';
 
 export async function buildWasmBinding(config: BuildConfig) {
-  const srcWasmDir = join(config.srcDir, `wasm`);
+  const srcWasmDir = join(config.srcQwikDir, `wasm`);
   const tmpBuildDir = join(config.tmpDir, `wasm-out`);
 
-  ensureDir(config.distPkgDir);
+  ensureDir(config.distQwikPkgDir);
   ensureDir(config.distBindingsDir);
   emptyDir(tmpBuildDir);
 
   async function buildForTarget(env = {}) {
     const cmd = `wasm-pack`;
-    const args = [`build`, '--target', 'web', `--out-dir`, tmpBuildDir];
+    const args = [`build`, '--target', 'web', `--out-dir`, tmpBuildDir, srcWasmDir];
     if (!config.dev) {
       args.push(`--release`);
     }
@@ -21,11 +21,11 @@ export async function buildWasmBinding(config: BuildConfig) {
     await new Promise((resolve, reject) => {
       const child = spawn(cmd, args, {
         stdio: 'inherit',
+        shell: true,
         env: {
           ...process.env,
           ...env,
         },
-        cwd: srcWasmDir,
       });
       child.on('error', reject);
 

@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { component$, useStore, Resource, useResource$ } from '@builder.io/qwik';
 
-export const App = component$(() => {
+export default component$(() => {
   const github = useStore({
     org: 'BuilderIO',
   });
@@ -23,15 +23,17 @@ export const App = component$(() => {
 
   console.log('Render');
   return (
-    <div>
-      <span>
-        GitHub username:
-        <input
-          value={github.org}
-          onInput$={(ev) => (github.org = (ev.target as HTMLInputElement).value)}
-        />
-      </span>
-      <div>
+    <main>
+      <p>
+        <label>
+          GitHub username:
+          <input
+            value={github.org}
+            onInput$={(ev) => (github.org = (ev.target as HTMLInputElement).value)}
+          />
+        </label>
+      </p>
+      <section>
         <Resource
           value={reposResource}
           onPending={() => <>Loading...</>}
@@ -46,8 +48,8 @@ export const App = component$(() => {
             </ul>
           )}
         />
-      </div>
-    </div>
+      </section>
+    </main>
   );
 });
 

@@ -28,10 +28,10 @@ const Header = $((decl1, {decl2}, [decl3]) => {
 ============================= header_wlr3xni6u38.tsx (ENTRY POINT)==
 
 export const Header_WlR3xnI6u38 = (decl1, { decl2  }, [decl3])=>{
-    const hola = ident1.no;
+    ident1.no;
     ident2;
-    const a = ident1 + ident3;
-    const b = ident1 + ident3;
+    ident1, ident3;
+    ident1, ident3;
     ident4(ident5, [
         ident6
     ], {
@@ -50,7 +50,7 @@ export const Header_WlR3xnI6u38 = (decl1, { decl2  }, [decl3])=>{
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\"kCAEiB,CAAC,OAAO,EAAC,MAAK,EAAC,EAAE,CAAC,MAAM,GAAK;IAE1C,MAAM,OAAO,OAAO,EAAE;IACtB;IACA,MAAM,IAAI,SAAS;IACnB,MAAM,IAAI,SAAS;IACnB,OAAO,QAAQ;QAAC;KAAO,EAAE;QAAC;IAAM,GAAG;QAAC,KAAK;IAAM;IAC/C,MAAM;QACF,OAAO,OAAO;QACd,SAAS;YACL,OAAO;QACX;IACJ;IAEA,QACK,IAAI,SAAS,CAAC,UAAY,UAAU,SAAS,UAAU,KAAK;AAErE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\"kCAEiB,CAAC,OAAO,EAAC,MAAK,EAAC,EAAE,CAAC,MAAM,GAAK;IAE7B,OAAO,EAAE;IACtB;IACU,QAAS,MAAM;IACf,QAAS,MAAM;IACzB,OAAO,QAAQ;QAAC;KAAO,EAAE;QAAC;IAAM,GAAG;QAAC,KAAK;IAAM;IAC/C,MAAM;QACF,OAAO,OAAO;QACd,SAAS;YACL,OAAO;QACX;IACJ;IAEA,QACK,IAAI,SAAS,CAAC,UAAY,UAAU,SAAS,UAAU,KAAK;AAErE\"}")
 /*
 {
   "origin": "project/test.tsx",
@@ -73,10 +73,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
 ============================= project/test.tsx ==
 
 import { qrl } from "@builder.io/qwik";
-qrl(()=>import("../header_wlr3xni6u38"), "Header_WlR3xnI6u38");
+/*#__PURE__*/ qrl(()=>import("../header_wlr3xni6u38"), "Header_WlR3xnI6u38");
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\"AACA\"}")
+Some("{\"version\":3,\"sources\":[],\"names\":[],\"mappings\":\"\"}")
 == DIAGNOSTICS ==
 
 []

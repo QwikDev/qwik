@@ -64,17 +64,17 @@ fn empty_module_item(ident: ast::Ident) -> ast::ModuleItem {
                     return_type: None,
                     span: DUMMY_SP,
                     type_params: None,
-                    body: ast::BlockStmtOrExpr::BlockStmt(ast::BlockStmt {
+                    body: Box::new(ast::BlockStmtOrExpr::BlockStmt(ast::BlockStmt {
                         span: DUMMY_SP,
                         stmts: vec![ast::Stmt::Throw(ast::ThrowStmt {
                             span: DUMMY_SP,
                             arg: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
                                 span: DUMMY_SP,
-                                value: JsWord::from("removed by optimizer"),
+                                value: JsWord::from("Symbol removed by Qwik Optimizer, it can not be called from current platform"),
                                 raw: None,
                             }))),
                         })],
-                    }),
+                    })),
                 }))),
             }],
         })),

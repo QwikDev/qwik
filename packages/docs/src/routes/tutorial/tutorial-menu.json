@@ -72,7 +72,7 @@
         "enableSsrOutput": false
       },
       {
-        "id": "inline",
+        "id": "lite",
         "title": "Inline Components",
         "enableHtmlOutput": true,
         "enableClientOutput": true,
@@ -195,7 +195,7 @@
       },
       {
         "id": "explicit",
-        "title": "useWatch$() - Explicit Reactivity",
+        "title": "useTask$() - Explicit Reactivity",
         "enableHtmlOutput": false,
         "enableClientOutput": false,
         "enableSsrOutput": false
@@ -227,36 +227,22 @@
     "title": "Lifecycle Hooks",
     "apps": [
       {
-        "id": "use-mount",
-        "title": "useMount$()",
+        "id": "use-task",
+        "title": "useTask$()",
         "enableHtmlOutput": false,
         "enableClientOutput": false,
         "enableSsrOutput": false
       },
       {
-        "id": "use-un-mount",
-        "title": "useUnMount$()",
+        "id": "use-signal",
+        "title": "useSignal()",
         "enableHtmlOutput": false,
         "enableClientOutput": false,
         "enableSsrOutput": false
       },
       {
-        "id": "use-client-effect",
-        "title": "useClientEffect$()",
-        "enableHtmlOutput": false,
-        "enableClientOutput": false,
-        "enableSsrOutput": false
-      },
-      {
-        "id": "use-watch",
-        "title": "useWatch$()",
-        "enableHtmlOutput": false,
-        "enableClientOutput": false,
-        "enableSsrOutput": false
-      },
-      {
-        "id": "use-ref",
-        "title": "useRef()",
+        "id": "use-visible-task",
+        "title": "useVisibleTask$()",
         "enableHtmlOutput": false,
         "enableClientOutput": false,
         "enableSsrOutput": false
@@ -264,6 +250,13 @@
       {
         "id": "use-on",
         "title": "useOn() / useOnDocument() / useOnWindow()",
+        "enableHtmlOutput": false,
+        "enableClientOutput": false,
+        "enableSsrOutput": false
+      },
+      {
+        "id": "use-un-mount",
+        "title": "useUnMount$()",
         "enableHtmlOutput": false,
         "enableClientOutput": false,
         "enableSsrOutput": false

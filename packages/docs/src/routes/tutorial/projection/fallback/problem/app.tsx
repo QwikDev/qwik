@@ -3,18 +3,18 @@ import { component$, Slot, useStyles$ } from '@builder.io/qwik';
 export const Card = component$(() => {
   useStyles$(CSS);
   return (
-    <div class="card">
-      <div class="title">
+    <article class="card">
+      <header class="title">
         <Slot name="title"></Slot>
-      </div>
-      <div class="body">
+      </header>
+      <section class="body">
         <Slot name="body"></Slot>
-      </div>
-    </div>
+      </section>
+    </article>
   );
 });
 
-export const App = component$(() => {
+export default component$(() => {
   return (
     <>
       <Card>

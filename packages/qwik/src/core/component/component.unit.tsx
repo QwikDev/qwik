@@ -2,13 +2,13 @@ import { createDOM } from '../../testing/library';
 import { expectDOM } from '../../testing/expect-dom.unit';
 import { inlinedQrl } from '../qrl/qrl';
 import { useStylesQrl } from '../use/use-styles';
-import { PropsOf, component$ } from './component.public';
+import { type PropsOf, component$ } from './component.public';
 import { suite } from 'uvu';
 import { useStore } from '../use/use-store.public';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 
 /**
- * Appling new unit test library/layer
+ * Applying new unit test library/layer
  * `@builder.io/qwik/testing`  ==>  ../../testing/library
  */
 const qComponent = suite('q-component');
@@ -19,11 +19,10 @@ qComponent('should declare and render basic component', async () => {
     screen,
     `
     <host q:version="dev" q:container="resumed" q:render="dom-dev">
-        <style q:style="pfkgyr-0">
-           {
-          }
+        <style q:style="pfkgyr-0" hidden="">
+          {}
         </style>
-        <!--qv q:key=sX:-->
+        <!--qv -->
         <span>Hello World</span>
         <!--/qv-->
       </host>`
@@ -38,7 +37,7 @@ qComponent('should render Counter and accept events', async () => {
     screen,
     `
     <host q:version="dev" q:container="resumed" q:render="dom-dev">
-    <!--qv q:key=sX:-->
+    <!--qv -->
     <my-counter>
       <button class="decrement">-</button>
       <span>15</span>
@@ -52,7 +51,7 @@ qComponent('should render Counter and accept events', async () => {
     screen,
     `
 <host q:version="dev" q:container="resumed" q:render="dom-dev">
-  <!--qv q:key=sX:-->
+  <!--qv -->
   <my-counter>
     <button
       class="decrement"
@@ -92,15 +91,15 @@ qComponent('should render a collection of todo items', async () => {
     screen,
     `
     <host q:version="dev" q:container="resumed" q:render="dom-dev">
-      <!--qv q:key=sX:-->
+      <!--qv -->
       <items>
-        <!--qv q:key=sX:-->
+        <!--qv -->
         <item-detail>
           <input type="checkbox" checked="" />
           <span>Task 1</span>
         </item-detail>
         <!--/qv-->
-        <!--qv q:key=sX:-->
+        <!--qv -->
         <item-detail>
           <input type="checkbox" />
           <span>Task 2</span>
@@ -205,8 +204,8 @@ export const Items = component$((props: { items: ItemsObj }) => {
   );
 });
 
-function delay(miliseconds: number): Promise<void> {
-  return new Promise((res) => setTimeout(res, miliseconds));
+function delay(milliseconds: number): Promise<void> {
+  return new Promise((res) => setTimeout(res, milliseconds));
 }
 
 qComponent.run();

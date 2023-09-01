@@ -1,8 +1,9 @@
 .examples {
   position: fixed;
-  top: var(--header-height);
-  width: 100%;
-  height: calc(100% - var(--header-height));
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
 }
 
 .examples-menu-container {
@@ -30,7 +31,7 @@
 
 .examples-repl {
   grid-area: example-repl-panel;
-  border-color: #dfdede;
+  border-color: var(--examples-main-border-color);
   border-width: 1px;
   border-top-style: solid;
   border-top-left-radius: 5px;
@@ -56,7 +57,7 @@
 
   .examples .repl {
     grid-template-rows: 1fr 1fr 1fr;
-    grid-template-columns: auto;
+    grid-template-columns: minmax(auto, 100%);
     grid-template-areas:
       'repl-input-panel'
       'repl-output-panel'
@@ -88,16 +89,16 @@
 .examples-menu-section h2 {
   font-weight: 700;
   margin: 0 0 5px 0;
-  color: #494949;
+  color: var(--examples-header-text-color);
 }
 
 .example-button {
   display: flex;
   padding: 10px;
   margin-bottom: 10px;
-  color: #494949;
+  color: var(--examples-header-text-color);
   text-align: left;
-  border: 1px solid #e3e3e3;
+  border: 1px solid var(--examples-border-color);
   border-radius: 4px;
   width: 100%;
   font-size: 12px;
@@ -113,11 +114,11 @@
 }
 
 .example-button.selected {
-  background: #e2ebff;
+  background: var(--examples-active-bg-color);
 }
 
 .example-button:hover {
-  background: #f7f7f7 !important;
+  background: var(--examples-hover-bg-color);
 }
 
 .example-button h3 {
@@ -128,9 +129,9 @@
   display: block;
   padding: 10px;
   margin-bottom: 10px;
-  color: #494949;
+  color: var(--examples-header-text-color);
   text-align: center;
-  border: 1px solid #cccccc;
+  border: 1px solid var(--examples-border-color);
   border-radius: 5px;
   width: 100%;
   font-size: 14px;

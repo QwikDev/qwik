@@ -1,0 +1,15 @@
+{
+  "name": "@builder.io/qwik-react/vite",
+  "version": "0.2.0",
+  "exports": {
+    ".": {
+      "import": "../lib/vite.mjs",
+      "require": "../lib/vite.cjs",
+      "types": "../lib/types/vite.d.ts"
+    }
+  },
+  "type": "module",
+  "main": "../lib/vite.mjs",
+  "qwik": "../lib/vite.mjs",
+  "types": "../lib/types/vite.d.ts"
+}

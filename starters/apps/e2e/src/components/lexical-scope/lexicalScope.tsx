@@ -1,4 +1,11 @@
-import { component$, $, useStore, noSerialize, useSignal, Signal } from '@builder.io/qwik';
+import {
+  component$,
+  $,
+  useStore,
+  noSerialize,
+  useSignal,
+  type Signal,
+} from "@builder.io/qwik";
 
 export const LexicalScope = component$(() => {
   const signal = useSignal(0);
@@ -8,7 +15,7 @@ export const LexicalScope = component$(() => {
   });
   return (
     <LexicalScopeChild
-      message={'mutable message'}
+      message={"mutable message"}
       message2={null}
       signal={signal}
       signalValue={signal.value}
@@ -32,43 +39,48 @@ interface LexicalScopeProps {
 export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
   const immutable = useStore(
     {
-      stuff: 'foo',
+      stuff: "foo",
     },
     {
-      recursive: true,
-    }
+      deep: true,
+    },
   );
   Object.freeze(immutable);
   const state = useStore({
     count: 0,
-    result: '',
+    result: "",
   });
   const a = 1;
-  const b = '</script>';
-  const promise = Promise.resolve('from a promise');
-  const rejected = Promise.reject(new Error('failed message'));
+  const b = "</script>";
+  const promise = Promise.resolve("from a promise");
+  const rejected = Promise.reject(new Error("failed message"));
   rejected.catch(() => null);
 
+  const formData = new FormData();
+  formData.append("name", "qwik");
+  formData.append("age", "1");
+  formData.append("age", "2");
+
   const specialStrings = [
-    '\b: backspace',
-    '\f: form feed',
-    '\n: line feed',
-    '\r: carriage return',
-    '\t: horizontal tab',
-    '\v: vertical tab',
-    '\0: null character',
+    "\b: backspace",
+    "\f: form feed",
+    "\n: line feed",
+    "\r: carriage return",
+    "\t: horizontal tab",
+    "\v: vertical tab",
+    "\0: null character",
     "': single quote",
-    '\\: backslash',
+    "\\: backslash",
   ];
   const c = {
     a: { thing: 12 },
-    b: 'hola',
+    b: "hola",
     c: 123,
     d: false,
     e: true,
     f: null,
     g: undefined,
-    h: [1, 'string', false, { hola: 1 }, ['hello']],
+    h: [1, "string", false, { hola: 1 }, ["hello"]],
     i: noSerialize(() => console.warn()),
     promise,
   };
@@ -84,15 +96,23 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
   const g = true;
   const h = false;
   const i = noSerialize(() => console.error());
-  const f = [1, 2, 'hola', i, {}];
-  const url = new URL('http://qwik.builder.com/docs?query=true');
-  const date = new Date('2022-07-26T17:40:30.255Z');
+  const f = [1, 2, "hola", i, {}];
+  const url = new URL("http://qwik.builder.com/docs?query=true");
+  const date = new Date("2022-07-26T17:40:30.255Z");
   const regex = /hola()\//gi;
   const nullPrototype = Object.create(null);
   nullPrototype.value = 12;
   const infinite = Infinity;
   const negativeInfinite = -Infinity;
   const nan = NaN;
+  const urlSearchParams = new URLSearchParams("mph=88");
+  const bigint = BigInt("200000000000000000");
+
+  const set = new Set(["hola", 12, { a: date }]);
+  const map = new Map<any, any>([
+    [formData, set],
+    ["mapkey", url],
+  ]);
 
   const onclick = $(async () => {
     // eslint-disable-next-line
@@ -131,6 +151,12 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
           String(infinite),
           String(negativeInfinite),
           String(nan),
+          urlSearchParams.get("mph"),
+          formData.get("name"),
+          formData.getAll("age"),
+          String(bigint),
+          JSON.stringify([...set.keys()]),
+          JSON.stringify([...map.entries()]),
         ]);
         state.count++;
       });
@@ -152,12 +178,12 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
         <p>{props.message}</p>
         <p>{JSON.stringify(propsCopy)}</p>
         <p>{promise}</p>
-        <p>{Object.keys(props).join(', ')}</p>
+        <p>{Object.keys(props).join(", ")}</p>
       </div>
       <button onClick$={onclick} id="rerender">
         Rerender {state.count}
       </button>
-      <div id="result">{'' + state.result}</div>
+      <div id="result">{"" + state.result}</div>
     </section>
   );
 });

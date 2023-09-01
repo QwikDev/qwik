@@ -71,6 +71,14 @@ test('frontmatter, attrs head title', async () => {
   assert.equal(head!.meta.length, 0);
 });
 
+test('frontmatter, attrs head title w/ yaml escaped \\@', async () => {
+  const attrs: FrontmatterAttrs = {
+    title: '\\@builder.io/qwik',
+  };
+  const head = frontmatterAttrsToDocumentHead(attrs);
+  assert.equal(head!.title, '@builder.io/qwik');
+});
+
 const metaNames = [
   'author',
   'creator',
@@ -96,5 +104,75 @@ for (const metaName of metaNames) {
     assert.equal(head!.meta[0].content, `My ${metaName}`);
   });
 }
+
+test('frontmatter, opengraph proxy', async () => {
+  const attrs: FrontmatterAttrs = {
+    title: 'My Title',
+    description: 'My Description',
+    og: {
+      title: true,
+      description: true,
+    },
+  };
+  const head = frontmatterAttrsToDocumentHead(attrs);
+  assert.equal(head!.title, 'My Title');
+  assert.equal(head!.meta.length, 3);
+  assert.equal(head!.meta[0].name, 'description');
+  assert.equal(head!.meta[0].content, 'My Description');
+  assert.equal(head!.meta[1].property, 'og:title');
+  assert.equal(head!.meta[1].content, 'My Title');
+  assert.equal(head!.meta[2].property, 'og:description');
+  assert.equal(head!.meta[2].content, 'My Description');
+});
+
+test('frontmatter, opengraph proxy override', async () => {
+  const attrs: FrontmatterAttrs = {
+    title: 'My Title',
+    og: {
+      title: 'My Another Title',
+      description: true,
+    },
+  };
+  const head = frontmatterAttrsToDocumentHead(attrs);
+  assert.equal(head!.title, 'My Title');
+  assert.equal(head!.meta.length, 1);
+  assert.equal(head!.meta[0].property, 'og:title');
+  assert.equal(head!.meta[0].content, 'My Another Title');
+});
+
+test('frontmatter, opengraph custom property', async () => {
+  const attrs: FrontmatterAttrs = {
+    title: 'My Title',
+    opengraph: [
+      {
+        image: 'https://example.com/rock.jpg',
+        'image:width': 300,
+        'image:height': 300,
+      },
+      {
+        image: 'https://example.com/rock2.jpg',
+      },
+      {
+        image: 'https://example.com/rock3.jpg',
+        'image:height': 1000,
+      },
+    ],
+  };
+  const head = frontmatterAttrsToDocumentHead(attrs);
+  assert.equal(head!.title, 'My Title');
+  assert.equal(head!.meta.length, 6);
+  assert.equal(head!.meta[0].property, 'og:image');
+  assert.equal(head!.meta[0].content, 'https://example.com/rock.jpg');
+  assert.equal(head!.meta[1].property, 'og:image:width');
+  assert.equal(head!.meta[1].content, '300');
+  assert.equal(head!.meta[2].property, 'og:image:height');
+  assert.equal(head!.meta[2].content, '300');
+  assert.equal(head!.meta[3].property, 'og:image');
+  assert.equal(head!.meta[3].content, 'https://example.com/rock2.jpg');
+  assert.equal(head!.meta[4].property, 'og:image');
+  assert.equal(head!.meta[4].content, 'https://example.com/rock3.jpg');
+  assert.equal(head!.meta[5].property, 'og:image:height');
+  assert.equal(head!.meta[5].content, '1000');
+});
 
 test.run();

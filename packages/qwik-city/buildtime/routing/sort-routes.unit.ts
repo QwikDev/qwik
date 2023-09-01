@@ -46,12 +46,12 @@ test('routeSortCompare', () => {
 function route(r: TestRoute) {
   const pathname = r.pathname || '/';
   const route: BuildRoute = {
-    id: createFileId('', pathname),
+    id: createFileId('', pathname, 'Route'),
     filePath: pathname,
     pathname,
     ext: '.tsx',
     layouts: [],
-    ...parseRoutePathname(pathname),
+    ...parseRoutePathname('/', pathname),
   };
   return route;
 }

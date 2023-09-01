@@ -1,4 +1,4 @@
-import { component$, useSignal, useStore } from '@builder.io/qwik';
+import { component$, useSignal, useStore } from "@builder.io/qwik";
 
 export const Attributes = component$(() => {
   const render = useSignal(0);
@@ -20,21 +20,23 @@ export const AttributesChild = component$(() => {
     },
     {
       reactive: false,
-    }
+    },
   );
 
   const title = useSignal<string>();
-  const input = useSignal('');
+  const input = useSignal("");
   const hide = useSignal(false);
   const required = useSignal(false);
   const state = useStore({
-    dataAria: 'true',
+    dataAria: "true",
     count: 0,
-    label: 'even',
-    stuff: '',
+    label: "even",
+    stuff: "",
   });
   renders.count++;
+  const rerenders = renders.count + 0;
 
+  console.warn(state.stuff);
   return (
     <>
       <div>
@@ -49,7 +51,7 @@ export const AttributesChild = component$(() => {
         <button
           id="title"
           onClick$={() => {
-            title.value = title.value === undefined ? 'some title' : undefined;
+            title.value = title.value === undefined ? "some title" : undefined;
           }}
         >
           Toggle title
@@ -57,7 +59,7 @@ export const AttributesChild = component$(() => {
         <button
           id="aria-hidden"
           onClick$={() => {
-            state.dataAria = state.dataAria === 'true' ? 'false' : 'true';
+            state.dataAria = state.dataAria === "true" ? "false" : "true";
           }}
         >
           Toggle aria-hidden
@@ -67,9 +69,9 @@ export const AttributesChild = component$(() => {
           onClick$={() => {
             state.count++;
             if (state.count % 2 === 0) {
-              state.label = 'even';
+              state.label = "even";
             } else {
-              state.label = 'odd';
+              state.label = "odd";
             }
           }}
         >
@@ -86,14 +88,14 @@ export const AttributesChild = component$(() => {
         <button
           id="stuff"
           onClick$={() => {
-            state.stuff += '0';
+            state.stuff += "0";
           }}
         >
           Add stuff (caused render)
         </button>
       </div>
       <div>
-        Renders: <span id="renders">{renders.count}</span>
+        Renders: <span id="renders">{rerenders}</span>
       </div>
       <div>
         {hide.value ? (
@@ -111,14 +113,21 @@ export const AttributesChild = component$(() => {
           </>
         ) : (
           <>
-            <label id="label" for={state.label} form="my-form" title={title.value}></label>
+            <label
+              id="label"
+              for={state.label}
+              form="my-form"
+              title={title.value}
+            ></label>
             <input
               id="input"
               required={required.value}
               aria-hidden={state.dataAria as any}
               aria-label={state.label}
               aria-required={required.value}
-              data-stuff={'stuff: ' + state.stuff}
+              draggable={required.value}
+              spellcheck={required.value}
+              data-stuff={"stuff: " + state.stuff}
               tabIndex={-1}
               title={title.value}
               onInput$={(ev) => {
@@ -145,6 +154,56 @@ export const AttributesChild = component$(() => {
       </div>
       <div id="input-value">{input.value}</div>
       <input id="input-copy" value={input.value} />
+      <Issue3622 />
+      <Issue4718Null />
+      <Issue4718Undefined />
     </>
+  );
+});
+
+export const Issue3622 = component$(() => {
+  return (
+    <div>
+      <select id="issue-3622-result" value="option1">
+        <option value="option1">Option 1</option>
+        <option value="option2">Option 2</option>
+      </select>
+    </div>
+  );
+});
+
+export const Issue4718Undefined = component$(() => {
+  const signal = useSignal<string | undefined>("some value");
+
+  return (
+    <button
+      id="issue-4718-undefined-result"
+      data-works={signal.value}
+      aria-label={signal.value}
+      title={signal.value}
+      onClick$={() => {
+        signal.value = undefined;
+      }}
+    >
+      Click Me
+    </button>
+  );
+});
+
+export const Issue4718Null = component$(() => {
+  const signal = useSignal<string | null>("some value");
+
+  return (
+    <button
+      id="issue-4718-null-result"
+      data-works={signal.value as any}
+      aria-label={signal.value as any}
+      title={signal.value as any}
+      onClick$={() => {
+        signal.value = null;
+      }}
+    >
+      Click Me
+    </button>
   );
 });

@@ -1,15 +1,16 @@
 /* eslint-disable */
 import {
   component$,
-  useServerMount$,
-  useWatch$,
+  useTask$,
   useStore,
   useSignal,
-  Signal,
-  createContext,
+  type Signal,
+  createContextId,
   useContext,
   useContextProvider,
-} from '@builder.io/qwik';
+  $,
+} from "@builder.io/qwik";
+import { isServer } from "@builder.io/qwik/build";
 
 interface State {
   count: number;
@@ -20,34 +21,36 @@ interface State {
 
 export const Watch = component$(() => {
   const nav = useStore({
-    path: '/',
+    path: "/",
   });
   const store = useStore<State>({
     count: 2,
     doubleCount: 0,
     debounced: 0,
-    server: '',
+    server: "",
   });
 
-  useServerMount$(() => {
-    store.server = 'comes from server';
+  useTask$(() => {
+    if (isServer) {
+      store.server = "comes from server";
+    }
   });
 
   // This watch should be treeshaken
-  useWatch$(({ track }) => {
+  useTask$(({ track }) => {
     const path = track(() => nav.path);
     console.log(path);
   });
 
   // Double count watch
-  useWatch$(({ track }) => {
+  useTask$(({ track }) => {
     const count = track(() => store.count);
     store.doubleCount = 2 * count;
   });
 
   // Debouncer watch
-  useWatch$(({ track }) => {
-    const doubleCount = track(store, 'doubleCount');
+  useTask$(({ track }) => {
+    const doubleCount = track(() => store.doubleCount);
     const timer = setTimeout(() => {
       store.debounced = doubleCount;
     }, 2000);
@@ -56,26 +59,29 @@ export const Watch = component$(() => {
     };
   });
 
-  console.log('PARENT renders');
+  console.log("PARENT renders");
   return <WatchShell nav={nav} store={store} />;
 });
 
-export const WatchShell = component$(({ store }: { nav: any; store: State }) => {
-  return (
-    <div>
-      <div id="server-content">{store.server}</div>
-      <div id="parent">{store.count + 0}</div>
-      <Child state={store} />
-      <button id="add" onClick$={() => store.count++}>
-        +
-      </button>
-      <Issue1766Root />
-    </div>
-  );
-});
+export const WatchShell = component$(
+  ({ store }: { nav: any; store: State }) => {
+    return (
+      <div>
+        <div id="server-content">{store.server}</div>
+        <div id="parent">{store.count + 0}</div>
+        <Child state={store} />
+        <button id="add" onClick$={() => store.count++}>
+          +
+        </button>
+        <Issue1766Root />
+        <Issue2972 />
+      </div>
+    );
+  },
+);
 
 export const Child = component$((props: { state: State }) => {
-  console.log('CHILD renders');
+  console.log("CHILD renders");
   return (
     <div>
       <div id="child">
@@ -87,23 +93,23 @@ export const Child = component$((props: { state: State }) => {
 });
 
 export const GrandChild = component$((props: { state: State }) => {
-  console.log('GrandChild renders');
+  console.log("GrandChild renders");
   return <div id="debounced">Debounced: {props.state.debounced}</div>;
 });
 
-export const LinkPath = createContext<{ value: string }>('link-path');
+export const LinkPath = createContextId<{ value: string }>("link-path");
 
 export const Issue1766Root = component$(() => {
   const loc = useStore({
-    value: '/root',
+    value: "/root",
   });
 
   const final = useStore({
-    value: '/root',
+    value: "/root",
   });
   useContextProvider(LinkPath, loc);
 
-  useWatch$(({ track }) => {
+  useTask$(({ track }) => {
     const path = track(() => loc.value);
     final.value = path.toUpperCase();
   });
@@ -118,12 +124,12 @@ export const Issue1766Root = component$(() => {
 
 export const Issue1766 = component$(() => {
   const counter = useSignal(0);
-  const second = useSignal('---');
+  const second = useSignal("---");
 
-  useWatch$(async ({ track }) => {
+  useTask$(async ({ track }) => {
     track(counter);
     if (counter.value !== 0) {
-      second.value = 'watch ran';
+      second.value = "watch ran";
     }
   });
 
@@ -180,5 +186,22 @@ export const Link = component$((props: { href: string }) => {
     >
       Navigate
     </button>
+  );
+});
+
+export function foo(this: any) {
+  return this.value;
+}
+
+export const Issue2972 = component$(() => {
+  const message = useSignal("");
+  useTask$(async () => {
+    message.value = await $(foo).apply({ value: "passed" });
+  });
+
+  return (
+    <>
+      <div id="issue-2972">{message.value}</div>
+    </>
   );
 });

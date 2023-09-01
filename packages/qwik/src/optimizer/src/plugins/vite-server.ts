@@ -1,12 +1,30 @@
 /* eslint-disable no-console */
 import type { Render, RenderToStreamOptions } from '@builder.io/qwik/server';
-import type { IncomingMessage } from 'http';
+import { magenta } from 'kleur/colors';
+import type { IncomingMessage, ServerResponse } from 'http';
+
 import type { Connect, ViteDevServer } from 'vite';
 import type { OptimizerSystem, Path, QwikManifest } from '../types';
-import { ERROR_HOST } from './errored-host';
-import { NormalizedQwikPluginOptions, parseId } from './plugin';
+import { type NormalizedQwikPluginOptions, parseId } from './plugin';
 import type { QwikViteDevResponse } from './vite';
 import { formatError } from './vite-utils';
+import { VITE_ERROR_OVERLAY_STYLES } from './vite-error';
+import imageDevTools from './image-size-runtime.html?raw';
+import clickToComponent from './click-to-component.html?raw';
+import perfWarning from './perf-warning.html?raw';
+import errorHost from './error-host.html?raw';
+
+function getOrigin(req: IncomingMessage) {
+  const { PROTOCOL_HEADER, HOST_HEADER } = process.env;
+  const headers = req.headers;
+  const protocol =
+    (PROTOCOL_HEADER && headers[PROTOCOL_HEADER.toLowerCase()]) ||
+    ((req.socket as any).encrypted || (req.connection as any).encrypted ? 'https' : 'http');
+  const host =
+    (HOST_HEADER && headers[HOST_HEADER.toLowerCase()]) || headers[':authority'] || headers['host'];
+
+  return `${protocol}://${host}`;
+}
 
 export async function configureDevServer(
   server: ViteDevServer,
@@ -17,15 +35,16 @@ export async function configureDevServer(
   clientDevInput: string | undefined
 ) {
   if (typeof fetch !== 'function' && sys.env === 'node') {
-    // polyfill fetch() when not available in NodeJS
+    // polyfill fetch() when not available in Node.js
 
     try {
       if (!globalThis.fetch) {
-        const nodeFetch = await sys.strictDynamicImport('node-fetch');
-        global.fetch = nodeFetch;
-        global.Headers = nodeFetch.Headers;
-        global.Request = nodeFetch.Request;
-        global.Response = nodeFetch.Response;
+        const undici = await sys.strictDynamicImport('undici');
+        globalThis.fetch = undici.fetch;
+        globalThis.Headers = undici.Headers;
+        globalThis.Request = undici.Request;
+        globalThis.Response = undici.Response;
+        globalThis.FormData = undici.FormData;
       }
     } catch {
       console.warn('Global fetch() was not installed');
@@ -34,13 +53,14 @@ export async function configureDevServer(
   }
 
   // qwik middleware injected BEFORE vite internal middlewares
-  server.middlewares.use(async (req, res, next) => {
+  server.middlewares.use(async (req: any, res: any, next: any) => {
     try {
-      const domain = 'http://' + (req.headers.host ?? 'localhost');
+      const { ORIGIN } = process.env;
+      const domain = ORIGIN ?? getOrigin(req);
       const url = new URL(req.originalUrl!, domain);
 
       if (shouldSsrRender(req, url)) {
-        const envData: Record<string, any> = {
+        const serverData: Record<string, any> = {
           ...(res as QwikViteDevResponse)._qwikEnvData,
           url: url.href,
         };
@@ -50,7 +70,7 @@ export async function configureDevServer(
           const relPath = path.relative(opts.rootDir, clientDevInput!);
           const entryUrl = '/' + relPath.replace(/\\/g, '/');
 
-          let html = getViteDevIndexHtml(entryUrl, envData);
+          let html = getViteDevIndexHtml(entryUrl, serverData);
           html = await server.transformIndexHtml(url.pathname, html);
 
           res.setHeader('Content-Type', 'text/html; charset=utf-8');
@@ -63,14 +83,13 @@ export async function configureDevServer(
           return;
         }
 
-        const ssrModule = await server.ssrLoadModule(opts.input[0], {
-          fixStacktrace: false,
-        });
+        const ssrModule = await server.ssrLoadModule(opts.input[0]);
 
         const render: Render = ssrModule.default ?? ssrModule.render;
 
         if (typeof render === 'function') {
           const manifest: QwikManifest = {
+            manifestHash: '',
             symbols: {},
             mapping: {},
             bundles: {},
@@ -78,6 +97,7 @@ export async function configureDevServer(
             version: '1',
           };
 
+          const added = new Set();
           Array.from(server.moduleGraph.fileToModulesMap.entries()).forEach((entry) => {
             entry[1].forEach((v) => {
               const hook = v.info?.meta?.hook;
@@ -86,11 +106,12 @@ export async function configureDevServer(
                 url += `?t=${v.lastHMRTimestamp}`;
               }
               if (hook) {
-                manifest.mapping[hook.name] = url;
+                manifest.mapping[hook.name] = relativeURL(url, opts.rootDir);
               }
 
               const { pathId, query } = parseId(v.url);
               if (query === '' && ['.css', '.scss', '.sass'].some((ext) => pathId.endsWith(ext))) {
+                added.add(v.url);
                 manifest.injections!.push({
                   tag: 'link',
                   location: 'head',
@@ -103,21 +124,35 @@ export async function configureDevServer(
             });
           });
 
+          const srcBase = opts.srcDir
+            ? path.relative(opts.rootDir, opts.srcDir).replace(/\\/g, '/')
+            : 'src';
+
           const renderOpts: RenderToStreamOptions = {
             debug: true,
+            locale: serverData.locale,
             stream: res,
             snapshot: !isClientDevOnly,
             manifest: isClientDevOnly ? undefined : manifest,
             symbolMapper: isClientDevOnly
               ? undefined
               : (symbolName, mapper) => {
+                  const defaultChunk = [
+                    symbolName,
+                    `/${srcBase}/${symbolName.toLowerCase()}.js`,
+                  ] as const;
                   if (mapper) {
                     const hash = getSymbolHash(symbolName);
-                    return mapper[hash];
+                    return mapper[hash] ?? defaultChunk;
+                  } else {
+                    return defaultChunk;
                   }
                 },
             prefetchStrategy: null,
-            envData: envData,
+            serverData,
+            containerAttributes: {
+              ...serverData.containerAttributes,
+            },
           };
 
           res.setHeader('Content-Type', 'text/html; charset=utf-8');
@@ -127,13 +162,29 @@ export async function configureDevServer(
           res.writeHead(status);
 
           const result = await render(renderOpts);
+
+          // Sometimes new CSS files are added after the initial render
+          Array.from(server.moduleGraph.fileToModulesMap.entries()).forEach((entry) => {
+            entry[1].forEach((v) => {
+              const { pathId, query } = parseId(v.url);
+              if (
+                !added.has(v.url) &&
+                query === '' &&
+                ['.css', '.scss', '.sass'].some((ext) => pathId.endsWith(ext))
+              ) {
+                res.write(`<link rel="stylesheet" href="${v.url}">`);
+              }
+            });
+          });
+
+          // End stream
           if ('html' in result) {
-            res.write(END_SSR_SCRIPT);
-            res.end((result as any).html);
-          } else {
-            res.write(END_SSR_SCRIPT);
-            res.end();
+            res.write((result as any).html);
           }
+          res.write(
+            END_SSR_SCRIPT(opts, opts.srcDir ? opts.srcDir : path.join(opts.rootDir, 'src'))
+          );
+          res.end();
         } else {
           next();
         }
@@ -141,18 +192,34 @@ export async function configureDevServer(
         next();
       }
     } catch (e: any) {
-      server.ssrFixStacktrace(e);
       if (e instanceof Error) {
+        server.ssrFixStacktrace(e);
         await formatError(sys, e);
       }
       next(e);
+    } finally {
+      if (typeof (res as QwikViteDevResponse)._qwikRenderResolve === 'function') {
+        (res as QwikViteDevResponse)._qwikRenderResolve!();
+      }
     }
   });
+
+  server.middlewares.use(function (err: any, _req: any, res: ServerResponse, next: any) {
+    if (!res.writableEnded) {
+      res.write(`<style>${VITE_ERROR_OVERLAY_STYLES}</style>`);
+    }
+    return next(err);
+  });
+
+  setTimeout(() => {
+    console.log(`\n  ❗️ ${magenta('Expect significant performance loss in development.')}`);
+    console.log(`  ❗️ ${magenta("Disabling the browser's cache results in waterfall requests.")}`);
+  }, 1000);
 }
 
 export async function configurePreviewServer(
   middlewares: Connect.Server,
-  opts: NormalizedQwikPluginOptions,
+  ssrOutDir: string,
   sys: OptimizerSystem,
   path: Path
 ) {
@@ -160,14 +227,14 @@ export async function configurePreviewServer(
   const url: typeof import('url') = await sys.dynamicImport('node:url');
 
   const entryPreviewPaths = ['mjs', 'cjs', 'js'].map((ext) =>
-    path.join(opts.rootDir, 'server', `entry.preview.${ext}`)
+    path.join(ssrOutDir, `entry.preview.${ext}`)
   );
 
   const entryPreviewModulePath = entryPreviewPaths.find((p) => fs.existsSync(p));
   if (!entryPreviewModulePath) {
     return invalidPreviewMessage(
       middlewares,
-      `Unable to find output "server/entry.preview" module.\n\nPlease ensure "src/entry.preview.tsx" has been built before the "preview" command.`
+      `Unable to find output "${ssrOutDir}/entry.preview" module.\n\nPlease ensure "src/entry.preview.tsx" has been built before the "preview" command.`
     );
   }
 
@@ -227,7 +294,7 @@ const shouldSsrRender = (req: IncomingMessage, url: URL) => {
     // has extension
     return false;
   }
-  if (pathname.includes('__vite_ping')) {
+  if (pathname.includes('_-vite-ping')) {
     return false;
   }
   if (pathname.includes('__open-in-editor')) {
@@ -249,38 +316,50 @@ const shouldSsrRender = (req: IncomingMessage, url: URL) => {
   return true;
 };
 
-const DEV_ERROR_HANDLING = `
-<script>
-
-document.addEventListener('qerror', ev => {
-  const ErrorOverlay = customElements.get('vite-error-overlay');
-  if (!ErrorOverlay) {
-    return;
+declare global {
+  interface Window {
+    __qwik_inspector_state: {
+      pressedKeys: string[];
+      hoveredElement?: EventTarget | null;
+    };
   }
-  const err = ev.detail.error;
-  const overlay = new ErrorOverlay(err);
-  document.body.appendChild(overlay);
-});
-</script>`;
-
-const PERF_WARNING = `
-<script>
-if (!window.__qwikViteLog) {
-  window.__qwikViteLog = true;
-  console.debug("%c⭐️ Qwik Dev SSR Mode","background: #0c75d2; color: white; padding: 2px 3px; border-radius: 2px; font-size: 0.8em;","App is running in SSR development mode!\\n - Additional JS is loaded by Vite for debugging and live reloading\\n - Rendering performance might not be optimal\\n - Delayed interactivity because prefetching is disabled\\n - Vite dev bundles do not represent production output\\n\\nProduction build can be tested running 'npm run preview'");
 }
-</script>`;
 
-const END_SSR_SCRIPT = `
+function relativeURL(url: string, base: string) {
+  if (url.startsWith(base)) {
+    url = url.slice(base.length);
+    if (!url.startsWith('/')) {
+      url = '/' + url;
+    }
+  }
+  return url;
+}
+
+const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools'], srcDir: string) => {
+  const qwikdevtools = {
+    hotKeys: opts.clickToSource ?? [],
+    srcDir: new URL(srcDir + '/', 'http://local.local').href,
+  };
+  return (
+    `<script>
+      globalThis.qwikdevtools = ${JSON.stringify(qwikdevtools)};
+    </script>` +
+    imageDevTools +
+    (opts.clickToSource ? clickToComponent : '')
+  );
+};
+
+const END_SSR_SCRIPT = (opts: NormalizedQwikPluginOptions, srcDir: string) => `
+<style>${VITE_ERROR_OVERLAY_STYLES}</style>
 <script type="module" src="/@vite/client"></script>
-${DEV_ERROR_HANDLING}
-${ERROR_HOST}
-${PERF_WARNING}
+${errorHost}
+${perfWarning}
+${DEV_QWIK_INSPECTOR(opts.devTools, srcDir)}
 `;
 
-function getViteDevIndexHtml(entryUrl: string, envData: Record<string, any>) {
+function getViteDevIndexHtml(entryUrl: string, serverData: Record<string, any>) {
   return `<!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
   </head>
   <body>
@@ -288,15 +367,15 @@ function getViteDevIndexHtml(entryUrl: string, envData: Record<string, any>) {
     async function main() {
       const mod = await import("${entryUrl}?${VITE_DEV_CLIENT_QS}=");
       if (mod.default) {
-        const envData = JSON.parse(${JSON.stringify(JSON.stringify(envData))})
+        const serverData = JSON.parse(${JSON.stringify(JSON.stringify(serverData))})
         mod.default({
-          envData,
+          serverData,
         });
       }
     }
     main();
     </script>
-    ${DEV_ERROR_HANDLING}
+    ${errorHost}
   </body>
 </html>`;
 }

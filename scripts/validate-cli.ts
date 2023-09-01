@@ -1,18 +1,19 @@
 import {
   accessSync,
-  readFileSync,
-  writeFileSync,
-  rmSync,
-  statSync,
-  mkdirSync,
-  readdirSync,
   copyFileSync,
   existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  statSync,
+  writeFileSync,
 } from 'node:fs';
-import assert from 'assert';
-import { join, relative } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { join, relative } from 'node:path';
 import { readPackageJson, writePackageJson } from './package-json';
+
+import assert from 'assert';
 import { panic } from './util';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
@@ -44,7 +45,8 @@ async function validateCreateQwikCli() {
 
   await Promise.all([
     validateStarter(api, tmpDir, 'basic', true, `👻`),
-    validateStarter(api, tmpDir, 'documentation-site', true, `😈`),
+    validateStarter(api, tmpDir, 'empty', true, `🫙`),
+    validateStarter(api, tmpDir, 'site-with-visual-cms', true, `😈`),
     validateStarter(api, tmpDir, 'library', false, `📚`),
   ]).catch((e) => {
     console.error(e);
@@ -87,7 +89,7 @@ async function validateStarter(
 
   const { execa } = await import('execa');
   console.log(`${emoji} ${starterId}: npm install`);
-  await execa('npm', ['install'], { cwd: appDir, stdout: 'inherit' });
+  await execa('npm', ['install', '--legacy-peer-deps'], { cwd: appDir, stdout: 'inherit' });
 
   // console.log(`${emoji} ${projectName}: copy @builder.io/qwik distribution`);
   // const qwikNodeModule = join(appDir, 'node_modules', '@builder.io', 'qwik');

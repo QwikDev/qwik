@@ -4,12 +4,15 @@
   "compiler": {
     "overrideTsconfig": {
       "compilerOptions": {
+        "target": "ES2020",
+        "module": "ES2020",
         "isolatedModules": true,
         "esModuleInterop": true,
         "skipLibCheck": true
       },
       "include": ["dist-dev/dts-out/packages/qwik-city/**/*.d.ts"]
-    }
+    },
+    "skipLibCheck": true
   },
   "docModel": {
     "enabled": false

@@ -1,4 +1,10 @@
-import { component$, Resource, SSRStream, useResource$, useStyles$ } from '@builder.io/qwik';
+import {
+  component$,
+  Resource,
+  SSRStream,
+  useResource$,
+  useStyles$,
+} from "@builder.io/qwik";
 
 export function delay(time: number) {
   return new Promise<void>((resolve) => {
@@ -39,14 +45,17 @@ export const Cmp = component$((props: { text: string; delay: number }) => {
   }`);
 
   const resource = useResource$<string>(async ({ track }) => {
-    track(props, 'text');
+    track(() => props.text);
     await delay(props.delay);
     return props.text;
   });
 
   return (
     <div>
-      <Resource value={resource} onResolved={(value) => <span class="cmp">{value}</span>} />
+      <Resource
+        value={resource}
+        onResolved={(value) => <span class="cmp">{value}</span>}
+      />
     </div>
   );
 });

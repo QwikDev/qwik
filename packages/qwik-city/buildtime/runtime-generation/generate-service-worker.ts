@@ -1,7 +1,7 @@
 import type { BuildContext } from '../types';
 import swRegister from '@qwik-city-sw-register-build';
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
-import type { AppBundle } from '../../runtime/src/library/service-worker/types';
+import type { AppBundle } from '../../runtime/src/service-worker/types';
 import { removeExtension } from '../../utils/fs';
 
 export function generateServiceWorkerRegister(ctx: BuildContext) {
@@ -103,9 +103,9 @@ function generateLinkBundles(ctx: BuildContext, appBundles: AppBundle[], manifes
         if (bundle.origins) {
           for (const bundleOrigin of bundle.origins) {
             const srcPath = removeExtension(filePath);
-            const bundleOrginPath = removeExtension(bundleOrigin);
+            const bundleOriginPath = removeExtension(bundleOrigin);
 
-            if (srcPath.endsWith(bundleOrginPath)) {
+            if (srcPath.endsWith(bundleOriginPath)) {
               if (!linkBundleNames.includes(bundleName)) {
                 linkBundleNames.push(bundleName);
               }
@@ -143,7 +143,7 @@ function getAppBundleId(appBundles: AppBundle[], bundleName: string) {
 }
 
 const SW_UNREGISTER = `
-navigator.serviceWorker.getRegistrations().then((regs) => {
+navigator.serviceWorker?.getRegistrations().then((regs) => {
   for (const reg of regs) {
     reg.unregister();
   }

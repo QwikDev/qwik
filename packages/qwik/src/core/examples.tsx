@@ -8,12 +8,13 @@
 
 import { component$ } from './component/component.public';
 import { qrl } from './qrl/qrl';
-import { $, QRL } from './qrl/qrl.public';
+import { $, type QRL } from './qrl/qrl.public';
 import { useOn, useOnDocument, useOnWindow } from './use/use-on';
 import { useStore } from './use/use-store.public';
 import { useStyles$, useStylesScoped$ } from './use/use-styles';
-import { useClientEffect$, useMount$, useServerMount$, useWatch$ } from './use/use-watch';
+import { useVisibleTask$, useTask$ } from './use/use-task';
 import { implicit$FirstArg } from './util/implicit_dollar';
+import { isServer, isBrowser } from '../build';
 
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
@@ -136,7 +137,7 @@ export const CmpInline = component$(() => {
 };
 
 () => {
-  // <docs anchor="use-watch">
+  // <docs anchor="use-task">
   const Cmp = component$(() => {
     const store = useStore({
       count: 0,
@@ -144,14 +145,14 @@ export const CmpInline = component$(() => {
       debounced: 0,
     });
 
-    // Double count watch
-    useWatch$(({ track }) => {
+    // Double count task
+    useTask$(({ track }) => {
       const count = track(() => store.count);
       store.doubleCount = 2 * count;
     });
 
-    // Debouncer watch
-    useWatch$(({ track }) => {
+    // Debouncer task
+    useTask$(({ track }) => {
       const doubleCount = track(() => store.doubleCount);
       const timer = setTimeout(() => {
         store.debounced = doubleCount;
@@ -208,10 +209,10 @@ export const CmpInline = component$(() => {
 };
 
 () => {
-  // <docs anchor="use-watch-simple">
+  // <docs anchor="use-task-simple">
   const Cmp = component$(() => {
     const store = useStore({ count: 0, doubleCount: 0 });
-    useWatch$(({ track }) => {
+    useTask$(({ track }) => {
       const count = track(() => store.count);
       store.doubleCount = 2 * count;
     });
@@ -237,9 +238,11 @@ export const CmpInline = component$(() => {
       users: [],
     });
 
-    useServerMount$(async () => {
-      // This code will ONLY run once in the server, when the component is mounted
-      store.users = await db.requestUsers();
+    useTask$(async () => {
+      if (isServer) {
+        // This code will ONLY run once in the server, when the component is mounted
+        store.users = await db.requestUsers();
+      }
     });
 
     return (
@@ -262,13 +265,28 @@ export const CmpInline = component$(() => {
 };
 
 () => {
+  // <docs anchor="use-client-mount">
+  const Cmp = component$(() => {
+    useTask$(async () => {
+      if (isBrowser) {
+        // This code will ONLY run once in the client, when the component is mounted
+      }
+    });
+
+    return <div>Cmp</div>;
+  });
+  // </docs>
+  return Cmp;
+};
+
+() => {
   // <docs anchor="use-mount">
   const Cmp = component$(() => {
     const store = useStore({
       temp: 0,
     });
 
-    useMount$(async () => {
+    useTask$(async () => {
       // This code will run once whenever a component is mounted in the server, or in the client
       const res = await fetch('weather-api.example');
       const json = (await res.json()) as any;
@@ -292,7 +310,7 @@ export const CmpInline = component$(() => {
       count: 0,
     });
 
-    useClientEffect$(() => {
+    useVisibleTask$(() => {
       // Only runs in the client
       const timer = setInterval(() => {
         store.count++;
@@ -343,7 +361,7 @@ export const CmpInline = component$(() => {
     const counterStore = useStore({
       value: 0,
     });
-    useClientEffect$(() => {
+    useVisibleTask$(() => {
       // Only runs in the client
       const timer = setInterval(() => {
         counterStore.value += step;
@@ -366,28 +384,6 @@ export const CmpInline = component$(() => {
   return Stores;
 };
 
-() => {
-  // <docs anchor="use-ref">
-  const Cmp = component$(() => {
-    const input = useRef<HTMLInputElement>();
-
-    useClientEffect$(({ track }) => {
-      const el = track(() => input.current)!;
-      el.focus();
-    });
-
-    return (
-      <div>
-        <input type="text" ref={input} />
-      </div>
-    );
-  });
-
-  // </docs>
-
-  return Cmp;
-};
-
 //
 // <docs anchor="context">
 // Declare the Context type.
@@ -396,7 +392,7 @@ interface TodosStore {
 }
 // Create a Context ID (no data is saved here.)
 // You will use this ID to both create and retrieve the Context.
-export const TodosContext = createContext<TodosStore>('Todos');
+export const TodosContext = createContextId<TodosStore>('Todos');
 
 // Example of providing context to child components.
 export const App = component$(() => {
@@ -468,8 +464,7 @@ function doExtraStuff() {
 
 // <docs anchor="qrl-capturing-rules">
 
-import { createContext, useContext, useContextProvider } from './use/use-context';
-import { useRef } from './use/use-ref';
+import { createContextId, useContext, useContextProvider } from './use/use-context';
 import { Resource, useResource$ } from './use/use-resource';
 
 export const greet = () => console.log('greet');

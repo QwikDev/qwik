@@ -5,12 +5,16 @@
 .sidebar summary {
   cursor: pointer;
   display: block;
+  padding-top: 3px;
+  margin-bottom: 3px;
+}
+
+.sidebar summary h5 {
+  transition: color 0.2s ease-in-out;
 }
 
 .sidebar summary:hover h5 {
-  text-decoration: underline;
-  text-decoration-thickness: 2px;
-  text-decoration-color: currentColor;
+  color: var(--text-color);
 }
 
 .sidebar summary::marker,
@@ -24,15 +28,18 @@
 }
 
 .breadcrumbs {
-  @apply fixed z-10 w-[100%];
+  @apply sticky z-10 w-[100%];
   top: var(--header-height);
-  @apply border-b border-slate-300;
+  @apply border-b;
   @apply px-1;
   @apply flex;
-  @apply text-slate-600 bg-white;
 
   /* large */
   @apply lg:hidden;
+
+  color: var(--text-color);
+  background-color: var(--bg-color);
+  border-color: var(--bg-secondary-color);
 }
 
 .breadcrumbs button {
@@ -78,17 +85,16 @@
 
   padding-top: 30px;
   top: 8rem;
-  border-right: 2px solid #18b6f6;
+  border-right: 1px solid #8c8c8c66;
 }
 
 .menu h5 {
   @apply px-3 py-1 mb-1 rounded-md whitespace-nowrap;
-  color: var(--qwik-dark-blue);
+  color: var(--interactive-text-color);
 }
 
 .menu ul {
   @apply border-slate-100;
-  padding-left: 10px;
   padding-bottom: 15px;
 }
 
@@ -97,16 +103,33 @@
 }
 
 details li {
-  @apply py-1 pl-3 hover:bg-slate-200;
+  @apply py-1 pl-3 block overflow-hidden text-ellipsis;
+  padding: unset;
+  transition: background-color 0.2s ease-in-out;
 }
+
+details li:hover {
+  background-color: var(--bg-secondary-color);
+  border-radius: 4px;
+}
+
 details li a {
   @apply block overflow-hidden text-ellipsis;
 }
 
 .menu li a {
-  @apply text-slate-900;
+  color: var(--secondary-text-color);
+  padding: 0.5rem 20px;
+  border-radius: 4px;
 }
 
 .menu li a.is-active {
   font-weight: 800;
+  background-color: #b1b1b13a;
+}
+
+@media (max-width: 1023px) {
+  .breadcrumbs button {
+    @apply p-2;
+  }
 }

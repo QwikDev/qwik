@@ -1,18 +1,20 @@
 import { component$, useStore } from '@builder.io/qwik';
 
-export const App = component$(() => {
+export default component$(() => {
   const github = useStore({
     org: 'BuilderIO',
     repos: ['qwik', 'partytown'] as string[] | null,
   });
 
   return (
-    <div>
-      <span>
-        GitHub username:
-        <input value={github.org} />
-      </span>
-      <div>
+    <main>
+      <p>
+        <label>
+          GitHub username:
+          <input value={github.org} />
+        </label>
+      </p>
+      <section>
         {github.repos ? (
           <ul>
             {github.repos.map((repo) => (
@@ -26,7 +28,7 @@ export const App = component$(() => {
         ) : (
           'loading...'
         )}
-      </div>
-    </div>
+      </section>
+    </main>
   );
 });

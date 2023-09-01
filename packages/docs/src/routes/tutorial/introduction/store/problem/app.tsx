@@ -1,6 +1,6 @@
 import { component$ } from '@builder.io/qwik';
 
-export const App = component$(() => {
+export default component$(() => {
   // `github` is just a constant object.
   // Convert it to a Store that can be serialized to JSON on application pause.
   const github = {
@@ -9,12 +9,14 @@ export const App = component$(() => {
   };
 
   return (
-    <div>
-      <span>
-        GitHub username:
-        <input value={github.org} />
-      </span>
-      <div>
+    <main>
+      <p>
+        <label>
+          GitHub username:
+          <input value={github.org} />
+        </label>
+      </p>
+      <section>
         {github.repos ? (
           <ul>
             {github.repos.map((repo) => (
@@ -28,7 +30,7 @@ export const App = component$(() => {
         ) : (
           'loading...'
         )}
-      </div>
-    </div>
+      </section>
+    </main>
   );
 });

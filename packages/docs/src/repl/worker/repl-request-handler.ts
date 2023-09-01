@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
-import type { ReplEventMessage } from '../types';
+// import type { ReplEventMessage } from '../types';
 import { QWIK_REPL_RESULT_CACHE } from './repl-constants';
-import { sendMessageToReplServer } from './repl-messenger';
+// import { sendMessageToReplServer } from './repl-messenger';
 
 export const requestHandler = async (ev: any) => {
   const reqUrl = new URL(ev.request.url);
@@ -34,18 +34,18 @@ export const requestHandler = async (ev: any) => {
           }
 
           // app client modules
-          const replEvent: ReplEventMessage = {
-            type: 'event',
-            clientId,
-            event: {
-              kind: 'client-module',
-              scope: 'network',
-              message: [reqUrl.pathname + reqUrl.search],
-              start: performance.now(),
-            },
-          };
+          // const replEvent: ReplEventMessage = {
+          //   type: 'event',
+          //   clientId,
+          //   event: {
+          //     kind: 'client-module',
+          //     scope: 'network',
+          //     message: [reqUrl.pathname + reqUrl.search],
+          //     start: performance.now(),
+          //   },
+          // };
 
-          sendMessageToReplServer(replEvent);
+          // sendMessageToReplServer(replEvent);
 
           return rsp;
         }

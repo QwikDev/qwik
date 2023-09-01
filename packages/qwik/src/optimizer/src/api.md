@@ -4,7 +4,7 @@
 
 ```ts
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface ComponentEntryStrategy {
     // (undocumented)
     manual?: Record<string, string>;
@@ -12,10 +12,10 @@ export interface ComponentEntryStrategy {
     type: 'component';
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export const createOptimizer: (optimizerOptions?: OptimizerOptions) => Promise<Optimizer>;
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface Diagnostic {
     // (undocumented)
     category: DiagnosticCategory;
@@ -33,13 +33,15 @@ export interface Diagnostic {
     suggestions: string[] | null;
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export type DiagnosticCategory = 'error' | 'warning' | 'sourceError';
 
-// @alpha (undocumented)
-export type EntryStrategy = InlineEntryStrategy | SingleEntryStrategy | HookEntryStrategy | ComponentEntryStrategy | SmartEntryStrategy;
+// Warning: (ae-forgotten-export) The symbol "HoistEntryStrategy" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export type EntryStrategy = InlineEntryStrategy | HoistEntryStrategy | SingleEntryStrategy | HookEntryStrategy | ComponentEntryStrategy | SmartEntryStrategy;
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface GlobalInjections {
     // (undocumented)
     attributes?: {
@@ -51,7 +53,7 @@ export interface GlobalInjections {
     tag: string;
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface HookAnalysis {
     // (undocumented)
     canonicalFilename: string;
@@ -70,6 +72,8 @@ export interface HookAnalysis {
     // (undocumented)
     hash: string;
     // (undocumented)
+    loc: [number, number];
+    // (undocumented)
     name: string;
     // (undocumented)
     origin: string;
@@ -77,22 +81,24 @@ export interface HookAnalysis {
     parent: string | null;
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface HookEntryStrategy {
+    // (undocumented)
+    manual?: Record<string, string>;
     // (undocumented)
     type: 'hook';
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface InlineEntryStrategy {
     // (undocumented)
     type: 'inline';
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export type MinifyMode = 'simplify' | 'none';
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface Optimizer {
     sys: OptimizerSystem;
     transformFs(opts: TransformFsOptions): Promise<TransformOutput>;
@@ -101,7 +107,7 @@ export interface Optimizer {
     transformModulesSync(opts: TransformModulesOptions): TransformOutput;
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface OptimizerOptions {
     // (undocumented)
     binding?: any;
@@ -109,7 +115,7 @@ export interface OptimizerOptions {
     sys?: OptimizerSystem;
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface OptimizerSystem {
     // (undocumented)
     cwd: () => string;
@@ -127,7 +133,7 @@ export interface OptimizerSystem {
     strictDynamicImport: (path: string) => Promise<any>;
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface Path {
     // (undocumented)
     basename(path: string, ext?: string): string;
@@ -171,13 +177,13 @@ export interface Path {
     readonly win32: null;
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export type QwikBuildMode = 'production' | 'development';
 
-// @alpha (undocumented)
-export type QwikBuildTarget = 'client' | 'ssr' | 'lib';
+// @public (undocumented)
+export type QwikBuildTarget = 'client' | 'ssr' | 'lib' | 'test';
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface QwikBundle {
     // (undocumented)
     dynamicImports?: string[];
@@ -191,7 +197,7 @@ export interface QwikBundle {
     symbols?: string[];
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface QwikManifest {
     // (undocumented)
     bundles: {
@@ -200,6 +206,8 @@ export interface QwikManifest {
     // (undocumented)
     injections?: GlobalInjections[];
     // (undocumented)
+    manifestHash: string;
+    // (undocumented)
     mapping: {
         [symbolName: string]: string;
     };
@@ -207,7 +215,6 @@ export interface QwikManifest {
     options?: {
         target?: string;
         buildMode?: string;
-        forceFullBuild?: boolean;
         entryStrategy?: {
             [key: string]: any;
         };
@@ -224,16 +231,16 @@ export interface QwikManifest {
     version: string;
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export function qwikRollup(qwikRollupOpts?: QwikRollupPluginOptions): any;
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface QwikRollupPluginOptions {
     buildMode?: QwikBuildMode;
+    // (undocumented)
+    csr?: boolean;
     debug?: boolean;
     entryStrategy?: EntryStrategy;
-    // (undocumented)
-    forceFullBuild?: boolean;
     manifestInput?: QwikManifest;
     manifestOutput?: (manifest: QwikManifest) => Promise<void> | void;
     // (undocumented)
@@ -245,7 +252,7 @@ export interface QwikRollupPluginOptions {
     transformedModuleOutput?: ((transformedModules: TransformModule[]) => Promise<void> | void) | null;
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface QwikSymbol {
     // (undocumented)
     canonicalFilename: string;
@@ -260,15 +267,25 @@ export interface QwikSymbol {
     // (undocumented)
     hash: string;
     // (undocumented)
+    loc: [number, number];
+    // (undocumented)
     origin: string;
     // (undocumented)
     parent: string | null;
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export function qwikVite(qwikViteOpts?: QwikVitePluginOptions): any;
 
-// @alpha (undocumented)
+// @public (undocumented)
+export interface QwikViteDevResponse {
+    // (undocumented)
+    _qwikEnvData?: Record<string, any>;
+    // (undocumented)
+    _qwikRenderResolve?: () => void;
+}
+
+// @public (undocumented)
 export interface QwikVitePlugin {
     // (undocumented)
     api: QwikVitePluginApi;
@@ -276,10 +293,12 @@ export interface QwikVitePlugin {
     name: 'vite-plugin-qwik';
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface QwikVitePluginApi {
     // (undocumented)
     getClientOutDir: () => string | null;
+    // (undocumented)
+    getClientPublicOutDir: () => string | null;
     // (undocumented)
     getManifest: () => QwikManifest | null;
     // (undocumented)
@@ -292,30 +311,21 @@ export interface QwikVitePluginApi {
     getRootDir: () => string | null;
 }
 
-// @alpha (undocumented)
-export interface QwikVitePluginOptions {
+// Warning: (ae-forgotten-export) The symbol "QwikVitePluginCSROptions" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "QwikVitePluginSSROptions" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export type QwikVitePluginOptions = QwikVitePluginCSROptions | QwikVitePluginSSROptions;
+
+// @public (undocumented)
+export interface ResolvedManifest {
     // (undocumented)
-    client?: {
-        input?: string[] | string;
-        devInput?: string;
-        outDir?: string;
-        manifestOutput?: (manifest: QwikManifest) => Promise<void> | void;
-    };
-    debug?: boolean;
-    entryStrategy?: EntryStrategy;
+    manifest: QwikManifest;
     // (undocumented)
-    optimizerOptions?: OptimizerOptions;
-    srcDir?: string;
-    // (undocumented)
-    ssr?: {
-        input?: string;
-        outDir?: string;
-        manifestInput?: QwikManifest;
-    };
-    transformedModuleOutput?: ((transformedModules: TransformModule[]) => Promise<void> | void) | null;
+    mapper: SymbolMapper;
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface SingleEntryStrategy {
     // (undocumented)
     manual?: Record<string, string>;
@@ -323,7 +333,7 @@ export interface SingleEntryStrategy {
     type: 'single';
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface SmartEntryStrategy {
     // (undocumented)
     manual?: Record<string, string>;
@@ -331,7 +341,7 @@ export interface SmartEntryStrategy {
     type: 'smart';
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface SourceLocation {
     // (undocumented)
     endCol: number;
@@ -347,25 +357,25 @@ export interface SourceLocation {
     startLine: number;
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export type SourceMapsOption = 'external' | 'inline' | undefined | null;
 
-// @alpha (undocumented)
-export type SymbolMapper = Record<string, [symbol: string, chunk: string]>;
+// @public (undocumented)
+export type SymbolMapper = Record<string, readonly [symbol: string, chunk: string]>;
 
-// @alpha (undocumented)
-export type SymbolMapperFn = (symbolName: string, mapper: SymbolMapper | undefined) => [symbol: string, chunk: string] | undefined;
+// @public (undocumented)
+export type SymbolMapperFn = (symbolName: string, mapper: SymbolMapper | undefined) => readonly [symbol: string, chunk: string] | undefined;
 
-// @alpha (undocumented)
+// @public (undocumented)
 export type SystemEnvironment = 'node' | 'deno' | 'webworker' | 'browsermain' | 'unknown';
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface TransformFsOptions extends TransformOptions {
     // (undocumented)
     vendorRoots: string[];
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface TransformModule {
     // (undocumented)
     code: string;
@@ -379,7 +389,7 @@ export interface TransformModule {
     path: string;
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface TransformModuleInput {
     // (undocumented)
     code: string;
@@ -387,18 +397,20 @@ export interface TransformModuleInput {
     path: string;
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface TransformModulesOptions extends TransformOptions {
     // (undocumented)
     input: TransformModuleInput[];
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface TransformOptions {
     // (undocumented)
     entryStrategy?: EntryStrategy;
     // (undocumented)
     explicitExtensions?: boolean;
+    // (undocumented)
+    isServer?: boolean;
     // (undocumented)
     minify?: MinifyMode;
     // Warning: (ae-forgotten-export) The symbol "EmitMode" needs to be exported by the entry point index.d.ts
@@ -408,18 +420,28 @@ export interface TransformOptions {
     // (undocumented)
     preserveFilenames?: boolean;
     // (undocumented)
+    regCtxName?: string[];
+    // (undocumented)
+    rootDir?: string;
+    // (undocumented)
     scope?: string;
     // (undocumented)
     sourceMaps?: boolean;
     // (undocumented)
     srcDir: string;
     // (undocumented)
+    stripCtxName?: string[];
+    // (undocumented)
+    stripEventHandlers?: boolean;
+    // (undocumented)
+    stripExports?: string[];
+    // (undocumented)
     transpileJsx?: boolean;
     // (undocumented)
     transpileTs?: boolean;
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface TransformOutput {
     // (undocumented)
     diagnostics: Diagnostic[];
@@ -431,7 +453,7 @@ export interface TransformOutput {
     modules: TransformModule[];
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export type TranspileOption = boolean | undefined | null;
 
 // @public (undocumented)

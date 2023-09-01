@@ -18,9 +18,10 @@ import { fileURLToPath } from 'node:url';
 export function suite(title?: string) {
   const s = uvuSuite<TestContext>(title);
   const rootDir = tmpdir();
+  const basePath = '/';
 
   s.before.each((testCtx) => {
-    testCtx.ctx = createBuildContext(rootDir, {
+    testCtx.ctx = createBuildContext(rootDir, basePath, {
       routesDir: join(rootDir, 'src', 'routes'),
     });
     testCtx.opts = testCtx.ctx.opts;
@@ -42,13 +43,12 @@ export function testAppSuite(title: string) {
   s.before.each(async (testCtx) => {
     if (!buildCtx) {
       const __dirname = fileURLToPath(new URL('.', import.meta.url));
-      const testAppRootDir = join(__dirname, '..', 'runtime', 'src');
-      const ctx = createBuildContext(testAppRootDir, {
-        routesDir: join(testAppRootDir, 'app', 'routes'),
-      });
+      const testAppRootDir = join(__dirname, '..', '..', '..', 'starters', 'apps', 'qwikcity-test');
+      const basePath = '/';
+      const ctx = createBuildContext(testAppRootDir, basePath);
 
       assert.is(normalizePath(testAppRootDir), ctx.rootDir);
-      assert.is(normalizePath(join(testAppRootDir, 'app', 'routes')), ctx.opts.routesDir);
+      assert.is(normalizePath(join(testAppRootDir, 'src', 'routes')), ctx.opts.routesDir);
 
       await build(ctx);
 

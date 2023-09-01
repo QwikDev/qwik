@@ -1,59 +1,517 @@
-import type { StreamWriter } from '@builder.io/qwik';
 import type { Render, RenderOptions } from '@builder.io/qwik/server';
-import type {
-  ClientPageData,
-  QwikCityPlan,
-  RequestContext,
-  RouteParams,
-} from '../../runtime/src/library/types';
+import type { QwikCityPlan, FailReturn, Action, Loader } from '@builder.io/qwik-city';
+import type { ErrorResponse } from './error-handler';
+import type { AbortMessage, RedirectMessage } from './redirect-handler';
+import type { RequestEventInternal } from './request-event';
+import type { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
 
-export interface QwikCityRequestContext<T = any> {
-  request: RequestContext;
-  response: ResponseHandler<T>;
-  url: URL;
-  platform: Record<string, any>;
-}
-
-export interface QwikCityDevRequestContext extends QwikCityRequestContext {
-  routesDir: string;
-}
-
-export interface ResponseStreamWriter extends StreamWriter {
-  clientData?: (data: ClientPageData) => void;
-}
-
-export type ResponseHandler<T = any> = (
-  status: number,
-  headers: Headers,
-  body: (stream: ResponseStreamWriter) => Promise<void>,
-  error?: any
-) => Promise<T>;
-
-export interface UserResponseContext {
-  type: 'endpoint' | 'pagehtml' | 'pagedata';
-  url: URL;
-  params: RouteParams;
-  status: number;
-  headers: Headers;
-  cookie: Cookie;
-  resolvedBody: string | number | boolean | null | undefined;
-  pendingBody: Promise<string | number | boolean | null | undefined> | undefined;
-  aborted: boolean;
-}
-
-export interface QwikCityHandlerOptions extends RenderOptions {
-  render: Render;
-  qwikCityPlan: QwikCityPlan;
+/**
+ * @public
+ */
+export interface EnvGetter {
+  get(key: string): string | undefined;
 }
 
 /**
- * @alpha
+ * @public
+ */
+export interface ClientConn {
+  ip?: string;
+  country?: string;
+}
+
+/**
+ * @public
+ * Request event created by the server.
+ */
+export interface ServerRequestEvent<T = any> {
+  mode: ServerRequestMode;
+  url: URL;
+  locale: string | undefined;
+  platform: any;
+  request: Request;
+  env: EnvGetter;
+  getClientConn: () => ClientConn;
+  getWritableStream: ServerResponseHandler<T>;
+}
+
+/**
+ * @public
+ */
+export type ServerRequestMode = 'dev' | 'static' | 'server';
+
+/**
+ * @public
+ */
+export type ServerResponseHandler<T = any> = (
+  status: number,
+  headers: Headers,
+  cookies: Cookie,
+  resolve: (response: T) => void,
+  requestEv: RequestEventInternal
+) => WritableStream<Uint8Array>;
+
+/**
+ * @public
+ */
+export interface ServerRenderOptions extends RenderOptions {
+  render: Render;
+  qwikCityPlan: QwikCityPlan;
+  /**
+   * Protection against cross-site request forgery (CSRF) attacks.
+   *
+   * When `true`, for every incoming POST, PUT, PATCH, or DELETE form submissions,
+   * the request origin is checked to match the server's origin.
+   *
+   * Be careful when disabling this option as it may lead to CSRF attacks.
+   *
+   * Defaults to `true`.
+   */
+  checkOrigin?: boolean;
+}
+
+/**
+ * @public
+ */
+export type RequestHandler<PLATFORM = QwikCityPlatform> = (
+  ev: RequestEvent<PLATFORM>
+) => Promise<void> | void;
+
+/**
+ * @public
+ */
+export interface SendMethod {
+  (statusCode: StatusCodes, data: any): AbortMessage;
+  (response: Response): AbortMessage;
+}
+
+export type StatusCodes =
+  | InformationalCode
+  | SuccessCode
+  | ClientErrorCode
+  | ServerErrorCode
+  | RedirectCode
+  | number;
+
+export type ErrorCodes = ClientErrorCode | ServerErrorCode;
+
+/**
+ * HTTP Informational Status Codes
+ * Status codes in the 1xx range indicate that the server has received and is processing the request, but no response is available yet.
+ */
+export type InformationalCode =
+  | 100 // Continue
+  | 101 // Switching Protocols
+  | 102 // Processing
+  | 103; // Early Hints
+
+/**
+ * HTTP Success Status Codes
+ * Status codes in the 2xx range indicate that the client's request was successfully received, understood, and accepted by the server.
+ */
+type SuccessCode =
+  | 200 // OK
+  | 201 // Created
+  | 202 // Accepted
+  | 203 // Non-Authoritative Information
+  | 204 // No Content
+  | 205 // Reset Content
+  | 206 // Partial Content
+  | 207 // Multi-Status
+  | 208 // Already Reported
+  | 226; // IM Used;
+
+/**
+ * HTTP Redirect Status Codes
+ * Status codes in the 3xx range indicate that further action must be taken by the client to complete the request.
+ */
+export type RedirectCode =
+  | 300 // Multiple Choices
+  | 301 // Moved Permanently
+  | 302 // Found
+  | 303 // See Other
+  | 304 // Not Modified
+  | 305 // Use Proxy
+  | 307 // Temporary Redirect
+  | 308; // Permanent Redirect
+
+/**
+ * HTTP Client Error Status Codes
+ * Status codes in the 4xx range indicate that the client's request was malformed or invalid and could not be understood or processed by the server.
+ */
+export type ClientErrorCode =
+  | 400 // Bad Request
+  | 401 // Unauthorized
+  | 402 // Payment Required
+  | 403 // Forbidden
+  | 404 // Not Found
+  | 405 // Method Not Allowed
+  | 406 // Not Acceptable
+  | 407 // Proxy Authentication Required
+  | 408 // Request Timeout
+  | 409 // Conflict
+  | 410 // Gone
+  | 411 // Length Required
+  | 412 // Precondition Failed
+  | 413 // Payload Too Large
+  | 414 // URI Too Long
+  | 415 // Unsupported Media Type
+  | 416 // Range Not Satisfiable
+  | 417 // Expectation Failed
+  | 418 // I'm a teapot
+  | 421 // Misdirected Request
+  | 422 // Unprocessable Entity
+  | 423 // Locked
+  | 424 // Failed Dependency
+  | 425 // Too Early
+  | 426 // Upgrade Required
+  | 428 // Precondition Required
+  | 429 // Too Many Requests
+  | 431 // Request Header Fields Too Large
+  | 451; // Unavailable For Legal Reasons
+
+/**
+ * HTTP Server Error Status Codes
+ * Status codes in the 5xx range indicate that the server encountered an error or was unable to fulfill the request due to unexpected conditions.
+ */
+export type ServerErrorCode =
+  | 500 // Internal Server Error
+  | 501 // Not Implemented
+  | 502 // Bad Gateway
+  | 503 // Service Unavailable
+  | 504 // Gateway Timeout
+  | 505 // HTTP Version Not Supported
+  | 506 // Variant Also Negotiates
+  | 507 // Insufficient Storage
+  | 508 // Loop Detected
+  | 510 // Not Extended
+  | 511; // Network Authentication Required
+
+/**
+ * @public
+ */
+export interface RequestEventCommon<PLATFORM = QwikCityPlatform>
+  extends RequestEventBase<PLATFORM> {
+  /**
+   * HTTP response status code. Sets the status code when called with an
+   * argument. Always returns the status code, so calling `status()` without
+   * an argument will can be used to return the current status code.
+   *
+   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+   */
+  readonly status: (statusCode?: StatusCodes) => number;
+
+  /**
+   * Which locale the content is in.
+   *
+   * The locale value can be retrieved from selected methods using `getLocale()`:
+   */
+  readonly locale: (local?: string) => string;
+
+  /**
+   * URL to redirect to. When called, the response will immediately
+   * end with the correct redirect status and headers.
+   *
+   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections
+   */
+  readonly redirect: (statusCode: RedirectCode, url: string) => RedirectMessage;
+
+  /**
+   * When called, the response will immediately end with the given
+   * status code. This could be useful to end a response with `404`,
+   * and use the 404 handler in the routes directory.
+   * See https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+   * for which status code should be used.
+   */
+  readonly error: (statusCode: ErrorCodes, message: string) => ErrorResponse;
+
+  /**
+   * Convenience method to send an text body response. The response will be automatically
+   * set the `Content-Type` header to`text/plain; charset=utf-8`.
+   *  An `text()` response can only be called once.
+   */
+  readonly text: (statusCode: StatusCodes, text: string) => AbortMessage;
+
+  /**
+   * Convenience method to send an HTML body response. The response will be automatically
+   * set the `Content-Type` header to`text/html; charset=utf-8`.
+   *  An `html()` response can only be called once.
+   */
+  readonly html: (statusCode: StatusCodes, html: string) => AbortMessage;
+
+  /**
+   * Convenience method to JSON stringify the data and send it in the response.
+   * The response will be automatically set the `Content-Type` header to
+   * `application/json; charset=utf-8`. A `json()` response can only be called once.
+   */
+  readonly json: (statusCode: StatusCodes, data: any) => AbortMessage;
+
+  /**
+   * Send a body response. The `Content-Type` response header is not automatically set
+   * when using `send()` and must be set manually. A `send()` response can only be called once.
+   */
+  readonly send: SendMethod;
+
+  readonly exit: () => AbortMessage;
+}
+
+/**
+ * @public
+ */
+export interface RequestEventBase<PLATFORM = QwikCityPlatform> {
+  /**
+   * HTTP response headers. Notice it will be empty until you first add a header.
+   * If you want to read the request headers, use `request.headers` instead.
+   *
+   * https://developer.mozilla.org/en-US/docs/Glossary/Response_header
+   */
+  readonly headers: Headers;
+
+  /**
+   * HTTP request and response cookie. Use the `get()` method to retrieve a request cookie value.
+   * Use the `set()` method to set a response cookie value.
+   *
+   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies
+   */
+  readonly cookie: Cookie;
+
+  /**
+   * HTTP request method.
+   *
+   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
+   */
+  readonly method: string;
+
+  /**
+   * URL pathname. Does not include the protocol, domain, query string (search params) or hash.
+   *
+   * https://developer.mozilla.org/en-US/docs/Web/API/URL/pathname
+   */
+  readonly pathname: string;
+
+  /**
+   * URL path params which have been parsed from the current url pathname segments.
+   * Use `query` to instead retrieve the query string search params.
+   */
+  readonly params: Readonly<Record<string, string>>;
+
+  /**
+   * URL Query Strings (URL Search Params).
+   * Use `params` to instead retrieve the route params found in the url pathname.
+   *
+   * https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams
+   */
+  readonly query: URLSearchParams;
+
+  /**
+   * HTTP request URL.
+   */
+  readonly url: URL;
+
+  /**
+   * The base pathname of the request, which can be configured at build time.
+   * Defaults to `/`.
+   */
+  readonly basePathname: string;
+
+  /**
+   * HTTP request information.
+   */
+  readonly request: Request;
+
+  /**
+   * Platform specific data and functions
+   */
+  readonly platform: PLATFORM;
+
+  /**
+   * Platform provided environment variables.
+   */
+  readonly env: EnvGetter;
+
+  /**
+   * Shared Map across all the request handlers. Every HTTP request will get a new instance of
+   * the shared map. The shared map is useful for sharing data between request handlers.
+   */
+  readonly sharedMap: Map<string, any>;
+
+  /**
+   * This method will check the request headers for a `Content-Type` header and parse the body accordingly.
+   * It supports `application/json`, `application/x-www-form-urlencoded`, and `multipart/form-data` content types.
+   *
+   * If the `Content-Type` header is not set, it will return `null`.
+   */
+  readonly parseBody: () => Promise<unknown>;
+
+  /**
+   * Convenience method to set the Cache-Control header.
+   *
+   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
+   */
+  readonly cacheControl: (cacheControl: CacheControl) => void;
+
+  /**
+   * Provides information about the client connection, such as the IP address and the country the request originated from.
+   */
+  readonly clientConn: ClientConn;
+
+  /**
+   * Request's AbortSignal (same as `request.signal`). This signal indicates that the request has been aborted.
+   */
+  readonly signal: AbortSignal;
+}
+
+/**
+ * @public
+ */
+export type CacheControl =
+  | CacheControlOptions
+  | number
+  | 'day'
+  | 'week'
+  | 'month'
+  | 'year'
+  | 'no-cache'
+  | 'immutable'
+  | 'private';
+
+/**
+ * @public
+ */
+export interface CacheControlOptions {
+  /**
+   * The max-age=N response directive indicates that the response remains fresh until N seconds after the response is generated.
+   * Note that max-age is not the elapsed time since the response was received; it is the elapsed time since the response was generated on the origin server. So if the other cache(s) — on the network route taken by the response — store the response for 100 seconds (indicated using the Age response header field), the browser cache would deduct 100 seconds from its freshness lifetime.
+   */
+  maxAge?: number;
+
+  /**
+   * The s-maxage response directive also indicates how long the response is fresh for (similar to max-age) — but it is specific to shared caches, and they will ignore max-age when it is present.
+   */
+  sMaxAge?: number;
+
+  /**
+   * The stale-while-revalidate response directive indicates that the cache could reuse a stale response while it revalidates it to a cache.
+   */
+  staleWhileRevalidate?: number;
+
+  /**
+   * The stale-if-error response directive that indicates if a stale response can be used when there's an error from the origin.
+   */
+  staleIfError?: number;
+
+  /**
+   * The no-store response directive indicates that any caches of any kind (private or shared) should not store this response.
+   */
+  noStore?: boolean;
+
+  /**
+   * The no-cache response directive indicates that the response can be stored in caches, but the response must be validated with the origin server before each reuse, even when the cache is disconnected from the origin server.
+   */
+  noCache?: boolean;
+
+  /**
+   * The public response directive indicates that the response can be stored in a shared cache.
+   * Responses for requests with Authorization header fields must not be stored in a shared cache; however, the public directive will cause such responses to be stored in a shared cache.
+   */
+  public?: boolean;
+
+  /**
+   * The private response directive indicates that the response can be stored only in a private cache (e.g. local caches in browsers).
+   * You should add the private directive for user-personalized content, especially for responses received after login and for sessions managed via cookies.
+   * If you forget to add private to a response with personalized content, then that response can be stored in a shared cache and end up being reused for multiple users, which can cause personal information to leak.
+   */
+  private?: boolean;
+
+  /**
+   * The immutable response directive indicates that the response will not be updated while it's fresh.
+   *
+   * A modern best practice for static resources is to include version/hashes in their URLs, while never modifying the resources — but instead, when necessary, updating the resources with newer versions that have new version-numbers/hashes, so that their URLs are different. That's called the cache-busting pattern.
+   */
+  immutable?: boolean;
+}
+
+/**
+ * @public
+ */
+export interface RequestEvent<PLATFORM = QwikCityPlatform> extends RequestEventCommon<PLATFORM> {
+  /**
+   * True if headers have been sent, preventing any more headers from being set.
+   */
+  readonly headersSent: boolean;
+
+  /**
+   * True if the middleware chain has finished executing.
+   */
+  readonly exited: boolean;
+  /**
+   * Low-level access to write to the HTTP response stream. Once `getWritableStream()` is called,
+   * the status and headers can no longer be modified and will be sent over the network.
+   */
+  readonly getWritableStream: () => WritableStream<Uint8Array>;
+
+  /**
+   * Invoke the next middleware function in the chain.
+   *
+   * NOTE: Ensure that the call to `next()` is `await`ed.
+   */
+  readonly next: () => Promise<void>;
+}
+
+declare global {
+  interface QwikCityPlatform {}
+}
+
+/**
+ * @public
+ */
+export interface RequestEventAction<PLATFORM = QwikCityPlatform>
+  extends RequestEventCommon<PLATFORM> {
+  fail: <T extends Record<string, any>>(status: number, returnData: T) => FailReturn<T>;
+}
+
+/**
+ * @public
+ */
+export type DeferReturn<T> = () => Promise<T>;
+
+/**
+ * @public
+ */
+export interface RequestEventLoader<PLATFORM = QwikCityPlatform>
+  extends RequestEventAction<PLATFORM> {
+  resolveValue: ResolveValue;
+  defer: <T>(returnData: Promise<T> | (() => Promise<T>)) => DeferReturn<T>;
+}
+
+/**
+ * @public
+ */
+export interface ResolveValue {
+  <T>(loader: Loader<T>): Awaited<T> extends () => any ? never : Promise<T>;
+  <T>(action: Action<T>): Promise<T | undefined>;
+}
+
+/**
+ * @public
+ */
+export interface ResolveSyncValue {
+  <T>(loader: Loader<T>): Awaited<T> extends () => any ? never : Awaited<T>;
+  <T>(action: Action<T>): Awaited<T> | undefined;
+}
+
+/**
+ * @public
  */
 export interface Cookie {
   /**
    * Gets a `Request` cookie header value by name.
    */
   get(name: string): CookieValue | null;
+  /**
+   * Gets all `Request` cookie headers.
+   */
+  getAll(): Record<string, CookieValue>;
   /**
    * Checks if the `Request` cookie header name exists.
    */
@@ -65,7 +523,7 @@ export interface Cookie {
   /**
    * Deletes cookie value by name using the `Response` cookie header.
    */
-  delete(name: string): void;
+  delete(name: string, options?: Pick<CookieOptions, 'path' | 'domain'>): void;
   /**
    * Returns an array of all the set `Response` `Set-Cookie` header values.
    */
@@ -73,8 +531,12 @@ export interface Cookie {
 }
 
 /**
+ * @public
+ */
+
+/**
  * https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
- * @alpha
+ * @public
  */
 export interface CookieOptions {
   /**
@@ -106,7 +568,7 @@ export interface CookieOptions {
    * Controls whether or not a cookie is sent with cross-site requests, providing some protection
    * against cross-site request forgery attacks (CSRF).
    */
-  sameSite?: 'strict' | 'lax' | 'none';
+  sameSite?: 'strict' | 'lax' | 'none' | boolean;
   /**
    * Indicates that the cookie is sent to the server only when a request is made with
    * the `https:` scheme (except on localhost)
@@ -115,10 +577,33 @@ export interface CookieOptions {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface CookieValue {
   value: string;
   json: <T = unknown>() => T;
   number: () => number;
 }
+
+/**
+ * @public
+ */
+export interface QwikSerializer {
+  _deserializeData: typeof _deserializeData;
+  _serializeData: typeof _serializeData;
+  _verifySerializable: typeof _verifySerializable;
+}
+
+/**
+ * @public
+ */
+export type HttpMethod =
+  | 'GET'
+  | 'POST'
+  | 'PUT'
+  | 'DELETE'
+  | 'PATCH'
+  | 'HEAD'
+  | 'OPTIONS'
+  | 'CONNECT'
+  | 'TRACE';

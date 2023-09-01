@@ -1,4 +1,3 @@
-import { mutable } from '@builder.io/qwik';
 import { CodeBlock } from '../components/code-block/code-block';
 import { ReplOutputModules } from './repl-output-modules';
 import { ReplOutputSymbols } from './repl-output-symbols';
@@ -62,7 +61,7 @@ export const ReplOutputPanel = ({ input, store }: ReplOutputPanelProps) => {
 
         <ReplTabButton
           text={`Diagnostics${diagnosticsLen > 0 ? ` (${diagnosticsLen})` : ``}`}
-          cssClass={{ 'repl-tab-diagnostics': true }}
+          cssClass={{ 'repl-tab-diagnostics': true, 'has-errors': diagnosticsLen > 0 }}
           isActive={store.selectedOutputPanel === 'diagnostics'}
           onClick$={async () => {
             store.selectedOutputPanel = 'diagnostics';
@@ -102,7 +101,7 @@ export const ReplOutputPanel = ({ input, store }: ReplOutputPanelProps) => {
 
         {store.selectedOutputPanel === 'html' ? (
           <div class="output-result output-html">
-            <CodeBlock language="markup" code={store.html} theme="light" />
+            <CodeBlock language="markup" code={store.html} />
           </div>
         ) : null}
 

@@ -39,6 +39,7 @@ test('resolveLayout', () => {
   t.forEach((c) => {
     const opts: NormalizedPluginOptions = {
       routesDir: '',
+      serverPluginsDir: '',
       basePathname: '/',
       trailingSlash: false,
       mdxPlugins: {
@@ -47,7 +48,7 @@ test('resolveLayout', () => {
         rehypeAutolinkHeadings: true,
       },
       mdx: {},
-      baseUrl: '/',
+      platform: {},
     };
     const sourceFile: RouteSourceFile = {
       ...getSourceFile(c.fileName)!,

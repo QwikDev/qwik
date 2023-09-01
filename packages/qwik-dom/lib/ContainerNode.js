@@ -71,6 +71,15 @@ ContainerNode.prototype = Object.create(Node.prototype, {
     },
   },
 
+  replaceChildren: {
+    value: function replaceChildren() {
+      this.removeChildren();
+      
+      // Should probably implement here the replace logic as well
+      // but for now we just need the "children" removal ability
+    }
+  },  
+
   // Remove all of this node's children.  This is a minor
   // optimization that only calls modify() once.
   removeChildren: {

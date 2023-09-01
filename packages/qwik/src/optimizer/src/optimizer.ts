@@ -1,4 +1,9 @@
-import { getPlatformInputFiles, getSystem, loadPlatformBinding, PlatformBinding } from './platform';
+import {
+  getPlatformInputFiles,
+  getSystem,
+  loadPlatformBinding,
+  type PlatformBinding,
+} from './platform';
 import type {
   TransformModulesOptions,
   TransformFsOptions,
@@ -8,7 +13,7 @@ import type {
 } from './types';
 
 /**
- * @alpha
+ * @public
  */
 export const createOptimizer = async (optimizerOptions: OptimizerOptions = {}) => {
   const sys = optimizerOptions?.sys || (await getSystem());
@@ -67,20 +72,25 @@ const transformFsAsync = async (
     input.forEach((file) => {
       file.path = sys.path.relative(fsOpts.srcDir, file.path);
     });
-    const modulesOpts: TransformModulesOptions = {
+    const modulesOpts: Required<TransformModulesOptions> = {
       srcDir: fsOpts.srcDir,
-      entryStrategy: fsOpts.entryStrategy,
-      minify: fsOpts.minify,
-      sourceMaps: fsOpts.sourceMaps,
-      transpileTs: fsOpts.transpileTs,
-      transpileJsx: fsOpts.transpileJsx,
-      explicitExtensions: fsOpts.explicitExtensions,
-      preserveFilenames: fsOpts.preserveFilenames,
-      mode: fsOpts.mode,
-      scope: fsOpts.scope,
+      rootDir: fsOpts.rootDir!,
+      entryStrategy: fsOpts.entryStrategy!,
+      minify: fsOpts.minify!,
+      sourceMaps: fsOpts.sourceMaps!,
+      transpileTs: fsOpts.transpileTs!,
+      transpileJsx: fsOpts.transpileJsx!,
+      explicitExtensions: fsOpts.explicitExtensions!,
+      preserveFilenames: fsOpts.preserveFilenames!,
+      mode: fsOpts.mode!,
+      scope: fsOpts.scope!,
       input,
+      regCtxName: fsOpts.regCtxName!,
+      stripEventHandlers: fsOpts.stripEventHandlers!,
+      stripCtxName: fsOpts.stripCtxName!,
+      stripExports: fsOpts.stripExports!,
+      isServer: fsOpts.isServer!,
     };
-
     return binding.transform_modules(convertOptions(modulesOpts));
   }
 
@@ -98,7 +108,12 @@ const convertOptions = (opts: any) => {
     mode: 'lib',
     manualChunks: undefined,
     scope: undefined,
+    regCtxName: undefined,
+    stripEventHandlers: false,
+    rootDir: undefined,
     stripExports: undefined,
+    stripCtxName: undefined,
+    isServer: undefined,
   };
   Object.entries(opts).forEach(([key, value]) => {
     if (value != null) {

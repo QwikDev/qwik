@@ -1,35 +1,57 @@
 .header-container {
-  height: calc(var(--header-height));
-  margin-bottom: 6px;
-  background: white;
-  position: relative;
+  height: var(--header-height);
+  background: var(--bg-color);
+  position: sticky;
+  top: 0;
   z-index: 100;
 }
 
 @media (min-width: 1024px) {
   .header-container {
-    background: #ffffff9e;
+    background: var(--bg-header-color);
     backdrop-filter: blur(23px) saturate(4.5);
   }
 }
 
+.header-container.home-page-header {
+  background: transparent !important;
+  color: white;
+}
+
+.header-open .header-container.home-page-header .menu-toolkit {
+  background: #101010 !important;
+}
+
+.home-page-header .sun-and-moon:not(:hover) > :is(.moon, .sun, .sun-beams) {
+  fill: #e3e2e9 !important;
+  stroke: #e3e2e9 !important;
+}
+
+.home-page-header.sun-and-moon:is(:hover) > :is(.moon, .sun, .sun-beams) {
+  fill: #b9b8be !important;
+  stroke: #b9b8be !important;
+}
+
 .fixed-header .header-container {
-  position: fixed;
-  top: 0;
   width: 100%;
   z-index: 40;
 }
 
+.builder-bar {
+  position: relative;
+  z-index: 50;
+}
+
 header li {
   @apply px-2 text-right;
-  @apply py-4 md:py-0;
+  @apply py-4 lg:py-0;
 
   font-size: 14px;
   font-weight: 500;
 }
 
 header a.active {
-  color: var(--qwik-dark-blue);
+  color: var(--interactive-text-color);
 }
 
 header a:hover {
@@ -41,14 +63,15 @@ header li a:hover svg {
 }
 
 header .mobile-menu {
+  height: var(--header-height);
   position: absolute;
   right: 0;
-  @apply p-5 md:hidden;
+  @apply p-5 lg:hidden;
 }
 
-header ul {
-  @apply hidden md:block;
-  @apply pt-0 pb-6 md:pt-0;
+header .menu-toolkit {
+  @apply hidden lg:flex;
+  @apply pt-0 lg:pt-0 pb-0;
   height: 100%;
   align-items: center;
 }
@@ -61,40 +84,12 @@ header .close-icon {
   display: none;
 }
 
-@media (max-width: 767px) {
-  .header-container {
-    padding-top: 5px;
-  }
-
-  .header-open header ul {
-    position: absolute;
-    z-index: 10;
-    display: block;
-    top: var(--header-height);
-    width: 100%;
-    background: white;
-    height: auto;
-  }
-
-  .header-open header .more-icon {
-    display: none;
-  }
-
-  .header-open header .close-icon {
-    display: block;
-  }
-
-  .header-open .menu-toolkit li {
-    text-align: center;
-  }
-}
-
 header .header-inner {
   max-width: 1400px;
   margin-left: auto;
   margin-right: auto;
   position: relative;
-  height: 100%;
+  height: var(--header-height);
 }
 
 .full-width header .header-inner {
@@ -114,4 +109,42 @@ header .header-logo {
 
 .full-width header .header-logo {
   left: 0;
+}
+
+@media (max-width: 1023px) {
+  header .qwik-logo {
+    width: auto;
+    height: 33px;
+    @apply ml-2;
+  }
+
+  header .header-logo {
+    @apply pl-2;
+  }
+
+  header .mobile-menu {
+    padding: 0.5rem 1rem;
+  }
+
+  .header-open header ul:not([role='listbox']) {
+    position: absolute;
+    z-index: 10;
+    display: block;
+    top: var(--header-height);
+    width: 100%;
+    background: var(--bg-color);
+    height: auto;
+  }
+
+  .header-open header .more-icon {
+    display: none;
+  }
+
+  .header-open header .close-icon {
+    display: block;
+  }
+
+  .header-open .menu-toolkit li {
+    text-align: center;
+  }
 }

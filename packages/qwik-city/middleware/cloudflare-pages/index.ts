@@ -1,19 +1,43 @@
-import type { QwikCityHandlerOptions, QwikCityRequestContext } from '../request-handler/types';
-import { notFoundHandler, requestHandler } from '../request-handler';
-import type { RenderOptions } from '@builder.io/qwik';
-import type { Render } from '@builder.io/qwik/server';
-import qwikCityPlan from '@qwik-city-plan';
-import type { RequestHandler } from '~qwik-city-runtime';
+import type {
+  ServerRenderOptions,
+  ServerRequestEvent,
+} from '@builder.io/qwik-city/middleware/request-handler';
+import {
+  mergeHeadersCookies,
+  requestHandler,
+} from '@builder.io/qwik-city/middleware/request-handler';
+import { getNotFound } from '@qwik-city-not-found-paths';
+import { isStaticPath } from '@qwik-city-static-paths';
+import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
+import { setServerPlatform } from '@builder.io/qwik/server';
 
 // @builder.io/qwik-city/middleware/cloudflare-pages
 
 /**
- * @alpha
+ * @public
  */
 export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
-  async function onRequest({ request, env, waitUntil }: EventPluginContext) {
+  (globalThis as any).TextEncoderStream = TextEncoderStream;
+  const qwikSerializer = {
+    _deserializeData,
+    _serializeData,
+    _verifySerializable,
+  };
+  if (opts.manifest) {
+    setServerPlatform(opts.manifest);
+  }
+  async function onCloudflarePagesFetch(
+    request: PlatformCloudflarePages['request'],
+    env: PlatformCloudflarePages['env'] & { ASSETS: { fetch: (req: Request) => Response } },
+    ctx: PlatformCloudflarePages['ctx']
+  ) {
     try {
       const url = new URL(request.url);
+
+      if (isStaticPath(request.method, url)) {
+        // known static path, let cloudflare handle it
+        return env.ASSETS.fetch(request);
+      }
 
       // https://developers.cloudflare.com/workers/runtime-apis/cache/
       const useCache =
@@ -30,108 +54,123 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
         }
       }
 
-      const requestCtx: QwikCityRequestContext<Response> = {
+      const serverRequestEv: ServerRequestEvent<Response> = {
+        mode: 'server',
+        locale: undefined,
         url,
         request,
-        response: (status, headers, body) => {
-          return new Promise<Response>((resolve) => {
-            let flushedHeaders = false;
-            const { readable, writable } = new TransformStream();
-            const writer = writable.getWriter();
-
-            const response = new Response(readable, { status, headers });
-
-            body({
-              write: (chunk) => {
-                if (!flushedHeaders) {
-                  flushedHeaders = true;
-                  resolve(response);
-                }
-                if (typeof chunk === 'string') {
-                  const encoder = new TextEncoder();
-                  writer.write(encoder.encode(chunk));
-                } else {
-                  writer.write(chunk);
-                }
-              },
-            }).finally(() => {
-              if (!flushedHeaders) {
-                flushedHeaders = true;
-                resolve(response);
-              }
-              writer.close();
-            });
-
-            if (response.ok && cache && response.headers.has('Cache-Control')) {
-              // Store the fetched response as cacheKey
-              // Use waitUntil so you can return the response without blocking on
-              // writing to cache
-              waitUntil(cache.put(cacheKey, response.clone()));
-            }
-          });
+        env: {
+          get(key) {
+            return env[key];
+          },
         },
-        platform: env,
+        getWritableStream: (status, headers, cookies, resolve) => {
+          const { readable, writable } = new TransformStream<Uint8Array>();
+          const response = new Response(readable, {
+            status,
+            headers: mergeHeadersCookies(headers, cookies),
+          });
+          resolve(response);
+          return writable;
+        },
+        getClientConn: () => {
+          return {
+            ip: request.headers.get('CF-connecting-ip') || '',
+            country: request.headers.get('CF-IPCountry') || '',
+          };
+        },
+        platform: {
+          request,
+          env,
+          ctx,
+        },
       };
 
       // send request to qwik city request handler
-      const handledResponse = await requestHandler<Response>(requestCtx, opts);
+      const handledResponse = await requestHandler(serverRequestEv, opts, qwikSerializer);
       if (handledResponse) {
-        return handledResponse;
+        handledResponse.completion.then((v) => {
+          if (v) {
+            console.error(v);
+          }
+        });
+        const response = await handledResponse.response;
+        if (response) {
+          if (response.ok && cache && response.headers.has('Cache-Control')) {
+            // Store the fetched response as cacheKey
+            // Use waitUntil so you can return the response without blocking on
+            // writing to cache
+            ctx.waitUntil(cache.put(cacheKey, response.clone()));
+          }
+          return response;
+        }
       }
 
       // qwik city did not have a route for this request
-      // respond with qwik city's 404 handler
-      const notFoundResponse = await notFoundHandler<Response>(requestCtx);
-      return notFoundResponse;
+      // response with 404 for this pathname
+      const notFoundHtml = getNotFound(url.pathname);
+      return new Response(notFoundHtml, {
+        status: 404,
+        headers: { 'Content-Type': 'text/html; charset=utf-8', 'X-Not-Found': url.pathname },
+      });
     } catch (e: any) {
       console.error(e);
       return new Response(String(e || 'Error'), {
         status: 500,
-        headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+        headers: { 'Content-Type': 'text/plain; charset=utf-8', 'X-Error': 'cloudflare-pages' },
       });
     }
   }
 
-  return onRequest;
+  return onCloudflarePagesFetch;
 }
 
 /**
- * @alpha
+ * @public
  */
-export interface QwikCityCloudflarePagesOptions extends QwikCityHandlerOptions {}
+export interface QwikCityCloudflarePagesOptions extends ServerRenderOptions {}
 
 /**
- * @alpha
+ * @public
  */
-export interface EventPluginContext {
+export interface PlatformCloudflarePages {
   request: Request;
-  waitUntil: (promise: Promise<any>) => void;
-  next: (input?: Request | string, init?: RequestInit) => Promise<Response>;
-  env: Record<string, any>;
+  env?: Record<string, any>;
+  ctx: { waitUntil: (promise: Promise<any>) => void };
 }
 
-/**
- * @alpha
- * @deprecated Please use `createQwikCity()` instead.
- *
- * Example:
- *
- * ```ts
- * import { createQwikCity } from '@builder.io/qwik-city/middleware/cloudflare-pages';
- * import qwikCityPlan from '@qwik-city-plan';
- * import render from './entry.ssr';
- *
- * export const onRequest = createQwikCity({ render, qwikCityPlan });
- * ```
- */
-export function qwikCity(render: Render, opts?: RenderOptions) {
-  return createQwikCity({ render, qwikCityPlan, ...opts });
-}
+const resolved = Promise.resolve();
 
-/**
- * @alpha
- */
-export type RequestHandlerCloudflarePages<T = unknown> = RequestHandler<
-  T,
-  { env: EventPluginContext['env'] }
->;
+class TextEncoderStream {
+  // minimal polyfill implementation of TextEncoderStream
+  // since Cloudflare Pages doesn't support readable.pipeTo()
+  _writer: any;
+  readable: any;
+  writable: any;
+
+  constructor() {
+    this._writer = null;
+    this.readable = {
+      pipeTo: (writableStream: any) => {
+        this._writer = writableStream.getWriter();
+      },
+    };
+    this.writable = {
+      getWriter: () => {
+        if (!this._writer) {
+          throw new Error('No writable stream');
+        }
+        const encoder = new TextEncoder();
+        return {
+          write: async (chunk: any) => {
+            if (chunk != null) {
+              await this._writer.write(encoder.encode(chunk));
+            }
+          },
+          close: () => this._writer.close(),
+          ready: resolved,
+        };
+      },
+    };
+  }
+}

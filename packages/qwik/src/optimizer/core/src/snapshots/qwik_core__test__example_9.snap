@@ -23,18 +23,11 @@ const Header = $((decl1, {decl2}, [decl3]) => {
 export const Header_WjUaUQN7Oxg = (decl1, { decl2  }, [decl3])=>{
     const { decl4 , key: decl5  } = this;
     let [decl6, ...decl7] = stuff;
-    const decl8 = 1, decl9;
-    function decl10(decl11, { decl12  }, [decl13]) {}
-    class decl14 {
-        method(decl15, { decl16  }, [decl17]) {}
-    }
-    try {} catch (decl18) {}
-    try {} catch ({ decl19  }) {}
 };
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"kCAEiB,CAAC,OAAO,EAAC,MAAK,EAAC,EAAE,CAAC,MAAM,GAAK;IAC1C,MAAM,EAAC,MAAK,EAAE,KAAK,MAAK,EAAC,GAAG,IAAI;IAChC,IAAI,CAAC,OAAO,GAAG,MAAM,GAAG;IACxB,MAAM,QAAQ,GAAG;IACjB,SAAS,OAAO,MAAM,EAAE,EAAC,OAAM,EAAC,EAAE,CAAC,OAAO,EAAE,CAAC;IAC7C,MAAM;QACF,OAAO,MAAM,EAAE,EAAC,OAAM,EAAC,EAAE,CAAC,OAAO,EAAE,CAAC;IACxC;IACA,IAAG,CAAC,EAAC,OAAM,QAAO,CAAC;IACnB,IAAG,CAAC,EAAC,OAAM,EAAC,OAAM,EAAC,EAAC,CAAC;AACzB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"kCAEiB,CAAC,OAAO,EAAC,MAAK,EAAC,EAAE,CAAC,MAAM,GAAK;IAC1C,MAAM,EAAC,MAAK,EAAE,KAAK,MAAK,EAAC,GAAG,IAAI;IAChC,IAAI,CAAC,OAAO,GAAG,MAAM,GAAG;AAQ5B\"}")
 /*
 {
   "origin": "test.tsx",
@@ -57,10 +50,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= test.tsx ==
 
 import { qrl } from "@builder.io/qwik";
-qrl(()=>import("./header_wjuauqn7oxg"), "Header_WjUaUQN7Oxg");
+/*#__PURE__*/ qrl(()=>import("./header_wjuauqn7oxg"), "Header_WjUaUQN7Oxg");
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA\"}")
+Some("{\"version\":3,\"sources\":[],\"names\":[],\"mappings\":\"\"}")
 == DIAGNOSTICS ==
 
 []

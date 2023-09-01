@@ -1,116 +1,105 @@
 import type { Context } from '@netlify/edge-functions';
-import type { QwikCityHandlerOptions, QwikCityRequestContext } from '../request-handler/types';
-import { notFoundHandler, requestHandler } from '../request-handler';
-import type { Render } from '@builder.io/qwik/server';
-import type { RenderOptions } from '@builder.io/qwik';
-import qwikCityPlan from '@qwik-city-plan';
-import type { RequestHandler } from '~qwik-city-runtime';
+import type {
+  ServerRenderOptions,
+  ServerRequestEvent,
+} from '@builder.io/qwik-city/middleware/request-handler';
 
-const isNetlifyPath = (url: string) => {
-  return new URL(url).pathname.startsWith('/.netlify');
-};
+import {
+  mergeHeadersCookies,
+  requestHandler,
+} from '@builder.io/qwik-city/middleware/request-handler';
+import { getNotFound } from '@qwik-city-not-found-paths';
+import { isStaticPath } from '@qwik-city-static-paths';
+import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
+import { setServerPlatform } from '@builder.io/qwik/server';
 
 // @builder.io/qwik-city/middleware/netlify-edge
 
+declare const Deno: any;
 /**
- * @alpha
+ * @public
  */
 export function createQwikCity(opts: QwikCityNetlifyOptions) {
-  async function onRequest(request: Request, context: Context) {
-    if (isNetlifyPath(request.url)) {
-      return context.next();
-    }
+  const qwikSerializer = {
+    _deserializeData,
+    _serializeData,
+    _verifySerializable,
+  };
+  if (opts.manifest) {
+    setServerPlatform(opts.manifest);
+  }
+  async function onNetlifyEdgeRequest(request: Request, context: Context) {
     try {
-      const requestCtx: QwikCityRequestContext<Response> = {
-        url: new URL(request.url),
+      const url = new URL(request.url);
+
+      if (isStaticPath(request.method, url) || url.pathname.startsWith('/.netlify')) {
+        // known static path, let netlify handle it
+        return context.next();
+      }
+
+      const serverRequestEv: ServerRequestEvent<Response> = {
+        mode: 'server',
+        locale: undefined,
+        url,
+        env: Deno.env,
         request,
-        response: (status, headers, body) => {
-          return new Promise<Response>((resolve) => {
-            let flushedHeaders = false;
-            const { readable, writable } = new TransformStream();
-            const writer = writable.getWriter();
-
-            const response = new Response(readable, { status, headers });
-
-            body({
-              write: (chunk) => {
-                if (!flushedHeaders) {
-                  flushedHeaders = true;
-                  resolve(response);
-                }
-                if (typeof chunk === 'string') {
-                  const encoder = new TextEncoder();
-                  writer.write(encoder.encode(chunk));
-                } else {
-                  writer.write(chunk);
-                }
-              },
-            }).finally(() => {
-              if (!flushedHeaders) {
-                flushedHeaders = true;
-                resolve(response);
-              }
-              writer.close();
-            });
+        getWritableStream: (status, headers, cookies, resolve) => {
+          const { readable, writable } = new TransformStream<Uint8Array>();
+          const response = new Response(readable, {
+            status,
+            headers: mergeHeadersCookies(headers, cookies),
           });
+          resolve(response);
+          return writable;
+        },
+        getClientConn: () => {
+          return {
+            ip: context.ip,
+            country: context.geo.country?.code,
+          };
         },
         platform: context,
       };
 
       // send request to qwik city request handler
-      const handledResponse = await requestHandler<Response>(requestCtx, opts);
+      const handledResponse = await requestHandler(serverRequestEv, opts, qwikSerializer);
       if (handledResponse) {
-        return handledResponse;
+        handledResponse.completion.then((v) => {
+          if (v) {
+            console.error(v);
+          }
+        });
+        const response = await handledResponse.response;
+        if (response) {
+          return response;
+        }
       }
 
       // qwik city did not have a route for this request
-      // respond with qwik city's 404 handler
-      const notFoundResponse = await notFoundHandler<Response>(requestCtx);
-      return notFoundResponse;
+      // response with 404 for this pathname
+      const notFoundHtml = getNotFound(url.pathname);
+      return new Response(notFoundHtml, {
+        status: 404,
+        headers: { 'Content-Type': 'text/html; charset=utf-8', 'X-Not-Found': url.pathname },
+      });
     } catch (e: any) {
       console.error(e);
       return new Response(String(e || 'Error'), {
         status: 500,
-        headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+        headers: { 'Content-Type': 'text/plain; charset=utf-8', 'X-Error': 'netlify-edge' },
       });
     }
   }
 
-  return onRequest;
+  return onNetlifyEdgeRequest;
 }
 
 /**
- * @alpha
+ * @public
  */
-export interface QwikCityNetlifyOptions extends QwikCityHandlerOptions {}
+export interface QwikCityNetlifyOptions extends ServerRenderOptions {}
 
 /**
- * @alpha
+ * @public
  */
-export interface EventPluginContext extends Context {}
-
-/**
- * @alpha
- * @deprecated Please use `createQwikCity()` instead.
- *
- * Example:
- *
- * ```ts
- * import { createQwikCity } from '@builder.io/qwik-city/middleware/netlify-edge';
- * import qwikCityPlan from '@qwik-city-plan';
- * import render from './entry.ssr';
- *
- * export default createQwikCity({ render, qwikCityPlan });
- * ```
- */
-export function qwikCity(render: Render, opts?: RenderOptions) {
-  return createQwikCity({ render, qwikCityPlan, ...opts });
-}
-
-/**
- * @alpha
- */
-export type RequestHandlerNetlify<T = unknown> = RequestHandler<
-  T,
-  Omit<Context, 'next' | 'cookies'>
->;
+export interface PlatformNetlify extends Partial<Omit<Context, 'next' | 'cookies'>> {}

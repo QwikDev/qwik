@@ -1,7 +1,4 @@
-import type {
-  Cookie as CookieInterface,
-  CookieOptions,
-} from '../../middleware/request-handler/types';
+import type { Cookie as CookieInterface, CookieOptions, CookieValue } from './types';
 
 const SAMESITE = {
   lax: 'Lax',
@@ -43,8 +40,9 @@ const createSetCookieValue = (cookieName: string, cookieValue: string, options: 
     c.push(`Path=${options.path}`);
   }
 
-  if (options.sameSite && SAMESITE[options.sameSite]) {
-    c.push(`SameSite=${SAMESITE[options.sameSite]}`);
+  const sameSite = resolveSameSite(options.sameSite);
+  if (sameSite) {
+    c.push(`SameSite=${sameSite}`);
   }
 
   if (options.secure) {
@@ -54,35 +52,58 @@ const createSetCookieValue = (cookieName: string, cookieValue: string, options: 
   return c.join('; ');
 };
 
+function tryDecodeUriComponent(str: string) {
+  try {
+    return decodeURIComponent(str);
+  } catch {
+    return str;
+  }
+}
+
 const parseCookieString = (cookieString: string | undefined | null) => {
   const cookie: Record<string, string> = {};
   if (typeof cookieString === 'string' && cookieString !== '') {
     const cookieSegments = cookieString.split(';');
     for (const cookieSegment of cookieSegments) {
-      const cookieSplit = cookieSegment.split('=');
-      if (cookieSplit.length > 1) {
-        const cookieName = decodeURIComponent(cookieSplit[0].trim());
-        const cookieValue = decodeURIComponent(cookieSplit[1].trim());
-        cookie[cookieName] = cookieValue;
+      const separatorIndex = cookieSegment.indexOf('=');
+      if (separatorIndex !== -1) {
+        cookie[tryDecodeUriComponent(cookieSegment.slice(0, separatorIndex).trim())] =
+          tryDecodeUriComponent(cookieSegment.slice(separatorIndex + 1).trim());
       }
     }
   }
   return cookie;
 };
 
+function resolveSameSite(sameSite: boolean | 'strict' | 'lax' | 'none' | undefined) {
+  if (sameSite === true) {
+    return 'Strict';
+  }
+  if (sameSite === false) {
+    return 'None';
+  }
+  if (sameSite) {
+    return SAMESITE[sameSite];
+  }
+  return undefined;
+}
+
 const REQ_COOKIE = Symbol('request-cookies');
 const RES_COOKIE = Symbol('response-cookies');
+const LIVE_COOKIE = Symbol('live-cookies');
 
 export class Cookie implements CookieInterface {
   private [REQ_COOKIE]: Record<string, string>;
   private [RES_COOKIE]: Record<string, string> = {};
+  private [LIVE_COOKIE]: Record<string, string | null> = {};
 
   constructor(cookieString?: string | undefined | null) {
     this[REQ_COOKIE] = parseCookieString(cookieString);
+    this[LIVE_COOKIE] = { ...this[REQ_COOKIE] };
   }
 
-  get(cookieName: string) {
-    const value = this[REQ_COOKIE][cookieName];
+  get(cookieName: string, live: boolean = true) {
+    const value = this[live ? LIVE_COOKIE : REQ_COOKIE][cookieName];
     if (!value) {
       return null;
     }
@@ -97,8 +118,18 @@ export class Cookie implements CookieInterface {
     };
   }
 
-  has(cookieName: string) {
-    return !!this[REQ_COOKIE][cookieName];
+  getAll(live: boolean = true) {
+    return Object.keys(this[live ? LIVE_COOKIE : REQ_COOKIE]).reduce(
+      (cookies, cookieName) => {
+        cookies[cookieName] = this.get(cookieName)!;
+        return cookies;
+      },
+      {} as Record<string, CookieValue>
+    );
+  }
+
+  has(cookieName: string, live: boolean = true) {
+    return !!this[live ? LIVE_COOKIE : REQ_COOKIE][cookieName];
   }
 
   set(
@@ -106,6 +137,9 @@ export class Cookie implements CookieInterface {
     cookieValue: string | number | Record<string, any>,
     options: CookieOptions = {}
   ) {
+    this[LIVE_COOKIE][cookieName] =
+      typeof cookieValue === 'string' ? cookieValue : JSON.stringify(cookieValue);
+
     const resolvedValue =
       typeof cookieValue === 'string'
         ? cookieValue
@@ -114,10 +148,26 @@ export class Cookie implements CookieInterface {
   }
 
   delete(name: string, options?: Pick<CookieOptions, 'path' | 'domain'>) {
-    this.set(name, 'deleted', { ...options, expires: new Date(0) });
+    this.set(name, 'deleted', { ...options, maxAge: 0 });
+    this[LIVE_COOKIE][name] = null;
   }
 
   headers() {
     return Object.values(this[RES_COOKIE]);
   }
 }
+
+/**
+ * @public
+ */
+export const mergeHeadersCookies = (headers: Headers, cookies: CookieInterface) => {
+  const cookieHeaders = cookies.headers();
+  if (cookieHeaders.length > 0) {
+    const newHeaders = new Headers(headers);
+    for (const cookie of cookieHeaders) {
+      newHeaders.append('Set-Cookie', cookie);
+    }
+    return newHeaders;
+  }
+  return headers;
+};

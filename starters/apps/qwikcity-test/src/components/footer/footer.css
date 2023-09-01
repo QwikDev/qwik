@@ -1,0 +1,23 @@
+footer {
+  border-top: 1px solid #ddd;
+  margin-top: 40px;
+  padding: 20px;
+  font-size: 12px;
+  color: #949494;
+}
+
+footer a {
+  color: inherit;
+}
+
+footer ul {
+  list-style: none;
+  margin: 0 0 10px 0;
+  padding: 0;
+  text-align: center;
+}
+
+footer li {
+  display: inline-block;
+  padding: 4px 12px;
+}

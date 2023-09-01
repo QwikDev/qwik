@@ -1,25 +1,26 @@
-import { $, QRL } from '../qrl/qrl.public';
+import { $, type QRL } from '../qrl/qrl.public';
 import { assertQrl } from '../qrl/qrl-class';
 import {
-  ResourceReturn,
-  ResourceDescriptor,
-  ResourceFn,
+  type ResourceReturn,
+  type ResourceDescriptor,
+  type ResourceFn,
   runResource,
-  WatchFlagsIsDirty,
-  WatchFlagsIsResource,
-  Watch,
-  ResourceReturnInternal,
-} from './use-watch';
+  TaskFlagsIsDirty,
+  TaskFlagsIsResource,
+  Task,
+  type ResourceReturnInternal,
+} from './use-task';
 import { Fragment, jsx } from '../render/jsx/jsx-runtime';
 import type { JSXNode } from '../render/jsx/types/jsx-node';
-import { isServer } from '../platform/platform';
-import { useBindInvokeContext } from './use-core';
+import { isServerPlatform } from '../platform/platform';
+import { untrack, useBindInvokeContext } from './use-core';
 
-import { isObject } from '../util/types';
 import type { ContainerState, GetObjID } from '../container/container';
 import { useSequentialScope } from './use-sequential-scope';
 import { createProxy } from '../state/store';
 import { getProxyTarget } from '../state/common';
+import { isSignal, type Signal } from '../state/signal';
+import { isObject } from '../util/types';
 
 /**
  * Options to pass to `useResource$()`
@@ -42,7 +43,7 @@ export interface ResourceOptions {
  * This method works like an async memoized function that runs whenever some tracked value
  * changes and returns some data.
  *
- * `useResouce` however returns immediate a `ResourceReturn` object that contains the data and a
+ * `useResource` however returns immediate a `ResourceReturn` object that contains the data and a
  * state that indicates if the data is available or not.
  *
  * The status can be one of the following:
@@ -97,28 +98,28 @@ export const useResourceQrl = <T>(
   qrl: QRL<ResourceFn<T>>,
   opts?: ResourceOptions
 ): ResourceReturn<T> => {
-  const { get, set, i, rCtx, elCtx } = useSequentialScope<ResourceReturn<T>>();
+  const { get, set, i, iCtx, elCtx } = useSequentialScope<ResourceReturn<T>>();
   if (get != null) {
     return get;
   }
   assertQrl(qrl);
 
-  const containerState = rCtx.$renderCtx$.$static$.$containerState$;
+  const containerState = iCtx.$renderCtx$.$static$.$containerState$;
   const resource = createResourceReturn<T>(containerState, opts);
   const el = elCtx.$element$;
-  const watch = new Watch(
-    WatchFlagsIsDirty | WatchFlagsIsResource,
+  const task = new Task(
+    TaskFlagsIsDirty | TaskFlagsIsResource,
     i,
     el,
     qrl,
     resource
   ) as ResourceDescriptor<any>;
-  const previousWait = Promise.all(rCtx.$waitOn$.slice());
-  runResource(watch, containerState, previousWait);
-  if (!elCtx.$watches$) {
-    elCtx.$watches$ = [];
+  const previousWait = Promise.all(iCtx.$waitOn$.slice());
+  runResource(task, containerState, iCtx.$renderCtx$, previousWait);
+  if (!elCtx.$tasks$) {
+    elCtx.$tasks$ = [];
   }
-  elCtx.$watches$.push(watch);
+  elCtx.$tasks$.push(task);
   set(resource);
 
   return resource;
@@ -131,7 +132,7 @@ export const useResourceQrl = <T>(
  * This method works like an async memoized function that runs whenever some tracked value
  * changes and returns some data.
  *
- * `useResouce` however returns immediate a `ResourceReturn` object that contains the data and a
+ * `useResource` however returns immediate a `ResourceReturn` object that contains the data and a
  * state that indicates if the data is available or not.
  *
  * The status can be one of the following:
@@ -193,7 +194,7 @@ export const useResource$ = <T>(
  * @public
  */
 export interface ResourceProps<T> {
-  value: ResourceReturn<T>;
+  readonly value: ResourceReturn<T> | Signal<Promise<T> | T> | Promise<T>;
   onResolved: (value: T) => JSXNode;
   onPending?: () => JSXNode;
   onRejected?: (reason: any) => JSXNode;
@@ -206,7 +207,7 @@ export interface ResourceProps<T> {
  * This method works like an async memoized function that runs whenever some tracked value
  * changes and returns some data.
  *
- * `useResouce` however returns immediate a `ResourceReturn` object that contains the data and a
+ * `useResource` however returns immediate a `ResourceReturn` object that contains the data and a
  * state that indicates if the data is available or not.
  *
  * The status can be one of the following:
@@ -258,43 +259,54 @@ export interface ResourceProps<T> {
  */
 // </docs>
 export const Resource = <T>(props: ResourceProps<T>): JSXNode => {
-  const isBrowser = !isServer();
-  const resource = props.value as ResourceReturnInternal<T>;
-  if (isBrowser) {
-    if (props.onRejected) {
-      resource.promise.catch(() => {});
-      if (resource._state === 'rejected') {
-        return props.onRejected(resource._error);
+  const isBrowser = !isServerPlatform();
+  const resource = props.value as ResourceReturnInternal<T> | Promise<T> | Signal<T>;
+  let promise: Promise<T> | undefined;
+  if (isResourceReturn(resource)) {
+    if (isBrowser) {
+      if (props.onRejected) {
+        resource.value.catch(() => {});
+        if (resource._state === 'rejected') {
+          return props.onRejected(resource._error);
+        }
       }
-    }
-    if (props.onPending) {
-      const state = resource._state;
-      if (state === 'pending') {
-        return props.onPending();
-      } else if (state === 'resolved') {
+      if (props.onPending) {
+        const state = resource._state;
+        if (state === 'resolved') {
+          return props.onResolved(resource._resolved!);
+        } else if (state === 'pending') {
+          return props.onPending();
+        } else if (state === 'rejected') {
+          throw resource._error;
+        }
+      }
+      if (untrack(() => resource._resolved) !== undefined) {
         return props.onResolved(resource._resolved!);
-      } else if (state === 'rejected') {
-        throw resource._error;
       }
     }
+    promise = resource.value;
+  } else if (resource instanceof Promise) {
+    promise = resource;
+  } else if (isSignal(resource)) {
+    promise = Promise.resolve(resource.value);
+  } else {
+    return props.onResolved(resource as T);
   }
-
-  const promise: any = resource.promise.then(
-    useBindInvokeContext(props.onResolved),
-    useBindInvokeContext(props.onRejected)
-  );
 
   // Resource path
   return jsx(Fragment, {
-    children: promise,
+    children: promise.then(
+      useBindInvokeContext(props.onResolved),
+      useBindInvokeContext(props.onRejected)
+    ),
   });
 };
 
 export const _createResourceReturn = <T>(opts?: ResourceOptions): ResourceReturnInternal<T> => {
   const resource: ResourceReturnInternal<T> = {
     __brand: 'resource',
-    promise: undefined as never,
-    loading: isServer() ? false : true,
+    value: undefined as never,
+    loading: isServerPlatform() ? false : true,
     _resolved: undefined as never,
     _error: undefined as never,
     _state: 'pending',
@@ -310,7 +322,7 @@ export const createResourceReturn = <T>(
   initialPromise?: Promise<T>
 ): ResourceReturnInternal<T> => {
   const result = _createResourceReturn<T>(opts);
-  result.promise = initialPromise as any;
+  result.value = initialPromise as any;
   const resource = createProxy(result, containerState, undefined);
   return resource;
 };
@@ -337,14 +349,14 @@ export const serializeResource = (resource: ResourceReturnInternal<any>, getObjI
 export const parseResourceReturn = <T>(data: string): ResourceReturnInternal<T> => {
   const [first, id] = data.split(' ');
   const result = _createResourceReturn<T>(undefined);
-  result.promise = Promise.resolve() as any;
+  result.value = Promise.resolve() as any;
   if (first === '0') {
     result._state = 'resolved';
     result._resolved = id as any;
     result.loading = false;
   } else if (first === '1') {
     result._state = 'pending';
-    result.promise = new Promise(() => {});
+    result.value = new Promise(() => {});
     result.loading = true;
   } else if (first === '2') {
     result._state = 'rejected';

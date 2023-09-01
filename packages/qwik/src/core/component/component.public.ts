@@ -1,16 +1,15 @@
-import { $, PropFnInterface, QRL } from '../qrl/qrl.public';
+import { $, type PropFnInterface, type QRL } from '../qrl/qrl.public';
 import type { JSXNode } from '../render/jsx/types/jsx-node';
 import { OnRenderProp, QSlot } from '../util/markers';
 import type { ComponentBaseProps, JSXChildren } from '../render/jsx/types/jsx-qwik-attributes';
 import type { FunctionComponent } from '../render/jsx/types/jsx-node';
-import { jsx } from '../render/jsx/jsx-runtime';
+import { Virtual, _jsxC } from '../render/jsx/jsx-runtime';
 import { SERIALIZABLE_STATE } from '../container/serializers';
-import { qDev, qTest } from '../util/qdev';
-import { Virtual } from '../render/jsx/utils.public';
+import { qTest } from '../util/qdev';
 import { assertQrl } from '../qrl/qrl-class';
 import type { ValueOrPromise } from '../util/types';
-import { invoke, newInvokeContext } from '../use/use-core';
-import { verifySerializable } from '../state/common';
+import { _IMMUTABLE } from '../state/constants';
+import { assertNumber } from '../error/assert';
 
 /**
  * Infers `Props` from the component.
@@ -68,12 +67,12 @@ export type TransformProps<PROPS extends {}> = {
 /**
  * @public
  */
-export type TransformProp<T> = T extends PropFnInterface<infer ARGS, infer RET>
-  ? (...args: ARGS) => ValueOrPromise<RET>
+export type TransformProp<T> = NonNullable<T> extends (...args: infer ARGS) => infer RET
+  ? (...args: ARGS) => ValueOrPromise<Awaited<RET>>
   : T;
 
 /**
- * @alpha
+ * @public
  */
 export type EventHandler<T> = QRL<(value: T) => any>;
 
@@ -137,36 +136,39 @@ export const componentQrl = <PROPS extends {}>(
   componentQrl: QRL<OnRenderFn<PROPS>>
 ): Component<PROPS> => {
   // Return a QComponent Factory function.
-  function QwikComponent(props: PublicProps<PROPS>, key: string | null): JSXNode {
+  function QwikComponent(props: PublicProps<PROPS>, key: string | null, flags: number): JSXNode {
     assertQrl(componentQrl);
-    if (qDev) {
-      invoke(newInvokeContext(), () => {
-        for (const key of Object.keys(props)) {
-          if (key !== 'children') {
-            verifySerializable((props as any)[key]);
-          }
-        }
-      });
-    }
-    const hash = qTest ? 'sX' : componentQrl.$hash$;
+    assertNumber(flags, 'The Qwik Component was not invoked correctly');
+    const hash = qTest ? 'sX' : componentQrl.$hash$.slice(0, 4);
     const finalKey = hash + ':' + (key ? key : '');
-    return jsx(
+    return _jsxC(
       Virtual,
       {
         [OnRenderProp]: componentQrl,
         [QSlot]: props[QSlot],
+        [_IMMUTABLE]: (props as any)[_IMMUTABLE],
         children: props.children,
         props,
       },
+      flags,
       finalKey
     ) as any;
   }
   (QwikComponent as any)[SERIALIZABLE_STATE] = [componentQrl];
-  return QwikComponent;
+  return QwikComponent as any;
 };
 
 export const isQwikComponent = (component: any): component is Component<any> => {
   return typeof component == 'function' && component[SERIALIZABLE_STATE] !== undefined;
+};
+
+/**
+ * @public
+ */
+export type PropFunctionProps<PROPS extends {}> = {
+  [K in keyof PROPS]: NonNullable<PROPS[K]> extends (...args: infer ARGS) => infer RET
+    ? PropFnInterface<ARGS, Awaited<RET>>
+    : PROPS[K];
 };
 
 // <docs markdown="../readme.md#component">
@@ -223,16 +225,21 @@ export const isQwikComponent = (component: any): component is Component<any> => 
  * @public
  */
 // </docs>
-export const component$ = <PROPS extends {}>(onMount: OnRenderFn<PROPS>): Component<PROPS> => {
-  return componentQrl<PROPS>($(onMount));
+export const component$ = <
+  PROPS = unknown,
+  ARG extends {} = PROPS extends {} ? PropFunctionProps<PROPS> : {},
+>(
+  onMount: OnRenderFn<ARG>
+): Component<PROPS extends {} ? PROPS : ARG> => {
+  return componentQrl<any>($(onMount));
 };
 
 /**
  * @public
  */
-export type OnRenderFn<PROPS> = (props: PROPS) => JSXNode<any> | null;
+export type OnRenderFn<PROPS extends {}> = (props: PROPS) => JSXNode<any> | null;
 
-export interface RenderFactoryOutput<PROPS> {
+export interface RenderFactoryOutput<PROPS extends {}> {
   renderQRL: QRL<OnRenderFn<PROPS>>;
   waitOn: any[];
 }

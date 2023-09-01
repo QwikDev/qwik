@@ -1,4 +1,4 @@
-import type { OutputOptions, Plugin as RollupPlugin, RollupError } from 'rollup';
+import type { Rollup } from 'vite';
 
 import type {
   Diagnostic,
@@ -11,16 +11,16 @@ import type {
 } from '../types';
 import {
   createPlugin,
-  NormalizedQwikPluginOptions,
-  QwikBuildMode,
-  QwikBuildTarget,
-  QwikPluginOptions,
+  type NormalizedQwikPluginOptions,
+  type QwikBuildMode,
+  type QwikBuildTarget,
+  type QwikPluginOptions,
   Q_MANIFEST_FILENAME,
 } from './plugin';
 import { versions } from '../versions';
 
 /**
- * @alpha
+ * @public
  */
 export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
   const qwikPlugin = createPlugin(qwikRollupOpts.optimizerOptions);
@@ -44,10 +44,10 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
       };
 
       const pluginOpts: QwikPluginOptions = {
+        csr: qwikRollupOpts.csr,
         target: qwikRollupOpts.target,
         buildMode: qwikRollupOpts.buildMode,
         debug: qwikRollupOpts.debug,
-        forceFullBuild: qwikRollupOpts.forceFullBuild ?? true,
         entryStrategy: qwikRollupOpts.entryStrategy,
         rootDir: qwikRollupOpts.rootDir,
         srcDir: qwikRollupOpts.srcDir,
@@ -63,11 +63,6 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
 
       if (!inputOpts.input) {
         inputOpts.input = opts.input;
-      }
-
-      if (opts.target === 'ssr') {
-        // Server input
-        inputOpts.treeshake = false;
       }
 
       return inputOpts;
@@ -117,55 +112,52 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
       return qwikPlugin.transform(this, code, id);
     },
 
-    generateBundle: {
-      order: 'post',
-      async handler(_, rollupBundle) {
-        const opts = qwikPlugin.getOptions();
+    async generateBundle(_, rollupBundle) {
+      const opts = qwikPlugin.getOptions();
 
-        if (opts.target === 'client') {
-          // client build
-          const outputAnalyzer = qwikPlugin.createOutputAnalyzer();
+      if (opts.target === 'client') {
+        // client build
+        const outputAnalyzer = qwikPlugin.createOutputAnalyzer();
 
-          for (const fileName in rollupBundle) {
-            const b = rollupBundle[fileName];
-            if (b.type === 'chunk') {
-              outputAnalyzer.addBundle({
-                fileName,
-                modules: b.modules,
-                imports: b.imports,
-                dynamicImports: b.dynamicImports,
-                size: b.code.length,
-              });
-            }
+        for (const fileName in rollupBundle) {
+          const b = rollupBundle[fileName];
+          if (b.type === 'chunk') {
+            outputAnalyzer.addBundle({
+              fileName,
+              modules: b.modules,
+              imports: b.imports,
+              dynamicImports: b.dynamicImports,
+              size: b.code.length,
+            });
           }
-
-          const optimizer = qwikPlugin.getOptimizer();
-          const manifest = await outputAnalyzer.generateManifest();
-          manifest.platform = {
-            ...versions,
-            rollup: this.meta?.rollupVersion || '',
-            env: optimizer.sys.env,
-            os: optimizer.sys.os,
-          };
-          if (optimizer.sys.env === 'node') {
-            manifest.platform.node = process.versions.node;
-          }
-
-          if (typeof opts.manifestOutput === 'function') {
-            await opts.manifestOutput(manifest);
-          }
-
-          if (typeof opts.transformedModuleOutput === 'function') {
-            await opts.transformedModuleOutput(qwikPlugin.getTransformedOutputs());
-          }
-
-          this.emitFile({
-            type: 'asset',
-            fileName: Q_MANIFEST_FILENAME,
-            source: JSON.stringify(manifest, null, 2),
-          });
         }
-      },
+
+        const optimizer = qwikPlugin.getOptimizer();
+        const manifest = await outputAnalyzer.generateManifest();
+        manifest.platform = {
+          ...versions,
+          rollup: this.meta?.rollupVersion || '',
+          env: optimizer.sys.env,
+          os: optimizer.sys.os,
+        };
+        if (optimizer.sys.env === 'node') {
+          manifest.platform.node = process.versions.node;
+        }
+
+        if (typeof opts.manifestOutput === 'function') {
+          await opts.manifestOutput(manifest);
+        }
+
+        if (typeof opts.transformedModuleOutput === 'function') {
+          await opts.transformedModuleOutput(qwikPlugin.getTransformedOutputs());
+        }
+
+        this.emitFile({
+          type: 'asset',
+          fileName: Q_MANIFEST_FILENAME,
+          source: JSON.stringify(manifest, null, 2),
+        });
+      }
     },
   };
 
@@ -175,29 +167,22 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
 export function normalizeRollupOutputOptions(
   path: Path,
   opts: NormalizedQwikPluginOptions,
-  rollupOutputOpts: OutputOptions
+  rollupOutputOpts: Rollup.OutputOptions | Rollup.OutputOptions[] | undefined
 ) {
-  const outputOpts: OutputOptions = {
-    ...rollupOutputOpts,
-  };
-
-  if (opts.target === 'ssr') {
-    // ssr output
-    if (opts.buildMode === 'production') {
-      if (!outputOpts.assetFileNames) {
-        outputOpts.assetFileNames = 'build/q-[hash].[ext]';
-      }
-    }
-  } else if (opts.target === 'client') {
+  const outputOpts: Rollup.OutputOptions = {};
+  if (rollupOutputOpts && !Array.isArray(rollupOutputOpts)) {
+    Object.assign(outputOpts, rollupOutputOpts);
+  }
+  if (!outputOpts.assetFileNames) {
+    outputOpts.assetFileNames = 'build/q-[hash].[ext]';
+  }
+  if (opts.target === 'client') {
     // client output
 
     if (opts.buildMode === 'production') {
       // client production output
       if (!outputOpts.entryFileNames) {
         outputOpts.entryFileNames = 'build/q-[hash].js';
-      }
-      if (!outputOpts.assetFileNames) {
-        outputOpts.assetFileNames = 'build/q-[hash].[ext]';
       }
       if (!outputOpts.chunkFileNames) {
         outputOpts.chunkFileNames = 'build/q-[hash].js';
@@ -206,9 +191,6 @@ export function normalizeRollupOutputOptions(
       // client development output
       if (!outputOpts.entryFileNames) {
         outputOpts.entryFileNames = 'build/[name].js';
-      }
-      if (!outputOpts.assetFileNames) {
-        outputOpts.assetFileNames = 'build/[name].[ext]';
       }
       if (!outputOpts.chunkFileNames) {
         outputOpts.chunkFileNames = 'build/[name].js';
@@ -234,7 +216,7 @@ export function normalizeRollupOutputOptions(
 
 export function createRollupError(id: string, diagnostic: Diagnostic) {
   const loc = diagnostic.highlights[0] ?? {};
-  const err: RollupError = Object.assign(new Error(diagnostic.message), {
+  const err: Rollup.RollupError = Object.assign(new Error(diagnostic.message), {
     id,
     plugin: 'qwik',
     loc: {
@@ -247,9 +229,10 @@ export function createRollupError(id: string, diagnostic: Diagnostic) {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface QwikRollupPluginOptions {
+  csr?: boolean;
   /**
    * Build `production` or `development`.
    * Default `development`
@@ -266,15 +249,14 @@ export interface QwikRollupPluginOptions {
    */
   debug?: boolean;
   /**
-   * The Qwik entry strategy to use while bunding for production.
+   * The Qwik entry strategy to use while building for production.
    * During development the type is always `hook`.
    * Default `{ type: "smart" }`)
    */
   entryStrategy?: EntryStrategy;
-  forceFullBuild?: boolean;
   /**
    * The source directory to find all the Qwik components. Since Qwik
-   * does not have a single input, the `srcDir` is use to recursively
+   * does not have a single input, the `srcDir` is used to recursively
    * find Qwik files.
    * Default `src`
    */
@@ -314,4 +296,4 @@ export interface QwikRollupPluginOptions {
     | null;
 }
 
-export interface QwikRollupPlugin extends RollupPlugin {}
+export interface QwikRollupPlugin extends Rollup.Plugin {}

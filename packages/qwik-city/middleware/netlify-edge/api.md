@@ -5,29 +5,18 @@
 ```ts
 
 import type { Context } from '@netlify/edge-functions';
-import type { Render } from '@builder.io/qwik/server';
-import type { RenderOptions } from '@builder.io/qwik/server';
-import type { RenderOptions as RenderOptions_2 } from '@builder.io/qwik';
-import type { RequestHandler as RequestHandler_2 } from '~qwik-city-runtime';
+import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
 
-// @alpha (undocumented)
+// @public (undocumented)
 export function createQwikCity(opts: QwikCityNetlifyOptions): (request: Request, context: Context) => Promise<Response>;
 
-// @alpha (undocumented)
-export interface EventPluginContext extends Context {
+// @public (undocumented)
+export interface PlatformNetlify extends Partial<Omit<Context, 'next' | 'cookies'>> {
 }
 
-// @alpha @deprecated (undocumented)
-export function qwikCity(render: Render, opts?: RenderOptions_2): (request: Request, context: Context) => Promise<Response>;
-
-// Warning: (ae-forgotten-export) The symbol "QwikCityHandlerOptions" needs to be exported by the entry point index.d.ts
-//
-// @alpha (undocumented)
-export interface QwikCityNetlifyOptions extends QwikCityHandlerOptions {
+// @public (undocumented)
+export interface QwikCityNetlifyOptions extends ServerRenderOptions {
 }
-
-// @alpha (undocumented)
-export type RequestHandlerNetlify<T = unknown> = RequestHandler_2<T, Omit<Context, 'next' | 'cookies'>>;
 
 // (No @packageDocumentation comment for this package)
 

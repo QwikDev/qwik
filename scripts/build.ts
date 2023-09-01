@@ -1,4 +1,4 @@
-import { BuildConfig, ensureDir, panic } from './util';
+import { type BuildConfig, ensureDir, panic } from './util';
 import { apiExtractor } from './api';
 import { buildCreateQwikCli } from './create-qwik-cli';
 import { buildEslint } from './eslint';
@@ -26,6 +26,10 @@ import { submoduleServer } from './submodule-server';
 import { submoduleTesting } from './submodule-testing';
 import { tsc } from './tsc';
 import { validateBuild } from './validate-build';
+import { buildQwikAuth } from './qwik-auth';
+import { buildSupabaseAuthHelpers } from './supabase-auth-helpers';
+import { buildQwikWorker } from './qwik-worker';
+import { buildQwikLabs } from './qwik-labs';
 
 /**
  * Complete a full build for all of the package's submodules. Passed in
@@ -59,9 +63,9 @@ export async function build(config: BuildConfig) {
 
     if (config.build) {
       if (config.dev) {
-        ensureDir(config.distPkgDir);
+        ensureDir(config.distQwikPkgDir);
       } else {
-        emptyDir(config.distPkgDir);
+        emptyDir(config.distQwikPkgDir);
       }
 
       // create the dist package.json first so we get the version set
@@ -104,8 +108,24 @@ export async function build(config: BuildConfig) {
       await buildQwikReact(config);
     }
 
+    if (config.qwiklabs) {
+      await buildQwikLabs(config);
+    }
+
+    if (config.qwikauth) {
+      await buildQwikAuth(config);
+    }
+
+    if (config.qwikworker) {
+      await buildQwikWorker(config);
+    }
+
+    if (config.supabaseauthhelpers) {
+      await buildSupabaseAuthHelpers(config);
+    }
+
     if (config.api) {
-      apiExtractor(config);
+      await apiExtractor(config);
     }
 
     if (config.validate) {

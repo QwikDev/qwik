@@ -4,39 +4,30 @@
 
 ```ts
 
-import type { Render } from '@builder.io/qwik/server';
-import type { RenderOptions } from '@builder.io/qwik/server';
-import type { RenderOptions as RenderOptions_2 } from '@builder.io/qwik';
-import type { RequestHandler as RequestHandler_2 } from '~qwik-city-runtime';
+import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
 
-// @alpha (undocumented)
-export function createQwikCity(opts: QwikCityCloudflarePagesOptions): ({ request, env, waitUntil }: EventPluginContext) => Promise<Response>;
+// @public (undocumented)
+export function createQwikCity(opts: QwikCityCloudflarePagesOptions): (request: PlatformCloudflarePages['request'], env: Record<string, any> & {
+    ASSETS: {
+        fetch: (req: Request) => Response;
+    };
+}, ctx: PlatformCloudflarePages['ctx']) => Promise<Response>;
 
-// @alpha (undocumented)
-export interface EventPluginContext {
+// @public (undocumented)
+export interface PlatformCloudflarePages {
     // (undocumented)
-    env: Record<string, any>;
+    ctx: {
+        waitUntil: (promise: Promise<any>) => void;
+    };
     // (undocumented)
-    next: (input?: Request | string, init?: RequestInit) => Promise<Response>;
+    env?: Record<string, any>;
     // (undocumented)
     request: Request;
-    // (undocumented)
-    waitUntil: (promise: Promise<any>) => void;
 }
 
-// @alpha @deprecated (undocumented)
-export function qwikCity(render: Render, opts?: RenderOptions_2): ({ request, env, waitUntil }: EventPluginContext) => Promise<Response>;
-
-// Warning: (ae-forgotten-export) The symbol "QwikCityHandlerOptions" needs to be exported by the entry point index.d.ts
-//
-// @alpha (undocumented)
-export interface QwikCityCloudflarePagesOptions extends QwikCityHandlerOptions {
+// @public (undocumented)
+export interface QwikCityCloudflarePagesOptions extends ServerRenderOptions {
 }
-
-// @alpha (undocumented)
-export type RequestHandlerCloudflarePages<T = unknown> = RequestHandler_2<T, {
-    env: EventPluginContext['env'];
-}>;
 
 // (No @packageDocumentation comment for this package)
 

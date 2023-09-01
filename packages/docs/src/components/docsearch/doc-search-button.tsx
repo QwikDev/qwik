@@ -19,8 +19,8 @@ export interface DocSearchButtonProps {
 export const DocSearchButton = component$((props: DocSearchButtonProps) => {
   // const ACTION_KEY_DEFAULT = 'Ctrl' as const;
   // const ACTION_KEY_APPLE = '⌘' as const;
-  const { translations = {} } = props;
-  const { buttonText = 'Search', buttonAriaLabel = 'Search' } = translations;
+  // const { translations = {} } = props;
+  const { buttonText = 'Search', buttonAriaLabel = 'Search' } = props.translations ?? {};
   return (
     <button
       ref={props.ref}
@@ -29,9 +29,9 @@ export const DocSearchButton = component$((props: DocSearchButtonProps) => {
       class="DocSearch DocSearch-Button"
       aria-label={buttonAriaLabel}
     >
-      <span className="DocSearch-Button-Container">
+      <span class="DocSearch-Button-Container">
         <SearchIcon />
-        <span className="DocSearch-Button-Placeholder">{buttonText}</span>
+        <span class="DocSearch-Button-Placeholder">{buttonText}</span>
       </span>
     </button>
   );

@@ -4,15 +4,15 @@ import { component$ } from '../../component/component.public';
 import { inlinedQrl } from '../../qrl/qrl';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import { useStore } from '../../use/use-store.public';
-import { useClientEffect$, useWatch$ } from '../../use/use-watch';
-import { useCleanup$, useOn } from '../../use/use-on';
+import { useVisibleTask$, useTask$ } from '../../use/use-task';
+import { useOn } from '../../use/use-on';
 import { Slot } from '../jsx/slot.public';
 import { render } from './render.public';
 import { useStylesQrl, useStylesScopedQrl } from '../../use/use-styles';
 import { equal, match } from 'uvu/assert';
 import { suite } from 'uvu';
-import { useRef } from '../../use/use-ref';
 import { pauseContainer } from '../../container/pause';
+import { useSignal } from '../../use/use-signal';
 
 const renderSuite = suite('render');
 renderSuite('should render basic content', async () => {
@@ -38,7 +38,6 @@ renderSuite('should only render string/number', async () => {
       {null}
       {undefined}
       {[]}
-      {function () {}}
     </div>
   );
   await expectRendered(fixture, '<div>string123</div>');
@@ -119,13 +118,13 @@ renderSuite('should render into a document', async () => {
     fixture.document.documentElement,
     `
   <html q:version="dev" q:container="resumed" q:render="dom-dev">
-  <!--qv q:key=sX:-->
+  <!--qv -->
   <!--qv q:key q:sref=0 q:s-->
-    <head q:head="">
+    <head>
       <title></title>
       <existing></existing>
-      <title q:head="">Replace</title>
-      <div q:head=""><div></div></div>
+      <title>Replace</title>
+      <div><div></div></div>
     </head>
     <body>
       WORKS
@@ -158,6 +157,25 @@ renderSuite('should render style only for defined attributes', async () => {
         <div id="only-color" style="color: red"></div>
         <div id="no-style" style=""></div>
       </div>`
+  );
+});
+
+renderSuite('should render style css variables correctly', async () => {
+  const fixture = new ElementFixture();
+  await render(
+    fixture.host,
+    <div
+      style={{
+        top: 0,
+        '--stuff-nu': -1,
+        '--stuff-hey': 'hey',
+        '--stuffCase': 'foo',
+      }}
+    />
+  );
+  await expectRendered(
+    fixture,
+    `<div style="top: 0; --stuff-nu: -1; --stuff-hey: hey; --stuffCase: foo"></div>`
   );
 });
 
@@ -198,12 +216,12 @@ renderSuite('should render a component with scoped styles', async () => {
     fixture.host,
     `
   <host q:version="dev" q:container="resumed" q:render="dom-dev">
-    <style q:style="ml52vk-0">
+    <style q:style="ml52vk-0" hidden="">
       .stuff.⭐️ml52vk-0 {
         color: red;
       }
     </style>
-    <!--qv q:key=sX:-->
+    <!--qv -->
     <div class="⭐️ml52vk-0">
       <div class="⭐️ml52vk-0 stuff" aria-hidden="true">
         Hello
@@ -221,12 +239,12 @@ renderSuite('should render a component with scoped styles', async () => {
     fixture.host,
     `
   <host q:version="dev" q:container="resumed" q:render="dom-dev">
-    <style q:style="ml52vk-0">
+    <style q:style="ml52vk-0" hidden="">
       .stuff.⭐️ml52vk-0 {
         color: red;
       }
     </style>
-    <!--qv q:key=sX:-->
+    <!--qv -->
     <div class="⭐️ml52vk-0">
       <div class="⭐️ml52vk-0">
         Hello
@@ -269,7 +287,7 @@ renderSuite('should render a div then a component', async () => {
     fixture.host,
     `
     <host q:version="dev" q:container="resumed" q:render="dom-dev">
-      <!--qv q:key=sX:-->
+      <!--qv -->
       <div aria-hidden="false">
         <div class="normal">Normal div</div>
         <button>toggle</button>
@@ -282,9 +300,9 @@ renderSuite('should render a div then a component', async () => {
     fixture.host,
     `
     <host q:version="dev" q:container="resumed" q:render="dom-dev">
-      <!--qv q:key=sX:-->
+      <!--qv -->
       <div aria-hidden="true">
-        <!--qv q:key=sX:-->
+        <!--qv -->
         <div><div>this is ToggleChild</div></div>
         <!--/qv-->
         <button>toggle</button>
@@ -303,7 +321,7 @@ renderSuite('should process clicks', async () => {
     fixture.host,
     `
     <host q:version="dev" q:container="resumed" q:render="dom-dev">
-      <!--qv q:key=sX:-->
+      <!--qv -->
       <button class="decrement">-</button>
       <span>0</span>
       <button class="increment">+</button>
@@ -315,7 +333,7 @@ renderSuite('should process clicks', async () => {
     fixture.host,
     `
     <host q:version="dev" q:container="resumed" q:render="dom-dev">
-      <!--qv q:key=sX:-->
+      <!--qv -->
       <button class="decrement">-</button>
       <span>5</span>
       <button class="increment">+</button>
@@ -380,7 +398,7 @@ renderSuite('should render host events on the first element', async () => {
     fixture.host,
     `
   <host q:version="dev" q:container="resumed" q:render="dom-dev">
-    <!--qv q:key=sX:-->
+    <!--qv -->
     hello
     <div>
       thing
@@ -434,7 +452,10 @@ renderSuite('should project multiple slot with same name', async () => {
     fixture.host,
     `
     <host q:version="dev" q:container="resumed" q:render="dom-dev">
-      <!--qv q:key=sX:-->
+      <!--qv -->
+      <q:template q:slot="ignore" hidden="" aria-hidden="true">
+        <span q:slot="ignore">IGNORE</span>
+      </q:template>
       <section>
         <!--qv q:key q:sref=0 q:s-->
         <!--/qv-->
@@ -445,9 +466,6 @@ renderSuite('should project multiple slot with same name', async () => {
         <!--qv q:key=description q:sref=0 q:s-->
         <!--/qv-->
       </section>
-      <q:template q:slot="ignore" hidden="" aria-hidden="true">
-        <span q:slot="ignore">IGNORE</span>
-      </q:template>
       <!--/qv-->
     </host>
     `
@@ -521,7 +539,6 @@ renderSuite('should render a component with hooks', async () => {
       <div id="watch">true</div>
       <div id="watch-destroy"></div>
       <div id="server-mount">false</div>
-      <div id="cleanup"></div>
       <div id="reference">true</div>
     </div>`
   );
@@ -530,13 +547,12 @@ renderSuite('should render a component with hooks', async () => {
   await expectRendered(
     fixture,
     `
-    <div q:id="1" on:qvisible="/runtimeQRL#_[0]">
-      <div id="effect" q:id="2">true</div>
-      <div id="effect-destroy" q:id="3">true</div>
+    <div>
+      <div id="effect">true</div>
+      <div id="effect-destroy">true</div>
       <div id="watch">true</div>
-      <div id="watch-destroy" q:id="4">true</div>
+      <div id="watch-destroy">true</div>
       <div id="server-mount">false</div>
-      <div id="cleanup" q:id="5">true</div>
       <div id="reference">true</div>
     </div>`
   );
@@ -603,7 +619,7 @@ renderSuite('should render class array correctly', async () => {
 
   await render(
     fixture.host,
-    <div class={['stuff', '', 'm-0 p-2', null, 'active', undefined, 'container'] as any}></div>
+    <div class={['stuff', '', 'm-0 p-2', null, 'active', undefined, 'container']}></div>
   );
   await expectRendered(fixture, `<div class="stuff m-0 p-2 active container"></div>`);
 });
@@ -616,7 +632,7 @@ renderSuite('should re-render classes correctly', async () => {
     fixture.host,
     `
   <host q:version="dev" q:container="resumed" q:render="dom-dev">
-    <!--qv q:key=sX:-->
+    <!--qv -->
     <button class="increment">+</button>
     <div class="stuff m-0 p-2">Div 1</div>
     <div class="stuff m-0 p-2 active container">Div 2</div>
@@ -630,10 +646,10 @@ renderSuite('should re-render classes correctly', async () => {
     fixture.host,
     `
   <host q:version="dev" q:container="resumed" q:render="dom-dev">
-    <!--qv q:key=sX:-->
+    <!--qv -->
     <button class="increment">+</button>
     <div class="other">Div 1</div>
-    <div class="stuff m-0 p-2 active container almost-null">Div 2</div>
+    <div class="stuff m-0 p-2 almost-null active container">Div 2</div>
     <!--/qv-->
   </host>`
   );
@@ -718,8 +734,8 @@ renderSuite('should render foreignObject properly', async () => {
           </svg>
           <feGaussianBlur class="is-html">bye</feGaussianBlur>
         </foreignObject>
-        <text className="is-svg">Hello</text>
-        <text className="is-svg">Bye</text>
+        <text class="is-svg">Hello</text>
+        <text class="is-svg">Bye</text>
       </svg>
       <text class="is-html">end</text>
     </div>
@@ -757,6 +773,23 @@ renderSuite('should render foreignObject properly', async () => {
   );
 });
 
+renderSuite(
+  'should clean up subscriptions after calling the returned cleanup function',
+  async () => {
+    const fixture = new ElementFixture();
+
+    const spies = {
+      cleanupSpy: false,
+    };
+
+    const { cleanup } = await render(fixture.host, <CleanupComponent spies={spies} />);
+
+    cleanup();
+
+    equal(spies.cleanupSpy, true);
+  }
+);
+
 async function expectRendered(fixture: ElementFixture, expected: string) {
   const firstNode = getFirstNode(fixture.host);
   return await expectDOM(firstNode, expected);
@@ -769,6 +802,7 @@ function getFirstNode(el: Element) {
   }
   return firstNode;
 }
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // Hello World
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -791,13 +825,13 @@ export const HelloWorldScoped = component$(() => {
   return (
     <div>
       {state.cond && (
-        <div>
+        <div key="a">
           Hello
           <button onClick$={() => (state.cond = !state.cond)}>Toggle</button>
         </div>
       )}
       {!state.cond && (
-        <div class="stuff" aria-hidden="true">
+        <div key="b" class="stuff" aria-hidden="true">
           Hello
           <button onClick$={() => (state.cond = !state.cond)}>Toggle</button>
         </div>
@@ -827,7 +861,7 @@ export const RenderClasses = component$(() => {
   return (
     <>
       <button
-        className="increment"
+        class="increment"
         onClick$={inlinedQrl(Counter_add, 'Counteradd', [state, { value: 1 }])}
       >
         +
@@ -842,17 +876,15 @@ export const RenderClasses = component$(() => {
         Div 1
       </div>
       <div
-        class={
-          [
-            'stuff',
-            '',
-            'm-0 p-2',
-            state.count % 2 === 0 ? null : 'almost-null',
-            'active',
-            undefined,
-            'container',
-          ] as any
-        }
+        class={[
+          'stuff',
+          '',
+          'm-0 p-2',
+          state.count % 2 === 0 ? null : 'almost-null',
+          'active',
+          undefined,
+          'container',
+        ]}
       >
         Div 2
       </div>
@@ -877,7 +909,7 @@ export const Counter = component$((props: { step?: number }) => {
       </button>
       <span>{state.count}</span>
       <button
-        className="increment"
+        class="increment"
         onClick$={inlinedQrl(Counter_add, 'Counteradd', [state, { value: step }])}
       >
         +
@@ -906,7 +938,7 @@ export const Project = component$(() => {
 export const SimpleProject = component$(() => {
   return (
     <section>
-      <Slot>..default..</Slot>
+      <Slot></Slot>
     </section>
   );
 });
@@ -955,7 +987,7 @@ export const Transparent = component$(() => {
 });
 
 export const UseEvents = component$(() => {
-  useClientEffect$(() => {
+  useVisibleTask$(() => {
     console.warn('hello');
   });
   useOn(
@@ -975,46 +1007,56 @@ export const UseEvents = component$(() => {
 
 //////////////////////////////////////////////////////////////////////////////////////////
 export const Hooks = component$(() => {
-  const watchDestroyDiv = useRef();
-  const effectDiv = useRef();
-  const effectDestroyDiv = useRef();
-  const cleanupDiv = useRef();
+  const taskDestroyDiv = useSignal<HTMLElement>();
+  const visibleTaskDiv = useSignal<HTMLElement>();
+  const visibleTaskDestroyDiv = useSignal<HTMLElement>();
 
   const state = useStore({
-    watch: 'false',
+    task: 'false',
     server: 'false',
   });
 
-  useCleanup$(() => {
-    cleanupDiv.current!.textContent = 'true';
-  });
-
-  useWatch$(() => {
-    state.watch = 'true';
+  useTask$(() => {
+    state.task = 'true';
     return () => {
-      watchDestroyDiv.current!.textContent = 'true';
+      taskDestroyDiv.value!.textContent = 'true';
     };
   });
 
-  useClientEffect$(() => {
-    effectDiv.current!.textContent = 'true';
+  useVisibleTask$(() => {
+    visibleTaskDiv.value!.textContent = 'true';
     return () => {
-      effectDestroyDiv.current!.textContent = 'true';
+      visibleTaskDestroyDiv.value!.textContent = 'true';
     };
   });
 
   return (
     <div>
-      <div id="effect" ref={effectDiv}></div>
-      <div id="effect-destroy" ref={effectDestroyDiv}></div>
+      <div id="effect" ref={visibleTaskDiv}></div>
+      <div id="effect-destroy" ref={visibleTaskDestroyDiv}></div>
 
-      <div id="watch">{state.watch}</div>
-      <div id="watch-destroy" ref={watchDestroyDiv}></div>
+      <div id="watch">{state.task}</div>
+      <div id="watch-destroy" ref={taskDestroyDiv}></div>
 
       <div id="server-mount">{state.server}</div>
-      <div id="cleanup" ref={cleanupDiv}></div>
 
       <div id="reference">true</div>
+    </div>
+  );
+});
+
+//////////////////////////////////////////////////////////////////////////////////////////
+
+export const CleanupComponent = component$((props: { spies: { cleanupSpy: boolean } }) => {
+  useTask$(({ cleanup }) => {
+    cleanup(() => {
+      props.spies.cleanupSpy = true;
+    });
+  });
+
+  return (
+    <div>
+      <div id="cleanup">true</div>
     </div>
   );
 });

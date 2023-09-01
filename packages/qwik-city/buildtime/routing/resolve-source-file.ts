@@ -4,6 +4,7 @@ import type {
   BuildEntry,
   BuildLayout,
   BuildRoute,
+  BuildServerPlugin,
   NormalizedPluginOptions,
   RouteSourceFile,
 } from '../types';
@@ -27,12 +28,6 @@ export function resolveSourceFiles(opts: NormalizedPluginOptions, sourceFiles: R
   const routes = sourceFiles
     .filter((s) => s.type === 'route')
     .map((s) => resolveRoute(opts, layouts, s))
-    .sort(routeSortCompare);
-
-  const errors = sourceFiles
-    .filter((s) => s.type === 'error')
-    .map((s) => resolveError(opts, layouts, s))
-    .filter((s) => s)
     .sort(routeSortCompare);
 
   const entries = sourceFiles
@@ -71,11 +66,10 @@ export function resolveSourceFiles(opts: NormalizedPluginOptions, sourceFiles: R
 
   uniqueIds(layouts);
   uniqueIds(routes);
-  uniqueIds(errors);
   uniqueIds(entries);
   uniqueIds(serviceWorkers);
 
-  return { layouts, routes, errors, entries, menus, serviceWorkers };
+  return { layouts, routes, entries, menus, serviceWorkers };
 }
 
 export function resolveLayout(opts: NormalizedPluginOptions, layoutSourceFile: RouteSourceFile) {
@@ -123,7 +117,11 @@ export function resolveRoute(
   const layouts: BuildLayout[] = [];
   const routesDir = opts.routesDir;
   const { layoutName, layoutStop } = parseRouteIndexName(sourceFile.extlessName);
-  const pathname = getPathnameFromDirPath(opts, sourceFile.dirPath);
+  let pathname = getPathnameFromDirPath(opts, sourceFile.dirPath);
+
+  if (sourceFile.extlessName === '404') {
+    pathname += sourceFile.extlessName + '.html';
+  }
 
   if (!layoutStop) {
     let currentDir = normalizePath(dirname(filePath));
@@ -158,34 +156,36 @@ export function resolveRoute(
   }
 
   const buildRoute: BuildRoute = {
-    id: createFileId(opts.routesDir, filePath),
+    id: createFileId(opts.routesDir, filePath, 'Route'),
     filePath,
     pathname,
     layouts: layouts.reverse(),
     ext: sourceFile.ext,
-    ...parseRoutePathname(pathname),
+    ...parseRoutePathname(opts.basePathname, pathname),
   };
 
   return buildRoute;
 }
 
-export function resolveError(
-  opts: NormalizedPluginOptions,
-  appLayouts: BuildLayout[],
-  sourceFile: RouteSourceFile
-) {
-  return resolveRoute(opts, appLayouts, sourceFile);
+export function resolveServerPlugin(opts: NormalizedPluginOptions, sourceFile: RouteSourceFile) {
+  const filePath = sourceFile.filePath;
+  const buildRoute: BuildServerPlugin = {
+    id: createFileId(opts.serverPluginsDir, filePath, 'Plugin'),
+    filePath,
+    ext: sourceFile.ext,
+  };
+  return buildRoute;
 }
 
 function resolveEntry(opts: NormalizedPluginOptions, sourceFile: RouteSourceFile) {
   const pathname = getPathnameFromDirPath(opts, sourceFile.dirPath);
-  const chunkFileName = pathname.slice(1);
+  const chunkFileName = pathname.slice(opts.basePathname.length);
 
   const buildEntry: BuildEntry = {
-    id: createFileId(opts.routesDir, sourceFile.filePath),
+    id: createFileId(opts.routesDir, sourceFile.filePath, 'Route'),
     filePath: sourceFile.filePath,
     chunkFileName,
-    ...parseRoutePathname(pathname),
+    ...parseRoutePathname(opts.basePathname, pathname),
   };
 
   return buildEntry;
@@ -197,10 +197,10 @@ function resolveServiceWorkerEntry(opts: NormalizedPluginOptions, sourceFile: Ro
   const chunkFileName = pathname.slice(opts.basePathname.length);
 
   const buildEntry: BuildEntry = {
-    id: createFileId(opts.routesDir, sourceFile.filePath),
+    id: createFileId(opts.routesDir, sourceFile.filePath, 'ServiceWorker'),
     filePath: sourceFile.filePath,
     chunkFileName,
-    ...parseRoutePathname(pathname),
+    ...parseRoutePathname(opts.basePathname, pathname),
   };
 
   return buildEntry;

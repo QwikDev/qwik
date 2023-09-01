@@ -13,6 +13,7 @@ export const ReplCommands = ({
           onClick$={() => {
             location.href = createPlaygroundShareUrl(input);
           }}
+          class="copy-to-playground"
           type="button"
           title="Copy To Playground"
           aria-label="Copy To Playground"
@@ -39,6 +40,7 @@ export const ReplCommands = ({
               stroke-width="32"
             />
           </svg>
+          Open in Playground
         </button>
       ) : null}
 

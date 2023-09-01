@@ -48,7 +48,7 @@ Example showing how `useStore` is used in Counter example to keep track of the c
 
 This method works like an async memoized function that runs whenever some tracked value changes and returns some data.
 
-`useResouce` however returns immediate a `ResourceReturn` object that contains the data and a state that indicates if the data is available or not.
+`useResource` however returns immediate a `ResourceReturn` object that contains the data and a state that indicates if the data is available or not.
 
 The status can be one of the following:
 
@@ -67,30 +67,13 @@ Example showing how `useResource` to perform a fetch to request the weather, whe
 
 @public
 
-# `useRef`
+# `useTask`
 
-It's a very thin wrapper around `useStore()`, including the proper type signature to be passed to the `ref` property in JSX.
+Reruns the `taskFn` when the observed inputs change.
 
-```tsx
-export function useRef<T = Element>(current?: T): Ref<T> {
-  return useStore({ current });
-}
-```
+Use `useTask` to observe changes on a set of inputs, and then re-execute the `taskFn` when those inputs change.
 
-### Example
-
-<docs code="./examples.tsx#use-ref"/>
-
-@deprecated Use `useSignal` instead.
-@alpha
-
-# `useWatch`
-
-Reruns the `watchFn` when the observed inputs change.
-
-Use `useWatch` to observe changes on a set of inputs, and then re-execute the `watchFn` when those inputs change.
-
-The `watchFn` only executes if the observed inputs change. To observe the inputs, use the `obs` function to wrap property reads. This creates subscriptions that will trigger the `watchFn` to rerun.
+The `taskFn` only executes if the observed inputs change. To observe the inputs, use the `obs` function to wrap property reads. This creates subscriptions that will trigger the `taskFn` to rerun.
 
 @see `Tracker`
 
@@ -98,55 +81,51 @@ The `watchFn` only executes if the observed inputs change. To observe the inputs
 
 ### Example
 
-The `useWatch` function is used to observe the `state.count` property. Any changes to the `state.count` cause the `watchFn` to execute which in turn updates the `state.doubleCount` to the double of `state.count`.
+The `useTask` function is used to observe the `state.count` property. Any changes to the `state.count` cause the `taskFn` to execute which in turn updates the `state.doubleCount` to the double of `state.count`.
 
-<docs code="./examples.tsx#use-watch"/>
+<docs code="./examples.tsx#use-task"/>
 
-@param watch - Function which should be re-executed when changes to the inputs are detected
+@param task - Function which should be re-executed when changes to the inputs are detected
+@public
+
+# `useVisibleTask`
+
+```tsx
+const Timer = component$(() => {
+  const store = useStore({
+    count: 0,
+  });
+
+  useVisibleTask$(() => {
+    // Only runs in the client
+    const timer = setInterval(() => {
+      store.count++;
+    }, 500);
+    return () => {
+      clearInterval(timer);
+    };
+  });
+
+  return <div>{store.count}</div>;
+});
+```
+
 @public
 
 # `Tracker`
 
 Used to signal to Qwik which state should be watched for changes.
 
-The `Tracker` is passed into the `watchFn` of `useWatch`. It is intended to be used to wrap state objects in a read proxy which signals to Qwik which properties should be watched for changes. A change to any of the properties causes the `watchFn` to rerun.
+The `Tracker` is passed into the `taskFn` of `useTask`. It is intended to be used to wrap state objects in a read proxy which signals to Qwik which properties should be watched for changes. A change to any of the properties causes the `taskFn` to rerun.
 
 ### Example
 
-The `obs` passed into the `watchFn` is used to mark `state.count` as a property of interest. Any changes to the `state.count` property will cause the `watchFn` to rerun.
+The `obs` passed into the `taskFn` is used to mark `state.count` as a property of interest. Any changes to the `state.count` property will cause the `taskFn` to rerun.
 
-<docs code="./examples.tsx#use-watch-simple"/>
+<docs code="./examples.tsx#use-task-simple"/>
 
-@see `useWatch`
+@see `useTask`
 
-@public
-
-# `useClientEffect`
-
-<docs code="./examples.tsx#use-client-effect"/>
-
-@public
-
-# `useMount`
-
-Registers a hook to execute code when the component is mounted into the rendering tree (on component creation).
-
-### Example
-
-<docs code="./examples.tsx#use-mount"/>
-
-@see `useServerMount`
-@public
-
-# `useServerMount`
-
-Registers a server mount hook that runs only in the server when the component is first mounted.
-
-### Example
-
-<docs code="./examples.tsx#use-server-mount"/>
-
-@see `useMount`
 @public
 
 # `useStyles`
@@ -171,14 +150,7 @@ Component styles allow Qwik to lazy load the style information for the component
 
 @see `useStyles`
 
-@alpha
-
-# `useCleanup`
-
-It can be used to release resources, abort network requests, stop timers...
-
-@alpha
-@deprecated Use the cleanup() function of `useWatch$()`, `useResource$()` or `useClientEffect$()` instead.
+@public
 
 # `useOn`
 
@@ -188,7 +160,7 @@ Used to programmatically add event listeners. Useful from custom `use*` methods,
 
 @see `useOn`, `useOnWindow`, `useOnDocument`.
 
-@alpha
+@public
 
 # `useOnWindow`
 
@@ -200,7 +172,7 @@ Used to programmatically add event listeners. Useful from custom `use*` methods,
 
 <docs code="./examples.tsx#use-on-window"/>
 
-@alpha
+@public
 
 # `useOnDocument`
 
@@ -212,7 +184,7 @@ Used to programmatically add event listeners. Useful from custom `use*` methods,
 
 <docs code="./examples.tsx#use-on-document"/>
 
-@alpha
+@public
 
 # `noSerialize`
 
@@ -286,7 +258,7 @@ At first glance, `QRL` serves the same purpose as `import()`. However, there are
 
 Let's assume that you intend to write code such as this:
 
-```typescript
+```tsx
 return <button onClick={() => (await import('./chunk-abc.js')).onClick}>
 ```
 
@@ -294,7 +266,7 @@ The above code needs to be serialized into DOM such as:
 
 ```
 <div q:base="/build/">
-  <button on:lick="./chunk-abc.js#onClick">...</button>
+  <button on:click="./chunk-abc.js#onClick">...</button>
 </div>
 ```
 
@@ -356,7 +328,7 @@ For example, these function calls are equivalent:
 <docs code="./examples.tsx#implicit$FirstArg"/>
 
 @param fn - a function that should have its first argument automatically `$`.
-@alpha
+@public
 
 # `qrl`
 
@@ -369,7 +341,7 @@ This function should be used by the Qwik Optimizer only. The function should not
 @param chunkOrFn - Chunk name (or function which is stringified to extract chunk name)
 @param symbol - Symbol to lazy load
 @param lexicalScopeCapture - a set of lexically scoped variables to capture.
-@alpha
+@public
 
 # `useDocument`
 
@@ -377,28 +349,29 @@ Retrieves the document of the current element. It's important to use this method
 
 NOTE: `useDocument` method can only be used in the synchronous portion of the callback (before any `await` statements.)
 
-@alpha
+@public
 
-# `Context`
+# `ContextId`
 
-Context is a typesafe ID for your context.
+ContextId is a typesafe ID for your context.
 
 Context is a way to pass stores to the child components without prop-drilling.
 
-Use `createContext()` to create a `Context`. `Context` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.
+Use `createContextId()` to create a `ContextId`. A `ContextId` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.
 
 ### Example
 
 <docs code="./examples.tsx#context"/>
 @public
 
-# `createContext`
+# `createContextId`
 
 Create a context ID to be used in your application.
+The name should be written with no spaces.
 
 Context is a way to pass stores to the child components without prop-drilling.
 
-Use `createContext()` to create a `Context`. `Context` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.
+Use `createContextId()` to create a `ContextId`. A `ContextId` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.
 
 ### Example
 
@@ -410,7 +383,7 @@ Use `createContext()` to create a `Context`. `Context` is just a serializable id
 
 Assign a value to a Context.
 
-Use `useContextProvider()` to assign a value to a context. The assignment happens in the component's function. Once assign use `useContext()` in any child component to retrieve the value.
+Use `useContextProvider()` to assign a value to a context. The assignment happens in the component's function. Once assigned, use `useContext()` in any child component to retrieve the value.
 
 Context is a way to pass stores to the child components without prop-drilling.
 
@@ -423,7 +396,7 @@ Context is a way to pass stores to the child components without prop-drilling.
 
 # `useContext`
 
-Retrive Context value.
+Retrieve Context value.
 
 Use `useContext()` to retrieve the value of context in a component. To retrieve a value a parent component needs to invoke `useContextProvider()` to assign a value.
 

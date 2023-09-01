@@ -3,7 +3,7 @@ import { component$, useStore } from '@builder.io/qwik';
 interface CountStore {
   count: number;
 }
-export const App = component$(() => {
+export default component$(() => {
   const store = useStore<CountStore>({ count: 0 });
 
   return (
@@ -18,5 +18,5 @@ interface DisplayProps {
   count: number;
 }
 export const Display = component$((props: DisplayProps) => {
-  return <div>The count is: {props.count}</div>;
+  return <p>The count is: {props.count}</p>;
 });

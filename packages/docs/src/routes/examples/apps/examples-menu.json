@@ -8,6 +8,12 @@
         "title": "Hello World",
         "description": "The simplest Qwik app.",
         "icon": "🌎"
+      },
+      {
+        "id": "runtime-less",
+        "title": "Runtime-less",
+        "description": "An app interactive app without runtime.",
+        "icon": "🪶"
       }
     ]
   },
@@ -16,8 +22,8 @@
     "title": "Reactivity",
     "apps": [
       {
-        "id": "watch",
-        "title": "Simple useWatch()",
+        "id": "task",
+        "title": "Simple useTask()",
         "description": "Learn how to react to changes in variables.",
         "icon": "👀"
       },

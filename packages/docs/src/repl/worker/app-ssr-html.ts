@@ -11,6 +11,7 @@ export const appSsrHtml = async (options: ReplInputOptions, cache: Cache, result
   const start = performance.now();
 
   const mod: any = { exports: {} };
+  // eslint-disable-next-line no-new-func
   const run = new Function('module', 'exports', 'require', ssrModule.code);
   run(mod, mod.exports, noopRequire);
 
@@ -89,7 +90,7 @@ export const appSsrHtml = async (options: ReplInputOptions, cache: Cache, result
 
   if (options.buildMode !== 'production') {
     try {
-      const html = self.prettier?.format(result.html, {
+      const html = await self.prettier?.format(result.html, {
         parser: 'html',
         plugins: self.prettierPlugins,
       });

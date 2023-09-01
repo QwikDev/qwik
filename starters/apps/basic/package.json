@@ -1,13 +1,13 @@
 {
   "name": "qwik-basic-starter",
-  "description": "App with Routing built-in (recommended)",
+  "description": "Demo App with Routing built-in (recommended)",
   "type": "module",
   "__qwik__": {
-    "priority": 1,
-    "displayName": "Basic App (QwikCity)",
+    "priority": 2,
+    "displayName": "Basic App",
     "qwikCity": true,
     "docs": [
-      "https://qwik.builder.io/docs/overview/"
+      "https://qwik.builder.io/docs/getting-started/"
     ]
   }
 }

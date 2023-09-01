@@ -7,9 +7,9 @@ export default defineConfig(() => {
       minify: false,
       target: 'es2020',
       lib: {
-        entry: './src/index.ts',
+        entry: ['./src/index.qwik.ts', './src/vite.ts'],
         formats: ['es', 'cjs'],
-        fileName: (format) => `index.qwik.${format === 'es' ? 'mjs' : 'cjs'}`,
+        fileName: (format, entryName) => `${entryName}.${format === 'es' ? 'mjs' : 'cjs'}`,
       },
       rollupOptions: {
         external: [

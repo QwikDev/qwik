@@ -1,4 +1,4 @@
-import { component$, useStore, QRL, $ } from '@builder.io/qwik';
+import { component$, useStore, type QRL, $ } from '@builder.io/qwik';
 
 interface ParentStore {
   name: string;
@@ -9,7 +9,7 @@ interface ChildStore {
   name: string;
   parent: ParentStore;
 }
-export const App = component$(() => {
+export default component$(() => {
   const parent: ParentStore = {
     name: 'Builder.io',
     children: [],
@@ -18,7 +18,7 @@ export const App = component$(() => {
   parent.children = [
     // insert few items here
   ];
-  const parentStore = useStore<ParentStore>(parent, { recursive: true });
+  const parentStore = useStore<ParentStore>(parent, { deep: true });
   return (
     <>
       {parentStore.name}

@@ -1,25 +1,19 @@
-import { useInvokeContext } from './use-core';
+import { tryGetInvokeContext } from './use-core';
 
 /**
- * @alpha
+ * @public
  */
-export function useEnvData<T>(key: string): T | undefined;
+export function useServerData<T>(key: string): T | undefined;
 
 /**
- * @alpha
+ * @public
  */
-export function useEnvData<T, B = T>(key: string, defaultValue: B): T | B;
+export function useServerData<T, B = T>(key: string, defaultValue: B): T | B;
 
 /**
- * @alpha
+ * @public
  */
-export function useEnvData(key: string, defaultValue?: any) {
-  const ctx = useInvokeContext();
-  return ctx.$renderCtx$.$static$.$containerState$.$envData$[key] ?? defaultValue;
+export function useServerData(key: string, defaultValue?: any) {
+  const ctx = tryGetInvokeContext();
+  return ctx?.$renderCtx$?.$static$.$containerState$.$serverData$[key] ?? defaultValue;
 }
-
-/**
- * @alpha
- * @deprecated Please use `useEnvData` instead.
- */
-export const useUserContext = useEnvData;

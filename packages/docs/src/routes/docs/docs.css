@@ -1,10 +1,9 @@
 .docs main {
   @apply mx-auto min-h-[100vh] xl:max-w-[1300px];
-  margin-top: calc(var(--header-height) + 10px);
 }
 
 .docs .docs-container {
-  @apply pt-[80px];
+  @apply pt-8;
   @apply px-8;
 
   /* medium */
@@ -17,12 +16,12 @@
 }
 
 .docs article a {
-  color: var(--qwik-dark-blue);
+  color: var(--interactive-text-color);
   text-decoration: underline;
 }
 
 .docs article blockquote {
-  background: #f1f5fe;
+  background: var(--blockquote-bg-color);
   padding: 20px 13px 20px 10px;
   border-left: 10px solid #ac7ef4;
   margin: 30px 0;
@@ -48,21 +47,17 @@
 }
 
 .docs article .card {
-  background: #f7f8fb;
+  background: var(--bg-secondary-color);
   border-radius: 10px;
   min-width: 230px;
   padding: 25px;
   flex: 1;
   color: inherit;
   text-decoration: none;
-  /* display: flex;
-  flex-direction: column;
-  justify-content: center;
-  text-decoration: none; */
 }
 
 .docs article a.card:hover {
-  outline: 2px solid var(--qwik-dark-blue);
+  outline: 2px solid var(--interactive-text-color);
 }
 
 .docs article .card-center {
@@ -84,6 +79,11 @@
   font-size: 70px;
   margin: 0;
   line-height: 1;
+}
+
+.docs article .card .intro-icon {
+  position: relative;
+  margin: auto;
 }
 
 .docs article h1 {
@@ -114,7 +114,7 @@
   font-size: 42px;
   font-weight: 800;
   scroll-margin-top: var(--scroll-margin-top);
-  margin-top: 70px;
+  margin-top: 45px;
 }
 
 .docs article h3 {
@@ -155,7 +155,7 @@ h6 a:hover .icon {
   font-size: 16px;
   font-weight: 400;
   line-height: 1.7;
-  color: #171a19;
+  color: var(--secondary-text-color);
 }
 
 .docs article ul,
@@ -167,7 +167,7 @@ h6 a:hover .icon {
 
   font-size: 16px;
   font-weight: 400;
-  color: #171a19;
+  color: var(--secondary-text-color);
 }
 
 .docs article ol {
@@ -181,34 +181,55 @@ h6 a:hover .icon {
 
 .docs article li::marker,
 .docs article li::-webkit-details-marker {
-  color: var(--qwik-dark-blue);
+  color: var(--interactive-text-color);
   font-weight: 800;
 }
 
-.docs article pre {
+[data-rehype-pretty-code-fragment] {
   overflow: auto;
   color: white;
   background-color: rgb(1 31 51);
-  padding: 18px 15px;
   border-radius: 8px;
   margin: 20px 0;
 }
 
+[data-rehype-pretty-code-fragment] pre {
+  overflow: auto;
+  border-radius: 8px;
+  max-height: var(--pretty-code-fragment-max-height);
+}
+
+[data-rehype-pretty-code-title] {
+  padding: 5px 15px;
+  background: #4199d3;
+  font-family: monospace;
+  font-weight: bold;
+}
+
+.docs article pre {
+  padding: 18px 15px;
+  overflow: auto;
+}
+
+:root {
+  --code-line-height: 24px;
+}
+
 .docs article pre code {
-  display: block;
-  max-width: 50px;
+  display: grid;
+  counter-reset: line;
   background-color: transparent;
-  line-height: 1.26;
   border: none;
   user-select: auto;
+  line-height: 1.28;
 }
 
 .docs article code {
-  background-color: rgb(224, 224, 224);
+  background-color: var(--code-bg-color);
   padding: 2px 4px;
   border-radius: 3px;
   font-size: 0.9em;
-  border-bottom: 2px solid #bfbfbf;
+  border-bottom: 2px solid var(--code-border-color);
   user-select: all;
 }
 
@@ -256,12 +277,5 @@ h6 a:hover .icon {
 @media (min-width: 1280px) {
   .docs main.no-right-menu .docs-container {
     margin-right: 6rem;
-  }
-}
-
-@media (max-width: 768px) {
-  .docs article h2 {
-    font-size: 1.2rem;
-    margin-top: 2rem;
   }
 }

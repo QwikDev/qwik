@@ -1,19 +1,16 @@
-import { Fragment, jsx, JSXNode } from '@builder.io/qwik';
+import { Fragment, jsx, type JSXNode } from '@builder.io/qwik';
 import {
   flattenPrefetchResources,
+  getMostReferenced,
   prefetchUrlsEventScript,
   workerFetchScript,
 } from './prefetch-utils';
-import type {
-  DeprecatedPrefetchImplementation,
-  PrefetchImplementation,
-  PrefetchResource,
-  PrefetchStrategy,
-} from './types';
+import type { PrefetchImplementation, PrefetchResource, PrefetchStrategy } from './types';
 
 export function applyPrefetchImplementation(
   prefetchStrategy: PrefetchStrategy | undefined,
-  prefetchResources: PrefetchResource[]
+  prefetchResources: PrefetchResource[],
+  nonce?: string
 ): JSXNode | null {
   // if prefetchStrategy is undefined, use defaults
   // set default if implementation wasn't provided
@@ -22,7 +19,7 @@ export function applyPrefetchImplementation(
   const prefetchNodes: JSXNode[] = [];
 
   if (prefetchImpl.prefetchEvent === 'always') {
-    prefetchUrlsEvent(prefetchNodes, prefetchResources);
+    prefetchUrlsEvent(prefetchNodes, prefetchResources, nonce);
   }
 
   if (prefetchImpl.linkInsert === 'html-append') {
@@ -30,9 +27,9 @@ export function applyPrefetchImplementation(
   }
 
   if (prefetchImpl.linkInsert === 'js-append') {
-    linkJsImplementation(prefetchNodes, prefetchResources, prefetchImpl);
+    linkJsImplementation(prefetchNodes, prefetchResources, prefetchImpl, nonce);
   } else if (prefetchImpl.workerFetchInsert === 'always') {
-    workerFetchImplementation(prefetchNodes, prefetchResources);
+    workerFetchImplementation(prefetchNodes, prefetchResources, nonce);
   }
 
   if (prefetchNodes.length > 0) {
@@ -42,11 +39,25 @@ export function applyPrefetchImplementation(
   return null;
 }
 
-function prefetchUrlsEvent(prefetchNodes: JSXNode[], prefetchResources: PrefetchResource[]) {
+function prefetchUrlsEvent(
+  prefetchNodes: JSXNode[],
+  prefetchResources: PrefetchResource[],
+  nonce?: string
+) {
+  const mostReferenced = getMostReferenced(prefetchResources);
+  for (const url of mostReferenced) {
+    prefetchNodes.push(
+      jsx('link', {
+        rel: 'modulepreload',
+        href: url,
+        nonce,
+      })
+    );
+  }
   prefetchNodes.push(
     jsx('script', {
-      type: 'module',
       dangerouslySetInnerHTML: prefetchUrlsEventScript(prefetchResources),
+      nonce,
     })
   );
 }
@@ -85,7 +96,8 @@ function linkHtmlImplementation(
 function linkJsImplementation(
   prefetchNodes: JSXNode[],
   prefetchResources: PrefetchResource[],
-  prefetchImpl: Required<PrefetchImplementation>
+  prefetchImpl: Required<PrefetchImplementation>,
+  nonce?: string
 ) {
   const rel = prefetchImpl.linkRel || 'prefetch';
   let s = ``;
@@ -127,13 +139,15 @@ function linkJsImplementation(
     jsx('script', {
       type: 'module',
       dangerouslySetInnerHTML: s,
+      nonce,
     })
   );
 }
 
 function workerFetchImplementation(
   prefetchNodes: JSXNode[],
-  prefetchResources: PrefetchResource[]
+  prefetchResources: PrefetchResource[],
+  nonce?: string
 ) {
   let s = `const u=${JSON.stringify(flattenPrefetchResources(prefetchResources))};`;
   s += workerFetchScript();
@@ -142,88 +156,14 @@ function workerFetchImplementation(
     jsx('script', {
       type: 'module',
       dangerouslySetInnerHTML: s,
+      nonce,
     })
   );
 }
 
 function normalizePrefetchImplementation(
-  input: PrefetchImplementation | DeprecatedPrefetchImplementation | undefined
+  input: PrefetchImplementation | undefined
 ): Required<PrefetchImplementation> {
-  if (typeof input === 'string') {
-    // deprecated
-    switch (input) {
-      case 'link-prefetch-html': {
-        // Render link rel=prefetch within the html
-        deprecatedWarning(input, 'linkInsert');
-        return {
-          linkInsert: 'html-append',
-          linkRel: 'prefetch',
-          workerFetchInsert: null,
-          prefetchEvent: null,
-        };
-      }
-      case 'link-prefetch': {
-        // Use JS to add link rel=prefetch, add worker-fetch if not supported
-        deprecatedWarning(input, 'linkInsert');
-        return {
-          linkInsert: 'js-append',
-          linkRel: 'prefetch',
-          workerFetchInsert: 'no-link-support',
-          prefetchEvent: null,
-        };
-      }
-      case 'link-preload-html': {
-        // Render link rel=preload within the html
-        deprecatedWarning(input, 'linkInsert');
-        return {
-          linkInsert: 'html-append',
-          linkRel: 'preload',
-          workerFetchInsert: null,
-          prefetchEvent: null,
-        };
-      }
-      case 'link-preload': {
-        // Use JS to add link rel=preload, add worker-fetch if not supported
-        deprecatedWarning(input, 'linkInsert');
-        return {
-          linkInsert: 'js-append',
-          linkRel: 'preload',
-          workerFetchInsert: 'no-link-support',
-          prefetchEvent: null,
-        };
-      }
-      case 'link-modulepreload-html': {
-        // Render link rel=modulepreload within the html
-        deprecatedWarning(input, 'linkInsert');
-        return {
-          linkInsert: 'html-append',
-          linkRel: 'modulepreload',
-          workerFetchInsert: null,
-          prefetchEvent: null,
-        };
-      }
-      case 'link-modulepreload': {
-        // Use JS to add link rel=modulepreload, add worker-fetch if not supported
-        deprecatedWarning(input, 'linkInsert');
-        return {
-          linkInsert: 'js-append',
-          linkRel: 'modulepreload',
-          workerFetchInsert: 'no-link-support',
-          prefetchEvent: null,
-        };
-      }
-    }
-    // Add worker-fetch JS
-    // default for deprecated string based option
-    deprecatedWarning(input, 'workerFetchInsert');
-    return {
-      linkInsert: null,
-      linkRel: null,
-      workerFetchInsert: 'always',
-      prefetchEvent: null,
-    };
-  }
-
   if (input && typeof input === 'object') {
     // user provided PrefetchImplementation
     return input as any;
@@ -239,9 +179,3 @@ const PrefetchImplementationDefault: Required<PrefetchImplementation> = {
   workerFetchInsert: null,
   prefetchEvent: 'always',
 };
-
-function deprecatedWarning(oldApi: string, newApi: keyof PrefetchImplementation) {
-  console.warn(
-    `The Prefetch Strategy Implementation "${oldApi}" has been deprecated and will be removed in an upcoming release. Please update to use the "prefetchStrategy.implementation.${newApi}" interface.`
-  );
-}

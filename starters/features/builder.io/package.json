@@ -1,0 +1,27 @@
+{
+  "description": "Visual headless CMS",
+  "__qwik__": {
+    "displayName": "Integration: Builder.io",
+    "priority": -10,
+    "viteConfig": {
+      "imports": [
+        {
+          "namedImports": [
+            "builderDevTools"
+          ],
+          "importPath": "@builder.io/dev-tools/vite"
+        }
+      ],
+      "vitePluginsPrepend": [
+        "builderDevTools()"
+      ]
+    },
+    "docs": [
+      "https://www.builder.io/c/docs/quickstart"
+    ]
+  },
+  "devDependencies": {
+    "@builder.io/dev-tools": "^0.0.44",
+    "@builder.io/sdk-qwik": "^0.4.5"
+  }
+}

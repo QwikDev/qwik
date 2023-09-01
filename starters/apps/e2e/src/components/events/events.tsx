@@ -1,4 +1,11 @@
-import { component$, useStore, PropFunction } from '@builder.io/qwik';
+import {
+  component$,
+  useStore,
+  type PropFunction,
+  useSignal,
+  useOnWindow,
+  $,
+} from "@builder.io/qwik";
 
 export const Events = component$(() => {
   const store = useStore({
@@ -22,10 +29,10 @@ export const Events = component$(() => {
           Should prevent default
         </a>
       </p>
-      <p>
+      <div>
         <div
           onClick$={() => {
-            throw new Error('event was not stopped');
+            throw new Error("event was not stopped");
           }}
         >
           <a
@@ -40,11 +47,12 @@ export const Events = component$(() => {
             Should count
           </a>
         </div>
-      </p>
+      </div>
 
       <p id="count-transparent">countTransparent: {store.countTransparent}</p>
       <p id="count-wrapped">countWrapped: {store.countWrapped}</p>
       <p id="count-anchor">countAnchor: {store.countAnchor}</p>
+      <Issue3948 />
     </div>
   );
 });
@@ -72,5 +80,41 @@ export const Buttons = component$((props: ButtonProps) => {
         Wrapped {store.count}
       </button>
     </div>
+  );
+});
+
+export const Listener = component$((props: { name: string }) => {
+  const count = useSignal(0);
+
+  useOnWindow(
+    "click",
+    $(() => {
+      count.value++;
+    }),
+  );
+
+  return (
+    <p id={`issue-3948-${props.name}`}>
+      {props.name} count: {count.value}
+    </p>
+  );
+});
+
+export const Issue3948 = component$(() => {
+  const showingToggle = useSignal(false);
+
+  return (
+    <>
+      <Listener name="always" />
+      <label for="toggle">
+        <input
+          id="issue-3948-toggle"
+          type="checkbox"
+          bind:checked={showingToggle}
+        />{" "}
+        Show conditional
+      </label>
+      {showingToggle.value && <Listener name="conditional" />}
+    </>
   );
 });

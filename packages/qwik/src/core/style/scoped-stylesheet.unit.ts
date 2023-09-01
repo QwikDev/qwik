@@ -91,6 +91,10 @@ scopedStyles('pseudo elements', () => {
 
   equal(scopeStylesheet('a.red::before {}', '_'), 'a.red.⭐️_::before {}');
   equal(scopeStylesheet('a.red span::before {}', '_'), 'a.red.⭐️_ span.⭐️_::before {}');
+  ['before', 'after', 'first-letter', 'first-line'].forEach((selector) => {
+    equal(scopeStylesheet(`:${selector} {}`, '_'), `.⭐️_:${selector} {}`);
+    equal(scopeStylesheet(`a:${selector} {}`, '_'), `a.⭐️_:${selector} {}`);
+  });
 });
 
 scopedStyles('complex properties', () => {

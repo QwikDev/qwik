@@ -3,6 +3,7 @@ import { createSystem } from './node-system';
 import { isMainThread, workerData } from 'node:worker_threads';
 import { mainThread } from '../main-thread';
 import { workerThread } from '../worker-thread';
+import { patchGlobalThis } from 'packages/qwik-city/middleware/node/node-fetch';
 
 export async function generate(opts: StaticGenerateOptions) {
   if (isMainThread) {
@@ -16,6 +17,8 @@ export async function generate(opts: StaticGenerateOptions) {
 
 if (!isMainThread && workerData) {
   (async () => {
+    patchGlobalThis();
+
     // self initializing worker thread with workerData
     const sys = await createSystem(workerData);
     await workerThread(sys);

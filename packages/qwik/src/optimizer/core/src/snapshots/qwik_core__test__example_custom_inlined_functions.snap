@@ -38,13 +38,13 @@ export const useMemoQrl = (qrt)=>{
     useEffect(qrt);
 };
 export const useMemo$ = wrap(useMemoQrl);
-export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
 export const Lightweight = (props)=>{
-    useMemoQrl(qrl(()=>import("./lightweight_usememo_uicxvtqf1a8"), "Lightweight_useMemo_UIcxVTQF1a8"));
+    useMemoQrl(/*#__PURE__*/ qrl(()=>import("./lightweight_usememo_uicxvtqf1a8"), "Lightweight_useMemo_UIcxVTQF1a8"));
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAAA,SAAkC,IAAI,EAAE,SAAS,QAAQ,mBAAmB;AAE5E,OAAO,MAAM,aAAa,CAAC,MAAQ;IAC/B,UAAU;AACd,EAAE;AAEF,OAAO,MAAM,WAAW,KAAK,YAAY;AAEzC,OAAO,MAAM,oBAAM,0FAQhB;AAEH,OAAO,MAAM,cAAc,CAAC,QAAU;IAClC;AAGJ,EAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAkC,IAAI,EAAE,SAAS,QAAQ,mBAAmB;AAE5E,OAAO,MAAM,aAAa,CAAC,MAAQ;IAC/B,UAAU;AACd,EAAE;AAEF,OAAO,MAAM,WAAW,KAAK,YAAY;AAEzC,OAAO,MAAM,oBAAM,wGAQhB;AAEH,OAAO,MAAM,cAAc,CAAC,QAAU;IAClC;AAGJ,EAAG\"}")
 ============================= app_component_usememo_6sc9kvki3y0.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
@@ -110,10 +110,10 @@ export const App_component_ckEPmXZlub0 = (props)=>{
     const state = useStore({
         count: 0
     });
-    useMemoQrl(qrl(()=>import("./app_component_usememo_6sc9kvki3y0"), "App_component_useMemo_6Sc9KVki3Y0", [
+    useMemoQrl(/*#__PURE__*/ qrl(()=>import("./app_component_usememo_6sc9kvki3y0"), "App_component_useMemo_6Sc9KVki3Y0", [
         state
     ]));
-    return qrl(()=>import("./app_component_1_w0t0o3qmovu"), "App_component_1_w0t0o3QMovU", [
+    return /*#__PURE__*/ qrl(()=>import("./app_component_1_w0t0o3qmovu"), "App_component_1_w0t0o3QMovU", [
         state
     ]);
 };
@@ -142,18 +142,18 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= app_component_1_w0t0o3qmovu.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
-import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
-import { _wrapSignal } from "@builder.io/qwik";
+import { _fnSignal } from "@builder.io/qwik";
+import { _jsxQ } from "@builder.io/qwik";
 export const App_component_1_w0t0o3QMovU = ()=>{
     const [state] = useLexicalScope();
-    return /*#__PURE__*/ _jsx("div", {
-        children: _wrapSignal(state, "count")
-    });
+    return /*#__PURE__*/ _jsxQ("div", null, null, _fnSignal((p0)=>p0.count, [
+        state
+    ], "p0.count"), 3, "u6_0");
 };
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;2CAca;;yBACL,KAAC;8BAAK\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;2CAca;;yBACL,MAAC,mCAAK,GAAM,KAAK\"}")
 /*
 {
   "origin": "test.tsx",

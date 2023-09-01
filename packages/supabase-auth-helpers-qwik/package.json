@@ -1,0 +1,50 @@
+{
+  "name": "supabase-auth-helpers-qwik",
+  "description": "A collection of framework specific Auth utilities for working with Supabase.",
+  "version": "0.0.3",
+  "author": "Qwik Team",
+  "bugs": "https://github.com/BuilderIO/qwik/issues",
+  "dependencies": {
+    "@supabase/auth-helpers-shared": "^0.3.4"
+  },
+  "devDependencies": {
+    "@builder.io/qwik": "1.2.10",
+    "@builder.io/qwik-city": "1.2.10",
+    "@supabase/supabase-js": "^2.33.1"
+  },
+  "exports": {
+    ".": {
+      "import": "./lib/index.qwik.mjs",
+      "require": "./lib/index.qwik.cjs",
+      "types": "./lib/types/index.d.ts"
+    }
+  },
+  "files": [
+    "lib"
+  ],
+  "homepage": "https://qwik.builder.io/",
+  "keywords": [
+    "Auth",
+    "Qwik",
+    "Supabase"
+  ],
+  "license": "MIT",
+  "main": "./lib/index.qwik.mjs",
+  "peerDependencies": {
+    "@supabase/supabase-js": "^2.24.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "qwik": "./lib/index.qwik.mjs",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BuilderIO/qwik.git",
+    "directory": "packages/qwik-auth"
+  },
+  "scripts": {
+    "build": "vite build --mode lib"
+  },
+  "type": "module",
+  "types": "./lib/types/index.d.ts"
+}

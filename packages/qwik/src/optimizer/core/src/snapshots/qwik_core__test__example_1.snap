@@ -21,7 +21,7 @@ const renderHeader = component($(() => {
 
 import { qrl } from "@builder.io/qwik";
 export const renderHeader_zBbHWn4e8Cg = ()=>{
-    return <div onClick={qrl(()=>import("./renderheader_div_onclick_fv2uzal99u4"), "renderHeader_div_onClick_fV2uzAL99u4")}/>;
+    return <div onClick={/*#__PURE__*/ qrl(()=>import("./renderheader_div_onclick_fv2uzal99u4"), "renderHeader_div_onClick_fV2uzAL99u4")}/>;
 };
 export { _hW } from "@builder.io/qwik";
 
@@ -79,11 +79,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { qrl } from "@builder.io/qwik";
 import { component } from '@builder.io/qwik';
-export const renderHeader = qrl(()=>import("./renderheader_zbbhwn4e8cg"), "renderHeader_zBbHWn4e8Cg");
-const renderHeader = component(qrl(()=>import("./renderheader_component_u6kkv07sbpq"), "renderHeader_component_U6Kkv07sbpQ"));
+export const renderHeader = /*#__PURE__*/ qrl(()=>import("./renderheader_zbbhwn4e8cg"), "renderHeader_zBbHWn4e8Cg");
+const renderHeader = component(/*#__PURE__*/ qrl(()=>import("./renderheader_component_u6kkv07sbpq"), "renderHeader_component_U6Kkv07sbpQ"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;AAAA,SAAY,SAAS,QAAkB,mBAAmB;AAE1D,OAAO,MAAM,yFAIV;AACH,MAAM,eAAe\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";AACA,SAAY,SAAS,QAAkB,mBAAmB;AAE1D,OAAO,MAAM,uGAIV;AACH,MAAM,eAAe\"}")
 ============================= renderheader_div_onclick_fv2uzal99u4.tsx (ENTRY POINT)==
 
 export const renderHeader_div_onClick_fV2uzAL99u4 = (ctx)=>console.log(ctx);

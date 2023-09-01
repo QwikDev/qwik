@@ -1,14 +1,14 @@
-import { component$, useClientEffect$, useRef } from '@builder.io/qwik';
+import { component$, useVisibleTask$, useSignal } from '@builder.io/qwik';
 
-export const App = component$(() => {
-  const aHref = useRef();
-  useClientEffect$(() => {
+export default component$(() => {
+  const aHref = useSignal<Element>();
+  useVisibleTask$(() => {
     const handler = (event: Event) => {
       event.preventDefault();
       window.open('http://qwik.builder.io');
     };
-    aHref.current!.addEventListener('click', handler);
-    return () => aHref.current!.removeEventListener('click', handler);
+    aHref.value!.addEventListener('click', handler);
+    return () => aHref.value!.removeEventListener('click', handler);
   });
 
   return (

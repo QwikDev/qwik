@@ -1,0 +1,20 @@
+{
+  "description": "Use Vitest into your Qwik app",
+  "__qwik__": {
+    "displayName": "Integration: Vitest (Unit Test)",
+    "priority": -15,
+    "viteConfig": {},
+    "docs": [
+      "https://vitest.dev/guide/",
+      "https://qwik.builder.io/integrations/integration/vitest/"
+    ]
+  },
+  "devDependencies": {
+    "@vitest/ui": "^0.33.0",
+    "vitest": "^0.33.0"
+  },
+  "scripts": {
+    "test.unit": "vitest components",
+    "test.unit.ui": "vitest --ui components"
+  }
+}

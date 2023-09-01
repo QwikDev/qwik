@@ -1,0 +1,8 @@
+# Ignore everything
+*
+
+# Except build folders
+!/package.json
+!/dist/**
+!/server/**
+!/Dockerfile

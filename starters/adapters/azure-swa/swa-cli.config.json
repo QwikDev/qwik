@@ -1,0 +1,11 @@
+{
+  "$schema": "https://aka.ms/azure/static-web-apps-cli/schema",
+  "configurations": {
+    "qwik-app": {
+      "appLocation": ".",
+      "apiLocation": "./azure-functions",
+      "outputLocation": "./dist",
+      "appBuildCommand": "npm run build"
+    }
+  }
+}

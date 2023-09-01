@@ -2,7 +2,6 @@ import { styleContent, styleKey } from '../style/qrl-styles';
 import type { QRL } from '../qrl/qrl.public';
 import { implicit$FirstArg } from '../util/implicit_dollar';
 import { getScopedStyles } from '../style/scoped-stylesheet';
-import { hasStyle } from '../render/execute-component';
 import { useSequentialScope } from './use-sequential-scope';
 import { assertQrl } from '../qrl/qrl-class';
 import { isPromise } from '../util/promises';
@@ -10,7 +9,7 @@ import { assertDefined } from '../error/assert';
 import { ComponentStylesPrefixContent } from '../util/markers';
 
 /**
- * @alpha
+ * @public
  */
 export interface UseStylesScoped {
   scopeId: string;
@@ -91,7 +90,7 @@ export const useStyles$ = /*#__PURE__*/ implicit$FirstArg(useStylesQrl);
  *
  * @see `useStyles`
  *
- * @alpha
+ * @public
  */
 // </docs>
 export const useStylesScopedQrl = (styles: QRL<string>): UseStylesScoped => {
@@ -121,7 +120,7 @@ export const useStylesScopedQrl = (styles: QRL<string>): UseStylesScoped => {
  *
  * @see `useStyles`
  *
- * @alpha
+ * @public
  */
 // </docs>
 export const useStylesScoped$ = /*#__PURE__*/ implicit$FirstArg(useStylesScopedQrl);
@@ -133,12 +132,12 @@ const _useStyles = (
 ): string => {
   assertQrl(styleQrl);
 
-  const { get, set, rCtx, i, elCtx } = useSequentialScope<string>();
+  const { get, set, iCtx, i, elCtx } = useSequentialScope<string>();
   if (get) {
     return get;
   }
   const styleId = styleKey(styleQrl, i);
-  const containerState = rCtx.$renderCtx$.$static$.$containerState$;
+  const containerState = iCtx.$renderCtx$.$static$.$containerState$;
   set(styleId);
 
   if (!elCtx.$appendStyles$) {
@@ -150,7 +149,7 @@ const _useStyles = (
   if (scoped) {
     elCtx.$scopeIds$.push(styleContent(styleId));
   }
-  if (hasStyle(containerState, styleId)) {
+  if (containerState.$styleIds$.has(styleId)) {
     return styleId;
   }
   containerState.$styleIds$.add(styleId);
@@ -163,7 +162,7 @@ const _useStyles = (
     });
   };
   if (isPromise(value)) {
-    rCtx.$waitOn$.push(value.then(appendStyle));
+    iCtx.$waitOn$.push(value.then(appendStyle));
   } else {
     appendStyle(value);
   }

@@ -18,7 +18,7 @@ import type { ValueOrPromise } from '../util/types';
  *
  * This is a low-level API and there should not be a need for you to access this.
  *
- * @alpha
+ * @public
  */
 // </docs>
 export interface CorePlatform {
@@ -40,7 +40,7 @@ export interface CorePlatform {
    *
    * Qwik needs to lazy load data and closures. For this Qwik uses QRLs that are serializable
    * references of resources that are needed. The QRLs contain all the information necessary to
-   * retrieved the reference using `importSymbol`.
+   * retrieve the reference using `importSymbol`.
    *
    * Why not use `import()`? Because `import()` is relative to the current file, and the current
    * file is always the Qwik framework. So QRLs have additional information that allows them to
@@ -54,7 +54,11 @@ export interface CorePlatform {
    * @returns A promise that resolves to the imported symbol.
    */
   // </docs>
-  importSymbol: (containerEl: Element, url: string | URL, symbol: string) => ValueOrPromise<any>;
+  importSymbol: (
+    containerEl: Element | undefined,
+    url: string | URL | undefined | null,
+    symbol: string
+  ) => ValueOrPromise<any>;
   // <docs markdown="./readme.md#CorePlatform.raf">
   // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
   // (edit ./readme.md#CorePlatform.raf instead)
@@ -91,5 +95,12 @@ export interface CorePlatform {
    * contains the symbol.
    */
   // </docs>
-  chunkForSymbol: (symbolName: string) => [symbol: string, chunk: string] | undefined;
+  chunkForSymbol: (
+    symbolName: string,
+    chunk: string | null
+  ) => readonly [symbol: string, chunk: string] | undefined;
+}
+
+export interface CorePlatformServer extends CorePlatform {
+  isServer: true;
 }

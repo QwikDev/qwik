@@ -4,34 +4,38 @@
 
 ```ts
 
-import type { QwikManifest } from '@builder.io/qwik/optimizer';
-import type { SymbolMapper } from '@builder.io/qwik/optimizer';
-import type { SymbolMapperFn } from '@builder.io/qwik/optimizer';
+/// <reference types="node" />
 
-// @alpha
+import type { RenderOptions } from '@builder.io/qwik/server';
+
+// @public
 export function generate(opts: StaticGenerateOptions): Promise<StaticGenerateResult>;
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface StaticGenerateOptions extends StaticGenerateRenderOptions {
+    basePathname?: string;
     qwikCityPlanModulePath: string;
     renderModulePath: string;
+    // (undocumented)
+    rootDir?: string;
 }
 
-// Warning: (ae-forgotten-export) The symbol "RenderOptions" needs to be exported by the entry point index.d.ts
-//
-// @alpha (undocumented)
+// @public (undocumented)
 export interface StaticGenerateRenderOptions extends RenderOptions {
+    emit404Pages?: boolean;
     emitData?: boolean;
     emitHtml?: boolean;
+    exclude?: string[];
+    include?: string[];
     log?: 'debug';
     maxTasksPerWorker?: number;
     maxWorkers?: number;
     origin: string;
     outDir: string;
-    sitemapOutFile?: string;
+    sitemapOutFile?: string | null;
 }
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface StaticGenerateResult {
     // (undocumented)
     duration: number;

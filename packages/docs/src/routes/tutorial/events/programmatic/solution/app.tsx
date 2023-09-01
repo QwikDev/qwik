@@ -1,10 +1,10 @@
 import { component$, useOn, $ } from '@builder.io/qwik';
 
-export const App = component$(() => {
+export default component$(() => {
   useOn(
     'click',
     $(() => alert('Hello World!'))
   );
 
-  return <div>App Component. Click me.</div>;
+  return <p>App Component. Click me.</p>;
 });

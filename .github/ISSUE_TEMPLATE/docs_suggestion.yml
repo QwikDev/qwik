@@ -1,0 +1,19 @@
+name: 📖 Documentation Suggestion
+description: Suggestions on how we can improve the documentation.
+title: '[📖]'
+labels: ['COMP: docs', 'STATUS-1: needs triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out docs suggestion! However, if you think it's something you can fix yourself, please submit a PR instead.
+        In every doc page, you will be able to find the "Edit this page" in the right menu!
+        ![Screenshot](https://user-images.githubusercontent.com/127379/203278116-7986d8b2-6aad-45fd-9890-7f171ca26bf0.png)
+
+  - type: textarea
+    id: description
+    attributes:
+      description: 'A clear and concise description of your suggestion to improve the docs.'
+      label: Suggestion
+    validations:
+      required: true

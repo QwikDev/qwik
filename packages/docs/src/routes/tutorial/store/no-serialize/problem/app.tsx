@@ -1,17 +1,17 @@
-import { component$, NoSerialize, useStore } from '@builder.io/qwik';
+import { component$, type NoSerialize, useStore } from '@builder.io/qwik';
 
 interface AppStore {
   time: null | string;
   cleanup: NoSerialize<() => void>;
 }
-export const App = component$(() => {
+export default component$(() => {
   const store = useStore<AppStore>({
     time: null,
     cleanup: undefined,
   });
   return (
     <>
-      <div>Current Time: {store.time}</div>
+      <p>Current Time: {store.time}</p>
       <button
         onClick$={() => {
           // @ts-ignore

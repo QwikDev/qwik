@@ -4,15 +4,10 @@ import type {
   QwikManifest,
   RenderToStringOptions,
   SnapshotResult,
-  SymbolMapper,
 } from './types';
 
 import type { QRLInternal } from '../core/qrl/qrl-class';
-
-export interface ResolvedManifest {
-  mapper: SymbolMapper;
-  manifest: QwikManifest;
-}
+import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
 
 export function getPrefetchResources(
   snapshotResult: SnapshotResult | null,
@@ -61,7 +56,7 @@ function getAutoPrefetch(
   const prefetchResources: PrefetchResource[] = [];
   const qrls = snapshotResult?.qrls;
   const { mapper, manifest } = resolvedManifest;
-  const urls = new Set<string>();
+  const urls = new Map<string, PrefetchResource>();
 
   if (Array.isArray(qrls)) {
     for (const obj of qrls) {
@@ -77,24 +72,22 @@ function getAutoPrefetch(
 
 function addBundle(
   manifest: QwikManifest,
-  urls: Set<string>,
+  urls: Map<string, PrefetchResource>,
   prefetchResources: PrefetchResource[],
   buildBase: string,
   bundleFileName: string
 ) {
   const url = buildBase + bundleFileName;
-
-  if (!urls.has(url)) {
-    urls.add(url);
+  let prefetchResource = urls.get(url);
+  if (!prefetchResource) {
+    prefetchResource = {
+      url,
+      imports: [],
+    };
+    urls.set(url, prefetchResource);
 
     const bundle = manifest.bundles[bundleFileName];
     if (bundle) {
-      const prefetchResource: PrefetchResource = {
-        url,
-        imports: [],
-      };
-      prefetchResources.push(prefetchResource);
-
       if (Array.isArray(bundle.imports)) {
         for (const importedFilename of bundle.imports) {
           addBundle(manifest, urls, prefetchResource.imports, buildBase, importedFilename);
@@ -102,6 +95,7 @@ function addBundle(
       }
     }
   }
+  prefetchResources.push(prefetchResource);
 }
 
 export const isQrl = (value: any): value is QRLInternal => {

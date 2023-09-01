@@ -1,21 +1,18 @@
-import {
-  qError,
-  QError_qrlIsNotFunction,
-  QError_qrlMissingChunk,
-  QError_qrlMissingContainer,
-} from '../error/error';
-import { getPlatform, isServer } from '../platform/platform';
+import { qError, QError_qrlIsNotFunction } from '../error/error';
+import { getPlatform, isServerPlatform } from '../platform/platform';
 import { verifySerializable } from '../state/common';
+import { isSignal, type SignalInternal } from '../state/signal';
 import {
-  InvokeContext,
+  type InvokeContext,
   newInvokeContext,
   invoke,
-  InvokeTuple,
+  type InvokeTuple,
   newInvokeContextFromTuple,
+  tryGetInvokeContext,
 } from '../use/use-core';
 import { then } from '../util/promises';
-import { qDev, qTest, seal } from '../util/qdev';
-import { isArray, isFunction, ValueOrPromise } from '../util/types';
+import { qDev, qSerialize, qTest, seal } from '../util/qdev';
+import { isArray, isFunction, type ValueOrPromise } from '../util/types';
 import type { QRLDev } from './qrl';
 import type { QRL } from './qrl.public';
 
@@ -31,11 +28,12 @@ export interface QRLInternalMethods<TYPE> {
 
   $capture$: string[] | null;
   $captureRef$: any[] | null;
-  $dev$: QRLDev | null;
+  dev: QRLDev | null;
 
   resolve(): Promise<TYPE>;
   getSymbol(): string;
   getHash(): string;
+  getCaptured(): any[] | null;
   getFn(
     currentCtx?: InvokeContext | InvokeTuple,
     beforeFn?: () => void
@@ -43,7 +41,7 @@ export interface QRLInternalMethods<TYPE> {
     ? (...args: ARGS) => ValueOrPromise<Return>
     : any;
 
-  $setContainer$(containerEl: Element | undefined): void;
+  $setContainer$(containerEl: Element | undefined): Element | undefined;
   $resolveLazy$(containerEl?: Element): ValueOrPromise<TYPE>;
 }
 
@@ -58,8 +56,12 @@ export const createQRL = <TYPE>(
   captureRef: any[] | null,
   refSymbol: string | null
 ): QRLInternal<TYPE> => {
-  if (qDev) {
-    verifySerializable(captureRef);
+  if (qDev && qSerialize) {
+    if (captureRef) {
+      for (const item of captureRef) {
+        verifySerializable(item, 'Captured variable in the closure can not be serialized');
+      }
+    }
   }
 
   let _containerEl: Element | undefined;
@@ -68,6 +70,7 @@ export const createQRL = <TYPE>(
     if (!_containerEl) {
       _containerEl = el;
     }
+    return _containerEl;
   };
 
   const resolve = async (containerEl?: Element): Promise<TYPE> => {
@@ -80,12 +83,6 @@ export const createQRL = <TYPE>(
     if (symbolFn !== null) {
       return (symbolRef = symbolFn().then((module) => (symbolRef = module[symbol])));
     } else {
-      if (!chunk) {
-        throw qError(QError_qrlMissingChunk, symbol);
-      }
-      if (!_containerEl) {
-        throw qError(QError_qrlMissingContainer, chunk, symbol);
-      }
       const symbol2 = getPlatform().importSymbol(_containerEl, chunk, symbol);
       return (symbolRef = then(symbol2, (ref) => {
         return (symbolRef = ref);
@@ -97,7 +94,11 @@ export const createQRL = <TYPE>(
     return symbolRef !== null ? symbolRef : resolve(containerEl);
   };
 
-  const invokeFn = (currentCtx?: InvokeContext | InvokeTuple, beforeFn?: () => void | boolean) => {
+  function invokeFn(
+    this: any,
+    currentCtx?: InvokeContext | InvokeTuple,
+    beforeFn?: () => void | boolean
+  ) {
     return ((...args: any[]): any => {
       const start = now();
       const fn = resolveLazy() as TYPE;
@@ -106,20 +107,23 @@ export const createQRL = <TYPE>(
           if (beforeFn && beforeFn() === false) {
             return;
           }
-          const baseContext = createInvokationContext(currentCtx);
+          const baseContext = createOrReuseInvocationContext(currentCtx);
           const context: InvokeContext = {
             ...baseContext,
             $qrl$: QRL as QRLInternal<any>,
           };
+          if (context.$event$ === undefined) {
+            context.$event$ = this;
+          }
           emitUsedSymbol(symbol, context.$element$, start);
-          return invoke(context, fn as any, ...args);
+          return invoke.call(this, context, fn as any, ...args);
         }
         throw qError(QError_qrlIsNotFunction);
       });
     }) as any;
-  };
+  }
 
-  const createInvokationContext = (invoke: InvokeContext | InvokeTuple | undefined) => {
+  const createOrReuseInvocationContext = (invoke: InvokeContext | InvokeTuple | undefined) => {
     if (invoke == null) {
       return newInvokeContext();
     } else if (isArray(invoke)) {
@@ -129,8 +133,8 @@ export const createQRL = <TYPE>(
     }
   };
 
-  const invokeQRL = async function (...args: any) {
-    const fn = invokeFn();
+  const invokeQRL = async function (this: any, ...args: any) {
+    const fn = invokeFn.call(this, tryGetInvokeContext());
     const result = await fn(...args);
     return result;
   };
@@ -141,6 +145,7 @@ export const createQRL = <TYPE>(
   const methods: QRLInternalMethods<TYPE> = {
     getSymbol: () => resolvedSymbol,
     getHash: () => hash,
+    getCaptured: () => captureRef,
     resolve,
     $resolveLazy$: resolveLazy,
     $setContainer$: setContainer,
@@ -152,7 +157,7 @@ export const createQRL = <TYPE>(
 
     $capture$: capture,
     $captureRef$: captureRef,
-    $dev$: null,
+    dev: null,
   };
   const qrl = Object.assign(invokeQRL, methods);
   seal(qrl);
@@ -175,16 +180,29 @@ export function assertQrl<T>(qrl: QRL<T>): asserts qrl is QRLInternal<T> {
   }
 }
 
+export function assertSignal<T>(obj: any): asserts obj is SignalInternal<T> {
+  if (qDev) {
+    if (!isSignal(obj)) {
+      throw new Error('Not a Signal');
+    }
+  }
+}
+
+const EMITTED = /*#__PURE__*/ new Set();
+
 export const emitUsedSymbol = (symbol: string, element: Element | undefined, reqTime: number) => {
-  emitEvent('qsymbol', {
-    symbol,
-    element,
-    reqTime,
-  });
+  if (!EMITTED.has(symbol)) {
+    EMITTED.add(symbol);
+    emitEvent('qsymbol', {
+      symbol,
+      element,
+      reqTime,
+    });
+  }
 };
 
 export const emitEvent = (eventName: string, detail: any) => {
-  if (!qTest && !isServer() && typeof document === 'object') {
+  if (!qTest && !isServerPlatform() && typeof document === 'object') {
     document.dispatchEvent(
       new CustomEvent(eventName, {
         bubbles: false,
@@ -195,7 +213,7 @@ export const emitEvent = (eventName: string, detail: any) => {
 };
 
 const now = () => {
-  if (qTest || isServer()) {
+  if (qTest || isServerPlatform()) {
     return 0;
   }
   if (typeof performance === 'object') {

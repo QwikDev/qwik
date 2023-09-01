@@ -1,25 +1,28 @@
 import type { StreamWriter } from '@builder.io/qwik';
-import type { RouteParams } from '../runtime/src';
-import type { RenderOptions } from '../../qwik/src/server';
-import type { QwikCityHandlerOptions } from '../middleware/request-handler/types';
+import type { RenderOptions } from '@builder.io/qwik/server';
+import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
 
 export interface System {
-  createMainProcess: () => Promise<MainContext>;
+  createMainProcess: (() => Promise<MainContext>) | null;
   createWorkerProcess: (
     onMessage: (msg: WorkerInputMessage) => Promise<WorkerOutputMessage>
   ) => void;
   createLogger: () => Promise<Logger>;
   getOptions: () => StaticGenerateOptions;
   ensureDir: (filePath: string) => Promise<void>;
+  access: (path: string) => Promise<boolean>;
   createWriteStream: (filePath: string) => StaticStreamWriter;
   createTimer: () => () => number;
-  getPageFilePath: (pathname: string) => string;
+  getRouteFilePath: (pathname: string, isHtml: boolean) => string;
   getDataFilePath: (pathname: string) => string;
+  getEnv: (key: string) => string | undefined;
   platform: { [key: string]: any };
 }
 
 export interface StaticStreamWriter extends StreamWriter {
-  close(callback?: () => void): void;
+  write: (chunk: string | Buffer) => void;
+  end(callback?: () => void): void;
+  on(event: 'error', callback: (err: Error) => void): void;
 }
 
 export interface MainContext {
@@ -35,7 +38,7 @@ export interface Logger {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface StaticGenerateRenderOptions extends RenderOptions {
   /**
@@ -71,7 +74,7 @@ export interface StaticGenerateRenderOptions extends RenderOptions {
    * and written to the root of the `outDir`. Setting to `null` will prevent
    * the sitemap from being created.
    */
-  sitemapOutFile?: string;
+  sitemapOutFile?: string | null;
   /**
    * Log level.
    */
@@ -87,10 +90,27 @@ export interface StaticGenerateRenderOptions extends RenderOptions {
    * Defaults to `true`.
    */
   emitData?: boolean;
+  /**
+   * Set to `false` if the static build should not write custom or default `404.html` pages.
+   * Defaults to `true`.
+   */
+  emit404Pages?: boolean;
+  /**
+   * Defines file system routes relative to the source `routes` directory that should be static generated.
+   * Accepts wildcard behavior. This should not include the "base" pathname.
+   * If not provided, all routes will be static generated. `exclude` always takes priority over `include`.
+   */
+  include?: string[];
+  /**
+   * Defines file system routes relative to the source `routes` directory that should not be static generated.
+   * Accepts wildcard behavior. This should not include the "base" pathname.
+   * `exclude` always takes priority over `include`.
+   */
+  exclude?: string[];
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface StaticGenerateOptions extends StaticGenerateRenderOptions {
   /**
@@ -102,11 +122,17 @@ export interface StaticGenerateOptions extends StaticGenerateRenderOptions {
    * Path to the Qwik City Plan module exporting the default `@qwik-city-plan`.
    */
   qwikCityPlanModulePath: string;
+  /**
+   * Defaults to `/`
+   */
+  basePathname?: string;
+
+  rootDir?: string;
 }
 
 export interface StaticGenerateHandlerOptions
   extends StaticGenerateRenderOptions,
-    QwikCityHandlerOptions {}
+    ServerRenderOptions {}
 
 export type WorkerInputMessage = StaticRenderInput | WorkerCloseMessage;
 
@@ -118,7 +144,7 @@ export interface StaticRenderInput extends StaticRoute {
 
 export interface StaticRoute {
   pathname: string;
-  params: RouteParams | undefined;
+  params: Record<string, string> | undefined;
 }
 
 export interface WorkerCloseMessage {
@@ -130,12 +156,14 @@ export interface StaticWorkerRenderResult {
   pathname: string;
   url: string;
   ok: boolean;
-  error: string | null;
-  isStatic: boolean;
+  error: { message: string; stack: string | undefined } | null;
+  filePath: string | null;
+  contentType: string | null;
+  resourceType: 'page' | '404' | null;
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface StaticGenerateResult {
   duration: number;

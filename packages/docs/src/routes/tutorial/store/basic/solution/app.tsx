@@ -1,11 +1,11 @@
 import { component$, useStore } from '@builder.io/qwik';
 
-export const App = component$(() => {
+export default component$(() => {
   const counter = useStore({ count: 0 });
 
   return (
     <>
-      <div>Count: {counter.count}</div>
+      <p>Count: {counter.count}</p>
       <button onClick$={() => counter.count++}>+1</button>
     </>
   );

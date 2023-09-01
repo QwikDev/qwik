@@ -5,6 +5,7 @@ import type {
   StaticWorkerRenderResult,
   WorkerOutputMessage,
   WorkerInputMessage,
+  System,
 } from '../types';
 import fs from 'node:fs';
 import { cpus as nodeCpus } from 'node:os';
@@ -12,11 +13,14 @@ import { Worker } from 'node:worker_threads';
 import { isAbsolute, resolve } from 'node:path';
 import { ensureDir } from './node-system';
 import { normalizePath } from '../../utils/fs';
+import { createSingleThreadWorker } from '../worker-thread';
 
-export async function createNodeMainProcess(opts: StaticGenerateOptions) {
+export async function createNodeMainProcess(sys: System, opts: StaticGenerateOptions) {
   const ssgWorkers: StaticGeneratorWorker[] = [];
   const sitemapBuffer: string[] = [];
   let sitemapPromise: Promise<any> | null = null;
+
+  opts = { ...opts };
 
   let outDir = opts.outDir;
   if (typeof outDir !== 'string') {
@@ -47,7 +51,28 @@ export async function createNodeMainProcess(opts: StaticGenerateOptions) {
     }
   }
 
-  const createWorker = () => {
+  const singleThreadWorker = await createSingleThreadWorker(sys);
+
+  const createWorker = (workerIndex: number) => {
+    if (workerIndex === 0) {
+      // same thread worker, don't start a new process
+      const ssgSameThreadWorker: StaticGeneratorWorker = {
+        activeTasks: 0,
+        totalTasks: 0,
+
+        render: async (staticRoute) => {
+          ssgSameThreadWorker.activeTasks++;
+          ssgSameThreadWorker.totalTasks++;
+          const result = await singleThreadWorker(staticRoute);
+          ssgSameThreadWorker.activeTasks--;
+          return result;
+        },
+
+        terminate: async () => {},
+      };
+      return ssgSameThreadWorker;
+    }
+
     let terminateResolve: (() => void) | null = null;
     const mainTasks = new Map<string, WorkerMainTask>();
 
@@ -141,7 +166,7 @@ export async function createNodeMainProcess(opts: StaticGenerateOptions) {
 
     const result = await ssgWorker.render(staticRoute);
 
-    if (sitemapOutFile && result.ok) {
+    if (sitemapOutFile && result.ok && result.resourceType === 'page') {
       sitemapBuffer.push(`<url><loc>${result.url}</loc></url>`);
       if (sitemapBuffer.length > 50) {
         if (sitemapPromise) {
@@ -189,7 +214,7 @@ export async function createNodeMainProcess(opts: StaticGenerateOptions) {
   }
 
   for (let i = 0; i < maxWorkers; i++) {
-    ssgWorkers.push(createWorker());
+    ssgWorkers.push(createWorker(i));
   }
 
   const mainCtx: MainContext = {

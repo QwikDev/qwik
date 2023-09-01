@@ -15,7 +15,7 @@ crate-type = ["cdylib"]
 [dependencies]
 js-sys = "0.3.37"
 qwik-core = { path = "../optimizer/core" }
-serde = "1"
+serde = "1.0.160"
 serde-wasm-bindgen = "0.3.0"
 wasm-bindgen = "0.2.80"
 parking_lot_core = "=0.9.3"

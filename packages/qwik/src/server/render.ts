@@ -1,5 +1,5 @@
 import { createTimer, getBuildBase } from './utils';
-import { renderSSR, Fragment, jsx, _pauseFromContexts, JSXNode } from '@builder.io/qwik';
+import { _renderSSR, Fragment, jsx, _pauseFromContexts, type JSXNode } from '@builder.io/qwik';
 import type { SnapshotResult } from '@builder.io/qwik';
 import { getSymbolHash, setServerPlatform } from './platform';
 import type {
@@ -10,11 +10,10 @@ import type {
   RenderToStringResult,
   StreamWriter,
 } from './types';
+import { isDev } from '@builder.io/qwik/build';
 import { getQwikLoaderScript } from './scripts';
-import { getPrefetchResources, ResolvedManifest } from './prefetch-strategy';
-import type { SymbolMapper } from '../optimizer/src/types';
-import { qDev } from '../core/util/qdev';
-import { EMPTY_OBJ } from '../core/util/flyweight';
+import { getPrefetchResources } from './prefetch-strategy';
+import type { ResolvedManifest, SymbolMapper } from '../optimizer/src/types';
 import { getValidManifest } from '../optimizer/src/manifest';
 import { applyPrefetchImplementation } from './prefetch-implementation';
 import type { QContext } from '../core/state/context';
@@ -25,7 +24,7 @@ const DOCTYPE = '<!DOCTYPE html>';
  * Creates a server-side `document`, renders to root node to the document,
  * then serializes the document to a string.
  *
- * @alpha
+ * @public
  *
  */
 export async function renderToStream(
@@ -37,6 +36,8 @@ export async function renderToStream(
   let totalSize = 0;
   let networkFlushes = 0;
   let firstFlushTime = 0;
+  let buffer: string = '';
+  let snapshotResult: SnapshotResult | undefined;
   const inOrderStreaming = opts.streaming?.inOrder ?? {
     strategy: 'auto',
     maximunInitialChunk: 50000,
@@ -44,9 +45,10 @@ export async function renderToStream(
   };
   const containerTagName = opts.containerTagName ?? 'html';
   const containerAttributes = opts.containerAttributes ?? {};
-  let buffer: string = '';
   const nativeStream = stream;
   const firstFlushTimer = createTimer();
+  const buildBase = getBuildBase(opts);
+  const resolvedManifest = resolveManifest(opts.manifest);
   function flush() {
     if (buffer) {
       nativeStream.write(buffer);
@@ -59,8 +61,9 @@ export async function renderToStream(
     }
   }
   function enqueue(chunk: string) {
-    bufferSize += chunk.length;
-    totalSize += chunk.length;
+    const len = chunk.length;
+    bufferSize += len;
+    totalSize += len;
     buffer += chunk;
   }
   switch (inOrderStreaming.strategy) {
@@ -117,57 +120,66 @@ export async function renderToStream(
   }
 
   if (!opts.manifest) {
-    console.warn('Missing client manifest, loading symbols in the client might 404');
+    console.warn(
+      `Missing client manifest, loading symbols in the client might 404. Please ensure the client build has run and generated the manifest for the server build.`
+    );
   }
-  const buildBase = getBuildBase(opts);
-  const resolvedManifest = resolveManifest(opts.manifest);
   await setServerPlatform(opts, resolvedManifest);
-
-  // Render
-  let snapshotResult: SnapshotResult | null = null;
 
   const injections = resolvedManifest?.manifest.injections;
   const beforeContent = injections
-    ? injections.map((injection) => jsx(injection.tag, injection.attributes ?? EMPTY_OBJ))
+    ? injections.map((injection) => jsx(injection.tag, injection.attributes ?? {}))
     : undefined;
 
   const renderTimer = createTimer();
   const renderSymbols: string[] = [];
   let renderTime = 0;
   let snapshotTime = 0;
-  await renderSSR(rootNode, {
+
+  await _renderSSR(rootNode, {
     stream,
     containerTagName,
     containerAttributes,
-    envData: opts.envData,
+    serverData: opts.serverData,
     base: buildBase,
     beforeContent,
-    beforeClose: async (contexts, containerState) => {
+    beforeClose: async (contexts, containerState, _dynamic, textNodes) => {
       renderTime = renderTimer();
       const snapshotTimer = createTimer();
 
-      snapshotResult = await _pauseFromContexts(contexts, containerState);
+      snapshotResult = await _pauseFromContexts(contexts, containerState, undefined, textNodes);
 
-      const jsonData = JSON.stringify(snapshotResult.state, undefined, qDev ? '  ' : undefined);
-      const children: (JSXNode | null)[] = [
-        jsx('script', {
-          type: 'qwik/json',
-          dangerouslySetInnerHTML: escapeText(jsonData),
-        }),
-      ];
-
+      const children: (JSXNode | null)[] = [];
       if (opts.prefetchStrategy !== null) {
         // skip prefetch implementation if prefetchStrategy === null
         const prefetchResources = getPrefetchResources(snapshotResult, opts, resolvedManifest);
         if (prefetchResources.length > 0) {
           const prefetchImpl = applyPrefetchImplementation(
             opts.prefetchStrategy,
-            prefetchResources
+            prefetchResources,
+            opts.serverData?.nonce
           );
           if (prefetchImpl) {
             children.push(prefetchImpl);
           }
         }
+      }
+      const jsonData = JSON.stringify(snapshotResult.state, undefined, isDev ? '  ' : undefined);
+      children.push(
+        jsx('script', {
+          type: 'qwik/json',
+          dangerouslySetInnerHTML: escapeText(jsonData),
+          nonce: opts.serverData?.nonce,
+        })
+      );
+      if (snapshotResult.funcs.length > 0) {
+        children.push(
+          jsx('script', {
+            'q:func': 'qwik/json',
+            dangerouslySetInnerHTML: serializeFunctions(snapshotResult.funcs),
+            nonce: opts.serverData?.nonce,
+          })
+        );
       }
 
       const needLoader = !snapshotResult || snapshotResult.mode !== 'static';
@@ -182,6 +194,7 @@ export async function renderToStream(
           jsx('script', {
             id: 'qwikloader',
             dangerouslySetInnerHTML: qwikLoaderScript,
+            nonce: opts.serverData?.nonce,
           })
         );
       }
@@ -195,6 +208,7 @@ export async function renderToStream(
         children.push(
           jsx('script', {
             dangerouslySetInnerHTML: content,
+            nonce: opts.serverData?.nonce,
           })
         );
       }
@@ -203,6 +217,7 @@ export async function renderToStream(
       snapshotTime = snapshotTimer();
       return jsx(Fragment, { children });
     },
+    manifestHash: resolvedManifest?.manifest.manifestHash || 'dev',
   });
 
   // End of container
@@ -213,12 +228,14 @@ export async function renderToStream(
   // Flush remaining chunks in the buffer
   flush();
 
+  const isDynamic = snapshotResult!.resources.some((r) => r._cache !== Infinity);
   const result: RenderToStreamResult = {
     prefetchResources: undefined as any,
     snapshotResult,
     flushes: networkFlushes,
     manifest: resolvedManifest?.manifest,
     size: totalSize,
+    isStatic: !isDynamic,
     timing: {
       render: renderTime,
       snapshot: snapshotTime,
@@ -233,7 +250,7 @@ export async function renderToStream(
  * Creates a server-side `document`, renders to root node to the document,
  * then serializes the document to a string.
  *
- * @alpha
+ * @public
  *
  */
 export async function renderToString(
@@ -242,22 +259,35 @@ export async function renderToString(
 ): Promise<RenderToStringResult> {
   const chunks: string[] = [];
   const stream: StreamWriter = {
-    write: (chunk) => {
+    write(chunk) {
       chunks.push(chunk);
     },
   };
+
   const result = await renderToStream(rootNode, {
-    ...opts,
+    base: opts.base,
+    containerAttributes: opts.containerAttributes,
+    containerTagName: opts.containerTagName,
+    locale: opts.locale,
+    manifest: opts.manifest,
+    symbolMapper: opts.symbolMapper,
+    qwikLoader: opts.qwikLoader,
+    serverData: opts.serverData,
+    prefetchStrategy: opts.prefetchStrategy,
     stream,
   });
   return {
-    ...result,
+    isStatic: result.isStatic,
+    prefetchResources: result.prefetchResources,
+    timing: result.timing,
+    manifest: result.manifest,
+    snapshotResult: result.snapshotResult,
     html: chunks.join(''),
   };
 }
 
 /**
- * @alpha
+ * @public
  */
 export function resolveManifest(
   manifest: QwikManifest | ResolvedManifest | undefined
@@ -294,4 +324,8 @@ function collectRenderSymbols(renderSymbols: string[], elements: QContext[]) {
       renderSymbols.push(symbol);
     }
   }
+}
+
+function serializeFunctions(funcs: string[]) {
+  return `document.currentScript.qFuncs=[${funcs.join(',\n')}]`;
 }

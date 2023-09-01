@@ -1,0 +1,216 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$, useServerMount$, serverLoader$, serverStuff$, $, client$, useStore, useTask$ } from '@builder.io/qwik';
+import mongo from 'mongodb';
+import redis from 'redis';
+import { handler } from 'serverless';
+
+export const Parent = component$(() => {
+    const state = useStore({
+        text: ''
+    });
+
+    // Double count watch
+    useServerMount$(async () => {
+        state.text = await mongo.users();
+        redis.set(state.text);
+    });
+
+    serverStuff$(async () => {
+        // should be removed too
+        const a = $(() => {
+            // from $(), should not be removed
+        });
+        const b = client$(() => {
+            // from clien$(), should not be removed
+        });
+        return [a,b];
+    })
+
+    serverLoader$(handler);
+
+    useTask$(() => {
+        // Code
+    });
+
+    return (
+        <div onClick$={() => console.log('parent')}>
+            {state.text}
+        </div>
+    );
+});
+
+============================= parent_component_usetask_gdh1etuwqbu.js (ENTRY POINT)==
+
+export const Parent_component_useTask_gDH1EtUWqBU = ()=>{
+// Code
+};
+export { _hW } from "@builder.io/qwik";
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"oDA8Ba,IAAM;AACX,OAAO;AACX\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Parent_component_useTask_gDH1EtUWqBU",
+  "entry": null,
+  "displayName": "Parent_component_useTask",
+  "hash": "gDH1EtUWqBU",
+  "canonicalFilename": "parent_component_usetask_gdh1etuwqbu",
+  "extension": "js",
+  "parent": "Parent_component_0TaiDayHrlo",
+  "ctxKind": "function",
+  "ctxName": "useTask$",
+  "captures": false,
+  "loc": [
+    781,
+    810
+  ]
+}
+*/
+============================= test.js ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./parent_component_0taidayhrlo"), "Parent_component_0TaiDayHrlo"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAMA,OAAO,MAAM,uBAAS,8GAiCnB\"}")
+============================= parent_component_serverstuff_a_2ca3hldc7yc.js (ENTRY POINT)==
+
+export const Parent_component_serverStuff_a_2ca3HLDC7yc = ()=>{
+// from $(), should not be removed
+};
+export { _hW } from "@builder.io/qwik";
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"0DAmBoB,IAAM;AACd,kCAAkC;AACtC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Parent_component_serverStuff_a_2ca3HLDC7yc",
+  "entry": null,
+  "displayName": "Parent_component_serverStuff_a",
+  "hash": "2ca3HLDC7yc",
+  "canonicalFilename": "parent_component_serverstuff_a_2ca3hldc7yc",
+  "extension": "js",
+  "parent": "Parent_component_serverStuff_r1qAHX7Opp0",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    544,
+    608
+  ]
+}
+*/
+============================= parent_component_serverstuff_b_client_v9qawr2inkk.js (ENTRY POINT)==
+
+export const Parent_component_serverStuff_b_client_v9qawr2Inkk = ()=>{
+// from clien$(), should not be removed
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"iEAsB0B,IAAM;AACpB,uCAAuC;AAC3C\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Parent_component_serverStuff_b_client_v9qawr2Inkk",
+  "entry": null,
+  "displayName": "Parent_component_serverStuff_b_client",
+  "hash": "v9qawr2Inkk",
+  "canonicalFilename": "parent_component_serverstuff_b_client_v9qawr2inkk",
+  "extension": "js",
+  "parent": "Parent_component_serverStuff_r1qAHX7Opp0",
+  "ctxKind": "function",
+  "ctxName": "client$",
+  "captures": false,
+  "loc": [
+    637,
+    706
+  ]
+}
+*/
+============================= parent_component_0taidayhrlo.js (ENTRY POINT)==
+
+import { _fnSignal } from "@builder.io/qwik";
+import { _jsxQ } from "@builder.io/qwik";
+import { _noopQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+import { serverLoaderQrl } from "@builder.io/qwik";
+import { serverStuffQrl } from "@builder.io/qwik";
+import { useServerMountQrl } from "@builder.io/qwik";
+import { useStore } from "@builder.io/qwik";
+import { useTaskQrl } from "@builder.io/qwik";
+export const Parent_component_0TaiDayHrlo = ()=>{
+    const state = useStore({
+        text: ''
+    });
+    // Double count watch
+    useServerMountQrl(/*#__PURE__*/ _noopQrl("Parent_component_useServerMount_cQrQm0HrrM8", [
+        state
+    ]));
+    serverStuffQrl(/*#__PURE__*/ _noopQrl("Parent_component_serverStuff_r1qAHX7Opp0"));
+    serverLoaderQrl(/*#__PURE__*/ _noopQrl("Parent_component_serverLoader_k1L0DiPQV1I"));
+    useTaskQrl(/*#__PURE__*/ qrl(()=>import("./parent_component_usetask_gdh1etuwqbu"), "Parent_component_useTask_gDH1EtUWqBU"));
+    return /*#__PURE__*/ _jsxQ("div", null, {
+        onClick$: /*#__PURE__*/ qrl(()=>import("./parent_component_div_onclick_c5xe49nqd3a"), "Parent_component_div_onClick_C5XE49Nqd3A")
+    }, _fnSignal((p0)=>p0.text, [
+        state
+    ], "p0.text"), 3, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;4CAMiC,IAAM;IACnC,MAAM,QAAQ,SAAS;QACnB,MAAM;IACV;IAEA,qBAAqB;IACrB;;;IAKA;IAWA;IAEA;IAIA,qBACI,MAAC;QAAI,QAAQ;uBACR,GAAM,IAAI;;;AAGvB\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Parent_component_0TaiDayHrlo",
+  "entry": null,
+  "displayName": "Parent_component",
+  "hash": "0TaiDayHrlo",
+  "canonicalFilename": "parent_component_0taidayhrlo",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    255,
+    928
+  ]
+}
+*/
+============================= parent_component_div_onclick_c5xe49nqd3a.js (ENTRY POINT)==
+
+export const Parent_component_div_onClick_C5XE49Nqd3A = ()=>console.log('parent');
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"wDAmCuB,IAAM,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Parent_component_div_onClick_C5XE49Nqd3A",
+  "entry": null,
+  "displayName": "Parent_component_div_onClick",
+  "hash": "C5XE49Nqd3A",
+  "canonicalFilename": "parent_component_div_onclick_c5xe49nqd3a",
+  "extension": "js",
+  "parent": "Parent_component_0TaiDayHrlo",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    850,
+    877
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

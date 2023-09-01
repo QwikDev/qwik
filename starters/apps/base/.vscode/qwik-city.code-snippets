@@ -1,32 +1,36 @@
 {
-  "onGet": {
+  "onRequest": {
     "scope": "javascriptreact,typescriptreact",
-    "prefix": "q:onGet",
-    "description": "onGet function for a route index",
+    "prefix": "qonRequest",
+    "description": "onRequest function for a route index",
     "body": [
-      "export const onGet: RequestHandler = (request) => {",
+      "export const onRequest: RequestHandler = (request) => {",
       "  $0",
       "};"
     ]
   },
-  "onGet (typed)": {
+  "loader$": {
     "scope": "javascriptreact,typescriptreact",
-    "prefix": "q:onGet typed",
-    "description": "onGet function for a route index",
-    "body": [
-      "export interface ${1:PageData} {",
-      "  $2",
-      "};",
-      "",
-      "export const onGet: RequestHandler<$1> = (request) => {",
-      "  $4",
-      "};"
-    ]
+    "prefix": "qloader$",
+    "description": "loader$()",
+    "body": ["export const $1 = routeLoader$(() => {", "  $0", "});"]
   },
-  "useEndpoint": {
+  "action$": {
     "scope": "javascriptreact,typescriptreact",
-    "prefix": "q:useEndpoint",
-    "description": "useEndpoint declaration",
-    "body": "const $1 = useEndpoint<typeof onGet>();"
+    "prefix": "qaction$",
+    "description": "action$()",
+    "body": ["export const $1 = routeAction$((data) => {", "  $0", "});"]
+  },
+  "Full Page": {
+    "scope": "javascriptreact,typescriptreact",
+    "prefix": "qpage",
+    "description": "Simple page component",
+    "body": [
+      "import { component$ } from '@builder.io/qwik';",
+      "",
+      "export default component$(() => {",
+      "  $0",
+      "});"
+    ]
   }
 }

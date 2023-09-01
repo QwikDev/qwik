@@ -1,6 +1,6 @@
 import { component$, useOnDocument, useStore, $ } from '@builder.io/qwik';
 
-export const App = component$(() => {
+export default component$(() => {
   const mousePosition = useStore({ x: 0, y: 0 });
   useOnDocument(
     'mousemove',

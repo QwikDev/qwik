@@ -1,0 +1,18 @@
+{
+  "description": "Use Playwright to run E2E tests into your Qwik app",
+  "__qwik__": {
+    "displayName": "Integration: Playwright (E2E Test)",
+    "priority": -10,
+    "viteConfig": {},
+    "postInstall": "playwright install",
+    "docs": [
+      "https://playwright.dev/docs/writing-tests"
+    ]
+  },
+  "devDependencies": {
+    "@playwright/test": "1.36.2"
+  },
+  "scripts": {
+    "test.e2e": "playwright test"
+  }
+}

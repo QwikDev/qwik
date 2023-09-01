@@ -1,12 +1,11 @@
 /* eslint-disable */
 // @ts-ignore
-import Utils from '@typescript-eslint/utils';
+import { RuleTester } from '@typescript-eslint/rule-tester';
 import { fileURLToPath } from 'node:url';
-import { test } from 'uvu';
 import { rules } from './index';
+import { suite } from 'uvu';
 
-const RuleTester = Utils.ESLintUtils.RuleTester;
-
+const lintSuite = suite('lint');
 const testConfig = {
   parser: '@typescript-eslint/parser',
   env: {
@@ -23,11 +22,71 @@ const testConfig = {
   },
 };
 
+RuleTester.afterAll = lintSuite.after;
+RuleTester.it = lintSuite;
+RuleTester.itOnly = lintSuite.only;
+RuleTester.describe = function (_, method) {
+  return method.call(this);
+};
+
 const ruleTester = new RuleTester(testConfig as any);
-test('no-use-after-await', () => {
-  ruleTester.run('my-rule', rules['no-use-after-await'] as any, {
-    valid: [
-      `
+ruleTester.run('use-method-usage', rules['use-method-usage'] as any, {
+  valid: [
+    `
+export function useSession1() {
+  useContext();
+}
+export function useSession2() {
+  return useContext();
+}
+export function useSession3() {
+  return useContext().value;
+}
+`,
+    `
+export const useSession1 = () => {
+  useContext();
+}
+
+export const useSession2 = () => {
+  return useContext();
+}
+
+export const useSession3 = () => useContext();
+
+export const useSession4 = () => useContext().value;
+
+export const useSession5 = () => useContext().value + 10;
+
+`,
+
+    `
+export const useSession1 = () => {
+  useContext()?.value;
+}
+
+export const useSession2 = () => {
+  return useContext()?.value;
+}
+
+export const useSession3 = () => useContext()?.value;
+
+export const useSession4 = () => useContext()?.value;
+
+export const useSession5 = () => useContext()?.value; + 10;
+
+`,
+    `
+export const HelloWorld = component$(async () => {
+  const [todoForm, { Form, Field, FieldArray }] = useForm<TodoForm>({
+    loader: useFormLoader(),
+    action: useFormAction(),
+    validate: zodForm$(todoSchema),
+  });
+
+  });
+  `,
+    `
       export const HelloWorld = component$(async () => {
           useMethod();
           await something();
@@ -42,19 +101,36 @@ test('no-use-after-await', () => {
           A();
         }
         `,
-      `export const HelloWorld = component$(async () => {
+    `export const HelloWorld = component$(async () => {
           useMethod();
           await something();
           await stuff();
           return $(() => {
-            useHostElement();
             return <div></div>
           });
         });`,
-    ],
-    invalid: [
-      {
-        code: `export const HelloWorld = component$(async () => {
+    `export const HelloWorld = component$(async () => {
+          const test = useFunction() as string;
+
+          });
+          `,
+    `export const InsideTask = component$(() => {
+          const mySig = useSignal(0);
+          useTask$(async function initTask(){
+            if (isServer){
+              await fetch('/url');
+            }
+          })
+
+          useTask$(({track})=>{
+            track(()=> mySig.value);
+          })
+          return <div></div>;
+      });`,
+  ],
+  invalid: [
+    {
+      code: `export const HelloWorld = component$(async () => {
             await something();
             useMethod();
             return $(() => {
@@ -65,10 +141,10 @@ test('no-use-after-await', () => {
               );
             });
           });`,
-        errors: ['Calling use* methods after await is not safe.'],
-      },
-      {
-        code: `export const HelloWorld = component$(async () => {
+      errors: [{ messageId: 'use-after-await' }],
+    },
+    {
+      code: `export const HelloWorld = component$(async () => {
             if (stuff) {
               await something();
             }
@@ -81,16 +157,63 @@ test('no-use-after-await', () => {
               );
             });
           });`,
-        errors: ['Calling use* methods after await is not safe.'],
-      },
-    ],
-  });
-});
+      errors: [{ messageId: 'use-after-await' }],
+    },
 
-test('valid-lexical-scope', () => {
-  ruleTester.run('valid-lexical-scope', rules['valid-lexical-scope'], {
-    valid: [
-      `
+    {
+      code: `export function noUseSession() {
+          useContext();
+        }`,
+      errors: [{ messageId: 'use-wrong-function' }],
+    },
+    {
+      code: `export const noUseSession = () => {
+          useContext();
+        }`,
+      errors: [{ messageId: 'use-wrong-function' }],
+    },
+    {
+      code: `export const noUseSession = () => {
+         return useContext();
+        }`,
+      errors: [{ messageId: 'use-wrong-function' }],
+    },
+    {
+      code: `export const noUseSession = () => useContext();`,
+      errors: [{ messageId: 'use-wrong-function' }],
+    },
+    {
+      code: `export const noUseSession = () => useContext().value;`,
+      errors: [{ messageId: 'use-wrong-function' }],
+    },
+    {
+      code: `export const noUseSession = () => {
+         return useContext();
+        }`,
+      errors: [{ messageId: 'use-wrong-function' }],
+    },
+  ],
+});
+ruleTester.run('valid-lexical-scope', rules['valid-lexical-scope'], {
+  valid: [
+    `
+      import { component$, useTask$, useSignal } from '@builder.io/qwik';
+      enum Color {
+        Red,
+        Blue,
+        Green,
+      }
+
+      export default component$(() => {
+        const color: Color = useSignal({ color: Color.Red })
+
+        useTask$(() => {
+          color.value.color = Color.Blue
+        });
+        return <></>
+      })
+      `,
+    `
       import { component$, SSRStream } from "@builder.io/qwik";
 import { Readable } from "stream";
 
@@ -120,7 +243,7 @@ export const RemoteApp = component$(({ name }: { name: string }) => {
   );
 });
 `,
-      `
+    `
       export type NoSerialize<T> = (T & { __no_serialize__: true }) | undefined;
       import { useMethod, component$ } from 'stuff';
       export interface Value {
@@ -133,12 +256,12 @@ export const RemoteApp = component$(({ name }: { name: string }) => {
       }
       export const HelloWorld = component$(() => {
         const state: Value = { value: 12, fn: getFn() };
-        useWatch$(() => {
+        useTask$(() => {
           console.log(state.value);
         });
         return <div></div>
       });`,
-      `
+    `
         import { useMethod, component$ } from 'stuff';
         interface Value {
           value: 12;
@@ -153,18 +276,18 @@ export const RemoteApp = component$(({ name }: { name: string }) => {
           useMethod(foo, bar);
           return <div></div>
         });`,
-      `export const HelloWorld = component$(() => {
+    `export const HelloWorld = component$(() => {
           const getMethod = () => {
             return 'value';
           }
           const useMethod = getMethod();
-          useWatch$(() => {
+          useTask$(() => {
             console.log(useMethod);
           });
           return <div></div>;
         });`,
 
-      `export const HelloWorld = component$(() => {
+    `export const HelloWorld = component$(() => {
           const getMethod = () => {
             return {
               value: 'string',
@@ -176,12 +299,12 @@ export const RemoteApp = component$(({ name }: { name: string }) => {
             };
           }
           const useMethod = getMethod();
-          useWatch$(() => {
+          useTask$(() => {
             console.log(useMethod);
           });
           return <div></div>;
         });`,
-      `
+    `
         export const useMethod = () => {
           console.log('');
         }
@@ -190,19 +313,19 @@ export const RemoteApp = component$(({ name }: { name: string }) => {
           useMethod(foo);
           return <div></div>
         });`,
-      `
-          import { useWatch$ } from '@builder.io/qwik';
+    `
+          import { useTask$ } from '@builder.io/qwik';
           export const HelloWorld = component$(() => {
             function getValue(): number | string | null | undefined | { prop: string } {
               return window.aaa;
             }
             const a = getValue();
-            useWatch$(() => {
+            useTask$(() => {
               console.log(a);
             });
             return <div></div>;
           });`,
-      `
+    `
           export const HelloWorld = component$(() => {
             const getMethod = () => {
               return Promise.resolve();
@@ -221,13 +344,13 @@ export const RemoteApp = component$(({ name }: { name: string }) => {
                 s: true,
               }
             };
-            useWatch$(() => {
+            useTask$(() => {
               console.log(useMethod, obj);
             });
             return <div></div>;
           });`,
-      `
-          import { useWatch$ } from '@builder.io/qwik';
+    `
+          import { useTask$ } from '@builder.io/qwik';
           export const HelloWorld = component$(() => {
             async function getValue() {
               return 'ffg';
@@ -237,8 +360,7 @@ export const RemoteApp = component$(({ name }: { name: string }) => {
               console.log(a);
             }}></div>;
           });`,
-
-      `
+    `
   export interface PropFnInterface<ARGS extends any[], RET> {
     (...args: ARGS): Promise<RET>
   }
@@ -249,108 +371,187 @@ export const RemoteApp = component$(({ name }: { name: string }) => {
 
   export interface Props {
     method$: PropFunction<() => void>;
+    method1$: PropFunction<() => void>;
+    method2$: PropFunction<() => void> | null;
   }
 
-  export const HelloWorld = component$((props: Props) => {
-    return <div onClick$={async () => {
-      await props.method$();
+  export const HelloWorld = component$(({method$, method1$, method2$, method3$}: Props) => {
+    return <div
+     onKeydown$={method$}
+     onKeydown1$={method1$}
+     onKeydown2$={method2$}
+     onClick$={async () => {
+      await method$();
     }}></div>;
   });
       `,
-      ``,
-    ],
-    invalid: [
-      {
-        code: `
+    `
+import { component$ } from "@builder.io/qwik";
+
+export const version = "0.13";
+
+export default component$(() => {
+  return {
+    version,
+  };
+});
+`,
+    `
+        import { component$ } from "@builder.io/qwik";
+
+        export interface Props {
+          serializableTuple: [string, number, boolean];
+        }
+
+        export const HelloWorld = component$((props: Props) => {
+          return (
+            <button onClick$={() => props.serializableTuple}></button>
+          );
+        });
+      `,
+    `
+      import { component$ } from "@builder.io/qwik";
+
+      export const HelloWorld = component$(({onClick}: any) => {
+        return (
+          <button onClick$={onClick}></button>
+        );
+      });
+    `,
+    `
           const useMethod = 12;
           export const HelloWorld = component$(() => {
             const foo = 'bar';
             useMethod(foo);
             return <div></div>
           });`,
-        errors: [
-          'Identifier ("useMethod") can not be captured inside the scope (component$) because it\'s declared at the root of the module and it is not exported. Add export. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
-        ],
-      },
-      {
-        code: `
+    `
+      import {Component, component$, useStore} from '@builder.io/qwik';
+      export const PopupManager = component$(() => {
+        const popup = useStore({
+            component: null as null | Component<any>,
+            props: null as any,
+            visible: false,
+            x: 0,
+            y: 0,
+        });
+        return (
+            <div
+                document:onMouseEnter$={(e) => {
+                popup.visible = true;
+            }}
+                document:onMouseLeave$={(e) => {
+                popup.visible = true;
+            }}
+            >
+            </div>
+        );
+      });
+    `,
+  ],
+  invalid: [
+    {
+      code: `
           export const HelloWorld = component$(() => {
             const getMethod = () => {
               return () => {};
             }
             const useMethod = getMethod();
-            useWatch$(() => {
+            useTask$(() => {
               console.log(useMethod);
             });
             return <div></div>;
           });`,
-        errors: [
-          'Identifier ("useMethod") can not be captured inside the scope (useWatch$) because it is a function, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
-        ],
-      },
-      {
-        code: `
+      errors: [{ messageId: 'referencesOutside' }],
+    },
+    {
+      code: `
+          export const HelloWorld = component$(() => {
+            let startX: number | undefined = 0;
+
+            const handleMouseDown = $((e: QwikMouseEvent) => {
+              console.log('working');
+              startX = e.pageX - divRef.value!.offsetLeft;
+            });
+            return <div
+              onMouseDown$={handleMouseDown}
+            ></div>;
+          });`,
+      errors: [{ messageId: 'mutableIdentifier' }],
+    },
+    {
+      code: `
           export const HelloWorld = component$(() => {
             function useMethod() {
               console.log('stuff');
             };
-            useWatch$(() => {
+            useTask$(() => {
               console.log(useMethod);
             });
             return <div></div>;
           });`,
 
-        errors: [
-          'Identifier ("useMethod") can not be captured inside the scope (useWatch$) because it is a function, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
-        ],
-      },
-      {
-        code: `
+      errors: [{ messageId: 'referencesOutside' }],
+    },
+    {
+      code: `
           export const HelloWorld = component$(() => {
             class Stuff { }
-            useWatch$(() => {
+            useTask$(() => {
               console.log(new Stuff(), useMethod);
             });
             return <div></div>;
           });`,
 
-        errors: [
-          'Identifier ("Stuff") can not be captured inside the scope (useWatch$) because it is a class constructor, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
-        ],
-      },
-      {
-        code: `
+      errors: [{ messageId: 'referencesOutside' }],
+    },
+    {
+      code: `
           export const HelloWorld = component$(() => {
             class Stuff { }
             const stuff = new Stuff();
-            useWatch$(() => {
+            useTask$(() => {
               console.log(stuff, useMethod);
             });
             return <div></div>;
           });`,
 
-        errors: [
-          'Identifier ("stuff") can not be captured inside the scope (useWatch$) because it is an instance of the "Stuff" class, which is not serializable. Use a simple object literal instead. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
-        ],
-      },
-      {
-        code: `
-          import { useWatch$ } from '@builder.io/qwik';
+      errors: [{ messageId: 'referencesOutside' }],
+    },
+    {
+      code: `
+          import { useTask$ } from '@builder.io/qwik';
           export const HelloWorld = component$(() => {
             const a = Symbol();
-            useWatch$(() => {
+            useTask$(() => {
               console.log(a);
             });
             return <div></div>;
           });`,
 
-        errors: [
-          'Identifier ("a") can not be captured inside the scope (useWatch$) because it is Symbol, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
-        ],
-      },
-      {
-        code: `
-          import { useWatch$ } from '@builder.io/qwik';
+      errors: [{ messageId: 'referencesOutside' }],
+    },
+    {
+      code: `
+        import { component$, useTask$, useSignal } from '@builder.io/qwik';
+
+        export default component$(() => {
+          const color: Color = useSignal({ color: Color.Red })
+          enum Color {
+            Red,
+            Blue,
+            Green,
+          }
+          useTask$(() => {
+            color.value.color = Color.Blue
+          });
+          return <></>
+        })`,
+      errors: [{ messageId: 'referencesOutside' }],
+    },
+    {
+      code: `
+          import { useTask$ } from '@builder.io/qwik';
           export const HelloWorld = component$(() => {
             function getValue() {
               if (Math.random() < 0.5) {
@@ -360,35 +561,31 @@ export const RemoteApp = component$(({ name }: { name: string }) => {
               }
             }
             const a = getValue();
-            useWatch$(() => {
+            useTask$(() => {
               console.log(a);
             });
             return <div></div>;
           });`,
 
-        errors: [
-          'Identifier ("a") can not be captured inside the scope (useWatch$) because it is a function, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
-        ],
-      },
-      {
-        code: `
+      errors: [{ messageId: 'referencesOutside' }],
+    },
+    {
+      code: `
         import { useMethod, component$ } from 'stuff';
         export interface Value {
           value: () => void;
         }
         export const HelloWorld = component$(() => {
           const state: Value = { value: () => console.log('thing') };
-          useWatch$(() => {
+          useTask$(() => {
             console.log(state.value);
           });
           return <div></div>
         });`,
-        errors: [
-          'Identifier ("state") can not be captured inside the scope (useWatch$) because "state.value" is a function, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
-        ],
-      },
-      {
-        code: `
+      errors: [{ messageId: 'referencesOutside' }],
+    },
+    {
+      code: `
         import { component$ } from 'stuff';
         export const HelloWorld = component$(() => {
           const click = () => console.log();
@@ -397,12 +594,14 @@ export const RemoteApp = component$(({ name }: { name: string }) => {
             </button>
           );
         });`,
-        errors: [
-          'JSX attributes that end with $ can only take an inlined arrow function of a QRL identifier. Make sure the value is created using $()',
-        ],
-      },
-      {
-        code: `
+      errors: [
+        {
+          messageId: 'invalidJsxDollar',
+        },
+      ],
+    },
+    {
+      code: `
         import { component$ } from 'stuff';
         export const HelloWorld = component$(() => {
           let click: string = '';
@@ -414,12 +613,70 @@ export const RemoteApp = component$(({ name }: { name: string }) => {
             </button>
           );
         });`,
-        errors: [
-          'The value of the identifier ("click") can not be changed once it is captured the scope (onClick$). Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
-        ],
-      },
-    ],
-  });
+      errors: [
+        {
+          messageId: 'mutableIdentifier',
+        },
+      ],
+    },
+    {
+      code: `
+        import { component$ } from "@builder.io/qwik";
+
+        export interface Props {
+          nonserializableTuple: [string, number, boolean, Function];
+        }
+
+        export const HelloWorld = component$((props: Props) => {
+          return (
+            <button onClick$={() => props.nonserializableTuple}></button>
+          );
+        });`,
+      errors: [{ messageId: 'referencesOutside' }],
+    },
+  ],
 });
+
+ruleTester.run('jsx-img', rules['jsx-img'], {
+  valid: [
+    `<img width={200} height={200} />`,
+    `<img width="200" height="200" />`,
+    `<img {...props}/>`,
+  ],
+  invalid: [
+    {
+      code: `<img height={200} />`,
+      errors: [{ messageId: 'noWidthHeight' }],
+    },
+    {
+      code: `<img width={200} />`,
+      errors: [{ messageId: 'noWidthHeight' }],
+    },
+    {
+      code: `<img />`,
+      errors: [{ messageId: 'noWidthHeight' }],
+    },
+    {
+      code: `<img src='./file.png' />`,
+      errors: [{ messageId: 'noWidthHeight' }],
+    },
+  ],
+});
+
+ruleTester.run('jsx-a', rules['jsx-a'], {
+  valid: [`<a href={value} />`, `<a {...props}/>`],
+  invalid: [
+    {
+      code: `<a/>`,
+      errors: [{ messageId: 'noHref' }],
+    },
+    {
+      code: `<a style='display:block;' />`,
+      errors: [{ messageId: 'noHref' }],
+    },
+  ],
+});
+
+lintSuite.run();
 
 export {};

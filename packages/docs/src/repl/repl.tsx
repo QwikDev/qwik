@@ -4,8 +4,8 @@ import {
   noSerialize,
   useStyles$,
   useStore,
-  useWatch$,
-  useClientEffect$,
+  useTask$,
+  useVisibleTask$,
   $,
 } from '@builder.io/qwik';
 import { ReplInputPanel } from './repl-input-panel';
@@ -49,7 +49,7 @@ export const Repl = component$((props: ReplProps) => {
     return initStore;
   });
 
-  useWatch$(({ track }) => {
+  useTask$(({ track }) => {
     track(() => input.files);
 
     if (!input.files.some((i) => i.path === props.selectedInputPath) && input.files.length > 0) {
@@ -76,13 +76,13 @@ export const Repl = component$((props: ReplProps) => {
     }
   });
 
-  useClientEffect$(async () => {
+  useVisibleTask$(async () => {
     // only run on the client
     const v = await getReplVersion(input.version);
     if (v.version) {
       store.versions = v.versions;
       input.version = v.version;
-      store.serverUrl = new URL(`/repl/~repl-server-host.html#${store.clientId}`, origin).href;
+      store.serverUrl = new URL(`/repl/~repl-server-host.html?${store.clientId}`, origin).href;
 
       window.addEventListener('message', (ev) => receiveMessageFromReplServer(ev, store));
     } else {
@@ -90,7 +90,7 @@ export const Repl = component$((props: ReplProps) => {
     }
   });
 
-  useWatch$(({ track }) => {
+  useTask$(({ track }) => {
     track(() => input.buildId);
     track(() => input.buildMode);
     track(() => input.entryStrategy);

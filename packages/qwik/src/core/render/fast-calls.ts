@@ -7,3 +7,7 @@ export const directSetAttribute = (el: QwikElement, prop: string, value: string)
 export const directGetAttribute = (el: QwikElement, prop: string) => {
   return el.getAttribute(prop);
 };
+
+export const directRemoveAttribute = (el: QwikElement, prop: string) => {
+  return el.removeAttribute(prop);
+};

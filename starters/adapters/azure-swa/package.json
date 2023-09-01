@@ -1,0 +1,28 @@
+{
+  "description": "Azure Static Web Apps",
+  "scripts": {
+    "build.server": "vite build -c adapters/azure-swa/vite.config.ts",
+    "serve": "swa start"
+  },
+  "devDependencies": {
+    "@azure/functions": "^3.5.0",
+    "@azure/static-web-apps-cli": "^1.1.1"
+  },
+  "__qwik__": {
+    "priority": 30,
+    "displayName": "Adapter: Azure Static Web Apps",
+    "docs": [
+      "https://qwik.builder.io/deployments/azure-swa/",
+      "https://learn.microsoft.com/en-us/azure/static-web-apps/"
+    ],
+    "nextSteps": {
+      "title": "Next Steps",
+      "lines": [
+        " Now you can build and deploy to Azure with:",
+        "",
+        "  - pnpm run build: production build for Azure SWA",
+        "  - pnpm run deploy: it will use the SWA CLI to deploy your site"
+      ]
+    }
+  }
+}

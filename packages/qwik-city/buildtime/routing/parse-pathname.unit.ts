@@ -9,44 +9,77 @@ import { parseRoutePathname } from './parse-pathname';
 
 const tests = {
   '/': {
+    basePathname: '/',
     pattern: /^\/$/,
     paramNames: [],
   },
+  '/base.pathname/': {
+    basePathname: '/base.pathname/',
+    pattern: /^\/base\.pathname\/$/,
+    paramNames: [],
+  },
+  '/base/pathname/': {
+    basePathname: '/base/pathname/',
+    pattern: /^\/base\/pathname\/$/,
+    paramNames: [],
+  },
   '/blog': {
+    basePathname: '/',
     pattern: /^\/blog\/?$/,
     paramNames: [],
   },
+  '/base/pathname/blog': {
+    basePathname: '/base/pathname/',
+    pattern: /^\/base\/pathname\/blog\/?$/,
+    paramNames: [],
+  },
   '/blog.json': {
-    pattern: /^\/blog\.json$/,
+    basePathname: '/',
+    pattern: /^\/blog\.json\/?$/,
     paramNames: [],
   },
   '/blog/[slug]': {
+    basePathname: '/',
     pattern: /^\/blog\/([^/]+?)\/?$/,
     paramNames: ['slug'],
   },
   '/blog/[slug].json': {
-    pattern: /^\/blog\/([^/]+?)\.json$/,
+    basePathname: '/',
+    pattern: /^\/blog\/([^/]+?)\.json\/?$/,
     paramNames: ['slug'],
   },
   '/[...rest]': {
+    basePathname: '/',
     pattern: /^(?:\/(.*))?\/?$/,
     paramNames: ['rest'],
   },
   '/foo/[...rest]/bar': {
+    basePathname: '/',
     pattern: /^\/foo(?:\/(.*))?\/bar\/?$/,
     paramNames: ['rest'],
   },
-  '/base-pathname/': {
-    pattern: /^\/base-pathname\/?$/,
+  '/xyz/abc.dot/': {
+    basePathname: '/',
+    pattern: /^\/xyz\/abc\.dot\/?$/,
+    paramNames: [],
+  },
+  '/xyz/%D8%B9%D8%B1%D8%A8%D9%8A/': {
+    basePathname: '/',
+    pattern: /^\/xyz\/%D8%B9%D8%B1%D8%A8%D9%8A\/?$/,
+    paramNames: [],
+  },
+  '/xyz/server$/': {
+    basePathname: '/',
+    pattern: /^\/xyz\/server\$\/?$/,
     paramNames: [],
   },
 };
 
-for (const [key, expected] of Object.entries(tests)) {
+for (const [key, t] of Object.entries(tests)) {
   test(`parseRoutePathname: "${key}"`, () => {
-    const actual = parseRoutePathname(key);
-    equal(actual.pattern.toString(), expected.pattern.toString());
-    equal(actual.paramNames, expected.paramNames);
+    const actual = parseRoutePathname(t.basePathname, key);
+    equal(actual.pattern.toString(), t.pattern.toString());
+    equal(actual.paramNames, t.paramNames);
   });
 }
 

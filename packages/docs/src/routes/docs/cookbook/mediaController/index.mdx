@@ -34,7 +34,7 @@ Below, you'll find a prototype of an audio and video controller, tailored to pro
 <CodeSandbox url="/demo/cookbook/mediaController/"  style={{ height: '700px' }}>
 </CodeSandbox>
 
-Media controller code compatible with iOS devices looks like this:
+Universal media controller code compatible with iOS devices looks like this:
 
 <CodeFile src="/src/routes/demo/cookbook/mediaController/index.tsx">
 ```tsx
@@ -63,7 +63,7 @@ export default component$(() => {
 
   const videoPoster =
     location.url.origin + '/sample-media/qwik-koi-poster.jpg';
-  console.log('videoPoster', videoPoster);
+
   useStylesScoped$(`
         segment {
           display: flex;

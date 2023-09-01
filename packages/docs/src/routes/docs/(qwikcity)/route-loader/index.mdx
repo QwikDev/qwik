@@ -207,14 +207,14 @@ export default component$(() => {
 
 In the server-side execution environment, it's crucial to convert relative URLs to absolute URLs for proper functionality. This can be achieved by prefixing the relative URL with the `origin` from the `useLocation()` function.
 
-```tsx
+```tsx /location.url.origin + relativeUrl/ title="Make Absolute URL"
 import { component$ } from '@builder.io/qwik';
 import { useLocation } from '@builder.io/qwik-city';
 
 export default component$(() => {
-  const loc = useLocation();
-  const relativeUrl = '/mock';
-  const absoluteUrl = loc.url.origin + relativeUrl;
+  const location = useLocation();
+  const relativeUrl = '/mock-data';
+  const absoluteUrl = location.url.origin + relativeUrl;
 
   return (
     <section>

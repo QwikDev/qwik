@@ -2,7 +2,7 @@
   "description": "Visual headless CMS",
   "__qwik__": {
     "displayName": "Integration: Builder.io",
-    "priority": -1,
+    "priority": -10,
     "viteConfig": {
       "imports": [
         {

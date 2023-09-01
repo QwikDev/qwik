@@ -7,7 +7,10 @@ import {
 } from '@supabase/auth-helpers-shared';
 
 export class QwikServerAuthStorageAdapter extends CookieAuthStorageAdapter {
-  constructor(private readonly requestEv: RequestEventBase, cookieOptions?: CookieOptions) {
+  constructor(
+    private readonly requestEv: RequestEventBase,
+    cookieOptions?: CookieOptions
+  ) {
     super(cookieOptions);
   }
 

@@ -23,7 +23,7 @@ export default component$(() => {
 
   const videoPoster =
     location.url.origin + '/sample-media/qwik-koi-poster.jpg';
-  console.log('videoPoster', videoPoster);
+
   useStylesScoped$(`
         segment {
           display: flex;

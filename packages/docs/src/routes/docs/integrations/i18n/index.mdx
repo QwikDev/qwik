@@ -3,6 +3,7 @@ title: Internationalization | Integrations
 contributors:
   - mhevery
   - manucorporat
+  - gioboa
 ---
 
 # Internationalization
@@ -63,5 +64,22 @@ Our recommendation is to use a tool that would provide a runtime approach on the
 
 ## Internationalization libraries
 
-- [$localize](https://github.com/mhevery/qwik-i18n)
-- [qwik-speak](https://github.com/robisim74/qwik-speak)
+### $localize
+
+[$localize](https://angular.io/api/localize/init/$localize) the translation system is based on the $localize system from [Angular](https://angular.io/). The translations can be extracted in xmb, xlf, xlif, xliff, xlf2, xlif2, xliff2, and json formats.
+
+>NOTE: The $localize system is a compile-time translation system and is completely removed from the final output. $localize is a sub-project of Angular, and including its usage does not mean that Angular is used for rendering of applications.
+
+The easiest way to add $localize to Qwik is using the `pnpm qwik add localize` command. This will install the required dependencies and create a new public route `/src/routes/[locale]` showcasing i18n $localize integration.
+
+```bash
+npm run qwik add localize
+```
+
+For further reference, please check this [example repo](https://github.com/mhevery/qwik-i18n).
+
+### qwik-speak
+
+[qwik-speak](https://github.com/robisim74/qwik-speak) library to translate texts, dates and numbers in Qwik apps.
+
+The easiest way to add qwik-speak to Qwik is following the official [guide](https://github.com/robisim74/qwik-speak/blob/main/docs/quick-start.md).

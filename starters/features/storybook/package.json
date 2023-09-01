@@ -2,7 +2,7 @@
   "description": "Add Storybook",
   "__qwik__": {
     "displayName": "Integration: Storybook",
-    "priority": -1,
+    "priority": -10,
     "docs": [
       "https://qwik.builder.io/integrations/integration/storybook/",
       "https://storybook.js.org/docs/qwik/get-started/why-storybook"

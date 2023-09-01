@@ -1,0 +1,36 @@
+{
+  "description": "Add i18n $localize in your Qwik app",
+  "__qwik__": {
+    "displayName": "Integration: i18n $localize (compile time translations)",
+    "priority": -10,
+    "viteConfig": {},
+    "docs": [
+      "https://qwik.builder.io/docs/integrations/i18n/#localize",
+      "https://github.com/mhevery/qwik-i18n",
+      "https://angular.io/api/localize/init/$localize"
+    ],
+    "nextSteps": {
+      "title": "Next Steps",
+      "lines": [
+        " - /src/routes/[locale]: New public route showcasing i18n $localize integration",
+        "",
+        " Check out the i18n $localize docs for more info:",
+        "   - https://qwik.builder.io/docs/integrations/i18n/#localize",
+        "   - https://github.com/mhevery/qwik-i18n",
+        "   - https://angular.io/api/localize/init/$localize"
+      ]
+    }
+  },
+  "dependencies": {
+    "@angular/localize": "^16.2.2"
+  },
+  "devDependencies": {
+    "@angular/compiler": "^16.2.2",
+    "@angular/compiler-cli": "^16.2.2"
+  },
+  "scripts": {
+    "build.client": "vite build && npm run i18n-translate",
+    "i18n-extract": "node_modules/.bin/localize-extract -s \"dist/build/*.js\" -f json -o src/locales/message.en.json",
+    "i18n-translate": "node_modules/.bin/localize-translate -s \"*.js\" -t src/locales/message.*.json -o dist/build/{{LOCALE}} -r ./dist/build"
+  }
+}

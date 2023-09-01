@@ -1,0 +1,8 @@
+{
+  "locale": "it",
+  "translations": {
+    "1573294495032945047": "Un saluto da {$PH}!",
+    "8569626659814641312": "Usa i seguenti link per cambiare la traduzione.",
+    "6563882999249543998": "La traduzione viene eseguita come parte della fase di build e le stringhe tradotte vengono integrate nell'applicazione, non è necessario caricarle o cercarle in fase di runtime.\nTuttavia, questi vantaggi significano che l'utente non può cambiare la lingua senza ricaricare la pagina."
+  }
+}

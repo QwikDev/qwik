@@ -2,7 +2,7 @@
   "description": "Use Partytown in your Qwik app",
   "__qwik__": {
     "displayName": "Integration: Partytown (3rd-party scripts)",
-    "priority": -20,
+    "priority": -10,
     "viteConfig": {
       "imports": [
         {

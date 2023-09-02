@@ -110,18 +110,18 @@ export const useStore = <STATE extends object>(
     const newStore = getOrCreateProxy(value, containerState, flags);
 
     const bindFunctionsRecursively = (obj: any) => {
-      for (const key in obj) {
-        if (typeof obj[key] === 'function') {
-          obj[key] = obj[key].bind(newStore);
-        } else if (typeof obj[key] === 'object' && obj[key] !== null) {
-          bindFunctionsRecursively(obj[key]);
+      for (const [key, value] of Object.entries(obj)) {
+        if (typeof value === 'function') {
+          obj[key] = value.bind(newStore);
+        } else if (typeof value === 'object' && value !== null) {
+          bindFunctionsRecursively(value);
         }
       }
     };
 
     bindFunctionsRecursively(newStore);
     set(newStore);
-    
+
     if (opts?.bind !== false) {
       return newStore as STATE;
     }

@@ -108,8 +108,20 @@ export const useStore = <STATE extends object>(
     const recursive = opts?.deep ?? true;
     const flags = recursive ? QObjectRecursive : 0;
     const newStore = getOrCreateProxy(value, containerState, flags);
-    set(newStore);
 
+    const bindFunctionsRecursively = (obj: any) => {
+      for (const key in obj) {
+        if (typeof obj[key] === 'function') {
+          obj[key] = obj[key].bind(newStore);
+        } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+          bindFunctionsRecursively(obj[key]);
+        }
+      }
+    };
+
+    bindFunctionsRecursively(newStore);
+    set(newStore);
+    
     if (opts?.bind !== false) {
       return newStore as STATE;
     }

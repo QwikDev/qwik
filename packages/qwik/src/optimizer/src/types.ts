@@ -34,6 +34,7 @@ export interface Optimizer {
 export interface OptimizerOptions {
   sys?: OptimizerSystem;
   binding?: any;
+  inlineStylesUpToBytes?: number;
 }
 
 /**

@@ -100,15 +100,16 @@ export const useStore = <STATE extends object>(
     return get;
   }
   const value = isFunction(initialState) ? invoke(undefined, initialState) : initialState;
-  if (opts?.reactive === false) {
-    set(value);
-    return value;
-  } else {
-    const containerState = iCtx.$renderCtx$.$static$.$containerState$;
-    const recursive = opts?.deep ?? true;
-    const flags = recursive ? QObjectRecursive : 0;
-    const newStore = getOrCreateProxy(value, containerState, flags);
 
+  if (!opts?.reactive || !opts?.bind) {
+    return value as STATE;
+  }
+
+  const containerState = iCtx.$renderCtx$.$static$.$containerState$;
+  const flags = opts?.deep ? QObjectRecursive : 0;
+  const newStore = getOrCreateProxy(value, containerState, flags);
+
+  if (opts?.bind) {
     const bindFunctionsRecursively = (obj: any) => {
       for (const [key, value] of Object.entries(obj)) {
         if (typeof value === 'function') {
@@ -120,12 +121,8 @@ export const useStore = <STATE extends object>(
     };
 
     bindFunctionsRecursively(newStore);
-    set(newStore);
-
-    if (opts?.bind !== false) {
-      return newStore as STATE;
-    }
-
-    return newStore;
   }
+  set(newStore);
+
+  return newStore as STATE;
 };

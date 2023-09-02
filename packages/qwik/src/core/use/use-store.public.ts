@@ -19,6 +19,13 @@ export interface UseStoreOptions {
    * Default is `true`.
    */
   reactive?: boolean;
+
+  /**
+   * If `true` then bind method is called on the `newStore` object to ensure
+   * that the `this` context is bound to the store object.
+   * Default is `true`.
+   */
+  bind?: boolean;
 }
 
 // <docs markdown="../readme.md#useStore">
@@ -102,6 +109,11 @@ export const useStore = <STATE extends object>(
     const flags = recursive ? QObjectRecursive : 0;
     const newStore = getOrCreateProxy(value, containerState, flags);
     set(newStore);
+
+    if (opts?.bind !== false) {
+      return newStore as STATE;
+    }
+
     return newStore;
   }
 };

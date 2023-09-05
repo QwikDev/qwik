@@ -573,7 +573,6 @@ async function buildAdapterVercelServerlessVite(config: BuildConfig) {
     platform: 'node',
     target: nodeTarget,
     format: 'esm',
-    watch: watcher(config),
     external: ADAPTER_EXTERNALS,
     plugins: [resolveAdapterShared('../../shared/vite/index.mjs')],
   });
@@ -585,7 +584,6 @@ async function buildAdapterVercelServerlessVite(config: BuildConfig) {
     platform: 'node',
     target: nodeTarget,
     format: 'cjs',
-    watch: watcher(config),
     external: ADAPTER_EXTERNALS,
     plugins: [resolveAdapterShared('../../shared/vite/index.cjs')],
   });
@@ -744,7 +742,6 @@ async function buildMiddlewareVercelServerless(config: BuildConfig) {
     target: nodeTarget,
     format: 'esm',
     external: MIDDLEWARE_EXTERNALS,
-    watch: watcher(config),
     plugins: [resolveRequestHandler('../request-handler/index.mjs')],
   });
 }

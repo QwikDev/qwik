@@ -155,3 +155,11 @@ regression2951('/[...a]/[...b]/path', () => {
 });
 
 regression2951.run();
+
+const regression5080 = suite('routeMatcher/#5080');
+regression5080('/[...rest]/suffix', () => {
+  equal(matchRoute('/[...rest]/', '/a/b/c/suffix/'), { rest: 'a/b/c/suffix' });
+  equal(matchRoute('/[...rest]/suffix', '/a/b/c/suffix'), { rest: 'a/b/c' });
+  equal(matchRoute('/[...rest]/suffix', '/a/b/c/suffix/'), { rest: 'a/b/c' });
+});
+regression5080.run();

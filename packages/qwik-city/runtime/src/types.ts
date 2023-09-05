@@ -377,14 +377,10 @@ export type Editable<T> = {
 
 type UnionKeys<T> = T extends T ? keyof T : never;
 type StrictUnionHelper<T, TAll> = T extends any
-  ? T & Partial<Record<Exclude<UnionKeys<TAll>, keyof T>, never>>
+  ? T & Partial<Record<Exclude<UnionKeys<TAll>, keyof T>, undefined>>
   : never;
 
-type StrictUnion<T> = Prettify<StrictUnionHelper<T, T>>;
-
-type Prettify<T> = {} & {
-  [K in keyof T]?: T[K];
-};
+type StrictUnion<T> = StrictUnionHelper<T, T>;
 
 /**
  * @public

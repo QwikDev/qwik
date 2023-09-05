@@ -112,6 +112,8 @@ export interface OptimizerOptions {
     // (undocumented)
     binding?: any;
     // (undocumented)
+    inlineStylesUpToBytes?: number;
+    // (undocumented)
     sys?: OptimizerSystem;
 }
 

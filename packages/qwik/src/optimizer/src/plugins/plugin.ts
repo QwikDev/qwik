@@ -95,6 +95,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     devTools: {
       clickToSource: ['Alt'],
     },
+    inlineStylesUpToBytes: null as any,
   };
 
   const init = async () => {
@@ -265,6 +266,11 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       }
     }
     opts.csr = !!updatedOpts.csr;
+
+    opts.inlineStylesUpToBytes = optimizerOptions.inlineStylesUpToBytes ?? 20000;
+    if (typeof opts.inlineStylesUpToBytes !== 'number' || opts.inlineStylesUpToBytes < 0) {
+      opts.inlineStylesUpToBytes = 0;
+    }
 
     return { ...opts };
   };
@@ -896,6 +902,12 @@ export interface QwikPluginOptions {
     | ((transformedModules: TransformModule[]) => Promise<void> | void)
     | null;
   devTools?: QwikPluginDevTools;
+  /**
+   * Inline styles up to a certain size (in bytes) instead of using a separate file.
+   *
+   * Default: 20kb (20,000bytes)
+   */
+  inlineStylesUpToBytes?: number;
 }
 
 export interface NormalizedQwikPluginOptions extends Required<QwikPluginOptions> {

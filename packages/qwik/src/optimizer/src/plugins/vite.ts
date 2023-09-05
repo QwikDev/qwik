@@ -460,7 +460,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             } else {
               const baseFilename = basePathname + fileName;
               if (STYLING.some((ext) => fileName.endsWith(ext))) {
-                if (typeof b.source === 'string' && b.source.length < 20000) {
+                if (typeof b.source === 'string' && b.source.length < opts.inlineStylesUpToBytes) {
                   injections.push({
                     tag: 'style',
                     location: 'head',

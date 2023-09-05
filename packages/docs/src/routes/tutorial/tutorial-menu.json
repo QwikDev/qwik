@@ -167,13 +167,6 @@
         "enableSsrOutput": false
       },
       {
-        "id": "store",
-        "title": "Passing Stores",
-        "enableHtmlOutput": false,
-        "enableClientOutput": false,
-        "enableSsrOutput": false
-      },
-      {
         "id": "closures",
         "title": "Passing Closures",
         "enableHtmlOutput": false,

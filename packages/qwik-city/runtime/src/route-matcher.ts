@@ -146,9 +146,8 @@ function recursiveScan(
   const sep = suffix + '/';
   let depthWatchdog = 5;
   while (pathIdx >= pathStart && depthWatchdog--) {
-    const match = matchRoutePart(route, routeStart, routeLength, path, pathIdx, path.length);
+    const match = matchRoutePart(route, routeStart, routeLength, path, pathIdx, pathLength);
     if (match) {
-      // pathIdx = lastIndexOf(path, pathStart, sep, pathIdx, pathIdx);
       let value = path.substring(pathStart, Math.min(pathIdx, pathLength));
       if (value.endsWith(sep)) {
         value = value.substring(0, value.length - sep.length);
@@ -156,10 +155,7 @@ function recursiveScan(
       match[paramName] = decodeURIComponent(value);
       return match;
     }
-    pathIdx = lastIndexOf(path, pathStart, sep, pathIdx, pathStart - 1);
-    if (pathIdx > -1) {
-      pathIdx += sep.length;
-    }
+    pathIdx = lastIndexOf(path, pathStart, sep, pathIdx, pathStart - 1) + sep.length;
   }
   return null;
 }
@@ -171,6 +167,10 @@ function lastIndexOf(
   searchIdx: number,
   notFoundIdx: number
 ): number {
-  const idx = text.lastIndexOf(match, searchIdx);
+  let idx = text.lastIndexOf(match, searchIdx);
+  if (idx == searchIdx - match.length) {
+    // If previous match was right upto the separator, then try to find the match before that.
+    idx = text.lastIndexOf(match, searchIdx - match.length - 1);
+  }
   return idx > start ? idx : notFoundIdx;
 }

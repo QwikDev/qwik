@@ -285,7 +285,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface OptimizerOptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [binding?](#) |  | any | _(Optional)_ |\n|  [sys?](#) |  | [OptimizerSystem](#optimizersystem) | _(Optional)_ |",
+      "content": "```typescript\nexport interface OptimizerOptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [binding?](#) |  | any | _(Optional)_ |\n|  [inlineStylesUpToBytes?](#) |  | number | _(Optional)_ |\n|  [sys?](#) |  | [OptimizerSystem](#optimizersystem) | _(Optional)_ |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
       "mdFile": "qwik.optimizeroptions.md"
     },

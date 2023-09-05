@@ -181,7 +181,7 @@
     "apps": [
       {
         "id": "template",
-        "title": "Implicit Template Updates",
+        "title": "template - Implicit Reactivity",
         "enableHtmlOutput": false,
         "enableClientOutput": false,
         "enableSsrOutput": false

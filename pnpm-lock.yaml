@@ -221,10 +221,10 @@ importers:
         version: 0.8.0
       '@builder.io/qwik':
         specifier: github:BuilderIo/qwik-build#main
-        version: github.com/BuilderIo/qwik-build/0082c6a0e7fc7dc1808c886a8e2de2f632e582cb(undici@5.22.1)
+        version: github.com/BuilderIo/qwik-build/444b6653dc5980823cc08b778ed7e5fb33b7bee9(undici@5.22.1)
       '@builder.io/qwik-city':
         specifier: github:BuilderIo/qwik-city-build#main
-        version: github.com/BuilderIo/qwik-city-build/30d1e0abd49a61244865cf2feed291e25ddb180a(rollup@3.26.3)
+        version: github.com/BuilderIo/qwik-city-build/5484f953dba829fe49d76636b37d832f9a85b43c(rollup@3.26.3)
       '@builder.io/qwik-labs':
         specifier: github:BuilderIo/qwik-labs-build#a487845dd5039e3e178f69755f603cbc2edef2c2
         version: github.com/BuilderIo/qwik-labs-build/a487845dd5039e3e178f69755f603cbc2edef2c2
@@ -245,7 +245,7 @@ importers:
         version: 11.11.0(@emotion/react@11.11.1)(@types/react@18.2.17)(react@18.2.0)
       '@modular-forms/qwik':
         specifier: ^0.12.0
-        version: 0.12.0(@builder.io/qwik-city@1.2.10-dev20230830101941)(@builder.io/qwik@1.2.10)
+        version: 0.12.0(@builder.io/qwik-city@1.2.10-dev20230831215335)(@builder.io/qwik@1.2.10)
       '@mui/material':
         specifier: ^5.13.0
         version: 5.13.0(@emotion/react@11.11.1)(@emotion/styled@11.11.0)(@types/react@18.2.17)(react-dom@18.2.0)(react@18.2.0)
@@ -372,13 +372,13 @@ importers:
         version: 0.7.1
       '@builder.io/qwik-auth':
         specifier: 0.1.0
-        version: 0.1.0(@auth/core@0.7.1)(@builder.io/qwik-city@1.2.10-dev20230830101941)(@builder.io/qwik@1.2.10)
+        version: 0.1.0(@auth/core@0.7.1)(@builder.io/qwik-city@1.2.10-dev20230831215335)(@builder.io/qwik@1.2.10)
       '@libsql/client':
         specifier: ^0.3.1
         version: 0.3.1
       '@modular-forms/qwik':
         specifier: ^0.12.0
-        version: 0.12.0(@builder.io/qwik-city@1.2.10-dev20230830101941)(@builder.io/qwik@1.2.10)
+        version: 0.12.0(@builder.io/qwik-city@1.2.10-dev20230831215335)(@builder.io/qwik@1.2.10)
       '@typescript/analyze-trace':
         specifier: ^0.10.0
         version: 0.10.0
@@ -400,10 +400,10 @@ importers:
     devDependencies:
       '@builder.io/qwik':
         specifier: github:BuilderIo/qwik-build#main
-        version: github.com/BuilderIo/qwik-build/0082c6a0e7fc7dc1808c886a8e2de2f632e582cb(undici@5.22.1)
+        version: github.com/BuilderIo/qwik-build/444b6653dc5980823cc08b778ed7e5fb33b7bee9(undici@5.22.1)
       '@builder.io/qwik-city':
         specifier: github:BuilderIo/qwik-city-build#main
-        version: github.com/BuilderIo/qwik-city-build/30d1e0abd49a61244865cf2feed291e25ddb180a(rollup@3.26.3)
+        version: github.com/BuilderIo/qwik-city-build/5484f953dba829fe49d76636b37d832f9a85b43c(rollup@3.26.3)
       '@builder.io/qwik-labs':
         specifier: workspace:*
         version: link:../qwik-labs
@@ -682,8 +682,8 @@ importers:
   packages/supabase-auth-helpers-qwik:
     dependencies:
       '@supabase/auth-helpers-shared':
-        specifier: ^0.3.4
-        version: 0.3.4(@supabase/supabase-js@2.33.1)
+        specifier: 0.4.1
+        version: 0.4.1(@supabase/supabase-js@2.33.1)
     devDependencies:
       '@builder.io/qwik':
         specifier: 1.2.10
@@ -1300,7 +1300,7 @@ packages:
     hasBin: true
     dev: true
 
-  /@builder.io/qwik-auth@0.1.0(@auth/core@0.7.1)(@builder.io/qwik-city@1.2.10-dev20230830101941)(@builder.io/qwik@1.2.10):
+  /@builder.io/qwik-auth@0.1.0(@auth/core@0.7.1)(@builder.io/qwik-city@1.2.10-dev20230831215335)(@builder.io/qwik@1.2.10):
     resolution: {integrity: sha512-uwwVbam6yQs9evtmof/+SpRT7DzoxD+2DSwsndGcm9JBU4Sh1xMyzll6F9QbivKVboglx+4X05OzJG7QTttWMQ==}
     engines: {node: '>=16.8.0 <18.0.0 || >=18.11'}
     peerDependencies:
@@ -1309,8 +1309,8 @@ packages:
       '@builder.io/qwik-city': '>=0.6.0'
     dependencies:
       '@auth/core': 0.7.1
-      '@builder.io/qwik': github.com/BuilderIo/qwik-build/0082c6a0e7fc7dc1808c886a8e2de2f632e582cb(undici@5.22.1)
-      '@builder.io/qwik-city': github.com/BuilderIo/qwik-city-build/30d1e0abd49a61244865cf2feed291e25ddb180a(rollup@3.26.3)
+      '@builder.io/qwik': github.com/BuilderIo/qwik-build/444b6653dc5980823cc08b778ed7e5fb33b7bee9(undici@5.22.1)
+      '@builder.io/qwik-city': github.com/BuilderIo/qwik-city-build/5484f953dba829fe49d76636b37d832f9a85b43c(rollup@3.26.3)
     dev: false
 
   /@builder.io/qwik-city@1.2.10(rollup@3.26.3):
@@ -1339,7 +1339,7 @@ packages:
       react: '>=18.0.0'
       react-dom: '>=18.0.0'
     dependencies:
-      '@builder.io/qwik': github.com/BuilderIo/qwik-build/0082c6a0e7fc7dc1808c886a8e2de2f632e582cb(undici@5.22.1)
+      '@builder.io/qwik': github.com/BuilderIo/qwik-build/444b6653dc5980823cc08b778ed7e5fb33b7bee9(undici@5.22.1)
       '@types/react': 18.2.17
       '@types/react-dom': 18.2.7
       react: 18.2.0
@@ -1373,7 +1373,7 @@ packages:
     peerDependencies:
       '@builder.io/qwik': '>=1.0.0'
     dependencies:
-      '@builder.io/qwik': github.com/BuilderIo/qwik-build/0082c6a0e7fc7dc1808c886a8e2de2f632e582cb(undici@5.22.1)
+      '@builder.io/qwik': github.com/BuilderIo/qwik-build/444b6653dc5980823cc08b778ed7e5fb33b7bee9(undici@5.22.1)
     dev: true
 
   /@builder.io/vite-plugin-macro@0.0.7(@types/node@20.4.5)(rollup@3.26.3)(terser@5.19.2):
@@ -2722,14 +2722,14 @@ packages:
     resolution: {integrity: sha512-9b8mPpKrfeGRuhFH5iO1iwCLeIIsV6+H1sRfxbkoGXIyQE2BTsPd9zqSqQJ+pv5sJ/hT5M1zvOFL02MnEezFug==}
     dev: true
 
-  /@modular-forms/qwik@0.12.0(@builder.io/qwik-city@1.2.10-dev20230830101941)(@builder.io/qwik@1.2.10):
+  /@modular-forms/qwik@0.12.0(@builder.io/qwik-city@1.2.10-dev20230831215335)(@builder.io/qwik@1.2.10):
     resolution: {integrity: sha512-IJi5Uvm1Z1tJZLOpYM8jWza40Viac6tblnMre0pdrslVv7tW3MnXFgQgO539YksooOsn1Jn1KjVUVmhiMuXXuA==}
     peerDependencies:
       '@builder.io/qwik': ^1.0.0
       '@builder.io/qwik-city': ^1.0.0
     dependencies:
-      '@builder.io/qwik': github.com/BuilderIo/qwik-build/0082c6a0e7fc7dc1808c886a8e2de2f632e582cb(undici@5.22.1)
-      '@builder.io/qwik-city': github.com/BuilderIo/qwik-city-build/30d1e0abd49a61244865cf2feed291e25ddb180a(rollup@3.26.3)
+      '@builder.io/qwik': github.com/BuilderIo/qwik-build/444b6653dc5980823cc08b778ed7e5fb33b7bee9(undici@5.22.1)
+      '@builder.io/qwik-city': github.com/BuilderIo/qwik-city-build/5484f953dba829fe49d76636b37d832f9a85b43c(rollup@3.26.3)
 
   /@mui/base@5.0.0-beta.0(@types/react@18.2.17)(react-dom@18.2.0)(react@18.2.0):
     resolution: {integrity: sha512-ap+juKvt8R8n3cBqd/pGtZydQ4v2I/hgJKnvJRGjpSh3RvsvnDHO4rXov8MHQlH6VqpOekwgilFLGxMZjNTucA==}
@@ -4679,10 +4679,10 @@ packages:
       winston: 3.8.2
     dev: true
 
-  /@supabase/auth-helpers-shared@0.3.4(@supabase/supabase-js@2.33.1):
-    resolution: {integrity: sha512-8I3D0SPHHexkFTSfPg0nZgJSVazWoB3tZDpT6IjRv6w89vDMUzO99Lit4H9anVLF4teW8c/nJJxawDNbDlgbgg==}
+  /@supabase/auth-helpers-shared@0.4.1(@supabase/supabase-js@2.33.1):
+    resolution: {integrity: sha512-IEDX9JzWkIjQiLUaP4Qy5YDiG0jFQatWfS+jw8cCQs6QfbNdEPd2Y3qonwGHnM90CZom9SvjuylBv2pFVAL7Lw==}
     peerDependencies:
-      '@supabase/supabase-js': ^2.0.4
+      '@supabase/supabase-js': ^2.19.0
     dependencies:
       '@supabase/supabase-js': 2.33.1
       jose: 4.14.4
@@ -5536,7 +5536,7 @@ packages:
     peerDependencies:
       '@builder.io/qwik': '*'
     dependencies:
-      '@builder.io/qwik': github.com/BuilderIo/qwik-build/0082c6a0e7fc7dc1808c886a8e2de2f632e582cb(undici@5.22.1)
+      '@builder.io/qwik': github.com/BuilderIo/qwik-build/444b6653dc5980823cc08b778ed7e5fb33b7bee9(undici@5.22.1)
     dev: true
 
   /@vercel/nft@0.22.6(supports-color@9.4.0):
@@ -18994,9 +18994,9 @@ packages:
   /zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
 
-  github.com/BuilderIo/qwik-build/0082c6a0e7fc7dc1808c886a8e2de2f632e582cb(undici@5.22.1):
-    resolution: {tarball: https://codeload.github.com/BuilderIo/qwik-build/tar.gz/0082c6a0e7fc7dc1808c886a8e2de2f632e582cb}
-    id: github.com/BuilderIo/qwik-build/0082c6a0e7fc7dc1808c886a8e2de2f632e582cb
+  github.com/BuilderIo/qwik-build/444b6653dc5980823cc08b778ed7e5fb33b7bee9(undici@5.22.1):
+    resolution: {tarball: https://codeload.github.com/BuilderIo/qwik-build/tar.gz/444b6653dc5980823cc08b778ed7e5fb33b7bee9}
+    id: github.com/BuilderIo/qwik-build/444b6653dc5980823cc08b778ed7e5fb33b7bee9
     name: '@builder.io/qwik'
     version: 1.2.10
     engines: {node: '>=16.8.0 <18.0.0 || >=18.11'}
@@ -19007,11 +19007,11 @@ packages:
       csstype: 3.1.2
       undici: 5.22.1
 
-  github.com/BuilderIo/qwik-city-build/30d1e0abd49a61244865cf2feed291e25ddb180a(rollup@3.26.3):
-    resolution: {tarball: https://codeload.github.com/BuilderIo/qwik-city-build/tar.gz/30d1e0abd49a61244865cf2feed291e25ddb180a}
-    id: github.com/BuilderIo/qwik-city-build/30d1e0abd49a61244865cf2feed291e25ddb180a
+  github.com/BuilderIo/qwik-city-build/5484f953dba829fe49d76636b37d832f9a85b43c(rollup@3.26.3):
+    resolution: {tarball: https://codeload.github.com/BuilderIo/qwik-city-build/tar.gz/5484f953dba829fe49d76636b37d832f9a85b43c}
+    id: github.com/BuilderIo/qwik-city-build/5484f953dba829fe49d76636b37d832f9a85b43c
     name: '@builder.io/qwik-city'
-    version: 1.2.10-dev20230830101941
+    version: 1.2.10-dev20230831215335
     engines: {node: '>=16.8.0 <18.0.0 || >=18.11'}
     dependencies:
       '@mdx-js/mdx': 2.3.0

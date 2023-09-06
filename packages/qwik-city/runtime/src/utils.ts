@@ -83,3 +83,8 @@ export const getPrefetchDataset = (
   }
   return null;
 };
+
+export const isPromise = (value: any): value is Promise<any> => {
+  // not using "value instanceof Promise" to have zone.js support
+  return value && typeof value.then === 'function';
+};

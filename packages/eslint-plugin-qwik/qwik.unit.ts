@@ -677,6 +677,47 @@ ruleTester.run('jsx-a', rules['jsx-a'], {
   ],
 });
 
+ruleTester.run('qwik/loader-location', rules['loader-location'], {
+  valid: [
+    {
+      filename: './src/routes/index.tsx',
+      code: `
+        import { routeLoader$ } from '@builder.io/qwik-city';
+
+        export const useProductDetails = routeLoader$(async (requestEvent) => {
+          const res = await fetch(\`https://.../products/\${requestEvent.params.productId}\`);
+          const product = await res.json();
+          return product as Product;
+        });
+      `,
+    },
+    {
+      filename: './src/routes/index.tsx',
+      code: `
+        import { routeLoader$ } from "@builder.io/qwik-city";
+        export { useFormLoader };
+        const useFormLoader = routeLoader$(() => {
+          return null;
+        });
+      `,
+    },
+  ],
+  invalid: [
+    {
+      filename: './src/routes/index.tsx',
+      code: `
+        import { routeLoader$ } from '@builder.io/qwik-city';
+        const useProductDetails = routeLoader$(async (requestEvent) => {
+          const res = await fetch(\`https://.../products/\${requestEvent.params.productId}\`);
+          const product = await res.json();
+          return product as Product;
+        });
+      `,
+      errors: [{ messageId: 'missingExport' }],
+    },
+  ],
+});
+
 lintSuite.run();
 
 export {};

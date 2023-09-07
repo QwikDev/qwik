@@ -49,8 +49,7 @@ export async function updateBuildContext(ctx: BuildContext) {
 
 function rewriteRoutes(ctx: BuildContext, resolved: ReturnType<typeof resolveSourceFiles>) {
   if (ctx.opts.rewriteRoutes) {
-    for (let rewriteIndex = 0; rewriteIndex < ctx.opts.rewriteRoutes.length; rewriteIndex++) {
-      const rewriteOpt = ctx.opts.rewriteRoutes[rewriteIndex];
+    ctx.opts.rewriteRoutes.forEach((rewriteOpt, rewriteIndex) => {
       const rewriteFrom = Object.keys(rewriteOpt.paths || {});
       const rewriteRoutes = (resolved.routes || []).filter((route) =>
         rewriteFrom.some((from) => route.pathname.includes(from))
@@ -58,7 +57,7 @@ function rewriteRoutes(ctx: BuildContext, resolved: ReturnType<typeof resolveSou
 
       const replacePath = (part: string) => (rewriteOpt.paths || {})[part] ?? part;
 
-      for (const rewriteRoute of rewriteRoutes) {
+      rewriteRoutes.forEach((rewriteRoute) => {
         const pathnamePrefix = rewriteOpt.prefix ? '/' + rewriteOpt.prefix : '';
         const routeNamePrefix = rewriteOpt.prefix ? rewriteOpt.prefix + '/' : '';
         const idSuffix = rewriteOpt.prefix?.toUpperCase().replace(/-/g, '');
@@ -106,8 +105,8 @@ function rewriteRoutes(ctx: BuildContext, resolved: ReturnType<typeof resolveSou
           pattern: new RegExp(translatedRegExp),
           segments: translatedSegments,
         });
-      }
-    }
+      });
+    });
   }
 }
 

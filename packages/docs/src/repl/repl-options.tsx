@@ -19,7 +19,25 @@ export const ReplOptions = ({ input, versions }: ReplOptionsProps) => {
         input={input}
         isLoading={versions.length === 0}
       />
+
+      <StoreBoolean label="Debug" inputProp="debug" input={input} />
     </div>
+  );
+};
+
+const StoreBoolean = (props: StoreBooleanProps) => {
+  return (
+    <label>
+      <span>{props.label}</span>
+      <input
+        type="checkbox"
+        checked={!!props.input[props.inputProp]}
+        onChange$={(ev?: any) => {
+          const input: HTMLInputElement = ev.target;
+          (props.input as any)[props.inputProp] = input.checked;
+        }}
+      />
+    </label>
   );
 };
 
@@ -59,6 +77,12 @@ interface StoreOptionProps {
   input: ReplAppInput;
   inputProp: keyof ReplAppInput;
   isLoading?: boolean;
+}
+
+interface StoreBooleanProps {
+  label: string;
+  input: ReplAppInput;
+  inputProp: keyof ReplAppInput;
 }
 
 interface ReplOptionsProps {

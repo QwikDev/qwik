@@ -96,6 +96,7 @@ export const Repl = component$((props: ReplProps) => {
     track(() => input.entryStrategy);
     track(() => input.files);
     track(() => input.version);
+    track(() => input.debug);
     track(() => store.serverWindow);
 
     sendUserUpdateToReplServer(input, store);
@@ -144,7 +145,7 @@ export const sendUserUpdateToReplServer = (input: ReplAppInput, store: ReplStore
       clientId: store.clientId,
       options: {
         buildId: input.buildId,
-        debug: store.debug,
+        debug: input.debug,
         srcInputs: input.files,
         buildMode: input.buildMode as any,
         entryStrategy: {

@@ -58,8 +58,6 @@ export const getReplVersion = async (version: string | undefined) => {
 
     if (!version || !npmData.versions.includes(version)) {
       version = npmData.tags.latest;
-      // TEMPORARY: use 1.1.5 until 1.2 works
-      version = '1.1.5';
     }
   }
 

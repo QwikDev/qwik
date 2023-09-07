@@ -12,6 +12,7 @@ export interface ReplAppInput {
   version: string;
   buildMode: 'development' | 'production';
   entryStrategy: string;
+  debug?: boolean;
 }
 
 export interface ReplInputOptions extends Omit<QwikRollupPluginOptions, 'srcDir'> {

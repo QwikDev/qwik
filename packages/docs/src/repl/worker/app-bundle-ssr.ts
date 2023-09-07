@@ -27,7 +27,6 @@ export const appBundleSsr = async (options: ReplInputOptions, result: ReplResult
 
   const rollupInputOpts: InputOptions = {
     input: entry.path,
-    cache: self.rollupCache,
     plugins: [
       replCss(options),
       self.qwikOptimizer?.qwikRollup(qwikRollupSsrOpts),
@@ -61,8 +60,6 @@ export const appBundleSsr = async (options: ReplInputOptions, result: ReplResult
 
   const bundle = await self.rollup?.rollup(rollupInputOpts);
   if (bundle) {
-    self.rollupCache = bundle.cache;
-
     const generated = await bundle.generate({
       format: 'cjs',
       inlineDynamicImports: true,

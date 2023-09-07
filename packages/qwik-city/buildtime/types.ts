@@ -120,6 +120,14 @@ export interface ParsedMenuItem {
 /**
  * @public
  */
+export interface RewriteRouteOption {
+  prefix?: string;
+  paths: Record<string, string>;
+}
+
+/**
+ * @public
+ */
 export interface PluginOptions {
   /**
    * Directory of the `routes`. Defaults to `src/routes`.
@@ -152,6 +160,10 @@ export interface PluginOptions {
    * The platform object which can be used to mock the Cloudflare bindings.
    */
   platform?: Record<string, unknown>;
+  /**
+   * Configuration to rewrite url paths
+   */
+  rewriteRoutes?: RewriteRouteOption[];
 }
 
 export interface MdxPlugins {

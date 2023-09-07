@@ -329,6 +329,46 @@ Each request handler, such as `onRequest`, `onGet`, `onPost`, etc., are passed i
 - `text`: Convenience method to send an text body response. The response will be automatically set the `Content-Type` header to`text/plain; charset=utf-8`. An `text()` response can only be called once.
 - `url`: HTTP request [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL).
 
+## Rewrite routes
+
+You can rewrite your pathnames in order to reuse one single page component with its own middlewares and layouts for multiple pages.
+This could be useful for SEO purposes or to translate your pages in different languages.
+
+For each folder under the routes one if there are occurrences of the `paths` keys
+in the pathname the route node will be copied replacing all the occurrences of `paths` keys with the related `paths` values.
+All path parameters will preserve the same name. If there is a prefix it will be added at the beginning of the rewrited pathname.
+
+You can set the rewrite rules as follows in your `vite.config.ts`:
+
+```tsx
+import { defineConfig } from 'vite';
+import { qwikCity } from '@builder.io/qwik-city/vite';
+
+export default defineConfig(async () => {
+  return {
+    plugins: [
+      qwikCity({
+        rewriteRoutes: [
+            {
+              paths: {
+                  'docs': 'documentation'
+              },
+            },
+            {
+              prefix: 'it',
+              paths: {
+                'docs': 'documentazione',
+                'getting-started': 'per-iniziare',
+                'products': 'prodotti',
+              },
+            },
+          ],
+      }),
+    ],
+  };
+});
+```
+
 ## Advanced routing
 
 Qwik City also supports:

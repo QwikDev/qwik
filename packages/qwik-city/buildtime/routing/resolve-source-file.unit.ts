@@ -49,6 +49,7 @@ test('resolveLayout', () => {
       },
       mdx: {},
       platform: {},
+      rewriteRoutes: [],
     };
     const sourceFile: RouteSourceFile = {
       ...getSourceFile(c.fileName)!,

@@ -4,45 +4,21 @@ import { testAppSuite } from '../utils/test-suite';
 const test = testAppSuite('Build Pages Rewrited', {
   rewriteRoutes: [
     {
-      paths: [
-        {
-          from: 'docs',
-          to: 'documentazione',
-        },
-        {
-          from: 'getting-started',
-          to: 'per-iniziare',
-        },
-        {
-          from: 'about-us',
-          to: 'informazioni',
-        },
-        {
-          from: 'products',
-          to: 'prodotti',
-        },
-      ],
+      paths: {
+        docs: 'documentazione',
+        'getting-started': 'per-iniziare',
+        'about-us': 'informazioni',
+        products: 'prodotti',
+      },
     },
     {
       prefix: 'it',
-      paths: [
-        {
-          from: 'docs',
-          to: 'documentazione',
-        },
-        {
-          from: 'getting-started',
-          to: 'per-iniziare',
-        },
-        {
-          from: 'about-us',
-          to: 'informazioni',
-        },
-        {
-          from: 'products',
-          to: 'prodotti',
-        },
-      ],
+      paths: {
+        docs: 'documentazione',
+        'getting-started': 'per-iniziare',
+        'about-us': 'informazioni',
+        products: 'prodotti',
+      },
     },
   ],
 });

@@ -51,15 +51,12 @@ function rewriteRoutes(ctx: BuildContext, resolved: ReturnType<typeof resolveSou
   if (ctx.opts.rewriteRoutes) {
     for (let rewriteIndex = 0; rewriteIndex < ctx.opts.rewriteRoutes.length; rewriteIndex++) {
       const rewriteOpt = ctx.opts.rewriteRoutes[rewriteIndex];
-      const rewriteFrom = (rewriteOpt.paths || []).map((path) => path.from);
+      const rewriteFrom = Object.keys(rewriteOpt.paths || {});
       const rewriteRoutes = (resolved.routes || []).filter((route) =>
         rewriteFrom.some((from) => route.pathname.includes(from))
       );
 
-      const replacePart = (part: string) => {
-        const replacement = (rewriteOpt.paths || []).find((path) => part === path.from);
-        return replacement ? replacement.to : part;
-      };
+      const replacePath = (part: string) => (rewriteOpt.paths || {})[part] ?? part;
 
       for (const rewriteRoute of rewriteRoutes) {
         const pathnamePrefix = rewriteOpt.prefix ? '/' + rewriteOpt.prefix : '';
@@ -68,14 +65,14 @@ function rewriteRoutes(ctx: BuildContext, resolved: ReturnType<typeof resolveSou
         const patternInfix = rewriteOpt.prefix ? [rewriteOpt.prefix] : [];
 
         const splittedPathName = rewriteRoute.pathname.split('/');
-        const translatedPathParts = splittedPathName.map(replacePart);
+        const translatedPathParts = splittedPathName.map(replacePath);
 
         const splittedRouteName = rewriteRoute.routeName.split('/');
-        const translatedRouteParts = splittedRouteName.map(replacePart);
+        const translatedRouteParts = splittedRouteName.map(replacePath);
 
         const splittedPattern = rewriteRoute.pattern.toString().split('\\/');
         const [translatedPatternFirst, ...translatedPatternOthers] =
-          splittedPattern.map(replacePart);
+          splittedPattern.map(replacePath);
         const translatedPatternParts = [
           translatedPatternFirst,
           ...patternInfix,
@@ -88,7 +85,7 @@ function rewriteRoutes(ctx: BuildContext, resolved: ReturnType<typeof resolveSou
         );
 
         const translatedSegments = rewriteRoute.segments.map((segment) =>
-          segment.map((item) => ({ ...item, content: replacePart(item.content) }))
+          segment.map((item) => ({ ...item, content: replacePath(item.content) }))
         );
 
         if (rewriteOpt.prefix) {

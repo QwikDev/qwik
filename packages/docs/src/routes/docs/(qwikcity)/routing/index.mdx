@@ -350,27 +350,17 @@ export default defineConfig(async () => {
       qwikCity({
         rewriteRoutes: [
             {
-              paths: [
-                {
-                  from: 'docs',
-                  to: 'documentation',
-                },
-              ],
+              paths: {
+                  'docs': 'documentation'
+              },
             },
             {
               prefix: 'it',
-              paths: [
-                {
-                  from: 'docs',
-                  to: 'documentazione',
-                }, {
-                  from: 'getting-started',
-                  to: 'per-iniziare',
-                }, {
-                  from: 'products',
-                  to: 'prodotti',
-                },
-              ],
+              paths: {
+                'docs': 'documentazione',
+                'getting-started': 'per-iniziare',
+                'products': 'prodotti',
+              },
             },
           ],
       }),

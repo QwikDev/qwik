@@ -122,10 +122,7 @@ export interface ParsedMenuItem {
  */
 export interface RewriteRouteOption {
   prefix?: string;
-  paths: {
-    from: string;
-    to: string;
-  }[];
+  paths: Record<string, string>;
 }
 
 /**

@@ -331,12 +331,12 @@ Each request handler, such as `onRequest`, `onGet`, `onPost`, etc., are passed i
 
 ## Rewrite routes
 
-You can rewrite your urls in order to reuse one single page component with its own middlewares and layouts for multiple pages.
+You can rewrite your pathnames in order to reuse one single page component with its own middlewares and layouts for multiple pages.
 This could be useful for SEO purposes or to translate your pages in different languages.
 
 For each folder under the routes one if there are occurrences of the `paths` keys
 in the pathname the route node will be copied replacing all the occurrences of `paths` keys with the related `paths` values.
-All path parameters will preserve the same name.
+All path parameters will preserve the same name. If there is a prefix it will be added at the beginning of the rewrited pathname.
 
 You can set the rewrite rules as follows in your `vite.config.ts`:
 

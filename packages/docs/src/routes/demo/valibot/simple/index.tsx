@@ -22,36 +22,34 @@ export default component$(() => {
   useStylesScoped$(styles);
 
   return (
-    <>
-      <Form action={action} class="flow">
-        <label>
-          <span>First name:</span>
-          <input name="firstName" />
-          <p data-status="error">
-            {action.value?.failed && (
-              <span>{action.value.nested?.firstName}</span>
-            )}
-          </p>
-        </label>
-
-        <label>
-          <span>Last name:</span>
-          <input name="lastName" />
-        </label>
+    <Form action={action} class="flow">
+      <label>
+        <span>First name:</span>
+        <input name="firstName" />
         <p data-status="error">
           {action.value?.failed && (
-            <span>{action.value.nested?.lastName}</span>
+            <span>{action.value.nested?.firstName}</span>
           )}
         </p>
+      </label>
 
-        <button type="submit">Add user</button>
-
-        {action.value?.success && (
-          <p data-status="success">
-            User {action.value?.firstName} added successfully.
-          </p>
+      <label>
+        <span>Last name:</span>
+        <input name="lastName" />
+      </label>
+      <p data-status="error">
+        {action.value?.failed && (
+          <span>{action.value.nested?.lastName}</span>
         )}
-      </Form>
-    </>
+      </p>
+
+      <button type="submit">Add user</button>
+
+      {action.value?.success && (
+        <p data-status="success">
+          User {action.value?.firstName} added successfully.
+        </p>
+      )}
+    </Form>
   );
 });

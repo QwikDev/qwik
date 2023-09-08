@@ -1,0 +1,44 @@
+---
+title: Bun Middleware | Deployments
+contributors:
+  - EamonHeffernan
+---
+
+# Bun Middleware
+
+Qwik City Bun middleware allows you to hook up Qwik City to a Bun server which uses the Bun Http API.
+
+## Installation
+
+There currently is an issue with using `bun` as the package manager. Please use `npm install`.
+
+To integrate the `bun` adapter, use the `add` command:
+
+- For the [integrated HTTP server](https://bun.sh/docs/api/http):
+
+```shell
+npm run qwik add bun
+```
+
+## Production build
+
+To build the application for production, use the `build` command, this command will automatically run `bun run build.server` and `bun run build.client`:
+
+```shell
+bun run build
+```
+
+## Serve
+
+To start the Bun server after a build:
+
+```shell
+bun run serve
+```
+
+## Production deploy
+
+Since you are choosing Bun, here you are in your own, after running `bun run build`:
+
+- The `dist` folder will be created including all the static files.
+- The `server` folder will be created including all node server files.

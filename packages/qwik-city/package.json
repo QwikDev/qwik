@@ -63,6 +63,10 @@
       "import": "./lib/adapters/cloud-run/vite/index.mjs",
       "require": "./lib/adapters/cloud-run/vite/index.cjs"
     },
+    "./adapters/bun-server/vite": {
+      "import": "./lib/adapters/bun-server/vite/index.mjs",
+      "require": "./lib/adapters/bun-server/vite/index.cjs"
+    },
     "./adapters/deno-server/vite": {
       "import": "./lib/adapters/deno-server/vite/index.mjs",
       "require": "./lib/adapters/deno-server/vite/index.cjs"
@@ -95,6 +99,9 @@
     },
     "./middleware/deno": {
       "import": "./lib/middleware/deno/index.mjs"
+    },
+    "./middleware/bun": {
+      "import": "./lib/middleware/bun/index.mjs"
     },
     "./middleware/netlify-edge": {
       "import": "./lib/middleware/netlify-edge/index.mjs"

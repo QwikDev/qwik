@@ -29,7 +29,9 @@ export default component$(() => {
           <span>First name:</span>
           <input name="firstName" />
           <p data-status="error">
-            {action.value?.failed && <p>{action.value.nested?.firstName}</p>}
+            {action.value?.failed && (
+              <span>{action.value.nested?.firstName}</span>
+            )}
           </p>
         </label>
 
@@ -38,7 +40,9 @@ export default component$(() => {
           <input name="lastName" />
         </label>
         <p data-status="error">
-          {action.value?.failed && <p>{action.value.nested?.lastName}</p>}
+          {action.value?.failed && (
+            <span>{action.value.nested?.lastName}</span>
+          )}
         </p>
 
         <button type="submit">Add user</button>

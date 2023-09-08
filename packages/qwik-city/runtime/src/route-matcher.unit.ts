@@ -165,7 +165,7 @@ regression5080('/[...rest]/suffix', () => {
 regression5080.run();
 
 const regression5126 = suite('routeMatcher/#5126');
-regression5080('/[...dynamicOne]/static-segment/[...dynamicTwo]/', () => {
+regression5126('/[...dynamicOne]/static-segment/[...dynamicTwo]/', () => {
   equal(
     matchRoute(
       '/[...dynamicOne]/static-segment/[...dynamicTwo]/',

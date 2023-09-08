@@ -383,7 +383,7 @@ type StrictUnionHelper<T, TAll> = T extends any
 type StrictUnion<T> = Prettify<StrictUnionHelper<T, T>>;
 
 type Prettify<T> = {} & {
-  [K in keyof T]?: T[K];
+  [K in keyof T]: T[K];
 };
 
 /**

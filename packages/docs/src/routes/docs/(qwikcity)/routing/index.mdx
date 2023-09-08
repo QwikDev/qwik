@@ -341,8 +341,9 @@ This could be useful for SEO purposes or to translate your pages in different la
 > or to `/fr/produits` and `/products/product-name` to `/it/prodotti/nome-prodotto` or `/fr/produits/nom-du-produit`
 > without having multiple routes files for each locale but reusing the same page component, layouts, middlewares and so on.
 >
-> Parameters name will not be changed so if the routePath is `/products/[slug]` you will receive `product-name`, `nome-prodotto`
-> or `nom-du-produit` as the values for the same `slug` path parameter.
+> Parameters name will not be changed so if the route file is `/products/[slug]/index.tsx` and the url is `/products/product-name`,
+> `/it/prodotti/nome-prodotto` or `/fr/produits/nom-du-produit` you will receive the same path parameter `slug` with
+> the values `product-name`, `nome-prodotto` or `nom-du-produit`.
 
 > **Rewrite urls without prefix:**
 >

@@ -11,10 +11,11 @@ export async function postBuild(
 ) {
   const ignorePathnames = new Set([basePathname + 'build/', basePathname + 'assets/']);
 
-  const staticPaths = new Set(userStaticPaths);
+  const staticPaths = new Set(userStaticPaths.map(normalizeTrailingSlash));
   const notFounds: string[][] = [];
 
   const loadItem = async (fsDir: string, fsName: string, pathname: string) => {
+    pathname = normalizeTrailingSlash(pathname);
     if (ignorePathnames.has(pathname)) {
       return;
     }
@@ -60,6 +61,13 @@ export async function postBuild(
     notFoundPathsCode,
     staticPathsCode,
   };
+}
+
+function normalizeTrailingSlash(pathname: string) {
+  if (!pathname.endsWith('/')) {
+    return pathname + '/';
+  }
+  return pathname;
 }
 
 function createNotFoundPathsModule(basePathname: string, notFounds: string[][], format: string) {

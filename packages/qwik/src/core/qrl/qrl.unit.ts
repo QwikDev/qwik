@@ -7,7 +7,11 @@ import { equal } from 'uvu/assert';
 const qrlSuite = suite('serialization');
 
 qrlSuite('should parse', () => {
-  matchProps(parseQRL('./chunk#default'), { $chunk$: './chunk', $symbol$: 'default' });
+  matchProps(parseQRL('./chunk#default'), {
+    $chunk$: './chunk',
+    $symbol$: 'default',
+    resolved: undefined,
+  });
   matchProps(parseQRL('./chunk#mySymbol'), {
     $chunk$: './chunk',
     $symbol$: 'mySymbol',
@@ -74,6 +78,13 @@ qrlSuite('should parse reference', () => {
   );
 });
 qrlSuite('should parse self-reference', () => {});
+
+qrlSuite('should store resolved value', async () => {
+  const q = qrl(() => Promise.resolve({ hi: 'hello' }), 'hi');
+  equal(q.resolved, undefined);
+  await q.resolve();
+  equal(q.resolved, 'hello');
+});
 
 function matchProps(obj: any, properties: Record<string, any>) {
   for (const [key, value] of Object.entries(properties)) {

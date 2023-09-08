@@ -246,6 +246,10 @@ At times it may be necessary to resolve a `QRL` reference to the actual value. T
 
 NOTE: `element` is needed because `QRL`s are relative and need a base location to resolve against. The base location is encoded in the HTML in the form of `<div q:base="/url">`.
 
+## `QRL.resolved`
+
+Once `QRL.resolve()` returns, the value is stored under `QRL.resolved`. This allows the value to be used without having to await `QRL.resolve()` again.
+
 ## Question: Why not just use `import()`?
 
 At first glance, `QRL` serves the same purpose as `import()`. However, there are three subtle differences that need to be taken into account.

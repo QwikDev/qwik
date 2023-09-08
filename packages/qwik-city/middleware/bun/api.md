@@ -8,16 +8,6 @@ import type { ClientConn } from '@builder.io/qwik-city/middleware/request-handle
 import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
 
 // @public (undocumented)
-export interface Addr {
-    // (undocumented)
-    hostname: string;
-    // (undocumented)
-    port: number;
-    // (undocumented)
-    transport: 'tcp' | 'udp';
-}
-
-// @public (undocumented)
 export function createQwikCity(opts: QwikCityBunOptions): {
     router: (request: Request) => Promise<Response | null>;
     notFound: (request: Request) => Promise<Response>;

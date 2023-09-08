@@ -13,6 +13,7 @@ import type {
   JSONValue,
   LoadedRoute,
   LoaderInternal,
+  FailReturn,
 } from '../../runtime/src/types';
 import { Cookie } from './cookie';
 import { ErrorResponse } from './error-handler';
@@ -212,7 +213,7 @@ export function createRequestEvent(
       return typeof returnData === 'function' ? returnData : () => returnData;
     },
 
-    fail: <T extends Record<string, any>>(statusCode: number, data: T) => {
+    fail: <T extends Record<string, any>>(statusCode: number, data: T): FailReturn<T> => {
       check();
       status = statusCode;
       headers.delete('Cache-Control');

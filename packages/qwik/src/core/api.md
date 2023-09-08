@@ -465,6 +465,7 @@ export interface QRL<TYPE = any> {
     // (undocumented)
     getSymbol(): string;
     resolve(): Promise<TYPE>;
+    resolved: undefined | TYPE;
 }
 
 // @public

@@ -20,12 +20,29 @@ import {
   timelineBucketField,
   createRouteRow,
 } from './query-helpers';
+import { dbGetManifestHashes } from './sql-manifest';
 
 export async function getEdges(
   db: AppDatabase,
   publicApiKey: string,
-  { limit }: { limit?: number } = {}
+  {
+    limit,
+    manifestHashes,
+    manifestHashSample,
+  }: { limit?: number; manifestHashes?: string[]; manifestHashSample?: number } = {}
 ) {
+  let where = eq(edgeTable.publicApiKey, publicApiKey);
+  if (typeof manifestHashSample == 'undefined') {
+    manifestHashSample = 500000; // max number of interactions. May need to be configurable in the future.
+  }
+  if (typeof manifestHashSample == 'number' && !manifestHashes) {
+    manifestHashes = await dbGetManifestHashes(db, publicApiKey, {
+      sampleSize: manifestHashSample,
+    });
+  }
+  if (manifestHashes) {
+    where = and(where, inArray(edgeTable.manifestHash, manifestHashes))!;
+  }
   const query = db
     .select({
       from: edgeTable.from,
@@ -34,7 +51,7 @@ export async function getEdges(
       ...delayColumnSums,
     })
     .from(edgeTable)
-    .where(eq(edgeTable.publicApiKey, publicApiKey))
+    .where(where)
     .groupBy(edgeTable.from, edgeTable.to)
     .limit(limit || Number.MAX_SAFE_INTEGER);
   const rows = await query.all();

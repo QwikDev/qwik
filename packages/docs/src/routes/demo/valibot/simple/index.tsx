@@ -5,7 +5,6 @@ import { string, minLength } from 'valibot';
 
 export const useAddUser = routeAction$(
   async (user) => {
-    // The "user" is strongly typed: { firstName: string, lastName: string }
     return {
       success: true,
       firstName: user.firstName,

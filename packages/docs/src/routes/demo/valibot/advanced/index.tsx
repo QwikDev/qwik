@@ -11,18 +11,16 @@ export const useAddUser = routeAction$(
     };
   },
   // Valibot schema is used to validate that the FormData includes "firstName" and "lastName"
-  valibot$((ev) => {
-    const firstName = string([minLength(1)]);
-    const lastName =
-      ev.url.searchParams.get('lastname') === 'optional'
-        ? string()
-        : string([minLength(1)]);
-
-    return object({
-      firstName,
-      lastName,
-    });
-  })
+  valibot$((requestEvent) =>
+    object({
+      firstName: string([minLength(1)]),
+      // The last name is optional if the url contains the query parameter "lastname=optional"
+      lastName:
+        requestEvent.url.searchParams.get('lastname') === 'optional'
+          ? string()
+          : string([minLength(1)]),
+    })
+  )
 );
 
 export default component$(() => {

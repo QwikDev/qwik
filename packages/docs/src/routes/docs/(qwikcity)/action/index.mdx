@@ -64,7 +64,6 @@ export default component$(() => {
 
 > Since actions are not executed during rendering, they can have side effects such as writing to a database, or sending an email. An action only runs when called explicitly.
 
-
 ## Using actions with `<Form/>`
 
 The best way to call an action is using the `<Form/>` component exported in `@builder.io/qwik-city`.
@@ -151,41 +150,30 @@ export interface EditFormProps {
   editingIdSignal: Signal<string>;
 }
 
-const EditForm = component$(
-  ({ item, editingIdSignal }: EditFormProps) => {
-    const editAction = useEditFromListAction();
+const EditForm = component$(({ item, editingIdSignal }: EditFormProps) => {
+  const editAction = useEditFromListAction();
 
-    return (
+  return (
+    <div>
+      <Form
+        action={editAction}
+        onSubmitCompleted$={() => {
+          editingIdSignal.value = '';
+        }}
+        spaReset
+      >
+        <input type="text" value={item.text} name="text" id={`edit-${item.id}`} />
+        {/* Sends item.id with form data on submission. */}
+        <input type="hidden" name="id" value={item.id} />
+        <button type="submit">Submit</button>
+      </Form>
+
       <div>
-        <Form
-          action={editAction}
-          onSubmitCompleted$={() => {
-            editingIdSignal.value = '';
-          }}
-          spaReset
-        >
-          <input
-            type="text"
-            value={item.text}
-            name="text"
-            id={`edit-${item.id}`}
-          />
-          {/* Sends item.id with form data on submission. */}
-          <input type="hidden" name="id" value={item.id} />
-          <button type="submit">
-            Submit
-          </button>
-        </Form>
-
-        <div>
-          <button onClick$={() => (editingIdSignal.value = '')}>
-            Cancel
-          </button>
-        </div>
+        <button onClick$={() => (editingIdSignal.value = '')}>Cancel</button>
       </div>
-    );
-  }
-);
+    </div>
+  );
+});
 
 export default EditForm;
 ```
@@ -234,9 +222,7 @@ export default component$(() => {
         {action.value?.failed && <p>{action.value.fieldErrors?.firstName}</p>}
         <button type="submit">Add user</button>
       </Form>
-      {action.value?.success && (
-        <p>User {action.value.userID} added successfully</p>
-      )}
+      {action.value?.success && <p>User {action.value.userID} added successfully</p>}
     </>
   );
 });
@@ -278,16 +264,16 @@ export default component$(() => {
   const action = useAddUser();
   useStylesScoped$(styles);
 
-  return (
-    <>
-      <Form action={action} class="flow">
-        <label>
-          <span>First name:</span>
-          <input name="firstName" />
-          <p data-status="error">
-            {action.value?.failed && <p>{action.value.nested?.firstName}</p>}
-          </p>
-        </label>
+return (
+<>
+<Form action={action} class="flow">
+<label>
+<span>First name:</span>
+<input name="firstName" />
+<p data-status="error">
+{action.value?.failed && <p>{action.value.nested?.firstName}</p>}
+</p>
+</label>
 
         <label>
           <span>Last name:</span>
@@ -306,9 +292,11 @@ export default component$(() => {
         )}
       </Form>
     </>
-  );
+
+);
 });
-```
+
+````
 </CodeSandbox>
 
 When submitting data to a `routeAction()`, the data is validated against the Valibot schema. If the data is invalid, the action will put the validation error in the `routeAction.value` property.
@@ -317,7 +305,7 @@ Please refer to the [Valibot documentation](https://valibot.dev/) for more infor
 
 ### Advanced (Zod)
 
-The constructor of ```zod$``` can also take a function, as the first argument is zod itself, so you can use this directly to build the schema. 
+The constructor of ```zod$``` can also take a function, as the first argument is zod itself, so you can use this directly to build the schema.
 The second parameter is the RequestEvent to construct an event-based zod schema.
 Especially in combination with ```refine``` and ```superDefine``` in zod, the only limit is your imagination.
 
@@ -325,7 +313,7 @@ Especially in combination with ```refine``` and ```superDefine``` in zod, the on
 ```tsx {5-5} /ev/#a  title="Advanced event based validation with Zod"
 export const useAddUser = routeAction$(
   async (user) => {
-    // The "user" is still strongly typed, but firstname 
+    // The "user" is still strongly typed, but firstname
     // is now optional: { firstName?: string | undefined, lastName: string }
     const userID = await db.users.add({
       firstName: user.firstName,
@@ -350,65 +338,64 @@ export const useAddUser = routeAction$(
     });
   })
 );
-```
+````
 
 ### Advanced (Valibot)
 
-The constructor of ```valibot$``` can also take a function that takes a `RequestEvent` that you can use to build your schema. 
+The constructor of `valibot$` can also take a function that takes a `RequestEvent` that you can use to build your schema.
 
 <CodeSandbox src="/src/routes/demo/valibot/advanced/index.tsx">
 ```tsx {5-5} /ev/#a  title="Advanced event based validation with Valibot"
 import { component$, useStylesScoped$ } from '@builder.io/qwik';
 import { routeAction$, valibot$, Form } from '@builder.io/qwik-city';
-import styles from './styles.css';
-import { string, object, optional, minLength } from 'valibot';
+import styles from './styles.css?inline';
+import { string, object, minLength } from 'valibot';
 
 export const useAddUser = routeAction$(
   async (user) => {
-    // The "user" is still strongly typed, but firstname
-    // is now optional: { firstName?: string | undefined, lastName: string }
     return {
       success: true,
       firstName: user.firstName,
     };
   },
   // Valibot schema is used to validate that the FormData includes "firstName" and "lastName"
-  valibot$((ev) => {
-    // lastName is optional the query parameter "lastname=optional" is present
-    const firstName = string([minLength(1)]);
-    const lastName =
-      ev.url.searchParams.get('lastname') === 'optional'
-        ? optional(string())
-        : string([minLength(1)]);
-
-    return object({
-      firstName,
-      lastName,
-    });
-  })
+  valibot$((requestEvent) =>
+    object({
+      firstName: string([minLength(1)]),
+      // The last name is optional if the url contains the query parameter "lastname=optional"
+      lastName:
+        requestEvent.url.searchParams.get('lastname') === 'optional'
+          ? string()
+          : string([minLength(1)]),
+    })
+  )
 );
 
 export default component$(() => {
   const action = useAddUser();
   useStylesScoped$(styles);
 
-  return (
-    <>
-      <Form action={action} class="flow">
-        <label>
-          <span>First name:</span>
-          <input name="firstName" />
-          <p data-status="error">
-            {action.value?.failed && <p>{action.value.nested?.firstName}</p>}
-          </p>
-        </label>
+return (
+<>
+<Form action={action} class="flow">
+<label>
+<span>First name:</span>
+<input name="firstName" />
+<p data-status="error">
+{action.value?.failed && (
+<span>{action.value.nested?.firstName}</span>
+)}
+</p>
+</label>
 
         <label>
           <span>Last name:</span>
           <input name="lastName" />
         </label>
         <p data-status="error">
-          {action.value?.failed && <p>{action.value.nested?.lastName}</p>}
+          {action.value?.failed && (
+            <span>{action.value.nested?.lastName}</span>
+          )}
         </p>
 
         <button type="submit">Add user</button>
@@ -420,9 +407,11 @@ export default component$(() => {
         )}
       </Form>
     </>
-  );
+
+);
 });
-```
+
+````
 </CodeSandbox>
 
 ## HTTP request and response
@@ -445,7 +434,7 @@ export const useProductRecommendations = routeAction$(
   }
 );
 
-```
+````
 
 ## Action Failures
 

@@ -44,9 +44,7 @@ export default component$(() => {
         <input name="lastName" />
       </label>
       <p data-status="error">
-        {action.value?.failed && (
-          <span>{action.value.nested?.lastName}</span>
-        )}
+        {action.value?.failed && <span>{action.value.nested?.lastName}</span>}
       </p>
 
       <button type="submit">Add user</button>

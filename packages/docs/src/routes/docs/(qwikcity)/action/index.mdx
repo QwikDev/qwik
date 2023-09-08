@@ -372,33 +372,33 @@ export default component$(() => {
 
   return (
     <Form action={action} class="flow">
-    <label>
-        <span>First name:</span>
-        <input name="firstName" />
+        <label>
+            <span>First name:</span>
+            <input name="firstName" />
+            <p data-status="error">
+            {action.value?.failed && (
+                <span>{action.value.nested?.firstName}</span>
+            )}
+            </p>
+        </label>
+
+        <label>
+            <span>Last name:</span>
+            <input name="lastName" />
+        </label>
         <p data-status="error">
-        {action.value?.failed && (
-            <span>{action.value.nested?.firstName}</span>
-        )}
+            {action.value?.failed && (
+            <span>{action.value.nested?.lastName}</span>
+            )}
         </p>
-    </label>
 
-    <label>
-        <span>Last name:</span>
-        <input name="lastName" />
-    </label>
-    <p data-status="error">
-        {action.value?.failed && (
-        <span>{action.value.nested?.lastName}</span>
+        <button type="submit">Add user</button>
+
+        {action.value?.success && (
+            <p data-status="success">
+            User {action.value?.firstName} added successfully.
+            </p>
         )}
-    </p>
-
-    <button type="submit">Add user</button>
-
-    {action.value?.success && (
-        <p data-status="success">
-        User {action.value?.firstName} added successfully.
-        </p>
-    )}
     </Form>
   );
 });

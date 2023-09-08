@@ -507,6 +507,60 @@ export const latencyColumnSums = {
   sumLatencyCount49: sql<number>`sum(${edgeTable.latencyCount49}) as sumLatencyCount49`,
 };
 
+export const latencyCount = {
+  latencyCount: sql<number>`
+    ${edgeTable.latencyCount00} + 
+    ${edgeTable.latencyCount01} + 
+    ${edgeTable.latencyCount02} + 
+    ${edgeTable.latencyCount03} + 
+    ${edgeTable.latencyCount04} + 
+    ${edgeTable.latencyCount05} + 
+    ${edgeTable.latencyCount06} + 
+    ${edgeTable.latencyCount07} + 
+    ${edgeTable.latencyCount08} + 
+    ${edgeTable.latencyCount09} + 
+    ${edgeTable.latencyCount10} + 
+    ${edgeTable.latencyCount11} + 
+    ${edgeTable.latencyCount12} + 
+    ${edgeTable.latencyCount13} + 
+    ${edgeTable.latencyCount14} + 
+    ${edgeTable.latencyCount15} + 
+    ${edgeTable.latencyCount16} + 
+    ${edgeTable.latencyCount17} + 
+    ${edgeTable.latencyCount18} + 
+    ${edgeTable.latencyCount19} + 
+    ${edgeTable.latencyCount20} + 
+    ${edgeTable.latencyCount21} + 
+    ${edgeTable.latencyCount22} + 
+    ${edgeTable.latencyCount23} + 
+    ${edgeTable.latencyCount24} + 
+    ${edgeTable.latencyCount25} + 
+    ${edgeTable.latencyCount26} + 
+    ${edgeTable.latencyCount27} + 
+    ${edgeTable.latencyCount28} + 
+    ${edgeTable.latencyCount29} + 
+    ${edgeTable.latencyCount30} + 
+    ${edgeTable.latencyCount31} + 
+    ${edgeTable.latencyCount32} + 
+    ${edgeTable.latencyCount33} + 
+    ${edgeTable.latencyCount34} + 
+    ${edgeTable.latencyCount35} + 
+    ${edgeTable.latencyCount36} + 
+    ${edgeTable.latencyCount37} + 
+    ${edgeTable.latencyCount38} + 
+    ${edgeTable.latencyCount39} + 
+    ${edgeTable.latencyCount40} + 
+    ${edgeTable.latencyCount41} + 
+    ${edgeTable.latencyCount42} + 
+    ${edgeTable.latencyCount43} + 
+    ${edgeTable.latencyCount44} + 
+    ${edgeTable.latencyCount45} + 
+    ${edgeTable.latencyCount46} + 
+    ${edgeTable.latencyCount47} + 
+    ${edgeTable.latencyCount48} + 
+    ${edgeTable.latencyCount49} as latencyCount`,
+};
+
 export const delayColumnSums = {
   sumDelayCount00: sql<number>`sum(${edgeTable.delayCount00}) as sumDelayCount00`,
   sumDelayCount01: sql<number>`sum(${edgeTable.delayCount01}) as sumDelayCount01`,

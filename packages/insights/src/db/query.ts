@@ -33,7 +33,7 @@ export async function getEdges(
 ) {
   let where = eq(edgeTable.publicApiKey, publicApiKey);
   if (typeof manifestHashSample == 'undefined') {
-    manifestHashSample = 500000; // max number of interactions. May need to be configurable in the future.
+    manifestHashSample = 100000; // max number of interactions. May need to be configurable in the future.
   }
   if (typeof manifestHashSample == 'number' && !manifestHashes) {
     manifestHashes = await dbGetManifestHashes(db, publicApiKey, {
@@ -53,7 +53,7 @@ export async function getEdges(
     .from(edgeTable)
     .where(where)
     .groupBy(edgeTable.from, edgeTable.to)
-    .limit(limit || Number.MAX_SAFE_INTEGER);
+    .limit(limit || 3000); // TODO: The 3000 limit is due to Turso serialization format not being efficient, upgrade this once Turso is fixed.
   const rows = await query.all();
   return rows.map((e) => ({
     from: e.from,

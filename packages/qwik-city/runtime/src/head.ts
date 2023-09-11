@@ -12,6 +12,7 @@ import type {
   ResolveSyncValue,
   ActionInternal,
 } from './types';
+import { isPromise } from './utils';
 
 export const resolveHead = (
   endpoint: EndpointResponse | ClientPageData,
@@ -30,7 +31,7 @@ export const resolveHead = (
       }
     }
     const data = endpoint.loaders[id];
-    if (data instanceof Promise) {
+    if (isPromise(data)) {
       throw new Error('Loaders returning a function can not be referred to in the head function.');
     }
     return data;

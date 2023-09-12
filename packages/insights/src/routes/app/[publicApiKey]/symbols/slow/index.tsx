@@ -10,6 +10,7 @@ import {
   type SlowEdge,
   type SymbolDetailForApp,
 } from '~/db/query';
+import { dbGetManifestHashes } from '~/db/sql-manifest';
 import { BUCKETS, vectorAvg, vectorSum } from '~/stats/vector';
 import { css } from '~/styled-system/css';
 
@@ -23,10 +24,11 @@ export const useData = routeLoader$<SlowSymbol>(async ({ params, query }) => {
   const manifest = query.get('manifest');
   const manifests = manifest ? manifest.split(',') : [];
   const db = getDB();
+  const manifestHashes = await dbGetManifestHashes(db, params.publicApiKey);
   const [app, edges, details] = await Promise.all([
     getAppInfo(db, params.publicApiKey),
     getSlowEdges(db, params.publicApiKey, manifests),
-    getSymbolDetails(db, params.publicApiKey),
+    getSymbolDetails(db, params.publicApiKey, { manifestHashes }),
   ]);
   const detailsMap: Record<string, SymbolDetailForApp | undefined> = {};
   details.forEach((detail) => {

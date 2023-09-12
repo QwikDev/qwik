@@ -414,7 +414,7 @@ jobs:
             packages/qwik-labs/package.json
           if-no-files-found: error
 
-    ############ RELEASE ############
+  ############ RELEASE ############
   release:
     name: Release
     runs-on: ubuntu-latest
@@ -680,7 +680,7 @@ jobs:
         if: ${{ always() }}
         run: pnpm run lint.eslint
 
-  ############ TRIGGER QWIKCITY E2E Test ############
+  ############ TRIGGER QWIKCITY E2E TEST ############
   trigger-qwikcity-e2e:
     name: Trigger Qwik City E2E
     runs-on: ubuntu-latest

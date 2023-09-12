@@ -9,7 +9,7 @@ on:
       - ready_for_review
 
 permissions:
-  pull-requests: write
+  pull-requests: read
 
 jobs:
   ############ SEMANTIC PR TITLE VALIDATION ############
@@ -20,5 +20,3 @@ jobs:
       - uses: amannn/action-semantic-pull-request@v5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          wip: true

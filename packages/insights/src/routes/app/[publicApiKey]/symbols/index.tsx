@@ -5,6 +5,7 @@ import { ManifestIcon } from '~/components/icons/manifest';
 import { SymbolTile } from '~/components/symbol-tile';
 import { getDB } from '~/db';
 import { getEdges, getSymbolDetails } from '~/db/query';
+import { dbGetManifestHashes } from '~/db/sql-manifest';
 import { BUCKETS, vectorAdd, vectorNew } from '~/stats/vector';
 import { css } from '~/styled-system/css';
 
@@ -34,9 +35,10 @@ export const useData = routeLoader$<SymbolsInfo>(async ({ params, url }) => {
   const limit = url.searchParams.get('limit')
     ? parseInt(url.searchParams.get('limit')!)
     : undefined;
+  const manifestHashes = await dbGetManifestHashes(db, params.publicApiKey);
   const [edges, details] = await Promise.all([
-    getEdges(db, params.publicApiKey, { limit }),
-    getSymbolDetails(db, params.publicApiKey),
+    getEdges(db, params.publicApiKey, { limit, manifestHashes }),
+    getSymbolDetails(db, params.publicApiKey, { manifestHashes }),
   ]);
 
   const symbolMap = new Map<string, Symbol>();

@@ -72,8 +72,11 @@ export async function dbGetManifestInfo(
 export async function dbGetManifestHashes(
   db: AppDatabase,
   publicApiKey: string,
-  { sampleSize }: { sampleSize: number }
+  { sampleSize }: { sampleSize?: number } = {}
 ): Promise<string[]> {
+  if (typeof sampleSize !== 'number') {
+    sampleSize = 100000;
+  }
   const manifests = await db
     .select({ hash: manifestTable.hash, ...latencyCount })
     .from(manifestTable)

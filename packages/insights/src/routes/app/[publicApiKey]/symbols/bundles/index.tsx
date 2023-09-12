@@ -4,6 +4,7 @@ import { BundleCmp } from '~/components/bundle';
 import { SymbolTile } from '~/components/symbol-tile';
 import { getDB } from '~/db';
 import { getEdges, getSymbolDetails } from '~/db/query';
+import { dbGetManifestHashes } from '~/db/sql-manifest';
 import {
   computeBundles,
   computeSymbolGraph,
@@ -26,9 +27,10 @@ export const useData = routeLoader$<BundleInfo>(async ({ params, url }) => {
     ? parseInt(url.searchParams.get('limit')!)
     : undefined;
 
+  const manifestHashes = await dbGetManifestHashes(db, params.publicApiKey);
   const [edges, details] = await Promise.all([
-    getEdges(db, params.publicApiKey, { limit }),
-    getSymbolDetails(db, params.publicApiKey),
+    getEdges(db, params.publicApiKey, { limit, manifestHashes }),
+    getSymbolDetails(db, params.publicApiKey, { manifestHashes }),
   ]);
   const rootSymbol = computeSymbolGraph(edges, details);
   const vectors = computeSymbolVectors(rootSymbol);

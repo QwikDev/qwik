@@ -4,15 +4,17 @@ import { getDB } from '~/db';
 import { computeSymbolGraph, type Symbol } from '~/stats/edges';
 import { getSymbolDetails, getEdges } from '~/db/query';
 import { css } from '~/styled-system/css';
+import { dbGetManifestHashes } from '~/db/sql-manifest';
 
 export const useRootSymbol = routeLoader$(async ({ params, url }) => {
   const db = getDB();
   const limit = url.searchParams.get('limit')
     ? parseInt(url.searchParams.get('limit')!)
     : undefined;
+  const manifestHashes = await dbGetManifestHashes(db, params.publicApiKey);
   const [symbols, details] = await Promise.all([
-    getEdges(db, params.publicApiKey, { limit }),
-    getSymbolDetails(db, params.publicApiKey),
+    getEdges(db, params.publicApiKey, { limit, manifestHashes }),
+    getSymbolDetails(db, params.publicApiKey, { manifestHashes }),
   ]);
   return computeSymbolGraph(symbols, details);
 });

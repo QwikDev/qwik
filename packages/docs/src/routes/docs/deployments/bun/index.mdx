@@ -10,14 +10,23 @@ Qwik City Bun middleware allows you to hook up Qwik City to a Bun server which u
 
 ## Installation
 
-There currently is an issue with using `bun` as the package manager. Please use `npm install`.
+To install `bun` on Linux, OSX or WSL run the following command in your terminal
+
+```shell
+curl -fsSL https://bun.sh/install | bash 
+```
+
+For other platforms or if you run into issues with installation, up to date `bun` installation instructions can be found [on the bun website](https://bun.sh/docs/installation).
+
+There currently is an issue with using `bun` as the package manager. Please use `npm install`. After dependencies are installed with `npm install`, `bun dev`, `bun run build` and other scripts from package.json can be executed with `bun`.
+This issue is currently being tracked [on the bun repository](https://github.com/oven-sh/bun/issues/3783).
 
 To integrate the `bun` adapter, use the `add` command:
 
 - For the [integrated HTTP server](https://bun.sh/docs/api/http):
 
 ```shell
-npm run qwik add bun
+bun run qwik add bun
 ```
 
 ## Production build

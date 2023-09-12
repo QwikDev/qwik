@@ -24,6 +24,8 @@
     }
   ],
   "dependencies": {
+    "@builder.io/qwik": "^1.2.10",
+    "@builder.io/qwik-city": "^1.2.10",
     "esbuild-plugin-raw": "^0.1.7"
   },
   "devDependencies": {

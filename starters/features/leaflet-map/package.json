@@ -6,7 +6,8 @@
       "viteConfig": {},
       "docs": [
         "https://leafletjs.com/reference.html",
-        "https://leafletjs.com/examples/quick-start/"
+        "https://leafletjs.com/examples/quick-start/",
+        "https://www.youtube.com/watch?v=_rQH9EwUwn4&list=PLaaTcPGicjqgLAUhR_grKBGCXbyKaP7qR"
       ]
     },
     "dependencies": {

@@ -4,9 +4,9 @@ import {
   useSignal,
   useStyles$,
   useVisibleTask$,
-} from '@builder.io/qwik';
-import { Map } from 'leaflet';
-import { MapProps } from './../../models/map';
+} from "@builder.io/qwik";
+import { Map } from "leaflet";
+import { MapProps } from "~/models/map";
 
 export const LeafletMap = component$<MapProps>(({ location }: MapProps) => {
   // Modify with your preferences. By default take all screen
@@ -22,9 +22,9 @@ export const LeafletMap = component$<MapProps>(({ location }: MapProps) => {
   useVisibleTask$(async ({ track }) => {
     track(location);
 
-    const { tileLayer, marker, bindPopup } = await import('leaflet');
+    const { tileLayer, marker, bindPopup } = await import("leaflet");
 
-    const { getBoundaryBox } = await import('../../helpers/boundary-box');
+    const { getBoundaryBox } = await import("../../helpers/boundary-box");
 
     if (location && window) {
       if (mapContainer$.value) {
@@ -35,15 +35,15 @@ export const LeafletMap = component$<MapProps>(({ location }: MapProps) => {
 
       const centerPosition: [number, number] = locationData.point as [
         number,
-        number
+        number,
       ];
 
-      const map: any = new Map('map').setView(
+      const map: any = new Map("map").setView(
         centerPosition,
-        locationData.zoom || 14
+        locationData.zoom || 14,
       );
 
-      tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
         attribution:
           '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -58,5 +58,5 @@ export const LeafletMap = component$<MapProps>(({ location }: MapProps) => {
       mapContainer$.value = noSerialize(map);
     }
   });
-  return <div id='map'></div>;
+  return <div id="map"></div>;
 });

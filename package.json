@@ -155,6 +155,5 @@
     "tsc.trace": "tsc -p tsconfig.json --traceResolution > tsc.log",
     "tsc.watch": "tsc --noEmit --watch --preserveWatchOutput"
   },
-  "type": "module",
-  "random": "just a test"
+  "type": "module"
 }

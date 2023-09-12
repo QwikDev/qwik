@@ -12,7 +12,7 @@ permissions:
   pull-requests: write
 
 jobs:
-  ############ SEMANTIC PR TITLE VALIDATION ############
+  ############ SEMANTIC PR TITLE VALIDATION  fofofofo############
   semantic-pr:
     name: Validate PR title
     runs-on: ubuntu-latest

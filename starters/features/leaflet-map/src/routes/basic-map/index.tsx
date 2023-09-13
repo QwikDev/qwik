@@ -25,9 +25,5 @@ export default component$(() => {
     zoom: 9,
     marker: true,
   });
-  return currentLocation ? (
-    <LeafletMap location={currentLocation} />
-  ) : (
-    <div>Loading map...</div>
-  );
+  return <LeafletMap location={currentLocation} />
 });

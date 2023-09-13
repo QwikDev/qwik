@@ -6,7 +6,7 @@ import {
   useVisibleTask$,
 } from "@builder.io/qwik";
 import { Map } from "leaflet";
-import { MapProps } from "~/models/map";
+import type { MapProps } from "~/models/map";
 
 export const LeafletMap = component$<MapProps>(({ location }: MapProps) => {
   // Modify with your preferences. By default take all screen

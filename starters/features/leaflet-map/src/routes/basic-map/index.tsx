@@ -1,10 +1,6 @@
 import { component$, useStyles$, useSignal } from "@builder.io/qwik";
 
-// Need import from node_modules to add correct styles by default to show map
-// change path depending our level component respect node_modules
-// If you use PNPM to install
-// import leafletStyles from './../../../node_modules/.pnpm/leaflet@1.9.4/node_modules/leaflet/dist/leaflet.css?inline';
-// If you use NPM or Yarn
+// Leaflet map styles
 import leafletStyles from "../../../node_modules/leaflet/dist/leaflet.css?inline";
 
 import { LeafletMap } from "~/components/leaflet-map";
@@ -25,5 +21,5 @@ export default component$(() => {
     zoom: 9,
     marker: true,
   });
-  return <LeafletMap location={currentLocation} />
+  return <LeafletMap location={currentLocation} />;
 });

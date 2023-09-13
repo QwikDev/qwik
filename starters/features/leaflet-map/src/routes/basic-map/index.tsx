@@ -5,7 +5,7 @@ import { component$, useStyles$, useSignal } from "@builder.io/qwik";
 // If you use PNPM to install
 // import leafletStyles from './../../../node_modules/.pnpm/leaflet@1.9.4/node_modules/leaflet/dist/leaflet.css?inline';
 // If you use NPM or Yarn
-import leafletStyles from "./../../../node_modules/leaflet/dist/leaflet.css?inline";
+import leafletStyles from "../../../node_modules/leaflet/dist/leaflet.css?inline";
 
 import { LeafletMap } from "~/components/leaflet-map";
 import { LocationsProps } from "~/models/location";

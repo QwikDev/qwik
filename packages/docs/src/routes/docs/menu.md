@@ -49,6 +49,7 @@
 - [Icons](integrations/icons/index.mdx)
 - [Image Optimization](integrations/image-optimization/index.mdx)
 - [i18n](integrations/i18n/index.mdx)
+- [Leaflet Map](integrations/leaflet-map/index.mdx)
 - [Modular Forms](integrations/modular-forms/index.mdx)
 - [Nx Monorepos](integrations/nx/index.mdx)
 - [Orama](integrations/orama/index.mdx)

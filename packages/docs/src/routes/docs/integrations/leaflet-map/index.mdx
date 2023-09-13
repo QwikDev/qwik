@@ -34,35 +34,9 @@ It also adds new files inside to your project folder:
 - `src/components/leaflet-map/index.tsx`: Leaflet map simple map features component.
 - `src/routes/basic-map/index.tsx`: Example to consume Leaflet Map component with demo data
 
-## Consideration to take into account
-
-### Working with `npm` or `Yarn`:
-
-In the `src/components/leaflet-map/index.tsx` file you must have references to the CSS styles so that the maps are displayed correctly. By default it is added, but if for some reason the map looks strange when displayed, check that it is correctly referencing the CSS file within node_modules in the `leaflet` package.
-
-```bash
-node_modules/leaflet/dist/leaflet.css
-```
-
-### Working with `pnpm`:
-
-```
-node_modules/.pnpm/leaflet@1.9.4/node_modules/leaflet/dist/leaflet.css
-```
-
 ## Interesting info about LeafletJS Map:
 
 ### Official
 
 - `Tutorials`: Examples step by step to reference to create new features using Documentation. [Reference](https://leafletjs.com/examples.html).
 - `Docs`: All necessary info to work with LeafletJS. [Reference](https://leafletjs.com/reference.html)
-
-### Community
-
-#### English
-
-- Pending to take contributions
-
-#### Spanish
-
-- Pending to take contributions

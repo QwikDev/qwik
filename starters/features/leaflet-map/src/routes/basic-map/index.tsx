@@ -15,7 +15,11 @@ export default component$(() => {
   const currentLocation = useSignal<LocationsProps>({
     name: "Soraluze",
     point: [43.17478, -2.41172],
-    // Southwest lat, South West Lng, North East lat,  North East lng
+    /**
+     * Define rectangle with: Southwest lat, South West Lng, North East lat,  North East lng points.
+     * Very interesting when use to filter in OpenStreetMap API to take POIs
+     * Example: https://qwik-osm-poc.netlify.app/
+     */
     boundaryBox:
       "43.14658914559456,-2.4765586853027344,43.202923523094725,-2.3467826843261723",
     zoom: 9,

@@ -22,7 +22,7 @@ export const LeafletMap = component$<MapProps>(({ location }: MapProps) => {
   useVisibleTask$(async ({ track }) => {
     track(location);
 
-    const { tileLayer, marker, bindPopup } = await import("leaflet");
+    const { tileLayer, marker } = await import("leaflet");
 
     const { getBoundaryBox } = await import("../../helpers/boundary-box");
 
@@ -50,7 +50,7 @@ export const LeafletMap = component$<MapProps>(({ location }: MapProps) => {
       }).addTo(map);
 
       // Assign select boundary box to use in OSM API if you want
-      location.boundaryBox = getBoundaryBox(map);
+      locationData.boundaryBox = getBoundaryBox(map);
 
       locationData.marker &&
         marker(centerPosition).bindPopup(`Soraluze (Gipuzkoa) :)`).addTo(map);

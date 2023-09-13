@@ -8,7 +8,7 @@ import { component$, useStyles$, useSignal } from "@builder.io/qwik";
 import leafletStyles from "../../../node_modules/leaflet/dist/leaflet.css?inline";
 
 import { LeafletMap } from "~/components/leaflet-map";
-import { LocationsProps } from "~/models/location";
+import type { LocationsProps } from "~/models/location";
 
 export default component$(() => {
   useStyles$(leafletStyles);

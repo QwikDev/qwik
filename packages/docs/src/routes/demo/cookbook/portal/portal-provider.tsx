@@ -85,7 +85,7 @@ export const Portal = component$<{ name: string }>(({ name }) => {
   return (
     <>
       {myPortals.map((portal) => (
-        <div class="modal">
+        <div data-portal={name}>
           <WrapJsxInContext jsx={portal.jsx} contexts={portal.contexts} />
         </div>
       ))}

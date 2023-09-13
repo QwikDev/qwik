@@ -4,6 +4,8 @@ contributors:
   - DustinJSilk
   - reemardelarosa
   - mhevery
+  - WilliamEspegren
+  - gioboa
 ---
 
 # Google Cloud Run Middleware
@@ -33,12 +35,36 @@ After running `npm run build` you will have 2 build folders.
 - The `dist` folder will be created including all the static files.
 - The `server` folder will be created including all node server files.
 
-To deploy the server, make sure you have created an account and authenticated with the gcloud CLI.
+To deploy your app, you need to:
 
-You will also need to update the name of your Cloud Run app in the `deploy` script in your package.json.
+1. Have a [Google Cloud](https://cloud.google.com/) account
 
-You can then run this command to deploy your app:
+2. Install the `gcloud` CLI
 
-```shell
-npm run deploy
-```
+   If you don't have gcloud, follow [Google Cloud's official documentation](https://cloud.google.com/sdk/docs/install).
+
+3. Authenticate with the `gcloud` CLI
+
+   To authenticate the `gcloud` CLI, run this command:
+
+   ```shell
+   gcloud auth login
+   ```
+
+   Grant the SDK access to the account you created in step 1.
+
+4. Change the name of the deploy script
+
+   Update the name of your Cloud Run app in the deploy script in your package.json.
+
+   ```json
+   "deploy": "gcloud run deploy my-cloud-run-app --source ."
+   ```
+
+5. Run deploy script
+
+   Deploy to Google Cloud Run with:
+
+   ```shell
+   npm run deploy
+   ```

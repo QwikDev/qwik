@@ -11,12 +11,6 @@ importers:
 
   .:
     dependencies:
-      '@builder.io/qwik':
-        specifier: ^1.2.10
-        version: 1.2.10(undici@5.22.1)
-      '@builder.io/qwik-city':
-        specifier: ^1.2.10
-        version: 1.2.10(rollup@3.26.3)
       esbuild-plugin-raw:
         specifier: ^0.1.7
         version: 0.1.7(esbuild@0.18.17)
@@ -1350,6 +1344,7 @@ packages:
     transitivePeerDependencies:
       - rollup
       - supports-color
+    dev: true
 
   /@builder.io/qwik-react@0.5.0(@builder.io/qwik@1.2.10)(@types/react-dom@18.2.7)(@types/react@18.2.17)(react-dom@18.2.0)(react@18.2.0):
     resolution: {integrity: sha512-JdJWQWOJGv7ddQqEZwzR8wPh0IoCQZwD9qo75+reiQaLp6eH+Pjsm/kn1LaMQt6u72pCCNjnj5kEn/bnbfnIjQ==}
@@ -1377,6 +1372,7 @@ packages:
     dependencies:
       csstype: 3.1.2
       undici: 5.22.1
+    dev: true
 
   /@builder.io/qwik@1.2.6(undici@5.22.1):
     resolution: {integrity: sha512-Cm1sLAimML55I5T1RI80R1lLgI4cnSeQt5obQtcMKa8wMmf2/luEyQaEkeN2fV3sp/gaVXCfAuKaddXK6ONdww==}

@@ -128,7 +128,7 @@ export const getInputs = (options: ReplInputOptions) => {
   });
 };
 
-const MODULE_EXTS = ['.tsx', '.ts', '.js', '.jsx', '.mjs'];
+const MODULE_EXTS = ['.tsx', '.ts', '.js', '.jsx', '.mjs', '.css'];
 
 export const getOutput = (o: OutputChunk | OutputAsset) => {
   const f: ReplModuleOutput = {

@@ -333,7 +333,8 @@ const MONACO_VS_URL = getCdnUrl('monaco-editor', MONACO_VERSION, '/min/vs');
 const MONACO_LOADER_URL = `${MONACO_VS_URL}/loader.js`;
 
 const CLIENT_LIB = `
-declare module '*.css' {
+declare module '*.css' {}
+declare module '*.css?inline' {
   const css: string
   export default css
 }

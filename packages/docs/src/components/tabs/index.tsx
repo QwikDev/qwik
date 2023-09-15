@@ -12,9 +12,9 @@ interface Tabs {
 export default component$<Tabs>((props) => {
   const theme = useContext(GlobalStore);
 
-  const defaultActiveKey = props.tabs.at(0)?.key as string
+  const defaultActiveKey = props.tabs.at(0)?.key as string;
 
-  const currActive = useSignal<string>(defaultActiveKey)
+  const currActive = useSignal<string>(defaultActiveKey);
 
   return (
     <section>
@@ -27,14 +27,21 @@ export default component$<Tabs>((props) => {
             return (
               <li
                 class={`list-none
-                    ${currActive.value === el.key ? 'bg-[#011f33] hover:bg-none font-bold text-white' 
-                    : theme.theme === 'light'
-                    ? 'hover:bg-[var(--qwik-light-blue)] text-black'
-                    : 'hover:bg-[var(--qwik-dark-blue)] text-white'}
+                    ${
+                      currActive.value === el.key
+                        ? 'bg-[#011f33] hover:bg-none font-bold text-white'
+                        : theme.theme === 'light'
+                        ? 'hover:bg-[var(--qwik-light-blue)] text-black'
+                        : 'hover:bg-[var(--qwik-dark-blue)] text-white'
+                    }
                     rounded-md `}
                 key={`tabs-${el.name}-${idx}`}
               >
-                <button class={`px-4 py-2`} type="button" onClick$={() => currActive.value = el.key}>
+                <button
+                  class={`px-4 py-2`}
+                  type="button"
+                  onClick$={() => (currActive.value = el.key)}
+                >
                   <Slot name={`tab-${el.key}`} />
                 </button>
               </li>

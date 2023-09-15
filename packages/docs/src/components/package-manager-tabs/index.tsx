@@ -22,17 +22,16 @@ const packageManagersTabs = [
 ];
 
 export default component$(() => {
+  const toActive = useSignal('pnpm');
 
-  const toActive = useSignal("pnpm")
-  
   return (
     <Tabs tabs={packageManagersTabs} activeTab={toActive}>
       <span q:slot="tab-npm" class="inline-flex items-center gap-x-2">
-        <NpmIcon width={18} height={18}/>
+        <NpmIcon width={18} height={18} />
         npm
       </span>
       <span q:slot="tab-yarn" class="inline-flex items-center gap-x-2">
-        <YarnIcon width={18} height={18}/>
+        <YarnIcon width={18} height={18} />
         yarn
       </span>
       <span q:slot="tab-pnpm" class="inline-flex items-center gap-x-2">

@@ -32,7 +32,7 @@ export default component$<Tabs>((props) => {
                         ? 'bg-[#011f33] hover:bg-none font-bold text-white'
                         : theme.theme === 'light'
                         ? 'hover:bg-[var(--qwik-light-blue)] text-black'
-                        : 'hover:bg-[var(--qwik-dark-blue)] text-white'
+                        : 'hover:bg-[var(--on-this-page-hover-bg-color)] text-white'
                     }
                     rounded-md `}
                 key={`tabs-${el.name}-${idx}`}

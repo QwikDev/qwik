@@ -27,15 +27,43 @@ Qwik integrates with nx beautifully by using the [qwik-nx](https://github.com/qw
 
 You can generate a new workspace by running:
 
+<PackageManagerTabs>
+  <span q:slot="npm">
 ```shell
 npx create-nx-workspace@latest org-workspace --preset=qwik-nx
 ```
+  </span>
+  <span q:slot="yarn">
+```shell
+yarn create nx-workspace@latest org-workspace --preset=qwik-nx
+```
+  </span>
+  <span q:slot="pnpm">
+```shell
+pnpm dlx create-nx-workspace@latest org-workspace --preset=qwik-nx
+```
+  </span>
+</PackageManagerTabs>
 
 Or add a new Qwik application to an existing workspace by running:
 
+<PackageManagerTabs>
+  <span q:slot="npm">
 ```shell
 npm install -D qwik-nx
 ```
+  </span>
+  <span q:slot="yarn">
+```shell
+yarn add --dev qwik-nx
+```
+  </span>
+  <span q:slot="pnpm">
+```shell
+pnpm add -D qwik-nx
+```
+  </span>
+</PackageManagerTabs>
 
 and then
 

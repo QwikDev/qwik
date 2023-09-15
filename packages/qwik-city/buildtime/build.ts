@@ -52,7 +52,8 @@ function rewriteRoutes(ctx: BuildContext, resolved: ReturnType<typeof resolveSou
     ctx.opts.rewriteRoutes.forEach((rewriteOpt, rewriteIndex) => {
       const rewriteFrom = Object.keys(rewriteOpt.paths || {});
       const rewriteRoutes = (resolved.routes || []).filter((route) =>
-        rewriteFrom.some((from) => route.pathname.includes(from))
+        rewriteFrom.some((from) => route.pathname.split('/').includes(from)) ||
+          (rewriteOpt.prefix && (route.pathname === '/'))
       );
 
       const replacePath = (part: string) => (rewriteOpt.paths || {})[part] ?? part;
@@ -80,7 +81,9 @@ function rewriteRoutes(ctx: BuildContext, resolved: ReturnType<typeof resolveSou
         const translatedPatternString = translatedPatternParts.join('\\/');
         const translatedRegExp = translatedPatternString.substring(
           1,
-          translatedPatternString.length - 2
+          (rewriteRoute.pathname === '/')
+            ? translatedPatternString.length - 1
+            : translatedPatternString.length - 2
         );
 
         const translatedSegments = rewriteRoute.segments.map((segment) =>
@@ -97,11 +100,14 @@ function rewriteRoutes(ctx: BuildContext, resolved: ReturnType<typeof resolveSou
           ]);
         }
 
+        const translatedPath = translatedPathParts.join('/')
+        const translatedRoute = translatedRouteParts.join('/')
+
         resolved.routes.push({
           ...rewriteRoute,
           id: rewriteRoute.id + (idSuffix || rewriteIndex),
-          pathname: pathnamePrefix + translatedPathParts.join('/'),
-          routeName: routeNamePrefix + translatedRouteParts.join('/'),
+          pathname: pathnamePrefix + translatedPath,
+          routeName: routeNamePrefix + (translatedRoute !== '/' ? translatedRoute : ''),
           pattern: new RegExp(translatedRegExp),
           segments: translatedSegments,
         });

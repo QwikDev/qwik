@@ -30,6 +30,9 @@
     "vite": "latest",
     "vite-tsconfig-paths": "4.2.0"
   },
+  "trustedDependencies": [
+    "sharp"
+  ],
   "engines": {
     "node": ">=16.8.0 <18.0.0 || >=18.11"
   },

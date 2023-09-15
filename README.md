@@ -31,6 +31,8 @@ npm create qwik@latest
 pnpm create qwik@latest
 # or
 yarn create qwik@latest
+# or
+bun create qwik@latest
 ```
 
 - Understand the difference between [resumable and replayable](https://qwik.builder.io/docs/concepts/resumable/) applications.

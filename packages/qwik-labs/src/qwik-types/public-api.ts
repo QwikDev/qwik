@@ -15,7 +15,7 @@ export const untypedAppUrl = function appUrl(
       const value = params ? params[paramsPrefix + key] || params[key] : '';
       path[i] = isSpread ? value : encodeURIComponent(value);
     }
-    if (segment.startsWith("(") && segment.endsWith(")")) {
+    if (segment.startsWith('(') && segment.endsWith(')')) {
       path.splice(i, 1);
     }
   }

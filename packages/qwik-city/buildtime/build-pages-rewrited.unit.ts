@@ -23,6 +23,22 @@ const test = testAppSuite('Build Pages Rewrited', {
   ],
 });
 
+test('translated pathname / with prefix', ({ assertRoute, opts }) => {
+  const r = assertRoute('/it/');
+  assert.equal(r.id, 'CommonRouteIT');
+  assert.equal(r.pathname, '/it/');
+  assert.equal(r.routeName, 'it/');
+  assert.equal(r.pattern, /^\/it\/$/);
+  assert.equal(r.paramNames.length, 0);
+  assert.equal(r.segments[0][0].content, 'it');
+  assert.equal(r.layouts.length, 2);
+  assert.ok(r.layouts[0].filePath.endsWith('starters/apps/qwikcity-test/src/routes/layout.tsx'));
+  assert.ok(
+    r.layouts[1].filePath.endsWith('starters/apps/qwikcity-test/src/routes/(common)/layout.tsx')
+  );
+  assert.ok(r.filePath.endsWith('starters/apps/qwikcity-test/src/routes/(common)/index.tsx'));
+});
+
 test('translated pathname /docs/getting-started with prefix', ({ assertRoute, opts }) => {
   const r = assertRoute('/it/documentazione/per-iniziare/');
   assert.equal(r.id, 'DocsGettingstartedRouteIT');

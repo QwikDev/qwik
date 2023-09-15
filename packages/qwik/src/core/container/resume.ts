@@ -8,7 +8,13 @@ import { emitEvent } from '../util/event';
 
 import { isArray, isSerializableObject, isString } from '../util/types';
 import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
-import { createParser, OBJECT_TRANSFORMS, type Parser, UNDEFINED_PREFIX } from './serializers';
+import {
+  createParser,
+  OBJECT_TRANSFORMS,
+  type Parser,
+  UNDEFINED_PREFIX,
+  NOSERIALIZE_PREFIX,
+} from './serializers';
 import {
   type ContainerState,
   _getContainerState,
@@ -76,7 +82,9 @@ export const _deserializeData = (data: string, element?: unknown) => {
   for (let i = 0; i < _objs.length; i++) {
     const value = _objs[i];
     if (isString(value)) {
-      _objs[i] = value === UNDEFINED_PREFIX ? undefined : parser.prepare(value);
+      _objs[i] = value === UNDEFINED_PREFIX ? undefined :
+        value.startsWith(NOSERIALIZE_PREFIX) ? value.slice(1) :
+          parser.prepare(value);
     }
   }
 
@@ -228,7 +236,9 @@ export const resumeContainer = (containerEl: Element) => {
     assertTrue(objs.length > index, 'resume: index is out of bounds', id);
     let value = objs[index];
     if (isString(value)) {
-      value = value === UNDEFINED_PREFIX ? undefined : parser.prepare(value);
+      value = value === UNDEFINED_PREFIX ? undefined :
+        value.startsWith(NOSERIALIZE_PREFIX) ? value.slice(1) :
+          parser.prepare(value);
     }
     let obj = value;
     for (let i = id.length - 1; i >= 0; i--) {

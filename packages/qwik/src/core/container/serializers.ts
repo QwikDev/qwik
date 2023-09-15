@@ -49,7 +49,8 @@ import { Slot } from '../render/jsx/slot.public';
 \': single quote (U+0027 APOSTROPHE)
 \\: backslash (U+005C REVERSE SOLIDUS)
  */
-export const UNDEFINED_PREFIX = '\u0001';
+export const NOSERIALIZE_PREFIX = '\u0000';
+export const UNDEFINED_PREFIX   = '\u0001';
 
 export interface Serializer<T> {
   $prefix$: string;

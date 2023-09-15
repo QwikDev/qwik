@@ -26,6 +26,7 @@
 - [Layouts](/docs/(qwikcity)/layout/index.mdx)
 - [Loaders](/docs/(qwikcity)/route-loader/index.mdx)
 - [Actions](/docs/(qwikcity)/action/index.mdx)
+- [Validators](/docs/(qwikcity)/validator/index.mdx)
 - [Endpoints](/docs/(qwikcity)/endpoints/index.mdx)
 - [Middleware](/docs/(qwikcity)/middleware/index.mdx)
 - [server$](/docs/(qwikcity)/server$/index.mdx)

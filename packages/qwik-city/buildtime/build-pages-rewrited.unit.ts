@@ -33,7 +33,9 @@ test('translated pathname / with prefix', ({ assertRoute, opts }) => {
   assert.equal(r.segments[0][0].content, 'it');
   assert.equal(r.layouts.length, 2);
   assert.ok(r.layouts[0].filePath.endsWith('starters/apps/qwikcity-test/src/routes/layout.tsx'));
-  assert.ok(r.layouts[1].filePath.endsWith('starters/apps/qwikcity-test/src/routes/(common)/layout.tsx'));
+  assert.ok(
+    r.layouts[1].filePath.endsWith('starters/apps/qwikcity-test/src/routes/(common)/layout.tsx')
+  );
   assert.ok(r.filePath.endsWith('starters/apps/qwikcity-test/src/routes/(common)/index.tsx'));
 });
 
@@ -49,8 +51,12 @@ test('translated pathname /docs/getting-started with prefix', ({ assertRoute, op
   assert.equal(r.segments[2][0].content, 'per-iniziare');
   assert.equal(r.layouts.length, 2);
   assert.ok(r.layouts[0].filePath.endsWith('starters/apps/qwikcity-test/src/routes/layout.tsx'));
-  assert.ok(r.layouts[1].filePath.endsWith('starters/apps/qwikcity-test/src/routes/docs/layout.tsx'));
-  assert.ok(r.filePath.endsWith('starters/apps/qwikcity-test/src/routes/docs/getting-started/index.md'));
+  assert.ok(
+    r.layouts[1].filePath.endsWith('starters/apps/qwikcity-test/src/routes/docs/layout.tsx')
+  );
+  assert.ok(
+    r.filePath.endsWith('starters/apps/qwikcity-test/src/routes/docs/getting-started/index.md')
+  );
 });
 
 test('translated pathname /docs/[category]/[id] with prefix', ({ assertRoute, opts }) => {
@@ -67,8 +73,12 @@ test('translated pathname /docs/[category]/[id] with prefix', ({ assertRoute, op
   assert.equal(r.segments[3][0].content, 'id');
   assert.equal(r.layouts.length, 2);
   assert.ok(r.layouts[0].filePath.endsWith('starters/apps/qwikcity-test/src/routes/layout.tsx'));
-  assert.ok(r.layouts[1].filePath.endsWith('starters/apps/qwikcity-test/src/routes/docs/layout.tsx'));
-  assert.ok(r.filePath.endsWith('starters/apps/qwikcity-test/src/routes/docs/[category]/[id]/index.tsx'));
+  assert.ok(
+    r.layouts[1].filePath.endsWith('starters/apps/qwikcity-test/src/routes/docs/layout.tsx')
+  );
+  assert.ok(
+    r.filePath.endsWith('starters/apps/qwikcity-test/src/routes/docs/[category]/[id]/index.tsx')
+  );
 });
 
 test('translated pathname /about-us with prefix', ({ assertRoute, opts }) => {
@@ -82,8 +92,12 @@ test('translated pathname /about-us with prefix', ({ assertRoute, opts }) => {
   assert.equal(r.segments[1][0].content, 'informazioni');
   assert.equal(r.layouts.length, 2);
   assert.ok(r.layouts[0].filePath.endsWith('starters/apps/qwikcity-test/src/routes/layout.tsx'));
-  assert.ok(r.layouts[1].filePath.endsWith('starters/apps/qwikcity-test/src/routes/(common)/layout.tsx'));
-  assert.ok(r.filePath.endsWith('starters/apps/qwikcity-test/src/routes/(common)/about-us/index.tsx'));
+  assert.ok(
+    r.layouts[1].filePath.endsWith('starters/apps/qwikcity-test/src/routes/(common)/layout.tsx')
+  );
+  assert.ok(
+    r.filePath.endsWith('starters/apps/qwikcity-test/src/routes/(common)/about-us/index.tsx')
+  );
 });
 
 test('translated pathname /products/[id] with prefix', ({ assertRoute, opts }) => {
@@ -98,8 +112,12 @@ test('translated pathname /products/[id] with prefix', ({ assertRoute, opts }) =
   assert.equal(r.segments[2][0].content, 'id');
   assert.equal(r.layouts.length, 2);
   assert.ok(r.layouts[0].filePath.endsWith('starters/apps/qwikcity-test/src/routes/layout.tsx'));
-  assert.ok(r.layouts[1].filePath.endsWith('starters/apps/qwikcity-test/src/routes/(common)/layout.tsx'));
-  assert.ok(r.filePath.endsWith('starters/apps/qwikcity-test/src/routes/(common)/products/[id]/index.tsx'));
+  assert.ok(
+    r.layouts[1].filePath.endsWith('starters/apps/qwikcity-test/src/routes/(common)/layout.tsx')
+  );
+  assert.ok(
+    r.filePath.endsWith('starters/apps/qwikcity-test/src/routes/(common)/products/[id]/index.tsx')
+  );
 });
 
 test('translated pathname /docs/getting-started', ({ assertRoute, opts }) => {
@@ -113,8 +131,12 @@ test('translated pathname /docs/getting-started', ({ assertRoute, opts }) => {
   assert.equal(r.segments[1][0].content, 'per-iniziare');
   assert.equal(r.layouts.length, 2);
   assert.ok(r.layouts[0].filePath.endsWith('starters/apps/qwikcity-test/src/routes/layout.tsx'));
-  assert.ok(r.layouts[1].filePath.endsWith('starters/apps/qwikcity-test/src/routes/docs/layout.tsx'));
-  assert.ok(r.filePath.endsWith('starters/apps/qwikcity-test/src/routes/docs/getting-started/index.md'));
+  assert.ok(
+    r.layouts[1].filePath.endsWith('starters/apps/qwikcity-test/src/routes/docs/layout.tsx')
+  );
+  assert.ok(
+    r.filePath.endsWith('starters/apps/qwikcity-test/src/routes/docs/getting-started/index.md')
+  );
 });
 
 test('translated pathname /docs/[category]/[id]', ({ assertRoute, opts }) => {
@@ -130,8 +152,12 @@ test('translated pathname /docs/[category]/[id]', ({ assertRoute, opts }) => {
   assert.equal(r.segments[2][0].content, 'id');
   assert.equal(r.layouts.length, 2);
   assert.ok(r.layouts[0].filePath.endsWith('starters/apps/qwikcity-test/src/routes/layout.tsx'));
-  assert.ok(r.layouts[1].filePath.endsWith('starters/apps/qwikcity-test/src/routes/docs/layout.tsx'));
-  assert.ok(r.filePath.endsWith('starters/apps/qwikcity-test/src/routes/docs/[category]/[id]/index.tsx'));
+  assert.ok(
+    r.layouts[1].filePath.endsWith('starters/apps/qwikcity-test/src/routes/docs/layout.tsx')
+  );
+  assert.ok(
+    r.filePath.endsWith('starters/apps/qwikcity-test/src/routes/docs/[category]/[id]/index.tsx')
+  );
 });
 
 test('translated pathname /about-us', ({ assertRoute, opts }) => {
@@ -144,8 +170,12 @@ test('translated pathname /about-us', ({ assertRoute, opts }) => {
   assert.equal(r.segments[0][0].content, 'informazioni');
   assert.equal(r.layouts.length, 2);
   assert.ok(r.layouts[0].filePath.endsWith('starters/apps/qwikcity-test/src/routes/layout.tsx'));
-  assert.ok(r.layouts[1].filePath.endsWith('starters/apps/qwikcity-test/src/routes/(common)/layout.tsx'));
-  assert.ok(r.filePath.endsWith('starters/apps/qwikcity-test/src/routes/(common)/about-us/index.tsx'));
+  assert.ok(
+    r.layouts[1].filePath.endsWith('starters/apps/qwikcity-test/src/routes/(common)/layout.tsx')
+  );
+  assert.ok(
+    r.filePath.endsWith('starters/apps/qwikcity-test/src/routes/(common)/about-us/index.tsx')
+  );
 });
 
 test('translated pathname /products/[id]', ({ assertRoute, opts }) => {
@@ -159,8 +189,12 @@ test('translated pathname /products/[id]', ({ assertRoute, opts }) => {
   assert.equal(r.segments[1][0].content, 'id');
   assert.equal(r.layouts.length, 2);
   assert.ok(r.layouts[0].filePath.endsWith('starters/apps/qwikcity-test/src/routes/layout.tsx'));
-  assert.ok(r.layouts[1].filePath.endsWith('starters/apps/qwikcity-test/src/routes/(common)/layout.tsx'));
-  assert.ok(r.filePath.endsWith('starters/apps/qwikcity-test/src/routes/(common)/products/[id]/index.tsx'));
+  assert.ok(
+    r.layouts[1].filePath.endsWith('starters/apps/qwikcity-test/src/routes/(common)/layout.tsx')
+  );
+  assert.ok(
+    r.filePath.endsWith('starters/apps/qwikcity-test/src/routes/(common)/products/[id]/index.tsx')
+  );
 });
 
 test.run();

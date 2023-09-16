@@ -1,4 +1,4 @@
-import { $, component$, useContextProvider, useStore, useVisibleTask$ } from '@builder.io/qwik';
+import { component$, useContextProvider, useStore, useVisibleTask$ } from '@builder.io/qwik';
 import { QwikCityProvider, RouterOutlet, ServiceWorkerRegister } from '@builder.io/qwik-city';
 import RealMetricsOptimization from './components/real-metrics-optimization/real-metrics-optimization';
 import { RouterHead } from './components/router-head/router-head';
@@ -6,7 +6,6 @@ import { GlobalStore, type SiteStore } from './context';
 import './global.css';
 import { BUILDER_PUBLIC_API_KEY } from './constants';
 import { Insights } from '@builder.io/qwik-labs';
-import { isBrowser, isServer } from '@builder.io/qwik/build';
 
 export default component$(() => {
   const store = useStore<SiteStore>({
@@ -17,27 +16,20 @@ export default component$(() => {
 
   useContextProvider(GlobalStore, store);
 
-  useVisibleTask$(({cleanup}) => {
-
-      const listener = document.body.addEventListener('click', (event: any) => {
-        if (event && event.target.classList.contains('copy-button')) {
-          // Handle the button click here
-          const codeNode = event.target.previousElementSibling;
-          if (codeNode && codeNode.tagName === 'DIV') {
-            const code = codeNode.lastElementChild.innerText;
-            navigator.clipboard.writeText(code)
-            .then(() => {
-              console.log('Successful copy');
-            })
-            .catch((error) => {
-              console.error('Error copying to clipboard:', error);
-            });
-          }
+  useVisibleTask$(({ cleanup }) => {
+    const listener = document.body.addEventListener('click', async (event: any) => {
+      if (event && event.target.classList.contains('copy-button')) {
+        // Handle the button click here
+        const codeNode = event.target.previousElementSibling;
+        if (codeNode && codeNode.tagName === 'DIV') {
+          const code = codeNode.lastElementChild.innerText;
+          await navigator.clipboard.writeText(code);
         }
-      });
-      
-      cleanup(() => document.body.removeEventListener('click', listener))
-  })
+      }
+    });
+
+    cleanup(() => document.body.removeEventListener('click', listener));
+  });
 
   return (
     <QwikCityProvider>

@@ -62,29 +62,26 @@ export default defineConfig(async () => {
           rehypePlugins: [
             () => (tree) => {
               visit(tree, (node, index: any, parent) => {
-                if (
-                  node.tagName === 'pre' && node.type === 'element'
-                ) {
+                if (node.tagName === 'pre' && node.type === 'element') {
                   const codeNode = node.children[0];
 
                   // Ensure that the code node has children (text content)
                   if (codeNode.children.length > 0) {
-
                     const copyLogoSvg = {
                       type: 'element',
                       tagName: 'svg',
                       properties: {
                         name: 'copy',
-                        xmlns: ["http://www.w3.org/2000/svg"],
-                        className: ["copy-button"],
-                        width: "30",
-                        height: "30",
-                        viewBox: ["0 0 24 24"],
-                        strokeWidth: "2",
-                        stroke: ["white"],
-                        fill: "none",
-                        strokeLinecap: "round",
-                        strokeLinejoin: "round",
+                        xmlns: ['http://www.w3.org/2000/svg'],
+                        className: ['copy-button'],
+                        width: '30',
+                        height: '30',
+                        viewBox: ['0 0 24 24'],
+                        strokeWidth: '2',
+                        stroke: ['white'],
+                        fill: 'none',
+                        strokeLinecap: 'round',
+                        strokeLinejoin: 'round',
                       },
                       children: [
                         {
@@ -93,25 +90,25 @@ export default defineConfig(async () => {
                           properties: {
                             stroke: ['none'],
                             fill: ['none'],
-                            d: ['M0 0h24v24H0z']
+                            d: ['M0 0h24v24H0z'],
                           },
                         },
                         {
                           type: 'element',
                           tagName: 'path',
                           properties: {
-                            d: "M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z",
+                            d: 'M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z',
                           },
                         },
                         {
                           type: 'element',
                           tagName: 'path',
                           properties: {
-                            d: "M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"
+                            d: 'M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2',
                           },
-                        }
-                      ]
-                    }
+                        },
+                      ],
+                    };
 
                     // const copyButton = {
                     //   type: 'element',
@@ -125,23 +122,20 @@ export default defineConfig(async () => {
                     //     copyLogoSvg
                     //   ],
                     // };
-          
+
                     const parentDiv = {
                       type: 'element',
                       tagName: 'div',
-                      properties: {className: ['relative']},
-                      children: [
-                        node,
-                        copyLogoSvg
-                      ]
-                    }
+                      properties: { className: ['relative'] },
+                      children: [node, copyLogoSvg],
+                    };
 
                     if (parent) {
-                      parent.children[index] = parentDiv
+                      parent.children[index] = parentDiv;
                     }
                   }
-                }}
-              );
+                }
+              });
             },
             [
               rehypePrettyCode,

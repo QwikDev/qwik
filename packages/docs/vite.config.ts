@@ -12,6 +12,7 @@ import { sourceResolver } from './vite.source-resolver';
 export const PUBLIC_QWIK_INSIGHT_KEY = loadEnv('', '.', 'PUBLIC').PUBLIC_QWIK_INSIGHTS_KEY;
 
 export default defineConfig(async () => {
+  const { visit } = await import('unist-util-visit');
   const { default: rehypePrettyCode } = await import('rehype-pretty-code');
 
   const routesDir = resolve('src', 'routes');
@@ -59,6 +60,89 @@ export default defineConfig(async () => {
         },
         mdx: {
           rehypePlugins: [
+            () => (tree) => {
+              visit(tree, (node, index: any, parent) => {
+                if (
+                  node.tagName === 'pre' && node.type === 'element'
+                ) {
+                  const codeNode = node.children[0];
+
+                  // Ensure that the code node has children (text content)
+                  if (codeNode.children.length > 0) {
+
+                    const copyLogoSvg = {
+                      type: 'element',
+                      tagName: 'svg',
+                      properties: {
+                        name: 'copy',
+                        xmlns: ["http://www.w3.org/2000/svg"],
+                        className: ["copy-button"],
+                        width: "30",
+                        height: "30",
+                        viewBox: ["0 0 24 24"],
+                        strokeWidth: "2",
+                        stroke: ["white"],
+                        fill: "none",
+                        strokeLinecap: "round",
+                        strokeLinejoin: "round",
+                      },
+                      children: [
+                        {
+                          type: 'element',
+                          tagName: 'path',
+                          properties: {
+                            stroke: ['none'],
+                            fill: ['none'],
+                            d: ['M0 0h24v24H0z']
+                          },
+                        },
+                        {
+                          type: 'element',
+                          tagName: 'path',
+                          properties: {
+                            d: "M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z",
+                          },
+                        },
+                        {
+                          type: 'element',
+                          tagName: 'path',
+                          properties: {
+                            d: "M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"
+                          },
+                        }
+                      ]
+                    }
+
+                    // const copyButton = {
+                    //   type: 'element',
+                    //   tagName: 'button',
+                    //   properties: {
+                    //     type: 'button',
+                    //     className: ["copy-button"],
+                    //     name: "copy"
+                    //   },
+                    //   children: [
+                    //     copyLogoSvg
+                    //   ],
+                    // };
+          
+                    const parentDiv = {
+                      type: 'element',
+                      tagName: 'div',
+                      properties: {className: ['relative']},
+                      children: [
+                        node,
+                        copyLogoSvg
+                      ]
+                    }
+
+                    if (parent) {
+                      parent.children[index] = parentDiv
+                    }
+                  }
+                }}
+              );
+            },
             [
               rehypePrettyCode,
               {

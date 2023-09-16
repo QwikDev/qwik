@@ -45,6 +45,7 @@
     "tsm": "2.2.2",
     "typescript": "5.1.6",
     "undici": "5.22.1",
+    "unist-util-visit": "5.0.0",
     "uvu": "0.5.6",
     "vite": "4.4.7",
     "vite-plugin-inspect": "^0.7.33",

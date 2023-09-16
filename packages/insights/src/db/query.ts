@@ -20,29 +20,16 @@ import {
   timelineBucketField,
   createRouteRow,
 } from './query-helpers';
-import { dbGetManifestHashes } from './sql-manifest';
 
 export async function getEdges(
   db: AppDatabase,
   publicApiKey: string,
-  {
-    limit,
-    manifestHashes,
-    manifestHashSample,
-  }: { limit?: number; manifestHashes?: string[]; manifestHashSample?: number } = {}
+  { limit, manifestHashes }: { limit?: number; manifestHashes: string[] }
 ) {
-  let where = eq(edgeTable.publicApiKey, publicApiKey);
-  if (typeof manifestHashSample == 'undefined') {
-    manifestHashSample = 100000; // max number of interactions. May need to be configurable in the future.
-  }
-  if (typeof manifestHashSample == 'number' && !manifestHashes) {
-    manifestHashes = await dbGetManifestHashes(db, publicApiKey, {
-      sampleSize: manifestHashSample,
-    });
-  }
-  if (manifestHashes) {
-    where = and(where, inArray(edgeTable.manifestHash, manifestHashes))!;
-  }
+  const where = and(
+    eq(edgeTable.publicApiKey, publicApiKey),
+    inArray(edgeTable.manifestHash, manifestHashes)
+  )!;
   const query = db
     .select({
       from: edgeTable.from,
@@ -103,7 +90,8 @@ export type SymbolDetailForApp = Pick<
 
 export async function getSymbolDetails(
   db: AppDatabase,
-  publicApiKey: string
+  publicApiKey: string,
+  { manifestHashes }: { manifestHashes: string[] }
 ): Promise<SymbolDetailForApp[]> {
   return db
     .select({
@@ -114,7 +102,13 @@ export async function getSymbolDetails(
       hi: symbolDetailTable.hi,
     })
     .from(symbolDetailTable)
-    .where(eq(symbolDetailTable.publicApiKey, publicApiKey))
+    .where(
+      and(
+        eq(symbolDetailTable.publicApiKey, publicApiKey),
+        inArray(symbolDetailTable.manifestHash, manifestHashes)
+      )
+    )
+    .limit(1000)
     .all();
 }
 

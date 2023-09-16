@@ -82,9 +82,12 @@ export const _deserializeData = (data: string, element?: unknown) => {
   for (let i = 0; i < _objs.length; i++) {
     const value = _objs[i];
     if (isString(value)) {
-      _objs[i] = value === UNDEFINED_PREFIX ? undefined :
-        value.startsWith(NOSERIALIZE_PREFIX) ? value.slice(1) :
-          parser.prepare(value);
+      _objs[i] =
+        value === UNDEFINED_PREFIX
+          ? undefined
+          : value.startsWith(NOSERIALIZE_PREFIX)
+          ? value.slice(1)
+          : parser.prepare(value);
     }
   }
 
@@ -236,9 +239,12 @@ export const resumeContainer = (containerEl: Element) => {
     assertTrue(objs.length > index, 'resume: index is out of bounds', id);
     let value = objs[index];
     if (isString(value)) {
-      value = value === UNDEFINED_PREFIX ? undefined :
-        value.startsWith(NOSERIALIZE_PREFIX) ? value.slice(1) :
-          parser.prepare(value);
+      value =
+        value === UNDEFINED_PREFIX
+          ? undefined
+          : value.startsWith(NOSERIALIZE_PREFIX)
+          ? value.slice(1)
+          : parser.prepare(value);
     }
     let obj = value;
     for (let i = id.length - 1; i >= 0; i--) {

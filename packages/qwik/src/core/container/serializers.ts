@@ -50,7 +50,7 @@ import { Slot } from '../render/jsx/slot.public';
 \\: backslash (U+005C REVERSE SOLIDUS)
  */
 export const NOSERIALIZE_PREFIX = '\u0000';
-export const UNDEFINED_PREFIX   = '\u0001';
+export const UNDEFINED_PREFIX = '\u0001';
 
 export interface Serializer<T> {
   $prefix$: string;

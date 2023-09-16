@@ -19,10 +19,10 @@
     "nextSteps": {
       "title": "Next Steps",
       "lines": [
-        " Now you can build and deploy to Netlify with:",
+        "Now you can build and deploy to Netlify with:",
         "",
-        "  - pnpm run build: production build for Netlify",
-        "  - pnpm run deploy: it will use the netlify CLI to deploy your site"
+        "- pnpm run build: production build for Netlify",
+        "- pnpm run deploy: it will use the netlify CLI to deploy your site"
       ]
     }
   }

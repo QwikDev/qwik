@@ -20,10 +20,10 @@
     "nextSteps": {
       "title": "Next Steps",
       "lines": [
-        " Now you can build a production-ready Fastify app:",
+        "Now you can build a production-ready Fastify app:",
         "",
-        "  - pnpm run build: production build for Fastify",
-        "  - pnpm run serve: runs the production server locally"
+        "- pnpm run build: production build for Fastify",
+        "- pnpm run serve: runs the production server locally"
       ]
     }
   }

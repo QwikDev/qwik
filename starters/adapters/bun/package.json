@@ -14,10 +14,10 @@
     "nextSteps": {
       "title": "Next Steps",
       "lines": [
-        " Now you can build a production-ready Bun app:",
+        "Now you can build a production-ready Bun app:",
         "",
-        "  - bun run build: production build",
-        "  - bun run serve: runs the production server locally"
+        "- bun run build: production build",
+        "- bun run serve: runs the production server locally"
       ]
     }
   }

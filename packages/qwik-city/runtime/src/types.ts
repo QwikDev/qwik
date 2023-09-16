@@ -383,7 +383,7 @@ type StrictUnionHelper<T, TAll> = T extends any
 type StrictUnion<T> = Prettify<StrictUnionHelper<T, T>>;
 
 type Prettify<T> = {} & {
-  [K in keyof T]?: T[K];
+  [K in keyof T]: T[K];
 };
 
 /**
@@ -433,7 +433,9 @@ export interface ActionConstructor {
     }
   ): Action<
     StrictUnion<
-      OBJ | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>> | FailOfRest<REST>
+      | OBJ
+      | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>>
+      | FailReturn<FailOfRest<REST>>
     >,
     GetValidatorType<VALIDATOR>,
     false
@@ -478,7 +480,9 @@ export interface ActionConstructor {
     ...rest: REST
   ): Action<
     StrictUnion<
-      OBJ | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>> | FailOfRest<REST>
+      | OBJ
+      | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>>
+      | FailReturn<FailOfRest<REST>>
     >,
     GetValidatorType<VALIDATOR>,
     false
@@ -531,7 +535,9 @@ export interface ActionConstructorQRL {
     }
   ): Action<
     StrictUnion<
-      OBJ | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>> | FailOfRest<REST>
+      | OBJ
+      | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>>
+      | FailReturn<FailOfRest<REST>>
     >,
     GetValidatorType<VALIDATOR>,
     false
@@ -574,7 +580,9 @@ export interface ActionConstructorQRL {
     ...rest: REST
   ): Action<
     StrictUnion<
-      OBJ | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>> | FailOfRest<REST>
+      | OBJ
+      | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>>
+      | FailReturn<FailOfRest<REST>>
     >,
     GetValidatorType<VALIDATOR>,
     false

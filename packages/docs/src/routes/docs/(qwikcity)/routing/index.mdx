@@ -11,6 +11,7 @@ contributors:
   - AnthonyPAlicea
   - hamatoyogi
   - jakovljevic-mladen
+  - claudioshiver
 ---
 
 # Routing
@@ -333,6 +334,22 @@ Each request handler, such as `onRequest`, `onGet`, `onPost`, etc., are passed i
 
 You can rewrite your pathnames in order to reuse one single page component with its own middlewares and layouts for multiple pages.
 This could be useful for SEO purposes or to translate your pages in different languages.
+
+> **Translate localized urls with prefix:**
+>
+> For localization purposes you may want to translate your routes from `/products` to `/it/prodotti`
+> or to `/fr/produits` and `/products/product-name` to `/it/prodotti/nome-prodotto` or `/fr/produits/nom-du-produit`
+> without having multiple routes files for each locale but reusing the same page component, layouts, middlewares and so on.
+>
+> Parameters name will not be changed so if the route file is `/products/[slug]/index.tsx` and the url is `/products/product-name`,
+> `/it/prodotti/nome-prodotto` or `/fr/produits/nom-du-produit` you will receive the same path parameter `slug` with
+> the values `product-name`, `nome-prodotto` or `nom-du-produit`.
+
+> **Rewrite urls without prefix:**
+>
+> It's rare but you may want to have aliases for the same path.
+> For example you may want both `/docs` and `/documents` to be rendered from the same page component or
+> you may want to translate `/products` to `/prodotti` without adding the `/it` prefix.
 
 For each folder under the routes one if there are occurrences of the `paths` keys
 in the pathname the route node will be copied replacing all the occurrences of `paths` keys with the related `paths` values.

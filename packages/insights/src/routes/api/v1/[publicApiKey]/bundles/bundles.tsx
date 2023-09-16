@@ -1,5 +1,6 @@
 import { type AppDatabase } from '~/db';
 import { getEdges } from '~/db/query';
+import { dbGetManifestHashes } from '~/db/sql-manifest';
 import { computeBundles, computeSymbolGraph, computeSymbolVectors } from '~/stats/edges';
 
 export async function getBundleGrouping({
@@ -9,7 +10,9 @@ export async function getBundleGrouping({
   publicApiKey: string;
   db: AppDatabase;
 }): Promise<Record<string, string>> {
-  const symbols = await getEdges(db, publicApiKey);
+  const symbols = await getEdges(db, publicApiKey, {
+    manifestHashes: await dbGetManifestHashes(db, publicApiKey),
+  });
   const rootSymbol = computeSymbolGraph(symbols);
   const vectors = computeSymbolVectors(rootSymbol);
   const bundles = computeBundles(vectors);

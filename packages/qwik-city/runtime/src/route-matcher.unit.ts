@@ -163,3 +163,18 @@ regression5080('/[...rest]/suffix', () => {
   equal(matchRoute('/[...rest]/suffix', '/a/b/c/suffix/'), { rest: 'a/b/c' });
 });
 regression5080.run();
+
+const regression5126 = suite('routeMatcher/#5126');
+regression5126('/[...dynamicOne]/static-segment/[...dynamicTwo]/', () => {
+  equal(
+    matchRoute(
+      '/[...dynamicOne]/static-segment/[...dynamicTwo]/',
+      '/abc/xyz/static-segment/more-dynamic-123/'
+    ),
+    {
+      dynamicOne: 'abc/xyz',
+      dynamicTwo: 'more-dynamic-123',
+    }
+  );
+});
+regression5126.run();

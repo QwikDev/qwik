@@ -24,8 +24,12 @@ import {
 export async function getEdges(
   db: AppDatabase,
   publicApiKey: string,
-  { limit }: { limit?: number } = {}
+  { limit, manifestHashes }: { limit?: number; manifestHashes: string[] }
 ) {
+  const where = and(
+    eq(edgeTable.publicApiKey, publicApiKey),
+    inArray(edgeTable.manifestHash, manifestHashes)
+  )!;
   const query = db
     .select({
       from: edgeTable.from,
@@ -34,9 +38,9 @@ export async function getEdges(
       ...delayColumnSums,
     })
     .from(edgeTable)
-    .where(eq(edgeTable.publicApiKey, publicApiKey))
+    .where(where)
     .groupBy(edgeTable.from, edgeTable.to)
-    .limit(limit || Number.MAX_SAFE_INTEGER);
+    .limit(limit || 3000); // TODO: The 3000 limit is due to Turso serialization format not being efficient, upgrade this once Turso is fixed.
   const rows = await query.all();
   return rows.map((e) => ({
     from: e.from,
@@ -86,7 +90,8 @@ export type SymbolDetailForApp = Pick<
 
 export async function getSymbolDetails(
   db: AppDatabase,
-  publicApiKey: string
+  publicApiKey: string,
+  { manifestHashes }: { manifestHashes: string[] }
 ): Promise<SymbolDetailForApp[]> {
   return db
     .select({
@@ -97,7 +102,13 @@ export async function getSymbolDetails(
       hi: symbolDetailTable.hi,
     })
     .from(symbolDetailTable)
-    .where(eq(symbolDetailTable.publicApiKey, publicApiKey))
+    .where(
+      and(
+        eq(symbolDetailTable.publicApiKey, publicApiKey),
+        inArray(symbolDetailTable.manifestHash, manifestHashes)
+      )
+    )
+    .limit(1000)
     .all();
 }
 

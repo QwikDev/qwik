@@ -1,7 +1,7 @@
 import { eq, and, sql } from 'drizzle-orm';
 import { type AppDatabase } from './index';
 import { type ManifestRow, edgeTable, manifestTable } from './schema';
-import { latencyColumnSums, toVector } from './query-helpers';
+import { latencyColumnSums, latencyCount, toVector } from './query-helpers';
 
 export async function dbGetManifests(
   db: AppDatabase,
@@ -67,4 +67,39 @@ export async function dbGetManifestInfo(
       ...manifestFields,
     };
   }
+}
+
+export async function dbGetManifestHashes(
+  db: AppDatabase,
+  publicApiKey: string,
+  { sampleSize }: { sampleSize?: number } = {}
+): Promise<string[]> {
+  if (typeof sampleSize !== 'number') {
+    sampleSize = 100000;
+  }
+  const manifests = await db
+    .select({ hash: manifestTable.hash, ...latencyCount })
+    .from(manifestTable)
+    .innerJoin(
+      edgeTable,
+      and(
+        eq(edgeTable.publicApiKey, manifestTable.publicApiKey),
+        eq(edgeTable.manifestHash, manifestTable.hash)
+      )
+    )
+    .where(and(eq(manifestTable.publicApiKey, publicApiKey)))
+    .groupBy(manifestTable.hash)
+    .orderBy(sql`${manifestTable.timestamp} DESC`)
+    .all();
+  const hashes: string[] = [];
+  let sum = 0;
+  for (let i = 0; i < manifests.length; i++) {
+    const row = manifests[i];
+    hashes.push(row.hash);
+    sum += row.latencyCount;
+    if (sum > sampleSize) {
+      break;
+    }
+  }
+  return hashes;
 }

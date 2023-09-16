@@ -273,6 +273,9 @@
     let skip = false;
 
     async function _getInfo(originalSrc) {
+      if (originalSrc.startsWith('blob:')) {
+        return undefined;
+      }
       const url = new URL('/__image_info', location.href);
       url.searchParams.set('url', originalSrc);
       const res = await fetch(url);

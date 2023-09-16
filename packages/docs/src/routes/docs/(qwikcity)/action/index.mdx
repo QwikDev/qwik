@@ -94,6 +94,8 @@ Under the hood, the `<Form/>` component uses a native HTML `<form>` element, so 
 
 When JS is enabled, the `<Form/>` component will intercept the form submission and trigger the action in SPA mode, allowing to have a full SPA experience.
 
+> This is to clarify that the server re-renders the whole page and re-executes everything, so if you have any [routeLoader$](/docs/route-loader/) they will be executed too.
+
 [Complex forms](/docs/advanced/complex-forms) can be created using dot notation.
 
 ## Using actions programmatically

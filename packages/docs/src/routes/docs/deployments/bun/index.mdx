@@ -18,7 +18,13 @@ curl -fsSL https://bun.sh/install | bash
 
 For other platforms or if you run into issues with installation, up to date `bun` installation instructions can be found [on the bun website](https://bun.sh/docs/installation).
 
-There currently is an issue with using `bun` as the package manager. Please use `npm install`. After dependencies are installed with `npm install`, `bun dev`, `bun run build` and other scripts from package.json can be executed with `bun`.
+There currently is an issue with using `bun` as the package manager. If you run into issues using `bun install`, please add the following lines to your package.json file.
+```json
+"trustedDependencies": [ 
+  "sharp"
+]
+```
+Then remove the node_modules folder and any lockfiles such as bun.lockb or package-lock.json. You may then run `bun install`.
 This issue is currently being tracked [on the bun repository](https://github.com/oven-sh/bun/issues/3783).
 
 To integrate the `bun` adapter, use the `add` command:

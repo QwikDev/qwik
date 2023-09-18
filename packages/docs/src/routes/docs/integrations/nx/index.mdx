@@ -43,6 +43,11 @@ yarn create nx-workspace@latest org-workspace --preset=qwik-nx
 pnpm dlx create-nx-workspace@latest org-workspace --preset=qwik-nx
 ```
   </span>
+  <span q:slot="bun">
+```shell
+bun create-nx-workspace@latest org-workspace --preset=qwik-nx
+```
+  </span>
 </PackageManagerTabs>
 
 Or add a new Qwik application to an existing workspace by running:
@@ -61,6 +66,11 @@ yarn add --dev qwik-nx
   <span q:slot="pnpm">
 ```shell
 pnpm add -D qwik-nx
+```
+  </span>
+  <span q:slot="bun">
+```shell
+bun add -D qwik-nx
 ```
   </span>
 </PackageManagerTabs>

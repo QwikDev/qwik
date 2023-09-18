@@ -5,6 +5,7 @@ import { YarnIcon } from './yarn';
 import { NpmIcon } from './npm';
 import { BunIcon } from './bun';
 import { GlobalStore } from '../../context';
+import { isBrowser } from '@builder.io/qwik/build';
 
 
 const packageManagersTabs = [
@@ -27,16 +28,16 @@ const packageManagersTabs = [
 ];
 
 export default component$(() => {
-  const toActive = useSignal<number>(0);
+  const activePkgTab = useSignal<number>(0);
   const globalStore = useContext(GlobalStore);
 
   useTask$(({ track }) => {
-    const trackedValue = track(() => toActive.value);
+    const trackedValue = track(() => activePkgTab.value);
     globalStore.pkgManagerIdx = trackedValue;
   })
 
   return (
-    <Tabs selectedIndex={globalStore.pkgManagerIdx} onSelectedIndexChange$={(currIdx) => { toActive.value = currIdx }}>
+    <Tabs selectedIndex={globalStore.pkgManagerIdx} onSelectedIndexChange$={(currIdx) => { activePkgTab.value = currIdx }}>
       <TabList class={`-mb-4 space-x-2 ${globalStore.theme === 'light' ? "text-black" : "text-white"} `}>
         {
           packageManagersTabs.map((el, idx) => {

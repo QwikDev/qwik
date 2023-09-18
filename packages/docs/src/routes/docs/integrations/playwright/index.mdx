@@ -33,6 +33,11 @@ yarn run qwik add playwright
 pnpm run qwik add playwright
 ```
   </span>
+  <span q:slot="bun">
+```shell
+bun run qwik add playwright
+```
+  </span>
 </PackageManagerTabs>
 
 The previous command adds playwright to your dependencies, appends a `test.e2e` command in your `package.json` scripts section and creates a default configuration within the `playwright.config.ts` file on the application root level.

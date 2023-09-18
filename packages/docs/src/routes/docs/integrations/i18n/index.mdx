@@ -6,6 +6,8 @@ contributors:
   - gioboa
 ---
 
+import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+
 # Internationalization
 
 Internationalization is a complex problem. Qwik does not solve the internationalization problem directly instead it only provides low-level APIs to allow other libraries to solve it.
@@ -72,9 +74,28 @@ Our recommendation is to use a tool that would provide a runtime approach on the
 
 The easiest way to add $localize to Qwik is using the `pnpm qwik add localize` command. This will install the required dependencies and create a new public route `/src/routes/[locale]` showcasing i18n $localize integration.
 
-```bash
+<PackageManagerTabs>
+  <span q:slot="npm">
+```shell
 npm run qwik add localize
 ```
+  </span>
+  <span q:slot="yarn">
+```shell
+yarn run qwik add localize
+```
+  </span>
+  <span q:slot="pnpm">
+```shell
+pnpm run qwik add localize
+```
+  </span>
+  <span q:slot="bun">
+```shell
+bun run qwik add localize
+```
+  </span>
+</PackageManagerTabs>
 
 For further reference, please check this [example repo](https://github.com/mhevery/qwik-i18n).
 

@@ -8,6 +8,8 @@ contributors:
   - mhevery
 ---
 
+import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+
 # Node Middleware
 
 Qwik City Node middleware allows you to connect Qwik City to a Node.js server which uses the common middleware functionality. Some Node servers include:
@@ -23,31 +25,107 @@ To integrate the `node` adapter, use the `add` command:
 
 - For [Express](https://expressjs.com/):
 
+<PackageManagerTabs>
+  <span q:slot="npm">
 ```shell
 npm run qwik add express
 ```
+  </span>
+  <span q:slot="yarn">
+```shell
+yarn run qwik add express
+```
+  </span>
+  <span q:slot="pnpm">
+```shell
+pnpm run qwik add express
+```
+  </span>
+  <span q:slot="bun">
+```shell
+bun run qwik add express
+```
+  </span>
+</PackageManagerTabs>
 
 - For [Fastify](https://fastify.io/)
 
+<PackageManagerTabs>
+  <span q:slot="npm">
 ```shell
 npm run qwik add fastify
 ```
+  </span>
+  <span q:slot="yarn">
+```shell
+yarn run qwik add fastify
+```
+  </span>
+  <span q:slot="pnpm">
+```shell
+pnpm run qwik add fastify
+```
+  </span>
+  <span q:slot="bun">
+```shell
+bun run qwik add fastify
+```
+  </span>
+</PackageManagerTabs>
 
 ## Production build
 
 To build the application for production, use the `build` command, this command will automatically run `npm run build.server` and `npm run build.client`:
 
+<PackageManagerTabs>
+  <span q:slot="npm">
 ```shell
 npm run build
 ```
+  </span>
+  <span q:slot="yarn">
+```shell
+yarn run build
+```
+  </span>
+  <span q:slot="pnpm">
+```shell
+pnpm run build
+```
+  </span>
+  <span q:slot="bun">
+```shell
+bun run build
+```
+  </span>
+</PackageManagerTabs>
 
 ## Dev serve
 
 To deploy the application for development:
 
+<PackageManagerTabs>
+  <span q:slot="npm">
 ```shell
 npm run serve
 ```
+  </span>
+  <span q:slot="yarn">
+```shell
+yarn run serve
+```
+  </span>
+  <span q:slot="pnpm">
+```shell
+pnpm run serve
+```
+  </span>
+  <span q:slot="bun">
+```shell
+bun run serve
+```
+  </span>
+</PackageManagerTabs>
 
 ## Production deploy
 

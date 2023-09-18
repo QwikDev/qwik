@@ -6,6 +6,8 @@ contributors:
   - mhevery
 ---
 
+import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+
 # Project Structure
 
 A typical Qwik project looks like this:
@@ -89,14 +91,54 @@ Qwik uses Vite to build the project. The `vite.config.ts` file contains the Vite
 Qwik has a utility command called `new` that allows developers to easily create new components and routes. 
 
 Let's say you wanted to create a new component called `Button`, you would run the command:
-```tsx
+
+<PackageManagerTabs>
+  <span q:slot="npm">
+```shell
+npm qwik new Button
+```
+  </span>
+  <span q:slot="yarn">
+```shell
+yarn qwik new Button
+```
+  </span>
+  <span q:slot="pnpm">
+```shell
 pnpm qwik new Button
 ```
+  </span>
+  <span q:slot="bun">
+```shell
+bun qwik new Button
+```
+  </span>
+</PackageManagerTabs>
 
 Maybe you want to create a new route for the /contact page. To do that, you could use the command:
-```tsx
+
+<PackageManagerTabs>
+  <span q:slot="npm">
+```shell
+npm qwik new /contact
+```
+  </span>
+  <span q:slot="yarn">
+```shell
+yarn qwik new /contact
+```
+  </span>
+  <span q:slot="pnpm">
+```shell
 pnpm qwik new /contact
 ```
+  </span>
+  <span q:slot="bun">
+```shell
+bun qwik new /contact
+```
+  </span>
+</PackageManagerTabs>
 
 The following commands are consistent with Qwik's directory file structure, allowing you to scaffold components more quickly.
 

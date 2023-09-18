@@ -6,6 +6,7 @@ contributors:
 ---
 
 import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
+import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
 
 # Modular Forms
 
@@ -13,9 +14,28 @@ import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
 
 To get started, install the npm package:
 
-```bash
+<PackageManagerTabs>
+  <span q:slot="npm">
+```shell
 npm install @modular-forms/qwik
 ```
+  </span>
+  <span q:slot="yarn">
+```shell
+yarn add @modular-forms/qwik
+```
+  </span>
+  <span q:slot="pnpm">
+```shell
+pnpm add @modular-forms/qwik
+```
+  </span>
+  <span q:slot="bun">
+```shell
+bun add @modular-forms/qwik
+```
+  </span>
+</PackageManagerTabs>
 
 ## Define your form
 

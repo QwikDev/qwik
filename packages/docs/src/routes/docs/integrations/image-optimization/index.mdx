@@ -10,7 +10,7 @@ contributors:
   - fabiobiondi
 ---
 import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
-
+import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
 
 # Image Optimization
 
@@ -205,13 +205,28 @@ export default component$(() => {
 
 Performant images with automatic optimisation.
 
-```bash
+<PackageManagerTabs>
+  <span q:slot="npm">
+```shell
 npm install qwik-image
-or
-yarn install qwik-image
-or
-pnpm install qwik-image
 ```
+  </span>
+  <span q:slot="yarn">
+```shell
+yarn add qwik-image
+```
+  </span>
+  <span q:slot="pnpm">
+```shell
+pnpm add qwik-image
+```
+  </span>
+  <span q:slot="bun">
+```shell
+bun add qwik-image
+```
+  </span>
+</PackageManagerTabs>
 
 > This is a pluggable component so devs could connect different image loaders to it (like builder.io or other CDNs)
 

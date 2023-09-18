@@ -8,6 +8,8 @@ contributors:
   - gioboa
 ---
 
+import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+
 # Google Cloud Run Middleware
 
 Qwik City Cloud Run middleware allows you to run a Qwik City app [Google Cloud Run](https://cloud.google.com/run)
@@ -16,17 +18,55 @@ Qwik City Cloud Run middleware allows you to run a Qwik City app [Google Cloud R
 
 To integrate the `Cloud Run` adapter, use the `add` command:
 
+<PackageManagerTabs>
+  <span q:slot="npm">
 ```shell
 npm run qwik add cloud-run
 ```
+  </span>
+  <span q:slot="yarn">
+```shell
+yarn run qwik add cloud-run
+```
+  </span>
+  <span q:slot="pnpm">
+```shell
+pnpm run qwik add cloud-run
+```
+  </span>
+  <span q:slot="bun">
+```shell
+bun run qwik add cloud-run
+```
+  </span>
+</PackageManagerTabs>
 
 ## Production build
 
 To build the application for production, use the `build` command, this command will automatically run `npm run build.server` and `npm run build.client`:
 
+<PackageManagerTabs>
+  <span q:slot="npm">
 ```shell
 npm run build
 ```
+  </span>
+  <span q:slot="yarn">
+```shell
+yarn run build
+```
+  </span>
+  <span q:slot="pnpm">
+```shell
+pnpm run build
+```
+  </span>
+  <span q:slot="bun">
+```shell
+bun run build
+```
+  </span>
+</PackageManagerTabs>
 
 ## Production deploy
 
@@ -65,6 +105,25 @@ To deploy your app, you need to:
 
    Deploy to Google Cloud Run with:
 
-   ```shell
-   npm run deploy
-   ```
+  <PackageManagerTabs>
+   <span q:slot="npm">
+```shell
+npm run deploy
+```
+   </span>
+   <span q:slot="yarn">
+```shell
+yarn run deploy
+```
+   </span>
+   <span q:slot="pnpm">
+```shell
+pnpm run deploy
+```
+   </span>
+   <span q:slot="bun">
+```shell
+bun run deploy
+```
+   </span>
+   </PackageManagerTabs>

@@ -141,7 +141,7 @@ async function authAction(
     skipCSRFCheck,
   });
   res.headers.forEach((value, key) => {
-    if (!req.headers.has(key)){
+    if (!req.headers.has(key)) {
       req.headers.set(key, value);
     }
   });

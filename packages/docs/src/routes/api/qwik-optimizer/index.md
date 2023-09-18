@@ -645,6 +645,7 @@ export type SymbolMapperFn = (
 export type SystemEnvironment =
   | "node"
   | "deno"
+  | "bun"
   | "webworker"
   | "browsermain"
   | "unknown";

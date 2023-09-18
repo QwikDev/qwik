@@ -93,6 +93,11 @@
       "imgSrc": "/ecosystem/deno.svg"
     },
     {
+      "title": "Bun",
+      "href": "/docs/deployments/bun/",
+      "imgSrc": "/ecosystem/bun.svg"
+    },
+    {
       "title": "Firebase",
       "href": "/docs/deployments/firebase/",
       "imgSrc": "/ecosystem/firebase.svg"

@@ -14,10 +14,10 @@
     "nextSteps": {
       "title": "Next Steps",
       "lines": [
-        " Now you can build and deploy to Google Cloud Run with:",
+        "Now you can build and deploy to Google Cloud Run with:",
         "",
-        "  - pnpm run build: production build for Cloud Run",
-        "  - pnpm run deploy: it will use the gcloud CLI to deploy your site"
+        "- pnpm run build: production build for Cloud Run",
+        "- pnpm run deploy: it will use the gcloud CLI to deploy your site"
       ]
     }
   }

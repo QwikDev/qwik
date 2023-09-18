@@ -97,7 +97,8 @@
     "starters/apps/qwikcity-test/**/*",
     "starters/dev-server.ts",
     "packages/qwik-react/vite",
-    "@types/deno.d.ts"
+    "@types/deno.d.ts",
+    "@types/bun.d.ts"
   ],
   "exclude": [
     "packages/create-qwik/dist",

@@ -53,7 +53,7 @@ export interface OptimizerSystem {
 /**
  * @public
  */
-export type SystemEnvironment = 'node' | 'deno' | 'webworker' | 'browsermain' | 'unknown';
+export type SystemEnvironment = 'node' | 'deno' | 'bun' | 'webworker' | 'browsermain' | 'unknown';
 
 // OPTIONS ***************
 

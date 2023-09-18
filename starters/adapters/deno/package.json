@@ -14,10 +14,10 @@
     "nextSteps": {
       "title": "Next Steps",
       "lines": [
-        " Now you can build a production-ready Deno app:",
+        "Now you can build a production-ready Deno app:",
         "",
-        "  - pnpm run build: production build",
-        "  - pnpm run serve: runs the production server locally"
+        "- pnpm run build: production build",
+        "- pnpm run serve: runs the production server locally"
       ]
     }
   }

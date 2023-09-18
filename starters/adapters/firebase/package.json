@@ -17,8 +17,7 @@
     "nextSteps": {
       "title": "Next Steps",
       "lines": [
-        "",
-        "  - cd functions && pnpm i"
+        "- cd functions && pnpm i"
       ]
     }
   }

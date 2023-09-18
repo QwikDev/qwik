@@ -1,53 +1,69 @@
-import { Slot, component$, useSignal } from '@builder.io/qwik';
-import Tabs from '../tabs';
+import { Slot, component$, useContext, useSignal, useTask$ } from '@builder.io/qwik';
+import { Tab, TabList, TabPanel, Tabs } from '@qwik-ui/headless';
 import { PnpmIcon } from './pnpm';
 import { YarnIcon } from './yarn';
 import { NpmIcon } from './npm';
+import { BunIcon } from './bun';
+import { GlobalStore } from '../../context';
 
-export type PackageManagers = 'npm' | 'yarn' | 'pnpm';
 
 const packageManagersTabs = [
   {
     name: 'npm',
-    key: 'npm',
+    icon: NpmIcon,
   },
   {
     name: 'yarn',
-    key: 'yarn',
+    icon: YarnIcon,
   },
   {
     name: 'pnpm',
-    key: 'pnpm',
+    icon: PnpmIcon,
+  },
+  {
+    name: 'bun',
+    icon: BunIcon,
   },
 ];
 
 export default component$(() => {
-  const toActive = useSignal('pnpm');
+  const toActive = useSignal<number>(0);
+  const globalStore = useContext(GlobalStore);
+
+  useTask$(({ track }) => {
+    const trackedValue = track(() => toActive.value);
+    globalStore.pkgManagerIdx = trackedValue;
+  })
 
   return (
-    <Tabs tabs={packageManagersTabs} activeTab={toActive}>
-      <span q:slot="tab-npm" class="inline-flex items-center gap-x-2">
-        <NpmIcon width={18} height={18} />
-        npm
-      </span>
-      <span q:slot="tab-yarn" class="inline-flex items-center gap-x-2">
-        <YarnIcon width={18} height={18} />
-        yarn
-      </span>
-      <span q:slot="tab-pnpm" class="inline-flex items-center gap-x-2">
-        <PnpmIcon width={18} height={18} />
-        pnpm
-      </span>
+    <Tabs selectedIndex={globalStore.pkgManagerIdx} onSelectedIndexChange$={(currIdx) => { toActive.value = currIdx }}>
+      <TabList class={`-mb-4 space-x-2 ${globalStore.theme === 'light' ? "text-black" : "text-white"} `}>
+        {
+          packageManagersTabs.map((el, idx) => {
+            return (
+              <Tab class={`px-4 py-2 rounded-md ${globalStore.pkgManagerIdx === idx ? 'bg-[#011f33] hover:bg-none font-bold text-white': globalStore.theme === 'light' ? 'hover:bg-[var(--qwik-light-blue)] text-black' : 'hover:bg-[var(--on-this-page-hover-bg-color)] text-white'}`}>
+                <span class="inline-flex items-center gap-x-2">
+                  <el.icon width={18} height={18} />
+                  {el.name}
+                </span>
+              </Tab>
+            )
+          })
+        }
+      </TabList>
 
-      <span q:slot="panel-npm">
+      <TabPanel >
         <Slot name="npm" />
-      </span>
-      <span q:slot="panel-yarn">
+      </TabPanel>
+      <TabPanel>
         <Slot name="yarn" />
-      </span>
-      <span q:slot="panel-pnpm">
+      </TabPanel>
+      <TabPanel>
         <Slot name="pnpm" />
-      </span>
+      </TabPanel>
+      <TabPanel>
+        <Slot name="bun" />
+      </TabPanel>
     </Tabs>
   );
 });

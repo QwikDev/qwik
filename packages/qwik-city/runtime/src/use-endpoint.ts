@@ -21,6 +21,7 @@ export const loadClientData = async (
   dispatchPrefetchEvent({
     links: [pagePathname],
   });
+  let resolveFn: () => void | undefined;
 
   if (!qData) {
     const options = getFetchOptions(action);
@@ -49,7 +50,9 @@ export const loadClientData = async (
             location.href = clientData.redirect;
           } else if (action) {
             const actionData = clientData.loaders[action.id];
-            action.resolve!({ status: rsp.status, result: actionData });
+            resolveFn = () => {
+              action.resolve!({ status: rsp.status, result: actionData });
+            };
           }
           return clientData;
         });
@@ -68,6 +71,7 @@ export const loadClientData = async (
     if (!v) {
       CLIENT_DATA_CACHE.delete(clientDataPath);
     }
+    resolveFn && resolveFn();
     return v;
   });
 };

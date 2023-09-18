@@ -23,8 +23,8 @@
     }
   },
   "devDependencies": {
-    "@prisma/client": "4.16.1",
-    "prisma": "^4.16.1"
+    "@prisma/client": "5.3.1",
+    "prisma": "^5.3.1"
   },
   "scripts": {
     "postinstall": "prisma generate",

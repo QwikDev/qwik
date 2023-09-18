@@ -14,57 +14,57 @@ import { ELEMENT_ID, ELEMENT_ID_PREFIX, QContainerAttr, QScopedStyle } from '../
 import { qDev } from '../util/qdev';
 
 import {
-  destroyTask,
-  isResourceTask,
-  type ResourceReturnInternal,
-  TaskFlagsIsDirty,
-} from '../use/use-task';
-import {
-  qError,
   QError_containerAlreadyPaused,
   QError_missingObjectId,
   QError_verifySerializable,
+  qError,
 } from '../error/error';
-import { isArray, isObject, isSerializableObject } from '../util/types';
-import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
-import { isNotNullable, isPromise } from '../util/promises';
-import { collectDeps, serializeValue, UNDEFINED_PREFIX } from './serializers';
-import {
-  type ContainerState,
-  FILTER_REJECT,
-  FILTER_SKIP,
-  _getContainerState,
-  type GetObjID,
-  intToStr,
-  SHOW_COMMENT,
-  SHOW_ELEMENT,
-  type SnapshotMeta,
-  type SnapshotMetaValue,
-  type SnapshotResult,
-} from './container';
+import { serializeQRLs } from '../qrl/qrl';
+import type { QRL } from '../qrl/qrl.public';
 import {
   processVirtualNodes,
   type QwikElement,
   type VirtualElement,
 } from '../render/dom/virtual-element';
-import { groupListeners } from '../state/listeners';
-import { serializeSStyle } from '../style/qrl-styles';
-import { serializeQRLs } from '../qrl/qrl';
+import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
 import {
+  LocalSubscriptionManager,
   fastSkipSerialize,
   fastWeakSerialize,
   getProxyFlags,
-  getSubscriptionManager,
   getProxyTarget,
+  getSubscriptionManager,
   isConnected,
-  LocalSubscriptionManager,
   serializeSubscription,
   type Subscriptions,
 } from '../state/common';
-import { HOST_FLAG_DYNAMIC, type QContext, tryGetContext } from '../state/context';
-import { SignalImpl } from '../state/signal';
-import type { QRL } from '../qrl/qrl.public';
 import { QObjectImmutable, QObjectRecursive } from '../state/constants';
+import { HOST_FLAG_DYNAMIC, tryGetContext, type QContext } from '../state/context';
+import { groupListeners } from '../state/listeners';
+import { SignalImpl } from '../state/signal';
+import { serializeSStyle } from '../style/qrl-styles';
+import {
+  TaskFlagsIsDirty,
+  destroyTask,
+  isResourceTask,
+  type ResourceReturnInternal,
+} from '../use/use-task';
+import { isNotNullable, isPromise } from '../util/promises';
+import { isArray, isObject, isSerializableObject } from '../util/types';
+import {
+  FILTER_REJECT,
+  FILTER_SKIP,
+  SHOW_COMMENT,
+  SHOW_ELEMENT,
+  _getContainerState,
+  intToStr,
+  type ContainerState,
+  type GetObjID,
+  type SnapshotMeta,
+  type SnapshotMetaValue,
+  type SnapshotResult,
+} from './container';
+import { UNDEFINED_PREFIX, collectDeps, serializeValue } from './serializers';
 
 /**
  * @internal
@@ -259,7 +259,11 @@ export const _pauseFromContexts = async (
       for (const task of ctx.$tasks$) {
         if (qDev) {
           if (task.$flags$ & TaskFlagsIsDirty) {
-            logWarn('Serializing dirty task. Looks like an internal error.');
+            logWarn(
+              `Serializing dirty task. Looks like an internal error. 
+Task Symbol: ${task.$qrl$.$symbol$}
+`
+            );
           }
           if (!isConnected(task)) {
             logWarn('Serializing disconnected task. Looks like an internal error.');

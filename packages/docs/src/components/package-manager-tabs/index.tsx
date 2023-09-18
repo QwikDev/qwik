@@ -5,7 +5,6 @@ import { YarnIcon } from './yarn';
 import { NpmIcon } from './npm';
 import { BunIcon } from './bun';
 import { GlobalStore } from '../../context';
-import { isBrowser } from '@builder.io/qwik/build';
 
 const packageManagersTabs = [
   {

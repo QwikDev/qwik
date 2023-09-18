@@ -18,8 +18,7 @@ curl -fsSL https://bun.sh/install | bash
 
 For other platforms or if you run into issues with installation, up to date `bun` installation instructions can be found [on the bun website](https://bun.sh/docs/installation).
 
-There currently is an issue with using `bun` as the package manager.
-If you see the error `Something went wrong installing the "sharp" module` when using `bun` add the following code to your package.json, then remove the node_modules folder and any lockfiles such as bun.lockb or package-lock.json. You may then run `bun install`.
+If you run into the error `Something went wrong installing the "sharp" module` when using `bun` as a package manager, add the following code to your package.json, then remove the node_modules folder and any lockfiles such as bun.lockb or package-lock.json. Then run `bun install`.
 
 ```json
 "trustedDependencies": [ 

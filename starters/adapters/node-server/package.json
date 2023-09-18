@@ -13,10 +13,10 @@
     "nextSteps": {
       "title": "Next Steps",
       "lines": [
-        " Now you can build a production-ready node app:",
+        "Now you can build a production-ready node app:",
         "",
-        "  - pnpm run build: production build",
-        "  - pnpm run serve: runs the production server locally"
+        "- pnpm run build: production build",
+        "- pnpm run serve: runs the production server locally"
       ]
     }
   }

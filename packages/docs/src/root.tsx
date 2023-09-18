@@ -12,7 +12,7 @@ export default component$(() => {
     headerMenuOpen: false,
     sideMenuOpen: false,
     theme: 'auto',
-    pkgManagerIdx: 0
+    pkgManagerIdx: 0,
   });
 
   useContextProvider(GlobalStore, store);

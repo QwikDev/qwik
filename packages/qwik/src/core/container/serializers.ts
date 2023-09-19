@@ -49,7 +49,6 @@ import { Slot } from '../render/jsx/slot.public';
 \': single quote (U+0027 APOSTROPHE)
 \\: backslash (U+005C REVERSE SOLIDUS)
  */
-export const NOSERIALIZE_PREFIX = '\u0000';
 export const UNDEFINED_PREFIX = '\u0001';
 
 export interface Serializer<T> {
@@ -486,7 +485,16 @@ const MapSerializer: Serializer<Map<any, any>> = {
   },
 };
 
+const StringSerializer: Serializer<string> = {
+  $prefix$: '\u001b',
+  $test$: (v) => typeof v === 'string' && prefixes.has(v[0]),
+  $serialize$: (v) => v,
+  $prepare$: (data) => data,
+  $fill$: undefined,
+};
+
 const serializers: Serializer<any>[] = [
+  StringSerializer, /////////// \u001b
   QRLSerializer, ////////////// \u0002
   SignalSerializer, /////////// \u0012
   SignalWrapperSerializer, //// \u0013
@@ -507,6 +515,8 @@ const serializers: Serializer<any>[] = [
   MapSerializer, ////////////// \u001a
   DocumentSerializer, ///////// \u000F
 ];
+
+const prefixes = new Set([UNDEFINED_PREFIX, ...serializers.map((a) => a.$prefix$)]);
 
 const collectorSerializers = /*#__PURE__*/ serializers.filter((a) => a.$collect$);
 
@@ -543,6 +553,9 @@ export const serializeValue = (
       }
       return value;
     }
+  }
+  if (typeof obj === 'string') {
+    return obj;
   }
   return undefined;
 };

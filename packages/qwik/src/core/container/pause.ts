@@ -28,7 +28,7 @@ import {
 import { isArray, isObject, isSerializableObject } from '../util/types';
 import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
 import { isNotNullable, isPromise } from '../util/promises';
-import { collectDeps, serializeValue, UNDEFINED_PREFIX, NOSERIALIZE_PREFIX } from './serializers';
+import { collectDeps, serializeValue, UNDEFINED_PREFIX } from './serializers';
 import {
   type ContainerState,
   FILTER_REJECT,
@@ -138,8 +138,6 @@ export const _serializeData = async (data: any, pureQRL?: boolean) => {
           break;
         }
         return obj;
-      case 'string':
-        return NOSERIALIZE_PREFIX + obj;
       case 'boolean':
         return obj;
     }
@@ -482,8 +480,6 @@ export const _pauseFromContexts = async (
           break;
         }
         return obj;
-      case 'string':
-        return NOSERIALIZE_PREFIX + obj;
       case 'boolean':
         return obj;
     }

@@ -217,7 +217,7 @@ export default component$(() => {
   const nav = useNavigate();
   return (
     <div>
-      <Link href="/about">About (prefered)</Link>
+      <Link href="/about">About (preferred)</Link>
       <button onClick$={() => nav('/about')}>About</button>
     </div>
   );
@@ -246,7 +246,7 @@ export default component$(() => {
 
   return (
     <div>
-      <Link reload>Refresh (better accesibility)</Link>
+      <Link reload>Refresh (better accessibility)</Link>
       <button onClick$={() => nav()}>Refresh</button>
       <p>Server time: {serverTime.value}</p>
     </div>
@@ -326,8 +326,8 @@ Each request handler, such as `onRequest`, `onGet`, `onPost`, etc., are passed i
 - `request`: HTTP [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request).
 - `send`: Send a body response. The `Content-Type` response header is not automatically set when using `send()` and must be set manually. A `send()` response can only be called once.
 - `sharedMap`: Shared Map across all the request handlers. Every HTTP request will get a new instance of the shared map. The shared map is useful for sharing data between request handlers.
-- `status`: HTTP response [status code](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status). Sets the status code when called with an argument. Always returns the status code, so calling `status()` without an argument will can be used to return the current status code.
-- `text`: Convenience method to send an text body response. The response will be automatically set the `Content-Type` header to`text/plain; charset=utf-8`. An `text()` response can only be called once.
+- `status`: HTTP response [status code](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status). Sets the status code when called with an argument. Always returns the status code, so calling `status()` without an argument can be used to return the current status code.
+- `text`: Convenience method to send a text body response. The response will be automatically set the `Content-Type` header to`text/plain; charset=utf-8`. A `text()` response can only be called once.
 - `url`: HTTP request [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL).
 
 ## Rewrite routes
@@ -353,7 +353,7 @@ This could be useful for SEO purposes or to translate your pages in different la
 
 For each folder under the routes one if there are occurrences of the `paths` keys
 in the pathname the route node will be copied replacing all the occurrences of `paths` keys with the related `paths` values.
-All path parameters will preserve the same name. If there is a prefix it will be added at the beginning of the rewrited pathname.
+All path parameters will preserve the same name. If there is a prefix it will be added at the beginning of the rewritten pathname.
 
 You can set the rewrite rules as follows in your `vite.config.ts`:
 

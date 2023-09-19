@@ -51,7 +51,7 @@ export const MyComponent = component$((props) => {
       <main
         class={{
           even: count.value % 2 === 0, // conditional class
-          omode: count.value % 2 === 1,
+          odd: count.value % 2 === 1,
         }}
       >
         <h1>Count: {count.value}</h1>
@@ -85,7 +85,7 @@ export const Child = component$((props: { name: string }) => {
 });
 ```
 
-> In the above example, the Parent component passes a changing `name` property to the Child component. The Child component will only be re-render when the count signals changes.
+> In the above example, the Parent component passes a changing `name` property to the Child component. The Child component will only re-render when the count signal changes.
 
 
 ### Rendering a list of items

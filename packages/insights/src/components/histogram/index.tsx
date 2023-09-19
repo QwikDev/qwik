@@ -35,7 +35,7 @@ export default component$<{
     return barColors;
   });
   return (
-    <div>
+    <div class={css({ display: 'inline-block' })}>
       {name && <h2>{name}</h2>}
       <ol
         class={css({
@@ -114,7 +114,7 @@ export default component$<{
             fontSize: '10px',
           })}
         >
-          {callout.value}{' '}
+          {formatNumber(callout.value)}{' '}
         </code>
         <code
           class={css({
@@ -122,16 +122,20 @@ export default component$<{
             textAlign: 'center',
           })}
         >
-          {callout.avg}
+          {formatNumber(callout.avg)}
         </code>
         <code
           class={css({
             display: 'block',
           })}
         >
-          [{callout.min}, {callout.max})
+          [{formatNumber(callout.min)}, {formatNumber(callout.max)})
         </code>
       </div>
     </div>
   );
 });
+
+function formatNumber(number: number): string {
+  return Math.round(number).toLocaleString();
+}

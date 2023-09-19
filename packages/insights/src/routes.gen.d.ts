@@ -5,6 +5,7 @@
 export type AppRoutes =
   | "/"
   | "/api/v1/[publicApiKey]/bundles/"
+  | "/api/v1/[publicApiKey]/bundles/strategy/"
   | "/api/v1/[publicApiKey]/post/"
   | "/api/v1/[publicApiKey]/post/error/"
   | "/api/v1/[publicApiKey]/post/manifest/"
@@ -13,6 +14,7 @@ export type AppRoutes =
   | "/app/[publicApiKey]/edit/"
   | "/app/[publicApiKey]/errors/"
   | "/app/[publicApiKey]/manifests/"
+  | "/app/[publicApiKey]/routes/"
   | "/app/[publicApiKey]/symbols/"
   | "/app/[publicApiKey]/symbols/bundles/"
   | "/app/[publicApiKey]/symbols/edge/"
@@ -26,6 +28,7 @@ export type AppRoutes =
 export interface AppRouteMap {
   "/": {};
   "/api/v1/[publicApiKey]/bundles/": { publicApiKey: string };
+  "/api/v1/[publicApiKey]/bundles/strategy/": { publicApiKey: string };
   "/api/v1/[publicApiKey]/post/": { publicApiKey: string };
   "/api/v1/[publicApiKey]/post/error/": { publicApiKey: string };
   "/api/v1/[publicApiKey]/post/manifest/": { publicApiKey: string };
@@ -34,6 +37,7 @@ export interface AppRouteMap {
   "/app/[publicApiKey]/edit/": { publicApiKey: string };
   "/app/[publicApiKey]/errors/": { publicApiKey: string };
   "/app/[publicApiKey]/manifests/": { publicApiKey: string };
+  "/app/[publicApiKey]/routes/": { publicApiKey: string };
   "/app/[publicApiKey]/symbols/": { publicApiKey: string };
   "/app/[publicApiKey]/symbols/bundles/": { publicApiKey: string };
   "/app/[publicApiKey]/symbols/edge/": { publicApiKey: string };
@@ -49,6 +53,10 @@ export interface AppRouteParamsFunction {
   (route: "/", params?: {}): string;
   (
     route: "/api/v1/[publicApiKey]/bundles/",
+    params: { publicApiKey: string },
+  ): string;
+  (
+    route: "/api/v1/[publicApiKey]/bundles/strategy/",
     params: { publicApiKey: string },
   ): string;
   (
@@ -75,6 +83,10 @@ export interface AppRouteParamsFunction {
   ): string;
   (
     route: "/app/[publicApiKey]/manifests/",
+    params: { publicApiKey: string },
+  ): string;
+  (
+    route: "/app/[publicApiKey]/routes/",
     params: { publicApiKey: string },
   ): string;
   (
@@ -106,6 +118,10 @@ export interface AppRouteParamsFunction {
 export type AppLinkProps =
   | { route: "/" }
   | { route: "/api/v1/[publicApiKey]/bundles/"; "param:publicApiKey": string }
+  | {
+      route: "/api/v1/[publicApiKey]/bundles/strategy/";
+      "param:publicApiKey": string;
+    }
   | { route: "/api/v1/[publicApiKey]/post/"; "param:publicApiKey": string }
   | {
       route: "/api/v1/[publicApiKey]/post/error/";
@@ -120,6 +136,7 @@ export type AppLinkProps =
   | { route: "/app/[publicApiKey]/edit/"; "param:publicApiKey": string }
   | { route: "/app/[publicApiKey]/errors/"; "param:publicApiKey": string }
   | { route: "/app/[publicApiKey]/manifests/"; "param:publicApiKey": string }
+  | { route: "/app/[publicApiKey]/routes/"; "param:publicApiKey": string }
   | { route: "/app/[publicApiKey]/symbols/"; "param:publicApiKey": string }
   | {
       route: "/app/[publicApiKey]/symbols/bundles/";

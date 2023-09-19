@@ -519,6 +519,9 @@ const serializers: Serializer<any>[] = [
 const prefixes = /*#__PURE__*/ serializers.map((a) => a.$prefix$);
 
 const startsWithPrefix = (str: string) => {
+  if (str.startsWith(UNDEFINED_PREFIX)) {
+    return true;
+  }
   return prefixes.includes(str[0]);
 };
 

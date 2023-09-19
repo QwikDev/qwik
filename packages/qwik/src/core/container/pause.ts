@@ -125,40 +125,7 @@ export const _serializeData = async (data: any, pureQRL?: boolean) => {
     return key + suffix;
   };
 
-  const convertedObjs = objs.map((obj) => {
-    if (obj === null) {
-      return null;
-    }
-    const typeObj = typeof obj;
-    switch (typeObj) {
-      case 'undefined':
-        return UNDEFINED_PREFIX;
-      case 'number':
-        if (!Number.isFinite(obj)) {
-          break;
-        }
-        return obj;
-      case 'boolean':
-        return obj;
-    }
-    const value = serializeValue(obj, mustGetObjId, collector, containerState);
-    if (value !== undefined) {
-      return value;
-    }
-    if (typeObj === 'object') {
-      if (isArray(obj)) {
-        return obj.map(mustGetObjId);
-      }
-      if (isSerializableObject(obj)) {
-        const output: Record<string, any> = {};
-        for (const key in obj) {
-          output[key] = mustGetObjId(obj[key]);
-        }
-        return output;
-      }
-    }
-    throw qError(QError_verifySerializable, obj);
-  });
+  const convertedObjs = serializeObjects(objs, mustGetObjId, collector, containerState);
 
   return JSON.stringify({
     _entry: mustGetObjId(data),
@@ -466,44 +433,7 @@ export const _pauseFromContexts = async (
   }
   assertEqual(subs.length, subsMap.size, 'missing subscriptions to serialize', subs, subsMap);
 
-  // Serialize objects
-  const convertedObjs = objs.map((obj) => {
-    if (obj === null) {
-      return null;
-    }
-    const typeObj = typeof obj;
-    switch (typeObj) {
-      case 'undefined':
-        return UNDEFINED_PREFIX;
-      case 'number':
-        if (!Number.isFinite(obj)) {
-          break;
-        }
-        return obj;
-      case 'boolean':
-        return obj;
-    }
-    const value = serializeValue(obj, mustGetObjId, collector, containerState);
-    if (value !== undefined) {
-      return value;
-    }
-    if (typeObj === 'object') {
-      if (isArray(obj)) {
-        return obj.map(mustGetObjId);
-      }
-      if (isSerializableObject(obj)) {
-        const output: Record<string, any> = {};
-        for (const key in obj) {
-          const id = getObjId(obj[key]);
-          if (id !== null) {
-            output[key] = id;
-          }
-        }
-        return output;
-      }
-    }
-    throw qError(QError_verifySerializable, obj);
-  });
+  const convertedObjs = serializeObjects(objs, mustGetObjId, collector, containerState);
 
   const meta: SnapshotMeta = {};
   const refs: Record<string, string> = {};
@@ -976,3 +906,53 @@ const getTextID = (node: Text, containerState: ContainerState) => {
 const isEmptyObj = (obj: Record<string, any>) => {
   return Object.keys(obj).length === 0;
 };
+function serializeObjects(
+  objs: any[],
+  mustGetObjId: (obj: any) => string,
+  collector: Collector,
+  containerState: any
+) {
+  return objs.map((obj) => {
+    if (obj === null) {
+      return null;
+    }
+    const typeObj = typeof obj;
+    switch (typeObj) {
+      case 'undefined':
+        return UNDEFINED_PREFIX;
+      case 'number':
+        if (!Number.isFinite(obj)) {
+          break;
+        }
+        return obj;
+      case 'string':
+        if ((obj as string).charCodeAt(0) < 32 /* space */) {
+          // if strings starts with a special character let the string serializer handle it
+          // to deal with escape sequences.
+          break;
+        } else {
+          // Fast path of just serializing the string.
+          return obj;
+        }
+      case 'boolean':
+        return obj;
+    }
+    const value = serializeValue(obj, mustGetObjId, collector, containerState);
+    if (value !== undefined) {
+      return value;
+    }
+    if (typeObj === 'object') {
+      if (isArray(obj)) {
+        return obj.map(mustGetObjId);
+      }
+      if (isSerializableObject(obj)) {
+        const output: Record<string, any> = {};
+        for (const key in obj) {
+          output[key] = mustGetObjId(obj[key]);
+        }
+        return output;
+      }
+    }
+    throw qError(QError_verifySerializable, obj);
+  });
+}

@@ -89,7 +89,7 @@ export default component$(() => {
   const print = $((ev) => console.log('CLICKED!', ev));
   const increment = $(() => count.value++);
 
-  // The button when clicked will print "CLICKED!" to the console, increment the count and send a event to Google Analytics.
+  // The button when clicked will print "CLICKED!" to the console, increment the count and send an event to Google Analytics.
   return (
     <button
       onClick$={[print, increment, $(() => {
@@ -274,13 +274,13 @@ The purpose of the `window:on`/`document:` is to register an event at a current 
 1. The events can be registered declaratively in your JSX.
 2. The events get automatically cleaned up when the component is destroyed (No explicit bookkeeping and cleanup is needed).
 
-## `useOn[|window|document]` Hook
+## `useOn[window|document]` Hook
 
 - `useOn()`: listen to events on the current component's root element.
 - `useOnWindow()`: listen to events on the `window` object.
 - `useOnDocument()`: listen to events on the `document` object.
 
-`useOn[|window|document]()` hook will add a DOM-based event listener at the component level programmatically. This is often useful when you want to create your own use hooks or if you don't know the event name at the time of compilation.
+`useOn[window|document]()` hook will add a DOM-based event listener at the component level programmatically. This is often useful when you want to create your own use hooks or if you don't know the event name at the time of compilation.
 
 <CodeSandbox src="/src/routes/demo/events/use-on/index.tsx" style={{ height: '10em' }}>
 ```tsx

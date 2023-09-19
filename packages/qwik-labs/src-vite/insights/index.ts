@@ -23,9 +23,9 @@ export async function qwikInsights(qwikInsightsOpts: {
       if (isProd) {
         const qManifest: QwikVitePluginOptions['entryStrategy'] = { type: 'smart' };
         try {
-          const response = await fetch(`${baseUrl}/api/v1/${publicApiKey}/bundles/`);
-          const bundles = await response.json();
-          qManifest.manual = bundles;
+          const response = await fetch(`${baseUrl}/api/v1/${publicApiKey}/bundles/strategy/`);
+          const strategy = await response.json();
+          Object.assign(qManifest, strategy);
         } catch (e) {
           logWarn('fail to fetch manifest from Insights DB');
         }

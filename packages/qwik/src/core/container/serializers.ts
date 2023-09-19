@@ -487,7 +487,7 @@ const MapSerializer: Serializer<Map<any, any>> = {
 
 const StringSerializer: Serializer<string> = {
   $prefix$: '\u001b',
-  $test$: (v) => typeof v === 'string' && prefixes.has(v[0]),
+  $test$: (v) => typeof v === 'string' && startsWithPrefix(v),
   $serialize$: (v) => v,
   $prepare$: (data) => data,
   $fill$: undefined,
@@ -516,7 +516,11 @@ const serializers: Serializer<any>[] = [
   DocumentSerializer, ///////// \u000F
 ];
 
-const prefixes = new Set([UNDEFINED_PREFIX, ...serializers.map((a) => a.$prefix$)]);
+const prefixes = /*#__PURE__*/ serializers.map((a) => a.$prefix$);
+
+const startsWithPrefix = (str: string) => {
+  return prefixes.includes(str[0]);
+};
 
 const collectorSerializers = /*#__PURE__*/ serializers.filter((a) => a.$collect$);
 

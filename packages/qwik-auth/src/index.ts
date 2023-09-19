@@ -141,7 +141,11 @@ async function authAction(
     skipCSRFCheck,
   });
   res.headers.forEach((value, key) => {
-    if (!req.headers.has(key)) {
+    /**
+     * Do not set the header if already set accept in the case of set-cookie which is allowed
+     * https://httpwg.org/specs/rfc6265.html#rfc.section.3
+     */
+    if (!req.headers.has(key) || key === 'set-cookie') {
       req.headers.set(key, value);
     }
   });

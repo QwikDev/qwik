@@ -89,7 +89,7 @@ export default component$(() => {
   const print = $((ev) => console.log('CLICKED!', ev));
   const increment = $(() => count.value++);
 
-  // The button when clicked will print "CLICKED!" to the console, increment the count and send a event to Google Analytics.
+  // The button when clicked will print "CLICKED!" to the console, increment the count and send an event to Google Analytics.
   return (
     <button
       onClick$={[print, increment, $(() => {

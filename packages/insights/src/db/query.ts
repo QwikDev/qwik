@@ -1,53 +1,58 @@
-import { and, eq, isNull, sql, inArray } from 'drizzle-orm';
+import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { type AppDatabase } from '.';
 import {
-  type SymbolDetailRow,
+  computeLatency,
+  createEdgeRow,
+  createRouteRow,
+  delayBucketField,
+  delayColumnSumList,
+  edgeTableDelayCount,
+  latencyBucketField,
+  latencyColumnSumList,
+  latencyColumnSums,
+  listToVector,
+  timelineBucketField,
+  toVector,
+} from './query-helpers';
+import {
   applicationTable,
   edgeTable,
   routesTable,
   symbolDetailTable,
   symbolTable,
+  type SymbolDetailRow,
 } from './schema';
-import {
-  createEdgeRow,
-  delayBucketField,
-  computeLatency,
-  edgeTableDelayCount,
-  latencyBucketField,
-  toVector,
-  latencyColumnSums,
-  delayColumnSums,
-  timelineBucketField,
-  createRouteRow,
-} from './query-helpers';
+import { time } from './logging';
 
 export async function getEdges(
   db: AppDatabase,
   publicApiKey: string,
   { limit, manifestHashes }: { limit?: number; manifestHashes: string[] }
 ) {
-  const where = and(
-    eq(edgeTable.publicApiKey, publicApiKey),
-    inArray(edgeTable.manifestHash, manifestHashes)
-  )!;
-  const query = db
-    .select({
-      from: edgeTable.from,
-      to: edgeTable.to,
-      ...latencyColumnSums,
-      ...delayColumnSums,
-    })
-    .from(edgeTable)
-    .where(where)
-    .groupBy(edgeTable.from, edgeTable.to)
-    .limit(limit || 3000); // TODO: The 3000 limit is due to Turso serialization format not being efficient, upgrade this once Turso is fixed.
-  const rows = await query.all();
-  return rows.map((e) => ({
-    from: e.from,
-    to: e.to,
-    delay: toVector('sumDelayCount', e),
-    latency: toVector('sumLatencyCount', e),
-  }));
+  return time('edgeTable.getEdges', async () => {
+    const where = and(
+      eq(edgeTable.publicApiKey, publicApiKey),
+      inArray(edgeTable.manifestHash, manifestHashes)
+    )!;
+    const query = db
+      .select({
+        from: edgeTable.from,
+        to: edgeTable.to,
+        latencyColumnSumList: latencyColumnSumList,
+        delayColumnSumList: delayColumnSumList,
+      })
+      .from(edgeTable)
+      .where(where)
+      .groupBy(edgeTable.from, edgeTable.to)
+      .limit(limit || 100_000); // TODO: The 100_000 limit is due to Turso serialization format not being efficient, upgrade this once Turso is fixed.
+    const rows = await query.all();
+    return rows.map((e) => ({
+      from: e.from,
+      to: e.to,
+      delay: listToVector(e.delayColumnSumList),
+      latency: listToVector(e.latencyColumnSumList),
+    }));
+  });
 }
 
 export interface SlowEdge {

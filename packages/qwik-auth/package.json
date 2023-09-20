@@ -1,7 +1,7 @@
 {
   "name": "@builder.io/qwik-auth",
   "description": "Qwik Auth is powered by Next's Auth.js a battle tested library for authentication with 3rd party providers",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "bugs": "https://github.com/BuilderIO/qwik/issues",
   "devDependencies": {
     "@auth/core": "^0.13.0",

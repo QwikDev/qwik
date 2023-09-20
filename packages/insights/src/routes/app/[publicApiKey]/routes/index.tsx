@@ -1,4 +1,4 @@
-import { component$ } from '@builder.io/qwik';
+import { component$, type ReadonlySignal } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
 import Histogram from '~/components/histogram';
 import { SymbolTile } from '~/components/symbol-tile';
@@ -17,7 +17,7 @@ export const useRouteData = routeLoader$(async ({ params }) => {
 });
 
 export default component$(() => {
-  const routeData = useRouteData();
+  const routeData: ReadonlySignal<RouteData[]> = useRouteData();
   return (
     <div>
       <ul>

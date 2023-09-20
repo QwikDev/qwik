@@ -329,3 +329,42 @@ What is needed is to load the styles independently from the component. This is w
    - Adding a new instance of a component to the application does not require that we load the styles as they are already included as part of SSR.
 2. The component is rendered on the client for the first time. In that case, the new component does not have styles in the `<head>` as the component was not part of SSR.
    - Adding a new component that was not part of SSR requires that styles are loaded and inserted into `<head>`.
+## Managing Dark theme
+1. In root.tsx file add this code in head tag.
+```html
+<script
+          dangerouslySetInnerHTML={`
+        (function() {
+          function setTheme(theme) {
+            document.documentElement.className = theme;
+            localStorage.setItem('theme', theme);
+          }
+          var theme = localStorage.getItem('theme');
+          if (theme) {
+            setTheme(theme);
+          } else {
+            setTheme('light');
+          }
+        })();
+      `}
+        ></script>
+```
+2. Then you can change the theme by adding this button.
+```html
+<button
+        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+        onClick$={() => {
+          const theme = document.documentElement.className;
+          if (theme === "light") {
+            document.documentElement.className = "dark";
+            localStorage.setItem("theme", "dark");
+          } else {
+            document.documentElement.className = "light";
+            localStorage.setItem("theme", "light");
+          }
+        }}
+      >
+        Toggle Theme
+      </button>
+
+```

@@ -116,7 +116,7 @@ function serializer<T>(serializer: {
   };
 }
 
-const QRLSerializer = serializer<QRLInternal>({
+const QRLSerializer = /*#__PURE__*/ serializer<QRLInternal>({
   $prefix$: '\u0002',
   $test$: (v) => isQrl(v),
   $collect$: (v, collector, leaks) => {
@@ -145,7 +145,7 @@ const QRLSerializer = serializer<QRLInternal>({
   },
 });
 
-const TaskSerializer = serializer<SubscriberEffect>({
+const TaskSerializer = /*#__PURE__*/ serializer<SubscriberEffect>({
   $prefix$: '\u0003',
   $test$: (v) => isSubscriberDescriptor(v),
   $collect$: (v, collector, leaks) => {
@@ -168,7 +168,7 @@ const TaskSerializer = serializer<SubscriberEffect>({
   },
 });
 
-const ResourceSerializer = serializer<ResourceReturnInternal<any>>({
+const ResourceSerializer = /*#__PURE__*/ serializer<ResourceReturnInternal<any>>({
   $prefix$: '\u0004',
   $test$: (v) => isResourceReturn(v),
   $collect$: (obj, collector, leaks) => {
@@ -194,7 +194,7 @@ const ResourceSerializer = serializer<ResourceReturnInternal<any>>({
   },
 });
 
-const URLSerializer = serializer<URL>({
+const URLSerializer = /*#__PURE__*/ serializer<URL>({
   $prefix$: '\u0005',
   $test$: (v) => v instanceof URL,
   $serialize$: (obj) => obj.href,
@@ -202,7 +202,7 @@ const URLSerializer = serializer<URL>({
   $fill$: undefined,
 });
 
-const DateSerializer = serializer<Date>({
+const DateSerializer = /*#__PURE__*/ serializer<Date>({
   $prefix$: '\u0006',
   $test$: (v) => v instanceof Date,
   $serialize$: (obj) => obj.toISOString(),
@@ -210,7 +210,7 @@ const DateSerializer = serializer<Date>({
   $fill$: undefined,
 });
 
-const RegexSerializer = serializer<RegExp>({
+const RegexSerializer = /*#__PURE__*/ serializer<RegExp>({
   $prefix$: '\u0007',
   $test$: (v) => v instanceof RegExp,
   $serialize$: (obj) => `${obj.flags} ${obj.source}`,
@@ -223,7 +223,7 @@ const RegexSerializer = serializer<RegExp>({
   $fill$: undefined,
 });
 
-const ErrorSerializer = serializer<Error>({
+const ErrorSerializer = /*#__PURE__*/ serializer<Error>({
   $prefix$: '\u000E',
   $test$: (v) => v instanceof Error,
   $serialize$: (obj) => {
@@ -237,7 +237,7 @@ const ErrorSerializer = serializer<Error>({
   $fill$: undefined,
 });
 
-const DocumentSerializer = serializer<Document>({
+const DocumentSerializer = /*#__PURE__*/ serializer<Document>({
   $prefix$: '\u000F',
   $test$: (v) => isDocument(v),
   $serialize$: undefined,
@@ -248,7 +248,7 @@ const DocumentSerializer = serializer<Document>({
 });
 
 export const SERIALIZABLE_STATE = Symbol('serializable-data');
-const ComponentSerializer = serializer<Component<any>>({
+const ComponentSerializer = /*#__PURE__*/ serializer<Component<any>>({
   $prefix$: '\u0010',
   $test$: (obj) => isQwikComponent(obj),
   $serialize$: (obj, getObjId) => {
@@ -270,7 +270,7 @@ const ComponentSerializer = serializer<Component<any>>({
   },
 });
 
-const DerivedSignalSerializer = serializer<SignalDerived<any, any[]>>({
+const DerivedSignalSerializer = /*#__PURE__*/ serializer<SignalDerived<any, any[]>>({
   $prefix$: '\u0011',
   $test$: (obj) => obj instanceof SignalDerived,
   $collect$: (obj, collector, leaks) => {
@@ -302,7 +302,7 @@ const DerivedSignalSerializer = serializer<SignalDerived<any, any[]>>({
   },
 });
 
-const SignalSerializer = serializer<SignalImpl<any>>({
+const SignalSerializer = /*#__PURE__*/ serializer<SignalImpl<any>>({
   $prefix$: '\u0012',
   $test$: (v) => v instanceof SignalImpl,
   $collect$: (obj, collector, leaks) => {
@@ -327,7 +327,7 @@ const SignalSerializer = serializer<SignalImpl<any>>({
   },
 });
 
-const SignalWrapperSerializer = serializer<SignalWrapper<any, any>>({
+const SignalWrapperSerializer = /*#__PURE__*/ serializer<SignalWrapper<any, any>>({
   $prefix$: '\u0013',
   $test$: (v) => v instanceof SignalWrapper,
   $collect$(obj, collector, leaks) {
@@ -352,7 +352,7 @@ const SignalWrapperSerializer = serializer<SignalWrapper<any, any>>({
   },
 });
 
-const NoFiniteNumberSerializer = serializer<number>({
+const NoFiniteNumberSerializer = /*#__PURE__*/ serializer<number>({
   $prefix$: '\u0014',
   $test$: (v) => typeof v === 'number',
   $serialize$: (v) => {
@@ -364,7 +364,7 @@ const NoFiniteNumberSerializer = serializer<number>({
   $fill$: undefined,
 });
 
-const URLSearchParamsSerializer = serializer<URLSearchParams>({
+const URLSearchParamsSerializer = /*#__PURE__*/ serializer<URLSearchParams>({
   $prefix$: '\u0015',
   $test$: (v) => v instanceof URLSearchParams,
   $serialize$: (obj) => obj.toString(),
@@ -372,7 +372,7 @@ const URLSearchParamsSerializer = serializer<URLSearchParams>({
   $fill$: undefined,
 });
 
-const FormDataSerializer = serializer<FormData>({
+const FormDataSerializer = /*#__PURE__*/ serializer<FormData>({
   $prefix$: '\u0016',
   $test$: (v) => typeof FormData !== 'undefined' && v instanceof globalThis.FormData,
   $serialize$: (formData) => {
@@ -397,7 +397,7 @@ const FormDataSerializer = serializer<FormData>({
   $fill$: undefined,
 });
 
-const JSXNodeSerializer = serializer<JSXNode>({
+const JSXNodeSerializer = /*#__PURE__*/ serializer<JSXNode>({
   $prefix$: '\u0017',
   $test$: (v) => isJSXNode(v),
   $collect$: (node, collector, leaks) => {
@@ -442,7 +442,7 @@ const JSXNodeSerializer = serializer<JSXNode>({
   },
 });
 
-const BigIntSerializer = serializer<bigint>({
+const BigIntSerializer = /*#__PURE__*/ serializer<bigint>({
   $prefix$: '\u0018',
   $test$: (v) => typeof v === 'bigint',
   $serialize$: (v) => {
@@ -455,7 +455,7 @@ const BigIntSerializer = serializer<bigint>({
 });
 
 const DATA = Symbol();
-const SetSerializer = serializer<Set<any>>({
+const SetSerializer = /*#__PURE__*/ serializer<Set<any>>({
   $prefix$: '\u0019',
   $test$: (v) => v instanceof Set,
   $collect$: (set, collector, leaks) => {
@@ -479,7 +479,7 @@ const SetSerializer = serializer<Set<any>>({
   },
 });
 
-const MapSerializer = serializer<Map<any, any>>({
+const MapSerializer = /*#__PURE__*/ serializer<Map<any, any>>({
   $prefix$: '\u001a',
   $test$: (v) => v instanceof Map,
   $collect$: (map, collector, leaks) => {
@@ -512,7 +512,7 @@ const MapSerializer = serializer<Map<any, any>>({
   },
 });
 
-const StringSerializer = serializer<string>({
+const StringSerializer = /*#__PURE__*/ serializer<string>({
   $prefix$: '\u001b',
   $test$: (v) => !!getSerializer(v) || v === UNDEFINED_PREFIX,
   $serialize$: (v) => v,
@@ -520,7 +520,7 @@ const StringSerializer = serializer<string>({
   $fill$: undefined,
 });
 
-const serializers: Serializer<any>[] = [
+const serializers: Serializer<any>[] = /*#__PURE__*/ [
   // NULL                       \u0000
   // UNDEFINED_PREFIX           \u0001
   QRLSerializer, ////////////// \u0002

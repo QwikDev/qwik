@@ -125,7 +125,7 @@ export const _serializeData = async (data: any, pureQRL?: boolean) => {
     return key + suffix;
   };
 
-  const convertedObjs = serializeObjects(objs, mustGetObjId, collector, containerState);
+  const convertedObjs = serializeObjects(objs, mustGetObjId, null, collector, containerState);
 
   return JSON.stringify({
     _entry: mustGetObjId(data),
@@ -433,7 +433,7 @@ export const _pauseFromContexts = async (
   }
   assertEqual(subs.length, subsMap.size, 'missing subscriptions to serialize', subs, subsMap);
 
-  const convertedObjs = serializeObjects(objs, mustGetObjId, collector, containerState);
+  const convertedObjs = serializeObjects(objs, mustGetObjId, getObjId, collector, containerState);
 
   const meta: SnapshotMeta = {};
   const refs: Record<string, string> = {};
@@ -909,6 +909,7 @@ const isEmptyObj = (obj: Record<string, any>) => {
 function serializeObjects(
   objs: any[],
   mustGetObjId: (obj: any) => string,
+  getObjId: GetObjID | null,
   collector: Collector,
   containerState: any
 ) {
@@ -948,7 +949,14 @@ function serializeObjects(
       if (isSerializableObject(obj)) {
         const output: Record<string, any> = {};
         for (const key in obj) {
-          output[key] = mustGetObjId(obj[key]);
+          if (getObjId) {
+            const id = getObjId(obj[key]);
+            if (id !== null) {
+              output[key] = id;
+            }
+          } else {
+            output[key] = mustGetObjId(obj[key]);
+          }
         }
         return output;
       }

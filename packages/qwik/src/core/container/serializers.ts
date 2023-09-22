@@ -514,7 +514,7 @@ const MapSerializer = serializer<Map<any, any>>({
 
 const StringSerializer = serializer<string>({
   $prefix$: '\u001b',
-  $test$: (v) => !!getSerializer(v),
+  $test$: (v) => !!getSerializer(v) || v === UNDEFINED_PREFIX,
   $serialize$: (v) => v,
   $prepare$: (data) => data,
   $fill$: undefined,

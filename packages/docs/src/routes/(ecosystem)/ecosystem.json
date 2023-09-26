@@ -183,6 +183,12 @@
       "github": "https://github.com/harshmangalam/qwik-spin-delay",
       "imgSrc": "/ecosystem/qwik-spin-delay.png",
       "description": "Smart spinner component for Qwik, to manage the duration of loading states."
+    },
+    {
+      "title": "qwik-image",
+      "github": "https://github.com/qwikifiers/qwik-image",
+      "imgSrc": "/ecosystem/qwik-image-logo.png",
+      "description": "Performant images with automatic optimization."
     }
   ],
   "communities": [

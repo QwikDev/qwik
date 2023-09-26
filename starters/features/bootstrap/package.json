@@ -1,0 +1,33 @@
+{
+  "description": "Boostrap 5 - Build fast, responsive sites with Bootstrap in Qwik App",
+  "__qwik__": {
+    "displayName": "Integration: Boostrap",
+    "priority": -10,
+    "viteConfig": {},
+    "docs": [
+      "https://getbootstrap.com/docs/5.0/getting-started/introduction/"
+    ],
+    "nextSteps": {
+      "lines": [
+        "We start the project with the `start` npm script",
+        "Once started, we access the `/bootstrap/` ",
+        "path to see all demo examples list.",
+        "You can make changes and experiment within ",
+        "`src/routes/bootstrap/index.tsx` to add more examples",
+        "apart from the default ones.",
+        "",
+        "Any changes to the different components or adding new ",
+        "ones will be done within `src/components/bootstrap`.",
+        "",
+        "It is recommended to implement these new functionalities",
+        "following the main Bootstrap guide: https://getbootstrap.com/"
+      ]
+    }
+  },
+  "dependencies": {
+    "bootstrap": "5"
+  },
+  "devDependencies": {
+    "@types/bootstrap": "5"
+  }
+}

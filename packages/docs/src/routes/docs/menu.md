@@ -45,6 +45,7 @@
 
 - [Overview](integrations/index.mdx)
 - [Auth.js](integrations/authjs/index.mdx)
+- [Bootstrap](integrations/bootstrap/index.mdx)
 - [Builder.io](integrations/builderio/index.mdx)
 - [Cypress](integrations/cypress/index.mdx)
 - [Icons](integrations/icons/index.mdx)

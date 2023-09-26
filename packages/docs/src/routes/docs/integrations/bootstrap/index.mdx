@@ -1,0 +1,51 @@
+---
+title: Bootstrap | Integrations
+keywords: 'bootstrap, spinners, alerts, buttons'
+contributors:
+  - mugan86
+---
+
+# Bootstrap
+
+It is a powerful, extensible, and feature-packed frontend toolkit (with HTML, CSS, and JavaScript). Build and customize with Sass, utilize a predefined grid system and components, and bring your projects to life with powerful JavaScript plugins.
+
+More information at [https://getbootstrap.com/](https://getbootstrap.com/)
+
+## Usage
+
+You can add Bootstrap easily by using the following Qwik starter script:
+
+```shell
+npm run qwik add bootstrap
+```
+
+The previous command updates your app with the necessary dependencies.
+
+- `bootstrap@5`
+- `@types/bootstrap@5`
+
+It also adds new files inside to your project folder:
+
+- `src/models/bootstrap.ts`: Model to define Boostrap components info to use in props.
+- `src/constants/data.ts`: Constant values information that we will use in the example to be created with this integration.
+- `src/components/bootstrap/button.tsx`: Button component feature with Bootstrap.
+- `src/components/bootstrap/alert.tsx`: Alert component feature with Bootstrap.
+- `src/components/bootstrap/spinner.tsx`: Spinner component feature with Bootstrap.
+- `src/components/bootstrap/index.ts`: Entry point where we will add the components of the elements that will be used, for easier and cleaner access to them.
+- `src/components/bootstrap/navbar.tsx`: Navbar component functionality with Bootstrap to demonstrate how to add and use JavaScript functionalities without encountering the 'document is not defined' error due to improper import declaration in the Qwik lifecycle.
+- `src/routes/bootstrap/layout.tsx`: Layout where we add Bootstrap styling configuration to ensure styles are applied to all routes nested within the main Bootstrap route.
+- `src/routes/bootstrap/index.tsx`: Boostrap components option home page.
+- `src/routes/bootstrap/buttons/index.tsx`: Example to consume Button component with demo data.
+- `src/routes/bootstrap/alerts/index.tsx`: Example to consume Alert component with demo data.
+- `src/routes/bootstrap/spinners/index.tsx`: Example to consume Spinner component with demo data.
+
+## After integrating Bootstrap
+
+We access to `/bootstrap/` route and there we can find all the examples available in this integration.
+
+## Interesting info about About
+
+### Official
+
+- `Examples`: Examples that we can use as inspiration and learn how to create interesting websites using Bootstrap. [Reference](https://getbootstrap.com/docs/5.3/examples/).
+- `Docs`: All necessary info to work with Bootstrap. [Reference](https://getbootstrap.com/docs/5.3/getting-started/introduction/)

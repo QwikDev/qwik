@@ -1,5 +1,5 @@
 import { component$ } from "@builder.io/qwik";
-import { BsComponentProps } from "~/models/bootstrap";
+import { type BsComponentProps } from "~/models/bootstrap";
 
 export const Alert = component$<BsComponentProps>(({ text, colorVariant }) => (
   <div class={`alert alert-${colorVariant}`} role="alert">

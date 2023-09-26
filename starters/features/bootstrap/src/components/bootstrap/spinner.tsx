@@ -1,5 +1,5 @@
 import { component$ } from "@builder.io/qwik";
-import { BsSpinnerComponentProps } from "~/models/bootstrap";
+import { type BsSpinnerComponentProps } from "~/models/bootstrap";
 
 export const Spinner = component$<BsSpinnerComponentProps>(
   ({ text, colorVariant, growing }) => (

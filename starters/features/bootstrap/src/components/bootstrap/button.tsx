@@ -1,5 +1,5 @@
 import { component$ } from "@builder.io/qwik";
-import { BsComponentProps } from "~/models/bootstrap";
+import { type BsComponentProps } from "~/models/bootstrap";
 
 export const Button = component$<BsComponentProps>(({ text, colorVariant }) => (
   <button type="button" class={`btn btn-${colorVariant}`}>

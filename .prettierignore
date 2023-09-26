@@ -26,6 +26,8 @@ packages/docs/api/**/*
 packages/docs/src/routes/**/*.mdx
 **/server/**/*.js
 starters/**/*.js
+# explicit exclusion for tailwind prettier.config.js
+starters/features/tailwind/*
 packages/docs/server
 packages/docs/src/routes/api
 packages/docs/**/*.md

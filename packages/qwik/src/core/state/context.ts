@@ -11,7 +11,7 @@ import { getDomListeners, type Listener } from './listeners';
 import { seal } from '../util/qdev';
 import { directGetAttribute } from '../render/fast-calls';
 import { isElement } from '../../testing/html';
-import { assertQwikElement, assertTrue } from '../error/assert';
+import { assertQwikElement } from '../error/assert';
 import { QScopedStyle } from '../util/markers';
 import { createPropsState, createProxy, setObjectFlags } from './store';
 import { _IMMUTABLE, _IMMUTABLE_PREFIX, QObjectImmutable } from './constants';
@@ -68,7 +68,6 @@ export const getContext = (el: QwikElement, containerState: ContainerState): QCo
       if (isElement(el)) {
         const refMap = refs[elementID];
         if (refMap) {
-          assertTrue(isElement(el), 'el must be an actual DOM element');
           elCtx.$refMap$ = refMap.split(' ').map(getObject);
           elCtx.li = getDomListeners(elCtx, containerState.$containerEl$);
         }

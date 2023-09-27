@@ -7,6 +7,8 @@ import type {
   RequestEventCommon,
   ResolveValue,
   QwikSerializer,
+  CacheControlTarget,
+  CacheControl,
 } from './types';
 import type {
   ActionInternal,
@@ -151,9 +153,9 @@ export function createRequestEvent(
 
     exit,
 
-    cacheControl: (cacheControl) => {
+    cacheControl: (cacheControl: CacheControl, target: CacheControlTarget = 'Cache-Control') => {
       check();
-      headers.set('Cache-Control', createCacheControl(cacheControl));
+      headers.set(target, createCacheControl(cacheControl));
     },
 
     resolveValue: (async (loaderOrAction: LoaderInternal | ActionInternal) => {

@@ -104,7 +104,8 @@ export interface RequestEventAction<PLATFORM = QwikCityPlatform> extends Request
 // @public (undocumented)
 export interface RequestEventBase<PLATFORM = QwikCityPlatform> {
     readonly basePathname: string;
-    readonly cacheControl: (cacheControl: CacheControl) => void;
+    // Warning: (ae-forgotten-export) The symbol "CacheControlTarget" needs to be exported by the entry point index.d.ts
+    readonly cacheControl: (cacheControl: CacheControl, target?: CacheControlTarget) => void;
     readonly clientConn: ClientConn;
     readonly cookie: Cookie;
     readonly env: EnvGetter;

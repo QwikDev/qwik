@@ -12,6 +12,7 @@
     }
   ],
   "hosting": {
+    "public": "dist",
     "rewrites": [
       {
         "source": "**",

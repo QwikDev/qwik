@@ -10,3 +10,6 @@ RUN rustup update; \
     cargo install wasm-pack; \
     rustup component add clippy; \
     corepack enable --install-directory ~/bin
+
+RUN mkdir /home/circleci/store; \
+    pnpm config set store-dir /home/circleci/store

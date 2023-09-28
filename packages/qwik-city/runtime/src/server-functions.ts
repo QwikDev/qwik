@@ -280,6 +280,17 @@ export const zodQrl = ((
  */
 export const zod$: ZodConstructor = /*#__PURE__*/ implicit$FirstArg(zodQrl) as any;
 
+const deepFreeze = (obj:any) => {
+    const propNames = Object.getOwnPropertyNames(obj);
+    for (const name of propNames) {
+      const value = obj[name];
+      if (value && typeof value === "object") {
+        deepFreeze(value);
+      }
+    }
+  return Object.freeze(obj);
+}
+
 /**
  * @public
  */
@@ -301,52 +312,57 @@ export const serverQrl: ServerConstructorQRL = (qrl: QRL<(...args: any[]) => any
         const requestEvent = useQwikCityEnv()?.ev ?? this ?? _getContextEvent();
         return qrl.apply(requestEvent, args);
       } else {
-        const ctxElm = _getContextElement();
-        const filtered = args.map((arg) => {
-          if (arg instanceof SubmitEvent && arg.target instanceof HTMLFormElement) {
-            return new FormData(arg.target);
-          } else if (arg instanceof Event) {
-            return null;
-          } else if (arg instanceof Node) {
-            return null;
-          }
-          return arg;
-        });
-        const hash = qrl.getHash();
-        const res = await fetch(`?qfunc=${hash}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/qwik-json',
-            'X-QRL': hash,
-          },
-          signal,
-          body: await _serializeData([qrl, ...filtered], false),
-        });
-
-        const contentType = res.headers.get('Content-Type');
-        if (res.ok && contentType === 'text/qwik-json-stream' && res.body) {
-          return (async function* () {
-            try {
-              for await (const result of deserializeStream(
-                res.body!,
-                ctxElm ?? document.documentElement,
-                signal
-              )) {
-                yield result;
-              }
-            } finally {
-              if (!signal?.aborted) {
-                await res.body!.cancel();
-              }
+        try {
+          const ctxElm = _getContextElement();
+          const filtered = args.map((arg) => {
+            if (arg instanceof SubmitEvent && arg.target instanceof HTMLFormElement) {
+              return new FormData(arg.target);
+            } else if (arg instanceof Event) {
+              throw new Error('Cannot serialize instances of Event.');
+            } else if (arg instanceof Node) {
+              throw new Error('Cannot serialize instances of Node.');
             }
-          })();
-        } else if (contentType === 'application/qwik-json') {
-          const str = await res.text();
-          const obj = await _deserializeData(str, ctxElm ?? document.documentElement);
-          if (res.status === 500) {
-            throw obj;
+            return deepFreeze(arg);
+          });
+          const hash = qrl.getHash();
+          const res = await fetch(`?qfunc=${hash}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/qwik-json',
+              'X-QRL': hash,
+            },
+            signal,
+            body: await _serializeData([qrl, ...filtered], false),
+          }); 
+
+          const contentType = res.headers.get('Content-Type');
+          if (res.ok && contentType === 'text/qwik-json-stream' && res.body) {
+            return (async function* () {
+              try {
+                for await (const result of deserializeStream(
+                  res.body!,
+                  ctxElm ?? document.documentElement,
+                  signal
+                )) {
+                  yield result;
+                }
+              } finally {
+                if (!signal?.aborted) {
+                  await res.body!.cancel();
+                }
+              }
+            })();
+          } else if (contentType === 'application/qwik-json') {
+            const str = await res.text();
+            const obj = await _deserializeData(str, ctxElm ?? document.documentElement);
+            if (res.status === 500) {
+              throw obj;
+            }
+            return obj;
           }
-          return obj;
+        }
+        catch (e: any) {
+          throw new Error("Attempted mutation of a serialized value which is not allowed.");
         }
       }
     }) as any;

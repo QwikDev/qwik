@@ -28,22 +28,26 @@ type LoginForm = {
 };
 ```
 
-Since Modular Forms supports Zod for input validation, you can optionally derive the type definition from a schema.
+Since Modular Forms supports [Valibot](https://valibot.dev/) and [Zod](https://zod.dev/) for input validation, you can optionally derive the type definition from a schema.
 
 ```ts
-const loginSchema = z.object({
-  email: z
-    .string()
-    .min(1, 'Please enter your email.')
-    .email('The email address is badly formatted.'),
-  password: z
-    .string()
-    .min(1, 'Please enter your password.')
-    .min(8, 'You password must have 8 characters or more.'),
+import { email, type Input, minLength, object, string } from 'valibot';
+
+const LoginSchema = object({
+  email: string([
+    minLength(1, 'Please enter your email.'),
+    email('The email address is badly formatted.'),
+  ]),
+  password: string([
+    minLength(1, 'Please enter your password.'),
+    minLength(8, 'Your password must have 8 characters or more.'),
+  ]),
 });
 
-type LoginForm = z.infer<typeof loginSchema>;
+type LoginForm = Input<typeof LoginSchema>;
 ```
+
+If you're wondering why this guide favors Valibot over Zod, I recommend reading this [announcement post](https://www.builder.io/blog/introducing-valibot).
 
 ## Set initial values
 
@@ -108,12 +112,14 @@ This API design results in a fully type-safe form. Furthermore, it gives you ful
 
 ## Input validation
 
-One of the core functionalities of Modular Forms is input validation. You can use a Zod schema for this or our internal validation functions. To keep this guide simple, we use the Zod schema we created earlier and pass it to the `useForm` hook.
+One of the core functionalities of Modular Forms is input validation. You can use a Valibot or Zod schema for this or our internal validation functions. To keep this guide simple, we use the Valibot schema we created earlier and pass it to the `useForm` hook.
+
+> `valiForm$` is an adapter that converts Valibot's error messages to the format expected by Modular Forms. For Zod use `zodForm$` instead.
 
 ```ts
 const [loginForm, { Form, Field, FieldArray }] = useForm<LoginForm>({
   loader: useFormLoader(),
-  validate: zodForm$(loginSchema),
+  validate: valiForm$(LoginSchema),
 });
 ```
 
@@ -137,13 +143,13 @@ In the last step you only have to access the values via a function when submitti
 ```tsx
 export const useFormAction = formAction$<LoginForm>((values) => {
   // Runs on server
-}, zodForm$(loginSchema));
+}, valiForm$(LoginSchema));
 
 export default component$(() => {
   const [loginForm, { Form, Field }] = useForm<LoginForm>({
     loader: useFormLoader(),
     action: useFormAction(),
-    validate: zodForm$(loginSchema),
+    validate: valiForm$(LoginSchema),
   });
 
   const handleSubmit = $<SubmitHandler<LoginForm>>((values, event) => {
@@ -167,22 +173,23 @@ If we now put all the building blocks together, we get a working login form. Bel
 // @ts-nocheck
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { $, component$ } from '@builder.io/qwik';
-import { routeLoader$, z } from '@builder.io/qwik-city';
+import { routeLoader$ } from '@builder.io/qwik-city';
 import type { InitialValues, SubmitHandler } from '@modular-forms/qwik';
-import { formAction$, useForm, zodForm$ } from '@modular-forms/qwik';
+import { formAction$, useForm, valiForm$ } from '@modular-forms/qwik';
+import { email, type Input, minLength, object, string } from 'valibot';
 
-const loginSchema = z.object({
-  email: z
-    .string()
-    .min(1, 'Please enter your email.')
-    .email('The email address is badly formatted.'),
-  password: z
-    .string()
-    .min(1, 'Please enter your password.')
-    .min(8, 'You password must have 8 characters or more.'),
+const LoginSchema = object({
+  email: string([
+    minLength(1, 'Please enter your email.'),
+    email('The email address is badly formatted.'),
+  ]),
+  password: string([
+    minLength(1, 'Please enter your password.'),
+    minLength(8, 'Your password must have 8 characters or more.'),
+  ]),
 });
 
-type LoginForm = z.infer<typeof loginSchema>;
+type LoginForm = Input<typeof LoginSchema>;
 
 export const useFormLoader = routeLoader$<InitialValues<LoginForm>>(() => ({
   email: '',
@@ -191,16 +198,16 @@ export const useFormLoader = routeLoader$<InitialValues<LoginForm>>(() => ({
 
 export const useFormAction = formAction$<LoginForm>((values) => {
   // Runs on server
-}, zodForm$(loginSchema));
+}, valiForm$(LoginSchema));
 
 export default component$(() => {
   const [loginForm, { Form, Field }] = useForm<LoginForm>({
     loader: useFormLoader(),
     action: useFormAction(),
-    validate: zodForm$(loginSchema),
+    validate: valiForm$(LoginSchema),
   });
 
-  const handleSubmit = $<SubmitHandler<LoginForm>>((values, event) => {
+  const handleSubmit: SubmitHandler<LoginForm> = $((values, event) => {
     // Runs on client
     console.log(values);
   });

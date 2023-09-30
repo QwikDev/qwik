@@ -16,9 +16,8 @@
     "tags": "saas"
   },
   {
-    "href": "https://www.expobeds.com/",
-    "size": "large",
-    "tags": "conpany"
+    "href": "https://reflect.app/",
+    "tags": "saas"
   },
   {
     "href": "https://jose-aguilar.vercel.app/",
@@ -29,12 +28,9 @@
     "tags": "portfolio"
   },
   {
-    "href": "https://reflect.app/",
-    "tags": "saas"
-  },
-  {
-    "href": "https://realmof.tech/",
-    "tags": "portfolio"
+    "href": "https://qwik-city-movies-wm.netlify.app/",
+    "size": "large",
+    "tags": "app"
   },
   {
     "href": "https://www.hexa.center/",
@@ -89,9 +85,9 @@
     "tags": "portfolio"
   },
   {
-    "href": "https://qwik-city-movies-wm.netlify.app/",
+    "href": "https://www.expobeds.com/",
     "size": "large",
-    "tags": "app"
+    "tags": "company"
   },
   {
     "href": "https://jbnado.dev/",
@@ -173,7 +169,7 @@
   },
   {
     "href": "https://pay4me.app",
-    "tags": "sass"
+    "tags": "saas"
   },
   {
     "href": "https://qwik-osm-poc.netlify.app/",
@@ -206,6 +202,6 @@
   },
   {
     "href": "https://getpolaris.ai/",
-    "tags": "sass"
+    "tags": "saas"
   }
 ]

@@ -64,21 +64,20 @@
     "tags": "saas"
   },
   {
-    "title": "ExpoBeds - Your Expo Hotel Booking And Information Directory",
-    "imgSrc": "/showcases/www_expobeds_com_.webp",
+    "title": "Reflect",
+    "imgSrc": "/showcases/reflect_app_.webp",
     "perf": {
       "score": 0.91,
-      "fcpDisplay": "1.6 s",
-      "fcpScore": 0.94,
-      "lcpDisplay": "3.4 s",
-      "lcpScore": 0.67,
-      "ttiDisplay": "3.9 s",
-      "ttiScore": 0.89,
-      "ttiTime": 3859
+      "fcpDisplay": "1.5 s",
+      "fcpScore": 0.96,
+      "lcpDisplay": "2.1 s",
+      "lcpScore": 0.95,
+      "ttiDisplay": "5.2 s",
+      "ttiScore": 0.75,
+      "ttiTime": 5150.5
     },
-    "href": "https://www.expobeds.com/",
-    "size": "large",
-    "tags": "conpany"
+    "href": "https://reflect.app/",
+    "tags": "saas"
   },
   {
     "title": "Jose Aguilar | Web developer 🚀",
@@ -113,20 +112,21 @@
     "tags": "portfolio"
   },
   {
-    "title": "Reflect",
-    "imgSrc": "/showcases/reflect_app_.webp",
+    "title": "Qwik City Movies",
+    "href": "https://qwik-city-movies-wm.netlify.app/",
+    "imgSrc": "/showcases/qwik-city-movies-wm_netlify_app_.webp",
     "perf": {
-      "score": 0.91,
-      "fcpDisplay": "1.5 s",
-      "fcpScore": 0.96,
-      "lcpDisplay": "2.1 s",
-      "lcpScore": 0.95,
-      "ttiDisplay": "5.2 s",
-      "ttiScore": 0.75,
-      "ttiTime": 5150.5
+      "score": 0.99,
+      "fcpDisplay": "0.9 s",
+      "fcpScore": 1,
+      "lcpDisplay": "2.0 s",
+      "lcpScore": 0.97,
+      "ttiDisplay": "0.9 s",
+      "ttiScore": 1,
+      "ttiTime": 911.5
     },
-    "href": "https://reflect.app/",
-    "tags": "saas"
+    "size": "large",
+    "tags": "app"
   },
   {
     "title": "Hexa Center: Modern EMR (EPD) Solution for your Healthcare Practice",
@@ -325,21 +325,21 @@
     "tags": "portfolio"
   },
   {
-    "title": "Qwik City Movies",
-    "href": "https://qwik-city-movies-wm.netlify.app/",
-    "imgSrc": "/showcases/qwik-city-movies-wm_netlify_app_.webp",
+    "title": "ExpoBeds - Your Expo Hotel Booking And Information Directory",
+    "imgSrc": "/showcases/www_expobeds_com_.webp",
     "perf": {
-      "score": 0.99,
-      "fcpDisplay": "0.9 s",
-      "fcpScore": 1,
-      "lcpDisplay": "2.0 s",
-      "lcpScore": 0.97,
-      "ttiDisplay": "0.9 s",
-      "ttiScore": 1,
-      "ttiTime": 911.5
+      "score": 0.91,
+      "fcpDisplay": "1.6 s",
+      "fcpScore": 0.94,
+      "lcpDisplay": "3.4 s",
+      "lcpScore": 0.67,
+      "ttiDisplay": "3.9 s",
+      "ttiScore": 0.89,
+      "ttiTime": 3859
     },
+    "href": "https://www.expobeds.com/",
     "size": "large",
-    "tags": "app"
+    "tags": "company"
   },
   {
     "title": "Jbnado - João Bernardo",
@@ -661,7 +661,7 @@
       "ttiTime": 4406
     },
     "href": "https://pay4me.app",
-    "tags": "sass"
+    "tags": "saas"
   },
   {
     "title": "OSM POIS - Cities",
@@ -761,6 +761,22 @@
     "tags": "portfolio"
   },
   {
+    "title": "Qwik meet",
+    "imgSrc": "/showcases/qwik-meet_onrender_com_.webp",
+    "perf": {
+      "score": 0.98,
+      "fcpDisplay": "1.9 s",
+      "fcpScore": 0.86,
+      "lcpDisplay": "1.9 s",
+      "lcpScore": 0.97,
+      "ttiDisplay": "1.9 s",
+      "ttiScore": 0.99,
+      "ttiTime": 1946.5
+    },
+    "href": "https://qwik-meet.onrender.com/",
+    "tags": "webrtc"
+  },
+  {
     "title": "Polaris: AI-powered Site Reliability",
     "imgSrc": "/showcases/getpolaris_ai_.webp",
     "perf": {
@@ -774,6 +790,6 @@
       "ttiTime": 5950.25
     },
     "href": "https://getpolaris.ai/",
-    "tags": "sass"
+    "tags": "saas"
   }
 ]

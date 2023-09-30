@@ -214,24 +214,13 @@ If you can't use package linking (npm link) just copy the contents of `packages/
 
 ### Test against the docs site:
 
-1. Go to `packages/docs/package.json` and update:
-
-   ```diff
-
-   -- "@builder.io/qwik": "0.17.4",
-   -- "@builder.io/qwik-city": "0.1.0-beta13",
-
-   ++ "@builder.io/qwik": "workspace:*",
-   ++ "@builder.io/qwik-city": "workspace:*",
-   ```
-
-2. At the root of the Qwik repo folder run:
+1. At the root of the Qwik repo folder run:
 
 ```shell
 pnpm install
 ```
 
-3. Run the docs site:
+2. Run the docs site:
 
 ```shell
 cd packages/docs && pnpm start

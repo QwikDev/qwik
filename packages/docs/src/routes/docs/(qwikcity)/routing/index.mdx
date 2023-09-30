@@ -228,7 +228,7 @@ export default component$(() => {
 
 ### Refreshing
 
-The `Link` with the `reload` prop can be used to refresh the current page.
+The Link component's `reload` prop can be used to refresh the current page.
 You can also call the `nav()` function from the `useNavigate()` hook, without arguments.
 
 ```tsx
@@ -257,6 +257,17 @@ export default component$(() => {
 > When the page refreshes, all the matching `routeLoader$` and server handlers (`onRequest`) will re-execute in the server and the UI will re-render accordingly.
 
 > While refreshing the page, the `isNavigating` boolean from `useLocation()` will be `true` until the page is fully rendered.
+
+### Prefetching
+
+The Link component's `prefetch` prop can be used to improve the perceived performance of the application. Although Qwik pages excel at lazy loading javascript, this feature can come in handy for content-heavy pages or SSR pages that need to wait for database or API calls.
+
+```tsx
+<Link prefetch href="/about">About</Link>
+```
+
+> The current implementation will prefetch on hover and will significantly improve the UX on desktop. We are working on improving this feature so that it can also properly prefetch on mobile when Link components appear on the viewport ([see github issue](https://github.com/BuilderIO/qwik/issues/5240)).
+
 
 ### Scroll Restoration
 

@@ -210,7 +210,7 @@ To use your build in your project, follow these steps:
     yarn link @builder.io/qwik @builder.io/qwik-city
    ```
 
-If you can't use package linking (npm link) just copy the contents of `package/qwik/dist` into your projects' `node_modules/@builder.io/qwik` folder.
+If you can't use package linking (npm link) just copy the contents of `packages/qwik/dist` into your projects' `node_modules/@builder.io/qwik` folder, and/or the contents of `packages/qwik-city/lib` into your projects' `node_modules/@builder.io/qwik-city` folder.
 
 ### Test against the docs site:
 

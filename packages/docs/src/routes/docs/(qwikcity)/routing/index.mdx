@@ -12,6 +12,7 @@ contributors:
   - hamatoyogi
   - jakovljevic-mladen
   - claudioshiver
+  - maiieul
 ---
 
 # Routing
@@ -257,6 +258,16 @@ export default component$(() => {
 > When the page refreshes, all the matching `routeLoader$` and server handlers (`onRequest`) will re-execute in the server and the UI will re-render accordingly.
 
 > While refreshing the page, the `isNavigating` boolean from `useLocation()` will be `true` until the page is fully rendered.
+
+### Prefetching
+
+The Link component's `prefetch` prop can be used to improve the perceived performance of the application. Although Qwik pages excel at lazy loading javascript, this feature can come in handy for content-heavy pages or SSR pages that need to wait for database or API calls.
+
+```tsx
+<Link prefetch href="/about">About</Link>
+```
+
+By simply adding the `prefetch` prop, your Link component will start prefetching the page as soon as the user hovers over the link. If the application is done prefetching when the user clicks on the link, the following page will appear instantly.
 
 ### Scroll Restoration
 

@@ -10,7 +10,7 @@
     "@builder.io/partytown": "^0.8.0",
     "@builder.io/qwik": "github:BuilderIo/qwik-build#main",
     "@builder.io/qwik-city": "github:BuilderIo/qwik-city-build#main",
-    "@builder.io/qwik-labs": "github:BuilderIo/qwik-labs-build#a487845dd5039e3e178f69755f603cbc2edef2c2",
+    "@builder.io/qwik-labs": "github:BuilderIo/qwik-labs-build#main",
     "@builder.io/qwik-react": "0.5.0",
     "@builder.io/sdk-qwik": "^0.4.5",
     "@docsearch/css": "3.3.4",

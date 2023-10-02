@@ -1001,6 +1001,15 @@ renderSSRSuite('component useContextProvider()', async () => {
   );
 });
 
+renderSSRSuite('component useContextProvider() + useContext()', async () => {
+  await testSSR(
+    <ContextWithValueAndUse value="hello bye" />,
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
+      <!--qv q:id=0 q:key=sX:-->hello bye<!--/qv-->
+    </html>`
+  );
+});
+
 renderSSRSuite('component slotted context', async () => {
   await testSSR(
     <body>
@@ -1732,6 +1741,15 @@ export const ContextWithValue = component$((props: { value: string }) => {
       <Slot />
     </>
   );
+});
+
+export const ContextWithValueAndUse = component$((props: { value: string }) => {
+  const value = {
+    value: props.value,
+  };
+  useContextProvider(CTX_VALUE, value);
+  const ctx = useContext(CTX_VALUE);
+  return <>{ctx.value}</>;
 });
 
 export const Context = component$(() => {

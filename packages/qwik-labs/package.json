@@ -51,7 +51,8 @@
     "lint": "eslint \"src/**/*.ts*\"",
     "qwik": "qwik",
     "release": "np",
-    "start": "vite --open --mode ssr"
+    "start": "vite --open --mode ssr",
+    "test.unit": "tsm ../../node_modules/uvu/bin.js src unit.ts --tsmconfig tsm.cjs"
   },
   "type": "module",
   "types": "./lib-types/index.d.ts"

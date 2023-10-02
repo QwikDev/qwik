@@ -89,7 +89,7 @@ export const _deserializeData = (data: string, element?: unknown) => {
 
 export const resumeContainer = (containerEl: Element) => {
   if (!isContainer(containerEl)) {
-    logWarn('Skipping hydration because parent element is not q:container');
+    logWarn('Skipping resuming because parent element is not q:container');
     return;
   }
 
@@ -98,7 +98,7 @@ export const resumeContainer = (containerEl: Element) => {
 
   (containerEl as any)['_qwikjson_'] = null;
   if (!pauseState) {
-    logWarn('Skipping hydration qwik/json metadata was not found.');
+    logWarn('Skipping resuming qwik/json metadata was not found.');
     return;
   }
 
@@ -108,7 +108,7 @@ export const resumeContainer = (containerEl: Element) => {
   if (qDev) {
     const script = getQwikJSON(parentJSON, 'type');
     if (!script) {
-      logWarn('Skipping hydration qwik/json metadata was not found.');
+      logWarn('Skipping resuming qwik/json metadata was not found.');
       return;
     }
   }

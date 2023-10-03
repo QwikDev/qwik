@@ -56,7 +56,7 @@ export default component$(() => {
 `server$` can also read the HTTP cookies, headers, or environment variables, using `this`. In this case you will need to use a function instead of an arrow function.
 
 ```tsx
-// Notice that the wrapped function is declared as a `async function`
+// Notice that the wrapped function is declared as an `async function`
 const addUser = server$(async function(id: number, fullName: string, address: Address) {
   // The `this` is the `RequestEvent` object, which contains
   // the HTTP headers, cookies, and environment variables.

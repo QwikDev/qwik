@@ -57,7 +57,7 @@ export default component$(() => {
 
 ## Show user detail
 
-We will use `routeLoader$` to query an specific users based on the `userId` URL param, using `prisma.user.findUnique()`, and returning the result.
+We will use `routeLoader$` to query specific users based on the `userId` URL param, using `prisma.user.findUnique()`, and returning the result.
 
 
 ```tsx {8} /PrismaClient/ title="src/routes/users/[userId]/index.tsx"

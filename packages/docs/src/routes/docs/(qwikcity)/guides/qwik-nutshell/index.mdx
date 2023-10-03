@@ -55,7 +55,7 @@ export const MyComponent = component$((props: MyComponentProps) => {
       <main
         class={{
           even: count.value % 2 === 0,
-          omode: count.value % 2 === 1,
+          odd: count.value % 2 === 1,
         }}
       >
         <h1>Count: {count.value}</h1>
@@ -166,7 +166,7 @@ Methods that start with `use` are special in Qwik, such as `useSignal()`, `useSt
 
 ## Styling
 
-Qwik supports out of the box, CSS modules, or even tailwind, global CSS imports and lazy loading scoped CSS using `useStyleScoped$()`. CSS Modules are the recommended way to style Qwik components.
+Qwik supports out of the box, CSS modules, or even Tailwind, global CSS imports and lazy loading scoped CSS using `useStylesScoped$()`. CSS Modules are the recommended way to style Qwik components.
 
 ### CSS Modules
 
@@ -195,7 +195,7 @@ Remember that Qwik uses `class` instead of `className` for CSS classes.
 
 The `$(...)` function and any function that end with `$` are special in Qwik, such as: `$()`, `useTask$()`, `useVisibleTask$()`... The `$` at the end represents a lazy loading boundary. There are some rules that apply to the first argument of any `$` function. It is NOT related to jQuery at all.
 
-- The first argument must be a imported variable.
+- The first argument must be an imported variable.
 - The first argument must be a declared variable at the top level of the same module.
 - The first argument must be an expression any variables.
 - If the first argument is a function, it can only capture variables that are declared at the top level of the same module or which value is serializable. Serializable values include: `string`, `number`, `boolean`, `null`, `undefined`, `Array`, `Object`, `Date`, `RegExp`, `Map`, `Set`, `BigInt`, `Promise`, `Error`, `JSX nodes`, `Signal`, `Store` and even HTMLElements.
@@ -215,10 +215,10 @@ export default component$(() => {
     console.log('input', event.target.name, event.target.value);
   });
 
-  // The first argument is a imported identifier.
+  // The first argument is an imported identifier.
   const valid2 = $(importedFunction);
 
-  // The first argument is a identifier declared at the top level of the same module.
+  // The first argument is an identifier declared at the top level of the same module.
   const valid3 = $(exportedFunction);
 
   // The first argument is an expression without local variables.
@@ -275,7 +275,7 @@ export interface Signal<T> {
 export const useSignal: <T>(value?: T | (() => T)): Signal<T>;
 ```
 
-`useSignal(initialValue?)` takes an optional initial value and returns a `Signal<T>` object. The `Signal<T>` object has a `value` property that can be read and written to. When a component or task access the `value` property, it automatically creates a subscription, so when the `value` is changed, every component, task or another computed signals that read the `value` will be re-evaluated.
+`useSignal(initialValue?)` takes an optional initial value and returns a `Signal<T>` object. The `Signal<T>` object has a `value` property that can be read and written to. When a component or task accesses the `value` property, it automatically creates a subscription, so when the `value` is changed, every component, task or another computed signals that read the `value` will be re-evaluated.
 
 ### `useStore(initialValue?)`
 
@@ -340,7 +340,7 @@ export const Counter = component$(() => {
 
 ### `useTask$(() => { ... })`
 
-`useTask$` is used to create an async task. Tasks are useful to implement side effects, running heavy computation and async code as part of the rendering lifecycle. `useTask$` tasks are executed before the first render, and susequently whenever a tracked signal or store changes, the task is re-executed.
+`useTask$` is used to create an async task. Tasks are useful to implement side effects, running heavy computation and async code as part of the rendering lifecycle. `useTask$` tasks are executed before the first render, and subsequently whenever a tracked signal or store changes, the task is re-executed.
 
 ```tsx
 import { component$, useSignal, useTask$ } from '@builder.io/qwik';
@@ -391,7 +391,7 @@ export const Counter = component$(() => {
 
 ### `useVisibleTask$(() => { ... })`
 
-`useVisibleTask$` is used to create a task that happens right AFTER the component is first mounted in the DOM. It's similar to `useTask$` except that it only runs on the client, and it's executed after the first render. Because it's executed after the render, it's ok to inspect the DOM, or use browser APIS.
+`useVisibleTask$` is used to create a task that happens right AFTER the component is first mounted in the DOM. It's similar to `useTask$` except that it only runs on the client, and it's executed after the first render. Because it's executed after the render, it's ok to inspect the DOM, or use browser APIs.
 
 ```tsx
 import { component$, useSignal, useVisibleTask$ } from '@builder.io/qwik';
@@ -399,7 +399,7 @@ import { component$, useSignal, useVisibleTask$ } from '@builder.io/qwik';
 export const Clock = component$(() => {
   const time = useSignal(0);
 
-  // The `useVisibleTask$` hook is used to create a task that runs eagarly on the client.
+  // The `useVisibleTask$` hook is used to create a task that runs eagerly on the client.
   useVisibleTask$((taskContext) => {
     // Since this VisibleTask is not tracking any signals, it will only run once.
 

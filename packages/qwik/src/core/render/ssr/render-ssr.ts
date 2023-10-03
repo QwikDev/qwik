@@ -809,8 +809,7 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
 
   if (tagName === Virtual) {
     const elCtx = createSSRContext(111);
-    elCtx.$parent$ = rCtx.$cmpCtx$;
-    elCtx.$slotParent$ = rCtx.$slotCtx$;
+    elCtx.$parent$ = rCtx.$slotCtx$ ?? rCtx.$cmpCtx$;
     if (hostCtx && hostCtx.$flags$ & HOST_FLAG_DYNAMIC) {
       addDynamicSlot(hostCtx, elCtx);
     }

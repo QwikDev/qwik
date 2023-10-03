@@ -312,7 +312,7 @@ export const resolveContext = <STATE extends object>(
         return found;
       }
     }
-    ctx = ctx.$slotParent$ ?? ctx.$parent$;
+    ctx = ctx.$parent$;
   }
   const value = queryContextFromDom(hostElement!, containerState, contextID);
   return value;

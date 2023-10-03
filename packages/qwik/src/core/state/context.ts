@@ -45,7 +45,6 @@ export interface QContext {
   $slots$: ProcessedJSXNode[] | null;
   $dynamicSlots$: QContext[] | null;
   $parent$: QContext | null;
-  $slotParent$: QContext | null;
 }
 
 export const tryGetContext = (element: QwikElement): QContext | undefined => {
@@ -148,7 +147,6 @@ export const createContext = (element: Element | VirtualElement): QContext => {
     $contexts$: null,
     $dynamicSlots$: null,
     $parent$: null,
-    $slotParent$: null,
   };
   seal(ctx);
   (element as any)[Q_CTX] = ctx;

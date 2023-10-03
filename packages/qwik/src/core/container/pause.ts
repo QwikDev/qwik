@@ -705,7 +705,7 @@ const collectContext = (elCtx: QContext | null, collector: Collector) => {
         collectValue(obj, collector, true);
       }
     }
-    elCtx = elCtx.$slotParent$ ?? elCtx.$parent$;
+    elCtx = elCtx.$parent$;
   }
 };
 

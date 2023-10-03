@@ -686,8 +686,7 @@ const createElm = (
 
   vnode.$elm$ = elm;
   const elCtx = createContext(elm);
-  elCtx.$parent$ = rCtx.$cmpCtx$;
-  elCtx.$slotParent$ = rCtx.$slotCtx$;
+  elCtx.$parent$ = rCtx.$slotCtx$ ?? rCtx.$cmpCtx$;
   if (!isVirtual) {
     if (qDev && qInspector) {
       const dev = vnode.$dev$;

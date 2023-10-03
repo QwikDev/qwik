@@ -71,8 +71,8 @@ const fetch = createQwikCity({ render, qwikCityPlan, manifest });
 export { fetch };
 ```
 
-The compiled middleware will be built in the `server/` directory. Such directory also contains an `_worker.js` file which implements the application's request handling as per the [Cloudflare Pages Advanced Mode](https://developers.cloudflare.com/pages/platform/functions/advanced-mode/#advanced-mode).
-The file simple re-exports the produced `fetch` handler as shown below.
+The compiled middleware will be built in the `server/` directory. Such directory also contains a `_worker.js` file which implements the application's request handling as per the [Cloudflare Pages Advanced Mode](https://developers.cloudflare.com/pages/platform/functions/advanced-mode/#advanced-mode).
+The file simply re-exports the produced `fetch` handler as shown below.
 
 ```tsx title="/dist/_worker.js"
 import { fetch } from "../server/entry.cloudflare-pages";

@@ -14,9 +14,7 @@ import { isElement } from '../../testing/html';
 import { assertQwikElement } from '../error/assert';
 import { QScopedStyle } from '../util/markers';
 import { createPropsState, createProxy, setObjectFlags } from './store';
-import { _IMMUTABLE, _IMMUTABLE_PREFIX, QObjectImmutable } from './constants';
-
-export const Q_CTX = '_qc_';
+import { _IMMUTABLE, _IMMUTABLE_PREFIX, Q_CTX, QObjectImmutable } from './constants';
 
 export interface QContextEvents {
   [eventName: string]: QRL | undefined;
@@ -51,8 +49,8 @@ export interface QContext {
   $vdom$: ProcessedJSXNode | null;
   $slots$: ProcessedJSXNode[] | null;
   $dynamicSlots$: QContext[] | null;
-  /** The Qwik Context of the Virtual parent component */
-  $parentCtx$: QContext | null;
+  /** The Qwik Context of a parent component that has a useContextProvider, null if no parent */
+  $parentCtx$: QContext | null | undefined;
 }
 
 export const tryGetContext = (element: QwikElement): QContext | undefined => {
@@ -154,7 +152,7 @@ export const createContext = (element: Element | VirtualElement): QContext => {
     $componentQrl$: null,
     $contexts$: null,
     $dynamicSlots$: null,
-    $parentCtx$: null,
+    $parentCtx$: undefined,
   } as QContext;
   seal(ctx);
   (element as any)[Q_CTX] = ctx;

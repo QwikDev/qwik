@@ -3,13 +3,18 @@ import { qError, QError_invalidContext, QError_notFoundContext } from '../error/
 import { qDev, qSerialize } from '../util/qdev';
 import { isObject } from '../util/types';
 import { useSequentialScope } from './use-sequential-scope';
-import { getVirtualElement, type QwikElement } from '../render/dom/virtual-element';
-import { isComment } from '../util/element';
 import { assertTrue } from '../error/assert';
 import { verifySerializable } from '../state/common';
 import { getContext, type QContext } from '../state/context';
 import type { ContainerState } from '../container/container';
 import { invoke } from './use-core';
+import {
+  type QwikElement,
+  type VirtualElement,
+  getVirtualElement,
+} from '../render/dom/virtual-element';
+import { isComment } from '../util/element';
+import { Q_CTX, VIRTUAL_SYMBOL } from '../state/constants';
 
 // <docs markdown="../readme.md#ContextId">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -197,10 +202,7 @@ export const useContextProvider = <STATE extends object>(
   if (qDev) {
     validateContext(context);
   }
-  let contexts = elCtx.$contexts$;
-  if (!contexts) {
-    elCtx.$contexts$ = contexts = new Map();
-  }
+  const contexts = (elCtx.$contexts$ ||= new Map());
   if (qDev && qSerialize) {
     verifySerializable(newValue);
   }
@@ -289,20 +291,35 @@ export const useContext: UseContext = <STATE extends object>(
   throw qError(QError_notFoundContext, context.id);
 };
 
-/** Find the wrapping Virtual component in the DOM */
-const findVirtual = (el: QwikElement | null) => {
+/** Find a wrapping Virtual component in the DOM that has contexts */
+const findParentCtx = (el: QwikElement | null, containerState: ContainerState) => {
   let node = el;
   let stack = 1;
-  while (node && !node.hasAttribute('q:container')) {
+  while (node && !node.hasAttribute?.('q:container')) {
     // Walk the siblings backwards, each comment might be the Virtual wrapper component
     while ((node = node.previousSibling as QwikElement | null)) {
       if (isComment(node)) {
+        const virtual = (node as any)[VIRTUAL_SYMBOL] as VirtualElement;
+        if (virtual) {
+          const qtx = (virtual as any)[Q_CTX] as QContext | undefined;
+          if (node === virtual.open) {
+            // We started inside this node so this is our parent
+            return qtx ?? getContext(virtual, containerState);
+          }
+          // This is a sibling, check if it knows our parent
+          if (qtx?.$parentCtx$) {
+            return qtx.$parentCtx$;
+          }
+          // Skip over this entire virtual sibling
+          node = virtual;
+          continue;
+        }
         if (node.data === '/qv') {
           stack++;
         } else if (node.data.startsWith('qv ')) {
           stack--;
           if (stack === 0) {
-            return getVirtualElement(node)!;
+            return getContext(getVirtualElement(node)!, containerState);
           }
         }
       }
@@ -314,6 +331,22 @@ const findVirtual = (el: QwikElement | null) => {
   return null;
 };
 
+const getParentProvider = (ctx: QContext, containerState: ContainerState): QContext | null => {
+  if (ctx.$parentCtx$ === undefined) {
+    // Not fully resumed container, find context from DOM
+    const wrappingCtx = findParentCtx(ctx.$element$, containerState);
+    ctx.$parentCtx$ =
+      !wrappingCtx || wrappingCtx.$contexts$
+        ? wrappingCtx
+        : // Keep trying until we find a provider
+          getParentProvider(wrappingCtx, containerState);
+  } else if (ctx.$parentCtx$ && !ctx.$parentCtx$.$contexts$) {
+    // Fully resumed container, but parent is not a provider: update the reference
+    ctx.$parentCtx$ = getParentProvider(ctx.$parentCtx$, containerState);
+  }
+  return ctx.$parentCtx$;
+};
+
 export const resolveContext = <STATE extends object>(
   context: ContextId<STATE>,
   hostCtx: QContext,
@@ -323,25 +356,13 @@ export const resolveContext = <STATE extends object>(
   if (!hostCtx) {
     return;
   }
-  let ctx: QContext | null = hostCtx;
+  let ctx = hostCtx;
   while (ctx) {
     const found = ctx.$contexts$?.get(contextID);
     if (found) {
       return found;
     }
-    if (ctx.$parentCtx$) {
-      ctx = ctx.$parentCtx$;
-    } else {
-      // Not fully resumed container, find context from DOM
-      const parent = findVirtual(ctx.$element$);
-      if (parent) {
-        const parentCtx = getContext(parent, containerState);
-        ctx.$parentCtx$ = parentCtx;
-        ctx = parentCtx;
-      } else {
-        ctx = null;
-      }
-    }
+    ctx = getParentProvider(ctx, containerState)!;
   }
 };
 

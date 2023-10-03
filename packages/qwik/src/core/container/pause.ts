@@ -698,7 +698,7 @@ export const collectElementData = (
   }
 };
 
-const collectContext = (elCtx: QContext | null, collector: Collector) => {
+const collectContext = (elCtx: QContext | null | undefined, collector: Collector) => {
   while (elCtx) {
     if (elCtx.$contexts$) {
       for (const obj of elCtx.$contexts$.values()) {

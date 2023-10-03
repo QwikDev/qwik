@@ -48,10 +48,9 @@ import {
   HOST_FLAG_NEED_ATTACH_LISTENER,
   HOST_FLAG_DYNAMIC,
   type QContext,
-  Q_CTX,
 } from '../../state/context';
 import { createPropsState, createProxy } from '../../state/store';
-import { _IMMUTABLE, _IMMUTABLE_PREFIX } from '../../state/constants';
+import { Q_CTX, _IMMUTABLE, _IMMUTABLE_PREFIX } from '../../state/constants';
 
 const FLUSH_COMMENT = '<!--qkssr-f-->';
 

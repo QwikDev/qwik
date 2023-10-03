@@ -65,7 +65,7 @@ import {
   useStylesScoped$,
   useTask$,
 } from '@builder.io/qwik';
-import { PortalCloseAPI, PortalAPI } from './portal-provider';
+import { PortalCloseAPIContextId, PortalAPI } from './portal-provider';
 import PopupExampleCSS from './popup-example.css?inline';
 import { useLocation } from '@builder.io/qwik-city';
 
@@ -96,7 +96,7 @@ export default component$(() => {
 export const PopupExample = component$<{ name: string }>(({ name }) => {
   useStylesScoped$(PopupExampleCSS);
   // To close a portal retrieve the close API.
-  const portalClose = useContext(PortalCloseAPI);
+  const portalClose = useContext(PortalCloseAPIContextId);
   return (
     <div class="popup-example">
       <h1>MODAL</h1>
@@ -188,11 +188,11 @@ export const PortalAPI = createContextId<
 export type ContextPair<T> = { id: ContextId<T>; value: T };
 
 // Define public API for closing Portals
-export const PortalCloseAPI =
+export const PortalCloseAPIContextId =
   createContextId<QRL<() => void>>('PortalCloseAPI');
 
 // internal context for managing portals
-const Portals = createContextId<Signal<Portal[]>>('Portals');
+const PortalsContextId = createContextId<Signal<Portal[]>>('Portals');
 
 interface Portal {
   name: string;
@@ -203,7 +203,7 @@ interface Portal {
 
 export const PortalProvider = component$(() => {
   const portals = useSignal<Portal[]>([]);
-  useContextProvider(Portals, portals);
+  useContextProvider(PortalsContextId, portals);
 
   // Provide the public API for the PopupManager for other components.
   useContextProvider(
@@ -218,7 +218,10 @@ export const PortalProvider = component$(() => {
       portal.close = $(() => {
         portals.value = portals.value.filter((p) => p !== portal);
       });
-      portal.contexts.push({ id: PortalCloseAPI, value: portal.close });
+      portal.contexts.push({
+        id: PortalCloseAPIContextId,
+        value: portal.close,
+      });
       portals.value = [...portals.value, portal];
       return portal.close;
     })
@@ -233,13 +236,13 @@ export const PortalProvider = component$(() => {
  * to return back to the <Portal/> after it has been streamed to the client.)
  */
 export const Portal = component$<{ name: string }>(({ name }) => {
-  const portals = useContext(Portals);
+  const portals = useContext(PortalsContextId);
   useStylesScoped$(CSS);
   const myPortals = portals.value.filter((portal) => portal.name === name);
   return (
     <>
       {myPortals.map((portal) => (
-        <div class="modal">
+        <div data-portal={name}>
           <WrapJsxInContext jsx={portal.jsx} contexts={portal.contexts} />
         </div>
       ))}

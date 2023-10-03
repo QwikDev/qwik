@@ -270,7 +270,7 @@ export default component$(() => {
 
 ## `<RouterOutlet>`
 
-The `RouterOutlet` component is responsible for rendering the matched route at a given moment, it uses internally the [`useContent()`](/docs/(qwikcity)/api/index.mdx#usecontent) and to render the current page, as well as all the nested layouts.
+The `RouterOutlet` component is responsible for rendering the matched route at a given moment, it uses internally the [`useContent()`](/docs/(qwikcity)/api/index.mdx#usecontent) to render the current page, as well as all the nested layouts.
 
 This component is usually located as a child of `<body>`, in most of the starters you will find it in the `src/root.tsx` file (refer to the example in `QwikCityProvider`).
 
@@ -278,7 +278,7 @@ This component is usually located as a child of `<body>`, in most of the starter
 
 The `Form` component is a wrapper around the native `<form>` element, and it's designed to work side by side with [Server Actions](/docs/(qwikcity)/action/index.mdx#using-actions-with-form).
 
-Since this component uses the native `<form>` element, it will work with any browser with and without JavaScript enabled, in addition, it enhances the native `<form>` element by capturing the `submit` event and preventing the default behavior, so it will behave like a SPA (Single Page Navigation) instead of a full page reload.
+Since this component uses the native `<form>` element, it will work with any browser with and without JavaScript enabled, in addition, it enhances the native `<form>` element by capturing the `submit` event and preventing the default behavior, so it will behave like an SPA (Single Page Application) instead of a full page reload.
 
 ```tsx title="src/routes/login/index.tsx"
 import { component$ } from '@builder.io/qwik';

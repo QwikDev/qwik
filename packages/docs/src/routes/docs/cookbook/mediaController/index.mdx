@@ -176,7 +176,7 @@ export default component$(() => {
             id="playsInlineCheckbox"
             class="checkbox"
             checked={playsInlineSignal.value}
-            onchange$={() => {
+            onChange$={() => {
               videoElementSignal.value?.pause();
               playsInlineSignal.value = !playsInlineSignal.value;
             }}

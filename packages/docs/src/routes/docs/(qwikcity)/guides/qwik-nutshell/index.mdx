@@ -55,7 +55,7 @@ export const MyComponent = component$((props: MyComponentProps) => {
       <main
         class={{
           even: count.value % 2 === 0,
-          omode: count.value % 2 === 1,
+          odd: count.value % 2 === 1,
         }}
       >
         <h1>Count: {count.value}</h1>
@@ -166,7 +166,7 @@ Methods that start with `use` are special in Qwik, such as `useSignal()`, `useSt
 
 ## Styling
 
-Qwik supports out of the box, CSS modules, or even tailwind, global CSS imports and lazy loading scoped CSS using `useStyleScoped$()`. CSS Modules are the recommended way to style Qwik components.
+Qwik supports out of the box, CSS modules, or even Tailwind, global CSS imports and lazy loading scoped CSS using `useStylesScoped$()`. CSS Modules are the recommended way to style Qwik components.
 
 ### CSS Modules
 
@@ -195,7 +195,7 @@ Remember that Qwik uses `class` instead of `className` for CSS classes.
 
 The `$(...)` function and any function that end with `$` are special in Qwik, such as: `$()`, `useTask$()`, `useVisibleTask$()`... The `$` at the end represents a lazy loading boundary. There are some rules that apply to the first argument of any `$` function. It is NOT related to jQuery at all.
 
-- The first argument must be a imported variable.
+- The first argument must be an imported variable.
 - The first argument must be a declared variable at the top level of the same module.
 - The first argument must be an expression any variables.
 - If the first argument is a function, it can only capture variables that are declared at the top level of the same module or which value is serializable. Serializable values include: `string`, `number`, `boolean`, `null`, `undefined`, `Array`, `Object`, `Date`, `RegExp`, `Map`, `Set`, `BigInt`, `Promise`, `Error`, `JSX nodes`, `Signal`, `Store` and even HTMLElements.
@@ -215,10 +215,10 @@ export default component$(() => {
     console.log('input', event.target.name, event.target.value);
   });
 
-  // The first argument is a imported identifier.
+  // The first argument is an imported identifier.
   const valid2 = $(importedFunction);
 
-  // The first argument is a identifier declared at the top level of the same module.
+  // The first argument is an identifier declared at the top level of the same module.
   const valid3 = $(exportedFunction);
 
   // The first argument is an expression without local variables.
@@ -275,7 +275,7 @@ export interface Signal<T> {
 export const useSignal: <T>(value?: T | (() => T)): Signal<T>;
 ```
 
-`useSignal(initialValue?)` takes an optional initial value and returns a `Signal<T>` object. The `Signal<T>` object has a `value` property that can be read and written to. When a component or task access the `value` property, it automatically creates a subscription, so when the `value` is changed, every component, task or another computed signals that read the `value` will be re-evaluated.
+`useSignal(initialValue?)` takes an optional initial value and returns a `Signal<T>` object. The `Signal<T>` object has a `value` property that can be read and written to. When a component or task accesses the `value` property, it automatically creates a subscription, so when the `value` is changed, every component, task or another computed signals that read the `value` will be re-evaluated.
 
 ### `useStore(initialValue?)`
 
@@ -340,7 +340,7 @@ export const Counter = component$(() => {
 
 ### `useTask$(() => { ... })`
 
-`useTask$` is used to create an async task. Tasks are useful to implement side effects, running heavy computation and async code as part of the rendering lifecycle. `useTask$` tasks are executed before the first render, and susequently whenever a tracked signal or store changes, the task is re-executed.
+`useTask$` is used to create an async task. Tasks are useful to implement side effects, running heavy computation and async code as part of the rendering lifecycle. `useTask$` tasks are executed before the first render, and subsequently whenever a tracked signal or store changes, the task is re-executed.
 
 ```tsx
 import { component$, useSignal, useTask$ } from '@builder.io/qwik';
@@ -391,7 +391,7 @@ export const Counter = component$(() => {
 
 ### `useVisibleTask$(() => { ... })`
 
-`useVisibleTask$` is used to create a task that happens right AFTER the component is first mounted in the DOM. It's similar to `useTask$` except that it only runs on the client, and it's executed after the first render. Because it's executed after the render, it's ok to inspect the DOM, or use browser APIS.
+`useVisibleTask$` is used to create a task that happens right AFTER the component is first mounted in the DOM. It's similar to `useTask$` except that it only runs on the client, and it's executed after the first render. Because it's executed after the render, it's ok to inspect the DOM, or use browser APIs.
 
 ```tsx
 import { component$, useSignal, useVisibleTask$ } from '@builder.io/qwik';
@@ -399,7 +399,7 @@ import { component$, useSignal, useVisibleTask$ } from '@builder.io/qwik';
 export const Clock = component$(() => {
   const time = useSignal(0);
 
-  // The `useVisibleTask$` hook is used to create a task that runs eagarly on the client.
+  // The `useVisibleTask$` hook is used to create a task that runs eagerly on the client.
   useVisibleTask$((taskContext) => {
     // Since this VisibleTask is not tracking any signals, it will only run once.
 
@@ -420,7 +420,7 @@ export const Clock = component$(() => {
 });
 ```
 
-Since Qwik does NOT execute any Javascript on the browser before user interaction, `useVisibleTask$()` is the only API that will run execute eagerly on the client, which is why it's a good place to do things like:
+Since Qwik does NOT execute any Javascript on the browser before user interaction, `useVisibleTask$()` is the only API that will run eagerly on the client, which is why it's a good place to do things like:
 
 - Access DOM APIs
 - Initialize browser-only libraries
@@ -500,7 +500,7 @@ export default component$(() => {
 
 ## Fetching / loading data
 
-The recommended way to load data from the server is to use the `routeLoader$()` function exported from `@builder.io/qwik-city`. The `routeLoader$()` function is used to create a data loader that will be executed on the server before the route is rendered. The return of `routeLoader$()` must exported as a name export from the route file, ie, it can only be used in a `index.tsx`, inside of `src/routes/`.
+The recommended way to load data from the server is to use the `routeLoader$()` function exported from `@builder.io/qwik-city`. The `routeLoader$()` function is used to create a data loader that will be executed on the server before the route is rendered. The return of `routeLoader$()` must be exported as a named export from the route file, ie, it can only be used in a `index.tsx`, inside of `src/routes/`.
 
 ```tsx title="src/routes/user/[userID]/index.tsx"
 
@@ -572,7 +572,7 @@ export const useUserUpdate = routeAction$(async (data, requestContext) => {
 }));
 
 export default component$(() => {
-  // The `useUserUpdate` hook will return a `ActionStore<T>` containing the `value` returned from `routeAction$()`, and some other properties, such as `submit()`, which is used to submit the form programmatically, and `isRunning`. All of these properties are reactive, and will re-render the component whenever they change.
+  // The `useUserUpdate` hook will return an `ActionStore<T>` containing the `value` returned from `routeAction$()`, and some other properties, such as `submit()`, which is used to submit the form programmatically, and `isRunning`. All of these properties are reactive, and will re-render the component whenever they change.
   const userData = useUserUpdate();
   // userData.value is the value returned from `routeAction$()`, which is `undefined` before the form is submitted.
   // userData.formData is the form data that was submitted, it is `undefined` before the form is submitted.
@@ -612,9 +612,9 @@ import { isBrowser } from '@builder.io/qwik/build';
 export default component$(() => {
   const ref = useSignal<Element>();
 
-  // useVisibleTask$ will only run on the browser
+  // useVisibleTask$ will only run in the browser
   useVisibleTask$(() => {
-    // No need to check for `isBrowser` before accessing the DOM, because useVisibleTask$ will only run on the browser
+    // No need to check for `isBrowser` before accessing the DOM, because useVisibleTask$ will only run in the browser
     ref.value?.focus();
     document.title = 'Hello world';
   });
@@ -653,7 +653,7 @@ JSX handlers such as `onClick$` and `onInput$` are only executed on the client. 
 
 ### `isBrowser` conditional
 
-Qwik provides a `isBrowser` boolean exported from `@builder.io/qwik/build`. You can use this to ensure that code only runs on the browser.
+Qwik provides an `isBrowser` boolean exported from `@builder.io/qwik/build`. You can use this to ensure that code only runs in the browser.
 
 ## Run code only on the server
 
@@ -672,7 +672,7 @@ export const useGetProducts = routeLoader$((requestEvent) => {
   return product;
 })
 
-const encryptInServer = server$(function(message: string) {
+const encryptOnServer = server$(function(message: string) {
   // `this` is the `requestEvent
   const secretKey = this.env.get('SECRET_KEY');
   const encryptedMessage = encrypt(message, secretKey);
@@ -699,7 +699,7 @@ export default component$(() => {
       <button
         onClick$={() => {
           // This code will call the server function, and wait for the result
-          const encrypted = await encryptInServer('Hello world');
+          const encrypted = await encryptOnServer('Hello world');
           console.log(encrypted);
         }}
       >
@@ -712,7 +712,7 @@ export default component$(() => {
 
 ### `routeAction$()`
 
-The `routeAction$()` is a special component that is only executed on the server. It's used handle form submissions, and other actions. For example, you can use it to add a user to a database, and then redirect to the user profile page.
+The `routeAction$()` is a special component that is only executed on the server. It's used to handle form submissions, and other actions. For example, you can use it to add a user to a database, and then redirect to the user profile page.
 
 ### `routeLoader$()`
 
@@ -720,7 +720,7 @@ The `routeLoader$()` is a special component that is only executed on the server.
 
 ### `server$((...args) => { ... })`
 
-The `server$()` is a special way to declare functions that only run in the server. If called from the client, they will behave like a RPC call, and will be executed on the server. They can take any serializable arguments, and return any serializable value.
+The `server$()` is a special way to declare functions that only run on the server. If called from the client, they will behave like an RPC call, and will be executed on the server. They can take any serializable arguments, and return any serializable value.
 
 ### `isServer` conditional
 

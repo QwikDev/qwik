@@ -244,8 +244,8 @@ importers:
         specifier: ^11.11.0
         version: 11.11.0(@emotion/react@11.11.1)(@types/react@18.2.17)(react@18.2.0)
       '@modular-forms/qwik':
-        specifier: ^0.12.0
-        version: 0.12.0(@builder.io/qwik-city@1.2.11-dev20230915194738)(@builder.io/qwik@1.2.11)
+        specifier: ^0.21.0
+        version: 0.21.0(@builder.io/qwik-city@1.2.11-dev20230915194738)(@builder.io/qwik@1.2.11)
       '@mui/material':
         specifier: ^5.13.0
         version: 5.13.0(@emotion/react@11.11.1)(@emotion/styled@11.11.0)(@types/react@18.2.17)(react-dom@18.2.0)(react@18.2.0)
@@ -333,6 +333,9 @@ importers:
       uvu:
         specifier: 0.5.6
         version: 0.5.6
+      valibot:
+        specifier: ^0.17.1
+        version: 0.17.1
       vite:
         specifier: 4.4.7
         version: 4.4.7(@types/node@20.4.5)(terser@5.19.2)
@@ -2747,6 +2750,17 @@ packages:
     dependencies:
       '@builder.io/qwik': github.com/BuilderIo/qwik-build/48c1524f9b8dc7a356b1694e5468d389aee7daca(undici@5.22.1)
       '@builder.io/qwik-city': github.com/BuilderIo/qwik-city-build/80b973155c27bf23f16aaf6430aa6bc3170ce414(rollup@3.26.3)
+    dev: false
+
+  /@modular-forms/qwik@0.21.0(@builder.io/qwik-city@1.2.11-dev20230915194738)(@builder.io/qwik@1.2.11):
+    resolution: {integrity: sha512-PJnGnXfAI9JStXZbgAByGOsTTuSkVhjb8FRDgrdHa33zoHOvC5PkA2ymxN7JK1LodKd4FC3c7ZlFv5goYFCKDA==}
+    peerDependencies:
+      '@builder.io/qwik': ^1.2.4
+      '@builder.io/qwik-city': ^1.2.4
+    dependencies:
+      '@builder.io/qwik': github.com/BuilderIo/qwik-build/48c1524f9b8dc7a356b1694e5468d389aee7daca(undici@5.22.1)
+      '@builder.io/qwik-city': github.com/BuilderIo/qwik-city-build/80b973155c27bf23f16aaf6430aa6bc3170ce414(rollup@3.26.3)
+    dev: true
 
   /@mui/base@5.0.0-beta.0(@types/react@18.2.17)(react-dom@18.2.0)(react@18.2.0):
     resolution: {integrity: sha512-ap+juKvt8R8n3cBqd/pGtZydQ4v2I/hgJKnvJRGjpSh3RvsvnDHO4rXov8MHQlH6VqpOekwgilFLGxMZjNTucA==}
@@ -11975,6 +11989,7 @@ packages:
 
   /json-schema-traverse@1.0.0:
     resolution: {integrity: sha512-NM8/P9n3XjXhIZn1lLhkFaACTOURQXjWhV4BA/RnOv8xvgqtqpAX9IO4mRQxSx1Rlo4tqzeqb0sOlruaOy3dug==}
+    requiresBuild: true
     dev: true
 
   /json-stable-stringify-without-jsonify@1.0.1:
@@ -16037,6 +16052,7 @@ packages:
   /require-from-string@2.0.2:
     resolution: {integrity: sha512-Xf0nWe6RseziFMu+Ap9biiUbmplq6S9/p+7w7YXP/JBHhrUDDUhwa+vANyubuqfZWTveU//DYVGsDG7RKL/vEw==}
     engines: {node: '>=0.10.0'}
+    requiresBuild: true
     dev: true
 
   /require-in-the-middle@6.0.0(supports-color@9.4.0):
@@ -18227,6 +18243,10 @@ packages:
   /vali-date@1.0.0:
     resolution: {integrity: sha512-sgECfZthyaCKW10N0fm27cg8HYTFK5qMWgypqkXMQ4Wbl/zZKx7xZICgcoxIIE+WFAP/MBL2EFwC/YvLxw3Zeg==}
     engines: {node: '>=0.10.0'}
+    dev: true
+
+  /valibot@0.17.1:
+    resolution: {integrity: sha512-yfft6fqeB059vNZEdar4tcfU3ZOn4raEec790PTQe1SVfJz5CkZOlMNabkW5MA9Z10SCjUWmxBRz1SMYTGU5yg==}
     dev: true
 
   /validate-npm-package-license@3.0.4:

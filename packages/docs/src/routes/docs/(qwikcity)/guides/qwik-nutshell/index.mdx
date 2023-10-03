@@ -420,7 +420,7 @@ export const Clock = component$(() => {
 });
 ```
 
-Since Qwik does NOT execute any Javascript on the browser before user interaction, `useVisibleTask$()` is the only API that will run execute eagerly on the client, which is why it's a good place to do things like:
+Since Qwik does NOT execute any Javascript on the browser before user interaction, `useVisibleTask$()` is the only API that will run eagerly on the client, which is why it's a good place to do things like:
 
 - Access DOM APIs
 - Initialize browser-only libraries

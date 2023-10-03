@@ -8,7 +8,7 @@ import CodeSandbox, {CodeFile} from '../../../../components/code-sandbox/index.t
 
 # Portal
 
-A common problem in front-end development is to pop up a modal dialog from a component. The complication is that the modal dialog needs to be rendered in a different part of the DOM tree, and the component that triggers the model needs to a way to affect the location of rendering.
+A common problem in front-end development is to pop up a modal dialog from a component. The complication is that the modal dialog needs to be rendered in a different part of the DOM tree, and the component that triggers the modal needs to have a way to affect the location of rendering.
 
 In other frameworks, this is often solved by dedicated API such as [`createPortal()`](https://react.dev/reference/react-dom/createPortal). However such APIs don't work well with server-side rendering and so an alternative approach is needed.
 

@@ -4,7 +4,9 @@
 export interface FunctionComponent<P = Record<string, any>> {
   (props: P, key: string | null, flags: number, dev?: DevJSX): JSXNode | null;
 }
-
+/**
+ * @public
+ */
 export interface DevJSX {
   fileName: string;
   lineNumber: number;

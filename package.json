@@ -1,6 +1,6 @@
 {
   "name": "qwik-monorepo",
-  "version": "1.2.9",
+  "version": "1.2.12",
   "config": {
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
@@ -28,7 +28,7 @@
   },
   "devDependencies": {
     "@builder.io/partytown": "^0.8.0",
-    "@clack/prompts": "^0.6.3",
+    "@clack/prompts": "^0.7.0",
     "@microsoft/api-documenter": "^7.22.30",
     "@microsoft/api-extractor": "7.36.3",
     "@napi-rs/cli": "2.12.1",
@@ -91,9 +91,9 @@
     "node": ">=16.8.0 <18.0.0 || >=18.11",
     "npm": "please-use-pnpm",
     "yarn": "please-use-pnpm",
-    "pnpm": ">=8.0.0"
+    "pnpm": ">=8.6.12"
   },
-  "packageManager": "pnpm@8.6.1",
+  "packageManager": "pnpm@8.6.12",
   "pnpm": {
     "overrides": {
       "vfile": "6.0.1"

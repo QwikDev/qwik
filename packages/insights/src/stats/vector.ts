@@ -66,9 +66,9 @@ export interface Bucket {
   max: number;
   avg: number;
 }
-export const BUCKETS: Bucket[] = (() => {
+const computeBuckets = (maxValue: number, toBucket: (value: number) => number): Bucket[] => {
   const buckets: ReturnType<typeof fromBucket>[] = [];
-  for (let i = 0; i <= MAX_VALUE; i++) {
+  for (let i = 0; i <= maxValue; i++) {
     const bucketIdx = toBucket(i);
     if (bucketIdx < buckets.length) {
       const bucket = buckets[bucketIdx];
@@ -79,7 +79,9 @@ export const BUCKETS: Bucket[] = (() => {
     }
   }
   return buckets;
-})();
+};
+export const BUCKETS: Bucket[] = computeBuckets(MAX_VALUE, toBucket);
+export const TIMELINE_BUCKETS: Bucket[] = computeBuckets(TIMELINE_MAX_VALUE, toBucketTimeline);
 
 export function fromBucket(bucket: number): { min: number; max: number; avg: number } {
   return BUCKETS[Math.min(BUCKETS.length - 1, bucket)];
@@ -114,12 +116,12 @@ export function vectorAdd(dst: number[], src: number[]) {
   return max;
 }
 
-export function vectorAvg(vector: number[]): number {
+export function vectorAvg(vector: number[], buckets: Bucket[] = BUCKETS): number {
   let sum = 0;
   let count = 0;
   for (let i = 0; i < vector.length; i++) {
     const value = vector[i];
-    sum += value * BUCKETS[i].avg;
+    sum += value * buckets[i].avg;
     count += value;
   }
   return sum / count;

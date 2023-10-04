@@ -2,7 +2,7 @@
   "description": "Add Cypress component testing",
   "__qwik__": {
     "displayName": "Integration: Cypress",
-    "priority": -1,
+    "priority": -10,
     "docs": [
       "https://qwik.builder.io/integrations/integration/cypress/",
       "https://docs.cypress.io/guides/getting-started/installing-cypress",

@@ -21,6 +21,7 @@ import { createProxy } from '../state/store';
 import { getProxyTarget } from '../state/common';
 import { isSignal, type Signal } from '../state/signal';
 import { isObject } from '../util/types';
+import { isPromise } from '../util/promises';
 
 /**
  * Options to pass to `useResource$()`
@@ -285,7 +286,7 @@ export const Resource = <T>(props: ResourceProps<T>): JSXNode => {
       }
     }
     promise = resource.value;
-  } else if (resource instanceof Promise) {
+  } else if (isPromise(resource)) {
     promise = resource;
   } else if (isSignal(resource)) {
     promise = Promise.resolve(resource.value);

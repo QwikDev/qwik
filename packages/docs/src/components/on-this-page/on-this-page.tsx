@@ -8,7 +8,14 @@ import { EditIcon } from '../svgs/edit-icon';
 import { GlobalStore } from '../../context';
 import { AlertIcon } from '../svgs/alert-icon';
 
-const QWIK_GROUP = ['components', 'concepts', 'faq', 'getting-started', 'think-qwik'];
+const QWIK_GROUP = [
+  'components',
+  'concepts',
+  'faq',
+  'getting-started',
+  'think-qwik',
+  'deprecated-features',
+];
 
 const QWIK_ADVANCED_GROUP = [
   'containers',
@@ -35,7 +42,6 @@ const QWIKCITY_GROUP = [
   'pages',
   'project-structure',
   'qwikcity',
-  'qwikcity-deprecated-features',
   'route-loader',
   'routing',
   'server$',

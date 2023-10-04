@@ -43,13 +43,31 @@ export function netlifyEdgeAdapter(opts: NetlifyEdgeAdapterOptions = {}): any {
     async generate({ serverOutDir }) {
       if (opts.functionRoutes !== false) {
         // https://docs.netlify.com/edge-functions/create-integration/#generate-declarations
+
+        const excludedPath: string[] = [];
+        if (typeof opts.excludedPath === 'string') {
+          excludedPath.push(opts.excludedPath);
+        } else if (Array.isArray(opts.excludedPath)) {
+          excludedPath.push(...opts.excludedPath);
+        } else {
+          excludedPath.push(
+            '/build/*',
+            '/favicon.ico',
+            '/robots.txt',
+            '/mainifest.json',
+            '/~partytown/*',
+            '/service-worker.js',
+            '/sitemap.xml'
+          );
+        }
+
         const netlifyEdgeManifest = {
           functions: [
             {
               path: basePathname + '*',
               function: 'entry.netlify-edge',
               cache: 'manual',
-              excludedPath: opts.excludedPath || '',
+              excludedPath,
             },
           ],
           version: 1,
@@ -99,8 +117,19 @@ export interface NetlifyEdgeAdapterOptions extends ServerAdapterOptions {
   /**
    * Manually add path pattern that should be excluded from the edge function routes
    * that are created by the 'manifest.json' file.
+   *
+   * If not specified, the following paths are excluded by default:
+   *  /build/*
+   *  /favicon.ico
+   *  /robots.txt
+   *  /mainifest.json
+   *  /~partytown/*
+   *  /service-worker.js
+   *  /sitemap.xml
+   *
+   * https://docs.netlify.com/edge-functions/declarations/#declare-edge-functions-in-netlify-toml
    */
-  excludedPath?: string;
+  excludedPath?: string | string[];
 }
 
 /**

@@ -2,8 +2,8 @@
 // @ts-ignore
 import { RuleTester } from '@typescript-eslint/rule-tester';
 import { fileURLToPath } from 'node:url';
-import { suite } from 'uvu';
 import { rules } from './index';
+import { suite } from 'uvu';
 
 const lintSuite = suite('lint');
 const testConfig = {
@@ -659,6 +659,61 @@ ruleTester.run('jsx-img', rules['jsx-img'], {
     {
       code: `<img src='./file.png' />`,
       errors: [{ messageId: 'noWidthHeight' }],
+    },
+  ],
+});
+
+ruleTester.run('jsx-a', rules['jsx-a'], {
+  valid: [`<a href={value} />`, `<a {...props}/>`],
+  invalid: [
+    {
+      code: `<a/>`,
+      errors: [{ messageId: 'noHref' }],
+    },
+    {
+      code: `<a style='display:block;' />`,
+      errors: [{ messageId: 'noHref' }],
+    },
+  ],
+});
+
+ruleTester.run('qwik/loader-location', rules['loader-location'], {
+  valid: [
+    {
+      filename: './src/routes/index.tsx',
+      code: `
+        import { routeLoader$ } from '@builder.io/qwik-city';
+
+        export const useProductDetails = routeLoader$(async (requestEvent) => {
+          const res = await fetch(\`https://.../products/\${requestEvent.params.productId}\`);
+          const product = await res.json();
+          return product as Product;
+        });
+      `,
+    },
+    {
+      filename: './src/routes/index.tsx',
+      code: `
+        import { routeLoader$ } from "@builder.io/qwik-city";
+        export { useFormLoader };
+        const useFormLoader = routeLoader$(() => {
+          return null;
+        });
+      `,
+    },
+  ],
+  invalid: [
+    {
+      filename: './src/routes/index.tsx',
+      code: `
+        import { routeLoader$ } from '@builder.io/qwik-city';
+        const useProductDetails = routeLoader$(async (requestEvent) => {
+          const res = await fetch(\`https://.../products/\${requestEvent.params.productId}\`);
+          const product = await res.json();
+          return product as Product;
+        });
+      `,
+      errors: [{ messageId: 'missingExport' }],
     },
   ],
 });

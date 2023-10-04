@@ -1,9 +1,8 @@
 import { type QwikVitePluginOptions } from '@builder.io/qwik/optimizer';
-import { existsSync } from 'fs';
+import { existsSync, mkdirSync } from 'fs';
 import { readFile, writeFile } from 'fs/promises';
+import { join } from 'node:path';
 import { PluginOption } from 'vite';
-
-const INSIGHTS_Q_MANIFEST_FILENAME = './dist/q-insights.json';
 
 const logWarn = (message?: any) => {
   console.warn('\x1b[33m%s\x1b[0m', `\n\nQWIK WARN: ${message}\n`);
@@ -15,6 +14,7 @@ export async function qwikInsights(qwikInsightsOpts: {
 }): Promise<PluginOption> {
   const { publicApiKey, baseUrl = 'https://qwik-insights.builder.io' } = qwikInsightsOpts;
   let isProd = false;
+  const outDir = 'dist';
   const vitePlugin: PluginOption = {
     name: 'vite-plugin-qwik-insights',
     enforce: 'pre',
@@ -23,19 +23,22 @@ export async function qwikInsights(qwikInsightsOpts: {
       if (isProd) {
         const qManifest: QwikVitePluginOptions['entryStrategy'] = { type: 'smart' };
         try {
-          const response = await fetch(`${baseUrl}/api/v1/${publicApiKey}/bundles/`);
-          const bundles = await response.json();
-          qManifest.manual = bundles;
+          const response = await fetch(`${baseUrl}/api/v1/${publicApiKey}/bundles/strategy/`);
+          const strategy = await response.json();
+          Object.assign(qManifest, strategy);
         } catch (e) {
           logWarn('fail to fetch manifest from Insights DB');
         }
-        await writeFile(INSIGHTS_Q_MANIFEST_FILENAME, JSON.stringify(qManifest));
+        if (!existsSync(join(process.cwd(), outDir))) {
+          mkdirSync(join(process.cwd(), outDir));
+        }
+        await writeFile(join(process.cwd(), outDir, 'q-insights.json'), JSON.stringify(qManifest));
       }
     },
     closeBundle: async () => {
-      const Q_MANIFEST_FILENAME = './dist/q-manifest.json';
-      if (isProd && existsSync('./dist/q-manifest.json')) {
-        const qManifest = await readFile(Q_MANIFEST_FILENAME, 'utf-8');
+      const path = join(process.cwd(), outDir, 'q-manifest.json');
+      if (isProd && existsSync(path)) {
+        const qManifest = await readFile(path, 'utf-8');
 
         try {
           await fetch(`${baseUrl}/api/v1/${publicApiKey}/post/manifest`, {

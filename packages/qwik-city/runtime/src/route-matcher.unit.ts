@@ -123,3 +123,58 @@ routeMatchSuite('/[...rest] ignore trailing slash', () => {
 });
 
 routeMatchSuite.run();
+
+const regression2951 = suite('routeMatcher/#2951');
+
+regression2951('/[...rest]', () => {
+  equal(matchRoute('/[...rest]', '/'), { rest: '' });
+});
+
+regression2951('/[...rest]/path', () => {
+  equal(matchRoute('/[...rest]/path', '/path'), { rest: '' });
+});
+
+regression2951('[...rest]/path', () => {
+  equal(matchRoute('[...rest]/path', '/path'), { rest: '' });
+});
+
+regression2951('/[...rest]/path', () => {
+  equal(matchRoute('/[...rest]/path', '/a/b/c/path'), { rest: 'a/b/c' });
+});
+
+regression2951('[...rest]/path', () => {
+  equal(matchRoute('[...rest]/path', 'a/b/c/path'), { rest: 'a/b/c' });
+});
+
+regression2951('/[...any]_suffix/path', () => {
+  equal(matchRoute('/[...rest]_suffix/path', '/a/b/c_suffix/path'), { rest: 'a/b/c' });
+});
+
+regression2951('/[...a]/[...b]/path', () => {
+  equal(matchRoute('/[...a]/[...b]/path', '/a/b/c/path'), { a: 'a/b/c', b: '' });
+});
+
+regression2951.run();
+
+const regression5080 = suite('routeMatcher/#5080');
+regression5080('/[...rest]/suffix', () => {
+  equal(matchRoute('/[...rest]/', '/a/b/c/suffix/'), { rest: 'a/b/c/suffix' });
+  equal(matchRoute('/[...rest]/suffix', '/a/b/c/suffix'), { rest: 'a/b/c' });
+  equal(matchRoute('/[...rest]/suffix', '/a/b/c/suffix/'), { rest: 'a/b/c' });
+});
+regression5080.run();
+
+const regression5126 = suite('routeMatcher/#5126');
+regression5126('/[...dynamicOne]/static-segment/[...dynamicTwo]/', () => {
+  equal(
+    matchRoute(
+      '/[...dynamicOne]/static-segment/[...dynamicTwo]/',
+      '/abc/xyz/static-segment/more-dynamic-123/'
+    ),
+    {
+      dynamicOne: 'abc/xyz',
+      dynamicTwo: 'more-dynamic-123',
+    }
+  );
+});
+regression5126.run();

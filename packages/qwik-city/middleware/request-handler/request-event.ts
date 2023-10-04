@@ -7,12 +7,15 @@ import type {
   RequestEventCommon,
   ResolveValue,
   QwikSerializer,
+  CacheControlTarget,
+  CacheControl,
 } from './types';
 import type {
   ActionInternal,
   JSONValue,
   LoadedRoute,
   LoaderInternal,
+  FailReturn,
 } from '../../runtime/src/types';
 import { Cookie } from './cookie';
 import { ErrorResponse } from './error-handler';
@@ -22,6 +25,7 @@ import { createCacheControl } from './cache-control';
 import type { ValueOrPromise } from '@builder.io/qwik';
 import type { QwikManifest, ResolvedManifest } from '@builder.io/qwik/optimizer';
 import { IsQData, QDATA_JSON, QDATA_JSON_LEN } from './user-response';
+import { isPromise } from './../../runtime/src/utils';
 
 const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvMode = Symbol('RequestEvMode');
@@ -70,7 +74,7 @@ export function createRequestEvent(
     while (routeModuleIndex < requestHandlers.length) {
       const moduleRequestHandler = requestHandlers[routeModuleIndex];
       const result = moduleRequestHandler(requestEv);
-      if (result instanceof Promise) {
+      if (isPromise(result)) {
         await result;
       }
       routeModuleIndex++;
@@ -149,9 +153,9 @@ export function createRequestEvent(
 
     exit,
 
-    cacheControl: (cacheControl) => {
+    cacheControl: (cacheControl: CacheControl, target: CacheControlTarget = 'Cache-Control') => {
       check();
-      headers.set('Cache-Control', createCacheControl(cacheControl));
+      headers.set(target, createCacheControl(cacheControl));
     },
 
     resolveValue: (async (loaderOrAction: LoaderInternal | ActionInternal) => {
@@ -212,7 +216,7 @@ export function createRequestEvent(
       return typeof returnData === 'function' ? returnData : () => returnData;
     },
 
-    fail: <T extends Record<string, any>>(statusCode: number, data: T) => {
+    fail: <T extends Record<string, any>>(statusCode: number, data: T): FailReturn<T> => {
       check();
       status = statusCode;
       headers.delete('Cache-Control');

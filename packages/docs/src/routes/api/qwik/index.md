@@ -4,6 +4,18 @@ title: \@builder.io/qwik API Reference
 
 # [API](/api) &rsaquo; @builder.io/qwik
 
+## "bind:checked"
+
+```typescript
+'bind:checked'?: Signal<boolean | undefined>;
+```
+
+## "bind:value"
+
+```typescript
+'bind:value'?: Signal<string | undefined>;
+```
+
 ## "q:slot"
 
 ```typescript
@@ -22,6 +34,52 @@ $: <T,>(expression: T) => QRL<T>;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
 
+## AnchorHTMLAttributes
+
+```typescript
+export interface AnchorHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property             | Modifiers | Type                                                                     | Description  |
+| -------------------- | --------- | ------------------------------------------------------------------------ | ------------ |
+| [download?](#)       |           | any                                                                      | _(Optional)_ |
+| [href?](#)           |           | string \| undefined                                                      | _(Optional)_ |
+| [hrefLang?](#)       |           | string \| undefined                                                      | _(Optional)_ |
+| [media?](#)          |           | string \| undefined                                                      | _(Optional)_ |
+| [ping?](#)           |           | string \| undefined                                                      | _(Optional)_ |
+| [referrerPolicy?](#) |           | [HTMLAttributeReferrerPolicy](#htmlattributereferrerpolicy) \| undefined | _(Optional)_ |
+| [rel?](#)            |           | string \| undefined                                                      | _(Optional)_ |
+| [target?](#)         |           | [HTMLAttributeAnchorTarget](#htmlattributeanchortarget) \| undefined     | _(Optional)_ |
+| [type?](#)           |           | string \| undefined                                                      | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## AreaHTMLAttributes
+
+```typescript
+export interface AreaHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property             | Modifiers | Type                                                                     | Description  |
+| -------------------- | --------- | ------------------------------------------------------------------------ | ------------ |
+| [alt?](#)            |           | string \| undefined                                                      | _(Optional)_ |
+| [children?](#)       |           | undefined                                                                | _(Optional)_ |
+| [coords?](#)         |           | string \| undefined                                                      | _(Optional)_ |
+| [download?](#)       |           | any                                                                      | _(Optional)_ |
+| [href?](#)           |           | string \| undefined                                                      | _(Optional)_ |
+| [hrefLang?](#)       |           | string \| undefined                                                      | _(Optional)_ |
+| [media?](#)          |           | string \| undefined                                                      | _(Optional)_ |
+| [referrerPolicy?](#) |           | [HTMLAttributeReferrerPolicy](#htmlattributereferrerpolicy) \| undefined | _(Optional)_ |
+| [rel?](#)            |           | string \| undefined                                                      | _(Optional)_ |
+| [shape?](#)          |           | string \| undefined                                                      | _(Optional)_ |
+| [target?](#)         |           | string \| undefined                                                      | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
 ## AriaAttributes
 
 ```typescript
@@ -31,9 +89,9 @@ export interface AriaAttributes
 | Property                      | Modifiers | Type                                                                                                                                                                                    | Description                                                                                                                                                                                                                       |
 | ----------------------------- | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | ["aria-activedescendant"?](#) |           | string \| undefined                                                                                                                                                                     | _(Optional)_ Identifies the currently active element when DOM focus is on a composite widget, textbox, group, or application.                                                                                                     |
-| ["aria-atomic"?](#)           |           | Booleanish \| undefined                                                                                                                                                                 | _(Optional)_ Indicates whether assistive technologies will present all, or only parts of, the changed region based on the change notifications defined by the aria-relevant attribute.                                            |
+| ["aria-atomic"?](#)           |           | [Booleanish](#booleanish) \| undefined                                                                                                                                                  | _(Optional)_ Indicates whether assistive technologies will present all, or only parts of, the changed region based on the change notifications defined by the aria-relevant attribute.                                            |
 | ["aria-autocomplete"?](#)     |           | 'none' \| 'inline' \| 'list' \| 'both' \| undefined                                                                                                                                     | _(Optional)_ Indicates whether inputting text could trigger display of one or more predictions of the user's intended value for an input and specifies how predictions would be presented if they are made.                       |
-| ["aria-busy"?](#)             |           | Booleanish \| undefined                                                                                                                                                                 | _(Optional)_ Indicates an element is being modified and that assistive technologies MAY want to wait until the modifications are complete before exposing them to the user.                                                       |
+| ["aria-busy"?](#)             |           | [Booleanish](#booleanish) \| undefined                                                                                                                                                  | _(Optional)_ Indicates an element is being modified and that assistive technologies MAY want to wait until the modifications are complete before exposing them to the user.                                                       |
 | ["aria-checked"?](#)          |           | boolean \| 'false' \| 'mixed' \| 'true' \| undefined                                                                                                                                    | _(Optional)_ Indicates the current "checked" state of checkboxes, radio buttons, and other widgets.                                                                                                                               |
 | ["aria-colcount"?](#)         |           | number \| undefined                                                                                                                                                                     | _(Optional)_ Defines the total number of columns in a table, grid, or treegrid.                                                                                                                                                   |
 | ["aria-colindex"?](#)         |           | number \| undefined                                                                                                                                                                     | _(Optional)_ Defines an element's column index or position with respect to the total number of columns within a table, grid, or treegrid.                                                                                         |
@@ -42,36 +100,36 @@ export interface AriaAttributes
 | ["aria-current"?](#)          |           | boolean \| 'false' \| 'true' \| 'page' \| 'step' \| 'location' \| 'date' \| 'time' \| undefined                                                                                         | _(Optional)_ Indicates the element that represents the current item within a container or set of related elements.                                                                                                                |
 | ["aria-describedby"?](#)      |           | string \| undefined                                                                                                                                                                     | _(Optional)_ Identifies the element (or elements) that describes the object.                                                                                                                                                      |
 | ["aria-details"?](#)          |           | string \| undefined                                                                                                                                                                     | _(Optional)_ Identifies the element that provides a detailed, extended description for the object.                                                                                                                                |
-| ["aria-disabled"?](#)         |           | Booleanish \| undefined                                                                                                                                                                 | _(Optional)_ Indicates that the element is perceivable but disabled, so it is not editable or otherwise operable.                                                                                                                 |
+| ["aria-disabled"?](#)         |           | [Booleanish](#booleanish) \| undefined                                                                                                                                                  | _(Optional)_ Indicates that the element is perceivable but disabled, so it is not editable or otherwise operable.                                                                                                                 |
 | ["aria-dropeffect"?](#)       |           | 'none' \| 'copy' \| 'execute' \| 'link' \| 'move' \| 'popup' \| undefined                                                                                                               | _(Optional)_ Indicates what functions can be performed when a dragged object is released on the drop target.                                                                                                                      |
 | ["aria-errormessage"?](#)     |           | string \| undefined                                                                                                                                                                     | _(Optional)_ Identifies the element that provides an error message for the object.                                                                                                                                                |
-| ["aria-expanded"?](#)         |           | Booleanish \| undefined                                                                                                                                                                 | _(Optional)_ Indicates whether the element, or another grouping element it controls, is currently expanded or collapsed.                                                                                                          |
+| ["aria-expanded"?](#)         |           | [Booleanish](#booleanish) \| undefined                                                                                                                                                  | _(Optional)_ Indicates whether the element, or another grouping element it controls, is currently expanded or collapsed.                                                                                                          |
 | ["aria-flowto"?](#)           |           | string \| undefined                                                                                                                                                                     | _(Optional)_ Identifies the next element (or elements) in an alternate reading order of content which, at the user's discretion, allows assistive technology to override the general default of reading in document source order. |
-| ["aria-grabbed"?](#)          |           | Booleanish \| undefined                                                                                                                                                                 | _(Optional)_ Indicates an element's "grabbed" state in a drag-and-drop operation.                                                                                                                                                 |
+| ["aria-grabbed"?](#)          |           | [Booleanish](#booleanish) \| undefined                                                                                                                                                  | _(Optional)_ Indicates an element's "grabbed" state in a drag-and-drop operation.                                                                                                                                                 |
 | ["aria-haspopup"?](#)         |           | boolean \| 'false' \| 'true' \| 'menu' \| 'listbox' \| 'tree' \| 'grid' \| 'dialog' \| undefined                                                                                        | _(Optional)_ Indicates the availability and type of interactive popup element, such as menu or dialog, that can be triggered by an element.                                                                                       |
-| ["aria-hidden"?](#)           |           | Booleanish \| undefined                                                                                                                                                                 | _(Optional)_ Indicates whether the element is exposed to an accessibility API.                                                                                                                                                    |
+| ["aria-hidden"?](#)           |           | [Booleanish](#booleanish) \| undefined                                                                                                                                                  | _(Optional)_ Indicates whether the element is exposed to an accessibility API.                                                                                                                                                    |
 | ["aria-invalid"?](#)          |           | boolean \| 'false' \| 'true' \| 'grammar' \| 'spelling' \| undefined                                                                                                                    | _(Optional)_ Indicates the entered value does not conform to the format expected by the application.                                                                                                                              |
 | ["aria-keyshortcuts"?](#)     |           | string \| undefined                                                                                                                                                                     | _(Optional)_ Indicates keyboard shortcuts that an author has implemented to activate or give focus to an element.                                                                                                                 |
 | ["aria-label"?](#)            |           | string \| undefined                                                                                                                                                                     | _(Optional)_ Defines a string value that labels the current element.                                                                                                                                                              |
 | ["aria-labelledby"?](#)       |           | string \| undefined                                                                                                                                                                     | _(Optional)_ Identifies the element (or elements) that labels the current element.                                                                                                                                                |
 | ["aria-level"?](#)            |           | number \| undefined                                                                                                                                                                     | _(Optional)_ Defines the hierarchical level of an element within a structure.                                                                                                                                                     |
 | ["aria-live"?](#)             |           | 'off' \| 'assertive' \| 'polite' \| undefined                                                                                                                                           | _(Optional)_ Indicates that an element will be updated, and describes the types of updates the user agents, assistive technologies, and user can expect from the live region.                                                     |
-| ["aria-modal"?](#)            |           | Booleanish \| undefined                                                                                                                                                                 | _(Optional)_ Indicates whether an element is modal when displayed.                                                                                                                                                                |
-| ["aria-multiline"?](#)        |           | Booleanish \| undefined                                                                                                                                                                 | _(Optional)_ Indicates whether a text box accepts multiple lines of input or only a single line.                                                                                                                                  |
-| ["aria-multiselectable"?](#)  |           | Booleanish \| undefined                                                                                                                                                                 | _(Optional)_ Indicates that the user may select more than one item from the current selectable descendants.                                                                                                                       |
+| ["aria-modal"?](#)            |           | [Booleanish](#booleanish) \| undefined                                                                                                                                                  | _(Optional)_ Indicates whether an element is modal when displayed.                                                                                                                                                                |
+| ["aria-multiline"?](#)        |           | [Booleanish](#booleanish) \| undefined                                                                                                                                                  | _(Optional)_ Indicates whether a text box accepts multiple lines of input or only a single line.                                                                                                                                  |
+| ["aria-multiselectable"?](#)  |           | [Booleanish](#booleanish) \| undefined                                                                                                                                                  | _(Optional)_ Indicates that the user may select more than one item from the current selectable descendants.                                                                                                                       |
 | ["aria-orientation"?](#)      |           | 'horizontal' \| 'vertical' \| undefined                                                                                                                                                 | _(Optional)_ Indicates whether the element's orientation is horizontal, vertical, or unknown/ambiguous.                                                                                                                           |
 | ["aria-owns"?](#)             |           | string \| undefined                                                                                                                                                                     | _(Optional)_ Identifies an element (or elements) in order to define a visual, functional, or contextual parent/child relationship between DOM elements where the DOM hierarchy cannot be used to represent the relationship.      |
 | ["aria-placeholder"?](#)      |           | string \| undefined                                                                                                                                                                     | _(Optional)_ Defines a short hint (a word or short phrase) intended to aid the user with data entry when the control has no value. A hint could be a sample value or a brief description of the expected format.                  |
 | ["aria-posinset"?](#)         |           | number \| undefined                                                                                                                                                                     | _(Optional)_ Defines an element's number or position in the current set of listitems or treeitems. Not required if all elements in the set are present in the DOM.                                                                |
 | ["aria-pressed"?](#)          |           | boolean \| 'false' \| 'mixed' \| 'true' \| undefined                                                                                                                                    | _(Optional)_ Indicates the current "pressed" state of toggle buttons.                                                                                                                                                             |
-| ["aria-readonly"?](#)         |           | Booleanish \| undefined                                                                                                                                                                 | _(Optional)_ Indicates that the element is not editable, but is otherwise operable.                                                                                                                                               |
+| ["aria-readonly"?](#)         |           | [Booleanish](#booleanish) \| undefined                                                                                                                                                  | _(Optional)_ Indicates that the element is not editable, but is otherwise operable.                                                                                                                                               |
 | ["aria-relevant"?](#)         |           | 'additions' \| 'additions removals' \| 'additions text' \| 'all' \| 'removals' \| 'removals additions' \| 'removals text' \| 'text' \| 'text additions' \| 'text removals' \| undefined | _(Optional)_ Indicates what notifications the user agent will trigger when the accessibility tree within a live region is modified.                                                                                               |
-| ["aria-required"?](#)         |           | Booleanish \| undefined                                                                                                                                                                 | _(Optional)_ Indicates that user input is required on the element before a form may be submitted.                                                                                                                                 |
+| ["aria-required"?](#)         |           | [Booleanish](#booleanish) \| undefined                                                                                                                                                  | _(Optional)_ Indicates that user input is required on the element before a form may be submitted.                                                                                                                                 |
 | ["aria-roledescription"?](#)  |           | string \| undefined                                                                                                                                                                     | _(Optional)_ Defines a human-readable, author-localized description for the role of an element.                                                                                                                                   |
 | ["aria-rowcount"?](#)         |           | number \| undefined                                                                                                                                                                     | _(Optional)_ Defines the total number of rows in a table, grid, or treegrid.                                                                                                                                                      |
 | ["aria-rowindex"?](#)         |           | number \| undefined                                                                                                                                                                     | _(Optional)_ Defines an element's row index or position with respect to the total number of rows within a table, grid, or treegrid.                                                                                               |
 | ["aria-rowspan"?](#)          |           | number \| undefined                                                                                                                                                                     | _(Optional)_ Defines the number of rows spanned by a cell or gridcell within a table, grid, or treegrid.                                                                                                                          |
-| ["aria-selected"?](#)         |           | Booleanish \| undefined                                                                                                                                                                 | _(Optional)_ Indicates the current "selected" state of various widgets.                                                                                                                                                           |
+| ["aria-selected"?](#)         |           | [Booleanish](#booleanish) \| undefined                                                                                                                                                  | _(Optional)_ Indicates the current "selected" state of various widgets.                                                                                                                                                           |
 | ["aria-setsize"?](#)          |           | number \| undefined                                                                                                                                                                     | _(Optional)_ Defines the number of items in the current set of listitems or treeitems. Not required if all elements in the set are present in the DOM.                                                                            |
 | ["aria-sort"?](#)             |           | 'none' \| 'ascending' \| 'descending' \| 'other' \| undefined                                                                                                                           | _(Optional)_ Indicates if items in a table or grid are sorted in ascending or descending order.                                                                                                                                   |
 | ["aria-valuemax"?](#)         |           | number \| undefined                                                                                                                                                                     | _(Optional)_ Defines the maximum allowed value for a range widget.                                                                                                                                                                |
@@ -159,6 +217,78 @@ export type AriaRole =
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
+## AudioHTMLAttributes
+
+```typescript
+export interface AudioHTMLAttributes<T extends Element> extends MediaHTMLAttributes<T>
+```
+
+**Extends:** [MediaHTMLAttributes](#mediahtmlattributes)&lt;T&gt;
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## BaseHTMLAttributes
+
+```typescript
+export interface BaseHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property       | Modifiers | Type                | Description  |
+| -------------- | --------- | ------------------- | ------------ |
+| [children?](#) |           | undefined           | _(Optional)_ |
+| [href?](#)     |           | string \| undefined | _(Optional)_ |
+| [target?](#)   |           | string \| undefined | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## BlockquoteHTMLAttributes
+
+```typescript
+export interface BlockquoteHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property   | Modifiers | Type                | Description  |
+| ---------- | --------- | ------------------- | ------------ |
+| [cite?](#) |           | string \| undefined | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## Booleanish
+
+```typescript
+export type Booleanish = boolean | `${boolean}`;
+```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## ButtonHTMLAttributes
+
+```typescript
+export interface ButtonHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property             | Modifiers | Type                                                         | Description  |
+| -------------------- | --------- | ------------------------------------------------------------ | ------------ |
+| [autoFocus?](#)      |           | boolean \| undefined                                         | _(Optional)_ |
+| [disabled?](#)       |           | boolean \| undefined                                         | _(Optional)_ |
+| [form?](#)           |           | string \| undefined                                          | _(Optional)_ |
+| [formAction?](#)     |           | string \| undefined                                          | _(Optional)_ |
+| [formEncType?](#)    |           | string \| undefined                                          | _(Optional)_ |
+| [formMethod?](#)     |           | string \| undefined                                          | _(Optional)_ |
+| [formNoValidate?](#) |           | boolean \| undefined                                         | _(Optional)_ |
+| [formTarget?](#)     |           | string \| undefined                                          | _(Optional)_ |
+| [name?](#)           |           | string \| undefined                                          | _(Optional)_ |
+| [type?](#)           |           | 'submit' \| 'reset' \| 'button' \| undefined                 | _(Optional)_ |
+| [value?](#)          |           | string \| ReadonlyArray&lt;string&gt; \| number \| undefined | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
 ## cache
 
 ```typescript
@@ -172,6 +302,21 @@ cache(policyOrMilliseconds: number | 'immutable'): void;
 **Returns:**
 
 void
+
+## CanvasHTMLAttributes
+
+```typescript
+export interface CanvasHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property     | Modifiers | Type                       | Description  |
+| ------------ | --------- | -------------------------- | ------------ |
+| [height?](#) |           | [Size](#size) \| undefined | _(Optional)_ |
+| [width?](#)  |           | [Size](#size) \| undefined | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## ClassList
 
@@ -190,6 +335,36 @@ cleanup(): void;
 **Returns:**
 
 void
+
+## ColgroupHTMLAttributes
+
+```typescript
+export interface ColgroupHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property   | Modifiers | Type                | Description  |
+| ---------- | --------- | ------------------- | ------------ |
+| [span?](#) |           | number \| undefined | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## ColHTMLAttributes
+
+```typescript
+export interface ColHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property       | Modifiers | Type                       | Description  |
+| -------------- | --------- | -------------------------- | ------------ |
+| [children?](#) |           | undefined                  | _(Optional)_ |
+| [span?](#)     |           | number \| undefined        | _(Optional)_ |
+| [width?](#)    |           | [Size](#size) \| undefined | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## Component
 
@@ -468,6 +643,78 @@ export interface CSSProperties extends CSS.Properties<string | number>, CSS.Prop
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
+## DataHTMLAttributes
+
+```typescript
+export interface DataHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property    | Modifiers | Type                                                         | Description  |
+| ----------- | --------- | ------------------------------------------------------------ | ------------ |
+| [value?](#) |           | string \| ReadonlyArray&lt;string&gt; \| number \| undefined | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## DelHTMLAttributes
+
+```typescript
+export interface DelHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property       | Modifiers | Type                | Description  |
+| -------------- | --------- | ------------------- | ------------ |
+| [cite?](#)     |           | string \| undefined | _(Optional)_ |
+| [dateTime?](#) |           | string \| undefined | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## DetailsHTMLAttributes
+
+```typescript
+export interface DetailsHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property   | Modifiers | Type                 | Description  |
+| ---------- | --------- | -------------------- | ------------ |
+| [open?](#) |           | boolean \| undefined | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## DevJSX
+
+```typescript
+export interface DevJSX
+```
+
+| Property          | Modifiers | Type   | Description  |
+| ----------------- | --------- | ------ | ------------ |
+| [columnNumber](#) |           | number |              |
+| [fileName](#)     |           | string |              |
+| [lineNumber](#)   |           | number |              |
+| [stack?](#)       |           | string | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-node.ts)
+
+## DialogHTMLAttributes
+
+```typescript
+export interface DialogHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property   | Modifiers | Type                 | Description  |
+| ---------- | --------- | -------------------- | ------------ |
+| [open?](#) |           | boolean \| undefined | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
 ## DOMAttributes
 
 ```typescript
@@ -509,6 +756,24 @@ interface ElementChildrenAttribute
 | -------------- | --------- | ---- | ------------ |
 | [children?](#) |           | any  | _(Optional)_ |
 
+## EmbedHTMLAttributes
+
+```typescript
+export interface EmbedHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property       | Modifiers | Type                       | Description  |
+| -------------- | --------- | -------------------------- | ------------ |
+| [children?](#) |           | undefined                  | _(Optional)_ |
+| [height?](#)   |           | [Size](#size) \| undefined | _(Optional)_ |
+| [src?](#)      |           | string \| undefined        | _(Optional)_ |
+| [type?](#)     |           | string \| undefined        | _(Optional)_ |
+| [width?](#)    |           | [Size](#size) \| undefined | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
 ## ErrorBoundaryStore
 
 ```typescript
@@ -536,6 +801,43 @@ eventQrl: <T,>(qrl: QRL<T>) => QRL<T>;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
+
+## FieldsetHTMLAttributes
+
+```typescript
+export interface FieldsetHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property       | Modifiers | Type                 | Description  |
+| -------------- | --------- | -------------------- | ------------ |
+| [disabled?](#) |           | boolean \| undefined | _(Optional)_ |
+| [form?](#)     |           | string \| undefined  | _(Optional)_ |
+| [name?](#)     |           | string \| undefined  | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## FormHTMLAttributes
+
+```typescript
+export interface FormHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property            | Modifiers | Type                                                            | Description  |
+| ------------------- | --------- | --------------------------------------------------------------- | ------------ |
+| [acceptCharset?](#) |           | string \| undefined                                             | _(Optional)_ |
+| [action?](#)        |           | string \| undefined                                             | _(Optional)_ |
+| [autoComplete?](#)  |           | 'on' \| 'off' \| Omit&lt;'on' \| 'off', string&gt; \| undefined | _(Optional)_ |
+| [encType?](#)       |           | string \| undefined                                             | _(Optional)_ |
+| [method?](#)        |           | string \| undefined                                             | _(Optional)_ |
+| [name?](#)          |           | string \| undefined                                             | _(Optional)_ |
+| [noValidate?](#)    |           | boolean \| undefined                                            | _(Optional)_ |
+| [target?](#)        |           | string \| undefined                                             | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## Fragment
 
@@ -658,6 +960,50 @@ export declare namespace h
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/factory.ts)
 
+## HrHTMLAttributes
+
+```typescript
+export interface HrHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property       | Modifiers | Type      | Description  |
+| -------------- | --------- | --------- | ------------ |
+| [children?](#) |           | undefined | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## HTMLAttributeAnchorTarget
+
+```typescript
+export type HTMLAttributeAnchorTarget =
+  | "_self"
+  | "_blank"
+  | "_parent"
+  | "_top"
+  | (string & {});
+```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## HTMLAttributeReferrerPolicy
+
+```typescript
+export type HTMLAttributeReferrerPolicy =
+  | ""
+  | "no-referrer"
+  | "no-referrer-when-downgrade"
+  | "origin"
+  | "origin-when-cross-origin"
+  | "same-origin"
+  | "strict-origin"
+  | "strict-origin-when-cross-origin"
+  | "unsafe-url";
+```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
 ## HTMLAttributes
 
 ```typescript
@@ -710,6 +1056,18 @@ export interface HTMLAttributes<T extends Element> extends AriaAttributes, DOMAt
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
+## HTMLCrossOriginAttribute
+
+```typescript
+export type HTMLCrossOriginAttribute =
+  | "anonymous"
+  | "use-credentials"
+  | ""
+  | undefined;
+```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
 ## HTMLFragment
 
 ```typescript
@@ -719,6 +1077,162 @@ HTMLFragment: FunctionComponent<{
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts)
+
+## HtmlHTMLAttributes
+
+```typescript
+export interface HtmlHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property       | Modifiers | Type                | Description  |
+| -------------- | --------- | ------------------- | ------------ |
+| [manifest?](#) |           | string \| undefined | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## HTMLInputAutocompleteAttribute
+
+```typescript
+export type HTMLInputAutocompleteAttribute =
+  | "on"
+  | "off"
+  | "billing"
+  | "shipping"
+  | "name"
+  | "honorific-prefix"
+  | "given-name"
+  | "additional-name"
+  | "family-name"
+  | "honorific-suffix"
+  | "nickname"
+  | "username"
+  | "new-password"
+  | "current-password"
+  | "one-time-code"
+  | "organization-title"
+  | "organization"
+  | "street-address"
+  | "address-line1"
+  | "address-line2"
+  | "address-line3"
+  | "address-level4"
+  | "address-level3"
+  | "address-level2"
+  | "address-level1"
+  | "country"
+  | "country-name"
+  | "postal-code"
+  | "cc-name"
+  | "cc-given-name"
+  | "cc-additional-name"
+  | "cc-family-name"
+  | "cc-number"
+  | "cc-exp"
+  | "cc-exp-month"
+  | "cc-exp-year"
+  | "cc-csc"
+  | "cc-type"
+  | "transaction-currency"
+  | "transaction-amount"
+  | "language"
+  | "bday"
+  | "bday-day"
+  | "bday-month"
+  | "bday-year"
+  | "sex"
+  | "url"
+  | "photo";
+```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## HTMLInputTypeAttribute
+
+```typescript
+export type HTMLInputTypeAttribute =
+  | "button"
+  | "checkbox"
+  | "color"
+  | "date"
+  | "datetime-local"
+  | "email"
+  | "file"
+  | "hidden"
+  | "image"
+  | "month"
+  | "number"
+  | "password"
+  | "radio"
+  | "range"
+  | "reset"
+  | "search"
+  | "submit"
+  | "tel"
+  | "text"
+  | "time"
+  | "url"
+  | "week"
+  | (string & {});
+```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## IframeHTMLAttributes
+
+```typescript
+export interface IframeHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property                | Modifiers | Type                                                                     | Description  |
+| ----------------------- | --------- | ------------------------------------------------------------------------ | ------------ |
+| [allow?](#)             |           | string \| undefined                                                      | _(Optional)_ |
+| [allowFullScreen?](#)   |           | boolean \| undefined                                                     | _(Optional)_ |
+| [allowTransparency?](#) |           | boolean \| undefined                                                     | _(Optional)_ |
+| [children?](#)          |           | undefined                                                                | _(Optional)_ |
+| [frameBorder?](#)       |           | number \| string \| undefined                                            | _(Optional)_ |
+| [height?](#)            |           | [Size](#size) \| undefined                                               | _(Optional)_ |
+| [loading?](#)           |           | 'eager' \| 'lazy' \| undefined                                           | _(Optional)_ |
+| [marginHeight?](#)      |           | number \| undefined                                                      | _(Optional)_ |
+| [marginWidth?](#)       |           | number \| undefined                                                      | _(Optional)_ |
+| [name?](#)              |           | string \| undefined                                                      | _(Optional)_ |
+| [referrerPolicy?](#)    |           | [HTMLAttributeReferrerPolicy](#htmlattributereferrerpolicy) \| undefined | _(Optional)_ |
+| [sandbox?](#)           |           | string \| undefined                                                      | _(Optional)_ |
+| [scrolling?](#)         |           | string \| undefined                                                      | _(Optional)_ |
+| [seamless?](#)          |           | boolean \| undefined                                                     | _(Optional)_ |
+| [src?](#)               |           | string \| undefined                                                      | _(Optional)_ |
+| [srcDoc?](#)            |           | string \| undefined                                                      | _(Optional)_ |
+| [width?](#)             |           | [Size](#size) \| undefined                                               | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## ImgHTMLAttributes
+
+```typescript
+export interface ImgHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property             | Modifiers | Type                                                                     | Description                                           |
+| -------------------- | --------- | ------------------------------------------------------------------------ | ----------------------------------------------------- |
+| [alt?](#)            |           | string \| undefined                                                      | _(Optional)_                                          |
+| [children?](#)       |           | undefined                                                                | _(Optional)_                                          |
+| [crossOrigin?](#)    |           | [HTMLCrossOriginAttribute](#htmlcrossoriginattribute)                    | _(Optional)_                                          |
+| [decoding?](#)       |           | 'async' \| 'auto' \| 'sync' \| undefined                                 | _(Optional)_                                          |
+| [height?](#)         |           | [Numberish](#numberish) \| undefined                                     | _(Optional)_ Intrinsic height of the image in pixels. |
+| [loading?](#)        |           | 'eager' \| 'lazy' \| undefined                                           | _(Optional)_                                          |
+| [referrerPolicy?](#) |           | [HTMLAttributeReferrerPolicy](#htmlattributereferrerpolicy) \| undefined | _(Optional)_                                          |
+| [sizes?](#)          |           | string \| undefined                                                      | _(Optional)_                                          |
+| [src?](#)            |           | string \| undefined                                                      | _(Optional)_                                          |
+| [srcSet?](#)         |           | string \| undefined                                                      | _(Optional)_                                          |
+| [useMap?](#)         |           | string \| undefined                                                      | _(Optional)_                                          |
+| [width?](#)          |           | [Numberish](#numberish) \| undefined                                     | _(Optional)_ Intrinsic width of the image in pixels.  |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## implicit$FirstArg
 
@@ -761,6 +1275,70 @@ implicit$FirstArg: <FIRST, REST extends any[], RET>(
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/util/implicit_dollar.ts)
 
+## InputHTMLAttributes
+
+```typescript
+export interface InputHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property                                               | Modifiers | Type                                                                                                                                                                    | Description  |
+| ------------------------------------------------------ | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| ["bind:checked"?](#inputhtmlattributes-_bind_checked_) |           | [Signal](#signal)&lt;boolean \| undefined&gt;                                                                                                                           | _(Optional)_ |
+| ["bind:value"?](#inputhtmlattributes-_bind_value_)     |           | [Signal](#signal)&lt;string \| undefined&gt;                                                                                                                            | _(Optional)_ |
+| [accept?](#)                                           |           | string \| undefined                                                                                                                                                     | _(Optional)_ |
+| [alt?](#)                                              |           | string \| undefined                                                                                                                                                     | _(Optional)_ |
+| [autoComplete?](#)                                     |           | [HTMLInputAutocompleteAttribute](#htmlinputautocompleteattribute) \| Omit&lt;[HTMLInputAutocompleteAttribute](#htmlinputautocompleteattribute), string&gt; \| undefined | _(Optional)_ |
+| [autoFocus?](#)                                        |           | boolean \| undefined                                                                                                                                                    | _(Optional)_ |
+| [capture?](#)                                          |           | boolean \| 'user' \| 'environment' \| undefined                                                                                                                         | _(Optional)_ |
+| [checked?](#)                                          |           | boolean \| undefined                                                                                                                                                    | _(Optional)_ |
+| [children?](#)                                         |           | undefined                                                                                                                                                               | _(Optional)_ |
+| [crossOrigin?](#)                                      |           | [HTMLCrossOriginAttribute](#htmlcrossoriginattribute)                                                                                                                   | _(Optional)_ |
+| [disabled?](#)                                         |           | boolean \| undefined                                                                                                                                                    | _(Optional)_ |
+| [enterKeyHint?](#)                                     |           | 'enter' \| 'done' \| 'go' \| 'next' \| 'previous' \| 'search' \| 'send' \| undefined                                                                                    | _(Optional)_ |
+| [form?](#)                                             |           | string \| undefined                                                                                                                                                     | _(Optional)_ |
+| [formAction?](#)                                       |           | string \| undefined                                                                                                                                                     | _(Optional)_ |
+| [formEncType?](#)                                      |           | string \| undefined                                                                                                                                                     | _(Optional)_ |
+| [formMethod?](#)                                       |           | string \| undefined                                                                                                                                                     | _(Optional)_ |
+| [formNoValidate?](#)                                   |           | boolean \| undefined                                                                                                                                                    | _(Optional)_ |
+| [formTarget?](#)                                       |           | string \| undefined                                                                                                                                                     | _(Optional)_ |
+| [height?](#)                                           |           | [Size](#size) \| undefined                                                                                                                                              | _(Optional)_ |
+| [list?](#)                                             |           | string \| undefined                                                                                                                                                     | _(Optional)_ |
+| [max?](#)                                              |           | number \| string \| undefined                                                                                                                                           | _(Optional)_ |
+| [maxLength?](#)                                        |           | number \| undefined                                                                                                                                                     | _(Optional)_ |
+| [min?](#)                                              |           | number \| string \| undefined                                                                                                                                           | _(Optional)_ |
+| [minLength?](#)                                        |           | number \| undefined                                                                                                                                                     | _(Optional)_ |
+| [multiple?](#)                                         |           | boolean \| undefined                                                                                                                                                    | _(Optional)_ |
+| [name?](#)                                             |           | string \| undefined                                                                                                                                                     | _(Optional)_ |
+| [pattern?](#)                                          |           | string \| undefined                                                                                                                                                     | _(Optional)_ |
+| [placeholder?](#)                                      |           | string \| undefined                                                                                                                                                     | _(Optional)_ |
+| [readOnly?](#)                                         |           | boolean \| undefined                                                                                                                                                    | _(Optional)_ |
+| [required?](#)                                         |           | boolean \| undefined                                                                                                                                                    | _(Optional)_ |
+| [size?](#)                                             |           | number \| undefined                                                                                                                                                     | _(Optional)_ |
+| [src?](#)                                              |           | string \| undefined                                                                                                                                                     | _(Optional)_ |
+| [step?](#)                                             |           | number \| string \| undefined                                                                                                                                           | _(Optional)_ |
+| [type?](#)                                             |           | [HTMLInputTypeAttribute](#htmlinputtypeattribute) \| undefined                                                                                                          | _(Optional)_ |
+| [value?](#)                                            |           | string \| ReadonlyArray&lt;string&gt; \| number \| undefined \| null \| FormDataEntryValue                                                                              | _(Optional)_ |
+| [width?](#)                                            |           | [Size](#size) \| undefined                                                                                                                                              | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## InsHTMLAttributes
+
+```typescript
+export interface InsHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property       | Modifiers | Type                | Description  |
+| -------------- | --------- | ------------------- | ------------ |
+| [cite?](#)     |           | string \| undefined | _(Optional)_ |
+| [dateTime?](#) |           | string \| undefined | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
 ## IntrinsicAttributes
 
 ```typescript
@@ -776,6 +1354,203 @@ interface IntrinsicElements extends QwikJSX.IntrinsicElements
 ```
 
 **Extends:** [QwikJSX.IntrinsicElements](#)
+
+## IntrinsicHTMLElements
+
+```typescript
+export interface IntrinsicHTMLElements
+```
+
+| Property        | Modifiers | Type                                                                         | Description |
+| --------------- | --------- | ---------------------------------------------------------------------------- | ----------- |
+| [a](#)          |           | [AnchorHTMLAttributes](#anchorhtmlattributes)&lt;HTMLAnchorElement&gt;       |             |
+| [abbr](#)       |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [address](#)    |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [area](#)       |           | [AreaHTMLAttributes](#areahtmlattributes)&lt;HTMLAreaElement&gt;             |             |
+| [article](#)    |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [aside](#)      |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [audio](#)      |           | [AudioHTMLAttributes](#audiohtmlattributes)&lt;HTMLAudioElement&gt;          |             |
+| [b](#)          |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [base](#)       |           | [BaseHTMLAttributes](#basehtmlattributes)&lt;HTMLBaseElement&gt;             |             |
+| [bdi](#)        |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [bdo](#)        |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [big](#)        |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [blockquote](#) |           | [BlockquoteHTMLAttributes](#blockquotehtmlattributes)&lt;HTMLElement&gt;     |             |
+| [body](#)       |           | [HTMLAttributes](#htmlattributes)&lt;HTMLBodyElement&gt;                     |             |
+| [br](#)         |           | [HTMLAttributes](#htmlattributes)&lt;HTMLBRElement&gt;                       |             |
+| [button](#)     |           | [ButtonHTMLAttributes](#buttonhtmlattributes)&lt;HTMLButtonElement&gt;       |             |
+| [canvas](#)     |           | [CanvasHTMLAttributes](#canvashtmlattributes)&lt;HTMLCanvasElement&gt;       |             |
+| [caption](#)    |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [cite](#)       |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [code](#)       |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [col](#)        |           | [ColHTMLAttributes](#colhtmlattributes)&lt;HTMLTableColElement&gt;           |             |
+| [colgroup](#)   |           | [ColgroupHTMLAttributes](#colgrouphtmlattributes)&lt;HTMLTableColElement&gt; |             |
+| [data](#)       |           | [DataHTMLAttributes](#datahtmlattributes)&lt;HTMLDataElement&gt;             |             |
+| [datalist](#)   |           | [HTMLAttributes](#htmlattributes)&lt;HTMLDataListElement&gt;                 |             |
+| [dd](#)         |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [del](#)        |           | [DelHTMLAttributes](#delhtmlattributes)&lt;HTMLElement&gt;                   |             |
+| [details](#)    |           | [DetailsHTMLAttributes](#detailshtmlattributes)&lt;HTMLElement&gt;           |             |
+| [dfn](#)        |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [dialog](#)     |           | [DialogHTMLAttributes](#dialoghtmlattributes)&lt;HTMLDialogElement&gt;       |             |
+| [div](#)        |           | [HTMLAttributes](#htmlattributes)&lt;HTMLDivElement&gt;                      |             |
+| [dl](#)         |           | [HTMLAttributes](#htmlattributes)&lt;HTMLDListElement&gt;                    |             |
+| [dt](#)         |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [em](#)         |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [embed](#)      |           | [EmbedHTMLAttributes](#embedhtmlattributes)&lt;HTMLEmbedElement&gt;          |             |
+| [fieldset](#)   |           | [FieldsetHTMLAttributes](#fieldsethtmlattributes)&lt;HTMLFieldSetElement&gt; |             |
+| [figcaption](#) |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [figure](#)     |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [footer](#)     |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [form](#)       |           | [FormHTMLAttributes](#formhtmlattributes)&lt;HTMLFormElement&gt;             |             |
+| [h1](#)         |           | [HTMLAttributes](#htmlattributes)&lt;HTMLHeadingElement&gt;                  |             |
+| [h2](#)         |           | [HTMLAttributes](#htmlattributes)&lt;HTMLHeadingElement&gt;                  |             |
+| [h3](#)         |           | [HTMLAttributes](#htmlattributes)&lt;HTMLHeadingElement&gt;                  |             |
+| [h4](#)         |           | [HTMLAttributes](#htmlattributes)&lt;HTMLHeadingElement&gt;                  |             |
+| [h5](#)         |           | [HTMLAttributes](#htmlattributes)&lt;HTMLHeadingElement&gt;                  |             |
+| [h6](#)         |           | [HTMLAttributes](#htmlattributes)&lt;HTMLHeadingElement&gt;                  |             |
+| [head](#)       |           | [HTMLAttributes](#htmlattributes)&lt;HTMLHeadElement&gt;                     |             |
+| [header](#)     |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [hgroup](#)     |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [hr](#)         |           | [HrHTMLAttributes](#hrhtmlattributes)&lt;HTMLHRElement&gt;                   |             |
+| [html](#)       |           | [HtmlHTMLAttributes](#htmlhtmlattributes)&lt;HTMLHtmlElement&gt;             |             |
+| [i](#)          |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [iframe](#)     |           | [IframeHTMLAttributes](#iframehtmlattributes)&lt;HTMLIFrameElement&gt;       |             |
+| [img](#)        |           | [ImgHTMLAttributes](#imghtmlattributes)&lt;HTMLImageElement&gt;              |             |
+| [input](#)      |           | [InputHTMLAttributes](#inputhtmlattributes)&lt;HTMLInputElement&gt;          |             |
+| [ins](#)        |           | [InsHTMLAttributes](#inshtmlattributes)&lt;HTMLModElement&gt;                |             |
+| [kbd](#)        |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [keygen](#)     |           | [KeygenHTMLAttributes](#keygenhtmlattributes)&lt;HTMLElement&gt;             |             |
+| [label](#)      |           | [LabelHTMLAttributes](#labelhtmlattributes)&lt;HTMLLabelElement&gt;          |             |
+| [legend](#)     |           | [HTMLAttributes](#htmlattributes)&lt;HTMLLegendElement&gt;                   |             |
+| [li](#)         |           | [LiHTMLAttributes](#lihtmlattributes)&lt;HTMLLIElement&gt;                   |             |
+| [link](#)       |           | [LinkHTMLAttributes](#linkhtmlattributes)&lt;HTMLLinkElement&gt;             |             |
+| [main](#)       |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [map](#)        |           | [MapHTMLAttributes](#maphtmlattributes)&lt;HTMLMapElement&gt;                |             |
+| [mark](#)       |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [menu](#)       |           | [MenuHTMLAttributes](#menuhtmlattributes)&lt;HTMLElement&gt;                 |             |
+| [menuitem](#)   |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [meta](#)       |           | [MetaHTMLAttributes](#metahtmlattributes)&lt;HTMLMetaElement&gt;             |             |
+| [meter](#)      |           | [MeterHTMLAttributes](#meterhtmlattributes)&lt;HTMLElement&gt;               |             |
+| [nav](#)        |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [noindex](#)    |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [noscript](#)   |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [object](#)     |           | [ObjectHTMLAttributes](#objecthtmlattributes)&lt;HTMLObjectElement&gt;       |             |
+| [ol](#)         |           | [OlHTMLAttributes](#olhtmlattributes)&lt;HTMLOListElement&gt;                |             |
+| [optgroup](#)   |           | [OptgroupHTMLAttributes](#optgrouphtmlattributes)&lt;HTMLOptGroupElement&gt; |             |
+| [option](#)     |           | [OptionHTMLAttributes](#optionhtmlattributes)&lt;HTMLOptionElement&gt;       |             |
+| [output](#)     |           | [OutputHTMLAttributes](#outputhtmlattributes)&lt;HTMLElement&gt;             |             |
+| [p](#)          |           | [HTMLAttributes](#htmlattributes)&lt;HTMLParagraphElement&gt;                |             |
+| [param](#)      |           | [ParamHTMLAttributes](#paramhtmlattributes)&lt;HTMLParamElement&gt;          |             |
+| [picture](#)    |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [pre](#)        |           | [HTMLAttributes](#htmlattributes)&lt;HTMLPreElement&gt;                      |             |
+| [progress](#)   |           | [ProgressHTMLAttributes](#progresshtmlattributes)&lt;HTMLProgressElement&gt; |             |
+| [q](#)          |           | [QuoteHTMLAttributes](#quotehtmlattributes)&lt;HTMLQuoteElement&gt;          |             |
+| [rp](#)         |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [rt](#)         |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [ruby](#)       |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [s](#)          |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [samp](#)       |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [script](#)     |           | [ScriptHTMLAttributes](#scripthtmlattributes)&lt;HTMLScriptElement&gt;       |             |
+| [section](#)    |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [select](#)     |           | [SelectHTMLAttributes](#selecthtmlattributes)&lt;HTMLSelectElement&gt;       |             |
+| [slot](#)       |           | [SlotHTMLAttributes](#slothtmlattributes)&lt;HTMLSlotElement&gt;             |             |
+| [small](#)      |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [source](#)     |           | [SourceHTMLAttributes](#sourcehtmlattributes)&lt;HTMLSourceElement&gt;       |             |
+| [span](#)       |           | [HTMLAttributes](#htmlattributes)&lt;HTMLSpanElement&gt;                     |             |
+| [strong](#)     |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [style](#)      |           | [StyleHTMLAttributes](#stylehtmlattributes)&lt;HTMLStyleElement&gt;          |             |
+| [sub](#)        |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [summary](#)    |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [sup](#)        |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [table](#)      |           | [TableHTMLAttributes](#tablehtmlattributes)&lt;HTMLTableElement&gt;          |             |
+| [tbody](#)      |           | [HTMLAttributes](#htmlattributes)&lt;HTMLTableSectionElement&gt;             |             |
+| [td](#)         |           | [TdHTMLAttributes](#tdhtmlattributes)&lt;HTMLTableDataCellElement&gt;        |             |
+| [template](#)   |           | [HTMLAttributes](#htmlattributes)&lt;HTMLTemplateElement&gt;                 |             |
+| [textarea](#)   |           | [TextareaHTMLAttributes](#textareahtmlattributes)&lt;HTMLTextAreaElement&gt; |             |
+| [tfoot](#)      |           | [HTMLAttributes](#htmlattributes)&lt;HTMLTableSectionElement&gt;             |             |
+| [th](#)         |           | [ThHTMLAttributes](#thhtmlattributes)&lt;HTMLTableHeaderCellElement&gt;      |             |
+| [thead](#)      |           | [HTMLAttributes](#htmlattributes)&lt;HTMLTableSectionElement&gt;             |             |
+| [time](#)       |           | [TimeHTMLAttributes](#timehtmlattributes)&lt;HTMLElement&gt;                 |             |
+| [title](#)      |           | [TitleHTMLAttributes](#titlehtmlattributes)&lt;HTMLTitleElement&gt;          |             |
+| [tr](#)         |           | [HTMLAttributes](#htmlattributes)&lt;HTMLTableRowElement&gt;                 |             |
+| [track](#)      |           | [TrackHTMLAttributes](#trackhtmlattributes)&lt;HTMLTrackElement&gt;          |             |
+| [tt](#)         |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [u](#)          |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [ul](#)         |           | [HTMLAttributes](#htmlattributes)&lt;HTMLUListElement&gt;                    |             |
+| [video](#)      |           | [VideoHTMLAttributes](#videohtmlattributes)&lt;HTMLVideoElement&gt;          |             |
+| [wbr](#)        |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
+| [webview](#)    |           | [WebViewHTMLAttributes](#webviewhtmlattributes)&lt;HTMLWebViewElement&gt;    |             |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## IntrinsicSVGElements
+
+```typescript
+export interface IntrinsicSVGElements
+```
+
+| Property                 | Modifiers | Type                                                       | Description |
+| ------------------------ | --------- | ---------------------------------------------------------- | ----------- |
+| [animate](#)             |           | [SVGProps](#svgprops)&lt;SVGElement&gt;                    |             |
+| [animateMotion](#)       |           | [SVGProps](#svgprops)&lt;SVGElement&gt;                    |             |
+| [animateTransform](#)    |           | [SVGProps](#svgprops)&lt;SVGElement&gt;                    |             |
+| [circle](#)              |           | [SVGProps](#svgprops)&lt;SVGCircleElement&gt;              |             |
+| [clipPath](#)            |           | [SVGProps](#svgprops)&lt;SVGClipPathElement&gt;            |             |
+| [defs](#)                |           | [SVGProps](#svgprops)&lt;SVGDefsElement&gt;                |             |
+| [desc](#)                |           | [SVGProps](#svgprops)&lt;SVGDescElement&gt;                |             |
+| [ellipse](#)             |           | [SVGProps](#svgprops)&lt;SVGEllipseElement&gt;             |             |
+| [feBlend](#)             |           | [SVGProps](#svgprops)&lt;SVGFEBlendElement&gt;             |             |
+| [feColorMatrix](#)       |           | [SVGProps](#svgprops)&lt;SVGFEColorMatrixElement&gt;       |             |
+| [feComponentTransfer](#) |           | [SVGProps](#svgprops)&lt;SVGFEComponentTransferElement&gt; |             |
+| [feComposite](#)         |           | [SVGProps](#svgprops)&lt;SVGFECompositeElement&gt;         |             |
+| [feConvolveMatrix](#)    |           | [SVGProps](#svgprops)&lt;SVGFEConvolveMatrixElement&gt;    |             |
+| [feDiffuseLighting](#)   |           | [SVGProps](#svgprops)&lt;SVGFEDiffuseLightingElement&gt;   |             |
+| [feDisplacementMap](#)   |           | [SVGProps](#svgprops)&lt;SVGFEDisplacementMapElement&gt;   |             |
+| [feDistantLight](#)      |           | [SVGProps](#svgprops)&lt;SVGFEDistantLightElement&gt;      |             |
+| [feDropShadow](#)        |           | [SVGProps](#svgprops)&lt;SVGFEDropShadowElement&gt;        |             |
+| [feFlood](#)             |           | [SVGProps](#svgprops)&lt;SVGFEFloodElement&gt;             |             |
+| [feFuncA](#)             |           | [SVGProps](#svgprops)&lt;SVGFEFuncAElement&gt;             |             |
+| [feFuncB](#)             |           | [SVGProps](#svgprops)&lt;SVGFEFuncBElement&gt;             |             |
+| [feFuncG](#)             |           | [SVGProps](#svgprops)&lt;SVGFEFuncGElement&gt;             |             |
+| [feFuncR](#)             |           | [SVGProps](#svgprops)&lt;SVGFEFuncRElement&gt;             |             |
+| [feGaussianBlur](#)      |           | [SVGProps](#svgprops)&lt;SVGFEGaussianBlurElement&gt;      |             |
+| [feImage](#)             |           | [SVGProps](#svgprops)&lt;SVGFEImageElement&gt;             |             |
+| [feMerge](#)             |           | [SVGProps](#svgprops)&lt;SVGFEMergeElement&gt;             |             |
+| [feMergeNode](#)         |           | [SVGProps](#svgprops)&lt;SVGFEMergeNodeElement&gt;         |             |
+| [feMorphology](#)        |           | [SVGProps](#svgprops)&lt;SVGFEMorphologyElement&gt;        |             |
+| [feOffset](#)            |           | [SVGProps](#svgprops)&lt;SVGFEOffsetElement&gt;            |             |
+| [fePointLight](#)        |           | [SVGProps](#svgprops)&lt;SVGFEPointLightElement&gt;        |             |
+| [feSpecularLighting](#)  |           | [SVGProps](#svgprops)&lt;SVGFESpecularLightingElement&gt;  |             |
+| [feSpotLight](#)         |           | [SVGProps](#svgprops)&lt;SVGFESpotLightElement&gt;         |             |
+| [feTile](#)              |           | [SVGProps](#svgprops)&lt;SVGFETileElement&gt;              |             |
+| [feTurbulence](#)        |           | [SVGProps](#svgprops)&lt;SVGFETurbulenceElement&gt;        |             |
+| [filter](#)              |           | [SVGProps](#svgprops)&lt;SVGFilterElement&gt;              |             |
+| [foreignObject](#)       |           | [SVGProps](#svgprops)&lt;SVGForeignObjectElement&gt;       |             |
+| [g](#)                   |           | [SVGProps](#svgprops)&lt;SVGGElement&gt;                   |             |
+| [image](#)               |           | [SVGProps](#svgprops)&lt;SVGImageElement&gt;               |             |
+| [line](#)                |           | [SVGProps](#svgprops)&lt;SVGLineElement&gt;                |             |
+| [linearGradient](#)      |           | [SVGProps](#svgprops)&lt;SVGLinearGradientElement&gt;      |             |
+| [marker](#)              |           | [SVGProps](#svgprops)&lt;SVGMarkerElement&gt;              |             |
+| [mask](#)                |           | [SVGProps](#svgprops)&lt;SVGMaskElement&gt;                |             |
+| [metadata](#)            |           | [SVGProps](#svgprops)&lt;SVGMetadataElement&gt;            |             |
+| [mpath](#)               |           | [SVGProps](#svgprops)&lt;SVGElement&gt;                    |             |
+| [path](#)                |           | [SVGProps](#svgprops)&lt;SVGPathElement&gt;                |             |
+| [pattern](#)             |           | [SVGProps](#svgprops)&lt;SVGPatternElement&gt;             |             |
+| [polygon](#)             |           | [SVGProps](#svgprops)&lt;SVGPolygonElement&gt;             |             |
+| [polyline](#)            |           | [SVGProps](#svgprops)&lt;SVGPolylineElement&gt;            |             |
+| [radialGradient](#)      |           | [SVGProps](#svgprops)&lt;SVGRadialGradientElement&gt;      |             |
+| [rect](#)                |           | [SVGProps](#svgprops)&lt;SVGRectElement&gt;                |             |
+| [stop](#)                |           | [SVGProps](#svgprops)&lt;SVGStopElement&gt;                |             |
+| [svg](#)                 |           | [SVGProps](#svgprops)&lt;SVGSVGElement&gt;                 |             |
+| [switch](#)              |           | [SVGProps](#svgprops)&lt;SVGSwitchElement&gt;              |             |
+| [symbol](#)              |           | [SVGProps](#svgprops)&lt;SVGSymbolElement&gt;              |             |
+| [text](#)                |           | [SVGProps](#svgprops)&lt;SVGTextElement&gt;                |             |
+| [textPath](#)            |           | [SVGProps](#svgprops)&lt;SVGTextPathElement&gt;            |             |
+| [tspan](#)               |           | [SVGProps](#svgprops)&lt;SVGTSpanElement&gt;               |             |
+| [use](#)                 |           | [SVGProps](#svgprops)&lt;SVGUseElement&gt;                 |             |
+| [view](#)                |           | [SVGProps](#svgprops)&lt;SVGViewElement&gt;                |             |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## jsx
 
@@ -847,7 +1622,7 @@ export interface JSXNode<T = string | FunctionComponent>
 | Property            | Modifiers | Type                                                                                             | Description  |
 | ------------------- | --------- | ------------------------------------------------------------------------------------------------ | ------------ |
 | [children](#)       |           | any \| null                                                                                      |              |
-| [dev?](#)           |           | DevJSX                                                                                           | _(Optional)_ |
+| [dev?](#)           |           | [DevJSX](#devjsx)                                                                                | _(Optional)_ |
 | [flags](#)          |           | number                                                                                           |              |
 | [immutableProps](#) |           | Record&lt;string, any&gt; \| null                                                                |              |
 | [key](#)            |           | string \| null                                                                                   |              |
@@ -865,6 +1640,173 @@ export type JSXTagName =
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts)
+
+## KeygenHTMLAttributes
+
+```typescript
+export interface KeygenHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property        | Modifiers | Type                 | Description  |
+| --------------- | --------- | -------------------- | ------------ |
+| [autoFocus?](#) |           | boolean \| undefined | _(Optional)_ |
+| [challenge?](#) |           | string \| undefined  | _(Optional)_ |
+| [children?](#)  |           | undefined            | _(Optional)_ |
+| [disabled?](#)  |           | boolean \| undefined | _(Optional)_ |
+| [form?](#)      |           | string \| undefined  | _(Optional)_ |
+| [keyParams?](#) |           | string \| undefined  | _(Optional)_ |
+| [keyType?](#)   |           | string \| undefined  | _(Optional)_ |
+| [name?](#)      |           | string \| undefined  | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## LabelHTMLAttributes
+
+```typescript
+export interface LabelHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property   | Modifiers | Type                | Description  |
+| ---------- | --------- | ------------------- | ------------ |
+| [for?](#)  |           | string \| undefined | _(Optional)_ |
+| [form?](#) |           | string \| undefined | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## LiHTMLAttributes
+
+```typescript
+export interface LiHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property    | Modifiers | Type                                                         | Description  |
+| ----------- | --------- | ------------------------------------------------------------ | ------------ |
+| [value?](#) |           | string \| ReadonlyArray&lt;string&gt; \| number \| undefined | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## LinkHTMLAttributes
+
+```typescript
+export interface LinkHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property             | Modifiers | Type                                                                     | Description  |
+| -------------------- | --------- | ------------------------------------------------------------------------ | ------------ |
+| [as?](#)             |           | string \| undefined                                                      | _(Optional)_ |
+| [charSet?](#)        |           | string \| undefined                                                      | _(Optional)_ |
+| [children?](#)       |           | undefined                                                                | _(Optional)_ |
+| [crossOrigin?](#)    |           | [HTMLCrossOriginAttribute](#htmlcrossoriginattribute)                    | _(Optional)_ |
+| [href?](#)           |           | string \| undefined                                                      | _(Optional)_ |
+| [hrefLang?](#)       |           | string \| undefined                                                      | _(Optional)_ |
+| [imageSizes?](#)     |           | string \| undefined                                                      | _(Optional)_ |
+| [imageSrcSet?](#)    |           | string \| undefined                                                      | _(Optional)_ |
+| [integrity?](#)      |           | string \| undefined                                                      | _(Optional)_ |
+| [media?](#)          |           | string \| undefined                                                      | _(Optional)_ |
+| [referrerPolicy?](#) |           | [HTMLAttributeReferrerPolicy](#htmlattributereferrerpolicy) \| undefined | _(Optional)_ |
+| [rel?](#)            |           | string \| undefined                                                      | _(Optional)_ |
+| [sizes?](#)          |           | string \| undefined                                                      | _(Optional)_ |
+| [type?](#)           |           | string \| undefined                                                      | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## MapHTMLAttributes
+
+```typescript
+export interface MapHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property   | Modifiers | Type                | Description  |
+| ---------- | --------- | ------------------- | ------------ |
+| [name?](#) |           | string \| undefined | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## MediaHTMLAttributes
+
+```typescript
+export interface MediaHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property           | Modifiers | Type                                                  | Description  |
+| ------------------ | --------- | ----------------------------------------------------- | ------------ |
+| [autoPlay?](#)     |           | boolean \| undefined                                  | _(Optional)_ |
+| [controls?](#)     |           | boolean \| undefined                                  | _(Optional)_ |
+| [controlsList?](#) |           | string \| undefined                                   | _(Optional)_ |
+| [crossOrigin?](#)  |           | [HTMLCrossOriginAttribute](#htmlcrossoriginattribute) | _(Optional)_ |
+| [loop?](#)         |           | boolean \| undefined                                  | _(Optional)_ |
+| [mediaGroup?](#)   |           | string \| undefined                                   | _(Optional)_ |
+| [muted?](#)        |           | boolean \| undefined                                  | _(Optional)_ |
+| [playsInline?](#)  |           | boolean \| undefined                                  | _(Optional)_ |
+| [preload?](#)      |           | string \| undefined                                   | _(Optional)_ |
+| [src?](#)          |           | string \| undefined                                   | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## MenuHTMLAttributes
+
+```typescript
+export interface MenuHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property   | Modifiers | Type                | Description  |
+| ---------- | --------- | ------------------- | ------------ |
+| [type?](#) |           | string \| undefined | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## MetaHTMLAttributes
+
+```typescript
+export interface MetaHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property        | Modifiers | Type                | Description  |
+| --------------- | --------- | ------------------- | ------------ |
+| [charSet?](#)   |           | string \| undefined | _(Optional)_ |
+| [children?](#)  |           | undefined           | _(Optional)_ |
+| [content?](#)   |           | string \| undefined | _(Optional)_ |
+| [httpEquiv?](#) |           | string \| undefined | _(Optional)_ |
+| [media?](#)     |           | string \| undefined | _(Optional)_ |
+| [name?](#)      |           | string \| undefined | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## MeterHTMLAttributes
+
+```typescript
+export interface MeterHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property      | Modifiers | Type                                                         | Description  |
+| ------------- | --------- | ------------------------------------------------------------ | ------------ |
+| [form?](#)    |           | string \| undefined                                          | _(Optional)_ |
+| [high?](#)    |           | number \| undefined                                          | _(Optional)_ |
+| [low?](#)     |           | number \| undefined                                          | _(Optional)_ |
+| [max?](#)     |           | number \| string \| undefined                                | _(Optional)_ |
+| [min?](#)     |           | number \| string \| undefined                                | _(Optional)_ |
+| [optimum?](#) |           | number \| undefined                                          | _(Optional)_ |
+| [value?](#)   |           | string \| ReadonlyArray&lt;string&gt; \| number \| undefined | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## NativeAnimationEvent
 
@@ -994,6 +1936,52 @@ noSerialize: <T extends object | undefined>(input: T) => NoSerialize<T>;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/state/common.ts)
 
+## Numberish
+
+```typescript
+export type Numberish = number | `${number}`;
+```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## ObjectHTMLAttributes
+
+```typescript
+export interface ObjectHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property      | Modifiers | Type                       | Description  |
+| ------------- | --------- | -------------------------- | ------------ |
+| [classID?](#) |           | string \| undefined        | _(Optional)_ |
+| [data?](#)    |           | string \| undefined        | _(Optional)_ |
+| [form?](#)    |           | string \| undefined        | _(Optional)_ |
+| [height?](#)  |           | [Size](#size) \| undefined | _(Optional)_ |
+| [name?](#)    |           | string \| undefined        | _(Optional)_ |
+| [type?](#)    |           | string \| undefined        | _(Optional)_ |
+| [useMap?](#)  |           | string \| undefined        | _(Optional)_ |
+| [width?](#)   |           | [Size](#size) \| undefined | _(Optional)_ |
+| [wmode?](#)   |           | string \| undefined        | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## OlHTMLAttributes
+
+```typescript
+export interface OlHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property       | Modifiers | Type                                         | Description  |
+| -------------- | --------- | -------------------------------------------- | ------------ |
+| [reversed?](#) |           | boolean \| undefined                         | _(Optional)_ |
+| [start?](#)    |           | number \| undefined                          | _(Optional)_ |
+| [type?](#)     |           | '1' \| 'a' \| 'A' \| 'i' \| 'I' \| undefined | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
 ## OnRenderFn
 
 ```typescript
@@ -1017,6 +2005,86 @@ export interface OnVisibleTaskOptions
 | [strategy?](#) |           | [VisibleTaskStrategy](#visibletaskstrategy) | <p>_(Optional)_ The strategy to use to determine when the "VisibleTask" should first execute.</p><p>- <code>intersection-observer</code>: the task will first execute when the element is visible in the viewport, under the hood it uses the IntersectionObserver API. - <code>document-ready</code>: the task will first execute when the document is ready, under the hood it uses the document <code>load</code> event. - <code>document-idle</code>: the task will first execute when the document is idle, under the hood it uses the requestIdleCallback API.</p> |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+
+## OptgroupHTMLAttributes
+
+```typescript
+export interface OptgroupHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property       | Modifiers | Type                 | Description  |
+| -------------- | --------- | -------------------- | ------------ |
+| [disabled?](#) |           | boolean \| undefined | _(Optional)_ |
+| [label?](#)    |           | string \| undefined  | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## OptionHTMLAttributes
+
+```typescript
+export interface OptionHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property       | Modifiers | Type                                                         | Description  |
+| -------------- | --------- | ------------------------------------------------------------ | ------------ |
+| [children?](#) |           | string                                                       | _(Optional)_ |
+| [disabled?](#) |           | boolean \| undefined                                         | _(Optional)_ |
+| [label?](#)    |           | string \| undefined                                          | _(Optional)_ |
+| [selected?](#) |           | boolean \| undefined                                         | _(Optional)_ |
+| [value?](#)    |           | string \| ReadonlyArray&lt;string&gt; \| number \| undefined | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## OutputHTMLAttributes
+
+```typescript
+export interface OutputHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property   | Modifiers | Type                | Description  |
+| ---------- | --------- | ------------------- | ------------ |
+| [for?](#)  |           | string \| undefined | _(Optional)_ |
+| [form?](#) |           | string \| undefined | _(Optional)_ |
+| [name?](#) |           | string \| undefined | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## ParamHTMLAttributes
+
+```typescript
+export interface ParamHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property       | Modifiers | Type                                                         | Description  |
+| -------------- | --------- | ------------------------------------------------------------ | ------------ |
+| [children?](#) |           | undefined                                                    | _(Optional)_ |
+| [name?](#)     |           | string \| undefined                                          | _(Optional)_ |
+| [value?](#)    |           | string \| ReadonlyArray&lt;string&gt; \| number \| undefined | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## ProgressHTMLAttributes
+
+```typescript
+export interface ProgressHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property    | Modifiers | Type                                                         | Description  |
+| ----------- | --------- | ------------------------------------------------------------ | ------------ |
+| [max?](#)   |           | number \| string \| undefined                                | _(Optional)_ |
+| [value?](#) |           | string \| ReadonlyArray&lt;string&gt; \| number \| undefined | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## PropFnInterface
 
@@ -1124,6 +2192,20 @@ qrl: <T = any,>(
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
+
+## QuoteHTMLAttributes
+
+```typescript
+export interface QuoteHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property   | Modifiers | Type                | Description  |
+| ---------- | --------- | ------------------- | ------------ |
+| [cite?](#) |           | string \| undefined | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## QwikAnimationEvent
 
@@ -1246,7 +2328,7 @@ export default component$<WrapperProps>(({ attributes }) => {
 export interface QwikIntrinsicElements extends IntrinsicHTMLElements
 ```
 
-**Extends:** IntrinsicHTMLElements
+**Extends:** [IntrinsicHTMLElements](#intrinsichtmlelements)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-elements.ts)
 
@@ -1700,6 +2782,52 @@ export type ResourceReturn<T> =
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
+## ScriptHTMLAttributes
+
+```typescript
+export interface ScriptHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property             | Modifiers | Type                                                                     | Description  |
+| -------------------- | --------- | ------------------------------------------------------------------------ | ------------ |
+| [async?](#)          |           | boolean \| undefined                                                     | _(Optional)_ |
+| [charSet?](#)        |           | string \| undefined                                                      | _(Optional)_ |
+| [crossOrigin?](#)    |           | [HTMLCrossOriginAttribute](#htmlcrossoriginattribute)                    | _(Optional)_ |
+| [defer?](#)          |           | boolean \| undefined                                                     | _(Optional)_ |
+| [integrity?](#)      |           | string \| undefined                                                      | _(Optional)_ |
+| [noModule?](#)       |           | boolean \| undefined                                                     | _(Optional)_ |
+| [nonce?](#)          |           | string \| undefined                                                      | _(Optional)_ |
+| [referrerPolicy?](#) |           | [HTMLAttributeReferrerPolicy](#htmlattributereferrerpolicy) \| undefined | _(Optional)_ |
+| [src?](#)            |           | string \| undefined                                                      | _(Optional)_ |
+| [type?](#)           |           | string \| undefined                                                      | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## SelectHTMLAttributes
+
+```typescript
+export interface SelectHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property           | Modifiers | Type                                                                                                                                                                    | Description  |
+| ------------------ | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| ["bind:value"?](#) |           | [Signal](#signal)&lt;string \| undefined&gt;                                                                                                                            | _(Optional)_ |
+| [autoComplete?](#) |           | [HTMLInputAutocompleteAttribute](#htmlinputautocompleteattribute) \| Omit&lt;[HTMLInputAutocompleteAttribute](#htmlinputautocompleteattribute), string&gt; \| undefined | _(Optional)_ |
+| [autoFocus?](#)    |           | boolean \| undefined                                                                                                                                                    | _(Optional)_ |
+| [disabled?](#)     |           | boolean \| undefined                                                                                                                                                    | _(Optional)_ |
+| [form?](#)         |           | string \| undefined                                                                                                                                                     | _(Optional)_ |
+| [multiple?](#)     |           | boolean \| undefined                                                                                                                                                    | _(Optional)_ |
+| [name?](#)         |           | string \| undefined                                                                                                                                                     | _(Optional)_ |
+| [required?](#)     |           | boolean \| undefined                                                                                                                                                    | _(Optional)_ |
+| [size?](#)         |           | number \| undefined                                                                                                                                                     | _(Optional)_ |
+| [value?](#)        |           | string \| ReadonlyArray&lt;string&gt; \| number \| undefined                                                                                                            | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
 ## setPlatform
 
 Sets the `CorePlatform`.
@@ -1724,6 +2852,14 @@ export interface Signal<T = any>
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/state/signal.ts)
 
+## Size
+
+```typescript
+export type Size = number | string;
+```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
 ## SkipRender
 
 ```typescript
@@ -1743,6 +2879,20 @@ Slot: FunctionComponent<{
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/slot.public.ts)
+
+## SlotHTMLAttributes
+
+```typescript
+export interface SlotHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property   | Modifiers | Type                | Description  |
+| ---------- | --------- | ------------------- | ------------ |
+| [name?](#) |           | string \| undefined | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## SnapshotListener
 
@@ -1814,6 +2964,27 @@ export interface SnapshotState
 | [subs](#) |           | any[]                         |             |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/container/container.ts)
+
+## SourceHTMLAttributes
+
+```typescript
+export interface SourceHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property       | Modifiers | Type                       | Description  |
+| -------------- | --------- | -------------------------- | ------------ |
+| [children?](#) |           | undefined                  | _(Optional)_ |
+| [height?](#)   |           | [Size](#size) \| undefined | _(Optional)_ |
+| [media?](#)    |           | string \| undefined        | _(Optional)_ |
+| [sizes?](#)    |           | string \| undefined        | _(Optional)_ |
+| [src?](#)      |           | string \| undefined        | _(Optional)_ |
+| [srcSet?](#)   |           | string \| undefined        | _(Optional)_ |
+| [type?](#)     |           | string \| undefined        | _(Optional)_ |
+| [width?](#)    |           | [Size](#size) \| undefined | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## SSRComment
 
@@ -1899,6 +3070,323 @@ export type StreamWriter = {
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/ssr/render-ssr.ts)
 
+## StyleHTMLAttributes
+
+```typescript
+export interface StyleHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property       | Modifiers | Type                 | Description  |
+| -------------- | --------- | -------------------- | ------------ |
+| [children?](#) |           | string               | _(Optional)_ |
+| [media?](#)    |           | string \| undefined  | _(Optional)_ |
+| [nonce?](#)    |           | string \| undefined  | _(Optional)_ |
+| [scoped?](#)   |           | boolean \| undefined | _(Optional)_ |
+| [type?](#)     |           | string \| undefined  | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## SVGAttributes
+
+```typescript
+export interface SVGAttributes<T extends Element> extends AriaAttributes, DOMAttributes<T>
+```
+
+**Extends:** [AriaAttributes](#ariaattributes), [DOMAttributes](#domattributes)&lt;T&gt;
+
+| Property                             | Modifiers | Type                                                                                                                                                                                                                | Description  |
+| ------------------------------------ | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| ["accent-height"?](#)                |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["alignment-baseline"?](#)           |           | 'auto' \| 'baseline' \| 'before-edge' \| 'text-before-edge' \| 'middle' \| 'central' \| 'after-edge' \| 'text-after-edge' \| 'ideographic' \| 'alphabetic' \| 'hanging' \| 'mathematical' \| 'inherit' \| undefined | _(Optional)_ |
+| ["arabic-form"?](#)                  |           | 'initial' \| 'medial' \| 'terminal' \| 'isolated' \| undefined                                                                                                                                                      | _(Optional)_ |
+| ["baseline-shift"?](#)               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["cap-height"?](#)                   |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["clip-path"?](#)                    |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| ["clip-rule"?](#)                    |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["color-interpolation-filters"?](#)  |           | 'auto' \| 's-rGB' \| 'linear-rGB' \| 'inherit' \| undefined                                                                                                                                                         | _(Optional)_ |
+| ["color-interpolation"?](#)          |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["color-profile"?](#)                |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["color-rendering"?](#)              |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["dominant-baseline"?](#)            |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["edge-mode"?](#)                    |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["enable-background"?](#)            |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["fill-opacity"?](#)                 |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["fill-rule"?](#)                    |           | 'nonzero' \| 'evenodd' \| 'inherit' \| undefined                                                                                                                                                                    | _(Optional)_ |
+| ["flood-color"?](#)                  |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["flood-opacity"?](#)                |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["font-family"?](#)                  |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| ["font-size-adjust"?](#)             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["font-size"?](#)                    |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["font-stretch"?](#)                 |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["font-style"?](#)                   |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["font-variant"?](#)                 |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["font-weight"?](#)                  |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["glyph-name"?](#)                   |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["glyph-orientation-horizontal"?](#) |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["glyph-orientation-vertical"?](#)   |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["horiz-adv-x"?](#)                  |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["horiz-origin-x"?](#)               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["image-rendering"?](#)              |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["letter-spacing"?](#)               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["lighting-color"?](#)               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["marker-end"?](#)                   |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| ["marker-mid"?](#)                   |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| ["marker-start"?](#)                 |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| ["overline-position"?](#)            |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["overline-thickness"?](#)           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["paint-order"?](#)                  |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["pointer-events"?](#)               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["rendering-intent"?](#)             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["shape-rendering"?](#)              |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["stop-color"?](#)                   |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| ["stop-opacity"?](#)                 |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["strikethrough-position"?](#)       |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["strikethrough-thickness"?](#)      |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["stroke-dasharray"?](#)             |           | string \| number \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["stroke-dashoffset"?](#)            |           | string \| number \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["stroke-linecap"?](#)               |           | 'butt' \| 'round' \| 'square' \| 'inherit' \| undefined                                                                                                                                                             | _(Optional)_ |
+| ["stroke-linejoin"?](#)              |           | 'miter' \| 'round' \| 'bevel' \| 'inherit' \| undefined                                                                                                                                                             | _(Optional)_ |
+| ["stroke-miterlimit"?](#)            |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| ["stroke-opacity"?](#)               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["stroke-width"?](#)                 |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["text-anchor"?](#)                  |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| ["text-decoration"?](#)              |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["text-rendering"?](#)               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["underline-position"?](#)           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["underline-thickness"?](#)          |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["unicode-bidi"?](#)                 |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["unicode-range"?](#)                |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["units-per-em"?](#)                 |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["v-alphabetic"?](#)                 |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["v-hanging"?](#)                    |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["v-ideographic"?](#)                |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["v-mathematical"?](#)               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["vector-effect"?](#)                |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["vert-adv-y"?](#)                   |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["vert-origin-x"?](#)                |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["vert-origin-y"?](#)                |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["word-spacing"?](#)                 |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["writing-mode"?](#)                 |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["x-channel-selector"?](#)           |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| ["x-height"?](#)                     |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [accumulate?](#)                     |           | 'none' \| 'sum' \| undefined                                                                                                                                                                                        | _(Optional)_ |
+| [additive?](#)                       |           | 'replace' \| 'sum' \| undefined                                                                                                                                                                                     | _(Optional)_ |
+| [allowReorder?](#)                   |           | 'no' \| 'yes' \| undefined                                                                                                                                                                                          | _(Optional)_ |
+| [alphabetic?](#)                     |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [amplitude?](#)                      |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [ascent?](#)                         |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [attributeName?](#)                  |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [attributeType?](#)                  |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [autoReverse?](#)                    |           | [Booleanish](#booleanish) \| undefined                                                                                                                                                                              | _(Optional)_ |
+| [azimuth?](#)                        |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [baseFrequency?](#)                  |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [baseProfile?](#)                    |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [bbox?](#)                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [begin?](#)                          |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [bias?](#)                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [by?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [calcMode?](#)                       |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [class?](#)                          |           | [ClassList](#classlist) \| undefined                                                                                                                                                                                | _(Optional)_ |
+| [className?](#)                      |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [clip?](#)                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [clipPathUnits?](#)                  |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [color?](#)                          |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [contentScriptType?](#)              |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [contentStyleType?](#)               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [crossOrigin?](#)                    |           | [HTMLCrossOriginAttribute](#htmlcrossoriginattribute)                                                                                                                                                               | _(Optional)_ |
+| [cursor?](#)                         |           | number \| string                                                                                                                                                                                                    | _(Optional)_ |
+| [cx?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [cy?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [d?](#)                              |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [decelerate?](#)                     |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [descent?](#)                        |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [diffuseConstant?](#)                |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [direction?](#)                      |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [display?](#)                        |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [divisor?](#)                        |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [dur?](#)                            |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [dx?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [dy?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [elevation?](#)                      |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [end?](#)                            |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [exponent?](#)                       |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [externalResourcesRequired?](#)      |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [fill?](#)                           |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [filter?](#)                         |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [filterRes?](#)                      |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [filterUnits?](#)                    |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [focusable?](#)                      |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [format?](#)                         |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [fr?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [from?](#)                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [fx?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [fy?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [g1?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [g2?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [glyphRef?](#)                       |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [gradientTransform?](#)              |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [gradientUnits?](#)                  |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [hanging?](#)                        |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [height?](#)                         |           | [Numberish](#numberish) \| undefined                                                                                                                                                                                | _(Optional)_ |
+| [href?](#)                           |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [id?](#)                             |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [ideographic?](#)                    |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [in?](#)                             |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [in2?](#)                            |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [intercept?](#)                      |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [k?](#)                              |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [k1?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [k2?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [k3?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [k4?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [kernelMatrix?](#)                   |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [kernelUnitLength?](#)               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [kerning?](#)                        |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [keyPoints?](#)                      |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [keySplines?](#)                     |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [keyTimes?](#)                       |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [lang?](#)                           |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [lengthAdjust?](#)                   |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [limitingConeAngle?](#)              |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [local?](#)                          |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [markerHeight?](#)                   |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [markerUnits?](#)                    |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [markerWidth?](#)                    |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [mask?](#)                           |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [maskContentUnits?](#)               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [maskUnits?](#)                      |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [mathematical?](#)                   |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [max?](#)                            |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [media?](#)                          |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [method?](#)                         |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [min?](#)                            |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [mode?](#)                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [name?](#)                           |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [numOctaves?](#)                     |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [offset?](#)                         |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [opacity?](#)                        |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [operator?](#)                       |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [order?](#)                          |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [orient?](#)                         |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [orientation?](#)                    |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [origin?](#)                         |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [overflow?](#)                       |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [panose1?](#)                        |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [path?](#)                           |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [pathLength?](#)                     |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [patternContentUnits?](#)            |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [patternTransform?](#)               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [patternUnits?](#)                   |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [points?](#)                         |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [pointsAtX?](#)                      |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [pointsAtY?](#)                      |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [pointsAtZ?](#)                      |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [preserveAlpha?](#)                  |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [preserveAspectRatio?](#)            |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [primitiveUnits?](#)                 |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [r?](#)                              |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [radius?](#)                         |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [refX?](#)                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [refY?](#)                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [repeatCount?](#)                    |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [repeatDur?](#)                      |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [requiredextensions?](#)             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [requiredFeatures?](#)               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [restart?](#)                        |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [result?](#)                         |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [role?](#)                           |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [rotate?](#)                         |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [rx?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [ry?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [scale?](#)                          |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [seed?](#)                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [slope?](#)                          |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [spacing?](#)                        |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [specularConstant?](#)               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [specularExponent?](#)               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [speed?](#)                          |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [spreadMethod?](#)                   |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [startOffset?](#)                    |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [stdDeviation?](#)                   |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [stemh?](#)                          |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [stemv?](#)                          |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [stitchTiles?](#)                    |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [string?](#)                         |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [stroke?](#)                         |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [style?](#)                          |           | [CSSProperties](#cssproperties) \| string \| undefined                                                                                                                                                              | _(Optional)_ |
+| [surfaceScale?](#)                   |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [systemLanguage?](#)                 |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [tabindex?](#)                       |           | number \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [tableValues?](#)                    |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [target?](#)                         |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [targetX?](#)                        |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [targetY?](#)                        |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [textLength?](#)                     |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [to?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [transform?](#)                      |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [type?](#)                           |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [u1?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [u2?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [unicode?](#)                        |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [values?](#)                         |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [version?](#)                        |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [viewBox?](#)                        |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [viewTarget?](#)                     |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [visibility?](#)                     |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [width?](#)                          |           | [Numberish](#numberish) \| undefined                                                                                                                                                                                | _(Optional)_ |
+| [widths?](#)                         |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [x?](#)                              |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [x1?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [x2?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [xlinkActuate?](#)                   |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [xlinkArcrole?](#)                   |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [xlinkHref?](#)                      |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [xlinkRole?](#)                      |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [xlinkShow?](#)                      |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [xlinkTitle?](#)                     |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [xlinkType?](#)                      |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [xmlBase?](#)                        |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [xmlLang?](#)                        |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [xmlns?](#)                          |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [xmlSpace?](#)                       |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [y?](#)                              |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [y1?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [y2?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [yChannelSelector?](#)               |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [z?](#)                              |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [zoomAndPan?](#)                     |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## SVGProps
+
+```typescript
+export interface SVGProps<T extends Element> extends SVGAttributes<T>
+```
+
+**Extends:** [SVGAttributes](#svgattributes)&lt;T&gt;
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## TableHTMLAttributes
+
+```typescript
+export interface TableHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property          | Modifiers | Type                          | Description  |
+| ----------------- | --------- | ----------------------------- | ------------ |
+| [cellPadding?](#) |           | number \| string \| undefined | _(Optional)_ |
+| [cellSpacing?](#) |           | number \| string \| undefined | _(Optional)_ |
+| [summary?](#)     |           | string \| undefined           | _(Optional)_ |
+| [width?](#)       |           | [Size](#size) \| undefined    | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
 ## TaskCtx
 
 ```typescript
@@ -1924,6 +3412,106 @@ export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => void)>;
 **References:** [TaskCtx](#taskctx), [ValueOrPromise](#valueorpromise)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+
+## TdHTMLAttributes
+
+```typescript
+export interface TdHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property      | Modifiers | Type                                                              | Description  |
+| ------------- | --------- | ----------------------------------------------------------------- | ------------ |
+| [abbr?](#)    |           | string \| undefined                                               | _(Optional)_ |
+| [align?](#)   |           | 'left' \| 'center' \| 'right' \| 'justify' \| 'char' \| undefined | _(Optional)_ |
+| [colSpan?](#) |           | number \| undefined                                               | _(Optional)_ |
+| [headers?](#) |           | string \| undefined                                               | _(Optional)_ |
+| [height?](#)  |           | [Size](#size) \| undefined                                        | _(Optional)_ |
+| [rowSpan?](#) |           | number \| undefined                                               | _(Optional)_ |
+| [scope?](#)   |           | string \| undefined                                               | _(Optional)_ |
+| [valign?](#)  |           | 'top' \| 'middle' \| 'bottom' \| 'baseline' \| undefined          | _(Optional)_ |
+| [width?](#)   |           | [Size](#size) \| undefined                                        | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## TextareaHTMLAttributes
+
+```typescript
+export interface TextareaHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property           | Modifiers | Type                                                                                                                                                                    | Description  |
+| ------------------ | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| ["bind:value"?](#) |           | [Signal](#signal)&lt;string \| undefined&gt;                                                                                                                            | _(Optional)_ |
+| [autoComplete?](#) |           | [HTMLInputAutocompleteAttribute](#htmlinputautocompleteattribute) \| Omit&lt;[HTMLInputAutocompleteAttribute](#htmlinputautocompleteattribute), string&gt; \| undefined | _(Optional)_ |
+| [autoFocus?](#)    |           | boolean \| undefined                                                                                                                                                    | _(Optional)_ |
+| [children?](#)     |           | undefined                                                                                                                                                               | _(Optional)_ |
+| [cols?](#)         |           | number \| undefined                                                                                                                                                     | _(Optional)_ |
+| [dirName?](#)      |           | string \| undefined                                                                                                                                                     | _(Optional)_ |
+| [disabled?](#)     |           | boolean \| undefined                                                                                                                                                    | _(Optional)_ |
+| [enterKeyHint?](#) |           | 'enter' \| 'done' \| 'go' \| 'next' \| 'previous' \| 'search' \| 'send' \| undefined                                                                                    | _(Optional)_ |
+| [form?](#)         |           | string \| undefined                                                                                                                                                     | _(Optional)_ |
+| [maxLength?](#)    |           | number \| undefined                                                                                                                                                     | _(Optional)_ |
+| [minLength?](#)    |           | number \| undefined                                                                                                                                                     | _(Optional)_ |
+| [name?](#)         |           | string \| undefined                                                                                                                                                     | _(Optional)_ |
+| [placeholder?](#)  |           | string \| undefined                                                                                                                                                     | _(Optional)_ |
+| [readOnly?](#)     |           | boolean \| undefined                                                                                                                                                    | _(Optional)_ |
+| [required?](#)     |           | boolean \| undefined                                                                                                                                                    | _(Optional)_ |
+| [rows?](#)         |           | number \| undefined                                                                                                                                                     | _(Optional)_ |
+| [value?](#)        |           | string \| ReadonlyArray&lt;string&gt; \| number \| undefined                                                                                                            | _(Optional)_ |
+| [wrap?](#)         |           | string \| undefined                                                                                                                                                     | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## ThHTMLAttributes
+
+```typescript
+export interface ThHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property      | Modifiers | Type                                                              | Description  |
+| ------------- | --------- | ----------------------------------------------------------------- | ------------ |
+| [abbr?](#)    |           | string \| undefined                                               | _(Optional)_ |
+| [align?](#)   |           | 'left' \| 'center' \| 'right' \| 'justify' \| 'char' \| undefined | _(Optional)_ |
+| [colSpan?](#) |           | number \| undefined                                               | _(Optional)_ |
+| [headers?](#) |           | string \| undefined                                               | _(Optional)_ |
+| [rowSpan?](#) |           | number \| undefined                                               | _(Optional)_ |
+| [scope?](#)   |           | string \| undefined                                               | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## TimeHTMLAttributes
+
+```typescript
+export interface TimeHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property       | Modifiers | Type                | Description  |
+| -------------- | --------- | ------------------- | ------------ |
+| [dateTime?](#) |           | string \| undefined | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## TitleHTMLAttributes
+
+```typescript
+export interface TitleHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property       | Modifiers | Type   | Description  |
+| -------------- | --------- | ------ | ------------ |
+| [children?](#) |           | string | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## Tracker
 
@@ -1958,6 +3546,25 @@ export interface Tracker
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+
+## TrackHTMLAttributes
+
+```typescript
+export interface TrackHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property       | Modifiers | Type                 | Description  |
+| -------------- | --------- | -------------------- | ------------ |
+| [children?](#) |           | undefined            | _(Optional)_ |
+| [default?](#)  |           | boolean \| undefined | _(Optional)_ |
+| [kind?](#)     |           | string \| undefined  | _(Optional)_ |
+| [label?](#)    |           | string \| undefined  | _(Optional)_ |
+| [src?](#)      |           | string \| undefined  | _(Optional)_ |
+| [srcLang?](#)  |           | string \| undefined  | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## untrack
 
@@ -2570,6 +4177,25 @@ version: string;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/version.ts)
 
+## VideoHTMLAttributes
+
+```typescript
+export interface VideoHTMLAttributes<T extends Element> extends MediaHTMLAttributes<T>
+```
+
+**Extends:** [MediaHTMLAttributes](#mediahtmlattributes)&lt;T&gt;
+
+| Property                      | Modifiers | Type                                 | Description  |
+| ----------------------------- | --------- | ------------------------------------ | ------------ |
+| [disablePictureInPicture?](#) |           | boolean \| undefined                 | _(Optional)_ |
+| [disableRemotePlayback?](#)   |           | boolean \| undefined                 | _(Optional)_ |
+| [height?](#)                  |           | [Numberish](#numberish) \| undefined | _(Optional)_ |
+| [playsInline?](#)             |           | boolean \| undefined                 | _(Optional)_ |
+| [poster?](#)                  |           | string \| undefined                  | _(Optional)_ |
+| [width?](#)                   |           | [Numberish](#numberish) \| undefined | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
 ## VisibleTaskStrategy
 
 ```typescript
@@ -2580,3 +4206,33 @@ export type VisibleTaskStrategy =
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+
+## WebViewHTMLAttributes
+
+```typescript
+export interface WebViewHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+```
+
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+
+| Property                   | Modifiers | Type                 | Description  |
+| -------------------------- | --------- | -------------------- | ------------ |
+| [allowFullScreen?](#)      |           | boolean \| undefined | _(Optional)_ |
+| [allowpopups?](#)          |           | boolean \| undefined | _(Optional)_ |
+| [autoFocus?](#)            |           | boolean \| undefined | _(Optional)_ |
+| [autosize?](#)             |           | boolean \| undefined | _(Optional)_ |
+| [blinkfeatures?](#)        |           | string \| undefined  | _(Optional)_ |
+| [disableblinkfeatures?](#) |           | string \| undefined  | _(Optional)_ |
+| [disableguestresize?](#)   |           | boolean \| undefined | _(Optional)_ |
+| [disablewebsecurity?](#)   |           | boolean \| undefined | _(Optional)_ |
+| [guestinstance?](#)        |           | string \| undefined  | _(Optional)_ |
+| [httpreferrer?](#)         |           | string \| undefined  | _(Optional)_ |
+| [nodeintegration?](#)      |           | boolean \| undefined | _(Optional)_ |
+| [partition?](#)            |           | string \| undefined  | _(Optional)_ |
+| [plugins?](#)              |           | boolean \| undefined | _(Optional)_ |
+| [preload?](#)              |           | string \| undefined  | _(Optional)_ |
+| [src?](#)                  |           | string \| undefined  | _(Optional)_ |
+| [useragent?](#)            |           | string \| undefined  | _(Optional)_ |
+| [webpreferences?](#)       |           | string \| undefined  | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)

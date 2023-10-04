@@ -112,6 +112,8 @@ export interface OptimizerOptions {
     // (undocumented)
     binding?: any;
     // (undocumented)
+    inlineStylesUpToBytes?: number;
+    // (undocumented)
     sys?: OptimizerSystem;
 }
 
@@ -367,7 +369,7 @@ export type SymbolMapper = Record<string, readonly [symbol: string, chunk: strin
 export type SymbolMapperFn = (symbolName: string, mapper: SymbolMapper | undefined) => readonly [symbol: string, chunk: string] | undefined;
 
 // @public (undocumented)
-export type SystemEnvironment = 'node' | 'deno' | 'webworker' | 'browsermain' | 'unknown';
+export type SystemEnvironment = 'node' | 'deno' | 'bun' | 'webworker' | 'browsermain' | 'unknown';
 
 // @public (undocumented)
 export interface TransformFsOptions extends TransformOptions {

@@ -25,7 +25,7 @@ export default function (opts: RenderToStreamOptions) {
     base: extractBase, // determine the base URL for the client code
     // Use container attributes to set attributes on the html tag.
     containerAttributes: {
-      lang: "en-us",
+      lang: opts.serverData?.locale ?? "en-us",
       ...opts.containerAttributes,
     },
   });

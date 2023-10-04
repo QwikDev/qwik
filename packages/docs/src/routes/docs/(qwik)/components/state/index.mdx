@@ -26,6 +26,7 @@ contributors:
   - AnthonyPAlicea
   - sreeisalso
   - wmertens
+  - nicvazquez
 ---
 
 import CodeSandbox from '../../../../../components/code-sandbox/index.tsx';
@@ -123,8 +124,8 @@ export default component$(() => {
         Add to list
       </button>
       <ul>
-        {store.list.map((item) => (
-          <li>{item}</li>
+        {store.list.map((item, index) => (
+          <li key={`items-${index}`}>{item}</li>
         ))}
       </ul>
     </>

@@ -16,10 +16,47 @@ import { join, extname } from 'node:path';
 
 // @builder.io/qwik-city/middleware/bun
 
+const resolved = Promise.resolve();
+class TextEncoderStream {
+  // minimal polyfill implementation of TextEncoderStream
+  // since bun does not yet support TextEncoderStream
+  _writer: any;
+  readable: any;
+  writable: any;
+
+  constructor() {
+    this._writer = null;
+    this.readable = {
+      pipeTo: (writableStream: any) => {
+        this._writer = writableStream.getWriter();
+      },
+    };
+    this.writable = {
+      getWriter: () => {
+        if (!this._writer) {
+          throw new Error('No writable stream');
+        }
+        const encoder = new TextEncoder();
+        return {
+          write: async (chunk: any) => {
+            if (chunk != null) {
+              await this._writer.write(encoder.encode(chunk));
+            }
+          },
+          close: () => this._writer.close(),
+          ready: resolved,
+        };
+      },
+    };
+  }
+}
+
 /**
  * @public
  */
 export function createQwikCity(opts: QwikCityBunOptions) {
+  (globalThis as any).TextEncoderStream = TextEncoderStream;
+
   const qwikSerializer = {
     _deserializeData,
     _serializeData,
@@ -69,6 +106,14 @@ export function createQwikCity(opts: QwikCityBunOptions) {
         });
         const response = await handledResponse.response;
         if (response) {
+          // bun fails to redirect if there is a body.
+          // remove the body if there a redirect.
+          const status = response.status;
+          const location = response.headers.get('Location');
+          const isRedirect = status >= 301 && status <= 308 && location;
+          if (isRedirect) {
+            return new Response(null, response);
+          }
           return response;
         }
       }

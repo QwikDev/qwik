@@ -138,7 +138,7 @@ async function mergeReadmes(fileUpdates: FsUpdates, srcPath: string, destPath: s
 
   const pkgManager = getPackageManager();
   if (pkgManager !== 'npm') {
-    destContent = destContent.replace(/npm run/g, pkgManager);
+    destContent = destContent.replace(/npm run|pnpm run/g, pkgManager);
   }
 
   fileUpdates.files.push({

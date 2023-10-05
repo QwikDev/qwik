@@ -214,28 +214,6 @@ export const useContextProvider = <STATE extends object>(
   set(true);
 };
 
-/**
- * @public
- */
-export const useContextBoundary = (...ids: ContextId<any>[]) => {
-  const { get, set, elCtx, iCtx } = useSequentialScope<boolean>();
-  if (get !== undefined) {
-    return;
-  }
-  let contexts = elCtx.$contexts$;
-  if (!contexts) {
-    elCtx.$contexts$ = contexts = new Map();
-  }
-  for (const c of ids) {
-    const value = resolveContext(c, elCtx, iCtx.$renderCtx$.$static$.$containerState$);
-    if (value !== undefined) {
-      contexts.set(c.id, value);
-    }
-  }
-  contexts.set('_', true);
-  set(true);
-};
-
 export interface UseContext {
   <STATE extends object, T>(context: ContextId<STATE>, transformer: (value: STATE) => T): T;
   <STATE extends object, T>(context: ContextId<STATE>, defaultValue: T): STATE | T;
@@ -333,9 +311,6 @@ export const resolveContext = <STATE extends object>(
       const found = ctx.$contexts$.get(contextID);
       if (found) {
         return found;
-      }
-      if (ctx.$contexts$.get('_') === true) {
-        break;
       }
     }
     ctx = ctx.$slotParent$ ?? ctx.$parent$;

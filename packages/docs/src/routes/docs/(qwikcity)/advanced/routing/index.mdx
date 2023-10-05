@@ -5,6 +5,7 @@ contributors:
   - cunzaizhuyi
   - the-r3aper7
   - mhevery
+  - jakovljevic-mladen
 ---
 
 # Advanced Routing
@@ -125,13 +126,15 @@ At times related routes need to have drastically different layouts from their si
 
 Qwik City defines the convention that layouts are within `src/routes` and the filename starts with `layout`. That's why the default layout is named `layout.tsx`. A named layout also starts with `layout` followed by a dash `-` and a unique name, such as `layout-narrow.tsx`.
 
+To reference a named layout, the route's `index.tsx` file must be suffixed with `@<name>`. For example, `index@narrow.tsx` would use the `layout-narrow.tsx` layout.
+
 ```bash
 src/
 └── routes/
     ├── contact/
     │   └── index@narrow.tsx      # https://example.com/contact (Layout: layout-narrow.tsx)
     ├── layout.tsx                # Default layout
-    ├── layout-narrow.tsx         # Default named layout
+    ├── layout-narrow.tsx         # Named layout
     └── index.tsx                 # https://example.com/ (Layout: layout.tsx)
 ```
 
@@ -243,3 +246,10 @@ You can have multiple `plugin.ts` files, each with a different name. For example
 
 Requests handlers like `onRequest`, `onGet`, `onPost`, etc. are called before `server$` functions are executed.
 
+### The order of execution of `plugin.ts` files
+
+ If `plugin.ts` file exists and if it has exported request handlers, then they are executed first.
+
+Then exported request handlers from `plugin@<name>.ts` files are executed in alphabetical order of the file names. For example, `onGet` from `plugin@auth.ts` is executed before `onGet` from `plugin@security.ts` because `auth` is alphabetically before `security`.
+
+Finally, if a `server$` function exists, it's executed last.

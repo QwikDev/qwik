@@ -701,9 +701,6 @@ const collectContext = (elCtx: QContext | null, collector: Collector) => {
       for (const obj of elCtx.$contexts$.values()) {
         collectValue(obj, collector, true);
       }
-      if (elCtx.$contexts$.get('_') === true) {
-        break;
-      }
     }
     elCtx = elCtx.$slotParent$ ?? elCtx.$parent$;
   }

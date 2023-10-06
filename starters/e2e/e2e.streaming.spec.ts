@@ -36,7 +36,7 @@ test.describe("streaming", () => {
     const count = page.locator("button#count");
     await count.click();
 
-    await expect(count).toHaveText("Rerender 1");
+    await expect(count).toHaveText("Rerender: 1");
     await expect(ul).toHaveCount(5);
     await expect(ol).toHaveCount(10);
     await expect(cmps).toHaveCount(5);
@@ -49,19 +49,19 @@ test.describe("streaming", () => {
     const count = page.locator("button#count");
     const rerender = page.locator("button#client-render");
     await count.click();
-    await expect(count).toHaveText("Rerender 1");
+    await expect(count).toHaveText("Rerender: 1");
 
     await rerender.click();
-    await page.waitForTimeout(500);
+    expect(rerender).toHaveText("Client rerender: 1");
+    await expect(count).toHaveText("Rerender: 0");
     await count.click();
-    await page.waitForTimeout(3000);
 
-    await expect(count).toHaveText("Rerender 0");
+    await expect(count).toHaveText("Rerender: 1");
     await expect(ul).toHaveCount(0);
     await expect(ol).toHaveCount(0);
     await expect(cmps).toHaveCount(5);
 
     await count.click();
-    await expect(count).toHaveText("Rerender 1");
+    await expect(count).toHaveText("Rerender: 2");
   });
 });

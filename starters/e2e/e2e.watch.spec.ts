@@ -25,27 +25,24 @@ test.describe("watch", () => {
     await expect(debounced).toHaveText("Debounced: 0");
 
     await addButton.click();
-    await page.waitForTimeout(100);
 
-    await expect(server).toHaveText("comes from server");
     await expect(parent).toHaveText("3");
+    await expect(server).toHaveText("comes from server");
     await expect(child).toHaveText("3 / 6");
     await expect(debounced).toHaveText("Debounced: 0");
 
     await addButton.click();
-    await page.waitForTimeout(100);
 
-    await expect(server).toHaveText("comes from server");
     await expect(parent).toHaveText("4");
+    await expect(server).toHaveText("comes from server");
     await expect(child).toHaveText("4 / 8");
     await expect(debounced).toHaveText("Debounced: 0");
 
     // Wait for debouncer
-    await page.waitForTimeout(2000);
+    await expect(debounced).toHaveText("Debounced: 8");
     await expect(server).toHaveText("comes from server");
     await expect(parent).toHaveText("4");
     await expect(child).toHaveText("4 / 8");
-    await expect(debounced).toHaveText("Debounced: 8");
   });
 
   test("issue-1766", async ({ page }) => {

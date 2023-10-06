@@ -23,19 +23,15 @@ test.describe("resource", () => {
 
     // Increment
     await increment.click();
-    await page.waitForTimeout(400);
 
+    await expect(resource1).toHaveText("loading resource 1...");
     logsContent +=
       "[RESOURCE] 1 after\n\n[WATCH] 1 before\n[WATCH] 1 after\n[WATCH] 2 before\n[WATCH] 2 after\n[RESOURCE] 1 before\n[RENDER] <Results>\n\n\n";
-    await expect(resource1).toHaveText("loading resource 1...");
     // await expect(resource2).toHaveText('loading resource 2...');
     await expect(logs).toHaveText(logsContent);
 
-    // Wait until finish loading
-    await page.waitForTimeout(1000);
-
-    logsContent += "[RESOURCE] 1 after\n[RENDER] <Results>\n\n\n";
     await expect(resource1).toHaveText("resource 1 is 88");
+    logsContent += "[RESOURCE] 1 after\n[RENDER] <Results>\n\n\n";
     // await expect(resource2).toHaveText('resource 2 is 176');
     await expect(logs).toHaveText(logsContent);
   });

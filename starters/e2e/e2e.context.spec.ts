@@ -26,7 +26,7 @@ test.describe("context", () => {
       ]);
 
       await btnRootIncrement1.click();
-      await page.waitForTimeout(100);
+      await expect(level2State1.first()).toHaveText("ROOT / state1 = 1");
 
       expect(await level2State1.allTextContents()).toEqual([
         "ROOT / state1 = 1",
@@ -41,7 +41,7 @@ test.describe("context", () => {
         "bar = 0",
       ]);
       await btnRootIncrement2.click();
-      await page.waitForTimeout(100);
+      await expect(level2State2.first()).toHaveText("ROOT / state2 = 1");
 
       expect(await level2State1.allTextContents()).toEqual([
         "ROOT / state1 = 1",
@@ -58,13 +58,13 @@ test.describe("context", () => {
       await btnLevel2Increment.click();
       await btnLevel2Increment.click();
       await btnLevel2Increment2.click();
-      await page.waitForTimeout(100);
 
       const level3State1 = page.locator(".level3-state1");
       const level3State2 = page.locator(".level3-state2");
       const level3State3 = page.locator(".level3-state3");
       const level3Slot = page.locator(".level3-slot");
 
+      await expect(level3State1.first()).toHaveText("Level2 / state1 = 0");
       expect(await level2State1.allTextContents()).toEqual([
         "ROOT / state1 = 1",
         "ROOT / state1 = 1",

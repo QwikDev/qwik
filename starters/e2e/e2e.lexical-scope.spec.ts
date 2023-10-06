@@ -29,18 +29,16 @@ test.describe("lexical-scope", () => {
 
     // Click button
     await btn.click();
-    await page.waitForTimeout(100);
 
-    expect(normalizeSnapshot(await content.innerHTML())).toEqual(SNAPSHOT);
     await expect(btn).toHaveText("Rerender 1");
+    expect(normalizeSnapshot(await content.innerHTML())).toEqual(SNAPSHOT);
     await expect(result).toHaveText(RESULT);
 
     // Click button
     await btn.click();
-    await page.waitForTimeout(100);
 
-    expect(normalizeSnapshot(await content.innerHTML())).toEqual(SNAPSHOT);
     await expect(btn).toHaveText("Rerender 2");
+    expect(normalizeSnapshot(await content.innerHTML())).toEqual(SNAPSHOT);
     await expect(result).toHaveText(RESULT);
   });
 });

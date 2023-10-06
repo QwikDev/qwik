@@ -5,15 +5,19 @@ export const Attributes = component$(() => {
   return (
     <>
       <h1>Most of the changes happen in the input attributes</h1>
-      <button id="force-rerender" onClick$={() => render.value++}>
+      <button
+        id="force-rerender"
+        data-v={render.value}
+        onClick$={() => render.value++}
+      >
         Rerender
       </button>
-      <AttributesChild key={render.value} />
+      <AttributesChild v={render.value} key={render.value} />
     </>
   );
 });
 
-export const AttributesChild = component$(() => {
+export const AttributesChild = component$<{ v: number }>(({ v }) => {
   const renders = useStore(
     {
       count: 0,
@@ -157,6 +161,7 @@ export const AttributesChild = component$(() => {
       <Issue3622 />
       <Issue4718Null />
       <Issue4718Undefined />
+      <div id="renderCount">Render {v}</div>
     </>
   );
 });
@@ -181,6 +186,7 @@ export const Issue4718Undefined = component$(() => {
       data-works={signal.value}
       aria-label={signal.value}
       title={signal.value}
+      class={!signal.value && "moop"}
       onClick$={() => {
         signal.value = undefined;
       }}
@@ -199,6 +205,7 @@ export const Issue4718Null = component$(() => {
       data-works={signal.value as any}
       aria-label={signal.value as any}
       title={signal.value as any}
+      class={!signal.value && "moop"}
       onClick$={() => {
         signal.value = null;
       }}

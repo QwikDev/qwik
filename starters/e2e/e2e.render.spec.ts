@@ -61,7 +61,6 @@ test.describe("render", () => {
       const result = page.locator("#issue-1475-result");
 
       await button.click();
-      await page.waitForTimeout(100);
       await expect(result).toHaveText(
         "1. Before\n2. Some text\nMiddle\n3 After\n\nStuff",
         {
@@ -146,10 +145,8 @@ test.describe("render", () => {
       await input.fill("some text");
       await expect(input).toHaveValue("some text");
       await toggle.click();
-      await page.waitForTimeout(100);
       await expect(input).toHaveValue("some text");
       await toggle.click();
-      await page.waitForTimeout(100);
       await expect(input).toHaveValue("some text");
     });
 
@@ -499,8 +496,11 @@ test.describe("render", () => {
   test.describe("client rerender", () => {
     test.beforeEach(async ({ page }) => {
       const toggleRender = page.locator("#rerender");
+      const v = await toggleRender.getAttribute("data-v");
       await toggleRender.click();
-      await page.waitForTimeout(100);
+      await expect(page.locator("#rerenderCount")).toHaveText(
+        `Render ${Number(v) + 1}`,
+      );
     });
     tests();
   });

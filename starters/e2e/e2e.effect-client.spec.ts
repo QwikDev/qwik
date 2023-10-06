@@ -29,13 +29,11 @@ test.describe("effect-client", () => {
     await expect(msgClientSide3).toHaveText("run");
 
     await counter.scrollIntoViewIfNeeded();
-    await page.waitForTimeout(100);
 
     await expect(container).toHaveAttribute("data-effect", "true");
     await expect(counter).toHaveText("10");
     await expect(msg).toHaveText("run");
 
-    await page.waitForTimeout(500);
     await expect(container).toHaveAttribute("data-effect", "true");
     await expect(counter).toHaveText("11");
     await expect(msg).toHaveText("run");
@@ -52,7 +50,6 @@ test.describe("effect-client", () => {
 
   test("issue 2015", async ({ page }) => {
     const order = page.locator("#issue-2015-order");
-    await page.waitForTimeout(300);
     await expect(order).toHaveText(
       "Order: start 1 start 2 start 3 finish 1 finish 2 finish 3",
     );
@@ -60,14 +57,12 @@ test.describe("effect-client", () => {
 
   test("issue 1955", async ({ page }) => {
     const results = page.locator("#issue-1955-results");
-    await page.waitForTimeout(300);
     await expect(results).toHaveText("run");
   });
 
   test("cleanup", async ({ page }) => {
     const counter = page.locator("#cleanup-effects-button");
     const nuCleanups = page.locator("#cleanup-effects-count");
-    await page.waitForTimeout(200);
     await expect(nuCleanups).toHaveText("0");
     await counter.click();
     await expect(nuCleanups).toHaveText("1");
@@ -78,10 +73,8 @@ test.describe("effect-client", () => {
   test("issue 4432", async ({ page }) => {
     const button = page.locator("#issue-4432-button");
     const logs = page.locator("#issue-4432-logs");
-    await page.waitForTimeout(500);
     await expect(logs).toHaveText("VisibleTask ChildA /\n");
     await button.click();
-    await page.waitForTimeout(500);
     await expect(logs).toHaveText(
       "VisibleTask ChildA /\nCleanup ChildA /other\n",
     );

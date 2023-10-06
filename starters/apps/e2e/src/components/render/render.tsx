@@ -22,14 +22,18 @@ export const Render = component$(() => {
   const rerender = useSignal(0);
   return (
     <>
-      <button id="rerender" onClick$={() => rerender.value++}>
+      <button
+        id="rerender"
+        data-v={rerender.value}
+        onClick$={() => rerender.value++}
+      >
         Rerender
       </button>
-      <RenderChildren key={rerender.value} />
+      <RenderChildren v={rerender.value} key={rerender.value} />
     </>
   );
 });
-export const RenderChildren = component$(() => {
+export const RenderChildren = component$<{ v: number }>(({ v }) => {
   const parent = {
     counter: {
       count: 0,
@@ -42,6 +46,7 @@ export const RenderChildren = component$(() => {
   const state = useStore(parent, { deep: true });
   return (
     <>
+      <div id="rerenderCount">Render {v}</div>
       <button
         id="increment"
         onClick$={() => {

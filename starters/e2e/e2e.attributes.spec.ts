@@ -52,7 +52,9 @@ test.describe("attributes", () => {
       const stuffBtn = page.locator("#stuff");
       const renders = page.locator("#renders");
 
+      await expect(inputCopy).toHaveJSProperty("value", "");
       await input.type("Hello");
+      await expect(input).toHaveJSProperty("value", "Hello");
       await expect(inputCopy).toHaveJSProperty("value", "Hello");
       await expect(inputValue).toHaveText("Hello");
       await expect(renders).toHaveText("1");
@@ -106,7 +108,7 @@ test.describe("attributes", () => {
       await expect(renders).toHaveText("1");
 
       await countBtn.click();
-      await page.waitForTimeout(100);
+      await expect(input).not.toHaveAttribute("title", "some title");
       await expect(input).not.hasAttribute("title");
       await expect(label).not.hasAttribute("title");
       await expect(renders).toHaveText("1");
@@ -135,7 +137,6 @@ test.describe("attributes", () => {
       const renders = page.locator("#renders");
       const countBtn = page.locator("#required");
       await countBtn.click();
-      await page.waitForTimeout(100);
 
       await expect(input).toHaveAttribute("aria-hidden", "true");
       await expect(input).toHaveAttribute("aria-label", "even");
@@ -156,8 +157,7 @@ test.describe("attributes", () => {
 
       const countBtn = page.locator("#hide");
       await countBtn.click();
-
-      await page.waitForTimeout(100);
+      await expect(input).not.toHaveAttribute("aria-hidden", "true");
 
       await expect(input).not.hasAttribute("aria-hidden");
       await expect(input).not.hasAttribute("aria-label");
@@ -178,7 +178,7 @@ test.describe("attributes", () => {
       const countBtn = page.locator("#hide");
 
       await countBtn.click();
-      await page.waitForTimeout(100);
+      await expect(input).not.toHaveAttribute("aria-hidden", "true");
 
       await expect(input).not.hasAttribute("aria-hidden");
       await expect(input).not.hasAttribute("aria-label");
@@ -198,7 +198,7 @@ test.describe("attributes", () => {
       await expect(renders).toHaveText("2");
 
       await countBtn.click();
-      await page.waitForTimeout(100);
+
       await expect(input).toHaveAttribute("aria-hidden", "true");
       await expect(input).toHaveAttribute("aria-label", "even");
       await expect(input).toHaveAttribute("tabindex", "-1");
@@ -221,7 +221,7 @@ test.describe("attributes", () => {
       await expect(renders).toHaveText("3");
 
       await countBtn.click();
-      await page.waitForTimeout(100);
+      await expect(svg).not.toHaveAttribute("aria-hidden", "true");
       await expect(input).not.hasAttribute("aria-hidden");
       await expect(input).not.hasAttribute("aria-label");
       await expect(input).not.hasAttribute("tabindex");
@@ -239,7 +239,7 @@ test.describe("attributes", () => {
       await expect(renders).toHaveText("4");
 
       await countBtn.click();
-      await page.waitForTimeout(100);
+
       await expect(input).toHaveAttribute("aria-hidden", "true");
       await expect(input).toHaveAttribute("aria-label", "even");
       await expect(input).toHaveAttribute("tabindex", "-1");
@@ -274,8 +274,8 @@ test.describe("attributes", () => {
       await expect(button).toHaveAttribute("title", "some value");
 
       await button.click();
-      await page.waitForTimeout(100);
 
+      await expect(button).toHaveClass("moop");
       await expect(button).not.hasAttribute("data-works");
       await expect(button).not.hasAttribute("aria-label");
       await expect(button).not.hasAttribute("title");
@@ -289,8 +289,8 @@ test.describe("attributes", () => {
       await expect(button).toHaveAttribute("title", "some value");
 
       await button.click();
-      await page.waitForTimeout(100);
 
+      await expect(button).toHaveClass("moop");
       await expect(button).not.hasAttribute("data-works");
       await expect(button).not.hasAttribute("aria-label");
       await expect(button).not.hasAttribute("title");
@@ -302,8 +302,11 @@ test.describe("attributes", () => {
   test.describe("client rerender", () => {
     test.beforeEach(async ({ page }) => {
       const toggleRender = page.locator("#force-rerender");
+      const v = Number(await toggleRender.getAttribute("data-v"));
       await toggleRender.click();
-      await page.waitForTimeout(100);
+      await expect(page.locator("#renderCount")).toHaveText(`Render ${v}`);
+      // Without this the tests still fail?
+      await page.waitForTimeout(50);
     });
     tests();
   });

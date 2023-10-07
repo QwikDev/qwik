@@ -108,6 +108,7 @@ export const RenderChildren = component$<{ v: number }>(({ v }) => {
       <Issue4292 />
       <Issue4386 />
       <Issue4455 />
+      <Issue5266 />
     </>
   );
 });
@@ -927,5 +928,30 @@ export const Issue4455 = component$(() => {
         max="1"
       />
     </>
+  );
+});
+
+export const DynamicComponent = component$<{ b?: boolean; v: string }>(
+  ({ b, v }) => {
+    // Make the tag dynamic
+    const Tag = b ? "button" : "div";
+    return (
+      <Tag id="issue-5266-tag" data-v={v}>
+        hello
+      </Tag>
+    );
+  },
+);
+export const Issue5266 = component$(() => {
+  const show = useSignal(false);
+  const state = useSignal("foo");
+  return (
+    <div>
+      <button id="issue-5266-render" onClick$={() => (show.value = true)} />
+      <button id="issue-5266-button" onClick$={() => (state.value = "bar")}>
+        toggle
+      </button>
+      {show.value && <DynamicComponent v={state.value} />}
+    </div>
   );
 });

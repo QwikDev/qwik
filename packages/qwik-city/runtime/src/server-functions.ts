@@ -298,7 +298,12 @@ export const serverQrl: ServerConstructorQRL = (qrl: QRL<(...args: any[]) => any
           ? (args.shift() as AbortSignal)
           : undefined;
       if (isServer) {
-        const requestEvent = useQwikCityEnv()?.ev ?? this ?? _getContextEvent();
+        const requestEvent = [useQwikCityEnv()?.ev, this, _getContextEvent()].find(
+          (v) =>
+            v &&
+            Object.prototype.hasOwnProperty.call(v, 'sharedMap') &&
+            Object.prototype.hasOwnProperty.call(v, 'cookie')
+        );
         return qrl.apply(requestEvent, args);
       } else {
         const ctxElm = _getContextElement();

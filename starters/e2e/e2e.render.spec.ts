@@ -5,6 +5,7 @@ test.describe("render", () => {
     await page.goto("/e2e/render");
     page.on("pageerror", (err) => expect(err).toEqual(undefined));
     page.on("console", (msg) => {
+      // console.warn(msg.type(), msg.text());
       if (msg.type() === "error") {
         expect(msg.text()).toEqual(undefined);
       }
@@ -488,6 +489,16 @@ test.describe("render", () => {
       const input2 = page.locator("#issue-4455-input2");
       await expect(input1).toHaveValue("0.5");
       await expect(input2).toHaveValue("0.5");
+    });
+
+    test("issue 5266", async ({ page }) => {
+      const tag = page.locator("#issue-5266-tag");
+      const button = page.locator("#issue-5266-button");
+      await page.locator("#issue-5266-render").click();
+
+      await expect(tag).toHaveAttribute("data-v", "foo");
+      await button.click();
+      await expect(tag).toHaveAttribute("data-v", "bar");
     });
   }
 

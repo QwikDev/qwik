@@ -80,6 +80,15 @@ export const _jsxC = <T extends string | FunctionComponent<any>>(
 ): JSXNode<T> => {
   const processed = key == null ? null : String(key);
   const props = mutableProps ?? (EMPTY_OBJ as any);
+  // In dynamic components, type could be a string
+  if (typeof type === 'string' && _IMMUTABLE in props) {
+    const p = {} as any;
+    // The immutable props are all regular props minus the children
+    for (const [k, v] of Object.entries(props[_IMMUTABLE])) {
+      p[k] = v === _IMMUTABLE ? props[k] : v;
+    }
+    return _jsxQ(type, null, p, props.children, flags, key, dev);
+  }
   const node = new JSXNodeImpl<T>(type, props, null, props.children, flags, processed);
   if (typeof type === 'string' && mutableProps) {
     delete mutableProps.children;

@@ -14,15 +14,15 @@ swSuite('incorporate qwik-insights', () => {
       pattern: /\//,
       filePath: './src/routes/index.tsx',
       layouts: [],
-    } satisfies Partial<BuildRoute> as any,
+    } /* satisfies Partial<BuildRoute> */ as any,
     {
       routeName: '/routeA',
       pattern: /\/routeA/,
       filePath: './src/routes/routeA/index.tsx',
       layouts: [],
-    } satisfies Partial<BuildRoute> as any,
+    } /* satisfies Partial<BuildRoute> */ as any,
   ];
-  const ctx: BuildContext = { routes } satisfies Partial<BuildContext> as any;
+  const ctx: BuildContext = { routes } /* satisfies Partial<BuildContext> */ as any;
   const appBundles: AppBundle[] = [
     ['q-bundle-a.js', [12]],
     ['q-bundle-b.js', [34]],
@@ -34,21 +34,21 @@ swSuite('incorporate qwik-insights', () => {
     bundles: {
       'q-bundle-a.js': {
         origins: ['./src/routes/index.tsx'],
-      } satisfies Partial<QwikManifest['bundles'][0]> as any,
+      } /* satisfies Partial<QwikManifest['bundles'][0]> */ as any,
       'q-bundle-b.js': {
         origins: ['./src/routes/routeA/index.tsx'],
-      } satisfies Partial<QwikManifest['bundles'][0]> as any,
+      } /* satisfies Partial<QwikManifest['bundles'][0]> */ as any,
       'q-bundle-123.js': {
         symbols: ['s_123'],
-      } satisfies Partial<QwikManifest['bundles'][0]> as any,
+      } /* satisfies Partial<QwikManifest['bundles'][0]> */ as any,
       'q-bundle-234.js': {
         symbols: ['s_234'],
-      } satisfies Partial<QwikManifest['bundles'][0]> as any,
+      } /* satisfies Partial<QwikManifest['bundles'][0]> */ as any,
       'q-bundle-345.js': {
         symbols: ['s_345'],
-      } satisfies Partial<QwikManifest['bundles'][0]> as any,
+      } /* satisfies Partial<QwikManifest['bundles'][0]> */ as any,
     },
-  } satisfies Partial<QwikManifest> as any;
+  } /* satisfies Partial<QwikManifest> */ as any;
   const prefetch: InsightManifest['prefetch'] = [
     { route: '/', symbols: ['123', '234'] },
     { route: '/routeA', symbols: ['345'] },

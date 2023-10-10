@@ -58,10 +58,7 @@ function prefetchUrlsEvent(
   );
 }
 
-/**
- * Creates the `<link>` within the rendered html.
- * Optionally add the JS worker fetch
- */
+/** Creates the `<link>` within the rendered html. Optionally add the JS worker fetch */
 function linkHtmlImplementation(
   prefetchNodes: JSXNode[],
   prefetchResources: PrefetchResource[],
@@ -85,9 +82,8 @@ function linkHtmlImplementation(
 }
 
 /**
- * Uses JS to add the `<link>` elements at runtime, and if the
- * link prefetching isn't supported, it'll also add the
- * web worker fetch.
+ * Uses JS to add the `<link>` elements at runtime, and if the link prefetching isn't supported,
+ * it'll also add the web worker fetch.
  */
 function linkJsImplementation(
   prefetchNodes: JSXNode[],

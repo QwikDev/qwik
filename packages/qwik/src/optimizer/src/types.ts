@@ -299,9 +299,7 @@ export interface ResolvedManifest {
   manifest: QwikManifest;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface InsightManifest {
   type: 'smart';
   manual: Record<string, string>;

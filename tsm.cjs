@@ -14,7 +14,7 @@ globalThis.qTest = true;
 globalThis.qRuntimeQrl = true;
 globalThis.qDev = true;
 globalThis.qInspector = false;
-import * as qwikJsx from "${corePath}";`
+import * as qwikJsx from "${corePath}";`;
 
 if (
   typeof global !== 'undefined' &&
@@ -36,7 +36,7 @@ module.exports = {
     minifyWhitespace: true,
     target: 'es2020',
   },
-  sourcemap: "inline",
+  sourcemap: 'inline',
   config: {
     '.html': {
       loader: 'text',

@@ -293,7 +293,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "Type representing the Qwik component.\n\n`Component` is the type returned by invoking `component$`<!-- -->.\n\n```\ninterface MyComponentProps {\n  someProp: string;\n}\nconst MyComponent: Component<MyComponentProps> = component$((props: MyComponentProps) => {\n  return <span>{props.someProp}</span>;\n});\n```\n\n\n```typescript\nexport type Component<PROPS extends {}> = FunctionComponent<PublicProps<PROPS>>;\n```\n**References:** [FunctionComponent](#functioncomponent)<!-- -->, [PublicProps](#publicprops)",
+      "content": "Type representing the Qwik component.\n\n`Component` is the type returned by invoking `component$`<!-- -->.\n\n```tsx\ninterface MyComponentProps {\n  someProp: string;\n}\nconst MyComponent: Component<MyComponentProps> = component$((props: MyComponentProps) => {\n  return <span>{props.someProp}</span>;\n});\n```\n\n\n```typescript\nexport type Component<PROPS extends {}> = FunctionComponent<PublicProps<PROPS>>;\n```\n**References:** [FunctionComponent](#functioncomponent)<!-- -->, [PublicProps](#publicprops)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts",
       "mdFile": "qwik.component.md"
     },

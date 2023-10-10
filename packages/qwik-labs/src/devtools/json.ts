@@ -522,7 +522,3 @@ export type QwikType =
   | 'Set'
   | 'Map'
   | 'Document';
-
-if (typeof window !== 'undefined') {
-  runQwikJsonDebug(window, document, qwikJsonDebug);
-}

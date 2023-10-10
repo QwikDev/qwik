@@ -21,11 +21,10 @@ import type { QContext } from '../core/state/context';
 const DOCTYPE = '<!DOCTYPE html>';
 
 /**
- * Creates a server-side `document`, renders to root node to the document,
- * then serializes the document to a string.
+ * Creates a server-side `document`, renders to root node to the document, then serializes the
+ * document to a string.
  *
  * @public
- *
  */
 export async function renderToStream(
   rootNode: any,
@@ -247,11 +246,10 @@ export async function renderToStream(
 }
 
 /**
- * Creates a server-side `document`, renders to root node to the document,
- * then serializes the document to a string.
+ * Creates a server-side `document`, renders to root node to the document, then serializes the
+ * document to a string.
  *
  * @public
- *
  */
 export async function renderToString(
   rootNode: any,
@@ -286,9 +284,7 @@ export async function renderToString(
   };
 }
 
-/**
- * @public
- */
+/** @public */
 export function resolveManifest(
   manifest: QwikManifest | ResolvedManifest | undefined
 ): ResolvedManifest | undefined {

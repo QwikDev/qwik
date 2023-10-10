@@ -4,13 +4,13 @@ import type { QPrefetchData, QPrefetchMessage } from './service-worker/types';
 // Source for what becomes innerHTML to the <ServiceWorkerRegister/> script
 
 ((
-  queuedBundleUrls: string[],
+  queuedEventDetails: any[],
   swReg?: QwikServiceWorkerRegistration,
-  sendPrefetch?: (data: QPrefetchData, qBase?: Element) => void,
+  sendPrefetch?: (data: QPrefetchData) => void,
   initServiceWorker?: () => void
 ) => {
-  sendPrefetch = (data, qBase) => {
-    qBase = document.querySelector('[q\\:base]')!;
+  sendPrefetch = (data) => {
+    const qBase = document.querySelector('[q\\:base]')!;
     if (qBase) {
       swReg!.active &&
         swReg!.active.postMessage({
@@ -22,11 +22,11 @@ import type { QPrefetchData, QPrefetchMessage } from './service-worker/types';
   };
 
   document.addEventListener('qprefetch', (ev) => {
-    const data = (ev as CustomEvent<QPrefetchData>).detail;
+    const detail = (ev as CustomEvent<QPrefetchData>).detail;
     if (swReg) {
-      sendPrefetch!(data);
-    } else if (data.bundles) {
-      queuedBundleUrls.push(...data.bundles);
+      sendPrefetch!(detail);
+    } else {
+      queuedEventDetails.push(detail);
     }
   });
 
@@ -35,7 +35,8 @@ import type { QPrefetchData, QPrefetchMessage } from './service-worker/types';
     .then((reg) => {
       initServiceWorker = () => {
         swReg = reg;
-        sendPrefetch!({ bundles: queuedBundleUrls });
+        queuedEventDetails.forEach(sendPrefetch!);
+        sendPrefetch!({ bundles: queuedEventDetails });
       };
 
       if (reg.installing) {

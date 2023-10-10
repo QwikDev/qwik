@@ -66,10 +66,7 @@ export function createPlatform(
   return serverPlatform;
 }
 
-/**
- * Applies NodeJS specific platform APIs to the passed in document instance.
- *
- */
+/** Applies NodeJS specific platform APIs to the passed in document instance. */
 export async function setServerPlatform(
   opts: SerializeDocumentOptions,
   manifest: ResolvedManifest | undefined

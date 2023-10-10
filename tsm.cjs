@@ -3,6 +3,19 @@ const { pathToFileURL } = require('node:url');
 
 const corePath = pathToFileURL(join(__dirname, 'packages', 'qwik', 'src', 'core', 'index.ts'));
 
+const bannerTS = `
+globalThis.qTest = true;
+globalThis.qRuntimeQrl = true;
+globalThis.qDev = true;
+`;
+
+const bannerTSX = `
+globalThis.qTest = true;
+globalThis.qRuntimeQrl = true;
+globalThis.qDev = true;
+globalThis.qInspector = false;
+import * as qwikJsx from "${corePath}";`;
+
 if (
   typeof global !== 'undefined' &&
   typeof globalThis.fetch !== 'function' &&
@@ -23,6 +36,7 @@ module.exports = {
     minifyWhitespace: true,
     target: 'es2020',
   },
+  sourcemap: 'inline',
   config: {
     '.html': {
       loader: 'text',
@@ -30,23 +44,14 @@ module.exports = {
     '.tsx': {
       jsxFactory: 'qwikJsx.h',
       jsxFragment: 'qwikJsx.Fragment',
-      banner: `
-      globalThis.qTest = true;
-      globalThis.qRuntimeQrl = true;
-      globalThis.qDev = true;
-      globalThis.qInspector = false;
-      import * as qwikJsx from "${corePath}";`,
+      banner: bannerTSX,
       target: 'es2020',
       loader: 'tsx',
       minify: false,
     },
     '.ts': {
       loader: 'ts',
-      banner: `
-globalThis.qTest = true;
-globalThis.qRuntimeQrl = true;
-globalThis.qDev = true;
-`,
+      banner: bannerTS,
       minify: false,
     },
   },

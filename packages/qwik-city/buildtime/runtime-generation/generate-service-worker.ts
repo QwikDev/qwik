@@ -1,10 +1,9 @@
 import type { BuildContext } from '../types';
-import swRegister from '@qwik-city-sw-register-build';
-import type { QwikManifest } from '@builder.io/qwik/optimizer';
+import type { QwikManifest, InsightManifest } from '@builder.io/qwik/optimizer';
 import type { AppBundle } from '../../runtime/src/service-worker/types';
 import { removeExtension } from '../../utils/fs';
 
-export function generateServiceWorkerRegister(ctx: BuildContext) {
+export function generateServiceWorkerRegister(ctx: BuildContext, swRegister: string) {
   let swReg: string;
 
   if (ctx.isDevServer) {
@@ -29,6 +28,7 @@ export function generateServiceWorkerRegister(ctx: BuildContext) {
 export function prependManifestToServiceWorker(
   ctx: BuildContext,
   manifest: QwikManifest,
+  prefetch: InsightManifest['prefetch'] | null,
   swCode: string
 ) {
   const key = `/* Qwik Service Worker */`;
@@ -41,7 +41,7 @@ export function prependManifestToServiceWorker(
   const appBundles: AppBundle[] = [];
   const appBundlesCode = generateAppBundles(appBundles, manifest);
   const libraryBundlesCode = generateLibraryBundles(appBundles, manifest);
-  const linkBundlesCode = generateLinkBundles(ctx, appBundles, manifest);
+  const [linkBundlesCode] = generateLinkBundles(ctx, appBundles, manifest, prefetch);
 
   return [key, appBundlesCode, libraryBundlesCode, linkBundlesCode, swCode].join('\n');
 }
@@ -92,8 +92,21 @@ function generateLibraryBundles(appBundles: AppBundle[], manifest: QwikManifest)
   return `const libraryBundleIds=${JSON.stringify(libraryBundleIds)};`;
 }
 
-function generateLinkBundles(ctx: BuildContext, appBundles: AppBundle[], manifest: QwikManifest) {
+export function generateLinkBundles(
+  ctx: BuildContext,
+  appBundles: AppBundle[],
+  manifest: QwikManifest,
+  prefetch: InsightManifest['prefetch'] | null
+) {
   const linkBundles: string[] = [];
+  const symbolToBundle = new Map<string, string>();
+  const routeToBundles: Record<string, string[]> = {};
+  for (const bundleName in manifest.bundles || []) {
+    manifest.bundles[bundleName].symbols?.forEach((symbol) => {
+      const idx = symbol.lastIndexOf('_');
+      symbolToBundle.set(idx === -1 ? symbol : symbol.substring(idx + 1), bundleName);
+    });
+  }
 
   for (const r of ctx.routes) {
     const linkBundleNames: string[] = [];
@@ -128,14 +141,33 @@ function generateLinkBundles(ctx: BuildContext, appBundles: AppBundle[], manifes
     }
     addFileBundles(r.filePath);
 
+    if (prefetch) {
+      // process the symbols from insights prefetch
+      const symbolsForRoute = prefetch.find((p) => p.route === r.routeName);
+      symbolsForRoute?.symbols?.reverse().forEach((symbol) => {
+        const bundle = symbolToBundle.get(symbol);
+        if (bundle) {
+          const idx = linkBundleNames.indexOf(bundle);
+          if (idx !== -1) {
+            linkBundleNames.splice(idx, 1);
+          }
+          linkBundleNames.unshift(bundle);
+        }
+      });
+    }
+
     linkBundles.push(
       `[${r.pattern.toString()},${JSON.stringify(
         linkBundleNames.map((bundleName) => getAppBundleId(appBundles, bundleName))
       )}]`
     );
+    routeToBundles[r.routeName] = linkBundleNames;
   }
 
-  return `const linkBundles=[${linkBundles.join(',')}];`;
+  return [`const linkBundles=[${linkBundles.join(',')}];`, routeToBundles] as [
+    string,
+    typeof routeToBundles,
+  ];
 }
 
 function getAppBundleId(appBundles: AppBundle[], bundleName: string) {

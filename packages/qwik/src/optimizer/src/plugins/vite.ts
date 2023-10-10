@@ -8,6 +8,7 @@ import type {
   OptimizerSystem,
   QwikManifest,
   TransformModule,
+  InsightManifest,
 } from '../types';
 import { versions } from '../versions';
 import { getImageSizeServer } from './image-size-server';
@@ -56,10 +57,21 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   const injections: GlobalInjections[] = [];
   const qwikPlugin = createPlugin(qwikViteOpts.optimizerOptions);
 
+  async function loadQwikInsights(): Promise<InsightManifest | null> {
+    const sys = qwikPlugin.getSys();
+    const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
+    const path = sys.path.join(process.cwd(), 'dist', 'q-insights.json');
+    if (fs.existsSync(path)) {
+      return JSON.parse(await fs.promises.readFile(path, 'utf-8')) as InsightManifest;
+    }
+    return null;
+  }
+
   const api: QwikVitePluginApi = {
     getOptimizer: () => qwikPlugin.getOptimizer(),
     getOptions: () => qwikPlugin.getOptions(),
     getManifest: () => manifestInput,
+    getInsightsManifest: () => loadQwikInsights(),
     getRootDir: () => qwikPlugin.getOptions().rootDir,
     getClientOutDir: () => clientOutDir,
     getClientPublicOutDir: () => clientPublicOutDir,
@@ -106,15 +118,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       qwikPlugin.log(`vite config(), command: ${viteCommand}, env.mode: ${viteEnv.mode}`);
 
       if (sys.env === 'node' && !qwikViteOpts.entryStrategy) {
-        const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
         try {
-          const path = sys.path.join(process.cwd(), 'dist', 'q-insights.json');
-          if (fs.existsSync(path)) {
-            const entryStrategy = JSON.parse(await fs.promises.readFile(path, 'utf-8'));
-            if (entryStrategy) {
-              qwikViteOpts.entryStrategy = entryStrategy;
-            }
-            await fs.promises.unlink(path);
+          const entryStrategy = await loadQwikInsights();
+          if (entryStrategy) {
+            qwikViteOpts.entryStrategy = entryStrategy;
           }
         } catch (e) {
           // ok to ignore
@@ -862,6 +869,7 @@ export interface QwikVitePluginApi {
   getOptimizer: () => Optimizer | null;
   getOptions: () => NormalizedQwikPluginOptions;
   getManifest: () => QwikManifest | null;
+  getInsightsManifest: () => Promise<InsightManifest | null>;
   getRootDir: () => string | null;
   getClientOutDir: () => string | null;
   getClientPublicOutDir: () => string | null;

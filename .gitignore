@@ -13,7 +13,8 @@ temp
 
 # Application
 qwik-app/
-**/server/
+/server/
+/starters/**/server/
 todo-express/
 target
 !/packages/docs/src/routes/demo/events/target

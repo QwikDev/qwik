@@ -14,9 +14,8 @@ import { type PascalCaseEventLiteralType } from '../render/jsx/types/jsx-qwik-ev
  * Used to programmatically add event listeners. Useful from custom `use*` methods, which do not
  * have access to the JSX. Otherwise, it's adding a JSX listener in the `<div>` is a better idea.
  *
- * @see `useOn`, `useOnWindow`, `useOnDocument`.
- *
  * @public
+ * @see `useOn`, `useOnWindow`, `useOnDocument`.
  */
 // </docs>
 export const useOn = (
@@ -35,6 +34,7 @@ export const useOn = (
  * Used to programmatically add event listeners. Useful from custom `use*` methods, which do not
  * have access to the JSX.
  *
+ * @public
  * @see `useOn`, `useOnWindow`, `useOnDocument`.
  *
  * ```tsx
@@ -52,8 +52,6 @@ export const useOn = (
  *   return <div>Profit!</div>;
  * });
  * ```
- *
- * @public
  */
 // </docs>
 export const useOnDocument = (
@@ -72,6 +70,7 @@ export const useOnDocument = (
  * Used to programmatically add event listeners. Useful from custom `use*` methods, which do not
  * have access to the JSX.
  *
+ * @public
  * @see `useOn`, `useOnWindow`, `useOnDocument`.
  *
  * ```tsx
@@ -90,8 +89,6 @@ export const useOnDocument = (
  *   return <div>Profit!</div>;
  * });
  * ```
- *
- * @public
  */
 // </docs>
 export const useOnWindow = (

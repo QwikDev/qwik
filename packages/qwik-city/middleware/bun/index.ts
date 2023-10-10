@@ -51,9 +51,7 @@ class TextEncoderStream {
   }
 }
 
-/**
- * @public
- */
+/** @public */
 export function createQwikCity(opts: QwikCityBunOptions) {
   (globalThis as any).TextEncoderStream = TextEncoderStream;
 
@@ -197,9 +195,7 @@ export function createQwikCity(opts: QwikCityBunOptions) {
   };
 }
 
-/**
- * @public
- */
+/** @public */
 export interface QwikCityBunOptions extends ServerRenderOptions {
   /** Options for serving static files */
   static?: {

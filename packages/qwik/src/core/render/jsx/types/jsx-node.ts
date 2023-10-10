@@ -1,12 +1,8 @@
-/**
- * @public
- */
+/** @public */
 export interface FunctionComponent<P = Record<string, any>> {
   (props: P, key: string | null, flags: number, dev?: DevJSX): JSXNode | null;
 }
-/**
- * @public
- */
+/** @public */
 export interface DevJSX {
   fileName: string;
   lineNumber: number;
@@ -14,9 +10,7 @@ export interface DevJSX {
   stack?: string;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface JSXNode<T = string | FunctionComponent> {
   type: T;
   props: T extends FunctionComponent<infer B> ? B : Record<string, any>;

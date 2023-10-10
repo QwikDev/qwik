@@ -1,9 +1,7 @@
 import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
 import { viteAdapter, type ServerAdapterOptions } from '../../shared/vite';
 
-/**
- * @alpha
- */
+/** @alpha */
 export function bunServerAdapter(opts: bunServerAdapterOptions = {}): any {
   const env = process?.env;
   return viteAdapter({
@@ -26,14 +24,10 @@ export function bunServerAdapter(opts: bunServerAdapterOptions = {}): any {
   });
 }
 
-/**
- * @alpha
- */
+/** @alpha */
 export interface bunServerAdapterOptions extends ServerAdapterOptions {
   name?: string;
 }
 
-/**
- * @alpha
- */
+/** @alpha */
 export type { StaticGenerateRenderOptions };

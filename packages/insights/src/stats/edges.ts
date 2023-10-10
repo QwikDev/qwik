@@ -3,21 +3,12 @@ import { vectorSum2 } from './vector';
 
 export interface Symbol {
   name: string;
-  /**
-   * Map of dependent symbols sorted by probability of dependency.
-   */
+  /** Map of dependent symbols sorted by probability of dependency. */
   children: Edge[];
-  /**
-   *
-   */
   count: number;
-  /**
-   * Unmodified name of the symbol.
-   */
+  /** Unmodified name of the symbol. */
   fullName: string | null;
-  /**
-   * File source of the symbol.
-   */
+  /** File source of the symbol. */
   fileSrc: string | null;
   /**
    * Depth of the symbol in the graph following the shortest path.

@@ -1,19 +1,16 @@
-/**
- * Controls the number of buckets to quantize to.
- */
+/** Controls the number of buckets to quantize to. */
 export const NUMBER_OF_BUCKETS = 50;
 
 /**
- * Max value which cant be quantized. Any value greater than this value will
- * result in the last bucket.
+ * Max value which cant be quantized. Any value greater than this value will result in the last
+ * bucket.
  */
 export const MAX_VALUE = 10000;
 export const TIMELINE_MAX_VALUE = 15 * 60 * 1000;
 
 /**
- * Without offset Math.log2(0) is -Infinity, and Math.Log(1) and Math.Log(2)
- * leave an empty bucket. So by offsetting it we cane ensure that the
- * buckets are not skipped.
+ * Without offset Math.log2(0) is -Infinity, and Math.Log(1) and Math.Log(2) leave an empty bucket.
+ * So by offsetting it we cane ensure that the buckets are not skipped.
  */
 const VALUE_OFFSET = Math.floor(Math.pow(2, 2.5));
 const TIMELINE_VALUE_OFFSET = Math.floor(Math.pow(2, 10));
@@ -31,20 +28,17 @@ const getResultOffsetAndScale = (maxValue: number, valueOffset: number) => {
   return { RESULT_OFFSET: resultOffset, SCALE: scale };
 };
 
-/**
- * A computed constant which is used for scaling so that we spread MAX_VALUE into BUCKETS.
- */
+/** A computed constant which is used for scaling so that we spread MAX_VALUE into BUCKETS. */
 const { RESULT_OFFSET, SCALE } = (() => getResultOffsetAndScale(MAX_VALUE, VALUE_OFFSET))();
 
 /**
- * A computed constant which is used for timeline scaling so that we spread TIMELINE_MAX_VALUE into BUCKETS.
+ * A computed constant which is used for timeline scaling so that we spread TIMELINE_MAX_VALUE into
+ * BUCKETS.
  */
 const { RESULT_OFFSET: TIMELINE_RESULT_OFFSET, SCALE: TIMELINE_SCALE } = (() =>
   getResultOffsetAndScale(TIMELINE_MAX_VALUE, TIMELINE_VALUE_OFFSET))();
 
-/**
- * Quantize the value into one of the buckets
- */
+/** Quantize the value into one of the buckets */
 export function toBucket(value: number): number {
   value = Math.max(0, value);
   return Math.min(

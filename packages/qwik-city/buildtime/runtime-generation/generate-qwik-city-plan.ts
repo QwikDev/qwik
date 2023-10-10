@@ -5,9 +5,7 @@ import { createMenus } from './generate-menus';
 import { createRoutes } from './generate-routes';
 import { createServerPlugins } from './generate-server-plugins';
 
-/**
- * Generates the Qwik City Plan runtime code
- */
+/** Generates the Qwik City Plan runtime code */
 export function generateQwikCityPlan(
   ctx: BuildContext,
   qwikPlugin: QwikVitePlugin,

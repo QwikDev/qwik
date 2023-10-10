@@ -2,17 +2,13 @@ import type { ContainerState } from '../container/container';
 import type { QContext } from '../state/context';
 import type { QwikElement } from './dom/virtual-element';
 
-/**
- * @public
- */
+/** @public */
 export interface RenderOperation {
   $operation$: (...args: any[]) => void;
   $args$: any[];
 }
 
-/**
- * @public
- */
+/** @public */
 export interface RenderContext {
   readonly $static$: RenderStaticContext;
   $cmpCtx$: QContext | null;
@@ -32,9 +28,7 @@ export interface RenderStaticContext {
   readonly $rmSlots$: QwikElement[];
 }
 
-/**
- * @public
- */
+/** @public */
 export interface RenderContext2 {}
 
 // Polyfills for ViewTransition API & scroll restoration

@@ -4,6 +4,7 @@ import { parseRoutePathname } from './parse-pathname';
 
 /**
  * Adopted from SvelteKit
+ *
  * https://github.com/sveltejs/kit/blob/master/LICENSE
  */
 

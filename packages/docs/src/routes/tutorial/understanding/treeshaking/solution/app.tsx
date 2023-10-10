@@ -27,8 +27,8 @@ export const Child = component$((props: { store: CountStore }) => {
     <>
       <code>&lt;Child&gt;</code>
       This component is dynamic because it is bound to <code>props.store.count</code>
-      {/** Commented out the binding to demonstrate the effect on code downloaded to the client! **/}
-      {/** props.store.count **/}
+      {/* Commented out the binding to demonstrate the effect on code downloaded to the client! */}
+      {/* props.store.count */}
       <GrandChild store={props.store} />
     </>
   );

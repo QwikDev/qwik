@@ -85,8 +85,8 @@ async function runNext(requestEv: RequestEventInternal, resolve: (value: any) =>
 }
 
 /**
- * The pathname used to match in the route regex array.
- * A pathname ending with /q-data.json should be treated as a pathname without it.
+ * The pathname used to match in the route regex array. A pathname ending with /q-data.json should
+ * be treated as a pathname without it.
  */
 export function getRouteMatchPathname(pathname: string, trailingSlash: boolean | undefined) {
   if (pathname.endsWith(QDATA_JSON)) {

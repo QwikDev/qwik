@@ -9,44 +9,36 @@ import {
 import type { ActionStore } from './types';
 import { useNavigate } from './use-functions';
 
-/**
- * @public
- */
+/** @public */
 export interface FormSubmitCompletedDetail<T> {
   status: number;
   value: T;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface FormProps<O, I>
   extends Omit<QwikJSX.IntrinsicElements['form'], 'action' | 'method'> {
-  /**
-   * Reference to the action returned by `action()`.
-   */
+  /** Reference to the action returned by `action()`. */
   action?: ActionStore<O, I, true | false>;
 
   /**
-   * When `true` the form submission will cause a full page reload, even if SPA mode is enabled and JS is available.
+   * When `true` the form submission will cause a full page reload, even if SPA mode is enabled and
+   * JS is available.
    */
   reloadDocument?: boolean;
 
   /**
-   * When `true` all the form inputs will be reset in SPA mode, just like happens in a full page form submission.
+   * When `true` all the form inputs will be reset in SPA mode, just like happens in a full page
+   * form submission.
    *
    * Defaults to `false`
    */
   spaReset?: boolean;
 
-  /**
-   * Event handler executed right when the form is submitted.
-   */
+  /** Event handler executed right when the form is submitted. */
   onSubmit$?: (event: Event, form: HTMLFormElement) => ValueOrPromise<void>;
 
-  /**
-   * Event handler executed right after the action is executed successfully and returns some data.
-   */
+  /** Event handler executed right after the action is executed successfully and returns some data. */
   onSubmitCompleted$?: (
     event: CustomEvent<FormSubmitCompletedDetail<O>>,
     form: HTMLFormElement
@@ -55,9 +47,7 @@ export interface FormProps<O, I>
   key?: string | number | null;
 }
 
-/**
- * @public
- */
+/** @public */
 export const Form = <O, I>(
   { action, spaReset, reloadDocument, onSubmit$, ...rest }: FormProps<O, I>,
   key: string | null

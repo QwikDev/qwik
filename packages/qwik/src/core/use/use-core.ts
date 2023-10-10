@@ -52,9 +52,7 @@ export interface InvokeContext {
 
 let _context: InvokeContext | undefined;
 
-/**
- * @public
- */
+/** @public */
 export const tryGetInvokeContext = (): InvokeContext | undefined => {
   if (!_context) {
     const context = typeof document !== 'undefined' && document && document.__q_context__;
@@ -165,9 +163,7 @@ export const getWrappingContainer = (el: QwikElement): Element | null => {
   return el.closest(QContainerSelector);
 };
 
-/**
- * @public
- */
+/** @public */
 export const untrack = <T>(fn: () => T): T => {
   return invoke(undefined, fn);
 };
@@ -179,17 +175,13 @@ const trackInvocation = /*#__PURE__*/ newInvokeContext(
   RenderEvent
 );
 
-/**
- * @public
- */
+/** @public */
 export const trackSignal = <T>(signal: Signal, sub: Subscriber): T => {
   trackInvocation.$subscriber$ = sub;
   return invoke(trackInvocation, () => signal.value);
 };
 
-/**
- * @internal
- */
+/** @internal */
 export const _getContextElement = (): unknown => {
   const iCtx = tryGetInvokeContext();
   if (iCtx) {
@@ -199,9 +191,7 @@ export const _getContextElement = (): unknown => {
   }
 };
 
-/**
- * @internal
- */
+/** @internal */
 export const _getContextEvent = (): unknown => {
   const iCtx = tryGetInvokeContext();
   if (iCtx) {
@@ -209,9 +199,7 @@ export const _getContextEvent = (): unknown => {
   }
 };
 
-/**
- * @internal
- */
+/** @internal */
 export const _jsxBranch = (input?: any) => {
   const iCtx = tryGetInvokeContext();
   if (iCtx && iCtx.$hostElement$ && iCtx.$renderCtx$) {
@@ -222,9 +210,7 @@ export const _jsxBranch = (input?: any) => {
   return input;
 };
 
-/**
- * @internal
- */
+/** @internal */
 export const _waitUntilRendered = (elm: Element) => {
   const containerEl = getWrappingContainer(elm);
   if (!containerEl) {

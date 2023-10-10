@@ -16,9 +16,7 @@ import { isBrowser } from '@builder.io/qwik/build';
 import { assertString } from '../../error/assert';
 import { static_subtree } from '../execute-component';
 
-/**
- * @internal
- */
+/** @internal */
 export const _jsxQ = <T extends string>(
   type: T,
   mutableProps: (T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>) | null,
@@ -49,9 +47,7 @@ export const _jsxQ = <T extends string>(
   return node;
 };
 
-/**
- * @internal
- */
+/** @internal */
 export const _jsxS = <T extends string>(
   type: T,
   mutableProps: (T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>) | null,
@@ -68,9 +64,7 @@ export const _jsxS = <T extends string>(
   return _jsxQ(type, mutableProps, immutableProps, children, flags, key, dev);
 };
 
-/**
- * @internal
- */
+/** @internal */
 export const _jsxC = <T extends string | FunctionComponent<any>>(
   type: T,
   mutableProps: (T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>) | null,
@@ -104,9 +98,7 @@ export const _jsxC = <T extends string | FunctionComponent<any>>(
   return node;
 };
 
-/**
- * @public
- */
+/** @public */
 export const jsx = <T extends string | FunctionComponent<any>>(
   type: T,
   props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>,
@@ -149,15 +141,11 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
   ) {}
 }
 
-/**
- * @public
- */
+/** @public */
 export const Virtual: FunctionComponent<Record<string, any>> = ((props: any) =>
   props.children) as any;
 
-/**
- * @public
- */
+/** @public */
 export const RenderOnce: FunctionComponent<{
   children?: any;
   key?: string | number | null | undefined;
@@ -325,9 +313,7 @@ export const isValidJSXChild = (node: any): boolean => {
   return false;
 };
 
-/**
- * @public
- */
+/** @public */
 export const Fragment: FunctionComponent<{ children?: any; key?: string | number | null }> = (
   props
 ) => props.children as any;
@@ -338,15 +324,11 @@ interface JsxDevOpts {
   columnNumber: number;
 }
 
-/**
- * @public
- */
+/** @public */
 export const HTMLFragment: FunctionComponent<{ dangerouslySetInnerHTML: string }> = (props) =>
   jsx(Virtual, props);
 
-/**
- * @public
- */
+/** @public */
 export const jsxDEV = <T extends string | FunctionComponent<any>>(
   type: T,
   props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>,

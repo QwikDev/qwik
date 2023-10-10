@@ -46,16 +46,15 @@ export const notifyChange = (subAction: Subscriptions, containerState: Container
 /**
  * Mark component for rendering.
  *
- * Use `notifyRender` method to mark a component for rendering at some later point in time.
- * This method uses `getPlatform(doc).queueRender` for scheduling of the rendering. The
- * default implementation of the method is to use `requestAnimationFrame` to do actual rendering.
+ * Use `notifyRender` method to mark a component for rendering at some later point in time. This
+ * method uses `getPlatform(doc).queueRender` for scheduling of the rendering. The default
+ * implementation of the method is to use `requestAnimationFrame` to do actual rendering.
  *
  * The method is intended to coalesce multiple calls into `notifyRender` into a single call for
  * rendering.
  *
  * @param hostElement - Host-element of the component to re-render.
  * @returns A promise which is resolved when the component has been rendered.
- *
  */
 const notifyRender = (hostElement: QwikElement, containerState: ContainerState): void => {
   const server = isServerPlatform();
@@ -116,11 +115,10 @@ const scheduleFrame = (containerState: ContainerState): Promise<void> => {
 };
 
 /**
- * Low-level API used by the Optimizer to process `useTask$()` API. This method
- * is not intended to be used by developers.
+ * Low-level API used by the Optimizer to process `useTask$()` API. This method is not intended to
+ * be used by developers.
  *
  * @internal
- *
  */
 export const _hW = () => {
   const [task] = useLexicalScope<[SubscriberEffect]>();

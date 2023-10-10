@@ -28,9 +28,9 @@ interface AzureCookie {
   /** Specifies URL path that must exist in the requested URL */
   path?: string;
   /**
-   * NOTE: It is generally recommended that you use maxAge over expires.
-   * Sets the cookie to expire at a specific date instead of when the client closes.
-   * This can be a Javascript Date or Unix time in milliseconds.
+   * NOTE: It is generally recommended that you use maxAge over expires. Sets the cookie to expire
+   * at a specific date instead of when the client closes. This can be a Javascript Date or Unix
+   * time in milliseconds.
    */
   expires?: Date | number;
   /** Sets the cookie to only be sent with an encrypted request */
@@ -39,13 +39,14 @@ interface AzureCookie {
   httpOnly?: boolean;
   /** Can restrict the cookie to not be sent with cross-site requests */
   sameSite?: string | undefined;
-  /** Number of seconds until the cookie expires. A zero or negative number will expire the cookie immediately. */
+  /**
+   * Number of seconds until the cookie expires. A zero or negative number will expire the cookie
+   * immediately.
+   */
   maxAge?: number;
 }
 
-/**
- * @public
- */
+/** @public */
 export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
   const qwikSerializer = {
     _deserializeData,
@@ -140,12 +141,8 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
   return onAzureSwaRequest;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface QwikCityAzureOptions extends ServerRenderOptions {}
 
-/**
- * @public
- */
+/** @public */
 export interface PlatformAzure extends Partial<Context> {}

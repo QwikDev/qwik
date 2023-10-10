@@ -248,8 +248,8 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
 
       if (req.headers.accept && req.headers.accept.includes('text/html')) {
         /**
-         * if no route match, but is html request, fast path to 404
-         * otherwise qwik plugin will take over render without envData causing error
+         * If no route match, but is html request, fast path to 404 otherwise qwik plugin will take
+         * over render without envData causing error
          */
         // TODO: after file change, need to manual page refresh to see changes currently
         //       there's two ways handling HMR for page endpoint with error
@@ -370,6 +370,7 @@ const levenshteinDistance = (s: string, t: string) => {
 
 /**
  * Static file server for files written directly to the 'dist' dir.
+ *
  * Only handles the simplest cases.
  */
 export function staticDistMiddleware({ config }: ViteDevServer) {

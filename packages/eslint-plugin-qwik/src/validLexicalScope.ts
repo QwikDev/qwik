@@ -214,10 +214,8 @@ export const validLexicalScope = createRule({
         const moduleSymbol = typeChecker.getSymbolAtLocation(module);
 
         /**
-         * Despite what the type signature says,
-         * {@link typeChecker.getSymbolAtLocation} can return undefined for
-         * empty modules. This happens, for example, when creating a brand new
-         * file.
+         * Despite what the type signature says, {@link typeChecker.getSymbolAtLocation} can return
+         * undefined for empty modules. This happens, for example, when creating a brand new file.
          */
         if (moduleSymbol) {
           exports = typeChecker.getExportsOfModule(moduleSymbol);

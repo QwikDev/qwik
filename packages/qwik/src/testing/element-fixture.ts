@@ -12,14 +12,13 @@ import { normalizeOnProp } from '../core/state/listeners';
  *
  * By default `EntityFixture` creates:
  *
- * ```
+ * ```html
  * <host q:view="./component_fixture.noop">
  *   <child></child>
  * </host>
  * ```
  *
  * @public
- *
  */
 export class ElementFixture {
   window: MockWindow;
@@ -43,16 +42,16 @@ export class ElementFixture {
   }
 }
 
-/**
- * @public
- */
+/** @public */
 export interface ElementFixtureOptions {
   tagName?: string;
 }
 
 /**
  * Trigger an event in unit tests on an element.
+ *
  * Future deprecation candidate.
+ *
  * @param element
  * @param selector
  * @param event
@@ -75,6 +74,7 @@ export async function trigger(
 
 /**
  * Dispatch
+ *
  * @param root
  * @param attrName
  * @param ev

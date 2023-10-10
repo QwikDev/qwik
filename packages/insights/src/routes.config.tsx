@@ -1,15 +1,14 @@
 /**
- * This file is created as part of the typed routes, but it is intended to be modified by the developer.
+ * This file is created as part of the typed routes, but it is intended to be modified by the
+ * developer.
  *
- * @fileoverview
+ * @file
  */
 import { untypedAppUrl, omitProps } from '@builder.io/qwik-labs';
 import { type AppLinkProps, type AppRouteParamsFunction } from './routes.gen';
 import { type QwikIntrinsicElements } from '@builder.io/qwik';
 
-/**
- * Configure `appUrl` with the typed information of routes.
- */
+/** Configure `appUrl` with the typed information of routes. */
 export const appUrl = untypedAppUrl as AppRouteParamsFunction;
 
 /**

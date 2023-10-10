@@ -1,6 +1,4 @@
-/**
- * @private
- */
+/** @private */
 export const isHtmlElement = (node: any): node is Element => {
   return node ? node.nodeType === 1 : false;
 };
@@ -28,6 +26,7 @@ export const isFunction = (v: any): v is Function => {
 
 /**
  * Type representing a value which is either resolve or a promise.
+ *
  * @public
  */
 export type ValueOrPromise<T> = T | Promise<T>;

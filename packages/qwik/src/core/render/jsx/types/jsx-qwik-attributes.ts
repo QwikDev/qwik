@@ -175,9 +175,7 @@ export type BaseClassList =
   | Record<string, boolean | string | number | null | undefined>
   | BaseClassList[];
 
-/**
- * @public
- */
+/** @public */
 export type ClassList = BaseClassList | BaseClassList[];
 
 export interface QwikProps<T extends Element> extends PreventDefault<T> {
@@ -185,9 +183,7 @@ export interface QwikProps<T extends Element> extends PreventDefault<T> {
   dangerouslySetInnerHTML?: string | undefined;
   ref?: Ref<T> | undefined;
 
-  /**
-   * Corresponding slot name used to project the element into.
-   */
+  /** Corresponding slot name used to project the element into. */
   'q:slot'?: string;
 }
 
@@ -197,16 +193,12 @@ export type BivariantEventHandler<T extends SyntheticEvent<any> | Event, EL> = {
   bivarianceHack(event: T, element: EL): any;
 }['bivarianceHack'];
 
-/**
- * @public
- */
+/** @public */
 export type NativeEventHandler<T extends Event = Event, EL = Element> =
   | BivariantEventHandler<T, EL>
   | QRL<BivariantEventHandler<T, EL>>[];
 
-/**
- * @public
- */
+/** @public */
 export type QrlEvent<Type extends Event = Event> = QRL<NativeEventHandler<Type, Element>>;
 
 export interface QwikCustomEvents<El> {
@@ -223,9 +215,7 @@ export type QwikKnownEvents<T> = {
     BivariantEventHandler<QwikEventMap<T>[K], T>
   >;
 };
-/**
- * @public
- */
+/** @public */
 export interface QwikEvents<T> extends QwikKnownEvents<T>, QwikCustomEvents<T> {
   'document:onLoad$'?: BivariantEventHandler<Event, T>;
   'document:onScroll$'?: BivariantEventHandler<QwikUIEvent<T>, T>;
@@ -233,22 +223,16 @@ export interface QwikEvents<T> extends QwikKnownEvents<T>, QwikCustomEvents<T> {
   'document:onVisibilityChange$'?: BivariantEventHandler<Event, T>;
 }
 
-/**
- * @public
- */
+/** @public */
 export type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLElementTagNameMap>;
 
-/**
- * @public
- */
+/** @public */
 export interface ComponentBaseProps {
   key?: string | number | null | undefined;
   'q:slot'?: string;
 }
 
-/**
- * @public
- */
+/** @public */
 export type JSXChildren =
   | string
   | number
@@ -262,9 +246,7 @@ export type JSXChildren =
   | Signal<JSXChildren>
   | JSXNode;
 
-/**
- * @public
- */
+/** @public */
 export interface DOMAttributes<T extends Element> extends QwikProps<T>, QwikEvents<T> {
   children?: JSXChildren;
   key?: string | number | null | undefined;
@@ -274,7 +256,5 @@ interface RefFnInterface {
   (el: Element): void;
 }
 
-/**
- * @public
- */
+/** @public */
 export type Ref<T extends Element = Element> = Signal<Element | undefined> | RefFnInterface;

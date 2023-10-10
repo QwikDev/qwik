@@ -3,6 +3,7 @@ import Root from './root';
 
 /**
  * Development entry point using only client-side modules:
+ *
  * - Do not use this mode in production!
  * - No SSR
  * - No portion of the application is pre-rendered on the server.

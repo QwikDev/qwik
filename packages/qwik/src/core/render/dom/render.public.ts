@@ -21,16 +21,12 @@ import { logError } from '../../util/log';
 import { appendQwikDevTools } from '../../container/resume';
 import type { RenderContext } from '../types';
 
-/**
- * @public
- */
+/** @public */
 export interface RenderOptions {
   serverData?: Record<string, any>;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface RenderResult {
   cleanup(): void;
 }
@@ -38,15 +34,14 @@ export interface RenderResult {
 /**
  * Render JSX.
  *
- * Use this method to render JSX. This function does reconciling which means
- * it always tries to reuse what is already in the DOM (rather then destroy and
- * recreate content.)
- * It returns a cleanup function you could use for cleaning up subscriptions.
+ * Use this method to render JSX. This function does reconciling which means it always tries to
+ * reuse what is already in the DOM (rather then destroy and recreate content.) It returns a cleanup
+ * function you could use for cleaning up subscriptions.
  *
- * @param parent - Element which will act as a parent to `jsxNode`. When
- *     possible the rendering will try to reuse existing nodes.
+ * @param parent - Element which will act as a parent to `jsxNode`. When possible the rendering will
+ *   try to reuse existing nodes.
  * @param jsxNode - JSX to render
- * @returns an object containing a cleanup function.
+ * @returns An object containing a cleanup function.
  * @public
  */
 export const render = async (

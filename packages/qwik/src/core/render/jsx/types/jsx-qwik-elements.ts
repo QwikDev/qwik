@@ -6,16 +6,14 @@ interface QwikCustomHTMLAttributes<T extends Element> extends HTMLAttributes<T> 
 
 interface QwikCustomHTMLElement extends Element {}
 
-/**
- * @public
- */
+/** @public */
 export interface QwikIntrinsicAttributes {
   key?: string | number | undefined | null;
 }
 
 /**
- * The interface holds available attributes of both native DOM elements and custom Qwik elements.
- * An example showing how to define a customizable wrapper component:
+ * The interface holds available attributes of both native DOM elements and custom Qwik elements. An
+ * example showing how to define a customizable wrapper component:
  *
  * ```tsx
  * import { component$, Slot, type QwikIntrinsicElements } from "@builder.io/qwik";
@@ -32,6 +30,7 @@ export interface QwikIntrinsicAttributes {
  *   );
  * });
  * ```
+ *
  * @public
  */
 export interface QwikIntrinsicElements extends IntrinsicHTMLElements {

@@ -3,9 +3,7 @@ import { type ServerAdapterOptions, viteAdapter } from '../../shared/vite';
 import { join } from 'node:path';
 import fs from 'node:fs';
 
-/**
- * @public
- */
+/** @public */
 export function azureSwaAdapter(opts: AzureSwaAdapterOptions = {}): any {
   const env = process?.env;
   return viteAdapter({
@@ -66,12 +64,8 @@ export function azureSwaAdapter(opts: AzureSwaAdapterOptions = {}): any {
   });
 }
 
-/**
- * @public
- */
+/** @public */
 export interface AzureSwaAdapterOptions extends ServerAdapterOptions {}
 
-/**
- * @public
- */
+/** @public */
 export type { StaticGenerateRenderOptions };

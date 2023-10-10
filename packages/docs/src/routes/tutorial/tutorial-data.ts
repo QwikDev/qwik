@@ -16,9 +16,6 @@ export interface TutorialApp {
   enableSsrOutput?: boolean;
 }
 
-/**
- * Generated at build-time.
- * See packages/docs/src/routes/tutorial/tutorial-menu.json
- */
+/** Generated at build-time. See /packages/docs/src/routes/tutorial/tutorial-menu.json */
 const tutorialSections: TutorialSection[] = [];
 export default tutorialSections;

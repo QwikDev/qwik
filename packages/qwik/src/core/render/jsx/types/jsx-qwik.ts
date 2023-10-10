@@ -2,9 +2,7 @@ import type { DOMAttributes } from './jsx-qwik-attributes';
 import type { JSXNode } from './jsx-node';
 import type { QwikIntrinsicAttributes, QwikIntrinsicElements } from './jsx-qwik-elements';
 
-/**
- * @public
- */
+/** @public */
 export namespace QwikJSX {
   export interface Element extends JSXNode {}
 
@@ -15,7 +13,5 @@ export namespace QwikJSX {
   export interface IntrinsicElements extends QwikIntrinsicElements {}
 }
 
-/**
- * @public
- */
+/** @public */
 export interface QwikDOMAttributes extends DOMAttributes<Element> {}

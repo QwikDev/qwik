@@ -57,9 +57,7 @@ import {
 } from './scroll-restoration';
 import spaInit from './spa-init';
 
-/**
- * @public
- */
+/** @public */
 export interface QwikCityProps {
   // /**
   //  * The QwikCity component must have only two direct children: `<head>` and `<body>`, like the following example:
@@ -87,9 +85,7 @@ export interface QwikCityProps {
   viewTransition?: boolean;
 }
 
-/**
- * @public
- */
+/** @public */
 export const QwikCityProvider = component$<QwikCityProps>((props) => {
   useStyles$(`:root{view-transition-name:none}`);
   const env = useQwikCityEnv();
@@ -518,17 +514,13 @@ function getContainer(elm: Node): HTMLElement {
   return (elm as Element).closest('[q\\:container]') as HTMLElement;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface QwikCityMockProps {
   url?: string;
   params?: Record<string, string>;
 }
 
-/**
- * @public
- */
+/** @public */
 export const QwikCityMockProvider = component$<QwikCityMockProps>((props) => {
   const urlEnv = props.url ?? 'http://localhost/';
   const url = new URL(urlEnv);

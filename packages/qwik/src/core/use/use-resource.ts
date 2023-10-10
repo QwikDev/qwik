@@ -26,13 +26,13 @@ import { isPromise } from '../util/promises';
 /**
  * Options to pass to `useResource$()`
  *
- * @see useResource
  * @public
+ * @see useResource
  */
 export interface ResourceOptions {
   /**
-   * Timeout in milliseconds. If the resource takes more than the specified millisecond, it will timeout.
-   * Resulting on a rejected resource.
+   * Timeout in milliseconds. If the resource takes more than the specified millisecond, it will
+   * timeout. Resulting on a rejected resource.
    */
   timeout?: number;
 }
@@ -41,8 +41,8 @@ export interface ResourceOptions {
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useResource instead)
 /**
- * This method works like an async memoized function that runs whenever some tracked value
- * changes and returns some data.
+ * This method works like an async memoized function that runs whenever some tracked value changes
+ * and returns some data.
  *
  * `useResource` however returns immediate a `ResourceReturn` object that contains the data and a
  * state that indicates if the data is available or not.
@@ -55,8 +55,8 @@ export interface ResourceOptions {
  *
  * ### Example
  *
- * Example showing how `useResource` to perform a fetch to request the weather, whenever the
- * input city name changes.
+ * Example showing how `useResource` to perform a fetch to request the weather, whenever the input
+ * city name changes.
  *
  * ```tsx
  * const Cmp = component$(() => {
@@ -89,10 +89,9 @@ export interface ResourceOptions {
  * });
  * ```
  *
+ * @public
  * @see Resource
  * @see ResourceReturn
- *
- * @public
  */
 // </docs>
 export const useResourceQrl = <T>(
@@ -130,8 +129,8 @@ export const useResourceQrl = <T>(
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useResource instead)
 /**
- * This method works like an async memoized function that runs whenever some tracked value
- * changes and returns some data.
+ * This method works like an async memoized function that runs whenever some tracked value changes
+ * and returns some data.
  *
  * `useResource` however returns immediate a `ResourceReturn` object that contains the data and a
  * state that indicates if the data is available or not.
@@ -144,8 +143,8 @@ export const useResourceQrl = <T>(
  *
  * ### Example
  *
- * Example showing how `useResource` to perform a fetch to request the weather, whenever the
- * input city name changes.
+ * Example showing how `useResource` to perform a fetch to request the weather, whenever the input
+ * city name changes.
  *
  * ```tsx
  * const Cmp = component$(() => {
@@ -178,10 +177,9 @@ export const useResourceQrl = <T>(
  * });
  * ```
  *
+ * @public
  * @see Resource
  * @see ResourceReturn
- *
- * @public
  */
 // </docs>
 export const useResource$ = <T>(
@@ -191,9 +189,7 @@ export const useResource$ = <T>(
   return useResourceQrl<T>($(generatorFn), opts);
 };
 
-/**
- * @public
- */
+/** @public */
 export interface ResourceProps<T> {
   readonly value: ResourceReturn<T> | Signal<Promise<T> | T> | Promise<T>;
   onResolved: (value: T) => JSXNode;
@@ -205,8 +201,8 @@ export interface ResourceProps<T> {
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useResource instead)
 /**
- * This method works like an async memoized function that runs whenever some tracked value
- * changes and returns some data.
+ * This method works like an async memoized function that runs whenever some tracked value changes
+ * and returns some data.
  *
  * `useResource` however returns immediate a `ResourceReturn` object that contains the data and a
  * state that indicates if the data is available or not.
@@ -219,8 +215,8 @@ export interface ResourceProps<T> {
  *
  * ### Example
  *
- * Example showing how `useResource` to perform a fetch to request the weather, whenever the
- * input city name changes.
+ * Example showing how `useResource` to perform a fetch to request the weather, whenever the input
+ * city name changes.
  *
  * ```tsx
  * const Cmp = component$(() => {
@@ -253,10 +249,9 @@ export interface ResourceProps<T> {
  * });
  * ```
  *
+ * @public
  * @see Resource
  * @see ResourceReturn
- *
- * @public
  */
 // </docs>
 export const Resource = <T>(props: ResourceProps<T>): JSXNode => {

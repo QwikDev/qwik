@@ -4,6 +4,7 @@ import { requestHandler } from '../../../repl/worker/repl-request-handler';
 
 /**
  * REPL Service Worker
+ *
  * /repl/repl-sw.js
  */
 

@@ -19,9 +19,7 @@ export type GetObject = (id: string) => any;
 export type GetObjID = (obj: any) => string | null;
 export type MustGetObjID = (obj: any) => string;
 
-/**
- * @public
- */
+/** @public */
 export interface SnapshotMetaValue {
   w?: string; // q:watches
   s?: string; // q:seq
@@ -29,14 +27,10 @@ export interface SnapshotMetaValue {
   c?: string; // q:context
 }
 
-/**
- * @public
- */
+/** @public */
 export type SnapshotMeta = Record<string, SnapshotMetaValue>;
 
-/**
- * @public
- */
+/** @public */
 export interface SnapshotState {
   ctx: SnapshotMeta;
   refs: Record<string, string>;
@@ -44,18 +38,14 @@ export interface SnapshotState {
   subs: any[];
 }
 
-/**
- * @public
- */
+/** @public */
 export interface SnapshotListener {
   key: string;
   qrl: QRL<any>;
   el: Element;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface SnapshotResult {
   state: SnapshotState;
   funcs: string[];
@@ -67,18 +57,14 @@ export interface SnapshotResult {
 
 export type ObjToProxyMap = WeakMap<any, any>;
 
-/**
- * @public
- */
+/** @public */
 export interface PauseContext {
   getObject: GetObject;
   meta: SnapshotMeta;
   refs: Record<string, string>;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface ContainerState {
   readonly $containerEl$: Element;
 
@@ -108,9 +94,7 @@ export interface ContainerState {
 
 const CONTAINER_STATE = Symbol('ContainerState');
 
-/**
- * @internal
- */
+/** @internal */
 export const _getContainerState = (containerEl: Element): ContainerState => {
   let set = (containerEl as any)[CONTAINER_STATE] as ContainerState;
   if (!set) {

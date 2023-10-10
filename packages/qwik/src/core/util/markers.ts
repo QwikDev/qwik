@@ -1,30 +1,18 @@
-/**
- * State factory of the component.
- */
+/** State factory of the component. */
 export const OnRenderProp = 'q:renderFn';
 
-/**
- * Component style host prefix
- */
+/** Component style host prefix */
 export const ComponentStylesPrefixHost = '💎';
 
-/**
- * Component style content prefix
- */
+/** Component style content prefix */
 export const ComponentStylesPrefixContent = '⭐️';
 
-/**
- * Prefix used to identify on listeners.
- */
+/** Prefix used to identify on listeners. */
 export const EventPrefix = 'on:';
 
-/**
- * Attribute used to mark that an event listener is attached.
- */
+/** Attribute used to mark that an event listener is attached. */
 export const EventAny = 'on:.';
-/**
- * `<some-element q:slot="...">`
- */
+/** `<some-element q:slot="...">` */
 export const QSlot = 'q:slot';
 export const QSlotRef = 'q:sref';
 export const QSlotS = 'q:s';
@@ -40,9 +28,7 @@ export const QContainerSelector = '[q\\:container]';
 export const ResourceEvent = 'qResource';
 export const ComputedEvent = 'qComputed';
 export const RenderEvent = 'qRender';
-/**
- * `<q:slot name="...">`
- */
+/** `<q:slot name="...">` */
 export const QSlotInertName = '\u0000';
 
 export const ELEMENT_ID = 'q:id';

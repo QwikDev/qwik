@@ -23,8 +23,8 @@ import { invoke } from './use-core';
  *
  * Context is a way to pass stores to the child components without prop-drilling.
  *
- * Use `createContextId()` to create a `ContextId`. A `ContextId` is just a serializable
- * identifier for the context. It is not the context value itself. See `useContextProvider()` and
+ * Use `createContextId()` to create a `ContextId`. A `ContextId` is just a serializable identifier
+ * for the context. It is not the context value itself. See `useContextProvider()` and
  * `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can
  * track context providers and consumers in a way that survives resumability.
  *
@@ -64,17 +64,14 @@ import { invoke } from './use-core';
  * });
  *
  * ```
+ *
  * @public
  */
 // </docs>
 export interface ContextId<STATE> {
-  /**
-   * Design-time property to store type information for the context.
-   */
+  /** Design-time property to store type information for the context. */
   readonly __brand_context_type__: STATE;
-  /**
-   * A unique ID for the context.
-   */
+  /** A unique ID for the context. */
   readonly id: string;
 }
 
@@ -82,13 +79,12 @@ export interface ContextId<STATE> {
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#createContextId instead)
 /**
- * Create a context ID to be used in your application.
- * The name should be written with no spaces.
+ * Create a context ID to be used in your application. The name should be written with no spaces.
  *
  * Context is a way to pass stores to the child components without prop-drilling.
  *
- * Use `createContextId()` to create a `ContextId`. A `ContextId` is just a serializable
- * identifier for the context. It is not the context value itself. See `useContextProvider()` and
+ * Use `createContextId()` to create a `ContextId`. A `ContextId` is just a serializable identifier
+ * for the context. It is not the context value itself. See `useContextProvider()` and
  * `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can
  * track context providers and consumers in a way that survives resumability.
  *
@@ -128,6 +124,7 @@ export interface ContextId<STATE> {
  * });
  *
  * ```
+ *
  * @param name - The name of the context.
  * @public
  */
@@ -187,6 +184,7 @@ export const createContextId = <STATE = unknown>(name: string): ContextId<STATE>
  * });
  *
  * ```
+ *
  * @param context - The context to assign a value to.
  * @param value - The value to assign to the context.
  * @public
@@ -226,8 +224,8 @@ export interface UseContext {
 /**
  * Retrieve Context value.
  *
- * Use `useContext()` to retrieve the value of context in a component. To retrieve a value a
- * parent component needs to invoke `useContextProvider()` to assign a value.
+ * Use `useContext()` to retrieve the value of context in a component. To retrieve a value a parent
+ * component needs to invoke `useContextProvider()` to assign a value.
  *
  * ### Example
  *
@@ -265,6 +263,7 @@ export interface UseContext {
  * });
  *
  * ```
+ *
  * @param context - The context to retrieve a value from.
  * @public
  */

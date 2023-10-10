@@ -66,9 +66,7 @@ import {
 } from './container';
 import { UNDEFINED_PREFIX, collectDeps, serializeValue } from './serializers';
 
-/**
- * @internal
- */
+/** @internal */
 export const _serializeData = async (data: any, pureQRL?: boolean) => {
   const containerState = {} as any;
   const collector = createCollector(containerState);
@@ -136,8 +134,6 @@ export const _serializeData = async (data: any, pureQRL?: boolean) => {
 // <docs markdown="../readme.md#pauseContainer">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#pauseContainer instead)
-/**
- */
 // </docs>
 export const pauseContainer = async (
   elmOrDoc: Element | Document,
@@ -204,9 +200,7 @@ export const pauseContainer = async (
   return data;
 };
 
-/**
- * @internal
- */
+/** @internal */
 export const _pauseFromContexts = async (
   allContexts: QContext[],
   containerState: ContainerState,

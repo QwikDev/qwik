@@ -26,9 +26,7 @@ const EXTRACT_FILE_NAME = /[\\/(]([\w\d.\-_]+\.(js|ts)x?):/;
 
 const announcedQRL = /*#__PURE__*/ new Set<string>();
 
-/**
- * @public
- */
+/** @public */
 export interface QRLDev {
   file: string;
   lo: number;
@@ -44,12 +42,11 @@ export interface QRLDev {
  * This function should be used by the Qwik Optimizer only. The function should not be directly
  * referred to in the source code of the application.
  *
- * @see `QRL`, `$(...)`
- *
  * @param chunkOrFn - Chunk name (or function which is stringified to extract chunk name)
  * @param symbol - Symbol to lazy load
- * @param lexicalScopeCapture - a set of lexically scoped variables to capture.
+ * @param lexicalScopeCapture - A set of lexically scoped variables to capture.
  * @public
+ * @see `QRL`, `$(...)`
  */
 // </docs>
 export const qrl = <T = any>(
@@ -100,9 +97,7 @@ export const qrl = <T = any>(
   return createQRL<T>(chunk, symbol, null, symbolFn, null, lexicalScopeCapture, null);
 };
 
-/**
- * @internal
- */
+/** @internal */
 export const inlinedQrl = <T>(
   symbol: T,
   symbolName: string,
@@ -112,9 +107,7 @@ export const inlinedQrl = <T>(
   return createQRL<T>(null, symbolName, symbol, null, null, lexicalScopeCapture, null);
 };
 
-/**
- * @internal
- */
+/** @internal */
 export const _noopQrl = <T>(
   symbolName: string,
   lexicalScopeCapture: any[] = EMPTY_ARRAY
@@ -122,9 +115,7 @@ export const _noopQrl = <T>(
   return createQRL<T>(null, symbolName, null, null, null, lexicalScopeCapture, null);
 };
 
-/**
- * @internal
- */
+/** @internal */
 export const qrlDEV = <T = any>(
   chunkOrFn: string | (() => Promise<any>),
   symbol: string,
@@ -136,9 +127,7 @@ export const qrlDEV = <T = any>(
   return newQrl;
 };
 
-/**
- * @internal
- */
+/** @internal */
 export const inlinedQrlDEV = <T = any>(
   symbol: T,
   symbolName: string,
@@ -206,9 +195,7 @@ export const serializeQRLs = (existingQRLs: QRLInternal<any>[], elCtx: QContext)
   return mapJoin(existingQRLs, (qrl) => serializeQRL(qrl, opts), '\n');
 };
 
-/**
- * `./chunk#symbol[captures]
- */
+/** `./chunk#symbol[captures] */
 export const parseQRL = (qrl: string, containerEl?: Element): QRLInternal => {
   const endIdx = qrl.length;
   const hashIdx = indexOf(qrl, 0, '#');
@@ -261,9 +248,7 @@ export const inflateQrl = (qrl: QRLInternal, elCtx: QContext) => {
   }));
 };
 
-/**
- * @internal
- */
+/** @internal */
 export const _regSymbol = (symbol: any, hash: string) => {
   if (typeof (globalThis as any).__qwik_reg_symbols === 'undefined') {
     (globalThis as any).__qwik_reg_symbols = new Map<string, any>();

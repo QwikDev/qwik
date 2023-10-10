@@ -1,7 +1,7 @@
 /**
- * This is the root build scripts module (keep in commonjs). It's only a .js file
- * but will handling registering typescript files with esbuild-register
- * to allow Node.js to build .ts files on-demand.
+ * This is the root build scripts module (keep in commonjs). It's only a .js file but will handling
+ * registering typescript files with esbuild-register to allow Node.js to build .ts files
+ * on-demand.
  */
 import { build } from './build';
 import { loadConfig } from './util';

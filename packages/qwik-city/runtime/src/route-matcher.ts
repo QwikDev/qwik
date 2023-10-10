@@ -4,7 +4,7 @@ import type { PathParams } from './types';
  * Match a given route against a path.
  *
  * @param route Route definition: example: `/path/[param]/[...rest]/`
- * @param path actual path to match
+ * @param path Actual path to match
  * @returns Returns PathParams or null if did not match.
  */
 export function matchRoute(route: string, path: string): PathParams | null {

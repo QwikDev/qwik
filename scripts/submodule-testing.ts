@@ -4,9 +4,7 @@ import { type BuildConfig, type PackageJSON } from './util';
 import { join } from 'node:path';
 import { writePackageJson } from './package-json';
 
-/**
- * Builds @builder.io/testing
- */
+/** Builds @builder.io/testing */
 export async function submoduleTesting(config: BuildConfig) {
   const submodule = 'testing';
 

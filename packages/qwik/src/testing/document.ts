@@ -3,11 +3,10 @@ import qwikDom from '@builder.io/qwik-dom';
 import { normalizeUrl } from './util';
 
 /**
- * Create emulated `Document` for server environment. Does not implement the full browser
- * `document` and `window` API. This api may be removed in the future.
+ * Create emulated `Document` for server environment. Does not implement the full browser `document`
+ * and `window` API. This api may be removed in the future.
  *
  * @public
- *
  */
 export function createDocument(opts?: MockDocumentOptions) {
   const doc = qwikDom.createDocument(opts?.html);
@@ -19,7 +18,6 @@ export function createDocument(opts?: MockDocumentOptions) {
  * Create emulated `window` useful for testing.
  *
  * @public
- *
  */
 export function createWindow(opts: MockDocumentOptions = {}): MockWindow {
   const win = createDocument(opts).defaultView!;

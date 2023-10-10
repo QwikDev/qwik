@@ -4,9 +4,7 @@ import { useContextProvider } from './use-context';
 import { useOn } from './use-on';
 import { useStore } from './use-store.public';
 
-/**
- * @public
- */
+/** @public */
 export const useErrorBoundary = (): Readonly<ErrorBoundaryStore> => {
   const store: ErrorBoundaryStore = useStore({
     error: undefined,

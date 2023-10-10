@@ -52,9 +52,7 @@ function parseArgs(args: string[], templates: string[]) {
   return parsedArgs;
 }
 
-/**
- * @param args pass here process.argv.slice(2)
- */
+/** @param args Pass here process.argv.slice(2) */
 export async function runCreateCli(...args: string[]): Promise<CreateAppResult> {
   const pkgManager = getPackageManager();
   const templateManager = await makeTemplateManager('app');
@@ -113,8 +111,8 @@ function isStackBlitz() {
   try {
     // /home/projects/abc123
     return process.cwd().startsWith('/home/projects/');
-  } catch (e) {
-    /**/
+  } catch {
+    // ignore
   }
   return false;
 }

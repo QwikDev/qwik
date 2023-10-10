@@ -8,9 +8,10 @@ type AvatarProps = {
 };
 
 /**
- * todos:
- * - implement sizes
- * - add a link to open the menu
+ * Todos:
+ *
+ * - Implement sizes
+ * - Add a link to open the menu
  */
 
 export default component$<AvatarProps>((props) => {

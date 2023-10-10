@@ -54,16 +54,12 @@ import { _IMMUTABLE, _IMMUTABLE_PREFIX } from '../../state/constants';
 
 const FLUSH_COMMENT = '<!--qkssr-f-->';
 
-/**
- * @public
- */
+/** @public */
 export type StreamWriter = {
   write: (chunk: string) => void;
 };
 
-/**
- * @public
- */
+/** @public */
 export interface RenderSSROptions {
   containerTagName: string;
   containerAttributes: Record<string, string>;
@@ -116,9 +112,7 @@ const createDocument = () => {
   return new MockElement(9);
 };
 
-/**
- * @internal
- */
+/** @internal */
 export const _renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
   const root = opts.containerTagName;
   const containerEl = createSSRContext(1).$element$;

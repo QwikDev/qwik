@@ -6,7 +6,8 @@ export interface PlaygroundApp {
 
 /**
  * Generated at build-time.
- * packages/docs/src/routes/playground/app
+ *
+ * /packages/docs/src/routes/playground/app
  */
 const playgroundApp: PlaygroundApp = {} as any;
 export default playgroundApp;

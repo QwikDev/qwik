@@ -15,26 +15,18 @@ import {
 import { QObjectManagerSymbol, _IMMUTABLE, _IMMUTABLE_PREFIX } from './constants';
 import { _fnSignal } from '../qrl/inlined-fn';
 
-/**
- * @public
- */
+/** @public */
 export interface Signal<T = any> {
   value: T;
 }
 
-/**
- * @public
- */
+/** @public */
 export type ReadonlySignal<T = any> = Readonly<Signal<T>>;
 
-/**
- * @public
- */
+/** @public */
 export type ValueOrSignal<T> = T | Signal<T>;
 
-/**
- * @internal
- */
+/** @internal */
 export const _createSignal = <T>(
   value: T,
   containerState: ContainerState,
@@ -173,9 +165,7 @@ export const isSignal = (obj: any): obj is Signal<any> => {
   return obj instanceof SignalBase;
 };
 
-/**
- * @internal
- */
+/** @internal */
 export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(obj: T, prop: P): any => {
   if (!isObject(obj)) {
     return obj[prop];
@@ -202,9 +192,7 @@ export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(obj: T,
   return _IMMUTABLE;
 };
 
-/**
- * @internal
- */
+/** @internal */
 export const _wrapSignal = <T extends Record<any, any>, P extends keyof T>(
   obj: T,
   prop: P

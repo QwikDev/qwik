@@ -2,6 +2,7 @@ import type { ParsedPathname, PathnameSegmentPart } from '../types';
 
 /**
  * Adopted from SvelteKit
+ *
  * https://github.com/sveltejs/kit/blob/master/LICENSE
  */
 export function parseRoutePathname(basePathname: string, pathname: string): ParsedPathname {

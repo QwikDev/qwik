@@ -4,9 +4,7 @@ import fs from 'node:fs';
 import { join, relative } from 'node:path';
 import { normalizePathSlash } from '../../../utils/fs';
 
-/**
- * @public
- */
+/** @public */
 export function cloudflarePagesAdapter(opts: CloudflarePagesAdapterOptions = {}): any {
   const env = process?.env;
   return viteAdapter({
@@ -63,9 +61,7 @@ export function cloudflarePagesAdapter(opts: CloudflarePagesAdapterOptions = {})
   });
 }
 
-/**
- * @public
- */
+/** @public */
 export interface CloudflarePagesAdapterOptions extends ServerAdapterOptions {
   /**
    * Determines if the build should generate the function invocation routes `_routes.json` file.
@@ -76,14 +72,12 @@ export interface CloudflarePagesAdapterOptions extends ServerAdapterOptions {
    */
   functionRoutes?: boolean;
   /**
-   * Manually add pathnames that should be treated as static paths and not SSR.
-   * For example, when these pathnames are requested, their response should
-   * come from a static file, rather than a server-side rendered response.
+   * Manually add pathnames that should be treated as static paths and not SSR. For example, when
+   * these pathnames are requested, their response should come from a static file, rather than a
+   * server-side rendered response.
    */
   staticPaths?: string[];
 }
 
-/**
- * @public
- */
+/** @public */
 export type { StaticGenerateRenderOptions };

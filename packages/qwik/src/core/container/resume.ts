@@ -50,9 +50,7 @@ export const getPauseState = (containerEl: Element): SnapshotState | undefined =
   }
 };
 
-/**
- * @internal
- */
+/** @internal */
 export const _deserializeData = (data: string, element?: unknown) => {
   const obj = JSON.parse(data);
   if (typeof obj !== 'object') {

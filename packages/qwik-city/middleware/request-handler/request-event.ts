@@ -286,7 +286,7 @@ export interface RequestEventInternal extends RequestEvent, RequestEventLoader {
   /**
    * Check if this request is already written to.
    *
-   * @returns true, if `getWritableStream()` has already been called.
+   * @returns `true`, if `getWritableStream()` has already been called.
    */
   isDirty(): boolean;
 }
@@ -331,11 +331,9 @@ const parseRequest = async (
 
 const formToObj = (formData: FormData): Record<string, any> => {
   /**
-   * Convert FormData to object
-   * Handle nested form input using dot notation
-   * Handle array input using indexed dot notation (name.0, name.0) or bracket notation (name[]),
-   * the later is needed for multiselects
-   * Create values object by form data entries
+   * Convert FormData to object Handle nested form input using dot notation Handle array input using
+   * indexed dot notation (name.0, name.0) or bracket notation (name[]), the later is needed for
+   * multiselects Create values object by form data entries
    */
   const values = [...formData.entries()].reduce<any>((values, [name, value]) => {
     name.split('.').reduce((object: any, key: string, index: number, keys: any) => {

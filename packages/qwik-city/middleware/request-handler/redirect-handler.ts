@@ -1,9 +1,5 @@
-/**
- * @public
- */
+/** @public */
 export class AbortMessage {}
 
-/**
- * @public
- */
+/** @public */
 export class RedirectMessage extends AbortMessage {}

@@ -37,30 +37,27 @@ import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
 import { Slot } from '../render/jsx/slot.public';
 
 /**
- * 0, 8, 9, A, B, C, D
-\0: null character (U+0000 NULL) (only if the next character is not a decimal digit; else it’s an octal escape sequence)
-\b: backspace (U+0008 BACKSPACE)
-\t: horizontal tab (U+0009 CHARACTER TABULATION)
-\n: line feed (U+000A LINE FEED)
-\v: vertical tab (U+000B LINE TABULATION)
-\f: form feed (U+000C FORM FEED)
-\r: carriage return (U+000D CARRIAGE RETURN)
-\": double quote (U+0022 QUOTATION MARK)
-\': single quote (U+0027 APOSTROPHE)
-\\: backslash (U+005C REVERSE SOLIDUS)
+ * - 0, 8, 9, A, B, C, D
+ * - `\0`: null character (U+0000 NULL) (only if the next character is not a decimal digit; else it’s
+ *   an octal escape sequence)
+ * - `\b`: backspace (U+0008 BACKSPACE)
+ * - `\t`: horizontal tab (U+0009 CHARACTER TABULATION)
+ * - `\n`: line feed (U+000A LINE FEED)
+ * - `\v`: vertical tab (U+000B LINE TABULATION)
+ * - `\f`: form feed (U+000C FORM FEED)
+ * - `\r`: carriage return (U+000D CARRIAGE RETURN)
+ * - `\"`: double quote (U+0022 QUOTATION MARK)
+ * - `\'`: single quote (U+0027 APOSTROPHE)
+ * - `\\`: backslash (U+005C REVERSE SOLIDUS)
  */
 export const UNDEFINED_PREFIX = '\u0001';
 
 export interface Serializer<T> {
   $prefixCode$: number;
   $prefixChar$: string;
-  /**
-   * Return true if this serializer can serialize the given object.
-   */
+  /** Return true if this serializer can serialize the given object. */
   $test$: (obj: any) => boolean;
-  /**
-   * Convert the object to a string.
-   */
+  /** Convert the object to a string. */
   $serialize$:
     | ((
         obj: T,
@@ -70,28 +67,21 @@ export interface Serializer<T> {
       ) => string)
     | undefined;
 
-  /**
-   * Return of
-   */
+  /** Return of */
   $collect$: undefined | ((obj: T, collector: Collector, leaks: boolean | QwikElement) => void);
 
-  /**
-   * Deserialize the object.
-   */
+  /** Deserialize the object. */
   $prepare$: (data: string, containerState: ContainerState, doc: Document) => T;
-  /**
-   * Second pass to fill in the object.
-   */
+  /** Second pass to fill in the object. */
   $subs$: undefined | ((obj: T, subs: Subscriptions[], containerState: ContainerState) => void);
 
-  /**
-   * Second pass to fill in the object.
-   */
+  /** Second pass to fill in the object. */
   $fill$: ((obj: T, getObject: GetObject, containerState: ContainerState) => void) | undefined;
 }
 
 /**
  * Normalize the shape of the serializer for better inline-cache performance.
+ *
  * @param serializer
  * @returns
  */

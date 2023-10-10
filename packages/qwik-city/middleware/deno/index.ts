@@ -16,26 +16,20 @@ import { extname, fromFileUrl, join } from 'https://deno.land/std/path/mod.ts';
 
 // @builder.io/qwik-city/middleware/deno
 
-/**
- * @public
- */
+/** @public */
 export interface Addr {
   transport: 'tcp' | 'udp';
   hostname: string;
   port: number;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface ConnInfo {
   readonly localAddr: Addr;
   readonly remoteAddr: Addr;
 }
 
-/**
- * @public
- */
+/** @public */
 export function createQwikCity(opts: QwikCityDenoOptions) {
   const qwikSerializer = {
     _deserializeData,
@@ -172,9 +166,7 @@ export function createQwikCity(opts: QwikCityDenoOptions) {
   };
 }
 
-/**
- * @public
- */
+/** @public */
 export interface QwikCityDenoOptions extends ServerRenderOptions {
   /** Options for serving static files */
   static?: {

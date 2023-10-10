@@ -3,25 +3,17 @@ import type { StreamWriter } from '../ssr/render-ssr';
 import type { FunctionComponent, JSXNode } from './types/jsx-node';
 import type { JSXChildren } from './types/jsx-qwik-attributes';
 
-/**
- * @public
- */
+/** @public */
 export const SkipRender: JSXNode = Symbol('skip render') as any;
 
-/**
- * @public
- */
+/** @public */
 export const SSRRaw: FunctionComponent<{ data: string }> = (() => null) as any;
 
-/**
- * @public
- */
+/** @public */
 export const SSRComment: FunctionComponent<{ data: string }> = (props) =>
   jsx(SSRRaw, { data: `<!--${props.data}-->` }, null) as any;
 
-/**
- * @public
- */
+/** @public */
 export const SSRStreamBlock: FunctionComponent<{ children?: any }> = (props) => {
   return [
     jsx(SSRComment, { data: 'qkssr-pu' }),
@@ -30,9 +22,7 @@ export const SSRStreamBlock: FunctionComponent<{ children?: any }> = (props) => 
   ] as any;
 };
 
-/**
- * @public
- */
+/** @public */
 export interface SSRStreamProps {
   children:
     | AsyncGenerator<JSXChildren, void, any>
@@ -40,22 +30,18 @@ export interface SSRStreamProps {
     | (() => AsyncGenerator<JSXChildren, void, any>);
 }
 
-/**
- * @public
- */
+/** @public */
 export const SSRStream: FunctionComponent<SSRStreamProps> = (props, key) =>
   jsx(RenderOnce, { children: jsx(InternalSSRStream, props) }, key);
 
-/**
- * @public
- */
+/** @public */
 export interface SSRHintProps {
   dynamic?: boolean;
 }
 
 /**
- * @public
  * @deprecated - It has no effect
+ * @public
  */
 export const SSRHint: FunctionComponent<SSRHintProps> = (() => null) as any;
 

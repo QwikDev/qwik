@@ -1,9 +1,7 @@
 import type { StaticGenerateRenderOptions } from '../../../static';
 import { viteAdapter } from '../../shared/vite';
 
-/**
- * @public
- */
+/** @public */
 export function staticAdapter(opts: StaticGenerateAdapterOptions): any {
   return viteAdapter({
     name: 'static-generate',
@@ -15,7 +13,5 @@ export function staticAdapter(opts: StaticGenerateAdapterOptions): any {
   });
 }
 
-/**
- * @public
- */
+/** @public */
 export interface StaticGenerateAdapterOptions extends Omit<StaticGenerateRenderOptions, 'outDir'> {}

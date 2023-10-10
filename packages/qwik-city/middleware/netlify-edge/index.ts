@@ -16,9 +16,7 @@ import { setServerPlatform } from '@builder.io/qwik/server';
 // @builder.io/qwik-city/middleware/netlify-edge
 
 declare const Deno: any;
-/**
- * @public
- */
+/** @public */
 export function createQwikCity(opts: QwikCityNetlifyOptions) {
   const qwikSerializer = {
     _deserializeData,
@@ -94,12 +92,8 @@ export function createQwikCity(opts: QwikCityNetlifyOptions) {
   return onNetlifyEdgeRequest;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface QwikCityNetlifyOptions extends ServerRenderOptions {}
 
-/**
- * @public
- */
+/** @public */
 export interface PlatformNetlify extends Partial<Omit<Context, 'next' | 'cookies'>> {}

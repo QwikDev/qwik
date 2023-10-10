@@ -1,9 +1,7 @@
 import { normalize } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-/**
- * @public
- */
+/** @public */
 export function toFileUrl(filePath: string) {
   return pathToFileURL(filePath).href;
 }

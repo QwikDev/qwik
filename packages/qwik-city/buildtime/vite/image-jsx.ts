@@ -6,9 +6,7 @@ import path from 'node:path';
 import { parseId } from 'packages/qwik/src/optimizer/src/plugins/plugin';
 import type { QwikCityVitePluginOptions } from './types';
 
-/**
- * @public
- */
+/** @public */
 export function imagePlugin(userOpts?: QwikCityVitePluginOptions): PluginOption[] {
   const supportedExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.avif', '.tiff'];
   return [

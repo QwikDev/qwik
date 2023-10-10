@@ -1,6 +1,4 @@
-/**
- * @public
- */
+/** @public */
 export const untypedAppUrl = function appUrl(
   route: string,
   params?: Record<string, string>,

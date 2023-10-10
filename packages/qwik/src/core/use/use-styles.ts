@@ -8,9 +8,7 @@ import { isPromise } from '../util/promises';
 import { assertDefined } from '../error/assert';
 import { ComponentStylesPrefixContent } from '../util/markers';
 
-/**
- * @public
- */
+/** @public */
 export interface UseStylesScoped {
   scopeId: string;
 }
@@ -34,9 +32,8 @@ export interface UseStylesScoped {
  * });
  * ```
  *
- * @see `useStylesScoped`
- *
  * @public
+ * @see `useStylesScoped`
  */
 // </docs>
 export const useStylesQrl = (styles: QRL<string>): void => {
@@ -62,9 +59,8 @@ export const useStylesQrl = (styles: QRL<string>): void => {
  * });
  * ```
  *
- * @see `useStylesScoped`
- *
  * @public
+ * @see `useStylesScoped`
  */
 // </docs>
 export const useStyles$ = /*#__PURE__*/ implicit$FirstArg(useStylesQrl);
@@ -88,9 +84,8 @@ export const useStyles$ = /*#__PURE__*/ implicit$FirstArg(useStylesQrl);
  * });
  * ```
  *
- * @see `useStyles`
- *
  * @public
+ * @see `useStyles`
  */
 // </docs>
 export const useStylesScopedQrl = (styles: QRL<string>): UseStylesScoped => {
@@ -118,9 +113,8 @@ export const useStylesScopedQrl = (styles: QRL<string>): UseStylesScoped => {
  * });
  * ```
  *
- * @see `useStyles`
- *
  * @public
+ * @see `useStyles`
  */
 // </docs>
 export const useStylesScoped$ = /*#__PURE__*/ implicit$FirstArg(useStylesScopedQrl);

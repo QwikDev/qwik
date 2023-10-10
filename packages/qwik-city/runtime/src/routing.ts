@@ -11,9 +11,7 @@ import type {
 } from './types';
 
 export const CACHE = new Map<RouteData, Promise<any>>();
-/**
- * loadRoute() runs in both client and server.
- */
+/** LoadRoute() runs in both client and server. */
 export const loadRoute = async (
   routes: RouteData[] | undefined,
   menus: MenuData[] | undefined,

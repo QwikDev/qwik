@@ -29,9 +29,7 @@ export type QObject<T extends {}> = T & { __brand__: 'QObject' };
 
 export type TargetType = Record<string | symbol, any>;
 
-/**
- * @internal
- */
+/** @internal */
 export const verifySerializable = <T>(value: T, preMessage?: string): T => {
   const seen = new Set();
   return _verifySerializable(value, seen, '_', preMessage);
@@ -126,8 +124,8 @@ export const fastWeakSerialize = (obj: any): boolean => {
 /**
  * Returned type of the `noSerialize()` function. It will be TYPE or undefined.
  *
- * @see noSerialize
  * @public
+ * @see noSerialize
  */
 export type NoSerialize<T> = (T & { __no_serialize__: true }) | undefined;
 
@@ -137,9 +135,9 @@ export type NoSerialize<T> = (T & { __no_serialize__: true }) | undefined;
 /**
  * Marks a property on a store as non-serializable.
  *
- * At times it is necessary to store values on a store that are non-serializable. Normally this
- * is a runtime error as Store wants to eagerly report when a non-serializable property is
- * assigned to it.
+ * At times it is necessary to store values on a store that are non-serializable. Normally this is a
+ * runtime error as Store wants to eagerly report when a non-serializable property is assigned to
+ * it.
  *
  * You can use `noSerialize()` to mark a value as non-serializable. The value is persisted in the
  * Store but does not survive serialization. The implication is that when your application is
@@ -158,9 +156,7 @@ export const noSerialize = <T extends object | undefined>(input: T): NoSerialize
   return input as any;
 };
 
-/**
- * @internal
- */
+/** @internal */
 export const _weakSerialize = <T extends Record<string, any>>(input: T): Partial<T> => {
   weakSerializeSet.add(input);
   return input as any;
@@ -174,9 +170,7 @@ export const isConnected = (sub: SubscriberEffect | SubscriberHost): boolean => 
   }
 };
 
-/**
- * @public
- */
+/** @public */
 export const unwrapProxy = <T>(proxy: T): T => {
   return isObject(proxy) ? getProxyTarget<any>(proxy) ?? proxy : proxy;
 };

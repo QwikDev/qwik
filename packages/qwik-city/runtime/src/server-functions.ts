@@ -44,9 +44,7 @@ import { z } from 'zod';
 import { isDev, isServer } from '@builder.io/qwik/build';
 import type { FormSubmitCompletedDetail } from './form-component';
 
-/**
- * @public
- */
+/** @public */
 export const routeActionQrl = ((
   actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => any>,
   ...rest: (CommonLoaderActionOptions | DataValidator)[]
@@ -148,9 +146,7 @@ Action.run() can only be called on the browser, for example when a user clicks a
   return action satisfies ActionInternal;
 }) as unknown as ActionConstructorQRL;
 
-/**
- * @public
- */
+/** @public */
 export const globalActionQrl = ((
   actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => any>,
   ...rest: (CommonLoaderActionOptions | DataValidator)[]
@@ -165,23 +161,17 @@ export const globalActionQrl = ((
   return action;
 }) as ActionConstructorQRL;
 
-/**
- * @public
- */
+/** @public */
 export const routeAction$: ActionConstructor = /*#__PURE__*/ implicit$FirstArg(
   routeActionQrl
 ) as any;
 
-/**
- * @public
- */
+/** @public */
 export const globalAction$: ActionConstructor = /*#__PURE__*/ implicit$FirstArg(
   globalActionQrl
 ) as any;
 
-/**
- * @public
- */
+/** @public */
 export const routeLoaderQrl = ((
   loaderQrl: QRL<(event: RequestEventLoader) => unknown>,
   ...rest: (CommonLoaderActionOptions | DataValidator)[]
@@ -206,14 +196,10 @@ export const routeLoaderQrl = ((
   return loader;
 }) as LoaderConstructorQRL;
 
-/**
- * @public
- */
+/** @public */
 export const routeLoader$: LoaderConstructor = /*#__PURE__*/ implicit$FirstArg(routeLoaderQrl);
 
-/**
- * @public
- */
+/** @public */
 export const validatorQrl = ((
   validator: QRL<(ev: RequestEvent, data: unknown) => ValueOrPromise<ValidatorReturn>>
 ): DataValidator => {
@@ -225,14 +211,10 @@ export const validatorQrl = ((
   return undefined as any;
 }) as ValidatorConstructorQRL;
 
-/**
- * @public
- */
+/** @public */
 export const validator$: ValidatorConstructor = /*#__PURE__*/ implicit$FirstArg(validatorQrl);
 
-/**
- * @public
- */
+/** @public */
 export const zodQrl = ((
   qrl: QRL<
     z.ZodRawShape | z.Schema | ((z: typeof import('zod').z, ev: RequestEvent) => z.ZodRawShape)
@@ -275,14 +257,10 @@ export const zodQrl = ((
   return undefined as any;
 }) as ZodConstructorQRL;
 
-/**
- * @public
- */
+/** @public */
 export const zod$: ZodConstructor = /*#__PURE__*/ implicit$FirstArg(zodQrl) as any;
 
-/**
- * @public
- */
+/** @public */
 export const serverQrl: ServerConstructorQRL = (qrl: QRL<(...args: any[]) => any>) => {
   if (isServer) {
     const captured = qrl.getCaptured();
@@ -359,9 +337,7 @@ export const serverQrl: ServerConstructorQRL = (qrl: QRL<(...args: any[]) => any
   return stuff();
 };
 
-/**
- * @public
- */
+/** @public */
 export const server$ = /*#__PURE__*/ implicit$FirstArg(serverQrl);
 
 const getValidators = (rest: (CommonLoaderActionOptions | DataValidator)[], qrl: QRL<any>) => {

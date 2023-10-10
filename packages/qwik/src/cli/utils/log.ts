@@ -19,9 +19,7 @@ export function logSuccessFooter(docs: string[]) {
   return outString.join('\n');
 }
 
-/**
- * Log the next STEPS *ACTION REQUIRED*
- */
+/** Log the next STEPS _ACTION REQUIRED_ */
 export function logNextStep(nextSteps: NextSteps | undefined, packageManager: string) {
   const outString: string[] = [];
   if (nextSteps) {

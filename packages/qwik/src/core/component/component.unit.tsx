@@ -9,7 +9,8 @@ import { useLexicalScope } from '../use/use-lexical-scope.public';
 
 /**
  * Applying new unit test library/layer
- * `@builder.io/qwik/testing`  ==>  ../../testing/library
+ *
+ * `@builder.io/qwik/testing` ==> ../../testing/library
  */
 const qComponent = suite('q-component');
 qComponent('should declare and render basic component', async () => {

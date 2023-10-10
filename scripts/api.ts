@@ -5,8 +5,8 @@ import { generateApiMarkdownDocs } from './api-docs';
 import { type BuildConfig, panic } from './util';
 
 /**
- * Create each submodule's bundled dts file, and ensure
- * the public API has not changed for a production build.
+ * Create each submodule's bundled dts file, and ensure the public API has not changed for a
+ * production build.
  */
 export async function apiExtractor(config: BuildConfig) {
   const apiJsonInputDir = join(config.rootDir, 'dist-dev', 'api');
@@ -301,8 +301,8 @@ declare module '*&jsx' {
 }
 
 /**
- * Fix up the generated dts content, and ensure it's using a relative
- * path to find the core.d.ts file, rather than node resolving it.
+ * Fix up the generated dts content, and ensure it's using a relative path to find the core.d.ts
+ * file, rather than node resolving it.
  */
 function fixDtsContent(config: BuildConfig, srcPath: string, relativePath?: string) {
   let dts = readFileSync(srcPath, 'utf-8');

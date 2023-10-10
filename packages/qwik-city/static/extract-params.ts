@@ -1,5 +1,6 @@
 /**
  * Extracts parameter names from the route name.
+ *
  * Example: /base/[paramA]/[paramB].json -> ['paramA', 'paramB']
  */
 export function extractParamNames(routeName: string): string[] {

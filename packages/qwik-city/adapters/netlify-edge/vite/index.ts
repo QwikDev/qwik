@@ -4,9 +4,7 @@ import fs, { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { basePathname } from '@qwik-city-plan';
 
-/**
- * @public
- */
+/** @public */
 export function netlifyEdgeAdapter(opts: NetlifyEdgeAdapterOptions = {}): any {
   const env = process?.env;
   return viteAdapter({
@@ -96,9 +94,7 @@ export function netlifyEdgeAdapter(opts: NetlifyEdgeAdapterOptions = {}): any {
   });
 }
 
-/**
- * @public
- */
+/** @public */
 export interface NetlifyEdgeAdapterOptions extends ServerAdapterOptions {
   /**
    * Determines if the build should generate the edge functions declarations `manifest.json` file.
@@ -109,30 +105,29 @@ export interface NetlifyEdgeAdapterOptions extends ServerAdapterOptions {
    */
   functionRoutes?: boolean;
   /**
-   * Manually add pathnames that should be treated as static paths and not SSR.
-   * For example, when these pathnames are requested, their response should
-   * come from a static file, rather than a server-side rendered response.
+   * Manually add pathnames that should be treated as static paths and not SSR. For example, when
+   * these pathnames are requested, their response should come from a static file, rather than a
+   * server-side rendered response.
    */
   staticPaths?: string[];
   /**
-   * Manually add path pattern that should be excluded from the edge function routes
-   * that are created by the 'manifest.json' file.
+   * Manually add path pattern that should be excluded from the edge function routes that are
+   * created by the 'manifest.json' file.
    *
    * If not specified, the following paths are excluded by default:
-   *  /build/*
-   *  /favicon.ico
-   *  /robots.txt
-   *  /mainifest.json
-   *  /~partytown/*
-   *  /service-worker.js
-   *  /sitemap.xml
+   *
+   * - /build/*
+   * - /favicon.ico
+   * - /robots.txt
+   * - /mainifest.json
+   * - /~partytown/*
+   * - /service-worker.js
+   * - /sitemap.xml
    *
    * https://docs.netlify.com/edge-functions/declarations/#declare-edge-functions-in-netlify-toml
    */
   excludedPath?: string | string[];
 }
 
-/**
- * @public
- */
+/** @public */
 export type { StaticGenerateRenderOptions };

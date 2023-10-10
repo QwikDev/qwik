@@ -29,9 +29,7 @@ import {
 import { postBuild } from '../../adapters/shared/vite/post-build';
 import { imagePlugin } from './image-jsx';
 
-/**
- * @public
- */
+/** @public */
 export function qwikCity(userOpts?: QwikCityVitePluginOptions): PluginOption[] {
   return [qwikCityPlugin(userOpts), ...imagePlugin(userOpts)];
 }

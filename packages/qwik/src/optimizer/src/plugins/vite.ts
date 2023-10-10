@@ -38,9 +38,7 @@ const DEDUPE = [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID, QWIK_JSX_DEV_RUNTIME_ID];
 const STYLING = ['.css', '.scss', '.sass', '.less'];
 const FONTS = ['.woff', '.woff2', '.ttf'];
 
-/**
- * @public
- */
+/** @public */
 export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   let isClientDevOnly = false;
   let clientDevInput: undefined | string = undefined;
@@ -227,8 +225,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             try {
               const clientManifestStr = await fs.promises.readFile(tmpClientManifestPath, 'utf-8');
               pluginOpts.manifestInput = JSON.parse(clientManifestStr);
-            } catch (e) {
-              /**/
+            } catch {
+              // ignore
             }
           }
         }
@@ -739,111 +737,119 @@ const CLIENT_DEV_INPUT = 'entry.dev.tsx';
 interface QwikVitePluginCommonOptions {
   /**
    * Prints verbose Qwik plugin debug logs.
+   *
    * Default `false`
    */
   debug?: boolean;
   /**
-   * The Qwik entry strategy to use while building for production.
-   * During development the type is always `hook`.
+   * The Qwik entry strategy to use while building for production. During development the type is
+   * always `hook`.
+   *
    * Default `{ type: "smart" }`)
    */
   entryStrategy?: EntryStrategy;
   /**
-   * The source directory to find all the Qwik components. Since Qwik
-   * does not have a single input, the `srcDir` is used to recursively
-   * find Qwik files.
+   * The source directory to find all the Qwik components. Since Qwik does not have a single input,
+   * the `srcDir` is used to recursively find Qwik files.
+   *
    * Default `src`
    */
   srcDir?: string;
   /**
    * List of tsconfig.json files to use for ESLint warnings during development.
+   *
    * Default `['tsconfig.json']`
    */
   tsconfigFileNames?: string[];
   /**
    * List of directories to recursively search for Qwik components or Vendors.
+   *
    * Default `[]`
    */
   vendorRoots?: string[];
   /**
    * Options for the Qwik optimizer.
+   *
    * Default `undefined`
    */
   optimizerOptions?: OptimizerOptions;
   /**
-   * Hook that's called after the build and provides all of the transformed
-   * modules that were used before bundling.
+   * Hook that's called after the build and provides all of the transformed modules that were used
+   * before bundling.
    */
   transformedModuleOutput?:
     | ((transformedModules: TransformModule[]) => Promise<void> | void)
     | null;
   devTools?: {
     /**
-     * Press-hold the defined keys to enable qwik dev inspector.
-     * By default the behavior is activated by pressing the left or right `Alt` key.
-     * If set to `false`, qwik dev inspector will be disabled.
-     * Valid values are `KeyboardEvent.code` values.
-     * Please note that the 'Left' and 'Right' suffixes are ignored.
+     * Press-hold the defined keys to enable qwik dev inspector. By default the behavior is
+     * activated by pressing the left or right `Alt` key. If set to `false`, qwik dev inspector will
+     * be disabled.
+     *
+     * Valid values are `KeyboardEvent.code` values. Please note that the 'Left' and 'Right'
+     * suffixes are ignored.
      */
     clickToSource: string[] | false;
   };
 }
 
 interface QwikVitePluginCSROptions extends QwikVitePluginCommonOptions {
-  /**
-   * Client Side Rendering (CSR) mode. It will not support SSR, default to Vite's `index.html` file.
-   */
+  /** Client Side Rendering (CSR) mode. It will not support SSR, default to Vite's `index.html` file. */
   csr: true;
 }
 
 interface QwikVitePluginSSROptions extends QwikVitePluginCommonOptions {
-  /**
-   * Client Side Rendering (CSR) mode. It will not support SSR, default to Vite's `index.html` file.
-   */
+  /** Client Side Rendering (CSR) mode. It will not support SSR, default to Vite's `index.html` file. */
   csr?: false | undefined;
   client?: {
     /**
-     * The entry point for the client builds. This would be
-     * the application's root component typically.
+     * The entry point for the client builds. This would be the application's root component
+     * typically.
+     *
      * Default `src/components/app/app.tsx`
      */
     input?: string[] | string;
     /**
-     * Entry input for client-side only development with hot-module reloading.
-     * This is for Vite development only and does not use SSR.
+     * Entry input for client-side only development with hot-module reloading. This is for Vite
+     * development only and does not use SSR.
+     *
      * Default `src/entry.dev.tsx`
      */
     devInput?: string;
     /**
      * Output directory for the client build.
+     *
      * Default `dist`
      */
     outDir?: string;
     /**
-     * The client build will create a manifest and this hook
-     * is called with the generated build data.
+     * The client build will create a manifest and this hook is called with the generated build
+     * data.
+     *
      * Default `undefined`
      */
     manifestOutput?: (manifest: QwikManifest) => Promise<void> | void;
   };
   ssr?: {
     /**
-     * The entry point for the SSR renderer. This file should export
-     * a `render()` function. This entry point and `render()` export
-     * function is also used for Vite's SSR development and Node.js
-     * debug mode.
+     * The entry point for the SSR renderer. This file should export a `render()` function. This
+     * entry point and `render()` export function is also used for Vite's SSR development and
+     * Node.js debug mode.
+     *
      * Default `src/entry.ssr.tsx`
      */
     input?: string;
     /**
      * Output directory for the server build.
+     *
      * Default `server`
      */
     outDir?: string;
     /**
-     * The SSR build requires the manifest generated during the client build.
-     * By default, this plugin will wire the client manifest to the ssr build.
-     * However, the `manifestInput` option can be used to manually provide a manifest.
+     * The SSR build requires the manifest generated during the client build. By default, this
+     * plugin will wire the client manifest to the ssr build. However, the `manifestInput` option
+     * can be used to manually provide a manifest.
+     *
      * Default `undefined`
      */
     manifestInput?: QwikManifest;
@@ -851,20 +857,14 @@ interface QwikVitePluginSSROptions extends QwikVitePluginCommonOptions {
 }
 
 interface QwikVitePluginCSROptions extends QwikVitePluginCommonOptions {
-  /**
-   * Client Side Rendering (CSR) mode. It will not support SSR, default to Vite's `index.html` file.
-   */
+  /** Client Side Rendering (CSR) mode. It will not support SSR, default to Vite's `index.html` file. */
   csr: true;
 }
 
-/**
- * @public
- */
+/** @public */
 export type QwikVitePluginOptions = QwikVitePluginCSROptions | QwikVitePluginSSROptions;
 
-/**
- * @public
- */
+/** @public */
 export interface QwikVitePluginApi {
   getOptimizer: () => Optimizer | null;
   getOptions: () => NormalizedQwikPluginOptions;
@@ -875,17 +875,13 @@ export interface QwikVitePluginApi {
   getClientPublicOutDir: () => string | null;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface QwikVitePlugin {
   name: 'vite-plugin-qwik';
   api: QwikVitePluginApi;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface QwikViteDevResponse {
   _qwikEnvData?: Record<string, any>;
   _qwikRenderResolve?: () => void;

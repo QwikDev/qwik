@@ -127,8 +127,9 @@ export const jsxKey = {
     }
 
     /**
-     * Checks if the given node is a function expression or arrow function,
-     * and checks if there is a missing key prop in return statement's arguments
+     * Checks if the given node is a function expression or arrow function, and checks if there is a
+     * missing key prop in return statement's arguments
+     *
      * @param {ASTNode} node
      */
     function checkFunctionsBlockStatement(node) {
@@ -144,8 +145,9 @@ export const jsxKey = {
     }
 
     /**
-     * Checks if the given node is an arrow function that has an JSX Element or JSX Fragment in its body,
-     * and the JSX is missing a key prop
+     * Checks if the given node is an arrow function that has an JSX Element or JSX Fragment in its
+     * body, and the JSX is missing a key prop
+     *
      * @param {ASTNode} node
      */
     function checkArrowFunctionWithJSX(node) {

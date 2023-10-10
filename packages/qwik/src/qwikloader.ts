@@ -3,11 +3,11 @@ import type { QContext } from './core/state/context';
 /**
  * Set up event listening for browser.
  *
- * Determine all the browser events and set up global listeners for them.
- * If browser triggers event search for the lazy load URL and `import()` it.
+ * Determine all the browser events and set up global listeners for them. If browser triggers event
+ * search for the lazy load URL and `import()` it.
  *
- * @param doc - Document to use for setting up global listeners, and to
- *     determine all the browser supported events.
+ * @param doc - Document to use for setting up global listeners, and to determine all the browser
+ *   supported events.
  */
 export const qwikLoader = (doc: Document, hasInitialized?: number) => {
   const Q_CONTEXT = '__q_context__';
@@ -100,9 +100,8 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
   /**
    * Event handler responsible for processing browser events.
    *
-   * If browser emits an event, the `eventProcessor` walks the DOM tree
-   * looking for corresponding `(${event.type})`. If found the event's URL
-   * is parsed and `import()`ed.
+   * If browser emits an event, the `eventProcessor` walks the DOM tree looking for corresponding
+   * `(${event.type})`. If found the event's URL is parsed and `import()`ed.
    *
    * @param ev - Browser event.
    */

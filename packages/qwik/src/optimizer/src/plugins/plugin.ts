@@ -925,12 +925,8 @@ export interface NormalizedQwikPluginOptions extends Required<QwikPluginOptions>
   input: string[];
 }
 
-/**
- * @public
- */
+/** @public */
 export type QwikBuildTarget = 'client' | 'ssr' | 'lib' | 'test';
 
-/**
- * @public
- */
+/** @public */
 export type QwikBuildMode = 'production' | 'development';

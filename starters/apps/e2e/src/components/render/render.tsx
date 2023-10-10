@@ -22,14 +22,18 @@ export const Render = component$(() => {
   const rerender = useSignal(0);
   return (
     <>
-      <button id="rerender" onClick$={() => rerender.value++}>
+      <button
+        id="rerender"
+        data-v={rerender.value}
+        onClick$={() => rerender.value++}
+      >
         Rerender
       </button>
-      <RenderChildren key={rerender.value} />
+      <RenderChildren v={rerender.value} key={rerender.value} />
     </>
   );
 });
-export const RenderChildren = component$(() => {
+export const RenderChildren = component$<{ v: number }>(({ v }) => {
   const parent = {
     counter: {
       count: 0,
@@ -42,6 +46,7 @@ export const RenderChildren = component$(() => {
   const state = useStore(parent, { deep: true });
   return (
     <>
+      <div id="rerenderCount">Render {v}</div>
       <button
         id="increment"
         onClick$={() => {
@@ -103,6 +108,7 @@ export const RenderChildren = component$(() => {
       <Issue4292 />
       <Issue4386 />
       <Issue4455 />
+      <Issue5266 />
     </>
   );
 });
@@ -922,5 +928,30 @@ export const Issue4455 = component$(() => {
         max="1"
       />
     </>
+  );
+});
+
+export const DynamicComponent = component$<{ b?: boolean; v: string }>(
+  ({ b, v }) => {
+    // Make the tag dynamic
+    const Tag = b ? "button" : "div";
+    return (
+      <Tag id="issue-5266-tag" data-v={v}>
+        hello
+      </Tag>
+    );
+  },
+);
+export const Issue5266 = component$(() => {
+  const show = useSignal(false);
+  const state = useSignal("foo");
+  return (
+    <div>
+      <button id="issue-5266-render" onClick$={() => (show.value = true)} />
+      <button id="issue-5266-button" onClick$={() => (state.value = "bar")}>
+        toggle
+      </button>
+      {show.value && <DynamicComponent v={state.value} />}
+    </div>
   );
 });

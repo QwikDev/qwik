@@ -43,9 +43,7 @@ export interface RouteModule<BODY = unknown> {
   onRequest?: RequestHandler<BODY> | RequestHandler<BODY>[];
 }
 
-/**
- * @public
- */
+/** @public */
 export interface PageModule extends RouteModule {
   readonly default: any;
   readonly head?: ContentModuleHead;
@@ -62,9 +60,7 @@ export interface MenuModule {
   readonly default: ContentMenu;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface RouteLocation {
   readonly params: Readonly<Record<string, string>>;
   readonly url: URL;
@@ -72,14 +68,10 @@ export interface RouteLocation {
   readonly prevUrl: URL | undefined;
 }
 
-/**
- * @public
- */
+/** @public */
 export type NavigationType = 'initial' | 'form' | 'link' | 'popstate';
 
-/**
- * @internal
- */
+/** @internal */
 export type RouteStateInternal = {
   type: NavigationType;
   dest: URL;
@@ -95,9 +87,7 @@ export type ScrollState = {
   h: number;
 };
 
-/**
- * @public
- */
+/** @public */
 export type RouteNavigate = QRL<
   (
     path?: string,
@@ -128,48 +118,33 @@ export type MutableRouteLocation = Mutable<RouteLocation>;
 
 export type Mutable<T> = { -readonly [K in keyof T]: T[K] };
 
-/**
- * @public
- */
+/** @public */
 export interface DocumentHeadValue {
-  /**
-   * Sets `document.title`.
-   */
+  /** Sets `document.title`. */
   readonly title?: string;
   /**
-   * Used to manually set meta tags in the head. Additionally, the `data`
-   * property could be used to set arbitrary data which the `<head>` component
-   * could later use to generate `<meta>` tags.
+   * Used to manually set meta tags in the head. Additionally, the `data` property could be used to
+   * set arbitrary data which the `<head>` component could later use to generate `<meta>` tags.
    */
   readonly meta?: readonly DocumentMeta[];
-  /**
-   * Used to manually append `<link>` elements to the `<head>`.
-   */
+  /** Used to manually append `<link>` elements to the `<head>`. */
   readonly links?: readonly DocumentLink[];
-  /**
-   * Used to manually append `<style>` elements to the `<head>`.
-   */
+  /** Used to manually append `<style>` elements to the `<head>`. */
   readonly styles?: readonly DocumentStyle[];
-  /**
-   * Used to manually append `<script>` elements to the `<head>`.
-   */
+  /** Used to manually append `<script>` elements to the `<head>`. */
   readonly scripts?: readonly DocumentScript[];
   /**
-   * Arbitrary object containing custom data. When the document head is created from
-   * markdown files, the frontmatter attributes that are not recognized as a well-known
-   * meta names (such as title, description, author, etc...), are stored in this property.
+   * Arbitrary object containing custom data. When the document head is created from markdown files,
+   * the frontmatter attributes that are not recognized as a well-known meta names (such as title,
+   * description, author, etc...), are stored in this property.
    */
   readonly frontmatter?: Readonly<Record<string, any>>;
 }
 
-/**
- * @public
- */
+/** @public */
 export type ResolvedDocumentHead = Required<DocumentHeadValue>;
 
-/**
- * @public
- */
+/** @public */
 export interface DocumentMeta {
   readonly content?: string;
   readonly httpEquiv?: string;
@@ -180,9 +155,7 @@ export interface DocumentMeta {
   readonly media?: string;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface DocumentLink {
   as?: string;
   crossorigin?: string;
@@ -203,60 +176,46 @@ export interface DocumentLink {
   key?: string;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface DocumentStyle {
   readonly style: string;
   readonly props?: Readonly<QwikIntrinsicElements['style']>;
   readonly key?: string;
 }
 
-/**
- * @alpha
- */
+/** @alpha */
 export interface DocumentScript {
   readonly script?: string;
   readonly props?: Readonly<QwikIntrinsicElements['script']>;
   readonly key?: string;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface DocumentHeadProps extends RouteLocation {
   readonly head: ResolvedDocumentHead;
   readonly withLocale: <T>(fn: () => T) => T;
   readonly resolveValue: ResolveSyncValue;
 }
 
-/**
- * @public
- */
+/** @public */
 export type DocumentHead = DocumentHeadValue | ((props: DocumentHeadProps) => DocumentHeadValue);
 
 export type ContentStateInternal = NoSerialize<ContentModule[]>;
 
-/**
- * @public
- */
+/** @public */
 export interface ContentState {
   readonly headings: ContentHeading[] | undefined;
   readonly menu: ContentMenu | undefined;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface ContentMenu {
   readonly text: string;
   readonly href?: string;
   readonly items?: ContentMenu[];
 }
 
-/**
- * @public
- */
+/** @public */
 export interface ContentHeading {
   readonly text: string;
   readonly id: string;
@@ -268,9 +227,7 @@ export type EndpointModuleLoader = () => Promise<RouteModule>;
 export type ModuleLoader = ContentModuleLoader | EndpointModuleLoader;
 export type MenuModuleLoader = () => Promise<MenuModule>;
 
-/**
- * @public
- */
+/** @public */
 export type RouteData =
   | [routeName: string, loaders: ModuleLoader[]]
   | [
@@ -280,14 +237,10 @@ export type RouteData =
       routeBundleNames: string[],
     ];
 
-/**
- * @public
- */
+/** @public */
 export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
 
-/**
- * @public
- */
+/** @public */
 export interface QwikCityPlan {
   readonly routes: RouteData[];
   readonly serverPlugins?: RouteModule[];
@@ -297,9 +250,7 @@ export interface QwikCityPlan {
   readonly cacheModules?: boolean;
 }
 
-/**
- * @public
- */
+/** @public */
 export declare type PathParams = Record<string, string>;
 
 export type ContentModule = PageModule | LayoutModule;
@@ -337,18 +288,14 @@ export interface ClientPageData extends Omit<EndpointResponse, 'status'> {
   redirect?: string;
 }
 
-/**
- * @public
- */
+/** @public */
 export type StaticGenerateHandler = ({
   env,
 }: {
   env: EnvGetter;
 }) => Promise<StaticGenerate> | StaticGenerate;
 
-/**
- * @public
- */
+/** @public */
 export interface StaticGenerate {
   params?: PathParams[];
 }
@@ -386,22 +333,16 @@ type Prettify<T> = {} & {
   [K in keyof T]: T[K];
 };
 
-/**
- * @public
- */
+/** @public */
 export type JSONValue = string | number | boolean | { [x: string]: JSONValue } | Array<JSONValue>;
 
-/**
- * @public
- */
+/** @public */
 export type JSONObject = { [x: string]: JSONValue };
 
 export type GetValidatorType<VALIDATOR extends TypedDataValidator> =
   VALIDATOR extends TypedDataValidator<infer TYPE> ? zod.infer<TYPE> : never;
 
-/**
- * @public
- */
+/** @public */
 export interface CommonLoaderActionOptions {
   readonly id?: string;
   readonly validation?: DataValidator[];
@@ -413,9 +354,7 @@ export type FailOfRest<REST extends readonly DataValidator[]> = REST extends rea
   ? ERROR
   : never;
 
-/**
- * @public
- */
+/** @public */
 export interface ActionConstructor {
   // Use options object, use typed data validator, use data validator
   <
@@ -516,9 +455,7 @@ export interface ActionConstructor {
   ): Action<StrictUnion<OBJ>>;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface ActionConstructorQRL {
   // Use options object, use typed data validator, use data validator
   <
@@ -615,16 +552,12 @@ export interface ActionConstructorQRL {
   ): Action<StrictUnion<OBJ>>;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface LoaderOptions {
   id?: string;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface LoaderConstructor {
   // Without validation
   <OBJ>(
@@ -639,9 +572,7 @@ export interface LoaderConstructor {
   ): Loader<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface LoaderConstructorQRL {
   // Without validation
   <OBJ>(
@@ -658,17 +589,13 @@ export interface LoaderConstructorQRL {
 
 export type LoaderStateHolder = Record<string, Signal<any>>;
 
-/**
- * @public
- */
+/** @public */
 export interface ActionReturn<RETURN> {
   readonly status?: number;
   readonly value: RETURN;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> {
   /**
    * It's the "action" path that a native `<form>` should have in order to call the action.
@@ -695,11 +622,16 @@ export interface ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> {
   readonly actionPath: string;
 
   /**
-   * Reactive property that becomes `true` only in the browser, when a form is submitted and switched back to false when the action finish, ie, it describes if the action is actively running.
+   * Reactive property that becomes `true` only in the browser, when a form is submitted and
+   * switched back to false when the action finish, ie, it describes if the action is actively
+   * running.
    *
-   * This property is specially useful to disable the submit button while the action is processing, to prevent multiple submissions, and to inform visually to the user that the action is actively running.
+   * This property is specially useful to disable the submit button while the action is processing,
+   * to prevent multiple submissions, and to inform visually to the user that the action is actively
+   * running.
    *
-   * It will be always `false` in the server, and only becomes `true` briefly while the action is running.
+   * It will be always `false` in the server, and only becomes `true` briefly while the action is
+   * running.
    */
   readonly isRunning: boolean;
 
@@ -711,7 +643,8 @@ export interface ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> {
   readonly status?: number;
 
   /**
-   * When calling an action through a `<form>`, this property contains the previously submitted `FormData`.
+   * When calling an action through a `<form>`, this property contains the previously submitted
+   * `FormData`.
    *
    * This is useful to keep the filled form data even after a full page reload.
    *
@@ -720,15 +653,17 @@ export interface ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> {
   readonly formData: FormData | undefined;
 
   /**
-   * Returned successful data of the action. This reactive property will contain the data returned inside the `action$` function.
+   * Returned successful data of the action. This reactive property will contain the data returned
+   * inside the `action$` function.
    *
    * It's `undefined` before the action is first called.
    */
   readonly value: RETURN | undefined;
 
   /**
-   * Method to execute the action programmatically from the browser. Ie, instead of using a `<form>`, a 'click' handle can call the `run()` method of the action
-   * in order to execute the action in the server.
+   * Method to execute the action programmatically from the browser. Ie, instead of using a
+   * `<form>`, a 'click' handle can call the `run()` method of the action in order to execute the
+   * action in the server.
    */
   readonly submit: QRL<
     OPTIONAL extends true
@@ -741,25 +676,19 @@ type Failed = {
   failed: true;
 };
 
-/**
- * @public
- */
+/** @public */
 export type FailReturn<T> = T & Failed;
 
-/**
- * @public
- */
+/** @public */
 export type LoaderSignal<TYPE> = TYPE extends () => ValueOrPromise<infer VALIDATOR>
   ? ReadonlySignal<ValueOrPromise<VALIDATOR>>
   : ReadonlySignal<TYPE>;
 
-/**
- * @public
- */
+/** @public */
 export interface Loader<RETURN> {
   /**
-   * Returns the `Signal` containing the data returned by the `loader$` function.
-   * Like all `use-` functions and methods, it can only be invoked within a `component$()`.
+   * Returns the `Signal` containing the data returned by the `loader$` function. Like all `use-`
+   * functions and methods, it can only be invoked within a `component$()`.
    */
   (): LoaderSignal<RETURN>;
 }
@@ -772,13 +701,12 @@ export interface LoaderInternal extends Loader<any> {
   (): LoaderSignal<any>;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface Action<RETURN, INPUT = Record<string, any>, OPTIONAL extends boolean = true> {
   /**
-   * Returns the `ActionStore` containing the current action state and methods to invoke it from a component$().
-   * Like all `use-` functions and methods, it can only be invoked within a `component$()`.
+   * Returns the `ActionStore` containing the current action state and methods to invoke it from a
+   * component$(). Like all `use-` functions and methods, it can only be invoked within a
+   * `component$()`.
    */
   (): ActionStore<RETURN, INPUT, OPTIONAL>;
 }
@@ -807,16 +735,12 @@ export interface ValidatorReturnFail<T extends Record<string, any> = {}> {
   readonly status?: number;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface DataValidator<T extends Record<string, any> = {}> {
   validate(ev: RequestEvent, data: unknown): Promise<ValidatorReturn<T>>;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface TypedDataValidator<T extends zod.ZodType = any> {
   __zod: zod.ZodSchema<T>;
   validate(ev: RequestEvent, data: unknown): Promise<zod.SafeParseReturnType<T, T>>;
@@ -834,9 +758,7 @@ export interface ValidatorConstructorQRL {
   ): T extends ValidatorReturnFail<infer ERROR> ? DataValidator<ERROR> : DataValidator<never>;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface ZodConstructor {
   <T extends zod.ZodRawShape>(schema: T): TypedDataValidator<zod.ZodObject<T>>;
   <T extends zod.ZodRawShape>(
@@ -846,9 +768,7 @@ export interface ZodConstructor {
   <T extends zod.Schema>(schema: (z: typeof zod, ev: RequestEvent) => T): TypedDataValidator<T>;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface ZodConstructorQRL {
   <T extends zod.ZodRawShape>(schema: QRL<T>): TypedDataValidator<zod.ZodObject<T>>;
   <T extends zod.ZodRawShape>(

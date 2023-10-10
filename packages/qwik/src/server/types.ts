@@ -122,8 +122,9 @@ export interface RenderOptions extends SerializeDocumentOptions {
   locale?: string | ((options: RenderOptions) => string);
 
   /**
-   * Specifies if the Qwik Loader script is added to the document or not. Defaults to `{ include:
-   * true }`.
+   * Specifies if the Qwik Loader script is added to the document or not.
+   *
+   * Defaults to `{ include: true }`.
    */
   qwikLoader?: QwikLoaderOptions;
 

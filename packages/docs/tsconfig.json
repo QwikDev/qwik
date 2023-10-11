@@ -17,8 +17,7 @@
     "baseUrl": ".",
     "assumeChangesOnlyAffectDirectDependencies": true,
     "noUnusedLocals": true,
-    "paths": {
-    },
+    "paths": {},
     "types": ["node", "vite/client"],
     "esModuleInterop": true,
     "sourceRoot": ".",
@@ -26,5 +25,5 @@
     "inlineSources": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
-  },
+  }
 }

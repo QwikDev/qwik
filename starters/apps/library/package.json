@@ -38,14 +38,14 @@
     "@types/node": "latest",
     "@typescript-eslint/eslint-plugin": "latest",
     "@typescript-eslint/parser": "latest",
-    "eslint-plugin-qwik": "latest",
     "eslint": "latest",
-    "undici": "latest",
-    "np": "7.6.1",
+    "eslint-plugin-qwik": "latest",
+    "np": "^8.0.4",
     "prettier": "latest",
     "typescript": "latest",
+    "undici": "latest",
     "vite": "latest",
-    "vite-tsconfig-paths": "4.2.0"
+    "vite-tsconfig-paths": "^4.2.1"
   },
   "__qwik__": {
     "displayName": "Component library",

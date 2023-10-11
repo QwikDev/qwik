@@ -43,7 +43,6 @@
     "@types/mri": "^1.1.2",
     "@types/node": "^20.8.4",
     "@types/path-browserify": "1.0.0",
-    "@types/prettier": "^3.0.0",
     "@types/prompts": "^2.4.6",
     "@types/semver": "^7.5.3",
     "@types/which-pm-runs": "1.0.0",

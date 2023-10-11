@@ -372,13 +372,15 @@ Type representing the Qwik component.
 
 `Component` is the type returned by invoking `component$`.
 
-```
+```tsx
 interface MyComponentProps {
   someProp: string;
 }
-const MyComponent: Component<MyComponentProps> = component$((props: MyComponentProps) => {
-  return <span>{props.someProp}</span>;
-});
+const MyComponent: Component<MyComponentProps> = component$(
+  (props: MyComponentProps) => {
+    return <span>{props.someProp}</span>;
+  },
+);
 ```
 
 ```typescript

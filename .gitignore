@@ -34,6 +34,7 @@ tsdoc-metadata.json
 .vscode/settings.json
 .idea
 .eslintcache
+test-results
 
 # Package Managers
 .yarn/*

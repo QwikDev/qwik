@@ -105,7 +105,7 @@ import { createQRL } from './qrl-class';
  *
  * The above code needs to be serialized into DOM such as:
  *
- * ```html
+ * ```
  * <div q:base="/build/">
  *   <button on:click="./chunk-abc.js#onClick">...</button>
  * </div>

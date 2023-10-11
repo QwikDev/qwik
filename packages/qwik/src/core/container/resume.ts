@@ -19,7 +19,7 @@ import {
   strToInt,
 } from './container';
 import { findClose, VirtualElementImpl } from '../render/dom/virtual-element';
-import { getProxyManager, parseSubscription, type Subscriptions } from '../state/common';
+import { getSubscriptionManager, parseSubscription, type Subscriptions } from '../state/common';
 import { createProxy, setObjectFlags } from '../state/store';
 import { qDev, qSerialize } from '../util/qdev';
 import { pauseContainer } from './pause';
@@ -50,9 +50,7 @@ export const getPauseState = (containerEl: Element): SnapshotState | undefined =
   }
 };
 
-/**
- * @internal
- */
+/** @internal */
 export const _deserializeData = (data: string, element?: unknown) => {
   const obj = JSON.parse(data);
   if (typeof obj !== 'object') {
@@ -89,7 +87,7 @@ export const _deserializeData = (data: string, element?: unknown) => {
 
 export const resumeContainer = (containerEl: Element) => {
   if (!isContainer(containerEl)) {
-    logWarn('Skipping hydration because parent element is not q:container');
+    logWarn('Skipping resuming because parent element is not q:container');
     return;
   }
 
@@ -98,7 +96,7 @@ export const resumeContainer = (containerEl: Element) => {
 
   (containerEl as any)['_qwikjson_'] = null;
   if (!pauseState) {
-    logWarn('Skipping hydration qwik/json metadata was not found.');
+    logWarn('Skipping resuming qwik/json metadata was not found.');
     return;
   }
 
@@ -108,7 +106,7 @@ export const resumeContainer = (containerEl: Element) => {
   if (qDev) {
     const script = getQwikJSON(parentJSON, 'type');
     if (!script) {
-      logWarn('Skipping hydration qwik/json metadata was not found.');
+      logWarn('Skipping resuming qwik/json metadata was not found.');
       return;
     }
   }
@@ -263,7 +261,7 @@ export const resumeContainer = (containerEl: Element) => {
 
 const reviveSubscriptions = (
   value: any,
-  i: any,
+  i: number,
   objsSubs: any[],
   getObject: GetObject,
   containerState: ContainerState,
@@ -289,7 +287,7 @@ const reviveSubscriptions = (
     if (!parser.subs(value, converted)) {
       const proxy = containerState.$proxyMap$.get(value);
       if (proxy) {
-        getProxyManager(proxy)!.$addSubs$(converted);
+        getSubscriptionManager(proxy)!.$addSubs$(converted);
       } else {
         createProxy(value, containerState, converted);
       }

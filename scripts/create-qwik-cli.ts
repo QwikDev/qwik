@@ -1,10 +1,19 @@
-import { type BuildConfig, copyFile, emptyDir, mkdir, nodeTarget, stat } from './util';
+import {
+  type BuildConfig,
+  copyFile,
+  emptyDir,
+  mkdir,
+  nodeTarget,
+  stat,
+  getBanner,
+  readdir,
+  run,
+} from './util';
 import { build } from 'esbuild';
-import { basename, join } from 'node:path';
-import { getBanner, readdir, watcher, run } from './util';
-import { readPackageJson, writePackageJson } from './package-json';
 import { existsSync } from 'node:fs';
 import { rm } from 'node:fs/promises';
+import { basename, join } from 'node:path';
+import { readPackageJson, writePackageJson } from './package-json';
 
 const PACKAGE = 'create-qwik';
 
@@ -59,7 +68,6 @@ async function bundleCreateQwikCli(config: BuildConfig, srcCliDir: string, distC
     banner: {
       js: getBanner(PACKAGE, config.distVersion),
     },
-    watch: watcher(config),
   });
 }
 
@@ -82,7 +90,7 @@ export async function publishCreateQwikCli(
   const baseAppPkg = await readPackageJson(distCliBaseAppDir);
   baseAppPkg.devDependencies = baseAppPkg.devDependencies || {};
 
-  let semverQwik = `^${version}`;
+  const semverQwik = config.devRelease ? `${version}` : `^${version}`;
   console.log(`   update devDependencies["@builder.io/qwik"] = "${semverQwik}"`);
   baseAppPkg.devDependencies['@builder.io/qwik'] = semverQwik;
 

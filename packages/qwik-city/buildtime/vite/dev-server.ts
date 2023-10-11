@@ -2,8 +2,10 @@ import type { ViteDevServer, Connect } from 'vite';
 import type { ServerResponse } from 'node:http';
 import type { BuildContext, BuildRoute } from '../types';
 import type {
+  ActionInternal,
   ContentMenu,
   LoadedRoute,
+  LoaderInternal,
   MenuData,
   MenuModule,
   MenuModuleLoader,
@@ -22,32 +24,27 @@ import {
 import { getQwikCityServerData } from '../../middleware/request-handler/response-page';
 import { updateBuildContext } from '../build';
 import { getExtension, normalizePath } from '../../utils/fs';
-import { getMenuLoader, getPathParams } from '../../runtime/src/routing';
-import { fromNodeHttp, getUrl } from '../../middleware/node/http';
-import { resolveRequestHandlers } from '../../middleware/request-handler/resolve-request-handlers';
+import { getMenuLoader } from '../../runtime/src/routing';
+import { computeOrigin, fromNodeHttp, getUrl } from '../../middleware/node/http';
+import {
+  checkBrand,
+  resolveRequestHandlers,
+} from '../../middleware/request-handler/resolve-request-handlers';
 import { formatError } from './format-error';
+import { matchRoute } from 'packages/qwik-city/runtime/src/route-matcher';
 
 export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
   const matchRouteRequest = (pathname: string) => {
     for (const route of ctx.routes) {
-      const match = route.pattern.exec(pathname);
-      if (match) {
-        return {
-          route,
-          params: getPathParams(route.paramNames, match),
-        };
+      let params = matchRoute(route.pathname, pathname);
+      if (params) {
+        return { route, params };
       }
-    }
 
-    if (ctx.opts.trailingSlash && !pathname.endsWith('/')) {
-      const pathnameWithSlash = pathname + '/';
-      for (const route of ctx.routes) {
-        const match = route.pattern.exec(pathnameWithSlash);
-        if (match) {
-          return {
-            route,
-            params: getPathParams(route.paramNames, match),
-          };
+      if (ctx.opts.trailingSlash && !pathname.endsWith('/')) {
+        params = matchRoute(route.pathname, pathname + '/');
+        if (params) {
+          return { route, params };
         }
       }
     }
@@ -57,7 +54,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
 
   return async (req: Connect.IncomingMessage, res: ServerResponse, next: Connect.NextFunction) => {
     try {
-      const url = getUrl(req);
+      const url = getUrl(req, computeOrigin(req));
 
       if (skipRequest(url.pathname) || isVitePing(url.pathname, req.headers)) {
         next();
@@ -81,12 +78,13 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
         const qwikSerializer = { _deserializeData, _serializeData, _verifySerializable };
 
         // use vite to dynamically load each layout/page module in this route's hierarchy
-
+        const loaderMap = new Map<string, string>();
         const serverPlugins: RouteModule[] = [];
         for (const file of ctx.serverPlugins) {
           const layoutModule = await server.ssrLoadModule(file.filePath);
           serverPlugins.push(layoutModule);
           routeModulePaths.set(layoutModule, file.filePath);
+          checkModule(loaderMap, layoutModule, file.filePath);
         }
 
         const matchPathname = getRouteMatchPathname(url.pathname, ctx.opts.trailingSlash);
@@ -103,13 +101,16 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
             const layoutModule = await server.ssrLoadModule(layout.filePath);
             routeModules.push(layoutModule);
             routeModulePaths.set(layoutModule, layout.filePath);
+            checkModule(loaderMap, layoutModule, layout.filePath);
           }
           const endpointModule = await server.ssrLoadModule(route.filePath);
           routeModules.push(endpointModule);
           routeModulePaths.set(endpointModule, route.filePath);
+          checkModule(loaderMap, endpointModule, route.filePath);
         }
 
         const renderFn = async (requestEv: RequestEvent) => {
+          // routeResult && requestEv.sharedMap.set('@routeName', routeResult.route.pathname);
           const isPageDataReq = requestEv.pathname.endsWith(QDATA_JSON);
           if (!isPageDataReq) {
             const serverData = getQwikCityServerData(requestEv);
@@ -167,7 +168,13 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
           menu = menuModule?.default;
         }
 
-        const loadedRoute = [params, routeModules, menu, undefined] satisfies LoadedRoute;
+        const loadedRoute = [
+          routeResult ? routeResult.route.pathname : '',
+          params,
+          routeModules,
+          menu,
+          undefined,
+        ] satisfies LoadedRoute;
         const requestHandlers = resolveRequestHandlers(
           serverPlugins,
           loadedRoute,
@@ -181,6 +188,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
           Object.assign(serverRequestEv.platform, ctx.opts.platform);
 
           const manifest: QwikManifest = {
+            manifestHash: '',
             symbols: {},
             mapping: {},
             bundles: {},
@@ -240,8 +248,8 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
 
       if (req.headers.accept && req.headers.accept.includes('text/html')) {
         /**
-         * if no route match, but is html request, fast path to 404
-         * otherwise qwik plugin will take over render without envData causing error
+         * If no route match, but is html request, fast path to 404 otherwise qwik plugin will take
+         * over render without envData causing error
          */
         // TODO: after file change, need to manual page refresh to see changes currently
         //       there's two ways handling HMR for page endpoint with error
@@ -260,6 +268,31 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
     }
   };
 }
+
+const checkModule = (loaderMap: Map<string, string>, routeModule: any, filePath: string) => {
+  for (const loader of Object.values(routeModule)) {
+    if (checkBrand(loader, 'server_action') || checkBrand(loader, 'server_loader')) {
+      checkUniqueLoader(loaderMap, loader as any, filePath);
+    }
+  }
+};
+
+const checkUniqueLoader = (
+  loaderMap: Map<string, string>,
+  loader: LoaderInternal | ActionInternal,
+  filePath: string
+) => {
+  const prev = loaderMap.get(loader.__id);
+  if (prev) {
+    const type = loader.__brand === 'server_loader' ? 'routeLoader$' : 'routeAction$';
+    throw new Error(
+      `The same ${type} (${loader.__qrl.getSymbol()}) was exported in multiple modules:
+      - ${prev}
+      - ${filePath}`
+    );
+  }
+  loaderMap.set(loader.__id, filePath);
+};
 
 export function getUnmatchedRouteHtml(url: URL, ctx: BuildContext): string {
   const blue = '#006ce9';
@@ -337,6 +370,7 @@ const levenshteinDistance = (s: string, t: string) => {
 
 /**
  * Static file server for files written directly to the 'dist' dir.
+ *
  * Only handles the simplest cases.
  */
 export function staticDistMiddleware({ config }: ViteDevServer) {
@@ -480,6 +514,6 @@ const STATIC_CONTENT_TYPES: { [ext: string]: string } = {
 };
 
 const DEV_SERVICE_WORKER = `/* Qwik City Dev Service Worker */
-addEventListener('install', () => self.skipWaiting());
-addEventListener('activate', () => self.clients.claim());
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', (ev) => ev.waitUntil(self.clients.claim()));
 `;

@@ -13,7 +13,7 @@ import {
 } from '../use/use-task';
 import type { QwikElement } from '../render/dom/virtual-element';
 import { notifyChange } from '../render/dom/notify-render';
-import { createError, logError } from '../util/log';
+import { logError, throwErrorAndStop } from '../util/log';
 import { tryGetContext } from './context';
 import { QObjectFlagsSymbol, QObjectManagerSymbol, QOjectTargetSymbol } from './constants';
 import type { Signal } from './signal';
@@ -29,9 +29,7 @@ export type QObject<T extends {}> = T & { __brand__: 'QObject' };
 
 export type TargetType = Record<string | symbol, any>;
 
-/**
- * @internal
- */
+/** @internal */
 export const verifySerializable = <T>(value: T, preMessage?: string): T => {
   const seen = new Set();
   return _verifySerializable(value, seen, '_', preMessage);
@@ -101,7 +99,7 @@ const _verifySerializable = <T>(value: T, seen: Set<any>, ctx: string, preMessag
       )});\n\nPlease check out https://qwik.builder.io/docs/advanced/qrl/ for more information.`;
     }
     console.error('Trying to serialize', value);
-    throw createError(message);
+    throwErrorAndStop(message);
   }
   return value;
 };
@@ -126,8 +124,8 @@ export const fastWeakSerialize = (obj: any): boolean => {
 /**
  * Returned type of the `noSerialize()` function. It will be TYPE or undefined.
  *
- * @see noSerialize
  * @public
+ * @see noSerialize
  */
 export type NoSerialize<T> = (T & { __no_serialize__: true }) | undefined;
 
@@ -137,9 +135,9 @@ export type NoSerialize<T> = (T & { __no_serialize__: true }) | undefined;
 /**
  * Marks a property on a store as non-serializable.
  *
- * At times it is necessary to store values on a store that are non-serializable. Normally this
- * is a runtime error as Store wants to eagerly report when a non-serializable property is
- * assigned to it.
+ * At times it is necessary to store values on a store that are non-serializable. Normally this is a
+ * runtime error as Store wants to eagerly report when a non-serializable property is assigned to
+ * it.
  *
  * You can use `noSerialize()` to mark a value as non-serializable. The value is persisted in the
  * Store but does not survive serialization. The implication is that when your application is
@@ -158,9 +156,7 @@ export const noSerialize = <T extends object | undefined>(input: T): NoSerialize
   return input as any;
 };
 
-/**
- * @internal
- */
+/** @internal */
 export const _weakSerialize = <T extends Record<string, any>>(input: T): Partial<T> => {
   weakSerializeSet.add(input);
   return input as any;
@@ -174,9 +170,7 @@ export const isConnected = (sub: SubscriberEffect | SubscriberHost): boolean => 
   }
 };
 
-/**
- * @public
- */
+/** @public */
 export const unwrapProxy = <T>(proxy: T): T => {
   return isObject(proxy) ? getProxyTarget<any>(proxy) ?? proxy : proxy;
 };
@@ -185,7 +179,9 @@ export const getProxyTarget = <T extends Record<string, any>>(obj: T): T | undef
   return (obj as any)[QOjectTargetSymbol];
 };
 
-export const getProxyManager = (obj: Record<string, any>): LocalSubscriptionManager | undefined => {
+export const getSubscriptionManager = (
+  obj: Record<string, any>
+): LocalSubscriptionManager | undefined => {
   return (obj as any)[QObjectManagerSymbol];
 };
 
@@ -200,14 +196,14 @@ type SubscriberB = readonly [
   host: SubscriberHost,
   signal: Signal,
   elm: QwikElement,
-  prop: string
+  prop: string,
 ];
 
 type SubscriberC = readonly [
   type: 3 | 4,
   host: SubscriberHost | Text,
   signal: Signal,
-  elm: Node | string | QwikElement
+  elm: Node | string | QwikElement,
 ];
 
 export type Subscriber = SubscriberA | SubscriberB | SubscriberC;
@@ -219,14 +215,14 @@ type B = [
   signal: Signal,
   elm: QwikElement,
   prop: string,
-  key: string | undefined
+  key: string | undefined,
 ];
 type C = [
   type: 3 | 4,
   host: SubscriberHost | Text,
   signal: Signal,
   elm: Node | QwikElement,
-  key: string | undefined
+  key: string | undefined,
 ];
 
 export type SubscriberSignal = B | C;

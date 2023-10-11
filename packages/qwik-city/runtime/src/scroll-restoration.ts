@@ -1,131 +1,58 @@
-import { $, type QRL } from '@builder.io/qwik';
-import type { RestoreScroll, ScrollRecord, ScrollState } from './types';
+import type { NavigationType, ScrollState } from './types';
 import { isSamePath } from './utils';
-import { getHistoryId } from './client-navigate';
 
-/**
- * @alpha
- */
-export const toTopAlways: QRL<RestoreScroll> = $(async (_type, fromUrl, toUrlSettled) => {
-  nativeScrollRestoration.disable();
-
-  // wait for url to settled
-  const toUrl = await toUrlSettled;
-  if (!scrollForHashChange(fromUrl, toUrl)) {
-    window.scrollTo(0, 0);
-  }
-
-  nativeScrollRestoration.enable();
-});
-
-/**
- * @alpha
- */
-export const toLastPositionOnPopState: QRL<RestoreScroll> = $(
-  (type, fromUrl, toUrlSettled, scrollRecord) => {
-    nativeScrollRestoration.disable();
-    flushScrollRecordToStorage(scrollRecord);
-
-    // wait for url to settled
-    const toUrl = toUrlSettled;
-    if (!scrollForHashChange(fromUrl, toUrl)) {
-      // retrieve scroll position for popstate navigation
-      let [scrollX, scrollY] = [0, 0];
-      if (type === 'popstate') {
-        const record = scrollRecord[getHistoryId()];
-        if (record) {
-          scrollX = record[0];
-          scrollY = record[1];
-        }
-      }
-      window.scrollTo(scrollX, scrollY);
-    }
-
-    nativeScrollRestoration.enable();
-  }
-);
-
-const nativeScrollRestoration = {
-  backup: 'auto' as ScrollRestoration,
-  disable() {
-    // back up browser scroll restoration setting and override it to manual
-    nativeScrollRestoration.backup = history.scrollRestoration;
-    history.scrollRestoration = 'manual';
-  },
-  enable() {
-    // revert scroll restoration to original value
-    history.scrollRestoration = nativeScrollRestoration.backup;
-  },
-};
-
-const QWIK_CITY_SCROLL_RECORD = '_qCityScroll';
-
-export const currentScrollState = (elm: Element): ScrollState => [
-  window.scrollX,
-  window.scrollY,
-  Math.max(elm.scrollWidth, elm.clientWidth),
-  Math.max(elm.scrollHeight, elm.clientHeight),
-];
-
-const flushScrollRecordToStorage = (scrollRecord: ScrollRecord) => {
-  try {
-    sessionStorage.setItem(QWIK_CITY_SCROLL_RECORD, JSON.stringify(scrollRecord));
-  } catch (e) {
-    console.error('Failed to save scroll positions', e);
-  }
-};
-
-export const getOrInitializeScrollRecord = (): ScrollRecord => {
-  const win = window as ScrollHistoryWindow;
-  if (win[QWIK_CITY_SCROLL_RECORD]) {
-    return win[QWIK_CITY_SCROLL_RECORD];
-  }
-  const scrollRecord = sessionStorage.getItem(QWIK_CITY_SCROLL_RECORD);
-  try {
-    return JSON.parse(scrollRecord!) || {};
-  } catch (e) {
-    console.error('Failed to parse scroll positions', e);
-    return {};
-  }
-};
-
-const scrollForHashChange = (fromUrl: URL, toUrl: URL): boolean => {
-  const newHash = toUrl.hash;
-  if (isSamePath(fromUrl, toUrl)) {
-    // same route after path change
-    if (fromUrl.hash !== newHash) {
-      // hash has changed on the same route
-      if (newHash) {
-        // hash has changed on the same route and there's a hash
-        // scroll to the element if it exists
-        scrollToHashId(newHash);
-      } else {
-        // hash has changed on the same route, but now there's no hash
-        window.scrollTo(0, 0);
-      }
-    }
-  } else {
-    // different route after change
-    if (newHash) {
-      scrollToHashId(newHash);
-    } else {
-      // different route and there isn't a hash
-      return false;
+export const restoreScroll = (
+  type: NavigationType,
+  toUrl: URL,
+  fromUrl: URL,
+  scrollState?: ScrollState
+) => {
+  if (type === 'popstate' && scrollState) {
+    window.scrollTo(scrollState.x, scrollState.y);
+  } else if (type === 'link') {
+    if (!hashScroll(toUrl, fromUrl)) {
+      window.scrollTo(0, 0);
     }
   }
-  return true;
 };
 
-const scrollToHashId = (hash: string) => {
-  const elmId = hash.slice(1);
-  const elm = document.getElementById(elmId);
+const hashScroll = (toUrl: URL, fromUrl: URL) => {
+  const elmId = toUrl.hash.slice(1);
+  // Firefox complains about empty ids.
+  const elm = elmId && document.getElementById(elmId);
+
   if (elm) {
-    // found element to scroll to
     elm.scrollIntoView();
+    return true;
+  } else if (!elm && toUrl.hash && isSamePath(toUrl, fromUrl)) {
+    // Non-existent (but non-empty) hashes will not scroll in browsers.
+    // However, cross-page non-existent hashes will scroll to top.
+    return true;
   }
-  return elm;
+
+  return false;
 };
 
-export interface ScrollHistoryWindow extends Window {
-  _qCityScroll?: ScrollRecord;
+export const currentScrollState = (elm: Element): ScrollState => {
+  return {
+    x: elm.scrollLeft,
+    y: elm.scrollTop,
+    w: Math.max(elm.scrollWidth, elm.clientWidth),
+    h: Math.max(elm.scrollHeight, elm.clientHeight),
+  };
+};
+
+export const getScrollHistory = () => {
+  const state = history.state as ScrollHistoryState;
+  return state?._qCityScroll;
+};
+
+export const saveScrollHistory = (scrollState: ScrollState) => {
+  const state: ScrollHistoryState = history.state || {};
+  state._qCityScroll = scrollState;
+  history.replaceState(state, '');
+};
+
+export interface ScrollHistoryState {
+  _qCityScroll?: ScrollState;
 }

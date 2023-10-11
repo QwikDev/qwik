@@ -2,12 +2,14 @@ import type { ParsedPathname, PathnameSegmentPart } from '../types';
 
 /**
  * Adopted from SvelteKit
+ *
  * https://github.com/sveltejs/kit/blob/master/LICENSE
  */
 export function parseRoutePathname(basePathname: string, pathname: string): ParsedPathname {
   if (pathname === basePathname) {
     return {
       pattern: new RegExp('^' + pathname.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$'),
+      routeName: pathname,
       paramNames: [],
       segments: [[{ content: '', dynamic: false, rest: false }]],
     };
@@ -22,7 +24,7 @@ export function parseRoutePathname(basePathname: string, pathname: string): Pars
     `^${segments
       .filter((segment) => segment.length > 0)
       .map((s) => {
-        const segment = decodeURIComponent(s);
+        const segment = decodeURI(s);
 
         // special case — /[...rest]/ could contain zero segments
         const catchAll = /^\[\.\.\.(\w+)?\]$/.exec(segment);
@@ -46,7 +48,8 @@ export function parseRoutePathname(basePathname: string, pathname: string): Pars
               }
 
               return (
-                content // allow users to specify characters on the file system in an encoded manner
+                encodeURI(content)
+                  // allow users to specify characters on the file system in an encoded manner
                   .normalize()
                   // We use [ and ] to denote parameters, so users must encode these on the file
                   // system to match against them. We don't decode all characters since others
@@ -61,7 +64,7 @@ export function parseRoutePathname(basePathname: string, pathname: string): Pars
                   .replace(/\?/g, '%3F')
                   // escape characters that have special meaning in regex
                   .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-              ); // TODO handle encoding
+              );
             })
             .join('')
         );
@@ -71,6 +74,7 @@ export function parseRoutePathname(basePathname: string, pathname: string): Pars
 
   return {
     pattern,
+    routeName: pathname,
     paramNames,
     segments: segments.map((segment) => {
       const parts: PathnameSegmentPart[] = [];

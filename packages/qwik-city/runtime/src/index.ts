@@ -13,6 +13,7 @@ export type {
   DocumentLink,
   DocumentMeta,
   DocumentStyle,
+  DocumentScript,
   PageModule,
   PathParams,
   RequestHandler,
@@ -30,14 +31,11 @@ export type {
   ActionStore,
   LoaderSignal,
   ActionConstructor,
-  ActionOptions,
-  ActionOptionsWithValidation,
   FailReturn,
   ZodConstructor,
   StaticGenerate,
   RouteNavigate,
   NavigationType,
-  RestoreScroll,
   DeferReturn,
   RequestEventBase,
   JSONObject,
@@ -52,8 +50,6 @@ export {
   QwikCityMockProvider,
 } from './qwik-city-component';
 export { type LinkProps, Link } from './link-component';
-export { toTopAlways, toLastPositionOnPopState } from './scroll-restoration';
-export { getHistoryId } from './client-navigate';
 export { ServiceWorkerRegister } from './sw-component';
 export { useDocumentHead, useLocation, useContent, useNavigate } from './use-functions';
 export { routeAction$, routeActionQrl } from './server-functions';

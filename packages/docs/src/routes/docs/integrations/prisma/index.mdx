@@ -1,5 +1,5 @@
 ---
-title: Qwik City and Prisma
+title: Prisma | Integrations
 keywords: 'prisma, orm, database, data, storage, postgress, mondodb'
 contributors:
   - manucorporat
@@ -8,11 +8,11 @@ contributors:
 
 # Prisma
 
-[Prisma](https://www.prisma.io/) allows interaction with [MongoDB](https://www.prisma.io/docs/concepts/database-connectors/mongodb) or [SQL databases](https://www.prisma.io/docs/concepts/database-connectors/postgresql) in a fully type safety manner.
+[Prisma](https://www.prisma.io/) allows interaction with [MongoDB](https://www.prisma.io/docs/concepts/database-connectors/mongodb) or [SQL databases](https://www.prisma.io/docs/concepts/database-connectors/postgresql) in a fully type-safe manner.
 
 With Prisma you define your DB schema in `.prisma` files, and their CLI automatically generates the DB migrations as well as the Typescript types.
 
-Prima can be used in Qwik with `routeLoader$`, `routeAction$` and `server$` functions. These are Qwik APIs to allow code to execute only on the server-side.
+Prisma can be used in Qwik with `routeLoader$`, `routeAction$` and `server$` functions. These are Qwik APIs to allow code to execute only on the server-side.
 
 The easiest way to add Prisma to Qwik is using the `pnpm qwik add prisma` command. This will install the required dependencies and create a `prisma` folder with the Prisma schema and the migrations.
 
@@ -57,7 +57,7 @@ export default component$(() => {
 
 ## Show user detail
 
-We will use `routeLoader$` to query an specific users based on the `userId` URL param, using `prisma.user.findUnique()`, and returning the result.
+We will use `routeLoader$` to query specific users based on the `userId` URL param, using `prisma.user.findUnique()`, and returning the result.
 
 
 ```tsx {8} /PrismaClient/ title="src/routes/users/[userId]/index.tsx"
@@ -94,7 +94,7 @@ export default component$(() => {
 });
 ```
 
-## Adding an user
+## Adding a user
 
 We will use `routeAction$` and `Form` to create a progressive form to add a new user to the DB. We will use `prisma.user.create()` to create the user.
 
@@ -137,16 +137,3 @@ export default component$(() => {
   )
 });
 ```
-
-## Limitations
-
-### Big WASM binary
-
-Prima Client needs a 14MB WASM binary that might be too big if you plan to deploy your app to a serverless environment. We recommend using Prisma only if you deploy to a Node.js environment, such as Google Cloud Run, Express, or Azure.
-
-Check out [this blog post for more details](https://dev.to/nexxeln/typesafe-database-queries-on-the-edge-5bbn)
-
-### Prisma Client might not work great with `pnpm`
-
-The way Prisma generates the client types abuses how `npm` node_modules work, which is different from how `pnpm` works. We recommend using `npm` is you plan to use Prisma.
-

@@ -34,6 +34,12 @@ export const useMethodUsage: Rule.RuleModule = {
       'ArrowFunctionExpression:exit'(d) {
         stack.pop();
       },
+      FunctionExpression() {
+        stack.push({ await: false });
+      },
+      'FunctionExpression:exit'(d) {
+        stack.pop();
+      },
       AwaitExpression() {
         const last = stack[stack.length - 1];
         if (last) {

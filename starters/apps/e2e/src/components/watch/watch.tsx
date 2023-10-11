@@ -9,8 +9,8 @@ import {
   useContext,
   useContextProvider,
   $,
-} from '@builder.io/qwik';
-import { isServer } from '@builder.io/qwik/build';
+} from "@builder.io/qwik";
+import { isServer } from "@builder.io/qwik/build";
 
 interface State {
   count: number;
@@ -21,18 +21,18 @@ interface State {
 
 export const Watch = component$(() => {
   const nav = useStore({
-    path: '/',
+    path: "/",
   });
   const store = useStore<State>({
     count: 2,
     doubleCount: 0,
     debounced: 0,
-    server: '',
+    server: "",
   });
 
   useTask$(() => {
     if (isServer) {
-      store.server = 'comes from server';
+      store.server = "comes from server";
     }
   });
 
@@ -59,27 +59,29 @@ export const Watch = component$(() => {
     };
   });
 
-  console.log('PARENT renders');
+  console.log("PARENT renders");
   return <WatchShell nav={nav} store={store} />;
 });
 
-export const WatchShell = component$(({ store }: { nav: any; store: State }) => {
-  return (
-    <div>
-      <div id="server-content">{store.server}</div>
-      <div id="parent">{store.count + 0}</div>
-      <Child state={store} />
-      <button id="add" onClick$={() => store.count++}>
-        +
-      </button>
-      <Issue1766Root />
-      <Issue2972 />
-    </div>
-  );
-});
+export const WatchShell = component$(
+  ({ store }: { nav: any; store: State }) => {
+    return (
+      <div>
+        <div id="server-content">{store.server}</div>
+        <div id="parent">{store.count + 0}</div>
+        <Child state={store} />
+        <button id="add" onClick$={() => store.count++}>
+          +
+        </button>
+        <Issue1766Root />
+        <Issue2972 />
+      </div>
+    );
+  },
+);
 
 export const Child = component$((props: { state: State }) => {
-  console.log('CHILD renders');
+  console.log("CHILD renders");
   return (
     <div>
       <div id="child">
@@ -91,19 +93,19 @@ export const Child = component$((props: { state: State }) => {
 });
 
 export const GrandChild = component$((props: { state: State }) => {
-  console.log('GrandChild renders');
+  console.log("GrandChild renders");
   return <div id="debounced">Debounced: {props.state.debounced}</div>;
 });
 
-export const LinkPath = createContextId<{ value: string }>('link-path');
+export const LinkPath = createContextId<{ value: string }>("link-path");
 
 export const Issue1766Root = component$(() => {
   const loc = useStore({
-    value: '/root',
+    value: "/root",
   });
 
   const final = useStore({
-    value: '/root',
+    value: "/root",
   });
   useContextProvider(LinkPath, loc);
 
@@ -122,12 +124,12 @@ export const Issue1766Root = component$(() => {
 
 export const Issue1766 = component$(() => {
   const counter = useSignal(0);
-  const second = useSignal('---');
+  const second = useSignal("---");
 
   useTask$(async ({ track }) => {
     track(counter);
     if (counter.value !== 0) {
-      second.value = 'watch ran';
+      second.value = "watch ran";
     }
   });
 
@@ -192,9 +194,9 @@ export function foo(this: any) {
 }
 
 export const Issue2972 = component$(() => {
-  const message = useSignal('');
+  const message = useSignal("");
   useTask$(async () => {
-    message.value = await $(foo).apply({ value: 'passed' });
+    message.value = await $(foo).apply({ value: "passed" });
   });
 
   return (

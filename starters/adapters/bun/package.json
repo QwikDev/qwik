@@ -1,0 +1,24 @@
+{
+  "description": "Bun server",
+  "scripts": {
+    "build.server": "vite build -c adapters/bun/vite.config.ts",
+    "serve": "bun server/entry.bun.js"
+  },
+  "__qwik__": {
+    "priority": 20,
+    "displayName": "Adapter: Bun Server",
+    "docs": [
+      "https://qwik.builder.io/deployments/bun/",
+      "https://bun.sh/docs/api/http"
+    ],
+    "nextSteps": {
+      "title": "Next Steps",
+      "lines": [
+        "Now you can build a production-ready Bun app:",
+        "",
+        "- bun run build: production build",
+        "- bun run serve: runs the production server locally"
+      ]
+    }
+  }
+}

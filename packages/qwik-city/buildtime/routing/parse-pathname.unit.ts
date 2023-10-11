@@ -4,6 +4,7 @@ import { parseRoutePathname } from './parse-pathname';
 
 /**
  * Adopted from SvelteKit
+ *
  * https://github.com/sveltejs/kit/blob/master/LICENSE
  */
 
@@ -61,6 +62,16 @@ const tests = {
   '/xyz/abc.dot/': {
     basePathname: '/',
     pattern: /^\/xyz\/abc\.dot\/?$/,
+    paramNames: [],
+  },
+  '/xyz/%D8%B9%D8%B1%D8%A8%D9%8A/': {
+    basePathname: '/',
+    pattern: /^\/xyz\/%D8%B9%D8%B1%D8%A8%D9%8A\/?$/,
+    paramNames: [],
+  },
+  '/xyz/server$/': {
+    basePathname: '/',
+    pattern: /^\/xyz\/server\$\/?$/,
     paramNames: [],
   },
 };

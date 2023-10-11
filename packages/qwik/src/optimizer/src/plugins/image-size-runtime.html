@@ -1,12 +1,45 @@
-<template id="image-warning-template">
+<style>
+  [data-qwik-cls] {
+    outline: 2px solid red;
+  }
+  [data-qwik-cls]::after {
+    position: absolute;
+    font-size: 12px;
+    content: 'CLS ' attr(data-qwik-cls);
+    font-family: monospace;
+    font-weight: bold;
+    background: red;
+    color: white;
+    margin: -2px;
+    padding: 1px;
+    line-height: 1;
+    pointer-events: none;
+  }
+  #qwik-image-warning-container {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 0 !important;
+    overflow: visible !important;
+    height: 0 !important;
+    pointer-events: none !important;
+    contain: size layout style content;
+    z-index: 1;
+  }
+</style>
+<template id="qwik-image-warning-template">
   <style>
     :host {
       position: absolute;
       border: 1px solid red;
       pointer-events: none;
+      z-index: 1;
+      contain: layout size;
     }
 
-    .icon {
+    #icon {
+      border: 0;
+      margin: 5px;
       color: black;
       max-width: 100%;
       width: 20px;
@@ -18,43 +51,68 @@
       cursor: pointer;
     }
 
-    .icon svg {
+    #icon svg {
       width: 100%;
       height: auto;
       pointer-events: none;
     }
 
-    .warn {
-      display: none;
+    dialog {
+      padding: 0;
+      border: 0;
+      margin: 0 5px;
       background: #ffffe8;
       color: black;
       width: 250px;
       font-size: 11px;
       position: absolute;
-      bottom: calc(100% + 5px);
-      left: -5px;
+      inset-inline-start: unset;
+      inset-inline-end: unset;
       border-radius: 5px;
       pointer-events: all;
       overflow: hidden;
       box-shadow: 0px -2px 20px 0px #0000002e;
+      z-index: 10000;
+    }
+
+    .top {
+      bottom: calc(100% + 5px);
+    }
+    .bottom {
+      top: 40px;
+    }
+    .right {
+      inset-inline-start: 0;
+      inset-inline-end: unset;
+    }
+    .left {
+      inset-inline-start: unset;
+      inset-inline-end: calc(100% - 40px);
     }
 
     .content {
       padding: 5px;
     }
 
-    .loc {
+    #loc {
       background: #2e3801;
       color: #d2d2d2;
       font-family: monospace;
-      text-align: right;
-      padding: 2px 5px;
+      padding: 3px 5px;
       pointer-events: all;
-    }
-
-    :host(.visible) .warn {
+      margin: 0;
+      border: 0;
+      cursor: pointer;
+      font-size: 11px;
+      width: calc(100% - 24px);
+      text-overflow: ellipsis;
+      overflow: hidden;
       display: block;
-      /* opacity: 1.0; */
+      direction: rtl;
+      text-align: right;
+    }
+    #loc:hover {
+      background: #3a4a01;
     }
 
     pre {
@@ -73,7 +131,29 @@
       text-decoration: underline;
     }
 
-    button {
+    #close {
+      border: 0;
+      width: 25px;
+      height: 25px;
+      position: absolute;
+      right: 0;
+      top: 0;
+      background: #ffe14f;
+      color: black;
+      font-weight: 900;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      cursor: pointer;
+    }
+    #close:hover {
+      background: #ffeb6f;
+    }
+
+    #action-btn {
       border: 2px solid #18ae00;
       padding: 2px 4px;
       background: #50ff50;
@@ -93,48 +173,77 @@
       margin: 10px 0;
     }
   </style>
-  <div class="icon">
+  <button id="icon" type="button" aria-label="Open image dev dialog">
     <svg width="32" height="32" viewBox="0 0 24 24">
       <path
         fill="currentColor"
         d="M2.725 21q-.275 0-.5-.138t-.35-.362q-.125-.225-.138-.488t.138-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137H2.725ZM12 18q.425 0 .713-.288T13 17q0-.425-.288-.713T12 16q-.425 0-.713.288T11 17q0 .425.288.713T12 18Zm0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.713T12 10q-.425 0-.713.288T11 11v3q0 .425.288.713T12 15Z"
       />
     </svg>
-  </div>
-  <div class="warn">
-    <div class="loc"></div>
+  </button>
+  <dialog>
+    <form method="dialog">
+      <button id="close" type="submit" aria-label="Close">X</button>
+    </form>
+    <button id="loc"></button>
     <div class="content">
       <h2 id="title"></h2>
       <p id="message"></p>
-      <p class="autofix"></p>
+      <p class="action-container"></p>
     </div>
-  </div>
+  </dialog>
 </template>
+<div id="qwik-image-warning-container"></div>
 <script>
   (function () {
+    function getPositionClasses(target) {
+      const { x, y } = target.getBoundingClientRect();
+      const windowWidth = window.innerWidth;
+      let horizontal = 'right';
+      let vertical = 'bottom';
+      if (x > windowWidth - 260) {
+        horizontal = 'left';
+      }
+      return `${vertical} ${horizontal}`;
+    }
     class ImageWarning extends HTMLElement {
-      #autofix = null;
+      #actionFn = null;
       constructor() {
         super();
         this.attachShadow({ mode: 'open' });
         this.shadowRoot.appendChild(
-          document.importNode(document.getElementById('image-warning-template').content, true)
+          document.importNode(document.getElementById('qwik-image-warning-template').content, true)
         );
+        const dialog = this.shadowRoot.querySelector('dialog');
 
         this.shadowRoot.addEventListener('click', async (ev) => {
           const target = ev.target;
           if (target.nodeName === 'BUTTON') {
-            if (this.#autofix) {
-              this.#autofix();
+            if (target.id === 'action-btn') {
+              if (this.#actionFn) {
+                this.#actionFn();
+                dialog.close();
+              }
+            } else if (target.id === 'icon') {
+              if (dialog.open) {
+                dialog.close();
+              } else {
+                dialog.className = getPositionClasses(target);
+                dialog.show();
+              }
+            } else if (target.id === 'loc' && target.dataset.url) {
+              globalThis.qwikOpenInEditor(target.dataset.url);
             }
-          } else if (target.nodeName === 'DIV' && target.className === 'icon') {
-            this.classList.add('visible');
           }
         });
       }
 
       set loc(value) {
-        this.shadowRoot.querySelector('.loc').textContent = value;
+        const anchor = this.shadowRoot.querySelector('#loc');
+        anchor.textContent = value;
+        if (globalThis.qwikOpenInEditor) {
+          anchor.dataset.url = value;
+        }
       }
 
       set header(value) {
@@ -145,19 +254,28 @@
         this.shadowRoot.querySelector('#message').innerHTML = value;
       }
 
-      set autofix(value) {
-        this.#autofix = value;
+      set actionFn(value) {
+        this.#actionFn = value;
+      }
+      set actionName(value) {
         if (value) {
-          this.shadowRoot.querySelector('.autofix').innerHTML = '<button>Auto fix</button>';
+          this.shadowRoot.querySelector(
+            '.action-container'
+          ).innerHTML = `<button id="action-btn" type="button">${value}</button>`;
         }
       }
     }
     customElements.define('image-warning', ImageWarning);
 
+    const shiftsMap = new Map();
     const visibleNodes = new Map();
+    const imageContainer = document.querySelector('#qwik-image-warning-container');
     let skip = false;
 
     async function _getInfo(originalSrc) {
+      if (originalSrc.startsWith('blob:')) {
+        return undefined;
+      }
       const url = new URL('/__image_info', location.href);
       url.searchParams.set('url', originalSrc);
       const res = await fetch(url);
@@ -177,68 +295,88 @@
       }
       return p;
     }
+    function isDefinedUnit(value) {
+      return value.endsWith('px');
+    }
     async function doImg(node) {
+      const scrollX = window.scrollX;
+      const scrollY = window.scrollY;
       const rect = node.getBoundingClientRect();
       const originalSrc = node.currentSrc;
       const info = await getInfo(originalSrc);
-      if (info) {
+      let overlay = visibleNodes.get(node);
+      const wideScreen = window.innerWidth > 500;
+      if (info && wideScreen) {
+        let layoutInvalidation = false;
+        const loc = node.getAttribute('data-qwik-inspector');
         const browserArea = rect.width * rect.height;
+        if (!node.hasAttribute('width') || !node.hasAttribute('height')) {
+          skip = true;
+          const computedStyles = node.computedStyleMap();
+          const hasAspect = computedStyles.get('aspect-ratio').toString() !== 'auto';
+          const hasWidth = isDefinedUnit(computedStyles.get('width').toString());
+          const hasHeight = isDefinedUnit(computedStyles.get('height').toString());
+          const isAbsolute = computedStyles.get('position').toString() === 'absolute';
+          layoutInvalidation =
+            browserArea > 1000 && !isAbsolute && !hasAspect && (!hasWidth || !hasHeight);
+        }
         const realArea = info.width && info.height;
         const threshholdArea = realArea * 0.5;
-        const loc = node.getAttribute('data-qwik-inspector');
-        skip = true;
-        node.src = '';
-        const rect2 = node.getBoundingClientRect();
         const tooBig = browserArea < threshholdArea;
-        const layoutInvalidation =
-          rect.x !== rect2.x ||
-          rect.y !== rect2.y ||
-          rect.width !== rect2.width ||
-          rect.height !== rect2.height;
-
-        node.src = originalSrc;
         skip = false;
-        let overlay = visibleNodes.get(node);
         if (layoutInvalidation || tooBig) {
           if (!overlay) {
             overlay = document.createElement('image-warning');
-            document.body.appendChild(overlay);
+            imageContainer.appendChild(overlay);
             visibleNodes.set(node, overlay);
           }
-          overlay.style.top = rect.top + 'px';
-          overlay.style.left = rect.left + 'px';
+          overlay.style.top = rect.top + scrollY + 'px';
+          overlay.style.left = rect.left + scrollX + 'px';
           overlay.style.width = rect.width + 'px';
           overlay.style.height = rect.height + 'px';
           overlay.info = info;
           overlay.loc = loc;
           if (layoutInvalidation) {
+            const clipBoard = `width="${info.width}" height="${info.height}"`;
             overlay.header = 'Perf: layout shift';
-            overlay.message =
-              'Image\'s size is unknown until it\'s loaded, <a href="https://web.dev/cls/" target="_blank" rel="noopener noreferrer">causing layout shift</a>.</p><p>To solve this problem set the width/height in the img tag:</p><pre>&lt;img <span>width="' +
-              info.width +
-              '" height="' +
-              info.height +
-              '"</span></pre>';
-            if (loc && info) {
-              overlay.autofix = async () => {
-                const url = new URL('/__image_fix', location.href);
-                url.searchParams.set('loc', loc);
-                url.searchParams.set('width', info.width);
-                url.searchParams.set('height', info.height);
-
-                await fetch(url, {
-                  method: 'POST',
-                });
-              };
+            overlay.message = `Image\'s size is unknown until it\'s loaded, <a href="https://web.dev/cls/" target="_blank" rel="noopener noreferrer">causing layout shift</a>.</p><p>To solve this problem set the width/height in the img tag:</p><pre>&lt;img <span>${clipBoard}</span></pre>`;
+            const uniqueLoc =
+              document.querySelectorAll('[data-qwik-inspector="' + loc + '"]').length === 1;
+            if (loc) {
+              if (uniqueLoc) {
+                overlay.actionName = 'Auto fix';
+                overlay.actionFn = async () => {
+                  const url = new URL('/__image_fix', location.href);
+                  url.searchParams.set('loc', loc);
+                  url.searchParams.set('width', info.width);
+                  url.searchParams.set('height', info.height);
+                  if (!node.srcset) {
+                    url.searchParams.set('src', node.currentSrc);
+                    url.searchParams.set('currentHref', location.href);
+                  }
+                  await fetch(url, {
+                    method: 'POST',
+                  });
+                };
+              } else {
+                overlay.actionName = 'Open in editor';
+                overlay.actionFn = async () => {
+                  await navigator.clipboard.writeText(clipBoard);
+                  globalThis.qwikOpenInEditor(loc);
+                };
+              }
             }
           } else if (tooBig) {
             overlay.header = 'Perf: properly size image';
             overlay.message = `The image is too big, <a href="https://developer.chrome.com/en/docs/lighthouse/performance/uses-responsive-images/" target="_blank" rel="noopener noreferrer">hurting performance</a>, it should be resized to the size it\'s displayed at. The image dimensions are ${info.width} x ${info.height} but it\'s displayed at ${rect.width}x${rect.height}.</p>`;
           }
-        } else if (overlay) {
-          overlay.remove();
-          visibleNodes.delete(node);
+          return;
         }
+      }
+
+      if (overlay) {
+        overlay.remove();
+        visibleNodes.delete(node);
       }
     }
 
@@ -266,7 +404,7 @@
       for (const mutation of entry) {
         for (const node of mutation.addedNodes) {
           if (node.nodeName === 'IMG') {
-            resizeObserver.observe(img);
+            resizeObserver.observe(node);
           } else if (node.nodeType === 1) {
             node.querySelectorAll('img').forEach((img) => {
               resizeObserver.observe(img);
@@ -277,23 +415,67 @@
           if (node.nodeName === 'IMG') {
             updateImg(node);
             resizeObserver.unobserve(node);
+          } else if (node.nodeType === 1) {
+            node.querySelectorAll('img').forEach((img) => {
+              updateImg(img);
+              resizeObserver.unobserve(img);
+            });
           }
         }
       }
     });
+    let perfObserver;
+    let DCLS = 0;
     const activate = () => {
-      observer.observe(document.body, {
-        childList: true,
-        subtree: true,
-      });
-      document.body.querySelectorAll('img').forEach((node) => {
-        resizeObserver.observe(node);
-      });
+      setTimeout(() => {
+        if (perfObserver) {
+          perfObserver.disconnect();
+          if (DCLS > 0.005) {
+            console.error('Detected Layout Shift during page load', DCLS);
+          }
+        }
+        observer.observe(document.body, {
+          childList: true,
+          subtree: true,
+        });
+        document.body.querySelectorAll('img').forEach((node) => {
+          resizeObserver.observe(node);
+        });
+      }, 100);
     };
     if (document.readyState === 'complete') {
       activate();
     } else {
       window.addEventListener('load', activate);
+    }
+    const pageAccessedByReload =
+      performance?.navigation.type === 1 ||
+      performance
+        .getEntriesByType('navigation')
+        .map((nav) => nav.type)
+        .includes('reload');
+    if (typeof PerformanceObserver !== 'undefined' && !pageAccessedByReload) {
+      const shiftsMap = new Map();
+      perfObserver = new PerformanceObserver((list) => {
+        list.getEntries().forEach((entry) => {
+          if (entry.hadRecentInput) {
+            return; // Ignore shifts after recent input.
+          }
+          if (entry.value > 0.006) {
+            for (const source of entry.sources) {
+              if (
+                source.node &&
+                source.node.nodeType === 1 &&
+                source.node.nodeName !== 'IMAGE-WARNING'
+              ) {
+                source.node.setAttribute('data-qwik-cls', Number(entry.value).toFixed(3));
+              }
+            }
+          }
+          DCLS += entry.value;
+        });
+      });
+      perfObserver.observe({ type: 'layout-shift', buffered: true });
     }
   })();
 </script>

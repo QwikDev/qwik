@@ -1,4 +1,7 @@
 {
+  "plugins": ["./node_modules/prettier-plugin-jsdoc/dist/index.js"],
+  "jsdocPreferCodeFences": true,
+  "tsdoc": true,
   "trailingComma": "es5",
   "tabWidth": 2,
   "semi": true,

@@ -27,6 +27,7 @@
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",
     "lint": "eslint \"src/**/*.ts*\"",
+    "test": "echo \"No test specified\" && exit 0",
     "start": "vite --open --mode ssr",
     "qwik": "qwik",
     "release": "np"
@@ -43,7 +44,8 @@
     "np": "7.6.1",
     "prettier": "latest",
     "typescript": "latest",
-    "vite": "latest"
+    "vite": "latest",
+    "vite-tsconfig-paths": "4.2.0"
   },
   "__qwik__": {
     "displayName": "Component library",

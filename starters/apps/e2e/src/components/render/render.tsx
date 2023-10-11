@@ -14,22 +14,26 @@ import {
   HTMLFragment,
   type QwikIntrinsicElements,
   Slot,
-} from '@builder.io/qwik';
-import { delay } from '../streaming/demo';
-import { isServer } from '@builder.io/qwik/build';
+} from "@builder.io/qwik";
+import { delay } from "../streaming/demo";
+import { isServer } from "@builder.io/qwik/build";
 
 export const Render = component$(() => {
   const rerender = useSignal(0);
   return (
     <>
-      <button id="rerender" onClick$={() => rerender.value++}>
+      <button
+        id="rerender"
+        data-v={rerender.value}
+        onClick$={() => rerender.value++}
+      >
         Rerender
       </button>
-      <RenderChildren key={rerender.value} />
+      <RenderChildren v={rerender.value} key={rerender.value} />
     </>
   );
 });
-export const RenderChildren = component$(() => {
+export const RenderChildren = component$<{ v: number }>(({ v }) => {
   const parent = {
     counter: {
       count: 0,
@@ -42,6 +46,7 @@ export const RenderChildren = component$(() => {
   const state = useStore(parent, { deep: true });
   return (
     <>
+      <div id="rerenderCount">Render {v}</div>
       <button
         id="increment"
         onClick$={() => {
@@ -67,7 +72,11 @@ export const RenderChildren = component$(() => {
         aria-hidden="true"
       />
 
-      <PropsDestructuringNo count={state.count} id="props-destructuring-no" aria-hidden="true" />
+      <PropsDestructuringNo
+        count={state.count}
+        id="props-destructuring-no"
+        aria-hidden="true"
+      />
 
       <PropsDestructuring
         message="Count"
@@ -98,6 +107,8 @@ export const RenderChildren = component$(() => {
       <HTMLFragmentTest />
       <Issue4292 />
       <Issue4386 />
+      <Issue4455 />
+      <Issue5266 />
     </>
   );
 });
@@ -121,7 +132,10 @@ export const Child = component$((props: { counter: { count: number } }) => {
       <>
         <span id="rerenders">Rerender {count}</span>
         <div id="attributes">
-          <button id="toggle" onClick$={() => (state.hideAttributes = !state.hideAttributes)}>
+          <button
+            id="toggle"
+            onClick$={() => (state.hideAttributes = !state.hideAttributes)}
+          >
             Toggle attributes
           </button>
         </div>
@@ -144,7 +158,10 @@ export const Child = component$((props: { counter: { count: number } }) => {
           hidden: false,
         }}
       >
-        <button id="toggle" onClick$={() => (state.hideAttributes = !state.hideAttributes)}>
+        <button
+          id="toggle"
+          onClick$={() => (state.hideAttributes = !state.hideAttributes)}
+        >
           Toggle attributes
         </button>
       </div>
@@ -165,7 +182,7 @@ export const Issue1475 = component$(() => {
             <h1>1. Before</h1>
             2. Some text
             <LazyIssue1475 />
-            {'\n'}
+            {"\n"}
             <h2>3 After</h2>
             <p>Stuff</p>
           </>
@@ -193,10 +210,17 @@ export const CounterToggle = component$(() => {
   const cond = useSignal({ cond: true });
   return (
     <>
-      <button id="counter-toggle-btn" onClick$={() => (cond.value = { cond: !cond.value.cond })}>
+      <button
+        id="counter-toggle-btn"
+        onClick$={() => (cond.value = { cond: !cond.value.cond })}
+      >
         Toggle
       </button>
-      {cond.value.cond ? <CounterToggleShow text="even" /> : <CounterToggleShow text="odd" />}
+      {cond.value.cond ? (
+        <CounterToggleShow text="even" />
+      ) : (
+        <CounterToggleShow text="odd" />
+      )}
       <CounterToggleShow2 cond={cond.value.cond} />
     </>
   );
@@ -224,7 +248,7 @@ export const PropsDestructuring = component$(
       { renders: 0 },
       {
         reactive: false,
-      }
+      },
     );
     renders.renders++;
     const rerenders = renders.renders + 0;
@@ -237,16 +261,16 @@ export const PropsDestructuring = component$(
         <div class="renders">{rerenders}</div>
       </div>
     );
-  }
+  },
 );
 
 export const PropsDestructuringNo = component$(
-  ({ message = 'Default', count, id, ...rest }: Record<string, any>) => {
+  ({ message = "Default", count, id, ...rest }: Record<string, any>) => {
     const renders = useStore(
       { renders: 0 },
       {
         reactive: false,
-      }
+      },
     );
     renders.renders++;
     const rerenders = renders.renders + 0;
@@ -258,7 +282,7 @@ export const PropsDestructuringNo = component$(
         <div class="renders">{rerenders}</div>
       </div>
     );
-  }
+  },
 );
 
 export const Issue2563 = component$(() => {
@@ -327,20 +351,24 @@ export const Issue2889 = component$(() => {
         { created: new Date(2022, 1, 26), count: 6 },
       ],
     },
-    { deep: true }
+    { deep: true },
   );
 
   const filteredEvents = useSignal<{ created: Date; count: number }[]>();
 
   useTask$(({ track }) => {
     const list = track(() => appState.events);
-    filteredEvents.value = list.filter((x) => x.created >= new Date(2022, 1, 20));
+    filteredEvents.value = list.filter(
+      (x) => x.created >= new Date(2022, 1, 20),
+    );
   });
 
   return (
     <>
       <h2 id="issue-2889-result1">Deeds: {appState.events.length}</h2>
-      <h2 id="issue-2889-result2">Filtered Deeds: {(filteredEvents.value || []).length}</h2>
+      <h2 id="issue-2889-result2">
+        Filtered Deeds: {(filteredEvents.value || []).length}
+      </h2>
     </>
   );
 });
@@ -352,14 +380,16 @@ export type ProductRelationProps = {
 };
 
 export const ProductRelations = component$((props: ProductRelationProps) => {
-  return <div>{props.render$(['this comes from render$'])}</div>;
+  return <div>{props.render$(["this comes from render$"])}</div>;
 });
 
 export const Issue3116 = component$(() => {
   return (
     <>
       <ProductRelations
-        render$={(products) => <div id="issue-3116-result">{products.join('hi')}</div>}
+        render$={(products) => (
+          <div id="issue-3116-result">{products.join("hi")}</div>
+        )}
       />
     </>
   );
@@ -402,7 +432,7 @@ export const IssueReorder = component$(() => {
 });
 
 const Issue2414 = component$(() => {
-  const sort = useSignal<'id' | 'size' | 'age'>('size');
+  const sort = useSignal<"id" | "size" | "age">("size");
   const showTable = useSignal(true);
   const table = useStore({
     value: [
@@ -418,7 +448,9 @@ const Issue2414 = component$(() => {
 
   useTask$(({ track }) => {
     track(() => sort.value);
-    table.value = table.value.sort((a, b) => a[sort.value] - b[sort.value]).slice();
+    table.value = table.value
+      .sort((a, b) => a[sort.value] - b[sort.value])
+      .slice();
   });
 
   return (
@@ -428,7 +460,7 @@ const Issue2414 = component$(() => {
         <caption>Hello</caption>
         <colgroup></colgroup>
         <thead>
-          {(['size', 'age', 'id'] as const).map((c) => {
+          {(["size", "age", "id"] as const).map((c) => {
             return (
               <th
                 key={c}
@@ -459,7 +491,9 @@ const Issue2414 = component$(() => {
         )}
         <tfoot>
           <tr>
-            <td colSpan={3}>{table.value === undefined ? '' : table.value.length}</td>
+            <td colSpan={3}>
+              {table.value === undefined ? "" : table.value.length}
+            </td>
           </tr>
         </tfoot>
       </table>
@@ -472,7 +506,7 @@ const Issue3178 = component$(() => {
     {
       elements: [] as Element[],
     },
-    { deep: true }
+    { deep: true },
   );
 
   return (
@@ -491,22 +525,22 @@ const Issue3178 = component$(() => {
 });
 
 export type TitleProps = {
-  tag?: 'h1' | 'h2';
+  tag?: "h1" | "h2";
 };
 
 export const Title = component$((props: TitleProps) => {
-  const Tag = props.tag ?? 'h1';
+  const Tag = props.tag ?? "h1";
 
   return <Tag id="issue-3398-tag">Hello {Tag}</Tag>;
 });
 
 export const Issue3398 = component$(() => {
-  const tag = useSignal<'h1' | 'h2'>('h1');
+  const tag = useSignal<"h1" | "h2">("h1");
   return (
     <div>
       <button
         id="issue-3398-button"
-        onClick$={() => (tag.value = tag.value === 'h1' ? 'h2' : 'h1')}
+        onClick$={() => (tag.value = tag.value === "h1" ? "h2" : "h1")}
       >
         Toggle tag
       </button>
@@ -520,7 +554,7 @@ export const Issue3479 = component$(() => {
   const attributes = {
     onClick$: event$(() => count.value++),
   };
-  const countStr = String(count.value) + '';
+  const countStr = String(count.value) + "";
   return (
     <div>
       <button id="issue-3479-button" {...attributes}>
@@ -541,10 +575,10 @@ export const Issue3481 = component$(() => {
     }
   `);
   const attr: Record<string, string> = {
-    class: 'from-attr',
+    class: "from-attr",
   };
   const count = useSignal(0);
-  const countStr = String(count.value) + '';
+  const countStr = String(count.value) + "";
   return (
     <>
       <button id="issue-3481-button" onClick$={() => count.value++}>
@@ -560,7 +594,7 @@ export const Issue3481 = component$(() => {
   );
 });
 
-const DATA = [{ name: 'a' }, { name: 'b' }, { name: 'c' }, { name: 'd' }];
+const DATA = [{ name: "a" }, { name: "b" }, { name: "c" }, { name: "d" }];
 
 export const Card = component$((props: any) => {
   return (
@@ -585,20 +619,21 @@ export const Pr3475 = component$(() =>
     <button id="pr-3475-button" onClick$={() => delete store.key}>
       {store.key}
     </button>
-  ))(useStore<{ key?: string }>({ key: 'data' }))
+  ))(useStore<{ key?: string }>({ key: "data" })),
 );
 
 export const Issue3561 = component$(() => {
   const props = useStore({
     product: {
       currentVariant: {
-        variantImage: 'image',
-        variantNumber: 'number',
-        setContents: 'contents',
+        variantImage: "image",
+        variantNumber: "number",
+        setContents: "contents",
       },
     },
   });
-  const { currentVariant: { variantImage, variantNumber, setContents } = {} } = props.product;
+  const { currentVariant: { variantImage, variantNumber, setContents } = {} } =
+    props.product;
 
   return (
     <div>
@@ -618,7 +653,7 @@ export const Issue3561 = component$(() => {
 export const Issue3542 = component$(({ atom }: any) => {
   let status = atom.status;
   if (atom.code === 1) {
-    status = 'CODE IS 1';
+    status = "CODE IS 1";
   }
   return <span id="issue-3542-result">{status}</span>;
 });
@@ -627,16 +662,21 @@ export const Issue3643 = component$(() => {
   const toggle = useSignal(false);
   return (
     <div>
-      <button id="issue-3643-button" onClick$={() => (toggle.value = !toggle.value)}>
+      <button
+        id="issue-3643-button"
+        onClick$={() => (toggle.value = !toggle.value)}
+      >
         Toggle
       </button>
       <div id="issue-3643-result">
-        {toggle.value ? h('div', {}, 'World') : h('div', { dangerouslySetInnerHTML: 'Hello' })}
+        {toggle.value
+          ? h("div", {}, "World")
+          : h("div", { dangerouslySetInnerHTML: "Hello" })}
       </div>
       <div id="issue-3643-result-2">
         {toggle.value
-          ? jsx('div', { children: 'World' })
-          : jsx('div', { dangerouslySetInnerHTML: 'Hello' })}
+          ? jsx("div", { children: "World" })
+          : jsx("div", { dangerouslySetInnerHTML: "Hello" })}
       </div>
     </div>
   );
@@ -648,8 +688,8 @@ function Hola(props: any) {
 
 export const IssueChildrenSpread = component$(() => {
   const signal = useSignal({
-    type: 'div',
-    children: ['Hello'],
+    type: "div",
+    children: ["Hello"],
   });
   const Type = signal.value.type;
   return (
@@ -658,8 +698,8 @@ export const IssueChildrenSpread = component$(() => {
         id="issue-children-spread-button"
         onClick$={() => {
           signal.value = {
-            type: 'div',
-            children: ['Changed'],
+            type: "div",
+            children: ["Changed"],
           };
         }}
       >
@@ -677,9 +717,9 @@ export const IssueChildrenSpread = component$(() => {
 });
 
 const states = [
-  ['think', 'containers', 'hydrating', 'usestylesscoped', 'slots'],
-  ['think', 'containers', 'cleanup', 'usevisibletask', 'hydrating'],
-  ['cleanup', 'usevisibletask', 'think', 'containers', 'slots'],
+  ["think", "containers", "hydrating", "usestylesscoped", "slots"],
+  ["think", "containers", "cleanup", "usevisibletask", "hydrating"],
+  ["cleanup", "usevisibletask", "think", "containers", "slots"],
 ];
 
 export const Issue3731 = component$(() => {
@@ -712,13 +752,15 @@ export const Issue3731Child = component$((props: any) => {
   return <div class="issue-3731-result">{props.value}</div>;
 });
 
-export const Issue3702 = component$(({ description = '', other }: any) => {
+export const Issue3702 = component$(({ description = "", other }: any) => {
   const counter = useSignal(0);
   return (
     <div
       id="issue-3702-result"
       data-title={
-        description && 'description' in other ? `Hello ${counter.value}` : `Bye ${counter.value}`
+        description && "description" in other
+          ? `Hello ${counter.value}`
+          : `Bye ${counter.value}`
       }
     >
       Issue3702
@@ -730,9 +772,9 @@ export const Issue3702 = component$(({ description = '', other }: any) => {
 });
 
 export const Issue3795 = component$(() => {
-  let base = 'foo';
+  let base = "foo";
   const firstAssignment = base;
-  base += 'bar';
+  base += "bar";
   const secondAssignment = base;
   return (
     <div id="issue-3795-result">
@@ -761,7 +803,7 @@ export const SkipRenderTest = component$(() => {
   if (count.value % 3 !== 0) {
     return SkipRender;
   }
-  const countV = count.value + '';
+  const countV = count.value + "";
   return (
     <>
       <button id="skip-render-button" onClick$={() => count.value++}>
@@ -774,7 +816,10 @@ export const SkipRenderTest = component$(() => {
 
 export const SSRRawTest = component$(() => {
   return (
-    <div id="ssr-raw-test-result" data-mounted={isServer ? 'server' : 'browser'}>
+    <div
+      id="ssr-raw-test-result"
+      data-mounted={isServer ? "server" : "browser"}
+    >
       <SSRRaw data="<b>ssr raw test</b>" />
     </div>
   );
@@ -782,13 +827,16 @@ export const SSRRawTest = component$(() => {
 
 export const HTMLFragmentTest = component$(() => {
   return (
-    <div id="html-fragment-test-result" data-mounted={isServer ? 'server' : 'browser'}>
+    <div
+      id="html-fragment-test-result"
+      data-mounted={isServer ? "server" : "browser"}
+    >
       <HTMLFragment dangerouslySetInnerHTML="<b>html fragment test</b>" />
     </div>
   );
 });
 
-type A = QwikIntrinsicElements['button'];
+type A = QwikIntrinsicElements["button"];
 
 export interface TestAProps extends A {}
 
@@ -818,8 +866,8 @@ export const Issue4292 = component$(() => {
       <h1>Playground</h1>
 
       <TestB
-        aria-label={$toggled.value ? 'a' : 'a1'}
-        title={$toggled.value ? 'a' : 'a1'}
+        aria-label={$toggled.value ? "a" : "a1"}
+        title={$toggled.value ? "a" : "a1"}
         onClick$={() => {
           $toggled.value = !$toggled.value;
         }}
@@ -837,9 +885,12 @@ export const Issue4346 = component$(() => {
   return (
     <>
       <div id="issue-4346-result" ref={toggle.value ? ref : undefined}>
-        {toggle.value ? 'Hello' : 'world'}
+        {toggle.value ? "Hello" : "world"}
       </div>
-      <button id="issue-4346-toggle" onClick$={() => (toggle.value = false)}></button>
+      <button
+        id="issue-4346-toggle"
+        onClick$={() => (toggle.value = false)}
+      ></button>
     </>
   );
 });
@@ -851,8 +902,56 @@ export const FOO_MAPPING = {
 };
 
 export const Issue4386 = component$(() => {
-  const key = 'A';
+  const key = "A";
   const value = FOO_MAPPING[key];
 
   return <div id="issue-4386-result">{value}</div>;
+});
+
+export const Issue4455 = component$(() => {
+  return (
+    <>
+      <input
+        id="issue-4455-input1"
+        type="range"
+        value="0.5"
+        step="0.1"
+        min="0"
+        max="1"
+      />
+      <input
+        id="issue-4455-input2"
+        type="range"
+        step="0.1"
+        value="0.5"
+        min="0"
+        max="1"
+      />
+    </>
+  );
+});
+
+export const DynamicComponent = component$<{ b?: boolean; v: string }>(
+  ({ b, v }) => {
+    // Make the tag dynamic
+    const Tag = b ? "button" : "div";
+    return (
+      <Tag id="issue-5266-tag" data-v={v}>
+        hello
+      </Tag>
+    );
+  },
+);
+export const Issue5266 = component$(() => {
+  const show = useSignal(false);
+  const state = useSignal("foo");
+  return (
+    <div>
+      <button id="issue-5266-render" onClick$={() => (show.value = true)} />
+      <button id="issue-5266-button" onClick$={() => (state.value = "bar")}>
+        toggle
+      </button>
+      {show.value && <DynamicComponent v={state.value} />}
+    </div>
+  );
 });

@@ -4,7 +4,6 @@ import { setTestPlatform, getTestPlatform } from './platform';
 import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
 
 /**
- *
  * @param root
  * @param selector
  * @param eventNameCamel
@@ -26,6 +25,7 @@ async function triggerUserEvent(
 
 /**
  * CreatePlatform and CreateDocument
+ *
  * @public
  */
 export const createDOM = async function () {

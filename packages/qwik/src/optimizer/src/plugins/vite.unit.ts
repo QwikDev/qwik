@@ -55,11 +55,10 @@ vite('command: serve, mode: development', async () => {
   equal(opts.buildMode, 'development');
   equal(opts.entryStrategy, { type: 'hook' });
   equal(opts.debug, false);
-  equal(opts.forceFullBuild, false);
 
   equal(build.outDir, normalizePath(resolve(cwd, 'dist')));
   equal(rollupOptions.input, normalizePath(resolve(cwd, 'src', 'entry.dev.tsx')));
-  equal(outputOptions.assetFileNames, 'build/[name].[ext]');
+  equal(outputOptions.assetFileNames, 'build/q-[hash].[ext]');
   equal(outputOptions.chunkFileNames, 'build/[name].js');
   equal(outputOptions.entryFileNames, 'build/[name].js');
   equal(outputOptions.format, 'es');
@@ -89,7 +88,6 @@ vite('command: serve, mode: production', async () => {
   equal(opts.buildMode, 'production');
   equal(opts.entryStrategy, { type: 'hook' });
   equal(opts.debug, false);
-  equal(opts.forceFullBuild, false);
   equal(opts.resolveQwikBuild, true);
 
   equal(build.outDir, normalizePath(resolve(cwd, 'dist')));
@@ -124,14 +122,13 @@ vite('command: build, mode: development', async () => {
   equal(opts.buildMode, 'development');
   equal(opts.entryStrategy, { type: 'hook' });
   equal(opts.debug, false);
-  equal(opts.forceFullBuild, true);
   equal(opts.resolveQwikBuild, true);
 
   equal(plugin.enforce, 'pre');
   equal(build.outDir, normalizePath(resolve(cwd, 'dist')));
   equal(build.emptyOutDir, undefined);
   equal(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'root.tsx'))]);
-  equal(outputOptions.assetFileNames, 'build/[name].[ext]');
+  equal(outputOptions.assetFileNames, 'build/q-[hash].[ext]');
   equal(outputOptions.chunkFileNames, 'build/[name].js');
   equal(outputOptions.entryFileNames, 'build/[name].js');
   equal(build.dynamicImportVarsOptions?.exclude, [/./]);
@@ -162,7 +159,6 @@ vite('command: build, mode: production', async () => {
   equal(opts.buildMode, 'production');
   equal(opts.entryStrategy, { type: 'smart' });
   equal(opts.debug, false);
-  equal(opts.forceFullBuild, true);
   equal(opts.resolveQwikBuild, true);
 
   equal(plugin.enforce, 'pre');
@@ -227,14 +223,13 @@ vite('command: build, --ssr entry.server.tsx', async () => {
   equal(opts.buildMode, 'development');
   equal(opts.entryStrategy, { type: 'hoist' });
   equal(opts.debug, false);
-  equal(opts.forceFullBuild, true);
   equal(opts.resolveQwikBuild, true);
 
   equal(plugin.enforce, 'pre');
   equal(build.outDir, normalizePath(resolve(cwd, 'server')));
   equal(build.emptyOutDir, undefined);
   equal(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'entry.server.tsx'))]);
-  equal(outputOptions.assetFileNames, undefined);
+  equal(outputOptions.assetFileNames, 'build/q-[hash].[ext]');
   equal(outputOptions.chunkFileNames, undefined);
   equal(outputOptions.entryFileNames, undefined);
   equal(build.outDir, normalizePath(resolve(cwd, 'server')));

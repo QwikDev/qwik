@@ -1,31 +1,31 @@
 import { suite } from 'uvu';
 import { equal } from 'uvu/assert';
-import { resetHistoryId, getHistoryId, clientNavigate } from './client-navigate';
+import { clientNavigate, newScrollState } from './client-navigate';
+import { deepEqual } from 'assert';
 
 const navTest = suite('clientNavigate');
 
-navTest('update id for pushState and popState', () => {
+navTest('initialize and push empty scroll history state on navigate', () => {
   const [win, urlOf] = createTestWindow('http://qwik.dev/');
   equal(win.history.state, null);
-  equal(getHistoryId(), '0');
+
+  const scrollState = newScrollState();
 
   clientNavigate(win, 'link', urlOf('/'), urlOf('/page-a'));
-  equal(win.history.state, { id: 1 });
-  equal(getHistoryId(), '1');
+  deepEqual(win.history.state, { _qCityScroll: scrollState });
 
-  clientNavigate(win, 'link', urlOf('/'), urlOf('/page-b'));
-  equal(win.history.state, { id: 2 });
-  equal(getHistoryId(), '2');
+  clientNavigate(win, 'link', urlOf('/page-a'), urlOf('/page-b'));
+  deepEqual(win.history.state, { _qCityScroll: scrollState });
 
   win.history.popState(-1);
   clientNavigate(win, 'popstate', urlOf('/page-b'), urlOf('/page-a'));
-  equal(win.history.state, { id: 1 });
-  equal(getHistoryId(), '1');
+  deepEqual(win.history.state, { _qCityScroll: scrollState });
 
   win.history.popState(-1);
   clientNavigate(win, 'popstate', urlOf('/page-a'), urlOf('/'));
+  // This will be null, upgrading state only happens in QwikCityProvider.
+  // ClientNavigate only pushes new empty states for the scroll handler to use.
   equal(win.history.state, null);
-  equal(getHistoryId(), '0');
 
   equal(win.events(), []);
 });
@@ -33,23 +33,35 @@ navTest('update id for pushState and popState', () => {
 navTest('pushState for different routes', () => {
   const [win, urlOf] = createTestWindow('http://qwik.dev/page-a?search=123');
   equal(win.history.state, null);
-  equal(getHistoryId(), '0');
+
+  const scrollState = newScrollState();
 
   clientNavigate(win, 'link', urlOf('/page-a?search=123'), urlOf('/page-b?search=123'));
-  equal(win.history.state, { id: 1 });
-  equal(getHistoryId(), '1');
+  deepEqual(win.history.state, { _qCityScroll: scrollState });
 
   clientNavigate(win, 'link', urlOf('/page-b?search=123'), urlOf('/page-b?param=456'));
-  equal(win.history.state, { id: 2 });
-  equal(getHistoryId(), '2');
+  deepEqual(win.history.state, { _qCityScroll: scrollState });
 
   equal(win.events(), []);
+});
+
+navTest('when passing replaceState', () => {
+  const [win, urlOf] = createTestWindow('http://qwik.dev/page-a?search=123');
+  equal(win.history.state, null);
+
+  const scrollState = newScrollState();
+
+  const length = win.history.length;
+  clientNavigate(win, 'link', urlOf('/page-a?search=123'), urlOf('/page-a?search=456'), true);
+  deepEqual(win.history.state, { _qCityScroll: scrollState });
+  equal(win.history.length, length);
 });
 
 navTest('pushState for different hash', () => {
   const [win, urlOf] = createTestWindow('http://qwik.dev/page-a?search=123#hash-1');
   equal(win.history.state, null);
-  equal(getHistoryId(), '0');
+
+  const scrollState = newScrollState();
 
   clientNavigate(
     win,
@@ -57,8 +69,7 @@ navTest('pushState for different hash', () => {
     urlOf('/page-a?search=123#hash-1'),
     urlOf('/page-b?search=123#hash-2')
   );
-  equal(win.history.state, { id: 1 });
-  equal(getHistoryId(), '1');
+  deepEqual(win.history.state, { _qCityScroll: scrollState });
   equal(win.events(), []);
 
   clientNavigate(
@@ -67,14 +78,12 @@ navTest('pushState for different hash', () => {
     urlOf('/page-b?search=123#hash-2'),
     urlOf('/page-b?search=123#hash-3')
   );
-  equal(win.history.state, { id: 2 });
-  equal(getHistoryId(), '2');
+  deepEqual(win.history.state, { _qCityScroll: scrollState });
 });
 
 function createTestWindow<T>(href: string): [testWindow: TestWindow, urlOf: (path: string) => URL] {
-  resetHistoryId();
   const events: Event[] = [];
-  const histryEntries: { url: URL; state: T | null }[] = [{ url: new URL(href), state: null }];
+  const historyEntries: { url: URL; state: T | null }[] = [{ url: new URL(href), state: null }];
   let index = 0;
 
   return [
@@ -93,28 +102,32 @@ function createTestWindow<T>(href: string): [testWindow: TestWindow, urlOf: (pat
         return events;
       },
       get location() {
-        return histryEntries[index].url;
+        return historyEntries[index].url;
       },
       dispatchEvent: (event: Event) => events.push(event),
       history: {
         popState: (delta: number) => {
           const newIndex = index + delta;
-          if (newIndex < 0 || newIndex > histryEntries.length - 1) {
+          if (newIndex < 0 || newIndex > historyEntries.length - 1) {
             throw new Error(
-              `Invalid change to history position. current: ${index}, delta: ${delta}, length: ${histryEntries.length}`
+              `Invalid change to history position. current: ${index}, delta: ${delta}, length: ${historyEntries.length}`
             );
           }
           index = newIndex;
         },
         pushState: (state: any, _: string, path: string) => {
           ++index;
-          histryEntries.push({ url: new URL(path, href), state });
+          historyEntries.push({ url: new URL(path, href), state });
+        },
+        replaceState: (state: any, _: string, path: string) => {
+          historyEntries.splice(historyEntries.length - 1, 1, { url: new URL(path, href), state });
+          return historyEntries;
         },
         get length() {
-          return histryEntries.length;
+          return historyEntries.length;
         },
         get state() {
-          return histryEntries[index].state;
+          return historyEntries[index].state;
         },
       },
     } as any,

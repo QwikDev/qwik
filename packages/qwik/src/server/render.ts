@@ -149,24 +149,7 @@ export async function renderToStream(
 
       snapshotResult = await _pauseFromContexts(contexts, containerState, undefined, textNodes);
 
-      const jsonData = JSON.stringify(snapshotResult.state, undefined, isDev ? '  ' : undefined);
-      const children: (JSXNode | null)[] = [
-        jsx('script', {
-          type: 'qwik/json',
-          dangerouslySetInnerHTML: escapeText(jsonData),
-          nonce: opts.serverData?.nonce,
-        }),
-      ];
-      if (snapshotResult.funcs.length > 0) {
-        children.push(
-          jsx('script', {
-            'q:func': 'qwik/json',
-            dangerouslySetInnerHTML: serializeFunctions(snapshotResult.funcs),
-            nonce: opts.serverData?.nonce,
-          })
-        );
-      }
-
+      const children: (JSXNode | null)[] = [];
       if (opts.prefetchStrategy !== null) {
         // skip prefetch implementation if prefetchStrategy === null
         const prefetchResources = getPrefetchResources(snapshotResult, opts, resolvedManifest);
@@ -180,6 +163,23 @@ export async function renderToStream(
             children.push(prefetchImpl);
           }
         }
+      }
+      const jsonData = JSON.stringify(snapshotResult.state, undefined, isDev ? '  ' : undefined);
+      children.push(
+        jsx('script', {
+          type: 'qwik/json',
+          dangerouslySetInnerHTML: escapeText(jsonData),
+          nonce: opts.serverData?.nonce,
+        })
+      );
+      if (snapshotResult.funcs.length > 0) {
+        children.push(
+          jsx('script', {
+            'q:func': 'qwik/json',
+            dangerouslySetInnerHTML: serializeFunctions(snapshotResult.funcs),
+            nonce: opts.serverData?.nonce,
+          })
+        );
       }
 
       const needLoader = !snapshotResult || snapshotResult.mode !== 'static';
@@ -217,6 +217,7 @@ export async function renderToStream(
       snapshotTime = snapshotTimer();
       return jsx(Fragment, { children });
     },
+    manifestHash: resolvedManifest?.manifest.manifestHash || 'dev',
   });
 
   // End of container

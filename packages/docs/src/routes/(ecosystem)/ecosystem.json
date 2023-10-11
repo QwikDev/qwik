@@ -73,6 +73,11 @@
   ],
   "deployments": [
     {
+      "title": "Aws",
+      "href": "/docs/deployments/aws-lambda/",
+      "imgSrc": "/ecosystem/aws.svg"
+    },
+    {
       "title": "Azure",
       "href": "/docs/deployments/azure-swa/",
       "imgSrc": "/ecosystem/azure.svg"
@@ -86,6 +91,16 @@
       "title": "Deno",
       "href": "/docs/deployments/deno/",
       "imgSrc": "/ecosystem/deno.svg"
+    },
+    {
+      "title": "Bun",
+      "href": "/docs/deployments/bun/",
+      "imgSrc": "/ecosystem/bun.svg"
+    },
+    {
+      "title": "Firebase",
+      "href": "/docs/deployments/firebase/",
+      "imgSrc": "/ecosystem/firebase.svg"
     },
     {
       "title": "Google Cloud Run",
@@ -162,6 +177,18 @@
       "github": "https://github.com/genie-design/qwikbits",
       "imgSrc": "/ecosystem/qwikbits.svg",
       "description": "Headless UI components and other helpers"
+    },
+    {
+      "title": "qwik-spin-delay",
+      "github": "https://github.com/harshmangalam/qwik-spin-delay",
+      "imgSrc": "/ecosystem/qwik-spin-delay.png",
+      "description": "Smart spinner component for Qwik, to manage the duration of loading states."
+    },
+    {
+      "title": "qwik-image",
+      "github": "https://github.com/qwikifiers/qwik-image",
+      "imgSrc": "/ecosystem/qwik-image-logo.png",
+      "description": "Performant images with automatic optimization."
     }
   ],
   "communities": [

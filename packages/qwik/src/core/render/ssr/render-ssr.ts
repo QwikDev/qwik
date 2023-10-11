@@ -54,16 +54,12 @@ import { _IMMUTABLE, _IMMUTABLE_PREFIX } from '../../state/constants';
 
 const FLUSH_COMMENT = '<!--qkssr-f-->';
 
-/**
- * @public
- */
+/** @public */
 export type StreamWriter = {
   write: (chunk: string) => void;
 };
 
-/**
- * @public
- */
+/** @public */
 export interface RenderSSROptions {
   containerTagName: string;
   containerAttributes: Record<string, string>;
@@ -77,6 +73,7 @@ export interface RenderSSROptions {
     containsDynamic: boolean,
     textNodes: Map<string, string>
   ) => Promise<JSXNode>;
+  manifestHash: string;
 }
 
 export interface SSRContext {
@@ -115,9 +112,7 @@ const createDocument = () => {
   return new MockElement(9);
 };
 
-/**
- * @internal
- */
+/** @internal */
 export const _renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
   const root = opts.containerTagName;
   const containerEl = createSSRContext(1).$element$;
@@ -126,6 +121,19 @@ export const _renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
   const doc = createDocument();
   const rCtx = createRenderContext(doc as any, containerState);
   const headNodes = opts.beforeContent ?? [];
+  if (qDev) {
+    if (
+      root in phasingContent ||
+      root in emptyElements ||
+      root in tableContent ||
+      root in startPhasingContent ||
+      root in invisibleElements
+    ) {
+      throw new Error(
+        `The "containerTagName" can not be "${root}". Please choose a different tag name like: "div", "html", "custom-container".`
+      );
+    }
+  }
   const ssrCtx: SSRContext = {
     $static$: {
       $contexts$: [],
@@ -150,6 +158,7 @@ export const _renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
     'q:render': qRender,
     'q:base': opts.base,
     'q:locale': opts.serverData?.locale,
+    'q:manifest-hash': opts.manifestHash,
   };
   const children = root === 'html' ? [node] : [headNodes, node];
   if (root !== 'html') {
@@ -284,7 +293,7 @@ const renderNodeVirtual = (
       return;
     }
 
-    let promise: ValueOrPromise<void>;
+    let promise: ValueOrPromise<void> | undefined;
     if (isSlot) {
       assertDefined(key, 'key must be defined for a slot');
       const content = ssrCtx.$projectedChildren$?.[key];
@@ -701,6 +710,11 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
             node
           );
         }
+      } else if (tagName in htmlContent) {
+        throw createJSXError(
+          `<${tagName}> can not be rendered because its parent is not a <html> element. Make sure the 'containerTagName' is set to 'html' in entry.ssr.tsx`,
+          node
+        );
       }
       if (tagName in startPhasingContent) {
         flags |= IS_PHASING;
@@ -819,7 +833,14 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
   if (tagName === InternalSSRStream) {
     return renderGenerator(node as JSXNode<typeof InternalSSRStream>, rCtx, ssrCtx, stream, flags);
   }
-  const res = invoke(ssrCtx.$invocationContext$, tagName, node.props, node.key, node.flags);
+  const res = invoke(
+    ssrCtx.$invocationContext$,
+    tagName,
+    node.props,
+    node.key,
+    node.flags,
+    node.dev
+  );
   if (!shouldWrapFunctional(res, node)) {
     return processData(res, rCtx, ssrCtx, stream, flags, beforeClose);
   }

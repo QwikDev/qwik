@@ -1,6 +1,6 @@
-import { component$, Slot, useStyles$ } from '@builder.io/qwik';
-import type { DocumentHead } from '@builder.io/qwik-city';
-import styles from './layout-api.css?inline';
+import { component$, Slot, useStyles$ } from "@builder.io/qwik";
+import type { DocumentHead } from "@builder.io/qwik-city";
+import styles from "./layout-api.css?inline";
 
 export default component$(() => {
   useStyles$(styles);
@@ -11,7 +11,10 @@ export default component$(() => {
         <h2>API</h2>
         <ul>
           <li>
-            <a href="/qwikcity-test/api/builder.io/oss.json" data-test-link="api-org-user">
+            <a
+              href="/qwikcity-test/api/builder.io/oss.json"
+              data-test-link="api-org-user"
+            >
               Org/User
             </a>
           </li>

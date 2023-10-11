@@ -99,7 +99,7 @@ export const getPlatformInputFiles = async (sys: OptimizerSystem) => {
         } else {
           flatted.push(dir);
         }
-        return flatted.filter((a) => extensions[sys.path.extname(a)]);
+        return flatted.filter((a) => sys.path.extname(a).toLowerCase() in extensions);
       };
 
       const filePaths = await getChildFilePaths(rootDir);
@@ -265,6 +265,10 @@ const getEnv = (): SystemEnvironment => {
     return 'deno';
   }
 
+  if (typeof Bun !== 'undefined') {
+    return 'bun';
+  }
+
   if (
     typeof process !== 'undefined' &&
     typeof global !== 'undefined' &&
@@ -310,3 +314,4 @@ const extensions: { [ext: string]: boolean } = {
 declare const globalThis: { IS_CJS: boolean; IS_ESM: boolean; [key: string]: any };
 declare const WorkerGlobalScope: any;
 declare const Deno: any;
+declare const Bun: any;

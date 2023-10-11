@@ -35,7 +35,7 @@ export function qwikifyQrl<PROPS extends {}>(
     const hydrationKeys = {};
     const TagName = opts?.tagName ?? ('qwik-react' as any);
 
-    // Watch takes cares of updates and partial hydration
+    // Task takes cares of updates and partial hydration
     useTask$(async ({ track }) => {
       const trackedProps = track(() => ({ ...props }));
       track(signal);

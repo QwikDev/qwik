@@ -1,18 +1,19 @@
 import {
   accessSync,
-  readFileSync,
-  writeFileSync,
-  rmSync,
-  statSync,
-  mkdirSync,
-  readdirSync,
   copyFileSync,
   existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  statSync,
+  writeFileSync,
 } from 'node:fs';
-import assert from 'assert';
-import { join, relative } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { join, relative } from 'node:path';
 import { readPackageJson, writePackageJson } from './package-json';
+
+import assert from 'assert';
 import { panic } from './util';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
@@ -44,6 +45,7 @@ async function validateCreateQwikCli() {
 
   await Promise.all([
     validateStarter(api, tmpDir, 'basic', true, `👻`),
+    validateStarter(api, tmpDir, 'empty', true, `🫙`),
     validateStarter(api, tmpDir, 'site-with-visual-cms', true, `😈`),
     validateStarter(api, tmpDir, 'library', false, `📚`),
   ]).catch((e) => {
@@ -66,7 +68,6 @@ async function validateStarter(
   console.log(`${emoji} ${appDir}`);
   rmSync(appDir, { force: true, recursive: true });
 
-  api;
   const result = await api.createApp({
     starterId,
     outDir: appDir,

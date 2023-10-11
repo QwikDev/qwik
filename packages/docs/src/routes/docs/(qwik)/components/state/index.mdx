@@ -1,5 +1,5 @@
 ---
-title: State
+title: State | Components
 keywords: 'useState, state management, reactivity, reactive'
 contributors:
   - nnelgxorz
@@ -26,6 +26,7 @@ contributors:
   - AnthonyPAlicea
   - sreeisalso
   - wmertens
+  - nicvazquez
 ---
 
 import CodeSandbox from '../../../../../components/code-sandbox/index.tsx';
@@ -123,8 +124,8 @@ export default component$(() => {
         Add to list
       </button>
       <ul>
-        {store.list.map((item) => (
-          <li>{item}</li>
+        {store.list.map((item, index) => (
+          <li key={`items-${index}`}>{item}</li>
         ))}
       </ul>
     </>
@@ -179,10 +180,10 @@ In Qwik there are two ways to create computed values, each with a different use 
 
 1. `useComputed$()`: `useComputed$()` is the preferred way of creating computed values. Use it when the computed value can be derived synchronously purely from the source state (current application state). For example, creating a lowercase version of a string or combining first and last name into a full name.
 
-2. [`useResource$()`](/docs/(qwik)/components/state/index.mdx): `useResource$()` is used when the computed value is asynchronous or the state comes from outside of the application. For example, fetching the current weather (external state) based on a current location (application internal state).
+2. [`useResource$()`](/docs/(qwik)/components/state/index.mdx#useresource): `useResource$()` is used when the computed value is asynchronous or the state comes from outside of the application. For example, fetching the current weather (external state) based on a current location (application internal state).
 
 
-In addition to the two ways of creating computed values described above, there is also a lower-level ([`useTask$()`](/docs/(qwik)/components/tasks/index.mdx#usetask). This way does not produce a new signal, but rather modifies the existing state or produces a side effect.
+In addition to the two ways of creating computed values described above, there is also a lower-level ([`useTask$()`](/docs/(qwik)/components/tasks/index.mdx#usetask)). This way does not produce a new signal, but rather modifies the existing state or produces a side effect.
 
 ### `useComputed$()`
 
@@ -262,10 +263,10 @@ export default component$(() => {
 
 
 
-> **Note:** The important thing to understand about `useResource$` is that it executes on the initial component render (just like `useTask$`.) Often time it is desirable to start fetching the data on the server as part of the initial HTTP request before the component is rendered. Fetching data as part of SSR is a more common and preferred way of loading data and is done through [`routeLoader$`](/docs/(qwikcity)/route-loader/index.mdx) API instead. `useResource$` is more of a low-level API that is useful when you want to fetch data on in the browser.
+> **Note:** The important thing to understand about `useResource$` is that it executes on the initial component render (just like `useTask$`). Often time it is desirable to start fetching the data on the server as part of the initial HTTP request before the component is rendered. Fetching data as part of SSR is a more common and preferred way of loading data and is done through [`routeLoader$`](/docs/(qwikcity)/route-loader/index.mdx) API instead. `useResource$` is more of a low-level API that is useful when you want to fetch data in the browser.
 >
 >
-> In many ways `useResource$` is similar to `useTask$` The big differences are:
+> In many ways `useResource$` is similar to `useTask$`. The big differences are:
 >
 > - `useResource$` allows you to return a "value".
 > - `useResource$` does not block rendering while the resource is being resolved.
@@ -343,7 +344,7 @@ The state `resource.loading` can be one of the following:
 - `false` - the data is not yet available.
 - `true` - the data is available. (Either resolved or rejected.)
 
-The callback passed to [`useResource$()`](/docs/(qwik)/components/state/index.mdx) runs right after the [`useTask$()`](/docs/(qwik)/components/tasks/index.mdx#usetask) callbacks complete. Please refer to the [Lifecycle](../tasks/index.mdx#lifecycle) section for more details.
+The callback passed to [`useResource$()`](/docs/(qwik)/components/state/index.mdx#useresource) runs right after the [`useTask$()`](/docs/(qwik)/components/tasks/index.mdx#usetask) callbacks complete. Please refer to the [Lifecycle](../tasks/index.mdx#lifecycle) section for more details.
 
 #### `<Resource />`
 

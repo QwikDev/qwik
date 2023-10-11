@@ -85,7 +85,7 @@ The `useTask` function is used to observe the `state.count` property. Any change
 
 <docs code="./examples.tsx#use-task"/>
 
-@param watch - Function which should be re-executed when changes to the inputs are detected
+@param task - Function which should be re-executed when changes to the inputs are detected
 @public
 
 # `useVisibleTask`
@@ -245,6 +245,10 @@ At times it may be necessary to resolve a `QRL` reference to the actual value. T
 <docs code="./examples.tsx#qrl-usage-import"/>
 
 NOTE: `element` is needed because `QRL`s are relative and need a base location to resolve against. The base location is encoded in the HTML in the form of `<div q:base="/url">`.
+
+## `QRL.resolved`
+
+Once `QRL.resolve()` returns, the value is stored under `QRL.resolved`. This allows the value to be used without having to await `QRL.resolve()` again.
 
 ## Question: Why not just use `import()`?
 

@@ -21,6 +21,7 @@ export const loadClientData = async (
   dispatchPrefetchEvent({
     links: [pagePathname],
   });
+  let resolveFn: () => void | undefined;
 
   if (!qData) {
     const options = getFetchOptions(action);
@@ -29,7 +30,8 @@ export const loadClientData = async (
     }
     qData = fetch(clientDataPath, options).then((rsp) => {
       const redirectedURL = new URL(rsp.url);
-      if (redirectedURL.origin !== location.origin || !isQDataJson(redirectedURL.pathname)) {
+      const isQData = redirectedURL.pathname.endsWith('/q-data.json');
+      if (redirectedURL.origin !== location.origin || !isQData) {
         location.href = redirectedURL.href;
         return;
       }
@@ -48,7 +50,9 @@ export const loadClientData = async (
             location.href = clientData.redirect;
           } else if (action) {
             const actionData = clientData.loaders[action.id];
-            action.resolve!({ status: rsp.status, result: actionData });
+            resolveFn = () => {
+              action.resolve!({ status: rsp.status, result: actionData });
+            };
           }
           return clientData;
         });
@@ -67,6 +71,7 @@ export const loadClientData = async (
     if (!v) {
       CLIENT_DATA_CACHE.delete(clientDataPath);
     }
+    resolveFn && resolveFn();
     return v;
   });
 };
@@ -91,9 +96,3 @@ const getFetchOptions = (action: RouteActionValue | undefined): RequestInit | un
     };
   }
 };
-
-export const isQDataJson = (pathname: string) => {
-  return pathname.endsWith(QDATA_JSON);
-};
-
-export const QDATA_JSON = '/q-data.json';

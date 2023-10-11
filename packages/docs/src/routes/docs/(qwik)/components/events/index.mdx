@@ -1,5 +1,5 @@
 ---
-title: Events
+title: Events | Components
 contributors:
   - voluntadpear
   - the-r3aper7
@@ -14,6 +14,7 @@ contributors:
   - mhevery
   - AnthonyPAlicea
   - amatiash
+  - harishkrishnan24
 ---
 
 import CodeSandbox from '../../../../../components/code-sandbox/index.tsx';
@@ -88,7 +89,7 @@ export default component$(() => {
   const print = $((ev) => console.log('CLICKED!', ev));
   const increment = $(() => count.value++);
 
-  // The button when clicked will print "CLICKED!" to the console, increment the count and send a event to Google Analytics.
+  // The button when clicked will print "CLICKED!" to the console, increment the count and send an event to Google Analytics.
   return (
     <button
       onClick$={[print, increment, $(() => {
@@ -143,14 +144,14 @@ import { component$ } from '@builder.io/qwik';
 export default component$(() => {
   return (
     <a
-      href="/about"
+      href="/docs"
       preventdefault:click // This will prevent the default behavior of the "click" event.
       onClick$={() => {
         // event.PreventDefault() will not work here, because handler is dispatched asynchronously.
         alert('Do something else to simulate navigation...');
       }}
     >
-      Go to about page
+      Go to docs page
     </a>
   );
 });
@@ -188,7 +189,7 @@ export default component$(() => {
 ```
 </CodeSandbox>
 
-> **Note:** `currentTarget` in the DOM points to the element that the event listener was attached to. In the example above it will always be the `<DIV>` element.
+> **Note:** `currentTarget` in the DOM points to the element that the event listener was attached to. In the example above it will always be the `<SECTION>` element.
 
 ### Synchronous event handling
 
@@ -231,7 +232,7 @@ export default component$(() => {
 ```
 </CodeSandbox>
 
-> **NOTE** Using `VisibleTask` to listen for events in an anti-pattern in Qwik because it causes eager execution of code in the browser defeating [resumability](/docs/(qwik)/concepts/resumable/index.mdx). Only use it when you have no other choice. most of the time, you should use JSX to listen for events: `<div onClick$={...}>` or `useOn(...)` event methods if you need to listen programmatically.
+> **NOTE** Using `VisibleTask` to listen for events is an anti-pattern in Qwik because it causes eager execution of code in the browser defeating [resumability](/docs/(qwik)/concepts/resumable/index.mdx). Only use it when you have no other choice. Most of the time, you should use JSX to listen for events: `<div onClick$={...}>` or `useOn(...)` event methods if you need to listen programmatically.
 
 ## `PropFunction`
 
@@ -273,13 +274,13 @@ The purpose of the `window:on`/`document:` is to register an event at a current 
 1. The events can be registered declaratively in your JSX.
 2. The events get automatically cleaned up when the component is destroyed (No explicit bookkeeping and cleanup is needed).
 
-## `useOn[|window|document]` Hook
+## `useOn[window|document]` Hook
 
 - `useOn()`: listen to events on the current component's root element.
 - `useOnWindow()`: listen to events on the `window` object.
 - `useOnDocument()`: listen to events on the `document` object.
 
-`useOn[|window|document]()` hook will add a DOM-based event listener at the component level programmatically. This is often useful when you want to create your own use hooks or if you don't know the event name at the time of compilation.
+`useOn[window|document]()` hook will add a DOM-based event listener at the component level programmatically. This is often useful when you want to create your own use hooks or if you don't know the event name at the time of compilation.
 
 <CodeSandbox src="/src/routes/demo/events/use-on/index.tsx" style={{ height: '10em' }}>
 ```tsx

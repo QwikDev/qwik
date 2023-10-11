@@ -4,6 +4,8 @@
 
 ```ts
 
+import * as CSS_2 from 'csstype';
+
 // @public (undocumented)
 export const Fragment: FunctionComponent<{
     children?: any;
@@ -12,8 +14,10 @@ export const Fragment: FunctionComponent<{
 
 // @public (undocumented)
 export interface FunctionComponent<P = Record<string, any>> {
+    // Warning: (ae-forgotten-export) The symbol "DevJSX" needs to be exported by the entry point jsx-runtime.d.ts
+    //
     // (undocumented)
-    (props: P, key: string | null, flags: number): JSXNode | null;
+    (props: P, key: string | null, flags: number, dev?: DevJSX): JSXNode | null;
 }
 
 // @public (undocumented)
@@ -52,8 +56,6 @@ export const jsxDEV: <T extends string | FunctionComponent<any>>(type: T, props:
 export interface JSXNode<T = string | FunctionComponent> {
     // (undocumented)
     children: any | null;
-    // Warning: (ae-forgotten-export) The symbol "DevJSX" needs to be exported by the entry point jsx-runtime.d.ts
-    //
     // (undocumented)
     dev?: DevJSX;
     // (undocumented)

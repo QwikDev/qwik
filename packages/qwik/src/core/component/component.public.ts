@@ -32,7 +32,7 @@ export type PropsOf<COMP extends Component<any>> = COMP extends Component<infer 
  *
  * `Component` is the type returned by invoking `component$`.
  *
- * ```
+ * ```tsx
  * interface MyComponentProps {
  *   someProp: string;
  * }
@@ -50,6 +50,7 @@ export type ComponentChildren<PROPS extends {}> = PROPS extends { children: any 
   : { children?: JSXChildren };
 /**
  * Extends the defined component PROPS, adding the default ones (children and q:slot)..
+ *
  * @public
  */
 export type PublicProps<PROPS extends {}> = TransformProps<PROPS> &
@@ -58,22 +59,19 @@ export type PublicProps<PROPS extends {}> = TransformProps<PROPS> &
 
 /**
  * Transform the component PROPS.
+ *
  * @public
  */
 export type TransformProps<PROPS extends {}> = {
   [K in keyof PROPS]: TransformProp<PROPS[K]>;
 };
 
-/**
- * @public
- */
+/** @public */
 export type TransformProp<T> = NonNullable<T> extends (...args: infer ARGS) => infer RET
   ? (...args: ARGS) => ValueOrPromise<Awaited<RET>>
   : T;
 
-/**
- * @public
- */
+/** @public */
 export type EventHandler<T> = QRL<(value: T) => any>;
 
 // const ELEMENTS_SKIP_KEY: JSXTagName[] = ['html', 'body', 'head'];
@@ -85,8 +83,8 @@ export type EventHandler<T> = QRL<(value: T) => any>;
  * Declare a Qwik component that can be used to create UI.
  *
  * Use `component$` to declare a Qwik component. A Qwik component is a special kind of component
- * that allows the Qwik framework to lazy load and execute the component independently of other
- * Qwik components as well as lazy load the component's life-cycle hooks and event handlers.
+ * that allows the Qwik framework to lazy load and execute the component independently of other Qwik
+ * components as well as lazy load the component's life-cycle hooks and event handlers.
  *
  * Side note: You can also declare regular (standard JSX) components that will have standard
  * synchronous behavior.
@@ -162,9 +160,7 @@ export const isQwikComponent = (component: any): component is Component<any> => 
   return typeof component == 'function' && component[SERIALIZABLE_STATE] !== undefined;
 };
 
-/**
- * @public
- */
+/** @public */
 export type PropFunctionProps<PROPS extends {}> = {
   [K in keyof PROPS]: NonNullable<PROPS[K]> extends (...args: infer ARGS) => infer RET
     ? PropFnInterface<ARGS, Awaited<RET>>
@@ -178,8 +174,8 @@ export type PropFunctionProps<PROPS extends {}> = {
  * Declare a Qwik component that can be used to create UI.
  *
  * Use `component$` to declare a Qwik component. A Qwik component is a special kind of component
- * that allows the Qwik framework to lazy load and execute the component independently of other
- * Qwik components as well as lazy load the component's life-cycle hooks and event handlers.
+ * that allows the Qwik framework to lazy load and execute the component independently of other Qwik
+ * components as well as lazy load the component's life-cycle hooks and event handlers.
  *
  * Side note: You can also declare regular (standard JSX) components that will have standard
  * synchronous behavior.
@@ -227,16 +223,14 @@ export type PropFunctionProps<PROPS extends {}> = {
 // </docs>
 export const component$ = <
   PROPS = unknown,
-  ARG extends {} = PROPS extends {} ? PropFunctionProps<PROPS> : {}
+  ARG extends {} = PROPS extends {} ? PropFunctionProps<PROPS> : {},
 >(
   onMount: OnRenderFn<ARG>
 ): Component<PROPS extends {} ? PROPS : ARG> => {
   return componentQrl<any>($(onMount));
 };
 
-/**
- * @public
- */
+/** @public */
 export type OnRenderFn<PROPS extends {}> = (props: PROPS) => JSXNode<any> | null;
 
 export interface RenderFactoryOutput<PROPS extends {}> {

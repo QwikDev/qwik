@@ -14,61 +14,59 @@ import { ELEMENT_ID, ELEMENT_ID_PREFIX, QContainerAttr, QScopedStyle } from '../
 import { qDev } from '../util/qdev';
 
 import {
-  destroyWatch,
-  isResourceTask,
-  type ResourceReturnInternal,
-  WatchFlagsIsDirty,
-} from '../use/use-task';
-import {
-  qError,
   QError_containerAlreadyPaused,
   QError_missingObjectId,
   QError_verifySerializable,
+  qError,
 } from '../error/error';
-import { isArray, isObject, isSerializableObject } from '../util/types';
-import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
-import { isNotNullable, isPromise } from '../util/promises';
-import { collectDeps, serializeValue, UNDEFINED_PREFIX } from './serializers';
-import {
-  type ContainerState,
-  FILTER_REJECT,
-  FILTER_SKIP,
-  _getContainerState,
-  type GetObjID,
-  intToStr,
-  SHOW_COMMENT,
-  SHOW_ELEMENT,
-  type SnapshotMeta,
-  type SnapshotMetaValue,
-  type SnapshotResult,
-} from './container';
+import { serializeQRLs } from '../qrl/qrl';
+import type { QRL } from '../qrl/qrl.public';
 import {
   processVirtualNodes,
   type QwikElement,
   type VirtualElement,
 } from '../render/dom/virtual-element';
-import { groupListeners } from '../state/listeners';
-import { serializeSStyle } from '../style/qrl-styles';
-import { serializeQRLs } from '../qrl/qrl';
+import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
 import {
+  LocalSubscriptionManager,
   fastSkipSerialize,
   fastWeakSerialize,
   getProxyFlags,
-  getProxyManager,
   getProxyTarget,
+  getSubscriptionManager,
   isConnected,
-  LocalSubscriptionManager,
   serializeSubscription,
   type Subscriptions,
 } from '../state/common';
-import { HOST_FLAG_DYNAMIC, type QContext, tryGetContext } from '../state/context';
-import { SignalImpl } from '../state/signal';
-import type { QRL } from '../qrl/qrl.public';
 import { QObjectImmutable, QObjectRecursive } from '../state/constants';
+import { HOST_FLAG_DYNAMIC, tryGetContext, type QContext } from '../state/context';
+import { groupListeners } from '../state/listeners';
+import { SignalImpl } from '../state/signal';
+import { serializeSStyle } from '../style/qrl-styles';
+import {
+  TaskFlagsIsDirty,
+  destroyTask,
+  isResourceTask,
+  type ResourceReturnInternal,
+} from '../use/use-task';
+import { isNotNullable, isPromise } from '../util/promises';
+import { isArray, isObject, isSerializableObject } from '../util/types';
+import {
+  FILTER_REJECT,
+  FILTER_SKIP,
+  SHOW_COMMENT,
+  SHOW_ELEMENT,
+  _getContainerState,
+  intToStr,
+  type ContainerState,
+  type GetObjID,
+  type SnapshotMeta,
+  type SnapshotMetaValue,
+  type SnapshotResult,
+} from './container';
+import { UNDEFINED_PREFIX, collectDeps, serializeValue } from './serializers';
 
-/**
- * @internal
- */
+/** @internal */
 export const _serializeData = async (data: any, pureQRL?: boolean) => {
   const containerState = {} as any;
   const collector = createCollector(containerState);
@@ -125,41 +123,7 @@ export const _serializeData = async (data: any, pureQRL?: boolean) => {
     return key + suffix;
   };
 
-  const convertedObjs = objs.map((obj) => {
-    if (obj === null) {
-      return null;
-    }
-    const typeObj = typeof obj;
-    switch (typeObj) {
-      case 'undefined':
-        return UNDEFINED_PREFIX;
-      case 'number':
-        if (!Number.isFinite(obj)) {
-          break;
-        }
-        return obj;
-      case 'string':
-      case 'boolean':
-        return obj;
-    }
-    const value = serializeValue(obj, mustGetObjId, collector, containerState);
-    if (value !== undefined) {
-      return value;
-    }
-    if (typeObj === 'object') {
-      if (isArray(obj)) {
-        return obj.map(mustGetObjId);
-      }
-      if (isSerializableObject(obj)) {
-        const output: Record<string, any> = {};
-        for (const key in obj) {
-          output[key] = mustGetObjId(obj[key]);
-        }
-        return output;
-      }
-    }
-    throw qError(QError_verifySerializable, obj);
-  });
+  const convertedObjs = serializeObjects(objs, mustGetObjId, null, collector, containerState);
 
   return JSON.stringify({
     _entry: mustGetObjId(data),
@@ -170,8 +134,6 @@ export const _serializeData = async (data: any, pureQRL?: boolean) => {
 // <docs markdown="../readme.md#pauseContainer">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#pauseContainer instead)
-/**
- */
 // </docs>
 export const pauseContainer = async (
   elmOrDoc: Element | Document,
@@ -238,9 +200,7 @@ export const pauseContainer = async (
   return data;
 };
 
-/**
- * @internal
- */
+/** @internal */
 export const _pauseFromContexts = async (
   allContexts: QContext[],
   containerState: ContainerState,
@@ -255,20 +215,24 @@ export const _pauseFromContexts = async (
 
   // TODO: optimize
   for (const ctx of allContexts) {
-    if (ctx.$watches$) {
-      for (const watch of ctx.$watches$) {
+    if (ctx.$tasks$) {
+      for (const task of ctx.$tasks$) {
         if (qDev) {
-          if (watch.$flags$ & WatchFlagsIsDirty) {
-            logWarn('Serializing dirty watch. Looks like an internal error.');
+          if (task.$flags$ & TaskFlagsIsDirty) {
+            logWarn(
+              `Serializing dirty task. Looks like an internal error. 
+Task Symbol: ${task.$qrl$.$symbol$}
+`
+            );
           }
-          if (!isConnected(watch)) {
-            logWarn('Serializing disconnected watch. Looks like an internal error.');
+          if (!isConnected(task)) {
+            logWarn('Serializing disconnected task. Looks like an internal error.');
           }
         }
-        if (isResourceTask(watch)) {
-          collector.$resources$.push(watch.$state$);
+        if (isResourceTask(task)) {
+          collector.$resources$.push(task.$state$);
         }
-        destroyWatch(watch);
+        destroyTask(task);
       }
     }
   }
@@ -467,45 +431,7 @@ export const _pauseFromContexts = async (
   }
   assertEqual(subs.length, subsMap.size, 'missing subscriptions to serialize', subs, subsMap);
 
-  // Serialize objects
-  const convertedObjs = objs.map((obj) => {
-    if (obj === null) {
-      return null;
-    }
-    const typeObj = typeof obj;
-    switch (typeObj) {
-      case 'undefined':
-        return UNDEFINED_PREFIX;
-      case 'number':
-        if (!Number.isFinite(obj)) {
-          break;
-        }
-        return obj;
-      case 'string':
-      case 'boolean':
-        return obj;
-    }
-    const value = serializeValue(obj, mustGetObjId, collector, containerState);
-    if (value !== undefined) {
-      return value;
-    }
-    if (typeObj === 'object') {
-      if (isArray(obj)) {
-        return obj.map(mustGetObjId);
-      }
-      if (isSerializableObject(obj)) {
-        const output: Record<string, any> = {};
-        for (const key in obj) {
-          const id = getObjId(obj[key]);
-          if (id !== null) {
-            output[key] = id;
-          }
-        }
-        return output;
-      }
-    }
-    throw qError(QError_verifySerializable, obj);
-  });
+  const convertedObjs = serializeObjects(objs, mustGetObjId, getObjId, collector, containerState);
 
   const meta: SnapshotMeta = {};
   const refs: Record<string, string> = {};
@@ -517,7 +443,7 @@ export const _pauseFromContexts = async (
     const ref = ctx.$refMap$;
     const props = ctx.$props$;
     const contexts = ctx.$contexts$;
-    const watches = ctx.$watches$;
+    const tasks = ctx.$tasks$;
     const renderQrl = ctx.$componentQrl$;
     const seq = ctx.$seq$;
     const metaValue: SnapshotMetaValue = {};
@@ -545,8 +471,8 @@ export const _pauseFromContexts = async (
         }
       }
 
-      if (watches && watches.length > 0) {
-        const value = mapJoin(watches, getObjId, ' ');
+      if (tasks && tasks.length > 0) {
+        const value = mapJoin(tasks, getObjId, ' ');
         if (value) {
           metaValue.w = value;
           add = true;
@@ -663,18 +589,22 @@ const collectProps = (elCtx: QContext, collector: Collector) => {
   const parentCtx = elCtx.$parent$;
   const props = elCtx.$props$;
   if (parentCtx && props && !isEmptyObj(props) && collector.$elements$.includes(parentCtx)) {
-    const subs = getProxyManager(props)?.$subs$;
+    const subs = getSubscriptionManager(props)?.$subs$;
     const el = elCtx.$element$ as VirtualElement;
     if (subs) {
-      for (const sub of subs) {
-        if (sub[0] === 0) {
-          if (sub[1] !== el) {
-            collectSubscriptions(getProxyManager(props)!, collector, false);
+      for (const [type, host] of subs) {
+        if (type === 0) {
+          if (host !== el) {
+            collectSubscriptions(getSubscriptionManager(props)!, collector, false);
           }
-          collectElement(sub[1] as VirtualElement, collector);
+          if (isNode(host)) {
+            collectElement(host, collector);
+          } else {
+            collectValue(host, collector, true);
+          }
         } else {
           collectValue(props, collector, false);
-          collectSubscriptions(getProxyManager(props)!, collector, false);
+          collectSubscriptions(getSubscriptionManager(props)!, collector, false);
         }
       }
     }
@@ -712,7 +642,7 @@ const collectDeferElement = (el: VirtualElement, collector: Collector) => {
   collector.$prefetch$--;
 };
 
-const collectElement = (el: VirtualElement, collector: Collector) => {
+const collectElement = (el: QwikElement, collector: Collector) => {
   const ctx = tryGetContext(el);
   if (ctx) {
     if (collector.$elements$.includes(ctx)) {
@@ -730,7 +660,7 @@ export const collectElementData = (
 ) => {
   if (elCtx.$props$ && !isEmptyObj(elCtx.$props$)) {
     collectValue(elCtx.$props$, collector, dynamicCtx);
-    collectSubscriptions(getProxyManager(elCtx.$props$)!, collector, dynamicCtx);
+    collectSubscriptions(getSubscriptionManager(elCtx.$props$)!, collector, dynamicCtx);
   }
   if (elCtx.$componentQrl$) {
     collectValue(elCtx.$componentQrl$, collector, dynamicCtx);
@@ -740,9 +670,9 @@ export const collectElementData = (
       collectValue(obj, collector, dynamicCtx);
     }
   }
-  if (elCtx.$watches$) {
+  if (elCtx.$tasks$) {
     const map = collector.$containerState$.$subsManager$.$groupToManagers$;
-    for (const obj of elCtx.$watches$) {
+    for (const obj of elCtx.$tasks$) {
       if (map.has(obj)) {
         collectValue(obj, collector, dynamicCtx);
       }
@@ -764,9 +694,6 @@ const collectContext = (elCtx: QContext | null, collector: Collector) => {
     if (elCtx.$contexts$) {
       for (const obj of elCtx.$contexts$.values()) {
         collectValue(obj, collector, true);
-      }
-      if (elCtx.$contexts$.get('_') === true) {
-        break;
       }
     }
     elCtx = elCtx.$slotParent$ ?? elCtx.$parent$;
@@ -862,13 +789,14 @@ export const collectValue = (obj: any, collector: Collector, leaks: boolean | Qw
         const target = getProxyTarget(obj);
         if (target) {
           obj = target;
-          if (seen.has(obj)) {
-            return;
-          }
-          seen.add(obj);
+          // NOTE: You may be tempted to add the `target` to the `seen` set,
+          // but that would not work as it is possible for the `target` object
+          // to already be in `seen` set if it was passed in directly, so
+          // we can't short circuit and need to do the work.
+          // Issue: https://github.com/BuilderIO/qwik/issues/5001
           const mutable = (getProxyFlags(obj)! & QObjectImmutable) === 0;
           if (leaks && mutable) {
-            collectSubscriptions(getProxyManager(input)!, collector, leaks);
+            collectSubscriptions(getSubscriptionManager(input)!, collector, leaks);
           }
           if (fastWeakSerialize(input)) {
             collector.$objSet$.add(obj);
@@ -936,11 +864,11 @@ const getManager = (obj: any, containerState: ContainerState) => {
     return undefined;
   }
   if (obj instanceof SignalImpl) {
-    return getProxyManager(obj);
+    return getSubscriptionManager(obj);
   }
   const proxy = containerState.$proxyMap$.get(obj);
   if (proxy) {
-    return getProxyManager(proxy);
+    return getSubscriptionManager(proxy);
   }
   return undefined;
 };
@@ -973,3 +901,61 @@ const getTextID = (node: Text, containerState: ContainerState) => {
 const isEmptyObj = (obj: Record<string, any>) => {
   return Object.keys(obj).length === 0;
 };
+function serializeObjects(
+  objs: any[],
+  mustGetObjId: (obj: any) => string,
+  getObjId: GetObjID | null,
+  collector: Collector,
+  containerState: any
+) {
+  return objs.map((obj) => {
+    if (obj === null) {
+      return null;
+    }
+    const typeObj = typeof obj;
+    switch (typeObj) {
+      case 'undefined':
+        return UNDEFINED_PREFIX;
+      case 'number':
+        if (!Number.isFinite(obj)) {
+          break;
+        }
+        return obj;
+      case 'string':
+        if ((obj as string).charCodeAt(0) < 32 /* space */) {
+          // if strings starts with a special character let the string serializer handle it
+          // to deal with escape sequences.
+          break;
+        } else {
+          // Fast path of just serializing the string.
+          return obj;
+        }
+      case 'boolean':
+        return obj;
+    }
+    const value = serializeValue(obj, mustGetObjId, collector, containerState);
+    if (value !== undefined) {
+      return value;
+    }
+    if (typeObj === 'object') {
+      if (isArray(obj)) {
+        return obj.map(mustGetObjId);
+      }
+      if (isSerializableObject(obj)) {
+        const output: Record<string, any> = {};
+        for (const key in obj) {
+          if (getObjId) {
+            const id = getObjId(obj[key]);
+            if (id !== null) {
+              output[key] = id;
+            }
+          } else {
+            output[key] = mustGetObjId(obj[key]);
+          }
+        }
+        return output;
+      }
+    }
+    throw qError(QError_verifySerializable, obj);
+  });
+}

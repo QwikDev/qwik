@@ -1,10 +1,5 @@
 {
   "description": "Use Tailwind in your Qwik app",
-  "devDependencies": {
-    "autoprefixer": "^10.4.14",
-    "postcss": "^8.4.23",
-    "tailwindcss": "^3.3.1"
-  },
   "__qwik__": {
     "displayName": "Integration: Tailwind (styling)",
     "priority": -10,
@@ -13,5 +8,11 @@
       "https://qwik.builder.io/integrations/integration/tailwind/",
       "https://tailwindcss.com/docs/utility-first"
     ]
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.14",
+    "postcss": "8.4.27",
+    "tailwindcss": "3.3.3",
+    "prettier-plugin-tailwindcss": "^0.5.4"
   }
 }

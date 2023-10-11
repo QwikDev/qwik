@@ -1,17 +1,41 @@
-import { defineConfig } from 'vite';
-import { qwikVite } from '@builder.io/qwik/optimizer';
-import { resolve } from 'node:path';
-import { qwikCity } from '@builder.io/qwik-city/vite';
 import { partytownVite } from '@builder.io/partytown/utils';
+import { qwikCity } from '@builder.io/qwik-city/vite';
+import { qwikInsights } from '@builder.io/qwik-labs/vite';
+import { qwikReact } from '@builder.io/qwik-react/vite';
+import { qwikVite } from '@builder.io/qwik/optimizer';
+import path, { resolve } from 'node:path';
+import { defineConfig, loadEnv } from 'vite';
+import Inspect from 'vite-plugin-inspect';
 import { examplesData, playgroundData, tutorialData } from './vite.repl-apps';
 import { sourceResolver } from './vite.source-resolver';
-import rehypePrettyCode from 'rehype-pretty-code';
-import { qwikReact } from '@builder.io/qwik-react/vite';
-import Inspect from 'vite-plugin-inspect';
 
-export default defineConfig(() => {
+export const PUBLIC_QWIK_INSIGHT_KEY = loadEnv('', '.', 'PUBLIC').PUBLIC_QWIK_INSIGHTS_KEY;
+
+export default defineConfig(async () => {
+  const { default: rehypePrettyCode } = await import('rehype-pretty-code');
+
   const routesDir = resolve('src', 'routes');
   return {
+    preview: {
+      headers: {
+        'Cache-Control': 'public, max-age=600',
+      },
+    },
+    resolve: {
+      alias: [
+        {
+          find: '~',
+          replacement: path.resolve(__dirname, 'src'),
+        },
+        {
+          // HACK: For some reason supabase imports node-fetch but only in CloudFlare build
+          // This hack is here to prevent the import from happening since we don't need to
+          // polyfill fetch in the edge.
+          find: '@supabase/node-fetch',
+          replacement: path.resolve(__dirname, 'src', 'empty.ts'),
+        },
+      ],
+    },
     ssr: {
       noExternal: [
         '@mui/material',
@@ -99,6 +123,7 @@ export default defineConfig(() => {
       sourceResolver(resolve('.')),
       qwikReact(),
       Inspect(),
+      qwikInsights({ publicApiKey: loadEnv('', '.', '').PUBLIC_QWIK_INSIGHTS_KEY }),
     ],
     clearScreen: false,
     server: {
@@ -107,17 +132,17 @@ export default defineConfig(() => {
   };
 });
 
-const page = {
+export const page = {
   KnNE9eL0qfc: 'page',
   '9t1uPE4yoLA': 'page',
 };
 
-const menus = {
+export const menus = {
   S0wV0vUzzSo: 'right',
   '5wL0DAwmu0A': 'left',
 };
 
-const algoliaSearch = bundle('algoliasearch', [
+export const algoliaSearch = bundle('algoliasearch', [
   'hW',
   '9t1uPE4yoLA',
   'I5CyQjO9FjQ',
@@ -152,7 +177,7 @@ const algoliaSearch = bundle('algoliasearch', [
   'S0wV0vUzzSo',
 ]);
 
-const repl = bundle('repl', [
+export const repl = bundle('repl', [
   's_XoQB11UZ1S0',
   's_AqHBIVNKf34',
   's_IRhp4u7HN3o',
@@ -166,9 +191,12 @@ const repl = bundle('repl', [
 ]);
 
 function bundle(bundleName: string, symbols: string[]) {
-  return symbols.reduce((obj, key) => {
-    // Sometimes symbols are prefixed with `s_`, remove it.
-    obj[key.replace('s_', '')] = obj[key] = bundleName;
-    return obj;
-  }, {} as Record<string, string>);
+  return symbols.reduce(
+    (obj, key) => {
+      // Sometimes symbols are prefixed with `s_`, remove it.
+      obj[key.replace('s_', '')] = obj[key] = bundleName;
+      return obj;
+    },
+    {} as Record<string, string>
+  );
 }

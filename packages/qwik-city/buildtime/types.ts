@@ -9,7 +9,7 @@ export interface BuildContext {
   menus: BuildMenu[];
   frontmatter: Map<string, FrontmatterAttrs>;
   diagnostics: Diagnostic[];
-  target: 'ssr' | 'client';
+  target: 'ssr' | 'client' | undefined;
   isDevServer: boolean;
   isDevServerClientOnly: boolean;
   isDirty: boolean;
@@ -36,50 +36,37 @@ export interface RouteSourceFile extends RouteSourceFileName {
 
 export interface RouteSourceFileName {
   type: RouteSourceType;
-  /**
-   * Filename without the extension
-   */
+  /** Filename without the extension */
   extlessName: string;
-  /**
-   * Just the extension
-   */
+  /** Just the extension */
   ext: string;
 }
 
 export type RouteSourceType = 'route' | 'layout' | 'entry' | 'menu' | 'service-worker';
 
 export interface BuildRoute extends ParsedPathname {
-  /**
-   * Unique id built from its relative file system path
-   */
+  /** Unique id built from its relative file system path */
   id: string;
-  /**
-   * Local file system path
-   */
+  /** Local file system path */
   filePath: string;
   ext: string;
-  /**
-   * URL Pathname
-   */
+  /** URL Pathname */
   pathname: string;
   layouts: BuildLayout[];
 }
 
 export interface BuildServerPlugin {
-  /**
-   * Unique id built from its relative file system path
-   */
+  /** Unique id built from its relative file system path */
   id: string;
-  /**
-   * Local file system path
-   */
+  /** Local file system path */
   filePath: string;
   ext: string;
 }
 
 export interface ParsedPathname {
-  pattern: RegExp;
-  paramNames: string[];
+  routeName: string;
+  pattern: RegExp; // TODO(misko): duplicate information from `routeName` refactor to normalize
+  paramNames: string[]; // TODO(misko): duplicate information from `routeName` refactor to normalizehttps://github.com/BuilderIO/qwik/pull/4954
   segments: PathnameSegment[];
 }
 
@@ -116,41 +103,36 @@ export interface ParsedMenuItem {
   items?: ParsedMenuItem[];
 }
 
-/**
- * @public
- */
+/** @public */
+export interface RewriteRouteOption {
+  prefix?: string;
+  paths: Record<string, string>;
+}
+
+/** @public */
 export interface PluginOptions {
-  /**
-   * Directory of the `routes`. Defaults to `src/routes`.
-   */
+  /** Directory of the `routes`. Defaults to `src/routes`. */
   routesDir?: string;
-  /**
-   * Directory of the `server plugins`. Defaults to `src/server-plugins`.
-   */
+  /** Directory of the `server plugins`. Defaults to `src/server-plugins`. */
   serverPluginsDir?: string;
   /**
-   * The base pathname is used to create absolute URL paths up to
-   * the `hostname`, and must always start and end with a
-   * `/`.  Defaults to `/`.
+   * The base pathname is used to create absolute URL paths up to the `hostname`, and must always
+   * start and end with a `/`. Defaults to `/`.
    */
   basePathname?: string;
   /**
-   * Ensure a trailing slash ends page urls. Defaults to `true`.
-   * (Note: Previous versions defaulted to `false`).
+   * Ensure a trailing slash ends page urls. Defaults to `true`. (Note: Previous versions defaulted
+   * to `false`).
    */
   trailingSlash?: boolean;
-  /**
-   * Enable or disable MDX plugins included by default in qwik-city.
-   */
+  /** Enable or disable MDX plugins included by default in qwik-city. */
   mdxPlugins?: MdxPlugins;
-  /**
-   * MDX Options https://mdxjs.com/
-   */
+  /** MDX Options https://mdxjs.com/ */
   mdx?: any;
-  /**
-   * The platform object which can be used to mock the Cloudflare bindings.
-   */
+  /** The platform object which can be used to mock the Cloudflare bindings. */
   platform?: Record<string, unknown>;
+  /** Configuration to rewrite url paths */
+  rewriteRoutes?: RewriteRouteOption[];
 }
 
 export interface MdxPlugins {

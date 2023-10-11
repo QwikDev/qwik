@@ -27,9 +27,7 @@ import { logError, logWarn } from '../util/log';
 
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
 
-/**
- * Creates a proxy that notifies of any writes.
- */
+/** Creates a proxy that notifies of any writes. */
 export const getOrCreateProxy = <T extends object>(
   target: T,
   containerState: ContainerState,
@@ -76,9 +74,7 @@ export const setObjectFlags = (obj: object, flags: number) => {
 
 export type TargetType = Record<string | symbol, any>;
 
-/**
- * @internal
- */
+/** @internal */
 export const _restProps = (props: Record<string, any>, omit: string[]) => {
   const rest: Record<string, any> = {};
   for (const key in props) {
@@ -196,7 +192,7 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     return true;
   }
 
-  has(target: TargetType, property: string | symbol) {
+  has(target: TargetType, property: string | symbol): boolean {
     if (property === QOjectTargetSymbol) {
       return true;
     }
@@ -234,7 +230,10 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     });
   }
 
-  getOwnPropertyDescriptor(target: TargetType, prop: string) {
+  getOwnPropertyDescriptor(
+    target: TargetType,
+    prop: string | symbol
+  ): PropertyDescriptor | undefined {
     if (isArray(target) || typeof prop === 'symbol') {
       return Object.getOwnPropertyDescriptor(target, prop);
     }

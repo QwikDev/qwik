@@ -8,6 +8,7 @@ import type {
   BuildRoute,
   MarkdownAttributes,
   NormalizedPluginOptions,
+  PluginOptions,
 } from '../buildtime/types';
 import { createBuildContext } from '../buildtime/context';
 import { tmpdir } from 'node:os';
@@ -36,7 +37,7 @@ export function suite(title?: string) {
   return s;
 }
 
-export function testAppSuite(title: string) {
+export function testAppSuite(title: string, userOpts?: PluginOptions) {
   const s = uvuSuite<TestAppBuildContext>(title);
   let buildCtx: any = null;
 
@@ -45,7 +46,7 @@ export function testAppSuite(title: string) {
       const __dirname = fileURLToPath(new URL('.', import.meta.url));
       const testAppRootDir = join(__dirname, '..', '..', '..', 'starters', 'apps', 'qwikcity-test');
       const basePath = '/';
-      const ctx = createBuildContext(testAppRootDir, basePath);
+      const ctx = createBuildContext(testAppRootDir, basePath, userOpts);
 
       assert.is(normalizePath(testAppRootDir), ctx.rootDir);
       assert.is(normalizePath(join(testAppRootDir, 'src', 'routes')), ctx.opts.routesDir);

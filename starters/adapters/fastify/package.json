@@ -15,7 +15,7 @@
     "displayName": "Adapter: Node.js Fastify Server",
     "docs": [
       "https://qwik.builder.io/integrations/deployments/node/",
-      "https://www.fastify.io/"
+      "https://fastify.dev/"
     ],
     "nextSteps": {
       "title": "Next Steps",

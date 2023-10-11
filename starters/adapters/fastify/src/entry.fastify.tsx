@@ -27,7 +27,7 @@ const HOST = process.env.HOST ?? "0.0.0.0";
 
 const start = async () => {
   // Create the fastify server
-  // https://www.fastify.io/docs/latest/Guides/Getting-Started/
+  // https://fastify.dev/docs/latest/Guides/Getting-Started/
   const fastify = Fastify({
     logger: true,
   });

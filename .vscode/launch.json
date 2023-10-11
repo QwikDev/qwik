@@ -22,21 +22,6 @@
       "program": "${workspaceFolder}/node_modules/jest/bin/jest.js",
       "cwd": "${workspaceFolder}",
       "args": ["--runInBand", "--watchAll=false"]
-    },
-    {
-      "name": "uvu Current File",
-      "type": "node",
-      "request": "launch",
-      "skipFiles": ["<node_internals>/**"],
-      "program": "${workspaceFolder}/node_modules/tsm/bin.js",
-      "args": [
-        "${workspaceFolder}/node_modules/uvu/bin.js",
-        "${fileDirname}",
-        "${fileBasename}",
-        "--tsmconfig",
-        "${workspaceFolder}/tsm.cjs"
-      ],
-      "console": "integratedTerminal"
     }
   ]
 }

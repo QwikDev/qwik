@@ -234,19 +234,11 @@ pnpm serve
 
 ### Unit Tests Only
 
-Unit tests use [uvu](https://github.com/lukeed/uvu)
+Unit tests use [vitest](https://vitest.dev)
 
 ```shell
 pnpm test.unit
 ```
-
-To keep _uvu_ open with the watch mode, run:
-
-```shell
-pnpm test.watch
-```
-
-> Note that the `test.watch` command isn't necessary if you're running the `pnpm start` command, since `start` will also concurrently run the _uvu_ watch process.
 
 ### E2E Tests Only
 

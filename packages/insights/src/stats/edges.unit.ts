@@ -1,5 +1,4 @@
-import { test } from 'uvu';
-import * as assert from 'uvu/assert';
+import { assert, test } from 'vitest';
 import {
   type SymbolPairs,
   type SymbolVectors,
@@ -11,7 +10,7 @@ test('simple paths', () => {
   const graph = computeSymbolGraph([edge('->a'), edge('a->b'), edge('b->c'), edge('c->d')]);
   const symbolVectors = computeSymbolVectors(graph);
   const result = toResult(symbolVectors);
-  assert.equal(result, {
+  assert.deepEqual(result, {
     // How to think about this table:
     // 1. The top row is the FROM symbol.
     // 2. The left column is the TO symbol.
@@ -39,7 +38,7 @@ test('diamond', () => {
   ]);
   const symbolVectors = computeSymbolVectors(graph);
   const result = toResult(symbolVectors);
-  assert.equal(result, {
+  assert.deepEqual(result, {
     // How to think about this table:
     // 1. The top row is the FROM symbol.
     // 2. The left column is the TO symbol.
@@ -70,7 +69,7 @@ test('lopsided diamond', () => {
   ]);
   const symbolVectors = computeSymbolVectors(graph);
   const result = toResult(symbolVectors);
-  assert.equal(result, {
+  assert.deepEqual(result, {
     // How to think about this table:
     // 1. The top row is the FROM symbol.
     // 2. The left column is the TO symbol.
@@ -97,7 +96,7 @@ test('incomplete diamond', () => {
   ]);
   const symbolVectors = computeSymbolVectors(graph);
   const result = toResult(symbolVectors);
-  assert.equal(result, {
+  assert.deepEqual(result, {
     // How to think about this table:
     // 1. The top row is the FROM symbol.
     // 2. The left column is the TO symbol.
@@ -133,5 +132,3 @@ function toResult(symbolVectors: SymbolVectors): Record<string, number[]> {
   }
   return result;
 }
-
-test.run();

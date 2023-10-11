@@ -1,31 +1,27 @@
 import { normalizeUrl } from './util';
-import { suite } from 'uvu';
-import { equal } from 'uvu/assert';
+import { assert, test } from 'vitest';
 
-const normalizeUrlSuite = suite('normalizeUrl');
-normalizeUrlSuite('no url', () => {
-  equal(normalizeUrl(null).href, 'http://document.qwik.dev/');
-  equal(normalizeUrl(undefined).href, 'http://document.qwik.dev/');
-  equal(normalizeUrl('').href, 'http://document.qwik.dev/');
-  equal(normalizeUrl({} as any).href, 'http://document.qwik.dev/');
+test('no url', () => {
+  assert.equal(normalizeUrl(null).href, 'http://document.qwik.dev/');
+  assert.equal(normalizeUrl(undefined).href, 'http://document.qwik.dev/');
+  assert.equal(normalizeUrl('').href, 'http://document.qwik.dev/');
+  assert.equal(normalizeUrl({} as any).href, 'http://document.qwik.dev/');
 });
 
-normalizeUrlSuite('string, full url', () => {
+test('string, full url', () => {
   const url = normalizeUrl('https://my.qwik.dev/some-path?query=string#hash');
-  equal(url.pathname, '/some-path');
-  equal(url.hash, '#hash');
-  equal(url.searchParams.get('query'), 'string');
-  equal(url.origin, 'https://my.qwik.dev');
-  equal(url.href, 'https://my.qwik.dev/some-path?query=string#hash');
+  assert.equal(url.pathname, '/some-path');
+  assert.equal(url.hash, '#hash');
+  assert.equal(url.searchParams.get('query'), 'string');
+  assert.equal(url.origin, 'https://my.qwik.dev');
+  assert.equal(url.href, 'https://my.qwik.dev/some-path?query=string#hash');
 });
 
-normalizeUrlSuite('string, pathname', () => {
+test('string, pathname', () => {
   const url = normalizeUrl('/some-path?query=string#hash');
-  equal(url.pathname, '/some-path');
-  equal(url.hash, '#hash');
-  equal(url.searchParams.get('query'), 'string');
-  equal(url.origin, 'http://document.qwik.dev');
-  equal(url.href, 'http://document.qwik.dev/some-path?query=string#hash');
+  assert.equal(url.pathname, '/some-path');
+  assert.equal(url.hash, '#hash');
+  assert.equal(url.searchParams.get('query'), 'string');
+  assert.equal(url.origin, 'http://document.qwik.dev');
+  assert.equal(url.href, 'http://document.qwik.dev/some-path?query=string#hash');
 });
-
-normalizeUrlSuite.run();

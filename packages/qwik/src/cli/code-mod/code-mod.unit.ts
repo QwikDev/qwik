@@ -1,6 +1,5 @@
+import { test, assert } from 'vitest';
 import { updateViteConfig } from './code-mod';
-import { test } from 'uvu';
-import { match, equal } from 'uvu/assert';
 import ts from 'typescript';
 
 const prepareOutput = (str: string) =>
@@ -22,7 +21,10 @@ test('update existing qwik vite plugin config prop', () => {
   const outputText = updateViteConfig(ts, sourceText, {
     qwikViteConfig: { ssr: `{ outDir: 'netlify/edge-functions/entry.netlify' }` },
   })!;
-  match(outputText, 'qwikVite({ ssr: { outDir: "netlify/edge-functions/entry.netlify" } })');
+  assert.include(
+    outputText,
+    'qwikVite({ ssr: { outDir: "netlify/edge-functions/entry.netlify" } })'
+  );
 });
 
 test('update qwik vite plugin config', () => {
@@ -38,7 +40,7 @@ test('update qwik vite plugin config', () => {
   const outputText = updateViteConfig(ts, sourceText, {
     qwikViteConfig: { ssr: `{ outDir: 'netlify/edge-functions/entry.netlify' }` },
   })!;
-  match(
+  assert.include(
     outputText,
     'qwikVite({ ssr: { outDir: "netlify/edge-functions/entry.netlify" }, abc: 88 })'
   );
@@ -57,7 +59,10 @@ test('add qwik vite plugin config', () => {
   const outputText = updateViteConfig(ts, sourceText, {
     qwikViteConfig: { ssr: `{ outDir: 'netlify/edge-functions/entry.netlify' }` },
   })!;
-  match(outputText, 'qwikVite({ ssr: { outDir: "netlify/edge-functions/entry.netlify" } })');
+  assert.include(
+    outputText,
+    'qwikVite({ ssr: { outDir: "netlify/edge-functions/entry.netlify" } })'
+  );
 });
 
 test('add qwik vite plugin config for object based vite config', () => {
@@ -71,7 +76,10 @@ test('add qwik vite plugin config for object based vite config', () => {
   const outputText = updateViteConfig(ts, sourceText, {
     qwikViteConfig: { ssr: `{ outDir: 'netlify/edge-functions/entry.netlify' }` },
   })!;
-  match(outputText, 'qwikVite({ ssr: { outDir: "netlify/edge-functions/entry.netlify" } })');
+  assert.include(
+    outputText,
+    'qwikVite({ ssr: { outDir: "netlify/edge-functions/entry.netlify" } })'
+  );
 });
 
 test('add vite plugin', () => {
@@ -87,7 +95,7 @@ test('add vite plugin', () => {
   const outputText = updateViteConfig(ts, sourceText, {
     vitePlugins: [`netlifyEdge({ functionName: 'entry.netlify' })`],
   })!;
-  match(outputText, 'netlifyEdge({ functionName: "entry.netlify" })');
+  assert.include(outputText, 'netlifyEdge({ functionName: "entry.netlify" })');
 });
 
 test('add vite plugin to object based config', () => {
@@ -101,7 +109,7 @@ test('add vite plugin to object based config', () => {
   const outputText = updateViteConfig(ts, sourceText, {
     vitePlugins: [`netlifyEdge({ functionName: 'entry.netlify' })`],
   })!;
-  match(outputText, 'netlifyEdge({ functionName: "entry.netlify" })');
+  assert.include(outputText, 'netlifyEdge({ functionName: "entry.netlify" })');
 });
 
 test('should not add vite plugin if it is already defined', () => {
@@ -128,7 +136,7 @@ test('should not add vite plugin if it is already defined', () => {
         };
       });
     `;
-  equal(prepareOutput(outputText), prepareOutput(expected));
+  assert.deepEqual(prepareOutput(outputText), prepareOutput(expected));
 });
 
 test('update vite config', () => {
@@ -145,7 +153,7 @@ test('update vite config', () => {
   const outputText = updateViteConfig(ts, sourceText, {
     viteConfig: { ssr: `{ target: 'webworker', noExternal: true }` },
   })!;
-  match(outputText, 'ssr: { target: "webworker", noExternal: true');
+  assert.include(outputText, 'ssr: { target: "webworker", noExternal: true');
 });
 
 test('update object based vite config', () => {
@@ -160,7 +168,7 @@ test('update object based vite config', () => {
   const outputText = updateViteConfig(ts, sourceText, {
     viteConfig: { ssr: `{ target: 'webworker', noExternal: true }` },
   })!;
-  match(outputText, 'ssr: { target: "webworker", noExternal: true');
+  assert.include(outputText, 'ssr: { target: "webworker", noExternal: true');
 });
 
 test('add vite config', () => {
@@ -176,7 +184,7 @@ test('add vite config', () => {
   const outputText = updateViteConfig(ts, sourceText, {
     viteConfig: { ssr: `{ target: 'webworker', noExternal: true }` },
   })!;
-  match(outputText, 'ssr: { target: "webworker", noExternal: true');
+  assert.include(outputText, 'ssr: { target: "webworker", noExternal: true');
 });
 
 test('add imports to side effect default import', () => {
@@ -187,8 +195,8 @@ test('add imports to side effect default import', () => {
       { namedImports: ['c', 'd'], importPath: '@builder.io/sdk-react' },
     ],
   })!;
-  match(outputText, 'import a, { b } from "@builder.io/qwik";');
-  match(outputText, 'import { c, d } from "@builder.io/sdk-react";');
+  assert.include(outputText, 'import a, { b } from "@builder.io/qwik";');
+  assert.include(outputText, 'import { c, d } from "@builder.io/sdk-react";');
 });
 
 test('do not re-add named imports', () => {
@@ -202,8 +210,8 @@ test('do not re-add named imports', () => {
       { namedImports: ['b', 'c'], importPath: '@builder.io/sdk-react' },
     ],
   })!;
-  match(outputText, 'import { a } from "@builder.io/qwik";');
-  match(outputText, 'import { b, c } from "@builder.io/sdk-react";');
+  assert.include(outputText, 'import { a } from "@builder.io/qwik";');
+  assert.include(outputText, 'import { b, c } from "@builder.io/sdk-react";');
 });
 
 test('add imports to side effect import', () => {
@@ -211,7 +219,7 @@ test('add imports to side effect import', () => {
   const outputText = updateViteConfig(ts, sourceText, {
     imports: [{ namedImports: ['a'], importPath: '@builder.io/qwik' }],
   })!;
-  match(outputText, 'import { a } from "@builder.io/qwik"');
+  assert.include(outputText, 'import { a } from "@builder.io/qwik"');
 });
 
 test('leave existing imports', () => {
@@ -219,7 +227,7 @@ test('leave existing imports', () => {
   const outputText = updateViteConfig(ts, sourceText, {
     imports: [{ namedImports: ['b'], importPath: '@builder.io/qwik' }],
   })!;
-  match(outputText, 'import { a, b } from "@builder.io/qwik";');
+  assert.include(outputText, 'import { a, b } from "@builder.io/qwik";');
 });
 
 test('renamed default import with existing named import', () => {
@@ -230,8 +238,8 @@ test('renamed default import with existing named import', () => {
       { namedImports: ['d'], importPath: '@builder.io/qwik' },
     ],
   })!;
-  match(outputText, 'import c, { b } from "@builder.io/sdk-react";');
-  match(outputText, 'import { d } from "@builder.io/qwik";');
+  assert.include(outputText, 'import c, { b } from "@builder.io/sdk-react";');
+  assert.include(outputText, 'import { d } from "@builder.io/qwik";');
 });
 
 test('renamed default import', () => {
@@ -239,7 +247,7 @@ test('renamed default import', () => {
   const outputText = updateViteConfig(ts, sourceText, {
     imports: [{ defaultImport: 'b', importPath: '@builder.io/sdk-react' }],
   })!;
-  match(outputText, 'import b from "@builder.io/sdk-react";');
+  assert.include(outputText, 'import b from "@builder.io/sdk-react";');
 });
 
 test('add default import to empty file', () => {
@@ -247,7 +255,7 @@ test('add default import to empty file', () => {
   const outputText = updateViteConfig(ts, sourceText, {
     imports: [{ defaultImport: 'a', importPath: '@builder.io/sdk-react' }],
   })!;
-  match(outputText, 'import a from "@builder.io/sdk-react";');
+  assert.include(outputText, 'import a from "@builder.io/sdk-react";');
 });
 
 test('add named imports to empty file', () => {
@@ -255,7 +263,5 @@ test('add named imports to empty file', () => {
   const outputText = updateViteConfig(ts, sourceText, {
     imports: [{ namedImports: ['a'], importPath: '@builder.io/sdk-react' }],
   })!;
-  match(outputText, 'import { a } from "@builder.io/sdk-react";');
+  assert.include(outputText, 'import { a } from "@builder.io/sdk-react";');
 });
-
-test.run();

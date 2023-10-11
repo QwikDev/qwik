@@ -1,5 +1,5 @@
 import { ElementFixture, trigger } from '../../../testing/element-fixture';
-import { expectDOM } from '../../../testing/expect-dom.unit';
+import { expectDOM } from '../../../testing/expect-dom';
 import { component$ } from '../../component/component.public';
 import { inlinedQrl } from '../../qrl/qrl';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
@@ -9,24 +9,22 @@ import { useOn } from '../../use/use-on';
 import { Slot } from '../jsx/slot.public';
 import { render } from './render.public';
 import { useStylesQrl, useStylesScopedQrl } from '../../use/use-styles';
-import { equal, match } from 'uvu/assert';
-import { suite } from 'uvu';
 import { pauseContainer } from '../../container/pause';
 import { useSignal } from '../../use/use-signal';
+import { assert, test } from 'vitest';
 
-const renderSuite = suite('render');
-renderSuite('should render basic content', async () => {
+test('should render basic content', async () => {
   const fixture = new ElementFixture();
   await render(fixture.host, <div></div>);
   await expectRendered(fixture, '<div></div>');
-  equal(fixture.host.getAttribute('q:version'), 'dev');
-  equal(fixture.host.getAttribute('q:container'), 'resumed');
+  assert.equal(fixture.host.getAttribute('q:version'), 'dev');
+  assert.equal(fixture.host.getAttribute('q:container'), 'resumed');
 
   await pauseContainer(fixture.host);
-  equal(fixture.host.getAttribute('q:container'), 'paused');
+  assert.equal(fixture.host.getAttribute('q:container'), 'paused');
 });
 
-renderSuite('should only render string/number', async () => {
+test('should only render string/number', async () => {
   const fixture = new ElementFixture();
   await render(
     fixture.host,
@@ -43,7 +41,7 @@ renderSuite('should only render string/number', async () => {
   await expectRendered(fixture, '<div>string123</div>');
 });
 
-renderSuite('should serialize events correctly', async () => {
+test('should serialize events correctly', async () => {
   const fixture = new ElementFixture();
   await render(
     fixture.host,
@@ -73,13 +71,13 @@ renderSuite('should serialize events correctly', async () => {
     `
   );
 });
-renderSuite('should serialize boolean attributes correctly', async () => {
+test('should serialize boolean attributes correctly', async () => {
   const fixture = new ElementFixture();
   await render(fixture.host, <input required={true} disabled={false}></input>);
   await expectRendered(fixture, '<input required="" />');
 });
 
-renderSuite('should render aria', async () => {
+test('should render aria', async () => {
   const fixture = new ElementFixture();
   await render(
     fixture.host,
@@ -99,7 +97,7 @@ renderSuite('should render aria', async () => {
   );
 });
 
-renderSuite('should render into a document', async () => {
+test('should render into a document', async () => {
   const fixture = new ElementFixture();
   fixture.document.head.appendChild(fixture.document.createElement('existing'));
   await render(
@@ -135,13 +133,13 @@ renderSuite('should render into a document', async () => {
   );
 });
 
-renderSuite('should render attributes', async () => {
+test('should render attributes', async () => {
   const fixture = new ElementFixture();
   await render(fixture.host, <div id="abc" title="bar" preventdefault:click></div>);
   await expectRendered(fixture, '<div id="abc" title="bar" preventdefault:click=""></div>');
 });
 
-renderSuite('should render style only for defined attributes', async () => {
+test('should render style only for defined attributes', async () => {
   const fixture = new ElementFixture();
   await render(
     fixture.host,
@@ -160,7 +158,7 @@ renderSuite('should render style only for defined attributes', async () => {
   );
 });
 
-renderSuite('should render style css variables correctly', async () => {
+test('should render style css variables correctly', async () => {
   const fixture = new ElementFixture();
   await render(
     fixture.host,
@@ -179,7 +177,7 @@ renderSuite('should render style css variables correctly', async () => {
   );
 });
 
-renderSuite('should render children', async () => {
+test('should render children', async () => {
   const fixture = new ElementFixture();
   await render(
     fixture.host,
@@ -190,7 +188,7 @@ renderSuite('should render children', async () => {
   await expectRendered(fixture, '<div><span>text</span></div>');
 });
 
-renderSuite('should render svg', async () => {
+test('should render svg', async () => {
   const fixture = new ElementFixture();
   await render(
     fixture.host,
@@ -201,14 +199,14 @@ renderSuite('should render svg', async () => {
   await expectRendered(fixture, '<svg viewBox="0 0 100 100"><span>text</span></svg>');
 });
 
-renderSuite('should render a component', async () => {
+test('should render a component', async () => {
   const fixture = new ElementFixture();
 
   await render(fixture.host, <HelloWorld name="World" />);
   await expectRendered(fixture, '<span>Hello World</span>');
 });
 
-renderSuite('should render a component with scoped styles', async () => {
+test('should render a component with scoped styles', async () => {
   const fixture = new ElementFixture();
 
   await render(fixture.host, <HelloWorldScoped />);
@@ -259,7 +257,7 @@ renderSuite('should render a component with scoped styles', async () => {
   );
 });
 
-renderSuite('should render component external props', async () => {
+test('should render component external props', async () => {
   const fixture = new ElementFixture();
 
   await render(
@@ -272,14 +270,14 @@ renderSuite('should render component external props', async () => {
   );
 });
 
-renderSuite('should render a blank component', async () => {
+test('should render a blank component', async () => {
   const fixture = new ElementFixture();
 
   await render(fixture.host, <InnerHTMLComponent />);
   await expectRendered(fixture, `<div><span>WORKS</span></div>`);
 });
 
-renderSuite('should render a div then a component', async () => {
+test('should render a div then a component', async () => {
   const fixture = new ElementFixture();
 
   await render(fixture.host, <ToggleRootComponent />);
@@ -313,7 +311,7 @@ renderSuite('should render a div then a component', async () => {
   );
 });
 
-renderSuite('should process clicks', async () => {
+test('should process clicks', async () => {
   const fixture = new ElementFixture();
 
   await render(fixture.host, <Counter step={5} />);
@@ -342,7 +340,7 @@ renderSuite('should process clicks', async () => {
   );
 });
 
-renderSuite('should project no content', async () => {
+test('should project no content', async () => {
   const fixture = new ElementFixture();
 
   await render(fixture.host, <Project></Project>);
@@ -360,7 +358,7 @@ renderSuite('should project no content', async () => {
   );
 });
 
-renderSuite('should project un-named slot text', async () => {
+test('should project un-named slot text', async () => {
   const fixture = new ElementFixture();
 
   await render(fixture.host, <Project>projection</Project>);
@@ -379,7 +377,7 @@ renderSuite('should project un-named slot text', async () => {
   );
 });
 
-renderSuite('should project un-named slot component', async () => {
+test('should project un-named slot component', async () => {
   const fixture = new ElementFixture();
 
   await render(
@@ -390,7 +388,7 @@ renderSuite('should project un-named slot component', async () => {
   );
 });
 
-renderSuite('should render host events on the first element', async () => {
+test('should render host events on the first element', async () => {
   const fixture = new ElementFixture();
 
   await render(fixture.host, <UseEvents />);
@@ -409,7 +407,7 @@ renderSuite('should render host events on the first element', async () => {
   );
 });
 
-renderSuite('should project named slot component', async () => {
+test('should project named slot component', async () => {
   const fixture = new ElementFixture();
 
   await render(
@@ -437,7 +435,7 @@ renderSuite('should project named slot component', async () => {
   );
 });
 
-renderSuite('should project multiple slot with same name', async () => {
+test('should project multiple slot with same name', async () => {
   const fixture = new ElementFixture();
 
   await render(
@@ -471,7 +469,7 @@ renderSuite('should project multiple slot with same name', async () => {
     `
   );
 });
-renderSuite('should not destroy projection when <Project> reruns', async () => {
+test('should not destroy projection when <Project> reruns', async () => {
   const fixture = new ElementFixture();
 
   await render(
@@ -491,7 +489,7 @@ renderSuite('should not destroy projection when <Project> reruns', async () => {
   );
 });
 
-renderSuite('should render into host component', async () => {
+test('should render into host component', async () => {
   const fixture = new ElementFixture();
 
   await render(
@@ -520,13 +518,13 @@ renderSuite('should render into host component', async () => {
   );
 });
 
-renderSuite('should render a promise', async () => {
+test('should render a promise', async () => {
   const fixture = new ElementFixture();
   await render(fixture.host, <div>{Promise.resolve('WORKS')}</div>);
   await expectRendered(fixture, '<div>WORKS</div>');
 });
 
-renderSuite('should render a component with hooks', async () => {
+test('should render a component with hooks', async () => {
   const fixture = new ElementFixture();
 
   await render(fixture.host, <Hooks />);
@@ -558,15 +556,15 @@ renderSuite('should render a component with hooks', async () => {
   );
 });
 
-renderSuite('should insert a style', async () => {
+test('should insert a style', async () => {
   const fixture = new ElementFixture();
 
   await render(fixture.host, <HelloWorld name="World" />);
   const style = fixture.document.querySelector(`style[q\\:style]`);
-  match(style!.textContent!, 'color: red');
+  assert.include(style!.textContent!, 'color: red');
   await expectRendered(fixture, '<span>Hello World</span>');
 });
-renderSuite('should render #text nodes', async () => {
+test('should render #text nodes', async () => {
   const fixture = new ElementFixture();
 
   const lines = ['hola', 'adios'];
@@ -595,10 +593,10 @@ renderSuite('should render #text nodes', async () => {
   const namespaces = Array.from(fixture.host.querySelectorAll('text')).map(
     (e: any) => e.namespaceURI
   );
-  equal(namespaces, ['http://www.w3.org/2000/svg', 'http://www.w3.org/2000/svg']);
+  assert.deepEqual(namespaces, ['http://www.w3.org/2000/svg', 'http://www.w3.org/2000/svg']);
 });
 
-renderSuite('should render class object correctly', async () => {
+test('should render class object correctly', async () => {
   const fixture = new ElementFixture();
 
   await render(
@@ -614,7 +612,7 @@ renderSuite('should render class object correctly', async () => {
   await expectRendered(fixture, `<div class="stuff m-0 p-2"></div>`);
 });
 
-renderSuite('should render class array correctly', async () => {
+test('should render class array correctly', async () => {
   const fixture = new ElementFixture();
 
   await render(
@@ -624,7 +622,7 @@ renderSuite('should render class array correctly', async () => {
   await expectRendered(fixture, `<div class="stuff m-0 p-2 active container"></div>`);
 });
 
-renderSuite('should re-render classes correctly', async () => {
+test('should re-render classes correctly', async () => {
   const fixture = new ElementFixture();
 
   await render(fixture.host, <RenderClasses></RenderClasses>);
@@ -655,7 +653,7 @@ renderSuite('should re-render classes correctly', async () => {
   );
 });
 
-renderSuite('should render camelCase attributes', async () => {
+test('should render camelCase attributes', async () => {
   const fixture = new ElementFixture();
 
   await render(
@@ -673,7 +671,7 @@ renderSuite('should render camelCase attributes', async () => {
   );
 });
 
-renderSuite('should render path', async () => {
+test('should render path', async () => {
   const fixture = new ElementFixture();
 
   await render(
@@ -709,7 +707,7 @@ renderSuite('should render path', async () => {
   );
 });
 
-renderSuite('should render foreignObject properly', async () => {
+test('should render foreignObject properly', async () => {
   const fixture = new ElementFixture();
 
   const Text = 'text' as any;
@@ -741,10 +739,10 @@ renderSuite('should render foreignObject properly', async () => {
     </div>
   );
   for (const el of Array.from(fixture.host.querySelectorAll('.is-html'))) {
-    equal(el.namespaceURI, 'http://www.w3.org/1999/xhtml', el.outerHTML);
+    assert.equal(el.namespaceURI, 'http://www.w3.org/1999/xhtml', el.outerHTML);
   }
   for (const el of Array.from(fixture.host.querySelectorAll('.is-svg'))) {
-    equal(el.namespaceURI, 'http://www.w3.org/2000/svg', el.outerHTML);
+    assert.equal(el.namespaceURI, 'http://www.w3.org/2000/svg', el.outerHTML);
   }
 
   await expectRendered(
@@ -773,22 +771,19 @@ renderSuite('should render foreignObject properly', async () => {
   );
 });
 
-renderSuite(
-  'should clean up subscriptions after calling the returned cleanup function',
-  async () => {
-    const fixture = new ElementFixture();
+test('should clean up subscriptions after calling the returned cleanup function', async () => {
+  const fixture = new ElementFixture();
 
-    const spies = {
-      cleanupSpy: false,
-    };
+  const spies = {
+    cleanupSpy: false,
+  };
 
-    const { cleanup } = await render(fixture.host, <CleanupComponent spies={spies} />);
+  const { cleanup } = await render(fixture.host, <CleanupComponent spies={spies} />);
 
-    cleanup();
+  cleanup();
 
-    equal(spies.cleanupSpy, true);
-  }
-);
+  assert.equal(spies.cleanupSpy, true);
+});
 
 async function expectRendered(fixture: ElementFixture, expected: string) {
   const firstNode = getFirstNode(fixture.host);
@@ -1060,5 +1055,3 @@ export const CleanupComponent = component$((props: { spies: { cleanupSpy: boolea
     </div>
   );
 });
-
-renderSuite.run();

@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "incremental": true,
+    "target": "ES2020",
+    "module": "ES2020",
+    "lib": ["es2021", "DOM", "webworker", "DOM.Iterable"],
+    "resolveJsonModule": true,
+    "jsx": "react-jsx",
+    "allowArbitraryExtensions": true,
+    "jsxImportSource": "@builder.io/qwik",
+    "declaration": true,
+    "outDir": "./dist-dev/tsc-out",
+    "declarationDir": "./dist-dev/dts-out",
+    "strict": true,
+    "verbatimModuleSyntax": true,
+    "moduleResolution": "node",
+    "baseUrl": ".",
+    "assumeChangesOnlyAffectDirectDependencies": true,
+    "noUnusedLocals": true,
+    "paths": {},
+    "types": ["node", "vite/client"],
+    "esModuleInterop": true,
+    "sourceRoot": ".",
+    "inlineSourceMap": true,
+    "inlineSources": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  }
+}

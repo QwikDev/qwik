@@ -8,7 +8,9 @@ contributors:
 # 🧪 Insights 
 **Stage:** `prototyping`
 
-Insights allow your application to collect real user usage information to optimize the creation of bundles. By observing real user behavior, the Qwik build system can then do a better job of placing symbols, which are used together, into the same chunk, thus minimizing the waterfall effect that could occur if there are too many small files needing to be downloaded.
+Insights allow your application to collect real user usage information to optimize the creation of bundles. By observing real user behavior, the Qwik build system can then do a better job prefetching bundles for your application. There are two benefits of this:
+1. By noticing which symbols are used together, the bundler can colocate the symbols in the same bundle minimizing the waterfall that could occur if there are too many small files needing to be downloaded.
+2. By observing in which order the symbols are used, the prefetcher can then fetch bundles in priority order ensuring that the bundles that are used more often are loaded first.
 
 ## Architecture
 
@@ -19,9 +21,9 @@ The optimization consists of these parts:
 
 > NOTE:
 > To try this new feature please drop a message inside the [Qwik Discord server](https://qwik.builder.io/chat)
-> Currently Insights info are hosted into builder database. This information are about the execution of symbols/chunks in the application.
+> Currently Insights info is hosted in the Builder database. This information is about the execution of symbols/chunks in the application.
 > The implementation of the service is open-source and you have the choice to use ours or host your own.
-> (Please note, this may become a paid service in the future.)
+> (Please note, that this may become a paid service in the future.)
 
 
 ## `<Insights>` component
@@ -50,14 +52,14 @@ export default component$(() => {
 });
 ```
 
-You can get `PUBLIC_QWIK_INSIGHTS_KEY` by asking it in inside the [Qwik Discord server](https://qwik.builder.io/chat)
+You can get `PUBLIC_QWIK_INSIGHTS_KEY` by asking in the [Qwik Discord server](https://qwik.builder.io/chat).
 
 The `<Insights>` component collects this data:
 - Timing information of symbols.
 - The `pathname` part of the URL.
 - Random sessionID which identifies which symbol loads came from the same browser session.
 
-NOTE: The `<Insights>` component does not collect any user identifiable information.
+NOTE: The `<Insights>` component does not collect any user-identifiable information.
 
 The information collected is sent to builder.io database for storage.
 

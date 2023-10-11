@@ -11,8 +11,8 @@
     ],
     "nextSteps": {
       "lines": [
-        " You have to change the 'origin' url under staticAdapter",
-        " inside './adapters/static/vite.config.ts'"
+        "You have to change the 'origin' url under staticAdapter",
+        "inside './adapters/static/vite.config.ts'"
       ]
     }
   }

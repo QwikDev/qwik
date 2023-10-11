@@ -1357,15 +1357,6 @@ interface IntrinsicElements extends QwikJSX.IntrinsicElements
 
 **Extends:** [QwikJSX.IntrinsicElements](#)
 
-<<<<<<< HEAD
-## isSignal
-
-```typescript
-isSignal: (obj: any) => obj is Signal<any>
-```
-
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/state/signal.ts)
-=======
 ## IntrinsicHTMLElements
 
 ```typescript
@@ -1562,7 +1553,16 @@ export interface IntrinsicSVGElements
 | [view](#)                |           | [SVGProps](#svgprops)&lt;SVGViewElement&gt;                |             |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
->>>>>>> upstream/main
+
+## isSignal
+
+Checks if a given object is a `Signal`.
+
+```typescript
+isSignal: (obj: any) => obj is Signal<any>
+```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/state/signal.ts)
 
 ## jsx
 

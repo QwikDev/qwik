@@ -611,9 +611,6 @@ export const inlinedQrl: <T>(symbol: T, symbolName: string, lexicalScopeCapture?
 export const inlinedQrlDEV: <T = any>(symbol: T, symbolName: string, opts: QRLDev, lexicalScopeCapture?: any[]) => QRL<T>;
 
 // @public (undocumented)
-<<<<<<< HEAD
-export const isSignal: (obj: any) => obj is Signal<any>;
-=======
 export interface InputHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
     // (undocumented)
     'bind:checked'?: Signal<boolean | undefined>;
@@ -1060,7 +1057,9 @@ export interface IntrinsicSVGElements {
     // (undocumented)
     view: SVGProps<SVGViewElement>;
 }
->>>>>>> upstream/main
+
+// @public
+export const isSignal: (obj: any) => obj is Signal<any>;
 
 // @public (undocumented)
 const jsx: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>, key?: string | number | null) => JSXNode<T>;

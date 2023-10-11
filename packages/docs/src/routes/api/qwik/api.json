@@ -996,20 +996,6 @@
       "mdFile": "qwik.h.jsx.intrinsicelements.md"
     },
     {
-<<<<<<< HEAD
-      "name": "isSignal",
-      "id": "issignal",
-      "hierarchy": [
-        {
-          "name": "isSignal",
-          "id": "issignal"
-        }
-      ],
-      "kind": "Variable",
-      "content": "```typescript\nisSignal: (obj: any) => obj is Signal<any>\n```",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/state/signal.ts",
-      "mdFile": "qwik.issignal.md"
-=======
       "name": "IntrinsicHTMLElements",
       "id": "intrinsichtmlelements",
       "hierarchy": [
@@ -1036,7 +1022,20 @@
       "content": "```typescript\nexport interface IntrinsicSVGElements \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [animate](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGElement&gt; |  |\n|  [animateMotion](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGElement&gt; |  |\n|  [animateTransform](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGElement&gt; |  |\n|  [circle](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGCircleElement&gt; |  |\n|  [clipPath](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGClipPathElement&gt; |  |\n|  [defs](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGDefsElement&gt; |  |\n|  [desc](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGDescElement&gt; |  |\n|  [ellipse](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGEllipseElement&gt; |  |\n|  [feBlend](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGFEBlendElement&gt; |  |\n|  [feColorMatrix](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGFEColorMatrixElement&gt; |  |\n|  [feComponentTransfer](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGFEComponentTransferElement&gt; |  |\n|  [feComposite](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGFECompositeElement&gt; |  |\n|  [feConvolveMatrix](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGFEConvolveMatrixElement&gt; |  |\n|  [feDiffuseLighting](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGFEDiffuseLightingElement&gt; |  |\n|  [feDisplacementMap](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGFEDisplacementMapElement&gt; |  |\n|  [feDistantLight](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGFEDistantLightElement&gt; |  |\n|  [feDropShadow](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGFEDropShadowElement&gt; |  |\n|  [feFlood](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGFEFloodElement&gt; |  |\n|  [feFuncA](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGFEFuncAElement&gt; |  |\n|  [feFuncB](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGFEFuncBElement&gt; |  |\n|  [feFuncG](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGFEFuncGElement&gt; |  |\n|  [feFuncR](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGFEFuncRElement&gt; |  |\n|  [feGaussianBlur](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGFEGaussianBlurElement&gt; |  |\n|  [feImage](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGFEImageElement&gt; |  |\n|  [feMerge](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGFEMergeElement&gt; |  |\n|  [feMergeNode](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGFEMergeNodeElement&gt; |  |\n|  [feMorphology](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGFEMorphologyElement&gt; |  |\n|  [feOffset](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGFEOffsetElement&gt; |  |\n|  [fePointLight](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGFEPointLightElement&gt; |  |\n|  [feSpecularLighting](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGFESpecularLightingElement&gt; |  |\n|  [feSpotLight](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGFESpotLightElement&gt; |  |\n|  [feTile](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGFETileElement&gt; |  |\n|  [feTurbulence](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGFETurbulenceElement&gt; |  |\n|  [filter](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGFilterElement&gt; |  |\n|  [foreignObject](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGForeignObjectElement&gt; |  |\n|  [g](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGGElement&gt; |  |\n|  [image](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGImageElement&gt; |  |\n|  [line](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGLineElement&gt; |  |\n|  [linearGradient](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGLinearGradientElement&gt; |  |\n|  [marker](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGMarkerElement&gt; |  |\n|  [mask](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGMaskElement&gt; |  |\n|  [metadata](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGMetadataElement&gt; |  |\n|  [mpath](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGElement&gt; |  |\n|  [path](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGPathElement&gt; |  |\n|  [pattern](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGPatternElement&gt; |  |\n|  [polygon](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGPolygonElement&gt; |  |\n|  [polyline](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGPolylineElement&gt; |  |\n|  [radialGradient](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGRadialGradientElement&gt; |  |\n|  [rect](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGRectElement&gt; |  |\n|  [stop](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGStopElement&gt; |  |\n|  [svg](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGSVGElement&gt; |  |\n|  [switch](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGSwitchElement&gt; |  |\n|  [symbol](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGSymbolElement&gt; |  |\n|  [text](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGTextElement&gt; |  |\n|  [textPath](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGTextPathElement&gt; |  |\n|  [tspan](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGTSpanElement&gt; |  |\n|  [use](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGUseElement&gt; |  |\n|  [view](#) |  | [SVGProps](#svgprops)<!-- -->&lt;SVGViewElement&gt; |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts",
       "mdFile": "qwik.intrinsicsvgelements.md"
->>>>>>> upstream/main
+    },
+    {
+      "name": "isSignal",
+      "id": "issignal",
+      "hierarchy": [
+        {
+          "name": "isSignal",
+          "id": "issignal"
+        }
+      ],
+      "kind": "Variable",
+      "content": "Checks if a given object is a `Signal`<!-- -->.\n\n\n```typescript\nisSignal: (obj: any) => obj is Signal<any>\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/state/signal.ts",
+      "mdFile": "qwik.issignal.md"
     },
     {
       "name": "jsx",

@@ -35,15 +35,13 @@ test.describe("loaders", () => {
       await expect(nestedDep).toHaveText("dep: 84");
       await expect(metaDate).toHaveAttribute(
         "content",
-        "2021-01-01T00:00:00.000Z"
+        "2021-01-01T00:00:00.000Z",
       );
       await expect(metaDep).toHaveAttribute("content", "42");
 
       await expect(nestedName).toHaveText("name: hola");
       await formName.fill("Manuel");
       await submit.click();
-      await page.waitForTimeout(1000);
-
       await expect(title).toHaveText("Loaders - ACTION: Manuel - Qwik", {
         useInnerText: true,
       });
@@ -54,7 +52,6 @@ test.describe("loaders", () => {
       await expect(nestedName).toHaveText("name: Manuel");
 
       await page.locator("#link-stuff").click();
-      await page.waitForTimeout(1000);
       await expect(title).toHaveText("Loaders - Qwik", { useInnerText: true });
       await expect(date).toHaveText("date: 2021-01-01T00:00:00.000Z");
       await expect(slow).toHaveText("slow: 123");
@@ -63,7 +60,6 @@ test.describe("loaders", () => {
       await expect(nestedName).toHaveText("name: stuff");
 
       await page.locator("#link-welcome").click();
-      await page.waitForTimeout(1000);
       await expect(title).toHaveText("Loaders - Qwik", { useInnerText: true });
       await expect(date).toHaveText("date: 2021-01-01T00:00:00.000Z");
       await expect(slow).toHaveText("slow: 123");
@@ -80,7 +76,6 @@ test.describe("loaders", () => {
       const submit = page.locator("#submit");
 
       await submit.click();
-      await page.waitForTimeout(300);
 
       await expect(realDate).not.toHaveText(value!);
     });

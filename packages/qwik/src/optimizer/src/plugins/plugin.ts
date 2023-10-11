@@ -6,6 +6,7 @@ import type {
   GeneratedOutputBundle,
   GlobalInjections,
   HookAnalysis,
+  InsightManifest,
   Optimizer,
   OptimizerOptions,
   QwikManifest,
@@ -88,6 +89,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     srcDir: null as any,
     srcInputs: null as any,
     manifestInput: null,
+    insightsManifest: null,
     manifestOutput: null,
     transformedModuleOutput: null,
     vendorRoots: [],
@@ -95,6 +97,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     devTools: {
       clickToSource: ['Alt'],
     },
+    inlineStylesUpToBytes: null as any,
   };
 
   const init = async () => {
@@ -184,6 +187,10 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.srcDir = srcDir;
     }
 
+    if (Array.isArray(updatedOpts.tsconfigFileNames) && updatedOpts.tsconfigFileNames.length > 0) {
+      opts.tsconfigFileNames = updatedOpts.tsconfigFileNames;
+    }
+
     if (Array.isArray(opts.srcInputs)) {
       opts.srcInputs.forEach((i) => {
         i.path = normalizePath(path.resolve(opts.rootDir, i.path));
@@ -262,6 +269,11 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
     opts.csr = !!updatedOpts.csr;
 
+    opts.inlineStylesUpToBytes = optimizerOptions.inlineStylesUpToBytes ?? 20000;
+    if (typeof opts.inlineStylesUpToBytes !== 'number' || opts.inlineStylesUpToBytes < 0) {
+      opts.inlineStylesUpToBytes = 0;
+    }
+
     return { ...opts };
   };
 
@@ -295,7 +307,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     log(`buildStart()`, opts.buildMode, opts.scope);
     const optimizer = getOptimizer();
 
-    if (optimizer.sys.env === 'node' && opts.target !== 'ssr') {
+    if (optimizer.sys.env === 'node' && opts.target === 'ssr') {
       try {
         linter = await createLinter(optimizer.sys, opts.rootDir, opts.tsconfigFileNames);
       } catch (err) {
@@ -620,7 +632,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       } else {
         results.set(normalizedID, newOutput);
       }
-      const deps = new Set();
+      const deps = new Set<string>();
       for (const mod of newOutput.modules) {
         if (mod.isEntry) {
           const key = normalizePath(path.join(srcDir, mod.path));
@@ -664,6 +676,14 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
             deps.add(key);
           }
         }
+      }
+
+      // Force loading generated submodules into Rollup cache so later
+      // unchanged imports are not missing in our internal transform cache
+      // This can happen in the repl when the plugin is re-initialized
+      // and possibly in other places
+      for (const id of deps.values()) {
+        await ctx.load({ id });
       }
 
       const module = newOutput.modules.find((m) => !m.isEntry)!;
@@ -881,6 +901,7 @@ export interface QwikPluginOptions {
   vendorRoots?: string[];
   manifestOutput?: ((manifest: QwikManifest) => Promise<void> | void) | null;
   manifestInput?: QwikManifest | null;
+  insightsManifest?: InsightManifest | null;
   input?: string[] | string | { [entry: string]: string };
   outDir?: string;
   srcDir?: string | null;
@@ -892,18 +913,20 @@ export interface QwikPluginOptions {
     | ((transformedModules: TransformModule[]) => Promise<void> | void)
     | null;
   devTools?: QwikPluginDevTools;
+  /**
+   * Inline styles up to a certain size (in bytes) instead of using a separate file.
+   *
+   * Default: 20kb (20,000bytes)
+   */
+  inlineStylesUpToBytes?: number;
 }
 
 export interface NormalizedQwikPluginOptions extends Required<QwikPluginOptions> {
   input: string[];
 }
 
-/**
- * @public
- */
+/** @public */
 export type QwikBuildTarget = 'client' | 'ssr' | 'lib' | 'test';
 
-/**
- * @public
- */
+/** @public */
 export type QwikBuildMode = 'production' | 'development';

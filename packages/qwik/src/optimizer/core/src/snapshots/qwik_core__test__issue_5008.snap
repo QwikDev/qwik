@@ -1,0 +1,120 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+        import { component$, useStore } from "@builder.io/qwik";
+
+        export default component$(() => {
+        const store = useStore([{ value: 0 }]);
+        return (
+            <>
+            <button onClick$={() => store[0].value++}>+1</button>
+            {store.map(function (v, idx) {
+                return <div key={"fn_" + idx}>Function: {v.value}</div>;
+            })}
+            {store.map((v, idx) => (
+                <div key={"arrow_" + idx}>Arrow: {v.value}</div>
+            ))}
+            </>
+        );
+        });
+        
+============================= test.js ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test_component_luxexe0dqrg"), "test_component_LUXeXe0DQrg"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGQ,6BAAe,0GAaZ\"}")
+============================= test_component_luxexe0dqrg.js (ENTRY POINT)==
+
+import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
+import { _jsxC } from "@builder.io/qwik";
+import { _jsxQ } from "@builder.io/qwik";
+import { _wrapSignal } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+import { useStore } from "@builder.io/qwik";
+export const test_component_LUXeXe0DQrg = ()=>{
+    const store = useStore([
+        {
+            value: 0
+        }
+    ]);
+    return /*#__PURE__*/ _jsxC(_Fragment, {
+        children: [
+            /*#__PURE__*/ _jsxQ("button", null, {
+                onClick$: /*#__PURE__*/ qrl(()=>import("./test_component__fragment_button_onclick_p2zpf6rl1l8"), "test_component__Fragment_button_onClick_p2zPf6rl1L8", [
+                    store
+                ])
+            }, "+1", 3, null),
+            store.map(function(v, idx) {
+                return /*#__PURE__*/ _jsxQ("div", null, null, [
+                    "Function: ",
+                    _wrapSignal(v, "value")
+                ], 1, "fn_" + idx);
+            }),
+            store.map((v, idx)=>/*#__PURE__*/ _jsxQ("div", null, null, [
+                    "Arrow: ",
+                    _wrapSignal(v, "value")
+                ], 1, "arrow_" + idx))
+        ]
+    }, 1, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;0CAGkC,IAAM;IAChC,MAAM,QAAQ,SAAS;QAAC;YAAE,OAAO;QAAE;KAAE;IACrC,qBACI;;0BACA,MAAC;gBAAO,QAAQ;;;eAA0B;YACzC,MAAM,GAAG,CAAC,SAAU,CAAC,EAAE,GAAG,EAAE;gBACzB,qBAAO,MAAC;oBAAsB;gCAAW;sBAAxB,QAAQ;YAC7B;YACC,MAAM,GAAG,CAAC,CAAC,GAAG,oBACX,MAAC;oBAAyB;gCAAQ;sBAAxB,WAAW;;;AAI7B\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_LUXeXe0DQrg",
+  "entry": null,
+  "displayName": "test_component",
+  "hash": "LUXeXe0DQrg",
+  "canonicalFilename": "test_component_luxexe0dqrg",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    102,
+    542
+  ]
+}
+*/
+============================= test_component__fragment_button_onclick_p2zpf6rl1l8.js (ENTRY POINT)==
+
+import { useLexicalScope } from "@builder.io/qwik";
+export const test_component__Fragment_button_onClick_p2zPf6rl1L8 = ()=>{
+    const [store] = useLexicalScope();
+    return store[0].value++;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";mEAO8B;;WAAM,KAAK,CAAC,EAAE,CAAC,KAAK\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component__Fragment_button_onClick_p2zPf6rl1L8",
+  "entry": null,
+  "displayName": "test_component__Fragment_button_onClick",
+  "hash": "p2zPf6rl1L8",
+  "canonicalFilename": "test_component__fragment_button_onclick_p2zpf6rl1l8",
+  "extension": "js",
+  "parent": "test_component_LUXeXe0DQrg",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    220,
+    242
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

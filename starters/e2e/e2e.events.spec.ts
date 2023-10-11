@@ -5,6 +5,7 @@ test.describe("events", () => {
     await page.goto("/e2e/events");
     page.on("pageerror", (err) => expect(err).toEqual(undefined));
     page.on("console", (msg) => {
+      // console.log(msg.type(), msg.text());
       if (msg.type() === "error") {
         expect(msg.text()).toEqual(undefined);
       }
@@ -14,51 +15,36 @@ test.describe("events", () => {
   test("should rerender correctly", async ({ page }) => {
     const btnWrapped = page.locator("#btn-wrapped");
     const btnTransparent = page.locator("#btn-transparent");
-
     const contentTransparent = page.locator("#count-transparent");
     const countWrapped = page.locator("#count-wrapped");
 
-    expect(await contentTransparent.textContent()).toEqual(
-      "countTransparent: 0"
-    );
-    expect(await countWrapped.textContent()).toEqual("countWrapped: 0");
-    expect(await btnWrapped.textContent()).toEqual("Wrapped 0");
+    await expect(contentTransparent).toHaveText("countTransparent: 0");
+    await expect(countWrapped).toHaveText("countWrapped: 0");
+    await expect(btnWrapped).toHaveText("Wrapped 0");
 
     // Click wrapped
     await btnWrapped.click();
-    await page.waitForTimeout(100);
-    expect(await contentTransparent.textContent()).toEqual(
-      "countTransparent: 0"
-    );
-    expect(await countWrapped.textContent()).toEqual("countWrapped: 1");
-    expect(await btnWrapped.textContent()).toEqual("Wrapped 1");
+    await expect(countWrapped).toHaveText("countWrapped: 1");
+    await expect(btnWrapped).toHaveText("Wrapped 1");
+    await expect(contentTransparent).toHaveText("countTransparent: 0");
 
     // Click wrapped
     await btnWrapped.click();
-    await page.waitForTimeout(100);
-    expect(await contentTransparent.textContent()).toEqual(
-      "countTransparent: 0"
-    );
-    expect(await countWrapped.textContent()).toEqual("countWrapped: 2");
-    expect(await btnWrapped.textContent()).toEqual("Wrapped 2");
+    await expect(countWrapped).toHaveText("countWrapped: 2");
+    await expect(btnWrapped).toHaveText("Wrapped 2");
+    await expect(contentTransparent).toHaveText("countTransparent: 0");
 
     // Click transparent
     await btnTransparent.click();
-    await page.waitForTimeout(100);
-    expect(await contentTransparent.textContent()).toEqual(
-      "countTransparent: 1"
-    );
-    expect(await countWrapped.textContent()).toEqual("countWrapped: 2");
-    expect(await btnWrapped.textContent()).toEqual("Wrapped 2");
+    await expect(contentTransparent).toHaveText("countTransparent: 1");
+    await expect(countWrapped).toHaveText("countWrapped: 2");
+    await expect(btnWrapped).toHaveText("Wrapped 2");
 
     // Click transparent
     await btnTransparent.click();
-    await page.waitForTimeout(100);
-    expect(await contentTransparent.textContent()).toEqual(
-      "countTransparent: 2"
-    );
-    expect(await countWrapped.textContent()).toEqual("countWrapped: 2");
-    expect(await btnWrapped.textContent()).toEqual("Wrapped 2");
+    await expect(contentTransparent).toHaveText("countTransparent: 2");
+    await expect(countWrapped).toHaveText("countWrapped: 2");
+    await expect(btnWrapped).toHaveText("Wrapped 2");
   });
 
   test("should prevent defaults and bubbling", async ({ page }) => {

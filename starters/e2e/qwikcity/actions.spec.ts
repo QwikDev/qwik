@@ -1,5 +1,4 @@
 import { expect, test } from "@playwright/test";
-import { pathToFileURL } from "url";
 
 test.describe("actions", () => {
   test.describe("mpa", () => {
@@ -40,7 +39,7 @@ test.describe("actions", () => {
           await btn.click();
           await expect(success).toHaveText("Success");
           await expect(page.locator("#other-store")).toHaveText(
-            'false:::{"success":true}'
+            'false:::{"success":true}',
           );
         }
       });
@@ -59,7 +58,7 @@ test.describe("actions", () => {
         await expect(other).toHaveText("false:::");
         await submit.click();
         await expect(usernameError).toHaveText(
-          "String must contain at least 3 character(s)"
+          "String must contain at least 3 character(s)",
         );
         await expect(codeError).toBeHidden();
         await expect(other).toHaveText("false:::");
@@ -77,7 +76,7 @@ test.describe("actions", () => {
         await username.fill("Ma");
         await submit.click();
         await expect(usernameError).toHaveText(
-          "String must contain at least 3 character(s)"
+          "String must contain at least 3 character(s)",
         );
         await expect(codeError).toHaveText("Expected number, received nan");
         await expect(username).toHaveValue("Ma");
@@ -102,7 +101,6 @@ test.describe("actions", () => {
         if (javaScriptEnabled) {
           await expect(running).toHaveText("Running...");
         }
-        await page.waitForTimeout(2500);
         await expect(running).toBeHidden();
         await expect(errorMessage).toBeHidden();
         await expect(successMessage).toHaveText("this is the secret");
@@ -111,8 +109,8 @@ test.describe("actions", () => {
         await username.clear();
         await username.fill("redirect");
         await submit.click();
-        await page.waitForTimeout(200);
-        expect(new URL(page.url()).pathname).toEqual("/qwikcity-test/");
+
+        await expect(page).toHaveURL("/qwikcity-test/");
       });
 
       test("issue with action", async ({ page }) => {
@@ -134,15 +132,13 @@ test.describe("actions", () => {
         await page.goto("/qwikcity-test/issue2644/");
         await page.locator("#issue2644-input").fill("AAA");
         await page.locator("#issue2644-submit").click();
-        await page.waitForTimeout(200);
 
-        const pageUrl = new URL(page.url());
-        await expect(pageUrl.pathname).toBe("/qwikcity-test/issue2644/other/");
         await expect(page.locator("#issue2644-list > li")).toHaveText(["AAA"]);
+        expect(page).toHaveURL("/qwikcity-test/issue2644/other/");
 
         await page.locator("#issue2644-input").fill("BBB");
         await page.locator("#issue2644-submit").click();
-        await expect(pageUrl.pathname).toBe("/qwikcity-test/issue2644/other/");
+        expect(page).toHaveURL(new RegExp("/qwikcity-test/issue2644/other/"));
 
         await expect(page.locator("#issue2644-list > li")).toHaveText([
           "AAA",
@@ -159,9 +155,24 @@ test.describe("actions", () => {
         await expect(success).toBeHidden();
         await page.locator("#issue3497-button").click();
         await expect(success).toHaveText(
-          '{"credentials":{"username":"user","password":"pass"},"array":["1","2"]}'
+          '{"credentials":{"username":"user","password":"pass"},"array":["1","2"]}',
         );
         await expect(true).toBeTruthy();
+      });
+    });
+
+    test.describe("issue3183", () => {
+      test("should parse dot notation index array formdata", async ({
+        page,
+      }) => {
+        await page.goto("/qwikcity-test/actions/issue3183/");
+        const success = page.locator("#issue3183-success");
+
+        await expect(success).toBeHidden();
+        await page.locator("#issue3183-button").click();
+        await expect(success).toHaveText(
+          '{"arrayOld":["0","1"],"arrayNew":["0","1"],"people":[{"name":"Fred"},{"name":"Sam"}]}',
+        );
       });
     });
   }

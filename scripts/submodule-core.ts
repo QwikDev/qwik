@@ -1,6 +1,6 @@
 import { type BuildConfig, rollupOnWarn } from './util';
 import { build, type BuildOptions } from 'esbuild';
-import { getBanner, fileSize, readFile, target, watcher, writeFile } from './util';
+import { getBanner, fileSize, readFile, target, writeFile } from './util';
 import { type InputOptions, type OutputOptions, rollup } from 'rollup';
 import { join } from 'node:path';
 import { minify } from 'terser';
@@ -8,9 +8,8 @@ import { minify } from 'terser';
 /**
  * Build the core package which is also the root package: @builder.io/qwik
  *
- * Uses esbuild during development (cuz it's super fast) and
- * TSC + Rollup + Terser for production, because it generates smaller code
- * that minifies better.
+ * Uses esbuild during development (cuz it's super fast) and TSC + Rollup + Terser for production,
+ * because it generates smaller code that minifies better.
  */
 export function submoduleCore(config: BuildConfig) {
   if (config.dev) {
@@ -224,14 +223,12 @@ async function submoduleCoreDev(config: BuildConfig) {
     ...opts,
     format: 'esm',
     outExtension: { '.js': '.mjs' },
-    watch: watcher(config, submodule),
   });
 
   const cjs = build({
     ...opts,
     format: 'cjs',
     outExtension: { '.js': '.cjs' },
-    watch: watcher(config),
     banner: {
       js: `globalThis.qwikCore = (function (module) {`,
     },

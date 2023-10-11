@@ -6,8 +6,8 @@ import { format } from 'prettier';
 /**
  * Returns true if the `node` is `Element` and of the right `tagName`.
  *
- * @param node
  * @private
+ * @param node
  */
 export function isDomElementWithTagName(
   node: Node | null | undefined,
@@ -16,21 +16,17 @@ export function isDomElementWithTagName(
   return isHtmlElement(node) && node.tagName.toUpperCase() == tagName.toUpperCase();
 }
 
-/**
- * @private
- */
+/** @private */
 export function isTemplateElement(node: Node | null | undefined): node is HTMLTemplateElement {
   return isDomElementWithTagName(node, 'template');
 }
 
-/**
- * @private
- */
+/** @private */
 export function isQSLotTemplateElement(node: Node | null | undefined): node is HTMLTemplateElement {
   return isTemplateElement(node) && node.hasAttribute(QSlot);
 }
 
 export async function expectDOM(actual: Element, expected: string) {
   const options = { parser: 'html', htmlWhitespaceSensitivity: 'ignore' as const };
-  snapshot(format(actual.outerHTML, options), format(expected, options));
+  snapshot(await format(actual.outerHTML, options), await format(expected, options));
 }

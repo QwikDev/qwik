@@ -5,6 +5,7 @@ test.describe("styles", () => {
     await page.goto("/e2e/styles");
     page.on("pageerror", (err) => expect(err).toEqual(undefined));
     page.on("console", (msg) => {
+      // console.log(msg.type(), msg.text());
       if (msg.type() === "error") {
         expect(msg.text()).toEqual(undefined);
       }
@@ -16,7 +17,9 @@ test.describe("styles", () => {
   test.describe("client side", () => {
     test.beforeEach(async ({ page }) => {
       const reload = page.locator("#reload");
+      const v = Number(await reload.getAttribute("v"));
       await reload.click();
+      await expect(page.locator("#renderCount")).toHaveText(`Render ${v}`);
     });
     runTests();
   });
@@ -29,35 +32,28 @@ test.describe("styles", () => {
 
       const addChild = page.locator("button#add-child");
 
-      await expect(parent).toHaveClass(
-        "⭐️k8e9w3-0 ⭐️yohuk3-1 parent count-10"
-      );
+      await expect(parent).toHaveClass(/count-10/);
       await expect(parent).toHaveCSS("font-size", "200px");
       await expect(child2).toHaveCSS("font-size", "20px");
       await expect(inline2).toHaveCSS("font-size", "40px");
 
       const el = await page.$$("[q\\:style]");
-      await expect(el.length).toBe(9);
+      expect(el.length).toBe(9);
       await addChild.click();
-      await page.waitForTimeout(100);
+      await expect(parent).toHaveClass(/count-11/);
 
       const child10 = page.locator("text=Child 10");
       const inline10 = page.locator("text=Inline 10");
 
-      await expect(parent).toHaveClass(
-        "⭐️k8e9w3-0 ⭐️yohuk3-1 parent count-11"
-      );
       await expect(parent).toHaveCSS("font-size", "200px");
       await expect(child2).toHaveCSS("font-size", "20px");
       await expect(inline2).toHaveCSS("font-size", "40px");
       await expect(child10).toHaveCSS("font-size", "20px");
-      await expect(inline10).toHaveClass(
-        "⭐️k8e9w3-0 ⭐️yohuk3-1 parent-child"
-      );
+      await expect(inline10).toHaveClass(/parent-child/);
       await expect(inline10).toHaveCSS("font-size", "40px");
 
       const el2 = await page.$$("[q\\:style]");
-      await expect(el2.length).toBe(9);
+      expect(el2.length).toBe(9);
     });
 
     test("issue 1945", async ({ page }) => {
@@ -92,8 +88,10 @@ test.describe("styles", () => {
       const button = page.locator("#issue-scoped-fine-grained");
       await expect(button).toHaveCSS("background-color", "rgb(0, 128, 0)");
       await button.click();
+      await expect(button).toHaveClass(/odd/);
       await expect(button).toHaveCSS("background-color", "rgb(0, 0, 255)");
       await button.click();
+      await expect(button).toHaveClass(/even/);
       await expect(button).toHaveCSS("background-color", "rgb(0, 128, 0)");
     });
   }

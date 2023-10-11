@@ -5,8 +5,8 @@ import { generateApiMarkdownDocs } from './api-docs';
 import { type BuildConfig, panic } from './util';
 
 /**
- * Create each submodule's bundled dts file, and ensure
- * the public API has not changed for a production build.
+ * Create each submodule's bundled dts file, and ensure the public API has not changed for a
+ * production build.
  */
 export async function apiExtractor(config: BuildConfig) {
   const apiJsonInputDir = join(config.rootDir, 'dist-dev', 'api');
@@ -98,6 +98,11 @@ export async function apiExtractor(config: BuildConfig) {
   );
   createTypesApi(
     config,
+    join(config.packagesDir, 'qwik-city', 'adapters', 'bun-server', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'adapters', 'bun-server', 'vite', 'index.d.ts')
+  );
+  createTypesApi(
+    config,
     join(config.packagesDir, 'qwik-city', 'adapters', 'node-server', 'vite'),
     join(config.packagesDir, 'qwik-city', 'lib', 'adapters', 'node-server', 'vite', 'index.d.ts')
   );
@@ -133,6 +138,11 @@ export async function apiExtractor(config: BuildConfig) {
   );
   createTypesApi(
     config,
+    join(config.packagesDir, 'qwik-city', 'middleware', 'bun'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'bun', 'index.d.ts')
+  );
+  createTypesApi(
+    config,
     join(config.packagesDir, 'qwik-city', 'middleware', 'deno'),
     join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'deno', 'index.d.ts')
   );
@@ -150,6 +160,11 @@ export async function apiExtractor(config: BuildConfig) {
     config,
     join(config.packagesDir, 'qwik-city', 'middleware', 'request-handler'),
     join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'request-handler', 'index.d.ts')
+  );
+  createTypesApi(
+    config,
+    join(config.packagesDir, 'qwik-city', 'middleware', 'firebase'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'firebase', 'index.d.ts')
   );
   createTypesApi(
     config,
@@ -286,8 +301,8 @@ declare module '*&jsx' {
 }
 
 /**
- * Fix up the generated dts content, and ensure it's using a relative
- * path to find the core.d.ts file, rather than node resolving it.
+ * Fix up the generated dts content, and ensure it's using a relative path to find the core.d.ts
+ * file, rather than node resolving it.
  */
 function fixDtsContent(config: BuildConfig, srcPath: string, relativePath?: string) {
   let dts = readFileSync(srcPath, 'utf-8');

@@ -27,8 +27,6 @@ test.describe("signals", () => {
       const stuff = page.locator("#stuff");
       const body = page.locator("body");
 
-      await page.waitForTimeout(100);
-
       await expect(parentRender).toHaveText("Parent renders: 1");
       await expect(childRender).toHaveText("Child renders: 1");
       await expect(text).toHaveText("Text: Message");
@@ -209,7 +207,6 @@ test.describe("signals", () => {
     test("issue 2245-b", async ({ page }) => {
       const btn = page.locator("#issue-2245-b-btn");
       const results = page.locator(".issue-2245-b-results p");
-      await page.waitForTimeout(200);
       await expect(results).toHaveCSS("color", "rgb(0, 0, 0)");
 
       await btn.click();
@@ -248,7 +245,6 @@ test.describe("signals", () => {
       ]);
 
       await btn.click();
-      await page.waitForTimeout(200);
 
       await expect(results).toHaveText([
         "This text should not change",
@@ -283,7 +279,6 @@ test.describe("signals", () => {
       ]);
       await page.waitForTimeout(100);
       await input.fill("test");
-      await page.waitForTimeout(200);
       await expect(results).toHaveText([
         '{"controls":{"ctrl":{"value":"test"}}}',
         '{"ctrl":{"value":"test"}}',
@@ -464,8 +459,6 @@ test.describe("signals", () => {
       const resultC = page.locator("#issue-4228-result-c");
       const resultTotal = page.locator("#issue-4228-result-total");
 
-      await page.waitForTimeout(100);
-
       await expect(resultA).toHaveText("0:0");
       await expect(resultB).toHaveText("0:0");
       await expect(resultC).toHaveText("0:0");
@@ -520,6 +513,48 @@ test.describe("signals", () => {
       await expect(button).toHaveText("Example button");
       await expect(button).not.toBeDisabled();
     });
+
+    test("issue 4868", async ({ page }) => {
+      const btn1 = page.locator("#issue-4868-btn-1");
+      const btn2 = page.locator("#issue-4868-btn-2");
+      const json = page.locator("#issue-4868-json");
+      const props = page.locator("#issue-4868-props");
+      const usecomputed = page.locator("#issue-4868-usecomputed");
+
+      await expect(json).toHaveText(
+        `{"src":"https://placehold.co/400x400?text=1","id":1}`,
+      );
+      await expect(props).toHaveText(
+        `Card props.src: https://placehold.co/400x400?text=1`,
+      );
+      await expect(usecomputed).toHaveText(
+        `Card useComputed$: https://placehold.co/400x400?text=1&useComputed$`,
+      );
+
+      await btn2.click();
+
+      await expect(json).toHaveText(
+        `{"src":"https://placehold.co/500x500?text=2","id":2}`,
+      );
+      await expect(props).toHaveText(
+        `Card props.src: https://placehold.co/500x500?text=2`,
+      );
+      await expect(usecomputed).toHaveText(
+        `Card useComputed$: https://placehold.co/500x500?text=2&useComputed$`,
+      );
+
+      await btn1.click();
+
+      await expect(json).toHaveText(
+        `{"src":"https://placehold.co/400x400?text=1","id":1}`,
+      );
+      await expect(props).toHaveText(
+        `Card props.src: https://placehold.co/400x400?text=1`,
+      );
+      await expect(usecomputed).toHaveText(
+        `Card useComputed$: https://placehold.co/400x400?text=1&useComputed$`,
+      );
+    });
   }
 
   tests();
@@ -531,5 +566,14 @@ test.describe("signals", () => {
       await page.waitForTimeout(200);
     });
     tests();
+  });
+});
+
+test.describe("regressions", () => {
+  test("issue 5001", async ({ page }) => {
+    await page.goto("/e2e/signals/issue-5001");
+    await expect(page.locator(".count")).toHaveText("0");
+    await page.locator("button").click();
+    await expect(page.locator(".count")).toHaveText("1");
   });
 });

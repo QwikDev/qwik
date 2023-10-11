@@ -1,5 +1,5 @@
 import { component$, useStore, useStyles$, useVisibleTask$ } from '@builder.io/qwik';
-import styles from './clock.css';
+import styles from './clock.css?inline';
 
 interface ClockStore {
   hour: number;

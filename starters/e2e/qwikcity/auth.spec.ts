@@ -18,7 +18,7 @@ function tests() {
     const ctx = await load(
       context,
       javaScriptEnabled,
-      "/qwikcity-test/sign-in/"
+      "/qwikcity-test/sign-in/",
     );
 
     /***********  Sign In  ***********/

@@ -13,7 +13,7 @@ export const GETTING_STARTED_STEPS = [
   },
   {
     message:
-      "<b>Update</b> now the <code>routeLoader$</code> defined in the <code>src/routes//layout.tsx</code> file",
+      "<b>Update</b> now the <code>routeLoader$</code> defined in the <code>src/routes/layout.tsx</code> file",
     hint: "Instead of returning the current date, you could return any possible string.<br />The output is displayed in the footer.",
   },
   {
@@ -39,7 +39,7 @@ export default component$(() => {
       if ((e as KeyboardEvent).key === "Alt") {
         gettingStartedStep.value = 1;
       }
-    })
+    }),
   );
 
   return (

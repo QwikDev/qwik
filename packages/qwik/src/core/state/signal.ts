@@ -15,26 +15,18 @@ import {
 import { QObjectManagerSymbol, _IMMUTABLE, _IMMUTABLE_PREFIX } from './constants';
 import { _fnSignal } from '../qrl/inlined-fn';
 
-/**
- * @public
- */
+/** @public */
 export interface Signal<T = any> {
   value: T;
 }
 
-/**
- * @public
- */
+/** @public */
 export type ReadonlySignal<T = any> = Readonly<Signal<T>>;
 
-/**
- * @public
- */
+/** @public */
 export type ValueOrSignal<T> = T | Signal<T>;
 
-/**
- * @internal
- */
+/** @internal */
 export const _createSignal = <T>(
   value: T,
   containerState: ContainerState,
@@ -135,7 +127,11 @@ export class SignalImpl<T> extends SignalBase implements Signal<T> {
 }
 
 export class SignalDerived<T = any, ARGS extends any[] = any[]> extends SignalBase {
-  constructor(public $func$: (...args: ARGS) => T, public $args$: ARGS, public $funcStr$?: string) {
+  constructor(
+    public $func$: (...args: ARGS) => T,
+    public $args$: ARGS,
+    public $funcStr$?: string
+  ) {
     super();
   }
 
@@ -145,7 +141,10 @@ export class SignalDerived<T = any, ARGS extends any[] = any[]> extends SignalBa
 }
 
 export class SignalWrapper<T extends Record<string, any>, P extends keyof T> extends SignalBase {
-  constructor(public ref: T, public prop: P) {
+  constructor(
+    public ref: T,
+    public prop: P
+  ) {
     super();
   }
 
@@ -169,9 +168,7 @@ export const isSignal = (obj: any): obj is Signal<any> => {
   return obj instanceof SignalBase;
 };
 
-/**
- * @internal
- */
+/** @internal */
 export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(obj: T, prop: P): any => {
   if (!isObject(obj)) {
     return obj[prop];
@@ -198,9 +195,7 @@ export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(obj: T,
   return _IMMUTABLE;
 };
 
-/**
- * @internal
- */
+/** @internal */
 export const _wrapSignal = <T extends Record<any, any>, P extends keyof T>(
   obj: T,
   prop: P

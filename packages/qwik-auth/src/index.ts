@@ -12,7 +12,7 @@ import {
 import { isServer } from '@builder.io/qwik/build';
 import { parseString, splitCookiesString } from 'set-cookie-parser';
 
-export type GetSessionResult = Promise<Session | null>;
+export type GetSessionResult = Promise<{ data: Session | null; cookie: any }>;
 export type QwikAuthConfig = AuthConfig;
 
 const actions: AuthAction[] = [
@@ -34,7 +34,7 @@ export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikA
           '\x1b[33mWARNING: callbackUrl is deprecated - use options.callbackUrl instead\x1b[0m'
         );
       }
-      const { callbackUrl = deprecated ?? getCurrentPageForAction(req), ...rest } = options ?? {};
+      const { callbackUrl = deprecated ?? defaultCallbackURL(req), ...rest } = options ?? {};
 
       const isCredentials = providerId === 'credentials';
 
@@ -73,7 +73,7 @@ export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikA
 
   const useAuthSignout = globalAction$(
     async ({ callbackUrl }, req) => {
-      callbackUrl ??= getCurrentPageForAction(req);
+      callbackUrl ??= defaultCallbackURL(req);
       const auth = await authOptions(req);
       const body = new URLSearchParams({ callbackUrl });
       await authAction(body, req, `/api/auth/signout`, auth);
@@ -104,7 +104,12 @@ export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikA
         }
         throw req.send(res);
       } else {
-        req.sharedMap.set('session', await getSessionData(req.request, auth));
+        const { data, cookie } = await getSessionData(req.request, auth);
+        req.sharedMap.set('session', data);
+        if (cookie) {
+          req.headers.set('set-cookie', cookie);
+          fixCookies(req);
+        }
       }
     }
   };
@@ -136,7 +141,13 @@ async function authAction(
     skipCSRFCheck,
   });
   res.headers.forEach((value, key) => {
-    req.headers.set(key, value);
+    /**
+     * Do not set the header if already set accept in the case of set-cookie which is allowed
+     * https://httpwg.org/specs/rfc6265.html#rfc.section.3
+     */
+    if (!req.headers.has(key) || key === 'set-cookie') {
+      req.headers.set(key, value);
+    }
   });
   fixCookies(req);
 
@@ -166,7 +177,10 @@ export const ensureAuthMiddleware = (req: RequestEvent) => {
   }
 };
 
-const getCurrentPageForAction = (req: RequestEventCommon) => req.url.href.split('q-')[0];
+const defaultCallbackURL = (req: RequestEventCommon) => {
+  req.url.searchParams.delete('qaction');
+  return req.url.href;
+};
 
 async function getSessionData(req: Request, options: AuthConfig): GetSessionResult {
   options.secret ??= process.env.AUTH_SECRET;
@@ -178,11 +192,13 @@ async function getSessionData(req: Request, options: AuthConfig): GetSessionResu
   const { status = 200 } = response;
 
   const data = await response.json();
+  const cookie = response.headers.get('set-cookie');
   if (!data || !Object.keys(data).length) {
-    return null;
+    return { data: null, cookie };
   }
   if (status === 200) {
-    return data;
+    return { data, cookie };
   }
+
   throw new Error(data.message);
 }

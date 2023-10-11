@@ -51,7 +51,7 @@ export const qwikApp = serverless(
   },
   {
     binary: true,
-  }
+  },
 );
 
 function fixPath(path: string) {

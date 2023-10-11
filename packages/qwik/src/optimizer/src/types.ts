@@ -1,44 +1,29 @@
-/**
- * @public
- */
+/** @public */
 export interface Optimizer {
-  /**
-   * Transforms the input code string, does not access the file system.
-   */
+  /** Transforms the input code string, does not access the file system. */
   transformModules(opts: TransformModulesOptions): Promise<TransformOutput>;
 
-  /**
-   * Transforms the input code string, does not access the file system.
-   */
+  /** Transforms the input code string, does not access the file system. */
   transformModulesSync(opts: TransformModulesOptions): TransformOutput;
 
-  /**
-   * Transforms the directory from the file system.
-   */
+  /** Transforms the directory from the file system. */
   transformFs(opts: TransformFsOptions): Promise<TransformOutput>;
 
-  /**
-   * Transforms the directory from the file system.
-   */
+  /** Transforms the directory from the file system. */
   transformFsSync(opts: TransformFsOptions): TransformOutput;
 
-  /**
-   * Optimizer system use. This can be updated with a custom file system.
-   */
+  /** Optimizer system use. This can be updated with a custom file system. */
   sys: OptimizerSystem;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface OptimizerOptions {
   sys?: OptimizerSystem;
   binding?: any;
+  inlineStylesUpToBytes?: number;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface OptimizerSystem {
   cwd: () => string;
   env: SystemEnvironment;
@@ -49,26 +34,18 @@ export interface OptimizerSystem {
   path: Path;
 }
 
-/**
- * @public
- */
-export type SystemEnvironment = 'node' | 'deno' | 'webworker' | 'browsermain' | 'unknown';
+/** @public */
+export type SystemEnvironment = 'node' | 'deno' | 'bun' | 'webworker' | 'browsermain' | 'unknown';
 
 // OPTIONS ***************
 
-/**
- * @public
- */
+/** @public */
 export type SourceMapsOption = 'external' | 'inline' | undefined | null;
 
-/**
- * @public
- */
+/** @public */
 export type TranspileOption = boolean | undefined | null;
 
-/**
- * @public
- */
+/** @public */
 export interface TransformOptions {
   srcDir: string;
   rootDir?: string;
@@ -88,25 +65,19 @@ export interface TransformOptions {
   isServer?: boolean;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface TransformModulesOptions extends TransformOptions {
   input: TransformModuleInput[];
 }
 
-/**
- * @public
- */
+/** @public */
 export interface TransformFsOptions extends TransformOptions {
   vendorRoots: string[];
 }
 
 // OPTION INPUTS ***************
 
-/**
- * @public
- */
+/** @public */
 export interface TransformModuleInput {
   path: string;
   code: string;
@@ -114,9 +85,7 @@ export interface TransformModuleInput {
 
 // RESULT ***************
 
-/**
- * @public
- */
+/** @public */
 export interface TransformOutput {
   modules: TransformModule[];
   diagnostics: Diagnostic[];
@@ -124,9 +93,7 @@ export interface TransformOutput {
   isJsx: boolean;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface HookAnalysis {
   origin: string;
   name: string;
@@ -144,9 +111,7 @@ export interface HookAnalysis {
 
 // RESULT OUTPUT ***************
 
-/**
- * @public
- */
+/** @public */
 export interface TransformModule {
   path: string;
   isEntry: boolean;
@@ -157,9 +122,7 @@ export interface TransformModule {
 
 // DIAGNOSTICS ***************
 
-/**
- * @public
- */
+/** @public */
 export interface Diagnostic {
   scope: string;
   category: DiagnosticCategory;
@@ -170,9 +133,7 @@ export interface Diagnostic {
   suggestions: string[] | null;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface SourceLocation {
   hi: number;
   lo: number;
@@ -182,16 +143,12 @@ export interface SourceLocation {
   endCol: number;
 }
 
-/**
- * @public
- */
+/** @public */
 export type DiagnosticCategory = 'error' | 'warning' | 'sourceError';
 
 // ENTRY STRATEGY ***************
 
-/**
- * @public
- */
+/** @public */
 export type EntryStrategy =
   | InlineEntryStrategy
   | HoistEntryStrategy
@@ -200,65 +157,47 @@ export type EntryStrategy =
   | ComponentEntryStrategy
   | SmartEntryStrategy;
 
-/**
- * @public
- */
+/** @public */
 export type MinifyMode = 'simplify' | 'none';
 
-/**
- * @public
- */
+/** @public */
 export type EmitMode = 'dev' | 'prod' | 'lib';
 
-/**
- * @public
- */
+/** @public */
 export interface InlineEntryStrategy {
   type: 'inline';
 }
 
-/**
- * @public
- */
+/** @public */
 export interface HoistEntryStrategy {
   type: 'hoist';
 }
 
-/**
- * @public
- */
+/** @public */
 export interface HookEntryStrategy {
   type: 'hook';
   manual?: Record<string, string>;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface SingleEntryStrategy {
   type: 'single';
   manual?: Record<string, string>;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface ComponentEntryStrategy {
   type: 'component';
   manual?: Record<string, string>;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface SmartEntryStrategy {
   type: 'smart';
   manual?: Record<string, string>;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface QwikManifest {
   manifestHash: string;
   symbols: { [symbolName: string]: QwikSymbol };
@@ -274,22 +213,16 @@ export interface QwikManifest {
   platform?: { [name: string]: string };
 }
 
-/**
- * @public
- */
+/** @public */
 export type SymbolMapper = Record<string, readonly [symbol: string, chunk: string]>;
 
-/**
- * @public
- */
+/** @public */
 export type SymbolMapperFn = (
   symbolName: string,
   mapper: SymbolMapper | undefined
 ) => readonly [symbol: string, chunk: string] | undefined;
 
-/**
- * @public
- */
+/** @public */
 export interface QwikSymbol {
   origin: string;
   displayName: string;
@@ -302,9 +235,7 @@ export interface QwikSymbol {
   loc: [number, number];
 }
 
-/**
- * @public
- */
+/** @public */
 export interface QwikBundle {
   size: number;
   symbols?: string[];
@@ -313,9 +244,7 @@ export interface QwikBundle {
   origins?: string[];
 }
 
-/**
- * @public
- */
+/** @public */
 export interface GlobalInjections {
   tag: string;
   attributes?: { [key: string]: string };
@@ -334,9 +263,7 @@ export interface GeneratedOutputBundle {
 
 // PATH UTIL  ***************
 
-/**
- * @public
- */
+/** @public */
 export interface Path {
   resolve(...paths: string[]): string;
   normalize(path: string): string;
@@ -366,10 +293,15 @@ export interface Path {
   readonly posix: Path;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface ResolvedManifest {
   mapper: SymbolMapper;
   manifest: QwikManifest;
+}
+
+/** @public */
+export interface InsightManifest {
+  type: 'smart';
+  manual: Record<string, string>;
+  prefetch: { route: string; symbols: string[] }[];
 }

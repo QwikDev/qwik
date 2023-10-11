@@ -44,7 +44,7 @@ serve(
     // Path not found
     return notFound(request);
   },
-  { port }
+  { port },
 );
 
 declare const Deno: any;

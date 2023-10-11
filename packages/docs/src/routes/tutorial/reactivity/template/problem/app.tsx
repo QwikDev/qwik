@@ -22,12 +22,12 @@ export default component$(() => {
   );
 });
 
-export const DisplayA = component$((props: { store: AppStore }) => {
+export const DisplayA = component$<{ store: AppStore }>((props) => {
   console.log('Render: <DisplayA>');
   return <>{props.store.countA}</>;
 });
 
-export const DisplayB = component$((props: { store: AppStore }) => {
+export const DisplayB = component$<{ store: AppStore }>((props) => {
   console.log('Render: <DisplayB>');
   return <>{props.store.countB}</>;
 });

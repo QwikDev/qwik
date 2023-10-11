@@ -5,6 +5,7 @@ contributors:
   - manucorporat
   - reemardelarosa
   - mhevery
+  - WilliamEspegren
 ---
 
 # Azure Static Web Apps Middleware
@@ -65,7 +66,7 @@ There are three ways to deploy:
    - Api location: "./azure-functions"
    - Output location: "./dist"
 
-   This will setup a GitHub workflow in your repository that will deploy your application for the main branch and each pull request.
+   This setup will establish a GitHub workflow in your repository. With this workflow, your application will automatically deploy whenever changes are pushed or merged into the main branch.
 
    The resulting workflow file has to be adapted by adding the following to the "Repository/Build Configurations" block:
 
@@ -77,7 +78,7 @@ There are three ways to deploy:
 
 3. Deploy from any CI system
 
-   You can deploy to Azure Static Web Apps with any CI system by setting the environment variable `SWA_CLI_DEPLOYMENT_TOKEN` with the Azure SWA deployment token and the run the following command from your pipeline:
+   You can deploy to Azure Static Web Apps using any CI system. Set your Azure SWA deployment token as the `SWA_CLI_DEPLOYMENT_TOKEN` environment variable. Once that's done, you can run the following command in your pipeline:
 
    ```shell
    swa deploy ./dist --api-location ./azure-functions --env production

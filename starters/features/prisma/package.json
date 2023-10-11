@@ -1,15 +1,5 @@
 {
   "description": "Next-generation Node.js TypeScript ORM",
-  "devDependencies": {
-    "@prisma/client": "4.16.1",
-    "prisma": "^4.16.1"
-  },
-  "scripts": {
-    "postinstall": "prisma generate",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev",
-    "prisma:migrate:prod": "prisma migrate deploy"
-  },
   "__qwik__": {
     "displayName": "Integration: Prisma (Database ORM)",
     "priority": -10,
@@ -31,5 +21,15 @@
         "   - https://www.prisma.io/docs/getting-started"
       ]
     }
+  },
+  "devDependencies": {
+    "@prisma/client": "5.3.1",
+    "prisma": "^5.3.1"
+  },
+  "scripts": {
+    "postinstall": "prisma generate",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:migrate:prod": "prisma migrate deploy"
   }
 }

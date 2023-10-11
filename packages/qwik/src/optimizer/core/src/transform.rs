@@ -1784,6 +1784,13 @@ impl<'a> Fold for QwikTransform<'a> {
             current_scope.push((id!(node.ident), IdentType::Fn));
         }
         self.stack_ctxt.push(node.ident.sym.to_string());
+
+        let o = node.fold_children_with(self);
+        self.stack_ctxt.pop();
+        o
+    }
+
+    fn fold_function(&mut self, node: ast::Function) -> ast::Function {
         self.decl_stack.push(vec![]);
         let prev = self.root_jsx_mode;
         self.root_jsx_mode = true;
@@ -1793,14 +1800,18 @@ impl<'a> Fold for QwikTransform<'a> {
 
         let is_component = self.in_component;
         self.in_component = false;
-
+        let is_condition = is_conditional_jsx_block(
+            node.body.as_ref().unwrap(),
+            &self.jsx_functions,
+            &self.immutable_function_cmp,
+        );
         let current_scope = self
             .decl_stack
             .last_mut()
             .expect("Declaration stack empty!");
-        for param in &node.function.params {
-            let mut identifiers = vec![];
 
+        for param in &node.params {
+            let mut identifiers = vec![];
             collect_from_pat(&param.pat, &mut identifiers);
             let is_constant = is_component && matches!(param.pat, ast::Pat::Ident(_));
             current_scope.extend(
@@ -1809,22 +1820,9 @@ impl<'a> Fold for QwikTransform<'a> {
                     .map(|(id, _)| (id, IdentType::Var(is_constant))),
             );
         }
-
-        let o = node.fold_children_with(self);
-        self.root_jsx_mode = prev;
-        self.jsx_mutable = prev_jsx_mutable;
-        self.stack_ctxt.pop();
-        self.decl_stack.pop();
-
-        o
-    }
-
-    fn fold_function(&mut self, node: ast::Function) -> ast::Function {
-        let mut node = node.fold_children_with(self);
-        if let Some(body) = &mut node.body {
-            let is_condition =
-                is_conditional_jsx_block(body, &self.jsx_functions, &self.immutable_function_cmp);
-            if is_condition {
+        let mut o = node.fold_children_with(self);
+        if is_condition {
+            if let Some(body) = &mut o.body {
                 body.stmts.insert(
                     0,
                     ast::Stmt::Expr(ast::ExprStmt {
@@ -1838,7 +1836,11 @@ impl<'a> Fold for QwikTransform<'a> {
                 );
             }
         }
-        node
+        self.root_jsx_mode = prev;
+        self.jsx_mutable = prev_jsx_mutable;
+        self.decl_stack.pop();
+
+        o
     }
 
     fn fold_arrow_expr(&mut self, node: ast::ArrowExpr) -> ast::ArrowExpr {

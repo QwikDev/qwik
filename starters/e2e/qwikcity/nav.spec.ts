@@ -1,4 +1,3 @@
-import { expect, test } from "@playwright/test";
 import {
   assertPage,
   getScrollHeight,
@@ -9,6 +8,7 @@ import {
   scrollDetector,
   scrollTo,
 } from "./util.js";
+import { expect, test } from "@playwright/test";
 
 test.describe("actions", () => {
   test.describe("mpa", () => {
@@ -55,16 +55,21 @@ test.describe("actions", () => {
       });
       test("should scroll on hash change", async ({ page }) => {
         await page.goto("/qwikcity-test/scroll-restoration/hash/");
+        expect(page).toHaveURL("/qwikcity-test/scroll-restoration/hash/");
 
         const link = page.locator("#hash-1");
         await link.click();
+        // Without this, sometimes the URL is #hash-1
+        await page.waitForTimeout(100);
 
-        await page.waitForTimeout(400);
-        expect(toPath(page.url())).toEqual(
-          "/qwikcity-test/scroll-restoration/hash/#hash-2"
+        expect(page).toHaveURL(
+          "/qwikcity-test/scroll-restoration/hash/#hash-2",
         );
-        await page.waitForTimeout(400);
-        const scrollY1 = (await getWindowScrollXY(page))[1];
+        let scrollY1;
+        do {
+          await page.waitForTimeout(10);
+          scrollY1 = (await getWindowScrollXY(page))[1];
+        } while (scrollY1 < 1000);
         expect(scrollY1).toBeGreaterThan(1090);
         expect(scrollY1).toBeLessThan(1110);
 
@@ -72,9 +77,8 @@ test.describe("actions", () => {
         await scrollTo(page, 0, 1000);
         await link2.click();
 
-        await page.waitForTimeout(50);
-        expect(toPath(page.url())).toEqual(
-          "/qwikcity-test/scroll-restoration/hash/#hash-1"
+        expect(page).toHaveURL(
+          "/qwikcity-test/scroll-restoration/hash/#hash-1",
         );
         await page.waitForTimeout(50);
         const scrollY2 = (await getWindowScrollXY(page))[1];
@@ -85,10 +89,7 @@ test.describe("actions", () => {
         await scrollTo(page, 0, 2000);
         await link3.click();
 
-        await page.waitForTimeout(50);
-        expect(toPath(page.url())).toEqual(
-          "/qwikcity-test/scroll-restoration/hash/"
-        );
+        expect(page).toHaveURL("/qwikcity-test/scroll-restoration/hash/");
         await page.waitForTimeout(50);
         expect(await getWindowScrollXY(page)).toStrictEqual([0, 0]);
       });
@@ -104,10 +105,7 @@ test.describe("actions", () => {
 
         await scrollDetector1;
         await expect(page.locator("h1")).toHaveText("Page Short");
-        await page.waitForTimeout(50);
-        expect(toPath(page.url())).toEqual(
-          "/qwikcity-test/scroll-restoration/page-short/"
-        );
+        expect(page).toHaveURL("/qwikcity-test/scroll-restoration/page-short/");
         expect(await getWindowScrollXY(page)).toStrictEqual([0, 0]);
 
         const scrollHeightShort = await getScrollHeight(page);
@@ -124,10 +122,7 @@ test.describe("actions", () => {
 
         await scrollDetector2;
         await expect(page.locator("h1")).toHaveText("Page Long");
-        await page.waitForTimeout(50);
-        expect(toPath(page.url())).toEqual(
-          "/qwikcity-test/scroll-restoration/page-long/"
-        );
+        expect(page).toHaveURL("/qwikcity-test/scroll-restoration/page-long/");
         expect(await getWindowScrollXY(page)).toStrictEqual([
           0,
           scrollHeightLong,
@@ -138,10 +133,7 @@ test.describe("actions", () => {
 
         await scrollDetector3;
         await expect(page.locator("h1")).toHaveText("Page Short");
-        await page.waitForTimeout(50);
-        expect(toPath(page.url())).toEqual(
-          "/qwikcity-test/scroll-restoration/page-short/"
-        );
+        expect(page).toHaveURL("/qwikcity-test/scroll-restoration/page-short/");
         expect(await getWindowScrollXY(page)).toStrictEqual([
           0,
           scrollHeightShort,
@@ -157,7 +149,7 @@ test.describe("actions", () => {
         await page.locator("#link").click();
         await page.waitForURL("/qwikcity-test/issue4502/broken/route/");
         await expect(page.locator("#route")).toHaveText(
-          "welcome to /broken/route"
+          "welcome to /broken/route",
         );
         await expect(count).toHaveText("Count: 1");
       });
@@ -173,10 +165,10 @@ test.describe("actions", () => {
 
         await expect(page.locator("h1")).toHaveText("Profile");
         await expect(page.locator("#issue2829-context")).toHaveText(
-          "context: __CONTEXT_VALUE__"
+          "context: __CONTEXT_VALUE__",
         );
         await expect(new URL(page.url()).pathname).toBe(
-          "/qwikcity-test/issue2829/b/"
+          "/qwikcity-test/issue2829/b/",
         );
       });
     });
@@ -189,11 +181,11 @@ test.describe("actions", () => {
         await expect(page.locator("h1")).toHaveText("Query");
         await expect(toPath(page.url())).toEqual("/qwikcity-test/issue2890/b/");
         await expect(page.locator("#loader")).toHaveText(
-          'LOADER: {"query":"NONE","hash":"NONE"}'
+          'LOADER: {"query":"NONE","hash":"NONE"}',
         );
         if (javaScriptEnabled) {
           await expect(page.locator("#browser")).toHaveText(
-            'BROWSER: {"query":"NONE","hash":""}'
+            'BROWSER: {"query":"NONE","hash":""}',
           );
         } else {
           await expect(page.locator("#browser")).toHaveText("BROWSER: {}");
@@ -207,14 +199,14 @@ test.describe("actions", () => {
 
         await expect(page.locator("h1")).toHaveText("Query");
         await expect(toPath(page.url())).toEqual(
-          "/qwikcity-test/issue2890/b/?query=123"
+          "/qwikcity-test/issue2890/b/?query=123",
         );
         await expect(page.locator("#loader")).toHaveText(
-          'LOADER: {"query":"123","hash":"NONE"}'
+          'LOADER: {"query":"123","hash":"NONE"}',
         );
         if (javaScriptEnabled) {
           await expect(page.locator("#browser")).toHaveText(
-            'BROWSER: {"query":"123","hash":""}'
+            'BROWSER: {"query":"123","hash":""}',
           );
         } else {
           await expect(page.locator("#browser")).toHaveText("BROWSER: {}");
@@ -227,14 +219,14 @@ test.describe("actions", () => {
 
         await expect(page.locator("h1")).toHaveText("Query");
         await expect(toPath(page.url())).toEqual(
-          "/qwikcity-test/issue2890/b/?query=321"
+          "/qwikcity-test/issue2890/b/?query=321",
         );
         await expect(page.locator("#loader")).toHaveText(
-          'LOADER: {"query":"321","hash":"NONE"}'
+          'LOADER: {"query":"321","hash":"NONE"}',
         );
         if (javaScriptEnabled) {
           await expect(page.locator("#browser")).toHaveText(
-            'BROWSER: {"query":"321","hash":""}'
+            'BROWSER: {"query":"321","hash":""}',
           );
         } else {
           await expect(page.locator("#browser")).toHaveText("BROWSER: {}");
@@ -247,14 +239,14 @@ test.describe("actions", () => {
 
         await expect(page.locator("h1")).toHaveText("Query");
         await expect(toPath(page.url())).toEqual(
-          "/qwikcity-test/issue2890/b/?query=321&hash=true#h2"
+          "/qwikcity-test/issue2890/b/?query=321&hash=true#h2",
         );
         await expect(page.locator("#loader")).toHaveText(
-          'LOADER: {"query":"321","hash":"true"}'
+          'LOADER: {"query":"321","hash":"true"}',
         );
         if (javaScriptEnabled) {
           await expect(page.locator("#browser")).toHaveText(
-            'BROWSER: {"query":"321","hash":"#h2"}'
+            'BROWSER: {"query":"321","hash":"#h2"}',
           );
         } else {
           await expect(page.locator("#browser")).toHaveText("BROWSER: {}");
@@ -267,14 +259,14 @@ test.describe("actions", () => {
 
         await expect(page.locator("h1")).toHaveText("Query");
         await expect(toPath(page.url())).toEqual(
-          "/qwikcity-test/issue2890/b/?query=321&hash=true#h2"
+          "/qwikcity-test/issue2890/b/?query=321&hash=true#h2",
         );
         await expect(page.locator("#loader")).toHaveText(
-          'LOADER: {"query":"321","hash":"true"}'
+          'LOADER: {"query":"321","hash":"true"}',
         );
         if (javaScriptEnabled) {
           await expect(page.locator("#browser")).toHaveText(
-            'BROWSER: {"query":"321","hash":"#h2"}'
+            'BROWSER: {"query":"321","hash":"#h2"}',
           );
         } else {
           await expect(page.locator("#browser")).toHaveText("BROWSER: {}");
@@ -290,7 +282,7 @@ test.describe("actions", () => {
         const ctx = await load(
           context,
           javaScriptEnabled,
-          "/qwikcity-test/actions/"
+          "/qwikcity-test/actions/",
         );
 
         await linkNavigate(ctx, '[data-test-link="docs-home"]');
@@ -324,7 +316,7 @@ test.describe("actions", () => {
       await page.locator("#anchor").click();
       await page.waitForURL("/qwikcity-test/issue4502/broken/route/");
       await expect(page.locator("#route")).toHaveText(
-        "welcome to /broken/route"
+        "welcome to /broken/route",
       );
     });
 
@@ -334,27 +326,43 @@ test.describe("actions", () => {
       expect(await res?.headerValue("X-Qwikcity-Test")).toEqual("issue4531");
     });
 
+    test("issue4792", async ({ page }) => {
+      const site = "/qwikcity-test/issue4792/";
+      await page.goto(site);
+      const href = page.locator("#reload");
+      await expect(href).toHaveAttribute("href", site);
+    });
+
     test("media in home page", async ({ page }) => {
       await page.goto("/qwikcity-test/");
 
       await expect(page.locator("#image-jpeg")).toHaveJSProperty(
         "naturalWidth",
-        520
+        520,
       );
       await expect(page.locator("#image-jpeg")).toHaveJSProperty(
         "naturalHeight",
-        520
+        520,
+      );
+
+      await expect(page.locator("#image-jpeg")).toHaveJSProperty(
+        "loading",
+        "eager",
+      );
+      await expect(page.locator("#image-jpeg")).toHaveJSProperty(
+        "decoding",
+        "auto",
       );
 
       await expect(page.locator("#image-avif")).toHaveJSProperty("width", 100);
       await expect(page.locator("#image-avif")).toHaveJSProperty("height", 100);
       await expect(page.locator("#image-avif")).toHaveJSProperty(
         "naturalWidth",
-        520
+        520,
       );
       await expect(page.locator("#image-avif")).toHaveJSProperty(
         "naturalHeight",
-        520
+        520,
       );
     });
   }

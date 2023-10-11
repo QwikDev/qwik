@@ -21,12 +21,13 @@ declare global {
 const distDir = join(fileURLToPath(import.meta.url), "..", "..", "dist");
 const buildDir = join(distDir, "build");
 
-// Allow for dynamic port
+// Allow for dynamic port and host
 const PORT = parseInt(process.env.PORT ?? "3000");
+const HOST = process.env.HOST ?? "0.0.0.0";
 
 const start = async () => {
   // Create the fastify server
-  // https://www.fastify.io/docs/latest/Guides/Getting-Started/
+  // https://fastify.dev/docs/latest/Guides/Getting-Started/
   const fastify = Fastify({
     logger: true,
   });
@@ -40,7 +41,7 @@ const start = async () => {
   await fastify.register(FastifyQwik, { distDir, buildDir });
 
   // Start the fastify server
-  await fastify.listen({ port: PORT });
+  await fastify.listen({ port: PORT, host: HOST });
 };
 
 start();

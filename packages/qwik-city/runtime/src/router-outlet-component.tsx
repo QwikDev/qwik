@@ -13,9 +13,7 @@ import {
 import { ContentInternalContext } from './contexts';
 import shim from './spa-shim';
 
-/**
- * @public
- */
+/** @public */
 export const RouterOutlet = component$(() => {
   // TODO Option to remove this shim, especially for MFEs.
   const shimScript = shim();

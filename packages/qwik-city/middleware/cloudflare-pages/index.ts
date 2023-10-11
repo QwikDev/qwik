@@ -13,9 +13,7 @@ import { setServerPlatform } from '@builder.io/qwik/server';
 
 // @builder.io/qwik-city/middleware/cloudflare-pages
 
-/**
- * @public
- */
+/** @public */
 export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
   (globalThis as any).TextEncoderStream = TextEncoderStream;
   const qwikSerializer = {
@@ -125,17 +123,13 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
   return onCloudflarePagesFetch;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface QwikCityCloudflarePagesOptions extends ServerRenderOptions {}
 
-/**
- * @public
- */
+/** @public */
 export interface PlatformCloudflarePages {
   request: Request;
-  env: Record<string, any>;
+  env?: Record<string, any>;
   ctx: { waitUntil: (promise: Promise<any>) => void };
 }
 

@@ -5,11 +5,16 @@ export interface InsightsPayload {
   /**
    * Unique ID per user session.
    *
-   * Every page refresh constitutes a new SessionID.
-   * An SPA navigation will generate a new SessionID.
+   * Every page refresh constitutes a new SessionID. An SPA navigation will generate a new
+   * SessionID.
+   *
    * NOTE: A user session implies same route URL.
    */
   sessionID: string;
+
+  /** Manifest Hash of the container. */
+  manifestHash: string;
+
   /**
    * API key of the application which we are trying to profile.
    *
@@ -20,47 +25,43 @@ export interface InsightsPayload {
   /**
    * Previous symbol received on the client.
    *
-   * Client periodically sends symbol log to the server. Being able to connect the order
-   * of symbols is useful for server clustering. Sending previous symbol name allows the
-   * server to stitch the symbol list together.
+   * Client periodically sends symbol log to the server. Being able to connect the order of symbols
+   * is useful for server clustering. Sending previous symbol name allows the server to stitch the
+   * symbol list together.
    */
   previousSymbol: string | null;
 
-  /**
-   * List of symbols which have been received since last update.
-   */
+  /** List of symbols which have been received since last update. */
   symbols: InsightSymbol[];
 }
 
 export interface InsightSymbol {
-  /**
-   * Symbol name
-   */
+  /** Symbol name */
   symbol: string;
 
-  /**
-   * Time delta since last symbol. Can be used to stich symbol requests together
-   */
-  timeDelta: number;
+  /** Current route so we can have a better understanding of which symbols are needed for each route. */
+  route: string;
+
+  /** Time delta since last symbol. Can be used to stich symbol requests together */
+  delay: number;
+
+  /** Number of ms between the time the symbol was requested and it was loaded. */
+  latency: number;
+
+  /** Number of ms between the q:route attribute change and the qsymbol event */
+  timeline: number;
 
   /**
-   * Number of ms between the time the symbol was requested and it was loaded.
-   */
-  loadDelay: number;
-
-  /**
-   * Current pathname of location. Used to cluster by route.
-   */
-  pathname: string;
-
-  /**
-   * Was this symbol as a result of user interaction. User interactions represent roots for clouters.
+   * Was this symbol as a result of user interaction. User interactions represent roots for
+   * clouters.
    */
   interaction: boolean;
 }
 
 export interface InsightsError {
   sessionID: string;
+  /** Manifest Hash of the container. */
+  manifestHash: string;
   timestamp: number;
   url: string;
   source: string;
@@ -72,6 +73,7 @@ export interface InsightsError {
 }
 
 export const InsightsError = z.object({
+  manifestHash: z.string(),
   sessionID: z.string(),
   url: z.string(),
   timestamp: z.number(),
@@ -85,14 +87,16 @@ export const InsightsError = z.object({
 
 export const InsightSymbol = z.object({
   symbol: z.string(),
-  timeDelta: z.number(),
-  loadDelay: z.number(),
-  pathname: z.string(),
+  route: z.string(),
+  delay: z.number(),
+  latency: z.number(),
+  timeline: z.number(),
   interaction: z.boolean(),
 });
 
 export const InsightsPayload = z.object({
   sessionID: z.string(),
+  manifestHash: z.string(),
   publicApiKey: z.string(),
   previousSymbol: z.string().nullable(),
   symbols: z.array(InsightSymbol),
@@ -106,6 +110,7 @@ export const Insights = component$<{ publicApiKey: string; postUrl?: string }>(
   ({ publicApiKey, postUrl }) => {
     return (
       <script
+        data-insights={publicApiKey}
         dangerouslySetInnerHTML={`(${symbolTracker.toString()})(window, document, location, navigator, ${JSON.stringify(
           publicApiKey
         )},
@@ -141,6 +146,8 @@ function symbolTracker(
   postUrl: string
 ) {
   const sessionID = Math.random().toString(36).slice(2);
+  const manifestHash =
+    document.querySelector('[q\\:manifest-hash]')?.getAttribute('q:manifest-hash') || 'dev';
   const qSymbols: InsightSymbol[] = [];
   const existingSymbols: Set<string> = new Set();
   let flushSymbolIndex: number = 0;
@@ -151,12 +158,24 @@ function symbolTracker(
     sessionID,
   };
   let timeoutID: ReturnType<typeof setTimeout> | null;
+  let qRouteChangeTime = performance.now();
+  const qRouteEl = document.querySelector('[q\\:route]');
+  if (qRouteEl) {
+    const observer = new MutationObserver((mutations) => {
+      const mutation = mutations.find((m) => m.attributeName === 'q:route');
+      if (mutation) {
+        qRouteChangeTime = performance.now();
+      }
+    });
+    observer.observe(qRouteEl, { attributes: true });
+  }
   function flush() {
     timeoutID = null;
     if (qSymbols.length > flushSymbolIndex) {
       const payload = {
         sessionID,
         publicApiKey,
+        manifestHash,
         previousSymbol: flushSymbolIndex == 0 ? null : qSymbols[flushSymbolIndex - 1].symbol,
         symbols: qSymbols.slice(flushSymbolIndex),
       } satisfies InsightsPayload;
@@ -183,11 +202,13 @@ function symbolTracker(
     const symbol = detail.symbol;
     if (!existingSymbols.has(symbol)) {
       existingSymbols.add(symbol);
+      const route = qRouteEl?.getAttribute('q:route') || '/';
       qSymbols.push({
         symbol: symbol,
-        timeDelta: Math.round(0 - lastReqTime + symbolRequestTime),
-        loadDelay: Math.round(symbolDeliveredTime - symbolRequestTime),
-        pathname: location.pathname,
+        route,
+        delay: Math.round(0 - lastReqTime + symbolRequestTime),
+        latency: Math.round(symbolDeliveredTime - symbolRequestTime),
+        timeline: Math.round(0 - qRouteChangeTime + symbolRequestTime),
         interaction: !!detail.element,
       });
       lastReqTime = symbolDeliveredTime;
@@ -199,6 +220,7 @@ function symbolTracker(
     const payload = {
       url: location.toString(),
       sessionID: sessionID,
+      manifestHash,
       timestamp: new Date().getTime(),
       source: event.filename,
       line: event.lineno,

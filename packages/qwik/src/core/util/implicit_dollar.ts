@@ -7,8 +7,8 @@ import { $, type QRL } from '../qrl/qrl.public';
  * Create a `____$(...)` convenience method from `___(...)`.
  *
  * It is very common for functions to take a lazy-loadable resource as a first argument. For this
- * reason, the Qwik Optimizer automatically extracts the first argument from any function which
- * ends in `$`.
+ * reason, the Qwik Optimizer automatically extracts the first argument from any function which ends
+ * in `$`.
  *
  * This means that `foo$(arg0)` and `foo($(arg0))` are equivalent with respect to Qwik Optimizer.
  * The former is just a shorthand for the latter.
@@ -36,7 +36,7 @@ import { $, type QRL } from '../qrl/qrl.public';
  * export const callback = () => console.log('callback');
  * ```
  *
- * @param fn - a function that should have its first argument automatically `$`.
+ * @param fn - A function that should have its first argument automatically `$`.
  * @public
  */
 // </docs>

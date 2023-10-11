@@ -25,6 +25,7 @@ export const SlotParent = component$(() => {
     <section class="todoapp">
       {state.render && (
         <>
+          <div id="isRendered">Hi</div>
           <Issue1630>
             <Child id="slot-child" q:slot="slot-content">
               Component Slot Content
@@ -224,7 +225,7 @@ export const Issue2688 = component$(({ count }: { count: number }) => {
 });
 
 const Issue2751Context = createContextId<Signal<number>>(
-  "CleanupCounterContext"
+  "CleanupCounterContext",
 );
 
 export const Issue2751 = component$(() => {
@@ -438,7 +439,7 @@ export const HideUntilVisible = component$(() => {
     },
     {
       strategy: "document-ready",
-    }
+    },
   );
 
   // NOTE: if you comment the line below,

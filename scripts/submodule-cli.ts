@@ -2,11 +2,9 @@ import { build } from 'esbuild';
 import { existsSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { copyStartersDir } from './create-qwik-cli';
-import { type BuildConfig, copyDir, copyFile, getBanner, nodeTarget, watcher } from './util';
+import { type BuildConfig, copyDir, copyFile, getBanner, nodeTarget } from './util';
 
-/**
- * Builds @builder.io/qwik/cli
- */
+/** Builds @builder.io/qwik/cli */
 export async function submoduleCli(config: BuildConfig) {
   const submodule = 'cli';
 
@@ -20,7 +18,6 @@ export async function submoduleCli(config: BuildConfig) {
     bundle: true,
     banner: { js: getBanner('@builder.io/qwik/cli', config.distVersion) },
     outExtension: { '.js': '.cjs' },
-    watch: watcher(config, submodule),
     plugins: [
       {
         name: 'colorAlias',

@@ -96,6 +96,12 @@ export async function fromNodeHttp(
       }
       return new WritableStream<Uint8Array>({
         write(chunk) {
+          if (res.closed || res.destroyed) {
+            // If the response has already been closed or destroyed (for example the client has disconnected)
+            // then writing into it will cause an error. So just stop writing since no one
+            // is listening.
+            return;
+          }
           res.write(chunk, (error) => {
             if (error) {
               console.error(error);

@@ -12,7 +12,7 @@ export function netlifyEdgeAdapter(opts?: NetlifyEdgeAdapterOptions): any;
 
 // @public (undocumented)
 export interface NetlifyEdgeAdapterOptions extends ServerAdapterOptions {
-    excludedPath?: string;
+    excludedPath?: string | string[];
     functionRoutes?: boolean;
     staticPaths?: string[];
 }

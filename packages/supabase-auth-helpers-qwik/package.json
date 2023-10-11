@@ -1,29 +1,16 @@
 {
   "name": "supabase-auth-helpers-qwik",
-  "version": "0.0.3",
   "description": "A collection of framework specific Auth utilities for working with Supabase.",
-  "publishConfig": {
-    "access": "public"
-  },
-  "scripts": {
-    "build": "vite build --mode lib"
-  },
-  "keywords": [
-    "Supabase",
-    "Auth",
-    "Qwik"
-  ],
+  "version": "0.0.3",
   "author": "Qwik Team",
-  "devDependencies": {
-    "@builder.io/qwik": "1.2.5",
-    "@builder.io/qwik-city": "1.2.5",
-    "@supabase/supabase-js": "2.24.0"
-  },
+  "bugs": "https://github.com/BuilderIO/qwik/issues",
   "dependencies": {
-    "@supabase/auth-helpers-shared": "^0.3.4"
+    "@supabase/auth-helpers-shared": "0.4.1"
   },
-  "peerDependencies": {
-    "@supabase/supabase-js": "^2.0.4"
+  "devDependencies": {
+    "@builder.io/qwik": "1.2.10",
+    "@builder.io/qwik-city": "1.2.10",
+    "@supabase/supabase-js": "^2.33.1"
   },
   "exports": {
     ".": {
@@ -35,18 +22,29 @@
   "files": [
     "lib"
   ],
-  "license": "MIT",
   "homepage": "https://qwik.builder.io/",
+  "keywords": [
+    "Auth",
+    "Qwik",
+    "Supabase"
+  ],
+  "license": "MIT",
+  "main": "./lib/index.qwik.mjs",
+  "peerDependencies": {
+    "@supabase/supabase-js": "^2.24.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "qwik": "./lib/index.qwik.mjs",
   "repository": {
     "type": "git",
     "url": "https://github.com/BuilderIO/qwik.git",
     "directory": "packages/qwik-auth"
   },
-  "bugs": {
-    "url": "https://github.com/BuilderIO/qwik/issues"
+  "scripts": {
+    "build": "vite build --mode lib"
   },
   "type": "module",
-  "main": "./lib/index.qwik.mjs",
-  "qwik": "./lib/index.qwik.mjs",
   "types": "./lib/types/index.d.ts"
 }

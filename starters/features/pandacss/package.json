@@ -1,12 +1,5 @@
 {
   "description": "Zero-runtime CSS-in-JS",
-  "scripts": {
-    "prebuild.pandacss": "panda codegen --silent"
-  },
-  "devDependencies": {
-    "@builder.io/vite-plugin-macro": "~0.0.7",
-    "@pandacss/dev": "^0.4.0"
-  },
   "__qwik__": {
     "displayName": "Integration: PandaCSS (styling)",
     "priority": -10,
@@ -27,5 +20,12 @@
         "macroPlugin({ preset: 'pandacss' })"
       ]
     }
+  },
+  "devDependencies": {
+    "@builder.io/vite-plugin-macro": "~0.0.7",
+    "@pandacss/dev": "^0.14.0"
+  },
+  "scripts": {
+    "prebuild.pandacss": "panda codegen --silent"
   }
 }

@@ -273,6 +273,9 @@
     let skip = false;
 
     async function _getInfo(originalSrc) {
+      if (originalSrc.startsWith('blob:')) {
+        return undefined;
+      }
       const url = new URL('/__image_info', location.href);
       url.searchParams.set('url', originalSrc);
       const res = await fetch(url);
@@ -306,15 +309,17 @@
       if (info && wideScreen) {
         let layoutInvalidation = false;
         const loc = node.getAttribute('data-qwik-inspector');
+        const browserArea = rect.width * rect.height;
         if (!node.hasAttribute('width') || !node.hasAttribute('height')) {
           skip = true;
           const computedStyles = node.computedStyleMap();
           const hasAspect = computedStyles.get('aspect-ratio').toString() !== 'auto';
           const hasWidth = isDefinedUnit(computedStyles.get('width').toString());
           const hasHeight = isDefinedUnit(computedStyles.get('height').toString());
-          layoutInvalidation = !hasAspect && (!hasWidth || !hasHeight);
+          const isAbsolute = computedStyles.get('position').toString() === 'absolute';
+          layoutInvalidation =
+            browserArea > 1000 && !isAbsolute && !hasAspect && (!hasWidth || !hasHeight);
         }
-        const browserArea = rect.width * rect.height;
         const realArea = info.width && info.height;
         const threshholdArea = realArea * 0.5;
         const tooBig = browserArea < threshholdArea;
@@ -443,7 +448,13 @@
     } else {
       window.addEventListener('load', activate);
     }
-    if (typeof PerformanceObserver !== 'undefined') {
+    const pageAccessedByReload =
+      performance?.navigation.type === 1 ||
+      performance
+        .getEntriesByType('navigation')
+        .map((nav) => nav.type)
+        .includes('reload');
+    if (typeof PerformanceObserver !== 'undefined' && !pageAccessedByReload) {
       const shiftsMap = new Map();
       perfObserver = new PerformanceObserver((list) => {
         list.getEntries().forEach((entry) => {

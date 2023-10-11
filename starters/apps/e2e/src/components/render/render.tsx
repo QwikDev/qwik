@@ -22,14 +22,18 @@ export const Render = component$(() => {
   const rerender = useSignal(0);
   return (
     <>
-      <button id="rerender" onClick$={() => rerender.value++}>
+      <button
+        id="rerender"
+        data-v={rerender.value}
+        onClick$={() => rerender.value++}
+      >
         Rerender
       </button>
-      <RenderChildren key={rerender.value} />
+      <RenderChildren v={rerender.value} key={rerender.value} />
     </>
   );
 });
-export const RenderChildren = component$(() => {
+export const RenderChildren = component$<{ v: number }>(({ v }) => {
   const parent = {
     counter: {
       count: 0,
@@ -42,6 +46,7 @@ export const RenderChildren = component$(() => {
   const state = useStore(parent, { deep: true });
   return (
     <>
+      <div id="rerenderCount">Render {v}</div>
       <button
         id="increment"
         onClick$={() => {
@@ -103,6 +108,7 @@ export const RenderChildren = component$(() => {
       <Issue4292 />
       <Issue4386 />
       <Issue4455 />
+      <Issue5266 />
     </>
   );
 });
@@ -242,7 +248,7 @@ export const PropsDestructuring = component$(
       { renders: 0 },
       {
         reactive: false,
-      }
+      },
     );
     renders.renders++;
     const rerenders = renders.renders + 0;
@@ -255,7 +261,7 @@ export const PropsDestructuring = component$(
         <div class="renders">{rerenders}</div>
       </div>
     );
-  }
+  },
 );
 
 export const PropsDestructuringNo = component$(
@@ -264,7 +270,7 @@ export const PropsDestructuringNo = component$(
       { renders: 0 },
       {
         reactive: false,
-      }
+      },
     );
     renders.renders++;
     const rerenders = renders.renders + 0;
@@ -276,7 +282,7 @@ export const PropsDestructuringNo = component$(
         <div class="renders">{rerenders}</div>
       </div>
     );
-  }
+  },
 );
 
 export const Issue2563 = component$(() => {
@@ -345,7 +351,7 @@ export const Issue2889 = component$(() => {
         { created: new Date(2022, 1, 26), count: 6 },
       ],
     },
-    { deep: true }
+    { deep: true },
   );
 
   const filteredEvents = useSignal<{ created: Date; count: number }[]>();
@@ -353,7 +359,7 @@ export const Issue2889 = component$(() => {
   useTask$(({ track }) => {
     const list = track(() => appState.events);
     filteredEvents.value = list.filter(
-      (x) => x.created >= new Date(2022, 1, 20)
+      (x) => x.created >= new Date(2022, 1, 20),
     );
   });
 
@@ -500,7 +506,7 @@ const Issue3178 = component$(() => {
     {
       elements: [] as Element[],
     },
-    { deep: true }
+    { deep: true },
   );
 
   return (
@@ -613,7 +619,7 @@ export const Pr3475 = component$(() =>
     <button id="pr-3475-button" onClick$={() => delete store.key}>
       {store.key}
     </button>
-  ))(useStore<{ key?: string }>({ key: "data" }))
+  ))(useStore<{ key?: string }>({ key: "data" })),
 );
 
 export const Issue3561 = component$(() => {
@@ -922,5 +928,30 @@ export const Issue4455 = component$(() => {
         max="1"
       />
     </>
+  );
+});
+
+export const DynamicComponent = component$<{ b?: boolean; v: string }>(
+  ({ b, v }) => {
+    // Make the tag dynamic
+    const Tag = b ? "button" : "div";
+    return (
+      <Tag id="issue-5266-tag" data-v={v}>
+        hello
+      </Tag>
+    );
+  },
+);
+export const Issue5266 = component$(() => {
+  const show = useSignal(false);
+  const state = useSignal("foo");
+  return (
+    <div>
+      <button id="issue-5266-render" onClick$={() => (show.value = true)} />
+      <button id="issue-5266-button" onClick$={() => (state.value = "bar")}>
+        toggle
+      </button>
+      {show.value && <DynamicComponent v={state.value} />}
+    </div>
   );
 });

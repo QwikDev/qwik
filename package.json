@@ -94,7 +94,7 @@
     "yarn": "please-use-pnpm",
     "pnpm": ">=8.6.12"
   },
-  "packageManager": "pnpm@8.6.12",
+  "packageManager": "pnpm@8.9.0",
   "pnpm": {
     "overrides": {
       "vfile": "6.0.1"

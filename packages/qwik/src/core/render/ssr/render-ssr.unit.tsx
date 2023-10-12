@@ -456,16 +456,16 @@ test('events', async () => {
 test('innerHTML', async () => {
   await testSSR(
     <body dangerouslySetInnerHTML="<p>hola</p>"></body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test"><body q:key="innerhtml"><p>hola</p></body></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test"><body><p>hola</p></body></html>'
   );
   await testSSR(
     <body dangerouslySetInnerHTML=""></body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test"><body q:key="innerhtml"></body></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test"><body></body></html>'
   );
   const Div = 'body' as any;
   await testSSR(
     <Div dangerouslySetInnerHTML={0}></Div>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test"><body q:key="innerhtml">0</body></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test"><body>0</body></html>'
   );
   await testSSR(
     <body>
@@ -473,7 +473,7 @@ test('innerHTML', async () => {
     </body>,
     `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
       <body>
-        <script q:key="innerhtml">
+        <script>
           () => null
         </script>
       </body>

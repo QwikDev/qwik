@@ -310,7 +310,13 @@ const shouldSsrRender = (req: IncomingMessage, url: URL) => {
     return false;
   }
   const acceptHeader = req.headers.accept || '';
-  if (!acceptHeader.includes('text/html') && !acceptHeader.includes('*/*')) {
+  const accepts = acceptHeader.split(',').map((accept) => accept.split(';')[0]);
+  if (accepts.length == 1 && accepts.includes('*/*')) {
+    // special case for curl where the default is `*/*` with no additional headers
+    return true;
+  }
+
+  if (!accepts.includes('text/html')) {
     return false;
   }
   return true;

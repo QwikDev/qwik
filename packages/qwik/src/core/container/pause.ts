@@ -65,6 +65,7 @@ import {
   type SnapshotResult,
 } from './container';
 import { UNDEFINED_PREFIX, collectDeps, serializeValue } from './serializers';
+import { isQrl } from '../qrl/qrl-class';
 
 /** @internal */
 export const _serializeData = async (data: any, pureQRL?: boolean) => {
@@ -359,7 +360,15 @@ Task Symbol: ${task.$qrl$.$symbol$}
   const mustGetObjId = (obj: any): string => {
     const key = getObjId(obj);
     if (key === null) {
-      throw qError(QError_missingObjectId, obj);
+      // TODO(mhevery): this is a hack as we should never get here.
+      // This as a workaround for https://github.com/BuilderIO/qwik/issues/4979
+      if (isQrl(obj)) {
+        const id = intToStr(objToId.size);
+        objToId.set(obj, id);
+        return id;
+      } else {
+        throw qError(QError_missingObjectId, obj);
+      }
     }
     return key;
   };

@@ -241,10 +241,7 @@ pub fn generate_entries(
         let hooks: Vec<&HookAnalysis> = output.modules.iter().flat_map(|m| &m.hook).collect();
         for hook in hooks {
             if let Some(ref e) = hook.entry {
-                entries_map
-                    .entry(e.as_ref())
-                    .or_insert_with(Vec::new)
-                    .push(hook);
+                entries_map.entry(e.as_ref()).or_default().push(hook);
             }
         }
 

@@ -81,9 +81,8 @@ export interface CloudflarePagesAdapterOptions extends ServerAdapterOptions {
    */
   staticPaths?: string[];
   /**
-   * Allow for customization of the name for the Cloudflare Pages entrypoint,
-   * traditionally named `entry.cloudflare-pages-tsx`. If you change this, you
-   * should also update your Rollup settings.
+   * Allow for customization of the name for the Cloudflare Pages entrypoint, traditionally named
+   * `entry.cloudflare-pages-tsx`. If you change this, you should also update your Rollup settings.
    */
   entryPoint?: string;
 }

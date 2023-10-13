@@ -313,7 +313,7 @@ impl<'a> QwikTransform<'a> {
             display_name += "s_";
         }
         display_name = escape_sym(&display_name);
-        if display_name.starts_with(|c| matches!(c, '0'..='9')) {
+        if display_name.starts_with(|c: char| c.is_ascii_digit()) {
             display_name = format!("_{}", display_name);
         }
         let index = match self.hooks_names.get_mut(&display_name) {
@@ -1109,7 +1109,7 @@ impl<'a> QwikTransform<'a> {
                         ))),
                     }),
                     value: Box::new(ast::Expr::Object(ast::ObjectLit {
-                        props: immutable_props.drain(..).collect(),
+                        props: std::mem::take(&mut immutable_props),
                         span: DUMMY_SP,
                     })),
                 },
@@ -1493,9 +1493,9 @@ impl<'a> QwikTransform<'a> {
                 let mut flags = 0;
                 if static_listeners {
                     flags |= 1 << 0;
-                    immutable_props.extend(event_handlers.into_iter());
+                    immutable_props.extend(event_handlers);
                 } else {
-                    mutable_props.extend(event_handlers.into_iter());
+                    mutable_props.extend(event_handlers);
                 }
 
                 mutable_props.sort_by(sort_props);
@@ -1702,7 +1702,6 @@ impl<'a> Fold for QwikTransform<'a> {
                 {
                     self.hooks
                         .drain(..)
-                        .into_iter()
                         .map(|hook| {
                             let id = (hook.name.clone(), SyntaxContext::from_u32(hook.hash as u32));
                             ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::Var(Box::new(

@@ -1,2 +1,4 @@
 [toolchain]
-channel = "stable"
+channel = "nightly"
+date = "2023-10-13"
+targets = ["wasm32-unknown-unknown"]

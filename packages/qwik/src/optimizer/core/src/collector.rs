@@ -374,10 +374,10 @@ impl Visit for IdentCollector {
     }
 
     fn visit_ident(&mut self, node: &ast::Ident) {
-        if let Some(ExprOrSkip::Expr) = self.expr_ctxt.last() {
-            if node.span.ctxt() != SyntaxContext::empty() {
-                self.local_idents.insert(id!(node));
-            }
+        if matches!(self.expr_ctxt.last(), Some(ExprOrSkip::Expr))
+            && node.span.ctxt() != SyntaxContext::empty()
+        {
+            self.local_idents.insert(id!(node));
         }
     }
 

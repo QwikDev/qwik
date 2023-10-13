@@ -1,18 +1,19 @@
-import assert from 'assert';
 import {
   accessSync,
   copyFileSync,
   existsSync,
   mkdirSync,
-  readdirSync,
   readFileSync,
+  readdirSync,
   rmSync,
   statSync,
   writeFileSync,
 } from 'node:fs';
-import { join, relative } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { join, relative } from 'node:path';
 import { readPackageJson, writePackageJson } from './package-json';
+
+import assert from 'assert';
 import { panic } from './util';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
@@ -44,6 +45,7 @@ async function validateCreateQwikCli() {
 
   await Promise.all([
     validateStarter(api, tmpDir, 'basic', true, `👻`),
+    validateStarter(api, tmpDir, 'empty', true, `🫙`),
     validateStarter(api, tmpDir, 'site-with-visual-cms', true, `😈`),
     validateStarter(api, tmpDir, 'library', false, `📚`),
   ]).catch((e) => {

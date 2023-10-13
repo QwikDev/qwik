@@ -1,4 +1,3 @@
-import { expect, test } from "@playwright/test";
 import {
   assertPage,
   getScrollHeight,
@@ -9,6 +8,7 @@ import {
   scrollDetector,
   scrollTo,
 } from "./util.js";
+import { expect, test } from "@playwright/test";
 
 test.describe("actions", () => {
   test.describe("mpa", () => {
@@ -55,16 +55,21 @@ test.describe("actions", () => {
       });
       test("should scroll on hash change", async ({ page }) => {
         await page.goto("/qwikcity-test/scroll-restoration/hash/");
+        expect(page).toHaveURL("/qwikcity-test/scroll-restoration/hash/");
 
         const link = page.locator("#hash-1");
         await link.click();
+        // Without this, sometimes the URL is #hash-1
+        await page.waitForTimeout(100);
 
-        await page.waitForTimeout(400);
-        expect(toPath(page.url())).toEqual(
+        expect(page).toHaveURL(
           "/qwikcity-test/scroll-restoration/hash/#hash-2",
         );
-        await page.waitForTimeout(400);
-        const scrollY1 = (await getWindowScrollXY(page))[1];
+        let scrollY1;
+        do {
+          await page.waitForTimeout(10);
+          scrollY1 = (await getWindowScrollXY(page))[1];
+        } while (scrollY1 < 1000);
         expect(scrollY1).toBeGreaterThan(1090);
         expect(scrollY1).toBeLessThan(1110);
 
@@ -72,8 +77,7 @@ test.describe("actions", () => {
         await scrollTo(page, 0, 1000);
         await link2.click();
 
-        await page.waitForTimeout(50);
-        expect(toPath(page.url())).toEqual(
+        expect(page).toHaveURL(
           "/qwikcity-test/scroll-restoration/hash/#hash-1",
         );
         await page.waitForTimeout(50);
@@ -85,10 +89,7 @@ test.describe("actions", () => {
         await scrollTo(page, 0, 2000);
         await link3.click();
 
-        await page.waitForTimeout(50);
-        expect(toPath(page.url())).toEqual(
-          "/qwikcity-test/scroll-restoration/hash/",
-        );
+        expect(page).toHaveURL("/qwikcity-test/scroll-restoration/hash/");
         await page.waitForTimeout(50);
         expect(await getWindowScrollXY(page)).toStrictEqual([0, 0]);
       });
@@ -104,10 +105,7 @@ test.describe("actions", () => {
 
         await scrollDetector1;
         await expect(page.locator("h1")).toHaveText("Page Short");
-        await page.waitForTimeout(50);
-        expect(toPath(page.url())).toEqual(
-          "/qwikcity-test/scroll-restoration/page-short/",
-        );
+        expect(page).toHaveURL("/qwikcity-test/scroll-restoration/page-short/");
         expect(await getWindowScrollXY(page)).toStrictEqual([0, 0]);
 
         const scrollHeightShort = await getScrollHeight(page);
@@ -124,10 +122,7 @@ test.describe("actions", () => {
 
         await scrollDetector2;
         await expect(page.locator("h1")).toHaveText("Page Long");
-        await page.waitForTimeout(50);
-        expect(toPath(page.url())).toEqual(
-          "/qwikcity-test/scroll-restoration/page-long/",
-        );
+        expect(page).toHaveURL("/qwikcity-test/scroll-restoration/page-long/");
         expect(await getWindowScrollXY(page)).toStrictEqual([
           0,
           scrollHeightLong,
@@ -138,10 +133,7 @@ test.describe("actions", () => {
 
         await scrollDetector3;
         await expect(page.locator("h1")).toHaveText("Page Short");
-        await page.waitForTimeout(50);
-        expect(toPath(page.url())).toEqual(
-          "/qwikcity-test/scroll-restoration/page-short/",
-        );
+        expect(page).toHaveURL("/qwikcity-test/scroll-restoration/page-short/");
         expect(await getWindowScrollXY(page)).toStrictEqual([
           0,
           scrollHeightShort,
@@ -332,6 +324,13 @@ test.describe("actions", () => {
       const res = await page.goto("/qwikcity-test/issue4531/");
       await expect(page.locator("#route")).toHaveText("should render");
       expect(await res?.headerValue("X-Qwikcity-Test")).toEqual("issue4531");
+    });
+
+    test("issue4792", async ({ page }) => {
+      const site = "/qwikcity-test/issue4792/";
+      await page.goto(site);
+      const href = page.locator("#reload");
+      await expect(href).toHaveAttribute("href", site);
     });
 
     test("media in home page", async ({ page }) => {

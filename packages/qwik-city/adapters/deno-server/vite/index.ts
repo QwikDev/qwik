@@ -1,9 +1,7 @@
 import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
 import { viteAdapter, type ServerAdapterOptions } from '../../shared/vite';
 
-/**
- * @alpha
- */
+/** @alpha */
 export function denoServerAdapter(opts: DenoServerAdapterOptions = {}): any {
   const env = process?.env;
   return viteAdapter({
@@ -37,14 +35,10 @@ export function denoServerAdapter(opts: DenoServerAdapterOptions = {}): any {
   });
 }
 
-/**
- * @alpha
- */
+/** @alpha */
 export interface DenoServerAdapterOptions extends ServerAdapterOptions {
   name?: string;
 }
 
-/**
- * @alpha
- */
+/** @alpha */
 export type { StaticGenerateRenderOptions };

@@ -1,7 +1,6 @@
-import * as assert from 'uvu/assert';
-import { test } from 'uvu';
 import { frontmatterAttrsToDocumentHead, parseFrontmatterAttrs } from './frontmatter';
 import type { FrontmatterAttrs } from '../types';
+import { assert, test } from 'vitest';
 
 test('frontmatter, one line', async () => {
   const yaml = 'title: Some Title';
@@ -24,19 +23,19 @@ test('frontmatter, multiline string', async () => {
 test('frontmatter, list', async () => {
   const yaml = 'tags:' + '\n' + '  - tag1' + '\n' + '  - tag2';
   const attrs: FrontmatterAttrs = parseFrontmatterAttrs(yaml);
-  assert.equal(attrs.tags, ['tag1', 'tag2']);
+  assert.deepEqual(attrs.tags, ['tag1', 'tag2']);
 });
 
 test('frontmatter, inline list', async () => {
   const yaml = 'tags: [tag1, tag2]';
   const attrs: FrontmatterAttrs = parseFrontmatterAttrs(yaml);
-  assert.equal(attrs.tags, ['tag1', 'tag2']);
+  assert.deepEqual(attrs.tags, ['tag1', 'tag2']);
 });
 
 test('frontmatter, dictionary', async () => {
   const yaml = 'custom:' + '\n' + '  author: Me';
   const attrs: FrontmatterAttrs = parseFrontmatterAttrs(yaml);
-  assert.equal(attrs.custom, { author: 'Me' });
+  assert.deepEqual(attrs.custom, { author: 'Me' });
 });
 
 test('frontmatter, multiple', async () => {
@@ -53,7 +52,7 @@ test('frontmatter, multiple', async () => {
   const attrs: FrontmatterAttrs = parseFrontmatterAttrs(yaml);
   assert.equal(attrs.title, 'Some Title');
   assert.equal(attrs.description, 'Some Description');
-  assert.equal(attrs.contributors, ['abc', 'xyz']);
+  assert.deepEqual(attrs.contributors, ['abc', 'xyz']);
   assert.equal(attrs['color-scheme'], 'dark');
 });
 
@@ -174,5 +173,3 @@ test('frontmatter, opengraph custom property', async () => {
   assert.equal(head!.meta[5].property, 'og:image:height');
   assert.equal(head!.meta[5].content, '1000');
 });
-
-test.run();

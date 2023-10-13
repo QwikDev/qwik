@@ -1,11 +1,16 @@
-/* eslint-disable */
+import * as vitest from 'vitest';
 // @ts-ignore
 import { RuleTester } from '@typescript-eslint/rule-tester';
+
 import { fileURLToPath } from 'node:url';
-import { suite } from 'uvu';
 import { rules } from './index';
 
-const lintSuite = suite('lint');
+// https://typescript-eslint.io/packages/rule-tester/#vitest
+RuleTester.afterAll = vitest.afterAll;
+RuleTester.it = vitest.it;
+RuleTester.itOnly = vitest.it.only;
+RuleTester.describe = vitest.describe;
+
 const testConfig = {
   parser: '@typescript-eslint/parser',
   env: {
@@ -20,13 +25,6 @@ const testConfig = {
     ecmaVersion: 2020,
     sourceType: 'module',
   },
-};
-
-RuleTester.afterAll = lintSuite.after;
-RuleTester.it = lintSuite;
-RuleTester.itOnly = lintSuite.only;
-RuleTester.describe = function (_, method) {
-  return method.call(this);
 };
 
 const ruleTester = new RuleTester(testConfig as any);
@@ -360,7 +358,6 @@ export const RemoteApp = component$(({ name }: { name: string }) => {
               console.log(a);
             }}></div>;
           });`,
-
     `
   export interface PropFnInterface<ARGS extends any[], RET> {
     (...args: ARGS): Promise<RET>
@@ -386,7 +383,6 @@ export const RemoteApp = component$(({ name }: { name: string }) => {
     }}></div>;
   });
       `,
-    ``,
     `
 import { component$ } from "@builder.io/qwik";
 
@@ -427,6 +423,29 @@ export default component$(() => {
             useMethod(foo);
             return <div></div>
           });`,
+    `
+      import {Component, component$, useStore} from '@builder.io/qwik';
+      export const PopupManager = component$(() => {
+        const popup = useStore({
+            component: null as null | Component<any>,
+            props: null as any,
+            visible: false,
+            x: 0,
+            y: 0,
+        });
+        return (
+            <div
+                document:onMouseEnter$={(e) => {
+                popup.visible = true;
+            }}
+                document:onMouseLeave$={(e) => {
+                popup.visible = true;
+            }}
+            >
+            </div>
+        );
+      });
+    `,
   ],
   invalid: [
     {
@@ -642,6 +661,57 @@ ruleTester.run('jsx-img', rules['jsx-img'], {
   ],
 });
 
-lintSuite.run();
+ruleTester.run('jsx-a', rules['jsx-a'], {
+  valid: [`<a href={value} />`, `<a {...props}/>`],
+  invalid: [
+    {
+      code: `<a/>`,
+      errors: [{ messageId: 'noHref' }],
+    },
+    {
+      code: `<a style='display:block;' />`,
+      errors: [{ messageId: 'noHref' }],
+    },
+  ],
+});
 
-export {};
+ruleTester.run('qwik/loader-location', rules['loader-location'], {
+  valid: [
+    {
+      filename: './src/routes/index.tsx',
+      code: `
+        import { routeLoader$ } from '@builder.io/qwik-city';
+
+        export const useProductDetails = routeLoader$(async (requestEvent) => {
+          const res = await fetch(\`https://.../products/\${requestEvent.params.productId}\`);
+          const product = await res.json();
+          return product as Product;
+        });
+      `,
+    },
+    {
+      filename: './src/routes/index.tsx',
+      code: `
+        import { routeLoader$ } from "@builder.io/qwik-city";
+        export { useFormLoader };
+        const useFormLoader = routeLoader$(() => {
+          return null;
+        });
+      `,
+    },
+  ],
+  invalid: [
+    {
+      filename: './src/routes/index.tsx',
+      code: `
+        import { routeLoader$ } from '@builder.io/qwik-city';
+        const useProductDetails = routeLoader$(async (requestEvent) => {
+          const res = await fetch(\`https://.../products/\${requestEvent.params.productId}\`);
+          const product = await res.json();
+          return product as Product;
+        });
+      `,
+      errors: [{ messageId: 'missingExport' }],
+    },
+  ],
+});

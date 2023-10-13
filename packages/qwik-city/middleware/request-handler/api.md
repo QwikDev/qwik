@@ -6,9 +6,11 @@
 
 import type { Action } from '@builder.io/qwik-city';
 import type { _deserializeData } from '@builder.io/qwik';
+import type { EnvGetter as EnvGetter_2 } from '@builder.io/qwik-city/middleware/request-handler';
 import type { FailReturn } from '@builder.io/qwik-city';
 import type { Loader } from '@builder.io/qwik-city';
 import type { QwikCityPlan } from '@builder.io/qwik-city';
+import type { QwikIntrinsicElements } from '@builder.io/qwik';
 import type { Render } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik/server';
 import type { RequestEvent as RequestEvent_2 } from '@builder.io/qwik-city';
@@ -70,6 +72,12 @@ export interface CookieValue {
 export type DeferReturn<T> = () => Promise<T>;
 
 // @public (undocumented)
+export interface EnvGetter {
+    // (undocumented)
+    get(key: string): string | undefined;
+}
+
+// @public (undocumented)
 export function getErrorHtml(status: number, e: any): string;
 
 // @public (undocumented)
@@ -96,10 +104,10 @@ export interface RequestEventAction<PLATFORM = QwikCityPlatform> extends Request
 // @public (undocumented)
 export interface RequestEventBase<PLATFORM = QwikCityPlatform> {
     readonly basePathname: string;
-    readonly cacheControl: (cacheControl: CacheControl) => void;
+    // Warning: (ae-forgotten-export) The symbol "CacheControlTarget" needs to be exported by the entry point index.d.ts
+    readonly cacheControl: (cacheControl: CacheControl, target?: CacheControlTarget) => void;
     readonly clientConn: ClientConn;
     readonly cookie: Cookie;
-    // Warning: (ae-forgotten-export) The symbol "EnvGetter" needs to be exported by the entry point index.d.ts
     readonly env: EnvGetter;
     readonly headers: Headers;
     readonly method: string;

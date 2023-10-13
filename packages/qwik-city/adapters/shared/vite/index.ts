@@ -10,9 +10,7 @@ import fs from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
 import { postBuild } from './post-build';
 
-/**
- * @public
- */
+/** @public */
 export function viteAdapter(opts: ViteAdapterPluginOptions) {
   let qwikCityPlugin: QwikCityPlugin | null = null;
   let qwikVitePlugin: QwikVitePlugin | null = null;
@@ -203,9 +201,7 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
   return plugin;
 }
 
-/**
- * @public
- */
+/** @public */
 export function getParentDir(startDir: string, dirName: string) {
   const root = resolve('/');
   let dir = startDir;
@@ -221,9 +217,7 @@ export function getParentDir(startDir: string, dirName: string) {
   throw new Error(`Unable to find "${dirName}" directory from "${startDir}"`);
 }
 
-/**
- * @public
- */
+/** @public */
 interface ViteAdapterPluginOptions {
   name: string;
   origin: string;
@@ -244,66 +238,50 @@ interface ViteAdapterPluginOptions {
   }) => Promise<void>;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface ServerAdapterOptions {
   /**
-   * Options the adapter should use when running Static Site Generation (SSG).
-   * Defaults the `filter` to "auto" which will attempt to automatically decides if
-   * a page can be statically generated and does not have dynamic data, or if it the page
-   * should instead be rendered on the server (SSR). Setting to `null` will prevent any
-   * pages from being statically generated.
+   * Options the adapter should use when running Static Site Generation (SSG). Defaults the `filter`
+   * to "auto" which will attempt to automatically decides if a page can be statically generated and
+   * does not have dynamic data, or if it the page should instead be rendered on the server (SSR).
+   * Setting to `null` will prevent any pages from being statically generated.
    */
   ssg?: AdapterSSGOptions | null;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface AdapterSSGOptions extends Omit<StaticGenerateRenderOptions, 'outDir' | 'origin'> {
-  /**
-   * Defines routes that should be static generated. Accepts wildcard behavior.
-   */
+  /** Defines routes that should be static generated. Accepts wildcard behavior. */
   include: string[];
   /**
    * Defines routes that should not be static generated. Accepts wildcard behavior. `exclude` always
-   * take priority over  `include`.
+   * take priority over `include`.
    */
   exclude?: string[];
 
   /**
-   * The URL `origin`, which is a combination of the scheme (protocol) and hostname (domain).
-   * For example, `https://qwik.builder.io` has the protocol `https://` and domain `qwik.builder.io`.
+   * The URL `origin`, which is a combination of the scheme (protocol) and hostname (domain). For
+   * example, `https://qwik.builder.io` has the protocol `https://` and domain `qwik.builder.io`.
    * However, the `origin` does not include a `pathname`.
    *
-   * The `origin` is used to provide a full URL during Static Site Generation (SSG), and to
-   * simulate a complete URL rather than just the `pathname`. For example, in order to
-   * render a correct canonical tag URL or URLs within the `sitemap.xml`, the `origin` must
-   * be provided too.
+   * The `origin` is used to provide a full URL during Static Site Generation (SSG), and to simulate
+   * a complete URL rather than just the `pathname`. For example, in order to render a correct
+   * canonical tag URL or URLs within the `sitemap.xml`, the `origin` must be provided too.
    *
-   * If the site also starts with a pathname other than `/`, please use the `basePathname`
-   * option in the Qwik City config options.
+   * If the site also starts with a pathname other than `/`, please use the `basePathname` option in
+   * the Qwik City config options.
    */
   origin?: string;
 }
 
-/**
- * @public
- */
+/** @public */
 export const STATIC_PATHS_ID = '@qwik-city-static-paths';
 
-/**
- * @public
- */
+/** @public */
 export const RESOLVED_STATIC_PATHS_ID = `${STATIC_PATHS_ID}.js`;
 
-/**
- * @public
- */
+/** @public */
 export const NOT_FOUND_PATHS_ID = '@qwik-city-not-found-paths';
 
-/**
- * @public
- */
+/** @public */
 export const RESOLVED_NOT_FOUND_PATHS_ID = `${NOT_FOUND_PATHS_ID}.js`;

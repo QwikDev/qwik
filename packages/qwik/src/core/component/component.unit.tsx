@@ -1,23 +1,24 @@
 import { createDOM } from '../../testing/library';
-import { expectDOM } from '../../testing/expect-dom.unit';
+import { expectDOM } from '../../testing/expect-dom';
 import { inlinedQrl } from '../qrl/qrl';
 import { useStylesQrl } from '../use/use-styles';
 import { type PropsOf, component$ } from './component.public';
-import { suite } from 'uvu';
 import { useStore } from '../use/use-store.public';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
+import { describe, test } from 'vitest';
 
-/**
- * Applying new unit test library/layer
- * `@builder.io/qwik/testing`  ==>  ../../testing/library
- */
-const qComponent = suite('q-component');
-qComponent('should declare and render basic component', async () => {
-  const { screen, render } = await createDOM();
-  await render(<HelloWorld />);
-  await expectDOM(
-    screen,
-    `
+describe('q-component', () => {
+  /**
+   * Applying new unit test library/layer
+   *
+   * `@builder.io/qwik/testing` ==> ../../testing/library
+   */
+  test('should declare and render basic component', async () => {
+    const { screen, render } = await createDOM();
+    await render(<HelloWorld />);
+    await expectDOM(
+      screen,
+      `
     <host q:version="dev" q:container="resumed" q:render="dom-dev">
         <style q:style="pfkgyr-0" hidden="">
           {}
@@ -26,16 +27,16 @@ qComponent('should declare and render basic component', async () => {
         <span>Hello World</span>
         <!--/qv-->
       </host>`
-  );
-});
+    );
+  });
 
-qComponent('should render Counter and accept events', async () => {
-  const { screen, render, userEvent } = await createDOM();
+  test('should render Counter and accept events', async () => {
+    const { screen, render, userEvent } = await createDOM();
 
-  await render(<MyCounter step={5} value={15} />);
-  await expectDOM(
-    screen,
-    `
+    await render(<MyCounter step={5} value={15} />);
+    await expectDOM(
+      screen,
+      `
     <host q:version="dev" q:container="resumed" q:render="dom-dev">
     <!--qv -->
     <my-counter>
@@ -45,11 +46,11 @@ qComponent('should render Counter and accept events', async () => {
     </my-counter>
     <!--/qv-->
   </host>`
-  );
-  await userEvent('button.decrement', 'click');
-  await expectDOM(
-    screen,
-    `
+    );
+    await userEvent('button.decrement', 'click');
+    await expectDOM(
+      screen,
+      `
 <host q:version="dev" q:container="resumed" q:render="dom-dev">
   <!--qv -->
   <my-counter>
@@ -67,29 +68,29 @@ qComponent('should render Counter and accept events', async () => {
   </my-counter>
   <!--/qv-->
 </host>`
-  );
-});
+    );
+  });
 
-qComponent('should render a collection of todo items', async () => {
-  const { screen, render } = await createDOM();
+  test('should render a collection of todo items', async () => {
+    const { screen, render } = await createDOM();
 
-  const items = {
-    items: [
-      {
-        done: true,
-        title: 'Task 1',
-      },
-      {
-        done: false,
-        title: 'Task 2',
-      },
-    ],
-  };
-  await render(<Items items={items} />);
-  await delay(0);
-  await expectDOM(
-    screen,
-    `
+    const items = {
+      items: [
+        {
+          done: true,
+          title: 'Task 1',
+        },
+        {
+          done: false,
+          title: 'Task 2',
+        },
+      ],
+    };
+    await render(<Items items={items} />);
+    await delay(0);
+    await expectDOM(
+      screen,
+      `
     <host q:version="dev" q:container="resumed" q:render="dom-dev">
       <!--qv -->
       <items>
@@ -110,7 +111,8 @@ qComponent('should render a collection of todo items', async () => {
       <!--/qv-->
     </host>
     `
-  );
+    );
+  });
 });
 
 /////////////////////////////////////////////////////////////////////////////
@@ -207,5 +209,3 @@ export const Items = component$((props: { items: ItemsObj }) => {
 function delay(milliseconds: number): Promise<void> {
   return new Promise((res) => setTimeout(res, milliseconds));
 }
-
-qComponent.run();

@@ -1,6 +1,6 @@
-import { component$ } from '@builder.io/qwik';
+import { type ReadonlySignal, component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
-import { getDB, errorTable } from '~/db';
+import { getDB, errorTable, type ErrorRow } from '~/db';
 import { eq, sql } from 'drizzle-orm';
 import { css, cx } from '~/styled-system/css';
 import { ErrorIcon } from '~/components/icons/error';
@@ -8,7 +8,7 @@ import { type PopupEvent } from '~/components/popup-manager';
 
 export const useErrors = routeLoader$(async ({ params }) => {
   const db = getDB();
-  const errors = await db
+  const errors: ErrorRow[] = await db
     .select()
     .from(errorTable)
     .where(eq(errorTable.publicApiKey, params.publicApiKey))
@@ -60,7 +60,7 @@ const columnMessageCell = cx(
 );
 
 export default component$(() => {
-  const errors = useErrors();
+  const errors: ReadonlySignal<ErrorRow[]> = useErrors();
   return (
     <div>
       <h1>
@@ -96,7 +96,7 @@ export default component$(() => {
 });
 
 export const Popup = component$<{
-  timestamp: number;
+  timestamp: Date;
   url: string;
   manifestHash: string | null;
   message: string;
@@ -113,7 +113,7 @@ export const Popup = component$<{
       })}
     >
       <h1 class={labelStyle}>
-        Timestamp: <code class={codeStyle}>{new Date(timestamp).toLocaleString()}</code>
+        Timestamp: <code class={codeStyle}>{timestamp.toLocaleString()}</code>
       </h1>
       <h1 class={labelStyle}>
         URL:{' '}

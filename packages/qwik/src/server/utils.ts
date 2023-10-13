@@ -1,8 +1,8 @@
 import type { RenderToStringOptions } from './types';
 
 /**
- * Utility timer function for performance profiling.
- * Returns a duration of 0 in environments that do not support performance.
+ * Utility timer function for performance profiling. Returns a duration of 0 in environments that do
+ * not support performance.
  */
 export function createTimer() {
   if (typeof performance === 'undefined') {
@@ -30,9 +30,7 @@ export function getBuildBase(opts: RenderToStringOptions) {
   return '/build/';
 }
 
-/**
- * @public
- */
+/** @public */
 export const versions = {
   qwik: (globalThis as any).QWIK_VERSION as string,
   qwikDom: (globalThis as any).QWIK_DOM_VERSION as string,

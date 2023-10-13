@@ -25,6 +25,7 @@ export const SlotParent = component$(() => {
     <section class="todoapp">
       {state.render && (
         <>
+          <div id="isRendered">Hi</div>
           <Issue1630>
             <Child id="slot-child" q:slot="slot-content">
               Component Slot Content

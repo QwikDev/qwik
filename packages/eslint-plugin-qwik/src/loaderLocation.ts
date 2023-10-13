@@ -115,7 +115,7 @@ export const loaderLocation: Rule.RuleModule = {
           });
           return;
         }
-        if (variableDeclarator.parent.parent.type !== 'ExportNamedDeclaration') {
+        if (!isExported(variableDeclarator)) {
           context.report({
             node: variableDeclarator.id,
             messageId: 'missingExport',
@@ -273,3 +273,39 @@ export const loaderLocationExamples: QwikEslintExamples = {
     ],
   },
 };
+function isExported(variableDeclarator: Rule.Node): boolean {
+  if (variableDeclarator.parent.parent.type === 'ExportNamedDeclaration') {
+    return true;
+  }
+  if (variableDeclarator.type === 'VariableDeclarator') {
+    const id = variableDeclarator.id;
+    if ('name' in id) {
+      const name = id.name;
+      const body = getProgramBody(variableDeclarator);
+      for (let idx = 0; idx < body.length; idx++) {
+        const node = body[idx];
+        if (node.type == 'ExportNamedDeclaration') {
+          const specifiers = node.specifiers;
+          for (let specIdx = 0; specIdx < specifiers.length; specIdx++) {
+            const exportNode = specifiers[specIdx];
+            if (exportNode.type == 'ExportSpecifier') {
+              if (exportNode.exported.type == 'Identifier' && exportNode.exported.name === name) {
+                return true;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  return false;
+}
+
+function getProgramBody(variableDeclarator) {
+  let program: Rule.Node = variableDeclarator;
+  while (program.type !== 'Program') {
+    program = program.parent;
+  }
+  const body = program.body;
+  return body;
+}

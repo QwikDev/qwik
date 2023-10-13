@@ -1,44 +1,71 @@
-import { and, eq, isNull, sql, inArray } from 'drizzle-orm';
+import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { type AppDatabase } from '.';
-import { applicationTable, edgeTable, symbolDetailTable, symbolTable } from './schema';
 import {
-  createEdgeRow,
-  delayBucketField,
   computeLatency,
+  createEdgeRow,
+  createRouteRow,
+  delayBucketField,
+  delayColumnSumList,
   edgeTableDelayCount,
   latencyBucketField,
-  toVector,
+  latencyColumnSumList,
   latencyColumnSums,
-  delayColumnSums,
+  listToVector,
+  timelineBucketField,
+  toVector,
 } from './query-helpers';
+import {
+  applicationTable,
+  edgeTable,
+  routesTable,
+  symbolDetailTable,
+  symbolTable,
+  type SymbolDetailRow,
+} from './schema';
+import { time } from './logging';
 
 export async function getEdges(
   db: AppDatabase,
   publicApiKey: string,
-  { limit }: { limit?: number } = {}
+  { limit, manifestHashes }: { limit?: number; manifestHashes: string[] }
 ) {
-  const query = db
-    .select({
-      from: edgeTable.from,
-      to: edgeTable.to,
-      ...latencyColumnSums,
-      ...delayColumnSums,
-    })
-    .from(edgeTable)
-    .where(eq(edgeTable.publicApiKey, publicApiKey))
-    .groupBy(edgeTable.from, edgeTable.to)
-    .limit(limit || Number.MAX_SAFE_INTEGER);
-  const rows = await query.all();
-  console.log('COUNT', rows.length);
-  return rows.map((e) => ({
-    from: e.from,
-    to: e.to,
-    delay: toVector('sumDelayCount', e),
-    latency: toVector('sumLatencyCount', e),
-  }));
+  return time('edgeTable.getEdges', async () => {
+    const where = and(
+      eq(edgeTable.publicApiKey, publicApiKey),
+      inArray(edgeTable.manifestHash, manifestHashes)
+    )!;
+    const query = db
+      .select({
+        from: edgeTable.from,
+        to: edgeTable.to,
+        latencyColumnSumList: latencyColumnSumList,
+        delayColumnSumList: delayColumnSumList,
+      })
+      .from(edgeTable)
+      .where(where)
+      .groupBy(edgeTable.from, edgeTable.to)
+      .limit(limit || 100_000); // TODO: The 100_000 limit is due to Turso serialization format not being efficient, upgrade this once Turso is fixed.
+    const rows = await query.all();
+    return rows.map((e) => ({
+      from: e.from,
+      to: e.to,
+      delay: listToVector(e.delayColumnSumList),
+      latency: listToVector(e.latencyColumnSumList),
+    }));
+  });
 }
 
-export async function getSlowEdges(db: AppDatabase, publicApiKey: string, manifests: string[]) {
+export interface SlowEdge {
+  manifestHash: string;
+  to: string;
+  latency: number[];
+}
+
+export async function getSlowEdges(
+  db: AppDatabase,
+  publicApiKey: string,
+  manifests: string[]
+): Promise<SlowEdge[]> {
   let where = eq(edgeTable.publicApiKey, publicApiKey);
   if (manifests.length) {
     where = and(where, inArray(edgeTable.manifestHash, manifests))!;
@@ -61,7 +88,16 @@ export async function getSlowEdges(db: AppDatabase, publicApiKey: string, manife
   }));
 }
 
-export function getSymbolDetails(db: AppDatabase, publicApiKey: string) {
+export type SymbolDetailForApp = Pick<
+  SymbolDetailRow,
+  'hash' | 'fullName' | 'origin' | 'lo' | 'hi'
+>;
+
+export async function getSymbolDetails(
+  db: AppDatabase,
+  publicApiKey: string,
+  { manifestHashes }: { manifestHashes: string[] }
+): Promise<SymbolDetailForApp[]> {
   return db
     .select({
       hash: symbolDetailTable.hash,
@@ -71,7 +107,13 @@ export function getSymbolDetails(db: AppDatabase, publicApiKey: string) {
       hi: symbolDetailTable.hi,
     })
     .from(symbolDetailTable)
-    .where(eq(symbolDetailTable.publicApiKey, publicApiKey))
+    .where(
+      and(
+        eq(symbolDetailTable.publicApiKey, publicApiKey),
+        inArray(symbolDetailTable.manifestHash, manifestHashes)
+      )
+    )
+    .limit(1000)
     .all();
 }
 
@@ -91,7 +133,7 @@ export async function getAppInfo(
     .from(applicationTable)
     .where(eq(applicationTable.publicApiKey, publicApiKey))
     .get();
-  if (!(app as {} | undefined) && options.autoCreate) {
+  if (!app && options.autoCreate) {
     const appFields = {
       name: 'Auto create: ' + publicApiKey,
       description: 'Auto create: ' + publicApiKey,
@@ -108,28 +150,24 @@ export async function getAppInfo(
       publicApiKey == '221smyuj5gl'
         ? 'https://github.com/BuilderIO/qwik/blob/main/packages/docs/src'
         : null,
-    ...app,
+    ...app!,
   };
 }
 
 export async function getEdgeCount(db: AppDatabase, publicApiKey: string): Promise<number> {
-  return (
-    await db
-      .select({ count: edgeTableDelayCount })
-      .from(edgeTable)
-      .where(eq(edgeTable.publicApiKey, publicApiKey))
-      .get()
-  ).count;
+  return (await db
+    .select({ count: edgeTableDelayCount })
+    .from(edgeTable)
+    .where(eq(edgeTable.publicApiKey, publicApiKey))
+    .get())!.count;
 }
 
 export async function getSymbolEdgeCount(db: AppDatabase, publicApiKey: string): Promise<number> {
-  return (
-    await db
-      .select({ count: sql<number>`count(*)` })
-      .from(symbolTable)
-      .where(eq(symbolTable.publicApiKey, publicApiKey))
-      .get()
-  ).count;
+  return (await db
+    .select({ count: sql<number>`count(*)` })
+    .from(symbolTable)
+    .where(eq(symbolTable.publicApiKey, publicApiKey))
+    .get())!.count;
 }
 
 export async function updateEdge(
@@ -170,5 +208,41 @@ export async function updateEdge(
     edgeRow[latencyBucketField(edge.latencyBucket)]++;
     edgeRow[delayBucketField(edge.latencyBucket)]++;
     await db.insert(edgeTable).values(edgeRow).run();
+  }
+}
+
+export async function updateRoutes(
+  db: AppDatabase,
+  row: {
+    publicApiKey: string;
+    manifestHash: string;
+    route: string;
+    symbol: string;
+    timelineBucket: number;
+  }
+): Promise<void> {
+  // This may look like a good idea to run in a transaction, but it causes a lot of contention
+  // and than other queries timeout. Yes not running in TX there is a risk of missed update, but
+  // since we are a statistical model, it should not make much of a difference.
+  const timelineField = timelineBucketField(row.timelineBucket);
+  const result = await db
+    .update(routesTable)
+    .set({
+      [timelineField]: sql`${routesTable[timelineField]} + 1`,
+    })
+    .where(
+      and(
+        eq(routesTable.publicApiKey, row.publicApiKey),
+        eq(routesTable.manifestHash, row.manifestHash),
+        eq(routesTable.route, row.route),
+        eq(routesTable.symbol, row.symbol)
+      )
+    )
+    .run();
+  if (result.rowsAffected === 0) {
+    // No row was updated, so insert a new one
+    const routeRow = createRouteRow(row);
+    routeRow[timelineBucketField(row.timelineBucket)]++;
+    await db.insert(routesTable).values(routeRow).run();
   }
 }

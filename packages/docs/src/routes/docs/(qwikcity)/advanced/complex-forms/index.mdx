@@ -1,0 +1,104 @@
+---
+title: Complex Forms | Advanced
+contributors:
+  - ulic75
+---
+
+# Complex Forms
+
+## What are Complex Forms?
+
+Complex forms would typically contain data in a structure that is more than just simple key/value pairs. For example, a list of people who each have their own email, phone and street address. This would essentially be an array of objects.
+
+## Input naming
+
+### Objects
+
+Nested items can be created by seperating the items with `.` (dot) in the name. For example, `person.name` would be converted to `{ person: { name: 'sam' } }`.
+
+### Arrays
+
+Arrays, either top level or nested are created by specifying the zero-based index in the name.  For example `person.pets.0` would be converted to `{ person: { pets: [ 'cat' ] } }`.
+
+### Example
+
+The key to creating a complex form is in the naming of the inputs. Below would be an example of the list described above:
+```html
+<form>
+  <input name="person.0.name" value="Sam">
+  <input name="person.0.email" value="sam@complexform.com">
+  <input name="person.0.pets.0" value="cat">
+  <input name="person.0.pets.1" value="dog">
+  <input name="person.0.address.street" value="1234 Example Ave.">
+  <input name="person.0.address.city" value="Qwik">
+  <input name="person.0.address.state" value="IA">
+  <input name="person.0.address.zip" value="00000">
+  <input name="person.0.pets.0" value="beaver">
+
+  <input name="person.1.name" value="Bonnie">
+  <input name="person.1.email" value="bonnie@hishai.net">
+  <input name="person.1.address.street" value="768 Resolution Way">
+  <input name="person.1.address.city" value="Jaffa">
+  <input name="person.1.address.state" value="IL">
+  <input name="person.1.address.zip" value="01948">
+</form>
+```
+
+#### Output object
+
+The after submiting the form the data would be parsed in an object like this:
+```json
+{
+  "person": [
+    {
+      "name": "Sam",
+      "email": "sam@complexform.com",
+      "address": {
+        "street": "1234 Example Ave.",
+        "city": "Qwik",
+        "state": "IA",
+        "zip": "00000"
+      },
+      "pets": ["beaver"]
+    },
+    {
+      "name": "Bonnie",
+      "email": "bonnie@hishai.net",
+      "address": {
+        "street": "768 Resolution Way",
+        "city": "Jaffa",
+        "state": "IL",
+        "zip": "01948"
+      }
+    }
+  ]
+}
+```
+
+## Using with Actions
+
+Complex forms can be validated using zod$ with routeAction$ and globalAction$. Continuing with the previous examples it would look like this:
+
+```tsx
+export const action = routeAction$(
+  async (person) => {
+    return { success: true, person, };
+  },
+  // Zod schema is used to validate the FormData
+  zod$({
+    person: z.array(
+      z.object({
+        name: z.string(),
+        email: z.string().email(),
+        address: z.object({
+          street: z.string(),
+          city: z.string(),
+          state: z.string(),
+          zip: z.coerce.number()
+        }),
+        pets: z.array(z.string())
+      })
+    ),
+  })
+);
+```

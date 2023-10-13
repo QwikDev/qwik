@@ -1,13 +1,12 @@
-/* eslint-disable */
-import * as assert from 'uvu/assert';
+/* eslint-disable no-empty-pattern */
+import { assert, test, beforeAll, type TestAPI } from 'vitest';
 import { join } from 'node:path';
-import { suite as uvuSuite } from 'uvu';
 import type {
   BuildContext,
   BuildLayout,
   BuildRoute,
   MarkdownAttributes,
-  NormalizedPluginOptions,
+  PluginOptions,
 } from '../buildtime/types';
 import { createBuildContext } from '../buildtime/context';
 import { tmpdir } from 'node:os';
@@ -15,80 +14,86 @@ import { normalizePath } from './fs';
 import { build } from '../buildtime/build';
 import { fileURLToPath } from 'node:url';
 
-export function suite(title?: string) {
-  const s = uvuSuite<TestContext>(title);
+export { assert };
+
+export function suite(title: string = 'qwik-city') {
   const rootDir = tmpdir();
   const basePath = '/';
 
-  s.before.each((testCtx) => {
-    testCtx.ctx = createBuildContext(rootDir, basePath, {
-      routesDir: join(rootDir, 'src', 'routes'),
-    });
-    testCtx.opts = testCtx.ctx.opts;
-    testCtx.filePath = join(testCtx.ctx.opts.routesDir, 'welcome.mdx');
-    testCtx.attrs = { title: '', description: '' };
+  return test.extend<TestContext>({
+    ctx: async ({}, use) => {
+      const ctx = createBuildContext(rootDir, basePath, {
+        routesDir: join(rootDir, 'src', 'routes'),
+      });
+      await use(ctx);
+      ctx.diagnostics.forEach((d) => console.error(d.message));
+    },
+    filePath: ({ ctx }, use) => use(join(ctx.opts.routesDir, 'welcome.mdx')),
+    attrs: ({}, use) => use({ title: '', description: '' }),
   });
-
-  s.after.each((testCtx) => {
-    testCtx.ctx.diagnostics.forEach((d) => console.error(d.message));
-  });
-
-  return s;
 }
 
-export function testAppSuite(title: string) {
-  const s = uvuSuite<TestAppBuildContext>(title);
-  let buildCtx: any = null;
+export function testAppSuite(
+  title: string,
+  userOpts?: PluginOptions
+): TestAPI<TestAppBuildContext> {
+  let buildCtx: BuildContext;
 
-  s.before.each(async (testCtx) => {
-    if (!buildCtx) {
-      const __dirname = fileURLToPath(new URL('.', import.meta.url));
-      const testAppRootDir = join(__dirname, '..', '..', '..', 'starters', 'apps', 'qwikcity-test');
-      const basePath = '/';
-      const ctx = createBuildContext(testAppRootDir, basePath);
+  beforeAll(async (testCtx) => {
+    const __dirname = fileURLToPath(new URL('.', import.meta.url));
+    const testAppRootDir = join(__dirname, '..', '..', '..', 'starters', 'apps', 'qwikcity-test');
+    const basePath = '/';
+    const ctx = createBuildContext(testAppRootDir, basePath, userOpts);
 
-      assert.is(normalizePath(testAppRootDir), ctx.rootDir);
-      assert.is(normalizePath(join(testAppRootDir, 'src', 'routes')), ctx.opts.routesDir);
+    assert.equal(normalizePath(testAppRootDir), ctx.rootDir);
+    assert.equal(normalizePath(join(testAppRootDir, 'src', 'routes')), ctx.opts.routesDir);
 
-      await build(ctx);
+    await build(ctx);
 
-      assert.equal(ctx.diagnostics, []);
+    assert.deepEqual(ctx.diagnostics, []);
 
-      buildCtx = ctx;
-      Object.assign(testCtx, ctx);
+    buildCtx = ctx;
+    Object.assign(testCtx, ctx);
+  });
 
-      testCtx.assertRoute = (p) => {
-        const r = ctx.routes.find((r) => r.pathname === p);
-        if (!r) {
-          console.log(ctx.routes);
-          assert.ok(r, `did not find page route "${p}"`);
-        }
-        return r as any;
-      };
-
-      testCtx.assertLayout = (id) => {
-        const l = ctx.layouts.find((r) => r.id === id);
-        if (!l) {
-          console.log(ctx.layouts);
-          assert.ok(l, `did not find layout "${id}"`);
-        }
-        return l as any;
-      };
+  const assertRoute = (p: string) => {
+    const r = buildCtx.routes.find((r) => r.pathname === p);
+    if (!r) {
+      // eslint-disable-next-line no-console
+      console.log(buildCtx.routes);
+      assert.ok(r, `did not find page route "${p}"`);
     }
+    return r as any;
+  };
+  const assertLayout = (id: string) => {
+    const l = buildCtx.layouts.find((r) => r.id === id);
+    if (!l) {
+      // eslint-disable-next-line no-console
+      console.log(buildCtx.layouts);
+      assert.ok(l, `did not find layout "${id}"`);
+    }
+    return l as any;
+  };
+
+  const myTest = test.extend<TestAppBuildContext>({
+    ctx: async ({}, use) => use(buildCtx),
+    filePath: ({ ctx }, use) => use(join(ctx.opts.routesDir, 'welcome.mdx')),
+    attrs: ({}, use) => use({ title: '', description: '' }),
+
+    assertRoute: ({}, use) => use(assertRoute),
+    assertLayout: ({}, use) => use(assertLayout),
   });
 
-  return s;
+  return myTest;
 }
 
-export interface TestAppBuildContext extends BuildContext {
+export interface TestAppBuildContext extends TestContext {
   assertRoute: (pathname: string) => BuildRoute;
   assertLayout: (id: string) => BuildLayout;
 }
 
 export interface TestContext {
-  rootDir: string;
   ctx: BuildContext;
-  opts: NormalizedPluginOptions;
   filePath: string;
   attrs: MarkdownAttributes;
 }

@@ -1,5 +1,37 @@
 [
   {
+    "title": "Frosty Tools | Streaming just got a whole lot cooler.",
+    "imgSrc": "/showcases/frostytools_com.webp",
+    "perf": {
+      "score": 1,
+      "fcpDisplay": "1.0 s",
+      "fcpScore": 1,
+      "lcpDisplay": "1.6 s",
+      "lcpScore": 0.99,
+      "ttiDisplay": "1.3 s",
+      "ttiScore": 1,
+      "ttiTime": 1333
+    },
+    "href": "https://frostytools.com",
+    "tags": "saas"
+  },
+  {
+    "title": "Dimension — The new standard for collaboration.",
+    "imgSrc": "/showcases/www_dimension_dev.webp",
+    "perf": {
+      "score": 0.93,
+      "fcpDisplay": "1.4 s",
+      "fcpScore": 0.97,
+      "lcpDisplay": "3.0 s",
+      "lcpScore": 0.77,
+      "ttiDisplay": "2.4 s",
+      "ttiScore": 0.98,
+      "ttiTime": 2406
+    },
+    "href": "https://www.dimension.dev",
+    "tags": "saas"
+  },
+  {
     "title": "Wope: The New Era Of Rank Tracking",
     "imgSrc": "/showcases/wope_com_.webp",
     "perf": {
@@ -13,7 +45,7 @@
       "ttiTime": 8514.950938924118
     },
     "href": "https://wope.com/",
-    "tags": "sass"
+    "tags": "saas"
   },
   {
     "title": "Builder.io - Drag and drop Visual CMS",
@@ -29,6 +61,22 @@
       "ttiTime": 2424.2056589872454
     },
     "href": "https://www.builder.io/",
+    "tags": "saas"
+  },
+  {
+    "title": "Reflect",
+    "imgSrc": "/showcases/reflect_app_.webp",
+    "perf": {
+      "score": 0.91,
+      "fcpDisplay": "1.5 s",
+      "fcpScore": 0.96,
+      "lcpDisplay": "2.1 s",
+      "lcpScore": 0.95,
+      "ttiDisplay": "5.2 s",
+      "ttiScore": 0.75,
+      "ttiTime": 5150.5
+    },
+    "href": "https://reflect.app/",
     "tags": "saas"
   },
   {
@@ -64,19 +112,36 @@
     "tags": "portfolio"
   },
   {
-    "title": "Reflect",
-    "imgSrc": "/showcases/reflect_app_.webp",
+    "title": "Qwik City Movies",
+    "href": "https://qwik-city-movies-wm.netlify.app/",
+    "imgSrc": "/showcases/qwik-city-movies-wm_netlify_app_.webp",
     "perf": {
-      "score": 0.91,
-      "fcpDisplay": "1.5 s",
-      "fcpScore": 0.96,
-      "lcpDisplay": "2.1 s",
-      "lcpScore": 0.95,
-      "ttiDisplay": "5.2 s",
-      "ttiScore": 0.75,
-      "ttiTime": 5150.5
+      "score": 0.99,
+      "fcpDisplay": "0.9 s",
+      "fcpScore": 1,
+      "lcpDisplay": "2.0 s",
+      "lcpScore": 0.97,
+      "ttiDisplay": "0.9 s",
+      "ttiScore": 1,
+      "ttiTime": 911.5
     },
-    "href": "https://reflect.app/",
+    "size": "large",
+    "tags": "app"
+  },
+  {
+    "title": "Hexa Center: Modern EMR (EPD) Solution for your Healthcare Practice",
+    "imgSrc": "/showcases/www_hexa_center_.webp",
+    "perf": {
+      "score": 0.99,
+      "fcpDisplay": "1.3 s",
+      "fcpScore": 0.98,
+      "lcpDisplay": "1.3 s",
+      "lcpScore": 1,
+      "ttiDisplay": "1.3 s",
+      "ttiScore": 1,
+      "ttiTime": 1282
+    },
+    "href": "https://www.hexa.center/",
     "tags": "saas"
   },
   {
@@ -223,7 +288,25 @@
       "ttiTime": 836
     },
     "href": "https://www.burgersonfleek.ca/",
-    "tags": "site"
+    "tags": "site",
+    "repo": "https://github.com/saboooor/burgersonfleek"
+  },
+  {
+    "title": "SimplyMC: A Minecraft Multitool",
+    "imgSrc": "/showcases/simplymc_art_.webp",
+    "perf": {
+      "score": 0.9,
+      "fcpDisplay": "1.8 s",
+      "fcpScore": 0.88,
+      "lcpDisplay": "2.2 s",
+      "lcpScore": 0.95,
+      "ttiDisplay": "3.4 s",
+      "ttiScore": 0.93,
+      "ttiTime": 3367
+    },
+    "href": "https://simplymc.art/",
+    "tags": "site",
+    "repo": "https://github.com/LuminescentDev/SimplyMC"
   },
   {
     "title": "Guillermo Peralta Scura",
@@ -242,21 +325,21 @@
     "tags": "portfolio"
   },
   {
-    "title": "Qwik City Movies",
-    "href": "https://qwik-city-movies-wm.netlify.app/",
-    "imgSrc": "/showcases/qwik-city-movies-wm_netlify_app_.webp",
+    "title": "ExpoBeds - Your Expo Hotel Booking And Information Directory",
+    "imgSrc": "/showcases/www_expobeds_com_.webp",
     "perf": {
-      "score": 0.99,
-      "fcpDisplay": "0.9 s",
-      "fcpScore": 1,
-      "lcpDisplay": "2.0 s",
-      "lcpScore": 0.97,
-      "ttiDisplay": "0.9 s",
-      "ttiScore": 1,
-      "ttiTime": 911.5
+      "score": 0.91,
+      "fcpDisplay": "1.6 s",
+      "fcpScore": 0.94,
+      "lcpDisplay": "3.4 s",
+      "lcpScore": 0.67,
+      "ttiDisplay": "3.9 s",
+      "ttiScore": 0.89,
+      "ttiTime": 3859
     },
+    "href": "https://www.expobeds.com/",
     "size": "large",
-    "tags": "app"
+    "tags": "company"
   },
   {
     "title": "Jbnado - João Bernardo",
@@ -452,6 +535,22 @@
     "tags": "site"
   },
   {
+    "title": "短链",
+    "imgSrc": "/showcases/ss-link_netlify_app_.webp",
+    "perf": {
+      "score": 1,
+      "fcpDisplay": "1.3 s",
+      "fcpScore": 0.98,
+      "lcpDisplay": "1.3 s",
+      "lcpScore": 1,
+      "ttiDisplay": "1.3 s",
+      "ttiScore": 1,
+      "ttiTime": 1308.5
+    },
+    "href": "https://ss-link.netlify.app/",
+    "tags": "app"
+  },
+  {
     "title": "Necati Koçlu - Front-end Developer",
     "imgSrc": "/showcases/necatikcl_dev_.webp",
     "perf": {
@@ -501,6 +600,22 @@
     "tags": "ecommerce"
   },
   {
+    "title": "Home",
+    "imgSrc": "/showcases/itbusinesshub_com_.webp",
+    "perf": {
+      "score": 0.84,
+      "fcpDisplay": "2.1 s",
+      "fcpScore": 0.8,
+      "lcpDisplay": "2.2 s",
+      "lcpScore": 0.94,
+      "ttiDisplay": "6.2 s",
+      "ttiScore": 0.62,
+      "ttiTime": 6221.75
+    },
+    "href": "https://itbusinesshub.com/",
+    "tags": "blog"
+  },
+  {
     "title": "Main page - Travel Calculator",
     "imgSrc": "/showcases/travelcalc_pages_dev.webp",
     "perf": {
@@ -531,5 +646,150 @@
     },
     "href": "https://upester.com",
     "tags": "app"
+  },
+  {
+    "title": "Pay4Me App | Fastest SEVIS Fees, WES Fees, & Payments",
+    "imgSrc": "/showcases/pay4me_app.webp",
+    "perf": {
+      "score": 0.96,
+      "fcpDisplay": "1.5 s",
+      "fcpScore": 0.96,
+      "lcpDisplay": "2.3 s",
+      "lcpScore": 0.93,
+      "ttiDisplay": "4.4 s",
+      "ttiScore": 0.83,
+      "ttiTime": 4406
+    },
+    "href": "https://pay4me.app",
+    "tags": "saas"
+  },
+  {
+    "title": "OSM POIS - Cities",
+    "imgSrc": "/showcases/qwik-osm-poc_netlify_app_.webp",
+    "perf": {
+      "score": 1,
+      "fcpDisplay": "1.2 s",
+      "fcpScore": 0.99,
+      "lcpDisplay": "1.2 s",
+      "lcpScore": 1,
+      "ttiDisplay": "1.2 s",
+      "ttiScore": 1,
+      "ttiTime": 1195
+    },
+    "href": "https://qwik-osm-poc.netlify.app/",
+    "tags": "site"
+  },
+  {
+    "title": "Welcome to LeoNerd",
+    "imgSrc": "/showcases/leonerd_blog.webp",
+    "perf": {
+      "score": 0.93,
+      "fcpDisplay": "1.2 s",
+      "fcpScore": 0.99,
+      "lcpDisplay": "1.6 s",
+      "lcpScore": 0.99,
+      "ttiDisplay": "2.2 s",
+      "ttiScore": 0.99,
+      "ttiTime": 2180
+    },
+    "href": "https://leonerd.blog",
+    "tags": "portfolio"
+  },
+  {
+    "title": "Seifen - detergente ultra concentrado para ropa deportiva",
+    "imgSrc": "/showcases/seifen_vercel_app_.webp",
+    "perf": {
+      "score": 1,
+      "fcpDisplay": "1.1 s",
+      "fcpScore": 0.99,
+      "lcpDisplay": "1.1 s",
+      "lcpScore": 1,
+      "ttiDisplay": "1.1 s",
+      "ttiScore": 1,
+      "ttiTime": 1077.5
+    },
+    "href": "https://seifen.vercel.app/",
+    "tags": "site"
+  },
+  {
+    "title": "Built with Appwrite",
+    "imgSrc": "/showcases/builtwith_appwrite_io_.webp",
+    "perf": {
+      "score": 0.79,
+      "fcpDisplay": "3.4 s",
+      "fcpScore": 0.39,
+      "lcpDisplay": "3.4 s",
+      "lcpScore": 0.66,
+      "ttiDisplay": "3.4 s",
+      "ttiScore": 0.93,
+      "ttiTime": 3391.5
+    },
+    "href": "https://builtwith.appwrite.io/",
+    "tags": "site",
+    "repo": "https://github.com/appwrite/builtwith"
+  },
+  {
+    "title": "RadixStream - Rapid Cloudflare Stream plugin for WordPress",
+    "imgSrc": "/showcases/radixstream_com_.webp",
+    "perf": {
+      "score": 1,
+      "fcpDisplay": "1.0 s",
+      "fcpScore": 1,
+      "lcpDisplay": "1.0 s",
+      "lcpScore": 1,
+      "ttiDisplay": "3.1 s",
+      "ttiScore": 0.95,
+      "ttiTime": 3134.5
+    },
+    "href": "https://radixstream.com/",
+    "tags": "site"
+  },
+  {
+    "title": "Anirban Das - Fullstack Developer & UX Designer",
+    "imgSrc": "/showcases/www_anirbandas_in_.webp",
+    "perf": {
+      "score": 0.89,
+      "fcpDisplay": "2.9 s",
+      "fcpScore": 0.53,
+      "lcpDisplay": "2.9 s",
+      "lcpScore": 0.81,
+      "ttiDisplay": "4.0 s",
+      "ttiScore": 0.88,
+      "ttiTime": 3975
+    },
+    "href": "https://www.anirbandas.in/",
+    "tags": "portfolio"
+  },
+  {
+    "title": "Qwik meet",
+    "imgSrc": "/showcases/qwik-meet_onrender_com_.webp",
+    "perf": {
+      "score": 0.98,
+      "fcpDisplay": "1.9 s",
+      "fcpScore": 0.86,
+      "lcpDisplay": "1.9 s",
+      "lcpScore": 0.97,
+      "ttiDisplay": "1.9 s",
+      "ttiScore": 0.99,
+      "ttiTime": 1946.5
+    },
+    "href": "https://qwik-meet.onrender.com/",
+    "tags": "webrtc"
+  },
+  {
+    "title": "Polaris: AI-powered Site Reliability",
+    "imgSrc": "/showcases/getpolaris_ai_.webp",
+    "perf": {
+      "score": 0.76,
+      "fcpDisplay": "2.7 s",
+      "fcpScore": 0.6,
+      "lcpDisplay": "4.5 s",
+      "lcpScore": 0.38,
+      "ttiDisplay": "6.0 s",
+      "ttiScore": 0.65,
+      "ttiTime": 5950.25
+    },
+    "href": "https://getpolaris.ai/",
+    "tags": "saas"
   }
 ]

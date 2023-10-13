@@ -1,3 +1,4 @@
+import swRegister from '@qwik-city-sw-register-build';
 import { createMdxTransformer, type MdxTransform } from '../markdown/mdx';
 import { basename, join, resolve, extname } from 'node:path';
 import type { Plugin, PluginOption, UserConfig, Rollup } from 'vite';
@@ -28,9 +29,7 @@ import {
 import { postBuild } from '../../adapters/shared/vite/post-build';
 import { imagePlugin } from './image-jsx';
 
-/**
- * @public
- */
+/** @public */
 export function qwikCity(userOpts?: QwikCityVitePluginOptions): PluginOption[] {
   return [qwikCityPlugin(userOpts), ...imagePlugin(userOpts)];
 }
@@ -179,7 +178,7 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
 
           if (isSwRegister) {
             // @qwik-city-sw-register
-            return generateServiceWorkerRegister(ctx);
+            return generateServiceWorkerRegister(ctx, swRegister);
           }
         }
       }
@@ -259,6 +258,7 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
         if (ctx?.target === 'ssr') {
           // ssr build
           const manifest = qwikPlugin!.api.getManifest();
+          const insightsManifest = await qwikPlugin!.api.getInsightsManifest();
           const clientOutDir = qwikPlugin!.api.getClientOutDir();
 
           if (manifest && clientOutDir) {
@@ -270,7 +270,12 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
                 const swClientDistPath = join(clientOutBaseDir, swEntry.chunkFileName);
                 const swCode = await fs.promises.readFile(swClientDistPath, 'utf-8');
                 try {
-                  const swCodeUpdate = prependManifestToServiceWorker(ctx, manifest, swCode);
+                  const swCodeUpdate = prependManifestToServiceWorker(
+                    ctx,
+                    manifest,
+                    insightsManifest?.prefetch || null,
+                    swCode
+                  );
                   if (swCodeUpdate) {
                     await fs.promises.mkdir(clientOutDir, { recursive: true });
                     await fs.promises.writeFile(swClientDistPath, swCodeUpdate);

@@ -2,12 +2,14 @@ import type { ParsedPathname, PathnameSegmentPart } from '../types';
 
 /**
  * Adopted from SvelteKit
+ *
  * https://github.com/sveltejs/kit/blob/master/LICENSE
  */
 export function parseRoutePathname(basePathname: string, pathname: string): ParsedPathname {
   if (pathname === basePathname) {
     return {
       pattern: new RegExp('^' + pathname.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$'),
+      routeName: pathname,
       paramNames: [],
       segments: [[{ content: '', dynamic: false, rest: false }]],
     };
@@ -72,6 +74,7 @@ export function parseRoutePathname(basePathname: string, pathname: string): Pars
 
   return {
     pattern,
+    routeName: pathname,
     paramNames,
     segments: segments.map((segment) => {
       const parts: PathnameSegmentPart[] = [];

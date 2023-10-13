@@ -1,0 +1,83 @@
+.group {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+}
+
+.thread {
+  border: 1px dashed #ccc;
+  margin-bottom: 5px;
+  border-radius: 5px;
+}
+
+.box,
+.legend-box {
+  margin: 5px;
+}
+
+.html {
+  width: 100px;
+  background-color: rgb(183, 218, 244);
+}
+
+.js,
+.js-chunk {
+  width: 250px;
+  background-color: rgb(160, 220, 172);
+}
+
+.execution {
+  width: 500px;
+  background-color: rgb(250, 183, 184);
+}
+
+.reconciliation {
+  width: 250px;
+  background-color: rgb(219, 207, 204);
+}
+
+.js-chunk {
+  width: 15px;
+  margin: 0;
+  margin-right: 2px;
+}
+
+.thread-label {
+  float: right;
+}
+
+.legend-box {
+  width: 30px !important;
+  height: 30px !important;
+}
+
+.legend > .group {
+  margin-right: 30px;
+}
+h1.label {
+  font-size: larger;
+  margin-top: 20px;
+}
+
+.legend {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+}
+
+.box,
+.legend-box {
+  min-width: 5px;
+  height: 50px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}

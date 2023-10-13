@@ -9,10 +9,11 @@ type ButtonProps = QwikIntrinsicElements['button'] & {
 };
 
 /**
- * todos:
- * - implement sizes
- * - implement themes
- * - implement variants
+ * Todos:
+ *
+ * - Implement sizes
+ * - Implement themes
+ * - Implement variants
  */
 
 export default component$<ButtonProps>((props) => {

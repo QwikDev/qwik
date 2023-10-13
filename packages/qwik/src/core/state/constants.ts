@@ -5,9 +5,7 @@ export const QOjectTargetSymbol = Symbol('proxy target');
 export const QObjectFlagsSymbol = Symbol('proxy flags');
 export const QObjectManagerSymbol = Symbol('proxy manager');
 
-/**
- * @internal
- */
+/** @internal */
 export const _IMMUTABLE = Symbol('IMMUTABLE');
 
 export const _IMMUTABLE_PREFIX = '$$';

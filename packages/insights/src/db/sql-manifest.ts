@@ -1,12 +1,12 @@
-import { eq, and, type InferModel, sql } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 import { type AppDatabase } from './index';
-import { edgeTable, manifestTable } from './schema';
-import { latencyColumnSums, toVector } from './query-helpers';
+import { type ManifestRow, edgeTable, manifestTable } from './schema';
+import { latencyColumnSums, latencyCount, toVector } from './query-helpers';
 
 export async function dbGetManifests(
   db: AppDatabase,
   publicApiKey: string
-): Promise<InferModel<typeof manifestTable, 'select'>[]> {
+): Promise<ManifestRow[]> {
   const manifests = await db
     .select()
     .from(manifestTable)
@@ -16,7 +16,16 @@ export async function dbGetManifests(
   return manifests;
 }
 
-export async function dbGetManifestStats(db: AppDatabase, publicApiKey: string) {
+export interface ManifestStatsRow {
+  hash: string;
+  timestamp: Date;
+  latency: number[];
+}
+
+export async function dbGetManifestStats(
+  db: AppDatabase,
+  publicApiKey: string
+): Promise<ManifestStatsRow[]> {
   const manifests = await db
     .select({ hash: manifestTable.hash, timestamp: manifestTable.timestamp, ...latencyColumnSums })
     .from(manifestTable)
@@ -38,13 +47,13 @@ export async function dbGetManifestInfo(
   db: AppDatabase,
   publicApiKey: string,
   manifestHash: string
-): Promise<InferModel<typeof manifestTable, 'select'>> {
+): Promise<ManifestRow> {
   const manifest = await db
     .select()
     .from(manifestTable)
     .where(and(eq(manifestTable.publicApiKey, publicApiKey), eq(manifestTable.hash, manifestHash)))
     .get();
-  if (manifest as {} | undefined) {
+  if (manifest) {
     return manifest;
   } else {
     const manifestFields = {
@@ -58,4 +67,39 @@ export async function dbGetManifestInfo(
       ...manifestFields,
     };
   }
+}
+
+export async function dbGetManifestHashes(
+  db: AppDatabase,
+  publicApiKey: string,
+  { sampleSize }: { sampleSize?: number } = {}
+): Promise<string[]> {
+  if (typeof sampleSize !== 'number') {
+    sampleSize = 100000;
+  }
+  const manifests = await db
+    .select({ hash: manifestTable.hash, ...latencyCount })
+    .from(manifestTable)
+    .innerJoin(
+      edgeTable,
+      and(
+        eq(edgeTable.publicApiKey, manifestTable.publicApiKey),
+        eq(edgeTable.manifestHash, manifestTable.hash)
+      )
+    )
+    .where(and(eq(manifestTable.publicApiKey, publicApiKey)))
+    .groupBy(manifestTable.hash)
+    .orderBy(sql`${manifestTable.timestamp} DESC`)
+    .all();
+  const hashes: string[] = [];
+  let sum = 0;
+  for (let i = 0; i < manifests.length; i++) {
+    const row = manifests[i];
+    hashes.push(row.hash);
+    sum += row.latencyCount;
+    if (sum > sampleSize) {
+      break;
+    }
+  }
+  return hashes;
 }

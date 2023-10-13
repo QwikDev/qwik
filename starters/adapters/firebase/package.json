@@ -1,0 +1,24 @@
+{
+  "description": "Firebase",
+  "scripts": {
+    "build.server": "vite build -c adapters/firebase/vite.config.ts",
+    "serve": "qwik build && firebase emulators:start",
+    "deploy": "firebase deploy"
+  },
+  "devDependencies": {
+    "firebase-tools": "^12.6.2"
+  },
+  "__qwik__": {
+    "priority": 30,
+    "displayName": "Adapter: Firebase",
+    "docs": [
+      "https://qwik.builder.io/qwikcity/adaptors/aws-lambda/"
+    ],
+    "nextSteps": {
+      "title": "Next Steps",
+      "lines": [
+        "- cd functions && pnpm i"
+      ]
+    }
+  }
+}

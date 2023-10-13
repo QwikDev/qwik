@@ -7,8 +7,8 @@ import { readPackageJson } from './package-json';
 /**
  * Builds @builder.io/server
  *
- * This is submodule for helping to generate server-side rendered pages,
- * along with providing utilities for prerendering and unit testing.
+ * This is submodule for helping to generate server-side rendered pages, along with providing
+ * utilities for prerendering and unit testing.
  */
 export async function submoduleServer(config: BuildConfig) {
   const submodule = 'server';

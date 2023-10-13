@@ -1,5 +1,5 @@
-import { sql, type InferModel } from 'drizzle-orm';
-import { edgeTable } from './schema';
+import { sql } from 'drizzle-orm';
+import { type EdgeRowSansId, edgeTable, type RouteRowSansId, routesTable } from './schema';
 import { BUCKETS } from '~/stats/vector';
 
 export type VectorKeys<PREFIX extends string> =
@@ -81,7 +81,7 @@ export function createEdgeRow({
   interaction: boolean;
   delayBucket: number;
   latencyBucket: number;
-}): InferModel<typeof edgeTable, 'insert'> {
+}): EdgeRowSansId {
   return {
     publicApiKey,
     manifestHash,
@@ -349,7 +349,7 @@ export const delayColumns = {
   delayCount49: edgeTable.delayCount49,
 };
 
-export const computeLatency = sql`
+export const computeLatency = sql<number>`
   (
     sumLatencyCount00 * ${BUCKETS[0].avg} + 
     sumLatencyCount01 * ${BUCKETS[1].avg} +
@@ -507,6 +507,164 @@ export const latencyColumnSums = {
   sumLatencyCount49: sql<number>`sum(${edgeTable.latencyCount49}) as sumLatencyCount49`,
 };
 
+export const latencyColumnSumList = sql<string>`
+  CAST(sum(${edgeTable.latencyCount00}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount01}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount02}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount03}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount04}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount05}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount06}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount07}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount08}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount09}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount10}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount11}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount12}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount13}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount14}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount15}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount16}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount17}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount18}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount19}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount20}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount21}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount22}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount23}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount24}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount25}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount26}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount27}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount28}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount29}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount30}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount31}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount32}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount33}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount34}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount35}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount36}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount37}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount38}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount39}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount40}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount41}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount42}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount43}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount44}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount45}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount46}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount47}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount48}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount49}) as VARCHAR)`;
+
+export const delayColumnSumList = sql<string>`
+  CAST(sum(${edgeTable.delayCount00}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount01}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount02}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount03}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount04}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount05}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount06}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount07}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount08}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount09}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount10}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount11}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount12}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount13}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount14}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount15}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount16}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount17}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount18}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount19}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount20}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount21}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount22}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount23}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount24}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount25}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount26}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount27}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount28}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount29}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount30}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount31}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount32}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount33}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount34}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount35}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount36}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount37}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount38}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount39}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount40}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount41}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount42}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount43}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount44}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount45}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount46}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount47}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount48}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount49}) as VARCHAR)`;
+
+export const latencyCount = {
+  latencyCount: sql<number>`
+    ${edgeTable.latencyCount00} + 
+    ${edgeTable.latencyCount01} + 
+    ${edgeTable.latencyCount02} + 
+    ${edgeTable.latencyCount03} + 
+    ${edgeTable.latencyCount04} + 
+    ${edgeTable.latencyCount05} + 
+    ${edgeTable.latencyCount06} + 
+    ${edgeTable.latencyCount07} + 
+    ${edgeTable.latencyCount08} + 
+    ${edgeTable.latencyCount09} + 
+    ${edgeTable.latencyCount10} + 
+    ${edgeTable.latencyCount11} + 
+    ${edgeTable.latencyCount12} + 
+    ${edgeTable.latencyCount13} + 
+    ${edgeTable.latencyCount14} + 
+    ${edgeTable.latencyCount15} + 
+    ${edgeTable.latencyCount16} + 
+    ${edgeTable.latencyCount17} + 
+    ${edgeTable.latencyCount18} + 
+    ${edgeTable.latencyCount19} + 
+    ${edgeTable.latencyCount20} + 
+    ${edgeTable.latencyCount21} + 
+    ${edgeTable.latencyCount22} + 
+    ${edgeTable.latencyCount23} + 
+    ${edgeTable.latencyCount24} + 
+    ${edgeTable.latencyCount25} + 
+    ${edgeTable.latencyCount26} + 
+    ${edgeTable.latencyCount27} + 
+    ${edgeTable.latencyCount28} + 
+    ${edgeTable.latencyCount29} + 
+    ${edgeTable.latencyCount30} + 
+    ${edgeTable.latencyCount31} + 
+    ${edgeTable.latencyCount32} + 
+    ${edgeTable.latencyCount33} + 
+    ${edgeTable.latencyCount34} + 
+    ${edgeTable.latencyCount35} + 
+    ${edgeTable.latencyCount36} + 
+    ${edgeTable.latencyCount37} + 
+    ${edgeTable.latencyCount38} + 
+    ${edgeTable.latencyCount39} + 
+    ${edgeTable.latencyCount40} + 
+    ${edgeTable.latencyCount41} + 
+    ${edgeTable.latencyCount42} + 
+    ${edgeTable.latencyCount43} + 
+    ${edgeTable.latencyCount44} + 
+    ${edgeTable.latencyCount45} + 
+    ${edgeTable.latencyCount46} + 
+    ${edgeTable.latencyCount47} + 
+    ${edgeTable.latencyCount48} + 
+    ${edgeTable.latencyCount49} as latencyCount`,
+};
+
 export const delayColumnSums = {
   sumDelayCount00: sql<number>`sum(${edgeTable.delayCount00}) as sumDelayCount00`,
   sumDelayCount01: sql<number>`sum(${edgeTable.delayCount01}) as sumDelayCount01`,
@@ -559,6 +717,273 @@ export const delayColumnSums = {
   sumDelayCount48: sql<number>`sum(${edgeTable.delayCount48}) as sumDelayCount48`,
   sumDelayCount49: sql<number>`sum(${edgeTable.delayCount49}) as sumDelayCount49`,
 };
+
+export const timelineDelayAsList = sql<string>`(
+  CAST(SUM(${routesTable.timeline00}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline01}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline02}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline03}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline04}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline05}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline06}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline07}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline08}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline09}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline10}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline11}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline12}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline13}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline14}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline15}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline16}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline17}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline18}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline19}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline20}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline21}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline22}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline23}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline24}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline25}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline26}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline27}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline28}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline29}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline30}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline31}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline32}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline33}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline34}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline35}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline36}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline37}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline38}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline39}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline40}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline41}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline42}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline43}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline44}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline45}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline46}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline47}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline48}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline49}) as VARCHAR)
+)`;
+
+export const timelineDelays = {
+  timeline00: routesTable.timeline00,
+  timeline01: routesTable.timeline01,
+  timeline02: routesTable.timeline02,
+  timeline03: routesTable.timeline03,
+  timeline04: routesTable.timeline04,
+  timeline05: routesTable.timeline05,
+  timeline06: routesTable.timeline06,
+  timeline07: routesTable.timeline07,
+  timeline08: routesTable.timeline08,
+  timeline09: routesTable.timeline09,
+  timeline10: routesTable.timeline10,
+  timeline11: routesTable.timeline11,
+  timeline12: routesTable.timeline12,
+  timeline13: routesTable.timeline13,
+  timeline14: routesTable.timeline14,
+  timeline15: routesTable.timeline15,
+  timeline16: routesTable.timeline16,
+  timeline17: routesTable.timeline17,
+  timeline18: routesTable.timeline18,
+  timeline19: routesTable.timeline19,
+  timeline20: routesTable.timeline20,
+  timeline21: routesTable.timeline21,
+  timeline22: routesTable.timeline22,
+  timeline23: routesTable.timeline23,
+  timeline24: routesTable.timeline24,
+  timeline25: routesTable.timeline25,
+  timeline26: routesTable.timeline26,
+  timeline27: routesTable.timeline27,
+  timeline28: routesTable.timeline28,
+  timeline29: routesTable.timeline29,
+  timeline30: routesTable.timeline30,
+  timeline31: routesTable.timeline31,
+  timeline32: routesTable.timeline32,
+  timeline33: routesTable.timeline33,
+  timeline34: routesTable.timeline34,
+  timeline35: routesTable.timeline35,
+  timeline36: routesTable.timeline36,
+  timeline37: routesTable.timeline37,
+  timeline38: routesTable.timeline38,
+  timeline39: routesTable.timeline39,
+  timeline40: routesTable.timeline40,
+  timeline41: routesTable.timeline41,
+  timeline42: routesTable.timeline42,
+  timeline43: routesTable.timeline43,
+  timeline44: routesTable.timeline44,
+  timeline45: routesTable.timeline45,
+  timeline46: routesTable.timeline46,
+  timeline47: routesTable.timeline47,
+  timeline48: routesTable.timeline48,
+  timeline49: routesTable.timeline49,
+};
+
+export const timelineAvg = sql<number>`
+  (
+    ${routesTable.timeline00} * ${BUCKETS[0].avg} + 
+    ${routesTable.timeline01} * ${BUCKETS[1].avg} +
+    ${routesTable.timeline02} * ${BUCKETS[2].avg} +
+    ${routesTable.timeline03} * ${BUCKETS[3].avg} +
+    ${routesTable.timeline04} * ${BUCKETS[4].avg} +
+    ${routesTable.timeline05} * ${BUCKETS[5].avg} +
+    ${routesTable.timeline06} * ${BUCKETS[6].avg} +
+    ${routesTable.timeline07} * ${BUCKETS[7].avg} +
+    ${routesTable.timeline08} * ${BUCKETS[8].avg} +
+    ${routesTable.timeline09} * ${BUCKETS[9].avg} +
+    ${routesTable.timeline10} * ${BUCKETS[10].avg} +
+    ${routesTable.timeline11} * ${BUCKETS[11].avg} +
+    ${routesTable.timeline12} * ${BUCKETS[12].avg} +
+    ${routesTable.timeline13} * ${BUCKETS[13].avg} +
+    ${routesTable.timeline14} * ${BUCKETS[14].avg} +
+    ${routesTable.timeline15} * ${BUCKETS[15].avg} +
+    ${routesTable.timeline16} * ${BUCKETS[16].avg} +
+    ${routesTable.timeline17} * ${BUCKETS[17].avg} +
+    ${routesTable.timeline18} * ${BUCKETS[18].avg} +
+    ${routesTable.timeline19} * ${BUCKETS[19].avg} +
+    ${routesTable.timeline20} * ${BUCKETS[20].avg} +
+    ${routesTable.timeline21} * ${BUCKETS[21].avg} +
+    ${routesTable.timeline22} * ${BUCKETS[22].avg} +
+    ${routesTable.timeline23} * ${BUCKETS[23].avg} +
+    ${routesTable.timeline24} * ${BUCKETS[24].avg} +
+    ${routesTable.timeline25} * ${BUCKETS[25].avg} +
+    ${routesTable.timeline26} * ${BUCKETS[26].avg} +
+    ${routesTable.timeline27} * ${BUCKETS[27].avg} +
+    ${routesTable.timeline28} * ${BUCKETS[28].avg} +
+    ${routesTable.timeline29} * ${BUCKETS[29].avg} +
+    ${routesTable.timeline30} * ${BUCKETS[30].avg} +
+    ${routesTable.timeline31} * ${BUCKETS[31].avg} +
+    ${routesTable.timeline32} * ${BUCKETS[32].avg} +
+    ${routesTable.timeline33} * ${BUCKETS[33].avg} +
+    ${routesTable.timeline34} * ${BUCKETS[34].avg} +
+    ${routesTable.timeline35} * ${BUCKETS[35].avg} +
+    ${routesTable.timeline36} * ${BUCKETS[36].avg} +
+    ${routesTable.timeline37} * ${BUCKETS[37].avg} +
+    ${routesTable.timeline38} * ${BUCKETS[38].avg} +
+    ${routesTable.timeline39} * ${BUCKETS[39].avg} +
+    ${routesTable.timeline40} * ${BUCKETS[40].avg} +
+    ${routesTable.timeline41} * ${BUCKETS[41].avg} +
+    ${routesTable.timeline42} * ${BUCKETS[42].avg} +
+    ${routesTable.timeline43} * ${BUCKETS[43].avg} +
+    ${routesTable.timeline44} * ${BUCKETS[44].avg} +
+    ${routesTable.timeline45} * ${BUCKETS[45].avg} +
+    ${routesTable.timeline46} * ${BUCKETS[46].avg} +
+    ${routesTable.timeline47} * ${BUCKETS[47].avg} +
+    ${routesTable.timeline48} * ${BUCKETS[48].avg} +
+    ${routesTable.timeline49} * ${BUCKETS[49].avg}
+  ) / (
+    ${routesTable.timeline00} +
+    ${routesTable.timeline01} +
+    ${routesTable.timeline02} +
+    ${routesTable.timeline03} +
+    ${routesTable.timeline04} +
+    ${routesTable.timeline05} +
+    ${routesTable.timeline06} +
+    ${routesTable.timeline07} +
+    ${routesTable.timeline08} +
+    ${routesTable.timeline09} +
+    ${routesTable.timeline10} +
+    ${routesTable.timeline11} +
+    ${routesTable.timeline12} +
+    ${routesTable.timeline13} +
+    ${routesTable.timeline14} +
+    ${routesTable.timeline15} +
+    ${routesTable.timeline16} +
+    ${routesTable.timeline17} +
+    ${routesTable.timeline18} +
+    ${routesTable.timeline19} +
+    ${routesTable.timeline20} +
+    ${routesTable.timeline21} +
+    ${routesTable.timeline22} +
+    ${routesTable.timeline23} +
+    ${routesTable.timeline24} +
+    ${routesTable.timeline25} +
+    ${routesTable.timeline26} +
+    ${routesTable.timeline27} +
+    ${routesTable.timeline28} +
+    ${routesTable.timeline29} +
+    ${routesTable.timeline30} +
+    ${routesTable.timeline31} +
+    ${routesTable.timeline32} +
+    ${routesTable.timeline33} +
+    ${routesTable.timeline34} +
+    ${routesTable.timeline35} +
+    ${routesTable.timeline36} +
+    ${routesTable.timeline37} +
+    ${routesTable.timeline38} +
+    ${routesTable.timeline39} +
+    ${routesTable.timeline40} +
+    ${routesTable.timeline41} +
+    ${routesTable.timeline42} +
+    ${routesTable.timeline43} +
+    ${routesTable.timeline44} +
+    ${routesTable.timeline45} +
+    ${routesTable.timeline46} +
+    ${routesTable.timeline47} +
+    ${routesTable.timeline48} +
+    ${routesTable.timeline49}
+  )`;
+
+export const sumTimelineCount = sql<number>`
+    SUM(${routesTable.timeline00}) +
+    SUM(${routesTable.timeline01}) +
+    SUM(${routesTable.timeline02}) +
+    SUM(${routesTable.timeline03}) +
+    SUM(${routesTable.timeline04}) +
+    SUM(${routesTable.timeline05}) +
+    SUM(${routesTable.timeline06}) +
+    SUM(${routesTable.timeline07}) +
+    SUM(${routesTable.timeline08}) +
+    SUM(${routesTable.timeline09}) +
+    SUM(${routesTable.timeline10}) +
+    SUM(${routesTable.timeline11}) +
+    SUM(${routesTable.timeline12}) +
+    SUM(${routesTable.timeline13}) +
+    SUM(${routesTable.timeline14}) +
+    SUM(${routesTable.timeline15}) +
+    SUM(${routesTable.timeline16}) +
+    SUM(${routesTable.timeline17}) +
+    SUM(${routesTable.timeline18}) +
+    SUM(${routesTable.timeline19}) +
+    SUM(${routesTable.timeline20}) +
+    SUM(${routesTable.timeline21}) +
+    SUM(${routesTable.timeline22}) +
+    SUM(${routesTable.timeline23}) +
+    SUM(${routesTable.timeline24}) +
+    SUM(${routesTable.timeline25}) +
+    SUM(${routesTable.timeline26}) +
+    SUM(${routesTable.timeline27}) +
+    SUM(${routesTable.timeline28}) +
+    SUM(${routesTable.timeline29}) +
+    SUM(${routesTable.timeline30}) +
+    SUM(${routesTable.timeline31}) +
+    SUM(${routesTable.timeline32}) +
+    SUM(${routesTable.timeline33}) +
+    SUM(${routesTable.timeline34}) +
+    SUM(${routesTable.timeline35}) +
+    SUM(${routesTable.timeline36}) +
+    SUM(${routesTable.timeline37}) +
+    SUM(${routesTable.timeline38}) +
+    SUM(${routesTable.timeline39}) +
+    SUM(${routesTable.timeline40}) +
+    SUM(${routesTable.timeline41}) +
+    SUM(${routesTable.timeline42}) +
+    SUM(${routesTable.timeline43}) +
+    SUM(${routesTable.timeline44}) +
+    SUM(${routesTable.timeline45}) +
+    SUM(${routesTable.timeline46}) +
+    SUM(${routesTable.timeline47}) +
+    SUM(${routesTable.timeline48}) +
+    SUM(${routesTable.timeline49})`;
+
+export function listToVector(list: string): number[] {
+  return list.split(';').map((s) => parseInt(s, 10));
+}
 
 export function toVector<PREFIX extends string>(prefix: PREFIX, dat: VectorFields<PREFIX>) {
   const obj = dat as Record<string, number>;
@@ -614,4 +1039,77 @@ export function toVector<PREFIX extends string>(prefix: PREFIX, dat: VectorField
     obj[prefix + '48'],
     obj[prefix + '49'],
   ];
+}
+
+export function timelineBucketField(bucket: number): VectorKeys<`timeline`> {
+  return ('timeline' + pad(bucket)) as any;
+}
+
+export function createRouteRow({
+  publicApiKey,
+  manifestHash,
+  route,
+  symbol,
+}: {
+  publicApiKey: string;
+  manifestHash: string;
+  route: string;
+  symbol: string;
+}): RouteRowSansId {
+  return {
+    publicApiKey,
+    manifestHash,
+    route,
+    symbol,
+    timeline00: 0,
+    timeline01: 0,
+    timeline02: 0,
+    timeline03: 0,
+    timeline04: 0,
+    timeline05: 0,
+    timeline06: 0,
+    timeline07: 0,
+    timeline08: 0,
+    timeline09: 0,
+    timeline10: 0,
+    timeline11: 0,
+    timeline12: 0,
+    timeline13: 0,
+    timeline14: 0,
+    timeline15: 0,
+    timeline16: 0,
+    timeline17: 0,
+    timeline18: 0,
+    timeline19: 0,
+    timeline20: 0,
+    timeline21: 0,
+    timeline22: 0,
+    timeline23: 0,
+    timeline24: 0,
+    timeline25: 0,
+    timeline26: 0,
+    timeline27: 0,
+    timeline28: 0,
+    timeline29: 0,
+    timeline30: 0,
+    timeline31: 0,
+    timeline32: 0,
+    timeline33: 0,
+    timeline34: 0,
+    timeline35: 0,
+    timeline36: 0,
+    timeline37: 0,
+    timeline38: 0,
+    timeline39: 0,
+    timeline40: 0,
+    timeline41: 0,
+    timeline42: 0,
+    timeline43: 0,
+    timeline44: 0,
+    timeline45: 0,
+    timeline46: 0,
+    timeline47: 0,
+    timeline48: 0,
+    timeline49: 0,
+  };
 }

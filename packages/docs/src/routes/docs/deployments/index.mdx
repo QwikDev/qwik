@@ -39,7 +39,7 @@ If there's middleware missing and you'd like it added, take a look at how the `r
 
 ## Add A New Deployment
 
-Thanks for your interesting into adding a deployment integration to Qwik! We're more than happy to help you get started. Before we get too far, if there's already a deployment for what you're looking for, we'd [love to have you contribute to it](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters). If the deployment is not already available, let's add it!
+Thanks for your interest in adding a deployment integration to Qwik! We're more than happy to help you get started. Before we get too far, if there's already a deployment for what you're looking for, we'd [love to have you contribute to it](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters). If the deployment is not already available, let's add it!
 
 To start it's probably best to copy an existing adapters and middleware and modify it to fit your needs. A deployment is made up of a few different parts:
 
@@ -57,7 +57,7 @@ Middleware is the glue code that connects the server rendering framework (such a
 
 Luckily Qwik City uses the standardized [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) and [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) interfaces, so the middleware is usually pretty minimal.
 
-For middleware, you'll notice they each one calls the common `@builder.io/qwik-city/middleware/request-handler` package. The job of each middleware is to translate the request and response to the standardized format that Qwik City request handler package uses.
+For middleware, you'll notice that each one calls the common `@builder.io/qwik-city/middleware/request-handler` package. The job of each middleware is to translate the request and response to the standardized format that Qwik City request handler package uses.
 
 - [Middleware Source](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware)
 

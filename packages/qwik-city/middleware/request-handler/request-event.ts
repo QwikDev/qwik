@@ -7,12 +7,15 @@ import type {
   RequestEventCommon,
   ResolveValue,
   QwikSerializer,
+  CacheControlTarget,
+  CacheControl,
 } from './types';
 import type {
   ActionInternal,
   JSONValue,
   LoadedRoute,
   LoaderInternal,
+  FailReturn,
 } from '../../runtime/src/types';
 import { Cookie } from './cookie';
 import { ErrorResponse } from './error-handler';
@@ -22,12 +25,14 @@ import { createCacheControl } from './cache-control';
 import type { ValueOrPromise } from '@builder.io/qwik';
 import type { QwikManifest, ResolvedManifest } from '@builder.io/qwik/optimizer';
 import { IsQData, QDATA_JSON, QDATA_JSON_LEN } from './user-response';
+import { isPromise } from './../../runtime/src/utils';
 
 const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvMode = Symbol('RequestEvMode');
 const RequestEvRoute = Symbol('RequestEvRoute');
 export const RequestEvQwikSerializer = Symbol('RequestEvQwikSerializer');
 export const RequestEvTrailingSlash = Symbol('RequestEvTrailingSlash');
+export const RequestRouteName = '@routeName';
 export const RequestEvSharedActionId = '@actionId';
 export const RequestEvSharedActionFormData = '@actionFormData';
 export const RequestEvSharedNonce = '@nonce';
@@ -69,7 +74,7 @@ export function createRequestEvent(
     while (routeModuleIndex < requestHandlers.length) {
       const moduleRequestHandler = requestHandlers[routeModuleIndex];
       const result = moduleRequestHandler(requestEv);
-      if (result instanceof Promise) {
+      if (isPromise(result)) {
         await result;
       }
       routeModuleIndex++;
@@ -126,7 +131,7 @@ export function createRequestEvent(
     env,
     method: request.method,
     signal: request.signal,
-    params: loadedRoute?.[0] ?? {},
+    params: loadedRoute?.[1] ?? {},
     pathname: url.pathname,
     platform,
     query: url.searchParams,
@@ -148,9 +153,9 @@ export function createRequestEvent(
 
     exit,
 
-    cacheControl: (cacheControl) => {
+    cacheControl: (cacheControl: CacheControl, target: CacheControlTarget = 'Cache-Control') => {
       check();
-      headers.set('Cache-Control', createCacheControl(cacheControl));
+      headers.set(target, createCacheControl(cacheControl));
     },
 
     resolveValue: (async (loaderOrAction: LoaderInternal | ActionInternal) => {
@@ -211,7 +216,7 @@ export function createRequestEvent(
       return typeof returnData === 'function' ? returnData : () => returnData;
     },
 
-    fail: <T extends Record<string, any>>(statusCode: number, data: T) => {
+    fail: <T extends Record<string, any>>(statusCode: number, data: T): FailReturn<T> => {
       check();
       status = statusCode;
       headers.delete('Cache-Control');
@@ -281,7 +286,7 @@ export interface RequestEventInternal extends RequestEvent, RequestEventLoader {
   /**
    * Check if this request is already written to.
    *
-   * @returns true, if `getWritableStream()` has already been called.
+   * @returns `true`, if `getWritableStream()` has already been called.
    */
   isDirty(): boolean;
 }
@@ -325,28 +330,32 @@ const parseRequest = async (
 };
 
 const formToObj = (formData: FormData): Record<string, any> => {
-  // Convert FormData to object
-  // Handle nested form input using dot notation
-  // Handle array input using square bracket notation
-  const obj: any = {};
-  formData.forEach((value, key) => {
-    const keys = key.split('.').filter((k) => k);
-    let current = obj;
-    for (let i = 0; i < keys.length; i++) {
-      let k = keys[i];
-      // Last key
-      if (i === keys.length - 1) {
-        if (k.endsWith('[]')) {
-          k = k.slice(0, -2);
-          current[k] = current[k] || [];
-          current[k].push(value);
-        } else {
-          current[k] = value;
-        }
-      } else {
-        current = current[k] = { ...current[k] };
+  /**
+   * Convert FormData to object Handle nested form input using dot notation Handle array input using
+   * indexed dot notation (name.0, name.0) or bracket notation (name[]), the later is needed for
+   * multiselects Create values object by form data entries
+   */
+  const values = [...formData.entries()].reduce<any>((values, [name, value]) => {
+    name.split('.').reduce((object: any, key: string, index: number, keys: any) => {
+      // Backet notation for arrays, notibly for multi selects
+      if (key.endsWith('[]')) {
+        const arrayKey = key.slice(0, -2);
+        object[arrayKey] = object[arrayKey] || [];
+        return (object[arrayKey] = [...object[arrayKey], value]);
       }
-    }
-  });
-  return obj;
+
+      // If it is not last index, return nested object or array
+      if (index < keys.length - 1) {
+        return (object[key] = object[key] || (Number.isNaN(+keys[index + 1]) ? {} : []));
+      }
+
+      return (object[key] = value);
+    }, values);
+
+    // Return modified values
+    return values;
+  }, {});
+
+  // Return values object
+  return values;
 };

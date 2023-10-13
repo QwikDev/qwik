@@ -25,6 +25,7 @@ export async function buildQwikCity(config: BuildConfig) {
     buildAdapterCloudflarePagesVite(config),
     buildAdapterCloudRunVite(config),
     buildAdapterDenoVite(config),
+    buildAdapterBunVite(config),
     buildAdapterNodeServerVite(config),
     buildAdapterNetlifyEdgeVite(config),
     buildAdapterSharedVite(config),
@@ -34,9 +35,11 @@ export async function buildQwikCity(config: BuildConfig) {
     buildMiddlewareNetlifyEdge(config),
     buildMiddlewareAzureSwa(config),
     buildMiddlewareDeno(config),
+    buildMiddlewareBun(config),
     buildMiddlewareNode(config),
     buildMiddlewareRequestHandler(config),
     buildMiddlewareVercelEdge(config),
+    buildMiddlewareFirebase(config),
     buildStatic(config),
     buildStaticNode(config),
     buildStaticDeno(config),
@@ -73,6 +76,11 @@ export async function buildQwikCity(config: BuildConfig) {
         types: './adapters/cloud-run/vite/index.d.ts',
         import: './adapters/cloud-run/vite/index.mjs',
         require: './adapters/cloud-run/vite/index.cjs',
+      },
+      './adapters/bun-server/vite': {
+        types: './adapters/bun-server/vite/index.d.ts',
+        import: './adapters/bun-server/vite/index.mjs',
+        require: './adapters/bun-server/vite/index.cjs',
       },
       './adapters/deno-server/vite': {
         types: './adapters/deno-server/vite/index.d.ts',
@@ -112,9 +120,17 @@ export async function buildQwikCity(config: BuildConfig) {
         types: './middleware/cloudflare-pages/index.d.ts',
         import: './middleware/cloudflare-pages/index.mjs',
       },
+      './middleware/firebase': {
+        types: './middleware/firebase/index.d.ts',
+        import: './middleware/firebase/index.mjs',
+      },
       './middleware/deno': {
         types: './middleware/deno/index.d.ts',
         import: './middleware/deno/index.mjs',
+      },
+      './middleware/bun': {
+        types: './middleware/bun/index.d.ts',
+        import: './middleware/bun/index.mjs',
       },
       './middleware/netlify-edge': {
         types: './middleware/netlify-edge/index.d.ts',
@@ -381,6 +397,35 @@ async function buildAdapterCloudRunVite(config: BuildConfig) {
   });
 }
 
+async function buildAdapterBunVite(config: BuildConfig) {
+  const entryPoints = [join(config.srcQwikCityDir, 'adapters', 'bun-server', 'vite', 'index.ts')];
+
+  await build({
+    entryPoints,
+    outfile: join(config.distQwikCityPkgDir, 'adapters', 'bun-server', 'vite', 'index.mjs'),
+    bundle: true,
+    platform: 'node',
+    target: nodeTarget,
+    format: 'esm',
+    external: ADAPTER_EXTERNALS,
+    plugins: [resolveAdapterShared('../../shared/vite/index.mjs')],
+  });
+
+  await build({
+    entryPoints,
+    outfile: join(config.distQwikCityPkgDir, 'adapters', 'bun-server', 'vite', 'index.cjs'),
+    bundle: true,
+    platform: 'node',
+    target: nodeTarget,
+    format: 'cjs',
+    external: ADAPTER_EXTERNALS,
+    plugins: [
+      resolveAdapterShared('../../shared/vite/index.cjs'),
+      resolveRequestHandler('../../../middleware/request-handler/index.cjs'),
+    ],
+  });
+}
+
 async function buildAdapterDenoVite(config: BuildConfig) {
   const entryPoints = [join(config.srcQwikCityDir, 'adapters', 'deno-server', 'vite', 'index.ts')];
 
@@ -579,6 +624,21 @@ async function buildMiddlewareCloudflarePages(config: BuildConfig) {
   });
 }
 
+async function buildMiddlewareBun(config: BuildConfig) {
+  const entryPoints = [join(config.srcQwikCityDir, 'middleware', 'bun', 'index.ts')];
+
+  await build({
+    entryPoints,
+    outfile: join(config.distQwikCityPkgDir, 'middleware', 'bun', 'index.mjs'),
+    bundle: true,
+    platform: 'node',
+    target: nodeTarget,
+    format: 'esm',
+    external: MIDDLEWARE_EXTERNALS,
+    plugins: [resolveRequestHandler('../request-handler/index.mjs')],
+  });
+}
+
 async function buildMiddlewareDeno(config: BuildConfig) {
   const entryPoints = [join(config.srcQwikCityDir, 'middleware', 'deno', 'index.ts')];
 
@@ -667,6 +727,21 @@ async function buildMiddlewareVercelEdge(config: BuildConfig) {
   await build({
     entryPoints,
     outfile: join(config.distQwikCityPkgDir, 'middleware', 'vercel-edge', 'index.mjs'),
+    bundle: true,
+    platform: 'node',
+    target: nodeTarget,
+    format: 'esm',
+    external: MIDDLEWARE_EXTERNALS,
+    plugins: [resolveRequestHandler('../request-handler/index.mjs')],
+  });
+}
+
+async function buildMiddlewareFirebase(config: BuildConfig) {
+  const entryPoints = [join(config.srcQwikCityDir, 'middleware', 'firebase', 'index.ts')];
+
+  await build({
+    entryPoints,
+    outfile: join(config.distQwikCityPkgDir, 'middleware', 'firebase', 'index.mjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,

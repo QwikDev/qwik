@@ -5,15 +5,16 @@ export interface InsightsPayload {
   /**
    * Unique ID per user session.
    *
-   * Every page refresh constitutes a new SessionID.
-   * An SPA navigation will generate a new SessionID.
+   * Every page refresh constitutes a new SessionID. An SPA navigation will generate a new
+   * SessionID.
+   *
    * NOTE: A user session implies same route URL.
    */
   sessionID: string;
-  /**
-   * Manifest Hash of the container.
-   */
+
+  /** Manifest Hash of the container. */
   manifestHash: string;
+
   /**
    * API key of the application which we are trying to profile.
    *
@@ -24,50 +25,42 @@ export interface InsightsPayload {
   /**
    * Previous symbol received on the client.
    *
-   * Client periodically sends symbol log to the server. Being able to connect the order
-   * of symbols is useful for server clustering. Sending previous symbol name allows the
-   * server to stitch the symbol list together.
+   * Client periodically sends symbol log to the server. Being able to connect the order of symbols
+   * is useful for server clustering. Sending previous symbol name allows the server to stitch the
+   * symbol list together.
    */
   previousSymbol: string | null;
 
-  /**
-   * List of symbols which have been received since last update.
-   */
+  /** List of symbols which have been received since last update. */
   symbols: InsightSymbol[];
 }
 
 export interface InsightSymbol {
-  /**
-   * Symbol name
-   */
+  /** Symbol name */
   symbol: string;
 
-  /**
-   * Time delta since last symbol. Can be used to stich symbol requests together
-   */
+  /** Current route so we can have a better understanding of which symbols are needed for each route. */
+  route: string;
+
+  /** Time delta since last symbol. Can be used to stich symbol requests together */
   delay: number;
 
-  /**
-   * Number of ms between the time the symbol was requested and it was loaded.
-   */
+  /** Number of ms between the time the symbol was requested and it was loaded. */
   latency: number;
 
-  /**
-   * Current pathname of location. Used to cluster by route.
-   */
-  pathname: string;
+  /** Number of ms between the q:route attribute change and the qsymbol event */
+  timeline: number;
 
   /**
-   * Was this symbol as a result of user interaction. User interactions represent roots for clouters.
+   * Was this symbol as a result of user interaction. User interactions represent roots for
+   * clouters.
    */
   interaction: boolean;
 }
 
 export interface InsightsError {
   sessionID: string;
-  /**
-   * Manifest Hash of the container.
-   */
+  /** Manifest Hash of the container. */
   manifestHash: string;
   timestamp: number;
   url: string;
@@ -94,9 +87,10 @@ export const InsightsError = z.object({
 
 export const InsightSymbol = z.object({
   symbol: z.string(),
+  route: z.string(),
   delay: z.number(),
   latency: z.number(),
-  pathname: z.string(),
+  timeline: z.number(),
   interaction: z.boolean(),
 });
 
@@ -164,6 +158,17 @@ function symbolTracker(
     sessionID,
   };
   let timeoutID: ReturnType<typeof setTimeout> | null;
+  let qRouteChangeTime = performance.now();
+  const qRouteEl = document.querySelector('[q\\:route]');
+  if (qRouteEl) {
+    const observer = new MutationObserver((mutations) => {
+      const mutation = mutations.find((m) => m.attributeName === 'q:route');
+      if (mutation) {
+        qRouteChangeTime = performance.now();
+      }
+    });
+    observer.observe(qRouteEl, { attributes: true });
+  }
   function flush() {
     timeoutID = null;
     if (qSymbols.length > flushSymbolIndex) {
@@ -197,11 +202,13 @@ function symbolTracker(
     const symbol = detail.symbol;
     if (!existingSymbols.has(symbol)) {
       existingSymbols.add(symbol);
+      const route = qRouteEl?.getAttribute('q:route') || '/';
       qSymbols.push({
         symbol: symbol,
+        route,
         delay: Math.round(0 - lastReqTime + symbolRequestTime),
         latency: Math.round(symbolDeliveredTime - symbolRequestTime),
-        pathname: location.pathname,
+        timeline: Math.round(0 - qRouteChangeTime + symbolRequestTime),
         interaction: !!detail.element,
       });
       lastReqTime = symbolDeliveredTime;

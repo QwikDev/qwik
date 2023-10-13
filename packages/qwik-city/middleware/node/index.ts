@@ -18,9 +18,7 @@ import type { Http2ServerRequest } from 'node:http2';
 
 // @builder.io/qwik-city/middleware/node
 
-/**
- * @public
- */
+/** @public */
 export function createQwikCity(opts: QwikCityNodeRequestOptions) {
   // Patch Stream APIs
   patchGlobalThis();
@@ -140,18 +138,14 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
   };
 }
 
-/**
- * @public
- */
+/** @public */
 export interface PlatformNode {
   ssr?: true;
   incomingMessage?: IncomingMessage | Http2ServerRequest;
   node?: string;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface QwikCityNodeRequestOptions extends ServerRenderOptions {
   /** Options for serving static files */
   static?: {
@@ -162,28 +156,25 @@ export interface QwikCityNodeRequestOptions extends ServerRenderOptions {
   };
 
   /**
-   * Provide a function that computes the origin of the server, used to resolve relative URLs and validate the request origin against CSRF attacks.
+   * Provide a function that computes the origin of the server, used to resolve relative URLs and
+   * validate the request origin against CSRF attacks.
    *
    * When not specified, it defaults to the `ORIGIN` environment variable (if set).
    *
-   * If `ORIGIN` is not set, it's derived from the incoming request, which is not recommended for production use.
-   * You can specify the `PROTOCOL_HEADER`, `HOST_HEADER` to `X-Forwarded-Proto` and `X-Forwarded-Host` respectively to override the default behavior.
+   * If `ORIGIN` is not set, it's derived from the incoming request, which is not recommended for
+   * production use. You can specify the `PROTOCOL_HEADER`, `HOST_HEADER` to `X-Forwarded-Proto` and
+   * `X-Forwarded-Host` respectively to override the default behavior.
    */
   getOrigin?: (req: IncomingMessage | Http2ServerRequest) => string | null;
 
-  /**
-   * Provide a function that returns a `ClientConn` for the given request.
-   */
+  /** Provide a function that returns a `ClientConn` for the given request. */
   getClientConn?: (req: IncomingMessage | Http2ServerRequest) => ClientConn;
 
-  /**
-   * @deprecated Use `getOrigin` instead.
-   */
+  /** @deprecated Use `getOrigin` instead. */
   origin?: string;
 }
 
-/**
- * @public
- */ export interface NodeRequestNextFunction {
+/** @public */
+export interface NodeRequestNextFunction {
   (err?: any): void;
 }

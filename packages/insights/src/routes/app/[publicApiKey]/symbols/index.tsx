@@ -1,10 +1,11 @@
-import { component$ } from '@builder.io/qwik';
+import { type ReadonlySignal, component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
 import Histogram, { delayColors, latencyColors } from '~/components/histogram';
 import { ManifestIcon } from '~/components/icons/manifest';
 import { SymbolTile } from '~/components/symbol-tile';
 import { getDB } from '~/db';
 import { getEdges, getSymbolDetails } from '~/db/query';
+import { dbGetManifestHashes } from '~/db/sql-manifest';
 import { BUCKETS, vectorAdd, vectorNew } from '~/stats/vector';
 import { css } from '~/styled-system/css';
 
@@ -23,14 +24,21 @@ interface Manifest {
   latency: number[];
 }
 
-export const useData = routeLoader$(async ({ params, url }) => {
+interface SymbolsInfo {
+  symbols: Symbol[];
+  manifests: Manifest[];
+  buckets: typeof BUCKETS;
+}
+
+export const useData = routeLoader$<SymbolsInfo>(async ({ params, url }) => {
   const db = getDB();
   const limit = url.searchParams.get('limit')
     ? parseInt(url.searchParams.get('limit')!)
     : undefined;
+  const manifestHashes = await dbGetManifestHashes(db, params.publicApiKey);
   const [edges, details] = await Promise.all([
-    getEdges(db, params.publicApiKey, { limit }),
-    getSymbolDetails(db, params.publicApiKey),
+    getEdges(db, params.publicApiKey, { limit, manifestHashes }),
+    getSymbolDetails(db, params.publicApiKey, { manifestHashes }),
   ]);
 
   const symbolMap = new Map<string, Symbol>();
@@ -103,7 +111,7 @@ export const useData = routeLoader$(async ({ params, url }) => {
 });
 
 export default component$(() => {
-  const data = useData();
+  const data: ReadonlySignal<SymbolsInfo> = useData();
   return (
     <div>
       <h1>Manifests</h1>

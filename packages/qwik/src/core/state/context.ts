@@ -28,23 +28,31 @@ export const HOST_FLAG_MOUNTED = 1 << 2;
 export const HOST_FLAG_DYNAMIC = 1 << 3;
 export const HOST_REMOVED = 1 << 4;
 
+/** Qwik Context of an element. */
 export interface QContext {
+  /** VDOM element. */
   $element$: QwikElement;
   $refMap$: any[];
   $flags$: number;
+  /** QId, for referenced components */
   $id$: string;
+  /** Proxy for the component props */
   $props$: Record<string, any> | null;
+  /** The QRL if this is `component$`-wrapped component. */
   $componentQrl$: QRLInternal<OnRenderFn<any>> | null;
   li: Listener[];
+  /** Sequential data store for hooks, managed by useSequentialScope. */
   $seq$: any[] | null;
   $tasks$: SubscriberEffect[] | null;
+  /** The public contexts defined on this (always Virtual) component, managed by useContextProvider. */
   $contexts$: Map<string, any> | null;
   $appendStyles$: StyleAppend[] | null;
   $scopeIds$: string[] | null;
   $vdom$: ProcessedJSXNode | null;
   $slots$: ProcessedJSXNode[] | null;
   $dynamicSlots$: QContext[] | null;
-  $parent$: QContext | null;
+  /** The Qwik Context of the Virtual parent component */
+  $parentCtx$: QContext | null;
 }
 
 export const tryGetContext = (element: QwikElement): QContext | undefined => {
@@ -146,8 +154,8 @@ export const createContext = (element: Element | VirtualElement): QContext => {
     $componentQrl$: null,
     $contexts$: null,
     $dynamicSlots$: null,
-    $parent$: null,
-  };
+    $parentCtx$: null,
+  } as QContext;
   seal(ctx);
   (element as any)[Q_CTX] = ctx;
   return ctx;

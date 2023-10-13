@@ -3,11 +3,7 @@ import { qError, QError_invalidContext, QError_notFoundContext } from '../error/
 import { qDev, qSerialize } from '../util/qdev';
 import { isObject } from '../util/types';
 import { useSequentialScope } from './use-sequential-scope';
-import {
-  getVirtualElement,
-  type QwikElement,
-  type VirtualElement,
-} from '../render/dom/virtual-element';
+import { getVirtualElement, type QwikElement } from '../render/dom/virtual-element';
 import { isComment } from '../util/element';
 import { assertTrue } from '../error/assert';
 import { verifySerializable } from '../state/common';
@@ -194,8 +190,8 @@ export const useContextProvider = <STATE extends object>(
   context: ContextId<STATE>,
   newValue: STATE
 ) => {
-  const { get, set, elCtx } = useSequentialScope<boolean>();
-  if (get !== undefined) {
+  const { val, set, elCtx } = useSequentialScope<boolean>();
+  if (val !== undefined) {
     return;
   }
   if (qDev) {
@@ -272,9 +268,9 @@ export const useContext: UseContext = <STATE extends object>(
   context: ContextId<STATE>,
   defaultValue?: any
 ) => {
-  const { get, set, iCtx, elCtx } = useSequentialScope<STATE>();
-  if (get !== undefined) {
-    return get;
+  const { val, set, iCtx, elCtx } = useSequentialScope<STATE>();
+  if (val !== undefined) {
+    return val;
   }
   if (qDev) {
     validateContext(context);
@@ -293,6 +289,31 @@ export const useContext: UseContext = <STATE extends object>(
   throw qError(QError_notFoundContext, context.id);
 };
 
+/** Find the wrapping Virtual component in the DOM */
+const findVirtual = (el: QwikElement | null) => {
+  let node = el;
+  let stack = 1;
+  while (node && !node.hasAttribute('q:container')) {
+    // Walk the siblings backwards, each comment might be the Virtual wrapper component
+    while ((node = node.previousSibling as QwikElement | null)) {
+      if (isComment(node)) {
+        if (node.data === '/qv') {
+          stack++;
+        } else if (node.data.startsWith('qv ')) {
+          stack--;
+          if (stack === 0) {
+            return getVirtualElement(node)!;
+          }
+        }
+      }
+    }
+    // No more siblings, walk up the DOM tree. The parent will never be a Virtual component.
+    node = el!.parentElement;
+    el = node;
+  }
+  return null;
+};
+
 export const resolveContext = <STATE extends object>(
   context: ContextId<STATE>,
   hostCtx: QContext,
@@ -302,61 +323,26 @@ export const resolveContext = <STATE extends object>(
   if (!hostCtx) {
     return;
   }
-  let hostElement: QwikElement;
   let ctx: QContext | null = hostCtx;
   while (ctx) {
-    hostElement = ctx.$element$;
-    if (ctx.$contexts$) {
-      const found = ctx.$contexts$.get(contextID);
-      if (found) {
-        return found;
-      }
+    const found = ctx.$contexts$?.get(contextID);
+    if (found) {
+      return found;
     }
-    ctx = ctx.$parent$;
-  }
-  const value = queryContextFromDom(hostElement!, containerState, contextID);
-  return value;
-};
-
-export const queryContextFromDom = (
-  hostElement: QwikElement,
-  containerState: ContainerState,
-  contextId: string
-) => {
-  let element: QwikElement | null = hostElement;
-  while (element) {
-    let node: Node | VirtualElement | null = element;
-    let virtual: VirtualElement | null;
-    while (node && (virtual = findVirtual(node))) {
-      const contexts = getContext(virtual, containerState)?.$contexts$;
-      if (contexts) {
-        if (contexts.has(contextId)) {
-          return contexts.get(contextId);
-        }
-      }
-      node = virtual;
-    }
-    element = element.parentElement;
-  }
-  return undefined;
-};
-
-export const findVirtual = (el: Node | VirtualElement) => {
-  let node: Node | VirtualElement | null = el;
-  let stack = 1;
-  while ((node = node.previousSibling)) {
-    if (isComment(node)) {
-      if (node.data === '/qv') {
-        stack++;
-      } else if (node.data.startsWith('qv ')) {
-        stack--;
-        if (stack === 0) {
-          return getVirtualElement(node)!;
-        }
+    if (ctx.$parentCtx$) {
+      ctx = ctx.$parentCtx$;
+    } else {
+      // Not fully resumed container, find context from DOM
+      const parent = findVirtual(ctx.$element$);
+      if (parent) {
+        const parentCtx = getContext(parent, containerState);
+        ctx.$parentCtx$ = parentCtx;
+        ctx = parentCtx;
+      } else {
+        ctx = null;
       }
     }
   }
-  return null;
 };
 
 export const validateContext = (context: ContextId<any>) => {

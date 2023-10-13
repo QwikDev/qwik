@@ -627,7 +627,7 @@ const getSlotCtx = (
   }
   const template = createTemplate(staticCtx.$doc$, slotName);
   const elCtx = createContext(template);
-  elCtx.$parent$ = hostCtx;
+  elCtx.$parentCtx$ = hostCtx;
   prepend(staticCtx, hostCtx.$element$, template);
   slotMaps.templates[slotName] = template;
   return elCtx;
@@ -686,7 +686,7 @@ const createElm = (
 
   vnode.$elm$ = elm;
   const elCtx = createContext(elm);
-  elCtx.$parent$ = rCtx.$slotCtx$ ?? rCtx.$cmpCtx$;
+  elCtx.$parentCtx$ = rCtx.$slotCtx$ ?? rCtx.$cmpCtx$;
   if (!isVirtual) {
     if (qDev && qInspector) {
       const dev = vnode.$dev$;

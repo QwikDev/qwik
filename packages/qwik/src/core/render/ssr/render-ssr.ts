@@ -44,8 +44,9 @@ import type { QwikElement } from '../dom/virtual-element';
 import { EMPTY_OBJ } from '../../util/flyweight';
 import {
   createContext,
-  HOST_FLAG_DYNAMIC,
+  HOST_FLAG_DIRTY,
   HOST_FLAG_NEED_ATTACH_LISTENER,
+  HOST_FLAG_DYNAMIC,
   type QContext,
   Q_CTX,
 } from '../../state/context';
@@ -169,7 +170,14 @@ export const _renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
     containerState.$serverData$ = opts.serverData;
   }
 
-  node = _jsxQ(root, null, containerAttributes, children, 3, null);
+  node = _jsxQ(
+    root,
+    null,
+    containerAttributes,
+    children,
+    HOST_FLAG_DIRTY | HOST_FLAG_NEED_ATTACH_LISTENER,
+    null
+  );
   containerState.$hostsRendering$ = new Set();
   await Promise.resolve().then(() =>
     renderRoot(node, rCtx, ssrCtx, opts.stream, containerState, opts)
@@ -809,7 +817,7 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
 
   if (tagName === Virtual) {
     const elCtx = createSSRContext(111);
-    elCtx.$parent$ = rCtx.$slotCtx$ ?? rCtx.$cmpCtx$;
+    elCtx.$parentCtx$ = rCtx.$slotCtx$ ?? rCtx.$cmpCtx$;
     if (hostCtx && hostCtx.$flags$ & HOST_FLAG_DYNAMIC) {
       addDynamicSlot(hostCtx, elCtx);
     }

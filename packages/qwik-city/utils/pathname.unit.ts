@@ -1,8 +1,7 @@
 import type { PathParams } from '../runtime/src/types';
-import { test } from 'uvu';
-import { equal } from 'uvu/assert';
 import { getPathnameForDynamicRoute, isSameOriginUrl, normalizePathname } from './pathname';
 import { parseRoutePathname } from '../buildtime/routing/parse-pathname';
+import { assert, test } from 'vitest';
 
 test('isSameOriginUrl', () => {
   const t = [
@@ -23,7 +22,7 @@ test('isSameOriginUrl', () => {
     { url: null, expect: false },
   ];
   t.forEach((c) => {
-    equal(isSameOriginUrl(c.url!), c.expect, c.url!);
+    assert.equal(isSameOriginUrl(c.url!), c.expect, c.url!);
   });
 });
 
@@ -117,7 +116,7 @@ test('normalizePathname', () => {
 
   tests.forEach((t) => {
     const pathname = normalizePathname(t.pathname, t.basePathname, t.trailingSlash);
-    equal(pathname, t.expect);
+    assert.equal(pathname, t.expect);
   });
 });
 
@@ -129,7 +128,7 @@ test('dynamic, rest pathname in segment', () => {
       slugId: 'what-is-resumability',
     },
   });
-  equal(p, '/blog/start-what-is-resumability-end');
+  assert.equal(p, '/blog/start-what-is-resumability-end');
 });
 
 test('dynamic rest pathname', () => {
@@ -140,7 +139,7 @@ test('dynamic rest pathname', () => {
       slugId: 'what-is-resumability',
     },
   });
-  equal(p, '/blog/what-is-resumability');
+  assert.equal(p, '/blog/what-is-resumability');
 });
 
 test('dynamic, empty rest pathname in root', () => {
@@ -151,7 +150,7 @@ test('dynamic, empty rest pathname in root', () => {
       id: '',
     },
   });
-  equal(p, '/');
+  assert.equal(p, '/');
 });
 
 test('dynamic, empty rest pathname in root with nested page', () => {
@@ -162,7 +161,7 @@ test('dynamic, empty rest pathname in root with nested page', () => {
       id: '',
     },
   });
-  equal(p, '/page');
+  assert.equal(p, '/page');
 });
 
 test('dynamic pathname', () => {
@@ -174,7 +173,7 @@ test('dynamic pathname', () => {
       slugId: 'basics',
     },
   });
-  equal(p, '/docs/introduction/basics');
+  assert.equal(p, '/docs/introduction/basics');
 });
 
 function getPathname(t: { originalPathname: string; basePathname: string; params?: PathParams }) {
@@ -182,5 +181,3 @@ function getPathname(t: { originalPathname: string; basePathname: string; params
   const d = getPathnameForDynamicRoute(t.originalPathname, p.paramNames, t.params);
   return normalizePathname(d, '/', false);
 }
-
-test.run();

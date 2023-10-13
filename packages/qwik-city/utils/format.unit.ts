@@ -1,5 +1,4 @@
-import { test } from 'uvu';
-import { equal } from 'uvu/assert';
+import { assert, test } from 'vitest';
 import { msToString } from './format';
 
 [
@@ -25,8 +24,6 @@ import { msToString } from './format';
   },
 ].forEach((t) => {
   test(`msToString(${t.ms})`, () => {
-    equal(msToString(t.ms), t.expect);
+    assert.equal(msToString(t.ms), t.expect);
   });
 });
-
-test.run();

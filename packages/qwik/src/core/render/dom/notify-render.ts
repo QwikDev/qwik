@@ -12,7 +12,7 @@ import {
   TaskFlagsIsTask,
   isSubscriberDescriptor,
 } from '../../use/use-task';
-import { then } from '../../util/promises';
+import { maybeThen } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import { renderComponent } from './render-dom';
@@ -252,11 +252,11 @@ const executeTasksBefore = async (containerState: ContainerState, rCtx: RenderCo
 
   containerState.$taskNext$.forEach((task) => {
     if (isTask(task)) {
-      taskPromises.push(then(task.$qrl$.$resolveLazy$(containerEl), () => task));
+      taskPromises.push(maybeThen(task.$qrl$.$resolveLazy$(containerEl), () => task));
       containerState.$taskNext$.delete(task);
     }
     if (isResourceTask(task)) {
-      resourcesPromises.push(then(task.$qrl$.$resolveLazy$(containerEl), () => task));
+      resourcesPromises.push(maybeThen(task.$qrl$.$resolveLazy$(containerEl), () => task));
       containerState.$taskNext$.delete(task);
     }
   });
@@ -264,9 +264,9 @@ const executeTasksBefore = async (containerState: ContainerState, rCtx: RenderCo
     // Run staging effected
     containerState.$taskStaging$.forEach((task) => {
       if (isTask(task)) {
-        taskPromises.push(then(task.$qrl$.$resolveLazy$(containerEl), () => task));
+        taskPromises.push(maybeThen(task.$qrl$.$resolveLazy$(containerEl), () => task));
       } else if (isResourceTask(task)) {
-        resourcesPromises.push(then(task.$qrl$.$resolveLazy$(containerEl), () => task));
+        resourcesPromises.push(maybeThen(task.$qrl$.$resolveLazy$(containerEl), () => task));
       } else {
         containerState.$taskNext$.add(task);
       }
@@ -305,7 +305,7 @@ const executeTasksAfter = async (
   containerState.$taskNext$.forEach((task) => {
     if (taskPred(task, false)) {
       if (task.$el$.isConnected) {
-        taskPromises.push(then(task.$qrl$.$resolveLazy$(containerEl), () => task));
+        taskPromises.push(maybeThen(task.$qrl$.$resolveLazy$(containerEl), () => task));
       }
       containerState.$taskNext$.delete(task);
     }
@@ -315,7 +315,7 @@ const executeTasksAfter = async (
     containerState.$taskStaging$.forEach((task) => {
       if (task.$el$.isConnected) {
         if (taskPred(task, true)) {
-          taskPromises.push(then(task.$qrl$.$resolveLazy$(containerEl), () => task));
+          taskPromises.push(maybeThen(task.$qrl$.$resolveLazy$(containerEl), () => task));
         } else {
           containerState.$taskNext$.add(task);
         }

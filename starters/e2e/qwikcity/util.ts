@@ -41,9 +41,8 @@ export async function assertPage(ctx: TestContext, test: AssertPage) {
 
     const noFindChildLayout = parentLocator.locator(`[data-test-layout]`);
     if (await noFindChildLayout.isVisible()) {
-      const layoutName = await noFindChildLayout.getAttribute(
-        "data-test-layout",
-      )!;
+      const layoutName =
+        await noFindChildLayout.getAttribute("data-test-layout")!;
       expect(
         layoutName,
         `Should not be another nested layout, but found [data-test-layout="${layoutName}"], pathname: ${pageUrl.pathname}`,

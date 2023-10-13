@@ -5,13 +5,13 @@
   "author": "Builder Team",
   "bugs": "https://github.com/BuilderIO/qwik/issues",
   "dependencies": {
-    "jsx-ast-utils": "^3.3.4"
+    "jsx-ast-utils": "^3.3.5"
   },
   "devDependencies": {
-    "@types/eslint": "8.44.1",
-    "@types/estree": "^1.0.1",
-    "@typescript-eslint/rule-tester": "^6.2.0",
-    "@typescript-eslint/utils": "6.2.0",
+    "@types/eslint": "^8.44.4",
+    "@types/estree": "^1.0.2",
+    "@typescript-eslint/rule-tester": "^6.7.5",
+    "@typescript-eslint/utils": "^6.7.5",
     "redent": "^4.0.0"
   },
   "engines": {

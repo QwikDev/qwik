@@ -25,6 +25,6 @@
     "leaflet": "1.9.4"
   },
   "devDependencies": {
-    "@types/leaflet": "1.9.4"
+    "@types/leaflet": "^1.9.6"
   }
 }

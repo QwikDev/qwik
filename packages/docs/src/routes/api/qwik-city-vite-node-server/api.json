@@ -1,5 +1,34 @@
 {
   "id": "qwik-city-vite-node-server",
   "package": "@builder.io/qwik-city/vite/node-server",
-  "members": []
+  "members": [
+    {
+      "name": "nodeServerAdapter",
+      "id": "nodeserveradapter",
+      "hierarchy": [
+        {
+          "name": "nodeServerAdapter",
+          "id": "nodeserveradapter"
+        }
+      ],
+      "kind": "Function",
+      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nexport declare function nodeServerAdapter(opts?: NodeServerAdapterOptions): any;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  opts | [NodeServerAdapterOptions](#nodeserveradapteroptions) | _(Optional)_ |\n\n**Returns:**\n\nany",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/node-server/vite/index.ts",
+      "mdFile": "qwik-city.nodeserveradapter.md"
+    },
+    {
+      "name": "NodeServerAdapterOptions",
+      "id": "nodeserveradapteroptions",
+      "hierarchy": [
+        {
+          "name": "NodeServerAdapterOptions",
+          "id": "nodeserveradapteroptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nexport interface NodeServerAdapterOptions extends ServerAdapterOptions \n```\n**Extends:** ServerAdapterOptions\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [name?](#) |  | string | **_(ALPHA)_** _(Optional)_ |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/node-server/vite/index.ts",
+      "mdFile": "qwik-city.nodeserveradapteroptions.md"
+    }
+  ]
 }

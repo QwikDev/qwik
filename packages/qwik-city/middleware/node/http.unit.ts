@@ -1,5 +1,4 @@
-import { test } from 'uvu';
-import { equal } from 'uvu/assert';
+import { assert, test } from 'vitest';
 import { normalizeUrl } from './http';
 
 [
@@ -30,8 +29,6 @@ import { normalizeUrl } from './http';
   },
 ].forEach((t) => {
   test(`normalizeUrl(${t.url}, ${t.base})`, () => {
-    equal(normalizeUrl(t.url, t.base).href, t.expect);
+    assert.equal(normalizeUrl(t.url, t.base).href, t.expect);
   });
 });
-
-test.run();

@@ -1,12 +1,8 @@
-import { suite } from 'uvu';
-import { equal } from 'uvu/assert';
+import { assert, test } from 'vitest';
 import { fromCamelToKebabCase } from './case';
 
-const caseSuite = suite('case');
-caseSuite('should convert to kebab', () => {
-  equal(fromCamelToKebabCase('HelloWorld'), '-hello-world');
-  equal(fromCamelToKebabCase('on:ClicK'), 'on:-clic-k');
-  equal(fromCamelToKebabCase('a:b'), 'a:b');
+test('should convert to kebab', () => {
+  assert.equal(fromCamelToKebabCase('HelloWorld'), '-hello-world');
+  assert.equal(fromCamelToKebabCase('on:ClicK'), 'on:-clic-k');
+  assert.equal(fromCamelToKebabCase('a:b'), 'a:b');
 });
-
-caseSuite.run();

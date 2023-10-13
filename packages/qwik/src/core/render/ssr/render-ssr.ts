@@ -1,4 +1,4 @@
-import { isPromise, then } from '../../util/promises';
+import { isPromise, maybeThen } from '../../util/promises';
 import { type InvokeContext, newInvokeContext, invoke, trackSignal } from '../../use/use-core';
 import { Virtual, _jsxC, _jsxQ, createJSXError, isJSXNode } from '../jsx/jsx-runtime';
 import { isArray, isFunction, isString, type ValueOrPromise } from '../../util/types';
@@ -286,7 +286,7 @@ const renderNodeVirtual = (
     }
   }
   const promise = walkChildren(node.children, rCtx, ssrCtx, stream, flags);
-  return then(promise, () => {
+  return maybeThen(promise, () => {
     // Fast path
     if (!isSlot && !beforeClose) {
       stream.write(CLOSE_VIRTUAL);
@@ -307,10 +307,10 @@ const renderNodeVirtual = (
     }
     // Inject before close
     if (beforeClose) {
-      promise = then(promise, () => beforeClose(stream));
+      promise = maybeThen(promise, () => beforeClose(stream));
     }
 
-    return then(promise, () => {
+    return maybeThen(promise, () => {
       stream.write(CLOSE_VIRTUAL);
     });
   });
@@ -376,7 +376,7 @@ const renderSSRComponent = (
 ): ValueOrPromise<void> => {
   const props = node.props;
   setComponentProps(rCtx, elCtx, props.props);
-  return then(executeComponent(rCtx, elCtx), (res) => {
+  return maybeThen(executeComponent(rCtx, elCtx), (res) => {
     const hostElement = elCtx.$element$;
     const newRCtx = res.rCtx;
     const iCtx = newInvokeContext(ssrCtx.$static$.$locale$, hostElement, undefined);
@@ -457,7 +457,7 @@ const renderSSRComponent = (
           renderNodeElementSync('script', attributes, stream);
         }
         if (beforeClose) {
-          return then(renderQTemplates(rCtx, newSSrContext, ssrCtx, stream), () =>
+          return maybeThen(renderQTemplates(rCtx, newSSrContext, ssrCtx, stream), () =>
             beforeClose(stream)
           );
         } else {
@@ -786,7 +786,7 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
       flags |= IS_IMMUTABLE;
     }
     const promise = processData(node.children, rCtx, ssrCtx, stream, flags);
-    return then(promise, () => {
+    return maybeThen(promise, () => {
       // If head inject base styles
       if (isHead) {
         for (const node of ssrCtx.$static$.$headNodes$) {
@@ -801,7 +801,7 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
       }
 
       // Inject before close
-      return then(beforeClose(stream), () => {
+      return maybeThen(beforeClose(stream), () => {
         stream.write(`</${tagName}>`);
       });
     });

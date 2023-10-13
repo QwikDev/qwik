@@ -10,7 +10,7 @@ import {
   newInvokeContextFromTuple,
   tryGetInvokeContext,
 } from '../use/use-core';
-import { then } from '../util/promises';
+import { maybeThen } from '../util/promises';
 import { qDev, qSerialize, qTest, seal } from '../util/qdev';
 import { isArray, isFunction, type ValueOrPromise } from '../util/types';
 import type { QRLDev } from './qrl';
@@ -92,7 +92,7 @@ export const createQRL = <TYPE>(
       return (symbolRef = symbolFn().then((module) => (qrl.resolved = symbolRef = module[symbol])));
     } else {
       const symbol2 = getPlatform().importSymbol(_containerEl, chunk, symbol);
-      return (symbolRef = then(symbol2, (ref) => {
+      return (symbolRef = maybeThen(symbol2, (ref) => {
         return (qrl.resolved = symbolRef = ref);
       }));
     }
@@ -110,7 +110,7 @@ export const createQRL = <TYPE>(
     return ((...args: any[]): any => {
       const start = now();
       const fn = resolveLazy() as TYPE;
-      return then(fn, (fn) => {
+      return maybeThen(fn, (fn) => {
         if (isFunction(fn)) {
           if (beforeFn && beforeFn() === false) {
             return;

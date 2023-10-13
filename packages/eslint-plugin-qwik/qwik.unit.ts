@@ -1,11 +1,16 @@
-/* eslint-disable */
+import * as vitest from 'vitest';
 // @ts-ignore
 import { RuleTester } from '@typescript-eslint/rule-tester';
+
 import { fileURLToPath } from 'node:url';
 import { rules } from './index';
-import { suite } from 'uvu';
 
-const lintSuite = suite('lint');
+// https://typescript-eslint.io/packages/rule-tester/#vitest
+RuleTester.afterAll = vitest.afterAll;
+RuleTester.it = vitest.it;
+RuleTester.itOnly = vitest.it.only;
+RuleTester.describe = vitest.describe;
+
 const testConfig = {
   parser: '@typescript-eslint/parser',
   env: {
@@ -20,13 +25,6 @@ const testConfig = {
     ecmaVersion: 2020,
     sourceType: 'module',
   },
-};
-
-RuleTester.afterAll = lintSuite.after;
-RuleTester.it = lintSuite;
-RuleTester.itOnly = lintSuite.only;
-RuleTester.describe = function (_, method) {
-  return method.call(this);
 };
 
 const ruleTester = new RuleTester(testConfig as any);
@@ -717,7 +715,3 @@ ruleTester.run('qwik/loader-location', rules['loader-location'], {
     },
   ],
 });
-
-lintSuite.run();
-
-export {};

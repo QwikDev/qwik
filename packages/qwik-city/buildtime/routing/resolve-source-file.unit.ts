@@ -1,5 +1,4 @@
-import { test } from 'uvu';
-import { equal } from 'uvu/assert';
+import { assert, test } from 'vitest';
 import type { NormalizedPluginOptions, RouteSourceFile } from '../types';
 import { resolveLayout } from './resolve-source-file';
 import { getSourceFile } from './source-file';
@@ -59,9 +58,7 @@ test('resolveLayout', () => {
       fileName: '',
     };
     const l = resolveLayout(opts, sourceFile);
-    equal(l.layoutName, c.expect.layoutName, c.fileName);
-    equal(l.layoutType, c.expect.layoutType, c.fileName);
+    assert.equal(l.layoutName, c.expect.layoutName, c.fileName);
+    assert.equal(l.layoutType, c.expect.layoutType, c.fileName);
   });
 });
-
-test.run();

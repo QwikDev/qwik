@@ -1,5 +1,34 @@
 {
   "id": "qwik-city-vite-bun-server",
   "package": "@builder.io/qwik-city/vite/bun-server",
-  "members": []
+  "members": [
+    {
+      "name": "bunServerAdapter",
+      "id": "bunserveradapter",
+      "hierarchy": [
+        {
+          "name": "bunServerAdapter",
+          "id": "bunserveradapter"
+        }
+      ],
+      "kind": "Function",
+      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nexport declare function bunServerAdapter(opts?: bunServerAdapterOptions): any;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  opts | [bunServerAdapterOptions](#bunserveradapteroptions) | _(Optional)_ |\n\n**Returns:**\n\nany",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/bun-server/vite/index.ts",
+      "mdFile": "qwik-city.bunserveradapter.md"
+    },
+    {
+      "name": "bunServerAdapterOptions",
+      "id": "bunserveradapteroptions",
+      "hierarchy": [
+        {
+          "name": "bunServerAdapterOptions",
+          "id": "bunserveradapteroptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nexport interface bunServerAdapterOptions extends ServerAdapterOptions \n```\n**Extends:** ServerAdapterOptions\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [name?](#) |  | string | **_(ALPHA)_** _(Optional)_ |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/bun-server/vite/index.ts",
+      "mdFile": "qwik-city.bunserveradapteroptions.md"
+    }
+  ]
 }

@@ -36,6 +36,6 @@
     }
   },
   "devDependencies": {
-    "@builder.io/partytown": "^0.8.0"
+    "@builder.io/partytown": "^0.8.1"
   }
 }

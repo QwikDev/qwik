@@ -1,12 +1,10 @@
 import { h } from './factory';
 import { isJSXNode, Fragment } from './jsx-runtime';
 import type { FunctionComponent } from './types/jsx-node';
-import { equal } from 'uvu/assert';
-import { suite } from 'uvu';
 import { type ProcessedJSXNode, processNode } from '../dom/render-dom';
+import { test, assert } from 'vitest';
 
-const jsxSuite = suite('classic jsx factory h()');
-jsxSuite('map multiple nodes, flatten', () => {
+test('map multiple nodes, flatten', () => {
   // <parent>
   //   a
   //   {[1, 2].map((n) => (
@@ -23,99 +21,98 @@ jsxSuite('map multiple nodes, flatten', () => {
       'b'
     )
   ) as ProcessedJSXNode;
-  equal(v.$children$.length, 4);
-  equal(v.$children$[0].$text$, 'a');
-  equal(v.$children$[1].$type$, 'child');
-  equal(v.$children$[1].$children$.length, 1);
-  equal(v.$children$[2].$type$, 'child');
-  equal(v.$children$[2].$children$.length, 1);
-  equal(v.$children$[3].$text$, 'b');
+  assert.deepEqual(v.$children$.length, 4);
+  assert.deepEqual(v.$children$[0].$text$, 'a');
+  assert.deepEqual(v.$children$[1].$type$, 'child');
+  assert.deepEqual(v.$children$[1].$children$.length, 1);
+  assert.deepEqual(v.$children$[2].$type$, 'child');
+  assert.deepEqual(v.$children$[2].$children$.length, 1);
+  assert.deepEqual(v.$children$[3].$text$, 'b');
 });
 
-jsxSuite('one child node', () => {
+test('one child node', () => {
   // <parent><child></child></parent>
   const v = processNode(h('parent', null, h('child', null))) as ProcessedJSXNode;
-  equal(v.$children$.length, 1);
-  equal(v.$children$[0].$type$, 'child');
-  equal(v.$children$[0].$props$, {});
-  equal(v.$children$[0].$children$, []);
+  assert.deepEqual(v.$children$.length, 1);
+  assert.deepEqual(v.$children$[0].$type$, 'child');
+  assert.deepEqual(v.$children$[0].$props$, {});
+  assert.deepEqual(v.$children$[0].$children$, []);
 });
 
-jsxSuite('text w/ expression', () => {
+test('text w/ expression', () => {
   // <div>1 {2} 3</div>
   const v = processNode(h('div', null, '1 ', 2, ' 3')) as ProcessedJSXNode;
-  equal(v.$children$[0].$type$, '#text');
-  equal(v.$children$[0].$text$, '1 ');
-  equal(v.$children$[0].$key$, null);
+  assert.deepEqual(v.$children$[0].$type$, '#text');
+  assert.deepEqual(v.$children$[0].$text$, '1 ');
+  assert.deepEqual(v.$children$[0].$key$, null);
 
-  equal(v.$children$[1].$type$, '#text');
-  equal(v.$children$[1].$text$, '2');
-  equal(v.$children$[1].$key$, null);
+  assert.deepEqual(v.$children$[1].$type$, '#text');
+  assert.deepEqual(v.$children$[1].$text$, '2');
+  assert.deepEqual(v.$children$[1].$key$, null);
 
-  equal(v.$children$[2].$type$, '#text');
-  equal(v.$children$[2].$text$, ' 3');
-  equal(v.$children$[2].$key$, null);
+  assert.deepEqual(v.$children$[2].$type$, '#text');
+  assert.deepEqual(v.$children$[2].$text$, ' 3');
+  assert.deepEqual(v.$children$[2].$key$, null);
 });
 
-jsxSuite('text child', () => {
+test('text child', () => {
   // <div>text</div>
   const v = processNode(h('div', null, 'text')) as ProcessedJSXNode;
-  equal(v.$children$[0].$type$, '#text');
-  equal(v.$children$[0].$text$, 'text');
-  equal(v.$children$[0].$key$, null);
+  assert.deepEqual(v.$children$[0].$type$, '#text');
+  assert.deepEqual(v.$children$[0].$text$, 'text');
+  assert.deepEqual(v.$children$[0].$key$, null);
 });
 
-jsxSuite('no children', () => {
+test('no children', () => {
   // <div/>
   const v = processNode(h('div', null)) as ProcessedJSXNode;
-  equal(v.$children$, []);
+  assert.deepEqual(v.$children$, []);
 });
 
-jsxSuite('key', () => {
+test('key', () => {
   // <div key="val"/>
   const v = h('div', { key: 'val' });
-  equal(v.props, {});
-  equal(v.key, 'val');
+  assert.deepEqual(v.props, {});
+  assert.deepEqual(v.key, 'val');
 });
 
-jsxSuite('name/value props', () => {
+test('name/value props', () => {
   // <div id="val"/>
   const v = h('div', { id: 'val' });
-  equal(v.props, { id: 'val' });
+  assert.deepEqual(v.props, { id: 'val' });
 });
 
-jsxSuite('boolean props', () => {
+test('boolean props', () => {
   // <input checked/>
   const v = h('input', { checked: true });
-  equal(v.props, { checked: true });
+  assert.deepEqual(v.props, { checked: true });
 });
 
-jsxSuite('no props', () => {
+test('no props', () => {
   // <div/>
   const v = h('div', null);
-  equal(v.props, {});
-  equal(v.key, null);
+  assert.deepEqual(v.props, {});
+  assert.deepEqual(v.key, null);
 });
 
-jsxSuite('tag', () => {
+test('tag', () => {
   const v = h('div', null);
-  equal(v.type, 'div');
+  assert.deepEqual(v.type, 'div');
 });
 
-jsxSuite('Function Component', () => {
+test('Function Component', () => {
   const Cmp: FunctionComponent<any> = () => h('fn-cmp', null);
   const v = h(Cmp, {});
-  equal(v.type, Cmp);
+  assert.deepEqual(v.type, Cmp);
 });
 
-jsxSuite('Fragment', () => {
+test('Fragment', () => {
   // <><div/></>
   const v = h(Fragment, null, h('div', null));
-  equal(v.type, Fragment);
+  assert.deepEqual(v.type, Fragment);
 });
-jsxSuite('valid JSXNode', () => {
+test('valid JSXNode', () => {
   // <div/>
   const v = h('div', null);
-  equal(isJSXNode(v), true);
+  assert.deepEqual(isJSXNode(v), true);
 });
-jsxSuite.run();

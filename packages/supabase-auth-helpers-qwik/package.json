@@ -5,12 +5,12 @@
   "author": "Qwik Team",
   "bugs": "https://github.com/BuilderIO/qwik/issues",
   "dependencies": {
-    "@supabase/auth-helpers-shared": "0.4.1"
+    "@supabase/auth-helpers-shared": "^0.5.0"
   },
   "devDependencies": {
-    "@builder.io/qwik": "1.2.10",
-    "@builder.io/qwik-city": "1.2.10",
-    "@supabase/supabase-js": "^2.33.1"
+    "@builder.io/qwik": "^1.2.13",
+    "@builder.io/qwik-city": "^1.2.13",
+    "@supabase/supabase-js": "^2.38.0"
   },
   "exports": {
     ".": {

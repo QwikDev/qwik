@@ -22,10 +22,10 @@ export function getParentDir(startDir: string, dirName: string): string;
 export const NOT_FOUND_PATHS_ID = "@qwik-city-not-found-paths";
 
 // @public (undocumented)
-export const RESOLVED_NOT_FOUND_PATHS_ID: string;
+export const RESOLVED_NOT_FOUND_PATHS_ID = "@qwik-city-not-found-paths.js";
 
 // @public (undocumented)
-export const RESOLVED_STATIC_PATHS_ID: string;
+export const RESOLVED_STATIC_PATHS_ID = "@qwik-city-static-paths.js";
 
 // @public (undocumented)
 export interface ServerAdapterOptions {

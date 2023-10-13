@@ -203,7 +203,10 @@ function createTypesApi(
       if (msg.text.includes('Analysis will use')) {
         return;
       }
-      if (msg.messageId === 'console-compiler-version-notice') {
+      if (
+        msg.messageId === 'console-compiler-version-notice' ||
+        msg.messageId === 'ae-undocumented'
+      ) {
         return;
       }
       console.error(`❌ API Extractor, submodule: "${inPath}"\n${extractorConfigPath}\n`, msg);

@@ -8,7 +8,8 @@
     "ms-azuretools.vscode-docker",
     "manucorporat.vermoji",
     "vadimcn.vscode-lldb",
-    "streetsidesoftware.code-spell-checker"
+    "streetsidesoftware.code-spell-checker",
+    "ZixuanChen.vitest-explorer"
   ],
   "unwantedRecommendations": []
 }

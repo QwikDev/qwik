@@ -34,7 +34,6 @@ lib
 tsdoc-metadata.json
 
 # IDE and local environment
-.vscode/settings.json
 .idea
 .eslintcache
 test-results

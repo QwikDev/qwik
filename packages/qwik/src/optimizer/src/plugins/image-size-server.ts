@@ -83,7 +83,9 @@ function lookup(buffer: Buffer) {
 }
 export async function getInfoForSrc(src: string) {
   try {
-    const res = await fetch(src);
+    const res = await fetch(src, {
+      headers: { Accept: 'image/*,*/*' },
+    });
     if (!res.ok) {
       console.error('can not fetch', src);
       return undefined;

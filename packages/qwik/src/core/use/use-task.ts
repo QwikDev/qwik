@@ -1,6 +1,6 @@
 import { newInvokeContext, invoke, waitAndRun, untrack } from './use-core';
 import { logError, logErrorAndStop } from '../util/log';
-import { delay, safeCall, then } from '../util/promises';
+import { delay, safeCall, maybeThen } from '../util/promises';
 import { isFunction, isObject, type ValueOrPromise } from '../util/types';
 import { isServerPlatform } from '../platform/platform';
 import { implicit$FirstArg } from '../util/implicit_dollar';
@@ -602,7 +602,7 @@ export const runResource = <T>(
   });
 
   const promise = safeCall(
-    () => then(waitOn, () => taskFn(opts)),
+    () => maybeThen(waitOn, () => taskFn(opts)),
     (value) => {
       setState(true, value);
     },

@@ -6,7 +6,7 @@
     "deploy": "firebase deploy"
   },
   "devDependencies": {
-    "firebase-tools": "12.4.3"
+    "firebase-tools": "^12.6.2"
   },
   "__qwik__": {
     "priority": 30,

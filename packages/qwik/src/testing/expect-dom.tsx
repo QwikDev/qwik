@@ -1,6 +1,6 @@
+import { assert } from 'vitest';
 import { QSlot } from '../core/util/markers';
 import { isHtmlElement } from '../core/util/types';
-import { snapshot } from 'uvu/assert';
 import { format } from 'prettier';
 
 /**
@@ -28,5 +28,5 @@ export function isQSLotTemplateElement(node: Node | null | undefined): node is H
 
 export async function expectDOM(actual: Element, expected: string) {
   const options = { parser: 'html', htmlWhitespaceSensitivity: 'ignore' as const };
-  snapshot(await format(actual.outerHTML, options), await format(expected, options));
+  assert.equal(await format(actual.outerHTML, options), await format(expected, options));
 }

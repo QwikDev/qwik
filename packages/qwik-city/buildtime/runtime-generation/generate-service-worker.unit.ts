@@ -1,13 +1,10 @@
-import { suite } from 'uvu';
-import { equal } from 'uvu/assert';
 import type { BuildContext, BuildRoute } from '../types';
 import type { QwikManifest, InsightManifest } from '@builder.io/qwik/optimizer';
 import type { AppBundle } from '../../runtime/src/service-worker/types';
 import { generateLinkBundles } from './generate-service-worker';
+import { assert, test } from 'vitest';
 
-const swSuite = suite('lint');
-
-swSuite('incorporate qwik-insights', () => {
+test('incorporate qwik-insights', () => {
   const routes: BuildRoute[] = [
     {
       routeName: '/',
@@ -54,8 +51,6 @@ swSuite('incorporate qwik-insights', () => {
     { route: '/routeA', symbols: ['345'] },
   ];
   const [_, routeToBundles] = generateLinkBundles(ctx, appBundles, manifest, prefetch);
-  equal(routeToBundles['/'], ['q-bundle-123.js', 'q-bundle-234.js', 'q-bundle-a.js']);
-  equal(routeToBundles['/routeA'], ['q-bundle-345.js', 'q-bundle-b.js']);
+  assert.deepEqual(routeToBundles['/'], ['q-bundle-123.js', 'q-bundle-234.js', 'q-bundle-a.js']);
+  assert.deepEqual(routeToBundles['/routeA'], ['q-bundle-345.js', 'q-bundle-b.js']);
 });
-
-swSuite.run();

@@ -463,46 +463,34 @@ const renderSSRComponent = (
           }
           renderNodeElementSync('script', attributes, stream);
         }
-        if (beforeClose) {
-          return maybeThen(renderQTemplates(rCtx, newSSrContext, ssrCtx, stream), () =>
-            beforeClose(stream)
-          );
-        } else {
-          return renderQTemplates(rCtx, newSSrContext, ssrCtx, stream);
+        const projectedChildren = newSSrContext.$projectedChildren$;
+        let missingSlotsDone;
+        if (projectedChildren) {
+          const nodes = Object.keys(projectedChildren).map((slotName) => {
+            const content = projectedChildren[slotName];
+            // projectedChildren[slotName] = undefined;
+            if (content) {
+              return _jsxQ(
+                'q:template',
+                { [QSlot]: slotName, hidden: '', 'aria-hidden': 'true' },
+                null,
+                content,
+                0,
+                null
+              );
+            }
+          });
+          const [_rCtx, sCtx] = newSSrContext.$projectedCtxs$!;
+          const newSlotRctx = pushRenderContext(_rCtx);
+          newSlotRctx.$slotCtx$ = elCtx;
+          missingSlotsDone = processData(nodes, newSlotRctx, sCtx, stream, 0, undefined);
         }
+        return beforeClose
+          ? maybeThen(missingSlotsDone, () => beforeClose(stream))
+          : missingSlotsDone;
       }
     );
   });
-};
-
-const renderQTemplates = (
-  rCtx: RenderContext,
-  ssrCtx: SSRContext,
-  parentSSRCtx: SSRContext,
-  stream: StreamWriter
-) => {
-  const projectedChildren = ssrCtx.$projectedChildren$;
-  if (projectedChildren) {
-    const nodes = Object.keys(projectedChildren).map((slotName) => {
-      const value = projectedChildren[slotName];
-      // projectedChildren[slotName] = undefined;
-      if (value) {
-        return _jsxQ(
-          'q:template',
-          {
-            [QSlot]: slotName,
-            hidden: '',
-            'aria-hidden': 'true',
-          },
-          null,
-          value,
-          0,
-          null
-        );
-      }
-    });
-    return processData(nodes, rCtx, parentSSRCtx, stream, 0, undefined);
-  }
 };
 
 const splitProjectedChildren = (children: any, ssrCtx: SSRContext) => {

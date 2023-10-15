@@ -22,7 +22,7 @@ export const useSequentialScope = <T>(): SequentialScope<T> => {
   const iCtx = useInvokeContext();
   const hostElement = iCtx.$hostElement$;
   const elCtx = getContext(hostElement, iCtx.$renderCtx$.$static$.$containerState$);
-  const seq = (elCtx.$seq$ ??= []);
+  const seq = (elCtx.$seq$ ||= []);
   const i = iCtx.$i$++;
 
   const set = (value: T) => {
@@ -31,6 +31,7 @@ export const useSequentialScope = <T>(): SequentialScope<T> => {
     }
     return (seq[i] = value);
   };
+
   return {
     val: seq[i],
     set,

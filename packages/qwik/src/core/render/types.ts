@@ -11,7 +11,9 @@ export interface RenderOperation {
 /** @public */
 export interface RenderContext {
   readonly $static$: RenderStaticContext;
+  /** Current Qwik component */
   $cmpCtx$: QContext | null;
+  /** Current Slot parent */
   $slotCtx$: QContext | null;
 }
 

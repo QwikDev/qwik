@@ -34,7 +34,7 @@ import {
   getEventName,
 } from '../../container/container';
 import type { RenderContext } from '../types';
-import { assertDefined, assertElement } from '../../error/assert';
+import { assertDefined } from '../../error/assert';
 import { serializeSStyle } from '../../style/qrl-styles';
 import { qDev, qInspector, seal } from '../../util/qdev';
 import { qError, QError_canNotRenderHTML } from '../../error/error';
@@ -115,7 +115,7 @@ const createDocument = () => {
 /** @internal */
 export const _renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
   const root = opts.containerTagName;
-  const containerEl = createSSRContext(1).$element$;
+  const containerEl = createMockQContext(1).$element$;
   const containerState = createContainerState(containerEl as Element, opts.base ?? '/');
   containerState.$serverData$.locale = opts.serverData?.locale;
   const doc = createDocument();
@@ -443,7 +443,7 @@ const renderSSRComponent = (
       flags,
       (stream) => {
         if (elCtx.$flags$ & HOST_FLAG_NEED_ATTACH_LISTENER) {
-          const placeholderCtx = createSSRContext(1);
+          const placeholderCtx = createMockQContext(1);
           const listeners = placeholderCtx.li;
           listeners.push(...elCtx.li);
           elCtx.$flags$ &= ~HOST_FLAG_NEED_ATTACH_LISTENER;
@@ -517,16 +517,12 @@ const splitProjectedChildren = (children: any, ssrCtx: SSRContext) => {
     if (isJSXNode(child)) {
       slotName = child.props[QSlot] ?? '';
     }
-    let array = slotMap[slotName];
-    if (!array) {
-      slotMap[slotName] = array = [];
-    }
-    array.push(child);
+    (slotMap[slotName] ||= []).push(child);
   }
   return slotMap;
 };
 
-const createSSRContext = (nodeType: 1 | 111) => {
+const createMockQContext = (nodeType: 1 | 111) => {
   const elm = new MockElement(nodeType);
   return createContext(elm as any);
 };
@@ -545,15 +541,14 @@ const renderNode = (
     const key = node.key;
     const props = node.props;
     const immutable = node.immutableProps;
-    const elCtx = createSSRContext(1);
-    const elm = elCtx.$element$;
+    const elCtx = createMockQContext(1);
+    const elm = elCtx.$element$ as Element;
     const isHead = tagName === 'head';
     let openingElement = '<' + tagName;
     let useSignal = false;
     let hasRef = false;
     let classStr = '';
     let htmlStr = null;
-    assertElement(elm);
     if (qDev && props.class && props.className) {
       throw new TypeError('Can only have one of class or className');
     }
@@ -815,8 +810,8 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
   }
 
   if (tagName === Virtual) {
-    const elCtx = createSSRContext(111);
-    elCtx.$parentCtx$ = rCtx.$slotCtx$ ?? rCtx.$cmpCtx$;
+    const elCtx = createMockQContext(111);
+    elCtx.$parentCtx$ = rCtx.$slotCtx$ || rCtx.$cmpCtx$;
     if (hostCtx && hostCtx.$flags$ & HOST_FLAG_DYNAMIC) {
       addDynamicSlot(hostCtx, elCtx);
     }
@@ -839,6 +834,7 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
   if (tagName === InternalSSRStream) {
     return renderGenerator(node as JSXNode<typeof InternalSSRStream>, rCtx, ssrCtx, stream, flags);
   }
+  // Inline component
   const res = invoke(
     ssrCtx.$invocationContext$,
     tagName,
@@ -860,6 +856,7 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
   );
 };
 
+/** Embed metadata while rendering the tree, to be used when resuming */
 const processData = (
   node: any,
   rCtx: RenderContext,
@@ -1239,10 +1236,7 @@ const listenersNeedId = (listeners: Listener[]) => {
 };
 
 const addDynamicSlot = (hostCtx: QContext, elCtx: QContext) => {
-  let dynamicSlots = hostCtx.$dynamicSlots$;
-  if (!dynamicSlots) {
-    hostCtx.$dynamicSlots$ = dynamicSlots = [];
-  }
+  const dynamicSlots = (hostCtx.$dynamicSlots$ ||= []);
   if (!dynamicSlots.includes(elCtx)) {
     dynamicSlots.push(elCtx);
   }

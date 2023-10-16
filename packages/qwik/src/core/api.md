@@ -1058,6 +1058,9 @@ export interface IntrinsicSVGElements {
     view: SVGProps<SVGViewElement>;
 }
 
+// @public
+export const isSignal: (obj: any) => obj is Signal<any>;
+
 // @public (undocumented)
 const jsx: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>, key?: string | number | null) => JSXNode<T>;
 export { jsx }

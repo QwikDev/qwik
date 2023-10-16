@@ -156,12 +156,9 @@ export function editDeps() {
       const filter = new RegExp(
         `^.*(${Object.keys(depEdits)
           .map((mod) => {
-            mod = mod.replace('.', '\\.');
-            if (process.platform === 'win32') {
-              return mod.replace('/', '\\\\');
-            } else {
-              return mod.replace('/', '\\/');
-            }
+            return mod
+              .replace('.', '\\.')
+              .replace('/', process.platform === 'win32' ? '\\\\' : '\\/');
           })
           .join('|')})$`
       );

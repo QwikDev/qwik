@@ -161,6 +161,13 @@ export class SignalWrapper<T extends Record<string, any>, P extends keyof T> ext
   }
 }
 
+/**
+ * Checks if a given object is a `Signal`.
+ *
+ * @param obj - The object to check if `Signal`.
+ * @returns Boolean - True if the object is a `Signal`.
+ * @public
+ */
 export const isSignal = (obj: any): obj is Signal<any> => {
   return obj instanceof SignalBase;
 };

@@ -1554,6 +1554,16 @@ export interface IntrinsicSVGElements
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
+## isSignal
+
+Checks if a given object is a `Signal`.
+
+```typescript
+isSignal: (obj: any) => obj is Signal<any>
+```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/state/signal.ts)
+
 ## jsx
 
 ```typescript

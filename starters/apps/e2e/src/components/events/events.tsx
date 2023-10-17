@@ -12,6 +12,7 @@ export const Events = component$(() => {
     countTransparent: 0,
     countWrapped: 0,
     countAnchor: 0,
+    showCSR: false,
   });
 
   return (
@@ -53,6 +54,9 @@ export const Events = component$(() => {
       <p id="count-wrapped">countWrapped: {store.countWrapped}</p>
       <p id="count-anchor">countAnchor: {store.countAnchor}</p>
       <Issue3948 />
+      <Issue5301 mode="SSR" />
+      <button onClick$={() => (store.showCSR = true)}>Issue 5301 CSR</button>
+      {store.showCSR && <Issue5301 mode="CSR" />}
     </div>
   );
 });
@@ -116,5 +120,33 @@ export const Issue3948 = component$(() => {
       </label>
       {showingToggle.value && <Listener name="conditional" />}
     </>
+  );
+});
+
+export const Issue5301 = component$<{ mode: string }>(({ mode }) => {
+  const status = useSignal("");
+  const ref = useSignal<HTMLElement>();
+  return (
+    <div class={["issue5301", mode]}>
+      <h3>Issue5301: {mode}</h3>
+      <span class="status">{status.value}</span>
+      <div
+        ref={ref}
+        onCustom:event_under-dashCamel$={() => (status.value = "WORKED")}
+        document:onDOMContentLoaded$={() => (status.value = "DOMContentLoaded")}
+      >
+        TARGET
+      </div>
+      <button
+        class="test"
+        onClick$={() => {
+          ref.value!.dispatchEvent(
+            new CustomEvent("custom:event_under-dashcamel"),
+          );
+        }}
+      >
+        TEST
+      </button>
+    </div>
   );
 });

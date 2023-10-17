@@ -47,16 +47,32 @@ export const setEvent = (
 ) => {
   assertTrue(prop.endsWith('$'), 'render: event property does not end with $', prop);
   prop = normalizeOnProp(prop.slice(0, -1));
+  let listeners: Listener[];
   if (input) {
     if (isArray(input)) {
-      const processed = input
+      listeners = input
         .flat(Infinity)
         .filter((q) => q != null)
         .map((q) => [prop, ensureQrl(q, containerEl)] as Listener);
-      existingListeners.push(...processed);
     } else {
-      existingListeners.push([prop, ensureQrl(input, containerEl)]);
+      listeners = [[prop, ensureQrl(input, containerEl)] as Listener];
     }
+    listeners.forEach((newListener) => {
+      let needsAdding = true;
+      for (let i = 0; i < existingListeners.length; i++) {
+        const existingListener = existingListeners[i];
+        if (
+          existingListener[0] === newListener[0] &&
+          existingListener[1].$symbol$ === newListener[1].$symbol$
+        ) {
+          needsAdding = false;
+          break;
+        }
+      }
+      if (needsAdding) {
+        existingListeners.push(newListener);
+      }
+    });
   }
   return prop;
 };

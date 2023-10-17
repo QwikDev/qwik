@@ -19,7 +19,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
   };
 
   const broadcast = (infix: string, ev: Event, type = ev.type) => {
-    querySelectorAll('[on' + infix + '\\:' + type + ']').forEach((target) =>
+    querySelectorAll('[on' + infix + '\\:' + type.replaceAll(':', '\\:') + ']').forEach((target) =>
       dispatch(target, infix, ev, type)
     );
   };

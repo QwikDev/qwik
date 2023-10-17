@@ -311,3 +311,17 @@ export default component$(() => {
 });
 ```
 </CodeSandbox>
+
+## Event naming
+
+When naming an event there is a translation between event names in JSX and event names in the DOM. 
+
+- By default all event names are lowercase. (`onClick$` results in the `click` event.)
+- If the event name contains `-` then the next character is uppercased. (`onDouble-click$` results in `doubleClick` event.)
+- If the event name starts with `-` then the event name casing is taken linearly. (`on-DOMContentLoad$` results in `DOMContentLoad` event.)
+- Custom events can contain `:` (but JSX allows only a single `:` in the name.)
+
+DOM events (with few exceptions) are all lowercase. For this reason, lowercasing `onClick$` to `click` is the default behavior. For the events that have uppercase letters use the `-` prefix. You can try experimenting with different event names in the following example.
+
+<CodeSandbox url="/demo/events/naming/" style={{ height: '40em' }}>
+</CodeSandbox>

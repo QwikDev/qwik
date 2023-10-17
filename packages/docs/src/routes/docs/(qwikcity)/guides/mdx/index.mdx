@@ -169,21 +169,21 @@ This is a simple hello world component.
 ```
 
 ```tsx title="src/components/tags/tags.tsx"
-import { component$, useSignal } from '@builder.io/qwik';
+import { component$ } from '@builder.io/qwik';
 import { useDocumentHead } from '@builder.io/qwik-city';
 
 export const Tags = component$(() => {
   const { frontmatter } = useDocumentHead();
   
   if (frontmatter.tags.length === 0) {
-    return;
+    return null;
   }
   
   return (
     <ul>
       {frontmatter.tags.map((tag: string) => (
         <li key={`tag-${tag}`}>{tag}</li>
-      )}
+      ))}
     </ul>
   );
 });

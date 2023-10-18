@@ -256,8 +256,8 @@ export interface UseTaskOptions {
  */
 // </docs>
 export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: UseTaskOptions): void => {
-  const { get, set, iCtx, i, elCtx } = useSequentialScope<boolean>();
-  if (get) {
+  const { val, set, iCtx, i, elCtx } = useSequentialScope<boolean>();
+  if (val) {
     return;
   }
   assertQrl(qrl);
@@ -286,9 +286,9 @@ interface Computed {
 
 /** @public */
 export const useComputedQrl: ComputedQRL = <T>(qrl: QRL<ComputedFn<T>>): Signal<Awaited<T>> => {
-  const { get, set, iCtx, i, elCtx } = useSequentialScope<Signal<Awaited<T>>>();
-  if (get) {
-    return get;
+  const { val, set, iCtx, i, elCtx } = useSequentialScope<Signal<Awaited<T>>>();
+  if (val) {
+    return val;
   }
   assertQrl(qrl);
   const containerState = iCtx.$renderCtx$.$static$.$containerState$;
@@ -410,11 +410,11 @@ export const useTask$ = /*#__PURE__*/ implicit$FirstArg(useTaskQrl);
  */
 // </docs>
 export const useVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions): void => {
-  const { get, set, i, iCtx, elCtx } = useSequentialScope<Task>();
+  const { val, set, i, iCtx, elCtx } = useSequentialScope<Task>();
   const eagerness = opts?.strategy ?? 'intersection-observer';
-  if (get) {
+  if (val) {
     if (isServerPlatform()) {
-      useRunTask(get, eagerness);
+      useRunTask(val, eagerness);
     }
     return;
   }

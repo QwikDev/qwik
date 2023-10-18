@@ -63,7 +63,7 @@ Thanks to [Resumability](/docs/(qwik)/concepts/resumable/index.mdx), component l
 
 **BROWSER**: Sometimes a component will be first mounted/rendered in the browser, for example when the user SPA navigates to a new page, or a "modal" component first appears in the page. In that case, the lifecycle will run like this:
 
-```bash /useTask$/#d /RENDER/#b /useVisibleTask$/#c
+```bash
   useTask$ --> RENDER --> useVisibleTask$
 
 | -------------- BROWSER --------------- |
@@ -83,7 +83,7 @@ Additionally, this task can be reactive and will re-execute when **tracked** [st
 
 **Notice that any subsequent re-execution of the task will always happen in the browser**, because reactivity is a browser-only thing.
 
-```bash /useTask$(track)/#d /RENDER/#b /CLICK/#a
+```bash
                       (state change) -> (re-execute)
                                   ^            |
                                   |            v

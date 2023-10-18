@@ -80,7 +80,7 @@ export const WatchShell = component$(
   },
 );
 
-export const Child = component$((props: { state: State }) => {
+export const Child = component$<{ state: State }>((props) => {
   console.log("CHILD renders");
   return (
     <div>
@@ -92,7 +92,7 @@ export const Child = component$((props: { state: State }) => {
   );
 });
 
-export const GrandChild = component$((props: { state: State }) => {
+export const GrandChild = component$<{ state: State }>((props) => {
   console.log("GrandChild renders");
   return <div id="debounced">Debounced: {props.state.debounced}</div>;
 });

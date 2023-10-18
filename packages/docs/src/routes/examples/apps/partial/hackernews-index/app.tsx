@@ -55,7 +55,7 @@ export const Nav = component$(() => {
   );
 });
 
-export const Stories = component$((props: { data: any }) => {
+export const Stories = component$<{ data: any }>((props) => {
   const page = 1;
   const type = 'list';
   const stories = props.data;
@@ -95,7 +95,7 @@ export const Stories = component$((props: { data: any }) => {
   );
 });
 
-export const StoryPreview = component$((props: { story: IStory }) => {
+export const StoryPreview = component$<{ story: IStory }>((props) => {
   return (
     <li class="news-item">
       <span class="score">{props.story.points}</span>

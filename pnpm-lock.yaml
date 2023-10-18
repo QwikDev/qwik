@@ -253,8 +253,8 @@ importers:
         specifier: ^6.16.1
         version: 6.16.1(@mui/material@5.14.13)(@types/react@18.2.28)(react-dom@18.2.0)(react@18.2.0)
       '@supabase/supabase-js':
-        specifier: ^2.38.0
-        version: 2.38.0
+        specifier: ^2.38.1
+        version: 2.38.1
       '@types/prismjs':
         specifier: ^1.26.1
         version: 1.26.1
@@ -4825,6 +4825,12 @@ packages:
     dependencies:
       '@supabase/node-fetch': 2.6.14
 
+  /@supabase/postgrest-js@1.8.5:
+    resolution: {integrity: sha512-XvoqN5e5Z4TsQOYWLQYLW0HIlZtFSzwAcwiuToaSBSTpLOGCg4NaZ7au5GfBzCQJZdZPY5vk5FvwthfDsQK/Jw==}
+    dependencies:
+      '@supabase/node-fetch': 2.6.14
+    dev: true
+
   /@supabase/realtime-js@2.8.0:
     resolution: {integrity: sha512-j1OP2nRJhqLNEoYSMkIl1+cHK/Ow9fektemazkF2CvrIrmwgfJJGaFGiWGVgwoKtwVcrdknSsYWpxs90hys1EQ==}
     dependencies:
@@ -4851,6 +4857,19 @@ packages:
       '@supabase/storage-js': 2.5.4
     transitivePeerDependencies:
       - supports-color
+
+  /@supabase/supabase-js@2.38.1:
+    resolution: {integrity: sha512-WbdwKiZMMPiELL+8A4WJRHHq+xVKN+3tXxKnJWbR0XZG8HgeGVeQWhlchatTttaxsNKyx68gE7wWNvhin0V+Mg==}
+    dependencies:
+      '@supabase/functions-js': 2.1.5
+      '@supabase/gotrue-js': 2.55.0
+      '@supabase/node-fetch': 2.6.14
+      '@supabase/postgrest-js': 1.8.5
+      '@supabase/realtime-js': 2.8.0
+      '@supabase/storage-js': 2.5.4
+    transitivePeerDependencies:
+      - supports-color
+    dev: true
 
   /@swc/helpers@0.5.1:
     resolution: {integrity: sha512-sJ902EfIzn1Fa+qYmjdQqh8tPsoxyBz+8yBKC2HKUxyezKJFwPGOn7pv4WY6QuQW//ySQi5lJjA/ZT9sNWWNTg==}

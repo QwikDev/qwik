@@ -1,5 +1,5 @@
 {
-  "vitest.include": ["**/*.{test,spec,unit}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
+  "vitest.include": ["**/*.unit.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
   "vitest.exclude": [
     "**/node_modules/**",
     "**/dist/**",

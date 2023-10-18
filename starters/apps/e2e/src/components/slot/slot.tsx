@@ -66,6 +66,7 @@ export const SlotParent = component$(() => {
             <p>index page</p>
           </Issue4283>
           <Issue4658 />
+          <Issue5270 />
         </>
       )}
       <div>
@@ -504,5 +505,32 @@ export const Issue4658 = component$(() => {
         Toggle
       </button>
     </>
+  );
+});
+
+const Issue5270Context = createContextId<{ hi: string }>("5270");
+export const ProviderParent = component$(() => {
+  useContextProvider(Issue5270Context, { hi: "hello" });
+  const s = useSignal(false);
+  return (
+    <div>
+      <button id="issue-5270-button" onClick$={() => (s.value = !s.value)}>
+        toggle
+      </button>
+      <br />
+      {s.value && <Slot />}
+    </div>
+  );
+});
+const ContextChild = component$(() => {
+  const t = useContext(Issue5270Context);
+  return <div id="issue-5270-div">Ctx: {t.hi}</div>;
+});
+export const Issue5270 = component$(() => {
+  useContextProvider(Issue5270Context, { hi: "wrong" });
+  return (
+    <ProviderParent>
+      <ContextChild />
+    </ProviderParent>
   );
 });

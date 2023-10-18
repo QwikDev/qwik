@@ -1,6 +1,6 @@
 import { assertDefined } from '../error/assert';
 import { RenderEvent } from '../util/markers';
-import { safeCall } from '../util/promises';
+import { maybeThen, promiseAllLazy, safeCall } from '../util/promises';
 import { newInvokeContext } from '../use/use-core';
 import { isArray, isFunction, isString, type ValueOrPromise } from '../util/types';
 import type { JSXNode } from './jsx/types/jsx-node';
@@ -33,13 +33,13 @@ export const executeComponent = (
   const hostElement = elCtx.$element$;
   const componentQRL = elCtx.$componentQrl$;
   const props = elCtx.$props$;
-  const newCtx = pushRenderContext(rCtx);
   const iCtx = newInvokeContext(rCtx.$static$.$locale$, hostElement, undefined, RenderEvent);
   const waitOn = (iCtx.$waitOn$ = []);
-  assertDefined(componentQRL, `render: host element to render must has a $renderQrl$:`, elCtx);
-  assertDefined(props, `render: host element to render must has defined props`, elCtx);
+  assertDefined(componentQRL, `render: host element to render must have a $renderQrl$:`, elCtx);
+  assertDefined(props, `render: host element to render must have defined props`, elCtx);
 
   // Set component context
+  const newCtx = pushRenderContext(rCtx);
   newCtx.$cmpCtx$ = elCtx;
   newCtx.$slotCtx$ = null;
 
@@ -54,28 +54,19 @@ export const executeComponent = (
   return safeCall(
     () => componentFn(props),
     (jsxNode) => {
-      if (waitOn.length > 0) {
-        return Promise.all(waitOn).then(() => {
-          if (elCtx.$flags$ & HOST_FLAG_DIRTY) {
-            return executeComponent(rCtx, elCtx);
-          }
-          return {
-            node: jsxNode,
-            rCtx: newCtx,
-          };
-        });
-      }
-      if (elCtx.$flags$ & HOST_FLAG_DIRTY) {
-        return executeComponent(rCtx, elCtx);
-      }
-      return {
-        node: jsxNode,
-        rCtx: newCtx,
-      };
+      return maybeThen(promiseAllLazy(waitOn), () => {
+        if (elCtx.$flags$ & HOST_FLAG_DIRTY) {
+          return executeComponent(rCtx, elCtx);
+        }
+        return {
+          node: jsxNode,
+          rCtx: newCtx,
+        };
+      });
     },
     (err) => {
       if (err === SignalUnassignedException) {
-        return Promise.all(waitOn).then(() => {
+        return maybeThen(promiseAllLazy(waitOn), () => {
           return executeComponent(rCtx, elCtx);
         });
       }
@@ -140,40 +131,25 @@ export const serializeClass = (obj: ClassList): string => {
     return obj.trim();
   }
 
+  const classes: string[] = [];
+
   if (isArray(obj)) {
-    return obj.reduce((result: string, o) => {
+    for (const o of obj) {
       const classList = serializeClass(o);
-      return classList ? (result ? `${result} ${classList}` : classList) : result;
-    }, '');
+      if (classList) {
+        classes.push(classList);
+      }
+    }
+  } else {
+    for (const [key, value] of Object.entries(obj)) {
+      if (value) {
+        classes.push(key.trim());
+      }
+    }
   }
 
-  return Object.entries(obj).reduce(
-    (result, [key, value]) => (value ? (result ? `${result} ${key.trim()}` : key.trim()) : result),
-    ''
-  );
+  return classes.join(' ');
 };
-
-// export const serializeClass = (obj: ClassList): string => {
-//   if (!obj) return '';
-//   if (isString(obj)) return obj.trim();
-
-//   let reduced = '';
-//   if (isArray(obj)) {
-//     for (const o of obj) {
-//       const classList = serializeClass(o);
-//       if (classList) {
-//         reduced += ' ' + classList.trim();
-//       }
-//     }
-//   } else {
-//     for (const key of Object.keys(obj)) {
-//       if (obj[key]) {
-//         reduced += ' ' + key;
-//       }
-//     }
-//   }
-//   return reduced.trim();
-// };
 
 export const stringifyStyle = (obj: any): string => {
   if (obj == null) {

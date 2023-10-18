@@ -30,6 +30,6 @@ export const isText = (value: Node): value is Text => {
   return value.nodeType === 3;
 };
 
-export const isComment = (value: Node): value is Comment => {
+export const isComment = (value: Node | QwikElement): value is Comment => {
   return value.nodeType === 8;
 };

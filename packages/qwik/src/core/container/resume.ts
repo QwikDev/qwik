@@ -18,7 +18,7 @@ import {
   type SnapshotState,
   strToInt,
 } from './container';
-import { findClose, VirtualElementImpl } from '../render/dom/virtual-element';
+import { getVirtualElement } from '../render/dom/virtual-element';
 import { getSubscriptionManager, parseSubscription, type Subscriptions } from '../state/common';
 import { createProxy, setObjectFlags } from '../state/store';
 import { qDev, qSerialize } from '../util/qdev';
@@ -27,7 +27,6 @@ import { isPrimitive } from '../render/dom/render-dom';
 import { getWrappingContainer } from '../use/use-core';
 import { getContext } from '../state/context';
 import { EMPTY_ARRAY } from '../util/flyweight';
-import { SVG_NS } from '../render/dom/visitor';
 
 export const resumeIfNeeded = (containerEl: Element): void => {
   const isResumed = directGetAttribute(containerEl, QContainerAttr);
@@ -190,14 +189,9 @@ export const resumeContainer = (containerEl: Element) => {
           finalized.set(id, undefined);
           return undefined;
         }
-        const close = findClose(rawElement);
-        const virtual = new VirtualElementImpl(
-          rawElement,
-          close,
-          rawElement.parentElement?.namespaceURI === SVG_NS
-        );
+        const virtual = getVirtualElement(rawElement);
         finalized.set(id, virtual);
-        getContext(virtual, containerState);
+        getContext(virtual!, containerState);
         return virtual;
       } else if (isElement(rawElement)) {
         finalized.set(id, rawElement);

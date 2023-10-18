@@ -16,7 +16,11 @@ import { isBrowser } from '@builder.io/qwik/build';
 import { assertString } from '../../error/assert';
 import { static_subtree } from '../execute-component';
 
-/** @internal */
+/**
+ * @internal
+ *
+ * Create a JSXNode for a string tag
+ */
 export const _jsxQ = <T extends string>(
   type: T,
   mutableProps: (T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>) | null,
@@ -47,7 +51,11 @@ export const _jsxQ = <T extends string>(
   return node;
 };
 
-/** @internal */
+/**
+ * @internal
+ *
+ * Create a JSXNode for a string tag, with the children extracted from the mutableProps
+ */
 export const _jsxS = <T extends string>(
   type: T,
   mutableProps: (T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>) | null,
@@ -64,7 +72,11 @@ export const _jsxS = <T extends string>(
   return _jsxQ(type, mutableProps, immutableProps, children, flags, key, dev);
 };
 
-/** @internal */
+/**
+ * @internal
+ *
+ * Create a JSXNode for any tag, with possibly immutable props embedded in props
+ */
 export const _jsxC = <T extends string | FunctionComponent<any>>(
   type: T,
   mutableProps: (T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>) | null,

@@ -7,7 +7,7 @@
     "@auth/core": "^0.13.0",
     "@builder.io/qwik": "workspace:*",
     "@builder.io/qwik-city": "workspace:*",
-    "@types/set-cookie-parser": "^2.4.3",
+    "@types/set-cookie-parser": "^2.4.4",
     "set-cookie-parser": "^2.6.0"
   },
   "engines": {

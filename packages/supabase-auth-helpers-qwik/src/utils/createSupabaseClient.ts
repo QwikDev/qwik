@@ -54,6 +54,7 @@ export function createBrowserClient<
 
 /**
  * ## Authenticated Supabase client
+ *
  * ### Loader
  *
  * ```ts
@@ -61,7 +62,6 @@ export function createBrowserClient<
  * import { routeLoader$ } from '@builder.io/qwik-city';
  *
  * export const useSession = routeLoader$(async (requestEv) => {
- *
  *   const supabaseClient = createServerClient(
  *     import.meta.env.PUBLIC_SUPABASE_URL,
  *     import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
@@ -71,7 +71,7 @@ export function createBrowserClient<
  *   const { data } = await supabaseClient.from('test').select('*');
  *
  *   return {
- *     data
+ *     data,
  *   };
  * });
  * ```
@@ -81,7 +81,7 @@ export function createBrowserClient<
  * ```ts
  * import { createServerClient } from '@supabase/auth-helpers-remix';
  * import { routeAction$ } from '@builder.io/qwik-city';
-
+ *
  * export const useaction = routeAction$(async (_, requestEv) => {
  *   const response = new Response();
  *
@@ -106,9 +106,7 @@ export function createBrowserClient<
  *   );
  *
  *   const getData = async () => {
- *     const { data: supabaseData } = await supabaseClient
- *       .from('test')
- *       .select('*');
+ *     const { data: supabaseData } = await supabaseClient.from('test').select('*');
  *
  *     console.log({ data });
  *   };
@@ -116,7 +114,6 @@ export function createBrowserClient<
  *   getData();
  * }, []);
  * ```
- *
  */
 export function createServerClient<
   Database = any,

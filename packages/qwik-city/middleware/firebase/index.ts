@@ -2,9 +2,7 @@ import { createQwikCity as createQwikCityNode } from '@builder.io/qwik-city/midd
 
 import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
 
-/**
- * @public
- */
+/** @public */
 export function createQwikCity(opts: QwikCityFirebaseOptions) {
   const { staticFile, notFound, router } = createQwikCityNode({
     render: opts.render,
@@ -30,12 +28,8 @@ export function createQwikCity(opts: QwikCityFirebaseOptions) {
   return qwikApp;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface QwikCityFirebaseOptions extends ServerRenderOptions {}
 
-/**
- * @public
- */
+/** @public */
 export interface PlatformFirebase extends Object {}

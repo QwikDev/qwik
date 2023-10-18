@@ -6,7 +6,7 @@ import { computeSymbolGraph, computeSymbolVectors, computeBundles } from '~/stat
 import { getRoutes } from '~/db/sql-routes';
 
 interface Strategy {
-  entryStrategy: { type: 'smart' };
+  type: 'smart';
   manual: Record<string, string>;
   prefetch: Prefetch[];
 }
@@ -19,7 +19,7 @@ export const onGet: RequestHandler = async ({ json, params }) => {
   const publicApiKey = params.publicApiKey;
   const db = getDB();
   const strategy: Strategy = {
-    entryStrategy: { type: 'smart' },
+    type: 'smart',
     manual: {},
     prefetch: [],
   };

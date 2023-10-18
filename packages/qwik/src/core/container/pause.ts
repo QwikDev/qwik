@@ -65,10 +65,9 @@ import {
   type SnapshotResult,
 } from './container';
 import { UNDEFINED_PREFIX, collectDeps, serializeValue } from './serializers';
+import { isQrl } from '../qrl/qrl-class';
 
-/**
- * @internal
- */
+/** @internal */
 export const _serializeData = async (data: any, pureQRL?: boolean) => {
   const containerState = {} as any;
   const collector = createCollector(containerState);
@@ -136,8 +135,6 @@ export const _serializeData = async (data: any, pureQRL?: boolean) => {
 // <docs markdown="../readme.md#pauseContainer">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#pauseContainer instead)
-/**
- */
 // </docs>
 export const pauseContainer = async (
   elmOrDoc: Element | Document,
@@ -204,9 +201,7 @@ export const pauseContainer = async (
   return data;
 };
 
-/**
- * @internal
- */
+/** @internal */
 export const _pauseFromContexts = async (
   allContexts: QContext[],
   containerState: ContainerState,
@@ -365,7 +360,15 @@ Task Symbol: ${task.$qrl$.$symbol$}
   const mustGetObjId = (obj: any): string => {
     const key = getObjId(obj);
     if (key === null) {
-      throw qError(QError_missingObjectId, obj);
+      // TODO(mhevery): this is a hack as we should never get here.
+      // This as a workaround for https://github.com/BuilderIO/qwik/issues/4979
+      if (isQrl(obj)) {
+        const id = intToStr(objToId.size);
+        objToId.set(obj, id);
+        return id;
+      } else {
+        throw qError(QError_missingObjectId, obj);
+      }
     }
     return key;
   };
@@ -700,9 +703,6 @@ const collectContext = (elCtx: QContext | null, collector: Collector) => {
     if (elCtx.$contexts$) {
       for (const obj of elCtx.$contexts$.values()) {
         collectValue(obj, collector, true);
-      }
-      if (elCtx.$contexts$.get('_') === true) {
-        break;
       }
     }
     elCtx = elCtx.$slotParent$ ?? elCtx.$parent$;

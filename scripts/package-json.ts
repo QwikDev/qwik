@@ -3,9 +3,9 @@ import { readFile, writeFile } from './util';
 import { join } from 'node:path';
 
 /**
- * The published build does not use the package.json found in the root directory.
- * This function generates the package.json file for package to be published.
- * Note that some of the properties can be pulled from the root package.json.
+ * The published build does not use the package.json found in the root directory. This function
+ * generates the package.json file for package to be published. Note that some of the properties can
+ * be pulled from the root package.json.
  */
 export async function generatePackageJson(config: BuildConfig) {
   const rootPkg = await readPackageJson(join(config.packagesDir, 'qwik'));

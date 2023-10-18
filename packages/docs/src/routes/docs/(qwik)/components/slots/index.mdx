@@ -11,6 +11,7 @@ contributors:
   - lbensaad
   - gabrielgrant
   - mhevery
+  - jakovljevic-mladen
 ---
 import CodeSandbox from '../../../../../components/code-sandbox/index.tsx';
 
@@ -50,7 +51,7 @@ export default component$(() => {
 The `<Slot>` component is a placeholder for the children of the component. The `<Slot>` component will be replaced by the children of the component during rendering.
 
 > **Note**: Slots in Qwik are declarative, allowing Qwik to render parents and children in isolation. Because slots are declarative, the children can NOT be read, or transformed by the components.
-> 
+>
 > Why? Because Qwik needs to be able to render parent/children components independently from each other. With an imperative (`children`) approach, the child component can modify the `children` in countless ways. If a child component relied on `children`, it would be forced to re-render whenever a parent component would re-render to reapply the imperative transformation to the `children`. The extra rendering goes explicitly against the goals of Qwik components rendering in isolation.
 
 
@@ -216,7 +217,7 @@ The `Collapsible` component will always display the title, but the body of the t
 
 Additionally, the `title` and `description` of the projected content are editable.
 
-- The parent component needs to be able to change content without forcing the `Collapsible` component to re-render. 
+- The parent component needs to be able to change content without forcing the `Collapsible` component to re-render.
 - The child component needs to change what is projected without having the parent component re-render. In our case, `Collapsible` should be able to show/hide the default `q:slot` without downloading and re-rendering the parent component.
 
 In order for the two components to have an independent lifecycle, the projection needs to be declarative. In this way, either the parent or child can change what is projected or how it is projected without forcing the re-rendering of the other.
@@ -232,3 +233,5 @@ All frameworks need a way for a component to wrap its complex content conditiona
 The two approaches can best be described as declarative vs imperative. They both come with their set of advantages and disadvantages.
 
 Qwik uses the declarative projection approach. The reason for this is that Qwik needs to be able to render parent/children components independently from each other. With an imperative (`children`) approach, the child component can modify the `children` in countless ways. If a child component relied on `children`, it would be forced to re-render whenever a parent component would re-render to reapply the imperative transformation to the `children`. The extra rendering goes explicitly against the goals of Qwik components rendering in isolation.
+
+> **Note**: Due to Slots being declarative in Qwik, projection with `<Slot>` will only work if the parent component is wrapped in `component$()`. If parent component is not wrapped in `component$()`, it is considered an [inline component](/docs/components/overview/#inline-components) and `<Slot>` will not work.

@@ -1,5 +1,4 @@
 import { expect, test } from "@playwright/test";
-import { pathToFileURL } from "url";
 
 test.describe("actions", () => {
   test.describe("mpa", () => {
@@ -102,7 +101,6 @@ test.describe("actions", () => {
         if (javaScriptEnabled) {
           await expect(running).toHaveText("Running...");
         }
-        await page.waitForTimeout(2500);
         await expect(running).toBeHidden();
         await expect(errorMessage).toBeHidden();
         await expect(successMessage).toHaveText("this is the secret");
@@ -111,8 +109,8 @@ test.describe("actions", () => {
         await username.clear();
         await username.fill("redirect");
         await submit.click();
-        await page.waitForTimeout(200);
-        expect(new URL(page.url()).pathname).toEqual("/qwikcity-test/");
+
+        await expect(page).toHaveURL("/qwikcity-test/");
       });
 
       test("issue with action", async ({ page }) => {
@@ -134,15 +132,13 @@ test.describe("actions", () => {
         await page.goto("/qwikcity-test/issue2644/");
         await page.locator("#issue2644-input").fill("AAA");
         await page.locator("#issue2644-submit").click();
-        await page.waitForTimeout(200);
 
-        const pageUrl = new URL(page.url());
-        await expect(pageUrl.pathname).toBe("/qwikcity-test/issue2644/other/");
         await expect(page.locator("#issue2644-list > li")).toHaveText(["AAA"]);
+        expect(page).toHaveURL("/qwikcity-test/issue2644/other/");
 
         await page.locator("#issue2644-input").fill("BBB");
         await page.locator("#issue2644-submit").click();
-        await expect(pageUrl.pathname).toBe("/qwikcity-test/issue2644/other/");
+        expect(page).toHaveURL(new RegExp("/qwikcity-test/issue2644/other/"));
 
         await expect(page.locator("#issue2644-list > li")).toHaveText([
           "AAA",

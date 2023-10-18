@@ -29,7 +29,7 @@ Qwik Optimizer marker function.
 Use `$(...)` to tell Qwik Optimizer to extract the expression in `$(...)` into a lazy-loadable resource referenced by `QRL`.
 
 ```typescript
-$: <T,>(expression: T) => QRL<T>;
+$: <T>(expression: T) => QRL<T>;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
@@ -372,13 +372,15 @@ Type representing the Qwik component.
 
 `Component` is the type returned by invoking `component$`.
 
-```
+```tsx
 interface MyComponentProps {
   someProp: string;
 }
-const MyComponent: Component<MyComponentProps> = component$((props: MyComponentProps) => {
-  return <span>{props.someProp}</span>;
-});
+const MyComponent: Component<MyComponentProps> = component$(
+  (props: MyComponentProps) => {
+    return <span>{props.someProp}</span>;
+  },
+);
 ```
 
 ```typescript
@@ -628,7 +630,7 @@ export const Items = component$(() => {
 ```
 
 ```typescript
-createContextId: <STATE = unknown,>(name: string) => ContextId<STATE>;
+createContextId: <STATE = unknown>(name: string) => ContextId<STATE>;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-context.ts)
@@ -789,7 +791,7 @@ export interface ErrorBoundaryStore
 ## event$
 
 ```typescript
-event$: <T,>(first: T) => QRL<T>;
+event$: <T>(first: T) => QRL<T>;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
@@ -797,7 +799,7 @@ event$: <T,>(first: T) => QRL<T>;
 ## eventQrl
 
 ```typescript
-eventQrl: <T,>(qrl: QRL<T>) => QRL<T>;
+eventQrl: <T>(qrl: QRL<T>) => QRL<T>;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
@@ -1552,6 +1554,16 @@ export interface IntrinsicSVGElements
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
+## isSignal
+
+Checks if a given object is a `Signal`.
+
+```typescript
+isSignal: (obj: any) => obj is Signal<any>
+```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/state/signal.ts)
+
 ## jsx
 
 ```typescript
@@ -2166,7 +2178,7 @@ Used by Qwik Optimizer to point to lazy-loaded resources.
 This function should be used by the Qwik Optimizer only. The function should not be directly referred to in the source code of the application.
 
 ```typescript
-qrl: <T = any,>(
+qrl: <T = any>(
   chunkOrFn: string | (() => Promise<any>),
   symbol: string,
   lexicalScopeCapture?: any[],
@@ -2183,7 +2195,7 @@ Used by Qwik Optimizer to point to lazy-loaded resources.
 This function should be used by the Qwik Optimizer only. The function should not be directly referred to in the source code of the application.
 
 ```typescript
-qrl: <T = any,>(
+qrl: <T = any>(
   chunkOrFn: string | (() => Promise<any>),
   symbol: string,
   lexicalScopeCapture?: any[],
@@ -2668,7 +2680,7 @@ const Cmp = component$(() => {
 ```
 
 ```typescript
-Resource: <T,>(props: ResourceProps<T>) => JSXNode;
+Resource: <T>(props: ResourceProps<T>) => JSXNode;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
@@ -3569,7 +3581,7 @@ export interface TrackHTMLAttributes<T extends Element> extends HTMLAttributes<T
 ## untrack
 
 ```typescript
-untrack: <T,>(fn: () => T) => T;
+untrack: <T>(fn: () => T) => T;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-core.ts)
@@ -3789,7 +3801,7 @@ const Cmp = component$(() => {
 ```
 
 ```typescript
-useResource$: <T,>(generatorFn: ResourceFn<T>, opts?: ResourceOptions) =>
+useResource$: <T>(generatorFn: ResourceFn<T>, opts?: ResourceOptions) =>
   ResourceReturn<T>;
 ```
 
@@ -3844,7 +3856,7 @@ const Cmp = component$(() => {
 ```
 
 ```typescript
-useResourceQrl: <T,>(qrl: QRL<ResourceFn<T>>, opts?: ResourceOptions) =>
+useResourceQrl: <T>(qrl: QRL<ResourceFn<T>>, opts?: ResourceOptions) =>
   ResourceReturn<T>;
 ```
 

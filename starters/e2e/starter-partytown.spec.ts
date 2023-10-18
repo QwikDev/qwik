@@ -16,8 +16,6 @@ test("rendered", async ({ page }) => {
   );
   await expect(state).toHaveText("running");
 
-  await page.waitForTimeout(3000);
-
   await expect(state).toHaveText("finished");
 });
 
@@ -32,6 +30,5 @@ test("update text", async ({ page }) => {
 
   await page.fill("input", "QWIK");
   await page.dispatchEvent("input", "keyup");
-  await page.waitForTimeout(100);
   await expect(page.locator("ol")).toContainText("Hello QWIK!");
 });

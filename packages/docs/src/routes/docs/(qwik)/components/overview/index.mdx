@@ -221,7 +221,12 @@ In a microfrontends setup, where multiple fragments run concurrently, `useId()` 
 
 <CodeSandbox src="/src/routes/demo/component/useId/index.tsx" style={{ height: '10em' }}>
 ```tsx /const outputRef = useSignal<Element>();/ /ref={outputRef}/
-import { component$, useId, useSignal, useVisibleTask$ } from '@builder.io/qwik';
+import {
+  component$,
+  useId,
+  useSignal,
+  useVisibleTask$,
+} from '@builder.io/qwik';
 
 export default component$(() => {
   const elemIdSignal = useSignal<string | null>(null);

@@ -3,9 +3,7 @@ import { getClientNavPath, getPrefetchDataset } from './utils';
 import { loadClientData } from './use-endpoint';
 import { useLocation, useNavigate } from './use-functions';
 
-/**
- * @public
- */
+/** @public */
 export const Link = component$<LinkProps>((props) => {
   const nav = useNavigate();
   const loc = useLocation();
@@ -50,9 +48,7 @@ export const Link = component$<LinkProps>((props) => {
   );
 });
 
-/**
- * Client-side only
- */
+/** Client-side only */
 export const prefetchLinkResources = (elm: HTMLAnchorElement, isOnVisible?: boolean) => {
   if (elm && elm.href && elm.hasAttribute('data-prefetch')) {
     if (!windowInnerWidth) {
@@ -71,9 +67,7 @@ let windowInnerWidth = 0;
 
 type AnchorAttributes = QwikIntrinsicElements['a'];
 
-/**
- * @public
- */
+/** @public */
 export interface LinkProps extends AnchorAttributes {
   prefetch?: boolean;
   reload?: boolean;

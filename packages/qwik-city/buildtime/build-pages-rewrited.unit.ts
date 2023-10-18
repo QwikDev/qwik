@@ -23,7 +23,7 @@ const test = testAppSuite('Build Pages Rewrited', {
   ],
 });
 
-test('translated pathname / with prefix', ({ assertRoute, opts }) => {
+test('translated pathname / with prefix', ({ assertRoute }) => {
   const r = assertRoute('/it/');
   assert.equal(r.id, 'CommonRouteIT');
   assert.equal(r.pathname, '/it/');
@@ -39,7 +39,7 @@ test('translated pathname / with prefix', ({ assertRoute, opts }) => {
   assert.ok(r.filePath.endsWith('starters/apps/qwikcity-test/src/routes/(common)/index.tsx'));
 });
 
-test('translated pathname /docs/getting-started with prefix', ({ assertRoute, opts }) => {
+test('translated pathname /docs/getting-started with prefix', ({ assertRoute }) => {
   const r = assertRoute('/it/documentazione/per-iniziare/');
   assert.equal(r.id, 'DocsGettingstartedRouteIT');
   assert.equal(r.pathname, '/it/documentazione/per-iniziare/');
@@ -59,7 +59,7 @@ test('translated pathname /docs/getting-started with prefix', ({ assertRoute, op
   );
 });
 
-test('translated pathname /docs/[category]/[id] with prefix', ({ assertRoute, opts }) => {
+test('translated pathname /docs/[category]/[id] with prefix', ({ assertRoute }) => {
   const r = assertRoute('/it/documentazione/[category]/[id]/');
   assert.equal(r.id, 'DocsCategoryIdRouteIT');
   assert.equal(r.pathname, '/it/documentazione/[category]/[id]/');
@@ -81,7 +81,7 @@ test('translated pathname /docs/[category]/[id] with prefix', ({ assertRoute, op
   );
 });
 
-test('translated pathname /about-us with prefix', ({ assertRoute, opts }) => {
+test('translated pathname /about-us with prefix', ({ assertRoute }) => {
   const r = assertRoute('/it/informazioni/');
   assert.equal(r.id, 'CommonAboutusRouteIT');
   assert.equal(r.pathname, '/it/informazioni/');
@@ -100,7 +100,7 @@ test('translated pathname /about-us with prefix', ({ assertRoute, opts }) => {
   );
 });
 
-test('translated pathname /products/[id] with prefix', ({ assertRoute, opts }) => {
+test('translated pathname /products/[id] with prefix', ({ assertRoute }) => {
   const r = assertRoute('/it/prodotti/[id]/');
   assert.equal(r.id, 'CommonProductsIdRouteIT');
   assert.equal(r.pathname, '/it/prodotti/[id]/');
@@ -120,7 +120,7 @@ test('translated pathname /products/[id] with prefix', ({ assertRoute, opts }) =
   );
 });
 
-test('translated pathname /docs/getting-started', ({ assertRoute, opts }) => {
+test('translated pathname /docs/getting-started', ({ assertRoute }) => {
   const r = assertRoute('/documentazione/per-iniziare/');
   assert.equal(r.id, 'DocsGettingstartedRoute0');
   assert.equal(r.pathname, '/documentazione/per-iniziare/');
@@ -139,7 +139,7 @@ test('translated pathname /docs/getting-started', ({ assertRoute, opts }) => {
   );
 });
 
-test('translated pathname /docs/[category]/[id]', ({ assertRoute, opts }) => {
+test('translated pathname /docs/[category]/[id]', ({ assertRoute }) => {
   const r = assertRoute('/documentazione/[category]/[id]/');
   assert.equal(r.id, 'DocsCategoryIdRoute0');
   assert.equal(r.pathname, '/documentazione/[category]/[id]/');
@@ -160,7 +160,7 @@ test('translated pathname /docs/[category]/[id]', ({ assertRoute, opts }) => {
   );
 });
 
-test('translated pathname /about-us', ({ assertRoute, opts }) => {
+test('translated pathname /about-us', ({ assertRoute }) => {
   const r = assertRoute('/informazioni/');
   assert.equal(r.id, 'CommonAboutusRoute0');
   assert.equal(r.pathname, '/informazioni/');
@@ -178,7 +178,7 @@ test('translated pathname /about-us', ({ assertRoute, opts }) => {
   );
 });
 
-test('translated pathname /products/[id]', ({ assertRoute, opts }) => {
+test('translated pathname /products/[id]', ({ assertRoute }) => {
   const r = assertRoute('/prodotti/[id]/');
   assert.equal(r.id, 'CommonProductsIdRoute0');
   assert.equal(r.pathname, '/prodotti/[id]/');
@@ -196,5 +196,3 @@ test('translated pathname /products/[id]', ({ assertRoute, opts }) => {
     r.filePath.endsWith('starters/apps/qwikcity-test/src/routes/(common)/products/[id]/index.tsx')
   );
 });
-
-test.run();

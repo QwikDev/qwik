@@ -49,7 +49,7 @@ import { useLocation } from '@builder.io/qwik-city';
 const AUDIO_SRC =
   'https://cdn.builder.io/o/assets%2F5b8073f890b043be81574f96cfd1250b%2Fafe011812da146a5b2263196cb25f263?alt=media&token=c017cd87-0598-4af2-8afd-e9b5a3fba078&apiKey=5b8073f890b043be81574f96cfd1250b';
 const VIDEO_SRC =
-  'https://cdn.builder.io/o/assets%2F5b8073f890b043be81574f96cfd1250b%2F06f32f252e7d46a48954e5939b7292e1%2Fcompressed?apiKey=5b8073f890b043be81574f96cfd1250b&token=06f32f252e7d46a48954e5939b7292e1&alt=media&optimized=true';
+  'https://cdn.builder.io/o/assets%2F5b8073f890b043be81574f96cfd1250b%2F8b210c56974440649a0a78d4a3a0ddc5%2Fcompressed?apiKey=5b8073f890b043be81574f96cfd1250b&token=8b210c56974440649a0a78d4a3a0ddc5&alt=media&optimized=true';
 
 export default component$(() => {
   const audioElementSignal = useSignal<HTMLAudioElement | undefined>();
@@ -176,7 +176,7 @@ export default component$(() => {
             id="playsInlineCheckbox"
             class="checkbox"
             checked={playsInlineSignal.value}
-            onchange$={() => {
+            onChange$={() => {
               videoElementSignal.value?.pause();
               playsInlineSignal.value = !playsInlineSignal.value;
             }}

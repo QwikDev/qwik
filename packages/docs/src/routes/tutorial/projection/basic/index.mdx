@@ -5,6 +5,7 @@ contributors:
   - adamdbradley
   - literalpie
   - wtlin1228
+  - harishkrishnan24
 ---
 
 Projection is a way of passing content to a child component that in turn controls where the content is rendered. Projection is a collaboration between the parent and child component. The parent component decides what is the content that needs to be rendered, while the child component decides where and if the content should be rendered.
@@ -24,4 +25,4 @@ For Qwik, the `<Slot>` approach is preferable because it declaratively controls 
 
 Change the `<Panel>` component to project the `<App>` content using the `<Slot>` element.
 
-Notice that both `<App>` and `<Panel>` are not re-render on button click. This is because the reactivity graph is built on the server and serialized into the HTML, so Qwik knows what to update without needing to download and re-render the templates of `<App>` and `<Panel>`.
+Notice that both `<App>` and `<Panel>` are not re-rendered on button click. This is because the reactivity graph is built on the server and serialized into the HTML, so Qwik knows what to update without needing to download and re-render the templates of `<App>` and `<Panel>`.

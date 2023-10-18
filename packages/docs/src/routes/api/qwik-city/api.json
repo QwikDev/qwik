@@ -110,7 +110,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface DocumentHeadValue \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [frontmatter?](#) | <code>readonly</code> | Readonly&lt;Record&lt;string, any&gt;&gt; | _(Optional)_ Arbitrary object containing custom data. When the document head is created from markdown files, the frontmatter attributes that are not recognized as a well-known meta names (such as title, description, author, etc...), are stored in this property. |\n|  [links?](#) | <code>readonly</code> | readonly [DocumentLink](#documentlink)<!-- -->\\[\\] | _(Optional)_ Used to manually append <code>&lt;link&gt;</code> elements to the <code>&lt;head&gt;</code>. |\n|  [meta?](#) | <code>readonly</code> | readonly [DocumentMeta](#documentmeta)<!-- -->\\[\\] | _(Optional)_ Used to manually set meta tags in the head. Additionally, the <code>data</code> property could be used to set arbitrary data which the <code>&lt;head&gt;</code> component could later use to generate <code>&lt;meta&gt;</code> tags. |\n|  [scripts?](#) | <code>readonly</code> | readonly DocumentScript\\[\\] | _(Optional)_ Used to manually append <code>&lt;script&gt;</code> elements to the <code>&lt;head&gt;</code>. |\n|  [styles?](#) | <code>readonly</code> | readonly [DocumentStyle](#documentstyle)<!-- -->\\[\\] | _(Optional)_ Used to manually append <code>&lt;style&gt;</code> elements to the <code>&lt;head&gt;</code>. |\n|  [title?](#) | <code>readonly</code> | string | _(Optional)_ Sets <code>document.title</code>. |",
+      "content": "```typescript\nexport interface DocumentHeadValue \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [frontmatter?](#) | <code>readonly</code> | Readonly&lt;Record&lt;string, any&gt;&gt; | _(Optional)_ Arbitrary object containing custom data. When the document head is created from markdown files, the frontmatter attributes that are not recognized as a well-known meta names (such as title, description, author, etc...), are stored in this property. |\n|  [links?](#) | <code>readonly</code> | readonly [DocumentLink](#documentlink)<!-- -->\\[\\] | _(Optional)_ Used to manually append <code>&lt;link&gt;</code> elements to the <code>&lt;head&gt;</code>. |\n|  [meta?](#) | <code>readonly</code> | readonly [DocumentMeta](#documentmeta)<!-- -->\\[\\] | _(Optional)_ Used to manually set meta tags in the head. Additionally, the <code>data</code> property could be used to set arbitrary data which the <code>&lt;head&gt;</code> component could later use to generate <code>&lt;meta&gt;</code> tags. |\n|  [scripts?](#) | <code>readonly</code> | readonly [DocumentScript](#documentscript)<!-- -->\\[\\] | _(Optional)_ Used to manually append <code>&lt;script&gt;</code> elements to the <code>&lt;head&gt;</code>. |\n|  [styles?](#) | <code>readonly</code> | readonly [DocumentStyle](#documentstyle)<!-- -->\\[\\] | _(Optional)_ Used to manually append <code>&lt;style&gt;</code> elements to the <code>&lt;head&gt;</code>. |\n|  [title?](#) | <code>readonly</code> | string | _(Optional)_ Sets <code>document.title</code>. |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik-city.documentheadvalue.md"
     },
@@ -141,6 +141,20 @@
       "content": "```typescript\nexport interface DocumentMeta \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [content?](#) | <code>readonly</code> | string | _(Optional)_ |\n|  [httpEquiv?](#) | <code>readonly</code> | string | _(Optional)_ |\n|  [itemprop?](#) | <code>readonly</code> | string | _(Optional)_ |\n|  [key?](#) | <code>readonly</code> | string | _(Optional)_ |\n|  [media?](#) | <code>readonly</code> | string | _(Optional)_ |\n|  [name?](#) | <code>readonly</code> | string | _(Optional)_ |\n|  [property?](#) | <code>readonly</code> | string | _(Optional)_ |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik-city.documentmeta.md"
+    },
+    {
+      "name": "DocumentScript",
+      "id": "documentscript",
+      "hierarchy": [
+        {
+          "name": "DocumentScript",
+          "id": "documentscript"
+        }
+      ],
+      "kind": "Interface",
+      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nexport interface DocumentScript \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [key?](#) | <code>readonly</code> | string | **_(ALPHA)_** _(Optional)_ |\n|  [props?](#) | <code>readonly</code> | Readonly&lt;QwikIntrinsicElements\\['script'\\]&gt; | **_(ALPHA)_** _(Optional)_ |\n|  [script?](#) | <code>readonly</code> | string | **_(ALPHA)_** _(Optional)_ |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
+      "mdFile": "qwik-city.documentscript.md"
     },
     {
       "name": "DocumentStyle",

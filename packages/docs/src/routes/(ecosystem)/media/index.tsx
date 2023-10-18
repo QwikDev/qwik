@@ -3,7 +3,7 @@ import { component$, useStyles$ } from '@builder.io/qwik';
 import { type DocumentHead } from '@builder.io/qwik-city';
 import styles from './media.css?inline';
 
-/*************************************************************/
+/***/
 /* This file is used to generate the ecosystem and media pages.
 /* Please find the appropriate section in the MEDIA variable
 /* to add your content.
@@ -11,7 +11,7 @@ import styles from './media.css?inline';
 /*************************************************************/
 
 export const MEDIA = mediaObj({
-  /*****************************************/
+  /***/
   /* Courses
   /*****************************************/
   courses: [
@@ -79,7 +79,7 @@ export const MEDIA = mediaObj({
     }),
   ],
 
-  /*****************************************/
+  /***/
   /* Videos
   /*****************************************/
   videos: [
@@ -182,7 +182,7 @@ export const MEDIA = mediaObj({
     youtube('Resumability | Explained Briefly', 'vQ365FjT-yI', { author: 'Neon Pie' }),
   ],
 
-  /*****************************************/
+  /***/
   /* Podcasts
   /*****************************************/
   podcasts: [
@@ -246,7 +246,7 @@ export const MEDIA = mediaObj({
     },
   ],
 
-  /*****************************************/
+  /***/
   /* Presentations
   /*****************************************/
   presentations: [
@@ -281,7 +281,7 @@ export const MEDIA = mediaObj({
     youtube('Qwik Core Developers Training', 'Mi7udzhcCDQ', { author: 'Misko Hevery' }),
   ],
 
-  /*****************************************/
+  /***/
   /* Blogs
   /*****************************************/
   blogs: [
@@ -454,7 +454,7 @@ export const MEDIA = mediaObj({
     },
   ],
 
-  /*****************************************/
+  /***/
   /* Case Studies
   /*****************************************/
 
@@ -479,7 +479,7 @@ export const MEDIA = mediaObj({
     },
   ],
 
-  /*****************************************/
+  /***/
   /* Resources
   /*****************************************/
   resources: [
@@ -641,9 +641,7 @@ export default component$(() => {
   );
 });
 
-/**
- * A helper for defining YouTube Media Entries
- */
+/** A helper for defining YouTube Media Entries */
 export function youtube(
   title: string,
   id: string,

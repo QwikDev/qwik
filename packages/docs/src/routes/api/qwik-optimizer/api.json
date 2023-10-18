@@ -197,6 +197,20 @@
       "mdFile": "qwik.inlineentrystrategy.md"
     },
     {
+      "name": "InsightManifest",
+      "id": "insightmanifest",
+      "hierarchy": [
+        {
+          "name": "InsightManifest",
+          "id": "insightmanifest"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface InsightManifest \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [manual](#) |  | Record&lt;string, string&gt; |  |\n|  [prefetch](#) |  | { route: string; symbols: string\\[\\]; }\\[\\] |  |\n|  [type](#) |  | 'smart' |  |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
+      "mdFile": "qwik.insightmanifest.md"
+    },
+    {
       "name": "isAbsolute",
       "id": "path-isabsolute",
       "hierarchy": [
@@ -414,7 +428,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikRollupPluginOptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [buildMode?](#) |  | [QwikBuildMode](#qwikbuildmode) | _(Optional)_ Build <code>production</code> or <code>development</code>. Default <code>development</code> |\n|  [csr?](#) |  | boolean | _(Optional)_ |\n|  [debug?](#) |  | boolean | _(Optional)_ Prints verbose Qwik plugin debug logs. Default <code>false</code> |\n|  [entryStrategy?](#) |  | [EntryStrategy](#entrystrategy) | _(Optional)_ The Qwik entry strategy to use while building for production. During development the type is always <code>hook</code>. Default <code>{ type: &quot;smart&quot; }</code>) |\n|  [manifestInput?](#) |  | [QwikManifest](#qwikmanifest) | _(Optional)_ The SSR build requires the manifest generated during the client build. The <code>manifestInput</code> option can be used to manually provide a manifest. Default <code>undefined</code> |\n|  [manifestOutput?](#) |  | (manifest: [QwikManifest](#qwikmanifest)<!-- -->) =&gt; Promise&lt;void&gt; \\| void | _(Optional)_ The client build will create a manifest and this hook is called with the generated build data. Default <code>undefined</code> |\n|  [optimizerOptions?](#) |  | [OptimizerOptions](#optimizeroptions) | _(Optional)_ |\n|  [rootDir?](#) |  | string | _(Optional)_ The root of the application, which is commonly the same directory as <code>package.json</code> and <code>rollup.config.js</code>. Default <code>process.cwd()</code> |\n|  [srcDir?](#) |  | string | _(Optional)_ The source directory to find all the Qwik components. Since Qwik does not have a single input, the <code>srcDir</code> is used to recursively find Qwik files. Default <code>src</code> |\n|  [srcInputs?](#) |  | [TransformModuleInput](#transformmoduleinput)<!-- -->\\[\\] \\| null | _(Optional)_ Alternative to <code>srcDir</code>, where <code>srcInputs</code> is able to provide the files manually. This option is useful for an environment without a file system, such as a webworker. Default: <code>null</code> |\n|  [target?](#) |  | [QwikBuildTarget](#qwikbuildtarget) | _(Optional)_ Target <code>client</code> or <code>ssr</code>. Default <code>client</code> |\n|  [transformedModuleOutput?](#) |  | ((transformedModules: [TransformModule](#transformmodule)<!-- -->\\[\\]) =&gt; Promise&lt;void&gt; \\| void) \\| null | _(Optional)_ Hook that's called after the build and provides all of the transformed modules that were used before bundling. |",
+      "content": "```typescript\nexport interface QwikRollupPluginOptions \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [buildMode?](#) |  | [QwikBuildMode](#qwikbuildmode) | <p>_(Optional)_ Build <code>production</code> or <code>development</code>.</p><p>Default <code>development</code></p> |\n|  [csr?](#) |  | boolean | _(Optional)_ |\n|  [debug?](#) |  | boolean | <p>_(Optional)_ Prints verbose Qwik plugin debug logs.</p><p>Default <code>false</code></p> |\n|  [entryStrategy?](#) |  | [EntryStrategy](#entrystrategy) | <p>_(Optional)_ The Qwik entry strategy to use while building for production. During development the type is always <code>hook</code>.</p><p>Default <code>{ type: &quot;smart&quot; }</code>)</p> |\n|  [manifestInput?](#) |  | [QwikManifest](#qwikmanifest) | <p>_(Optional)_ The SSR build requires the manifest generated during the client build. The <code>manifestInput</code> option can be used to manually provide a manifest.</p><p>Default <code>undefined</code></p> |\n|  [manifestOutput?](#) |  | (manifest: [QwikManifest](#qwikmanifest)<!-- -->) =&gt; Promise&lt;void&gt; \\| void | <p>_(Optional)_ The client build will create a manifest and this hook is called with the generated build data.</p><p>Default <code>undefined</code></p> |\n|  [optimizerOptions?](#) |  | [OptimizerOptions](#optimizeroptions) | _(Optional)_ |\n|  [rootDir?](#) |  | string | <p>_(Optional)_ The root of the application, which is commonly the same directory as <code>package.json</code> and <code>rollup.config.js</code>.</p><p>Default <code>process.cwd()</code></p> |\n|  [srcDir?](#) |  | string | <p>_(Optional)_ The source directory to find all the Qwik components. Since Qwik does not have a single input, the <code>srcDir</code> is used to recursively find Qwik files.</p><p>Default <code>src</code></p> |\n|  [srcInputs?](#) |  | [TransformModuleInput](#transformmoduleinput)<!-- -->\\[\\] \\| null | <p>_(Optional)_ Alternative to <code>srcDir</code>, where <code>srcInputs</code> is able to provide the files manually. This option is useful for an environment without a file system, such as a webworker.</p><p>Default: <code>null</code></p> |\n|  [target?](#) |  | [QwikBuildTarget](#qwikbuildtarget) | <p>_(Optional)_ Target <code>client</code> or <code>ssr</code>.</p><p>Default <code>client</code></p> |\n|  [transformedModuleOutput?](#) |  | ((transformedModules: [TransformModule](#transformmodule)<!-- -->\\[\\]) =&gt; Promise&lt;void&gt; \\| void) \\| null | _(Optional)_ Hook that's called after the build and provides all of the transformed modules that were used before bundling. |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/rollup.ts",
       "mdFile": "qwik.qwikrolluppluginoptions.md"
     },
@@ -484,7 +498,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikVitePluginApi \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [getClientOutDir](#) |  | () =&gt; string \\| null |  |\n|  [getClientPublicOutDir](#) |  | () =&gt; string \\| null |  |\n|  [getManifest](#) |  | () =&gt; [QwikManifest](#qwikmanifest) \\| null |  |\n|  [getOptimizer](#) |  | () =&gt; [Optimizer](#optimizer) \\| null |  |\n|  [getOptions](#) |  | () =&gt; NormalizedQwikPluginOptions |  |\n|  [getRootDir](#) |  | () =&gt; string \\| null |  |",
+      "content": "```typescript\nexport interface QwikVitePluginApi \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [getClientOutDir](#) |  | () =&gt; string \\| null |  |\n|  [getClientPublicOutDir](#) |  | () =&gt; string \\| null |  |\n|  [getInsightsManifest](#) |  | () =&gt; Promise&lt;[InsightManifest](#insightmanifest) \\| null&gt; |  |\n|  [getManifest](#) |  | () =&gt; [QwikManifest](#qwikmanifest) \\| null |  |\n|  [getOptimizer](#) |  | () =&gt; [Optimizer](#optimizer) \\| null |  |\n|  [getOptions](#) |  | () =&gt; NormalizedQwikPluginOptions |  |\n|  [getRootDir](#) |  | () =&gt; string \\| null |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts",
       "mdFile": "qwik.qwikvitepluginapi.md"
     },

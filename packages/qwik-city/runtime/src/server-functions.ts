@@ -44,9 +44,7 @@ import { z } from 'zod';
 import { isDev, isServer } from '@builder.io/qwik/build';
 import type { FormSubmitCompletedDetail } from './form-component';
 
-/**
- * @public
- */
+/** @public */
 export const routeActionQrl = ((
   actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => any>,
   ...rest: (CommonLoaderActionOptions | DataValidator)[]
@@ -148,9 +146,7 @@ Action.run() can only be called on the browser, for example when a user clicks a
   return action satisfies ActionInternal;
 }) as unknown as ActionConstructorQRL;
 
-/**
- * @public
- */
+/** @public */
 export const globalActionQrl = ((
   actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => any>,
   ...rest: (CommonLoaderActionOptions | DataValidator)[]
@@ -165,23 +161,17 @@ export const globalActionQrl = ((
   return action;
 }) as ActionConstructorQRL;
 
-/**
- * @public
- */
+/** @public */
 export const routeAction$: ActionConstructor = /*#__PURE__*/ implicit$FirstArg(
   routeActionQrl
 ) as any;
 
-/**
- * @public
- */
+/** @public */
 export const globalAction$: ActionConstructor = /*#__PURE__*/ implicit$FirstArg(
   globalActionQrl
 ) as any;
 
-/**
- * @public
- */
+/** @public */
 export const routeLoaderQrl = ((
   loaderQrl: QRL<(event: RequestEventLoader) => unknown>,
   ...rest: (CommonLoaderActionOptions | DataValidator)[]
@@ -206,14 +196,10 @@ export const routeLoaderQrl = ((
   return loader;
 }) as LoaderConstructorQRL;
 
-/**
- * @public
- */
+/** @public */
 export const routeLoader$: LoaderConstructor = /*#__PURE__*/ implicit$FirstArg(routeLoaderQrl);
 
-/**
- * @public
- */
+/** @public */
 export const validatorQrl = ((
   validator: QRL<(ev: RequestEvent, data: unknown) => ValueOrPromise<ValidatorReturn>>
 ): DataValidator => {
@@ -225,14 +211,10 @@ export const validatorQrl = ((
   return undefined as any;
 }) as ValidatorConstructorQRL;
 
-/**
- * @public
- */
+/** @public */
 export const validator$: ValidatorConstructor = /*#__PURE__*/ implicit$FirstArg(validatorQrl);
 
-/**
- * @public
- */
+/** @public */
 export const zodQrl = ((
   qrl: QRL<
     z.ZodRawShape | z.Schema | ((z: typeof import('zod').z, ev: RequestEvent) => z.ZodRawShape)
@@ -275,21 +257,19 @@ export const zodQrl = ((
   return undefined as any;
 }) as ZodConstructorQRL;
 
-/**
- * @public
- */
+/** @public */
 export const zod$: ZodConstructor = /*#__PURE__*/ implicit$FirstArg(zodQrl) as any;
 
-const deepFreeze = (obj:any) => {
-    const propNames = Object.getOwnPropertyNames(obj);
-    for (const name of propNames) {
-      const value = obj[name];
-      if (value && typeof value === "object") {
-        deepFreeze(value);
-      }
+const deepFreeze = (obj: any) => {
+  const propNames = Object.getOwnPropertyNames(obj);
+  for (const name of propNames) {
+    const value = obj[name];
+    if (value && typeof value === 'object') {
+      deepFreeze(value);
     }
+  }
   return Object.freeze(obj);
-}
+};
 
 /**
  * @public
@@ -310,59 +290,54 @@ export const serverQrl: ServerConstructorQRL = (qrl: QRL<(...args: any[]) => any
           : undefined;
       if (isServer) {
         const requestEvent = useQwikCityEnv()?.ev ?? this ?? _getContextEvent();
-        return qrl.apply(requestEvent, args);
+        return qrl.apply(requestEvent, deepFreeze(args));
       } else {
-        try {
-          const ctxElm = _getContextElement();
-          const filtered = args.map((arg) => {
-            if (arg instanceof SubmitEvent && arg.target instanceof HTMLFormElement) {
-              return new FormData(arg.target);
-            } else if (arg instanceof Event) {
-              throw new Error('Cannot serialize instances of Event.');
-            } else if (arg instanceof Node) {
-              throw new Error('Cannot serialize instances of Node.');
-            }
-            return deepFreeze(arg);
-          });
-          const hash = qrl.getHash();
-          const res = await fetch(`?qfunc=${hash}`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/qwik-json',
-              'X-QRL': hash,
-            },
-            signal,
-            body: await _serializeData([qrl, ...filtered], false),
-          }); 
-
-          const contentType = res.headers.get('Content-Type');
-          if (res.ok && contentType === 'text/qwik-json-stream' && res.body) {
-            return (async function* () {
-              try {
-                for await (const result of deserializeStream(
-                  res.body!,
-                  ctxElm ?? document.documentElement,
-                  signal
-                )) {
-                  yield result;
-                }
-              } finally {
-                if (!signal?.aborted) {
-                  await res.body!.cancel();
-                }
-              }
-            })();
-          } else if (contentType === 'application/qwik-json') {
-            const str = await res.text();
-            const obj = await _deserializeData(str, ctxElm ?? document.documentElement);
-            if (res.status === 500) {
-              throw obj;
-            }
-            return obj;
+        const ctxElm = _getContextElement();
+        const filtered = args.map((arg) => {
+          if (arg instanceof SubmitEvent && arg.target instanceof HTMLFormElement) {
+            return new FormData(arg.target);
+          } else if (arg instanceof Event) {
+            throw new Error('Cannot serialize instances of Event.');
+          } else if (arg instanceof Node) {
+            throw new Error('Cannot serialize instances of Node.');
           }
-        }
-        catch (e: any) {
-          throw new Error("Attempted mutation of a serialized value which is not allowed.");
+          return arg;
+        });
+        const hash = qrl.getHash();
+        const res = await fetch(`?qfunc=${hash}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/qwik-json',
+            'X-QRL': hash,
+          },
+          signal,
+          body: await _serializeData([qrl, ...filtered], false),
+        });
+
+        const contentType = res.headers.get('Content-Type');
+        if (res.ok && contentType === 'text/qwik-json-stream' && res.body) {
+          return (async function* () {
+            try {
+              for await (const result of deserializeStream(
+                res.body!,
+                ctxElm ?? document.documentElement,
+                signal
+              )) {
+                yield result;
+              }
+            } finally {
+              if (!signal?.aborted) {
+                await res.body!.cancel();
+              }
+            }
+          })();
+        } else if (contentType === 'application/qwik-json') {
+          const str = await res.text();
+          const obj = await _deserializeData(str, ctxElm ?? document.documentElement);
+          if (res.status === 500) {
+            throw obj;
+          }
+          return obj;
         }
       }
     }) as any;
@@ -370,9 +345,7 @@ export const serverQrl: ServerConstructorQRL = (qrl: QRL<(...args: any[]) => any
   return stuff();
 };
 
-/**
- * @public
- */
+/** @public */
 export const server$ = /*#__PURE__*/ implicit$FirstArg(serverQrl);
 
 const getValidators = (rest: (CommonLoaderActionOptions | DataValidator)[], qrl: QRL<any>) => {

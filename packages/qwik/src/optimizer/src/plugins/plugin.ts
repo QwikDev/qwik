@@ -6,6 +6,7 @@ import type {
   GeneratedOutputBundle,
   GlobalInjections,
   HookAnalysis,
+  InsightManifest,
   Optimizer,
   OptimizerOptions,
   QwikManifest,
@@ -88,6 +89,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     srcDir: null as any,
     srcInputs: null as any,
     manifestInput: null,
+    insightsManifest: null,
     manifestOutput: null,
     transformedModuleOutput: null,
     vendorRoots: [],
@@ -899,6 +901,7 @@ export interface QwikPluginOptions {
   vendorRoots?: string[];
   manifestOutput?: ((manifest: QwikManifest) => Promise<void> | void) | null;
   manifestInput?: QwikManifest | null;
+  insightsManifest?: InsightManifest | null;
   input?: string[] | string | { [entry: string]: string };
   outDir?: string;
   srcDir?: string | null;
@@ -922,12 +925,8 @@ export interface NormalizedQwikPluginOptions extends Required<QwikPluginOptions>
   input: string[];
 }
 
-/**
- * @public
- */
+/** @public */
 export type QwikBuildTarget = 'client' | 'ssr' | 'lib' | 'test';
 
-/**
- * @public
- */
+/** @public */
 export type QwikBuildMode = 'production' | 'development';

@@ -34,6 +34,12 @@ export const useMethodUsage: Rule.RuleModule = {
       'ArrowFunctionExpression:exit'(d) {
         stack.pop();
       },
+      FunctionExpression() {
+        stack.push({ await: false });
+      },
+      'FunctionExpression:exit'(d) {
+        stack.pop();
+      },
       AwaitExpression() {
         const last = stack[stack.length - 1];
         if (last) {
@@ -111,49 +117,14 @@ export const useMethodUsage: Rule.RuleModule = {
   },
 };
 
-const useAfterAwaitGood = `
-export const HelloWorld = component$(async () => {
-  useMethod();
-  await something();
-  return $(() => {
-    return (
-      <h1>Hello World</h1>
-    );
-  });
-});`.trim();
-
-const useAfterAwaitBad = `
-export const HelloWorld = component$(async () => {
-  await something();
-  useMethod();
-  return $(() => {
-    return (
-      <h1>Hello World</h1>
-    );
-  });
-});`.trim();
-
-const useAfterAwaitBad2 = `
-export const HelloWorld = component$(async () => {
-  if (stuff) {
-    await something();
-  }
-  useMethod();
-  return $(() => {
-    return (
-      <h1>Hello World</h1>
-    );
-  });
-});`.trim();
-
 const useWrongFunctionGood = `
-export const Counter = component$(async () => {
+export const Counter = component$(() => {
   const count = useSignal(0);
 });
 `.trim();
 
 const useWrongFunctionBad = `
-export const Counter = (async () => {
+export const Counter = (() => {
   const count = useSignal(0);
 });
 `.trim();
@@ -169,26 +140,6 @@ const useNotRootBad = useWrongFunctionBad;
 const useNotRootBad2 = useWrongFunctionBad2;
 
 export const useMethodUsageExamples: QwikEslintExamples = {
-  'use-after-await': {
-    good: [
-      {
-        codeHighlight: '{2-3} /await/#a /use/#b',
-        code: useAfterAwaitGood,
-      },
-    ],
-    bad: [
-      {
-        codeHighlight: '{2-3} /await/#a /use/#b',
-        code: useAfterAwaitBad,
-        description: '`useMethod()` is called after `await`.',
-      },
-      {
-        codeHighlight: '{3,5} /await/#a /use/#b',
-        code: useAfterAwaitBad2,
-        description: '`useMethod()` is called after a condition.',
-      },
-    ],
-  },
   'use-wrong-function': {
     good: [
       {

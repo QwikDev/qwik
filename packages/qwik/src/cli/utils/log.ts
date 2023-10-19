@@ -1,5 +1,5 @@
-import { cyan } from 'kleur/colors';
 import type { NextSteps } from '../types';
+import { cyan } from 'kleur/colors';
 
 export function logSuccessFooter(docs: string[]) {
   const outString = [];
@@ -19,14 +19,12 @@ export function logSuccessFooter(docs: string[]) {
   return outString.join('\n');
 }
 
-/**
- * Log the next STEPS *ACTION REQUIRED*
- */
+/** Log the next STEPS _ACTION REQUIRED_ */
 export function logNextStep(nextSteps: NextSteps | undefined, packageManager: string) {
   const outString: string[] = [];
   if (nextSteps) {
     nextSteps.lines.forEach((step) =>
-      outString.push(`   ${step.replace(/\bpnpm\b/g, packageManager)}`)
+      outString.push(`${step.replace(/\bpnpm\b/g, packageManager)}`)
     );
   }
   return outString.join('\n');

@@ -7,8 +7,12 @@ import {
   useTask$,
   Slot,
   useStyles$,
-} from '@builder.io/qwik';
-import { delay } from '../resource/resource';
+  useResource$,
+  type QwikIntrinsicElements,
+  Resource,
+  useComputed$,
+} from "@builder.io/qwik";
+import { delay } from "../resource/resource";
 import {
   TestAC,
   TestACN,
@@ -19,8 +23,8 @@ import {
   TestCNStr,
   TestCStr,
   TestCWithFlag,
-} from './utils/utils';
-import { isBrowser } from '@builder.io/qwik/build';
+} from "./utils/utils";
+import { isBrowser } from "@builder.io/qwik/build";
 
 export const Signals = component$(() => {
   const rerender = useSignal(0);
@@ -37,24 +41,24 @@ export const SignalsChildren = component$(() => {
   const ref = useSignal<Element>();
   const ref2 = useSignal<Element>();
   const id = useSignal(0);
-  const signal = useSignal('');
+  const signal = useSignal("");
   const renders = useStore(
     {
       count: 0,
     },
-    { reactive: false }
+    { reactive: false },
   );
   const store = useStore({
     foo: 10,
-    attribute: 'even',
+    attribute: "even",
     signal,
   });
 
-  const styles = useSignal('body { background: white}');
+  const styles = useSignal("body { background: white}");
 
   useVisibleTask$(() => {
-    ref.value!.setAttribute('data-set', 'ref');
-    ref2.value!.setAttribute('data-set', 'ref2');
+    ref.value!.setAttribute("data-set", "ref");
+    ref2.value!.setAttribute("data-set", "ref2");
   });
 
   renders.count++;
@@ -65,7 +69,7 @@ export const SignalsChildren = component$(() => {
         id="count"
         onClick$={() => {
           store.foo++;
-          store.attribute = store.foo % 2 === 0 ? 'even' : 'odd';
+          store.attribute = store.foo % 2 === 0 ? "even" : "odd";
         }}
       >
         Increment
@@ -73,7 +77,7 @@ export const SignalsChildren = component$(() => {
       <button
         id="click"
         onClick$={() => {
-          signal.value = 'clicked';
+          signal.value = "clicked";
         }}
       >
         Click
@@ -89,7 +93,7 @@ export const SignalsChildren = component$(() => {
       <button
         id="background"
         onClick$={() => {
-          styles.value = 'body { background: black }';
+          styles.value = "body { background: black }";
         }}
       >
         Black background
@@ -128,6 +132,8 @@ export const SignalsChildren = component$(() => {
       <Issue4174 />
       <Issue4249 />
       <Issue4228 />
+      <Issue4368 />
+      <Issue4868 />
     </div>
   );
 });
@@ -147,7 +153,7 @@ export const Child = component$((props: ChildProps) => {
     {
       count: 0,
     },
-    { reactive: false }
+    { reactive: false },
   );
   renders.count++;
   const rerenders = renders.count + 0;
@@ -158,7 +164,7 @@ export const Child = component$((props: ChildProps) => {
         Text: {props.text}
       </div>
       <Id id={props.id} />
-      <div id="computed">{'computed: ' + props.signal.value}</div>
+      <div id="computed">{"computed: " + props.signal.value}</div>
       <div id="stuff" ref={props.ref2}>
         Stuff: {props.count}
       </div>
@@ -183,9 +189,9 @@ export const Issue1681 = component$(() => {
     <div>
       <button id="issue-1681-btn" onClick$={() => signal.value++}>
         Click
-      </button>{' '}
+      </button>{" "}
       <span id="issue-1681-return">
-        <C who={'A'} count={signal.value} /> <C who={'B'} count={signal} />
+        <C who={"A"} count={signal.value} /> <C who={"B"} count={signal} />
       </span>
     </div>
   );
@@ -207,10 +213,10 @@ export const Issue1733 = component$(() => {
 });
 
 export const SideEffect = component$(() => {
-  const signal = useSignal('initial');
+  const signal = useSignal("initial");
   useTask$(async () => {
     await delay(100);
-    signal.value = 'set';
+    signal.value = "set";
   });
   return (
     <>
@@ -221,7 +227,7 @@ export const SideEffect = component$(() => {
 
 export const Issue1884 = component$(() => {
   const state = useStore({
-    value: '',
+    value: "",
     bool: false,
     counter: 0,
   });
@@ -230,7 +236,7 @@ export const Issue1884 = component$(() => {
       <button
         id="issue1884-btn"
         onClick$={() => {
-          state.value = 'test';
+          state.value = "test";
           state.counter++;
           state.bool = true;
         }}
@@ -238,7 +244,7 @@ export const Issue1884 = component$(() => {
         Click me {state.counter}
       </button>
       <div>
-        <Test active={state.value === 'test'} />
+        <Test active={state.value === "test"} />
         <Test active={state.bool ? true : false} />
         <Test active={state.bool} />
         <Test active={state.value} />
@@ -249,22 +255,22 @@ export const Issue1884 = component$(() => {
 
 export const Test = component$(({ active }: { active: boolean | string }) => {
   return (
-    <div class="issue1884-text" style={{ color: active && ('red' as any) }}>
+    <div class="issue1884-text" style={{ color: active && ("red" as any) }}>
       Should turn red
     </div>
   );
 });
 
 export const Issue2176 = component$(() => {
-  const data = useSignal({ text: 'testing', flag: false, num: 1 });
-  const store = useStore({ text: 'testing', flag: false, num: 1 });
+  const data = useSignal({ text: "testing", flag: false, num: 1 });
+  const store = useStore({ text: "testing", flag: false, num: 1 });
   return (
     <div>
       <button
         id="issue-2176-btn"
         onClick$={() => {
           const nu = data.value.num + 1;
-          const text = 'testing' + nu;
+          const text = "testing" + nu;
           data.value = { text, flag: !data.value.flag, num: nu };
           store.num = nu;
           store.text = text;
@@ -278,7 +284,11 @@ export const Issue2176 = component$(() => {
       <h2>Signal</h2>
       <ul>
         <li>
-          <Test1 text={data.value.text} flag={data.value.flag} num={data.value.num}>
+          <Test1
+            text={data.value.text}
+            flag={data.value.flag}
+            num={data.value.num}
+          >
             Nested value
           </Test1>
         </li>
@@ -287,7 +297,9 @@ export const Issue2176 = component$(() => {
         </li>
         <li>
           <Test2
-            text={`${data.value.text} flag=${data.value.flag ? 'T' : 'F'} num=${data.value.num}`}
+            text={`${data.value.text} flag=${data.value.flag ? "T" : "F"} num=${
+              data.value.num
+            }`}
           >
             Computed prop
           </Test2>
@@ -297,17 +309,20 @@ export const Issue2176 = component$(() => {
         </li>
         <li>
           <Test2Child>
-            Slot{' '}
+            Slot{" "}
             <span class="issue-2176-result">
-              {data.value.text} flag={data.value.flag ? 'T' : 'F'} num={data.value.num}
+              {data.value.text} flag={data.value.flag ? "T" : "F"} num=
+              {data.value.num}
             </span>
           </Test2Child>
         </li>
         <li>
           <Test2Child>
-            Computed + Slot{' '}
+            Computed + Slot{" "}
             <span class="issue-2176-result">
-              {`${data.value.text} flag=${data.value.flag ? 'T' : 'F'} num=${data.value.num}`}
+              {`${data.value.text} flag=${data.value.flag ? "T" : "F"} num=${
+                data.value.num
+              }`}
             </span>
           </Test2Child>
         </li>
@@ -324,7 +339,11 @@ export const Issue2176 = component$(() => {
           <TestStore store={store}>Raw</TestStore>
         </li>
         <li>
-          <Test2 text={`${store.text} flag=${store.flag ? 'T' : 'F'} num=${store.num}`}>
+          <Test2
+            text={`${store.text} flag=${store.flag ? "T" : "F"} num=${
+              store.num
+            }`}
+          >
             Computed prop
           </Test2>
         </li>
@@ -333,17 +352,17 @@ export const Issue2176 = component$(() => {
         </li>
         <li>
           <Test2Child>
-            Slot{' '}
+            Slot{" "}
             <span class="issue-2176-result">
-              {store.text} flag={store.flag ? 'T' : 'F'} num={store.num}
+              {store.text} flag={store.flag ? "T" : "F"} num={store.num}
             </span>
           </Test2Child>
         </li>
         <li>
           <Test2Child>
-            Computed + Slot{' '}
+            Computed + Slot{" "}
             <span class="issue-2176-result">
-              {`${store.text} flag=${store.flag ? 'T' : 'F'} num=${store.num}`}
+              {`${store.text} flag=${store.flag ? "T" : "F"} num=${store.num}`}
             </span>
           </Test2Child>
         </li>
@@ -352,22 +371,24 @@ export const Issue2176 = component$(() => {
   );
 });
 
-export const Test1 = component$((props: { text: string; flag: boolean; num: number }) => {
-  return (
-    <p>
-      <Slot />{' '}
-      <span class="issue-2176-result">
-        {props.text} flag={props.flag ? 'T' : 'F'} num={props.num}
-      </span>
-    </p>
-  );
-});
+export const Test1 = component$(
+  (props: { text: string; flag: boolean; num: number }) => {
+    return (
+      <p>
+        <Slot />{" "}
+        <span class="issue-2176-result">
+          {props.text} flag={props.flag ? "T" : "F"} num={props.num}
+        </span>
+      </p>
+    );
+  },
+);
 export const Test1Sig = component$((props: { sig: Signal }) => {
   return (
     <p>
-      <Slot />{' '}
+      <Slot />{" "}
       <span class="issue-2176-result">
-        {props.sig.value.text} flag={props.sig.value.flag ? 'T' : 'F'} num=
+        {props.sig.value.text} flag={props.sig.value.flag ? "T" : "F"} num=
         {props.sig.value.num}
       </span>
     </p>
@@ -376,9 +397,10 @@ export const Test1Sig = component$((props: { sig: Signal }) => {
 export const TestStore = component$((props: { store: any }) => {
   return (
     <p>
-      <Slot />{' '}
+      <Slot />{" "}
       <span class="issue-2176-result">
-        {props.store.text} flag={props.store.flag ? 'T' : 'F'} num={props.store.num}
+        {props.store.text} flag={props.store.flag ? "T" : "F"} num=
+        {props.store.num}
       </span>
     </p>
   );
@@ -393,11 +415,11 @@ export const Test2 = component$((props: { text: string }) => {
 export const Test2Sig = component$((props: { sig: Signal }) => {
   return (
     <p>
-      <Slot />{' '}
+      <Slot />{" "}
       <span class="issue-2176-result">
-        {`${props.sig.value.text} flag=${props.sig.value.flag ? 'T' : 'F'} num=${
-          props.sig.value.num
-        }`}
+        {`${props.sig.value.text} flag=${
+          props.sig.value.flag ? "T" : "F"
+        } num=${props.sig.value.num}`}
       </span>
     </p>
   );
@@ -405,9 +427,11 @@ export const Test2Sig = component$((props: { sig: Signal }) => {
 export const Test2Store = component$((props: { store: any }) => {
   return (
     <p>
-      <Slot />{' '}
+      <Slot />{" "}
       <span class="issue-2176-result">
-        {`${props.store.text} flag=${props.store.flag ? 'T' : 'F'} num=${props.store.num}`}
+        {`${props.store.text} flag=${props.store.flag ? "T" : "F"} num=${
+          props.store.num
+        }`}
       </span>
     </p>
   );
@@ -434,9 +458,9 @@ p { padding: 0.5em; border:1px solid; margin:0.2em }
 .purple { color: purple; border-color: purple; }
 `);
 
-  const colors = ['black', 'red', 'blue', 'green', 'purple'];
-  const store = useStore({ color: 'black', n: 0, flag: false });
-  const colorSignal = useSignal('black');
+  const colors = ["black", "red", "blue", "green", "purple"];
+  const store = useStore({ color: "black", n: 0, flag: false });
+  const colorSignal = useSignal("black");
   return (
     <div>
       <button
@@ -464,7 +488,9 @@ p { padding: 0.5em; border:1px solid; margin:0.2em }
 
           <h3>Store - className</h3>
           <TestCN color={store.color}>ClassName = OK</TestCN>
-          <TestACN color={store.color}>[ClassName] = OK (though JSX complains</TestACN>
+          <TestACN color={store.color}>
+            [ClassName] = OK (though JSX complains
+          </TestACN>
           <TestCNStr color={store.color}>{`{ClassName}`} = OK</TestCNStr>
           <TestACNStr color={store.color}>{`[{ClassName}]`} = OK</TestACNStr>
         </div>
@@ -478,9 +504,13 @@ p { padding: 0.5em; border:1px solid; margin:0.2em }
 
           <h3>Signal - className</h3>
           <TestCN color={colorSignal.value}>ClassName = Fail</TestCN>
-          <TestACN color={colorSignal.value}>[ClassName] = OK (JSX complains)</TestACN>
+          <TestACN color={colorSignal.value}>
+            [ClassName] = OK (JSX complains)
+          </TestACN>
           <TestCNStr color={colorSignal.value}>{`{ClassName}`} = OK</TestCNStr>
-          <TestACNStr color={colorSignal.value}>{`[{ClassName}]`} = OK (JSX complains)</TestACNStr>
+          <TestACNStr color={colorSignal.value}>
+            {`[{ClassName}]`} = OK (JSX complains)
+          </TestACNStr>
         </div>
       </div>
     </div>
@@ -488,9 +518,9 @@ p { padding: 0.5em; border:1px solid; margin:0.2em }
 });
 
 export const Issue2245B = component$(() => {
-  const colors = ['black', 'red', 'blue', 'green', 'purple'];
-  const store = useStore({ color: 'black', n: 0, flag: false });
-  const colorSignal = useSignal('black');
+  const colors = ["black", "red", "blue", "green", "purple"];
+  const store = useStore({ color: "black", n: 0, flag: false });
+  const colorSignal = useSignal("black");
   const flagSignal = useSignal(false);
   return (
     <div>
@@ -510,7 +540,7 @@ export const Issue2245B = component$(() => {
         Click me to change the color
       </button>
       <div>
-        FLAG: <code>{store.flag ? 'bold' : 'italic'} </code>
+        FLAG: <code>{store.flag ? "bold" : "italic"} </code>
       </div>
       <div>
         <code>STORE: {JSON.stringify(store.color)}</code>
@@ -526,13 +556,13 @@ export const Issue2245B = component$(() => {
 });
 
 export const ComplexClassSignals = component$(() => {
-  const classes = useSignal(['initial', { hidden: false, visible: true }]);
+  const classes = useSignal(["initial", { hidden: false, visible: true }]);
   return (
     <div>
       <button
         id="complex-classes-btn"
         onClick$={() => {
-          classes.value = ['change', { hidden: true, visible: false }];
+          classes.value = ["change", { hidden: true, visible: false }];
         }}
       >
         Change classses
@@ -552,13 +582,13 @@ type MyStore = {
 export const Issue2311 = component$(() => {
   const store = useStore<MyStore>({
     condition: false,
-    text: 'Hello',
+    text: "Hello",
   });
 
   useTask$(({ track }) => {
     const v = track(() => store.condition);
     if (v) {
-      store.text = 'Bye bye 👻';
+      store.text = "Bye bye 👻";
     }
   });
 
@@ -598,16 +628,16 @@ export const Issue2311 = component$(() => {
 });
 
 export const Issue2344 = component$(() => {
-  const classSig = useSignal('abc');
+  const classSig = useSignal("abc");
   return (
     <>
       <textarea id="issue-2344-results" value="Content" rows={5}></textarea>
-      {classSig.value + ''}
+      {classSig.value + ""}
       <p>
         <button
           id="issue-2344-btn"
           onClick$={() => {
-            classSig.value = 'bar';
+            classSig.value = "bar";
           }}
         >
           Should not error
@@ -629,7 +659,7 @@ export const Issue2928 = component$(() => {
     },
     {
       deep: true,
-    }
+    },
   );
   const group = {
     controls: store.controls,
@@ -655,8 +685,8 @@ export const Issue2928 = component$(() => {
 export const FormDebug = component$<{ ctrl: any }>((props) => {
   return (
     <div>
-      value:{' this_breaks!! '} -<>{props.ctrl.value} </>
-      <>{props.ctrl.value + ''} </>
+      value:{" this_breaks!! "} -<>{props.ctrl.value} </>
+      <>{props.ctrl.value + ""} </>
     </div>
   );
 });
@@ -666,13 +696,13 @@ export const Issue2930 = component$(() => {
     {
       controls: {
         ctrl: {
-          value: '',
+          value: "",
         },
       },
     },
     {
       deep: true,
-    }
+    },
   );
 
   return (
@@ -706,9 +736,11 @@ export const Stringify = component$<{
   return <pre class="issue-2930-result">{JSON.stringify(props.data)}</pre>;
 });
 
-export const Issue3212Child = component$((props: { signal: Signal<number> }) => {
-  return <>{props.signal.value}</>;
-});
+export const Issue3212Child = component$(
+  (props: { signal: Signal<number> }) => {
+    return <>{props.signal.value}</>;
+  },
+);
 
 export function useMySignal() {
   const signal = useSignal<number>(1);
@@ -748,7 +780,11 @@ export const FineGrainedTextSub = component$(() => {
         {computed}
       </div>
       <div>
-        <button id="fine-grained-signal" data-value={count.value} onClick$={() => count.value++}>
+        <button
+          id="fine-grained-signal"
+          data-value={count.value}
+          onClick$={() => count.value++}
+        >
           Increment {count.value}
         </button>
       </div>
@@ -781,20 +817,20 @@ export const FineGrainedUnsubs = component$(() => {
           {count.value.nu}
         </div>
       )}
-      <div>{count.value?.nu ?? 'EMPTY'}</div>
+      <div>{count.value?.nu ?? "EMPTY"}</div>
     </div>
   );
 });
 
 export const Issue3415 = component$(() => {
-  const signal = useSignal('<b>foo</b>');
+  const signal = useSignal("<b>foo</b>");
 
   return (
     <>
       <button
         id="issue-3415-button"
         onClick$={() => {
-          signal.value = '<i>bar</i>';
+          signal.value = "<i>bar</i>";
         }}
       >
         Toggle
@@ -805,7 +841,7 @@ export const Issue3415 = component$(() => {
 });
 
 export const BindSignal = component$(() => {
-  const value = useSignal('initial');
+  const value = useSignal("initial");
   const checked = useSignal(false);
 
   return (
@@ -822,20 +858,20 @@ export const BindSignal = component$(() => {
 
 export const Issue3482 = component$(() => {
   const count = useStore({
-    'data-foo': 0,
+    "data-foo": 0,
   });
 
   return (
     <>
       <button
         id="issue-3482-button"
-        data-count={count['data-foo']}
-        onClick$={() => count['data-foo']++}
+        data-count={count["data-foo"]}
+        onClick$={() => count["data-foo"]++}
       >
-        Increment {count['data-foo']}
+        Increment {count["data-foo"]}
       </button>
-      <div id="issue-3482-result" data-count={count['data-foo']}>
-        {count['data-foo']}
+      <div id="issue-3482-result" data-count={count["data-foo"]}>
+        {count["data-foo"]}
       </div>
     </>
   );
@@ -843,18 +879,18 @@ export const Issue3482 = component$(() => {
 
 export const Issue3663 = component$(() => {
   const store = useStore({
-    'Custom Counter': 0,
+    "Custom Counter": 0,
   });
-  const a = store['Custom Counter'] + 0;
+  const a = store["Custom Counter"] + 0;
   return (
     <div>
-      <button id="issue-3663-button" onClick$={() => store['Custom Counter']++}>
+      <button id="issue-3663-button" onClick$={() => store["Custom Counter"]++}>
         Increment
       </button>
-      <div class="issue-3663-result" data-value={store['Custom Counter']}>
-        {store['Custom Counter']}
+      <div class="issue-3663-result" data-value={store["Custom Counter"]}>
+        {store["Custom Counter"]}
       </div>
-      <Issue3663Cmp prop={store['Custom Counter']} />
+      <Issue3663Cmp prop={store["Custom Counter"]} />
       <div class="issue-3663-result" data-value={a}>
         {a}
       </div>
@@ -871,19 +907,19 @@ function Issue3663Cmp(props: { prop: number }) {
 }
 
 export const Issue3440 = component$(() => {
-  const name = useSignal('Demo');
+  const name = useSignal("Demo");
   const blogs = useStore([
     {
       id: 1,
-      title: 'my first blog',
+      title: "my first blog",
     },
     {
       id: 2,
-      title: 'my second blogs',
+      title: "my second blogs",
     },
     {
       id: 3,
-      title: 'my third blog',
+      title: "my third blog",
     },
   ]);
   return (
@@ -910,9 +946,9 @@ export const Issue4174 = component$(() => {
 
   useVisibleTask$(
     () => {
-      storeWithoutInit.value = 'visible-task';
+      storeWithoutInit.value = "visible-task";
     },
-    { strategy: 'document-ready' }
+    { strategy: "document-ready" },
   );
 
   return (
@@ -923,14 +959,14 @@ export const Issue4174 = component$(() => {
 });
 
 export const Issue4249 = component$(() => {
-  const first = useSignal('');
-  const second = useSignal('');
+  const first = useSignal("");
+  const second = useSignal("");
 
   return (
     <main>
       <div>
         <label for="first">
-          {'First '}
+          {"First "}
           <input
             id="issue-4249-first"
             value={first.value}
@@ -941,7 +977,7 @@ export const Issue4249 = component$(() => {
       </div>
       <div>
         <label for="second">
-          {'Second '}
+          {"Second "}
           <input
             id="issue-4249-second"
             value={second.value}
@@ -954,13 +990,15 @@ export const Issue4249 = component$(() => {
       <div
         id="issue-4249-result"
         data-value={
-          first.value && second.value && first.value === second.value ? 'collision' : 'no-collision'
+          first.value && second.value && first.value === second.value
+            ? "collision"
+            : "no-collision"
         }
       >
-        {'Status: '}
+        {"Status: "}
         {first.value && second.value && first.value === second.value
-          ? 'Collision detected'
-          : 'No collision'}
+          ? "Collision detected"
+          : "No collision"}
       </div>
     </main>
   );
@@ -979,9 +1017,11 @@ type Props = {
 export const DisplayA = component$<Props>(({ counters }) => {
   return (
     <>
-      Display A:{' '}
+      Display A:{" "}
       <span id="issue-4228-result-a">{`${counters.countA}:${
-        typeof (globalThis as any).countA === 'number' ? (window as any).countA++ : 0
+        typeof (globalThis as any).countA === "number"
+          ? (window as any).countA++
+          : 0
       }`}</span>
     </>
   );
@@ -989,9 +1029,11 @@ export const DisplayA = component$<Props>(({ counters }) => {
 export const DisplayB = component$<Props>(({ counters }) => {
   return (
     <>
-      Display B:{' '}
+      Display B:{" "}
       <span id="issue-4228-result-b">{`${counters.countB}:${
-        typeof (globalThis as any).countB === 'number' ? (window as any).countB++ : 0
+        typeof (globalThis as any).countB === "number"
+          ? (window as any).countB++
+          : 0
       }`}</span>
     </>
   );
@@ -999,9 +1041,11 @@ export const DisplayB = component$<Props>(({ counters }) => {
 export const DisplaySignal = component$<Props>(({ counters }) => {
   return (
     <>
-      Display C:{' '}
+      Display C:{" "}
       <span id="issue-4228-result-c">{`${counters.signal.value}:${
-        typeof (globalThis as any).countC === 'number' ? (window as any).countC++ : 0
+        typeof (globalThis as any).countC === "number"
+          ? (window as any).countC++
+          : 0
       }`}</span>
     </>
   );
@@ -1009,10 +1053,14 @@ export const DisplaySignal = component$<Props>(({ counters }) => {
 export const DisplayTotal = component$<Props>(({ counters }) => {
   return (
     <>
-      Display Total:{' '}
+      Display Total:{" "}
       <span id="issue-4228-result-total">{`${
         counters.countA + counters.countB + counters.signal.value
-      }:${typeof (globalThis as any).countD === 'number' ? (window as any).countD++ : 0}`}</span>
+      }:${
+        typeof (globalThis as any).countD === "number"
+          ? (window as any).countD++
+          : 0
+      }`}</span>
     </>
   );
 });
@@ -1025,10 +1073,10 @@ export const Issue4228 = component$(() => {
   });
   useTask$(() => {
     if (isBrowser) {
-      (window as any).countA = 0;
-      (window as any).countB = 0;
-      (window as any).countC = 0;
-      (window as any).countD = 0;
+      (window as any).countA = -1;
+      (window as any).countB = -1;
+      (window as any).countC = -1;
+      (window as any).countD = -1;
     }
   });
   useVisibleTask$(
@@ -1039,8 +1087,8 @@ export const Issue4228 = component$(() => {
       (window as any).countD = 1;
     },
     {
-      strategy: 'document-ready',
-    }
+      strategy: "document-ready",
+    },
   );
   return (
     <>
@@ -1066,5 +1114,128 @@ export const Issue4228 = component$(() => {
         <DisplayTotal counters={counter} />
       </p>
     </>
+  );
+});
+
+const MyButton = component$<QwikIntrinsicElements["button"]>(
+  ({ type, ...rest }) => {
+    return (
+      <button id="issue-4368-button" type={type || "button"} {...rest}>
+        <Slot />
+      </button>
+    );
+  },
+);
+
+const MyTextButton = component$<{ text: string }>((props) => {
+  return (
+    <MyButton disabled={!props.text}>
+      {props.text ? "Example button" : "Text is empty"}
+    </MyButton>
+  );
+});
+
+export const Issue4368 = component$(() => {
+  const text = useSignal("");
+
+  const textResource = useResource$(async (ctx) => {
+    return ctx.track(() => text.value);
+  });
+
+  return (
+    <>
+      <input
+        id="issue-4368-input"
+        bind:value={text}
+        placeholder="type something here"
+      />
+
+      <Resource
+        value={textResource}
+        onRejected={() => <p>Error</p>}
+        onPending={() => <p>Loading</p>}
+        onResolved={(resolved) => (
+          <>
+            <MyTextButton text={resolved} />
+          </>
+        )}
+      />
+    </>
+  );
+});
+
+export const __CFG__ = { noImg: "https://placehold.co/600x400?text=No%20IMG" };
+
+export type PropsType = {
+  data: { id: number; src?: string };
+};
+
+const options = [
+  {
+    src: "https://placehold.co/400x400?text=1",
+    id: 1,
+  },
+  {
+    src: "https://placehold.co/500x500?text=2",
+    id: 2,
+  },
+];
+
+export const Issue4868 = component$(() => {
+  const selected = useSignal<{ id: number; src?: string }>(options[0]);
+  return (
+    <div>
+      <Issue4868BigCard data={selected.value} />
+      {options.map((d) => (
+        <>
+          <button
+            key={d.id}
+            onClick$={() => (selected.value = d)}
+            style={{ padding: "2rem", cursor: "pointer" }}
+            id={`issue-4868-btn-${d.id}`}
+          >
+            {d.id}
+          </button>
+        </>
+      ))}
+    </div>
+  );
+});
+
+export const Issue4868BigCard = component$<PropsType>((props) => {
+  // Using a reference to another const will somehow prevent the useComputed$ in the Card element to use the correct context
+  const noImg = __CFG__.noImg;
+
+  // Assigning static value here will make the Card component and useComputed$ within work as expected
+  // const noImg = 'https://placehold.co/600x400?text=No%20IMG';
+
+  return (
+    <div
+      style={{
+        flexDirection: "column",
+        border: "1px solid red",
+        padding: "1rem",
+        gap: "1rem",
+      }}
+    >
+      <Issue4868Card src={props.data.src || noImg} />
+      <div id="issue-4868-json">{JSON.stringify(props.data)}</div>
+    </div>
+  );
+});
+
+export const Issue4868Card = component$((props: { src: string }) => {
+  const { src } = props;
+
+  const src$ = useComputed$(() => {
+    // do something very important with the src
+    return props.src + "&useComputed$";
+  });
+
+  return (
+    <div style={{ border: "1px solid white", padding: "1rem" }}>
+      <p id="issue-4868-props">Card props.src: {src}</p>
+      <p id="issue-4868-usecomputed">Card useComputed$: {src$.value}</p>
+    </div>
   );
 });

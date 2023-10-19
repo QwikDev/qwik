@@ -1,9 +1,8 @@
-import { test } from 'uvu';
-import { equal } from 'uvu/assert';
 import { getMarkdownRelativeUrl } from './markdown-url';
 import type { NormalizedPluginOptions } from '../types';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { assert, test } from 'vitest';
 
 const routesDir = tmpdir();
 const serverPluginsDir = tmpdir();
@@ -80,9 +79,8 @@ const menuFilePath = join(routesDir, 'docs', 'menu.md');
       },
       mdx: {},
       platform: {},
+      rewriteRoutes: [],
     };
-    equal(getMarkdownRelativeUrl(opts, menuFilePath, t.href), t.expect);
+    assert.equal(getMarkdownRelativeUrl(opts, menuFilePath, t.href), t.expect);
   });
 });
-
-test.run();

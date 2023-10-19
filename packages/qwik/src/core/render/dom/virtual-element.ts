@@ -1,4 +1,5 @@
 import { assertEqual, assertFail, assertTrue } from '../../error/assert';
+import { VIRTUAL_SYMBOL } from '../../state/constants';
 import {
   isComment,
   isElement,
@@ -10,8 +11,6 @@ import { qSerialize, seal } from '../../util/qdev';
 import { directGetAttribute } from '../fast-calls';
 import { createElement } from './operations';
 import { SVG_NS, getChildren } from './visitor';
-
-const VIRTUAL_SYMBOL = '__virtual';
 
 export interface VirtualElement {
   readonly open: Comment;
@@ -139,12 +138,17 @@ export class VirtualElementImpl implements VirtualElement {
   private $attributes$: Record<string, string>;
   private $template$: HTMLTemplateElement;
 
-  constructor(readonly open: Comment, readonly close: Comment, readonly isSvg: boolean) {
+  constructor(
+    readonly open: Comment,
+    readonly close: Comment,
+    readonly isSvg: boolean
+  ) {
     const doc = (this.ownerDocument = open.ownerDocument);
     this.$template$ = createElement(doc, 'template', false) as HTMLTemplateElement;
     this.$attributes$ = parseVirtualAttributes(open.data.slice(3));
     assertTrue(open.data.startsWith('qv '), 'comment is not a qv');
     (open as any)[VIRTUAL_SYMBOL] = this;
+    (close as any)[VIRTUAL_SYMBOL] = this;
     seal(this);
   }
 
@@ -162,11 +166,12 @@ export class VirtualElementImpl implements VirtualElement {
   remove() {
     const parent = this.parentElement;
     if (parent) {
-      // const ch = this.childNodes;
       const ch = this.childNodes;
       assertEqual(this.$template$.childElementCount, 0, 'children should be empty');
       parent.removeChild(this.open);
-      this.$template$.append(...ch);
+      for (let i = 0; i < ch.length; i++) {
+        this.$template$.appendChild(ch[i]);
+      }
       parent.removeChild(this.close);
     }
   }
@@ -312,17 +317,17 @@ export class VirtualElementImpl implements VirtualElement {
     const nodes: Node[] = [];
     let node: Node | null = this.open;
     while ((node = node.nextSibling)) {
-      if (node !== this.close) {
-        nodes.push(node);
-      } else {
+      if (node === this.close) {
         break;
       }
+      nodes.push(node);
     }
     return nodes;
   }
   get isConnected() {
     return this.open.isConnected;
   }
+  /** The DOM parent element (not the vDOM parent, use findVirtual for that) */
   get parentElement() {
     return this.open.parentElement;
   }
@@ -346,6 +351,29 @@ export const processVirtualNodes = <T extends Node | null>(node: T): T | Virtual
   return node;
 };
 
+const findClose = (open: Comment): Comment => {
+  let node: Node | null = open;
+  let stack = 1;
+  while ((node = node.nextSibling)) {
+    if (isComment(node)) {
+      // We don't want to resume virtual nodes but if they're already resumed, use them
+      const virtual = (node as any)[VIRTUAL_SYMBOL] as ChildNode;
+      if (virtual) {
+        // This is not our existing virtual node because otherwise findClose wouldn't have been called
+        node = virtual;
+      } else if (node.data.startsWith('qv ')) {
+        stack++;
+      } else if (node.data === '/qv') {
+        stack--;
+        if (stack === 0) {
+          return node;
+        }
+      }
+    }
+  }
+  assertFail('close not found');
+};
+
 export const getVirtualElement = (open: Comment): VirtualElement | null => {
   const virtual = (open as any)[VIRTUAL_SYMBOL];
   if (virtual) {
@@ -356,25 +384,6 @@ export const getVirtualElement = (open: Comment): VirtualElement | null => {
     return new VirtualElementImpl(open, close, open.parentElement?.namespaceURI === SVG_NS);
   }
   return null;
-};
-
-export const findClose = (open: Comment): Comment => {
-  let node = open.nextSibling;
-  let stack = 1;
-  while (node) {
-    if (isComment(node)) {
-      if (node.data.startsWith('qv ')) {
-        stack++;
-      } else if (node.data === '/qv') {
-        stack--;
-        if (stack === 0) {
-          return node;
-        }
-      }
-    }
-    node = node.nextSibling;
-  }
-  assertFail('close not found');
 };
 
 export const getRootNode = (node: Node | VirtualElement | null): Node => {

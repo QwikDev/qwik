@@ -1,7 +1,6 @@
 import { tmpdir } from 'node:os';
 import { basename, join } from 'node:path';
-import { test } from 'uvu';
-import { equal } from 'uvu/assert';
+import { assert, test } from 'vitest';
 import type { NormalizedPluginOptions } from '../buildtime/types';
 import {
   createFileId,
@@ -33,7 +32,7 @@ test('isGroupedLayoutName', () => {
     { ext: 'abc', expect: false },
   ];
   t.forEach((c) => {
-    equal(isGroupedLayoutName(c.ext, false), c.expect, c.ext);
+    assert.equal(isGroupedLayoutName(c.ext, false), c.expect, c.ext);
   });
 });
 
@@ -50,7 +49,7 @@ test('isPageExt', () => {
     { ext: '.sass', expect: false },
   ];
   t.forEach((c) => {
-    equal(isPageExt(c.ext), c.expect, c.ext);
+    assert.equal(isPageExt(c.ext), c.expect, c.ext);
   });
 });
 
@@ -67,7 +66,7 @@ test('isModuleExt', () => {
     { ext: '.sass', expect: false },
   ];
   t.forEach((c) => {
-    equal(isModuleExt(c.ext), c.expect, c.ext);
+    assert.equal(isModuleExt(c.ext), c.expect, c.ext);
   });
 });
 
@@ -84,7 +83,7 @@ test('isPageModuleExt', () => {
     { ext: '.sass', expect: false },
   ];
   t.forEach((c) => {
-    equal(isPageModuleExt(c.ext), c.expect, c.ext);
+    assert.equal(isPageModuleExt(c.ext), c.expect, c.ext);
   });
 });
 
@@ -101,7 +100,7 @@ test('isMarkdownExt', () => {
     { ext: '.sass', expect: false },
   ];
   t.forEach((c) => {
-    equal(isMarkdownExt(c.ext), c.expect, c.ext);
+    assert.equal(isMarkdownExt(c.ext), c.expect, c.ext);
   });
 });
 
@@ -113,7 +112,7 @@ test('isMenuFileName', () => {
     { name: 'menu.ts', expect: false },
   ];
   t.forEach((c) => {
-    equal(isMenuFileName(c.name), c.expect, c.name);
+    assert.equal(isMenuFileName(c.name), c.expect, c.name);
   });
 });
 
@@ -136,7 +135,7 @@ test('getExtension', () => {
     { name: undefined, expect: '' },
   ];
   t.forEach((c) => {
-    equal(getExtension(c.name!), c.expect, c.name!);
+    assert.equal(getExtension(c.name!), c.expect, c.name!);
   });
 });
 
@@ -154,38 +153,44 @@ test('removeExtension', () => {
     { name: undefined, expect: '' },
   ];
   t.forEach((c) => {
-    equal(removeExtension(c.name!), c.expect, c.name!);
+    assert.equal(removeExtension(c.name!), c.expect, c.name!);
   });
 });
 
 test('createFileId, Page dir/index.tsx', () => {
   const path = normalizePath(join(routesDir, 'docs', 'index.tsx'));
-  const p = createFileId(routesDir, path);
-  equal(p, 'Docs');
+  const p = createFileId(routesDir, path, 'Route');
+  assert.equal(p, 'DocsRoute');
 });
 
 test('createFileId, Page about-us.tsx', () => {
   const path = normalizePath(join(routesDir, 'about-us', 'index.tsx'));
-  const p = createFileId(routesDir, path);
-  equal(p, 'Aboutus');
+  const p = createFileId(routesDir, path, 'Route');
+  assert.equal(p, 'AboutusRoute');
 });
 
 test('createFileId, Endpoint, api/[user]/index.ts', () => {
   const path = normalizePath(join(routesDir, 'api', '[user]', 'index.ts'));
-  const p = createFileId(routesDir, path);
-  equal(p, 'ApiUser');
+  const p = createFileId(routesDir, path, 'Route');
+  assert.equal(p, 'ApiUserRoute');
 });
 
 test('createFileId, Endpoint, data.json.ts', () => {
   const path = normalizePath(join(routesDir, 'api', 'data.json', 'index.ts'));
-  const p = createFileId(routesDir, path);
-  equal(p, 'ApiData');
+  const p = createFileId(routesDir, path, 'Route');
+  assert.equal(p, 'ApiDataRoute');
 });
 
 test('createFileId, Layout', () => {
   const path = normalizePath(join(routesDir, 'dashboard', 'settings', 'layout.tsx'));
   const p = createFileId(routesDir, path);
-  equal(p, 'DashboardSettingsLayout');
+  assert.equal(p, 'DashboardSettingsLayout');
+});
+
+test('createFileId, Menu', () => {
+  const path = normalizePath(join(routesDir, 'settings', 'menu.mdx'));
+  const p = createFileId(routesDir, path);
+  assert.equal(p, 'SettingsMenu');
 });
 
 [
@@ -259,9 +264,10 @@ test('createFileId, Layout', () => {
       },
       mdx: {},
       platform: {},
+      rewriteRoutes: [],
     };
     const pathname = getPathnameFromDirPath(opts, t.dirPath);
-    equal(pathname, t.expect, t.dirPath);
+    assert.equal(pathname, t.expect, t.dirPath);
   });
 });
 
@@ -291,8 +297,8 @@ test('parseRouteIndexName', () => {
 
   t.forEach((c) => {
     const r = parseRouteIndexName(c.extlessName);
-    equal(r.layoutName, c.expect.layoutName, `${c.extlessName} layoutName`);
-    equal(r.layoutStop, c.expect.layoutStop, `${c.extlessName} layoutStop`);
+    assert.equal(r.layoutName, c.expect.layoutName, `${c.extlessName} layoutName`);
+    assert.equal(r.layoutStop, c.expect.layoutStop, `${c.extlessName} layoutStop`);
   });
 });
 
@@ -346,7 +352,7 @@ test('parseRouteIndexName', () => {
     expect: '/',
   },
 ].forEach((t) => {
-  test(``, () => {
+  test(`menu-${t.basePathname}-${t.trailingSlash}`, () => {
     const opts: NormalizedPluginOptions = {
       routesDir,
       serverPluginsDir,
@@ -359,10 +365,9 @@ test('parseRouteIndexName', () => {
       },
       mdx: {},
       platform: {},
+      rewriteRoutes: [],
     };
     const pathname = getMenuPathname(opts, t.filePath);
-    equal(pathname, t.expect);
+    assert.equal(pathname, t.expect);
   });
 });
-
-test.run();

@@ -10,7 +10,7 @@ import {
   newInvokeContextFromTuple,
   tryGetInvokeContext,
 } from '../use/use-core';
-import { then } from '../util/promises';
+import { maybeThen } from '../util/promises';
 import { qDev, qSerialize, qTest, seal } from '../util/qdev';
 import { isArray, isFunction, type ValueOrPromise } from '../util/types';
 import type { QRLDev } from './qrl';
@@ -29,6 +29,8 @@ export interface QRLInternalMethods<TYPE> {
   $capture$: string[] | null;
   $captureRef$: any[] | null;
   dev: QRLDev | null;
+
+  resolved: undefined | TYPE;
 
   resolve(): Promise<TYPE>;
   getSymbol(): string;
@@ -66,6 +68,12 @@ export const createQRL = <TYPE>(
 
   let _containerEl: Element | undefined;
 
+  const qrl = async function (this: any, ...args: any) {
+    const fn = invokeFn.call(this, tryGetInvokeContext());
+    const result = await fn(...args);
+    return result;
+  } as unknown as QRLInternal<TYPE>;
+
   const setContainer = (el: Element | undefined) => {
     if (!_containerEl) {
       _containerEl = el;
@@ -81,11 +89,11 @@ export const createQRL = <TYPE>(
       return symbolRef;
     }
     if (symbolFn !== null) {
-      return (symbolRef = symbolFn().then((module) => (symbolRef = module[symbol])));
+      return (symbolRef = symbolFn().then((module) => (qrl.resolved = symbolRef = module[symbol])));
     } else {
       const symbol2 = getPlatform().importSymbol(_containerEl, chunk, symbol);
-      return (symbolRef = then(symbol2, (ref) => {
-        return (symbolRef = ref);
+      return (symbolRef = maybeThen(symbol2, (ref) => {
+        return (qrl.resolved = symbolRef = ref);
       }));
     }
   };
@@ -102,15 +110,15 @@ export const createQRL = <TYPE>(
     return ((...args: any[]): any => {
       const start = now();
       const fn = resolveLazy() as TYPE;
-      return then(fn, (fn) => {
+      return maybeThen(fn, (fn) => {
         if (isFunction(fn)) {
           if (beforeFn && beforeFn() === false) {
             return;
           }
-          const baseContext = createInvocationContext(currentCtx);
+          const baseContext = createOrReuseInvocationContext(currentCtx);
           const context: InvokeContext = {
             ...baseContext,
-            $qrl$: QRL as QRLInternal<any>,
+            $qrl$: qrl as QRLInternal<any>,
           };
           if (context.$event$ === undefined) {
             context.$event$ = this;
@@ -123,7 +131,7 @@ export const createQRL = <TYPE>(
     }) as any;
   }
 
-  const createInvocationContext = (invoke: InvokeContext | InvokeTuple | undefined) => {
+  const createOrReuseInvocationContext = (invoke: InvokeContext | InvokeTuple | undefined) => {
     if (invoke == null) {
       return newInvokeContext();
     } else if (isArray(invoke)) {
@@ -133,16 +141,10 @@ export const createQRL = <TYPE>(
     }
   };
 
-  const invokeQRL = async function (this: any, ...args: any) {
-    const fn = invokeFn.call(this, tryGetInvokeContext());
-    const result = await fn(...args);
-    return result;
-  };
   const resolvedSymbol = refSymbol ?? symbol;
   const hash = getSymbolHash(resolvedSymbol);
 
-  const QRL: QRLInternal<TYPE> = invokeQRL as any;
-  const methods: QRLInternalMethods<TYPE> = {
+  Object.assign(qrl, {
     getSymbol: () => resolvedSymbol,
     getHash: () => hash,
     getCaptured: () => captureRef,
@@ -158,8 +160,8 @@ export const createQRL = <TYPE>(
     $capture$: capture,
     $captureRef$: captureRef,
     dev: null,
-  };
-  const qrl = Object.assign(invokeQRL, methods);
+    resolved: undefined,
+  });
   seal(qrl);
   return qrl as any;
 };

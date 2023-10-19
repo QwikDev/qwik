@@ -7,7 +7,9 @@ import redent from 'redent';
 import type { RuleContext } from '@typescript-eslint/utils/dist/ts-eslint';
 import { QwikEslintExamples } from '../examples';
 
-const createRule = ESLintUtils.RuleCreator(() => 'https://qwik.builder.io/docs/advanced/dollar/');
+const createRule = ESLintUtils.RuleCreator(
+  (name) => `https://qwik.builder.io/docs/advanced/eslint/#${name}`
+);
 
 interface DetectorOptions {
   allowAny: boolean;
@@ -25,7 +27,6 @@ export const validLexicalScope = createRule({
       description:
         'Used the tsc typechecker to detect the capture of unserializable data in dollar ($) scopes.',
       recommended: 'error',
-      url: 'https://qwik.builder.io/docs/advanced/eslint/#valid-lexical-scope',
     },
 
     schema: [
@@ -44,11 +45,11 @@ export const validLexicalScope = createRule({
 
     messages: {
       referencesOutside:
-        'Seems like you are referencing "{{varName}}" inside a different scope ({{dollarName}}), when this happens, Qwik needs to serialize the value, however {{reason}}.\nCheck out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
+        'When referencing "{{varName}}" inside a different scope ({{dollarName}}), Qwik needs to serialize the value, however {{reason}}.\nCheck out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
       invalidJsxDollar:
-        'Seems like you are using "{{varName}}" as an event handler, however functions are not serializable.\nDid you mean to wrap it in `$()`?\n\n{{solution}}\nCheck out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
+        'Using "{{varName}}" as an event handler, however functions are not serializable.\nDid you mean to wrap it in `$()`?\n\n{{solution}}\nCheck out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
       mutableIdentifier:
-        'Seems like you are mutating the value of ("{{varName}}"), but this is not possible when captured by the ({{dollarName}}) closure, instead create an object and mutate one of its properties.\nCheck out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
+        'Mutating let "{{varName}}" within the ({{dollarName}}) closure is not allowed, instead create an object/store/signal and mutate one of its properties.\nCheck out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
     },
   },
   create(context) {
@@ -213,10 +214,8 @@ export const validLexicalScope = createRule({
         const moduleSymbol = typeChecker.getSymbolAtLocation(module);
 
         /**
-         * Despite what the type signature says,
-         * {@link typeChecker.getSymbolAtLocation} can return undefined for
-         * empty modules. This happens, for example, when creating a brand new
-         * file.
+         * Despite what the type signature says, {@link typeChecker.getSymbolAtLocation} can return
+         * undefined for empty modules. This happens, for example, when creating a brand new file.
          */
         if (moduleSymbol) {
           exports = typeChecker.getExportsOfModule(moduleSymbol);
@@ -334,7 +333,12 @@ function _isTypeCapturable(
   const canBeCalled = type.getCallSignatures().length > 0;
   if (canBeCalled) {
     const symbolName = type.symbol.name;
-    if (symbolName === 'PropFnInterface') {
+    if (
+      symbolName === 'PropFnInterface' ||
+      symbolName === 'RefFnInterface' ||
+      symbolName === 'bivarianceHack' ||
+      symbolName === 'FunctionComponent'
+    ) {
       return;
     }
     let reason = 'is a function, which is not serializable';
@@ -390,7 +394,7 @@ function _isTypeCapturable(
     if (type.getProperty('activeElement')) {
       return;
     }
-    if (ALLOWED_CLASSES[symbolName]) {
+    if (symbolName in ALLOWED_CLASSES) {
       return;
     }
     if (type.isClass()) {
@@ -481,6 +485,8 @@ const ALLOWED_CLASSES = {
   FormData: true,
   URLSearchParams: true,
   Error: true,
+  Set: true,
+  Map: true,
 };
 
 const referencesOutsideGood = `

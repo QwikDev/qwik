@@ -1,9 +1,5 @@
 import { Fragment, jsx, type JSXNode } from '@builder.io/qwik';
-import {
-  flattenPrefetchResources,
-  prefetchUrlsEventScript,
-  workerFetchScript,
-} from './prefetch-utils';
+import { flattenPrefetchResources, getMostReferenced, workerFetchScript } from './prefetch-utils';
 import type { PrefetchImplementation, PrefetchResource, PrefetchStrategy } from './types';
 
 export function applyPrefetchImplementation(
@@ -43,19 +39,26 @@ function prefetchUrlsEvent(
   prefetchResources: PrefetchResource[],
   nonce?: string
 ) {
+  const mostReferenced = getMostReferenced(prefetchResources);
+  for (const url of mostReferenced) {
+    prefetchNodes.push(
+      jsx('link', {
+        rel: 'modulepreload',
+        href: url,
+        nonce,
+      })
+    );
+  }
   prefetchNodes.push(
     jsx('script', {
-      type: 'module',
-      dangerouslySetInnerHTML: prefetchUrlsEventScript(prefetchResources),
+      'q:type': 'prefetch-bundles',
+      dangerouslySetInnerHTML: `document.dispatchEvent(new CustomEvent('qprefetch', {detail:{links: [location.pathname]}}))`,
       nonce,
     })
   );
 }
 
-/**
- * Creates the `<link>` within the rendered html.
- * Optionally add the JS worker fetch
- */
+/** Creates the `<link>` within the rendered html. Optionally add the JS worker fetch */
 function linkHtmlImplementation(
   prefetchNodes: JSXNode[],
   prefetchResources: PrefetchResource[],
@@ -79,9 +82,8 @@ function linkHtmlImplementation(
 }
 
 /**
- * Uses JS to add the `<link>` elements at runtime, and if the
- * link prefetching isn't supported, it'll also add the
- * web worker fetch.
+ * Uses JS to add the `<link>` elements at runtime, and if the link prefetching isn't supported,
+ * it'll also add the web worker fetch.
  */
 function linkJsImplementation(
   prefetchNodes: JSXNode[],
@@ -128,6 +130,7 @@ function linkJsImplementation(
   prefetchNodes.push(
     jsx('script', {
       type: 'module',
+      'q:type': 'link-js',
       dangerouslySetInnerHTML: s,
       nonce,
     })
@@ -145,6 +148,7 @@ function workerFetchImplementation(
   prefetchNodes.push(
     jsx('script', {
       type: 'module',
+      'q:type': 'prefetch-worker',
       dangerouslySetInnerHTML: s,
       nonce,
     })

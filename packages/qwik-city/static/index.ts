@@ -7,8 +7,9 @@ import type {
 // @builder.io/qwik-city/static
 
 /**
- * Use this function when SSG should be generated from another module, such as a Vite plugin.
- * This function's should be passed the paths of the entry module and Qwik City Plan.
+ * Use this function when SSG should be generated from another module, such as a Vite plugin. This
+ * function's should be passed the paths of the entry module and Qwik City Plan.
+ *
  * @public
  */
 export async function generate(opts: StaticGenerateOptions) {
@@ -23,7 +24,7 @@ function getEntryModulePath() {
   if (isDeno()) {
     return './deno.mjs';
   }
-  if (isNode()) {
+  if (isNode() || isBun()) {
     if (isCjs()) {
       return './node.cjs';
     }
@@ -44,8 +45,12 @@ function isDeno() {
   return typeof Deno !== 'undefined';
 }
 
+function isBun() {
+  return typeof Bun !== 'undefined';
+}
+
 function isNode() {
-  return !isDeno() && typeof process !== 'undefined' && !!process.versions?.node;
+  return !isBun() && !isDeno() && typeof process !== 'undefined' && !!process.versions?.node;
 }
 
 function isCjs() {
@@ -54,3 +59,4 @@ function isCjs() {
 }
 
 declare const Deno: any;
+declare const Bun: any;

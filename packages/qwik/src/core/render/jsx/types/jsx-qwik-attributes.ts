@@ -161,7 +161,7 @@ export type QwikEventMap<T> = {
   Waiting: Event;
 };
 
-export type PreventDefault<T> = {
+export type PreventDefault<T extends Element> = {
   [K in keyof QwikEventMap<T> as `preventdefault:${Lowercase<K>}`]?: boolean;
 };
 
@@ -175,26 +175,16 @@ export type BaseClassList =
   | Record<string, boolean | string | number | null | undefined>
   | BaseClassList[];
 
-/**
- * @public
- */
+/** @public */
 export type ClassList = BaseClassList | BaseClassList[];
 
-export interface QwikProps<T> extends PreventDefault<T> {
+export interface QwikProps<T extends Element> extends PreventDefault<T> {
   class?: ClassList | Signal<ClassList> | undefined;
   dangerouslySetInnerHTML?: string | undefined;
-  ref?: Signal<Element | undefined> | ((el: Element) => void) | undefined;
+  ref?: Ref<T> | undefined;
 
-  /**
-   *
-   */
+  /** Corresponding slot name used to project the element into. */
   'q:slot'?: string;
-
-  /**
-   * URL against which relative QRLs should be resolved to.
-   */
-  'q:version'?: string;
-  'q:container'?: '';
 }
 
 // Allows for Event Handlers to by typed as QwikEventMap[Key] or Event
@@ -203,16 +193,12 @@ export type BivariantEventHandler<T extends SyntheticEvent<any> | Event, EL> = {
   bivarianceHack(event: T, element: EL): any;
 }['bivarianceHack'];
 
-/**
- * @public
- */
+/** @public */
 export type NativeEventHandler<T extends Event = Event, EL = Element> =
   | BivariantEventHandler<T, EL>
   | QRL<BivariantEventHandler<T, EL>>[];
 
-/**
- * @public
- */
+/** @public */
 export type QrlEvent<Type extends Event = Event> = QRL<NativeEventHandler<Type, Element>>;
 
 export interface QwikCustomEvents<El> {
@@ -229,9 +215,7 @@ export type QwikKnownEvents<T> = {
     BivariantEventHandler<QwikEventMap<T>[K], T>
   >;
 };
-/**
- * @public
- */
+/** @public */
 export interface QwikEvents<T> extends QwikKnownEvents<T>, QwikCustomEvents<T> {
   'document:onLoad$'?: BivariantEventHandler<Event, T>;
   'document:onScroll$'?: BivariantEventHandler<QwikUIEvent<T>, T>;
@@ -239,22 +223,16 @@ export interface QwikEvents<T> extends QwikKnownEvents<T>, QwikCustomEvents<T> {
   'document:onVisibilityChange$'?: BivariantEventHandler<Event, T>;
 }
 
-/**
- * @public
- */
+/** @public */
 export type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLElementTagNameMap>;
 
-/**
- * @public
- */
+/** @public */
 export interface ComponentBaseProps {
   key?: string | number | null | undefined;
   'q:slot'?: string;
 }
 
-/**
- * @public
- */
+/** @public */
 export type JSXChildren =
   | string
   | number
@@ -268,10 +246,15 @@ export type JSXChildren =
   | Signal<JSXChildren>
   | JSXNode;
 
-/**
- * @public
- */
-export interface DOMAttributes<T> extends QwikProps<T>, QwikEvents<T> {
+/** @public */
+export interface DOMAttributes<T extends Element> extends QwikProps<T>, QwikEvents<T> {
   children?: JSXChildren;
   key?: string | number | null | undefined;
 }
+
+interface RefFnInterface {
+  (el: Element): void;
+}
+
+/** @public */
+export type Ref<T extends Element = Element> = Signal<Element | undefined> | RefFnInterface;

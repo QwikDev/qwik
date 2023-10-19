@@ -2,8 +2,8 @@ import { qError, QError_invalidJsxNodeType } from '../../error/error';
 import { type InvokeContext, newInvokeContext, invoke } from '../../use/use-core';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../../util/flyweight';
 import { logWarn } from '../../util/log';
-import { isNotNullable, isPromise, promiseAll, then } from '../../util/promises';
-import { qDev, seal } from '../../util/qdev';
+import { isNotNullable, isPromise, promiseAll, maybeThen } from '../../util/promises';
+import { qDev, qInspector, seal } from '../../util/qdev';
 import { isArray, isFunction, isObject, isString, type ValueOrPromise } from '../../util/types';
 import { domToVnode, smartUpdateChildren } from './visitor';
 import { SkipRender } from '../jsx/utils.public';
@@ -30,7 +30,7 @@ export const renderComponent = (
   containerState.$subsManager$.$clearSub$(hostElement);
 
   // TODO, serialize scopeIds
-  return then(executeComponent(rCtx, elCtx), (res) => {
+  return maybeThen(executeComponent(rCtx, elCtx), (res) => {
     const staticCtx = rCtx.$static$;
     const newCtx = res.rCtx;
     const iCtx = newInvokeContext(rCtx.$static$.$locale$, hostElement);
@@ -45,11 +45,11 @@ export const renderComponent = (
       }
     }
     const processedJSXNode = processData(res.node, iCtx);
-    return then(processedJSXNode, (processedJSXNode) => {
+    return maybeThen(processedJSXNode, (processedJSXNode) => {
       const newVdom = wrapJSX(hostElement, processedJSXNode);
       // const oldVdom = getVdom(hostElement);
       const oldVdom = getVdom(elCtx);
-      return then(smartUpdateChildren(newCtx, oldVdom, newVdom, flags), () => {
+      return maybeThen(smartUpdateChildren(newCtx, oldVdom, newVdom, flags), () => {
         // setVdom(hostElement, newVdom);
         elCtx.$vdom$ = newVdom;
       });
@@ -69,6 +69,7 @@ export class ProcessedJSXNodeImpl implements ProcessedJSXNode {
   $text$: string = '';
   $signal$: Signal<any> | null = null;
   $id$: string;
+  $dev$: DevJSX | undefined;
 
   constructor(
     public $type$: string,
@@ -79,6 +80,9 @@ export class ProcessedJSXNodeImpl implements ProcessedJSXNode {
     public $key$: string | null
   ) {
     this.$id$ = $type$ + ($key$ ? ':' + $key$ : '');
+    if (qDev && qInspector) {
+      this.$dev$ = undefined;
+    }
     seal(this);
   }
 }
@@ -94,7 +98,7 @@ export const processNode = (
   } else if (type === Virtual) {
     textType = VIRTUAL;
   } else if (isFunction(type)) {
-    const res = invoke(invocationContext, type, props, key, flags);
+    const res = invoke(invocationContext, type, props, key, flags, node.dev);
     if (!shouldWrapFunctional(res, node)) {
       return processData(res, invocationContext);
     }
@@ -104,11 +108,11 @@ export const processNode = (
   }
   let convertedChildren: ProcessedJSXNode[] = EMPTY_ARRAY;
   if (children != null) {
-    return then(processData(children, invocationContext), (result) => {
+    return maybeThen(processData(children, invocationContext), (result) => {
       if (result !== undefined) {
         convertedChildren = isArray(result) ? result : [result];
       }
-      return new ProcessedJSXNodeImpl(
+      const vnode = new ProcessedJSXNodeImpl(
         textType,
         props,
         immutableProps,
@@ -116,9 +120,24 @@ export const processNode = (
         flags,
         key
       );
+      if (qDev && qInspector) {
+        vnode.$dev$ = node.dev;
+      }
+      return vnode;
     });
   } else {
-    return new ProcessedJSXNodeImpl(textType, props, immutableProps, convertedChildren, flags, key);
+    const vnode = new ProcessedJSXNodeImpl(
+      textType,
+      props,
+      immutableProps,
+      convertedChildren,
+      flags,
+      key
+    );
+    if (qDev && qInspector) {
+      vnode.$dev$ = node.dev;
+    }
+    return vnode;
   }
 };
 
@@ -151,7 +170,7 @@ export const processData = (
     return newNode;
   } else if (isArray(node)) {
     const output = promiseAll(node.flatMap((n) => processData(n, invocationContext)));
-    return then(output, (array) => array.flat(100).filter(isNotNullable));
+    return maybeThen(output, (array) => array.flat(100).filter(isNotNullable));
   } else if (isPromise(node)) {
     return node.then((node) => processData(node, invocationContext));
   } else if (node === SkipRender) {

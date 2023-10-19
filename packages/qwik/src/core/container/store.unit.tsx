@@ -5,18 +5,15 @@ import { component$ } from '../component/component.public';
 import { $ } from '../qrl/qrl.public';
 import { logDebug } from '../util/log';
 import { inlinedQrl } from '../qrl/qrl';
-import { suite } from 'uvu';
 import { render } from '../render/dom/render.public';
-import { expectDOM } from '../../testing/expect-dom.unit';
+import { expectDOM } from '../../testing/expect-dom';
 import { pauseContainer } from './pause';
 import { noSerialize } from '../state/common';
 import { useSignal } from '../use/use-signal';
 import { getQwikJSON } from './resume';
-import { equal } from 'uvu/assert';
+import { assert, test } from 'vitest';
 
-const storeSuite = suite('store');
-
-storeSuite.skip('should serialize content', async () => {
+test.skip('should serialize content', async () => {
   const document = createDocument();
 
   await render(
@@ -58,7 +55,7 @@ storeSuite.skip('should serialize content', async () => {
     </body>`
   );
 
-  equal(JSON.parse(script.textContent!), {
+  assert.deepEqual(JSON.parse(script.textContent!), {
     refs: {
       '1': '1 2 f o 8 i 7 6 k! o l 0 n',
     },
@@ -171,5 +168,3 @@ export const LexicalScope = component$(() => {
   ]);
   return <div onClick$={thing}>{signal as any}</div>;
 });
-
-storeSuite.run();

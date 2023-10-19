@@ -3,7 +3,7 @@
     "incremental": true,
     "target": "ES2020",
     "module": "ES2020",
-    "lib": ["es2021", "DOM", "webworker"],
+    "lib": ["es2021", "DOM", "webworker", "DOM.Iterable"],
     "resolveJsonModule": true,
     "jsx": "react-jsx",
     "allowArbitraryExtensions": true,
@@ -97,7 +97,8 @@
     "starters/apps/qwikcity-test/**/*",
     "starters/dev-server.ts",
     "packages/qwik-react/vite",
-    "@types/deno.d.ts"
+    "@types/deno.d.ts",
+    "@types/bun.d.ts"
   ],
   "exclude": [
     "packages/create-qwik/dist",

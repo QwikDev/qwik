@@ -14,10 +14,9 @@ import { transform } from 'esbuild';
 import { writePackageJson } from './package-json';
 
 /**
- * Builds the qwikloader javascript files. These files can be used
- * by other tooling, and are provided in the package so CDNs could
- * point to them. The @builder.io/optimizer submodule also provides
- * a utility function.
+ * Builds the qwikloader javascript files. These files can be used by other tooling, and are
+ * provided in the package so CDNs could point to them. The @builder.io/optimizer submodule also
+ * provides a utility function.
  */
 export async function submoduleQwikLoader(config: BuildConfig) {
   const input: InputOptions = {
@@ -168,9 +167,7 @@ export async function submoduleQwikLoader(config: BuildConfig) {
   console.log(`🐸 qwikloader:`, optimizeFileSize);
 }
 
-/**
- * Load each of the qwik scripts to be inlined with esbuild "define" as const variables.
- */
+/** Load each of the qwik scripts to be inlined with esbuild "define" as const variables. */
 export async function inlineQwikScriptsEsBuild(config: BuildConfig) {
   const variableToFileMap = [
     ['QWIK_LOADER_DEFAULT_MINIFIED', 'qwikloader.js'],

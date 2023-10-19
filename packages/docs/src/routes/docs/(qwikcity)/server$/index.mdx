@@ -1,5 +1,5 @@
 ---
-title: Qwik City - server$()
+title: server$ | Qwik City
 contributors:
   - mhevery
   - manucorporat
@@ -12,6 +12,12 @@ contributors:
 `server$()` allows you to create a function that always execute on the server, making it a great place to access the DB or perform server-only actions.
 
 `server$` is a form of RPC (Remote Procedure Call) mechanism between the client and server, just like a traditional HTTP endpoint but strongly typed thanks to Typescript, and easier to maintain.
+
+Your new function will have the following signature:
+`([AbortSignal, ] ...): Promise<T>`
+
+`AbortSignal` is optional, and allows you to cancel a long running request by terminating the connection.
+Please note that depending on your server runtime, the function on the server may or may not terminate immediately as it depends on how client disconnections are handled by said runtime.
 
 ```tsx
 import { component$, useSignal } from '@builder.io/qwik';
@@ -50,7 +56,7 @@ export default component$(() => {
 `server$` can also read the HTTP cookies, headers, or environment variables, using `this`. In this case you will need to use a function instead of an arrow function.
 
 ```tsx
-// Notice that the wrapped function is declared as a `async function`
+// Notice that the wrapped function is declared as an `async function`
 const addUser = server$(async function(id: number, fullName: string, address: Address) {
   // The `this` is the `RequestEvent` object, which contains
   // the HTTP headers, cookies, and environment variables.
@@ -77,6 +83,9 @@ const addUser = server$(async function(id: number, fullName: string, address: Ad
 ## Streaming responses
 
 `server$` can return a stream of data by using an async generator. This is useful for streaming data from the server to the client.
+
+Terminating the generator on the client side (e.g. by calling `return()` on the generator, or by breaking out from your async for-loop) will terminate the connection. As with `AbortSignal` -
+how the generator will terminate on the server side depends on the server runtime and how client disconnects are handled.
 
 ```tsx
 import { component$, useSignal } from '@builder.io/qwik';
@@ -119,3 +128,11 @@ A `server$()` wraps a function and returns an async proxy to the function. On th
 On the client, the proxy function invokes the wrapped function via an HTTP request, using `fetch()`.
 
 > Note: The `server$()` function must ensure that the server and client have the same version of the code executing. If there is a version skew the behavior is undefined and may result in an error. If version skew is a common problem then a more formal RPC mechanism should be used such as a tRPC or other library.
+
+## Middleware and `server$`
+
+When using `server$`, it's important to understand how [middleware functions](/docs/middleware/#middleware-function) are executed. Middleware functions defined in `layout` files do not run for `server$` requests. This can lead to confusion, especially when developers expect certain middleware to be executed for both page requests and `server$` requests.
+
+To ensure that a middleware function runs for both types of requests, it should be defined in the `plugin.ts` file. This ensures that the middleware is executed consistently for all incoming requests, regardless of whether they are normal page requests or `server$` requests.
+
+By [defining middleware in the `plugin.ts`](/docs/advanced/routing/#plugints) file, developers can maintain a centralized location for shared middleware logic, ensuring consistency and reducing potential errors or oversights.

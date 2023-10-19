@@ -2,10 +2,10 @@
 **/*.log
 **/.DS_Store
 *.
-.vscode/settings.json
 .history
 .yarn
 .yarnrc.yml
+.pnpm-store
 pnpm-lock.yaml
 .mf
 dist
@@ -20,17 +20,23 @@ output
 rollup.config.js
 build
 .cache
-.vscode
 .rollup.cache
 tsconfig.tsbuildinfo
 packages/docs/api/**/*
 packages/docs/src/routes/**/*.mdx
 **/server/**/*.js
 starters/**/*.js
+# explicit exclusion for tailwind prettier.config.js
+starters/features/tailwind/*
 packages/docs/server
 packages/docs/src/routes/api
 packages/docs/**/*.md
 packages/docs/**/*.mdx
+packages/insights/drizzle
+packages/insights/.netlify
+packages/insights/scripts
+packages/insights/**/*.gen.d.ts
+packages/qwik-labs/lib-types
 
 # TODO: Figure out why this doesn't pass in CI
 packages/qwik/src/core/props/props.ts

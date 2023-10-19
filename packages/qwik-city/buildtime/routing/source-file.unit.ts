@@ -1,5 +1,4 @@
-import { test } from 'uvu';
-import { equal } from 'uvu/assert';
+import { assert, test } from 'vitest';
 import { getSourceFile } from './source-file';
 
 [
@@ -211,13 +210,11 @@ import { getSourceFile } from './source-file';
   test(`getSourceFile ${t.fileName}`, () => {
     const s = getSourceFile(t.fileName);
     if (s == null || t.expect == null) {
-      equal(s, t.expect, t.fileName);
+      assert.equal(s, t.expect, t.fileName);
     } else {
-      equal(s.type, t.expect.type, t.fileName);
-      equal(s.extlessName, t.expect.extlessName, t.fileName);
-      equal(s.ext, t.expect.ext, t.fileName);
+      assert.equal(s.type, t.expect.type, t.fileName);
+      assert.equal(s.extlessName, t.expect.extlessName, t.fileName);
+      assert.equal(s.ext, t.expect.ext, t.fileName);
     }
   });
 });
-
-test.run();

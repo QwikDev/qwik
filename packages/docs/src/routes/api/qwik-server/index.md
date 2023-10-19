@@ -15,9 +15,9 @@ export declare function getQwikLoaderScript(opts?: {
 }): string;
 ```
 
-| Parameter | Type                                      | Description  |
-| --------- | ----------------------------------------- | ------------ |
-| opts      | { events?: string\[\]; debug?: boolean; } | _(Optional)_ |
+| Parameter | Type                                    | Description  |
+| --------- | --------------------------------------- | ------------ |
+| opts      | { events?: string[]; debug?: boolean; } | _(Optional)_ |
 
 **Returns:**
 
@@ -90,10 +90,10 @@ export interface PrefetchImplementation
 export interface PrefetchResource
 ```
 
-| Property     | Modifiers | Type                                      | Description |
-| ------------ | --------- | ----------------------------------------- | ----------- |
-| [imports](#) |           | [PrefetchResource](#prefetchresource)\[\] |             |
-| [url](#)     |           | string                                    |             |
+| Property     | Modifiers | Type                                    | Description |
+| ------------ | --------- | --------------------------------------- | ----------- |
+| [imports](#) |           | [PrefetchResource](#prefetchresource)[] |             |
+| [url](#)     |           | string                                  |             |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts)
 
@@ -118,7 +118,7 @@ export interface QwikLoaderOptions
 
 | Property       | Modifiers | Type                          | Description  |
 | -------------- | --------- | ----------------------------- | ------------ |
-| [events?](#)   |           | string\[\]                    | _(Optional)_ |
+| [events?](#)   |           | string[]                      | _(Optional)_ |
 | [include?](#)  |           | 'always' \| 'never' \| 'auto' | _(Optional)_ |
 | [position?](#) |           | 'top' \| 'bottom'             | _(Optional)_ |
 
@@ -149,7 +149,7 @@ export interface RenderOptions extends SerializeDocumentOptions
 | [containerTagName?](#)    |           | string                                                              | _(Optional)_ When set, the app is serialized into a fragment. And the returned html is not a complete document. Defaults to <code>html</code>                                            |
 | [locale?](#)              |           | string \| ((options: [RenderOptions](#renderoptions)) =&gt; string) | _(Optional)_ Language to use when rendering the document.                                                                                                                                |
 | [prefetchStrategy?](#)    |           | [PrefetchStrategy](#prefetchstrategy) \| null                       | _(Optional)_                                                                                                                                                                             |
-| [qwikLoader?](#)          |           | [QwikLoaderOptions](#qwikloaderoptions)                             | _(Optional)_ Specifies if the Qwik Loader script is added to the document or not. Defaults to <code>{ include: true }</code>.                                                            |
+| [qwikLoader?](#)          |           | [QwikLoaderOptions](#qwikloaderoptions)                             | <p>_(Optional)_ Specifies if the Qwik Loader script is added to the document or not.</p><p>Defaults to <code>{ include: true }</code>.</p>                                               |
 | [serverData?](#)          |           | Record&lt;string, any&gt;                                           | _(Optional)_                                                                                                                                                                             |
 | [snapshot?](#)            |           | boolean                                                             | _(Optional)_ Defaults to <code>true</code>                                                                                                                                               |
 
@@ -161,12 +161,12 @@ export interface RenderOptions extends SerializeDocumentOptions
 export interface RenderResult
 ```
 
-| Property               | Modifiers | Type                                      | Description  |
-| ---------------------- | --------- | ----------------------------------------- | ------------ |
-| [isStatic](#)          |           | boolean                                   |              |
-| [manifest?](#)         |           | QwikManifest                              | _(Optional)_ |
-| [prefetchResources](#) |           | [PrefetchResource](#prefetchresource)\[\] |              |
-| [snapshotResult](#)    |           | SnapshotResult \| undefined               |              |
+| Property               | Modifiers | Type                                    | Description  |
+| ---------------------- | --------- | --------------------------------------- | ------------ |
+| [isStatic](#)          |           | boolean                                 |              |
+| [manifest?](#)         |           | QwikManifest                            | _(Optional)_ |
+| [prefetchResources](#) |           | [PrefetchResource](#prefetchresource)[] |              |
+| [snapshotResult](#)    |           | SnapshotResult \| undefined             |              |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts)
 
@@ -174,7 +174,7 @@ export interface RenderResult
 
 ```typescript
 export type RenderToStream = (
-  opts: RenderToStreamOptions
+  opts: RenderToStreamOptions,
 ) => Promise<RenderToStreamResult>;
 ```
 
@@ -186,7 +186,7 @@ export type RenderToStream = (
 
 ```typescript
 export type RenderToStream = (
-  opts: RenderToStreamOptions
+  opts: RenderToStreamOptions,
 ) => Promise<RenderToStreamResult>;
 ```
 
@@ -229,7 +229,7 @@ export interface RenderToStreamResult extends RenderResult
 
 ```typescript
 export type RenderToString = (
-  opts: RenderToStringOptions
+  opts: RenderToStringOptions,
 ) => Promise<RenderToStringResult>;
 ```
 
@@ -241,7 +241,7 @@ export type RenderToString = (
 
 ```typescript
 export type RenderToString = (
-  opts: RenderToStringOptions
+  opts: RenderToStringOptions,
 ) => Promise<RenderToStringResult>;
 ```
 
@@ -278,7 +278,7 @@ export interface RenderToStringResult extends RenderResult
 
 ```typescript
 export declare function resolveManifest(
-  manifest: QwikManifest | ResolvedManifest | undefined
+  manifest: QwikManifest | ResolvedManifest | undefined,
 ): ResolvedManifest | undefined;
 ```
 
@@ -310,7 +310,7 @@ export interface SerializeDocumentOptions
 
 ```typescript
 export declare function setServerPlatform(
-  manifest: QwikManifest | ResolvedManifest | undefined
+  manifest: QwikManifest | ResolvedManifest | undefined,
 ): Promise<void>;
 ```
 
@@ -338,7 +338,7 @@ export interface StreamingOptions
 
 ## SymbolsToPrefetch
 
-auto: Prefetch all possible QRLs used by the document. Default
+Auto: Prefetch all possible QRLs used by the document. Default
 
 ```typescript
 export type SymbolsToPrefetch =

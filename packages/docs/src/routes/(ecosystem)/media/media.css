@@ -34,15 +34,17 @@
   grid-gap: 30px;
 }
 
-.media li img {
+.media li .thumbnail {
   display: inline-block;
   aspect-ratio: 16/9;
   object-fit: cover;
   margin: 0 0 10px 0;
   border-radius: 5px;
+  width: 100%;
   overflow: hidden;
   border: 1px solid black;
   box-shadow: var(--qwik-purple) 2px 2px 2px 0px;
+  transition: ease-in-out 250ms;
 }
 
 .media li a {
@@ -55,9 +57,10 @@
   color: var(--qwik-purple);
 }
 
-.media li a:hover img {
+.media li a:hover .thumbnail {
   opacity: 0.9;
-  box-shadow: var(--media-video-shadow-color) 2px 2px 2px 0px;
+  border: 2.5px solid var(--media-video-shadow-color);
+  box-shadow: none;
 }
 
 .media .edit-page {
@@ -86,4 +89,16 @@
 .media .bullets {
   margin: 20px 0 20px 30px;
   list-style: square;
+}
+
+.icon {
+  @apply rounded-full aspect-square w-9 h-9 flex-none;
+}
+
+.info {
+  @apply absolute bottom-4 right-2;
+}
+
+.info-bg {
+  @apply uppercase text-white bg-black bg-opacity-40 backdrop-blur-md px-1 rounded-md;
 }

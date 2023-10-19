@@ -1,12 +1,13 @@
 export class ErrorResponse extends Error {
-  constructor(public status: number, message?: string) {
+  constructor(
+    public status: number,
+    message?: string
+  ) {
     super(message);
   }
 }
 
-/**
- * @public
- */
+/** @public */
 export function getErrorHtml(status: number, e: any) {
   let message = 'Server Error';
 

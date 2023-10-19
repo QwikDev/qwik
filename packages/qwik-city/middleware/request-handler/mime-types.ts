@@ -1,6 +1,4 @@
-/**
- * Common mime types mapped to Content-Type headers
- */
+/** Common mime types mapped to Content-Type headers */
 export const MIME_TYPES: { [ext: string]: string } = {
   '3gp': 'video/3gpp',
   '3gpp': 'video/3gpp',

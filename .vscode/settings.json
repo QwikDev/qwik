@@ -1,0 +1,10 @@
+{
+  "vitest.include": ["**/*.unit.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
+  "vitest.exclude": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/dist-dev/**",
+    "**/cypress/**",
+    "**/.{idea,git,cache,output,temp}/**"
+  ]
+}

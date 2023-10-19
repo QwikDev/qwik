@@ -251,6 +251,7 @@ export function generateManifestFromBundles(
   opts: NormalizedQwikPluginOptions
 ) {
   const manifest: QwikManifest = {
+    manifestHash: '',
     symbols: {},
     mapping: {},
     bundles: {},
@@ -259,7 +260,6 @@ export function generateManifestFromBundles(
     options: {
       target: opts.target,
       buildMode: opts.buildMode,
-      forceFullBuild: opts.forceFullBuild,
       entryStrategy: opts.entryStrategy,
     },
   };
@@ -286,6 +286,7 @@ export function generateManifestFromBundles(
         ctxName: hook.ctxName,
         captures: hook.captures,
         parent: hook.parent,
+        loc: hook.loc,
       };
 
       addBundleToManifest(path, manifest, outputBundle, bundleFileName);

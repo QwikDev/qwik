@@ -23,28 +23,35 @@ export interface StyleAppend {
 }
 
 export interface RenderInvokeContext extends InvokeContext {
-  $url$: URL;
-  $seq$: number;
+  $renderCtx$: RenderContext;
+  /** The parent document */
   $doc$: Document;
+  // The below are just always-defined attributes of InvokeContext.
   $hostElement$: QwikElement;
-  $element$: Element;
   $event$: any;
-  $qrl$: QRL<any>;
   $waitOn$: Promise<any>[];
   $subscriber$: Subscriber | null;
-  $renderCtx$: RenderContext;
 }
 
 export type InvokeTuple = [Element, Event, URL?];
 
+/** The shared state during an invoke() call */
 export interface InvokeContext {
+  /* The URL of the QRL */
   $url$: URL | undefined;
-  $seq$: number;
+  /** The next available index for the sequentialScope array */
+  $i$: number;
+  /** The Virtual parent component for the current component code */
   $hostElement$: QwikElement | undefined;
+  /** The current DOM element */
   $element$: Element | undefined;
+  /** The event we're currently handling */
   $event$: any | undefined;
+  /** The QRL function we're currently executing */
   $qrl$: QRL<any> | undefined;
+  /** Promises that need awaiting before the current invocation is done */
   $waitOn$: Promise<any>[] | undefined;
+  /** The current subscriber for registering signal reads */
   $subscriber$: Subscriber | null | undefined;
   $renderCtx$: RenderContext | undefined;
   $locale$: string | undefined;
@@ -52,9 +59,7 @@ export interface InvokeContext {
 
 let _context: InvokeContext | undefined;
 
-/**
- * @public
- */
+/** @public */
 export const tryGetInvokeContext = (): InvokeContext | undefined => {
   if (!_context) {
     const context = typeof document !== 'undefined' && document && document.__q_context__;
@@ -146,16 +151,16 @@ export const newInvokeContext = (
   url?: URL
 ): InvokeContext => {
   const ctx: InvokeContext = {
-    $seq$: 0,
+    $url$: url,
+    $i$: 0,
     $hostElement$: hostElement,
     $element$: element,
     $event$: event,
-    $url$: url,
-    $locale$: locale,
     $qrl$: undefined,
-    $renderCtx$: undefined,
-    $subscriber$: undefined,
     $waitOn$: undefined,
+    $subscriber$: undefined,
+    $renderCtx$: undefined,
+    $locale$: locale,
   };
   seal(ctx);
   return ctx;
@@ -165,9 +170,7 @@ export const getWrappingContainer = (el: QwikElement): Element | null => {
   return el.closest(QContainerSelector);
 };
 
-/**
- * @public
- */
+/** @public */
 export const untrack = <T>(fn: () => T): T => {
   return invoke(undefined, fn);
 };
@@ -179,17 +182,13 @@ const trackInvocation = /*#__PURE__*/ newInvokeContext(
   RenderEvent
 );
 
-/**
- * @public
- */
+/** @public */
 export const trackSignal = <T>(signal: Signal, sub: Subscriber): T => {
   trackInvocation.$subscriber$ = sub;
   return invoke(trackInvocation, () => signal.value);
 };
 
-/**
- * @internal
- */
+/** @internal */
 export const _getContextElement = (): unknown => {
   const iCtx = tryGetInvokeContext();
   if (iCtx) {
@@ -199,9 +198,7 @@ export const _getContextElement = (): unknown => {
   }
 };
 
-/**
- * @internal
- */
+/** @internal */
 export const _getContextEvent = (): unknown => {
   const iCtx = tryGetInvokeContext();
   if (iCtx) {
@@ -209,9 +206,7 @@ export const _getContextEvent = (): unknown => {
   }
 };
 
-/**
- * @internal
- */
+/** @internal */
 export const _jsxBranch = (input?: any) => {
   const iCtx = tryGetInvokeContext();
   if (iCtx && iCtx.$hostElement$ && iCtx.$renderCtx$) {
@@ -222,9 +217,7 @@ export const _jsxBranch = (input?: any) => {
   return input;
 };
 
-/**
- * @internal
- */
+/** @internal */
 export const _waitUntilRendered = (elm: Element) => {
   const containerEl = getWrappingContainer(elm);
   if (!containerEl) {

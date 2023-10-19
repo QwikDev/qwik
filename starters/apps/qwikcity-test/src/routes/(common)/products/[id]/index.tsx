@@ -1,10 +1,15 @@
-import { component$, useStore } from '@builder.io/qwik';
-import { Link, useLocation, type DocumentHead, routeLoader$ } from '@builder.io/qwik-city';
-import os from 'node:os';
+import { component$, useStore } from "@builder.io/qwik";
+import {
+  Link,
+  useLocation,
+  type DocumentHead,
+  routeLoader$,
+} from "@builder.io/qwik-city";
+import os from "node:os";
 
 export default component$(() => {
   const { params, url } = useLocation();
-  const store = useStore({ productFetchData: '' });
+  const store = useStore({ productFetchData: "" });
 
   const product = useProductLoader();
 
@@ -27,7 +32,7 @@ export default component$(() => {
           onClick$={async () => {
             const rsp = await fetch(url.pathname, {
               headers: {
-                accept: 'application/json',
+                accept: "application/json",
               },
             });
             store.productFetchData = JSON.stringify(await rsp.json(), null, 2);
@@ -45,7 +50,10 @@ export default component$(() => {
 
       <ul>
         <li>
-          <Link href="/qwikcity-test/products/jacket/" data-test-link="products-jacket">
+          <Link
+            href="/qwikcity-test/products/jacket/"
+            data-test-link="products-jacket"
+          >
             Jacket
           </Link>
         </li>
@@ -53,23 +61,35 @@ export default component$(() => {
           <Link href="/qwikcity-test/products/hat/">Hat</Link>
         </li>
         <li>
-          <Link href="/qwikcity-test/products/shirt/" data-test-link="products-shirt">
+          <Link
+            href="/qwikcity-test/products/shirt/"
+            data-test-link="products-shirt"
+          >
             T-Shirt (Redirect to /products/tshirt)
           </Link>
         </li>
         <li>
-          <Link href="/qwikcity-test/products/hoodie/" data-test-link="products-hoodie">
+          <Link
+            href="/qwikcity-test/products/hoodie/"
+            data-test-link="products-hoodie"
+          >
             Hoodie (404 Not Found)
           </Link>
         </li>
         <li>
-          <a href="/qwikcity-test/products/hat/?json=true" data-test-link="products-hat-json">
+          <a
+            href="/qwikcity-test/products/hat/?json=true"
+            data-test-link="products-hat-json"
+          >
             Hat (200 json)
           </a>
         </li>
 
         <li>
-          <a href="/qwikcity-test/products/error" data-test-link="products-error">
+          <a
+            href="/qwikcity-test/products/error"
+            data-test-link="products-error"
+          >
             Error
           </a>
         </li>
@@ -86,9 +106,9 @@ export const head: DocumentHead = ({ params }) => {
 
 // Our pretty awesome database of prices
 export const PRODUCT_DB: Record<string, string> = {
-  hat: '$21.96',
-  jacket: '$48.96',
-  tshirt: '$18.96',
+  hat: "$21.96",
+  jacket: "$48.96",
+  tshirt: "$18.96",
 };
 
 export const useProductLoader = routeLoader$(
@@ -99,17 +119,17 @@ export const useProductLoader = routeLoader$(
     // requires the "accept: application/json" request header.
 
     const id = params.id;
-    if (query.has('querystring-test')) {
-      throw redirect(301, '/qwikcity-test/');
+    if (query.has("querystring-test")) {
+      throw redirect(301, "/qwikcity-test/");
     }
 
-    if (id === 'shirt') {
+    if (id === "shirt") {
       // Redirect, which will skip any rendering and the server will immediately redirect
-      throw redirect(301, '/qwikcity-test/products/tshirt/');
+      throw redirect(301, "/qwikcity-test/products/tshirt/");
     }
 
-    if (id === 'error') {
-      throw error(500, 'Error from server');
+    if (id === "error") {
+      throw error(500, "Error from server");
     }
 
     const productPrice = PRODUCT_DB[id];
@@ -119,12 +139,12 @@ export const useProductLoader = routeLoader$(
       // and the component will decide how to render it
       status(404);
       // never cache
-      headers.set('Cache-Control', 'no-cache, no-store, no-fun');
+      headers.set("Cache-Control", "no-cache, no-store, no-fun");
       return null;
     }
 
     // cache for a super long time of 15 seconds
-    headers.set('Cache-Control', 'max-age=15');
+    headers.set("Cache-Control", "max-age=15");
 
     await new Promise<void>((resolve) => setTimeout(resolve, 200));
 
@@ -134,13 +154,13 @@ export const useProductLoader = routeLoader$(
       // and in the component$() it can be access with useEndpoint()
       productId: id,
       price: productPrice,
-      description: `Node ${process.versions.node} ${os.platform()} ${os.arch()} ${
-        os.cpus()[0].model
-      }`,
+      description: `Node ${
+        process.versions.node
+      } ${os.platform()} ${os.arch()} ${os.cpus()[0].model}`,
     };
-    if (query.get('json') === 'true') {
+    if (query.get("json") === "true") {
       json(200, data);
     }
     return data;
-  }
+  },
 );

@@ -1,0 +1,23 @@
+{
+  "description": "Use Orama in your Qwik app",
+  "__qwik__": {
+    "displayName": "Integration: Orama (full-text search engine)",
+    "priority": -10,
+    "viteConfig": {},
+    "docs": [
+      "https://docs.oramasearch.com/"
+    ],
+    "nextSteps": {
+      "title": "Next Steps",
+      "lines": [
+        " - /src/routes/orama: New public route showcasing Orama integration",
+        "",
+        " Check out the Orama docs for more info:",
+        "   - https://docs.oramasearch.com/"
+      ]
+    }
+  },
+  "devDependencies": {
+    "@orama/orama": "^1.2.11"
+  }
+}

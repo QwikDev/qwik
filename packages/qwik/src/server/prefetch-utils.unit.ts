@@ -1,19 +1,16 @@
-import { suite } from 'uvu';
-import { equal } from 'uvu/assert';
+import { assert, test } from 'vitest';
 import { flattenPrefetchResources } from './prefetch-utils';
 
-const prefetch = suite('prefetch implementation');
-
-prefetch('flattenPrefetchResources, no imports', () => {
+test('flattenPrefetchResources, no imports', () => {
   const p = [
     { url: 'a.js', imports: [] },
     { url: 'b.js', imports: [] },
     { url: 'c.js', imports: [] },
   ];
-  equal(flattenPrefetchResources(p), ['a.js', 'b.js', 'c.js']);
+  assert.deepEqual(flattenPrefetchResources(p), ['a.js', 'b.js', 'c.js']);
 });
 
-prefetch('flattenPrefetchResources, w/ imports', () => {
+test('flattenPrefetchResources, w/ imports', () => {
   const p = [
     {
       url: 'a.js',
@@ -36,7 +33,5 @@ prefetch('flattenPrefetchResources, w/ imports', () => {
       ],
     },
   ];
-  equal(flattenPrefetchResources(p), ['a.js', 'x.js', 'y.js', 'b.js', 'c.js', 'z.js']);
+  assert.deepEqual(flattenPrefetchResources(p), ['a.js', 'x.js', 'y.js', 'b.js', 'c.js', 'z.js']);
 });
-
-prefetch.run();

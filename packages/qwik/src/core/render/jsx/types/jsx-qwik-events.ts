@@ -4,7 +4,7 @@ export interface SyntheticEvent<T = Element, E = Event>
   extends BaseSyntheticEvent<E, EventTarget & T, EventTarget> {}
 
 interface BaseSyntheticEvent<E = object, C = any, T = any> {
-  nativeEvent: E;
+  nativeEvent: E | undefined;
   target: T;
   bubbles: boolean;
   cancelable: boolean;
@@ -42,40 +42,30 @@ export type NativeUIEvent = UIEvent;
 /** @public */
 export type NativeWheelEvent = WheelEvent;
 
-/**
- * @public
- */
+/** @public */
 export interface QwikAnimationEvent<T = Element> extends SyntheticEvent<T, NativeAnimationEvent> {
   animationName: string;
   elapsedTime: number;
   pseudoElement: string;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface QwikClipboardEvent<T = Element> extends SyntheticEvent<T, NativeClipboardEvent> {
   clipboardData: DataTransfer;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface QwikCompositionEvent<T = Element>
   extends SyntheticEvent<T, NativeCompositionEvent> {
   data: string;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface QwikDragEvent<T = Element> extends QwikMouseEvent<T, NativeDragEvent> {
   dataTransfer: DataTransfer;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface QwikPointerEvent<T = Element> extends QwikMouseEvent<T, NativePointerEvent> {
   pointerId: number;
   pressure: number;
@@ -87,46 +77,39 @@ export interface QwikPointerEvent<T = Element> extends QwikMouseEvent<T, NativeP
   isPrimary: boolean;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface QwikFocusEvent<T = Element> extends SyntheticEvent<T, NativeFocusEvent> {
   relatedTarget: EventTarget | null;
   target: EventTarget & T;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface QwikSubmitEvent<T = Element> extends SyntheticEvent<T> {}
 
-/**
- * @public
- */
+/** @public */
 export interface QwikInvalidEvent<T = Element> extends SyntheticEvent<T> {
   target: EventTarget & T;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface QwikChangeEvent<T = Element> extends SyntheticEvent<T> {
   target: EventTarget & T;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface QwikKeyboardEvent<T = Element> extends SyntheticEvent<T, NativeKeyboardEvent> {
+  isComposing: boolean;
   altKey: boolean;
   charCode: number;
   ctrlKey: boolean;
   /**
-   * See [DOM Level 3 Events spec](https://www.w3.org/TR/uievents-key/#keys-modifier). for a list of valid (case-sensitive) arguments to this method.
+   * See [DOM Level 3 Events spec](https://www.w3.org/TR/uievents-key/#keys-modifier). for a list of
+   * valid (case-sensitive) arguments to this method.
    */
   getModifierState(key: string): boolean;
   /**
-   * See the [DOM Level 3 Events spec](https://www.w3.org/TR/uievents-key/#named-key-attribute-values). for possible values
+   * See the [DOM Level 3 Events
+   * spec](https://www.w3.org/TR/uievents-key/#named-key-attribute-values). for possible values
    */
   key: string;
   keyCode: number;
@@ -138,9 +121,7 @@ export interface QwikKeyboardEvent<T = Element> extends SyntheticEvent<T, Native
   which: number;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface QwikMouseEvent<T = Element, E = NativeMouseEvent> extends SyntheticEvent<T, E> {
   altKey: boolean;
   button: number;
@@ -149,7 +130,8 @@ export interface QwikMouseEvent<T = Element, E = NativeMouseEvent> extends Synth
   clientY: number;
   ctrlKey: boolean;
   /**
-   * See [DOM Level 3 Events spec](https://www.w3.org/TR/uievents-key/#keys-modifier). for a list of valid (case-sensitive) arguments to this method.
+   * See [DOM Level 3 Events spec](https://www.w3.org/TR/uievents-key/#keys-modifier). for a list of
+   * valid (case-sensitive) arguments to this method.
    */
   getModifierState(key: string): boolean;
   metaKey: boolean;
@@ -165,15 +147,14 @@ export interface QwikMouseEvent<T = Element, E = NativeMouseEvent> extends Synth
   y: number;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface QwikTouchEvent<T = Element> extends SyntheticEvent<T, NativeTouchEvent> {
   altKey: boolean;
   changedTouches: TouchList;
   ctrlKey: boolean;
   /**
-   * See [DOM Level 3 Events spec](https://www.w3.org/TR/uievents-key/#keys-modifier). for a list of valid (case-sensitive) arguments to this method.
+   * See [DOM Level 3 Events spec](https://www.w3.org/TR/uievents-key/#keys-modifier). for a list of
+   * valid (case-sensitive) arguments to this method.
    */
   getModifierState(key: string): boolean;
   metaKey: boolean;
@@ -182,17 +163,13 @@ export interface QwikTouchEvent<T = Element> extends SyntheticEvent<T, NativeTou
   touches: TouchList;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface QwikUIEvent<T = Element> extends SyntheticEvent<T, NativeUIEvent> {
   detail: number;
   view: AbstractView;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface QwikWheelEvent<T = Element> extends QwikMouseEvent<T, NativeWheelEvent> {
   deltaMode: number;
   deltaX: number;
@@ -200,9 +177,7 @@ export interface QwikWheelEvent<T = Element> extends QwikMouseEvent<T, NativeWhe
   deltaZ: number;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface QwikTransitionEvent<T = Element> extends SyntheticEvent<T, NativeTransitionEvent> {
   elapsedTime: number;
   propertyName: string;
@@ -216,21 +191,19 @@ interface AbstractView {
 
 // Utility types for supporting autocompletion in union types
 
-/**
- * Matches any primitive value.
- */
+/** Matches any primitive value. */
 export type Primitive = null | undefined | string | number | boolean | symbol | bigint;
 
 /**
- * Allows creating a union type by combining primitive types and literal types
- * without sacrificing auto-completion in IDEs for the literal type part of the union.
+ * Allows creating a union type by combining primitive types and literal types without sacrificing
+ * auto-completion in IDEs for the literal type part of the union.
  *
- * This type is a workaround for Microsoft/TypeScript#29729.
- * It will be removed as soon as it's not needed anymore.
+ * This type is a workaround for Microsoft/TypeScript#29729. It will be removed as soon as it's not
+ * needed anymore.
  *
  * Example:
  *
- * ```
+ * ```ts
  * // Before
  * type Pet = 'dog' | 'cat' | string;
  *
@@ -250,8 +223,8 @@ export type LiteralUnion<LiteralType, BaseType extends Primitive> =
   | (BaseType & Record<never, never>);
 
 /**
- * The PascalCaseEventLiteralType combines the QwikKeysEvents type and string type
- * using the LiteralUnion utility type, allowing autocompletion for event names while
- * retaining support for custom event names as strings.
+ * The PascalCaseEventLiteralType combines the QwikKeysEvents type and string type using the
+ * LiteralUnion utility type, allowing autocompletion for event names while retaining support for
+ * custom event names as strings.
  */
 export type PascalCaseEventLiteralType = LiteralUnion<QwikKeysEvents, string>;

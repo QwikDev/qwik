@@ -1,5 +1,5 @@
 import type { OnRenderFn } from '../component/component.public';
-import { destroyWatch, type SubscriberEffect } from '../use/use-task';
+import { destroyTask, type SubscriberEffect } from '../use/use-task';
 import type { QRLInternal } from '../qrl/qrl-class';
 import type { QRL } from '../qrl/qrl.public';
 import type { StyleAppend } from '../use/use-core';
@@ -11,12 +11,10 @@ import { getDomListeners, type Listener } from './listeners';
 import { seal } from '../util/qdev';
 import { directGetAttribute } from '../render/fast-calls';
 import { isElement } from '../../testing/html';
-import { assertQwikElement, assertTrue } from '../error/assert';
+import { assertQwikElement } from '../error/assert';
 import { QScopedStyle } from '../util/markers';
 import { createPropsState, createProxy, setObjectFlags } from './store';
-import { _IMMUTABLE, _IMMUTABLE_PREFIX, QObjectImmutable } from './constants';
-
-export const Q_CTX = '_qc_';
+import { _IMMUTABLE, _IMMUTABLE_PREFIX, Q_CTX, QObjectImmutable } from './constants';
 
 export interface QContextEvents {
   [eventName: string]: QRL | undefined;
@@ -28,24 +26,31 @@ export const HOST_FLAG_MOUNTED = 1 << 2;
 export const HOST_FLAG_DYNAMIC = 1 << 3;
 export const HOST_REMOVED = 1 << 4;
 
+/** Qwik Context of an element. */
 export interface QContext {
+  /** VDOM element. */
   $element$: QwikElement;
   $refMap$: any[];
   $flags$: number;
+  /** QId, for referenced components */
   $id$: string;
+  /** Proxy for the component props */
   $props$: Record<string, any> | null;
+  /** The QRL if this is `component$`-wrapped component. */
   $componentQrl$: QRLInternal<OnRenderFn<any>> | null;
   li: Listener[];
+  /** Sequential data store for hooks, managed by useSequentialScope. */
   $seq$: any[] | null;
-  $watches$: SubscriberEffect[] | null;
+  $tasks$: SubscriberEffect[] | null;
+  /** The public contexts defined on this (always Virtual) component, managed by useContextProvider. */
   $contexts$: Map<string, any> | null;
   $appendStyles$: StyleAppend[] | null;
   $scopeIds$: string[] | null;
   $vdom$: ProcessedJSXNode | null;
   $slots$: ProcessedJSXNode[] | null;
   $dynamicSlots$: QContext[] | null;
-  $parent$: QContext | null;
-  $slotParent$: QContext | null;
+  /** The Qwik Context of a parent component that has a useContextProvider, null if no parent */
+  $parentCtx$: QContext | null | undefined;
 }
 
 export const tryGetContext = (element: QwikElement): QContext | undefined => {
@@ -68,7 +73,6 @@ export const getContext = (el: QwikElement, containerState: ContainerState): QCo
       if (isElement(el)) {
         const refMap = refs[elementID];
         if (refMap) {
-          assertTrue(isElement(el), 'el must be an actual DOM element');
           elCtx.$refMap$ = refMap.split(' ').map(getObject);
           elCtx.li = getDomListeners(elCtx, containerState.$containerEl$);
         }
@@ -81,12 +85,12 @@ export const getContext = (el: QwikElement, containerState: ContainerState): QCo
           const seq = ctxMeta.s;
           const host = ctxMeta.h;
           const contexts = ctxMeta.c;
-          const watches = ctxMeta.w;
+          const tasks = ctxMeta.w;
           if (seq) {
             elCtx.$seq$ = seq.split(' ').map(getObject);
           }
-          if (watches) {
-            elCtx.$watches$ = watches.split(' ').map(getObject);
+          if (tasks) {
+            elCtx.$tasks$ = tasks.split(' ').map(getObject);
           }
           if (contexts) {
             elCtx.$contexts$ = new Map();
@@ -138,7 +142,7 @@ export const createContext = (element: Element | VirtualElement): QContext => {
     $element$: element,
     $refMap$: [],
     li: [],
-    $watches$: null,
+    $tasks$: null,
     $seq$: null,
     $slots$: null,
     $scopeIds$: null,
@@ -148,20 +152,19 @@ export const createContext = (element: Element | VirtualElement): QContext => {
     $componentQrl$: null,
     $contexts$: null,
     $dynamicSlots$: null,
-    $parent$: null,
-    $slotParent$: null,
-  };
+    $parentCtx$: undefined,
+  } as QContext;
   seal(ctx);
   (element as any)[Q_CTX] = ctx;
   return ctx;
 };
 
 export const cleanupContext = (elCtx: QContext, subsManager: SubscriptionManager) => {
-  elCtx.$watches$?.forEach((watch) => {
-    subsManager.$clearSub$(watch);
-    destroyWatch(watch);
+  elCtx.$tasks$?.forEach((task) => {
+    subsManager.$clearSub$(task);
+    destroyTask(task);
   });
   elCtx.$componentQrl$ = null;
   elCtx.$seq$ = null;
-  elCtx.$watches$ = null;
+  elCtx.$tasks$ = null;
 };

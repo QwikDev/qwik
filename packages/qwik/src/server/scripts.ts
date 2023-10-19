@@ -4,8 +4,9 @@ const QWIK_LOADER_OPTIMIZE_MINIFIED: string = (globalThis as any).QWIK_LOADER_OP
 const QWIK_LOADER_OPTIMIZE_DEBUG: string = (globalThis as any).QWIK_LOADER_OPTIMIZE_DEBUG;
 
 /**
- * Provides the qwikloader.js file as a string. Useful for tooling to inline the qwikloader
- * script into HTML.
+ * Provides the qwikloader.js file as a string. Useful for tooling to inline the qwikloader script
+ * into HTML.
+ *
  * @public
  */
 export function getQwikLoaderScript(opts: { events?: string[]; debug?: boolean } = {}) {

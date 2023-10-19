@@ -19,9 +19,7 @@ import {
 } from './plugin';
 import { versions } from '../versions';
 
-/**
- * @public
- */
+/** @public */
 export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
   const qwikPlugin = createPlugin(qwikRollupOpts.optimizerOptions);
 
@@ -44,10 +42,10 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
       };
 
       const pluginOpts: QwikPluginOptions = {
+        csr: qwikRollupOpts.csr,
         target: qwikRollupOpts.target,
         buildMode: qwikRollupOpts.buildMode,
         debug: qwikRollupOpts.debug,
-        forceFullBuild: qwikRollupOpts.forceFullBuild ?? true,
         entryStrategy: qwikRollupOpts.entryStrategy,
         rootDir: qwikRollupOpts.rootDir,
         srcDir: qwikRollupOpts.srcDir,
@@ -57,6 +55,7 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
         manifestOutput: qwikRollupOpts.manifestOutput,
         manifestInput: qwikRollupOpts.manifestInput,
         transformedModuleOutput: qwikRollupOpts.transformedModuleOutput,
+        inlineStylesUpToBytes: qwikRollupOpts.optimizerOptions?.inlineStylesUpToBytes,
       };
 
       const opts = qwikPlugin.normalizeOptions(pluginOpts);
@@ -173,23 +172,16 @@ export function normalizeRollupOutputOptions(
   if (rollupOutputOpts && !Array.isArray(rollupOutputOpts)) {
     Object.assign(outputOpts, rollupOutputOpts);
   }
-  if (opts.target === 'ssr') {
-    // ssr output
-    if (opts.buildMode === 'production') {
-      if (!outputOpts.assetFileNames) {
-        outputOpts.assetFileNames = 'build/q-[hash].[ext]';
-      }
-    }
-  } else if (opts.target === 'client') {
+  if (!outputOpts.assetFileNames) {
+    outputOpts.assetFileNames = 'build/q-[hash].[ext]';
+  }
+  if (opts.target === 'client') {
     // client output
 
     if (opts.buildMode === 'production') {
       // client production output
       if (!outputOpts.entryFileNames) {
         outputOpts.entryFileNames = 'build/q-[hash].js';
-      }
-      if (!outputOpts.assetFileNames) {
-        outputOpts.assetFileNames = 'build/q-[hash].[ext]';
       }
       if (!outputOpts.chunkFileNames) {
         outputOpts.chunkFileNames = 'build/q-[hash].js';
@@ -198,9 +190,6 @@ export function normalizeRollupOutputOptions(
       // client development output
       if (!outputOpts.entryFileNames) {
         outputOpts.entryFileNames = 'build/[name].js';
-      }
-      if (!outputOpts.assetFileNames) {
-        outputOpts.assetFileNames = 'build/[name].[ext]';
       }
       if (!outputOpts.chunkFileNames) {
         outputOpts.chunkFileNames = 'build/[name].js';
@@ -238,68 +227,72 @@ export function createRollupError(id: string, diagnostic: Diagnostic) {
   return err;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface QwikRollupPluginOptions {
+  csr?: boolean;
   /**
    * Build `production` or `development`.
+   *
    * Default `development`
    */
   buildMode?: QwikBuildMode;
   /**
    * Target `client` or `ssr`.
+   *
    * Default `client`
    */
   target?: QwikBuildTarget;
   /**
    * Prints verbose Qwik plugin debug logs.
+   *
    * Default `false`
    */
   debug?: boolean;
   /**
-   * The Qwik entry strategy to use while building for production.
-   * During development the type is always `hook`.
+   * The Qwik entry strategy to use while building for production. During development the type is
+   * always `hook`.
+   *
    * Default `{ type: "smart" }`)
    */
   entryStrategy?: EntryStrategy;
-  forceFullBuild?: boolean;
   /**
-   * The source directory to find all the Qwik components. Since Qwik
-   * does not have a single input, the `srcDir` is used to recursively
-   * find Qwik files.
+   * The source directory to find all the Qwik components. Since Qwik does not have a single input,
+   * the `srcDir` is used to recursively find Qwik files.
+   *
    * Default `src`
    */
   srcDir?: string;
   /**
-   * Alternative to `srcDir`, where `srcInputs` is able to provide the
-   * files manually. This option is useful for an environment without
-   * a file system, such as a webworker.
+   * Alternative to `srcDir`, where `srcInputs` is able to provide the files manually. This option
+   * is useful for an environment without a file system, such as a webworker.
+   *
    * Default: `null`
    */
   srcInputs?: TransformModuleInput[] | null;
   /**
-   * The root of the application, which is commonly the same
-   * directory as `package.json` and `rollup.config.js`.
+   * The root of the application, which is commonly the same directory as `package.json` and
+   * `rollup.config.js`.
+   *
    * Default `process.cwd()`
    */
   rootDir?: string;
   /**
-   * The client build will create a manifest and this hook
-   * is called with the generated build data.
+   * The client build will create a manifest and this hook is called with the generated build data.
+   *
    * Default `undefined`
    */
   manifestOutput?: (manifest: QwikManifest) => Promise<void> | void;
   /**
-   * The SSR build requires the manifest generated during the client build.
-   * The `manifestInput` option can be used to manually provide a manifest.
+   * The SSR build requires the manifest generated during the client build. The `manifestInput`
+   * option can be used to manually provide a manifest.
+   *
    * Default `undefined`
    */
   manifestInput?: QwikManifest;
   optimizerOptions?: OptimizerOptions;
   /**
-   * Hook that's called after the build and provides all of the transformed
-   * modules that were used before bundling.
+   * Hook that's called after the build and provides all of the transformed modules that were used
+   * before bundling.
    */
   transformedModuleOutput?:
     | ((transformedModules: TransformModule[]) => Promise<void> | void)

@@ -87,7 +87,19 @@ export function normalizePathSlash(path: string) {
   return path;
 }
 
-export function createFileId(routesDir: string, fsPath: string) {
+/**
+ * Creates an id for the module, based on its path.
+ *
+ * @param routesDir
+ * @param fsPath
+ * @param explicitFileType Add to avoid collisions between different types of modules. `Menu` and
+ *   `Layout` files are named based on their path (eg. /routes/about/menu.md => AboutMenu)
+ */
+export function createFileId(
+  routesDir: string,
+  fsPath: string,
+  explicitFileType?: 'Route' | 'Plugin' | 'ServiceWorker'
+) {
   const ids: string[] = [];
 
   for (let i = 0; i < 25; i++) {
@@ -112,7 +124,10 @@ export function createFileId(routesDir: string, fsPath: string) {
     ids.shift();
   }
 
-  return ids.reverse().join('');
+  return ids
+    .reverse()
+    .join('')
+    .concat(explicitFileType || '');
 }
 
 const PAGE_MODULE_EXTS: { [type: string]: boolean } = {
@@ -143,19 +158,19 @@ export function isLayoutModule(extlessName: string) {
 }
 
 export function isPageModuleExt(ext: string) {
-  return !!PAGE_MODULE_EXTS[ext];
+  return ext in PAGE_MODULE_EXTS;
 }
 
 export function isModuleExt(ext: string) {
-  return !!MODULE_EXTS[ext];
+  return ext in MODULE_EXTS;
 }
 
 export function isMarkdownExt(ext: string) {
-  return !!MARKDOWN_EXTS[ext];
+  return ext in MARKDOWN_EXTS;
 }
 
 export function isPageExt(ext: string) {
-  return !!PAGE_MODULE_EXTS[ext] || !!MARKDOWN_EXTS[ext];
+  return ext in PAGE_MODULE_EXTS || ext in MARKDOWN_EXTS;
 }
 
 export function isMenuFileName(fileName: string) {

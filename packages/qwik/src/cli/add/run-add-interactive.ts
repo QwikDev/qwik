@@ -1,14 +1,15 @@
+import type { IntegrationData, UpdateAppResult } from '../types';
+import { bgBlue, bgMagenta, blue, bold, cyan, magenta } from 'kleur/colors';
+import { bye, getPackageManager, note, panic, printHeader } from '../utils/utils';
+import { intro, isCancel, log, outro, select, spinner } from '@clack/prompts';
+import { loadIntegrations, sortIntegrationsAndReturnAsClackOptions } from '../utils/integrations';
+
 /* eslint-disable no-console */
 import type { AppCommand } from '../utils/app-command';
-import { loadIntegrations, sortIntegrationsAndReturnAsClackOptions } from '../utils/integrations';
-import { bgBlue, bold, magenta, cyan, bgMagenta, green } from 'kleur/colors';
-import { bye, getPackageManager, panic, printHeader, note } from '../utils/utils';
-import { updateApp } from './update-app';
-import type { IntegrationData, UpdateAppResult } from '../types';
-import { relative } from 'node:path';
 import { logNextStep } from '../utils/log';
+import { relative } from 'node:path';
 import { runInPkg } from '../utils/install-deps';
-import { intro, isCancel, select, log, spinner, outro } from '@clack/prompts';
+import { updateApp } from './update-app';
 
 export async function runAddInteractive(app: AppCommand, id: string | undefined) {
   const pkgManager = getPackageManager();
@@ -167,9 +168,9 @@ async function logUpdateAppResult(pkgManager: string, result: UpdateAppResult) {
 
 function logUpdateAppCommitResult(result: UpdateAppResult, pkgManager: string) {
   if (result.updates.installedScripts.length > 0) {
-    const prefix = pkgManager === 'npm' ? 'npm run' : pkgManager;
+    const prefix = pkgManager === 'npm' || pkgManager === 'bun' ? `${pkgManager} run` : pkgManager;
     const message = result.updates.installedScripts
-      .map((script) => `   - ${prefix} ${green(script)}`)
+      .map((script) => `- ${prefix} ${blue(script)}`)
       .join('\n');
     note(message, 'New scripts added');
   }

@@ -1,5 +1,5 @@
 ---
-title: Events
+title: Tasks and Lifecycle | Components
 contributors:
   - mhevery
   - manucorporat
@@ -8,6 +8,7 @@ contributors:
   - the-r3aper7
   - sreeisalso
   - brunocrosier
+  - harishkrishnan24
 ---
 
 import CodeSandbox from '../../../../../components/code-sandbox/index.tsx';
@@ -34,7 +35,7 @@ Tasks can also be used to perform work when a component state changes. In this c
 
 Sometimes a task needs to run only on the browser and after rendering, in that case, you should use [`useVisibleTask$()`](#usevisibletask).
 
-Sometimes a task should fetch data asynchronously and produce a signal (and not block rendering), in that case, you should use [`useResource$()`](#useresource).
+Sometimes a task should fetch data asynchronously and produce a signal (and not block rendering), in that case, you should use [`useResource$()`](/docs/components/state/#useresource).
 
 ## Lifecycle
 
@@ -62,7 +63,7 @@ Thanks to [Resumability](/docs/(qwik)/concepts/resumable/index.mdx), component l
 
 **BROWSER**: Sometimes a component will be first mounted/rendered in the browser, for example when the user SPA navigates to a new page, or a "modal" component first appears in the page. In that case, the lifecycle will run like this:
 
-```bash /useTask$/#d /RENDER/#b /useVisibleTask$/#c
+```bash
   useTask$ --> RENDER --> useVisibleTask$
 
 | -------------- BROWSER --------------- |
@@ -82,7 +83,7 @@ Additionally, this task can be reactive and will re-execute when **tracked** [st
 
 **Notice that any subsequent re-execution of the task will always happen in the browser**, because reactivity is a browser-only thing.
 
-```bash /useTask$(track)/#d /RENDER/#b /CLICK/#a
+```bash
                       (state change) -> (re-execute)
                                   ^            |
                                   |            v
@@ -139,11 +140,11 @@ Use `useTask$()` when you need to:
 - Run code only once before the component is first rendered
 - Programmatically run side-effect code when state changes
 
-> Note, if you're thinking about load data (like using `fetch()`) inside of `useTask$`, consider using [`useResource$()`](#useresource) instead. This API is more efficient in terms of leveraging SSR streaming and parallel data fetching.
+> Note, if you're thinking about loading data (like using `fetch()`) inside of `useTask$`, consider using [`useResource$()`](/docs/components/state/#useresource) instead. This API is more efficient in terms of leveraging SSR streaming and parallel data fetching.
 
 ### On mount
 
-There is not an specific "on-mount" hook in Qwik because `useTask$()` without tracking effectively behaves like a `mount` hook.
+Qwik does not have a specific "on-mount" hook because useTask$() without track() effectively behaves like a mount hook.
 
 This is because `useTask$` runs always at least once when the component is first mounted.
 
@@ -393,7 +394,7 @@ const Clock = component$<{ isRunning: Signal<boolean> }>(({ isRunning }) => {
 
 ### Option `eagerness`
 
-At times it is desirable to run `useVisibleTask$()` eagerly as soon as the application is loaded in the browser. In that case the `useVisibleTask$()` needs to run in eagre mode. This is done by using the `{ strategy: 'document-ready' }`.
+At times it is desirable to run `useVisibleTask$()` eagerly as soon as the application is loaded in the browser. In that case the `useVisibleTask$()` needs to run in eager mode. This is done by using the `{ strategy: 'document-ready' }`.
 
 <CodeSandbox src="/src/routes/demo/tasks/use-visible-task-eager/index.tsx" style={{ height: '6em' }}>
 ```tsx

@@ -44,9 +44,7 @@ import { z } from 'zod';
 import { isDev, isServer } from '@builder.io/qwik/build';
 import type { FormSubmitCompletedDetail } from './form-component';
 
-/**
- * @public
- */
+/** @public */
 export const routeActionQrl = ((
   actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => any>,
   ...rest: (CommonLoaderActionOptions | DataValidator)[]
@@ -148,9 +146,7 @@ Action.run() can only be called on the browser, for example when a user clicks a
   return action satisfies ActionInternal;
 }) as unknown as ActionConstructorQRL;
 
-/**
- * @public
- */
+/** @public */
 export const globalActionQrl = ((
   actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => any>,
   ...rest: (CommonLoaderActionOptions | DataValidator)[]
@@ -165,23 +161,17 @@ export const globalActionQrl = ((
   return action;
 }) as ActionConstructorQRL;
 
-/**
- * @public
- */
+/** @public */
 export const routeAction$: ActionConstructor = /*#__PURE__*/ implicit$FirstArg(
   routeActionQrl
 ) as any;
 
-/**
- * @public
- */
+/** @public */
 export const globalAction$: ActionConstructor = /*#__PURE__*/ implicit$FirstArg(
   globalActionQrl
 ) as any;
 
-/**
- * @public
- */
+/** @public */
 export const routeLoaderQrl = ((
   loaderQrl: QRL<(event: RequestEventLoader) => unknown>,
   ...rest: (CommonLoaderActionOptions | DataValidator)[]
@@ -190,8 +180,8 @@ export const routeLoaderQrl = ((
   function loader() {
     return useContext(RouteStateContext, (state) => {
       if (!(id in state)) {
-        throw new Error(`routeLoader (${id}) was used in a path where the 'routeLoader$' was not declared.
-    This is likely because the used routeLoader was not exported in a layout.tsx or index.tsx file of the existing route.
+        throw new Error(`routeLoader$ "${loaderQrl.getSymbol()}" was invoked in a route where it was not declared.
+    This is because the routeLoader$ was not exported in a 'layout.tsx' or 'index.tsx' file of the existing route.
     For more information check: https://qwik.builder.io/qwikcity/route-loader/`);
       }
       return _wrapSignal(state, id);
@@ -206,14 +196,10 @@ export const routeLoaderQrl = ((
   return loader;
 }) as LoaderConstructorQRL;
 
-/**
- * @public
- */
+/** @public */
 export const routeLoader$: LoaderConstructor = /*#__PURE__*/ implicit$FirstArg(routeLoaderQrl);
 
-/**
- * @public
- */
+/** @public */
 export const validatorQrl = ((
   validator: QRL<(ev: RequestEvent, data: unknown) => ValueOrPromise<ValidatorReturn>>
 ): DataValidator => {
@@ -225,30 +211,28 @@ export const validatorQrl = ((
   return undefined as any;
 }) as ValidatorConstructorQRL;
 
-/**
- * @public
- */
+/** @public */
 export const validator$: ValidatorConstructor = /*#__PURE__*/ implicit$FirstArg(validatorQrl);
 
-/**
- * @public
- */
+/** @public */
 export const zodQrl = ((
-  qrl: QRL<z.ZodRawShape | z.Schema | ((z: typeof import('zod').z) => z.ZodRawShape)>
+  qrl: QRL<
+    z.ZodRawShape | z.Schema | ((z: typeof import('zod').z, ev: RequestEvent) => z.ZodRawShape)
+  >
 ): DataValidator => {
   if (isServer) {
-    const schema: Promise<z.Schema> = qrl.resolve().then((obj) => {
-      if (typeof obj === 'function') {
-        obj = obj(z);
-      }
-      if (obj instanceof z.Schema) {
-        return obj;
-      } else {
-        return z.object(obj);
-      }
-    });
     return {
       async validate(ev, inputData) {
+        const schema: Promise<z.Schema> = qrl.resolve().then((obj) => {
+          if (typeof obj === 'function') {
+            obj = obj(z, ev);
+          }
+          if (obj instanceof z.Schema) {
+            return obj;
+          } else {
+            return z.object(obj);
+          }
+        });
         const data = inputData ?? (await ev.parseBody());
         const result = await (await schema).safeParseAsync(data);
         if (result.success) {
@@ -273,14 +257,10 @@ export const zodQrl = ((
   return undefined as any;
 }) as ZodConstructorQRL;
 
-/**
- * @public
- */
+/** @public */
 export const zod$: ZodConstructor = /*#__PURE__*/ implicit$FirstArg(zodQrl) as any;
 
-/**
- * @public
- */
+/** @public */
 export const serverQrl: ServerConstructorQRL = (qrl: QRL<(...args: any[]) => any>) => {
   if (isServer) {
     const captured = qrl.getCaptured();
@@ -296,7 +276,12 @@ export const serverQrl: ServerConstructorQRL = (qrl: QRL<(...args: any[]) => any
           ? (args.shift() as AbortSignal)
           : undefined;
       if (isServer) {
-        const requestEvent = useQwikCityEnv()?.ev ?? this ?? _getContextEvent();
+        const requestEvent = [useQwikCityEnv()?.ev, this, _getContextEvent()].find(
+          (v) =>
+            v &&
+            Object.prototype.hasOwnProperty.call(v, 'sharedMap') &&
+            Object.prototype.hasOwnProperty.call(v, 'cookie')
+        );
         return qrl.apply(requestEvent, args);
       } else {
         const ctxElm = _getContextElement();
@@ -311,23 +296,33 @@ export const serverQrl: ServerConstructorQRL = (qrl: QRL<(...args: any[]) => any
           return arg;
         });
         const hash = qrl.getHash();
-        const path = `?qfunc=${qrl.getHash()}`;
-        const body = await _serializeData([qrl, ...filtered], false);
-        const res = await fetch(path, {
+        const res = await fetch(`?qfunc=${hash}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/qwik-json',
             'X-QRL': hash,
           },
           signal,
-          body,
+          body: await _serializeData([qrl, ...filtered], false),
         });
 
         const contentType = res.headers.get('Content-Type');
-        if (res.ok && contentType === 'text/event-stream') {
-          const { writable, readable } = getSSETransformer();
-          res.body?.pipeTo(writable, { signal });
-          return streamAsyncIterator(readable, ctxElm ?? document.documentElement);
+        if (res.ok && contentType === 'text/qwik-json-stream' && res.body) {
+          return (async function* () {
+            try {
+              for await (const result of deserializeStream(
+                res.body!,
+                ctxElm ?? document.documentElement,
+                signal
+              )) {
+                yield result;
+              }
+            } finally {
+              if (!signal?.aborted) {
+                await res.body!.cancel();
+              }
+            }
+          })();
         } else if (contentType === 'application/qwik-json') {
           const str = await res.text();
           const obj = await _deserializeData(str, ctxElm ?? document.documentElement);
@@ -342,9 +337,7 @@ export const serverQrl: ServerConstructorQRL = (qrl: QRL<(...args: any[]) => any
   return stuff();
 };
 
-/**
- * @public
- */
+/** @public */
 export const server$ = /*#__PURE__*/ implicit$FirstArg(serverQrl);
 
 const getValidators = (rest: (CommonLoaderActionOptions | DataValidator)[], qrl: QRL<any>) => {
@@ -382,73 +375,28 @@ const getValidators = (rest: (CommonLoaderActionOptions | DataValidator)[], qrl:
   };
 };
 
-const getSSETransformer = () => {
-  // Convert the stream into a stream of lines
-  let currentLine = '';
-  const encoder = new TextDecoder();
-  const transformer = new TransformStream<Uint8Array, SSEvent>({
-    transform(chunk, controller) {
-      const lines = encoder.decode(chunk).split('\n\n');
-      for (let i = 0; i < lines.length - 1; i++) {
-        const line = currentLine + lines[i];
-        if (line.length === 0) {
-          controller.terminate();
-          break;
-        } else {
-          controller.enqueue(parseEvent(line));
-          currentLine = '';
-        }
-      }
-      currentLine += lines[lines.length - 1];
-    },
-  });
-  return transformer;
-};
-
-interface SSEvent {
-  data: string;
-  [key: string]: string;
-}
-const parseEvent = (message: string): SSEvent => {
-  const lines = message.split('\n');
-  const event: SSEvent = {
-    data: '',
-  };
-  let data = '';
-  for (const line of lines) {
-    if (line.startsWith('data: ')) {
-      data += line.slice(6) + '\n';
-    } else {
-      const [key, value] = line.split(':');
-      if (typeof key === 'string' && typeof value === 'string') {
-        event[key] = value.trim();
-      }
-    }
-  }
-  event.data = data;
-  return event;
-};
-
-async function* streamAsyncIterator(
-  stream: ReadableStream<SSEvent>,
-  ctxElm: unknown
-): AsyncGenerator<unknown> {
-  // Get a lock on the stream
+const deserializeStream = async function* (
+  stream: ReadableStream<Uint8Array>,
+  ctxElm: unknown,
+  signal?: AbortSignal
+) {
   const reader = stream.getReader();
-
   try {
-    while (true) {
-      // Read from the stream
-      const { done, value } = await reader.read();
-      // Exit if we're done
-      if (done) {
-        return;
+    let buffer = '';
+    const decoder = new TextDecoder();
+    while (!signal?.aborted) {
+      const result = await reader.read();
+      if (result.done) {
+        break;
       }
-      // Else yield the chunk
-      const obj = await _deserializeData(value.data, ctxElm);
-      yield obj;
+      buffer += decoder.decode(result.value, { stream: true });
+      const lines = buffer.split(/\n/);
+      buffer = lines.pop()!;
+      for (const line of lines) {
+        yield await _deserializeData(line, ctxElm);
+      }
     }
   } finally {
     reader.releaseLock();
   }
-}
+};

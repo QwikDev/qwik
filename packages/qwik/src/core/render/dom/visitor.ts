@@ -1,7 +1,7 @@
 import { ELEMENT_ID, OnRenderProp, QSlot, QSlotRef, QSlotS, QStyle } from '../../util/markers';
 import { isOnProp, PREVENT_DEFAULT, setEvent } from '../../state/listeners';
 import type { ValueOrPromise } from '../../util/types';
-import { isPromise, promiseAll, promiseAllLazy, then } from '../../util/promises';
+import { isPromise, promiseAll, promiseAllLazy, maybeThen } from '../../util/promises';
 import {
   assertDefined,
   assertElement,
@@ -72,7 +72,11 @@ import {
   type QContext,
   tryGetContext,
 } from '../../state/context';
-import { getProxyManager, getProxyTarget, type SubscriptionManager } from '../../state/common';
+import {
+  getSubscriptionManager,
+  getProxyTarget,
+  type SubscriptionManager,
+} from '../../state/common';
 import { createPropsState, createProxy, ReadWriteProxyHandler } from '../../state/store';
 import { _IMMUTABLE, _IMMUTABLE_PREFIX } from '../../state/constants';
 import { trackSignal } from '../../use/use-core';
@@ -211,7 +215,7 @@ export const diffChildren = (
         elmToMove = oldCh[idxInOld];
         if (elmToMove.$type$ !== newStartVnode.$type$) {
           const newElm = createElm(ctx, newStartVnode, flags, results);
-          then(newElm, (newElm) => {
+          maybeThen(newElm, (newElm) => {
             insertBefore(staticCtx, parentElm, newElm, oldStartVnode?.$elm$);
           });
         } else {
@@ -232,7 +236,7 @@ export const diffChildren = (
 
   let wait = promiseAll(results) as any;
   if (oldStartIdx <= oldEndIdx) {
-    wait = then(wait, () => {
+    wait = maybeThen(wait, () => {
       removeChildren(staticCtx, oldCh, oldStartIdx, oldEndIdx);
     });
   }
@@ -479,7 +483,7 @@ export const diffVnode = (
     // we need to render the nested component, and wait before projecting the content
     // since otherwise we don't know where the slots
     if (needsRender) {
-      return then(renderComponent(rCtx, elCtx, flags), () =>
+      return maybeThen(renderComponent(rCtx, elCtx, flags), () =>
         renderContentProjection(rCtx, elCtx, newVnode, flags)
       );
     }
@@ -623,7 +627,7 @@ const getSlotCtx = (
   }
   const template = createTemplate(staticCtx.$doc$, slotName);
   const elCtx = createContext(template);
-  elCtx.$parent$ = hostCtx;
+  elCtx.$parentCtx$ = hostCtx;
   prepend(staticCtx, hostCtx.$element$, template);
   slotMaps.templates[slotName] = template;
   return elCtx;
@@ -682,8 +686,7 @@ const createElm = (
 
   vnode.$elm$ = elm;
   const elCtx = createContext(elm);
-  elCtx.$parent$ = rCtx.$cmpCtx$;
-  elCtx.$slotParent$ = rCtx.$slotCtx$;
+  elCtx.$parentCtx$ = rCtx.$slotCtx$ ?? rCtx.$cmpCtx$;
   if (!isVirtual) {
     if (qDev && qInspector) {
       const dev = vnode.$dev$;
@@ -691,7 +694,7 @@ const createElm = (
         directSetAttribute(
           elm,
           'data-qwik-inspector',
-          `${encodeURIComponent(dev.fileName)}:${dev.lineNumber}:${dev.columnNumber}`
+          `${dev.fileName}:${dev.lineNumber}:${dev.columnNumber}`
         );
       }
     }
@@ -761,7 +764,7 @@ const createElm = (
     // Run mount hook
     elCtx.$componentQrl$ = renderQRL;
 
-    const wait = then(renderComponent(rCtx, elCtx, flags), () => {
+    const wait = maybeThen(renderComponent(rCtx, elCtx, flags), () => {
       let children = vnode.$children$;
       if (children.length === 0) {
         return;
@@ -1050,7 +1053,7 @@ export const setComponentProps = (
     return;
   }
 
-  const manager = getProxyManager(props);
+  const manager = getSubscriptionManager(props);
   assertDefined(manager, `props have to be a proxy, but it is not`, props);
   const target = getProxyTarget(props);
   assertDefined(target, `props have to be a proxy, but it is not`, props);
@@ -1097,19 +1100,32 @@ export const cleanupTree = (
   }
 };
 
-export const executeContextWithTransition = async (ctx: RenderStaticContext) => {
+const restoreScroll = () => {
+  if (document.__q_scroll_restore__) {
+    document.__q_scroll_restore__();
+    document.__q_scroll_restore__ = undefined;
+  }
+};
+
+export const executeContextWithScrollAndTransition = async (ctx: RenderStaticContext) => {
   // try to use `document.startViewTransition`
   if (isBrowser && !qTest) {
     if (document.__q_view_transition__) {
       document.__q_view_transition__ = undefined;
       if (document.startViewTransition) {
-        await document.startViewTransition(() => executeDOMRender(ctx)).finished;
+        await document.startViewTransition(() => {
+          executeDOMRender(ctx);
+          restoreScroll();
+        }).finished;
         return;
       }
     }
   }
   // fallback
   executeDOMRender(ctx);
+  if (isBrowser) {
+    restoreScroll();
+  }
 };
 
 export const directAppendChild = (parent: QwikElement, child: Node | VirtualElement) => {

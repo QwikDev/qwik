@@ -151,7 +151,7 @@ async function printHelp(app: AppCommand) {
   if (isCancel(command)) {
     bye();
   }
-  const args = command.split(' ');
+  const args = (command as string).split(' ');
   await runCommand(Object.assign(app, { task: args[0] as string, args }));
 }
 

@@ -152,7 +152,7 @@ async function printHelp(app: AppCommand) {
     bye();
   }
   const args = (command as string).split(' ');
-  await runCommand(Object.assign(app, { task: args[0] as string, args }));
+  await runCommand(Object.assign(app, { task: args[0], args }));
 }
 
 function printVersion() {

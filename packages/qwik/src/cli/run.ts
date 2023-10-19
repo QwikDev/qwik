@@ -151,8 +151,8 @@ async function printHelp(app: AppCommand) {
   if (isCancel(command)) {
     bye();
   }
-
-  await runCommand(Object.assign(app, { task: command as string }));
+  const args = command.split(' ');
+  await runCommand(Object.assign(app, { task: args[0] as string, args }));
 }
 
 function printVersion() {

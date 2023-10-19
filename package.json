@@ -1,6 +1,6 @@
 {
   "name": "qwik-monorepo",
-  "version": "1.2.13",
+  "version": "1.2.14",
   "config": {
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"

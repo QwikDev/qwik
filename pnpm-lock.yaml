@@ -480,6 +480,9 @@ importers:
       kleur:
         specifier: 4.1.5
         version: 4.1.5
+      vitefu:
+        specifier: ^0.2.5
+        version: 0.2.5(vite@5.0.0)
 
   packages/qwik-auth:
     devDependencies:
@@ -18937,6 +18940,17 @@ packages:
         optional: true
     dependencies:
       vite: 4.4.11(@types/node@20.8.4)(terser@5.21.0)
+    dev: true
+
+  /vitefu@0.2.5(vite@5.0.0):
+    resolution: {integrity: sha512-SgHtMLoqaeeGnd2evZ849ZbACbnwQCIwRH57t18FxcXoZop0uQu0uzlIhJBlF/eWVzuce0sHeqPcDo+evVcg8Q==}
+    peerDependencies:
+      vite: ^3.0.0 || ^4.0.0 || ^5.0.0
+    peerDependenciesMeta:
+      vite:
+        optional: true
+    dependencies:
+      vite: 5.0.0(@types/node@20.8.4)(terser@5.21.0)
     dev: true
 
   /vitest@0.34.6(terser@5.21.0):

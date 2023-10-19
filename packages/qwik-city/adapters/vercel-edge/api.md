@@ -16,6 +16,7 @@ export function vercelEdgeAdapter(opts?: VercelEdgeAdapterOptions): any;
 export interface VercelEdgeAdapterOptions extends ServerAdapterOptions {
     outputConfig?: boolean;
     staticPaths?: string[];
+    target?: 'webworker' | 'node';
     vcConfigEntryPoint?: string;
     vcConfigEnvVarsInUse?: string[];
 }

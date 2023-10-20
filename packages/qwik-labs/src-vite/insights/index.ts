@@ -13,7 +13,11 @@ export async function qwikInsights(qwikInsightsOpts: {
   baseUrl?: string;
   outDir?: string;
 }): Promise<PluginOption> {
-  const { publicApiKey, baseUrl = 'https://qwik-insights.builder.io', outDir = 'dist' } = qwikInsightsOpts;
+  const {
+    publicApiKey,
+    baseUrl = 'https://qwik-insights.builder.io',
+    outDir = 'dist',
+  } = qwikInsightsOpts;
   let isProd = false;
   const vitePlugin: PluginOption = {
     name: 'vite-plugin-qwik-insights',

@@ -1,5 +1,4 @@
 import { assertFail, assertTrue } from '../error/assert';
-import { qError, QError_verifySerializable } from '../error/error';
 import { isNode } from '../util/element';
 import { seal } from '../util/qdev';
 import { isArray, isFunction, isObject, isSerializableObject } from '../util/types';
@@ -64,7 +63,10 @@ const _verifySerializable = <T>(value: T, seen: Set<any>, ctx: string, preMessag
           // Make sure the array has no holes
           unwrapped.forEach((v, i) => {
             if (i !== expectIndex) {
-              throw qError(QError_verifySerializable, unwrapped);
+              const array = value as any[];
+              for (let j = expectIndex; j < i; j++) {
+                array[j] = undefined;
+              }
             }
             _verifySerializable(v, seen, ctx + '[' + i + ']');
             expectIndex = i + 1;

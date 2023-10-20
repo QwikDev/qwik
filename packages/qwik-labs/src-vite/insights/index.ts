@@ -11,10 +11,10 @@ const logWarn = (message?: any) => {
 export async function qwikInsights(qwikInsightsOpts: {
   publicApiKey: string;
   baseUrl?: string;
+  outDir?: string;
 }): Promise<PluginOption> {
-  const { publicApiKey, baseUrl = 'https://qwik-insights.builder.io' } = qwikInsightsOpts;
+  const { publicApiKey, baseUrl = 'https://qwik-insights.builder.io', outDir = 'dist' } = qwikInsightsOpts;
   let isProd = false;
-  const outDir = 'dist';
   const vitePlugin: PluginOption = {
     name: 'vite-plugin-qwik-insights',
     enforce: 'pre',

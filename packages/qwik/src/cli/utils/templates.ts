@@ -58,7 +58,10 @@ export async function readTemplates(rootDir: string) {
 }
 
 function parseTemplatePath(path: string, type: string) {
-  const parts = path.split(`/${type}/`);
+  let parts = path.split(`/${type}/`);
+  if (parts.length == 1) {
+    parts = path.split(`\\${type}\\`);
+  }
 
   return {
     absolute: path,

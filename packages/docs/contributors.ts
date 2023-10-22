@@ -63,6 +63,14 @@ async function updateGithubCommits(filePath: string) {
         contributors.push({ author, count: 1 });
       }
     }
+
+    if (commits.indexOf(commit) === 0) {
+      gm.data.updated_at = commit?.commit?.author?.date;
+    }
+
+    if (commits.indexOf(commit) === commits.length - 1) {
+      gm.data.created_at = commit?.commit?.author?.date;
+    }
   }
 
   contributors.sort((a, b) => {
@@ -88,7 +96,15 @@ async function updateGithubCommits(filePath: string) {
 
   console.log(repoPath, contributors.length);
 
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  if (response.headers.get('x-ratelimit-remaining') === '0') {
+    const resetHeader = response.headers.get('x-ratelimit-reset');
+    const resetTime = resetHeader ? parseInt(resetHeader) * 1000 : Date.now() + 1000;
+    const waitTime = resetTime - Date.now();
+    console.log(
+      `next request is rate limited, waiting ${Math.round(waitTime / 1000 / 60)} minutes`
+    );
+    await new Promise((resolve) => setTimeout(resolve, waitTime));
+  }
 }
 
 updateContributors();

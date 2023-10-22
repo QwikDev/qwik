@@ -20,7 +20,8 @@ export default component$<{
       {tabs && (
         <div class="tabs">
           {tabs.map((tab, idx) => (
-            <span
+            <span 
+              key={idx}
               onClick$={() => (activeTab.value = idx)}
               class={{ tab: true, active: idx == activeTab.value }}
             >

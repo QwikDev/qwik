@@ -82,16 +82,16 @@ export const RouterHead = component$(() => {
         </>
       )}
 
-      {head.meta.map((m) => (
-        <meta {...m} />
+      {head.meta.map((m, key) => (
+        <meta key={key} {...m} />
       ))}
 
-      {head.links.map((l) => (
-        <link {...l} />
+      {head.links.map((l, key) => (
+        <link key={key} {...l} />
       ))}
 
-      {head.styles.map((s) => (
-        <style {...s.props} dangerouslySetInnerHTML={s.style} />
+      {head.styles.map((s, key) => (
+        <style key={key} {...s.props} dangerouslySetInnerHTML={s.style} />
       ))}
 
       <ThemeScript />

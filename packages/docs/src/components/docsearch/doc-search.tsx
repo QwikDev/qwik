@@ -71,7 +71,7 @@ export const DocSearch = component$((props: DocSearchProps) => {
     snippetLength: 10,
   });
 
-  const searchButtonRef = useSignal();
+  const searchButtonRef = useSignal<Element>();
 
   return (
     <div

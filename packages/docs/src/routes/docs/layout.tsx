@@ -41,8 +41,8 @@ export default component$(() => {
         </button>
         {breadcrumbs.length > 0 ? (
           <ol>
-            {breadcrumbs.map((b) => (
-              <li>{b.text}</li>
+            {breadcrumbs.map((b, key) => (
+              <li key={key}>{b.text}</li>
             ))}
           </ol>
         ) : null}

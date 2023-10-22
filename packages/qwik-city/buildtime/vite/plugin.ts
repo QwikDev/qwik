@@ -95,6 +95,7 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
         throw new Error('Missing vite-plugin-qwik');
       }
 
+      // @ts-ignore `format` removed in Vite 5
       if (config.ssr?.format === 'cjs') {
         ssrFormat = 'cjs';
       }

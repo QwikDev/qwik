@@ -151,12 +151,12 @@ export const useMethodUsageExamples: QwikEslintExamples = {
       {
         codeHighlight: '{2} /component$/#a',
         code: useWrongFunctionBad,
-        description: '`use*` methods can just be used in `component$` functions.',
+        description: '`use*` methods can only be used in `component$` functions.',
       },
       {
         codeHighlight: '{2} /component$/#a',
         code: useWrongFunctionBad2,
-        description: '`use*` methods can just be used in `component$` functions.',
+        description: '`use*` methods can only be used in `component$` functions.',
       },
     ],
   },
@@ -171,12 +171,12 @@ export const useMethodUsageExamples: QwikEslintExamples = {
       {
         codeHighlight: '{2} /component$/#a',
         code: useNotRootBad,
-        description: '`use*` methods can just be used in `component$` functions.',
+        description: '`use*` methods can only be used in `component$` functions.',
       },
       {
         codeHighlight: '{2} /component$/#a',
         code: useNotRootBad2,
-        description: '`use*` methods can just be used in `component$` functions.',
+        description: '`use*` methods can only be used in `component$` functions.',
       },
     ],
   },

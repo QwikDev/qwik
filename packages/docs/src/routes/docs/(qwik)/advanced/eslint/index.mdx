@@ -36,18 +36,18 @@ import './styles.css';
 <h2>Possible Problems</h2>
 <p>These rules are available.</p>
 <div class="my-6">
-  
+
     <a href="#use-method-usage" class="p-4 flex panel">
       <div class="flex-1">
         <code>use-method-usage</code>
-        <span class="rule-description">Object destructuring is not recommended for component$</span>
+        <span class="rule-description">Detect invalid use of use hooks.</span>
       </div>
       <div class="flex gap-2 items-center">
         <span
           class={{
             'icon': false,
             'icon icon-inactive': false,
-          }}     
+          }}
         >
           ✅
         </span>
@@ -62,7 +62,7 @@ import './styles.css';
       </div>
     </a>
   
-  
+
     <a href="#valid-lexical-scope" class="p-4 flex panel">
       <div class="flex-1">
         <code>valid-lexical-scope</code>
@@ -73,7 +73,7 @@ import './styles.css';
           class={{
             'icon': false,
             'icon icon-inactive': false,
-          }}     
+          }}
         >
           ✅
         </span>
@@ -88,18 +88,18 @@ import './styles.css';
       </div>
     </a>
   
-  
+
     <a href="#loader-location" class="p-4 flex panel">
       <div class="flex-1">
         <code>loader-location</code>
-        <span class="rule-description">Detect declaration location of loader$</span>
+        <span class="rule-description">Detect declaration location of loader$.</span>
       </div>
       <div class="flex gap-2 items-center">
         <span
           class={{
             'icon': false,
             'icon icon-inactive': true,
-          }}     
+          }}
         >
           ✅
         </span>
@@ -114,7 +114,7 @@ import './styles.css';
       </div>
     </a>
   
-  
+
     <a href="#no-react-props" class="p-4 flex panel">
       <div class="flex-1">
         <code>no-react-props</code>
@@ -125,7 +125,7 @@ import './styles.css';
           class={{
             'icon': false,
             'icon icon-inactive': false,
-          }}     
+          }}
         >
           ✅
         </span>
@@ -140,7 +140,7 @@ import './styles.css';
       </div>
     </a>
   
-  
+
     <a href="#prefer-classlist" class="p-4 flex panel">
       <div class="flex-1">
         <code>prefer-classlist</code>
@@ -151,7 +151,7 @@ import './styles.css';
           class={{
             'icon': false,
             'icon icon-inactive': true,
-          }}     
+          }}
         >
           ✅
         </span>
@@ -166,7 +166,7 @@ import './styles.css';
       </div>
     </a>
   
-  
+
     <a href="#jsx-no-script-url" class="p-4 flex panel">
       <div class="flex-1">
         <code>jsx-no-script-url</code>
@@ -177,7 +177,7 @@ import './styles.css';
           class={{
             'icon': false,
             'icon icon-inactive': true,
-          }}     
+          }}
         >
           ✅
         </span>
@@ -192,7 +192,7 @@ import './styles.css';
       </div>
     </a>
   
-  
+
     <a href="#jsx-key" class="p-4 flex panel">
       <div class="flex-1">
         <code>jsx-key</code>
@@ -203,7 +203,7 @@ import './styles.css';
           class={{
             'icon': false,
             'icon icon-inactive': true,
-          }}     
+          }}
         >
           ✅
         </span>
@@ -218,18 +218,18 @@ import './styles.css';
       </div>
     </a>
   
-  
+
     <a href="#unused-server" class="p-4 flex panel">
       <div class="flex-1">
         <code>unused-server</code>
-        <span class="rule-description">Detect unused server$() functions</span>
+        <span class="rule-description">Detect unused server$() functions.</span>
       </div>
       <div class="flex gap-2 items-center">
         <span
           class={{
             'icon': false,
             'icon icon-inactive': false,
-          }}     
+          }}
         >
           ✅
         </span>
@@ -244,7 +244,7 @@ import './styles.css';
       </div>
     </a>
   
-  
+
     <a href="#jsx-img" class="p-4 flex panel">
       <div class="flex-1">
         <code>jsx-img</code>
@@ -255,7 +255,33 @@ import './styles.css';
           class={{
             'icon': false,
             'icon icon-inactive': true,
-          }}     
+          }}
+        >
+          ✅
+        </span>
+        <span
+          class={{
+            'icon': false,
+            'icon icon-inactive': false,
+          }}
+        >
+          🔔
+        </span>
+      </div>
+    </a>
+  
+
+    <a href="#jsx-a" class="p-4 flex panel">
+      <div class="flex-1">
+        <code>jsx-a</code>
+        <span class="rule-description">For a perfect SEO score, always provide href attribute for &lt;a&gt; elements.</span>
+      </div>
+      <div class="flex gap-2 items-center">
+        <span
+          class={{
+            'icon': false,
+            'icon icon-inactive': true,
+          }}
         >
           ✅
         </span>
@@ -276,11 +302,9 @@ import './styles.css';
 
     <div class="rule-wrapper">
       <h3 id="use-method-usage">use-method-usage</h3>
-      <span>Object destructuring is not recommended for component$</span>
+      <span>Detect invalid use of use hooks.</span>
   
-<h4>use-after-await</h4>
-<div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/useMethodUsage.ts" target="_blank" class="edit-btn">Edit examples</a></div>
-<h4>use-wrong-function</h4>
+<h4>useWrongFunction</h4>
 <p>Examples of <b>correct</b> code for this rule:</p>
 <div class="code-wrapper">
 <span class="badge good">✓</span>
@@ -288,6 +312,15 @@ import './styles.css';
 export const Counter = component$(() => {
   const count = useSignal(0);
 });
+```
+</div>
+<div class="code-wrapper">
+<span class="badge good">✓</span>
+```tsx {2} /component$/#a
+export const useCounter = () => {
+  const count = useSignal(0);
+  return count;
+};
 ```
 </div>
 <p>Examples of <b>incorrect</b> code for this rule:</p>
@@ -298,46 +331,7 @@ export const Counter = (() => {
   const count = useSignal(0);
 });
 ```
-<p class="code-description">`use*` methods can just be used in `component$` functions.</p>
-</div>
-<div class="code-wrapper">
-<span class="badge bad">✕</span>
-```tsx {2} /component$/#a
-export const Counter = (() => {
-  const count = useSignal(0);
-});
-```
-<p class="code-description">`use*` methods can just be used in `component$` functions.</p>
-</div>
-<div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/useMethodUsage.ts" target="_blank" class="edit-btn">Edit examples</a></div>
-<h4>use-not-root</h4>
-<p>Examples of <b>correct</b> code for this rule:</p>
-<div class="code-wrapper">
-<span class="badge good">✓</span>
-```tsx {2} /component$/#a
-export const Counter = component$(() => {
-  const count = useSignal(0);
-});
-```
-</div>
-<p>Examples of <b>incorrect</b> code for this rule:</p>
-<div class="code-wrapper">
-<span class="badge bad">✕</span>
-```tsx {2} /component$/#a
-export const Counter = (() => {
-  const count = useSignal(0);
-});
-```
-<p class="code-description">`use*` methods can just be used in `component$` functions.</p>
-</div>
-<div class="code-wrapper">
-<span class="badge bad">✕</span>
-```tsx {2} /component$/#a
-export const Counter = (() => {
-  const count = useSignal(0);
-});
-```
-<p class="code-description">`use*` methods can just be used in `component$` functions.</p>
+<p class="code-description">`use*` methods can just be used in `component$` functions or inside `use*` hooks (e.g. `useCounter`).</p>
 </div>
 <div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/useMethodUsage.ts" target="_blank" class="edit-btn">Edit examples</a></div>
 
@@ -467,7 +461,7 @@ export const HelloWorld = component$(() => {
 
     <div class="rule-wrapper">
       <h3 id="loader-location">loader-location</h3>
-      <span>Detect declaration location of loader$</span>
+      <span>Detect declaration location of loader$.</span>
   
 <h4>invalidLoaderLocation</h4>
 <p>Examples of <b>correct</b> code for this rule:</p>
@@ -935,7 +929,7 @@ export const ColorList = component$(() => {
 
     <div class="rule-wrapper">
       <h3 id="unused-server">unused-server</h3>
-      <span>Detect unused server$() functions</span>
+      <span>Detect unused server$() functions.</span>
   
 <h4>unusedServer</h4>
 <p>Examples of <b>correct</b> code for this rule:</p>
@@ -1033,6 +1027,16 @@ import Image from '~/media/image.png';
 <p class="code-description">For performance reasons, always provide width and height attributes for `<img>` elements, it will help to prevent layout shifts.</p>
 </div>
 <div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/jsxImg.ts" target="_blank" class="edit-btn">Edit examples</a></div>
+
+    </div>
+  
+
+    <div class="rule-wrapper">
+      <h3 id="jsx-a">jsx-a</h3>
+      <span>For a perfect SEO score, always provide href attribute for &lt;a&gt; elements.</span>
+  
+<h4>noHref</h4>
+<div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/jsxA.ts" target="_blank" class="edit-btn">Edit examples</a></div>
 
     </div>
   

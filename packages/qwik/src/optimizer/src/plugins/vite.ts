@@ -601,7 +601,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
     configureServer(server: ViteDevServer) {
       server.middlewares.use(getImageSizeServer(qwikPlugin.getSys(), rootDir!, srcDir!));
-      if (!qwikViteOpts.csr) {
+      const devSsrServer = 'devSsrServer' in qwikViteOpts ? qwikViteOpts.devSsrServer : true;
+      if (!qwikViteOpts.csr && devSsrServer) {
         const plugin = async () => {
           const opts = qwikPlugin.getOptions();
           const sys = qwikPlugin.getSys();
@@ -832,6 +833,19 @@ interface QwikVitePluginSSROptions extends QwikVitePluginCommonOptions {
      */
     manifestOutput?: (manifest: QwikManifest) => Promise<void> | void;
   };
+
+  /**
+   * Qwik is SSR first framework. This means that Qwik requires either SSR or SSG. In dev mode the
+   * dev SSR server is responsible for rendering and pausing the application on the server.
+   *
+   * Under normal circumstances this should be on, unless you have your own SSR server which you
+   * would like to use instead and wish to disable this one.
+   *
+   * Default: true
+   */
+  devSsrServer?: boolean;
+
+  /** Controls the SSR behavior. */
   ssr?: {
     /**
      * The entry point for the SSR renderer. This file should export a `render()` function. This

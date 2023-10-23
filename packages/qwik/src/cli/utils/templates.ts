@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-import { join } from 'node:path';
+import { join, sep } from 'node:path';
 import type { TemplateSet } from '../types';
 import { getFilesDeep } from './utils';
 
@@ -58,10 +58,7 @@ export async function readTemplates(rootDir: string) {
 }
 
 function parseTemplatePath(path: string, type: string) {
-  let parts = path.split(`/${type}/`);
-  if (parts.length == 1) {
-    parts = path.split(`\\${type}\\`);
-  }
+  const parts = path.split(sep + type + sep);
 
   return {
     absolute: path,

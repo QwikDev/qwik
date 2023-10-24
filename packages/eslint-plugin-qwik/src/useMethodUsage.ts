@@ -124,7 +124,7 @@ export const useMethodUsageExamples: QwikEslintExamples = {
         codeHighlight: '{2} /component$/#a',
         code: useWrongFunctionBad,
         description:
-          '`use*` methods can just be used in `component$` functions or inside `use*` hooks (e.g. `useCounter`).',
+          '`use*` methods can only be used in `component$` functions or inside `use*` hooks (e.g. `useCounter`).',
       },
     ],
   },

@@ -23,7 +23,7 @@ export async function validateBuild(config: BuildConfig) {
   const pkgFiles = [...pkg.files!, 'LICENSE', 'README.md', 'package.json'];
   const expectedFiles = pkgFiles.map((f) => join(config.distQwikPkgDir, f));
 
-  const dependencies = ['csstype'];
+  const dependencies = ['csstype', 'vite'];
   const pkgDependencies = Object.keys(pkg.dependencies!);
   if (pkgDependencies.length !== dependencies.length) {
     errors.push(

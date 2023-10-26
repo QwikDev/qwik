@@ -1,7 +1,9 @@
 ---
 title: Bundle Optimization | Guides
+description: Learn about bundle optimization in Qwik, a JavaScript framework for building web applications. This guide explains how to optimize your code by co-locating symbols and chunks, and provides examples of how to create and use symbols in your source code. Follow along with the code snippets and try them out in the included CodeSandbox demo.
 contributors:
   - mhevery
+  - hamatoyogi
 ---
 
 import CodeSandbox from '../../../../../components/code-sandbox/index.tsx';
@@ -137,7 +139,7 @@ To collect symbol usage from a running application:
 3. Open the console and type `symbols` to see the list of symbols used. Used that information to update the `vite.config.ts` file.
 
 
-> **NOTE:** We are looking into creating better ways of collecting this information in the future.
+> **NOTE:** We are looking into creating better ways of collecting this information in the future. (See [Insights](/docs/labs/insights/index.mdx).)
 
 > **NOTE:** Symbols hashes are designed to be stable even across many compilations. However, if the code undergoes complex refactoring it is possible for the hash to change. This will not break the application, but it may cause the symbol to be moved to a different sub-optimal chunk until runtime analytics can be collected again. 
 

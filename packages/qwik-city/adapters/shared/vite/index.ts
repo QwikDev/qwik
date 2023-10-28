@@ -67,6 +67,7 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
           );
         }
 
+        // @ts-ignore `format` removed in Vite 5
         if (config.ssr?.format === 'cjs') {
           format = 'cjs';
         }

@@ -126,9 +126,9 @@ const _useStyles = (
 ): string => {
   assertQrl(styleQrl);
 
-  const { get, set, iCtx, i, elCtx } = useSequentialScope<string>();
-  if (get) {
-    return get;
+  const { val, set, iCtx, i, elCtx } = useSequentialScope<string>();
+  if (val) {
+    return val;
   }
   const styleId = styleKey(styleQrl, i);
   const containerState = iCtx.$renderCtx$.$static$.$containerState$;

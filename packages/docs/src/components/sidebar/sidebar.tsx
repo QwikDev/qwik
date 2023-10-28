@@ -41,7 +41,7 @@ export function Items({
     <ul>
       {items &&
         items.map((item, i) => (
-          <li>
+          <li key={i}>
             {item.items ? (
               <details
                 open={allOpen || i < 1 || item.items?.some((item) => pathname === item.href)}

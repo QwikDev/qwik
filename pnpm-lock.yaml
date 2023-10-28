@@ -253,8 +253,8 @@ importers:
         specifier: ^6.16.1
         version: 6.16.1(@mui/material@5.14.13)(@types/react@18.2.28)(react-dom@18.2.0)(react@18.2.0)
       '@supabase/supabase-js':
-        specifier: ^2.38.0
-        version: 2.38.0
+        specifier: ^2.38.1
+        version: 2.38.1
       '@types/prismjs':
         specifier: ^1.26.1
         version: 1.26.1
@@ -474,6 +474,9 @@ importers:
       kleur:
         specifier: 4.1.5
         version: 4.1.5
+      vitefu:
+        specifier: ^0.2.5
+        version: 0.2.5(vite@4.4.11)
 
   packages/qwik-auth:
     devDependencies:
@@ -4825,6 +4828,12 @@ packages:
     dependencies:
       '@supabase/node-fetch': 2.6.14
 
+  /@supabase/postgrest-js@1.8.5:
+    resolution: {integrity: sha512-XvoqN5e5Z4TsQOYWLQYLW0HIlZtFSzwAcwiuToaSBSTpLOGCg4NaZ7au5GfBzCQJZdZPY5vk5FvwthfDsQK/Jw==}
+    dependencies:
+      '@supabase/node-fetch': 2.6.14
+    dev: true
+
   /@supabase/realtime-js@2.8.0:
     resolution: {integrity: sha512-j1OP2nRJhqLNEoYSMkIl1+cHK/Ow9fektemazkF2CvrIrmwgfJJGaFGiWGVgwoKtwVcrdknSsYWpxs90hys1EQ==}
     dependencies:
@@ -4851,6 +4860,19 @@ packages:
       '@supabase/storage-js': 2.5.4
     transitivePeerDependencies:
       - supports-color
+
+  /@supabase/supabase-js@2.38.1:
+    resolution: {integrity: sha512-WbdwKiZMMPiELL+8A4WJRHHq+xVKN+3tXxKnJWbR0XZG8HgeGVeQWhlchatTttaxsNKyx68gE7wWNvhin0V+Mg==}
+    dependencies:
+      '@supabase/functions-js': 2.1.5
+      '@supabase/gotrue-js': 2.55.0
+      '@supabase/node-fetch': 2.6.14
+      '@supabase/postgrest-js': 1.8.5
+      '@supabase/realtime-js': 2.8.0
+      '@supabase/storage-js': 2.5.4
+    transitivePeerDependencies:
+      - supports-color
+    dev: true
 
   /@swc/helpers@0.5.1:
     resolution: {integrity: sha512-sJ902EfIzn1Fa+qYmjdQqh8tPsoxyBz+8yBKC2HKUxyezKJFwPGOn7pv4WY6QuQW//ySQi5lJjA/ZT9sNWWNTg==}
@@ -6837,7 +6859,7 @@ packages:
       unist-util-visit: 4.1.2
       vfile: 6.0.1
       vite: 4.4.11(@types/node@20.8.4)(terser@5.21.0)
-      vitefu: 0.2.4(vite@4.4.11)
+      vitefu: 0.2.5(vite@4.4.11)
       which-pm: 2.0.0
       yargs-parser: 21.1.1
       zod: 3.22.4
@@ -18194,10 +18216,10 @@ packages:
       fsevents: 2.3.2
     dev: true
 
-  /vitefu@0.2.4(vite@4.4.11):
-    resolution: {integrity: sha512-fanAXjSaf9xXtOOeno8wZXIhgia+CZury481LsDaV++lSvcU2R9Ch2bPh3PYFyoHW+w9LqAeYRISVQjUIew14g==}
+  /vitefu@0.2.5(vite@4.4.11):
+    resolution: {integrity: sha512-SgHtMLoqaeeGnd2evZ849ZbACbnwQCIwRH57t18FxcXoZop0uQu0uzlIhJBlF/eWVzuce0sHeqPcDo+evVcg8Q==}
     peerDependencies:
-      vite: ^3.0.0 || ^4.0.0
+      vite: ^3.0.0 || ^4.0.0 || ^5.0.0
     peerDependenciesMeta:
       vite:
         optional: true

@@ -80,9 +80,9 @@ export const useStore = <STATE extends object>(
   initialState: STATE | (() => STATE),
   opts?: UseStoreOptions
 ): STATE => {
-  const { get, set, iCtx } = useSequentialScope<STATE>();
-  if (get != null) {
-    return get;
+  const { val, set, iCtx } = useSequentialScope<STATE>();
+  if (val != null) {
+    return val;
   }
   const value = isFunction(initialState) ? invoke(undefined, initialState) : initialState;
   if (opts?.reactive === false) {

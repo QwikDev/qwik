@@ -1,6 +1,6 @@
 {
   "name": "qwik-monorepo",
-  "version": "1.2.13",
+  "version": "1.2.15",
   "config": {
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
@@ -105,6 +105,7 @@
     "build": "tsm scripts/index.ts --tsc --build --qwikcity --qwiklabs --api --platform-binding-wasm-copy",
     "build.cli": "tsm scripts/index.ts --cli --dev",
     "build.cli.prod": "tsm scripts/index.ts --cli",
+    "build.core": "tsm scripts/index.ts --tsc --build --qwikcity --platform-binding-wasm-copy",
     "build.eslint": "tsm scripts/index.ts --eslint",
     "build.full": "tsm scripts/index.ts --tsc --build --supabaseauthhelpers --api --eslint --qwikcity --qwikworker --qwiklabs --qwikreact --qwikauth --cli --platform-binding --wasm",
     "build.only_javascript": "tsm scripts/index.ts --tsc --build --api",
@@ -135,7 +136,7 @@
     "preinstall": "npx only-allow pnpm",
     "prettier.fix": "prettier --cache --write .",
     "qwik-save-artifacts": "tsm ./scripts/qwik-save-artifacts.ts",
-    "release.prepare": "pnpm lint && pnpm test.unit && tsm scripts/index.ts --tsc --build --api --eslint --platform-binding --wasm --prepare-release",
+    "release.prepare": "pnpm lint && pnpm test.unit --run && tsm scripts/index.ts --tsc --build --api --eslint --platform-binding --wasm --prepare-release",
     "serve": "tsm --inspect --conditions=development starters/dev-server.ts 3300",
     "serve.debug": "tsm --inspect-brk --conditions=development starters/dev-server.ts 3300",
     "start": "concurrently \"npm:build.watch\" \"npm:test.watch\" \"npm:tsc.watch\" -n build,test,tsc -c green,magenta,cyan",
@@ -150,7 +151,6 @@
     "test.unit": "vitest packages",
     "test.unit.debug": "vitest --inspect-brk packages",
     "test.vite": "playwright test starters/e2e/qwikcity --browser=chromium --config starters/playwright.config.ts",
-    "test.watch": "watchlist packages unit.ts -- pnpm test.unit",
     "tsc.check": "tsc --noEmit",
     "tsc.trace": "tsc -p tsconfig.json --traceResolution > tsc.log",
     "tsc.watch": "tsc --noEmit --watch --preserveWatchOutput",

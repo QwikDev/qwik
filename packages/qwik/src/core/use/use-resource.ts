@@ -98,9 +98,9 @@ export const useResourceQrl = <T>(
   qrl: QRL<ResourceFn<T>>,
   opts?: ResourceOptions
 ): ResourceReturn<T> => {
-  const { get, set, i, iCtx, elCtx } = useSequentialScope<ResourceReturn<T>>();
-  if (get != null) {
-    return get;
+  const { val, set, i, iCtx, elCtx } = useSequentialScope<ResourceReturn<T>>();
+  if (val != null) {
+    return val;
   }
   assertQrl(qrl);
 

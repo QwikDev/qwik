@@ -595,7 +595,7 @@ export interface Collector {
 }
 
 const collectProps = (elCtx: QContext, collector: Collector) => {
-  const parentCtx = elCtx.$parent$;
+  const parentCtx = elCtx.$parentCtx$;
   const props = elCtx.$props$;
   if (parentCtx && props && !isEmptyObj(props) && collector.$elements$.includes(parentCtx)) {
     const subs = getSubscriptionManager(props)?.$subs$;
@@ -698,14 +698,14 @@ export const collectElementData = (
   }
 };
 
-const collectContext = (elCtx: QContext | null, collector: Collector) => {
+const collectContext = (elCtx: QContext | null | undefined, collector: Collector) => {
   while (elCtx) {
     if (elCtx.$contexts$) {
       for (const obj of elCtx.$contexts$.values()) {
         collectValue(obj, collector, true);
       }
     }
-    elCtx = elCtx.$slotParent$ ?? elCtx.$parent$;
+    elCtx = elCtx.$parentCtx$;
   }
 };
 

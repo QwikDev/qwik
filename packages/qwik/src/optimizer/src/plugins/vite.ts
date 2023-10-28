@@ -1,4 +1,5 @@
 import type { UserConfig, ViteDevServer, Plugin as VitePlugin } from 'vite';
+import { findDepPkgJsonPath } from 'vitefu';
 import { QWIK_LOADER_DEFAULT_DEBUG, QWIK_LOADER_DEFAULT_MINIFIED } from '../scripts';
 import type {
   EntryStrategy,
@@ -600,7 +601,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
     configureServer(server: ViteDevServer) {
       server.middlewares.use(getImageSizeServer(qwikPlugin.getSys(), rootDir!, srcDir!));
-      if (!qwikViteOpts.csr) {
+      const devSsrServer = 'devSsrServer' in qwikViteOpts ? qwikViteOpts.devSsrServer : true;
+      if (!qwikViteOpts.csr && devSsrServer) {
         const plugin = async () => {
           const opts = qwikPlugin.getOptions();
           const sys = qwikPlugin.getSys();
@@ -683,7 +685,6 @@ const findQwikRoots = async (
 ): Promise<QwikPackages[]> => {
   if (sys.env === 'node') {
     const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
-    const { resolvePackageData }: typeof import('vite') = await sys.strictDynamicImport('vite');
 
     try {
       const data = await fs.promises.readFile(packageJsonPath, { encoding: 'utf-8' });
@@ -702,21 +703,23 @@ const findQwikRoots = async (
         }
 
         const basedir = sys.cwd();
-        const qwikDirs = packages
-          .map((id) => {
-            const pkgData = resolvePackageData(id, basedir);
-            if (pkgData) {
-              const qwikPath = pkgData.data['qwik'];
+        const qwikDirs = await Promise.all(
+          packages.map(async (id) => {
+            const pkgJsonPath = await findDepPkgJsonPath(id, basedir);
+            if (pkgJsonPath) {
+              const pkgJsonContent = await fs.promises.readFile(pkgJsonPath, 'utf-8');
+              const pkgJson = JSON.parse(pkgJsonContent);
+              const qwikPath = pkgJson['qwik'];
               if (qwikPath) {
                 return {
                   id,
-                  path: sys.path.resolve(pkgData.dir, qwikPath),
+                  path: sys.path.resolve(sys.path.dirname(pkgJsonPath), qwikPath),
                 };
               }
             }
           })
-          .filter(isNotNullable);
-        return qwikDirs;
+        );
+        return qwikDirs.filter(isNotNullable);
       } catch (e) {
         console.error(e);
       }
@@ -830,6 +833,19 @@ interface QwikVitePluginSSROptions extends QwikVitePluginCommonOptions {
      */
     manifestOutput?: (manifest: QwikManifest) => Promise<void> | void;
   };
+
+  /**
+   * Qwik is SSR first framework. This means that Qwik requires either SSR or SSG. In dev mode the
+   * dev SSR server is responsible for rendering and pausing the application on the server.
+   *
+   * Under normal circumstances this should be on, unless you have your own SSR server which you
+   * would like to use instead and wish to disable this one.
+   *
+   * Default: true
+   */
+  devSsrServer?: boolean;
+
+  /** Controls the SSR behavior. */
   ssr?: {
     /**
      * The entry point for the SSR renderer. This file should export a `render()` function. This

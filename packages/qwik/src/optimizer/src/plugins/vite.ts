@@ -56,10 +56,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   const injections: GlobalInjections[] = [];
   const qwikPlugin = createPlugin(qwikViteOpts.optimizerOptions);
 
-  async function loadQwikInsights(): Promise<InsightManifest | null> {
+  async function loadQwikInsights(clientOutDir?: string | null): Promise<InsightManifest | null> {
     const sys = qwikPlugin.getSys();
     const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
-    const path = sys.path.join(process.cwd(), 'dist', 'q-insights.json');
+    const path = sys.path.join(process.cwd(), clientOutDir ?? 'dist', 'q-insights.json');
     if (fs.existsSync(path)) {
       return JSON.parse(await fs.promises.readFile(path, 'utf-8')) as InsightManifest;
     }
@@ -70,7 +70,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     getOptimizer: () => qwikPlugin.getOptimizer(),
     getOptions: () => qwikPlugin.getOptions(),
     getManifest: () => manifestInput,
-    getInsightsManifest: () => loadQwikInsights(),
+    getInsightsManifest: (clientOutDir?: string | null) => loadQwikInsights(clientOutDir),
     getRootDir: () => qwikPlugin.getOptions().rootDir,
     getClientOutDir: () => clientOutDir,
     getClientPublicOutDir: () => clientPublicOutDir,
@@ -118,7 +118,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
       if (sys.env === 'node' && !qwikViteOpts.entryStrategy) {
         try {
-          const entryStrategy = await loadQwikInsights();
+          const entryStrategy = await loadQwikInsights(
+            !qwikViteOpts.csr ? qwikViteOpts.client?.outDir : undefined
+          );
           if (entryStrategy) {
             qwikViteOpts.entryStrategy = entryStrategy;
           }
@@ -885,7 +887,7 @@ export interface QwikVitePluginApi {
   getOptimizer: () => Optimizer | null;
   getOptions: () => NormalizedQwikPluginOptions;
   getManifest: () => QwikManifest | null;
-  getInsightsManifest: () => Promise<InsightManifest | null>;
+  getInsightsManifest: (clientOutDir?: string | null) => Promise<InsightManifest | null>;
   getRootDir: () => string | null;
   getClientOutDir: () => string | null;
   getClientPublicOutDir: () => string | null;

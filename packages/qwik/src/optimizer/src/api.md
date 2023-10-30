@@ -315,7 +315,7 @@ export interface QwikVitePluginApi {
     // (undocumented)
     getClientPublicOutDir: () => string | null;
     // (undocumented)
-    getInsightsManifest: () => Promise<InsightManifest | null>;
+    getInsightsManifest: (clientOutDir?: string | null) => Promise<InsightManifest | null>;
     // (undocumented)
     getManifest: () => QwikManifest | null;
     // (undocumented)

@@ -39,8 +39,7 @@ export const preferClasslist = {
     },
   },
   create(context) {
-    const modifyJsxSource = context
-      .getSourceCode()
+    const modifyJsxSource = context.sourceCode
       .getAllComments()
       .some((c) => c.value.includes('@jsxImportSource'));
     if (modifyJsxSource) {

@@ -19,7 +19,7 @@ export const loaderLocation: Rule.RuleModule = {
   meta: {
     type: 'problem',
     docs: {
-      description: 'Detect declaration location of loader$',
+      description: 'Detect declaration location of loader$.',
       recommended: true,
       url: 'https://qwik.builder.io/docs/advanced/eslint/#loader-location',
     },

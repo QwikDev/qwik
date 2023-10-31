@@ -6,7 +6,7 @@ export const unusedServer: Rule.RuleModule = {
   meta: {
     type: 'problem',
     docs: {
-      description: 'Detect unused server$() functions',
+      description: 'Detect unused server$() functions.',
       recommended: true,
       url: 'https://qwik.builder.io/docs/advanced/eslint/#unused-server',
     },

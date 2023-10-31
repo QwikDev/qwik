@@ -57,7 +57,7 @@ export const validLexicalScope = createRule({
     const opts: DetectorOptions = {
       allowAny,
     };
-    const scopeManager = context.getSourceCode().scopeManager!;
+    const scopeManager = context.sourceCode.scopeManager!;
     const services = ESLintUtils.getParserServices(context);
     const esTreeNodeToTSNodeMap = services.esTreeNodeToTSNodeMap;
     const typeChecker = services.program.getTypeChecker();
@@ -199,7 +199,7 @@ export const validLexicalScope = createRule({
                       varName: firstArg.expression.name,
                       solution: `const ${firstArg.expression.name} = $(\n${getContent(
                         type.symbol,
-                        context.getSourceCode().text
+                        context.sourceCode.text
                       )}\n);\n`,
                     },
                   });
@@ -345,7 +345,7 @@ function _isTypeCapturable(
     if (level === 0 && ts.isIdentifier(node)) {
       const solution = `const ${node.text} = $(\n${getContent(
         type.symbol,
-        context.getSourceCode().text
+        context.sourceCode.text
       )}\n);`;
       reason += `.\nDid you mean to wrap it in \`$()\`?\n\n${solution}\n`;
     }

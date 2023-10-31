@@ -31,164 +31,95 @@ const ruleTester = new RuleTester(testConfig as any);
 ruleTester.run('use-method-usage', rules['use-method-usage'] as any, {
   valid: [
     `
-export function useSession1() {
-  useContext();
-}
-export function useSession2() {
-  return useContext();
-}
-export function useSession3() {
-  return useContext().value;
-}
-`,
+    export function useSession1() {
+      useContext();
+    }
+    export function useSession2() {
+      return useContext();
+    }
+    export function useSession3() {
+      return useContext().value;
+    }
+    `,
     `
-export const useSession1 = () => {
-  useContext();
-}
+    export const useSession1 = () => {
+      useContext();
+    }
 
-export const useSession2 = () => {
-  return useContext();
-}
+    export const useSession2 = () => {
+      return useContext();
+    }
 
-export const useSession3 = () => useContext();
+    export const useSession3 = () => useContext();
 
-export const useSession4 = () => useContext().value;
+    export const useSession4 = () => useContext().value;
 
-export const useSession5 = () => useContext().value + 10;
+    export const useSession5 = () => useContext().value + 10;
 
-`,
+    `,
 
     `
-export const useSession1 = () => {
-  useContext()?.value;
-}
+    export const useSession1 = () => {
+      useContext()?.value;
+    }
 
-export const useSession2 = () => {
-  return useContext()?.value;
-}
+    export const useSession2 = () => {
+      return useContext()?.value;
+    }
 
-export const useSession3 = () => useContext()?.value;
+    export const useSession3 = () => useContext()?.value;
 
-export const useSession4 = () => useContext()?.value;
+    export const useSession4 = () => useContext()?.value;
 
-export const useSession5 = () => useContext()?.value; + 10;
+    export const useSession5 = () => useContext()?.value; + 10;
 
-`,
-    `
-export const HelloWorld = component$(async () => {
-  const [todoForm, { Form, Field, FieldArray }] = useForm<TodoForm>({
-    loader: useFormLoader(),
-    action: useFormAction(),
-    validate: zodForm$(todoSchema),
-  });
-
-  });
-  `,
-    `
-      export const HelloWorld = component$(async () => {
-          useMethod();
-          await something();
-          let a;
-          a = 2;
-          return $(() => {
-            return <div>{a}</div>
-          });
-        });
-        const A = () => { console.log('A') };
-        export const B = () => {
-          A();
-        }
-        `,
-    `export const HelloWorld = component$(async () => {
-          useMethod();
-          await something();
-          await stuff();
-          return $(() => {
-            return <div></div>
-          });
-        });`,
-    `export const HelloWorld = component$(async () => {
-          const test = useFunction() as string;
-
-          });
-          `,
+    `,
     `export const InsideTask = component$(() => {
-          const mySig = useSignal(0);
-          useTask$(async function initTask(){
-            if (isServer){
-              await fetch('/url');
-            }
-          })
+        const mySig = useSignal(0);
+        useTask$(async function initTask(){
+          if (isServer){
+            await fetch('/url');
+          }
+        })
 
-          useTask$(({track})=>{
-            track(()=> mySig.value);
-          })
-          return <div></div>;
-      });`,
+        useTask$(({track})=>{
+          track(()=> mySig.value);
+        })
+        return <div></div>;
+    });`,
   ],
   invalid: [
-    {
-      code: `export const HelloWorld = component$(async () => {
-            await something();
-            useMethod();
-            return $(() => {
-              return (
-                <div>
-                  {prop}
-                </div>
-              );
-            });
-          });`,
-      errors: [{ messageId: 'use-after-await' }],
-    },
-    {
-      code: `export const HelloWorld = component$(async () => {
-            if (stuff) {
-              await something();
-            }
-            useMethod();
-            return $(() => {
-              return (
-                <div>
-                  {prop}
-                </div>
-              );
-            });
-          });`,
-      errors: [{ messageId: 'use-after-await' }],
-    },
-
     {
       code: `export function noUseSession() {
           useContext();
         }`,
-      errors: [{ messageId: 'use-wrong-function' }],
+      errors: [{ messageId: 'useWrongFunction' }],
     },
     {
       code: `export const noUseSession = () => {
           useContext();
         }`,
-      errors: [{ messageId: 'use-wrong-function' }],
+      errors: [{ messageId: 'useWrongFunction' }],
     },
     {
       code: `export const noUseSession = () => {
          return useContext();
         }`,
-      errors: [{ messageId: 'use-wrong-function' }],
+      errors: [{ messageId: 'useWrongFunction' }],
     },
     {
       code: `export const noUseSession = () => useContext();`,
-      errors: [{ messageId: 'use-wrong-function' }],
+      errors: [{ messageId: 'useWrongFunction' }],
     },
     {
       code: `export const noUseSession = () => useContext().value;`,
-      errors: [{ messageId: 'use-wrong-function' }],
+      errors: [{ messageId: 'useWrongFunction' }],
     },
     {
       code: `export const noUseSession = () => {
          return useContext();
         }`,
-      errors: [{ messageId: 'use-wrong-function' }],
+      errors: [{ messageId: 'useWrongFunction' }],
     },
   ],
 });

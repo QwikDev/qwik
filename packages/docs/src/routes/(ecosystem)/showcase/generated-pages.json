@@ -195,22 +195,6 @@
     "size": "large"
   },
   {
-    "title": "Improve your focus, sleep, and working sessions - Soundy",
-    "href": "https://soundy.cloud/",
-    "imgSrc": "/showcases/soundy_cloud_.webp",
-    "perf": {
-      "score": 0.99,
-      "fcpDisplay": "1.8 s",
-      "fcpScore": 0.91,
-      "lcpDisplay": "1.8 s",
-      "lcpScore": 0.99,
-      "ttiDisplay": "1.8 s",
-      "ttiScore": 1,
-      "ttiTime": 1751.6493382728552
-    },
-    "tags": "saas"
-  },
-  {
     "title": "Crear chatbot WhatsApp en minutos — Servicio de chatbot para whatspp gratis proyecto OpenSource",
     "imgSrc": "/showcases/bot-whatsapp_netlify_app_.webp",
     "perf": {

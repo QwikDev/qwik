@@ -16,7 +16,7 @@ const defaultOptions = {
 };
 
 const messages = {
-  missingIterKey: 'Missing "key" prop for element in iterator',
+  missingIterKey: 'Missing "key" prop for element in iterator.',
   missingIterKeyUsePrag:
     'Missing "key" prop for element in iterator. The key prop allows for improved rendering performance. Shorthand fragment syntax does not support providing keys. Use <Fragment> instead',
   missingArrayKey:
@@ -60,8 +60,7 @@ export const jsxKey = {
   },
 
   create(context) {
-    const modifyJsxSource = context
-      .getSourceCode()
+    const modifyJsxSource = context.sourceCode
       .getAllComments()
       .some((c) => c.value.includes('@jsxImportSource'));
     if (modifyJsxSource) {

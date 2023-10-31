@@ -22,7 +22,6 @@ export async function submoduleServer(config: BuildConfig) {
     outdir: config.distQwikPkgDir,
     sourcemap: config.dev,
     bundle: true,
-    platform: 'node',
     target,
     external: [
       /* no Node.js built-in externals allowed! */ '@builder.io/qwik-dom',
@@ -62,6 +61,7 @@ export async function submoduleServer(config: BuildConfig) {
     },
     outExtension: { '.js': '.cjs' },
     plugins: [importPath(/^@builder\.io\/qwik$/, '@builder.io/qwik'), qwikDomPlugin],
+    platform: 'node',
     target: nodeTarget,
     define: {
       ...(await inlineQwikScriptsEsBuild(config)),

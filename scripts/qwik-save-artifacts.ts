@@ -76,6 +76,7 @@ async function prepare({ buildRepo, artifactsDir }: { buildRepo: string; artifac
     ...(await expand(artifactsDir, ['.gitignore', 'node_modules'])),
     buildRepoDir
   );
+  await $('cp', join(root, 'CONTINUOUS_BUILD.md'), 'README.md');
   await $('git', 'add', '--all');
   await $(
     'git',

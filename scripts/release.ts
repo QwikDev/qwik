@@ -116,7 +116,7 @@ export async function commitPrepareReleaseVersion(config: BuildConfig) {
   await run('git', gitAddArgs);
 
   // git commit the changed package.json
-  const gitCommitArgs = ['commit', '--message', config.distVersion];
+  const gitCommitArgs = ['commit', '--message', `"chore: ${config.distVersion}`];
   await run('git', gitCommitArgs);
 
   console.log(``);

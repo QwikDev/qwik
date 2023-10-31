@@ -259,8 +259,8 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
         if (ctx?.target === 'ssr') {
           // ssr build
           const manifest = qwikPlugin!.api.getManifest();
-          const insightsManifest = await qwikPlugin!.api.getInsightsManifest();
           const clientOutDir = qwikPlugin!.api.getClientOutDir();
+          const insightsManifest = await qwikPlugin!.api.getInsightsManifest(clientOutDir);
 
           if (manifest && clientOutDir) {
             const basePathRelDir = api.getBasePathname().replace(/^\/|\/$/, '');

@@ -34,7 +34,7 @@ export async function qwikInsights(qwikInsightsOpts: {
           logWarn('fail to fetch manifest from Insights DB');
         }
         if (!existsSync(join(process.cwd(), outDir))) {
-          mkdirSync(join(process.cwd(), outDir));
+          mkdirSync(join(process.cwd(), outDir), { recursive: true });
         }
         await writeFile(join(process.cwd(), outDir, 'q-insights.json'), JSON.stringify(qManifest));
       }

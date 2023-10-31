@@ -498,7 +498,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikVitePluginApi \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [getClientOutDir](#) |  | () =&gt; string \\| null |  |\n|  [getClientPublicOutDir](#) |  | () =&gt; string \\| null |  |\n|  [getInsightsManifest](#) |  | () =&gt; Promise&lt;[InsightManifest](#insightmanifest) \\| null&gt; |  |\n|  [getManifest](#) |  | () =&gt; [QwikManifest](#qwikmanifest) \\| null |  |\n|  [getOptimizer](#) |  | () =&gt; [Optimizer](#optimizer) \\| null |  |\n|  [getOptions](#) |  | () =&gt; NormalizedQwikPluginOptions |  |\n|  [getRootDir](#) |  | () =&gt; string \\| null |  |",
+      "content": "```typescript\nexport interface QwikVitePluginApi \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [getClientOutDir](#) |  | () =&gt; string \\| null |  |\n|  [getClientPublicOutDir](#) |  | () =&gt; string \\| null |  |\n|  [getInsightsManifest](#) |  | (clientOutDir?: string \\| null) =&gt; Promise&lt;[InsightManifest](#insightmanifest) \\| null&gt; |  |\n|  [getManifest](#) |  | () =&gt; [QwikManifest](#qwikmanifest) \\| null |  |\n|  [getOptimizer](#) |  | () =&gt; [Optimizer](#optimizer) \\| null |  |\n|  [getOptions](#) |  | () =&gt; NormalizedQwikPluginOptions |  |\n|  [getRootDir](#) |  | () =&gt; string \\| null |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts",
       "mdFile": "qwik.qwikvitepluginapi.md"
     },

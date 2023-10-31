@@ -314,17 +314,16 @@ const parseRequest = async (
   sharedMap: Map<string, any>,
   qwikSerializer: QwikSerializer
 ): Promise<JSONValue | undefined> => {
-  const req = request.clone();
   const type = request.headers.get('content-type')?.split(/[;,]/, 1)[0].trim() ?? '';
   if (type === 'application/x-www-form-urlencoded' || type === 'multipart/form-data') {
-    const formData = await req.formData();
+    const formData = await request.formData();
     sharedMap.set(RequestEvSharedActionFormData, formData);
     return formToObj(formData);
   } else if (type === 'application/json') {
-    const data = await req.json();
+    const data = await request.json();
     return data;
   } else if (type === 'application/qwik-json') {
-    return qwikSerializer._deserializeData(await req.text());
+    return qwikSerializer._deserializeData(await request.text());
   }
   return undefined;
 };

@@ -2,10 +2,11 @@ import { createDOM } from '../../testing/library';
 import { expectDOM } from '../../testing/expect-dom';
 import { inlinedQrl } from '../qrl/qrl';
 import { useStylesQrl } from '../use/use-styles';
-import { type PropsOf, component$ } from './component.public';
+import { type PropsOf, component$, type PropFunctionProps } from './component.public';
 import { useStore } from '../use/use-store.public';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { describe, test } from 'vitest';
+import type { HTMLAttributes } from '../render/jsx/types/jsx-generated';
 
 describe('q-component', () => {
   /**
@@ -112,6 +113,49 @@ describe('q-component', () => {
     </host>
     `
     );
+  });
+
+  test('types work as expected', () => {
+    const Input0 = component$((props) => {
+      return <input {...props} />;
+    });
+
+    const Input1 = component$((props: HTMLAttributes<HTMLInputElement>) => {
+      return <input {...props} />;
+    });
+
+    const Input2 = component$((props: PropFunctionProps<HTMLInputElement>) => {
+      return <input {...props} />;
+    });
+
+    const Input3 = component$((props: Partial<HTMLAttributes<HTMLInputElement>>) => {
+      return <input {...props} />;
+    });
+
+    const Input4 = component$((props: Partial<PropFunctionProps<HTMLInputElement>>) => {
+      return <input {...props} />;
+    });
+
+    type Input5Props = {
+      type: 'text' | 'number';
+    } & Partial<HTMLAttributes<HTMLInputElement>>;
+
+    const Input5 = component$<Input5Props>(({ type, ...props }) => {
+      return <input type={type} {...props} />;
+    });
+
+    component$(() => {
+      return (
+        <>
+          <Input0 value="0" />
+          <Input1 value="1" />
+          <Input2 value="2" />
+          <Input3 value="3" />
+          <Input4 value="4" />
+          <Input5 value="5" type="text" />
+        </>
+      );
+    });
   });
 });
 

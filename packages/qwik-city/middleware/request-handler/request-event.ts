@@ -7,12 +7,15 @@ import type {
   RequestEventCommon,
   ResolveValue,
   QwikSerializer,
+  CacheControlTarget,
+  CacheControl,
 } from './types';
 import type {
   ActionInternal,
   JSONValue,
   LoadedRoute,
   LoaderInternal,
+  FailReturn,
 } from '../../runtime/src/types';
 import { Cookie } from './cookie';
 import { ErrorResponse } from './error-handler';
@@ -22,6 +25,7 @@ import { createCacheControl } from './cache-control';
 import type { ValueOrPromise } from '@builder.io/qwik';
 import type { QwikManifest, ResolvedManifest } from '@builder.io/qwik/optimizer';
 import { IsQData, QDATA_JSON, QDATA_JSON_LEN } from './user-response';
+import { isPromise } from './../../runtime/src/utils';
 
 const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvMode = Symbol('RequestEvMode');
@@ -70,7 +74,7 @@ export function createRequestEvent(
     while (routeModuleIndex < requestHandlers.length) {
       const moduleRequestHandler = requestHandlers[routeModuleIndex];
       const result = moduleRequestHandler(requestEv);
-      if (result instanceof Promise) {
+      if (isPromise(result)) {
         await result;
       }
       routeModuleIndex++;
@@ -149,9 +153,9 @@ export function createRequestEvent(
 
     exit,
 
-    cacheControl: (cacheControl) => {
+    cacheControl: (cacheControl: CacheControl, target: CacheControlTarget = 'Cache-Control') => {
       check();
-      headers.set('Cache-Control', createCacheControl(cacheControl));
+      headers.set(target, createCacheControl(cacheControl));
     },
 
     resolveValue: (async (loaderOrAction: LoaderInternal | ActionInternal) => {
@@ -212,7 +216,7 @@ export function createRequestEvent(
       return typeof returnData === 'function' ? returnData : () => returnData;
     },
 
-    fail: <T extends Record<string, any>>(statusCode: number, data: T) => {
+    fail: <T extends Record<string, any>>(statusCode: number, data: T): FailReturn<T> => {
       check();
       status = statusCode;
       headers.delete('Cache-Control');
@@ -282,7 +286,7 @@ export interface RequestEventInternal extends RequestEvent, RequestEventLoader {
   /**
    * Check if this request is already written to.
    *
-   * @returns true, if `getWritableStream()` has already been called.
+   * @returns `true`, if `getWritableStream()` has already been called.
    */
   isDirty(): boolean;
 }
@@ -310,28 +314,25 @@ const parseRequest = async (
   sharedMap: Map<string, any>,
   qwikSerializer: QwikSerializer
 ): Promise<JSONValue | undefined> => {
-  const req = request.clone();
   const type = request.headers.get('content-type')?.split(/[;,]/, 1)[0].trim() ?? '';
   if (type === 'application/x-www-form-urlencoded' || type === 'multipart/form-data') {
-    const formData = await req.formData();
+    const formData = await request.formData();
     sharedMap.set(RequestEvSharedActionFormData, formData);
     return formToObj(formData);
   } else if (type === 'application/json') {
-    const data = await req.json();
+    const data = await request.json();
     return data;
   } else if (type === 'application/qwik-json') {
-    return qwikSerializer._deserializeData(await req.text());
+    return qwikSerializer._deserializeData(await request.text());
   }
   return undefined;
 };
 
 const formToObj = (formData: FormData): Record<string, any> => {
   /**
-   * Convert FormData to object
-   * Handle nested form input using dot notation
-   * Handle array input using indexed dot notation (name.0, name.0) or bracket notation (name[]),
-   * the later is needed for multiselects
-   * Create values object by form data entries
+   * Convert FormData to object Handle nested form input using dot notation Handle array input using
+   * indexed dot notation (name.0, name.0) or bracket notation (name[]), the later is needed for
+   * multiselects Create values object by form data entries
    */
   const values = [...formData.entries()].reduce<any>((values, [name, value]) => {
     name.split('.').reduce((object: any, key: string, index: number, keys: any) => {

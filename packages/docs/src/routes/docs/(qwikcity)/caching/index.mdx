@@ -1,8 +1,11 @@
 ---
-title: Caching | QwikCity
+title: Caching | Qwik City
+description: Learn how to handle caching in your Qwik City app to keep your site as fast as possible.
 contributors:
   - steve8708
   - harishkrishnan24
+  - maiieul
+  - hamatoyogi
 ---
 
 # Caching Responses
@@ -75,7 +78,7 @@ You can see the full [API reference](https://qwik.builder.io/api/qwik-city-middl
 
 ## When not to cache
 
-Caching is a good default, but not right for every page all the time. If you have URLs on your site that will show different content to different people - such as pages only for logged in users, or pages that show different content based on the user's location, you should not cache those pages using cache-control headers in the response, and server side render the contents of those pages on a per-visitor basis.
+Caching is a good default, but not right for every page all the time. If you have URLs on your site that will show different content to different people - such as pages only for logged in users, or pages that show different content based on the user's location, you should not cache those pages using cache-control headers in the response, and on server side render the contents of those pages on a per-visitor basis.
 
 For high traffic pages that look the same to everyone, such as a homepage, caching is the best thing to do for performance and cost. But for pages only for logged in users, and as a result probably have some degree less traffic, disabling caching may be wise.
 
@@ -93,5 +96,43 @@ export const onGet: RequestHandler = async ({ cacheControl, url }) => {
       staleWhileRevalidate: 60 * 60 * 24 * 365,
     });
   }
+};
+```
+
+## CDN Cache Controls
+
+For even more control on your caching strategy, your CDN might have another layer of cache control headers.
+
+The `cacheControl` convenience method can receive a second argument (set to `"Cache-Control"` by default). You can pass in any string value specific to your CDN such as "CDN-Cache-Control", "Cloudflare-CDN-Cache-Control", "Vercel-CDN-Cache-Control", etc.
+
+```tsx
+cacheControl({
+  maxAge: 5,
+  staleWhileRevalidate: 60 * 60 * 24 * 365,
+}, "CDN-Cache-Control");
+```
+
+### Missing controls
+
+Some CDNs (such as Vercel Edge) may strip some of your "Cache-Control" headers.
+
+[On Vercel's documentation:](https://vercel.com/docs/edge-network/caching#cdn-cache-control)
+> If you set Cache-Control without a CDN-Cache-Control, the Vercel Edge Network strips s-maxage and stale-while-revalidate from the response before sending it to the browser. To determine if the response was served from the cache, check the [x-vercel-cache](https://vercel.com/docs/edge-network/caching#x-vercel-cache) header in the response.
+
+So if your CDN strips some cache control headers away by default (like Vercel Edge) and you want the browser to use "stale-while-revalidate" or "s-maxage", you can add another `cacheControl`:
+
+```tsx title="src/routes/layout.tsx"
+import type { RequestHandler } from "@builder.io/qwik-city";
+
+export const onGet: RequestHandler = async ({ cacheControl }) => {
+    // If you want the browser to use "stale-while-revalidate" or "s-maxage" Cache Control headers, you have to add the second cacheControl with "CDN-Cache-Control" or "Vercel-CDN-Cache-Control" on Vercel Edge 
+    cacheControl({
+      staleWhileRevalidate: 60 * 60 * 24 * 365,
+      maxAge: 5,
+    });
+    cacheControl({
+      maxAge: 5,
+      staleWhileRevalidate: 60 * 60 * 24 * 365,
+    }, "CDN-Cache-Control");
 };
 ```

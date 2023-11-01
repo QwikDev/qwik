@@ -3,7 +3,7 @@
   flex-wrap: wrap;
   align-content: center;
   gap: var(--size-9);
-  height: 90vh;
+  padding: 40px 0;
 }
 
 .wrapper > * {

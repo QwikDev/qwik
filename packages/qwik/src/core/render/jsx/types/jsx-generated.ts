@@ -2,20 +2,20 @@ import * as CSS from 'csstype';
 import type { Signal } from '../../../state/signal';
 import type { DOMAttributes, ClassList } from './jsx-qwik-attributes';
 interface HTMLWebViewElement extends HTMLElement {}
+/** @public */
 export type Booleanish = boolean | `${boolean}`;
+/** @public */
 export type Size = number | string;
+/** @public */
 export type Numberish = number | `${number}`;
 
-/**
- * @public
- */
+/** @public */
 export interface CSSProperties
   extends CSS.Properties<string | number>,
     CSS.PropertiesHyphen<string | number> {
   /**
-   * The index signature was removed to enable closed typing for style
-   * using CSSType. You're able to use type assertion or module augmentation
-   * to add properties or an index signature of your own.
+   * The index signature was removed to enable closed typing for style using CSSType. You're able to
+   * use type assertion or module augmentation to add properties or an index signature of your own.
    *
    * For examples and more information, visit:
    * https://github.com/frenic/csstype#what-should-i-do-when-i-get-type-errors
@@ -23,47 +23,64 @@ export interface CSSProperties
   [v: `--${string}`]: string | number | undefined;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface AriaAttributes {
-  /** Identifies the currently active element when DOM focus is on a composite widget, textbox, group, or application. */
+  /**
+   * Identifies the currently active element when DOM focus is on a composite widget, textbox,
+   * group, or application.
+   */
   'aria-activedescendant'?: string | undefined;
-  /** Indicates whether assistive technologies will present all, or only parts of, the changed region based on the change notifications defined by the aria-relevant attribute. */
+  /**
+   * Indicates whether assistive technologies will present all, or only parts of, the changed region
+   * based on the change notifications defined by the aria-relevant attribute.
+   */
   'aria-atomic'?: Booleanish | undefined;
   /**
-   * Indicates whether inputting text could trigger display of one or more predictions of the user's intended value for an input and specifies how predictions would be
-   * presented if they are made.
+   * Indicates whether inputting text could trigger display of one or more predictions of the user's
+   * intended value for an input and specifies how predictions would be presented if they are made.
    */
   'aria-autocomplete'?: 'none' | 'inline' | 'list' | 'both' | undefined;
-  /** Indicates an element is being modified and that assistive technologies MAY want to wait until the modifications are complete before exposing them to the user. */
+  /**
+   * Indicates an element is being modified and that assistive technologies MAY want to wait until
+   * the modifications are complete before exposing them to the user.
+   */
   'aria-busy'?: Booleanish | undefined;
   /**
    * Indicates the current "checked" state of checkboxes, radio buttons, and other widgets.
+   *
    * @see aria-pressed @see aria-selected.
    */
   'aria-checked'?: boolean | 'false' | 'mixed' | 'true' | undefined;
   /**
    * Defines the total number of columns in a table, grid, or treegrid.
+   *
    * @see aria-colindex.
    */
   'aria-colcount'?: number | undefined;
   /**
-   * Defines an element's column index or position with respect to the total number of columns within a table, grid, or treegrid.
+   * Defines an element's column index or position with respect to the total number of columns
+   * within a table, grid, or treegrid.
+   *
    * @see aria-colcount @see aria-colspan.
    */
   'aria-colindex'?: number | undefined;
   /**
    * Defines the number of columns spanned by a cell or gridcell within a table, grid, or treegrid.
+   *
    * @see aria-colindex @see aria-rowspan.
    */
   'aria-colspan'?: number | undefined;
   /**
-   * Identifies the element (or elements) whose contents or presence are controlled by the current element.
+   * Identifies the element (or elements) whose contents or presence are controlled by the current
+   * element.
+   *
    * @see aria-owns.
    */
   'aria-controls'?: string | undefined;
-  /** Indicates the element that represents the current item within a container or set of related elements. */
+  /**
+   * Indicates the element that represents the current item within a container or set of related
+   * elements.
+   */
   'aria-current'?:
     | boolean
     | 'false'
@@ -76,42 +93,56 @@ export interface AriaAttributes {
     | undefined;
   /**
    * Identifies the element (or elements) that describes the object.
+   *
    * @see aria-labelledby
    */
   'aria-describedby'?: string | undefined;
   /**
    * Identifies the element that provides a detailed, extended description for the object.
+   *
    * @see aria-describedby.
    */
   'aria-details'?: string | undefined;
   /**
-   * Indicates that the element is perceivable but disabled, so it is not editable or otherwise operable.
+   * Indicates that the element is perceivable but disabled, so it is not editable or otherwise
+   * operable.
+   *
    * @see aria-hidden @see aria-readonly.
    */
   'aria-disabled'?: Booleanish | undefined;
   /**
    * Indicates what functions can be performed when a dragged object is released on the drop target.
-   * @deprecated in ARIA 1.1
+   *
+   * @deprecated In ARIA 1.1
    */
   'aria-dropeffect'?: 'none' | 'copy' | 'execute' | 'link' | 'move' | 'popup' | undefined;
   /**
    * Identifies the element that provides an error message for the object.
+   *
    * @see aria-invalid @see aria-describedby.
    */
   'aria-errormessage'?: string | undefined;
-  /** Indicates whether the element, or another grouping element it controls, is currently expanded or collapsed. */
+  /**
+   * Indicates whether the element, or another grouping element it controls, is currently expanded
+   * or collapsed.
+   */
   'aria-expanded'?: Booleanish | undefined;
   /**
-   * Identifies the next element (or elements) in an alternate reading order of content which, at the user's discretion,
-   * allows assistive technology to override the general default of reading in document source order.
+   * Identifies the next element (or elements) in an alternate reading order of content which, at
+   * the user's discretion, allows assistive technology to override the general default of reading
+   * in document source order.
    */
   'aria-flowto'?: string | undefined;
   /**
    * Indicates an element's "grabbed" state in a drag-and-drop operation.
-   * @deprecated in ARIA 1.1
+   *
+   * @deprecated In ARIA 1.1
    */
   'aria-grabbed'?: Booleanish | undefined;
-  /** Indicates the availability and type of interactive popup element, such as menu or dialog, that can be triggered by an element. */
+  /**
+   * Indicates the availability and type of interactive popup element, such as menu or dialog, that
+   * can be triggered by an element.
+   */
   'aria-haspopup'?:
     | boolean
     | 'false'
@@ -124,29 +155,39 @@ export interface AriaAttributes {
     | undefined;
   /**
    * Indicates whether the element is exposed to an accessibility API.
+   *
    * @see aria-disabled.
    */
   'aria-hidden'?: Booleanish | undefined;
   /**
    * Indicates the entered value does not conform to the format expected by the application.
+   *
    * @see aria-errormessage.
    */
   'aria-invalid'?: boolean | 'false' | 'true' | 'grammar' | 'spelling' | undefined;
-  /** Indicates keyboard shortcuts that an author has implemented to activate or give focus to an element. */
+  /**
+   * Indicates keyboard shortcuts that an author has implemented to activate or give focus to an
+   * element.
+   */
   'aria-keyshortcuts'?: string | undefined;
   /**
    * Defines a string value that labels the current element.
+   *
    * @see aria-labelledby.
    */
   'aria-label'?: string | undefined;
   /**
    * Identifies the element (or elements) that labels the current element.
+   *
    * @see aria-describedby.
    */
   'aria-labelledby'?: string | undefined;
   /** Defines the hierarchical level of an element within a structure. */
   'aria-level'?: number | undefined;
-  /** Indicates that an element will be updated, and describes the types of updates the user agents, assistive technologies, and user can expect from the live region. */
+  /**
+   * Indicates that an element will be updated, and describes the types of updates the user agents,
+   * assistive technologies, and user can expect from the live region.
+   */
   'aria-live'?: 'off' | 'assertive' | 'polite' | undefined;
   /** Indicates whether an element is modal when displayed. */
   'aria-modal'?: Booleanish | undefined;
@@ -157,33 +198,42 @@ export interface AriaAttributes {
   /** Indicates whether the element's orientation is horizontal, vertical, or unknown/ambiguous. */
   'aria-orientation'?: 'horizontal' | 'vertical' | undefined;
   /**
-   * Identifies an element (or elements) in order to define a visual, functional, or contextual parent/child relationship
-   * between DOM elements where the DOM hierarchy cannot be used to represent the relationship.
+   * Identifies an element (or elements) in order to define a visual, functional, or contextual
+   * parent/child relationship between DOM elements where the DOM hierarchy cannot be used to
+   * represent the relationship.
+   *
    * @see aria-controls.
    */
   'aria-owns'?: string | undefined;
   /**
-   * Defines a short hint (a word or short phrase) intended to aid the user with data entry when the control has no value.
-   * A hint could be a sample value or a brief description of the expected format.
+   * Defines a short hint (a word or short phrase) intended to aid the user with data entry when the
+   * control has no value. A hint could be a sample value or a brief description of the expected
+   * format.
    */
   'aria-placeholder'?: string | undefined;
   /**
-   * Defines an element's number or position in the current set of listitems or treeitems. Not required if all elements in the set are present in the DOM.
+   * Defines an element's number or position in the current set of listitems or treeitems. Not
+   * required if all elements in the set are present in the DOM.
+   *
    * @see aria-setsize.
    */
   'aria-posinset'?: number | undefined;
   /**
    * Indicates the current "pressed" state of toggle buttons.
+   *
    * @see aria-checked @see aria-selected.
    */
   'aria-pressed'?: boolean | 'false' | 'mixed' | 'true' | undefined;
   /**
    * Indicates that the element is not editable, but is otherwise operable.
+   *
    * @see aria-disabled.
    */
   'aria-readonly'?: Booleanish | undefined;
   /**
-   * Indicates what notifications the user agent will trigger when the accessibility tree within a live region is modified.
+   * Indicates what notifications the user agent will trigger when the accessibility tree within a
+   * live region is modified.
+   *
    * @see aria-atomic.
    */
   'aria-relevant'?:
@@ -204,26 +254,33 @@ export interface AriaAttributes {
   'aria-roledescription'?: string | undefined;
   /**
    * Defines the total number of rows in a table, grid, or treegrid.
+   *
    * @see aria-rowindex.
    */
   'aria-rowcount'?: number | undefined;
   /**
-   * Defines an element's row index or position with respect to the total number of rows within a table, grid, or treegrid.
+   * Defines an element's row index or position with respect to the total number of rows within a
+   * table, grid, or treegrid.
+   *
    * @see aria-rowcount @see aria-rowspan.
    */
   'aria-rowindex'?: number | undefined;
   /**
    * Defines the number of rows spanned by a cell or gridcell within a table, grid, or treegrid.
+   *
    * @see aria-rowindex @see aria-colspan.
    */
   'aria-rowspan'?: number | undefined;
   /**
    * Indicates the current "selected" state of various widgets.
+   *
    * @see aria-checked @see aria-pressed.
    */
   'aria-selected'?: Booleanish | undefined;
   /**
-   * Defines the number of items in the current set of listitems or treeitems. Not required if all elements in the set are present in the DOM.
+   * Defines the number of items in the current set of listitems or treeitems. Not required if all
+   * elements in the set are present in the DOM.
+   *
    * @see aria-posinset.
    */
   'aria-setsize'?: number | undefined;
@@ -235,6 +292,7 @@ export interface AriaAttributes {
   'aria-valuemin'?: number | undefined;
   /**
    * Defines the current value for a range widget.
+   *
    * @see aria-valuetext.
    */
   'aria-valuenow'?: number | undefined;
@@ -242,9 +300,7 @@ export interface AriaAttributes {
   'aria-valuetext'?: string | undefined;
 }
 
-/**
- * @public
- */
+/** @public */
 export type AriaRole =
   | 'alert'
   | 'alertdialog'
@@ -317,9 +373,8 @@ export type AriaRole =
   | 'treeitem'
   | (string & {});
 
-/**
- * @public
- */
+/** @public */
+/** @public */
 export interface HTMLAttributes<T extends Element> extends AriaAttributes, DOMAttributes<T> {
   accessKey?: string | undefined;
   contentEditable?: 'true' | 'false' | 'inherit' | undefined;
@@ -364,7 +419,9 @@ export interface HTMLAttributes<T extends Element> extends AriaAttributes, DOMAt
   unselectable?: 'on' | 'off' | undefined;
 
   /**
-   * Hints at the type of data that might be entered by the user while editing the element or its contents
+   * Hints at the type of data that might be entered by the user while editing the element or its
+   * contents
+   *
    * @see https://html.spec.whatwg.org/multipage/interaction.html#input-modalities:-the-inputmode-attribute
    */
   inputMode?:
@@ -379,11 +436,14 @@ export interface HTMLAttributes<T extends Element> extends AriaAttributes, DOMAt
     | undefined;
   /**
    * Specify that a standard HTML element should behave like a defined custom built-in element
+   *
    * @see https://html.spec.whatwg.org/multipage/custom-elements.html#attr-is
    */
   is?: string | undefined;
 }
+/** @public */
 export type HTMLAttributeAnchorTarget = '_self' | '_blank' | '_parent' | '_top' | (string & {});
+/** @public */
 export type HTMLAttributeReferrerPolicy =
   | ''
   | 'no-referrer'
@@ -394,6 +454,7 @@ export type HTMLAttributeReferrerPolicy =
   | 'strict-origin'
   | 'strict-origin-when-cross-origin'
   | 'unsafe-url';
+/** @public */
 export interface AnchorHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   download?: any;
   href?: string | undefined;
@@ -405,6 +466,7 @@ export interface AnchorHTMLAttributes<T extends Element> extends HTMLAttributes<
   type?: string | undefined;
   referrerPolicy?: HTMLAttributeReferrerPolicy | undefined;
 }
+/** @public */
 export interface AreaHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   alt?: string | undefined;
   coords?: string | undefined;
@@ -418,6 +480,7 @@ export interface AreaHTMLAttributes<T extends Element> extends HTMLAttributes<T>
   target?: string | undefined;
   children?: undefined;
 }
+/** @public */
 export interface MediaHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   autoPlay?: boolean | undefined;
   controls?: boolean | undefined;
@@ -430,15 +493,19 @@ export interface MediaHTMLAttributes<T extends Element> extends HTMLAttributes<T
   preload?: string | undefined;
   src?: string | undefined;
 }
+/** @public */
 export interface AudioHTMLAttributes<T extends Element> extends MediaHTMLAttributes<T> {}
+/** @public */
 export interface BaseHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   href?: string | undefined;
   target?: string | undefined;
   children?: undefined;
 }
+/** @public */
 export interface BlockquoteHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   cite?: string | undefined;
 }
+/** @public */
 export interface ButtonHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   autoFocus?: boolean | undefined;
   disabled?: boolean | undefined;
@@ -452,32 +519,40 @@ export interface ButtonHTMLAttributes<T extends Element> extends HTMLAttributes<
   type?: 'submit' | 'reset' | 'button' | undefined;
   value?: string | ReadonlyArray<string> | number | undefined;
 }
+/** @public */
 export interface CanvasHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   height?: Size | undefined;
   width?: Size | undefined;
 }
+/** @public */
 export interface ColHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   span?: number | undefined;
   width?: Size | undefined;
   children?: undefined;
 }
+/** @public */
 export interface ColgroupHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   span?: number | undefined;
 }
+/** @public */
 export interface DataHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   value?: string | ReadonlyArray<string> | number | undefined;
 }
+/** @public */
 export interface DelHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   cite?: string | undefined;
   dateTime?: string | undefined;
 }
 
+/** @public */
 export interface DetailsHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   open?: boolean | undefined;
 }
+/** @public */
 export interface DialogHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   open?: boolean | undefined;
 }
+/** @public */
 export interface EmbedHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   height?: Size | undefined;
   src?: string | undefined;
@@ -485,11 +560,13 @@ export interface EmbedHTMLAttributes<T extends Element> extends HTMLAttributes<T
   width?: Size | undefined;
   children?: undefined;
 }
+/** @public */
 export interface FieldsetHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   disabled?: boolean | undefined;
   form?: string | undefined;
   name?: string | undefined;
 }
+/** @public */
 export interface FormHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   acceptCharset?: string | undefined;
   action?: string | undefined;
@@ -500,9 +577,11 @@ export interface FormHTMLAttributes<T extends Element> extends HTMLAttributes<T>
   noValidate?: boolean | undefined;
   target?: string | undefined;
 }
+/** @public */
 export interface HtmlHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   manifest?: string | undefined;
 }
+/** @public */
 export interface IframeHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   allow?: string | undefined;
   allowFullScreen?: boolean | undefined;
@@ -526,14 +605,13 @@ export interface IframeHTMLAttributes<T extends Element> extends HTMLAttributes<
   width?: Size | undefined;
   children?: undefined;
 }
+/** @public */
 export interface ImgHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   alt?: string | undefined;
   crossOrigin?: HTMLCrossOriginAttribute;
   decoding?: 'async' | 'auto' | 'sync' | undefined;
 
-  /**
-   * Intrinsic height of the image in pixels.
-   */
+  /** Intrinsic height of the image in pixels. */
   height?: Numberish | undefined;
   loading?: 'eager' | 'lazy' | undefined;
   referrerPolicy?: HTMLAttributeReferrerPolicy | undefined;
@@ -542,19 +620,18 @@ export interface ImgHTMLAttributes<T extends Element> extends HTMLAttributes<T> 
   srcSet?: string | undefined;
   useMap?: string | undefined;
 
-  /**
-   * Intrinsic width of the image in pixels.
-   */
+  /** Intrinsic width of the image in pixels. */
   width?: Numberish | undefined;
   children?: undefined;
 }
 
+/** @public */
 export interface HrHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   children?: undefined;
 }
-
+/** @public */
 export type HTMLCrossOriginAttribute = 'anonymous' | 'use-credentials' | '' | undefined;
-
+/** @public */
 export type HTMLInputTypeAttribute =
   | 'button'
   | 'checkbox'
@@ -580,6 +657,7 @@ export type HTMLInputTypeAttribute =
   | 'week'
   | (string & {});
 
+/** @public */
 export type HTMLInputAutocompleteAttribute =
   | 'on'
   | 'off'
@@ -630,6 +708,7 @@ export type HTMLInputAutocompleteAttribute =
   | 'url'
   | 'photo';
 
+/** @public */
 export interface InputHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   accept?: string | undefined;
   alt?: string | undefined;
@@ -671,10 +750,12 @@ export interface InputHTMLAttributes<T extends Element> extends HTMLAttributes<T
   width?: Size | undefined;
   children?: undefined;
 }
+/** @public */
 export interface InsHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   cite?: string | undefined;
   dateTime?: string | undefined;
 }
+/** @public */
 export interface KeygenHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   autoFocus?: boolean | undefined;
   challenge?: string | undefined;
@@ -685,13 +766,16 @@ export interface KeygenHTMLAttributes<T extends Element> extends HTMLAttributes<
   name?: string | undefined;
   children?: undefined;
 }
+/** @public */
 export interface LabelHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   form?: string | undefined;
   for?: string | undefined;
 }
+/** @public */
 export interface LiHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   value?: string | ReadonlyArray<string> | number | undefined;
 }
+/** @public */
 export interface LinkHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   as?: string | undefined;
   crossOrigin?: HTMLCrossOriginAttribute;
@@ -708,12 +792,15 @@ export interface LinkHTMLAttributes<T extends Element> extends HTMLAttributes<T>
   charSet?: string | undefined;
   children?: undefined;
 }
+/** @public */
 export interface MapHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   name?: string | undefined;
 }
+/** @public */
 export interface MenuHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   type?: string | undefined;
 }
+/** @public */
 export interface MetaHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   charSet?: string | undefined;
   content?: string | undefined;
@@ -722,6 +809,7 @@ export interface MetaHTMLAttributes<T extends Element> extends HTMLAttributes<T>
   media?: string | undefined;
   children?: undefined;
 }
+/** @public */
 export interface MeterHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   form?: string | undefined;
   high?: number | undefined;
@@ -731,6 +819,7 @@ export interface MeterHTMLAttributes<T extends Element> extends HTMLAttributes<T
   optimum?: number | undefined;
   value?: string | ReadonlyArray<string> | number | undefined;
 }
+/** @public */
 export interface ObjectHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   classID?: string | undefined;
   data?: string | undefined;
@@ -742,15 +831,18 @@ export interface ObjectHTMLAttributes<T extends Element> extends HTMLAttributes<
   width?: Size | undefined;
   wmode?: string | undefined;
 }
+/** @public */
 export interface OlHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   reversed?: boolean | undefined;
   start?: number | undefined;
   type?: '1' | 'a' | 'A' | 'i' | 'I' | undefined;
 }
+/** @public */
 export interface OptgroupHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   disabled?: boolean | undefined;
   label?: string | undefined;
 }
+/** @public */
 export interface OptionHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   disabled?: boolean | undefined;
   label?: string | undefined;
@@ -758,26 +850,32 @@ export interface OptionHTMLAttributes<T extends Element> extends HTMLAttributes<
   value?: string | ReadonlyArray<string> | number | undefined;
   children?: string;
 }
+/** @public */
 export interface OutputHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   form?: string | undefined;
   for?: string | undefined;
   name?: string | undefined;
 }
+/** @public */
 export interface ParamHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   name?: string | undefined;
   value?: string | ReadonlyArray<string> | number | undefined;
   children?: undefined;
 }
+/** @public */
 export interface ProgressHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   max?: number | string | undefined;
   value?: string | ReadonlyArray<string> | number | undefined;
 }
+/** @public */
 export interface QuoteHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   cite?: string | undefined;
 }
+/** @public */
 export interface SlotHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   name?: string | undefined;
 }
+/** @public */
 export interface ScriptHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   async?: boolean | undefined;
   /** @deprecated Deprecated */
@@ -791,6 +889,7 @@ export interface ScriptHTMLAttributes<T extends Element> extends HTMLAttributes<
   src?: string | undefined;
   type?: string | undefined;
 }
+/** @public */
 export interface SelectHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   autoComplete?:
     | HTMLInputAutocompleteAttribute
@@ -806,6 +905,7 @@ export interface SelectHTMLAttributes<T extends Element> extends HTMLAttributes<
   value?: string | ReadonlyArray<string> | number | undefined;
   'bind:value'?: Signal<string | undefined>;
 }
+/** @public */
 export interface SourceHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   height?: Size | undefined;
   media?: string | undefined;
@@ -816,6 +916,7 @@ export interface SourceHTMLAttributes<T extends Element> extends HTMLAttributes<
   width?: Size | undefined;
   children?: undefined;
 }
+/** @public */
 export interface StyleHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   media?: string | undefined;
   nonce?: string | undefined;
@@ -823,12 +924,14 @@ export interface StyleHTMLAttributes<T extends Element> extends HTMLAttributes<T
   type?: string | undefined;
   children?: string;
 }
+/** @public */
 export interface TableHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   cellPadding?: number | string | undefined;
   cellSpacing?: number | string | undefined;
   summary?: string | undefined;
   width?: Size | undefined;
 }
+/** @public */
 export interface TdHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   align?: 'left' | 'center' | 'right' | 'justify' | 'char' | undefined;
   colSpan?: number | undefined;
@@ -840,6 +943,7 @@ export interface TdHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   width?: Size | undefined;
   valign?: 'top' | 'middle' | 'bottom' | 'baseline' | undefined;
 }
+/** @public */
 export interface TextareaHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   autoComplete?:
     | HTMLInputAutocompleteAttribute
@@ -865,6 +969,7 @@ export interface TextareaHTMLAttributes<T extends Element> extends HTMLAttribute
   /** @deprecated - Use the `value` property instead */
   children?: undefined;
 }
+/** @public */
 export interface ThHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   align?: 'left' | 'center' | 'right' | 'justify' | 'char' | undefined;
   colSpan?: number | undefined;
@@ -873,12 +978,15 @@ export interface ThHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   scope?: string | undefined;
   abbr?: string | undefined;
 }
+/** @public */
 export interface TimeHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   dateTime?: string | undefined;
 }
+/** @public */
 export interface TitleHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   children?: string;
 }
+/** @public */
 export interface TrackHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   default?: boolean | undefined;
   kind?: string | undefined;
@@ -887,6 +995,7 @@ export interface TrackHTMLAttributes<T extends Element> extends HTMLAttributes<T
   srcLang?: string | undefined;
   children?: undefined;
 }
+/** @public */
 export interface VideoHTMLAttributes<T extends Element> extends MediaHTMLAttributes<T> {
   height?: Numberish | undefined;
   playsInline?: boolean | undefined;
@@ -895,6 +1004,7 @@ export interface VideoHTMLAttributes<T extends Element> extends MediaHTMLAttribu
   disablePictureInPicture?: boolean | undefined;
   disableRemotePlayback?: boolean | undefined;
 }
+/** @public */
 export interface WebViewHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   allowFullScreen?: boolean | undefined;
   allowpopups?: boolean | undefined;
@@ -914,6 +1024,7 @@ export interface WebViewHTMLAttributes<T extends Element> extends HTMLAttributes
   useragent?: string | undefined;
   webpreferences?: string | undefined;
 }
+/** @public */
 export interface SVGAttributes<T extends Element> extends AriaAttributes, DOMAttributes<T> {
   class?: ClassList | undefined;
   /** @deprecated - Use `class` instead */
@@ -1192,9 +1303,11 @@ export interface SVGAttributes<T extends Element> extends AriaAttributes, DOMAtt
   z?: number | string | undefined;
   zoomAndPan?: string | undefined;
 }
+/** @public */
 export interface SVGProps<T extends Element> extends SVGAttributes<T> {}
-
+/** @public */
 export interface IntrinsicElements extends IntrinsicHTMLElements, IntrinsicSVGElements {}
+/** @public */
 export interface IntrinsicHTMLElements {
   a: AnchorHTMLAttributes<HTMLAnchorElement>;
   abbr: HTMLAttributes<HTMLElement>;
@@ -1315,6 +1428,7 @@ export interface IntrinsicHTMLElements {
   webview: WebViewHTMLAttributes<HTMLWebViewElement>;
 }
 
+/** @public */
 export interface IntrinsicSVGElements {
   svg: SVGProps<SVGSVGElement>;
   animate: SVGProps<SVGElement>;

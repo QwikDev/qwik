@@ -309,8 +309,17 @@ const shouldSsrRender = (req: IncomingMessage, url: URL) => {
   if (InternalPrefixRE.test(url.pathname)) {
     return false;
   }
+  if (pathname.includes('@builder.io/qwik/build')) {
+    return false;
+  }
   const acceptHeader = req.headers.accept || '';
-  if (!acceptHeader.includes('text/html')) {
+  const accepts = acceptHeader.split(',').map((accept) => accept.split(';')[0]);
+  if (accepts.length == 1 && accepts.includes('*/*')) {
+    // special case for curl where the default is `*/*` with no additional headers
+    return true;
+  }
+
+  if (!accepts.includes('text/html')) {
     return false;
   }
   return true;

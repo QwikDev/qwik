@@ -4,21 +4,17 @@ import { isFunction } from '../util/types';
 import { invoke } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';
 
-/**
- * @public
- */
+/** @public */
 export interface UseSignal {
   <T>(): Signal<T | undefined>;
   <T>(value: T | (() => T)): Signal<T>;
 }
 
-/**
- * @public
- */
+/** @public */
 export const useSignal: UseSignal = <STATE>(initialState?: STATE): Signal<STATE> => {
-  const { get, set, iCtx } = useSequentialScope<Signal<STATE>>();
-  if (get != null) {
-    return get;
+  const { val, set, iCtx } = useSequentialScope<Signal<STATE>>();
+  if (val != null) {
+    return val;
   }
 
   const containerState = iCtx.$renderCtx$.$static$.$containerState$;

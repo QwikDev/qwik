@@ -1,10 +1,5 @@
 import { Fragment, jsx, type JSXNode } from '@builder.io/qwik';
-import {
-  flattenPrefetchResources,
-  getMostReferenced,
-  prefetchUrlsEventScript,
-  workerFetchScript,
-} from './prefetch-utils';
+import { flattenPrefetchResources, getMostReferenced, workerFetchScript } from './prefetch-utils';
 import type { PrefetchImplementation, PrefetchResource, PrefetchStrategy } from './types';
 
 export function applyPrefetchImplementation(
@@ -56,16 +51,14 @@ function prefetchUrlsEvent(
   }
   prefetchNodes.push(
     jsx('script', {
-      dangerouslySetInnerHTML: prefetchUrlsEventScript(prefetchResources),
+      'q:type': 'prefetch-bundles',
+      dangerouslySetInnerHTML: `document.dispatchEvent(new CustomEvent('qprefetch', {detail:{links: [location.pathname]}}))`,
       nonce,
     })
   );
 }
 
-/**
- * Creates the `<link>` within the rendered html.
- * Optionally add the JS worker fetch
- */
+/** Creates the `<link>` within the rendered html. Optionally add the JS worker fetch */
 function linkHtmlImplementation(
   prefetchNodes: JSXNode[],
   prefetchResources: PrefetchResource[],
@@ -89,9 +82,8 @@ function linkHtmlImplementation(
 }
 
 /**
- * Uses JS to add the `<link>` elements at runtime, and if the
- * link prefetching isn't supported, it'll also add the
- * web worker fetch.
+ * Uses JS to add the `<link>` elements at runtime, and if the link prefetching isn't supported,
+ * it'll also add the web worker fetch.
  */
 function linkJsImplementation(
   prefetchNodes: JSXNode[],
@@ -138,6 +130,7 @@ function linkJsImplementation(
   prefetchNodes.push(
     jsx('script', {
       type: 'module',
+      'q:type': 'link-js',
       dangerouslySetInnerHTML: s,
       nonce,
     })
@@ -155,6 +148,7 @@ function workerFetchImplementation(
   prefetchNodes.push(
     jsx('script', {
       type: 'module',
+      'q:type': 'prefetch-worker',
       dangerouslySetInnerHTML: s,
       nonce,
     })

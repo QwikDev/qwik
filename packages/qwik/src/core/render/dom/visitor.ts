@@ -1,7 +1,7 @@
 import { ELEMENT_ID, OnRenderProp, QSlot, QSlotRef, QSlotS, QStyle } from '../../util/markers';
 import { isOnProp, PREVENT_DEFAULT, setEvent } from '../../state/listeners';
 import type { ValueOrPromise } from '../../util/types';
-import { isPromise, promiseAll, promiseAllLazy, then } from '../../util/promises';
+import { isPromise, promiseAll, promiseAllLazy, maybeThen } from '../../util/promises';
 import {
   assertDefined,
   assertElement,
@@ -215,7 +215,7 @@ export const diffChildren = (
         elmToMove = oldCh[idxInOld];
         if (elmToMove.$type$ !== newStartVnode.$type$) {
           const newElm = createElm(ctx, newStartVnode, flags, results);
-          then(newElm, (newElm) => {
+          maybeThen(newElm, (newElm) => {
             insertBefore(staticCtx, parentElm, newElm, oldStartVnode?.$elm$);
           });
         } else {
@@ -236,7 +236,7 @@ export const diffChildren = (
 
   let wait = promiseAll(results) as any;
   if (oldStartIdx <= oldEndIdx) {
-    wait = then(wait, () => {
+    wait = maybeThen(wait, () => {
       removeChildren(staticCtx, oldCh, oldStartIdx, oldEndIdx);
     });
   }
@@ -483,7 +483,7 @@ export const diffVnode = (
     // we need to render the nested component, and wait before projecting the content
     // since otherwise we don't know where the slots
     if (needsRender) {
-      return then(renderComponent(rCtx, elCtx, flags), () =>
+      return maybeThen(renderComponent(rCtx, elCtx, flags), () =>
         renderContentProjection(rCtx, elCtx, newVnode, flags)
       );
     }
@@ -627,7 +627,7 @@ const getSlotCtx = (
   }
   const template = createTemplate(staticCtx.$doc$, slotName);
   const elCtx = createContext(template);
-  elCtx.$parent$ = hostCtx;
+  elCtx.$parentCtx$ = hostCtx;
   prepend(staticCtx, hostCtx.$element$, template);
   slotMaps.templates[slotName] = template;
   return elCtx;
@@ -686,8 +686,7 @@ const createElm = (
 
   vnode.$elm$ = elm;
   const elCtx = createContext(elm);
-  elCtx.$parent$ = rCtx.$cmpCtx$;
-  elCtx.$slotParent$ = rCtx.$slotCtx$;
+  elCtx.$parentCtx$ = rCtx.$slotCtx$ ?? rCtx.$cmpCtx$;
   if (!isVirtual) {
     if (qDev && qInspector) {
       const dev = vnode.$dev$;
@@ -765,7 +764,7 @@ const createElm = (
     // Run mount hook
     elCtx.$componentQrl$ = renderQRL;
 
-    const wait = then(renderComponent(rCtx, elCtx, flags), () => {
+    const wait = maybeThen(renderComponent(rCtx, elCtx, flags), () => {
       let children = vnode.$children$;
       if (children.length === 0) {
         return;

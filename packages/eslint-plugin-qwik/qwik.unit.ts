@@ -1,11 +1,16 @@
-/* eslint-disable */
+import * as vitest from 'vitest';
 // @ts-ignore
 import { RuleTester } from '@typescript-eslint/rule-tester';
+
 import { fileURLToPath } from 'node:url';
-import { suite } from 'uvu';
 import { rules } from './index';
 
-const lintSuite = suite('lint');
+// https://typescript-eslint.io/packages/rule-tester/#vitest
+RuleTester.afterAll = vitest.afterAll;
+RuleTester.it = vitest.it;
+RuleTester.itOnly = vitest.it.only;
+RuleTester.describe = vitest.describe;
+
 const testConfig = {
   parser: '@typescript-eslint/parser',
   env: {
@@ -22,175 +27,99 @@ const testConfig = {
   },
 };
 
-RuleTester.afterAll = lintSuite.after;
-RuleTester.it = lintSuite;
-RuleTester.itOnly = lintSuite.only;
-RuleTester.describe = function (_, method) {
-  return method.call(this);
-};
-
 const ruleTester = new RuleTester(testConfig as any);
 ruleTester.run('use-method-usage', rules['use-method-usage'] as any, {
   valid: [
     `
-export function useSession1() {
-  useContext();
-}
-export function useSession2() {
-  return useContext();
-}
-export function useSession3() {
-  return useContext().value;
-}
-`,
+    export function useSession1() {
+      useContext();
+    }
+    export function useSession2() {
+      return useContext();
+    }
+    export function useSession3() {
+      return useContext().value;
+    }
+    `,
     `
-export const useSession1 = () => {
-  useContext();
-}
+    export const useSession1 = () => {
+      useContext();
+    }
 
-export const useSession2 = () => {
-  return useContext();
-}
+    export const useSession2 = () => {
+      return useContext();
+    }
 
-export const useSession3 = () => useContext();
+    export const useSession3 = () => useContext();
 
-export const useSession4 = () => useContext().value;
+    export const useSession4 = () => useContext().value;
 
-export const useSession5 = () => useContext().value + 10;
+    export const useSession5 = () => useContext().value + 10;
 
-`,
+    `,
 
     `
-export const useSession1 = () => {
-  useContext()?.value;
-}
+    export const useSession1 = () => {
+      useContext()?.value;
+    }
 
-export const useSession2 = () => {
-  return useContext()?.value;
-}
+    export const useSession2 = () => {
+      return useContext()?.value;
+    }
 
-export const useSession3 = () => useContext()?.value;
+    export const useSession3 = () => useContext()?.value;
 
-export const useSession4 = () => useContext()?.value;
+    export const useSession4 = () => useContext()?.value;
 
-export const useSession5 = () => useContext()?.value; + 10;
+    export const useSession5 = () => useContext()?.value; + 10;
 
-`,
-    `
-export const HelloWorld = component$(async () => {
-  const [todoForm, { Form, Field, FieldArray }] = useForm<TodoForm>({
-    loader: useFormLoader(),
-    action: useFormAction(),
-    validate: zodForm$(todoSchema),
-  });
-
-  });
-  `,
-    `
-      export const HelloWorld = component$(async () => {
-          useMethod();
-          await something();
-          let a;
-          a = 2;
-          return $(() => {
-            return <div>{a}</div>
-          });
-        });
-        const A = () => { console.log('A') };
-        export const B = () => {
-          A();
-        }
-        `,
-    `export const HelloWorld = component$(async () => {
-          useMethod();
-          await something();
-          await stuff();
-          return $(() => {
-            return <div></div>
-          });
-        });`,
-    `export const HelloWorld = component$(async () => {
-          const test = useFunction() as string;
-
-          });
-          `,
+    `,
     `export const InsideTask = component$(() => {
-          const mySig = useSignal(0);
-          useTask$(async function initTask(){
-            if (isServer){
-              await fetch('/url');
-            }
-          })
+        const mySig = useSignal(0);
+        useTask$(async function initTask(){
+          if (isServer){
+            await fetch('/url');
+          }
+        })
 
-          useTask$(({track})=>{
-            track(()=> mySig.value);
-          })
-          return <div></div>;
-      });`,
+        useTask$(({track})=>{
+          track(()=> mySig.value);
+        })
+        return <div></div>;
+    });`,
   ],
   invalid: [
-    {
-      code: `export const HelloWorld = component$(async () => {
-            await something();
-            useMethod();
-            return $(() => {
-              return (
-                <div>
-                  {prop}
-                </div>
-              );
-            });
-          });`,
-      errors: [{ messageId: 'use-after-await' }],
-    },
-    {
-      code: `export const HelloWorld = component$(async () => {
-            if (stuff) {
-              await something();
-            }
-            useMethod();
-            return $(() => {
-              return (
-                <div>
-                  {prop}
-                </div>
-              );
-            });
-          });`,
-      errors: [{ messageId: 'use-after-await' }],
-    },
-
     {
       code: `export function noUseSession() {
           useContext();
         }`,
-      errors: [{ messageId: 'use-wrong-function' }],
+      errors: [{ messageId: 'useWrongFunction' }],
     },
     {
       code: `export const noUseSession = () => {
           useContext();
         }`,
-      errors: [{ messageId: 'use-wrong-function' }],
+      errors: [{ messageId: 'useWrongFunction' }],
     },
     {
       code: `export const noUseSession = () => {
          return useContext();
         }`,
-      errors: [{ messageId: 'use-wrong-function' }],
+      errors: [{ messageId: 'useWrongFunction' }],
     },
     {
       code: `export const noUseSession = () => useContext();`,
-      errors: [{ messageId: 'use-wrong-function' }],
+      errors: [{ messageId: 'useWrongFunction' }],
     },
     {
       code: `export const noUseSession = () => useContext().value;`,
-      errors: [{ messageId: 'use-wrong-function' }],
+      errors: [{ messageId: 'useWrongFunction' }],
     },
     {
       code: `export const noUseSession = () => {
          return useContext();
         }`,
-      errors: [{ messageId: 'use-wrong-function' }],
+      errors: [{ messageId: 'useWrongFunction' }],
     },
   ],
 });
@@ -360,7 +289,6 @@ export const RemoteApp = component$(({ name }: { name: string }) => {
               console.log(a);
             }}></div>;
           });`,
-
     `
   export interface PropFnInterface<ARGS extends any[], RET> {
     (...args: ARGS): Promise<RET>
@@ -386,7 +314,6 @@ export const RemoteApp = component$(({ name }: { name: string }) => {
     }}></div>;
   });
       `,
-    ``,
     `
 import { component$ } from "@builder.io/qwik";
 
@@ -427,6 +354,29 @@ export default component$(() => {
             useMethod(foo);
             return <div></div>
           });`,
+    `
+      import {Component, component$, useStore} from '@builder.io/qwik';
+      export const PopupManager = component$(() => {
+        const popup = useStore({
+            component: null as null | Component<any>,
+            props: null as any,
+            visible: false,
+            x: 0,
+            y: 0,
+        });
+        return (
+            <div
+                document:onMouseEnter$={(e) => {
+                popup.visible = true;
+            }}
+                document:onMouseLeave$={(e) => {
+                popup.visible = true;
+            }}
+            >
+            </div>
+        );
+      });
+    `,
   ],
   invalid: [
     {
@@ -642,6 +592,57 @@ ruleTester.run('jsx-img', rules['jsx-img'], {
   ],
 });
 
-lintSuite.run();
+ruleTester.run('jsx-a', rules['jsx-a'], {
+  valid: [`<a href={value} />`, `<a {...props}/>`],
+  invalid: [
+    {
+      code: `<a/>`,
+      errors: [{ messageId: 'noHref' }],
+    },
+    {
+      code: `<a style='display:block;' />`,
+      errors: [{ messageId: 'noHref' }],
+    },
+  ],
+});
 
-export {};
+ruleTester.run('qwik/loader-location', rules['loader-location'], {
+  valid: [
+    {
+      filename: './src/routes/index.tsx',
+      code: `
+        import { routeLoader$ } from '@builder.io/qwik-city';
+
+        export const useProductDetails = routeLoader$(async (requestEvent) => {
+          const res = await fetch(\`https://.../products/\${requestEvent.params.productId}\`);
+          const product = await res.json();
+          return product as Product;
+        });
+      `,
+    },
+    {
+      filename: './src/routes/index.tsx',
+      code: `
+        import { routeLoader$ } from "@builder.io/qwik-city";
+        export { useFormLoader };
+        const useFormLoader = routeLoader$(() => {
+          return null;
+        });
+      `,
+    },
+  ],
+  invalid: [
+    {
+      filename: './src/routes/index.tsx',
+      code: `
+        import { routeLoader$ } from '@builder.io/qwik-city';
+        const useProductDetails = routeLoader$(async (requestEvent) => {
+          const res = await fetch(\`https://.../products/\${requestEvent.params.productId}\`);
+          const product = await res.json();
+          return product as Product;
+        });
+      `,
+      errors: [{ messageId: 'missingExport' }],
+    },
+  ],
+});

@@ -1,10 +1,26 @@
 [
   {
+    "href": "https://quotemingle.com/",
+    "tags": "site"
+  },
+  {
+    "href": "https://frostytools.com",
+    "tags": "saas"
+  },
+  {
+    "href": "https://www.dimension.dev",
+    "tags": "saas"
+  },
+  {
     "href": "https://wope.com/",
     "tags": "saas"
   },
   {
     "href": "https://www.builder.io/",
+    "tags": "saas"
+  },
+  {
+    "href": "https://reflect.app/",
     "tags": "saas"
   },
   {
@@ -16,12 +32,9 @@
     "tags": "portfolio"
   },
   {
-    "href": "https://reflect.app/",
-    "tags": "saas"
-  },
-  {
-    "href": "https://realmof.tech/",
-    "tags": "portfolio"
+    "href": "https://qwik-city-movies-wm.netlify.app/",
+    "size": "large",
+    "tags": "app"
   },
   {
     "href": "https://www.hexa.center/",
@@ -40,10 +53,6 @@
     "tags": "template",
     "repo": "https://github.com/onwidget/qwind",
     "size": "large"
-  },
-  {
-    "href": "https://soundy.cloud/",
-    "tags": "saas"
   },
   {
     "href": "https://bot-whatsapp.netlify.app/",
@@ -76,9 +85,9 @@
     "tags": "portfolio"
   },
   {
-    "href": "https://qwik-city-movies-wm.netlify.app/",
+    "href": "https://www.expobeds.com/",
     "size": "large",
-    "tags": "app"
+    "tags": "company"
   },
   {
     "href": "https://jbnado.dev/",
@@ -160,7 +169,7 @@
   },
   {
     "href": "https://pay4me.app",
-    "tags": "sass"
+    "tags": "saas"
   },
   {
     "href": "https://qwik-osm-poc.netlify.app/",
@@ -186,5 +195,13 @@
   {
     "href": "https://www.anirbandas.in/",
     "tags": "portfolio"
+  },
+  {
+    "href": "https://qwik-meet.onrender.com/",
+    "tags": "webrtc"
+  },
+  {
+    "href": "https://getpolaris.ai/",
+    "tags": "saas"
   }
 ]

@@ -14,25 +14,17 @@ import type {
   RouteAction,
 } from './types';
 
-/**
- * @public
- */
+/** @public */
 export const useContent = () => useContext(ContentContext);
 
-/**
- * @public
- */
+/** @public */
 export const useDocumentHead = (): Required<ResolvedDocumentHead> =>
   useContext(DocumentHeadContext);
 
-/**
- * @public
- */
+/** @public */
 export const useLocation = (): RouteLocation => useContext(RouteLocationContext);
 
-/**
- * @public
- */
+/** @public */
 export const useNavigate = (): RouteNavigate => useContext(RouteNavigateContext);
 
 export const useAction = (): RouteAction => useContext(RouteActionContext);

@@ -1,5 +1,4 @@
-import { test } from 'uvu';
-import { equal } from 'uvu/assert';
+import { assert, test } from 'vitest';
 import { Cookie } from './cookie';
 import type { CookieOptions } from './types';
 
@@ -24,16 +23,16 @@ test('parses cookie', () => {
     .join(';');
   const cookie = new Cookie(cookieString);
   Object.keys(cookieValues).forEach((key) => {
-    equal(true, cookie.has(key));
+    assert.equal(true, cookie.has(key));
   });
   Object.entries(cookieValues).forEach(([key, value]) => {
-    equal(cookie.get(key)?.value, value);
+    assert.equal(cookie.get(key)?.value, value);
   });
-  equal(Object.keys(cookie.getAll()).length, 4);
-  equal(cookie.getAll().a.value, 'hello=world');
-  equal(cookie.getAll().b.number(), 25);
-  equal(cookie.getAll().c.json(), { hello: 'world' });
-  equal(cookie.getAll().d.value, '%badencoding');
+  assert.equal(Object.keys(cookie.getAll()).length, 4);
+  assert.equal(cookie.getAll().a.value, 'hello=world');
+  assert.equal(cookie.getAll().b.number(), 25);
+  assert.deepEqual(cookie.getAll().c.json(), { hello: 'world' });
+  assert.equal(cookie.getAll().d.value, '%badencoding');
 });
 
 test('creates correct headers', () => {
@@ -90,12 +89,10 @@ test('creates correct headers', () => {
   });
 
   const result = cookie.headers();
-  equal(expect.length, result.length);
+  assert.equal(expect.length, result.length);
   for (let i = 0; i < expect.length; i++) {
     const expected = expect[i];
     const actual = result[i];
-    equal(actual, expected);
+    assert.equal(actual, expected);
   }
 });
-
-test.run();

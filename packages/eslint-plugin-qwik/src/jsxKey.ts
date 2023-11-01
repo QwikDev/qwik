@@ -16,7 +16,7 @@ const defaultOptions = {
 };
 
 const messages = {
-  missingIterKey: 'Missing "key" prop for element in iterator',
+  missingIterKey: 'Missing "key" prop for element in iterator.',
   missingIterKeyUsePrag:
     'Missing "key" prop for element in iterator. The key prop allows for improved rendering performance. Shorthand fragment syntax does not support providing keys. Use <Fragment> instead',
   missingArrayKey:
@@ -60,8 +60,7 @@ export const jsxKey = {
   },
 
   create(context) {
-    const modifyJsxSource = context
-      .getSourceCode()
+    const modifyJsxSource = context.sourceCode
       .getAllComments()
       .some((c) => c.value.includes('@jsxImportSource'));
     if (modifyJsxSource) {
@@ -127,8 +126,9 @@ export const jsxKey = {
     }
 
     /**
-     * Checks if the given node is a function expression or arrow function,
-     * and checks if there is a missing key prop in return statement's arguments
+     * Checks if the given node is a function expression or arrow function, and checks if there is a
+     * missing key prop in return statement's arguments
+     *
      * @param {ASTNode} node
      */
     function checkFunctionsBlockStatement(node) {
@@ -144,8 +144,9 @@ export const jsxKey = {
     }
 
     /**
-     * Checks if the given node is an arrow function that has an JSX Element or JSX Fragment in its body,
-     * and the JSX is missing a key prop
+     * Checks if the given node is an arrow function that has an JSX Element or JSX Fragment in its
+     * body, and the JSX is missing a key prop
+     *
      * @param {ASTNode} node
      */
     function checkArrowFunctionWithJSX(node) {

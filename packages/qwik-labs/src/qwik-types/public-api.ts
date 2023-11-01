@@ -1,6 +1,4 @@
-/**
- * @public
- */
+/** @public */
 export const untypedAppUrl = function appUrl(
   route: string,
   params?: Record<string, string>,
@@ -14,6 +12,9 @@ export const untypedAppUrl = function appUrl(
       const key = segment.substring(segment.startsWith('[...') ? 4 : 1, segment.length - 1);
       const value = params ? params[paramsPrefix + key] || params[key] : '';
       path[i] = isSpread ? value : encodeURIComponent(value);
+    }
+    if (segment.startsWith('(') && segment.endsWith(')')) {
+      path.splice(i, 1);
     }
   }
   return path.join('/');

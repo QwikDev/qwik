@@ -96,6 +96,19 @@ export interface InlineEntryStrategy {
 }
 
 // @public (undocumented)
+export interface InsightManifest {
+    // (undocumented)
+    manual: Record<string, string>;
+    // (undocumented)
+    prefetch: {
+        route: string;
+        symbols: string[];
+    }[];
+    // (undocumented)
+    type: 'smart';
+}
+
+// @public (undocumented)
 export type MinifyMode = 'simplify' | 'none';
 
 // @public (undocumented)
@@ -111,6 +124,8 @@ export interface Optimizer {
 export interface OptimizerOptions {
     // (undocumented)
     binding?: any;
+    // (undocumented)
+    inlineStylesUpToBytes?: number;
     // (undocumented)
     sys?: OptimizerSystem;
 }
@@ -300,6 +315,8 @@ export interface QwikVitePluginApi {
     // (undocumented)
     getClientPublicOutDir: () => string | null;
     // (undocumented)
+    getInsightsManifest: (clientOutDir?: string | null) => Promise<InsightManifest | null>;
+    // (undocumented)
     getManifest: () => QwikManifest | null;
     // (undocumented)
     getOptimizer: () => Optimizer | null;
@@ -367,7 +384,7 @@ export type SymbolMapper = Record<string, readonly [symbol: string, chunk: strin
 export type SymbolMapperFn = (symbolName: string, mapper: SymbolMapper | undefined) => readonly [symbol: string, chunk: string] | undefined;
 
 // @public (undocumented)
-export type SystemEnvironment = 'node' | 'deno' | 'webworker' | 'browsermain' | 'unknown';
+export type SystemEnvironment = 'node' | 'deno' | 'bun' | 'webworker' | 'browsermain' | 'unknown';
 
 // @public (undocumented)
 export interface TransformFsOptions extends TransformOptions {

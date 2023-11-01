@@ -20,32 +20,6 @@ export interface ActionConstructor
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
-## ActionOptions
-
-```typescript
-export interface ActionOptions
-```
-
-| Property         | Modifiers             | Type            | Description  |
-| ---------------- | --------------------- | --------------- | ------------ |
-| [id?](#)         | <code>readonly</code> | string          | _(Optional)_ |
-| [validation?](#) | <code>readonly</code> | DataValidator[] | _(Optional)_ |
-
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
-
-## ActionOptionsWithValidation
-
-```typescript
-export interface ActionOptionsWithValidation<B extends TypedDataValidator = TypedDataValidator>
-```
-
-| Property        | Modifiers             | Type                            | Description  |
-| --------------- | --------------------- | ------------------------------- | ------------ |
-| [id?](#)        | <code>readonly</code> | string                          | _(Optional)_ |
-| [validation](#) | <code>readonly</code> | [val: B, ...a: DataValidator[]] |              |
-
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
-
 ## ActionStore
 
 ```typescript
@@ -145,14 +119,14 @@ export interface DocumentHeadProps extends RouteLocation
 export interface DocumentHeadValue
 ```
 
-| Property          | Modifiers             | Type                                       | Description                                                                                                                                                                                                                                                           |
-| ----------------- | --------------------- | ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [frontmatter?](#) | <code>readonly</code> | Readonly&lt;Record&lt;string, any&gt;&gt;  | _(Optional)_ Arbitrary object containing custom data. When the document head is created from markdown files, the frontmatter attributes that are not recognized as a well-known meta names (such as title, description, author, etc...), are stored in this property. |
-| [links?](#)       | <code>readonly</code> | readonly [DocumentLink](#documentlink)[]   | _(Optional)_ Used to manually append <code>&lt;link&gt;</code> elements to the <code>&lt;head&gt;</code>.                                                                                                                                                             |
-| [meta?](#)        | <code>readonly</code> | readonly [DocumentMeta](#documentmeta)[]   | _(Optional)_ Used to manually set meta tags in the head. Additionally, the <code>data</code> property could be used to set arbitrary data which the <code>&lt;head&gt;</code> component could later use to generate <code>&lt;meta&gt;</code> tags.                   |
-| [scripts?](#)     | <code>readonly</code> | readonly DocumentScript[]                  | _(Optional)_ Used to manually append <code>&lt;script&gt;</code> elements to the <code>&lt;head&gt;</code>.                                                                                                                                                           |
-| [styles?](#)      | <code>readonly</code> | readonly [DocumentStyle](#documentstyle)[] | _(Optional)_ Used to manually append <code>&lt;style&gt;</code> elements to the <code>&lt;head&gt;</code>.                                                                                                                                                            |
-| [title?](#)       | <code>readonly</code> | string                                     | _(Optional)_ Sets <code>document.title</code>.                                                                                                                                                                                                                        |
+| Property          | Modifiers             | Type                                         | Description                                                                                                                                                                                                                                                           |
+| ----------------- | --------------------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [frontmatter?](#) | <code>readonly</code> | Readonly&lt;Record&lt;string, any&gt;&gt;    | _(Optional)_ Arbitrary object containing custom data. When the document head is created from markdown files, the frontmatter attributes that are not recognized as a well-known meta names (such as title, description, author, etc...), are stored in this property. |
+| [links?](#)       | <code>readonly</code> | readonly [DocumentLink](#documentlink)[]     | _(Optional)_ Used to manually append <code>&lt;link&gt;</code> elements to the <code>&lt;head&gt;</code>.                                                                                                                                                             |
+| [meta?](#)        | <code>readonly</code> | readonly [DocumentMeta](#documentmeta)[]     | _(Optional)_ Used to manually set meta tags in the head. Additionally, the <code>data</code> property could be used to set arbitrary data which the <code>&lt;head&gt;</code> component could later use to generate <code>&lt;meta&gt;</code> tags.                   |
+| [scripts?](#)     | <code>readonly</code> | readonly [DocumentScript](#documentscript)[] | _(Optional)_ Used to manually append <code>&lt;script&gt;</code> elements to the <code>&lt;head&gt;</code>.                                                                                                                                                           |
+| [styles?](#)      | <code>readonly</code> | readonly [DocumentStyle](#documentstyle)[]   | _(Optional)_ Used to manually append <code>&lt;style&gt;</code> elements to the <code>&lt;head&gt;</code>.                                                                                                                                                            |
+| [title?](#)       | <code>readonly</code> | string                                       | _(Optional)_ Sets <code>document.title</code>.                                                                                                                                                                                                                        |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
@@ -202,6 +176,22 @@ export interface DocumentMeta
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
+## DocumentScript
+
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+
+```typescript
+export interface DocumentScript
+```
+
+| Property     | Modifiers             | Type                                            | Description                |
+| ------------ | --------------------- | ----------------------------------------------- | -------------------------- |
+| [key?](#)    | <code>readonly</code> | string                                          | **_(ALPHA)_** _(Optional)_ |
+| [props?](#)  | <code>readonly</code> | Readonly&lt;QwikIntrinsicElements['script']&gt; | **_(ALPHA)_** _(Optional)_ |
+| [script?](#) | <code>readonly</code> | string                                          | **_(ALPHA)_** _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+
 ## DocumentStyle
 
 ```typescript
@@ -219,9 +209,7 @@ export interface DocumentStyle
 ## FailReturn
 
 ```typescript
-export type FailReturn<T> = T & {
-  failed: true;
-};
+export type FailReturn<T> = T & Failed;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
@@ -350,9 +338,11 @@ export interface Loader<RETURN>
 ## LoaderSignal
 
 ```typescript
-export type LoaderSignal<T> = T extends () => ValueOrPromise<infer B>
-  ? ReadonlySignal<ValueOrPromise<B>>
-  : ReadonlySignal<T>;
+export type LoaderSignal<TYPE> = TYPE extends () => ValueOrPromise<
+  infer VALIDATOR
+>
+  ? ReadonlySignal<ValueOrPromise<VALIDATOR>>
+  : ReadonlySignal<TYPE>;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
@@ -598,9 +588,11 @@ export interface StaticGenerate
 ## StaticGenerateHandler
 
 ```typescript
-export type StaticGenerateHandler = () =>
-  | Promise<StaticGenerate>
-  | StaticGenerate;
+export type StaticGenerateHandler = ({
+  env,
+}: {
+  env: EnvGetter;
+}) => Promise<StaticGenerate> | StaticGenerate;
 ```
 
 **References:** [StaticGenerate](#staticgenerate)

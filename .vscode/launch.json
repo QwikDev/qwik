@@ -6,12 +6,21 @@
   "configurations": [
     {
       "type": "node",
-      "name": "packages/docs dev.debug",
+      "name": "docs dev.debug",
       "request": "launch",
       "skipFiles": ["<node_internals>/**"],
       "cwd": "${workspaceFolder}/packages/docs",
       "program": "${workspaceFolder}/packages/docs/node_modules/vite/bin/vite.js",
       "args": ["--mode", "ssr", "--force"]
+    },
+    {
+      "type": "node",
+      "name": "docs build.client",
+      "request": "launch",
+      "skipFiles": ["<node_internals>/**"],
+      "cwd": "${workspaceFolder}/packages/docs",
+      "program": "${workspaceFolder}/packages/docs/node_modules/vite/bin/vite.js",
+      "args": ["build"]
     },
     {
       "type": "node",
@@ -22,21 +31,6 @@
       "program": "${workspaceFolder}/node_modules/jest/bin/jest.js",
       "cwd": "${workspaceFolder}",
       "args": ["--runInBand", "--watchAll=false"]
-    },
-    {
-      "name": "uvu Current File",
-      "type": "node",
-      "request": "launch",
-      "skipFiles": ["<node_internals>/**"],
-      "program": "${workspaceFolder}/node_modules/tsm/bin.js",
-      "args": [
-        "${workspaceFolder}/node_modules/uvu/bin.js",
-        "${fileDirname}",
-        "${fileBasename}",
-        "--tsmconfig",
-        "${workspaceFolder}/tsm.cjs"
-      ],
-      "console": "integratedTerminal"
     }
   ]
 }

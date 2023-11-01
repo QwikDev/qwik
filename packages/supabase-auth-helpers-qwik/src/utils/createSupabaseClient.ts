@@ -1,14 +1,60 @@
 import type { RequestEventBase } from '@builder.io/qwik-city';
+import type {
+  CookieOptionsWithName,
+  SupabaseClientOptionsWithoutAuth,
+} from '@supabase/auth-helpers-shared';
 import {
-  type CookieOptions,
-  createServerSupabaseClient,
-  createBrowserSupabaseClient,
-  type SupabaseClientOptionsWithoutAuth,
+  BrowserCookieAuthStorageAdapter,
+  createSupabaseClient,
 } from '@supabase/auth-helpers-shared';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { GenericSchema } from '@supabase/supabase-js/dist/module/lib/types';
+import { QwikServerAuthStorageAdapter } from './storageAdapter';
+
+export function createBrowserClient<
+  Database = any,
+  SchemaName extends string & keyof Database = 'public' extends keyof Database
+    ? 'public'
+    : string & keyof Database,
+  Schema extends GenericSchema = Database[SchemaName] extends GenericSchema
+    ? Database[SchemaName]
+    : any,
+>(
+  supabaseUrl: string,
+  supabaseKey: string,
+  {
+    options,
+    cookieOptions,
+  }: {
+    options?: SupabaseClientOptionsWithoutAuth<SchemaName>;
+    cookieOptions?: CookieOptionsWithName;
+  } = {}
+): SupabaseClient<Database, SchemaName, Schema> {
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error(
+      'supabaseUrl and supabaseKey are required to create a Supabase client! Find these under `Settings` > `API` in your Supabase dashboard.'
+    );
+  }
+
+  return createSupabaseClient<Database, SchemaName, Schema>(supabaseUrl, supabaseKey, {
+    ...options,
+    global: {
+      ...options?.global,
+      headers: {
+        ...options?.global?.headers,
+        'X-Client-Info': 'supabase-auth-helpers-qwik@0.0.3',
+      },
+    },
+    auth: {
+      storageKey: cookieOptions?.name,
+      storage: new BrowserCookieAuthStorageAdapter(cookieOptions),
+    },
+  });
+}
 
 /**
  * ## Authenticated Supabase client
+ *
  * ### Loader
  *
  * ```ts
@@ -16,7 +62,6 @@ import type { SupabaseClient } from '@supabase/supabase-js';
  * import { routeLoader$ } from '@builder.io/qwik-city';
  *
  * export const useSession = routeLoader$(async (requestEv) => {
- *
  *   const supabaseClient = createServerClient(
  *     import.meta.env.PUBLIC_SUPABASE_URL,
  *     import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
@@ -26,7 +71,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
  *   const { data } = await supabaseClient.from('test').select('*');
  *
  *   return {
- *     data
+ *     data,
  *   };
  * });
  * ```
@@ -36,7 +81,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
  * ```ts
  * import { createServerClient } from '@supabase/auth-helpers-remix';
  * import { routeAction$ } from '@builder.io/qwik-city';
-
+ *
  * export const useaction = routeAction$(async (_, requestEv) => {
  *   const response = new Response();
  *
@@ -61,9 +106,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
  *   );
  *
  *   const getData = async () => {
- *     const { data: supabaseData } = await supabaseClient
- *       .from('test')
- *       .select('*');
+ *     const { data: supabaseData } = await supabaseClient.from('test').select('*');
  *
  *     console.log({ data });
  *   };
@@ -71,64 +114,24 @@ import type { SupabaseClient } from '@supabase/supabase-js';
  *   getData();
  * }, []);
  * ```
- *
  */
-
-export function createBrowserClient<
-  Database = any,
-  SchemaName extends string & keyof Database = 'public' extends keyof Database
-    ? 'public'
-    : string & keyof Database,
->(
-  supabaseUrl: string,
-  supabaseKey: string,
-  {
-    options,
-    cookieOptions,
-  }: {
-    options?: SupabaseClientOptionsWithoutAuth<SchemaName>;
-    cookieOptions?: CookieOptions;
-  } = {}
-): SupabaseClient<Database, SchemaName> {
-  if (!supabaseUrl || !supabaseKey) {
-    throw new Error(
-      'supabaseUrl and supabaseKey are required to create a Supabase client! Find these under `Settings` > `API` in your Supabase dashboard.'
-    );
-  }
-
-  return createBrowserSupabaseClient<Database, SchemaName>({
-    supabaseUrl,
-    supabaseKey,
-    options: {
-      ...options,
-      global: {
-        ...options?.global,
-        headers: {
-          ...options?.global?.headers,
-          'X-Client-Info': `${PACKAGE_NAME}@${PACKAGE_VERSION}`,
-        },
-      },
-    },
-    cookieOptions,
-  });
-}
-
 export function createServerClient<
   Database = any,
   SchemaName extends string & keyof Database = 'public' extends keyof Database
     ? 'public'
     : string & keyof Database,
+  Schema extends GenericSchema = Database[SchemaName] extends GenericSchema
+    ? Database[SchemaName]
+    : any,
 >(
   supabaseUrl: string,
   supabaseKey: string,
   requestEv: RequestEventBase,
   opts?: {
-    supabaseUrl?: string;
-    supabaseKey?: string;
     options?: SupabaseClientOptionsWithoutAuth<SchemaName>;
-    cookieOptions?: CookieOptions;
+    cookieOptions?: CookieOptionsWithName;
   }
-): SupabaseClient<Database, SchemaName> {
+): SupabaseClient<Database, SchemaName, Schema> {
   const options = opts?.options;
   const cookieOptions = opts?.cookieOptions;
   if (!supabaseUrl || !supabaseKey) {
@@ -136,32 +139,19 @@ export function createServerClient<
       'supabaseUrl and supabaseKey are required to create a Supabase client! Find these under `Settings` > `API` in your Supabase dashboard.'
     );
   }
-  return createServerSupabaseClient<Database, SchemaName>({
-    supabaseUrl,
-    supabaseKey,
-    getRequestHeader: (key) => {
-      return requestEv.request.headers.get(key) ?? undefined;
-    },
-    getCookie: (name) => {
-      return requestEv.cookie.get(name)?.value;
-    },
-    setCookie(name, value, options) {
-      requestEv.cookie.set(name, value, {
-        ...(options as any),
-        // Allow supabase-js on the client to read the cookie as well
-        httpOnly: false,
-      });
-    },
-    options: {
-      ...options,
-      global: {
-        ...options?.global,
-        headers: {
-          ...options?.global?.headers,
-          'X-Client-Info': `${PACKAGE_NAME}@${PACKAGE_VERSION}`,
-        },
+
+  return createSupabaseClient<Database, SchemaName, Schema>(supabaseUrl, supabaseKey, {
+    ...options,
+    global: {
+      ...options?.global,
+      headers: {
+        ...options?.global?.headers,
+        'X-Client-Info': 'supabase-auth-helpers-qwik@0.0.3',
       },
     },
-    cookieOptions,
+    auth: {
+      storageKey: cookieOptions?.name,
+      storage: new QwikServerAuthStorageAdapter(requestEv, cookieOptions),
+    },
   });
 }

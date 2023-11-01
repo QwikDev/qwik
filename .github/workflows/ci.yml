@@ -8,6 +8,7 @@ on:
       - next
       - qwik-labs
       - vercelserverless
+      - 'build/**'
   workflow_dispatch:
     inputs:
       disttag:
@@ -65,8 +66,11 @@ jobs:
               - 'Cargo.yaml'
               - '.github/workflows/*.yaml'
               - 'scripts/*.ts'
-      - name: Print fullbuild output
-        run: echo ${{ steps.filter.outputs.fullbuild == 'true' || github.event.inputs.disttag != '' }}
+      - name: Print variables output
+        run: |
+          echo fullbuild=${{ steps.filter.outputs.fullbuild }}
+          echo disttag=${{ github.event.inputs.disttag }}
+          echo event_name=${{ github.event_name }}
 
   ############ BUILD PACKAGE ############
   build-package:
@@ -410,7 +414,7 @@ jobs:
             packages/qwik-labs/package.json
           if-no-files-found: error
 
-    ############ RELEASE ############
+  ############ RELEASE ############
   release:
     name: Release
     runs-on: ubuntu-latest
@@ -676,7 +680,7 @@ jobs:
         if: ${{ always() }}
         run: pnpm run lint.eslint
 
-  ############ TRIGGER QWIKCITY E2E Test ############
+  ############ TRIGGER QWIKCITY E2E TEST ############
   trigger-qwikcity-e2e:
     name: Trigger Qwik City E2E
     runs-on: ubuntu-latest

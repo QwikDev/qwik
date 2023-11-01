@@ -18,7 +18,7 @@ import {
   type SnapshotState,
   strToInt,
 } from './container';
-import { findClose, VirtualElementImpl } from '../render/dom/virtual-element';
+import { getVirtualElement } from '../render/dom/virtual-element';
 import { getSubscriptionManager, parseSubscription, type Subscriptions } from '../state/common';
 import { createProxy, setObjectFlags } from '../state/store';
 import { qDev, qSerialize } from '../util/qdev';
@@ -27,7 +27,6 @@ import { isPrimitive } from '../render/dom/render-dom';
 import { getWrappingContainer } from '../use/use-core';
 import { getContext } from '../state/context';
 import { EMPTY_ARRAY } from '../util/flyweight';
-import { SVG_NS } from '../render/dom/visitor';
 
 export const resumeIfNeeded = (containerEl: Element): void => {
   const isResumed = directGetAttribute(containerEl, QContainerAttr);
@@ -50,9 +49,7 @@ export const getPauseState = (containerEl: Element): SnapshotState | undefined =
   }
 };
 
-/**
- * @internal
- */
+/** @internal */
 export const _deserializeData = (data: string, element?: unknown) => {
   const obj = JSON.parse(data);
   if (typeof obj !== 'object') {
@@ -89,7 +86,7 @@ export const _deserializeData = (data: string, element?: unknown) => {
 
 export const resumeContainer = (containerEl: Element) => {
   if (!isContainer(containerEl)) {
-    logWarn('Skipping hydration because parent element is not q:container');
+    logWarn('Skipping resuming because parent element is not q:container');
     return;
   }
 
@@ -98,7 +95,7 @@ export const resumeContainer = (containerEl: Element) => {
 
   (containerEl as any)['_qwikjson_'] = null;
   if (!pauseState) {
-    logWarn('Skipping hydration qwik/json metadata was not found.');
+    logWarn('Skipping resuming qwik/json metadata was not found.');
     return;
   }
 
@@ -108,7 +105,7 @@ export const resumeContainer = (containerEl: Element) => {
   if (qDev) {
     const script = getQwikJSON(parentJSON, 'type');
     if (!script) {
-      logWarn('Skipping hydration qwik/json metadata was not found.');
+      logWarn('Skipping resuming qwik/json metadata was not found.');
       return;
     }
   }
@@ -192,14 +189,9 @@ export const resumeContainer = (containerEl: Element) => {
           finalized.set(id, undefined);
           return undefined;
         }
-        const close = findClose(rawElement);
-        const virtual = new VirtualElementImpl(
-          rawElement,
-          close,
-          rawElement.parentElement?.namespaceURI === SVG_NS
-        );
+        const virtual = getVirtualElement(rawElement);
         finalized.set(id, virtual);
-        getContext(virtual, containerState);
+        getContext(virtual!, containerState);
         return virtual;
       } else if (isElement(rawElement)) {
         finalized.set(id, rawElement);
@@ -263,7 +255,7 @@ export const resumeContainer = (containerEl: Element) => {
 
 const reviveSubscriptions = (
   value: any,
-  i: any,
+  i: number,
   objsSubs: any[],
   getObject: GetObject,
   containerState: ContainerState,

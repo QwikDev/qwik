@@ -14,14 +14,12 @@ test.describe("slot", () => {
 
       // Count
       await btnCount.click();
-      await page.waitForTimeout(100);
       await expect(content1).toHaveText("DEFAULT 1");
       await expect(content2).toHaveText("START 1");
       await expect(content3).toHaveText("INSIDE THING 1");
 
       // Count
       await btnCount.click();
-      await page.waitForTimeout(100);
       await expect(content1).toHaveText("DEFAULT 2");
       await expect(content2).toHaveText("START 2");
       await expect(content3).toHaveText("INSIDE THING 2");
@@ -35,16 +33,13 @@ test.describe("slot", () => {
       const btnToggleButtons = page.locator("#btn-toggle-buttons");
 
       // btnToggleButtons
-      await page.waitForTimeout(100);
       await btnToggleButtons.click();
-      await page.waitForTimeout(100);
       await expect(content1).toHaveText("", { useInnerText: true });
       await expect(content2).toHaveText("START 0", { useInnerText: true });
       await expect(content3).toHaveText("", { useInnerText: true });
 
       // btnToggleButtons
       await btnToggleButtons.click();
-      await page.waitForTimeout(100);
       await expect(content1).toHaveText("DEFAULT 0", { useInnerText: true });
       await expect(content2).toHaveText("START 0", { useInnerText: true });
       await expect(content3).toHaveText("INSIDE THING 0", {
@@ -62,21 +57,18 @@ test.describe("slot", () => {
 
       // btnToggleButtons
       await btnToggleButtons.click();
-      await page.waitForTimeout(100);
       await expect(content1).toHaveText("", { useInnerText: true });
       await expect(content2).toHaveText("START 0", { useInnerText: true });
       await expect(content3).toHaveText("", { useInnerText: true });
 
       // btnToggleButtons
       await btnCount.click();
-      await page.waitForTimeout(100);
       await expect(content1).toHaveText("", { useInnerText: true });
       await expect(content2).toHaveText("START 1", { useInnerText: true });
       await expect(content3).toHaveText("", { useInnerText: true });
 
       // btnToggleButtons
       await btnToggleButtons.click();
-      await page.waitForTimeout(100);
       await expect(content1).toHaveText("DEFAULT 1", { useInnerText: true });
       await expect(content2).toHaveText("START 1", { useInnerText: true });
       await expect(content3).toHaveText("INSIDE THING 1", {
@@ -85,14 +77,12 @@ test.describe("slot", () => {
 
       // btnToggleButtons
       await btnToggleButtons.click();
-      await page.waitForTimeout(100);
       await expect(content1).toHaveText("", { useInnerText: true });
       await expect(content2).toHaveText("START 1", { useInnerText: true });
       await expect(content3).toHaveText("", { useInnerText: true });
 
       // btnToggleButtons
       await btnToggleButtons.click();
-      await page.waitForTimeout(100);
       await expect(content1).toHaveText("DEFAULT 1", { useInnerText: true });
       await expect(content2).toHaveText("START 1", { useInnerText: true });
       await expect(content3).toHaveText("INSIDE THING 1", {
@@ -110,7 +100,6 @@ test.describe("slot", () => {
 
       // btnToggleButtons
       await btnToggleContent.click();
-      await page.waitForTimeout(100);
       await expect(content1).toHaveText("", { useInnerText: true });
       await expect(content2).toHaveText("", { useInnerText: true });
       await expect(content3).toHaveText("", { useInnerText: true });
@@ -118,7 +107,6 @@ test.describe("slot", () => {
       // btnToggleButtons
       await btnCount.click();
       await btnToggleContent.click();
-      await page.waitForTimeout(100);
       await expect(content1).toHaveText("DEFAULT 1", { useInnerText: true });
       await expect(content2).toHaveText("START 1", { useInnerText: true });
       await expect(content3).toHaveText("INSIDE THING 1", {
@@ -157,13 +145,11 @@ test.describe("slot", () => {
       // btnToggleButtons
       await btnToggleThing.click();
       await btnCount.click();
-      await page.waitForTimeout(100);
       await expect(content1).toHaveText("DEFAULT 1");
       await expect(content2).toHaveText("START 1");
       await expect(content3).toHaveText("");
 
       await btnToggleThing.click();
-      await page.waitForTimeout(100);
       await expect(content1).toHaveText("DEFAULT 1");
       await expect(content2).toHaveText("START 1");
       await expect(content3).toHaveText("INSIDE THING 1");
@@ -176,7 +162,6 @@ test.describe("slot", () => {
       const btnCount = page.locator("#btn-count");
 
       await btnCount.click();
-      await page.waitForTimeout(100);
       await expect(content3).toHaveText("INSIDE THING 1", {
         useInnerText: true,
       });
@@ -189,7 +174,6 @@ test.describe("slot", () => {
 
       // Click projected
       await projected.click();
-      await page.waitForTimeout(100);
 
       await expect(content3).toHaveText("INSIDE THING 0", {
         useInnerText: true,
@@ -345,6 +329,15 @@ test.describe("slot", () => {
     });
   }
 
+  test("issue 5270", async ({ page }) => {
+    const button = page.locator("#issue-5270-button");
+    const div = page.locator("#issue-5270-div");
+    await expect(div).toBeHidden();
+    await button.click();
+    await expect(div).toBeVisible();
+    await expect(div).toHaveText("Ctx: hello");
+  });
+
   test.beforeEach(async ({ page }) => {
     await page.goto("/e2e/slot");
     page.on("pageerror", (err) => expect(err).toEqual(undefined));
@@ -360,10 +353,11 @@ test.describe("slot", () => {
   test.describe("client rerender", () => {
     test.beforeEach(async ({ page }) => {
       const toggleRender = page.locator("#btn-toggle-render");
+      const rendered = page.locator("#isRendered");
       await toggleRender.click();
-      await page.waitForTimeout(100);
+      await expect(rendered).toBeHidden();
       await toggleRender.click();
-      await page.waitForTimeout(100);
+      await expect(rendered).toBeVisible();
     });
     tests();
   });

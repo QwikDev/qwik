@@ -72,7 +72,7 @@ You need to have these tools up and running in your local machine:
 
 If you would like to make use of the devlopment container solution, but don't use VSCode or Dev Containers, you still can do so, by following steps:
 
-- Build development container locally: `cd .devcontainers; docker build -t qwik-container .`
+- Build development container locally: `cd .devcontainer; docker build -t qwik-container .`
 - Run development container from Qwik project root, binding the directory to container: `cd ..; docker run --rm -d --name qwik-container -p 3300:3300 -p 9229:9299 -v $PWD:/home/circleci/project -t qwik-container`
 
 Docker command does:
@@ -120,7 +120,7 @@ If you're not able to use the dev container, follow these instructions:
 
 1. Make sure [Rust](https://www.rust-lang.org/tools/install) is installed.
 2. Install [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/) with `cargo install wasm-pack` .
-3. Node version >= `16.8.0`.
+3. Node version >= `18`.
 4. Make sure you have [pnpm](https://pnpm.io/installation) installed.
 5. run `pnpm install`
 
@@ -210,28 +210,17 @@ To use your build in your project, follow these steps:
     yarn link @builder.io/qwik @builder.io/qwik-city
    ```
 
-If you can't use package linking (npm link) just copy the contents of `package/qwik/dist` into your projects' `node_modules/@builder.io/qwik` folder.
+If you can't use package linking (npm link) just copy the contents of `packages/qwik/dist` into your projects' `node_modules/@builder.io/qwik` folder, and/or the contents of `packages/qwik-city/lib` into your projects' `node_modules/@builder.io/qwik-city` folder.
 
 ### Test against the docs site:
 
-1. Go to `packages/docs/package.json` and update:
-
-   ```diff
-
-   -- "@builder.io/qwik": "0.17.4",
-   -- "@builder.io/qwik-city": "0.1.0-beta13",
-
-   ++ "@builder.io/qwik": "workspace:*",
-   ++ "@builder.io/qwik-city": "workspace:*",
-   ```
-
-2. At the root of the Qwik repo folder run:
+1. At the root of the Qwik repo folder run:
 
 ```shell
 pnpm install
 ```
 
-3. Run the docs site:
+2. Run the docs site:
 
 ```shell
 cd packages/docs && pnpm start
@@ -245,19 +234,11 @@ pnpm serve
 
 ### Unit Tests Only
 
-Unit tests use [uvu](https://github.com/lukeed/uvu)
+Unit tests use [vitest](https://vitest.dev)
 
 ```shell
 pnpm test.unit
 ```
-
-To keep _uvu_ open with the watch mode, run:
-
-```shell
-pnpm test.watch
-```
-
-> Note that the `test.watch` command isn't necessary if you're running the `pnpm start` command, since `start` will also concurrently run the _uvu_ watch process.
 
 ### E2E Tests Only
 

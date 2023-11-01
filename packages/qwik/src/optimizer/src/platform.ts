@@ -265,6 +265,10 @@ const getEnv = (): SystemEnvironment => {
     return 'deno';
   }
 
+  if (typeof Bun !== 'undefined') {
+    return 'bun';
+  }
+
   if (
     typeof process !== 'undefined' &&
     typeof global !== 'undefined' &&
@@ -310,3 +314,4 @@ const extensions: { [ext: string]: boolean } = {
 declare const globalThis: { IS_CJS: boolean; IS_ESM: boolean; [key: string]: any };
 declare const WorkerGlobalScope: any;
 declare const Deno: any;
+declare const Bun: any;

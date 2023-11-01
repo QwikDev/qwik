@@ -7,6 +7,7 @@ export interface CreateAppOptions {
 
 export interface CreateAppResult extends CreateAppOptions {
   docs: string[];
+  pkgManager: string;
 }
 
 export interface UpdateAppOptions {

@@ -4,27 +4,38 @@ import type { PathParams } from './types';
  * Match a given route against a path.
  *
  * @param route Route definition: example: `/path/[param]/[...rest]/`
- * @param path actual path to match
+ * @param path Actual path to match
  * @returns Returns PathParams or null if did not match.
  */
 export function matchRoute(route: string, path: string): PathParams | null {
-  const params: PathParams = {};
-  let routeIdx: number = startIdxSkipSlash(route);
-  const routeLength = route.length;
-  let pathIdx: number = startIdxSkipSlash(path);
+  const routeIdx: number = startIdxSkipSlash(route);
+  const routeLength = lengthNoTrailingSlash(route);
+  const pathIdx: number = startIdxSkipSlash(path);
   const pathLength = lengthNoTrailingSlash(path);
+  return matchRoutePart(route, routeIdx, routeLength, path, pathIdx, pathLength);
+}
+
+function matchRoutePart(
+  route: string,
+  routeIdx: number,
+  routeLength: number,
+  path: string,
+  pathIdx: number,
+  pathLength: number
+): PathParams | null {
+  let params: PathParams | null = null;
   while (routeIdx < routeLength) {
     const routeCh = route.charCodeAt(routeIdx++);
     const pathCh = path.charCodeAt(pathIdx++);
     if (routeCh === Char.OPEN_BRACKET) {
-      const isRest = isThreeDots(route, routeIdx);
+      const isMany = isThreeDots(route, routeIdx);
       // EXAMPLE: /path/pre[param]post/
       //                   ^     ^    ^
       //                   |     |    + paramSuffixEnd
       //                   |     + paramNameEnd
       //                   + paramNameStart
       //
-      const paramNameStart = routeIdx + (isRest ? 3 : 0);
+      const paramNameStart = routeIdx + (isMany ? 3 : 0);
       const paramNameEnd = scan(route, paramNameStart, routeLength, Char.CLOSE_BRACKET);
       const paramName = route.substring(paramNameStart, paramNameEnd);
       const paramSuffixEnd = scan(route, paramNameEnd + 1, routeLength, Char.SLASH);
@@ -32,23 +43,32 @@ export function matchRoute(route: string, path: string): PathParams | null {
       routeIdx = paramNameEnd + 1;
       // VALUE
       const paramValueStart = pathIdx - 1; // -1 because we already consumed the character
-      const paramValueEnd = scan(
-        path,
-        paramValueStart,
-        pathLength,
-        isRest ? Char.EOL : Char.SLASH,
-        suffix
-      );
+      if (isMany) {
+        const match = recursiveScan(
+          paramName,
+          suffix,
+          path,
+          paramValueStart,
+          pathLength,
+          route,
+          routeIdx + suffix.length + 1,
+          routeLength
+        );
+        if (match) {
+          return Object.assign(params || (params = {}), match);
+        }
+      }
+      const paramValueEnd = scan(path, paramValueStart, pathLength, Char.SLASH, suffix);
       if (paramValueEnd == -1) {
         return null;
       }
       const paramValue = path.substring(paramValueStart, paramValueEnd);
-      if (!isRest && !suffix && !paramValue) {
+      if (!isMany && !suffix && !paramValue) {
         // empty value is only allowed with rest or suffix (e.g. '/path/[...rest]' or '/path/[param]suffix')
         return null;
       }
       pathIdx = paramValueEnd;
-      params[paramName] = decodeURIComponent(paramValue);
+      (params || (params = {}))[paramName] = decodeURIComponent(paramValue);
     } else if (routeCh !== pathCh) {
       if (!(isNaN(pathCh) && isRestParameter(route, routeIdx))) {
         return null;
@@ -57,7 +77,7 @@ export function matchRoute(route: string, path: string): PathParams | null {
   }
   if (allConsumed(route, routeIdx) && allConsumed(path, pathIdx)) {
     // match if there are no extra parts
-    return params;
+    return params || {};
   } else {
     return null;
   }
@@ -89,8 +109,8 @@ function isThreeDots(text: string, idx: number): boolean {
   );
 }
 
-function scan(text: string, idx: number, length: number, ch: Char, suffix: string = ''): number {
-  while (idx < length && text.charCodeAt(idx) !== ch) {
+function scan(text: string, idx: number, end: number, ch: Char, suffix: string = ''): number {
+  while (idx < end && text.charCodeAt(idx) !== ch) {
     idx++;
   }
   const suffixLength = suffix.length;
@@ -108,4 +128,49 @@ const enum Char {
   CLOSE_BRACKET = 93, // ']'
   DOT = 46, // '.'
   SLASH = 47, // '/'
+}
+function recursiveScan(
+  paramName: string,
+  suffix: string,
+  path: string,
+  pathStart: number,
+  pathLength: number,
+  route: string,
+  routeStart: number,
+  routeLength: number
+) {
+  if (path.charCodeAt(pathStart) === Char.SLASH) {
+    pathStart++;
+  }
+  let pathIdx = pathLength;
+  const sep = suffix + '/';
+  let depthWatchdog = 5;
+  while (pathIdx >= pathStart && depthWatchdog--) {
+    const match = matchRoutePart(route, routeStart, routeLength, path, pathIdx, pathLength);
+    if (match) {
+      let value = path.substring(pathStart, Math.min(pathIdx, pathLength));
+      if (value.endsWith(sep)) {
+        value = value.substring(0, value.length - sep.length);
+      }
+      match[paramName] = decodeURIComponent(value);
+      return match;
+    }
+    pathIdx = lastIndexOf(path, pathStart, sep, pathIdx, pathStart - 1) + sep.length;
+  }
+  return null;
+}
+
+function lastIndexOf(
+  text: string,
+  start: number,
+  match: string,
+  searchIdx: number,
+  notFoundIdx: number
+): number {
+  let idx = text.lastIndexOf(match, searchIdx);
+  if (idx == searchIdx - match.length) {
+    // If previous match was right upto the separator, then try to find the match before that.
+    idx = text.lastIndexOf(match, searchIdx - match.length - 1);
+  }
+  return idx > start ? idx : notFoundIdx;
 }

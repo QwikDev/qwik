@@ -8,9 +8,9 @@ import { rollup } from 'rollup';
 import ts from 'typescript';
 
 /**
- * This will validate a completed production build by triple checking all the
- * files have been created and can execute correctly in their context. This is
- * the last task before publishing the build files to npm.
+ * This will validate a completed production build by triple checking all the files have been
+ * created and can execute correctly in their context. This is the last task before publishing the
+ * build files to npm.
  */
 export async function validateBuild(config: BuildConfig) {
   console.log('🕵️ validating build...');
@@ -23,7 +23,7 @@ export async function validateBuild(config: BuildConfig) {
   const pkgFiles = [...pkg.files!, 'LICENSE', 'README.md', 'package.json'];
   const expectedFiles = pkgFiles.map((f) => join(config.distQwikPkgDir, f));
 
-  const dependencies = ['csstype'];
+  const dependencies = ['csstype', 'vite'];
   const pkgDependencies = Object.keys(pkg.dependencies!);
   if (pkgDependencies.length !== dependencies.length) {
     errors.push(
@@ -147,8 +147,8 @@ export async function validateBuild(config: BuildConfig) {
 }
 
 /**
- * Do a full typescript build for each separate .d.ts file found in the package
- * just to ensure it's well formed and relative import paths are correct.
+ * Do a full typescript build for each separate .d.ts file found in the package just to ensure it's
+ * well formed and relative import paths are correct.
  */
 export function validateTypeScriptFile(config: BuildConfig, tsFilePath: string) {
   const tsconfigPath = join(config.rootDir, 'tsconfig.json');

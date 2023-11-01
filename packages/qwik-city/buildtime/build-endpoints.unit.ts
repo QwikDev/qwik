@@ -18,5 +18,3 @@ test('endpoint w/ params', ({ assertRoute }) => {
   equal(r.paramNames[0], 'org');
   equal(r.paramNames[1], 'user');
 });
-
-test.run();

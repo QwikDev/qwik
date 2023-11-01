@@ -3,9 +3,7 @@ import serverless from 'serverless-http';
 import { createQwikCity as createQwikCityNode } from '@builder.io/qwik-city/middleware/node';
 import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
 
-/**
- * @public
- */
+/** @public */
 export function createQwikCity(opts: any) {
   try {
     const { router, staticFile, notFound } = createQwikCityNode({
@@ -58,12 +56,8 @@ export function createQwikCity(opts: any) {
   }
 }
 
-/**
- * @public
- */
+/** @public */
 export interface QwikCityAwsLambdaOptions extends ServerRenderOptions {}
 
-/**
- * @public
- */
+/** @public */
 export interface PlatformAwsLambda extends Object {}

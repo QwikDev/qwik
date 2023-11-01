@@ -27,8 +27,8 @@ export default component$(() => {
       <div>{date.value.toISOString()}</div>
       <section>
         <div id="other-store">
-          {String(other.isRunning)}:{other.formData?.get("username")}:
-          {other.formData?.get("code")}:{JSON.stringify(other.value)}
+          {String(other.isRunning)}:<>{other.formData?.get("username")}</>:
+          <>{other.formData?.get("code")}</>:{JSON.stringify(other.value)}
         </div>
         <button id="other-button" onClick$={() => other.submit()}>
           Run other

@@ -6,7 +6,9 @@
   "dependencies": {
     "@mdx-js/mdx": "2.3.0",
     "@types/mdx": "2.0.5",
+    "serverless-http": "^3.2.0",
     "source-map": "0.7.4",
+    "source-map-support": "^0.5.21",
     "svgo": "^3.0.2",
     "vfile": "^6.0.1",
     "vite-imagetools": "^5.0.5",

@@ -584,7 +584,6 @@ async function buildMiddlewareAwsLambda(config: BuildConfig) {
     platform: 'node',
     target: nodeTarget,
     format: 'esm',
-    watch: watcher(config),
     external: MIDDLEWARE_EXTERNALS,
     plugins: [resolveRequestHandler('../request-handler/index.mjs')],
   });

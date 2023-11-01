@@ -128,6 +128,18 @@ export default defineConfig(async () => {
       Inspect(),
       qwikInsights({ publicApiKey: loadEnv('', '.', '').PUBLIC_QWIK_INSIGHTS_KEY }),
     ],
+    build: {
+      rollupOptions: {
+        onLog(level, log, defaultHandler) {
+          if (level == 'warn' && log.code === 'MODULE_LEVEL_DIRECTIVE') {
+            // Suppress errors like these:
+            // FILE Module level directives cause errors when bundled, "use client" in FILE was ignored.
+            return;
+          }
+          defaultHandler(level, log);
+        },
+      },
+    },
     clearScreen: false,
     server: {
       port: 3000,

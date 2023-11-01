@@ -256,15 +256,15 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
     closeBundle: {
       sequential: true,
       async handler() {
-        if (ctx?.target === 'ssr') {
+        if (ctx?.target === 'ssr' && !ctx?.isDevServer) {
           // ssr build
           const manifest = qwikPlugin!.api.getManifest();
           const clientOutDir = qwikPlugin!.api.getClientOutDir();
-          const insightsManifest = await qwikPlugin!.api.getInsightsManifest(clientOutDir);
 
           if (manifest && clientOutDir) {
             const basePathRelDir = api.getBasePathname().replace(/^\/|\/$/, '');
             const clientOutBaseDir = join(clientOutDir, basePathRelDir);
+            const insightsManifest = await qwikPlugin!.api.getInsightsManifest(clientOutDir);
 
             for (const swEntry of ctx.serviceWorkers) {
               try {

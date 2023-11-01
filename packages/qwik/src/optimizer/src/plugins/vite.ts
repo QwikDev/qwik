@@ -9,6 +9,7 @@ import type {
   QwikManifest,
   TransformModule,
   InsightManifest,
+  Path,
 } from '../types';
 import { versions } from '../versions';
 import { getImageSizeServer } from './image-size-server';
@@ -57,10 +58,24 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
   async function loadQwikInsights(clientOutDir?: string | null): Promise<InsightManifest | null> {
     const sys = qwikPlugin.getSys();
+    const cwdRelativePath = absolutePathAwareJoin(
+      sys.path,
+      rootDir || '.',
+      clientOutDir ?? 'dist',
+      'q-insights.json'
+    );
+    const path = absolutePathAwareJoin(sys.path, process.cwd(), cwdRelativePath);
     const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
-    const path = sys.path.join(process.cwd(), clientOutDir ?? 'dist', 'q-insights.json');
     if (fs.existsSync(path)) {
+      qwikPlugin.log('Reading Qwik Insight data from: ' + cwdRelativePath);
       return JSON.parse(await fs.promises.readFile(path, 'utf-8')) as InsightManifest;
+    } else {
+      qwikPlugin.log(
+        'Qwik Insight not found  `' +
+          cwdRelativePath +
+          '`, skipping.\n' +
+          '\t\tConsider setting up https://qwik.builder.io/docs/labs/insights/ for better bundle optimization.'
+      );
     }
     return null;
   }
@@ -113,20 +128,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       viteCommand = viteEnv.command;
       isClientDevOnly = viteCommand === 'serve' && viteEnv.mode !== 'ssr';
 
-      qwikPlugin.log(`vite config(), command: ${viteCommand}, env.mode: ${viteEnv.mode}`);
-
-      if (sys.env === 'node' && !qwikViteOpts.entryStrategy) {
-        try {
-          const entryStrategy = await loadQwikInsights(
-            !qwikViteOpts.csr ? qwikViteOpts.client?.outDir : undefined
-          );
-          if (entryStrategy) {
-            qwikViteOpts.entryStrategy = entryStrategy;
-          }
-        } catch (e) {
-          // ok to ignore
-        }
-      }
+      qwikPlugin.debug(`vite config(), command: ${viteCommand}, env.mode: ${viteEnv.mode}`);
 
       if (viteCommand === 'serve') {
         qwikViteOpts.entryStrategy = { type: 'hook' };
@@ -379,8 +381,21 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       return updatedViteConfig;
     },
 
-    configResolved(config) {
+    async configResolved(config) {
       basePathname = config.base;
+      const sys = qwikPlugin.getSys();
+      if (sys.env === 'node' && !qwikViteOpts.entryStrategy) {
+        try {
+          const entryStrategy = await loadQwikInsights(
+            !qwikViteOpts.csr ? qwikViteOpts.client?.outDir : undefined
+          );
+          if (entryStrategy) {
+            qwikViteOpts.entryStrategy = entryStrategy;
+          }
+        } catch (e) {
+          // ok to ignore
+        }
+      }
     },
 
     async buildStart() {
@@ -628,7 +643,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     },
 
     handleHotUpdate(ctx) {
-      qwikPlugin.log('handleHotUpdate()', ctx);
+      qwikPlugin.debug('handleHotUpdate()', ctx);
 
       for (const mod of ctx.modules) {
         const deps = mod.info?.meta?.qwikdeps;
@@ -901,4 +916,19 @@ export interface QwikVitePlugin {
 export interface QwikViteDevResponse {
   _qwikEnvData?: Record<string, any>;
   _qwikRenderResolve?: () => void;
+}
+
+/**
+ * Joins path segments together and normalizes the resulting path, taking into account absolute
+ * paths.
+ */
+function absolutePathAwareJoin(path: Path, ...segments: string[]): string {
+  for (let i = segments.length - 1; i >= 0; --i) {
+    const segment = segments[i];
+    if (segment.startsWith(path.sep) || segment.indexOf(path.delimiter) !== -1) {
+      segments.splice(0, i);
+      break;
+    }
+  }
+  return path.join(...segments);
 }

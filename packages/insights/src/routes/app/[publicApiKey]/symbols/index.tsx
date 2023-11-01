@@ -1,9 +1,12 @@
 import { component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
 import Histogram, { delayColors, latencyColors } from '~/components/histogram';
+import { ManifestIcon } from '~/components/icons/manifest';
+import { SymbolTile } from '~/components/symbol-tile';
 import { getDB } from '~/db';
 import { getEdges, getSymbolDetails } from '~/db/query';
 import { BUCKETS, vectorAdd, vectorNew } from '~/stats/vector';
+import { css } from '~/styled-system/css';
 
 interface Symbol {
   hash: string;
@@ -20,19 +23,22 @@ interface Manifest {
   latency: number[];
 }
 
-export const useData = routeLoader$(async ({ params }) => {
+export const useData = routeLoader$(async ({ params, url }) => {
   const db = getDB();
+  const limit = url.searchParams.get('limit')
+    ? parseInt(url.searchParams.get('limit')!)
+    : undefined;
   const [edges, details] = await Promise.all([
-    getEdges(db, params.publicApiKey),
+    getEdges(db, params.publicApiKey, { limit }),
     getSymbolDetails(db, params.publicApiKey),
   ]);
 
   const symbolMap = new Map<string, Symbol>();
   const manifests = new Map<string, Manifest>();
   edges.forEach((edge) => {
-    const manifest = getManifest(edge.manifestHash);
+    const manifest = getManifest('<UNKNOWN>');
     const symbol = getSymbol(edge.to);
-    const symbolManifest = getSymbolManifest(symbol, edge.manifestHash);
+    const symbolManifest = getSymbolManifest(symbol, '<UNKNOWN>');
     vectorAdd(manifest.delay, edge.delay);
     vectorAdd(manifest.latency, edge.latency);
     vectorAdd(symbolManifest.delay, edge.delay);
@@ -101,49 +107,71 @@ export default component$(() => {
   return (
     <div>
       <h1>Manifests</h1>
-      <ul>
-        {data.value.manifests.map((manifest, idx) => (
-          <li key={idx}>
-            <code>{manifest.hash}</code>
-            <Histogram
-              vector={manifest.delay}
-              name="Delay"
-              colors={delayColors}
-              buckets={data.value.buckets}
-            />
-            <Histogram
-              vector={manifest.latency}
-              name="Latency"
-              colors={latencyColors}
-              buckets={data.value.buckets}
-            />
-          </li>
-        ))}
-      </ul>
+      <table>
+        <tbody>
+          {data.value.manifests.map((manifest, idx) => {
+            return (
+              <tr key={idx}>
+                <td>
+                  <Histogram
+                    vector={manifest.delay}
+                    colors={delayColors}
+                    buckets={data.value.buckets}
+                  />
+                </td>
+                <td>
+                  <Histogram
+                    vector={manifest.latency}
+                    colors={latencyColors}
+                    buckets={data.value.buckets}
+                  />
+                </td>
+                <td>
+                  <code>
+                    <ManifestIcon
+                      class={css({
+                        display: 'inline-block',
+                        marginBottom: '3px',
+                      })}
+                    />
+                    {manifest.hash}
+                  </code>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
       <h1>Symbols</h1>
-      <ul>
-        {data.value.symbols.map((symbol) => (
-          <li key={symbol.hash}>
-            <code>{symbol.hash}</code>(
-            <code>
-              {symbol.origin}/{symbol.fullName}
-            </code>
-            )
-            <Histogram
-              vector={symbol.delay}
-              name="Delay"
-              buckets={data.value.buckets}
-              colors={delayColors}
-            />
-            <Histogram
-              vector={symbol.latency}
-              name="Latency"
-              colors={latencyColors}
-              buckets={data.value.buckets}
-            />
-          </li>
-        ))}
-      </ul>
+      <table>
+        <tbody>
+          {data.value.symbols.map((symbol) => (
+            <tr key={symbol.hash}>
+              <td>
+                <Histogram
+                  vector={symbol.delay}
+                  buckets={data.value.buckets}
+                  colors={delayColors}
+                />
+              </td>
+              <td>
+                <Histogram
+                  vector={symbol.latency}
+                  colors={latencyColors}
+                  buckets={data.value.buckets}
+                />
+              </td>
+              <td>
+                <SymbolTile symbol={symbol.hash} />(
+                <code>
+                  {symbol.origin}/{symbol.fullName}
+                </code>
+                )
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 });

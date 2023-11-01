@@ -19,6 +19,6 @@ export const onPost: RequestHandler = async ({ request, headers, send }) => {
     200,
     `Platform: ${os.platform()}, Node: ${process.versions.node}, HTTP Method: ${
       request.method
-    }`
+    }`,
   );
 };

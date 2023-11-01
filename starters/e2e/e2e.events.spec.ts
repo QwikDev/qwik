@@ -19,7 +19,7 @@ test.describe("events", () => {
     const countWrapped = page.locator("#count-wrapped");
 
     expect(await contentTransparent.textContent()).toEqual(
-      "countTransparent: 0"
+      "countTransparent: 0",
     );
     expect(await countWrapped.textContent()).toEqual("countWrapped: 0");
     expect(await btnWrapped.textContent()).toEqual("Wrapped 0");
@@ -28,7 +28,7 @@ test.describe("events", () => {
     await btnWrapped.click();
     await page.waitForTimeout(100);
     expect(await contentTransparent.textContent()).toEqual(
-      "countTransparent: 0"
+      "countTransparent: 0",
     );
     expect(await countWrapped.textContent()).toEqual("countWrapped: 1");
     expect(await btnWrapped.textContent()).toEqual("Wrapped 1");
@@ -37,7 +37,7 @@ test.describe("events", () => {
     await btnWrapped.click();
     await page.waitForTimeout(100);
     expect(await contentTransparent.textContent()).toEqual(
-      "countTransparent: 0"
+      "countTransparent: 0",
     );
     expect(await countWrapped.textContent()).toEqual("countWrapped: 2");
     expect(await btnWrapped.textContent()).toEqual("Wrapped 2");
@@ -46,7 +46,7 @@ test.describe("events", () => {
     await btnTransparent.click();
     await page.waitForTimeout(100);
     expect(await contentTransparent.textContent()).toEqual(
-      "countTransparent: 1"
+      "countTransparent: 1",
     );
     expect(await countWrapped.textContent()).toEqual("countWrapped: 2");
     expect(await btnWrapped.textContent()).toEqual("Wrapped 2");
@@ -55,7 +55,7 @@ test.describe("events", () => {
     await btnTransparent.click();
     await page.waitForTimeout(100);
     expect(await contentTransparent.textContent()).toEqual(
-      "countTransparent: 2"
+      "countTransparent: 2",
     );
     expect(await countWrapped.textContent()).toEqual("countWrapped: 2");
     expect(await btnWrapped.textContent()).toEqual("Wrapped 2");

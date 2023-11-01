@@ -1,5 +1,5 @@
 import { sql, type InferModel } from 'drizzle-orm';
-import { edgeTable } from './schema';
+import { edgeTable, type routesTable } from './schema';
 import { BUCKETS } from '~/stats/vector';
 
 export type VectorKeys<PREFIX extends string> =
@@ -296,6 +296,59 @@ export const latencyColumns = {
   latencyCount49: edgeTable.latencyCount49,
 };
 
+export const delayColumns = {
+  delayCount00: edgeTable.delayCount00,
+  delayCount01: edgeTable.delayCount01,
+  delayCount02: edgeTable.delayCount02,
+  delayCount03: edgeTable.delayCount03,
+  delayCount04: edgeTable.delayCount04,
+  delayCount05: edgeTable.delayCount05,
+  delayCount06: edgeTable.delayCount06,
+  delayCount07: edgeTable.delayCount07,
+  delayCount08: edgeTable.delayCount08,
+  delayCount09: edgeTable.delayCount09,
+  delayCount10: edgeTable.delayCount10,
+  delayCount11: edgeTable.delayCount11,
+  delayCount12: edgeTable.delayCount12,
+  delayCount13: edgeTable.delayCount13,
+  delayCount14: edgeTable.delayCount14,
+  delayCount15: edgeTable.delayCount15,
+  delayCount16: edgeTable.delayCount16,
+  delayCount17: edgeTable.delayCount17,
+  delayCount18: edgeTable.delayCount18,
+  delayCount19: edgeTable.delayCount19,
+  delayCount20: edgeTable.delayCount20,
+  delayCount21: edgeTable.delayCount21,
+  delayCount22: edgeTable.delayCount22,
+  delayCount23: edgeTable.delayCount23,
+  delayCount24: edgeTable.delayCount24,
+  delayCount25: edgeTable.delayCount25,
+  delayCount26: edgeTable.delayCount26,
+  delayCount27: edgeTable.delayCount27,
+  delayCount28: edgeTable.delayCount28,
+  delayCount29: edgeTable.delayCount29,
+  delayCount30: edgeTable.delayCount30,
+  delayCount31: edgeTable.delayCount31,
+  delayCount32: edgeTable.delayCount32,
+  delayCount33: edgeTable.delayCount33,
+  delayCount34: edgeTable.delayCount34,
+  delayCount35: edgeTable.delayCount35,
+  delayCount36: edgeTable.delayCount36,
+  delayCount37: edgeTable.delayCount37,
+  delayCount38: edgeTable.delayCount38,
+  delayCount39: edgeTable.delayCount39,
+  delayCount40: edgeTable.delayCount40,
+  delayCount41: edgeTable.delayCount41,
+  delayCount42: edgeTable.delayCount42,
+  delayCount43: edgeTable.delayCount43,
+  delayCount44: edgeTable.delayCount44,
+  delayCount45: edgeTable.delayCount45,
+  delayCount46: edgeTable.delayCount46,
+  delayCount47: edgeTable.delayCount47,
+  delayCount48: edgeTable.delayCount48,
+  delayCount49: edgeTable.delayCount49,
+};
+
 export const computeLatency = sql`
   (
     sumLatencyCount00 * ${BUCKETS[0].avg} + 
@@ -454,6 +507,59 @@ export const latencyColumnSums = {
   sumLatencyCount49: sql<number>`sum(${edgeTable.latencyCount49}) as sumLatencyCount49`,
 };
 
+export const delayColumnSums = {
+  sumDelayCount00: sql<number>`sum(${edgeTable.delayCount00}) as sumDelayCount00`,
+  sumDelayCount01: sql<number>`sum(${edgeTable.delayCount01}) as sumDelayCount01`,
+  sumDelayCount02: sql<number>`sum(${edgeTable.delayCount02}) as sumDelayCount02`,
+  sumDelayCount03: sql<number>`sum(${edgeTable.delayCount03}) as sumDelayCount03`,
+  sumDelayCount04: sql<number>`sum(${edgeTable.delayCount04}) as sumDelayCount04`,
+  sumDelayCount05: sql<number>`sum(${edgeTable.delayCount05}) as sumDelayCount05`,
+  sumDelayCount06: sql<number>`sum(${edgeTable.delayCount06}) as sumDelayCount06`,
+  sumDelayCount07: sql<number>`sum(${edgeTable.delayCount07}) as sumDelayCount07`,
+  sumDelayCount08: sql<number>`sum(${edgeTable.delayCount08}) as sumDelayCount08`,
+  sumDelayCount09: sql<number>`sum(${edgeTable.delayCount09}) as sumDelayCount09`,
+  sumDelayCount10: sql<number>`sum(${edgeTable.delayCount10}) as sumDelayCount10`,
+  sumDelayCount11: sql<number>`sum(${edgeTable.delayCount11}) as sumDelayCount11`,
+  sumDelayCount12: sql<number>`sum(${edgeTable.delayCount12}) as sumDelayCount12`,
+  sumDelayCount13: sql<number>`sum(${edgeTable.delayCount13}) as sumDelayCount13`,
+  sumDelayCount14: sql<number>`sum(${edgeTable.delayCount14}) as sumDelayCount14`,
+  sumDelayCount15: sql<number>`sum(${edgeTable.delayCount15}) as sumDelayCount15`,
+  sumDelayCount16: sql<number>`sum(${edgeTable.delayCount16}) as sumDelayCount16`,
+  sumDelayCount17: sql<number>`sum(${edgeTable.delayCount17}) as sumDelayCount17`,
+  sumDelayCount18: sql<number>`sum(${edgeTable.delayCount18}) as sumDelayCount18`,
+  sumDelayCount19: sql<number>`sum(${edgeTable.delayCount19}) as sumDelayCount19`,
+  sumDelayCount20: sql<number>`sum(${edgeTable.delayCount20}) as sumDelayCount20`,
+  sumDelayCount21: sql<number>`sum(${edgeTable.delayCount21}) as sumDelayCount21`,
+  sumDelayCount22: sql<number>`sum(${edgeTable.delayCount22}) as sumDelayCount22`,
+  sumDelayCount23: sql<number>`sum(${edgeTable.delayCount23}) as sumDelayCount23`,
+  sumDelayCount24: sql<number>`sum(${edgeTable.delayCount24}) as sumDelayCount24`,
+  sumDelayCount25: sql<number>`sum(${edgeTable.delayCount25}) as sumDelayCount25`,
+  sumDelayCount26: sql<number>`sum(${edgeTable.delayCount26}) as sumDelayCount26`,
+  sumDelayCount27: sql<number>`sum(${edgeTable.delayCount27}) as sumDelayCount27`,
+  sumDelayCount28: sql<number>`sum(${edgeTable.delayCount28}) as sumDelayCount28`,
+  sumDelayCount29: sql<number>`sum(${edgeTable.delayCount29}) as sumDelayCount29`,
+  sumDelayCount30: sql<number>`sum(${edgeTable.delayCount30}) as sumDelayCount30`,
+  sumDelayCount31: sql<number>`sum(${edgeTable.delayCount31}) as sumDelayCount31`,
+  sumDelayCount32: sql<number>`sum(${edgeTable.delayCount32}) as sumDelayCount32`,
+  sumDelayCount33: sql<number>`sum(${edgeTable.delayCount33}) as sumDelayCount33`,
+  sumDelayCount34: sql<number>`sum(${edgeTable.delayCount34}) as sumDelayCount34`,
+  sumDelayCount35: sql<number>`sum(${edgeTable.delayCount35}) as sumDelayCount35`,
+  sumDelayCount36: sql<number>`sum(${edgeTable.delayCount36}) as sumDelayCount36`,
+  sumDelayCount37: sql<number>`sum(${edgeTable.delayCount37}) as sumDelayCount37`,
+  sumDelayCount38: sql<number>`sum(${edgeTable.delayCount38}) as sumDelayCount38`,
+  sumDelayCount39: sql<number>`sum(${edgeTable.delayCount39}) as sumDelayCount39`,
+  sumDelayCount40: sql<number>`sum(${edgeTable.delayCount40}) as sumDelayCount40`,
+  sumDelayCount41: sql<number>`sum(${edgeTable.delayCount41}) as sumDelayCount41`,
+  sumDelayCount42: sql<number>`sum(${edgeTable.delayCount42}) as sumDelayCount42`,
+  sumDelayCount43: sql<number>`sum(${edgeTable.delayCount43}) as sumDelayCount43`,
+  sumDelayCount44: sql<number>`sum(${edgeTable.delayCount44}) as sumDelayCount44`,
+  sumDelayCount45: sql<number>`sum(${edgeTable.delayCount45}) as sumDelayCount45`,
+  sumDelayCount46: sql<number>`sum(${edgeTable.delayCount46}) as sumDelayCount46`,
+  sumDelayCount47: sql<number>`sum(${edgeTable.delayCount47}) as sumDelayCount47`,
+  sumDelayCount48: sql<number>`sum(${edgeTable.delayCount48}) as sumDelayCount48`,
+  sumDelayCount49: sql<number>`sum(${edgeTable.delayCount49}) as sumDelayCount49`,
+};
+
 export function toVector<PREFIX extends string>(prefix: PREFIX, dat: VectorFields<PREFIX>) {
   const obj = dat as Record<string, number>;
   return [
@@ -508,4 +614,77 @@ export function toVector<PREFIX extends string>(prefix: PREFIX, dat: VectorField
     obj[prefix + '48'],
     obj[prefix + '49'],
   ];
+}
+
+export function timelineBucketField(bucket: number): VectorKeys<`timeline`> {
+  return ('timeline' + pad(bucket)) as any;
+}
+
+export function createRouteRow({
+  publicApiKey,
+  manifestHash,
+  route,
+  symbol,
+}: {
+  publicApiKey: string;
+  manifestHash: string;
+  route: string;
+  symbol: string;
+}): InferModel<typeof routesTable, 'insert'> {
+  return {
+    publicApiKey,
+    manifestHash,
+    route,
+    symbol,
+    timeline00: 0,
+    timeline01: 0,
+    timeline02: 0,
+    timeline03: 0,
+    timeline04: 0,
+    timeline05: 0,
+    timeline06: 0,
+    timeline07: 0,
+    timeline08: 0,
+    timeline09: 0,
+    timeline10: 0,
+    timeline11: 0,
+    timeline12: 0,
+    timeline13: 0,
+    timeline14: 0,
+    timeline15: 0,
+    timeline16: 0,
+    timeline17: 0,
+    timeline18: 0,
+    timeline19: 0,
+    timeline20: 0,
+    timeline21: 0,
+    timeline22: 0,
+    timeline23: 0,
+    timeline24: 0,
+    timeline25: 0,
+    timeline26: 0,
+    timeline27: 0,
+    timeline28: 0,
+    timeline29: 0,
+    timeline30: 0,
+    timeline31: 0,
+    timeline32: 0,
+    timeline33: 0,
+    timeline34: 0,
+    timeline35: 0,
+    timeline36: 0,
+    timeline37: 0,
+    timeline38: 0,
+    timeline39: 0,
+    timeline40: 0,
+    timeline41: 0,
+    timeline42: 0,
+    timeline43: 0,
+    timeline44: 0,
+    timeline45: 0,
+    timeline46: 0,
+    timeline47: 0,
+    timeline48: 0,
+    timeline49: 0,
+  };
 }

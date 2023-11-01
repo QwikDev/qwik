@@ -395,7 +395,7 @@ export interface QwikManifest
 
 ```typescript
 export declare function qwikRollup(
-  qwikRollupOpts?: QwikRollupPluginOptions
+  qwikRollupOpts?: QwikRollupPluginOptions,
 ): any;
 ```
 
@@ -630,7 +630,7 @@ export type SymbolMapper = Record<
 ```typescript
 export type SymbolMapperFn = (
   symbolName: string,
-  mapper: SymbolMapper | undefined
+  mapper: SymbolMapper | undefined,
 ) => readonly [symbol: string, chunk: string] | undefined;
 ```
 

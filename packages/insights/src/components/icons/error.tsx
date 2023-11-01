@@ -1,4 +1,5 @@
 import { type QwikIntrinsicElements } from '@builder.io/qwik';
+import { css, cx } from '~/styled-system/css';
 
 export const ErrorIcon = function MaterialSymbolsChatErrorSharp(
   props: QwikIntrinsicElements['svg'],
@@ -11,6 +12,13 @@ export const ErrorIcon = function MaterialSymbolsChatErrorSharp(
       height="1em"
       viewBox="0 0 24 24"
       {...props}
+      class={cx(
+        String(props.class),
+        css({
+          display: 'inline-block',
+          margin: '4px 2px',
+        })
+      )}
       key={key}
     >
       <path

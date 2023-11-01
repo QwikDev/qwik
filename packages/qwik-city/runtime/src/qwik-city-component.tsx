@@ -265,7 +265,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
       }
 
       if (loadedRoute) {
-        const [params, mods, menu] = loadedRoute;
+        const [routeName, params, mods, menu] = loadedRoute;
         const contentModules = mods as ContentModule[];
         const pageModule = contentModules[contentModules.length - 1] as PageModule;
 
@@ -288,6 +288,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
         documentHead.links = resolvedHead.links;
         documentHead.meta = resolvedHead.meta;
         documentHead.styles = resolvedHead.styles;
+        documentHead.scripts = resolvedHead.scripts;
         documentHead.title = resolvedHead.title;
         documentHead.frontmatter = resolvedHead.frontmatter;
 
@@ -348,7 +349,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
               const replaceState = history.replaceState;
 
               const prepareState = (state: any) => {
-                if (state === null || typeof state === undefined) {
+                if (state === null || typeof state === 'undefined') {
                   state = {};
                 } else if (state?.constructor !== Object) {
                   state = { _data: state };
@@ -487,6 +488,8 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
 
           clientNavigate(window, navType, prevUrl, trackUrl, replaceState);
           _waitUntilRendered(elm as Element).then(() => {
+            const container = getContainer(elm as Element);
+            container.setAttribute('q:route', routeName);
             const scrollState = currentScrollState(document.documentElement);
             saveScrollHistory(scrollState);
             win._qCityScrollEnabled = true;
@@ -507,6 +510,13 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
 
   return <Slot />;
 });
+
+function getContainer(elm: Node): HTMLElement {
+  while (elm && elm.nodeType !== Node.ELEMENT_NODE) {
+    elm = elm.parentElement as Element;
+  }
+  return (elm as Element).closest('[q\\:container]') as HTMLElement;
+}
 
 /**
  * @public

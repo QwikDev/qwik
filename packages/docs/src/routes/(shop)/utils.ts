@@ -1,5 +1,7 @@
 import { createContextId } from '@builder.io/qwik';
 import type { Product, ShopApp } from './types';
+import type { Cookie } from '@builder.io/qwik-city';
+import type { CookieOptions } from 'express';
 
 export const COOKIE_CART_ID_KEY = 'cartid';
 
@@ -28,35 +30,14 @@ export const mapProducts = (data: { node: Product }[]) =>
       variants: node.variants.edges.map(({ node }) => node),
     }));
 
-export const setCookie = (name: string, value: string, days: number) => {
-  let expires = '';
-  if (days) {
-    const date = new Date();
-    date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
-    expires = '; expires=' + date.toUTCString();
-  }
-  document.cookie =
-    name +
-    '=' +
-    (value.split('=').join('|___|') || '') +
-    expires +
-    `; Secure; SameSite=Strict; path=/`;
+export const setCookie = (cookie: Cookie, value: string) => {
+  const maxAge = 60 * 60 * 24 * 30;
+  const options: CookieOptions = { maxAge, sameSite: 'strict', path: '/', secure: true };
+  cookie.set(COOKIE_CART_ID_KEY, value, options);
 };
 
 export const deleteCookie = (name: string) => {
   document.cookie = `${name}=; expires=-1; Secure; SameSite=Strict; path=/`;
-};
-
-export const getCookie = (name: string) => {
-  const keyValues = document.cookie.split(';');
-  let result = '';
-  keyValues.forEach((item) => {
-    const [key, value] = item.split('=');
-    if (key.trim() === name) {
-      result = value.split('|___|').join('=');
-    }
-  });
-  return result;
 };
 
 export function formatPrice(value = 0, currency: string) {

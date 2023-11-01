@@ -33,6 +33,11 @@
 - [Env variables](/docs/(qwikcity)/env-variables/index.mdx)
 - [API reference](/docs/(qwikcity)/api/index.mdx)
 
+## Cookbook
+- [Overview](/docs/cookbook/index.mdx)
+- [Portal](/docs/cookbook/portal/index.mdx)
+
+
 ## Integrations
 
 - [Overview](integrations/index.mdx)
@@ -44,6 +49,7 @@
 - [i18n](integrations/i18n/index.mdx)
 - [Modular Forms](integrations/modular-forms/index.mdx)
 - [Nx Monorepos](integrations/nx/index.mdx)
+- [Orama](integrations/orama/index.mdx)
 - [Panda CSS](integrations/panda-css/index.mdx)
 - [Partytown](integrations/partytown/index.mdx)
 - [Playwright](integrations/playwright/index.mdx)
@@ -55,6 +61,7 @@
 - [Supabase](integrations/supabase/index.mdx)
 - [Tailwind](integrations/tailwind/index.mdx)
 - [Tauri](integrations/tauri/index.mdx)
+- [Turso](integrations/turso/index.mdx)
 - [Vitest](integrations/vitest/index.mdx)
 
 ## Deployments
@@ -105,6 +112,7 @@
 - [Sitemaps](/docs/(qwikcity)/advanced/sitemaps/index.mdx)
 - [ESLint-Rules](/docs/(qwik)/advanced/eslint/index.mdx)
 - [Content Security Policy](/docs/(qwikcity)/advanced/content-security-policy/index.mdx)
+- [Complex Forms](/docs/(qwikcity)/advanced/complex-forms/index.mdx)
 
 ## Reference
 

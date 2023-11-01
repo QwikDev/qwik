@@ -10,7 +10,6 @@ import {
   importPath,
   nodeTarget,
   panic,
-  watcher,
   type PackageJSON,
 } from './util';
 
@@ -39,6 +38,7 @@ export async function buildQwikCity(config: BuildConfig) {
     buildMiddlewareNode(config),
     buildMiddlewareRequestHandler(config),
     buildMiddlewareVercelEdge(config),
+    buildMiddlewareFirebase(config),
     buildStatic(config),
     buildStaticNode(config),
     buildStaticDeno(config),
@@ -118,6 +118,10 @@ export async function buildQwikCity(config: BuildConfig) {
         types: './middleware/cloudflare-pages/index.d.ts',
         import: './middleware/cloudflare-pages/index.mjs',
       },
+      './middleware/firebase': {
+        types: './middleware/firebase/index.d.ts',
+        import: './middleware/firebase/index.mjs',
+      },
       './middleware/deno': {
         types: './middleware/deno/index.d.ts',
         import: './middleware/deno/index.mjs',
@@ -186,7 +190,20 @@ export async function buildQwikCity(config: BuildConfig) {
 }
 
 async function buildRuntime(config: BuildConfig) {
-  const result = await execa('pnpm', ['build'], {
+  const execOptions = {
+    win: {
+      manager: 'npm',
+      command: ['run', 'build'],
+    },
+    other: {
+      manager: 'pnpm',
+      command: ['build'],
+    },
+  };
+  const isWindows = process.platform.includes('win32');
+  const runOptions = isWindows ? execOptions.win : execOptions.other;
+
+  const result = await execa(runOptions.manager, runOptions.command, {
     stdout: 'inherit',
     cwd: config.srcQwikCityDir,
   });
@@ -234,7 +251,6 @@ async function buildVite(config: BuildConfig) {
       '@builder.io/qwik': 'noop',
       '@builder.io/qwik/optimizer': 'noop',
     },
-    watch: watcher(config),
     plugins: [serviceWorkerRegisterBuild(swRegisterCode)],
   });
 
@@ -246,7 +262,6 @@ async function buildVite(config: BuildConfig) {
     target: nodeTarget,
     format: 'cjs',
     external,
-    watch: watcher(config),
     plugins: [serviceWorkerRegisterBuild(swRegisterCode)],
   });
 }
@@ -306,7 +321,6 @@ async function buildAdapterAzureSwaVite(config: BuildConfig) {
     platform: 'node',
     target: nodeTarget,
     format: 'esm',
-    watch: watcher(config),
     external,
     plugins: [resolveAdapterShared('../../shared/vite/index.mjs')],
   });
@@ -318,7 +332,6 @@ async function buildAdapterAzureSwaVite(config: BuildConfig) {
     platform: 'node',
     target: nodeTarget,
     format: 'cjs',
-    watch: watcher(config),
     external,
     plugins: [resolveAdapterShared('../../shared/vite/index.cjs')],
   });
@@ -336,7 +349,6 @@ async function buildAdapterCloudflarePagesVite(config: BuildConfig) {
     platform: 'node',
     target: nodeTarget,
     format: 'esm',
-    watch: watcher(config),
     external: ADAPTER_EXTERNALS,
     plugins: [resolveAdapterShared('../../shared/vite/index.mjs')],
   });
@@ -348,7 +360,6 @@ async function buildAdapterCloudflarePagesVite(config: BuildConfig) {
     platform: 'node',
     target: nodeTarget,
     format: 'cjs',
-    watch: watcher(config),
     external: ADAPTER_EXTERNALS,
     plugins: [resolveAdapterShared('../../shared/vite/index.cjs')],
   });
@@ -364,7 +375,6 @@ async function buildAdapterCloudRunVite(config: BuildConfig) {
     platform: 'node',
     target: nodeTarget,
     format: 'esm',
-    watch: watcher(config),
     external: ADAPTER_EXTERNALS,
     plugins: [resolveAdapterShared('../../shared/vite/index.mjs')],
   });
@@ -376,7 +386,6 @@ async function buildAdapterCloudRunVite(config: BuildConfig) {
     platform: 'node',
     target: nodeTarget,
     format: 'cjs',
-    watch: watcher(config),
     external: ADAPTER_EXTERNALS,
     plugins: [resolveAdapterShared('../../shared/vite/index.cjs')],
   });
@@ -392,7 +401,6 @@ async function buildAdapterDenoVite(config: BuildConfig) {
     platform: 'node',
     target: nodeTarget,
     format: 'esm',
-    watch: watcher(config),
     external: ADAPTER_EXTERNALS,
     plugins: [resolveAdapterShared('../../shared/vite/index.mjs')],
   });
@@ -404,7 +412,6 @@ async function buildAdapterDenoVite(config: BuildConfig) {
     platform: 'node',
     target: nodeTarget,
     format: 'cjs',
-    watch: watcher(config),
     external: ADAPTER_EXTERNALS,
     plugins: [
       resolveAdapterShared('../../shared/vite/index.cjs'),
@@ -423,7 +430,6 @@ async function buildAdapterNodeServerVite(config: BuildConfig) {
     platform: 'node',
     target: nodeTarget,
     format: 'esm',
-    watch: watcher(config),
     external: ADAPTER_EXTERNALS,
     plugins: [resolveAdapterShared('../../shared/vite/index.mjs')],
   });
@@ -435,7 +441,6 @@ async function buildAdapterNodeServerVite(config: BuildConfig) {
     platform: 'node',
     target: nodeTarget,
     format: 'cjs',
-    watch: watcher(config),
     external: ADAPTER_EXTERNALS,
     plugins: [resolveAdapterShared('../../shared/vite/index.cjs')],
   });
@@ -451,7 +456,6 @@ async function buildAdapterNetlifyEdgeVite(config: BuildConfig) {
     platform: 'node',
     target: nodeTarget,
     format: 'esm',
-    watch: watcher(config),
     external: ADAPTER_EXTERNALS,
     plugins: [resolveAdapterShared('../../shared/vite/index.mjs')],
   });
@@ -463,7 +467,6 @@ async function buildAdapterNetlifyEdgeVite(config: BuildConfig) {
     platform: 'node',
     target: nodeTarget,
     format: 'cjs',
-    watch: watcher(config),
     external: ADAPTER_EXTERNALS,
     plugins: [
       resolveAdapterShared('../../shared/vite/index.cjs'),
@@ -482,7 +485,6 @@ async function buildAdapterSharedVite(config: BuildConfig) {
     platform: 'node',
     target: nodeTarget,
     format: 'esm',
-    watch: watcher(config),
     external: ADAPTER_EXTERNALS,
     plugins: [
       resolveStatic('../../../static/index.mjs'),
@@ -497,7 +499,6 @@ async function buildAdapterSharedVite(config: BuildConfig) {
     platform: 'node',
     target: nodeTarget,
     format: 'cjs',
-    watch: watcher(config),
     external: ADAPTER_EXTERNALS,
     plugins: [
       resolveStatic('../../../static/index.cjs'),
@@ -516,7 +517,6 @@ async function buildAdapterStaticVite(config: BuildConfig) {
     platform: 'node',
     target: nodeTarget,
     format: 'esm',
-    watch: watcher(config),
     external: ADAPTER_EXTERNALS,
     plugins: [resolveStatic('../../../static/index.mjs')],
   });
@@ -528,7 +528,6 @@ async function buildAdapterStaticVite(config: BuildConfig) {
     platform: 'node',
     target: nodeTarget,
     format: 'cjs',
-    watch: watcher(config),
     external: ADAPTER_EXTERNALS,
     plugins: [resolveStatic('../../../static/index.cjs')],
   });
@@ -544,7 +543,6 @@ async function buildAdapterVercelEdgeVite(config: BuildConfig) {
     platform: 'node',
     target: nodeTarget,
     format: 'esm',
-    watch: watcher(config),
     external: ADAPTER_EXTERNALS,
     plugins: [resolveAdapterShared('../../shared/vite/index.mjs')],
   });
@@ -556,7 +554,6 @@ async function buildAdapterVercelEdgeVite(config: BuildConfig) {
     platform: 'node',
     target: nodeTarget,
     format: 'cjs',
-    watch: watcher(config),
     external: ADAPTER_EXTERNALS,
     plugins: [resolveAdapterShared('../../shared/vite/index.cjs')],
   });
@@ -572,7 +569,6 @@ async function buildMiddlewareAzureSwa(config: BuildConfig) {
     platform: 'node',
     target: nodeTarget,
     format: 'esm',
-    watch: watcher(config),
     external: MIDDLEWARE_EXTERNALS,
     plugins: [resolveRequestHandler('../request-handler/index.mjs')],
   });
@@ -604,7 +600,6 @@ async function buildMiddlewareCloudflarePages(config: BuildConfig) {
     platform: 'node',
     target: nodeTarget,
     format: 'esm',
-    watch: watcher(config),
     external: MIDDLEWARE_EXTERNALS,
     plugins: [resolveRequestHandler('../request-handler/index.mjs')],
   });
@@ -620,7 +615,6 @@ async function buildMiddlewareDeno(config: BuildConfig) {
     platform: 'node',
     target: nodeTarget,
     format: 'esm',
-    watch: watcher(config),
     external: MIDDLEWARE_EXTERNALS,
     plugins: [resolveRequestHandler('../request-handler/index.mjs')],
   });
@@ -636,7 +630,6 @@ async function buildMiddlewareNetlifyEdge(config: BuildConfig) {
     platform: 'node',
     target: nodeTarget,
     format: 'esm',
-    watch: watcher(config),
     external: MIDDLEWARE_EXTERNALS,
     plugins: [resolveRequestHandler('../request-handler/index.mjs')],
   });
@@ -655,7 +648,6 @@ async function buildMiddlewareNode(config: BuildConfig) {
     target: nodeTarget,
     format: 'esm',
     external,
-    watch: watcher(config),
     plugins: [resolveRequestHandler('../request-handler/index.mjs')],
   });
 
@@ -667,7 +659,6 @@ async function buildMiddlewareNode(config: BuildConfig) {
     target: nodeTarget,
     format: 'cjs',
     external,
-    watch: watcher(config),
     plugins: [resolveRequestHandler('../request-handler/index.cjs')],
   });
 }
@@ -683,7 +674,6 @@ async function buildMiddlewareRequestHandler(config: BuildConfig) {
     target: nodeTarget,
     format: 'esm',
     external: MIDDLEWARE_EXTERNALS,
-    watch: watcher(config),
   });
 
   await build({
@@ -694,7 +684,6 @@ async function buildMiddlewareRequestHandler(config: BuildConfig) {
     target: nodeTarget,
     format: 'cjs',
     external: MIDDLEWARE_EXTERNALS,
-    watch: watcher(config),
   });
 }
 
@@ -709,7 +698,21 @@ async function buildMiddlewareVercelEdge(config: BuildConfig) {
     target: nodeTarget,
     format: 'esm',
     external: MIDDLEWARE_EXTERNALS,
-    watch: watcher(config),
+    plugins: [resolveRequestHandler('../request-handler/index.mjs')],
+  });
+}
+
+async function buildMiddlewareFirebase(config: BuildConfig) {
+  const entryPoints = [join(config.srcQwikCityDir, 'middleware', 'firebase', 'index.ts')];
+
+  await build({
+    entryPoints,
+    outfile: join(config.distQwikCityPkgDir, 'middleware', 'firebase', 'index.mjs'),
+    bundle: true,
+    platform: 'node',
+    target: nodeTarget,
+    format: 'esm',
+    external: MIDDLEWARE_EXTERNALS,
     plugins: [resolveRequestHandler('../request-handler/index.mjs')],
   });
 }
@@ -723,7 +726,6 @@ async function buildStatic(config: BuildConfig) {
     bundle: true,
     platform: 'neutral',
     format: 'esm',
-    watch: watcher(config),
   });
 
   await build({
@@ -733,7 +735,6 @@ async function buildStatic(config: BuildConfig) {
     platform: 'node',
     target: nodeTarget,
     format: 'cjs',
-    watch: watcher(config),
   });
 }
 
@@ -746,7 +747,6 @@ async function buildStaticDeno(config: BuildConfig) {
     bundle: true,
     platform: 'neutral',
     format: 'esm',
-    watch: watcher(config),
     plugins: [resolveRequestHandler('../middleware/request-handler/index.mjs')],
   });
 }
@@ -779,7 +779,6 @@ async function buildStaticNode(config: BuildConfig) {
     target: nodeTarget,
     format: 'esm',
     external,
-    watch: watcher(config),
     plugins: [resolveRequestHandler('../middleware/request-handler/index.mjs')],
   });
 
@@ -791,7 +790,6 @@ async function buildStaticNode(config: BuildConfig) {
     target: nodeTarget,
     format: 'cjs',
     external,
-    watch: watcher(config),
     plugins: [resolveRequestHandler('../middleware/request-handler/index.cjs')],
   });
 }

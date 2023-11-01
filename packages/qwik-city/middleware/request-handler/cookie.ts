@@ -52,6 +52,14 @@ const createSetCookieValue = (cookieName: string, cookieValue: string, options: 
   return c.join('; ');
 };
 
+function tryDecodeUriComponent(str: string) {
+  try {
+    return decodeURIComponent(str);
+  } catch {
+    return str;
+  }
+}
+
 const parseCookieString = (cookieString: string | undefined | null) => {
   const cookie: Record<string, string> = {};
   if (typeof cookieString === 'string' && cookieString !== '') {
@@ -59,8 +67,8 @@ const parseCookieString = (cookieString: string | undefined | null) => {
     for (const cookieSegment of cookieSegments) {
       const separatorIndex = cookieSegment.indexOf('=');
       if (separatorIndex !== -1) {
-        cookie[decodeURIComponent(cookieSegment.slice(0, separatorIndex).trim())] =
-          decodeURIComponent(cookieSegment.slice(separatorIndex + 1).trim());
+        cookie[tryDecodeUriComponent(cookieSegment.slice(0, separatorIndex).trim())] =
+          tryDecodeUriComponent(cookieSegment.slice(separatorIndex + 1).trim());
       }
     }
   }
@@ -111,10 +119,13 @@ export class Cookie implements CookieInterface {
   }
 
   getAll(live: boolean = true) {
-    return Object.keys(this[live ? LIVE_COOKIE : REQ_COOKIE]).reduce((cookies, cookieName) => {
-      cookies[cookieName] = this.get(cookieName)!;
-      return cookies;
-    }, {} as Record<string, CookieValue>);
+    return Object.keys(this[live ? LIVE_COOKIE : REQ_COOKIE]).reduce(
+      (cookies, cookieName) => {
+        cookies[cookieName] = this.get(cookieName)!;
+        return cookies;
+      },
+      {} as Record<string, CookieValue>
+    );
   }
 
   has(cookieName: string, live: boolean = true) {

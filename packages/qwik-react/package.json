@@ -1,37 +1,16 @@
 {
   "name": "@builder.io/qwik-react",
-  "version": "0.5.0",
   "description": "QwikReact allows adding React components into existing Qwik application",
-  "scripts": {
-    "build": "npm run build.lib",
-    "build.client": "vite build",
-    "build.lib": "vite build --mode lib",
-    "build.ssr": "vite build --ssr src/entry.ssr.tsx",
-    "dev": "vite",
-    "dev.debug": "node --inspect-brk ../../node_modules/vite/bin/vite.js --mode ssr --force",
-    "dev.ssr": "vite --mode ssr",
-    "fmt": "prettier --write .",
-    "fmt.check": "prettier --check .",
-    "lint": "eslint \"src/**/*.ts*\"",
-    "release": "np",
-    "start": "npm run dev",
-    "typecheck": "tsc --noEmit"
-  },
+  "version": "0.5.0",
+  "bugs": "https://github.com/BuilderIO/qwik/issues",
   "devDependencies": {
     "@builder.io/qwik": "workspace:*",
-    "@types/react": "18.2.14",
-    "@types/react-dom": "18.2.6",
+    "@types/react": "18.2.17",
+    "@types/react-dom": "18.2.7",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "typescript": "5.1.6",
-    "vite": "4.4.0"
-  },
-  "peerDependencies": {
-    "@builder.io/qwik": ">=0.22.0",
-    "@types/react": ">=18.0.1",
-    "@types/react-dom": ">=18.0.0",
-    "react": ">=18.0.0",
-    "react-dom": ">=18.0.0"
+    "vite": "4.4.7"
   },
   "engines": {
     "node": ">=16.8.0 <18.0.0 || >=18.11"
@@ -52,18 +31,37 @@
     "lib",
     "vite"
   ],
-  "license": "MIT",
   "homepage": "https://qwik.builder.io/",
+  "license": "MIT",
+  "main": "./lib/index.qwik.mjs",
+  "peerDependencies": {
+    "@builder.io/qwik": "1.2.6",
+    "@types/react": "18.2.17",
+    "@types/react-dom": "18.2.7",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
+  },
+  "qwik": "./lib/index.qwik.mjs",
   "repository": {
     "type": "git",
     "url": "https://github.com/BuilderIO/qwik.git",
     "directory": "packages/qwik-react"
   },
-  "bugs": {
-    "url": "https://github.com/BuilderIO/qwik/issues"
+  "scripts": {
+    "build": "npm run build.lib",
+    "build.client": "vite build",
+    "build.lib": "vite build --mode lib",
+    "build.ssr": "vite build --ssr src/entry.ssr.tsx",
+    "dev": "vite",
+    "dev.debug": "node --inspect-brk ../../node_modules/vite/bin/vite.js --mode ssr --force",
+    "dev.ssr": "vite --mode ssr",
+    "fmt": "prettier --write .",
+    "fmt.check": "prettier --check .",
+    "lint": "eslint \"src/**/*.ts*\"",
+    "release": "np",
+    "start": "npm run dev",
+    "typecheck": "tsc --noEmit"
   },
   "type": "module",
-  "main": "./lib/index.qwik.mjs",
-  "qwik": "./lib/index.qwik.mjs",
   "types": "./lib/types/index.qwik.d.ts"
 }

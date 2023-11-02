@@ -657,10 +657,56 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         }
       }
     },
+
+    onLog(level, log) {
+      if (log.plugin == ('vite-plugin-qwik' satisfies QwikVitePlugin['name'])) {
+        const color = LOG_COLOR[level] || ANSI_COLOR.White;
+        const frames = (log.frame || '')
+          .split('\n')
+          .map(
+            (line) =>
+              (line.match(/^\s*\^\s*$/) ? ANSI_COLOR.BrightWhite : ANSI_COLOR.BrightBlack) + line
+          );
+        // eslint-disable-next-line no-console
+        console[level](
+          `${color}%s\n${ANSI_COLOR.BrightWhite}%s\n%s${ANSI_COLOR.RESET}`,
+          `[${log.plugin}](${level}): ${log.message}\n`,
+          `  ${log?.loc?.file}:${log?.loc?.line}:${log?.loc?.column}\n`,
+          `  ${frames.join('\n  ')}\n`
+        );
+        return false;
+      }
+    },
   };
 
   return vitePlugin;
 }
+
+const ANSI_COLOR = {
+  Black: '\x1b[30m',
+  Red: '\x1b[31m',
+  Green: '\x1b[32m',
+  Yellow: '\x1b[33m',
+  Blue: '\x1b[34m',
+  Magenta: '\x1b[35m',
+  Cyan: '\x1b[36m',
+  White: '\x1b[37m',
+  BrightBlack: '\x1b[90m',
+  BrightRed: '\x1b[91m',
+  BrightGreen: '\x1b[92m',
+  BrightYellow: '\x1b[93m',
+  BrightBlue: '\x1b[94m',
+  BrightMagenta: '\x1b[95m',
+  BrightCyan: '\x1b[96m',
+  BrightWhite: '\x1b[97m',
+  RESET: '\x1b[0m',
+};
+
+const LOG_COLOR = {
+  warn: ANSI_COLOR.Yellow,
+  info: ANSI_COLOR.Cyan,
+  debug: ANSI_COLOR.BrightBlack,
+};
 
 function updateEntryDev(code: string) {
   code = code.replace(/["']@builder.io\/qwik["']/g, `'${VITE_CLIENT_MODULE}'`);

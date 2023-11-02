@@ -49,7 +49,10 @@ export interface QContext {
   $vdom$: ProcessedJSXNode | null;
   $slots$: ProcessedJSXNode[] | null;
   $dynamicSlots$: QContext[] | null;
-  /** The Qwik Context of a parent component that has a useContextProvider, null if no parent */
+  /**
+   * The Qwik Context of the virtual parent component, null if no parent. For an real element, it's
+   * the owner virtual component, and for a virtual component it's the wrapping virtual component.
+   */
   $parentCtx$: QContext | null | undefined;
 }
 

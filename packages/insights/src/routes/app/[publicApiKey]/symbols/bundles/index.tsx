@@ -96,8 +96,8 @@ export const CorrelationMatrix = component$<{
       <div
         class={css({
           border: `1px solid black`,
-          height: 'calc(100vmin - 20px)',
-          width: 'calc(100vmin - 20px)',
+          height: 'calc(80vmin - 20px)',
+          width: 'calc(80vmin - 20px)',
           flexDirection: 'column',
           justifyContent: 'space-evenly',
         })}

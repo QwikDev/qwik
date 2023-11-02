@@ -19,7 +19,12 @@ export const Link = component$<LinkProps>((props) => {
           prefetchLinkResources(elm as HTMLAnchorElement, ev.type === 'qvisible')
         )
       : undefined;
-  const handleClick = event$(async (_: any, elm: HTMLAnchorElement) => {
+  const handleClick = event$(async (ev: any, elm: HTMLAnchorElement) => {
+    if (ev.ctrlKey || ev.metaKey) {
+      // Do not enter the nav pipeline if any option key is pressed.
+      return;
+    }
+
     if (!elm.hasAttribute('preventdefault:click')) {
       // Do not enter the nav pipeline if this is not a clientNavPath.
       return;

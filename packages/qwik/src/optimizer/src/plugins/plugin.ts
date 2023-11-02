@@ -377,6 +377,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         ssrTransformedOutputs.set(key, [output, key]);
         if (output.hook) {
           hookManifest[output.hook.hash] = key;
+          // The original path must be absolute
+          output.origPath = path.resolve(srcDir, output.hook.origin);
         } else if (output.isEntry) {
           ctx.emitFile({
             id: key,
@@ -393,19 +395,16 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 
   const resolveId = async (
-    _ctx: Rollup.PluginContext,
+    ctx: Rollup.PluginContext,
     id: string,
     importer: string | undefined,
     ssrOpts?: { ssr?: boolean }
   ) => {
     debug(`resolveId()`, 'Start', id, importer);
+    if (id.startsWith('\0') || id.startsWith('/@fs')) {
+      return;
+    }
 
-    if (id.startsWith('\0')) {
-      return;
-    }
-    if (id.startsWith('/@fs')) {
-      return;
-    }
     if (opts.target === 'lib' && id.startsWith(QWIK_CORE_ID)) {
       return {
         external: true,
@@ -442,6 +441,15 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     if (importer) {
       // Only process relative links
       if (!id.startsWith('.') && !path.isAbsolute(id)) {
+        // Handle nested node_modules imports from moved code
+        const transformedOutput = isSSR
+          ? ssrTransformedOutputs.get(importer)
+          : transformedOutputs.get(importer);
+        const p = transformedOutput?.[0].origPath;
+        if (p) {
+          // Resolve imports relative to original source path
+          return ctx.resolve(id, p, { skipSelf: true });
+        }
         return;
       }
       const parsedId = parseId(id);

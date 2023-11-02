@@ -403,6 +403,8 @@ export interface TransformModule {
     // (undocumented)
     map: string | null;
     // (undocumented)
+    origPath: string | null;
+    // (undocumented)
     path: string;
 }
 

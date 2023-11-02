@@ -15,6 +15,7 @@ contributors:
   - AnthonyPAlicea
   - amatiash
   - harishkrishnan24
+  - maiieul
 ---
 
 import CodeSandbox from '../../../../../components/code-sandbox/index.tsx';
@@ -234,36 +235,64 @@ export default component$(() => {
 
 > **NOTE** Using `VisibleTask` to listen for events is an anti-pattern in Qwik because it causes eager execution of code in the browser defeating [resumability](/docs/(qwik)/concepts/resumable/index.mdx). Only use it when you have no other choice. Most of the time, you should use JSX to listen for events: `<div onClick$={...}>` or `useOn(...)` event methods if you need to listen programmatically.
 
-## `PropFunction`
+## Custom event props
 
-When creating your components it is often useful to pass what looks like event handlers, (even though they are not DOM events, only callbacks.) Component boundaries in Qwik must be serializable, and functions are not serializable unless they are converted to a QRL using an optimizer. This is done through `$` suffix. QRLs are asynchronous and therefore we need to tell TypeScript that the function can't be called synchronously, we do this through `PropFunction` type.
+When creating your components it is often useful to pass custom event props that look like event handlers, (even though they are not DOM events, only callbacks). Component boundaries in Qwik must be serializable for the optimizer to split them up into separate chunks, and functions are not serializable unless they are converted to a QRL using the `$` sign.
 
+When typing `component$` with the Generics syntax, Qwik will handle the type transformation automatically for you.
+<CodeSandbox src="/src/routes/demo/events/custom-event/index.tsx" style={{ height: '10em' }}>
 ```tsx
-<CmpButton onClick={() => alert('CLICKED!')}>click me!</CmpButton>
-```
-
-The above is not possible because `onClick` is a function that is not serializable. Instead, we need to tell Optimizer to convert our function into a QRL. This is done by naming the property with `$` suffix as in this example.
-
-<CodeSandbox src="/src/routes/demo/events/prop-function/index.tsx" style={{ height: '10em' }}>
-```tsx
-import { type PropFunction, component$, Slot } from '@builder.io/qwik';
+import { component$, Slot, useStore } from '@builder.io/qwik';
 
 export default component$(() => {
-  return <CmpButton onClick$={() => alert('CLICKED!')}>click me!</CmpButton>;
+  return (
+    <Button onTripleClick$={() => alert('TRIPLE CLICKED!')}>
+      Triple click me!
+    </Button>
+  );
 });
 
-export const CmpButton = component$<{
-  // Important to tell TypeScript that this is async
-  onClick$?: PropFunction<() => void>;
-}>((props) => {
+type ButtonProps = {
+  onTripleClick$: () => void;
+};
+
+export const Button = component$<ButtonProps>(({ onTripleClick$ }) => {
+  const state = useStore({
+    clicks: 0,
+    lastClickTime: 0,
+  });
   return (
-    <button onClick$={props.onClick$}>
+    <button
+      onClick$={() => {
+        // triple click logic
+        const now = Date.now();
+        const timeBetweenClicks = now - state.lastClickTime;
+        state.lastClickTime = now;
+        if (timeBetweenClicks > 500) {
+          state.clicks = 0;
+        }
+        state.clicks++;
+        if (state.clicks === 3) {
+          // handle custom event
+          onTripleClick$();
+          state.clicks = 0;
+        }
+      }}
+    >
       <Slot />
     </button>
   );
 });
+
 ```
 </CodeSandbox>
+
+⚠️ When using type annotations, we need to wrap the event type with `PropFunction` in order to tell TypeScript that the function can't be called synchronously.
+```tsx
+component$(({ onTripleClick$ } : { onTripleClick$?: PropFunction<() => void> }) => {
+  ...
+});
+```
 
 ## Window and Document events
 

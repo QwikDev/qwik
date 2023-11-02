@@ -16,8 +16,8 @@ export default component$(() => {
         <div class="purple-gradient" role="presentation" />
         <div class="blue-gradient" role="presentation" />
         <div class="flex flex-wrap gap-9 justify-center max-w-[1200px] mb-20 mx-auto">
-          {(appShop.products || []).map((product) => (
-            <ShopProduct product={product} />
+          {(appShop.products || []).map((product, key) => (
+            <ShopProduct key={key} product={product} />
           ))}
         </div>
       </article>

@@ -18,7 +18,7 @@ export const onRequest: RequestHandler = async (request) => {
   request.cacheControl(600);
 };
 
-const useProductsLoader = routeLoader$(async () => {
+export const useProductsLoader = routeLoader$(async () => {
   const response = await fetchFromShopify(productsQuery());
   const {
     data: { node },
@@ -26,7 +26,7 @@ const useProductsLoader = routeLoader$(async () => {
   return mapProducts(node.products.edges);
 });
 
-const useCartLoader = routeLoader$(async ({ cookie }) => {
+export const useCartLoader = routeLoader$(async ({ cookie }) => {
   const cartId = cookie.get(COOKIE_CART_ID_KEY)?.value;
   const body = cartId ? checkoutQuery(cartId) : checkoutCreateMutation();
   const response = await fetchFromShopify(body);

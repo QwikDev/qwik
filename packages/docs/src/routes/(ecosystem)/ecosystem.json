@@ -128,12 +128,16 @@
       "title": "@modular-forms/qwik",
       "github": "https://modularforms.dev/qwik/guides/introduction",
       "imgSrc": "/ecosystem/modular-forms.svg",
+      "width": 90,
+      "height": 90,
       "description": "The modular and type-safe form library"
     },
     {
       "title": "@qwikest/icons",
       "github": "https://github.com/qwikest/icons",
       "imgSrc": "/ecosystem/rocket.svg",
+      "width": 90,
+      "height": 90,
       "description": "Thousand of Open Source icons"
     },
     {
@@ -146,48 +150,64 @@
       "title": "qwik-rive",
       "github": "https://github.com/qwikverse/qwik-rive",
       "imgSrc": "/ecosystem/rive.png",
+      "width": 90,
+      "height": 90,
       "description": "Rive animations"
     },
     {
       "title": "qwik-lottie",
       "github": "https://github.com/qwikverse/qwik-lottie",
       "imgSrc": "/ecosystem/lottie.png",
+      "width": 90,
+      "height": 90,
       "description": "Lottie animations"
     },
     {
       "title": "@papanasi/qwik",
       "github": "https://github.com/CKGrafico/papanasi",
       "imgSrc": "/ecosystem/papanasi.svg",
+      "width": 90,
+      "height": 90,
       "description": "Cross platform UI library"
     },
     {
       "title": "qwik-wrap-balancer",
       "github": "https://github.com/harshmangalam/qwik-wrap-balancer",
       "imgSrc": "/ecosystem/balance.svg",
+      "width": 90,
+      "height": 90,
       "description": "Good looking balanced paragraphs"
     },
     {
       "title": "@qwik-ui/headless",
       "github": "https://github.com/qwikifiers/qwik-ui",
       "imgSrc": "/ecosystem/qwik-ui.png",
+      "width": 231,
+      "height": 90,
       "description": "Headless UI library"
     },
     {
       "title": "@qwikbits/headless-ui",
       "github": "https://github.com/genie-design/qwikbits",
       "imgSrc": "/ecosystem/qwikbits.svg",
+      "width": 90,
+      "height": 90,
       "description": "Headless UI components and other helpers"
     },
     {
       "title": "qwik-spin-delay",
       "github": "https://github.com/harshmangalam/qwik-spin-delay",
       "imgSrc": "/ecosystem/qwik-spin-delay.png",
+      "width": 90,
+      "height": 90,
       "description": "Smart spinner component for Qwik, to manage the duration of loading states."
     },
     {
       "title": "qwik-image",
       "github": "https://github.com/qwikifiers/qwik-image",
       "imgSrc": "/ecosystem/qwik-image-logo.png",
+      "width": 90,
+      "height": 90,
       "description": "Performant images with automatic optimization."
     }
   ],

@@ -1,13 +1,14 @@
 import { component$, useStyles$, type FunctionComponent } from '@builder.io/qwik';
 import type { DocumentHead } from '@builder.io/qwik-city';
 import { Link } from '@builder.io/qwik-city';
+import ImgQwikNewsletter from '~/media/ecosystem/qwik-newsletter.svg?jsx';
 import styles from '../ecosystem.css?inline';
 import data from '../ecosystem.json';
 import { MEDIA, type MediaEntry } from '../media/index';
 import SHOWCASE from '../showcase/generated-pages.json';
 import { EcosystemMenu } from './ecosystem-menu';
-import { QwikPlusLogo } from './qwik-plus-logo';
 import { MobileEcosystemMenu } from './mobile-ecosystem-menu';
+import { QwikPlusLogo } from './qwik-plus-logo';
 
 export default component$(() => {
   useStyles$(styles);
@@ -92,6 +93,8 @@ export default component$(() => {
                   title={item.title}
                   href={item.github}
                   imgSrc={item.imgSrc}
+                  width={item.width || 90}
+                  height={item.height || 90}
                   description={item.description}
                   key={i}
                   thumbnailBg={true}
@@ -109,11 +112,7 @@ export default component$(() => {
                   class="flex justify-center p-4 w-full bg-[--qwik-dark-purple]
         bg-gradient-to-r from-[--qwik-dark-purple-bg] via-purple-500 to-[--qwik-dark-purple-bg]"
                 >
-                  <img
-                    src="/ecosystem/qwik-newsletter.svg"
-                    alt="Qwikly Newsletter - Weekly news about Qwik"
-                    loading="lazy"
-                  />
+                  <ImgQwikNewsletter />
                 </div>
                 <div class="text-2xl font-bold">Qwikly Newsletter - Weekly news about Qwik</div>
               </div>
@@ -328,7 +327,13 @@ export const LibraryGridItem: FunctionComponent<LibraryGridItemProps> = (props) 
     <li class="grid-item">
       <Link href={props.href}>
         <div class={{ thumbnail: props.thumbnailBg, cover: props.imgCover }}>
-          <img src={props.imgSrc} alt={props.title} loading="lazy" />
+          <img
+            src={props.imgSrc}
+            alt={props.title}
+            width={props.width || 90}
+            height={props.height || 90}
+            loading="lazy"
+          />
         </div>
         <div class="text">{props.title}</div>
         <div class="description">{props.description}</div>
@@ -365,6 +370,8 @@ interface LibraryGridItemProps {
   href: string;
   description: string;
   imgSrc?: string;
+  width?: number;
+  height?: number;
   imgCover?: boolean;
   thumbnailBg: boolean;
 }

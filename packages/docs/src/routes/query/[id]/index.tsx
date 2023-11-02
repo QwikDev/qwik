@@ -91,6 +91,7 @@ export default component$(() => {
         <tbody>
           {queryData.results.data.map((result: any, i: any) => (
             <tr
+              key={i}
               class={{
                 'border-spacing-5': true,
                 'bg-green-400': result.included,
@@ -111,8 +112,9 @@ export default component$(() => {
       <h2>Similar queries</h2>
       <table class="text-xs table-auto border-collapse border border-slate-500">
         <tbody>
-          {queryData.similar.map((result: any) => (
+          {queryData.similar.map((result: any, key: string) => (
             <tr
+              key={key}
               class={{
                 'border-spacing-5': true,
                 'bg-red-400': result.rate < 0,

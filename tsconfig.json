@@ -98,7 +98,8 @@
     "starters/dev-server.ts",
     "packages/qwik-react/vite",
     "@types/deno.d.ts",
-    "@types/bun.d.ts"
+    "@types/bun.d.ts",
+    "types.d.ts"
   ],
   "exclude": [
     "packages/create-qwik/dist",

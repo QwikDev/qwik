@@ -505,6 +505,8 @@ export const MEDIA = mediaObj({
 export interface MediaEntry {
   title: string;
   href: string;
+  width?: number;
+  height?: number;
   author?: string;
   language?: string;
   imgSrc?: string;
@@ -519,6 +521,8 @@ export const ThumbnailLink = component$((props: { entry: MediaEntry; imgLoading?
         <div class="relative">
           <img
             src={props.entry.imgSrc ? props.entry.imgSrc : '/ecosystem/qwik-blog-fallback.png'}
+            width={props.entry.width || 360}
+            height={props.entry.height || 200}
             loading={props.imgLoading === 'eager' ? undefined : 'lazy'}
             decoding={props.imgLoading === 'eager' ? undefined : 'async'}
             class="thumbnail"
@@ -533,6 +537,8 @@ export const ThumbnailLink = component$((props: { entry: MediaEntry; imgLoading?
         <div class="flex gap-2">
           <img
             src={`https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://${itemURL.host}&size=128`}
+            width={128}
+            height={128}
             alt={`${itemURL.host.split('.').at(1)} logo`}
             class="icon"
           />
@@ -572,15 +578,15 @@ export const Section = component$(
         </h2>
 
         <ul class={props.listStyle}>
-          {MEDIA[props.id].map((entry) => {
+          {MEDIA[props.id].map((entry, key) => {
             if (entry.language && entry.language !== 'en') {
               entriesInOtherLanguages.push(entry);
               return null;
             }
             if (props.listStyle === 'thumbnails') {
-              return <ThumbnailLink entry={entry} imgLoading={props.imgLoading} />;
+              return <ThumbnailLink key={key} entry={entry} imgLoading={props.imgLoading} />;
             }
-            return <BulletLink entry={entry} />;
+            return <BulletLink key={key} entry={entry} />;
           })}
         </ul>
 
@@ -588,11 +594,11 @@ export const Section = component$(
           <>
             <h3>Other languages</h3>
             <ul class={props.listStyle}>
-              {entriesInOtherLanguages.map((entry) =>
+              {entriesInOtherLanguages.map((entry, key) =>
                 props.listStyle === 'thumbnails' ? (
-                  <ThumbnailLink entry={entry} imgLoading={props.imgLoading} />
+                  <ThumbnailLink key={key} entry={entry} imgLoading={props.imgLoading} />
                 ) : (
-                  <BulletLink entry={entry} />
+                  <BulletLink key={key} entry={entry} />
                 )
               )}
             </ul>

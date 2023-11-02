@@ -247,7 +247,7 @@ import { component$, Slot, useStore } from '@builder.io/qwik';
 export default component$(() => {
   return (
     <Button onTripleClick$={() => alert('TRIPLE CLICKED!')}>
-      Triple Click me!
+      Triple click me!
     </Button>
   );
 });
@@ -289,7 +289,7 @@ export const Button = component$<ButtonProps>(({ onTripleClick$ }) => {
 
 ⚠️ When using type annotations, we need to wrap the event type with `PropFunction` in order to tell TypeScript that the function can't be called synchronously.
 ```tsx
-component$(({ onShow$ } : { onShow$?: PropFunction<() => void> }) => {
+component$(({ onTripleClick$ } : { onTripleClick$?: PropFunction<() => void> }) => {
   ...
 });
 ```

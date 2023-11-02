@@ -12,6 +12,7 @@ import { ErrorIcon } from '~/components/icons/error';
 import { DashboardIcon } from '~/components/icons/dashboard';
 import { ManifestIcon } from '~/components/icons/manifest';
 import { AppLink } from '~/routes.config';
+import { RoutesIcon } from '~/components/icons/routes';
 
 export default component$(() => {
   const location = useLocation();
@@ -41,6 +42,14 @@ export default component$(() => {
             >
               <ManifestIcon />
               <span>Manifests</span>
+            </AppLink>
+            <AppLink
+              route={'/app/[publicApiKey]/routes/'}
+              param:publicApiKey={location.params.publicApiKey}
+              class={[styles['menu-item'], subPath.startsWith('routes/') ? styles.active : '']}
+            >
+              <RoutesIcon />
+              <span>Routes</span>
             </AppLink>
             <Link
               href={path + 'symbols/'}

@@ -24,7 +24,7 @@ export function AppLink(props: AppLinkProps & QwikIntrinsicElements['a']) {
         props,
         'param:'
       )}
-      {...omitProps(props, ['href'])}
+      {...(omitProps as Function)(props, ['href'])}
     >
       {props.children}
     </a>

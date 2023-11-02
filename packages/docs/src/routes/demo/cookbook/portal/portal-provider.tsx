@@ -41,7 +41,7 @@ interface Portal {
   name: string;
   jsx: JSXNode;
   close: QRL<() => void>;
-  contexts: Array<ContextPair<unknown>>;
+  contexts: Array<ContextPair<any>>;
 }
 
 export const PortalProvider = component$(() => {
@@ -84,8 +84,8 @@ export const Portal = component$<{ name: string }>(({ name }) => {
   const myPortals = portals.value.filter((portal) => portal.name === name);
   return (
     <>
-      {myPortals.map((portal) => (
-        <div data-portal={name}>
+      {myPortals.map((portal, key) => (
+        <div key={key} data-portal={name}>
           <WrapJsxInContext jsx={portal.jsx} contexts={portal.contexts} />
         </div>
       ))}
@@ -97,7 +97,10 @@ export const WrapJsxInContext = component$<{
   jsx: JSXNode;
   contexts: Array<ContextPair<any>>;
 }>(({ jsx, contexts }) => {
-  contexts.forEach(({ id, value }) => useContextProvider(id, value));
+  contexts.forEach(({ id, value }) => {
+    // eslint-disable-next-line
+    useContextProvider(id, value);
+  });
   return (
     <>
       {/* Workaround: https://github.com/BuilderIO/qwik/issues/4966 */}

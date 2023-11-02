@@ -720,13 +720,14 @@ transformFsSync(opts: TransformFsOptions): TransformOutput;
 export interface TransformModule
 ```
 
-| Property     | Modifiers | Type                                  | Description |
-| ------------ | --------- | ------------------------------------- | ----------- |
-| [code](#)    |           | string                                |             |
-| [hook](#)    |           | [HookAnalysis](#hookanalysis) \| null |             |
-| [isEntry](#) |           | boolean                               |             |
-| [map](#)     |           | string \| null                        |             |
-| [path](#)    |           | string                                |             |
+| Property      | Modifiers | Type                                  | Description |
+| ------------- | --------- | ------------------------------------- | ----------- |
+| [code](#)     |           | string                                |             |
+| [hook](#)     |           | [HookAnalysis](#hookanalysis) \| null |             |
+| [isEntry](#)  |           | boolean                               |             |
+| [map](#)      |           | string \| null                        |             |
+| [origPath](#) |           | string \| null                        |             |
+| [path](#)     |           | string                                |             |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 

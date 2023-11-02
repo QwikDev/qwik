@@ -22,8 +22,8 @@ export const TutorialContentHeader = component$(({ store }: TutorialContentHeade
           }
         }}
       >
-        {tutorialSections.map((s) => (
-          <optgroup label={s.title}>
+        {(tutorialSections as Tutorial[]).map((s, key) => (
+          <optgroup key={key} label={s.title}>
             {s.apps.map((t) => (
               <option selected={t.id === store.appId} value={t.id} key={t.id}>
                 {t.title}
@@ -37,6 +37,11 @@ export const TutorialContentHeader = component$(({ store }: TutorialContentHeade
     </div>
   );
 });
+
+interface Tutorial {
+  title: string;
+  apps: { id: string; title: string }[];
+}
 
 interface TutorialContentHeaderProps {
   store: TutorialStore;

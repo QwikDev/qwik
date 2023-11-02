@@ -1,16 +1,18 @@
 import {
-  type JSXNode,
   Slot,
   component$,
+  noSerialize,
   useContext,
   useStore,
+  type JSXNode,
+  type NoSerialize,
 } from '@builder.io/qwik';
-import { UnderstandingResumability } from './component';
 import {
-  PortalProvider,
   Portal,
   PortalAPI,
+  PortalProvider,
 } from '../cookbook/portal/portal-provider';
+import { UnderstandingResumability } from './component';
 
 export default component$(() => {
   return (
@@ -31,7 +33,7 @@ export const HoverProvider = component$(() => {
     x: 0,
     y: 0,
     currentTarget: null as null | HTMLElement,
-    close: null as null | (() => void),
+    close: null as null | NoSerialize<() => void>,
   });
   return (
     <div
@@ -47,7 +49,7 @@ export const HoverProvider = component$(() => {
               detail: async (jsx: JSXNode) => {
                 if (state.close) return;
                 state.currentTarget = e.target as HTMLElement;
-                state.close = await portal('popup', jsx);
+                state.close = noSerialize(await portal('popup', jsx));
               },
             })
           );

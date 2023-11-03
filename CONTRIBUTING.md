@@ -223,7 +223,7 @@ pnpm install
 2. Run the docs site:
 
 ```shell
-cd packages/docs && pnpm start
+pnpm docs.dev
 ```
 
 ### To open the test apps for debugging run:

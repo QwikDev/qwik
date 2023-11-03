@@ -82,9 +82,12 @@ export const RouterHead = component$(() => {
         </>
       )}
 
-      {head.meta.map((m, key) => (
-        <meta key={key} {...m} />
-      ))}
+      {head.meta
+        // Skip description because that was already added at the top
+        .filter((s) => s.name !== 'description')
+        .map((m, key) => (
+          <meta key={key} {...m} />
+        ))}
 
       {head.links.map((l, key) => (
         <link key={key} {...l} />

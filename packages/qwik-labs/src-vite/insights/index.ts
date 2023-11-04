@@ -40,12 +40,13 @@ export async function qwikInsights(qwikInsightsOpts: {
         } catch (e) {
           logWarn('fail to fetch manifest from Insights DB');
         }
-        if (!existsSync(join(process.cwd(), outDir))) {
-          mkdirSync(join(process.cwd(), outDir), { recursive: true });
+        const cwdRelativePath = join(viteConfig.root || '.', outDir);
+        const cwdRelativePathJson = join(cwdRelativePath, 'q-insights.json');
+        if (!existsSync(join(process.cwd(), cwdRelativePath))) {
+          mkdirSync(join(process.cwd(), cwdRelativePath), { recursive: true });
         }
-        const cwdRelativePath = join(viteConfig.root || '.', outDir, 'q-insights.json');
-        log('Fetched latest Qwik Insight data into: ' + cwdRelativePath);
-        await writeFile(join(process.cwd(), cwdRelativePath), JSON.stringify(qManifest));
+        log('Fetched latest Qwik Insight data into: ' + cwdRelativePathJson);
+        await writeFile(join(process.cwd(), cwdRelativePathJson), JSON.stringify(qManifest));
       }
     },
     closeBundle: async () => {

@@ -154,9 +154,12 @@ export default component$(() => {
                 <Link href="/media/#videos">Videos</Link>
               </span>
               <span>
-                <Link href="/media/#videos" class="text-sm">
+                <a
+                  href="https://youtube.com/playlist?list=PLq_6N4Z1G7mSAh_v9jfVUcu_R1vOM5Nob&si=46Ko4cy1sCUzJFJJ"
+                  class="text-sm"
+                >
                   See All
-                </Link>
+                </a>
               </span>
             </h2>
             <ul class="grid gap-8 grid-cols-2 md:grid-cols-3">
@@ -170,10 +173,6 @@ export default component$(() => {
                   thumbnailBg={true}
                 />
               ))}
-              <AddIntegrationItem
-                title="Add A Video"
-                href="https://github.com/BuilderIO/qwik/blob/main/packages/docs/src/routes/(ecosystem)/media/index.tsx"
-              />
             </ul>
           </section>
 

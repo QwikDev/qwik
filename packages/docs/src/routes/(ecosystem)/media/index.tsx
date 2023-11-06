@@ -83,103 +83,37 @@ export const MEDIA = mediaObj({
   /* Videos
   /*****************************************/
   videos: [
-    youtube('Unveiling Qwik 1.0: What You Need to Know!', 'NjKOAbWqOM4', {
-      promoted: true,
-      author: 'Jack Herrington',
-    }),
     youtube("Qwik… the world's first O(1) JavaScript framework?", 'x2eF3YLiNhY', {
       promoted: true,
       author: 'Fireship',
     }),
-    youtube('Qwik JS and the future of frameworks', 'z14c3u9q8rI', {
+    youtube('Qwik: Performance is a Human Design Issue | ViteConf 2023', 'bvSlEweRyjE', {
       promoted: true,
-      author: 'Awesome',
     }),
-    youtube('Qwik: Under-The-Hood of a Resumable JavaScript Framework', 'BxGbnLb5i9Q', {
-      promoted: true,
-      author: 'Tony Alicea',
-    }),
-    youtube('Qwik-ifying React SPA to create the fastest possible website', 'dbxP9FX5j2o', {
-      promoted: true,
-      author: 'Parasocial Fix',
-    }),
-    youtube('Exploring Qwik, the Resumable Framework', 'gT5NWKZZPQM', {
-      promoted: true,
-      author: 'Ryan Carniato',
-    }),
-    youtube('Building Qwik w/ Misko Hevery', 'lY6e7Hw4uVo', { author: 'Ryan Carniato' }),
-    youtube('Qwik, an SSR resumable framework', 'tdEelSqDj0E', { author: 'Teach Jenn Tech' }),
-    youtube('Why the world needs Qwik with Miško Hevery', 'IRw9efkn9UA', {
-      author: 'Kelvin Omereshone',
-    }),
-    youtube('Exploring Qwik City w/ Adam Bradley & Manu Martínez-Almeida', 'XoeJisRJjlo', {
-      author: 'Ryan Carniato',
-    }),
-    youtube('Building resumable websites using Qwik with Manu Almeida', 'umASDvjaKTY', {
-      author: 'Kelvin Omereshone',
-    }),
-    youtube('Breaking Down the Web: SSR with Miško Hevery (Qwik!)', 'fYATmnlxX4A', {
-      author: 'Dan Jutan',
-    }),
-    youtube('Qwik - nuevo framework para Js', 'GzUMPnsDopM', {
-      language: 'es',
-      author: 'DacarSoft',
-    }),
-    youtube('Qwik Framework, Un nuevo Framework Super Rápido (Lazy Loading)', 'kT-Y17mEUZs', {
-      language: 'es',
-      author: 'Fazt',
-    }),
-    youtube('Construindo Apps instantâneos com Qwik', 'yrROy1vLwkE', {
-      language: 'es',
-      author: 'dogcode',
-    }),
-    youtube('Après Angular : place à Qwik!', 'Ts2IWXMYiXk', {
-      language: 'es',
-      author: 'codeconcept',
-    }),
-    youtube('Hablemos de Qwik', 'XMLMS2NVC1g', {
-      language: 'es',
-      author: 'Leifer Mendez',
-    }),
-    youtube('Qwik el framework más rápido para aplicaciones web', 'On5P_xw8zSw', {
-      language: 'es',
-      author: 'Leifer Mendez',
-    }),
-    youtube('Introducción a QwikJS', 'fX7bM4iuuUQ', {
-      language: 'es',
-      author: 'Domini Code',
-    }),
-    youtube('¿Qué onda Qwik?', 'H7TL4SqcC3E', {
-      language: 'es',
-      author: 'La comu dev',
-    }),
-    youtube('Introduction to Qwik for JS Developers ft. Miško Hevery | JS Drops', 'DxJgXw91cCQ', {
-      author: 'La comu dev',
-    }),
-    youtube('Building Performant Applications at Scale with Qwik-City', '_R0-0IWdshE', {
-      author: 'RecWorks',
-    }),
-    youtube('Qwik: The Lightest, Fastest Way to Build Web Apps', 'l2mBk9meSvc', {
-      author: 'Tejas Kumar',
-    }),
-    youtube('Resumable React - Leveraging the React ecosystem with Qwik', 'IGIPBAWRw_M', {
-      author: 'Builder',
-    }),
-    youtube('How to build a Qwik app with Yoav Ganbar', 'qqbi9WBe-ts', {
-      author: 'Kelvin Omereshone',
-    }),
-    youtube('Qwik Crash Course', 'W0xjcx4mrkE', { author: 'The Net Ninja' }),
     youtube(
-      `LEARN QWIK - The World's Fastest JavaScript Framework | E-comm Store Project | Qwik + TailwindCSS`,
-      '6w1987dVHVY',
-      { author: 'Smoljames' }
+      'Miško Hevery: Creator of AngularJS & now Qwik | The Frontend Masters Podcast Ep.4',
+      'CcLgQaJIyn0',
+      {
+        promoted: true,
+      }
     ),
     youtube(
-      `Interview and Q&A with JSNation Speaker: Miško Hevery | Intro and Overview of Qwik`,
-      'mLbReseU_I0',
-      { author: 'Coding Garden' }
+      'Using Qwik To Turn React Application Into Lazy Hydration Islands - Misko Hevery',
+      'XvpwF_xTZcU',
+      {
+        promoted: true,
+      }
     ),
-    youtube('Resumability | Explained Briefly', 'vQ365FjT-yI', { author: 'Neon Pie' }),
+    youtube(
+      'Effortless Server Communication & Multithreading in Qwik - Yoav Ganbar',
+      'lEc2BM5HmJ8',
+      {
+        promoted: true,
+      }
+    ),
+    youtube('JavaScript Streaming: A Qwik Glimpse Into The Future - Shai Reznik', '5vckrrqtWto', {
+      promoted: true,
+    }),
   ],
 
   /***/

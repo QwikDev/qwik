@@ -15,7 +15,7 @@
   },
   "devDependencies": {
     "@builder.io/qwik": "github:BuilderIo/qwik-build#0080db89d43112fea2ed6b281f70f61d00f42edd",
-    "@builder.io/qwik-city": "github:BuilderIo/qwik-city-build#fd39ca1abf09e4016ff738679030b2486ea5f7fc",
+    "@builder.io/qwik-city": "github:BuilderIo/qwik-city-build#2893370fef90427c9cc3e5d3af48ab96b7aba299",
     "@builder.io/qwik-labs": "workspace:*",
     "@builder.io/vite-plugin-macro": "~0.0.7",
     "@netlify/edge-functions": "^2.2.0",

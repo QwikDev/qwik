@@ -29,6 +29,8 @@ export function createQwikCity(opts: QwikCityNetlifyOptions) {
   async function onNetlifyEdgeRequest(request: Request, context: Context) {
     try {
       const url = new URL(request.url);
+      // eslint-disable-next-line no-console
+      console.log('DEBUG:', url.toString(), url.pathname, request.url);
 
       if (isStaticPath(request.method, url) || url.pathname.startsWith('/.netlify')) {
         // known static path, let netlify handle it

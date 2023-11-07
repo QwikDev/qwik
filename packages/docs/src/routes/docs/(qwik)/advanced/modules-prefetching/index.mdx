@@ -8,9 +8,10 @@ contributors:
   - saikatdas0790
   - the-r3aper7
   - mhevery
+  - maiieul
 ---
 
-# Prefetching
+# Prefetching modules
 
 Qwik provides various strategies to prefetch modules ahead of time, and building on top of that, Qwik City is able to take it further by using [Speculative Module Fetching](../../../(qwikcity)/advanced/speculative-module-fetching/index.mdx). This docs page describes the **low-level** features of Qwik's prefetching. However, it's recommended to refer to Qwik City's documentation on [Speculative Module Fetching](../../../(qwikcity)/advanced/speculative-module-fetching/index.mdx) for a more comprehensive understanding.
 
@@ -18,7 +19,7 @@ Qwik provides various strategies to prefetch modules ahead of time, and building
 - [Link rel](#link-rel)
 - [Web Worker Fetch](#web-worker-fetch)
 
-Prefetching is a way for applications to begin downloading modules in a background task, before the user may actually require these modules. The ideal solution is to only prefetch the smallest amount of code that is highly likely to be executed from a user's interaction, while also avoiding any JavaScript that _will not_ be used.
+Prefetching modules is a way for applications to begin downloading modules in a background task, before the user may actually require these modules. The ideal solution is to only prefetch the smallest amount of code that is highly likely to be executed from a user's interaction, while also avoiding any JavaScript that _will not_ be used.
 
 Only downloading and executing a minimal amount of JavaScript is an area where Qwik applications excel. And since Qwik is able to understand how individual components are used (and what's not used), it can also best decide which bundles should be prefetched.
 
@@ -34,7 +35,7 @@ For our "Add to cart" example, the optimizer would collect the symbols for only 
 
 Since Qwik understands what's possible, it's able to prefetch the code only for the event listener rather than all the JavaScript for the entire application or route. This is in contrast to the traditional approach where the entire application or route, and framework code, must be prefetched just to add the click event listener.
 
-## Prefetching Strategy
+## prefetchStrategy
 
 The prefetching strategy is the logic that decides which JavaScript, if any, Qwik should prefetch in the background. By default, Qwik will prefetch any visible listeners on the page. To configure the prefetching strategy, use the options argument of the `renderToStream()` function, often found in the `src/entry.ssr.tsx` source file. Providing optimal prefetching strategies is an area Qwik will continue to research and experiment with.
 
@@ -52,9 +53,9 @@ export default function (opts: RenderToStreamOptions) {
 }
 ```
 
-## Prefetching Implementation
+### Implementation
 
-Browsers offer numerous ways to "implement", or apply, a [prefetching strategy](#prefetching-strategy), and Qwik can be configured to prefer one implementation over another, each with their pros and cons. Depending on the configuration, the generated HTML content will include the prefetch implementation.
+Browsers offer numerous ways to "implement", or apply, a [prefetching strategy](#prefetchStrategy), and Qwik can be configured to prefer one implementation over another, each with their pros and cons. Depending on the configuration, the generated HTML content will include the prefetch implementation.
 
 ```ts
 export default function (opts: RenderToStreamOptions) {
@@ -79,7 +80,7 @@ For Qwik City applications, we highly recommended using [Speculative Module Fetc
 | `linkRel`           | This option is used to define the [`rel` attribute](https://developer.mozilla.org/en-US/docs/Web/HTML/Link_types) of the `<link>` element. When the `linkInsert` option is used, the default is `prefetch`. Other options include `preload` and `modulepreload`.                                                      |
 | `workerFetchInsert` | Prefetch urls by calling a `fetch()` for each module, with the goal of populating the network cache.                                                                                                                                                                                                                  |
 
-### Dispatched Prefetch Event
+#### Dispatched Prefetch Event
 
 [Speculative Module Fetching](../../../(qwikcity)/advanced/speculative-module-fetching/index.mdx) is the preferred caching strategy used by Qwik City. This strategy listens for the `qprefetch` event, which is dispatched by the Qwik framework. The event contains a list of URLs that the background thread should use to pre-populate the browser's [Cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache).
 
@@ -95,7 +96,7 @@ dispatchEvent(new CustomEvent("qprefetch", { detail: {
 }}));
 ```
 
-### Link `rel`
+#### Link `rel`
 
 Using the `<link>` element with the `rel` attribute is a common approach by today's frameworks, and Qwik can use this method by configuring the `linkInsert` and `linkRel` options. The challenge with the link rel approach is lack of support on _all_ devices, at least at the time of writing. Additionally, during development, it can be misleading that it works everywhere; while on mobile devices it is not easily visible that link prefetching is working correctly.
 
@@ -107,12 +108,12 @@ For example, Safari (the browser powering iPhones and iPads) does not support `m
 
 Additionally, it may be possible to fire off multiple requests for the same resource. For example, let's say we want to prefetch `module-a.js`, and while that's being downloaded (which may take a short time, or a very long time), the user interacts with the app, which then decides to actually request and execute `module-a.js`. At the time of writing, browsers will often fire off a second request, which makes matters worse.
 
-#### link rel="modulepreload"
+##### link rel="modulepreload"
 
 - Even though it's in the HTML spec, that doesn't mean your end-users are preloading your app correctly. [Can I Use: modulepreload](https://caniuse.com/link-rel-modulepreload)
 - Not supported by [Firefox](https://bugzilla.mozilla.org/show_bug.cgi?id=1425310).
 
-### Web Worker Fetch
+#### Web Worker Fetch
 
 `workerFetchInsert` instructs Qwik to employ a web worker to `fetch()` a JavaScript file, with the goal of priming the browser cache with the module. By using a web worker, the fetch and caching logic lives on another thread. The fetch response will also have an `immutable` or long cache-control header, so the browser doesn't make a second network request.
 

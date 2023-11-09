@@ -58,7 +58,7 @@ Since you are choosing Node, here you are in your own, after running `npm run bu
 
 In order to deploy the server, you need to run the `server/entry.[server].js` file in the server of your choice, where `[server]` can be [express](https://expressjs.com/) or [fastify](https://fastify.dev/).
 
-It's *very important to correctly configure the `ORIGIN` env variable*, which is used to check against [CSRF attacks](https://owasp.org/www-community/attacks/csrf). The origin must match the origin of the client application.
+It's **very important to correctly configure the `ORIGIN` env variable**, which is used to check against [CSRF attacks](https://owasp.org/www-community/attacks/csrf). The origin must match the origin of the client application.
 
 > For example, if you plan to deploy your application to `https://example.com/app`, then you need to set the `ORIGIN` environment variable to `https://example.com`.
 >

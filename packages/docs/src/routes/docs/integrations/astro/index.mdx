@@ -1,0 +1,159 @@
+---
+title: Astro | Integrations
+contributors:
+  - thejackshelton
+---
+
+# Astro
+
+Astro is a flexible meta-framework that accommodates a wide range of tools and integrations, enabling you to leverage numerous ecosystems.
+
+It also allows you to write components using your favorite UI framework (or no framework at all) and renders your pages to static HTML at build time, or dynamically on the server using Server-Side Rendering (SSR). 
+
+This results in a fast, SEO-friendly output that can be deployed to any static hosting environment or server.
+
+## Astro instead of Qwik City
+
+When integrating Astro with Qwik, it's important to note that Qwik City APIs are not compatible with Astro. 
+
+Astro is a meta-framework that provides its own set of APIs and features for handling these concerns. These include routing, pages and layouts, data fetching, and server-side rendering (SSR). 
+
+Therefore, when integrating Qwik with Astro, you should use Astro's APIs and features instead of Qwik City's APIs. This will ensure that your Qwik components work correctly within the Astro environment. For more information, see the [Astro documentation](https://docs.astro.build).
+
+## @qwikdev/astro 💜
+
+This integration leverages the power of [Resumability](https://qwik.builder.io/docs/concepts/resumable/) inside of Astro, using Qwik components.
+
+## Installation
+
+There are two methods to add the integration. Let's begin with the easiest one!
+
+### The Astro CLI
+
+Astro comes with a command-line tool for incorporating built-in integrations: `astro add`. This command will:
+
+1. Optionally install all required dependencies and peer dependencies
+2. Optionally modify your `astro.config.*` file to apply the integration
+
+To install `@qwikdev/astro`, run the following from your project directory and follow the prompts:
+
+```sh
+# Using NPM
+npx astro add @qwikdev/astro
+
+# Using Yarn
+yarn astro add @qwikdev/astro
+
+# Using PNPM
+pnpm astro add @qwikdev/astro
+```
+
+### Setting up the TypeScript Config
+
+The integration needs the following in `tsconfig.json` for typescript to recognize Qwik's JSX types.
+
+```ts
+"compilerOptions": {
+"jsx": "react-jsx",
+"jsxImportSource": "@builder.io/qwik"
+}
+```
+
+If you face any issues, please [post them on Github](https://github.com/QwikDev/astro/issues) and attempt the manual installation below.
+
+### Manual Installation
+
+First, install the `@qwikdev/astro` integration like so:
+
+```sh
+npm install @qwikdev/astro
+```
+
+Typically, package managers install peer dependencies. However, if you get a `Cannot find package '@builder.io/qwik'` warning when starting Astro, install Qwik.
+
+```sh
+npm install @builder.io/qwik
+```
+
+Now, add the integration to your `astro.config.*` file using the `integrations` property:
+
+```diff lang="js" "qwikdev()"
+  // astro.config.mjs
+  import { defineConfig } from 'astro/config';
++ import qwikdev from '@qwikdev/astro';
+
+  export default defineConfig({
+    // ...
+    integrations: [qwikdev()],
+    //             ^^^^^
+  });
+```
+
+## Qwik does not hydrate, it is **fundamentally different**
+
+Astro is popular for its partial hydration approach, whereas Qwik [does not require hydration](https://www.builder.io/blog/hydration-tree-resumability-map#resumability-is-fundamentally-a-different-algorithm).
+
+### Adding a Qwik component
+
+In other UI frameworks, a hydration directive would be needed for interactivity, such as `client:only` or `client:load`. These are not needed with Qwik, because there is no hydration!
+
+When using Qwik inside a meta framework like Astro or Qwik City, components are loaded on the server, prefetched in a separate thread, and "resumed" on the client.
+
+For example here's how we create a counter component in Qwik.
+
+```tsx
+import { component$, useSignal } from "@builder.io/qwik";
+
+export const Counter = component$(() => {
+  const counter = useSignal(0);
+
+  return <button onClick$={() => counter.value++}>{counter.value}</button>;
+});
+```
+
+It can be consumed in our `index.astro` page like so:
+
+```astro
+    ---
+    import { Counter } from "../components/counter";
+    ---
+
+    <html lang="en">
+        <head>
+            <meta charset="utf-8" />
+            <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+            <meta name="viewport" content="width=device-width" />
+            <meta name="generator" content={Astro.generator} />
+            <title>Astro</title>
+        </head>
+        <body>
+            <h1>Astro.js - Qwik</h1>
+            /* no hydration directive! */
+            <Counter />
+        </body>
+    </html>
+```
+
+### Roadmap
+
+There are some things missing from Astro that we would like to add in the future. That being better [prefetching](https://qwik.builder.io/docs/advanced/prefetching/#prefetching) and [Insights](https://qwik.builder.io/docs/labs/insights/).
+
+If there's anything else you think would be awesome with Astro & Qwik, feel free to take a crack at it.
+
+## Contributing
+
+We'd love for you to contribute! Start by reading our [Contributing Guide](https://github.com/QwikDev/astro/blob/main/contributing.md). It's got all the info you need to get involved, including an in-depth section on how the integration works under the hood.
+
+There's also a `qwik-astro` channel in the builder.io discord to discuss API changes, possible ideas to the integration, and other cool stuff. 😊
+
+## Credits
+
+Special thanks to Matthew and Nate from the Astro core team! This integration would not be possible without their help.
+
+Nate's handles:
+- [Twitter](https://twitter.com/n_moore)
+- [GitHub](https://github.com/natemoo-re)
+
+
+
+

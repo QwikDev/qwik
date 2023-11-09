@@ -18,12 +18,12 @@ export function vercelEdgeAdapter(opts: VercelEdgeAdapterOptions = {}): any {
       return {
         resolve: {
           conditions:
-            opts.target === 'webworker'
-              ? ['edge-light', 'worker', 'browser', 'module', 'main']
-              : ['webworker', 'worker'],
+            opts.target === 'node'
+              ? ['node', 'import', 'module', 'browser', 'default']
+              : ['edge-light', 'webworker', 'worker', 'browser', 'module', 'main'],
         },
         ssr: {
-          target: opts.target === 'webworker' ? 'webworker' : 'node',
+          target: opts.target === 'node' ? 'node' : 'webworker',
           noExternal: true,
         },
         build: {
@@ -132,10 +132,9 @@ export interface VercelEdgeAdapterOptions extends ServerAdapterOptions {
   staticPaths?: string[];
 
   /**
-   * Define the `target` proeprty in the `ssr` property in the `vite.config.ts` file.
+   * Define the `target` property in the `ssr` object in the `vite.config.ts` file.
    *
-   * Defaults to `webworker` for not having a breaking change. But `node` will become the default in
-   * an upcoming release.
+   * Defaults to `webworker`.
    */
   target?: 'webworker' | 'node';
 }

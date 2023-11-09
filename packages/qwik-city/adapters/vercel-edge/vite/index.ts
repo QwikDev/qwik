@@ -18,12 +18,12 @@ export function vercelEdgeAdapter(opts: VercelEdgeAdapterOptions = {}): any {
       return {
         resolve: {
           conditions:
-            opts.target === 'webworker'
-              ? ['edge-light', 'worker', 'browser', 'module', 'main']
-              : ['webworker', 'worker'],
+            opts.target === 'node'
+              ? ['node', 'import', 'module', 'browser', 'default']
+              : ['edge-light', 'webworker', 'worker', 'browser', 'module', 'main'],
         },
         ssr: {
-          target: opts.target === 'webworker' ? 'webworker' : 'node',
+          target: opts.target === 'node' ? 'node' : 'webworker',
           noExternal: true,
         },
         build: {

@@ -273,6 +273,11 @@ declare module '*.mdx' {
   export const frontmatter: Record<string, any>;
   export default node;
 }
+// SVG ?jsx
+declare module '*.svg?jsx' {
+  const Cmp: import('./core').FunctionComponent<import('./core').QwikIntrinsicElements['svg']>
+  export default Cmp;
+}
 // Image ?jsx
 declare module '*?jsx' {
   const Cmp: import('./core').FunctionComponent<Omit<import('./core').QwikIntrinsicElements['img'], 'src' | 'width' | 'height' | 'srcSet'>>
@@ -281,7 +286,6 @@ declare module '*?jsx' {
   export const height: number;
   export const srcSet: string;
 }
-
 // Image &jsx
 declare module '*&jsx' {
   const Cmp: import('./core').FunctionComponent<Omit<import('./core').QwikIntrinsicElements['img'], 'src' | 'width' | 'height' | 'srcSet'>>

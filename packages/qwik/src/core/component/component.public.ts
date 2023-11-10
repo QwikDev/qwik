@@ -162,7 +162,9 @@ export const isQwikComponent = (component: any): component is Component<any> => 
 
 /** @public */
 export type PropFunctionProps<PROPS extends {}> = {
-  [K in keyof PROPS]: NonNullable<PROPS[K]> extends (...args: infer ARGS) => infer RET
+  [K in keyof PROPS]: PROPS[K] extends undefined
+    ? PROPS[K]
+    : PROPS[K] extends ((...args: infer ARGS) => infer RET) | undefined
     ? PropFnInterface<ARGS, Awaited<RET>>
     : PROPS[K];
 };

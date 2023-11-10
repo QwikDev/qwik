@@ -2,10 +2,12 @@ import { createDOM } from '../../testing/library';
 import { expectDOM } from '../../testing/expect-dom';
 import { inlinedQrl } from '../qrl/qrl';
 import { useStylesQrl } from '../use/use-styles';
-import { type PropsOf, component$ } from './component.public';
+import { type PropsOf, component$, type PropFunctionProps } from './component.public';
 import { useStore } from '../use/use-store.public';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { describe, test } from 'vitest';
+import type { InputHTMLAttributes } from '../render/jsx/types/jsx-generated';
+import type { QwikIntrinsicElements } from '../render/jsx/types/jsx-qwik-elements';
 
 describe('q-component', () => {
   /**
@@ -112,6 +114,59 @@ describe('q-component', () => {
     </host>
     `
     );
+  });
+
+  test('types work as expected', () => {
+    const Input1 = component$<InputHTMLAttributes<HTMLInputElement>>((props) => {
+      return <input {...props} />;
+    });
+
+    const Input2 = component$((props: PropFunctionProps<InputHTMLAttributes<HTMLInputElement>>) => {
+      return <input {...props} />;
+    });
+
+    const Input3 = component$((props: Partial<InputHTMLAttributes<HTMLInputElement>>) => {
+      return <input {...props} />;
+    });
+
+    const Input4 = component$(
+      (props: Partial<PropFunctionProps<InputHTMLAttributes<HTMLInputElement>>>) => {
+        return <input {...props} />;
+      }
+    );
+
+    type Input5Props = {
+      type: 'text' | 'number';
+    } & Partial<InputHTMLAttributes<HTMLInputElement>>;
+
+    const Input5 = component$<Input5Props>(({ type, ...props }) => {
+      return <input type={type} {...props} />;
+    });
+
+    type Input6Props = {
+      type: 'text' | 'number';
+    } & QwikIntrinsicElements['input'];
+
+    const Input6 = component$<Input6Props>(({ type, ...props }) => {
+      return (
+        <div>
+          <input type={type} {...props} />
+        </div>
+      );
+    });
+
+    component$(() => {
+      return (
+        <>
+          <Input1 value="1" />
+          <Input2 value="2" />
+          <Input3 value="3" />
+          <Input4 value="4" />
+          <Input5 value="5" type="text" />
+          <Input6 value="6" type="number" />
+        </>
+      );
+    });
   });
 });
 

@@ -1624,7 +1624,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type PropFunctionProps<PROPS extends {}> = {\n    [K in keyof PROPS]: NonNullable<PROPS[K]> extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, Awaited<RET>> : PROPS[K];\n};\n```\n**References:** [PropFnInterface](#propfninterface)",
+      "content": "```typescript\nexport type PropFunctionProps<PROPS extends {}> = {\n    [K in keyof PROPS]: PROPS[K] extends undefined ? PROPS[K] : PROPS[K] extends ((...args: infer ARGS) => infer RET) | undefined ? PropFnInterface<ARGS, Awaited<RET>> : PROPS[K];\n};\n```\n**References:** [PropFnInterface](#propfninterface)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts",
       "mdFile": "qwik.propfunctionprops.md"
     },

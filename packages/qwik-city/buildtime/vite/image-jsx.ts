@@ -120,7 +120,7 @@ export function imagePlugin(userOpts?: QwikCityVitePluginOptions): PluginOption[
                 },
               ],
             }).data;
-            svgAttributes.dangerouslySetInnerHTML = data.slice(3, -3);
+            svgAttributes.dangerouslySetInnerHTML = data.slice(3, -4);
             return `
   import { _jsxQ } from '@builder.io/qwik';
   const PROPS = ${JSON.stringify(svgAttributes)};

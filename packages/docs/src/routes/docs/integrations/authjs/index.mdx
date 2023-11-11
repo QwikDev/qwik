@@ -44,6 +44,11 @@ After installing the auth package using `npm run qwik add auth` the `@auth/core`
 export default defineConfig(() => {
   return {
     plugins: [qwikCity(), qwikVite(), tsconfigPaths()],
+    dev: {
+      headers: {
+        'Cache-Control': 'public, max-age=0',
+      },
+    },
     preview: {
       headers: {
         'Cache-Control': 'public, max-age=600',

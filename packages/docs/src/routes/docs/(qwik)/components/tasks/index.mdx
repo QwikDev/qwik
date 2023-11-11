@@ -438,6 +438,20 @@ const Clock = component$<{ isRunning: Signal<boolean> }>(({ isRunning }) => {
 
 > In this example the clock starts running immediately on the browser regardless of whether it is visible or not.
 
+### Advanced: Time of running, and managing visibility with CSS
+
+Internally, `useVisibleTask$` is implemented by adding an attribute on the first rendered component (either the returned component or in case of a Fragment, its first child).  With the standard `eagerness`, this means that if the first rendered component is hidden, the task will not run.
+
+This means that you can use CSS to influence when the task runs. For example, if the task should only run on a mobile device, you can return a `<div class="md:invisible" />` (in the case of Tailwind CSS).
+
+This also means you cannot unhide a component using a visible task; for that you can return a Fragment:
+
+```tsx
+return (<>
+  <div />
+  <MyHiddenComponent hidden={!showSignal.value} />
+</>)
+```
 
 ## Use Hook Rules
 

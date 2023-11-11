@@ -91,36 +91,7 @@ export function imagePlugin(userOpts?: QwikCityVitePluginOptions): PluginOption[
   }`
             );
           } else if (extension === '.svg') {
-            const svgAttributes: Record<string, string> = {};
-            const data = optimize(code, {
-              plugins: [
-                {
-                  name: 'preset-default',
-                  params: {
-                    overrides: {
-                      removeViewBox: false,
-                    },
-                  },
-                },
-                {
-                  name: 'customPluginName',
-                  fn: () => {
-                    return {
-                      element: {
-                        exit: (node) => {
-                          if (node.name === 'svg') {
-                            node.name = 'g';
-                            Object.assign(svgAttributes, node.attributes);
-                            node.attributes = {};
-                          }
-                        },
-                      },
-                    };
-                  },
-                },
-              ],
-            }).data;
-            svgAttributes.dangerouslySetInnerHTML = data.slice(3, -4);
+            const { svgAttributes } = optimizeSvg(code);
             return `
   import { _jsxQ } from '@builder.io/qwik';
   const PROPS = ${JSON.stringify(svgAttributes)};
@@ -133,4 +104,43 @@ export function imagePlugin(userOpts?: QwikCityVitePluginOptions): PluginOption[
       },
     },
   ];
+}
+
+export function optimizeSvg(code: string) {
+  const svgAttributes: Record<string, string> = {};
+  const data = optimize(code, {
+    plugins: [
+      {
+        name: 'preset-default',
+        params: {
+          overrides: {
+            removeViewBox: false,
+          },
+        },
+      },
+      {
+        name: 'customPluginName',
+        fn: () => {
+          return {
+            element: {
+              exit: (node) => {
+                if (node.name === 'svg') {
+                  node.name = 'g';
+                  Object.assign(svgAttributes, node.attributes);
+                  node.attributes = {};
+                }
+              },
+            },
+          };
+        },
+      },
+    ],
+  }).data;
+
+  svgAttributes.dangerouslySetInnerHTML = data.slice(3, -4);
+
+  return {
+    data,
+    svgAttributes,
+  };
 }

@@ -91,7 +91,7 @@ export function imagePlugin(userOpts?: QwikCityVitePluginOptions): PluginOption[
   }`
             );
           } else if (extension === '.svg') {
-            const { svgAttributes } = optimizeSvg({ code, pathId }, userOpts);
+            const { svgAttributes } = optimizeSvg({ code, path: pathId }, userOpts);
             return `
   import { _jsxQ } from '@builder.io/qwik';
   const PROPS = ${JSON.stringify(svgAttributes)};
@@ -107,7 +107,7 @@ export function imagePlugin(userOpts?: QwikCityVitePluginOptions): PluginOption[
 }
 
 export function optimizeSvg(
-  { code, pathId }: { code: string; pathId: string },
+  { code, path }: { code: string; path: string },
   userOpts?: QwikCityVitePluginOptions
 ) {
   const svgAttributes: Record<string, string> = {};
@@ -117,7 +117,7 @@ export function optimizeSvg(
   const data = optimize(code, {
     floatPrecision: userOpts?.imageOptimization?.svgo?.floatPrecision,
     multipass: userOpts?.imageOptimization?.svgo?.multipass,
-    path: pathId,
+    path: path,
     plugins: [
       {
         name: 'preset-default',

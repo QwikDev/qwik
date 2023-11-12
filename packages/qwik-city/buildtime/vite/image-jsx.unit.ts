@@ -65,7 +65,7 @@ test('optimize svgs by path', () => {
 
   // ids should have different names if prefixIds plugin is explicitly added by users
   assert.isFalse(
-    optimizedSvgsWithUserConfig.every((svg) =>
+    optimizedSvgsWithUserConfig.some((svg) =>
       svg.data.startsWith('<g><defs><linearGradient id="a"')
     )
   );

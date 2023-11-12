@@ -95,11 +95,7 @@ export async function runNewCommand(app: AppCommand) {
 
     const fileOutput = await writeToFile(name, slug, template, outDir);
 
-    if (typeArg === 'markdown') {
-      log.success(`${green(`Markdown route "${name}" created!`)}`);
-    } else {
-      log.success(`${green(`${toPascal([typeArg])} "${name}" created!`)}`);
-    }
+    log.success(`${green(`${toPascal([typeArg])} "${slug}" created!`)}`);
     log.message(`Emitted in ${dim(fileOutput)}`);
   } catch (e) {
     log.error(String(e));
@@ -160,17 +156,19 @@ async function selectName(type: 'route' | 'component' | 'markdown' | 'mdx') {
     bye();
   }
 
-  if (type === 'route' && !(nameAnswer as string).startsWith('/')) {
-    return `/${nameAnswer as string}`;
-  }
-  if (type === 'markdown' && !(nameAnswer as string).startsWith('/')) {
-    return `/${nameAnswer.replace(MARKDOWN_SUFFIX, '') as string}`;
-  }
-  if (type === 'mdx' && !(nameAnswer as string).startsWith('/')) {
-    return `/${nameAnswer.replace(MDX_SUFFIX, '') as string}`;
+  let result = nameAnswer;
+
+  if (type !== 'component' && !nameAnswer.startsWith('/')) {
+    result = `/${result}`;
   }
 
-  return nameAnswer.replace(MARKDOWN_SUFFIX, '') as string;
+  if (type === 'markdown') {
+    result = result.replace(MARKDOWN_SUFFIX, '');
+  } else if (type === 'mdx') {
+    result = result.replace(MDX_SUFFIX, '');
+  }
+
+  return result;
 }
 
 async function selectTemplate(typeArg: (typeof POSSIBLE_TYPES)[number]) {
@@ -251,9 +249,9 @@ function parseInputName(input: string) {
 }
 
 function toSlug(list: string[]) {
-  return list.join('-').toLowerCase();
+  return list.join('-');
 }
 
 function toPascal(list: string[]) {
-  return list.map((p) => p[0].toUpperCase() + p.substring(1).toLowerCase()).join('');
+  return list.map((p) => p[0].toUpperCase() + p.substring(1)).join('');
 }

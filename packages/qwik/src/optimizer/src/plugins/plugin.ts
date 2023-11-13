@@ -1,5 +1,7 @@
-import { createOptimizer } from '../optimizer';
+import type { Rollup } from 'vite';
+import { hashCode } from '../../../core/util/hash_code';
 import { generateManifestFromBundles, getValidManifest } from '../manifest';
+import { createOptimizer } from '../optimizer';
 import type {
   Diagnostic,
   EntryStrategy,
@@ -17,8 +19,6 @@ import type {
   TransformOutput,
 } from '../types';
 import { createLinter, type QwikLinter } from './eslint-plugin';
-import type { Rollup } from 'vite';
-import { hashCode } from '../../../core/util/hash_code';
 
 const REG_CTX_NAME = ['server'];
 
@@ -445,10 +445,10 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         const transformedOutput = isSSR
           ? ssrTransformedOutputs.get(importer)
           : transformedOutputs.get(importer);
-        const p = transformedOutput?.[0].origPath;
-        if (p) {
+        const originalPath = transformedOutput?.[0].origPath || transformedOutput?.[1];
+        if (originalPath) {
           // Resolve imports relative to original source path
-          return ctx.resolve(id, p, { skipSelf: true });
+          return ctx.resolve(id, originalPath, { skipSelf: true });
         }
         return;
       }

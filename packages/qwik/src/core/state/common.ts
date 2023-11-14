@@ -199,7 +199,7 @@ type SubscriberB = readonly [
   prop: string,
 ];
 
-type SubscriberC = readonly [
+export type SubscriberC = readonly [
   type: 3 | 4,
   host: SubscriberHost | Text,
   signal: Signal,

@@ -1,7 +1,5 @@
-import { ELEMENT_ID, OnRenderProp, QSlot, QSlotRef, QSlotS, QStyle } from '../../util/markers';
-import { isOnProp, PREVENT_DEFAULT, setEvent } from '../../state/listeners';
-import type { ValueOrPromise } from '../../util/types';
-import { isPromise, promiseAll, promiseAllLazy, maybeThen } from '../../util/promises';
+import type { OnRenderFn } from '../../component/component.public';
+import { getEventName, setRef, type ContainerState } from '../../container/container';
 import {
   assertDefined,
   assertElement,
@@ -10,20 +8,14 @@ import {
   assertQwikElement,
   assertTrue,
 } from '../../error/assert';
-import { logWarn } from '../../util/log';
-import { qDev, qInspector, qTest } from '../../util/qdev';
-import type { OnRenderFn } from '../../component/component.public';
-import { directGetAttribute, directSetAttribute } from '../fast-calls';
-import { SKIP_RENDER_TYPE } from '../jsx/jsx-runtime';
 import { assertQrl, isQrl } from '../../qrl/qrl-class';
+import { PREVENT_DEFAULT, isOnProp, setEvent } from '../../state/listeners';
 import { isElement, isQwikElement, isText, isVirtualElement } from '../../util/element';
-import {
-  getVdom,
-  type ProcessedJSXNode,
-  ProcessedJSXNodeImpl,
-  renderComponent,
-} from './render-dom';
-import type { RenderContext, RenderStaticContext } from '../types';
+import { logWarn } from '../../util/log';
+import { ELEMENT_ID, OnRenderProp, QSlot, QSlotRef, QSlotS, QStyle } from '../../util/markers';
+import { isPromise, maybeThen, promiseAll, promiseAllLazy } from '../../util/promises';
+import { qDev, qInspector, qTest } from '../../util/qdev';
+import type { ValueOrPromise } from '../../util/types';
 import {
   dangerouslySetInnerHTML,
   isAriaAttribute,
@@ -35,17 +27,47 @@ import {
   static_subtree,
   stringifyStyle,
 } from '../execute-component';
-import { type ContainerState, setRef, getEventName } from '../../container/container';
+import { directGetAttribute, directSetAttribute } from '../fast-calls';
+import { SKIP_RENDER_TYPE, isJSXNode } from '../jsx/jsx-runtime';
+import type { RenderContext, RenderStaticContext } from '../types';
 import {
+  ProcessedJSXNodeImpl,
+  getVdom,
+  processData,
+  renderComponent,
+  type ProcessedJSXNode,
+} from './render-dom';
+import {
+  VIRTUAL,
   getRootNode,
   newVirtualElement,
   processVirtualNodes,
   queryAllVirtualByAttribute,
   type QwikElement,
-  VIRTUAL,
   type VirtualElement,
 } from './virtual-element';
 
+import { isBrowser } from '@builder.io/qwik/build';
+import {
+  getProxyTarget,
+  getSubscriptionManager,
+  type SubscriberC,
+  type SubscriptionManager,
+} from '../../state/common';
+import { _IMMUTABLE, _IMMUTABLE_PREFIX } from '../../state/constants';
+import {
+  HOST_FLAG_DIRTY,
+  HOST_FLAG_NEED_ATTACH_LISTENER,
+  cleanupContext,
+  createContext,
+  getContext,
+  tryGetContext,
+  type QContext,
+} from '../../state/context';
+import { isSignal } from '../../state/signal';
+import { ReadWriteProxyHandler, createPropsState, createProxy } from '../../state/store';
+import { trackSignal } from '../../use/use-core';
+import { EMPTY_OBJ } from '../../util/flyweight';
 import {
   appendChild,
   createElement,
@@ -61,26 +83,6 @@ import {
   setProperty,
   setPropertyPost,
 } from './operations';
-import { EMPTY_OBJ } from '../../util/flyweight';
-import { isSignal } from '../../state/signal';
-import {
-  cleanupContext,
-  createContext,
-  getContext,
-  HOST_FLAG_DIRTY,
-  HOST_FLAG_NEED_ATTACH_LISTENER,
-  type QContext,
-  tryGetContext,
-} from '../../state/context';
-import {
-  getSubscriptionManager,
-  getProxyTarget,
-  type SubscriptionManager,
-} from '../../state/common';
-import { createPropsState, createProxy, ReadWriteProxyHandler } from '../../state/store';
-import { _IMMUTABLE, _IMMUTABLE_PREFIX } from '../../state/constants';
-import { trackSignal } from '../../use/use-core';
-import { isBrowser } from '@builder.io/qwik/build';
 
 export const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -637,7 +639,7 @@ const getSlotName = (node: ProcessedJSXNode): string => {
   return node.$props$[QSlot] ?? '';
 };
 
-const createElm = (
+export const createElm = (
   rCtx: RenderContext,
   vnode: ProcessedJSXNode,
   flags: number,
@@ -647,18 +649,48 @@ const createElm = (
   const doc = rCtx.$static$.$doc$;
   const currentComponent = rCtx.$cmpCtx$;
   if (tag === '#text') {
-    const signal = vnode.$signal$;
-    const elm = doc.createTextNode(vnode.$text$);
-    if (signal) {
-      assertDefined(currentComponent, 'signals can not be used outside components');
-      const subs =
-        flags & IS_IMMUTABLE
-          ? ([3, elm, signal, elm] as const)
-          : ([4, currentComponent.$element$, signal, elm] as const);
+    return (vnode.$elm$ = doc.createTextNode(vnode.$text$));
+  }
 
-      elm.data = vnode.$text$ = jsxToString(trackSignal(signal, subs));
+  if (tag === '#signal') {
+    const signal = vnode.$signal$!;
+    assertDefined(signal, 'expecting signal here');
+    assertDefined(currentComponent, 'signals can not be used outside components');
+    const signalValue = signal.value;
+    if (isJSXNode(signalValue)) {
+      // convert signal value to ProcessedJSXNode
+      const processedSignal = processData(signalValue);
+      if (isSignal(processedSignal)) {
+        throw new Error('NOT IMPLEMENTED: Promise');
+      } else if (Array.isArray(processedSignal)) {
+        throw new Error('NOT IMPLEMENTED: Array');
+      } else {
+        // crate elements
+        const elm = createElm(rCtx, processedSignal as ProcessedJSXNode, flags, promises);
+        // create subscription
+        trackSignal(
+          signal,
+          flags & IS_IMMUTABLE
+            ? ([3, elm, signal, elm] as SubscriberC)
+            : ([4, currentComponent.$element$, signal, elm] as SubscriberC)
+        );
+        // update the vNode for future diff.
+        return (vnode.$elm$ = elm);
+      }
+    } else {
+      // create element
+      const elm = doc.createTextNode(vnode.$text$);
+      elm.data = vnode.$text$ = jsxToString(signalValue);
+      // create subscription
+      trackSignal(
+        signal,
+        flags & IS_IMMUTABLE
+          ? ([3, elm, signal, elm] as SubscriberC)
+          : ([4, currentComponent.$element$, signal, elm] as SubscriberC)
+      );
+      // update the vNode for future diff.
+      return (vnode.$elm$ = elm);
     }
-    return (vnode.$elm$ = elm);
   }
 
   let elm: QwikElement;

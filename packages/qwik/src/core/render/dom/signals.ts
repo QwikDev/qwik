@@ -1,18 +1,20 @@
 import type { SubscriberSignal } from '../../state/common';
-import { tryGetContext } from '../../state/context';
+import { getContext, tryGetContext } from '../../state/context';
 import { trackSignal } from '../../use/use-core';
-import { jsxToString, serializeClassWithHost, stringifyStyle } from '../execute-component';
-import type { RenderStaticContext } from '../types';
-import { setProperty } from './operations';
-import { getVdom } from './render-dom';
-import { smartSetProperty, SVG_NS } from './visitor';
+import { logError } from '../../util/log';
+import { serializeClassWithHost, stringifyStyle } from '../execute-component';
+import type { RenderContext } from '../types';
+import { insertBefore, removeNode } from './operations';
+import { getVdom, processData, type ProcessedJSXNode } from './render-dom';
+import type { QwikElement } from './virtual-element';
+import { SVG_NS, createElm, diffVnode, getVnodeFromEl, smartSetProperty } from './visitor';
+import { Virtual, JSXNodeImpl } from '../jsx/jsx-runtime';
+import { isPromise } from '../../util/promises';
 
-export const executeSignalOperation = (
-  staticCtx: RenderStaticContext,
-  operation: SubscriberSignal
-) => {
+export const executeSignalOperation = (rCtx: RenderContext, operation: SubscriberSignal) => {
   try {
     const type = operation[0];
+    const staticCtx = rCtx.$static$;
     switch (type) {
       case 1:
       case 2: {
@@ -49,13 +51,48 @@ export const executeSignalOperation = (
       }
       case 3:
       case 4: {
-        const elm: Text = operation[3] as Text;
-
+        const elm = operation[3];
         if (!staticCtx.$visited$.includes(elm)) {
           // assertTrue(elm.isConnected, 'text node must be connected to the dom');
           staticCtx.$containerState$.$subsManager$.$clearSignal$(operation);
-          const value = trackSignal(operation[2], operation.slice(0, -1) as any);
-          return setProperty(staticCtx, elm, 'data', jsxToString(value));
+          const signal = operation[2];
+          // MISKO: I believe no `invocationContext` is OK because the JSX in signal
+          // has already been converted to JSX and there is nothing to execute there.
+          const invocationContext = undefined;
+          let signalValue = signal.value;
+          if (Array.isArray(signalValue)) {
+            signalValue = new JSXNodeImpl<typeof Virtual>(Virtual, {}, null, signalValue, 0, null);
+          }
+          let newVnode = processData(signalValue, invocationContext) as
+            | ProcessedJSXNode
+            | undefined;
+          if (isPromise(newVnode)) {
+            logError('Rendering promises in JSX signals is not supported');
+          } else {
+            if (newVnode === undefined) {
+              newVnode = processData('', invocationContext) as ProcessedJSXNode;
+            }
+            const oldVnode = getVnodeFromEl(elm);
+            rCtx.$cmpCtx$ = getContext(operation[1] as QwikElement, rCtx.$static$.$containerState$);
+            if (
+              oldVnode.$type$ == newVnode.$type$ &&
+              oldVnode.$key$ == newVnode.$key$ &&
+              oldVnode.$id$ == newVnode.$id$
+            ) {
+              diffVnode(rCtx, oldVnode, newVnode, 0);
+            } else {
+              const promises: Promise<any>[] = []; // TODO(misko): hook this up
+              const oldNode = oldVnode.$elm$;
+              const newElm = createElm(rCtx, newVnode, 0, promises);
+              if (promises.length) {
+                logError('Rendering promises in JSX signals is not supported');
+              }
+              operation[3] = newElm;
+              insertBefore(rCtx.$static$, elm.parentElement!, newElm, oldNode);
+              oldNode && removeNode(staticCtx, oldNode);
+            }
+          }
+          trackSignal(operation[2], operation.slice(0, -1) as any);
         }
       }
     }

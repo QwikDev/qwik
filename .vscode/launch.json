@@ -33,13 +33,13 @@
     },
     {
       "type": "node",
-      "name": "vscode-jest-tests",
+      "name": "vitest",
       "request": "launch",
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
-      "program": "${workspaceFolder}/node_modules/jest/bin/jest.js",
+      "program": "${workspaceFolder}/./node_modules/vitest/vitest.mjs",
       "cwd": "${workspaceFolder}",
-      "args": ["--runInBand", "--watchAll=false"]
+      "args": ["--threads=false", "packages/qwik/src/core/container/render.unit.tsx"]
     }
   ]
 }

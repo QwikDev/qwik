@@ -15,6 +15,7 @@ import { handleError } from './error-handling';
 import { HOST_FLAG_DIRTY, HOST_FLAG_MOUNTED, type QContext } from '../state/context';
 import { isSignal, SignalUnassignedException } from '../state/signal';
 import { isJSXNode } from './jsx/jsx-runtime';
+import { isUnitlessNumber } from '../util/unitless_number';
 
 export interface ExecuteComponentOutput {
   node: JSXNode | null;
@@ -164,8 +165,11 @@ export const stringifyStyle = (obj: any): string => {
         if (Object.prototype.hasOwnProperty.call(obj, key)) {
           const value = obj[key];
           if (value != null) {
-            const normalizedKey = key.startsWith('--') ? key : fromCamelToKebabCase(key);
-            chunks.push(normalizedKey + ':' + value);
+            if (key.startsWith('--')) {
+              chunks.push(key + ':' + value);
+            } else {
+              chunks.push(fromCamelToKebabCase(key) + ':' + setValueForStyle(key, value));
+            }
           }
         }
       }
@@ -173,6 +177,13 @@ export const stringifyStyle = (obj: any): string => {
     }
   }
   return String(obj);
+};
+
+const setValueForStyle = (styleName: string, value: any) => {
+  if (typeof value === 'number' && value !== 0 && !isUnitlessNumber(styleName)) {
+    return value + 'px';
+  }
+  return value;
 };
 
 export const getNextIndex = (ctx: RenderContext) => {

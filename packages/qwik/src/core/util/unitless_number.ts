@@ -1,0 +1,51 @@
+/** CSS properties which accept numbers but are not in units of "px". */
+const unitlessNumbers = new Set([
+  'animationIterationCount',
+  'aspectRatio',
+  'borderImageOutset',
+  'borderImageSlice',
+  'borderImageWidth',
+  'boxFlex',
+  'boxFlexGroup',
+  'boxOrdinalGroup',
+  'columnCount',
+  'columns',
+  'flex',
+  'flexGrow',
+  'flexShrink',
+  'gridArea',
+  'gridRow',
+  'gridRowEnd',
+  'gridRowStart',
+  'gridColumn',
+  'gridColumnEnd',
+  'gridColumnStart',
+  'fontWeight',
+  'lineClamp',
+  'lineHeight',
+  'opacity',
+  'order',
+  'orphans',
+  'scale',
+  'tabSize',
+  'widows',
+  'zIndex',
+  'zoom',
+  'MozAnimationIterationCount', // Known Prefixed Properties
+  'MozBoxFlex', // TODO: Remove these since they shouldn't be used in modern code
+  'msFlex',
+  'msFlexPositive',
+  'WebkitAnimationIterationCount',
+  'WebkitBoxFlex',
+  'WebkitBoxOrdinalGroup',
+  'WebkitColumnCount',
+  'WebkitColumns',
+  'WebkitFlex',
+  'WebkitFlexGrow',
+  'WebkitFlexShrink',
+  'WebkitLineClamp',
+]);
+
+export const isUnitlessNumber = (name: string): boolean => {
+  return unitlessNumbers.has(name);
+};

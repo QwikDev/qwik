@@ -11,7 +11,10 @@ import { render } from './render.public';
 import { useStylesQrl, useStylesScopedQrl } from '../../use/use-styles';
 import { pauseContainer } from '../../container/pause';
 import { useSignal } from '../../use/use-signal';
-import { assert, test } from 'vitest';
+import { assert, test, suite } from 'vitest';
+import { createDOM } from '../../../testing/library';
+import { renderToString } from '../../../server/render';
+import { createDocument } from '../../../testing/document';
 
 test('should render basic content', async () => {
   const fixture = new ElementFixture();
@@ -1054,4 +1057,45 @@ export const CleanupComponent = component$((props: { spies: { cleanupSpy: boolea
       <div id="cleanup">true</div>
     </div>
   );
+});
+
+suite('should properly render styles from style prop', () => {
+  const RenderJSX = component$(() => {
+    const pStyles = {
+      fontSize: 30, // auto-converted to px
+      fontWeight: 800, // shouldn't get converted to px
+    };
+    return (
+      <main id="root">
+        <div
+          style={{
+            marginTop: 50, // auto-converted to px
+            height: 200, // auto-converted to px
+            width: 200, // auto-converted to px
+            backgroundColor: 'red',
+          }}
+        >
+          <p style={pStyles}>Big square</p>
+        </div>
+      </main>
+    );
+  });
+
+  test('SSR jsx style render', async () => {
+    const output = await renderToString(<RenderJSX />, { containerTagName: 'div' });
+    const document = createDocument();
+    document.body.innerHTML = output.html;
+    const main = document.querySelector('#root')!;
+    const resultHTML = `<div style="margin-top:50px;height:200px;width:200px;background-color:red"><p style="font-size:30px;font-weight:800">Big square</p></div>`;
+    assert.equal(main.innerHTML, resultHTML);
+  });
+
+  test('CSR jsx style render', async () => {
+    const { screen, render } = await createDOM();
+
+    await render(<RenderJSX />);
+    const main = screen.querySelector('#root')!;
+    const resultHTML = `<div style="margin-top:50px;height:200px;width:200px;background-color:red"><p style="font-size:30px;font-weight:800">Big square</p></div>`;
+    assert.equal(main.innerHTML, resultHTML);
+  });
 });

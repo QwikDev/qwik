@@ -14,6 +14,7 @@ export default component$(() => {
           <Spinner
             key={`${index + 1}_${colorVariant}`}
             colorVariant={colorVariant}
+            growing={false}
           />
           <span class="me-3"></span>
         </>

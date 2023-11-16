@@ -120,6 +120,7 @@ export const Parent = component$(() => {
 ### Caveats
 
 - The provided value will not be globally available across the whole render tree, but only to descendant components in the tree.
+- If the context isn't used during SSR, it will not be serialized. So if you want to have the context available in the client even though you don't use it during SSR, you can call `useContext()` in the parent component to force it to be serialized.
 
 ## `useContext()`
 

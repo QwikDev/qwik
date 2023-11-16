@@ -235,3 +235,11 @@ The two approaches can best be described as declarative vs imperative. They both
 Qwik uses the declarative projection approach. The reason for this is that Qwik needs to be able to render parent/children components independently from each other. With an imperative (`children`) approach, the child component can modify the `children` in countless ways. If a child component relied on `children`, it would be forced to re-render whenever a parent component would re-render to reapply the imperative transformation to the `children`. The extra rendering goes explicitly against the goals of Qwik components rendering in isolation.
 
 > **Note**: Due to Slots being declarative in Qwik, projection with `<Slot>` will only work if the parent component is wrapped in `component$()`. If parent component is not wrapped in `component$()`, it is considered an [inline component](/docs/components/overview/#inline-components) and `<Slot>` will not work.
+
+### Advanced: Slots and Context
+
+Slotted components have access to the [Context](../context/) of their parent component, even while they aren't being projected. Furthermore, if the parent is projecting the `<Slot />` inside another component, the slotted components will also have access to the Contexts of that deeper component.
+
+However, if a component hasn't been projected yet because the `<Slot />` are rendered conditionally, it's impossible to know about the deeper Context, and then the slotted component will only see the Context of the immediate parent.
+
+As such, it's safest to avoid these situations; if you are providing Contexts, don't conditionally render your `<Slot />`.

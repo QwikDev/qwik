@@ -37,6 +37,7 @@ const QWIKCITY_GROUP = [
   'endpoints',
   'env-variables',
   'guides',
+  'html-attributes',
   'layout',
   'middleware',
   'pages',
@@ -46,6 +47,7 @@ const QWIKCITY_GROUP = [
   'routing',
   'server$',
   'troubleshooting',
+  'validator',
 ];
 const QWIKCITY_ADVANCED_GROUP = [
   'content-security-policy',

@@ -396,6 +396,8 @@ export const diffVnode = (
     }
     setProperty(staticCtx, elm, 'data', newVnode.$text$);
     return;
+  } else if (tag === '#signal') {
+    return;
   }
   assertQwikElement(elm);
 

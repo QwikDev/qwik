@@ -33,6 +33,16 @@
     },
     {
       "type": "node",
+      "name": "e2e.test",
+      "request": "launch",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "program": "${workspaceFolder}/./node_modules/tsm/bin.js",
+      "cwd": "${workspaceFolder}",
+      "args": ["./starters/dev-server.ts", "3301"]
+    },
+    {
+      "type": "node",
       "name": "vitest",
       "request": "launch",
       "console": "integratedTerminal",

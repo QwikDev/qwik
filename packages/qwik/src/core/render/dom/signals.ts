@@ -1,4 +1,4 @@
-import type { SubscriberSignal } from '../../state/common';
+import { getLastSubscription, type SubscriberSignal } from '../../state/common';
 import { getContext, tryGetContext } from '../../state/context';
 import { trackSignal } from '../../use/use-core';
 import { logError } from '../../util/log';
@@ -10,6 +10,7 @@ import type { QwikElement } from './virtual-element';
 import { SVG_NS, createElm, diffVnode, getVnodeFromEl, smartSetProperty } from './visitor';
 import { Virtual, JSXNodeImpl } from '../jsx/jsx-runtime';
 import { isPromise } from '../../util/promises';
+import { isQwikElement } from '../../util/element';
 
 export const executeSignalOperation = (rCtx: RenderContext, operation: SubscriberSignal) => {
   try {
@@ -55,11 +56,12 @@ export const executeSignalOperation = (rCtx: RenderContext, operation: Subscribe
         if (!staticCtx.$visited$.includes(elm)) {
           // assertTrue(elm.isConnected, 'text node must be connected to the dom');
           staticCtx.$containerState$.$subsManager$.$clearSignal$(operation);
-          const signal = operation[2];
           // MISKO: I believe no `invocationContext` is OK because the JSX in signal
           // has already been converted to JSX and there is nothing to execute there.
           const invocationContext = undefined;
-          let signalValue = signal.value;
+          let signalValue = trackSignal(operation[2], operation.slice(0, -1) as any);
+          const subscription = getLastSubscription()!;
+
           if (Array.isArray(signalValue)) {
             signalValue = new JSXNodeImpl<typeof Virtual>(Virtual, {}, null, signalValue, 0, null);
           }
@@ -73,7 +75,8 @@ export const executeSignalOperation = (rCtx: RenderContext, operation: Subscribe
               newVnode = processData('', invocationContext) as ProcessedJSXNode;
             }
             const oldVnode = getVnodeFromEl(elm);
-            rCtx.$cmpCtx$ = getContext(operation[1] as QwikElement, rCtx.$static$.$containerState$);
+            const element = getQwikElement(operation[1]);
+            rCtx.$cmpCtx$ = getContext(element, rCtx.$static$.$containerState$);
             if (
               oldVnode.$type$ == newVnode.$type$ &&
               oldVnode.$key$ == newVnode.$key$ &&
@@ -87,12 +90,11 @@ export const executeSignalOperation = (rCtx: RenderContext, operation: Subscribe
               if (promises.length) {
                 logError('Rendering promises in JSX signals is not supported');
               }
-              operation[3] = newElm;
+              subscription[3] = newElm;
               insertBefore(rCtx.$static$, elm.parentElement!, newElm, oldNode);
               oldNode && removeNode(staticCtx, oldNode);
             }
           }
-          trackSignal(operation[2], operation.slice(0, -1) as any);
         }
       }
     }
@@ -100,3 +102,12 @@ export const executeSignalOperation = (rCtx: RenderContext, operation: Subscribe
     // Ignore
   }
 };
+function getQwikElement(element: QwikElement | Text): QwikElement {
+  while (element) {
+    if (isQwikElement(element)) {
+      return element;
+    }
+    element = element.parentElement!;
+  }
+  throw new Error('Not found');
+}

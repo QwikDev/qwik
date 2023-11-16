@@ -200,8 +200,15 @@ export const isPrimitive = (obj: any) => {
   return isString(obj) || typeof obj === 'number';
 };
 
+export type ProcessedJSXNodeType =
+  | '#text'
+  | ':virtual'
+  | ':signal'
+  | typeof SKIP_RENDER_TYPE
+  | string;
+
 export interface ProcessedJSXNode {
-  $type$: string;
+  $type$: ProcessedJSXNodeType;
   $id$: string;
   $props$: Record<string, any>;
   $immutableProps$: Record<string, any> | null;

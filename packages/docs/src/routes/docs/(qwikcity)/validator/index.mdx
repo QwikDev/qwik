@@ -2,6 +2,7 @@
 title: Validators | QwikCity
 contributors:
   - wtlin1228
+  - harishkrishnan24
 ---
 
 # Data Validators
@@ -75,7 +76,7 @@ export const useAction = routeAction$(
 );
 ```
 
-If `validator3` has a `data` property in its success return object, this data will be passed to the next validator, `validator2`. If your don't want to override the original submitted data, avoid putting the `data` property in the success return object.
+If `validator3` has a `data` property in its success return object, this data will be passed to the next validator, `validator2`. If you don't want to override the original submitted data, avoid putting the `data` property in the success return object.
 
 ```tsx /message: "hi, I am validator3"/#a /message: "hi, I am validator2"/#b /message: "hi, I am validator1"/#c
 export const useAction = routeAction$(

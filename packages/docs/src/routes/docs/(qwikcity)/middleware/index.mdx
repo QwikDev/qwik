@@ -5,6 +5,7 @@ contributors:
   - manucorporat
   - mhevery
   - CoralWombat
+  - harishkrishnan24
 ---
 
 import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
@@ -47,7 +48,7 @@ Each middleware function is passed a [`RequestEvent`](#requestevent) object whic
 
 ## Order of invocation
 
-The order middleware function chain is determined by their location. Starting from the topmost `layout.tsx` and ending at the `index.tsx` for a given route. (Same resolution logic as the order of layout and route component as defined by the route path.)
+The order of middleware function chain is determined by their location. Starting from the topmost `layout.tsx` and ending at the `index.tsx` for a given route. (Same resolution logic as the order of layout and route component as defined by the route path.)
 
 For example, if the request is `/api/greet/` in the following folder structure, the invocation order is as follows:
 

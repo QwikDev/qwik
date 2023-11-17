@@ -2385,6 +2385,7 @@ export interface QwikKeyboardEvent<T = Element> extends SyntheticEvent<T, Native
 | ---------------- | --------- | ------- | ---------------------------------------------------------------------------------------------------------------------- |
 | [altKey](#)      |           | boolean |                                                                                                                        |
 | [charCode](#)    |           | number  |                                                                                                                        |
+| [code](#)        |           | string  |                                                                                                                        |
 | [ctrlKey](#)     |           | boolean |                                                                                                                        |
 | [isComposing](#) |           | boolean |                                                                                                                        |
 | [key](#)         |           | string  | See the [DOM Level 3 Events spec](https://www.w3.org/TR/uievents-key/#named-key-attribute-values). for possible values |

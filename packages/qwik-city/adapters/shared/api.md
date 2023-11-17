@@ -38,7 +38,7 @@ export const STATIC_PATHS_ID = "@qwik-city-static-paths";
 // Warning: (ae-forgotten-export) The symbol "ViteAdapterPluginOptions" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export function viteAdapter(opts: ViteAdapterPluginOptions): Plugin_2;
+export function viteAdapter(opts: ViteAdapterPluginOptions): Plugin_2<any>;
 
 // (No @packageDocumentation comment for this package)
 

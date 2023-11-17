@@ -100,6 +100,7 @@ export interface QwikChangeEvent<T = Element> extends SyntheticEvent<T> {
 export interface QwikKeyboardEvent<T = Element> extends SyntheticEvent<T, NativeKeyboardEvent> {
   isComposing: boolean;
   altKey: boolean;
+  /** @deprecated Deprecated. */
   charCode: number;
   ctrlKey: boolean;
   /**
@@ -112,12 +113,15 @@ export interface QwikKeyboardEvent<T = Element> extends SyntheticEvent<T, Native
    * spec](https://www.w3.org/TR/uievents-key/#named-key-attribute-values). for possible values
    */
   key: string;
+  code: string;
+  /** @deprecated Deprecated. */
   keyCode: number;
   locale: string;
   location: number;
   metaKey: boolean;
   repeat: boolean;
   shiftKey: boolean;
+  /** @deprecated Deprecated. */
   which: number;
 }
 

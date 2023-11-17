@@ -23,7 +23,7 @@
   ],
   "dependencies": {
     "csstype": "^3.1.2",
-    "vite": "^4.4.11"
+    "vite": "^5.0.0"
   },
   "devDependencies": {
     "@builder.io/qwik-dom": "workspace:*",

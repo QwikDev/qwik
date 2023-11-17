@@ -1924,7 +1924,7 @@ At times it is necessary to store values on a store that are non-serializable. N
 
 You can use `noSerialize()` to mark a value as non-serializable. The value is persisted in the Store but does not survive serialization. The implication is that when your application is resumed, the value of this object will be `undefined`. You will be responsible for recovering from this.
 
-See: [noSerialize Tutorial](http://qwik.builder.io/tutorial/store/no-serialize)
+See: [noSerialize Tutorial](https://qwik.builder.io/tutorial/store/no-serialize)
 
 ```typescript
 noSerialize: <T extends object | undefined>(input: T) => NoSerialize<T>;
@@ -2385,6 +2385,7 @@ export interface QwikKeyboardEvent<T = Element> extends SyntheticEvent<T, Native
 | ---------------- | --------- | ------- | ---------------------------------------------------------------------------------------------------------------------- |
 | [altKey](#)      |           | boolean |                                                                                                                        |
 | [charCode](#)    |           | number  |                                                                                                                        |
+| [code](#)        |           | string  |                                                                                                                        |
 | [ctrlKey](#)     |           | boolean |                                                                                                                        |
 | [isComposing](#) |           | boolean |                                                                                                                        |
 | [key](#)         |           | string  | See the [DOM Level 3 Events spec](https://www.w3.org/TR/uievents-key/#named-key-attribute-values). for possible values |

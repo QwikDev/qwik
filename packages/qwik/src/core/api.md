@@ -1532,15 +1532,17 @@ export namespace QwikJSX {
 export interface QwikKeyboardEvent<T = Element> extends SyntheticEvent<T, NativeKeyboardEvent> {
     // (undocumented)
     altKey: boolean;
-    // (undocumented)
+    // @deprecated (undocumented)
     charCode: number;
+    // (undocumented)
+    code: string;
     // (undocumented)
     ctrlKey: boolean;
     getModifierState(key: string): boolean;
     // (undocumented)
     isComposing: boolean;
     key: string;
-    // (undocumented)
+    // @deprecated (undocumented)
     keyCode: number;
     // (undocumented)
     locale: string;
@@ -1552,7 +1554,7 @@ export interface QwikKeyboardEvent<T = Element> extends SyntheticEvent<T, Native
     repeat: boolean;
     // (undocumented)
     shiftKey: boolean;
-    // (undocumented)
+    // @deprecated (undocumented)
     which: number;
 }
 

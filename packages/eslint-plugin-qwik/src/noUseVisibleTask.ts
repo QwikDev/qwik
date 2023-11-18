@@ -14,11 +14,11 @@ This is done to give the end-user the best possible user experience.
 Running code eagerly blocks the main thread, which prevents the user from interacting until the task is finished.
 "useVisibleTask$" is provided as an escape hatch.
 
-When in doubt, instead of useVisibleTask$() use:
-- useTask$: to perform code execution in SSR mode.
-- useOn(): listen to events on the root element of the current component.
-- useOnWindow(): listen to events on the window object.
-- useOnDocument(): listen to events on the document object.
+When in doubt, instead of "useVisibleTask$()" use:
+- useTask$ -> perform code execution in SSR mode.
+- useOn() -> listen to events on the root element of the current component.
+- useOnWindow() -> listen to events on the window object.
+- useOnDocument() -> listen to events on the document object.
 
 Sometimes it is the only way to achieve the result.
 In that case, add:

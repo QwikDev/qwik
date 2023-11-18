@@ -665,7 +665,7 @@ ruleTester.run('qwik/no-use-visible-task', rules['no-use-visible-task'], {
           return <></>;
         });
       `,
-    }
+    },
   ],
   invalid: [
     {
@@ -678,5 +678,5 @@ ruleTester.run('qwik/no-use-visible-task', rules['no-use-visible-task'], {
       `,
       errors: [{ messageId: 'noUseVisibleTask' }],
     },
-  ]
-})
+  ],
+});

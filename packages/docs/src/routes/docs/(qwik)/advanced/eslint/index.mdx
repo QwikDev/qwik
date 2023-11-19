@@ -295,6 +295,31 @@ import './styles.css';
         </span>
       </div>
     </a>
+
+    <a href="#no-use-visible-task" class="p-4 flex panel">
+      <div class="flex-1">
+        <code>no-use-visible-task</code>
+        <span class="rule-description">Warning for "useVisibleTask$" usage, because Qwik tries very hard to defer client code execution for as long as possible.</span>
+      </div>
+      <div class="flex gap-2 items-center">
+        <span
+          class={{
+            'icon': false,
+            'icon icon-inactive': true,
+          }}
+        >
+          ✅
+        </span>
+        <span
+          class={{
+            'icon': false,
+            'icon icon-inactive': true,
+          }}
+        >
+          🔔
+        </span>
+      </div>
+    </a>
   
 </div>
 <h2>Details</h2>
@@ -1038,6 +1063,26 @@ import Image from '~/media/image.png';
 <h4>noHref</h4>
 <div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/jsxA.ts" target="_blank" class="edit-btn">Edit examples</a></div>
 
+    </div>
+
+    <div class="rule-wrapper">
+      <h3 id="no-use-visible-task">no-use-visible-task</h3>
+      <span>Qwik tries very hard to defer client code execution for as long as possible. </span>
+      <span>This is done to give the end-user the best possible user experience. </span>
+      <span>Running code eagerly blocks the main thread, which prevents the user from interacting until the task is finished.
+"useVisibleTask$" is provided as an escape hatch.</span>
+      <div>When in doubt, instead of "useVisibleTask$()" use:</div>
+      <ul>
+        <li>useTask$ -> perform code execution in SSR mode.</li>
+        <li>useOn() -> listen to events on the root element of the current component.</li>
+        <li>useOnWindow() -> listen to events on the window object.</li>
+        <li>useOnDocument() -> listen to events on the document object.</li>
+      </ul>
+      <div>Sometimes it is the only way to achieve the result.</div>
+      <div>In that case, add:</div>
+      <div>// eslint-disable-next-line qwik/no-use-visible-task</div>
+      <div>to the line before "useVisibleTask$" to acknowledge you understand.</div>
+      <div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/noUseVisibleTask.ts" target="_blank" class="edit-btn">Edit examples</a></div>
     </div>
   
 </div>

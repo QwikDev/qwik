@@ -69,13 +69,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     if (fs.existsSync(path)) {
       qwikPlugin.log('Reading Qwik Insight data from: ' + cwdRelativePath);
       return JSON.parse(await fs.promises.readFile(path, 'utf-8')) as InsightManifest;
-    } else {
-      qwikPlugin.log(
-        'Qwik Insight not found  `' +
-          cwdRelativePath +
-          '`, skipping.\n' +
-          '\t\tConsider setting up https://qwik.builder.io/docs/labs/insights/ for better bundle optimization.'
-      );
     }
     return null;
   }

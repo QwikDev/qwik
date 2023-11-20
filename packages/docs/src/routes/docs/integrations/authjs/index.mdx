@@ -251,6 +251,53 @@ AUTH_SECRET=
 4. The application is now ready to implement authentication using Auth.js.
 5. Enjoy!
 
+### Credentials
+
+> Warning: This functionality is discourage by Auth.js.
+>
+> https://next-auth.js.org/providers/credentials
+>
+> - The functionality provided for credentials based authentication is intentionally limited to discourage use of passwords due to the inherent security risks associated with them and the additional complexity associated with supporting usernames and passwords.
+
+1. Since the default `plugin@auth.ts` uses GutHub as an example, we need to replace it with Credentials.
+```ts title="src/routes/plugin@auth.ts"
+import { serverAuth$ } from '@builder.io/qwik-auth';
+import Credentials from "@auth/core/providers/credentials";
+import type { Provider } from '@auth/core/providers';
+
+export const { onRequest, useAuthSession, useAuthSignin, useAuthSignout } = serverAuth$(
+  ({ env }) => ({
+    secret: env.get("AUTH_SECRET"),
+    trustHost: true,
+    providers: [
+      Credentials({
+        async authorize(credentials, req) {
+          // Add logic here to look up the user from the credentials supplied
+          const user = {
+            id: 1,
+            name: "Mike",
+            email: "mike@example.com",
+          };
+
+          return user;
+        },
+      }),
+    ] as Provider[],
+  })
+);
+```
+
+2. Create or edit the `.env.local` file at the root of your project to store secrets
+
+```bash title=".env.local"
+AUTH_SECRET=
+```
+
+> *IMPORTANT*: Please read the Qwik documentation about [Environment Variables](/docs/env-variables/) to ensure you are using them safely. Many provider secrets should be kept secure and not exposed to the client/browser.
+
+3. The application is now ready to implement authentication using Auth.js.
+4. Enjoy!
+
 ### Route Protection
 
 Session data can be accessed via the route `event.sharedMap`.  So a route can be protected and redirect using something like this located in a `layout.tsx` or page `index.tsx`:

@@ -1,5 +1,14 @@
 /* eslint-disable no-console */
 
+// The golden oldies
+const keepList = new Set('1.0.0,1.1.5'.split(','));
+// The bad apples
+const blockList = new Set(
+  '1.2.0,1.2.1,1.2.2,1.2.3,1.2.4,1.2.5,1.2.6,1.2.7,1.2.8,1.2.9,1.2.10,1.2.11,1.2.14,1.2.15,1.2.19'.split(
+    ','
+  )
+);
+
 export const getReplVersion = async (version: string | undefined) => {
   let versions: string[] = [];
   let npmData: NpmData | null = null;
@@ -23,12 +32,20 @@ export const getReplVersion = async (version: string | undefined) => {
 
   if (npmData && Array.isArray(npmData.versions)) {
     versions = npmData.versions.filter((v) => {
+      if (keepList.has(v)) {
+        // always include keepList, but we add them back later
+        return false;
+      }
       if (v === version) {
         return true;
       }
       if (npmData?.tags.latest === v) {
         // always include "latest"
         return true;
+      }
+      if (blockList.has(v)) {
+        // always exclude blockList
+        return false;
       }
       if (v.includes('-')) {
         // filter out dev builds
@@ -52,9 +69,26 @@ export const getReplVersion = async (version: string | undefined) => {
       return true;
     });
 
-    if (versions.length > 20) {
-      versions = versions.slice(0, 20);
+    if (versions.length > 20 - keepList.size) {
+      versions = versions.slice(0, 20 - keepList.size);
     }
+    versions.unshift(...keepList);
+    // sort by version number
+    versions.sort((a, b) => {
+      const aParts = a.split('.');
+      const bParts = b.split('.');
+      for (let i = 0; i < 3; i++) {
+        const aNum = parseInt(aParts[i], 10);
+        const bNum = parseInt(bParts[i], 10);
+        if (aNum > bNum) {
+          return -1;
+        }
+        if (aNum < bNum) {
+          return 1;
+        }
+      }
+      return 0;
+    });
 
     if (!version || !npmData.versions.includes(version)) {
       version = npmData.tags.latest;

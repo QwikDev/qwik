@@ -259,7 +259,7 @@ AUTH_SECRET=
 >
 > - The functionality provided for credentials based authentication is intentionally limited to discourage use of passwords due to the inherent security risks associated with them and the additional complexity associated with supporting usernames and passwords.
 
-1. Since the default `plugin@auth.ts` uses GutHub as an example, we need to replace it with Credentials.
+1. Since the default `plugin@auth.ts` uses GitHub as an example, we need to replace it with Credentials.
 ```ts title="src/routes/plugin@auth.ts"
 import { serverAuth$ } from '@builder.io/qwik-auth';
 import Credentials from "@auth/core/providers/credentials";

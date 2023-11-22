@@ -91,7 +91,7 @@ export function imagePlugin(userOpts?: QwikCityVitePluginOptions): PluginOption[
   }`
             );
           } else if (extension === '.svg') {
-            const { svgAttributes } = optimizeSvg(code);
+            const { svgAttributes } = optimizeSvg({ code, path: pathId }, userOpts);
             return `
   import { _jsxQ } from '@builder.io/qwik';
   const PROPS = ${JSON.stringify(svgAttributes)};
@@ -106,15 +106,25 @@ export function imagePlugin(userOpts?: QwikCityVitePluginOptions): PluginOption[
   ];
 }
 
-export function optimizeSvg(code: string) {
+export function optimizeSvg(
+  { code, path }: { code: string; path: string },
+  userOpts?: QwikCityVitePluginOptions
+) {
   const svgAttributes: Record<string, string> = {};
+  // note: would be great if it warned users if they tried to use qwik-default plugins, so that name collisions are avoided
+  const userPlugins = userOpts?.imageOptimization?.svgo?.plugins || [];
+
   const data = optimize(code, {
+    floatPrecision: userOpts?.imageOptimization?.svgo?.floatPrecision,
+    multipass: userOpts?.imageOptimization?.svgo?.multipass,
+    path: path,
     plugins: [
       {
         name: 'preset-default',
         params: {
           overrides: {
             removeViewBox: false,
+            ...userOpts?.imageOptimization?.svgo?.defaultPresetOverrides,
           },
         },
       },
@@ -134,6 +144,7 @@ export function optimizeSvg(code: string) {
           };
         },
       },
+      ...userPlugins,
     ],
   }).data;
 

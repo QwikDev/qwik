@@ -646,3 +646,37 @@ ruleTester.run('qwik/loader-location', rules['loader-location'], {
     },
   ],
 });
+
+ruleTester.run('qwik/no-use-visible-task', rules['no-use-visible-task'], {
+  valid: [
+    {
+      code: `
+        import { component$ } from '@builder.io/qwik';
+        export default component$(() => {
+          const useVisibleTask$ = '';
+          return <>{useVisibleTask$}</>;
+        });      
+      `,
+    },
+    {
+      code: `
+        import { component$, useVisibleTask$ } from '@builder.io/qwik';
+        export default component$(() => {
+          return <></>;
+        });
+      `,
+    },
+  ],
+  invalid: [
+    {
+      code: `
+        import { component$, useVisibleTask$ } from '@builder.io/qwik';
+        export default component$(() => {
+          useVisibleTask$(() => {});
+          return <></>;
+        });
+      `,
+      errors: [{ messageId: 'noUseVisibleTask' }],
+    },
+  ],
+});

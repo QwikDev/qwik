@@ -28,13 +28,13 @@ npm run qwik add prisma
 We will use `routeLoader$` to query all users in the DB, using `prisma.user.findMany()`, and returning the result.
 
 ```tsx {7} /PrismaClient/ title="src/routes/users/index.tsx"
-// example read from SQLite
 import { component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
 import { PrismaClient } from '@prisma/client'
 
 export const useGetUsers = routeLoader$(async () => {
   const prisma = new PrismaClient();
+  // example read from SQLite
   const users = await prisma.user.findMany()
   return users;
 });

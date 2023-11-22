@@ -34,6 +34,7 @@ import { PrismaClient } from '@prisma/client'
 
 export const useGetUsers = routeLoader$(async () => {
   const prisma = new PrismaClient();
+  // example read from SQLite
   const users = await prisma.user.findMany()
   return users;
 });

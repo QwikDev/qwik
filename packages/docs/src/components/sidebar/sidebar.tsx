@@ -4,6 +4,33 @@ import { GlobalStore } from '../../context';
 import { CloseIcon } from '../svgs/close-icon';
 import styles from './sidebar.css?inline';
 
+const markdownItems = Object.fromEntries(
+  await Promise.all(
+    Object.entries(import.meta.glob<{ frontmatter?: MDX }>('../../routes/**/*.{md,mdx}')).map(
+      async ([k, v]) => {
+        // console.log(k, (await v())?.frontmatter);
+        return [
+          k
+            .replace('../../routes', '')
+            .replace('(qwikcity)/', '')
+            .replace('(qwik)/', '')
+            .replaceAll(/([()])/g, '')
+            .replace('index.mdx', '')
+            .replace('index.md', ''),
+          await v(),
+        ] as const;
+      }
+    )
+  )
+);
+
+type MDX = {
+  title: string;
+  contributors: string[];
+  created_at: string;
+  updated_at: string;
+};
+
 export const SideBar = component$((props: { allOpen?: boolean }) => {
   useStyles$(styles);
 
@@ -59,6 +86,13 @@ export function Items({
                 }}
               >
                 {item.text}
+                {markdownItems[item.href!]?.frontmatter?.updated_at
+                  ? new Date(markdownItems[item.href!]?.frontmatter?.updated_at!).getTime() +
+                      5 * 24 * 60 * 60 * 1000 >
+                    new Date().getTime()
+                    ? 'new'
+                    : null
+                  : null}
               </a>
             )}
           </li>

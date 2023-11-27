@@ -28,6 +28,7 @@ contributors:
   - wtlin1228
   - ilteoood
   - PatrickJS
+  - maiieul
 ---
 
 # FAQ
@@ -38,7 +39,7 @@ Yes, and I am very funny too! [follow me](https://twitter.com/QwikDev)
 
 ## Why is it called Qwik?
 
-Originally it was called _qoot_, but we thought it would be too hard to search for. One friend of ours, [@patrickjs\_\_](https://twitter.com/PatrickJS__), came up with Qwik and after an internal poll at [builder.io](https://www.builder.io/), we changed it!
+Originally it was called _qoot_, but we thought it would be too hard to search for. One community member, [@PatrickJS\_\_](https://twitter.com/PatrickJS__), came up with ~~Qwik~~ and after an internal poll at [builder.io](https://www.builder.io/), we changed it!
 
 ## How is Qwik different from other frameworks?
 
@@ -110,15 +111,17 @@ export const App_component_p_onClick_01pEgC10cpw = () => console.log('hello');
 
 > Note: The `$` is not related to `jQuery`, Svelte or any other framework.
 
-## Does Qwik download JS when the user interacts?
+## Isn't requesting JS on user interaction slow?
 
-Nope. In production, Qwik uses a lot of information generated during SSR (Server-Side Rendering) to start [pre-populating the cache](../../(qwikcity)/advanced/speculative-module-fetching/index.mdx) with only the bits of interactivity available on the current page as soon as possible. This way, when the user clicks or interacts, the JS is already in the cache.
+Only if you _download_ it on user interaction. Instead, Qwik _prefetches_ the current page's JS modules in a background thread trough the [service workers](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API/Using_Service_Workers) and _retrieves_ those modules from the browser's [Cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache) when the user interacts with the application.
 
-## If Qwik still requests the JS, then what's the difference?
+This strategy is called [Speculative Module Fetching](../../(qwikcity)/advanced/speculative-module-fetching/index.mdx), and it is enabled by Resumability. Hydration frameworks must eagerly download and execute the code on page load to retrieve the event handlers, and therefore can't take advantage of speculative module fetching.
 
-Pre-populating the cache is not the same as parsing and executing JS, and Qwik does not execute JS until the user interacts.
+## How does Qwik know what to prefetch, and in which order?
 
-In addition, [Speculative Module Fetching](../../(qwikcity)/advanced/speculative-module-fetching/index.mdx) enables Qwik to prioritize the important parts of interactivity before the less important parts.
+In production, Qwik uses a lot of information generated during SSR (Server-Side Rendering) to start pre-populating the cache as soon as possible, with only the bits of interactivity available on the current page. This way, when the user clicks or interacts, the JS is already in the cache.
+
+In addition, [Qwik insights](../../labs/insights/index.mdx) can be use to prioritize the important parts of interactivity before the less important parts.
 
 For example, the "*Buy Now*" button is more important than the "*Add to Cart*" button, so Qwik will prefetch the "*Buy Now*" button first, and then the "*Add to Cart*" button.
 
@@ -126,7 +129,7 @@ Qwik does not need to prefetch everything to start running, while other framewor
 
 ## Are Qwik apps slow on slow networks?
 
-Not at all! Thanks to [Speculative Module Fetching](../../(qwikcity)/advanced/speculative-module-fetching/index.mdx) Qwik apps are not more affected by slow networks than other frameworks. In fact, because of the fine-grained bundling and resumability, Qwik apps can become interactive with much less JS, effectively making them faster on slow networks.
+Quite the opposite. In fact, thanks to Qwik's ability to [reduce network watefalls](../../(qwikcity)/advanced/speculative-module-fetching/index.mdx#reducing-network-waterfalls), it is likely that the requested modules have already been downloaded and stored in the browsers's Cache at the time of interaction. And Even if they haven't yet been cached, Qwik can [avoid duplicating the requests](../../(qwikcity)/advanced/speculative-module-fetching/index.mdx#avoiding-duplicate-requests) and can instead keep fetching the modules that are being requested to execute them as fast as possible. As a result, Qwik apps get to be responsive much faster, especially on slow networks.
 
 ## Does Qwik generate too many small files?
 

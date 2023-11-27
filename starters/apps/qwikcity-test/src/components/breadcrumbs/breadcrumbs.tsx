@@ -21,7 +21,7 @@ export const Breadcrumbs = component$(() => {
   return (
     <nav class="breadcrumbs">
       {breadcrumbs.map((b, i) => (
-        <span data-test-breadcrumb={i}>
+        <span data-test-breadcrumb={i} key={b.text}>
           {b.href ? <Link href={b.href}>{b.text}</Link> : b.text}
         </span>
       ))}

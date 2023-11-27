@@ -165,10 +165,11 @@ export const processData = (
   } else if (isJSXNode(node)) {
     return processNode(node, invocationContext);
   } else if (isSignal(node)) {
-    const newNode = new ProcessedJSXNodeImpl('#text', EMPTY_OBJ, null, EMPTY_ARRAY, 0, null);
+    const newNode = new ProcessedJSXNodeImpl('#signal', EMPTY_OBJ, null, EMPTY_ARRAY, 0, null);
     newNode.$signal$ = node;
     return newNode;
   } else if (isArray(node)) {
+    // PERF(misko): possible place to make it faster by not creating promises unnecessarily
     const output = promiseAll(node.flatMap((n) => processData(n, invocationContext)));
     return maybeThen(output, (array) => array.flat(100).filter(isNotNullable));
   } else if (isPromise(node)) {
@@ -199,8 +200,15 @@ export const isPrimitive = (obj: any) => {
   return isString(obj) || typeof obj === 'number';
 };
 
+export type ProcessedJSXNodeType =
+  | '#text'
+  | ':virtual'
+  | ':signal'
+  | typeof SKIP_RENDER_TYPE
+  | string;
+
 export interface ProcessedJSXNode {
-  $type$: string;
+  $type$: ProcessedJSXNodeType;
   $id$: string;
   $props$: Record<string, any>;
   $immutableProps$: Record<string, any> | null;

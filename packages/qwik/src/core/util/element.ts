@@ -26,7 +26,7 @@ export const isVirtualElement = (value: Node | VirtualElement): value is Virtual
   return value.nodeType === 111;
 };
 
-export const isText = (value: Node): value is Text => {
+export const isText = (value: Node | QwikElement): value is Text => {
   return value.nodeType === 3;
 };
 

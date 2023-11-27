@@ -51,18 +51,16 @@ By pre-populating the cache from within a service worker (which is a worker), we
 
 Qwik itself should be configured to use the [prefetchEvent](../../../(qwik)/advanced/prefetching/index.mdx#prefetching-implementation) implementation (which is also Qwik's default). When Qwik emits the event, the service worker registration actively forwards the event data to the installed and active service worker.
 
-The service worker (which runs in a background thread) then fetches the modules and adds them to the browser's cache. “The main thread only needs to emit data about the required bundles, while the service worker’s sole focus is to cache those bundles. To achieve this, the service worker pre-populates the browser’s [Cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache).
+The service worker (which runs in a background thread) then fetches the modules and adds them to the browser’s [Cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache). The main thread only needs to emit data about the required bundles, while the service worker’s sole focus is to cache those bundles.
 
 1. If the browser already has it cached? Great, do nothing!
 2. If the browser hasn't already cached this bundle, then let's kick off the fetch request.
 
-Read more about [Caching Request and Response Pairs](#caching-request-and-response-pairs).
-
-Additionally, the service worker ensures that multiple requests for the same bundle do not happen at the same time. More about this in the [Parallelizing Network Requests](#parallelizing-network-requests) documentation.
+> The service worker ensures that multiple requests for the same bundle [do not happen at the same time](#avoiding-duplicate-requests).
 
 ## Caching Request and Response Pairs
 
-In many traditional frameworks, the preferred strategy is to use `<link>` with a `rel` attribute of `prefetch`, `preload` or `modulepreload`. However, there are [enough known issues](../../../(qwik)/advanced/prefetching/index.mdx#link-rel) that Qwik has preferred to not make `link` the default prefetching strategy (though it still can be [configured](../../../(qwik)/advanced/prefetching/index.mdx)).
+In many traditional frameworks, the preferred strategy is to use the html `<link>` tag with a `rel` attribute set to `prefetch`, `preload` or `modulepreload`. However, there are [enough known issues](../../../(qwik)/advanced/prefetching/index.mdx#link-rel) that Qwik has preferred to not make `link` the default prefetching strategy (though it still can be [configured](../../../(qwik)/advanced/prefetching/index.mdx)).
 
 Instead, Qwik prefers to use a newer approach that takes full advantage of the browser's [Cache API](https://developer.mozilla.org/en-US/docs/Web/API/Cache), which is also better supported compared to [modulepreload](../../../(qwik)/advanced/prefetching/index.mdx#link-rel).
 
@@ -85,8 +83,6 @@ const module = await import('/build/q-abc.js');
 What's important here is that Qwik itself has no knowledge of a prefetching or caching strategy. It's simply making a request for a URL. However, because we've installed a service worker, and the service worker is intercepting requests, it's able to inspect the URL and say, "look, this is a request for `/build/q-abc.js`! This is one of our bundles! Let's first check to see if we already have this in the cache before we do an actual network request."
 
 This is where the power of the service worker and Cache API comes in! Qwik first pre-populates the cache for modules the user may soon request within another thread. And better yet, if it's already cached, then there's no need for the browser to do anything.
-
-Other benefits include [Parallelizing Network Requests](#parallelizing-network-requests).
 
 ## Parallelizing Network Requests
 

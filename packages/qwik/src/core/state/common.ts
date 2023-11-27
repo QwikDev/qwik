@@ -199,7 +199,7 @@ type SubscriberB = readonly [
   prop: string,
 ];
 
-type SubscriberC = readonly [
+export type SubscriberC = readonly [
   type: 3 | 4,
   host: SubscriberHost | Text,
   signal: Signal,
@@ -411,7 +411,7 @@ export class LocalSubscriptionManager {
     ) {
       return;
     }
-    subs.push([...sub, key] as any);
+    subs.push((__lastSubscription = [...sub, key] as any));
     this.$addToGroup$(group, this);
   }
 
@@ -425,6 +425,15 @@ export class LocalSubscriptionManager {
       notifyChange(sub, this.$containerState$);
     }
   }
+}
+
+let __lastSubscription: Subscriptions | undefined;
+
+export function getLastSubscription(): Subscriptions | undefined {
+  // HACK(misko): This is a hack to get the last subscription.
+  // It is used by `executeSignalOperation` to update the target element
+  // after the subscription has been created.
+  return __lastSubscription;
 }
 
 const must = <T>(a: T): NonNullable<T> => {

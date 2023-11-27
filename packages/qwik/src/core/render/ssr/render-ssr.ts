@@ -875,9 +875,13 @@ const processData = (
             : ([4, hostEl, node, ('#' + id) as any] as const);
 
         value = trackSignal(node, subs);
-        const str = jsxToString(value);
-        ssrCtx.$static$.$textNodes$.set(str, id);
-        stream.write(`<!--t=${id}-->${escapeHtml(str)}<!---->`);
+        if (isString(value)) {
+          const str = jsxToString(value);
+          ssrCtx.$static$.$textNodes$.set(str, id);
+        }
+        stream.write(`<!--t=${id}-->`);
+        processData(value, rCtx, ssrCtx, stream, flags, beforeClose);
+        stream.write(`<!---->`);
         return;
       } else {
         value = invoke(ssrCtx.$invocationContext$, () => node.value);

@@ -205,6 +205,7 @@ export const createTemplate = (doc: Document, slotName: string) => {
 
 export const executeDOMRender = (staticCtx: RenderStaticContext) => {
   for (const op of staticCtx.$operations$) {
+    // PERF(misko): polymorphic execution
     op.$operation$.apply(undefined, op.$args$);
   }
   resolveSlotProjection(staticCtx);

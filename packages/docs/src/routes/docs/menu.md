@@ -109,7 +109,7 @@
 - [Library mode](</docs/(qwik)/advanced/library/index.mdx>)
 - [Qwikloader](</docs/(qwik)/advanced/qwikloader/index.mdx>)
 - [Optimizer](</docs/(qwik)/advanced/optimizer/index.mdx>)
-- [Prefetching](</docs/(qwik)/advanced/prefetching/index.mdx>)
+- [Modules Prefetching](</docs/(qwik)/advanced/modules-prefetching/index.mdx>)
 - [Build Directory](</docs/(qwik)/advanced/custom-build-dir/index.mdx>)
 - [Vite](</docs/(qwik)/advanced/vite/index.mdx>)
 - [Advanced Routing](</docs/(qwikcity)/advanced/routing/index.mdx>)

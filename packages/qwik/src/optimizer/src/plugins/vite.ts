@@ -301,12 +301,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           ],
         },
         build: {
-          modulePreload: {
-            resolveDependencies() {
-              // Your list of preloaded deps.
-              return [];
-            },
-          },
+          modulePreload: false,
           dynamicImportVarsOptions: {
             exclude: [/./],
           },

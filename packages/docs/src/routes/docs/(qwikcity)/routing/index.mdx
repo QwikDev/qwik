@@ -231,7 +231,7 @@ export default component$(() => {
 
 > The `Link` component uses the `useNavigate()` hook [internally](https://github.com/BuilderIO/qwik/blob/e452582f4728cbcb7bf85d03293e757302286683/packages/qwik-city/runtime/src/link-component.tsx#L33).
 
-### Refreshing
+### <Link reload>
 
 The `Link` with the `reload` prop can be used to refresh the current page.
 You can also call the `nav()` function from the `useNavigate()` hook, without arguments.
@@ -263,7 +263,7 @@ export default component$(() => {
 
 > While refreshing the page, the `isNavigating` boolean from `useLocation()` will be `true` until the page is fully rendered.
 
-### Prefetching
+### <Link prefetch>
 
 The Link component's `prefetch` prop can be used to improve the perceived performance of the application. Although Qwik pages excel at lazy loading javascript, this feature can come in handy for content-heavy pages or SSR pages that need to wait for database or API calls.
 

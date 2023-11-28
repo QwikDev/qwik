@@ -29,7 +29,7 @@ You can think of the page load as the first user interaction, which pre-populate
 
 ### Pre-populate Cache Event
 
-The recommended strategy is to use a [service worker](#pre-populating-the-cache-with-a-service-worker) to populate the [browser's cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache). The Qwik framework itself should use the [prefetchEvent](../../../(qwik)/advanced/prefetching/index.mdx#prefetching-implementation) implementation, which is already the default.
+The recommended strategy is to use a [service worker](#pre-populating-the-cache-with-a-service-worker) to populate the [browser's cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache). The Qwik framework itself should use the [prefetchEvent](../../../(qwik)/advanced/modules-prefetching/index.mdx#implementation) implementation, which is already the default.
 
 ## Pre-populating the Cache with a Service Worker
 
@@ -49,7 +49,7 @@ By pre-populating the cache from within a service worker (which is a worker), we
 
 ### Interactively Pre-populating the Cache
 
-Qwik itself should be configured to use the [prefetchEvent](../../../(qwik)/advanced/prefetching/index.mdx#prefetching-implementation) implementation (which is also Qwik's default). When Qwik emits the event, the service worker registration actively forwards the event data to the installed and active service worker.
+Qwik itself should be configured to use the [prefetchEvent](../../../(qwik)/advanced/modules-prefetching/index.mdx#implementation) implementation (which is also Qwik's default). When Qwik emits the event, the service worker registration actively forwards the event data to the installed and active service worker.
 
 The service worker (which runs in a background thread) then fetches the modules and adds them to the browser’s [Cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache). The main thread only needs to emit data about the required bundles, while the service worker’s sole focus is to cache those bundles.
 
@@ -60,9 +60,9 @@ The service worker (which runs in a background thread) then fetches the modules 
 
 ## Caching Request and Response Pairs
 
-In many traditional frameworks, the preferred strategy is to use the html `<link>` tag with a `rel` attribute set to `prefetch`, `preload` or `modulepreload`. However, there are [enough known issues](../../../(qwik)/advanced/prefetching/index.mdx#link-rel) that Qwik has preferred to not make `link` the default prefetching strategy (though it still can be [configured](../../../(qwik)/advanced/prefetching/index.mdx)).
+In many traditional frameworks, the preferred strategy is to use the html `<link>` tag with a `rel` attribute set to `prefetch`, `preload` or `modulepreload`. However, there are [enough known issues](../../../(qwik)/advanced/modules-prefetching/index.mdx#link-rel) that Qwik has preferred to not make `link` the default prefetching strategy (though it still can be [configured](../../../(qwik)/advanced/modules-prefetching/index.mdx)).
 
-Instead, Qwik prefers to use a newer approach that takes full advantage of the browser's [Cache API](https://developer.mozilla.org/en-US/docs/Web/API/Cache), which is also better supported compared to [modulepreload](../../../(qwik)/advanced/prefetching/index.mdx#link-rel).
+Instead, Qwik prefers to use a newer approach that takes full advantage of the browser's [Cache API](https://developer.mozilla.org/en-US/docs/Web/API/Cache), which is also better supported compared to [modulepreload](../../../(qwik)/advanced/modules-prefetching/index.mdx#link-rel).
 
 ### Cache API
 
@@ -102,7 +102,7 @@ For demo purposes, let's say the fetching for this bundle takes two seconds. How
 
 However, with Qwik's caching, if the user clicked the button, and we already started a request one second ago, and it has one second left until it's fully received, then the end-user only has to wait for one second. Remember, they're on a slow 3G connection in this demo. Luckily the user already received the full rendered landing page, so they're already looking at a completed page. Next, they're only pre-populating the cache with the bits of the app they could interact with, and their slow connection is dedicated to just those bundle(s). This is in contrast to their slow connection downloading all of the app, just to execute one listener.
 
-Qwik is able to intercept requests for known bundles, and if a fetch in a background thread is already in flight, and then a user requests the same bundle, it'll ensure that the second request is able to re-use the initial one, which may already be done downloading. Trying to perform any of this with the [link](../../../(qwik)/advanced/prefetching/index.mdx#link-rel) also shows why Qwik preferred to not make it the default, but instead uses the caching API and intercepts requests with a service worker.
+Qwik is able to intercept requests for known bundles, and if a fetch in a background thread is already in flight, and then a user requests the same bundle, it'll ensure that the second request is able to re-use the initial one, which may already be done downloading. Trying to perform any of this with the [link](../../../(qwik)/advanced/modules-prefetching/index.mdx#link-rel) also shows why Qwik preferred to not make it the default, but instead uses the caching API and intercepts requests with a service worker.
 
 ### Reducing Network Waterfalls
 

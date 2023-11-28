@@ -47,7 +47,7 @@
 /qwikcity/static-site-generation/overview/ /docs/guides/static-site-generation/ 308
 /qwikcity/static-site-generation/static-site-config/ /docs/guides/static-site-generation/ 308
 /qwikcity/static-site-generation/dynamic-routes/ /docs/guides/static-site-generation/ 308
-/qwikcity/advanced/prefetching/ /docs/advanced/speculative-module-fetching/
+/qwikcity/advanced/prefetching/ /docs/advanced/modules-prefetching/
 /qwikcity/prefetching/overview/ /docs/advanced/speculative-module-fetching/ 308
 /qwikcity/prefetching/service-worker-prefetching/ /docs/advanced/speculative-module-fetching/ 308
 /qwikcity/prefetching/request-response-cache/ /docs/advanced/speculative-module-fetching/ 308

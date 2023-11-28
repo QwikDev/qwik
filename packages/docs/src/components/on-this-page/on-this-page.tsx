@@ -24,7 +24,7 @@ const QWIK_ADVANCED_GROUP = [
   'eslint',
   'library',
   'optimizer',
-  'prefetching',
+  'modules-prefetching',
   'qrl',
   'qwikloader',
   'vite',

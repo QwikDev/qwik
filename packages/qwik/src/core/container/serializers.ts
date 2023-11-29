@@ -394,6 +394,7 @@ const JSXNodeSerializer = /*#__PURE__*/ serializer<JSXNode>({
     collectValue(node.children, collector, leaks);
     collectValue(node.props, collector, leaks);
     collectValue(node.immutableProps, collector, leaks);
+    collectValue(node.key, collector, leaks);
     let type = node.type;
     if (type === Slot) {
       type = ':slot';
@@ -410,17 +411,18 @@ const JSXNodeSerializer = /*#__PURE__*/ serializer<JSXNode>({
       type = ':fragment';
     }
     return `${getObjID(type)} ${getObjID(node.props)} ${getObjID(node.immutableProps)} ${getObjID(
-      node.children
-    )} ${node.flags}`;
+      node.key
+    )} ${getObjID(node.children)} ${node.flags}`;
   },
   $prepare$: (data) => {
-    const [type, props, immutableProps, children, flags] = data.split(' ');
+    const [type, props, immutableProps, key, children, flags] = data.split(' ');
     const node = new JSXNodeImpl(
       type as string,
       props as any,
       immutableProps as any,
       children,
-      parseInt(flags, 10)
+      parseInt(flags, 10),
+      key as string
     );
     return node;
   },
@@ -428,6 +430,7 @@ const JSXNodeSerializer = /*#__PURE__*/ serializer<JSXNode>({
     node.type = getResolveJSXType(getObject(node.type as string));
     node.props = getObject(node.props as any as string);
     node.immutableProps = getObject(node.immutableProps as any as string);
+    node.key = getObject(node.key as string);
     node.children = getObject(node.children);
   },
 });

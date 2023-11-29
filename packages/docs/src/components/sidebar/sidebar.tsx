@@ -8,7 +8,6 @@ const markdownItems = Object.fromEntries(
   await Promise.all(
     Object.entries(import.meta.glob<{ frontmatter?: MDX }>('../../routes/**/*.{md,mdx}')).map(
       async ([k, v]) => {
-        // console.log(k, (await v())?.frontmatter);
         return [
           k
             .replace('../../routes', '')
@@ -84,15 +83,16 @@ export function Items({
                 class={{
                   'is-active': pathname === item.href,
                 }}
+                style={{ display: 'flex' }}
               >
                 {item.text}
-                {markdownItems[item.href!]?.frontmatter?.updated_at
-                  ? new Date(markdownItems[item.href!]?.frontmatter?.updated_at!).getTime() +
-                      5 * 24 * 60 * 60 * 1000 >
-                    new Date().getTime()
-                    ? 'new'
-                    : null
-                  : null}
+                {markdownItems[item.href!]?.frontmatter?.updated_at ? (
+                  new Date(markdownItems[item.href!]?.frontmatter?.updated_at!).getTime() +
+                    5 * 24 * 60 * 60 * 1000 >
+                  new Date().getTime() ? (
+                    <div class="updated"></div>
+                  ) : null
+                ) : null}
               </a>
             )}
           </li>

@@ -1,7 +1,10 @@
-import { component$ } from '@builder.io/qwik';
-import { routeLoader$ } from '@builder.io/qwik-city';
-import { getDB } from '~/db';
 import { getAppInfo, getEdgeCount } from '~/db/query';
+import { routeLoader$, useLocation } from '@builder.io/qwik-city';
+
+import AppCard from '~/components/app-card';
+import { DashboardIcon } from '~/components/icons/dashboard';
+import { component$ } from '@builder.io/qwik';
+import { getDB } from '~/db';
 
 export const useAppData = routeLoader$(async ({ params }) => {
   const db = getDB();
@@ -15,5 +18,23 @@ export const useAppData = routeLoader$(async ({ params }) => {
 
 export default component$(() => {
   const data = useAppData();
-  return <div>App: {data.value.app.name}</div>;
+  const location = useLocation();
+
+  return (
+    <div>
+      <h1 class="h3">
+        <DashboardIcon />
+        <span>Dashboard</span>
+      </h1>
+      <AppCard
+        mode="show"
+        title={data.value.app.name}
+        publicApiKey={location.params.publicApiKey}
+      />
+      <h2 class="h4">Status</h2>
+      tbd
+      <h2 class="h4">Hints</h2>
+      tbd
+    </div>
+  );
 });

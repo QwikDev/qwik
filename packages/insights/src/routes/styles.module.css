@@ -1,4 +1,20 @@
 .wrapper {
-  margin: 75px 0;
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 67px);
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: center;
+}
+
+.wrapper h1 {
+  margin-bottom: 60px;
+}
+
+.box {
+  background: var(--white);
+  border-radius: var(--size-3);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  padding: var(--size-10);
   text-align: center;
 }

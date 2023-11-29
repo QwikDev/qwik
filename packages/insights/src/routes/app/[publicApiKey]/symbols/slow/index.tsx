@@ -1,6 +1,7 @@
 import { type ReadonlySignal, component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
 import Histogram, { latencyColors } from '~/components/histogram';
+import { SlowIcon } from '~/components/icons/slow';
 import { SymbolTile } from '~/components/symbol-tile';
 import { type ApplicationRow, getDB } from '~/db';
 import {
@@ -41,7 +42,10 @@ export default component$(() => {
   const data: ReadonlySignal<SlowSymbol> = useData();
   return (
     <div>
-      <h1>Slow Symbols</h1>
+      <h1 class="h3">
+        <SlowIcon />
+        Slow Symbols
+      </h1>
       <table>
         <tbody>
           <tr>

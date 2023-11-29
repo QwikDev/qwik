@@ -5,6 +5,7 @@ import { computeSymbolGraph, type Symbol } from '~/stats/edges';
 import { getSymbolDetails, getEdges } from '~/db/query';
 import { css } from '~/styled-system/css';
 import { dbGetManifestHashes } from '~/db/sql-manifest';
+import { SymbolIcon } from '~/components/icons/symbol';
 
 export const useRootSymbol = routeLoader$(async ({ params, url }) => {
   const db = getDB();
@@ -23,7 +24,10 @@ export default component$(() => {
   const rootSymbol = useRootSymbol();
   return (
     <div>
-      <h1>Symbols</h1>
+      <h1 class="h3">
+        <SymbolIcon />
+        Edge
+      </h1>
       <SymbolTree symbol={rootSymbol.value[0]} depth={0} />
     </div>
   );

@@ -63,7 +63,7 @@ export default component$(() => {
   const errors: ReadonlySignal<ErrorRow[]> = useErrors();
   return (
     <div>
-      <h1>
+      <h1 class="h3">
         <ErrorIcon />
         Errors
       </h1>

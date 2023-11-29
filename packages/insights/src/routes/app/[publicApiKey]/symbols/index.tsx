@@ -2,6 +2,7 @@ import { type ReadonlySignal, component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
 import Histogram, { delayColors, latencyColors } from '~/components/histogram';
 import { ManifestIcon } from '~/components/icons/manifest';
+import { SymbolIcon } from '~/components/icons/symbol';
 import { SymbolTile } from '~/components/symbol-tile';
 import { getDB } from '~/db';
 import { getEdges, getSymbolDetails } from '~/db/query';
@@ -114,7 +115,10 @@ export default component$(() => {
   const data: ReadonlySignal<SymbolsInfo> = useData();
   return (
     <div>
-      <h1>Manifests</h1>
+      <h1 class="h3">
+        <SymbolIcon />
+        Symbols
+      </h1>
       <table>
         <tbody>
           {data.value.manifests.map((manifest, idx) => {

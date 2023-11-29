@@ -1,10 +1,11 @@
 import { component$, type ReadonlySignal } from '@builder.io/qwik';
 import { routeLoader$, useLocation } from '@builder.io/qwik-city';
+import { RoutesIcon } from '~/components/icons/routes';
 import { getDB } from '~/db';
 import { dbGetManifestHashes } from '~/db/sql-manifest';
 import { getRouteNames, type RouteRow } from '~/db/sql-routes';
 import { AppLink } from '~/routes.config';
-import { heading, link } from '~/styles';
+import { link } from '~/styles';
 
 export const useRouteData = routeLoader$(async ({ params }) => {
   const db = getDB();
@@ -19,7 +20,10 @@ export default component$(() => {
   const routesData: ReadonlySignal<RouteRow[]> = useRouteData();
   return (
     <div>
-      <h1 class={heading}>Routes</h1>
+      <h1 class="h3">
+        <RoutesIcon />
+        Routes
+      </h1>
       <ul>
         {routesData.value.map((route) => (
           <li key={route.route}>

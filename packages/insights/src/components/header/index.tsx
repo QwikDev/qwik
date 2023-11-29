@@ -1,10 +1,11 @@
 import { component$, useContext } from '@builder.io/qwik';
-import { Link } from '@builder.io/qwik-city';
-import { UserContext } from '~/context/user';
-import { useAuthSignout } from '~/routes/plugin@auth';
+
 import Avatar from '../avatar';
+import { Link } from '@builder.io/qwik-city';
 import { QwikIcon } from '../icons/qwik';
+import { UserContext } from '~/context/user';
 import styles from './styles.module.css';
+import { useAuthSignout } from '~/routes/plugin@auth';
 
 export default component$(() => {
   const signOutSig = useAuthSignout();

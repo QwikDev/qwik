@@ -31,7 +31,7 @@
   font-size: var(--size-3);
 }
 .wrapper .api-key span {
-  margin: 0 var(--size-1_5);
+  margin: 0 var(--size-5) 0 0;
 }
 
 .wrapper .description {

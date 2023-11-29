@@ -1,6 +1,7 @@
 import { component$, useStore, type JSXNode, type ReadonlySignal } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
 import { BundleCmp } from '~/components/bundle';
+import { BundleIcon } from '~/components/icons/bundle';
 import { SymbolTile } from '~/components/symbol-tile';
 import { getDB } from '~/db';
 import { getEdges, getSymbolDetails } from '~/db/query';
@@ -46,10 +47,16 @@ export default component$(() => {
         margin: '5px',
       })}
     >
-      <h2>Correlation Matrix</h2>
+      <h1 class="h3">
+        <BundleIcon />
+        Correlation Matrix
+      </h1>
       <CorrelationMatrix matrix={data.value.vectors.vectors} symbols={data.value.vectors.symbols} />
 
-      <h2>Bundles</h2>
+      <h2 class="h3">
+        <BundleIcon />
+        Bundles
+      </h2>
       <ol
         class={css({
           listStyle: 'decimal',

@@ -1,18 +1,18 @@
 import { Link, useLocation } from '@builder.io/qwik-city';
 import { Slot, component$ } from '@builder.io/qwik';
 
-import { EditIcon } from '~/components/icons/edit';
-import Layout from '~/components/layout';
-import styles from './styles.module.css';
-import { SymbolIcon } from '~/components/icons/symbol';
-import { EdgeIcon } from '~/components/icons/edge';
-import { BundleIcon } from '~/components/icons/bundle';
-import { SlowIcon } from '~/components/icons/slow';
-import { ErrorIcon } from '~/components/icons/error';
-import { DashboardIcon } from '~/components/icons/dashboard';
-import { ManifestIcon } from '~/components/icons/manifest';
 import { AppLink } from '~/routes.config';
+import { BundleIcon } from '~/components/icons/bundle';
+import { DashboardIcon } from '~/components/icons/dashboard';
+import { EdgeIcon } from '~/components/icons/edge';
+import { EditIcon } from '~/components/icons/edit';
+import { ErrorIcon } from '~/components/icons/error';
+import Layout from '~/components/layout';
+import { ManifestIcon } from '~/components/icons/manifest';
 import { RoutesIcon } from '~/components/icons/routes';
+import { SlowIcon } from '~/components/icons/slow';
+import { SymbolIcon } from '~/components/icons/symbol';
+import styles from './styles.module.css';
 
 export default component$(() => {
   const location = useLocation();
@@ -27,13 +27,6 @@ export default component$(() => {
             <Link href={path} class={[styles['menu-item'], subPath === '' ? styles.active : '']}>
               <DashboardIcon />
               <span>Dashboard</span>
-            </Link>
-            <Link
-              href={path + 'edit/'}
-              class={[styles['menu-item'], subPath === 'edit/' ? styles.active : '']}
-            >
-              <EditIcon />
-              <span>Edit</span>
             </Link>
             <AppLink
               route={'/app/[publicApiKey]/manifests/'}
@@ -85,6 +78,14 @@ export default component$(() => {
             >
               <ErrorIcon />
               <span>Errors</span>
+            </Link>
+            <div class={styles.devider}></div>
+            <Link
+              href={path + 'edit/'}
+              class={[styles['menu-item'], subPath === 'edit/' ? styles.active : '']}
+            >
+              <EditIcon />
+              <span>Edit</span>
             </Link>
           </div>
         </aside>

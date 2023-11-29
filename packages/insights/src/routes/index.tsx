@@ -1,16 +1,23 @@
 import { component$, useContext, useTask$ } from '@builder.io/qwik';
-import { useNavigate } from '@builder.io/qwik-city';
+import { useAuthSession, useAuthSignin } from './plugin@auth';
+
 import Button from '~/components/button';
 import Container from '~/components/container';
-import AppsIcon from '~/components/icons/apps';
 import GithubIcon from '~/components/icons/github';
 import Layout from '~/components/layout';
+import type { Session } from '@auth/core/types';
 import { UserContext } from '~/context/user';
-import { useAuthSession, useAuthSignin } from './plugin@auth';
+import { routeLoader$ } from '@builder.io/qwik-city';
 import styles from './styles.module.css';
 
+export const useIsAuthUser = routeLoader$(({ sharedMap, redirect }) => {
+  const session = sharedMap.get('session') as Session | null;
+  if (session) {
+    throw redirect(307, '/app/');
+  }
+});
+
 export default component$(() => {
-  const navigate = useNavigate();
   const signInSig = useAuthSignin();
   const sessionSig = useAuthSession();
   const userCtx = useContext(UserContext);
@@ -22,18 +29,11 @@ export default component$(() => {
   });
 
   return (
-    <Layout mode="bright">
+    <Layout>
       <Container position="center" width="small">
         <div class={styles.wrapper}>
-          <h1 class="h4">Log in to Qwik Insights</h1>
-
-          {userCtx.value?.email ? (
-            <>
-              <Button onClick$={() => navigate('/app')}>
-                <AppsIcon /> Go to the Dashboard
-              </Button>
-            </>
-          ) : (
+          <div class={styles.box}>
+            <h1 class="h1">Welcome</h1>
             <Button
               theme="github"
               onClick$={async () => {
@@ -43,7 +43,7 @@ export default component$(() => {
               <GithubIcon />
               Continue with GitHub
             </Button>
-          )}
+          </div>
         </div>
       </Container>
       {/* <pre>{JSON.stringify(userCtx, null, 2)}</pre> */}

@@ -15,6 +15,7 @@ import { setServerPlatform } from '@builder.io/qwik/server';
 
 /** @public */
 export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
+  (globalThis as any).TextEncoderStream = TextEncoderStream;
   const qwikSerializer = {
     _deserializeData,
     _serializeData,
@@ -130,4 +131,40 @@ export interface PlatformCloudflarePages {
   request: Request;
   env?: Record<string, any>;
   ctx: { waitUntil: (promise: Promise<any>) => void };
+}
+
+const resolved = Promise.resolve();
+
+class TextEncoderStream {
+  // minimal polyfill implementation of TextEncoderStream
+  // since Cloudflare Pages doesn't support readable.pipeTo()
+  _writer: any;
+  readable: any;
+  writable: any;
+
+  constructor() {
+    this._writer = null;
+    this.readable = {
+      pipeTo: (writableStream: any) => {
+        this._writer = writableStream.getWriter();
+      },
+    };
+    this.writable = {
+      getWriter: () => {
+        if (!this._writer) {
+          throw new Error('No writable stream');
+        }
+        const encoder = new TextEncoder();
+        return {
+          write: async (chunk: any) => {
+            if (chunk != null) {
+              await this._writer.write(encoder.encode(chunk));
+            }
+          },
+          close: () => this._writer.close(),
+          ready: resolved,
+        };
+      },
+    };
+  }
 }

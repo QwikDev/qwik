@@ -31,10 +31,6 @@ export default component$(() => {
         title={data.value.app.name}
         publicApiKey={location.params.publicApiKey}
       />
-      <h2 class="h4">Status</h2>
-      tbd
-      <h2 class="h4">Hints</h2>
-      tbd
     </div>
   );
 });

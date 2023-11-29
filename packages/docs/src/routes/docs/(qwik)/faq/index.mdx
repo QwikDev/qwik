@@ -150,13 +150,7 @@ Notice that JSX is not React. In fact, JSX is only syntax without semantics. We 
 - **Similar to HTML**: JSX is visually and conceptually similar to HTML, a tree. Other template systems like _html templates_ (lit-html) are not trees but arrays of tokens, making it harder to build on top and transform.
 - **Popular**: By any margin, JSX is the most widely used template syntax in the world.
 
-## Does Qwik use vDOM (Virtual DOM)?
-
-The answer is somewhere in between:
-
-You can think of it as a spectrum:
-- On one extreme is React which uses vDOM for everything all the time. (Good argument can be made that [vDOM is slow](https://svelte.dev/blog/virtual-dom-is-pure-overhead).)
-- On the other extreme is SolidJS which does not use vDOM at all. (Resulting in a very impressive performance.)
+## Does Qwik use a vDOM (Virtual DOM)?
 
 Qwik uses vDOM only sometimes, and other times it does what SolidJS does (direct DOM update.)
 
@@ -194,9 +188,15 @@ The big thing to understand (and the reason vDOM is not a performance problem in
 
 > In short, Qwik uses vDOM, but significantly less than React in comparable situations.
 
-### Why use vDOM despite its negative reputation?
-1. Because vDOM has attractive DX properties, especially when you need dynamic components. 
-2. Because non-vDOM solution would require executing code at least once on startup to learn about the component structure. (Something which Qwik explicitly avoids.)
+### Why use a vDOM despite its negative reputation?
+
+The question of whether or not to use a vDOM can be seen as a spectrum:
+- On one extreme is React which uses vDOM for everything all the time. (Good argument can be made that [vDOM is slow](https://svelte.dev/blog/virtual-dom-is-pure-overhead).)
+- On the other extreme is SolidJS which does not use vDOM at all. (Resulting in a very impressive performance.)
+
+Qwik on the other hand uses a vDOM sparingly for two reasons:
+1. Because non-vDOM solution would require executing code at least once on startup to learn about the component structure. (Something which Qwik explicitly avoids.)
+2. Because vDOM has attractive DX properties, especially when you need dynamic components. 
 
 For example:
 
@@ -211,7 +211,7 @@ export const DynamicExample = component$(() => {
 ```
 The above code `<Component/>` is super easy to understand. We are dynamically choosing a component to place there. But in [Solid](https://www.solidjs.com/docs/latest/api#dynamic), [Svelte](https://svelte.dev/tutorial/svelte-component), [Vue](https://v2.vuejs.org/v2/guide/components-dynamic-async.html), and [Angular](https://angular.io/api/common/NgTemplateOutlet), this gets complex (see links).
 
-We have the best of both worlds by using vDOM sparingly. During creation, we employ SSR, and most client updates are non-structural. When structural updates are necessary, they are localized to the specific component without affecting its children, thus containing any potential slowdown caused by vDOM.
+We have the best of both worlds by using a vDOM sparingly. During creation, we employ SSR, and most client updates are non-structural. When structural updates are necessary, they are localized to the specific component without affecting its children, thus containing any potential slowdown caused by vDOM.
 
 
 ## Is there a Router for Qwik?

@@ -16,11 +16,11 @@ export default component$(() => {
       </Link>
       <span class="font-thin">Insights</span>
 
-      {session.value.user?.email && (
+      {session.value?.user?.email && (
         <div class="ml-auto flex items-center justify-center gap-8">
           <Link href="/">Setting</Link>
           <Link
-            class=""
+            class="cursor-pointer"
             onClick$={() => {
               signOutSig.submit({ callbackUrl: '/' });
             }}
@@ -28,8 +28,8 @@ export default component$(() => {
             Logout
           </Link>
           <Avatar
-            src={session.value.user?.image ?? ''}
-            alt={session.value.user?.name ?? ''}
+            src={session.value?.user?.image ?? ''}
+            alt={session.value?.user?.name ?? ''}
             size="small"
           />
         </div>

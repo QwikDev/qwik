@@ -132,14 +132,6 @@ html,
 body {
   height: 100%;
   font-family: 'Poppins', Helvetica, Arial, sans-serif;
-  color: var(--text-color-default);
-}
-
-body.dark {
-  --bg-color-default: var(--gray-800);
-  --bg-color-bright: var(--gray-900);
-  --text-color-default: var(--white);
-  --border-color-default: var(--gray-700);
 }
 
 .h1,
@@ -157,7 +149,7 @@ body.dark {
 .h4 svg,
 .h5 svg,
 .h6 svg {
-  margin-right: 12px;
+  @apply mr-3;
 }
 
 .h1 {
@@ -191,11 +183,11 @@ a {
 }
 
 form > div {
-  margin-bottom: var(--form-element-margin-bottom);
+  @apply mb-4;
 }
 
 label {
-  color: var(--text-color-light);
+  color: black;
   display: block;
 }
 
@@ -204,12 +196,11 @@ input {
 }
 
 input {
-  padding: var(--size-2) var(--size-4);
-  width: 100%;
+  @apply px-4 py-2 w-full rounded;
 }
 
 .button {
-  @apply inline-flex cursor-pointer items-center justify-center gap-3 rounded-lg border border-slate-300 px-8 py-2;
+  @apply inline-flex cursor-pointer items-center justify-center gap-3 rounded border border-slate-300 px-8 py-2;
 }
 
 svg {

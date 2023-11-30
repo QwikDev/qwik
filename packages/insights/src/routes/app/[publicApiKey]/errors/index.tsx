@@ -1,10 +1,10 @@
-import { type ReadonlySignal, component$ } from "@builder.io/qwik";
-import { routeLoader$ } from "@builder.io/qwik-city";
-import { getDB, errorTable, type ErrorRow } from "~/db";
-import { eq, sql } from "drizzle-orm";
-import { css, cx } from "~/styled-system/css";
-import { ErrorIcon } from "~/components/icons/error";
-import { type PopupEvent } from "~/components/popup-manager";
+import { type ReadonlySignal, component$ } from '@builder.io/qwik';
+import { routeLoader$ } from '@builder.io/qwik-city';
+import { getDB, errorTable, type ErrorRow } from '~/db';
+import { eq, sql } from 'drizzle-orm';
+import { css, cx } from '~/styled-system/css';
+import { ErrorIcon } from '~/components/icons/error';
+import { type PopupEvent } from '~/components/popup-manager';
 
 export const useErrors = routeLoader$(async ({ params }) => {
   const db = getDB();
@@ -19,44 +19,44 @@ export const useErrors = routeLoader$(async ({ params }) => {
 });
 
 const column = css({
-  border: "1px solid black",
-  overflow: "scroll",
-  maxWidth: "300px",
-  maxHeight: "100px",
-  verticalAlign: "top",
-  padding: "3px",
+  border: '1px solid black',
+  overflow: 'scroll',
+  maxWidth: '300px',
+  maxHeight: '100px',
+  verticalAlign: 'top',
+  padding: '3px',
 });
 
 const columnTimestamp = cx(
   css({
-    fontSize: "12px",
+    fontSize: '12px',
   }),
-  column,
+  column
 );
 const columnUrl = cx(
   css({
-    maxWidth: "300px",
+    maxWidth: '300px',
   }),
-  column,
+  column
 );
 const columnUrlCell = cx(
   css({
-    fontFamily: "monospace",
+    fontFamily: 'monospace',
   }),
-  columnUrl,
+  columnUrl
 );
 const columnMessage = cx(
   css({
-    maxWidth: "100%",
+    maxWidth: '100%',
   }),
-  column,
+  column
 );
 const columnMessageCell = cx(
   css({
-    maxWidth: "100%",
-    fontFamily: "monospace",
+    maxWidth: '100%',
+    fontFamily: 'monospace',
   }),
-  columnMessage,
+  columnMessage
 );
 
 export default component$(() => {
@@ -69,24 +69,17 @@ export default component$(() => {
       </h1>
       <table
         class={css({
-          border: "1px solid black",
+          border: '1px solid black',
         })}
       >
         <tbody>
           <tr>
-            <th class={cx(css({ fontWeight: "bold" }), columnTimestamp)}>
-              Timestamp
-            </th>
-            <th class={cx(css({ fontWeight: "bold" }), columnUrl)}>URL</th>
-            <th class={cx(css({ fontWeight: "bold" }), columnMessage)}>
-              Message
-            </th>
+            <th class={cx(css({ fontWeight: 'bold' }), columnTimestamp)}>Timestamp</th>
+            <th class={cx(css({ fontWeight: 'bold' }), columnUrl)}>URL</th>
+            <th class={cx(css({ fontWeight: 'bold' }), columnMessage)}>Message</th>
           </tr>
           {errors.value.map((error) => (
-            <tr
-              key={error.id}
-              onPopup$={(e: PopupEvent) => e.detail.show(Popup, error)}
-            >
+            <tr key={error.id} onPopup$={(e: PopupEvent) => e.detail.show(Popup, error)}>
               <td class={cx(css({}), columnTimestamp)}>
                 {new Date(error.timestamp).toLocaleString()}
               </td>
@@ -113,17 +106,17 @@ export const Popup = component$<{
   return (
     <div
       class={css({
-        maxWidth: "75pv",
-        minWidth: "300px",
-        overflow: "scroll",
-        margin: "10px",
+        maxWidth: '75pv',
+        minWidth: '300px',
+        overflow: 'scroll',
+        margin: '10px',
       })}
     >
       <h1 class={labelStyle}>
         Timestamp: <code class={codeStyle}>{timestamp.toLocaleString()}</code>
       </h1>
       <h1 class={labelStyle}>
-        URL:{" "}
+        URL:{' '}
         <code class={codeStyle}>
           <a href={url} class={linkStyle} target="_blank">
             {url}
@@ -144,17 +137,17 @@ export const Popup = component$<{
 });
 
 const labelStyle = css({
-  fontWeight: "bold",
-  marginTop: "10px",
+  fontWeight: 'bold',
+  marginTop: '10px',
 });
 const codeStyle = css({
-  fontFamily: "monospace",
-  whiteSpace: "break-spaces",
+  fontFamily: 'monospace',
+  whiteSpace: 'break-spaces',
 });
 const linkStyle = css({
-  color: "blue",
-  textDecoration: "underline",
-  "&:hover": {
-    color: "lightblue",
+  color: 'blue',
+  textDecoration: 'underline',
+  '&:hover': {
+    color: 'lightblue',
   },
 });

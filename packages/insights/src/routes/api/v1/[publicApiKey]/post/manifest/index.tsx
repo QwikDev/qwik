@@ -1,15 +1,10 @@
-import { type RequestHandler } from "@builder.io/qwik-city";
-import { and, eq } from "drizzle-orm";
-import { getDB, symbolDetailTable } from "~/db";
-import { dbGetManifestInfo } from "~/db/sql-manifest";
-import { QManifest } from "~/types/q-manifest";
+import { type RequestHandler } from '@builder.io/qwik-city';
+import { and, eq } from 'drizzle-orm';
+import { getDB, symbolDetailTable } from '~/db';
+import { dbGetManifestInfo } from '~/db/sql-manifest';
+import { QManifest } from '~/types/q-manifest';
 
-export const onPost: RequestHandler = async ({
-  exit,
-  json,
-  request,
-  params,
-}) => {
+export const onPost: RequestHandler = async ({ exit, json, request, params }) => {
   // onsole.log('API: POST: symbol');
   const publicApiKey = params.publicApiKey;
   try {
@@ -24,8 +19,8 @@ export const onPost: RequestHandler = async ({
       .where(
         and(
           eq(symbolDetailTable.publicApiKey, publicApiKey),
-          eq(symbolDetailTable.manifestHash, manifestHash),
-        ),
+          eq(symbolDetailTable.manifestHash, manifestHash)
+        )
       )
       .all();
     const existingMap = new Map<string, (typeof existing)[0]>();
@@ -52,7 +47,7 @@ export const onPost: RequestHandler = async ({
                 hi,
               })
               .where(eq(symbolDetailTable.id, existing.id))
-              .run(),
+              .run()
           );
         }
       } else {
@@ -68,7 +63,7 @@ export const onPost: RequestHandler = async ({
               lo,
               hi,
             })
-            .run(),
+            .run()
         );
       }
       if (promises.length > 10) {
@@ -77,9 +72,9 @@ export const onPost: RequestHandler = async ({
       }
     }
     await Promise.all(promises);
-    json(200, { code: 200, message: "OK" });
+    json(200, { code: 200, message: 'OK' });
   } catch (e) {
     console.error(JSON.stringify(e));
-    json(500, { code: 500, message: "Internal Server Error", error: e });
+    json(500, { code: 500, message: 'Internal Server Error', error: e });
   }
 };

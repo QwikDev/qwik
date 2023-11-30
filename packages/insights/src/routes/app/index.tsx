@@ -1,17 +1,13 @@
-import { type ApplicationRow, applicationTable, getDB } from "~/db";
-import AppCard from "~/components/app-card";
-import Container from "~/components/container";
-import Layout from "~/components/layout";
-import { type ReadonlySignal, component$ } from "@builder.io/qwik";
-import { routeLoader$ } from "@builder.io/qwik-city";
+import { type ApplicationRow, applicationTable, getDB } from '~/db';
+import AppCard from '~/components/app-card';
+import Container from '~/components/container';
+import Layout from '~/components/layout';
+import { type ReadonlySignal, component$ } from '@builder.io/qwik';
+import { routeLoader$ } from '@builder.io/qwik-city';
 
 export const useApps = routeLoader$<ApplicationRow[]>(async () => {
   const db = getDB();
-  return await db
-    .select()
-    .from(applicationTable)
-    .orderBy(applicationTable.name)
-    .all();
+  return await db.select().from(applicationTable).orderBy(applicationTable.name).all();
 });
 
 export default component$(() => {
@@ -23,11 +19,7 @@ export default component$(() => {
           {/* existing apps */}
           {apps.value.map((app) => (
             <div class="flex-1" key={app.id}>
-              <AppCard
-                mode="show"
-                title={app.name}
-                publicApiKey={app.publicApiKey}
-              />
+              <AppCard mode="show" title={app.name} publicApiKey={app.publicApiKey} />
             </div>
           ))}
 

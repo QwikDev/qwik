@@ -1,7 +1,7 @@
-import { type QwikIntrinsicElements } from "@builder.io/qwik";
-import { css, cx } from "~/styled-system/css";
+import { type QwikIntrinsicElements } from '@builder.io/qwik';
+import { css, cx } from '~/styled-system/css';
 
-export function CloseIcon(props: QwikIntrinsicElements["svg"], key: string) {
+export function CloseIcon(props: QwikIntrinsicElements['svg'], key: string) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -11,10 +11,10 @@ export function CloseIcon(props: QwikIntrinsicElements["svg"], key: string) {
       {...props}
       class={cx(
         css({
-          display: "inline-block",
-          margin: "4px 2px",
+          display: 'inline-block',
+          margin: '4px 2px',
         }),
-        String(props.class),
+        String(props.class)
       )}
       key={key}
     >

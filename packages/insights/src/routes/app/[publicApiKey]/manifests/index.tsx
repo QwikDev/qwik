@@ -1,12 +1,12 @@
-import { type ReadonlySignal, component$ } from "@builder.io/qwik";
-import { routeLoader$ } from "@builder.io/qwik-city";
-import Histogram, { latencyColors } from "~/components/histogram";
-import { ManifestIcon } from "~/components/icons/manifest";
-import { ManifestTile } from "~/components/minifest-tile";
-import { getDB } from "~/db";
-import { type ManifestStatsRow, dbGetManifestStats } from "~/db/sql-manifest";
-import { vectorAvg, vectorSum, BUCKETS } from "~/stats/vector";
-import { css, cx } from "~/styled-system/css";
+import { type ReadonlySignal, component$ } from '@builder.io/qwik';
+import { routeLoader$ } from '@builder.io/qwik-city';
+import Histogram, { latencyColors } from '~/components/histogram';
+import { ManifestIcon } from '~/components/icons/manifest';
+import { ManifestTile } from '~/components/minifest-tile';
+import { getDB } from '~/db';
+import { type ManifestStatsRow, dbGetManifestStats } from '~/db/sql-manifest';
+import { vectorAvg, vectorSum, BUCKETS } from '~/stats/vector';
+import { css, cx } from '~/styled-system/css';
 
 export const useData = routeLoader$(async ({ params }) => {
   const publicApiKey = params.publicApiKey;
@@ -16,48 +16,48 @@ export const useData = routeLoader$(async ({ params }) => {
 });
 
 const column = css({
-  border: "1px solid black",
-  overflow: "scroll",
-  maxWidth: "300px",
-  maxHeight: "100px",
-  verticalAlign: "top",
-  padding: "3px",
+  border: '1px solid black',
+  overflow: 'scroll',
+  maxWidth: '300px',
+  maxHeight: '100px',
+  verticalAlign: 'top',
+  padding: '3px',
 });
 
 const columnHash = cx(
   css({
-    maxWidth: "100px",
-    width: "100px",
+    maxWidth: '100px',
+    width: '100px',
   }),
-  column,
+  column
 );
 const columnTimestamp = cx(
   css({
-    maxWidth: "150px",
-    width: "150px",
+    maxWidth: '150px',
+    width: '150px',
   }),
-  column,
+  column
 );
 const columnSamples = cx(
   css({
-    maxWidth: "80px",
-    width: "80px",
+    maxWidth: '80px',
+    width: '80px',
   }),
-  column,
+  column
 );
 const columnLatency = cx(
   css({
-    maxWidth: "120px",
-    width: "120px",
+    maxWidth: '120px',
+    width: '120px',
   }),
-  column,
+  column
 );
 const columnHistogram = cx(
   css({
-    maxWidth: "410px",
-    width: "410px",
+    maxWidth: '410px',
+    width: '410px',
   }),
-  column,
+  column
 );
 
 export default component$(() => {
@@ -71,42 +71,28 @@ export default component$(() => {
       <table>
         <tbody>
           <tr>
-            <th class={cx(css({ fontWeight: "bold" }), columnHash)}>
-              Manifest
-            </th>
-            <th class={cx(css({ fontWeight: "bold" }), columnTimestamp)}>
-              Timestamp
-            </th>
-            <th class={cx(css({ fontWeight: "bold" }), columnSamples)}>
-              Samples
-            </th>
-            <th class={cx(css({ fontWeight: "bold" }), columnLatency)}>
-              Avg. Latency
-            </th>
-            <th class={cx(css({ fontWeight: "bold" }), columnHistogram)}>
-              Histogram
-            </th>
+            <th class={cx(css({ fontWeight: 'bold' }), columnHash)}>Manifest</th>
+            <th class={cx(css({ fontWeight: 'bold' }), columnTimestamp)}>Timestamp</th>
+            <th class={cx(css({ fontWeight: 'bold' }), columnSamples)}>Samples</th>
+            <th class={cx(css({ fontWeight: 'bold' }), columnLatency)}>Avg. Latency</th>
+            <th class={cx(css({ fontWeight: 'bold' }), columnHistogram)}>Histogram</th>
           </tr>
           {data.value.map((row) => (
             <tr key={row.hash}>
               <td class={cx(css({}), columnHash)}>
                 <ManifestTile hash={row.hash} />
               </td>
-              <td class={cx(css({ fontSize: "12px" }), columnTimestamp)}>
+              <td class={cx(css({ fontSize: '12px' }), columnTimestamp)}>
                 {row.timestamp.toLocaleString()}
               </td>
-              <td class={cx(css({ textAlign: "right" }), columnSamples)}>
+              <td class={cx(css({ textAlign: 'right' }), columnSamples)}>
                 {vectorSum(row.latency)}
               </td>
-              <td class={cx(css({ textAlign: "right" }), columnLatency)}>
+              <td class={cx(css({ textAlign: 'right' }), columnLatency)}>
                 {Math.round(vectorAvg(row.latency))}
               </td>
               <td class={cx(css({}), columnHistogram)}>
-                <Histogram
-                  vector={row.latency}
-                  colors={latencyColors}
-                  buckets={BUCKETS}
-                />
+                <Histogram vector={row.latency} colors={latencyColors} buckets={BUCKETS} />
               </td>
             </tr>
           ))}

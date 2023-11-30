@@ -1,9 +1,9 @@
-import Avatar from "../avatar";
-import { Link } from "@builder.io/qwik-city";
-import { QwikIcon } from "../icons/qwik";
-import { component$ } from "@builder.io/qwik";
-import { useAuthSignout } from "~/routes/plugin@auth";
-import { useUserSession } from "~/routes/layout";
+import Avatar from '../avatar';
+import { Link } from '@builder.io/qwik-city';
+import { QwikIcon } from '../icons/qwik';
+import { component$ } from '@builder.io/qwik';
+import { useAuthSignout } from '~/routes/plugin@auth';
+import { useUserSession } from '~/routes/layout';
 
 export default component$(() => {
   const signOutSig = useAuthSignout();
@@ -22,14 +22,14 @@ export default component$(() => {
           <Link
             class=""
             onClick$={() => {
-              signOutSig.submit({ callbackUrl: "/" });
+              signOutSig.submit({ callbackUrl: '/' });
             }}
           >
             Logout
           </Link>
           <Avatar
-            src={session.value.user?.image ?? ""}
-            alt={session.value.user?.name ?? ""}
+            src={session.value.user?.image ?? ''}
+            alt={session.value.user?.name ?? ''}
             size="small"
           />
         </div>

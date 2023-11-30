@@ -1,4 +1,4 @@
-import { isDev } from "@builder.io/qwik/build";
+import { isDev } from '@builder.io/qwik/build';
 
 const LOG_TIMING: boolean = isDev;
 
@@ -16,7 +16,7 @@ export async function time<T>(name: string, fn: () => Promise<T>): Promise<T> {
     LOG_TIMING &&
       console.log(
         `${name} took ${now() - start}ms`,
-        Array.isArray(result) ? result.length + " rows" : "",
+        Array.isArray(result) ? result.length + ' rows' : ''
       );
   }
 }

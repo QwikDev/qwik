@@ -22,17 +22,14 @@ const getResultOffsetAndScale = (maxValue: number, valueOffset: number) => {
   let count = 10;
   while (previousResultOffset !== resultOffset && count-- > 0) {
     previousResultOffset = resultOffset;
-    scale =
-      (NUMBER_OF_BUCKETS + resultOffset - 1) /
-      Math.log2(maxValue + valueOffset);
+    scale = (NUMBER_OF_BUCKETS + resultOffset - 1) / Math.log2(maxValue + valueOffset);
     resultOffset = Math.floor(scale * Math.log2(valueOffset));
   }
   return { RESULT_OFFSET: resultOffset, SCALE: scale };
 };
 
 /** A computed constant which is used for scaling so that we spread MAX_VALUE into BUCKETS. */
-const { RESULT_OFFSET, SCALE } = (() =>
-  getResultOffsetAndScale(MAX_VALUE, VALUE_OFFSET))();
+const { RESULT_OFFSET, SCALE } = (() => getResultOffsetAndScale(MAX_VALUE, VALUE_OFFSET))();
 
 /**
  * A computed constant which is used for timeline scaling so that we spread TIMELINE_MAX_VALUE into
@@ -46,7 +43,7 @@ export function toBucket(value: number): number {
   value = Math.max(0, value);
   return Math.min(
     NUMBER_OF_BUCKETS - 1, // Make sure we never return a value greater than number of buckets
-    Math.floor(SCALE * Math.log2(value + VALUE_OFFSET)) - RESULT_OFFSET,
+    Math.floor(SCALE * Math.log2(value + VALUE_OFFSET)) - RESULT_OFFSET
   );
 }
 
@@ -54,8 +51,7 @@ export function toBucketTimeline(value: number): number {
   value = Math.max(0, value);
   return Math.min(
     NUMBER_OF_BUCKETS - 1, // Make sure we never return a value greater than number of buckets
-    Math.floor(TIMELINE_SCALE * Math.log2(value + TIMELINE_VALUE_OFFSET)) -
-      TIMELINE_RESULT_OFFSET,
+    Math.floor(TIMELINE_SCALE * Math.log2(value + TIMELINE_VALUE_OFFSET)) - TIMELINE_RESULT_OFFSET
   );
 }
 
@@ -64,10 +60,7 @@ export interface Bucket {
   max: number;
   avg: number;
 }
-const computeBuckets = (
-  maxValue: number,
-  toBucket: (value: number) => number,
-): Bucket[] => {
+const computeBuckets = (maxValue: number, toBucket: (value: number) => number): Bucket[] => {
   const buckets: ReturnType<typeof fromBucket>[] = [];
   for (let i = 0; i <= maxValue; i++) {
     const bucketIdx = toBucket(i);
@@ -82,10 +75,7 @@ const computeBuckets = (
   return buckets;
 };
 export const BUCKETS: Bucket[] = computeBuckets(MAX_VALUE, toBucket);
-export const TIMELINE_BUCKETS: Bucket[] = computeBuckets(
-  TIMELINE_MAX_VALUE,
-  toBucketTimeline,
-);
+export const TIMELINE_BUCKETS: Bucket[] = computeBuckets(TIMELINE_MAX_VALUE, toBucketTimeline);
 
 export function fromBucket(bucket: number): {
   min: number;
@@ -124,10 +114,7 @@ export function vectorAdd(dst: number[], src: number[]) {
   return max;
 }
 
-export function vectorAvg(
-  vector: number[],
-  buckets: Bucket[] = BUCKETS,
-): number {
+export function vectorAvg(vector: number[], buckets: Bucket[] = BUCKETS): number {
   let sum = 0;
   let count = 0;
   for (let i = 0; i < vector.length; i++) {

@@ -1,11 +1,11 @@
-import { component$, type ReadonlySignal } from "@builder.io/qwik";
-import { routeLoader$, useLocation } from "@builder.io/qwik-city";
-import { RoutesIcon } from "~/components/icons/routes";
-import { getDB } from "~/db";
-import { dbGetManifestHashes } from "~/db/sql-manifest";
-import { getRouteNames, type RouteRow } from "~/db/sql-routes";
-import { AppLink } from "~/routes.config";
-import { link } from "~/styles";
+import { component$, type ReadonlySignal } from '@builder.io/qwik';
+import { routeLoader$, useLocation } from '@builder.io/qwik-city';
+import { RoutesIcon } from '~/components/icons/routes';
+import { getDB } from '~/db';
+import { dbGetManifestHashes } from '~/db/sql-manifest';
+import { getRouteNames, type RouteRow } from '~/db/sql-routes';
+import { AppLink } from '~/routes.config';
+import { link } from '~/styles';
 
 export const useRouteData = routeLoader$(async ({ params }) => {
   const db = getDB();

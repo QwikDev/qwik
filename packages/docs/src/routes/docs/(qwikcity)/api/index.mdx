@@ -274,9 +274,11 @@ export default component$(() => {
 ## `<QwikCityMockProvider>`
 
 The `QwikCityMockProvider` component initializes a Qwik City context for testing. It provides the necessary context for Qwik City code to work in tests, such as [`useContent()`](/docs/(qwikcity)/api/index.mdx#usecontent). Vice versa for `useNavigate()`, `<Link>`, `useLocation()` and so on.
-
 It is recommended that you use this in your test files.
+
 > `QwikCityMockProvider` does not render any DOM elements, meaning it won't be visible in snapshots
+
+If you are looking for a general example on how to integrate vitest into your Qwik look checkout the [vitest integration documentation](/docs/integrations/vitest/index.mdx)
 
 ```tsx title="src/components/card.spec.tsx"
 import { createDOM } from '@builder.io/qwik/testing';

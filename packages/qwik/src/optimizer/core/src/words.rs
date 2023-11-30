@@ -17,7 +17,7 @@ lazy_static! {
     pub static ref _NOOP_QRL: JsWord = JsWord::from("_noopQrl");
     pub static ref _REST_PROPS: JsWord = JsWord::from("_restProps");
     pub static ref QHOOK: JsWord = JsWord::from("$");
-    pub static ref QQHOOK: JsWord = JsWord::from("$$");
+    pub static ref Q_SYNC: JsWord = JsWord::from("$sync");
     pub static ref QWIK_INTERNAL: JsWord = JsWord::from("qwik");
     pub static ref BUILDER_IO_QWIK: JsWord = JsWord::from("@builder.io/qwik");
     pub static ref BUILDER_IO_QWIK_BUILD: JsWord = JsWord::from("@builder.io/qwik/build");
@@ -37,6 +37,7 @@ lazy_static! {
     pub static ref COMPONENT: JsWord = JsWord::from("component$");
     pub static ref _REG_SYMBOL: JsWord = JsWord::from("_regSymbol");
     pub static ref _JSX_BRANCH: JsWord = JsWord::from("_jsxBranch");
+    pub static ref _QRL_SYNC: JsWord = JsWord::from("_qrlSync");
     pub static ref _WRAP_PROP: JsWord = JsWord::from("_wrapProp");
     pub static ref _WRAP_SIGNAL: JsWord = JsWord::from("_wrapSignal");
     pub static ref _JSX_Q: JsWord = JsWord::from("_jsxQ");

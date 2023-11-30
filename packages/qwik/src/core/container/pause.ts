@@ -171,7 +171,7 @@ export const pauseContainer = async (
     if (isElement(elm) && listeners.length > 0) {
       const groups = groupListeners(listeners);
       for (const listener of groups) {
-        elm.setAttribute(listener[0], serializeQRLs(listener[1], elCtx));
+        elm.setAttribute(listener[0], serializeQRLs(listener[1], containerState, elCtx));
       }
     }
   }
@@ -621,13 +621,20 @@ const collectProps = (elCtx: QContext, collector: Collector) => {
 };
 
 const createCollector = (containerState: ContainerState): Collector => {
+  const inlinedFunctions: string[] = [];
+  containerState.$inlineFns$.forEach((id, fn) => {
+    while (inlinedFunctions.length <= id) {
+      inlinedFunctions.push('');
+    }
+    inlinedFunctions[id] = fn.toString();
+  });
   return {
     $containerState$: containerState,
     $seen$: new Set(),
     $objSet$: new Set(),
     $prefetch$: 0,
     $noSerialize$: [],
-    $inlinedFunctions$: [],
+    $inlinedFunctions$: inlinedFunctions,
     $resources$: [],
     $elements$: [],
     $qrls$: [],

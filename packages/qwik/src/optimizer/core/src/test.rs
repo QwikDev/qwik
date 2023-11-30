@@ -3448,6 +3448,56 @@ fn issue_5008() {
     });
 }
 
+#[test]
+fn example_of_synchronous_qrl() {
+    test_input!(TestInput {
+        code: r#"
+        import { $sync, component$ } from "@builder.io/qwik";
+
+        export default component$(() => {
+        return (
+            <>
+                <input onClick$={$sync(function(event, target) {
+                    // comment should be removed
+                    event.preventDefault();
+                })}/>
+                <input onClick$={$sync((event, target) => {
+                    event.preventDefault();
+                })}/>
+                <input onClick$={$sync((event, target) => event.preventDefault())}/>
+            </>
+        );
+        });
+        "#
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
+}
+
+// TODO(misko): Make this test work by implementing strict serialization.
+// #[test]
+// fn example_of_synchronous_qrl_that_cant_be_serialized() {
+//     test_input!(TestInput {
+//         code: r#"
+//         import { $sync, component$ } from "@builder.io/qwik";
+
+//         export default component$(() => {
+//         return (
+//             <input onClick$={$sync(function(event, target) {
+//                 console.log(component$);
+//             })}/>
+//         );
+//         });
+//         "#
+//         .to_string(),
+//         transpile_ts: true,
+//         transpile_jsx: true,
+//         ..TestInput::default()
+//     });
+// }
+
 fn get_hash(name: &str) -> String {
     name.split('_').last().unwrap().into()
 }

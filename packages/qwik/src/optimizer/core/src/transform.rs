@@ -4,7 +4,7 @@ use crate::collector::{
 };
 use crate::entry_strategy::EntryPolicy;
 use crate::has_branches::{is_conditional_jsx, is_conditional_jsx_block};
-use crate::inlined_fn::convert_inlined_fn;
+use crate::inlined_fn::{convert_inlined_fn, render_expr};
 use crate::is_immutable::is_immutable_expr;
 use crate::parse::{EmitMode, PathData};
 use crate::words::*;
@@ -103,6 +103,7 @@ pub struct QwikTransform<'a> {
     qcomponent_fn: Option<Id>,
     qhook_fn: Option<Id>,
     inlined_qrl_fn: Option<Id>,
+    sync_qrl_fn: Option<Id>,
     h_fn: Option<Id>,
     fragment_fn: Option<Id>,
 
@@ -236,6 +237,9 @@ impl<'a> QwikTransform<'a> {
             inlined_qrl_fn: options
                 .global_collect
                 .get_imported_local(&_INLINED_QRL, &options.core_module),
+            sync_qrl_fn: options
+                .global_collect
+                .get_imported_local(&Q_SYNC, &options.core_module),
             h_fn: options
                 .global_collect
                 .get_imported_local(&H, &options.core_module),
@@ -484,6 +488,45 @@ impl<'a> QwikTransform<'a> {
                 QHOOK.clone(),
                 custom_symbol,
             )
+        } else {
+            node
+        }
+    }
+
+    fn handle_sync_qrl(&mut self, mut node: ast::CallExpr) -> ast::CallExpr {
+        if let Some(ast::ExprOrSpread {
+            expr: first_arg, ..
+        }) = node.args.pop()
+        {
+            match *first_arg {
+                ast::Expr::Arrow(..) | ast::Expr::Fn(..) => {
+                    let serialize = render_expr(first_arg.as_ref());
+                    let new_callee = self.ensure_core_import(&_QRL_SYNC);
+                    ast::CallExpr {
+                        callee: ast::Callee::Expr(Box::new(ast::Expr::Ident(new_ident_from_id(
+                            &new_callee,
+                        )))),
+                        span: DUMMY_SP,
+                        type_args: None,
+                        args: vec![
+                            ast::ExprOrSpread {
+                                spread: None,
+                                expr: first_arg,
+                            },
+                            // string serialized version of first argument
+                            ast::ExprOrSpread {
+                                spread: None,
+                                expr: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
+                                    span: DUMMY_SP,
+                                    value: serialize.into(),
+                                    raw: None,
+                                }))),
+                            },
+                        ],
+                    }
+                }
+                _ => node,
+            }
         } else {
             node
         }
@@ -2105,6 +2148,8 @@ impl<'a> Fold for QwikTransform<'a> {
                     return self.handle_jsx(node);
                 } else if id_eq!(ident, &self.inlined_qrl_fn) {
                     return self.handle_inlined_qhook(node);
+                } else if id_eq!(ident, &self.sync_qrl_fn) {
+                    return self.handle_sync_qrl(node);
                 } else if let Some(specifier) = self.marker_functions.get(&id!(ident)) {
                     self.stack_ctxt.push(ident.sym.to_string());
                     ctx_name = specifier.clone();

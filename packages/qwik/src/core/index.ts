@@ -25,7 +25,7 @@ export type {
 //////////////////////////////////////////////////////////////////////////////////////////
 // Internal Runtime
 //////////////////////////////////////////////////////////////////////////////////////////
-export { $ } from './qrl/qrl.public';
+export { $, $sync, _qrlSync } from './qrl/qrl.public';
 export { event$, eventQrl } from './qrl/qrl.public';
 
 export { qrl, inlinedQrl, inlinedQrlDEV, qrlDEV } from './qrl/qrl';

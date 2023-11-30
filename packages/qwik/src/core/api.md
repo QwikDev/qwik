@@ -10,6 +10,11 @@ import type { ServerRequestEvent } from '@builder.io/qwik-city/middleware/reques
 // @public
 export const $: <T>(expression: T) => QRL<T>;
 
+// Warning: (ae-forgotten-export) The symbol "SyncQRL" needs to be exported by the entry point index.d.ts
+//
+// @alpha
+export const $sync: <T extends Function>(fn: T) => SyncQRL<T>;
+
 // Warning: (ae-forgotten-export) The symbol "AnchorAttrs" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
@@ -692,6 +697,9 @@ export const qrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: st
 //
 // @internal (undocumented)
 export const qrlDEV: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, opts: QRLDev, lexicalScopeCapture?: any[]) => QRL<T>;
+
+// @alpha
+export const _qrlSync: <TYPE extends Function>(fn: TYPE, serializedFn?: string) => SyncQRL<TYPE>;
 
 // @public (undocumented)
 export interface QuoteHTMLAttributes<T extends Element> extends HTMLAttributes<T> {

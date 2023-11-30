@@ -278,8 +278,8 @@ const DerivedSignalSerializer = /*#__PURE__*/ serializer<SignalDerived<any, any[
     const serialized = serializeDerivedSignalFunc(signal);
     let index = collector.$inlinedFunctions$.indexOf(serialized);
     if (index < 0) {
+      index = collector.$inlinedFunctions$.length;
       collector.$inlinedFunctions$.push(serialized);
-      index = collector.$inlinedFunctions$.length - 1;
     }
     return mapJoin(signal.$args$, getObjID, ' ') + ' @' + intToStr(index);
   },

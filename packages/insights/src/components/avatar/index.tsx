@@ -1,10 +1,9 @@
-import { component$ } from '@builder.io/qwik';
-import styles from './styles.module.css';
+import { component$ } from "@builder.io/qwik";
 
 type AvatarProps = {
   src: string;
   alt: string;
-  size?: 'small' | 'medium' | 'large';
+  size?: "small" | "medium" | "large";
 };
 
 /**
@@ -15,5 +14,13 @@ type AvatarProps = {
  */
 
 export default component$<AvatarProps>((props) => {
-  return <img src={props.src} alt={props.alt} class={styles.avatar} width="40" height="40" />;
+  return (
+    <img
+      src={props.src}
+      alt={props.alt}
+      class="verflow-hidden rounded-full border border-slate-300 leading-[0px]"
+      width="40"
+      height="40"
+    />
+  );
 });

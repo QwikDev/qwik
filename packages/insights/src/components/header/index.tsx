@@ -1,39 +1,38 @@
-import { component$, useContext } from '@builder.io/qwik';
-
-import Avatar from '../avatar';
-import { Link } from '@builder.io/qwik-city';
-import { QwikIcon } from '../icons/qwik';
-import { UserContext } from '~/context/user';
-import styles from './styles.module.css';
-import { useAuthSignout } from '~/routes/plugin@auth';
+import Avatar from "../avatar";
+import { Link } from "@builder.io/qwik-city";
+import { QwikIcon } from "../icons/qwik";
+import { component$ } from "@builder.io/qwik";
+// import styles from "./styles.module.css";
+import { useAuthSignout } from "~/routes/plugin@auth";
+import { useUserSession } from "~/routes/layout";
 
 export default component$(() => {
   const signOutSig = useAuthSignout();
-  const userCtx = useContext(UserContext);
+  const session = useUserSession();
 
   return (
-    <header>
-      <Link href="/" class={styles.logo}>
+    <header class="flex items-center gap-3 border border-b-slate-200 px-6 py-3">
+      <Link href="/">
         <QwikIcon width="46" height="50" />
       </Link>
-      <span class={styles.title}>Insights</span>
+      <span class="font-thin">Insights</span>
 
-      {userCtx.value?.email && (
-        <div class={styles.user_section}>
-          <Link class={styles.link} href="/">
-            Setting
-          </Link>
+      {session.value?.user?.email && (
+        <div class="ml-auto flex items-center justify-center gap-8">
+          <Link href="/">Setting</Link>
           <Link
-            class={styles.link}
+            class=""
             onClick$={() => {
-              signOutSig.submit({ callbackUrl: '/' });
+              signOutSig.submit({ callbackUrl: "/" });
             }}
           >
             Logout
           </Link>
-          <div class={styles.avatar}>
-            <Avatar src={userCtx.value.image || ''} alt={userCtx.value.name || ''} size="small" />
-          </div>
+          <Avatar
+            src={session.value.user?.image ?? ""}
+            alt={session.value.user?.name ?? ""}
+            size="small"
+          />
         </div>
       )}
     </header>

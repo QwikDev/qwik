@@ -1,11 +1,13 @@
-import type { Session } from '@auth/core/types';
-import { Slot, component$ } from '@builder.io/qwik';
-import { routeLoader$ } from '@builder.io/qwik-city';
+import { Slot, component$ } from "@builder.io/qwik";
 
-export const useIsAuthUser = routeLoader$(({ sharedMap, redirect }) => {
-  const session = sharedMap.get('session') as Session | null;
+import type { Session } from "@auth/core/types";
+import { routeLoader$ } from "@builder.io/qwik-city";
+
+export const useUserSession = routeLoader$(({ sharedMap, redirect }) => {
+  const session = sharedMap.get("session") as Session | null;
   if (!session) {
-    throw redirect(307, '/');
+    // if not authorized user try to access app page then redirect to login page
+    throw redirect(307, "/");
   }
 });
 

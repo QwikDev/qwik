@@ -14,6 +14,7 @@ export interface ImageOptimizationOptions {
   };
   svgo?: Pick<SVGOConfig, 'floatPrecision' | 'multipass' | 'plugins'> & {
     defaultPresetOverrides?: SVGOBuiltinPluginsWithOptionalParams['preset-default']['overrides'];
+    prefixIds?: SVGOBuiltinPluginsWithOptionalParams['prefixIds'] | false;
   };
   enabled?: boolean | 'only-production';
 }

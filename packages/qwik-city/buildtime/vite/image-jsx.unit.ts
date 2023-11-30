@@ -46,27 +46,22 @@ test('optimize svgs by path', () => {
     optimizeSvg({ code: file.content, path: file.path })
   );
 
-  assert.isTrue(
-    defaultOptimizedSvgs.every((svg) => svg.data.startsWith('<g><defs><linearGradient id="a"'))
+  // ids should have different names, because prefixIds plugin is enabled by default
+  assert.isFalse(
+    defaultOptimizedSvgs.some((svg) => svg.data.startsWith('<g><defs><linearGradient id="a"'))
   );
+});
 
-  const optimizedSvgsWithUserConfig = svgsFilesWithDefsTag.map((file) =>
+test('prefixIds plugin should be disableable', () => {
+  const defaultOptimizedSvgs = svgsFilesWithDefsTag.map((file) =>
     optimizeSvg(
       { code: file.content, path: file.path },
-      {
-        imageOptimization: {
-          svgo: {
-            plugins: ['prefixIds'],
-          },
-        },
-      }
+      { imageOptimization: { svgo: { prefixIds: false } } }
     )
   );
 
-  // ids should have different names if prefixIds plugin is explicitly added by users
-  assert.isFalse(
-    optimizedSvgsWithUserConfig.some((svg) =>
-      svg.data.startsWith('<g><defs><linearGradient id="a"')
-    )
+  // all ids be optimized to "a" because prefixIds plugin is disabled
+  assert.isTrue(
+    defaultOptimizedSvgs.every((svg) => svg.data.startsWith('<g><defs><linearGradient id="a"'))
   );
 });

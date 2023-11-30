@@ -37,7 +37,7 @@ export default component$(() => {
     <Layout>
       <div class="grid min-h-[calc(100vh-76px)] grid-cols-[240px_1fr]">
         <aside>
-          <div class="flex h-full flex-col gap-8 overflow-y-auto bg-white px-4 py-8">
+          <div class="flex h-full flex-col gap-8 overflow-y-auto bg-white p-8">
             {NAVIGATION.map(({ path, label, icon, addDividor = false }) => (
               <>
                 <Link key={path} href={path} class="flex items-center gap-3">

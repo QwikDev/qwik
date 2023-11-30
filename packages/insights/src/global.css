@@ -149,7 +149,6 @@ body.dark {
 .h5,
 .h6 {
   font-weight: 500;
-  line-height: 1.2;
 }
 
 .h1 svg,
@@ -158,32 +157,32 @@ body.dark {
 .h4 svg,
 .h5 svg,
 .h6 svg {
-  margin-right: var(--size-3);
+  margin-right: 12px;
 }
 
 .h1 {
-  font-size: var(--size-10);
-  margin-bottom: var(--size-8);
+  @apply text-4xl;
+  @apply mb-5;
 }
 .h2 {
-  font-size: var(--size-8);
-  margin-bottom: var(--size-6);
+  @apply text-3xl;
+  @apply mb-4;
 }
 .h3 {
-  font-size: var(--size-7);
-  margin-bottom: var(--size-5);
+  @apply text-2xl;
+  @apply mb-3.5;
 }
 .h4 {
-  font-size: var(--size-6);
-  margin-bottom: var(--size-4);
+  @apply text-xl;
+  @apply mb-3;
 }
 .h5 {
-  font-size: var(--size-5);
-  margin-bottom: var(--size-3);
+  @apply text-lg;
+  @apply mb-2.5;
 }
 .h6 {
-  font-size: var(--size-4);
-  margin-bottom: var(--size-2_5);
+  @apply text-base;
+  @apply mb-2;
 }
 
 a {

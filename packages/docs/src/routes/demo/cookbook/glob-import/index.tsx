@@ -6,7 +6,7 @@ import {
 } from '@builder.io/qwik';
 import { isDev } from '@builder.io/qwik/build';
 
-const metaGlobComponents: any = import.meta.glob(
+const metaGlobComponents: Record<string, any> = import.meta.glob(
   '/src/routes/demo/cookbook/glob-import/examples/*',
   {
     import: 'default',

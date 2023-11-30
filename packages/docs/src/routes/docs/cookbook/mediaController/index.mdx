@@ -180,7 +180,7 @@ export default component$(() => {
             id="playsInlineCheckbox"
             class="checkbox"
             checked={playsInlineSignal.value}
-            onChange$={() => {
+            onchange$={() => {
               videoElementSignal.value?.pause();
               playsInlineSignal.value = !playsInlineSignal.value;
             }}

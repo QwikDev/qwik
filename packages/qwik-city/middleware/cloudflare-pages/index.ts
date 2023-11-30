@@ -15,7 +15,9 @@ import { setServerPlatform } from '@builder.io/qwik/server';
 
 /** @public */
 export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
-  (globalThis as any).TextEncoderStream = TextEncoderStream;
+  if (typeof globalThis.TextEncoderStream === 'undefined') {
+    (globalThis as any).TextEncoderStream = TextEncoderStream;
+  }
   const qwikSerializer = {
     _deserializeData,
     _serializeData,

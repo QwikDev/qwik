@@ -460,7 +460,11 @@ const renderSSRComponent = (
           const groups = groupListeners(listeners);
           for (const listener of groups) {
             const eventName = normalizeInvisibleEvents(listener[0]);
-            attributes[eventName] = serializeQRLs(listener[1], placeholderCtx);
+            attributes[eventName] = serializeQRLs(
+              listener[1],
+              rCtx.$static$.$containerState$,
+              placeholderCtx
+            );
             registerQwikEvent(eventName, rCtx.$static$.$containerState$);
           }
           renderNodeElementSync('script', attributes, stream);
@@ -731,7 +735,12 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
       const isInvisible = (flags & IS_INVISIBLE) !== 0;
       for (const listener of groups) {
         const eventName = isInvisible ? normalizeInvisibleEvents(listener[0]) : listener[0];
-        openingElement += ' ' + eventName + '="' + serializeQRLs(listener[1], elCtx) + '"';
+        openingElement +=
+          ' ' +
+          eventName +
+          '="' +
+          serializeQRLs(listener[1], rCtx.$static$.$containerState$, elCtx) +
+          '"';
         registerQwikEvent(eventName, rCtx.$static$.$containerState$);
       }
     }

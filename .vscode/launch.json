@@ -49,7 +49,7 @@
       "internalConsoleOptions": "neverOpen",
       "program": "${workspaceFolder}/./node_modules/vitest/vitest.mjs",
       "cwd": "${workspaceFolder}",
-      "args": ["--threads=false", "packages/qwik/src/core/container/render.unit.tsx"]
+      "args": ["--threads=false", "${file}"]
     }
   ]
 }

@@ -90,20 +90,21 @@ export interface ContainerState {
   $styleMoved$: boolean;
   readonly $styleIds$: Set<string>;
   readonly $events$: Set<string>;
+  readonly $inlineFns$: Map<Function, number>;
 }
 
 const CONTAINER_STATE = Symbol('ContainerState');
 
 /** @internal */
 export const _getContainerState = (containerEl: Element): ContainerState => {
-  let set = (containerEl as any)[CONTAINER_STATE] as ContainerState;
-  if (!set) {
-    (containerEl as any)[CONTAINER_STATE] = set = createContainerState(
+  let state = (containerEl as any)[CONTAINER_STATE] as ContainerState;
+  if (!state) {
+    (containerEl as any)[CONTAINER_STATE] = state = createContainerState(
       containerEl,
       directGetAttribute(containerEl, 'q:base') ?? '/'
     );
   }
-  return set;
+  return state;
 };
 
 export const createContainerState = (containerEl: Element, base: string) => {
@@ -132,6 +133,7 @@ export const createContainerState = (containerEl: Element, base: string) => {
     $hostsRendering$: undefined,
     $pauseCtx$: undefined,
     $subsManager$: null as any,
+    $inlineFns$: new Map(),
   };
   seal(containerState);
   containerState.$subsManager$ = createSubscriptionManager(containerState);
@@ -179,3 +181,8 @@ export const getEventName = (attribute: string) => {
     return attribute;
   }
 };
+
+export interface QContainerElement {
+  qFuncs?: Function[];
+  _qwikjson_?: any;
+}

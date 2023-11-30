@@ -631,6 +631,11 @@ export const qrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: st
 // @internal (undocumented)
 export const qrlDEV: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, opts: QRLDev, lexicalScopeCapture?: any[]) => QRL<T>;
 
+// Warning: (ae-forgotten-export) The symbol "SyncQRL" needs to be exported by the entry point index.d.ts
+//
+// @alpha
+export const _qrlSync: <TYPE extends Function>(fn: TYPE, serializedFn?: string) => SyncQRL<TYPE>;
+
 // @public (undocumented)
 export interface QuoteHTMLAttributes<T extends Element> extends Attrs<'q', T> {
 }
@@ -1516,6 +1521,9 @@ export interface SVGAttributes<T extends Element = Element> extends AriaAttribut
 // @public (undocumented)
 export interface SVGProps<T extends Element> extends SVGAttributes, QwikAttributes<T> {
 }
+
+// @alpha
+export const sync$: <T extends Function>(fn: T) => SyncQRL<T>;
 
 // @public (undocumented)
 export interface TableHTMLAttributes<T extends Element> extends Attrs<'table', T> {

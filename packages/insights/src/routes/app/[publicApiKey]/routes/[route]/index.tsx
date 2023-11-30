@@ -1,19 +1,24 @@
-import { component$, type ReadonlySignal } from '@builder.io/qwik';
-import { routeLoader$, useLocation } from '@builder.io/qwik-city';
-import Histogram from '~/components/histogram';
-import { RoutesIcon } from '~/components/icons/routes';
-import { SymbolTile } from '~/components/symbol-tile';
-import { getDB } from '~/db';
-import { dbGetManifestHashes } from '~/db/sql-manifest';
-import { getRouteTimeline, type RouteSymbolRow } from '~/db/sql-routes';
-import { TIMELINE_BUCKETS, vectorAvg, vectorSum } from '~/stats/vector';
+import { component$, type ReadonlySignal } from "@builder.io/qwik";
+import { routeLoader$, useLocation } from "@builder.io/qwik-city";
+import Histogram from "~/components/histogram";
+import { RoutesIcon } from "~/components/icons/routes";
+import { SymbolTile } from "~/components/symbol-tile";
+import { getDB } from "~/db";
+import { dbGetManifestHashes } from "~/db/sql-manifest";
+import { getRouteTimeline, type RouteSymbolRow } from "~/db/sql-routes";
+import { TIMELINE_BUCKETS, vectorAvg, vectorSum } from "~/stats/vector";
 
 export const useRouteData = routeLoader$(async ({ params }) => {
   const db = getDB();
   const publicApiKey = params.publicApiKey;
   const route = decodeURIComponent(params.route);
   const manifestHashes = await dbGetManifestHashes(db, publicApiKey);
-  const routes = await getRouteTimeline(db, publicApiKey, route, manifestHashes);
+  const routes = await getRouteTimeline(
+    db,
+    publicApiKey,
+    route,
+    manifestHashes,
+  );
   return routeRowsToRouteTree(routes);
 });
 
@@ -31,9 +36,9 @@ export default component$(() => {
           <li key={symbol.symbolName}>
             <Histogram vector={symbol.timeline} buckets={TIMELINE_BUCKETS} />
             <SymbolTile symbol={symbol.symbolName} />
-            {' - '}
+            {" - "}
             {symbol.timelineCount.toLocaleString()}
-            {' / '}
+            {" / "}
             {Math.round(symbol.timelineDelay / 1000).toLocaleString()} seconds
           </li>
         ))}

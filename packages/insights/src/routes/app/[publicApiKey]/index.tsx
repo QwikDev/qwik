@@ -1,10 +1,10 @@
-import { getAppInfo, getEdgeCount } from '~/db/query';
-import { routeLoader$, useLocation } from '@builder.io/qwik-city';
+import { getAppInfo, getEdgeCount } from "~/db/query";
+import { routeLoader$, useLocation } from "@builder.io/qwik-city";
 
-import AppCard from '~/components/app-card';
-import { DashboardIcon } from '~/components/icons/dashboard';
-import { component$ } from '@builder.io/qwik';
-import { getDB } from '~/db';
+import AppCard from "~/components/app-card";
+import { DashboardIcon } from "~/components/icons/dashboard";
+import { component$ } from "@builder.io/qwik";
+import { getDB } from "~/db";
 
 export const useAppData = routeLoader$(async ({ params }) => {
   const db = getDB();

@@ -2,7 +2,6 @@ import Avatar from "../avatar";
 import { Link } from "@builder.io/qwik-city";
 import { QwikIcon } from "../icons/qwik";
 import { component$ } from "@builder.io/qwik";
-// import styles from "./styles.module.css";
 import { useAuthSignout } from "~/routes/plugin@auth";
 import { useUserSession } from "~/routes/layout";
 
@@ -17,7 +16,7 @@ export default component$(() => {
       </Link>
       <span class="font-thin">Insights</span>
 
-      {session.value?.user?.email && (
+      {session.value.user?.email && (
         <div class="ml-auto flex items-center justify-center gap-8">
           <Link href="/">Setting</Link>
           <Link

@@ -5,9 +5,9 @@ import {
   useStore,
   useSignal,
   type NoSerialize,
-} from '@builder.io/qwik';
-import { css } from '~/styled-system/css';
-import { CloseIcon } from '../icons/close';
+} from "@builder.io/qwik";
+import { css } from "~/styled-system/css";
+import { CloseIcon } from "../icons/close";
 
 export const PopupManager = component$(() => {
   const popupTarget = useSignal<HTMLElement>();
@@ -24,11 +24,14 @@ export const PopupManager = component$(() => {
       document:onMouseEnter$={(e) => {
         const target = e.target;
         if (isHTMLElement(target)) {
-          if (popup.currentTarget?.contains(target) || popupTarget.value?.contains(target)) {
+          if (
+            popup.currentTarget?.contains(target) ||
+            popupTarget.value?.contains(target)
+          ) {
             return;
           }
           target.dispatchEvent(
-            new CustomEvent('popup', {
+            new CustomEvent("popup", {
               bubbles: false,
               detail: {
                 show<T extends {}>(component: Component<T>, props: T) {
@@ -37,8 +40,8 @@ export const PopupManager = component$(() => {
                   popup.props = props;
                   popup.currentTarget = target;
                 },
-              } satisfies PopupEvent['detail'],
-            })
+              } satisfies PopupEvent["detail"],
+            }),
           );
         }
       }}
@@ -68,19 +71,19 @@ export const PopupManager = component$(() => {
         <div
           ref={popupTarget}
           class={css({
-            display: 'inline-block',
-            position: 'fixed',
-            border: '1px solid black',
-            backgroundColor: 'white',
+            display: "inline-block",
+            position: "fixed",
+            border: "1px solid black",
+            backgroundColor: "white",
           })}
           style={{
-            top: popup.y + 4 + 'px',
-            left: popup.x + 4 + 'px',
+            top: popup.y + 4 + "px",
+            left: popup.x + 4 + "px",
           }}
         >
           <CloseIcon
             onClick$={() => (popup.currentTarget = null)}
-            class={css({ position: 'absolute', right: '0px', margin: 0 })}
+            class={css({ position: "absolute", right: "0px", margin: 0 })}
           />
           <popup.Component {...popup.props} />
         </div>

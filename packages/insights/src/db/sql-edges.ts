@@ -1,7 +1,12 @@
-import { and, eq, inArray, sql } from 'drizzle-orm';
-import { type AppDatabase } from './index';
-import { edgeTableDelayCount, latencyColumnSums, delayColumnSums, toVector } from './query-helpers';
-import { edgeTable } from './schema';
+import { and, eq, inArray, sql } from "drizzle-orm";
+import { type AppDatabase } from "./index";
+import {
+  edgeTableDelayCount,
+  latencyColumnSums,
+  delayColumnSums,
+  toVector,
+} from "./query-helpers";
+import { edgeTable } from "./schema";
 
 export interface OutgoingEdge {
   manifestHash: string;
@@ -14,9 +19,12 @@ export async function dbGetOutgoingEdges(
   db: AppDatabase,
   publicApiKey: string,
   symbol: string,
-  manifests: string[]
+  manifests: string[],
 ): Promise<OutgoingEdge[]> {
-  let where = and(eq(edgeTable.publicApiKey, publicApiKey), eq(edgeTable.from, symbol));
+  let where = and(
+    eq(edgeTable.publicApiKey, publicApiKey),
+    eq(edgeTable.from, symbol),
+  );
   if (manifests.length) {
     where = and(where, inArray(edgeTable.manifestHash, manifests))!;
   }
@@ -36,8 +44,8 @@ export async function dbGetOutgoingEdges(
     return {
       manifestHash: e.manifestHash,
       to: e.to,
-      latency: toVector('sumLatencyCount' as const, e),
-      delay: toVector('sumDelayCount' as const, e),
+      latency: toVector("sumLatencyCount" as const, e),
+      delay: toVector("sumDelayCount" as const, e),
     };
   });
 }

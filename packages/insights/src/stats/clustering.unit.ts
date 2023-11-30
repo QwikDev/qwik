@@ -1,7 +1,7 @@
-import { DBSCAN } from 'density-clustering';
-import { assert, test } from 'vitest';
+import { DBSCAN } from "density-clustering";
+import { assert, test } from "vitest";
 
-test('dbscan', () => {
+test("dbscan", () => {
   const dataset = [
     [1, 1],
     [0, 1],

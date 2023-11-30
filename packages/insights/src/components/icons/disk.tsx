@@ -1,6 +1,6 @@
-import { type QwikIntrinsicElements } from '@builder.io/qwik';
+import { type QwikIntrinsicElements } from "@builder.io/qwik";
 
-export function DiskIcon(props: QwikIntrinsicElements['svg'], key: string) {
+export function DiskIcon(props: QwikIntrinsicElements["svg"], key: string) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

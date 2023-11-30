@@ -1,11 +1,11 @@
-import { eq, and, sql } from 'drizzle-orm';
-import { type AppDatabase } from './index';
-import { type ManifestRow, edgeTable, manifestTable } from './schema';
-import { latencyColumnSums, latencyCount, toVector } from './query-helpers';
+import { eq, and, sql } from "drizzle-orm";
+import { type AppDatabase } from "./index";
+import { type ManifestRow, edgeTable, manifestTable } from "./schema";
+import { latencyColumnSums, latencyCount, toVector } from "./query-helpers";
 
 export async function dbGetManifests(
   db: AppDatabase,
-  publicApiKey: string
+  publicApiKey: string,
 ): Promise<ManifestRow[]> {
   const manifests = await db
     .select()
@@ -24,10 +24,14 @@ export interface ManifestStatsRow {
 
 export async function dbGetManifestStats(
   db: AppDatabase,
-  publicApiKey: string
+  publicApiKey: string,
 ): Promise<ManifestStatsRow[]> {
   const manifests = await db
-    .select({ hash: manifestTable.hash, timestamp: manifestTable.timestamp, ...latencyColumnSums })
+    .select({
+      hash: manifestTable.hash,
+      timestamp: manifestTable.timestamp,
+      ...latencyColumnSums,
+    })
     .from(manifestTable)
     .innerJoin(edgeTable, eq(edgeTable.manifestHash, manifestTable.hash))
     .where(and(eq(manifestTable.publicApiKey, publicApiKey)))
@@ -38,7 +42,7 @@ export async function dbGetManifestStats(
     return {
       hash: manifest.hash,
       timestamp: manifest.timestamp,
-      latency: toVector('sumLatencyCount' as const, manifest),
+      latency: toVector("sumLatencyCount" as const, manifest),
     };
   });
 }
@@ -46,12 +50,17 @@ export async function dbGetManifestStats(
 export async function dbGetManifestInfo(
   db: AppDatabase,
   publicApiKey: string,
-  manifestHash: string
+  manifestHash: string,
 ): Promise<ManifestRow> {
   const manifest = await db
     .select()
     .from(manifestTable)
-    .where(and(eq(manifestTable.publicApiKey, publicApiKey), eq(manifestTable.hash, manifestHash)))
+    .where(
+      and(
+        eq(manifestTable.publicApiKey, publicApiKey),
+        eq(manifestTable.hash, manifestHash),
+      ),
+    )
     .get();
   if (manifest) {
     return manifest;
@@ -61,7 +70,10 @@ export async function dbGetManifestInfo(
       hash: manifestHash,
       timestamp: new Date(),
     };
-    const response = await db.insert(manifestTable).values(manifestFields).run();
+    const response = await db
+      .insert(manifestTable)
+      .values(manifestFields)
+      .run();
     return {
       id: Number(response.lastInsertRowid),
       ...manifestFields,
@@ -72,9 +84,9 @@ export async function dbGetManifestInfo(
 export async function dbGetManifestHashes(
   db: AppDatabase,
   publicApiKey: string,
-  { sampleSize }: { sampleSize?: number } = {}
+  { sampleSize }: { sampleSize?: number } = {},
 ): Promise<string[]> {
-  if (typeof sampleSize !== 'number') {
+  if (typeof sampleSize !== "number") {
     sampleSize = 100000;
   }
   const manifests = await db
@@ -84,8 +96,8 @@ export async function dbGetManifestHashes(
       edgeTable,
       and(
         eq(edgeTable.publicApiKey, manifestTable.publicApiKey),
-        eq(edgeTable.manifestHash, manifestTable.hash)
-      )
+        eq(edgeTable.manifestHash, manifestTable.hash),
+      ),
     )
     .where(and(eq(manifestTable.publicApiKey, publicApiKey)))
     .groupBy(manifestTable.hash)

@@ -6,14 +6,8 @@
 @tailwind components;
 @tailwind utilities;
 
-/**
- * PandaCSS CSS layers
- * View the full documentation at https://panda-css.com/docs/concepts/cascade-layers#layer-css
- */
-@layer reset, base, tokens, recipes, utilities;
-
 :root {
-  --link-offset: 0.15rem;
+  /* --link-offset: 0.15rem;
   --primary-50: #f0f9ff;
   --primary-100: #dff3ff;
   --primary-200: #b9e8fe;
@@ -79,7 +73,7 @@
   --text-color-light: var(--gray-600);
   --border-color-default: var(--gray-200);
 
-  --form-element-margin-bottom: var(--size-4);
+  --form-element-margin-bottom: var(--size-4); */
 }
 
 html {

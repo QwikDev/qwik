@@ -32,6 +32,7 @@ import {
   type ReadonlySignal,
 } from '../state/signal';
 import { QObjectManagerSymbol } from '../state/constants';
+import { ComputedEvent, TaskEvent } from '../util/markers';
 
 export const TaskFlagsIsVisibleTask = 1 << 0;
 export const TaskFlagsIsTask = 1 << 1;
@@ -505,7 +506,7 @@ export const runResource = <T>(
   cleanupTask(task);
 
   const el = task.$el$;
-  const iCtx = newInvokeContext(rCtx.$static$.$locale$, el, undefined, 'TaskEvent');
+  const iCtx = newInvokeContext(rCtx.$static$.$locale$, el, undefined, TaskEvent);
   const { $subsManager$: subsManager } = containerState;
   iCtx.$renderCtx$ = rCtx;
   const taskFn = task.$qrl$.getFn(iCtx, () => {
@@ -634,7 +635,7 @@ export const runTask = (
 
   cleanupTask(task);
   const hostElement = task.$el$;
-  const iCtx = newInvokeContext(rCtx.$static$.$locale$, hostElement, undefined, 'TaskEvent');
+  const iCtx = newInvokeContext(rCtx.$static$.$locale$, hostElement, undefined, TaskEvent);
   iCtx.$renderCtx$ = rCtx;
   const { $subsManager$: subsManager } = containerState;
   const taskFn = task.$qrl$.getFn(iCtx, () => {
@@ -691,7 +692,7 @@ export const runComputed = (
   task.$flags$ &= ~TaskFlagsIsDirty;
   cleanupTask(task);
   const hostElement = task.$el$;
-  const iCtx = newInvokeContext(rCtx.$static$.$locale$, hostElement, undefined, 'ComputedEvent');
+  const iCtx = newInvokeContext(rCtx.$static$.$locale$, hostElement, undefined, ComputedEvent);
   iCtx.$subscriber$ = [0, task];
   iCtx.$renderCtx$ = rCtx;
 

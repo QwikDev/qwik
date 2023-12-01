@@ -7,13 +7,22 @@ import type { QRL } from '../qrl/qrl.public';
 import type { QwikElement } from '../render/dom/virtual-element';
 import type { RenderContext } from '../render/types';
 import { getContext, HOST_FLAG_DYNAMIC } from '../state/context';
-import { QContainerSelector, QLocaleAttr, RenderEvent } from '../util/markers';
+import {
+  ComputedEvent,
+  QContainerSelector,
+  QLocaleAttr,
+  RenderEvent,
+  ResourceEvent,
+  TaskEvent,
+} from '../util/markers';
 import { isPromise } from '../util/promises';
 import { seal } from '../util/qdev';
 import { isArray } from '../util/types';
 import { setLocale } from './use-locale';
 import type { Subscriber } from '../state/common';
 import type { Signal } from '../state/signal';
+import type { SyntheticEvent } from '../render/jsx/types/jsx-qwik-events';
+import type { ServerRequestEvent } from '@builder.io/qwik-city/middleware/request-handler';
 
 declare const document: QwikDocument;
 
@@ -22,14 +31,23 @@ export interface StyleAppend {
   content: string | null;
 }
 
+export type PossibleEvents =
+  | Event
+  | ServerRequestEvent
+  | SyntheticEvent
+  | typeof TaskEvent
+  | typeof RenderEvent
+  | typeof ComputedEvent
+  | typeof ResourceEvent;
+
 export interface RenderInvokeContext extends InvokeContext {
   $renderCtx$: RenderContext;
   /** The parent document */
   $doc$: Document;
   // The below are just always-defined attributes of InvokeContext.
   $hostElement$: QwikElement;
-  $event$: any;
-  $waitOn$: Promise<any>[];
+  $event$: PossibleEvents;
+  $waitOn$: Promise<unknown>[];
   $subscriber$: Subscriber | null;
 }
 
@@ -46,7 +64,7 @@ export interface InvokeContext {
   /** The current DOM element */
   $element$: Element | undefined;
   /** The event we're currently handling */
-  $event$: any | undefined;
+  $event$: PossibleEvents | undefined;
   /** The QRL function we're currently executing */
   $qrl$: QRL<any> | undefined;
   /** Promises that need awaiting before the current invocation is done */
@@ -67,7 +85,7 @@ export const tryGetInvokeContext = (): InvokeContext | undefined => {
       return undefined;
     }
     if (isArray(context)) {
-      return (document.__q_context__ = newInvokeContextFromTuple(context as any));
+      return (document.__q_context__ = newInvokeContextFromTuple(context as InvokeTuple));
     }
     return context as InvokeContext;
   }
@@ -92,22 +110,22 @@ export const useInvokeContext = (): RenderInvokeContext => {
   assertDefined(ctx.$renderCtx$, `invoke: $renderCtx$ must be defined`, ctx);
   assertDefined(ctx.$subscriber$, `invoke: $subscriber$ must be defined`, ctx);
 
-  return ctx as any;
+  return ctx as RenderInvokeContext;
 };
 
-export const useBindInvokeContext = <T extends ((...args: any[]) => any) | undefined>(
+export const useBindInvokeContext = <T extends ((...args: unknown[]) => unknown) | undefined>(
   callback: T
 ): T => {
   if (callback == null) {
     return callback;
   }
   const ctx = getInvokeContext();
-  return ((...args: any[]) => {
+  return ((...args: unknown[]) => {
     return invoke(ctx, callback.bind(undefined, ...args));
   }) as T;
 };
-export function invoke<ARGS extends any[] = any[], RET = any>(
-  this: any,
+export function invoke<ARGS extends unknown[] = unknown[], RET = unknown>(
+  this: unknown,
   context: InvokeContext | undefined,
   fn: (...args: ARGS) => RET,
   ...args: ARGS
@@ -123,7 +141,7 @@ export function invoke<ARGS extends any[] = any[], RET = any>(
   return returnValue;
 }
 
-export const waitAndRun = (ctx: RenderInvokeContext, callback: () => any) => {
+export const waitAndRun = (ctx: RenderInvokeContext, callback: () => unknown) => {
   const waitOn = ctx.$waitOn$;
   if (waitOn.length === 0) {
     const result = callback();
@@ -135,21 +153,24 @@ export const waitAndRun = (ctx: RenderInvokeContext, callback: () => any) => {
   }
 };
 
-export const newInvokeContextFromTuple = (context: InvokeTuple) => {
-  const element = context[0];
+export const newInvokeContextFromTuple = ([element, event, url]: InvokeTuple) => {
   const container = element.closest(QContainerSelector);
   const locale = container?.getAttribute(QLocaleAttr) || undefined;
   locale && setLocale(locale);
-  return newInvokeContext(locale, undefined, element, context[1], context[2]);
+  return newInvokeContext(locale, undefined, element, event, url);
 };
 
+// TODO how about putting url and locale (and event/custom?) in to a "static" object
 export const newInvokeContext = (
   locale?: string,
   hostElement?: QwikElement,
   element?: Element,
-  event?: any,
+  event?: PossibleEvents,
   url?: URL
 ): InvokeContext => {
+  // ServerRequestEvent has .locale, but it's not always defined.
+  const $locale$ =
+    locale || (typeof event === 'object' && event && 'locale' in event ? event.locale : undefined);
   const ctx: InvokeContext = {
     $url$: url,
     $i$: 0,
@@ -160,7 +181,7 @@ export const newInvokeContext = (
     $waitOn$: undefined,
     $subscriber$: undefined,
     $renderCtx$: undefined,
-    $locale$: locale,
+    $locale$,
   };
   seal(ctx);
   return ctx;
@@ -170,7 +191,11 @@ export const getWrappingContainer = (el: QwikElement): Element | null => {
   return el.closest(QContainerSelector);
 };
 
-/** @public */
+/**
+ * Don't track listeners for this callback
+ *
+ * @public
+ */
 export const untrack = <T>(fn: () => T): T => {
   return invoke(undefined, fn);
 };
@@ -182,7 +207,11 @@ const trackInvocation = /*#__PURE__*/ newInvokeContext(
   RenderEvent
 );
 
-/** @public */
+/**
+ * Mark sub as a listener for the signal
+ *
+ * @public
+ */
 export const trackSignal = <T>(signal: Signal, sub: Subscriber): T => {
   trackInvocation.$subscriber$ = sub;
   return invoke(trackInvocation, () => signal.value);
@@ -207,7 +236,7 @@ export const _getContextEvent = (): unknown => {
 };
 
 /** @internal */
-export const _jsxBranch = (input?: any) => {
+export const _jsxBranch = <T>(input?: T) => {
   const iCtx = tryGetInvokeContext();
   if (iCtx && iCtx.$hostElement$ && iCtx.$renderCtx$) {
     const hostElement = iCtx.$hostElement$;

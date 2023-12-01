@@ -68,7 +68,7 @@ export const createQRL = <TYPE>(
 
   let _containerEl: Element | undefined;
 
-  const qrl = async function (this: any, ...args: any) {
+  const qrl = async function (this: unknown, ...args: unknown[]) {
     const fn = invokeFn.call(this, tryGetInvokeContext());
     const result = await fn(...args);
     return result;

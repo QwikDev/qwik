@@ -14,7 +14,7 @@ import {
 } from '@builder.io/qwik';
 
 import type { RequestEventLoader } from '../../middleware/request-handler/types';
-import { QACTION_KEY } from './constants';
+import { QACTION_KEY, QFN_KEY } from './constants';
 import { RouteStateContext } from './contexts';
 import type {
   ActionConstructor,
@@ -276,6 +276,7 @@ export const serverQrl: ServerConstructorQRL = (qrl: QRL<(...args: any[]) => any
           ? (args.shift() as AbortSignal)
           : undefined;
       if (isServer) {
+        // Running during SSR, we can call the function directly
         const requestEvent = [useQwikCityEnv()?.ev, this, _getContextEvent()].find(
           (v) =>
             v &&
@@ -284,6 +285,7 @@ export const serverQrl: ServerConstructorQRL = (qrl: QRL<(...args: any[]) => any
         );
         return qrl.apply(requestEvent, args);
       } else {
+        // Running on the client, we need to call the function via HTTP
         const ctxElm = _getContextElement();
         const filtered = args.map((arg) => {
           if (arg instanceof SubmitEvent && arg.target instanceof HTMLFormElement) {
@@ -296,10 +298,12 @@ export const serverQrl: ServerConstructorQRL = (qrl: QRL<(...args: any[]) => any
           return arg;
         });
         const hash = qrl.getHash();
-        const res = await fetch(`?qfunc=${hash}`, {
+        // Handled by `pureServerFunction` middleware
+        const res = await fetch(`?${QFN_KEY}=${hash}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/qwik-json',
+            // Required so we don't call accidentally
             'X-QRL': hash,
           },
           signal,

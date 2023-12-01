@@ -26,6 +26,7 @@ import type { ValueOrPromise } from '@builder.io/qwik';
 import type { QwikManifest, ResolvedManifest } from '@builder.io/qwik/optimizer';
 import { IsQData, QDATA_JSON, QDATA_JSON_LEN } from './user-response';
 import { isPromise } from './../../runtime/src/utils';
+import { invoke, newInvokeContext } from 'packages/qwik/src/core/use/use-core';
 
 const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvMode = Symbol('RequestEvMode');
@@ -67,13 +68,14 @@ export function createRequestEvent(
   let requestData: Promise<JSONValue | undefined> | undefined = undefined;
   let locale = serverRequestEv.locale;
   let status = 200;
+  const invokeCtx = newInvokeContext(locale, undefined, undefined, serverRequestEv, url);
 
   const next = async () => {
     routeModuleIndex++;
 
     while (routeModuleIndex < requestHandlers.length) {
       const moduleRequestHandler = requestHandlers[routeModuleIndex];
-      const result = moduleRequestHandler(requestEv);
+      const result = invoke(invokeCtx, moduleRequestHandler, requestEv);
       if (isPromise(result)) {
         await result;
       }

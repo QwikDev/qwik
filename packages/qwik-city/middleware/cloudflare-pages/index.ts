@@ -16,6 +16,7 @@ import { setServerPlatform } from '@builder.io/qwik/server';
 /** @public */
 export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
   try {
+    // this will throw if CF compatibility_date < 2022-11-30
     new globalThis.TextEncoderStream();
   } catch (e) {
     (globalThis as any).TextEncoderStream = TextEncoderStream;

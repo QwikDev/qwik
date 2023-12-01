@@ -287,7 +287,9 @@ const FS_PREFIX = `/@fs/`;
 const VALID_ID_PREFIX = `/@id/`;
 const VITE_PUBLIC_PATH = `/@vite/`;
 const internalPrefixes = [FS_PREFIX, VALID_ID_PREFIX, VITE_PUBLIC_PATH];
-const InternalPrefixRE = new RegExp(`^(${CYPRESS_DEV_SERVER_PATH})?(?:${internalPrefixes.join('|')})`);
+const InternalPrefixRE = new RegExp(
+  `^(${CYPRESS_DEV_SERVER_PATH})?(?:${internalPrefixes.join('|')})`
+);
 
 const shouldSsrRender = (req: IncomingMessage, url: URL) => {
   const pathname = url.pathname;

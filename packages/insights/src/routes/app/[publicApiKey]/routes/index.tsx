@@ -5,7 +5,6 @@ import { getDB } from '~/db';
 import { dbGetManifestHashes } from '~/db/sql-manifest';
 import { getRouteNames, type RouteRow } from '~/db/sql-routes';
 import { AppLink } from '~/routes.config';
-import { link } from '~/styles';
 
 export const useRouteData = routeLoader$(async ({ params }) => {
   const db = getDB();
@@ -28,7 +27,6 @@ export default component$(() => {
         {routesData.value.map((route) => (
           <li key={route.route}>
             <AppLink
-              class={link}
               route="/app/[publicApiKey]/routes/[route]/"
               param:publicApiKey={location.params.publicApiKey}
               param:route={route.route}

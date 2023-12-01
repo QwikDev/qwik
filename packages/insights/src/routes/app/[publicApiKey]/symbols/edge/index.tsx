@@ -3,7 +3,6 @@ import { routeLoader$ } from '@builder.io/qwik-city';
 import { getDB } from '~/db';
 import { computeSymbolGraph, type Symbol } from '~/stats/edges';
 import { getSymbolDetails, getEdges } from '~/db/query';
-import { css } from '~/styled-system/css';
 import { dbGetManifestHashes } from '~/db/sql-manifest';
 import { SymbolIcon } from '~/components/icons/symbol';
 
@@ -40,7 +39,7 @@ function SymbolTree({ symbol, depth, count }: { symbol: Symbol; depth: number; c
   );
   const terminal = symbol.depth !== depth;
   return (
-    <section class={terminal && css({ color: 'lightgray' })}>
+    <section>
       {symbol.count > 0 && (
         <span>
           ({count} / {symbol.count}) {symbol.name} <code>{symbol.fullName}</code>{' '}
@@ -48,12 +47,7 @@ function SymbolTree({ symbol, depth, count }: { symbol: Symbol; depth: number; c
         </span>
       )}
       {!terminal && (
-        <ul
-          class={css({
-            listStyle: 'circle',
-            marginLeft: '1rem',
-          })}
-        >
+        <ul>
           {symbol.children.map((edge) => (
             <li key={edge.to.name}>
               <SymbolTree symbol={edge.to} depth={nextDepth} count={edge.count} />

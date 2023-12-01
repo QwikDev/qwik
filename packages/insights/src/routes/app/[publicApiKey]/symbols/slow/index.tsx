@@ -13,7 +13,6 @@ import {
 } from '~/db/query';
 import { dbGetManifestHashes } from '~/db/sql-manifest';
 import { BUCKETS, vectorAvg, vectorSum } from '~/stats/vector';
-import { css } from '~/styled-system/css';
 
 interface SlowSymbol {
   app: ApplicationRow;
@@ -59,43 +58,15 @@ export default component$(() => {
             const detail = data.value.detailsMap[edge.to];
             return (
               <tr key={edge.to}>
-                <td
-                  class={css({
-                    padding: '2px',
-                  })}
-                >
-                  {edge.manifestHash}
-                </td>
-                <td
-                  class={css({
-                    padding: '2px',
-                    fontFamily: 'monospace',
-                    fontSize: '10px',
-                  })}
-                >
+                <td>{edge.manifestHash}</td>
+                <td>
                   <SymbolTile symbol={edge.to} />
                   <br />
                   {detail?.fullName}
                 </td>
-                <td
-                  class={css({
-                    padding: '2px',
-                  })}
-                >
-                  {vectorSum(edge.latency)}
-                </td>
-                <td
-                  class={css({
-                    padding: '2px',
-                  })}
-                >
-                  {Math.round(vectorAvg(edge.latency))}ms
-                </td>
-                <td
-                  class={css({
-                    padding: '2px',
-                  })}
-                >
+                <td>{vectorSum(edge.latency)}</td>
+                <td>{Math.round(vectorAvg(edge.latency))}ms</td>
+                <td>
                   <Histogram vector={edge.latency} colors={latencyColors} buckets={BUCKETS} />
                 </td>
               </tr>

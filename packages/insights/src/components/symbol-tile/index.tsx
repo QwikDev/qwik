@@ -2,46 +2,16 @@ import { Resource, component$, useResource$, useStore } from '@builder.io/qwik';
 import { server$, useLocation } from '@builder.io/qwik-city';
 import { and, eq } from 'drizzle-orm';
 import { getDB, symbolDetailTable } from '~/db';
-import { css } from '~/styled-system/css';
 import { SymbolIcon } from '../icons/symbol';
 import { type PopupEvent } from '../popup-manager';
 
 export const SymbolPopup = component$<{ symbolHash: string }>(({ symbolHash }) => {
   return (
-    <div
-      class={css({
-        minWidth: '300px',
-        minHeight: '300px',
-      })}
-    >
-      <h1
-        class={css({
-          fontWeight: 'bold',
-          fontSize: '14px',
-        })}
-      >
-        Symbol:{' '}
-        <code
-          class={css({
-            fontFamily: 'monospace',
-            fontWeight: 'bold',
-            fontSize: '14px',
-            padding: '2px 4px',
-            backgroundColor: '#EEE',
-            border: '1px solid #CCC',
-            borderRadius: '5px',
-          })}
-        >
-          {symbolHash}
-        </code>
+    <div>
+      <h1>
+        Symbol: <code>{symbolHash}</code>
       </h1>
-      <div
-        class={css({
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'flex-start',
-        })}
-      >
+      <div>
         <SymbolSource symbolHash={symbolHash} />
       </div>
     </div>
@@ -73,65 +43,23 @@ export const SymbolSource = component$<{ symbolHash: string }>(({ symbolHash }) 
     }
   });
   return (
-    <div class={css({})}>
-      <h1
-        class={css({
-          fontWeight: 'bold',
-          fontSize: '14px',
-        })}
-      >
+    <div>
+      <h1>
         {'Full name: '}
-        <code
-          class={css({
-            fontFamily: 'monospace',
-            fontWeight: 'bold',
-            fontSize: '14px',
-            padding: '2px 4px',
-          })}
-        >
-          {state.fullName}
-        </code>
+        <code>{state.fullName}</code>
       </h1>
-      <h1
-        class={css({
-          fontWeight: 'bold',
-          fontSize: '14px',
-        })}
-      >
+      <h1>
         {'Origin: '}
-        <code
-          class={css({
-            fontFamily: 'monospace',
-            fontWeight: 'bold',
-            fontSize: '14px',
-            padding: '2px 4px',
-          })}
-        >
-          {state.originUrl ? <a href={state.originUrl}>{state.origin}</a> : state.origin}
-        </code>
+        <code>{state.originUrl ? <a href={state.originUrl}>{state.origin}</a> : state.origin}</code>
       </h1>
       <Resource
         value={source}
         onPending={() => <div>loading...</div>}
         onResolved={(source) => (
-          <div
-            class={css({
-              color: '#888',
-              fontFamily: 'monospace',
-              fontSize: '14px',
-            })}
-          >
-            <pre class={css({ display: 'inline' })}>{source.preamble}</pre>
-            <pre
-              class={css({
-                color: '#000',
-                display: 'inline',
-                fontWeight: 'bold',
-              })}
-            >
-              {source.highlight}
-            </pre>
-            <pre class={css({ display: 'inline' })}>{source.postamble}</pre>
+          <div>
+            <pre>{source.preamble}</pre>
+            <pre>{source.highlight}</pre>
+            <pre>{source.postamble}</pre>
           </div>
         )}
       />
@@ -141,26 +69,8 @@ export const SymbolSource = component$<{ symbolHash: string }>(({ symbolHash }) 
 
 export const SymbolTile = component$<{ symbol: string }>(({ symbol }) => {
   return (
-    <code
-      class={css({
-        fontFamily: 'monospace',
-        fontWeight: 'bold',
-        fontSize: '14px',
-        padding: '2px 4px',
-        backgroundColor: '#EEE',
-        border: '1px solid #CCC',
-        borderRadius: '5px',
-        whiteSpace: 'nowrap',
-      })}
-      onPopup$={(e: PopupEvent) => e.detail.show(SymbolPopup, { symbolHash: symbol })}
-    >
-      <SymbolIcon
-        class={css({
-          display: 'inline-block',
-          marginBottom: '1px',
-          marginRight: '2px',
-        })}
-      />
+    <code onPopup$={(e: PopupEvent) => e.detail.show(SymbolPopup, { symbolHash: symbol })}>
+      <SymbolIcon />
       {symbol}
     </code>
   );

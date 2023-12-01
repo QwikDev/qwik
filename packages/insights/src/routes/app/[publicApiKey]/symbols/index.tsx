@@ -8,7 +8,6 @@ import { getDB } from '~/db';
 import { getEdges, getSymbolDetails } from '~/db/query';
 import { dbGetManifestHashes } from '~/db/sql-manifest';
 import { BUCKETS, vectorAdd, vectorNew } from '~/stats/vector';
-import { css } from '~/styled-system/css';
 
 interface Symbol {
   hash: string;
@@ -140,12 +139,7 @@ export default component$(() => {
                 </td>
                 <td>
                   <code>
-                    <ManifestIcon
-                      class={css({
-                        display: 'inline-block',
-                        marginBottom: '3px',
-                      })}
-                    />
+                    <ManifestIcon />
                     {manifest.hash}
                   </code>
                 </td>

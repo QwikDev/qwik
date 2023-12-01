@@ -1,6 +1,7 @@
 import { Slot, component$ } from '@builder.io/qwik';
 
 import { PopupManager } from '~/components/popup-manager';
+import type { Session } from '@auth/core/types';
 import { routeLoader$ } from '@builder.io/qwik-city';
 
 export const useUserSession = routeLoader$(({ sharedMap, redirect, url }) => {

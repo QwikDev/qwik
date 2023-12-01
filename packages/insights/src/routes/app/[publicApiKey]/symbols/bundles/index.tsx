@@ -15,7 +15,6 @@ import {
   type Bundle,
 } from '~/stats/edges';
 import { vectorSum } from '~/stats/vector';
-import { css } from '~/styled-system/css';
 
 interface BundleInfo {
   vectors: SymbolVectors;
@@ -42,11 +41,7 @@ export const useData = routeLoader$<BundleInfo>(async ({ params, url }) => {
 export default component$(() => {
   const data: ReadonlySignal<BundleInfo> = useData();
   return (
-    <div
-      class={css({
-        margin: '5px',
-      })}
-    >
+    <div>
       <h1 class="h3">
         <BundleIcon />
         Correlation Matrix
@@ -57,29 +52,19 @@ export default component$(() => {
         <BundleIcon />
         Bundles
       </h2>
-      <ol
-        class={css({
-          listStyle: 'decimal',
-          marginLeft: '1.5rem',
-        })}
-      >
+      <ol>
         {data.value.bundles.map((bundle) => {
           return (
             <li key={bundle.name}>
               <BundleCmp name={bundle.name} />
-              <ul
-                class={css({
-                  listStyle: 'circle',
-                  marginLeft: '1rem',
-                })}
-              >
+              <ul>
                 {bundle.symbols.map((symbol) => (
                   <li key={symbol.name}>
                     <SymbolTile symbol={symbol.name} />
                     {' ( '}
-                    <code class={css({ fontFamily: 'monospace' })}>{symbol.fullName}</code>
+                    <code>{symbol.fullName}</code>
                     {' / '}
-                    <code class={css({ fontFamily: 'monospace' })}>{symbol.fileSrc}</code>
+                    <code>{symbol.fileSrc}</code>
                     {' )'}
                   </li>
                 ))}
@@ -108,13 +93,6 @@ export const CorrelationMatrix = component$<{
   return (
     <>
       <div
-        class={css({
-          border: `1px solid black`,
-          height: 'calc(80vmin - 20px)',
-          width: 'calc(80vmin - 20px)',
-          flexDirection: 'column',
-          justifyContent: 'space-evenly',
-        })}
         onMouseEnter$={() => (callout.visible = true)}
         onMouseLeave$={() => (callout.visible = false)}
         onMouseMove$={(e) => {
@@ -135,41 +113,13 @@ export const CorrelationMatrix = component$<{
           top: callout.y + 5 + 'px',
           left: callout.x + 5 + 'px',
         }}
-        class={css({
-          position: 'fixed',
-          backgroundColor: 'white',
-          padding: '5px',
-          border: '1px solid black',
-        })}
       >
         <div>
-          (
-          <code
-            class={css({
-              fontFamily: 'monospace',
-              fontWeight: 'bold',
-              fontSize: '1.25rem',
-            })}
-          >
-            {Math.round(callout.value * 100)}%
-          </code>
-          )
+          (<code>{Math.round(callout.value * 100)}%</code>)
         </div>
-        <code
-          class={css({
-            fontFamily: 'monospace',
-          })}
-        >
-          {callout.rowSymbol}
-        </code>
+        <code>{callout.rowSymbol}</code>
         {` -> `}
-        <code
-          class={css({
-            fontFamily: 'monospace',
-          })}
-        >
-          {callout.colSymbol}
-        </code>
+        <code>{callout.colSymbol}</code>
       </div>
     </>
   );
@@ -184,7 +134,6 @@ export const MatrixCells = component$<{
     <>
       {matrix.map((row, rowIdx) => (
         <div
-          class={css({ display: 'flex' })}
           style={{ height: 100 / size + '%' }}
           key={rowIdx}
           data-row-symbol={symbols[rowIdx].name}
@@ -211,7 +160,6 @@ function cells(row: number[], symbols: Symbol[]) {
       cells.push(
         <div
           key={colIdx}
-          class={css({ height: '100%', display: 'inline-block' })}
           style={{
             width: 100 / size + '%',
             backgroundColor: toRGB(value),

@@ -1,6 +1,5 @@
 import { component$, useStore, useComputed$, type QwikMouseEvent } from '@builder.io/qwik';
 import { vectorMax, type Bucket } from '~/stats/vector';
-import { css } from '~/styled-system/css';
 
 const height = 75;
 
@@ -43,17 +42,9 @@ export default component$<{
     return barColors;
   });
   return (
-    <div class={css({ display: 'inline-block' })}>
+    <div>
       {name && <h2>{name}</h2>}
       <ol
-        class={css({
-          display: 'flex',
-          alignItems: 'flex-end',
-          justifyContent: 'space-between',
-          height: 'var(--chart-height)', // Why can't I do: `${height}px`,
-          border: '1px solid black',
-          width: '400px',
-        })}
         style={{ '--chart-height': height + 'px' }}
         onMouseEnter$={() => (callout.show = true)}
         onMouseLeave$={() => (callout.show = false)}
@@ -75,20 +66,9 @@ export default component$<{
         {vector.map((value, idx) => (
           <li
             key={idx}
-            class={css({
-              display: 'flex',
-              alignItems: 'flex-end',
-              justifyContent: 'space-between',
-              height: 'var(--chart-height)',
-            })}
             data-histogram={`${value};${buckets[idx].min};${buckets[idx].avg};${buckets[idx].max}`}
           >
             <div
-              class={css({
-                display: 'inline-block',
-                width: '7px',
-                height: 'var(--value)',
-              })}
               style={{
                 '--value': (height * value) / max + 'px',
                 backgroundColor: barColors.value[idx],
@@ -100,43 +80,15 @@ export default component$<{
         ))}
       </ol>
       <div
-        class={css({
-          display: 'inline-block',
-          position: 'fixed',
-          border: '1px solid black',
-          backgroundColor: 'white',
-          padding: '4px',
-          fontSize: '8px',
-        })}
         style={{
           display: callout.show ? 'inline-block' : 'none',
           top: callout.y + 4 + 'px',
           left: callout.x + 4 + 'px',
         }}
       >
-        <code
-          class={css({
-            display: 'block',
-            textAlign: 'center',
-            fontWeight: 'bold',
-            fontSize: '10px',
-          })}
-        >
-          {formatNumber(callout.value)}{' '}
-        </code>
-        <code
-          class={css({
-            display: 'block',
-            textAlign: 'center',
-          })}
-        >
-          {formatNumber(callout.avg)}
-        </code>
-        <code
-          class={css({
-            display: 'block',
-          })}
-        >
+        <code>{formatNumber(callout.value)} </code>
+        <code>{formatNumber(callout.avg)}</code>
+        <code>
           [{formatNumber(callout.min)}, {formatNumber(callout.max)})
         </code>
       </div>

@@ -23,19 +23,36 @@ export default component$(() => {
         <RoutesIcon />
         Routes
       </h1>
-      <ul>
-        {routesData.value.map((route) => (
-          <li key={route.route}>
-            <AppLink
-              route="/app/[publicApiKey]/routes/[route]/"
-              param:publicApiKey={location.params.publicApiKey}
-              param:route={route.route}
-            >
-              <code>{route.route}</code>
-            </AppLink>
-          </li>
-        ))}
-      </ul>
+      <table class="w-full text-sm text-left text-salte-500">
+        <thead class="text-xs text-slate-700 uppercase">
+          <tr class="border-b border-slate-200">
+            <th scope="col" class="px-6 py-3 bg-slate-50">
+              Path
+            </th>
+            <th scope="col" class="px-6 py-3  bg-slate-50">
+              Action
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {routesData.value.map((route) => (
+            <tr key={route.route} class="border-b border-slate-200 text-xs">
+              <th scope="col" class="px-6 py-3">
+                <code>{route.route}</code>
+              </th>
+              <td scope="col" class="px-6 py-3">
+                <AppLink
+                  route="/app/[publicApiKey]/routes/[route]/"
+                  param:publicApiKey={location.params.publicApiKey}
+                  param:route={route.route}
+                >
+                  View details
+                </AppLink>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 });

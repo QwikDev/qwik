@@ -77,6 +77,8 @@ export default component$<{
                 { 'bg-lime-500': barColors.value[idx] === 'green' },
                 { 'bg-yellow-500': barColors.value[idx] === 'yellow' },
                 { 'bg-red-500': barColors.value[idx] === 'red' },
+                { 'bg-slate-500': barColors.value[idx] === 'gray' },
+                { 'bg-slate-300': barColors.value[idx] === 'lightgray' },
               ]}
               style={{
                 height: (height * value) / max + 'px',

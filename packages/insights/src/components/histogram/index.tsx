@@ -42,10 +42,11 @@ export default component$<{
     return barColors;
   });
   return (
-    <div>
+    <div class="inline-block">
       {name && <h2>{name}</h2>}
       <ol
-        style={{ '--chart-height': height + 'px' }}
+        class="flex order-last items-end justify-between w-[400px] box-content border-b border-b-slate-200"
+        style={{ height: height + 'px' }}
         onMouseEnter$={() => (callout.show = true)}
         onMouseLeave$={() => (callout.show = false)}
         onMouseMove$={(event: QwikMouseEvent<MouseEvent>) => {
@@ -65,13 +66,20 @@ export default component$<{
       >
         {vector.map((value, idx) => (
           <li
+            class="flex items-end justify-between"
             key={idx}
+            style={{ height: height + 'px' }}
             data-histogram={`${value};${buckets[idx].min};${buckets[idx].avg};${buckets[idx].max}`}
           >
             <div
+              class={[
+                'inline-block w-[7px] rounded-t-lg',
+                { 'bg-lime-500': barColors.value[idx] === 'green' },
+                { 'bg-yellow-500': barColors.value[idx] === 'yellow' },
+                { 'bg-red-500': barColors.value[idx] === 'red' },
+              ]}
               style={{
-                '--value': (height * value) / max + 'px',
-                backgroundColor: barColors.value[idx],
+                height: (height * value) / max + 'px',
               }}
             >
               {/* <code class={css({ display: 'inline-block', fontSize: 8 })}>{value}</code> */}

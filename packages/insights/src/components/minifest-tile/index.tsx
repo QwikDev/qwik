@@ -5,7 +5,7 @@ export const ManifestTile = component$<{ hash: string }>(({ hash }) => {
   return (
     <code>
       <ManifestIcon />
-      {hash}
+      <span class="ml-1">{hash}</span>
     </code>
   );
 });

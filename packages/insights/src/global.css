@@ -154,15 +154,15 @@ body {
 
 .h1 {
   @apply text-4xl;
-  @apply mb-5;
+  @apply mb-9;
 }
 .h2 {
   @apply text-3xl;
-  @apply mb-4;
+  @apply mb-8;
 }
 .h3 {
   @apply text-2xl;
-  @apply mb-3.5;
+  @apply mb-7;
 }
 .h4 {
   @apply text-xl;

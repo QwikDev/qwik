@@ -22,24 +22,42 @@ export default component$(() => {
         <ManifestIcon />
         Manifests
       </h1>
-      <table>
-        <tbody>
-          <tr>
-            <th>Manifest</th>
-            <th>Timestamp</th>
-            <th>Samples</th>
-            <th>Avg. Latency</th>
-            <th>Histogram</th>
+      <table class="w-full text-sm text-left text-salte-500">
+        <thead class="text-xs text-slate-700 uppercase">
+          <tr class="border-b border-slate-200">
+            <th scope="col" class="px-6 py-3 bg-slate-50">
+              Manifest
+            </th>
+            <th scope="col" class="px-6 py-3">
+              Timestamp
+            </th>
+            <th scope="col" class="px-6 py-3 bg-slate-50">
+              Samples
+            </th>
+            <th scope="col" class="px-6 py-3">
+              Avg. Latency
+            </th>
+            <th scope="col" class="px-6 py-3 bg-slate-50">
+              Histogram
+            </th>
           </tr>
+        </thead>
+        <tbody>
           {data.value.map((row) => (
-            <tr key={row.hash}>
-              <td>
+            <tr key={row.hash} class="border-b border-slate-200 text-xs">
+              <th scope="col" class="px-6 py-3 bg-slate-50">
                 <ManifestTile hash={row.hash} />
+              </th>
+              <td scope="col" class="px-6 py-3">
+                {row.timestamp.toLocaleString()}
               </td>
-              <td>{row.timestamp.toLocaleString()}</td>
-              <td>{vectorSum(row.latency)}</td>
-              <td>{Math.round(vectorAvg(row.latency))}</td>
-              <td>
+              <td scope="col" class="px-6 py-3 bg-slate-50">
+                {vectorSum(row.latency)}
+              </td>
+              <td scope="col" class="px-6 py-3">
+                {Math.round(vectorAvg(row.latency))}
+              </td>
+              <td scope="col" class="px-6 py-3 bg-slate-50">
                 <Histogram vector={row.latency} colors={latencyColors} buckets={BUCKETS} />
               </td>
             </tr>

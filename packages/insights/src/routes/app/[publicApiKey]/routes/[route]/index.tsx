@@ -26,18 +26,42 @@ export default component$(() => {
         <RoutesIcon />
         Route: <tt>{route}</tt>
       </h1>
-      <ul>
-        {symbolData.value.map((symbol) => (
-          <li key={symbol.symbolName}>
-            <Histogram vector={symbol.timeline} buckets={TIMELINE_BUCKETS} />
-            <SymbolTile symbol={symbol.symbolName} />
-            {' - '}
-            {symbol.timelineCount.toLocaleString()}
-            {' / '}
-            {Math.round(symbol.timelineDelay / 1000).toLocaleString()} seconds
-          </li>
-        ))}
-      </ul>
+      <table class="w-full text-sm text-left text-salte-500">
+        <thead class="text-xs text-slate-700 uppercase">
+          <tr class="border-b border-slate-200">
+            <th scope="col" class="px-6 py-3 bg-slate-50">
+              Symbol
+            </th>
+            <th scope="col" class="px-6 py-3">
+              Count
+            </th>
+            <th scope="col" class="px-6 py-3 bg-slate-50">
+              Delay
+            </th>
+            <th scope="col" class="px-6 py-3">
+              Histogram
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {symbolData.value.map((symbol) => (
+            <tr key={symbol.symbolName} class="border-b border-slate-200 text-xs">
+              <th scope="col" class="px-6 py-3 bg-slate-50 max-w-[250px] overflow-scroll">
+                <SymbolTile symbol={symbol.symbolName} />
+              </th>
+              <td scope="col" class="px-6 py-3">
+                {symbol.timelineCount.toLocaleString()}
+              </td>
+              <td scope="col" class="px-6 py-3 bg-slate-50">
+                {Math.round(symbol.timelineDelay / 1000).toLocaleString()} seconds
+              </td>
+              <td scope="col" class="px-6 py-3 ">
+                <Histogram vector={symbol.timeline} buckets={TIMELINE_BUCKETS} />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 });

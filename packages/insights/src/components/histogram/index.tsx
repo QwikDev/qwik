@@ -3,6 +3,7 @@ import { vectorMax, type Bucket } from '~/stats/vector';
 
 const height = 75;
 
+// color values are mapped to tailwind classes! make sure to update them as well in this file
 export const latencyColors = ['green', 10, 'yellow', 50, 'red', Number.MAX_SAFE_INTEGER];
 export const delayColors = ['gray', 250, 'lightgray', Number.MAX_SAFE_INTEGER];
 export const grayColors = ['gray', Number.MAX_SAFE_INTEGER];

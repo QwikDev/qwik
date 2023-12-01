@@ -71,7 +71,7 @@ export const SymbolTile = component$<{ symbol: string }>(({ symbol }) => {
   return (
     <code onPopup$={(e: PopupEvent) => e.detail.show(SymbolPopup, { symbolHash: symbol })}>
       <SymbolIcon />
-      {symbol}
+      <span class="ml-1">{symbol}</span>
     </code>
   );
 });

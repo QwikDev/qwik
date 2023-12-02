@@ -25,7 +25,7 @@ export default component$(() => {
     <div>
       <h1 class="h3">
         <SymbolIcon />
-        Edge
+        Symbols
       </h1>
       <SymbolTree symbol={rootSymbol.value[0]} depth={0} />
     </div>
@@ -39,22 +39,41 @@ function SymbolTree({ symbol, depth, count }: { symbol: Symbol; depth: number; c
   );
   const terminal = symbol.depth !== depth;
   return (
-    <section>
+    <>
+      {depth === 0 && (
+        <div>
+          <span class="bg-purple-500 text-white px-4 py-1 text-xs rounded-full whitespace-nowrap">
+            App
+          </span>
+        </div>
+      )}
+
       {symbol.count > 0 && (
-        <span>
-          ({count} / {symbol.count}) {symbol.name} <code>{symbol.fullName}</code>{' '}
-          <code>{symbol.fileSrc}</code> [{symbol.depth}]
-        </span>
+        <div class="whitespace-nowrap">
+          <span class="bg-white inline-block py-1 w-28 text-xs text-center rounded-full whitespace-nowrap">
+            {count} / {symbol.count}
+          </span>
+          <code class="text-xs ml-3 whitespace-nowrap">
+            <span class="font-bold">{symbol.name ?? 'n/A'}</span> | {symbol.fullName ?? 'n/A'} |{' '}
+            {symbol.fileSrc || 'n/A'} | Depth:{' '}
+            <span class="bg-slate-200 inline-block py-1 px-2 text-xs text-center rounded-full">
+              {symbol.depth}
+            </span>
+          </code>
+        </div>
       )}
       {!terminal && (
         <ul>
           {symbol.children.map((edge) => (
-            <li key={edge.to.name}>
+            <li
+              key={edge.to.name}
+              class="relative pt-2 pl-14 before:absolute before:top-[1px] before:left-6 before:border-l before:border-l-slate-400 before:border-dashed before:h-full before:w-[1px] last:before:h-[19px] after:absolute after:top-5 after:left-6 after:border-t after:border-t-slate-400 after:border-dashed after:h-[1px] after:w-6"
+            >
               <SymbolTree symbol={edge.to} depth={nextDepth} count={edge.count} />
             </li>
           ))}
         </ul>
       )}
-    </section>
+    </>
   );
 }

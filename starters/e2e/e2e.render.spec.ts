@@ -500,6 +500,11 @@ test.describe("render", () => {
       await button.click();
       await expect(tag).toHaveAttribute("data-v", "bar");
     });
+
+    test("Multiple server functions should use the same context when invoked from useTask$", async ({ page }) => {
+      const methodsContainer = page.locator("#methods");
+      await expect(methodsContainer).toContainText("GETGET")
+    });
   }
 
   tests();

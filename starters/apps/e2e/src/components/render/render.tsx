@@ -17,6 +17,7 @@ import {
 } from "@builder.io/qwik";
 import { delay } from "../streaming/demo";
 import { isServer } from "@builder.io/qwik/build";
+import { server$ } from "@builder.io/qwik-city";
 
 export const Render = component$(() => {
   const rerender = useSignal(0);
@@ -106,6 +107,7 @@ export const RenderChildren = component$<{ v: number }>(({ v }) => {
       <Issue4455 />
       <Issue5266 />
       <DynamicButton id="dynamic-button" />;
+      <MultipleServerFunctionsInvokedInTask />
     </>
   );
 });
@@ -970,3 +972,26 @@ export const DynamicButton = component$<any>(
     );
   },
 );
+const serverFunctionA = server$(async function a() {
+  return this.method;
+});
+const serverFunctionB = server$(async function b() {
+  return this.method;
+});
+
+export const MultipleServerFunctionsInvokedInTask = component$(() => {
+  const methods = useStore<{ a: string; b: string }>({ a: "", b: "" });
+  useTask$(async () => {
+    methods.a = await serverFunctionA();
+    methods.b = await serverFunctionB();
+
+    console.log({ requestMethodOne: methods.a, requestMethodTwo: methods.b });
+  });
+
+  return (
+    <div id="methods">
+      {methods.a}
+      {methods.b}
+    </div>
+  );
+});

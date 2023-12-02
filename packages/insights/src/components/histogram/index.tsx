@@ -43,7 +43,8 @@ export default component$<{
     return barColors;
   });
   return (
-    <div class="inline-block">
+    // 18 = histogram info (callout) height below the chart on hover
+    <div class="inline-block" style={{ height: height + 18 + 'px' }}>
       {name && <h2>{name}</h2>}
       <ol
         class="flex order-last items-end justify-between w-[400px] box-content border-b border-b-slate-200"

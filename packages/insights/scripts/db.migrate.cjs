@@ -1,26 +1,26 @@
-require("dotenv").config();
-require("dotenv").config({ path: ".env.local" });
+require('dotenv').config();
+require('dotenv').config({ path: '.env.local' });
 
 async function migrateDB() {
-  const url = env("PRIVATE_LIBSQL_DB_URL");
-  const authToken = env("PRIVATE_LIBSQL_DB_API_TOKEN");
+  const url = env('PRIVATE_LIBSQL_DB_URL');
+  const authToken = env('PRIVATE_LIBSQL_DB_API_TOKEN');
   await migrateLibSql(url, authToken);
 }
 
 async function migrateLibSql(url, authToken) {
-  const { createClient } = require("@libsql/client");
-  const { migrate } = require("drizzle-orm/libsql/migrator");
-  const { drizzle } = require("drizzle-orm/libsql");
+  const { createClient } = require('@libsql/client');
+  const { migrate } = require('drizzle-orm/libsql/migrator');
+  const { drizzle } = require('drizzle-orm/libsql');
 
   const client = createClient({ url, authToken });
   const db = drizzle(client);
-  console.log("Migrating DB...");
+  console.log('Migrating DB...');
   try {
-    await migrate(db, { migrationsFolder: "./drizzle" });
+    await migrate(db, { migrationsFolder: './drizzle' });
   } catch (e) {
     console.error(e);
   }
-  console.log("DB migrated");
+  console.log('DB migrated');
 }
 
 function env(name) {
@@ -36,5 +36,5 @@ migrateDB().then(
   (e) => {
     console.error(e);
     process.exit(1);
-  },
+  }
 );

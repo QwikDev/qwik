@@ -49,7 +49,7 @@ export default component$(() => {
             ))}
           </div>
         </aside>
-        <div class="p-8">
+        <div class="m-8 overflow-y-auto">
           <Slot />
         </div>
       </div>

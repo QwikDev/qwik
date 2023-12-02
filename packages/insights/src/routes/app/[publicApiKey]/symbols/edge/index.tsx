@@ -50,12 +50,17 @@ function SymbolTree({ symbol, depth, count }: { symbol: Symbol; depth: number; c
 
       {symbol.count > 0 && (
         <div class="whitespace-nowrap">
-          <span class="bg-white inline-block py-1 w-28 text-xs text-center rounded-full whitespace-nowrap">
+          <span class="bg-white inline-block py-1 min-w-[120px] text-xs text-center rounded-full whitespace-nowrap">
             {count} / {symbol.count}
           </span>
           <code class="text-xs ml-3 whitespace-nowrap">
-            <span class="font-bold">{symbol.name ?? 'n/A'}</span> | {symbol.fullName ?? 'n/A'} |{' '}
-            {symbol.fileSrc || 'n/A'} | Depth:{' '}
+            <span class="font-bold">{symbol.name ?? 'n/A'}</span>
+            <span class="text-purple-500 mx-2">|</span>
+            {symbol.fullName ?? 'n/A'}
+            <span class="text-purple-500 mx-2">|</span>
+            {symbol.fileSrc || 'n/A'}
+            <span class="text-purple-500 mx-2">|</span>
+            Depth:{' '}
             <span class="bg-slate-200 inline-block py-1 px-2 text-xs text-center rounded-full">
               {symbol.depth}
             </span>

@@ -52,26 +52,30 @@ export default component$(() => {
         <BundleIcon />
         Bundles
       </h2>
-      <ol>
-        {data.value.bundles.map((bundle) => {
-          return (
-            <li key={bundle.name}>
+      <ol class="list-decimal list-inside">
+        {data.value.bundles.map((bundle) => (
+          <li key={bundle.name}>
+            <div class="bg-white inline-block py-1 px-4 text-xs text-center rounded-full whitespace-nowrap">
               <BundleCmp name={bundle.name} />
-              <ul>
-                {bundle.symbols.map((symbol) => (
-                  <li key={symbol.name}>
+            </div>
+            <ul class="mb-10">
+              {bundle.symbols.map((symbol) => (
+                <li
+                  key={symbol.name}
+                  class="relative pt-2 pl-16 whitespace-nowrap text-xs before:absolute before:top-[1px] before:left-8 before:border-l before:border-l-slate-400 before:border-dashed before:h-full before:w-[1px] last:before:h-[19px] after:absolute after:top-5 after:left-8 after:border-t after:border-t-slate-400 after:border-dashed after:h-[1px] after:w-6"
+                >
+                  <span class="font-bold">
                     <SymbolTile symbol={symbol.name} />
-                    {' ( '}
-                    <code>{symbol.fullName}</code>
-                    {' / '}
-                    <code>{symbol.fileSrc}</code>
-                    {' )'}
-                  </li>
-                ))}
-              </ul>
-            </li>
-          );
-        })}
+                  </span>
+                  <span class="text-purple-500 mx-2">|</span>
+                  <code>{symbol.fullName}</code>
+                  <span class="text-purple-500 mx-2">|</span>
+                  <code>{symbol.fileSrc}</code>
+                </li>
+              ))}
+            </ul>
+          </li>
+        ))}
       </ol>
       <hr />
     </div>

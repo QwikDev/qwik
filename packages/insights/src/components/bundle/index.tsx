@@ -5,7 +5,7 @@ export const BundleCmp = component$<{ name: string }>(({ name }) => {
   return (
     <code>
       <BundleIcon />
-      {name}
+      <span class="ml-1">{name}</span>
     </code>
   );
 });

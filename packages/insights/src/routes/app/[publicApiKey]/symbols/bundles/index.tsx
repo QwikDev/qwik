@@ -62,7 +62,7 @@ export default component$(() => {
               {bundle.symbols.map((symbol) => (
                 <li
                   key={symbol.name}
-                  class="relative pt-2 pl-16 whitespace-nowrap text-xs before:absolute before:top-[1px] before:left-8 before:border-l before:border-l-slate-400 before:border-dashed before:h-full before:w-[1px] last:before:h-[19px] after:absolute after:top-4 after:left-8 after:border-t after:border-t-slate-400 after:border-dashed after:h-[1px] after:w-6"
+                  class="relative pt-2 pl-16 whitespace-nowrap text-xs before:absolute before:top-[1px] before:left-8 before:border-l before:border-l-slate-400 before:border-dashed before:h-full before:w-[1px] last:before:h-[16px] after:absolute after:top-4 after:left-8 after:border-t after:border-t-slate-400 after:border-dashed after:h-[1px] after:w-6"
                 >
                   <span class="font-bold">
                     <SymbolTile symbol={symbol.name} />

@@ -1,6 +1,5 @@
-import { Link, useLocation } from '@builder.io/qwik-city';
+import { Link, type RequestHandler, useLocation } from '@builder.io/qwik-city';
 import { Slot, component$ } from '@builder.io/qwik';
-
 import { EditIcon } from '~/components/icons/edit';
 import Layout from '~/components/layout';
 import styles from './styles.module.css';
@@ -13,6 +12,14 @@ import { DashboardIcon } from '~/components/icons/dashboard';
 import { ManifestIcon } from '~/components/icons/manifest';
 import { AppLink } from '~/routes.config';
 import { RoutesIcon } from '~/components/icons/routes';
+import { getInsightUser } from '../layout';
+
+export const onRequest: RequestHandler = async ({ sharedMap, redirect, params }) => {
+  const insightUser = getInsightUser(sharedMap);
+  if (!insightUser.isAuthorizedForApp(params.publicApiKey)) {
+    throw redirect(307, '/');
+  }
+};
 
 export default component$(() => {
   const location = useLocation();

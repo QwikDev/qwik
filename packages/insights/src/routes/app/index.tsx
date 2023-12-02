@@ -5,10 +5,24 @@ import Layout from '~/components/layout';
 import { type ReadonlySignal, component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
 import styles from './styles.module.css';
+import { getInsightUser } from './layout';
+import { inArray } from 'drizzle-orm';
 
-export const useApps = routeLoader$<ApplicationRow[]>(async () => {
-  const db = getDB();
-  return await db.select().from(applicationTable).orderBy(applicationTable.name).all();
+export const useApps = routeLoader$<ApplicationRow[]>(async ({ sharedMap }) => {
+  const insightUser = getInsightUser(sharedMap);
+  let query = getDB().select().from(applicationTable).orderBy(applicationTable.name);
+
+  if (insightUser.superUser) {
+    // Select everything
+  } else if (insightUser.applicationPublicApiKeys.length) {
+    query = query.where(
+      inArray(applicationTable.publicApiKey, insightUser.applicationPublicApiKeys)
+    );
+  } else {
+    // The user has nothing attached to it.
+    return [];
+  }
+  return query.all();
 });
 
 export default component$(() => {

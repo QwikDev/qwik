@@ -46,27 +46,40 @@ export default component$(() => {
         Slow Symbols
       </h1>
       <table>
-        <tbody>
-          <tr>
-            <th>Manifest</th>
-            <th>Symbol</th>
-            <th>Count</th>
-            <th>Latency</th>
-            <th>Histogram</th>
+        <thead class="text-xs text-slate-700 uppercase">
+          <tr class="border-b border-slate-200">
+            <th scope="col" class="px-6 py-3 bg-slate-50">
+              Manifest
+            </th>
+            <th scope="col" class="px-6 py-3">
+              Symbol
+            </th>
+            <th scope="col" class="px-6 py-3 bg-slate-50">
+              Count
+            </th>
+            <th scope="col" class="px-6 py-3">
+              Latency
+            </th>
+            <th scope="col" class="px-6 py-3 bg-slate-50">
+              Histogram
+            </th>
           </tr>
+        </thead>
+        <tbody>
           {data.value.edges.map((edge) => {
             const detail = data.value.detailsMap[edge.to];
             return (
-              <tr key={edge.to}>
-                <td>{edge.manifestHash}</td>
-                <td>
-                  <SymbolTile symbol={edge.to} />
-                  <br />
-                  {detail?.fullName}
+              <tr key={edge.to} class="border-b border-slate-200 text-xs">
+                <td class="px-6 py-3 bg-slate-50 font-bold">{edge.manifestHash}</td>
+                <td class="px-6 py-3">
+                  <span class="font-bold">
+                    <SymbolTile symbol={edge.to} />
+                  </span>
+                  <span class="block text-slate-500">{detail?.fullName}</span>
                 </td>
-                <td>{vectorSum(edge.latency)}</td>
-                <td>{Math.round(vectorAvg(edge.latency))}ms</td>
-                <td>
+                <td class="px-6 py-3 bg-slate-50">{vectorSum(edge.latency)}</td>
+                <td class="px-6 py-2">{Math.round(vectorAvg(edge.latency))}ms</td>
+                <td class="px-6 py-3 bg-slate-50">
                   <Histogram vector={edge.latency} colors={latencyColors} buckets={BUCKETS} />
                 </td>
               </tr>

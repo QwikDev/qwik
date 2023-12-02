@@ -118,7 +118,7 @@ export default component$(() => {
         <SymbolIcon />
         Manifests
       </h1>
-      <table class="w-full text-sm text-left text-salte-500">
+      <table class="w-full text-sm text-left">
         <thead class="text-xs text-slate-700 uppercase">
           <tr class="border-b border-slate-200">
             <th scope="col" class="px-6 py-3 bg-slate-50">
@@ -166,7 +166,7 @@ export default component$(() => {
         <SymbolIcon />
         Symbols
       </h1>
-      <table class="w-full text-sm text-left text-salte-500">
+      <table class="w-full text-sm text-left">
         <thead class="text-xs text-slate-700 uppercase">
           <tr class="border-b border-slate-200">
             <th scope="col" class="px-6 py-3 bg-slate-50">

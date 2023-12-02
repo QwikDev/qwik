@@ -25,20 +25,38 @@ export default component$(() => {
         <ErrorIcon />
         Errors
       </h1>
-      <table>
-        <tbody>
-          <tr>
-            <th>Timestamp</th>
-            <th>URL</th>
-            <th>Message</th>
+      <table class="w-full text-sm text-left">
+        <thead class="text-xs text-slate-700 uppercase">
+          <tr class="border-b border-slate-200">
+            <th scope="col" class="px-6 py-3 bg-slate-50">
+              Timestamp
+            </th>
+            <th scope="col" class="px-6 py-3">
+              URL
+            </th>
+            <th scope="col" class="px-6 py-3 bg-slate-50">
+              Message
+            </th>
           </tr>
+        </thead>
+        <tbody>
           {errors.value.map((error) => (
-            <tr key={error.id} onPopup$={(e: PopupEvent) => e.detail.show(Popup, error)}>
-              <td>{new Date(error.timestamp).toLocaleString()}</td>
-              <td>
-                <a href={error.url}>{error.url}</a>
+            <tr
+              key={error.id}
+              onPopup$={(e: PopupEvent) => e.detail.show(Popup, error)}
+              class="border-b border-slate-200 text-xs"
+            >
+              <td scope="col" class="px-6 py-3 bg-slate-50 whitespace-nowrap">
+                {new Date(error.timestamp).toLocaleString()}
               </td>
-              <td>{error.message}</td>
+              <td scope="col" class="px-6 py-3 max-w-lg break-words">
+                <a href={error.url} target="_blank">
+                  {error.url}
+                </a>
+              </td>
+              <td scope="col" class="px-6 py-3 bg-slate-50">
+                {error.message}
+              </td>
             </tr>
           ))}
         </tbody>

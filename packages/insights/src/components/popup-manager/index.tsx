@@ -66,12 +66,13 @@ export const PopupManager = component$(() => {
       {popup.currentTarget && popup.Component ? (
         <div
           ref={popupTarget}
+          class="fixed inline-block border border-slate-200 bg-white shadow-lg z-10"
           style={{
             top: popup.y + 4 + 'px',
             left: popup.x + 4 + 'px',
           }}
         >
-          <CloseIcon onClick$={() => (popup.currentTarget = null)} />
+          <CloseIcon onClick$={() => (popup.currentTarget = null)} class="absolute right-0 m-0" />
           <popup.Component {...popup.props} />
         </div>
       ) : null}

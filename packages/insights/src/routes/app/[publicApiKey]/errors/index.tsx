@@ -74,8 +74,62 @@ export const Popup = component$<{
   stack: string;
 }>(({ timestamp, url, manifestHash, message, error, stack }) => {
   return (
-    <div>
-      <h1>
+    <div class="max-w-[75vw] min-w-[300px] overflow-scroll m-3">
+      <h2 class="h5">Details</h2>
+      <table class="w-full text-sm text-left">
+        <tbody>
+          <tr class="border-b border-slate-200 text-xs">
+            <th scope="col" class="px-6 py-3 bg-slate-50">
+              Timestamp
+            </th>
+            <td scope="col" class="px-6 py-3">
+              <code>{timestamp.toLocaleString()}</code>
+            </td>
+          </tr>
+          <tr class="border-b border-slate-200 text-xs">
+            <th scope="col" class="px-6 py-3 bg-slate-50">
+              URL
+            </th>
+            <td scope="col" class="px-6 py-3">
+              <code>{url}</code>
+            </td>
+          </tr>
+          <tr class="border-b border-slate-200 text-xs">
+            <th scope="col" class="px-6 py-3 bg-slate-50">
+              Manifest
+            </th>
+            <td scope="col" class="px-6 py-3">
+              <code>{manifestHash}</code>
+            </td>
+          </tr>
+          <tr class="border-b border-slate-200 text-xs">
+            <th scope="col" class="px-6 py-3 bg-slate-50">
+              Message
+            </th>
+            <td scope="col" class="px-6 py-3">
+              <pre>{message}</pre>
+            </td>
+          </tr>
+          <tr class="border-b border-slate-200 text-xs">
+            <th scope="col" class="px-6 py-3 bg-slate-50">
+              Error
+            </th>
+            <td scope="col" class="px-6 py-3">
+              <pre>{error}</pre>
+            </td>
+          </tr>
+          <tr class="border-b border-slate-200 text-xs">
+            <th scope="col" class="px-6 py-3 bg-slate-50">
+              Stack
+            </th>
+            <td scope="col" class="px-6 py-3">
+              <pre>{stack}</pre>
+            </td>
+          </tr>{' '}
+        </tbody>
+      </table>
+
+      {/* <h1>
         Timestamp: <code>{timestamp.toLocaleString()}</code>
       </h1>
       <h1>
@@ -94,7 +148,7 @@ export const Popup = component$<{
       <h1>Error:</h1>
       <pre>{error}</pre>
       <h1>Stack:</h1>
-      <pre>{stack}</pre>
+      <pre>{stack}</pre> */}
     </div>
   );
 });

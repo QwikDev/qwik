@@ -136,14 +136,14 @@ export default component$(() => {
           {data.value.manifests.map((manifest, idx) => {
             return (
               <tr key={idx} class="border-b border-slate-200 text-xs">
-                <td scope="col" class="px-6 py-3 bg-slate-50">
+                <td scope="col" class="px-6 py-3 bg-slate-50 w-96">
                   <Histogram
                     vector={manifest.delay}
                     colors={delayColors}
                     buckets={data.value.buckets}
                   />
                 </td>
-                <td scope="col" class="px-6 py-3">
+                <td scope="col" class="px-6 py-3 w-96">
                   <Histogram
                     vector={manifest.latency}
                     colors={latencyColors}
@@ -183,14 +183,14 @@ export default component$(() => {
         <tbody>
           {data.value.symbols.map((symbol) => (
             <tr key={symbol.hash} class="border-b border-slate-200 text-xs">
-              <td scope="col" class="px-6 py-3 bg-slate-50">
+              <td scope="col" class="px-6 py-3 bg-slate-50 w-96">
                 <Histogram
                   vector={symbol.delay}
                   buckets={data.value.buckets}
                   colors={delayColors}
                 />
               </td>
-              <td scope="col" class="px-6 py-3  ">
+              <td scope="col" class="px-6 py-3 w-96">
                 <Histogram
                   vector={symbol.latency}
                   colors={latencyColors}

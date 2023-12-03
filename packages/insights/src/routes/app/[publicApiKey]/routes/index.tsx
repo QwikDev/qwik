@@ -40,7 +40,7 @@ export default component$(() => {
               <th scope="col" class="px-6 py-3">
                 <code>{route.route}</code>
               </th>
-              <td scope="col" class="px-6 py-3">
+              <td scope="col" class="px-6 py-3 w-32">
                 <AppLink
                   route="/app/[publicApiKey]/routes/[route]/"
                   param:publicApiKey={location.params.publicApiKey}

@@ -61,7 +61,7 @@ function SymbolTree({ symbol, depth, count }: { symbol: Symbol; depth: number; c
             {symbol.fileSrc || 'n/A'}
             <span class="text-purple-500 mx-2">|</span>
             Depth:{' '}
-            <span class="bg-slate-200 inline-block py-1 px-2 text-xs text-center rounded-full">
+            <span class="bg-slate-200 inline-block py-[2px] px-2 text-xs text-center rounded-full">
               {symbol.depth}
             </span>
           </code>

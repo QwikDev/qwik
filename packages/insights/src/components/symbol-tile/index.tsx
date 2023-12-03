@@ -5,18 +5,11 @@ import { getDB, symbolDetailTable } from '~/db';
 import { SymbolIcon } from '../icons/symbol';
 import { type PopupEvent } from '../popup-manager';
 
-export const SymbolPopup = component$<{ symbolHash: string }>(({ symbolHash }) => {
-  return (
-    <div>
-      <h1>
-        Symbol: <code>{symbolHash}</code>
-      </h1>
-      <div>
-        <SymbolSource symbolHash={symbolHash} />
-      </div>
-    </div>
-  );
-});
+export const SymbolPopup = component$<{ symbolHash: string }>(({ symbolHash }) => (
+  <div class="min-w-[500px] max-w-[75vw]">
+    <SymbolSource symbolHash={symbolHash} />
+  </div>
+));
 
 export const SymbolSource = component$<{ symbolHash: string }>(({ symbolHash }) => {
   const location = useLocation();
@@ -44,25 +37,52 @@ export const SymbolSource = component$<{ symbolHash: string }>(({ symbolHash }) 
   });
   return (
     <div>
-      <h1>
-        {'Full name: '}
-        <code>{state.fullName}</code>
-      </h1>
-      <h1>
-        {'Origin: '}
-        <code>{state.originUrl ? <a href={state.originUrl}>{state.origin}</a> : state.origin}</code>
-      </h1>
-      <Resource
-        value={source}
-        onPending={() => <div>loading...</div>}
-        onResolved={(source) => (
-          <div>
-            <pre>{source.preamble}</pre>
-            <pre>{source.highlight}</pre>
-            <pre>{source.postamble}</pre>
-          </div>
-        )}
-      />
+      <h2 class="h5 px-6 py-3">Details</h2>
+      <table class="w-full text-sm text-left">
+        <tbody>
+          <tr class="border-y border-slate-200 text-xs">
+            <th scope="col" class="px-6 py-3 bg-slate-50">
+              Symbol
+            </th>
+            <td scope="col" class="px-6 py-3">
+              <code>{symbolHash}</code>
+            </td>
+          </tr>
+          <tr class="border-b border-slate-200 text-xs">
+            <th scope="col" class="px-6 py-3 bg-slate-50">
+              Full Name
+            </th>
+            <td scope="col" class="px-6 py-3">
+              <code>{state.fullName}</code>
+            </td>
+          </tr>
+          <tr class="border-b border-slate-200 text-xs">
+            <th scope="col" class="px-6 py-3 bg-slate-50">
+              Origin
+            </th>
+            <td scope="col" class="px-6 py-3">
+              <code>
+                {state.originUrl ? <a href={state.originUrl}>{state.origin}</a> : state.origin}
+              </code>
+            </td>
+          </tr>
+          <tr>
+            <td colspan="2" class="px-6 py-3 text-xs">
+              <Resource
+                value={source}
+                onPending={() => <div>loading...</div>}
+                onResolved={(source) => (
+                  <div>
+                    <pre>{source.preamble}</pre>
+                    <pre>{source.highlight}</pre>
+                    <pre>{source.postamble}</pre>
+                  </div>
+                )}
+              />
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   );
 });

@@ -97,6 +97,7 @@ export const CorrelationMatrix = component$<{
   return (
     <>
       <div
+        class="border border-slate-200 h-[calc(70vmin-20px)] w-[calc(70vmin-20px)] flex flex-col justify-evenly mb-14"
         onMouseEnter$={() => (callout.visible = true)}
         onMouseLeave$={() => (callout.visible = false)}
         onMouseMove$={(e) => {
@@ -117,13 +118,54 @@ export const CorrelationMatrix = component$<{
           top: callout.y + 5 + 'px',
           left: callout.x + 5 + 'px',
         }}
+        class="fixed bg-white border border-slate-200 text-xs"
       >
-        <div>
-          (<code>{Math.round(callout.value * 100)}%</code>)
-        </div>
-        <code>{callout.rowSymbol}</code>
-        {` -> `}
-        <code>{callout.colSymbol}</code>
+        <table class="w-full text-sm text-left">
+          <tbody>
+            <tr class="border-y border-slate-200 text-xs">
+              <th scope="col" class="px-6 py-3 bg-slate-50">
+                Score
+              </th>
+              <td scope="col" class="px-6 py-3">
+                <code
+                  class={[
+                    'rounded px-8 py-1 inline-block',
+                    { 'bg-lime-500': Math.round(callout.value * 100) >= 70 },
+                    {
+                      'bg-lime-300':
+                        Math.round(callout.value * 100) >= 50 &&
+                        Math.round(callout.value * 100) < 70,
+                    },
+                    {
+                      'bg-yellow-500':
+                        Math.round(callout.value * 100) >= 30 &&
+                        Math.round(callout.value * 100) < 50,
+                    },
+                    { 'bg-slate-200': Math.round(callout.value * 100) < 30 },
+                  ]}
+                >
+                  {Math.round(callout.value * 100)}%
+                </code>
+              </td>
+            </tr>
+            <tr class="border-b border-slate-200 text-xs">
+              <th scope="col" class="px-6 py-3 bg-slate-50">
+                Row
+              </th>
+              <td scope="col" class="px-6 py-3">
+                <code>{callout.rowSymbol}</code>
+              </td>
+            </tr>
+            <tr class="border-b border-slate-200 text-xs">
+              <th scope="col" class="px-6 py-3 bg-slate-50">
+                Column
+              </th>
+              <td scope="col" class="px-6 py-3">
+                <code>{callout.colSymbol}</code>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </>
   );
@@ -138,6 +180,7 @@ export const MatrixCells = component$<{
     <>
       {matrix.map((row, rowIdx) => (
         <div
+          class="flex"
           style={{ height: 100 / size + '%' }}
           key={rowIdx}
           data-row-symbol={symbols[rowIdx].name}
@@ -158,7 +201,9 @@ function cells(row: number[], symbols: Symbol[]) {
     const value = row[colIdx];
     if (value / total > 0.05) {
       if (sparseSize) {
-        cells.push(<div style={{ width: (sparseSize * 100) / size + '%' }} />);
+        cells.push(
+          <div class="h-full inline-block" style={{ width: (sparseSize * 100) / size + '%' }} />
+        );
         sparseSize = 0;
       }
       cells.push(

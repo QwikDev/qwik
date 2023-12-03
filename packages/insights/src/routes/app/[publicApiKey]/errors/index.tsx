@@ -74,11 +74,11 @@ export const Popup = component$<{
   stack: string;
 }>(({ timestamp, url, manifestHash, message, error, stack }) => {
   return (
-    <div class="max-w-[75vw] min-w-[300px] overflow-scroll m-3">
-      <h2 class="h5">Details</h2>
-      <table class="w-full text-sm text-left">
+    <div class="max-w-[75vw] min-w-[300px] overflow-scroll">
+      <h2 class="h5 px-6 py-3">Details</h2>
+      <table class="w-full text-sm text-left mb-6">
         <tbody>
-          <tr class="border-b border-slate-200 text-xs">
+          <tr class="border-y border-slate-200 text-xs">
             <th scope="col" class="px-6 py-3 bg-slate-50">
               Timestamp
             </th>
@@ -125,30 +125,9 @@ export const Popup = component$<{
             <td scope="col" class="px-6 py-3">
               <pre>{stack}</pre>
             </td>
-          </tr>{' '}
+          </tr>
         </tbody>
       </table>
-
-      {/* <h1>
-        Timestamp: <code>{timestamp.toLocaleString()}</code>
-      </h1>
-      <h1>
-        URL:{' '}
-        <code>
-          <a href={url} target="_blank">
-            {url}
-          </a>
-        </code>
-      </h1>
-      <h1>
-        Manifest: <code>{manifestHash}</code>
-      </h1>
-      <h1>Message:</h1>
-      <pre>{message}</pre>
-      <h1>Error:</h1>
-      <pre>{error}</pre>
-      <h1>Stack:</h1>
-      <pre>{stack}</pre> */}
     </div>
   );
 });

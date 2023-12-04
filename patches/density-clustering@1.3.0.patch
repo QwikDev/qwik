@@ -1,8 +1,258 @@
-diff --git a/.history/lib/KMEANS_20231204093846.js b/.history/lib/KMEANS_20231204093846.js
+diff --git a/lib/DBSCAN.js b/.history/lib/DBSCAN_20231204102613.cjs
+similarity index 100%
+rename from lib/DBSCAN.js
+rename to .history/lib/DBSCAN_20231204102613.cjs
+diff --git a/.history/lib/DBSCAN_20231204102928.cjs b/.history/lib/DBSCAN_20231204102928.cjs
 new file mode 100644
-index 0000000000000000000000000000000000000000..21646f447f20fa710a7d855e597a9b9f9643b2f5
+index 0000000000000000000000000000000000000000..54f8c4438faba26ebafd22ec9d7a228f6dfdef94
 --- /dev/null
-+++ b/.history/lib/KMEANS_20231204093846.js
++++ b/.history/lib/DBSCAN_20231204102928.cjs
+@@ -0,0 +1,236 @@
++/**
++ * DBSCAN - Density based clustering
++ *
++ * @author Lukasz Krawczyk <contact@lukaszkrawczyk.eu>
++ * @copyright MIT
++ */
++
++/**
++ * DBSCAN class construcotr
++ * @constructor
++ *
++ * @param {Array} dataset
++ * @param {number} epsilon
++ * @param {number} minPts
++ * @param {function} distanceFunction
++ * @returns {DBSCAN}
++ */
++function DBSCAN(dataset, epsilon, minPts, distanceFunction) {
++  /** @type {Array} */
++  this.dataset = [];
++  /** @type {number} */
++  this.epsilon = 1;
++  /** @type {number} */
++  this.minPts = 2;
++  /** @type {function} */
++  this.distance = this._euclideanDistance;
++  /** @type {Array} */
++  this.clusters = [];
++  /** @type {Array} */
++  this.noise = [];
++
++  // temporary variables used during computation
++
++  /** @type {Array} */
++  this._visited = [];
++  /** @type {Array} */
++  this._assigned = [];
++  /** @type {number} */
++  this._datasetLength = 0;
++
++  this._init(dataset, epsilon, minPts, distanceFunction);
++};
++
++/******************************************************************************/
++// public functions
++
++/**
++ * Start clustering
++ *
++ * @param {Array} dataset
++ * @param {number} epsilon
++ * @param {number} minPts
++ * @param {function} distanceFunction
++ * @returns {undefined}
++ * @access public
++ */
++DBSCAN.prototype.run = function(dataset, epsilon, minPts, distanceFunction) {
++  this._init(dataset, epsilon, minPts, distanceFunction);
++
++  for (var pointId = 0; pointId < this._datasetLength; pointId++) {
++    // if point is not visited, check if it forms a cluster
++    if (this._visited[pointId] !== 1) {
++      this._visited[pointId] = 1;
++
++      // if closest neighborhood is too small to form a cluster, mark as noise
++      var neighbors = this._regionQuery(pointId);
++
++      if (neighbors.length < this.minPts) {
++        this.noise.push(pointId);
++      } else {
++        // create new cluster and add point
++        var clusterId = this.clusters.length;
++        this.clusters.push([]);
++        this._addToCluster(pointId, clusterId);
++
++        this._expandCluster(clusterId, neighbors);
++      }
++    }
++  }
++
++  return this.clusters;
++};
++
++/******************************************************************************/
++// protected functions
++
++/**
++ * Set object properties
++ *
++ * @param {Array} dataset
++ * @param {number} epsilon
++ * @param {number} minPts
++ * @param {function} distance
++ * @returns {undefined}
++ * @access protected
++ */
++DBSCAN.prototype._init = function(dataset, epsilon, minPts, distance) {
++
++  if (dataset) {
++
++    if (!(dataset instanceof Array)) {
++      throw Error('Dataset must be of type array, ' +
++        typeof dataset + ' given');
++    }
++
++    this.dataset = dataset;
++    this.clusters = [];
++    this.noise = [];
++
++    this._datasetLength = dataset.length;
++    this._visited = new Array(this._datasetLength);
++    this._assigned = new Array(this._datasetLength);
++  }
++
++  if (epsilon) {
++    this.epsilon = epsilon;
++  }
++
++  if (minPts) {
++    this.minPts = minPts;
++  }
++
++  if (distance) {
++    this.distance = distance;
++  }
++};
++
++/**
++ * Expand cluster to closest points of given neighborhood
++ *
++ * @param {number} clusterId
++ * @param {Array} neighbors
++ * @returns {undefined}
++ * @access protected
++ */
++DBSCAN.prototype._expandCluster = function(clusterId, neighbors) {
++
++  /**
++   * It's very important to calculate length of neighbors array each time,
++   * as the number of elements changes over time
++   */
++  for (var i = 0; i < neighbors.length; i++) {
++    var pointId2 = neighbors[i];
++
++    if (this._visited[pointId2] !== 1) {
++      this._visited[pointId2] = 1;
++      var neighbors2 = this._regionQuery(pointId2);
++
++      if (neighbors2.length >= this.minPts) {
++        neighbors = this._mergeArrays(neighbors, neighbors2);
++      }
++    }
++
++    // add to cluster
++    if (this._assigned[pointId2] !== 1) {
++      this._addToCluster(pointId2, clusterId);
++    }
++  }
++};
++
++/**
++ * Add new point to cluster
++ *
++ * @param {number} pointId
++ * @param {number} clusterId
++ */
++DBSCAN.prototype._addToCluster = function(pointId, clusterId) {
++  this.clusters[clusterId].push(pointId);
++  this._assigned[pointId] = 1;
++};
++
++/**
++ * Find all neighbors around given point
++ *
++ * @param {number} pointId,
++ * @param {number} epsilon
++ * @returns {Array}
++ * @access protected
++ */
++DBSCAN.prototype._regionQuery = function(pointId) {
++  var neighbors = [];
++
++  for (var id = 0; id < this._datasetLength; id++) {
++    var dist = this.distance(this.dataset[pointId], this.dataset[id]);
++    if (dist < this.epsilon) {
++      neighbors.push(id);
++    }
++  }
++
++  return neighbors;
++};
++
++/******************************************************************************/
++// helpers
++
++/**
++ * @param {Array} a
++ * @param {Array} b
++ * @returns {Array}
++ * @access protected
++ */
++DBSCAN.prototype._mergeArrays = function(a, b) {
++  var len = b.length;
++
++  for (var i = 0; i < len; i++) {
++    var P = b[i];
++    if (a.indexOf(P) < 0) {
++      a.push(P);
++    }
++  }
++
++  return a;
++};
++
++/**
++ * Calculate euclidean distance in multidimensional space
++ *
++ * @param {Array} p
++ * @param {Array} q
++ * @returns {number}
++ * @access protected
++ */
++DBSCAN.prototype._euclideanDistance = function(p, q) {
++  var sum = 0;
++  var i = Math.min(p.length, q.length);
++
++  while (i--) {
++    sum += (p[i] - q[i]) * (p[i] - q[i]);
++  }
++
++  return Math.sqrt(sum);
++};
++
++if (module.exports) {
++  module.exports = DBSCAN;
++}
+diff --git a/lib/KMEANS.js b/.history/lib/KMEANS_20231204102613.cjs
+similarity index 100%
+rename from lib/KMEANS.js
+rename to .history/lib/KMEANS_20231204102613.cjs
+diff --git a/.history/lib/KMEANS_20231204102945.cjs b/.history/lib/KMEANS_20231204102945.cjs
+new file mode 100644
+index 0000000000000000000000000000000000000000..a6fab6e802b5ce7c9f7f8ac4183faff29181b22d
+--- /dev/null
++++ b/.history/lib/KMEANS_20231204102945.cjs
 @@ -0,0 +1,213 @@
 +﻿/**
 + * KMEANS clustering
@@ -214,14 +464,1292 @@ index 0000000000000000000000000000000000000000..21646f447f20fa710a7d855e597a9b9f
 +  return Math.sqrt(sum);
 +};
 +
-+if (typeof module !== 'undefined' && module.exports) {
++if (module.exports) {
 +  module.exports = KMEANS;
 +}
-diff --git a/.history/lib/KMEANS_20231204093927.js b/.history/lib/KMEANS_20231204093927.js
+diff --git a/lib/OPTICS.js b/.history/lib/OPTICS_20231204102613.cjs
+similarity index 100%
+rename from lib/OPTICS.js
+rename to .history/lib/OPTICS_20231204102613.cjs
+diff --git a/.history/lib/OPTICS_20231204102953.cjs b/.history/lib/OPTICS_20231204102953.cjs
 new file mode 100644
-index 0000000000000000000000000000000000000000..903864be329bf7577c14b9cf9b9d758852d8e8f1
+index 0000000000000000000000000000000000000000..b55b923f6781efb724f6b217806240b18d322d9c
 --- /dev/null
-+++ b/.history/lib/KMEANS_20231204093927.js
++++ b/.history/lib/OPTICS_20231204102953.cjs
+@@ -0,0 +1,269 @@
++
++/**
++ * @requires ./PriorityQueue.js
++ */
++
++if (typeof module !== 'undefined' && module.exports) {
++      var PriorityQueue = require('./PriorityQueue.js');
++}
++
++/**
++ * OPTICS - Ordering points to identify the clustering structure
++ *
++ * @author Lukasz Krawczyk <contact@lukaszkrawczyk.eu>
++ * @copyright MIT
++ */
++
++/**
++ * OPTICS class constructor
++ * @constructor
++ *
++ * @param {Array} dataset
++ * @param {number} epsilon
++ * @param {number} minPts
++ * @param {function} distanceFunction
++ * @returns {OPTICS}
++ */
++function OPTICS(dataset, epsilon, minPts, distanceFunction) {
++  /** @type {number} */
++  this.epsilon = 1;
++  /** @type {number} */
++  this.minPts = 1;
++  /** @type {function} */
++  this.distance = this._euclideanDistance;
++
++  // temporary variables used during computation
++
++  /** @type {Array} */
++  this._reachability = [];
++  /** @type {Array} */
++  this._processed = [];
++  /** @type {number} */
++  this._coreDistance = 0;
++  /** @type {Array} */
++  this._orderedList = [];
++
++  this._init(dataset, epsilon, minPts, distanceFunction);
++}
++
++/******************************************************************************/
++// pulic functions
++
++/**
++ * Start clustering
++ *
++ * @param {Array} dataset
++ * @returns {undefined}
++ * @access public
++ */
++OPTICS.prototype.run = function(dataset, epsilon, minPts, distanceFunction) {
++  this._init(dataset, epsilon, minPts, distanceFunction);
++
++  for (var pointId = 0, l = this.dataset.length; pointId < l; pointId++) {
++    if (this._processed[pointId] !== 1) {
++      this._processed[pointId] = 1;
++      this.clusters.push([pointId]);
++      var clusterId = this.clusters.length - 1;
++
++      this._orderedList.push(pointId);
++      var priorityQueue = new PriorityQueue(null, null, 'asc');
++      var neighbors = this._regionQuery(pointId);
++
++      // using priority queue assign elements to new cluster
++      if (this._distanceToCore(pointId) !== undefined) {
++        this._updateQueue(pointId, neighbors, priorityQueue);
++        this._expandCluster(clusterId, priorityQueue);
++      }
++    }
++  }
++
++  return this.clusters;
++};
++
++/**
++ * Generate reachability plot for all points
++ *
++ * @returns {array}
++ * @access public
++ */
++OPTICS.prototype.getReachabilityPlot = function() {
++  var reachabilityPlot = [];
++
++  for (var i = 0, l = this._orderedList.length; i < l; i++) {
++    var pointId = this._orderedList[i];
++    var distance = this._reachability[pointId];
++
++    reachabilityPlot.push([pointId, distance]);
++  }
++
++  return reachabilityPlot;
++};
++
++/******************************************************************************/
++// protected functions
++
++/**
++ * Set object properties
++ *
++ * @param {Array} dataset
++ * @param {number} epsilon
++ * @param {number} minPts
++ * @param {function} distance
++ * @returns {undefined}
++ * @access protected
++ */
++OPTICS.prototype._init = function(dataset, epsilon, minPts, distance) {
++
++  if (dataset) {
++
++    if (!(dataset instanceof Array)) {
++      throw Error('Dataset must be of type array, ' +
++        typeof dataset + ' given');
++    }
++
++    this.dataset = dataset;
++    this.clusters = [];
++    this._reachability = new Array(this.dataset.length);
++    this._processed = new Array(this.dataset.length);
++    this._coreDistance = 0;
++    this._orderedList = [];
++  }
++
++  if (epsilon) {
++    this.epsilon = epsilon;
++  }
++
++  if (minPts) {
++    this.minPts = minPts;
++  }
++
++  if (distance) {
++    this.distance = distance;
++  }
++};
++
++/**
++ * Update information in queue
++ *
++ * @param {number} pointId
++ * @param {Array} neighbors
++ * @param {PriorityQueue} queue
++ * @returns {undefined}
++ * @access protected
++ */
++OPTICS.prototype._updateQueue = function(pointId, neighbors, queue) {
++  var self = this;
++
++  this._coreDistance = this._distanceToCore(pointId);
++  neighbors.forEach(function(pointId2) {
++    if (self._processed[pointId2] === undefined) {
++      var dist = self.distance(self.dataset[pointId], self.dataset[pointId2]);
++      var newReachableDistance = Math.max(self._coreDistance, dist);
++
++      if (self._reachability[pointId2] === undefined) {
++        self._reachability[pointId2] = newReachableDistance;
++        queue.insert(pointId2, newReachableDistance);
++      } else {
++        if (newReachableDistance < self._reachability[pointId2]) {
++          self._reachability[pointId2] = newReachableDistance;
++          queue.remove(pointId2);
++          queue.insert(pointId2, newReachableDistance);
++        }
++      }
++    }
++  });
++};
++
++/**
++ * Expand cluster
++ *
++ * @param {number} clusterId
++ * @param {PriorityQueue} queue
++ * @returns {undefined}
++ * @access protected
++ */
++OPTICS.prototype._expandCluster = function(clusterId, queue) {
++  var queueElements = queue.getElements();
++
++  for (var p = 0, l = queueElements.length; p < l; p++) {
++    var pointId = queueElements[p];
++    if (this._processed[pointId] === undefined) {
++      var neighbors = this._regionQuery(pointId);
++      this._processed[pointId] = 1;
++
++      this.clusters[clusterId].push(pointId);
++      this._orderedList.push(pointId);
++
++      if (this._distanceToCore(pointId) !== undefined) {
++        this._updateQueue(pointId, neighbors, queue);
++        this._expandCluster(clusterId, queue);
++      }
++    }
++  }
++};
++
++/**
++ * Calculating distance to cluster core
++ *
++ * @param {number} pointId
++ * @returns {number}
++ * @access protected
++ */
++OPTICS.prototype._distanceToCore = function(pointId) {
++  var l = this.epsilon;
++  for (var coreDistCand = 0; coreDistCand < l; coreDistCand++) {
++    var neighbors = this._regionQuery(pointId, coreDistCand);
++    if (neighbors.length >= this.minPts) {
++      return coreDistCand;
++    }
++  }
++
++  return;
++};
++
++/**
++ * Find all neighbors around given point
++ *
++ * @param {number} pointId
++ * @param {number} epsilon
++ * @returns {Array}
++ * @access protected
++ */
++OPTICS.prototype._regionQuery = function(pointId, epsilon) {
++  epsilon = epsilon || this.epsilon;
++  var neighbors = [];
++
++  for (var id = 0, l = this.dataset.length; id < l; id++) {
++    if (this.distance(this.dataset[pointId], this.dataset[id]) < epsilon) {
++      neighbors.push(id);
++    }
++  }
++
++  return neighbors;
++};
++
++/******************************************************************************/
++// helpers
++
++/**
++ * Calculate euclidean distance in multidimensional space
++ *
++ * @param {Array} p
++ * @param {Array} q
++ * @returns {number}
++ * @access protected
++ */
++OPTICS.prototype._euclideanDistance = function(p, q) {
++  var sum = 0;
++  var i = Math.min(p.length, q.length);
++
++  while (i--) {
++    sum += (p[i] - q[i]) * (p[i] - q[i]);
++  }
++
++  return Math.sqrt(sum);
++};
++
++if (module.exports) {
++  module.exports = OPTICS;
++}
+diff --git a/.history/lib/OPTICS_20231204103119.cjs b/.history/lib/OPTICS_20231204103119.cjs
+new file mode 100644
+index 0000000000000000000000000000000000000000..9e7001179b9b6e4e61c6701114068f4bbc856dd4
+--- /dev/null
++++ b/.history/lib/OPTICS_20231204103119.cjs
+@@ -0,0 +1,269 @@
++
++/**
++ * @requires ./PriorityQueue.js
++ */
++
++if (typeof module !== 'undefined' && module.exports) {
++      var PriorityQueue = require('./PriorityQueue.cjs');
++}
++
++/**
++ * OPTICS - Ordering points to identify the clustering structure
++ *
++ * @author Lukasz Krawczyk <contact@lukaszkrawczyk.eu>
++ * @copyright MIT
++ */
++
++/**
++ * OPTICS class constructor
++ * @constructor
++ *
++ * @param {Array} dataset
++ * @param {number} epsilon
++ * @param {number} minPts
++ * @param {function} distanceFunction
++ * @returns {OPTICS}
++ */
++function OPTICS(dataset, epsilon, minPts, distanceFunction) {
++  /** @type {number} */
++  this.epsilon = 1;
++  /** @type {number} */
++  this.minPts = 1;
++  /** @type {function} */
++  this.distance = this._euclideanDistance;
++
++  // temporary variables used during computation
++
++  /** @type {Array} */
++  this._reachability = [];
++  /** @type {Array} */
++  this._processed = [];
++  /** @type {number} */
++  this._coreDistance = 0;
++  /** @type {Array} */
++  this._orderedList = [];
++
++  this._init(dataset, epsilon, minPts, distanceFunction);
++}
++
++/******************************************************************************/
++// pulic functions
++
++/**
++ * Start clustering
++ *
++ * @param {Array} dataset
++ * @returns {undefined}
++ * @access public
++ */
++OPTICS.prototype.run = function(dataset, epsilon, minPts, distanceFunction) {
++  this._init(dataset, epsilon, minPts, distanceFunction);
++
++  for (var pointId = 0, l = this.dataset.length; pointId < l; pointId++) {
++    if (this._processed[pointId] !== 1) {
++      this._processed[pointId] = 1;
++      this.clusters.push([pointId]);
++      var clusterId = this.clusters.length - 1;
++
++      this._orderedList.push(pointId);
++      var priorityQueue = new PriorityQueue(null, null, 'asc');
++      var neighbors = this._regionQuery(pointId);
++
++      // using priority queue assign elements to new cluster
++      if (this._distanceToCore(pointId) !== undefined) {
++        this._updateQueue(pointId, neighbors, priorityQueue);
++        this._expandCluster(clusterId, priorityQueue);
++      }
++    }
++  }
++
++  return this.clusters;
++};
++
++/**
++ * Generate reachability plot for all points
++ *
++ * @returns {array}
++ * @access public
++ */
++OPTICS.prototype.getReachabilityPlot = function() {
++  var reachabilityPlot = [];
++
++  for (var i = 0, l = this._orderedList.length; i < l; i++) {
++    var pointId = this._orderedList[i];
++    var distance = this._reachability[pointId];
++
++    reachabilityPlot.push([pointId, distance]);
++  }
++
++  return reachabilityPlot;
++};
++
++/******************************************************************************/
++// protected functions
++
++/**
++ * Set object properties
++ *
++ * @param {Array} dataset
++ * @param {number} epsilon
++ * @param {number} minPts
++ * @param {function} distance
++ * @returns {undefined}
++ * @access protected
++ */
++OPTICS.prototype._init = function(dataset, epsilon, minPts, distance) {
++
++  if (dataset) {
++
++    if (!(dataset instanceof Array)) {
++      throw Error('Dataset must be of type array, ' +
++        typeof dataset + ' given');
++    }
++
++    this.dataset = dataset;
++    this.clusters = [];
++    this._reachability = new Array(this.dataset.length);
++    this._processed = new Array(this.dataset.length);
++    this._coreDistance = 0;
++    this._orderedList = [];
++  }
++
++  if (epsilon) {
++    this.epsilon = epsilon;
++  }
++
++  if (minPts) {
++    this.minPts = minPts;
++  }
++
++  if (distance) {
++    this.distance = distance;
++  }
++};
++
++/**
++ * Update information in queue
++ *
++ * @param {number} pointId
++ * @param {Array} neighbors
++ * @param {PriorityQueue} queue
++ * @returns {undefined}
++ * @access protected
++ */
++OPTICS.prototype._updateQueue = function(pointId, neighbors, queue) {
++  var self = this;
++
++  this._coreDistance = this._distanceToCore(pointId);
++  neighbors.forEach(function(pointId2) {
++    if (self._processed[pointId2] === undefined) {
++      var dist = self.distance(self.dataset[pointId], self.dataset[pointId2]);
++      var newReachableDistance = Math.max(self._coreDistance, dist);
++
++      if (self._reachability[pointId2] === undefined) {
++        self._reachability[pointId2] = newReachableDistance;
++        queue.insert(pointId2, newReachableDistance);
++      } else {
++        if (newReachableDistance < self._reachability[pointId2]) {
++          self._reachability[pointId2] = newReachableDistance;
++          queue.remove(pointId2);
++          queue.insert(pointId2, newReachableDistance);
++        }
++      }
++    }
++  });
++};
++
++/**
++ * Expand cluster
++ *
++ * @param {number} clusterId
++ * @param {PriorityQueue} queue
++ * @returns {undefined}
++ * @access protected
++ */
++OPTICS.prototype._expandCluster = function(clusterId, queue) {
++  var queueElements = queue.getElements();
++
++  for (var p = 0, l = queueElements.length; p < l; p++) {
++    var pointId = queueElements[p];
++    if (this._processed[pointId] === undefined) {
++      var neighbors = this._regionQuery(pointId);
++      this._processed[pointId] = 1;
++
++      this.clusters[clusterId].push(pointId);
++      this._orderedList.push(pointId);
++
++      if (this._distanceToCore(pointId) !== undefined) {
++        this._updateQueue(pointId, neighbors, queue);
++        this._expandCluster(clusterId, queue);
++      }
++    }
++  }
++};
++
++/**
++ * Calculating distance to cluster core
++ *
++ * @param {number} pointId
++ * @returns {number}
++ * @access protected
++ */
++OPTICS.prototype._distanceToCore = function(pointId) {
++  var l = this.epsilon;
++  for (var coreDistCand = 0; coreDistCand < l; coreDistCand++) {
++    var neighbors = this._regionQuery(pointId, coreDistCand);
++    if (neighbors.length >= this.minPts) {
++      return coreDistCand;
++    }
++  }
++
++  return;
++};
++
++/**
++ * Find all neighbors around given point
++ *
++ * @param {number} pointId
++ * @param {number} epsilon
++ * @returns {Array}
++ * @access protected
++ */
++OPTICS.prototype._regionQuery = function(pointId, epsilon) {
++  epsilon = epsilon || this.epsilon;
++  var neighbors = [];
++
++  for (var id = 0, l = this.dataset.length; id < l; id++) {
++    if (this.distance(this.dataset[pointId], this.dataset[id]) < epsilon) {
++      neighbors.push(id);
++    }
++  }
++
++  return neighbors;
++};
++
++/******************************************************************************/
++// helpers
++
++/**
++ * Calculate euclidean distance in multidimensional space
++ *
++ * @param {Array} p
++ * @param {Array} q
++ * @returns {number}
++ * @access protected
++ */
++OPTICS.prototype._euclideanDistance = function(p, q) {
++  var sum = 0;
++  var i = Math.min(p.length, q.length);
++
++  while (i--) {
++    sum += (p[i] - q[i]) * (p[i] - q[i]);
++  }
++
++  return Math.sqrt(sum);
++};
++
++if (module.exports) {
++  module.exports = OPTICS;
++}
+diff --git a/lib/PriorityQueue.js b/.history/lib/PriorityQueue_20231204102613.cjs
+similarity index 100%
+rename from lib/PriorityQueue.js
+rename to .history/lib/PriorityQueue_20231204102613.cjs
+diff --git a/.history/lib/PriorityQueue_20231204103000.cjs b/.history/lib/PriorityQueue_20231204103000.cjs
+new file mode 100644
+index 0000000000000000000000000000000000000000..23be5a7061c311446a76fca1e17fd68539738648
+--- /dev/null
++++ b/.history/lib/PriorityQueue_20231204103000.cjs
+@@ -0,0 +1,180 @@
++/**
++ * PriorityQueue
++ * Elements in this queue are sorted according to their value
++ *
++ * @author Lukasz Krawczyk <contact@lukaszkrawczyk.eu>
++ * @copyright MIT
++ */
++
++/**
++ * PriorityQueue class construcotr
++ * @constructor
++ *
++ * @example
++ * queue: [1,2,3,4]
++ * priorities: [4,1,2,3]
++ * > result = [1,4,2,3]
++ *
++ * @param {Array} elements
++ * @param {Array} priorities
++ * @param {string} sorting - asc / desc
++ * @returns {PriorityQueue}
++ */
++function PriorityQueue(elements, priorities, sorting) {
++  /** @type {Array} */
++  this._queue = [];
++  /** @type {Array} */
++  this._priorities = [];
++  /** @type {string} */
++  this._sorting = 'desc';
++
++  this._init(elements, priorities, sorting);
++};
++
++/**
++ * Insert element
++ *
++ * @param {Object} ele
++ * @param {Object} priority
++ * @returns {undefined}
++ * @access public
++ */
++PriorityQueue.prototype.insert = function(ele, priority) {
++  var indexToInsert = this._queue.length;
++  var index = indexToInsert;
++
++  while (index--) {
++    var priority2 = this._priorities[index];
++    if (this._sorting === 'desc') {
++      if (priority > priority2) {
++        indexToInsert = index;
++      }
++    } else {
++      if (priority < priority2) {
++        indexToInsert = index;
++      }
++    }
++  }
++
++  this._insertAt(ele, priority, indexToInsert);
++};
++
++/**
++ * Remove element
++ *
++ * @param {Object} ele
++ * @returns {undefined}
++ * @access public
++ */
++PriorityQueue.prototype.remove = function(ele) {
++  var index = this._queue.length;
++
++  while (index--) {
++    var ele2 = this._queue[index];
++    if (ele === ele2) {
++      this._queue.splice(index, 1);
++      this._priorities.splice(index, 1);
++      break;
++    }
++  }
++};
++
++/**
++ * For each loop wrapper
++ *
++ * @param {function} func
++ * @returs {undefined}
++ * @access public
++ */
++PriorityQueue.prototype.forEach = function(func) {
++  this._queue.forEach(func);
++};
++
++/**
++ * @returns {Array}
++ * @access public
++ */
++PriorityQueue.prototype.getElements = function() {
++  return this._queue;
++};
++
++/**
++ * @param {number} index
++ * @returns {Object}
++ * @access public
++ */
++PriorityQueue.prototype.getElementPriority = function(index) {
++  return this._priorities[index];
++};
++
++/**
++ * @returns {Array}
++ * @access public
++ */
++PriorityQueue.prototype.getPriorities = function() {
++  return this._priorities;
++};
++
++/**
++ * @returns {Array}
++ * @access public
++ */
++PriorityQueue.prototype.getElementsWithPriorities = function() {
++  var result = [];
++
++  for (var i = 0, l = this._queue.length; i < l; i++) {
++    result.push([this._queue[i], this._priorities[i]]);
++  }
++
++  return result;
++};
++
++/**
++ * Set object properties
++ *
++ * @param {Array} elements
++ * @param {Array} priorities
++ * @returns {undefined}
++ * @access protected
++ */
++PriorityQueue.prototype._init = function(elements, priorities, sorting) {
++
++  if (elements && priorities) {
++    this._queue = [];
++    this._priorities = [];
++
++    if (elements.length !== priorities.length) {
++      throw new Error('Arrays must have the same length');
++    }
++
++    for (var i = 0; i < elements.length; i++) {
++      this.insert(elements[i], priorities[i]);
++    }
++  }
++
++  if (sorting) {
++    this._sorting = sorting;
++  }
++};
++
++/**
++ * Insert element at given position
++ *
++ * @param {Object} ele
++ * @param {number} index
++ * @returns {undefined}
++ * @access protected
++ */
++PriorityQueue.prototype._insertAt = function(ele, priority, index) {
++  if (this._queue.length === index) {
++    this._queue.push(ele);
++    this._priorities.push(priority);
++  } else {
++    this._queue.splice(index, 0, ele);
++    this._priorities.splice(index, 0, priority);
++  }
++};
++
++if (module.exports) {
++  module.exports = PriorityQueue;
++}
+diff --git a/.history/lib/Utils_20231204102613.js b/.history/lib/Utils_20231204102613.js
+new file mode 100644
+index 0000000000000000000000000000000000000000..d344528504dd03dc7bc2dfedcf5aeeda0892b3d0
+--- /dev/null
++++ b/.history/lib/Utils_20231204102613.js
+@@ -0,0 +1,37 @@
++function Utils() {
++
++}
++
++
++KMEANS.prototype.getRandomVector = function(extremes) {
++  var maxDim = extremes.length;
++  var x = [];
++  var r = 0;
++  
++  // calculate radius of n-sphere which covers all points in dataset
++  var nSphereRadius = 0;
++  for (var i = 0; i < maxDim; i++) {
++    var extreme = extremes[i];
++    var er = Math.max(extreme.center - extreme.min, extreme.center - extreme.max);
++    if (er > nSphereRadius)
++      nSphereRadius = er;
++  }
++  
++  for (var i = 0; i < maxDim; i++) {
++    var val = (Math.random() * 2) - 1;
++    // adjust to radius of n-sphere
++    x.push(val);
++    r += val * val;
++  }
++      
++  r = Math.sqrt(r);
++  
++  for (var i = 0; i < maxDim; i++) {
++    x[i] /= r;
++    // resize to fit n-sphere
++    x[i] *= nSphereRadius;
++    x[i] += extremes[i].center;
++  }
++  
++  return x;
++}
+diff --git a/.history/lib/Utils_20231204103005.js b/.history/lib/Utils_20231204103005.js
+new file mode 100644
+index 0000000000000000000000000000000000000000..d344528504dd03dc7bc2dfedcf5aeeda0892b3d0
+--- /dev/null
++++ b/.history/lib/Utils_20231204103005.js
+@@ -0,0 +1,37 @@
++function Utils() {
++
++}
++
++
++KMEANS.prototype.getRandomVector = function(extremes) {
++  var maxDim = extremes.length;
++  var x = [];
++  var r = 0;
++  
++  // calculate radius of n-sphere which covers all points in dataset
++  var nSphereRadius = 0;
++  for (var i = 0; i < maxDim; i++) {
++    var extreme = extremes[i];
++    var er = Math.max(extreme.center - extreme.min, extreme.center - extreme.max);
++    if (er > nSphereRadius)
++      nSphereRadius = er;
++  }
++  
++  for (var i = 0; i < maxDim; i++) {
++    var val = (Math.random() * 2) - 1;
++    // adjust to radius of n-sphere
++    x.push(val);
++    r += val * val;
++  }
++      
++  r = Math.sqrt(r);
++  
++  for (var i = 0; i < maxDim; i++) {
++    x[i] /= r;
++    // resize to fit n-sphere
++    x[i] *= nSphereRadius;
++    x[i] += extremes[i].center;
++  }
++  
++  return x;
++}
+diff --git a/lib/index.js b/.history/lib/index_20231204102613.cjs
+similarity index 100%
+rename from lib/index.js
+rename to .history/lib/index_20231204102613.cjs
+diff --git a/.history/lib/index_20231204102724.cjs b/.history/lib/index_20231204102724.cjs
+new file mode 100644
+index 0000000000000000000000000000000000000000..00ad0c1f9495f4c73c8fd8b5ec54331ccd1fd03e
+--- /dev/null
++++ b/.history/lib/index_20231204102724.cjs
+@@ -0,0 +1,9 @@
++
++if (typeof module !== 'undefined' && module.exports) {
++    module.exports = {
++      DBSCAN: require('./DBSCAN.cjs'),
++      KMEANS: require('./KMEANS.cjs'),
++      OPTICS: require('./OPTICS.cjs'),
++      PriorityQueue: require('./PriorityQueue.cjs')
++    };
++}
+diff --git a/.history/lib/index_20231204102726.cjs b/.history/lib/index_20231204102726.cjs
+new file mode 100644
+index 0000000000000000000000000000000000000000..00ad0c1f9495f4c73c8fd8b5ec54331ccd1fd03e
+--- /dev/null
++++ b/.history/lib/index_20231204102726.cjs
+@@ -0,0 +1,9 @@
++
++if (typeof module !== 'undefined' && module.exports) {
++    module.exports = {
++      DBSCAN: require('./DBSCAN.cjs'),
++      KMEANS: require('./KMEANS.cjs'),
++      OPTICS: require('./OPTICS.cjs'),
++      PriorityQueue: require('./PriorityQueue.cjs')
++    };
++}
+diff --git a/.history/lib/index_20231204102937.cjs b/.history/lib/index_20231204102937.cjs
+new file mode 100644
+index 0000000000000000000000000000000000000000..4a67e20e3aa3b982efd13ff446070f53d64b5a86
+--- /dev/null
++++ b/.history/lib/index_20231204102937.cjs
+@@ -0,0 +1,9 @@
++
++if (module.exports) {
++    module.exports = {
++      DBSCAN: require('./DBSCAN.cjs'),
++      KMEANS: require('./KMEANS.cjs'),
++      OPTICS: require('./OPTICS.cjs'),
++      PriorityQueue: require('./PriorityQueue.cjs')
++    };
++}
+diff --git a/.history/package_20231204102613.json b/.history/package_20231204102613.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..895423062b3839b5b9d6791b28fe0cb259f8f38b
+--- /dev/null
++++ b/.history/package_20231204102613.json
+@@ -0,0 +1,46 @@
++{
++  "name": "density-clustering",
++  "version": "1.3.0",
++  "description": "Density Based Clustering in JavaScript",
++  "main": "./lib/index.js",
++  "directories": {
++    "example": "example",
++    "test": "test"
++  },
++  "dependencies": {},
++  "devDependencies": {
++    "mocha": "^2.2.4",
++    "should": "^5.2.0",
++
++    "gulp": "^3.9.0",
++    "gulp-concat": "^2.5.2",
++    "gulp-uglify": "^1.2.0",
++    "gulp-resolve-dependencies": "^2.1.0"
++  },
++  "scripts": {
++    "test": "mocha -R spec"
++  },
++  "repository": {
++    "type": "git",
++    "url": "https://github.com/LukaszKrawczyk/density-clustering.git"
++  },
++  "keywords": [
++    "DBSCAN",
++    "OPTICS",
++    "K-Means",
++    "clustering",
++    "cluster",
++    "analysis",
++    "machine",
++    "learning",
++    "statistics"
++  ],
++  "author": {
++    "name": "Lukasz Krawczyk"
++  },
++  "license": "MIT",
++  "bugs": {
++    "url": "https://github.com/LukaszKrawczyk/density-clustering/issues"
++  },
++  "homepage": "https://github.com/LukaszKrawczyk/density-clustering"
++}
+diff --git a/.history/package_20231204102639.json b/.history/package_20231204102639.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..d19e7af6bc3f391679e33152d490aa183627512c
+--- /dev/null
++++ b/.history/package_20231204102639.json
+@@ -0,0 +1,46 @@
++{
++  "name": "density-clustering",
++  "version": "1.3.0",
++  "description": "Density Based Clustering in JavaScript",
++  "main": "./lib/index.cjs",
++  "directories": {
++    "example": "example",
++    "test": "test"
++  },
++  "dependencies": {},
++  "devDependencies": {
++    "mocha": "^2.2.4",
++    "should": "^5.2.0",
++
++    "gulp": "^3.9.0",
++    "gulp-concat": "^2.5.2",
++    "gulp-uglify": "^1.2.0",
++    "gulp-resolve-dependencies": "^2.1.0"
++  },
++  "scripts": {
++    "test": "mocha -R spec"
++  },
++  "repository": {
++    "type": "git",
++    "url": "https://github.com/LukaszKrawczyk/density-clustering.git"
++  },
++  "keywords": [
++    "DBSCAN",
++    "OPTICS",
++    "K-Means",
++    "clustering",
++    "cluster",
++    "analysis",
++    "machine",
++    "learning",
++    "statistics"
++  ],
++  "author": {
++    "name": "Lukasz Krawczyk"
++  },
++  "license": "MIT",
++  "bugs": {
++    "url": "https://github.com/LukaszKrawczyk/density-clustering/issues"
++  },
++  "homepage": "https://github.com/LukaszKrawczyk/density-clustering"
++}
+diff --git a/.history/package_20231204102841.json b/.history/package_20231204102841.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..1cef26060cf1bd3850f93db6216429224fba7dd5
+--- /dev/null
++++ b/.history/package_20231204102841.json
+@@ -0,0 +1,47 @@
++{
++  "name": "density-clustering",
++  "version": "1.3.0",
++  "description": "Density Based Clustering in JavaScript",
++  "main": "./lib/index.cjs",
++  "type": "commonjs",
++  "directories": {
++    "example": "example",
++    "test": "test"
++  },
++  "dependencies": {},
++  "devDependencies": {
++    "mocha": "^2.2.4",
++    "should": "^5.2.0",
++
++    "gulp": "^3.9.0",
++    "gulp-concat": "^2.5.2",
++    "gulp-uglify": "^1.2.0",
++    "gulp-resolve-dependencies": "^2.1.0"
++  },
++  "scripts": {
++    "test": "mocha -R spec"
++  },
++  "repository": {
++    "type": "git",
++    "url": "https://github.com/LukaszKrawczyk/density-clustering.git"
++  },
++  "keywords": [
++    "DBSCAN",
++    "OPTICS",
++    "K-Means",
++    "clustering",
++    "cluster",
++    "analysis",
++    "machine",
++    "learning",
++    "statistics"
++  ],
++  "author": {
++    "name": "Lukasz Krawczyk"
++  },
++  "license": "MIT",
++  "bugs": {
++    "url": "https://github.com/LukaszKrawczyk/density-clustering/issues"
++  },
++  "homepage": "https://github.com/LukaszKrawczyk/density-clustering"
++}
+diff --git a/lib/DBSCAN.cjs b/lib/DBSCAN.cjs
+new file mode 100644
+index 0000000000000000000000000000000000000000..54f8c4438faba26ebafd22ec9d7a228f6dfdef94
+--- /dev/null
++++ b/lib/DBSCAN.cjs
+@@ -0,0 +1,236 @@
++/**
++ * DBSCAN - Density based clustering
++ *
++ * @author Lukasz Krawczyk <contact@lukaszkrawczyk.eu>
++ * @copyright MIT
++ */
++
++/**
++ * DBSCAN class construcotr
++ * @constructor
++ *
++ * @param {Array} dataset
++ * @param {number} epsilon
++ * @param {number} minPts
++ * @param {function} distanceFunction
++ * @returns {DBSCAN}
++ */
++function DBSCAN(dataset, epsilon, minPts, distanceFunction) {
++  /** @type {Array} */
++  this.dataset = [];
++  /** @type {number} */
++  this.epsilon = 1;
++  /** @type {number} */
++  this.minPts = 2;
++  /** @type {function} */
++  this.distance = this._euclideanDistance;
++  /** @type {Array} */
++  this.clusters = [];
++  /** @type {Array} */
++  this.noise = [];
++
++  // temporary variables used during computation
++
++  /** @type {Array} */
++  this._visited = [];
++  /** @type {Array} */
++  this._assigned = [];
++  /** @type {number} */
++  this._datasetLength = 0;
++
++  this._init(dataset, epsilon, minPts, distanceFunction);
++};
++
++/******************************************************************************/
++// public functions
++
++/**
++ * Start clustering
++ *
++ * @param {Array} dataset
++ * @param {number} epsilon
++ * @param {number} minPts
++ * @param {function} distanceFunction
++ * @returns {undefined}
++ * @access public
++ */
++DBSCAN.prototype.run = function(dataset, epsilon, minPts, distanceFunction) {
++  this._init(dataset, epsilon, minPts, distanceFunction);
++
++  for (var pointId = 0; pointId < this._datasetLength; pointId++) {
++    // if point is not visited, check if it forms a cluster
++    if (this._visited[pointId] !== 1) {
++      this._visited[pointId] = 1;
++
++      // if closest neighborhood is too small to form a cluster, mark as noise
++      var neighbors = this._regionQuery(pointId);
++
++      if (neighbors.length < this.minPts) {
++        this.noise.push(pointId);
++      } else {
++        // create new cluster and add point
++        var clusterId = this.clusters.length;
++        this.clusters.push([]);
++        this._addToCluster(pointId, clusterId);
++
++        this._expandCluster(clusterId, neighbors);
++      }
++    }
++  }
++
++  return this.clusters;
++};
++
++/******************************************************************************/
++// protected functions
++
++/**
++ * Set object properties
++ *
++ * @param {Array} dataset
++ * @param {number} epsilon
++ * @param {number} minPts
++ * @param {function} distance
++ * @returns {undefined}
++ * @access protected
++ */
++DBSCAN.prototype._init = function(dataset, epsilon, minPts, distance) {
++
++  if (dataset) {
++
++    if (!(dataset instanceof Array)) {
++      throw Error('Dataset must be of type array, ' +
++        typeof dataset + ' given');
++    }
++
++    this.dataset = dataset;
++    this.clusters = [];
++    this.noise = [];
++
++    this._datasetLength = dataset.length;
++    this._visited = new Array(this._datasetLength);
++    this._assigned = new Array(this._datasetLength);
++  }
++
++  if (epsilon) {
++    this.epsilon = epsilon;
++  }
++
++  if (minPts) {
++    this.minPts = minPts;
++  }
++
++  if (distance) {
++    this.distance = distance;
++  }
++};
++
++/**
++ * Expand cluster to closest points of given neighborhood
++ *
++ * @param {number} clusterId
++ * @param {Array} neighbors
++ * @returns {undefined}
++ * @access protected
++ */
++DBSCAN.prototype._expandCluster = function(clusterId, neighbors) {
++
++  /**
++   * It's very important to calculate length of neighbors array each time,
++   * as the number of elements changes over time
++   */
++  for (var i = 0; i < neighbors.length; i++) {
++    var pointId2 = neighbors[i];
++
++    if (this._visited[pointId2] !== 1) {
++      this._visited[pointId2] = 1;
++      var neighbors2 = this._regionQuery(pointId2);
++
++      if (neighbors2.length >= this.minPts) {
++        neighbors = this._mergeArrays(neighbors, neighbors2);
++      }
++    }
++
++    // add to cluster
++    if (this._assigned[pointId2] !== 1) {
++      this._addToCluster(pointId2, clusterId);
++    }
++  }
++};
++
++/**
++ * Add new point to cluster
++ *
++ * @param {number} pointId
++ * @param {number} clusterId
++ */
++DBSCAN.prototype._addToCluster = function(pointId, clusterId) {
++  this.clusters[clusterId].push(pointId);
++  this._assigned[pointId] = 1;
++};
++
++/**
++ * Find all neighbors around given point
++ *
++ * @param {number} pointId,
++ * @param {number} epsilon
++ * @returns {Array}
++ * @access protected
++ */
++DBSCAN.prototype._regionQuery = function(pointId) {
++  var neighbors = [];
++
++  for (var id = 0; id < this._datasetLength; id++) {
++    var dist = this.distance(this.dataset[pointId], this.dataset[id]);
++    if (dist < this.epsilon) {
++      neighbors.push(id);
++    }
++  }
++
++  return neighbors;
++};
++
++/******************************************************************************/
++// helpers
++
++/**
++ * @param {Array} a
++ * @param {Array} b
++ * @returns {Array}
++ * @access protected
++ */
++DBSCAN.prototype._mergeArrays = function(a, b) {
++  var len = b.length;
++
++  for (var i = 0; i < len; i++) {
++    var P = b[i];
++    if (a.indexOf(P) < 0) {
++      a.push(P);
++    }
++  }
++
++  return a;
++};
++
++/**
++ * Calculate euclidean distance in multidimensional space
++ *
++ * @param {Array} p
++ * @param {Array} q
++ * @returns {number}
++ * @access protected
++ */
++DBSCAN.prototype._euclideanDistance = function(p, q) {
++  var sum = 0;
++  var i = Math.min(p.length, q.length);
++
++  while (i--) {
++    sum += (p[i] - q[i]) * (p[i] - q[i]);
++  }
++
++  return Math.sqrt(sum);
++};
++
++if (module.exports) {
++  module.exports = DBSCAN;
++}
+diff --git a/lib/KMEANS.cjs b/lib/KMEANS.cjs
+new file mode 100644
+index 0000000000000000000000000000000000000000..a6fab6e802b5ce7c9f7f8ac4183faff29181b22d
+--- /dev/null
++++ b/lib/KMEANS.cjs
 @@ -0,0 +1,213 @@
 +﻿/**
 + * KMEANS clustering
@@ -433,59 +1961,496 @@ index 0000000000000000000000000000000000000000..903864be329bf7577c14b9cf9b9d7588
 +  return Math.sqrt(sum);
 +};
 +
-+if (module && module.exports) {
++if (module.exports) {
 +  module.exports = KMEANS;
 +}
-diff --git a/.history/lib/index_20231204093846.js b/.history/lib/index_20231204093846.js
+diff --git a/lib/OPTICS.cjs b/lib/OPTICS.cjs
 new file mode 100644
-index 0000000000000000000000000000000000000000..a9c5d52a2d5dde2a22ba5f03e54abf3b68f796d8
+index 0000000000000000000000000000000000000000..9e7001179b9b6e4e61c6701114068f4bbc856dd4
 --- /dev/null
-+++ b/.history/lib/index_20231204093846.js
-@@ -0,0 +1,9 @@
++++ b/lib/OPTICS.cjs
+@@ -0,0 +1,269 @@
++
++/**
++ * @requires ./PriorityQueue.js
++ */
 +
 +if (typeof module !== 'undefined' && module.exports) {
-+    module.exports = {
-+      DBSCAN: require('./DBSCAN.js'),
-+      KMEANS: require('./KMEANS.js'),
-+      OPTICS: require('./OPTICS.js'),
-+      PriorityQueue: require('./PriorityQueue.js')
-+    };
++      var PriorityQueue = require('./PriorityQueue.cjs');
 +}
-diff --git a/.history/lib/index_20231204093916.js b/.history/lib/index_20231204093916.js
++
++/**
++ * OPTICS - Ordering points to identify the clustering structure
++ *
++ * @author Lukasz Krawczyk <contact@lukaszkrawczyk.eu>
++ * @copyright MIT
++ */
++
++/**
++ * OPTICS class constructor
++ * @constructor
++ *
++ * @param {Array} dataset
++ * @param {number} epsilon
++ * @param {number} minPts
++ * @param {function} distanceFunction
++ * @returns {OPTICS}
++ */
++function OPTICS(dataset, epsilon, minPts, distanceFunction) {
++  /** @type {number} */
++  this.epsilon = 1;
++  /** @type {number} */
++  this.minPts = 1;
++  /** @type {function} */
++  this.distance = this._euclideanDistance;
++
++  // temporary variables used during computation
++
++  /** @type {Array} */
++  this._reachability = [];
++  /** @type {Array} */
++  this._processed = [];
++  /** @type {number} */
++  this._coreDistance = 0;
++  /** @type {Array} */
++  this._orderedList = [];
++
++  this._init(dataset, epsilon, minPts, distanceFunction);
++}
++
++/******************************************************************************/
++// pulic functions
++
++/**
++ * Start clustering
++ *
++ * @param {Array} dataset
++ * @returns {undefined}
++ * @access public
++ */
++OPTICS.prototype.run = function(dataset, epsilon, minPts, distanceFunction) {
++  this._init(dataset, epsilon, minPts, distanceFunction);
++
++  for (var pointId = 0, l = this.dataset.length; pointId < l; pointId++) {
++    if (this._processed[pointId] !== 1) {
++      this._processed[pointId] = 1;
++      this.clusters.push([pointId]);
++      var clusterId = this.clusters.length - 1;
++
++      this._orderedList.push(pointId);
++      var priorityQueue = new PriorityQueue(null, null, 'asc');
++      var neighbors = this._regionQuery(pointId);
++
++      // using priority queue assign elements to new cluster
++      if (this._distanceToCore(pointId) !== undefined) {
++        this._updateQueue(pointId, neighbors, priorityQueue);
++        this._expandCluster(clusterId, priorityQueue);
++      }
++    }
++  }
++
++  return this.clusters;
++};
++
++/**
++ * Generate reachability plot for all points
++ *
++ * @returns {array}
++ * @access public
++ */
++OPTICS.prototype.getReachabilityPlot = function() {
++  var reachabilityPlot = [];
++
++  for (var i = 0, l = this._orderedList.length; i < l; i++) {
++    var pointId = this._orderedList[i];
++    var distance = this._reachability[pointId];
++
++    reachabilityPlot.push([pointId, distance]);
++  }
++
++  return reachabilityPlot;
++};
++
++/******************************************************************************/
++// protected functions
++
++/**
++ * Set object properties
++ *
++ * @param {Array} dataset
++ * @param {number} epsilon
++ * @param {number} minPts
++ * @param {function} distance
++ * @returns {undefined}
++ * @access protected
++ */
++OPTICS.prototype._init = function(dataset, epsilon, minPts, distance) {
++
++  if (dataset) {
++
++    if (!(dataset instanceof Array)) {
++      throw Error('Dataset must be of type array, ' +
++        typeof dataset + ' given');
++    }
++
++    this.dataset = dataset;
++    this.clusters = [];
++    this._reachability = new Array(this.dataset.length);
++    this._processed = new Array(this.dataset.length);
++    this._coreDistance = 0;
++    this._orderedList = [];
++  }
++
++  if (epsilon) {
++    this.epsilon = epsilon;
++  }
++
++  if (minPts) {
++    this.minPts = minPts;
++  }
++
++  if (distance) {
++    this.distance = distance;
++  }
++};
++
++/**
++ * Update information in queue
++ *
++ * @param {number} pointId
++ * @param {Array} neighbors
++ * @param {PriorityQueue} queue
++ * @returns {undefined}
++ * @access protected
++ */
++OPTICS.prototype._updateQueue = function(pointId, neighbors, queue) {
++  var self = this;
++
++  this._coreDistance = this._distanceToCore(pointId);
++  neighbors.forEach(function(pointId2) {
++    if (self._processed[pointId2] === undefined) {
++      var dist = self.distance(self.dataset[pointId], self.dataset[pointId2]);
++      var newReachableDistance = Math.max(self._coreDistance, dist);
++
++      if (self._reachability[pointId2] === undefined) {
++        self._reachability[pointId2] = newReachableDistance;
++        queue.insert(pointId2, newReachableDistance);
++      } else {
++        if (newReachableDistance < self._reachability[pointId2]) {
++          self._reachability[pointId2] = newReachableDistance;
++          queue.remove(pointId2);
++          queue.insert(pointId2, newReachableDistance);
++        }
++      }
++    }
++  });
++};
++
++/**
++ * Expand cluster
++ *
++ * @param {number} clusterId
++ * @param {PriorityQueue} queue
++ * @returns {undefined}
++ * @access protected
++ */
++OPTICS.prototype._expandCluster = function(clusterId, queue) {
++  var queueElements = queue.getElements();
++
++  for (var p = 0, l = queueElements.length; p < l; p++) {
++    var pointId = queueElements[p];
++    if (this._processed[pointId] === undefined) {
++      var neighbors = this._regionQuery(pointId);
++      this._processed[pointId] = 1;
++
++      this.clusters[clusterId].push(pointId);
++      this._orderedList.push(pointId);
++
++      if (this._distanceToCore(pointId) !== undefined) {
++        this._updateQueue(pointId, neighbors, queue);
++        this._expandCluster(clusterId, queue);
++      }
++    }
++  }
++};
++
++/**
++ * Calculating distance to cluster core
++ *
++ * @param {number} pointId
++ * @returns {number}
++ * @access protected
++ */
++OPTICS.prototype._distanceToCore = function(pointId) {
++  var l = this.epsilon;
++  for (var coreDistCand = 0; coreDistCand < l; coreDistCand++) {
++    var neighbors = this._regionQuery(pointId, coreDistCand);
++    if (neighbors.length >= this.minPts) {
++      return coreDistCand;
++    }
++  }
++
++  return;
++};
++
++/**
++ * Find all neighbors around given point
++ *
++ * @param {number} pointId
++ * @param {number} epsilon
++ * @returns {Array}
++ * @access protected
++ */
++OPTICS.prototype._regionQuery = function(pointId, epsilon) {
++  epsilon = epsilon || this.epsilon;
++  var neighbors = [];
++
++  for (var id = 0, l = this.dataset.length; id < l; id++) {
++    if (this.distance(this.dataset[pointId], this.dataset[id]) < epsilon) {
++      neighbors.push(id);
++    }
++  }
++
++  return neighbors;
++};
++
++/******************************************************************************/
++// helpers
++
++/**
++ * Calculate euclidean distance in multidimensional space
++ *
++ * @param {Array} p
++ * @param {Array} q
++ * @returns {number}
++ * @access protected
++ */
++OPTICS.prototype._euclideanDistance = function(p, q) {
++  var sum = 0;
++  var i = Math.min(p.length, q.length);
++
++  while (i--) {
++    sum += (p[i] - q[i]) * (p[i] - q[i]);
++  }
++
++  return Math.sqrt(sum);
++};
++
++if (module.exports) {
++  module.exports = OPTICS;
++}
+diff --git a/lib/PriorityQueue.cjs b/lib/PriorityQueue.cjs
 new file mode 100644
-index 0000000000000000000000000000000000000000..d2ecff40be844f1e167971090cf45a70a5a5fdc2
+index 0000000000000000000000000000000000000000..23be5a7061c311446a76fca1e17fd68539738648
 --- /dev/null
-+++ b/.history/lib/index_20231204093916.js
++++ b/lib/PriorityQueue.cjs
+@@ -0,0 +1,180 @@
++/**
++ * PriorityQueue
++ * Elements in this queue are sorted according to their value
++ *
++ * @author Lukasz Krawczyk <contact@lukaszkrawczyk.eu>
++ * @copyright MIT
++ */
++
++/**
++ * PriorityQueue class construcotr
++ * @constructor
++ *
++ * @example
++ * queue: [1,2,3,4]
++ * priorities: [4,1,2,3]
++ * > result = [1,4,2,3]
++ *
++ * @param {Array} elements
++ * @param {Array} priorities
++ * @param {string} sorting - asc / desc
++ * @returns {PriorityQueue}
++ */
++function PriorityQueue(elements, priorities, sorting) {
++  /** @type {Array} */
++  this._queue = [];
++  /** @type {Array} */
++  this._priorities = [];
++  /** @type {string} */
++  this._sorting = 'desc';
++
++  this._init(elements, priorities, sorting);
++};
++
++/**
++ * Insert element
++ *
++ * @param {Object} ele
++ * @param {Object} priority
++ * @returns {undefined}
++ * @access public
++ */
++PriorityQueue.prototype.insert = function(ele, priority) {
++  var indexToInsert = this._queue.length;
++  var index = indexToInsert;
++
++  while (index--) {
++    var priority2 = this._priorities[index];
++    if (this._sorting === 'desc') {
++      if (priority > priority2) {
++        indexToInsert = index;
++      }
++    } else {
++      if (priority < priority2) {
++        indexToInsert = index;
++      }
++    }
++  }
++
++  this._insertAt(ele, priority, indexToInsert);
++};
++
++/**
++ * Remove element
++ *
++ * @param {Object} ele
++ * @returns {undefined}
++ * @access public
++ */
++PriorityQueue.prototype.remove = function(ele) {
++  var index = this._queue.length;
++
++  while (index--) {
++    var ele2 = this._queue[index];
++    if (ele === ele2) {
++      this._queue.splice(index, 1);
++      this._priorities.splice(index, 1);
++      break;
++    }
++  }
++};
++
++/**
++ * For each loop wrapper
++ *
++ * @param {function} func
++ * @returs {undefined}
++ * @access public
++ */
++PriorityQueue.prototype.forEach = function(func) {
++  this._queue.forEach(func);
++};
++
++/**
++ * @returns {Array}
++ * @access public
++ */
++PriorityQueue.prototype.getElements = function() {
++  return this._queue;
++};
++
++/**
++ * @param {number} index
++ * @returns {Object}
++ * @access public
++ */
++PriorityQueue.prototype.getElementPriority = function(index) {
++  return this._priorities[index];
++};
++
++/**
++ * @returns {Array}
++ * @access public
++ */
++PriorityQueue.prototype.getPriorities = function() {
++  return this._priorities;
++};
++
++/**
++ * @returns {Array}
++ * @access public
++ */
++PriorityQueue.prototype.getElementsWithPriorities = function() {
++  var result = [];
++
++  for (var i = 0, l = this._queue.length; i < l; i++) {
++    result.push([this._queue[i], this._priorities[i]]);
++  }
++
++  return result;
++};
++
++/**
++ * Set object properties
++ *
++ * @param {Array} elements
++ * @param {Array} priorities
++ * @returns {undefined}
++ * @access protected
++ */
++PriorityQueue.prototype._init = function(elements, priorities, sorting) {
++
++  if (elements && priorities) {
++    this._queue = [];
++    this._priorities = [];
++
++    if (elements.length !== priorities.length) {
++      throw new Error('Arrays must have the same length');
++    }
++
++    for (var i = 0; i < elements.length; i++) {
++      this.insert(elements[i], priorities[i]);
++    }
++  }
++
++  if (sorting) {
++    this._sorting = sorting;
++  }
++};
++
++/**
++ * Insert element at given position
++ *
++ * @param {Object} ele
++ * @param {number} index
++ * @returns {undefined}
++ * @access protected
++ */
++PriorityQueue.prototype._insertAt = function(ele, priority, index) {
++  if (this._queue.length === index) {
++    this._queue.push(ele);
++    this._priorities.push(priority);
++  } else {
++    this._queue.splice(index, 0, ele);
++    this._priorities.splice(index, 0, priority);
++  }
++};
++
++if (module.exports) {
++  module.exports = PriorityQueue;
++}
+diff --git a/lib/index.cjs b/lib/index.cjs
+new file mode 100644
+index 0000000000000000000000000000000000000000..4a67e20e3aa3b982efd13ff446070f53d64b5a86
+--- /dev/null
++++ b/lib/index.cjs
 @@ -0,0 +1,9 @@
 +
-+if (module && module.exports) {
++if (module.exports) {
 +    module.exports = {
-+      DBSCAN: require('./DBSCAN.js'),
-+      KMEANS: require('./KMEANS.js'),
-+      OPTICS: require('./OPTICS.js'),
-+      PriorityQueue: require('./PriorityQueue.js')
++      DBSCAN: require('./DBSCAN.cjs'),
++      KMEANS: require('./KMEANS.cjs'),
++      OPTICS: require('./OPTICS.cjs'),
++      PriorityQueue: require('./PriorityQueue.cjs')
 +    };
 +}
-diff --git a/lib/KMEANS.js b/lib/KMEANS.js
-index 21646f447f20fa710a7d855e597a9b9f9643b2f5..903864be329bf7577c14b9cf9b9d758852d8e8f1 100644
---- a/lib/KMEANS.js
-+++ b/lib/KMEANS.js
-@@ -208,6 +208,6 @@ KMEANS.prototype.distance = function(p, q) {
-   return Math.sqrt(sum);
- };
- 
--if (typeof module !== 'undefined' && module.exports) {
-+if (module && module.exports) {
-   module.exports = KMEANS;
- }
-diff --git a/lib/index.js b/lib/index.js
-index a9c5d52a2d5dde2a22ba5f03e54abf3b68f796d8..d2ecff40be844f1e167971090cf45a70a5a5fdc2 100644
---- a/lib/index.js
-+++ b/lib/index.js
-@@ -1,5 +1,5 @@
- 
--if (typeof module !== 'undefined' && module.exports) {
-+if (module && module.exports) {
-     module.exports = {
-       DBSCAN: require('./DBSCAN.js'),
-       KMEANS: require('./KMEANS.js'),
+diff --git a/package.json b/package.json
+index 895423062b3839b5b9d6791b28fe0cb259f8f38b..1cef26060cf1bd3850f93db6216429224fba7dd5 100644
+--- a/package.json
++++ b/package.json
+@@ -2,7 +2,8 @@
+   "name": "density-clustering",
+   "version": "1.3.0",
+   "description": "Density Based Clustering in JavaScript",
+-  "main": "./lib/index.js",
++  "main": "./lib/index.cjs",
++  "type": "commonjs",
+   "directories": {
+     "example": "example",
+     "test": "test"

@@ -1,4 +1,4 @@
-import { DBSCAN } from 'density-clustering/lib/DBSCAN';
+import { DBSCAN } from 'density-clustering';
 import { vectorSum2 } from './vector';
 
 export interface Symbol {

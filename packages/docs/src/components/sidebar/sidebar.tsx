@@ -30,6 +30,19 @@ type MDX = {
   updated_at: string;
 };
 
+const renderUpdated = (itemHref: string) => {
+  const updatedAt = markdownItems[itemHref]?.frontmatter?.updated_at;
+
+  if (updatedAt) {
+    const isUpdated =
+      new Date(updatedAt).getTime() + 5 * 24 * 60 * 60 * 1000 > new Date().getTime();
+
+    return isUpdated ? <div class="updated"></div> : null;
+  }
+
+  return null;
+};
+
 export const SideBar = component$((props: { allOpen?: boolean }) => {
   useStyles$(styles);
 
@@ -85,14 +98,10 @@ export function Items({
                 }}
                 style={{ display: 'flex' }}
               >
-                {item.text}
-                {markdownItems[item.href!]?.frontmatter?.updated_at ? (
-                  new Date(markdownItems[item.href!]?.frontmatter?.updated_at!).getTime() +
-                    5 * 24 * 60 * 60 * 1000 >
-                  new Date().getTime() ? (
-                    <div class="updated"></div>
-                  ) : null
-                ) : null}
+                <>
+                  {item.text}
+                  {renderUpdated(item.href!)}
+                </>
               </a>
             )}
           </li>

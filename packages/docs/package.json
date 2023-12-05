@@ -19,7 +19,7 @@
     "@modular-forms/qwik": "^0.21.0",
     "@mui/material": "^5.14.13",
     "@mui/x-data-grid": "^6.16.1",
-    "@supabase/supabase-js": "^2.38.1",
+    "@supabase/supabase-js": "2.38.1",
     "@types/prismjs": "^1.26.1",
     "@types/react": "^18.2.28",
     "@types/react-dom": "^18.2.13",
@@ -48,13 +48,18 @@
     "valibot": "^0.17.1",
     "vite": "^5.0.0",
     "vite-plugin-inspect": "^0.7.42",
-    "wrangler": "^3.11.0"
+    "wrangler": "^3.18.0"
   },
   "engines": {
     "node": ">=18.11",
     "npm": "please-use-pnpm",
     "yarn": "please-use-pnpm",
     "pnpm": ">=8.6.12"
+  },
+  "pnpm": {
+    "overrides": {
+      "@supabase/realtime-js": "2.8.4"
+    }
   },
   "homepage": "https://qwik.builder.io/",
   "license": "MIT",

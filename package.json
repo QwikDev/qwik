@@ -96,7 +96,8 @@
   "packageManager": "pnpm@8.9.0",
   "pnpm": {
     "overrides": {
-      "vfile": "6.0.1"
+      "vfile": "6.0.1",
+      "@supabase/realtime-js": "2.8.4"
     }
   },
   "private": true,

@@ -6,6 +6,7 @@ settings:
 
 overrides:
   vfile: 6.0.1
+  '@supabase/realtime-js': 2.8.4
 
 importers:
 
@@ -253,7 +254,7 @@ importers:
         specifier: ^6.16.1
         version: 6.16.1(@mui/material@5.14.13)(@types/react@18.2.28)(react-dom@18.2.0)(react@18.2.0)
       '@supabase/supabase-js':
-        specifier: ^2.38.1
+        specifier: 2.38.1
         version: 2.38.1
       '@types/prismjs':
         specifier: ^1.26.1
@@ -340,8 +341,8 @@ importers:
         specifier: ^0.7.42
         version: 0.7.42(rollup@3.26.3)(vite@5.0.0)
       wrangler:
-        specifier: ^3.11.0
-        version: 3.11.0
+        specifier: ^3.18.0
+        version: 3.18.0
 
   packages/eslint-plugin-qwik:
     dependencies:
@@ -1518,8 +1519,8 @@ packages:
       mime: 3.0.0
     dev: true
 
-  /@cloudflare/workerd-darwin-64@1.20231002.0:
-    resolution: {integrity: sha512-sgtjzVO/wtI/6S7O0bk4zQAv2xlvqOxB18AXzlit6uXgbYFGeQedRHjhKVMOacGmWEnM4C3ir/fxJGsc3Pyxng==}
+  /@cloudflare/workerd-darwin-64@1.20231030.0:
+    resolution: {integrity: sha512-J4PQ9utPxLya9yHdMMx3AZeC5M/6FxcoYw6jo9jbDDFTy+a4Gslqf4Im9We3aeOEdPXa3tgQHVQOSelJSZLhIw==}
     engines: {node: '>=16'}
     cpu: [x64]
     os: [darwin]
@@ -1527,8 +1528,8 @@ packages:
     dev: true
     optional: true
 
-  /@cloudflare/workerd-darwin-arm64@1.20231002.0:
-    resolution: {integrity: sha512-dv8nztYFaTYYgBpyy80vc4hdMYv9mhyNbvBsZywm8S7ivcIpzogi0UKkGU4E/G0lYK6W3WtwTBqwRe+pXJ1+Ww==}
+  /@cloudflare/workerd-darwin-arm64@1.20231030.0:
+    resolution: {integrity: sha512-WSJJjm11Del4hSneiNB7wTXGtBXI4QMCH9l5qf4iT5PAW8cESGcCmdHtWDWDtGAAGcvmLT04KNvmum92vRKKQQ==}
     engines: {node: '>=16'}
     cpu: [arm64]
     os: [darwin]
@@ -1536,8 +1537,8 @@ packages:
     dev: true
     optional: true
 
-  /@cloudflare/workerd-linux-64@1.20231002.0:
-    resolution: {integrity: sha512-UG8SlLcGzaQDSSw6FR4+Zf408925wkLOCAi8w5qEoFYu3g4Ef7ZenstesCOsyWL7qBDKx0/iwk6+a76W5IHI0Q==}
+  /@cloudflare/workerd-linux-64@1.20231030.0:
+    resolution: {integrity: sha512-2HUeRTvoCC17fxE0qdBeR7J9dO8j4A8ZbdcvY8pZxdk+zERU6+N03RTbk/dQMU488PwiDvcC3zZqS4gwLfVT8g==}
     engines: {node: '>=16'}
     cpu: [x64]
     os: [linux]
@@ -1545,8 +1546,8 @@ packages:
     dev: true
     optional: true
 
-  /@cloudflare/workerd-linux-arm64@1.20231002.0:
-    resolution: {integrity: sha512-GPaa66ZSq1gK09r87c5CJbHIApcIU//LVHz3rnUxK0//00YCwUuGUUK1dn/ylg+fVqDQxIDmH+ABnobBanvcDA==}
+  /@cloudflare/workerd-linux-arm64@1.20231030.0:
+    resolution: {integrity: sha512-4/GK5zHh+9JbUI6Z5xTCM0ZmpKKHk7vu9thmHjUxtz+o8Ne9DoD7DlDvXQWgMF6XGaTubDWyp3ttn+Qv8jDFuQ==}
     engines: {node: '>=16'}
     cpu: [arm64]
     os: [linux]
@@ -1554,8 +1555,8 @@ packages:
     dev: true
     optional: true
 
-  /@cloudflare/workerd-windows-64@1.20231002.0:
-    resolution: {integrity: sha512-ybIy+sCme0VO0RscndXvqWNBaRMUOc8vhi+1N2h/KDsKfNLsfEQph+XWecfKzJseUy1yE2rV1xei3BaNmaa6vg==}
+  /@cloudflare/workerd-windows-64@1.20231030.0:
+    resolution: {integrity: sha512-fb/Jgj8Yqy3PO1jLhk7mTrHMkR8jklpbQFud6rL/aMAn5d6MQbaSrYOCjzkKGp0Zng8D2LIzSl+Fc0C9Sggxjg==}
     engines: {node: '>=16'}
     cpu: [x64]
     os: [win32]
@@ -1896,7 +1897,6 @@ packages:
     cpu: [arm64]
     os: [android]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/android-arm64@0.19.4:
@@ -1948,7 +1948,6 @@ packages:
     cpu: [arm]
     os: [android]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/android-arm@0.19.4:
@@ -1991,7 +1990,6 @@ packages:
     cpu: [x64]
     os: [android]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/android-x64@0.19.4:
@@ -2034,7 +2032,6 @@ packages:
     cpu: [arm64]
     os: [darwin]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/darwin-arm64@0.19.4:
@@ -2077,7 +2074,6 @@ packages:
     cpu: [x64]
     os: [darwin]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/darwin-x64@0.19.4:
@@ -2120,7 +2116,6 @@ packages:
     cpu: [arm64]
     os: [freebsd]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/freebsd-arm64@0.19.4:
@@ -2163,7 +2158,6 @@ packages:
     cpu: [x64]
     os: [freebsd]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/freebsd-x64@0.19.4:
@@ -2206,7 +2200,6 @@ packages:
     cpu: [arm64]
     os: [linux]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/linux-arm64@0.19.4:
@@ -2249,7 +2242,6 @@ packages:
     cpu: [arm]
     os: [linux]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/linux-arm@0.19.4:
@@ -2292,7 +2284,6 @@ packages:
     cpu: [ia32]
     os: [linux]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/linux-ia32@0.19.4:
@@ -2344,7 +2335,6 @@ packages:
     cpu: [loong64]
     os: [linux]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/linux-loong64@0.19.4:
@@ -2387,7 +2377,6 @@ packages:
     cpu: [mips64el]
     os: [linux]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/linux-mips64el@0.19.4:
@@ -2430,7 +2419,6 @@ packages:
     cpu: [ppc64]
     os: [linux]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/linux-ppc64@0.19.4:
@@ -2473,7 +2461,6 @@ packages:
     cpu: [riscv64]
     os: [linux]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/linux-riscv64@0.19.4:
@@ -2516,7 +2503,6 @@ packages:
     cpu: [s390x]
     os: [linux]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/linux-s390x@0.19.4:
@@ -2559,7 +2545,6 @@ packages:
     cpu: [x64]
     os: [linux]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/linux-x64@0.19.4:
@@ -2602,7 +2587,6 @@ packages:
     cpu: [x64]
     os: [netbsd]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/netbsd-x64@0.19.4:
@@ -2645,7 +2629,6 @@ packages:
     cpu: [x64]
     os: [openbsd]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/openbsd-x64@0.19.4:
@@ -2688,7 +2671,6 @@ packages:
     cpu: [x64]
     os: [sunos]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/sunos-x64@0.19.4:
@@ -2731,7 +2713,6 @@ packages:
     cpu: [arm64]
     os: [win32]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/win32-arm64@0.19.4:
@@ -2774,7 +2755,6 @@ packages:
     cpu: [ia32]
     os: [win32]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/win32-ia32@0.19.4:
@@ -2817,7 +2797,6 @@ packages:
     cpu: [x64]
     os: [win32]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/win32-x64@0.19.4:
@@ -4978,7 +4957,7 @@ packages:
       '@pandacss/types': 0.8.0
       '@vue/compiler-sfc': 3.3.8
       lil-fp: 1.4.5
-      magic-string: 0.30.1
+      magic-string: 0.30.5
       ts-morph: 19.0.0
       ts-pattern: 5.0.4
     transitivePeerDependencies:
@@ -5395,6 +5374,12 @@ packages:
     dependencies:
       '@supabase/node-fetch': 2.6.14
 
+  /@supabase/gotrue-js@2.58.0:
+    resolution: {integrity: sha512-cDslIiiPUzS8DQQqYxK9kT+Ngbrbx0a68e+AsU3H4+eLyAfq+m9aAqKXHHr3H5jqeFvIprSe87r4SeyOYyMnrQ==}
+    dependencies:
+      '@supabase/node-fetch': 2.6.14
+    dev: true
+
   /@supabase/node-fetch@2.6.14:
     resolution: {integrity: sha512-w/Tsd22e/5fAeoxqQ4P2MX6EyF+iM6rc9kmlMVFkHuG0rAltt2TLhFbDJfemnHbtvnazWaRfy5KnFU/SYT37dQ==}
     engines: {node: 4.x || >=6.0.0}
@@ -5406,14 +5391,14 @@ packages:
     dependencies:
       '@supabase/node-fetch': 2.6.14
 
-  /@supabase/postgrest-js@1.8.5:
-    resolution: {integrity: sha512-XvoqN5e5Z4TsQOYWLQYLW0HIlZtFSzwAcwiuToaSBSTpLOGCg4NaZ7au5GfBzCQJZdZPY5vk5FvwthfDsQK/Jw==}
+  /@supabase/postgrest-js@1.9.0:
+    resolution: {integrity: sha512-axP6cU69jDrLbfihJKQ6vU27tklD0gzb9idkMN363MtTXeJVt5DQNT3JnJ58JVNBdL74hgm26rAsFNvHk+tnSw==}
     dependencies:
       '@supabase/node-fetch': 2.6.14
     dev: true
 
-  /@supabase/realtime-js@2.8.0:
-    resolution: {integrity: sha512-j1OP2nRJhqLNEoYSMkIl1+cHK/Ow9fektemazkF2CvrIrmwgfJJGaFGiWGVgwoKtwVcrdknSsYWpxs90hys1EQ==}
+  /@supabase/realtime-js@2.8.4:
+    resolution: {integrity: sha512-5C9slLTGikHnYmAnIBOaPogAgbcNY68vnIyE6GpqIKjHElVb6LIi4clwNcjHSj4z6szuvvzj8T/+ePEgGEGekw==}
     dependencies:
       '@supabase/node-fetch': 2.6.14
       '@types/phoenix': 1.6.0
@@ -5434,7 +5419,7 @@ packages:
       '@supabase/gotrue-js': 2.55.0
       '@supabase/node-fetch': 2.6.14
       '@supabase/postgrest-js': 1.8.4
-      '@supabase/realtime-js': 2.8.0
+      '@supabase/realtime-js': 2.8.4
       '@supabase/storage-js': 2.5.4
     transitivePeerDependencies:
       - supports-color
@@ -5443,10 +5428,10 @@ packages:
     resolution: {integrity: sha512-WbdwKiZMMPiELL+8A4WJRHHq+xVKN+3tXxKnJWbR0XZG8HgeGVeQWhlchatTttaxsNKyx68gE7wWNvhin0V+Mg==}
     dependencies:
       '@supabase/functions-js': 2.1.5
-      '@supabase/gotrue-js': 2.55.0
+      '@supabase/gotrue-js': 2.58.0
       '@supabase/node-fetch': 2.6.14
-      '@supabase/postgrest-js': 1.8.5
-      '@supabase/realtime-js': 2.8.0
+      '@supabase/postgrest-js': 1.9.0
+      '@supabase/realtime-js': 2.8.4
       '@supabase/storage-js': 2.5.4
     transitivePeerDependencies:
       - supports-color
@@ -9863,7 +9848,6 @@ packages:
       '@esbuild/win32-arm64': 0.18.20
       '@esbuild/win32-ia32': 0.18.20
       '@esbuild/win32-x64': 0.18.20
-    dev: false
 
   /esbuild@0.19.4:
     resolution: {integrity: sha512-x7jL0tbRRpv4QUyuDMjONtWFciygUxWaUM1kMX2zWxI0X2YWOt7MSA0g4UdeSiHM8fcYVzpQhKYOycZwxTdZkA==}
@@ -14175,9 +14159,10 @@ packages:
     engines: {node: '>=4'}
     dev: true
 
-  /miniflare@3.20231002.1:
-    resolution: {integrity: sha512-4xJ8FezJkQqHzCm71lovb9L/wJ0VV/odMFf5CIxfLTunsx97kTIlZnhS6aHuvcbzdztbWp1RR71K/1qFUHdpdQ==}
+  /miniflare@3.20231030.2:
+    resolution: {integrity: sha512-+DYdMqWlUaY4wBylIjewNu8OVsPFquYjQkxoSb2jGIMBmlKaef65Hn2Bu8sub5tQzQ8tLO0FRklmD2Upx0HCCQ==}
     engines: {node: '>=16.13'}
+    hasBin: true
     dependencies:
       acorn: 8.10.0
       acorn-walk: 8.2.0
@@ -14187,7 +14172,7 @@ packages:
       source-map-support: 0.5.21
       stoppable: 1.1.0
       undici: 5.26.0
-      workerd: 1.20231002.0
+      workerd: 1.20231030.0
       ws: 8.13.0
       youch: 3.2.3
       zod: 3.22.4
@@ -16619,6 +16604,11 @@ packages:
     deprecated: https://github.com/lydell/resolve-url#deprecated
     dev: true
 
+  /resolve.exports@2.0.2:
+    resolution: {integrity: sha512-X2UW6Nw3n/aMgDVy+0rSqgHlv39WZAlZrXCdnbyEiKm17DSqHX4MmQMaST3FbeWR5FTuRcUwYAziZajji0Y7mg==}
+    engines: {node: '>=10'}
+    dev: true
+
   /resolve@1.19.0:
     resolution: {integrity: sha512-rArEXAgsBG4UgRGcynxWIWKFvh/XZCcS8UJdHhwy91zwAvCZIbcs+vAbflgBnNjYMs/i/i+/Ux6IZhML1yPvxg==}
     dependencies:
@@ -18887,7 +18877,7 @@ packages:
         optional: true
     dependencies:
       '@types/node': 20.8.4
-      esbuild: 0.18.17
+      esbuild: 0.18.20
       postcss: 8.4.31
       rollup: 3.26.3
       terser: 5.21.0
@@ -19306,22 +19296,22 @@ packages:
     resolution: {integrity: sha512-gvVzJFlPycKc5dZN4yPkP8w7Dc37BtP1yczEneOb4uq34pXZcvrtRTmWV8W+Ume+XCxKgbjM+nevkyFPMybd4Q==}
     dev: false
 
-  /workerd@1.20231002.0:
-    resolution: {integrity: sha512-NFuUQBj30ZguDoPZ6bL40hINiu8aP2Pvxr/3xAdhWOwVFLuObPOiSdQ8qm4JYZ7jovxWjWE4Z7VR2avjIzEksQ==}
+  /workerd@1.20231030.0:
+    resolution: {integrity: sha512-+FSW+d31f8RrjHanFf/R9A+Z0csf3OtsvzdPmAKuwuZm/5HrBv83cvG9fFeTxl7/nI6irUUXIRF9xcj/NomQzQ==}
     engines: {node: '>=16'}
     hasBin: true
     requiresBuild: true
     optionalDependencies:
-      '@cloudflare/workerd-darwin-64': 1.20231002.0
-      '@cloudflare/workerd-darwin-arm64': 1.20231002.0
-      '@cloudflare/workerd-linux-64': 1.20231002.0
-      '@cloudflare/workerd-linux-arm64': 1.20231002.0
-      '@cloudflare/workerd-windows-64': 1.20231002.0
+      '@cloudflare/workerd-darwin-64': 1.20231030.0
+      '@cloudflare/workerd-darwin-arm64': 1.20231030.0
+      '@cloudflare/workerd-linux-64': 1.20231030.0
+      '@cloudflare/workerd-linux-arm64': 1.20231030.0
+      '@cloudflare/workerd-windows-64': 1.20231030.0
     dev: true
 
-  /wrangler@3.11.0:
-    resolution: {integrity: sha512-glR3UPD1RJDokOIOUt56vPLacV7riWdfhPUCx5ZmZWVn0dDXB51ktj9DyK2VU8zHM+yj90OQhwHVdI77mGxWkw==}
-    engines: {node: '>=16.13.0'}
+  /wrangler@3.18.0:
+    resolution: {integrity: sha512-3UrmldsD84JDBa7HRZ5ACFr1nH+ZZs+Hth37Iv/mAaW2DiQOGcrevKwn4dofmTQO2qYP01u1vtfVJxLM0mq+1w==}
+    engines: {node: '>=16.17.0'}
     hasBin: true
     dependencies:
       '@cloudflare/kv-asset-handler': 0.2.0
@@ -19330,9 +19320,10 @@ packages:
       blake3-wasm: 2.1.5
       chokidar: 3.5.3
       esbuild: 0.17.19
-      miniflare: 3.20231002.1
+      miniflare: 3.20231030.2
       nanoid: 3.3.6
       path-to-regexp: 6.2.1
+      resolve.exports: 2.0.2
       selfsigned: 2.1.1
       source-map: 0.6.1
       source-map-support: 0.5.21

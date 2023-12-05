@@ -54,7 +54,7 @@ function SymbolTree({ symbol, depth, count }: { symbol: Symbol; depth: number; c
             {count} / {symbol.count}
           </span>
           <code class="text-xs ml-3 whitespace-nowrap">
-            <span class="font-bold">{symbol.name ?? 'n/A'}</span>
+            <span class="font-bold">{(symbol.name as string | undefined) ?? 'n/A'}</span>
             <span class="text-purple-500 mx-2">|</span>
             {symbol.fullName ?? 'n/A'}
             <span class="text-purple-500 mx-2">|</span>

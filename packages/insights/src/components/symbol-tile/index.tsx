@@ -67,7 +67,7 @@ export const SymbolSource = component$<{ symbolHash: string }>(({ symbolHash }) 
             </td>
           </tr>
           <tr>
-            <td colspan="2" class="px-6 py-3 text-xs">
+            <td colSpan={2} class="px-6 py-3 text-xs">
               <Resource
                 value={source}
                 onPending={() => <div>loading...</div>}

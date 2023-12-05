@@ -28,8 +28,8 @@ export default component$(() => {
             Logout
           </Link>
           <Avatar
-            src={session.value?.user?.image ?? ''}
-            alt={session.value?.user?.name ?? ''}
+            src={session.value.user.image ?? ''}
+            alt={session.value.user.name ?? ''}
             size="small"
           />
         </div>

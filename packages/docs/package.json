@@ -56,14 +56,14 @@
     "yarn": "please-use-pnpm",
     "pnpm": ">=8.6.12"
   },
+  "homepage": "https://qwik.builder.io/",
+  "license": "MIT",
+  "packageManager": "pnpm@8.6.12",
   "pnpm": {
     "overrides": {
       "@supabase/realtime-js": "2.8.4"
     }
   },
-  "homepage": "https://qwik.builder.io/",
-  "license": "MIT",
-  "packageManager": "pnpm@8.6.12",
   "private": true,
   "scripts": {
     "build": "qwik build",

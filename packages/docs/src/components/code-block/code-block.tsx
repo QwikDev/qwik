@@ -27,10 +27,10 @@ export const CodeBlock = component$((props: CodeBlockProps) => {
       ext === 'js' || ext === 'json'
         ? 'javascript'
         : ext === 'html'
-        ? 'markup'
-        : ext === 'css'
-        ? 'css'
-        : undefined;
+          ? 'markup'
+          : ext === 'css'
+            ? 'css'
+            : undefined;
   }
 
   if (language && prismjs.languages[language]) {

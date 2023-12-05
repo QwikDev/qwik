@@ -227,22 +227,6 @@
     "tags": "saas"
   },
   {
-    "title": "Pasha | Gagnez et économisez sur tout",
-    "href": "https://pasha-app.com/",
-    "imgSrc": "/showcases/pasha-app_com_.webp",
-    "perf": {
-      "score": 0.94,
-      "fcpDisplay": "1.1 s",
-      "fcpScore": 1,
-      "lcpDisplay": "1.1 s",
-      "lcpScore": 1,
-      "ttiDisplay": "1.7 s",
-      "ttiScore": 1,
-      "ttiTime": 1691.5601293472332
-    },
-    "tags": "saas"
-  },
-  {
     "title": "Private Training Package Builder - Oasis Digital",
     "href": "https://pricing.oasisdigital.com/",
     "imgSrc": "/showcases/pricing_oasisdigital_com_.webp",

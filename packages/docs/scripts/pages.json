@@ -71,10 +71,6 @@
     "tags": "saas"
   },
   {
-    "href": "https://pasha-app.com/",
-    "tags": "saas"
-  },
-  {
     "href": "https://pricing.oasisdigital.com/",
     "tags": "saas"
   },
@@ -215,5 +211,9 @@
   {
     "href": "https://techtrends.nau.ch",
     "tags": "news"
+  },
+  {
+    "href": "https://juneikerc.com",
+    "tags": "portfolio,site,blog,services"
   }
 ]

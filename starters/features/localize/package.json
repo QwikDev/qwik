@@ -30,6 +30,7 @@
   },
   "scripts": {
     "build.client": "vite build && npm run i18n-translate",
+    "prei18n-extract": "vite build",
     "i18n-extract": "node_modules/.bin/localize-extract -s \"dist/build/*.js\" -f json -o src/locales/message.en.json",
     "i18n-translate": "node_modules/.bin/localize-translate -s \"*.js\" -t src/locales/message.*.json -o dist/build/{{LOCALE}} -r ./dist/build"
   }

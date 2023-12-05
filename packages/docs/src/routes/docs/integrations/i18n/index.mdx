@@ -79,20 +79,25 @@ npm run qwik add localize
 
 For further reference, please check this [example repo](https://github.com/mhevery/qwik-i18n).
 
+#### Extract translations
+
+When you are done with your changes, you can use `npm run i18n-extract` to extract the translations from the code. 
+This will update the file you see in `package.json`.
+
 #### Auto translations for $localize with deepl
 
 For auto translations, you can use the [deepl-localize](https://www.npmjs.com/package/deepl-localize) package. It will automatically translate your strings using the [deepl.com](https://deepl.com/) API.
 
 Use the `deepl-localize` command to translate your strings with npx:
 ```bash
-npx deepl-localize translate -b src/locales/message-en.json -l de-DE fr-FR -a "YOUR-DEEPL-API-KEY"
+npx deepl-localize translate -b src/locales/message.en.json -l de-DE fr-FR -a "YOUR-DEEPL-API-KEY"
 ```
 
 Alternatively, you can use the `deepl-localize` command to translate your strings within your script section:
 ```json
 {
   "scripts":{
-    "translate":"deepl-localize translate -b src/locales/message-en.json -l de-DE fr-FR -a 'your-deepl-api-key'"
+    "translate":"deepl-localize translate -b src/locales/message.en.json -l de-DE fr-FR -a 'your-deepl-api-key'"
   }
 }
 ```

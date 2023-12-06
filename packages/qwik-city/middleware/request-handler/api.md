@@ -155,7 +155,7 @@ export type RequestHandler<PLATFORM = QwikCityPlatform> = (ev: RequestEvent<PLAT
 // Warning: (ae-forgotten-export) The symbol "QwikSerializer" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "QwikCityRun" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public
 export function requestHandler<T = unknown>(serverRequestEv: ServerRequestEvent<T>, opts: ServerRenderOptions, qwikSerializer: QwikSerializer): Promise<QwikCityRun<T> | null>;
 
 // @public (undocumented)
@@ -184,7 +184,7 @@ export interface ServerRenderOptions extends RenderOptions {
 }
 
 // @public
-export interface ServerRequestEvent<T = any> {
+export interface ServerRequestEvent<T = unknown> {
     // (undocumented)
     env: EnvGetter;
     // (undocumented)
@@ -196,7 +196,7 @@ export interface ServerRequestEvent<T = any> {
     // (undocumented)
     mode: ServerRequestMode;
     // (undocumented)
-    platform: any;
+    platform: QwikCityPlatform;
     // (undocumented)
     request: Request;
     // (undocumented)

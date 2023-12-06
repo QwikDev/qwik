@@ -377,7 +377,7 @@ export interface ServerRenderOptions extends RenderOptions
 Request event created by the server.
 
 ```typescript
-export interface ServerRequestEvent<T = any>
+export interface ServerRequestEvent<T = unknown>
 ```
 
 | Property               | Modifiers | Type                                                     | Description |
@@ -387,7 +387,7 @@ export interface ServerRequestEvent<T = any>
 | [getWritableStream](#) |           | [ServerResponseHandler](#serverresponsehandler)&lt;T&gt; |             |
 | [locale](#)            |           | string \| undefined                                      |             |
 | [mode](#)              |           | [ServerRequestMode](#serverrequestmode)                  |             |
-| [platform](#)          |           | any                                                      |             |
+| [platform](#)          |           | QwikCityPlatform                                         |             |
 | [request](#)           |           | Request                                                  |             |
 | [url](#)               |           | URL                                                      |             |
 

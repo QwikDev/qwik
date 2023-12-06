@@ -4,18 +4,6 @@ title: \@builder.io/qwik API Reference
 
 # [API](/api) &rsaquo; @builder.io/qwik
 
-## "bind:checked"
-
-```typescript
-'bind:checked'?: Signal<boolean | undefined>;
-```
-
-## "bind:value"
-
-```typescript
-'bind:value'?: Signal<string | undefined>;
-```
-
 ## "q:slot"
 
 ```typescript
@@ -37,50 +25,26 @@ $: <T>(expression: T) => QRL<T>;
 ## AnchorHTMLAttributes
 
 ```typescript
-export interface AnchorHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface AnchorHTMLAttributes<T extends Element> extends HTMLAttributes<T>, AnchorAttrs
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property             | Modifiers | Type                                                                     | Description  |
-| -------------------- | --------- | ------------------------------------------------------------------------ | ------------ |
-| [download?](#)       |           | any                                                                      | _(Optional)_ |
-| [href?](#)           |           | string \| undefined                                                      | _(Optional)_ |
-| [hrefLang?](#)       |           | string \| undefined                                                      | _(Optional)_ |
-| [media?](#)          |           | string \| undefined                                                      | _(Optional)_ |
-| [ping?](#)           |           | string \| undefined                                                      | _(Optional)_ |
-| [referrerPolicy?](#) |           | [HTMLAttributeReferrerPolicy](#htmlattributereferrerpolicy) \| undefined | _(Optional)_ |
-| [rel?](#)            |           | string \| undefined                                                      | _(Optional)_ |
-| [target?](#)         |           | [HTMLAttributeAnchorTarget](#htmlattributeanchortarget) \| undefined     | _(Optional)_ |
-| [type?](#)           |           | string \| undefined                                                      | _(Optional)_ |
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;, AnchorAttrs
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## AreaHTMLAttributes
 
 ```typescript
-export interface AreaHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface AreaHTMLAttributes<T extends Element> extends HTMLAttributes<T, false>, AreaAttrs
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property             | Modifiers | Type                                                                     | Description  |
-| -------------------- | --------- | ------------------------------------------------------------------------ | ------------ |
-| [alt?](#)            |           | string \| undefined                                                      | _(Optional)_ |
-| [children?](#)       |           | undefined                                                                | _(Optional)_ |
-| [coords?](#)         |           | string \| undefined                                                      | _(Optional)_ |
-| [download?](#)       |           | any                                                                      | _(Optional)_ |
-| [href?](#)           |           | string \| undefined                                                      | _(Optional)_ |
-| [hrefLang?](#)       |           | string \| undefined                                                      | _(Optional)_ |
-| [media?](#)          |           | string \| undefined                                                      | _(Optional)_ |
-| [referrerPolicy?](#) |           | [HTMLAttributeReferrerPolicy](#htmlattributereferrerpolicy) \| undefined | _(Optional)_ |
-| [rel?](#)            |           | string \| undefined                                                      | _(Optional)_ |
-| [shape?](#)          |           | string \| undefined                                                      | _(Optional)_ |
-| [target?](#)         |           | string \| undefined                                                      | _(Optional)_ |
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T, false&gt;, AreaAttrs
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## AriaAttributes
+
+TS defines these with the React syntax which is not compatible with Qwik. E.g. `ariaAtomic` instead of `aria-atomic`.
 
 ```typescript
 export interface AriaAttributes
@@ -220,40 +184,30 @@ export type AriaRole =
 ## AudioHTMLAttributes
 
 ```typescript
-export interface AudioHTMLAttributes<T extends Element> extends MediaHTMLAttributes<T>
+export interface AudioHTMLAttributes<T extends Element> extends HTMLAttributes<T>, AudioAttrs
 ```
 
-**Extends:** [MediaHTMLAttributes](#mediahtmlattributes)&lt;T&gt;
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;, AudioAttrs
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## BaseHTMLAttributes
 
 ```typescript
-export interface BaseHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface BaseHTMLAttributes<T extends Element> extends HTMLAttributes<T, undefined>, BaseAttrs
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property       | Modifiers | Type                | Description  |
-| -------------- | --------- | ------------------- | ------------ |
-| [children?](#) |           | undefined           | _(Optional)_ |
-| [href?](#)     |           | string \| undefined | _(Optional)_ |
-| [target?](#)   |           | string \| undefined | _(Optional)_ |
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T, undefined&gt;, BaseAttrs
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## BlockquoteHTMLAttributes
 
 ```typescript
-export interface BlockquoteHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface BlockquoteHTMLAttributes<T extends Element> extends HTMLAttributes<T>, BlockquoteAttrs
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property   | Modifiers | Type                | Description  |
-| ---------- | --------- | ------------------- | ------------ |
-| [cite?](#) |           | string \| undefined | _(Optional)_ |
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;, BlockquoteAttrs
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -268,24 +222,10 @@ export type Booleanish = boolean | `${boolean}`;
 ## ButtonHTMLAttributes
 
 ```typescript
-export interface ButtonHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface ButtonHTMLAttributes<T extends Element> extends HTMLAttributes<T>, ButtonAttrs
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property             | Modifiers | Type                                                         | Description  |
-| -------------------- | --------- | ------------------------------------------------------------ | ------------ |
-| [autoFocus?](#)      |           | boolean \| undefined                                         | _(Optional)_ |
-| [disabled?](#)       |           | boolean \| undefined                                         | _(Optional)_ |
-| [form?](#)           |           | string \| undefined                                          | _(Optional)_ |
-| [formAction?](#)     |           | string \| undefined                                          | _(Optional)_ |
-| [formEncType?](#)    |           | string \| undefined                                          | _(Optional)_ |
-| [formMethod?](#)     |           | string \| undefined                                          | _(Optional)_ |
-| [formNoValidate?](#) |           | boolean \| undefined                                         | _(Optional)_ |
-| [formTarget?](#)     |           | string \| undefined                                          | _(Optional)_ |
-| [name?](#)           |           | string \| undefined                                          | _(Optional)_ |
-| [type?](#)           |           | 'submit' \| 'reset' \| 'button' \| undefined                 | _(Optional)_ |
-| [value?](#)          |           | string \| ReadonlyArray&lt;string&gt; \| number \| undefined | _(Optional)_ |
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;, ButtonAttrs
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -306,19 +246,20 @@ void
 ## CanvasHTMLAttributes
 
 ```typescript
-export interface CanvasHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface CanvasHTMLAttributes<T extends Element> extends HTMLAttributes<T>, CanvasAttrs
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property     | Modifiers | Type                       | Description  |
-| ------------ | --------- | -------------------------- | ------------ |
-| [height?](#) |           | [Size](#size) \| undefined | _(Optional)_ |
-| [width?](#)  |           | [Size](#size) \| undefined | _(Optional)_ |
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;, CanvasAttrs
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## ClassList
+
+A class list can be a string, a boolean, an array, or an object.
+
+If it's an array, each item is a class list and they are all added.
+
+If it's an object, then the keys are class name strings, and the values are booleans that determine if the class name string should be added or not.
 
 ```typescript
 export type ClassList = BaseClassList | BaseClassList[];
@@ -353,16 +294,10 @@ export interface ColgroupHTMLAttributes<T extends Element> extends HTMLAttribute
 ## ColHTMLAttributes
 
 ```typescript
-export interface ColHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface ColHTMLAttributes<T extends Element> extends HTMLAttributes<T, undefined>, ColAttrs
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property       | Modifiers | Type                       | Description  |
-| -------------- | --------- | -------------------------- | ------------ |
-| [children?](#) |           | undefined                  | _(Optional)_ |
-| [span?](#)     |           | number \| undefined        | _(Optional)_ |
-| [width?](#)    |           | [Size](#size) \| undefined | _(Optional)_ |
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T, undefined&gt;, ColAttrs
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -384,7 +319,9 @@ const MyComponent: Component<MyComponentProps> = component$(
 ```
 
 ```typescript
-export type Component<PROPS extends {}> = FunctionComponent<PublicProps<PROPS>>;
+export type Component<PROPS extends Record<any, any>> = FunctionComponent<
+  PublicProps<PROPS>
+>;
 ```
 
 **References:** [FunctionComponent](#functioncomponent), [PublicProps](#publicprops)
@@ -434,12 +371,9 @@ export const OtherComponent = component$(() => {
 See also: `component`, `useCleanup`, `onResume`, `onPause`, `useOn`, `useOnDocument`, `useOnWindow`, `useStyles`
 
 ```typescript
-component$: <
-  PROPS = unknown,
-  ARG extends {} = PROPS extends {} ? PropFunctionProps<PROPS> : {},
->(
-  onMount: OnRenderFn<ARG>,
-) => Component<PROPS extends {} ? PROPS : ARG>;
+component$: <PROPS extends Record<any, any>>(
+  onMount: (props: PROPS) => JSXNode | null,
+) => Component<PropFunctionProps<PROPS>>;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts)
@@ -500,8 +434,9 @@ export const OtherComponent = component$(() => {
 See also: `component`, `useCleanup`, `onResume`, `onPause`, `useOn`, `useOnDocument`, `useOnWindow`, `useStyles`
 
 ```typescript
-componentQrl: <PROPS extends {}>(componentQrl: QRL<OnRenderFn<PROPS>>) =>
-  Component<PROPS>;
+componentQrl: <PROPS extends Record<any, any>>(
+  componentQrl: QRL<OnRenderFn<PROPS>>,
+) => Component<PROPS>;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts)
@@ -648,14 +583,10 @@ export interface CSSProperties extends CSS.Properties<string | number>, CSS.Prop
 ## DataHTMLAttributes
 
 ```typescript
-export interface DataHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface DataHTMLAttributes<T extends Element> extends HTMLAttributes<T>, DataAttrs
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property    | Modifiers | Type                                                         | Description  |
-| ----------- | --------- | ------------------------------------------------------------ | ------------ |
-| [value?](#) |           | string \| ReadonlyArray&lt;string&gt; \| number \| undefined | _(Optional)_ |
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;, DataAttrs
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -720,14 +651,14 @@ export interface DialogHTMLAttributes<T extends Element> extends HTMLAttributes<
 ## DOMAttributes
 
 ```typescript
-export interface DOMAttributes<T extends Element> extends QwikProps<T>, QwikEvents<T>
+export interface DOMAttributes<T extends Element, Children = JSXChildren> extends QwikProps<T>, QwikEvents<T>
 ```
 
 **Extends:** QwikProps&lt;T&gt;, QwikEvents&lt;T&gt;
 
 | Property       | Modifiers | Type                                  | Description  |
 | -------------- | --------- | ------------------------------------- | ------------ |
-| [children?](#) |           | [JSXChildren](#jsxchildren)           | _(Optional)_ |
+| [children?](#) |           | Children                              | _(Optional)_ |
 | [key?](#)      |           | string \| number \| null \| undefined | _(Optional)_ |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts)
@@ -761,18 +692,10 @@ interface ElementChildrenAttribute
 ## EmbedHTMLAttributes
 
 ```typescript
-export interface EmbedHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface EmbedHTMLAttributes<T extends Element> extends HTMLAttributes<T, undefined>, EmbedAttrs
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property       | Modifiers | Type                       | Description  |
-| -------------- | --------- | -------------------------- | ------------ |
-| [children?](#) |           | undefined                  | _(Optional)_ |
-| [height?](#)   |           | [Size](#size) \| undefined | _(Optional)_ |
-| [src?](#)      |           | string \| undefined        | _(Optional)_ |
-| [type?](#)     |           | string \| undefined        | _(Optional)_ |
-| [width?](#)    |           | [Size](#size) \| undefined | _(Optional)_ |
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T, undefined&gt;, EmbedAttrs
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -807,37 +730,20 @@ eventQrl: <T>(qrl: QRL<T>) => QRL<T>;
 ## FieldsetHTMLAttributes
 
 ```typescript
-export interface FieldsetHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface FieldsetHTMLAttributes<T extends Element> extends HTMLAttributes<T>, FieldSetAttrs
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property       | Modifiers | Type                 | Description  |
-| -------------- | --------- | -------------------- | ------------ |
-| [disabled?](#) |           | boolean \| undefined | _(Optional)_ |
-| [form?](#)     |           | string \| undefined  | _(Optional)_ |
-| [name?](#)     |           | string \| undefined  | _(Optional)_ |
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;, FieldSetAttrs
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## FormHTMLAttributes
 
 ```typescript
-export interface FormHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface FormHTMLAttributes<T extends Element> extends HTMLAttributes<T>, FormAttrs
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property            | Modifiers | Type                                                            | Description  |
-| ------------------- | --------- | --------------------------------------------------------------- | ------------ |
-| [acceptCharset?](#) |           | string \| undefined                                             | _(Optional)_ |
-| [action?](#)        |           | string \| undefined                                             | _(Optional)_ |
-| [autoComplete?](#)  |           | 'on' \| 'off' \| Omit&lt;'on' \| 'off', string&gt; \| undefined | _(Optional)_ |
-| [encType?](#)       |           | string \| undefined                                             | _(Optional)_ |
-| [method?](#)        |           | string \| undefined                                             | _(Optional)_ |
-| [name?](#)          |           | string \| undefined                                             | _(Optional)_ |
-| [noValidate?](#)    |           | boolean \| undefined                                            | _(Optional)_ |
-| [target?](#)        |           | string \| undefined                                             | _(Optional)_ |
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;, FormAttrs
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -855,46 +761,10 @@ Fragment: FunctionComponent<{
 ## FunctionComponent
 
 ```typescript
-export interface FunctionComponent<P = Record<string, any>>
+export interface FunctionComponent<P extends Record<any, any> = Record<any, unknown>>
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-node.ts)
-
-## getCaptured
-
-```typescript
-getCaptured(): any[] | null;
-```
-
-**Returns:**
-
-any[] \| null
-
-## getHash
-
-```typescript
-getHash(): string;
-```
-
-**Returns:**
-
-string
-
-## getModifierState
-
-See [DOM Level 3 Events spec](https://www.w3.org/TR/uievents-key/#keys-modifier). for a list of valid (case-sensitive) arguments to this method.
-
-```typescript
-getModifierState(key: string): boolean;
-```
-
-| Parameter | Type   | Description |
-| --------- | ------ | ----------- |
-| key       | string |             |
-
-**Returns:**
-
-boolean
 
 ## getPlatform
 
@@ -907,16 +777,6 @@ getPlatform: () => CorePlatform;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/platform/platform.ts)
-
-## getSymbol
-
-```typescript
-getSymbol(): string;
-```
-
-**Returns:**
-
-string
 
 ## h
 
@@ -965,14 +825,10 @@ export declare namespace h
 ## HrHTMLAttributes
 
 ```typescript
-export interface HrHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface HrHTMLAttributes<T extends Element> extends HTMLAttributes<T, undefined>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property       | Modifiers | Type      | Description  |
-| -------------- | --------- | --------- | ------------ |
-| [children?](#) |           | undefined | _(Optional)_ |
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T, undefined&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -992,16 +848,7 @@ export type HTMLAttributeAnchorTarget =
 ## HTMLAttributeReferrerPolicy
 
 ```typescript
-export type HTMLAttributeReferrerPolicy =
-  | ""
-  | "no-referrer"
-  | "no-referrer-when-downgrade"
-  | "origin"
-  | "origin-when-cross-origin"
-  | "same-origin"
-  | "strict-origin"
-  | "strict-origin-when-cross-origin"
-  | "unsafe-url";
+export type HTMLAttributeReferrerPolicy = ReferrerPolicy;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
@@ -1009,52 +856,10 @@ export type HTMLAttributeReferrerPolicy =
 ## HTMLAttributes
 
 ```typescript
-export interface HTMLAttributes<T extends Element> extends AriaAttributes, DOMAttributes<T>
+export interface HTMLAttributes<E extends Element, Children = JSXChildren> extends HTMLAttributesBase<E, Children>, Partial<Omit<HTMLElement, BadOnes<HTMLElement>>>
 ```
 
-**Extends:** [AriaAttributes](#ariaattributes), [DOMAttributes](#domattributes)&lt;T&gt;
-
-| Property              | Modifiers | Type                                                                                             | Description                                                                                                        |
-| --------------------- | --------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
-| [about?](#)           |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [accessKey?](#)       |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [autoCapitalize?](#)  |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [autoCorrect?](#)     |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [autoSave?](#)        |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [color?](#)           |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [contentEditable?](#) |           | 'true' \| 'false' \| 'inherit' \| undefined                                                      | _(Optional)_                                                                                                       |
-| [contextMenu?](#)     |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [datatype?](#)        |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [dir?](#)             |           | 'ltr' \| 'rtl' \| 'auto' \| undefined                                                            | _(Optional)_                                                                                                       |
-| [draggable?](#)       |           | boolean \| undefined                                                                             | _(Optional)_                                                                                                       |
-| [hidden?](#)          |           | boolean \| 'hidden' \| 'until-found' \| undefined                                                | _(Optional)_                                                                                                       |
-| [id?](#)              |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [inlist?](#)          |           | any                                                                                              | _(Optional)_                                                                                                       |
-| [inputMode?](#)       |           | 'none' \| 'text' \| 'tel' \| 'url' \| 'email' \| 'numeric' \| 'decimal' \| 'search' \| undefined | _(Optional)_ Hints at the type of data that might be entered by the user while editing the element or its contents |
-| [is?](#)              |           | string \| undefined                                                                              | _(Optional)_ Specify that a standard HTML element should behave like a defined custom built-in element             |
-| [itemID?](#)          |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [itemProp?](#)        |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [itemRef?](#)         |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [itemScope?](#)       |           | boolean \| undefined                                                                             | _(Optional)_                                                                                                       |
-| [itemType?](#)        |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [lang?](#)            |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [placeholder?](#)     |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [prefix?](#)          |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [property?](#)        |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [radioGroup?](#)      |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [resource?](#)        |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [results?](#)         |           | number \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [role?](#)            |           | [AriaRole](#ariarole) \| undefined                                                               | _(Optional)_                                                                                                       |
-| [security?](#)        |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [slot?](#)            |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [spellcheck?](#)      |           | boolean \| undefined                                                                             | _(Optional)_                                                                                                       |
-| [style?](#)           |           | [CSSProperties](#cssproperties) \| string \| undefined                                           | _(Optional)_                                                                                                       |
-| [tabIndex?](#)        |           | number \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [title?](#)           |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [translate?](#)       |           | 'yes' \| 'no' \| undefined                                                                       | _(Optional)_                                                                                                       |
-| [typeof?](#)          |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
-| [unselectable?](#)    |           | 'on' \| 'off' \| undefined                                                                       | _(Optional)_                                                                                                       |
-| [vocab?](#)           |           | string \| undefined                                                                              | _(Optional)_                                                                                                       |
+**Extends:** HTMLAttributesBase&lt;E, Children&gt;, Partial&lt;Omit&lt;HTMLElement, BadOnes&lt;HTMLElement&gt;&gt;&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -1184,55 +989,20 @@ export type HTMLInputTypeAttribute =
 ## IframeHTMLAttributes
 
 ```typescript
-export interface IframeHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface IframeHTMLAttributes<T extends Element> extends HTMLAttributes<T, undefined>, IframeAttrs
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property                | Modifiers | Type                                                                     | Description  |
-| ----------------------- | --------- | ------------------------------------------------------------------------ | ------------ |
-| [allow?](#)             |           | string \| undefined                                                      | _(Optional)_ |
-| [allowFullScreen?](#)   |           | boolean \| undefined                                                     | _(Optional)_ |
-| [allowTransparency?](#) |           | boolean \| undefined                                                     | _(Optional)_ |
-| [children?](#)          |           | undefined                                                                | _(Optional)_ |
-| [frameBorder?](#)       |           | number \| string \| undefined                                            | _(Optional)_ |
-| [height?](#)            |           | [Size](#size) \| undefined                                               | _(Optional)_ |
-| [loading?](#)           |           | 'eager' \| 'lazy' \| undefined                                           | _(Optional)_ |
-| [marginHeight?](#)      |           | number \| undefined                                                      | _(Optional)_ |
-| [marginWidth?](#)       |           | number \| undefined                                                      | _(Optional)_ |
-| [name?](#)              |           | string \| undefined                                                      | _(Optional)_ |
-| [referrerPolicy?](#)    |           | [HTMLAttributeReferrerPolicy](#htmlattributereferrerpolicy) \| undefined | _(Optional)_ |
-| [sandbox?](#)           |           | string \| undefined                                                      | _(Optional)_ |
-| [scrolling?](#)         |           | string \| undefined                                                      | _(Optional)_ |
-| [seamless?](#)          |           | boolean \| undefined                                                     | _(Optional)_ |
-| [src?](#)               |           | string \| undefined                                                      | _(Optional)_ |
-| [srcDoc?](#)            |           | string \| undefined                                                      | _(Optional)_ |
-| [width?](#)             |           | [Size](#size) \| undefined                                               | _(Optional)_ |
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T, undefined&gt;, IframeAttrs
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## ImgHTMLAttributes
 
 ```typescript
-export interface ImgHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface ImgHTMLAttributes<T extends Element> extends HTMLAttributes<T, undefined>, ImgAttrs
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property             | Modifiers | Type                                                                     | Description                                           |
-| -------------------- | --------- | ------------------------------------------------------------------------ | ----------------------------------------------------- |
-| [alt?](#)            |           | string \| undefined                                                      | _(Optional)_                                          |
-| [children?](#)       |           | undefined                                                                | _(Optional)_                                          |
-| [crossOrigin?](#)    |           | [HTMLCrossOriginAttribute](#htmlcrossoriginattribute)                    | _(Optional)_                                          |
-| [decoding?](#)       |           | 'async' \| 'auto' \| 'sync' \| undefined                                 | _(Optional)_                                          |
-| [height?](#)         |           | [Numberish](#numberish) \| undefined                                     | _(Optional)_ Intrinsic height of the image in pixels. |
-| [loading?](#)        |           | 'eager' \| 'lazy' \| undefined                                           | _(Optional)_                                          |
-| [referrerPolicy?](#) |           | [HTMLAttributeReferrerPolicy](#htmlattributereferrerpolicy) \| undefined | _(Optional)_                                          |
-| [sizes?](#)          |           | string \| undefined                                                      | _(Optional)_                                          |
-| [src?](#)            |           | string \| undefined                                                      | _(Optional)_                                          |
-| [srcSet?](#)         |           | string \| undefined                                                      | _(Optional)_                                          |
-| [useMap?](#)         |           | string \| undefined                                                      | _(Optional)_                                          |
-| [width?](#)          |           | [Numberish](#numberish) \| undefined                                     | _(Optional)_ Intrinsic width of the image in pixels.  |
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T, undefined&gt;, ImgAttrs
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -1280,49 +1050,10 @@ implicit$FirstArg: <FIRST, REST extends any[], RET>(
 ## InputHTMLAttributes
 
 ```typescript
-export interface InputHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface InputHTMLAttributes<T extends Element> extends HTMLAttributes<T, undefined>, InputAttrs
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property                                               | Modifiers | Type                                                                                                                                                                    | Description  |
-| ------------------------------------------------------ | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
-| ["bind:checked"?](#inputhtmlattributes-_bind_checked_) |           | [Signal](#signal)&lt;boolean \| undefined&gt;                                                                                                                           | _(Optional)_ |
-| ["bind:value"?](#inputhtmlattributes-_bind_value_)     |           | [Signal](#signal)&lt;string \| undefined&gt;                                                                                                                            | _(Optional)_ |
-| [accept?](#)                                           |           | string \| undefined                                                                                                                                                     | _(Optional)_ |
-| [alt?](#)                                              |           | string \| undefined                                                                                                                                                     | _(Optional)_ |
-| [autoComplete?](#)                                     |           | [HTMLInputAutocompleteAttribute](#htmlinputautocompleteattribute) \| Omit&lt;[HTMLInputAutocompleteAttribute](#htmlinputautocompleteattribute), string&gt; \| undefined | _(Optional)_ |
-| [autoFocus?](#)                                        |           | boolean \| undefined                                                                                                                                                    | _(Optional)_ |
-| [capture?](#)                                          |           | boolean \| 'user' \| 'environment' \| undefined                                                                                                                         | _(Optional)_ |
-| [checked?](#)                                          |           | boolean \| undefined                                                                                                                                                    | _(Optional)_ |
-| [children?](#)                                         |           | undefined                                                                                                                                                               | _(Optional)_ |
-| [crossOrigin?](#)                                      |           | [HTMLCrossOriginAttribute](#htmlcrossoriginattribute)                                                                                                                   | _(Optional)_ |
-| [disabled?](#)                                         |           | boolean \| undefined                                                                                                                                                    | _(Optional)_ |
-| [enterKeyHint?](#)                                     |           | 'enter' \| 'done' \| 'go' \| 'next' \| 'previous' \| 'search' \| 'send' \| undefined                                                                                    | _(Optional)_ |
-| [form?](#)                                             |           | string \| undefined                                                                                                                                                     | _(Optional)_ |
-| [formAction?](#)                                       |           | string \| undefined                                                                                                                                                     | _(Optional)_ |
-| [formEncType?](#)                                      |           | string \| undefined                                                                                                                                                     | _(Optional)_ |
-| [formMethod?](#)                                       |           | string \| undefined                                                                                                                                                     | _(Optional)_ |
-| [formNoValidate?](#)                                   |           | boolean \| undefined                                                                                                                                                    | _(Optional)_ |
-| [formTarget?](#)                                       |           | string \| undefined                                                                                                                                                     | _(Optional)_ |
-| [height?](#)                                           |           | [Size](#size) \| undefined                                                                                                                                              | _(Optional)_ |
-| [list?](#)                                             |           | string \| undefined                                                                                                                                                     | _(Optional)_ |
-| [max?](#)                                              |           | number \| string \| undefined                                                                                                                                           | _(Optional)_ |
-| [maxLength?](#)                                        |           | number \| undefined                                                                                                                                                     | _(Optional)_ |
-| [min?](#)                                              |           | number \| string \| undefined                                                                                                                                           | _(Optional)_ |
-| [minLength?](#)                                        |           | number \| undefined                                                                                                                                                     | _(Optional)_ |
-| [multiple?](#)                                         |           | boolean \| undefined                                                                                                                                                    | _(Optional)_ |
-| [name?](#)                                             |           | string \| undefined                                                                                                                                                     | _(Optional)_ |
-| [pattern?](#)                                          |           | string \| undefined                                                                                                                                                     | _(Optional)_ |
-| [placeholder?](#)                                      |           | string \| undefined                                                                                                                                                     | _(Optional)_ |
-| [readOnly?](#)                                         |           | boolean \| undefined                                                                                                                                                    | _(Optional)_ |
-| [required?](#)                                         |           | boolean \| undefined                                                                                                                                                    | _(Optional)_ |
-| [size?](#)                                             |           | number \| undefined                                                                                                                                                     | _(Optional)_ |
-| [src?](#)                                              |           | string \| undefined                                                                                                                                                     | _(Optional)_ |
-| [step?](#)                                             |           | number \| string \| undefined                                                                                                                                           | _(Optional)_ |
-| [type?](#)                                             |           | [HTMLInputTypeAttribute](#htmlinputtypeattribute) \| undefined                                                                                                          | _(Optional)_ |
-| [value?](#)                                            |           | string \| ReadonlyArray&lt;string&gt; \| number \| undefined \| null \| FormDataEntryValue                                                                              | _(Optional)_ |
-| [width?](#)                                            |           | [Size](#size) \| undefined                                                                                                                                              | _(Optional)_ |
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T, undefined&gt;, InputAttrs
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -1360,197 +1091,25 @@ interface IntrinsicElements extends QwikJSX.IntrinsicElements
 ## IntrinsicHTMLElements
 
 ```typescript
-export interface IntrinsicHTMLElements
+export interface IntrinsicHTMLElements extends QwikHTMLExceptions, PlainHTMLElements
 ```
 
-| Property        | Modifiers | Type                                                                         | Description |
-| --------------- | --------- | ---------------------------------------------------------------------------- | ----------- |
-| [a](#)          |           | [AnchorHTMLAttributes](#anchorhtmlattributes)&lt;HTMLAnchorElement&gt;       |             |
-| [abbr](#)       |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [address](#)    |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [area](#)       |           | [AreaHTMLAttributes](#areahtmlattributes)&lt;HTMLAreaElement&gt;             |             |
-| [article](#)    |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [aside](#)      |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [audio](#)      |           | [AudioHTMLAttributes](#audiohtmlattributes)&lt;HTMLAudioElement&gt;          |             |
-| [b](#)          |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [base](#)       |           | [BaseHTMLAttributes](#basehtmlattributes)&lt;HTMLBaseElement&gt;             |             |
-| [bdi](#)        |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [bdo](#)        |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [big](#)        |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [blockquote](#) |           | [BlockquoteHTMLAttributes](#blockquotehtmlattributes)&lt;HTMLElement&gt;     |             |
-| [body](#)       |           | [HTMLAttributes](#htmlattributes)&lt;HTMLBodyElement&gt;                     |             |
-| [br](#)         |           | [HTMLAttributes](#htmlattributes)&lt;HTMLBRElement&gt;                       |             |
-| [button](#)     |           | [ButtonHTMLAttributes](#buttonhtmlattributes)&lt;HTMLButtonElement&gt;       |             |
-| [canvas](#)     |           | [CanvasHTMLAttributes](#canvashtmlattributes)&lt;HTMLCanvasElement&gt;       |             |
-| [caption](#)    |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [cite](#)       |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [code](#)       |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [col](#)        |           | [ColHTMLAttributes](#colhtmlattributes)&lt;HTMLTableColElement&gt;           |             |
-| [colgroup](#)   |           | [ColgroupHTMLAttributes](#colgrouphtmlattributes)&lt;HTMLTableColElement&gt; |             |
-| [data](#)       |           | [DataHTMLAttributes](#datahtmlattributes)&lt;HTMLDataElement&gt;             |             |
-| [datalist](#)   |           | [HTMLAttributes](#htmlattributes)&lt;HTMLDataListElement&gt;                 |             |
-| [dd](#)         |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [del](#)        |           | [DelHTMLAttributes](#delhtmlattributes)&lt;HTMLElement&gt;                   |             |
-| [details](#)    |           | [DetailsHTMLAttributes](#detailshtmlattributes)&lt;HTMLElement&gt;           |             |
-| [dfn](#)        |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [dialog](#)     |           | [DialogHTMLAttributes](#dialoghtmlattributes)&lt;HTMLDialogElement&gt;       |             |
-| [div](#)        |           | [HTMLAttributes](#htmlattributes)&lt;HTMLDivElement&gt;                      |             |
-| [dl](#)         |           | [HTMLAttributes](#htmlattributes)&lt;HTMLDListElement&gt;                    |             |
-| [dt](#)         |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [em](#)         |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [embed](#)      |           | [EmbedHTMLAttributes](#embedhtmlattributes)&lt;HTMLEmbedElement&gt;          |             |
-| [fieldset](#)   |           | [FieldsetHTMLAttributes](#fieldsethtmlattributes)&lt;HTMLFieldSetElement&gt; |             |
-| [figcaption](#) |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [figure](#)     |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [footer](#)     |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [form](#)       |           | [FormHTMLAttributes](#formhtmlattributes)&lt;HTMLFormElement&gt;             |             |
-| [h1](#)         |           | [HTMLAttributes](#htmlattributes)&lt;HTMLHeadingElement&gt;                  |             |
-| [h2](#)         |           | [HTMLAttributes](#htmlattributes)&lt;HTMLHeadingElement&gt;                  |             |
-| [h3](#)         |           | [HTMLAttributes](#htmlattributes)&lt;HTMLHeadingElement&gt;                  |             |
-| [h4](#)         |           | [HTMLAttributes](#htmlattributes)&lt;HTMLHeadingElement&gt;                  |             |
-| [h5](#)         |           | [HTMLAttributes](#htmlattributes)&lt;HTMLHeadingElement&gt;                  |             |
-| [h6](#)         |           | [HTMLAttributes](#htmlattributes)&lt;HTMLHeadingElement&gt;                  |             |
-| [head](#)       |           | [HTMLAttributes](#htmlattributes)&lt;HTMLHeadElement&gt;                     |             |
-| [header](#)     |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [hgroup](#)     |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [hr](#)         |           | [HrHTMLAttributes](#hrhtmlattributes)&lt;HTMLHRElement&gt;                   |             |
-| [html](#)       |           | [HtmlHTMLAttributes](#htmlhtmlattributes)&lt;HTMLHtmlElement&gt;             |             |
-| [i](#)          |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [iframe](#)     |           | [IframeHTMLAttributes](#iframehtmlattributes)&lt;HTMLIFrameElement&gt;       |             |
-| [img](#)        |           | [ImgHTMLAttributes](#imghtmlattributes)&lt;HTMLImageElement&gt;              |             |
-| [input](#)      |           | [InputHTMLAttributes](#inputhtmlattributes)&lt;HTMLInputElement&gt;          |             |
-| [ins](#)        |           | [InsHTMLAttributes](#inshtmlattributes)&lt;HTMLModElement&gt;                |             |
-| [kbd](#)        |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [keygen](#)     |           | [KeygenHTMLAttributes](#keygenhtmlattributes)&lt;HTMLElement&gt;             |             |
-| [label](#)      |           | [LabelHTMLAttributes](#labelhtmlattributes)&lt;HTMLLabelElement&gt;          |             |
-| [legend](#)     |           | [HTMLAttributes](#htmlattributes)&lt;HTMLLegendElement&gt;                   |             |
-| [li](#)         |           | [LiHTMLAttributes](#lihtmlattributes)&lt;HTMLLIElement&gt;                   |             |
-| [link](#)       |           | [LinkHTMLAttributes](#linkhtmlattributes)&lt;HTMLLinkElement&gt;             |             |
-| [main](#)       |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [map](#)        |           | [MapHTMLAttributes](#maphtmlattributes)&lt;HTMLMapElement&gt;                |             |
-| [mark](#)       |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [menu](#)       |           | [MenuHTMLAttributes](#menuhtmlattributes)&lt;HTMLElement&gt;                 |             |
-| [menuitem](#)   |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [meta](#)       |           | [MetaHTMLAttributes](#metahtmlattributes)&lt;HTMLMetaElement&gt;             |             |
-| [meter](#)      |           | [MeterHTMLAttributes](#meterhtmlattributes)&lt;HTMLElement&gt;               |             |
-| [nav](#)        |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [noindex](#)    |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [noscript](#)   |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [object](#)     |           | [ObjectHTMLAttributes](#objecthtmlattributes)&lt;HTMLObjectElement&gt;       |             |
-| [ol](#)         |           | [OlHTMLAttributes](#olhtmlattributes)&lt;HTMLOListElement&gt;                |             |
-| [optgroup](#)   |           | [OptgroupHTMLAttributes](#optgrouphtmlattributes)&lt;HTMLOptGroupElement&gt; |             |
-| [option](#)     |           | [OptionHTMLAttributes](#optionhtmlattributes)&lt;HTMLOptionElement&gt;       |             |
-| [output](#)     |           | [OutputHTMLAttributes](#outputhtmlattributes)&lt;HTMLElement&gt;             |             |
-| [p](#)          |           | [HTMLAttributes](#htmlattributes)&lt;HTMLParagraphElement&gt;                |             |
-| [param](#)      |           | [ParamHTMLAttributes](#paramhtmlattributes)&lt;HTMLParamElement&gt;          |             |
-| [picture](#)    |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [pre](#)        |           | [HTMLAttributes](#htmlattributes)&lt;HTMLPreElement&gt;                      |             |
-| [progress](#)   |           | [ProgressHTMLAttributes](#progresshtmlattributes)&lt;HTMLProgressElement&gt; |             |
-| [q](#)          |           | [QuoteHTMLAttributes](#quotehtmlattributes)&lt;HTMLQuoteElement&gt;          |             |
-| [rp](#)         |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [rt](#)         |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [ruby](#)       |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [s](#)          |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [samp](#)       |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [script](#)     |           | [ScriptHTMLAttributes](#scripthtmlattributes)&lt;HTMLScriptElement&gt;       |             |
-| [section](#)    |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [select](#)     |           | [SelectHTMLAttributes](#selecthtmlattributes)&lt;HTMLSelectElement&gt;       |             |
-| [slot](#)       |           | [SlotHTMLAttributes](#slothtmlattributes)&lt;HTMLSlotElement&gt;             |             |
-| [small](#)      |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [source](#)     |           | [SourceHTMLAttributes](#sourcehtmlattributes)&lt;HTMLSourceElement&gt;       |             |
-| [span](#)       |           | [HTMLAttributes](#htmlattributes)&lt;HTMLSpanElement&gt;                     |             |
-| [strong](#)     |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [style](#)      |           | [StyleHTMLAttributes](#stylehtmlattributes)&lt;HTMLStyleElement&gt;          |             |
-| [sub](#)        |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [summary](#)    |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [sup](#)        |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [table](#)      |           | [TableHTMLAttributes](#tablehtmlattributes)&lt;HTMLTableElement&gt;          |             |
-| [tbody](#)      |           | [HTMLAttributes](#htmlattributes)&lt;HTMLTableSectionElement&gt;             |             |
-| [td](#)         |           | [TdHTMLAttributes](#tdhtmlattributes)&lt;HTMLTableDataCellElement&gt;        |             |
-| [template](#)   |           | [HTMLAttributes](#htmlattributes)&lt;HTMLTemplateElement&gt;                 |             |
-| [textarea](#)   |           | [TextareaHTMLAttributes](#textareahtmlattributes)&lt;HTMLTextAreaElement&gt; |             |
-| [tfoot](#)      |           | [HTMLAttributes](#htmlattributes)&lt;HTMLTableSectionElement&gt;             |             |
-| [th](#)         |           | [ThHTMLAttributes](#thhtmlattributes)&lt;HTMLTableHeaderCellElement&gt;      |             |
-| [thead](#)      |           | [HTMLAttributes](#htmlattributes)&lt;HTMLTableSectionElement&gt;             |             |
-| [time](#)       |           | [TimeHTMLAttributes](#timehtmlattributes)&lt;HTMLElement&gt;                 |             |
-| [title](#)      |           | [TitleHTMLAttributes](#titlehtmlattributes)&lt;HTMLTitleElement&gt;          |             |
-| [tr](#)         |           | [HTMLAttributes](#htmlattributes)&lt;HTMLTableRowElement&gt;                 |             |
-| [track](#)      |           | [TrackHTMLAttributes](#trackhtmlattributes)&lt;HTMLTrackElement&gt;          |             |
-| [tt](#)         |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [u](#)          |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [ul](#)         |           | [HTMLAttributes](#htmlattributes)&lt;HTMLUListElement&gt;                    |             |
-| [video](#)      |           | [VideoHTMLAttributes](#videohtmlattributes)&lt;HTMLVideoElement&gt;          |             |
-| [wbr](#)        |           | [HTMLAttributes](#htmlattributes)&lt;HTMLElement&gt;                         |             |
-| [webview](#)    |           | [WebViewHTMLAttributes](#webviewhtmlattributes)&lt;HTMLWebViewElement&gt;    |             |
+**Extends:** QwikHTMLExceptions, PlainHTMLElements
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## IntrinsicSVGElements
 
 ```typescript
-export interface IntrinsicSVGElements
+export type IntrinsicSVGElements = {
+  [K in keyof Omit<
+    SVGElementTagNameMap,
+    keyof HTMLElementTagNameMap
+  >]: SVGProps<SVGElementTagNameMap[K]>;
+};
 ```
 
-| Property                 | Modifiers | Type                                                       | Description |
-| ------------------------ | --------- | ---------------------------------------------------------- | ----------- |
-| [animate](#)             |           | [SVGProps](#svgprops)&lt;SVGElement&gt;                    |             |
-| [animateMotion](#)       |           | [SVGProps](#svgprops)&lt;SVGElement&gt;                    |             |
-| [animateTransform](#)    |           | [SVGProps](#svgprops)&lt;SVGElement&gt;                    |             |
-| [circle](#)              |           | [SVGProps](#svgprops)&lt;SVGCircleElement&gt;              |             |
-| [clipPath](#)            |           | [SVGProps](#svgprops)&lt;SVGClipPathElement&gt;            |             |
-| [defs](#)                |           | [SVGProps](#svgprops)&lt;SVGDefsElement&gt;                |             |
-| [desc](#)                |           | [SVGProps](#svgprops)&lt;SVGDescElement&gt;                |             |
-| [ellipse](#)             |           | [SVGProps](#svgprops)&lt;SVGEllipseElement&gt;             |             |
-| [feBlend](#)             |           | [SVGProps](#svgprops)&lt;SVGFEBlendElement&gt;             |             |
-| [feColorMatrix](#)       |           | [SVGProps](#svgprops)&lt;SVGFEColorMatrixElement&gt;       |             |
-| [feComponentTransfer](#) |           | [SVGProps](#svgprops)&lt;SVGFEComponentTransferElement&gt; |             |
-| [feComposite](#)         |           | [SVGProps](#svgprops)&lt;SVGFECompositeElement&gt;         |             |
-| [feConvolveMatrix](#)    |           | [SVGProps](#svgprops)&lt;SVGFEConvolveMatrixElement&gt;    |             |
-| [feDiffuseLighting](#)   |           | [SVGProps](#svgprops)&lt;SVGFEDiffuseLightingElement&gt;   |             |
-| [feDisplacementMap](#)   |           | [SVGProps](#svgprops)&lt;SVGFEDisplacementMapElement&gt;   |             |
-| [feDistantLight](#)      |           | [SVGProps](#svgprops)&lt;SVGFEDistantLightElement&gt;      |             |
-| [feDropShadow](#)        |           | [SVGProps](#svgprops)&lt;SVGFEDropShadowElement&gt;        |             |
-| [feFlood](#)             |           | [SVGProps](#svgprops)&lt;SVGFEFloodElement&gt;             |             |
-| [feFuncA](#)             |           | [SVGProps](#svgprops)&lt;SVGFEFuncAElement&gt;             |             |
-| [feFuncB](#)             |           | [SVGProps](#svgprops)&lt;SVGFEFuncBElement&gt;             |             |
-| [feFuncG](#)             |           | [SVGProps](#svgprops)&lt;SVGFEFuncGElement&gt;             |             |
-| [feFuncR](#)             |           | [SVGProps](#svgprops)&lt;SVGFEFuncRElement&gt;             |             |
-| [feGaussianBlur](#)      |           | [SVGProps](#svgprops)&lt;SVGFEGaussianBlurElement&gt;      |             |
-| [feImage](#)             |           | [SVGProps](#svgprops)&lt;SVGFEImageElement&gt;             |             |
-| [feMerge](#)             |           | [SVGProps](#svgprops)&lt;SVGFEMergeElement&gt;             |             |
-| [feMergeNode](#)         |           | [SVGProps](#svgprops)&lt;SVGFEMergeNodeElement&gt;         |             |
-| [feMorphology](#)        |           | [SVGProps](#svgprops)&lt;SVGFEMorphologyElement&gt;        |             |
-| [feOffset](#)            |           | [SVGProps](#svgprops)&lt;SVGFEOffsetElement&gt;            |             |
-| [fePointLight](#)        |           | [SVGProps](#svgprops)&lt;SVGFEPointLightElement&gt;        |             |
-| [feSpecularLighting](#)  |           | [SVGProps](#svgprops)&lt;SVGFESpecularLightingElement&gt;  |             |
-| [feSpotLight](#)         |           | [SVGProps](#svgprops)&lt;SVGFESpotLightElement&gt;         |             |
-| [feTile](#)              |           | [SVGProps](#svgprops)&lt;SVGFETileElement&gt;              |             |
-| [feTurbulence](#)        |           | [SVGProps](#svgprops)&lt;SVGFETurbulenceElement&gt;        |             |
-| [filter](#)              |           | [SVGProps](#svgprops)&lt;SVGFilterElement&gt;              |             |
-| [foreignObject](#)       |           | [SVGProps](#svgprops)&lt;SVGForeignObjectElement&gt;       |             |
-| [g](#)                   |           | [SVGProps](#svgprops)&lt;SVGGElement&gt;                   |             |
-| [image](#)               |           | [SVGProps](#svgprops)&lt;SVGImageElement&gt;               |             |
-| [line](#)                |           | [SVGProps](#svgprops)&lt;SVGLineElement&gt;                |             |
-| [linearGradient](#)      |           | [SVGProps](#svgprops)&lt;SVGLinearGradientElement&gt;      |             |
-| [marker](#)              |           | [SVGProps](#svgprops)&lt;SVGMarkerElement&gt;              |             |
-| [mask](#)                |           | [SVGProps](#svgprops)&lt;SVGMaskElement&gt;                |             |
-| [metadata](#)            |           | [SVGProps](#svgprops)&lt;SVGMetadataElement&gt;            |             |
-| [mpath](#)               |           | [SVGProps](#svgprops)&lt;SVGElement&gt;                    |             |
-| [path](#)                |           | [SVGProps](#svgprops)&lt;SVGPathElement&gt;                |             |
-| [pattern](#)             |           | [SVGProps](#svgprops)&lt;SVGPatternElement&gt;             |             |
-| [polygon](#)             |           | [SVGProps](#svgprops)&lt;SVGPolygonElement&gt;             |             |
-| [polyline](#)            |           | [SVGProps](#svgprops)&lt;SVGPolylineElement&gt;            |             |
-| [radialGradient](#)      |           | [SVGProps](#svgprops)&lt;SVGRadialGradientElement&gt;      |             |
-| [rect](#)                |           | [SVGProps](#svgprops)&lt;SVGRectElement&gt;                |             |
-| [stop](#)                |           | [SVGProps](#svgprops)&lt;SVGStopElement&gt;                |             |
-| [svg](#)                 |           | [SVGProps](#svgprops)&lt;SVGSVGElement&gt;                 |             |
-| [switch](#)              |           | [SVGProps](#svgprops)&lt;SVGSwitchElement&gt;              |             |
-| [symbol](#)              |           | [SVGProps](#svgprops)&lt;SVGSymbolElement&gt;              |             |
-| [text](#)                |           | [SVGProps](#svgprops)&lt;SVGTextElement&gt;                |             |
-| [textPath](#)            |           | [SVGProps](#svgprops)&lt;SVGTextPathElement&gt;            |             |
-| [tspan](#)               |           | [SVGProps](#svgprops)&lt;SVGTSpanElement&gt;               |             |
-| [use](#)                 |           | [SVGProps](#svgprops)&lt;SVGUseElement&gt;                 |             |
-| [view](#)                |           | [SVGProps](#svgprops)&lt;SVGViewElement&gt;                |             |
+**References:** [SVGProps](#svgprops)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -1559,7 +1118,7 @@ export interface IntrinsicSVGElements
 Checks if a given object is a `Signal`.
 
 ```typescript
-isSignal: (obj: any) => obj is Signal<any>
+isSignal: <T = unknown>(obj: any) => obj is Signal<T>
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/state/signal.ts)
@@ -1569,7 +1128,9 @@ isSignal: (obj: any) => obj is Signal<any>
 ```typescript
 jsx: <T extends string | FunctionComponent<any>>(
   type: T,
-  props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>,
+  props: T extends FunctionComponent<infer PROPS extends Record<any, any>>
+    ? PROPS
+    : Record<any, unknown>,
   key?: string | number | null,
 ) => JSXNode<T>;
 ```
@@ -1613,13 +1174,15 @@ export type JSXChildren =
 ## jsxDEV
 
 ```typescript
-jsxDEV: <T extends string | FunctionComponent<any>>(
+jsxDEV: <T extends string | FunctionComponent<Record<any, unknown>>>(
   type: T,
-  props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>,
+  props: T extends FunctionComponent<infer PROPS extends Record<any, any>>
+    ? PROPS
+    : Record<any, unknown>,
   key: string | number | null | undefined,
   _isStatic: boolean,
   opts: JsxDevOpts,
-  _ctx: any,
+  _ctx: unknown,
 ) => JSXNode<T>;
 ```
 
@@ -1631,15 +1194,15 @@ jsxDEV: <T extends string | FunctionComponent<any>>(
 export interface JSXNode<T = string | FunctionComponent>
 ```
 
-| Property            | Modifiers | Type                                                                                             | Description  |
-| ------------------- | --------- | ------------------------------------------------------------------------------------------------ | ------------ |
-| [children](#)       |           | any \| null                                                                                      |              |
-| [dev?](#)           |           | [DevJSX](#devjsx)                                                                                | _(Optional)_ |
-| [flags](#)          |           | number                                                                                           |              |
-| [immutableProps](#) |           | Record&lt;string, any&gt; \| null                                                                |              |
-| [key](#)            |           | string \| null                                                                                   |              |
-| [props](#)          |           | T extends [FunctionComponent](#functioncomponent)&lt;infer B&gt; ? B : Record&lt;string, any&gt; |              |
-| [type](#)           |           | T                                                                                                |              |
+| Property            | Modifiers | Type                                                                                              | Description  |
+| ------------------- | --------- | ------------------------------------------------------------------------------------------------- | ------------ |
+| [children](#)       |           | [JSXChildren](#jsxchildren) \| null                                                               |              |
+| [dev?](#)           |           | [DevJSX](#devjsx)                                                                                 | _(Optional)_ |
+| [flags](#)          |           | number                                                                                            |              |
+| [immutableProps](#) |           | Record&lt;any, unknown&gt; \| null                                                                |              |
+| [key](#)            |           | string \| null                                                                                    |              |
+| [props](#)          |           | T extends [FunctionComponent](#functioncomponent)&lt;infer B&gt; ? B : Record&lt;any, unknown&gt; |              |
+| [type](#)           |           | T                                                                                                 |              |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-node.ts)
 
@@ -1677,56 +1240,30 @@ export interface KeygenHTMLAttributes<T extends Element> extends HTMLAttributes<
 ## LabelHTMLAttributes
 
 ```typescript
-export interface LabelHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface LabelHTMLAttributes<T extends Element> extends HTMLAttributes<T>, LabelAttrs
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property   | Modifiers | Type                | Description  |
-| ---------- | --------- | ------------------- | ------------ |
-| [for?](#)  |           | string \| undefined | _(Optional)_ |
-| [form?](#) |           | string \| undefined | _(Optional)_ |
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;, LabelAttrs
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## LiHTMLAttributes
 
 ```typescript
-export interface LiHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface LiHTMLAttributes<T extends Element> extends HTMLAttributes<T>, LiAttrs
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property    | Modifiers | Type                                                         | Description  |
-| ----------- | --------- | ------------------------------------------------------------ | ------------ |
-| [value?](#) |           | string \| ReadonlyArray&lt;string&gt; \| number \| undefined | _(Optional)_ |
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;, LiAttrs
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## LinkHTMLAttributes
 
 ```typescript
-export interface LinkHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface LinkHTMLAttributes<T extends Element> extends HTMLAttributes<T, undefined>, LinkAttrs
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property             | Modifiers | Type                                                                     | Description  |
-| -------------------- | --------- | ------------------------------------------------------------------------ | ------------ |
-| [as?](#)             |           | string \| undefined                                                      | _(Optional)_ |
-| [charSet?](#)        |           | string \| undefined                                                      | _(Optional)_ |
-| [children?](#)       |           | undefined                                                                | _(Optional)_ |
-| [crossOrigin?](#)    |           | [HTMLCrossOriginAttribute](#htmlcrossoriginattribute)                    | _(Optional)_ |
-| [href?](#)           |           | string \| undefined                                                      | _(Optional)_ |
-| [hrefLang?](#)       |           | string \| undefined                                                      | _(Optional)_ |
-| [imageSizes?](#)     |           | string \| undefined                                                      | _(Optional)_ |
-| [imageSrcSet?](#)    |           | string \| undefined                                                      | _(Optional)_ |
-| [integrity?](#)      |           | string \| undefined                                                      | _(Optional)_ |
-| [media?](#)          |           | string \| undefined                                                      | _(Optional)_ |
-| [referrerPolicy?](#) |           | [HTMLAttributeReferrerPolicy](#htmlattributereferrerpolicy) \| undefined | _(Optional)_ |
-| [rel?](#)            |           | string \| undefined                                                      | _(Optional)_ |
-| [sizes?](#)          |           | string \| undefined                                                      | _(Optional)_ |
-| [type?](#)           |           | string \| undefined                                                      | _(Optional)_ |
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T, undefined&gt;, LinkAttrs
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -1747,23 +1284,10 @@ export interface MapHTMLAttributes<T extends Element> extends HTMLAttributes<T>
 ## MediaHTMLAttributes
 
 ```typescript
-export interface MediaHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface MediaHTMLAttributes<T extends Element> extends HTMLAttributes<T>, MediaAttrs
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property           | Modifiers | Type                                                  | Description  |
-| ------------------ | --------- | ----------------------------------------------------- | ------------ |
-| [autoPlay?](#)     |           | boolean \| undefined                                  | _(Optional)_ |
-| [controls?](#)     |           | boolean \| undefined                                  | _(Optional)_ |
-| [controlsList?](#) |           | string \| undefined                                   | _(Optional)_ |
-| [crossOrigin?](#)  |           | [HTMLCrossOriginAttribute](#htmlcrossoriginattribute) | _(Optional)_ |
-| [loop?](#)         |           | boolean \| undefined                                  | _(Optional)_ |
-| [mediaGroup?](#)   |           | string \| undefined                                   | _(Optional)_ |
-| [muted?](#)        |           | boolean \| undefined                                  | _(Optional)_ |
-| [playsInline?](#)  |           | boolean \| undefined                                  | _(Optional)_ |
-| [preload?](#)      |           | string \| undefined                                   | _(Optional)_ |
-| [src?](#)          |           | string \| undefined                                   | _(Optional)_ |
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;, MediaAttrs
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -1784,43 +1308,28 @@ export interface MenuHTMLAttributes<T extends Element> extends HTMLAttributes<T>
 ## MetaHTMLAttributes
 
 ```typescript
-export interface MetaHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface MetaHTMLAttributes<T extends Element> extends HTMLAttributes<T, undefined>, MetaAttrs
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property        | Modifiers | Type                | Description  |
-| --------------- | --------- | ------------------- | ------------ |
-| [charSet?](#)   |           | string \| undefined | _(Optional)_ |
-| [children?](#)  |           | undefined           | _(Optional)_ |
-| [content?](#)   |           | string \| undefined | _(Optional)_ |
-| [httpEquiv?](#) |           | string \| undefined | _(Optional)_ |
-| [media?](#)     |           | string \| undefined | _(Optional)_ |
-| [name?](#)      |           | string \| undefined | _(Optional)_ |
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T, undefined&gt;, MetaAttrs
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## MeterHTMLAttributes
 
 ```typescript
-export interface MeterHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface MeterHTMLAttributes<T extends Element> extends HTMLAttributes<T>, MeterAttrs
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property      | Modifiers | Type                                                         | Description  |
-| ------------- | --------- | ------------------------------------------------------------ | ------------ |
-| [form?](#)    |           | string \| undefined                                          | _(Optional)_ |
-| [high?](#)    |           | number \| undefined                                          | _(Optional)_ |
-| [low?](#)     |           | number \| undefined                                          | _(Optional)_ |
-| [max?](#)     |           | number \| string \| undefined                                | _(Optional)_ |
-| [min?](#)     |           | number \| string \| undefined                                | _(Optional)_ |
-| [optimum?](#) |           | number \| undefined                                          | _(Optional)_ |
-| [value?](#)   |           | string \| ReadonlyArray&lt;string&gt; \| number \| undefined | _(Optional)_ |
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;, MeterAttrs
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## NativeAnimationEvent
+
+> Warning: This API is now obsolete.
+>
+> Use `AnimationEvent`
 
 ```typescript
 export type NativeAnimationEvent = AnimationEvent;
@@ -1830,6 +1339,10 @@ export type NativeAnimationEvent = AnimationEvent;
 
 ## NativeClipboardEvent
 
+> Warning: This API is now obsolete.
+>
+> Use `ClipboardEvent`
+
 ```typescript
 export type NativeClipboardEvent = ClipboardEvent;
 ```
@@ -1837,6 +1350,10 @@ export type NativeClipboardEvent = ClipboardEvent;
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## NativeCompositionEvent
+
+> Warning: This API is now obsolete.
+>
+> Use `CompositionEvent`
 
 ```typescript
 export type NativeCompositionEvent = CompositionEvent;
@@ -1846,6 +1363,10 @@ export type NativeCompositionEvent = CompositionEvent;
 
 ## NativeDragEvent
 
+> Warning: This API is now obsolete.
+>
+> Use `DragEvent`
+
 ```typescript
 export type NativeDragEvent = DragEvent;
 ```
@@ -1853,6 +1374,10 @@ export type NativeDragEvent = DragEvent;
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## NativeFocusEvent
+
+> Warning: This API is now obsolete.
+>
+> Use `FocusEvent`
 
 ```typescript
 export type NativeFocusEvent = FocusEvent;
@@ -1862,6 +1387,10 @@ export type NativeFocusEvent = FocusEvent;
 
 ## NativeKeyboardEvent
 
+> Warning: This API is now obsolete.
+>
+> Use `KeyboardEvent`
+
 ```typescript
 export type NativeKeyboardEvent = KeyboardEvent;
 ```
@@ -1869,6 +1398,10 @@ export type NativeKeyboardEvent = KeyboardEvent;
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## NativeMouseEvent
+
+> Warning: This API is now obsolete.
+>
+> Use `MouseEvent`
 
 ```typescript
 export type NativeMouseEvent = MouseEvent;
@@ -1878,6 +1411,10 @@ export type NativeMouseEvent = MouseEvent;
 
 ## NativePointerEvent
 
+> Warning: This API is now obsolete.
+>
+> Use `PointerEvent`
+
 ```typescript
 export type NativePointerEvent = PointerEvent;
 ```
@@ -1885,6 +1422,10 @@ export type NativePointerEvent = PointerEvent;
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## NativeTouchEvent
+
+> Warning: This API is now obsolete.
+>
+> Use `TouchEvent`
 
 ```typescript
 export type NativeTouchEvent = TouchEvent;
@@ -1894,6 +1435,10 @@ export type NativeTouchEvent = TouchEvent;
 
 ## NativeTransitionEvent
 
+> Warning: This API is now obsolete.
+>
+> Use `TransitionEvent`
+
 ```typescript
 export type NativeTransitionEvent = TransitionEvent;
 ```
@@ -1902,6 +1447,10 @@ export type NativeTransitionEvent = TransitionEvent;
 
 ## NativeUIEvent
 
+> Warning: This API is now obsolete.
+>
+> Use `UIEvent`
+
 ```typescript
 export type NativeUIEvent = UIEvent;
 ```
@@ -1909,6 +1458,10 @@ export type NativeUIEvent = UIEvent;
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## NativeWheelEvent
+
+> Warning: This API is now obsolete.
+>
+> Use `WheelEvent`
 
 ```typescript
 export type NativeWheelEvent = WheelEvent;
@@ -1959,47 +1512,29 @@ export type Numberish = number | `${number}`;
 ## ObjectHTMLAttributes
 
 ```typescript
-export interface ObjectHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface ObjectHTMLAttributes<T extends Element> extends HTMLAttributes<T>, ObjectAttrs
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property      | Modifiers | Type                       | Description  |
-| ------------- | --------- | -------------------------- | ------------ |
-| [classID?](#) |           | string \| undefined        | _(Optional)_ |
-| [data?](#)    |           | string \| undefined        | _(Optional)_ |
-| [form?](#)    |           | string \| undefined        | _(Optional)_ |
-| [height?](#)  |           | [Size](#size) \| undefined | _(Optional)_ |
-| [name?](#)    |           | string \| undefined        | _(Optional)_ |
-| [type?](#)    |           | string \| undefined        | _(Optional)_ |
-| [useMap?](#)  |           | string \| undefined        | _(Optional)_ |
-| [width?](#)   |           | [Size](#size) \| undefined | _(Optional)_ |
-| [wmode?](#)   |           | string \| undefined        | _(Optional)_ |
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;, ObjectAttrs
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## OlHTMLAttributes
 
 ```typescript
-export interface OlHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface OlHTMLAttributes<T extends Element> extends HTMLAttributes<T>, OlAttrs
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property       | Modifiers | Type                                         | Description  |
-| -------------- | --------- | -------------------------------------------- | ------------ |
-| [reversed?](#) |           | boolean \| undefined                         | _(Optional)_ |
-| [start?](#)    |           | number \| undefined                          | _(Optional)_ |
-| [type?](#)     |           | '1' \| 'a' \| 'A' \| 'i' \| 'I' \| undefined | _(Optional)_ |
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;, OlAttrs
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## OnRenderFn
 
 ```typescript
-export type OnRenderFn<PROPS extends {}> = (
+export type OnRenderFn<PROPS extends Record<any, any>> = (
   props: PROPS,
-) => JSXNode<any> | null;
+) => JSXNode | null;
 ```
 
 **References:** [JSXNode](#jsxnode)
@@ -2036,18 +1571,10 @@ export interface OptgroupHTMLAttributes<T extends Element> extends HTMLAttribute
 ## OptionHTMLAttributes
 
 ```typescript
-export interface OptionHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface OptionHTMLAttributes<T extends Element> extends HTMLAttributes<T, string>, OptionAttrs
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property       | Modifiers | Type                                                         | Description  |
-| -------------- | --------- | ------------------------------------------------------------ | ------------ |
-| [children?](#) |           | string                                                       | _(Optional)_ |
-| [disabled?](#) |           | boolean \| undefined                                         | _(Optional)_ |
-| [label?](#)    |           | string \| undefined                                          | _(Optional)_ |
-| [selected?](#) |           | boolean \| undefined                                         | _(Optional)_ |
-| [value?](#)    |           | string \| ReadonlyArray&lt;string&gt; \| number \| undefined | _(Optional)_ |
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T, string&gt;, OptionAttrs
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -2059,49 +1586,38 @@ export interface OutputHTMLAttributes<T extends Element> extends HTMLAttributes<
 
 **Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
 
-| Property   | Modifiers | Type                | Description  |
-| ---------- | --------- | ------------------- | ------------ |
-| [for?](#)  |           | string \| undefined | _(Optional)_ |
-| [form?](#) |           | string \| undefined | _(Optional)_ |
-| [name?](#) |           | string \| undefined | _(Optional)_ |
-
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## ParamHTMLAttributes
 
+> Warning: This API is now obsolete.
+>
+> Old DOM API
+
 ```typescript
-export interface ParamHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface ParamHTMLAttributes<T extends Element> extends HTMLAttributes<T, undefined>, ParamAttrs
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property       | Modifiers | Type                                                         | Description  |
-| -------------- | --------- | ------------------------------------------------------------ | ------------ |
-| [children?](#) |           | undefined                                                    | _(Optional)_ |
-| [name?](#)     |           | string \| undefined                                          | _(Optional)_ |
-| [value?](#)    |           | string \| ReadonlyArray&lt;string&gt; \| number \| undefined | _(Optional)_ |
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T, undefined&gt;, ParamAttrs
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## ProgressHTMLAttributes
 
 ```typescript
-export interface ProgressHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface ProgressHTMLAttributes<T extends Element> extends HTMLAttributes<T>, ProgressAttrs
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property    | Modifiers | Type                                                         | Description  |
-| ----------- | --------- | ------------------------------------------------------------ | ------------ |
-| [max?](#)   |           | number \| string \| undefined                                | _(Optional)_ |
-| [value?](#) |           | string \| ReadonlyArray&lt;string&gt; \| number \| undefined | _(Optional)_ |
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;, ProgressAttrs
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## PropFnInterface
 
 ```typescript
-export interface PropFnInterface<ARGS extends any[], RET>
+export type PropFnInterface<ARGS extends any[], RET> = {
+  (...args: ARGS): Promise<RET>;
+};
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
@@ -2109,7 +1625,7 @@ export interface PropFnInterface<ARGS extends any[], RET>
 ## PropFunction
 
 ```typescript
-export type PropFunction<T extends Function = (...args: any[]) => any> =
+export type PropFunction<T extends Function = (...args: any) => any> =
   T extends (...args: infer ARGS) => infer RET
     ? PropFnInterface<ARGS, Awaited<RET>>
     : never;
@@ -2122,12 +1638,12 @@ export type PropFunction<T extends Function = (...args: any[]) => any> =
 ## PropFunctionProps
 
 ```typescript
-export type PropFunctionProps<PROPS extends {}> = {
+export type PropFunctionProps<PROPS extends Record<any, any>> = {
   [K in keyof PROPS]: PROPS[K] extends undefined
     ? PROPS[K]
     : PROPS[K] extends ((...args: infer ARGS) => infer RET) | undefined
-    ? PropFnInterface<ARGS, Awaited<RET>>
-    : PROPS[K];
+      ? PropFnInterface<ARGS, Awaited<RET>>
+      : PROPS[K];
 };
 ```
 
@@ -2162,9 +1678,8 @@ export type PropsOf<COMP extends Component<any>> = COMP extends Component<
 Extends the defined component PROPS, adding the default ones (children and q:slot)..
 
 ```typescript
-export type PublicProps<PROPS extends {}> = TransformProps<PROPS> &
-  ComponentBaseProps &
-  ComponentChildren<PROPS>;
+export type PublicProps<PROPS extends Record<any, any>> =
+  TransformProps<PROPS> & ComponentBaseProps & ComponentChildren<PROPS>;
 ```
 
 **References:** [ComponentBaseProps](#componentbaseprops)
@@ -2221,59 +1736,55 @@ export interface QuoteHTMLAttributes<T extends Element> extends HTMLAttributes<T
 
 ## QwikAnimationEvent
 
+> Warning: This API is now obsolete.
+>
+> Use `AnimationEvent`
+
 ```typescript
-export interface QwikAnimationEvent<T = Element> extends SyntheticEvent<T, NativeAnimationEvent>
+export type QwikAnimationEvent<T = Element> = NativeAnimationEvent;
 ```
 
-**Extends:** SyntheticEvent&lt;T, [NativeAnimationEvent](#nativeanimationevent)&gt;
-
-| Property           | Modifiers | Type   | Description |
-| ------------------ | --------- | ------ | ----------- |
-| [animationName](#) |           | string |             |
-| [elapsedTime](#)   |           | number |             |
-| [pseudoElement](#) |           | string |             |
+**References:** [NativeAnimationEvent](#nativeanimationevent)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## QwikChangeEvent
 
+> Warning: This API is now obsolete.
+>
+> Use `ChangeEvent`
+
 ```typescript
-export interface QwikChangeEvent<T = Element> extends SyntheticEvent<T>
+export type QwikChangeEvent<T = Element> = Event;
 ```
-
-**Extends:** SyntheticEvent&lt;T&gt;
-
-| Property    | Modifiers | Type                | Description |
-| ----------- | --------- | ------------------- | ----------- |
-| [target](#) |           | EventTarget &amp; T |             |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## QwikClipboardEvent
 
+> Warning: This API is now obsolete.
+>
+> Use `ClipboardEvent`
+
 ```typescript
-export interface QwikClipboardEvent<T = Element> extends SyntheticEvent<T, NativeClipboardEvent>
+export type QwikClipboardEvent<T = Element> = NativeClipboardEvent;
 ```
 
-**Extends:** SyntheticEvent&lt;T, [NativeClipboardEvent](#nativeclipboardevent)&gt;
-
-| Property           | Modifiers | Type         | Description |
-| ------------------ | --------- | ------------ | ----------- |
-| [clipboardData](#) |           | DataTransfer |             |
+**References:** [NativeClipboardEvent](#nativeclipboardevent)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## QwikCompositionEvent
 
+> Warning: This API is now obsolete.
+>
+> Use `CompositionEvent`
+
 ```typescript
-export interface QwikCompositionEvent<T = Element> extends SyntheticEvent<T, NativeCompositionEvent>
+export type QwikCompositionEvent<T = Element> = NativeCompositionEvent;
 ```
 
-**Extends:** SyntheticEvent&lt;T, [NativeCompositionEvent](#nativecompositionevent)&gt;
-
-| Property  | Modifiers | Type   | Description |
-| --------- | --------- | ------ | ----------- |
-| [data](#) |           | string |             |
+**References:** [NativeCompositionEvent](#nativecompositionevent)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
@@ -2289,30 +1800,29 @@ export interface QwikDOMAttributes extends DOMAttributes<Element>
 
 ## QwikDragEvent
 
+> Warning: This API is now obsolete.
+>
+> Use `DragEvent`
+
 ```typescript
-export interface QwikDragEvent<T = Element> extends QwikMouseEvent<T, NativeDragEvent>
+export type QwikDragEvent<T = Element> = NativeDragEvent;
 ```
 
-**Extends:** [QwikMouseEvent](#qwikmouseevent)&lt;T, [NativeDragEvent](#nativedragevent)&gt;
-
-| Property          | Modifiers | Type         | Description |
-| ----------------- | --------- | ------------ | ----------- |
-| [dataTransfer](#) |           | DataTransfer |             |
+**References:** [NativeDragEvent](#nativedragevent)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## QwikFocusEvent
 
+> Warning: This API is now obsolete.
+>
+> Use `FocusEvent`
+
 ```typescript
-export interface QwikFocusEvent<T = Element> extends SyntheticEvent<T, NativeFocusEvent>
+export type QwikFocusEvent<T = Element> = NativeFocusEvent;
 ```
 
-**Extends:** SyntheticEvent&lt;T, [NativeFocusEvent](#nativefocusevent)&gt;
-
-| Property           | Modifiers | Type                | Description |
-| ------------------ | --------- | ------------------- | ----------- |
-| [relatedTarget](#) |           | EventTarget \| null |             |
-| [target](#)        |           | EventTarget &amp; T |             |
+**References:** [NativeFocusEvent](#nativefocusevent)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
@@ -2346,15 +1856,13 @@ export interface QwikIntrinsicElements extends IntrinsicHTMLElements
 
 ## QwikInvalidEvent
 
+> Warning: This API is now obsolete.
+>
+> Use `InvalidEvent`
+
 ```typescript
-export interface QwikInvalidEvent<T = Element> extends SyntheticEvent<T>
+export type QwikInvalidEvent<T = Element> = Event;
 ```
-
-**Extends:** SyntheticEvent&lt;T&gt;
-
-| Property    | Modifiers | Type                | Description |
-| ----------- | --------- | ------------------- | ----------- |
-| [target](#) |           | EventTarget &amp; T |             |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
@@ -2375,168 +1883,135 @@ export declare namespace QwikJSX
 
 ## QwikKeyboardEvent
 
+> Warning: This API is now obsolete.
+>
+> Use `KeyboardEvent`
+
 ```typescript
-export interface QwikKeyboardEvent<T = Element> extends SyntheticEvent<T, NativeKeyboardEvent>
+export type QwikKeyboardEvent<T = Element> = NativeKeyboardEvent;
 ```
 
-**Extends:** SyntheticEvent&lt;T, [NativeKeyboardEvent](#nativekeyboardevent)&gt;
-
-| Property         | Modifiers | Type    | Description                                                                                                            |
-| ---------------- | --------- | ------- | ---------------------------------------------------------------------------------------------------------------------- |
-| [altKey](#)      |           | boolean |                                                                                                                        |
-| [charCode](#)    |           | number  |                                                                                                                        |
-| [code](#)        |           | string  |                                                                                                                        |
-| [ctrlKey](#)     |           | boolean |                                                                                                                        |
-| [isComposing](#) |           | boolean |                                                                                                                        |
-| [key](#)         |           | string  | See the [DOM Level 3 Events spec](https://www.w3.org/TR/uievents-key/#named-key-attribute-values). for possible values |
-| [keyCode](#)     |           | number  |                                                                                                                        |
-| [locale](#)      |           | string  |                                                                                                                        |
-| [location](#)    |           | number  |                                                                                                                        |
-| [metaKey](#)     |           | boolean |                                                                                                                        |
-| [repeat](#)      |           | boolean |                                                                                                                        |
-| [shiftKey](#)    |           | boolean |                                                                                                                        |
-| [which](#)       |           | number  |                                                                                                                        |
-
-| Method                                                       | Description                                                                                                                                      |
-| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [getModifierState(key)](#qwikkeyboardevent-getmodifierstate) | See [DOM Level 3 Events spec](https://www.w3.org/TR/uievents-key/#keys-modifier). for a list of valid (case-sensitive) arguments to this method. |
+**References:** [NativeKeyboardEvent](#nativekeyboardevent)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## QwikMouseEvent
 
+> Warning: This API is now obsolete.
+>
+> Use `MouseEvent`
+
 ```typescript
-export interface QwikMouseEvent<T = Element, E = NativeMouseEvent> extends SyntheticEvent<T, E>
+export type QwikMouseEvent<T = Element, E = NativeMouseEvent> = E;
 ```
 
-**Extends:** SyntheticEvent&lt;T, E&gt;
-
-| Property           | Modifiers | Type                | Description |
-| ------------------ | --------- | ------------------- | ----------- |
-| [altKey](#)        |           | boolean             |             |
-| [button](#)        |           | number              |             |
-| [buttons](#)       |           | number              |             |
-| [clientX](#)       |           | number              |             |
-| [clientY](#)       |           | number              |             |
-| [ctrlKey](#)       |           | boolean             |             |
-| [metaKey](#)       |           | boolean             |             |
-| [movementX](#)     |           | number              |             |
-| [movementY](#)     |           | number              |             |
-| [pageX](#)         |           | number              |             |
-| [pageY](#)         |           | number              |             |
-| [relatedTarget](#) |           | EventTarget \| null |             |
-| [screenX](#)       |           | number              |             |
-| [screenY](#)       |           | number              |             |
-| [shiftKey](#)      |           | boolean             |             |
-| [x](#)             |           | number              |             |
-| [y](#)             |           | number              |             |
-
-| Method                     | Description                                                                                                                                      |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [getModifierState(key)](#) | See [DOM Level 3 Events spec](https://www.w3.org/TR/uievents-key/#keys-modifier). for a list of valid (case-sensitive) arguments to this method. |
+**References:** [NativeMouseEvent](#nativemouseevent)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## QwikPointerEvent
 
+> Warning: This API is now obsolete.
+>
+> Use `PointerEvent`
+
 ```typescript
-export interface QwikPointerEvent<T = Element> extends QwikMouseEvent<T, NativePointerEvent>
+export type QwikPointerEvent<T = Element> = NativePointerEvent;
 ```
 
-**Extends:** [QwikMouseEvent](#qwikmouseevent)&lt;T, [NativePointerEvent](#nativepointerevent)&gt;
-
-| Property         | Modifiers | Type                        | Description |
-| ---------------- | --------- | --------------------------- | ----------- |
-| [height](#)      |           | number                      |             |
-| [isPrimary](#)   |           | boolean                     |             |
-| [pointerId](#)   |           | number                      |             |
-| [pointerType](#) |           | 'mouse' \| 'pen' \| 'touch' |             |
-| [pressure](#)    |           | number                      |             |
-| [tiltX](#)       |           | number                      |             |
-| [tiltY](#)       |           | number                      |             |
-| [width](#)       |           | number                      |             |
+**References:** [NativePointerEvent](#nativepointerevent)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## QwikSubmitEvent
 
+> Warning: This API is now obsolete.
+>
+> Use `SubmitEvent`
+
 ```typescript
-export interface QwikSubmitEvent<T = Element> extends SyntheticEvent<T>
+export type QwikSubmitEvent<T = Element> = Event;
 ```
 
-**Extends:** SyntheticEvent&lt;T&gt;
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
+
+## QwikSymbolEvent
+
+Emitted by qwik-loader when a module was lazily loaded
+
+```typescript
+export type QwikSymbolEvent = CustomEvent<{
+  symbol: string;
+  element: Element;
+  reqTime: number;
+}>;
+```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## QwikTouchEvent
 
+> Warning: This API is now obsolete.
+>
+> Use `TouchEvent`
+
 ```typescript
-export interface QwikTouchEvent<T = Element> extends SyntheticEvent<T, NativeTouchEvent>
+export type QwikTouchEvent<T = Element> = NativeTouchEvent;
 ```
 
-**Extends:** SyntheticEvent&lt;T, [NativeTouchEvent](#nativetouchevent)&gt;
-
-| Property            | Modifiers | Type      | Description |
-| ------------------- | --------- | --------- | ----------- |
-| [altKey](#)         |           | boolean   |             |
-| [changedTouches](#) |           | TouchList |             |
-| [ctrlKey](#)        |           | boolean   |             |
-| [metaKey](#)        |           | boolean   |             |
-| [shiftKey](#)       |           | boolean   |             |
-| [targetTouches](#)  |           | TouchList |             |
-| [touches](#)        |           | TouchList |             |
-
-| Method                     | Description                                                                                                                                      |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [getModifierState(key)](#) | See [DOM Level 3 Events spec](https://www.w3.org/TR/uievents-key/#keys-modifier). for a list of valid (case-sensitive) arguments to this method. |
+**References:** [NativeTouchEvent](#nativetouchevent)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## QwikTransitionEvent
 
+> Warning: This API is now obsolete.
+>
+> Use `TransitionEvent`
+
 ```typescript
-export interface QwikTransitionEvent<T = Element> extends SyntheticEvent<T, NativeTransitionEvent>
+export type QwikTransitionEvent<T = Element> = NativeTransitionEvent;
 ```
 
-**Extends:** SyntheticEvent&lt;T, [NativeTransitionEvent](#nativetransitionevent)&gt;
-
-| Property           | Modifiers | Type   | Description |
-| ------------------ | --------- | ------ | ----------- |
-| [elapsedTime](#)   |           | number |             |
-| [propertyName](#)  |           | string |             |
-| [pseudoElement](#) |           | string |             |
+**References:** [NativeTransitionEvent](#nativetransitionevent)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## QwikUIEvent
 
+> Warning: This API is now obsolete.
+>
+> Use `UIEvent`
+
 ```typescript
-export interface QwikUIEvent<T = Element> extends SyntheticEvent<T, NativeUIEvent>
+export type QwikUIEvent<T = Element> = NativeUIEvent;
 ```
 
-**Extends:** SyntheticEvent&lt;T, [NativeUIEvent](#nativeuievent)&gt;
+**References:** [NativeUIEvent](#nativeuievent)
 
-| Property    | Modifiers | Type         | Description |
-| ----------- | --------- | ------------ | ----------- |
-| [detail](#) |           | number       |             |
-| [view](#)   |           | AbstractView |             |
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
+
+## QwikVisibleEvent
+
+Emitted by qwik-loader when an element becomes visible. Used by `useVisibleTask$`
+
+```typescript
+export type QwikVisibleEvent = CustomEvent<IntersectionObserverEntry>;
+```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## QwikWheelEvent
 
+> Warning: This API is now obsolete.
+>
+> Use `WheelEvent`
+
 ```typescript
-export interface QwikWheelEvent<T = Element> extends QwikMouseEvent<T, NativeWheelEvent>
+export type QwikWheelEvent<T = Element> = NativeWheelEvent;
 ```
 
-**Extends:** [QwikMouseEvent](#qwikmouseevent)&lt;T, [NativeWheelEvent](#nativewheelevent)&gt;
-
-| Property       | Modifiers | Type   | Description |
-| -------------- | --------- | ------ | ----------- |
-| [deltaMode](#) |           | number |             |
-| [deltaX](#)    |           | number |             |
-| [deltaY](#)    |           | number |             |
-| [deltaZ](#)    |           | number |             |
+**References:** [NativeWheelEvent](#nativewheelevent)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
@@ -2570,7 +2045,7 @@ render: (
 
 ```typescript
 RenderOnce: FunctionComponent<{
-  children?: any;
+  children?: unknown;
   key?: string | number | null | undefined;
 }>;
 ```
@@ -2619,18 +2094,6 @@ export interface RenderSSROptions
 | [stream](#)              |           | [StreamWriter](#streamwriter)                                                                                                                                   |              |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/ssr/render-ssr.ts)
-
-## resolve
-
-Resolve the QRL and return the actual value.
-
-```typescript
-resolve(): Promise<TYPE>;
-```
-
-**Returns:**
-
-Promise&lt;TYPE&gt;
 
 ## Resource
 
@@ -2707,7 +2170,7 @@ export interface ResourceCtx<T>
 ## ResourceFn
 
 ```typescript
-export type ResourceFn<T> = (ctx: ResourceCtx<any>) => ValueOrPromise<T>;
+export type ResourceFn<T> = (ctx: ResourceCtx<unknown>) => ValueOrPromise<T>;
 ```
 
 **References:** [ResourceCtx](#resourcectx), [ValueOrPromise](#valueorpromise)
@@ -2750,7 +2213,7 @@ export interface ResourceProps<T>
 | Property         | Modifiers             | Type                                                                                                             | Description  |
 | ---------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------ |
 | [onPending?](#)  |                       | () =&gt; [JSXNode](#jsxnode)                                                                                     | _(Optional)_ |
-| [onRejected?](#) |                       | (reason: any) =&gt; [JSXNode](#jsxnode)                                                                          | _(Optional)_ |
+| [onRejected?](#) |                       | (reason: Error) =&gt; [JSXNode](#jsxnode)                                                                        | _(Optional)_ |
 | [onResolved](#)  |                       | (value: T) =&gt; [JSXNode](#jsxnode)                                                                             |              |
 | [value](#)       | <code>readonly</code> | [ResourceReturn](#resourcereturn)&lt;T&gt; \| [Signal](#signal)&lt;Promise&lt;T&gt; \| T&gt; \| Promise&lt;T&gt; |              |
 
@@ -2798,46 +2261,20 @@ export type ResourceReturn<T> =
 ## ScriptHTMLAttributes
 
 ```typescript
-export interface ScriptHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface ScriptHTMLAttributes<T extends Element> extends HTMLAttributes<T>, ScriptAttrs
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property             | Modifiers | Type                                                                     | Description  |
-| -------------------- | --------- | ------------------------------------------------------------------------ | ------------ |
-| [async?](#)          |           | boolean \| undefined                                                     | _(Optional)_ |
-| [charSet?](#)        |           | string \| undefined                                                      | _(Optional)_ |
-| [crossOrigin?](#)    |           | [HTMLCrossOriginAttribute](#htmlcrossoriginattribute)                    | _(Optional)_ |
-| [defer?](#)          |           | boolean \| undefined                                                     | _(Optional)_ |
-| [integrity?](#)      |           | string \| undefined                                                      | _(Optional)_ |
-| [noModule?](#)       |           | boolean \| undefined                                                     | _(Optional)_ |
-| [nonce?](#)          |           | string \| undefined                                                      | _(Optional)_ |
-| [referrerPolicy?](#) |           | [HTMLAttributeReferrerPolicy](#htmlattributereferrerpolicy) \| undefined | _(Optional)_ |
-| [src?](#)            |           | string \| undefined                                                      | _(Optional)_ |
-| [type?](#)           |           | string \| undefined                                                      | _(Optional)_ |
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;, ScriptAttrs
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## SelectHTMLAttributes
 
 ```typescript
-export interface SelectHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface SelectHTMLAttributes<T extends Element> extends HTMLAttributes<T>, SelectAttrs
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property           | Modifiers | Type                                                                                                                                                                    | Description  |
-| ------------------ | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
-| ["bind:value"?](#) |           | [Signal](#signal)&lt;string \| undefined&gt;                                                                                                                            | _(Optional)_ |
-| [autoComplete?](#) |           | [HTMLInputAutocompleteAttribute](#htmlinputautocompleteattribute) \| Omit&lt;[HTMLInputAutocompleteAttribute](#htmlinputautocompleteattribute), string&gt; \| undefined | _(Optional)_ |
-| [autoFocus?](#)    |           | boolean \| undefined                                                                                                                                                    | _(Optional)_ |
-| [disabled?](#)     |           | boolean \| undefined                                                                                                                                                    | _(Optional)_ |
-| [form?](#)         |           | string \| undefined                                                                                                                                                     | _(Optional)_ |
-| [multiple?](#)     |           | boolean \| undefined                                                                                                                                                    | _(Optional)_ |
-| [name?](#)         |           | string \| undefined                                                                                                                                                     | _(Optional)_ |
-| [required?](#)     |           | boolean \| undefined                                                                                                                                                    | _(Optional)_ |
-| [size?](#)         |           | number \| undefined                                                                                                                                                     | _(Optional)_ |
-| [value?](#)        |           | string \| ReadonlyArray&lt;string&gt; \| number \| undefined                                                                                                            | _(Optional)_ |
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;, SelectAttrs
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -2981,21 +2418,10 @@ export interface SnapshotState
 ## SourceHTMLAttributes
 
 ```typescript
-export interface SourceHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface SourceHTMLAttributes<T extends Element> extends HTMLAttributes<T, undefined>, SourceAttrs
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property       | Modifiers | Type                       | Description  |
-| -------------- | --------- | -------------------------- | ------------ |
-| [children?](#) |           | undefined                  | _(Optional)_ |
-| [height?](#)   |           | [Size](#size) \| undefined | _(Optional)_ |
-| [media?](#)    |           | string \| undefined        | _(Optional)_ |
-| [sizes?](#)    |           | string \| undefined        | _(Optional)_ |
-| [src?](#)      |           | string \| undefined        | _(Optional)_ |
-| [srcSet?](#)   |           | string \| undefined        | _(Optional)_ |
-| [type?](#)     |           | string \| undefined        | _(Optional)_ |
-| [width?](#)    |           | [Size](#size) \| undefined | _(Optional)_ |
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T, undefined&gt;, SourceAttrs
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -3024,12 +2450,10 @@ SSRHint: FunctionComponent<SSRHintProps>;
 ## SSRHintProps
 
 ```typescript
-export interface SSRHintProps
+export type SSRHintProps = {
+  dynamic?: boolean;
+};
 ```
-
-| Property      | Modifiers | Type    | Description  |
-| ------------- | --------- | ------- | ------------ |
-| [dynamic?](#) |           | boolean | _(Optional)_ |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts)
 
@@ -3064,12 +2488,15 @@ SSRStreamBlock: FunctionComponent<{
 ## SSRStreamProps
 
 ```typescript
-export interface SSRStreamProps
+export type SSRStreamProps = {
+  children:
+    | AsyncGenerator<JSXChildren, void, any>
+    | ((stream: StreamWriter) => Promise<void>)
+    | (() => AsyncGenerator<JSXChildren, void, any>);
+};
 ```
 
-| Property      | Modifiers | Type                                                                                                                                                                                                           | Description |
-| ------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
-| [children](#) |           | AsyncGenerator&lt;[JSXChildren](#jsxchildren), void, any&gt; \| ((stream: [StreamWriter](#streamwriter)) =&gt; Promise&lt;void&gt;) \| (() =&gt; AsyncGenerator&lt;[JSXChildren](#jsxchildren), void, any&gt;) |             |
+**References:** [JSXChildren](#jsxchildren), [StreamWriter](#streamwriter)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts)
 
@@ -3086,22 +2513,16 @@ export type StreamWriter = {
 ## StyleHTMLAttributes
 
 ```typescript
-export interface StyleHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface StyleHTMLAttributes<T extends Element> extends HTMLAttributes<T, string>, StyleAttrs
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property       | Modifiers | Type                 | Description  |
-| -------------- | --------- | -------------------- | ------------ |
-| [children?](#) |           | string               | _(Optional)_ |
-| [media?](#)    |           | string \| undefined  | _(Optional)_ |
-| [nonce?](#)    |           | string \| undefined  | _(Optional)_ |
-| [scoped?](#)   |           | boolean \| undefined | _(Optional)_ |
-| [type?](#)     |           | string \| undefined  | _(Optional)_ |
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T, string&gt;, StyleAttrs
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## SVGAttributes
+
+The TS types don't include the SVG attributes so we have to define them ourselves
 
 ```typescript
 export interface SVGAttributes<T extends Element> extends AriaAttributes, DOMAttributes<T>
@@ -3202,7 +2623,6 @@ export interface SVGAttributes<T extends Element> extends AriaAttributes, DOMAtt
 | [by?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
 | [calcMode?](#)                       |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
 | [class?](#)                          |           | [ClassList](#classlist) \| undefined                                                                                                                                                                                | _(Optional)_ |
-| [className?](#)                      |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
 | [clip?](#)                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
 | [clipPathUnits?](#)                  |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
 | [color?](#)                          |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
@@ -3386,17 +2806,10 @@ export interface SVGProps<T extends Element> extends SVGAttributes<T>
 ## TableHTMLAttributes
 
 ```typescript
-export interface TableHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface TableHTMLAttributes<T extends Element> extends HTMLAttributes<T>, TableAttrs
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property          | Modifiers | Type                          | Description  |
-| ----------------- | --------- | ----------------------------- | ------------ |
-| [cellPadding?](#) |           | number \| string \| undefined | _(Optional)_ |
-| [cellSpacing?](#) |           | number \| string \| undefined | _(Optional)_ |
-| [summary?](#)     |           | string \| undefined           | _(Optional)_ |
-| [width?](#)       |           | [Size](#size) \| undefined    | _(Optional)_ |
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;, TableAttrs
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -3429,72 +2842,30 @@ export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => void)>;
 ## TdHTMLAttributes
 
 ```typescript
-export interface TdHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface TdHTMLAttributes<T extends Element> extends HTMLAttributes<T>, TableCellAttrs
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property      | Modifiers | Type                                                              | Description  |
-| ------------- | --------- | ----------------------------------------------------------------- | ------------ |
-| [abbr?](#)    |           | string \| undefined                                               | _(Optional)_ |
-| [align?](#)   |           | 'left' \| 'center' \| 'right' \| 'justify' \| 'char' \| undefined | _(Optional)_ |
-| [colSpan?](#) |           | number \| undefined                                               | _(Optional)_ |
-| [headers?](#) |           | string \| undefined                                               | _(Optional)_ |
-| [height?](#)  |           | [Size](#size) \| undefined                                        | _(Optional)_ |
-| [rowSpan?](#) |           | number \| undefined                                               | _(Optional)_ |
-| [scope?](#)   |           | string \| undefined                                               | _(Optional)_ |
-| [valign?](#)  |           | 'top' \| 'middle' \| 'bottom' \| 'baseline' \| undefined          | _(Optional)_ |
-| [width?](#)   |           | [Size](#size) \| undefined                                        | _(Optional)_ |
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;, TableCellAttrs
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## TextareaHTMLAttributes
 
 ```typescript
-export interface TextareaHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface TextareaHTMLAttributes<T extends Element> extends HTMLAttributes<T, undefined>, TextareaAttrs
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property           | Modifiers | Type                                                                                                                                                                    | Description  |
-| ------------------ | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
-| ["bind:value"?](#) |           | [Signal](#signal)&lt;string \| undefined&gt;                                                                                                                            | _(Optional)_ |
-| [autoComplete?](#) |           | [HTMLInputAutocompleteAttribute](#htmlinputautocompleteattribute) \| Omit&lt;[HTMLInputAutocompleteAttribute](#htmlinputautocompleteattribute), string&gt; \| undefined | _(Optional)_ |
-| [autoFocus?](#)    |           | boolean \| undefined                                                                                                                                                    | _(Optional)_ |
-| [children?](#)     |           | undefined                                                                                                                                                               | _(Optional)_ |
-| [cols?](#)         |           | number \| undefined                                                                                                                                                     | _(Optional)_ |
-| [dirName?](#)      |           | string \| undefined                                                                                                                                                     | _(Optional)_ |
-| [disabled?](#)     |           | boolean \| undefined                                                                                                                                                    | _(Optional)_ |
-| [enterKeyHint?](#) |           | 'enter' \| 'done' \| 'go' \| 'next' \| 'previous' \| 'search' \| 'send' \| undefined                                                                                    | _(Optional)_ |
-| [form?](#)         |           | string \| undefined                                                                                                                                                     | _(Optional)_ |
-| [maxLength?](#)    |           | number \| undefined                                                                                                                                                     | _(Optional)_ |
-| [minLength?](#)    |           | number \| undefined                                                                                                                                                     | _(Optional)_ |
-| [name?](#)         |           | string \| undefined                                                                                                                                                     | _(Optional)_ |
-| [placeholder?](#)  |           | string \| undefined                                                                                                                                                     | _(Optional)_ |
-| [readOnly?](#)     |           | boolean \| undefined                                                                                                                                                    | _(Optional)_ |
-| [required?](#)     |           | boolean \| undefined                                                                                                                                                    | _(Optional)_ |
-| [rows?](#)         |           | number \| undefined                                                                                                                                                     | _(Optional)_ |
-| [value?](#)        |           | string \| ReadonlyArray&lt;string&gt; \| number \| undefined                                                                                                            | _(Optional)_ |
-| [wrap?](#)         |           | string \| undefined                                                                                                                                                     | _(Optional)_ |
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T, undefined&gt;, TextareaAttrs
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## ThHTMLAttributes
 
 ```typescript
-export interface ThHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface ThHTMLAttributes<T extends Element> extends TdHTMLAttributes<T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property      | Modifiers | Type                                                              | Description  |
-| ------------- | --------- | ----------------------------------------------------------------- | ------------ |
-| [abbr?](#)    |           | string \| undefined                                               | _(Optional)_ |
-| [align?](#)   |           | 'left' \| 'center' \| 'right' \| 'justify' \| 'char' \| undefined | _(Optional)_ |
-| [colSpan?](#) |           | number \| undefined                                               | _(Optional)_ |
-| [headers?](#) |           | string \| undefined                                               | _(Optional)_ |
-| [rowSpan?](#) |           | number \| undefined                                               | _(Optional)_ |
-| [scope?](#)   |           | string \| undefined                                               | _(Optional)_ |
+**Extends:** [TdHTMLAttributes](#tdhtmlattributes)&lt;T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -3515,14 +2886,10 @@ export interface TimeHTMLAttributes<T extends Element> extends HTMLAttributes<T>
 ## TitleHTMLAttributes
 
 ```typescript
-export interface TitleHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface TitleHTMLAttributes<T extends Element> extends HTMLAttributes<T, string>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property       | Modifiers | Type   | Description  |
-| -------------- | --------- | ------ | ------------ |
-| [children?](#) |           | string | _(Optional)_ |
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T, string&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -3563,23 +2930,16 @@ export interface Tracker
 ## TrackHTMLAttributes
 
 ```typescript
-export interface TrackHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface TrackHTMLAttributes<T extends Element> extends HTMLAttributes<T, undefined>, TrackAttrs
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property       | Modifiers | Type                 | Description  |
-| -------------- | --------- | -------------------- | ------------ |
-| [children?](#) |           | undefined            | _(Optional)_ |
-| [default?](#)  |           | boolean \| undefined | _(Optional)_ |
-| [kind?](#)     |           | string \| undefined  | _(Optional)_ |
-| [label?](#)    |           | string \| undefined  | _(Optional)_ |
-| [src?](#)      |           | string \| undefined  | _(Optional)_ |
-| [srcLang?](#)  |           | string \| undefined  | _(Optional)_ |
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T, undefined&gt;, TrackAttrs
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## untrack
+
+Don't track listeners for this callback
 
 ```typescript
 untrack: <T>(fn: () => T) => T;
@@ -3724,7 +3084,7 @@ Register a listener on the current component's host element.
 Used to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX. Otherwise, it's adding a JSX listener in the `<div>` is a better idea.
 
 ```typescript
-useOn: (event: PascalCaseEventLiteralType | PascalCaseEventLiteralType[], eventQrl: QRL<(ev: Event) => void> | undefined) => void
+useOn: <T extends PascalCaseEventLiteralType>(event: T | T[], eventQrl: EventQRL<T>) => void
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-on.ts)
@@ -3736,7 +3096,7 @@ Register a listener on `document`.
 Used to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX.
 
 ```typescript
-useOnDocument: (event: PascalCaseEventLiteralType | PascalCaseEventLiteralType[], eventQrl: QRL<(ev: Event) => void> | undefined) => void
+useOnDocument: <T extends PascalCaseEventLiteralType>(event: T | T[], eventQrl: EventQRL<T>) => void
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-on.ts)
@@ -3748,7 +3108,7 @@ Register a listener on `window`.
 Used to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX.
 
 ```typescript
-useOnWindow: (event: PascalCaseEventLiteralType | PascalCaseEventLiteralType[], eventQrl: QRL<(ev: Event) => void> | undefined) => void
+useOnWindow: <T extends PascalCaseEventLiteralType>(event: T | T[], eventQrl: EventQRL<T>) => void
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-on.ts)
@@ -4193,19 +3553,10 @@ version: string;
 ## VideoHTMLAttributes
 
 ```typescript
-export interface VideoHTMLAttributes<T extends Element> extends MediaHTMLAttributes<T>
+export interface VideoHTMLAttributes<T extends Element> extends HTMLAttributes<T>, VideoAttrs
 ```
 
-**Extends:** [MediaHTMLAttributes](#mediahtmlattributes)&lt;T&gt;
-
-| Property                      | Modifiers | Type                                 | Description  |
-| ----------------------------- | --------- | ------------------------------------ | ------------ |
-| [disablePictureInPicture?](#) |           | boolean \| undefined                 | _(Optional)_ |
-| [disableRemotePlayback?](#)   |           | boolean \| undefined                 | _(Optional)_ |
-| [height?](#)                  |           | [Numberish](#numberish) \| undefined | _(Optional)_ |
-| [playsInline?](#)             |           | boolean \| undefined                 | _(Optional)_ |
-| [poster?](#)                  |           | string \| undefined                  | _(Optional)_ |
-| [width?](#)                   |           | [Numberish](#numberish) \| undefined | _(Optional)_ |
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;, VideoAttrs
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -4221,6 +3572,10 @@ export type VisibleTaskStrategy =
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
 ## WebViewHTMLAttributes
+
+> Warning: This API is now obsolete.
+>
+> This is the type for a React Native WebView. It doesn't belong in Qwik (yet?) but we're keeping it for backwards compatibility.
 
 ```typescript
 export interface WebViewHTMLAttributes<T extends Element> extends HTMLAttributes<T>

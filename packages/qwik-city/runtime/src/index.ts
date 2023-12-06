@@ -63,3 +63,13 @@ export { z } from 'zod';
 
 export { Form } from './form-component';
 export type { FormProps } from './form-component';
+
+export type {
+  TypedDataValidator,
+  DataValidator,
+  GetValidatorType,
+  FailOfRest,
+  ActionReturn,
+  StrictUnion,
+  ValidatorReturn,
+} from './types';

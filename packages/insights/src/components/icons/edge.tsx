@@ -12,7 +12,7 @@ export function EdgeIcon(props: QwikIntrinsicElements['svg'], key: string) {
     >
       <path
         fill="none"
-        stroke="currentColor"
+        stroke="black"
         strokeLinecap="round"
         strokeLinejoin="round"
         strokeWidth="2"

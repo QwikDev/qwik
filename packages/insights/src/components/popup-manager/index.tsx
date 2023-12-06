@@ -6,7 +6,6 @@ import {
   useSignal,
   type NoSerialize,
 } from '@builder.io/qwik';
-import { css } from '~/styled-system/css';
 import { CloseIcon } from '../icons/close';
 
 export const PopupManager = component$(() => {
@@ -67,21 +66,13 @@ export const PopupManager = component$(() => {
       {popup.currentTarget && popup.Component ? (
         <div
           ref={popupTarget}
-          class={css({
-            display: 'inline-block',
-            position: 'fixed',
-            border: '1px solid black',
-            backgroundColor: 'white',
-          })}
+          class="fixed inline-block border border-slate-200 bg-white shadow-lg z-10"
           style={{
             top: popup.y + 4 + 'px',
             left: popup.x + 4 + 'px',
           }}
         >
-          <CloseIcon
-            onClick$={() => (popup.currentTarget = null)}
-            class={css({ position: 'absolute', right: '0px', margin: 0 })}
-          />
+          <CloseIcon onClick$={() => (popup.currentTarget = null)} class="absolute right-0 m-0" />
           <popup.Component {...popup.props} />
         </div>
       ) : null}

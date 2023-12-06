@@ -1,5 +1,4 @@
 import { component$ } from '@builder.io/qwik';
-import styles from './styles.module.css';
 
 type GaugeProps = {
   value?: number;
@@ -21,8 +20,8 @@ export default component$<GaugeProps>(
     const stopColor = color === 'default' ? '#AC7FF4' : '#BDBDBD';
 
     return (
-      <div class={styles.wrapper} style={{ width: `${radius * 2}px`, height: `${radius * 2}px` }}>
-        <svg viewBox={`0 0 ${radius * 2} ${radius * 2}`} class={styles.gauge}>
+      <div class="relative" style={{ width: `${radius * 2}px`, height: `${radius * 2}px` }}>
+        <svg viewBox={`0 0 ${radius * 2} ${radius * 2}`}>
           <defs>
             <linearGradient id={GRADIENT_ID} x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stop-color={startColor} />
@@ -48,7 +47,10 @@ export default component$<GaugeProps>(
             }, 351.858; fill:none; transform-origin:50% 50%; stroke-linecap:round; stroke:url(#${GRADIENT_ID})`}
           ></circle>
         </svg>
-        <span class={styles.value} style={{ fontSize: `${radius / 24}rem` }}>
+        <span
+          class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center text-white"
+          style={{ fontSize: `${radius / 24}rem` }}
+        >
           {safeLabel}
         </span>
       </div>

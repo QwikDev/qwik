@@ -6,8 +6,8 @@ import { ApplicationForm } from '../app.form';
 import { eq } from 'drizzle-orm';
 import { appUrl } from '~/routes.config';
 import AppCard from '~/components/app-card';
-import styles from './styles.module.css';
 import { DiskIcon } from '~/components/icons/disk';
+import { EditIcon } from '~/components/icons/edit';
 
 export const useFormLoader = routeLoader$<InitialValues<ApplicationForm>>(async ({ params }) => {
   const db = getDB();
@@ -38,7 +38,7 @@ export const useFormAction = formAction$<ApplicationForm>(
 export default component$(() => {
   // const form = useFormLoader();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [loginForm, { Form, Field, FieldArray }] = useForm<ApplicationForm>({
+  const [loginForm, { Form, Field }] = useForm<ApplicationForm>({
     loader: useFormLoader(),
     action: useFormAction(),
     validate: zodForm$(ApplicationForm),
@@ -47,9 +47,12 @@ export default component$(() => {
 
   return (
     <div>
-      <h1 class="h3">Edit Application</h1>
+      <h1 class="h3">
+        <EditIcon />
+        Edit Application
+      </h1>
       <Form>
-        <div class={styles['app-card-wrapper']}>
+        <div class="mb-10">
           <AppCard
             mode="show"
             title={loginForm.internal.fields.name?.value}
@@ -68,8 +71,12 @@ export default component$(() => {
             {(field, props) => <input {...props} type="text" value={field.value} />}
           </Field>
         </div>
-        <div style={{ 'margin-top': 'calc(var(--form-element-margin-bottom) * 2)' }}>
-          <button type="submit" class="button">
+        <div
+          style={{
+            'margin-top': 'calc(var(--form-element-margin-bottom) * 2)',
+          }}
+        >
+          <button type="submit" class="button bg-white">
             <DiskIcon />
             Save
           </button>

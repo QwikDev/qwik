@@ -1,11 +1,13 @@
 /**
- * PandaCSS CSS layers
- * View the full documentation at https://panda-css.com/docs/concepts/cascade-layers#layer-css
+ * Tailwind CSS imports
+ * View the full documentation at https://tailwindcss.com
  */
-@layer reset, base, tokens, recipes, utilities;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
-  --link-offset: 0.15rem;
+  /* --link-offset: 0.15rem;
   --primary-50: #f0f9ff;
   --primary-100: #dff3ff;
   --primary-200: #b9e8fe;
@@ -71,7 +73,7 @@
   --text-color-light: var(--gray-600);
   --border-color-default: var(--gray-200);
 
-  --form-element-margin-bottom: var(--size-4);
+  --form-element-margin-bottom: var(--size-4); */
 }
 
 html {
@@ -130,14 +132,6 @@ html,
 body {
   height: 100%;
   font-family: 'Poppins', Helvetica, Arial, sans-serif;
-  color: var(--text-color-default);
-}
-
-body.dark {
-  --bg-color-default: var(--gray-800);
-  --bg-color-bright: var(--gray-900);
-  --text-color-default: var(--white);
-  --border-color-default: var(--gray-700);
 }
 
 .h1,
@@ -147,32 +141,40 @@ body.dark {
 .h5,
 .h6 {
   font-weight: 500;
-  line-height: 1.2;
+}
+
+.h1 svg,
+.h2 svg,
+.h3 svg,
+.h4 svg,
+.h5 svg,
+.h6 svg {
+  @apply mr-3;
 }
 
 .h1 {
-  font-size: var(--size-10);
-  margin-bottom: var(--size-8);
+  @apply text-4xl;
+  @apply mb-9;
 }
 .h2 {
-  font-size: var(--size-8);
-  margin-bottom: var(--size-6);
+  @apply text-3xl;
+  @apply mb-8;
 }
 .h3 {
-  font-size: var(--size-7);
-  margin-bottom: var(--size-5);
+  @apply text-2xl;
+  @apply mb-7;
 }
 .h4 {
-  font-size: var(--size-6);
-  margin-bottom: var(--size-4);
+  @apply text-xl;
+  @apply mb-3;
 }
 .h5 {
-  font-size: var(--size-5);
-  margin-bottom: var(--size-3);
+  @apply text-lg;
+  @apply mb-2.5;
 }
 .h6 {
-  font-size: var(--size-4);
-  margin-bottom: var(--size-2_5);
+  @apply text-base;
+  @apply mb-2;
 }
 
 a {
@@ -181,35 +183,28 @@ a {
 }
 
 form > div {
-  margin-bottom: var(--form-element-margin-bottom);
+  @apply mb-4;
 }
 
 label {
-  color: var(--text-color-light);
+  color: black;
   display: block;
 }
 
-input,
-button,
-.button {
-  background-color: #fff;
-  border: 1px solid var(--border-color-default);
-  border-radius: var(--size-2);
-  color: inherit;
+input {
+  @apply bg-white text-black;
 }
 
 input {
-  padding: var(--size-2) var(--size-4);
-  width: 100%;
+  @apply px-4 py-2 w-full rounded;
 }
 
 .button {
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  gap: var(--size-2_5);
-  padding: var(--size-2) var(--size-10);
-  cursor: pointer;
+  @apply inline-flex cursor-pointer items-center justify-center gap-3 rounded border border-slate-300 px-8 py-2;
+}
+
+svg {
+  display: inline-block;
 }
 
 .button svg {

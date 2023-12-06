@@ -27,7 +27,11 @@ export async function dbGetManifestStats(
   publicApiKey: string
 ): Promise<ManifestStatsRow[]> {
   const manifests = await db
-    .select({ hash: manifestTable.hash, timestamp: manifestTable.timestamp, ...latencyColumnSums })
+    .select({
+      hash: manifestTable.hash,
+      timestamp: manifestTable.timestamp,
+      ...latencyColumnSums,
+    })
     .from(manifestTable)
     .innerJoin(edgeTable, eq(edgeTable.manifestHash, manifestTable.hash))
     .where(and(eq(manifestTable.publicApiKey, publicApiKey)))

@@ -331,7 +331,8 @@ type StrictUnionHelper<T, TAll> = T extends any
   ? T & Partial<Record<Exclude<UnionKeys<TAll>, keyof T>, never>>
   : never;
 
-type StrictUnion<T> = Prettify<StrictUnionHelper<T, T>>;
+/** @public */
+export type StrictUnion<T> = Prettify<StrictUnionHelper<T, T>>;
 
 type Prettify<T> = {} & {
   [K in keyof T]: T[K];
@@ -343,6 +344,7 @@ export type JSONValue = string | number | boolean | { [x: string]: JSONValue } |
 /** @public */
 export type JSONObject = { [x: string]: JSONValue };
 
+/** @public */
 export type GetValidatorType<VALIDATOR extends TypedDataValidator> =
   VALIDATOR extends TypedDataValidator<infer TYPE> ? zod.infer<TYPE> : never;
 
@@ -352,6 +354,7 @@ export interface CommonLoaderActionOptions {
   readonly validation?: DataValidator[];
 }
 
+/** @public */
 export type FailOfRest<REST extends readonly DataValidator[]> = REST extends readonly DataValidator<
   infer ERROR
 >[]
@@ -723,7 +726,7 @@ export interface ActionInternal extends Action<any, any> {
 
   (): ActionStore<unknown, unknown>;
 }
-
+/** @public */
 export type ValidatorReturn<T extends Record<string, any> = {}> =
   | ValidatorReturnSuccess
   | ValidatorReturnFail<T>;

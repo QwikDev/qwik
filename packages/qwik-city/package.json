@@ -11,7 +11,7 @@
     "undici": "^5.26.0",
     "vfile": "^6.0.1",
     "vite": "^5.0.0",
-    "vite-imagetools": "^5.0.9",
+    "vite-imagetools": "^6.2.7",
     "zod": "^3.22.4"
   },
   "devDependencies": {

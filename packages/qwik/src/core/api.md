@@ -725,11 +725,7 @@ export type QwikFocusEvent<T = Element> = NativeFocusEvent;
 export interface QwikIntrinsicElements extends IntrinsicHTMLElements {
     // Warning: (ae-forgotten-export) The symbol "QwikCustomHTMLAttributes" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "QwikCustomHTMLElement" needs to be exported by the entry point index.d.ts
-<<<<<<< Updated upstream
     [key: string]: {} | QwikCustomHTMLAttributes<QwikCustomHTMLElement>;
-=======
-    [key: string]: QwikCustomHTMLAttributes<QwikCustomHTMLElement> | {} | null;
->>>>>>> Stashed changes
 }
 
 // @public @deprecated (undocumented)

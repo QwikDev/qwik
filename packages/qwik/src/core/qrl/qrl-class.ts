@@ -14,20 +14,20 @@ import { maybeThen } from '../util/promises';
 import { qDev, qSerialize, qTest, seal } from '../util/qdev';
 import { isArray, isFunction, type ValueOrPromise } from '../util/types';
 import type { QRLDev } from './qrl';
-import type { QRL } from './qrl.public';
+import type { QRL, QrlArgs, QrlReturn } from './qrl.public';
 
-export const isQrl = (value: any): value is QRLInternal => {
-  return typeof value === 'function' && typeof value.getSymbol === 'function';
+export const isQrl = <T = unknown>(value: unknown): value is QRLInternal<T> => {
+  return typeof value === 'function' && typeof (value as any).getSymbol === 'function';
 };
 
-export interface QRLInternalMethods<TYPE> {
+export type QRLInternalMethods<TYPE> = {
   readonly $chunk$: string | null;
   readonly $symbol$: string;
   readonly $refSymbol$: string | null;
   readonly $hash$: string;
 
   $capture$: string[] | null;
-  $captureRef$: any[] | null;
+  $captureRef$: unknown[] | null;
   dev: QRLDev | null;
 
   resolved: undefined | TYPE;
@@ -35,27 +35,28 @@ export interface QRLInternalMethods<TYPE> {
   resolve(): Promise<TYPE>;
   getSymbol(): string;
   getHash(): string;
-  getCaptured(): any[] | null;
+  getCaptured(): unknown[] | null;
   getFn(
     currentCtx?: InvokeContext | InvokeTuple,
     beforeFn?: () => void
-  ): TYPE extends (...args: infer ARGS) => infer Return
-    ? (...args: ARGS) => ValueOrPromise<Return>
-    : any;
+  ): TYPE extends (...args: any) => any
+    ? (...args: Parameters<TYPE>) => ValueOrPromise<ReturnType<TYPE>>
+    : // unknown so we allow assigning function QRLs to any
+      unknown;
 
   $setContainer$(containerEl: Element | undefined): Element | undefined;
   $resolveLazy$(containerEl?: Element): ValueOrPromise<TYPE>;
-}
+};
 
-export interface QRLInternal<TYPE = any> extends QRL<TYPE>, QRLInternalMethods<TYPE> {}
+export type QRLInternal<TYPE = unknown> = QRL<TYPE> & QRLInternalMethods<TYPE>;
 
 export const createQRL = <TYPE>(
   chunk: string | null,
   symbol: string,
   symbolRef: null | ValueOrPromise<TYPE>,
-  symbolFn: null | (() => Promise<Record<string, any>>),
-  capture: null | string[],
-  captureRef: any[] | null,
+  symbolFn: null | (() => Promise<Record<string, unknown>>),
+  capture: null | Readonly<string[]>,
+  captureRef: Readonly<unknown[]> | null,
   refSymbol: string | null
 ): QRLInternal<TYPE> => {
   if (qDev && qSerialize) {
@@ -68,11 +69,11 @@ export const createQRL = <TYPE>(
 
   let _containerEl: Element | undefined;
 
-  const qrl = async function (this: any, ...args: any) {
+  const qrl = async function (this: unknown, ...args: QrlArgs<TYPE>) {
     const fn = invokeFn.call(this, tryGetInvokeContext());
     const result = await fn(...args);
     return result;
-  } as unknown as QRLInternal<TYPE>;
+  } as QRLInternal<TYPE>;
 
   const setContainer = (el: Element | undefined) => {
     if (!_containerEl) {
@@ -89,7 +90,9 @@ export const createQRL = <TYPE>(
       return symbolRef;
     }
     if (symbolFn !== null) {
-      return (symbolRef = symbolFn().then((module) => (qrl.resolved = symbolRef = module[symbol])));
+      return (symbolRef = symbolFn().then(
+        (module) => (qrl.resolved = symbolRef = module[symbol] as TYPE)
+      ));
     } else {
       const symbol2 = getPlatform().importSymbol(_containerEl, chunk, symbol);
       return (symbolRef = maybeThen(symbol2, (ref) => {
@@ -103,32 +106,32 @@ export const createQRL = <TYPE>(
   };
 
   function invokeFn(
-    this: any,
+    this: unknown,
     currentCtx?: InvokeContext | InvokeTuple,
     beforeFn?: () => void | boolean
   ) {
-    return ((...args: any[]): any => {
+    return (...args: QrlArgs<TYPE>): QrlReturn<TYPE> => {
       const start = now();
       const fn = resolveLazy() as TYPE;
-      return maybeThen(fn, (fn) => {
-        if (isFunction(fn)) {
+      return maybeThen(fn, (f) => {
+        if (isFunction(f)) {
           if (beforeFn && beforeFn() === false) {
             return;
           }
           const baseContext = createOrReuseInvocationContext(currentCtx);
           const context: InvokeContext = {
             ...baseContext,
-            $qrl$: qrl as QRLInternal<any>,
+            $qrl$: qrl as QRLInternal,
           };
           if (context.$event$ === undefined) {
-            context.$event$ = this;
+            context.$event$ = this as Event;
           }
           emitUsedSymbol(symbol, context.$element$, start);
-          return invoke.call(this, context, fn as any, ...args);
+          return invoke.call(this, context, f, ...(args as Parameters<typeof f>));
         }
         throw qError(QError_qrlIsNotFunction);
       });
-    }) as any;
+    };
   }
 
   const createOrReuseInvocationContext = (invoke: InvokeContext | InvokeTuple | undefined) => {
@@ -163,7 +166,7 @@ export const createQRL = <TYPE>(
     resolved: undefined,
   });
   seal(qrl);
-  return qrl as any;
+  return qrl;
 };
 
 export const getSymbolHash = (symbolName: string) => {
@@ -182,7 +185,7 @@ export function assertQrl<T>(qrl: QRL<T>): asserts qrl is QRLInternal<T> {
   }
 }
 
-export function assertSignal<T>(obj: any): asserts obj is SignalInternal<T> {
+export function assertSignal<T>(obj: unknown): asserts obj is SignalInternal<T> {
   if (qDev) {
     if (!isSignal(obj)) {
       throw new Error('Not a Signal');
@@ -203,13 +206,13 @@ export const emitUsedSymbol = (symbol: string, element: Element | undefined, req
   }
 };
 
-export const emitEvent = (eventName: string, detail: any) => {
+export const emitEvent = <T extends CustomEvent = any>(eventName: string, detail: T['detail']) => {
   if (!qTest && !isServerPlatform() && typeof document === 'object') {
     document.dispatchEvent(
       new CustomEvent(eventName, {
         bubbles: false,
         detail,
-      })
+      }) as T
     );
   }
 };

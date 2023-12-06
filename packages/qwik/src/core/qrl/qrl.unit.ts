@@ -1,13 +1,27 @@
 import { parseQRL, serializeQRL } from './qrl';
 import { createQRL } from './qrl-class';
 import { qrl } from './qrl';
-import { describe, test, assert } from 'vitest';
+import { describe, test, assert, assertType, expectTypeOf } from 'vitest';
+import type { QRL } from './qrl.public';
 
 function matchProps(obj: any, properties: Record<string, any>) {
   for (const [key, value] of Object.entries(properties)) {
     assert.deepEqual(obj[key], value, `${obj[key]} !== ${value}`);
   }
 }
+
+describe('types', () => {
+  // double function because we test at typecheck time
+  test('matching', () => () => {
+    const fakeStr = true as any as QRL<'hello'>;
+    expectTypeOf(fakeStr).not.toBeAny();
+    assertType<() => Promise<string>>(fakeStr.resolve);
+    const fooFn = (hi: boolean) => 'foo';
+    const fakeFn = true as any as QRL<typeof fooFn>;
+    expectTypeOf(fakeFn).not.toBeAny();
+    assertType<(hi: boolean) => Promise<string>>(fakeFn);
+  });
+});
 
 describe('serialization', () => {
   test('should parse', () => {

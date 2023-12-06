@@ -20,7 +20,7 @@ export const isString = (v: any): v is string => {
   return typeof v === 'string';
 };
 
-export const isFunction = (v: any): v is Function => {
+export const isFunction = <T extends (...args: any) => any>(v: any): v is T => {
   return typeof v === 'function';
 };
 

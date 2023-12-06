@@ -123,6 +123,9 @@ export { version } from './version';
 // Qwik Events
 //////////////////////////////////////////////////////////////////////////////////////////
 export type {
+  QwikSymbolEvent,
+  QwikVisibleEvent,
+  // old
   NativeAnimationEvent,
   NativeClipboardEvent,
   NativeCompositionEvent,

@@ -194,7 +194,7 @@ export interface ResourceProps<T> {
   readonly value: ResourceReturn<T> | Signal<Promise<T> | T> | Promise<T>;
   onResolved: (value: T) => JSXNode;
   onPending?: () => JSXNode;
-  onRejected?: (reason: any) => JSXNode;
+  onRejected?: (reason: Error) => JSXNode;
 }
 
 // <docs markdown="../readme.md#useResource">
@@ -263,7 +263,7 @@ export const Resource = <T>(props: ResourceProps<T>): JSXNode => {
       if (props.onRejected) {
         resource.value.catch(() => {});
         if (resource._state === 'rejected') {
-          return props.onRejected(resource._error);
+          return props.onRejected(resource._error!);
         }
       }
       if (props.onPending) {
@@ -327,11 +327,14 @@ export const getInternalResource = <T>(resource: ResourceReturn<T>): ResourceRet
   return getProxyTarget(resource) as any;
 };
 
-export const isResourceReturn = (obj: any): obj is ResourceReturn<any> => {
+export const isResourceReturn = (obj: any): obj is ResourceReturn<unknown> => {
   return isObject(obj) && obj.__brand === 'resource';
 };
 
-export const serializeResource = (resource: ResourceReturnInternal<any>, getObjId: GetObjID) => {
+export const serializeResource = (
+  resource: ResourceReturnInternal<unknown>,
+  getObjId: GetObjID
+) => {
   const state = resource._state;
   if (state === 'resolved') {
     return `0 ${getObjId(resource._resolved)}`;

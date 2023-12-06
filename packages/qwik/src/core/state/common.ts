@@ -157,7 +157,7 @@ export const noSerialize = <T extends object | undefined>(input: T): NoSerialize
 };
 
 /** @internal */
-export const _weakSerialize = <T extends Record<string, any>>(input: T): Partial<T> => {
+export const _weakSerialize = <T extends object>(input: T): Partial<T> => {
   weakSerializeSet.add(input);
   return input as any;
 };
@@ -175,17 +175,15 @@ export const unwrapProxy = <T>(proxy: T): T => {
   return isObject(proxy) ? getProxyTarget<any>(proxy) ?? proxy : proxy;
 };
 
-export const getProxyTarget = <T extends Record<string, any>>(obj: T): T | undefined => {
+export const getProxyTarget = <T extends object>(obj: T): T | undefined => {
   return (obj as any)[QOjectTargetSymbol];
 };
 
-export const getSubscriptionManager = (
-  obj: Record<string, any>
-): LocalSubscriptionManager | undefined => {
+export const getSubscriptionManager = (obj: object): LocalSubscriptionManager | undefined => {
   return (obj as any)[QObjectManagerSymbol];
 };
 
-export const getProxyFlags = <T = Record<string, any>>(obj: T): number | undefined => {
+export const getProxyFlags = <T = object>(obj: T): number | undefined => {
   return (obj as any)[QObjectFlagsSymbol];
 };
 

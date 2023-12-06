@@ -20,11 +20,11 @@ export interface ClientConn {
  * @public
  * Request event created by the server.
  */
-export interface ServerRequestEvent<T = any> {
+export interface ServerRequestEvent<T = unknown> {
   mode: ServerRequestMode;
   url: URL;
   locale: string | undefined;
-  platform: any;
+  platform: QwikCityPlatform;
   request: Request;
   env: EnvGetter;
   getClientConn: () => ClientConn;

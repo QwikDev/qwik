@@ -162,9 +162,7 @@ export const DocSearchModal = component$(
           'DocSearch-Container',
           state.status === 'stalled' && 'DocSearch-Container--Stalled',
           state.status === 'error' && 'DocSearch-Container--Errored',
-        ]
-          .filter(Boolean)
-          .join(' ')}
+        ]}
         role="button"
         tabIndex={0}
         onMouseDown$={(event) => {

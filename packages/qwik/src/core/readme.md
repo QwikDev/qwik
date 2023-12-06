@@ -81,7 +81,7 @@ The `taskFn` only executes if the observed inputs change. To observe the inputs,
 
 ### Example
 
-The `useTask` function is used to observe the `state.count` property. Any changes to the `state.count` cause the `taskFn` to execute which in turn updates the `state.doubleCount` to the double of `state.count`.
+The `useTask` function is used to observe the `store.count` property. Any changes to the `store.count` cause the `taskFn` to execute which in turn updates the `store.doubleCount` to the double of `store.count`.
 
 <docs code="./examples.tsx#use-task"/>
 

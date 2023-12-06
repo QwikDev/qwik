@@ -3,6 +3,10 @@ import { qDev, qRuntimeQrl } from '../util/qdev';
 import type { QRLDev } from './qrl';
 import { createQRL } from './qrl-class';
 
+// We use `unknown` instead of `never` when it's not a function so we allow assigning QRL<function> to QRL<any>
+export type QrlArgs<T> = T extends (...args: infer ARGS) => any ? ARGS : unknown[];
+export type QrlReturn<T> = T extends (...args: any) => infer R ? Awaited<R> : unknown;
+
 // <docs markdown="../readme.md#QRL">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#QRL instead)
@@ -129,50 +133,40 @@ import { createQRL } from './qrl-class';
  * @see `$`
  */
 // </docs>
-export interface QRL<TYPE = any> {
+export type QRL<TYPE = unknown> = {
   __brand__QRL__: TYPE;
 
-  /**
-   * Resolve the QRL of closure and invoke it. The signal is used to abort the invocation.
-   *
-   * @param signal - An AbortSignal object.
-   * @param args - Closure arguments.
-   * @returns A promise of the return value of the closure.
-   */
-  (
-    signal: AbortSignal,
-    ...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never
-  ): Promise<TYPE extends (...args: any[]) => infer RETURN ? Awaited<RETURN> : never>;
+  /** Resolve the QRL and return the actual value. */
+  resolve(): Promise<TYPE>;
+  /** The resolved value, once `resolve()` returns. */
+  resolved: undefined | TYPE;
 
+  getCaptured(): unknown[] | null;
+  getSymbol(): string;
+  getHash(): string;
+  dev: QRLDev | null;
+} & BivariantQrlFn<QrlArgs<TYPE>, QrlReturn<TYPE>>;
+
+// https://stackoverflow.com/questions/52667959/what-is-the-purpose-of-bivariancehack-in-typescript-types/52668133#52668133
+type BivariantQrlFn<ARGS extends any[], RETURN> = {
   /**
    * Resolve the QRL of closure and invoke it.
    *
    * @param args - Closure arguments.
    * @returns A promise of the return value of the closure.
    */
-  (
-    ...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never
-  ): Promise<TYPE extends (...args: any[]) => infer RETURN ? Awaited<RETURN> : never>;
-
-  /** Resolve the QRL and return the actual value. */
-  resolve(): Promise<TYPE>;
-  /** The resolved value, once `resolve()` returns. */
-  resolved: undefined | TYPE;
-  getCaptured(): any[] | null;
-  getSymbol(): string;
-  getHash(): string;
-  dev: QRLDev | null;
-}
+  bivarianceHack(...args: ARGS): Promise<RETURN>;
+}['bivarianceHack'];
 
 /** @public */
-export interface PropFnInterface<ARGS extends any[], RET> {
+export type PropFnInterface<ARGS extends any[], RET> = {
   (...args: ARGS): Promise<RET>;
-}
+};
 
 let runtimeSymbolId = 0;
 
 /** @public */
-export type PropFunction<T extends Function = (...args: any[]) => any> = T extends (
+export type PropFunction<T extends Function = (...args: any) => any> = T extends (
   ...args: infer ARGS
 ) => infer RET
   ? PropFnInterface<ARGS, Awaited<RET>>

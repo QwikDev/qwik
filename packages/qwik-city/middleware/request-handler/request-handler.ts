@@ -5,7 +5,11 @@ import { getRouteMatchPathname, type QwikCityRun, runQwikCity } from './user-res
 import { renderQwikMiddleware, resolveRequestHandlers } from './resolve-request-handlers';
 import { loadRoute } from '../../runtime/src/routing';
 
-/** @public */
+/**
+ * The request handler for QwikCity. Called by every integration.
+ *
+ * @public
+ */
 export async function requestHandler<T = unknown>(
   serverRequestEv: ServerRequestEvent<T>,
   opts: ServerRenderOptions,

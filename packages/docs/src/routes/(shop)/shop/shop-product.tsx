@@ -52,7 +52,7 @@ export const ShopProduct = component$<Props>(({ product }) => {
             <select
               class="select"
               onChange$={(event) => {
-                selectedVariantId.value = event.target.value;
+                selectedVariantId.value = (event.target as HTMLSelectElement)?.value;
               }}
             >
               {product.variants.map((variant) => (

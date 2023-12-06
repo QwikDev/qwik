@@ -26,6 +26,7 @@ import type { Render, RenderToStringResult } from '@builder.io/qwik/server';
 import type { QRL, _deserializeData, _serializeData } from '@builder.io/qwik';
 import { getQwikCityServerData } from './response-page';
 import { RedirectMessage } from './redirect-handler';
+import type { ServerGT } from 'packages/qwik-city/runtime/src/server-functions';
 
 export const resolveRequestHandlers = (
   serverPlugins: RouteModule[] | undefined,
@@ -177,7 +178,7 @@ export function actionsMiddleware(routeLoaders: LoaderInternal[], routeActions: 
     if (method === 'POST') {
       const selectedAction = requestEv.query.get(QACTION_KEY);
       if (selectedAction) {
-        const serverActionsMap = (globalThis as any)._qwikActionsMap as
+        const serverActionsMap = (globalThis as ServerGT)._qwikActionsMap as
           | Map<string, ActionInternal>
           | undefined;
         const action =
@@ -220,11 +221,13 @@ export function actionsMiddleware(routeLoaders: LoaderInternal[], routeActions: 
             .then((res) => {
               if (res.success) {
                 if (isDev) {
-                  return measure(requestEv, loader.__qrl.getSymbol().split('_', 1)[0], () =>
-                    loader.__qrl.call(requestEv, requestEv as any)
+                  return measure<Promise<unknown>>(
+                    requestEv,
+                    loader.__qrl.getSymbol().split('_', 1)[0],
+                    () => loader.__qrl.call(requestEv, requestEv)
                   );
                 } else {
-                  return loader.__qrl.call(requestEv, requestEv as any);
+                  return loader.__qrl.call(requestEv, requestEv);
                 }
               } else {
                 return requestEv.fail(res.status ?? 500, res.error);
@@ -276,8 +279,8 @@ async function runValidators(
   return lastResult;
 }
 
-function isAsyncIterator(obj: any): obj is AsyncIterable<unknown> {
-  return obj && typeof obj === 'object' && Symbol.asyncIterator in obj;
+function isAsyncIterator(obj: unknown): obj is AsyncIterable<unknown> {
+  return obj ? typeof obj === 'object' && Symbol.asyncIterator in obj : false;
 }
 
 async function pureServerFunction(ev: RequestEvent) {
@@ -297,9 +300,11 @@ async function pureServerFunction(ev: RequestEvent) {
         let result: unknown;
         try {
           if (isDev) {
-            result = await measure(ev, `server_${qrl.getSymbol()}`, () => qrl.apply(ev, args));
+            result = await measure(ev, `server_${qrl.getSymbol()}`, () =>
+              (qrl as Function).apply(ev, args)
+            );
           } else {
-            result = await qrl.apply(ev, args);
+            result = await (qrl as Function).apply(ev, args);
           }
         } catch (err) {
           ev.headers.set('Content-Type', 'application/qwik-json');
@@ -558,7 +563,7 @@ export async function measure<T>(
   requestEv: RequestEventBase,
   name: string,
   fn: () => T
-): Promise<T> {
+): Promise<Awaited<T>> {
   const start = now();
   try {
     return await fn();

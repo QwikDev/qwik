@@ -7,6 +7,7 @@ import {
   zod$,
 } from "@builder.io/qwik-city";
 import type {
+  CommonLoaderActionOptions,
   JSONObject,
   RequestEventAction,
 } from "packages/qwik-city/runtime/src/types";
@@ -65,13 +66,13 @@ export const useLoader = routeLoader$(() => {
 
 export const useAction1 = routeAction$(actionQrl, {
   validation: [typedDataValidator, dataValidator],
-});
+} as CommonLoaderActionOptions);
 export const useAction2 = routeAction$(actionQrl, {
   validation: [typedDataValidator],
-});
+} as CommonLoaderActionOptions);
 export const useAction3 = routeAction$(actionQrl, {
   validation: [dataValidator],
-});
+} as CommonLoaderActionOptions);
 export const useAction4 = routeAction$(
   actionQrl,
   typedDataValidator,

@@ -76,14 +76,14 @@ export const ResourceApp = component$(() => {
   //   logs.content += '[RESOURCE] 2 after\n';
   //   return count * 4;
   // });
-  const resouceState = resource.loading ? "pending" : "resolved";
+  const resourceState = resource.loading ? "pending" : "resolved";
 
   return (
     <div>
       <button type="button" class="increment" onClick$={() => state.count++}>
         Increment
       </button>
-      <div id="outside-state">{resouceState}</div>
+      <div id="outside-state">{resourceState}</div>
       <Results result={resource} />
     </div>
   );
@@ -102,14 +102,16 @@ export const Results = component$(
     const state = useStore({
       count: 0,
     });
-    const resouceState = props.result.loading ? "pending" : "resolved";
+    const resourceState = props.result.loading ? "pending" : "resolved";
     return (
       <div>
-        <div id="inside-state">{resouceState}</div>
+        <div id="inside-state">{resourceState}</div>
         <Resource
           value={props.result}
           onPending={() => <div class="resource1">loading resource 1...</div>}
-          onRejected={(reason) => <div class="resource1">error {reason}</div>}
+          onRejected={(reason) => (
+            <div class="resource1">error {`${reason}`}</div>
+          )}
           onResolved={(number) => {
             return (
               <>

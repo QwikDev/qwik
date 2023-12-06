@@ -1,7 +1,11 @@
-import { type Component, componentQrl, isQwikComponent } from '../component/component.public';
+import {
+  type Component,
+  componentQrl,
+  isQwikComponent,
+  type OnRenderFn,
+} from '../component/component.public';
 import { parseQRL, serializeQRL } from '../qrl/qrl';
 import { isQrl, type QRLInternal } from '../qrl/qrl-class';
-import type { QRL } from '../qrl/qrl.public';
 import { intToStr, type ContainerState, type GetObject, type MustGetObjID } from './container';
 import { isResourceReturn, parseResourceReturn, serializeResource } from '../use/use-resource';
 import {
@@ -178,7 +182,7 @@ const ResourceSerializer = /*#__PURE__*/ serializer<ResourceReturnInternal<any>>
     } else if (resource._state === 'rejected') {
       const p = Promise.reject(resource._error);
       p.catch(() => null);
-      resource._error = getObject(resource._error);
+      resource._error = getObject(resource._error as any as string);
       resource.value = p;
     }
   },
@@ -248,7 +252,7 @@ const ComponentSerializer = /*#__PURE__*/ serializer<Component<any>>({
     });
   },
   $prepare$: (data, containerState) => {
-    const qrl: QRL<any> = parseQRL(data, containerState.$containerEl$);
+    const qrl = parseQRL<OnRenderFn<any>>(data, containerState.$containerEl$);
     return componentQrl(qrl);
   },
   $fill$: (component, getObject) => {
@@ -428,7 +432,7 @@ const JSXNodeSerializer = /*#__PURE__*/ serializer<JSXNode>({
     node.type = getResolveJSXType(getObject(node.type as string));
     node.props = getObject(node.props as any as string);
     node.immutableProps = getObject(node.immutableProps as any as string);
-    node.children = getObject(node.children);
+    node.children = getObject(node.children as string);
   },
 });
 

@@ -11,8 +11,8 @@
           "id": "action"
         }
       ],
-      "kind": "Interface",
-      "content": "```typescript\nexport interface Action<RETURN, INPUT = Record<string, any>, OPTIONAL extends boolean = true> \n```",
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type Action<RETURN, INPUT = Record<string, unknown>, OPTIONAL extends boolean = true> = {\n    (): ActionStore<RETURN, INPUT, OPTIONAL>;\n};\n```\n**References:** [ActionStore](#actionstore)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik-city.action.md"
     },
@@ -25,10 +25,24 @@
           "id": "actionconstructor"
         }
       ],
-      "kind": "Interface",
-      "content": "```typescript\nexport interface ActionConstructor \n```",
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type ActionConstructor = {\n    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: GetValidatorType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: {\n        readonly id?: string;\n        readonly validation: [VALIDATOR, ...REST];\n    }): Action<StrictUnion<OBJ | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>> | FailReturn<FailOfRest<REST>>>, GetValidatorType<VALIDATOR>, false>;\n    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator>(actionQrl: (data: GetValidatorType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: {\n        readonly id?: string;\n        readonly validation: [VALIDATOR];\n    }): Action<StrictUnion<OBJ | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>>>, GetValidatorType<VALIDATOR>, false>;\n    <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, options: {\n        readonly id?: string;\n        readonly validation: REST;\n    }): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;\n    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: GetValidatorType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: VALIDATOR, ...rest: REST): Action<StrictUnion<OBJ | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>> | FailReturn<FailOfRest<REST>>>, GetValidatorType<VALIDATOR>, false>;\n    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator>(actionQrl: (data: GetValidatorType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: VALIDATOR): Action<StrictUnion<OBJ | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>>>, GetValidatorType<VALIDATOR>, false>;\n    <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, ...rest: REST): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;\n    <OBJ>(actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, options?: {\n        readonly id?: string;\n    }): Action<StrictUnion<OBJ>>;\n};\n```\n**References:** [TypedDataValidator](#typeddatavalidator)<!-- -->, [DataValidator](#datavalidator)<!-- -->, [GetValidatorType](#getvalidatortype)<!-- -->, [Action](#action)<!-- -->, [StrictUnion](#strictunion)<!-- -->, [FailReturn](#failreturn)<!-- -->, [FailOfRest](#failofrest)<!-- -->, [JSONObject](#jsonobject)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik-city.actionconstructor.md"
+    },
+    {
+      "name": "ActionReturn",
+      "id": "actionreturn",
+      "hierarchy": [
+        {
+          "name": "ActionReturn",
+          "id": "actionreturn"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type ActionReturn<RETURN> = {\n    readonly status?: number;\n    readonly value: RETURN;\n};\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
+      "mdFile": "qwik-city.actionreturn.md"
     },
     {
       "name": "ActionStore",
@@ -39,8 +53,8 @@
           "id": "actionstore"
         }
       ],
-      "kind": "Interface",
-      "content": "```typescript\nexport interface ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [actionPath](#) | <code>readonly</code> | string | <p>It's the \"action\" path that a native <code>&lt;form&gt;</code> should have in order to call the action.</p>\n```tsx\n <form action={action.actionPath} />\n```\n<p>Most of the time this property should not be used directly, instead use the <code>Form</code> component:</p>\n```tsx\nimport {action$, Form} from '@builder.io/qwik-city';\n\nexport const useAddUser = action$(() => { ... });\n\nexport default component$(() => {\n  const action = useAddUser();\n  return (\n    <Form action={action}/>\n  );\n});\n```\n |\n|  [formData](#) | <code>readonly</code> | FormData \\| undefined | <p>When calling an action through a <code>&lt;form&gt;</code>, this property contains the previously submitted <code>FormData</code>.</p><p>This is useful to keep the filled form data even after a full page reload.</p><p>It's <code>undefined</code> before the action is first called.</p> |\n|  [isRunning](#) | <code>readonly</code> | boolean | <p>Reactive property that becomes <code>true</code> only in the browser, when a form is submitted and switched back to false when the action finish, ie, it describes if the action is actively running.</p><p>This property is specially useful to disable the submit button while the action is processing, to prevent multiple submissions, and to inform visually to the user that the action is actively running.</p><p>It will be always <code>false</code> in the server, and only becomes <code>true</code> briefly while the action is running.</p> |\n|  [status?](#) | <code>readonly</code> | number | <p>_(Optional)_ Returned HTTP status code of the action after its last execution.</p><p>It's <code>undefined</code> before the action is first called.</p> |\n|  [submit](#) | <code>readonly</code> | QRL&lt;OPTIONAL extends true ? (form?: INPUT \\| FormData \\| SubmitEvent) =&gt; Promise&lt;ActionReturn&lt;RETURN&gt;&gt; : (form: INPUT \\| FormData \\| SubmitEvent) =&gt; Promise&lt;ActionReturn&lt;RETURN&gt;&gt;&gt; | Method to execute the action programmatically from the browser. Ie, instead of using a <code>&lt;form&gt;</code>, a 'click' handle can call the <code>run()</code> method of the action in order to execute the action in the server. |\n|  [value](#) | <code>readonly</code> | RETURN \\| undefined | <p>Returned successful data of the action. This reactive property will contain the data returned inside the <code>action$</code> function.</p><p>It's <code>undefined</code> before the action is first called.</p> |",
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> = {\n    readonly actionPath: string;\n    readonly isRunning: boolean;\n    readonly status?: number;\n    readonly formData: FormData | undefined;\n    readonly value: RETURN | undefined;\n    readonly submit: QRL<OPTIONAL extends true ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>> : (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>>;\n};\n```\n**References:** [ActionReturn](#actionreturn)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik-city.actionstore.md"
     },
@@ -71,6 +85,20 @@
       "content": "```typescript\nexport interface ContentMenu \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [href?](#) | <code>readonly</code> | string | _(Optional)_ |\n|  [items?](#) | <code>readonly</code> | [ContentMenu](#contentmenu)<!-- -->\\[\\] | _(Optional)_ |\n|  [text](#) | <code>readonly</code> | string |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik-city.contentmenu.md"
+    },
+    {
+      "name": "DataValidator",
+      "id": "datavalidator",
+      "hierarchy": [
+        {
+          "name": "DataValidator",
+          "id": "datavalidator"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type DataValidator<T extends Record<string, any> = {}> = {\n    validate(ev: RequestEvent, data: unknown): Promise<ValidatorReturn<T>>;\n};\n```\n**References:** [ValidatorReturn](#validatorreturn)",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
+      "mdFile": "qwik-city.datavalidator.md"
     },
     {
       "name": "DocumentHead",
@@ -110,7 +138,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface DocumentHeadValue \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [frontmatter?](#) | <code>readonly</code> | Readonly&lt;Record&lt;string, any&gt;&gt; | _(Optional)_ Arbitrary object containing custom data. When the document head is created from markdown files, the frontmatter attributes that are not recognized as a well-known meta names (such as title, description, author, etc...), are stored in this property. |\n|  [links?](#) | <code>readonly</code> | readonly [DocumentLink](#documentlink)<!-- -->\\[\\] | _(Optional)_ Used to manually append <code>&lt;link&gt;</code> elements to the <code>&lt;head&gt;</code>. |\n|  [meta?](#) | <code>readonly</code> | readonly [DocumentMeta](#documentmeta)<!-- -->\\[\\] | _(Optional)_ Used to manually set meta tags in the head. Additionally, the <code>data</code> property could be used to set arbitrary data which the <code>&lt;head&gt;</code> component could later use to generate <code>&lt;meta&gt;</code> tags. |\n|  [scripts?](#) | <code>readonly</code> | readonly [DocumentScript](#documentscript)<!-- -->\\[\\] | _(Optional)_ Used to manually append <code>&lt;script&gt;</code> elements to the <code>&lt;head&gt;</code>. |\n|  [styles?](#) | <code>readonly</code> | readonly [DocumentStyle](#documentstyle)<!-- -->\\[\\] | _(Optional)_ Used to manually append <code>&lt;style&gt;</code> elements to the <code>&lt;head&gt;</code>. |\n|  [title?](#) | <code>readonly</code> | string | _(Optional)_ Sets <code>document.title</code>. |",
+      "content": "```typescript\nexport interface DocumentHeadValue<FrontMatter extends Record<string, any> = Record<string, unknown>> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [frontmatter?](#) | <code>readonly</code> | Readonly&lt;FrontMatter&gt; | _(Optional)_ Arbitrary object containing custom data. When the document head is created from markdown files, the frontmatter attributes that are not recognized as a well-known meta names (such as title, description, author, etc...), are stored in this property. |\n|  [links?](#) | <code>readonly</code> | readonly [DocumentLink](#documentlink)<!-- -->\\[\\] | _(Optional)_ Used to manually append <code>&lt;link&gt;</code> elements to the <code>&lt;head&gt;</code>. |\n|  [meta?](#) | <code>readonly</code> | readonly [DocumentMeta](#documentmeta)<!-- -->\\[\\] | _(Optional)_ Used to manually set meta tags in the head. Additionally, the <code>data</code> property could be used to set arbitrary data which the <code>&lt;head&gt;</code> component could later use to generate <code>&lt;meta&gt;</code> tags. |\n|  [scripts?](#) | <code>readonly</code> | readonly [DocumentScript](#documentscript)<!-- -->\\[\\] | _(Optional)_ Used to manually append <code>&lt;script&gt;</code> elements to the <code>&lt;head&gt;</code>. |\n|  [styles?](#) | <code>readonly</code> | readonly [DocumentStyle](#documentstyle)<!-- -->\\[\\] | _(Optional)_ Used to manually append <code>&lt;style&gt;</code> elements to the <code>&lt;head&gt;</code>. |\n|  [title?](#) | <code>readonly</code> | string | _(Optional)_ Sets <code>document.title</code>. |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik-city.documentheadvalue.md"
     },
@@ -171,6 +199,20 @@
       "mdFile": "qwik-city.documentstyle.md"
     },
     {
+      "name": "FailOfRest",
+      "id": "failofrest",
+      "hierarchy": [
+        {
+          "name": "FailOfRest",
+          "id": "failofrest"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type FailOfRest<REST extends readonly DataValidator[]> = REST extends readonly DataValidator<infer ERROR>[] ? ERROR : never;\n```\n**References:** [DataValidator](#datavalidator)",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
+      "mdFile": "qwik-city.failofrest.md"
+    },
+    {
       "name": "FailReturn",
       "id": "failreturn",
       "hierarchy": [
@@ -225,6 +267,20 @@
       "content": "```typescript\nexport interface FormSubmitCompletedDetail<T> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [status](#) |  | number |  |\n|  [value](#) |  | T |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/form-component.tsx",
       "mdFile": "qwik-city.formsubmitsuccessdetail.md"
+    },
+    {
+      "name": "GetValidatorType",
+      "id": "getvalidatortype",
+      "hierarchy": [
+        {
+          "name": "GetValidatorType",
+          "id": "getvalidatortype"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type GetValidatorType<VALIDATOR extends TypedDataValidator> = VALIDATOR extends TypedDataValidator<infer TYPE> ? zod.infer<TYPE> : never;\n```\n**References:** [TypedDataValidator](#typeddatavalidator)",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
+      "mdFile": "qwik-city.getvalidatortype.md"
     },
     {
       "name": "globalAction$",
@@ -292,7 +348,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "```typescript\nLink: import(\"@builder.io/qwik\").Component<LinkProps>\n```",
+      "content": "```typescript\nLink: import(\"@builder.io/qwik\").Component<import(\"@builder.io/qwik\").PropFunctionProps<LinkProps>>\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/link-component.tsx",
       "mdFile": "qwik-city.link.md"
     },
@@ -319,8 +375,8 @@
           "id": "loader"
         }
       ],
-      "kind": "Interface",
-      "content": "```typescript\nexport interface Loader<RETURN> \n```",
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type Loader<RETURN> = {\n    (): LoaderSignal<RETURN>;\n};\n```\n**References:** [LoaderSignal](#loadersignal)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik-city.loader.md"
     },
@@ -376,7 +432,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface PageModule extends RouteModule \n```\n**Extends:** RouteModule\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [default](#) | <code>readonly</code> | any |  |\n|  [head?](#) | <code>readonly</code> | ContentModuleHead | _(Optional)_ |\n|  [headings?](#) | <code>readonly</code> | [ContentHeading](#contentheading)<!-- -->\\[\\] | _(Optional)_ |\n|  [onStaticGenerate?](#) | <code>readonly</code> | [StaticGenerateHandler](#staticgeneratehandler) | _(Optional)_ |",
+      "content": "```typescript\nexport interface PageModule extends RouteModule \n```\n**Extends:** RouteModule\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [default](#) | <code>readonly</code> | unknown |  |\n|  [head?](#) | <code>readonly</code> | ContentModuleHead | _(Optional)_ |\n|  [headings?](#) | <code>readonly</code> | [ContentHeading](#contentheading)<!-- -->\\[\\] | _(Optional)_ |\n|  [onStaticGenerate?](#) | <code>readonly</code> | [StaticGenerateHandler](#staticgeneratehandler) | _(Optional)_ |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik-city.pagemodule.md"
     },
@@ -418,7 +474,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "```typescript\nQwikCityMockProvider: import(\"@builder.io/qwik\").Component<QwikCityMockProps>\n```",
+      "content": "```typescript\nQwikCityMockProvider: import(\"@builder.io/qwik\").Component<import(\"@builder.io/qwik\").PropFunctionProps<QwikCityMockProps>>\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/qwik-city-component.tsx",
       "mdFile": "qwik-city.qwikcitymockprovider.md"
     },
@@ -460,7 +516,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "```typescript\nQwikCityProvider: import(\"@builder.io/qwik\").Component<QwikCityProps>\n```",
+      "content": "```typescript\nQwikCityProvider: import(\"@builder.io/qwik\").Component<import(\"@builder.io/qwik\").PropFunctionProps<QwikCityProps>>\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/qwik-city-component.tsx",
       "mdFile": "qwik-city.qwikcityprovider.md"
     },
@@ -474,7 +530,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type ResolvedDocumentHead = Required<DocumentHeadValue>;\n```\n**References:** [DocumentHeadValue](#documentheadvalue)",
+      "content": "```typescript\nexport type ResolvedDocumentHead<FrontMatter extends Record<string, any> = Record<string, unknown>> = Required<DocumentHeadValue<FrontMatter>>;\n```\n**References:** [DocumentHeadValue](#documentheadvalue)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik-city.resolveddocumenthead.md"
     },
@@ -586,7 +642,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "```typescript\nRouterOutlet: import(\"@builder.io/qwik\").Component<{}>\n```",
+      "content": "```typescript\nRouterOutlet: import(\"@builder.io/qwik\").Component<import(\"@builder.io/qwik\").PropFunctionProps<Record<any, any>>>\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/router-outlet-component.tsx",
       "mdFile": "qwik-city.routeroutlet.md"
     },
@@ -600,7 +656,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "```typescript\nserver$: <T extends import(\"./types\").ServerFunction>(first: T) => QRL<T>\n```",
+      "content": "```typescript\nserver$: <T extends ServerFunction>(first: T) => ServerQRL<T>\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
       "mdFile": "qwik-city.server_.md"
     },
@@ -614,7 +670,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "```typescript\nserverQrl: ServerConstructorQRL\n```",
+      "content": "```typescript\nserverQrl: <T extends ServerFunction>(qrl: QRL<T>) => ServerQRL<T>\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
       "mdFile": "qwik-city.serverqrl.md"
     },
@@ -661,6 +717,34 @@
       "mdFile": "qwik-city.staticgeneratehandler.md"
     },
     {
+      "name": "StrictUnion",
+      "id": "strictunion",
+      "hierarchy": [
+        {
+          "name": "StrictUnion",
+          "id": "strictunion"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type StrictUnion<T> = Prettify<StrictUnionHelper<T, T>>;\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
+      "mdFile": "qwik-city.strictunion.md"
+    },
+    {
+      "name": "TypedDataValidator",
+      "id": "typeddatavalidator",
+      "hierarchy": [
+        {
+          "name": "TypedDataValidator",
+          "id": "typeddatavalidator"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type TypedDataValidator<T extends zod.ZodType = zod.ZodType> = {\n    __zod: zod.ZodSchema<T>;\n    validate(ev: RequestEvent, data: unknown): Promise<zod.SafeParseReturnType<T, T>>;\n};\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
+      "mdFile": "qwik-city.typeddatavalidator.md"
+    },
+    {
       "name": "useContent",
       "id": "usecontent",
       "hierarchy": [
@@ -684,7 +768,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "```typescript\nuseDocumentHead: () => Required<ResolvedDocumentHead>\n```",
+      "content": "Returns the document head for the current page. The generic type describes the front matter.\n\n\n```typescript\nuseDocumentHead: <FrontMatter extends Record<string, unknown> = Record<string, any>>() => Required<Required<import(\"./types\").DocumentHeadValue<FrontMatter>>>\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/use-functions.ts",
       "mdFile": "qwik-city.usedocumenthead.md"
     },
@@ -745,6 +829,20 @@
       "mdFile": "qwik-city.validatorqrl.md"
     },
     {
+      "name": "ValidatorReturn",
+      "id": "validatorreturn",
+      "hierarchy": [
+        {
+          "name": "ValidatorReturn",
+          "id": "validatorreturn"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type ValidatorReturn<T extends Record<string, any> = {}> = ValidatorReturnSuccess | ValidatorReturnFail<T>;\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
+      "mdFile": "qwik-city.validatorreturn.md"
+    },
+    {
       "name": "zod$",
       "id": "zod_",
       "hierarchy": [
@@ -767,8 +865,8 @@
           "id": "zodconstructor"
         }
       ],
-      "kind": "Interface",
-      "content": "```typescript\nexport interface ZodConstructor \n```",
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type ZodConstructor = {\n    <T extends zod.ZodRawShape>(schema: T): TypedDataValidator<zod.ZodObject<T>>;\n    <T extends zod.ZodRawShape>(schema: (z: typeof zod, ev: RequestEvent) => T): TypedDataValidator<zod.ZodObject<T>>;\n    <T extends zod.Schema>(schema: T): TypedDataValidator<T>;\n    <T extends zod.Schema>(schema: (z: typeof zod, ev: RequestEvent) => T): TypedDataValidator<T>;\n};\n```\n**References:** [TypedDataValidator](#typeddatavalidator)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik-city.zodconstructor.md"
     },

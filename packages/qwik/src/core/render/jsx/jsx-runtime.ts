@@ -3,10 +3,10 @@ import type { QwikJSX } from './types/jsx-qwik';
 import { qDev, qRuntimeQrl, seal } from '../../util/qdev';
 import { logError, logOnceWarn, logWarn } from '../../util/log';
 import { isArray, isFunction, isObject, isString } from '../../util/types';
-import { isQrl } from '../../qrl/qrl-class';
+import { isQrl, type QRLInternal } from '../../qrl/qrl-class';
 import { invoke, untrack } from '../../use/use-core';
 import { verifySerializable } from '../../state/common';
-import { isQwikComponent } from '../../component/component.public';
+import { isQwikComponent, type OnRenderFn } from '../../component/component.public';
 import { isSignal } from '../../state/signal';
 import { isPromise } from '../../util/promises';
 import { SkipRender } from './utils.public';
@@ -15,6 +15,9 @@ import { _IMMUTABLE } from '../../internal';
 import { isBrowser } from '@builder.io/qwik/build';
 import { assertString } from '../../error/assert';
 import { static_subtree } from '../execute-component';
+import type { JsxChild } from 'typescript';
+import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS } from '../../util/markers';
+import type { JSXChildren } from './types/jsx-qwik-attributes';
 
 /**
  * @internal
@@ -23,9 +26,9 @@ import { static_subtree } from '../execute-component';
  */
 export const _jsxQ = <T extends string>(
   type: T,
-  mutableProps: (T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>) | null,
-  immutableProps: Record<string, any> | null,
-  children: any | null,
+  mutableProps: Record<any, unknown> | null,
+  immutableProps: Record<any, unknown> | null,
+  children: JSXChildren | null,
   flags: number,
   key: string | number | null,
   dev?: DevJSX
@@ -34,7 +37,7 @@ export const _jsxQ = <T extends string>(
   const processed = key == null ? null : String(key);
   const node = new JSXNodeImpl<T>(
     type,
-    mutableProps ?? (EMPTY_OBJ as any),
+    mutableProps || (EMPTY_OBJ as any),
     immutableProps,
     children,
     flags,
@@ -58,15 +61,15 @@ export const _jsxQ = <T extends string>(
  */
 export const _jsxS = <T extends string>(
   type: T,
-  mutableProps: (T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>) | null,
-  immutableProps: Record<string, any> | null,
+  mutableProps: Record<any, unknown> | null,
+  immutableProps: Record<any, unknown> | null,
   flags: number,
   key: string | number | null,
   dev?: DevJSX
 ): JSXNode<T> => {
-  let children = null;
+  let children: JSXChildren = null;
   if (mutableProps && 'children' in mutableProps) {
-    children = mutableProps.children;
+    children = mutableProps.children as JSXChildren;
     delete mutableProps.children;
   }
   return _jsxQ(type, mutableProps, immutableProps, children, flags, key, dev);
@@ -77,9 +80,9 @@ export const _jsxS = <T extends string>(
  *
  * Create a JSXNode for any tag, with possibly immutable props embedded in props
  */
-export const _jsxC = <T extends string | FunctionComponent<any>>(
+export const _jsxC = <T extends string | FunctionComponent>(
   type: T,
-  mutableProps: (T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>) | null,
+  mutableProps: (T extends FunctionComponent<infer PROPS> ? PROPS : Record<any, unknown>) | null,
   flags: number,
   key: string | number | null,
   dev?: JsxDevOpts
@@ -113,7 +116,7 @@ export const _jsxC = <T extends string | FunctionComponent<any>>(
 /** @public */
 export const jsx = <T extends string | FunctionComponent<any>>(
   type: T,
-  props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>,
+  props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<any, unknown>,
   key?: string | number | null
 ): JSXNode<T> => {
   const processed = key == null ? null : String(key);
@@ -125,9 +128,9 @@ export const jsx = <T extends string | FunctionComponent<any>>(
     return c;
   });
   if (isString(type)) {
-    if ('className' in (props as any)) {
-      (props as any)['class'] = (props as any)['className'];
-      delete (props as any)['className'];
+    if ('className' in props) {
+      (props as any).class = props.className;
+      delete props.className;
       if (qDev) {
         logOnceWarn('jsx: `className` is deprecated. Use `class` instead.');
       }
@@ -145,21 +148,30 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
   dev?: DevJSX;
   constructor(
     public type: T,
-    public props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>,
-    public immutableProps: Record<string, any> | null,
-    public children: any | null,
+    public props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<any, unknown>,
+    public immutableProps: Record<any, unknown> | null,
+    public children: JSXChildren,
     public flags: number,
     public key: string | null = null
   ) {}
 }
 
 /** @public */
-export const Virtual: FunctionComponent<Record<string, any>> = ((props: any) =>
-  props.children) as any;
+export const Virtual: FunctionComponent<{
+  children?: JSXChildren;
+  dangerouslySetInnerHTML?: string;
+  [OnRenderProp]?: QRLInternal<OnRenderFn<any>>;
+  [QSlot]?: string;
+  [QSlotS]?: string;
+  [_IMMUTABLE]?: Record<any, unknown>;
+  props?: Record<any, unknown>;
+  [QScopedStyle]?: string;
+  [ELEMENT_ID]?: string;
+}> = (props: any) => props.children;
 
 /** @public */
 export const RenderOnce: FunctionComponent<{
-  children?: any;
+  children?: unknown;
   key?: string | number | null | undefined;
 }> = (props: any, key) => {
   return new JSXNodeImpl(Virtual, EMPTY_OBJ, null, props.children, static_subtree, key);
@@ -180,7 +192,7 @@ const validateJSXNode = (node: JSXNode) => {
       if (children) {
         const flatChildren = isArray(children) ? children.flat() : [children];
         if (isString(type) || isQwikC) {
-          flatChildren.forEach((child: any) => {
+          flatChildren.forEach((child: unknown) => {
             if (!isValidJSXChild(child)) {
               const typeObj = typeof child;
               let explanation = '';
@@ -188,7 +200,7 @@ const validateJSXNode = (node: JSXNode) => {
                 if (child?.constructor) {
                   explanation = `it's an instance of "${child?.constructor.name}".`;
                 } else {
-                  explanation = `it's a object literal: ${printObjectLiteral(child)} `;
+                  explanation = `it's a object literal: ${printObjectLiteral(child as {})} `;
                 }
               } else if (typeObj === 'function') {
                 explanation += `it's a function named "${(child as Function).name}".`;
@@ -205,7 +217,7 @@ const validateJSXNode = (node: JSXNode) => {
         if (isBrowser) {
           if (isFunction(type) || immutableProps) {
             const keys: Record<string, boolean> = {};
-            flatChildren.forEach((child: any) => {
+            flatChildren.forEach((child: unknown) => {
               if (isJSXNode(child) && child.key != null) {
                 const key = String(child.type) + ':' + child.key;
                 if (keys[key]) {
@@ -284,13 +296,13 @@ In order to disable content escaping use '<script dangerouslySetInnerHTML={conte
   }
 };
 
-const printObjectLiteral = (obj: Record<string, any>) => {
+const printObjectLiteral = (obj: Record<string, unknown>) => {
   return `{ ${Object.keys(obj)
     .map((key) => `"${key}"`)
     .join(', ')} }`;
 };
 
-export const isJSXNode = (n: any): n is JSXNode => {
+export const isJSXNode = (n: unknown): n is JSXNode => {
   if (qDev) {
     if (n instanceof JSXNodeImpl) {
       return true;
@@ -305,7 +317,7 @@ export const isJSXNode = (n: any): n is JSXNode => {
   }
 };
 
-export const isValidJSXChild = (node: any): boolean => {
+export const isValidJSXChild = (node: unknown): node is JsxChild => {
   if (!node) {
     return true;
   } else if (node === SkipRender) {
@@ -328,7 +340,7 @@ export const isValidJSXChild = (node: any): boolean => {
 /** @public */
 export const Fragment: FunctionComponent<{ children?: any; key?: string | number | null }> = (
   props
-) => props.children as any;
+) => props.children;
 
 interface JsxDevOpts {
   fileName: string;
@@ -341,13 +353,13 @@ export const HTMLFragment: FunctionComponent<{ dangerouslySetInnerHTML: string }
   jsx(Virtual, props);
 
 /** @public */
-export const jsxDEV = <T extends string | FunctionComponent<any>>(
+export const jsxDEV = <T extends string | FunctionComponent>(
   type: T,
-  props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>,
+  props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<any, unknown>,
   key: string | number | null | undefined,
   _isStatic: boolean,
   opts: JsxDevOpts,
-  _ctx: any
+  _ctx: unknown
 ): JSXNode<T> => {
   const processed = key == null ? null : String(key);
   const children = untrack(() => {
@@ -356,11 +368,11 @@ export const jsxDEV = <T extends string | FunctionComponent<any>>(
       delete props.children;
     }
     return c;
-  });
+  }) as JSXChildren;
   if (isString(type)) {
-    if ('className' in (props as any)) {
-      (props as any)['class'] = (props as any)['className'];
-      delete (props as any)['className'];
+    if ('className' in props) {
+      (props as any).class = props.className;
+      delete props.className;
       if (qDev) {
         logOnceWarn('jsx: `className` is deprecated. Use `class` instead.');
       }

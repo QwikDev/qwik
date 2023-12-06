@@ -28,6 +28,8 @@ export const QContainerSelector = '[q\\:container]';
 export const ResourceEvent = 'qResource';
 export const ComputedEvent = 'qComputed';
 export const RenderEvent = 'qRender';
+export const TaskEvent = 'qTask';
+
 /** `<q:slot name="...">` */
 export const QSlotInertName = '\u0000';
 

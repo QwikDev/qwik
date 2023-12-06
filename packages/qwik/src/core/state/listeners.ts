@@ -7,10 +7,14 @@ import { EMPTY_ARRAY } from '../util/flyweight';
 import { qRuntimeQrl, qSerialize } from '../util/qdev';
 import { fromCamelToKebabCase } from '../util/case';
 import type { QContext } from './context';
+import type { PossibleEvents } from '../use/use-core';
 
 const ON_PROP_REGEX = /^(on|window:|document:)/;
 
-export type Listener = [eventName: string, qrl: QRLInternal];
+export type Listener = [
+  eventName: string,
+  qrl: QRLInternal<(event: PossibleEvents, elem?: Element) => any>,
+];
 
 export const PREVENT_DEFAULT = 'preventdefault:';
 
@@ -18,9 +22,9 @@ export const isOnProp = (prop: string): boolean => {
   return prop.endsWith('$') && ON_PROP_REGEX.test(prop);
 };
 
-export const groupListeners = (listeners: Listener[]): [string, QRLInternal[]][] => {
+export const groupListeners = (listeners: Listener[]): Readonly<[string, Listener[1][]][]> => {
   if (listeners.length === 0) {
-    return EMPTY_ARRAY;
+    return EMPTY_ARRAY as any;
   }
   if (listeners.length === 1) {
     const listener = listeners[0];
@@ -82,13 +86,13 @@ export const normalizeOnProp = (prop: string) => {
   return scope + ':' + prop;
 };
 
-const ensureQrl = (value: any, containerEl: Element | undefined) => {
+const ensureQrl = <T = unknown>(value: any, containerEl: Element | undefined) => {
   if (qSerialize && !qRuntimeQrl) {
-    assertQrl(value);
+    assertQrl<T>(value);
     value.$setContainer$(containerEl);
     return value;
   }
-  const qrl = isQrl(value) ? value : ($(value) as QRLInternal);
+  const qrl = isQrl<T>(value) ? value : ($(value) as QRLInternal<T>);
   qrl.$setContainer$(containerEl);
   return qrl;
 };
@@ -105,7 +109,7 @@ export const getDomListeners = (elCtx: QContext, containerEl: Element): Listener
     ) {
       const urls = value.split('\n');
       for (const url of urls) {
-        const qrl = parseQRL(url, containerEl);
+        const qrl = parseQRL(url, containerEl) as Listener[1];
         if (qrl.$capture$) {
           inflateQrl(qrl, elCtx);
         }

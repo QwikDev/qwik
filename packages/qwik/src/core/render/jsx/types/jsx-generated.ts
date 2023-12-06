@@ -1,7 +1,6 @@
 import * as CSS from 'csstype';
 import type { Signal } from '../../../state/signal';
-import type { DOMAttributes, ClassList } from './jsx-qwik-attributes';
-interface HTMLWebViewElement extends HTMLElement {}
+import type { DOMAttributes, ClassList, JSXChildren } from './jsx-qwik-attributes';
 /** @public */
 export type Booleanish = boolean | `${boolean}`;
 /** @public */
@@ -23,7 +22,12 @@ export interface CSSProperties
   [v: `--${string}`]: string | number | undefined;
 }
 
-/** @public */
+/**
+ * TS defines these with the React syntax which is not compatible with Qwik. E.g. `ariaAtomic`
+ * instead of `aria-atomic`.
+ *
+ * @public
+ */
 export interface AriaAttributes {
   /**
    * Identifies the currently active element when DOM focus is on a composite widget, textbox,
@@ -373,48 +377,73 @@ export type AriaRole =
   | 'treeitem'
   | (string & {});
 
-/** @public */
-/** @public */
-export interface HTMLAttributes<T extends Element> extends AriaAttributes, DOMAttributes<T> {
-  accessKey?: string | undefined;
+type IfEquals<X, Y, A, B> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2
+  ? A
+  : B;
+
+type ReadonlyKeysOf<T> = {
+  [P in keyof T]: IfEquals<{ [Q in P]: T[P] }, { -readonly [Q in P]: T[P] }, never, P>;
+}[keyof T];
+
+// All the keys that must be removed
+type BadOnes<T> = Extract<
+  // No functions, readonly or uppercase properties
+  | {
+      [K in keyof T]: T[K] extends (...args: any) => any
+        ? K
+        : K extends string
+          ? K extends Uppercase<K>
+            ? K
+            : never
+          : never;
+    }[keyof T]
+  | ReadonlyKeysOf<T>
+  // We have our own
+  | keyof HTMLAttributesBase<any>
+  // We don't support these
+  | keyof ARIAMixin
+  // We should use onEventName$ instead
+  | keyof GlobalEventHandlers
+  // deprecated or overridden or can't filter out automatically
+  | 'enterKeyHint'
+  | 'innerText'
+  | 'inputMode'
+  | 'onfullscreenchange'
+  | 'onfullscreenerror'
+  | 'outerText'
+  | 'textContent',
+  string
+>;
+
+interface HTMLAttributesBase<E extends Element, Children = JSXChildren>
+  extends AriaAttributes,
+    DOMAttributes<E, Children> {
+  /** @deprecated Use `class` instead */
+  className?: ClassList | undefined;
   contentEditable?: 'true' | 'false' | 'inherit' | undefined;
-  contextMenu?: string | undefined;
-  dir?: 'ltr' | 'rtl' | 'auto' | undefined;
-  draggable?: boolean | undefined;
-  hidden?: boolean | 'hidden' | 'until-found' | undefined;
-  id?: string | undefined;
-  lang?: string | undefined;
-  placeholder?: string | undefined;
-  slot?: string | undefined;
-  spellcheck?: boolean | undefined;
   style?: CSSProperties | string | undefined;
-  tabIndex?: number | undefined;
-  title?: string | undefined;
-  translate?: 'yes' | 'no' | undefined;
-
-  radioGroup?: string | undefined; // <command>, <menuitem>
-
   role?: AriaRole | undefined;
 
   about?: string | undefined;
   datatype?: string | undefined;
   inlist?: any;
-  prefix?: string | undefined;
   property?: string | undefined;
   resource?: string | undefined;
   typeof?: string | undefined;
   vocab?: string | undefined;
 
-  autoCapitalize?: string | undefined;
+  autoCapitalize?: 'none' | 'off' | 'sentences' | 'on' | 'words' | 'characters' | undefined;
   autoCorrect?: string | undefined;
+  autoFocus?: boolean | undefined;
   autoSave?: string | undefined;
-  color?: string | undefined;
+  hidden?: boolean | 'hidden' | 'until-found' | undefined;
   itemProp?: string | undefined;
   itemScope?: boolean | undefined;
   itemType?: string | undefined;
   itemID?: string | undefined;
   itemRef?: string | undefined;
   results?: number | undefined;
+  translate?: 'yes' | 'no' | undefined;
   security?: string | undefined;
   unselectable?: 'on' | 'off' | undefined;
 
@@ -442,102 +471,136 @@ export interface HTMLAttributes<T extends Element> extends AriaAttributes, DOMAt
   is?: string | undefined;
 }
 /** @public */
+export interface HTMLAttributes<E extends Element, Children = JSXChildren>
+  extends HTMLAttributesBase<E, Children>,
+    Partial<Omit<HTMLElement, BadOnes<HTMLElement>>> {}
+
+type Prettify<T> = {} & {
+  [K in keyof T]: T[K];
+};
+
+/**
+ * Filter out "any" value types and non-string keys from an object, currently only for
+ * HTMLFormElement
+ */
+type FilterAny<T> = {
+  [K in keyof T as any extends T[K] ? never : K extends string ? K : never]: T[K];
+};
+/** Only keep props that are specific to the element */
+type Filtered<T, A = {}> = {
+  [K in keyof Omit<
+    FilterAny<T>,
+    keyof HTMLAttributes<any> | BadOnes<FilterAny<T>> | keyof A
+  >]?: T[K];
+};
+/**
+ * Replace given element's props with custom types and return all props specific to the element. Use
+ * this for known props that are incorrect or missing.
+ *
+ * Uses Prettify so we see the special props for each element in editor hover
+ */
+type Augmented<E, A = {}> = Prettify<Filtered<E, A> & A>;
+
+// The following interfaces are not very useful, it's better to use QwikIntrinsicElements[tagname]
+/** @public */
 export type HTMLAttributeAnchorTarget = '_self' | '_blank' | '_parent' | '_top' | (string & {});
 /** @public */
-export type HTMLAttributeReferrerPolicy =
-  | ''
-  | 'no-referrer'
-  | 'no-referrer-when-downgrade'
-  | 'origin'
-  | 'origin-when-cross-origin'
-  | 'same-origin'
-  | 'strict-origin'
-  | 'strict-origin-when-cross-origin'
-  | 'unsafe-url';
+export type HTMLAttributeReferrerPolicy = ReferrerPolicy;
+
 /** @public */
-export interface AnchorHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-  download?: any;
-  href?: string | undefined;
-  hrefLang?: string | undefined;
-  media?: string | undefined;
-  ping?: string | undefined;
-  rel?: string | undefined;
-  target?: HTMLAttributeAnchorTarget | undefined;
-  type?: string | undefined;
-  referrerPolicy?: HTMLAttributeReferrerPolicy | undefined;
-}
+export interface AnchorHTMLAttributes<T extends Element> extends HTMLAttributes<T>, AnchorAttrs {}
+type AnchorAttrs = Augmented<
+  HTMLAnchorElement,
+  {
+    download?: any;
+    target?: HTMLAttributeAnchorTarget | undefined;
+    referrerPolicy?: HTMLAttributeReferrerPolicy | undefined;
+  }
+>;
+
 /** @public */
-export interface AreaHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-  alt?: string | undefined;
-  coords?: string | undefined;
-  download?: any;
-  href?: string | undefined;
-  hrefLang?: string | undefined;
-  media?: string | undefined;
-  referrerPolicy?: HTMLAttributeReferrerPolicy | undefined;
-  rel?: string | undefined;
-  shape?: string | undefined;
-  target?: string | undefined;
-  children?: undefined;
-}
+export interface AreaHTMLAttributes<T extends Element>
+  extends HTMLAttributes<T, false>,
+    AreaAttrs {}
+type AreaAttrs = Augmented<
+  HTMLAreaElement,
+  {
+    referrerPolicy?: HTMLAttributeReferrerPolicy | undefined;
+  }
+>;
+
 /** @public */
-export interface MediaHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-  autoPlay?: boolean | undefined;
-  controls?: boolean | undefined;
-  controlsList?: string | undefined;
-  crossOrigin?: HTMLCrossOriginAttribute;
-  loop?: boolean | undefined;
-  mediaGroup?: string | undefined;
-  muted?: boolean | undefined;
-  playsInline?: boolean | undefined;
-  preload?: string | undefined;
-  src?: string | undefined;
-}
+export interface MediaHTMLAttributes<T extends Element> extends HTMLAttributes<T>, MediaAttrs {}
+type MediaAttrs = Augmented<
+  HTMLMediaElement,
+  {
+    crossOrigin?: HTMLCrossOriginAttribute;
+  }
+>;
 /** @public */
-export interface AudioHTMLAttributes<T extends Element> extends MediaHTMLAttributes<T> {}
+export interface AudioHTMLAttributes<T extends Element> extends HTMLAttributes<T>, AudioAttrs {}
+type AudioAttrs = Augmented<
+  HTMLAudioElement,
+  {
+    crossOrigin?: HTMLCrossOriginAttribute;
+  }
+>;
 /** @public */
-export interface BaseHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-  href?: string | undefined;
-  target?: string | undefined;
-  children?: undefined;
-}
+export interface BaseHTMLAttributes<T extends Element>
+  extends HTMLAttributes<T, undefined>,
+    BaseAttrs {}
+type BaseAttrs = Augmented<HTMLBaseElement, {}>;
+
 /** @public */
-export interface BlockquoteHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-  cite?: string | undefined;
-}
+export interface BlockquoteHTMLAttributes<T extends Element>
+  extends HTMLAttributes<T>,
+    BlockquoteAttrs {}
+type BlockquoteAttrs = Augmented<HTMLQuoteElement, {}>;
+
 /** @public */
-export interface ButtonHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-  autoFocus?: boolean | undefined;
-  disabled?: boolean | undefined;
-  form?: string | undefined;
-  formAction?: string | undefined;
-  formEncType?: string | undefined;
-  formMethod?: string | undefined;
-  formNoValidate?: boolean | undefined;
-  formTarget?: string | undefined;
-  name?: string | undefined;
-  type?: 'submit' | 'reset' | 'button' | undefined;
-  value?: string | ReadonlyArray<string> | number | undefined;
-}
+export interface ButtonHTMLAttributes<T extends Element> extends HTMLAttributes<T>, ButtonAttrs {}
+type ButtonAttrs = Augmented<
+  HTMLButtonElement,
+  {
+    form?: string | undefined;
+    value?: string | ReadonlyArray<string> | number | undefined;
+  }
+>;
+
 /** @public */
-export interface CanvasHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-  height?: Size | undefined;
-  width?: Size | undefined;
-}
+export interface CanvasHTMLAttributes<T extends Element> extends HTMLAttributes<T>, CanvasAttrs {}
+type CanvasAttrs = Augmented<
+  HTMLCanvasElement,
+  {
+    height?: Size | undefined;
+    width?: Size | undefined;
+  }
+>;
+
 /** @public */
-export interface ColHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-  span?: number | undefined;
-  width?: Size | undefined;
-  children?: undefined;
-}
+export interface ColHTMLAttributes<T extends Element>
+  extends HTMLAttributes<T, undefined>,
+    ColAttrs {}
+type ColAttrs = Augmented<
+  HTMLTableColElement,
+  {
+    width?: Size | undefined;
+  }
+>;
+
 /** @public */
 export interface ColgroupHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   span?: number | undefined;
 }
 /** @public */
-export interface DataHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-  value?: string | ReadonlyArray<string> | number | undefined;
-}
+export interface DataHTMLAttributes<T extends Element> extends HTMLAttributes<T>, DataAttrs {}
+type DataAttrs = Augmented<
+  HTMLDataElement,
+  {
+    value?: string | ReadonlyArray<string> | number | undefined;
+  }
+>;
+
 /** @public */
 export interface DelHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   cite?: string | undefined;
@@ -553,82 +616,72 @@ export interface DialogHTMLAttributes<T extends Element> extends HTMLAttributes<
   open?: boolean | undefined;
 }
 /** @public */
-export interface EmbedHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-  height?: Size | undefined;
-  src?: string | undefined;
-  type?: string | undefined;
-  width?: Size | undefined;
-  children?: undefined;
-}
+export interface EmbedHTMLAttributes<T extends Element>
+  extends HTMLAttributes<T, undefined>,
+    EmbedAttrs {}
+type EmbedAttrs = Augmented<
+  HTMLEmbedElement,
+  {
+    height?: Size | undefined;
+    width?: Size | undefined;
+    children?: undefined;
+  }
+>;
 /** @public */
-export interface FieldsetHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-  disabled?: boolean | undefined;
-  form?: string | undefined;
-  name?: string | undefined;
-}
+export interface FieldsetHTMLAttributes<T extends Element>
+  extends HTMLAttributes<T>,
+    FieldSetAttrs {}
+type FieldSetAttrs = Augmented<
+  HTMLFieldSetElement,
+  {
+    form?: string | undefined;
+  }
+>;
 /** @public */
-export interface FormHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-  acceptCharset?: string | undefined;
-  action?: string | undefined;
-  autoComplete?: 'on' | 'off' | Omit<'on' | 'off', string> | undefined;
-  encType?: string | undefined;
-  method?: string | undefined;
-  name?: string | undefined;
-  noValidate?: boolean | undefined;
-  target?: string | undefined;
-}
+export interface FormHTMLAttributes<T extends Element> extends HTMLAttributes<T>, FormAttrs {}
+type FormAttrs = Augmented<HTMLFormElement, {}>;
+
 /** @public */
 export interface HtmlHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   manifest?: string | undefined;
 }
 /** @public */
-export interface IframeHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-  allow?: string | undefined;
-  allowFullScreen?: boolean | undefined;
-  allowTransparency?: boolean | undefined;
-  /** @deprecated Deprecated */
-  frameBorder?: number | string | undefined;
-  height?: Size | undefined;
-  loading?: 'eager' | 'lazy' | undefined;
-  /** @deprecated Deprecated */
-  marginHeight?: number | undefined;
-  /** @deprecated Deprecated */
-  marginWidth?: number | undefined;
-  name?: string | undefined;
-  referrerPolicy?: HTMLAttributeReferrerPolicy | undefined;
-  sandbox?: string | undefined;
-  /** @deprecated Deprecated */
-  scrolling?: string | undefined;
-  seamless?: boolean | undefined;
-  src?: string | undefined;
-  srcDoc?: string | undefined;
-  width?: Size | undefined;
-  children?: undefined;
-}
-/** @public */
-export interface ImgHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-  alt?: string | undefined;
-  crossOrigin?: HTMLCrossOriginAttribute;
-  decoding?: 'async' | 'auto' | 'sync' | undefined;
-
-  /** Intrinsic height of the image in pixels. */
-  height?: Numberish | undefined;
-  loading?: 'eager' | 'lazy' | undefined;
-  referrerPolicy?: HTMLAttributeReferrerPolicy | undefined;
-  sizes?: string | undefined;
-  src?: string | undefined;
-  srcSet?: string | undefined;
-  useMap?: string | undefined;
-
-  /** Intrinsic width of the image in pixels. */
-  width?: Numberish | undefined;
-  children?: undefined;
-}
+export interface IframeHTMLAttributes<T extends Element>
+  extends HTMLAttributes<T, undefined>,
+    IframeAttrs {}
+type IframeAttrs = Augmented<
+  HTMLIFrameElement,
+  {
+    allowTransparency?: boolean | undefined;
+    /** @deprecated Deprecated */
+    frameBorder?: number | string | undefined;
+    height?: Size | undefined;
+    loading?: 'eager' | 'lazy' | undefined;
+    sandbox?: string | undefined;
+    seamless?: boolean | undefined;
+    width?: Size | undefined;
+    children?: undefined;
+  }
+>;
 
 /** @public */
-export interface HrHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-  children?: undefined;
-}
+export interface ImgHTMLAttributes<T extends Element>
+  extends HTMLAttributes<T, undefined>,
+    ImgAttrs {}
+type ImgAttrs = Augmented<
+  HTMLImageElement,
+  {
+    crossOrigin?: HTMLCrossOriginAttribute;
+    /** Intrinsic height of the image in pixels. */
+    height?: Numberish | undefined;
+    referrerPolicy?: HTMLAttributeReferrerPolicy | undefined;
+    /** Intrinsic width of the image in pixels. */
+    width?: Numberish | undefined;
+  }
+>;
+
+/** @public */
+export interface HrHTMLAttributes<T extends Element> extends HTMLAttributes<T, undefined> {}
 /** @public */
 export type HTMLCrossOriginAttribute = 'anonymous' | 'use-credentials' | '' | undefined;
 /** @public */
@@ -709,47 +762,30 @@ export type HTMLInputAutocompleteAttribute =
   | 'photo';
 
 /** @public */
-export interface InputHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-  accept?: string | undefined;
-  alt?: string | undefined;
-  autoComplete?:
-    | HTMLInputAutocompleteAttribute
-    | Omit<HTMLInputAutocompleteAttribute, string>
-    | undefined;
-  autoFocus?: boolean | undefined;
-  capture?: boolean | 'user' | 'environment' | undefined; // https://www.w3.org/TR/html-media-capture/#the-capture-attribute
-  checked?: boolean | undefined;
-  'bind:checked'?: Signal<boolean | undefined>;
-  crossOrigin?: HTMLCrossOriginAttribute;
-  disabled?: boolean | undefined;
-  enterKeyHint?: 'enter' | 'done' | 'go' | 'next' | 'previous' | 'search' | 'send' | undefined;
-  form?: string | undefined;
-  formAction?: string | undefined;
-  formEncType?: string | undefined;
-  formMethod?: string | undefined;
-  formNoValidate?: boolean | undefined;
-  formTarget?: string | undefined;
-  height?: Size | undefined;
-  list?: string | undefined;
-  max?: number | string | undefined;
-  maxLength?: number | undefined;
-  min?: number | string | undefined;
-  minLength?: number | undefined;
-  multiple?: boolean | undefined;
-  name?: string | undefined;
-  pattern?: string | undefined;
-  placeholder?: string | undefined;
-  readOnly?: boolean | undefined;
-  required?: boolean | undefined;
-  size?: number | undefined;
-  src?: string | undefined;
-  step?: number | string | undefined;
-  type?: HTMLInputTypeAttribute | undefined;
-  value?: string | ReadonlyArray<string> | number | undefined | null | FormDataEntryValue;
-  'bind:value'?: Signal<string | undefined>;
-  width?: Size | undefined;
-  children?: undefined;
-}
+export interface InputHTMLAttributes<T extends Element>
+  extends HTMLAttributes<T, undefined>,
+    InputAttrs {}
+type InputAttrs = Augmented<
+  HTMLInputElement,
+  {
+    autoComplete?:
+      | HTMLInputAutocompleteAttribute
+      | Omit<HTMLInputAutocompleteAttribute, string>
+      | undefined;
+    'bind:checked'?: Signal<boolean | undefined>;
+    enterKeyHint?: 'enter' | 'done' | 'go' | 'next' | 'previous' | 'search' | 'send' | undefined;
+    height?: Size | undefined;
+    max?: number | string | undefined;
+    maxLength?: number | undefined;
+    min?: number | string | undefined;
+    minLength?: number | undefined;
+    step?: number | string | undefined;
+    type?: HTMLInputTypeAttribute | undefined;
+    value?: string | ReadonlyArray<string> | number | undefined | null | FormDataEntryValue;
+    'bind:value'?: Signal<string | undefined>;
+    width?: Size | undefined;
+  }
+>;
 /** @public */
 export interface InsHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   cite?: string | undefined;
@@ -767,31 +803,38 @@ export interface KeygenHTMLAttributes<T extends Element> extends HTMLAttributes<
   children?: undefined;
 }
 /** @public */
-export interface LabelHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-  form?: string | undefined;
-  for?: string | undefined;
-}
+export interface LabelHTMLAttributes<T extends Element> extends HTMLAttributes<T>, LabelAttrs {}
+type LabelAttrs = Augmented<
+  HTMLLabelElement,
+  {
+    form?: string | undefined;
+    for?: string | undefined;
+    /** @deprecated Use `for` */
+    htmlFor?: string | undefined;
+  }
+>;
 /** @public */
-export interface LiHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-  value?: string | ReadonlyArray<string> | number | undefined;
-}
+export interface LiHTMLAttributes<T extends Element> extends HTMLAttributes<T>, LiAttrs {}
+type LiAttrs = Augmented<
+  HTMLLIElement,
+  {
+    value?: string | ReadonlyArray<string> | number | undefined;
+  }
+>;
 /** @public */
-export interface LinkHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-  as?: string | undefined;
-  crossOrigin?: HTMLCrossOriginAttribute;
-  href?: string | undefined;
-  hrefLang?: string | undefined;
-  integrity?: string | undefined;
-  media?: string | undefined;
-  imageSrcSet?: string | undefined;
-  imageSizes?: string | undefined;
-  referrerPolicy?: HTMLAttributeReferrerPolicy | undefined;
-  rel?: string | undefined;
-  sizes?: string | undefined;
-  type?: string | undefined;
-  charSet?: string | undefined;
-  children?: undefined;
-}
+export interface LinkHTMLAttributes<T extends Element>
+  extends HTMLAttributes<T, undefined>,
+    LinkAttrs {}
+type LinkAttrs = Augmented<
+  HTMLLinkElement,
+  {
+    crossOrigin?: HTMLCrossOriginAttribute;
+    referrerPolicy?: HTMLAttributeReferrerPolicy | undefined;
+    sizes?: string | undefined;
+    type?: string | undefined;
+    charSet?: string | undefined;
+  }
+>;
 /** @public */
 export interface MapHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   name?: string | undefined;
@@ -801,72 +844,91 @@ export interface MenuHTMLAttributes<T extends Element> extends HTMLAttributes<T>
   type?: string | undefined;
 }
 /** @public */
-export interface MetaHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-  charSet?: string | undefined;
-  content?: string | undefined;
-  httpEquiv?: string | undefined;
-  name?: string | undefined;
-  media?: string | undefined;
-  children?: undefined;
-}
+export interface MetaHTMLAttributes<T extends Element>
+  extends HTMLAttributes<T, undefined>,
+    MetaAttrs {}
+type MetaAttrs = Augmented<
+  HTMLMetaElement,
+  {
+    charSet?: string | undefined;
+  }
+>;
 /** @public */
-export interface MeterHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-  form?: string | undefined;
-  high?: number | undefined;
-  low?: number | undefined;
-  max?: number | string | undefined;
-  min?: number | string | undefined;
-  optimum?: number | undefined;
-  value?: string | ReadonlyArray<string> | number | undefined;
-}
+export interface MeterHTMLAttributes<T extends Element> extends HTMLAttributes<T>, MeterAttrs {}
+type MeterAttrs = Augmented<
+  HTMLMeterElement,
+  {
+    form?: string | undefined;
+    value?: string | ReadonlyArray<string> | number | undefined;
+  }
+>;
 /** @public */
-export interface ObjectHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-  classID?: string | undefined;
-  data?: string | undefined;
-  form?: string | undefined;
-  height?: Size | undefined;
-  name?: string | undefined;
-  type?: string | undefined;
-  useMap?: string | undefined;
-  width?: Size | undefined;
-  wmode?: string | undefined;
-}
+export interface ObjectHTMLAttributes<T extends Element> extends HTMLAttributes<T>, ObjectAttrs {}
+type ObjectAttrs = Augmented<
+  HTMLObjectElement,
+  {
+    classID?: string | undefined;
+    form?: string | undefined;
+    height?: Size | undefined;
+    width?: Size | undefined;
+    wmode?: string | undefined;
+  }
+>;
 /** @public */
-export interface OlHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-  reversed?: boolean | undefined;
-  start?: number | undefined;
-  type?: '1' | 'a' | 'A' | 'i' | 'I' | undefined;
-}
+export interface OlHTMLAttributes<T extends Element> extends HTMLAttributes<T>, OlAttrs {}
+type OlAttrs = Augmented<
+  HTMLOListElement,
+  {
+    type?: '1' | 'a' | 'A' | 'i' | 'I' | undefined;
+  }
+>;
 /** @public */
 export interface OptgroupHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   disabled?: boolean | undefined;
   label?: string | undefined;
 }
 /** @public */
-export interface OptionHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-  disabled?: boolean | undefined;
-  label?: string | undefined;
-  selected?: boolean | undefined;
-  value?: string | ReadonlyArray<string> | number | undefined;
-  children?: string;
-}
+export interface OptionHTMLAttributes<T extends Element>
+  extends HTMLAttributes<T, string>,
+    OptionAttrs {}
+type OptionAttrs = Augmented<
+  HTMLOptionElement,
+  {
+    value?: string | ReadonlyArray<string> | number | undefined;
+  }
+>;
 /** @public */
-export interface OutputHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-  form?: string | undefined;
-  for?: string | undefined;
-  name?: string | undefined;
-}
+export interface OutputHTMLAttributes<T extends Element> extends HTMLAttributes<T> {}
+type OutputAttrs = Augmented<
+  HTMLOutputElement,
+  {
+    form?: string | undefined;
+    for?: string | undefined;
+    /** @deprecated Use `for` instead */
+    htmlFor?: string | undefined;
+  }
+>;
+/** @public @deprecated Old DOM API */
+export interface ParamHTMLAttributes<T extends Element>
+  extends HTMLAttributes<T, undefined>,
+    ParamAttrs {}
+type ParamAttrs = Augmented<
+  HTMLParamElement,
+  {
+    value?: string | ReadonlyArray<string> | number | undefined;
+  }
+>;
 /** @public */
-export interface ParamHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-  name?: string | undefined;
-  value?: string | ReadonlyArray<string> | number | undefined;
-  children?: undefined;
-}
-/** @public */
-export interface ProgressHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-  max?: number | string | undefined;
-  value?: string | ReadonlyArray<string> | number | undefined;
-}
+export interface ProgressHTMLAttributes<T extends Element>
+  extends HTMLAttributes<T>,
+    ProgressAttrs {}
+type ProgressAttrs = Augmented<
+  HTMLProgressElement,
+  {
+    max?: number | string | undefined;
+    value?: string | ReadonlyArray<string> | number | undefined;
+  }
+>;
 /** @public */
 export interface QuoteHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   cite?: string | undefined;
@@ -876,135 +938,112 @@ export interface SlotHTMLAttributes<T extends Element> extends HTMLAttributes<T>
   name?: string | undefined;
 }
 /** @public */
-export interface ScriptHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-  async?: boolean | undefined;
-  /** @deprecated Deprecated */
-  charSet?: string | undefined;
-  crossOrigin?: HTMLCrossOriginAttribute;
-  defer?: boolean | undefined;
-  integrity?: string | undefined;
-  noModule?: boolean | undefined;
-  nonce?: string | undefined;
-  referrerPolicy?: HTMLAttributeReferrerPolicy | undefined;
-  src?: string | undefined;
-  type?: string | undefined;
-}
+export interface ScriptHTMLAttributes<T extends Element> extends HTMLAttributes<T>, ScriptAttrs {}
+type ScriptAttrs = Augmented<
+  HTMLScriptElement,
+  {
+    crossOrigin?: HTMLCrossOriginAttribute;
+    referrerPolicy?: HTMLAttributeReferrerPolicy | undefined;
+  }
+>;
 /** @public */
-export interface SelectHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-  autoComplete?:
-    | HTMLInputAutocompleteAttribute
-    | Omit<HTMLInputAutocompleteAttribute, string>
-    | undefined;
-  autoFocus?: boolean | undefined;
-  disabled?: boolean | undefined;
-  form?: string | undefined;
-  multiple?: boolean | undefined;
-  name?: string | undefined;
-  required?: boolean | undefined;
-  size?: number | undefined;
-  value?: string | ReadonlyArray<string> | number | undefined;
-  'bind:value'?: Signal<string | undefined>;
-}
+export interface SelectHTMLAttributes<T extends Element> extends HTMLAttributes<T>, SelectAttrs {}
+type SelectAttrs = Augmented<
+  HTMLSelectElement,
+  {
+    form?: string | undefined;
+    value?: string | ReadonlyArray<string> | number | undefined;
+    'bind:value'?: Signal<string | undefined>;
+  }
+>;
 /** @public */
-export interface SourceHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-  height?: Size | undefined;
-  media?: string | undefined;
-  sizes?: string | undefined;
-  src?: string | undefined;
-  srcSet?: string | undefined;
-  type?: string | undefined;
-  width?: Size | undefined;
-  children?: undefined;
-}
+export interface SourceHTMLAttributes<T extends Element>
+  extends HTMLAttributes<T, undefined>,
+    SourceAttrs {}
+type SourceAttrs = Augmented<
+  HTMLSourceElement,
+  {
+    height?: Size | undefined;
+    width?: Size | undefined;
+  }
+>;
 /** @public */
-export interface StyleHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-  media?: string | undefined;
-  nonce?: string | undefined;
-  scoped?: boolean | undefined;
-  type?: string | undefined;
-  children?: string;
-}
+export interface StyleHTMLAttributes<T extends Element>
+  extends HTMLAttributes<T, string>,
+    StyleAttrs {}
+type StyleAttrs = Augmented<
+  HTMLStyleElement,
+  {
+    scoped?: boolean | undefined;
+  }
+>;
 /** @public */
-export interface TableHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-  cellPadding?: number | string | undefined;
-  cellSpacing?: number | string | undefined;
-  summary?: string | undefined;
-  width?: Size | undefined;
-}
+export interface TableHTMLAttributes<T extends Element> extends HTMLAttributes<T>, TableAttrs {}
+type TableAttrs = Augmented<
+  HTMLTableElement,
+  {
+    cellPadding?: number | string | undefined;
+    cellSpacing?: number | string | undefined;
+    width?: Size | undefined;
+  }
+>;
 /** @public */
-export interface TdHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-  align?: 'left' | 'center' | 'right' | 'justify' | 'char' | undefined;
-  colSpan?: number | undefined;
-  headers?: string | undefined;
-  rowSpan?: number | undefined;
-  scope?: string | undefined;
-  abbr?: string | undefined;
-  height?: Size | undefined;
-  width?: Size | undefined;
-  valign?: 'top' | 'middle' | 'bottom' | 'baseline' | undefined;
-}
+export interface TdHTMLAttributes<T extends Element> extends HTMLAttributes<T>, TableCellAttrs {}
+type TableCellAttrs = Augmented<
+  HTMLTableCellElement,
+  {
+    align?: 'left' | 'center' | 'right' | 'justify' | 'char' | undefined;
+    height?: Size | undefined;
+    width?: Size | undefined;
+    valign?: 'top' | 'middle' | 'bottom' | 'baseline' | undefined;
+  }
+>;
 /** @public */
-export interface TextareaHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-  autoComplete?:
-    | HTMLInputAutocompleteAttribute
-    | Omit<HTMLInputAutocompleteAttribute, string>
-    | undefined;
-  autoFocus?: boolean | undefined;
-  cols?: number | undefined;
-  dirName?: string | undefined;
-  disabled?: boolean | undefined;
-  enterKeyHint?: 'enter' | 'done' | 'go' | 'next' | 'previous' | 'search' | 'send' | undefined;
-  form?: string | undefined;
-  maxLength?: number | undefined;
-  minLength?: number | undefined;
-  name?: string | undefined;
-  placeholder?: string | undefined;
-  readOnly?: boolean | undefined;
-  required?: boolean | undefined;
-  rows?: number | undefined;
-  value?: string | ReadonlyArray<string> | number | undefined;
-  'bind:value'?: Signal<string | undefined>;
-  wrap?: string | undefined;
+export interface TextareaHTMLAttributes<T extends Element>
+  extends HTMLAttributes<T, undefined>,
+    TextareaAttrs {}
+type TextareaAttrs = Augmented<
+  HTMLTextAreaElement,
+  {
+    enterKeyHint?: 'enter' | 'done' | 'go' | 'next' | 'previous' | 'search' | 'send' | undefined;
+    form?: string | undefined;
+    value?: string | ReadonlyArray<string> | number | undefined;
+    'bind:value'?: Signal<string | undefined>;
+  }
+>;
 
-  /** @deprecated - Use the `value` property instead */
-  children?: undefined;
-}
 /** @public */
-export interface ThHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-  align?: 'left' | 'center' | 'right' | 'justify' | 'char' | undefined;
-  colSpan?: number | undefined;
-  headers?: string | undefined;
-  rowSpan?: number | undefined;
-  scope?: string | undefined;
-  abbr?: string | undefined;
-}
+export interface ThHTMLAttributes<T extends Element> extends TdHTMLAttributes<T> {}
+
 /** @public */
 export interface TimeHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   dateTime?: string | undefined;
 }
 /** @public */
-export interface TitleHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-  children?: string;
-}
+export interface TitleHTMLAttributes<T extends Element> extends HTMLAttributes<T, string> {}
+
 /** @public */
-export interface TrackHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-  default?: boolean | undefined;
-  kind?: string | undefined;
-  label?: string | undefined;
-  src?: string | undefined;
-  srcLang?: string | undefined;
-  children?: undefined;
-}
+export interface TrackHTMLAttributes<T extends Element>
+  extends HTMLAttributes<T, undefined>,
+    TrackAttrs {}
+type TrackAttrs = Augmented<HTMLTrackElement, {}>;
 /** @public */
-export interface VideoHTMLAttributes<T extends Element> extends MediaHTMLAttributes<T> {
-  height?: Numberish | undefined;
-  playsInline?: boolean | undefined;
-  poster?: string | undefined;
-  width?: Numberish | undefined;
-  disablePictureInPicture?: boolean | undefined;
-  disableRemotePlayback?: boolean | undefined;
-}
-/** @public */
+export interface VideoHTMLAttributes<T extends Element> extends HTMLAttributes<T>, VideoAttrs {}
+type VideoAttrs = Augmented<
+  HTMLVideoElement,
+  {
+    crossOrigin?: HTMLCrossOriginAttribute;
+    height?: Numberish | undefined;
+    width?: Numberish | undefined;
+    disablePictureInPicture?: boolean | undefined;
+    disableRemotePlayback?: boolean | undefined;
+  }
+>;
+/**
+ * @deprecated This is the type for a React Native WebView. It doesn't belong in Qwik (yet?) but
+ *   we're keeping it for backwards compatibility.
+ * @public
+ */
 export interface WebViewHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   allowFullScreen?: boolean | undefined;
   allowpopups?: boolean | undefined;
@@ -1024,11 +1063,14 @@ export interface WebViewHTMLAttributes<T extends Element> extends HTMLAttributes
   useragent?: string | undefined;
   webpreferences?: string | undefined;
 }
-/** @public */
+
+/**
+ * The TS types don't include the SVG attributes so we have to define them ourselves
+ *
+ * @public
+ */
 export interface SVGAttributes<T extends Element> extends AriaAttributes, DOMAttributes<T> {
   class?: ClassList | undefined;
-  /** @deprecated - Use `class` instead */
-  className?: string | undefined;
   color?: string | undefined;
   height?: Numberish | undefined;
   id?: string | undefined;
@@ -1307,185 +1349,61 @@ export interface SVGAttributes<T extends Element> extends AriaAttributes, DOMAtt
 export interface SVGProps<T extends Element> extends SVGAttributes<T> {}
 /** @public */
 export interface IntrinsicElements extends IntrinsicHTMLElements, IntrinsicSVGElements {}
-/** @public */
-export interface IntrinsicHTMLElements {
-  a: AnchorHTMLAttributes<HTMLAnchorElement>;
-  abbr: HTMLAttributes<HTMLElement>;
-  address: HTMLAttributes<HTMLElement>;
-  area: AreaHTMLAttributes<HTMLAreaElement>;
-  article: HTMLAttributes<HTMLElement>;
-  aside: HTMLAttributes<HTMLElement>;
-  audio: AudioHTMLAttributes<HTMLAudioElement>;
-  b: HTMLAttributes<HTMLElement>;
-  base: BaseHTMLAttributes<HTMLBaseElement>;
-  bdi: HTMLAttributes<HTMLElement>;
-  bdo: HTMLAttributes<HTMLElement>;
-  big: HTMLAttributes<HTMLElement>;
-  blockquote: BlockquoteHTMLAttributes<HTMLElement>;
-  body: HTMLAttributes<HTMLBodyElement>;
-  br: HTMLAttributes<HTMLBRElement>;
-  button: ButtonHTMLAttributes<HTMLButtonElement>;
-  canvas: CanvasHTMLAttributes<HTMLCanvasElement>;
-  caption: HTMLAttributes<HTMLElement>;
-  cite: HTMLAttributes<HTMLElement>;
-  code: HTMLAttributes<HTMLElement>;
-  col: ColHTMLAttributes<HTMLTableColElement>;
-  colgroup: ColgroupHTMLAttributes<HTMLTableColElement>;
-  data: DataHTMLAttributes<HTMLDataElement>;
-  datalist: HTMLAttributes<HTMLDataListElement>;
-  dd: HTMLAttributes<HTMLElement>;
-  del: DelHTMLAttributes<HTMLElement>;
-  details: DetailsHTMLAttributes<HTMLElement>;
-  dfn: HTMLAttributes<HTMLElement>;
-  dialog: DialogHTMLAttributes<HTMLDialogElement>;
-  div: HTMLAttributes<HTMLDivElement>;
-  dl: HTMLAttributes<HTMLDListElement>;
-  dt: HTMLAttributes<HTMLElement>;
-  em: HTMLAttributes<HTMLElement>;
-  embed: EmbedHTMLAttributes<HTMLEmbedElement>;
-  fieldset: FieldsetHTMLAttributes<HTMLFieldSetElement>;
-  figcaption: HTMLAttributes<HTMLElement>;
-  figure: HTMLAttributes<HTMLElement>;
-  footer: HTMLAttributes<HTMLElement>;
-  form: FormHTMLAttributes<HTMLFormElement>;
-  h1: HTMLAttributes<HTMLHeadingElement>;
-  h2: HTMLAttributes<HTMLHeadingElement>;
-  h3: HTMLAttributes<HTMLHeadingElement>;
-  h4: HTMLAttributes<HTMLHeadingElement>;
-  h5: HTMLAttributes<HTMLHeadingElement>;
-  h6: HTMLAttributes<HTMLHeadingElement>;
-  head: HTMLAttributes<HTMLHeadElement>;
-  header: HTMLAttributes<HTMLElement>;
-  hgroup: HTMLAttributes<HTMLElement>;
-  hr: HrHTMLAttributes<HTMLHRElement>;
-  html: HtmlHTMLAttributes<HTMLHtmlElement>;
-  i: HTMLAttributes<HTMLElement>;
-  iframe: IframeHTMLAttributes<HTMLIFrameElement>;
-  img: ImgHTMLAttributes<HTMLImageElement>;
-  input: InputHTMLAttributes<HTMLInputElement>;
-  ins: InsHTMLAttributes<HTMLModElement>;
-  kbd: HTMLAttributes<HTMLElement>;
+
+// HTML tags with special attributes
+interface QwikHTMLExceptions {
+  a: HTMLAttributes<HTMLAnchorElement> & AnchorAttrs;
+  area: HTMLAttributes<HTMLAreaElement, false> & AreaAttrs;
+  audio: HTMLAttributes<HTMLAudioElement> & AudioAttrs;
+  base: HTMLAttributes<HTMLBaseElement, undefined> & BaseAttrs;
+  button: HTMLAttributes<HTMLButtonElement> & ButtonAttrs;
+  canvas: HTMLAttributes<HTMLCanvasElement> & CanvasAttrs;
+  col: HTMLAttributes<HTMLTableColElement, undefined> & ColAttrs;
+  data: HTMLAttributes<HTMLDataElement> & DataAttrs;
+  embed: HTMLAttributes<HTMLEmbedElement, undefined> & EmbedAttrs;
+  fieldset: HTMLAttributes<HTMLFieldSetElement> & FieldSetAttrs;
+  hr: HTMLAttributes<HTMLHRElement, undefined>;
+  iframe: HTMLAttributes<HTMLIFrameElement> & IframeAttrs;
+  img: HTMLAttributes<HTMLImageElement, undefined> & ImgAttrs;
+  input: HTMLAttributes<HTMLInputElement, undefined> & InputAttrs;
   keygen: KeygenHTMLAttributes<HTMLElement>;
-  label: LabelHTMLAttributes<HTMLLabelElement>;
-  legend: HTMLAttributes<HTMLLegendElement>;
-  li: LiHTMLAttributes<HTMLLIElement>;
-  link: LinkHTMLAttributes<HTMLLinkElement>;
-  main: HTMLAttributes<HTMLElement>;
-  map: MapHTMLAttributes<HTMLMapElement>;
-  mark: HTMLAttributes<HTMLElement>;
-  menu: MenuHTMLAttributes<HTMLElement>;
-  menuitem: HTMLAttributes<HTMLElement>;
-  meta: MetaHTMLAttributes<HTMLMetaElement>;
-  meter: MeterHTMLAttributes<HTMLElement>;
-  nav: HTMLAttributes<HTMLElement>;
-  noindex: HTMLAttributes<HTMLElement>;
-  noscript: HTMLAttributes<HTMLElement>;
-  object: ObjectHTMLAttributes<HTMLObjectElement>;
-  ol: OlHTMLAttributes<HTMLOListElement>;
-  optgroup: OptgroupHTMLAttributes<HTMLOptGroupElement>;
-  option: OptionHTMLAttributes<HTMLOptionElement>;
-  output: OutputHTMLAttributes<HTMLElement>;
-  p: HTMLAttributes<HTMLParagraphElement>;
-  param: ParamHTMLAttributes<HTMLParamElement>;
-  picture: HTMLAttributes<HTMLElement>;
-  pre: HTMLAttributes<HTMLPreElement>;
-  progress: ProgressHTMLAttributes<HTMLProgressElement>;
-  q: QuoteHTMLAttributes<HTMLQuoteElement>;
-  rp: HTMLAttributes<HTMLElement>;
-  rt: HTMLAttributes<HTMLElement>;
-  ruby: HTMLAttributes<HTMLElement>;
-  s: HTMLAttributes<HTMLElement>;
-  samp: HTMLAttributes<HTMLElement>;
-  slot: SlotHTMLAttributes<HTMLSlotElement>;
-  script: ScriptHTMLAttributes<HTMLScriptElement>;
-  section: HTMLAttributes<HTMLElement>;
-  select: SelectHTMLAttributes<HTMLSelectElement>;
-  small: HTMLAttributes<HTMLElement>;
-  source: SourceHTMLAttributes<HTMLSourceElement>;
-  span: HTMLAttributes<HTMLSpanElement>;
-  strong: HTMLAttributes<HTMLElement>;
-  style: StyleHTMLAttributes<HTMLStyleElement>;
-  sub: HTMLAttributes<HTMLElement>;
-  summary: HTMLAttributes<HTMLElement>;
-  sup: HTMLAttributes<HTMLElement>;
-  table: TableHTMLAttributes<HTMLTableElement>;
-  template: HTMLAttributes<HTMLTemplateElement>;
-  tbody: HTMLAttributes<HTMLTableSectionElement>;
-  td: TdHTMLAttributes<HTMLTableDataCellElement>;
-  textarea: TextareaHTMLAttributes<HTMLTextAreaElement>;
-  tfoot: HTMLAttributes<HTMLTableSectionElement>;
-  th: ThHTMLAttributes<HTMLTableHeaderCellElement>;
-  thead: HTMLAttributes<HTMLTableSectionElement>;
-  time: TimeHTMLAttributes<HTMLElement>;
-  title: TitleHTMLAttributes<HTMLTitleElement>;
-  tr: HTMLAttributes<HTMLTableRowElement>;
-  track: TrackHTMLAttributes<HTMLTrackElement>;
-  tt: HTMLAttributes<HTMLElement>;
-  u: HTMLAttributes<HTMLElement>;
-  ul: HTMLAttributes<HTMLUListElement>;
-  video: VideoHTMLAttributes<HTMLVideoElement>;
-  wbr: HTMLAttributes<HTMLElement>;
-  webview: WebViewHTMLAttributes<HTMLWebViewElement>;
+  label: HTMLAttributes<HTMLLabelElement> & LabelAttrs;
+  li: HTMLAttributes<HTMLLIElement> & LiAttrs;
+  link: HTMLAttributes<HTMLLinkElement, undefined> & LinkAttrs;
+  meta: HTMLAttributes<HTMLMetaElement> & MetaAttrs;
+  meter: HTMLAttributes<HTMLMeterElement> & MeterAttrs;
+  object: HTMLAttributes<HTMLObjectElement> & ObjectAttrs;
+  ol: HTMLAttributes<HTMLOListElement> & OlAttrs;
+  option: HTMLAttributes<HTMLOptionElement, string> & OptionAttrs;
+  output: HTMLAttributes<HTMLOutputElement> & OutputAttrs;
+  progress: HTMLAttributes<HTMLProgressElement> & ProgressAttrs;
+  script: HTMLAttributes<HTMLScriptElement> & ScriptAttrs;
+  select: HTMLAttributes<HTMLSelectElement> & SelectAttrs;
+  source: HTMLAttributes<HTMLSourceElement, undefined> & SourceAttrs;
+  style: HTMLAttributes<HTMLStyleElement, string> & StyleAttrs;
+  table: HTMLAttributes<HTMLTableElement> & TableAttrs;
+  td: HTMLAttributes<HTMLTableCellElement> & TableCellAttrs;
+  textarea: HTMLAttributes<HTMLTextAreaElement, undefined> & TextareaAttrs;
+  th: HTMLAttributes<HTMLTableCellElement> & TableCellAttrs;
+  title: HTMLAttributes<HTMLTitleElement, string>;
+  track: HTMLAttributes<HTMLTrackElement, undefined> & TrackAttrs;
+  video: VideoHTMLAttributes<HTMLVideoElement> & VideoAttrs;
 }
 
+// Automatically converted HTML tag attributes
+type PlainHTMLElements = {
+  [key in keyof Omit<HTMLElementTagNameMap, keyof QwikHTMLExceptions>]: HTMLAttributes<
+    HTMLElementTagNameMap[key]
+  > &
+    Prettify<Filtered<HTMLElementTagNameMap[key], {}>>;
+};
+
 /** @public */
-export interface IntrinsicSVGElements {
-  svg: SVGProps<SVGSVGElement>;
-  animate: SVGProps<SVGElement>;
-  animateMotion: SVGProps<SVGElement>;
-  animateTransform: SVGProps<SVGElement>;
-  circle: SVGProps<SVGCircleElement>;
-  clipPath: SVGProps<SVGClipPathElement>;
-  defs: SVGProps<SVGDefsElement>;
-  desc: SVGProps<SVGDescElement>;
-  ellipse: SVGProps<SVGEllipseElement>;
-  feBlend: SVGProps<SVGFEBlendElement>;
-  feColorMatrix: SVGProps<SVGFEColorMatrixElement>;
-  feComponentTransfer: SVGProps<SVGFEComponentTransferElement>;
-  feComposite: SVGProps<SVGFECompositeElement>;
-  feConvolveMatrix: SVGProps<SVGFEConvolveMatrixElement>;
-  feDiffuseLighting: SVGProps<SVGFEDiffuseLightingElement>;
-  feDisplacementMap: SVGProps<SVGFEDisplacementMapElement>;
-  feDistantLight: SVGProps<SVGFEDistantLightElement>;
-  feDropShadow: SVGProps<SVGFEDropShadowElement>;
-  feFlood: SVGProps<SVGFEFloodElement>;
-  feFuncA: SVGProps<SVGFEFuncAElement>;
-  feFuncB: SVGProps<SVGFEFuncBElement>;
-  feFuncG: SVGProps<SVGFEFuncGElement>;
-  feFuncR: SVGProps<SVGFEFuncRElement>;
-  feGaussianBlur: SVGProps<SVGFEGaussianBlurElement>;
-  feImage: SVGProps<SVGFEImageElement>;
-  feMerge: SVGProps<SVGFEMergeElement>;
-  feMergeNode: SVGProps<SVGFEMergeNodeElement>;
-  feMorphology: SVGProps<SVGFEMorphologyElement>;
-  feOffset: SVGProps<SVGFEOffsetElement>;
-  fePointLight: SVGProps<SVGFEPointLightElement>;
-  feSpecularLighting: SVGProps<SVGFESpecularLightingElement>;
-  feSpotLight: SVGProps<SVGFESpotLightElement>;
-  feTile: SVGProps<SVGFETileElement>;
-  feTurbulence: SVGProps<SVGFETurbulenceElement>;
-  filter: SVGProps<SVGFilterElement>;
-  foreignObject: SVGProps<SVGForeignObjectElement>;
-  g: SVGProps<SVGGElement>;
-  image: SVGProps<SVGImageElement>;
-  line: SVGProps<SVGLineElement>;
-  linearGradient: SVGProps<SVGLinearGradientElement>;
-  marker: SVGProps<SVGMarkerElement>;
-  mask: SVGProps<SVGMaskElement>;
-  metadata: SVGProps<SVGMetadataElement>;
-  mpath: SVGProps<SVGElement>;
-  path: SVGProps<SVGPathElement>;
-  pattern: SVGProps<SVGPatternElement>;
-  polygon: SVGProps<SVGPolygonElement>;
-  polyline: SVGProps<SVGPolylineElement>;
-  radialGradient: SVGProps<SVGRadialGradientElement>;
-  rect: SVGProps<SVGRectElement>;
-  stop: SVGProps<SVGStopElement>;
-  switch: SVGProps<SVGSwitchElement>;
-  symbol: SVGProps<SVGSymbolElement>;
-  text: SVGProps<SVGTextElement>;
-  textPath: SVGProps<SVGTextPathElement>;
-  tspan: SVGProps<SVGTSpanElement>;
-  use: SVGProps<SVGUseElement>;
-  view: SVGProps<SVGViewElement>;
-}
+export interface IntrinsicHTMLElements extends QwikHTMLExceptions, PlainHTMLElements {}
+
+/** @public */
+export type IntrinsicSVGElements = {
+  [K in keyof Omit<SVGElementTagNameMap, keyof HTMLElementTagNameMap>]: SVGProps<
+    SVGElementTagNameMap[K]
+  >;
+};

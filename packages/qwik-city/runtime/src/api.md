@@ -55,6 +55,12 @@ export type ActionConstructor = {
 };
 
 // @public (undocumented)
+export type ActionReturn<RETURN> = {
+    readonly status?: number;
+    readonly value: RETURN;
+};
+
+// @public (undocumented)
 export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> = {
     readonly actionPath: string;
     readonly isRunning: boolean;
@@ -89,6 +95,11 @@ export { Cookie }
 export { CookieOptions }
 
 export { CookieValue }
+
+// @public (undocumented)
+export type DataValidator<T extends Record<string, any> = {}> = {
+    validate(ev: RequestEvent, data: unknown): Promise<ValidatorReturn<T>>;
+};
 
 export { DeferReturn }
 
@@ -192,6 +203,9 @@ export interface DocumentStyle {
     readonly style: string;
 }
 
+// @public (undocumented)
+export type FailOfRest<REST extends readonly DataValidator[]> = REST extends readonly DataValidator<infer ERROR>[] ? ERROR : never;
+
 // Warning: (ae-forgotten-export) The symbol "Failed" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
@@ -218,6 +232,9 @@ export interface FormSubmitSuccessDetail<T> {
     // (undocumented)
     value: T;
 }
+
+// @public (undocumented)
+export type GetValidatorType<VALIDATOR extends TypedDataValidator> = VALIDATOR extends TypedDataValidator<infer TYPE> ? zod.infer<TYPE> : never;
 
 // @public (undocumented)
 export const globalAction$: ActionConstructor;
@@ -413,6 +430,18 @@ export type StaticGenerateHandler = ({ env, }: {
     env: EnvGetter;
 }) => Promise<StaticGenerate> | StaticGenerate;
 
+// Warning: (ae-forgotten-export) The symbol "Prettify" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "StrictUnionHelper" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export type StrictUnion<T> = Prettify<StrictUnionHelper<T, T>>;
+
+// @public (undocumented)
+export type TypedDataValidator<T extends zod.ZodType = zod.ZodType> = {
+    __zod: zod.ZodSchema<T>;
+    validate(ev: RequestEvent, data: unknown): Promise<zod.SafeParseReturnType<T, T>>;
+};
+
 // Warning: (ae-forgotten-export) The symbol "ContentState" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
@@ -437,6 +466,12 @@ export const validator$: ValidatorConstructor;
 // @public (undocumented)
 export const validatorQrl: ValidatorConstructorQRL;
 
+// Warning: (ae-forgotten-export) The symbol "ValidatorReturnSuccess" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "ValidatorReturnFail" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export type ValidatorReturn<T extends Record<string, any> = {}> = ValidatorReturnSuccess | ValidatorReturnFail<T>;
+
 export { z }
 
 // @public (undocumented)
@@ -454,15 +489,6 @@ export type ZodConstructor = {
 //
 // @public (undocumented)
 export const zodQrl: ZodConstructorQRL;
-
-// Warnings were encountered during analysis:
-//
-// /home/wmertens/Projects/qwik-flake/qwik/dist-dev/dts-out/packages/qwik-city/runtime/src/types.d.ts:265:5 - (ae-forgotten-export) The symbol "TypedDataValidator" needs to be exported by the entry point index.d.ts
-// /home/wmertens/Projects/qwik-flake/qwik/dist-dev/dts-out/packages/qwik-city/runtime/src/types.d.ts:265:5 - (ae-forgotten-export) The symbol "DataValidator" needs to be exported by the entry point index.d.ts
-// /home/wmertens/Projects/qwik-flake/qwik/dist-dev/dts-out/packages/qwik-city/runtime/src/types.d.ts:265:5 - (ae-forgotten-export) The symbol "GetValidatorType" needs to be exported by the entry point index.d.ts
-// /home/wmertens/Projects/qwik-flake/qwik/dist-dev/dts-out/packages/qwik-city/runtime/src/types.d.ts:265:5 - (ae-forgotten-export) The symbol "StrictUnion" needs to be exported by the entry point index.d.ts
-// /home/wmertens/Projects/qwik-flake/qwik/dist-dev/dts-out/packages/qwik-city/runtime/src/types.d.ts:265:5 - (ae-forgotten-export) The symbol "FailOfRest" needs to be exported by the entry point index.d.ts
-// /home/wmertens/Projects/qwik-flake/qwik/dist-dev/dts-out/packages/qwik-city/runtime/src/types.d.ts:390:5 - (ae-forgotten-export) The symbol "ActionReturn" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

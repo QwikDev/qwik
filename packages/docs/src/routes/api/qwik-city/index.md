@@ -136,7 +136,18 @@ export type ActionConstructor = {
 };
 ```
 
-**References:** [Action](#action), [FailReturn](#failreturn), [JSONObject](#jsonobject)
+**References:** [TypedDataValidator](#typeddatavalidator), [DataValidator](#datavalidator), [GetValidatorType](#getvalidatortype), [Action](#action), [StrictUnion](#strictunion), [FailReturn](#failreturn), [FailOfRest](#failofrest), [JSONObject](#jsonobject)
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+
+## ActionReturn
+
+```typescript
+export type ActionReturn<RETURN> = {
+  readonly status?: number;
+  readonly value: RETURN;
+};
+```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
@@ -156,6 +167,8 @@ export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> = {
   >;
 };
 ```
+
+**References:** [ActionReturn](#actionreturn)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
@@ -184,6 +197,18 @@ export interface ContentMenu
 | [href?](#)  | <code>readonly</code> | string                        | _(Optional)_ |
 | [items?](#) | <code>readonly</code> | [ContentMenu](#contentmenu)[] | _(Optional)_ |
 | [text](#)   | <code>readonly</code> | string                        |              |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+
+## DataValidator
+
+```typescript
+export type DataValidator<T extends Record<string, any> = {}> = {
+  validate(ev: RequestEvent, data: unknown): Promise<ValidatorReturn<T>>;
+};
+```
+
+**References:** [ValidatorReturn](#validatorreturn)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
@@ -308,6 +333,17 @@ export interface DocumentStyle
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
+## FailOfRest
+
+```typescript
+export type FailOfRest<REST extends readonly DataValidator[]> =
+  REST extends readonly DataValidator<infer ERROR>[] ? ERROR : never;
+```
+
+**References:** [DataValidator](#datavalidator)
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+
 ## FailReturn
 
 ```typescript
@@ -358,6 +394,17 @@ export interface FormSubmitCompletedDetail<T>
 | [value](#)  |           | T      |             |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/form-component.tsx)
+
+## GetValidatorType
+
+```typescript
+export type GetValidatorType<VALIDATOR extends TypedDataValidator> =
+  VALIDATOR extends TypedDataValidator<infer TYPE> ? zod.infer<TYPE> : never;
+```
+
+**References:** [TypedDataValidator](#typeddatavalidator)
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
 ## globalAction$
 
@@ -715,6 +762,28 @@ export type StaticGenerateHandler = ({
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
+## StrictUnion
+
+```typescript
+export type StrictUnion<T> = Prettify<StrictUnionHelper<T, T>>;
+```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+
+## TypedDataValidator
+
+```typescript
+export type TypedDataValidator<T extends zod.ZodType = zod.ZodType> = {
+  __zod: zod.ZodSchema<T>;
+  validate(
+    ev: RequestEvent,
+    data: unknown,
+  ): Promise<zod.SafeParseReturnType<T, T>>;
+};
+```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+
 ## useContent
 
 ```typescript
@@ -767,6 +836,16 @@ validatorQrl: ValidatorConstructorQRL;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts)
 
+## ValidatorReturn
+
+```typescript
+export type ValidatorReturn<T extends Record<string, any> = {}> =
+  | ValidatorReturnSuccess
+  | ValidatorReturnFail<T>;
+```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+
 ## zod$
 
 ```typescript
@@ -789,6 +868,8 @@ export type ZodConstructor = {
   ): TypedDataValidator<T>;
 };
 ```
+
+**References:** [TypedDataValidator](#typeddatavalidator)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 

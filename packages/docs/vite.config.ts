@@ -135,7 +135,9 @@ export default defineConfig(async () => {
     ],
     build: {
       rollupOptions: {
-        onLog(level, log, defaultHandler) {
+        // For some unknown reason, types don't work from tsc
+        // Try removing these any casts and see if it works
+        onLog(level: any, log: any, defaultHandler: any) {
           if (level == 'warn' && log.code === 'MODULE_LEVEL_DIRECTIVE') {
             // Suppress errors like these:
             // FILE Module level directives cause errors when bundled, "use client" in FILE was ignored.

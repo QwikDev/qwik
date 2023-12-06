@@ -391,7 +391,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "Request event created by the server.\n\n\n```typescript\nexport interface ServerRequestEvent<T = any> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [env](#) |  | [EnvGetter](#envgetter) |  |\n|  [getClientConn](#) |  | () =&gt; [ClientConn](#clientconn) |  |\n|  [getWritableStream](#) |  | [ServerResponseHandler](#serverresponsehandler)<!-- -->&lt;T&gt; |  |\n|  [locale](#) |  | string \\| undefined |  |\n|  [mode](#) |  | [ServerRequestMode](#serverrequestmode) |  |\n|  [platform](#) |  | any |  |\n|  [request](#) |  | Request |  |\n|  [url](#) |  | URL |  |",
+      "content": "Request event created by the server.\n\n\n```typescript\nexport interface ServerRequestEvent<T = unknown> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [env](#) |  | [EnvGetter](#envgetter) |  |\n|  [getClientConn](#) |  | () =&gt; [ClientConn](#clientconn) |  |\n|  [getWritableStream](#) |  | [ServerResponseHandler](#serverresponsehandler)<!-- -->&lt;T&gt; |  |\n|  [locale](#) |  | string \\| undefined |  |\n|  [mode](#) |  | [ServerRequestMode](#serverrequestmode) |  |\n|  [platform](#) |  | QwikCityPlatform |  |\n|  [request](#) |  | Request |  |\n|  [url](#) |  | URL |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts",
       "mdFile": "qwik-city.serverrequestevent.md"
     },

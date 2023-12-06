@@ -1,5 +1,21 @@
 [
   {
+    "title": "QuoteMingle",
+    "imgSrc": "/showcases/quotemingle_com_.webp",
+    "perf": {
+      "score": 1,
+      "fcpDisplay": "1.5 s",
+      "fcpScore": 0.96,
+      "lcpDisplay": "1.5 s",
+      "lcpScore": 1,
+      "ttiDisplay": "1.6 s",
+      "ttiScore": 1,
+      "ttiTime": 1622.5
+    },
+    "href": "https://quotemingle.com/",
+    "tags": "site"
+  },
+  {
     "title": "Frosty Tools | Streaming just got a whole lot cooler.",
     "imgSrc": "/showcases/frostytools_com.webp",
     "perf": {
@@ -29,6 +45,38 @@
       "ttiTime": 2406
     },
     "href": "https://www.dimension.dev",
+    "tags": "saas"
+  },
+  {
+    "title": "Index",
+    "imgSrc": "/showcases/index_app_beta.webp",
+    "perf": {
+      "score": 0.98,
+      "fcpDisplay": "1.5 s",
+      "fcpScore": 0.95,
+      "lcpDisplay": "1.8 s",
+      "lcpScore": 0.98,
+      "ttiDisplay": "2.9 s",
+      "ttiScore": 0.96,
+      "ttiTime": 2863.5
+    },
+    "href": "https://index.app/beta",
+    "tags": "saas"
+  },
+  {
+    "title": "Email Finder for LinkedIn - B2B Database - Wiza",
+    "imgSrc": "/showcases/wiza_co.webp",
+    "perf": {
+      "score": 0.99,
+      "fcpDisplay": "1.4 s",
+      "fcpScore": 0.97,
+      "lcpDisplay": "1.7 s",
+      "lcpScore": 0.99,
+      "ttiDisplay": "1.5 s",
+      "ttiScore": 1,
+      "ttiTime": 1465.5
+    },
+    "href": "https://wiza.co",
     "tags": "saas"
   },
   {
@@ -223,22 +271,6 @@
       "ttiDisplay": "2.2 s",
       "ttiScore": 0.99,
       "ttiTime": 2197.709
-    },
-    "tags": "saas"
-  },
-  {
-    "title": "Pasha | Gagnez et économisez sur tout",
-    "href": "https://pasha-app.com/",
-    "imgSrc": "/showcases/pasha-app_com_.webp",
-    "perf": {
-      "score": 0.94,
-      "fcpDisplay": "1.1 s",
-      "fcpScore": 1,
-      "lcpDisplay": "1.1 s",
-      "lcpScore": 1,
-      "ttiDisplay": "1.7 s",
-      "ttiScore": 1,
-      "ttiTime": 1691.5601293472332
     },
     "tags": "saas"
   },
@@ -775,5 +807,21 @@
     },
     "href": "https://getpolaris.ai/",
     "tags": "saas"
+  },
+  {
+    "title": "Juneiker Castillo - Frontend Web Developer.",
+    "imgSrc": "/showcases/juneikerc_com.webp",
+    "perf": {
+      "score": 0.85,
+      "fcpDisplay": "2.2 s",
+      "fcpScore": 0.77,
+      "lcpDisplay": "4.1 s",
+      "lcpScore": 0.48,
+      "ttiDisplay": "2.2 s",
+      "ttiScore": 0.99,
+      "ttiTime": 2234.1500000000005
+    },
+    "href": "https://juneikerc.com",
+    "tags": "portfolio,site,blog,services"
   }
 ]

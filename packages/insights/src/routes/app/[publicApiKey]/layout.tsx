@@ -1,94 +1,63 @@
-import { Link, useLocation } from '@builder.io/qwik-city';
 import { Slot, component$ } from '@builder.io/qwik';
-
-import { EditIcon } from '~/components/icons/edit';
-import Layout from '~/components/layout';
-import styles from './styles.module.css';
-import { SymbolIcon } from '~/components/icons/symbol';
+import { Link, useLocation, type RequestHandler } from '@builder.io/qwik-city';
 import { EdgeIcon } from '~/components/icons/edge';
+import { EditIcon } from '~/components/icons/edit';
+import { SymbolIcon } from '~/components/icons/symbol';
+import Layout from '~/components/layout';
+
 import { BundleIcon } from '~/components/icons/bundle';
-import { SlowIcon } from '~/components/icons/slow';
-import { ErrorIcon } from '~/components/icons/error';
 import { DashboardIcon } from '~/components/icons/dashboard';
+import { ErrorIcon } from '~/components/icons/error';
 import { ManifestIcon } from '~/components/icons/manifest';
-import { AppLink } from '~/routes.config';
 import { RoutesIcon } from '~/components/icons/routes';
+import { SlowIcon } from '~/components/icons/slow';
+import { getInsightUser } from '../layout';
+
+export const onRequest: RequestHandler = async ({ sharedMap, redirect, params }) => {
+  const insightUser = getInsightUser(sharedMap);
+  if (!insightUser.isAuthorizedForApp(params.publicApiKey)) {
+    throw redirect(307, '/');
+  }
+};
 
 export default component$(() => {
   const location = useLocation();
   const path = `/app/${location.params.publicApiKey}/`;
-  const subPath = location.url.pathname.replace(path, '');
+
+  const NAVIGATION = [
+    { path, label: 'Dashboard', icon: <DashboardIcon />, addDividor: true },
+    { path: path + 'manifests/', label: 'Manifests', icon: <ManifestIcon /> },
+    { path: path + 'routes/', label: 'Routes', icon: <RoutesIcon /> },
+    { path: path + 'symbols/', label: 'Symbols', icon: <SymbolIcon /> },
+    { path: path + 'symbols/edge/', label: 'Edge', icon: <EdgeIcon /> },
+    { path: path + 'symbols/bundles/', label: 'Bundles', icon: <BundleIcon /> },
+    { path: path + 'symbols/slow/', label: 'Slow Symbols', icon: <SlowIcon /> },
+    {
+      path: path + 'errors/',
+      label: 'Errors',
+      icon: <ErrorIcon />,
+      addDividor: true,
+    },
+    { path: path + 'edit/', label: 'Edit', icon: <EditIcon /> },
+  ];
+
   return (
-    <Layout class={styles['no-padding-left']}>
-      <div class={styles.container}>
-        <aside class={styles.aside}>
-          <div class={styles.menu}>
-            {/* TODO: render this in a loop */}
-            <Link href={path} class={[styles['menu-item'], subPath === '' ? styles.active : '']}>
-              <DashboardIcon />
-              <span>Dashboard</span>
-            </Link>
-            <Link
-              href={path + 'edit/'}
-              class={[styles['menu-item'], subPath === 'edit/' ? styles.active : '']}
-            >
-              <EditIcon />
-              <span>Edit</span>
-            </Link>
-            <AppLink
-              route={'/app/[publicApiKey]/manifests/'}
-              param:publicApiKey={location.params.publicApiKey}
-              class={[styles['menu-item'], subPath === 'manifests/' ? styles.active : '']}
-            >
-              <ManifestIcon />
-              <span>Manifests</span>
-            </AppLink>
-            <AppLink
-              route={'/app/[publicApiKey]/routes/'}
-              param:publicApiKey={location.params.publicApiKey}
-              class={[styles['menu-item'], subPath.startsWith('routes/') ? styles.active : '']}
-            >
-              <RoutesIcon />
-              <span>Routes</span>
-            </AppLink>
-            <Link
-              href={path + 'symbols/'}
-              class={[styles['menu-item'], subPath === 'symbols/' ? styles.active : '']}
-            >
-              <SymbolIcon />
-              <span>Symbols</span>
-            </Link>
-            <Link
-              href={path + 'symbols/edge/'}
-              class={[styles['menu-item'], subPath === 'symbols/edge/' ? styles.active : '']}
-            >
-              <EdgeIcon />
-              <span>Edge</span>
-            </Link>
-            <Link
-              href={path + 'symbols/bundles/'}
-              class={[styles['menu-item'], subPath === 'symbols/bundles/' ? styles.active : '']}
-            >
-              <BundleIcon />
-              <span>Bundles</span>
-            </Link>
-            <Link
-              href={path + 'symbols/slow/'}
-              class={[styles['menu-item'], subPath === 'symbols/slow/' ? styles.active : '']}
-            >
-              <SlowIcon />
-              <span>Slow Symbols</span>
-            </Link>
-            <Link
-              href={path + 'errors/'}
-              class={[styles['menu-item'], subPath === 'errors/' ? styles.active : '']}
-            >
-              <ErrorIcon />
-              <span>Errors</span>
-            </Link>
+    <Layout>
+      <div class="grid min-h-[calc(100vh-76px)] grid-cols-[240px_1fr]">
+        <aside>
+          <div class="flex h-full flex-col gap-8 overflow-y-auto bg-white p-8">
+            {NAVIGATION.map(({ path, label, icon, addDividor = false }) => (
+              <>
+                <Link key={path} href={path} class="flex items-center gap-3">
+                  {icon}
+                  <span>{label}</span>
+                </Link>
+                {addDividor && <div class="border-t border-t-slate-200"></div>}
+              </>
+            ))}
           </div>
         </aside>
-        <div class={styles.wrapper}>
+        <div class="m-8 overflow-y-auto">
           <Slot />
         </div>
       </div>

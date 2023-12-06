@@ -1,39 +1,19 @@
-import { component$, useContext, useTask$ } from '@builder.io/qwik';
-import { useNavigate } from '@builder.io/qwik-city';
+import { component$ } from '@builder.io/qwik';
 import Button from '~/components/button';
 import Container from '~/components/container';
-import AppsIcon from '~/components/icons/apps';
 import GithubIcon from '~/components/icons/github';
 import Layout from '~/components/layout';
-import { UserContext } from '~/context/user';
-import { useAuthSession, useAuthSignin } from './plugin@auth';
-import styles from './styles.module.css';
+import { useAuthSignin } from './plugin@auth';
 
 export default component$(() => {
-  const navigate = useNavigate();
   const signInSig = useAuthSignin();
-  const sessionSig = useAuthSession();
-  const userCtx = useContext(UserContext);
-
-  // update user context
-  useTask$(({ track }) => {
-    track(() => sessionSig.value?.user?.email);
-    userCtx.value = sessionSig.value?.user;
-  });
 
   return (
-    <Layout mode="bright">
+    <Layout>
       <Container position="center" width="small">
-        <div class={styles.wrapper}>
-          <h1 class="h4">Log in to Qwik Insights</h1>
-
-          {userCtx.value?.email ? (
-            <>
-              <Button onClick$={() => navigate('/app')}>
-                <AppsIcon /> Go to the Dashboard
-              </Button>
-            </>
-          ) : (
+        <div class="felx-nowrap flex min-h-[calc(100vh-76px)] flex-col items-center justify-center">
+          <div class="rounded-lg bg-white p-10 text-center shadow-sm">
+            <h1 class="h1 mb-20">Welcome</h1>
             <Button
               theme="github"
               onClick$={async () => {
@@ -43,10 +23,9 @@ export default component$(() => {
               <GithubIcon />
               Continue with GitHub
             </Button>
-          )}
+          </div>
         </div>
       </Container>
-      {/* <pre>{JSON.stringify(userCtx, null, 2)}</pre> */}
     </Layout>
   );
 });

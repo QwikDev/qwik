@@ -77,7 +77,11 @@ const computeBuckets = (maxValue: number, toBucket: (value: number) => number): 
 export const BUCKETS: Bucket[] = computeBuckets(MAX_VALUE, toBucket);
 export const TIMELINE_BUCKETS: Bucket[] = computeBuckets(TIMELINE_MAX_VALUE, toBucketTimeline);
 
-export function fromBucket(bucket: number): { min: number; max: number; avg: number } {
+export function fromBucket(bucket: number): {
+  min: number;
+  max: number;
+  avg: number;
+} {
   return BUCKETS[Math.min(BUCKETS.length - 1, bucket)];
 }
 

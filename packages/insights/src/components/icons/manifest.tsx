@@ -12,18 +12,18 @@ export function ManifestIcon(props: QwikIntrinsicElements['svg'], key: string) {
     >
       <g fill="none">
         <path
-          stroke="darkgreen"
+          stroke="black"
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="2"
           d="M14 8H9m2 4H9"
         ></path>
         <path
-          fill="darkgreen"
+          fill="black"
           d="M3 16h8c0 1.333.8 4 4 4a3 3 0 0 0 3-3V4h1a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-1v7a3 3 0 0 1-3 3H5a2 2 0 0 1-2-2v-2z"
         ></path>
         <path
-          stroke="darkgreen"
+          stroke="black"
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="2"

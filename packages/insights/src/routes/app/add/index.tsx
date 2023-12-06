@@ -49,7 +49,11 @@ export default component$(() => {
               {(field, props) => <input {...props} type="text" value={field.value} />}
             </Field>
           </div>
-          <div style={{ 'margin-top': 'calc(var(--form-element-margin-bottom) * 2)' }}>
+          <div
+            style={{
+              'margin-top': 'calc(var(--form-element-margin-bottom) * 2)',
+            }}
+          >
             <button type="submit" class="button">
               <DiskIcon />
               Create

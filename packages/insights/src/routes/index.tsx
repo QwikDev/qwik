@@ -1,8 +1,8 @@
+import { component$ } from '@builder.io/qwik';
 import Button from '~/components/button';
 import Container from '~/components/container';
 import GithubIcon from '~/components/icons/github';
 import Layout from '~/components/layout';
-import { component$ } from '@builder.io/qwik';
 import { useAuthSignin } from './plugin@auth';
 
 export default component$(() => {
@@ -26,7 +26,6 @@ export default component$(() => {
           </div>
         </div>
       </Container>
-      {/* <pre>{JSON.stringify(userCtx, null, 2)}</pre> */}
     </Layout>
   );
 });

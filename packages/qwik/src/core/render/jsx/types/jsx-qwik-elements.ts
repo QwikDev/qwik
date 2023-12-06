@@ -40,15 +40,9 @@ export interface QwikIntrinsicAttributes {
  * @public
  */
 export interface QwikIntrinsicElements extends IntrinsicHTMLElements {
-<<<<<<< Updated upstream
   /**
    * Custom DOM elements can have any name We need to add the empty object to match the type with
    * the Intrinsic elements
    */
   [key: string]: {} | QwikCustomHTMLAttributes<QwikCustomHTMLElement>;
-=======
-  // We need to add `{}` to match the type with the Intrinsic elements
-  /** Custom DOM elements can have any name */
-  [key: string]: QwikCustomHTMLAttributes<QwikCustomHTMLElement> | {} | null;
->>>>>>> Stashed changes
 }

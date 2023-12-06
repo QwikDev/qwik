@@ -12,8 +12,8 @@ export const onPost: RequestHandler = async ({ exit, json, request, params }) =>
   };
   exit();
   json(200, { code: 200, message: 'OK' });
-  const db = getDB();
-  await db
+  // TODO(misko): assert that manifest table has correct row.
+  await getDB()
     .insert(errorTable)
     .values({
       publicApiKey,

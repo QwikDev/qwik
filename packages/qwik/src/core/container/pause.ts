@@ -231,7 +231,7 @@ Task Symbol: ${task.$qrl$.$symbol$}
           }
         }
         if (isResourceTask(task)) {
-          collector.$resources$.push(task.$state$);
+          collector.$resources$.push(task.$state$!);
         }
         destroyTask(task);
       }
@@ -250,7 +250,7 @@ Task Symbol: ${task.$qrl$.$symbol$}
             collectValue(obj, collector, true);
           }
         }
-        collector.$qrls$.push(qrl);
+        collector.$qrls$.push(qrl as QRL);
         hasListeners = true;
       }
     }
@@ -587,7 +587,7 @@ export interface Collector {
   $elements$: QContext[];
   $qrls$: QRL[];
   $inlinedFunctions$: string[];
-  $resources$: ResourceReturnInternal<any>[];
+  $resources$: ResourceReturnInternal<unknown>[];
   $prefetch$: number;
   $deferElements$: QContext[];
   $containerState$: ContainerState;

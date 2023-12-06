@@ -51,6 +51,7 @@ import {
 } from '../../state/context';
 import { createPropsState, createProxy } from '../../state/store';
 import { Q_CTX, _IMMUTABLE, _IMMUTABLE_PREFIX } from '../../state/constants';
+import type { JSXChildren } from '../jsx/types/jsx-qwik-attributes';
 
 const FLUSH_COMMENT = '<!--qkssr-f-->';
 
@@ -268,7 +269,7 @@ const renderNodeVirtual = (
     elCtx.$componentQrl$ = renderQrl;
     return renderSSRComponent(rCtx, ssrCtx, stream, elCtx, node, flags, beforeClose);
   }
-  let virtualComment = '<!--qv' + renderVirtualAttributes(props);
+  let virtualComment = '<!--qv' + renderVirtualAttributes(props as any);
   const isSlot = QSlotS in props;
   const key = node.key != null ? String(node.key) : null;
   if (isSlot) {
@@ -289,7 +290,8 @@ const renderNodeVirtual = (
   }
   if (extraNodes) {
     for (const node of extraNodes) {
-      renderNodeElementSync(node.type, node.props, stream);
+      // We trust that the attributes are strings
+      renderNodeElementSync(node.type, node.props as any as Record<string, string>, stream);
     }
   }
   const promise = walkChildren(node.children, rCtx, ssrCtx, stream, flags);
@@ -382,7 +384,7 @@ const renderSSRComponent = (
   beforeClose?: (stream: StreamWriter) => ValueOrPromise<void>
 ): ValueOrPromise<void> => {
   const props = node.props;
-  setComponentProps(rCtx, elCtx, props.props);
+  setComponentProps(rCtx, elCtx, props.props!);
   return maybeThen(executeComponent(rCtx, elCtx), (res) => {
     const hostElement = elCtx.$element$;
     const newRCtx = res.rCtx;
@@ -493,17 +495,17 @@ const renderSSRComponent = (
   });
 };
 
-const splitProjectedChildren = (children: any, ssrCtx: SSRContext) => {
+const splitProjectedChildren = (children: JSXChildren, ssrCtx: SSRContext) => {
   const flatChildren = flatVirtualChildren(children, ssrCtx);
   if (flatChildren === null) {
     return undefined;
   }
-  const slotMap: Record<string, any[]> = {};
+  const slotMap: Record<string, JSXNode[]> = {};
 
   for (const child of flatChildren) {
     let slotName = '';
     if (isJSXNode(child)) {
-      slotName = child.props[QSlot] ?? '';
+      slotName = (child.props[QSlot] as string) || '';
     }
     (slotMap[slotName] ||= []).push(child);
   }
@@ -780,7 +782,7 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
       // If head inject base styles
       if (isHead) {
         for (const node of ssrCtx.$static$.$headNodes$) {
-          renderNodeElementSync(node.type, node.props, stream);
+          renderNodeElementSync(node.type, node.props as Record<string, string>, stream);
         }
         ssrCtx.$static$.$headNodes$.length = 0;
       }

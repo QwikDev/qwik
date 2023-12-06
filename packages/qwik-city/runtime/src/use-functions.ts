@@ -17,9 +17,14 @@ import type {
 /** @public */
 export const useContent = () => useContext(ContentContext);
 
-/** @public */
-export const useDocumentHead = (): Required<ResolvedDocumentHead> =>
-  useContext(DocumentHeadContext);
+/**
+ * Returns the document head for the current page. The generic type describes the front matter.
+ *
+ * @public
+ */
+export const useDocumentHead = <
+  FrontMatter extends Record<string, unknown> = Record<string, any>,
+>(): Required<ResolvedDocumentHead<FrontMatter>> => useContext<any>(DocumentHeadContext);
 
 /** @public */
 export const useLocation = (): RouteLocation => useContext(RouteLocationContext);

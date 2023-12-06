@@ -72,7 +72,7 @@ export const SearchBox = component$((props: SearchBoxProps) => {
           placeholder="Search docs or ask a question"
           type="search"
           ref={props.inputRef as any}
-          onInput$={(event: Event) => {
+          onInput$={(event) => {
             context.onInput?.(event);
           }}
           // TODO: preventdefault:keydown by key's condition

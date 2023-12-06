@@ -1,9 +1,15 @@
 import type { HTMLAttributes, IntrinsicHTMLElements } from './jsx-generated';
 
+/** All unknown attributes are allowed */
 interface QwikCustomHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
   [key: string]: any;
 }
 
+/**
+ * Any custom DOM element.
+ *
+ * @public
+ */
 interface QwikCustomHTMLElement extends Element {}
 
 /** @public */
@@ -34,5 +40,9 @@ export interface QwikIntrinsicAttributes {
  * @public
  */
 export interface QwikIntrinsicElements extends IntrinsicHTMLElements {
-  [key: string]: QwikCustomHTMLAttributes<QwikCustomHTMLElement>;
+  /**
+   * Custom DOM elements can have any name We need to add the empty object to match the type with
+   * the Intrinsic elements
+   */
+  [key: string]: {} | QwikCustomHTMLAttributes<QwikCustomHTMLElement>;
 }

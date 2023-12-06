@@ -2,12 +2,12 @@ import { type ReadonlySignal, component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
 import Histogram, { delayColors, latencyColors } from '~/components/histogram';
 import { ManifestIcon } from '~/components/icons/manifest';
+import { SymbolIcon } from '~/components/icons/symbol';
 import { SymbolTile } from '~/components/symbol-tile';
 import { getDB } from '~/db';
 import { getEdges, getSymbolDetails } from '~/db/query';
 import { dbGetManifestHashes } from '~/db/sql-manifest';
 import { BUCKETS, vectorAdd, vectorNew } from '~/stats/vector';
-import { css } from '~/styled-system/css';
 
 interface Symbol {
   hash: string;
@@ -114,34 +114,45 @@ export default component$(() => {
   const data: ReadonlySignal<SymbolsInfo> = useData();
   return (
     <div>
-      <h1>Manifests</h1>
-      <table>
+      <h1 class="h3">
+        <SymbolIcon />
+        Manifests
+      </h1>
+      <table class="w-full text-sm text-left">
+        <thead class="text-xs text-slate-700 uppercase">
+          <tr class="border-b border-slate-200">
+            <th scope="col" class="px-6 py-3 bg-slate-50">
+              Delay
+            </th>
+            <th scope="col" class="px-6 py-3">
+              Latency
+            </th>
+            <th scope="col" class="px-6 py-3 bg-slate-50">
+              Manifest
+            </th>
+          </tr>
+        </thead>
         <tbody>
           {data.value.manifests.map((manifest, idx) => {
             return (
-              <tr key={idx}>
-                <td>
+              <tr key={idx} class="border-b border-slate-200 text-xs">
+                <td scope="col" class="px-6 py-3 bg-slate-50 w-96">
                   <Histogram
                     vector={manifest.delay}
                     colors={delayColors}
                     buckets={data.value.buckets}
                   />
                 </td>
-                <td>
+                <td scope="col" class="px-6 py-3 w-96">
                   <Histogram
                     vector={manifest.latency}
                     colors={latencyColors}
                     buckets={data.value.buckets}
                   />
                 </td>
-                <td>
+                <td scope="col" class="px-6 py-3 bg-slate-50">
                   <code>
-                    <ManifestIcon
-                      class={css({
-                        display: 'inline-block',
-                        marginBottom: '3px',
-                      })}
-                    />
+                    <ManifestIcon />
                     {manifest.hash}
                   </code>
                 </td>
@@ -150,31 +161,48 @@ export default component$(() => {
           })}
         </tbody>
       </table>
-      <h1>Symbols</h1>
-      <table>
+
+      <h1 class="h3 mt-10">
+        <SymbolIcon />
+        Symbols
+      </h1>
+      <table class="w-full text-sm text-left">
+        <thead class="text-xs text-slate-700 uppercase">
+          <tr class="border-b border-slate-200">
+            <th scope="col" class="px-6 py-3 bg-slate-50">
+              Delay
+            </th>
+            <th scope="col" class="px-6 py-3">
+              Latency
+            </th>
+            <th scope="col" class="px-6 py-3 bg-slate-50">
+              Symbol
+            </th>
+          </tr>
+        </thead>
         <tbody>
           {data.value.symbols.map((symbol) => (
-            <tr key={symbol.hash}>
-              <td>
+            <tr key={symbol.hash} class="border-b border-slate-200 text-xs">
+              <td scope="col" class="px-6 py-3 bg-slate-50 w-96">
                 <Histogram
                   vector={symbol.delay}
                   buckets={data.value.buckets}
                   colors={delayColors}
                 />
               </td>
-              <td>
+              <td scope="col" class="px-6 py-3 w-96">
                 <Histogram
                   vector={symbol.latency}
                   colors={latencyColors}
                   buckets={data.value.buckets}
                 />
               </td>
-              <td>
-                <SymbolTile symbol={symbol.hash} />(
-                <code>
-                  {symbol.origin}/{symbol.fullName}
-                </code>
-                )
+              <td scope="col" class="px-6 py-3 bg-slate-50">
+                <SymbolTile symbol={symbol.hash} />
+                <span class="block text-slate-500">
+                  {symbol.origin}
+                  {symbol.fullName}
+                </span>
               </td>
             </tr>
           ))}

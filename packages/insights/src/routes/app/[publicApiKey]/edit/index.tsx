@@ -1,18 +1,18 @@
 import { component$, useSignal, useTask$ } from '@builder.io/qwik';
-import { Form, routeAction$, routeLoader$, useLocation, z, zod$ } from '@builder.io/qwik-city';
+import { routeAction$, routeLoader$, useLocation, z, zod$ } from '@builder.io/qwik-city';
 import { formAction$, useForm, zodForm$, type InitialValues } from '@modular-forms/qwik';
-import { applicationTable, getDB } from '~/db';
-import { ApplicationForm } from '../app.form';
 import { eq } from 'drizzle-orm';
-import { appUrl } from '~/routes.config';
 import AppCard from '~/components/app-card';
-import styles from './styles.module.css';
 import { DiskIcon } from '~/components/icons/disk';
+import { applicationTable, getDB } from '~/db';
 import {
   dbAddUserToApplication,
   dbGetUsersForApplication,
   dbRemoveUserFromApplication,
 } from '~/db/sql-user';
+import { appUrl } from '~/routes.config';
+import { ApplicationForm } from '../app.form';
+import { EditIcon } from '~/components/icons/edit';
 
 export const useFormLoader = routeLoader$<InitialValues<ApplicationForm>>(async ({ params }) => {
   const db = getDB();
@@ -69,7 +69,7 @@ export const useAddUserAction = routeAction$(
 export default component$(() => {
   // const form = useFormLoader();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [loginForm, { Form: AppForm, Field, FieldArray }] = useForm<ApplicationForm>({
+  const [loginForm, { Form, Field }] = useForm<ApplicationForm>({
     loader: useFormLoader(),
     action: useFormAction(),
     validate: zodForm$(ApplicationForm),
@@ -88,9 +88,12 @@ export default component$(() => {
 
   return (
     <div>
-      <h1 class="h3">Edit Application</h1>
-      <AppForm>
-        <div class={styles['app-card-wrapper']}>
+      <h1 class="h3">
+        <EditIcon />
+        Edit Application
+      </h1>
+      <Form>
+        <div class="mb-10">
           <AppCard
             mode="show"
             title={loginForm.internal.fields.name?.value}
@@ -112,16 +115,25 @@ export default component$(() => {
         <div>
           <label>URL</label>
           <Field name="url">
-            {(field, props) => <input {...props} type="text" value={field.value} />}
+            {(field, props) => (
+              <>
+                <input {...props} type="text" value={field.value} />
+                {field.error && <div>{field.error}</div>}
+              </>
+            )}
           </Field>
         </div>
-        <div style={{ 'margin-top': 'calc(var(--form-element-margin-bottom) * 2)' }}>
-          <button type="submit" class="button">
+        <div
+          style={{
+            'margin-top': 'calc(var(--form-element-margin-bottom) * 2)',
+          }}
+        >
+          <button type="submit" class="button bg-white">
             <DiskIcon />
             Save
           </button>
         </div>
-      </AppForm>
+      </Form>
       <label>Allowed Users</label>
       <ul>
         {users.value.map((user) => (

@@ -23,7 +23,6 @@ export function getInsightUser(sharedMap: Map<string, any>) {
   return sharedMap.get(INSIGHT_USER) as InsightsUser;
 }
 
-
 export default component$(() => {
   return <Slot />;
 });

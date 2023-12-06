@@ -27,7 +27,7 @@ export const useFormAction = formAction$<ApplicationForm>(
 
 export default component$(() => {
   const [, { Form, Field }] = useForm<ApplicationForm>({
-    loader: useSignal({ name: '', description: '' }),
+    loader: useSignal({ name: '', description: '', url: '' }),
     action: useFormAction(),
     validate: zodForm$(ApplicationForm),
   });

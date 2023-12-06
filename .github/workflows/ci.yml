@@ -31,6 +31,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       fullbuild: ${{ steps.filter.outputs.fullbuild == 'true' || github.event.inputs.disttag != '' }}
+      insightsbuild: ${{ steps.filter_insights.outputs.insightsbuild == 'true' || github.event.inputs.disttag != '' }}
+      docsbuild: ${{ steps.filter_docs.outputs.docsbuild == 'true' || github.event.inputs.disttag != '' }}
 
     steps:
       - name: Cancel Previous Runs
@@ -66,9 +68,24 @@ jobs:
               - 'Cargo.yaml'
               - '.github/workflows/*.yaml'
               - 'scripts/*.ts'
+      - uses: dorny/paths-filter@v2
+        id: filter_insights
+        with:
+          filters: |
+            insightsbuild:
+              - 'packages/insights/**/*'
+      - uses: dorny/paths-filter@v2
+        id: filter_docs
+        with:
+          filters: |
+            docsbuild:
+              - 'packages/docs/**/*'
+
       - name: Print variables output
         run: |
           echo fullbuild=${{ steps.filter.outputs.fullbuild }}
+          echo insightsbuild=${{ steps.filter_insights.outputs.insightsbuild }}
+          echo docsbuild=${{ steps.filter_docs.outputs.docsbuild }}
           echo disttag=${{ github.event.inputs.disttag }}
           echo event_name=${{ github.event_name }}
 
@@ -308,6 +325,68 @@ jobs:
           name: dist-bindings-${{ matrix.settings.target }}
           path: packages/qwik/dist/bindings/*.node
           if-no-files-found: error
+
+  ############ BUILD INSIGHTS ############
+  build-insights:
+    name: Build Insights
+    needs: changes
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        if: ${{ needs.changes.outputs.insightsbuild == 'true' }}
+        uses: actions/checkout@v3
+
+      - uses: pnpm/action-setup@v2.2.4
+        if: ${{ needs.changes.outputs.insightsbuild == 'true' }}
+
+      - name: Setup Node
+        if: ${{ needs.changes.outputs.insightsbuild == 'true' }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+          cache: 'pnpm'
+          registry-url: https://registry.npmjs.org/
+
+      - name: Install NPM Dependencies
+        if: ${{ needs.changes.outputs.insightsbuild == 'true' }}
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Qwik Insights
+        if: ${{ needs.changes.outputs.insightsbuild == 'true' }}
+        working-directory: packages/insights
+        run: pnpm run build.ci
+
+  ############ BUILD DOCS ############
+  build-docs:
+    name: Build Docs
+    needs: changes
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        if: ${{ needs.changes.outputs.docsbuild == 'true' }}
+        uses: actions/checkout@v3
+
+      - uses: pnpm/action-setup@v2.2.4
+        if: ${{ needs.changes.outputs.docsbuild == 'true' }}
+
+      - name: Setup Node
+        if: ${{ needs.changes.outputs.docsbuild == 'true' }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+          cache: 'pnpm'
+          registry-url: https://registry.npmjs.org/
+
+      - name: Install NPM Dependencies
+        if: ${{ needs.changes.outputs.docsbuild == 'true' }}
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Qwik Docs
+        if: ${{ needs.changes.outputs.docsbuild == 'true' }}
+        working-directory: packages/docs
+        run: pnpm run build
 
   ############ BUILD DISTRIBUTION ############
   build-distribution:

@@ -126,6 +126,7 @@ export async function getAppInfo(
   name: string;
   description: string | null;
   publicApiKey: string;
+  url: string | null;
   github: string | null;
 }> {
   let app = await db
@@ -137,6 +138,7 @@ export async function getAppInfo(
     const appFields = {
       name: 'Auto create: ' + publicApiKey,
       description: 'Auto create: ' + publicApiKey,
+      url: '',
       publicApiKey,
     };
     const response = await db.insert(applicationTable).values(appFields).run();

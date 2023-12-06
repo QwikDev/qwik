@@ -1,5 +1,5 @@
 import { component$, useSignal, useTask$ } from '@builder.io/qwik';
-import { routeAction$, routeLoader$, useLocation, z, zod$ } from '@builder.io/qwik-city';
+import { routeAction$, routeLoader$, useLocation, z, zod$, Form } from '@builder.io/qwik-city';
 import { formAction$, useForm, zodForm$, type InitialValues } from '@modular-forms/qwik';
 import { eq } from 'drizzle-orm';
 import AppCard from '~/components/app-card';
@@ -69,7 +69,7 @@ export const useAddUserAction = routeAction$(
 export default component$(() => {
   // const form = useFormLoader();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [loginForm, { Form, Field }] = useForm<ApplicationForm>({
+  const [loginForm, { Form: ModularForm, Field }] = useForm<ApplicationForm>({
     loader: useFormLoader(),
     action: useFormAction(),
     validate: zodForm$(ApplicationForm),
@@ -92,7 +92,7 @@ export default component$(() => {
         <EditIcon />
         Edit Application
       </h1>
-      <Form>
+      <ModularForm>
         <div class="mb-10">
           <AppCard
             mode="show"
@@ -133,7 +133,7 @@ export default component$(() => {
             Save
           </button>
         </div>
-      </Form>
+      </ModularForm>
       <label>Allowed Users</label>
       <ul>
         {users.value.map((user) => (

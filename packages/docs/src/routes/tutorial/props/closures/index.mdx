@@ -8,6 +8,10 @@ contributors:
   - manucorporat
   - mhevery
   - Arthur-Fedotiev
+  - mrhoodz
+  - iancharlesdouglas
+updated_at: '2023-06-25T19:43:33Z'
+created_at: '2022-08-02T12:07:45Z'
 ---
 
 Props must be serializable so that Qwik can resume and render each component independently from other components on the page. This poses a problem if we wish to pass a callback to a child component. Callbacks are functions and functions are not directly serializable, but they are serializable through the `$()` by converting them to QRLs first.

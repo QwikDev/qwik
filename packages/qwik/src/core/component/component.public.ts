@@ -167,8 +167,8 @@ export type PropFunctionProps<PROPS extends Record<any, any>> = {
   [K in keyof PROPS]: PROPS[K] extends undefined
     ? PROPS[K]
     : PROPS[K] extends ((...args: infer ARGS) => infer RET) | undefined
-      ? PropFnInterface<ARGS, Awaited<RET>>
-      : PROPS[K];
+    ? PropFnInterface<ARGS, Awaited<RET>>
+    : PROPS[K];
 };
 
 // <docs markdown="../readme.md#component">

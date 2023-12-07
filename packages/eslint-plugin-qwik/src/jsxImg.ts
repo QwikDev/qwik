@@ -51,9 +51,9 @@ See https://qwik.builder.io/docs/integrations/image-optimization/#responsive-ima
                 src.value.type === 'Literal'
                   ? src.value
                   : src.value.type === 'JSXExpressionContainer' &&
-                      src.value.expression.type === 'Literal'
-                    ? src.value.expression
-                    : undefined;
+                    src.value.expression.type === 'Literal'
+                  ? src.value.expression
+                  : undefined;
               if (literal && typeof literal.value === 'string') {
                 const isLocal = literal.value.startsWith('/');
                 if (isLocal) {

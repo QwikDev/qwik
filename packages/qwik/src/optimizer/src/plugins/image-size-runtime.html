@@ -259,8 +259,9 @@
       }
       set actionName(value) {
         if (value) {
-          this.shadowRoot.querySelector('.action-container').innerHTML =
-            `<button id="action-btn" type="button">${value}</button>`;
+          this.shadowRoot.querySelector(
+            '.action-container'
+          ).innerHTML = `<button id="action-btn" type="button">${value}</button>`;
         }
       }
     }

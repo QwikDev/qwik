@@ -1,11 +1,11 @@
 import { component$, useContext, useStyles$ } from '@builder.io/qwik';
-import { type ContentMenu, useContent, useLocation } from '@builder.io/qwik-city';
+import { type ContentMenu, useContent, useLocation, routeLoader$ } from '@builder.io/qwik-city';
 import { GlobalStore } from '../../context';
 import { CloseIcon } from '../svgs/close-icon';
 import styles from './sidebar.css?inline';
 
-const markdownItems = Object.fromEntries(
-  await Promise.all(
+export const useMarkdownItems = routeLoader$(async () => {
+  const rawData = await Promise.all(
     Object.entries(import.meta.glob<{ frontmatter?: MDX }>('../../routes/**/*.{md,mdx}')).map(
       async ([k, v]) => {
         return [
@@ -20,9 +20,23 @@ const markdownItems = Object.fromEntries(
         ] as const;
       }
     )
-  )
-);
+  );
+  const markdownItems: MarkdownItems = {};
+  rawData.map(([k, v]) => {
+    if (v.frontmatter?.updated_at) {
+      markdownItems[k] = {
+        title: v.frontmatter.title,
+        contributors: v.frontmatter.contributors,
+        created_at: v.frontmatter.created_at,
+        updated_at: v.frontmatter.updated_at,
+      };
+    }
+  });
 
+  return markdownItems;
+});
+
+type MarkdownItems = Record<string, MDX>;
 type MDX = {
   title: string;
   contributors: string[];
@@ -30,12 +44,13 @@ type MDX = {
   updated_at: string;
 };
 
-const renderUpdated = (itemHref: string) => {
-  const updatedAt = markdownItems[itemHref]?.frontmatter?.updated_at;
+const DAYS = 24 * 60 * 60 * 1000;
+
+const renderUpdated = (itemHref: string, markdownItems: MarkdownItems) => {
+  const updatedAt = markdownItems[itemHref]?.updated_at;
 
   if (updatedAt) {
-    const isUpdated =
-      new Date(updatedAt).getTime() + 5 * 24 * 60 * 60 * 1000 > new Date().getTime();
+    const isUpdated = new Date(updatedAt).getTime() + 14 * DAYS > new Date().getTime();
 
     return isUpdated ? <div class="updated"></div> : null;
   }
@@ -49,6 +64,7 @@ export const SideBar = component$((props: { allOpen?: boolean }) => {
   const globalStore = useContext(GlobalStore);
   const { menu } = useContent();
   const { url } = useLocation();
+  const markdownItems = useMarkdownItems();
   const allOpen = url.pathname.startsWith('/qwikcity/') || props.allOpen;
 
   return (
@@ -61,7 +77,12 @@ export const SideBar = component$((props: { allOpen?: boolean }) => {
         >
           <CloseIcon width={24} height={24} />
         </button>
-        <Items items={menu?.items} pathname={url.pathname} allOpen={allOpen} />
+        <Items
+          items={menu?.items}
+          pathname={url.pathname}
+          allOpen={allOpen}
+          markdownItems={markdownItems.value}
+        />
       </nav>
     </aside>
   );
@@ -71,10 +92,12 @@ export function Items({
   items,
   pathname,
   allOpen,
+  markdownItems,
 }: {
   items?: ContentMenu[];
   pathname: string;
   allOpen?: boolean;
+  markdownItems: MarkdownItems;
 }) {
   return (
     <ul>
@@ -88,7 +111,7 @@ export function Items({
                 <summary>
                   <h5>{item.text}</h5>
                 </summary>
-                <Items items={item.items} pathname={pathname} />
+                <Items items={item.items} pathname={pathname} markdownItems={markdownItems} />
               </details>
             ) : (
               <a
@@ -100,7 +123,7 @@ export function Items({
               >
                 <>
                   {item.text}
-                  {renderUpdated(item.href!)}
+                  {renderUpdated(item.href!, markdownItems)}
                 </>
               </a>
             )}

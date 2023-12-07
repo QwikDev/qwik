@@ -392,10 +392,10 @@ type BadOnes<T> = Extract<
       [K in keyof T]: T[K] extends (...args: any) => any
         ? K
         : K extends string
-          ? K extends Uppercase<K>
-            ? K
-            : never
-          : never;
+        ? K extends Uppercase<K>
+          ? K
+          : never
+        : never;
     }[keyof T]
   | ReadonlyKeysOf<T>
   // We have our own

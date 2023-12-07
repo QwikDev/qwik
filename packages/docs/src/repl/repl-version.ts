@@ -4,7 +4,7 @@
 const keepList = new Set('1.0.0,1.1.5'.split(','));
 // The bad apples
 const blockList = new Set(
-  '1.2.0,1.2.1,1.2.2,1.2.3,1.2.4,1.2.5,1.2.6,1.2.7,1.2.8,1.2.9,1.2.10,1.2.11,1.2.14,1.2.15,1.2.19'.split(
+  '1.2.0,1.2.1,1.2.2,1.2.3,1.2.4,1.2.5,1.2.6,1.2.7,1.2.8,1.2.9,1.2.10,1.2.11,1.2.14,1.2.15,1.3.0'.split(
     ','
   )
 );
@@ -39,13 +39,13 @@ export const getReplVersion = async (version: string | undefined) => {
       if (v === version) {
         return true;
       }
-      if (npmData?.tags.latest === v) {
-        // always include "latest"
-        return true;
-      }
       if (blockList.has(v)) {
         // always exclude blockList
         return false;
+      }
+      if (npmData?.tags.latest === v) {
+        // always include "latest"
+        return true;
       }
       if (v.includes('-')) {
         // filter out dev builds

@@ -196,7 +196,7 @@ export const serializeQRLs = (existingQRLs: QRLInternal<any>[], elCtx: QContext)
 };
 
 /** `./chunk#symbol[captures] */
-export const parseQRL = (qrl: string, containerEl?: Element): QRLInternal => {
+export const parseQRL = <T = any>(qrl: string, containerEl?: Element): QRLInternal<T> => {
   const endIdx = qrl.length;
   const hashIdx = indexOf(qrl, 0, '#');
   const captureIdx = indexOf(qrl, hashIdx, '[');
@@ -220,7 +220,7 @@ export const parseQRL = (qrl: string, containerEl?: Element): QRLInternal => {
   if (containerEl) {
     iQrl.$setContainer$(containerEl);
   }
-  return iQrl;
+  return iQrl as QRLInternal<T>;
 };
 
 const indexOf = (text: string, startIdx: number, char: string) => {

@@ -43,9 +43,11 @@ export type PropsOf<COMP extends Component<any>> = COMP extends Component<infer 
  *
  * @public
  */
-export type Component<PROPS extends {}> = FunctionComponent<PublicProps<PROPS>>;
+export type Component<PROPS extends Record<any, any>> = FunctionComponent<PublicProps<PROPS>>;
 
-export type ComponentChildren<PROPS extends {}> = PROPS extends { children: any }
+export type ComponentChildren<PROPS extends Record<any, any>> = PROPS extends {
+  children: any;
+}
   ? never
   : { children?: JSXChildren };
 /**
@@ -53,7 +55,7 @@ export type ComponentChildren<PROPS extends {}> = PROPS extends { children: any 
  *
  * @public
  */
-export type PublicProps<PROPS extends {}> = TransformProps<PROPS> &
+export type PublicProps<PROPS extends Record<any, any>> = TransformProps<PROPS> &
   ComponentBaseProps &
   ComponentChildren<PROPS>;
 
@@ -62,7 +64,7 @@ export type PublicProps<PROPS extends {}> = TransformProps<PROPS> &
  *
  * @public
  */
-export type TransformProps<PROPS extends {}> = {
+export type TransformProps<PROPS extends Record<any, any>> = {
   [K in keyof PROPS]: TransformProp<PROPS[K]>;
 };
 
@@ -130,7 +132,7 @@ export type EventHandler<T> = QRL<(value: T) => any>;
  * @public
  */
 // </docs>
-export const componentQrl = <PROPS extends {}>(
+export const componentQrl = <PROPS extends Record<any, any>>(
   componentQrl: QRL<OnRenderFn<PROPS>>
 ): Component<PROPS> => {
   // Return a QComponent Factory function.
@@ -161,12 +163,12 @@ export const isQwikComponent = (component: any): component is Component<any> => 
 };
 
 /** @public */
-export type PropFunctionProps<PROPS extends {}> = {
+export type PropFunctionProps<PROPS extends Record<any, any>> = {
   [K in keyof PROPS]: PROPS[K] extends undefined
     ? PROPS[K]
     : PROPS[K] extends ((...args: infer ARGS) => infer RET) | undefined
-    ? PropFnInterface<ARGS, Awaited<RET>>
-    : PROPS[K];
+      ? PropFnInterface<ARGS, Awaited<RET>>
+      : PROPS[K];
 };
 
 // <docs markdown="../readme.md#component">
@@ -223,19 +225,16 @@ export type PropFunctionProps<PROPS extends {}> = {
  * @public
  */
 // </docs>
-export const component$ = <
-  PROPS = unknown,
-  ARG extends {} = PROPS extends {} ? PropFunctionProps<PROPS> : {},
->(
-  onMount: OnRenderFn<ARG>
-): Component<PROPS extends {} ? PROPS : ARG> => {
+export const component$ = <PROPS extends Record<any, any>>(
+  onMount: (props: PROPS) => JSXNode | null
+): Component<PropFunctionProps<PROPS>> => {
   return componentQrl<any>($(onMount));
 };
 
 /** @public */
-export type OnRenderFn<PROPS extends {}> = (props: PROPS) => JSXNode<any> | null;
+export type OnRenderFn<PROPS extends Record<any, any>> = (props: PROPS) => JSXNode | null;
 
-export interface RenderFactoryOutput<PROPS extends {}> {
+export interface RenderFactoryOutput<PROPS extends Record<any, any>> {
   renderQRL: QRL<OnRenderFn<PROPS>>;
   waitOn: any[];
 }

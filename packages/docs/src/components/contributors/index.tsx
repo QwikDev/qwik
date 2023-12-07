@@ -4,7 +4,7 @@ import { useDocumentHead } from '@builder.io/qwik-city';
 
 export default component$(() => {
   useStylesScoped$(styles);
-  const { frontmatter } = useDocumentHead();
+  const { frontmatter } = useDocumentHead<{ contributors?: string[] }>();
   const contributors = frontmatter.contributors || [];
 
   if (!contributors.length) {

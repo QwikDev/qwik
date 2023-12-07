@@ -1,3 +1,4 @@
+import type { QwikSymbolEvent, QwikVisibleEvent } from './core/render/jsx/types/jsx-qwik-events';
 import type { QContext } from './core/state/context';
 
 /**
@@ -44,10 +45,10 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
     }
   };
 
-  const createEvent = (eventName: string, detail?: any) =>
+  const createEvent = <T extends CustomEvent = any>(eventName: string, detail?: T['detail']) =>
     new CustomEvent(eventName, {
       detail,
-    });
+    }) as T;
 
   const dispatch = async (element: Element, onPrefix: string, ev: Event, eventName = ev.type) => {
     const attrName = 'on' + onPrefix + ':' + eventName;
@@ -77,7 +78,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
         if (element.isConnected) {
           try {
             (doc as any)[Q_CONTEXT] = [element, ev, url];
-            emitEvent('qsymbol', {
+            emitEvent<QwikSymbolEvent>('qsymbol', {
               symbol: symbolName,
               element: element,
               reqTime,
@@ -91,8 +92,8 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
     }
   };
 
-  const emitEvent = (eventName: string, detail?: any) => {
-    doc.dispatchEvent(createEvent(eventName, detail));
+  const emitEvent = <T extends CustomEvent = any>(eventName: string, detail?: T['detail']) => {
+    doc.dispatchEvent(createEvent<T>(eventName, detail));
   };
 
   const camelToKebab = (str: string) => str.replace(/([A-Z])/g, (a) => '-' + a.toLowerCase());
@@ -137,7 +138,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
           for (const entry of entries) {
             if (entry.isIntersecting) {
               observer.unobserve(entry.target);
-              dispatch(entry.target, '', createEvent('qvisible', entry));
+              dispatch(entry.target, '', createEvent<QwikVisibleEvent>('qvisible', entry));
             }
           }
         });

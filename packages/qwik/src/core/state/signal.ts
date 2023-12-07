@@ -126,16 +126,16 @@ export class SignalImpl<T> extends SignalBase implements Signal<T> {
   }
 }
 
-export class SignalDerived<T = any, ARGS extends any[] = any[]> extends SignalBase {
+export class SignalDerived<RETURN = unknown, ARGS extends any[] = unknown[]> extends SignalBase {
   constructor(
-    public $func$: (...args: ARGS) => T,
+    public $func$: (...args: ARGS) => RETURN,
     public $args$: ARGS,
     public $funcStr$?: string
   ) {
     super();
   }
 
-  get value(): T {
+  get value(): RETURN {
     return this.$func$.apply(undefined, this.$args$);
   }
 }
@@ -168,7 +168,7 @@ export class SignalWrapper<T extends Record<string, any>, P extends keyof T> ext
  * @returns Boolean - True if the object is a `Signal`.
  * @public
  */
-export const isSignal = (obj: any): obj is Signal<any> => {
+export const isSignal = <T = unknown>(obj: any): obj is Signal<T> => {
   return obj instanceof SignalBase;
 };
 

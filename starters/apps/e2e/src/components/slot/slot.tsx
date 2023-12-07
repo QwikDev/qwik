@@ -7,7 +7,6 @@ import {
   useContextProvider,
   createContextId,
   type Signal,
-  _jsxBranch,
   jsx,
   type JSXNode,
   useVisibleTask$,

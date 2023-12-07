@@ -128,6 +128,15 @@ details li a {
   background-color: #b1b1b13a;
 }
 
+.updated {
+  background-color: var(--interactive-text-color);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-top: 0.2rem;
+  margin-left: 0.3rem;
+}
+
 @media (max-width: 1023px) {
   .breadcrumbs button {
     @apply p-2;

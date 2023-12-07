@@ -4,8 +4,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 import url from 'node:url';
 import matter from 'gray-matter';
+import { loadEnv } from 'vite';
 
 const rootDir = path.join(path.dirname(url.fileURLToPath(import.meta.url)), '..', '..');
+export const PRIVATE_GITHUB_ACCESS_TOKEN =
+  process.env.GITHUB_TOKEN || loadEnv('', '.', 'PRIVATE').PRIVATE_GITHUB_ACCESS_TOKEN;
 
 async function updateContributors() {
   const routesDir = path.join(rootDir, 'packages', 'docs', 'src', 'routes');
@@ -37,7 +40,17 @@ async function updateGithubCommits(filePath: string) {
   url.searchParams.set('since', new Date('2022-01-01').toISOString());
   url.searchParams.set('path', repoPath);
 
-  const response = await fetch(url.href);
+  const response = await fetch(url.href, {
+    headers: {
+      'User-Agent': 'Qwik Workshop',
+      'X-GitHub-Api-Version': '2022-11-28',
+      ...(PRIVATE_GITHUB_ACCESS_TOKEN
+        ? {
+            Authorization: 'Bearer ' + PRIVATE_GITHUB_ACCESS_TOKEN,
+          }
+        : {}),
+    },
+  });
   if (response.status !== 200) {
     console.log('error', response.status, response.statusText, await response.text());
     await new Promise((resolve) => setTimeout(resolve, 5000));
@@ -62,6 +75,14 @@ async function updateGithubCommits(filePath: string) {
       } else {
         contributors.push({ author, count: 1 });
       }
+    }
+
+    if (commits.indexOf(commit) === 0) {
+      gm.data.updated_at = commit?.commit?.author?.date;
+    }
+
+    if (commits.indexOf(commit) === commits.length - 1) {
+      gm.data.created_at = commit?.commit?.author?.date;
     }
   }
 
@@ -88,7 +109,15 @@ async function updateGithubCommits(filePath: string) {
 
   console.log(repoPath, contributors.length);
 
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  if (response.headers.get('x-ratelimit-remaining') === '0') {
+    const resetHeader = response.headers.get('x-ratelimit-reset');
+    const resetTime = resetHeader ? parseInt(resetHeader) * 1000 : Date.now() + 1000;
+    const waitTime = resetTime - Date.now();
+    console.log(
+      `next request is rate limited, waiting ${Math.round(waitTime / 1000 / 60)} minutes`
+    );
+    await new Promise((resolve) => setTimeout(resolve, waitTime));
+  }
 }
 
 updateContributors();

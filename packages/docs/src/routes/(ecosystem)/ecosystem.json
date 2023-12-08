@@ -209,6 +209,14 @@
       "width": 90,
       "height": 90,
       "description": "Performant images with automatic optimization."
+    },
+    {
+      "title": "qwik-d3",
+      "github": "https://github.com/gilf/qwik-d3",
+      "imgSrc": "/ecosystem/qwik-d3.png",
+      "width": 90,
+      "height": 90,
+      "description": "A small library to integrate d3 into your Qwik project."
     }
   ],
   "communities": [

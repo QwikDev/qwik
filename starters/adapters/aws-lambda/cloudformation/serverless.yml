@@ -1,0 +1,118 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Description: Qwik Example App
+
+Parameters:
+  StaticBucketName:
+    Type: String
+  CdnDomainName:
+    Type: String
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Timeout: 10
+    MemorySize: 256
+
+Resources:
+
+  SSR:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: qwik-ssr
+      Description: Server Side Render
+      CodeUri: ../server
+      Handler: entry_aws-lambda.qwikApp
+      Environment:
+        Variables:
+          ORIGIN: !Join ['', [https://, !GetAtt CdnDomainName]]
+
+  SSRPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunctionUrl
+      FunctionName: !Ref SSR
+      FunctionUrlAuthType: NONE
+      Principal: "*"
+
+  SSRFunctionUrl:
+    Type: AWS::Lambda::Url
+    Properties:
+      AuthType: NONE
+      TargetFunctionArn: !Ref SSR
+
+  Public:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref StaticBucketName
+
+  PublicPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref Public
+      PolicyDocument:
+        Statement:
+        - Action: s3:GetObject
+          Effect: Allow
+          Principal:
+            Service: cloudfront.amazonaws.com
+          Resource: !Join ['', ['arn:aws:s3:::', !Ref Public, /*]]
+          Condition:
+            StringEquals:
+              'AWS:SourceArn': !Sub 'arn:aws:cloudfront::${AWS::AccountId}:distribution/${CDN}'
+
+  PublicAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+          Name: PublicBucketAccess
+          OriginAccessControlOriginType: s3
+          SigningBehavior: always
+          SigningProtocol: sigv4
+
+  CDN:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Comment: Content Delivery Network
+        Enabled: true
+        Origins:
+        - DomainName: !GetAtt Public.RegionalDomainName
+          Id: S3Origin
+          S3OriginConfig:
+            OriginAccessIdentity: ''
+          OriginAccessControlId: !GetAtt PublicAccessControl.Id
+        - DomainName: !Select [ 2, !Split [ '/', !GetAtt SSRFunctionUrl.FunctionUrl ] ]
+          Id: SSROrigin
+          CustomOriginConfig:
+            OriginProtocolPolicy: https-only
+        CacheBehaviors:
+        - &S3OriginBehavior
+          TargetOriginId: S3Origin
+          PathPattern: build/*
+          ForwardedValues:
+            QueryString: false
+            Cookies:
+              Forward: none
+          AllowedMethods:
+          - HEAD
+          - GET
+          - OPTIONS
+          ViewerProtocolPolicy: redirect-to-https
+        - <<: *S3OriginBehavior
+          PathPattern: '*manifest.json'
+        - <<: *S3OriginBehavior
+          PathPattern: service-worker.js
+        - <<: *S3OriginBehavior
+          PathPattern: favicon.ico
+        DefaultCacheBehavior:
+          TargetOriginId: SSROrigin
+          ForwardedValues:
+            QueryString: false
+            Cookies:
+              Forward: none
+          AllowedMethods:
+          - HEAD
+          - GET
+          - OPTIONS
+          ViewerProtocolPolicy: redirect-to-https

@@ -116,28 +116,19 @@ describe('q-component', () => {
     );
   });
 
-  test('types work as expected', () => {
+  test('types work as expected', () => () => {
+    // Let's keep one of these old type exports around for now.
     const Input1 = component$<InputHTMLAttributes<HTMLInputElement>>((props) => {
       return <input {...props} />;
     });
 
-    const Input2 = component$((props: PropFunctionProps<InputHTMLAttributes<HTMLInputElement>>) => {
+    const Input2 = component$((props: PropFunctionProps<PropsOf<'input'>>) => {
       return <input {...props} />;
     });
-
-    const Input3 = component$((props: Partial<InputHTMLAttributes<HTMLInputElement>>) => {
-      return <input {...props} />;
-    });
-
-    const Input4 = component$(
-      (props: Partial<PropFunctionProps<InputHTMLAttributes<HTMLInputElement>>>) => {
-        return <input {...props} />;
-      }
-    );
 
     type Input5Props = {
       type: 'text' | 'number';
-    } & Partial<InputHTMLAttributes<HTMLInputElement>>;
+    } & Partial<PropsOf<'input'>>;
 
     const Input5 = component$<Input5Props>(({ type, ...props }) => {
       return <input type={type} {...props} />;
@@ -158,10 +149,13 @@ describe('q-component', () => {
     component$(() => {
       return (
         <>
-          <Input1 value="1" />
+          <Input1
+            style={{
+              paddingInlineEnd: '10px',
+            }}
+            value="1"
+          />
           <Input2 value="2" />
-          <Input3 value="3" />
-          <Input4 value="4" />
           <Input5 value="5" type="text" />
           <Input6 value="6" type="number" />
         </>

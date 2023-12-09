@@ -383,9 +383,7 @@ async function buildAdapterCloudflarePagesVite(config: BuildConfig) {
 }
 
 async function buildAdapterFastlyVite(config: BuildConfig) {
-  const entryPoints = [
-    join(config.srcQwikCityDir, 'adapters', 'fastly', 'vite', 'index.ts'),
-  ];
+  const entryPoints = [join(config.srcQwikCityDir, 'adapters', 'fastly', 'vite', 'index.ts')];
 
   await build({
     entryPoints,
@@ -673,7 +671,7 @@ async function buildMiddlewareFastly(config: BuildConfig) {
     platform: 'node',
     target: nodeTarget,
     format: 'esm',
-    external: [...MIDDLEWARE_EXTERNALS, "fastly:*"],
+    external: [...MIDDLEWARE_EXTERNALS, 'fastly:*'],
     plugins: [resolveRequestHandler('../request-handler/index.mjs')],
   });
 }

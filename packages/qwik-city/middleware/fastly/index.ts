@@ -19,9 +19,7 @@ import { env } from 'fastly:env';
 
 // @builder.io/qwik-city/middleware/fastly
 
-/**
- * @public
- */
+/** @public */
 export function createQwikCity(opts: QwikCityFastlyOptions) {
   const qwikSerializer = {
     _deserializeData,
@@ -39,7 +37,7 @@ export function createQwikCity(opts: QwikCityFastlyOptions) {
 
       if (isStaticPath(request.method, url)) {
         const response = await staticContentServer.serveRequest(request as unknown as Request);
-        return response
+        return response;
       }
 
       const useCache =
@@ -48,9 +46,9 @@ export function createQwikCity(opts: QwikCityFastlyOptions) {
         url.port === '' &&
         request.method === 'GET';
       const cacheKey = request.method.concat(url.href);
-      const cachedResponse = useCache ? SimpleCache.get(cacheKey) : null
+      const cachedResponse = useCache ? SimpleCache.get(cacheKey) : null;
       if (cachedResponse) {
-        return cachedResponse
+        return cachedResponse;
       }
 
       const serverRequestEv: ServerRequestEvent<Response> = {
@@ -75,14 +73,14 @@ export function createQwikCity(opts: QwikCityFastlyOptions) {
         getClientConn: () => {
           return {
             ip: client.address,
-            country: client.geo.country_name || undefined
+            country: client.geo.country_name || undefined,
           };
         },
         platform: {
           env: env,
           fetch: fetch,
           request: request,
-          waitUntil: event.waitUntil
+          waitUntil: event.waitUntil,
         } satisfies PlatformFastly,
       };
 
@@ -97,12 +95,14 @@ export function createQwikCity(opts: QwikCityFastlyOptions) {
         const response = await handledResponse.response;
         if (response) {
           if (useCache && response.ok && response.body && response.headers.has('Cache-Control')) {
-            event.waitUntil(SimpleCache.getOrSet(cacheKey, async () => {
-              return {
-                value: response.body!,
-                ttl: 60
-              }
-            }))
+            event.waitUntil(
+              SimpleCache.getOrSet(cacheKey, async () => {
+                return {
+                  value: response.body!,
+                  ttl: 60,
+                };
+              })
+            );
           }
           return response;
         }
@@ -127,19 +127,15 @@ export function createQwikCity(opts: QwikCityFastlyOptions) {
   return onFastlyFetch;
 }
 
-/**
- * @public
- */
-export interface QwikCityFastlyOptions extends ServerRenderOptions { }
+/** @public */
+export interface QwikCityFastlyOptions extends ServerRenderOptions {}
 
-/**
- * @public
- */
+/** @public */
 export interface PlatformFastly {
-  env: typeof env,
-  fetch: typeof fetch,
-  request: FetchEvent['request'],
-  waitUntil: FetchEvent['waitUntil'],
+  env: typeof env;
+  fetch: typeof fetch;
+  request: FetchEvent['request'];
+  waitUntil: FetchEvent['waitUntil'];
 }
 
 const resolved = Promise.resolve();

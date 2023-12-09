@@ -4,9 +4,7 @@ import fs from 'node:fs';
 import { join, relative } from 'node:path';
 import { normalizePathSlash } from '../../../utils/fs';
 
-/**
- * @public
- */
+/** @public */
 export function fastlyAdapter(opts: FastlyAdapterOptions = {}): any {
   const env = process?.env;
   return viteAdapter({
@@ -32,7 +30,7 @@ export function fastlyAdapter(opts: FastlyAdapterOptions = {}): any {
               format: 'es',
               hoistTransitiveImports: false,
               // Ignore Fastly virtual modules
-              external: [/fastly:.*/]
+              external: [/fastly:.*/],
             },
           },
         },
@@ -61,19 +59,15 @@ export function fastlyAdapter(opts: FastlyAdapterOptions = {}): any {
   });
 }
 
-/**
- * @public
- */
+/** @public */
 export interface FastlyAdapterOptions extends ServerAdapterOptions {
   /**
-   * Manually add pathnames that should be treated as static paths and not SSR.
-   * For example, when these pathnames are requested, their response should
-   * come from a static file, rather than a server-side rendered response.
+   * Manually add pathnames that should be treated as static paths and not SSR. For example, when
+   * these pathnames are requested, their response should come from a static file, rather than a
+   * server-side rendered response.
    */
   staticPaths?: string[];
 }
 
-/**
- * @public
- */
+/** @public */
 export type { StaticGenerateRenderOptions };

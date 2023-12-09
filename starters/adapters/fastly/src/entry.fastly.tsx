@@ -16,7 +16,7 @@ import { manifest } from "@qwik-client-manifest";
 import render from "./entry.ssr";
 
 declare global {
-  interface QwikCityPlatform extends PlatformFastly { }
+  interface QwikCityPlatform extends PlatformFastly {}
 }
 
 const fetch = createQwikCity({ render, qwikCityPlan, manifest });

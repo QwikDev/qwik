@@ -60,24 +60,22 @@ export interface ResourceOptions {
  *
  * ```tsx
  * const Cmp = component$(() => {
- *   const store = useStore({
- *     city: '',
- *   });
+ *   const cityS = useSignal('');
  *
- *   const weatherResource = useResource$<any>(async ({ track, cleanup }) => {
- *     const cityName = track(() => store.city);
+ *   const weatherResource = useResource$(async ({ track, cleanup }) => {
+ *     const cityName = track(cityS);
  *     const abortController = new AbortController();
  *     cleanup(() => abortController.abort('cleanup'));
  *     const res = await fetch(`http://weatherdata.com?city=${cityName}`, {
  *       signal: abortController.signal,
  *     });
- *     const data = res.json();
- *     return data;
+ *     const data = await res.json();
+ *     return data as { temp: number };
  *   });
  *
  *   return (
  *     <div>
- *       <input name="city" onInput$={(ev: any) => (store.city = ev.target.value)} />
+ *       <input name="city" bind:value={cityS} />
  *       <Resource
  *         value={weatherResource}
  *         onResolved={(weather) => {
@@ -148,24 +146,22 @@ export const useResourceQrl = <T>(
  *
  * ```tsx
  * const Cmp = component$(() => {
- *   const store = useStore({
- *     city: '',
- *   });
+ *   const cityS = useSignal('');
  *
- *   const weatherResource = useResource$<any>(async ({ track, cleanup }) => {
- *     const cityName = track(() => store.city);
+ *   const weatherResource = useResource$(async ({ track, cleanup }) => {
+ *     const cityName = track(cityS);
  *     const abortController = new AbortController();
  *     cleanup(() => abortController.abort('cleanup'));
  *     const res = await fetch(`http://weatherdata.com?city=${cityName}`, {
  *       signal: abortController.signal,
  *     });
- *     const data = res.json();
- *     return data;
+ *     const data = await res.json();
+ *     return data as { temp: number };
  *   });
  *
  *   return (
  *     <div>
- *       <input name="city" onInput$={(ev: any) => (store.city = ev.target.value)} />
+ *       <input name="city" bind:value={cityS} />
  *       <Resource
  *         value={weatherResource}
  *         onResolved={(weather) => {
@@ -220,24 +216,22 @@ export interface ResourceProps<T> {
  *
  * ```tsx
  * const Cmp = component$(() => {
- *   const store = useStore({
- *     city: '',
- *   });
+ *   const cityS = useSignal('');
  *
- *   const weatherResource = useResource$<any>(async ({ track, cleanup }) => {
- *     const cityName = track(() => store.city);
+ *   const weatherResource = useResource$(async ({ track, cleanup }) => {
+ *     const cityName = track(cityS);
  *     const abortController = new AbortController();
  *     cleanup(() => abortController.abort('cleanup'));
  *     const res = await fetch(`http://weatherdata.com?city=${cityName}`, {
  *       signal: abortController.signal,
  *     });
- *     const data = res.json();
- *     return data;
+ *     const data = await res.json();
+ *     return data as { temp: number };
  *   });
  *
  *   return (
  *     <div>
- *       <input name="city" onInput$={(ev: any) => (store.city = ev.target.value)} />
+ *       <input name="city" bind:value={cityS} />
  *       <Resource
  *         value={weatherResource}
  *         onResolved={(weather) => {

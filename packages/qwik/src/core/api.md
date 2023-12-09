@@ -10,16 +10,14 @@ import type { ServerRequestEvent } from '@builder.io/qwik-city/middleware/reques
 // @public
 export const $: <T>(expression: T) => QRL<T>;
 
-// Warning: (ae-forgotten-export) The symbol "AnchorAttrs" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "Attrs" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export interface AnchorHTMLAttributes<T extends Element> extends HTMLAttributes<T>, AnchorAttrs {
+export interface AnchorHTMLAttributes<T extends Element> extends Attrs<'a', T> {
 }
 
-// Warning: (ae-forgotten-export) The symbol "AreaAttrs" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
-export interface AreaHTMLAttributes<T extends Element> extends HTMLAttributes<T, false>, AreaAttrs {
+export interface AreaHTMLAttributes<T extends Element> extends Attrs<'area', T> {
 }
 
 // @public
@@ -79,61 +77,45 @@ export interface AriaAttributes {
 // @public (undocumented)
 export type AriaRole = 'alert' | 'alertdialog' | 'application' | 'article' | 'banner' | 'button' | 'cell' | 'checkbox' | 'columnheader' | 'combobox' | 'complementary' | 'contentinfo' | 'definition' | 'dialog' | 'directory' | 'document' | 'feed' | 'figure' | 'form' | 'grid' | 'gridcell' | 'group' | 'heading' | 'img' | 'link' | 'list' | 'listbox' | 'listitem' | 'log' | 'main' | 'marquee' | 'math' | 'menu' | 'menubar' | 'menuitem' | 'menuitemcheckbox' | 'menuitemradio' | 'navigation' | 'none' | 'note' | 'option' | 'presentation' | 'progressbar' | 'radio' | 'radiogroup' | 'region' | 'row' | 'rowgroup' | 'rowheader' | 'scrollbar' | 'search' | 'searchbox' | 'separator' | 'slider' | 'spinbutton' | 'status' | 'switch' | 'tab' | 'table' | 'tablist' | 'tabpanel' | 'term' | 'textbox' | 'timer' | 'toolbar' | 'tooltip' | 'tree' | 'treegrid' | 'treeitem' | (string & {});
 
-// Warning: (ae-forgotten-export) The symbol "AudioAttrs" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
-export interface AudioHTMLAttributes<T extends Element> extends HTMLAttributes<T>, AudioAttrs {
+export interface AudioHTMLAttributes<T extends Element> extends Attrs<'audio', T> {
 }
 
-// Warning: (ae-forgotten-export) The symbol "BaseAttrs" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
-export interface BaseHTMLAttributes<T extends Element> extends HTMLAttributes<T, undefined>, BaseAttrs {
+export interface BaseHTMLAttributes<T extends Element> extends Attrs<'base', T> {
 }
 
-// Warning: (ae-forgotten-export) The symbol "BlockquoteAttrs" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
-export interface BlockquoteHTMLAttributes<T extends Element> extends HTMLAttributes<T>, BlockquoteAttrs {
+export interface BlockquoteHTMLAttributes<T extends Element> extends Attrs<'blockquote', T> {
 }
 
 // @public (undocumented)
 export type Booleanish = boolean | `${boolean}`;
 
-// Warning: (ae-forgotten-export) The symbol "ButtonAttrs" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
-export interface ButtonHTMLAttributes<T extends Element> extends HTMLAttributes<T>, ButtonAttrs {
+export interface ButtonHTMLAttributes<T extends Element> extends Attrs<'button', T> {
 }
 
-// Warning: (ae-forgotten-export) The symbol "CanvasAttrs" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
-export interface CanvasHTMLAttributes<T extends Element> extends HTMLAttributes<T>, CanvasAttrs {
+export interface CanvasHTMLAttributes<T extends Element> extends Attrs<'canvas', T> {
 }
 
-// Warning: (ae-forgotten-export) The symbol "BaseClassList" needs to be exported by the entry point index.d.ts
-//
 // @public
-export type ClassList = BaseClassList | BaseClassList[];
+export type ClassList = string | undefined | null | false | Record<string, boolean | string | number | null | undefined> | ClassList[];
 
 // @public (undocumented)
-export interface ColgroupHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-    // (undocumented)
-    span?: number | undefined;
+export interface ColgroupHTMLAttributes<T extends Element> extends Attrs<'colgroup', T> {
 }
 
-// Warning: (ae-forgotten-export) The symbol "ColAttrs" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
-export interface ColHTMLAttributes<T extends Element> extends HTMLAttributes<T, undefined>, ColAttrs {
+export interface ColHTMLAttributes<T extends Element> extends Attrs<'col', T> {
 }
 
 // @public
 export const component$: <PROPS extends Record<any, any>>(onMount: (props: PROPS) => JSXNode | null) => Component<PropFunctionProps<PROPS>>;
 
 // @public
-export type Component<PROPS extends Record<any, any>> = FunctionComponent<PublicProps<PROPS>>;
+export type Component<PROPS extends Record<any, any> = Record<string, unknown>> = FunctionComponent<PublicProps<PROPS>>;
 
 // @public (undocumented)
 export interface ComponentBaseProps {
@@ -162,6 +144,14 @@ export interface CorePlatform {
 }
 
 // @public
+export interface CorrectedToggleEvent extends Event {
+    // (undocumented)
+    readonly newState: 'open' | 'closed';
+    // (undocumented)
+    readonly prevState: 'open' | 'closed';
+}
+
+// @public
 export const createContextId: <STATE = unknown>(name: string) => ContextId<STATE>;
 
 // @public (undocumented)
@@ -169,27 +159,19 @@ export interface CSSProperties extends CSS_2.Properties<string | number>, CSS_2.
     [v: `--${string}`]: string | number | undefined;
 }
 
-// Warning: (ae-forgotten-export) The symbol "DataAttrs" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
-export interface DataHTMLAttributes<T extends Element> extends HTMLAttributes<T>, DataAttrs {
+export interface DataHTMLAttributes<T extends Element> extends Attrs<'data', T> {
 }
 
 // @public (undocumented)
-export interface DelHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-    // (undocumented)
-    cite?: string | undefined;
-    // (undocumented)
-    dateTime?: string | undefined;
+export interface DelHTMLAttributes<T extends Element> extends Attrs<'del', T> {
 }
 
 // @internal (undocumented)
 export const _deserializeData: (data: string, element?: unknown) => any;
 
 // @public (undocumented)
-export interface DetailsHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-    // (undocumented)
-    open?: boolean | undefined;
+export interface DetailsHTMLAttributes<T extends Element> extends Attrs<'details', T> {
 }
 
 // @public (undocumented)
@@ -205,29 +187,24 @@ export interface DevJSX {
 }
 
 // @public (undocumented)
-export interface DialogHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-    // (undocumented)
-    open?: boolean | undefined;
+export interface DialogHTMLAttributes<T extends Element> extends Attrs<'dialog', T> {
 }
 
-// Warning: (ae-forgotten-export) The symbol "QwikProps" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "QwikAttributesBase" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "RefAttr" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "QwikEvents" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
-export interface DOMAttributes<T extends Element, Children = JSXChildren> extends QwikProps<T>, QwikEvents<T> {
+// @public
+export interface DOMAttributes<EL extends Element> extends QwikAttributesBase, RefAttr<EL>, QwikEvents<EL> {
     // (undocumented)
-    children?: Children;
-    // (undocumented)
-    key?: string | number | null | undefined;
+    class?: ClassList | Signal<ClassList> | undefined;
 }
 
 // @public (undocumented)
 export type EagernessOptions = 'visible' | 'load' | 'idle';
 
-// Warning: (ae-forgotten-export) The symbol "EmbedAttrs" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
-export interface EmbedHTMLAttributes<T extends Element> extends HTMLAttributes<T, undefined>, EmbedAttrs {
+export interface EmbedHTMLAttributes<T extends Element> extends Attrs<'embed', T> {
 }
 
 // @public (undocumented)
@@ -242,10 +219,8 @@ export const event$: <T>(first: T) => QRL<T>;
 // @public (undocumented)
 export const eventQrl: <T>(qrl: QRL<T>) => QRL<T>;
 
-// Warning: (ae-forgotten-export) The symbol "FieldSetAttrs" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
-export interface FieldsetHTMLAttributes<T extends Element> extends HTMLAttributes<T>, FieldSetAttrs {
+export interface FieldsetHTMLAttributes<T extends Element> extends Attrs<'fieldset', T> {
 }
 
 // Warning: (ae-forgotten-export) The symbol "SignalDerived" needs to be exported by the entry point index.d.ts
@@ -253,10 +228,8 @@ export interface FieldsetHTMLAttributes<T extends Element> extends HTMLAttribute
 // @internal (undocumented)
 export const _fnSignal: <T extends (...args: any) => any>(fn: T, args: Parameters<T>, fnStr?: string) => SignalDerived<ReturnType<T>, Parameters<T>>;
 
-// Warning: (ae-forgotten-export) The symbol "FormAttrs" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
-export interface FormHTMLAttributes<T extends Element> extends HTMLAttributes<T>, FormAttrs {
+export interface FormHTMLAttributes<T extends Element> extends Attrs<'form', T> {
 }
 
 // @public (undocumented)
@@ -326,7 +299,7 @@ export { h as createElement }
 export { h }
 
 // @public (undocumented)
-export interface HrHTMLAttributes<T extends Element> extends HTMLAttributes<T, undefined> {
+export interface HrHTMLAttributes<T extends Element> extends Attrs<'hr', T> {
 }
 
 // @public (undocumented)
@@ -335,11 +308,10 @@ export type HTMLAttributeAnchorTarget = '_self' | '_blank' | '_parent' | '_top' 
 // @public (undocumented)
 export type HTMLAttributeReferrerPolicy = ReferrerPolicy;
 
-// Warning: (ae-forgotten-export) The symbol "HTMLAttributesBase" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "BadOnes" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "HTMLElementAttrs" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export interface HTMLAttributes<E extends Element, Children = JSXChildren> extends HTMLAttributesBase<E, Children>, Partial<Omit<HTMLElement, BadOnes<HTMLElement>>> {
+export interface HTMLAttributes<E extends Element> extends HTMLElementAttrs, DOMAttributes<E> {
 }
 
 // @public (undocumented)
@@ -351,9 +323,7 @@ export const HTMLFragment: FunctionComponent<{
 }>;
 
 // @public (undocumented)
-export interface HtmlHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-    // (undocumented)
-    manifest?: string | undefined;
+export interface HtmlHTMLAttributes<T extends Element> extends Attrs<'html', T> {
 }
 
 // @public (undocumented)
@@ -365,16 +335,12 @@ export type HTMLInputTypeAttribute = 'button' | 'checkbox' | 'color' | 'date' | 
 // @internal
 export const _hW: () => void;
 
-// Warning: (ae-forgotten-export) The symbol "IframeAttrs" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
-export interface IframeHTMLAttributes<T extends Element> extends HTMLAttributes<T, undefined>, IframeAttrs {
+export interface IframeHTMLAttributes<T extends Element> extends Attrs<'iframe', T> {
 }
 
-// Warning: (ae-forgotten-export) The symbol "ImgAttrs" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
-export interface ImgHTMLAttributes<T extends Element> extends HTMLAttributes<T, undefined>, ImgAttrs {
+export interface ImgHTMLAttributes<T extends Element> extends Attrs<'img', T> {
 }
 
 // @internal (undocumented)
@@ -394,34 +360,38 @@ export const inlinedQrl: <T>(symbol: T, symbolName: string, lexicalScopeCapture?
 // @internal (undocumented)
 export const inlinedQrlDEV: <T = any>(symbol: T, symbolName: string, opts: QRLDev, lexicalScopeCapture?: any[]) => QRL<T>;
 
-// Warning: (ae-forgotten-export) The symbol "InputAttrs" needs to be exported by the entry point index.d.ts
+// @public (undocumented)
+export type InputHTMLAttributes<T extends Element> = Attrs<'input', T, HTMLInputElement>;
+
+// @public (undocumented)
+export interface InsHTMLAttributes<T extends Element> extends Attrs<'ins', T> {
+}
+
+// Warning: (ae-incompatible-release-tags) The symbol "IntrinsicElements" is marked as @public, but its signature references "IntrinsicHTMLElements" which is marked as @internal
+// Warning: (ae-incompatible-release-tags) The symbol "IntrinsicElements" is marked as @public, but its signature references "IntrinsicSVGElements" which is marked as @internal
 //
-// @public (undocumented)
-export interface InputHTMLAttributes<T extends Element> extends HTMLAttributes<T, undefined>, InputAttrs {
-}
-
-// @public (undocumented)
-export interface InsHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-    // (undocumented)
-    cite?: string | undefined;
-    // (undocumented)
-    dateTime?: string | undefined;
-}
-
 // @public (undocumented)
 export interface IntrinsicElements extends IntrinsicHTMLElements, IntrinsicSVGElements {
 }
 
-// Warning: (ae-forgotten-export) The symbol "QwikHTMLExceptions" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "PlainHTMLElements" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "Augmented" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "SpecialAttrs" needs to be exported by the entry point index.d.ts
+// Warning: (ae-internal-missing-underscore) The name "IntrinsicHTMLElements" should be prefixed with an underscore because the declaration is marked as @internal
 //
-// @public (undocumented)
-export interface IntrinsicHTMLElements extends QwikHTMLExceptions, PlainHTMLElements {
-}
+// @internal
+export type IntrinsicHTMLElements = {
+    [key in keyof HTMLElementTagNameMap]: Augmented<HTMLElementTagNameMap[key], SpecialAttrs[key]> & HTMLAttributes<HTMLElementTagNameMap[key]>;
+} & {
+    [unknownTag: string]: {
+        [prop: string]: any;
+    } & HTMLElementAttrs & HTMLAttributes<any>;
+};
 
-// @public (undocumented)
+// Warning: (ae-internal-missing-underscore) The name "IntrinsicSVGElements" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export type IntrinsicSVGElements = {
-    [K in keyof Omit<SVGElementTagNameMap, keyof HTMLElementTagNameMap>]: SVGProps<SVGElementTagNameMap[K]>;
+    [K in keyof Omit<SVGElementTagNameMap, keyof HTMLElementTagNameMap>]: LenientSVGProps<SVGElementTagNameMap[K]>;
 };
 
 // @public
@@ -473,72 +443,54 @@ export const _jsxS: <T extends string>(type: T, mutableProps: Record<any, unknow
 // @public (undocumented)
 export type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLElementTagNameMap>;
 
-// @public (undocumented)
-export interface KeygenHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-    // (undocumented)
-    autoFocus?: boolean | undefined;
-    // (undocumented)
-    challenge?: string | undefined;
-    // (undocumented)
-    children?: undefined;
-    // (undocumented)
-    disabled?: boolean | undefined;
-    // (undocumented)
-    form?: string | undefined;
-    // (undocumented)
-    keyParams?: string | undefined;
-    // (undocumented)
-    keyType?: string | undefined;
-    // (undocumented)
-    name?: string | undefined;
+// @public @deprecated (undocumented)
+export interface KeygenHTMLAttributes<T extends Element> extends Attrs<'base', T> {
 }
 
-// Warning: (ae-forgotten-export) The symbol "LabelAttrs" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "LiteralUnion" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "AllEventKeys" needs to be exported by the entry point index.d.ts
 //
+// @public
+export type KnownEventNames = LiteralUnion<AllEventKeys, string>;
+
 // @public (undocumented)
-export interface LabelHTMLAttributes<T extends Element> extends HTMLAttributes<T>, LabelAttrs {
+export interface LabelHTMLAttributes<T extends Element> extends Attrs<'label', T> {
 }
 
-// Warning: (ae-forgotten-export) The symbol "LiAttrs" needs to be exported by the entry point index.d.ts
+// Warning: (ae-internal-missing-underscore) The name "LenientSVGProps" should be prefixed with an underscore because the declaration is marked as @internal
 //
-// @public (undocumented)
-export interface LiHTMLAttributes<T extends Element> extends HTMLAttributes<T>, LiAttrs {
-}
-
-// Warning: (ae-forgotten-export) The symbol "LinkAttrs" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export interface LinkHTMLAttributes<T extends Element> extends HTMLAttributes<T, undefined>, LinkAttrs {
+// @internal (undocumented)
+export interface LenientSVGProps<T extends Element> extends SVGAttributes, DOMAttributes<T> {
 }
 
 // @public (undocumented)
-export interface MapHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-    // (undocumented)
-    name?: string | undefined;
-}
-
-// Warning: (ae-forgotten-export) The symbol "MediaAttrs" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export interface MediaHTMLAttributes<T extends Element> extends HTMLAttributes<T>, MediaAttrs {
+export interface LiHTMLAttributes<T extends Element> extends Attrs<'li', T> {
 }
 
 // @public (undocumented)
-export interface MenuHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-    // (undocumented)
-    type?: string | undefined;
+export interface LinkHTMLAttributes<T extends Element> extends Attrs<'link', T> {
 }
 
-// Warning: (ae-forgotten-export) The symbol "MetaAttrs" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
-export interface MetaHTMLAttributes<T extends Element> extends HTMLAttributes<T, undefined>, MetaAttrs {
+export interface MapHTMLAttributes<T extends Element> extends Attrs<'map', T> {
 }
 
-// Warning: (ae-forgotten-export) The symbol "MeterAttrs" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
-export interface MeterHTMLAttributes<T extends Element> extends HTMLAttributes<T>, MeterAttrs {
+export interface MediaHTMLAttributes<T extends Element> extends HTMLAttributes<T>, Augmented<HTMLMediaElement, {
+    crossOrigin?: HTMLCrossOriginAttribute;
+}> {
+}
+
+// @public (undocumented)
+export interface MenuHTMLAttributes<T extends Element> extends Attrs<'menu', T> {
+}
+
+// @public (undocumented)
+export interface MetaHTMLAttributes<T extends Element> extends Attrs<'meta', T> {
+}
+
+// @public (undocumented)
+export interface MeterHTMLAttributes<T extends Element> extends Attrs<'meter', T> {
 }
 
 // @public @deprecated (undocumented)
@@ -591,16 +543,12 @@ export const noSerialize: <T extends object | undefined>(input: T) => NoSerializ
 // @public (undocumented)
 export type Numberish = number | `${number}`;
 
-// Warning: (ae-forgotten-export) The symbol "ObjectAttrs" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
-export interface ObjectHTMLAttributes<T extends Element> extends HTMLAttributes<T>, ObjectAttrs {
+export interface ObjectHTMLAttributes<T extends Element> extends Attrs<'object', T> {
 }
 
-// Warning: (ae-forgotten-export) The symbol "OlAttrs" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
-export interface OlHTMLAttributes<T extends Element> extends HTMLAttributes<T>, OlAttrs {
+export interface OlHTMLAttributes<T extends Element> extends Attrs<'ol', T> {
 }
 
 // @public (undocumented)
@@ -612,27 +560,19 @@ export interface OnVisibleTaskOptions {
 }
 
 // @public (undocumented)
-export interface OptgroupHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-    // (undocumented)
-    disabled?: boolean | undefined;
-    // (undocumented)
-    label?: string | undefined;
-}
-
-// Warning: (ae-forgotten-export) The symbol "OptionAttrs" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export interface OptionHTMLAttributes<T extends Element> extends HTMLAttributes<T, string>, OptionAttrs {
+export interface OptgroupHTMLAttributes<T extends Element> extends Attrs<'optgroup', T> {
 }
 
 // @public (undocumented)
-export interface OutputHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
+export interface OptionHTMLAttributes<T extends Element> extends Attrs<'option', T> {
 }
 
-// Warning: (ae-forgotten-export) The symbol "ParamAttrs" needs to be exported by the entry point index.d.ts
-//
+// @public (undocumented)
+export interface OutputHTMLAttributes<T extends Element> extends Attrs<'output', T> {
+}
+
 // @public @deprecated (undocumented)
-export interface ParamHTMLAttributes<T extends Element> extends HTMLAttributes<T, undefined>, ParamAttrs {
+export interface ParamHTMLAttributes<T extends Element> extends Attrs<'base', T, HTMLParamElement> {
 }
 
 // Warning: (ae-forgotten-export) The symbol "QContext" needs to be exported by the entry point index.d.ts
@@ -642,10 +582,8 @@ export interface ParamHTMLAttributes<T extends Element> extends HTMLAttributes<T
 // @internal (undocumented)
 export const _pauseFromContexts: (allContexts: QContext[], containerState: ContainerState, fallbackGetObjId?: GetObjID, textNodes?: Map<string, string>) => Promise<SnapshotResult>;
 
-// Warning: (ae-forgotten-export) The symbol "ProgressAttrs" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
-export interface ProgressHTMLAttributes<T extends Element> extends HTMLAttributes<T>, ProgressAttrs {
+export interface ProgressHTMLAttributes<T extends Element> extends Attrs<'progress', T> {
 }
 
 // @public (undocumented)
@@ -662,7 +600,7 @@ export type PropFunctionProps<PROPS extends Record<any, any>> = {
 };
 
 // @public
-export type PropsOf<COMP extends Component<any>> = COMP extends Component<infer PROPS> ? NonNullable<PROPS> : never;
+export type PropsOf<COMP> = COMP extends Component<infer PROPS> ? NonNullable<PROPS> : COMP extends FunctionComponent<infer PROPS> ? NonNullable<PublicProps<PROPS>> : COMP extends string ? QwikIntrinsicElements[COMP] : Record<string, unknown>;
 
 // Warning: (ae-forgotten-export) The symbol "TransformProps" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "ComponentChildren" needs to be exported by the entry point index.d.ts
@@ -694,9 +632,7 @@ export const qrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: st
 export const qrlDEV: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, opts: QRLDev, lexicalScopeCapture?: any[]) => QRL<T>;
 
 // @public (undocumented)
-export interface QuoteHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-    // (undocumented)
-    cite?: string | undefined;
+export interface QuoteHTMLAttributes<T extends Element> extends Attrs<'q', T> {
 }
 
 // @public @deprecated (undocumented)
@@ -721,11 +657,25 @@ export type QwikDragEvent<T = Element> = NativeDragEvent;
 // @public @deprecated (undocumented)
 export type QwikFocusEvent<T = Element> = NativeFocusEvent;
 
+// Warning: (ae-forgotten-export) The symbol "QwikAttributes" needs to be exported by the entry point index.d.ts
+//
 // @public
-export interface QwikIntrinsicElements extends IntrinsicHTMLElements {
-    // Warning: (ae-forgotten-export) The symbol "QwikCustomHTMLAttributes" needs to be exported by the entry point index.d.ts
-    // Warning: (ae-forgotten-export) The symbol "QwikCustomHTMLElement" needs to be exported by the entry point index.d.ts
-    [key: string]: {} | QwikCustomHTMLAttributes<QwikCustomHTMLElement>;
+export type QwikHTMLElements = {
+    [tag in keyof HTMLElementTagNameMap]: Augmented<HTMLElementTagNameMap[tag], SpecialAttrs[tag]> & HTMLElementAttrs & QwikAttributes<HTMLElementTagNameMap[tag]>;
+} & {
+    [unknownTag: string]: {
+        [prop: string]: any;
+    } & HTMLElementAttrs & QwikAttributes<any>;
+};
+
+// @public
+export type QwikIdleEvent = CustomEvent<{}>;
+
+// @public
+export type QwikInitEvent = CustomEvent<{}>;
+
+// @public
+export interface QwikIntrinsicElements extends QwikHTMLElements, QwikSVGElements {
 }
 
 // @public @deprecated (undocumented)
@@ -741,13 +691,17 @@ export namespace QwikJSX {
         // (undocumented)
         children: any;
     }
+    // (undocumented)
+    export type ElementType = string | ((...args: any[]) => JSXNode | null);
     // Warning: (ae-forgotten-export) The symbol "QwikIntrinsicAttributes" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
     export interface IntrinsicAttributes extends QwikIntrinsicAttributes {
     }
+    // Warning: (ae-forgotten-export) The symbol "LenientQwikElements" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
-    export interface IntrinsicElements extends QwikIntrinsicElements {
+    export interface IntrinsicElements extends LenientQwikElements {
     }
 }
 
@@ -762,6 +716,11 @@ export type QwikPointerEvent<T = Element> = NativePointerEvent;
 
 // @public @deprecated (undocumented)
 export type QwikSubmitEvent<T = Element> = Event;
+
+// @public
+export type QwikSVGElements = {
+    [K in keyof Omit<SVGElementTagNameMap, keyof HTMLElementTagNameMap>]: SVGProps<SVGElementTagNameMap[K]>;
+};
 
 // @public
 export type QwikSymbolEvent = CustomEvent<{
@@ -900,16 +859,12 @@ export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | Resou
 // @internal (undocumented)
 export const _restProps: (props: Record<string, any>, omit: string[]) => Record<string, any>;
 
-// Warning: (ae-forgotten-export) The symbol "ScriptAttrs" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
-export interface ScriptHTMLAttributes<T extends Element> extends HTMLAttributes<T>, ScriptAttrs {
+export interface ScriptHTMLAttributes<T extends Element> extends Attrs<'script', T> {
 }
 
-// Warning: (ae-forgotten-export) The symbol "SelectAttrs" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
-export interface SelectHTMLAttributes<T extends Element> extends HTMLAttributes<T>, SelectAttrs {
+export interface SelectHTMLAttributes<T extends Element> extends Attrs<'select', T> {
 }
 
 // @internal (undocumented)
@@ -936,9 +891,7 @@ export const Slot: FunctionComponent<{
 }>;
 
 // @public (undocumented)
-export interface SlotHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-    // (undocumented)
-    name?: string | undefined;
+export interface SlotHTMLAttributes<T extends Element> extends Attrs<'slot', T> {
 }
 
 // @public (undocumented)
@@ -996,10 +949,8 @@ export interface SnapshotState {
     subs: any[];
 }
 
-// Warning: (ae-forgotten-export) The symbol "SourceAttrs" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
-export interface SourceHTMLAttributes<T extends Element> extends HTMLAttributes<T, undefined>, SourceAttrs {
+export interface SourceHTMLAttributes<T extends Element> extends Attrs<'source', T> {
 }
 
 // @public (undocumented)
@@ -1038,14 +989,12 @@ export type StreamWriter = {
     write: (chunk: string) => void;
 };
 
-// Warning: (ae-forgotten-export) The symbol "StyleAttrs" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
-export interface StyleHTMLAttributes<T extends Element> extends HTMLAttributes<T, string>, StyleAttrs {
+export interface StyleHTMLAttributes<T extends Element> extends Attrs<'style', T> {
 }
 
 // @public
-export interface SVGAttributes<T extends Element> extends AriaAttributes, DOMAttributes<T> {
+export interface SVGAttributes<T extends Element = Element> extends AriaAttributes {
     // (undocumented)
     'accent-height'?: number | string | undefined;
     // (undocumented)
@@ -1193,6 +1142,28 @@ export interface SVGAttributes<T extends Element> extends AriaAttributes, DOMAtt
     // (undocumented)
     'x-height'?: number | string | undefined;
     // (undocumented)
+    'xlink:actuate'?: string | undefined;
+    // (undocumented)
+    'xlink:arcrole'?: string | undefined;
+    // (undocumented)
+    'xlink:href'?: string | undefined;
+    // (undocumented)
+    'xlink:role'?: string | undefined;
+    // (undocumented)
+    'xlink:show'?: string | undefined;
+    // (undocumented)
+    'xlink:title'?: string | undefined;
+    // (undocumented)
+    'xlink:type'?: string | undefined;
+    // (undocumented)
+    'xml:base'?: string | undefined;
+    // (undocumented)
+    'xml:lang'?: string | undefined;
+    // (undocumented)
+    'xml:space'?: string | undefined;
+    // (undocumented)
+    'xmlns:xlink'?: string | undefined;
+    // (undocumented)
     accumulate?: 'none' | 'sum' | undefined;
     // (undocumented)
     additive?: 'replace' | 'sum' | undefined;
@@ -1226,8 +1197,6 @@ export interface SVGAttributes<T extends Element> extends AriaAttributes, DOMAtt
     by?: number | string | undefined;
     // (undocumented)
     calcMode?: number | string | undefined;
-    // (undocumented)
-    class?: ClassList | undefined;
     // (undocumented)
     clip?: number | string | undefined;
     // (undocumented)
@@ -1307,7 +1276,7 @@ export interface SVGAttributes<T extends Element> extends AriaAttributes, DOMAtt
     // (undocumented)
     hanging?: number | string | undefined;
     // (undocumented)
-    height?: Numberish | undefined;
+    height?: Size | undefined;
     // (undocumented)
     href?: string | undefined;
     // (undocumented)
@@ -1519,7 +1488,7 @@ export interface SVGAttributes<T extends Element> extends AriaAttributes, DOMAtt
     // (undocumented)
     visibility?: number | string | undefined;
     // (undocumented)
-    width?: Numberish | undefined;
+    width?: Size | undefined;
     // (undocumented)
     widths?: number | string | undefined;
     // (undocumented)
@@ -1529,27 +1498,7 @@ export interface SVGAttributes<T extends Element> extends AriaAttributes, DOMAtt
     // (undocumented)
     x2?: number | string | undefined;
     // (undocumented)
-    xlinkActuate?: string | undefined;
-    // (undocumented)
-    xlinkArcrole?: string | undefined;
-    // (undocumented)
-    xlinkHref?: string | undefined;
-    // (undocumented)
-    xlinkRole?: string | undefined;
-    // (undocumented)
-    xlinkShow?: string | undefined;
-    // (undocumented)
-    xlinkTitle?: string | undefined;
-    // (undocumented)
-    xlinkType?: string | undefined;
-    // (undocumented)
-    xmlBase?: string | undefined;
-    // (undocumented)
-    xmlLang?: string | undefined;
-    // (undocumented)
     xmlns?: string | undefined;
-    // (undocumented)
-    xmlSpace?: string | undefined;
     // (undocumented)
     y?: number | string | undefined;
     // (undocumented)
@@ -1565,13 +1514,11 @@ export interface SVGAttributes<T extends Element> extends AriaAttributes, DOMAtt
 }
 
 // @public (undocumented)
-export interface SVGProps<T extends Element> extends SVGAttributes<T> {
+export interface SVGProps<T extends Element> extends SVGAttributes, QwikAttributes<T> {
 }
 
-// Warning: (ae-forgotten-export) The symbol "TableAttrs" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
-export interface TableHTMLAttributes<T extends Element> extends HTMLAttributes<T>, TableAttrs {
+export interface TableHTMLAttributes<T extends Element> extends Attrs<'table', T> {
 }
 
 // @public (undocumented)
@@ -1585,42 +1532,34 @@ export interface TaskCtx {
 // @public (undocumented)
 export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => void)>;
 
-// Warning: (ae-forgotten-export) The symbol "TableCellAttrs" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
-export interface TdHTMLAttributes<T extends Element> extends HTMLAttributes<T>, TableCellAttrs {
-}
-
-// Warning: (ae-forgotten-export) The symbol "TextareaAttrs" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export interface TextareaHTMLAttributes<T extends Element> extends HTMLAttributes<T, undefined>, TextareaAttrs {
+export interface TdHTMLAttributes<T extends Element> extends Attrs<'td', T> {
 }
 
 // @public (undocumented)
-export interface ThHTMLAttributes<T extends Element> extends TdHTMLAttributes<T> {
+export interface TextareaHTMLAttributes<T extends Element> extends Attrs<'textarea', T> {
 }
 
 // @public (undocumented)
-export interface TimeHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-    // (undocumented)
-    dateTime?: string | undefined;
+export interface ThHTMLAttributes<T extends Element> extends Attrs<'tr', T> {
 }
 
 // @public (undocumented)
-export interface TitleHTMLAttributes<T extends Element> extends HTMLAttributes<T, string> {
+export interface TimeHTMLAttributes<T extends Element> extends Attrs<'time', T> {
+}
+
+// @public (undocumented)
+export interface TitleHTMLAttributes<T extends Element> extends Attrs<'title', T> {
 }
 
 // @public
 export interface Tracker {
     <T>(fn: () => T): T;
-    <T extends object>(obj: T): T;
+    <T extends object>(obj: T): T extends Signal<infer U> ? U : T;
 }
 
-// Warning: (ae-forgotten-export) The symbol "TrackAttrs" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
-export interface TrackHTMLAttributes<T extends Element> extends HTMLAttributes<T, undefined>, TrackAttrs {
+export interface TrackHTMLAttributes<T extends Element> extends Attrs<'track', T> {
 }
 
 // @public
@@ -1655,17 +1594,16 @@ export const useId: () => string;
 // @internal
 export const useLexicalScope: <VARS extends any[]>() => VARS;
 
-// Warning: (ae-forgotten-export) The symbol "PascalCaseEventLiteralType" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "EventQRL" needs to be exported by the entry point index.d.ts
 //
 // @public
-export const useOn: <T extends PascalCaseEventLiteralType>(event: T | T[], eventQrl: EventQRL<T>) => void;
+export const useOn: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => void;
 
 // @public
-export const useOnDocument: <T extends PascalCaseEventLiteralType>(event: T | T[], eventQrl: EventQRL<T>) => void;
+export const useOnDocument: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => void;
 
 // @public
-export const useOnWindow: <T extends PascalCaseEventLiteralType>(event: T | T[], eventQrl: EventQRL<T>) => void;
+export const useOnWindow: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => void;
 
 // @public
 export const useResource$: <T>(generatorFn: ResourceFn<T>, opts?: ResourceOptions) => ResourceReturn<T>;
@@ -1743,10 +1681,8 @@ export const _verifySerializable: <T>(value: T, preMessage?: string) => T;
 // @public
 export const version: string;
 
-// Warning: (ae-forgotten-export) The symbol "VideoAttrs" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
-export interface VideoHTMLAttributes<T extends Element> extends HTMLAttributes<T>, VideoAttrs {
+export interface VideoHTMLAttributes<T extends Element> extends Attrs<'video', T> {
 }
 
 // @public (undocumented)

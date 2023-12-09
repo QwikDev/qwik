@@ -35,15 +35,17 @@ namespace JSX_2 {
         // (undocumented)
         children: any;
     }
+    // (undocumented)
+    type ElementType = string | ((...args: any[]) => JSXNode | null);
     // Warning: (ae-forgotten-export) The symbol "QwikIntrinsicAttributes" needs to be exported by the entry point jsx-runtime.d.ts
     //
     // (undocumented)
     interface IntrinsicAttributes extends QwikIntrinsicAttributes {
     }
-    // Warning: (ae-forgotten-export) The symbol "QwikIntrinsicElements" needs to be exported by the entry point jsx-runtime.d.ts
+    // Warning: (ae-forgotten-export) The symbol "LenientQwikElements" needs to be exported by the entry point jsx-runtime.d.ts
     //
     // (undocumented)
-    interface IntrinsicElements extends QwikIntrinsicElements {
+    interface IntrinsicElements extends LenientQwikElements {
     }
 }
 export { JSX_2 as JSX }

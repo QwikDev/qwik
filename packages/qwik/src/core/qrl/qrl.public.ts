@@ -224,6 +224,7 @@ export type PropFunction<T extends Function = (...args: any) => any> = T extends
  *
  * import { createContextId, useContext, useContextProvider } from './use/use-context';
  * import { Resource, useResource$ } from './use/use-resource';
+ * import { useSignal } from './use/use-signal';
  *
  * export const greet = () => console.log('greet');
  * function topLevelFn() {}

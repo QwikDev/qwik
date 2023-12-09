@@ -25,8 +25,8 @@ export const RangeInput = <Name extends string = "value">({
     {...props}
     type="range"
     value={store[name]}
-    onInput$={(ev) => {
-      store[name] = (ev.target as HTMLInputElement).valueAsNumber;
+    onInput$={(ev, el) => {
+      store[name] = el.valueAsNumber;
     }}
   />
 );

@@ -46,10 +46,7 @@ export const AutoComplete = component$(() => {
 
   return (
     <div>
-      <input
-        type="text"
-        onInput$={(ev) => (state.searchInput = (ev.target as HTMLInputElement).value)}
-      />
+      <input type="text" onInput$={(ev, el) => (state.searchInput = el.value)} />
       <SuggestionsListComponent state={state}></SuggestionsListComponent>
     </div>
   );

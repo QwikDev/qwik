@@ -1,9 +1,13 @@
-import type { QwikKeysEvents } from './jsx-qwik-attributes';
+import type { AllEventKeys } from './jsx-qwik-attributes';
 
 /** Emitted by qwik-loader when an element becomes visible. Used by `useVisibleTask$` @public */
 export type QwikVisibleEvent = CustomEvent<IntersectionObserverEntry>;
 /** Emitted by qwik-loader when a module was lazily loaded @public */
 export type QwikSymbolEvent = CustomEvent<{ symbol: string; element: Element; reqTime: number }>;
+/** Emitted by qwik-loader on document when the document first becomes interactive @public */
+export type QwikInitEvent = CustomEvent<{}>;
+/** Emitted by qwik-loader on document when the document first becomes idle @public */
+export type QwikIdleEvent = CustomEvent<{}>;
 
 // Utility types for supporting autocompletion in union types
 
@@ -39,11 +43,12 @@ export type LiteralUnion<LiteralType, BaseType extends Primitive> =
   | (BaseType & Record<never, never>);
 
 /**
- * The PascalCaseEventLiteralType combines the QwikKeysEvents type and string type using the
- * LiteralUnion utility type, allowing autocompletion for event names while retaining support for
- * custom event names as strings. Despite the name, the event names are all lowercase :)
+ * The names of events that Qwik knows about. They are all lowercase, but on the JSX side, they are
+ * PascalCase for nicer DX. (`onAuxClick$` vs `onauxclick$`)
+ *
+ * @public
  */
-export type PascalCaseEventLiteralType = LiteralUnion<QwikKeysEvents, string>;
+export type KnownEventNames = LiteralUnion<AllEventKeys, string>;
 
 // Deprecated old types
 export type SyntheticEvent<T = Element, E = Event> = E & { target: EventTarget & T };

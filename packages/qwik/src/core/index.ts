@@ -60,6 +60,7 @@ export type {
   JSXChildren,
   ComponentBaseProps,
   ClassList,
+  CorrectedToggleEvent,
 } from './render/jsx/types/jsx-qwik-attributes';
 export type { FunctionComponent, JSXNode, DevJSX } from './render/jsx/types/jsx-node';
 export type { QwikDOMAttributes, QwikJSX } from './render/jsx/types/jsx-qwik';
@@ -123,8 +124,11 @@ export { version } from './version';
 // Qwik Events
 //////////////////////////////////////////////////////////////////////////////////////////
 export type {
+  KnownEventNames as KnownEventNames,
   QwikSymbolEvent,
   QwikVisibleEvent,
+  QwikIdleEvent,
+  QwikInitEvent,
   // old
   NativeAnimationEvent,
   NativeClipboardEvent,

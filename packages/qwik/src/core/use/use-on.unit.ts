@@ -60,19 +60,5 @@ describe('types', () => {
         assertType<Event>(ev);
       })
     );
-    <div
-      onBlur$={(ev) => {
-        expectTypeOf(ev).not.toBeAny();
-        assertType<FocusEvent>(ev);
-      }}
-      window:onAnimationEnd$={(ev) => {
-        expectTypeOf(ev).not.toBeAny();
-        assertType<AnimationEvent>(ev);
-      }}
-      document:onAbort$={(ev) => {
-        expectTypeOf(ev).not.toBeAny();
-        assertType<UIEvent>(ev);
-      }}
-    />;
   });
 });

@@ -120,8 +120,8 @@ export const MyComponent = component$(() => {
   const count = useSignal(0);
 
   // Notice the `$(...)` around the event handler function.
-  const inputHandler = $((event) => {
-    console.log('input', event.target.name, event.target.value);
+  const inputHandler = $((event, elem) => {
+    console.log(event.type, elem.value);
   });
 
   return (
@@ -224,8 +224,8 @@ export function exportedFunction() {
 
 export default component$(() => {
   // The first argument is a function.
-  const valid1 = $((event) => {
-    console.log('input', event.target.name, event.target.value);
+  const valid1 = $((event, elem) => {
+    console.log(event.type, elem.value);
   });
 
   // The first argument is an imported identifier.

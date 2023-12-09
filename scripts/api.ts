@@ -319,9 +319,6 @@ function fixDtsContent(config: BuildConfig, srcPath: string, relativePath?: stri
     dts = dts.replace(/'@builder\.io\/qwik(.*)'/g, `'${relativePath}$1'`);
   }
 
-  // for some reason api-extractor is adding this in  ¯\_(ツ)_/¯
-  dts = dts.replace('{};', '');
-
   // replace QWIK_VERSION with the actual version number, useful for debugging
   return dts.replace(/QWIK_VERSION/g, config.distVersion);
 }

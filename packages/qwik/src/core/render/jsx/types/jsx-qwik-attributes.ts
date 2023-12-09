@@ -1,7 +1,12 @@
 import type { QRL } from '../../../qrl/qrl.public';
 import type { Signal } from '../../../state/signal';
 import type { JSXNode } from './jsx-node';
-import type { QwikSymbolEvent, QwikVisibleEvent } from './jsx-qwik-events';
+import type {
+  QwikIdleEvent,
+  QwikInitEvent,
+  QwikSymbolEvent,
+  QwikVisibleEvent,
+} from './jsx-qwik-events';
 
 /**
  * Capitalized multi-word names of some known events so we have nicer qwik attributes. For example,
@@ -15,6 +20,7 @@ type PascalCaseNames =
   | 'AnimationIteration'
   | 'AnimationStart'
   | 'AuxClick'
+  | 'BeforeToggle'
   | 'CanPlay'
   | 'CanPlayThrough'
   | 'CompositionEnd'
@@ -57,6 +63,10 @@ type PascalCaseNames =
   | 'PointerOut'
   | 'PointerOver'
   | 'PointerUp'
+  | 'QIdle'
+  | 'QInit'
+  | 'QSymbol'
+  | 'QVisible'
   | 'RateChange'
   | 'RateChange'
   | 'SecurityPolicyViolation'
@@ -88,33 +98,44 @@ type PascalMap<M> = {
     : Capitalize<K>]: M[K];
 };
 
-export type PreventDefault<T = any> = {
+type PreventDefault = {
   [K in keyof HTMLElementEventMap as `preventdefault:${K}`]?: boolean;
 };
 
-export type AllEventMaps = HTMLElementEventMap &
+type AllEventMapRaw = HTMLElementEventMap &
   DocumentEventMap &
   WindowEventHandlersEventMap & {
-    qvisible: QwikVisibleEvent;
+    qidle: QwikIdleEvent;
+    qinit: QwikInitEvent;
     qsymbol: QwikSymbolEvent;
+    qvisible: QwikVisibleEvent;
   };
-export type AllPascalEventMaps = PascalMap<AllEventMaps>;
 
-export type QwikKeysEvents = Lowercase<keyof AllEventMaps>;
+/** This corrects the TS definition for ToggleEvent @public */
+export interface CorrectedToggleEvent extends Event {
+  readonly newState: 'open' | 'closed';
+  readonly prevState: 'open' | 'closed';
+}
+// Corrections to the TS types
+type EventCorrectionMap = {
+  auxclick: PointerEvent;
+  beforetoggle: CorrectedToggleEvent;
+  click: PointerEvent;
+  dblclick: PointerEvent;
+  input: InputEvent;
+  toggle: CorrectedToggleEvent;
+};
 
-type LcEvent<T extends string, C extends string = Lowercase<T>> = C extends keyof AllEventMaps
-  ? AllEventMaps[C]
+type AllEventsMap = Omit<AllEventMapRaw, keyof EventCorrectionMap> & EventCorrectionMap;
+type AllPascalEventMaps = PascalMap<AllEventsMap>;
+
+export type AllEventKeys = keyof AllEventsMap;
+
+type LcEvent<T extends string, C extends string = Lowercase<T>> = C extends keyof AllEventsMap
+  ? AllEventsMap[C]
   : Event;
 
 export type EventFromName<T extends string> = LcEvent<T>;
-
-export type BaseClassList =
-  | string
-  | undefined
-  | null
-  | false
-  | Record<string, boolean | string | number | null | undefined>
-  | BaseClassList[];
 
 /**
  * A class list can be a string, a boolean, an array, or an object.
@@ -126,56 +147,52 @@ export type BaseClassList =
  *
  * @public
  */
-export type ClassList = BaseClassList | BaseClassList[];
+export type ClassList =
+  | string
+  | undefined
+  | null
+  | false
+  | Record<string, boolean | string | number | null | undefined>
+  | ClassList[];
 
-export interface QwikProps<T extends Element> extends PreventDefault {
-  class?: ClassList | Signal<ClassList> | undefined;
-  dangerouslySetInnerHTML?: string | undefined;
-  ref?: Ref<T> | undefined;
-
-  /** Corresponding slot name used to project the element into. */
-  'q:slot'?: string;
-}
-
-/**
- * Allows for Event Handlers to by typed as QwikEventMap[Key] or Event
- * https://stackoverflow.com/questions/52667959/what-is-the-purpose-of-bivariancehack-in-typescript-types/52668133#52668133
- *
- * It would be great if we could override the type of EventTarget to be EL, but that gives problems
- * with assigning a user-provided `QRL<(ev: Event)=>void>` because Event doesn't match the extended
- * `Event & {target?: EL}` type.
- */
-export type BivariantEventHandler<T extends Event, EL> = {
-  bivarianceHack(event: T, element: EL): any;
+/** A DOM event handler */
+export type EventHandler<EV = Event, EL = Element> = {
+  // https://stackoverflow.com/questions/52667959/what-is-the-purpose-of-bivariancehack-in-typescript-types/52668133#52668133
+  bivarianceHack(event: EV, element: EL): any;
 }['bivarianceHack'];
 
-/** @public */
-export type NativeEventHandler<T extends Event = Event, EL = Element> =
-  | BivariantEventHandler<T, EL>
-  | QRL<BivariantEventHandler<T, EL>>[];
+export type QRLEventHandlerMulti<EV extends Event, EL> =
+  | QRL<EventHandler<EV, EL>>
+  | undefined
+  | null
+  | QRLEventHandlerMulti<EV, EL>[];
 
-/** @public */
-export type QrlEvent<Type extends Event = Event, EL = Element> = QRL<
-  BivariantEventHandler<Type, EL>
->;
-
-export interface QwikCustomEvents<El> {
-  [key: `${'document:' | 'window:' | ''}on${string}$`]:
-    | SingleOrArray<NativeEventHandler<Event, El>>
-    | SingleOrArray<Function>
-    | SingleOrArray<undefined>
-    | null;
-}
-
-type SingleOrArray<T> = T | (SingleOrArray<T> | undefined | null)[];
-
-export type QwikKnownEvents<T> = {
-  [K in keyof AllPascalEventMaps as `${'document:' | 'window:' | ''}on${K}$`]?: SingleOrArray<
-    NativeEventHandler<AllPascalEventMaps[K], T>
-  > | null;
+type QwikCustomEvents<EL> = {
+  [key: `${'document:' | 'window:' | ''}on${string}$`]: QRLEventHandlerMulti<Event, EL>;
 };
+type QwikCustomEventsPlain<EL> = {
+  /** The handler */
+  [key: `${'document:' | 'window:' | ''}on${string}$`]:
+    | QRLEventHandlerMulti<Event, EL>
+    | EventHandler<Event, EL>;
+};
+
+type QwikKnownEvents<EL> = {
+  [K in keyof AllPascalEventMaps as `${
+    | 'document:'
+    | 'window:'
+    | ''}on${K}$`]?: QRLEventHandlerMulti<AllPascalEventMaps[K], EL>;
+};
+type QwikKnownEventsPlain<EL> = {
+  [K in keyof AllPascalEventMaps as `${'document:' | 'window:' | ''}on${K}$`]?:
+    | QRLEventHandlerMulti<AllPascalEventMaps[K], EL>
+    | EventHandler<AllPascalEventMaps[K], EL>;
+};
+
 /** @public */
-export interface QwikEvents<T> extends QwikKnownEvents<T>, QwikCustomEvents<T> {}
+export type QwikEvents<EL, Plain extends boolean = true> = Plain extends true
+  ? QwikKnownEventsPlain<EL> & QwikCustomEventsPlain<EL>
+  : QwikKnownEvents<EL> & QwikCustomEvents<EL>;
 
 /** @public */
 export type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLElementTagNameMap>;
@@ -200,17 +217,14 @@ export type JSXChildren =
   | Signal<JSXChildren>
   | JSXNode;
 
-/** @public */
-export interface DOMAttributes<T extends Element, Children = JSXChildren>
-  extends QwikProps<T>,
-    QwikEvents<T> {
-  children?: Children;
+interface QwikAttributesBase extends PreventDefault {
   key?: string | number | null | undefined;
-}
+  dangerouslySetInnerHTML?: string | undefined;
+  children?: JSXChildren;
 
-type RefFnInterface<T> = {
-  (el: T): void;
-};
+  /** Corresponding slot name used to project the element into. */
+  'q:slot'?: string;
+}
 
 /**
  * A ref can be either a signal or a function. Note that the type of Signal is Element so that it
@@ -218,4 +232,26 @@ type RefFnInterface<T> = {
  *
  * @public
  */
-export type Ref<T extends Element = Element> = Signal<Element | undefined> | RefFnInterface<T>;
+export type Ref<EL extends Element = Element> = Signal<Element | undefined> | RefFnInterface<EL>;
+type RefFnInterface<EL> = {
+  (el: EL): void;
+};
+interface RefAttr<EL extends Element> {
+  ref?: Ref<EL> | undefined;
+}
+
+/** The Qwik-specific attributes that DOM elements accept @public */
+export interface DOMAttributes<EL extends Element>
+  extends QwikAttributesBase,
+    RefAttr<EL>,
+    QwikEvents<EL> {
+  class?: ClassList | Signal<ClassList> | undefined;
+}
+
+/** The Qwik DOM attributes without plain handlers, for use as function parameters */
+export interface QwikAttributes<EL extends Element>
+  extends QwikAttributesBase,
+    RefAttr<EL>,
+    QwikEvents<EL, false> {
+  class?: ClassList | undefined;
+}

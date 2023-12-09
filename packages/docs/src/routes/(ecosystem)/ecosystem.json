@@ -217,6 +217,14 @@
       "width": 90,
       "height": 90,
       "description": "A small library to integrate d3 into your Qwik project."
+    },
+    {
+      "title": "qwik-storefront-ui",
+      "github": "https://github.com/qwikifiers/qwik-storefront-ui",
+      "imgSrc": "/ecosystem/qwik-storefront-ui.png",
+      "width": 231,
+      "height": 90,
+      "description": "UI library that helps developers create storefronts"
     }
   ],
   "communities": [

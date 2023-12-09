@@ -56,10 +56,11 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
       ev.preventDefault();
     }
     const ctx = (element as any)['_qc_'] as QContext | undefined;
-    const qrls = ctx?.li.filter((li) => li[0] === attrName);
-    if (qrls && qrls.length > 0) {
-      for (const q of qrls) {
-        await q[1].getFn([element, ev], () => element.isConnected)(ev, element);
+    const relevantListeners = ctx?.li.filter((li) => li[0] === attrName);
+    if (relevantListeners && relevantListeners.length > 0) {
+      for (const listener of relevantListeners) {
+        // listener[1] holds the QRL
+        await listener[1].getFn([element, ev], () => element.isConnected)(ev, element);
       }
       return;
     }

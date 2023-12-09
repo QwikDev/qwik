@@ -59,16 +59,27 @@ export const TaskFlagsIsCleanup = 1 << 5;
  * ```tsx
  * const Cmp = component$(() => {
  *   const store = useStore({ count: 0, doubleCount: 0 });
+ *   const signal = useSignal(0);
  *   useTask$(({ track }) => {
+ *     // Any signals or stores accessed inside the task will be tracked
  *     const count = track(() => store.count);
- *     store.doubleCount = 2 * count;
+ *     // You can also pass a signal to track() directly
+ *     const signalCount = track(signal);
+ *     store.doubleCount = count + signalCount;
  *   });
  *   return (
  *     <div>
  *       <span>
  *         {store.count} / {store.doubleCount}
  *       </span>
- *       <button onClick$={() => store.count++}>+</button>
+ *       <button
+ *         onClick$={() => {
+ *           store.count++;
+ *           signal.value++;
+ *         }}
+ *       >
+ *         +
+ *       </button>
  *     </div>
  *   );
  * });
@@ -98,12 +109,15 @@ export interface Tracker {
    * Used to track the whole object. If any property of the passed store changes, the task will be
    * scheduled to run. Also accepts signals.
    *
+   * Note that the change tracking is not deep. If you want to track changes to nested properties,
+   * you need to use `track` on each of them.
+   *
    * ```tsx
-   * track(store);
-   * track(signal);
+   * track(store); // returns store
+   * track(signal); // returns signal.value
    * ```
    */
-  <T extends object>(obj: T): T;
+  <T extends object>(obj: T): T extends Signal<infer U> ? U : T;
 }
 
 /** @public */
@@ -218,9 +232,9 @@ export interface UseTaskOptions {
  *
  * ### Example
  *
- * The `useTask` function is used to observe the `state.count` property. Any changes to the
- * `state.count` cause the `taskFn` to execute which in turn updates the `state.doubleCount` to
- * the double of `state.count`.
+ * The `useTask` function is used to observe the `store.count` property. Any changes to the
+ * `store.count` cause the `taskFn` to execute which in turn updates the `store.doubleCount` to
+ * the double of `store.count`.
  *
  * ```tsx
  * const Cmp = component$(() => {
@@ -343,9 +357,9 @@ export const useComputed$: Computed = implicit$FirstArg(useComputedQrl);
  *
  * ### Example
  *
- * The `useTask` function is used to observe the `state.count` property. Any changes to the
- * `state.count` cause the `taskFn` to execute which in turn updates the `state.doubleCount` to
- * the double of `state.count`.
+ * The `useTask` function is used to observe the `store.count` property. Any changes to the
+ * `store.count` cause the `taskFn` to execute which in turn updates the `store.doubleCount` to
+ * the double of `store.count`.
  *
  * ```tsx
  * const Cmp = component$(() => {

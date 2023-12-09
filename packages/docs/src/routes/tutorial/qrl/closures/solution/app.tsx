@@ -8,8 +8,7 @@ export default component$(() => {
       <label>
         Enter your name followed by the enter key:{' '}
         <input
-          onInput$={(event) => {
-            const input = event.target as HTMLInputElement;
+          onInput$={(event, input) => {
             store.name = input.value;
           }}
           onChange$={() => {

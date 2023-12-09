@@ -1,7 +1,12 @@
 import { $, type PropFnInterface, type QRL } from '../qrl/qrl.public';
 import type { JSXNode } from '../render/jsx/types/jsx-node';
 import { OnRenderProp, QSlot } from '../util/markers';
-import type { ComponentBaseProps, JSXChildren } from '../render/jsx/types/jsx-qwik-attributes';
+import type {
+  ComponentBaseProps,
+  EventHandler,
+  JSXChildren,
+  QRLEventHandlerMulti,
+} from '../render/jsx/types/jsx-qwik-attributes';
 import type { FunctionComponent } from '../render/jsx/types/jsx-node';
 import { Virtual, _jsxC } from '../render/jsx/jsx-runtime';
 import { SERIALIZABLE_STATE } from '../container/serializers';
@@ -10,6 +15,7 @@ import { assertQrl } from '../qrl/qrl-class';
 import type { ValueOrPromise } from '../util/types';
 import { _IMMUTABLE } from '../state/constants';
 import { assertNumber } from '../error/assert';
+import type { QwikIntrinsicElements } from '../render/jsx/types/jsx-qwik-elements';
 
 /**
  * Infers `Props` from the component.
@@ -23,9 +29,13 @@ import { assertNumber } from '../error/assert';
  * @public
  */
 // </docs>
-export type PropsOf<COMP extends Component<any>> = COMP extends Component<infer PROPS>
+export type PropsOf<COMP> = COMP extends Component<infer PROPS>
   ? NonNullable<PROPS>
-  : never;
+  : COMP extends FunctionComponent<infer PROPS>
+    ? NonNullable<PublicProps<PROPS>>
+    : COMP extends string
+      ? QwikIntrinsicElements[COMP]
+      : Record<string, unknown>;
 
 /**
  * Type representing the Qwik component.
@@ -43,7 +53,9 @@ export type PropsOf<COMP extends Component<any>> = COMP extends Component<infer 
  *
  * @public
  */
-export type Component<PROPS extends Record<any, any>> = FunctionComponent<PublicProps<PROPS>>;
+export type Component<PROPS extends Record<any, any> = Record<string, unknown>> = FunctionComponent<
+  PublicProps<PROPS>
+>;
 
 export type ComponentChildren<PROPS extends Record<any, any>> = PROPS extends {
   children: any;
@@ -65,16 +77,19 @@ export type PublicProps<PROPS extends Record<any, any>> = TransformProps<PROPS> 
  * @public
  */
 export type TransformProps<PROPS extends Record<any, any>> = {
-  [K in keyof PROPS]: TransformProp<PROPS[K]>;
+  [K in keyof PROPS]: TransformProp<PROPS[K], K>;
 };
 
 /** @public */
-export type TransformProp<T> = NonNullable<T> extends (...args: infer ARGS) => infer RET
+export type TransformProp<T, K> = NonNullable<T> extends (...args: infer ARGS) => infer RET
   ? (...args: ARGS) => ValueOrPromise<Awaited<RET>>
-  : T;
-
-/** @public */
-export type EventHandler<T> = QRL<(value: T) => any>;
+  : T extends QRLEventHandlerMulti<infer EV, infer EL>
+    ? EventHandler<EV, EL> | T
+    : K extends `${string}$`
+      ? T extends QRL<infer U>
+        ? T | U
+        : T
+      : T;
 
 // const ELEMENTS_SKIP_KEY: JSXTagName[] = ['html', 'body', 'head'];
 
@@ -158,8 +173,8 @@ export const componentQrl = <PROPS extends Record<any, any>>(
   return QwikComponent as any;
 };
 
-export const isQwikComponent = (component: any): component is Component<any> => {
-  return typeof component == 'function' && component[SERIALIZABLE_STATE] !== undefined;
+export const isQwikComponent = <T extends Component<any>>(component: unknown): component is T => {
+  return typeof component == 'function' && (component as any)[SERIALIZABLE_STATE] !== undefined;
 };
 
 /** @public */

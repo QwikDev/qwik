@@ -76,8 +76,7 @@ export const App = component$(() => {
           Try interacting with this component by changing{" "}
           <input
             value={state.name}
-            onInput$={(event) => {
-              const input = event.target as HTMLInputElement;
+            onInput$={(event, input) => {
               state.name = input.value;
             }}
           ></input>

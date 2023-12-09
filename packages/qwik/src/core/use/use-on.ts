@@ -3,15 +3,15 @@ import type { QRL } from '../qrl/qrl.public';
 import { getContext, HOST_FLAG_NEED_ATTACH_LISTENER } from '../state/context';
 import { type Listener, normalizeOnProp } from '../state/listeners';
 import { useInvokeContext } from './use-core';
-import { type PascalCaseEventLiteralType } from '../render/jsx/types/jsx-qwik-events';
+import { type KnownEventNames } from '../render/jsx/types/jsx-qwik-events';
 import type {
-  BivariantEventHandler,
+  EventHandler,
   EventFromName,
-  QwikKeysEvents,
+  AllEventKeys,
 } from '../render/jsx/types/jsx-qwik-attributes';
 
-export type EventQRL<T extends string = QwikKeysEvents> =
-  | QRL<BivariantEventHandler<EventFromName<T>, Element>>
+export type EventQRL<T extends string = AllEventKeys> =
+  | QRL<EventHandler<EventFromName<T>, Element>>
   | undefined;
 
 // <docs markdown="../readme.md#useOn">
@@ -27,10 +27,7 @@ export type EventQRL<T extends string = QwikKeysEvents> =
  * @see `useOn`, `useOnWindow`, `useOnDocument`.
  */
 // </docs>
-export const useOn = <T extends PascalCaseEventLiteralType>(
-  event: T | T[],
-  eventQrl: EventQRL<T>
-) => {
+export const useOn = <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => {
   _useOn(createEventName(event, undefined), eventQrl);
 };
 
@@ -63,10 +60,7 @@ export const useOn = <T extends PascalCaseEventLiteralType>(
  * ```
  */
 // </docs>
-export const useOnDocument = <T extends PascalCaseEventLiteralType>(
-  event: T | T[],
-  eventQrl: EventQRL<T>
-) => {
+export const useOnDocument = <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => {
   _useOn(createEventName(event, 'document'), eventQrl);
 };
 
@@ -100,15 +94,12 @@ export const useOnDocument = <T extends PascalCaseEventLiteralType>(
  * ```
  */
 // </docs>
-export const useOnWindow = <T extends PascalCaseEventLiteralType>(
-  event: T | T[],
-  eventQrl: EventQRL<T>
-) => {
+export const useOnWindow = <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => {
   _useOn(createEventName(event, 'window'), eventQrl);
 };
 
 const createEventName = (
-  event: PascalCaseEventLiteralType | PascalCaseEventLiteralType[],
+  event: KnownEventNames | KnownEventNames[],
   eventType: 'window' | 'document' | undefined
 ) => {
   const formattedEventType = eventType !== undefined ? eventType + ':' : '';

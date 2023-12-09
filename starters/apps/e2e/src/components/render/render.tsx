@@ -12,7 +12,7 @@ import {
   SkipRender,
   SSRRaw,
   HTMLFragment,
-  type QwikIntrinsicElements,
+  type PropsOf,
   Slot,
 } from "@builder.io/qwik";
 import { delay } from "../streaming/demo";
@@ -836,7 +836,7 @@ export const HTMLFragmentTest = component$(() => {
   );
 });
 
-type A = QwikIntrinsicElements["button"];
+type A = PropsOf<"button">;
 
 export interface TestAProps extends A {}
 

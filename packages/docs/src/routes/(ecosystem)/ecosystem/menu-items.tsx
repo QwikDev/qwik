@@ -193,10 +193,10 @@ export const MenuItems = () => {
             xmlns="http://www.w3.org/2000/svg"
             aria-hidden="true"
           >
-            <g fill="none" stroke="currentColor" strokeLinejoin="round" strokeWidth="4">
+            <g fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="4">
               <path d="M8 7h32v24H8z"></path>
               <path
-                strokeLinecap="round"
+                stroke-linecap="round"
                 d="M4 7h40M15 41l9-10l9 10M16 13h16m-16 6h12m-12 6h6"
               ></path>
             </g>

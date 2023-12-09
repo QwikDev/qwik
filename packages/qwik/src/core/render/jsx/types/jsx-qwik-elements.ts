@@ -1,16 +1,9 @@
-import type { HTMLAttributes, IntrinsicHTMLElements } from './jsx-generated';
-
-/** All unknown attributes are allowed */
-interface QwikCustomHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-  [key: string]: any;
-}
-
-/**
- * Any custom DOM element.
- *
- * @public
- */
-interface QwikCustomHTMLElement extends Element {}
+import type {
+  IntrinsicHTMLElements,
+  IntrinsicSVGElements,
+  QwikHTMLElements,
+  QwikSVGElements,
+} from './jsx-generated';
 
 /** @public */
 export interface QwikIntrinsicAttributes {
@@ -37,12 +30,14 @@ export interface QwikIntrinsicAttributes {
  * });
  * ```
  *
+ * Note: It is shorter to use `PropsOf<'div'>`
+ *
  * @public
  */
-export interface QwikIntrinsicElements extends IntrinsicHTMLElements {
-  /**
-   * Custom DOM elements can have any name We need to add the empty object to match the type with
-   * the Intrinsic elements
-   */
-  [key: string]: {} | QwikCustomHTMLAttributes<QwikCustomHTMLElement>;
-}
+export interface QwikIntrinsicElements extends QwikHTMLElements, QwikSVGElements {}
+
+/**
+ * These definitions are for the JSX namespace, they allow passing plain event handlers instead of
+ * QRLs
+ */
+export interface LenientQwikElements extends IntrinsicHTMLElements, IntrinsicSVGElements {}

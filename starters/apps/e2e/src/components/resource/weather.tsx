@@ -60,7 +60,7 @@ export const Weather = component$(() => {
         name="city"
         autoComplete="off"
         placeholder="City name"
-        onInput$={(ev) => (state.city = (ev.target as any).value)}
+        onInput$={(ev, el) => (state.city = el.value)}
       />
       <WeatherResults2 weather={weather} />
     </div>

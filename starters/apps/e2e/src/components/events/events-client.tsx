@@ -14,8 +14,8 @@ export const EventsClient = component$(() => {
           id="input"
           onInput$={
             enabled.value
-              ? $((ev: any) => {
-                  input.value = ev.target.value;
+              ? $((ev, el) => {
+                  input.value = el.value;
                 })
               : undefined
           }

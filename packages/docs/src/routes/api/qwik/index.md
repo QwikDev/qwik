@@ -10,6 +10,72 @@ title: \@builder.io/qwik API Reference
 'q:slot'?: string;
 ```
 
+## "xlink:actuate"
+
+```typescript
+'xlink:actuate'?: string | undefined;
+```
+
+## "xlink:arcrole"
+
+```typescript
+'xlink:arcrole'?: string | undefined;
+```
+
+## "xlink:href"
+
+```typescript
+'xlink:href'?: string | undefined;
+```
+
+## "xlink:role"
+
+```typescript
+'xlink:role'?: string | undefined;
+```
+
+## "xlink:show"
+
+```typescript
+'xlink:show'?: string | undefined;
+```
+
+## "xlink:title"
+
+```typescript
+'xlink:title'?: string | undefined;
+```
+
+## "xlink:type"
+
+```typescript
+'xlink:type'?: string | undefined;
+```
+
+## "xml:base"
+
+```typescript
+'xml:base'?: string | undefined;
+```
+
+## "xml:lang"
+
+```typescript
+'xml:lang'?: string | undefined;
+```
+
+## "xml:space"
+
+```typescript
+'xml:space'?: string | undefined;
+```
+
+## "xmlns:xlink"
+
+```typescript
+'xmlns:xlink'?: string | undefined;
+```
+
 ## $
 
 Qwik Optimizer marker function.
@@ -25,20 +91,20 @@ $: <T>(expression: T) => QRL<T>;
 ## AnchorHTMLAttributes
 
 ```typescript
-export interface AnchorHTMLAttributes<T extends Element> extends HTMLAttributes<T>, AnchorAttrs
+export interface AnchorHTMLAttributes<T extends Element> extends Attrs<'a', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;, AnchorAttrs
+**Extends:** Attrs&lt;'a', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## AreaHTMLAttributes
 
 ```typescript
-export interface AreaHTMLAttributes<T extends Element> extends HTMLAttributes<T, false>, AreaAttrs
+export interface AreaHTMLAttributes<T extends Element> extends Attrs<'area', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T, false&gt;, AreaAttrs
+**Extends:** Attrs&lt;'area', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -184,30 +250,30 @@ export type AriaRole =
 ## AudioHTMLAttributes
 
 ```typescript
-export interface AudioHTMLAttributes<T extends Element> extends HTMLAttributes<T>, AudioAttrs
+export interface AudioHTMLAttributes<T extends Element> extends Attrs<'audio', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;, AudioAttrs
+**Extends:** Attrs&lt;'audio', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## BaseHTMLAttributes
 
 ```typescript
-export interface BaseHTMLAttributes<T extends Element> extends HTMLAttributes<T, undefined>, BaseAttrs
+export interface BaseHTMLAttributes<T extends Element> extends Attrs<'base', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T, undefined&gt;, BaseAttrs
+**Extends:** Attrs&lt;'base', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## BlockquoteHTMLAttributes
 
 ```typescript
-export interface BlockquoteHTMLAttributes<T extends Element> extends HTMLAttributes<T>, BlockquoteAttrs
+export interface BlockquoteHTMLAttributes<T extends Element> extends Attrs<'blockquote', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;, BlockquoteAttrs
+**Extends:** Attrs&lt;'blockquote', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -222,10 +288,10 @@ export type Booleanish = boolean | `${boolean}`;
 ## ButtonHTMLAttributes
 
 ```typescript
-export interface ButtonHTMLAttributes<T extends Element> extends HTMLAttributes<T>, ButtonAttrs
+export interface ButtonHTMLAttributes<T extends Element> extends Attrs<'button', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;, ButtonAttrs
+**Extends:** Attrs&lt;'button', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -246,10 +312,10 @@ void
 ## CanvasHTMLAttributes
 
 ```typescript
-export interface CanvasHTMLAttributes<T extends Element> extends HTMLAttributes<T>, CanvasAttrs
+export interface CanvasHTMLAttributes<T extends Element> extends Attrs<'canvas', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;, CanvasAttrs
+**Extends:** Attrs&lt;'canvas', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -262,8 +328,16 @@ If it's an array, each item is a class list and they are all added.
 If it's an object, then the keys are class name strings, and the values are booleans that determine if the class name string should be added or not.
 
 ```typescript
-export type ClassList = BaseClassList | BaseClassList[];
+export type ClassList =
+  | string
+  | undefined
+  | null
+  | false
+  | Record<string, boolean | string | number | null | undefined>
+  | ClassList[];
 ```
+
+**References:** [ClassList](#classlist)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts)
 
@@ -280,24 +354,20 @@ void
 ## ColgroupHTMLAttributes
 
 ```typescript
-export interface ColgroupHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface ColgroupHTMLAttributes<T extends Element> extends Attrs<'colgroup', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property   | Modifiers | Type                | Description  |
-| ---------- | --------- | ------------------- | ------------ |
-| [span?](#) |           | number \| undefined | _(Optional)_ |
+**Extends:** Attrs&lt;'colgroup', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## ColHTMLAttributes
 
 ```typescript
-export interface ColHTMLAttributes<T extends Element> extends HTMLAttributes<T, undefined>, ColAttrs
+export interface ColHTMLAttributes<T extends Element> extends Attrs<'col', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T, undefined&gt;, ColAttrs
+**Extends:** Attrs&lt;'col', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -319,9 +389,9 @@ const MyComponent: Component<MyComponentProps> = component$(
 ```
 
 ```typescript
-export type Component<PROPS extends Record<any, any>> = FunctionComponent<
-  PublicProps<PROPS>
->;
+export type Component<
+  PROPS extends Record<any, any> = Record<string, unknown>,
+> = FunctionComponent<PublicProps<PROPS>>;
 ```
 
 **References:** [FunctionComponent](#functioncomponent), [PublicProps](#publicprops)
@@ -520,6 +590,23 @@ export interface CorePlatform
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/platform/types.ts)
 
+## CorrectedToggleEvent
+
+This corrects the TS definition for ToggleEvent
+
+```typescript
+export interface CorrectedToggleEvent extends Event
+```
+
+**Extends:** Event
+
+| Property       | Modifiers             | Type               | Description |
+| -------------- | --------------------- | ------------------ | ----------- |
+| [newState](#)  | <code>readonly</code> | 'open' \| 'closed' |             |
+| [prevState](#) | <code>readonly</code> | 'open' \| 'closed' |             |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts)
+
 ## createContextId
 
 Create a context ID to be used in your application. The name should be written with no spaces.
@@ -583,39 +670,30 @@ export interface CSSProperties extends CSS.Properties<string | number>, CSS.Prop
 ## DataHTMLAttributes
 
 ```typescript
-export interface DataHTMLAttributes<T extends Element> extends HTMLAttributes<T>, DataAttrs
+export interface DataHTMLAttributes<T extends Element> extends Attrs<'data', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;, DataAttrs
+**Extends:** Attrs&lt;'data', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## DelHTMLAttributes
 
 ```typescript
-export interface DelHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface DelHTMLAttributes<T extends Element> extends Attrs<'del', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property       | Modifiers | Type                | Description  |
-| -------------- | --------- | ------------------- | ------------ |
-| [cite?](#)     |           | string \| undefined | _(Optional)_ |
-| [dateTime?](#) |           | string \| undefined | _(Optional)_ |
+**Extends:** Attrs&lt;'del', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## DetailsHTMLAttributes
 
 ```typescript
-export interface DetailsHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface DetailsHTMLAttributes<T extends Element> extends Attrs<'details', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property   | Modifiers | Type                 | Description  |
-| ---------- | --------- | -------------------- | ------------ |
-| [open?](#) |           | boolean \| undefined | _(Optional)_ |
+**Extends:** Attrs&lt;'details', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -637,29 +715,26 @@ export interface DevJSX
 ## DialogHTMLAttributes
 
 ```typescript
-export interface DialogHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface DialogHTMLAttributes<T extends Element> extends Attrs<'dialog', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property   | Modifiers | Type                 | Description  |
-| ---------- | --------- | -------------------- | ------------ |
-| [open?](#) |           | boolean \| undefined | _(Optional)_ |
+**Extends:** Attrs&lt;'dialog', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## DOMAttributes
 
+The Qwik-specific attributes that DOM elements accept
+
 ```typescript
-export interface DOMAttributes<T extends Element, Children = JSXChildren> extends QwikProps<T>, QwikEvents<T>
+export interface DOMAttributes<EL extends Element> extends QwikAttributesBase, RefAttr<EL>, QwikEvents<EL>
 ```
 
-**Extends:** QwikProps&lt;T&gt;, QwikEvents&lt;T&gt;
+**Extends:** QwikAttributesBase, RefAttr&lt;EL&gt;, QwikEvents&lt;EL&gt;
 
-| Property       | Modifiers | Type                                  | Description  |
-| -------------- | --------- | ------------------------------------- | ------------ |
-| [children?](#) |           | Children                              | _(Optional)_ |
-| [key?](#)      |           | string \| number \| null \| undefined | _(Optional)_ |
+| Property    | Modifiers | Type                                                                                     | Description  |
+| ----------- | --------- | ---------------------------------------------------------------------------------------- | ------------ |
+| [class?](#) |           | [ClassList](#classlist) \| [Signal](#signal)&lt;[ClassList](#classlist)&gt; \| undefined | _(Optional)_ |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts)
 
@@ -689,13 +764,21 @@ interface ElementChildrenAttribute
 | -------------- | --------- | ---- | ------------ |
 | [children?](#) |           | any  | _(Optional)_ |
 
+## ElementType
+
+```typescript
+type ElementType = string | ((...args: any[]) => JSXNode | null);
+```
+
+**References:** [JSXNode](#jsxnode)
+
 ## EmbedHTMLAttributes
 
 ```typescript
-export interface EmbedHTMLAttributes<T extends Element> extends HTMLAttributes<T, undefined>, EmbedAttrs
+export interface EmbedHTMLAttributes<T extends Element> extends Attrs<'embed', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T, undefined&gt;, EmbedAttrs
+**Extends:** Attrs&lt;'embed', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -730,20 +813,20 @@ eventQrl: <T>(qrl: QRL<T>) => QRL<T>;
 ## FieldsetHTMLAttributes
 
 ```typescript
-export interface FieldsetHTMLAttributes<T extends Element> extends HTMLAttributes<T>, FieldSetAttrs
+export interface FieldsetHTMLAttributes<T extends Element> extends Attrs<'fieldset', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;, FieldSetAttrs
+**Extends:** Attrs&lt;'fieldset', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## FormHTMLAttributes
 
 ```typescript
-export interface FormHTMLAttributes<T extends Element> extends HTMLAttributes<T>, FormAttrs
+export interface FormHTMLAttributes<T extends Element> extends Attrs<'form', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;, FormAttrs
+**Extends:** Attrs&lt;'form', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -825,10 +908,10 @@ export declare namespace h
 ## HrHTMLAttributes
 
 ```typescript
-export interface HrHTMLAttributes<T extends Element> extends HTMLAttributes<T, undefined>
+export interface HrHTMLAttributes<T extends Element> extends Attrs<'hr', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T, undefined&gt;
+**Extends:** Attrs&lt;'hr', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -856,10 +939,10 @@ export type HTMLAttributeReferrerPolicy = ReferrerPolicy;
 ## HTMLAttributes
 
 ```typescript
-export interface HTMLAttributes<E extends Element, Children = JSXChildren> extends HTMLAttributesBase<E, Children>, Partial<Omit<HTMLElement, BadOnes<HTMLElement>>>
+export interface HTMLAttributes<E extends Element> extends HTMLElementAttrs, DOMAttributes<E>
 ```
 
-**Extends:** HTMLAttributesBase&lt;E, Children&gt;, Partial&lt;Omit&lt;HTMLElement, BadOnes&lt;HTMLElement&gt;&gt;&gt;
+**Extends:** HTMLElementAttrs, [DOMAttributes](#domattributes)&lt;E&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -888,14 +971,10 @@ HTMLFragment: FunctionComponent<{
 ## HtmlHTMLAttributes
 
 ```typescript
-export interface HtmlHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface HtmlHTMLAttributes<T extends Element> extends Attrs<'html', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property       | Modifiers | Type                | Description  |
-| -------------- | --------- | ------------------- | ------------ |
-| [manifest?](#) |           | string \| undefined | _(Optional)_ |
+**Extends:** Attrs&lt;'html', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -989,20 +1068,20 @@ export type HTMLInputTypeAttribute =
 ## IframeHTMLAttributes
 
 ```typescript
-export interface IframeHTMLAttributes<T extends Element> extends HTMLAttributes<T, undefined>, IframeAttrs
+export interface IframeHTMLAttributes<T extends Element> extends Attrs<'iframe', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T, undefined&gt;, IframeAttrs
+**Extends:** Attrs&lt;'iframe', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## ImgHTMLAttributes
 
 ```typescript
-export interface ImgHTMLAttributes<T extends Element> extends HTMLAttributes<T, undefined>, ImgAttrs
+export interface ImgHTMLAttributes<T extends Element> extends Attrs<'img', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T, undefined&gt;, ImgAttrs
+**Extends:** Attrs&lt;'img', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -1050,25 +1129,22 @@ implicit$FirstArg: <FIRST, REST extends any[], RET>(
 ## InputHTMLAttributes
 
 ```typescript
-export interface InputHTMLAttributes<T extends Element> extends HTMLAttributes<T, undefined>, InputAttrs
+export type InputHTMLAttributes<T extends Element> = Attrs<
+  "input",
+  T,
+  HTMLInputElement
+>;
 ```
-
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T, undefined&gt;, InputAttrs
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## InsHTMLAttributes
 
 ```typescript
-export interface InsHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface InsHTMLAttributes<T extends Element> extends Attrs<'ins', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property       | Modifiers | Type                | Description  |
-| -------------- | --------- | ------------------- | ------------ |
-| [cite?](#)     |           | string \| undefined | _(Optional)_ |
-| [dateTime?](#) |           | string \| undefined | _(Optional)_ |
+**Extends:** Attrs&lt;'ins', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -1087,31 +1163,6 @@ interface IntrinsicElements extends QwikJSX.IntrinsicElements
 ```
 
 **Extends:** [QwikJSX.IntrinsicElements](#)
-
-## IntrinsicHTMLElements
-
-```typescript
-export interface IntrinsicHTMLElements extends QwikHTMLExceptions, PlainHTMLElements
-```
-
-**Extends:** QwikHTMLExceptions, PlainHTMLElements
-
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
-
-## IntrinsicSVGElements
-
-```typescript
-export type IntrinsicSVGElements = {
-  [K in keyof Omit<
-    SVGElementTagNameMap,
-    keyof HTMLElementTagNameMap
-  >]: SVGProps<SVGElementTagNameMap[K]>;
-};
-```
-
-**References:** [SVGProps](#svgprops)
-
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## isSignal
 
@@ -1218,110 +1269,111 @@ export type JSXTagName =
 
 ## KeygenHTMLAttributes
 
+> Warning: This API is now obsolete.
+>
+> in html5
+
 ```typescript
-export interface KeygenHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface KeygenHTMLAttributes<T extends Element> extends Attrs<'base', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property        | Modifiers | Type                 | Description  |
-| --------------- | --------- | -------------------- | ------------ |
-| [autoFocus?](#) |           | boolean \| undefined | _(Optional)_ |
-| [challenge?](#) |           | string \| undefined  | _(Optional)_ |
-| [children?](#)  |           | undefined            | _(Optional)_ |
-| [disabled?](#)  |           | boolean \| undefined | _(Optional)_ |
-| [form?](#)      |           | string \| undefined  | _(Optional)_ |
-| [keyParams?](#) |           | string \| undefined  | _(Optional)_ |
-| [keyType?](#)   |           | string \| undefined  | _(Optional)_ |
-| [name?](#)      |           | string \| undefined  | _(Optional)_ |
+**Extends:** Attrs&lt;'base', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## KnownEventNames
+
+The names of events that Qwik knows about. They are all lowercase, but on the JSX side, they are PascalCase for nicer DX. (`onAuxClick$` vs `onauxclick$`)
+
+```typescript
+export type KnownEventNames = LiteralUnion<AllEventKeys, string>;
+```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## LabelHTMLAttributes
 
 ```typescript
-export interface LabelHTMLAttributes<T extends Element> extends HTMLAttributes<T>, LabelAttrs
+export interface LabelHTMLAttributes<T extends Element> extends Attrs<'label', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;, LabelAttrs
+**Extends:** Attrs&lt;'label', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## LiHTMLAttributes
 
 ```typescript
-export interface LiHTMLAttributes<T extends Element> extends HTMLAttributes<T>, LiAttrs
+export interface LiHTMLAttributes<T extends Element> extends Attrs<'li', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;, LiAttrs
+**Extends:** Attrs&lt;'li', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## LinkHTMLAttributes
 
 ```typescript
-export interface LinkHTMLAttributes<T extends Element> extends HTMLAttributes<T, undefined>, LinkAttrs
+export interface LinkHTMLAttributes<T extends Element> extends Attrs<'link', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T, undefined&gt;, LinkAttrs
+**Extends:** Attrs&lt;'link', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## MapHTMLAttributes
 
 ```typescript
-export interface MapHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface MapHTMLAttributes<T extends Element> extends Attrs<'map', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property   | Modifiers | Type                | Description  |
-| ---------- | --------- | ------------------- | ------------ |
-| [name?](#) |           | string \| undefined | _(Optional)_ |
+**Extends:** Attrs&lt;'map', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## MediaHTMLAttributes
 
 ```typescript
-export interface MediaHTMLAttributes<T extends Element> extends HTMLAttributes<T>, MediaAttrs
+export interface MediaHTMLAttributes<T extends Element> extends HTMLAttributes<T>, Augmented<HTMLMediaElement, {
+    crossOrigin?: HTMLCrossOriginAttribute;
+}>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;, MediaAttrs
+**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;, Augmented&lt;HTMLMediaElement, { crossOrigin?: [HTMLCrossOriginAttribute](#htmlcrossoriginattribute); }&gt;
+
+| Property          | Modifiers | Type                                                  | Description  |
+| ----------------- | --------- | ----------------------------------------------------- | ------------ |
+| [crossOrigin?](#) |           | [HTMLCrossOriginAttribute](#htmlcrossoriginattribute) | _(Optional)_ |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## MenuHTMLAttributes
 
 ```typescript
-export interface MenuHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface MenuHTMLAttributes<T extends Element> extends Attrs<'menu', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property   | Modifiers | Type                | Description  |
-| ---------- | --------- | ------------------- | ------------ |
-| [type?](#) |           | string \| undefined | _(Optional)_ |
+**Extends:** Attrs&lt;'menu', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## MetaHTMLAttributes
 
 ```typescript
-export interface MetaHTMLAttributes<T extends Element> extends HTMLAttributes<T, undefined>, MetaAttrs
+export interface MetaHTMLAttributes<T extends Element> extends Attrs<'meta', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T, undefined&gt;, MetaAttrs
+**Extends:** Attrs&lt;'meta', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## MeterHTMLAttributes
 
 ```typescript
-export interface MeterHTMLAttributes<T extends Element> extends HTMLAttributes<T>, MeterAttrs
+export interface MeterHTMLAttributes<T extends Element> extends Attrs<'meter', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;, MeterAttrs
+**Extends:** Attrs&lt;'meter', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -1512,20 +1564,20 @@ export type Numberish = number | `${number}`;
 ## ObjectHTMLAttributes
 
 ```typescript
-export interface ObjectHTMLAttributes<T extends Element> extends HTMLAttributes<T>, ObjectAttrs
+export interface ObjectHTMLAttributes<T extends Element> extends Attrs<'object', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;, ObjectAttrs
+**Extends:** Attrs&lt;'object', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## OlHTMLAttributes
 
 ```typescript
-export interface OlHTMLAttributes<T extends Element> extends HTMLAttributes<T>, OlAttrs
+export interface OlHTMLAttributes<T extends Element> extends Attrs<'ol', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;, OlAttrs
+**Extends:** Attrs&lt;'ol', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -1556,35 +1608,30 @@ export interface OnVisibleTaskOptions
 ## OptgroupHTMLAttributes
 
 ```typescript
-export interface OptgroupHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface OptgroupHTMLAttributes<T extends Element> extends Attrs<'optgroup', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property       | Modifiers | Type                 | Description  |
-| -------------- | --------- | -------------------- | ------------ |
-| [disabled?](#) |           | boolean \| undefined | _(Optional)_ |
-| [label?](#)    |           | string \| undefined  | _(Optional)_ |
+**Extends:** Attrs&lt;'optgroup', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## OptionHTMLAttributes
 
 ```typescript
-export interface OptionHTMLAttributes<T extends Element> extends HTMLAttributes<T, string>, OptionAttrs
+export interface OptionHTMLAttributes<T extends Element> extends Attrs<'option', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T, string&gt;, OptionAttrs
+**Extends:** Attrs&lt;'option', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## OutputHTMLAttributes
 
 ```typescript
-export interface OutputHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface OutputHTMLAttributes<T extends Element> extends Attrs<'output', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
+**Extends:** Attrs&lt;'output', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -1595,20 +1642,20 @@ export interface OutputHTMLAttributes<T extends Element> extends HTMLAttributes<
 > Old DOM API
 
 ```typescript
-export interface ParamHTMLAttributes<T extends Element> extends HTMLAttributes<T, undefined>, ParamAttrs
+export interface ParamHTMLAttributes<T extends Element> extends Attrs<'base', T, HTMLParamElement>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T, undefined&gt;, ParamAttrs
+**Extends:** Attrs&lt;'base', T, HTMLParamElement&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## ProgressHTMLAttributes
 
 ```typescript
-export interface ProgressHTMLAttributes<T extends Element> extends HTMLAttributes<T>, ProgressAttrs
+export interface ProgressHTMLAttributes<T extends Element> extends Attrs<'progress', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;, ProgressAttrs
+**Extends:** Attrs&lt;'progress', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -1662,14 +1709,16 @@ export const OtherComponent = component$(() => {
 ```
 
 ```typescript
-export type PropsOf<COMP extends Component<any>> = COMP extends Component<
-  infer PROPS
->
+export type PropsOf<COMP> = COMP extends Component<infer PROPS>
   ? NonNullable<PROPS>
-  : never;
+  : COMP extends FunctionComponent<infer PROPS>
+    ? NonNullable<PublicProps<PROPS>>
+    : COMP extends string
+      ? QwikIntrinsicElements[COMP]
+      : Record<string, unknown>;
 ```
 
-**References:** [Component](#component)
+**References:** [Component](#component), [FunctionComponent](#functioncomponent), [PublicProps](#publicprops), [QwikIntrinsicElements](#qwikintrinsicelements)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts)
 
@@ -1723,14 +1772,10 @@ qrl: <T = any>(
 ## QuoteHTMLAttributes
 
 ```typescript
-export interface QuoteHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface QuoteHTMLAttributes<T extends Element> extends Attrs<'q', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property   | Modifiers | Type                | Description  |
-| ---------- | --------- | ------------------- | ------------ |
-| [cite?](#) |           | string \| undefined | _(Optional)_ |
+**Extends:** Attrs&lt;'q', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -1826,6 +1871,48 @@ export type QwikFocusEvent<T = Element> = NativeFocusEvent;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
+## QwikHTMLElements
+
+The DOM props without plain handlers, for use inside functions
+
+```typescript
+export type QwikHTMLElements = {
+  [tag in keyof HTMLElementTagNameMap]: Augmented<
+    HTMLElementTagNameMap[tag],
+    SpecialAttrs[tag]
+  > &
+    HTMLElementAttrs &
+    QwikAttributes<HTMLElementTagNameMap[tag]>;
+} & {
+  [unknownTag: string]: {
+    [prop: string]: any;
+  } & HTMLElementAttrs &
+    QwikAttributes<any>;
+};
+```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## QwikIdleEvent
+
+Emitted by qwik-loader on document when the document first becomes idle
+
+```typescript
+export type QwikIdleEvent = CustomEvent<{}>;
+```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
+
+## QwikInitEvent
+
+Emitted by qwik-loader on document when the document first becomes interactive
+
+```typescript
+export type QwikInitEvent = CustomEvent<{}>;
+```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
+
 ## QwikIntrinsicElements
 
 The interface holds available attributes of both native DOM elements and custom Qwik elements. An example showing how to define a customizable wrapper component:
@@ -1846,11 +1933,13 @@ export default component$<WrapperProps>(({ attributes }) => {
 });
 ```
 
+Note: It is shorter to use `PropsOf<'div'>`
+
 ```typescript
-export interface QwikIntrinsicElements extends IntrinsicHTMLElements
+export interface QwikIntrinsicElements extends QwikHTMLElements, QwikSVGElements
 ```
 
-**Extends:** [IntrinsicHTMLElements](#intrinsichtmlelements)
+**Extends:** [QwikHTMLElements](#qwikhtmlelements), [QwikSVGElements](#qwiksvgelements)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-elements.ts)
 
@@ -1878,6 +1967,10 @@ export declare namespace QwikJSX
 | [ElementChildrenAttribute](#) |             |
 | [IntrinsicAttributes](#)      |             |
 | [IntrinsicElements](#)        |             |
+
+| Type Alias                          | Description |
+| ----------------------------------- | ----------- |
+| [ElementType](#qwikjsx-elementtype) |             |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik.ts)
 
@@ -1934,6 +2027,23 @@ export type QwikSubmitEvent<T = Element> = Event;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
+
+## QwikSVGElements
+
+The SVG props without plain handlers, for use inside functions
+
+```typescript
+export type QwikSVGElements = {
+  [K in keyof Omit<
+    SVGElementTagNameMap,
+    keyof HTMLElementTagNameMap
+  >]: SVGProps<SVGElementTagNameMap[K]>;
+};
+```
+
+**References:** [SVGProps](#svgprops)
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## QwikSymbolEvent
 
@@ -2111,27 +2221,22 @@ Example showing how `useResource` to perform a fetch to request the weather, whe
 
 ```tsx
 const Cmp = component$(() => {
-  const store = useStore({
-    city: "",
-  });
+  const cityS = useSignal("");
 
-  const weatherResource = useResource$<any>(async ({ track, cleanup }) => {
-    const cityName = track(() => store.city);
+  const weatherResource = useResource$(async ({ track, cleanup }) => {
+    const cityName = track(cityS);
     const abortController = new AbortController();
     cleanup(() => abortController.abort("cleanup"));
     const res = await fetch(`http://weatherdata.com?city=${cityName}`, {
       signal: abortController.signal,
     });
-    const data = res.json();
-    return data;
+    const data = await res.json();
+    return data as { temp: number };
   });
 
   return (
     <div>
-      <input
-        name="city"
-        onInput$={(ev: any) => (store.city = ev.target.value)}
-      />
+      <input name="city" bind:value={cityS} />
       <Resource
         value={weatherResource}
         onResolved={(weather) => {
@@ -2261,20 +2366,20 @@ export type ResourceReturn<T> =
 ## ScriptHTMLAttributes
 
 ```typescript
-export interface ScriptHTMLAttributes<T extends Element> extends HTMLAttributes<T>, ScriptAttrs
+export interface ScriptHTMLAttributes<T extends Element> extends Attrs<'script', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;, ScriptAttrs
+**Extends:** Attrs&lt;'script', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## SelectHTMLAttributes
 
 ```typescript
-export interface SelectHTMLAttributes<T extends Element> extends HTMLAttributes<T>, SelectAttrs
+export interface SelectHTMLAttributes<T extends Element> extends Attrs<'select', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;, SelectAttrs
+**Extends:** Attrs&lt;'select', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -2333,14 +2438,10 @@ Slot: FunctionComponent<{
 ## SlotHTMLAttributes
 
 ```typescript
-export interface SlotHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface SlotHTMLAttributes<T extends Element> extends Attrs<'slot', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property   | Modifiers | Type                | Description  |
-| ---------- | --------- | ------------------- | ------------ |
-| [name?](#) |           | string \| undefined | _(Optional)_ |
+**Extends:** Attrs&lt;'slot', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -2418,10 +2519,10 @@ export interface SnapshotState
 ## SourceHTMLAttributes
 
 ```typescript
-export interface SourceHTMLAttributes<T extends Element> extends HTMLAttributes<T, undefined>, SourceAttrs
+export interface SourceHTMLAttributes<T extends Element> extends Attrs<'source', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T, undefined&gt;, SourceAttrs
+**Extends:** Attrs&lt;'source', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -2513,10 +2614,10 @@ export type StreamWriter = {
 ## StyleHTMLAttributes
 
 ```typescript
-export interface StyleHTMLAttributes<T extends Element> extends HTMLAttributes<T, string>, StyleAttrs
+export interface StyleHTMLAttributes<T extends Element> extends Attrs<'style', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T, string&gt;, StyleAttrs
+**Extends:** Attrs&lt;'style', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -2524,292 +2625,294 @@ export interface StyleHTMLAttributes<T extends Element> extends HTMLAttributes<T
 
 The TS types don't include the SVG attributes so we have to define them ourselves
 
+NOTE: These props are probably not complete
+
 ```typescript
-export interface SVGAttributes<T extends Element> extends AriaAttributes, DOMAttributes<T>
+export interface SVGAttributes<T extends Element = Element> extends AriaAttributes
 ```
 
-**Extends:** [AriaAttributes](#ariaattributes), [DOMAttributes](#domattributes)&lt;T&gt;
+**Extends:** [AriaAttributes](#ariaattributes)
 
-| Property                             | Modifiers | Type                                                                                                                                                                                                                | Description  |
-| ------------------------------------ | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
-| ["accent-height"?](#)                |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["alignment-baseline"?](#)           |           | 'auto' \| 'baseline' \| 'before-edge' \| 'text-before-edge' \| 'middle' \| 'central' \| 'after-edge' \| 'text-after-edge' \| 'ideographic' \| 'alphabetic' \| 'hanging' \| 'mathematical' \| 'inherit' \| undefined | _(Optional)_ |
-| ["arabic-form"?](#)                  |           | 'initial' \| 'medial' \| 'terminal' \| 'isolated' \| undefined                                                                                                                                                      | _(Optional)_ |
-| ["baseline-shift"?](#)               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["cap-height"?](#)                   |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["clip-path"?](#)                    |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| ["clip-rule"?](#)                    |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["color-interpolation-filters"?](#)  |           | 'auto' \| 's-rGB' \| 'linear-rGB' \| 'inherit' \| undefined                                                                                                                                                         | _(Optional)_ |
-| ["color-interpolation"?](#)          |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["color-profile"?](#)                |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["color-rendering"?](#)              |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["dominant-baseline"?](#)            |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["edge-mode"?](#)                    |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["enable-background"?](#)            |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["fill-opacity"?](#)                 |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["fill-rule"?](#)                    |           | 'nonzero' \| 'evenodd' \| 'inherit' \| undefined                                                                                                                                                                    | _(Optional)_ |
-| ["flood-color"?](#)                  |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["flood-opacity"?](#)                |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["font-family"?](#)                  |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| ["font-size-adjust"?](#)             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["font-size"?](#)                    |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["font-stretch"?](#)                 |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["font-style"?](#)                   |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["font-variant"?](#)                 |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["font-weight"?](#)                  |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["glyph-name"?](#)                   |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["glyph-orientation-horizontal"?](#) |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["glyph-orientation-vertical"?](#)   |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["horiz-adv-x"?](#)                  |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["horiz-origin-x"?](#)               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["image-rendering"?](#)              |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["letter-spacing"?](#)               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["lighting-color"?](#)               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["marker-end"?](#)                   |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| ["marker-mid"?](#)                   |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| ["marker-start"?](#)                 |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| ["overline-position"?](#)            |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["overline-thickness"?](#)           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["paint-order"?](#)                  |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["pointer-events"?](#)               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["rendering-intent"?](#)             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["shape-rendering"?](#)              |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["stop-color"?](#)                   |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| ["stop-opacity"?](#)                 |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["strikethrough-position"?](#)       |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["strikethrough-thickness"?](#)      |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["stroke-dasharray"?](#)             |           | string \| number \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["stroke-dashoffset"?](#)            |           | string \| number \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["stroke-linecap"?](#)               |           | 'butt' \| 'round' \| 'square' \| 'inherit' \| undefined                                                                                                                                                             | _(Optional)_ |
-| ["stroke-linejoin"?](#)              |           | 'miter' \| 'round' \| 'bevel' \| 'inherit' \| undefined                                                                                                                                                             | _(Optional)_ |
-| ["stroke-miterlimit"?](#)            |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| ["stroke-opacity"?](#)               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["stroke-width"?](#)                 |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["text-anchor"?](#)                  |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| ["text-decoration"?](#)              |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["text-rendering"?](#)               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["underline-position"?](#)           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["underline-thickness"?](#)          |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["unicode-bidi"?](#)                 |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["unicode-range"?](#)                |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["units-per-em"?](#)                 |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["v-alphabetic"?](#)                 |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["v-hanging"?](#)                    |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["v-ideographic"?](#)                |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["v-mathematical"?](#)               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["vector-effect"?](#)                |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["vert-adv-y"?](#)                   |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["vert-origin-x"?](#)                |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["vert-origin-y"?](#)                |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["word-spacing"?](#)                 |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["writing-mode"?](#)                 |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| ["x-channel-selector"?](#)           |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| ["x-height"?](#)                     |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [accumulate?](#)                     |           | 'none' \| 'sum' \| undefined                                                                                                                                                                                        | _(Optional)_ |
-| [additive?](#)                       |           | 'replace' \| 'sum' \| undefined                                                                                                                                                                                     | _(Optional)_ |
-| [allowReorder?](#)                   |           | 'no' \| 'yes' \| undefined                                                                                                                                                                                          | _(Optional)_ |
-| [alphabetic?](#)                     |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [amplitude?](#)                      |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [ascent?](#)                         |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [attributeName?](#)                  |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [attributeType?](#)                  |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [autoReverse?](#)                    |           | [Booleanish](#booleanish) \| undefined                                                                                                                                                                              | _(Optional)_ |
-| [azimuth?](#)                        |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [baseFrequency?](#)                  |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [baseProfile?](#)                    |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [bbox?](#)                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [begin?](#)                          |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [bias?](#)                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [by?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [calcMode?](#)                       |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [class?](#)                          |           | [ClassList](#classlist) \| undefined                                                                                                                                                                                | _(Optional)_ |
-| [clip?](#)                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [clipPathUnits?](#)                  |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [color?](#)                          |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [contentScriptType?](#)              |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [contentStyleType?](#)               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [crossOrigin?](#)                    |           | [HTMLCrossOriginAttribute](#htmlcrossoriginattribute)                                                                                                                                                               | _(Optional)_ |
-| [cursor?](#)                         |           | number \| string                                                                                                                                                                                                    | _(Optional)_ |
-| [cx?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [cy?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [d?](#)                              |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [decelerate?](#)                     |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [descent?](#)                        |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [diffuseConstant?](#)                |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [direction?](#)                      |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [display?](#)                        |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [divisor?](#)                        |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [dur?](#)                            |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [dx?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [dy?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [elevation?](#)                      |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [end?](#)                            |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [exponent?](#)                       |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [externalResourcesRequired?](#)      |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [fill?](#)                           |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [filter?](#)                         |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [filterRes?](#)                      |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [filterUnits?](#)                    |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [focusable?](#)                      |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [format?](#)                         |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [fr?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [from?](#)                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [fx?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [fy?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [g1?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [g2?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [glyphRef?](#)                       |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [gradientTransform?](#)              |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [gradientUnits?](#)                  |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [hanging?](#)                        |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [height?](#)                         |           | [Numberish](#numberish) \| undefined                                                                                                                                                                                | _(Optional)_ |
-| [href?](#)                           |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [id?](#)                             |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [ideographic?](#)                    |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [in?](#)                             |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [in2?](#)                            |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [intercept?](#)                      |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [k?](#)                              |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [k1?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [k2?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [k3?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [k4?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [kernelMatrix?](#)                   |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [kernelUnitLength?](#)               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [kerning?](#)                        |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [keyPoints?](#)                      |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [keySplines?](#)                     |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [keyTimes?](#)                       |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [lang?](#)                           |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [lengthAdjust?](#)                   |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [limitingConeAngle?](#)              |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [local?](#)                          |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [markerHeight?](#)                   |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [markerUnits?](#)                    |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [markerWidth?](#)                    |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [mask?](#)                           |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [maskContentUnits?](#)               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [maskUnits?](#)                      |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [mathematical?](#)                   |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [max?](#)                            |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [media?](#)                          |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [method?](#)                         |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [min?](#)                            |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [mode?](#)                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [name?](#)                           |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [numOctaves?](#)                     |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [offset?](#)                         |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [opacity?](#)                        |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [operator?](#)                       |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [order?](#)                          |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [orient?](#)                         |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [orientation?](#)                    |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [origin?](#)                         |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [overflow?](#)                       |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [panose1?](#)                        |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [path?](#)                           |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [pathLength?](#)                     |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [patternContentUnits?](#)            |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [patternTransform?](#)               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [patternUnits?](#)                   |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [points?](#)                         |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [pointsAtX?](#)                      |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [pointsAtY?](#)                      |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [pointsAtZ?](#)                      |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [preserveAlpha?](#)                  |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [preserveAspectRatio?](#)            |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [primitiveUnits?](#)                 |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [r?](#)                              |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [radius?](#)                         |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [refX?](#)                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [refY?](#)                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [repeatCount?](#)                    |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [repeatDur?](#)                      |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [requiredextensions?](#)             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [requiredFeatures?](#)               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [restart?](#)                        |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [result?](#)                         |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [role?](#)                           |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [rotate?](#)                         |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [rx?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [ry?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [scale?](#)                          |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [seed?](#)                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [slope?](#)                          |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [spacing?](#)                        |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [specularConstant?](#)               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [specularExponent?](#)               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [speed?](#)                          |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [spreadMethod?](#)                   |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [startOffset?](#)                    |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [stdDeviation?](#)                   |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [stemh?](#)                          |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [stemv?](#)                          |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [stitchTiles?](#)                    |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [string?](#)                         |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [stroke?](#)                         |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [style?](#)                          |           | [CSSProperties](#cssproperties) \| string \| undefined                                                                                                                                                              | _(Optional)_ |
-| [surfaceScale?](#)                   |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [systemLanguage?](#)                 |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [tabindex?](#)                       |           | number \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [tableValues?](#)                    |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [target?](#)                         |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [targetX?](#)                        |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [targetY?](#)                        |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [textLength?](#)                     |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [to?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [transform?](#)                      |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [type?](#)                           |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [u1?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [u2?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [unicode?](#)                        |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [values?](#)                         |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [version?](#)                        |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [viewBox?](#)                        |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [viewTarget?](#)                     |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [visibility?](#)                     |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [width?](#)                          |           | [Numberish](#numberish) \| undefined                                                                                                                                                                                | _(Optional)_ |
-| [widths?](#)                         |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [x?](#)                              |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [x1?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [x2?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [xlinkActuate?](#)                   |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [xlinkArcrole?](#)                   |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [xlinkHref?](#)                      |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [xlinkRole?](#)                      |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [xlinkShow?](#)                      |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [xlinkTitle?](#)                     |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [xlinkType?](#)                      |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [xmlBase?](#)                        |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [xmlLang?](#)                        |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [xmlns?](#)                          |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [xmlSpace?](#)                       |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [y?](#)                              |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [y1?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [y2?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [yChannelSelector?](#)               |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
-| [z?](#)                              |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
-| [zoomAndPan?](#)                     |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| Property                                           | Modifiers | Type                                                                                                                                                                                                                | Description  |
+| -------------------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| ["accent-height"?](#)                              |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["alignment-baseline"?](#)                         |           | 'auto' \| 'baseline' \| 'before-edge' \| 'text-before-edge' \| 'middle' \| 'central' \| 'after-edge' \| 'text-after-edge' \| 'ideographic' \| 'alphabetic' \| 'hanging' \| 'mathematical' \| 'inherit' \| undefined | _(Optional)_ |
+| ["arabic-form"?](#)                                |           | 'initial' \| 'medial' \| 'terminal' \| 'isolated' \| undefined                                                                                                                                                      | _(Optional)_ |
+| ["baseline-shift"?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["cap-height"?](#)                                 |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["clip-path"?](#)                                  |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| ["clip-rule"?](#)                                  |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["color-interpolation-filters"?](#)                |           | 'auto' \| 's-rGB' \| 'linear-rGB' \| 'inherit' \| undefined                                                                                                                                                         | _(Optional)_ |
+| ["color-interpolation"?](#)                        |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["color-profile"?](#)                              |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["color-rendering"?](#)                            |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["dominant-baseline"?](#)                          |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["edge-mode"?](#)                                  |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["enable-background"?](#)                          |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["fill-opacity"?](#)                               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["fill-rule"?](#)                                  |           | 'nonzero' \| 'evenodd' \| 'inherit' \| undefined                                                                                                                                                                    | _(Optional)_ |
+| ["flood-color"?](#)                                |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["flood-opacity"?](#)                              |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["font-family"?](#)                                |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| ["font-size-adjust"?](#)                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["font-size"?](#)                                  |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["font-stretch"?](#)                               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["font-style"?](#)                                 |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["font-variant"?](#)                               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["font-weight"?](#)                                |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["glyph-name"?](#)                                 |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["glyph-orientation-horizontal"?](#)               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["glyph-orientation-vertical"?](#)                 |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["horiz-adv-x"?](#)                                |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["horiz-origin-x"?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["image-rendering"?](#)                            |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["letter-spacing"?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["lighting-color"?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["marker-end"?](#)                                 |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| ["marker-mid"?](#)                                 |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| ["marker-start"?](#)                               |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| ["overline-position"?](#)                          |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["overline-thickness"?](#)                         |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["paint-order"?](#)                                |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["pointer-events"?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["rendering-intent"?](#)                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["shape-rendering"?](#)                            |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["stop-color"?](#)                                 |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| ["stop-opacity"?](#)                               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["strikethrough-position"?](#)                     |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["strikethrough-thickness"?](#)                    |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["stroke-dasharray"?](#)                           |           | string \| number \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["stroke-dashoffset"?](#)                          |           | string \| number \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["stroke-linecap"?](#)                             |           | 'butt' \| 'round' \| 'square' \| 'inherit' \| undefined                                                                                                                                                             | _(Optional)_ |
+| ["stroke-linejoin"?](#)                            |           | 'miter' \| 'round' \| 'bevel' \| 'inherit' \| undefined                                                                                                                                                             | _(Optional)_ |
+| ["stroke-miterlimit"?](#)                          |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| ["stroke-opacity"?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["stroke-width"?](#)                               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["text-anchor"?](#)                                |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| ["text-decoration"?](#)                            |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["text-rendering"?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["underline-position"?](#)                         |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["underline-thickness"?](#)                        |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["unicode-bidi"?](#)                               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["unicode-range"?](#)                              |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["units-per-em"?](#)                               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["v-alphabetic"?](#)                               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["v-hanging"?](#)                                  |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["v-ideographic"?](#)                              |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["v-mathematical"?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["vector-effect"?](#)                              |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["vert-adv-y"?](#)                                 |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["vert-origin-x"?](#)                              |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["vert-origin-y"?](#)                              |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["word-spacing"?](#)                               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["writing-mode"?](#)                               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["x-channel-selector"?](#)                         |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| ["x-height"?](#)                                   |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| ["xlink:actuate"?](#svgattributes-_xlink_actuate_) |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| ["xlink:arcrole"?](#svgattributes-_xlink_arcrole_) |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| ["xlink:href"?](#svgattributes-_xlink_href_)       |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| ["xlink:role"?](#svgattributes-_xlink_role_)       |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| ["xlink:show"?](#svgattributes-_xlink_show_)       |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| ["xlink:title"?](#svgattributes-_xlink_title_)     |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| ["xlink:type"?](#svgattributes-_xlink_type_)       |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| ["xml:base"?](#svgattributes-_xml_base_)           |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| ["xml:lang"?](#svgattributes-_xml_lang_)           |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| ["xml:space"?](#svgattributes-_xml_space_)         |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| ["xmlns:xlink"?](#svgattributes-_xmlns_xlink_)     |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [accumulate?](#)                                   |           | 'none' \| 'sum' \| undefined                                                                                                                                                                                        | _(Optional)_ |
+| [additive?](#)                                     |           | 'replace' \| 'sum' \| undefined                                                                                                                                                                                     | _(Optional)_ |
+| [allowReorder?](#)                                 |           | 'no' \| 'yes' \| undefined                                                                                                                                                                                          | _(Optional)_ |
+| [alphabetic?](#)                                   |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [amplitude?](#)                                    |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [ascent?](#)                                       |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [attributeName?](#)                                |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [attributeType?](#)                                |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [autoReverse?](#)                                  |           | [Booleanish](#booleanish) \| undefined                                                                                                                                                                              | _(Optional)_ |
+| [azimuth?](#)                                      |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [baseFrequency?](#)                                |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [baseProfile?](#)                                  |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [bbox?](#)                                         |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [begin?](#)                                        |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [bias?](#)                                         |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [by?](#)                                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [calcMode?](#)                                     |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [clip?](#)                                         |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [clipPathUnits?](#)                                |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [color?](#)                                        |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [contentScriptType?](#)                            |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [contentStyleType?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [crossOrigin?](#)                                  |           | [HTMLCrossOriginAttribute](#htmlcrossoriginattribute)                                                                                                                                                               | _(Optional)_ |
+| [cursor?](#)                                       |           | number \| string                                                                                                                                                                                                    | _(Optional)_ |
+| [cx?](#)                                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [cy?](#)                                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [d?](#)                                            |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [decelerate?](#)                                   |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [descent?](#)                                      |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [diffuseConstant?](#)                              |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [direction?](#)                                    |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [display?](#)                                      |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [divisor?](#)                                      |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [dur?](#)                                          |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [dx?](#)                                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [dy?](#)                                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [elevation?](#)                                    |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [end?](#)                                          |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [exponent?](#)                                     |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [externalResourcesRequired?](#)                    |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [fill?](#)                                         |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [filter?](#)                                       |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [filterRes?](#)                                    |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [filterUnits?](#)                                  |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [focusable?](#)                                    |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [format?](#)                                       |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [fr?](#)                                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [from?](#)                                         |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [fx?](#)                                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [fy?](#)                                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [g1?](#)                                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [g2?](#)                                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [glyphRef?](#)                                     |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [gradientTransform?](#)                            |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [gradientUnits?](#)                                |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [hanging?](#)                                      |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [height?](#)                                       |           | [Size](#size) \| undefined                                                                                                                                                                                          | _(Optional)_ |
+| [href?](#)                                         |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [id?](#)                                           |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [ideographic?](#)                                  |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [in?](#)                                           |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [in2?](#)                                          |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [intercept?](#)                                    |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [k?](#)                                            |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [k1?](#)                                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [k2?](#)                                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [k3?](#)                                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [k4?](#)                                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [kernelMatrix?](#)                                 |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [kernelUnitLength?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [kerning?](#)                                      |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [keyPoints?](#)                                    |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [keySplines?](#)                                   |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [keyTimes?](#)                                     |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [lang?](#)                                         |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [lengthAdjust?](#)                                 |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [limitingConeAngle?](#)                            |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [local?](#)                                        |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [markerHeight?](#)                                 |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [markerUnits?](#)                                  |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [markerWidth?](#)                                  |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [mask?](#)                                         |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [maskContentUnits?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [maskUnits?](#)                                    |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [mathematical?](#)                                 |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [max?](#)                                          |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [media?](#)                                        |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [method?](#)                                       |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [min?](#)                                          |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [mode?](#)                                         |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [name?](#)                                         |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [numOctaves?](#)                                   |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [offset?](#)                                       |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [opacity?](#)                                      |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [operator?](#)                                     |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [order?](#)                                        |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [orient?](#)                                       |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [orientation?](#)                                  |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [origin?](#)                                       |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [overflow?](#)                                     |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [panose1?](#)                                      |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [path?](#)                                         |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [pathLength?](#)                                   |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [patternContentUnits?](#)                          |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [patternTransform?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [patternUnits?](#)                                 |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [points?](#)                                       |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [pointsAtX?](#)                                    |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [pointsAtY?](#)                                    |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [pointsAtZ?](#)                                    |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [preserveAlpha?](#)                                |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [preserveAspectRatio?](#)                          |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [primitiveUnits?](#)                               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [r?](#)                                            |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [radius?](#)                                       |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [refX?](#)                                         |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [refY?](#)                                         |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [repeatCount?](#)                                  |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [repeatDur?](#)                                    |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [requiredextensions?](#)                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [requiredFeatures?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [restart?](#)                                      |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [result?](#)                                       |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [role?](#)                                         |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [rotate?](#)                                       |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [rx?](#)                                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [ry?](#)                                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [scale?](#)                                        |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [seed?](#)                                         |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [slope?](#)                                        |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [spacing?](#)                                      |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [specularConstant?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [specularExponent?](#)                             |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [speed?](#)                                        |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [spreadMethod?](#)                                 |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [startOffset?](#)                                  |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [stdDeviation?](#)                                 |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [stemh?](#)                                        |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [stemv?](#)                                        |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [stitchTiles?](#)                                  |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [string?](#)                                       |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [stroke?](#)                                       |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [style?](#)                                        |           | [CSSProperties](#cssproperties) \| string \| undefined                                                                                                                                                              | _(Optional)_ |
+| [surfaceScale?](#)                                 |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [systemLanguage?](#)                               |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [tabindex?](#)                                     |           | number \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [tableValues?](#)                                  |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [target?](#)                                       |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [targetX?](#)                                      |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [targetY?](#)                                      |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [textLength?](#)                                   |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [to?](#)                                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [transform?](#)                                    |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [type?](#)                                         |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [u1?](#)                                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [u2?](#)                                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [unicode?](#)                                      |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [values?](#)                                       |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [version?](#)                                      |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [viewBox?](#)                                      |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [viewTarget?](#)                                   |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [visibility?](#)                                   |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [width?](#)                                        |           | [Size](#size) \| undefined                                                                                                                                                                                          | _(Optional)_ |
+| [widths?](#)                                       |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [x?](#)                                            |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [x1?](#)                                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [x2?](#)                                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [xmlns?](#)                                        |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [y?](#)                                            |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [y1?](#)                                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [y2?](#)                                           |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [yChannelSelector?](#)                             |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
+| [z?](#)                                            |           | number \| string \| undefined                                                                                                                                                                                       | _(Optional)_ |
+| [zoomAndPan?](#)                                   |           | string \| undefined                                                                                                                                                                                                 | _(Optional)_ |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## SVGProps
 
 ```typescript
-export interface SVGProps<T extends Element> extends SVGAttributes<T>
+export interface SVGProps<T extends Element> extends SVGAttributes, QwikAttributes<T>
 ```
 
-**Extends:** [SVGAttributes](#svgattributes)&lt;T&gt;
+**Extends:** [SVGAttributes](#svgattributes), QwikAttributes&lt;T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## TableHTMLAttributes
 
 ```typescript
-export interface TableHTMLAttributes<T extends Element> extends HTMLAttributes<T>, TableAttrs
+export interface TableHTMLAttributes<T extends Element> extends Attrs<'table', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;, TableAttrs
+**Extends:** Attrs&lt;'table', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -2842,54 +2945,50 @@ export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => void)>;
 ## TdHTMLAttributes
 
 ```typescript
-export interface TdHTMLAttributes<T extends Element> extends HTMLAttributes<T>, TableCellAttrs
+export interface TdHTMLAttributes<T extends Element> extends Attrs<'td', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;, TableCellAttrs
+**Extends:** Attrs&lt;'td', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## TextareaHTMLAttributes
 
 ```typescript
-export interface TextareaHTMLAttributes<T extends Element> extends HTMLAttributes<T, undefined>, TextareaAttrs
+export interface TextareaHTMLAttributes<T extends Element> extends Attrs<'textarea', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T, undefined&gt;, TextareaAttrs
+**Extends:** Attrs&lt;'textarea', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## ThHTMLAttributes
 
 ```typescript
-export interface ThHTMLAttributes<T extends Element> extends TdHTMLAttributes<T>
+export interface ThHTMLAttributes<T extends Element> extends Attrs<'tr', T>
 ```
 
-**Extends:** [TdHTMLAttributes](#tdhtmlattributes)&lt;T&gt;
+**Extends:** Attrs&lt;'tr', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## TimeHTMLAttributes
 
 ```typescript
-export interface TimeHTMLAttributes<T extends Element> extends HTMLAttributes<T>
+export interface TimeHTMLAttributes<T extends Element> extends Attrs<'time', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;
-
-| Property       | Modifiers | Type                | Description  |
-| -------------- | --------- | ------------------- | ------------ |
-| [dateTime?](#) |           | string \| undefined | _(Optional)_ |
+**Extends:** Attrs&lt;'time', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## TitleHTMLAttributes
 
 ```typescript
-export interface TitleHTMLAttributes<T extends Element> extends HTMLAttributes<T, string>
+export interface TitleHTMLAttributes<T extends Element> extends Attrs<'title', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T, string&gt;
+**Extends:** Attrs&lt;'title', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -2906,16 +3005,27 @@ The `obs` passed into the `taskFn` is used to mark `state.count` as a property o
 ```tsx
 const Cmp = component$(() => {
   const store = useStore({ count: 0, doubleCount: 0 });
+  const signal = useSignal(0);
   useTask$(({ track }) => {
+    // Any signals or stores accessed inside the task will be tracked
     const count = track(() => store.count);
-    store.doubleCount = 2 * count;
+    // You can also pass a signal to track() directly
+    const signalCount = track(signal);
+    store.doubleCount = count + signalCount;
   });
   return (
     <div>
       <span>
         {store.count} / {store.doubleCount}
       </span>
-      <button onClick$={() => store.count++}>+</button>
+      <button
+        onClick$={() => {
+          store.count++;
+          signal.value++;
+        }}
+      >
+        +
+      </button>
     </div>
   );
 });
@@ -2930,10 +3040,10 @@ export interface Tracker
 ## TrackHTMLAttributes
 
 ```typescript
-export interface TrackHTMLAttributes<T extends Element> extends HTMLAttributes<T, undefined>, TrackAttrs
+export interface TrackHTMLAttributes<T extends Element> extends Attrs<'track', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T, undefined&gt;, TrackAttrs
+**Extends:** Attrs&lt;'track', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -3084,7 +3194,7 @@ Register a listener on the current component's host element.
 Used to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX. Otherwise, it's adding a JSX listener in the `<div>` is a better idea.
 
 ```typescript
-useOn: <T extends PascalCaseEventLiteralType>(event: T | T[], eventQrl: EventQRL<T>) => void
+useOn: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => void
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-on.ts)
@@ -3096,7 +3206,7 @@ Register a listener on `document`.
 Used to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX.
 
 ```typescript
-useOnDocument: <T extends PascalCaseEventLiteralType>(event: T | T[], eventQrl: EventQRL<T>) => void
+useOnDocument: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => void
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-on.ts)
@@ -3108,7 +3218,7 @@ Register a listener on `window`.
 Used to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX.
 
 ```typescript
-useOnWindow: <T extends PascalCaseEventLiteralType>(event: T | T[], eventQrl: EventQRL<T>) => void
+useOnWindow: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => void
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-on.ts)
@@ -3129,27 +3239,22 @@ Example showing how `useResource` to perform a fetch to request the weather, whe
 
 ```tsx
 const Cmp = component$(() => {
-  const store = useStore({
-    city: "",
-  });
+  const cityS = useSignal("");
 
-  const weatherResource = useResource$<any>(async ({ track, cleanup }) => {
-    const cityName = track(() => store.city);
+  const weatherResource = useResource$(async ({ track, cleanup }) => {
+    const cityName = track(cityS);
     const abortController = new AbortController();
     cleanup(() => abortController.abort("cleanup"));
     const res = await fetch(`http://weatherdata.com?city=${cityName}`, {
       signal: abortController.signal,
     });
-    const data = res.json();
-    return data;
+    const data = await res.json();
+    return data as { temp: number };
   });
 
   return (
     <div>
-      <input
-        name="city"
-        onInput$={(ev: any) => (store.city = ev.target.value)}
-      />
+      <input name="city" bind:value={cityS} />
       <Resource
         value={weatherResource}
         onResolved={(weather) => {
@@ -3184,27 +3289,22 @@ Example showing how `useResource` to perform a fetch to request the weather, whe
 
 ```tsx
 const Cmp = component$(() => {
-  const store = useStore({
-    city: "",
-  });
+  const cityS = useSignal("");
 
-  const weatherResource = useResource$<any>(async ({ track, cleanup }) => {
-    const cityName = track(() => store.city);
+  const weatherResource = useResource$(async ({ track, cleanup }) => {
+    const cityName = track(cityS);
     const abortController = new AbortController();
     cleanup(() => abortController.abort("cleanup"));
     const res = await fetch(`http://weatherdata.com?city=${cityName}`, {
       signal: abortController.signal,
     });
-    const data = res.json();
-    return data;
+    const data = await res.json();
+    return data as { temp: number };
   });
 
   return (
     <div>
-      <input
-        name="city"
-        onInput$={(ev: any) => (store.city = ev.target.value)}
-      />
+      <input name="city" bind:value={cityS} />
       <Resource
         value={weatherResource}
         onResolved={(weather) => {
@@ -3553,10 +3653,10 @@ version: string;
 ## VideoHTMLAttributes
 
 ```typescript
-export interface VideoHTMLAttributes<T extends Element> extends HTMLAttributes<T>, VideoAttrs
+export interface VideoHTMLAttributes<T extends Element> extends Attrs<'video', T>
 ```
 
-**Extends:** [HTMLAttributes](#htmlattributes)&lt;T&gt;, VideoAttrs
+**Extends:** Attrs&lt;'video', T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 

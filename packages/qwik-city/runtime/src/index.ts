@@ -51,6 +51,7 @@ export {
 } from './qwik-city-component';
 export { type LinkProps, Link } from './link-component';
 export { ServiceWorkerRegister } from './sw-component';
+export { combineRequestHandlers } from './combine-request-handlers';
 export { useDocumentHead, useLocation, useContent, useNavigate } from './use-functions';
 export { routeAction$, routeActionQrl } from './server-functions';
 export { globalAction$, globalActionQrl } from './server-functions';

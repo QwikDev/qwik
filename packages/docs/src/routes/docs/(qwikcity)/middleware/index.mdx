@@ -10,6 +10,7 @@ contributors:
   - gparlakov
   - mrhoodz
   - harishkrishnan24
+  - erikras
 updated_at: '2023-09-18T19:04:44Z'
 created_at: '2023-06-13T06:46:09Z'
 ---
@@ -51,6 +52,14 @@ export const onDelete: RequestHandler = async (requestEvent) => { ... }
 
 Each middleware function is passed a [`RequestEvent`](#requestevent) object which allows the middleware to control the response.
 
+If you want to combine multiple `RequestHandler`s together, there is a utility function called `combineRequestHandlers()` that will allow you to chain mulitple `RequestHandler`s together.
+```typescript
+import type { RequestHandler } from '@builder.io/qwik-city';
+import { combineRequestHandlers } from "@builder.io/qwik-city";
+
+export const onRequest: RequestHandler = combineRequestHandlers(handler1, handler2, handler3);
+```
+They will be called in the order they are given, so `handler2` can depend on something `handler1` has placed into the `sharedMap`, for example.
 
 ## Order of invocation
 

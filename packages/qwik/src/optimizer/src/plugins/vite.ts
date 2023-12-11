@@ -1,5 +1,4 @@
 import type { UserConfig, ViteDevServer, Plugin as VitePlugin } from 'vite';
-import { findDepPkgJsonPath } from 'vitefu';
 import { QWIK_LOADER_DEFAULT_DEBUG, QWIK_LOADER_DEFAULT_MINIFIED } from '../scripts';
 import type {
   EntryStrategy,
@@ -733,6 +732,28 @@ export async function render(document, rootNode, opts) {
 }`;
 }
 
+async function findDepPkgJsonPath(sys: OptimizerSystem, dep: string, parent: string) {
+  const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
+  let root = parent;
+  while (root) {
+    const pkg = sys.path.join(root, 'node_modules', dep, 'package.json');
+    try {
+      await fs.promises.access(pkg);
+      // use 'node:fs' version to match 'vite:resolve' and avoid realpath.native quirk
+      // https://github.com/sveltejs/vite-plugin-svelte/issues/525#issuecomment-1355551264
+      return fs.promises.realpath(pkg);
+    } catch {
+      //empty
+    }
+    const nextRoot = sys.path.dirname(root);
+    if (nextRoot === root) {
+      break;
+    }
+    root = nextRoot;
+  }
+  return undefined;
+}
+
 const findQwikRoots = async (
   sys: OptimizerSystem,
   packageJsonPath: string
@@ -759,7 +780,7 @@ const findQwikRoots = async (
         const basedir = sys.cwd();
         const qwikDirs = await Promise.all(
           packages.map(async (id) => {
-            const pkgJsonPath = await findDepPkgJsonPath(id, basedir);
+            const pkgJsonPath = await findDepPkgJsonPath(sys, id, basedir);
             if (pkgJsonPath) {
               const pkgJsonContent = await fs.promises.readFile(pkgJsonPath, 'utf-8');
               const pkgJson = JSON.parse(pkgJsonContent);

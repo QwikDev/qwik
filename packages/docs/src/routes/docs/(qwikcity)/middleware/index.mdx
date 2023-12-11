@@ -59,7 +59,7 @@ import { combineRequestHandlers } from "@builder.io/qwik-city";
 
 export const onRequest: RequestHandler = combineRequestHandlers(handler1, handler2, handler3);
 ```
-They will be called in the order they are given, so `handler2` can depend on something `handler1` has placed into the `sharedMap`, for example.
+They will be called in the order they are given, so `handler2` can depend on something `handler1` has placed into the `sharedMap`. For example, if you have one middleware to connect to a database, and another to load the current user record, the latter depends on the former, so they must be called in order.
 
 ## Order of invocation
 

@@ -12,31 +12,37 @@ export async function createLinter(
   tsconfigFileNames: string[]
 ): Promise<QwikLinter> {
   const module: typeof import('eslint') = await sys.dynamicImport('eslint');
-  const options: ESLint.Options = {
-    cache: true,
-    useEslintrc: false,
-    overrideConfig: {
-      root: true,
-      env: {
-        browser: true,
-        es2021: true,
-        node: true,
-      },
 
-      extends: ['plugin:qwik/recommended'],
-      parser: '@typescript-eslint/parser',
-      parserOptions: {
-        tsconfigRootDir: rootDir,
-        project: tsconfigFileNames,
-        ecmaVersion: 2021,
-        sourceType: 'module',
-        ecmaFeatures: {
-          jsx: true,
+  let eslint = new module.ESLint({ cache: true }) as ESLint;
+  const eslintConfig = await eslint.calculateConfigForFile('no-real-file.tsx');
+  const invalidEslintConfig = eslintConfig.parser === null;
+
+  if (invalidEslintConfig) {
+    const options: ESLint.Options = {
+      cache: true,
+      useEslintrc: false,
+      overrideConfig: {
+        root: true,
+        env: {
+          browser: true,
+          es2021: true,
+          node: true,
+        },
+        extends: ['plugin:qwik/recommended'],
+        parser: '@typescript-eslint/parser',
+        parserOptions: {
+          tsconfigRootDir: rootDir,
+          project: tsconfigFileNames,
+          ecmaVersion: 2021,
+          sourceType: 'module',
+          ecmaFeatures: {
+            jsx: true,
+          },
         },
       },
-    },
-  };
-  const eslint = new module.ESLint(options) as ESLint;
+    };
+    eslint = new module.ESLint(options) as ESLint;
+  }
 
   return {
     async lint(ctx: Rollup.PluginContext, code: string, id: string) {

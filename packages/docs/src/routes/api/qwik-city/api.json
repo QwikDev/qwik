@@ -59,6 +59,20 @@
       "mdFile": "qwik-city.actionstore.md"
     },
     {
+      "name": "combineRequestHandlers",
+      "id": "combinerequesthandlers",
+      "hierarchy": [
+        {
+          "name": "combineRequestHandlers",
+          "id": "combinerequesthandlers"
+        }
+      ],
+      "kind": "Variable",
+      "content": "Combines multiple request handlers into a single request handler.\n\nThe handlers will be called in order:\n\n1. Handler1 before next() 2. Handler2 before next() 3. Handler3 before next() 4. Next() 5. Handler3 after next() 6. Handler2 after next() 7. Handler1 after next()\n\n\n```typescript\ncombineRequestHandlers: (...handlers: RequestHandler[]) => RequestHandler\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/combine-request-handlers.ts",
+      "mdFile": "qwik-city.combinerequesthandlers.md"
+    },
+    {
       "name": "ContentHeading",
       "id": "contentheading",
       "hierarchy": [

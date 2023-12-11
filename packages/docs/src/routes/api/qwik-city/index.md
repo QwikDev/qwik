@@ -172,6 +172,20 @@ export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> = {
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
+## combineRequestHandlers
+
+Combines multiple request handlers into a single request handler.
+
+The handlers will be called in order:
+
+1. Handler1 before next() 2. Handler2 before next() 3. Handler3 before next() 4. Next() 5. Handler3 after next() 6. Handler2 after next() 7. Handler1 after next()
+
+```typescript
+combineRequestHandlers: (...handlers: RequestHandler[]) => RequestHandler;
+```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/combine-request-handlers.ts)
+
 ## ContentHeading
 
 ```typescript

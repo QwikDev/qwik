@@ -70,6 +70,11 @@ export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> = {
     readonly submit: QRL<OPTIONAL extends true ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>> : (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>>;
 };
 
+// Warning: (ae-forgotten-export) The symbol "RequestHandler_2" needs to be exported by the entry point index.d.ts
+//
+// @public
+export const combineRequestHandlers: (...handlers: RequestHandler_2[]) => RequestHandler_2;
+
 // @public (undocumented)
 export interface ContentHeading {
     // (undocumented)

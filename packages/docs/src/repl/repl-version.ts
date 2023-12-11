@@ -91,7 +91,7 @@ export const getReplVersion = async (version: string | undefined) => {
     });
 
     if (!version || !npmData.versions.includes(version)) {
-      version = npmData.tags.latest;
+      version = versions[0];
     }
   }
 

@@ -501,9 +501,6 @@ importers:
       kleur:
         specifier: 4.1.5
         version: 4.1.5
-      vitefu:
-        specifier: ^0.2.5
-        version: 0.2.5(vite@5.0.6)
 
   packages/qwik-auth:
     devDependencies:
@@ -17333,17 +17330,6 @@ packages:
       terser: 5.25.0
     optionalDependencies:
       fsevents: 2.3.3
-
-  /vitefu@0.2.5(vite@5.0.6):
-    resolution: {integrity: sha512-SgHtMLoqaeeGnd2evZ849ZbACbnwQCIwRH57t18FxcXoZop0uQu0uzlIhJBlF/eWVzuce0sHeqPcDo+evVcg8Q==}
-    peerDependencies:
-      vite: ^3.0.0 || ^4.0.0 || ^5.0.0
-    peerDependenciesMeta:
-      vite:
-        optional: true
-    dependencies:
-      vite: 5.0.6(@types/node@20.10.4)(terser@5.25.0)
-    dev: true
 
   /vitest@0.34.6(terser@5.25.0):
     resolution: {integrity: sha512-+5CALsOvbNKnS+ZHMXtuUC7nL8/7F1F2DnHGjSsszX8zCjWSSviphCb/NuS9Nzf4Q03KyyDRBAXhF/8lffME4Q==}

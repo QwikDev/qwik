@@ -12,7 +12,7 @@ import type { RequestHandler } from '../../middleware/request-handler/types';
  * 5. Handler3 after next()
  * 6. Handler2 after next()
  * 7. Handler1 after next()
- * 
+ *
  * @public
  */
 export const combineRequestHandlers =

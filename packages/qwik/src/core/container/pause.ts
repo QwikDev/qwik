@@ -623,11 +623,11 @@ const collectProps = (elCtx: QContext, collector: Collector) => {
 
 const createCollector = (containerState: ContainerState): Collector => {
   const inlinedFunctions: string[] = [];
-  containerState.$inlineFns$.forEach((id, fn) => {
+  containerState.$inlineFns$.forEach((id, fnStr) => {
     while (inlinedFunctions.length <= id) {
       inlinedFunctions.push('');
     }
-    inlinedFunctions[id] = fn.toString();
+    inlinedFunctions[id] = fnStr;
   });
   return {
     $containerState$: containerState,

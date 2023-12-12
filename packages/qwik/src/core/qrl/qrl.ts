@@ -183,12 +183,13 @@ export const serializeQRL = (qrl: QRLInternal, opts: QRLSerializeOptions = {}) =
   }
   if (isSyncQrl(qrl)) {
     if (opts.$containerState$) {
-      const fn = qrl.resolved;
+      const fn = qrl.resolved as Function;
       const containerState = opts.$containerState$;
-      let id = containerState.$inlineFns$.get(fn as any);
+      const fnStrKey = fn.toString();
+      let id = containerState.$inlineFns$.get(fnStrKey);
       if (id === undefined) {
         id = containerState.$inlineFns$.size;
-        containerState.$inlineFns$.set(fn as any, id);
+        containerState.$inlineFns$.set(fnStrKey, id);
       }
       symbol = String(id);
     } else {

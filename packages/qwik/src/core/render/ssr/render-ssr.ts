@@ -1033,6 +1033,9 @@ const processPropValue = (prop: string, value: any): string | null => {
   if (prop === 'class') {
     return serializeClass(value);
   }
+  if (prop === 'className') {
+    return serializeClass(value);
+  }
   if (prop === 'style') {
     return stringifyStyle(value);
   }

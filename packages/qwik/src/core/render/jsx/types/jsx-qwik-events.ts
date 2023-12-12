@@ -52,57 +52,57 @@ export type KnownEventNames = LiteralUnion<AllEventKeys, string>;
 
 // Deprecated old types
 export type SyntheticEvent<T = Element, E = Event> = E & { target: EventTarget & T };
-/** @public @deprecated Use `AnimationEvent` */
+/** @public @deprecated Use `AnimationEvent` and use the second argument to the handler function for the current event target */
 export type NativeAnimationEvent = AnimationEvent;
-/** @public @deprecated Use `ClipboardEvent` */
+/** @public @deprecated Use `ClipboardEvent` and use the second argument to the handler function for the current event target */
 export type NativeClipboardEvent = ClipboardEvent;
-/** @public @deprecated Use `CompositionEvent` */
+/** @public @deprecated Use `CompositionEvent` and use the second argument to the handler function for the current event target */
 export type NativeCompositionEvent = CompositionEvent;
-/** @public @deprecated Use `DragEvent` */
+/** @public @deprecated Use `DragEvent` and use the second argument to the handler function for the current event target */
 export type NativeDragEvent = DragEvent;
-/** @public @deprecated Use `FocusEvent` */
+/** @public @deprecated Use `FocusEvent` and use the second argument to the handler function for the current event target */
 export type NativeFocusEvent = FocusEvent;
-/** @public @deprecated Use `KeyboardEvent` */
+/** @public @deprecated Use `KeyboardEvent` and use the second argument to the handler function for the current event target */
 export type NativeKeyboardEvent = KeyboardEvent;
-/** @public @deprecated Use `MouseEvent` */
+/** @public @deprecated Use `MouseEvent` and use the second argument to the handler function for the current event target */
 export type NativeMouseEvent = MouseEvent;
-/** @public @deprecated Use `TouchEvent` */
+/** @public @deprecated Use `TouchEvent` and use the second argument to the handler function for the current event target */
 export type NativeTouchEvent = TouchEvent;
-/** @public @deprecated Use `PointerEvent` */
+/** @public @deprecated Use `PointerEvent` and use the second argument to the handler function for the current event target */
 export type NativePointerEvent = PointerEvent;
-/** @public @deprecated Use `TransitionEvent` */
+/** @public @deprecated Use `TransitionEvent` and use the second argument to the handler function for the current event target */
 export type NativeTransitionEvent = TransitionEvent;
-/** @public @deprecated Use `UIEvent` */
+/** @public @deprecated Use `UIEvent` and use the second argument to the handler function for the current event target */
 export type NativeUIEvent = UIEvent;
-/** @public @deprecated Use `WheelEvent` */
+/** @public @deprecated Use `WheelEvent` and use the second argument to the handler function for the current event target */
 export type NativeWheelEvent = WheelEvent;
-/** @public @deprecated Use `AnimationEvent` */
+/** @public @deprecated Use `AnimationEvent` and use the second argument to the handler function for the current event target */
 export type QwikAnimationEvent<T = Element> = NativeAnimationEvent;
-/** @public @deprecated Use `ClipboardEvent` */
+/** @public @deprecated Use `ClipboardEvent` and use the second argument to the handler function for the current event target */
 export type QwikClipboardEvent<T = Element> = NativeClipboardEvent;
-/** @public @deprecated Use `CompositionEvent` */
+/** @public @deprecated Use `CompositionEvent` and use the second argument to the handler function for the current event target */
 export type QwikCompositionEvent<T = Element> = NativeCompositionEvent;
-/** @public @deprecated Use `DragEvent` */
+/** @public @deprecated Use `DragEvent` and use the second argument to the handler function for the current event target */
 export type QwikDragEvent<T = Element> = NativeDragEvent;
-/** @public @deprecated Use `PointerEvent` */
+/** @public @deprecated Use `PointerEvent` and use the second argument to the handler function for the current event target */
 export type QwikPointerEvent<T = Element> = NativePointerEvent;
-/** @public @deprecated Use `FocusEvent` */
+/** @public @deprecated Use `FocusEvent` and use the second argument to the handler function for the current event target */
 export type QwikFocusEvent<T = Element> = NativeFocusEvent;
-/** @public @deprecated Use `SubmitEvent` */
-export type QwikSubmitEvent<T = Element> = Event;
-/** @public @deprecated Use `InvalidEvent` */
+/** @public @deprecated Use `SubmitEvent` and use the second argument to the handler function for the current event target */
+export type QwikSubmitEvent<T = Element> = SubmitEvent;
+/** @public @deprecated Use `Event` and use the second argument to the handler function for the current event target */
 export type QwikInvalidEvent<T = Element> = Event;
-/** @public @deprecated Use `ChangeEvent` */
+/** @public @deprecated Use `Event` and use the second argument to the handler function for the current event target. Also note that in Qwik, onInput$ with the InputEvent is the event that behaves like onChange in React. */
 export type QwikChangeEvent<T = Element> = Event;
-/** @public @deprecated Use `KeyboardEvent` */
+/** @public @deprecated Use `KeyboardEvent` and use the second argument to the handler function for the current event target */
 export type QwikKeyboardEvent<T = Element> = NativeKeyboardEvent;
-/** @public @deprecated Use `MouseEvent` */
+/** @public @deprecated Use `MouseEvent` and use the second argument to the handler function for the current event target */
 export type QwikMouseEvent<T = Element, E = NativeMouseEvent> = E;
-/** @public @deprecated Use `TouchEvent` */
+/** @public @deprecated Use `TouchEvent` and use the second argument to the handler function for the current event target */
 export type QwikTouchEvent<T = Element> = NativeTouchEvent;
-/** @public @deprecated Use `UIEvent` */
+/** @public @deprecated Use `UIEvent` and use the second argument to the handler function for the current event target */
 export type QwikUIEvent<T = Element> = NativeUIEvent;
-/** @public @deprecated Use `WheelEvent` */
+/** @public @deprecated Use `WheelEvent` and use the second argument to the handler function for the current event target */
 export type QwikWheelEvent<T = Element> = NativeWheelEvent;
-/** @public @deprecated Use `TransitionEvent` */
+/** @public @deprecated Use `TransitionEvent` and use the second argument to the handler function for the current event target */
 export type QwikTransitionEvent<T = Element> = NativeTransitionEvent;

@@ -1381,7 +1381,7 @@ export interface MeterHTMLAttributes<T extends Element> extends Attrs<'meter', T
 
 > Warning: This API is now obsolete.
 >
-> Use `AnimationEvent`
+> Use `AnimationEvent` and use the second argument to the handler function for the current event target
 
 ```typescript
 export type NativeAnimationEvent = AnimationEvent;
@@ -1393,7 +1393,7 @@ export type NativeAnimationEvent = AnimationEvent;
 
 > Warning: This API is now obsolete.
 >
-> Use `ClipboardEvent`
+> Use `ClipboardEvent` and use the second argument to the handler function for the current event target
 
 ```typescript
 export type NativeClipboardEvent = ClipboardEvent;
@@ -1405,7 +1405,7 @@ export type NativeClipboardEvent = ClipboardEvent;
 
 > Warning: This API is now obsolete.
 >
-> Use `CompositionEvent`
+> Use `CompositionEvent` and use the second argument to the handler function for the current event target
 
 ```typescript
 export type NativeCompositionEvent = CompositionEvent;
@@ -1417,7 +1417,7 @@ export type NativeCompositionEvent = CompositionEvent;
 
 > Warning: This API is now obsolete.
 >
-> Use `DragEvent`
+> Use `DragEvent` and use the second argument to the handler function for the current event target
 
 ```typescript
 export type NativeDragEvent = DragEvent;
@@ -1429,7 +1429,7 @@ export type NativeDragEvent = DragEvent;
 
 > Warning: This API is now obsolete.
 >
-> Use `FocusEvent`
+> Use `FocusEvent` and use the second argument to the handler function for the current event target
 
 ```typescript
 export type NativeFocusEvent = FocusEvent;
@@ -1441,7 +1441,7 @@ export type NativeFocusEvent = FocusEvent;
 
 > Warning: This API is now obsolete.
 >
-> Use `KeyboardEvent`
+> Use `KeyboardEvent` and use the second argument to the handler function for the current event target
 
 ```typescript
 export type NativeKeyboardEvent = KeyboardEvent;
@@ -1453,7 +1453,7 @@ export type NativeKeyboardEvent = KeyboardEvent;
 
 > Warning: This API is now obsolete.
 >
-> Use `MouseEvent`
+> Use `MouseEvent` and use the second argument to the handler function for the current event target
 
 ```typescript
 export type NativeMouseEvent = MouseEvent;
@@ -1465,7 +1465,7 @@ export type NativeMouseEvent = MouseEvent;
 
 > Warning: This API is now obsolete.
 >
-> Use `PointerEvent`
+> Use `PointerEvent` and use the second argument to the handler function for the current event target
 
 ```typescript
 export type NativePointerEvent = PointerEvent;
@@ -1477,7 +1477,7 @@ export type NativePointerEvent = PointerEvent;
 
 > Warning: This API is now obsolete.
 >
-> Use `TouchEvent`
+> Use `TouchEvent` and use the second argument to the handler function for the current event target
 
 ```typescript
 export type NativeTouchEvent = TouchEvent;
@@ -1489,7 +1489,7 @@ export type NativeTouchEvent = TouchEvent;
 
 > Warning: This API is now obsolete.
 >
-> Use `TransitionEvent`
+> Use `TransitionEvent` and use the second argument to the handler function for the current event target
 
 ```typescript
 export type NativeTransitionEvent = TransitionEvent;
@@ -1501,7 +1501,7 @@ export type NativeTransitionEvent = TransitionEvent;
 
 > Warning: This API is now obsolete.
 >
-> Use `UIEvent`
+> Use `UIEvent` and use the second argument to the handler function for the current event target
 
 ```typescript
 export type NativeUIEvent = UIEvent;
@@ -1513,7 +1513,7 @@ export type NativeUIEvent = UIEvent;
 
 > Warning: This API is now obsolete.
 >
-> Use `WheelEvent`
+> Use `WheelEvent` and use the second argument to the handler function for the current event target
 
 ```typescript
 export type NativeWheelEvent = WheelEvent;
@@ -1783,7 +1783,7 @@ export interface QuoteHTMLAttributes<T extends Element> extends Attrs<'q', T>
 
 > Warning: This API is now obsolete.
 >
-> Use `AnimationEvent`
+> Use `AnimationEvent` and use the second argument to the handler function for the current event target
 
 ```typescript
 export type QwikAnimationEvent<T = Element> = NativeAnimationEvent;
@@ -1797,7 +1797,7 @@ export type QwikAnimationEvent<T = Element> = NativeAnimationEvent;
 
 > Warning: This API is now obsolete.
 >
-> Use `ChangeEvent`
+> Use `Event` and use the second argument to the handler function for the current event target. Also note that in Qwik, onInput$ with the InputEvent is the event that behaves like onChange in React.
 
 ```typescript
 export type QwikChangeEvent<T = Element> = Event;
@@ -1809,7 +1809,7 @@ export type QwikChangeEvent<T = Element> = Event;
 
 > Warning: This API is now obsolete.
 >
-> Use `ClipboardEvent`
+> Use `ClipboardEvent` and use the second argument to the handler function for the current event target
 
 ```typescript
 export type QwikClipboardEvent<T = Element> = NativeClipboardEvent;
@@ -1823,7 +1823,7 @@ export type QwikClipboardEvent<T = Element> = NativeClipboardEvent;
 
 > Warning: This API is now obsolete.
 >
-> Use `CompositionEvent`
+> Use `CompositionEvent` and use the second argument to the handler function for the current event target
 
 ```typescript
 export type QwikCompositionEvent<T = Element> = NativeCompositionEvent;
@@ -1847,7 +1847,7 @@ export interface QwikDOMAttributes extends DOMAttributes<Element>
 
 > Warning: This API is now obsolete.
 >
-> Use `DragEvent`
+> Use `DragEvent` and use the second argument to the handler function for the current event target
 
 ```typescript
 export type QwikDragEvent<T = Element> = NativeDragEvent;
@@ -1861,7 +1861,7 @@ export type QwikDragEvent<T = Element> = NativeDragEvent;
 
 > Warning: This API is now obsolete.
 >
-> Use `FocusEvent`
+> Use `FocusEvent` and use the second argument to the handler function for the current event target
 
 ```typescript
 export type QwikFocusEvent<T = Element> = NativeFocusEvent;
@@ -1947,7 +1947,7 @@ export interface QwikIntrinsicElements extends QwikHTMLElements, QwikSVGElements
 
 > Warning: This API is now obsolete.
 >
-> Use `InvalidEvent`
+> Use `Event` and use the second argument to the handler function for the current event target
 
 ```typescript
 export type QwikInvalidEvent<T = Element> = Event;
@@ -1978,7 +1978,7 @@ export declare namespace QwikJSX
 
 > Warning: This API is now obsolete.
 >
-> Use `KeyboardEvent`
+> Use `KeyboardEvent` and use the second argument to the handler function for the current event target
 
 ```typescript
 export type QwikKeyboardEvent<T = Element> = NativeKeyboardEvent;
@@ -1992,7 +1992,7 @@ export type QwikKeyboardEvent<T = Element> = NativeKeyboardEvent;
 
 > Warning: This API is now obsolete.
 >
-> Use `MouseEvent`
+> Use `MouseEvent` and use the second argument to the handler function for the current event target
 
 ```typescript
 export type QwikMouseEvent<T = Element, E = NativeMouseEvent> = E;
@@ -2006,7 +2006,7 @@ export type QwikMouseEvent<T = Element, E = NativeMouseEvent> = E;
 
 > Warning: This API is now obsolete.
 >
-> Use `PointerEvent`
+> Use `PointerEvent` and use the second argument to the handler function for the current event target
 
 ```typescript
 export type QwikPointerEvent<T = Element> = NativePointerEvent;
@@ -2020,10 +2020,10 @@ export type QwikPointerEvent<T = Element> = NativePointerEvent;
 
 > Warning: This API is now obsolete.
 >
-> Use `SubmitEvent`
+> Use `SubmitEvent` and use the second argument to the handler function for the current event target
 
 ```typescript
-export type QwikSubmitEvent<T = Element> = Event;
+export type QwikSubmitEvent<T = Element> = SubmitEvent;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
@@ -2063,7 +2063,7 @@ export type QwikSymbolEvent = CustomEvent<{
 
 > Warning: This API is now obsolete.
 >
-> Use `TouchEvent`
+> Use `TouchEvent` and use the second argument to the handler function for the current event target
 
 ```typescript
 export type QwikTouchEvent<T = Element> = NativeTouchEvent;
@@ -2077,7 +2077,7 @@ export type QwikTouchEvent<T = Element> = NativeTouchEvent;
 
 > Warning: This API is now obsolete.
 >
-> Use `TransitionEvent`
+> Use `TransitionEvent` and use the second argument to the handler function for the current event target
 
 ```typescript
 export type QwikTransitionEvent<T = Element> = NativeTransitionEvent;
@@ -2091,7 +2091,7 @@ export type QwikTransitionEvent<T = Element> = NativeTransitionEvent;
 
 > Warning: This API is now obsolete.
 >
-> Use `UIEvent`
+> Use `UIEvent` and use the second argument to the handler function for the current event target
 
 ```typescript
 export type QwikUIEvent<T = Element> = NativeUIEvent;
@@ -2115,7 +2115,7 @@ export type QwikVisibleEvent = CustomEvent<IntersectionObserverEntry>;
 
 > Warning: This API is now obsolete.
 >
-> Use `WheelEvent`
+> Use `WheelEvent` and use the second argument to the handler function for the current event target
 
 ```typescript
 export type QwikWheelEvent<T = Element> = NativeWheelEvent;

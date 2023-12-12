@@ -1362,7 +1362,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `AnimationEvent`\n> \n\n\n```typescript\nexport type NativeAnimationEvent = AnimationEvent;\n```",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `AnimationEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type NativeAnimationEvent = AnimationEvent;\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.nativeanimationevent.md"
     },
@@ -1376,7 +1376,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `ClipboardEvent`\n> \n\n\n```typescript\nexport type NativeClipboardEvent = ClipboardEvent;\n```",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `ClipboardEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type NativeClipboardEvent = ClipboardEvent;\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.nativeclipboardevent.md"
     },
@@ -1390,7 +1390,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `CompositionEvent`\n> \n\n\n```typescript\nexport type NativeCompositionEvent = CompositionEvent;\n```",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `CompositionEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type NativeCompositionEvent = CompositionEvent;\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.nativecompositionevent.md"
     },
@@ -1404,7 +1404,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `DragEvent`\n> \n\n\n```typescript\nexport type NativeDragEvent = DragEvent;\n```",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `DragEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type NativeDragEvent = DragEvent;\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.nativedragevent.md"
     },
@@ -1418,7 +1418,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `FocusEvent`\n> \n\n\n```typescript\nexport type NativeFocusEvent = FocusEvent;\n```",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `FocusEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type NativeFocusEvent = FocusEvent;\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.nativefocusevent.md"
     },
@@ -1432,7 +1432,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `KeyboardEvent`\n> \n\n\n```typescript\nexport type NativeKeyboardEvent = KeyboardEvent;\n```",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `KeyboardEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type NativeKeyboardEvent = KeyboardEvent;\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.nativekeyboardevent.md"
     },
@@ -1446,7 +1446,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `MouseEvent`\n> \n\n\n```typescript\nexport type NativeMouseEvent = MouseEvent;\n```",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `MouseEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type NativeMouseEvent = MouseEvent;\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.nativemouseevent.md"
     },
@@ -1460,7 +1460,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `PointerEvent`\n> \n\n\n```typescript\nexport type NativePointerEvent = PointerEvent;\n```",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `PointerEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type NativePointerEvent = PointerEvent;\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.nativepointerevent.md"
     },
@@ -1474,7 +1474,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `TouchEvent`\n> \n\n\n```typescript\nexport type NativeTouchEvent = TouchEvent;\n```",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `TouchEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type NativeTouchEvent = TouchEvent;\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.nativetouchevent.md"
     },
@@ -1488,7 +1488,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `TransitionEvent`\n> \n\n\n```typescript\nexport type NativeTransitionEvent = TransitionEvent;\n```",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `TransitionEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type NativeTransitionEvent = TransitionEvent;\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.nativetransitionevent.md"
     },
@@ -1502,7 +1502,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `UIEvent`\n> \n\n\n```typescript\nexport type NativeUIEvent = UIEvent;\n```",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `UIEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type NativeUIEvent = UIEvent;\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.nativeuievent.md"
     },
@@ -1516,7 +1516,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `WheelEvent`\n> \n\n\n```typescript\nexport type NativeWheelEvent = WheelEvent;\n```",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `WheelEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type NativeWheelEvent = WheelEvent;\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.nativewheelevent.md"
     },
@@ -1810,7 +1810,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `AnimationEvent`\n> \n\n\n```typescript\nexport type QwikAnimationEvent<T = Element> = NativeAnimationEvent;\n```\n**References:** [NativeAnimationEvent](#nativeanimationevent)",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `AnimationEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type QwikAnimationEvent<T = Element> = NativeAnimationEvent;\n```\n**References:** [NativeAnimationEvent](#nativeanimationevent)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwikanimationevent.md"
     },
@@ -1824,7 +1824,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `ChangeEvent`\n> \n\n\n```typescript\nexport type QwikChangeEvent<T = Element> = Event;\n```",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `Event` and use the second argument to the handler function for the current event target. Also note that in Qwik, onInput$ with the InputEvent is the event that behaves like onChange in React.\n> \n\n\n```typescript\nexport type QwikChangeEvent<T = Element> = Event;\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwikchangeevent.md"
     },
@@ -1838,7 +1838,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `ClipboardEvent`\n> \n\n\n```typescript\nexport type QwikClipboardEvent<T = Element> = NativeClipboardEvent;\n```\n**References:** [NativeClipboardEvent](#nativeclipboardevent)",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `ClipboardEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type QwikClipboardEvent<T = Element> = NativeClipboardEvent;\n```\n**References:** [NativeClipboardEvent](#nativeclipboardevent)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwikclipboardevent.md"
     },
@@ -1852,7 +1852,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `CompositionEvent`\n> \n\n\n```typescript\nexport type QwikCompositionEvent<T = Element> = NativeCompositionEvent;\n```\n**References:** [NativeCompositionEvent](#nativecompositionevent)",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `CompositionEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type QwikCompositionEvent<T = Element> = NativeCompositionEvent;\n```\n**References:** [NativeCompositionEvent](#nativecompositionevent)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwikcompositionevent.md"
     },
@@ -1880,7 +1880,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `DragEvent`\n> \n\n\n```typescript\nexport type QwikDragEvent<T = Element> = NativeDragEvent;\n```\n**References:** [NativeDragEvent](#nativedragevent)",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `DragEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type QwikDragEvent<T = Element> = NativeDragEvent;\n```\n**References:** [NativeDragEvent](#nativedragevent)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwikdragevent.md"
     },
@@ -1894,7 +1894,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `FocusEvent`\n> \n\n\n```typescript\nexport type QwikFocusEvent<T = Element> = NativeFocusEvent;\n```\n**References:** [NativeFocusEvent](#nativefocusevent)",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `FocusEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type QwikFocusEvent<T = Element> = NativeFocusEvent;\n```\n**References:** [NativeFocusEvent](#nativefocusevent)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwikfocusevent.md"
     },
@@ -1964,7 +1964,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `InvalidEvent`\n> \n\n\n```typescript\nexport type QwikInvalidEvent<T = Element> = Event;\n```",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `Event` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type QwikInvalidEvent<T = Element> = Event;\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwikinvalidevent.md"
     },
@@ -1992,7 +1992,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `KeyboardEvent`\n> \n\n\n```typescript\nexport type QwikKeyboardEvent<T = Element> = NativeKeyboardEvent;\n```\n**References:** [NativeKeyboardEvent](#nativekeyboardevent)",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `KeyboardEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type QwikKeyboardEvent<T = Element> = NativeKeyboardEvent;\n```\n**References:** [NativeKeyboardEvent](#nativekeyboardevent)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwikkeyboardevent.md"
     },
@@ -2006,7 +2006,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `MouseEvent`\n> \n\n\n```typescript\nexport type QwikMouseEvent<T = Element, E = NativeMouseEvent> = E;\n```\n**References:** [NativeMouseEvent](#nativemouseevent)",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `MouseEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type QwikMouseEvent<T = Element, E = NativeMouseEvent> = E;\n```\n**References:** [NativeMouseEvent](#nativemouseevent)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwikmouseevent.md"
     },
@@ -2020,7 +2020,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `PointerEvent`\n> \n\n\n```typescript\nexport type QwikPointerEvent<T = Element> = NativePointerEvent;\n```\n**References:** [NativePointerEvent](#nativepointerevent)",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `PointerEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type QwikPointerEvent<T = Element> = NativePointerEvent;\n```\n**References:** [NativePointerEvent](#nativepointerevent)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwikpointerevent.md"
     },
@@ -2034,7 +2034,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `SubmitEvent`\n> \n\n\n```typescript\nexport type QwikSubmitEvent<T = Element> = Event;\n```",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `SubmitEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type QwikSubmitEvent<T = Element> = SubmitEvent;\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwiksubmitevent.md"
     },
@@ -2076,7 +2076,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `TouchEvent`\n> \n\n\n```typescript\nexport type QwikTouchEvent<T = Element> = NativeTouchEvent;\n```\n**References:** [NativeTouchEvent](#nativetouchevent)",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `TouchEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type QwikTouchEvent<T = Element> = NativeTouchEvent;\n```\n**References:** [NativeTouchEvent](#nativetouchevent)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwiktouchevent.md"
     },
@@ -2090,7 +2090,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `TransitionEvent`\n> \n\n\n```typescript\nexport type QwikTransitionEvent<T = Element> = NativeTransitionEvent;\n```\n**References:** [NativeTransitionEvent](#nativetransitionevent)",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `TransitionEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type QwikTransitionEvent<T = Element> = NativeTransitionEvent;\n```\n**References:** [NativeTransitionEvent](#nativetransitionevent)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwiktransitionevent.md"
     },
@@ -2104,7 +2104,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `UIEvent`\n> \n\n\n```typescript\nexport type QwikUIEvent<T = Element> = NativeUIEvent;\n```\n**References:** [NativeUIEvent](#nativeuievent)",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `UIEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type QwikUIEvent<T = Element> = NativeUIEvent;\n```\n**References:** [NativeUIEvent](#nativeuievent)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwikuievent.md"
     },
@@ -2132,7 +2132,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `WheelEvent`\n> \n\n\n```typescript\nexport type QwikWheelEvent<T = Element> = NativeWheelEvent;\n```\n**References:** [NativeWheelEvent](#nativewheelevent)",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `WheelEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type QwikWheelEvent<T = Element> = NativeWheelEvent;\n```\n**References:** [NativeWheelEvent](#nativewheelevent)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwikwheelevent.md"
     },

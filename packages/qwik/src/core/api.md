@@ -715,7 +715,7 @@ export type QwikMouseEvent<T = Element, E = NativeMouseEvent> = E;
 export type QwikPointerEvent<T = Element> = NativePointerEvent;
 
 // @public @deprecated (undocumented)
-export type QwikSubmitEvent<T = Element> = Event;
+export type QwikSubmitEvent<T = Element> = SubmitEvent;
 
 // @public
 export type QwikSVGElements = {

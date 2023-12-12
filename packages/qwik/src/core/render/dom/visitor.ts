@@ -441,6 +441,8 @@ export const diffVnode = (
         }
         if (prop === 'class') {
           newValue = serializeClassWithHost(newValue, currentComponent);
+        } else if (prop === 'className') {
+          newValue = serializeClassWithHost(newValue, currentComponent);
         } else if (prop === 'style') {
           newValue = stringifyStyle(newValue);
         }

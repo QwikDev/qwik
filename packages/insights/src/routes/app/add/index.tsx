@@ -9,7 +9,7 @@ import { ApplicationForm } from '../[publicApiKey]/app.form';
 import styles from './styles.module.css';
 
 export const useFormAction = formAction$<ApplicationForm>(
-  async ({ name, description }, { redirect }) => {
+  async ({ name, description, url }, { redirect }) => {
     const db = getDB();
     const publicApiKey = Math.round(Math.random() * Number.MAX_SAFE_INTEGER).toString(36);
     await db
@@ -18,6 +18,7 @@ export const useFormAction = formAction$<ApplicationForm>(
         name,
         description,
         publicApiKey,
+        url,
       })
       .run();
     redirect(302, appUrl(`/app/[publicApiKey]/`, { publicApiKey }));
@@ -26,7 +27,7 @@ export const useFormAction = formAction$<ApplicationForm>(
 );
 
 export default component$(() => {
-  const [, { Form, Field }] = useForm<ApplicationForm>({
+  const [form, { Form, Field }] = useForm<ApplicationForm>({
     loader: useSignal({ name: '', description: '', url: '' }),
     action: useFormAction(),
     validate: zodForm$(ApplicationForm),
@@ -34,19 +35,52 @@ export default component$(() => {
   return (
     <Layout mode="bright">
       <Container position="center" width="small"></Container>
-      <div class={styles['add-app-wrapper']}>
+      <div class={[
+        styles['add-app-wrapper'],
+        "p-6"
+      ]}>
         <h1 class="h3">Create Application</h1>
         <Form>
           <div>
             <label>Name</label>
             <Field name="name">
-              {(field, props) => <input {...props} type="text" value={field.value} />}
+              {(field, props) => <>
+                <input
+                  {...props}
+                  type="text"
+                  value={field.value}
+                  class="border-2 border-gray-300"
+                />
+                {field.error && <p class="text-red-800">{field.error}</p>}
+              </>}
+            </Field>
+          </div>
+          <div>
+            <label>URL</label>
+            <Field name="url">
+              {(field, props) => <>
+                <input
+                  {...props}
+                  type="url"
+                  value={field.value}
+                  class="border-2 border-gray-300"
+                />
+                {field.error && <p class="text-red-800">{field.error}</p>}
+              </>}
             </Field>
           </div>
           <div>
             <label>Description</label>
             <Field name="description">
-              {(field, props) => <input {...props} type="text" value={field.value} />}
+              {(field, props) => <>
+                <input
+                  {...props}
+                  type="text"
+                  value={field.value}
+                  class="border-2 border-gray-300"
+                />
+                {field.error && <p class="text-red-800">{field.error}</p>}
+              </>}
             </Field>
           </div>
           <div
@@ -55,7 +89,7 @@ export default component$(() => {
             }}
           >
             <button type="submit" class="button">
-              <DiskIcon />
+              <DiskIcon/>
               Create
             </button>
           </div>

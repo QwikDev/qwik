@@ -135,7 +135,7 @@ export type QrlReturn<T> = T extends (...args: any) => infer R ? Awaited<R> : un
 // </docs>
 export type QRL<TYPE = unknown> = {
   // Special type brand to let eslint that the Type is serializable
-  __qwik_serializable__: any;
+  __qwik_serializable__?: any;
   __brand__QRL__: TYPE;
 
   /** Resolve the QRL and return the actual value. */
@@ -162,6 +162,7 @@ type BivariantQrlFn<ARGS extends any[], RETURN> = {
 
 /** @public */
 export type PropFnInterface<ARGS extends any[], RET> = {
+  __qwik_serializable__?: any;
   (...args: ARGS): Promise<RET>;
 };
 

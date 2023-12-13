@@ -14,8 +14,8 @@
     "install": "^0.13.0"
   },
   "devDependencies": {
-    "@builder.io/qwik": "github:BuilderIo/qwik-build#0080db89d43112fea2ed6b281f70f61d00f42edd",
-    "@builder.io/qwik-city": "github:BuilderIo/qwik-city-build#fd39ca1abf09e4016ff738679030b2486ea5f7fc",
+    "@builder.io/qwik": "github:BuilderIo/qwik-build#7b855a75d701b9c373af5b7c4a309badf93fcd4f",
+    "@builder.io/qwik-city": "github:BuilderIo/qwik-city-build#79afe153b776865fbc964476236c258f11185362",
     "@builder.io/qwik-labs": "workspace:*",
     "@builder.io/vite-plugin-macro": "~0.0.7",
     "@netlify/edge-functions": "^2.2.0",
@@ -27,7 +27,7 @@
     "autoprefixer": "^10.4.14",
     "better-sqlite3": "^9.0.0",
     "eslint": "^8.51.0",
-    "eslint-plugin-qwik": "^1.2.13",
+    "eslint-plugin-qwik": "latest",
     "netlify-cli": "^15.9.1",
     "postcss": "^8.4.31",
     "prettier": "^3.0.3",

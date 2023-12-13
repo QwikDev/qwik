@@ -29,6 +29,9 @@
   "peerDependencies": {
     "eslint": "^8.45.0"
   },
+  "scripts": {
+    "test": "cd ../..; ./node_modules/.bin/vitest packages/eslint-plugin-qwik/qwik.unit.ts"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/BuilderIO/qwik.git",

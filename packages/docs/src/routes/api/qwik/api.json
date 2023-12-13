@@ -1746,7 +1746,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type PropFnInterface<ARGS extends any[], RET> = {\n    __qwik_serializable__?: any;\n    (...args: ARGS): Promise<RET>;\n};\n```",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `QRL<>` instead\n> \n\n\n```typescript\nexport type PropFnInterface<ARGS extends any[], RET> = {\n    __qwik_serializable__?: any;\n    (...args: ARGS): Promise<RET>;\n};\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts",
       "mdFile": "qwik.propfninterface.md"
     },
@@ -1760,7 +1760,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type PropFunction<T extends Function = (...args: any) => any> = T extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, Awaited<RET>> : never;\n```\n**References:** [PropFnInterface](#propfninterface)",
+      "content": "Alias for `QRL<T>`<!-- -->. Of historic relevance only.\n\n\n```typescript\nexport type PropFunction<T> = QRL<T>;\n```\n**References:** [QRL](#qrl)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts",
       "mdFile": "qwik.propfunction.md"
     },

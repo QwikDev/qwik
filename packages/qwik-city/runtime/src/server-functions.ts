@@ -297,7 +297,7 @@ export const serverQrl = <T extends ServerFunction>(qrl: QRL<T>): ServerQRL<T> =
       } else {
         // Running on the client, we need to call the function via HTTP
         const ctxElm = _getContextElement();
-        const filtered = args.map((arg) => {
+        const filtered = args.map((arg: unknown) => {
           if (arg instanceof SubmitEvent && arg.target instanceof HTMLFormElement) {
             return new FormData(arg.target);
           } else if (arg instanceof Event) {

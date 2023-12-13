@@ -1,5 +1,5 @@
 import { assertType, describe, expectTypeOf, test } from 'vitest';
-import { $ } from '../../../qrl/qrl.public';
+import { $, type PropFunction } from '../../../qrl/qrl.public';
 import type { EventHandler, QRLEventHandlerMulti } from './jsx-qwik-attributes';
 import type { FunctionComponent, JSXOutput } from './jsx-node';
 import type { QwikIntrinsicElements } from './jsx-qwik-elements';
@@ -66,6 +66,13 @@ describe('types', () => {
     expectTypeOf<Parameters<typeof Cmp>[0]['onClick$']>().toMatchTypeOf<
       EventHandler<PointerEvent, SVGSVGElement> | QRLEventHandlerMulti<PointerEvent, SVGSVGElement>
     >();
+  });
+  test('PropFunction', () => () => {
+    const CmpButton = component$<{
+      onClick$?: PropFunction<() => void>;
+    }>((props) => <button onClick$={props.onClick$} />);
+
+    <CmpButton onClick$={() => alert('CLICKED!')}>click me!</CmpButton>;
   });
 
   test('unknown string component', () => () => {

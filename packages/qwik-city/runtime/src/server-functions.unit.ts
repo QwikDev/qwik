@@ -31,5 +31,37 @@ describe('types', () => {
 
     expectTypeOf(callIt).not.toBeAny();
     expectTypeOf(callIt).returns.toMatchTypeOf<Promise<RequestEventBase>>();
+
+    const serverGetSourceSnippet = server$(async function (
+      publicApiKey: string,
+      symbolHash: string
+    ) {
+      return {
+        fullName: 'fullName',
+        count: 5,
+        origin: 'origin',
+        originUrl: 'url',
+        source: 'source',
+      };
+    });
+    expectTypeOf(serverGetSourceSnippet).not.toBeAny();
+    expectTypeOf(serverGetSourceSnippet('hi', 'there')).toEqualTypeOf<
+      Promise<{
+        fullName: string;
+        count: number;
+        origin: string;
+        originUrl: string;
+        source: string;
+      }>
+    >();
+    expectTypeOf(serverGetSourceSnippet(new AbortController().signal, 'hi', 'there')).toEqualTypeOf<
+      Promise<{
+        fullName: string;
+        count: number;
+        origin: string;
+        originUrl: string;
+        source: string;
+      }>
+    >();
   });
 });

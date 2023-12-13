@@ -1748,6 +1748,10 @@ export interface ProgressHTMLAttributes<T extends Element> extends Attrs<'progre
 
 ## PropFnInterface
 
+> Warning: This API is now obsolete.
+>
+> Use `QRL<>` instead
+
 ```typescript
 export type PropFnInterface<ARGS extends any[], RET> = {
   __qwik_serializable__?: any;
@@ -1759,14 +1763,13 @@ export type PropFnInterface<ARGS extends any[], RET> = {
 
 ## PropFunction
 
+Alias for `QRL<T>`. Of historic relevance only.
+
 ```typescript
-export type PropFunction<T extends Function = (...args: any) => any> =
-  T extends (...args: infer ARGS) => infer RET
-    ? PropFnInterface<ARGS, Awaited<RET>>
-    : never;
+export type PropFunction<T> = QRL<T>;
 ```
 
-**References:** [PropFnInterface](#propfninterface)
+**References:** [QRL](#qrl)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
 

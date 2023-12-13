@@ -605,14 +605,14 @@ export const PrefetchServiceWorker: (opts: {
 export interface ProgressHTMLAttributes<T extends Element> extends Attrs<'progress', T> {
 }
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export type PropFnInterface<ARGS extends any[], RET> = {
     __qwik_serializable__?: any;
     (...args: ARGS): Promise<RET>;
 };
 
-// @public (undocumented)
-export type PropFunction<T extends Function = (...args: any) => any> = T extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, Awaited<RET>> : never;
+// @public
+export type PropFunction<T> = QRL<T>;
 
 // @public @deprecated (undocumented)
 export type PropFunctionProps<PROPS extends Record<any, any>> = {

@@ -10,16 +10,22 @@
     "declaration": true,
     "isolatedModules": true,
     "strict": true,
-    "importsNotUsedAsValues": "error",
     "moduleResolution": "node",
     "baseUrl": ".",
-    "noUnusedLocals": true,
+    "noUnusedLocals": false,
     "esModuleInterop": true,
     "sourceRoot": ".",
     "inlineSourceMap": true,
     "inlineSources": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "paths": {
+      "@builder.io/qwik": ["../../qwik/dist/core.d.ts"],
+      "@builder.io/qwik/build": ["../../qwik/dist/build/index.d.ts"],
+      "@builder.io/qwik/jsx-runtime": ["../../qwik/dist/jsx-runtime.d.ts"],
+      "@builder.io/qwik-city": ["../../qwik-city/lib/index.d.ts"]
+    }
   },
-  "include": ["file.tsx", "react.tsx", "src/routes/index.tsx"]
+  "include": ["**/*.tsx", "**/*.ts"]
 }

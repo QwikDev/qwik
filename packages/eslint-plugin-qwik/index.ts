@@ -54,6 +54,7 @@ export const configs = {
       'qwik/unused-server': 'error',
       'qwik/jsx-img': 'error',
       'qwik/jsx-a': 'error',
+      'qwik/no-use-visible-task': 'warn',
     },
   },
 };

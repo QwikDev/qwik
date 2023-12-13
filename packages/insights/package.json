@@ -14,8 +14,8 @@
     "install": "^0.13.0"
   },
   "devDependencies": {
-    "@builder.io/qwik": "github:BuilderIo/qwik-build#7b855a75d701b9c373af5b7c4a309badf93fcd4f",
-    "@builder.io/qwik-city": "github:BuilderIo/qwik-city-build#79afe153b776865fbc964476236c258f11185362",
+    "@builder.io/qwik": "github:BuilderIo/qwik-build#83f8c39c1e1f0b41a9ba0d3eb8b47a40dbeb3be4",
+    "@builder.io/qwik-city": "github:BuilderIo/qwik-city-build#ad1abefb956182c7ca17630e9e759c97b8e17376",
     "@builder.io/qwik-labs": "workspace:*",
     "@builder.io/vite-plugin-macro": "~0.0.7",
     "@netlify/edge-functions": "^2.2.0",
@@ -33,7 +33,7 @@
     "prettier": "^3.0.3",
     "prettier-plugin-tailwindcss": "^0.5.4",
     "tailwindcss": "3.3.3",
-    "typescript": "5.2.2",
+    "typescript": "5.3.3",
     "undici": "^5.26.0",
     "vite": "^5.0.0",
     "vite-tsconfig-paths": "^4.2.1",

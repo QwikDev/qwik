@@ -588,6 +588,7 @@ export interface ProgressHTMLAttributes<T extends Element> extends Attrs<'progre
 
 // @public (undocumented)
 export type PropFnInterface<ARGS extends any[], RET> = {
+    __qwik_serializable__?: any;
     (...args: ARGS): Promise<RET>;
 };
 
@@ -614,7 +615,7 @@ export type PublicProps<PROPS extends Record<any, any>> = TransformProps<PROPS> 
 //
 // @public
 export type QRL<TYPE = unknown> = {
-    __qwik_serializable__: any;
+    __qwik_serializable__?: any;
     __brand__QRL__: TYPE;
     resolve(): Promise<TYPE>;
     resolved: undefined | TYPE;

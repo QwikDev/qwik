@@ -1663,6 +1663,7 @@ export interface ProgressHTMLAttributes<T extends Element> extends Attrs<'progre
 
 ```typescript
 export type PropFnInterface<ARGS extends any[], RET> = {
+  __qwik_serializable__?: any;
   (...args: ARGS): Promise<RET>;
 };
 ```

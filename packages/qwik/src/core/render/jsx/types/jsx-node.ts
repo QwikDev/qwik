@@ -2,7 +2,6 @@ import type { JSXChildren } from './jsx-qwik-attributes';
 
 /** @public */
 export interface FunctionComponent<P extends Record<any, any> = Record<any, unknown>> {
-  __qwik_serializable__: [P];
   (props: P, key: string | null, flags: number, dev?: DevJSX): JSXNode | null;
 }
 /** @public */

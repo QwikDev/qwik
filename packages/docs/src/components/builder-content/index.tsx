@@ -1,26 +1,31 @@
-import { component$, Resource, useResource$ } from '@builder.io/qwik';
-import { useLocation } from '@builder.io/qwik-city';
-import { getBuilderSearchParams, getContent, RenderContent } from '@builder.io/sdk-qwik';
-import { QWIK_MODEL } from '../../constants';
+import { component$, Resource, useResource$ } from "@builder.io/qwik";
+import { useLocation } from "@builder.io/qwik-city";
+import {
+  getBuilderSearchParams,
+  getContent,
+  RenderContent,
+} from "@builder.io/sdk-qwik";
+import { QWIK_MODEL } from "../../constants";
 
 export default component$<{
   apiKey: string;
   model: string;
-  tag: 'main' | 'div';
+  tag: "main" | "div";
 }>((props) => {
   const location = useLocation();
   const builderContentRsrc = useResource$<any>(({ cache }) => {
     const query = location.url.searchParams;
     // This helper function is needed because CF Workers don't support URLSearchParams.get
     const queryGet = (name: string) =>
-      typeof query.get === 'function'
+      typeof query.get === "function"
         ? query.get(name)
         : (query as unknown as Record<string, string>)[name];
 
-    const render = queryGet('render');
-    const contentId = props.model === QWIK_MODEL ? queryGet('content') : undefined;
-    const isSDK = render === 'sdk';
-    cache('immutable');
+    const render = queryGet("render");
+    const contentId =
+      props.model === QWIK_MODEL ? queryGet("content") : undefined;
+    const isSDK = render === "sdk";
+    cache("immutable");
     if (isSDK) {
       return getCachedValue(
         {
@@ -29,7 +34,7 @@ export default component$<{
           options: getBuilderSearchParams(query),
           userAttributes: {
             urlPath: location.url.pathname,
-            site: 'qwik.builder.io',
+            site: "qwik.builder.io",
           },
           ...(contentId && {
             query: {
@@ -60,7 +65,11 @@ export default component$<{
         content.html ? (
           <props.tag class="builder" dangerouslySetInnerHTML={content.html} />
         ) : (
-          <RenderContent model={props.model} content={content} apiKey={props.apiKey} />
+          <RenderContent
+            model={props.model}
+            content={content}
+            apiKey={props.apiKey}
+          />
         )
       }
     />
@@ -68,7 +77,10 @@ export default component$<{
 });
 
 export const isDev = import.meta.env.DEV;
-export const CACHE = new Map<string, { timestamp: number; content: Promise<any> }>();
+export const CACHE = new Map<
+  string,
+  { timestamp: number; content: Promise<any> }
+>();
 export function getCachedValue<T>(
   key: T,
   factory: (key: T) => Promise<any>,
@@ -80,7 +92,7 @@ export function getCachedValue<T>(
     // HACK
     // We ignore the urlPath for caching purposes as it would create way to many requests.
     // and we know that all of them are the same
-    urlPath: '*',
+    urlPath: "*",
   });
   const cacheValue = CACHE.get(keyString);
   if (cacheValue && cacheValue.timestamp + cacheTime > now) {
@@ -110,19 +122,27 @@ export async function getBuilderContent({
   cacheBust?: boolean;
 }): Promise<BuilderContent> {
   const qwikUrl = new URL(
-    'https://cdn.builder.io/api/v1/qwik/' + model + (contentId ? '/' + contentId : '')
+    "https://cdn.builder.io/api/v1/qwik/" +
+      model +
+      (contentId ? "/" + contentId : "")
   );
-  qwikUrl.searchParams.set('apiKey', apiKey);
-  qwikUrl.searchParams.set('userAttributes.urlPath', urlPath);
-  qwikUrl.searchParams.set('userAttributes.site', 'qwik.builder.io');
+  qwikUrl.searchParams.set("apiKey", apiKey);
+  qwikUrl.searchParams.set("userAttributes.urlPath", urlPath);
+  qwikUrl.searchParams.set("userAttributes.site", "qwik.builder.io");
   if (cacheBust) {
-    qwikUrl.searchParams.set('cachebust', 'true');
+    qwikUrl.searchParams.set("cachebust", "true");
   }
 
-  const response = await fetch(qwikUrl.href);
-  if (response.ok) {
-    const content: BuilderContent = JSON.parse(await response.text());
-    return content;
+  try {
+    const response = await fetch(qwikUrl.href);
+    if (response.ok) {
+      const content: BuilderContent = JSON.parse(await response.text());
+      return content;
+    }
+    throw new Error(
+      `Unable to load Builder content from ${qwikUrl.toString()}`
+    );
+  } catch (e) {
+    console.error("FAILED:", qwikUrl.href, e);
   }
-  throw new Error(`Unable to load Builder content from ${qwikUrl.toString()}`);
 }

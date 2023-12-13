@@ -3,16 +3,20 @@ import { formAction$, useForm, zodForm$ } from '@modular-forms/qwik';
 import Container from '~/components/container';
 import { DiskIcon } from '~/components/icons/disk';
 import Layout from '~/components/layout';
-import { applicationTable, getDB } from '~/db';
+import {applicationTable, getDB, userApplicationMap} from '~/db';
 import { appUrl } from '~/routes.config';
 import { ApplicationForm } from '../[publicApiKey]/app.form';
 import styles from './styles.module.css';
+import {getInsightUser} from "~/routes/app/layout";
 
 export const useFormAction = formAction$<ApplicationForm>(
-  async ({ name, description, url }, { redirect }) => {
+  async ({ name, description, url }, { redirect, sharedMap }) => {
     const db = getDB();
     const publicApiKey = Math.round(Math.random() * Number.MAX_SAFE_INTEGER).toString(36);
-    await db
+
+    const insightUser = getInsightUser(sharedMap);
+
+    const insert = await db
       .insert(applicationTable)
       .values({
         name,
@@ -21,6 +25,17 @@ export const useFormAction = formAction$<ApplicationForm>(
         url,
       })
       .run();
+
+    const applicationId = insert.lastInsertRowid;
+
+    await db
+      .insert(userApplicationMap)
+      .values({
+        userId: insightUser.userId,
+        applicationId: parseInt(`${applicationId}`),
+      })
+      .run();
+
     redirect(302, appUrl(`/app/[publicApiKey]/`, { publicApiKey }));
   },
   zodForm$(ApplicationForm)

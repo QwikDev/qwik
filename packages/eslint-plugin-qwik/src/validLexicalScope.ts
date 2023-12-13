@@ -291,7 +291,7 @@ function _isTypeCapturable(
     return;
   }
   seen.add(type);
-  if (type.getProperty('__no_serialize__')) {
+  if (type.getProperty('__no_serialize__') || type.getProperty('__qwik_serializable__')) {
     return;
   }
   const isUnknown = type.flags & ts.TypeFlags.Unknown;

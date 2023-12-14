@@ -796,5 +796,6 @@ export type ServerFunction = {
  * abort the fetch when fired.
  */
 export type ServerQRL<T extends ServerFunction> = QRL<
-  (...args: [abort: AbortSignal, ...Parameters<T>] | Parameters<T>) => ReturnType<T>
+  | ((abort: AbortSignal, ...args: Parameters<T>) => ReturnType<T>)
+  | ((...args: Parameters<T>) => ReturnType<T>)
 >;

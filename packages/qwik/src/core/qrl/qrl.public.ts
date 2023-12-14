@@ -138,6 +138,16 @@ export type QRL<TYPE = unknown> = {
   __qwik_serializable__?: any;
   __brand__QRL__: TYPE;
 
+  /**
+   * Resolve the QRL of closure and invoke it.
+   *
+   * @param args - Closure arguments.
+   * @returns A promise of the return value of the closure.
+   */
+  (
+    ...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never
+  ): Promise<TYPE extends (...args: any[]) => infer RETURN ? Awaited<RETURN> : never>;
+
   /** Resolve the QRL and return the actual value. */
   resolve(): Promise<TYPE>;
   /** The resolved value, once `resolve()` returns. */
@@ -147,18 +157,7 @@ export type QRL<TYPE = unknown> = {
   getSymbol(): string;
   getHash(): string;
   dev: QRLDev | null;
-} & BivariantQrlFn<QrlArgs<TYPE>, QrlReturn<TYPE>>;
-
-// https://stackoverflow.com/questions/52667959/what-is-the-purpose-of-bivariancehack-in-typescript-types/52668133#52668133
-type BivariantQrlFn<ARGS extends any[], RETURN> = {
-  /**
-   * Resolve the QRL of closure and invoke it.
-   *
-   * @param args - Closure arguments.
-   * @returns A promise of the return value of the closure.
-   */
-  bivarianceHack(...args: ARGS): Promise<RETURN>;
-}['bivarianceHack'];
+};
 
 /** @public */
 export type PropFnInterface<ARGS extends any[], RET> = {

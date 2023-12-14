@@ -73,7 +73,7 @@ export const createQRL = <TYPE>(
     const fn = invokeFn.call(this, tryGetInvokeContext());
     const result = await fn(...args);
     return result;
-  } as QRLInternal<TYPE>;
+  } as any as QRLInternal<TYPE>;
 
   const setContainer = (el: Element | undefined) => {
     if (!_containerEl) {

@@ -9,4 +9,4 @@ name = "fastly-adapter"
 service_id = ""
 
 [scripts]
-  build = "npm run build.server"
+  build = "pnpm run build.server"

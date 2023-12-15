@@ -1,4 +1,5 @@
 import type { QwikSymbolEvent, QwikVisibleEvent } from './core/render/jsx/types/jsx-qwik-events';
+import type { QContainerElement } from './core/container/container';
 import type { QContext } from './core/state/context';
 
 /**
@@ -30,12 +31,12 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
   };
 
   const resolveContainer = (containerEl: Element) => {
-    if ((containerEl as any)['_qwikjson_'] === undefined) {
+    if ((containerEl as QContainerElement)['_qwikjson_'] === undefined) {
       const parentJSON = containerEl === doc.documentElement ? doc.body : containerEl;
       let script = parentJSON.lastElementChild;
       while (script) {
         if (script.tagName === 'SCRIPT' && getAttribute(script, 'type') === 'qwik/json') {
-          (containerEl as any)['_qwikjson_'] = JSON.parse(
+          (containerEl as QContainerElement)['_qwikjson_'] = JSON.parse(
             script.textContent!.replace(/\\x3C(\/?script)/g, '<$1')
           );
           break;
@@ -71,18 +72,25 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
         const url = new URL(qrl, base);
         const symbolName = url.hash.replace(/^#?([^?[|]*).*$/, '$1') || 'default';
         const reqTime = performance.now();
-        const module = import(/* @vite-ignore */ url.href.split('#')[0]);
-        resolveContainer(container);
-        const handler = (await module)[symbolName];
+        let handler: any;
+        const isSync = qrl.startsWith('#');
+        if (isSync) {
+          handler = ((container as QContainerElement).qFuncs || [])[Number.parseInt(symbolName)];
+        } else {
+          const module = import(/* @vite-ignore */ url.href.split('#')[0]);
+          resolveContainer(container);
+          handler = (await module)[symbolName];
+        }
         const previousCtx = (doc as any)[Q_CONTEXT];
         if (element.isConnected) {
           try {
             (doc as any)[Q_CONTEXT] = [element, ev, url];
-            emitEvent<QwikSymbolEvent>('qsymbol', {
-              symbol: symbolName,
-              element: element,
-              reqTime,
-            });
+            isSync ||
+              emitEvent<QwikSymbolEvent>('qsymbol', {
+                symbol: symbolName,
+                element: element,
+                reqTime,
+              });
             await handler(ev, element);
           } finally {
             (doc as any)[Q_CONTEXT] = previousCtx;

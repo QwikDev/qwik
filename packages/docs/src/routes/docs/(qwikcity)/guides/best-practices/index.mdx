@@ -19,7 +19,8 @@ contributors:
   - anartzdev
   - adamdbradley
   - hamatoyogi
-updated_at: '2023-07-05T18:56:52Z'
+  - maiieul
+updated_at: '2023-12-14T18:38:38Z'
 created_at: '2023-03-30T17:37:51Z'
 ---
 
@@ -62,11 +63,25 @@ export default component$(() => {
 });
 ```
 
-## Avoid registering DOM events in `useVisibleTask$()`
+## Use `useVisibleTask$()` as a last resort
+
+Although convenient, `useVisibleTask$()` runs code eagerly and blocks the main thread, preventing user interaction until the task is finished. You can think of it as an escape hatch.
+
+When in doubt, instead of "useVisibleTask$()" use:
+- `useTask$()` -> perform code execution in SSR mode.
+- `useOn()` -> listen to events on the root element of `the current component`.
+- `useOnWindow()` -> listen to events on the `window` object.
+- `useOnDocument()` -> listen to events on the `document` object.
+
+Sometimes though, it is the only way to achieve the result.
+
+In that case, you can add `// eslint-disable-next-line qwik/no-use-visible-task` to the line before "useVisibleTask$" to remove the warning.
+
+### Register DOM events with `useOn()`, `useOnWindow()`, or `useOnDocument()`
 
 Qwik allows to register event listeners in a declarative way, using the `useOn()` or using JSX.
 
-When using `useVisibleTask` to programmatically register events, we are downloading and executing JavaScript eagerly, even if the event is not triggered.
+When using `useVisibleTask$()` to programmatically register events, we are downloading and executing JavaScript eagerly, even if the event is not triggered.
 
 ```tsx title="Suboptimal implementation"
 // Don't do this!
@@ -97,12 +112,6 @@ useOnDocument(
   })
 );
 ```
-
-When in doubt, instead of `useVisibleTask$()` use:
-- `useOn()`: listen to events on the root element of `the current component`.
-- `useOnWindow()`: listen to events on the `window` object.
-- `useOnDocument()`: listen to events on the `document` object.
-
 
 ## Avoid accessing the location from the `window` object
 

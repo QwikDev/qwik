@@ -395,7 +395,7 @@ We recommend starting with `routeAction$()` and only use `globalAction$()` when 
 
 `routeAction$()` can only be declared inside the `src/routes` folder, in a `layout.tsx` or `index.tsx` file, and they MUST be exported, just like a `routeLoader$()`. Since `routeAction$()`s are only accessible within the route it's declared, they are recommended when the action needs to access some user data, or it's a protected route. Think about it like a "private" action.
 
-> If you want to manage common reusable routeAction$() it is important that this function is re-exported from within 'layout.tsx' or 'index.tsx file of the existing route otherwise it will not run or throw exception. For more information [check the cookbook](/docs/cookbook/re-exporting-loaders/index.mdx).
+> If you want to manage common reusable routeAction$() it is essential that this function is re-exported from within 'layout.tsx' or 'index.tsx file of the existing route otherwise it will not run or throw exception. For more information [check the cookbook](/docs/cookbook/re-exporting-loaders/index.mdx).
 
 ```tsx title="src/routes/form/index.tsx"
 import { routeAction$ } from '@builder.io/qwik-city';

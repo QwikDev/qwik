@@ -4,6 +4,21 @@ title: \@builder.io/qwik API Reference
 
 # [API](/api) &rsaquo; @builder.io/qwik
 
+## \_qrlSync
+
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+
+Extract function into a synchronously loadable QRL.
+
+NOTE: Synchronous QRLs functions can't close over any variables, including exports.
+
+```typescript
+_qrlSync: <TYPE extends Function>(fn: TYPE, serializedFn?: string) =>
+  SyncQRL<TYPE>;
+```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
+
 ## "q:slot"
 
 ```typescript
@@ -2906,6 +2921,20 @@ export interface SVGProps<T extends Element> extends SVGAttributes, QwikAttribut
 **Extends:** [SVGAttributes](#svgattributes), QwikAttributes&lt;T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## sync$
+
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+
+Extract function into a synchronously loadable QRL.
+
+NOTE: Synchronous QRLs functions can't close over any variables, including exports.
+
+```typescript
+sync$: <T extends Function>(fn: T) => SyncQRL<T>;
+```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
 
 ## TableHTMLAttributes
 

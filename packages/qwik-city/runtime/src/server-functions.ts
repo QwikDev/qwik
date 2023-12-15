@@ -191,7 +191,7 @@ export const routeLoaderQrl = ((
     This is because the routeLoader$ was not exported in a 'layout.tsx' or 'index.tsx' file of the existing route.
     For more information check: https://qwik.builder.io/qwikcity/route-loader/
 
-    If your are managing reusable logic or a library it is important that this function is re-exported from within 'layout.tsx' or 'index.tsx file of the existing route otherwise it will not run or throw exception.
+    If you are managing reusable logic or a library, it is essential that this function is re-exported from within 'layout.tsx' or 'index.tsx` file of the existing route; otherwise, it will not run and throw an exception.
     For more information check: https://qwik.builder.io/docs/cookbook/re-exporting-loaders/.`);
       }
       return _wrapSignal(state, id);

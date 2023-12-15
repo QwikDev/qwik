@@ -23,6 +23,8 @@ Route Loaders load data in the server so it becomes available to use inside Qwik
 
 Route Loaders can only be declared inside the `src/routes` folder, in a `layout.tsx` or `index.tsx` file, and they MUST be exported.
 
+> If you want to manage common reusable routeLoaders$ it is important that this function is re-exported from within 'layout.tsx' or 'index.tsx file of the existing route otherwise it will not run or throw exception. For more information [check the cookbook](https://qwik.builder.io/docs/cookbook/re-exporting-loaders/).
+
 ```tsx /routeLoader$/ /useProductData/#a title="src/routes/product/[productId]/index.tsx"
 import { component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';

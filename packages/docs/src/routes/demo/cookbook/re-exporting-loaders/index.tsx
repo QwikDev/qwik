@@ -10,7 +10,7 @@ export default component$(() => {
   const commonRouteLoader = useCommonRouteLoader();
 
   return (
-    <div class="flex justify-around text-xl dark:text-white">
+    <div class="flex justify-around text-xl">
       <Form action={commonRouteAction}>
         <div class="mb-2">CommonRouteAction</div>
         <div class="mb-4">response:</div>

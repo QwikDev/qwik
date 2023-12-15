@@ -300,9 +300,13 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
           }
 
           if (
-            navigation.scroll &&
-            (!navigation.forceReload || !isSamePath(trackUrl, prevUrl)) &&
-            (navType === 'link' || navType === 'popstate')
+            (
+              navigation.scroll &&
+              (!navigation.forceReload || !isSamePath(trackUrl, prevUrl)) &&
+              (navType === 'link' || navType === 'popstate')
+            ) ||
+            // Action might have responded with a redirect.
+            (navType === 'form' && !isSamePath(trackUrl, prevUrl))
           ) {
             // Mark next DOM render to scroll.
             document.__q_scroll_restore__ = () =>

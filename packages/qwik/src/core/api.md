@@ -609,18 +609,21 @@ export type PropsOf<COMP> = COMP extends Component<infer PROPS> ? NonNullable<PR
 // @public
 export type PublicProps<PROPS extends Record<any, any>> = TransformProps<PROPS> & ComponentBaseProps & ComponentChildren<PROPS>;
 
+// Warning: (ae-forgotten-export) The symbol "BivariantQrlFn" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "QrlArgs" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "QrlReturn" needs to be exported by the entry point index.d.ts
+//
 // @public
 export type QRL<TYPE = unknown> = {
     __qwik_serializable__?: any;
     __brand__QRL__: TYPE;
-    (...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never): Promise<TYPE extends (...args: any[]) => infer RETURN ? Awaited<RETURN> : never>;
     resolve(): Promise<TYPE>;
     resolved: undefined | TYPE;
     getCaptured(): unknown[] | null;
     getSymbol(): string;
     getHash(): string;
     dev: QRLDev | null;
-};
+} & BivariantQrlFn<QrlArgs<TYPE>, QrlReturn<TYPE>>;
 
 // @public
 export const qrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, lexicalScopeCapture?: any[], stackOffset?: number) => QRL<T>;

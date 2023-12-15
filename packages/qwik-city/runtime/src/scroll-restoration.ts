@@ -9,7 +9,7 @@ export const restoreScroll = (
 ) => {
   if (type === 'popstate' && scrollState) {
     window.scrollTo(scrollState.x, scrollState.y);
-  } else if (type === 'link') {
+  } else if (type === 'link' || type === 'form') {
     if (!hashScroll(toUrl, fromUrl)) {
       window.scrollTo(0, 0);
     }

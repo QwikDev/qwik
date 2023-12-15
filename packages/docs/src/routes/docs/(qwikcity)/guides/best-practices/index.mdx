@@ -65,10 +65,10 @@ export default component$(() => {
 
 ## Use `useVisibleTask$()` as a last resort
 
-Although convenient, `useVisibleTask$()` runs code eagerly and blocks the main thread. This prevents the user from interacting until the task is finished. By consequence, it is best to not think about it as the main client-side task API, but as an escape hatch.
+Although convenient, `useVisibleTask$()` runs code eagerly and blocks the main thread, preventing user interaction until the task is finished. You can think of it as an escape hatch.
 
 When in doubt, instead of "useVisibleTask$()" use:
-- `useTask$` -> perform code execution in SSR mode.
+- `useTask$()` -> perform code execution in SSR mode.
 - `useOn()` -> listen to events on the root element of `the current component`.
 - `useOnWindow()` -> listen to events on the `window` object.
 - `useOnDocument()` -> listen to events on the `document` object.
@@ -81,7 +81,7 @@ In that case, you can add `// eslint-disable-next-line qwik/no-use-visible-task`
 
 Qwik allows to register event listeners in a declarative way, using the `useOn()` or using JSX.
 
-When using `useVisibleTask` to programmatically register events, we are downloading and executing JavaScript eagerly, even if the event is not triggered.
+When using `useVisibleTask$()` to programmatically register events, we are downloading and executing JavaScript eagerly, even if the event is not triggered.
 
 ```tsx title="Suboptimal implementation"
 // Don't do this!

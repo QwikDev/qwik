@@ -177,7 +177,7 @@ impl VisitMut for ReplaceIdentifiers {
     }
 }
 
-fn render_expr(expr: &ast::Expr) -> String {
+pub fn render_expr(expr: &ast::Expr) -> String {
     let mut expr = expr.clone();
     let mut buf = Vec::new();
     let source_map = Lrc::new(SourceMap::default());

@@ -8,7 +8,9 @@ import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
 import { RenderResult } from '@builder.io/qwik';
 
 // @public
-export const createDOM: () => Promise<{
+export const createDOM: ({ html }?: {
+    html?: string | undefined;
+}) => Promise<{
     render: (jsxElement: JSXNode) => Promise<RenderResult>;
     screen: HTMLElement;
     userEvent: (queryOrElement: string | Element | keyof HTMLElementTagNameMap | null, eventNameCamel: string | keyof WindowEventMap, eventPayload?: any) => Promise<void>;

@@ -5,6 +5,9 @@ import type { CorePlatformServer } from '../core/platform/types';
 
 declare const require: (module: string) => Record<string, any>;
 
+// Make sure this value is same as value in `qrl-class.ts`
+const SYNC_QRL = '<sync>';
+
 export function createPlatform(
   opts: SerializeDocumentOptions,
   resolvedManifest: ResolvedManifest | undefined
@@ -12,11 +15,14 @@ export function createPlatform(
   const mapper = resolvedManifest?.mapper;
   const mapperFn = opts.symbolMapper
     ? opts.symbolMapper
-    : (symbolName: string) => {
+    : (symbolName: string): readonly [string, string] | undefined => {
         if (mapper) {
           const hash = getSymbolHash(symbolName);
           const result = mapper[hash];
           if (!result) {
+            if (hash === SYNC_QRL) {
+              return [hash, ''] as const;
+            }
             const isRegistered = (globalThis as any).__qwik_reg_symbols?.has(hash);
             if (isRegistered) {
               return [symbolName, '_'] as const;

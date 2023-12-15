@@ -4,6 +4,12 @@ title: \@builder.io/qwik-city API Reference
 
 # [API](/api) &rsaquo; @builder.io/qwik-city
 
+## "link:app"
+
+```typescript
+'link:app'?: boolean;
+```
+
 ## Action
 
 ```typescript
@@ -469,12 +475,13 @@ export interface LinkProps extends AnchorAttributes
 
 **Extends:** AnchorAttributes
 
-| Property           | Modifiers | Type    | Description  |
-| ------------------ | --------- | ------- | ------------ |
-| [prefetch?](#)     |           | boolean | _(Optional)_ |
-| [reload?](#)       |           | boolean | _(Optional)_ |
-| [replaceState?](#) |           | boolean | _(Optional)_ |
-| [scroll?](#)       |           | boolean | _(Optional)_ |
+| Property                             | Modifiers | Type    | Description  |
+| ------------------------------------ | --------- | ------- | ------------ |
+| ["link:app"?](#linkprops-_link_app_) |           | boolean | _(Optional)_ |
+| [prefetch?](#)                       |           | boolean | _(Optional)_ |
+| [reload?](#)                         |           | boolean | _(Optional)_ |
+| [replaceState?](#)                   |           | boolean | _(Optional)_ |
+| [scroll?](#)                         |           | boolean | _(Optional)_ |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/link-component.tsx)
 

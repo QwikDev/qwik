@@ -3,6 +3,20 @@
   "package": "@builder.io/qwik",
   "members": [
     {
+      "name": "_qrlSync",
+      "id": "_qrlsync",
+      "hierarchy": [
+        {
+          "name": "_qrlSync",
+          "id": "_qrlsync"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\nExtract function into a synchronously loadable QRL.\n\nNOTE: Synchronous QRLs functions can't close over any variables, including exports.\n\n\n```typescript\n_qrlSync: <TYPE extends Function>(fn: TYPE, serializedFn?: string) => SyncQRL<TYPE>\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts",
+      "mdFile": "qwik._qrlsync.md"
+    },
+    {
       "name": "\"q:slot\"",
       "id": "componentbaseprops-_q_slot_",
       "hierarchy": [
@@ -2695,6 +2709,20 @@
       "content": "```typescript\nexport interface SVGProps<T extends Element> extends SVGAttributes, QwikAttributes<T> \n```\n**Extends:** [SVGAttributes](#svgattributes)<!-- -->, QwikAttributes&lt;T&gt;",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts",
       "mdFile": "qwik.svgprops.md"
+    },
+    {
+      "name": "sync$",
+      "id": "sync_",
+      "hierarchy": [
+        {
+          "name": "sync$",
+          "id": "sync_"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\nExtract function into a synchronously loadable QRL.\n\nNOTE: Synchronous QRLs functions can't close over any variables, including exports.\n\n\n```typescript\nsync$: <T extends Function>(fn: T) => SyncQRL<T>\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts",
+      "mdFile": "qwik.sync_.md"
     },
     {
       "name": "TableHTMLAttributes",

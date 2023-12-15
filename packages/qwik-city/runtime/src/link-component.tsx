@@ -1,4 +1,11 @@
-import { component$, Slot, type QwikIntrinsicElements, untrack, event$ } from '@builder.io/qwik';
+import {
+  component$,
+  Slot,
+  type QwikIntrinsicElements,
+  untrack,
+  event$,
+  sync$,
+} from '@builder.io/qwik';
 import { getClientNavPath, getPrefetchDataset } from './utils';
 import { loadClientData } from './use-endpoint';
 import { useLocation, useNavigate } from './use-functions';
@@ -11,7 +18,7 @@ export const Link = component$<LinkProps>((props) => {
   const { onClick$, reload, replaceState, scroll, ...linkProps } = (() => props)();
   const clientNavPath = untrack(() => getClientNavPath({ ...linkProps, reload }, loc));
   const prefetchDataset = untrack(() => getPrefetchDataset(props, clientNavPath, loc));
-  linkProps['preventdefault:click'] = !!clientNavPath;
+  linkProps['link:app'] = !!clientNavPath;
   linkProps.href = clientNavPath || originalHref;
   const onPrefetch =
     prefetchDataset != null
@@ -19,25 +26,31 @@ export const Link = component$<LinkProps>((props) => {
           prefetchLinkResources(elm as HTMLAnchorElement, ev.type === 'qvisible')
         )
       : undefined;
-  const handleClick = event$(async (_: any, elm: HTMLAnchorElement) => {
-    if (!elm.hasAttribute('preventdefault:click')) {
-      // Do not enter the nav pipeline if this is not a clientNavPath.
-      return;
+  const preventDefault = sync$((event: MouseEvent, target: HTMLAnchorElement) => {
+    if (
+      target.hasAttribute('link:app') &&
+      !(event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
+    ) {
+      event.preventDefault();
     }
-
-    if (elm.hasAttribute('q:nbs')) {
-      // Allow bootstrapping into useNavigate.
-      await nav(location.href, { type: 'popstate' });
-    } else if (elm.href) {
-      elm.setAttribute('aria-pressed', 'true');
-      await nav(elm.href, { forceReload: reload, replaceState, scroll });
-      elm.removeAttribute('aria-pressed');
+  });
+  const handleClick = event$(async (event: Event, elm: HTMLAnchorElement) => {
+    if (event.defaultPrevented) {
+      // If default was prevented, than it is upto us to make client side navigation.
+      if (elm.hasAttribute('q:nbs')) {
+        // Allow bootstrapping into useNavigate.
+        await nav(location.href, { type: 'popstate' });
+      } else if (elm.href) {
+        elm.setAttribute('aria-pressed', 'true');
+        await nav(elm.href, { forceReload: reload, replaceState, scroll });
+        elm.removeAttribute('aria-pressed');
+      }
     }
   });
   return (
     <a
       {...linkProps}
-      onClick$={[onClick$, handleClick]}
+      onClick$={[preventDefault, onClick$, handleClick]}
       data-prefetch={prefetchDataset}
       onMouseOver$={onPrefetch}
       onFocus$={onPrefetch}
@@ -73,4 +86,7 @@ export interface LinkProps extends AnchorAttributes {
   reload?: boolean;
   replaceState?: boolean;
   scroll?: boolean;
+  /// Is this a link to the current app?
+  /// If so than we need to prevent:default (but only if no modifier keys are pressed)
+  'link:app'?: boolean;
 }

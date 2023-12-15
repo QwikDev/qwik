@@ -1,0 +1,68 @@
+---
+title: Synchronous Event Processing | Tutorial
+contributors:
+  - adamdbradley
+  - manucorporat
+  - kerbelp
+  - mhevery
+  - cunzaizhuyi
+  - spenserblack
+  - hamatoyogi
+  - mrhoodz
+updated_at: '2023-06-25T19:43:33Z'
+created_at: '2022-08-02T12:07:45Z'
+---
+
+While not a common use case, you may occasionally need to process events synchronously.
+
+Since Qwik processes asynchronously by default, your code must be explicitly configured for synchronous calls. 
+
+There are two ways of processing events synchronously:
+1. preferred way: use `sync$()` to load code synchronously. Fast, resumable but with **significant restrictions** on event handler size. 
+2. eager registration: use `useVisibleTask$()` to load code synchronously. No restrictions, but requires eager code execution, which goes against resumability.
+
+This example shows how to use synchronous code blocks using `sync$()`.
+
+```tsx
+  <a href="/" 
+    onClick$={sync$((event, target) => {
+      if (event.ctrlKey) {
+        event.preventDefault();
+      }
+    })}>
+    link
+  </a>
+```
+
+## `sync$()` Restrictions (BETA)
+
+The `sync$()` function is a resumable way to process events synchronously. However, it has some significant restrictions. The `sync$()` **can't close over anything**. The implications are that you can't:
+- access any state: The recommended way to get the state into function is to place on element attributes.
+- access any non-browser functions: No imports or closing over any variables or functions are allowed. 
+- the function should be small as it will get inlined into the resulting HTML.
+
+For this reason, we recommended breaking up the event handlers into two parts:
+1. **sync$()**: The part which must be synchronous. This part should be small and not close over anything.
+2. **$()**: The part which can be asynchronous. This part can be large and can close over anything including the state.
+
+```tsx
+  <a href="/" 
+    onClick$={[
+      sync$((event, target) => {
+        // This part is synchronous and can't close over anything.
+        if (event.ctrlKey) {
+          event.preventDefault();
+        }
+      }),
+      $(() => {
+        // This part can be asynchronous and can close over anything.
+        console.log('clicked');
+      })
+    ]}>
+    link
+  </a>
+```
+
+
+
+ **Your task:** Convert the `onClick$` from asynchronous event to synchronous event by using [`useVisibleTask$`](/docs/(qwik)/components/tasks/index.mdx#usevisibletask) lifecycle and [normal event registration](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener).

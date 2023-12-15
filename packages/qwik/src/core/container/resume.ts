@@ -17,6 +17,7 @@ import {
   SHOW_COMMENT,
   type SnapshotState,
   strToInt,
+  type QContainerElement,
 } from './container';
 import { getVirtualElement } from '../render/dom/virtual-element';
 import { getSubscriptionManager, parseSubscription, type Subscriptions } from '../state/common';
@@ -110,7 +111,7 @@ export const resumeContainer = (containerEl: Element) => {
     }
   }
 
-  const inlinedFunctions = getQwikInlinedFuncs(parentJSON);
+  const inlinedFunctions = getQwikInlinedFuncs(containerEl);
   const containerState = _getContainerState(containerEl);
 
   // Collect all elements
@@ -311,12 +312,8 @@ const unescapeText = (str: string) => {
   return str.replace(/\\x3C(\/?script)/g, '<$1');
 };
 
-interface ExtraScript extends HTMLScriptElement {
-  qFuncs?: Function[];
-}
-export const getQwikInlinedFuncs = (parentElm: Element): Function[] => {
-  const elm = getQwikJSON(parentElm, 'q:func') as ExtraScript | undefined;
-  return elm?.qFuncs ?? EMPTY_ARRAY;
+export const getQwikInlinedFuncs = (containerEl: Element): Function[] => {
+  return (containerEl as QContainerElement).qFuncs ?? EMPTY_ARRAY;
 };
 
 export const getQwikJSON = (

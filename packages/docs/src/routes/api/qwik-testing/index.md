@@ -9,7 +9,7 @@ title: \@builder.io/qwik/testing API Reference
 CreatePlatform and CreateDocument
 
 ```typescript
-createDOM: () =>
+createDOM: ({ html }?: { html?: string | undefined }) =>
   Promise<{
     render: (
       jsxElement: JSXNode,

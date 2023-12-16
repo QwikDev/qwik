@@ -51,7 +51,7 @@ import {
 } from '../../state/context';
 import { createPropsState, createProxy } from '../../state/store';
 import { Q_CTX, _IMMUTABLE, _IMMUTABLE_PREFIX } from '../../state/constants';
-import type { JSXChildren } from '../jsx/types/jsx-qwik-attributes';
+import type { ClassList, JSXChildren } from '../jsx/types/jsx-qwik-attributes';
 
 const FLUSH_COMMENT = '<!--qkssr-f-->';
 
@@ -546,45 +546,61 @@ const renderNode = (
     if (qDev && props.class && props.className) {
       throw new TypeError('Can only have one of class or className');
     }
+    const handleProp = (rawProp: string, value: unknown, isImmutable: boolean) => {
+      if (isOnProp(rawProp)) {
+        setEvent(elCtx.li, rawProp, value, undefined);
+        return;
+      }
+      if (isSignal(value)) {
+        assertDefined(hostCtx, 'Signals can not be used outside the root');
+        if (isImmutable) {
+          value = trackSignal(value, [1, elm, value, hostCtx.$element$, rawProp]);
+        } else {
+          value = trackSignal(value, [2, hostCtx.$element$, value, elm, rawProp]);
+        }
+        useSignal = true;
+      }
+      if (rawProp === dangerouslySetInnerHTML) {
+        htmlStr = value;
+        return;
+      }
+      if (rawProp.startsWith(PREVENT_DEFAULT)) {
+        registerQwikEvent(rawProp.slice(PREVENT_DEFAULT.length), rCtx.$static$.$containerState$);
+      }
+      let attrValue;
+      const prop = rawProp === 'htmlFor' ? 'for' : rawProp;
+      if (prop === 'class') {
+        classStr = serializeClass(value as ClassList);
+      } else if (prop === 'style') {
+        attrValue = stringifyStyle(value);
+      } else if (isAriaAttribute(prop) || prop === 'draggable' || prop === 'spellcheck') {
+        attrValue = value != null ? String(value) : value;
+      } else if (value === false || value == null) {
+        attrValue = null;
+      } else if (value === true) {
+        attrValue = '';
+      } else {
+        attrValue = String(value);
+      }
+      if (attrValue != null) {
+        if (prop === 'value' && tagName === 'textarea') {
+          htmlStr = escapeHtml(attrValue);
+        } else if (isSSRUnsafeAttr(prop)) {
+          if (qDev) {
+            logError('Attribute value is unsafe for SSR');
+          }
+        } else {
+          openingElement += ' ' + (value === '' ? prop : prop + '="' + escapeAttr(attrValue) + '"');
+        }
+      }
+    };
     if (immutable) {
       for (const prop in immutable) {
-        let value = immutable[prop];
-        if (isOnProp(prop)) {
-          setEvent(elCtx.li, prop, value, undefined);
-          continue;
-        }
-        const attrName = processPropKey(prop);
-        if (isSignal(value)) {
-          assertDefined(hostCtx, 'Signals can not be used outside the root');
-          value = trackSignal(value, [1, elm, value, hostCtx.$element$, attrName]);
-          useSignal = true;
-        }
-        if (prop === dangerouslySetInnerHTML) {
-          htmlStr = value;
-          continue;
-        }
-        if (prop.startsWith(PREVENT_DEFAULT)) {
-          registerQwikEvent(prop.slice(PREVENT_DEFAULT.length), rCtx.$static$.$containerState$);
-        }
-        const attrValue = processPropValue(attrName, value);
-        if (attrValue != null) {
-          if (attrName === 'class') {
-            classStr = attrValue;
-          } else if (attrName === 'value' && tagName === 'textarea') {
-            htmlStr = escapeHtml(attrValue);
-          } else if (isSSRUnsafeAttr(attrName)) {
-            if (qDev) {
-              logError('Attribute value is unsafe for SSR');
-            }
-          } else {
-            openingElement +=
-              ' ' + (value === '' ? attrName : attrName + '="' + escapeAttr(attrValue) + '"');
-          }
-        }
+        handleProp(prop, immutable[prop], true);
       }
     }
     for (const prop in props) {
-      let value = props[prop];
+      const value = props[prop];
       if (prop === 'ref') {
         if (value !== undefined) {
           setRef(value, elm);
@@ -592,38 +608,7 @@ const renderNode = (
         }
         continue;
       }
-      if (isOnProp(prop)) {
-        setEvent(elCtx.li, prop, value, undefined);
-        continue;
-      }
-      const attrName = processPropKey(prop);
-      if (isSignal(value)) {
-        assertDefined(hostCtx, 'Signals can not be used outside the root');
-        value = trackSignal(value, [2, hostCtx.$element$, value, elm, attrName]);
-        useSignal = true;
-      }
-      if (prop === dangerouslySetInnerHTML) {
-        htmlStr = value;
-        continue;
-      }
-      if (prop.startsWith(PREVENT_DEFAULT)) {
-        registerQwikEvent(prop.slice(PREVENT_DEFAULT.length), rCtx.$static$.$containerState$);
-      }
-      const attrValue = processPropValue(attrName, value);
-      if (attrValue != null) {
-        if (attrName === 'class') {
-          classStr = attrValue;
-        } else if (attrName === 'value' && tagName === 'textarea') {
-          htmlStr = escapeHtml(attrValue);
-        } else if (isSSRUnsafeAttr(attrName)) {
-          if (qDev) {
-            logError('Attribute value is unsafe for SSR');
-          }
-        } else {
-          openingElement +=
-            ' ' + (value === '' ? attrName : attrName + '="' + escapeAttr(attrValue) + '"');
-        }
-      }
+      handleProp(prop, value, false);
     }
     const listeners = elCtx.li;
     if (hostCtx) {
@@ -1029,32 +1014,6 @@ const setComponentProps = (
       target[prop] = expectProps[prop];
     }
   }
-};
-
-const processPropKey = (prop: string) => {
-  if (prop === 'htmlFor') {
-    return 'for';
-  }
-  return prop;
-};
-
-const processPropValue = (prop: string, value: any): string | null => {
-  if (prop === 'class') {
-    return serializeClass(value);
-  }
-  if (prop === 'style') {
-    return stringifyStyle(value);
-  }
-  if (isAriaAttribute(prop) || prop === 'draggable' || prop === 'spellcheck') {
-    return value != null ? String(value) : value;
-  }
-  if (value === false || value == null) {
-    return null;
-  }
-  if (value === true) {
-    return '';
-  }
-  return String(value);
 };
 
 const invisibleElements: Record<string, true | undefined> = {

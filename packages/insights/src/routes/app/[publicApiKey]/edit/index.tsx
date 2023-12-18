@@ -103,13 +103,23 @@ export default component$(() => {
         <div>
           <label>Name</label>
           <Field name="name">
-            {(field, props) => <input {...props} type="text" value={field.value} />}
+            {(field, props) => (
+              <>
+                <input {...props} type="text" value={field.value} />{' '}
+                {field.error && <div>{field.error}</div>}
+              </>
+            )}
           </Field>
         </div>
         <div>
           <label>Description</label>
           <Field name="description">
-            {(field, props) => <input {...props} type="text" value={field.value} />}
+            {(field, props) => (
+              <>
+                <input {...props} type="text" value={field.value} />
+                {field.error && <div>{field.error}</div>}
+              </>
+            )}
           </Field>
         </div>
         <div>

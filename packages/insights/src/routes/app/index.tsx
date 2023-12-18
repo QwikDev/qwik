@@ -30,10 +30,10 @@ export default component$(() => {
   const filteredApps = useComputed$(() => {
     return apps.value.filter(
       (app) =>
-        app.name.includes(filter.value) ||
-        app.publicApiKey.includes(filter.value) ||
-        app.description?.includes(filter.value) ||
-        app.url?.includes(filter.value)
+        app.name.toLowerCase().includes(filter.value) ||
+        app.publicApiKey.toLowerCase().includes(filter.value) ||
+        app.description?.toLowerCase().includes(filter.value) ||
+        app.url?.toLowerCase().includes(filter.value)
     );
   });
   return (
@@ -44,7 +44,7 @@ export default component$(() => {
           <input
             type="text"
             class="border border-gray-300 rounded-md px-4 py-2 w-1/2 ml-5"
-            bind:value={filter}
+            onInput$={(e, target) => (filter.value = target.value.toLocaleLowerCase())}
           />
         </div>
         <div class="grid grid-cols-2 gap-6 py-10">
@@ -58,10 +58,6 @@ export default component$(() => {
           {/* create new app */}
           <div class="">
             <AppCard mode="create" title="Add new App" />
-          </div>
-          {/* link existing app */}
-          <div class="">
-            <AppCard mode="link" title="Add link to an existing App" />
           </div>
         </div>
       </Container>

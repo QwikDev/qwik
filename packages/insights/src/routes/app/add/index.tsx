@@ -9,7 +9,7 @@ import { ApplicationForm } from '../[publicApiKey]/app.form';
 import styles from './styles.module.css';
 
 export const useFormAction = formAction$<ApplicationForm>(
-  async ({ name, description }, { redirect }) => {
+  async ({ name, description, url }, { redirect }) => {
     const db = getDB();
     const publicApiKey = Math.round(Math.random() * Number.MAX_SAFE_INTEGER).toString(36);
     await db
@@ -18,6 +18,7 @@ export const useFormAction = formAction$<ApplicationForm>(
         name,
         description,
         publicApiKey,
+        url: url,
       })
       .run();
     redirect(302, appUrl(`/app/[publicApiKey]/`, { publicApiKey }));
@@ -40,13 +41,34 @@ export default component$(() => {
           <div>
             <label>Name</label>
             <Field name="name">
-              {(field, props) => <input {...props} type="text" value={field.value} />}
+              {(field, props) => (
+                <>
+                  <input {...props} type="text" value={field.value} />{' '}
+                  {field.error && <div>{field.error}</div>}
+                </>
+              )}
             </Field>
           </div>
           <div>
             <label>Description</label>
             <Field name="description">
-              {(field, props) => <input {...props} type="text" value={field.value} />}
+              {(field, props) => (
+                <>
+                  <input {...props} type="text" value={field.value} />{' '}
+                  {field.error && <div>{field.error}</div>}
+                </>
+              )}
+            </Field>
+          </div>
+          <div>
+            <label>URL</label>
+            <Field name="url">
+              {(field, props) => (
+                <>
+                  <input {...props} type="text" value={field.value} />{' '}
+                  {field.error && <div>{field.error}</div>}
+                </>
+              )}
             </Field>
           </div>
           <div

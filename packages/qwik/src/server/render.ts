@@ -322,6 +322,8 @@ function collectRenderSymbols(renderSymbols: string[], elements: QContext[]) {
   }
 }
 
+export const Q_FUNCS_PREFIX = 'document.currentScript.closest("[q\\\\:container]").qFuncs=';
+
 function serializeFunctions(funcs: string[]) {
-  return `document.currentScript.qFuncs=[${funcs.join(',\n')}]`;
+  return Q_FUNCS_PREFIX + `[${funcs.join(',\n')}]`;
 }

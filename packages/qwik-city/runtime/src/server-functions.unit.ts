@@ -12,6 +12,15 @@ describe('types', () => {
     expectTypeOf(foo).returns.not.toMatchTypeOf<(meep: boolean) => Promise<string>>();
   });
 
+  test('matching with args', () => () => {
+    const foo = () => server$((name: string) => 'hello ' + name);
+
+    expectTypeOf(foo).not.toBeAny();
+    expectTypeOf(foo).returns.toMatchTypeOf<(name: string) => Promise<string>>();
+    expectTypeOf(foo).returns.toMatchTypeOf<(sig: AbortSignal, name: string) => Promise<string>>();
+    expectTypeOf(foo).returns.not.toMatchTypeOf<(meep: boolean) => Promise<string>>();
+  });
+
   test('inferring', () => () => {
     const callIt = () =>
       server$(function () {

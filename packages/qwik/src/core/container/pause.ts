@@ -63,13 +63,14 @@ import {
   type SnapshotMeta,
   type SnapshotMetaValue,
   type SnapshotResult,
+  createContainerState,
 } from './container';
 import { UNDEFINED_PREFIX, collectDeps, serializeValue } from './serializers';
 import { isQrl } from '../qrl/qrl-class';
 
 /** @internal */
 export const _serializeData = async (data: any, pureQRL?: boolean) => {
-  const containerState = {} as any;
+  const containerState = createContainerState(null!, null!);
   const collector = createCollector(containerState);
   collectValue(data, collector, false);
 
@@ -171,7 +172,7 @@ export const pauseContainer = async (
     if (isElement(elm) && listeners.length > 0) {
       const groups = groupListeners(listeners);
       for (const listener of groups) {
-        elm.setAttribute(listener[0], serializeQRLs(listener[1], elCtx));
+        elm.setAttribute(listener[0], serializeQRLs(listener[1], containerState, elCtx));
       }
     }
   }
@@ -621,13 +622,20 @@ const collectProps = (elCtx: QContext, collector: Collector) => {
 };
 
 const createCollector = (containerState: ContainerState): Collector => {
+  const inlinedFunctions: string[] = [];
+  containerState.$inlineFns$.forEach((id, fnStr) => {
+    while (inlinedFunctions.length <= id) {
+      inlinedFunctions.push('');
+    }
+    inlinedFunctions[id] = fnStr;
+  });
   return {
     $containerState$: containerState,
     $seen$: new Set(),
     $objSet$: new Set(),
     $prefetch$: 0,
     $noSerialize$: [],
-    $inlinedFunctions$: [],
+    $inlinedFunctions$: inlinedFunctions,
     $resources$: [],
     $elements$: [],
     $qrls$: [],

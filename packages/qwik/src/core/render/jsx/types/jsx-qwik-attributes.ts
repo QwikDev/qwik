@@ -163,9 +163,12 @@ export type EventHandler<EV = Event, EL = Element> = {
 
 export type QRLEventHandlerMulti<EV extends Event, EL> =
   | QRL<EventHandler<EV, EL>>
-  | undefined
-  | null
-  | QRLEventHandlerMulti<EV, EL>[];
+  | QRLEventHandlerMulti<EV, EL>[]
+  | SingleOrArray<Function>
+  | SingleOrArray<undefined>
+  | null;
+
+type SingleOrArray<T> = T | (SingleOrArray<T> | undefined | null)[];
 
 type QwikCustomEvents<EL> = {
   [key: `${'document:' | 'window:' | ''}on${string}$`]: QRLEventHandlerMulti<Event, EL>;

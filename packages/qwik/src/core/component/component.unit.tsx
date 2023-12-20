@@ -2,12 +2,11 @@ import { createDOM } from '../../testing/library';
 import { expectDOM } from '../../testing/expect-dom';
 import { inlinedQrl } from '../qrl/qrl';
 import { useStylesQrl } from '../use/use-styles';
-import { type PropsOf, component$, type PropFunctionProps } from './component.public';
+import { type PropsOf, component$ } from './component.public';
 import { useStore } from '../use/use-store.public';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { describe, test } from 'vitest';
 import type { InputHTMLAttributes } from '../render/jsx/types/jsx-generated';
-import type { QwikIntrinsicElements } from '../render/jsx/types/jsx-qwik-elements';
 
 describe('q-component', () => {
   /**
@@ -115,49 +114,50 @@ describe('q-component', () => {
     `
     );
   });
-
   test('types work as expected', () => () => {
     // Let's keep one of these old type exports around for now.
-    const Input1 = component$<InputHTMLAttributes<HTMLInputElement>>((props) => {
+    const OldInput = component$<InputHTMLAttributes<HTMLInputElement>>((props) => {
       return <input {...props} />;
     });
 
-    const Input2 = component$((props: PropFunctionProps<PropsOf<'input'>>) => {
+    const BasicInput = component$((props: PropsOf<'input'>) => {
       return <input {...props} />;
     });
 
-    type Input5Props = {
+    type PartialInputProps = {
       type: 'text' | 'number';
     } & Partial<PropsOf<'input'>>;
 
-    const Input5 = component$<Input5Props>(({ type, ...props }) => {
+    const PartialInput = component$<PartialInputProps>(({ type, ...props }) => {
       return <input type={type} {...props} />;
     });
 
-    type Input6Props = {
-      type: 'text' | 'number';
-    } & QwikIntrinsicElements['input'];
-
-    const Input6 = component$<Input6Props>(({ type, ...props }) => {
-      return (
-        <div>
-          <input type={type} {...props} />
-        </div>
-      );
+    const Checkbox = component$<PropsOf<'input'>>(({ ...props }) => {
+      return <input type="checkbox" {...props} />;
     });
+
+    type PropFunctionButtonProps = {
+      onTestFunction$: (a: 2) => number;
+    } & PropsOf<'button'>;
+
+    const PropFunctionButton = component$<PropFunctionButtonProps>(
+      ({ onTestFunction$, ...props }) => {
+        return (
+          <div>
+            <button onClick$={() => onTestFunction$(2)} {...props} />
+          </div>
+        );
+      }
+    );
 
     component$(() => {
       return (
         <>
-          <Input1
-            style={{
-              paddingInlineEnd: '10px',
-            }}
-            value="1"
-          />
-          <Input2 value="2" />
-          <Input5 value="5" type="text" />
-          <Input6 value="6" type="number" />
+          <OldInput value="1" />
+          <BasicInput value="2" />
+          <PartialInput value="3" type="text" />
+          <Checkbox value="4" />
+          <PropFunctionButton onTestFunction$={(a) => a + 1} />
         </>
       );
     });

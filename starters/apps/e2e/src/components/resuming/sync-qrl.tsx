@@ -7,7 +7,7 @@ export const SyncQRL = component$(() => {
       <input
         id="preventDefaultInput"
         type="checkbox"
-        onclick$={[
+        onClick$={[
           sync$((e: Event, target: Element) => {
             if (target.getAttribute("shouldPreventDefault")) {
               e.preventDefault();

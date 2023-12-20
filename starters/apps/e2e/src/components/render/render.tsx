@@ -465,7 +465,7 @@ const Issue2414 = component$(() => {
               <th
                 key={c}
                 id={`issue-2414-${c}`}
-                onClick$={(e) => {
+                onClick$={() => {
                   sort.value = c;
                 }}
               >

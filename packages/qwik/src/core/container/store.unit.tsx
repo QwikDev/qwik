@@ -120,7 +120,7 @@ export const LexicalScope_render = () => {
       <p>{JSON.stringify(g)}</p>
       <p>{JSON.stringify(h)}</p>
       <p>{noserialize.text}</p>
-      <button onDocumentClick$={() => state.count++}>Rerender {state.count}</button>
+      <button document:onClick$={() => state.count++}>Rerender {state.count}</button>
     </section>
   );
 };

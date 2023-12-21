@@ -407,11 +407,16 @@ export type RouteNavigate = QRL<(path?: string, options?: {
 // @public (undocumented)
 export const RouterOutlet: Component<PropFunctionProps<Record<any, any>>>;
 
-// Warning: (ae-forgotten-export) The symbol "ServerFunction" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "ServerQRL" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
 export const server$: <T extends ServerFunction>(first: T) => ServerQRL<T>;
+
+// @public (undocumented)
+export type ServerFunction = {
+    (this: RequestEventBase, ...args: any[]): any;
+};
+
+// @public
+export type ServerQRL<T extends ServerFunction> = QRL<((abort: AbortSignal, ...args: Parameters<T>) => ReturnType<T>) | ((...args: Parameters<T>) => ReturnType<T>)>;
 
 // @public (undocumented)
 export const serverQrl: <T extends ServerFunction>(qrl: QRL<T>) => ServerQRL<T>;

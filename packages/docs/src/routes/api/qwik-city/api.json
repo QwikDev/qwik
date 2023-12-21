@@ -678,6 +678,20 @@
       "mdFile": "qwik-city.server_.md"
     },
     {
+      "name": "ServerFunction",
+      "id": "serverfunction",
+      "hierarchy": [
+        {
+          "name": "ServerFunction",
+          "id": "serverfunction"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type ServerFunction = {\n    (this: RequestEventBase, ...args: any[]): any;\n};\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
+      "mdFile": "qwik-city.serverfunction.md"
+    },
+    {
       "name": "serverQrl",
       "id": "serverqrl",
       "hierarchy": [
@@ -689,6 +703,20 @@
       "kind": "Variable",
       "content": "```typescript\nserverQrl: <T extends ServerFunction>(qrl: QRL<T>) => ServerQRL<T>\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
+      "mdFile": "qwik-city.serverqrl.md"
+    },
+    {
+      "name": "ServerQRL",
+      "id": "serverqrl",
+      "hierarchy": [
+        {
+          "name": "ServerQRL",
+          "id": "serverqrl"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nserverQrl: <T extends ServerFunction>(qrl: QRL<T>) => ServerQRL<T>\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik-city.serverqrl.md"
     },
     {

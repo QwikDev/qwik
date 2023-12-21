@@ -726,6 +726,16 @@ server$: <T extends ServerFunction>(first: T) => ServerQRL<T>;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts)
 
+## ServerFunction
+
+```typescript
+export type ServerFunction = {
+  (this: RequestEventBase, ...args: any[]): any;
+};
+```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+
 ## serverQrl
 
 ```typescript
@@ -733,6 +743,14 @@ serverQrl: <T extends ServerFunction>(qrl: QRL<T>) => ServerQRL<T>;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts)
+
+## ServerQRL
+
+```typescript
+serverQrl: <T extends ServerFunction>(qrl: QRL<T>) => ServerQRL<T>;
+```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
 ## ServiceWorkerRegister
 

@@ -1,0 +1,67 @@
+# NavLink Component
+
+When building navigation in Qwik, you may want to know when a link is active or pending navigation. The standard <a> and <Link> components don't provide this. 
+The NavLink component enhances navigation links by adding:
+
+- **Active Status** - Apply a class when the link matches the current location.
+- **Pending Status** - Apply a class during navigation when linking to the target location.
+
+This allows styling the active and pending states for navigation.
+
+## Usage
+
+Using NavLink is the same as Link, with the addition of `isActive` and `isPending` props:
+
+```jsx
+<NavLink href="/" isActive="active" isPending="pending">
+  Home
+</NavLink>
+```
+
+## How NavLink Works 
+
+Under the hood, NavLink uses the useLocation hook to get navigation status. It checks if the link href matches the current URL pathname to set isActive. It uses isNavigating to determine pending status when navigating to the link.
+
+This allows NavLink to know the active and pending state automatically based on navigation.
+
+```tsx
+import { Slot, component$ } from "@builder.io/qwik";
+import { type LinkProps, useLocation } from "@builder.io/qwik-city";
+
+interface NavLinkProps extends LinkProps {
+  isActive?: string;
+  isPending?: string;
+}
+
+export const NavLink = component$(
+  ({ isActive, isPending, ...props }: NavLinkProps) => {
+    const location = useLocation();
+    const toPathname = props.href ?? "";
+    const locationPathname = location.url.pathname;
+
+    const endSlashPosition =
+      toPathname !== "/" && toPathname.endsWith("/")
+        ? toPathname.length - 1
+        : toPathname.length;
+    const check_isActive =
+      locationPathname === toPathname ||
+      (locationPathname.endsWith(toPathname) &&
+        locationPathname.charAt(endSlashPosition) === "/");
+    const check_isPendding = location.isNavigating;
+
+    return (
+      <a
+        class={`
+          ${props.class}  
+          ${check_isActive ? isActive : ""}
+          ${check_isPendding && check_isActive ? isPending : ""}
+        `}
+        {...props}
+      >
+        <Slot />
+      </a>
+    );
+  },
+);
+
+```

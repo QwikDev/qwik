@@ -5,7 +5,6 @@
 ```ts
 
 import * as CSS_2 from 'csstype';
-import type { ServerRequestEvent } from '@builder.io/qwik-city/middleware/request-handler';
 
 // @public
 export const $: <T>(expression: T) => QRL<T>;

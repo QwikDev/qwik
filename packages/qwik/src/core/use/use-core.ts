@@ -21,9 +21,15 @@ import { isArray } from '../util/types';
 import { setLocale } from './use-locale';
 import type { Subscriber } from '../state/common';
 import type { Signal } from '../state/signal';
-import type { ServerRequestEvent } from '@builder.io/qwik-city/middleware/request-handler';
 
 declare const document: QwikDocument;
+
+// Simplified version of `ServerRequestEvent` from `@builder.io/qwik-city` package.
+export interface SimplifiedServerRequestEvent<T = unknown> {
+  url: URL;
+  locale: string | undefined;
+  request: Request;
+}
 
 export interface StyleAppend {
   styleId: string;
@@ -32,7 +38,7 @@ export interface StyleAppend {
 
 export type PossibleEvents =
   | Event
-  | ServerRequestEvent
+  | SimplifiedServerRequestEvent
   | typeof TaskEvent
   | typeof RenderEvent
   | typeof ComputedEvent

@@ -90,3 +90,36 @@ DB_PRIVATE_KEY=123456789
 > Make sure you never commit `.env.local` files to git.
 
 During production, **setting server-side variables is very platform specific**. Most of the platforms allow you to set environment variables from their dashboard, or CLI. Please, refer to your platform (cloudflare, vercel, netlify) documentation for more information.
+
+### Accessing the environment variables in serverfull architecture (Example:Express)
+
+For accessing the .env variables in serverfull architecture we need to use singleton design pattern, initialize the db in a plugin and access it with getDB wherever it is needed
+
+```typescript title="src/util/db.ts"
+let _db!: AppDatabase;
+
+export function getDB() {
+  // eslint-disable-next-line
+  if (!_db) {
+    throw new Error('DB not set');
+  }
+  return _db;
+}
+
+export async function initializeDbIfNeeded(factory: () => Promise<AppDatabase>) {
+  // eslint-disable-next-line
+  if (!_db) {
+    _db = await factory();
+  }
+}
+```
+
+```typescript title="src/routes/plugin@db.ts"
+export const onRequest: RequestHandler = async ({ env }) => {
+  const url = env.get('PRIVATE_LIBSQL_DB_URL')!;
+  const authToken = env.get('PRIVATE_LIBSQL_DB_API_TOKEN')!;
+  await initializeDbIfNeeded(initLibSql(url, authToken));
+};
+```
+
+

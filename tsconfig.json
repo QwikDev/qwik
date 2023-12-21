@@ -93,6 +93,8 @@
     "packages/supabase-auth-helpers-qwik",
     "packages/qwik-react/src",
     "scripts",
+    "starters/apps/sandbox",
+    "starters/apps/todo-test",
     "starters/apps/e2e",
     "starters/apps/qwikcity-test/**/*",
     "starters/dev-server.ts",

@@ -1,3 +1,11 @@
+---
+title: Cookbook | Navbar link
+contributors:
+  - Adbib
+---
+
+import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
+
 # NavLink Component
 
 When building navigation in Qwik, you may want to know when a link is active or pending navigation. The standard <a> and <Link> components don't provide this. 
@@ -23,6 +31,8 @@ Using NavLink is the same as Link, with the addition of `isActive` and `isPendin
 Under the hood, NavLink uses the useLocation hook to get navigation status. It checks if the link href matches the current URL pathname to set isActive. It uses isNavigating to determine pending status when navigating to the link.
 
 This allows NavLink to know the active and pending state automatically based on navigation.
+
+<CodeSandbox url="/demo/cookbook/navbar/">
 
 ```tsx
 import { Slot, component$ } from "@builder.io/qwik";

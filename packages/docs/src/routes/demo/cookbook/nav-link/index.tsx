@@ -1,40 +1,3 @@
----
-title: Cookbook | Navbar link
-contributors:
-  - Adbib
----
-
-import { CodeFile } from '../../../../components/code-sandbox/index.tsx';
-
-# NavLink Component
-
-If you want to add `active` and `pending` states to your links you can use this solution.
-The NavLink component enhances `<a>` element by adding:
-
-- **Active Status**: Apply a class when the link href matches the current URL pathname.
-- **Pending Status**: Apply a class during navigation when linking to the target location.
-
-This allows styling the active and pending states for navigation.
-
-## Usage
-
-You can use NavLink with the addition of `isActive` and `isPending` props:
-
-```tsx
-<NavLink href="/" isActive="active" isPending="pending">
-  Home
-</NavLink>
-```
-
-## How it Works 
-
-Under the hood, NavLink uses the `useLocation` hook to get navigation status.
-It checks if the link href matches the current URL pathname to set isActive. 
-It uses `isNavigating` to determine pending status when navigating to the link.
-This allows NavLink to know the active and pending state automatically based on navigation.
-
-<CodeFile>
-```tsx
 import type { QwikIntrinsicElements } from '@builder.io/qwik';
 import { Slot, component$ } from '@builder.io/qwik';
 import { useLocation } from '@builder.io/qwik-city';
@@ -74,5 +37,3 @@ export const NavLink = component$(
     );
   }
 );
-```
-</CodeFile>

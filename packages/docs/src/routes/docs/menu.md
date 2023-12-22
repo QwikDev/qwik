@@ -42,6 +42,7 @@
 - [Media Controller](/docs/cookbook/mediaController/index.mdx)
 - [Portal](/docs/cookbook/portal/index.mdx)
 - [Sync events w state](/docs/cookbook/sync-events/index.mdx)
+- [Theme Managment](/docs/cookbook/theme-management/index.mdx)
 
 ## Integrations
 

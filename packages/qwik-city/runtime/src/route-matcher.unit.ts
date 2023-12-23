@@ -167,6 +167,11 @@ describe('routeMatcher/#2951', () => {
   test('/[...a]/[...b]/path', () => {
     assert.deepEqual(matchRoute('/[...a]/[...b]/path', '/a/b/c/path'), { a: 'a/b/c', b: '' });
   });
+
+  test('/[optional.]/suffix', () => {
+    assert.deepEqual(matchRoute('/[optional.]/suffix', '/a/suffix'), { optional: 'a' });
+    assert.deepEqual(matchRoute('/[optional.]/suffix', '/suffix'), {});
+  });
 });
 
 describe('routeMatcher/#5080', () => {

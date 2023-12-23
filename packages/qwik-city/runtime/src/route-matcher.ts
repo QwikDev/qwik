@@ -7,7 +7,10 @@ import type { PathParams } from './types';
  * @param path Actual path to match
  * @returns Returns PathParams or null if did not match.
  */
-export function matchRoute(route: string, path: string): PathParams | null {
+export function matchRoute(
+  route: string,
+  path: string,
+): PathParams | null {
   const routeIdx: number = startIdxSkipSlash(route);
   const routeLength = lengthNoTrailingSlash(route);
   const pathIdx: number = startIdxSkipSlash(path);
@@ -21,7 +24,7 @@ function matchRoutePart(
   routeLength: number,
   path: string,
   pathIdx: number,
-  pathLength: number
+  pathLength: number,
 ): PathParams | null {
   let params: PathParams | null = null;
   while (routeIdx < routeLength) {
@@ -37,13 +40,29 @@ function matchRoutePart(
       //
       const paramNameStart = routeIdx + (isMany ? 3 : 0);
       const paramNameEnd = scan(route, paramNameStart, routeLength, Char.CLOSE_BRACKET);
-      const paramName = route.substring(paramNameStart, paramNameEnd);
+      const isOptional = route.charCodeAt(paramNameEnd - 1) === Char.DOT;
+      const paramName = route.substring(
+        paramNameStart,
+        isOptional ? paramNameEnd - 1 : paramNameEnd
+      );
       const paramSuffixEnd = scan(route, paramNameEnd + 1, routeLength, Char.SLASH);
       const suffix = route.substring(paramNameEnd + 1, paramSuffixEnd);
       routeIdx = paramNameEnd + 1;
       // VALUE
       const paramValueStart = pathIdx - 1; // -1 because we already consumed the character
-      if (isMany) {
+      if (isOptional) {
+        const match = matchRoutePart(
+          route,
+          routeIdx + suffix.length + 1,
+          routeLength,
+          path,
+          paramValueStart,
+          pathLength
+        );
+        if (match) {
+          return Object.assign(params || (params = {}), match);
+        }
+      } else if (isMany) {
         const match = recursiveScan(
           paramName,
           suffix,
@@ -63,7 +82,9 @@ function matchRoutePart(
         return null;
       }
       const paramValue = path.substring(paramValueStart, paramValueEnd);
-      if (!isMany && !suffix && !paramValue) {
+      if (
+        !isMany && !suffix && !paramValue
+      ) {
         // empty value is only allowed with rest or suffix (e.g. '/path/[...rest]' or '/path/[param]suffix')
         return null;
       }
@@ -137,7 +158,7 @@ function recursiveScan(
   pathLength: number,
   route: string,
   routeStart: number,
-  routeLength: number
+  routeLength: number,
 ) {
   if (path.charCodeAt(pathStart) === Char.SLASH) {
     pathStart++;
@@ -146,7 +167,14 @@ function recursiveScan(
   const sep = suffix + '/';
   let depthWatchdog = 5;
   while (pathIdx >= pathStart && depthWatchdog--) {
-    const match = matchRoutePart(route, routeStart, routeLength, path, pathIdx, pathLength);
+    const match = matchRoutePart(
+      route,
+      routeStart,
+      routeLength,
+      path,
+      pathIdx,
+      pathLength
+    );
     if (match) {
       let value = path.substring(pathStart, Math.min(pathIdx, pathLength));
       if (value.endsWith(sep)) {

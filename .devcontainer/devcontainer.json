@@ -33,5 +33,6 @@
       "label": "Serve",
       "onAutoForward": "openPreview"
     }
-  }
+  },
+  "postCreateCommand": "./.devcontainer/post-create.sh"
 }

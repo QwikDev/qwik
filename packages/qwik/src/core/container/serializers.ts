@@ -56,13 +56,13 @@ import { Slot } from '../render/jsx/slot.public';
  */
 export const UNDEFINED_PREFIX = '\u0001';
 
-export interface Serializer<T> {
-  $prefixCode$: number;
-  $prefixChar$: string;
-  /** Return true if this serializer can serialize the given object. */
-  $test$: (obj: any) => boolean;
+interface SerializerInput<T> {
+  /** Unique identifier for this type */
+  $prefix$: string;
+  /** Can this serializer can serialize the given object? */
+  $test$: (obj: unknown) => boolean;
   /** Convert the object to a string. */
-  $serialize$:
+  $serialize$?:
     | ((
         obj: T,
         getObjID: MustGetObjID,
@@ -71,16 +71,25 @@ export interface Serializer<T> {
       ) => string)
     | undefined;
 
-  /** Return of */
-  $collect$: undefined | ((obj: T, collector: Collector, leaks: boolean | QwikElement) => void);
+  /** Collect all relevant values before serializing */
+  $collect$?: undefined | ((obj: T, collector: Collector, leaks: boolean | QwikElement) => void);
 
-  /** Deserialize the object. */
+  /** Deserialize the object, first pass */
   $prepare$: (data: string, containerState: ContainerState, doc: Document) => T;
-  /** Second pass to fill in the object. */
-  $subs$: undefined | ((obj: T, subs: Subscriptions[], containerState: ContainerState) => void);
+  /** After $prepare$, restore subscribers of the object. */
+  $subs$?: undefined | ((obj: T, subs: Subscriptions[], containerState: ContainerState) => void);
 
-  /** Second pass to fill in the object. */
-  $fill$: ((obj: T, getObject: GetObject, containerState: ContainerState) => void) | undefined;
+  /** After $prepare$, fill in the object. */
+  $fill$?: ((obj: T, getObject: GetObject, containerState: ContainerState) => void) | undefined;
+}
+
+interface Serializer<T> extends Omit<SerializerInput<T>, '$prefix$' | '$test$'> {
+  /** The identifier as a charcode */
+  $prefixCode$: number;
+  /** The identifier as a string */
+  $prefixChar$: string;
+  /** Can this serializer can serialize the given object? */
+  $test$: (obj: unknown) => obj is T;
 }
 
 /**
@@ -89,19 +98,11 @@ export interface Serializer<T> {
  * @param serializer
  * @returns
  */
-function serializer<T>(serializer: {
-  $prefix$: string;
-  $test$: Serializer<T>['$test$'];
-  $serialize$: Serializer<T>['$serialize$'];
-  $prepare$: Serializer<T>['$prepare$'];
-  $fill$: Serializer<T>['$fill$'];
-  $collect$?: Serializer<T>['$collect$'];
-  $subs$?: Serializer<T>['$subs$'];
-}): Serializer<T> {
+function serializer<T>(serializer: SerializerInput<T>): Serializer<T> {
   return {
     $prefixCode$: serializer.$prefix$.charCodeAt(0),
     $prefixChar$: serializer.$prefix$,
-    $test$: serializer.$test$,
+    $test$: serializer.$test$ as any,
     $serialize$: serializer.$serialize$,
     $prepare$: serializer.$prepare$,
     $fill$: serializer.$fill$,
@@ -193,7 +194,6 @@ const URLSerializer = /*#__PURE__*/ serializer<URL>({
   $test$: (v) => v instanceof URL,
   $serialize$: (obj) => obj.href,
   $prepare$: (data) => new URL(data),
-  $fill$: undefined,
 });
 
 const DateSerializer = /*#__PURE__*/ serializer<Date>({
@@ -201,7 +201,6 @@ const DateSerializer = /*#__PURE__*/ serializer<Date>({
   $test$: (v) => v instanceof Date,
   $serialize$: (obj) => obj.toISOString(),
   $prepare$: (data) => new Date(data),
-  $fill$: undefined,
 });
 
 const RegexSerializer = /*#__PURE__*/ serializer<RegExp>({
@@ -214,7 +213,6 @@ const RegexSerializer = /*#__PURE__*/ serializer<RegExp>({
     const flags = data.slice(0, space);
     return new RegExp(source, flags);
   },
-  $fill$: undefined,
 });
 
 const ErrorSerializer = /*#__PURE__*/ serializer<Error>({
@@ -228,21 +226,18 @@ const ErrorSerializer = /*#__PURE__*/ serializer<Error>({
     err.stack = undefined;
     return err;
   },
-  $fill$: undefined,
 });
 
 const DocumentSerializer = /*#__PURE__*/ serializer<Document>({
   $prefix$: '\u000F',
-  $test$: (v) => isDocument(v),
-  $serialize$: undefined,
+  $test$: (v) => !!v && typeof v === 'object' && isDocument(v as Node),
   $prepare$: (_, _c, doc) => {
     return doc;
   },
-  $fill$: undefined,
 });
 
 export const SERIALIZABLE_STATE = Symbol('serializable-data');
-const ComponentSerializer = /*#__PURE__*/ serializer<Component<any>>({
+const ComponentSerializer = /*#__PURE__*/ serializer<Component>({
   $prefix$: '\u0010',
   $test$: (obj) => isQwikComponent(obj),
   $serialize$: (obj, getObjId) => {
@@ -257,14 +252,14 @@ const ComponentSerializer = /*#__PURE__*/ serializer<Component<any>>({
   },
   $fill$: (component, getObject) => {
     const [qrl]: [QRLInternal] = (component as any)[SERIALIZABLE_STATE];
-    if (qrl.$capture$ && qrl.$capture$.length > 0) {
+    if (qrl.$capture$?.length) {
       qrl.$captureRef$ = qrl.$capture$.map(getObject);
       qrl.$capture$ = null;
     }
   },
 });
 
-const DerivedSignalSerializer = /*#__PURE__*/ serializer<SignalDerived<any, any[]>>({
+const DerivedSignalSerializer = /*#__PURE__*/ serializer<SignalDerived>({
   $prefix$: '\u0011',
   $test$: (obj) => obj instanceof SignalDerived,
   $collect$: (obj, collector, leaks) => {
@@ -287,12 +282,12 @@ const DerivedSignalSerializer = /*#__PURE__*/ serializer<SignalDerived<any, any[
     const ids = data.split(' ');
     const args = ids.slice(0, -1);
     const fn = ids[ids.length - 1];
-    return new SignalDerived(fn as any, args, fn);
+    return new SignalDerived(fn as any, args as any[], fn);
   },
   $fill$: (fn, getObject) => {
     assertString(fn.$func$, 'fn.$func$ should be a string');
     fn.$func$ = getObject(fn.$func$);
-    fn.$args$ = fn.$args$.map(getObject);
+    fn.$args$ = (fn.$args$ as string[]).map(getObject);
   },
 });
 
@@ -355,7 +350,6 @@ const NoFiniteNumberSerializer = /*#__PURE__*/ serializer<number>({
   $prepare$: (data) => {
     return Number(data);
   },
-  $fill$: undefined,
 });
 
 const URLSearchParamsSerializer = /*#__PURE__*/ serializer<URLSearchParams>({
@@ -363,7 +357,6 @@ const URLSearchParamsSerializer = /*#__PURE__*/ serializer<URLSearchParams>({
   $test$: (v) => v instanceof URLSearchParams,
   $serialize$: (obj) => obj.toString(),
   $prepare$: (data) => new URLSearchParams(data),
-  $fill$: undefined,
 });
 
 const FormDataSerializer = /*#__PURE__*/ serializer<FormData>({
@@ -388,7 +381,6 @@ const FormDataSerializer = /*#__PURE__*/ serializer<FormData>({
     }
     return formData;
   },
-  $fill$: undefined,
 });
 
 const JSXNodeSerializer = /*#__PURE__*/ serializer<JSXNode>({
@@ -445,7 +437,6 @@ const BigIntSerializer = /*#__PURE__*/ serializer<bigint>({
   $prepare$: (data) => {
     return BigInt(data);
   },
-  $fill$: undefined,
 });
 
 const DATA = Symbol();
@@ -512,7 +503,6 @@ const StringSerializer = /*#__PURE__*/ serializer<string>({
   $test$: (v) => !!getSerializer(v) || v === UNDEFINED_PREFIX,
   $serialize$: (v) => v,
   $prepare$: (data) => data,
-  $fill$: undefined,
 });
 
 const serializers: Serializer<any>[] = /*#__PURE__*/ [
@@ -579,7 +569,7 @@ export const canSerialize = (obj: any): boolean => {
   return false;
 };
 
-export const collectDeps = (obj: any, collector: Collector, leaks: boolean | QwikElement) => {
+export const collectDeps = (obj: unknown, collector: Collector, leaks: boolean | QwikElement) => {
   for (const s of collectorSerializers) {
     if (s.$test$(obj)) {
       s.$collect$!(obj, collector, leaks);

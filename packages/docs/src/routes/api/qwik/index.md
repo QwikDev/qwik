@@ -2144,7 +2144,7 @@ export type QwikWheelEvent<T = Element> = NativeWheelEvent;
 ## ReadonlySignal
 
 ```typescript
-export type ReadonlySignal<T = any> = Readonly<Signal<T>>;
+export type ReadonlySignal<T = unknown> = Readonly<Signal<T>>;
 ```
 
 **References:** [Signal](#signal)

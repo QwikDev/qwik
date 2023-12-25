@@ -335,6 +335,7 @@ const getParentProvider = (ctx: QContext, containerState: ContainerState): QCont
   // `null` means there's no parent, `undefined` means we don't know yet.
   if (ctx.$parentCtx$ === undefined) {
     // Not fully resumed container, find context from DOM
+    // We cannot recover $realParentCtx$ from this but that's fine because we don't need to pause on the client
     ctx.$parentCtx$ = findParentCtx(ctx.$element$, containerState);
   }
   /**

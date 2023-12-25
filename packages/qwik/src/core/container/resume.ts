@@ -290,7 +290,7 @@ const reviveSubscriptions = (
   }
 };
 
-const reviveNestedObjects = (obj: any, getObject: GetObject, parser: Parser) => {
+const reviveNestedObjects = (obj: unknown, getObject: GetObject, parser: Parser) => {
   if (parser.fill(obj, getObject)) {
     return;
   }
@@ -298,11 +298,11 @@ const reviveNestedObjects = (obj: any, getObject: GetObject, parser: Parser) => 
   if (obj && typeof obj == 'object') {
     if (isArray(obj)) {
       for (let i = 0; i < obj.length; i++) {
-        obj[i] = getObject(obj[i]);
+        obj[i] = getObject(obj[i] as string);
       }
     } else if (isSerializableObject(obj)) {
       for (const key in obj) {
-        obj[key] = getObject(obj[key]);
+        obj[key] = getObject(obj[key] as string);
       }
     }
   }

@@ -374,6 +374,7 @@ const renderNodeElementSync = (
   stream.write(`</${tagName}>`);
 };
 
+/** Render a component$ */
 const renderSSRComponent = (
   rCtx: RenderContext,
   ssrCtx: SSRContext,
@@ -795,7 +796,12 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
 
   if (tagName === Virtual) {
     const elCtx = createMockQContext(111);
-    elCtx.$parentCtx$ = rCtx.$slotCtx$ || rCtx.$cmpCtx$;
+    if (rCtx.$slotCtx$) {
+      elCtx.$parentCtx$ = rCtx.$slotCtx$;
+      elCtx.$realParentCtx$ = rCtx.$cmpCtx$!;
+    } else {
+      elCtx.$parentCtx$ = rCtx.$cmpCtx$;
+    }
     if (hostCtx && hostCtx.$flags$ & HOST_FLAG_DYNAMIC) {
       addDynamicSlot(hostCtx, elCtx);
     }

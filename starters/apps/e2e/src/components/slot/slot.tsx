@@ -1,5 +1,6 @@
 import {
   component$,
+  $,
   useStore,
   Slot,
   useContext,
@@ -66,6 +67,7 @@ export const SlotParent = component$(() => {
           </Issue4283>
           <Issue4658 />
           <Issue5270 />
+          <Issue5506 />
         </>
       )}
       <div>
@@ -531,5 +533,51 @@ export const Issue5270 = component$(() => {
     <ProviderParent>
       <ContextChild />
     </ProviderParent>
+  );
+});
+
+export const Toggle5506 = component$<any>((props) => {
+  return (
+    <>
+      <label>
+        <input
+          {...props}
+          type="checkbox"
+          // ensure it gets checked state only from props
+          preventdefault:click
+        />
+        toggle me
+      </label>
+    </>
+  );
+});
+
+export const SlotParent5506 = component$(() => <Slot />);
+
+// This breaks signal propagation, if you put this expression directly in the JSX prop it works
+function coerceBoolean(value: string) {
+  return value === "true";
+}
+
+export const Issue5506 = component$(() => {
+  const sig = useSignal("true");
+  const render = useSignal(0);
+  const onClick$ = $(() => {
+    const newValue = sig.value === "true" ? "false" : "true";
+    sig.value = newValue;
+  });
+
+  return (
+    <div id="issue-5506-div">
+      <SlotParent5506 id="3456" key={render.value}>
+        <Toggle5506
+          id="input-5506"
+          checked={coerceBoolean(sig.value)}
+          onClick$={onClick$}
+        />
+        <br />
+        <button onClick$={() => render.value++}>Rerender on client</button>
+      </SlotParent5506>
+    </div>
   );
 });

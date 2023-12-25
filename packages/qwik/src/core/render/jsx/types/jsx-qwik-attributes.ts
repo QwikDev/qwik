@@ -168,7 +168,10 @@ export type QRLEventHandlerMulti<EV extends Event, EL> =
   | QRLEventHandlerMulti<EV, EL>[];
 
 type QwikCustomEvents<EL> = {
-  [key: `${'document:' | 'window:' | ''}on${string}$`]: QRLEventHandlerMulti<Event, EL>;
+  /**
+   * We don't add custom events here because often people will add props to DOM props that look like
+   * custom events but are not
+   */
 };
 type QwikCustomEventsPlain<EL> = {
   /** The handler */

@@ -217,6 +217,7 @@ export const diffChildren = (
         elmToMove = oldCh[idxInOld];
         if (elmToMove.$type$ !== newStartVnode.$type$) {
           const newElm = createElm(ctx, newStartVnode, flags, results);
+          // TO CHECK: should we not await these promises?
           maybeThen(newElm, (newElm) => {
             insertBefore(staticCtx, parentElm, newElm, oldStartVnode?.$elm$);
           });
@@ -567,10 +568,6 @@ const renderContentProjection = (
         newFlags |= IS_SVG;
       }
 
-      // const oldVdom = getVdom(slotCtx.$element$);
-      // const slotRctx = pushRenderContext(rCtx);
-      // slotRctx.$slotCtx$ = slotCtx;
-      // setVdom(slotCtx.$element$, newVdom);
       const index = staticCtx.$addSlots$.findIndex((slot) => slot[0] === slotEl);
       if (index >= 0) {
         staticCtx.$addSlots$.splice(index, 1);
@@ -621,10 +618,12 @@ const getSlotCtx = (
   slotName: string,
   containerState: ContainerState
 ): QContext => {
+  // If a slot is known, render children inside
   const slotEl = slotMaps.slots[slotName];
   if (slotEl) {
     return getContext(slotEl, containerState);
   }
+  // Otherwise we park the children in a template
   const templateEl = slotMaps.templates[slotName];
   if (templateEl) {
     return getContext(templateEl, containerState);
@@ -720,7 +719,12 @@ export const createElm = (
 
   vnode.$elm$ = elm;
   const elCtx = createContext(elm);
-  elCtx.$parentCtx$ = rCtx.$slotCtx$ ?? rCtx.$cmpCtx$;
+  if (rCtx.$slotCtx$) {
+    elCtx.$parentCtx$ = rCtx.$slotCtx$;
+    elCtx.$realParentCtx$ = rCtx.$cmpCtx$!;
+  } else {
+    elCtx.$parentCtx$ = rCtx.$cmpCtx$;
+  }
   if (!isVirtual) {
     if (qDev && qInspector) {
       const dev = vnode.$dev$;

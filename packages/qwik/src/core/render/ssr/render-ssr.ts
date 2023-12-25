@@ -901,7 +901,7 @@ const processData = (
 };
 
 const walkChildren = (
-  children: any,
+  children: unknown,
   rCtx: RenderContext,
   ssrContext: SSRContext,
   stream: StreamWriter,
@@ -923,7 +923,7 @@ const walkChildren = (
 
   let currentIndex = 0;
   const buffers: string[][] = [];
-  return children.reduce((prevPromise, child, index) => {
+  return children.reduce((prevPromise: Promise<void> | undefined, child, index) => {
     const buffer: string[] = [];
     buffers.push(buffer);
     const localStream: StreamWriter = prevPromise
@@ -939,18 +939,21 @@ const walkChildren = (
       : stream;
 
     const rendered = processData(child, rCtx, ssrContext, localStream, flags);
-    const next = () => {
-      currentIndex++;
-      if (buffers.length > currentIndex) {
-        buffers[currentIndex].forEach((chunk) => stream.write(chunk));
+    if (prevPromise || isPromise(rendered)) {
+      const next = () => {
+        currentIndex++;
+        if (buffers.length > currentIndex) {
+          buffers[currentIndex].forEach((chunk) => stream.write(chunk));
+        }
+      };
+      if (isPromise(rendered)) {
+        if (prevPromise) {
+          return Promise.all([rendered, prevPromise]).then(next);
+        } else {
+          return rendered.then(next);
+        }
       }
-    };
-    if (isPromise(rendered) && prevPromise) {
-      return Promise.all([rendered, prevPromise]).then(next);
-    } else if (isPromise(rendered)) {
-      return rendered.then(next);
-    } else if (prevPromise) {
-      return prevPromise.then(next);
+      return prevPromise!.then(next);
     } else {
       currentIndex++;
       return undefined;

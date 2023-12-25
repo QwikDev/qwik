@@ -42,7 +42,7 @@ export const executeComponent = (
   // Set component context
   const newCtx = pushRenderContext(rCtx);
   newCtx.$cmpCtx$ = elCtx;
-  newCtx.$slotCtx$ = null;
+  newCtx.$slotCtx$ = undefined;
 
   // Invoke render hook
   iCtx.$subscriber$ = [0, hostElement];
@@ -98,7 +98,7 @@ export const createRenderContext = (
       $visited$: [],
     },
     $cmpCtx$: null,
-    $slotCtx$: null,
+    $slotCtx$: undefined,
   };
   seal(ctx);
   seal(ctx.$static$);

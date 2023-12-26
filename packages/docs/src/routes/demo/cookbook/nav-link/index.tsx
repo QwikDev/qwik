@@ -1,5 +1,5 @@
 import type { QwikIntrinsicElements } from '@builder.io/qwik';
-import { Slot, component$, useComputed$ } from '@builder.io/qwik';
+import { Slot, component$, useComputed$,Link } from '@builder.io/qwik';
 import { useLocation } from '@builder.io/qwik-city';
 
 type NavLinkProps = QwikIntrinsicElements['a'] & {
@@ -14,17 +14,22 @@ export const NavLink = component$(
     const locationPathname = location.url.pathname;
     const isPenddingSig = useComputed$(() => location.isNavigating);
 
+     const startSlashPosition =
+       toPathname !== "/" && toPathname.startsWith("/")
+         ? toPathname.length - 1
+         : toPathname.length;
     const endSlashPosition =
       toPathname !== '/' && toPathname.endsWith('/')
         ? toPathname.length - 1
         : toPathname.length;
     const isActive =
-      locationPathname === toPathname ||
-      (locationPathname.endsWith(toPathname) &&
-        locationPathname.charAt(endSlashPosition) === '/');
+       locationPathname === toPathname ||
+       (locationPathname.endsWith(toPathname) &&
+         (locationPathname.charAt(endSlashPosition) === "/" ||
+           locationPathname.charAt(startSlashPosition) === "/"));
 
     return (
-      <a
+      <Link
         class={`
           ${props.class || ''}  
           ${isActive ? activeClass : ''}
@@ -33,7 +38,7 @@ export const NavLink = component$(
         {...props}
       >
         <Slot />
-      </a>
+      </Link>
     );
   }
 );

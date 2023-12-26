@@ -41,6 +41,7 @@
 - [Glob Import](/docs/cookbook/glob-import/index.mdx)
 - [Media Controller](/docs/cookbook/mediaController/index.mdx)
 - [Portal](/docs/cookbook/portal/index.mdx)
+- [Re-exporting loaders](/docs/cookbook/re-exporting-loaders/index.mdx)
 - [Sync events w state](/docs/cookbook/sync-events/index.mdx)
 - [Theme Managment](/docs/cookbook/theme-management/index.mdx)
 

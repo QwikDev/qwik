@@ -28,7 +28,6 @@ It wouldn't make sense to copy and paste the same code into many parts of our co
 As per good practices, the ideal method is to centralize the logic.
 Here in this example we declare `routeAction$` and `routeLoader$` in a centralized file so we can then reuse it in our files.
 
-
 Example with `./shared/loaders.ts`
 <CodeFile url="/demo/cookbook/re-exporting-loaders/shared/loaders.ts" >
 ```tsx
@@ -84,21 +83,21 @@ export default component$(() => {
 
 <CodeSandbox url="/demo/cookbook/re-exporting-loaders/"  style={{ height: '15em' }} />
 
-### Third-party libraries
+### Third-party libraries example
 
 It may happen that we need to integrate third-party libraries over which we have no control over how it works.
 Let's think for example about integrating a payment method into our application.
 We are provided with a component to integrate into the page, but we have no control over what happens under the hood of this component.
 Here, if this library needs `routeAction$` or `routeLoader$` we must re-export them to allow the correct functioning of our library.
 
-Here is out code:
+#### Here is our code:
 
-<CodeFile url="/demo/cookbook/re-exporting-loaders/third-party/index.tsx" >
+<CodeSandbox url="/demo/cookbook/re-exporting-loaders/third-party/index.tsx"  style={{ height: '20em' }}>
 ```tsx
 import { component$ } from '@builder.io/qwik';
 import { ThirdPartyPaymentComponent } from './third-party-library';
 
-// As mentioned, here we are re-exporting them
+// As mentioned, here we are re-exporting the third-party loader
 export { useThirdPartyPaymentLoader } from './third-party-library';
 
 export default component$(() => {
@@ -109,11 +108,9 @@ export default component$(() => {
   );
 });
 ```
-</CodeFile>
+</CodeSandbox>
 
-<CodeSandbox url="/demo/cookbook/re-exporting-loaders/third-party/index.tsx"  style={{ height: '20em' }} />
-
-Here is the library code:
+#### Here is the library code:
 
 <CodeFile url="/demo/cookbook/re-exporting-loaders/third-party/third-party-library.tsx" >
 ```tsx

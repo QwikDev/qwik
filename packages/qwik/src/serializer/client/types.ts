@@ -2,6 +2,12 @@
 
 export interface Container {
   element: ContainerElement;
+  qContainer: string;
+  qVersion: string;
+  qBase: string;
+  qLocale: string;
+  qManifestHash: string;
+  rootVNode: VNode;
 }
 
 export interface ContainerElement extends HTMLElement {
@@ -13,5 +19,5 @@ export interface QNode extends Node {
 }
 
 export interface VNode {
-  tag: string | Function;
+  __brand__: 'Opeque VNode';
 }

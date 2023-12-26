@@ -1,12 +1,14 @@
+import { createDocument } from '@builder.io/qwik-dom';
 import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
 import { describe, expect, it } from 'vitest';
-import { ssrCreateContainer, toSsrAttrs } from './ssr/api';
+import { isJSXNode } from '../core/render/jsx/jsx-runtime';
+import { getContainer } from './client/api';
+import type { VNode } from './client/types';
 import type { Stringifyable } from './shared-types';
 import { isStringifyable } from './shared-types';
-import { isJSXNode } from '../core/render/jsx/jsx-runtime';
-import type { VNode } from './client/types';
-import { createDocument } from '@builder.io/qwik-dom';
-import { getContainer, getVNode } from './client/api';
+import { ssrCreateContainer, toSsrAttrs } from './ssr/api';
+import './vdom-diff.unit';
+import { vnode_getFirstChild } from './client/vnode';
 
 describe('serializer v2', () => {
   describe('basic use cases', () => {
@@ -16,24 +18,6 @@ describe('serializer v2', () => {
       expect(output).toMatchVDOM(input);
     });
   });
-});
-
-interface CustomMatchers<R = unknown> {
-  toMatchVDOM(expectedJSX: JSXNode): R;
-}
-
-declare module 'vitest' {
-  interface Assertion<T = any> extends CustomMatchers<T> {}
-  interface AsymmetricMatchersContaining extends CustomMatchers {}
-}
-
-expect.extend({
-  toMatchVDOM(received, expected) {
-    return {
-      pass: false,
-      message: () => `${received} is${this.isNot ? ' not' : ''} foo`,
-    };
-  },
 });
 
 function toHTML(jsx: JSXNode): string {
@@ -66,7 +50,7 @@ function toDOM(html: string): HTMLElement {
 function toVDOM(containerElement: HTMLElement): VNode {
   console.log(containerElement.outerHTML);
   const container = getContainer(containerElement);
-  const vNode = getVNode(container.element);
+  const vNode = vnode_getFirstChild(container.rootVNode)!;
   return vNode;
 }
 

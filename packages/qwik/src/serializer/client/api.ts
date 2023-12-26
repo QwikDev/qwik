@@ -1,6 +1,7 @@
 /** @file Public APIs for the SSR */
 
 import type { Container, ContainerElement, QNode, VNode as IVNode } from './types';
+import { VNode, vnode_new } from './vnode';
 
 export function getContainer(element: HTMLElement): Container {
   const qElement = element as ContainerElement;
@@ -11,24 +12,6 @@ export function getContainer(element: HTMLElement): Container {
   return container;
 }
 
-export function getVNode(node: Node): IVNode {
-  const qNode = node as QNode;
-  let vNode = qNode.qVNode;
-  if (!vNode) {
-    vNode = qNode.qVNode = new VNode(qNode);
-  }
-  return vNode!;
-}
-
-class VNode implements IVNode {
-  public node: QNode;
-  public tag: string | Function;
-  constructor(node: QNode) {
-    this.node = node;
-    this.tag = '';
-  }
-}
-
 class QContainer implements Container {
   public element: ContainerElement;
   public qContainer: string;
@@ -36,6 +19,7 @@ class QContainer implements Container {
   public qBase: string;
   public qLocale: string;
   public qManifestHash: string;
+  public rootVNode: VNode;
   constructor(element: ContainerElement) {
     this.qContainer = element.getAttribute('q:container')!;
     if (!this.qContainer) {
@@ -46,5 +30,6 @@ class QContainer implements Container {
     this.qLocale = element.getAttribute('q:locale')!;
     this.qManifestHash = element.getAttribute('q:manifest-hash')!;
     this.element = element;
+    this.rootVNode = vnode_new(this.element);
   }
 }

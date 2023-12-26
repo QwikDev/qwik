@@ -4,7 +4,7 @@ contributors:
   - Adbib
 ---
 
-import { CodeFile } from '../../../../components/code-sandbox/index.tsx';
+import CodeSandbox, { CodeFile } from '../../../../components/code-sandbox/index.tsx';
 
 # NavLink Component
 
@@ -16,27 +16,17 @@ The NavLink component enhances `<a>` element by adding:
 
 This allows styling the active and pending states for navigation.
 
-## Usage
-
-You can use NavLink with the addition of `isActive` and `isPending` props:
-
-```tsx
-<NavLink href="/" isActive="active" isPending="pending">
-  Home
-</NavLink>
-```
-
 ## How it Works 
 
 Under the hood, NavLink uses the `useLocation` hook to get navigation status.
-It checks if the link href matches the current URL pathname to set isActive. 
+It checks if the link href matches the current URL pathname to set activeClass. 
 It uses `isNavigating` to determine pending status when navigating to the link.
 This allows NavLink to know the active and pending state automatically based on navigation.
 
-<CodeFile>
+<CodeFile src="/src/routes/demo/cookbook/nav-link/index.tsx">
 ```tsx
 import type { QwikIntrinsicElements } from '@builder.io/qwik';
-import { Slot, component$ } from '@builder.io/qwik';
+import { Slot, component$, useComputed$ } from '@builder.io/qwik';
 import { useLocation } from '@builder.io/qwik-city';
 
 type NavLinkProps = QwikIntrinsicElements['a'] & {
@@ -49,28 +39,23 @@ export const NavLink = component$(
     const location = useLocation();
     const toPathname = props.href ?? '';
     const locationPathname = location.url.pathname;
+    const isPenddingSig = useComputed$(() => location.isNavigating);
 
-    const startSlashPosition =
-      toPathname !== "/" && toPathname.startsWith("/")
-        ? toPathname.length - 1
-        : toPathname.length;
     const endSlashPosition =
       toPathname !== '/' && toPathname.endsWith('/')
         ? toPathname.length - 1
         : toPathname.length;
-    const check_isActive =
+    const isActive =
       locationPathname === toPathname ||
       (locationPathname.endsWith(toPathname) &&
-        (locationPathname.charAt(endSlashPosition) === "/" ||
-          locationPathname.charAt(startSlashPosition) === "/"));
-    const check_isPendding = location.isNavigating;
+        locationPathname.charAt(endSlashPosition) === '/');
 
     return (
       <a
         class={`
           ${props.class}  
-          ${check_isActive ? activeClass : ''}
-          ${check_isPendding && check_isActive ? pendingClass : ''}
+          ${isActive ? activeClass : ''}
+          ${isPenddingSig.value && isActive ? pendingClass : ''}
         `}
         {...props}
       >
@@ -81,3 +66,37 @@ export const NavLink = component$(
 );
 ```
 </CodeFile>
+
+
+## Usage
+
+You can use NavLink with the addition of `activeClass` and `pendingClass` props:
+
+<CodeSandbox src="/src/routes/demo/cookbook/nav-link/example/index.tsx" style={{ height: '10em' }}>
+```tsx
+import { component$ } from '@builder.io/qwik';
+import { NavLink } from '..';
+
+export default component$(() => {
+  return (
+    <>
+      Links
+      <div>
+        <NavLink href="/docs" activeClass="active" pendingClass="pending">
+          Docs
+        </NavLink>
+      </div>
+      <div>
+        <NavLink
+          href="/docs/cookbook/nav-link/"
+          activeClass="active"
+          pendingClass="pending"
+        >
+          NavLink
+        </NavLink>
+      </div>
+    </>
+  );
+});
+```
+</CodeSandbox>

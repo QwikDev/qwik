@@ -1,5 +1,17 @@
 /** @file Public types for the client deserialization */
 
-interface Container {}
+export interface Container {
+  element: ContainerElement;
+}
 
-interface VNode {}
+export interface ContainerElement extends HTMLElement {
+  qContainer?: Container;
+}
+
+export interface QNode extends Node {
+  qVNode?: VNode;
+}
+
+export interface VNode {
+  tag: string | Function;
+}

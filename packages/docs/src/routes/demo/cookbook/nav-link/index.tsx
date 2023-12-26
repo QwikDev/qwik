@@ -1,6 +1,6 @@
 import type { QwikIntrinsicElements } from '@builder.io/qwik';
-import { Slot, component$, useComputed$,Link } from '@builder.io/qwik';
-import { useLocation } from '@builder.io/qwik-city';
+import { Slot, component$, useComputed$ } from '@builder.io/qwik';
+import { useLocation,Link } from '@builder.io/qwik-city';
 
 type NavLinkProps = QwikIntrinsicElements['a'] & {
   activeClass?: string;

@@ -25,10 +25,32 @@ class StringBufferWriter {
   }
 }
 
+interface ContainerElementFrame {
+  parent: ContainerElementFrame | null;
+  elementName: string;
+  /**
+   * Current element index.
+   *
+   * This number must match the depth-first traversal of the DOM elemenst as returned by the
+   * https://developer.mozilla.org/en-US/docs/Web/API/TreeWalker
+   */
+  depthFirstElementIdx: number;
+  vNodeData: VNodeData;
+}
+
+type VNodeData = string[];
+
 class SSRContainer implements ISSRContainer {
   public tag: string;
   public writer: StreamWriter;
-  private stack: string[] = [];
+  private currentElementFrame: ContainerElementFrame | null = null;
+  /**
+   * Current element index.
+   *
+   * This number must match the depth-first traversal of the DOM elemenst as returned by the
+   * https://developer.mozilla.org/en-US/docs/Web/API/TreeWalker
+   */
+  private depthFirstElementCount: number = 0;
 
   constructor(opts: Required<Required<Parameters<typeof ssrCreateContainer>>[0]>) {
     this.tag = opts.tagName;
@@ -53,24 +75,42 @@ class SSRContainer implements ISSRContainer {
   }
 
   closeContainer(): void {
+    this.emitVNodeData();
     this.closeElement();
   }
 
   openElement(tag: string, attrs: SsrAttrs) {
     this.write('<');
     this.write(tag);
-    this.stack.push(tag);
+    this.currentElementFrame = {
+      parent: this.currentElementFrame,
+      elementName: tag,
+      depthFirstElementIdx: this.depthFirstElementCount++,
+      vNodeData: [],
+    };
     this.writeAttrs(attrs);
     this.write('>');
   }
   closeElement() {
     this.write('</');
-    this.write(this.stack.pop()!);
+    const closingFrame = this.currentElementFrame!;
+    this.currentElementFrame = closingFrame.parent;
+    this.write(closingFrame.elementName);
     this.write('>');
   }
 
+  openVNode() {}
+  closeVNode() {}
+
   text(text: string) {
     this.write(text);
+  }
+
+  ////////////////////////////////////
+
+  emitVNodeData() {
+    this.openElement('script', ['type', 'qwik/vnode']);
+    this.closeElement();
   }
 
   ////////////////////////////////////

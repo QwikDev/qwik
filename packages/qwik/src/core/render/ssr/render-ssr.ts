@@ -479,7 +479,7 @@ const renderSSRComponent = (
             if (content) {
               return _jsxQ(
                 'q:template',
-                { [QSlot]: slotName, hidden: '', 'aria-hidden': 'true' },
+                { [QSlot]: slotName || true, hidden: true, 'aria-hidden': 'true' },
                 null,
                 content,
                 0,
@@ -575,11 +575,10 @@ const renderNode = (
       } else if (prop === 'style') {
         attrValue = stringifyStyle(value);
       } else if (isAriaAttribute(prop) || prop === 'draggable' || prop === 'spellcheck') {
-        attrValue = value != null ? String(value) : value;
+        attrValue = value != null ? String(value) : null;
+        value = attrValue;
       } else if (value === false || value == null) {
         attrValue = null;
-      } else if (value === true) {
-        attrValue = '';
       } else {
         attrValue = String(value);
       }
@@ -591,7 +590,8 @@ const renderNode = (
             logError('Attribute value is unsafe for SSR');
           }
         } else {
-          openingElement += ' ' + (value === '' ? prop : prop + '="' + escapeAttr(attrValue) + '"');
+          openingElement +=
+            ' ' + (value === true ? prop : prop + '="' + escapeAttr(attrValue) + '"');
         }
       }
     };

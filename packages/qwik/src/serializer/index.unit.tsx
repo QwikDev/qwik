@@ -17,6 +17,12 @@ describe('serializer v2', () => {
       const output = toVDOM(toDOM(toHTML(input)));
       expect(output).toMatchVDOM(input);
     });
+
+    it.only('should do handle multiple text nodes, and fragment', () => {
+      const input = <>Hello {'world'}!</>;
+      const output = toVDOM(toDOM(toHTML(input)));
+      expect(output).toMatchVDOM(input);
+    });
   });
 });
 

@@ -22,7 +22,7 @@ import { expect, test, vi } from 'vitest';
 test('render attributes', async () => {
   await testSSR(
     <body id="stuff" aria-required="true" role=""></body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test"><body id="stuff" aria-required="true" role></body></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test"><body id="stuff" aria-required="true" role=""></body></html>'
   );
 });
 
@@ -38,7 +38,7 @@ test('render aria value', async () => {
     ></body>,
     `
         <html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
-          <body id="stuff" aria-required="true" aria-busy="false" role preventdefault:click=""></body>
+          <body id="stuff" aria-required="true" aria-busy="false" role="" preventdefault:click></body>
         </html>
         `
   );

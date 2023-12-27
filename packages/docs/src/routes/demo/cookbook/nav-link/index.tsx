@@ -1,40 +1,31 @@
-import type { QwikIntrinsicElements } from '@builder.io/qwik';
-import { Slot, component$, useComputed$ } from '@builder.io/qwik';
-import { useLocation,Link } from '@builder.io/qwik-city';
+import { Slot, component$ } from '@builder.io/qwik';
+import { Link, useLocation, type LinkProps } from '@builder.io/qwik-city';
 
-type NavLinkProps = QwikIntrinsicElements['a'] & {
-  activeClass?: string;
-  pendingClass?: string;
-};
+type NavLinkProps = LinkProps & { activeClass?: string };
 
 export const NavLink = component$(
-  ({ activeClass, pendingClass, ...props }: NavLinkProps) => {
+  ({ activeClass, ...props }: NavLinkProps) => {
     const location = useLocation();
     const toPathname = props.href ?? '';
     const locationPathname = location.url.pathname;
-    const isPenddingSig = useComputed$(() => location.isNavigating);
 
-     const startSlashPosition =
-       toPathname !== "/" && toPathname.startsWith("/")
-         ? toPathname.length - 1
-         : toPathname.length;
+    const startSlashPosition =
+      toPathname !== '/' && toPathname.startsWith('/')
+        ? toPathname.length - 1
+        : toPathname.length;
     const endSlashPosition =
       toPathname !== '/' && toPathname.endsWith('/')
         ? toPathname.length - 1
         : toPathname.length;
     const isActive =
-       locationPathname === toPathname ||
-       (locationPathname.endsWith(toPathname) &&
-         (locationPathname.charAt(endSlashPosition) === "/" ||
-           locationPathname.charAt(startSlashPosition) === "/"));
+      locationPathname === toPathname ||
+      (locationPathname.endsWith(toPathname) &&
+        (locationPathname.charAt(endSlashPosition) === '/' ||
+          locationPathname.charAt(startSlashPosition) === '/'));
 
     return (
       <Link
-        class={`
-          ${props.class || ''}  
-          ${isActive ? activeClass : ''}
-          ${isPenddingSig.value && isActive ? pendingClass : ''}
-        `}
+        class={`${props.class || ''} ${isActive ? activeClass : ''}`}
         {...props}
       >
         <Slot />

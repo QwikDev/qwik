@@ -6,17 +6,16 @@ export default component$(() => {
     <>
       Links
       <div>
-        <NavLink href="/docs" activeClass="active" pendingClass="pending">
-          Docs
+        <NavLink href="/docs" activeClass="text-green-600">
+          /docs
         </NavLink>
       </div>
       <div>
         <NavLink
-          href="/docs/cookbook/nav-link/"
-          activeClass="active"
-          pendingClass="pending"
+          href="/demo/cookbook/nav-link/example/"
+          activeClass="text-green-600"
         >
-          NavLink
+          /demo/cookbook/nav-link/example/
         </NavLink>
       </div>
     </>

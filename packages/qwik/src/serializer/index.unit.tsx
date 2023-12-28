@@ -42,7 +42,7 @@ describe('serializer v2', () => {
       const output = toVDOM(toDOM(toHTML(input)));
       expect(output).toMatchVDOM(input);
     });
-    it.only('should handle long strings', () => {
+    it('should handle long strings', () => {
       const string = (length: number) => new Array(length).fill('.').join('');
       const input = (
         <div>

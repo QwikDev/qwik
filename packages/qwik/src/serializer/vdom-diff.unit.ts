@@ -1,6 +1,5 @@
 import { Fragment, type JSXNode } from '@builder.io/qwik/jsx-runtime';
-
-import { expect } from 'vitest';
+import { expect, describe, it } from 'vitest';
 import type { VNode } from './client/types';
 import {
   vnode_getFirstChild,
@@ -9,6 +8,10 @@ import {
   vnode_getTag,
   vnode_getText,
 } from './client/vnode';
+
+describe('vdom-diff.unit', () => {
+  it('needs tests', () => {});
+});
 
 interface CustomMatchers<R = unknown> {
   toMatchVDOM(expectedJSX: JSXNode): R;

@@ -1,0 +1,95 @@
+---
+title: Cookbook | Navbar link
+contributors:
+  - Adbib
+---
+
+import CodeSandbox, { CodeFile } from '../../../../components/code-sandbox/index.tsx';
+
+# NavLink Component
+
+If you want to add `active` state to your links you can use this solution.
+The NavLink component enhances Qwik `<Link>` component by adding:
+
+- **Active Status**: Apply a class when the link href matches the current URL pathname.
+
+This allows styling the active state for navigation.
+
+## How it Works 
+
+Under the hood, NavLink uses the `useLocation` hook to get navigation status.
+It checks if the link href matches the current URL pathname to set activeClass. 
+This allows NavLink to know the active state automatically based on navigation.
+
+<CodeFile src="/src/routes/demo/cookbook/nav-link/index.tsx">
+```tsx
+import { Slot, component$ } from '@builder.io/qwik';
+import { Link, useLocation, type LinkProps } from '@builder.io/qwik-city';
+
+type NavLinkProps = LinkProps & { activeClass?: string };
+
+export const NavLink = component$(
+  ({ activeClass, ...props }: NavLinkProps) => {
+    const location = useLocation();
+    const toPathname = props.href ?? '';
+    const locationPathname = location.url.pathname;
+
+    const startSlashPosition =
+      toPathname !== '/' && toPathname.startsWith('/')
+        ? toPathname.length - 1
+        : toPathname.length;
+    const endSlashPosition =
+      toPathname !== '/' && toPathname.endsWith('/')
+        ? toPathname.length - 1
+        : toPathname.length;
+    const isActive =
+      locationPathname === toPathname ||
+      (locationPathname.endsWith(toPathname) &&
+        (locationPathname.charAt(endSlashPosition) === '/' ||
+          locationPathname.charAt(startSlashPosition) === '/'));
+
+    return (
+      <Link
+        class={`${props.class || ''} ${isActive ? activeClass : ''}`}
+        {...props}
+      >
+        <Slot />
+      </Link>
+    );
+  }
+);
+```
+</CodeFile>
+
+
+## Usage
+
+You can use NavLink with the addition of `activeClass` props:
+
+<CodeSandbox src="/src/routes/demo/cookbook/nav-link/example/index.tsx" style={{ height: '10em' }}>
+```tsx
+import { component$ } from '@builder.io/qwik';
+import { NavLink } from '..';
+
+export default component$(() => {
+  return (
+    <>
+      Links
+      <div>
+        <NavLink href="/docs" activeClass="text-green-600">
+          /docs
+        </NavLink>
+      </div>
+      <div>
+        <NavLink
+          href="/demo/cookbook/nav-link/example/"
+          activeClass="text-green-600"
+        >
+          /demo/cookbook/nav-link/example/
+        </NavLink>
+      </div>
+    </>
+  );
+});
+```
+</CodeSandbox>

@@ -5,7 +5,6 @@
 ```ts
 
 import * as CSS_2 from 'csstype';
-import type { ServerRequestEvent } from '@builder.io/qwik-city/middleware/request-handler';
 
 // @public
 export const $: <T>(expression: T) => QRL<T>;
@@ -579,7 +578,7 @@ export interface ParamHTMLAttributes<T extends Element> extends Attrs<'base', T,
 // Warning: (ae-forgotten-export) The symbol "ContainerState" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "GetObjID" needs to be exported by the entry point index.d.ts
 //
-// @internal (undocumented)
+// @internal
 export const _pauseFromContexts: (allContexts: QContext[], containerState: ContainerState, fallbackGetObjId?: GetObjID, textNodes?: Map<string, string>) => Promise<SnapshotResult>;
 
 // @public (undocumented)
@@ -752,7 +751,7 @@ export type QwikVisibleEvent = CustomEvent<IntersectionObserverEntry>;
 export type QwikWheelEvent<T = Element> = NativeWheelEvent;
 
 // @public (undocumented)
-export type ReadonlySignal<T = any> = Readonly<Signal<T>>;
+export type ReadonlySignal<T = unknown> = Readonly<Signal<T>>;
 
 // @internal (undocumented)
 export const _regSymbol: (symbol: any, hash: string) => any;

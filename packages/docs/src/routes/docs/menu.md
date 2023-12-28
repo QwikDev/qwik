@@ -41,7 +41,7 @@
 - [Fonts](/docs/cookbook/fonts/index.mdx)
 - [Glob Import](/docs/cookbook/glob-import/index.mdx)
 - [Media Controller](/docs/cookbook/mediaController/index.mdx)
-- [Portals](/docs/cookbook/portal/index.mdx)
+- [Portals](/docs/cookbook/portals/index.mdx)
 - [NavLink](/docs/cookbook/nav-link/index.mdx)
 - [Node Docker deploy](/docs/cookbook/node-docker-deploy/index.mdx)
 - [Re-exporting loaders](/docs/cookbook/re-exporting-loaders/index.mdx)

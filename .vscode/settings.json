@@ -6,5 +6,6 @@
     "**/dist-dev/**",
     "**/cypress/**",
     "**/.{idea,git,cache,output,temp}/**"
-  ]
+  ],
+  "cSpell.words": ["Stringifiable"]
 }

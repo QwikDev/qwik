@@ -1,10 +1,11 @@
-import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
+import { Fragment, type JSXNode } from '@builder.io/qwik/jsx-runtime';
 
 import { expect } from 'vitest';
 import type { VNode } from './client/types';
 import {
   vnode_getFirstChild,
   vnode_getNextSibling,
+  vnode_getNode,
   vnode_getTag,
   vnode_getText,
 } from './client/vnode';
@@ -31,7 +32,7 @@ expect.extend({
 
 function diffJsxVNode(received: VNode, expected: JSXNode, path: string[] = []): string[] {
   const diffs: string[] = [];
-  path.push(String(expected.type));
+  path.push(tagToString(expected.type));
   const isTagSame = expected.type == vnode_getTag(received);
   if (!isTagSame) {
     diffs.push(path.join('>'));
@@ -70,36 +71,61 @@ function getVNodeChildren(vNode: VNode): VNode[] {
   const children: VNode[] = [];
   let child = vnode_getFirstChild(vNode);
   while (child) {
-    children.push(child);
-    child = vnode_getNextSibling(vNode);
+    if (!shouldSkip(child)) {
+      children.push(child);
+    }
+    child = vnode_getNextSibling(child);
   }
   return children;
 }
 function jsxToHTML(jsx: JSXNode, pad: string = ''): string {
   const html: string[] = [];
   if (jsx.type) {
-    html.push(pad, '<', String(jsx.type), '\n>');
+    html.push(pad, '<', tagToString(jsx.type), '>\n');
     getJSXChildren(jsx).forEach((jsx) => {
       html.push(jsxToHTML(jsx, pad + '  '));
     });
-    html.push(pad, '<', String(jsx.type), '\n>');
+    html.push(pad, '<', tagToString(jsx.type), '>\n');
   } else {
-    html.push(pad, String(jsx));
+    html.push(pad, tagToString(jsx), '\n');
   }
   return html.join('');
 }
 
-function vnodeToHTML(vNode: VNode, pad: string = ''): string {
+function vnodeToHTML(vNode: VNode | null, pad: string = ''): string {
   const html: string[] = [];
-  let tag = vnode_getTag(vNode);
-  if (tag) {
-    html.push(pad, '<', String(tag), '\n>');
-    getVNodeChildren(vNode).forEach((vNode) => {
-      html.push(vnodeToHTML(vNode, pad + '  '));
-    });
-    html.push(pad, '<', String(tag), '\n>');
-  } else {
-    html.push(pad, vnode_getText(vNode));
+  while (vNode) {
+    const tag = vnode_getTag(vNode);
+    if (tag) {
+      html.push(pad, '<', tagToString(tag), '>\n');
+      html.push(vnodeToHTML(vnode_getFirstChild(vNode), pad + '  '));
+      html.push(pad, '</', tagToString(tag), '>\n');
+    } else {
+      html.push(pad, vnode_getText(vNode), '\n');
+    }
+    while (shouldSkip((vNode = vnode_getNextSibling(vNode!)))) {
+      // skip
+    }
   }
   return html.join('');
+}
+
+function tagToString(tag: any): string {
+  if (tag === Fragment) {
+    return 'Fragment';
+  }
+  return String(tag);
+}
+
+function shouldSkip(vNode: VNode | null) {
+  if (vNode) {
+    const tag = vnode_getTag(vNode);
+    if (
+      tag === 'script' &&
+      (vnode_getNode(vNode) as Element).getAttribute('type') === 'qwik/vnode'
+    ) {
+      return true;
+    }
+  }
+  return false;
 }

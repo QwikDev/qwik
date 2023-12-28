@@ -38,9 +38,10 @@
 ## Cookbook
 
 - [Overview](/docs/cookbook/index.mdx)
+- [Fonts](/docs/cookbook/fonts/index.mdx)
 - [Glob Import](/docs/cookbook/glob-import/index.mdx)
 - [Media Controller](/docs/cookbook/mediaController/index.mdx)
-- [Portal](/docs/cookbook/portal/index.mdx)
+- [Portals](/docs/cookbook/portal/index.mdx)
 - [Re-exporting loaders](/docs/cookbook/re-exporting-loaders/index.mdx)
 - [Sync events w state](/docs/cookbook/sync-events/index.mdx)
 - [NavLink](/docs/cookbook/nav-link/index.mdx)

@@ -41,7 +41,7 @@ export const enum VNodeDataFlag {
 export function vNodeData_incrementElementCount(vNodeData: VNodeData) {
   const length = vNodeData.length;
   const lastItem = length > 1 ? vNodeData[length - 1] : 0;
-  if (lastItem >= 0) {
+  if (lastItem >= 0 || lastItem == CLOSE_FRAGMENT) {
     // positive numbers are text node lengths.
     // So we just add -1 to indicate that we now have one element after text node
     vNodeData.push(-1);

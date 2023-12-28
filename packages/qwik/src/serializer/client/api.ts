@@ -51,36 +51,55 @@ export function processVNodeData(document: Document) {
   let ch: number;
   for (let node = walker.firstChild(); node !== null; node = walker.nextNode()) {
     if (vNodeIndex < elementIdx) {
+      // VNodeData needs to catch up with the elementIdx
       if (vNodeIndex == -1) {
+        // Special case for initial catch up
         vNodeIndex = 0;
       }
-      while (isSeparator((ch = currentVNodeData.charCodeAt(vNodeDataStart)))) {
-        vNodeIndex += 1 << (ch - 33) /*`!`*/;
-        vNodeDataStart++;
-        if (vNodeDataEnd >= currentVNodeDataLength) {
-          break;
+      vNodeDataStart = vNodeDataEnd;
+      if (vNodeDataStart < currentVNodeDataLength) {
+        while (isSeparator((ch = currentVNodeData.charCodeAt(vNodeDataStart)))) {
+          // Keep consuming the separators and incrementing the vNodeIndex
+          vNodeIndex += 1 << (ch - 33) /*`!`*/;
+          vNodeDataStart++;
+          if (vNodeDataStart >= currentVNodeDataLength) {
+            // we reached the end of the vNodeData stop.
+            break;
+          }
         }
-      }
-      const shouldStoreRef = ch === 126; /*`~` */
-      if (shouldStoreRef) {
-        vNodeDataStart++;
-        if (vNodeDataEnd < currentVNodeDataLength) {
-          ch = currentVNodeData.charCodeAt(vNodeDataEnd);
-        } else {
-          ch = 33 /* `!` */;
+        const shouldStoreRef = ch === 126; /*`~` */
+        if (shouldStoreRef) {
+          // if we need to store the ref handle it here.
+          vNodeDataStart++;
+          if (vNodeDataStart < currentVNodeDataLength) {
+            ch = currentVNodeData.charCodeAt(vNodeDataEnd);
+          } else {
+            // assume separator on ond.
+            ch = 33 /* `!` */;
+          }
         }
-      }
-      vNodeDataEnd = vNodeDataStart;
-      while (!isSeparator(ch)) {
-        if (vNodeDataEnd < currentVNodeDataLength) {
-          ch = currentVNodeData.charCodeAt(vNodeDataEnd++);
-        } else {
-          ch = 33 /* `!` */;
+        vNodeDataEnd = vNodeDataStart;
+        while (true as boolean) {
+          // look for the end of VNodeData
+          if (vNodeDataEnd < currentVNodeDataLength) {
+            ch = currentVNodeData.charCodeAt(vNodeDataEnd);
+            if (isSeparator(ch)) {
+              break;
+            } else {
+              vNodeDataEnd++;
+            }
+          } else {
+            break;
+          }
         }
+      } else {
+        elementIdx = Number.MAX_SAFE_INTEGER;
       }
     }
     if (elementIdx === vNodeIndex) {
-      vNodeDataMap.set(node as Element, currentVNodeData.substring(vNodeDataStart, vNodeDataEnd));
+      const instructions = currentVNodeData.substring(vNodeDataStart, vNodeDataEnd);
+      // console.log('SET', (node as Element).outerHTML, instructions);
+      vNodeDataMap.set(node as Element, instructions);
     }
     elementIdx++;
   }

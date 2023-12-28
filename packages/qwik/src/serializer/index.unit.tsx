@@ -27,6 +27,33 @@ describe('serializer v2', () => {
       const output = toVDOM(toDOM(toHTML(input)));
       expect(output).toMatchVDOM(input);
     });
+
+    it('should handle more complex example', () => {
+      const input = (
+        <div>
+          <span>A</span>
+          <>Hello {'World'}!</>
+          <span>
+            <>B</>!
+          </span>
+          <>Greetings {'World'}!</>
+        </div>
+      );
+      const output = toVDOM(toDOM(toHTML(input)));
+      expect(output).toMatchVDOM(input);
+    });
+    it.only('should handle long strings', () => {
+      const string = (length: number) => new Array(length).fill('.').join('');
+      const input = (
+        <div>
+          {string(26 * 26 * 26)}
+          {string(26 * 26)}
+          {string(26)}
+        </div>
+      );
+      const output = toVDOM(toDOM(toHTML(input)));
+      expect(output).toMatchVDOM(input);
+    });
   });
 });
 

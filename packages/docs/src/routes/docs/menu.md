@@ -41,7 +41,7 @@
 - [Glob Import](/docs/cookbook/glob-import/index.mdx)
 - [Media Controller](/docs/cookbook/mediaController/index.mdx)
 - [NavLink](/docs/cookbook/nav-link/index.mdx)
-- [Node Docker Deploy](/docs/cookbook/node-docker-deploy/index.mdx)
+- [Node Docker deploy](/docs/cookbook/node-docker-deploy/index.mdx)
 - [Portal](/docs/cookbook/portal/index.mdx)
 - [Re-exporting loaders](/docs/cookbook/re-exporting-loaders/index.mdx)
 - [Sync events w state](/docs/cookbook/sync-events/index.mdx)

@@ -926,15 +926,17 @@ const handleClass: PropHandler = (ctx, elm, newValue) => {
 
 const checkBeforeAssign: PropHandler = (ctx, elm, newValue, prop) => {
   if (prop in elm) {
-    if ((elm as any)[prop] !== newValue) {
+    // a selected <option> is different from a selected <option value> (innerText vs '')
+    if ((elm as any)[prop] !== newValue || (prop === 'value' && !elm.hasAttribute(prop))) {
       if (elm.tagName === 'SELECT') {
         setPropertyPost(ctx, elm, prop, newValue);
       } else {
         setProperty(ctx, elm, prop, newValue);
       }
     }
+    return true;
   }
-  return true;
+  return false;
 };
 
 const forceAttribute: PropHandler = (ctx, elm, newValue, prop) => {

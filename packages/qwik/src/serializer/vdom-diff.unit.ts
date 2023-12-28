@@ -30,31 +30,40 @@ expect.extend({
   },
 });
 
-function diffJsxVNode(received: VNode, expected: JSXNode, path: string[] = []): string[] {
+function diffJsxVNode(received: VNode, expected: JSXNode | string, path: string[] = []): string[] {
   const diffs: string[] = [];
-  path.push(tagToString(expected.type));
-  const isTagSame = expected.type == vnode_getTag(received);
-  if (!isTagSame) {
-    diffs.push(path.join('>'));
-  }
-  const receivedChildren = getVNodeChildren(received);
-  const expectedChildren = getJSXChildren(expected);
-  if (receivedChildren.length === expectedChildren.length) {
-    for (let i = 0; i < receivedChildren.length; i++) {
-      const receivedChild = receivedChildren[i];
-      const expectedChild = expectedChildren[i];
-      diffs.push(...diffJsxVNode(receivedChild, expectedChild, path));
+  if (typeof expected === 'string') {
+    const receivedText = vnode_getText(received);
+    if (expected !== vnode_getText(received)) {
+      diffs.push(path.join(' > '));
+      diffs.push('EXPECTED', JSON.stringify(expected));
+      diffs.push('RECEIVED:', JSON.stringify(receivedText));
     }
   } else {
-    diffs.push(
-      `${path.join('>')} expecting ${expectedChildren.length} children but was ${
-        receivedChildren.length
-      }`
-    );
-    diffs.push('EXPECTED', jsxToHTML(expected, '  '));
-    diffs.push('RECEIVED:', vnodeToHTML(received, '  '));
+    path.push(tagToString(expected.type));
+    const isTagSame = expected.type == vnode_getTag(received);
+    if (!isTagSame) {
+      diffs.push(path.join(' > '));
+    }
+    const receivedChildren = getVNodeChildren(received);
+    const expectedChildren = getJSXChildren(expected);
+    if (receivedChildren.length === expectedChildren.length) {
+      for (let i = 0; i < receivedChildren.length; i++) {
+        const receivedChild = receivedChildren[i];
+        const expectedChild = expectedChildren[i];
+        diffs.push(...diffJsxVNode(receivedChild, expectedChild, path));
+      }
+    } else {
+      diffs.push(
+        `${path.join(' > ')} expecting ${expectedChildren.length} children but was ${
+          receivedChildren.length
+        }`
+      );
+      diffs.push('EXPECTED', jsxToHTML(expected, '  '));
+      diffs.push('RECEIVED:', vnodeToHTML(received, '  '));
+    }
+    path.pop();
   }
-  path.pop();
   return diffs;
 }
 function getJSXChildren(jsx: JSXNode): JSXNode[] {

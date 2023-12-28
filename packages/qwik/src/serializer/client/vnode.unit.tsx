@@ -1,6 +1,6 @@
 import { createDocument } from '@builder.io/qwik-dom';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { vnode_new } from './vnode';
+import { vnode_new, vnode_toString } from './vnode';
 
 import '../vdom-diff.unit';
 import type { QDocument, VNode } from './types';
@@ -42,9 +42,21 @@ describe('vnode', () => {
       );
     });
 
+    it('should process missing text node', () => {
+      parent.innerHTML = `<b></b>`;
+      document.qVNodeData.set(parent!, 'A1{A}');
+      expect(vParent).toMatchVDOM(
+        <test>
+          {''}
+          <b></b>
+          <>{''}</>
+        </test>
+      );
+    });
+
     it('should process fragment text element text', () => {
       parent.innerHTML = `Hello <b>world</b>!`;
-      document.qVNodeData.set(parent!, 'H{B1B}');
+      document.qVNodeData.set(parent!, 'F{B1B}');
       expect(vParent).toMatchVDOM(
         <test>
           Hello
@@ -52,6 +64,19 @@ describe('vnode', () => {
             {' '}
             <b>world</b>!
           </>
+        </test>
+      );
+    });
+
+    it('should process many fragments', () => {
+      parent.innerHTML = `<span>A</span>Hello World!<span></span>Greetings World!`;
+      document.qVNodeData.set(parent!, '1{GFB}1{KFB}');
+      expect(vParent).toMatchVDOM(
+        <test>
+          <span>A</span>
+          <>Hello {'World'}!</>
+          <span></span>
+          <>Greetings {'World'}!</>
         </test>
       );
     });

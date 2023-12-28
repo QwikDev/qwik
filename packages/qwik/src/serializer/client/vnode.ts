@@ -1,5 +1,6 @@
 import { Fragment } from '@builder.io/qwik/jsx-runtime';
 import type { QDocument, VNode } from './types';
+import { throwErrorAndStop } from '../../core/util/log';
 
 const enum _ {
   node = 0,
@@ -66,6 +67,9 @@ export const vnode_setNextSibling = (vnode: VNode, next: VNode | null) => {
 };
 
 function ensureInflated(vnode: VNode): IVNode {
+  if (!vnode) {
+    throwErrorAndStop('Inflation error: missing vnode.');
+  }
   if ((vnode as IVNode).length === 1) {
     // don't inline this function to keep `ensureInflated` small so that it can be inlined into parent.
     inflate(vnode as IVNode);
@@ -73,23 +77,41 @@ function ensureInflated(vnode: VNode): IVNode {
   return vnode as IVNode;
 }
 
-export const vnode_toString = (vnode: VNode | null, offset: string = ''): string => {
+export const vnode_toString = (
+  vnode: VNode | null,
+  depth: number = 2,
+  offset: string = '',
+  includeSiblings: boolean = false
+): string => {
+  if (depth === 0) {
+    return '...';
+  }
   if (vnode === null) {
     return 'null';
   }
   if (vnode === undefined) {
     return 'undefined';
   }
-  const node = (vnode as IVNode)[_.node];
-  const child = (vnode as IVNode)[_.firstChild];
-  const next = (vnode as IVNode)[_.nextSibling];
-  return [
-    'VNode{',
-    '  node: ' + (isElement(node) ? `<${node.nodeName}>` : node.textContent) + ',',
-    '  next: ' + vnode_toString(next, offset + '  ') + ',',
-    '  child: ' + vnode_toString(child, offset + '  ') + ',',
-    '}',
-  ].join('\n' + offset);
+  const strings: string[] = [];
+  do {
+    const node = (vnode as IVNode)[_.node];
+    const child = (vnode as IVNode)[_.firstChild];
+    strings.push(
+      'VNode{ ' +
+        (isElement(node)
+          ? `<${node.nodeName}>`
+          : node
+            ? JSON.stringify(node.textContent)
+            : 'null') +
+        ','
+    );
+    if (child) {
+      strings.push('  ' + vnode_toString(child, depth - 1, offset + '  ', true) + ',');
+    }
+    strings.push('}');
+    vnode = includeSiblings && vnode ? (vnode as IVNode)[_.nextSibling] : null;
+  } while (vnode);
+  return strings.join('\n' + offset);
 };
 
 function inflate(vnode: IVNode) {
@@ -99,6 +121,7 @@ function inflate(vnode: IVNode) {
   const child = node.firstChild;
   let vNodeChild: IVNode | null = null;
   if (isElement(node)) {
+    // console.log('inflate', node.outerHTML);
     const document = node.ownerDocument as QDocument;
     const map = document.qVNodeData;
     const vNodeData = map?.get(node as Element);
@@ -116,71 +139,88 @@ const isLowercase = (ch: number) => /* `a` */ 97 <= ch && ch <= 122; /* `z` */
 
 const stack: (Node | IVNode | null)[] = [];
 function processVNodeData(parent: Element, vNodeData: string, child: Node | null): IVNode {
-  let idx = 0;
+  console.log('processVNodeData', parent.outerHTML, vNodeData);
+  let nextToConsumeIdx = 0;
   let firstVNode: IVNode | null = null;
   let lastVNode: IVNode | null = null;
-  const consume = () => (idx < vNodeData!.length ? vNodeData!.charCodeAt(idx++) : 0);
+  let ch = 0;
+  let peekCh = 0;
+  const peek = () => {
+    if (peekCh !== 0) {
+      return peekCh;
+    } else {
+      return (peekCh =
+        nextToConsumeIdx < vNodeData!.length ? vNodeData!.charCodeAt(nextToConsumeIdx) : 0);
+    }
+  };
+  const consume = () => {
+    ch = peek();
+    peekCh = 0;
+    nextToConsumeIdx++;
+    return ch;
+  };
   const addVNode = (node: IVNode) => {
     firstVNode = firstVNode || node;
     lastVNode && vnode_setNextSibling(lastVNode, node);
     lastVNode = node;
   };
 
-  let ch: number;
   let textIdx = 0;
   let combinedText: string | null = null;
-  while ((ch = consume()) !== 0) {
-    if (isNumber(ch)) {
+  while (peek() !== 0) {
+    if (isNumber(peek())) {
       // Element counts get encoded as numbers.
       while (!isElement(child)) {
         child = child!.nextSibling;
+        if (!child) {
+          throwErrorAndStop('Inflation error: missing element.', parent, vNodeData);
+        }
       }
       combinedText = null;
       let value = 0;
-      while (true as boolean) {
-        value += ch - 48; /* `0` */
-        ch = consume();
-        if (isNumber(ch)) {
-          value *= 10;
-        } else {
-          idx--; // back up one character.
-          break;
-        }
+      while (isNumber(peek())) {
+        value *= 10;
+        value += consume() - 48; /* `0` */
       }
       while (value--) {
         addVNode(vnode_new(child!));
         child = child!.nextSibling;
       }
       // collect the elements;
-    } else if (ch === 123 /* `{` */) {
+    } else if (peek() === 123 /* `{` */) {
+      consume();
       addVNode(vnode_newInflated(child!, null, null, Fragment));
       stack.push(firstVNode, lastVNode, child);
       firstVNode = lastVNode = null;
-    } else if (ch === 125 /* `}` */) {
+    } else if (peek() === 125 /* `}` */) {
+      consume();
       const firstChild = firstVNode;
       child = stack.pop() as Node | null;
       lastVNode = stack.pop() as IVNode | null;
       firstVNode = stack.pop() as IVNode | null;
       vnode_setFirstChild(lastVNode!, firstChild);
     } else {
+      // must be alphanumeric
       let length = 0;
       if (combinedText === null) {
         combinedText = child?.textContent || '';
         textIdx = 0;
       }
-      while (isLowercase(ch)) {
-        length += ch - 97; /* `a` */
+      while (isLowercase(peek())) {
+        length += consume() - 97; /* `a` */
         length *= 26;
       }
-      length += ch - 65;
+      length += consume() - 65; /* `A` */
       const text = combinedText!.substring(textIdx, textIdx + length);
-      if (!child) {
-        child = parent.ownerDocument!.createTextNode(text);
-        parent.appendChild(child);
-      } else {
+      let textNode: Node | null = child;
+      if (child && isNumber(peek())) {
+        // Next item is element, so reuse the text node.
         child!.textContent = text;
+      } else {
+        textNode = parent.ownerDocument!.createTextNode(text);
+        parent.insertBefore(textNode, child);
       }
-      addVNode(vnode_newInflated(child!, null, null, null));
+      addVNode(vnode_newInflated(textNode!, null, null, null));
       textIdx += length;
       // Text nodes get encoded as alphanumeric characters.
     }

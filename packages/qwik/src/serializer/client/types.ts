@@ -14,6 +14,10 @@ export interface ContainerElement extends HTMLElement {
   qContainer?: Container;
 }
 
+export interface QDocument extends Document {
+  qVNodeData: WeakMap<Element, string>;
+}
+
 export interface QNode extends Node {
   qVNode?: VNode;
 }

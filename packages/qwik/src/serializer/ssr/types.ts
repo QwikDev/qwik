@@ -3,7 +3,7 @@
 export interface SSRContainer {
   tag: string;
   writer: StreamWriter;
-  text(text: string): void;
+  textNode(text: string): void;
   openElement(tag: string, attrs: SsrAttrs): void;
   closeElement(): void;
   openContainer(): void;

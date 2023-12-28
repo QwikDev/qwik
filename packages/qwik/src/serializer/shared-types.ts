@@ -1,8 +1,8 @@
 /** @file Shared types */
 
-export type Stringifyable = string | boolean | number | null;
+export type Stringifiable = string | boolean | number | null;
 
-export function isStringifyable(value: any): value is Stringifyable {
+export function isStringifiable(value: any): value is Stringifiable {
   return (
     value === 'null' ||
     typeof value === 'string' ||

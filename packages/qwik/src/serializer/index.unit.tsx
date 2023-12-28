@@ -2,10 +2,10 @@ import { createDocument } from '@builder.io/qwik-dom';
 import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
 import { describe, expect, it } from 'vitest';
 import { isJSXNode } from '../core/render/jsx/jsx-runtime';
-import { getContainer } from './client/api';
+import { getContainer, processVNodeData } from './client/api';
 import type { VNode } from './client/types';
-import type { Stringifyable } from './shared-types';
-import { isStringifyable } from './shared-types';
+import type { Stringifiable } from './shared-types';
+import { isStringifiable } from './shared-types';
 import { ssrCreateContainer, toSsrAttrs } from './ssr/api';
 import './vdom-diff.unit';
 import { vnode_getFirstChild } from './client/vnode';
@@ -18,8 +18,12 @@ describe('serializer v2', () => {
       expect(output).toMatchVDOM(input);
     });
 
-    it.only('should do handle multiple text nodes, and fragment', () => {
-      const input = <>Hello {'world'}!</>;
+    it('should handle multiple text nodes, and fragment', () => {
+      const input = (
+        <>
+          {'Hello'} <b>{'world'}</b>!
+        </>
+      );
       const output = toVDOM(toDOM(toHTML(input)));
       expect(output).toMatchVDOM(input);
     });
@@ -33,14 +37,18 @@ function toHTML(jsx: JSXNode): string {
     enter: (jsx) => {
       if (typeof jsx.type === 'string') {
         ssrContainer.openElement(jsx.type, toSsrAttrs(jsx.props as any));
+      } else {
+        ssrContainer.openVNode();
       }
     },
     leave: (jsx) => {
       if (typeof jsx.type === 'string') {
         ssrContainer.closeElement();
+      } else {
+        ssrContainer.closeVNode();
       }
     },
-    text: (text) => ssrContainer.text(String(text)),
+    text: (text) => ssrContainer.textNode(String(text)),
   });
   ssrContainer.closeContainer();
   const html = ssrContainer.writer.toString();
@@ -50,6 +58,7 @@ function toHTML(jsx: JSXNode): string {
 function toDOM(html: string): HTMLElement {
   const document = createDocument();
   document.body.innerHTML = html;
+  processVNodeData(document);
   return document.body.firstElementChild! as HTMLElement;
 }
 
@@ -65,7 +74,7 @@ function walkJSX(
   apply: {
     enter: (jsx: JSXNode) => void;
     leave: (jsx: JSXNode) => void;
-    text: (text: Stringifyable) => void;
+    text: (text: Stringifiable) => void;
   }
 ) {
   apply.enter(jsx);
@@ -79,7 +88,7 @@ function walkJSX(
   apply.leave(jsx);
 
   function processChild(child: any) {
-    if (isStringifyable(child)) {
+    if (isStringifiable(child)) {
       apply.text(child);
     } else if (isJSXNode(child)) {
       walkJSX(child, apply);

@@ -118,7 +118,7 @@ export const serializeClassWithHost = (
   obj: ClassList,
   hostCtx: QContext | undefined | null
 ): string => {
-  if (hostCtx && hostCtx.$scopeIds$) {
+  if (hostCtx?.$scopeIds$?.length) {
     return hostCtx.$scopeIds$.join(' ') + ' ' + serializeClass(obj);
   }
   return serializeClass(obj);

@@ -55,6 +55,13 @@ describe('serializer v2', () => {
       expect(output).toMatchVDOM(input);
     });
   });
+  describe('attributes', () => {
+    it('should serialize attributes', () => {
+      const input = <span id="test" class="test" />;
+      const output = toVDOM(toDOM(toHTML(input)));
+      expect(output).toMatchVDOM(input);
+    });
+  });
 });
 
 function toHTML(jsx: JSXNode): string {
@@ -90,7 +97,6 @@ function toDOM(html: string): HTMLElement {
 }
 
 function toVDOM(containerElement: HTMLElement): VNode {
-  console.log(containerElement.outerHTML);
   const container = getContainer(containerElement);
   const vNode = vnode_getFirstChild(container.rootVNode)!;
   return vNode;
@@ -106,10 +112,10 @@ function walkJSX(
 ) {
   apply.enter(jsx);
   if (Array.isArray(jsx.children)) {
-    for (let child of jsx.children) {
+    for (const child of jsx.children) {
       processChild(child);
     }
-  } else {
+  } else if (jsx.children) {
     processChild(jsx.children);
   }
   apply.leave(jsx);
@@ -120,7 +126,7 @@ function walkJSX(
     } else if (isJSXNode(child)) {
       walkJSX(child, apply);
     } else {
-      throw new Error('Unkown type');
+      throw new Error('Unknown type: ' + child);
     }
   }
 }

@@ -48,6 +48,15 @@ export function assertTrue(value1: any, text: string, ...parts: any[]): asserts 
   }
 }
 
+export function assertFalse(value1: any, text: string, ...parts: any[]): asserts value1 is true {
+  if (qDev) {
+    if (value1 === false) {
+      return;
+    }
+    throwErrorAndStop(ASSERT_DISCLAIMER + text, ...parts);
+  }
+}
+
 export function assertNumber(value1: any, text: string, ...parts: any[]): asserts value1 is number {
   if (qDev) {
     if (typeof value1 === 'number') {

@@ -1,16 +1,19 @@
 import { Fragment, type JSXNode } from '@builder.io/qwik/jsx-runtime';
 import { expect, describe, it } from 'vitest';
-import type { VNode } from './client/types';
+import type { ElementVNode, TextVNode, VNode } from './client/types';
 import {
   vnode_getFirstChild,
   vnode_getNextSibling,
-  vnode_getNode,
-  vnode_getTag,
+  vnode_getProp,
+  vnode_getPropKeys,
+  vnode_getElementName,
   vnode_getText,
+  vnode_isElementVNode,
+  vnode_isTextVNode,
 } from './client/vnode';
 
 describe('vdom-diff.unit', () => {
-  it('needs tests', () => {});
+  it.todo('needs tests', () => {});
 });
 
 interface CustomMatchers<R = unknown> {
@@ -36,18 +39,33 @@ expect.extend({
 function diffJsxVNode(received: VNode, expected: JSXNode | string, path: string[] = []): string[] {
   const diffs: string[] = [];
   if (typeof expected === 'string') {
-    const receivedText = vnode_getText(received);
-    if (expected !== vnode_getText(received)) {
+    const receivedText = vnode_getText(received as TextVNode);
+    if (expected !== receivedText) {
       diffs.push(path.join(' > '));
       diffs.push('EXPECTED', JSON.stringify(expected));
       diffs.push('RECEIVED:', JSON.stringify(receivedText));
     }
   } else {
     path.push(tagToString(expected.type));
-    const isTagSame = expected.type == vnode_getTag(received);
+    const isTagSame =
+      expected.type ==
+      (vnode_isElementVNode(received) ? vnode_getElementName(received as ElementVNode) : Fragment);
     if (!isTagSame) {
       diffs.push(path.join(' > '));
     }
+    const expectedProps = Object.keys(expected.props).sort();
+    const receivedProps = vnode_getPropKeys(received).sort();
+    const allProps = new Set([...expectedProps, ...receivedProps]);
+    allProps.delete('children');
+    allProps.forEach((prop) => {
+      const expectedValue = expected.props[prop];
+      const receivedValue = vnode_getProp(received, prop);
+      if (expectedValue !== receivedValue) {
+        diffs.push(`${path.join(' > ')}: [${prop}]`);
+        diffs.push('  EXPECTED: ' + JSON.stringify(expectedValue));
+        diffs.push('  RECEIVED: ' + JSON.stringify(receivedValue));
+      }
+    });
     const receivedChildren = getVNodeChildren(received);
     const expectedChildren = getJSXChildren(expected);
     if (receivedChildren.length === expectedChildren.length) {
@@ -90,7 +108,7 @@ function getVNodeChildren(vNode: VNode): VNode[] {
   }
   return children;
 }
-function jsxToHTML(jsx: JSXNode, pad: string = ''): string {
+export function jsxToHTML(jsx: JSXNode, pad: string = ''): string {
   const html: string[] = [];
   if (jsx.type) {
     html.push(pad, '<', tagToString(jsx.type), '>\n');
@@ -104,15 +122,15 @@ function jsxToHTML(jsx: JSXNode, pad: string = ''): string {
   return html.join('');
 }
 
-function vnodeToHTML(vNode: VNode | null, pad: string = ''): string {
+export function vnodeToHTML(vNode: VNode | null, pad: string = ''): string {
   const html: string[] = [];
   while (vNode) {
-    const tag = vnode_getTag(vNode);
-    if (tag) {
+    if (vnode_isElementVNode(vNode)) {
+      const tag = vnode_getElementName(vNode);
       html.push(pad, '<', tagToString(tag), '>\n');
       html.push(vnodeToHTML(vnode_getFirstChild(vNode), pad + '  '));
       html.push(pad, '</', tagToString(tag), '>\n');
-    } else {
+    } else if (vnode_isTextVNode(vNode)) {
       html.push(pad, vnode_getText(vNode), '\n');
     }
     while (shouldSkip((vNode = vnode_getNextSibling(vNode!)))) {
@@ -130,12 +148,9 @@ function tagToString(tag: any): string {
 }
 
 function shouldSkip(vNode: VNode | null) {
-  if (vNode) {
-    const tag = vnode_getTag(vNode);
-    if (
-      tag === 'script' &&
-      (vnode_getNode(vNode) as Element).getAttribute('type') === 'qwik/vnode'
-    ) {
+  if (vnode_isElementVNode(vNode)) {
+    const tag = vnode_getElementName(vNode);
+    if (tag === 'script' && vnode_getProp(vNode, 'type') === 'qwik/vnode') {
       return true;
     }
   }

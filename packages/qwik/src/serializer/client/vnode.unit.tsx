@@ -1,9 +1,10 @@
 import { createDocument } from '@builder.io/qwik-dom';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { vnode_new, vnode_toString } from './vnode';
 
 import '../vdom-diff.unit';
 import type { QDocument, VNode } from './types';
+import { vnode_newElement } from './vnode';
+import { jsxToHTML, vnodeToHTML } from '../vdom-diff.unit';
 
 describe('vnode', () => {
   let parent: HTMLElement;
@@ -13,7 +14,7 @@ describe('vnode', () => {
     document = createDocument() as QDocument;
     document.qVNodeData = new WeakMap();
     parent = document.createElement('test');
-    vParent = vnode_new(parent);
+    vParent = vnode_newElement(null, parent);
   });
   afterEach(() => {
     parent = null!;

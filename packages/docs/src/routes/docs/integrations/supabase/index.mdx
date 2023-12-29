@@ -18,9 +18,28 @@ The `Supabase` JS library plays nicely with the server-side APIs from Qwik such 
 
 First, install supabase in your Qwik project:
 
-```bash
+<PackageManagerTabs>
+  <span q:slot="npm">
+```shell
 npm install @supabase/supabase-js supabase-auth-helpers-qwik
 ```
+  </span>
+  <span q:slot="yarn">
+```shell
+yarn add @supabase/supabase-js supabase-auth-helpers-qwik
+```
+  </span>
+  <span q:slot="pnpm">
+```shell
+pnpm add @supabase/supabase-js supabase-auth-helpers-qwik
+```
+  </span>
+  <span q:slot="bun">
+```shell
+bun add @supabase/supabase-js supabase-auth-helpers-qwik
+```
+  </span>
+</PackageManagerTabs>
 
 The second step would be to add the `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY` environment variables to `.env` file, the "anon" key is safe to be exposed in the client-side.
 

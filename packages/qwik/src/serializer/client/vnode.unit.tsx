@@ -2,9 +2,13 @@ import { createDocument } from '@builder.io/qwik-dom';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import '../vdom-diff.unit';
-import type { QDocument, VNode } from './types';
-import { vnode_newElement } from './vnode';
-import { jsxToHTML, vnodeToHTML } from '../vdom-diff.unit';
+import type { FragmentVNode, QDocument, TextVNode, VNode } from './types';
+import {
+  vnode_getFirstChild,
+  vnode_getNextSibling,
+  vnode_newElement,
+  vnode_setText,
+} from './vnode';
 
 describe('vnode', () => {
   let parent: HTMLElement;
@@ -80,6 +84,42 @@ describe('vnode', () => {
           <>Greetings {'World'}!</>
         </test>
       );
+    });
+  });
+  describe('text node inflation', () => {
+    it('should inflate text node on write', () => {
+      parent.innerHTML = `<b></b>`;
+      document.qVNodeData.set(parent!, 'A1{A}');
+      expect(vParent).toMatchVDOM(
+        <test>
+          {''}
+          <b></b>
+          <>{''}</>
+        </test>
+      );
+      const firstText = vnode_getFirstChild(vParent) as TextVNode;
+      const fragment = vnode_getNextSibling(vnode_getNextSibling(firstText)!)! as FragmentVNode;
+      const fragmentText = vnode_getFirstChild(fragment)! as TextVNode;
+      vnode_setText(fragmentText, 'Fragment Text');
+      vnode_setText(firstText, 'First Text');
+      expect(parent.innerHTML).toEqual(`First Text<b></b>Fragment Text`);
+    });
+    it('should inflate text nodes on write', () => {
+      parent.innerHTML = `Hello World!`;
+      document.qVNodeData.set(parent!, 'FBFB');
+      expect(vParent).toMatchVDOM(
+        <test>
+          {'Hello'} {'World'}!
+        </test>
+      );
+      const text1 = vnode_getFirstChild(vParent) as TextVNode;
+      const text2 = vnode_getNextSibling(text1) as TextVNode;
+      const text3 = vnode_getNextSibling(text2) as TextVNode;
+      const text4 = vnode_getNextSibling(text3) as TextVNode;
+      vnode_setText(text1, 'Salutation');
+      vnode_setText(text3, 'Name');
+      vnode_setText(text4, '.');
+      expect(parent.innerHTML).toEqual(`Salutation Name.`);
     });
   });
 });

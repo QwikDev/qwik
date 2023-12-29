@@ -1,5 +1,5 @@
 import { isDev } from '@builder.io/qwik/build';
-import { assertFalse, assertTrue } from '../../core/error/assert';
+import { assertDefined, assertFalse, assertTrue } from '../../core/error/assert';
 import { throwErrorAndStop } from '../../core/util/log';
 import {
   Flags,
@@ -90,7 +90,7 @@ export const vnode_newFragment = (parentNode: VNode): FragmentVNode => {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-export const vnode_isElementVNode = (vNode: VNode | null): vNode is ElementVNode => {
+export const vnode_isElementVNode = (vNode: VNode | null | undefined): vNode is ElementVNode => {
   if (!vNode) {
     return false;
   }
@@ -98,7 +98,7 @@ export const vnode_isElementVNode = (vNode: VNode | null): vNode is ElementVNode
   return (flag & Flags.DeflatedElement) === Flags.DeflatedElement;
 };
 
-export const vnode_isTextVNode = (vNode: VNode | null): vNode is TextVNode => {
+export const vnode_isTextVNode = (vNode: VNode | null | undefined): vNode is TextVNode => {
   if (!vNode) {
     return false;
   }
@@ -106,7 +106,7 @@ export const vnode_isTextVNode = (vNode: VNode | null): vNode is TextVNode => {
   return (flag & Flags.DeflatedText) === Flags.DeflatedText;
 };
 
-export const vnode_isFragmentVNode = (vNode: VNode | null): vNode is FragmentVNode => {
+export const vnode_isFragmentVNode = (vNode: VNode | null | undefined): vNode is FragmentVNode => {
   if (!vNode) {
     return false;
   }
@@ -153,6 +153,72 @@ const ensureInflatedElementVNode = (vnode: VNode | null) => {
     }
   }
   return elementVNode;
+};
+
+const vnode_getDOMParent = (vnode: VNode): Element | null => {
+  while (vnode && !vnode_isElementVNode(vnode)) {
+    vnode = vnode[VNodeProps.parent];
+  }
+  return vnode && vnode[VNodeProps.node];
+};
+
+const vnode_getDOMInsertBefore = (vnode: VNode | null): Node | null => {
+  while (vnode && !vnode_isElementVNode(vnode)) {
+    vnode = vnode[VNodeProps.nextSibling];
+  }
+  return vnode && vnode[VNodeProps.node];
+};
+
+const ensureInflatedTextVNode = (vnode: VNode): TextVNode => {
+  const textVNode = ensureTextVNode(vnode);
+  const flags = textVNode[VNodeProps.flags];
+  if (flags === Flags.DeflatedText) {
+    // Find the first TextVNode
+    let firstTextVnode = vnode;
+    while (true as boolean) {
+      const previous = firstTextVnode[VNodeProps.firstChildOrPreviousText];
+      if (vnode_isTextVNode(previous)) {
+        firstTextVnode = previous;
+      } else {
+        break;
+      }
+    }
+    // Find the last TextVNode
+    let lastTextVnode = vnode;
+    while (true as boolean) {
+      const next = lastTextVnode[VNodeProps.nextSibling];
+      if (vnode_isTextVNode(next)) {
+        lastTextVnode = next;
+      } else {
+        break;
+      }
+    }
+    // iterate over each text node and inflate it.
+    const parentNode = vnode_getDOMParent(vnode)!;
+    assertDefined(parentNode, 'Missing parentNode.');
+    const qDocument = parentNode.ownerDocument as QDocument;
+    let existingTextNode = lastTextVnode[VNodeProps.node] as Text | null;
+    const lastText = lastTextVnode[VNodeProps.tagOrContent] as string;
+    if (existingTextNode === null) {
+      const insertBeforeNode = vnode_getDOMInsertBefore(vnode_getNextSibling(lastTextVnode));
+      existingTextNode = lastTextVnode[VNodeProps.node] = qDocument.createTextNode(lastText);
+      parentNode.insertBefore(existingTextNode, insertBeforeNode);
+    } else {
+      existingTextNode.nodeValue = lastText;
+    }
+    while (firstTextVnode !== lastTextVnode) {
+      const textNode = (firstTextVnode[VNodeProps.node] = qDocument.createTextNode(
+        firstTextVnode[VNodeProps.tagOrContent] as string
+      ));
+      parentNode.insertBefore(textNode, existingTextNode);
+      firstTextVnode = firstTextVnode[VNodeProps.nextSibling] as TextVNode;
+      firstTextVnode[VNodeProps.flags] = Flags.InflatedText;
+    }
+    lastTextVnode[VNodeProps.flags] = Flags.InflatedText;
+    textVNode[VNodeProps.flags] = Flags.InflatedText;
+    const textNode = textVNode[VNodeProps.node];
+  }
+  return textVNode;
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -213,6 +279,12 @@ export const vnode_getText = (vnode: TextVNode): string => {
     value = textVNode[VNodeProps.tagOrContent] = textVNode[VNodeProps.node]!.nodeValue!;
   }
   return value;
+};
+
+export const vnode_setText = (vnode: TextVNode, text: string) => {
+  const textVNode = ensureInflatedTextVNode(vnode);
+  const textNode = textVNode[VNodeProps.node]!;
+  textNode.nodeValue = textVNode[VNodeProps.tagOrContent] = text;
 };
 
 export const vnode_getFirstChild = (vnode: VNode): VNode | null => {

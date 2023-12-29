@@ -1,14 +1,19 @@
-import type { CookieOptions } from 'express';
 import { $, Slot, component$, useContext, useTask$ } from '@builder.io/qwik';
-import { Tab, TabList, TabPanel, Tabs } from '@qwik-ui/headless';
-import { PnpmIcon } from './pnpm';
-import { YarnIcon } from './yarn';
-import { NpmIcon } from './npm';
-import { BunIcon } from './bun';
-import { GlobalStore } from '../../context';
 import { isBrowser, isServer } from '@builder.io/qwik/build';
+import { Tab, TabList, TabPanel, Tabs } from '@qwik-ui/headless';
+import type { CookieOptions } from 'express';
+import { GlobalStore } from '../../context';
+import { BunIcon } from './BunIcon';
+import { NpmIcon } from './NpmIcon';
+import { PnpmIcon } from './PnpmIcon';
+import { YarnIcon } from './YarnIcon';
 
 export type PackageManagers = 'npm' | 'yarn' | 'pnpm' | 'bun';
+
+export interface IconProps {
+  width?: number;
+  height?: number;
+}
 
 const getCookie = (name: string) => {
   const cookieName = name + '=';
@@ -86,7 +91,7 @@ export default component$(() => {
           }`}
         >
           <span class="inline-flex items-center gap-x-2">
-            <NpmIcon width={18} height={18} />
+            <NpmIcon />
             npm
           </span>
         </Tab>
@@ -101,7 +106,7 @@ export default component$(() => {
           }`}
         >
           <span class="inline-flex items-center gap-x-2">
-            <YarnIcon width={18} height={18} />
+            <YarnIcon />
             yarn
           </span>
         </Tab>
@@ -116,7 +121,7 @@ export default component$(() => {
           }`}
         >
           <span class="inline-flex items-center gap-x-2">
-            <PnpmIcon width={18} height={18} />
+            <PnpmIcon />
             pnpm
           </span>
         </Tab>
@@ -131,7 +136,7 @@ export default component$(() => {
           }`}
         >
           <span class="inline-flex items-center gap-x-2">
-            <BunIcon width={18} height={18} />
+            <BunIcon />
             bun
           </span>
         </Tab>

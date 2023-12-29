@@ -1,7 +1,7 @@
 import { component$ } from '@builder.io/qwik';
-import type { IconProps } from './npm';
+import type { IconProps } from '.';
 
-export const BunIcon = component$(({ width = 630, height = 630 }: IconProps) => (
+export const BunIcon = component$(({ width = 18, height = 18 }: IconProps) => (
   <svg
     id="Bun"
     xmlns="http://www.w3.org/2000/svg"

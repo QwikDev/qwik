@@ -1,11 +1,7 @@
 import { component$ } from '@builder.io/qwik';
+import type { IconProps } from '.';
 
-export interface IconProps {
-  width: number;
-  height: number;
-}
-
-export const NpmIcon = component$(({ width = 630, height = 630 }: IconProps) => (
+export const NpmIcon = component$(({ width = 18, height = 18 }: IconProps) => (
   <svg
     width={width}
     height={height}

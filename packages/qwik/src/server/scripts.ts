@@ -20,12 +20,13 @@ export function getQwikLoaderScript(opts: { events?: string[]; debug?: boolean }
   return opts.debug ? QWIK_LOADER_DEFAULT_DEBUG : QWIK_LOADER_DEFAULT_MINIFIED;
 }
 
-const QWIK_PREFETCH_MINIFIED: string = (globalThis as any).QWIK_PREFETCH_MINIFIED;
-const QWIK_PREFETCH_DEBUG: string = (globalThis as any).QWIK_PREFETCH_DEBUG;
+/* const QWIK_PREFETCH_MINIFIED: string = (globalThis as any).QWIK_PREFETCH_MINIFIED;
+const QWIK_PREFETCH_DEBUG: string = (globalThis as any).QWIK_PREFETCH_DEBUG; 
+*/
 
 /**
- * Provides the `qwik-prefetch-service-worker.js` file as a string. Useful for tooling to inline the
- * qwikloader script into HTML.
+ * Provides the `qwik-prefetch-service-worker.js` file as a string. Useful for tooling to inline the qwikloader script
+ * into HTML.
  *
  * @public
  */

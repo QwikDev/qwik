@@ -1,16 +1,12 @@
 import { setupServiceWorker } from './setup';
 import { expect, describe, it, vi } from 'vitest';
-import { createState, type SWState } from './state';
+import { createState, type SWState, type SWTask } from './state';
 import { processMessage } from './process-message';
 import { addDependencies, directFetch } from './direct-fetch';
 import { delay } from '../util/promises';
 
-const areFetching = (
-  q: import('/Users/misko/work/repos/qwik/packages/qwik/src/core/service-worker/state').SWTask
-): boolean => q.$isFetching$;
-const getPathname = (
-  q: import('/Users/misko/work/repos/qwik/packages/qwik/src/core/service-worker/state').SWTask
-): string => q.$url$.pathname;
+const areFetching = (q: SWTask): boolean => q.$isFetching$;
+const getPathname = (q: SWTask): string => q.$url$.pathname;
 describe('service-worker', () => {
   describe('registration', () => {
     it('initialization', async () => {

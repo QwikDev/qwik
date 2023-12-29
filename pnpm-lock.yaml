@@ -196,7 +196,7 @@ importers:
         specifier: ^5.26.0
         version: 5.26.0
       vfile:
-        specifier: 6.0.1
+        specifier: ^6.0.1
         version: 6.0.1
       vite:
         specifier: ^5.0.6
@@ -742,6 +742,51 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.38.0
         version: 2.38.0
+
+  sandbox:
+    devDependencies:
+      '@builder.io/qwik':
+        specifier: workspace:*
+        version: link:../packages/qwik
+      '@builder.io/qwik-city':
+        specifier: workspace:*
+        version: link:../packages/qwik-city
+      '@types/eslint':
+        specifier: ^8.44.8
+        version: 8.44.8
+      '@types/node':
+        specifier: ^20.10.3
+        version: 20.10.4
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^6.13.2
+        version: 6.13.2(@typescript-eslint/parser@6.13.2)(eslint@8.55.0)(typescript@5.3.3)
+      '@typescript-eslint/parser':
+        specifier: ^6.13.2
+        version: 6.13.2(eslint@8.55.0)(typescript@5.3.3)
+      eslint:
+        specifier: ^8.55.0
+        version: 8.55.0
+      eslint-plugin-qwik:
+        specifier: latest
+        version: 1.3.1(eslint@8.55.0)
+      prettier:
+        specifier: ^3.1.0
+        version: 3.1.0
+      source-map:
+        specifier: 0.7.4
+        version: 0.7.4
+      typescript:
+        specifier: ^5.3.2
+        version: 5.3.3
+      undici:
+        specifier: ^5.26.0
+        version: 5.26.0
+      vite:
+        specifier: ^5.0.6
+        version: 5.0.6(@types/node@20.10.4)
+      vite-tsconfig-paths:
+        specifier: ^4.2.1
+        version: 4.2.1(typescript@5.3.3)(vite@5.0.6)
 
 packages:
 
@@ -8588,6 +8633,16 @@ packages:
 
   /eslint-plugin-qwik@1.3.0(eslint@8.55.0):
     resolution: {integrity: sha512-m+NKC534QfRUrnzob4iG+vyJDYsNVT9bP7bTMT9U3FNY92YodMop4ryTOpt4Ja3XL/+6V2UTd3B/VnVRNCwKsA==}
+    engines: {node: '>=16.8.0 <18.0.0 || >=18.11'}
+    peerDependencies:
+      eslint: ^8.45.0
+    dependencies:
+      eslint: 8.55.0
+      jsx-ast-utils: 3.3.5
+    dev: true
+
+  /eslint-plugin-qwik@1.3.1(eslint@8.55.0):
+    resolution: {integrity: sha512-GbB2Wos1/oaIh9R1FBqUxz5CjFgTzf8dS/LCbS5FOTR5xld//1o8lxTI8i3pNZeov2QxqgbvbJwyhrf7iewPcA==}
     engines: {node: '>=16.8.0 <18.0.0 || >=18.11'}
     peerDependencies:
       eslint: ^8.45.0
@@ -17286,6 +17341,42 @@ packages:
       postcss: 8.4.32
       rollup: 3.29.4
       terser: 5.25.0
+    optionalDependencies:
+      fsevents: 2.3.3
+    dev: true
+
+  /vite@5.0.6(@types/node@20.10.4):
+    resolution: {integrity: sha512-MD3joyAEBtV7QZPl2JVVUai6zHms3YOmLR+BpMzLlX2Yzjfcc4gTgNi09d/Rua3F4EtC8zdwPU8eQYyib4vVMQ==}
+    engines: {node: ^18.0.0 || >=20.0.0}
+    hasBin: true
+    peerDependencies:
+      '@types/node': ^18.0.0 || >=20.0.0
+      less: '*'
+      lightningcss: ^1.21.0
+      sass: '*'
+      stylus: '*'
+      sugarss: '*'
+      terser: ^5.4.0
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
+      less:
+        optional: true
+      lightningcss:
+        optional: true
+      sass:
+        optional: true
+      stylus:
+        optional: true
+      sugarss:
+        optional: true
+      terser:
+        optional: true
+    dependencies:
+      '@types/node': 20.10.4
+      esbuild: 0.19.8
+      postcss: 8.4.32
+      rollup: 4.6.1
     optionalDependencies:
       fsevents: 2.3.3
     dev: true

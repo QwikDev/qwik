@@ -78,13 +78,24 @@ describe('serializer v2', () => {
 
     it('should serialize non-standard objects', () => {
       const container = withContainer((ssrContainer) => {
+        const obj = { null: null, undefined: undefined };
         expect(ssrContainer.getObjectId(null)).toBe(0);
         expect(ssrContainer.getObjectId(undefined)).toBe(1);
-        expect(ssrContainer.getObjectId({ null: null, undefined: undefined })).toBe(2);
+        expect(ssrContainer.getObjectId(obj)).toBe(2);
+        expect(
+          ssrContainer.getObjectId([null, undefined, obj, { null: null, undefined: undefined }])
+        ).toBe(3);
       });
+      const obj = container.getObjectById(2);
       expect(container.getObjectById(0)).toEqual(null);
       expect(container.getObjectById(1)).toBe(undefined);
-      expect(container.getObjectById(2)).toEqual({ null: null, undefined: undefined });
+      expect(obj).toEqual({ null: null, undefined: undefined });
+      expect(container.getObjectById(3)).toEqual([
+        null,
+        undefined,
+        obj,
+        { null: null, undefined: undefined },
+      ]);
     });
 
     it('should de-dup long strings', () => {
@@ -100,6 +111,113 @@ describe('serializer v2', () => {
       expect(container.getObjectById(0)).toEqual(str);
       expect(container.getObjectById(1)).toEqual({ a: str, b: str });
     });
+
+    describe('QRLSerializer, ////////////// \u0002', () => {
+      it.todo('should serialize and deserialize', () => {
+        ///
+      });
+    });
+    describe('TaskSerializer, ///////////// \u0003', () => {
+      it.todo('should serialize and deserialize', () => {
+        ///
+      });
+    });
+    describe('ResourceSerializer, ///////// \u0004', () => {
+      it.todo('should serialize and deserialize', () => {
+        ///
+      });
+    });
+    describe('URLSerializer, ////////////// \u0005', () => {
+      it.only('should serialize and deserialize', () => {
+        expect(
+          withContainer((ssr) => {
+            ssr.getObjectId(new URL('http://server/path#hash'));
+          }).getObjectById(0)
+        ).toEqual(new URL('http://server/path#hash'));
+      });
+    });
+    describe('DateSerializer, ///////////// \u0006', () => {
+      it.todo('should serialize and deserialize', () => {
+        ///
+      });
+    });
+    describe('RegexSerializer, //////////// \u0007', () => {
+      it.todo('should serialize and deserialize', () => {
+        ///
+      });
+    });
+    describe('ErrorSerializer, //////////// \u000E', () => {
+      it.todo('should serialize and deserialize', () => {
+        ///
+      });
+    });
+    describe('DocumentSerializer, ///////// \u000F', () => {
+      it.todo('should serialize and deserialize', () => {
+        ///
+      });
+    });
+    describe('ComponentSerializer, //////// \u0010', () => {
+      it.todo('should serialize and deserialize', () => {
+        ///
+      });
+    });
+    describe('DerivedSignalSerializer, //// \u0011', () => {
+      it.todo('should serialize and deserialize', () => {
+        ///
+      });
+    });
+    describe('SignalSerializer, /////////// \u0012', () => {
+      it.todo('should serialize and deserialize', () => {
+        ///
+      });
+    });
+    describe('SignalWrapperSerializer, //// \u0013', () => {
+      it.todo('should serialize and deserialize', () => {
+        ///
+      });
+    });
+    describe('NoFiniteNumberSerializer, /// \u0014', () => {
+      it.todo('should serialize and deserialize', () => {
+        ///
+      });
+    });
+    describe('URLSearchParamsSerializer, // \u0015', () => {
+      it.todo('should serialize and deserialize', () => {
+        ///
+      });
+    });
+    describe('FormDataSerializer, ///////// \u0016', () => {
+      it.todo('should serialize and deserialize', () => {
+        ///
+      });
+    });
+    describe('JSXNodeSerializer, ////////// \u0017', () => {
+      it.todo('should serialize and deserialize', () => {
+        ///
+      });
+    });
+    describe('BigIntSerializer, /////////// \u0018', () => {
+      it.todo('should serialize and deserialize', () => {
+        ///
+      });
+    });
+    describe('SetSerializer, ////////////// \u0019', () => {
+      it.todo('should serialize and deserialize', () => {
+        ///
+      });
+    });
+    describe('MapSerializer, ////////////// \u001a', () => {
+      it.todo('should serialize and deserialize', () => {
+        ///
+      });
+    });
+    describe('StringSerializer, /////////// \u001b', () => {
+      it.todo('should serialize and deserialize', () => {
+        ///
+      });
+    });
+
+    describe('');
   });
 });
 

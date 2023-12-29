@@ -1,4 +1,5 @@
 /** @file Public APIs for the SSR */
+import { isDev } from '@builder.io/qwik/build';
 import type { StreamWriter } from '../../server/types';
 import type { Stringifiable } from '../shared-types';
 import type { SSRContainer as ISSRContainer, SsrAttrs } from './types';
@@ -61,6 +62,29 @@ class SSRContainer implements ISSRContainer {
   private depthFirstElementCount: number = 0;
   private vNodeData: VNodeData[] = [];
 
+  /**
+   * Root objects which need to be serialized.
+   *
+   * Roots are entry points into the object graph. Typically the roots are held by the listeners.
+   * Because objects can share child objects, we need a way to create secondary roots to share those
+   * objects.
+   */
+  private objRoots: any[] = [];
+
+  /**
+   * Map from object to root index.
+   *
+   * If object is found in `objMap` will return the index of the object in the `objRoots` or
+   * `secondaryObjRoots`.
+   *
+   * `objMap` return:
+   *
+   * - `>=0` - index of the object in `objRoots`.
+   * - `Number.MIN_SAFE_INTEGER` - object has been seen, only once, and therefor does not need to be
+   *   promoted into a root yet.
+   */
+  private objMap = new Map<any, number>();
+
   constructor(opts: Required<Required<Parameters<typeof ssrCreateContainer>>[0]>) {
     this.tag = opts.tagName;
     this.writer = opts.writer;
@@ -84,6 +108,7 @@ class SSRContainer implements ISSRContainer {
   }
 
   closeContainer(): void {
+    this.emitStateData();
     this.emitVNodeData();
     this.closeElement();
   }
@@ -126,7 +151,56 @@ class SSRContainer implements ISSRContainer {
     vNodeData_addTextSize(this.currentElementFrame!.vNodeData, text.length);
   }
 
+  getObjectId(obj: any): any {
+    let id = this.objMap.get(obj);
+    if (id === undefined || id === Number.MIN_SAFE_INTEGER) {
+      id = this.objRoots.length;
+      this.objRoots.push(obj);
+      this.objMap.set(obj, id);
+      this.checkIfChildObjectsNeedToBePromoted(obj);
+    }
+    return id;
+  }
+
   ////////////////////////////////////
+
+  private checkIfChildObjectsNeedToBePromoted(obj: any) {
+    if (typeof obj !== 'object' || obj === null) {
+      return;
+    }
+    const queue: object[] = [];
+    // initialize the queue with the children of the object.
+    // (skipping the current objects as it has already been promoted)
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        const child = obj[key];
+        if (shouldTrackObj(child)) {
+          queue.push(child);
+        }
+      }
+    }
+    while (queue.length) {
+      const obj = queue.pop();
+      for (const key in obj) {
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
+          const child = (obj as any)[key];
+          if (shouldTrackObj(child)) {
+            const id = this.objMap.get(child);
+            if (id === undefined) {
+              // Object has not been seen yet.
+              this.objMap.set(child, Number.MIN_SAFE_INTEGER);
+              queue.push(child);
+            } else if (id === Number.MIN_SAFE_INTEGER) {
+              // We are seeing this object second time => promoted it.
+              this.objMap.set(child, this.objRoots.length);
+              this.objRoots.push(child);
+              // we don't need to scan the children, since we have already seen them.
+            }
+          }
+        }
+      }
+    }
+  }
 
   /**
    * Serialize the vNodeData into a string and emit it as a script tag.
@@ -185,6 +259,36 @@ class SSRContainer implements ISSRContainer {
         }
       }
     }
+    this.closeElement();
+  }
+
+  emitStateData() {
+    this.openElement('script', ['type', 'qwik/state']);
+    this.write('[');
+    for (let i = 0; i < this.objRoots.length; i++) {
+      if (i !== 0) {
+        this.write(',');
+      }
+      const obj = this.objRoots[i];
+      if (isDev) {
+        this.write('\n');
+      }
+      const objMap = this.objMap;
+      this.write(
+        JSON.stringify(obj, (_: string, value: any) => {
+          if (value === undefined) {
+            return `\u0001`;
+          } else if (value !== obj && shouldTrackObj(value)) {
+            const id = objMap.get(value);
+            if (id !== undefined && id !== Number.MIN_SAFE_INTEGER) {
+              return '\u0010' + id;
+            }
+          }
+          return value;
+        })
+      );
+    }
+    this.write(isDev ? '\n]' : ']');
     this.closeElement();
   }
 
@@ -258,6 +362,10 @@ class SSRContainer implements ISSRContainer {
       }
     }
   }
+}
+
+function shouldTrackObj(obj: any) {
+  return (typeof obj === 'object' && obj !== null) || (typeof obj === 'string' && obj.length > 10);
 }
 
 export function toSsrAttrs(record: Record<string, Stringifiable>): SsrAttrs {

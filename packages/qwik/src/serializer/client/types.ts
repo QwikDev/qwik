@@ -8,6 +8,7 @@ export interface Container {
   qLocale: string;
   qManifestHash: string;
   rootVNode: VNode;
+  getObjectById(arg0: number): any;
 }
 
 export interface ContainerElement extends HTMLElement {

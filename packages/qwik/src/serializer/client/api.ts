@@ -1,5 +1,6 @@
 /** @file Public APIs for the SSR */
 
+import { deserialize } from './deserializer';
 import type { Container, ContainerElement, VNode, QDocument } from './types';
 import { vnode_newElement } from './vnode';
 
@@ -20,6 +21,7 @@ class QContainer implements Container {
   public qLocale: string;
   public qManifestHash: string;
   public rootVNode: VNode;
+  private rawStateData: any[];
   constructor(element: ContainerElement) {
     this.qContainer = element.getAttribute('q:container')!;
     if (!this.qContainer) {
@@ -31,6 +33,14 @@ class QContainer implements Container {
     this.qManifestHash = element.getAttribute('q:manifest-hash')!;
     this.element = element;
     this.rootVNode = vnode_newElement(null, this.element);
+    const qwikStates = element.querySelectorAll('script[type="qwik/state"]');
+    const lastState = qwikStates[qwikStates.length - 1];
+    this.rawStateData = JSON.parse(lastState.textContent!);
+  }
+
+  getObjectById(id: number): any {
+    const value = this.rawStateData[id];
+    return deserialize(this.rawStateData, value);
   }
 }
 

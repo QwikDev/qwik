@@ -3,7 +3,7 @@ import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
 import { describe, expect, it } from 'vitest';
 import { isJSXNode } from '../core/render/jsx/jsx-runtime';
 import { getContainer, processVNodeData } from './client/api';
-import type { VNode } from './client/types';
+import type { Container, VNode } from './client/types';
 import type { Stringifiable } from './shared-types';
 import { isStringifiable } from './shared-types';
 import { ssrCreateContainer, toSsrAttrs } from './ssr/api';
@@ -55,6 +55,7 @@ describe('serializer v2', () => {
       expect(output).toMatchVDOM(input);
     });
   });
+
   describe('attributes', () => {
     it('should serialize attributes', () => {
       const input = <span id="test" class="test" />;
@@ -62,7 +63,57 @@ describe('serializer v2', () => {
       expect(output).toMatchVDOM(input);
     });
   });
+
+  describe('object serialization', () => {
+    it('should serialize object', () => {
+      const container = withContainer((ssrContainer) => {
+        const obj = { age: 1, child: { b: 'child' } };
+        expect(ssrContainer.getObjectId(obj)).toBe(0);
+        expect(ssrContainer.getObjectId(obj.child)).toBe(1);
+      });
+      const obj = container.getObjectById(0);
+      expect(obj).toEqual({ age: 1, child: { b: 'child' } });
+      expect(container.getObjectById(1)).toBe(obj.child);
+    });
+
+    it('should serialize non-standard objects', () => {
+      const container = withContainer((ssrContainer) => {
+        expect(ssrContainer.getObjectId(null)).toBe(0);
+        expect(ssrContainer.getObjectId(undefined)).toBe(1);
+        expect(ssrContainer.getObjectId({ null: null, undefined: undefined })).toBe(2);
+      });
+      expect(container.getObjectById(0)).toEqual(null);
+      expect(container.getObjectById(1)).toBe(undefined);
+      expect(container.getObjectById(2)).toEqual({ null: null, undefined: undefined });
+    });
+
+    it('should de-dup long strings', () => {
+      const str = new Array(100).fill('a').join('');
+      const container = withContainer((ssrContainer) => {
+        expect(ssrContainer.getObjectId(str)).toBe(0);
+        expect(ssrContainer.getObjectId({ a: str, b: str })).toBe(1);
+      });
+      const idx = container.element.innerHTML.indexOf(str);
+      expect(idx).toBeGreaterThan(0);
+      const idx2 = container.element.innerHTML.indexOf(str, idx + 1);
+      expect(idx2).toBe(-1);
+      expect(container.getObjectById(0)).toEqual(str);
+      expect(container.getObjectById(1)).toEqual({ a: str, b: str });
+    });
+  });
 });
+
+function withContainer(ssrFn: (ssrContainer: any) => void): Container {
+  const ssrContainer = ssrCreateContainer();
+  ssrContainer.openContainer();
+  ssrFn(ssrContainer);
+  ssrContainer.closeContainer();
+  const html = ssrContainer.writer.toString();
+  console.log(html);
+  const container = getContainer(toDOM(html));
+  return container;
+}
+
 
 function toHTML(jsx: JSXNode): string {
   const ssrContainer = ssrCreateContainer();

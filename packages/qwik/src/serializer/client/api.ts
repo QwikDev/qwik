@@ -1,7 +1,7 @@
 /** @file Public APIs for the SSR */
 
 import type { Container, ContainerElement, VNode, QDocument } from './types';
-import { vnode_new } from './vnode';
+import { vnode_newElement } from './vnode';
 
 export function getContainer(element: HTMLElement): Container {
   const qElement = element as ContainerElement;
@@ -30,7 +30,7 @@ class QContainer implements Container {
     this.qLocale = element.getAttribute('q:locale')!;
     this.qManifestHash = element.getAttribute('q:manifest-hash')!;
     this.element = element;
-    this.rootVNode = vnode_new(this.element);
+    this.rootVNode = vnode_newElement(null, this.element);
   }
 }
 

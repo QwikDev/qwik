@@ -1,7 +1,7 @@
 /** @file Public APIs for the SSR */
 import { isDev } from '@builder.io/qwik/build';
 import type { StreamWriter } from '../../server/types';
-import type { Stringifiable } from '../shared-types';
+import { SerializationConstant, type Stringifiable } from '../shared-types';
 import type { SSRContainer as ISSRContainer, SsrAttrs } from './types';
 import {
   VNodeDataFlag,
@@ -13,6 +13,8 @@ import {
   vNodeData_openFragment,
   vNodeData_closeFragment,
 } from './vnode-data';
+import { assertTrue } from '../../core/error/assert';
+import { isQrl } from '../../core/qrl/qrl-class';
 
 export function ssrCreateContainer(
   opts: {
@@ -262,9 +264,10 @@ class SSRContainer implements ISSRContainer {
     this.closeElement();
   }
 
-  emitStateData() {
+  private emitStateData() {
     this.openElement('script', ['type', 'qwik/state']);
-    this.write('[');
+    const json = new JSONStreamingSerializer(this.writer, this.objMap);
+    json.writeValue(this.objRoots);
     for (let i = 0; i < this.objRoots.length; i++) {
       if (i !== 0) {
         this.write(',');
@@ -274,14 +277,20 @@ class SSRContainer implements ISSRContainer {
         this.write('\n');
       }
       const objMap = this.objMap;
+      const self = this;
       this.write(
-        JSON.stringify(obj, (_: string, value: any) => {
+        JSON.stringify(obj, function (this, _: string, value: any) {
+          console.log('JSON', value, _, this);
           if (value === undefined) {
-            return `\u0001`;
+            return SerializationConstant.UNDEFINED_CHAR;
           } else if (value !== obj && shouldTrackObj(value)) {
             const id = objMap.get(value);
             if (id !== undefined && id !== Number.MIN_SAFE_INTEGER) {
-              return '\u0010' + id;
+              return SerializationConstant.REFERENCE_CHAR + id;
+            } else if (typeof value === 'function') {
+              return self.serializeFunction(value);
+            } else if (typeof value === 'object' && !isObjectLiteral(value)) {
+              return self.serializeObject(value);
             }
           }
           return value;
@@ -292,7 +301,34 @@ class SSRContainer implements ISSRContainer {
     this.closeElement();
   }
 
-  emitVNodeSeparators(lastSerializedIdx: number, elementIdx: number): number {
+  private serializeObject(value: Object): any {
+    console.log('SERIALIZE', value);
+    assertTrue(
+      typeof value === 'object' && value !== null,
+      'value must be an Object was: ' + value + typeof value
+    );
+    if (value instanceof URL) {
+    } else if (value instanceof RegExp) {
+    } else if (value instanceof Map) {
+    } else if (value instanceof Set) {
+    } else if (value instanceof URL) {
+      return SerializationConstant.URL_CHAR + value;
+    }
+    return value;
+  }
+  private serializeFunction(value: Function): any {
+    console.log('SERIALIZE', value);
+    assertTrue(
+      typeof value === 'function' && value !== null,
+      'value must be an Function was: ' + value
+    );
+    if (isQrl(value)) {
+      throw new Error('Implement.');
+    }
+    return value;
+  }
+
+  private emitVNodeSeparators(lastSerializedIdx: number, elementIdx: number): number {
     let skipCount = elementIdx - lastSerializedIdx;
     while (skipCount != 0) {
       if (skipCount >= 4096) {
@@ -364,8 +400,41 @@ class SSRContainer implements ISSRContainer {
   }
 }
 
+/**
+ * Tracking all objects in the map would be expensive. For this reason we only track some of the
+ * objects.
+ *
+ * For example we skip:
+ *
+ * - Short strings
+ * - Anything which is not an object. (ie. number, boolean, null, undefined)
+ *
+ * @param obj
+ * @returns
+ */
 function shouldTrackObj(obj: any) {
-  return (typeof obj === 'object' && obj !== null) || (typeof obj === 'string' && obj.length > 10);
+  return (
+    (typeof obj === 'object' && obj !== null) ||
+    typeof obj === 'function' ||
+    (typeof obj === 'string' && obj.length > 10)
+  );
+}
+
+/**
+ * When serializing the object we need check if it is URL, RegExp, Map, Set, etc. This is time
+ * consuming. So if we could know that this is a basic object literal we could skip the check, and
+ * only run the checks for objects which are not object literals.
+ *
+ * So this function is here for performance to short circuit many checks later.
+ *
+ * @param obj
+ */
+function isObjectLiteral(obj: any) {
+  // We are an object literal if:
+  // - we are a direct instance of object OR
+  // - we are an array
+  // In all other cases it is a subclass which requires more checks.
+  return Object.getPrototypeOf(obj) === Object.prototype || Array.isArray(obj);
 }
 
 export function toSsrAttrs(record: Record<string, Stringifiable>): SsrAttrs {
@@ -397,3 +466,64 @@ export function encodeAsAlphanumeric(value: number): string {
 }
 
 
+class JSONStreamingSerializer {
+  private needsDelimiter = false;
+  constructor(
+    private writer: StreamWriter,
+    private objMap: Map<any, number>
+  ) {}
+
+  writeString(text: string, prefix?: string) {
+    this.writeString(SerializationConstant.REFERENCE_CHAR);
+    if (this.needsDelimiter) {
+      this.writer.write(',');
+    } else {
+      this.needsDelimiter = true;
+    }
+    this.writer.write('"');
+    prefix !== undefined && this.writer.write(prefix);
+    let openAngleBracketIdx: number;
+    let qouteIdx: number;
+    while (
+      Math.min((openAngleBracketIdx = text.indexOf('<')), (qouteIdx = text.indexOf('"'))) !== -1
+    ) {
+      this.write(text.substring(lastIdx, openAngleBracketIdx));
+      lastIdx = openAngleBracketIdx;
+    }
+    this.writer.write('"');
+  }
+
+  writeValue(value: any) {
+    if (typeof value === 'bigint') {
+      throw new Error('implement');
+    } else if (typeof value === 'boolean') {
+      throw new Error('implement');
+    } else if (typeof value === 'function') {
+      throw new Error('implement');
+    } else if (typeof value === 'number') {
+      throw new Error('implement');
+    } else if (typeof value === 'object') {
+      if (value === null) {
+        this.writer.write('null');
+      } else if (isObjectLiteral(value)) {
+        const seen = this.objMap.get(value);
+        if (seen === undefined || seen === Number.MIN_SAFE_INTEGER) {
+          // we have not seen it or only seen it once, serialize normally
+        } else {
+          // We have seen it more than once, serialize as reference.
+          this.writeString(String(value), SerializationConstant.REFERENCE_CHAR);
+        }
+      } else {
+        throw new Error('implement');
+      }
+    } else if (typeof value === 'string') {
+      throw new Error('implement');
+    } else if (typeof value === 'symbol') {
+      throw new Error('implement');
+    } else if (typeof value === 'undefined') {
+      throw new Error('implement');
+    } else {
+      throw new Error('Unknown type: ' + typeof value);
+    }
+  }
+}

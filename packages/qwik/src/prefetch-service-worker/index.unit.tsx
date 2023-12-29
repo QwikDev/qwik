@@ -3,10 +3,8 @@ import { expect, describe, it, vi } from 'vitest';
 import { createState, type SWState, type SWTask } from './state';
 import { processMessage } from './process-message';
 import { addDependencies, directFetch } from './direct-fetch';
-import { delay } from '../util/promises';
+import { delay } from '../core/util/promises';
 
-const areFetching = (q: SWTask): boolean => q.$isFetching$;
-const getPathname = (q: SWTask): string => q.$url$.pathname;
 describe('service-worker', () => {
   describe('registration', () => {
     it('initialization', async () => {
@@ -24,8 +22,18 @@ describe('service-worker', () => {
   });
 
   describe('graph', () => {
+    const singleGraph = createGraph([['a.js']]);
     const graph = createGraph([['a.js', 'b.js', 'c.js'], ['b.js', 'c.js'], ['c.js']]);
-    it('load', () => {
+    it('load single', () => {
+      const swState = mockSwState();
+      processMessage(swState, ['graph', '/base/', ...singleGraph]);
+      expect(swState.$bases$.length).toBe(1);
+      expect(swState.$bases$[0].$path$).toBe('/base/');
+      expect(swState.$bases$[0].$graph$).toEqual(singleGraph);
+      expect(swState.$cache$.mock.has('/base/a.js')).toBe(false);
+    });
+
+    it('load many', () => {
       const swState = mockSwState();
       processMessage(swState, ['graph', '/base/', ...graph]);
       expect(swState.$bases$.length).toBe(1);
@@ -385,3 +393,5 @@ function createGraph(graph: Array<string[]>): Array<string | number> {
   }
   return swGraph;
 }
+const areFetching = (q: SWTask): boolean => q.$isFetching$;
+const getPathname = (q: SWTask): string => q.$url$.pathname;

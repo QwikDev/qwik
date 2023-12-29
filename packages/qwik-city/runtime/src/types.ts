@@ -787,6 +787,9 @@ export type ZodConstructorQRL = {
   ): TypedDataValidator<T>;
 };
 
+/**
+ * @public
+ */
 export type ServerFunction = {
   (this: RequestEventBase, ...args: any[]): any;
 };
@@ -794,6 +797,7 @@ export type ServerFunction = {
 /**
  * You can pass an AbortSignal as the first argument of a `server$` function and it will use it to
  * abort the fetch when fired.
+ * @public
  */
 export type ServerQRL<T extends ServerFunction> = QRL<
   | ((abort: AbortSignal, ...args: Parameters<T>) => ReturnType<T>)

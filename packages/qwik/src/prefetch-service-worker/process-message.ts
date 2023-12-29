@@ -46,16 +46,39 @@ export type SWMsgPrefetch = [
   ...Array<string>,
 ];
 
-export type SWMessages = SWMsgBundleGraph | SWMsgBundleGraphUrl | SWMsgPrefetch;
+export type SWMsgPrefetchAll = [
+  /// Message type.
+  'prefetch-all',
+  /// Base URL for the bundles
+  string,
+];
+
+export type SWMessages = SWMsgBundleGraph | SWMsgBundleGraphUrl | SWMsgPrefetch | SWMsgPrefetchAll;
+
+export const log = (...args: any[]) => {
+  // eslint-disable-next-line no-console
+  console.log('⚙️ Prefetch SW:', ...args);
+};
 
 export const processMessage = async (state: SWState, msg: SWMessages) => {
   const type = msg[0];
+  state.$log$('received message:', type, msg[1], msg.slice(2));
   if (type === 'graph') {
     await processBundleGraph(state, msg[1], msg.slice(2), true);
   } else if (type === 'graph-url') {
     await processBundleGraphUrl(state, msg[1], msg[2]);
   } else if (type === 'prefetch') {
     await processPrefetch(state, msg[1], msg.slice(2));
+  } else if (type === 'prefetch-all') {
+    await processPrefetchAll(state, msg[1]);
+  } else if (type === 'ping') {
+    // eslint-disable-next-line no-console
+    log('ping');
+  } else if (type === 'verbose') {
+    // eslint-disable-next-line no-console
+    (state.$log$ = log)('mode: verbose');
+  } else {
+    console.error('UNKNOWN MESSAGE:', msg);
   }
 };
 
@@ -69,6 +92,7 @@ async function processBundleGraph(
   if (existingBaseIndex !== -1) {
     swState.$bases$.splice(existingBaseIndex, 1);
   }
+  swState.$log$('adding base:', base);
   swState.$bases$.push({
     $path$: base,
     $graph$: graph,
@@ -79,6 +103,7 @@ async function processBundleGraph(
       const [cacheBase, filename] = parseBaseFilename(new URL(request.url));
       const promises: Promise<boolean>[] = [];
       if (cacheBase === base && !bundles.has(filename)) {
+        swState.$log$('deleting', request.url);
         promises.push(swState.$cache$!.delete(request));
       }
       await Promise.all(promises);
@@ -103,5 +128,28 @@ function processPrefetch(swState: SWState, basePath: string, bundles: string[]) 
     console.error(`Base path not found: ${basePath}, ignoring prefetch.`);
   } else {
     enqueueFileAndDependencies(swState, base, bundles, 0);
+  }
+}
+
+function processPrefetchAll(swState: SWState, basePath: string) {
+  const base = swState.$bases$.find((base) => basePath === base.$path$);
+  if (!base) {
+    console.error(`Base path not found: ${basePath}, ignoring prefetch.`);
+  } else {
+    processPrefetch(
+      swState,
+      basePath,
+      base.$graph$.filter((item) => typeof item === 'string') as string[]
+    );
+  }
+}
+
+export function drainMsgQueue(swState: SWState) {
+  if (!swState.$msgQueuePromise$ && swState.$msgQueue$.length) {
+    const top = swState.$msgQueue$.shift()!;
+    swState.$msgQueuePromise$ = processMessage(swState, top).then(() => {
+      swState.$msgQueuePromise$ = null;
+      drainMsgQueue(swState);
+    });
   }
 }

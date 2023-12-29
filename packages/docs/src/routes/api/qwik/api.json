@@ -1689,6 +1689,20 @@
       "mdFile": "qwik.paramhtmlattributes.md"
     },
     {
+      "name": "PrefetchServiceWorker",
+      "id": "prefetchserviceworker",
+      "hierarchy": [
+        {
+          "name": "PrefetchServiceWorker",
+          "id": "prefetchserviceworker"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n```typescript\nPrefetchServiceWorker: (opts: {\n    base?: string;\n    path?: string;\n    verbose?: boolean;\n    fetchBundleGraph?: boolean;\n}) => import(\"@builder.io/qwik/jsx-runtime\").JSXNode<\"script\">\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts",
+      "mdFile": "qwik.prefetchserviceworker.md"
+    },
+    {
       "name": "ProgressHTMLAttributes",
       "id": "progresshtmlattributes",
       "hierarchy": [

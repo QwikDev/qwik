@@ -1,4 +1,4 @@
-import type { SWGraph } from './process-message';
+import type { SWGraph, SWMessages } from './process-message';
 
 /**
  * Internal state of the Service Worker.
@@ -12,12 +12,17 @@ export interface SWState {
   $url$: URL;
   /// Download queue.
   $queue$: Array<SWTask>;
+  // List of messages to process.
+  $msgQueue$: Array<SWMessages>;
+  $msgQueuePromise$: Promise<void> | null;
   /** List of Base paths */
   $bases$: SWStateBase[];
   // Browser Cache
   $cache$: Cache | null;
   // Maximum number of prefetch requests. (Direct requests are not limited.)
   $maxPrefetchRequests$: number;
+  // Log function
+  $log$: (...msg: any[]) => void;
 }
 
 /**
@@ -50,7 +55,10 @@ export const createState = (fetch: ServiceWorkerGlobalScope['fetch'], url: URL):
     $queue$: [],
     $bases$: [],
     $cache$: null,
+    $msgQueue$: [],
+    $msgQueuePromise$: null,
     $maxPrefetchRequests$: 10,
     $url$: url,
+    $log$: (...args: any[]) => {},
   };
 };

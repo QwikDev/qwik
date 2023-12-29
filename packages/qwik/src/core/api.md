@@ -5,7 +5,7 @@
 ```ts
 
 import * as CSS_2 from 'csstype';
-import type { ServerRequestEvent } from '@builder.io/qwik-city/middleware/request-handler';
+import { JSXNode as JSXNode_2 } from '@builder.io/qwik/jsx-runtime';
 
 // @public
 export const $: <T>(expression: T) => QRL<T>;
@@ -581,6 +581,14 @@ export interface ParamHTMLAttributes<T extends Element> extends Attrs<'base', T,
 //
 // @internal (undocumented)
 export const _pauseFromContexts: (allContexts: QContext[], containerState: ContainerState, fallbackGetObjId?: GetObjID, textNodes?: Map<string, string>) => Promise<SnapshotResult>;
+
+// @alpha (undocumented)
+export const PrefetchServiceWorker: (opts: {
+    base?: string;
+    path?: string;
+    verbose?: boolean;
+    fetchBundleGraph?: boolean;
+}) => JSXNode_2<"script">;
 
 // @public (undocumented)
 export interface ProgressHTMLAttributes<T extends Element> extends Attrs<'progress', T> {

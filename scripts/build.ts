@@ -22,6 +22,7 @@ import { submoduleCore } from './submodule-core';
 import { submoduleJsxRuntime } from './submodule-jsx-runtime';
 import { submoduleOptimizer } from './submodule-optimizer';
 import { submoduleQwikLoader } from './submodule-qwikloader';
+import { submoduleQwikPrefetch } from './submodule-qwikprefetch';
 import { submoduleServer } from './submodule-server';
 import { submoduleTesting } from './submodule-testing';
 import { tsc } from './tsc';
@@ -30,6 +31,8 @@ import { buildQwikAuth } from './qwik-auth';
 import { buildSupabaseAuthHelpers } from './supabase-auth-helpers';
 import { buildQwikWorker } from './qwik-worker';
 import { buildQwikLabs } from './qwik-labs';
+import { watch, copyFile } from 'fs/promises';
+import { join } from 'path';
 
 /**
  * Complete a full build for all of the package's submodules. Passed in config has all the correct
@@ -74,6 +77,7 @@ export async function build(config: BuildConfig) {
         submoduleCore(config),
         submoduleJsxRuntime(config),
         submoduleQwikLoader(config),
+        submoduleQwikPrefetch(config),
         submoduleBuild(config),
         submoduleTesting(config),
         submoduleCli(config),
@@ -145,9 +149,48 @@ export async function build(config: BuildConfig) {
     }
 
     if (config.watch) {
-      console.log('👀 watching...');
+      await watchDirectories({
+        [join(config.srcQwikDir, 'core')]: async () => {
+          await submoduleCore({ ...config, dev: true });
+          await copyFile(
+            join(config.srcQwikDir, '..', 'dist', 'core.cjs'),
+            join(config.srcQwikDir, '..', 'dist', 'core.prod.cjs')
+          );
+          await copyFile(
+            join(config.srcQwikDir, '..', 'dist', 'core.mjs'),
+            join(config.srcQwikDir, '..', 'dist', 'core.prod.mjs')
+          );
+          console.log(
+            join(config.srcQwikDir, '..', 'dist', 'core.cjs'),
+            join(config.srcQwikDir, '..', 'dist', 'core.prod.cjs')
+          );
+        },
+        [join(config.srcQwikDir, 'optimizer')]: () => submoduleOptimizer(config),
+        [join(config.srcQwikDir, 'prefetch-service-worker')]: () => submoduleQwikPrefetch(config),
+        [join(config.srcQwikDir, 'server')]: () => submoduleServer(config),
+        [join(config.srcQwikCityDir, 'runtime/src')]: () => buildQwikCity(config),
+      });
     }
   } catch (e: any) {
     panic(String(e ? e.stack || e : 'Error'));
+  }
+}
+
+async function watchDirectories(dirs: Record<string, () => Promise<any>>) {
+  const promises: Promise<void>[] = [];
+  for (const dir of Object.keys(dirs)) {
+    promises.push(watchDirectory(dir, dirs[dir]));
+  }
+  return Promise.all(promises);
+}
+async function watchDirectory(dir: string, reactionFn: () => Promise<void>) {
+  console.log('👀 watching', dir);
+  for await (const change of watch(dir, { recursive: true })) {
+    console.log('👀 change in', dir, '=>', change.filename);
+    try {
+      await reactionFn();
+    } catch (e) {
+      console.error('👀 error', dir, '=>', e);
+    }
   }
 }

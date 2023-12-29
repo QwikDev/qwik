@@ -3,14 +3,16 @@ import type { SWState, SWStateBase, SWTask } from './state';
 
 const DIRECT_PRIORITY = Number.MAX_SAFE_INTEGER >>> 1;
 
-export async function directFetch(swState: SWState, url: URL): Promise<Response | undefined> {
+export function directFetch(swState: SWState, url: URL): Promise<Response> | undefined {
   const [basePath, filename] = parseBaseFilename(url);
   const base = swState.$bases$.find((base) => basePath === base.$path$);
   if (base) {
+    swState.$log$('intercepting', url.pathname);
     // Check if direct here
     // Ignore any request which we are not aware of through base.
-    await enqueueFileAndDependencies(swState, base, [filename], DIRECT_PRIORITY);
-    return getResponse(swState, url);
+    return enqueueFileAndDependencies(swState, base, [filename], DIRECT_PRIORITY).then(() =>
+      getResponse(swState, url)
+    );
   }
   return undefined;
 }
@@ -34,22 +36,31 @@ export async function enqueueFileAndDependencies(
 async function getResponse(swState: SWState, url: URL): Promise<Response> {
   const currentRequestTask = swState.$queue$.find((task) => task.$url$.pathname === url.pathname)!;
   if (!currentRequestTask) {
+    swState.$log$('CACHE HIT', url.pathname);
     return swState.$cache$!.match(url) as Promise<Response>;
   } else {
     return currentRequestTask.$response$;
   }
 }
 
-async function enqueueFetchIfNeeded(swState: SWState, fetchURL: URL, priority: number) {
-  let task = swState.$queue$.find((task) => task.$url$.pathname === fetchURL.pathname);
+async function enqueueFetchIfNeeded(swState: SWState, url: URL, priority: number) {
+  let task = swState.$queue$.find((task) => task.$url$.pathname === url.pathname);
+  const mode = priority >= DIRECT_PRIORITY ? 'direct' : 'prefetch';
   if (task) {
-    task.$priority$ = Math.max(task.$priority$, priority);
+    const state = task.$isFetching$ ? 'fetching' : 'waiting';
+    if (task.$priority$ < priority) {
+      swState.$log$('queue update priority', state, url.pathname);
+      task.$priority$ = priority;
+    } else {
+      swState.$log$('already in queue', mode, state, url.pathname);
+    }
   } else {
-    const cacheEntry = await swState.$cache$!.match(fetchURL);
+    const cacheEntry = await swState.$cache$!.match(url);
     if (!cacheEntry) {
+      swState.$log$('enqueue', mode, url.pathname);
       task = {
         $priority$: priority,
-        $url$: fetchURL,
+        $url$: url,
         $resolveResponse$: null!,
         $response$: null!,
         $isFetching$: false,
@@ -73,15 +84,19 @@ function taskTick(swState: SWState) {
     ) {
       task.$isFetching$ = true;
       outstandingRequests++;
+      const action = task.$priority$ >= DIRECT_PRIORITY ? 'FETCH (CACHE MISS)' : 'FETCH';
+      swState.$log$(action, task.$url$.pathname);
       swState
         .$fetch$(task.$url$)
         .then(async (response) => {
           if (response.status === 200) {
+            swState.$log$('CACHED', task.$url$.pathname);
             await swState.$cache$!.put(task.$url$, response.clone());
           }
           task.$resolveResponse$(response);
         })
         .finally(() => {
+          swState.$log$('FETCH DONE', task.$url$.pathname);
           swState.$queue$.splice(swState.$queue$.indexOf(task), 1);
           taskTick(swState);
         });

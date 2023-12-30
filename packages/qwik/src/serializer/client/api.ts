@@ -1,5 +1,6 @@
 /** @file Public APIs for the SSR */
 
+import { assertTrue } from '../../core/error/assert';
 import { deserialize } from './deserializer';
 import type { Container, ContainerElement, VNode, QDocument } from './types';
 import { vnode_newElement } from './vnode';
@@ -13,7 +14,7 @@ export function getContainer(element: HTMLElement): Container {
   return container;
 }
 
-class QContainer implements Container {
+export class QContainer implements Container {
   public element: ContainerElement;
   public qContainer: string;
   public qVersion: string;
@@ -22,6 +23,7 @@ class QContainer implements Container {
   public qManifestHash: string;
   public rootVNode: VNode;
   private rawStateData: any[];
+  private stateData: any[];
   constructor(element: ContainerElement) {
     this.qContainer = element.getAttribute('q:container')!;
     if (!this.qContainer) {
@@ -36,11 +38,13 @@ class QContainer implements Container {
     const qwikStates = element.querySelectorAll('script[type="qwik/state"]');
     const lastState = qwikStates[qwikStates.length - 1];
     this.rawStateData = JSON.parse(lastState.textContent!);
+    // NOTE: We want to deserialize the `rawStateData` so that we can cache the deserialized data.
+    this.stateData = deserialize(this, this.rawStateData);
   }
 
   getObjectById(id: number): any {
-    const value = this.rawStateData[id];
-    return deserialize(this.rawStateData, value);
+    assertTrue(id < this.rawStateData.length, 'Invalid reference');
+    return this.stateData[id];
   }
 }
 

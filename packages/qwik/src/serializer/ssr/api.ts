@@ -1,20 +1,24 @@
 /** @file Public APIs for the SSR */
 import { isDev } from '@builder.io/qwik/build';
+import { isQrl, type QRLInternal } from '../../core/qrl/qrl-class';
 import type { StreamWriter } from '../../server/types';
-import { SerializationConstant, type Stringifiable } from '../shared-types';
+import { QRL_RUNTIME_CHUNK, SerializationConstant, type Stringifiable } from '../shared-types';
 import type { SSRContainer as ISSRContainer, SsrAttrs } from './types';
 import {
-  VNodeDataFlag,
-  vNodeData_incrementElementCount,
-  type VNodeData,
-  vNodeData_addTextSize,
-  OPEN_FRAGMENT,
   CLOSE_FRAGMENT,
-  vNodeData_openFragment,
+  OPEN_FRAGMENT,
+  VNodeDataFlag,
+  vNodeData_addTextSize,
   vNodeData_closeFragment,
+  vNodeData_incrementElementCount,
+  vNodeData_openFragment,
+  type VNodeData,
 } from './vnode-data';
+import { isQwikComponent } from '../../core/component/component.public';
+import { SERIALIZABLE_STATE } from '../../core/container/serializers';
+import { type } from 'os';
 import { assertTrue } from '../../core/error/assert';
-import { isQrl } from '../../core/qrl/qrl-class';
+import type { QRL } from '../../core/qrl/qrl.public';
 
 export function ssrCreateContainer(
   opts: {
@@ -159,46 +163,49 @@ class SSRContainer implements ISSRContainer {
       id = this.objRoots.length;
       this.objRoots.push(obj);
       this.objMap.set(obj, id);
-      this.checkIfChildObjectsNeedToBePromoted(obj);
     }
     return id;
   }
 
   ////////////////////////////////////
 
-  private checkIfChildObjectsNeedToBePromoted(obj: any) {
-    if (typeof obj !== 'object' || obj === null) {
-      return;
-    }
-    const queue: object[] = [];
-    // initialize the queue with the children of the object.
-    // (skipping the current objects as it has already been promoted)
-    for (const key in obj) {
-      if (Object.prototype.hasOwnProperty.call(obj, key)) {
-        const child = obj[key];
-        if (shouldTrackObj(child)) {
-          queue.push(child);
-        }
+  private breakCircularDependencies(rootObj: any) {
+    console.log('BREAK', rootObj);
+    const discoveredValues: object[] = [rootObj];
+    let count = 100;
+    while (discoveredValues.length) {
+      if (count-- < 0) {
+        throw new Error('INFINITE LOOP');
       }
-    }
-    while (queue.length) {
-      const obj = queue.pop();
-      for (const key in obj) {
-        if (Object.prototype.hasOwnProperty.call(obj, key)) {
-          const child = (obj as any)[key];
-          if (shouldTrackObj(child)) {
-            const id = this.objMap.get(child);
-            if (id === undefined) {
-              // Object has not been seen yet.
-              this.objMap.set(child, Number.MIN_SAFE_INTEGER);
-              queue.push(child);
-            } else if (id === Number.MIN_SAFE_INTEGER) {
-              // We are seeing this object second time => promoted it.
-              this.objMap.set(child, this.objRoots.length);
-              this.objRoots.push(child);
-              // we don't need to scan the children, since we have already seen them.
+      const obj = discoveredValues.pop();
+      if (shouldTrackObj(obj)) {
+        const isRoot = obj === rootObj;
+        // For root objects we pretend we have not seen them to force scan.
+        const id = this.objMap.get(obj);
+        console.log('PROCESS', obj, id);
+        if (id === undefined || isRoot) {
+          // Object has not been seen yet, must scan content
+          // But not for root.
+          !isRoot && this.objMap.set(obj, Number.MIN_SAFE_INTEGER);
+          if (obj instanceof Set) {
+            obj.forEach((v) => discoveredValues.push(v));
+          } else if (obj instanceof Map) {
+            obj.forEach((v, k) => {
+              discoveredValues.push(v);
+              discoveredValues.push(k);
+            });
+          } else {
+            for (const key in obj) {
+              if (Object.prototype.hasOwnProperty.call(obj, key)) {
+                discoveredValues.push((obj as any)[key]);
+              }
             }
           }
+        } else if (id === Number.MIN_SAFE_INTEGER) {
+          // We are seeing this object second time => promoted it.
+          this.objMap.set(obj, this.objRoots.length);
+          this.objRoots.push(obj);
+          // we don't need to scan the children, since we have already seen them.
         }
       }
     }
@@ -266,66 +273,12 @@ class SSRContainer implements ISSRContainer {
 
   private emitStateData() {
     this.openElement('script', ['type', 'qwik/state']);
-    const json = new JSONStreamingSerializer(this.writer, this.objMap);
-    json.writeValue(this.objRoots);
     for (let i = 0; i < this.objRoots.length; i++) {
-      if (i !== 0) {
-        this.write(',');
-      }
-      const obj = this.objRoots[i];
-      if (isDev) {
-        this.write('\n');
-      }
-      const objMap = this.objMap;
-      const self = this;
-      this.write(
-        JSON.stringify(obj, function (this, _: string, value: any) {
-          console.log('JSON', value, _, this);
-          if (value === undefined) {
-            return SerializationConstant.UNDEFINED_CHAR;
-          } else if (value !== obj && shouldTrackObj(value)) {
-            const id = objMap.get(value);
-            if (id !== undefined && id !== Number.MIN_SAFE_INTEGER) {
-              return SerializationConstant.REFERENCE_CHAR + id;
-            } else if (typeof value === 'function') {
-              return self.serializeFunction(value);
-            } else if (typeof value === 'object' && !isObjectLiteral(value)) {
-              return self.serializeObject(value);
-            }
-          }
-          return value;
-        })
-      );
+      this.breakCircularDependencies(this.objRoots[i]);
     }
-    this.write(isDev ? '\n]' : ']');
+    const json = new JSONStreamingSerializer(this.writer, this.objMap, this.getObjectId.bind(this));
+    json.writeValue(this.objRoots);
     this.closeElement();
-  }
-
-  private serializeObject(value: Object): any {
-    console.log('SERIALIZE', value);
-    assertTrue(
-      typeof value === 'object' && value !== null,
-      'value must be an Object was: ' + value + typeof value
-    );
-    if (value instanceof URL) {
-    } else if (value instanceof RegExp) {
-    } else if (value instanceof Map) {
-    } else if (value instanceof Set) {
-    } else if (value instanceof URL) {
-      return SerializationConstant.URL_CHAR + value;
-    }
-    return value;
-  }
-  private serializeFunction(value: Function): any {
-    console.log('SERIALIZE', value);
-    assertTrue(
-      typeof value === 'function' && value !== null,
-      'value must be an Function was: ' + value
-    );
-    if (isQrl(value)) {
-      throw new Error('Implement.');
-    }
-    return value;
   }
 
   private emitVNodeSeparators(lastSerializedIdx: number, elementIdx: number): number {
@@ -415,7 +368,9 @@ class SSRContainer implements ISSRContainer {
 function shouldTrackObj(obj: any) {
   return (
     (typeof obj === 'object' && obj !== null) ||
-    typeof obj === 'function' ||
+    // THINK: Not sure if we need to keep track of functions (QRLs) Let's skip them for now.
+    // and see if we have a test case which requires them.
+    // typeof obj === 'function' ||
     (typeof obj === 'string' && obj.length > 10)
   );
 }
@@ -465,65 +420,186 @@ export function encodeAsAlphanumeric(value: number): string {
   return ALPHANUMERIC[value];
 }
 
-
 class JSONStreamingSerializer {
-  private needsDelimiter = false;
+  /// For root array only, what is the index of current item being serialized
+  /// We need this information because for root array we don't create references, we actually serialize the value.
+  /// How deeply are we nested with objects and arrays
+  private depth = -1;
   constructor(
     private writer: StreamWriter,
-    private objMap: Map<any, number>
+    private objMap: Map<any, number>,
+    private getObjectId: (obj: any) => number
   ) {}
 
-  writeString(text: string, prefix?: string) {
-    this.writeString(SerializationConstant.REFERENCE_CHAR);
-    if (this.needsDelimiter) {
-      this.writer.write(',');
-    } else {
-      this.needsDelimiter = true;
+  writeString(text: string) {
+    text = JSON.stringify(text);
+    let angleBracketIdx: number = -1;
+    let lastIdx = 0;
+    while ((angleBracketIdx = text.indexOf('</', lastIdx)) !== -1) {
+      this.writer.write(text.substring(lastIdx, angleBracketIdx));
+      this.writer.write('<\\/');
+      lastIdx = angleBracketIdx + 2;
     }
-    this.writer.write('"');
-    prefix !== undefined && this.writer.write(prefix);
-    let openAngleBracketIdx: number;
-    let qouteIdx: number;
-    while (
-      Math.min((openAngleBracketIdx = text.indexOf('<')), (qouteIdx = text.indexOf('"'))) !== -1
-    ) {
-      this.write(text.substring(lastIdx, openAngleBracketIdx));
-      lastIdx = openAngleBracketIdx;
-    }
-    this.writer.write('"');
+    this.writer.write(lastIdx === 0 ? text : text.substring(lastIdx));
   }
 
   writeValue(value: any) {
     if (typeof value === 'bigint') {
-      throw new Error('implement');
+      return this.writeString(SerializationConstant.BigInt_CHAR + value.toString());
     } else if (typeof value === 'boolean') {
-      throw new Error('implement');
+      this.writer.write(String(value));
     } else if (typeof value === 'function') {
-      throw new Error('implement');
+      if (isQrl(value)) {
+        this.writeString(SerializationConstant.QRL_CHAR + qrlToString(value, this.getObjectId));
+      } else if (isQwikComponent(value)) {
+        const [qrl]: [QRLInternal] = (value as any)[SERIALIZABLE_STATE];
+        this.writeString(SerializationConstant.Component_CHAR + qrlToString(qrl, this.getObjectId));
+      } else {
+        // throw new Error('implement: ' + value);
+        console.log('implement:', new Error(value));
+        this.writeString(value.toString());
+      }
     } else if (typeof value === 'number') {
-      throw new Error('implement');
+      if (Number.isNaN(value)) {
+        return this.writeString(SerializationConstant.NaN_CHAR);
+      } else {
+        this.writer.write(String(value));
+      }
     } else if (typeof value === 'object') {
+      this.depth++;
       if (value === null) {
         this.writer.write('null');
       } else if (isObjectLiteral(value)) {
-        const seen = this.objMap.get(value);
+        // For root objects we need to serialize them regardless if we have seen them before.
+        const seen = this.depth <= 1 ? undefined : this.objMap.get(value);
         if (seen === undefined || seen === Number.MIN_SAFE_INTEGER) {
           // we have not seen it or only seen it once, serialize normally
+          if (Array.isArray(value)) {
+            // Serialize as array.
+            this.writer.write('[');
+            for (let i = 0; i < value.length; i++) {
+              if (i !== 0) {
+                this.writer.write(',');
+              }
+              this.writeValue(value[i]);
+            }
+            this.writer.write(']');
+          } else {
+            // Serialize as object.
+            this.writer.write('{');
+            let delimiter = false;
+            for (const key in value) {
+              if (Object.prototype.hasOwnProperty.call(value, key)) {
+                delimiter && this.writer.write(',');
+                this.writeString(key);
+                this.writer.write(':');
+                this.writeValue(value[key]);
+                delimiter = true;
+              }
+            }
+            this.writer.write('}');
+          }
         } else {
           // We have seen it more than once, serialize as reference.
-          this.writeString(String(value), SerializationConstant.REFERENCE_CHAR);
+          assertTrue(seen >= 0, 'seen >= 0');
+          this.writeString(SerializationConstant.REFERENCE_CHAR + seen);
         }
+      } else if (value instanceof URL) {
+        this.writeString(SerializationConstant.URL_CHAR + value.href);
+      } else if (value instanceof Date) {
+        this.writeString(SerializationConstant.Date_CHAR + value.toJSON());
+      } else if (value instanceof RegExp) {
+        this.writeString(SerializationConstant.Regex_CHAR + value.toString());
+      } else if (value instanceof Error) {
+        const errorProps = Object.assign(
+          {
+            message: value.message,
+            /// In production we don't want to leak the stack trace.
+            stack: isDev ? value.stack : '<hidden>',
+          },
+          value
+        );
+        const id = this.getObjectId(errorProps);
+        this.writeString(SerializationConstant.Error_CHAR + id);
+      } else if (value instanceof SsrNode) {
+        const type = value.nodeType;
+        if (type === SsrNode.ELEMENT_NODE) {
+          throw new Error('implement: ' + type);
+        } else if (type === SsrNode.TEXT_NODE) {
+          throw new Error('implement: ' + type);
+        } else if (type === SsrNode.DOCUMENT_NODE) {
+          this.writeString(SerializationConstant.Document_CHAR);
+        } else {
+          throw new Error('implement: ' + type);
+        }
+      } else if (value instanceof URLSearchParams) {
+        this.writeString(SerializationConstant.URLSearchParams_CHAR + value.toString());
+      } else if (value instanceof Set) {
+        this.writeString(
+          SerializationConstant.Set_CHAR + this.getObjectId(Array.from(value.values()))
+        );
+      } else if (value instanceof Map) {
+        const tuples: Array<[any, any]> = [];
+        value.forEach((v, k) => tuples.push([k, v]));
+        this.writeString(SerializationConstant.Map_CHAR + this.getObjectId(tuples));
       } else {
-        throw new Error('implement');
+        throw new Error('implement: ' + value);
       }
+      this.depth--;
     } else if (typeof value === 'string') {
-      throw new Error('implement');
+      let seenIdx: number | undefined;
+      if (
+        shouldTrackObj(value) &&
+        (seenIdx = this.depth <= 0 ? undefined : this.objMap.get(value)) !== undefined &&
+        seenIdx >= 0
+      ) {
+        assertTrue(seenIdx >= 0, 'seenIdx >= 0');
+        return this.writeString(SerializationConstant.REFERENCE_CHAR + seenIdx);
+      } else if (value.length > 0 && value.charCodeAt(0) < SerializationConstant.LAST_VALUE) {
+        // We need to escape the first character, because it is a special character.
+        this.writeString(SerializationConstant.String_CHAR + value);
+      } else {
+        this.writeString(value);
+      }
     } else if (typeof value === 'symbol') {
       throw new Error('implement');
     } else if (typeof value === 'undefined') {
-      throw new Error('implement');
+      this.writeString(SerializationConstant.UNDEFINED_CHAR);
     } else {
       throw new Error('Unknown type: ' + typeof value);
     }
+  }
+}
+
+function qrlToString(value: QRLInternal, getObjectId: (obj: any) => number) {
+  if (isDev && !value.$chunk$) {
+    let backChannel: Map<string, Function> = (globalThis as any)[QRL_RUNTIME_CHUNK];
+    if (!backChannel) {
+      backChannel = (globalThis as any)[QRL_RUNTIME_CHUNK] = new Map();
+    }
+    backChannel.set(value.$symbol$, (value as any)._devOnlySymbolRef);
+  }
+  const qrlString =
+    (value.$chunk$ || QRL_RUNTIME_CHUNK) +
+    '#' +
+    value.$symbol$ +
+    (value.$captureRef$ ? `[${value.$captureRef$.map(getObjectId).join(' ')}]` : '');
+  return qrlString;
+}
+
+/**
+ * Server has no DOM, so we need to create a fake node to represent the DOM for serialization
+ * purposes.
+ *
+ * Once deserialized the client, they will be turned to actual DOM nodes.
+ */
+export class SsrNode {
+  static ELEMENT_NODE = 1;
+  static TEXT_NODE = 3;
+  static DOCUMENT_NODE = 9;
+
+  nodeType: number;
+  constructor(nodeType: number) {
+    this.nodeType = nodeType;
   }
 }

@@ -13,9 +13,26 @@ export interface Container {
 
 export interface ContainerElement extends HTMLElement {
   qContainer?: Container;
+  /**
+   * Map of element ID to Element. If VNodeData has a reference to an element, then it is added to
+   * this map for later retrieval.
+   *
+   * Once retrieved the element is replaced with its VNode.
+   *
+   * NOTE: This map leaks memory! Once the application is resumed we don't know which element IDs
+   * are still in the deserialized state. we will probably need a GC cycle. Some process running in
+   * the idle time which processes few elements at a time to see if they are still referenced and
+   * removes them from the map if they are not.
+   */
+  qVNodeRefs: Map<number, Element | VNode>;
 }
 
 export interface QDocument extends Document {
+  /*
+   * Map of Element to VNodeData.
+   *
+   * This map is used to rebuild virtual nodes from the HTML. Missing extra text nodes, and Fragments.
+   */
   qVNodeData: WeakMap<Element, string>;
 }
 

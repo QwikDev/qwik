@@ -3,9 +3,10 @@ import { componentQrl, isQwikComponent } from '../core/component/component.publi
 import { assertDefined, assertTrue } from '../core/error/assert';
 import { createQRL, isQrl, type QRLInternal } from '../core/qrl/qrl-class';
 import type { QRL } from '../core/qrl/qrl.public';
-import type { QContainer } from './client/api';
+import type { QContainer } from './client/dom-container';
 import type { StreamWriter } from '../server/types';
 import { SERIALIZABLE_STATE } from '../core/container/serializers';
+import { vnode_locate } from './client/vnode';
 
 const deserializedProxyMap = new WeakMap<any, any>();
 
@@ -81,7 +82,8 @@ export const deserialize = <T>(container: QContainer, value: any): any => {
     return wrapDeserializerProxy(container, value);
   } else if (typeof value === 'string' && value.length) {
     const code = value.charCodeAt(0);
-    const rest = value.substring(1);
+    // only cut rest if we have a valid code
+    const rest = code < SerializationConstant.LAST_VALUE ? value.substring(1) : null!;
     switch (code) {
       case SerializationConstant.REFERENCE_VALUE:
         const ref = parseInt(rest);
@@ -91,6 +93,7 @@ export const deserialize = <T>(container: QContainer, value: any): any => {
       case SerializationConstant.QRL_VALUE:
         return parseQRL(container, rest);
       case SerializationConstant.Task_VALUE:
+        throw new Error('Not implemented');
       case SerializationConstant.Resource_VALUE:
         throw new Error('Not implemented');
       case SerializationConstant.URL_VALUE:
@@ -108,7 +111,9 @@ export const deserialize = <T>(container: QContainer, value: any): any => {
       case SerializationConstant.Component_VALUE:
         return componentQrl(parseQRL(container, rest) as any);
       case SerializationConstant.DerivedSignal_VALUE:
+        throw new Error('Not implemented');
       case SerializationConstant.Signal_VALUE:
+        throw new Error('Not implemented');
       case SerializationConstant.SignalWrapper_VALUE:
         throw new Error('Not implemented');
       case SerializationConstant.NaN_VALUE:
@@ -116,6 +121,7 @@ export const deserialize = <T>(container: QContainer, value: any): any => {
       case SerializationConstant.URLSearchParams_VALUE:
         return new URLSearchParams(rest);
       case SerializationConstant.FormData_VALUE:
+        throw new Error('Not implemented');
       case SerializationConstant.JSXNode_VALUE:
         throw new Error('Not implemented');
       case SerializationConstant.BigInt_VALUE:
@@ -124,6 +130,10 @@ export const deserialize = <T>(container: QContainer, value: any): any => {
         return new Set(container.getObjectById(parseInt(rest)));
       case SerializationConstant.Map_VALUE:
         return new Map(container.getObjectById(parseInt(rest)));
+      case SerializationConstant.VNode_VALUE:
+        return rest === ''
+          ? container.element.ownerDocument
+          : vnode_locate(container.rootVNode, rest);
       case SerializationConstant.String_VALUE:
         return rest;
       default:
@@ -190,16 +200,21 @@ export interface SerializationContext {
 
   $roots$: any[];
 
-  /** Node constructor, for instanceof checks. */
-  $Node$: {
-    new (...rest: any[]): { nodeType: number };
-  };
+  /**
+   * Node constructor, for instanceof checks.
+   *
+   * A node constructor can be null. For example on the client we can't serialize DOM nodes as
+   * server will not know what to do with them.
+   */
+  $NodeConstructor$: {
+    new (...rest: any[]): { nodeType: number; id: string };
+  } | null;
 
   $writer$: StreamWriter;
 }
 
 export const createSerializationContext = (
-  NodeConstructor: SerializationContext['$Node$'],
+  NodeConstructor: SerializationContext['$NodeConstructor$'] | null,
   containerElement: Element | null,
   writer?: StreamWriter
 ): SerializationContext => {
@@ -213,7 +228,7 @@ export const createSerializationContext = (
   const map = new Map<any, number>();
   const roots: any[] = [];
   return {
-    $Node$: NodeConstructor,
+    $NodeConstructor$: NodeConstructor,
     $containerElement$: containerElement,
     $wasSeen$: (obj: any) => map.get(obj),
     $roots$: roots,
@@ -241,7 +256,7 @@ export function serialize(serializationContext: SerializationContext): void {
     breakCircularDependencies(serializationContext, objRoots[i]);
   }
 
-  const { $writer$, $addRoot$, $Node$ } = serializationContext;
+  const { $writer$, $addRoot$, $NodeConstructor$: $Node$ } = serializationContext;
   let depth = -1;
 
   const writeString = (text: string) => {
@@ -332,17 +347,9 @@ export function serialize(serializationContext: SerializationContext): void {
           value
         );
         writeString(SerializationConstant.Error_CHAR + $addRoot$(errorProps));
-      } else if (value instanceof $Node$) {
-        const type = value.nodeType;
-        if (type === 1 /* ELEMENT_NODE */) {
-          throw new Error('implement: ' + type);
-        } else if (type === 3 /* TEXT_NODE */) {
-          throw new Error('implement: ' + type);
-        } else if (type === 9 /* DOCUMENT_NODE */) {
-          writeString(SerializationConstant.Document_CHAR);
-        } else {
-          throw new Error('implement: ' + type);
-        }
+      } else if ($Node$ && value instanceof $Node$) {
+        writeString(SerializationConstant.VNode_CHAR + value.id);
+        // writeString(SerializationConstant.VNode_CHAR + value.id);
       } else if (value instanceof URLSearchParams) {
         writeString(SerializationConstant.URLSearchParams_CHAR + value.toString());
       } else if (value instanceof Set) {
@@ -479,10 +486,10 @@ const breakCircularDependencies = (serializationContext: SerializationContext, r
 const QRL_RUNTIME_CHUNK = 'qwik-runtime-mock-chunk';
 
 const enum SerializationConstant {
-  REFERENCE_CHAR = /* ----------------- */ '\u0000',
-  REFERENCE_VALUE = /* -------------------- */ 0x0,
-  UNDEFINED_CHAR = /* ----------------- */ '\u0001',
-  UNDEFINED_VALUE = /* -------------------- */ 0x1,
+  UNDEFINED_CHAR = /* ----------------- */ '\u0000',
+  UNDEFINED_VALUE = /* -------------------- */ 0x0,
+  REFERENCE_CHAR = /* ----------------- */ '\u0001',
+  REFERENCE_VALUE = /* -------------------- */ 0x1,
   QRL_CHAR = /* ----------------------- */ '\u0002',
   QRL_VALUE = /* -------------------------- */ 0x2,
   Task_CHAR = /* ---------------------- */ '\u0003',
@@ -495,8 +502,8 @@ const enum SerializationConstant {
   Date_VALUE = /* ------------------------- */ 0x6,
   Regex_CHAR = /* --------------------- */ '\u0007',
   Regex_VALUE = /* ------------------------ */ 0x7,
-  UNUSED_BACKSPACE_CHAR = /* ---------- */ '\u0008',
-  UNUSED_BACKSPACE_VALUE = /* ------------- */ 0x8,
+  String_CHAR = /* -------------------- */ '\u0008',
+  String_VALUE = /* ----------------------- */ 0x8,
   UNUSED_HORIZONTAL_TAB_CHAR = /* ----- */ '\u0009',
   UNUSED_HORIZONTAL_TAB_VALUE = /* -------- */ 0x9,
   UNUSED_NEW_LINE_CHAR = /* ----------- */ '\u000a',
@@ -509,8 +516,8 @@ const enum SerializationConstant {
   UNUSED_CARRIAGE_RETURN_VALUE = /* ------- */ 0xd,
   Error_CHAR = /* --------------------- */ '\u000e',
   Error_VALUE = /* ------------------------ */ 0xe,
-  Document_CHAR = /* ------------------ */ '\u000f',
-  Document_VALUE = /* --------------------- */ 0xf,
+  VNode_CHAR = /* --------------------- */ '\u000f',
+  VNode_VALUE = /* ------------------------ */ 0xf,
   Component_CHAR = /* ----------------- */ '\u0010',
   Component_VALUE = /* ------------------- */ 0x10,
   DerivedSignal_CHAR = /* ------------- */ '\u0011',
@@ -533,7 +540,5 @@ const enum SerializationConstant {
   Set_VALUE = /* ------------------------- */ 0x19,
   Map_CHAR = /* ----------------------- */ '\u001a',
   Map_VALUE = /* ------------------------- */ 0x1a,
-  String_CHAR = /* -------------------- */ '\u001b',
-  String_VALUE = /* ---------------------- */ 0x1b,
-  LAST_VALUE = /* ------------------------ */ 0x1c,
+  LAST_VALUE = /* ------------------------ */ 0x1b,
 }

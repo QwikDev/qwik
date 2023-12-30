@@ -4,17 +4,17 @@ import { throwErrorAndStop } from '../../core/util/log';
 import {
   Flags,
   VNodeProps,
+  type ContainerElement,
   type ElementVNode,
   type FragmentVNode,
   type QDocument,
   type TextVNode,
   type VNode,
 } from './types';
-import { Button } from 'packages/docs/src/routes/demo/events/custom-event';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-export const vnode_newElement = (parentNode: VNode | null, element: Element): VNode => {
+export const vnode_newElement = (parentNode: VNode | null, element: Element): ElementVNode => {
   const vnode: ElementVNode = [
     Flags.DeflatedElement,
     parentNode as VNode | null,
@@ -39,12 +39,12 @@ export const vnode_newDeflatedText = (
   textContent: string
 ): TextVNode => {
   const vnode: TextVNode = [
-    Flags.DeflatedText,
-    parentNode,
-    null,
-    previousTextNode,
-    sharedTextNode,
-    textContent,
+    Flags.DeflatedText, // Flag
+    parentNode, // Parent
+    null, // Next sibling
+    previousTextNode, // Previous TextNode (usually first child)
+    sharedTextNode, // SharedTextNode
+    textContent, // Text Content
   ] as any;
   if (isDev) {
     (vnode as any).toString = vnode_toString;
@@ -61,12 +61,12 @@ export const vnode_newInflatedText = (
   textContent: string
 ): TextVNode => {
   const vnode: TextVNode = [
-    Flags.InflatedText,
-    parentNode,
-    null,
-    textNode,
-    null,
-    textContent,
+    Flags.InflatedText, // Flags
+    parentNode, // Parent
+    undefined, // We may have a next sibling.
+    null, // No previous TextNode because we ere inflated
+    textNode, // TextNode
+    textContent, // Text Content
   ] as any;
   if (isDev) {
     (vnode as any).toString = vnode_toString;
@@ -216,9 +216,94 @@ const ensureInflatedTextVNode = (vnode: VNode): TextVNode => {
     }
     lastTextVnode[VNodeProps.flags] = Flags.InflatedText;
     textVNode[VNodeProps.flags] = Flags.InflatedText;
-    const textNode = textVNode[VNodeProps.node];
   }
   return textVNode;
+};
+
+export const vnode_locate = (rootVNode: ElementVNode, id: string): VNode => {
+  ensureElementVNode(rootVNode);
+  let vNode: VNode = rootVNode;
+  const containerElement = rootVNode[VNodeProps.node] as ContainerElement;
+  const { qVNodeRefs } = containerElement;
+  assertDefined(qVNodeRefs, 'Missing qVNodeRefs.');
+  const elementOffset = parseInt(id);
+  const refElement = qVNodeRefs.get(elementOffset)!;
+  assertDefined(refElement, 'Missing refElement.');
+  if (!Array.isArray(refElement)) {
+    // We need to find the vnode.
+    let parent = refElement;
+    const elementPath: Element[] = [refElement];
+    while (parent && parent !== containerElement) {
+      parent = parent.parentElement!;
+      elementPath.push(parent);
+    }
+    // Start at rootVNode and fallow the `elementPath` to find the vnode.
+    for (let i = elementPath.length - 2; i >= 0; i--) {
+      vNode = vnode_getVNodeForChildNode(vNode, elementPath[i]);
+    }
+    qVNodeRefs.set(elementOffset, vNode);
+  }
+  // process virtual node search.
+  const idLength = id.length;
+  let idx = indexOfAlphanumeric(id, idLength);
+  let nthChildIdx = 0;
+  while (idx < idLength) {
+    const ch = id.charCodeAt(idx);
+    nthChildIdx *= 26 /* a-z */;
+    if (ch >= 97 /* a */) {
+      // is lowercase
+      nthChildIdx += ch - 97 /* a */;
+    } else {
+      // is uppercase
+      nthChildIdx += ch - 65 /* A */;
+      vNode = vnode_getNthChild(vNode, nthChildIdx);
+      nthChildIdx = 0;
+    }
+    idx++;
+  }
+  return vNode;
+};
+
+const vnode_getNthChild = (vNode: VNode, nthChildIdx: number): VNode => {
+  let child = vnode_getFirstChild(vNode);
+  assertDefined(child, 'Missing child.');
+  while (nthChildIdx--) {
+    child = vnode_getNextSibling(child);
+    assertDefined(child, 'Missing child.');
+  }
+  return child;
+};
+
+const vnode_getVNodeForChildNode = (vNode: ElementVNode, childNode: Element): ElementVNode => {
+  ensureElementVNode(vNode);
+  let child = vnode_getFirstChild(vNode);
+  assertDefined(child, 'Missing child.');
+  console.log(
+    'SEARCHING',
+    child[VNodeProps.flags],
+    child[VNodeProps.node]?.outerHTML,
+    childNode.outerHTML
+  );
+  while (child[VNodeProps.node] !== childNode) {
+    console.log('CHILD', child[VNodeProps.node]?.outerHTML, childNode.outerHTML);
+    child = vnode_getNextSibling(child);
+    assertDefined(child, 'Missing child.');
+  }
+  ensureElementVNode(child);
+  console.log('FOUND', child[VNodeProps.node]?.outerHTML);
+  return child as ElementVNode;
+};
+
+const indexOfAlphanumeric = (id: string, length: number): number => {
+  let idx = 0;
+  while (idx < length) {
+    if (id.charCodeAt(idx) <= 57 /* 9 */) {
+      idx++;
+    } else {
+      return idx;
+    }
+  }
+  return length;
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -309,7 +394,7 @@ export const vnode_setFirstChild = (
 export const vnode_getNextSibling = (vnode: VNode): VNode | null => {
   let value = vnode[VNodeProps.nextSibling];
   if (value === undefined) {
-    assertTrue(vnode_isElementVNode(vnode), 'Unexpected location of FragmentVNode.');
+    assertTrue(!vnode_isFragmentVNode(vnode), 'Unexpected location of FragmentVNode.');
     const node = vnode[VNodeProps.node] as Node;
     const nextSibling = node.nextSibling;
     if (nextSibling) {
@@ -342,6 +427,7 @@ export const vnode_getPropKeys = (vnode: VNode): string[] => {
 
 export const vnode_getProp = (vnode: VNode, key: string): string | null => {
   const element = ensureInflatedElementVNode(vnode);
+  // console.log('VNODE', vnode.toString());
   return mapArray_get(element, key);
 };
 
@@ -350,7 +436,7 @@ const vnode_fromNode = (parentVNode: ElementVNode, node: Node | null): VNode | n
     const qDocument = node.ownerDocument as QDocument;
     const parentNode = parentVNode[VNodeProps.node];
     const vNodeData = qDocument.qVNodeData.get(parentNode);
-    // console.log('vNodeData:', vNodeData, parentNode.tagName);
+    // console.log('vNodeData:', vNodeData, vnode_toString(parentNode));
     if (vNodeData) {
       return processVNodeData(parentVNode, vNodeData, node);
     } else if (node.nodeType === /* Node.TEXT_NODE */ 3) {

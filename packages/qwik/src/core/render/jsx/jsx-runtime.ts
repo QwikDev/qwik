@@ -18,6 +18,7 @@ import { static_subtree } from '../execute-component';
 import type { JsxChild } from 'typescript';
 import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS } from '../../util/markers';
 import type { JSXChildren } from './types/jsx-qwik-attributes';
+import { _IMMUTABLE_PREFIX } from '../../state/constants';
 
 /**
  * @internal
@@ -88,17 +89,30 @@ export const _jsxC = <T extends string | FunctionComponent>(
   dev?: JsxDevOpts
 ): JSXNode<T> => {
   const processed = key == null ? null : String(key);
-  const props = mutableProps ?? (EMPTY_OBJ as any);
+  const props = mutableProps ?? ({} as NonNullable<typeof mutableProps>);
   // In dynamic components, type could be a string
   if (typeof type === 'string' && _IMMUTABLE in props) {
-    const p = {} as any;
-    // The immutable props are all regular props minus the children
-    for (const [k, v] of Object.entries(props[_IMMUTABLE])) {
-      p[k] = v === _IMMUTABLE ? props[k] : v;
+    const immutableProps = props[_IMMUTABLE] as Record<any, unknown>;
+    delete props[_IMMUTABLE];
+    const children = props.children as JSXChildren;
+    delete props.children;
+    // immutable and mutable props cannot have the same keys, immutable props take precedence
+    for (const k of Object.keys(immutableProps)) {
+      if (immutableProps[k] !== _IMMUTABLE) {
+        delete props[k];
+        (props as any)[k] = immutableProps[k];
+      }
     }
-    return _jsxQ(type, null, p, props.children, flags, key, dev);
+    return _jsxQ(type, null, props, children, flags, key, dev);
   }
-  const node = new JSXNodeImpl<T>(type, props, null, props.children, flags, processed);
+  const node = new JSXNodeImpl<T>(
+    type,
+    props,
+    null,
+    props.children as JSXChildren,
+    flags,
+    processed
+  );
   if (typeof type === 'string' && mutableProps) {
     delete mutableProps.children;
   }

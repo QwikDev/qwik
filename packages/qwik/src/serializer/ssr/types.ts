@@ -8,6 +8,7 @@ export interface SSRContainer {
   closeElement(): void;
   openContainer(): void;
   closeContainer(): void;
+  addRoot(obj: any): number;
 }
 
 export type SsrAttrs = Array<string | null>;

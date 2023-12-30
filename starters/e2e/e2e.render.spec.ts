@@ -530,4 +530,9 @@ test.describe("render", () => {
     await toggle.click();
     await expect(result).toHaveText("world");
   });
+
+  test("dynamic DOM tags", async ({ page }) => {
+    const button = page.locator("#dynamic-button");
+    await expect(button).toHaveClass("btn");
+  });
 });

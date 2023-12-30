@@ -2,7 +2,7 @@
 
 import { assertTrue } from '../../core/error/assert';
 import { deserialize } from '../shared-serialialization';
-import type { Container, ContainerElement, VNode, QDocument } from './types';
+import type { Container, ContainerElement, VNode, QDocument, ElementVNode } from './types';
 import { vnode_newElement } from './vnode';
 
 export function getContainer(element: HTMLElement): Container {
@@ -21,7 +21,7 @@ export class QContainer implements Container {
   public qBase: string;
   public qLocale: string;
   public qManifestHash: string;
-  public rootVNode: VNode;
+  public rootVNode: ElementVNode;
   private rawStateData: any[];
   private stateData: any[];
   constructor(element: ContainerElement) {
@@ -54,27 +54,40 @@ export function processVNodeData(document: Document) {
     qDocument.qVNodeData || (qDocument.qVNodeData = new WeakMap<Element, string>());
   const vNodeData = document.querySelectorAll('script[type="qwik/vnode"]');
   const containers = document.querySelectorAll('[q\\:container]');
-  const container = containers[0];
-  const walker = document.createTreeWalker(container.parentNode!, 1 /* NodeFilter.SHOW_ELEMENT */);
+  const containerElement = containers[0] as ContainerElement;
+  const qVNodeRefs = (containerElement.qVNodeRefs = new Map<number, Element | VNode>());
+  const walker = document.createTreeWalker(
+    containerElement.parentNode!,
+    1 /* NodeFilter.SHOW_ELEMENT */
+  );
   const currentVNodeData = vNodeData[0].textContent!;
   const currentVNodeDataLength = currentVNodeData.length;
-  let elementIdx = 0;
-  let vNodeIndex = -1;
+  /// Stores the current element index as the TreeWalker traverses the DOM.
+  let elementIdx = -1;
+  /// Stores the current VNode index as derived from the VNodeData script tag.
+  let vNodeElementIndex = -1;
   let vNodeDataStart = 0;
   let vNodeDataEnd = 0;
   let ch: number;
+  let needsToStoreRef = -1;
   for (let node = walker.firstChild(); node !== null; node = walker.nextNode()) {
-    if (vNodeIndex < elementIdx) {
+    elementIdx++;
+    // console.log('WALK', elementIdx, (node as Element).outerHTML, vNodeElementIndex);
+    if (needsToStoreRef === elementIdx) {
+      console.log('REF', elementIdx, (node as Element).outerHTML);
+      qVNodeRefs.set(elementIdx, node as Element);
+    }
+    if (vNodeElementIndex < elementIdx) {
       // VNodeData needs to catch up with the elementIdx
-      if (vNodeIndex == -1) {
+      if (vNodeElementIndex == -1) {
         // Special case for initial catch up
-        vNodeIndex = 0;
+        vNodeElementIndex = 0;
       }
       vNodeDataStart = vNodeDataEnd;
       if (vNodeDataStart < currentVNodeDataLength) {
         while (isSeparator((ch = currentVNodeData.charCodeAt(vNodeDataStart)))) {
           // Keep consuming the separators and incrementing the vNodeIndex
-          vNodeIndex += 1 << (ch - 33) /*`!`*/;
+          vNodeElementIndex += 1 << (ch - 33) /*`!`*/;
           vNodeDataStart++;
           if (vNodeDataStart >= currentVNodeDataLength) {
             // we reached the end of the vNodeData stop.
@@ -84,6 +97,7 @@ export function processVNodeData(document: Document) {
         const shouldStoreRef = ch === 126; /*`~` */
         if (shouldStoreRef) {
           // if we need to store the ref handle it here.
+          needsToStoreRef = vNodeElementIndex;
           vNodeDataStart++;
           if (vNodeDataStart < currentVNodeDataLength) {
             ch = currentVNodeData.charCodeAt(vNodeDataEnd);
@@ -110,12 +124,11 @@ export function processVNodeData(document: Document) {
         elementIdx = Number.MAX_SAFE_INTEGER;
       }
     }
-    if (elementIdx === vNodeIndex) {
+    if (elementIdx === vNodeElementIndex) {
       const instructions = currentVNodeData.substring(vNodeDataStart, vNodeDataEnd);
-      // console.log('SET', (node as Element).outerHTML, instructions);
+      console.log('SET', (node as Element).outerHTML, instructions);
       vNodeDataMap.set(node as Element, instructions);
     }
-    elementIdx++;
   }
 
   function isSeparator(ch: number) {

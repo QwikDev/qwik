@@ -3,22 +3,22 @@ import { $ } from '../core/qrl/qrl.public';
 import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
 import { describe, expect, it } from 'vitest';
 import { isJSXNode } from '../core/render/jsx/jsx-runtime';
-import { getContainer, processVNodeData } from './client/api';
+import { getContainer, processVNodeData } from './client/dom-container';
 import type { Container, VNode } from './client/types';
 import type { Stringifiable } from './shared-types';
 import { isStringifiable } from './shared-types';
-import { SsrNode, ssrCreateContainer, toSsrAttrs } from './ssr/api';
+import { ssrCreateContainer, toSsrAttrs } from './ssr/ssr-container';
 import './vdom-diff.unit';
-import { vnode_getFirstChild } from './client/vnode';
+import { vnode_getFirstChild, vnode_getProp, vnode_getText } from './client/vnode';
 import { isDeserializerProxy } from './shared-serialialization';
 import { component$ } from '../core/component/component.public';
 import { inlinedQrl, qrl } from '../core/qrl/qrl';
 import type { QRLInternal } from '../core/qrl/qrl-class';
 import { SERIALIZABLE_STATE } from '../core/container/serializers';
-import type { SSRContainer } from './ssr/types';
+import { SsrNode, type SSRContainer } from './ssr/types';
 
 describe('serializer v2', () => {
-  describe('basic use cases', () => {
+  describe('rendering', () => {
     it('should do basic serialize/deserialize', () => {
       const input = <span>test</span>;
       const output = toVDOM(toDOM(toHTML(input)));
@@ -60,6 +60,69 @@ describe('serializer v2', () => {
       );
       const output = toVDOM(toDOM(toHTML(input)));
       expect(output).toMatchVDOM(input);
+    });
+
+    describe('node references', () => {
+      it('should retrieve element', () => {
+        const clientContainer = withContainer((ssr) => {
+          ssr.openElement('div', ['id', 'parent']);
+          ssr.textNode('Hello');
+          ssr.openElement('span', ['id', 'div']);
+          const node = ssr.getLastNode();
+          ssr.addRoot({ someProp: node });
+          ssr.textNode('Hello');
+          ssr.openElement('b', ['id', 'child']);
+          ssr.closeElement();
+          ssr.closeElement();
+          ssr.closeElement();
+        });
+        const vnodeSpan = clientContainer.getObjectById(0).someProp;
+        expect(vnode_getProp(vnodeSpan, 'id')).toBe('div');
+      });
+      it('should retrieve text node', () => {
+        const clientContainer = withContainer((ssr) => {
+          ssr.openElement('div', ['id', 'parent']);
+          ssr.textNode('Hello');
+          ssr.openElement('span', ['id', 'div']);
+          ssr.textNode('Greetings');
+          ssr.textNode(' ');
+          ssr.textNode('World');
+          const node = ssr.getLastNode();
+          expect(node.id).toBe('2C');
+          ssr.textNode('!');
+          ssr.addRoot({ someProp: node });
+          ssr.openElement('b', ['id', 'child']);
+          ssr.closeElement();
+          ssr.closeElement();
+          ssr.closeElement();
+        });
+        const vnode = clientContainer.getObjectById(0).someProp;
+        expect(vnode_getText(vnode)).toBe('World');
+      });
+      it('should retrieve text node in Fragments', () => {
+        const clientContainer = withContainer((ssr) => {
+          ssr.openElement('div', ['id', 'parent']);
+          ssr.textNode('Hello');
+          ssr.openElement('span', ['id', 'div']); // 2
+          ssr.textNode('Greetings'); // 2A
+          ssr.textNode(' '); // 2B
+          ssr.openFragment(); // 2C
+          ssr.textNode('World'); // 2CA
+          const node = ssr.getLastNode();
+          expect(node.id).toBe('2CA');
+          ssr.textNode('!');
+          ssr.addRoot({ someProp: node });
+          ssr.openElement('b', ['id', 'child']);
+          ssr.closeElement();
+          ssr.closeFragment();
+          ssr.closeElement();
+          ssr.closeElement();
+        });
+        const vnode = clientContainer.getObjectById(0).someProp;
+        console.log('>>>>>', vnode.toString());
+        expect(vnode_getText(vnode)).toBe('World');
+      });
+      it.todo('should attach props to Fragment');
     });
   });
 
@@ -186,7 +249,7 @@ describe('serializer v2', () => {
     });
     describe('DocumentSerializer, ///////// \u000F', () => {
       it('should serialize and deserialize', () => {
-        const obj = new SsrNode(SsrNode.DOCUMENT_NODE);
+        const obj = new SsrNode(SsrNode.DOCUMENT_NODE, '');
         const container = withContainer((ssr) => ssr.addRoot(obj));
         expect(container.getObjectById(0)).toEqual(container.element.ownerDocument);
       });
@@ -310,7 +373,6 @@ function withContainer(ssrFn: (ssrContainer: SSRContainer) => void): Container {
   return container;
 }
 
-
 function toHTML(jsx: JSXNode): string {
   const ssrContainer = ssrCreateContainer();
   ssrContainer.openContainer();
@@ -319,14 +381,14 @@ function toHTML(jsx: JSXNode): string {
       if (typeof jsx.type === 'string') {
         ssrContainer.openElement(jsx.type, toSsrAttrs(jsx.props as any));
       } else {
-        ssrContainer.openVNode();
+        ssrContainer.openFragment();
       }
     },
     leave: (jsx) => {
       if (typeof jsx.type === 'string') {
         ssrContainer.closeElement();
       } else {
-        ssrContainer.closeVNode();
+        ssrContainer.closeFragment();
       }
     },
     text: (text) => ssrContainer.textNode(String(text)),

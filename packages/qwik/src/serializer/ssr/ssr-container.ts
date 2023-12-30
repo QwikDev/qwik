@@ -1,7 +1,7 @@
 /** @file Public APIs for the SSR */
 import type { StreamWriter } from '../../server/types';
 import { type Stringifiable } from '../shared-types';
-import type { SSRContainer as ISSRContainer, SsrAttrs } from './types';
+import { SsrNode, type SSRContainer as ISSRContainer, type SsrAttrs } from './types';
 import {
   CLOSE_FRAGMENT,
   OPEN_FRAGMENT,
@@ -11,6 +11,8 @@ import {
   vNodeData_openFragment,
   VNodeDataFlag,
   type VNodeData,
+  vNodeData_createSsrNodeReference,
+  encodeAsAlphanumeric,
 } from './vnode-data';
 import {
   createSerializationContext,
@@ -42,6 +44,7 @@ class StringBufferWriter {
 
 interface ContainerElementFrame {
   parent: ContainerElementFrame | null;
+  /** Element name. */
   elementName: string;
   /**
    * Current element index.
@@ -63,7 +66,7 @@ class SSRContainer implements ISSRContainer {
    * This number must match the depth-first traversal of the DOM elements as returned by the
    * https://developer.mozilla.org/en-US/docs/Web/API/TreeWalker
    */
-  private depthFirstElementCount: number = 0;
+  private depthFirstElementCount: number = -1;
   private vNodeData: VNodeData[] = [];
 
   private serializationContext: SerializationContext;
@@ -107,7 +110,7 @@ class SSRContainer implements ISSRContainer {
 
   closeElement() {
     this.write('</');
-    this.write(this.popFrame().elementName);
+    this.write(this.popFrame().elementName!);
     this.write('>');
     // Keep track of number of elements.
     if (this.currentElementFrame) {
@@ -115,11 +118,11 @@ class SSRContainer implements ISSRContainer {
     }
   }
 
-  openVNode() {
+  openFragment() {
     vNodeData_openFragment(this.currentElementFrame!.vNodeData);
   }
 
-  closeVNode() {
+  closeFragment() {
     vNodeData_closeFragment(this.currentElementFrame!.vNodeData);
   }
 
@@ -137,6 +140,13 @@ class SSRContainer implements ISSRContainer {
 
   addRoot(obj: any): any {
     return this.serializationContext.$addRoot$(obj);
+  }
+
+  getLastNode(): SsrNode {
+    return vNodeData_createSsrNodeReference(
+      this.currentElementFrame!.vNodeData,
+      this.depthFirstElementCount
+    );
   }
 
   ////////////////////////////////////
@@ -182,18 +192,20 @@ class SSRContainer implements ISSRContainer {
         if (flag & VNodeDataFlag.REFERENCE) {
           this.write('~');
         }
-        for (let i = 1; i < vNode.length; i++) {
-          const value = vNode[i];
-          if (value === OPEN_FRAGMENT) {
-            this.write('{');
-          } else if (value === CLOSE_FRAGMENT) {
-            this.write('}');
-          } else if (value >= 0) {
-            // Text nodes get encoded as alphanumeric characters.
-            this.write(encodeAsAlphanumeric(value));
-          } else {
-            // Element counts get encoded as numbers.
-            this.write(String(0 - value));
+        if (flag & (VNodeDataFlag.TEXT_DATA | VNodeDataFlag.VIRTUAL_NODE)) {
+          for (let i = 1; i < vNode.length; i++) {
+            const value = vNode[i];
+            if (value === OPEN_FRAGMENT) {
+              this.write('{');
+            } else if (value === CLOSE_FRAGMENT) {
+              this.write('}');
+            } else if (value >= 0) {
+              // Text nodes get encoded as alphanumeric characters.
+              this.write(encodeAsAlphanumeric(value));
+            } else {
+              // Element counts get encoded as numbers.
+              this.write(String(0 - value));
+            }
           }
         }
       }
@@ -287,39 +299,4 @@ export function toSsrAttrs(record: Record<string, Stringifiable>): SsrAttrs {
     }
   }
   return ssrAttrs;
-}
-
-const ALPHANUMERIC: string[] = [];
-const A = 'A'.charCodeAt(0);
-const a = 'a'.charCodeAt(0);
-const Z = 'Z'.charCodeAt(0);
-const AZ = Z - A + 1;
-export function encodeAsAlphanumeric(value: number): string {
-  while (ALPHANUMERIC.length <= value) {
-    let value = ALPHANUMERIC.length;
-    let text = '';
-    do {
-      text = String.fromCharCode((text.length === 0 ? A : a) + (value % AZ)) + text;
-      value = Math.floor(value / AZ);
-    } while (value !== 0);
-    ALPHANUMERIC.push(text);
-  }
-  return ALPHANUMERIC[value];
-}
-
-/**
- * Server has no DOM, so we need to create a fake node to represent the DOM for serialization
- * purposes.
- *
- * Once deserialized the client, they will be turned to actual DOM nodes.
- */
-export class SsrNode {
-  static ELEMENT_NODE = 1;
-  static TEXT_NODE = 3;
-  static DOCUMENT_NODE = 9;
-
-  nodeType: number;
-  constructor(nodeType: number) {
-    this.nodeType = nodeType;
-  }
 }

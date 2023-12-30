@@ -1,3 +1,5 @@
+import { SsrNode, type SsrNodeType } from './types';
+
 /**
  * Array of numbers which describes virtual nodes in the tree.
  *
@@ -40,15 +42,15 @@ export const enum VNodeDataFlag {
 
 export function vNodeData_incrementElementCount(vNodeData: VNodeData) {
   const length = vNodeData.length;
-  const lastItem = length > 1 ? vNodeData[length - 1] : 0;
-  if (lastItem >= 0 || lastItem == CLOSE_FRAGMENT) {
+  const lastValue = length > 1 ? vNodeData[length - 1] : 0;
+  if (lastValue >= 0 || lastValue === CLOSE_FRAGMENT) {
     // positive numbers are text node lengths.
     // So we just add -1 to indicate that we now have one element after text node
     vNodeData.push(-1);
   } else {
     // Negative numbers are element counts.
     // So we just subtract 1 from the last element count to say that we have one more element.
-    vNodeData[length - 1] = lastItem - 1;
+    vNodeData[length - 1] = lastValue - 1;
   }
 }
 
@@ -71,4 +73,76 @@ export function vNodeData_openFragment(vNodeData: VNodeData) {
 }
 export function vNodeData_closeFragment(vNodeData: VNodeData) {
   vNodeData.push(CLOSE_FRAGMENT);
+}
+
+export function vNodeData_createSsrNodeReference(
+  vNodeData: VNodeData,
+  depthFirstElementIdx: number
+): SsrNode {
+  vNodeData[0] |= VNodeDataFlag.REFERENCE;
+  if (vNodeData.length == 1) {
+    // Special case where we are referring to the Element directly. No need to descend into the tree.
+    return new SsrNode(SsrNode.ELEMENT_NODE, String(depthFirstElementIdx));
+  } else {
+    const stack: (SsrNodeType | number)[] = [SsrNode.ELEMENT_NODE, -1];
+    // We are referring to a virtual node. We need to descend into the tree to find the path to the node.
+    for (let i = 1; i < vNodeData.length; i++) {
+      const value = vNodeData[i];
+      if (value === OPEN_FRAGMENT) {
+        stack[stack.length - 1]++;
+        stack.push(SsrNode.DOCUMENT_FRAGMENT_NODE, -1);
+      } else if (value === CLOSE_FRAGMENT) {
+        stack.pop(); // pop count
+        stack.pop(); // pop nodeType
+      } else if (value < 0) {
+        // Negative numbers are element counts.
+        const numberOfElements = 0 - value;
+        // Add number of elements to skip
+        stack[stack.length - 1] += numberOfElements;
+      } else {
+        // Positive numbers are text node lengths.
+        // For each positive number we need to increment the count.
+        stack[stack.length - 1]++;
+      }
+    }
+    let refId = String(depthFirstElementIdx);
+    for (let i = 1; i < stack.length; i += 2) {
+      refId += encodeAsAlphanumeric(stack[i]);
+    }
+    const type = stack[stack.length - 2] as SsrNodeType;
+    return new SsrNode(type, refId);
+  }
+}
+
+/**
+ * Encode number as alphanumeric string.
+ *
+ * The last character is uppercase, this allows us to skip any sort of separator.
+ *
+ * Example:
+ *
+ * - 0 -> A
+ * - 1 -> B
+ * - 10 -> K
+ * - 25 -> Z
+ * - 26 -> bA
+ * - 100 -> dW
+ * - 1000 -> bmM
+ * - 10000 -> ouQ
+ */
+const ALPHANUMERIC: string[] = [];
+export function encodeAsAlphanumeric(value: number): string {
+  while (ALPHANUMERIC.length <= value) {
+    let value = ALPHANUMERIC.length;
+    let text = '';
+    do {
+      text =
+        String.fromCharCode(
+          (text.length === 0 ? 65 /* A */ : 97) /* a */ + (value % 26) /* A-Z */
+        ) + text;
+      value = Math.floor(value / 26 /* A-Z */);
+    } while (value !== 0);
+    ALPHANUMERIC.push(text);
+  }
+  return ALPHANUMERIC[value];
 }

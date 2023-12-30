@@ -11,6 +11,8 @@ export function isStringifiable(value: any): value is Stringifiable {
   );
 }
 
+export const QRL_RUNTIME_CHUNK = 'qwik-runtime-mock-chunk';
+
 export const enum SerializationConstant {
   REFERENCE_CHAR = /* ----------------- */ '\u0000',
   REFERENCE_VALUE = /* -------------------- */ 0x0,
@@ -35,7 +37,7 @@ export const enum SerializationConstant {
   UNUSED_NEW_LINE_CHAR = /* ----------- */ '\u000a',
   UNUSED_NEW_LINE_VALUE = /* -------------- */ 0xa,
   UNUSED_VERTICAL_TAB_CHAR = /* ------- */ '\u000b',
-  UNUSED_VERTICAL_TAB_VALUE = /*--- ------- */ 0xb,
+  UNUSED_VERTICAL_TAB_VALUE = /* ---------- */ 0xb,
   UNUSED_FORM_FEED_CHAR = /* ---------- */ '\u000c',
   UNUSED_FORM_FEED_VALUE = /* ------------- */ 0xc,
   UNUSED_CARRIAGE_RETURN_CHAR = /* ---- */ '\u000d',
@@ -52,10 +54,10 @@ export const enum SerializationConstant {
   Signal_VALUE = /* ---------------------- */ 0x12,
   SignalWrapper_CHAR = /* ------------- */ '\u0013',
   SignalWrapper_VALUE = /* --------------- */ 0x13,
-  NoFiniteNumber_CHAR = /* ------------ */ '\u0014',
-  NoFiniteNumber_VALUE = /* -------------- */ 0x14,
+  NaN_CHAR = /* ----------------------- */ '\u0014',
+  NaN_VALUE = /* ------------------------- */ 0x14,
   URLSearchParams_CHAR = /* ----------- */ '\u0015',
-  URLSearchParams_VALUE = /*---------- --- */ 0x15,
+  URLSearchParams_VALUE = /* ------------- */ 0x15,
   FormData_CHAR = /* ------------------ */ '\u0016',
   FormData_VALUE = /* -------------------- */ 0x16,
   JSXNode_CHAR = /* ------------------- */ '\u0017',
@@ -68,5 +70,5 @@ export const enum SerializationConstant {
   Map_VALUE = /* ------------------------- */ 0x1a,
   String_CHAR = /* -------------------- */ '\u001b',
   String_VALUE = /* ---------------------- */ 0x1b,
-  LAST_VALUE = /* --------------------- */ '\u001c',
+  LAST_VALUE = /* ------------------------ */ 0x1c,
 }

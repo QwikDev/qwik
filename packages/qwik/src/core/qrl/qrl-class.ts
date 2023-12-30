@@ -1,3 +1,4 @@
+import { isDev } from '../../build/index.dev';
 import type { QContainerElement } from '../container/container';
 import { assertDefined } from '../error/assert';
 import { qError, QError_qrlIsNotFunction } from '../error/error';
@@ -181,6 +182,9 @@ export const createQRL = <TYPE>(
     dev: null,
     resolved: symbol == SYNC_QRL ? symbolRef : undefined,
   });
+  if (isDev) {
+    (qrl as any)._devOnlySymbolRef = symbolRef;
+  }
   if (qDev) {
     seal(qrl);
   }

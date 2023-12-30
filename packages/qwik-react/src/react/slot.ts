@@ -71,7 +71,11 @@ export class SlotElement extends Component {
 export const getReactProps = (props: Record<string, any>): Record<string, any> => {
   const obj: Record<string, any> = {};
   Object.keys(props).forEach((key) => {
-    if (!key.startsWith('client:') && !key.startsWith(HOST_PREFIX)) {
+    if (
+      !key.startsWith('client:') &&
+      !key.startsWith('qwik-client:') &&
+      !key.startsWith(HOST_PREFIX)
+    ) {
       const normalizedKey = key.endsWith('$') ? key.slice(0, -1) : key;
       obj[normalizedKey] = props[key];
     }
@@ -92,22 +96,40 @@ export const getHostProps = (props: Record<string, any>): Record<string, any> =>
 export const useWakeupSignal = (props: QwikifyProps<{}>, opts: QwikifyOptions = {}) => {
   const signal = useSignal(false);
   const activate = $(() => (signal.value = true));
-  const clientOnly = !!(props['client:only'] || opts?.clientOnly);
+  const clientOnly = !!(props['client:only'] || props['qwik-client:only'] || opts?.clientOnly);
+
+  /*
+    qwik-client:* is an alias so that it can be used in meta-frameworks that also use client:* directives.
+  */
+  const clientVisible =
+    props['client:visible'] || props['qwik-client:visible'] || opts?.eagerness === 'visible';
+
+  const clientIdle =
+    props['client:idle'] || props['qwik-client:idle'] || opts?.eagerness === 'idle';
+
+  const clientLoad =
+    props['client:load'] || props['qwik-client:load'] || clientOnly || opts?.eagerness === 'load';
+
+  const clientHover =
+    props['client:hover'] || props['qwik-client:hover'] || opts?.eagerness === 'hover';
+
+  const clientEvent = props['client:event'] || props['qwik-client:event'];
+
   if (isServer) {
-    if (props['client:visible'] || opts?.eagerness === 'visible') {
+    if (clientVisible) {
       useOn('qvisible', activate);
     }
-    if (props['client:idle'] || opts?.eagerness === 'idle') {
+    if (clientIdle) {
       useOnDocument('qidle', activate);
     }
-    if (props['client:load'] || clientOnly || opts?.eagerness === 'load') {
+    if (clientLoad) {
       useOnDocument('qinit', activate);
     }
-    if (props['client:hover'] || opts?.eagerness === 'hover') {
+    if (clientHover) {
       useOn('mouseover', activate);
     }
-    if (props['client:event']) {
-      useOn(props['client:event'], activate);
+    if (clientEvent) {
+      useOn(clientEvent, activate);
     }
     if (opts?.event) {
       useOn(opts?.event, activate);

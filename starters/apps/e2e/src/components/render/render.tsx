@@ -64,27 +64,23 @@ export const RenderChildren = component$<{ v: number }>(({ v }) => {
       <Issue2889 />
       <Issue3116 />
       <CounterToggle />
-
       <PropsDestructuring
         message="Hello"
         count={state.count}
         id="props-destructuring"
         aria-hidden="true"
       />
-
       <PropsDestructuringNo
         count={state.count}
         id="props-destructuring-no"
         aria-hidden="true"
       />
-
       <PropsDestructuring
         message="Count"
         count={state.count}
         id="props-destructuring-count"
         aria-count={state.count}
       />
-
       <IssueReorder />
       <Issue2414 />
       <Issue3178 />
@@ -109,6 +105,7 @@ export const RenderChildren = component$<{ v: number }>(({ v }) => {
       <Issue4386 />
       <Issue4455 />
       <Issue5266 />
+      <DynamicButton id="dynamic-button" />;
     </>
   );
 });
@@ -955,3 +952,21 @@ export const Issue5266 = component$(() => {
     </div>
   );
 });
+
+// needs to be a variable outside component scope to trigger the bug
+const buttonStyle = "btn";
+export const DynamicButton = component$<any>(
+  ({ isWhite, href, onClick$, id }: any) => {
+    const ComponentName = href ? "a" : "button";
+    return (
+      <ComponentName
+        id={id}
+        class={[buttonStyle, { white: isWhite }]}
+        href={href}
+        onClick$={onClick$}
+      >
+        <Slot />
+      </ComponentName>
+    );
+  },
+);

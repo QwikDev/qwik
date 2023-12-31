@@ -18,7 +18,7 @@ import {
   createSerializationContext,
   serialize,
   type SerializationContext,
-} from '../shared-serialialization';
+} from '../shared-serialization';
 
 export function ssrCreateContainer(
   opts: {

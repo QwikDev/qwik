@@ -106,8 +106,6 @@ export const deserialize = <T>(container: QContainer, value: any): any => {
       case SerializationConstant.Error_VALUE:
         const obj = container.getObjectById(parseInt(rest));
         return Object.assign(new Error(rest), obj);
-      case SerializationConstant.Document_VALUE:
-        return container.element.ownerDocument;
       case SerializationConstant.Component_VALUE:
         return componentQrl(parseQRL(container, rest) as any);
       case SerializationConstant.DerivedSignal_VALUE:
@@ -121,7 +119,11 @@ export const deserialize = <T>(container: QContainer, value: any): any => {
       case SerializationConstant.URLSearchParams_VALUE:
         return new URLSearchParams(rest);
       case SerializationConstant.FormData_VALUE:
-        throw new Error('Not implemented');
+        const formData = new FormData();
+        for (const [key, value] of container.getObjectById(parseInt(rest))) {
+          formData.append(key, value);
+        }
+        return formData;
       case SerializationConstant.JSXNode_VALUE:
         throw new Error('Not implemented');
       case SerializationConstant.BigInt_VALUE:
@@ -170,7 +172,6 @@ function parseQRL(container: QContainer, rest: string): QRL<any> {
 
 export interface SerializationContext {
   $containerElement$: Element | null;
-
   /**
    * Map from object to root index.
    *
@@ -349,7 +350,16 @@ export function serialize(serializationContext: SerializationContext): void {
         writeString(SerializationConstant.Error_CHAR + $addRoot$(errorProps));
       } else if ($Node$ && value instanceof $Node$) {
         writeString(SerializationConstant.VNode_CHAR + value.id);
-        // writeString(SerializationConstant.VNode_CHAR + value.id);
+      } else if (typeof FormData !== 'undefined' && value instanceof FormData) {
+        const array: [string, string][] = [];
+        value.forEach((value, key) => {
+          if (typeof value === 'string') {
+            array.push([key, value]);
+          } else {
+            array.push([key, value.name]);
+          }
+        });
+        writeString(SerializationConstant.FormData_CHAR + $addRoot$(array));
       } else if (value instanceof URLSearchParams) {
         writeString(SerializationConstant.URLSearchParams_CHAR + value.toString());
       } else if (value instanceof Set) {

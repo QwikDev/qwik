@@ -1,7 +1,7 @@
 /** @file Public APIs for the SSR */
 
 import { assertTrue } from '../../core/error/assert';
-import { deserialize } from '../shared-serialialization';
+import { deserialize } from '../shared-serialization';
 import type { Container, ContainerElement, VNode, QDocument, ElementVNode } from './types';
 import { vnode_newElement } from './vnode';
 

@@ -10,12 +10,12 @@ import { isStringifiable } from './shared-types';
 import { ssrCreateContainer, toSsrAttrs } from './ssr/ssr-container';
 import './vdom-diff.unit';
 import { vnode_getFirstChild, vnode_getProp, vnode_getText } from './client/vnode';
-import { isDeserializerProxy } from './shared-serialialization';
+import { isDeserializerProxy } from './shared-serialization';
 import { component$ } from '../core/component/component.public';
 import { inlinedQrl, qrl } from '../core/qrl/qrl';
 import type { QRLInternal } from '../core/qrl/qrl-class';
 import { SERIALIZABLE_STATE } from '../core/container/serializers';
-import { SsrNode, type SSRContainer } from './ssr/types';
+import { SsrNode, type SSRContainer, SsrFormData } from './ssr/types';
 
 describe('serializer v2', () => {
   describe('rendering', () => {
@@ -293,8 +293,10 @@ describe('serializer v2', () => {
       });
     });
     describe('FormDataSerializer, ///////// \u0016', () => {
-      it.todo('should serialize and deserialize', () => {
-        ///
+      it('should serialize and deserialize', () => {
+        const obj = new FormData();
+        obj.append('someKey', 'someValue');
+        expect(withContainer((ssr) => ssr.addRoot(obj)).getObjectById(0)).toEqual(obj);
       });
     });
     describe('JSXNodeSerializer, ////////// \u0017', () => {

@@ -2,7 +2,7 @@ import { createDocument } from '@builder.io/qwik-dom';
 import { $ } from '../core/qrl/qrl.public';
 import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
 import { describe, expect, it } from 'vitest';
-import { isJSXNode } from '../core/render/jsx/jsx-runtime';
+import { Fragment, JSXNodeImpl, isJSXNode } from '../core/render/jsx/jsx-runtime';
 import { getContainer, processVNodeData } from './client/dom-container';
 import type { Container, VNode } from './client/types';
 import type { Stringifiable } from './shared-types';
@@ -16,6 +16,7 @@ import { inlinedQrl, qrl } from '../core/qrl/qrl';
 import type { QRLInternal } from '../core/qrl/qrl-class';
 import { SERIALIZABLE_STATE } from '../core/container/serializers';
 import { SsrNode, type SSRContainer, SsrFormData } from './ssr/types';
+import { Slot } from '../core/render/jsx/slot.public';
 
 describe('serializer v2', () => {
   describe('rendering', () => {
@@ -300,8 +301,19 @@ describe('serializer v2', () => {
       });
     });
     describe('JSXNodeSerializer, ////////// \u0017', () => {
-      it.todo('should serialize and deserialize', () => {
-        ///
+      it('should serialize and deserialize', () => {
+        const obj = new JSXNodeImpl(
+          Fragment,
+          {},
+          {},
+          ['Hello World ', new JSXNodeImpl(Slot, {}, {}, [], 1)],
+          0
+        );
+        // <>
+        //   Hello World <Slot />
+        // </>
+
+        expect(withContainer((ssr) => ssr.addRoot(obj)).getObjectById(0)).toMatchObject(obj);
       });
     });
     describe('BigIntSerializer, /////////// \u0018', () => {

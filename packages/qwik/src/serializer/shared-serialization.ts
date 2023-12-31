@@ -7,6 +7,10 @@ import type { QContainer } from './client/dom-container';
 import type { StreamWriter } from '../server/types';
 import { SERIALIZABLE_STATE } from '../core/container/serializers';
 import { vnode_locate } from './client/vnode';
+import { Fragment, JSXNodeImpl, isJSXNode } from '../core/render/jsx/jsx-runtime';
+import type { FunctionComponent } from '@builder.io/qwik/jsx-runtime';
+import { Slot } from '../core/render/jsx/slot.public';
+import type { Container } from './client/types';
 
 const deserializedProxyMap = new WeakMap<any, any>();
 
@@ -125,7 +129,14 @@ export const deserialize = <T>(container: QContainer, value: any): any => {
         }
         return formData;
       case SerializationConstant.JSXNode_VALUE:
-        throw new Error('Not implemented');
+        const [type, props, immutableProps, children, flags] = rest.split(' ');
+        return new JSXNodeImpl(
+          deserializeJSXType(container, type),
+          container.getObjectById(props),
+          container.getObjectById(immutableProps),
+          container.getObjectById(children),
+          parseInt(flags)
+        );
       case SerializationConstant.BigInt_VALUE:
         return BigInt(rest);
       case SerializationConstant.Set_VALUE:
@@ -368,6 +379,13 @@ export function serialize(serializationContext: SerializationContext): void {
         const tuples: Array<[any, any]> = [];
         value.forEach((v, k) => tuples.push([k, v]));
         writeString(SerializationConstant.Map_CHAR + $addRoot$(tuples));
+      } else if (isJSXNode(value)) {
+        const type = writeString(
+          SerializationConstant.JSXNode_CHAR +
+            `${serializeJSXType($addRoot$, value.type)} ${$addRoot$(value.props)} ${$addRoot$(
+              value.immutableProps
+            )} ${$addRoot$(value.children)} ${value.flags}`
+        );
       } else {
         throw new Error('implement: ' + value);
       }
@@ -455,12 +473,12 @@ function isObjectLiteral(obj: any) {
 }
 
 const breakCircularDependencies = (serializationContext: SerializationContext, rootObj: any) => {
-  const discoveredValues: object[] = [rootObj];
-  let count = 100;
+  const discoveredValues: any[] = [rootObj];
+  // let count = 100;
   while (discoveredValues.length) {
-    if (count-- < 0) {
-      throw new Error('INFINITE LOOP');
-    }
+    // if (count-- < 0) {
+    //   throw new Error('INFINITE LOOP');
+    // }
     const obj = discoveredValues.pop();
     if (shouldTrackObj(obj)) {
       const isRoot = obj === rootObj;
@@ -477,6 +495,8 @@ const breakCircularDependencies = (serializationContext: SerializationContext, r
             discoveredValues.push(v);
             discoveredValues.push(k);
           });
+        } else if (isJSXNode(obj)) {
+          discoveredValues.push(obj.type, obj.props, obj.immutableProps, obj.children);
         } else {
           for (const key in obj) {
             if (Object.prototype.hasOwnProperty.call(obj, key)) {
@@ -552,3 +572,31 @@ const enum SerializationConstant {
   Map_VALUE = /* ------------------------- */ 0x1a,
   LAST_VALUE = /* ------------------------ */ 0x1b,
 }
+
+function serializeJSXType($addRoot$: (obj: any) => number, type: string | FunctionComponent<any>) {
+  if (typeof type === 'string') {
+    return type;
+  } else if (type === Slot) {
+    return ':slot';
+  } else if (type === Fragment) {
+    return ':fragment';
+  } else {
+    return $addRoot$(type);
+  }
+}
+
+function deserializeJSXType(container: Container, type: string): string | FunctionComponent<any> {
+  if (type === ':slot') {
+    return Slot;
+  } else if (type === ':fragment') {
+    return Fragment;
+  } else {
+    const ch = type.charCodeAt(0);
+    if (48 /* '0' */ <= ch && ch <= 57 /* '9' */) {
+      return container.getObjectById(type);
+    } else {
+      return type;
+    }
+  }
+}
+

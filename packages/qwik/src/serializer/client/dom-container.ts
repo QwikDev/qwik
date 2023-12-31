@@ -42,7 +42,10 @@ export class QContainer implements Container {
     this.stateData = deserialize(this, this.rawStateData);
   }
 
-  getObjectById(id: number): any {
+  getObjectById(id: number | string): any {
+    if (typeof id === 'string') {
+      id = parseFloat(id);
+    }
     assertTrue(id < this.rawStateData.length, 'Invalid reference');
     return this.stateData[id];
   }

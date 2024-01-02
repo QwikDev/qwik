@@ -147,7 +147,7 @@ test('command: build, mode: development', async () => {
   });
 });
 
-test.only('command: build, mode: production', async () => {
+test('command: build, mode: production', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };

@@ -107,24 +107,24 @@ export interface QwikLoaderOptions {
   position?: 'top' | 'bottom';
 }
 
-/** 
+/**
  * Options which determine how the Qwik Prefetch Service Worker is added to the document.
- * 
- * Qwik Prefetch Service Worker is used to prefetch resources so that the QwikLoader will
- * always have a cache hit. This will ensure that there will not be any delays for the end 
- * user while interacting with the application.
- * 
- * @public 
+ *
+ * Qwik Prefetch Service Worker is used to prefetch resources so that the QwikLoader will always
+ * have a cache hit. This will ensure that there will not be any delays for the end user while
+ * interacting with the application.
+ *
+ * @public
  */
 export interface QwikPrefetchServiceWorkerOptions {
   /**
-   * Should the Qwik Prefetch Service Worker be added to the container.
-   * Defaults to `false` until the QwikCity Service Worker is deprecated. 
+   * Should the Qwik Prefetch Service Worker be added to the container. Defaults to `false` until
+   * the QwikCity Service Worker is deprecated.
    */
   include?: boolean;
   /**
-   * Where should the Qwik Prefetch Service Worker be added to the container.
-   * Defaults to `top` to get prefetching going as fast as possible.
+   * Where should the Qwik Prefetch Service Worker be added to the container. Defaults to `top` to
+   * get prefetching going as fast as possible.
    */
   position?: 'top' | 'bottom';
 }

@@ -151,7 +151,6 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
           await opts.transformedModuleOutput(qwikPlugin.getTransformedOutputs());
         }
 
-       console.log('>>>>>>', 'CASE 1: Does this even run?');
         this.emitFile({
           type: 'asset',
           fileName: Q_MANIFEST_FILENAME,

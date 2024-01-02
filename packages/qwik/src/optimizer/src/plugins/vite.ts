@@ -1041,4 +1041,3 @@ export function convertManifestToBundleGraph(manifest: QwikManifest): QwikBundle
   }
   return bundleGraph;
 }
-

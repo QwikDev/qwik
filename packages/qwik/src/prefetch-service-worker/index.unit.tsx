@@ -13,8 +13,12 @@ describe('service-worker', () => {
       swScope.event.install!();
       expect(swScope.skipWaiting).toHaveBeenCalled();
 
-      await swScope.event.activate!();
+      const event = {
+        waitUntil: vi.fn(),
+      };
+      await swScope.event.activate!(event);
       expect(swScope.clients.claim).toHaveBeenCalled();
+      expect(event.waitUntil).toHaveBeenCalled();
       expect(swScope.caches.open).toHaveBeenCalledWith('QwikBundles');
       expect(swScope.event.fetch).toBeDefined();
       expect(swScope.event.message).toBeDefined();

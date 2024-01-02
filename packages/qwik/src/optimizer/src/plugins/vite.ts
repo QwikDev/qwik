@@ -541,12 +541,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             source: JSON.stringify(convertManifestToBundleGraph(manifest)),
           });
           const sys = qwikPlugin.getSys();
-          const path = qwikPlugin.getPath();
           const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
-          const workerScriptPath = path.join(
-            path.dirname(new URL(import.meta.url).pathname),
-            'qwik-prefetch.debug.js'
-          );
+          const workerScriptPath = (await this.resolve('@builder.io/qwik/qwik-prefetch.js'))!.id;
           const workerScript = await fs.promises.readFile(workerScriptPath, 'utf-8');
           this.emitFile({
             type: 'asset',

@@ -66,7 +66,7 @@
   },
   "private": true,
   "scripts": {
-    "build": "qwik build",
+    "build": "(cd ../.. && pnpm run build.local) && ./re-link-node_modules.sh && qwik build",
     "build.client": "vite build",
     "build.preview": "vite build --ssr src/entry.preview.tsx",
     "build.server": "vite build -c adapters/cloudflare-pages/vite.config.ts",

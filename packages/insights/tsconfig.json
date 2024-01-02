@@ -18,7 +18,8 @@
     "noEmit": true,
     "types": ["node", "vite/client"],
     "paths": {
-      "~/*": ["./src/*"]
+      "~/*": ["./src/*"],
+      "@builder.io/qwik-city/*": ["./node_modules/@builder.io/qwik-city/*"]
     }
   },
   "files": ["./.eslintrc.cjs", "vitest.config.ts"],

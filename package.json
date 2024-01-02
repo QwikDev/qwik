@@ -114,11 +114,13 @@
   "scripts": {
     "api.update": "tsm scripts/index.ts --tsc --api --dev",
     "build": "tsm scripts/index.ts --tsc --build --qwikcity --qwiklabs --api --platform-binding-wasm-copy",
+    "build.clean": "rm -rf packages/qwik/dist/ && rm -rf packages/qwik-city/lib/",
     "build.cli": "tsm scripts/index.ts --cli --dev",
     "build.cli.prod": "tsm scripts/index.ts --cli",
     "build.core": "tsm scripts/index.ts --tsc --build --qwikcity --platform-binding-wasm-copy",
     "build.eslint": "tsm scripts/index.ts --eslint",
     "build.full": "tsm scripts/index.ts --tsc --build --supabaseauthhelpers --api --eslint --qwikcity --qwikworker --qwiklabs --qwikreact --qwikauth --cli --platform-binding --wasm",
+    "build.local": "tsm scripts/index.ts --tsc --build --supabaseauthhelpers --api --eslint --qwikcity --qwikworker --qwiklabs --qwikreact --qwikauth --cli --platform-binding-wasm-copy",
     "build.only_javascript": "tsm scripts/index.ts --tsc --build --api",
     "build.platform": "tsm scripts/index.ts --platform-binding",
     "build.platform.copy": "tsm scripts/index.ts --platform-binding-wasm-copy",

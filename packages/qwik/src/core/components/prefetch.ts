@@ -45,7 +45,7 @@ export const PrefetchServiceWorker = (opts: {
   return _jsxC('script', props, 0, 'prefetch-service-worker');
 };
 
-const CODE = ((
+const CODE = /*#__PURE__*/ ((
   qc: HTMLElement,
   c: ServiceWorkerContainer,
   q: Array<any[]>,

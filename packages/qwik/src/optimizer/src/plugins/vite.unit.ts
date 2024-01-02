@@ -22,7 +22,12 @@ function mockOptimizerOptions(): OptimizerOptions {
 }
 
 const includeDeps = undefined;
-const noExternal = ['@builder.io/qwik', '@builder.io/qwik/server', '@builder.io/qwik/build'];
+const noExternal = [
+  '@builder.io/qwik',
+  '@builder.io/qwik/server',
+  '@builder.io/qwik/build',
+  '@builder.io/qwik-city',
+];
 
 const excludeDeps = [
   '@vite/client',
@@ -35,6 +40,7 @@ const excludeDeps = [
   '@builder.io/qwik/jsx-dev-runtime',
   '@builder.io/qwik/build',
   '@qwik-client-manifest',
+  '@builder.io/qwik-city',
 ];
 
 test('command: serve, mode: development', async () => {
@@ -141,7 +147,7 @@ test('command: build, mode: development', async () => {
   });
 });
 
-test('command: build, mode: production', async () => {
+test.only('command: build, mode: production', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };

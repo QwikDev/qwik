@@ -27,8 +27,6 @@
     "esbuild-plugin-raw": "^0.1.7"
   },
   "devDependencies": {
-    "@builder.io/qwik": "workspace:*",
-    "@builder.io/qwik-city": "workspace:*",
     "@builder.io/partytown": "^0.8.1",
     "@clack/prompts": "^0.7.0",
     "@mdx-js/mdx": "2.3.0",
@@ -131,8 +129,8 @@
     "build.vite": "tsm scripts/index.ts --tsc --build --qwikcity --qwiklabs --platform-binding-wasm-copy",
     "build.wasm": "tsm scripts/index.ts --wasm",
     "build.watch": "tsm scripts/index.ts --build  --qwikcity --watch --dev --platform-binding",
-    "build.packages.insights": "pnpm run build.local && tsm ./scripts/clean-up-packages.ts && pnpm -C ./packages/insights/ run build",
-    "build.packages.docs": "pnpm run build.local && tsm ./scripts/clean-up-packages.ts && pnpm -C ./packages/docs/ run build",
+    "build.packages.insights": "pnpm run build.local && tsm ./scripts/patch-workspace-packages.ts && pnpm -C ./packages/insights/ run build",
+    "build.packages.docs": "pnpm run build.local && tsm ./scripts/patch-workspace-packages.ts && pnpm -C ./packages/docs/ run build",
     "cli": "pnpm build.cli && node packages/create-qwik/dist/create-qwik.cjs && tsm scripts/validate-cli.ts --copy-local-qwik-dist",
     "cli.qwik": "pnpm build.cli && node packages/qwik/dist/qwik.cjs",
     "cli.validate": "tsm scripts/validate-cli.ts",

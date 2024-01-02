@@ -1,5 +1,5 @@
-import { $, Slot, component$, useContext, useTask$ } from '@builder.io/qwik';
-import { isBrowser, isServer } from '@builder.io/qwik/build';
+import { $, Slot, component$, useContext } from '@builder.io/qwik';
+import { isBrowser } from '@builder.io/qwik/build';
 import { Tab, TabList, TabPanel, Tabs } from '@qwik-ui/headless';
 import type { CookieOptions } from 'express';
 import { GlobalStore } from '../../context';
@@ -14,21 +14,6 @@ export interface IconProps {
   width?: number;
   height?: number;
 }
-
-const getCookie = (name: string) => {
-  const cookieName = name + '=';
-  const cookies = decodeURIComponent(document.cookie).split(';');
-  for (let i = 0; i < cookies.length; i++) {
-    let cookie = cookies[i];
-    while (cookie.charAt(0) == ' ') {
-      cookie = cookie.substring(1, cookie.length);
-    }
-    if (cookie.indexOf(cookieName) == 0) {
-      return cookie.substring(cookieName.length, cookie.length);
-    }
-  }
-  return null;
-};
 
 const setCookie = (name: string, value: string, options: CookieOptions = {}) => {
   let cookieString = `${name}=${encodeURIComponent(value)}`;
@@ -45,24 +30,6 @@ const setCookie = (name: string, value: string, options: CookieOptions = {}) => 
 
 export default component$(() => {
   const globalStore = useContext(GlobalStore);
-
-  useTask$(({ track }) => {
-    if (isServer) {
-      return;
-    }
-    track(() => globalStore.pkgManager);
-    const packageManager = getCookie('packageManager') as PackageManagers;
-    if (!packageManager) {
-      setCookie('packageManager', 'npm', {
-        maxAge: 60 * 60 * 24 * 30,
-        sameSite: 'strict',
-        path: '/',
-        secure: true,
-      });
-      return;
-    }
-    globalStore.pkgManager = packageManager;
-  });
 
   const handleTabChange = $((manager: string) => {
     if (isBrowser) {

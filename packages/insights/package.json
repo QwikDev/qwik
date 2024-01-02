@@ -44,8 +44,7 @@
   },
   "private": true,
   "scripts": {
-    "build": "(cd ../qwik-labs && pnpm run build) && node scripts/db.migrate.cjs && qwik build",
-    "build.ci": "(cd ../.. && pnpm run build.local) && ./re-link-node_modules.sh && (cd ../qwik-labs && pnpm run build) && qwik build",
+    "build": "qwik build",
     "build.client": "vite build",
     "build.preview": "vite build --ssr src/entry.preview.tsx",
     "build.server": "vite build -c adapters/netlify-edge/vite.config.ts",

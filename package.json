@@ -130,6 +130,8 @@
     "build.vite": "tsm scripts/index.ts --tsc --build --qwikcity --qwiklabs --platform-binding-wasm-copy",
     "build.wasm": "tsm scripts/index.ts --wasm",
     "build.watch": "tsm scripts/index.ts --build  --qwikcity --watch --dev --platform-binding",
+    "build.packages.insights": "pnpm run build.local && (cd ./packages/insights/ && re-link-node_modules.sh && pnpm run build)",
+    "build.packages.docs": "pnpm run build.local && (cd ./packages/docs/ && re-link-node_modules.sh && pnpm run build)",
     "cli": "pnpm build.cli && node packages/create-qwik/dist/create-qwik.cjs && tsm scripts/validate-cli.ts --copy-local-qwik-dist",
     "cli.qwik": "pnpm build.cli && node packages/qwik/dist/qwik.cjs",
     "cli.validate": "tsm scripts/validate-cli.ts",

@@ -354,8 +354,7 @@ jobs:
 
       - name: Build Qwik Insights
         if: ${{ needs.changes.outputs.insightsbuild == 'true' }}
-        working-directory: packages/insights
-        run: pnpm run build.ci
+        run: pnpm run build.packages.insights
 
   ############ BUILD DOCS ############
   build-docs:
@@ -385,8 +384,7 @@ jobs:
 
       - name: Build Qwik Docs
         if: ${{ needs.changes.outputs.docsbuild == 'true' }}
-        working-directory: packages/docs
-        run: pnpm run build
+        run: pnpm run build.packages.docs
 
   ############ BUILD DISTRIBUTION ############
   build-distribution:
@@ -660,6 +658,9 @@ jobs:
 
       - name: Install NPM Dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Build core
+        run: pnpm run build.core
 
       - name: Unit Tests
         run: pnpm run test.unit

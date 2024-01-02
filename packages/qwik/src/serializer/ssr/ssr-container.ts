@@ -19,6 +19,9 @@ import {
   serialize,
   type SerializationContext,
 } from '../shared-serialization';
+import { TagNesting, allowedContent, initialTag, isTagAllowed } from './tag-nesting';
+import { isDev } from '../../build/index.dev';
+import type { ContentHeading } from '@builder.io/qwik-city';
 
 export function ssrCreateContainer(
   opts: {
@@ -43,6 +46,7 @@ class StringBufferWriter {
 }
 
 interface ContainerElementFrame {
+  tagNesting: TagNesting;
   parent: ContainerElementFrame | null;
   /** Element name. */
   elementName: string;
@@ -245,7 +249,52 @@ class SSRContainer implements ISSRContainer {
   }
 
   private pushFrame(tag: string, depthFirstElementIdx: number, isElement: boolean) {
+    let tagNesting: TagNesting = TagNesting.ANYTHING;
+    if (isDev) {
+      if (tag !== tag.toLowerCase()) {
+        throw newTagError(`Tag '${tag}' must be lower case, because HTML is case insensitive.`);
+      }
+      if (!this.currentElementFrame) {
+        tagNesting = initialTag(tag);
+      } else {
+        let frame: ContainerElementFrame | null = this.currentElementFrame;
+        const previousTagNesting = frame!.tagNesting;
+        tagNesting = isTagAllowed(previousTagNesting, tag);
+        if (tagNesting === TagNesting.NOT_ALLOWED) {
+          const frames: ContainerElementFrame[] = [];
+          while (frame) {
+            frames.unshift(frame);
+            frame = frame.parent;
+          }
+          const text: string[] = [
+            `HTML rules do not allow '<${tag}>' at this location.`,
+            `  (The HTML parser will try to recover by auto-closing or inserting additional tags which will confuse Qwik when it resumes.)`,
+            `  Offending tag: <${tag}>`,
+            `  Existing tag context:`,
+          ];
+          let indent = '    ';
+          let lastName = '';
+          for (const frame of frames) {
+            const [name, example] = allowedContent(frame.tagNesting);
+            text.push(
+              `${indent}<${frame.elementName}>${
+                lastName !== name ? ` [${name}]${example ? ` -> ${example}` : ''}` : ''
+              }`
+            );
+            lastName = name;
+            indent += ' ';
+          }
+          text.push(
+            `${indent}<${tag}> <= is not allowed as a child of ${
+              allowedContent(previousTagNesting)[0]
+            }.`
+          );
+          throw newTagError(text.join('\n'));
+        }
+      }
+    }
     const frame: ContainerElementFrame = {
+      tagNesting: tagNesting,
       parent: this.currentElementFrame,
       elementName: tag,
       depthFirstElementIdx: depthFirstElementIdx,
@@ -300,3 +349,7 @@ export function toSsrAttrs(record: Record<string, Stringifiable>): SsrAttrs {
   }
   return ssrAttrs;
 }
+function newTagError(text: string) {
+  return new Error('SsrError(tag): ' + text);
+}
+

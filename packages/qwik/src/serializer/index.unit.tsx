@@ -15,7 +15,7 @@ import { component$ } from '../core/component/component.public';
 import { inlinedQrl, qrl } from '../core/qrl/qrl';
 import type { QRLInternal } from '../core/qrl/qrl-class';
 import { SERIALIZABLE_STATE } from '../core/container/serializers';
-import { SsrNode, type SSRContainer, SsrFormData } from './ssr/types';
+import { SsrNode, type SSRContainer } from './ssr/types';
 import { Slot } from '../core/render/jsx/slot.public';
 
 describe('serializer v2', () => {
@@ -373,10 +373,72 @@ describe('serializer v2', () => {
       });
     });
   });
+
+  describe('events', () => {
+    it.todo('should serialize events');
+  });
+
+  describe('element nesting rules', () => {
+    it('should throw when tags not lowercase', () => {
+      expect(() => withContainer((ssr) => {}, { containerTag: 'HTML' })).toThrowError(
+        "SsrError(tag): Tag 'HTML' must be lower case, because HTML is case insensitive."
+      );
+    });
+    it('should throw when incorrectly nested elements', () => {
+      expect(() =>
+        withContainer(
+          (ssr) => {
+            ssr.openElement('body', []);
+            ssr.openElement('p', []);
+            ssr.openFragment();
+            ssr.openElement('b', []);
+            ssr.openElement('div', []);
+          },
+          { containerTag: 'html' }
+        )
+      ).toThrowError(
+        [
+          `SsrError(tag): HTML rules do not allow '<div>' at this location.`,
+          `  (The HTML parser will try to recover by auto-closing or inserting additional tags which will confuse Qwik when it resumes.)`,
+          `  Offending tag: <div>`,
+          `  Existing tag context:`,
+          `    <html> [html content] -> <head>, <body>`,
+          `     <body> [any content]`,
+          `      <p> [phrasing content] -> <a>, <b>, <img>, <input> ... (no <div>, <p> ...)`,
+          `       <b>`,
+          `        <div> <= is not allowed as a child of phrasing content.`,
+        ].join('\n')
+      );
+    });
+    it('should throw when adding content to empty elements', () => {
+      expect(() =>
+        withContainer((ssr) => {
+          ssr.openElement('img', []);
+          ssr.openFragment();
+          ssr.openElement('div', []);
+        })
+      ).toThrowError(
+        [
+          `SsrError(tag): HTML rules do not allow '<div>' at this location.`,
+          `  (The HTML parser will try to recover by auto-closing or inserting additional tags which will confuse Qwik when it resumes.)`,
+          `  Offending tag: <div>`,
+          `  Existing tag context:`,
+          `    <div> [any content]`,
+          `     <img> [no-content element]`,
+          `      <div> <= is not allowed as a child of no-content element.`,
+        ].join('\n')
+      );
+    });
+  });
 });
 
-function withContainer(ssrFn: (ssrContainer: SSRContainer) => void): Container {
-  const ssrContainer = ssrCreateContainer();
+function withContainer(
+  ssrFn: (ssrContainer: SSRContainer) => void,
+  opts?: { containerTag?: string } = {}
+): Container {
+  const ssrContainer = ssrCreateContainer({
+    tagName: opts.containerTag || 'div',
+  });
   ssrContainer.openContainer();
   ssrFn(ssrContainer);
   ssrContainer.closeContainer();

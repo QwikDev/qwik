@@ -58,6 +58,7 @@
       ],
       "@builder.io/qwik-city/static": ["packages/qwik-city/static/index.ts"],
       "@builder.io/qwik-city/vite": ["packages/qwik-city/buildtime/vite/index"],
+      "@builder.io/qwik-labs": ["packages/qwik-labs/src/index.ts"],
       "@examples-data": ["packages/docs/src/routes/examples/apps/examples-data.ts"],
       "@playground-data": ["packages/docs/src/routes/playground/playground-data.ts"],
       "@tutorial-data": ["packages/docs/src/routes/tutorial/tutorial-data.ts"],

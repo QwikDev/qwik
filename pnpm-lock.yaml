@@ -27,6 +27,9 @@ importers:
       '@builder.io/qwik':
         specifier: workspace:*
         version: link:packages/qwik
+      '@builder.io/qwik-city':
+        specifier: workspace:*
+        version: link:packages/qwik-city
       '@clack/prompts':
         specifier: ^0.7.0
         version: 0.7.0

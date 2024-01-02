@@ -21,7 +21,10 @@ node_modules.forEach((dir) => {
   );
 
   const qwikBin = join(node_modules, '.bin', 'qwik');
-  const qwikBinContent = readFileSync(qwikBin).toString();
-  writeFileSync(qwikBin, qwikBinContent.replaceAll(/qwik\/dist\/qwik/gim, 'qwik/qwik'));
+  try {
+    const qwikBinContent = readFileSync(qwikBin).toString();
+    writeFileSync(qwikBin, qwikBinContent.replaceAll(/qwik\/dist\/qwik/gim, 'qwik/qwik'));
+  } catch (e) {
+    console.log('Not found:', qwikBin);
+  }
 });
-

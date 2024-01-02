@@ -18,7 +18,7 @@ suite('sync-qrl', () => {
     await render(
       <input
         type="checkbox"
-        onclick$={[
+        onClick$={[
           sync$((e: Event, target: Element) => {
             if (target.getAttribute('shouldPreventDefault')) {
               e.preventDefault();
@@ -41,7 +41,7 @@ suite('sync-qrl', () => {
     const response = await renderToString(
       <input
         type="checkbox"
-        onclick$={[
+        onClick$={[
           sync$(function (e: Event, target: Element) {
             if (target.getAttribute('shouldPreventDefault')) {
               e.preventDefault();

@@ -103,21 +103,21 @@ const _verifySerializable = <T>(value: T, seen: Set<any>, ctx: string, preMessag
   }
   return value;
 };
-const noSerializeSet = /*#__PURE__*/ new WeakSet<any>();
-const weakSerializeSet = /*#__PURE__*/ new WeakSet<any>();
+const noSerializeSet = /*#__PURE__*/ new WeakSet<object>();
+const weakSerializeSet = /*#__PURE__*/ new WeakSet<object>();
 
-export const shouldSerialize = (obj: any): boolean => {
+export const shouldSerialize = (obj: unknown): boolean => {
   if (isObject(obj) || isFunction(obj)) {
     return !noSerializeSet.has(obj);
   }
   return true;
 };
 
-export const fastSkipSerialize = (obj: any): boolean => {
+export const fastSkipSerialize = (obj: object): boolean => {
   return noSerializeSet.has(obj);
 };
 
-export const fastWeakSerialize = (obj: any): boolean => {
+export const fastWeakSerialize = (obj: object): boolean => {
   return weakSerializeSet.has(obj);
 };
 

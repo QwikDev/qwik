@@ -24,6 +24,13 @@ import type { Signal } from '../state/signal';
 
 declare const document: QwikDocument;
 
+// Simplified version of `ServerRequestEvent` from `@builder.io/qwik-city` package.
+export interface SimplifiedServerRequestEvent<T = unknown> {
+  url: URL;
+  locale: string | undefined;
+  request: Request;
+}
+
 export interface StyleAppend {
   styleId: string;
   content: string | null;
@@ -38,7 +45,7 @@ export interface ServerRequestEvent<T = unknown> {
 
 export type PossibleEvents =
   | Event
-  | ServerRequestEvent
+  | SimplifiedServerRequestEvent
   | typeof TaskEvent
   | typeof RenderEvent
   | typeof ComputedEvent

@@ -4,11 +4,11 @@ import styles from "./next-steps.module.css";
 export const GETTING_STARTED_STEPS = [
   {
     message:
-      "Press and hold the <b>ALT</b> key to activate 'Click-to-Source' mode",
+      "Press and hold the <b>ALT/Option</b> key to activate 'Click-to-Source' mode",
   },
   {
     message:
-      "Select the title of this page while keeping the <b>ALT</b> key pressed",
+      "Select the title of this page while keeping the <b>ALT/Option</b> key pressed",
     hint: 'Edit the title and save the changes. If your editor does not open, have a look at <a href="https://github.com/yyx990803/launch-editor#supported-editors" target="_blank">this page</a> to set the correct <code>LAUNCH_EDITOR</code> value.',
   },
   {

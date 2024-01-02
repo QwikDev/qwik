@@ -26,7 +26,13 @@
   "dependencies": {
     "esbuild-plugin-raw": "^0.1.7"
   },
+  "comments": {
+    "01": "devDependencies includes reference to @builder.io/qwik: workspace: *. This is needed or e2e tests will fail",
+    "02": "  It would be nice to be able to remove this dependency and fix the test.",
+    "03": "devDependencies can't include reference to @builder.io/qwik-city or e2e test will fail."
+  },
   "devDependencies": {
+    "@builder.io/qwik": "workspace:*",
     "@builder.io/partytown": "^0.8.1",
     "@clack/prompts": "^0.7.0",
     "@mdx-js/mdx": "2.3.0",

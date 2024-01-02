@@ -27,6 +27,7 @@
     "esbuild-plugin-raw": "^0.1.7"
   },
   "devDependencies": {
+    "@builder.io/qwik": "workspace:*",
     "@builder.io/partytown": "^0.8.1",
     "@clack/prompts": "^0.7.0",
     "@mdx-js/mdx": "2.3.0",

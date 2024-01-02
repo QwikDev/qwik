@@ -19,7 +19,8 @@
     "types": ["node", "vite/client"],
     "paths": {
       "~/*": ["./src/*"],
-      "@builder.io/qwik-city/*": ["./node_modules/@builder.io/qwik-city/*"]
+      "@builder.io/qwik-city/*": ["./node_modules/@builder.io/qwik-city/*"],
+      "@builder.io/qwik-labs": ["../qwik-labs/src/index.ts"]
     }
   },
   "files": ["./.eslintrc.cjs", "vitest.config.ts"],

@@ -582,7 +582,14 @@ export interface ParamHTMLAttributes<T extends Element> extends Attrs<'base', T,
 // @internal
 export const _pauseFromContexts: (allContexts: QContext[], containerState: ContainerState, fallbackGetObjId?: GetObjID, textNodes?: Map<string, string>) => Promise<SnapshotResult>;
 
-// @alpha (undocumented)
+// @alpha
+export const PrefetchGraph: (opts?: {
+    base?: string;
+    manifestHash?: string;
+    manifestURL?: string;
+}) => JSXNode_2<"script">;
+
+// @alpha
 export const PrefetchServiceWorker: (opts: {
     base?: string;
     path?: string;

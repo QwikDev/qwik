@@ -1,6 +1,10 @@
 /** @file Public APIs for the SSR */
-import type { StreamWriter } from '../../server/types';
-import { SsrNode, type SSRContainer as ISSRContainer, type SsrAttrs } from './types';
+import {
+  SsrNode,
+  type SSRContainer as ISSRContainer,
+  type SsrAttrs,
+  type StreamWriter,
+} from './types';
 import {
   CLOSE_FRAGMENT,
   OPEN_FRAGMENT,
@@ -19,10 +23,10 @@ import {
   type SerializationContext,
 } from '../shared-serialization';
 import { TagNesting, allowedContent, initialTag, isTagAllowed } from './tag-nesting';
-import { isDev } from '../../build/index.dev';
-import { throwErrorAndStop } from '../../core/util/log';
-import { assertDefined, assertTrue } from '../../core/error/assert';
-import { ELEMENT_ID, ELEMENT_KEY, QScopedStyle, QSlotRef } from '../../core/util/markers';
+import { throwErrorAndStop } from '../../util/log';
+import { assertDefined, assertTrue } from '../../error/assert';
+import { ELEMENT_ID, ELEMENT_KEY, QScopedStyle, QSlotRef } from '../../util/markers';
+import { isDev } from '../../../build';
 
 export function ssrCreateContainer(
   opts: {

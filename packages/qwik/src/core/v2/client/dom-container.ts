@@ -1,8 +1,8 @@
 /** @file Public APIs for the SSR */
 
-import { createContainerState, type ContainerState } from '../../core/container/container';
-import { assertTrue } from '../../core/error/assert';
-import { throwErrorAndStop } from '../../core/util/log';
+import { createContainerState, type ContainerState } from '../../container/container';
+import { assertTrue } from '../../error/assert';
+import { throwErrorAndStop } from '../../util/log';
 import { deserialize } from '../shared-serialization';
 import type {
   ClientContainer as IClientContainer,

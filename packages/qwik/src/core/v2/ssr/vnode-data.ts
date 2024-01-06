@@ -1,5 +1,5 @@
-import { assertEqual } from '../../core/error/assert';
-import { EMPTY_ARRAY } from '../../core/util/flyweight';
+import { assertEqual } from '../../error/assert';
+import { EMPTY_ARRAY } from '../../util/flyweight';
 import { SsrNode, type SsrAttrs, type SsrNodeType } from './types';
 
 /**

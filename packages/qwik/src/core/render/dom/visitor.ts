@@ -96,8 +96,8 @@ import {
   setProperty,
   setPropertyPost,
 } from './operations';
-import { vnode_locate } from 'packages/qwik/src/serializer/client/vnode';
-import type { ContainerElement } from 'packages/qwik/src/serializer/client/types';
+import type { ContainerElement } from '../../v2/client/types';
+import { vnode_locate } from '../../v2/client/vnode';
 
 export const SVG_NS = 'http://www.w3.org/2000/svg';
 

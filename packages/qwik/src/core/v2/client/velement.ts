@@ -1,6 +1,6 @@
-import type { ProcessedJSXNode } from '../../core/render/dom/render-dom';
-import type { Signal } from '../../core/state/signal';
-import { ELEMENT_ID } from '../../core/util/markers';
+import type { ProcessedJSXNode } from '../../render/dom/render-dom';
+import type { Signal } from '../../state/signal';
+import { ELEMENT_ID } from '../../util/markers';
 import { Flags, type VNode } from './types';
 import {
   vnode_getElementName,

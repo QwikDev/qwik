@@ -1,12 +1,12 @@
 import { Fragment, type JSXNode } from '@builder.io/qwik/jsx-runtime';
 import { isPromise } from 'util/types';
-import { isQwikComponent } from '../../core/component/component.public';
-import { Slot } from '../../core/render/jsx/slot.public';
-import { isQrl } from '../../server/prefetch-strategy';
+import { isQwikComponent } from '../../component/component.public';
+import { Slot } from '../../render/jsx/slot.public';
 import { qrlToString, type SerializationContext } from '../shared-serialization';
 import type { Stringifiable } from '../shared-types';
 import { applyInlineComponent, applyQwikComponent } from './ssr-render-component';
 import type { SSRContainer, SsrAttrs } from './types';
+import { isQrl } from '../../qrl/qrl-class';
 
 export async function ssrRenderToContainer(ssr: SSRContainer, jsx: JSXNode | JSXNode[]) {
   ssr.openContainer();

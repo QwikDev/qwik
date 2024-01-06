@@ -1,8 +1,8 @@
 import { createDocument } from '@builder.io/qwik-dom';
-import { $ } from '../core/qrl/qrl.public';
+import { $ } from '../qrl/qrl.public';
 import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
 import { describe, expect, it } from 'vitest';
-import { Fragment, JSXNodeImpl, isJSXNode } from '../core/render/jsx/jsx-runtime';
+import { Fragment, JSXNodeImpl, isJSXNode } from '../render/jsx/jsx-runtime';
 import { getDomContainer, processVNodeData } from './client/dom-container';
 import type { ClientContainer, VNode } from './client/types';
 import type { Stringifiable } from './shared-types';
@@ -11,12 +11,12 @@ import { ssrCreateContainer } from './ssr/ssr-container';
 import './vdom-diff.unit';
 import { vnode_getFirstChild, vnode_getProp, vnode_getText } from './client/vnode';
 import { isDeserializerProxy } from './shared-serialization';
-import { component$ } from '../core/component/component.public';
-import { inlinedQrl, qrl } from '../core/qrl/qrl';
-import type { QRLInternal } from '../core/qrl/qrl-class';
-import { SERIALIZABLE_STATE } from '../core/container/serializers';
+import { component$ } from '../component/component.public';
+import { inlinedQrl, qrl } from '../qrl/qrl';
+import type { QRLInternal } from '../qrl/qrl-class';
+import { SERIALIZABLE_STATE } from '../container/serializers';
 import { SsrNode, type SSRContainer } from './ssr/types';
-import { Slot } from '../core/render/jsx/slot.public';
+import { Slot } from '../render/jsx/slot.public';
 import { toSsrAttrs } from './ssr/ssr-render';
 
 describe('serializer v2', () => {
@@ -443,7 +443,7 @@ describe('serializer v2', () => {
       expect(() =>
         withContainer((ssr) => {
           ssr.openElement('img', []);
-          ssr.openFragment();
+          ssr.openFragment([]);
           ssr.openElement('div', []);
         })
       ).toThrowError(
@@ -509,8 +509,9 @@ function toHTML(jsx: JSXNode): string {
 
 function toDOM(html: string): HTMLElement {
   const document = createDocument();
+  console.log('HTML', html);
   document.body.innerHTML = html;
-  processVNodeData(document);
+  // processVNodeData(document);
   return document.body.firstElementChild! as HTMLElement;
 }
 

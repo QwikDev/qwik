@@ -1,9 +1,13 @@
 /** @file Public types for the SSR */
 
+import { isDev } from '@builder.io/qwik/build';
+import type { SerializationContext } from '../shared-serialization';
+import { mapArray_get, mapArray_set } from '../client/vnode';
 
 export interface SSRContainer {
   tag: string;
   writer: StreamWriter;
+  serializationCtx: SerializationContext;
 
   openContainer(): void;
   closeContainer(): void;
@@ -11,7 +15,7 @@ export interface SSRContainer {
   openElement(tag: string, attrs: SsrAttrs): void;
   closeElement(): void;
 
-  openFragment(): void;
+  openFragment(attrs: SsrAttrs): void;
   closeFragment(): void;
 
   textNode(text: string): void;
@@ -46,9 +50,24 @@ export class SsrNode {
    */
   public id: string;
 
-  constructor(nodeType: SsrNodeType, id: string) {
+  constructor(
+    nodeType: SsrNodeType,
+    id: string,
+    private attrs: SsrAttrs
+  ) {
     this.nodeType = nodeType;
     this.id = id;
+    if (isDev && id.indexOf('undefined') != -1) {
+      throw new Error(`Invalid SSR node id: ${id}`);
+    }
+  }
+
+  getAttribute(name: string): string | null {
+    return mapArray_get(this.attrs, name, 0);
+  }
+
+  setAttribute(name: string, value: string | null): void {
+    mapArray_set(this.attrs, name, value, 0);
   }
 }
 

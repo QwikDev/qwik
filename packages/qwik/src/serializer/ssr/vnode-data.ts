@@ -1,13 +1,15 @@
-import { SsrNode, type SsrNodeType } from './types';
+import { assertEqual } from '../../core/error/assert';
+import { EMPTY_ARRAY } from '../../core/util/flyweight';
+import { SsrNode, type SsrAttrs, type SsrNodeType } from './types';
 
 /**
  * Array of numbers which describes virtual nodes in the tree.
  *
  * HTML can't account for:
  *
- * - Multiple text nodes in a row. (it trets it as a single text node)
+ * - Multiple text nodes in a row. (it treats it as a single text node)
  * - Empty text nodes. (it ignores them)
- * - And virtual nods such as `</>` or `<MyComponent/>`
+ * - And virtual nodes such as `<Fragment/>` or `<MyComponent/>`
  *
  * So we need to encode all of that information into the VNodeData.
  *
@@ -16,17 +18,21 @@ import { SsrNode, type SsrNodeType } from './types';
  * - First position is special and encodes state information and stores VNodeDataFlag.
  * - Positive numbers are text node lengths. (0 is a special case for empty text node)
  * - Negative numbers are element counts.
- * - Number.MAX_SAFE_INTEGER is start of virtual node.
- * - Number.MIN_SAFE_INTEGER is end of virtual node.
+ * - `OPEN_FRAGMENT` is start of virtual node.
+ *
+ *   - If `OPEN_FRAGMENT` than the previous node is an `Array` which contains the props (see
+ *       `SsrAttrs`). NOTE: The array is never going to be the last item in the VNodeData, so we can
+ *       always assume that the last item in `vNodeData` is a number.
+ * - `CLOSE_FRAGMENT` is end of virtual node.
  *
  * NOTE: This is how we store the information during the SSR streaming, once the SSR is complete
  * this data needs to be serialized into a string and stored in the DOM as a script tag which has
  * deferent serialization format.
  */
-export type VNodeData = [VNodeDataFlag, ...number[]];
+export type VNodeData = [VNodeDataFlag, ...(SsrAttrs | number)[]];
 
 export const OPEN_FRAGMENT = Number.MAX_SAFE_INTEGER;
-export const CLOSE_FRAGMENT = Number.MIN_SAFE_INTEGER;
+export const CLOSE_FRAGMENT = Number.MAX_SAFE_INTEGER - 1;
 
 /// Flags for VNodeData (Flags con be bitwise combined)
 export const enum VNodeDataFlag {
@@ -42,8 +48,9 @@ export const enum VNodeDataFlag {
 
 export function vNodeData_incrementElementCount(vNodeData: VNodeData) {
   const length = vNodeData.length;
-  const lastValue = length > 1 ? vNodeData[length - 1] : 0;
-  if (lastValue >= 0 || lastValue === CLOSE_FRAGMENT) {
+  // NOTE: last item in the `vNodeData` is always a number.
+  const lastValue = length > 1 ? (vNodeData[length - 1] as number) : 0;
+  if (lastValue >= 0) {
     // positive numbers are text node lengths.
     // So we just add -1 to indicate that we now have one element after text node
     vNodeData.push(-1);
@@ -56,7 +63,9 @@ export function vNodeData_incrementElementCount(vNodeData: VNodeData) {
 
 export function vNodeData_addTextSize(vNodeData: VNodeData, size: number) {
   const length = vNodeData.length;
-  if (length > 1 && vNodeData[length - 1] >= 0) {
+  // NOTE: last item in the `vNodeData` is always a number.
+  const lastValue = length > 1 ? (vNodeData[length - 1] as number) : 0;
+  if (length > 1 && lastValue >= 0) {
     // previous item was text node, so we must update the flag
     vNodeData[0] |= VNodeDataFlag.TEXT_DATA;
   }
@@ -67,8 +76,8 @@ export function vNodeData_addTextSize(vNodeData: VNodeData, size: number) {
   }
 }
 
-export function vNodeData_openFragment(vNodeData: VNodeData) {
-  vNodeData.push(OPEN_FRAGMENT);
+export function vNodeData_openFragment(vNodeData: VNodeData, attrs: SsrAttrs) {
+  vNodeData.push(attrs, OPEN_FRAGMENT);
   vNodeData[0] |= VNodeDataFlag.VIRTUAL_NODE;
 }
 export function vNodeData_closeFragment(vNodeData: VNodeData) {
@@ -82,18 +91,23 @@ export function vNodeData_createSsrNodeReference(
   vNodeData[0] |= VNodeDataFlag.REFERENCE;
   if (vNodeData.length == 1) {
     // Special case where we are referring to the Element directly. No need to descend into the tree.
-    return new SsrNode(SsrNode.ELEMENT_NODE, String(depthFirstElementIdx));
+    return new SsrNode(SsrNode.ELEMENT_NODE, String(depthFirstElementIdx), EMPTY_ARRAY);
   } else {
+    let fragmentAttrs: SsrAttrs = EMPTY_ARRAY;
     const stack: (SsrNodeType | number)[] = [SsrNode.ELEMENT_NODE, -1];
     // We are referring to a virtual node. We need to descend into the tree to find the path to the node.
     for (let i = 1; i < vNodeData.length; i++) {
       const value = vNodeData[i];
-      if (value === OPEN_FRAGMENT) {
+      if (Array.isArray(value)) {
+        fragmentAttrs = value as SsrAttrs;
+        i++; // skip the `OPEN_FRAGMENT` value
+        assertEqual(vNodeData[i], OPEN_FRAGMENT, 'OPEN_FRAGMENT EXPECTED');
         stack[stack.length - 1]++;
         stack.push(SsrNode.DOCUMENT_FRAGMENT_NODE, -1);
       } else if (value === CLOSE_FRAGMENT) {
         stack.pop(); // pop count
         stack.pop(); // pop nodeType
+        fragmentAttrs = EMPTY_ARRAY;
       } else if (value < 0) {
         // Negative numbers are element counts.
         const numberOfElements = 0 - value;
@@ -107,10 +121,13 @@ export function vNodeData_createSsrNodeReference(
     }
     let refId = String(depthFirstElementIdx);
     for (let i = 1; i < stack.length; i += 2) {
-      refId += encodeAsAlphanumeric(stack[i]);
+      const childCount = stack[i] as number;
+      if (childCount >= 0) {
+        refId += encodeAsAlphanumeric(childCount);
+      }
     }
     const type = stack[stack.length - 2] as SsrNodeType;
-    return new SsrNode(type, refId);
+    return new SsrNode(type, refId, fragmentAttrs);
   }
 }
 

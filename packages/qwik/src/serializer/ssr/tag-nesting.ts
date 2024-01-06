@@ -21,7 +21,8 @@ export const enum TagNesting {
   ANYTHING = /* ------- */ 0b0000_0000_0000_1010,
   HTML = /* ----------- */ 0b0000_0000_0010_0000,
   HEAD = /* ----------- */ 0b0000_0000_0100_0000,
-  PHRASING = /* ------- */ 0b0000_0000_1000_0010,
+  BODY = /* ----------- */ 0b0000_0000_1000_0010,
+  PHRASING = /* ------- */ 0b0000_0001_0000_0010,
   /** Table related tags. */
   TABLE = /* ---------- */ 0b0001_0000_0000_0000,
   TABLE_BODY = /* ----- */ 0b0010_0000_0000_0000,
@@ -42,6 +43,8 @@ export const allowedContent = (state: TagNesting): [string, string | null] => {
         'head content',
         '<title>, <script>, <noscript>, <style>, <meta>, <link>, <base>, <template>',
       ];
+    case TagNesting.BODY:
+      return ['body content', 'all tags allowed here'];
     case TagNesting.EMPTY:
       return ['no-content element', null];
     case TagNesting.ANYTHING:
@@ -68,7 +71,7 @@ export const initialTag = (tag: string) => {
     case 'head':
       return TagNesting.HEAD;
     case 'body':
-      return TagNesting.ANYTHING;
+      return TagNesting.BODY;
     default:
       return isTagAllowed(TagNesting.ANYTHING, tag);
   }
@@ -84,6 +87,7 @@ export function isTagAllowed(state: number, tag: string): number {
       return isInHtml(tag);
     case TagNesting.HEAD:
       return isInHead(tag);
+    case TagNesting.BODY:
     case TagNesting.ANYTHING:
       return isInAnything(tag);
     case TagNesting.TABLE:
@@ -109,7 +113,7 @@ function isInHtml(text: string): number {
     case 'head':
       return TagNesting.HEAD;
     case 'body':
-      return TagNesting.ANYTHING;
+      return TagNesting.BODY;
     default:
       return TagNesting.NOT_ALLOWED;
   }

@@ -4,6 +4,8 @@ import { tryGetContext, type QContext } from '../core/state/context';
 import { normalizeOnProp } from '../core/state/listeners';
 import { getWrappingContainer, type PossibleEvents } from '../core/use/use-core';
 import { fromCamelToKebabCase } from '../core/util/case';
+import { getDomContainer } from '../serializer/client/dom-container';
+import { parseQRL } from '../serializer/shared-serialization';
 import { createWindow } from './document';
 import { getTestPlatform } from './platform';
 import type { MockDocument, MockWindow } from './types';
@@ -128,6 +130,14 @@ export const dispatch = async (element: Element | null, attrName: string, event:
           }
         }
       }
+    } else if (element.hasAttribute(attrName)) {
+      const container = getDomContainer(element as HTMLElement);
+      const qrl = element.getAttribute(attrName)!;
+
+      qrl
+        .split('\n')
+        .map((qrl) => parseQRL(container, qrl.trim()))
+        .map((qrl) => qrl(event, element));
     }
     element = element.parentElement;
   }

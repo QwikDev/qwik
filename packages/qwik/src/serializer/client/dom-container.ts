@@ -1,20 +1,35 @@
 /** @file Public APIs for the SSR */
 
+import { createContainerState, type ContainerState } from '../../core/container/container';
 import { assertTrue } from '../../core/error/assert';
+import { throwErrorAndStop } from '../../core/util/log';
 import { deserialize } from '../shared-serialization';
-import type { Container, ContainerElement, VNode, QDocument, ElementVNode } from './types';
+import type {
+  ClientContainer as IClientContainer,
+  ContainerElement,
+  VNode,
+  QDocument,
+  ElementVNode,
+} from './types';
 import { vnode_newElement } from './vnode';
 
-export function getContainer(element: HTMLElement): Container {
+export function getDomContainer(element: HTMLElement): IClientContainer {
+  while (element && !element.hasAttribute('q:container')) {
+    element = element.parentElement!;
+  }
+  if (!element) {
+    throwErrorAndStop('Unable to find q:container.');
+  }
   const qElement = element as ContainerElement;
   let container = qElement.qContainer;
   if (!container) {
-    qElement.qContainer = container = new QContainer(qElement);
+    qElement.qContainer = container = new ClientContainer(qElement);
   }
   return container;
 }
 
-export class QContainer implements Container {
+export class ClientContainer implements IClientContainer {
+  public readonly containerState: ContainerState;
   public element: ContainerElement;
   public qContainer: string;
   public qVersion: string;
@@ -29,17 +44,33 @@ export class QContainer implements Container {
     if (!this.qContainer) {
       throw new Error("Element must have 'q:version' attribute.");
     }
+    this.element = element;
     this.qVersion = element.getAttribute('q:version')!;
     this.qBase = element.getAttribute('q:base')!;
+    this.containerState = createContainerState(element, this.qBase);
     this.qLocale = element.getAttribute('q:locale')!;
     this.qManifestHash = element.getAttribute('q:manifest-hash')!;
-    this.element = element;
     this.rootVNode = vnode_newElement(null, this.element);
+    // These are here to initialize all properties at once for single class transition
+    this.rawStateData = null!;
+    this.stateData = null!;
+    const document = this.element.ownerDocument as QDocument;
+    if (!document.qVNodeData) {
+      processVNodeData(document);
+    }
     const qwikStates = element.querySelectorAll('script[type="qwik/state"]');
     const lastState = qwikStates[qwikStates.length - 1];
     this.rawStateData = JSON.parse(lastState.textContent!);
     // NOTE: We want to deserialize the `rawStateData` so that we can cache the deserialized data.
     this.stateData = deserialize(this, this.rawStateData);
+    this.containerState.$pauseCtx$ = {
+      getObject: (id: string) => {
+        console.log('getObject', id);
+        return this.getObjectById(id);
+      },
+      meta: loggingProxy('meta', this.rawStateData),
+      refs: loggingProxy('refs', {}),
+    };
   }
 
   getObjectById(id: number | string): any {
@@ -75,11 +106,6 @@ export function processVNodeData(document: Document) {
   let needsToStoreRef = -1;
   for (let node = walker.firstChild(); node !== null; node = walker.nextNode()) {
     elementIdx++;
-    // console.log('WALK', elementIdx, (node as Element).outerHTML, vNodeElementIndex);
-    if (needsToStoreRef === elementIdx) {
-      console.log('REF', elementIdx, (node as Element).outerHTML);
-      qVNodeRefs.set(elementIdx, node as Element);
-    }
     if (vNodeElementIndex < elementIdx) {
       // VNodeData needs to catch up with the elementIdx
       if (vNodeElementIndex == -1) {
@@ -90,6 +116,7 @@ export function processVNodeData(document: Document) {
       if (vNodeDataStart < currentVNodeDataLength) {
         while (isSeparator((ch = currentVNodeData.charCodeAt(vNodeDataStart)))) {
           // Keep consuming the separators and incrementing the vNodeIndex
+          // console.log('ADVANCE', vNodeElementIndex, ch, ch - 33);
           vNodeElementIndex += 1 << (ch - 33) /*`!`*/;
           vNodeDataStart++;
           if (vNodeDataStart >= currentVNodeDataLength) {
@@ -127,9 +154,15 @@ export function processVNodeData(document: Document) {
         elementIdx = Number.MAX_SAFE_INTEGER;
       }
     }
+    // console.log('WALK', elementIdx, (node as Element).outerHTML, vNodeElementIndex);
+
+    if (needsToStoreRef === elementIdx) {
+      qVNodeRefs.set(elementIdx, node as Element);
+    }
     if (elementIdx === vNodeElementIndex) {
+      // console.log('MATCH', elementIdx, vNodeElementIndex);
       const instructions = currentVNodeData.substring(vNodeDataStart, vNodeDataEnd);
-      console.log('SET', (node as Element).outerHTML, instructions);
+      // console.log('SET', (node as Element).outerHTML, instructions);
       vNodeDataMap.set(node as Element, instructions);
     }
   }
@@ -138,3 +171,12 @@ export function processVNodeData(document: Document) {
     return /* `!` */ 33 <= ch && ch <= 47; /* `/` */
   }
 }
+function loggingProxy(name: string, dst: any): any {
+  return new Proxy(dst, {
+    get: (target: any, prop: string) => {
+      console.log('PROXY.get', name, prop);
+      return target[prop];
+    },
+  }) as any;
+}
+

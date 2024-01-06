@@ -1,6 +1,6 @@
 import { isDev } from '@builder.io/qwik/build';
-import { assertDefined, assertFalse, assertTrue } from '../../core/error/assert';
-import { throwErrorAndStop } from '../../core/util/log';
+import { assertDefined, assertFalse, assertTrue } from '../../error/assert';
+import { throwErrorAndStop } from '../../util/log';
 import {
   Flags,
   VNodeProps,
@@ -12,7 +12,7 @@ import {
   type VNode,
 } from './types';
 import { QwikElementAdapter } from './velement';
-import { ELEMENT_ID, ELEMENT_KEY, QScopedStyle, QSlotRef } from '../../core/util/markers';
+import { ELEMENT_ID, ELEMENT_KEY, QScopedStyle, QSlotRef } from '../../util/markers';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 

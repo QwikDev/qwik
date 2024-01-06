@@ -1,18 +1,18 @@
-import { isDev } from '../build/index.dev';
-import { componentQrl, isQwikComponent } from '../core/component/component.public';
-import { assertDefined, assertTrue } from '../core/error/assert';
-import { createQRL, isQrl, type QRLInternal } from '../core/qrl/qrl-class';
-import type { QRL } from '../core/qrl/qrl.public';
+import { componentQrl, isQwikComponent } from '../component/component.public';
+import { assertDefined, assertTrue } from '../error/assert';
+import { createQRL, isQrl, type QRLInternal } from '../qrl/qrl-class';
+import type { QRL } from '../qrl/qrl.public';
 import type { ClientContainer } from './client/dom-container';
-import type { StreamWriter } from '../server/types';
-import { SERIALIZABLE_STATE } from '../core/container/serializers';
+import { SERIALIZABLE_STATE } from '../container/serializers';
 import { vnode_locate } from './client/vnode';
-import { Fragment, JSXNodeImpl, isJSXNode } from '../core/render/jsx/jsx-runtime';
+import { Fragment, JSXNodeImpl, isJSXNode } from '../render/jsx/jsx-runtime';
 import type { FunctionComponent } from '@builder.io/qwik/jsx-runtime';
-import { Slot } from '../core/render/jsx/slot.public';
-import { QObjectSignalFlags, SignalImpl } from '../core/state/signal';
-import { QObjectManagerSymbol } from '../core/state/constants';
-import type { LocalSubscriptionManager } from '../core/state/common';
+import { Slot } from '../render/jsx/slot.public';
+import { QObjectSignalFlags, SignalImpl } from '../state/signal';
+import { QObjectManagerSymbol } from '../state/constants';
+import type { LocalSubscriptionManager } from '../state/common';
+import { isDev } from '../../build/index.dev';
+import type { StreamWriter } from '../../server/types';
 
 const deserializedProxyMap = new WeakMap<any, any>();
 
@@ -634,4 +634,3 @@ function deserializeJSXType(
     }
   }
 }
-

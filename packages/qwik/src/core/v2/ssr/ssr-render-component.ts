@@ -1,14 +1,14 @@
 import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
-import type { Component } from '../../core/component/component.public';
-import { createContainerState, type ContainerState } from '../../core/container/container';
-import { serializeComponentContext } from '../../core/container/pause';
-import { SERIALIZABLE_STATE } from '../../core/container/serializers';
-import { createRenderContext, executeComponent } from '../../core/render/execute-component';
-import type { RenderContext } from '../../core/render/types';
-import { createContext, type QContext } from '../../core/state/context';
-import { EMPTY_ARRAY } from '../../core/util/flyweight';
-import { ELEMENT_ID } from '../../core/util/markers';
-import { maybeThen } from '../../core/util/promises';
+import type { Component } from '../../component/component.public';
+import { createContainerState, type ContainerState } from '../../container/container';
+import { serializeComponentContext } from '../../container/pause';
+import { SERIALIZABLE_STATE } from '../../container/serializers';
+import { createRenderContext, executeComponent } from '../../render/execute-component';
+import type { RenderContext } from '../../render/types';
+import { createContext, type QContext } from '../../state/context';
+import { EMPTY_ARRAY } from '../../util/flyweight';
+import { ELEMENT_ID } from '../../util/markers';
+import { maybeThen } from '../../util/promises';
 import { SsrNode, type SSRContainer } from './types';
 
 export const applyInlineComponent = (component: Function, jsx: JSXNode<Function>): JSXNode => {

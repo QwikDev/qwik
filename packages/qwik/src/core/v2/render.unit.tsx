@@ -1,15 +1,15 @@
 import { createDocument } from '@builder.io/qwik-dom';
 import { Fragment, type JSXNode } from '@builder.io/qwik/jsx-runtime';
 import { describe, expect, it } from 'vitest';
-import { component$ } from '../core/component/component.public';
-import { inlinedQrl } from '../core/qrl/qrl';
-import { notifyChange } from '../core/render/dom/notify-render';
-import type { Subscriptions } from '../core/state/common';
-import { useLexicalScope } from '../core/use/use-lexical-scope.public';
-import { useSequentialScope } from '../core/use/use-sequential-scope';
-import { useSignal } from '../core/use/use-signal';
-import { ELEMENT_ID } from '../core/util/markers';
-import { trigger } from '../testing/element-fixture';
+import { component$ } from '../component/component.public';
+import { inlinedQrl } from '../qrl/qrl';
+import { notifyChange } from '../render/dom/notify-render';
+import type { Subscriptions } from '../state/common';
+import { useLexicalScope } from '../use/use-lexical-scope.public';
+import { useSequentialScope } from '../use/use-sequential-scope';
+import { useSignal } from '../use/use-signal';
+import { ELEMENT_ID } from '../util/markers';
+import { trigger } from '../../testing/element-fixture';
 import { getDomContainer } from './client/dom-container';
 import type { VNode } from './client/types';
 import {
@@ -86,7 +86,7 @@ describe('v2 render', () => {
             );
           });
 
-          const { vNode, container } = await ssrRenderToDom(<MyComp />);
+          const { vNode, container } = await ssrRenderToDom(<MyComp />); 
           await trigger(container.element, 'button', 'click');
           expect(vNode).toMatchVDOM(
             <>

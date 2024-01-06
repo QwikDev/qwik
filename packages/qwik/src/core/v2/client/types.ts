@@ -1,6 +1,6 @@
 /** @file Public types for the client deserialization */
 
-import type { ContainerState } from '../../core/container/container';
+import type { ContainerState } from '../../container/container';
 
 export interface ClientContainer {
   containerState: ContainerState;

@@ -34,6 +34,8 @@ export const TaskEvent = 'qTask';
 export const QSlotInertName = '\u0000';
 
 export const ELEMENT_ID = 'q:id';
+export const ELEMENT_KEY = 'q:key';
+export const ELEMENT_SELF_ID = -1;
 export const ELEMENT_ID_SELECTOR = '[q\\:id]';
 export const ELEMENT_ID_PREFIX = '#';
 export const INLINE_FN_PREFIX = '@';

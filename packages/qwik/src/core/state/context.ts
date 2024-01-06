@@ -74,12 +74,14 @@ export const getContext = (el: QwikElement, containerState: ContainerState): QCo
     if (pauseCtx) {
       const { getObject, meta, refs } = pauseCtx;
       if (isElement(el)) {
+        // regular elements have listeners;
         const refMap = refs[elementID];
         if (refMap) {
           elCtx.$refMap$ = refMap.split(' ').map(getObject);
           elCtx.li = getDomListeners(elCtx, containerState.$containerEl$);
         }
       } else {
+        // Virtual elements are Components
         const styleIds = el.getAttribute(QScopedStyle);
         elCtx.$scopeIds$ = styleIds ? styleIds.split('|') : null;
 

@@ -78,7 +78,7 @@ export function assertString(value1: any, text: string, ...parts: any[]): assert
 export function assertQwikElement(el: any): asserts el is QwikElement {
   if (qDev) {
     if (!isQwikElement(el)) {
-      console.error('Not a Qwik Element, got', el);
+      console.error('Not a Qwik Element, got', el.nodeType, el);
       throwErrorAndStop(ASSERT_DISCLAIMER + 'Not a Qwik Element');
     }
   }

@@ -1,18 +1,21 @@
 /** @file Public types for the client deserialization */
 
-export interface Container {
+import type { ContainerState } from '../../core/container/container';
+
+export interface ClientContainer {
+  containerState: ContainerState;
   element: ContainerElement;
   qContainer: string;
   qVersion: string;
   qBase: string;
   qLocale: string;
   qManifestHash: string;
-  rootVNode: VNode;
+  rootVNode: ElementVNode;
   getObjectById(id: number | string): any;
 }
 
 export interface ContainerElement extends HTMLElement {
-  qContainer?: Container;
+  qContainer?: ClientContainer;
   /**
    * Map of element ID to Element. If VNodeData has a reference to an element, then it is added to
    * this map for later retrieval.
@@ -58,6 +61,7 @@ export const enum Flags {
   DeflatedText = 0b1000,
   // Inflated Text is one where the original HTML text node has been broken down into smaller text nodes.
   InflatedText = 0b1001,
+  MaskElementOrFragment = 0b0110,
 }
 
 export type ElementVNode = [

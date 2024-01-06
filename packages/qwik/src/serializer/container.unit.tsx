@@ -3,11 +3,11 @@ import { $ } from '../core/qrl/qrl.public';
 import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
 import { describe, expect, it } from 'vitest';
 import { Fragment, JSXNodeImpl, isJSXNode } from '../core/render/jsx/jsx-runtime';
-import { getContainer, processVNodeData } from './client/dom-container';
-import type { Container, VNode } from './client/types';
+import { getDomContainer, processVNodeData } from './client/dom-container';
+import type { ClientContainer, VNode } from './client/types';
 import type { Stringifiable } from './shared-types';
 import { isStringifiable } from './shared-types';
-import { ssrCreateContainer, toSsrAttrs } from './ssr/ssr-container';
+import { ssrCreateContainer } from './ssr/ssr-container';
 import './vdom-diff.unit';
 import { vnode_getFirstChild, vnode_getProp, vnode_getText } from './client/vnode';
 import { isDeserializerProxy } from './shared-serialization';
@@ -17,6 +17,7 @@ import type { QRLInternal } from '../core/qrl/qrl-class';
 import { SERIALIZABLE_STATE } from '../core/container/serializers';
 import { SsrNode, type SSRContainer } from './ssr/types';
 import { Slot } from '../core/render/jsx/slot.public';
+import { toSsrAttrs } from './ssr/ssr-render';
 
 describe('serializer v2', () => {
   describe('rendering', () => {
@@ -36,20 +37,49 @@ describe('serializer v2', () => {
       expect(output).toMatchVDOM(input);
     });
 
+    it('should render blog post example', () => {
+      const state = { value: 123 };
+      const input = (
+        <main>
+          <>
+            <>
+              Count: {state.value}!<button>+1</button>
+            </>
+          </>
+        </main>
+      );
+      const output = toVDOM(toDOM(toHTML(input)));
+      expect(output).toMatchVDOM(input);
+    });
+
     it('should handle more complex example', () => {
       const input = (
         <div>
           <span>A</span>
           <>Hello {'World'}!</>
-          <span>
-            <>B</>!
-          </span>
-          <>Greetings {'World'}!</>
+          <>
+            <span>
+              <>B</>!
+            </span>
+            <>Greetings {'World'}!</>
+          </>
         </div>
       );
       const output = toVDOM(toDOM(toHTML(input)));
       expect(output).toMatchVDOM(input);
     });
+
+    it('should handle adjacent qwik/vnode data', () => {
+      const input = (
+        <div>
+          <span>A{'B'}</span>
+          <span>C{'D'}</span>
+        </div>
+      );
+      const output = toVDOM(toDOM(toHTML(input)));
+      expect(output).toMatchVDOM(input);
+    });
+
     it('should handle long strings', () => {
       const string = (length: number) => new Array(length).fill('.').join('');
       const input = (
@@ -68,7 +98,7 @@ describe('serializer v2', () => {
         const clientContainer = withContainer((ssr) => {
           ssr.openElement('div', ['id', 'parent']);
           ssr.textNode('Hello');
-          ssr.openElement('span', ['id', 'div']);
+          ssr.openElement('span', ['id', 'myId']);
           const node = ssr.getLastNode();
           ssr.addRoot({ someProp: node });
           ssr.textNode('Hello');
@@ -78,7 +108,7 @@ describe('serializer v2', () => {
           ssr.closeElement();
         });
         const vnodeSpan = clientContainer.getObjectById(0).someProp;
-        expect(vnode_getProp(vnodeSpan, 'id')).toBe('div');
+        expect(vnode_getProp(vnodeSpan, 'id')).toBe('myId');
       });
       it('should retrieve text node', () => {
         const clientContainer = withContainer((ssr) => {
@@ -107,7 +137,7 @@ describe('serializer v2', () => {
           ssr.openElement('span', ['id', 'div']); // 2
           ssr.textNode('Greetings'); // 2A
           ssr.textNode(' '); // 2B
-          ssr.openFragment(); // 2C
+          ssr.openFragment([]); // 2C
           ssr.textNode('World'); // 2CA
           const node = ssr.getLastNode();
           expect(node.id).toBe('2CA');
@@ -120,7 +150,6 @@ describe('serializer v2', () => {
           ssr.closeElement();
         });
         const vnode = clientContainer.getObjectById(0).someProp;
-        console.log('>>>>>', vnode.toString());
         expect(vnode_getText(vnode)).toBe('World');
       });
       it.todo('should attach props to Fragment');
@@ -250,7 +279,7 @@ describe('serializer v2', () => {
     });
     describe('DocumentSerializer, ///////// \u000F', () => {
       it('should serialize and deserialize', () => {
-        const obj = new SsrNode(SsrNode.DOCUMENT_NODE, '');
+        const obj = new SsrNode(SsrNode.DOCUMENT_NODE, '', []);
         const container = withContainer((ssr) => ssr.addRoot(obj));
         expect(container.getObjectById(0)).toEqual(container.element.ownerDocument);
       });
@@ -390,7 +419,7 @@ describe('serializer v2', () => {
           (ssr) => {
             ssr.openElement('body', []);
             ssr.openElement('p', []);
-            ssr.openFragment();
+            ssr.openFragment([]);
             ssr.openElement('b', []);
             ssr.openElement('div', []);
           },
@@ -403,7 +432,7 @@ describe('serializer v2', () => {
           `  Offending tag: <div>`,
           `  Existing tag context:`,
           `    <html> [html content] -> <head>, <body>`,
-          `     <body> [any content]`,
+          `     <body> [body content] -> all tags allowed here`,
           `      <p> [phrasing content] -> <a>, <b>, <img>, <input> ... (no <div>, <p> ...)`,
           `       <b>`,
           `        <div> <= is not allowed as a child of phrasing content.`,
@@ -434,8 +463,8 @@ describe('serializer v2', () => {
 
 function withContainer(
   ssrFn: (ssrContainer: SSRContainer) => void,
-  opts?: { containerTag?: string } = {}
-): Container {
+  opts: { containerTag?: string } = {}
+): ClientContainer {
   const ssrContainer = ssrCreateContainer({
     tagName: opts.containerTag || 'div',
   });
@@ -443,21 +472,24 @@ function withContainer(
   ssrFn(ssrContainer);
   ssrContainer.closeContainer();
   const html = ssrContainer.writer.toString();
-  console.log(html);
-  const container = getContainer(toDOM(html));
-  console.log(JSON.stringify((container as any).rawStateData, null, 2));
+  // console.log(html);
+  const container = getDomContainer(toDOM(html));
+  // console.log(JSON.stringify((container as any).rawStateData, null, 2));
   return container;
 }
 
 function toHTML(jsx: JSXNode): string {
-  const ssrContainer = ssrCreateContainer();
+  const ssrContainer = ssrCreateContainer({ tagName: 'div' });
   ssrContainer.openContainer();
   walkJSX(jsx, {
     enter: (jsx) => {
       if (typeof jsx.type === 'string') {
-        ssrContainer.openElement(jsx.type, toSsrAttrs(jsx.props as any));
+        ssrContainer.openElement(
+          jsx.type,
+          toSsrAttrs(jsx.props as any, ssrContainer.serializationCtx)
+        );
       } else {
-        ssrContainer.openFragment();
+        ssrContainer.openFragment([]);
       }
     },
     leave: (jsx) => {
@@ -471,6 +503,7 @@ function toHTML(jsx: JSXNode): string {
   });
   ssrContainer.closeContainer();
   const html = ssrContainer.writer.toString();
+  // console.log(html);
   return html;
 }
 
@@ -482,7 +515,7 @@ function toDOM(html: string): HTMLElement {
 }
 
 function toVDOM(containerElement: HTMLElement): VNode {
-  const container = getContainer(containerElement);
+  const container = getDomContainer(containerElement);
   const vNode = vnode_getFirstChild(container.rootVNode)!;
   return vNode;
 }

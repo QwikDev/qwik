@@ -10,6 +10,7 @@ import {
   vnode_getText,
   vnode_isElementVNode,
   vnode_isTextVNode,
+  vnode_isFragmentVNode,
 } from './client/vnode';
 
 describe('vdom-diff.unit', () => {
@@ -47,17 +48,23 @@ function diffJsxVNode(received: VNode, expected: JSXNode | string, path: string[
     }
   } else {
     path.push(tagToString(expected.type));
-    const isTagSame =
-      expected.type ==
-      (vnode_isElementVNode(received) ? vnode_getElementName(received as ElementVNode) : Fragment);
+    const receivedTag = vnode_isElementVNode(received)
+      ? vnode_getElementName(received as ElementVNode)
+      : vnode_isFragmentVNode(received)
+        ? Fragment
+        : undefined;
+    const isTagSame = expected.type == receivedTag;
     if (!isTagSame) {
-      diffs.push(path.join(' > '));
+      diffs.push(path.join(' > ') + ' expecting= ' + expected.type + ' received=' + receivedTag);
     }
-    const expectedProps = Object.keys(expected.props).sort();
-    const receivedProps = vnode_getPropKeys(received).sort();
+    const expectedProps = expected.props ? Object.keys(expected.props).sort() : [];
+    const receivedProps = vnode_isElementVNode(received) ? vnode_getPropKeys(received).sort() : [];
     const allProps = new Set([...expectedProps, ...receivedProps]);
     allProps.delete('children');
     allProps.forEach((prop) => {
+      if (prop.startsWith('on:')) {
+        return;
+      }
       const expectedValue = expected.props[prop];
       const receivedValue = vnode_getProp(received, prop);
       if (expectedValue !== receivedValue) {
@@ -115,9 +122,9 @@ export function jsxToHTML(jsx: JSXNode, pad: string = ''): string {
     getJSXChildren(jsx).forEach((jsx) => {
       html.push(jsxToHTML(jsx, pad + '  '));
     });
-    html.push(pad, '<', tagToString(jsx.type), '>\n');
+    html.push(pad, '</', tagToString(jsx.type), '>\n');
   } else {
-    html.push(pad, tagToString(jsx), '\n');
+    html.push(pad, JSON.stringify(jsx), '\n');
   }
   return html.join('');
 }
@@ -125,14 +132,13 @@ export function jsxToHTML(jsx: JSXNode, pad: string = ''): string {
 export function vnodeToHTML(vNode: VNode | null, pad: string = ''): string {
   const html: string[] = [];
   while (vNode) {
-    if (vnode_isElementVNode(vNode)) {
-      const tag = vnode_getElementName(vNode);
-      html.push(pad, '<', tagToString(tag), '>\n');
-      html.push(vnodeToHTML(vnode_getFirstChild(vNode), pad + '  '));
-      html.push(pad, '</', tagToString(tag), '>\n');
-    } else if (vnode_isTextVNode(vNode)) {
-      html.push(pad, vnode_getText(vNode), '\n');
-    }
+    html.push(
+      pad +
+        vNode
+          .toString()
+          .split('\n')
+          .join('\n' + pad)
+    );
     while (shouldSkip((vNode = vnode_getNextSibling(vNode!)))) {
       // skip
     }
@@ -150,7 +156,11 @@ function tagToString(tag: any): string {
 function shouldSkip(vNode: VNode | null) {
   if (vnode_isElementVNode(vNode)) {
     const tag = vnode_getElementName(vNode);
-    if (tag === 'script' && vnode_getProp(vNode, 'type') === 'qwik/vnode') {
+    if (
+      tag === 'script' &&
+      (vnode_getProp(vNode, 'type') === 'qwik/vnode' ||
+        vnode_getProp(vNode, 'type') === 'qwik/state')
+    ) {
       return true;
     }
   }

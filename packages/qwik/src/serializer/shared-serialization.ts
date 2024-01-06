@@ -3,14 +3,16 @@ import { componentQrl, isQwikComponent } from '../core/component/component.publi
 import { assertDefined, assertTrue } from '../core/error/assert';
 import { createQRL, isQrl, type QRLInternal } from '../core/qrl/qrl-class';
 import type { QRL } from '../core/qrl/qrl.public';
-import type { QContainer } from './client/dom-container';
+import type { ClientContainer } from './client/dom-container';
 import type { StreamWriter } from '../server/types';
 import { SERIALIZABLE_STATE } from '../core/container/serializers';
 import { vnode_locate } from './client/vnode';
 import { Fragment, JSXNodeImpl, isJSXNode } from '../core/render/jsx/jsx-runtime';
 import type { FunctionComponent } from '@builder.io/qwik/jsx-runtime';
 import { Slot } from '../core/render/jsx/slot.public';
-import type { Container } from './client/types';
+import { QObjectSignalFlags, SignalImpl } from '../core/state/signal';
+import { QObjectManagerSymbol } from '../core/state/constants';
+import type { LocalSubscriptionManager } from '../core/state/common';
 
 const deserializedProxyMap = new WeakMap<any, any>();
 
@@ -24,7 +26,7 @@ export const isDeserializerProxy = (value: any) => {
 };
 
 const UNWRAP_PROXY = Symbol('UNWRAP_PROXY');
-const wrapDeserializerProxy = (container: QContainer, value: any) => {
+const wrapDeserializerProxy = (container: ClientContainer, value: any) => {
   if (
     typeof value === 'object' && // Must be an object
     value !== null && // which is not null
@@ -81,7 +83,7 @@ const wrapDeserializerProxy = (container: QContainer, value: any) => {
   return value;
 };
 
-export const deserialize = <T>(container: QContainer, value: any): any => {
+export const deserialize = <T>(container: ClientContainer, value: any): any => {
   if (typeof value === 'object' && value !== null) {
     return wrapDeserializerProxy(container, value);
   } else if (typeof value === 'string' && value.length) {
@@ -115,7 +117,17 @@ export const deserialize = <T>(container: QContainer, value: any): any => {
       case SerializationConstant.DerivedSignal_VALUE:
         throw new Error('Not implemented');
       case SerializationConstant.Signal_VALUE:
-        throw new Error('Not implemented');
+        const data = rest.split(' ');
+        const value = container.getObjectById(parseInt(data[0]));
+        const flag = parseInt(data[1]);
+        const manager: LocalSubscriptionManager =
+          container.containerState.$subsManager$?.$createManager$();
+        for (let i = 2; i < data.length; i++) {
+          const host = container.getObjectById(parseInt(data[i]));
+          const subscription = [0, host];
+          manager.$addSub$(subscription);
+        }
+        return new SignalImpl(value, manager, flag);
       case SerializationConstant.SignalWrapper_VALUE:
         throw new Error('Not implemented');
       case SerializationConstant.NaN_VALUE:
@@ -155,17 +167,17 @@ export const deserialize = <T>(container: QContainer, value: any): any => {
   return value;
 };
 
-function parseQRL(container: QContainer, rest: string): QRL<any> {
-  const hashIdx = rest.indexOf('#');
-  const captureStart = rest.indexOf('[', hashIdx);
-  const captureEnd = rest.indexOf(']', captureStart);
-  const chunk = hashIdx > -1 ? rest.substring(0, hashIdx) : rest;
+export function parseQRL(container: ClientContainer, qrl: string): QRL<any> {
+  const hashIdx = qrl.indexOf('#');
+  const captureStart = qrl.indexOf('[', hashIdx);
+  const captureEnd = qrl.indexOf(']', captureStart);
+  const chunk = hashIdx > -1 ? qrl.substring(0, hashIdx) : qrl;
   const symbol =
-    captureStart > -1 ? rest.substring(hashIdx + 1, captureStart) : rest.substring(hashIdx + 1);
+    captureStart > -1 ? qrl.substring(hashIdx + 1, captureStart) : qrl.substring(hashIdx + 1);
   let qrlRef = null;
   const captureIds =
     captureStart > -1 && captureEnd > -1
-      ? rest
+      ? qrl
           .substring(captureStart + 1, captureEnd)
           .split(' ')
           .filter((v) => v.length)
@@ -313,36 +325,23 @@ export function serialize(serializationContext: SerializationContext): void {
         const seen = depth <= 1 ? undefined : serializationContext.$wasSeen$(value);
         if (seen === undefined || seen === Number.MIN_SAFE_INTEGER) {
           // we have not seen it or only seen it once, serialize normally
-          if (Array.isArray(value)) {
-            // Serialize as array.
-            $writer$.write('[');
-            for (let i = 0; i < value.length; i++) {
-              if (i !== 0) {
-                $writer$.write(',');
-              }
-              writeValue(value[i]);
-            }
-            $writer$.write(']');
-          } else {
-            // Serialize as object.
-            $writer$.write('{');
-            let delimiter = false;
-            for (const key in value) {
-              if (Object.prototype.hasOwnProperty.call(value, key)) {
-                delimiter && $writer$.write(',');
-                writeString(key);
-                $writer$.write(':');
-                writeValue(value[key]);
-                delimiter = true;
-              }
-            }
-            $writer$.write('}');
-          }
+          serializeObjectLiteral(value, $writer$, writeValue, writeString);
         } else {
           // We have seen it more than once, serialize as reference.
           assertTrue(seen >= 0, 'seen >= 0');
           writeString(SerializationConstant.REFERENCE_CHAR + seen);
         }
+      } else if (value instanceof SignalImpl) {
+        console.log('>>>> IMPLEMENT', value);
+        const id = $addRoot$(value.untrackedValue);
+        const manager = value[QObjectManagerSymbol];
+        const flag = value[QObjectSignalFlags];
+        const data: string[] = [SerializationConstant.Signal_CHAR + id, String(flag)];
+        for (const sub of manager.$subs$) {
+          const [flag, host] = sub;
+          data.push(String($addRoot$(host)));
+        }
+        writeString(data.join(' '));
       } else if (value instanceof URL) {
         writeString(SerializationConstant.URL_CHAR + value.href);
       } else if (value instanceof Date) {
@@ -417,7 +416,40 @@ export function serialize(serializationContext: SerializationContext): void {
   writeValue(objRoots);
 }
 
-function qrlToString(value: QRLInternal, getObjectId: (obj: any) => number | undefined) {
+function serializeObjectLiteral(
+  value: any,
+  $writer$: StreamWriter,
+  writeValue: (value: any) => void,
+  writeString: (text: string) => void
+) {
+  if (Array.isArray(value)) {
+    // Serialize as array.
+    $writer$.write('[');
+    for (let i = 0; i < value.length; i++) {
+      if (i !== 0) {
+        $writer$.write(',');
+      }
+      writeValue(value[i]);
+    }
+    $writer$.write(']');
+  } else {
+    // Serialize as object.
+    $writer$.write('{');
+    let delimiter = false;
+    for (const key in value) {
+      if (Object.prototype.hasOwnProperty.call(value, key)) {
+        delimiter && $writer$.write(',');
+        writeString(key);
+        $writer$.write(':');
+        writeValue(value[key]);
+        delimiter = true;
+      }
+    }
+    $writer$.write('}');
+  }
+}
+
+export function qrlToString(value: QRLInternal, getObjectId: (obj: any) => number | undefined) {
   if (isDev && !value.$chunk$) {
     let backChannel: Map<string, Function> = (globalThis as any)[QRL_RUNTIME_CHUNK];
     if (!backChannel) {
@@ -585,7 +617,10 @@ function serializeJSXType($addRoot$: (obj: any) => number, type: string | Functi
   }
 }
 
-function deserializeJSXType(container: Container, type: string): string | FunctionComponent<any> {
+function deserializeJSXType(
+  container: ClientContainer,
+  type: string
+): string | FunctionComponent<any> {
   if (type === ':slot') {
     return Slot;
   } else if (type === ':fragment') {

@@ -1,6 +1,5 @@
 /** @file Public APIs for the SSR */
 import type { StreamWriter } from '../../server/types';
-import { type Stringifiable } from '../shared-types';
 import { SsrNode, type SSRContainer as ISSRContainer, type SsrAttrs } from './types';
 import {
   CLOSE_FRAGMENT,
@@ -21,7 +20,9 @@ import {
 } from '../shared-serialization';
 import { TagNesting, allowedContent, initialTag, isTagAllowed } from './tag-nesting';
 import { isDev } from '../../build/index.dev';
-import type { ContentHeading } from '@builder.io/qwik-city';
+import { throwErrorAndStop } from '../../core/util/log';
+import { assertDefined, assertTrue } from '../../core/error/assert';
+import { ELEMENT_ID, ELEMENT_KEY, QScopedStyle, QSlotRef } from '../../core/util/markers';
 
 export function ssrCreateContainer(
   opts: {
@@ -63,6 +64,8 @@ interface ContainerElementFrame {
 class SSRContainer implements ISSRContainer {
   public tag: string;
   public writer: StreamWriter;
+  public serializationCtx: SerializationContext;
+
   private currentElementFrame: ContainerElementFrame | null = null;
   /**
    * Current element index.
@@ -73,12 +76,10 @@ class SSRContainer implements ISSRContainer {
   private depthFirstElementCount: number = -1;
   private vNodeData: VNodeData[] = [];
 
-  private serializationContext: SerializationContext;
-
   constructor(opts: Required<Required<Parameters<typeof ssrCreateContainer>>[0]>) {
     this.tag = opts.tagName;
     this.writer = opts.writer;
-    this.serializationContext = createSerializationContext(SsrNode, null, this.writer);
+    this.serializationCtx = createSerializationContext(SsrNode, null, this.writer);
   }
 
   openContainer() {
@@ -99,8 +100,6 @@ class SSRContainer implements ISSRContainer {
   }
 
   closeContainer(): void {
-    this.emitStateData();
-    this.emitVNodeData();
     this.closeElement();
   }
 
@@ -113,17 +112,25 @@ class SSRContainer implements ISSRContainer {
   }
 
   closeElement() {
+    const currentFrame = this.currentElementFrame!;
+    if (
+      (currentFrame.parent === null && currentFrame.tagNesting !== TagNesting.HTML) ||
+      currentFrame.tagNesting === TagNesting.BODY
+    ) {
+      this.emitContainerData();
+    }
     this.write('</');
     this.write(this.popFrame().elementName!);
     this.write('>');
     // Keep track of number of elements.
-    if (this.currentElementFrame) {
-      vNodeData_incrementElementCount(this.currentElementFrame!.vNodeData);
+    const newFrame = this.currentElementFrame;
+    if (newFrame) {
+      vNodeData_incrementElementCount(newFrame.vNodeData);
     }
   }
 
-  openFragment() {
-    vNodeData_openFragment(this.currentElementFrame!.vNodeData);
+  openFragment(attrs: SsrAttrs) {
+    vNodeData_openFragment(this.currentElementFrame!.vNodeData, attrs);
   }
 
   closeFragment() {
@@ -143,7 +150,7 @@ class SSRContainer implements ISSRContainer {
   }
 
   addRoot(obj: any): any {
-    return this.serializationContext.$addRoot$(obj);
+    return this.serializationCtx.$addRoot$(obj);
   }
 
   getLastNode(): SsrNode {
@@ -155,10 +162,16 @@ class SSRContainer implements ISSRContainer {
 
   ////////////////////////////////////
 
+  emitContainerData() {
+    this.emitVNodeData();
+    this.emitStateData();
+  }
+
   /**
    * Serialize the vNodeData into a string and emit it as a script tag.
    *
-   * - Encoding:
+   * ## Encoding:
+   *
    * - Alphabetical characters are text node lengths.
    * - Numbers are element counts.
    * - `{` is start of virtual node.
@@ -166,20 +179,29 @@ class SSRContainer implements ISSRContainer {
    * - `~` Store as reference for data deserialization.
    * - `!"#$%&'()*+'-./` are separators (sequential characters in ASCII table)
    *
-   *   - `!` is vNodeData separator skipping 0. (ie next vNode)
-   *   - `"` is vNodeData separator skipping 1.
-   *   - `#` is vNodeData separator skipping 2.
-   *   - `$` is vNodeData separator skipping 4.
-   *   - `%` is vNodeData separator skipping 8.
-   *   - `&` is vNodeData separator skipping 16.
-   *   - `'` is vNodeData separator skipping 32.
-   *   - `(` is vNodeData separator skipping 64.
-   *   - `)` is vNodeData separator skipping 128.
-   *   - `*` is vNodeData separator skipping 256.
-   *   - `+` is vNodeData separator skipping 512.
-   *   - `'` is vNodeData separator skipping 1024.
-   *   - `.` is vNodeData separator skipping 2048.
-   *   - `/` is vNodeData separator skipping 4096.
+   * ## Attribute encoding:
+   *
+   * - `=` - `q:id` - ID of the element.
+   * - `?` - `q:sref` - Slot reference.
+   * - `@` - `q:key` - Element key.
+   * - `;` - `q:sstyle` - Style attribute.
+   *
+   * ## Separator Encoding:
+   *
+   * - `!` is vNodeData separator skipping 0. (ie next vNode)
+   * - `"` is vNodeData separator skipping 1.
+   * - `#` is vNodeData separator skipping 2.
+   * - `$` is vNodeData separator skipping 4.
+   * - `%` is vNodeData separator skipping 8.
+   * - `&` is vNodeData separator skipping 16.
+   * - `'` is vNodeData separator skipping 32.
+   * - `(` is vNodeData separator skipping 64.
+   * - `)` is vNodeData separator skipping 128.
+   * - `*` is vNodeData separator skipping 256.
+   * - `+` is vNodeData separator skipping 512.
+   * - `'` is vNodeData separator skipping 1024.
+   * - `.` is vNodeData separator skipping 2048.
+   * - `/` is vNodeData separator skipping 4096.
    *
    * NOTE: Not every element will need vNodeData. So we need to encode how many elements should be
    * skipped. By choosing different separators we can encode different numbers of elements to skip.
@@ -197,11 +219,45 @@ class SSRContainer implements ISSRContainer {
           this.write('~');
         }
         if (flag & (VNodeDataFlag.TEXT_DATA | VNodeDataFlag.VIRTUAL_NODE)) {
+          let fragmentAttrs: SsrAttrs | null = null;
           for (let i = 1; i < vNode.length; i++) {
             const value = vNode[i];
-            if (value === OPEN_FRAGMENT) {
+            if (Array.isArray(value)) {
+              fragmentAttrs = value;
+            } else if (value === OPEN_FRAGMENT) {
               this.write('{');
             } else if (value === CLOSE_FRAGMENT) {
+              // write out fragment attributes
+              if (fragmentAttrs) {
+                for (let i = 0; i < fragmentAttrs.length; i++) {
+                  const key = fragmentAttrs[i++] as string;
+                  const value = fragmentAttrs[i++] as string;
+                  switch (key) {
+                    case ELEMENT_ID:
+                      this.write('=');
+                      break;
+                    case QSlotRef:
+                      this.write('?');
+                      break;
+                    case ELEMENT_KEY:
+                      this.write('@');
+                      break;
+                    case QScopedStyle:
+                      this.write(';');
+                      break;
+                    default:
+                      throwErrorAndStop('Unsupported fragment attribute: ' + key);
+                  }
+                  if (isDev) {
+                    assertDefined(value, 'Fragment attribute value must be defined.');
+                    assertTrue(
+                      !!value.match(/(\d|\w|_|:)*/),
+                      'Unsupported character in fragment attribute value: ' + value
+                    );
+                  }
+                  this.write(value!);
+                }
+              }
               this.write('}');
             } else if (value >= 0) {
               // Text nodes get encoded as alphanumeric characters.
@@ -219,27 +275,29 @@ class SSRContainer implements ISSRContainer {
 
   private emitStateData() {
     this.openElement('script', ['type', 'qwik/state']);
-    serialize(this.serializationContext);
+    serialize(this.serializationCtx);
     this.closeElement();
   }
 
   private emitVNodeSeparators(lastSerializedIdx: number, elementIdx: number): number {
     let skipCount = elementIdx - lastSerializedIdx;
+    // console.log('emitVNodeSeparators', lastSerializedIdx, elementIdx, skipCount);
     while (skipCount != 0) {
       if (skipCount >= 4096) {
         this.write('/');
-        skipCount -= 4096;
+        skipCount -= 8192;
       } else {
-        skipCount & 2048 && this.write('.');
-        skipCount & 1024 && this.write('-');
-        skipCount & 512 && this.write('+');
-        skipCount & 256 && this.write('*');
-        skipCount & 128 && this.write(')');
-        skipCount & 64 && this.write('(');
-        skipCount & 32 && this.write("'");
-        skipCount & 16 && this.write('&');
-        skipCount & 8 && this.write('%');
-        skipCount & 4 && this.write('$');
+        skipCount & 2096 && this.write('.');
+        skipCount & 2048 && this.write('-');
+        skipCount & 1024 && this.write('+');
+        skipCount & 512 && this.write('*');
+        skipCount & 256 && this.write(')');
+        skipCount & 128 && this.write('(');
+        skipCount & 64 && this.write("'");
+        skipCount & 32 && this.write('&');
+        skipCount & 16 && this.write('%');
+        skipCount & 8 && this.write('$');
+        skipCount & 4 && this.write('#');
         skipCount & 2 && this.write('"');
         skipCount & 1 && this.write('!');
         skipCount = 0;
@@ -323,7 +381,7 @@ class SSRContainer implements ISSRContainer {
         const value = attrs[i];
         this.write(' ');
         this.write(key);
-        if (value !== null) {
+        if (value != null) {
           this.write('="');
           let startIdx = 0;
           let quoteIdx: number;
@@ -340,15 +398,6 @@ class SSRContainer implements ISSRContainer {
   }
 }
 
-export function toSsrAttrs(record: Record<string, Stringifiable>): SsrAttrs {
-  const ssrAttrs: SsrAttrs = [];
-  for (const key in record) {
-    if (Object.prototype.hasOwnProperty.call(record, key)) {
-      ssrAttrs.push(key, String(record[key]));
-    }
-  }
-  return ssrAttrs;
-}
 function newTagError(text: string) {
   return new Error('SsrError(tag): ' + text);
 }

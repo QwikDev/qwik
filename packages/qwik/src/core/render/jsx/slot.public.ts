@@ -10,13 +10,11 @@ import type { FunctionComponent } from './types/jsx-node';
  */
 export const Slot: FunctionComponent<{
   name?: string;
-  children?: any;
 }> = (props) => {
   return _jsxC(
     Virtual,
     {
       [QSlotS]: '',
-      children: props.children,
     },
     0,
     props.name ?? ''

@@ -293,22 +293,8 @@ const renderNodeVirtual = (
       // We trust that the attributes are strings
       renderNodeElementSync(node.type, node.props as any as Record<string, string>, stream);
     }
-  }  
-  
-  let children = node.children;
-  
-  if (isSlot) {
-    // if a slot has a content, then we will render the content instead of the slot children
-    // otherwise, keep the slot children to be rendered.
-    const content = ssrCtx.$projectedChildren$?.[key as string];
-
-    if (node.children && content) {
-      children = undefined;
-    }
   }
-
-  const promise = walkChildren(children, rCtx, ssrCtx, stream, flags);
-
+  const promise = walkChildren(node.children, rCtx, ssrCtx, stream, flags);
   return maybeThen(promise, () => {
     // Fast path
     if (!isSlot && !beforeClose) {

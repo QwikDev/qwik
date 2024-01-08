@@ -183,7 +183,7 @@ export const validLexicalScope = createRule({
                       node: firstArg.expression,
                       data: {
                         varName: firstArg.expression.name,
-                        solution: `Fix the type of ${firstArg.expression.name} to be PropFunction`,
+                        solution: `Fix the type of ${firstArg.expression.name} to be QRL`,
                       },
                     });
                   }

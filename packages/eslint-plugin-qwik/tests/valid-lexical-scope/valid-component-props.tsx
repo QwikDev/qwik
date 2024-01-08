@@ -1,17 +1,9 @@
-import { component$ } from '@builder.io/qwik';
-
-export interface PropFnInterface<ARGS extends any[], RET> {
-  (...args: ARGS): Promise<RET>;
-}
-
-export type PropFunction<T extends Function> = T extends (...args: infer ARGS) => infer RET
-  ? PropFnInterface<ARGS, RET>
-  : never;
+import { type QRL, component$ } from '@builder.io/qwik';
 
 export interface Props {
-  method$: PropFunction<() => void>;
-  method1$: PropFunction<() => void>;
-  method2$: PropFunction<() => void> | null;
+  method$: QRL<() => void>;
+  method1$: QRL<() => void>;
+  method2$: QRL<() => void> | null;
   method3$: any;
 }
 

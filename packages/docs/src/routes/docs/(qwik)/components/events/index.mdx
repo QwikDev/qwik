@@ -292,9 +292,9 @@ export const Button = component$<ButtonProps>(({ onTripleClick$ }) => {
 ```
 </CodeSandbox>
 
-⚠️ When using type annotations, we need to wrap the event type with `PropFunction` in order to tell TypeScript that the function can't be called synchronously.
+⚠️ When using type annotations, we need to wrap the event type with `QRL` in order to tell TypeScript that the function can't be called synchronously.
 ```tsx
-component$(({ onTripleClick$ } : { onTripleClick$?: PropFunction<() => void> }) => {
+component$(({ onTripleClick$ } : { onTripleClick$?: QRL<() => void> }) => {
   ...
 });
 ```

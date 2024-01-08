@@ -1,10 +1,10 @@
-import type { PropFunction, Signal } from '@builder.io/qwik';
-import type { FunctionComponent } from 'react';
+import type { QRL, Signal } from '@builder.io/qwik';
+import type { FunctionComponent as ReactFC } from 'react';
 import type { Root } from 'react-dom/client';
 
 export interface Internal<PROPS> {
   root: Root | undefined;
-  cmp: FunctionComponent<PROPS>;
+  cmp: ReactFC<PROPS>;
 }
 
 export interface QwikifyBase {
@@ -65,44 +65,34 @@ export interface QwikifyBase {
    * Adds a `click` event listener to the host element, this event will be dispatched even if the
    * react component is not hydrated.
    */
-  'host:onClick$'?: PropFunction<(ev: Event) => void>;
+  'host:onClick$'?: QRL<(ev: Event) => void>;
 
   /**
    * Adds a `blur` event listener to the host element, this event will be dispatched even if the
    * react component is not hydrated.
    */
-  'host:onBlur$'?: PropFunction<(ev: Event) => void>;
+  'host:onBlur$'?: QRL<(ev: Event) => void>;
 
   /**
    * Adds a `focus` event listener to the host element, this event will be dispatched even if the
    * react component is not hydrated.
    */
-  'host:onFocus$'?: PropFunction<(ev: Event) => void>;
+  'host:onFocus$'?: QRL<(ev: Event) => void>;
 
   /**
    * Adds a `mouseover` event listener to the host element, this event will be dispatched even if
    * the react component is not hydrated.
    */
-  'host:onMouseOver$'?: PropFunction<(ev: Event) => void>;
+  'host:onMouseOver$'?: QRL<(ev: Event) => void>;
 
   children?: any;
 }
 
-export type TransformProps<PROPS extends {}> = {
-  [K in keyof PROPS as TransformKey<K>]: TransformProp<K, PROPS[K]>;
+export type TransformProps<PROPS extends Record<any, any>> = {
+  [K in keyof PROPS as K extends `on${string}` ? `${K}$` : K]: PROPS[K];
 };
 
-export type TransformKey<K extends string | number | symbol> = K extends `on${string}`
-  ? `${K}$`
-  : K;
-
-export type TransformProp<K extends string | number | symbol, V> = K extends `on${string}`
-  ? V extends Function
-    ? PropFunction<V>
-    : never
-  : V;
-
-export type QwikifyProps<PROPS extends {}> = TransformProps<PROPS> & QwikifyBase;
+export type QwikifyProps<PROPS extends Record<any, any>> = TransformProps<PROPS> & QwikifyBase;
 
 export interface QwikifyOptions {
   tagName?: string;

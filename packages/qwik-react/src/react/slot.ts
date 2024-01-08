@@ -71,11 +71,7 @@ export class SlotElement extends Component {
 export const getReactProps = (props: Record<string, any>): Record<string, any> => {
   const obj: Record<string, any> = {};
   Object.keys(props).forEach((key) => {
-    if (
-      !key.startsWith('client:') &&
-      !key.startsWith('qwik:') &&
-      !key.startsWith(HOST_PREFIX)
-    ) {
+    if (!key.startsWith('client:') && !key.startsWith('qwik:') && !key.startsWith(HOST_PREFIX)) {
       const normalizedKey = key.endsWith('$') ? key.slice(0, -1) : key;
       obj[normalizedKey] = props[key];
     }
@@ -104,14 +100,12 @@ export const useWakeupSignal = (props: QwikifyProps<{}>, opts: QwikifyOptions = 
   const clientVisible =
     props['client:visible'] || props['qwik:visible'] || opts?.eagerness === 'visible';
 
-  const clientIdle =
-    props['client:idle'] || props['qwik:idle'] || opts?.eagerness === 'idle';
+  const clientIdle = props['client:idle'] || props['qwik:idle'] || opts?.eagerness === 'idle';
 
   const clientLoad =
     props['client:load'] || props['qwik:load'] || clientOnly || opts?.eagerness === 'load';
 
-  const clientHover =
-    props['client:hover'] || props['qwik:hover'] || opts?.eagerness === 'hover';
+  const clientHover = props['client:hover'] || props['qwik:hover'] || opts?.eagerness === 'hover';
 
   const clientEvent = props['client:event'] || props['qwik:event'];
 

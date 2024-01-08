@@ -73,7 +73,7 @@ export const getReactProps = (props: Record<string, any>): Record<string, any> =
   Object.keys(props).forEach((key) => {
     if (
       !key.startsWith('client:') &&
-      !key.startsWith('qwik-client:') &&
+      !key.startsWith('qwik:') &&
       !key.startsWith(HOST_PREFIX)
     ) {
       const normalizedKey = key.endsWith('$') ? key.slice(0, -1) : key;
@@ -96,24 +96,24 @@ export const getHostProps = (props: Record<string, any>): Record<string, any> =>
 export const useWakeupSignal = (props: QwikifyProps<{}>, opts: QwikifyOptions = {}) => {
   const signal = useSignal(false);
   const activate = $(() => (signal.value = true));
-  const clientOnly = !!(props['client:only'] || props['qwik-client:only'] || opts?.clientOnly);
+  const clientOnly = !!(props['client:only'] || props['qwik:only'] || opts?.clientOnly);
 
   /*
-    qwik-client:* is an alias so that it can be used in meta-frameworks that also use client:* directives.
+    qwik:* is an alias so that it can be used in meta-frameworks that also use client:* directives.
   */
   const clientVisible =
-    props['client:visible'] || props['qwik-client:visible'] || opts?.eagerness === 'visible';
+    props['client:visible'] || props['qwik:visible'] || opts?.eagerness === 'visible';
 
   const clientIdle =
-    props['client:idle'] || props['qwik-client:idle'] || opts?.eagerness === 'idle';
+    props['client:idle'] || props['qwik:idle'] || opts?.eagerness === 'idle';
 
   const clientLoad =
-    props['client:load'] || props['qwik-client:load'] || clientOnly || opts?.eagerness === 'load';
+    props['client:load'] || props['qwik:load'] || clientOnly || opts?.eagerness === 'load';
 
   const clientHover =
-    props['client:hover'] || props['qwik-client:hover'] || opts?.eagerness === 'hover';
+    props['client:hover'] || props['qwik:hover'] || opts?.eagerness === 'hover';
 
-  const clientEvent = props['client:event'] || props['qwik-client:event'];
+  const clientEvent = props['client:event'] || props['qwik:event'];
 
   if (isServer) {
     if (clientVisible) {

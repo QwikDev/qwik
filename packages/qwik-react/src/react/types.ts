@@ -14,6 +14,7 @@ export interface QwikifyBase {
    * **Use case:** Immediately-visible UI elements that need to be interactive as soon as possible.
    */
   'client:load'?: boolean;
+  'qwik:load'?: boolean;
 
   /**
    * The component eagerly hydrates when the browser first become idle, ie, when everything
@@ -22,6 +23,7 @@ export interface QwikifyBase {
    * **Use case:** Lower-priority UI elements that don’t need to be immediately interactive.
    */
   'client:idle'?: boolean;
+  'qwik:idle'?: boolean;
 
   /**
    * The component eagerly hydrates when it becomes visible in the viewport.
@@ -31,6 +33,7 @@ export interface QwikifyBase {
    * saw the element.
    */
   'client:visible'?: boolean;
+  'qwik:visible'?: boolean;
 
   /**
    * The component eagerly hydrates when the mouse is over the component.
@@ -39,9 +42,11 @@ export interface QwikifyBase {
    * run in desktop.
    */
   'client:hover'?: boolean;
+  'qwik:hover'?: boolean;
 
   /** When `true`, the component will not run in SSR, only in the browser. */
   'client:only'?: boolean;
+  'qwik:only'?: boolean;
 
   /**
    * This is an advanced API that allows to hydrate the component whenever the passed signal becomes
@@ -50,9 +55,11 @@ export interface QwikifyBase {
    * This effectively allows you to implement custom strategies for hydration.
    */
   'client:signal'?: Signal<boolean>;
+  'qwik:signal'?: Signal<boolean>;
 
   /** The component eagerly hydrates when specified DOM events are dispatched. */
   'client:event'?: string | string[];
+  'qwik:event'?: string | string[];
 
   /**
    * Adds a `click` event listener to the host element, this event will be dispatched even if the

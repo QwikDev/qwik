@@ -1664,6 +1664,43 @@ export interface ParamHTMLAttributes<T extends Element> extends Attrs<'base', T,
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
+## PrefetchGraph
+
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+
+Load the prefetch graph for the container.
+
+Each Qwik container needs to include its own prefetch graph.
+
+```typescript
+PrefetchGraph: (opts?: {
+  base?: string;
+  manifestHash?: string;
+  manifestURL?: string;
+}) => import("@builder.io/qwik/jsx-runtime").JSXNode<"script">;
+```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
+
+## PrefetchServiceWorker
+
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+
+Install a service worker which will prefetch the bundles.
+
+There can only be one service worker per page. Because there can be many separate Qwik Containers on the page each container needs to load its prefetch graph using `PrefetchGraph` component.
+
+```typescript
+PrefetchServiceWorker: (opts: {
+  base?: string;
+  path?: string;
+  verbose?: boolean;
+  fetchBundleGraph?: boolean;
+}) => import("@builder.io/qwik/jsx-runtime").JSXNode<"script">;
+```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
+
 ## ProgressHTMLAttributes
 
 ```typescript

@@ -6,7 +6,7 @@ title: \@builder.io/qwik/server API Reference
 
 ## getQwikLoaderScript
 
-Provides the qwikloader.js file as a string. Useful for tooling to inline the qwikloader script into HTML.
+Provides the `qwikloader.js` file as a string. Useful for tooling to inline the qwikloader script into HTML.
 
 ```typescript
 export declare function getQwikLoaderScript(opts?: {
@@ -18,6 +18,26 @@ export declare function getQwikLoaderScript(opts?: {
 | Parameter | Type                                    | Description  |
 | --------- | --------------------------------------- | ------------ |
 | opts      | { events?: string[]; debug?: boolean; } | _(Optional)_ |
+
+**Returns:**
+
+string
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/scripts.ts)
+
+## getQwikPrefetchWorkerScript
+
+Provides the `qwik-prefetch-service-worker.js` file as a string. Useful for tooling to inline the qwikloader script into HTML.
+
+```typescript
+export declare function getQwikPrefetchWorkerScript(opts?: {
+  debug?: boolean;
+}): string;
+```
+
+| Parameter | Type                 | Description  |
+| --------- | -------------------- | ------------ |
+| opts      | { debug?: boolean; } | _(Optional)_ |
 
 **Returns:**
 
@@ -142,16 +162,17 @@ export interface RenderOptions extends SerializeDocumentOptions
 
 **Extends:** [SerializeDocumentOptions](#serializedocumentoptions)
 
-| Property                  | Modifiers | Type                                                                | Description                                                                                                                                                                              |
-| ------------------------- | --------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [base?](#)                |           | string \| ((options: [RenderOptions](#renderoptions)) =&gt; string) | _(Optional)_ Specifies the root of the JS files of the client build. Setting a base, will cause the render of the <code>q:base</code> attribute in the <code>q:container</code> element. |
-| [containerAttributes?](#) |           | Record&lt;string, string&gt;                                        | _(Optional)_                                                                                                                                                                             |
-| [containerTagName?](#)    |           | string                                                              | _(Optional)_ When set, the app is serialized into a fragment. And the returned html is not a complete document. Defaults to <code>html</code>                                            |
-| [locale?](#)              |           | string \| ((options: [RenderOptions](#renderoptions)) =&gt; string) | _(Optional)_ Language to use when rendering the document.                                                                                                                                |
-| [prefetchStrategy?](#)    |           | [PrefetchStrategy](#prefetchstrategy) \| null                       | _(Optional)_                                                                                                                                                                             |
-| [qwikLoader?](#)          |           | [QwikLoaderOptions](#qwikloaderoptions)                             | <p>_(Optional)_ Specifies if the Qwik Loader script is added to the document or not.</p><p>Defaults to <code>{ include: true }</code>.</p>                                               |
-| [serverData?](#)          |           | Record&lt;string, any&gt;                                           | _(Optional)_                                                                                                                                                                             |
-| [snapshot?](#)            |           | boolean                                                             | _(Optional)_ Defaults to <code>true</code>                                                                                                                                               |
+| Property                        | Modifiers | Type                                                                | Description                                                                                                                                                                                          |
+| ------------------------------- | --------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [base?](#)                      |           | string \| ((options: [RenderOptions](#renderoptions)) =&gt; string) | _(Optional)_ Specifies the root of the JS files of the client build. Setting a base, will cause the render of the <code>q:base</code> attribute in the <code>q:container</code> element.             |
+| [containerAttributes?](#)       |           | Record&lt;string, string&gt;                                        | _(Optional)_                                                                                                                                                                                         |
+| [containerTagName?](#)          |           | string                                                              | _(Optional)_ When set, the app is serialized into a fragment. And the returned html is not a complete document. Defaults to <code>html</code>                                                        |
+| [locale?](#)                    |           | string \| ((options: [RenderOptions](#renderoptions)) =&gt; string) | _(Optional)_ Language to use when rendering the document.                                                                                                                                            |
+| [prefetchStrategy?](#)          |           | [PrefetchStrategy](#prefetchstrategy) \| null                       | _(Optional)_                                                                                                                                                                                         |
+| [qwikLoader?](#)                |           | [QwikLoaderOptions](#qwikloaderoptions)                             | <p>_(Optional)_ Specifies if the Qwik Loader script is added to the document or not.</p><p>Defaults to <code>{ include: true }</code>.</p>                                                           |
+| [qwikPrefetchServiceWorker?](#) |           | QwikPrefetchServiceWorkerOptions                                    | <p>_(Optional)_ Specifies if the Qwik Prefetch Service Worker script is added to the document or not.</p><p>Defaults to <code>{ include: false }</code>. NOTE: This may be change in the future.</p> |
+| [serverData?](#)                |           | Record&lt;string, any&gt;                                           | _(Optional)_                                                                                                                                                                                         |
+| [snapshot?](#)                  |           | boolean                                                             | _(Optional)_ Defaults to <code>true</code>                                                                                                                                                           |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts)
 

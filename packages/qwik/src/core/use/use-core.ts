@@ -36,6 +36,13 @@ export interface StyleAppend {
   content: string | null;
 }
 
+// Simplified version of `ServerRequestEvent` from `@builder.io/qwik-city` package.
+export interface ServerRequestEvent<T = unknown> {
+  url: URL;
+  locale: string | undefined;
+  request: Request;
+}
+
 export type PossibleEvents =
   | Event
   | SimplifiedServerRequestEvent

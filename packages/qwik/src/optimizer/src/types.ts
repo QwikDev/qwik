@@ -214,6 +214,16 @@ export interface QwikManifest {
   platform?: { [name: string]: string };
 }
 
+/**
+ * Bundle graph.
+ *
+ * Format: [ 'bundle-a.js', 3, 5 // Depends on 'bundle-b.js' and 'bundle-c.js' 'bundle-b.js', 5, //
+ * Depends on 'bundle-c.js' 'bundle-c.js', ]
+ *
+ * @public
+ */
+export type QwikBundleGraph = Array<string | number>;
+
 /** @public */
 export type SymbolMapper = Record<string, readonly [symbol: string, chunk: string]>;
 

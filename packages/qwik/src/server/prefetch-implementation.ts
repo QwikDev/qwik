@@ -1,5 +1,10 @@
 import { Fragment, jsx, type JSXNode } from '@builder.io/qwik';
-import { flattenPrefetchResources, getMostReferenced, workerFetchScript } from './prefetch-utils';
+import {
+  flattenPrefetchResources,
+  getMostReferenced,
+  prefetchUrlsEventScript,
+  workerFetchScript,
+} from './prefetch-utils';
 import type { PrefetchImplementation, PrefetchResource, PrefetchStrategy } from './types';
 
 export function applyPrefetchImplementation(
@@ -52,7 +57,9 @@ function prefetchUrlsEvent(
   prefetchNodes.push(
     jsx('script', {
       'q:type': 'prefetch-bundles',
-      dangerouslySetInnerHTML: `document.dispatchEvent(new CustomEvent('qprefetch', {detail:{links: [location.pathname]}}))`,
+      dangerouslySetInnerHTML:
+        prefetchUrlsEventScript(prefetchResources) +
+        `;document.dispatchEvent(new CustomEvent('qprefetch', {detail:{links: [location.pathname]}}))`,
       nonce,
     })
   );
@@ -158,13 +165,7 @@ function workerFetchImplementation(
 function normalizePrefetchImplementation(
   input: PrefetchImplementation | undefined
 ): Required<PrefetchImplementation> {
-  if (input && typeof input === 'object') {
-    // user provided PrefetchImplementation
-    return input as any;
-  }
-
-  // default PrefetchImplementation
-  return PrefetchImplementationDefault;
+  return { ...PrefetchImplementationDefault, ...input };
 }
 
 const PrefetchImplementationDefault: Required<PrefetchImplementation> = {

@@ -16,6 +16,11 @@ export function getQwikLoaderScript(opts?: {
     debug?: boolean;
 }): string;
 
+// @public
+export function getQwikPrefetchWorkerScript(opts?: {
+    debug?: boolean;
+}): string;
+
 // @public (undocumented)
 export interface InOrderAuto {
     // (undocumented)
@@ -84,6 +89,8 @@ export interface RenderOptions extends SerializeDocumentOptions {
     // (undocumented)
     prefetchStrategy?: PrefetchStrategy | null;
     qwikLoader?: QwikLoaderOptions;
+    // Warning: (ae-forgotten-export) The symbol "QwikPrefetchServiceWorkerOptions" needs to be exported by the entry point index.d.ts
+    qwikPrefetchServiceWorker?: QwikPrefetchServiceWorkerOptions;
     // (undocumented)
     serverData?: Record<string, any>;
     snapshot?: boolean;

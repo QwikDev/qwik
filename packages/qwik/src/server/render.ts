@@ -116,6 +116,15 @@ export async function renderToStream(
         include: 'never',
       };
     }
+    if (!opts.qwikPrefetchServiceWorker) {
+      opts.qwikPrefetchServiceWorker = {};
+    }
+    if (!opts.qwikPrefetchServiceWorker.include) {
+      opts.qwikPrefetchServiceWorker.include = false;
+    }
+    if (!opts.qwikPrefetchServiceWorker.position) {
+      opts.qwikPrefetchServiceWorker.position = 'top';
+    }
   }
 
   if (!opts.manifest) {
@@ -212,7 +221,7 @@ export async function renderToStream(
         );
       }
 
-      collectRenderSymbols(renderSymbols, contexts);
+      collectRenderSymbols(renderSymbols, contexts as QContext[]);
       snapshotTime = snapshotTimer();
       return jsx(Fragment, { children });
     },

@@ -102,6 +102,8 @@
     },
     "./qwikloader.js": "./dist/qwikloader.js",
     "./qwikloader.debug.js": "./dist/qwikloader.debug.js",
+    "./qwik-prefetch.js": "./dist/qwik-prefetch.js",
+    "./qwik-prefetch.debug.js": "./dist/qwik-prefetch.debug.js",
     "./package.json": "./package.json"
   },
   "files": [
@@ -150,6 +152,12 @@
     "optimizer.cjs",
     "optimizer.mjs",
     "optimizer.d.ts",
+    "prefetch/index.cjs",
+    "prefetch/index.d.ts",
+    "prefetch/index.mjs",
+    "prefetch/package.json",
+    "qwik-prefetch.debug.js",
+    "qwik-prefetch.js",
     "qwikloader.js",
     "qwikloader.debug.js",
     "qwikloader.optimize.js",

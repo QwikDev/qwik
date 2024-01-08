@@ -12,7 +12,6 @@ import { Virtual, _jsxC } from '../render/jsx/jsx-runtime';
 import { SERIALIZABLE_STATE } from '../container/serializers';
 import { qTest } from '../util/qdev';
 import { assertQrl } from '../qrl/qrl-class';
-import type { ValueOrPromise } from '../util/types';
 import { _IMMUTABLE } from '../state/constants';
 import { assertNumber } from '../error/assert';
 import type { QwikIntrinsicElements } from '../render/jsx/types/jsx-qwik-elements';
@@ -33,9 +32,11 @@ export type PropsOf<COMP> = COMP extends Component<infer PROPS>
   ? NonNullable<PROPS>
   : COMP extends FunctionComponent<infer PROPS>
     ? NonNullable<PublicProps<PROPS>>
-    : COMP extends string
+    : COMP extends keyof QwikIntrinsicElements
       ? QwikIntrinsicElements[COMP]
-      : Record<string, unknown>;
+      : COMP extends string
+        ? QwikIntrinsicElements['span']
+        : Record<string, unknown>;
 
 /**
  * Type representing the Qwik component.
@@ -63,35 +64,36 @@ export type ComponentChildren<PROPS extends Record<any, any>> = PROPS extends {
   ? never
   : { children?: JSXChildren };
 /**
- * Extends the defined component PROPS, adding the default ones (children and q:slot)..
+ * Extends the defined component PROPS, adding the default ones (children and q:slot) and allowing
+ * plain functions to QRL arguments.
  *
  * @public
  */
-export type PublicProps<PROPS extends Record<any, any>> = TransformProps<PROPS> &
-  ComponentBaseProps &
-  ComponentChildren<PROPS>;
+export type PublicProps<PROPS extends Record<any, any>> =
+  // Use Omit + _Only$ so that inferring polymorpic components works
+  // Mapping the entire PROPS doesn't work, maybe TS doesn't like inferring through conditional types
+  Omit<PROPS, `${string}$`> & _Only$<PROPS> & ComponentBaseProps & ComponentChildren<PROPS>;
 
-/**
- * Transform the component PROPS.
- *
- * @public
- */
-export type TransformProps<PROPS extends Record<any, any>> = {
-  [K in keyof PROPS]: TransformProp<PROPS[K], K>;
+/** @internal */
+export type _AllowPlainQrl<Q> =
+  // QRLEventHandlerMulti gets a special case to simplify the result
+  // It needs to be handled carefully because it matches regular functions too
+  QRLEventHandlerMulti<any, any> extends Q
+    ? Q extends QRLEventHandlerMulti<infer EV, infer EL>
+      ?
+          | Q
+          // It can infer unknown and that breaks things
+          | (EL extends Element ? EventHandler<EV, EL> : never)
+      : Q
+    : Q extends QRL<infer U>
+      ? Q | U
+      : NonNullable<Q> extends never
+        ? Q
+        : QRL<Q> | Q;
+/** @internal */
+export type _Only$<P> = {
+  [K in keyof P as K extends `${string}$` ? K : never]: _AllowPlainQrl<P[K]>;
 };
-
-/** @public */
-export type TransformProp<T, K> = NonNullable<T> extends (...args: infer ARGS) => infer RET
-  ? (...args: ARGS) => ValueOrPromise<Awaited<RET>>
-  : T extends QRLEventHandlerMulti<infer EV, infer EL>
-    ? EventHandler<EV, EL> | T
-    : K extends `${string}$`
-      ? T extends QRL<infer U>
-        ? T | U
-        : T
-      : T;
-
-// const ELEMENTS_SKIP_KEY: JSXTagName[] = ['html', 'body', 'head'];
 
 // <docs markdown="../readme.md#component">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -242,7 +244,7 @@ export type PropFunctionProps<PROPS extends Record<any, any>> = {
 // </docs>
 export const component$ = <PROPS extends Record<any, any>>(
   onMount: (props: PROPS) => JSXNode | null
-): Component<PropFunctionProps<PROPS>> => {
+): Component<PROPS> => {
   return componentQrl<any>($(onMount));
 };
 

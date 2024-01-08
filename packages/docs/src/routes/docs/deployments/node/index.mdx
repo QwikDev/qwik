@@ -78,9 +78,9 @@ By default, all Qwik City applications are protected against [CSRF attacks](http
 
 This protection is enabled by default and it's the reason why you need to set the `ORIGIN` environment variable when deploying your application for production.
 
-If you want to disable CSRF protection, you can set `checkOrigin: false` in the `createQwikCity()` options in `src/entry.express.tsx`:
+If you want to disable CSRF protection, you can set `checkOrigin: false` in the `createQwikCity()` options in `src/entry.preview.tsx` or `src/entry.[server].tsx`:
 
-```tsx {6} /checkOrigin/ title="entry.express.tsx"
+```tsx {6} /checkOrigin/ title="entry.preview.tsx"
 // ...
 const { router, notFound, staticFile } = createQwikCity({
   render,

@@ -1,7 +1,7 @@
 import {
   component$,
   useStore,
-  type PropFunction,
+  type QRL,
   useSignal,
   useOnWindow,
   $,
@@ -58,8 +58,8 @@ export const Events = component$(() => {
 });
 
 interface ButtonProps {
-  onTransparentClick$?: PropFunction<(ev: Event) => any>;
-  onWrappedClick$?: PropFunction<(nu: number) => void>;
+  onTransparentClick$?: QRL<(ev: Event) => any>;
+  onWrappedClick$?: QRL<(nu: number) => void>;
 }
 
 export const Buttons = component$((props: ButtonProps) => {

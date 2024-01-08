@@ -69,9 +69,9 @@ Icones is powered by [iconify](https://iconify.design/) which allows to easy add
 Click the `Qwik` button to copy the icon code to your clipboard, then paste it into your project.
 
 ```tsx
-import type { QwikIntrinsicElements } from '@builder.io/qwik'
+import type { PropsOf } from '@builder.io/qwik'
 
-export function OcticonAlertFill12(props: QwikIntrinsicElements['svg'], key: string) {
+export function OcticonAlertFill12(props: PropsOf<'svg'>, key: string) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 12 12" {...props} key={key}><path fill="#888888" d="M4.855.708c.5-.896 1.79-.896 2.29 0l4.675 8.351a1.312 1.312 0 0 1-1.146 1.954H1.33A1.313 1.313 0 0 1 .183 9.058ZM7 7V3H5v4Zm-1 3a1 1 0 1 0 0-2a1 1 0 0 0 0 2Z"></path></svg>
   )

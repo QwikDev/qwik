@@ -1,7 +1,7 @@
 import {
   component$,
   type NoSerialize,
-  type PropFunction,
+  type QRL,
   useVisibleTask$,
   useContext,
   useSignal,
@@ -78,7 +78,7 @@ export interface EditorProps {
   input: ReplAppInput;
   ariaLabel: string;
   lineNumbers: 'on' | 'off';
-  onChange$: PropFunction<(path: string, code: string) => void>;
+  onChange$: QRL<(path: string, code: string) => void>;
   wordWrap: 'on' | 'off';
   store: ReplStore;
 }

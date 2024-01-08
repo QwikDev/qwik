@@ -65,7 +65,7 @@ export class ClientContainer implements IClientContainer {
     this.stateData = deserialize(this, this.rawStateData);
     this.containerState.$pauseCtx$ = {
       getObject: (id: string) => {
-        console.log('getObject', id);
+        // console.log('getObject', id);
         return this.getObjectById(id);
       },
       meta: loggingProxy('meta', this.rawStateData),
@@ -73,13 +73,13 @@ export class ClientContainer implements IClientContainer {
     };
   }
 
-  getObjectById(id: number | string): any {
+  getObjectById = (id: number | string): any => {
     if (typeof id === 'string') {
       id = parseFloat(id);
     }
     assertTrue(id < this.rawStateData.length, 'Invalid reference');
     return this.stateData[id];
-  }
+  };
 }
 
 export function processVNodeData(document: Document) {

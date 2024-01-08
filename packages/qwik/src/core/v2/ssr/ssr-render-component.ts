@@ -40,7 +40,8 @@ export const applyQwikComponent = (jsx: JSXNode, component: Component<any>, ssr:
       {}
     );
     if (meta) {
-      hostElement.setAttribute(ELEMENT_ID, String(ssr.serializationCtx.$addRoot$(meta)));
+      const id = String(ssr.serializationCtx.$addRoot$(meta));
+      hostElement.setAttribute(ELEMENT_ID, id);
     }
     return v.node;
   });

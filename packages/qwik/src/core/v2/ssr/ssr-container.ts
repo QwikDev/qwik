@@ -212,6 +212,7 @@ class SSRContainer implements ISSRContainer {
    */
   emitVNodeData() {
     this.openElement('script', ['type', 'qwik/vnode']);
+    const vNodeAttrsStack: SsrAttrs[] = [];
     const vNodeData = this.vNodeData;
     let lastSerializedIdx = 0;
     for (let elementIdx = 0; elementIdx < vNodeData.length; elementIdx++) {
@@ -227,6 +228,7 @@ class SSRContainer implements ISSRContainer {
           for (let i = 1; i < vNode.length; i++) {
             const value = vNode[i];
             if (Array.isArray(value)) {
+              vNodeAttrsStack.push(fragmentAttrs!);
               fragmentAttrs = value;
             } else if (value === OPEN_FRAGMENT) {
               this.write('{');
@@ -261,6 +263,7 @@ class SSRContainer implements ISSRContainer {
                   }
                   this.write(value!);
                 }
+                fragmentAttrs = vNodeAttrsStack.pop()!;
               }
               this.write('}');
             } else if (value >= 0) {

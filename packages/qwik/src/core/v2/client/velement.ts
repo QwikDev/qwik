@@ -125,7 +125,6 @@ export class QwikElementAdapter extends Array {
   }
 
   get $props$(): Record<string, any> {
-    console.log('get $props$');
     return vnode_propsToRecord(this as any);
   }
   get $immutableProps$(): Record<string, any> | null {

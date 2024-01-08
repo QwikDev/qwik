@@ -11,7 +11,7 @@ export interface ClientContainer {
   qLocale: string;
   qManifestHash: string;
   rootVNode: ElementVNode;
-  getObjectById(id: number | string): any;
+  readonly getObjectById: (id: number | string) => any;
 }
 
 export interface ContainerElement extends HTMLElement {

@@ -509,9 +509,7 @@ function toHTML(jsx: JSXNode): string {
 
 function toDOM(html: string): HTMLElement {
   const document = createDocument();
-  console.log('HTML', html);
   document.body.innerHTML = html;
-  // processVNodeData(document);
   return document.body.firstElementChild! as HTMLElement;
 }
 

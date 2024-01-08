@@ -10,7 +10,12 @@ import type { FunctionComponent } from '@builder.io/qwik/jsx-runtime';
 import { Slot } from '../render/jsx/slot.public';
 import { QObjectSignalFlags, SignalImpl } from '../state/signal';
 import { QObjectManagerSymbol } from '../state/constants';
-import type { LocalSubscriptionManager } from '../state/common';
+import {
+  parseSubscription,
+  type LocalSubscriptionManager,
+  type Subscriber,
+  serializeSubscription,
+} from '../state/common';
 import { isDev } from '../../build/index.dev';
 import type { StreamWriter } from '../../server/types';
 
@@ -117,17 +122,17 @@ export const deserialize = <T>(container: ClientContainer, value: any): any => {
       case SerializationConstant.DerivedSignal_VALUE:
         throw new Error('Not implemented');
       case SerializationConstant.Signal_VALUE:
-        const data = rest.split(' ');
-        const value = container.getObjectById(parseInt(data[0]));
-        const flag = parseInt(data[1]);
+        const valueIdx = rest.indexOf(' ');
+        const value = container.getObjectById(parseInt(rest.substring(0, valueIdx)));
         const manager: LocalSubscriptionManager =
           container.containerState.$subsManager$?.$createManager$();
-        for (let i = 2; i < data.length; i++) {
-          const host = container.getObjectById(parseInt(data[i]));
-          const subscription = [0, host];
-          manager.$addSub$(subscription);
-        }
-        return new SignalImpl(value, manager, flag);
+        const subscription = parseSubscription(
+          rest.substring(valueIdx + 1),
+          container.getObjectById
+        );
+        // console.log('DESERIALIZE', subscription);
+        subscription && manager.$addSub$(subscription);
+        return new SignalImpl(value, manager, 0);
       case SerializationConstant.SignalWrapper_VALUE:
         throw new Error('Not implemented');
       case SerializationConstant.NaN_VALUE:
@@ -332,16 +337,16 @@ export function serialize(serializationContext: SerializationContext): void {
           writeString(SerializationConstant.REFERENCE_CHAR + seen);
         }
       } else if (value instanceof SignalImpl) {
-        console.log('>>>> IMPLEMENT', value);
-        const id = $addRoot$(value.untrackedValue);
         const manager = value[QObjectManagerSymbol];
-        const flag = value[QObjectSignalFlags];
-        const data: string[] = [SerializationConstant.Signal_CHAR + id, String(flag)];
+        const data: string[] = [];
         for (const sub of manager.$subs$) {
-          const [flag, host] = sub;
-          data.push(String($addRoot$(host)));
+          // console.log('SERIALIZE', sub);
+          const serialized = serializeSubscription(sub, $addRoot$ as any);
+          serialized && data.push(serialized);
         }
-        writeString(data.join(' '));
+        writeString(
+          SerializationConstant.Signal_CHAR + $addRoot$(value.untrackedValue) + ' ' + data.join(' ')
+        );
       } else if (value instanceof URL) {
         writeString(SerializationConstant.URL_CHAR + value.href);
       } else if (value instanceof Date) {

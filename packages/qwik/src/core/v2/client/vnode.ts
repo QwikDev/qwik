@@ -79,9 +79,6 @@ export const vnode_newFragment = (parentNode: VNode): FragmentVNode => {
     null,
     undefined
   );
-  if (isDev) {
-    (vnode as any).toString = vnode_toString;
-  }
   assertFalse(vnode_isElementVNode(vnode), 'Incorrect format of TextVNode.');
   assertFalse(vnode_isTextVNode(vnode), 'Incorrect format of TextVNode.');
   assertTrue(vnode_isFragmentVNode(vnode), 'Incorrect format of TextVNode.');
@@ -546,7 +543,7 @@ export const vnode_getParent = (vnode: VNode): VNode | null => {
 };
 
 export const vnode_getNode = (vnode: VNode) => {
-  vnode[VNodeProps.node];
+  return vnode[VNodeProps.node];
 };
 
 const vnode_fromNode = (
@@ -603,12 +600,19 @@ export function vnode_toString(
         const value = vnode_getProp(vnode!, key);
         attrs.push(' ' + key + '=' + JSON.stringify(value));
       });
+      const node = vnode_getNode(vnode) as HTMLElement;
+      if (node) {
+        const vnodeData = (node.ownerDocument as QDocument).qVNodeData.get(node);
+        if (vnodeData) {
+          attrs.push(' q:vnodeData=' + JSON.stringify(vnodeData));
+        }
+      }
       strings.push('<' + tag + attrs.join('') + '>');
       const child = vnode_getFirstChild(vnode);
       child && strings.push('  ' + vnode_toString.call(child, depth - 1, offset + '  ', true));
       strings.push('</' + tag + '>');
     }
-    vnode = (includeSiblings && vnode ? (vnode as VNode)[VNodeProps.nextSibling] : null) || null;
+    vnode = (includeSiblings && vnode_getNextSibling(vnode)) || null;
   } while (vnode);
   return strings.join('\n' + offset);
 }

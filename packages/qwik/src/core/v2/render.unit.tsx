@@ -2,14 +2,9 @@ import { createDocument } from '@builder.io/qwik-dom';
 import { Fragment, type JSXNode } from '@builder.io/qwik/jsx-runtime';
 import { describe, expect, it } from 'vitest';
 import { component$ } from '../component/component.public';
-import { inlinedQrl } from '../qrl/qrl';
 import { notifyChange } from '../render/dom/notify-render';
 import type { Subscriptions } from '../state/common';
-import { useLexicalScope } from '../use/use-lexical-scope.public';
-import { useSequentialScope } from '../use/use-sequential-scope';
-import { useSignal } from '../use/use-signal';
 import { ELEMENT_ID } from '../util/markers';
-import { trigger } from '../../testing/element-fixture';
 import { getDomContainer } from './client/dom-container';
 import type { VNode } from './client/types';
 import {
@@ -18,6 +13,7 @@ import {
   vnode_getProp,
   vnode_getVNodeForChildNode,
   vnode_locate,
+  vnode_toString,
 } from './client/vnode';
 import { ssrCreateContainer } from './ssr/ssr-container';
 import { ssrRenderToContainer } from './ssr/ssr-render';
@@ -60,82 +56,28 @@ describe('v2 render', () => {
           </Fragment>
         );
       });
-
-      describe('useSequentialScope', () => {
-        it('should update value', async () => {
-          const MyComp = component$(() => {
-            const { set, i, val } = useSequentialScope();
-            if (val == null) {
-              set('first_value');
-            }
-
-            return (
-              <button
-                onClick$={inlinedQrl(
-                  async (e, t: HTMLElement) => {
-                    const [i] = useLexicalScope();
-                    expect(i).toEqual(0);
-                    await rerenderComponent(t);
-                  },
-                  's_onClick',
-                  [i]
-                )}
-              >
-                value: {val as string | null}
-              </button>
-            );
-          });
-
-          const { vNode, container } = await ssrRenderToDom(<MyComp />); 
-          await trigger(container.element, 'button', 'click');
-          expect(vNode).toMatchVDOM(
-            <>
-              <button>value: {'first_value'}</button>
-            </>
-          );
-        });
+    });
+    it('should render nested components', async () => {
+      const Child = component$((props: { name: string }) => {
+        return <span>Hello Child: {props.name}</span>;
       });
-      describe('useSignal', () => {
-        it.skip('should update value', async () => {
-          const HelloWorld = component$((props: { name: string }) => {
-            const count = useSignal(123);
-            return (
-              <button
-                onClick$={inlinedQrl(
-                  () => {
-                    const [count] = useLexicalScope();
-                    console.log('CLICKED', count);
-                    count.value++;
-                  },
-                  's_onClick',
-                  [count]
-                )}
-              >
-                Count: {count.value}!
-              </button>
-            );
-          });
-
-          const { vNode, container } = await ssrRenderToDom(<HelloWorld name="World" />);
-          expect(vNode).toMatchVDOM(
-            <>
-              <button>Count: {'123'}!</button>
-            </>
-          );
-          await trigger(container.element, 'button', 'click');
-          console.log('>>>>', vNode.toString(5));
-          expect(vNode).toMatchVDOM(
-            <>
-              <button>Count: {'124'}!</button>
-            </>
-          );
-        });
+      const Parent = component$((props: { name: string }) => {
+        return <Child name={props.name} />;
       });
+
+      const { vNode } = await ssrRenderToDom(<Parent name="World" />, { debug: false });
+      expect(vNode).toMatchVDOM(
+        <Fragment>
+          <Fragment>
+            <span>Hello Child: {'World'}</span>
+          </Fragment>
+        </Fragment>
+      );
     });
   });
 });
 
-async function ssrRenderToDom(jsx: JSXNode) {
+export async function ssrRenderToDom(jsx: JSXNode, opts: { debug?: boolean } = {}) {
   const ssrContainer = ssrCreateContainer({ tagName: 'html' });
   await ssrRenderToContainer(ssrContainer, [
     <head>
@@ -144,14 +86,23 @@ async function ssrRenderToDom(jsx: JSXNode) {
     <body>{jsx}</body>,
   ]);
   const html = ssrContainer.writer.toString();
-  console.log(html);
   const document = createDocument(html);
   const container = getDomContainer(document.firstChild as HTMLElement);
+  if (opts.debug) {
+    console.log('HTML:', html);
+    console.log(vnode_toString.call(container.rootVNode, Number.MAX_SAFE_INTEGER, '', true));
+    console.log('CONTAINER: [');
+    const state = container.rawStateData;
+    for (let i = 0; i < state.length; i++) {
+      console.log(('    ' + i + ':').substring(-4), JSON.stringify(state[i]));
+    }
+    console.log(']');
+  }
   const bodyVNode = vnode_getVNodeForChildNode(container.rootVNode, document.body);
   return { container, document, vNode: vnode_getFirstChild(bodyVNode) };
 }
 
-async function rerenderComponent(element: HTMLElement) {
+export async function rerenderComponent(element: HTMLElement) {
   const container = getDomContainer(element);
   const vElement = vnode_locate(container.rootVNode, element);
   const host = getHostVNode(vElement)!;

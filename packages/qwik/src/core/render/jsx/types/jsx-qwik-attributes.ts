@@ -155,12 +155,21 @@ export type ClassList =
   | Record<string, boolean | string | number | null | undefined>
   | ClassList[];
 
-/** A DOM event handler */
+/**
+ * A DOM event handler
+ *
+ * @public
+ */
 export type EventHandler<EV = Event, EL = Element> = {
   // https://stackoverflow.com/questions/52667959/what-is-the-purpose-of-bivariancehack-in-typescript-types/52668133#52668133
   bivarianceHack(event: EV, element: EL): any;
 }['bivarianceHack'];
 
+/**
+ * An event handler for Qwik events, can be a handler QRL or an array of handler QRLs.
+ *
+ * @beta
+ */
 export type QRLEventHandlerMulti<EV extends Event, EL> =
   | QRL<EventHandler<EV, EL>>
   | undefined

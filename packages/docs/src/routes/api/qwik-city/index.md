@@ -460,9 +460,7 @@ export type JSONValue =
 ## Link
 
 ```typescript
-Link: import("@builder.io/qwik").Component<
-  import("@builder.io/qwik").PropFunctionProps<LinkProps>
->;
+Link: import("@builder.io/qwik").Component<LinkProps>;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/link-component.tsx)
@@ -566,9 +564,7 @@ export interface QwikCityMockProps
 ## QwikCityMockProvider
 
 ```typescript
-QwikCityMockProvider: import("@builder.io/qwik").Component<
-  import("@builder.io/qwik").PropFunctionProps<QwikCityMockProps>
->;
+QwikCityMockProvider: import("@builder.io/qwik").Component<QwikCityMockProps>;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/qwik-city-component.tsx)
@@ -605,9 +601,7 @@ export interface QwikCityProps
 ## QwikCityProvider
 
 ```typescript
-QwikCityProvider: import("@builder.io/qwik").Component<
-  import("@builder.io/qwik").PropFunctionProps<QwikCityProps>
->;
+QwikCityProvider: import("@builder.io/qwik").Component<QwikCityProps>;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/qwik-city-component.tsx)
@@ -711,9 +705,7 @@ export type RouteNavigate = QRL<
 ## RouterOutlet
 
 ```typescript
-RouterOutlet: import("@builder.io/qwik").Component<
-  import("@builder.io/qwik").PropFunctionProps<Record<any, any>>
->;
+RouterOutlet: import("@builder.io/qwik").Component<Record<any, any>>;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/router-outlet-component.tsx)

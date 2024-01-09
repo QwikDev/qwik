@@ -34,6 +34,8 @@ Then obviously you can customize and create your graphical interface.
 Many times it makes sense to have a modal where you show the search and the results, such as the search you find in this Qwik documentation.
 You can check what Algolia returns via the [official documentation](https://www.algolia.com/doc/).
 
+> This implementation uses `server$` to execute the Algolia API call on the server side, but it is possible to execute it on the client side with a simple [fetch](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch).
+
 <CodeSandbox url="/demo/cookbook/algolia-search/"  style={{ height: '20em' }}>
 ```tsx
 import { $, component$, useSignal, useStylesScoped$ } from '@builder.io/qwik';

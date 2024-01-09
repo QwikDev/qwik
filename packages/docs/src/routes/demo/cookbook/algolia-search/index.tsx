@@ -1,5 +1,4 @@
 import { $, component$, useSignal, useStylesScoped$ } from '@builder.io/qwik';
-import { server$ } from '@builder.io/qwik-city';
 
 type AlgoliaResult = {
   hits: {
@@ -94,10 +93,22 @@ export default component$(() => {
   const termSignal = useSignal('');
   const hitsSig = useSignal<AlgoliaResult['hits']>([]);
 
-  const onSearch = $(async (term: string) => {
-    const hits = await execSearch(term);
-    console.log(hitsSig);
-    hitsSig.value = hits;
+  const onSearch = $(async (query: string) => {
+    const algoliaURL = new URL(
+      `/1/indexes/${import.meta.env.VITE_ALGOLIA_INDEX}/query`,
+      `https://${import.meta.env.VITE_ALGOLIA_APP_ID}-dsn.algolia.net`
+    );
+    const response = await fetch(algoliaURL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Algolia-Application-Id': import.meta.env.VITE_ALGOLIA_APP_ID!,
+        'X-Algolia-API-Key': import.meta.env.VITE_ALGOLIA_SEARCH_KEY!,
+      },
+      body: JSON.stringify({ query }),
+    });
+    const algoliaResult: AlgoliaResult = await response.json();
+    hitsSig.value = algoliaResult.hits;
   });
 
   return (
@@ -152,22 +163,4 @@ export default component$(() => {
       </div>
     </div>
   );
-});
-
-export const execSearch = server$(async function (query: string) {
-  const algoliaURL = new URL(
-    `/1/indexes/${this.env.get('VITE_ALGOLIA_INDEX')}/query`,
-    `https://${this.env.get('VITE_ALGOLIA_APP_ID')}-dsn.algolia.net`
-  );
-  const response = await fetch(algoliaURL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Algolia-Application-Id': this.env.get('VITE_ALGOLIA_APP_ID')!,
-      'X-Algolia-API-Key': this.env.get('VITE_ALGOLIA_SEARCH_KEY')!,
-    },
-    body: JSON.stringify({ query }),
-  });
-  const algoliaResult: AlgoliaResult = await response.json();
-  return algoliaResult.hits;
 });

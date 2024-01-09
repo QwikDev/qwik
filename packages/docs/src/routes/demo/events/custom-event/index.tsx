@@ -1,4 +1,4 @@
-import { component$, Slot, useStore } from '@builder.io/qwik';
+import { component$, type QRL, Slot, useStore } from '@builder.io/qwik';
 
 export default component$(() => {
   return (
@@ -9,7 +9,7 @@ export default component$(() => {
 });
 
 type ButtonProps = {
-  onTripleClick$: () => void;
+  onTripleClick$: QRL<() => void>;
 };
 
 export const Button = component$<ButtonProps>(({ onTripleClick$ }) => {

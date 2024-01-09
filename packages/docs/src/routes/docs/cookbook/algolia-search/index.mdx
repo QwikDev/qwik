@@ -34,7 +34,7 @@ Then obviously you can customize and create your graphical interface.
 Many times it makes sense to have a modal where you show the search and the results, such as the search you find in this Qwik documentation.
 You can check what Algolia returns via the [official documentation](https://www.algolia.com/doc/).
 
-<CodeSandbox url="/demo/cookbook/algolia-search/"  style={{ height: '15em' }}>
+<CodeSandbox url="/demo/cookbook/algolia-search/"  style={{ height: '20em' }}>
 ```tsx
 import { $, component$, useSignal, useStylesScoped$ } from '@builder.io/qwik';
 import { server$ } from '@builder.io/qwik-city';
@@ -50,28 +50,28 @@ type AlgoliaResult = {
 
 export default component$(() => {
   useStylesScoped$(`
-		.search {
-			font-size: 100%;
-			width: calc(100% - 38px);
-			border-radius: 0.5rem;
-			border: 1px black solid;
-			padding: 1rem;
-			color: black;
-			outline: none;
-		}
+    .search {
+      font-size: 100%;
+      width: calc(100% - 38px);
+      border-radius: 0.5rem;
+      border: 1px black solid;
+      padding: 1rem;
+      color: black;
+      outline: none;
+    }
 
-		.search-button {
-			border: none;
-			padding: 6px 0px;
-			cursor: pointer;
-			background-color: transparent;
-			position: absolute;
+    .search-button {
+      border: none;
+      padding: 6px 0px;
+      cursor: pointer;
+      background-color: transparent;
+      position: absolute;
       right: 2.4rem;
       padding: 0.85rem 0.5rem 0.4rem 0.5rem;
-			outline: none;
-		}
+      outline: none;
+    }
 
-		.list {
+    .list {
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -128,7 +128,7 @@ export default component$(() => {
       grid-area: text;
       color: black;
     }    
-	`);
+  `);
   const termSignal = useSignal('');
   const hitsSig = useSignal<AlgoliaResult['hits']>([]);
 

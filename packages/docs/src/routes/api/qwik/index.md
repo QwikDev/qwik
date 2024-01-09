@@ -456,9 +456,12 @@ export const OtherComponent = component$(() => {
 See also: `component`, `useCleanup`, `onResume`, `onPause`, `useOn`, `useOnDocument`, `useOnWindow`, `useStyles`
 
 ```typescript
-component$: <PROPS extends Record<any, any>>(
-  onMount: (props: PROPS) => JSXNode | null,
-) => Component<PropFunctionProps<PROPS>>;
+component$: <
+  PROPS = unknown,
+  ARG extends {} = PROPS extends {} ? PropFunctionProps<PROPS> : {},
+>(
+  onMount: OnRenderFn<ARG>,
+) => Component<PROPS extends {} ? PROPS : ARG>;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts)

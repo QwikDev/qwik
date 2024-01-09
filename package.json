@@ -1,6 +1,11 @@
 {
   "name": "qwik-monorepo",
   "version": "1.3.2",
+  "comments": {
+    "01": "devDependencies includes reference to @builder.io/qwik: workspace: *. This is needed or e2e tests will fail",
+    "02": "  It would be nice to be able to remove this dependency and fix the test.",
+    "03": "devDependencies can't include reference to @builder.io/qwik-city or e2e test will fail."
+  },
   "config": {
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
@@ -26,14 +31,9 @@
   "dependencies": {
     "esbuild-plugin-raw": "^0.1.7"
   },
-  "comments": {
-    "01": "devDependencies includes reference to @builder.io/qwik: workspace: *. This is needed or e2e tests will fail",
-    "02": "  It would be nice to be able to remove this dependency and fix the test.",
-    "03": "devDependencies can't include reference to @builder.io/qwik-city or e2e test will fail."
-  },
   "devDependencies": {
-    "@builder.io/qwik": "workspace:*",
     "@builder.io/partytown": "^0.8.1",
+    "@builder.io/qwik": "workspace:*",
     "@clack/prompts": "^0.7.0",
     "@mdx-js/mdx": "2.3.0",
     "@microsoft/api-documenter": "^7.23.13",
@@ -128,6 +128,8 @@
     "build.full": "tsm scripts/index.ts --tsc --build --supabaseauthhelpers --api --eslint --qwikcity --qwikworker --qwiklabs --qwikreact --qwikauth --cli --platform-binding --wasm",
     "build.local": "tsm scripts/index.ts --tsc --build --supabaseauthhelpers --api --eslint --qwikcity --qwikworker --qwiklabs --qwikreact --qwikauth --cli --platform-binding-wasm-copy",
     "build.only_javascript": "tsm scripts/index.ts --tsc --build --api",
+    "build.packages.docs": "pnpm run build.local && tsm ./scripts/patch-workspace-packages.ts && pnpm -C ./packages/docs/ run build",
+    "build.packages.insights": "pnpm run build.local && tsm ./scripts/patch-workspace-packages.ts && pnpm -C ./packages/insights/ run build",
     "build.platform": "tsm scripts/index.ts --platform-binding",
     "build.platform.copy": "tsm scripts/index.ts --platform-binding-wasm-copy",
     "build.qwik-city": "tsm scripts/index.ts --tsc --qwikcity",
@@ -135,8 +137,6 @@
     "build.vite": "tsm scripts/index.ts --tsc --build --qwikcity --qwiklabs --platform-binding-wasm-copy",
     "build.wasm": "tsm scripts/index.ts --wasm",
     "build.watch": "tsm scripts/index.ts --build  --qwikcity --watch --dev --platform-binding",
-    "build.packages.insights": "pnpm run build.local && tsm ./scripts/patch-workspace-packages.ts && pnpm -C ./packages/insights/ run build",
-    "build.packages.docs": "pnpm run build.local && tsm ./scripts/patch-workspace-packages.ts && pnpm -C ./packages/docs/ run build",
     "cli": "pnpm build.cli && node packages/create-qwik/dist/create-qwik.cjs && tsm scripts/validate-cli.ts --copy-local-qwik-dist",
     "cli.qwik": "pnpm build.cli && node packages/qwik/dist/qwik.cjs",
     "cli.validate": "tsm scripts/validate-cli.ts",

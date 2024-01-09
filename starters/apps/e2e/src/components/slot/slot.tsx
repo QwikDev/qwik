@@ -11,6 +11,7 @@ import {
   jsx,
   type JSXNode,
   useVisibleTask$,
+  type SlotHTMLAttributes,
 } from "@builder.io/qwik";
 
 export const SlotParent = component$(() => {
@@ -541,8 +542,8 @@ export const Toggle5506 = component$<any>((props) => {
     <>
       <label>
         <input
-          {...props}
           type="checkbox"
+          {...props}
           // ensure it gets checked state only from props
           preventdefault:click
         />
@@ -552,7 +553,9 @@ export const Toggle5506 = component$<any>((props) => {
   );
 });
 
-export const SlotParent5506 = component$(() => <Slot />);
+export const SlotParent5506 = component$<SlotHTMLAttributes<any>>(() => (
+  <Slot />
+));
 
 // This breaks signal propagation, if you put this expression directly in the JSX prop it works
 function coerceBoolean(value: string) {

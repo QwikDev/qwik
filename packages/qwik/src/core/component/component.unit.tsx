@@ -8,6 +8,7 @@ import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { describe, test } from 'vitest';
 import type { InputHTMLAttributes } from '../render/jsx/types/jsx-generated';
 import type { QwikIntrinsicElements } from '../render/jsx/types/jsx-qwik-elements';
+import type { PropFunction } from '../qrl/qrl.public';
 
 describe('q-component', () => {
   /**
@@ -116,7 +117,7 @@ describe('q-component', () => {
     );
   });
 
-  test('types work as expected', () => () => {
+  test('input types should work', () => () => {
     // Let's keep one of these old type exports around for now.
     const Input1 = component$<InputHTMLAttributes<HTMLInputElement>>((props) => {
       return <input {...props} />;
@@ -126,19 +127,19 @@ describe('q-component', () => {
       return <input {...props} />;
     });
 
-    type Input5Props = {
+    type Input3Props = {
       type: 'text' | 'number';
     } & Partial<PropsOf<'input'>>;
 
-    const Input5 = component$<Input5Props>(({ type, ...props }) => {
+    const Input3 = component$<Input3Props>(({ type, ...props }) => {
       return <input type={type} {...props} />;
     });
 
-    type Input6Props = {
+    type Input4Props = {
       type: 'text' | 'number';
     } & QwikIntrinsicElements['input'];
 
-    const Input6 = component$<Input6Props>(({ type, ...props }) => {
+    const Input4 = component$<Input4Props>(({ type, ...props }) => {
       return (
         <div>
           <input type={type} {...props} />
@@ -156,8 +157,44 @@ describe('q-component', () => {
             value="1"
           />
           <Input2 value="2" />
-          <Input5 value="5" type="text" />
-          <Input6 value="6" type="number" />
+          <Input3 value="3" type="text" />
+          <Input4 value="4" type="number" />
+        </>
+      );
+    });
+  });
+
+  test('custom PropFunction types should work', () => () => {
+    type TestProps = PropsOf<'h1'> & {
+      test$?: () => void;
+    };
+    const Test = component$<TestProps>(({ test$, ...props }) => {
+      return (
+        <>
+          <h1 onClick$={() => test$} {...props}>
+            Hi 👋
+          </h1>
+        </>
+      );
+    });
+
+    const Test2 = component$(
+      ({ test$, ...props }: { test$?: PropFunction<() => void> & PropsOf<'h1'> }) => {
+        return (
+          <>
+            <h1 onClick$={() => test$} {...props}>
+              Hi 👋
+            </h1>
+          </>
+        );
+      }
+    );
+
+    component$(() => {
+      return (
+        <>
+          <Test />
+          <Test2 />
         </>
       );
     });

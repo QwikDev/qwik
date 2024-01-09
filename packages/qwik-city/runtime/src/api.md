@@ -11,7 +11,6 @@ import { CookieValue } from '@builder.io/qwik-city/middleware/request-handler';
 import { DeferReturn } from '@builder.io/qwik-city/middleware/request-handler';
 import type { EnvGetter } from '@builder.io/qwik-city/middleware/request-handler';
 import { JSXNode } from '@builder.io/qwik';
-import { PropFunctionProps } from '@builder.io/qwik';
 import { QRL } from '@builder.io/qwik';
 import { QwikIntrinsicElements } from '@builder.io/qwik';
 import { QwikJSX } from '@builder.io/qwik';
@@ -255,7 +254,7 @@ export type JSONValue = string | number | boolean | {
 } | Array<JSONValue>;
 
 // @public (undocumented)
-export const Link: Component<PropFunctionProps<LinkProps>>;
+export const Link: Component<LinkProps>;
 
 // Warning: (ae-forgotten-export) The symbol "AnchorAttributes" needs to be exported by the entry point index.d.ts
 //
@@ -317,7 +316,7 @@ export interface QwikCityMockProps {
 }
 
 // @public (undocumented)
-export const QwikCityMockProvider: Component<PropFunctionProps<QwikCityMockProps>>;
+export const QwikCityMockProvider: Component<QwikCityMockProps>;
 
 // @public (undocumented)
 export interface QwikCityPlan {
@@ -341,7 +340,7 @@ export interface QwikCityProps {
 }
 
 // @public (undocumented)
-export const QwikCityProvider: Component<PropFunctionProps<QwikCityProps>>;
+export const QwikCityProvider: Component<QwikCityProps>;
 
 export { RequestEvent }
 
@@ -405,7 +404,7 @@ export type RouteNavigate = QRL<(path?: string, options?: {
 } | boolean) => Promise<void>>;
 
 // @public (undocumented)
-export const RouterOutlet: Component<PropFunctionProps<Record<any, any>>>;
+export const RouterOutlet: Component<    {}>;
 
 // @public (undocumented)
 export const server$: <T extends ServerFunction>(first: T) => ServerQRL<T>;

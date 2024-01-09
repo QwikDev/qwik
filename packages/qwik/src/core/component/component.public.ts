@@ -240,9 +240,12 @@ export type PropFunctionProps<PROPS extends Record<any, any>> = {
  * @public
  */
 // </docs>
-export const component$ = <PROPS extends Record<any, any>>(
-  onMount: (props: PROPS) => JSXNode | null
-): Component<PropFunctionProps<PROPS>> => {
+export const component$ = <
+  PROPS = unknown,
+  ARG extends {} = PROPS extends {} ? PropFunctionProps<PROPS> : {},
+>(
+  onMount: OnRenderFn<ARG>
+): Component<PROPS extends {} ? PROPS : ARG> => {
   return componentQrl<any>($(onMount));
 };
 

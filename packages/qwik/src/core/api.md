@@ -10,6 +10,9 @@ import { JSXNode as JSXNode_2 } from '@builder.io/qwik/jsx-runtime';
 // @public
 export const $: <T>(expression: T) => QRL<T>;
 
+// @internal (undocumented)
+export type _AllowPlainQrl<Q> = QRLEventHandlerMulti<any, any> extends Q ? Q extends QRLEventHandlerMulti<infer EV, infer EL> ? Q | (EL extends Element ? EventHandler<EV, EL> : never) : Q : Q extends QRL<infer U> ? Q | U : NonNullable<Q> extends never ? Q : QRL<Q> | Q;
+
 // Warning: (ae-forgotten-export) The symbol "Attrs" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
@@ -112,7 +115,7 @@ export interface ColHTMLAttributes<T extends Element> extends Attrs<'col', T> {
 }
 
 // @public
-export const component$: <PROPS extends Record<any, any>>(onMount: (props: PROPS) => JSXNode | null) => Component<PropFunctionProps<PROPS>>;
+export const component$: <PROPS extends Record<any, any>>(onMount: (props: PROPS) => JSXNode | null) => Component<PROPS>;
 
 // @public
 export type Component<PROPS extends Record<any, any> = Record<string, unknown>> = FunctionComponent<PublicProps<PROPS>>;
@@ -215,6 +218,11 @@ export interface ErrorBoundaryStore {
 
 // @public (undocumented)
 export const event$: <T>(first: T) => QRL<T>;
+
+// @public
+export type EventHandler<EV = Event, EL = Element> = {
+    bivarianceHack(event: EV, element: EL): any;
+}['bivarianceHack'];
 
 // @public (undocumented)
 export const eventQrl: <T>(qrl: QRL<T>) => QRL<T>;
@@ -551,6 +559,11 @@ export interface ObjectHTMLAttributes<T extends Element> extends Attrs<'object',
 export interface OlHTMLAttributes<T extends Element> extends Attrs<'ol', T> {
 }
 
+// @internal (undocumented)
+export type _Only$<P> = {
+    [K in keyof P as K extends `${string}$` ? K : never]: _AllowPlainQrl<P[K]>;
+};
+
 // @public (undocumented)
 export type OnRenderFn<PROPS extends Record<any, any>> = (props: PROPS) => JSXNode | null;
 
@@ -616,13 +629,13 @@ export type PropFunctionProps<PROPS extends Record<any, any>> = {
 };
 
 // @public
-export type PropsOf<COMP> = COMP extends Component<infer PROPS> ? NonNullable<PROPS> : COMP extends FunctionComponent<infer PROPS> ? NonNullable<PublicProps<PROPS>> : COMP extends string ? QwikIntrinsicElements[COMP] : Record<string, unknown>;
+export type PropsOf<COMP> = COMP extends Component<infer PROPS> ? NonNullable<PROPS> : COMP extends FunctionComponent<infer PROPS> ? NonNullable<PublicProps<PROPS>> : COMP extends keyof QwikIntrinsicElements ? QwikIntrinsicElements[COMP] : COMP extends string ? QwikIntrinsicElements['span'] : Record<string, unknown>;
 
-// Warning: (ae-forgotten-export) The symbol "TransformProps" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "ComponentChildren" needs to be exported by the entry point index.d.ts
+// Warning: (ae-incompatible-release-tags) The symbol "PublicProps" is marked as @public, but its signature references "_Only$" which is marked as @internal
 //
 // @public
-export type PublicProps<PROPS extends Record<any, any>> = TransformProps<PROPS> & ComponentBaseProps & ComponentChildren<PROPS>;
+export type PublicProps<PROPS extends Record<any, any>> = Omit<PROPS, `${string}$`> & _Only$<PROPS> & ComponentBaseProps & ComponentChildren<PROPS>;
 
 // Warning: (ae-forgotten-export) The symbol "BivariantQrlFn" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "QrlArgs" needs to be exported by the entry point index.d.ts
@@ -647,6 +660,9 @@ export const qrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: st
 //
 // @internal (undocumented)
 export const qrlDEV: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, opts: QRLDev, lexicalScopeCapture?: any[]) => QRL<T>;
+
+// @beta
+export type QRLEventHandlerMulti<EV extends Event, EL> = QRL<EventHandler<EV, EL>> | undefined | null | QRLEventHandlerMulti<EV, EL>[];
 
 // Warning: (ae-forgotten-export) The symbol "SyncQRL" needs to be exported by the entry point index.d.ts
 //
@@ -684,10 +700,6 @@ export type QwikFocusEvent<T = Element> = NativeFocusEvent;
 // @public
 export type QwikHTMLElements = {
     [tag in keyof HTMLElementTagNameMap]: Augmented<HTMLElementTagNameMap[tag], SpecialAttrs[tag]> & HTMLElementAttrs & QwikAttributes<HTMLElementTagNameMap[tag]>;
-} & {
-    [unknownTag: string]: {
-        [prop: string]: any;
-    } & HTMLElementAttrs & QwikAttributes<any>;
 };
 
 // @public

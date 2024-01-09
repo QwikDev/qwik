@@ -365,7 +365,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "```typescript\nLink: import(\"@builder.io/qwik\").Component<import(\"@builder.io/qwik\").PropFunctionProps<LinkProps>>\n```",
+      "content": "```typescript\nLink: import(\"@builder.io/qwik\").Component<LinkProps>\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/link-component.tsx",
       "mdFile": "qwik-city.link.md"
     },
@@ -491,7 +491,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "```typescript\nQwikCityMockProvider: import(\"@builder.io/qwik\").Component<import(\"@builder.io/qwik\").PropFunctionProps<QwikCityMockProps>>\n```",
+      "content": "```typescript\nQwikCityMockProvider: import(\"@builder.io/qwik\").Component<QwikCityMockProps>\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/qwik-city-component.tsx",
       "mdFile": "qwik-city.qwikcitymockprovider.md"
     },
@@ -533,7 +533,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "```typescript\nQwikCityProvider: import(\"@builder.io/qwik\").Component<import(\"@builder.io/qwik\").PropFunctionProps<QwikCityProps>>\n```",
+      "content": "```typescript\nQwikCityProvider: import(\"@builder.io/qwik\").Component<QwikCityProps>\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/qwik-city-component.tsx",
       "mdFile": "qwik-city.qwikcityprovider.md"
     },
@@ -659,7 +659,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "```typescript\nRouterOutlet: import(\"@builder.io/qwik\").Component<import(\"@builder.io/qwik\").PropFunctionProps<Record<any, any>>>\n```",
+      "content": "```typescript\nRouterOutlet: import(\"@builder.io/qwik\").Component<Record<any, any>>\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/router-outlet-component.tsx",
       "mdFile": "qwik-city.routeroutlet.md"
     },

@@ -259,8 +259,8 @@ importers:
         specifier: workspace:*
         version: link:../qwik-labs
       '@builder.io/qwik-react':
-        specifier: 0.5.0
-        version: 0.5.0(@builder.io/qwik@packages+qwik)(@types/react-dom@18.2.13)(@types/react@18.2.28)(react-dom@18.2.0)(react@18.2.0)
+        specifier: workspace:*
+        version: link:../qwik-react
       '@builder.io/sdk-qwik':
         specifier: ^0.6.2
         version: 0.6.2(@builder.io/qwik@packages+qwik)(undici@5.26.0)
@@ -1084,23 +1084,6 @@ packages:
     transitivePeerDependencies:
       - rollup
       - supports-color
-    dev: true
-
-  /@builder.io/qwik-react@0.5.0(@builder.io/qwik@packages+qwik)(@types/react-dom@18.2.13)(@types/react@18.2.28)(react-dom@18.2.0)(react@18.2.0):
-    resolution: {integrity: sha512-JdJWQWOJGv7ddQqEZwzR8wPh0IoCQZwD9qo75+reiQaLp6eH+Pjsm/kn1LaMQt6u72pCCNjnj5kEn/bnbfnIjQ==}
-    engines: {node: '>=16'}
-    peerDependencies:
-      '@builder.io/qwik': '>=0.22.0'
-      '@types/react': '>=18.0.1'
-      '@types/react-dom': '>=18.0.0'
-      react: '>=18.0.0'
-      react-dom: '>=18.0.0'
-    dependencies:
-      '@builder.io/qwik': link:packages/qwik
-      '@types/react': 18.2.28
-      '@types/react-dom': 18.2.13
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
     dev: true
 
   /@builder.io/qwik@1.2.13(undici@5.26.0):

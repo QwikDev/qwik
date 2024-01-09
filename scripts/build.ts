@@ -26,6 +26,7 @@ import { submoduleQwikPrefetch } from './submodule-qwikprefetch';
 import { submoduleServer } from './submodule-server';
 import { submoduleTesting } from './submodule-testing';
 import { tsc } from './tsc';
+import { tscDocs } from './tsc-docs';
 import { validateBuild } from './validate-build';
 import { buildQwikAuth } from './qwik-auth';
 import { buildSupabaseAuthHelpers } from './supabase-auth-helpers';
@@ -125,6 +126,10 @@ export async function build(config: BuildConfig) {
 
     if (config.supabaseauthhelpers) {
       await buildSupabaseAuthHelpers(config);
+    }
+
+    if (config.tscDocs) {
+      await tscDocs(config);
     }
 
     if (config.api) {

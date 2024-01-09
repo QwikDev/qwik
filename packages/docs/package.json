@@ -11,7 +11,7 @@
     "@builder.io/qwik": "workspace:*",
     "@builder.io/qwik-city": "workspace:*",
     "@builder.io/qwik-labs": "workspace:*",
-    "@builder.io/qwik-react": "0.5.0",
+    "@builder.io/qwik-react": "workspace:*",
     "@builder.io/sdk-qwik": "^0.6.2",
     "@docsearch/css": "^3.5.2",
     "@emotion/react": "^11.11.1",
@@ -58,12 +58,7 @@
   },
   "homepage": "https://qwik.builder.io/",
   "license": "MIT",
-  "packageManager": "pnpm@8.6.12",
-  "pnpm": {
-    "overrides": {
-      "@supabase/realtime-js": "2.8.4"
-    }
-  },
+  "packageManager": "pnpm@8.14.0",
   "private": true,
   "scripts": {
     "build": "node ./node_modules/@builder.io/qwik/qwik.cjs build",

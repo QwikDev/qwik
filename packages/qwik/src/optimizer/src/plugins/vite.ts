@@ -1,5 +1,4 @@
 import type { UserConfig, ViteDevServer, Plugin as VitePlugin } from 'vite';
-import { findDepPkgJsonPath } from 'vitefu';
 import { QWIK_LOADER_DEFAULT_DEBUG, QWIK_LOADER_DEFAULT_MINIFIED } from '../scripts';
 import type {
   EntryStrategy,
@@ -11,6 +10,7 @@ import type {
   TransformModule,
   InsightManifest,
   Path,
+  QwikBundleGraph,
 } from '../types';
 import { versions } from '../versions';
 import { getImageSizeServer } from './image-size-server';
@@ -535,6 +535,20 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             fileName: Q_MANIFEST_FILENAME,
             source: clientManifestStr,
           });
+          this.emitFile({
+            type: 'asset',
+            fileName: `build/q-bundle-graph-${manifest.manifestHash}.json`,
+            source: JSON.stringify(convertManifestToBundleGraph(manifest)),
+          });
+          const sys = qwikPlugin.getSys();
+          const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
+          const workerScriptPath = (await this.resolve('@builder.io/qwik/qwik-prefetch.js'))!.id;
+          const workerScript = await fs.promises.readFile(workerScriptPath, 'utf-8');
+          this.emitFile({
+            type: 'asset',
+            fileName: `qwik-prefetch-service-worker.js`,
+            source: workerScript,
+          });
 
           if (typeof opts.manifestOutput === 'function') {
             await opts.manifestOutput(manifest);
@@ -544,7 +558,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             await opts.transformedModuleOutput(qwikPlugin.getTransformedOutputs());
           }
 
-          const sys = qwikPlugin.getSys();
           if (tmpClientManifestPath && sys.env === 'node') {
             // Client build should write the manifest to a tmp dir
             const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
@@ -733,6 +746,28 @@ export async function render(document, rootNode, opts) {
 }`;
 }
 
+async function findDepPkgJsonPath(sys: OptimizerSystem, dep: string, parent: string) {
+  const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
+  let root = parent;
+  while (root) {
+    const pkg = sys.path.join(root, 'node_modules', dep, 'package.json');
+    try {
+      await fs.promises.access(pkg);
+      // use 'node:fs' version to match 'vite:resolve' and avoid realpath.native quirk
+      // https://github.com/sveltejs/vite-plugin-svelte/issues/525#issuecomment-1355551264
+      return fs.promises.realpath(pkg);
+    } catch {
+      //empty
+    }
+    const nextRoot = sys.path.dirname(root);
+    if (nextRoot === root) {
+      break;
+    }
+    root = nextRoot;
+  }
+  return undefined;
+}
+
 const findQwikRoots = async (
   sys: OptimizerSystem,
   packageJsonPath: string
@@ -759,7 +794,7 @@ const findQwikRoots = async (
         const basedir = sys.cwd();
         const qwikDirs = await Promise.all(
           packages.map(async (id) => {
-            const pkgJsonPath = await findDepPkgJsonPath(id, basedir);
+            const pkgJsonPath = await findDepPkgJsonPath(sys, id, basedir);
             if (pkgJsonPath) {
               const pkgJsonContent = await fs.promises.readFile(pkgJsonPath, 'utf-8');
               const pkgJson = JSON.parse(pkgJsonContent);
@@ -970,4 +1005,35 @@ function absolutePathAwareJoin(path: Path, ...segments: string[]): string {
     }
   }
   return path.join(...segments);
+}
+
+export function convertManifestToBundleGraph(manifest: QwikManifest): QwikBundleGraph {
+  const bundleGraph: QwikBundleGraph = [];
+  const graph = manifest.bundles;
+  const map = new Map<string, { index: number; deps: string[] }>();
+  for (const bundleName in graph) {
+    const bundle = graph[bundleName];
+    const index = bundleGraph.length;
+    const deps: string[] = [];
+    bundle.imports && deps.push(...bundle.imports);
+    bundle.dynamicImports && deps.push(...bundle.dynamicImports);
+    map.set(bundleName, { index, deps });
+    bundleGraph.push(bundleName);
+    while (index + deps.length >= bundleGraph.length) {
+      bundleGraph.push(null!);
+    }
+  }
+  // Second pass to to update dependency pointers
+  for (const bundleName in graph) {
+    const { index, deps } = map.get(bundleName)!;
+    for (let i = 0; i < deps.length; i++) {
+      const depName = deps[i];
+      const { index: depIndex } = map.get(depName)!;
+      if (depIndex == undefined) {
+        throw new Error(`Missing dependency: ${depName}`);
+      }
+      bundleGraph[index + i + 1] = depIndex;
+    }
+  }
+  return bundleGraph;
 }

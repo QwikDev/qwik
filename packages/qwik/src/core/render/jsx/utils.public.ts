@@ -23,21 +23,21 @@ export const SSRStreamBlock: FunctionComponent<{ children?: any }> = (props) => 
 };
 
 /** @public */
-export interface SSRStreamProps {
+export type SSRStreamProps = {
   children:
     | AsyncGenerator<JSXChildren, void, any>
     | ((stream: StreamWriter) => Promise<void>)
     | (() => AsyncGenerator<JSXChildren, void, any>);
-}
+};
 
 /** @public */
 export const SSRStream: FunctionComponent<SSRStreamProps> = (props, key) =>
   jsx(RenderOnce, { children: jsx(InternalSSRStream, props) }, key);
 
 /** @public */
-export interface SSRHintProps {
+export type SSRHintProps = {
   dynamic?: boolean;
-}
+};
 
 /**
  * @deprecated - It has no effect

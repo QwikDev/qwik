@@ -5,9 +5,10 @@ import { useStylesQrl } from '../use/use-styles';
 import { type PropsOf, component$, type PropFunctionProps } from './component.public';
 import { useStore } from '../use/use-store.public';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
-import { describe, test } from 'vitest';
+import { describe, test, expectTypeOf } from 'vitest';
 import type { InputHTMLAttributes } from '../render/jsx/types/jsx-generated';
 import type { QwikIntrinsicElements } from '../render/jsx/types/jsx-qwik-elements';
+import type { PropFunction, QRL } from '../qrl/qrl.public';
 
 describe('q-component', () => {
   /**
@@ -116,28 +117,19 @@ describe('q-component', () => {
     );
   });
 
-  test('types work as expected', () => {
+  test('types work as expected', () => () => {
+    // Let's keep one of these old type exports around for now.
     const Input1 = component$<InputHTMLAttributes<HTMLInputElement>>((props) => {
       return <input {...props} />;
     });
 
-    const Input2 = component$((props: PropFunctionProps<InputHTMLAttributes<HTMLInputElement>>) => {
+    const Input2 = component$((props: PropFunctionProps<PropsOf<'input'>>) => {
       return <input {...props} />;
     });
-
-    const Input3 = component$((props: Partial<InputHTMLAttributes<HTMLInputElement>>) => {
-      return <input {...props} />;
-    });
-
-    const Input4 = component$(
-      (props: Partial<PropFunctionProps<InputHTMLAttributes<HTMLInputElement>>>) => {
-        return <input {...props} />;
-      }
-    );
 
     type Input5Props = {
       type: 'text' | 'number';
-    } & Partial<InputHTMLAttributes<HTMLInputElement>>;
+    } & Partial<PropsOf<'input'>>;
 
     const Input5 = component$<Input5Props>(({ type, ...props }) => {
       return <input type={type} {...props} />;
@@ -158,15 +150,85 @@ describe('q-component', () => {
     component$(() => {
       return (
         <>
-          <Input1 value="1" />
+          <Input1
+            style={{
+              paddingInlineEnd: '10px',
+            }}
+            value="1"
+          />
           <Input2 value="2" />
-          <Input3 value="3" />
-          <Input4 value="4" />
           <Input5 value="5" type="text" />
           <Input6 value="6" type="number" />
         </>
       );
     });
+  });
+
+  test('custom function types should work', () => () => {
+    type TestProps = PropsOf<'h1'> & {
+      plain$?: () => void;
+      qrl$?: QRL<() => void>;
+    };
+    const Test1 = component$<TestProps>(({ plain$, qrl$, ...props }) => {
+      return (
+        <>
+          <h1 onClick$={plain$} onDblClick$={qrl$} {...props}>
+            Hi 👋
+          </h1>
+        </>
+      );
+    });
+    expectTypeOf<TestProps['plain$']>().toMatchTypeOf<Parameters<typeof Test1>[0]['plain$']>();
+    expectTypeOf<TestProps['qrl$']>().toMatchTypeOf<Parameters<typeof Test1>[0]['qrl$']>();
+    expectTypeOf<Parameters<typeof Test1>[0]['plain$']>().toEqualTypeOf<
+      (() => void) | QRL<() => void> | undefined
+    >();
+    expectTypeOf<Parameters<typeof Test1>[0]['qrl$']>().toEqualTypeOf<
+      (() => void) | QRL<() => void> | undefined
+    >();
+
+    const Test2 = component$(({ plain$, qrl$, ...props }: TestProps) => {
+      return (
+        <>
+          <h1 onClick$={plain$} onDblClick$={qrl$} {...props}>
+            Hi 👋
+          </h1>
+        </>
+      );
+    });
+    expectTypeOf<TestProps['plain$']>().toMatchTypeOf<Parameters<typeof Test2>[0]['plain$']>();
+    expectTypeOf<TestProps['qrl$']>().toMatchTypeOf<Parameters<typeof Test2>[0]['qrl$']>();
+    expectTypeOf<Parameters<typeof Test2>[0]['plain$']>().toEqualTypeOf<
+      (() => void) | QRL<() => void> | undefined
+    >();
+    expectTypeOf<Parameters<typeof Test2>[0]['qrl$']>().toEqualTypeOf<
+      (() => void) | QRL<() => void> | undefined
+    >();
+    component$(() => {
+      return (
+        <>
+          <Test1 />
+          <Test2 />
+        </>
+      );
+    });
+  });
+
+  test('PropFunction should work', () => () => {
+    type TestProps = PropsOf<'h1'> & {
+      test$?: PropFunction<() => void>;
+    };
+    const Test1 = component$<TestProps>(({ test$, ...props }) => {
+      return (
+        <>
+          <h1 onClick$={test$} {...props}>
+            Hi 👋
+          </h1>
+        </>
+      );
+    });
+    expectTypeOf<TestProps['test$']>().toMatchTypeOf<Parameters<typeof Test1>[0]['test$']>();
+    expectTypeOf<QRL<() => void>>().toMatchTypeOf<Parameters<typeof Test1>[0]['test$']>();
   });
 });
 

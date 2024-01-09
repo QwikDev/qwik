@@ -31,6 +31,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       fullbuild: ${{ steps.filter.outputs.fullbuild == 'true' || github.event.inputs.disttag != '' }}
+      insightsbuild: ${{ steps.filter_insights.outputs.insightsbuild == 'true' || github.event.inputs.disttag != '' }}
+      docsbuild: ${{ steps.filter_docs.outputs.docsbuild == 'true' || github.event.inputs.disttag != '' }}
 
     steps:
       - name: Cancel Previous Runs
@@ -66,9 +68,24 @@ jobs:
               - 'Cargo.yaml'
               - '.github/workflows/*.yaml'
               - 'scripts/*.ts'
+      - uses: dorny/paths-filter@v2
+        id: filter_insights
+        with:
+          filters: |
+            insightsbuild:
+              - 'packages/insights/**/*'
+      - uses: dorny/paths-filter@v2
+        id: filter_docs
+        with:
+          filters: |
+            docsbuild:
+              - 'packages/docs/**/*'
+
       - name: Print variables output
         run: |
           echo fullbuild=${{ steps.filter.outputs.fullbuild }}
+          echo insightsbuild=${{ steps.filter_insights.outputs.insightsbuild }}
+          echo docsbuild=${{ steps.filter_docs.outputs.docsbuild }}
           echo disttag=${{ github.event.inputs.disttag }}
           echo event_name=${{ github.event_name }}
 
@@ -95,13 +112,13 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build Packages
-        run: pnpm tsm scripts/index.ts --tsc --build --cli --api --set-dist-tag="${{ github.event.inputs.disttag }}"
+        run: pnpm tsm scripts/index.ts --tsc --build --cli --api --qwiklabs --set-dist-tag="${{ github.event.inputs.disttag }}"
 
       - name: Print Qwik Dist Build
         run: tree packages/qwik/dist/
 
       - name: Upload Qwik Build Artifacts
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v3
         with:
           name: dist-dev-builder-io-qwik
           path: packages/qwik/dist/
@@ -111,7 +128,7 @@ jobs:
         run: tree packages/create-qwik/dist/
 
       - name: Upload Create Qwik CLI Build Artifacts
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v3
         with:
           name: dist-dev-create-qwik
           path: packages/create-qwik/dist/
@@ -124,7 +141,7 @@ jobs:
         run: tree packages/eslint-plugin-qwik/dist/
 
       - name: Upload Eslint rules Build Artifacts
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v3
         with:
           name: dist-dev-eslint-plugin-qwik
           path: packages/eslint-plugin-qwik/dist/
@@ -203,7 +220,7 @@ jobs:
 
       - name: Upload WASM Build Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v3
         with:
           name: dist-bindings-wasm
           path: packages/qwik/dist/bindings/*
@@ -309,6 +326,66 @@ jobs:
           path: packages/qwik/dist/bindings/*.node
           if-no-files-found: error
 
+  ############ BUILD INSIGHTS ############
+  build-insights:
+    name: Build Insights
+    needs: changes
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        if: ${{ needs.changes.outputs.insightsbuild == 'true' }}
+        uses: actions/checkout@v3
+
+      - uses: pnpm/action-setup@v2.2.4
+        if: ${{ needs.changes.outputs.insightsbuild == 'true' }}
+
+      - name: Setup Node
+        if: ${{ needs.changes.outputs.insightsbuild == 'true' }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+          cache: 'pnpm'
+          registry-url: https://registry.npmjs.org/
+
+      - name: Install NPM Dependencies
+        if: ${{ needs.changes.outputs.insightsbuild == 'true' }}
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Qwik Insights
+        if: ${{ needs.changes.outputs.insightsbuild == 'true' }}
+        run: pnpm run build.packages.insights
+
+  ############ BUILD DOCS ############
+  build-docs:
+    name: Build Docs
+    needs: changes
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        if: ${{ needs.changes.outputs.docsbuild == 'true' }}
+        uses: actions/checkout@v3
+
+      - uses: pnpm/action-setup@v2.2.4
+        if: ${{ needs.changes.outputs.docsbuild == 'true' }}
+
+      - name: Setup Node
+        if: ${{ needs.changes.outputs.docsbuild == 'true' }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+          cache: 'pnpm'
+          registry-url: https://registry.npmjs.org/
+
+      - name: Install NPM Dependencies
+        if: ${{ needs.changes.outputs.docsbuild == 'true' }}
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Qwik Docs
+        if: ${{ needs.changes.outputs.docsbuild == 'true' }}
+        run: pnpm run build.packages.docs
+
   ############ BUILD DISTRIBUTION ############
   build-distribution:
     name: Build Distribution
@@ -376,7 +453,7 @@ jobs:
 
       - name: Upload Qwik Distribution Artifact
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v3
         with:
           name: builderio-qwik-distribution
           path: packages/qwik/dist/*
@@ -392,7 +469,7 @@ jobs:
 
       - name: Upload QwikCity Build Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v3
         with:
           name: builderio-qwikcity-distribution
           path: packages/qwik-city/lib/
@@ -404,7 +481,7 @@ jobs:
 
       - name: Upload QwikLabs Build Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v3
         with:
           name: builderio-qwiklabs-distribution
           path: |
@@ -581,6 +658,9 @@ jobs:
 
       - name: Install NPM Dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Build core
+        run: pnpm run build.core
 
       - name: Unit Tests
         run: pnpm run test.unit

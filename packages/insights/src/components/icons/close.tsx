@@ -1,5 +1,4 @@
 import { type QwikIntrinsicElements } from '@builder.io/qwik';
-import { css, cx } from '~/styled-system/css';
 
 export function CloseIcon(props: QwikIntrinsicElements['svg'], key: string) {
   return (
@@ -9,13 +8,6 @@ export function CloseIcon(props: QwikIntrinsicElements['svg'], key: string) {
       height="1em"
       viewBox="0 0 24 24"
       {...props}
-      class={cx(
-        css({
-          display: 'inline-block',
-          margin: '4px 2px',
-        }),
-        String(props.class)
-      )}
       key={key}
     >
       <path

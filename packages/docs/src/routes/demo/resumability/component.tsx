@@ -1,5 +1,5 @@
 import {
-  type QwikIntrinsicElements,
+  type PropsOf,
   component$,
   useStylesScoped$,
   Slot,
@@ -214,7 +214,7 @@ export const UnderstandingResumability = component$(() => {
   );
 });
 
-export function ReadyIcon(props: QwikIntrinsicElements['svg'], key: string) {
+export function ReadyIcon(props: PropsOf<'svg'>, key: string) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -227,14 +227,14 @@ export function ReadyIcon(props: QwikIntrinsicElements['svg'], key: string) {
       <g
         fill="green"
         stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="4"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
       >
         <path d="M24 4v8"></path>
         <path
           d="m22 22l20 4l-6 4l6 6l-6 6l-6-6l-4 6l-4-20Z"
-          clipRule="evenodd"
+          clip-rule="evenodd"
         ></path>
         <path d="m38.142 9.858l-5.657 5.657M9.858 38.142l5.657-5.657M4 24h8M9.858 9.858l5.657 5.657"></path>
       </g>

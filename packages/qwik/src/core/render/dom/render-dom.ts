@@ -106,7 +106,7 @@ export const processNode = (
   } else {
     throw qError(QError_invalidJsxNodeType, type);
   }
-  let convertedChildren: ProcessedJSXNode[] = EMPTY_ARRAY;
+  let convertedChildren = EMPTY_ARRAY as ProcessedJSXNode[];
   if (children != null) {
     return maybeThen(processData(children, invocationContext), (result) => {
       if (result !== undefined) {
@@ -145,7 +145,8 @@ export const wrapJSX = (
   element: QwikElement,
   input: ProcessedJSXNode[] | ProcessedJSXNode | undefined
 ) => {
-  const children = input === undefined ? EMPTY_ARRAY : isArray(input) ? input : [input];
+  const children: ProcessedJSXNode[] =
+    input === undefined ? EMPTY_ARRAY : isArray(input) ? input : [input];
   const node = new ProcessedJSXNodeImpl(':virtual', {}, null, children, 0, null);
   node.$elm$ = element;
   return node;

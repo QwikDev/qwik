@@ -3,8 +3,9 @@ import type { PluginOption } from 'vite';
 import { optimize } from 'svgo';
 import fs from 'node:fs';
 import path from 'node:path';
-import { parseId } from 'packages/qwik/src/optimizer/src/plugins/plugin';
+import { parseId } from '../../../qwik/src/optimizer/src/plugins/plugin';
 import type { QwikCityVitePluginOptions } from './types';
+import type { Config as SVGOConfig } from 'svgo';
 
 /** @public */
 export function imagePlugin(userOpts?: QwikCityVitePluginOptions): PluginOption[] {
@@ -111,8 +112,31 @@ export function optimizeSvg(
   userOpts?: QwikCityVitePluginOptions
 ) {
   const svgAttributes: Record<string, string> = {};
-  // note: would be great if it warned users if they tried to use qwik-default plugins, so that name collisions are avoided
-  const userPlugins = userOpts?.imageOptimization?.svgo?.plugins || [];
+  const prefixIdsConfiguration = userOpts?.imageOptimization?.svgo?.prefixIds;
+  const maybePrefixIdsPlugin: SVGOConfig['plugins'] =
+    prefixIdsConfiguration !== false ? [{ name: 'prefixIds', params: prefixIdsConfiguration }] : [];
+
+  const userPlugins =
+    userOpts?.imageOptimization?.svgo?.plugins?.filter((plugin) => {
+      if (
+        plugin === 'preset-default' ||
+        (typeof plugin === 'object' && plugin.name === 'preset-default')
+      ) {
+        console.warn(
+          `You are trying to use the preset-default SVGO plugin. This plugin is already included by default, you can customize it through the defaultPresetOverrides option.`
+        );
+        return false;
+      }
+
+      if (plugin === 'prefixIds' || (typeof plugin === 'object' && plugin.name === 'prefixIds')) {
+        console.warn(
+          `You are trying to use the preset-default SVGO plugin. This plugin is already included by default, you can customize it through the prefixIds option.`
+        );
+        return false;
+      }
+
+      return true;
+    }) || [];
 
   const data = optimize(code, {
     floatPrecision: userOpts?.imageOptimization?.svgo?.floatPrecision,
@@ -144,6 +168,7 @@ export function optimizeSvg(
           };
         },
       },
+      ...maybePrefixIdsPlugin,
       ...userPlugins,
     ],
   }).data;

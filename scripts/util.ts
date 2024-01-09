@@ -1,5 +1,5 @@
 import type { Plugin } from 'esbuild';
-import { dirname, join } from 'node:path';
+import { join } from 'node:path';
 import mri from 'mri';
 import {
   access as fsAccess,
@@ -66,6 +66,7 @@ export interface BuildConfig {
   devRelease?: boolean;
   setDistTag?: string;
   tsc?: boolean;
+  tscDocs?: boolean;
   validate?: boolean;
   wasm?: boolean;
   watch?: boolean;
@@ -92,6 +93,7 @@ export function loadConfig(args: string[] = []) {
   config.distQwikCityPkgDir = join(config.packagesDir, 'qwik-city', 'lib');
   config.distBindingsDir = join(config.distQwikPkgDir, 'bindings');
   config.tscDir = join(config.tmpDir, 'tsc-out');
+  config.tscDocs = (config as any)['tsc-docs'];
   config.dtsDir = join(config.tmpDir, 'dts-out');
   config.esmNode = parseInt(process.version.slice(1).split('.')[0], 10) >= 14;
   config.platformBinding = (config as any)['platform-binding'];
@@ -129,50 +131,6 @@ export function importPath(filter: RegExp, newModulePath: string) {
         path: newModulePath,
         external: true,
       }));
-    },
-  };
-  return plugin;
-}
-
-const depEdits: Record<string, { src: string; replacement: string }[]> = {
-  // Replace top-level await with a top-level import
-  'vitefu/src/index.js': [
-    {
-      src: `import path from 'node:path'`,
-      replacement: `import path from 'node:path'\nimport _module from 'node:module'`,
-    },
-    {
-      src: `(await import('module')).default`,
-      replacement: `_module`,
-    },
-  ],
-};
-
-/** Esbuild plugin to edit dependency code so it builds successfully */
-export function editDeps() {
-  const plugin: Plugin = {
-    name: 'editDepsPlugin',
-    setup(build) {
-      const filter = new RegExp(
-        `^.*(${Object.keys(depEdits)
-          .map((mod) => {
-            return mod
-              .replace('.', '\\.')
-              .replace('/', process.platform === 'win32' ? '\\\\' : '\\/');
-          })
-          .join('|')})$`
-      );
-      build.onLoad({ filter }, async (args) => {
-        let contents = await readFile(args.path, 'utf-8');
-        for (const modPath in depEdits) {
-          if (args.path.endsWith(modPath)) {
-            for (const edit of depEdits[modPath]) {
-              contents = contents.replace(edit.src, edit.replacement);
-            }
-          }
-        }
-        return { contents, resolveDir: dirname(args.path) };
-      });
     },
   };
   return plugin;

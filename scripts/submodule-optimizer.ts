@@ -2,7 +2,6 @@ import { build, type BuildOptions } from 'esbuild';
 import {
   access,
   type BuildConfig,
-  editDeps,
   getBanner,
   nodeTarget,
   readFile,
@@ -51,7 +50,7 @@ export async function submoduleOptimizer(config: BuildConfig) {
         'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
         ...qwikloaderScripts,
       },
-      plugins: [RawPlugin(), editDeps()],
+      plugins: [RawPlugin()],
     });
 
     const cjsBanner = [`globalThis.qwikOptimizer = (function (module) {`].join('\n');
@@ -71,7 +70,7 @@ export async function submoduleOptimizer(config: BuildConfig) {
         ...qwikloaderScripts,
       },
       target: nodeTarget,
-      plugins: [RawPlugin(), editDeps()],
+      plugins: [RawPlugin()],
     });
 
     await Promise.all([esmBuild, cjsBuild]);

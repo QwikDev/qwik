@@ -1,9 +1,9 @@
-import { component$, useErrorBoundary, Slot, type PropFunction } from '@builder.io/qwik';
+import { component$, useErrorBoundary, Slot, type QRL } from '@builder.io/qwik';
 
 /** @public */
 export interface ErrorBoundaryProps {
   children: any;
-  fallback$: PropFunction<(ev: any) => any>;
+  fallback$: QRL<(ev: any) => any>;
 }
 
 /** @public */

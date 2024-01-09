@@ -3,7 +3,14 @@ title: Bundle Optimization | Guides
 description: Learn about bundle optimization in Qwik, a JavaScript framework for building web applications. This guide explains how to optimize your code by co-locating symbols and chunks, and provides examples of how to create and use symbols in your source code. Follow along with the code snippets and try them out in the included CodeSandbox demo.
 contributors:
   - mhevery
+  - the-r3aper7
+  - mrhoodz
+  - Craiqser
+  - literalpie
+  - antoinepairet
   - hamatoyogi
+updated_at: '2023-09-30T00:45:24Z'
+created_at: '2023-05-26T19:39:35Z'
 ---
 
 import CodeSandbox from '../../../../../components/code-sandbox/index.tsx';
@@ -149,6 +156,8 @@ To collect symbol usage from a running application:
 Qwik apps employ a service worker to ensure that bundles are prefetched into the browser's cache and that any user interaction would result in a cache hit, hence no delay in interaction.
 
 See [Speculative Module Fetching](/docs/(qwikcity)/advanced/speculative-module-fetching/index.mdx).
+
+> Notice that Service Worker feature is available only in secure contexts (HTTPS), in some or all supporting browsers. See the [`serviceWorker` property API specs](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/serviceWorker).
 
 ## Events
 

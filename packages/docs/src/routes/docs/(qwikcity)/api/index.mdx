@@ -15,7 +15,15 @@ contributors:
   - Mhmdrza
   - ulic75
   - mhevery
+  - jordanw66
+  - igorbabko
+  - mrhoodz
+  - VinuB-Dev
+  - billykwok
+  - julianobrasil
   - hamatoyogi
+updated_at: '2023-10-03T18:53:23Z'
+created_at: '2023-03-20T23:45:13Z'
 ---
 
 # API reference
@@ -269,6 +277,40 @@ export default component$(() => {
 ```
 
 > `QwikCityProvider` does not render any DOM element, not even the matched route, it merely initializes Qwik City core logic, because of this reason, it should not be used more than once in the same app.
+
+
+## `<QwikCityMockProvider>`
+
+The `QwikCityMockProvider` component initializes a Qwik City context for testing. It provides the necessary context for Qwik City code to work in tests, such as [`useContent()`](/docs/(qwikcity)/api/index.mdx#usecontent). Vice versa for `useNavigate()`, `<Link>`, `useLocation()` and so on.
+It is recommended that you use this in your test files.
+
+> `QwikCityMockProvider` does not render any DOM elements, meaning it won't be visible in snapshots
+
+If you are looking for a general example on how to integrate vitest into your Qwik look checkout the [vitest integration documentation](/docs/integrations/vitest/index.mdx)
+
+```tsx title="src/components/card.spec.tsx"
+import { createDOM } from '@builder.io/qwik/testing';
+import { QwikCityMockProvider } from '@builder.io/qwik-city';
+import { test, expect } from 'vitest';
+
+// Component with two props. Uses <Link> internally. Omitted for brevity
+import { Card } from './card';
+
+const cases = [
+  {text: 'qwik', link:'https://qwik.builder.io/docs/api'}, 
+  {text: 'vitest', link: 'https://vitest.dev'}
+];
+
+test.each(cases)('should render card with %s %s', async ({text, link}) => {
+  const { screen, render } = await createDOM();
+  await render(
+    <QwikCityMockProvider>
+      <Card text={text} link={link} />
+    </QwikCityMockProvider>,
+  );
+  expect(screen.innerHTML).toMatchSnapshot();
+});
+```
 
 ## `<RouterOutlet>`
 

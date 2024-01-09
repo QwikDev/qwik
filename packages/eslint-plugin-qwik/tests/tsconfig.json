@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "incremental": true,
+    "target": "ES2020",
+    "module": "ES2020",
+    "lib": ["es2020", "DOM"],
+    "resolveJsonModule": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "@builder.io/qwik",
+    "declaration": true,
+    "isolatedModules": true,
+    "strict": true,
+    "moduleResolution": "node",
+    "baseUrl": ".",
+    "noUnusedLocals": false,
+    "esModuleInterop": true,
+    "sourceRoot": ".",
+    "inlineSourceMap": true,
+    "inlineSources": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "paths": {
+      "@builder.io/qwik": ["../../qwik/dist/core.d.ts"],
+      "@builder.io/qwik/build": ["../../qwik/dist/build/index.d.ts"],
+      "@builder.io/qwik/jsx-runtime": ["../../qwik/dist/jsx-runtime.d.ts"],
+      "@builder.io/qwik-city": ["../../qwik-city/lib/index.d.ts"]
+    }
+  },
+  "include": ["**/*.tsx", "**/*.ts"]
+}

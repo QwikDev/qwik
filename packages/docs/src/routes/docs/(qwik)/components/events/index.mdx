@@ -15,7 +15,13 @@ contributors:
   - AnthonyPAlicea
   - amatiash
   - harishkrishnan24
+  - fabian-hiller
+  - igorbabko
+  - mrhoodz
+  - julianobrasil
   - maiieul
+updated_at: '2023-10-03T18:53:59Z'
+created_at: '2023-03-20T23:45:13Z'
 ---
 
 import CodeSandbox from '../../../../../components/code-sandbox/index.tsx';
@@ -247,7 +253,7 @@ import { component$, Slot, useStore } from '@builder.io/qwik';
 export default component$(() => {
   return (
     <Button onTripleClick$={() => alert('TRIPLE CLICKED!')}>
-      Triple click me!
+      Triple Click me!
     </Button>
   );
 });
@@ -283,13 +289,12 @@ export const Button = component$<ButtonProps>(({ onTripleClick$ }) => {
     </button>
   );
 });
-
 ```
 </CodeSandbox>
 
-⚠️ When using type annotations, we need to wrap the event type with `PropFunction` in order to tell TypeScript that the function can't be called synchronously.
+⚠️ When using type annotations, we need to wrap the event type with `QRL` in order to tell TypeScript that the function can't be called synchronously.
 ```tsx
-component$(({ onTripleClick$ } : { onTripleClick$?: PropFunction<() => void> }) => {
+component$(({ onTripleClick$ } : { onTripleClick$?: QRL<() => void> }) => {
   ...
 });
 ```

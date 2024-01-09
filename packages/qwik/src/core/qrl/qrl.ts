@@ -1,6 +1,13 @@
 import { EMPTY_ARRAY } from '../util/flyweight';
 import type { QRL } from './qrl.public';
-import { assertQrl, createQRL, emitEvent, getSymbolHash, type QRLInternal } from './qrl-class';
+import {
+  assertQrl,
+  createQRL,
+  emitEvent,
+  getSymbolHash,
+  isSyncQrl,
+  type QRLInternal,
+} from './qrl-class';
 import { isFunction, isString } from '../util/types';
 import {
   qError,
@@ -11,9 +18,10 @@ import {
 import { qRuntimeQrl, qSerialize } from '../util/qdev';
 import { getPlatform } from '../platform/platform';
 import { assertDefined, assertTrue, assertElement } from '../error/assert';
-import type { MustGetObjID } from '../container/container';
+import type { ContainerState, MustGetObjID } from '../container/container';
 import type { QContext } from '../state/context';
 import { mapJoin } from '../container/pause';
+import { throwErrorAndStop } from '../util/log';
 
 // https://regexr.com/68v72
 const EXTRACT_IMPORT_PATH = /\(\s*(['"])([^\1]+)\1\s*\)/;
@@ -90,6 +98,7 @@ export const qrl = <T = any>(
     announcedQRL.add(symbol);
     emitEvent('qprefetch', {
       symbols: [getSymbolHash(symbol)],
+      bundles: [chunk],
     });
   }
 
@@ -142,6 +151,7 @@ export const inlinedQrlDEV = <T = any>(
 export interface QRLSerializeOptions {
   $getObjId$?: MustGetObjID;
   $addRefMap$?: (obj: any) => string;
+  $containerState$?: ContainerState;
 }
 
 export const serializeQRL = (qrl: QRLInternal, opts: QRLSerializeOptions = {}) => {
@@ -162,15 +172,30 @@ export const serializeQRL = (qrl: QRLInternal, opts: QRLSerializeOptions = {}) =
     }
   }
 
-  if (qRuntimeQrl && !chunk) {
+  if (qRuntimeQrl && chunk == null) {
     chunk = '/runtimeQRL';
     symbol = '_';
   }
-  if (!chunk) {
+  if (chunk == null) {
     throw qError(QError_qrlMissingChunk, qrl.$symbol$);
   }
   if (chunk.startsWith('./')) {
     chunk = chunk.slice(2);
+  }
+  if (isSyncQrl(qrl)) {
+    if (opts.$containerState$) {
+      const fn = qrl.resolved as Function;
+      const containerState = opts.$containerState$;
+      const fnStrKey = fn.toString();
+      let id = containerState.$inlineFns$.get(fnStrKey);
+      if (id === undefined) {
+        id = containerState.$inlineFns$.size;
+        containerState.$inlineFns$.set(fnStrKey, id);
+      }
+      symbol = String(id);
+    } else {
+      throwErrorAndStop('Sync QRL without containerState');
+    }
   }
   let output = `${chunk}#${symbol}`;
   const capture = qrl.$capture$;
@@ -187,16 +212,21 @@ export const serializeQRL = (qrl: QRLInternal, opts: QRLSerializeOptions = {}) =
   return output;
 };
 
-export const serializeQRLs = (existingQRLs: QRLInternal<any>[], elCtx: QContext): string => {
+export const serializeQRLs = (
+  existingQRLs: QRLInternal<any>[],
+  containerState: ContainerState,
+  elCtx: QContext
+): string => {
   assertElement(elCtx.$element$);
   const opts: QRLSerializeOptions = {
+    $containerState$: containerState,
     $addRefMap$: (obj) => addToArray(elCtx.$refMap$, obj),
   };
   return mapJoin(existingQRLs, (qrl) => serializeQRL(qrl, opts), '\n');
 };
 
 /** `./chunk#symbol[captures] */
-export const parseQRL = (qrl: string, containerEl?: Element): QRLInternal => {
+export const parseQRL = <T = any>(qrl: string, containerEl?: Element): QRLInternal<T> => {
   const endIdx = qrl.length;
   const hashIdx = indexOf(qrl, 0, '#');
   const captureIdx = indexOf(qrl, hashIdx, '[');
@@ -220,7 +250,7 @@ export const parseQRL = (qrl: string, containerEl?: Element): QRLInternal => {
   if (containerEl) {
     iQrl.$setContainer$(containerEl);
   }
-  return iQrl;
+  return iQrl as QRLInternal<T>;
 };
 
 const indexOf = (text: string, startIdx: number, char: string) => {

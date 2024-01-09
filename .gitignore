@@ -38,6 +38,7 @@ tsdoc-metadata.json
 .idea
 .eslintcache
 test-results
+.direnv
 
 # Package Managers
 .yarn/*

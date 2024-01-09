@@ -23,7 +23,6 @@
               nodejs_20
 
               # Qwik optimizer deps
-              clippy
               wasm-pack
               # Provides rustc and cargo
               ((rust-bin.fromRustupToolchainFile

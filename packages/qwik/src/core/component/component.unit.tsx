@@ -179,7 +179,7 @@ describe('q-component', () => {
     });
 
     const Test2 = component$(
-      ({ test$, ...props }: { test$?: PropFunction<() => void> & PropsOf<'h1'> }) => {
+      ({ test$, ...props }:  PropFunctionProps<TestProps> ) => {
         return (
           <>
             <h1 onClick$={() => test$} {...props}>

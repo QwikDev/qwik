@@ -629,7 +629,7 @@ export type PropFunctionProps<PROPS extends Record<any, any>> = {
 };
 
 // @public
-export type PropsOf<COMP> = COMP extends Component<infer PROPS> ? NonNullable<PROPS> : COMP extends FunctionComponent<infer PROPS> ? NonNullable<PublicProps<PROPS>> : COMP extends keyof QwikIntrinsicElements ? QwikIntrinsicElements[COMP] : COMP extends string ? QwikIntrinsicElements['span'] : Record<string, unknown>;
+export type PropsOf<COMP> = COMP extends FunctionComponent<infer PROPS> ? NonNullable<PROPS> : COMP extends keyof QwikIntrinsicElements ? QwikIntrinsicElements[COMP] : COMP extends string ? QwikIntrinsicElements['span'] : Record<string, unknown>;
 
 // Warning: (ae-forgotten-export) The symbol "ComponentChildren" needs to be exported by the entry point index.d.ts
 // Warning: (ae-incompatible-release-tags) The symbol "PublicProps" is marked as @public, but its signature references "_Only$" which is marked as @internal

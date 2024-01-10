@@ -1796,7 +1796,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "Infers `Props` from the component.\n\n```typescript\nexport const OtherComponent = component$(() => {\n  return $(() => <Counter value={100} />);\n});\n```\n\n\n```typescript\nexport type PropsOf<COMP> = COMP extends Component<infer PROPS> ? NonNullable<PROPS> : COMP extends FunctionComponent<infer PROPS> ? NonNullable<PublicProps<PROPS>> : COMP extends keyof QwikIntrinsicElements ? QwikIntrinsicElements[COMP] : COMP extends string ? QwikIntrinsicElements['span'] : Record<string, unknown>;\n```\n**References:** [Component](#component)<!-- -->, [FunctionComponent](#functioncomponent)<!-- -->, [PublicProps](#publicprops)<!-- -->, [QwikIntrinsicElements](#qwikintrinsicelements)",
+      "content": "Infers `Props` from the component.\n\n```typescript\nexport const OtherComponent = component$(() => {\n  return $(() => <Counter value={100} />);\n});\n```\n\n\n```typescript\nexport type PropsOf<COMP> = COMP extends FunctionComponent<infer PROPS> ? NonNullable<PROPS> : COMP extends keyof QwikIntrinsicElements ? QwikIntrinsicElements[COMP] : COMP extends string ? QwikIntrinsicElements['span'] : Record<string, unknown>;\n```\n**References:** [FunctionComponent](#functioncomponent)<!-- -->, [QwikIntrinsicElements](#qwikintrinsicelements)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts",
       "mdFile": "qwik.propsof.md"
     },

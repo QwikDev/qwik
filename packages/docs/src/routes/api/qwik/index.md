@@ -1774,18 +1774,16 @@ export const OtherComponent = component$(() => {
 ```
 
 ```typescript
-export type PropsOf<COMP> = COMP extends Component<infer PROPS>
+export type PropsOf<COMP> = COMP extends FunctionComponent<infer PROPS>
   ? NonNullable<PROPS>
-  : COMP extends FunctionComponent<infer PROPS>
-    ? NonNullable<PublicProps<PROPS>>
-    : COMP extends keyof QwikIntrinsicElements
-      ? QwikIntrinsicElements[COMP]
-      : COMP extends string
-        ? QwikIntrinsicElements["span"]
-        : Record<string, unknown>;
+  : COMP extends keyof QwikIntrinsicElements
+    ? QwikIntrinsicElements[COMP]
+    : COMP extends string
+      ? QwikIntrinsicElements["span"]
+      : Record<string, unknown>;
 ```
 
-**References:** [Component](#component), [FunctionComponent](#functioncomponent), [PublicProps](#publicprops), [QwikIntrinsicElements](#qwikintrinsicelements)
+**References:** [FunctionComponent](#functioncomponent), [QwikIntrinsicElements](#qwikintrinsicelements)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts)
 

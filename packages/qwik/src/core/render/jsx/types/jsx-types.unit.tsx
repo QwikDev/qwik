@@ -5,7 +5,7 @@ import type { FunctionComponent, JSXNode } from './jsx-node';
 import type { QwikIntrinsicElements } from './jsx-qwik-elements';
 import type { JSXChildren } from './jsx-qwik-attributes';
 import { component$, type PropsOf } from '../../../component/component.public';
-import type { Size, QwikHTMLElements } from './jsx-generated';
+import type { Size } from './jsx-generated';
 import type { QwikJSX } from './jsx-qwik';
 
 describe('types', () => {
@@ -119,9 +119,10 @@ describe('types', () => {
   });
   test('polymorphic component', () => () => {
     const Poly = component$(
-      <C extends keyof QwikHTMLElements>({ as, ...props }: { as?: C } & QwikHTMLElements[C]) => {
-        const Cmp = (as || 'div') as any as FunctionComponent<typeof props>;
-
+      <C extends string | FunctionComponent>({
+        as: Cmp = 'div' as C,
+        ...props
+      }: { as?: C } & PropsOf<string extends C ? 'div' : C>) => {
         return <Cmp {...props}>hi</Cmp>;
       }
     );
@@ -131,10 +132,14 @@ describe('types', () => {
     expectTypeOf<Parameters<typeof Poly<'a'>>[0]['href']>().toEqualTypeOf<string | undefined>();
     expectTypeOf<Parameters<typeof Poly<'button'>>[0]>().not.toHaveProperty('href');
     expectTypeOf<Parameters<typeof Poly<'a'>>[0]>().not.toHaveProperty('popovertarget');
+    // Note that `<Poly onClick$={(ev, el)=>...}/>` (no `as`) doesn't infer the ev,el arguments
+    // It does infer the prop type correctly, so that looks like a TS bug
+    expectTypeOf<
+      Parameters<Extract<Parameters<typeof Poly>[0]['onClick$'], EventHandler>>[1]
+    >().toEqualTypeOf<HTMLDivElement>();
 
     return (
       <>
-        {/* error for popovertarget unknown prop for a */}
         <Poly
           as="a"
           onClick$={(ev, el) => {

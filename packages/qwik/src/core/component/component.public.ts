@@ -28,15 +28,14 @@ import type { QwikIntrinsicElements } from '../render/jsx/types/jsx-qwik-element
  * @public
  */
 // </docs>
-export type PropsOf<COMP> = COMP extends Component<infer PROPS>
+export type PropsOf<COMP> = COMP extends FunctionComponent<infer PROPS>
   ? NonNullable<PROPS>
-  : COMP extends FunctionComponent<infer PROPS>
-    ? NonNullable<PublicProps<PROPS>>
-    : COMP extends keyof QwikIntrinsicElements
-      ? QwikIntrinsicElements[COMP]
-      : COMP extends string
-        ? QwikIntrinsicElements['span']
-        : Record<string, unknown>;
+  : COMP extends keyof QwikIntrinsicElements
+    ? QwikIntrinsicElements[COMP]
+    : COMP extends string
+      ? // `<span/>` has no special attributes
+        QwikIntrinsicElements['span']
+      : Record<string, unknown>;
 
 /**
  * Type representing the Qwik component.

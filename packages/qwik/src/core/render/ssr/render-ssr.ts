@@ -548,6 +548,13 @@ const renderNode = (
       throw new TypeError('Can only have one of class or className');
     }
     const handleProp = (rawProp: string, value: unknown, isImmutable: boolean) => {
+      if (rawProp === 'ref') {
+        if (value !== undefined) {
+          setRef(value, elm);
+          hasRef = true;
+        }
+        return;
+      }
       if (isOnProp(rawProp)) {
         setEvent(elCtx.li, rawProp, value, undefined);
         return;
@@ -601,15 +608,7 @@ const renderNode = (
       }
     }
     for (const prop in props) {
-      const value = props[prop];
-      if (prop === 'ref') {
-        if (value !== undefined) {
-          setRef(value, elm);
-          hasRef = true;
-        }
-        continue;
-      }
-      handleProp(prop, value, false);
+      handleProp(prop, props[prop], false);
     }
     const listeners = elCtx.li;
     if (hostCtx) {

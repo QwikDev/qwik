@@ -22,8 +22,8 @@
     }
   ],
   "dependencies": {
-    "csstype": "^3.1.2",
-    "vite": "^5.0.6"
+    "csstype": "^3.1.3",
+    "vite": "^5.0.11"
   },
   "devDependencies": {
     "@builder.io/qwik-dom": "workspace:*",
@@ -36,10 +36,10 @@
   "exports": {
     ".": {
       "import": {
-        "min": "./dist/core.min.mjs",
         "development": "./dist/core.mjs",
         "production": "./dist/core.prod.mjs",
-        "default": "./dist/core.mjs"
+        "default": "./dist/core.mjs",
+        "min": "./dist/core.min.mjs"
       },
       "require": {
         "development": "./dist/core.cjs",
@@ -52,10 +52,10 @@
     },
     "./jsx-runtime": {
       "import": {
-        "min": "./dist/core.min.mjs",
         "development": "./dist/core.mjs",
         "production": "./dist/core.prod.mjs",
-        "default": "./dist/core.mjs"
+        "default": "./dist/core.mjs",
+        "min": "./dist/core.min.mjs"
       },
       "require": {
         "development": "./dist/core.cjs",
@@ -65,10 +65,10 @@
     },
     "./jsx-dev-runtime": {
       "import": {
-        "min": "./dist/core.min.mjs",
         "development": "./dist/core.mjs",
         "production": "./dist/core.prod.mjs",
-        "default": "./dist/core.mjs"
+        "default": "./dist/core.mjs",
+        "min": "./dist/core.min.mjs"
       },
       "require": {
         "development": "./dist/core.cjs",

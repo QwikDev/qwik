@@ -7,7 +7,7 @@ import {
   vnode_getFirstChild,
   vnode_getNextSibling,
   vnode_getNodeTypeName,
-  vnode_newElement,
+  vnode_newDeflatedElement,
   vnode_setText,
 } from './vnode';
 import { Fragment } from '@builder.io/qwik/jsx-runtime';
@@ -20,7 +20,7 @@ describe('vnode', () => {
     document = createDocument() as QDocument;
     document.qVNodeData = new WeakMap();
     parent = document.createElement('test');
-    vParent = vnode_newElement(null, parent);
+    vParent = vnode_newDeflatedElement(null, parent);
   });
   afterEach(() => {
     parent = null!;

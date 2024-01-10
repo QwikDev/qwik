@@ -18,6 +18,9 @@ import {
 import { ssrCreateContainer } from './ssr/ssr-container';
 import { ssrRenderToContainer } from './ssr/ssr-render';
 import './vdom-diff.unit';
+import { codeToName } from './shared-serialization';
+import { renderToString } from '../../server/render';
+import { getPlatform, setPlatform } from '../platform/platform';
 
 describe('v2 render', () => {
   it('should render jsx', async () => {
@@ -77,7 +80,30 @@ describe('v2 render', () => {
   });
 });
 
-export async function ssrRenderToDom(jsx: JSXNode, opts: { debug?: boolean } = {}) {
+export async function ssrRenderToDom(
+  jsx: JSXNode,
+  opts: {
+    /// Print debug information to console.
+    debug?: boolean;
+    /// Use old SSR rendering ond print out debug state. Useful for comparing difference between serialization.
+    oldSSR?: boolean;
+  } = {}
+) {
+  if (opts.oldSSR) {
+    const platform = getPlatform();
+    try {
+      const ssr = await renderToString([
+        <head>
+          <title>{expect.getState().testPath}</title>
+        </head>,
+        <body>{jsx}</body>,
+      ]);
+      // restore platform
+      console.log('LEGACY HTML', ssr.html);
+    } finally {
+      setPlatform(platform);
+    }
+  }
   const ssrContainer = ssrCreateContainer({ tagName: 'html' });
   await ssrRenderToContainer(ssrContainer, [
     <head>
@@ -87,16 +113,24 @@ export async function ssrRenderToDom(jsx: JSXNode, opts: { debug?: boolean } = {
   ]);
   const html = ssrContainer.writer.toString();
   const document = createDocument(html);
-  const container = getDomContainer(document.firstChild as HTMLElement);
+  const container = getDomContainer(document.body.parentElement as HTMLElement);
   if (opts.debug) {
     console.log('HTML:', html);
     console.log(vnode_toString.call(container.rootVNode, Number.MAX_SAFE_INTEGER, '', true));
     console.log('CONTAINER: [');
     const state = container.rawStateData;
     for (let i = 0; i < state.length; i++) {
-      console.log(('    ' + i + ':').substring(-4), JSON.stringify(state[i]));
+      console.log(('    ' + i + ':').substr(-4), qwikJsonStringify(state[i]));
     }
     console.log(']');
+    if (false as boolean) {
+      console.log('CONTAINER PROXY: [');
+      const proxyState = container.stateData;
+      for (let i = 0; i < state.length; i++) {
+        console.log(('    ' + i + ':').substr(-4), proxyState[i]);
+      }
+      console.log(']');
+    }
   }
   const bodyVNode = vnode_getVNodeForChildNode(container.rootVNode, document.body);
   return { container, document, vNode: vnode_getFirstChild(bodyVNode) };
@@ -119,4 +153,14 @@ function getHostVNode(vElement: VNode | null) {
     vElement = vnode_getParent(vElement);
   }
   return vElement;
+}
+
+function qwikJsonStringify(value: any): string {
+  const RED = '\x1b[31m';
+  const RESET = '\x1b[0m';
+  let json = JSON.stringify(value);
+  json = json.replace(/"\\u00([0-9a-f][0-9a-f])/gm, (_, value) => {
+    return '"' + RED + codeToName(parseInt(value, 16)) + ': ' + RESET;
+  });
+  return json;
 }

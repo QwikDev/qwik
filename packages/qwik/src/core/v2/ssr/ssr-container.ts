@@ -87,6 +87,9 @@ class SSRContainer implements ISSRContainer {
   }
 
   openContainer() {
+    if (this.tag == 'html') {
+      this.write('<!DOCTYPE html>');
+    }
     this.openElement(this.tag, [
       'q:container',
       'paused',
@@ -235,7 +238,7 @@ class SSRContainer implements ISSRContainer {
             } else if (value === CLOSE_FRAGMENT) {
               // write out fragment attributes
               if (fragmentAttrs) {
-                for (let i = 0; i < fragmentAttrs.length; i++) {
+                for (let i = 0; i < fragmentAttrs.length; ) {
                   const key = fragmentAttrs[i++] as string;
                   const value = fragmentAttrs[i++] as string;
                   switch (key) {

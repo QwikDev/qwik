@@ -4,9 +4,15 @@ import { isQwikComponent } from '../../component/component.public';
 import { Slot } from '../../render/jsx/slot.public';
 import { qrlToString, type SerializationContext } from '../shared-serialization';
 import type { Stringifiable } from '../shared-types';
-import { applyInlineComponent, applyQwikComponent } from './ssr-render-component';
+import {
+  applyInlineComponent,
+  applyQwikComponentBody,
+  applyQwikComponentHost,
+} from './ssr-render-component';
 import type { SSRContainer, SsrAttrs } from './types';
 import { isQrl } from '../../qrl/qrl-class';
+import { Virtual } from '../../render/jsx/jsx-runtime';
+import { ELEMENT_KEY } from '../../util/markers';
 
 export async function ssrRenderToContainer(ssr: SSRContainer, jsx: JSXNode | JSXNode[]) {
   ssr.openContainer();
@@ -93,9 +99,14 @@ function processJSXNode(
           enqueue(value.children, ssr.closeFragment);
         } else if (type === Slot) {
           throw new Error('Not implemented:' + type);
+        } else if (type === Virtual) {
+          enqueue(applyQwikComponentBody(value, ssr));
         } else if (isQwikComponent(type)) {
-          ssr.openFragment([]);
-          enqueue(applyQwikComponent(value, type, ssr), ssr.closeFragment);
+          const virtual = applyQwikComponentHost(value, type, ssr);
+          if (virtual) {
+            ssr.openFragment([ELEMENT_KEY, virtual.key]);
+            enqueue(virtual, ssr.closeFragment);
+          }
         } else {
           enqueue(applyInlineComponent(type, value));
         }

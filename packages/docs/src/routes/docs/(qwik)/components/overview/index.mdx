@@ -27,6 +27,7 @@ contributors:
   - eecopa
   - drumnistnakano
   - maiieul
+  - wmertens
 updated_at: '2023-12-14T18:38:38Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
@@ -376,6 +377,30 @@ As the name implies, inline components are best used sparingly for
 lightweight pieces of markup since they offer the convenience of being
 bundled with the parent component.
 
+## Polymorphic components
+
+When you want to output a different type of element depending on props, you can do it using something like this:
+
+```tsx
+export const Poly = component$(
+  <C extends string | FunctionComponent>({
+    as: Cmp = 'div' as C,
+    ...props
+  }: { as?: C } & PropsOf<string extends C ? 'div' : C>) => {
+    return <Cmp {...props}>hi</Cmp>;
+  }
+);
+
+// These all work with correct types
+<>
+  <Poly>Hello from a div</Poly>
+  <Poly as="a" href="/blog">Blog</Poly>
+  <Poly as="input" onInput$={(ev, el) => console.log(el.value)} />
+  <Poly as={OtherComponent} someProp />
+</>
+```
+
+Note the `string extends C`, that is only true when TypeScript couldn't infer the type from the `as` prop, and so you can specify the default type.
 
 ## API Overview
 

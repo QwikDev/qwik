@@ -5,7 +5,7 @@
   "bugs": "https://github.com/BuilderIO/qwik/issues",
   "devDependencies": {
     "@builder.io/qwik": "workspace:*",
-    "vite": "^5.0.6",
+    "vite": "^5.0.11",
     "vite-plugin-static-copy": "^0.17.0"
   },
   "engines": {
@@ -13,8 +13,8 @@
   },
   "exports": {
     ".": {
-      "import": "./lib/index.qwik.mjs",
-      "types": "./lib/types/index.d.ts"
+      "types": "./lib/types/index.d.ts",
+      "import": "./lib/index.qwik.mjs"
     }
   },
   "files": [
@@ -24,7 +24,7 @@
   "license": "MIT",
   "main": "./lib/index.qwik.mjs",
   "peerDependencies": {
-    "@builder.io/qwik": "1.3.2"
+    "@builder.io/qwik": "1.3.3"
   },
   "qwik": "./lib/index.qwik.mjs",
   "repository": {

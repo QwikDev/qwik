@@ -143,6 +143,7 @@ export class VirtualElementImpl implements VirtualElement {
     readonly close: Comment,
     readonly isSvg: boolean
   ) {
+    throw new Error('SHOULD NOT BE CALLED');
     const doc = (this.ownerDocument = open.ownerDocument);
     this.$template$ = createElement(doc, 'template', false) as HTMLTemplateElement;
     this.$attributes$ = parseVirtualAttributes(open.data.slice(3));

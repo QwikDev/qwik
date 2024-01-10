@@ -10,7 +10,7 @@ import { isQwikComponent, type OnRenderFn } from '../../component/component.publ
 import { isSignal } from '../../state/signal';
 import { isPromise } from '../../util/promises';
 import { SkipRender } from './utils.public';
-import { EMPTY_OBJ } from '../../util/flyweight';
+import { EMPTY_ARRAY, EMPTY_OBJ } from '../../util/flyweight';
 import { _IMMUTABLE } from '../../internal';
 import { isBrowser } from '@builder.io/qwik/build';
 import { assertString } from '../../error/assert';
@@ -152,7 +152,8 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
     public immutableProps: Record<any, unknown> | null,
     public children: JSXChildren,
     public flags: number,
-    public key: string | null = null
+    public key: string | null = null,
+    public attrs: Array<string | null> = EMPTY_ARRAY
   ) {}
 }
 

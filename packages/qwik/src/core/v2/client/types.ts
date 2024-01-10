@@ -46,49 +46,60 @@ export interface QNode extends Node {
 export const enum VNodeProps {
   flags = 0,
   parent = 1,
-  nextSibling = 2,
-  firstChildOrPreviousText = 3,
-  node = 4,
-  tagOrContent = 5,
-  propsStart = 6,
+  previousSibling = 2,
+  nextSibling = 3,
+  firstChildOrPreviousText = 4,
+  node = 5,
+  tagOrContent = 6,
+  key = 7,
+  propsStart = 8,
 }
 
 export const enum Flags {
-  DeflatedElement = 0b0010,
-  InflatedElement = 0b0011,
-  Fragment = 0b0100,
-  // Deflated Text is one where the original HTML text node has not been broken down yet.
-  DeflatedText = 0b1000,
-  // Inflated Text is one where the original HTML text node has been broken down into smaller text nodes.
-  InflatedText = 0b1001,
-  MaskElementOrFragment = 0b0110,
+  // Combine this flag with Element/Text/Fragment to indicate that the node is inflated.
+  NeedsInflation = 0b00001,
+  // Text
+  Text = 0b00010,
+  Element = 0b0100,
+  Fragment = 0b1000,
+  MaskType = 0b1110,
+  MaskElementOrFragment = 0b1100,
 }
 
 export type ElementVNode = [
-  Flags.DeflatedElement | Flags.InflatedElement,
+  Flags.Element,
   VNode | null, /// Parent
+  VNode | null | undefined, /// Previous sibling
   VNode | null | undefined, /// Next sibling
   VNode | null | undefined, /// First child
   Element,
   /// Props
   string | undefined, /// tag
+  string | null, /// key
   ...(string | null)[],
 ] & { __brand__: 'ElementVNode' };
 
 export type TextVNode = [
-  Flags.InflatedText | Flags.DeflatedText,
+  Flags.Text,
   VNode, /// Parent
+  VNode | null | undefined, /// Previous sibling
   VNode | null, /// Next sibling
   VNode | null, /// Previous TextNode
   Text | null, /// TextNode or SharedTextNode if deflated
   string, /// text content
+  string | null, /// key content
 ] & { __brand__: 'TextVNode' };
 
 export type FragmentVNode = [
   Flags.Fragment,
   VNode, /// Parent
   VNode | null, /// Next sibling
+  VNode | null | undefined, /// Previous sibling
   VNode | null, /// First child
+  null, /// Node
+  null, /// tag
+  string | null, /// key
+  ...(string | null)[], // attrs
 ] & { __brand__: 'FragmentNode' };
 
 export type VNode = ElementVNode | TextVNode | FragmentVNode;

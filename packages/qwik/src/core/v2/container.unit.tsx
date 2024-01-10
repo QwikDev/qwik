@@ -519,7 +519,7 @@ function toVDOM(containerElement: HTMLElement): VNode {
   return vNode;
 }
 
-function walkJSX(
+export function walkJSX(
   jsx: JSXNode,
   apply: {
     enter: (jsx: JSXNode) => void;

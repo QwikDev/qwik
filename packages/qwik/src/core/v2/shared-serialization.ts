@@ -18,6 +18,7 @@ import {
 } from '../state/common';
 import { isDev } from '../../build/index.dev';
 import type { StreamWriter } from '../../server/types';
+import { QwikElementAdapter } from './client/velement';
 
 const deserializedProxyMap = new WeakMap<any, any>();
 
@@ -35,7 +36,8 @@ const wrapDeserializerProxy = (container: ClientContainer, value: any) => {
   if (
     typeof value === 'object' && // Must be an object
     value !== null && // which is not null
-    isObjectLiteral(value) // and is object literal (not URL, Data, etc.)
+    isObjectLiteral(value) && // and is object literal (not URL, Data, etc.)
+    !(value instanceof QwikElementAdapter)
   ) {
     if (isDeserializerProxy(value)) {
       // already wrapped
@@ -47,6 +49,10 @@ const wrapDeserializerProxy = (container: ClientContainer, value: any) => {
           get(target, property, receiver) {
             if (property === UNWRAP_PROXY) {
               return target;
+            }
+            // console.log('STATE PROXY GET', property);
+            if (property === 'a') {
+              // throw new Error('WHY?');
             }
             let propValue = Reflect.get(target, property, receiver);
             if (
@@ -325,73 +331,8 @@ export function serialize(serializationContext: SerializationContext): void {
       depth++;
       if (value === null) {
         $writer$.write('null');
-      } else if (isObjectLiteral(value)) {
-        // For root objects we need to serialize them regardless if we have seen them before.
-        const seen = depth <= 1 ? undefined : serializationContext.$wasSeen$(value);
-        if (seen === undefined || seen === Number.MIN_SAFE_INTEGER) {
-          // we have not seen it or only seen it once, serialize normally
-          serializeObjectLiteral(value, $writer$, writeValue, writeString);
-        } else {
-          // We have seen it more than once, serialize as reference.
-          assertTrue(seen >= 0, 'seen >= 0');
-          writeString(SerializationConstant.REFERENCE_CHAR + seen);
-        }
-      } else if (value instanceof SignalImpl) {
-        const manager = value[QObjectManagerSymbol];
-        const data: string[] = [];
-        for (const sub of manager.$subs$) {
-          // console.log('SERIALIZE', sub);
-          const serialized = serializeSubscription(sub, $addRoot$ as any);
-          serialized && data.push(serialized);
-        }
-        writeString(
-          SerializationConstant.Signal_CHAR + $addRoot$(value.untrackedValue) + ' ' + data.join(' ')
-        );
-      } else if (value instanceof URL) {
-        writeString(SerializationConstant.URL_CHAR + value.href);
-      } else if (value instanceof Date) {
-        writeString(SerializationConstant.Date_CHAR + value.toJSON());
-      } else if (value instanceof RegExp) {
-        writeString(SerializationConstant.Regex_CHAR + value.toString());
-      } else if (value instanceof Error) {
-        const errorProps = Object.assign(
-          {
-            message: value.message,
-            /// In production we don't want to leak the stack trace.
-            stack: isDev ? value.stack : '<hidden>',
-          },
-          value
-        );
-        writeString(SerializationConstant.Error_CHAR + $addRoot$(errorProps));
-      } else if ($Node$ && value instanceof $Node$) {
-        writeString(SerializationConstant.VNode_CHAR + value.id);
-      } else if (typeof FormData !== 'undefined' && value instanceof FormData) {
-        const array: [string, string][] = [];
-        value.forEach((value, key) => {
-          if (typeof value === 'string') {
-            array.push([key, value]);
-          } else {
-            array.push([key, value.name]);
-          }
-        });
-        writeString(SerializationConstant.FormData_CHAR + $addRoot$(array));
-      } else if (value instanceof URLSearchParams) {
-        writeString(SerializationConstant.URLSearchParams_CHAR + value.toString());
-      } else if (value instanceof Set) {
-        writeString(SerializationConstant.Set_CHAR + $addRoot$(Array.from(value.values())));
-      } else if (value instanceof Map) {
-        const tuples: Array<[any, any]> = [];
-        value.forEach((v, k) => tuples.push([k, v]));
-        writeString(SerializationConstant.Map_CHAR + $addRoot$(tuples));
-      } else if (isJSXNode(value)) {
-        const type = writeString(
-          SerializationConstant.JSXNode_CHAR +
-            `${serializeJSXType($addRoot$, value.type)} ${$addRoot$(value.props)} ${$addRoot$(
-              value.immutableProps
-            )} ${$addRoot$(value.children)} ${value.flags}`
-        );
       } else {
-        throw new Error('implement: ' + value);
+        writeObjectValue(value);
       }
       depth--;
     } else if (typeof value === 'string') {
@@ -415,6 +356,76 @@ export function serialize(serializationContext: SerializationContext): void {
       writeString(SerializationConstant.UNDEFINED_CHAR);
     } else {
       throw new Error('Unknown type: ' + typeof value);
+    }
+  };
+
+  const writeObjectValue = (value: any) => {
+    // Objects are the only way to create circular dependencies.
+    // So the first thing to to is to see if we have a circular dependency.
+    // (NOTE: For root objects we need to serialize them regardless if we have seen
+    //        them before, otherwise the root object reference will point to itself.)
+    const seen = depth <= 1 ? undefined : serializationContext.$wasSeen$(value);
+    if (typeof seen === 'number' && seen >= 0) {
+      // We have seen this object before, so we can serialize it as a reference.
+      // Otherwise serialize as normal
+      writeString(SerializationConstant.REFERENCE_CHAR + seen);
+    } else if (isObjectLiteral(value)) {
+      serializeObjectLiteral(value, $writer$, writeValue, writeString);
+    } else if (value instanceof SignalImpl) {
+      const manager = value[QObjectManagerSymbol];
+      const data: string[] = [];
+      for (const sub of manager.$subs$) {
+        const serialized = serializeSubscription(sub, $addRoot$ as any);
+        serialized && data.push(serialized);
+      }
+      writeString(
+        SerializationConstant.Signal_CHAR + $addRoot$(value.untrackedValue) + ' ' + data.join(' ')
+      );
+    } else if (value instanceof URL) {
+      writeString(SerializationConstant.URL_CHAR + value.href);
+    } else if (value instanceof Date) {
+      writeString(SerializationConstant.Date_CHAR + value.toJSON());
+    } else if (value instanceof RegExp) {
+      writeString(SerializationConstant.Regex_CHAR + value.toString());
+    } else if (value instanceof Error) {
+      const errorProps = Object.assign(
+        {
+          message: value.message,
+          /// In production we don't want to leak the stack trace.
+          stack: isDev ? value.stack : '<hidden>',
+        },
+        value
+      );
+      writeString(SerializationConstant.Error_CHAR + $addRoot$(errorProps));
+    } else if ($Node$ && value instanceof $Node$) {
+      writeString(SerializationConstant.VNode_CHAR + value.id);
+    } else if (typeof FormData !== 'undefined' && value instanceof FormData) {
+      const array: [string, string][] = [];
+      value.forEach((value, key) => {
+        if (typeof value === 'string') {
+          array.push([key, value]);
+        } else {
+          array.push([key, value.name]);
+        }
+      });
+      writeString(SerializationConstant.FormData_CHAR + $addRoot$(array));
+    } else if (value instanceof URLSearchParams) {
+      writeString(SerializationConstant.URLSearchParams_CHAR + value.toString());
+    } else if (value instanceof Set) {
+      writeString(SerializationConstant.Set_CHAR + $addRoot$(Array.from(value.values())));
+    } else if (value instanceof Map) {
+      const tuples: Array<[any, any]> = [];
+      value.forEach((v, k) => tuples.push([k, v]));
+      writeString(SerializationConstant.Map_CHAR + $addRoot$(tuples));
+    } else if (isJSXNode(value)) {
+      const type = writeString(
+        SerializationConstant.JSXNode_CHAR +
+          `${serializeJSXType($addRoot$, value.type)} ${$addRoot$(value.props)} ${$addRoot$(
+            value.immutableProps
+          )} ${$addRoot$(value.children)} ${value.flags}`
+      );
+    } else {
+      throw new Error('implement: ' + value);
     }
   };
 
@@ -506,7 +517,8 @@ function isObjectLiteral(obj: any) {
   // - we are a direct instance of object OR
   // - we are an array
   // In all other cases it is a subclass which requires more checks.
-  return Object.getPrototypeOf(obj) === Object.prototype || Array.isArray(obj);
+  const prototype = Object.getPrototypeOf(obj);
+  return prototype === Object.prototype || prototype === Array.prototype;
 }
 
 const breakCircularDependencies = (serializationContext: SerializationContext, rootObj: any) => {
@@ -639,3 +651,62 @@ function deserializeJSXType(
     }
   }
 }
+
+export const codeToName = (code: number) => {
+  switch (code) {
+    case SerializationConstant.UNDEFINED_VALUE:
+      return 'UNDEFINED';
+    case SerializationConstant.REFERENCE_VALUE:
+      return 'REFERENCE';
+    case SerializationConstant.QRL_VALUE:
+      return 'QRL';
+    case SerializationConstant.Task_VALUE:
+      return 'Task';
+    case SerializationConstant.Resource_VALUE:
+      return 'Resource';
+    case SerializationConstant.URL_VALUE:
+      return 'URL';
+    case SerializationConstant.Date_VALUE:
+      return 'Date';
+    case SerializationConstant.Regex_VALUE:
+      return 'Regex';
+    case SerializationConstant.String_VALUE:
+      return 'String';
+    case SerializationConstant.UNUSED_HORIZONTAL_TAB_VALUE:
+      return 'UNUSED_HORIZONTAL_TAB';
+    case SerializationConstant.UNUSED_NEW_LINE_VALUE:
+      return 'UNUSED_NEW_LINE';
+    case SerializationConstant.UNUSED_VERTICAL_TAB_VALUE:
+      return 'UNUSED_VERTICAL_TAB';
+    case SerializationConstant.UNUSED_FORM_FEED_VALUE:
+      return 'UNUSED_FORM_FEED';
+    case SerializationConstant.UNUSED_CARRIAGE_RETURN_VALUE:
+      return 'UNUSED_CARRIAGE_RETURN';
+    case SerializationConstant.Error_VALUE:
+      return 'Error';
+    case SerializationConstant.VNode_VALUE:
+      return 'VNode';
+    case SerializationConstant.Component_VALUE:
+      return 'Component';
+    case SerializationConstant.DerivedSignal_VALUE:
+      return 'DerivedSignal';
+    case SerializationConstant.Signal_VALUE:
+      return 'Signal';
+    case SerializationConstant.SignalWrapper_VALUE:
+      return 'SignalWrapper';
+    case SerializationConstant.NaN_VALUE:
+      return 'NaN';
+    case SerializationConstant.URLSearchParams_VALUE:
+      return 'URLSearchParams';
+    case SerializationConstant.FormData_VALUE:
+      return 'FormData';
+    case SerializationConstant.JSXNode_VALUE:
+      return 'JSXNode';
+    case SerializationConstant.BigInt_VALUE:
+      return 'BigInt';
+    case SerializationConstant.Set_VALUE:
+      return 'Set';
+    case SerializationConstant.Map_VALUE:
+      return 'Map';
+  }
+};

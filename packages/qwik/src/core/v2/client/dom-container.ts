@@ -11,7 +11,7 @@ import type {
   QDocument,
   ElementVNode,
 } from './types';
-import { vnode_newElement } from './vnode';
+import { vnode_newDeflatedElement } from './vnode';
 
 export function getDomContainer(element: HTMLElement): IClientContainer {
   while (element && !element.hasAttribute('q:container')) {
@@ -50,7 +50,7 @@ export class ClientContainer implements IClientContainer {
     this.containerState = createContainerState(element, this.qBase);
     this.qLocale = element.getAttribute('q:locale')!;
     this.qManifestHash = element.getAttribute('q:manifest-hash')!;
-    this.rootVNode = vnode_newElement(null, this.element);
+    this.rootVNode = vnode_newDeflatedElement(null, this.element);
     // These are here to initialize all properties at once for single class transition
     this.rawStateData = null!;
     this.stateData = null!;

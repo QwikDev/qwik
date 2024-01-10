@@ -40,7 +40,7 @@ expect.extend({
 function diffJsxVNode(received: VNode, expected: JSXNode | string, path: string[] = []): string[] {
   const diffs: string[] = [];
   if (typeof expected === 'string') {
-    const receivedText = vnode_getText(received as TextVNode);
+    const receivedText = vnode_isTextVNode(received) ? vnode_getText(received as TextVNode) : null;
     if (expected !== receivedText) {
       diffs.push(path.join(' > '));
       diffs.push('EXPECTED', JSON.stringify(expected));

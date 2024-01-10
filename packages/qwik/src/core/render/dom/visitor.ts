@@ -314,9 +314,9 @@ export const domToVnode = (node: Node | VirtualElement): ProcessedJSXNode => {
       }
     }
   }
-  if ((true as boolean) === true) {
-    throw new Error('Should not get here');
-  }
+  // if ((true as boolean) === true) {
+  //   throw new Error('Should not get here because vNode should be emulating this.');
+  // }
   if (isQwikElement(node)) {
     const t = new ProcessedJSXNodeImpl(
       node.localName,

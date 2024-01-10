@@ -20,28 +20,45 @@ export class QwikElementAdapter extends Array {
   static create(
     flags: Flags,
     parent: VNode | null,
+    previousSibling: VNode | null | undefined,
     nextSibling: VNode | null | undefined,
     firstChild: VNode | null | undefined,
     node: Node | null,
-    tag: string | undefined
+    tag: string | undefined,
+    key: string | null
   ) {
-    return new QwikElementAdapter(flags, parent, nextSibling, firstChild, node, tag) as any;
+    return new QwikElementAdapter(
+      flags,
+      parent,
+      previousSibling,
+      nextSibling,
+      firstChild,
+      node,
+      tag,
+      key
+    ) as any;
   }
 
   constructor(
     flags: Flags,
     parent: VNode | null,
+    previousSibling: VNode | null | undefined,
     nextSibling: VNode | null | undefined,
     firstChild: VNode | null | undefined,
     node: Node | null | undefined,
-    tag: string | undefined
+    tag: string | undefined,
+    key: string | null
   ) {
     super();
-    this.push(flags, parent, nextSibling, firstChild, node, tag);
+    this.push(flags, parent, previousSibling, nextSibling, firstChild, node, tag, key);
   }
 
   getAttribute(name: string): string | null {
     return vnode_getProp(this as any as VNode, name);
+  }
+
+  hasAttribute(name: string): boolean {
+    return this.getAttribute(name) != null;
   }
 
   get nodeType(): number {

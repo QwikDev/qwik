@@ -1,9 +1,31 @@
 import type { JSXChildren } from './jsx-qwik-attributes';
 
-/** @public */
-export interface FunctionComponent<P extends Record<any, any> = Record<any, unknown>> {
-  (props: P, key: string | null, flags: number, dev?: DevJSX): JSXNode | null;
-}
+/**
+ * Any valid output for a component
+ *
+ * @public
+ */
+export type JSXOutput = JSXNode | string | number | boolean | null | undefined | JSXOutput[];
+
+/**
+ * Any sync or async function that returns JSXOutput.
+ *
+ * Note that this includes QRLs.
+ *
+ * The `key`, `flags` and `dev` parameters are for internal use.
+ *
+ * @public
+ */
+// Normally we'd default to Record<any, unknown> but that causes problems with matching event$ index
+export type FunctionComponent<P extends Record<any, any> = Record<any, any>> = {
+  renderFn(
+    props: P,
+    key: string | null,
+    flags: number,
+    dev?: DevJSX
+  ): JSXOutput | Promise<JSXOutput>;
+}['renderFn'];
+
 /** @public */
 export interface DevJSX {
   fileName: string;

@@ -730,7 +730,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\ntype ElementType = string | ((...args: any[]) => JSXNode | null);\n```\n**References:** [JSXNode](#jsxnode)",
+      "content": "```typescript\ntype ElementType = string | FunctionComponent;\n```\n**References:** [FunctionComponent](#functioncomponent)",
       "mdFile": "qwik.qwikjsx.elementtype.md"
     },
     {
@@ -854,8 +854,8 @@
           "id": "functioncomponent"
         }
       ],
-      "kind": "Interface",
-      "content": "```typescript\nexport interface FunctionComponent<P extends Record<any, any> = Record<any, unknown>> \n```",
+      "kind": "TypeAlias",
+      "content": "Any sync or async function that returns JSXOutput.\n\nNote that this includes QRLs.\n\nThe `key`<!-- -->, `flags` and `dev` parameters are for internal use.\n\n\n```typescript\nexport type FunctionComponent<P extends Record<any, any> = Record<any, any>> = {\n    renderFn(props: P, key: string | null, flags: number, dev?: DevJSX): JSXOutput | Promise<JSXOutput>;\n}['renderFn'];\n```\n**References:** [DevJSX](#devjsx)<!-- -->, [JSXOutput](#jsxoutput)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-node.ts",
       "mdFile": "qwik.functioncomponent.md"
     },
@@ -1208,7 +1208,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "```typescript\njsxDEV: <T extends string | FunctionComponent<Record<any, unknown>>>(type: T, props: T extends FunctionComponent<infer PROPS extends Record<any, any>> ? PROPS : Record<any, unknown>, key: string | number | null | undefined, _isStatic: boolean, opts: JsxDevOpts, _ctx: unknown) => JSXNode<T>\n```",
+      "content": "```typescript\njsxDEV: <T extends string | FunctionComponent>(type: T, props: T extends FunctionComponent<infer PROPS extends Record<any, any>> ? PROPS : Record<any, unknown>, key: string | number | null | undefined, _isStatic: boolean, opts: JsxDevOpts, _ctx: unknown) => JSXNode<T>\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts",
       "mdFile": "qwik.jsxdev.md"
     },
@@ -1225,6 +1225,20 @@
       "content": "```typescript\nexport interface JSXNode<T = string | FunctionComponent> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [children](#) |  | [JSXChildren](#jsxchildren) \\| null |  |\n|  [dev?](#) |  | [DevJSX](#devjsx) | _(Optional)_ |\n|  [flags](#) |  | number |  |\n|  [immutableProps](#) |  | Record&lt;any, unknown&gt; \\| null |  |\n|  [key](#) |  | string \\| null |  |\n|  [props](#) |  | T extends [FunctionComponent](#functioncomponent)<!-- -->&lt;infer B&gt; ? B : Record&lt;any, unknown&gt; |  |\n|  [type](#) |  | T |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-node.ts",
       "mdFile": "qwik.jsxnode.md"
+    },
+    {
+      "name": "JSXOutput",
+      "id": "jsxoutput",
+      "hierarchy": [
+        {
+          "name": "JSXOutput",
+          "id": "jsxoutput"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "Any valid output for a component\n\n\n```typescript\nexport type JSXOutput = JSXNode | string | number | boolean | null | undefined | JSXOutput[];\n```\n**References:** [JSXNode](#jsxnode)<!-- -->, [JSXOutput](#jsxoutput)",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-node.ts",
+      "mdFile": "qwik.jsxoutput.md"
     },
     {
       "name": "JSXTagName",
@@ -1796,7 +1810,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "Infers `Props` from the component.\n\n```typescript\nexport const OtherComponent = component$(() => {\n  return $(() => <Counter value={100} />);\n});\n```\n\n\n```typescript\nexport type PropsOf<COMP> = COMP extends FunctionComponent<infer PROPS> ? NonNullable<PROPS> : COMP extends keyof QwikIntrinsicElements ? QwikIntrinsicElements[COMP] : COMP extends string ? QwikIntrinsicElements['span'] : Record<string, unknown>;\n```\n**References:** [FunctionComponent](#functioncomponent)<!-- -->, [QwikIntrinsicElements](#qwikintrinsicelements)",
+      "content": "Infers `Props` from the component or tag.\n\n\n```typescript\nexport type PropsOf<COMP> = COMP extends string ? COMP extends keyof QwikIntrinsicElements ? QwikIntrinsicElements[COMP] : QwikIntrinsicElements['span'] : NonNullable<COMP> extends never ? never : COMP extends FunctionComponent<infer PROPS> ? NonNullable<PROPS> : Record<string, unknown>;\n```\n**References:** [QwikIntrinsicElements](#qwikintrinsicelements)<!-- -->, [FunctionComponent](#functioncomponent)\n\n\n\n```tsx\nconst Desc = component$(({desc, ...props}: { desc: string } & PropsOf<'div'>) => {\n return <div {...props}>{desc}</div>;\n});\n\nconst TitleBox = component$(({title, ...props}: { title: string } & PropsOf<Box>) => {\n  return <Box {...props}><h1>{title}</h1></Box>;\n});\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts",
       "mdFile": "qwik.propsof.md"
     },

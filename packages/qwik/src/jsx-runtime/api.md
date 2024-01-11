@@ -12,13 +12,10 @@ export const Fragment: FunctionComponent<{
     key?: string | number | null;
 }>;
 
-// @public (undocumented)
-export interface FunctionComponent<P extends Record<any, any> = Record<any, unknown>> {
-    // Warning: (ae-forgotten-export) The symbol "DevJSX" needs to be exported by the entry point jsx-runtime.d.ts
-    //
-    // (undocumented)
-    (props: P, key: string | null, flags: number, dev?: DevJSX): JSXNode | null;
-}
+// @public
+export type FunctionComponent<P extends Record<any, any> = Record<any, unknown>> = {
+    renderFn(props: P, key: string | null, flags: number, dev?: DevJSX): JSXOutput | Promise<JSXOutput>;
+}['renderFn'];
 
 // @public (undocumented)
 const jsx: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS extends Record<any, any>> ? PROPS : Record<any, unknown>, key?: string | number | null) => JSXNode<T>;
@@ -36,7 +33,7 @@ namespace JSX_2 {
         children: any;
     }
     // (undocumented)
-    type ElementType = string | ((...args: any[]) => JSXNode | null);
+    type ElementType = string | FunctionComponent;
     // Warning: (ae-forgotten-export) The symbol "QwikIntrinsicAttributes" needs to be exported by the entry point jsx-runtime.d.ts
     //
     // (undocumented)
@@ -74,6 +71,11 @@ export interface JSXNode<T = string | FunctionComponent> {
     // (undocumented)
     type: T;
 }
+
+// Warnings were encountered during analysis:
+//
+// /home/wmertens/Projects/qwik/dist-dev/dts-out/packages/qwik/src/core/render/jsx/types/jsx-node.d.ts:18:5 - (ae-forgotten-export) The symbol "DevJSX" needs to be exported by the entry point jsx-runtime.d.ts
+// /home/wmertens/Projects/qwik/dist-dev/dts-out/packages/qwik/src/core/render/jsx/types/jsx-node.d.ts:18:5 - (ae-forgotten-export) The symbol "JSXOutput" needs to be exported by the entry point jsx-runtime.d.ts
 
 // (No @packageDocumentation comment for this package)
 

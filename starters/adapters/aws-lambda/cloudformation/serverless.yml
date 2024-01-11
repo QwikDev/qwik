@@ -45,6 +45,14 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Ref StaticBucketName
+    PublicAccessBlockConfiguration:
+      BlockPublicAcls: false
+      BlockPublicPolicy: false
+      IgnorePublicAcls: false
+      RestrictPublicBuckets: false
+    WebsiteConfiguration:
+      IndexDocument: index.html
+      ErrorDocument: 404.html
 
   PublicPolicy:
     Type: AWS::S3::BucketPolicy
@@ -54,21 +62,26 @@ Resources:
         Statement:
         - Action: s3:GetObject
           Effect: Allow
-          Principal:
-            Service: cloudfront.amazonaws.com
+          Principal: '*'
           Resource: !Join ['', ['arn:aws:s3:::', !Ref Public, /*]]
-          Condition:
-            StringEquals:
-              'AWS:SourceArn': !Sub 'arn:aws:cloudfront::${AWS::AccountId}:distribution/${CDN}'
 
-  PublicAccessControl:
-    Type: AWS::CloudFront::OriginAccessControl
+  CachePolicy:
+    Type: AWS::CloudFront::CachePolicy
     Properties:
-      OriginAccessControlConfig:
-          Name: PublicBucketAccess
-          OriginAccessControlOriginType: s3
-          SigningBehavior: always
-          SigningProtocol: sigv4
+      CachePolicyConfig:
+        Name: CachePolicy
+        DefaultTTL: 86400
+        MaxTTL: 31536000
+        MinTTL: 0
+        ParametersInCacheKeyAndForwardedToOrigin:
+          CookiesConfig:
+            CookieBehavior: none
+          HeadersConfig:
+            HeaderBehavior: none
+          QueryStringsConfig:
+            QueryStringBehavior: none
+          EnableAcceptEncodingGzip: true
+          EnableAcceptEncodingBrotli: true
 
   CDN:
     Type: AWS::CloudFront::Distribution
@@ -77,42 +90,32 @@ Resources:
         Comment: Content Delivery Network
         Enabled: true
         Origins:
-        - DomainName: !GetAtt Public.RegionalDomainName
-          Id: S3Origin
-          S3OriginConfig:
-            OriginAccessIdentity: ''
-          OriginAccessControlId: !GetAtt PublicAccessControl.Id
+        - DomainName: !Select [ 2, !Split [ '/', !GetAtt Public.WebsiteURL ] ]
+          Id: S3WebsiteOrigin
+          CustomOriginConfig:
+            OriginProtocolPolicy: http-only
         - DomainName: !Select [ 2, !Split [ '/', !GetAtt SSRFunctionUrl.FunctionUrl ] ]
           Id: SSROrigin
           CustomOriginConfig:
             OriginProtocolPolicy: https-only
         CacheBehaviors:
-        - &S3OriginBehavior
-          TargetOriginId: S3Origin
-          PathPattern: build/*
-          ForwardedValues:
-            QueryString: false
-            Cookies:
-              Forward: none
+        - &OriginBehavior
+          TargetOriginId: S3WebsiteOrigin
+          CachePolicy: !Ref CachePolicy
           AllowedMethods:
           - HEAD
           - GET
           - OPTIONS
           ViewerProtocolPolicy: redirect-to-https
-        - <<: *S3OriginBehavior
+          Compress: true
+          PathPattern: build/*
+        - <<: *OriginBehavior
           PathPattern: '*manifest.json'
-        - <<: *S3OriginBehavior
+        - <<: *OriginBehavior
           PathPattern: service-worker.js
-        - <<: *S3OriginBehavior
+        - <<: *OriginBehavior
           PathPattern: favicon.ico
         DefaultCacheBehavior:
+          <<: *OriginBehavior
           TargetOriginId: SSROrigin
-          ForwardedValues:
-            QueryString: false
-            Cookies:
-              Forward: none
-          AllowedMethods:
-          - HEAD
-          - GET
-          - OPTIONS
-          ViewerProtocolPolicy: redirect-to-https
+          PathPattern: null

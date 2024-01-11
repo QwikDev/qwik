@@ -464,7 +464,9 @@ function getTypesOfTupleType(
 }
 
 function isTypeQRL(type: ts.Type): boolean {
-  return !!(type.flags & ts.TypeFlags.Any) || !!type.getProperty('__brand__QRL__');
+  return (
+    !!(type.flags & ts.TypeFlags.Any) || !!type.getNonNullableType().getProperty('__brand__QRL__')
+  );
 }
 
 function getContent(symbol: ts.Symbol, sourceCode: string) {

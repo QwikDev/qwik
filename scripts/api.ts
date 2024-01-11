@@ -20,11 +20,11 @@ export async function apiExtractor(config: BuildConfig) {
     join(config.distQwikPkgDir, 'core.d.ts'),
     '.'
   );
-  createTypesApi(
-    config,
-    join(config.srcQwikDir, 'jsx-runtime'),
+  // Special case for jsx-runtime:
+  // It only re-exports JSX. Don't duplicate the types
+  writeFileSync(
     join(config.distQwikPkgDir, 'jsx-runtime.d.ts'),
-    '.'
+    `export {QwikJSX as JSX} from './core.d.ts'\n`
   );
   createTypesApi(
     config,

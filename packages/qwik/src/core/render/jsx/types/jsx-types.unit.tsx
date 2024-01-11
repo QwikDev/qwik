@@ -1,7 +1,7 @@
 import { assertType, describe, expectTypeOf, test } from 'vitest';
 import { $ } from '../../../qrl/qrl.public';
 import type { EventHandler, QRLEventHandlerMulti } from './jsx-qwik-attributes';
-import type { JSXNode } from './jsx-node';
+import type { FunctionComponent, JSXNode } from './jsx-node';
 import type { QwikIntrinsicElements } from './jsx-qwik-elements';
 import type { JSXChildren } from './jsx-qwik-attributes';
 import { component$, type PropsOf } from '../../../component/component.public';
@@ -116,5 +116,55 @@ describe('types', () => {
         ]}
       />
     </>;
+  });
+  test('polymorphic component', () => () => {
+    const Poly = component$(
+      <C extends string | FunctionComponent>({
+        as: Cmp = 'div' as C,
+        ...props
+      }: { as?: C } & PropsOf<string extends C ? 'div' : C>) => {
+        return <Cmp {...props}>hi</Cmp>;
+      }
+    );
+    expectTypeOf<Parameters<typeof Poly<'button'>>[0]['popovertarget']>().toEqualTypeOf<
+      string | undefined
+    >();
+    expectTypeOf<Parameters<typeof Poly<'a'>>[0]['href']>().toEqualTypeOf<string | undefined>();
+    expectTypeOf<Parameters<typeof Poly<'button'>>[0]>().not.toHaveProperty('href');
+    expectTypeOf<Parameters<typeof Poly<'a'>>[0]>().not.toHaveProperty('popovertarget');
+    // Note that `<Poly onClick$={(ev, el)=>...}/>` (no `as`) doesn't infer the ev,el arguments
+    // It does infer the prop type correctly, so that looks like a TS bug
+    expectTypeOf<
+      Parameters<Extract<Parameters<typeof Poly>[0]['onClick$'], EventHandler>>[1]
+    >().toEqualTypeOf<HTMLDivElement>();
+
+    return (
+      <>
+        <Poly
+          as="a"
+          onClick$={(ev, el) => {
+            expectTypeOf(ev).not.toBeAny();
+            expectTypeOf(ev).toEqualTypeOf<PointerEvent>();
+            expectTypeOf(el).toEqualTypeOf<HTMLAnchorElement>();
+          }}
+          href="hi"
+          // This should error
+          // popovertarget
+        >
+          Foo
+        </Poly>
+        <Poly
+          as="button"
+          onClick$={(ev, el) => {
+            expectTypeOf(ev).not.toBeAny();
+            expectTypeOf(ev).toEqualTypeOf<PointerEvent>();
+            expectTypeOf(el).toEqualTypeOf<HTMLButtonElement>();
+          }}
+          popovertarget="foo"
+        >
+          Bar
+        </Poly>
+      </>
+    );
   });
 });

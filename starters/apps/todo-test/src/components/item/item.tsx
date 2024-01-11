@@ -6,7 +6,7 @@ import {
   useSignal,
 } from "@builder.io/qwik";
 
-import { TodoItem, TODOS } from "../../state/state";
+import { type TodoItem, TODOS } from "../../state/state";
 
 /**
  * Individual items of the component.

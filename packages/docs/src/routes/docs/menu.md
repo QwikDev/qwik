@@ -38,12 +38,13 @@
 ## Cookbook
 
 - [Overview](/docs/cookbook/index.mdx)
+- [Algolia Search](/docs/cookbook/algolia-search/index.mdx)
 - [Fonts](/docs/cookbook/fonts/index.mdx)
 - [Glob Import](/docs/cookbook/glob-import/index.mdx)
 - [Media Controller](/docs/cookbook/mediaController/index.mdx)
-- [Portals](/docs/cookbook/portals/index.mdx)
 - [NavLink](/docs/cookbook/nav-link/index.mdx)
 - [Node Docker deploy](/docs/cookbook/node-docker-deploy/index.mdx)
+- [Portals](/docs/cookbook/portals/index.mdx)
 - [Re-exporting loaders](/docs/cookbook/re-exporting-loaders/index.mdx)
 - [Sync events w state](/docs/cookbook/sync-events/index.mdx)
 - [Theme Managment](/docs/cookbook/theme-management/index.mdx)
@@ -62,6 +63,7 @@
 - [Leaflet Map](integrations/leaflet-map/index.mdx)
 - [Modular Forms](integrations/modular-forms/index.mdx)
 - [Nx Monorepos](integrations/nx/index.mdx)
+- [OG Image](integrations/og-img/index.mdx)
 - [Orama](integrations/orama/index.mdx)
 - [Panda CSS](integrations/panda-css/index.mdx)
 - [Partytown](integrations/partytown/index.mdx)

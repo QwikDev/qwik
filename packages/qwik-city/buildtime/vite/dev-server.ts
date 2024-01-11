@@ -31,7 +31,7 @@ import {
   resolveRequestHandlers,
 } from '../../middleware/request-handler/resolve-request-handlers';
 import { formatError } from './format-error';
-import { matchRoute } from 'packages/qwik-city/runtime/src/route-matcher';
+import { matchRoute } from '../../runtime/src/route-matcher';
 
 export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
   const matchRouteRequest = (pathname: string) => {

@@ -14,14 +14,14 @@ import {
 
 import { isBrowser, isServer } from '@builder.io/qwik/build';
 import type { Root } from 'react-dom/client';
-import type { FunctionComponent } from 'react';
+import type { FunctionComponent as ReactFC } from 'react';
 import * as client from './client';
 import { renderFromServer } from './server-render';
 import { getHostProps, main, mainExactProps, useWakeupSignal } from './slot';
 import type { Internal, QwikifyOptions, QwikifyProps } from './types';
 
-export function qwikifyQrl<PROPS extends {}>(
-  reactCmp$: QRL<FunctionComponent<PROPS & { children?: any }>>,
+export function qwikifyQrl<PROPS extends Record<any, any>>(
+  reactCmp$: QRL<ReactFC<PROPS & { children?: any }>>,
   opts?: QwikifyOptions
 ) {
   return component$((props: QwikifyProps<PROPS>) => {

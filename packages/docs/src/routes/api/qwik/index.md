@@ -458,7 +458,7 @@ See also: `component`, `useCleanup`, `onResume`, `onPause`, `useOn`, `useOnDocum
 ```typescript
 component$: <PROPS extends Record<any, any>>(
   onMount: (props: PROPS) => JSXNode | null,
-) => Component<PropFunctionProps<PROPS>>;
+) => Component<PROPS>;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts)
@@ -816,6 +816,18 @@ event$: <T>(first: T) => QRL<T>;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
+
+## EventHandler
+
+A DOM event handler
+
+```typescript
+export type EventHandler<EV = Event, EL = Element> = {
+  bivarianceHack(event: EV, element: EL): any;
+}["bivarianceHack"];
+```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts)
 
 ## eventQrl
 
@@ -1664,6 +1676,43 @@ export interface ParamHTMLAttributes<T extends Element> extends Attrs<'base', T,
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
+## PrefetchGraph
+
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+
+Load the prefetch graph for the container.
+
+Each Qwik container needs to include its own prefetch graph.
+
+```typescript
+PrefetchGraph: (opts?: {
+  base?: string;
+  manifestHash?: string;
+  manifestURL?: string;
+}) => import("@builder.io/qwik/jsx-runtime").JSXNode<"script">;
+```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
+
+## PrefetchServiceWorker
+
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+
+Install a service worker which will prefetch the bundles.
+
+There can only be one service worker per page. Because there can be many separate Qwik Containers on the page each container needs to load its prefetch graph using `PrefetchGraph` component.
+
+```typescript
+PrefetchServiceWorker: (opts: {
+  base?: string;
+  path?: string;
+  verbose?: boolean;
+  fetchBundleGraph?: boolean;
+}) => import("@builder.io/qwik/jsx-runtime").JSXNode<"script">;
+```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
+
 ## ProgressHTMLAttributes
 
 ```typescript
@@ -1725,26 +1774,31 @@ export const OtherComponent = component$(() => {
 ```
 
 ```typescript
-export type PropsOf<COMP> = COMP extends Component<infer PROPS>
+export type PropsOf<COMP> = COMP extends FunctionComponent<infer PROPS>
   ? NonNullable<PROPS>
-  : COMP extends FunctionComponent<infer PROPS>
-    ? NonNullable<PublicProps<PROPS>>
+  : COMP extends keyof QwikIntrinsicElements
+    ? QwikIntrinsicElements[COMP]
     : COMP extends string
-      ? QwikIntrinsicElements[COMP]
+      ? QwikIntrinsicElements["span"]
       : Record<string, unknown>;
 ```
 
-**References:** [Component](#component), [FunctionComponent](#functioncomponent), [PublicProps](#publicprops), [QwikIntrinsicElements](#qwikintrinsicelements)
+**References:** [FunctionComponent](#functioncomponent), [QwikIntrinsicElements](#qwikintrinsicelements)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts)
 
 ## PublicProps
 
-Extends the defined component PROPS, adding the default ones (children and q:slot)..
+Extends the defined component PROPS, adding the default ones (children and q:slot) and allowing plain functions to QRL arguments.
 
 ```typescript
-export type PublicProps<PROPS extends Record<any, any>> =
-  TransformProps<PROPS> & ComponentBaseProps & ComponentChildren<PROPS>;
+export type PublicProps<PROPS extends Record<any, any>> = Omit<
+  PROPS,
+  `${string}$`
+> &
+  _Only$<PROPS> &
+  ComponentBaseProps &
+  ComponentChildren<PROPS>;
 ```
 
 **References:** [ComponentBaseProps](#componentbaseprops)
@@ -1784,6 +1838,24 @@ qrl: <T = any>(
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
+
+## QRLEventHandlerMulti
+
+> This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+
+An event handler for Qwik events, can be a handler QRL or an array of handler QRLs.
+
+```typescript
+export type QRLEventHandlerMulti<EV extends Event, EL> =
+  | QRL<EventHandler<EV, EL>>
+  | undefined
+  | null
+  | QRLEventHandlerMulti<EV, EL>[];
+```
+
+**References:** [QRL](#qrl), [EventHandler](#eventhandler), [QRLEventHandlerMulti](#qrleventhandlermulti)
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts)
 
 ## QuoteHTMLAttributes
 
@@ -1899,11 +1971,6 @@ export type QwikHTMLElements = {
   > &
     HTMLElementAttrs &
     QwikAttributes<HTMLElementTagNameMap[tag]>;
-} & {
-  [unknownTag: string]: {
-    [prop: string]: any;
-  } & HTMLElementAttrs &
-    QwikAttributes<any>;
 };
 ```
 

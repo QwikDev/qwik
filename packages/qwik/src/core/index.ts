@@ -9,6 +9,8 @@ export type {
   Component,
   PublicProps,
   PropFunctionProps,
+  _AllowPlainQrl,
+  _Only$,
 } from './component/component.public';
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -61,10 +63,13 @@ export type {
   ComponentBaseProps,
   ClassList,
   CorrectedToggleEvent,
+  EventHandler,
+  QRLEventHandlerMulti,
 } from './render/jsx/types/jsx-qwik-attributes';
 export type { FunctionComponent, JSXNode, DevJSX } from './render/jsx/types/jsx-node';
 export type { QwikDOMAttributes, QwikJSX } from './render/jsx/types/jsx-qwik';
 export type { QwikIntrinsicElements } from './render/jsx/types/jsx-qwik-elements';
+export type { QwikHTMLElements, QwikSVGElements } from './render/jsx/types/jsx-generated';
 export { render } from './render/dom/render.public';
 export type { RenderSSROptions, StreamWriter } from './render/ssr/render-ssr';
 export type { RenderOptions, RenderResult } from './render/dom/render.public';
@@ -158,6 +163,11 @@ export type {
   QwikWheelEvent,
   QwikTransitionEvent,
 } from './render/jsx/types/jsx-qwik-events';
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Components
+//////////////////////////////////////////////////////////////////////////////////////////
+export { PrefetchServiceWorker, PrefetchGraph } from './components/prefetch';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // INTERNAL

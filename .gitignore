@@ -38,6 +38,7 @@ tsdoc-metadata.json
 .idea
 .eslintcache
 test-results
+.direnv
 
 # Package Managers
 .yarn/*
@@ -46,3 +47,4 @@ test-results
 
 # Local Netlify folder
 .netlify
+sandbox

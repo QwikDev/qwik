@@ -66,7 +66,7 @@ export type {
   EventHandler,
   QRLEventHandlerMulti,
 } from './render/jsx/types/jsx-qwik-attributes';
-export type { FunctionComponent, JSXNode, DevJSX } from './render/jsx/types/jsx-node';
+export type { JSXOutput, FunctionComponent, JSXNode, DevJSX } from './render/jsx/types/jsx-node';
 export type { QwikDOMAttributes, QwikJSX } from './render/jsx/types/jsx-qwik';
 export type { QwikIntrinsicElements } from './render/jsx/types/jsx-qwik-elements';
 export type { QwikHTMLElements, QwikSVGElements } from './render/jsx/types/jsx-generated';

@@ -782,10 +782,10 @@ interface ElementChildrenAttribute
 ## ElementType
 
 ```typescript
-type ElementType = string | ((...args: any[]) => JSXNode | null);
+type ElementType = string | FunctionComponent;
 ```
 
-**References:** [JSXNode](#jsxnode)
+**References:** [FunctionComponent](#functioncomponent)
 
 ## EmbedHTMLAttributes
 
@@ -870,9 +870,24 @@ Fragment: FunctionComponent<{
 
 ## FunctionComponent
 
+Any sync or async function that returns JSXOutput.
+
+Note that this includes QRLs.
+
+The `key`, `flags` and `dev` parameters are for internal use.
+
 ```typescript
-export interface FunctionComponent<P extends Record<any, any> = Record<any, unknown>>
+export type FunctionComponent<P extends Record<any, any> = Record<any, any>> = {
+  renderFn(
+    props: P,
+    key: string | null,
+    flags: number,
+    dev?: DevJSX,
+  ): JSXOutput | Promise<JSXOutput>;
+}["renderFn"];
 ```
+
+**References:** [DevJSX](#devjsx), [JSXOutput](#jsxoutput)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-node.ts)
 
@@ -1252,7 +1267,7 @@ export type JSXChildren =
 ## jsxDEV
 
 ```typescript
-jsxDEV: <T extends string | FunctionComponent<Record<any, unknown>>>(
+jsxDEV: <T extends string | FunctionComponent>(
   type: T,
   props: T extends FunctionComponent<infer PROPS extends Record<any, any>>
     ? PROPS
@@ -1281,6 +1296,25 @@ export interface JSXNode<T = string | FunctionComponent>
 | [key](#)            |           | string \| null                                                                                    |              |
 | [props](#)          |           | T extends [FunctionComponent](#functioncomponent)&lt;infer B&gt; ? B : Record&lt;any, unknown&gt; |              |
 | [type](#)           |           | T                                                                                                 |              |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-node.ts)
+
+## JSXOutput
+
+Any valid output for a component
+
+```typescript
+export type JSXOutput =
+  | JSXNode
+  | string
+  | number
+  | boolean
+  | null
+  | undefined
+  | JSXOutput[];
+```
+
+**References:** [JSXNode](#jsxnode), [JSXOutput](#jsxoutput)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-node.ts)
 
@@ -1765,25 +1799,39 @@ export type PropFunctionProps<PROPS extends Record<any, any>> = {
 
 ## PropsOf
 
-Infers `Props` from the component.
+Infers `Props` from the component or tag.
 
 ```typescript
-export const OtherComponent = component$(() => {
-  return $(() => <Counter value={100} />);
-});
-```
-
-```typescript
-export type PropsOf<COMP> = COMP extends FunctionComponent<infer PROPS>
-  ? NonNullable<PROPS>
-  : COMP extends keyof QwikIntrinsicElements
+export type PropsOf<COMP> = COMP extends string
+  ? COMP extends keyof QwikIntrinsicElements
     ? QwikIntrinsicElements[COMP]
-    : COMP extends string
-      ? QwikIntrinsicElements["span"]
+    : QwikIntrinsicElements["span"]
+  : NonNullable<COMP> extends never
+    ? never
+    : COMP extends FunctionComponent<infer PROPS>
+      ? NonNullable<PROPS>
       : Record<string, unknown>;
 ```
 
-**References:** [FunctionComponent](#functioncomponent), [QwikIntrinsicElements](#qwikintrinsicelements)
+**References:** [QwikIntrinsicElements](#qwikintrinsicelements), [FunctionComponent](#functioncomponent)
+
+```tsx
+const Desc = component$(
+  ({ desc, ...props }: { desc: string } & PropsOf<"div">) => {
+    return <div {...props}>{desc}</div>;
+  },
+);
+
+const TitleBox = component$(
+  ({ title, ...props }: { title: string } & PropsOf<Box>) => {
+    return (
+      <Box {...props}>
+        <h1>{title}</h1>
+      </Box>
+    );
+  },
+);
+```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts)
 

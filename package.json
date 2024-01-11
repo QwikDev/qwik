@@ -1,6 +1,6 @@
 {
   "name": "qwik-monorepo",
-  "version": "1.3.3",
+  "version": "1.3.4",
   "comments": {
     "01": "devDependencies includes reference to @builder.io/qwik: workspace: *. This is needed or e2e tests will fail",
     "02": "  It would be nice to be able to remove this dependency and fix the test.",

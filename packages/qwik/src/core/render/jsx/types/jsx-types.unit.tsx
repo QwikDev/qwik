@@ -4,8 +4,8 @@ import type { EventHandler, QRLEventHandlerMulti } from './jsx-qwik-attributes';
 import type { FunctionComponent, JSXNode } from './jsx-node';
 import type { QwikIntrinsicElements } from './jsx-qwik-elements';
 import type { JSXChildren } from './jsx-qwik-attributes';
-import { component$, type PropsOf } from '../../../component/component.public';
-import type { Size } from './jsx-generated';
+import { component$, type PropsOf, type PublicProps } from '../../../component/component.public';
+import type { QwikHTMLElements, QwikSVGElements, Size } from './jsx-generated';
 import type { QwikJSX } from './jsx-qwik';
 
 describe('types', () => {
@@ -20,6 +20,7 @@ describe('types', () => {
     expectTypeOf<QwikIntrinsicElements['link']['children']>().toEqualTypeOf<undefined>();
     expectTypeOf<QwikIntrinsicElements['svg']['width']>().toEqualTypeOf<Size | undefined>();
   });
+
   test('component', () => () => {
     const Cmp = component$((props: PropsOf<'svg'>) => {
       const { width = '240', height = '56', onClick$, ...rest } = props;
@@ -38,6 +39,7 @@ describe('types', () => {
       EventHandler<PointerEvent, SVGSVGElement> | QRLEventHandlerMulti<PointerEvent, SVGSVGElement>
     >();
   });
+
   test('unknown string component', () => () => {
     const t = (
       <hello-there
@@ -52,6 +54,7 @@ describe('types', () => {
     );
     expectTypeOf(t).toEqualTypeOf<QwikJSX.Element>();
   });
+
   test('inferring', () => () => {
     // Popover API
     expectTypeOf<PropsOf<'button'>>().toMatchTypeOf<{
@@ -117,6 +120,7 @@ describe('types', () => {
       />
     </>;
   });
+
   test('polymorphic component', () => () => {
     const Poly = component$(
       <C extends string | FunctionComponent>({
@@ -164,7 +168,62 @@ describe('types', () => {
         >
           Bar
         </Poly>
+        <Poly as={Poly} />
+        <Poly
+          as={$((p: { name: string }) => (
+            <span>Hi {p.name}</span>
+          ))}
+          name="meep"
+        />
       </>
     );
+  });
+
+  test('FunctionComponent', () => () => {
+    const Cmp = component$((props: { foo: string }) => null);
+    expectTypeOf(Cmp).toMatchTypeOf<FunctionComponent<{ foo: string }>>();
+    expectTypeOf<FunctionComponent<{ foo: string }>>().toMatchTypeOf(Cmp);
+
+    expectTypeOf((p: { hi: number }) => <span>{p.hi}</span>).toMatchTypeOf<FunctionComponent>();
+    expectTypeOf((p: { hi: number }) => <span>{p.hi}</span>).toMatchTypeOf<
+      FunctionComponent<{ hi: number }>
+    >();
+    expectTypeOf((p: { hi: number }) => <span>{p.hi}</span>).not.toMatchTypeOf<
+      FunctionComponent<{ hi: string }>
+    >();
+    expectTypeOf((p: { hi: number }) => <span>{p.hi}</span>).not.toMatchTypeOf<
+      FunctionComponent<{ meep: string }>
+    >();
+    expectTypeOf((p: { hi: number }) => `${p.hi}`).toMatchTypeOf<
+      FunctionComponent<{ hi: number }>
+    >();
+    expectTypeOf((p: { hi: number }) => p.hi).toMatchTypeOf<FunctionComponent<{ hi: number }>>();
+    expectTypeOf((p: { hi?: number | boolean | null }) => p.hi).toMatchTypeOf<
+      FunctionComponent<{ hi: number }>
+    >();
+    expectTypeOf(() => null).toMatchTypeOf<FunctionComponent<{ hi: number }>>();
+
+    expectTypeOf(() => new Date()).not.toMatchTypeOf<FunctionComponent>();
+    expectTypeOf((p: string) => null).not.toMatchTypeOf<FunctionComponent>();
+  });
+
+  test('PropsOf', () => () => {
+    expectTypeOf<PropsOf<'div'>>().toEqualTypeOf<QwikHTMLElements['div']>();
+    expectTypeOf<PropsOf<'div'>>().not.toEqualTypeOf<QwikIntrinsicElements['li']>();
+    expectTypeOf<PropsOf<'path'>>().toEqualTypeOf<QwikSVGElements['path']>();
+    expectTypeOf<PropsOf<'not-exist'>>().toEqualTypeOf<QwikHTMLElements['span']>();
+
+    const Fn = (props: { foo: string }) => <div />;
+    expectTypeOf<PropsOf<typeof Fn>>().toEqualTypeOf<{ foo: string }>();
+
+    const Fn$ = $(Fn);
+    expectTypeOf<PropsOf<typeof Fn$>>().toEqualTypeOf<{ foo: string }>();
+
+    const Cmp = component$(Fn);
+    expectTypeOf<PropsOf<typeof Cmp>>().toEqualTypeOf<PublicProps<{ foo: string }>>();
+
+    expectTypeOf<PropsOf<typeof Fn$ | null>>().toEqualTypeOf<{ foo: string }>();
+
+    expectTypeOf<PropsOf<17>>().toEqualTypeOf<Record<any, unknown>>();
   });
 });

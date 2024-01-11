@@ -734,7 +734,7 @@ const collectContext = (elCtx: QContext | null | undefined, collector: Collector
 };
 
 export const escapeText = (str: string) => {
-  return str.replace(/<(\/?script)/g, '\\x3C$1');
+  return str.replace(/<(\/?script)/gi, '\\x3C$1');
 };
 
 // Collect all the subscribers of this manager

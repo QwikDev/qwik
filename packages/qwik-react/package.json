@@ -5,26 +5,26 @@
   "bugs": "https://github.com/BuilderIO/qwik/issues",
   "devDependencies": {
     "@builder.io/qwik": "workspace:*",
-    "@types/react": "^18.2.28",
+    "@types/react": "^18.2.47",
     "@types/react-dom": "^18.2.13",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "typescript": "^5.2.2",
-    "vite": "^5.0.0"
+    "typescript": "5.3.3",
+    "vite": "^5.0.11"
   },
   "engines": {
     "node": ">=16.8.0 <18.0.0 || >=18.11"
   },
   "exports": {
     ".": {
+      "types": "./lib/types/index.qwik.d.ts",
       "import": "./lib/index.qwik.mjs",
-      "require": "./lib/index.qwik.cjs",
-      "types": "./lib/types/index.qwik.d.ts"
+      "require": "./lib/index.qwik.cjs"
     },
     "./vite": {
+      "types": "./lib/types/vite.d.ts",
       "import": "./lib/vite.mjs",
-      "require": "./lib/vite.cjs",
-      "types": "./lib/types/vite.d.ts"
+      "require": "./lib/vite.cjs"
     }
   },
   "files": [
@@ -35,9 +35,9 @@
   "license": "MIT",
   "main": "./lib/index.qwik.mjs",
   "peerDependencies": {
-    "@builder.io/qwik": "^1.3.2",
-    "@types/react": "18.2.17",
-    "@types/react-dom": "18.2.7",
+    "@builder.io/qwik": "1.3.3",
+    "@types/react": "^18.2.47",
+    "@types/react-dom": "^18.2.13",
     "react": "18.2.0",
     "react-dom": "18.2.0"
   },

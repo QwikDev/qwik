@@ -246,11 +246,10 @@ export const Fragment: FunctionComponent<{
     key?: string | number | null;
 }>;
 
-// @public (undocumented)
-export interface FunctionComponent<P extends Record<any, any> = Record<any, unknown>> {
-    // (undocumented)
-    (props: P, key: string | null, flags: number, dev?: DevJSX): JSXNode | null;
-}
+// @public
+export type FunctionComponent<P extends Record<any, any> = Record<any, any>> = {
+    renderFn(props: P, key: string | null, flags: number, dev?: DevJSX): JSXOutput | Promise<JSXOutput>;
+}['renderFn'];
 
 // @internal (undocumented)
 export const _getContextElement: () => unknown;
@@ -416,13 +415,13 @@ export const _jsxBranch: <T>(input?: T | undefined) => T | undefined;
 // Warning: (ae-forgotten-export) The symbol "JsxDevOpts" needs to be exported by the entry point index.d.ts
 //
 // @internal
-export const _jsxC: <T extends string | FunctionComponent<Record<any, unknown>>>(type: T, mutableProps: (T extends FunctionComponent<infer PROPS extends Record<any, any>> ? PROPS : Record<any, unknown>) | null, flags: number, key: string | number | null, dev?: JsxDevOpts) => JSXNode<T>;
+export const _jsxC: <T extends string | FunctionComponent>(type: T, mutableProps: (T extends FunctionComponent<infer PROPS extends Record<any, any>> ? PROPS : Record<any, unknown>) | null, flags: number, key: string | number | null, dev?: JsxDevOpts) => JSXNode<T>;
 
 // @public (undocumented)
 export type JSXChildren = string | number | boolean | null | undefined | Function | RegExp | JSXChildren[] | Promise<JSXChildren> | Signal<JSXChildren> | JSXNode;
 
 // @public (undocumented)
-export const jsxDEV: <T extends string | FunctionComponent<Record<any, unknown>>>(type: T, props: T extends FunctionComponent<infer PROPS extends Record<any, any>> ? PROPS : Record<any, unknown>, key: string | number | null | undefined, _isStatic: boolean, opts: JsxDevOpts, _ctx: unknown) => JSXNode<T>;
+export const jsxDEV: <T extends string | FunctionComponent>(type: T, props: T extends FunctionComponent<infer PROPS extends Record<any, any>> ? PROPS : Record<any, unknown>, key: string | number | null | undefined, _isStatic: boolean, opts: JsxDevOpts, _ctx: unknown) => JSXNode<T>;
 
 // @public (undocumented)
 export interface JSXNode<T = string | FunctionComponent> {
@@ -441,6 +440,9 @@ export interface JSXNode<T = string | FunctionComponent> {
     // (undocumented)
     type: T;
 }
+
+// @public
+export type JSXOutput = JSXNode | string | number | boolean | null | undefined | JSXOutput[];
 
 // @internal
 export const _jsxQ: <T extends string>(type: T, mutableProps: Record<any, unknown> | null, immutableProps: Record<any, unknown> | null, children: JSXChildren | null, flags: number, key: string | number | null, dev?: DevJSX) => JSXNode<T>;
@@ -629,7 +631,7 @@ export type PropFunctionProps<PROPS extends Record<any, any>> = {
 };
 
 // @public
-export type PropsOf<COMP> = COMP extends Component<infer PROPS> ? NonNullable<PROPS> : COMP extends FunctionComponent<infer PROPS> ? NonNullable<PublicProps<PROPS>> : COMP extends keyof QwikIntrinsicElements ? QwikIntrinsicElements[COMP] : COMP extends string ? QwikIntrinsicElements['span'] : Record<string, unknown>;
+export type PropsOf<COMP> = COMP extends string ? COMP extends keyof QwikIntrinsicElements ? QwikIntrinsicElements[COMP] : QwikIntrinsicElements['span'] : NonNullable<COMP> extends never ? never : COMP extends FunctionComponent<infer PROPS> ? NonNullable<PROPS> : Record<string, unknown>;
 
 // Warning: (ae-forgotten-export) The symbol "ComponentChildren" needs to be exported by the entry point index.d.ts
 // Warning: (ae-incompatible-release-tags) The symbol "PublicProps" is marked as @public, but its signature references "_Only$" which is marked as @internal
@@ -726,7 +728,7 @@ export namespace QwikJSX {
         children: any;
     }
     // (undocumented)
-    export type ElementType = string | ((...args: any[]) => JSXNode | null);
+    export type ElementType = string | FunctionComponent;
     // Warning: (ae-forgotten-export) The symbol "QwikIntrinsicAttributes" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)

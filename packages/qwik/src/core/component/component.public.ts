@@ -17,26 +17,33 @@ import { assertNumber } from '../error/assert';
 import type { QwikIntrinsicElements } from '../render/jsx/types/jsx-qwik-elements';
 
 /**
- * Infers `Props` from the component.
+ * Infers `Props` from the component or tag.
  *
- * ```typescript
- * export const OtherComponent = component$(() => {
- *   return $(() => <Counter value={100} />);
+ * @example
+ *
+ * ```tsx
+ * const Desc = component$(({desc, ...props}: { desc: string } & PropsOf<'div'>) => {
+ *  return <div {...props}>{desc}</div>;
+ * });
+ *
+ * const TitleBox = component$(({title, ...props}: { title: string } & PropsOf<Box>) => {
+ *   return <Box {...props}><h1>{title}</h1></Box>;
  * });
  * ```
  *
  * @public
  */
 // </docs>
-export type PropsOf<COMP> = COMP extends Component<infer PROPS>
-  ? NonNullable<PROPS>
-  : COMP extends FunctionComponent<infer PROPS>
-    ? NonNullable<PublicProps<PROPS>>
-    : COMP extends keyof QwikIntrinsicElements
-      ? QwikIntrinsicElements[COMP]
-      : COMP extends string
-        ? QwikIntrinsicElements['span']
-        : Record<string, unknown>;
+export type PropsOf<COMP> = COMP extends string
+  ? COMP extends keyof QwikIntrinsicElements
+    ? QwikIntrinsicElements[COMP]
+    : // `<span/>` has no special attributes
+      QwikIntrinsicElements['span']
+  : NonNullable<COMP> extends never
+    ? never
+    : COMP extends FunctionComponent<infer PROPS>
+      ? NonNullable<PROPS>
+      : Record<string, unknown>;
 
 /**
  * Type representing the Qwik component.

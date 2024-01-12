@@ -13,7 +13,7 @@
     "np": "^8.0.4",
     "prettier": "^3.1.1",
     "typescript": "5.3.3",
-    "undici": "^6.3.0",
+    "undici": "*",
     "vite": "^5.0.11"
   },
   "engines": {

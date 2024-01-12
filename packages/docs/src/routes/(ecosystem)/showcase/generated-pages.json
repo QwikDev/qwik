@@ -1,5 +1,21 @@
 [
   {
+    "title": "Blueagle",
+    "imgSrc": "/showcases/blueagle_top_.webp",
+    "perf": {
+      "score": 0.98,
+      "fcpDisplay": "1.6 s",
+      "fcpScore": 0.94,
+      "lcpDisplay": "2.0 s",
+      "lcpScore": 0.97,
+      "ttiDisplay": "2.2 s",
+      "ttiScore": 0.99,
+      "ttiTime": 2237.5
+    },
+    "href": "https://blueagle.top/",
+    "tags": "portfolio,site,blog"
+  },
+  {
     "title": "QuoteMingle",
     "imgSrc": "/showcases/quotemingle_com_.webp",
     "perf": {

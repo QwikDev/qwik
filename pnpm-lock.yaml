@@ -196,7 +196,7 @@ importers:
         specifier: 5.3.3
         version: 5.3.3
       undici:
-        specifier: ^6.3.0
+        specifier: '*'
         version: 6.3.0
       vfile:
         specifier: ^6.0.1
@@ -358,7 +358,7 @@ importers:
         specifier: 5.3.3
         version: 5.3.3
       undici:
-        specifier: ^6.3.0
+        specifier: '*'
         version: 6.3.0
       valibot:
         specifier: ^0.17.1
@@ -492,7 +492,7 @@ importers:
         specifier: 5.3.3
         version: 5.3.3
       undici:
-        specifier: ^6.3.0
+        specifier: '*'
         version: 6.3.0
       vite:
         specifier: ^5.0.11
@@ -556,7 +556,7 @@ importers:
         specifier: ^3.2.0
         version: 3.2.0
       undici:
-        specifier: ^6.3.0
+        specifier: '*'
         version: 6.3.0
       vfile:
         specifier: ^6.0.1
@@ -688,7 +688,7 @@ importers:
         specifier: 5.3.3
         version: 5.3.3
       undici:
-        specifier: ^6.3.0
+        specifier: '*'
         version: 6.3.0
       vite:
         specifier: ^5.0.11

@@ -90,7 +90,7 @@
     "terser": "^5.26.0",
     "tsm": "^2.3.0",
     "typescript": "5.3.3",
-    "undici": "^6.3.0",
+    "undici": "*",
     "vfile": "^6.0.1",
     "vite": "^5.0.11",
     "vite-imagetools": "^6.2.9",

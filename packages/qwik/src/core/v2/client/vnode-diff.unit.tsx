@@ -7,9 +7,9 @@ import {
   vnode_getFirstChild,
   vnode_getNode,
   vnode_getParent,
-  vnode_insertChildAfter,
-  vnode_newDeflatedElement,
-  vnode_newInflatedText,
+  vnode_insertBefore,
+  vnode_newUnMaterializedElement,
+  vnode_newText,
   vnode_setProp,
 } from './vnode';
 import { vnode_applyJournal, vnode_diff, type VNodeJournalEntry } from './vnode-diff';
@@ -116,7 +116,24 @@ describe('vnode-diff', () => {
       );
       vnode_diff(journal, test, vnode);
       vnode_applyJournal(journal);
-      console.log('>>>', vnode.toString(), vnode_getNode(vnode)!.outerHTML);
+      console.log('vnode', vnode.toString());
+      expect(vnode).toMatchVDOM(test);
+    });
+    it('should remove extra text node', () => {
+      const vnode = vnode_fromJSX(
+        <test>
+          {'before'}
+          <span />
+          {'after'}
+        </test>
+      );
+      const test = (
+        <test>
+          <span></span>
+        </test>
+      );
+      vnode_diff(journal, test, vnode);
+      vnode_applyJournal(journal);
       expect(vnode).toMatchVDOM(test);
     });
   });
@@ -127,16 +144,14 @@ describe('vnode-diff', () => {
 function vnode_fromJSX(jsx: JSXNode): VNode {
   const doc = createDocument() as QDocument;
   doc.qVNodeData = new WeakMap();
-  const vBody = vnode_newDeflatedElement(null, doc.body);
-  const vPreviousSiblingStack: (VNode | null)[] = [];
+  const vBody = vnode_newUnMaterializedElement(null, doc.body);
   let vParent: ElementVNode | FragmentVNode = vBody;
-  let vPreviousSibling: VNode | null = null;
   walkJSX(jsx, {
     enter: (jsx) => {
       const type = jsx.type;
       if (typeof type === 'string') {
-        const child = vnode_newDeflatedElement(vParent, doc.createElement(type));
-        vnode_insertChildAfter(vParent, vPreviousSibling, child);
+        const child = vnode_newUnMaterializedElement(vParent, doc.createElement(type));
+        vnode_insertBefore(vParent, null, child);
 
         const props = jsx.props;
         for (const key in props) {
@@ -144,7 +159,6 @@ function vnode_fromJSX(jsx: JSXNode): VNode {
             vnode_setProp(child, key, String(props[key]));
           }
         }
-        vPreviousSiblingStack.push(child);
         vParent = child;
       } else {
         throw new Error('Unknown type:' + type);
@@ -152,17 +166,12 @@ function vnode_fromJSX(jsx: JSXNode): VNode {
     },
     leave: (jsx) => {
       vParent = vnode_getParent(vParent) as any;
-      vPreviousSibling = vPreviousSiblingStack.pop()!;
     },
     text: (value) => {
-      vnode_insertChildAfter(
+      vnode_insertBefore(
         vParent,
-        vPreviousSibling,
-        (vPreviousSibling = vnode_newInflatedText(
-          vParent,
-          doc.createTextNode(String(value)),
-          String(value)
-        ))
+        null,
+        vnode_newText(vParent, doc.createTextNode(String(value)), String(value))
       );
     },
   });

@@ -43,64 +43,96 @@ export interface QNode extends Node {
   qVNode?: VNode;
 }
 
+/**
+ * Flags for VNode.
+ * 
+ * # Materialize vs Inflation
+ * 
+ * - Materialized: The node has all of its children. Specifically `firstChild`/`lastChild` 
+ *   are NOT `undefined`. Materialization creates lazy instantiation of the children.
+ *   NOTE: Only ElementVNode and need to be materialized.
+ * - Inflation:
+ *   - If Text: It means that it is safe to write to the node. When Text nodes are first
+ *              Deserialized multiple text nodes can share the same DOM node. On write
+ *              the sibling text nodes need to be converted into separate text nodes.
+ *   - If Element: It means that the element tag attributes have not yet been read 
+ *              from the DOM.
+ * 
+ * Inflation and materialization are not the same, they are two independent things.
+ */
+export const enum VNodeFlags {
+  Element /* ****************** */ = 0b0001,
+  Fragment /* ***************** */ = 0b0010,
+  ELEMENT_OR_FRAGMENT_MASK /* * */ = 0b0011,
+  TYPE_MASK /* **************** */ = 0b0111,
+  Text /* ********************* */ = 0b0100,
+  /// Extra flag which marks if a node needs to be inflated.
+  Inflated /* ***************** */ = 0b1000,
+}
+
 export const enum VNodeProps {
   flags = 0,
   parent = 1,
   previousSibling = 2,
   nextSibling = 3,
-  firstChildOrPreviousText = 4,
-  node = 5,
-  tagOrContent = 6,
-  key = 7,
-  propsStart = 8,
 }
 
-export const enum Flags {
-  // Combine this flag with Element/Text/Fragment to indicate that the node is inflated.
-  NeedsInflation = 0b00001,
-  // Text
-  Text = 0b00010,
-  Element = 0b0100,
-  Fragment = 0b1000,
-  MaskType = 0b1110,
-  MaskElementOrFragment = 0b1100,
+export const enum ElementVNodeProps {
+  firstChild = 4,
+  lastChild = 5,
+  element = 6,
+  elementName = 7,
+  PROPS_OFFSET = 8,
 }
 
 export type ElementVNode = [
-  Flags.Element,
-  VNode | null, /// Parent
-  VNode | null | undefined, /// Previous sibling
-  VNode | null | undefined, /// Next sibling
-  VNode | null | undefined, /// First child
-  Element,
+  /// COMMON: VNodeProps
+  VNodeFlags.Element, ////////////// 0 - Flags
+  VNode | null, /////////////// 1 - Parent
+  VNode | null, /////////////// 2 - Previous sibling
+  VNode | null, /////////////// 3 - Next sibling
+  /// SPECIFIC: ElementVNodeProps
+  VNode | null | undefined, /// 4 - First child - undefined if children need to be materialize
+  VNode | null | undefined, /// 5 - Last child - undefined if children need to be materialize
+  Element, //////////////////// 6 - Element
+  string | undefined, ///////// 7 - tag
   /// Props
-  string | undefined, /// tag
-  string | null, /// key
-  ...(string | null)[],
+  ...(string | null)[], /////// 8 - attrs
 ] & { __brand__: 'ElementVNode' };
 
+export const enum TextVNodeProps {
+  node = 4,
+  text = 5,
+}
+
 export type TextVNode = [
-  Flags.Text,
-  VNode, /// Parent
-  VNode | null | undefined, /// Previous sibling
-  VNode | null, /// Next sibling
-  VNode | null, /// Previous TextNode
-  Text | null, /// TextNode or SharedTextNode if deflated
-  string, /// text content
-  string | null, /// key content
+  /// COMMON: VNodeProps
+  VNodeFlags.Text | VNodeFlags.Inflated, // 0 - Flags
+  VNode | null, ///////////////// 1 - Parent
+  VNode | null, ///////////////// 2 - Previous sibling
+  VNode | null, ///////////////// 3 - Next sibling
+  /// SPECIFIC: TextVNodeProps
+  Text | null | undefined, ////// 4 - TextNode or SharedTextNode if Flags.SharedText
+  string, /////////////////////// 5 - text content
 ] & { __brand__: 'TextVNode' };
 
+export const enum FragmentVNodeProps {
+  firstChild = ElementVNodeProps.firstChild,
+  lastChild = ElementVNodeProps.lastChild,
+  PROPS_OFFSET = 6,
+}
+
 export type FragmentVNode = [
-  Flags.Fragment,
-  VNode, /// Parent
-  VNode | null, /// Next sibling
-  VNode | null | undefined, /// Previous sibling
-  VNode | null, /// First child
-  null, /// Node
-  null, /// tag
-  string | null, /// key
-  ...(string | null)[], // attrs
+  /// COMMON: VNodeProps
+  VNodeFlags.Fragment, ///////////// 0 - Flags
+  VNode | null, /////////////// 1 - Parent
+  VNode | null, /////////////// 2 - Previous sibling
+  VNode | null, /////////////// 3 - Next sibling
+  /// SPECIFIC: FragmentVNodeProps
+  VNode | null, /////////////// 4 - First child
+  VNode | null, /////////////// 5 - Last child
+  /// Props
+  ...(string | null)[], /////// 6 - attrs
 ] & { __brand__: 'FragmentNode' };
 
 export type VNode = ElementVNode | TextVNode | FragmentVNode;
-

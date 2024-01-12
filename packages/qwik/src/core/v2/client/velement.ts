@@ -1,7 +1,7 @@
 import type { ProcessedJSXNode } from '../../render/dom/render-dom';
 import type { Signal } from '../../state/signal';
 import { ELEMENT_ID } from '../../util/markers';
-import { Flags, type VNode } from './types';
+import { VNodeFlags, type VNode } from './types';
 import {
   vnode_getElementName,
   vnode_getFirstChild,
@@ -17,40 +17,55 @@ import {
 } from './vnode';
 
 export class QwikElementAdapter extends Array {
-  static create(
-    flags: Flags,
+  static createElement(
+    flags: VNodeFlags,
     parent: VNode | null,
-    previousSibling: VNode | null | undefined,
-    nextSibling: VNode | null | undefined,
+    previousSibling: VNode | null,
+    nextSibling: VNode | null,
     firstChild: VNode | null | undefined,
-    node: Node | null,
-    tag: string | undefined,
-    key: string | null
+    lastChild: VNode | null | undefined,
+    element: Element,
+    tag: string | undefined
   ) {
-    return new QwikElementAdapter(
-      flags,
-      parent,
-      previousSibling,
-      nextSibling,
-      firstChild,
-      node,
-      tag,
-      key
-    ) as any;
+    const vnode = new QwikElementAdapter(flags, parent, previousSibling, nextSibling) as any;
+    vnode.push(firstChild, lastChild, element, tag);
+    return vnode;
+  }
+
+  static createText(
+    flags: VNodeFlags,
+    parent: VNode | null,
+    previousSibling: VNode | null,
+    nextSibling: VNode | null,
+    textNode: Text | null,
+    text: string | undefined
+  ) {
+    const vnode = new QwikElementAdapter(flags, parent, previousSibling, nextSibling) as any;
+    vnode.push(textNode, text);
+    return vnode;
+  }
+
+  static createFragment(
+    flags: VNodeFlags,
+    parent: VNode | null,
+    previousSibling: VNode | null,
+    nextSibling: VNode | null,
+    firstChild: VNode | null,
+    lastChild: VNode | null
+  ) {
+    const vnode = new QwikElementAdapter(flags, parent, previousSibling, nextSibling) as any;
+    vnode.push(firstChild, lastChild);
+    return vnode;
   }
 
   constructor(
-    flags: Flags,
+    flags: VNodeFlags,
     parent: VNode | null,
     previousSibling: VNode | null | undefined,
-    nextSibling: VNode | null | undefined,
-    firstChild: VNode | null | undefined,
-    node: Node | null | undefined,
-    tag: string | undefined,
-    key: string | null
+    nextSibling: VNode | null | undefined
   ) {
     super();
-    this.push(flags, parent, previousSibling, nextSibling, firstChild, node, tag, key);
+    this.push(flags, parent, previousSibling, nextSibling);
   }
 
   getAttribute(name: string): string | null {

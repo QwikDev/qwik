@@ -154,7 +154,7 @@ function tagToString(tag: any): string {
 }
 
 function shouldSkip(vNode: VNode | null) {
-  if (vnode_isElementVNode(vNode)) {
+  if (vNode && vnode_isElementVNode(vNode)) {
     const tag = vnode_getElementName(vNode);
     if (
       tag === 'script' &&

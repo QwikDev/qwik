@@ -44,7 +44,7 @@
     "tailwindcss": "3.3.3",
     "tsm": "^2.3.0",
     "typescript": "5.3.3",
-    "undici": "^6.3.0",
+    "undici": "*",
     "valibot": "^0.17.1",
     "vite": "^5.0.11",
     "vite-plugin-inspect": "^0.7.42",

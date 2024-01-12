@@ -20,7 +20,7 @@ contributors:
   - mrhoodz
   - julianobrasil
   - maiieul
-updated_at: '2023-10-03T18:53:59Z'
+updated_at: '2024-01-09T20:55:11Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
 
@@ -60,9 +60,7 @@ Notice that `onClick$` ends with [`$`](/docs/(qwik)/advanced/dollar/index.mdx). 
 
 ## Reusing event handlers
 
-If we want to reuse the same event handler for multiple elements or event, we need to import `$` from `@builder.io/qwik` and wrap the event handler in it.
-
-This way we must extract the event handler into a [`QRLs`](/docs/advanced/qrl/) and pass it to the event listener.
+If we want to reuse the same event handler for multiple elements or events, we need to wrap the event handler into the `$()` function exported by `@builder.io/qwik` to transform it into a [`QRL`](/docs/advanced/qrl/).
 
 <CodeSandbox src="/src/routes/demo/events/extracted-handler/index.tsx" style={{ height: '6em' }}>
 ```tsx {5} /increment/#a
@@ -243,9 +241,9 @@ export default component$(() => {
 
 ## Custom event props
 
-When creating your components it is often useful to pass custom event props that look like event handlers, (even though they are not DOM events, only callbacks). Component boundaries in Qwik must be serializable for the optimizer to split them up into separate chunks, and functions are not serializable unless they are converted to a QRL using the `$` sign.
+When creating your components it is often useful to pass custom event props that look like event handlers, (even though they are not DOM events, only callbacks). Component boundaries in Qwik must be serializable for the optimizer to split them up into separate chunks, and functions are not serializable unless they are converted to a QRL.
 
-When typing `component$` with the Generics syntax, Qwik will handle the type transformation automatically for you.
+For example, listening for triple click events, which html cannot do by default, would require creating an `onTripleClick$` custom event prop.
 <CodeSandbox src="/src/routes/demo/events/custom-event/index.tsx" style={{ height: '10em' }}>
 ```tsx
 import { component$, Slot, useStore } from '@builder.io/qwik';
@@ -259,7 +257,7 @@ export default component$(() => {
 });
 
 type ButtonProps = {
-  onTripleClick$: () => void;
+  onTripleClick$: QRL<() => void>;
 };
 
 export const Button = component$<ButtonProps>(({ onTripleClick$ }) => {
@@ -292,12 +290,7 @@ export const Button = component$<ButtonProps>(({ onTripleClick$ }) => {
 ```
 </CodeSandbox>
 
-⚠️ When using type annotations, we need to wrap the event type with `QRL` in order to tell TypeScript that the function can't be called synchronously.
-```tsx
-component$(({ onTripleClick$ } : { onTripleClick$?: QRL<() => void> }) => {
-  ...
-});
-```
+> Notice the use of the `QRL` type in `onTripleClick$: QRL<() => void>;`. It is like wrapping a function in `$()` but at the type level. If you had `const greet = $(() => "hi 👋");` and hovered over 'greet', you would see that 'greet' is of type `QRL<() => "hi 👋">`
 
 ## Window and Document events
 

@@ -186,7 +186,7 @@ export const isQwikComponent = <T extends Component<any>>(component: unknown): c
   return typeof component == 'function' && (component as any)[SERIALIZABLE_STATE] !== undefined;
 };
 
-/** @public */
+/** @public @deprecated Use `QRL<>` on your function props instead */
 export type PropFunctionProps<PROPS extends Record<any, any>> = {
   [K in keyof PROPS]: PROPS[K] extends undefined
     ? PROPS[K]

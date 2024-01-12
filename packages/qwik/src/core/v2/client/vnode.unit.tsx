@@ -6,8 +6,7 @@ import type { FragmentVNode, QDocument, TextVNode, VNode } from './types';
 import {
   vnode_getFirstChild,
   vnode_getNextSibling,
-  vnode_getNodeTypeName,
-  vnode_newDeflatedElement,
+  vnode_newUnMaterializedElement,
   vnode_setText,
 } from './vnode';
 import { Fragment } from '@builder.io/qwik/jsx-runtime';
@@ -20,7 +19,7 @@ describe('vnode', () => {
     document = createDocument() as QDocument;
     document.qVNodeData = new WeakMap();
     parent = document.createElement('test');
-    vParent = vnode_newDeflatedElement(null, parent);
+    vParent = vnode_newUnMaterializedElement(null, parent);
   });
   afterEach(() => {
     parent = null!;
@@ -160,6 +159,7 @@ describe('vnode', () => {
     it('should place attributes on Fragment', () => {
       parent.innerHTML = ``;
       document.qVNodeData.set(parent, '{=:id_?:sref_@:key_}');
+      console.log('vParent', vParent.toString());
       expect(vParent).toMatchVDOM(
         <test>
           <Fragment {...({ 'q:id': ':id_', 'q:sref': ':sref_', 'q:key': ':key_' } as any)} />

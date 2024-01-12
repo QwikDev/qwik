@@ -9,6 +9,7 @@ import {
   type FragmentVNode,
   type TextVNode,
   type VNode,
+  ElementVNodeProps,
 } from './types';
 import {
   mapArray_set,
@@ -18,11 +19,9 @@ import {
   vnode_getNode,
   vnode_getText,
   vnode_getType,
-  vnode_insertChildAfter,
-  vnode_isTextVNode,
-  vnode_newDeflatedElement,
-  vnode_newInflatedElement,
-  vnode_newInflatedText,
+  vnode_insertBefore,
+  vnode_newElement,
+  vnode_newText,
   vnode_setProp,
   vnode_setText,
   vnode_truncate,
@@ -30,7 +29,6 @@ import {
 import type { JSXNode } from '../../render/jsx/types/jsx-node';
 import type { SsrAttrs } from '../ssr/types';
 import { EMPTY_ARRAY } from '../../util/flyweight';
-import { VNodeDataFlag } from '../ssr/vnode-data';
 
 export type VNodeJournalEntry = VNodeJournalOpCode | VNode | null | string;
 
@@ -52,19 +50,41 @@ export const enum VNodeJournalOpCode {
 }
 
 export const vnode_diff = (journal: VNodeJournalEntry[], jsxNode: JSXNode<any>, vNode: VNode) => {
-  let infiniteLoopGuard = 10;
-  const queue: any[] = [];
-  const document = vnode_getNode(vNode).ownerDocument!;
+  const document = vnode_getNode(vNode)!.ownerDocument!;
+  /**
+   * Stack is used to keep track of the state of the traversal.
+   *
+   * We push current state into the stack before descending into the child, and we pop the state
+   * when we are done with the child.
+   */
+  const stack: any[] = [];
+
+  ////////////////////////////////
+  //// Traverse state variables
+  ////////////////////////////////
+
+  /// Current parent node, needed for inserting new nodes.
   let vParent: VNode = null!;
+  /// Current node we compare against. (Think of it as a cursor.)
+  /// (Node can be null, if we are at the end of the list.)
   let vCurrent: VNode | null = vNode;
+  /// When we insert new node we start it here so that we can descend into it.
+  /// NOTE: it can't be stored in `vCurrent` because `vNewCurrent` is in journal
+  /// and is not connected to the tree.
+  let vNewNode: VNode | null = vNode;
   let vPrevious: VNode | null = vNode;
+  /// Current set of JSX children.
   let jsxChildren: any[] = null!;
+  // Current JSX child.
   let jsxValue: any = null;
   let jsxIdx = 0;
   let jsxCount = 0;
+  ////////////////////////////////
+
   descend(jsxNode.children);
 
-  while (queue.length) {
+  let infiniteLoopGuard = 10;
+  while (stack.length) {
     while (jsxIdx < jsxCount) {
       if (infiniteLoopGuard-- < 0) {
         throw new Error('Infinite loop detected.');
@@ -137,10 +157,10 @@ export const vnode_diff = (journal: VNodeJournalEntry[], jsxNode: JSXNode<any>, 
         VNodeJournalOpCode.Insert,
         vParent,
         vPrevious,
-        (vCurrent = vnode_newInflatedElement(vParent, document.createElement(tag), tag))
+        (vNewNode = vnode_newElement(vParent, document.createElement(tag), tag))
       );
     }
-    setBulkProps(vCurrent as ElementVNode, jsxAttrs);
+    setBulkProps((vNewNode || vCurrent) as ElementVNode, jsxAttrs);
   }
 
   function setBulkProps(vnode: ElementVNode, srcAttrs: SsrAttrs) {
@@ -148,7 +168,7 @@ export const vnode_diff = (journal: VNodeJournalEntry[], jsxNode: JSXNode<any>, 
     let hasDiffs = false;
     let srcIdx = 0;
     const srcLength = srcAttrs.length;
-    let dstIdx = VNodeProps.propsStart;
+    let dstIdx = ElementVNodeProps.PROPS_OFFSET;
     const dstLength = dstAttrs.length;
     let srcKey: string | null = srcIdx < srcLength ? srcAttrs[srcIdx++] : null;
     let dstKey: string | null = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
@@ -184,12 +204,12 @@ export const vnode_diff = (journal: VNodeJournalEntry[], jsxNode: JSXNode<any>, 
     }
     while (srcIdx < srcLength) {
       // Source has more keys, so we need to insert them.
-      record(srcKey, srcAttrs[srcIdx++]);
+      record(srcKey!, srcAttrs[srcIdx++]);
       srcKey = srcIdx < srcLength ? srcAttrs[srcIdx++] : null;
     }
     while (dstIdx < dstLength) {
       // Destination has more keys, so we need to remove them.
-      record(dstKey, null);
+      record(dstKey!, null);
       dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       dstIdx++; // skip the destination value, we don't care about it.
     }
@@ -206,22 +226,23 @@ export const vnode_diff = (journal: VNodeJournalEntry[], jsxNode: JSXNode<any>, 
     jsxIdx++;
     jsxValue = jsxIdx < jsxCount ? jsxChildren[jsxIdx] : null;
     vPrevious = vCurrent;
+    vNewNode = null;
     vCurrent = vCurrent ? vnode_getNextSibling(vCurrent) : null;
   }
 
   function ascend() {
-    jsxValue = queue.pop();
-    jsxCount = queue.pop();
-    jsxIdx = queue.pop();
-    jsxChildren = queue.pop();
-    vCurrent = queue.pop();
-    vPrevious = queue.pop();
-    vParent = queue.pop();
+    jsxValue = stack.pop();
+    jsxCount = stack.pop();
+    jsxIdx = stack.pop();
+    jsxChildren = stack.pop();
+    vCurrent = stack.pop();
+    vPrevious = stack.pop();
+    vParent = stack.pop();
     advance();
   }
 
   function descend(children: any) {
-    queue.push(vParent, vPrevious, vCurrent, jsxChildren, jsxIdx, jsxCount, jsxValue);
+    stack.push(vParent, vPrevious, vCurrent, jsxChildren, jsxIdx, jsxCount, jsxValue);
     if (Array.isArray(children)) {
       jsxIdx = 0;
       jsxCount = children.length;
@@ -239,10 +260,10 @@ export const vnode_diff = (journal: VNodeJournalEntry[], jsxNode: JSXNode<any>, 
       jsxChildren = null!;
       jsxCount = 1;
     }
-    assertDefined(vCurrent, 'Expecting vCurrent to be defined.');
-    vParent = vCurrent!;
+    assertDefined(vCurrent || vNewNode, 'Expecting vCurrent to be defined.');
+    vParent = vCurrent || vNewNode!;
     vCurrent = vnode_getFirstChild(vParent);
-    vPrevious = null;
+    vNewNode = vPrevious = null;
   }
 
   function expectText(text: string) {
@@ -259,8 +280,8 @@ export const vnode_diff = (journal: VNodeJournalEntry[], jsxNode: JSXNode<any>, 
     journal.push(
       VNodeJournalOpCode.Insert,
       vParent,
-      vPrevious,
-      vnode_newInflatedText(vParent, document.createTextNode(text), text)
+      vCurrent,
+      vnode_newText(vParent, document.createTextNode(text), text)
     );
   }
 };
@@ -272,10 +293,12 @@ export const vnode_applyJournal = (journal: VNodeJournalEntry[]) => {
     assertTrue(typeof opCode === 'number', 'Expecting opCode to be a number.');
     switch (opCode) {
       case VNodeJournalOpCode.TextSet:
+        console.log('TEXT SET', journal[idx + 1]);
         vnode_setText(journal[idx++] as TextVNode, journal[idx++] as string);
         break;
       case VNodeJournalOpCode.Insert:
-        vnode_insertChildAfter(
+        console.log('Insert', journal[idx + 1]?.toString(), journal[idx + 2]?.toString());
+        vnode_insertBefore(
           journal[idx++] as ElementVNode | FragmentVNode,
           journal[idx++] as VNode,
           journal[idx++] as VNode

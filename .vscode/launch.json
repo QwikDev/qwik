@@ -4,6 +4,7 @@
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
+
     {
       "type": "node",
       "name": "docs dev.debug",
@@ -11,6 +12,15 @@
       "skipFiles": ["<node_internals>/**"],
       "cwd": "${workspaceFolder}/packages/docs",
       "program": "${workspaceFolder}/packages/docs/node_modules/vite/bin/vite.js",
+      "args": ["--mode", "ssr", "--force"]
+    },
+    {
+      "type": "node",
+      "name": "insights dev.debug",
+      "request": "launch",
+      "skipFiles": ["<node_internals>/**"],
+      "cwd": "${workspaceFolder}/packages/insights",
+      "program": "${workspaceFolder}/packages/insights/node_modules/vite/bin/vite.js",
       "args": ["--mode", "ssr", "--force"]
     },
     {

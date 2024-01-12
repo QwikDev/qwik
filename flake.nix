@@ -21,6 +21,7 @@
               gitMinimal
 
               nodejs_20
+              corepack_20
 
               # Qwik optimizer deps
               wasm-pack

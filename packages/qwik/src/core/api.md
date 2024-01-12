@@ -625,7 +625,7 @@ export type PropFnInterface<ARGS extends any[], RET> = {
 // @public (undocumented)
 export type PropFunction<T extends Function = (...args: any) => any> = T extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, Awaited<RET>> : never;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export type PropFunctionProps<PROPS extends Record<any, any>> = {
     [K in keyof PROPS]: PROPS[K] extends undefined ? PROPS[K] : PROPS[K] extends ((...args: infer ARGS) => infer RET) | undefined ? PropFnInterface<ARGS, Awaited<RET>> : PROPS[K];
 };

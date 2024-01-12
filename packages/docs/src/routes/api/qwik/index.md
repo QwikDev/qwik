@@ -1783,6 +1783,10 @@ export type PropFunction<T extends Function = (...args: any) => any> =
 
 ## PropFunctionProps
 
+> Warning: This API is now obsolete.
+>
+> Use `QRL<>` on your function props instead
+
 ```typescript
 export type PropFunctionProps<PROPS extends Record<any, any>> = {
   [K in keyof PROPS]: PROPS[K] extends undefined

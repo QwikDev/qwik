@@ -206,9 +206,6 @@ importers:
       typescript:
         specifier: 5.4.5
         version: 5.4.5
-      undici:
-        specifier: '*'
-        version: 6.18.2
       vfile:
         specifier: ^6.0.1
         version: 6.0.1
@@ -368,9 +365,6 @@ importers:
       typescript:
         specifier: 5.4.5
         version: 5.4.5
-      undici:
-        specifier: '*'
-        version: 6.18.2
       valibot:
         specifier: ^0.29.0
         version: 0.29.0
@@ -505,9 +499,6 @@ importers:
       typescript:
         specifier: 5.4.5
         version: 5.4.5
-      undici:
-        specifier: '*'
-        version: 6.18.2
       vite:
         specifier: ^5.2.11
         version: 5.2.12(@types/node@20.14.1)(terser@5.31.0)
@@ -573,9 +564,6 @@ importers:
       svgo:
         specifier: ^3.2.0
         version: 3.3.2
-      undici:
-        specifier: '*'
-        version: 6.18.2
       vfile:
         specifier: ^6.0.1
         version: 6.0.1
@@ -702,9 +690,6 @@ importers:
       typescript:
         specifier: 5.4.5
         version: 5.4.5
-      undici:
-        specifier: '*'
-        version: 6.18.2
       vite:
         specifier: ^5.2.11
         version: 5.2.12(@types/node@20.14.1)(terser@5.31.0)

@@ -112,10 +112,6 @@ export async function build(config: BuildConfig) {
       await buildQwikReact(config);
     }
 
-    if (config.qwiklabs) {
-      await buildQwikLabs(config);
-    }
-
     if (config.qwikauth) {
       await buildQwikAuth(config);
     }
@@ -124,16 +120,20 @@ export async function build(config: BuildConfig) {
       await buildQwikWorker(config);
     }
 
+    if (config.api) {
+      await apiExtractor(config);
+    }
+
+    if (config.qwiklabs) {
+      await buildQwikLabs(config);
+    }
+
     if (config.supabaseauthhelpers) {
       await buildSupabaseAuthHelpers(config);
     }
 
     if (config.tscDocs) {
       await tscDocs(config);
-    }
-
-    if (config.api) {
-      await apiExtractor(config);
     }
 
     if (config.validate) {

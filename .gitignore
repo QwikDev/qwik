@@ -17,6 +17,7 @@ qwik-app/
 /server/
 /starters/**/server/
 /packages/*/server/
+!/packages/qwik/server/
 /packages/*/src/styled-system/
 todo-express/
 target

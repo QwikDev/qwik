@@ -37,6 +37,7 @@ export async function publishEslint(
   // update the cli version
   console.log(`   update version = "${version}"`);
   cliPkg.version = version;
+  cliPkg.main = 'index.js';
   await writePackageJson(distDir, cliPkg);
 
   console.log(`⛴ publishing ${cliPkg.name} ${version}`, isDryRun ? '(dry-run)' : '');

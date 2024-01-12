@@ -25,7 +25,7 @@
     "qwik"
   ],
   "license": "MIT",
-  "main": "index.js",
+  "main": "dist/index.js",
   "peerDependencies": {
     "eslint": "^8.56.0"
   },

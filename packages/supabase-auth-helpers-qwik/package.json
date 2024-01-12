@@ -8,8 +8,8 @@
     "@supabase/auth-helpers-shared": "^0.5.0"
   },
   "devDependencies": {
-    "@builder.io/qwik": "1.3.3",
-    "@builder.io/qwik-city": "1.3.3",
+    "@builder.io/qwik": "workspace:*",
+    "@builder.io/qwik-city": "workspace:*",
     "@supabase/supabase-js": "2.38.1"
   },
   "exports": {

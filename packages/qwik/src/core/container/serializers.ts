@@ -505,7 +505,7 @@ const StringSerializer = /*#__PURE__*/ serializer<string>({
   $prepare$: (data) => data,
 });
 
-const serializers: Serializer<any>[] = /*#__PURE__*/ [
+const serializers: Serializer<any>[] = [
   // NULL                       \u0000
   // UNDEFINED_PREFIX           \u0001
   QRLSerializer, ////////////// \u0002

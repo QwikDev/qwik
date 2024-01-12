@@ -22,7 +22,7 @@ export async function generatePackageJson(config: BuildConfig) {
     },
     type: 'module',
     peerDependencies: {
-      undici: '^5.14.0',
+      undici: '*',
     },
     dependencies: rootPkg.dependencies,
     exports: {

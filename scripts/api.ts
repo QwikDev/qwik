@@ -2,7 +2,7 @@ import { Extractor, ExtractorConfig } from '@microsoft/api-extractor';
 import { readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { generateApiMarkdownDocs } from './api-docs';
-import { type BuildConfig, panic } from './util';
+import { type BuildConfig, panic, ensureDir } from './util';
 
 /**
  * Create each submodule's bundled dts file, and ensure the public API has not changed for a
@@ -22,9 +22,15 @@ export async function apiExtractor(config: BuildConfig) {
   );
   // Special case for jsx-runtime:
   // It only re-exports JSX. Don't duplicate the types
+  const jsxContent = readFileSync(join(config.srcQwikDir, 'jsx-runtime', 'index.ts'), 'utf-8');
   writeFileSync(
     join(config.distQwikPkgDir, 'jsx-runtime.d.ts'),
-    `export {QwikJSX as JSX} from './core.d.ts'\n`
+    `// re-export to make TS happy when not using nodenext import resolution\n${jsxContent}`
+  );
+  ensureDir(join(config.distQwikPkgDir, 'jsx-runtime'));
+  writeFileSync(
+    join(config.distQwikPkgDir, 'jsx-runtime', 'index.d.ts'),
+    `// re-export to make TS happy when not using nodenext import resolution\n${jsxContent}`
   );
   createTypesApi(
     config,

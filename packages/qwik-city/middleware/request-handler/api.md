@@ -54,7 +54,7 @@ export interface CookieOptions {
     httpOnly?: boolean;
     maxAge?: number | [number, 'seconds' | 'minutes' | 'hours' | 'days' | 'weeks'];
     path?: string;
-    sameSite?: 'strict' | 'lax' | 'none' | boolean;
+    sameSite?: 'strict' | 'lax' | 'none' | 'Strict' | 'Lax' | 'None' | boolean;
     secure?: boolean;
 }
 

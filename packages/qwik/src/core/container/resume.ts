@@ -309,7 +309,7 @@ const reviveNestedObjects = (obj: unknown, getObject: GetObject, parser: Parser)
 };
 
 const unescapeText = (str: string) => {
-  return str.replace(/\\x3C(\/?script)/g, '<$1');
+  return str.replace(/\\x3C(\/?script)/gi, '<$1');
 };
 
 export const getQwikInlinedFuncs = (containerEl: Element): Function[] => {

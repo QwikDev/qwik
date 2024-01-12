@@ -37,7 +37,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
       while (script) {
         if (script.tagName === 'SCRIPT' && getAttribute(script, 'type') === 'qwik/json') {
           (containerEl as QContainerElement)['_qwikjson_'] = JSON.parse(
-            script.textContent!.replace(/\\x3C(\/?script)/g, '<$1')
+            script.textContent!.replace(/\\x3C(\/?script)/gi, '<$1')
           );
           break;
         }

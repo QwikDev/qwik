@@ -12,7 +12,6 @@ import type {
   RouteNavigate,
   QwikCityEnvData,
   RouteAction,
-  RequestEvent,
 } from './types';
 
 /** @public */
@@ -36,16 +35,3 @@ export const useNavigate = (): RouteNavigate => useContext(RouteNavigateContext)
 export const useAction = (): RouteAction => useContext(RouteActionContext);
 
 export const useQwikCityEnv = () => noSerialize(useServerData<QwikCityEnvData>('qwikcity'));
-
-// we need to keep track of last available request event
-let _ev: RequestEvent<QwikCityPlatform> | undefined;
-
-export function useRequestEvent() {
-  const requestEvent = useQwikCityEnv()?.ev;
-
-  if (requestEvent) {
-    _ev = requestEvent;
-  }
-
-  return _ev;
-}

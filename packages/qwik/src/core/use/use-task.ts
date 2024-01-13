@@ -132,6 +132,24 @@ export interface ResourceCtx<T> {
   cleanup(callback: () => void): void;
   cache(policyOrMilliseconds: number | 'immutable'): void;
   readonly previous: T | undefined;
+  /**
+   * The call function is used to keep track of the current context it accepts any function that
+   * will be executed and rest of params are passed as arguments to the function using `call`
+   * function is only needed when there functions (i.e server functions) that run sequentially and
+   * need to be executed in the same context
+   * 
+   * @example
+   * const resource = useResource$(
+   * $(async ({ call }) => {
+   *    const a = await call(serverFunctionA, 12);
+   *    const b = await call(serverFunctionB, "Hello");
+   *    const c = await call(serverFunctionC);
+   * 
+   *    return { a, b, c };
+   *  }),
+    );
+   */
+  call: <T extends (...args: any[]) => any>(callback: T, ...params: Parameters<T>) => ReturnType<T>;
 }
 
 /** @public */
@@ -535,6 +553,13 @@ export const runResource = <T>(
     subsManager.$clearSub$(task);
   });
 
+  const call = <T extends (...args: any[]) => any>(
+    callback: T,
+    ...params: Parameters<T>
+  ): ReturnType<T> => {
+    return invoke(iCtx, callback, ...params);
+  };
+
   const cleanups: (() => void)[] = [];
   const resource = task.$state$;
   assertDefined(
@@ -567,6 +592,7 @@ export const runResource = <T>(
   const resourceTarget = unwrapProxy(resource);
   const opts: ResourceCtx<T> = {
     track,
+    call,
     cleanup(callback) {
       cleanups.push(callback);
     },

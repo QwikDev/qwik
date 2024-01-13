@@ -13,6 +13,7 @@ import {
 } from './types';
 import {
   mapArray_set,
+  vnode_ensureElementInflated,
   vnode_getElementName,
   vnode_getFirstChild,
   vnode_getNextSibling,
@@ -22,6 +23,7 @@ import {
   vnode_insertBefore,
   vnode_newElement,
   vnode_newText,
+  vnode_remove,
   vnode_setProp,
   vnode_setText,
   vnode_truncate,
@@ -129,11 +131,16 @@ export const vnode_diff = (journal: VNodeJournalEntry[], jsxNode: JSXNode<any>, 
 
   function expectNoMore() {
     if (vCurrent !== null) {
-      journal.push(VNodeJournalOpCode.Truncate, vParent, vPrevious);
+      journal.push(VNodeJournalOpCode.Truncate, vParent, vCurrent);
     }
   }
 
-  function expectNoMoreTextNodes() {}
+  function expectNoMoreTextNodes() {
+    while (vCurrent !== null && vnode_getType(vCurrent) === 3 /* Text */) {
+      journal.push(VNodeJournalOpCode.Remove, vParent, vCurrent);
+      vCurrent = vnode_getNextSibling(vCurrent);
+    }
+  }
 
   function expectElement(jsx: JSXNode<any>, tag: string) {
     console.log('ELEMENT', tag);
@@ -164,6 +171,7 @@ export const vnode_diff = (journal: VNodeJournalEntry[], jsxNode: JSXNode<any>, 
   }
 
   function setBulkProps(vnode: ElementVNode, srcAttrs: SsrAttrs) {
+    vnode_ensureElementInflated(vnode);
     const dstAttrs = vnode as SsrAttrs;
     let hasDiffs = false;
     let srcIdx = 0;
@@ -293,11 +301,9 @@ export const vnode_applyJournal = (journal: VNodeJournalEntry[]) => {
     assertTrue(typeof opCode === 'number', 'Expecting opCode to be a number.');
     switch (opCode) {
       case VNodeJournalOpCode.TextSet:
-        console.log('TEXT SET', journal[idx + 1]);
         vnode_setText(journal[idx++] as TextVNode, journal[idx++] as string);
         break;
       case VNodeJournalOpCode.Insert:
-        console.log('Insert', journal[idx + 1]?.toString(), journal[idx + 2]?.toString());
         vnode_insertBefore(
           journal[idx++] as ElementVNode | FragmentVNode,
           journal[idx++] as VNode,
@@ -305,10 +311,10 @@ export const vnode_applyJournal = (journal: VNodeJournalEntry[]) => {
         );
         break;
       case VNodeJournalOpCode.Truncate:
-        vnode_truncate(
-          journal[idx++] as ElementVNode | FragmentVNode,
-          journal[idx++] as VNode | null
-        );
+        vnode_truncate(journal[idx++] as ElementVNode | FragmentVNode, journal[idx++] as VNode);
+        break;
+      case VNodeJournalOpCode.Remove:
+        vnode_remove(journal[idx++] as ElementVNode | FragmentVNode, journal[idx++] as VNode);
         break;
       case VNodeJournalOpCode.Attributes:
         const vnode = journal[idx++] as ElementVNode;

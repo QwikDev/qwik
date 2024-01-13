@@ -1,7 +1,6 @@
 import type { JSXNode } from '../../render/jsx/types/jsx-node';
 import { createDocument } from '@builder.io/qwik-dom';
 import { afterEach, describe, expect, it } from 'vitest';
-import { walkJSX } from '../container.unit';
 import type { ElementVNode, FragmentVNode, QDocument, VNode } from './types';
 import {
   vnode_getFirstChild,
@@ -14,6 +13,7 @@ import {
 } from './vnode';
 import { vnode_applyJournal, vnode_diff, type VNodeJournalEntry } from './vnode-diff';
 import '../vdom-diff.unit';
+import { walkJSX } from '../vdom-diff.unit';
 
 describe('vnode-diff', () => {
   const journal: VNodeJournalEntry[] = [];
@@ -103,7 +103,7 @@ describe('vnode-diff', () => {
       vnode_applyJournal(journal);
       expect(vnode).toMatchVDOM(test);
     });
-    it.only('should update attributes', () => {
+    it('should update attributes', () => {
       const vnode = vnode_fromJSX(
         <test>
           <span id="a" about="name"></span>

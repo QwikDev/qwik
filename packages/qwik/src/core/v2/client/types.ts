@@ -64,6 +64,7 @@ export const enum VNodeFlags {
   Element /* ****************** */ = 0b0001,
   Fragment /* ***************** */ = 0b0010,
   ELEMENT_OR_FRAGMENT_MASK /* * */ = 0b0011,
+  ELEMENT_OR_TEXT_MASK /* ***** */ = 0b0101,
   TYPE_MASK /* **************** */ = 0b0111,
   Text /* ********************* */ = 0b0100,
   /// Extra flag which marks if a node needs to be inflated.

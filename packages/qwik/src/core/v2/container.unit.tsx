@@ -1,23 +1,22 @@
 import { createDocument } from '@builder.io/qwik-dom';
-import { $ } from '../qrl/qrl.public';
 import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
 import { describe, expect, it } from 'vitest';
-import { Fragment, JSXNodeImpl, isJSXNode } from '../render/jsx/jsx-runtime';
-import { getDomContainer, processVNodeData } from './client/dom-container';
-import type { ClientContainer, VNode } from './client/types';
-import type { Stringifiable } from './shared-types';
-import { isStringifiable } from './shared-types';
-import { ssrCreateContainer } from './ssr/ssr-container';
-import './vdom-diff.unit';
-import { vnode_getFirstChild, vnode_getProp, vnode_getText } from './client/vnode';
-import { isDeserializerProxy } from './shared-serialization';
 import { component$ } from '../component/component.public';
+import { SERIALIZABLE_STATE } from '../container/serializers';
 import { inlinedQrl, qrl } from '../qrl/qrl';
 import type { QRLInternal } from '../qrl/qrl-class';
-import { SERIALIZABLE_STATE } from '../container/serializers';
-import { SsrNode, type SSRContainer } from './ssr/types';
+import { $ } from '../qrl/qrl.public';
+import { Fragment, JSXNodeImpl } from '../render/jsx/jsx-runtime';
 import { Slot } from '../render/jsx/slot.public';
+import { getDomContainer } from './client/dom-container';
+import type { ClientContainer, VNode } from './client/types';
+import { vnode_getFirstChild, vnode_getProp, vnode_getText } from './client/vnode';
+import { isDeserializerProxy } from './shared-serialization';
+import { ssrCreateContainer } from './ssr/ssr-container';
 import { toSsrAttrs } from './ssr/ssr-render';
+import { SsrNode, type SSRContainer } from './ssr/types';
+import './vdom-diff.unit';
+import { walkJSX } from './vdom-diff.unit';
 
 describe('serializer v2', () => {
   describe('rendering', () => {
@@ -517,33 +516,4 @@ function toVDOM(containerElement: HTMLElement): VNode {
   const container = getDomContainer(containerElement);
   const vNode = vnode_getFirstChild(container.rootVNode)!;
   return vNode;
-}
-
-export function walkJSX(
-  jsx: JSXNode,
-  apply: {
-    enter: (jsx: JSXNode) => void;
-    leave: (jsx: JSXNode) => void;
-    text: (text: Stringifiable) => void;
-  }
-) {
-  apply.enter(jsx);
-  if (Array.isArray(jsx.children)) {
-    for (const child of jsx.children) {
-      processChild(child);
-    }
-  } else if (jsx.children) {
-    processChild(jsx.children);
-  }
-  apply.leave(jsx);
-
-  function processChild(child: any) {
-    if (isStringifiable(child)) {
-      apply.text(child);
-    } else if (isJSXNode(child)) {
-      walkJSX(child, apply);
-    } else {
-      throw new Error('Unknown type: ' + child);
-    }
-  }
 }

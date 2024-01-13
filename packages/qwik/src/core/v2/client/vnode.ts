@@ -188,7 +188,7 @@ export const vnode_getNodeTypeName = (vNode: VNode): string => {
   return '<unknown>';
 };
 
-const vnode_ensureElementInflated = (vnode: VNode) => {
+export const vnode_ensureElementInflated = (vnode: VNode) => {
   const flags = vnode[VNodeProps.flags];
   if (flags === VNodeFlags.Element) {
     const elementVNode = ensureElementVNode(vnode);
@@ -211,11 +211,26 @@ const vnode_getDOMParent = (vnode: VNode): Element | null => {
   return vnode && vnode[ElementVNodeProps.element];
 };
 
-const vnode_getDOMInsertBefore = (vnode: VNode | null): Node | null => {
-  while (vnode && !vnode_isElementVNode(vnode)) {
-    vnode = vnode[VNodeProps.nextSibling] as VNode | null;
+const vnode_getDOMInsertBefore = (vNode: VNode | null): Node | null => {
+  while (vNode) {
+    const type = vNode[VNodeProps.flags];
+    if (type & VNodeFlags.ELEMENT_OR_TEXT_MASK) {
+      return vnode_getNode(vNode);
+    } else {
+      assertTrue(vnode_isFragmentVNode(vNode), 'Expecting Fragment');
+      let vNext = vnode_getFirstChild(vNode) || vnode_getNextSibling(vNode);
+      while (vNext === null) {
+        vNode = vnode_getParent(vNode)!;
+        if (vNode == null || vnode_isElementVNode(vNode)) {
+          // we traversed all nodes and did not find anything;
+          return null;
+        }
+        vNext = vnode_getNextSibling(vNode);
+      }
+      vNode = vNext;
+    }
   }
-  return vnode && vnode[ElementVNodeProps.element];
+  return null;
 };
 
 const vnode_ensureTextInflated = (vnode: TextVNode) => {
@@ -336,7 +351,10 @@ const vnode_getNthChild = (vNode: VNode, nthChildIdx: number): VNode => {
 };
 
 const vNodeStack: VNode[] = [];
-export const vnode_getVNodeForChildNode = (vNode: ElementVNode, childElement: Element): ElementVNode => {
+export const vnode_getVNodeForChildNode = (
+  vNode: ElementVNode,
+  childElement: Element
+): ElementVNode => {
   ensureElementVNode(vNode);
   let child = vnode_getFirstChild(vNode);
   assertDefined(child, 'Missing child.');
@@ -442,12 +460,15 @@ export const vnode_insertBefore = (
   ensureElementOrFragmentVNode(parent);
   const parentNode = vnode_getClosestParentNode(parent)!;
   assertDefined(parentNode, 'Missing parentNode.');
-  const childNode = vnode_getNode(newChild)!;
-  assertDefined(childNode, 'Missing childNode.');
-  const insertBeforeNode = insertBefore ? vnode_getNode(insertBefore) : null;
-  parentNode.insertBefore(childNode, insertBeforeNode);
-  if (vnode_isElementVNode(newChild)) {
-    ensureMaterialized(newChild);
+  if (vnode_isElementVNode(parent)) {
+    ensureMaterialized(parent);
+  }
+  if (!vnode_isFragmentVNode(newChild)) {
+    const shouldWeUseParentFragment = insertBefore == null && vnode_isFragmentVNode(parent);
+    const insertBeforeNode = vnode_getDOMInsertBefore(
+      shouldWeUseParentFragment ? parent : insertBefore
+    );
+    parentNode.insertBefore(vnode_getNode(newChild)!, insertBeforeNode);
   }
 
   // link newChild into the previous/next list
@@ -455,18 +476,18 @@ export const vnode_insertBefore = (
   const vPrevious = vNext
     ? vNext[VNodeProps.previousSibling]
     : (parent[ElementVNodeProps.lastChild] as VNode | null);
-  vNext && (vNext[VNodeProps.previousSibling] = newChild);
-  vPrevious && (vPrevious[VNodeProps.nextSibling] = newChild);
-  newChild[VNodeProps.previousSibling] = vPrevious;
-  newChild[VNodeProps.nextSibling] = vNext;
-
-  // Update parent first/last child;
-  if (parent[ElementVNodeProps.firstChild] === null) {
-    parent[ElementVNodeProps.firstChild] = newChild;
-  }
-  if (insertBefore === null) {
+  if (vNext) {
+    vNext[VNodeProps.previousSibling] = newChild;
+  } else {
     parent[ElementVNodeProps.lastChild] = newChild;
   }
+  if (vPrevious) {
+    vPrevious[VNodeProps.nextSibling] = newChild;
+  } else {
+    parent[ElementVNodeProps.firstChild] = newChild;
+  }
+  newChild[VNodeProps.previousSibling] = vPrevious;
+  newChild[VNodeProps.nextSibling] = vNext;
 };
 
 const vnode_getClosestParentNode = (vnode: VNode): Node | null => {
@@ -476,24 +497,41 @@ const vnode_getClosestParentNode = (vnode: VNode): Node | null => {
   return vnode && vnode[ElementVNodeProps.element];
 };
 
-export const vnode_truncate = (vParent: ElementVNode | FragmentVNode, vPrevious: VNode | null) => {
-  ensureElementVNode(vParent);
-  const parent = vnode_getNode(vParent)!;
-  const vChild = vPrevious ? vnode_getNextSibling(vPrevious) : vnode_getFirstChild(vParent);
-  if (vChild) {
-    let child: Node | null = vnode_getNode(vChild)!;
-    let next = child.nextSibling;
-    while (child !== null) {
-      next = child.nextSibling;
-      parent.removeChild(child);
-      child = next;
-    }
-  }
-  if (vPrevious == null) {
-    vParent[ElementVNodeProps.firstChild] = null;
+export const vnode_remove = (vParent: VNode, vToRemove: VNode) => {
+  const vPrevious = vToRemove[VNodeProps.previousSibling];
+  const vNext = vToRemove[VNodeProps.nextSibling];
+  if (vPrevious) {
+    vPrevious[VNodeProps.nextSibling] = vNext;
   } else {
-    vPrevious[VNodeProps.nextSibling] = null;
+    vParent[ElementVNodeProps.firstChild] = vNext;
   }
+  if (vNext) {
+    vNext[VNodeProps.previousSibling] = vPrevious;
+  } else {
+    vParent[ElementVNodeProps.lastChild] = vPrevious;
+  }
+  if (!vnode_isFragmentVNode(vParent)) {
+    vnode_getDOMParent(vParent)!.removeChild(vnode_getNode(vToRemove)!);
+  }
+};
+
+export const vnode_truncate = (vParent: ElementVNode | FragmentVNode, vDelete: VNode) => {
+  ensureElementVNode(vParent);
+  assertDefined(vDelete, 'Missing vDelete.');
+  const parent = vnode_getNode(vParent)!;
+  let child: Node | null = vnode_getNode(vDelete)!;
+  while (child !== null) {
+    const nextSibling = child.nextSibling;
+    parent.removeChild(child);
+    child = nextSibling;
+  }
+  const vPrevious = vDelete[VNodeProps.previousSibling];
+  if (vPrevious) {
+    vPrevious[VNodeProps.nextSibling] = null;
+  } else {
+    vParent[ElementVNodeProps.firstChild] = null;
+  }
+  vParent[ElementVNodeProps.lastChild] = vPrevious;
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -581,6 +619,10 @@ const materializeFromDOM = (vParent: ElementVNode, firstChild: ChildNode | null)
 
 export const vnode_getNextSibling = (vnode: VNode): VNode | null => {
   return vnode[VNodeProps.nextSibling];
+};
+
+export const vnode_getPreviousSibling = (vnode: VNode): VNode | null => {
+  return vnode[VNodeProps.previousSibling];
 };
 
 export const vnode_getPropKeys = (vnode: ElementVNode | FragmentVNode): string[] => {
@@ -733,7 +775,7 @@ export function vnode_toString(
         const child = vnode_getFirstChild(vnode);
         child && strings.push('  ' + vnode_toString.call(child, depth - 1, offset + '  ', true));
       } else {
-        strings.push('  >>unmaterialized<<');
+        strings.push('  <!-- not materialized --!>');
       }
       strings.push('</' + tag + '>');
     }

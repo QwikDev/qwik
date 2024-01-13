@@ -12,6 +12,7 @@ import {
   vnode_isTextVNode,
   vnode_isFragmentVNode,
 } from './client/vnode';
+import type { Stringifiable } from './shared-types';
 
 describe('vdom-diff.unit', () => {
   it('empty placeholder test to suppress warning', () => {});
@@ -165,4 +166,33 @@ function shouldSkip(vNode: VNode | null) {
     }
   }
   return false;
+}
+
+export function walkJSX(
+  jsx: JSXNode,
+  apply: {
+    enter: (jsx: JSXNode) => void;
+    leave: (jsx: JSXNode) => void;
+    text: (text: Stringifiable) => void;
+  }
+) {
+  apply.enter(jsx);
+  if (Array.isArray(jsx.children)) {
+    for (const child of jsx.children) {
+      processChild(child);
+    }
+  } else if (jsx.children) {
+    processChild(jsx.children);
+  }
+  apply.leave(jsx);
+
+  function processChild(child: any) {
+    if (isStringifiable(child)) {
+      apply.text(child);
+    } else if (isJSXNode(child)) {
+      walkJSX(child, apply);
+    } else {
+      throw new Error('Unknown type: ' + child);
+    }
+  }
 }

@@ -41,7 +41,7 @@ import type {
   ServerQRL,
   RequestEventBase,
 } from './types';
-import { useAction, useLocation, useQwikCityEnv, useRequestEvent } from './use-functions';
+import { useAction, useLocation, useQwikCityEnv } from './use-functions';
 import { z } from 'zod';
 import { isDev, isServer } from '@builder.io/qwik/build';
 import type { FormSubmitCompletedDetail } from './form-component';
@@ -287,7 +287,7 @@ export const serverQrl = <T extends ServerFunction>(qrl: QRL<T>): ServerQRL<T> =
           : undefined;
       if (isServer) {
         // Running during SSR, we can call the function directly
-        const requestEvent = [useRequestEvent(), this, _getContextEvent()].find(
+        const requestEvent = [useQwikCityEnv()?.ev, this, _getContextEvent()].find(
           (v) =>
             v &&
             Object.prototype.hasOwnProperty.call(v, 'sharedMap') &&

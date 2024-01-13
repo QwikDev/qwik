@@ -140,7 +140,7 @@ export interface ResourceCtx<T> {
    * 
    * @example
    * const resource = useResource$(
-   * $(async ({ call }) => {
+   * (async ({ call }) => {
    *    const a = await call(serverFunctionA, 12);
    *    const b = await call(serverFunctionB, "Hello");
    *    const c = await call(serverFunctionC);

@@ -5,7 +5,7 @@ import type { QwikIntrinsicAttributes, LenientQwikElements } from './jsx-qwik-el
 /** @public */
 export namespace QwikJSX {
   export interface Element extends JSXNode {}
-  export type ElementType = string | FunctionComponent;
+  export type ElementType = string | FunctionComponent<Record<any, any>>;
 
   export interface IntrinsicAttributes extends QwikIntrinsicAttributes {}
   export interface ElementChildrenAttribute {

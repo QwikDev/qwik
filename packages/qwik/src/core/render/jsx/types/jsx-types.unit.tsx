@@ -21,6 +21,34 @@ describe('types', () => {
     expectTypeOf<QwikIntrinsicElements['svg']['width']>().toEqualTypeOf<Size | undefined>();
   });
 
+  test('untyped components', () => () => {
+    const WithP = component$((p) => {
+      expectTypeOf(p).toEqualTypeOf<unknown>();
+      return <div />;
+    });
+    const NoP = component$(() => <div />);
+    expectTypeOf<PropsOf<typeof WithP>>().toEqualTypeOf<never>();
+    expectTypeOf<PropsOf<typeof NoP>>().toEqualTypeOf<never>();
+    component$(() => {
+      return (
+        <>
+          <WithP key={123}>
+            <div />
+          </WithP>
+          <NoP key={123}>
+            <div />
+          </NoP>
+        </>
+      );
+    });
+
+    const Fn = () => <div />;
+    expectTypeOf<PropsOf<typeof Fn>>().toEqualTypeOf<never>();
+    const Cmp = component$(Fn);
+    expectTypeOf(Cmp).toEqualTypeOf<FunctionComponent<PublicProps<unknown>>>();
+    expectTypeOf(Cmp).not.toEqualTypeOf<FunctionComponent<{ foo: string }>>();
+  });
+
   test('component', () => () => {
     const Cmp = component$((props: PropsOf<'svg'>) => {
       const { width = '240', height = '56', onClick$, ...rest } = props;
@@ -123,7 +151,7 @@ describe('types', () => {
 
   test('polymorphic component', () => () => {
     const Poly = component$(
-      <C extends string | FunctionComponent>({
+      <C extends string | FunctionComponent = string | FunctionComponent>({
         as: Cmp = 'div' as C,
         ...props
       }: { as?: C } & PropsOf<string extends C ? 'div' : C>) => {
@@ -136,14 +164,23 @@ describe('types', () => {
     expectTypeOf<Parameters<typeof Poly<'a'>>[0]['href']>().toEqualTypeOf<string | undefined>();
     expectTypeOf<Parameters<typeof Poly<'button'>>[0]>().not.toHaveProperty('href');
     expectTypeOf<Parameters<typeof Poly<'a'>>[0]>().not.toHaveProperty('popovertarget');
-    // Note that `<Poly onClick$={(ev, el)=>...}/>` (no `as`) doesn't infer the ev,el arguments
-    // It does infer the prop type correctly, so that looks like a TS bug
     expectTypeOf<
       Parameters<Extract<Parameters<typeof Poly>[0]['onClick$'], EventHandler>>[1]
     >().toEqualTypeOf<HTMLDivElement>();
 
     return (
       <>
+        <Poly
+          onClick$={(ev, el) => {
+            expectTypeOf(ev).not.toBeAny();
+            expectTypeOf(ev).toEqualTypeOf<PointerEvent>();
+            expectTypeOf(el).toEqualTypeOf<HTMLDivElement>();
+          }}
+          // This should error
+          // popovertarget
+        >
+          Foo
+        </Poly>
         <Poly
           as="a"
           onClick$={(ev, el) => {
@@ -208,22 +245,49 @@ describe('types', () => {
   });
 
   test('PropsOf', () => () => {
+    // tags
     expectTypeOf<PropsOf<'div'>>().toEqualTypeOf<QwikHTMLElements['div']>();
     expectTypeOf<PropsOf<'div'>>().not.toEqualTypeOf<QwikIntrinsicElements['li']>();
     expectTypeOf<PropsOf<'path'>>().toEqualTypeOf<QwikSVGElements['path']>();
     expectTypeOf<PropsOf<'not-exist'>>().toEqualTypeOf<QwikHTMLElements['span']>();
 
-    const Fn = (props: { foo: string }) => <div />;
-    expectTypeOf<PropsOf<typeof Fn>>().toEqualTypeOf<{ foo: string }>();
+    // functions
+    const NoProps = () => <div />;
+    expectTypeOf<PropsOf<typeof NoProps>>().toEqualTypeOf<never>();
+    const UnknownProps = (p: unknown) => <div />;
+    expectTypeOf<PropsOf<typeof UnknownProps>>().toEqualTypeOf<never>();
+    const AnyProps = (p: any) => <div />;
+    expectTypeOf<PropsOf<typeof AnyProps>>().toEqualTypeOf<any>();
+    const DefProps = (props: { foo: string }) => <div />;
+    expectTypeOf<PropsOf<typeof DefProps>>().toEqualTypeOf<{ foo: string }>();
+    const PolyProps = <C extends string = ''>(
+      p: { as?: C; b: boolean } & (C extends 'hi' ? { foo: boolean } : never)
+    ) => <div />;
+    expectTypeOf<PropsOf<typeof PolyProps<'hi'>>>().toMatchTypeOf<{
+      as?: 'hi';
+      b: boolean;
+      foo: boolean;
+    }>();
 
-    const Fn$ = $(Fn);
-    expectTypeOf<PropsOf<typeof Fn$>>().toEqualTypeOf<{ foo: string }>();
+    // components
+    const NoProps$ = component$(NoProps);
+    expectTypeOf<PropsOf<typeof NoProps$>>().toEqualTypeOf<never>();
+    const UnknownProps$ = component$(UnknownProps);
+    expectTypeOf<PropsOf<typeof UnknownProps$>>().toEqualTypeOf<never>();
+    const AnyProps$ = component$(AnyProps);
+    expectTypeOf<PropsOf<typeof AnyProps$>>().toEqualTypeOf<any>();
+    const DefProps$ = component$(DefProps);
+    expectTypeOf<PropsOf<typeof DefProps$>>().toEqualTypeOf<{ foo: string }>();
+    const PolyProps$ = component$(PolyProps);
+    expectTypeOf<PropsOf<typeof PolyProps$<'hi'>>>().toMatchTypeOf<{
+      as?: 'hi';
+      b: boolean;
+      foo: boolean;
+    }>();
 
-    const Cmp = component$(Fn);
-    expectTypeOf<PropsOf<typeof Cmp>>().toEqualTypeOf<PublicProps<{ foo: string }>>();
+    // edge cases
+    expectTypeOf<PropsOf<typeof DefProps$ | null>>().toEqualTypeOf<{ foo: string }>();
 
-    expectTypeOf<PropsOf<typeof Fn$ | null>>().toEqualTypeOf<{ foo: string }>();
-
-    expectTypeOf<PropsOf<17>>().toEqualTypeOf<Record<any, unknown>>();
+    expectTypeOf<PropsOf<17>>().toEqualTypeOf<never>();
   });
 });

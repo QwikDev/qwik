@@ -3,7 +3,7 @@ import { RenderEvent } from '../util/markers';
 import { maybeThen, promiseAllLazy, safeCall } from '../util/promises';
 import { newInvokeContext } from '../use/use-core';
 import { isArray, isFunction, isString, type ValueOrPromise } from '../util/types';
-import type { JSXNode } from './jsx/types/jsx-node';
+import type { JSXNode, JSXOutput } from './jsx/types/jsx-node';
 import type { ClassList } from './jsx/types/jsx-qwik-attributes';
 import type { RenderContext } from './types';
 import { type ContainerState, intToStr } from '../container/container';
@@ -18,7 +18,7 @@ import { isJSXNode } from './jsx/jsx-runtime';
 import { isUnitlessNumber } from '../util/unitless_number';
 
 export interface ExecuteComponentOutput {
-  node: JSXNode | null;
+  node: JSXOutput;
   rCtx: RenderContext;
 }
 

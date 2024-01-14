@@ -16,8 +16,7 @@ export type JSXOutput = JSXNode | string | number | boolean | null | undefined |
  *
  * @public
  */
-// Normally we'd default to Record<any, unknown> but that causes problems with matching event$ index
-export type FunctionComponent<P extends Record<any, any> = Record<any, any>> = {
+export type FunctionComponent<P extends Record<any, any> = Record<any, unknown>> = {
   renderFn(
     props: P,
     key: string | null,
@@ -35,7 +34,7 @@ export interface DevJSX {
 }
 
 /** @public */
-export interface JSXNode<T = string | FunctionComponent> {
+export interface JSXNode<T extends string | FunctionComponent | unknown = unknown> {
   type: T;
   props: T extends FunctionComponent<infer B> ? B : Record<any, unknown>;
   immutableProps: Record<any, unknown> | null;

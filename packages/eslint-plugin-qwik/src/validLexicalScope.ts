@@ -163,17 +163,14 @@ export const validLexicalScope = createRule({
               relevantScopes.set(scope, name);
             } else if (firstArg.expression.type === 'Identifier') {
               const tsNode = esTreeNodeToTSNodeMap.get(firstArg.expression);
-              const type = typeChecker.getTypeAtLocation(tsNode);
+              const type = typeChecker.getTypeAtLocation(tsNode).getNonNullableType();
 
               if (!isTypeQRL(type)) {
                 if (type.isUnionOrIntersection()) {
                   if (
                     !type.types.every((t) => {
                       if (t.symbol) {
-                        return t.symbol.name === 'PropFnInterface';
-                      }
-                      if (t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)) {
-                        return true;
+                        return t.symbol.name === 'Component' || t.symbol.name === 'PropFnInterface';
                       }
                       return false;
                     })

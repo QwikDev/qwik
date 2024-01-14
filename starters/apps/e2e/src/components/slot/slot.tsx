@@ -11,6 +11,7 @@ import {
   jsx,
   type JSXNode,
   useVisibleTask$,
+  type FunctionComponent,
 } from "@builder.io/qwik";
 
 export const SlotParent = component$(() => {
@@ -282,15 +283,17 @@ export const Issue3565Model = component$(() => {
   );
 });
 
-export const Issue3565 = component$(({ model: Model }: any) => {
-  return (
-    <>
-      <Model>
-        <div>content projected</div>
-      </Model>
-    </>
-  );
-});
+export const Issue3565 = component$(
+  ({ model: Model }: { model: string | FunctionComponent }) => {
+    return (
+      <>
+        <Model>
+          <div>content projected</div>
+        </Model>
+      </>
+    );
+  },
+);
 
 export const Issue3607 = component$(() => {
   const show = useSignal(false);
@@ -569,7 +572,7 @@ export const Issue5506 = component$(() => {
 
   return (
     <div id="issue-5506-div">
-      <SlotParent5506 id="3456" key={render.value}>
+      <SlotParent5506 key={render.value}>
         <Toggle5506
           id="input-5506"
           checked={coerceBoolean(sig.value)}

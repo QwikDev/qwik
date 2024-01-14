@@ -2,7 +2,7 @@ import { isPromise, maybeThen } from '../../util/promises';
 import { type InvokeContext, newInvokeContext, invoke, trackSignal } from '../../use/use-core';
 import { Virtual, _jsxC, _jsxQ, createJSXError, isJSXNode } from '../jsx/jsx-runtime';
 import { isArray, isFunction, isString, type ValueOrPromise } from '../../util/types';
-import type { JSXNode } from '../jsx/types/jsx-node';
+import type { FunctionComponent, JSXNode } from '../jsx/types/jsx-node';
 import {
   createRenderContext,
   executeComponent,
@@ -826,7 +826,7 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
   // Inline component
   const res = invoke(
     ssrCtx.$invocationContext$,
-    tagName,
+    tagName as FunctionComponent,
     node.props,
     node.key,
     node.flags,

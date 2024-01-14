@@ -404,9 +404,7 @@ const MyComponent: Component<MyComponentProps> = component$(
 ```
 
 ```typescript
-export type Component<
-  PROPS extends Record<any, any> = Record<string, unknown>,
-> = FunctionComponent<PublicProps<PROPS>>;
+export type Component<PROPS = unknown> = FunctionComponent<PublicProps<PROPS>>;
 ```
 
 **References:** [FunctionComponent](#functioncomponent), [PublicProps](#publicprops)
@@ -456,9 +454,7 @@ export const OtherComponent = component$(() => {
 See also: `component`, `useCleanup`, `onResume`, `onPause`, `useOn`, `useOnDocument`, `useOnWindow`, `useStyles`
 
 ```typescript
-component$: <PROPS extends Record<any, any>>(
-  onMount: (props: PROPS) => JSXNode | null,
-) => Component<PROPS>;
+component$: <PROPS = unknown>(onMount: OnRenderFn<PROPS>) => Component<PROPS>;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts)
@@ -782,7 +778,7 @@ interface ElementChildrenAttribute
 ## ElementType
 
 ```typescript
-type ElementType = string | FunctionComponent;
+type ElementType = string | FunctionComponent<Record<any, any>>;
 ```
 
 **References:** [FunctionComponent](#functioncomponent)
@@ -877,7 +873,9 @@ Note that this includes QRLs.
 The `key`, `flags` and `dev` parameters are for internal use.
 
 ```typescript
-export type FunctionComponent<P extends Record<any, any> = Record<any, any>> = {
+export type FunctionComponent<
+  P extends Record<any, any> = Record<any, unknown>,
+> = {
   renderFn(
     props: P,
     key: string | null,
@@ -1284,7 +1282,7 @@ jsxDEV: <T extends string | FunctionComponent>(
 ## JSXNode
 
 ```typescript
-export interface JSXNode<T = string | FunctionComponent>
+export interface JSXNode<T extends string | FunctionComponent | unknown = unknown>
 ```
 
 | Property            | Modifiers | Type                                                                                              | Description  |
@@ -1645,12 +1643,10 @@ export interface OlHTMLAttributes<T extends Element> extends Attrs<'ol', T>
 ## OnRenderFn
 
 ```typescript
-export type OnRenderFn<PROPS extends Record<any, any>> = (
-  props: PROPS,
-) => JSXNode | null;
+export type OnRenderFn<PROPS> = (props: PROPS) => JSXOutput;
 ```
 
-**References:** [JSXNode](#jsxnode)
+**References:** [JSXOutput](#jsxoutput)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts)
 
@@ -1813,11 +1809,17 @@ export type PropsOf<COMP> = COMP extends string
   : NonNullable<COMP> extends never
     ? never
     : COMP extends FunctionComponent<infer PROPS>
-      ? NonNullable<PROPS>
-      : Record<string, unknown>;
+      ? PROPS extends Record<any, infer V>
+        ? IsAny<V> extends true
+          ? never
+          : ObjectProps<PROPS>
+        : COMP extends Component<infer OrigProps>
+          ? ObjectProps<OrigProps>
+          : PROPS
+      : never;
 ```
 
-**References:** [QwikIntrinsicElements](#qwikintrinsicelements), [FunctionComponent](#functioncomponent)
+**References:** [QwikIntrinsicElements](#qwikintrinsicelements), [FunctionComponent](#functioncomponent), [Component](#component)
 
 ```tsx
 const Desc = component$(
@@ -1844,11 +1846,11 @@ const TitleBox = component$(
 Extends the defined component PROPS, adding the default ones (children and q:slot) and allowing plain functions to QRL arguments.
 
 ```typescript
-export type PublicProps<PROPS extends Record<any, any>> = Omit<
-  PROPS,
-  `${string}$`
-> &
-  _Only$<PROPS> &
+export type PublicProps<PROPS> = (PROPS extends Record<any, any>
+  ? Omit<PROPS, `${string}$`> & _Only$<PROPS>
+  : unknown extends PROPS
+    ? {}
+    : PROPS) &
   ComponentBaseProps &
   ComponentChildren<PROPS>;
 ```

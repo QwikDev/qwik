@@ -1,5 +1,5 @@
 import { $, type PropFnInterface, type QRL } from '../qrl/qrl.public';
-import type { JSXNode } from '../render/jsx/types/jsx-node';
+import type { JSXNode, JSXOutput } from '../render/jsx/types/jsx-node';
 import { OnRenderProp, QSlot } from '../util/markers';
 import type {
   ComponentBaseProps,
@@ -15,6 +15,18 @@ import { assertQrl } from '../qrl/qrl-class';
 import { _IMMUTABLE } from '../state/constants';
 import { assertNumber } from '../error/assert';
 import type { QwikIntrinsicElements } from '../render/jsx/types/jsx-qwik-elements';
+
+// TS way to check for any
+type IsAny<T> = 0 extends T & 1 ? true : false;
+
+type ObjectProps<T> = IsAny<T> extends true
+  ? any
+  : // unknown means we don't accept any props
+    unknown extends T
+    ? never
+    : T extends Record<any, any>
+      ? T
+      : never;
 
 /**
  * Infers `Props` from the component or tag.
@@ -42,8 +54,16 @@ export type PropsOf<COMP> = COMP extends string
   : NonNullable<COMP> extends never
     ? never
     : COMP extends FunctionComponent<infer PROPS>
-      ? NonNullable<PROPS>
-      : Record<string, unknown>;
+      ? PROPS extends Record<any, infer V>
+        ? IsAny<V> extends true
+          ? // we couldn't figure it out
+            never
+          : ObjectProps<PROPS>
+        : COMP extends Component<infer OrigProps>
+          ? ObjectProps<OrigProps>
+          : // something complex, just return as-is
+            PROPS
+      : never;
 
 /**
  * Type representing the Qwik component.
@@ -61,11 +81,9 @@ export type PropsOf<COMP> = COMP extends string
  *
  * @public
  */
-export type Component<PROPS extends Record<any, any> = Record<string, unknown>> = FunctionComponent<
-  PublicProps<PROPS>
->;
+export type Component<PROPS = unknown> = FunctionComponent<PublicProps<PROPS>>;
 
-export type ComponentChildren<PROPS extends Record<any, any>> = PROPS extends {
+export type ComponentChildren<PROPS> = PROPS extends {
   children: any;
 }
   ? never
@@ -76,10 +94,16 @@ export type ComponentChildren<PROPS extends Record<any, any>> = PROPS extends {
  *
  * @public
  */
-export type PublicProps<PROPS extends Record<any, any>> =
+export type PublicProps<PROPS> =
   // Use Omit + _Only$ so that inferring polymorpic components works
   // Mapping the entire PROPS doesn't work, maybe TS doesn't like inferring through conditional types
-  Omit<PROPS, `${string}$`> & _Only$<PROPS> & ComponentBaseProps & ComponentChildren<PROPS>;
+  (PROPS extends Record<any, any>
+    ? Omit<PROPS, `${string}$`> & _Only$<PROPS>
+    : unknown extends PROPS
+      ? {}
+      : PROPS) &
+    ComponentBaseProps &
+    ComponentChildren<PROPS>;
 
 /** @internal */
 export type _AllowPlainQrl<Q> =
@@ -249,16 +273,14 @@ export type PropFunctionProps<PROPS extends Record<any, any>> = {
  * @public
  */
 // </docs>
-export const component$ = <PROPS extends Record<any, any>>(
-  onMount: (props: PROPS) => JSXNode | null
-): Component<PROPS> => {
-  return componentQrl<any>($(onMount));
+export const component$ = <PROPS = unknown>(onMount: OnRenderFn<PROPS>): Component<PROPS> => {
+  return componentQrl($(onMount));
 };
 
 /** @public */
-export type OnRenderFn<PROPS extends Record<any, any>> = (props: PROPS) => JSXNode | null;
+export type OnRenderFn<PROPS> = (props: PROPS) => JSXOutput;
 
-export interface RenderFactoryOutput<PROPS extends Record<any, any>> {
+export interface RenderFactoryOutput<PROPS> {
   renderQRL: QRL<OnRenderFn<PROPS>>;
   waitOn: any[];
 }

@@ -383,7 +383,7 @@ When you want to output a different type of element depending on props, you can 
 
 ```tsx
 export const Poly = component$(
-  <C extends string | FunctionComponent>({
+  <C extends string | FunctionComponent = string | FunctionComponent>({
     as: Cmp = 'div' as C,
     ...props
   }: { as?: C } & PropsOf<string extends C ? 'div' : C>) => {

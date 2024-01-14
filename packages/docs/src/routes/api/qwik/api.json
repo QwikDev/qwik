@@ -460,7 +460,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "Type representing the Qwik component.\n\n`Component` is the type returned by invoking `component$`<!-- -->.\n\n```tsx\ninterface MyComponentProps {\n  someProp: string;\n}\nconst MyComponent: Component<MyComponentProps> = component$((props: MyComponentProps) => {\n  return <span>{props.someProp}</span>;\n});\n```\n\n\n```typescript\nexport type Component<PROPS extends Record<any, any> = Record<string, unknown>> = FunctionComponent<PublicProps<PROPS>>;\n```\n**References:** [FunctionComponent](#functioncomponent)<!-- -->, [PublicProps](#publicprops)",
+      "content": "Type representing the Qwik component.\n\n`Component` is the type returned by invoking `component$`<!-- -->.\n\n```tsx\ninterface MyComponentProps {\n  someProp: string;\n}\nconst MyComponent: Component<MyComponentProps> = component$((props: MyComponentProps) => {\n  return <span>{props.someProp}</span>;\n});\n```\n\n\n```typescript\nexport type Component<PROPS = unknown> = FunctionComponent<PublicProps<PROPS>>;\n```\n**References:** [FunctionComponent](#functioncomponent)<!-- -->, [PublicProps](#publicprops)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts",
       "mdFile": "qwik.component.md"
     },
@@ -474,7 +474,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "Declare a Qwik component that can be used to create UI.\n\nUse `component$` to declare a Qwik component. A Qwik component is a special kind of component that allows the Qwik framework to lazy load and execute the component independently of other Qwik components as well as lazy load the component's life-cycle hooks and event handlers.\n\nSide note: You can also declare regular (standard JSX) components that will have standard synchronous behavior.\n\nQwik component is a facade that describes how the component should be used without forcing the implementation of the component to be eagerly loaded. A minimum Qwik definition consists of:\n\n\\#\\#\\# Example\n\nAn example showing how to create a counter component:\n\n```tsx\nexport interface CounterProps {\n  initialValue?: number;\n  step?: number;\n}\nexport const Counter = component$((props: CounterProps) => {\n  const state = useStore({ count: props.initialValue || 0 });\n  return (\n    <div>\n      <span>{state.count}</span>\n      <button onClick$={() => (state.count += props.step || 1)}>+</button>\n    </div>\n  );\n});\n```\n- `component$` is how a component gets declared. - `{ value?: number; step?: number }` declares the public (props) interface of the component. - `{ count: number }` declares the private (state) interface of the component.\n\nThe above can then be used like so:\n\n```tsx\nexport const OtherComponent = component$(() => {\n  return <Counter initialValue={100} />;\n});\n```\nSee also: `component`<!-- -->, `useCleanup`<!-- -->, `onResume`<!-- -->, `onPause`<!-- -->, `useOn`<!-- -->, `useOnDocument`<!-- -->, `useOnWindow`<!-- -->, `useStyles`\n\n\n```typescript\ncomponent$: <PROPS extends Record<any, any>>(onMount: (props: PROPS) => JSXNode | null) => Component<PROPS>\n```",
+      "content": "Declare a Qwik component that can be used to create UI.\n\nUse `component$` to declare a Qwik component. A Qwik component is a special kind of component that allows the Qwik framework to lazy load and execute the component independently of other Qwik components as well as lazy load the component's life-cycle hooks and event handlers.\n\nSide note: You can also declare regular (standard JSX) components that will have standard synchronous behavior.\n\nQwik component is a facade that describes how the component should be used without forcing the implementation of the component to be eagerly loaded. A minimum Qwik definition consists of:\n\n\\#\\#\\# Example\n\nAn example showing how to create a counter component:\n\n```tsx\nexport interface CounterProps {\n  initialValue?: number;\n  step?: number;\n}\nexport const Counter = component$((props: CounterProps) => {\n  const state = useStore({ count: props.initialValue || 0 });\n  return (\n    <div>\n      <span>{state.count}</span>\n      <button onClick$={() => (state.count += props.step || 1)}>+</button>\n    </div>\n  );\n});\n```\n- `component$` is how a component gets declared. - `{ value?: number; step?: number }` declares the public (props) interface of the component. - `{ count: number }` declares the private (state) interface of the component.\n\nThe above can then be used like so:\n\n```tsx\nexport const OtherComponent = component$(() => {\n  return <Counter initialValue={100} />;\n});\n```\nSee also: `component`<!-- -->, `useCleanup`<!-- -->, `onResume`<!-- -->, `onPause`<!-- -->, `useOn`<!-- -->, `useOnDocument`<!-- -->, `useOnWindow`<!-- -->, `useStyles`\n\n\n```typescript\ncomponent$: <PROPS = unknown>(onMount: OnRenderFn<PROPS>) => Component<PROPS>\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts",
       "mdFile": "qwik.component_.md"
     },
@@ -730,7 +730,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\ntype ElementType = string | FunctionComponent;\n```\n**References:** [FunctionComponent](#functioncomponent)",
+      "content": "```typescript\ntype ElementType = string | FunctionComponent<Record<any, any>>;\n```\n**References:** [FunctionComponent](#functioncomponent)",
       "mdFile": "qwik.qwikjsx.elementtype.md"
     },
     {
@@ -855,7 +855,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "Any sync or async function that returns JSXOutput.\n\nNote that this includes QRLs.\n\nThe `key`<!-- -->, `flags` and `dev` parameters are for internal use.\n\n\n```typescript\nexport type FunctionComponent<P extends Record<any, any> = Record<any, any>> = {\n    renderFn(props: P, key: string | null, flags: number, dev?: DevJSX): JSXOutput | Promise<JSXOutput>;\n}['renderFn'];\n```\n**References:** [DevJSX](#devjsx)<!-- -->, [JSXOutput](#jsxoutput)",
+      "content": "Any sync or async function that returns JSXOutput.\n\nNote that this includes QRLs.\n\nThe `key`<!-- -->, `flags` and `dev` parameters are for internal use.\n\n\n```typescript\nexport type FunctionComponent<P extends Record<any, any> = Record<any, unknown>> = {\n    renderFn(props: P, key: string | null, flags: number, dev?: DevJSX): JSXOutput | Promise<JSXOutput>;\n}['renderFn'];\n```\n**References:** [DevJSX](#devjsx)<!-- -->, [JSXOutput](#jsxoutput)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-node.ts",
       "mdFile": "qwik.functioncomponent.md"
     },
@@ -1222,7 +1222,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface JSXNode<T = string | FunctionComponent> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [children](#) |  | [JSXChildren](#jsxchildren) \\| null |  |\n|  [dev?](#) |  | [DevJSX](#devjsx) | _(Optional)_ |\n|  [flags](#) |  | number |  |\n|  [immutableProps](#) |  | Record&lt;any, unknown&gt; \\| null |  |\n|  [key](#) |  | string \\| null |  |\n|  [props](#) |  | T extends [FunctionComponent](#functioncomponent)<!-- -->&lt;infer B&gt; ? B : Record&lt;any, unknown&gt; |  |\n|  [type](#) |  | T |  |",
+      "content": "```typescript\nexport interface JSXNode<T extends string | FunctionComponent | unknown = unknown> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [children](#) |  | [JSXChildren](#jsxchildren) \\| null |  |\n|  [dev?](#) |  | [DevJSX](#devjsx) | _(Optional)_ |\n|  [flags](#) |  | number |  |\n|  [immutableProps](#) |  | Record&lt;any, unknown&gt; \\| null |  |\n|  [key](#) |  | string \\| null |  |\n|  [props](#) |  | T extends [FunctionComponent](#functioncomponent)<!-- -->&lt;infer B&gt; ? B : Record&lt;any, unknown&gt; |  |\n|  [type](#) |  | T |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-node.ts",
       "mdFile": "qwik.jsxnode.md"
     },
@@ -1642,7 +1642,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type OnRenderFn<PROPS extends Record<any, any>> = (props: PROPS) => JSXNode | null;\n```\n**References:** [JSXNode](#jsxnode)",
+      "content": "```typescript\nexport type OnRenderFn<PROPS> = (props: PROPS) => JSXOutput;\n```\n**References:** [JSXOutput](#jsxoutput)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts",
       "mdFile": "qwik.onrenderfn.md"
     },
@@ -1810,7 +1810,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "Infers `Props` from the component or tag.\n\n\n```typescript\nexport type PropsOf<COMP> = COMP extends string ? COMP extends keyof QwikIntrinsicElements ? QwikIntrinsicElements[COMP] : QwikIntrinsicElements['span'] : NonNullable<COMP> extends never ? never : COMP extends FunctionComponent<infer PROPS> ? NonNullable<PROPS> : Record<string, unknown>;\n```\n**References:** [QwikIntrinsicElements](#qwikintrinsicelements)<!-- -->, [FunctionComponent](#functioncomponent)\n\n\n\n```tsx\nconst Desc = component$(({desc, ...props}: { desc: string } & PropsOf<'div'>) => {\n return <div {...props}>{desc}</div>;\n});\n\nconst TitleBox = component$(({title, ...props}: { title: string } & PropsOf<Box>) => {\n  return <Box {...props}><h1>{title}</h1></Box>;\n});\n```",
+      "content": "Infers `Props` from the component or tag.\n\n\n```typescript\nexport type PropsOf<COMP> = COMP extends string ? COMP extends keyof QwikIntrinsicElements ? QwikIntrinsicElements[COMP] : QwikIntrinsicElements['span'] : NonNullable<COMP> extends never ? never : COMP extends FunctionComponent<infer PROPS> ? PROPS extends Record<any, infer V> ? IsAny<V> extends true ? never : ObjectProps<PROPS> : COMP extends Component<infer OrigProps> ? ObjectProps<OrigProps> : PROPS : never;\n```\n**References:** [QwikIntrinsicElements](#qwikintrinsicelements)<!-- -->, [FunctionComponent](#functioncomponent)<!-- -->, [Component](#component)\n\n\n\n```tsx\nconst Desc = component$(({desc, ...props}: { desc: string } & PropsOf<'div'>) => {\n return <div {...props}>{desc}</div>;\n});\n\nconst TitleBox = component$(({title, ...props}: { title: string } & PropsOf<Box>) => {\n  return <Box {...props}><h1>{title}</h1></Box>;\n});\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts",
       "mdFile": "qwik.propsof.md"
     },
@@ -1824,7 +1824,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "Extends the defined component PROPS, adding the default ones (children and q:slot) and allowing plain functions to QRL arguments.\n\n\n```typescript\nexport type PublicProps<PROPS extends Record<any, any>> = Omit<PROPS, `${string}$`> & _Only$<PROPS> & ComponentBaseProps & ComponentChildren<PROPS>;\n```\n**References:** [ComponentBaseProps](#componentbaseprops)",
+      "content": "Extends the defined component PROPS, adding the default ones (children and q:slot) and allowing plain functions to QRL arguments.\n\n\n```typescript\nexport type PublicProps<PROPS> = (PROPS extends Record<any, any> ? Omit<PROPS, `${string}$`> & _Only$<PROPS> : unknown extends PROPS ? {} : PROPS) & ComponentBaseProps & ComponentChildren<PROPS>;\n```\n**References:** [ComponentBaseProps](#componentbaseprops)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts",
       "mdFile": "qwik.publicprops.md"
     },

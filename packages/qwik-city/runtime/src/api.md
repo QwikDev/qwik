@@ -404,7 +404,7 @@ export type RouteNavigate = QRL<(path?: string, options?: {
 } | boolean) => Promise<void>>;
 
 // @public (undocumented)
-export const RouterOutlet: Component<Record<any, any>>;
+export const RouterOutlet: Component<unknown>;
 
 // @public (undocumented)
 export const server$: <T extends ServerFunction>(first: T) => ServerQRL<T>;

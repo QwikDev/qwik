@@ -12,7 +12,7 @@ import {
 import type { SSRContainer, SsrAttrs } from './types';
 import { isQrl } from '../../qrl/qrl-class';
 import { Virtual } from '../../render/jsx/jsx-runtime';
-import { ELEMENT_KEY } from '../../util/markers';
+import { ELEMENT_KEY, ELEMENT_PROPS, ELEMENT_QRL, OnRenderProp } from '../../util/markers';
 
 export async function ssrRenderToContainer(ssr: SSRContainer, jsx: JSXNode | JSXNode[]) {
   ssr.openContainer();
@@ -89,26 +89,27 @@ function processJSXNode(
       enqueue(value);
       throw new Error('never gets here');
     } else {
-      const type = value.type;
+      const jsx = value as JSXNode;
+      const type = jsx.type;
       if (typeof type === 'string') {
-        ssr.openElement(type, toSsrAttrs(value.props, ssr.serializationCtx));
-        enqueue(value.children, ssr.closeElement);
+        ssr.openElement(type, toSsrAttrs(jsx.props, ssr.serializationCtx));
+        enqueue(jsx.children, ssr.closeElement);
       } else if (typeof type === 'function') {
         if (type === Fragment) {
-          ssr.openFragment(toSsrAttrs(value.props, ssr.serializationCtx));
-          enqueue(value.children, ssr.closeFragment);
+          ssr.openFragment(toSsrAttrs(jsx.props, ssr.serializationCtx));
+          enqueue(jsx.children, ssr.closeFragment);
         } else if (type === Slot) {
           throw new Error('Not implemented:' + type);
         } else if (type === Virtual) {
-          enqueue(applyQwikComponentBody(value, ssr));
+          enqueue(applyQwikComponentBody(jsx, ssr));
         } else if (isQwikComponent(type)) {
-          const virtual = applyQwikComponentHost(value, type, ssr);
+          const virtual = applyQwikComponentHost(jsx, type, ssr);
           if (virtual) {
-            ssr.openFragment([ELEMENT_KEY, virtual.key]);
+            ssr.openFragment([]);
             enqueue(virtual, ssr.closeFragment);
           }
         } else {
-          enqueue(applyInlineComponent(type, value));
+          enqueue(applyInlineComponent(type, jsx as JSXNode<Function>));
         }
       }
     }
@@ -116,7 +117,7 @@ function processJSXNode(
 }
 
 export function toSsrAttrs(
-  record: Record<string, Stringifiable>,
+  record: Record<string, unknown>,
   serializationCtx: SerializationContext
 ): SsrAttrs {
   const ssrAttrs: SsrAttrs = [];

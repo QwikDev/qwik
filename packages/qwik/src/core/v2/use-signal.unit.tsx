@@ -35,7 +35,57 @@ describe('useSignal', () => {
       </>
     );
   });
-  it.only('should update value when store, update and render are seperated', async () => {
+  it.only('should rerender child', async () => {
+    const log: string[] = [];
+    const Display = component$((props: { dValue: number }) => {
+      log.push('Display');
+      return <span>Count: {props.dValue}!</span>;
+    });
+    const Counter = component$((props: { initial: number }) => {
+      log.push('Counter');
+      const count = useSignal(props.initial);
+      return (
+        <button
+          onClick$={inlinedQrl(
+            () => {
+              useLexicalScope()[0].value++;
+            },
+            's_onClick',
+            [count]
+          )}
+        >
+          <Display dValue={count.value} />
+        </button>
+      );
+    });
+
+    const { vNode, container } = await ssrRenderToDom(<Counter initial={123} />, {
+      debug: true,
+      oldSSR: true,
+    });
+    expect(vNode).toMatchVDOM(
+      <>
+        <button>
+          <>
+            <span>Count: {'123'}!</span>
+          </>
+        </button>
+      </>
+    );
+    log.length = 0;
+    await trigger(container.element, 'button', 'click');
+    expect(log).toEqual(['Counter', 'Display']);
+    expect(vNode).toMatchVDOM(
+      <>
+        <button>
+          <>
+            <span>Count: {'124'}!</span>
+          </>
+        </button>
+      </>
+    );
+  });
+  it.skip('should update value when store, update and render are separated', async () => {
     const renderLog: string[] = [];
     const Counter = component$((props: { initVal: number }) => {
       renderLog.push('Counter');

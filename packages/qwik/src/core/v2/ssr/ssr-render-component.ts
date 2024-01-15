@@ -6,7 +6,7 @@ import { createRenderContext, executeComponent } from '../../render/execute-comp
 import type { RenderContext } from '../../render/types';
 import { createContext, type QContext } from '../../state/context';
 import { EMPTY_ARRAY } from '../../util/flyweight';
-import { ELEMENT_ID, OnRenderProp } from '../../util/markers';
+import { ELEMENT_ID, ELEMENT_PROPS, ELEMENT_SEQ, OnRenderProp } from '../../util/markers';
 import { maybeThen } from '../../util/promises';
 import { SsrNode, type SSRContainer } from './types';
 
@@ -23,35 +23,43 @@ export const applyQwikComponentHost = (
 };
 
 export const applyQwikComponentBody = (jsx: JSXNode, ssr: SSRContainer) => {
-  const hostElement = ssr.getLastNode() as any as Element;
+  const hostElement = ssr.getLastNode();
   const containerState: ContainerState = createContainerState(
     new SsrNode(SsrNode.ELEMENT_NODE, '', EMPTY_ARRAY) as any,
     '/test/'
   );
   const rCtx: RenderContext = createRenderContext(null!, containerState);
-  const elCtx: QContext = createContext(hostElement);
+  const elCtx: QContext = createContext(hostElement as any);
+  const props = jsx.props.props;
+  hostElement.setAttribute(ELEMENT_PROPS, String(ssr.addRoot(props)));
+  const componentQRL = jsx.props[OnRenderProp];
+  hostElement.setAttribute(OnRenderProp, String(ssr.addRoot(componentQRL)));
+
   elCtx.$props$ = jsx.props.props as any;
   elCtx.$componentQrl$ = jsx.props[OnRenderProp] as any;
   return maybeThen(executeComponent(rCtx, elCtx), (v) => {
-    // TODO(misko): this should be move to the ssr-render.ts and should only be done once for the whole app.
-    const meta = serializeComponentContext(
-      elCtx,
-      (v) => {
-        console.log('getObjectID', v);
-        return String(ssr.serializationCtx.$addRoot$(v));
-      },
-      (v) => {
-        console.log('mustGetObjId', v);
-        return String(ssr.serializationCtx.$addRoot$(v));
-      },
-      true,
-      true,
-      {}
-    );
-    if (meta) {
-      const id = String(ssr.serializationCtx.$addRoot$(meta));
-      hostElement.setAttribute(ELEMENT_ID, id);
+    if (elCtx.$seq$) {
+      hostElement.setAttribute(ELEMENT_SEQ, String(ssr.addRoot(elCtx.$seq$)));
     }
+    // TODO(misko): this should be move to the ssr-render.ts and should only be done once for the whole app.
+    // const meta = serializeComponentContext(
+    //   elCtx,
+    //   (v) => {
+    //     // console.log('getObjectID', v);
+    //     return String(ssr.serializationCtx.$addRoot$(v));
+    //   },
+    //   (v) => {
+    //     // console.log('mustGetObjId', v);
+    //     return String(ssr.serializationCtx.$addRoot$(v));
+    //   },
+    //   true,
+    //   true,
+    //   {}
+    // );
+    // if (meta) {
+    //   const id = String(ssr.serializationCtx.$addRoot$(meta));
+    //   hostElement.setAttribute(ELEMENT_ID, id);
+    // }
     return v.node;
   });
 };

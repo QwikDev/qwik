@@ -3,24 +3,28 @@
 import { createContainerState, type ContainerState } from '../../container/container';
 import { assertTrue } from '../../error/assert';
 import { throwErrorAndStop } from '../../util/log';
+import { QContainerAttr, QContainerSelector } from '../../util/markers';
 import { deserialize } from '../shared-serialization';
 import type {
-  ClientContainer as IClientContainer,
   ContainerElement,
-  VNode,
-  QDocument,
   ElementVNode,
+  ClientContainer as IClientContainer,
+  QDocument,
+  VNode,
 } from './types';
-import { vnode_newUnMaterializedElement } from './vnode';
+import { vnode_getClosestParentNode, vnode_newUnMaterializedElement } from './vnode';
 
-export function getDomContainer(element: HTMLElement): IClientContainer {
-  while (element && !element.hasAttribute('q:container')) {
-    element = element.parentElement!;
+export function getDomContainer(element: HTMLElement | ElementVNode): IClientContainer {
+  let htmlElement: HTMLElement | null = Array.isArray(element)
+    ? (vnode_getClosestParentNode(element) as HTMLElement)
+    : element;
+  while (htmlElement && !htmlElement.hasAttribute(QContainerAttr)) {
+    htmlElement = htmlElement.closest(QContainerSelector);
   }
-  if (!element) {
+  if (!htmlElement) {
     throwErrorAndStop('Unable to find q:container.');
   }
-  const qElement = element as ContainerElement;
+  const qElement = htmlElement as ContainerElement;
   let container = qElement.qContainer;
   if (!container) {
     qElement.qContainer = container = new ClientContainer(qElement);
@@ -37,6 +41,7 @@ export class ClientContainer implements IClientContainer {
   public qLocale: string;
   public qManifestHash: string;
   public rootVNode: ElementVNode;
+  public document: QDocument;
   private rawStateData: any[];
   private stateData: any[];
   constructor(element: ContainerElement) {
@@ -44,6 +49,7 @@ export class ClientContainer implements IClientContainer {
     if (!this.qContainer) {
       throw new Error("Element must have 'q:version' attribute.");
     }
+    this.document = element.ownerDocument as QDocument;
     this.element = element;
     this.qVersion = element.getAttribute('q:version')!;
     this.qBase = element.getAttribute('q:base')!;

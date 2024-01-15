@@ -702,7 +702,7 @@ export const runTask = (
       }
     },
     (reason) => {
-      handleError(reason, hostElement, rCtx);
+      handleError(reason, hostElement, rCtx.$static$.$containerState$);
     }
   );
 };
@@ -735,7 +735,7 @@ export const runComputed = (
         signal[QObjectManagerSymbol].$notifySubs$();
       }),
     (reason) => {
-      handleError(reason, hostElement, rCtx);
+      handleError(reason, hostElement, rCtx.$static$.$containerState$);
     }
   );
 };

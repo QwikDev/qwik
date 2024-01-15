@@ -25,7 +25,15 @@ import {
 import { TagNesting, allowedContent, initialTag, isTagAllowed } from './tag-nesting';
 import { throwErrorAndStop } from '../../util/log';
 import { assertDefined, assertTrue } from '../../error/assert';
-import { ELEMENT_ID, ELEMENT_KEY, QScopedStyle, QSlotRef } from '../../util/markers';
+import {
+  ELEMENT_ID,
+  ELEMENT_KEY,
+  ELEMENT_PROPS,
+  ELEMENT_SEQ,
+  OnRenderProp,
+  QScopedStyle,
+  QSlotRef,
+} from '../../util/markers';
 import { isDev } from '../../../build';
 
 export function ssrCreateContainer(
@@ -192,6 +200,9 @@ class SSRContainer implements ISSRContainer {
    * - `?` - `q:sref` - Slot reference.
    * - `@` - `q:key` - Element key.
    * - `;` - `q:sstyle` - Style attribute.
+   * - `<` - `q:renderFn' - Component QRL render function (body)
+   * - `>` - `q:props' - Component QRL Props
+   * - `[` - `q:seq' - Seq value from `useSequentialScope()`
    *
    * ## Separator Encoding:
    *
@@ -254,13 +265,22 @@ class SSRContainer implements ISSRContainer {
                     case QScopedStyle:
                       this.write(';');
                       break;
+                    case OnRenderProp:
+                      this.write('<');
+                      break;
+                    case ELEMENT_PROPS:
+                      this.write('>');
+                      break;
+                    case ELEMENT_SEQ:
+                      this.write('[');
+                      break;
                     default:
                       throwErrorAndStop('Unsupported fragment attribute: ' + key);
                   }
                   if (isDev) {
                     assertDefined(value, 'Fragment attribute value must be defined.');
                     assertTrue(
-                      !!value.match(/(\d|\w|_|:)*/),
+                      !!value.match(/(\d|\w|_|:|;|<|>)*/),
                       'Unsupported character in fragment attribute value: ' + value
                     );
                   }

@@ -12,7 +12,13 @@ import { seal } from '../util/qdev';
 import { directGetAttribute } from '../render/fast-calls';
 import { isElement } from '../../testing/html';
 import { assertQwikElement } from '../error/assert';
-import { QScopedStyle } from '../util/markers';
+import {
+  ELEMENT_ID,
+  ELEMENT_PROPS,
+  ELEMENT_SEQ,
+  OnRenderProp,
+  QScopedStyle,
+} from '../util/markers';
 import { createPropsState, createProxy, setObjectFlags } from './store';
 import { _IMMUTABLE, _IMMUTABLE_PREFIX, Q_CTX, QObjectImmutable } from './constants';
 
@@ -67,7 +73,7 @@ export const getContext = (el: QwikElement, containerState: ContainerState): QCo
     return ctx;
   }
   const elCtx = createContext(el);
-  const elementID = directGetAttribute(el, 'q:id');
+  const elementID = directGetAttribute(el, ELEMENT_ID);
   if (elementID) {
     const pauseCtx = containerState.$pauseCtx$;
     elCtx.$id$ = elementID;
@@ -124,6 +130,15 @@ export const getContext = (el: QwikElement, containerState: ContainerState): QCo
         }
       }
     }
+  }
+  const onRenderProp = directGetAttribute(el, OnRenderProp);
+  if (onRenderProp) {
+    const getObject = containerState.$pauseCtx$!.getObject;
+    elCtx.$componentQrl$ = getObject(onRenderProp);
+    const propId = directGetAttribute(el, ELEMENT_PROPS);
+    propId && (elCtx.$props$ = getObject(propId));
+    const seq = directGetAttribute(el, ELEMENT_SEQ);
+    seq && (elCtx.$seq$ = getObject(seq));
   }
 
   return elCtx;

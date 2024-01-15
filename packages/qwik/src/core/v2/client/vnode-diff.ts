@@ -1,36 +1,49 @@
+import { isQwikComponent, type Component, type OnRenderFn } from '../../component/component.public';
+import { SERIALIZABLE_STATE } from '../../container/serializers';
 import { assertDefined, assertTrue } from '../../error/assert';
-import { Fragment, Virtual, isJSXNode } from '../../render/jsx/jsx-runtime';
+import type { QRLInternal } from '../../qrl/qrl-class';
+import { Fragment, isJSXNode } from '../../render/jsx/jsx-runtime';
 import { Slot } from '../../render/jsx/slot.public';
+import type { JSXNode } from '../../render/jsx/types/jsx-node';
 import { isSignal } from '../../state/signal';
+import { EMPTY_ARRAY } from '../../util/flyweight';
 import { throwErrorAndStop } from '../../util/log';
+import { ELEMENT_PROPS, OnRenderProp } from '../../util/markers';
+import { isPromise } from '../../util/promises';
+import type { ValueOrPromise } from '../../util/types';
+import { executeComponent2 } from '../shared/component-execution';
+import type { SsrAttrs } from '../ssr/types';
 import {
-  VNodeProps,
+  ElementVNodeProps,
   type ElementVNode,
-  type FragmentVNode,
   type TextVNode,
   type VNode,
-  ElementVNodeProps,
+  type VirtualVNode,
+  type ClientContainer,
 } from './types';
 import {
   mapArray_set,
   vnode_ensureElementInflated,
+  vnode_getClosestParentNode,
   vnode_getElementName,
   vnode_getFirstChild,
   vnode_getNextSibling,
-  vnode_getNode,
+  vnode_getProp,
+  vnode_getResolvedProp,
   vnode_getText,
   vnode_getType,
   vnode_insertBefore,
+  vnode_isElementVNode,
+  vnode_isVirtualVNode,
   vnode_newElement,
   vnode_newText,
+  vnode_newVirtual,
   vnode_remove,
   vnode_setProp,
+  vnode_setResolvedProp,
   vnode_setText,
   vnode_truncate,
 } from './vnode';
-import type { JSXNode } from '../../render/jsx/types/jsx-node';
-import type { SsrAttrs } from '../ssr/types';
-import { EMPTY_ARRAY } from '../../util/flyweight';
 
 export type VNodeJournalEntry = VNodeJournalOpCode | VNode | null | string;
 
@@ -51,8 +64,15 @@ export const enum VNodeJournalOpCode {
   FragmentInsert,
 }
 
-export const vnode_diff = (journal: VNodeJournalEntry[], jsxNode: JSXNode<any>, vNode: VNode) => {
-  const document = vnode_getNode(vNode)!.ownerDocument!;
+export type ComponentQueue = Array<VNode>;
+
+export const vnode_diff = (
+  journal: VNodeJournalEntry[],
+  jsxNode: JSXNode<any>,
+  vStartNode: VNode,
+  getObjectById: (id: number) => any
+) => {
+  const document = vnode_getClosestParentNode(vStartNode)!.ownerDocument!;
   /**
    * Stack is used to keep track of the state of the traversal.
    *
@@ -61,20 +81,21 @@ export const vnode_diff = (journal: VNodeJournalEntry[], jsxNode: JSXNode<any>, 
    */
   const stack: any[] = [];
 
+  const componentQueue: Array<VNode | ValueOrPromise<JSXNode>> = [];
+
   ////////////////////////////////
   //// Traverse state variables
   ////////////////////////////////
-
-  /// Current parent node, needed for inserting new nodes.
   let vParent: VNode = null!;
+  let vNode: VNode | null = null;
   /// Current node we compare against. (Think of it as a cursor.)
   /// (Node can be null, if we are at the end of the list.)
-  let vCurrent: VNode | null = vNode;
+  let vCurrent: VNode | null = null;
   /// When we insert new node we start it here so that we can descend into it.
   /// NOTE: it can't be stored in `vCurrent` because `vNewCurrent` is in journal
   /// and is not connected to the tree.
-  let vNewNode: VNode | null = vNode;
-  let vPrevious: VNode | null = vNode;
+  let vNewNode: VNode | null = null;
+  let vPrevious: VNode | null = null;
   /// Current set of JSX children.
   let jsxChildren: any[] = null!;
   // Current JSX child.
@@ -83,51 +104,74 @@ export const vnode_diff = (journal: VNodeJournalEntry[], jsxNode: JSXNode<any>, 
   let jsxCount = 0;
   ////////////////////////////////
 
-  descend(jsxNode.children);
+  diff(jsxNode, vStartNode);
+  return drainComponentQueue();
 
-  let infiniteLoopGuard = 10;
-  while (stack.length) {
-    while (jsxIdx < jsxCount) {
-      if (infiniteLoopGuard-- < 0) {
-        throw new Error('Infinite loop detected.');
-      }
-      if (typeof jsxValue === 'string') {
-        expectText(jsxValue);
-      } else if (jsxValue === 'number') {
-        expectText(String(jsxValue));
-      } else if (jsxValue === 'boolean') {
-        expectText('');
-      } else if (typeof jsxValue === 'object') {
-        if (isSignal(jsxValue)) {
-          throw new Error('implement');
-        } else if (isJSXNode(jsxValue)) {
-          const type = jsxValue.type;
-          if (typeof type === 'string') {
-            expectNoMoreTextNodes();
-            expectElement(jsxValue, type);
-            descend(jsxValue.children);
-          } else if (type === Fragment) {
-            expectFragment();
-          } else if (type === Slot) {
-            expectSlot();
-          } else if (type === Virtual) {
-            expectComponent();
+  //////////////////////////////////////////////
+  //////////////////////////////////////////////
+  //////////////////////////////////////////////
+
+  function diff(jsxNode: JSXNode<any>, vStartNode: VNode) {
+    vParent = vStartNode;
+    vCurrent = vNewNode = vPrevious = vNode = vnode_getFirstChild(vStartNode);
+    stackPush(jsxNode);
+    while (stack.length) {
+      while (jsxIdx < jsxCount) {
+        if (typeof jsxValue === 'string') {
+          expectText(jsxValue);
+        } else if (typeof jsxValue === 'number') {
+          expectText(String(jsxValue));
+        } else if (typeof jsxValue === 'object') {
+          if (isSignal(jsxValue)) {
+            throw new Error('implement');
+          } else if (isJSXNode(jsxValue)) {
+            const type = jsxValue.type;
+            if (typeof type === 'string') {
+              expectNoMoreTextNodes();
+              expectElement(jsxValue, type);
+              descend(jsxValue.children);
+              continue; // we just descended, skip advance()
+            } else if (type === Fragment) {
+              expectNoMoreTextNodes();
+              expectVirtual();
+              descend(jsxValue.children);
+              continue; // we just descended, skip advance()
+            } else if (type === Slot) {
+              expectSlot();
+            } else if (isQwikComponent(type)) {
+              expectNoMoreTextNodes();
+              expectVirtual();
+              expectComponent(type);
+            } else {
+              throwErrorAndStop(`Unsupported type: ${type}`);
+            }
           } else {
-            throwErrorAndStop(`Unsupported type: ${type}`);
+            throwErrorAndStop(`Unsupported value: ${jsxValue}`);
           }
         } else {
-          throwErrorAndStop(`Unsupported value: ${jsxValue}`);
+          expectText('');
         }
+        advance();
       }
-      advance();
+      expectNoMore();
+      ascend();
     }
-    expectNoMore();
-    ascend();
   }
 
-  //////////////////////////////////////////////
-  //////////////////////////////////////////////
-  //////////////////////////////////////////////
+  function drainComponentQueue(): ValueOrPromise<void> {
+    while (componentQueue.length) {
+      const jsxNode = componentQueue.shift() as ValueOrPromise<JSXNode>;
+      const vHostNode = componentQueue.shift() as VNode;
+      if (isPromise(jsxNode)) {
+        return jsxNode.then((jsxNode) => {
+          diff(jsxNode, vHostNode);
+          return drainComponentQueue();
+        });
+      } else {
+        diff(jsxNode, vHostNode);
+      }
+    }
+  }
 
   function expectNoMore() {
     if (vCurrent !== null) {
@@ -143,7 +187,16 @@ export const vnode_diff = (journal: VNodeJournalEntry[], jsxNode: JSXNode<any>, 
   }
 
   function expectElement(jsx: JSXNode<any>, tag: string) {
-    console.log('ELEMENT', tag);
+    if (vCurrent && vnode_isElementVNode(vCurrent)) {
+      // All is good.
+    } else {
+      journal.push(
+        VNodeJournalOpCode.Insert,
+        vParent,
+        vPrevious,
+        (vNewNode = vnode_newElement(vParent, document.createElement(tag), tag))
+      );
+    }
     let jsxAttrs = (jsx as any as { attrs: SsrAttrs }).attrs;
     if (jsxAttrs === EMPTY_ARRAY) {
       const props = jsx.props;
@@ -153,19 +206,6 @@ export const vnode_diff = (journal: VNodeJournalEntry[], jsxNode: JSXNode<any>, 
         }
         mapArray_set(jsxAttrs, key, String(props[key]), 0);
       }
-    }
-    const type = vCurrent ? vnode_getType(vCurrent) : 0;
-    if (
-      vCurrent === null ||
-      type !== 1 /* Element */ ||
-      vnode_getElementName(vCurrent as ElementVNode) !== tag
-    ) {
-      journal.push(
-        VNodeJournalOpCode.Insert,
-        vParent,
-        vPrevious,
-        (vNewNode = vnode_newElement(vParent, document.createElement(tag), tag))
-      );
     }
     setBulkProps((vNewNode || vCurrent) as ElementVNode, jsxAttrs);
   }
@@ -187,8 +227,23 @@ export const vnode_diff = (journal: VNodeJournalEntry[], jsxNode: JSXNode<any>, 
       }
       journal.push(key, value);
     };
-    while (srcKey !== null && dstKey !== null) {
-      if (srcKey == dstKey) {
+    while (srcKey !== null || dstKey !== null) {
+      if (srcKey == null) {
+        // Source has more keys, so we need to remove them from destination
+        record(dstKey!, null);
+        dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
+        dstIdx++; // skip the destination value, we don't care about it.
+      } else if (dstKey == null) {
+        // Destination has more keys, so we need to insert them from source.
+        record(srcKey!, srcAttrs[srcIdx++]);
+        srcKey = srcIdx < srcLength ? srcAttrs[srcIdx++] : null;
+      } else if (srcKey.startsWith('on') && srcKey.endsWith('$')) {
+        // special handling for the on QRLs,
+        srcKey = srcIdx < srcLength ? srcAttrs[srcIdx++] : null;
+      } else if (dstKey.startsWith('on:')) {
+        // Ignore keys which were serialized.
+        dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
+      } else if (srcKey == dstKey) {
         const srcValue = srcAttrs[srcIdx++];
         const dstValue = dstAttrs[dstIdx++];
         if (srcValue !== dstValue) {
@@ -205,30 +260,46 @@ export const vnode_diff = (journal: VNodeJournalEntry[], jsxNode: JSXNode<any>, 
       } else {
         // Source is missing the key, so we need to remove it from destination.
         record(dstKey, null);
-        journal.push(dstKey, null);
         dstIdx++; // skip the destination value, we don't care about it.
         dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       }
     }
-    while (srcIdx < srcLength) {
-      // Source has more keys, so we need to insert them.
-      record(srcKey!, srcAttrs[srcIdx++]);
-      srcKey = srcIdx < srcLength ? srcAttrs[srcIdx++] : null;
-    }
-    while (dstIdx < dstLength) {
-      // Destination has more keys, so we need to remove them.
-      record(dstKey!, null);
-      dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
-      dstIdx++; // skip the destination value, we don't care about it.
-    }
-    console.log('JOURNAL', journal);
   }
 
-  function expectFragment() {}
+  function expectVirtual() {
+    if (vCurrent && vnode_isVirtualVNode(vCurrent)) {
+      // All is good.
+    } else {
+      journal.push(
+        VNodeJournalOpCode.Insert,
+        vParent,
+        vPrevious,
+        (vNewNode = vnode_newVirtual(vParent))
+      );
+    }
+  }
 
-  function expectSlot() {}
+  function expectSlot() {
+    throw new Error('IMPLEMENT');
+  }
 
-  function expectComponent() {}
+  function expectComponent(component: Component<any>) {
+    const [componentQRL] = (component as any)[SERIALIZABLE_STATE] as [QRLInternal<OnRenderFn<any>>];
+    const host = (vCurrent || vNewNode) as VirtualVNode;
+    const vNodeQrl = vnode_getResolvedProp(host, OnRenderProp, getObjectById);
+    let shouldRender = false;
+    if (componentQRL.$hash$ !== vNodeQrl.$hash$) {
+      vnode_setResolvedProp(host, OnRenderProp, componentQRL);
+      shouldRender = true;
+    }
+    const vNodeProps = vnode_getResolvedProp(host, ELEMENT_PROPS, getObjectById);
+    const jsxPros = jsxValue.props;
+    shouldRender = shouldRender || !shallowEqual(jsxPros, vNodeProps);
+    if (shouldRender) {
+      const jsx = executeComponent2(host, componentQRL, jsxPros);
+      componentQueue.push(jsx, host);
+    }
+  }
 
   function advance() {
     jsxIdx++;
@@ -250,6 +321,14 @@ export const vnode_diff = (journal: VNodeJournalEntry[], jsxNode: JSXNode<any>, 
   }
 
   function descend(children: any) {
+    stackPush(children);
+    assertDefined(vCurrent || vNewNode, 'Expecting vCurrent to be defined.');
+    vParent = vCurrent || vNewNode!;
+    vCurrent = vnode_getFirstChild(vParent);
+    vNewNode = vPrevious = null;
+  }
+
+  function stackPush(children: any) {
     stack.push(vParent, vPrevious, vCurrent, jsxChildren, jsxIdx, jsxCount, jsxValue);
     if (Array.isArray(children)) {
       jsxIdx = 0;
@@ -268,10 +347,6 @@ export const vnode_diff = (journal: VNodeJournalEntry[], jsxNode: JSXNode<any>, 
       jsxChildren = null!;
       jsxCount = 1;
     }
-    assertDefined(vCurrent || vNewNode, 'Expecting vCurrent to be defined.');
-    vParent = vCurrent || vNewNode!;
-    vCurrent = vnode_getFirstChild(vParent);
-    vNewNode = vPrevious = null;
   }
 
   function expectText(text: string) {
@@ -305,23 +380,28 @@ export const vnode_applyJournal = (journal: VNodeJournalEntry[]) => {
         break;
       case VNodeJournalOpCode.Insert:
         vnode_insertBefore(
-          journal[idx++] as ElementVNode | FragmentVNode,
+          journal[idx++] as ElementVNode | VirtualVNode,
           journal[idx++] as VNode,
           journal[idx++] as VNode
         );
         break;
       case VNodeJournalOpCode.Truncate:
-        vnode_truncate(journal[idx++] as ElementVNode | FragmentVNode, journal[idx++] as VNode);
+        vnode_truncate(journal[idx++] as ElementVNode | VirtualVNode, journal[idx++] as VNode);
         break;
       case VNodeJournalOpCode.Remove:
-        vnode_remove(journal[idx++] as ElementVNode | FragmentVNode, journal[idx++] as VNode);
+        vnode_remove(journal[idx++] as ElementVNode | VirtualVNode, journal[idx++] as VNode);
         break;
       case VNodeJournalOpCode.Attributes:
         const vnode = journal[idx++] as ElementVNode;
         let key: string | null = null;
         while (typeof (key = journal[idx] as string | null) === 'string') {
           idx++;
-          vnode_setProp(vnode, key, journal[idx++] as string | null);
+          const value = journal[idx++] as string | null;
+          if (key.startsWith('on') && key.endsWith('$')) {
+            // special handling for events.
+          } else {
+            vnode_setProp(vnode, key, value);
+          }
         }
         break;
       default:
@@ -329,3 +409,21 @@ export const vnode_applyJournal = (journal: VNodeJournalEntry[]) => {
     }
   }
 };
+
+function shallowEqual(src: Record<string, any>, dst: Record<string, any>): boolean {
+  let srcKeys = Object.keys(src);
+  let dstKeys = Object.keys(dst);
+  if (srcKeys.length !== dstKeys.length) {
+    return false;
+  }
+  srcKeys = srcKeys.sort();
+  dstKeys = dstKeys.sort();
+  for (let idx = 0; idx < srcKeys.length; idx++) {
+    const srcKey = srcKeys[idx];
+    const dstKey = dstKeys[idx];
+    if (srcKey !== dstKey || src[srcKey] !== dst[dstKey]) {
+      return false;
+    }
+  }
+  return true;
+}

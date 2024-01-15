@@ -71,7 +71,7 @@ export const executeComponent = (
           return executeComponent(rCtx, elCtx);
         });
       }
-      handleError(err, hostElement, rCtx);
+      handleError(err, hostElement, rCtx.$static$.$containerState$);
       return {
         node: SkipRender,
         rCtx: newCtx,

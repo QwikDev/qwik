@@ -32,6 +32,7 @@ contributors:
   - fabian-hiller
   - julianobrasil
   - aivarsliepa
+  - Balastrong
 updated_at: '2023-10-04T21:48:45Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
@@ -82,12 +83,16 @@ Use `useStore(initialStateObject)` hook to create a reactive object. It takes an
 import { component$, useStore } from '@builder.io/qwik';
 
 export default component$(() => {
-  const state = useStore({ count: 0 });
+  const state = useStore({ count: 0, name: 'Qwik' });
 
   return (
     <>
       <button onClick$={() => state.count++}>Increment</button>
       <p>Count: {state.count}</p>
+      <input
+        value={state.name}
+        onInput$={(_, el) => (state.name = el.value)}
+      />
     </>
   );
 });

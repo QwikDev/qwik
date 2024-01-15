@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { component$ } from '../component/component.public';
 import { notifyChange } from '../render/dom/notify-render';
 import type { Subscriptions } from '../state/common';
-import { ELEMENT_ID } from '../util/markers';
+import { ELEMENT_ID, OnRenderProp } from '../util/markers';
 import { getDomContainer } from './client/dom-container';
 import type { VNode } from './client/types';
 import {
@@ -147,7 +147,7 @@ export async function rerenderComponent(element: HTMLElement) {
 
 function getHostVNode(vElement: VNode | null) {
   while (vElement != null) {
-    if (typeof vnode_getProp(vElement, ELEMENT_ID) == 'string') {
+    if (typeof vnode_getProp(vElement, OnRenderProp) == 'string') {
       return vElement;
     }
     vElement = vnode_getParent(vElement);

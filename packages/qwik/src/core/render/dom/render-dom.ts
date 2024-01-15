@@ -1,20 +1,23 @@
 import { qError, QError_invalidJsxNodeType } from '../../error/error';
-import { type InvokeContext, newInvokeContext, invoke } from '../../use/use-core';
+import { HOST_FLAG_MOUNTED, type QContext } from '../../state/context';
+import { isSignal, type Signal } from '../../state/signal';
+import { invoke, newInvokeContext, type InvokeContext } from '../../use/use-core';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../../util/flyweight';
 import { logWarn } from '../../util/log';
-import { isNotNullable, isPromise, promiseAll, maybeThen } from '../../util/promises';
+import { isNotNullable, isPromise, maybeThen, promiseAll } from '../../util/promises';
 import { qDev, qInspector, seal } from '../../util/qdev';
 import { isArray, isFunction, isObject, isString, type ValueOrPromise } from '../../util/types';
-import { domToVnode, smartUpdateChildren } from './visitor';
-import { SkipRender } from '../jsx/utils.public';
-import { isJSXNode, SKIP_RENDER_TYPE, _jsxC, Virtual } from '../jsx/jsx-runtime';
-import type { DevJSX, JSXNode } from '../jsx/types/jsx-node';
+import type { ElementVNode } from '../../v2/client/types';
+import { vnode_isVNode } from '../../v2/client/vnode';
+import { vnode_applyJournal, vnode_diff, type VNodeJournalEntry } from '../../v2/client/vnode-diff';
 import { executeComponent, shouldWrapFunctional } from '../execute-component';
+import { _jsxC, isJSXNode, SKIP_RENDER_TYPE, Virtual } from '../jsx/jsx-runtime';
+import type { DevJSX, JSXNode } from '../jsx/types/jsx-node';
+import { SkipRender } from '../jsx/utils.public';
 import type { RenderContext } from '../types';
-import { type QwikElement, VIRTUAL, type VirtualElement } from './virtual-element';
 import { appendHeadStyle } from './operations';
-import { isSignal, type Signal } from '../../state/signal';
-import { HOST_FLAG_MOUNTED, type QContext } from '../../state/context';
+import { VIRTUAL, type QwikElement, type VirtualElement } from './virtual-element';
+import { domToVnode, smartUpdateChildren } from './visitor';
 
 export const renderComponent = (
   rCtx: RenderContext,
@@ -44,16 +47,37 @@ export const renderComponent = (
         }
       }
     }
-    const processedJSXNode = processData(res.node, iCtx);
-    return maybeThen(processedJSXNode, (processedJSXNode) => {
-      const newVdom = wrapJSX(hostElement, processedJSXNode);
-      // const oldVdom = getVdom(hostElement);
-      const oldVdom = getVdom(elCtx);
-      return maybeThen(smartUpdateChildren(newCtx, oldVdom, newVdom, flags), () => {
-        // setVdom(hostElement, newVdom);
-        elCtx.$vdom$ = newVdom;
+    if (vnode_isVNode(hostElement)) {
+      const vHostElement: ElementVNode = hostElement as any;
+      // new vNode code path
+      // TODO(misko): this should be moved to container state
+      // const container = getDomContainer(vHostElement);
+      const journal: VNodeJournalEntry[] = [];
+      return maybeThen(
+        vnode_diff(
+          journal,
+          res.node as JSXNode,
+          vHostElement,
+          rCtx.$static$.$containerState$.$pauseCtx$?.getObject as any
+        ),
+        () => {
+          // console.log('JOURNAL >>>>', journal);
+          vnode_applyJournal(journal);
+        }
+      );
+    } else {
+      const processedJSXNode = processData(res.node, iCtx);
+      return maybeThen(processedJSXNode, (processedJSXNode) => {
+        // Old code path
+        const newVdom = wrapJSX(hostElement, processedJSXNode);
+        // const oldVdom = getVdom(hostElement);
+        const oldVdom = getVdom(elCtx);
+        return maybeThen(smartUpdateChildren(newCtx, oldVdom, newVdom, flags), () => {
+          // setVdom(hostElement, newVdom);
+          elCtx.$vdom$ = newVdom;
+        });
       });
-    });
+    }
   });
 };
 

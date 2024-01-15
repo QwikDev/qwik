@@ -10,9 +10,10 @@ import {
   vnode_getText,
   vnode_isElementVNode,
   vnode_isTextVNode,
-  vnode_isFragmentVNode,
+  vnode_isVirtualVNode,
 } from './client/vnode';
-import type { Stringifiable } from './shared-types';
+import { isStringifiable, type Stringifiable } from './shared-types';
+import { isJSXNode } from '../render/jsx/jsx-runtime';
 
 describe('vdom-diff.unit', () => {
   it('empty placeholder test to suppress warning', () => {});
@@ -51,7 +52,7 @@ function diffJsxVNode(received: VNode, expected: JSXNode | string, path: string[
     path.push(tagToString(expected.type));
     const receivedTag = vnode_isElementVNode(received)
       ? vnode_getElementName(received as ElementVNode)
-      : vnode_isFragmentVNode(received)
+      : vnode_isVirtualVNode(received)
         ? Fragment
         : undefined;
     const isTagSame = expected.type == receivedTag;

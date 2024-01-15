@@ -1,10 +1,10 @@
+import type { ContainerState } from '../container/container';
 import { isServerPlatform } from '../platform/platform';
 import { tryGetContext } from '../state/context';
 import { createContextId, resolveContext } from '../use/use-context';
 import { isVirtualElement } from '../util/element';
 import { qDev } from '../util/qdev';
 import type { QwikElement } from './dom/virtual-element';
-import type { RenderContext } from './types';
 
 /** @public */
 export interface ErrorBoundaryStore {
@@ -13,7 +13,7 @@ export interface ErrorBoundaryStore {
 
 export const ERROR_CONTEXT = /*#__PURE__*/ createContextId<ErrorBoundaryStore>('qk-error');
 
-export const handleError = (err: any, hostElement: QwikElement, rCtx: RenderContext) => {
+export const handleError = (err: any, hostElement: QwikElement, containerState: ContainerState) => {
   const elCtx = tryGetContext(hostElement)!;
   if (qDev) {
     // Clean vdom
@@ -41,7 +41,7 @@ export const handleError = (err: any, hostElement: QwikElement, rCtx: RenderCont
   if (isServerPlatform()) {
     throw err;
   } else {
-    const errorStore = resolveContext(ERROR_CONTEXT, elCtx, rCtx.$static$.$containerState$);
+    const errorStore = resolveContext(ERROR_CONTEXT, elCtx, containerState);
     if (errorStore === undefined) {
       throw err;
     }

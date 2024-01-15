@@ -1,7 +1,7 @@
 import type { JSXNode } from '../../render/jsx/types/jsx-node';
 import { createDocument } from '@builder.io/qwik-dom';
 import { afterEach, describe, expect, it } from 'vitest';
-import type { ElementVNode, FragmentVNode, QDocument, VNode } from './types';
+import type { ElementVNode, VirtualVNode, QVNode } from './types';
 import {
   vnode_getFirstChild,
   vnode_getNode,
@@ -10,73 +10,73 @@ import {
   vnode_newUnMaterializedElement,
   vnode_newText,
   vnode_setProp,
-} from './vnode';
-import { vnode_applyJournal, vnode_diff, type VNodeJournalEntry } from './vnode-diff';
+} from './vNode';
+import { vnode_applyJournal, vnode_diff, type VNodeJournalEntry } from './vNode-diff';
 import '../vdom-diff.unit';
 import { walkJSX } from '../vdom-diff.unit';
 
-describe('vnode-diff', () => {
+describe('vNode-diff', () => {
   const journal: VNodeJournalEntry[] = [];
   afterEach(() => {
     journal.length = 0;
   });
 
   it('should find no difference', () => {
-    const vnode = vnode_fromJSX(<div>Hello</div>);
-    expect(vnode).toMatchVDOM(<div>Hello</div>);
-    expect(vnode_getNode(vnode)!.ownerDocument!.body.innerHTML).toEqual('<div>Hello</div>');
-    vnode_diff(journal, <div>Hello</div>, vnode);
-    expect(journal).toEqual([]);
+    const { vNode, vParent } = vnode_fromJSX(<div>Hello</div>);
+    expect(vNode).toMatchVDOM(<div>Hello</div>);
+    expect(vnode_getNode(vNode)!.ownerDocument!.body.innerHTML).toEqual('<div>Hello</div>');
+    vnode_diff(journal, <div>Hello</div>, vParent);
+    expect(journal.length).toEqual(0);
   });
 
   describe('text', () => {
     it('should update text', () => {
-      const vnode = vnode_fromJSX(<div>Hello</div>);
-      vnode_diff(journal, <div>World</div>, vnode);
-      expect(vnode).toMatchVDOM(<div>Hello</div>);
+      const { vNode, vParent } = vnode_fromJSX(<div>Hello</div>);
+      vnode_diff(journal, <div>World</div>, vParent);
+      expect(vNode).toMatchVDOM(<div>Hello</div>);
       expect(journal).not.toEqual([]);
       vnode_applyJournal(journal);
-      expect(vnode).toMatchVDOM(<div>World</div>);
+      expect(vNode).toMatchVDOM(<div>World</div>);
     });
 
     it('should add missing text node', () => {
-      const vnode = vnode_fromJSX(<div></div>);
-      vnode_diff(journal, <div>Hello</div>, vnode);
-      expect(vnode).toMatchVDOM(<div></div>);
+      const { vNode, vParent } = vnode_fromJSX(<div></div>);
+      vnode_diff(journal, <div>Hello</div>, vParent);
+      expect(vNode).toMatchVDOM(<div></div>);
       vnode_applyJournal(journal);
-      expect(vnode).toMatchVDOM(<div>Hello</div>);
+      expect(vNode).toMatchVDOM(<div>Hello</div>);
     });
 
     it('should update and add missing text node', () => {
-      const vnode = vnode_fromJSX(<div>text</div>);
-      vnode_diff(journal, <div>Hello {'World'}</div>, vnode);
+      const { vNode, vParent } = vnode_fromJSX(<div>text</div>);
+      vnode_diff(journal, <div>Hello {'World'}</div>, vParent);
       vnode_applyJournal(journal);
-      expect(vnode).toMatchVDOM(<div>Hello {'World'}</div>);
+      expect(vNode).toMatchVDOM(<div>Hello {'World'}</div>);
     });
 
     it('should remove extra text nodes', () => {
-      const vnode = vnode_fromJSX(<div>text{'removeMe'}</div>);
-      vnode_diff(journal, <div>Hello</div>, vnode);
+      const { vNode, vParent } = vnode_fromJSX(<div>text{'removeMe'}</div>);
+      vnode_diff(journal, <div>Hello</div>, vParent);
       vnode_applyJournal(journal);
-      expect(vnode).toMatchVDOM(<div>Hello</div>);
+      expect(vNode).toMatchVDOM(<div>Hello</div>);
     });
     it('should remove all text nodes', () => {
-      const vnode = vnode_fromJSX(<div>text{'removeMe'}</div>);
-      vnode_diff(journal, <div></div>, vnode);
+      const { vNode, vParent } = vnode_fromJSX(<div>text{'removeMe'}</div>);
+      vnode_diff(journal, <div></div>, vParent);
       vnode_applyJournal(journal);
-      expect(vnode).toMatchVDOM(<div></div>);
+      expect(vNode).toMatchVDOM(<div></div>);
     });
     it('should treat undefined as no children', () => {
-      const vnode = vnode_fromJSX(<div>text{'removeMe'}</div>);
-      vnode_diff(journal, <div>{undefined}</div>, vnode);
+      const { vNode, vParent } = vnode_fromJSX(<div>text{'removeMe'}</div>);
+      vnode_diff(journal, <div>{undefined}</div>, vParent);
       vnode_applyJournal(journal);
-      expect(vnode).toMatchVDOM(<div></div>);
+      expect(vNode).toMatchVDOM(<div></div>);
     });
   });
   describe('element', () => {
     it('should do nothing on same', () => {
       expect(journal.length).toEqual(0);
-      const vnode = vnode_fromJSX(
+      const { vNode, vParent } = vnode_fromJSX(
         <test>
           <span></span>
           <b></b>
@@ -88,23 +88,23 @@ describe('vnode-diff', () => {
           <b></b>
         </test>
       );
-      vnode_diff(journal, test, vnode);
+      vnode_diff(journal, test, vParent);
       expect(journal.length).toEqual(0);
-      expect(vnode).toMatchVDOM(test);
+      expect(vNode).toMatchVDOM(test);
     });
     it('should add missing element', () => {
-      const vnode = vnode_fromJSX(<test></test>);
+      const { vNode, vParent } = vnode_fromJSX(<test></test>);
       const test = (
         <test>
           <span class="B" about="ABOUT"></span>
         </test>
       );
-      vnode_diff(journal, test, vnode);
+      vnode_diff(journal, test, vParent);
       vnode_applyJournal(journal);
-      expect(vnode).toMatchVDOM(test);
+      expect(vNode).toMatchVDOM(test);
     });
     it('should update attributes', () => {
-      const vnode = vnode_fromJSX(
+      const { vNode, vParent } = vnode_fromJSX(
         <test>
           <span id="a" about="name"></span>
         </test>
@@ -114,13 +114,12 @@ describe('vnode-diff', () => {
           <span class="B" about="ABOUT"></span>
         </test>
       );
-      vnode_diff(journal, test, vnode);
+      vnode_diff(journal, test, vParent);
       vnode_applyJournal(journal);
-      console.log('vnode', vnode.toString());
-      expect(vnode).toMatchVDOM(test);
+      expect(vNode).toMatchVDOM(test);
     });
     it('should remove extra text node', () => {
-      const vnode = vnode_fromJSX(
+      const { vNode, vParent } = vnode_fromJSX(
         <test>
           {'before'}
           <span />
@@ -132,9 +131,9 @@ describe('vnode-diff', () => {
           <span></span>
         </test>
       );
-      vnode_diff(journal, test, vnode);
+      vnode_diff(journal, test, vParent);
       vnode_applyJournal(journal);
-      expect(vnode).toMatchVDOM(test);
+      expect(vNode).toMatchVDOM(test);
     });
   });
   describe.todo('fragments', () => {});
@@ -145,7 +144,7 @@ function vnode_fromJSX(jsx: JSXNode): VNode {
   const doc = createDocument() as QDocument;
   doc.qVNodeData = new WeakMap();
   const vBody = vnode_newUnMaterializedElement(null, doc.body);
-  let vParent: ElementVNode | FragmentVNode = vBody;
+  let vParent: ElementVNode | VirtualVNode = vBody;
   walkJSX(jsx, {
     enter: (jsx) => {
       const type = jsx.type;
@@ -175,5 +174,5 @@ function vnode_fromJSX(jsx: JSXNode): VNode {
       );
     },
   });
-  return vnode_getFirstChild(vParent)!;
+  return { vParent, vNode: vnode_getFirstChild(vParent) };
 }

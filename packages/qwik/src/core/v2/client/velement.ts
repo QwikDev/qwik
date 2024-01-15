@@ -9,7 +9,7 @@ import {
   vnode_getProp,
   vnode_getText,
   vnode_isElementVNode,
-  vnode_isFragmentVNode,
+  vnode_isVirtualVNode,
   vnode_isTextVNode,
   vnode_propsToRecord,
   vnode_setText,
@@ -45,7 +45,7 @@ export class QwikElementAdapter extends Array {
     return vnode;
   }
 
-  static createFragment(
+  static createVirtual(
     flags: VNodeFlags,
     parent: VNode | null,
     previousSibling: VNode | null,
@@ -127,7 +127,7 @@ export class QwikElementAdapter extends Array {
       return vnode_getElementName(this as any);
     } else if (vnode_isTextVNode(this as any)) {
       return '#text';
-    } else if (vnode_isFragmentVNode(this as any)) {
+    } else if (vnode_isVirtualVNode(this as any)) {
       return ':virtual';
     }
   }

@@ -2,13 +2,12 @@ import { createDocument } from '@builder.io/qwik-dom';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import '../vdom-diff.unit';
-import type { ElementVNode, FragmentVNode, QDocument, TextVNode, VNode } from './types';
+import type { ElementVNode, VirtualVNode, QDocument, TextVNode } from './types';
 import {
   vnode_getFirstChild,
   vnode_getNextSibling,
-  vnode_getNode,
   vnode_insertBefore,
-  vnode_newFragment,
+  vnode_newVirtual,
   vnode_newText,
   vnode_newUnMaterializedElement,
   vnode_setProp,
@@ -65,7 +64,7 @@ describe('vnode', () => {
       );
     });
 
-    it('should process fragment text element text', () => {
+    it('should process virtual text element text', () => {
       parent.innerHTML = `Hello <b>world</b>!`;
       document.qVNodeData.set(parent, 'F{B1B}');
       expect(vParent).toMatchVDOM(
@@ -92,7 +91,7 @@ describe('vnode', () => {
       );
     });
 
-    it('should not consume trailing nodes after fragment', () => {
+    it('should not consume trailing nodes after virtual', () => {
       parent.innerHTML = '<button>Count: 123!</button><script></script>';
       document.qVNodeData.set(parent, '{1}');
       document.qVNodeData.set(parent.firstChild as Element, 'HDB');
@@ -118,11 +117,11 @@ describe('vnode', () => {
         </test>
       );
       const firstText = vnode_getFirstChild(vParent) as TextVNode;
-      const fragment = vnode_getNextSibling(vnode_getNextSibling(firstText)!)! as FragmentVNode;
-      const fragmentText = vnode_getFirstChild(fragment)! as TextVNode;
-      vnode_setText(fragmentText, 'Fragment Text');
+      const virtual = vnode_getNextSibling(vnode_getNextSibling(firstText)!)! as VirtualVNode;
+      const fragmentText = vnode_getFirstChild(virtual)! as TextVNode;
+      vnode_setText(fragmentText, 'Virtual Text');
       vnode_setText(firstText, 'First Text');
-      expect(parent.innerHTML).toEqual(`First Text<b></b>Fragment Text`);
+      expect(parent.innerHTML).toEqual(`First Text<b></b>Virtual Text`);
     });
     it('should inflate text nodes on write', () => {
       parent.innerHTML = `Hello World!`;
@@ -142,8 +141,8 @@ describe('vnode', () => {
       expect(parent.innerHTML).toEqual(`Salutation Name.`);
     });
   });
-  describe('fragment', () => {
-    it('should create empty Fragment', () => {
+  describe('virtual', () => {
+    it('should create empty Virtual', () => {
       parent.innerHTML = ``;
       document.qVNodeData.set(parent, '{}');
       expect(vParent).toMatchVDOM(
@@ -152,7 +151,7 @@ describe('vnode', () => {
         </test>
       );
     });
-    it('should create empty Fragment before element', () => {
+    it('should create empty Virtual before element', () => {
       parent.innerHTML = `<b></b>`;
       document.qVNodeData.set(parent, '{}');
       expect(vParent).toMatchVDOM(
@@ -161,7 +160,7 @@ describe('vnode', () => {
         </test>
       );
     });
-    it('should place attributes on Fragment', () => {
+    it('should place attributes on Virtual', () => {
       parent.innerHTML = ``;
       document.qVNodeData.set(parent, '{=:id_?:sref_@:key_}');
       expect(vParent).toMatchVDOM(
@@ -172,10 +171,10 @@ describe('vnode', () => {
     });
   });
   describe('manipulation', () => {
-    it.only('should create empty Fragment before element', () => {
-      const fragment1 = vnode_newFragment(vParent);
-      const fragment2 = vnode_newFragment(vParent);
-      const fragment3 = vnode_newFragment(fragment1);
+    it('should create empty Virtual before element', () => {
+      const fragment1 = vnode_newVirtual(vParent);
+      const fragment2 = vnode_newVirtual(vParent);
+      const fragment3 = vnode_newVirtual(fragment1);
       vnode_setProp(fragment1, 'q:id', '1');
       vnode_setProp(fragment2, 'q:id', '2');
       vnode_setProp(fragment3, 'q:id', '3');

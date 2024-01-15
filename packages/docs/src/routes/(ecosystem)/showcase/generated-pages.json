@@ -1,5 +1,21 @@
 [
   {
+    "title": "Wep Apps | Zhou's Portfolio",
+    "imgSrc": "/showcases/linkfang-portfolio_vercel_app_.webp",
+    "perf": {
+      "score": 0.98,
+      "fcpDisplay": "1.4 s",
+      "fcpScore": 0.97,
+      "lcpDisplay": "2.2 s",
+      "lcpScore": 0.94,
+      "ttiDisplay": "1.4 s",
+      "ttiScore": 1,
+      "ttiTime": 1386
+    },
+    "href": "https://linkfang-portfolio.vercel.app/",
+    "tags": "portfolio"
+  },
+  {
     "title": "Blueagle",
     "imgSrc": "/showcases/blueagle_top_.webp",
     "perf": {

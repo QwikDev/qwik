@@ -16,6 +16,7 @@ contributors:
   - igorbabko
   - mrhoodz
   - thejackshelton
+  - Balastrong
 updated_at: '2023-09-19T17:37:26Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
@@ -168,6 +169,8 @@ export default component$(() => {
   );
 })
 ```
+
+> It does not work with `useStore` since it does not return a signal, but you can still use the manual approach ( value + onInput$ ) as shown below.
 
 The `bind:` is compiled away by the Qwik optimizer to a property set and an event handler, ie, it is just syntax sugar.
 

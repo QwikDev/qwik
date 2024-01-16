@@ -119,10 +119,14 @@ export async function getBuilderContent({
     qwikUrl.searchParams.set('cachebust', 'true');
   }
 
-  const response = await fetch(qwikUrl.href);
-  if (response.ok) {
-    const content: BuilderContent = JSON.parse(await response.text());
-    return content;
+  try {
+    const response = await fetch(qwikUrl.href);
+    if (response.ok) {
+      const content: BuilderContent = JSON.parse(await response.text());
+      return content;
+    }
+  } catch (err) {
+    console.error(err);
   }
-  throw new Error(`Unable to load Builder content from ${qwikUrl.toString()}`);
+  return { html: `<div>Unable to load Builder content from ${qwikUrl.toString()}</div>` };
 }

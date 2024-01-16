@@ -52,7 +52,7 @@ It is intentionally opt-in, at some point the CSS Anchor API will provide a nati
 
 > Because these solutions are built on top of the native specs, that also means there's less javascript we need to prefetch, and therefore less work that needs to be done!
 
-Both Qwik UI's popover and modal components can be used regardless of meta-framework or microfrontend, as long as there is support for Qwik. 
+Both Qwik UI's popover and modal components can be used regardless of meta-framework or microfrontend, as long as there is support for Qwik.
 
 ## Custom Portals
 
@@ -66,7 +66,7 @@ The fundamental problems to solve are:
 
 ## Solution
 
-<CodeSandbox url="/demo/cookbook/portal/"  style={{ height: '15em' }}>
+<CodeSandbox src="/src/routes/demo/cookbook/portal/"  style={{ height: '15em' }}>
 </CodeSandbox>
 
 
@@ -80,7 +80,7 @@ Let's break down the solution into steps:
 ### Using the PortalProvider
 
 Let's assume that we already have a `PortalProvider` and let's focus on how it is used first.
-1. We get a hold of the `PortalProvider` API through: 
+1. We get a hold of the `PortalProvider` API through:
    ```tsx
    const portal = useContext(PortalAPI);
    ```

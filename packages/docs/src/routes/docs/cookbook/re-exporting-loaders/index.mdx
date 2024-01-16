@@ -6,7 +6,7 @@ updated_at: '2023-12-15T11:00:00Z'
 created_at: '2023-12-15T11:00:00Z'
 ---
 
-import CodeSandbox, {CodeFile} from '../../../../components/code-sandbox/index.tsx';  
+import CodeSandbox, {CodeFile} from '../../../../components/code-sandbox/index.tsx';
 
 # Re-exporting loaders
 
@@ -23,13 +23,13 @@ You can define `routeAction$` and `routeLoader$` in your custom path and re-expo
 
 ### Reusable logic example
 
-Let's imagine we have a `routeLoader$` that checks whether our user is logged in or not. 
+Let's imagine we have a `routeLoader$` that checks whether our user is logged in or not.
 It wouldn't make sense to copy and paste the same code into many parts of our code to make it work.
 As per good practices, the ideal method is to centralize the logic.
 Here in this example we declare `routeAction$` and `routeLoader$` in a centralized file so we can then reuse it in our files.
 
 Example with `./shared/loaders.ts`
-<CodeFile url="/demo/cookbook/re-exporting-loaders/shared/loaders.ts" >
+<CodeFile src="/src/routes/demo/cookbook/re-exporting-loaders/shared/loaders.ts" >
 ```tsx
 import { routeAction$, routeLoader$ } from '@builder.io/qwik-city';
 
@@ -47,7 +47,7 @@ export const useCommonRouteLoader = routeLoader$(async () => {
 
 Now you can use your common `routeAction$` and `routeLoader$` in paths like this one `./src/routes/index.tsx`.
 
-<CodeFile url="/demo/cookbook/re-exporting-loaders/" >
+<CodeFile src="/src/routes/demo/cookbook/re-exporting-loaders/" >
 ```tsx
 import { component$ } from '@builder.io/qwik';
 import { Form } from '@builder.io/qwik-city';
@@ -81,7 +81,7 @@ export default component$(() => {
 ```
 </CodeFile>
 
-<CodeSandbox url="/demo/cookbook/re-exporting-loaders/"  style={{ height: '15em' }} />
+<CodeSandbox src="/src/routes/demo/cookbook/re-exporting-loaders/"  style={{ height: '15em' }} />
 
 ### Third-party libraries example
 
@@ -92,7 +92,7 @@ Here, if this library needs `routeAction$` or `routeLoader$` we must re-export t
 
 #### Here is our code:
 
-<CodeSandbox url="/demo/cookbook/re-exporting-loaders/third-party/index.tsx"  style={{ height: '20em' }}>
+<CodeSandbox src="/src/routes/demo/cookbook/re-exporting-loaders/third-party/index.tsx"  style={{ height: '20em' }}>
 ```tsx
 import { component$ } from '@builder.io/qwik';
 import { ThirdPartyPaymentComponent } from './third-party-library';
@@ -112,7 +112,7 @@ export default component$(() => {
 
 #### Here is the library code:
 
-<CodeFile url="/demo/cookbook/re-exporting-loaders/third-party/third-party-library.tsx" >
+<CodeFile src="/src/routes/demo/cookbook/re-exporting-loaders/third-party/third-party-library.tsx" >
 ```tsx
 import { component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';

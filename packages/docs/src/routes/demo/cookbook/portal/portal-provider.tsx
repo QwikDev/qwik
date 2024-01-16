@@ -10,8 +10,8 @@ import {
   type ContextId,
   type QRL,
   type Signal,
+  type JSXOutput,
 } from '@builder.io/qwik';
-import { type JSXNode } from '@builder.io/qwik/jsx-runtime';
 import CSS from './portal-provider.css?inline';
 
 // Define public API for opening up Portals
@@ -24,7 +24,7 @@ export const PortalAPI = createContextId<
    * @returns A function used for closing the portal.
    */
   QRL<
-    (name: string, jsx: JSXNode, contexts?: ContextPair<any>[]) => () => void
+    (name: string, jsx: JSXOutput, contexts?: ContextPair<any>[]) => () => void
   >
 >('PortalProviderAPI');
 
@@ -39,7 +39,7 @@ const PortalsContextId = createContextId<Signal<Portal[]>>('Portals');
 
 interface Portal {
   name: string;
-  jsx: JSXNode;
+  jsx: JSXOutput;
   close: QRL<() => void>;
   contexts: Array<ContextPair<any>>;
 }
@@ -51,7 +51,7 @@ export const PortalProvider = component$(() => {
   // Provide the public API for the PopupManager for other components.
   useContextProvider(
     PortalAPI,
-    $((name: string, jsx: JSXNode, contexts?: ContextPair<any>[]) => {
+    $((name: string, jsx: JSXOutput, contexts?: ContextPair<any>[]) => {
       const portal: Portal = {
         name,
         jsx,
@@ -94,7 +94,7 @@ export const Portal = component$<{ name: string }>(({ name }) => {
 });
 
 export const WrapJsxInContext = component$<{
-  jsx: JSXNode;
+  jsx: JSXOutput;
   contexts: Array<ContextPair<any>>;
 }>(({ jsx, contexts }) => {
   contexts.forEach(({ id, value }) => {

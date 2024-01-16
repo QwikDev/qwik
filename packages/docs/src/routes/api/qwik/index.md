@@ -1272,6 +1272,8 @@ jsxDEV: <T extends string | FunctionComponent>(
 
 ## JSXNode
 
+A JSX Node, an internal structure. You probably want to use `JSXOutput` instead.
+
 ```typescript
 export interface JSXNode<T extends string | FunctionComponent | unknown = unknown>
 ```

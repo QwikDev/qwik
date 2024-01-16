@@ -58,6 +58,7 @@ export { Fragment, HTMLFragment, RenderOnce, jsx, jsxDEV, jsxs } from './render/
 export type * from './render/jsx/types/jsx-generated';
 export type {
   DOMAttributes,
+  QwikAttributes,
   JSXTagName,
   JSXChildren,
   ComponentBaseProps,

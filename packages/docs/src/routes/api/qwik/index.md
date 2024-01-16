@@ -982,7 +982,7 @@ export type HTMLAttributeReferrerPolicy = ReferrerPolicy;
 export interface HTMLAttributes<E extends Element> extends HTMLElementAttrs, DOMAttributes<E>
 ```
 
-**Extends:** HTMLElementAttrs, [DOMAttributes](#domattributes)&lt;E&gt;
+**Extends:** [HTMLElementAttrs](#htmlelementattrs), [DOMAttributes](#domattributes)&lt;E&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -995,6 +995,16 @@ export type HTMLCrossOriginAttribute =
   | ""
   | undefined;
 ```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## HTMLElementAttrs
+
+```typescript
+export interface HTMLElementAttrs extends HTMLAttributesBase, FilterBase<HTMLElement>
+```
+
+**Extends:** HTMLAttributesBase, FilterBase&lt;HTMLElement&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -1935,6 +1945,22 @@ export type QwikAnimationEvent<T = Element> = NativeAnimationEvent;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
+## QwikAttributes
+
+The Qwik DOM attributes without plain handlers, for use as function parameters
+
+```typescript
+export interface QwikAttributes<EL extends Element> extends QwikAttributesBase, RefAttr<EL>, QwikEvents<EL, false>
+```
+
+**Extends:** QwikAttributesBase, RefAttr&lt;EL&gt;, QwikEvents&lt;EL, false&gt;
+
+| Property    | Modifiers | Type                                 | Description  |
+| ----------- | --------- | ------------------------------------ | ------------ |
+| [class?](#) |           | [ClassList](#classlist) \| undefined | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts)
+
 ## QwikChangeEvent
 
 > Warning: This API is now obsolete.
@@ -2027,6 +2053,8 @@ export type QwikHTMLElements = {
     QwikAttributes<HTMLElementTagNameMap[tag]>;
 };
 ```
+
+**References:** [HTMLElementAttrs](#htmlelementattrs), [QwikAttributes](#qwikattributes)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -3039,7 +3067,7 @@ export interface SVGAttributes<T extends Element = Element> extends AriaAttribut
 export interface SVGProps<T extends Element> extends SVGAttributes, QwikAttributes<T>
 ```
 
-**Extends:** [SVGAttributes](#svgattributes), QwikAttributes&lt;T&gt;
+**Extends:** [SVGAttributes](#svgattributes), [QwikAttributes](#qwikattributes)&lt;T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 

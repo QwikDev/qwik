@@ -760,10 +760,10 @@ export type EagernessOptions = "visible" | "load" | "idle";
 ## Element
 
 ```typescript
-interface Element extends QwikJSX.Element
+type Element = JSXOutput;
 ```
 
-**Extends:** [QwikJSX.Element](#)
+**References:** [JSXOutput](#jsxoutput)
 
 ## ElementChildrenAttribute
 
@@ -771,9 +771,9 @@ interface Element extends QwikJSX.Element
 interface ElementChildrenAttribute
 ```
 
-| Property       | Modifiers | Type | Description  |
-| -------------- | --------- | ---- | ------------ |
-| [children?](#) |           | any  | _(Optional)_ |
+| Property      | Modifiers | Type | Description |
+| ------------- | --------- | ---- | ----------- |
+| [children](#) |           | any  |             |
 
 ## ElementType
 
@@ -917,10 +917,6 @@ export declare namespace h
 | [h(type, data, children)](#) |             |
 | [h(sel, data, children)](#)  |             |
 
-| Namespace     | Description |
-| ------------- | ----------- |
-| [JSX](#h-jsx) |             |
-
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/factory.ts)
 
 ## h
@@ -938,10 +934,6 @@ export declare namespace h
 | [h(type, data, text)](#)     |             |
 | [h(type, data, children)](#) |             |
 | [h(sel, data, children)](#)  |             |
-
-| Namespace     | Description |
-| ------------- | ----------- |
-| [JSX](#h-jsx) |             |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/factory.ts)
 
@@ -1201,18 +1193,20 @@ export interface InsHTMLAttributes<T extends Element> extends Attrs<'ins', T>
 ## IntrinsicAttributes
 
 ```typescript
-interface IntrinsicAttributes extends QwikJSX.IntrinsicAttributes
+interface IntrinsicAttributes extends QwikIntrinsicAttributes
 ```
 
-**Extends:** [QwikJSX.IntrinsicAttributes](#)
+**Extends:** QwikIntrinsicAttributes
 
 ## IntrinsicElements
 
 ```typescript
-interface IntrinsicElements extends QwikJSX.IntrinsicElements
+export interface IntrinsicElements extends IntrinsicHTMLElements, IntrinsicSVGElements
 ```
 
-**Extends:** [QwikJSX.IntrinsicElements](#)
+**Extends:** IntrinsicHTMLElements, IntrinsicSVGElements
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## isSignal
 
@@ -1237,19 +1231,6 @@ jsx: <T extends string | FunctionComponent<any>>(
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts)
-
-## JSX
-
-```typescript
-namespace JSX
-```
-
-| Interface                                                   | Description |
-| ----------------------------------------------------------- | ----------- |
-| [Element](#h-jsx-element)                                   |             |
-| [ElementChildrenAttribute](#h-jsx-elementchildrenattribute) |             |
-| [IntrinsicAttributes](#h-jsx-intrinsicattributes)           |             |
-| [IntrinsicElements](#h-jsx-intrinsicelements)               |             |
 
 ## JSXChildren
 
@@ -2126,15 +2107,15 @@ export type QwikInvalidEvent<T = Element> = Event;
 export declare namespace QwikJSX
 ```
 
-| Interface                     | Description |
-| ----------------------------- | ----------- |
-| [Element](#)                  |             |
-| [ElementChildrenAttribute](#) |             |
-| [IntrinsicAttributes](#)      |             |
-| [IntrinsicElements](#)        |             |
+| Interface                                                     | Description |
+| ------------------------------------------------------------- | ----------- |
+| [ElementChildrenAttribute](#qwikjsx-elementchildrenattribute) |             |
+| [IntrinsicAttributes](#qwikjsx-intrinsicattributes)           |             |
+| [IntrinsicElements](#)                                        |             |
 
 | Type Alias                          | Description |
 | ----------------------------------- | ----------- |
+| [Element](#qwikjsx-element)         |             |
 | [ElementType](#qwikjsx-elementtype) |             |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik.ts)
@@ -2309,7 +2290,7 @@ Use this method to render JSX. This function does reconciling which means it alw
 ```typescript
 render: (
   parent: Element | Document,
-  jsxNode: JSXNode | FunctionComponent<any>,
+  jsxOutput: JSXOutput | FunctionComponent<any>,
   opts?: RenderOptions,
 ) => Promise<RenderResult>;
 ```
@@ -2414,7 +2395,7 @@ const Cmp = component$(() => {
 ```
 
 ```typescript
-Resource: <T>(props: ResourceProps<T>) => JSXNode;
+Resource: <T>(props: ResourceProps<T>) => JSXOutput;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
@@ -2482,9 +2463,9 @@ export interface ResourceProps<T>
 
 | Property         | Modifiers             | Type                                                                                                             | Description  |
 | ---------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------ |
-| [onPending?](#)  |                       | () =&gt; [JSXNode](#jsxnode)                                                                                     | _(Optional)_ |
-| [onRejected?](#) |                       | (reason: Error) =&gt; [JSXNode](#jsxnode)                                                                        | _(Optional)_ |
-| [onResolved](#)  |                       | (value: T) =&gt; [JSXNode](#jsxnode)                                                                             |              |
+| [onPending?](#)  |                       | () =&gt; [JSXOutput](#jsxoutput)                                                                                 | _(Optional)_ |
+| [onRejected?](#) |                       | (reason: Error) =&gt; [JSXOutput](#jsxoutput)                                                                    | _(Optional)_ |
+| [onResolved](#)  |                       | (value: T) =&gt; [JSXOutput](#jsxoutput)                                                                         |              |
 | [value](#)       | <code>readonly</code> | [ResourceReturn](#resourcereturn)&lt;T&gt; \| [Signal](#signal)&lt;Promise&lt;T&gt; \| T&gt; \| Promise&lt;T&gt; |              |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)

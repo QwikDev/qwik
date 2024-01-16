@@ -226,12 +226,6 @@ const loadDeps = async (qwikVersion: string) => {
       pkgPath: '/server.d.ts',
       path: '/node_modules/@types/builder.io__qwik/server.d.ts',
     },
-    {
-      pkgName: '@builder.io/qwik',
-      pkgVersion: qwikVersion,
-      pkgPath: '/build/index.d.ts',
-      path: '/node_modules/@types/builder.io__qwik/build/index.d.ts',
-    },
   ];
 
   const cache = await caches.open('QwikReplResults');

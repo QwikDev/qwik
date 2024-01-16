@@ -2,7 +2,14 @@ import { createDocument } from '@builder.io/qwik-dom';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import '../vdom-diff.unit';
-import type { ElementVNode, VirtualVNode, QDocument, TextVNode } from './types';
+import type {
+  ElementVNode,
+  VirtualVNode,
+  QDocument,
+  TextVNode,
+  ContainerElement,
+  VNode,
+} from './types';
 import {
   vnode_getFirstChild,
   vnode_getNextSibling,
@@ -12,18 +19,24 @@ import {
   vnode_newUnMaterializedElement,
   vnode_setProp,
   vnode_setText,
+  vnode_getResolvedProp,
+  vnode_locate,
 } from './vnode';
 import { Fragment } from '@builder.io/qwik/jsx-runtime';
 
 describe('vnode', () => {
-  let parent: HTMLElement;
+  let parent: ContainerElement;
   let document: QDocument;
   let vParent: ElementVNode;
+  let qVNodeRefs: Map<number, Element | ElementVNode>;
+  let getVNode: (id: string) => VNode | null;
   beforeEach(() => {
     document = createDocument() as QDocument;
     document.qVNodeData = new WeakMap();
-    parent = document.createElement('test');
+    parent = document.createElement('test') as ContainerElement;
+    parent.qVNodeRefs = qVNodeRefs = new Map();
     vParent = vnode_newUnMaterializedElement(null, parent);
+    getVNode = (id: string) => vnode_locate(vParent, id);
   });
   afterEach(() => {
     parent = null!;
@@ -287,6 +300,19 @@ describe('vnode', () => {
         </test>
       );
       expect(parent.innerHTML).toBe('E1AF3C2BD');
+    });
+  });
+  describe('portal', () => {
+    it('should link source-destination', () => {
+      parent.innerHTML = 'AB';
+      document.qVNodeData.set(parent, '{B||0B}{B|:|0A}');
+      qVNodeRefs.set(0, vParent);
+      const v1 = vnode_getFirstChild(vParent) as VirtualVNode;
+      const v2 = vnode_getNextSibling(v1) as VirtualVNode;
+      expect(v1).toMatchVDOM(<>A</>);
+      expect(v2).toMatchVDOM(<>B</>);
+      expect(vnode_getResolvedProp(v1, '', getVNode)).toBe(v2);
+      expect(vnode_getResolvedProp(v2, ':', getVNode)).toBe(v1);
     });
   });
 }); 

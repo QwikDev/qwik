@@ -4,6 +4,7 @@ import {
   type SSRContainer as ISSRContainer,
   type SsrAttrs,
   type StreamWriter,
+  SsrComponentFrame,
 } from './types';
 import {
   CLOSE_FRAGMENT,
@@ -23,7 +24,6 @@ import {
   type SerializationContext,
 } from '../shared-serialization';
 import { TagNesting, allowedContent, initialTag, isTagAllowed } from './tag-nesting';
-import { throwErrorAndStop } from '../../util/log';
 import { assertDefined, assertTrue } from '../../error/assert';
 import {
   ELEMENT_ID,
@@ -32,9 +32,13 @@ import {
   ELEMENT_SEQ,
   OnRenderProp,
   QScopedStyle,
+  QSlotParent,
   QSlotRef,
 } from '../../util/markers';
 import { isDev } from '../../../build';
+import { throwErrorAndStop } from '../../util/log';
+import { syncWalkJSX } from './ssr-render';
+import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
 
 export function ssrCreateContainer(
   opts: {
@@ -87,6 +91,8 @@ class SSRContainer implements ISSRContainer {
    */
   private depthFirstElementCount: number = -1;
   private vNodeData: VNodeData[] = [];
+  private componentStack: SsrComponentFrame[] = [];
+  private unclaimedProjections: Array<SsrNode | string | JSXChildren> = [];
 
   constructor(opts: Required<Required<Parameters<typeof ssrCreateContainer>>[0]>) {
     this.tag = opts.tagName;
@@ -152,6 +158,22 @@ class SSRContainer implements ISSRContainer {
     vNodeData_closeFragment(this.currentElementFrame!.vNodeData);
   }
 
+  openComponent(attrs: SsrAttrs) {
+    this.openFragment(attrs);
+    this.componentStack.push(new SsrComponentFrame(this.getLastNode()));
+  }
+
+  getCurrentComponentFrame() {
+    const length = this.componentStack.length;
+    return length > 0 ? this.componentStack[length - 1] : null;
+  }
+
+  closeComponent() {
+    const componentFrame = this.componentStack.pop()!;
+    componentFrame.releaseUnclaimedProjections(this.unclaimedProjections);
+    this.closeFragment();
+  }
+
   /** Write a text node with correct escaping. Save the length of the text node in the vNodeData. */
   textNode(text: string) {
     let lastIdx = 0;
@@ -164,7 +186,7 @@ class SSRContainer implements ISSRContainer {
     vNodeData_addTextSize(this.currentElementFrame!.vNodeData, text.length);
   }
 
-  addRoot(obj: any): any {
+  addRoot(obj: any): number {
     return this.serializationCtx.$addRoot$(obj);
   }
 
@@ -175,9 +197,14 @@ class SSRContainer implements ISSRContainer {
     );
   }
 
+  addUnclaimedProjection(node: SsrNode, name: string, children: JSXChildren): void {
+    this.unclaimedProjections.push(node, name, children);
+  }
+
   ////////////////////////////////////
 
   emitContainerData() {
+    this.emitUnclaimedProjection();
     this.emitVNodeData();
     this.emitStateData();
   }
@@ -251,7 +278,10 @@ class SSRContainer implements ISSRContainer {
               if (fragmentAttrs) {
                 for (let i = 0; i < fragmentAttrs.length; ) {
                   const key = fragmentAttrs[i++] as string;
-                  const value = fragmentAttrs[i++] as string;
+                  let value = fragmentAttrs[i++] as string;
+                  if (typeof value !== 'string') {
+                    value = String(this.addRoot(value));
+                  }
                   switch (key) {
                     case ELEMENT_ID:
                       this.write('=');
@@ -275,7 +305,9 @@ class SSRContainer implements ISSRContainer {
                       this.write('[');
                       break;
                     default:
-                      throwErrorAndStop('Unsupported fragment attribute: ' + key);
+                      this.write('|');
+                      this.write(key);
+                      this.write('|');
                   }
                   if (isDev) {
                     assertDefined(value, 'Fragment attribute value must be defined.');
@@ -307,6 +339,30 @@ class SSRContainer implements ISSRContainer {
     this.openElement('script', ['type', 'qwik/state']);
     serialize(this.serializationCtx);
     this.closeElement();
+  }
+
+  private async emitUnclaimedProjection() {
+    const unclaimedProjections = this.unclaimedProjections;
+    if (unclaimedProjections.length) {
+      this.openElement('q:template', ['style', 'display:none']);
+      let idx = 0;
+      let ssrComponentNode: SsrNode | null = null;
+      while (idx < unclaimedProjections.length) {
+        const value = unclaimedProjections[idx++];
+        if (value instanceof SsrNode) {
+          ssrComponentNode = value;
+        } else if (typeof value === 'string') {
+          const children = unclaimedProjections[idx++] as JSXChildren;
+          this.openFragment([QSlotParent, ssrComponentNode!.id]);
+          ssrComponentNode?.setProp(value, this.getLastNode().id);
+          syncWalkJSX(this, children);
+          this.closeFragment();
+        } else {
+          throw throwErrorAndStop('should not get here');
+        }
+      }
+      this.closeElement();
+    }
   }
 
   private emitVNodeSeparators(lastSerializedIdx: number, elementIdx: number): number {

@@ -9,6 +9,7 @@ import { getDomContainer } from './client/dom-container';
 import type { VNode } from './client/types';
 import {
   vnode_getFirstChild,
+  vnode_getNextSibling,
   vnode_getParent,
   vnode_getProp,
   vnode_getVNodeForChildNode,
@@ -21,6 +22,7 @@ import './vdom-diff.unit';
 import { codeToName } from './shared-serialization';
 import { renderToString } from '../../server/render';
 import { getPlatform, setPlatform } from '../platform/platform';
+import { Slot } from '../render/jsx/slot.public';
 
 describe('v2 render', () => {
   it('should render jsx', async () => {
@@ -76,6 +78,83 @@ describe('v2 render', () => {
           </Fragment>
         </Fragment>
       );
+    });
+    describe('projection', () => {
+      it('should render basic projection', async () => {
+        const Child = component$(() => {
+          return <Slot />;
+        });
+        const Parent = component$(() => {
+          return <Child>parent-content</Child>;
+        });
+        const { vNode } = await ssrRenderToDom(<Parent>render-content</Parent>, { debug: false });
+        expect(vNode).toMatchVDOM(
+          <Fragment>
+            <Fragment>
+              <Fragment>parent-content</Fragment>
+            </Fragment>
+          </Fragment>
+        );
+      });
+      it('should render unused projection into template', async () => {
+        const Child = component$(() => {
+          return <span>no-projection</span>;
+        });
+        const Parent = component$(() => {
+          return <Child>parent-content</Child>;
+        });
+        const { vNode } = await ssrRenderToDom(<Parent>render-content</Parent>, { debug: false });
+        expect(vNode).toMatchVDOM(
+          <Fragment>
+            <Fragment>
+              <span>no-projection</span>
+            </Fragment>
+          </Fragment>
+        );
+        expect(vnode_getNextSibling(vNode!)).toMatchVDOM(
+          <q:template style="display:none">
+            <Fragment>parent-content</Fragment>
+            <Fragment>render-content</Fragment>
+          </q:template>
+        );
+      });
+      it('should render default projection', async () => {
+        const Child = component$(() => {
+          return <Slot>default-value</Slot>;
+        });
+        const Parent = component$(() => {
+          return <Child />;
+        });
+        const { vNode } = await ssrRenderToDom(<Parent />, { debug: false });
+        expect(vNode).toMatchVDOM(
+          <Fragment>
+            <Fragment>
+              <Fragment>default-value</Fragment>
+            </Fragment>
+          </Fragment>
+        );
+      });
+      it('should save default value in q:template if not used', async () => {
+        const Child = component$(() => {
+          return <Slot>default-value</Slot>;
+        });
+        const Parent = component$(() => {
+          return <Child>projection-value</Child>;
+        });
+        const { vNode } = await ssrRenderToDom(<Parent />, { debug: false });
+        expect(vNode).toMatchVDOM(
+          <Fragment>
+            <Fragment>
+              <Fragment>projection-value</Fragment>
+            </Fragment>
+          </Fragment>
+        );
+        expect(vnode_getNextSibling(vNode!)).toMatchVDOM(
+          <q:template style="display:none">
+            <Fragment>default-value</Fragment>
+          </q:template>
+        );
+      });
     });
   });
 });

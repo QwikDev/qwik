@@ -14,6 +14,7 @@ export const EventPrefix = 'on:';
 export const EventAny = 'on:.';
 /** `<some-element q:slot="...">` */
 export const QSlot = 'q:slot';
+export const QSlotParent = ':';
 export const QSlotRef = 'q:sref';
 export const QSlotS = 'q:s';
 export const QStyle = 'q:style';

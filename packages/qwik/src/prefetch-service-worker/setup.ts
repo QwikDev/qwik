@@ -20,6 +20,6 @@ export const setupServiceWorker = (swScope: ServiceWorkerGlobalScope) => {
   swScope.addEventListener('install', () => swScope.skipWaiting());
   swScope.addEventListener('activate', async (event) => {
     event.waitUntil(swScope.clients.claim());
-    swState.$cache$ = await swScope.caches.open('QwikBundles');
+    swState.$cache$ = swScope.caches.open('QwikBundles');
   });
 };

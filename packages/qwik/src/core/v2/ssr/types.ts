@@ -2,7 +2,10 @@
 
 import { isDev } from '@builder.io/qwik/build';
 import type { SerializationContext } from '../shared-serialization';
-import { mapArray_get, mapArray_set } from '../client/vnode';
+import { mapApp_remove, mapArray_get, mapArray_set } from '../client/vnode';
+import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
+import { isJSXNode } from '../../render/jsx/jsx-runtime';
+import { QSlot, QSlotParent } from '../../util/markers';
 
 export interface SSRContainer {
   tag: string;
@@ -18,9 +21,14 @@ export interface SSRContainer {
   openFragment(attrs: SsrAttrs): void;
   closeFragment(): void;
 
+  openComponent(attrs: SsrAttrs): void;
+  getCurrentComponentFrame(): SsrComponentFrame | null;
+  closeComponent(): void;
+
   textNode(text: string): void;
   addRoot(obj: any): number;
   getLastNode(): SsrNode;
+  addUnclaimedProjection(node: SsrNode, name: string, children: JSXChildren): void;
 }
 
 export type SsrAttrs = Array<string | null>;
@@ -62,13 +70,51 @@ export class SsrNode {
     }
   }
 
-  getAttribute(name: string): string | null {
-    return mapArray_get(this.attrs, name, 0);
-  }
-
-  setAttribute(name: string, value: string | null): void {
+  setProp(name: string, value: any): void {
     mapArray_set(this.attrs, name, value, 0);
   }
 }
 
 export type SsrNodeType = 1 | 3 | 9 | 11;
+
+export class SsrComponentFrame {
+  public slots = [];
+  constructor(public componentNode: SsrNode) {}
+
+  distributeChildrenIntoSlots(children: JSXChildren) {
+    if (isJSXNode(children)) {
+      const slotName = (children.props[QSlot] || '') as string;
+      mapArray_set(this.slots, slotName, children, 0);
+    } else if (Array.isArray(children)) {
+      const defaultSlot = [];
+      for (let i = 0; i < children.length; i++) {
+        const child = children[i];
+        if (isJSXNode(child)) {
+          const slotName = (child.props[QSlot] || '') as string;
+          mapArray_set(this.slots, slotName, child, 0);
+        } else {
+          defaultSlot.push(child);
+        }
+      }
+      defaultSlot.length && mapArray_set(this.slots, '', defaultSlot, 0);
+    } else {
+      mapArray_set(this.slots, '', children, 0);
+    }
+  }
+
+  consumeChildrenForSlot(projectionNode: SsrNode, slotName: string): JSXChildren | null {
+    const children = mapApp_remove(this.slots, slotName, 0);
+    if (children !== null) {
+      this.componentNode.setProp(slotName, projectionNode.id);
+      projectionNode.setProp(QSlotParent, this.componentNode.id);
+    }
+    return children;
+  }
+
+  releaseUnclaimedProjections(unclaimedProjections: (SsrNode | JSXChildren)[]) {
+    if (this.slots.length) {
+      unclaimedProjections.push(this.componentNode);
+      unclaimedProjections.push.apply(unclaimedProjections, this.slots);
+    }
+  }
+}

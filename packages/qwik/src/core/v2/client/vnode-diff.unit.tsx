@@ -1,19 +1,7 @@
-import type { JSXNode } from '../../render/jsx/types/jsx-node';
-import { createDocument } from '@builder.io/qwik-dom';
 import { afterEach, describe, expect, it } from 'vitest';
-import type { ElementVNode, VirtualVNode, QVNode } from './types';
-import {
-  vnode_getFirstChild,
-  vnode_getNode,
-  vnode_getParent,
-  vnode_insertBefore,
-  vnode_newUnMaterializedElement,
-  vnode_newText,
-  vnode_setProp,
-} from './vNode';
-import { vnode_applyJournal, vnode_diff, type VNodeJournalEntry } from './vNode-diff';
-import '../vdom-diff.unit';
-import { walkJSX } from '../vdom-diff.unit';
+import { vnode_getNode } from './vnode';
+import { vnode_applyJournal, vnode_diff, type VNodeJournalEntry } from './vnode-diff';
+import { vnode_fromJSX } from '../vdom-diff.unit';
 
 describe('vNode-diff', () => {
   const journal: VNodeJournalEntry[] = [];
@@ -24,7 +12,7 @@ describe('vNode-diff', () => {
   it('should find no difference', () => {
     const { vNode, vParent } = vnode_fromJSX(<div>Hello</div>);
     expect(vNode).toMatchVDOM(<div>Hello</div>);
-    expect(vnode_getNode(vNode)!.ownerDocument!.body.innerHTML).toEqual('<div>Hello</div>');
+    expect(vnode_getNode(vNode!)!.ownerDocument!.body.innerHTML).toEqual('<div>Hello</div>');
     vnode_diff(journal, <div>Hello</div>, vParent);
     expect(journal.length).toEqual(0);
   });
@@ -139,40 +127,3 @@ describe('vNode-diff', () => {
   describe.todo('fragments', () => {});
   describe.todo('attributes', () => {});
 });
-
-function vnode_fromJSX(jsx: JSXNode): VNode {
-  const doc = createDocument() as QDocument;
-  doc.qVNodeData = new WeakMap();
-  const vBody = vnode_newUnMaterializedElement(null, doc.body);
-  let vParent: ElementVNode | VirtualVNode = vBody;
-  walkJSX(jsx, {
-    enter: (jsx) => {
-      const type = jsx.type;
-      if (typeof type === 'string') {
-        const child = vnode_newUnMaterializedElement(vParent, doc.createElement(type));
-        vnode_insertBefore(vParent, null, child);
-
-        const props = jsx.props;
-        for (const key in props) {
-          if (Object.prototype.hasOwnProperty.call(props, key)) {
-            vnode_setProp(child, key, String(props[key]));
-          }
-        }
-        vParent = child;
-      } else {
-        throw new Error('Unknown type:' + type);
-      }
-    },
-    leave: (jsx) => {
-      vParent = vnode_getParent(vParent) as any;
-    },
-    text: (value) => {
-      vnode_insertBefore(
-        vParent,
-        null,
-        vnode_newText(vParent, doc.createTextNode(String(value)), String(value))
-      );
-    },
-  });
-  return { vParent, vNode: vnode_getFirstChild(vParent) };
-}

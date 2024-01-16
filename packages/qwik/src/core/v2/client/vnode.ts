@@ -1,3 +1,122 @@
+/**
+ * @file
+ *
+ *   VNode is a DOM like API for walking the DOM but it:
+ *
+ *   1. Encodes virtual nodes which don't exist in the DOM
+ *   2. Can serialize as port of SSR and than deserialize on the client.
+ *
+ *   # Virtual
+ *
+ *   You can think of a Virtual node just like an additional `<div>` in that it groups related child
+ *   nodes together. But unlike a `<div>` which has a real DOM node and hence implications for CSS,
+ *   Virtual nodes have no DOM impact, they are invisible.
+ *
+ *   # Portal
+ *
+ *   Two Virtual nodes can be linked together to form a Portal. Portals are useful for projecting
+ *   content or just rendering content in a different location in the tree, while maintaining a
+ *   logical relationship.
+ *
+ *   Portals have:
+ *
+ *   - Portal Source: A Virtual node which can refer to one ore more Destination Portals by name.
+ *   - Destination Portal: A Virtual node which acts as a destination but also has a pointer back to the
+ *       Portal Source
+ *
+ *   ## Example:
+ *
+ *   Given this code:
+ *
+ *   ```typescript
+ *   const Parent = component$(() => {
+ *     return (
+ *       <Child>
+ *         Projection Content
+ *         <span q:slot="secondary">Secondary Content</span>
+ *         <span q:slot="other">Other Content</span>
+ *       </Child>
+ *     };
+ *   });
+ *
+ *   const Child = component$(() => {
+ *     return (
+ *       <div>
+ *         <Slot>Default Primary</Slot>
+ *         <Slot name="secondary">Default Secondary</Slot>
+ *       </div>
+ *     );
+ *   });
+ *
+ *   render(<body><main><Parent/></main><body>);
+ * ```
+ *
+ *   Will render like so:
+ *
+ *   ```html
+ *   <body>
+ *     <main>
+ *       <Virtual Parent q:portal=":3A;secondary:3B;other:5A" q:id="2A">
+ *         <Virtual Child>
+ *           <div>
+ *             <Virtual Slot q:id="3A" q:portal="^:2A;:3A"> Projection Content </Virtual>
+ *             <Virtual Slot q:id="3B" q:portal="^:2A;:3B">
+ *               <span q:slot="secondary">Secondary Content</span>
+ *             </Virtual>
+ *           </div>
+ *         </Virtual>
+ *       </Virtual>
+ *     </main>
+ *     <q:template>
+ *       <Virtual q:portal="^:2A" q:id="5A">
+ *         <span q:slot="other">Other Content</span>
+ *       </Virtual>
+ *       <Virtual q:portal="^:2A" q:id="3A">
+ *         Default Primary
+ *       </Virtual>
+ *       <Virtual q:portal="^:2A" q:id="3B">
+ *         Default Secondary
+ *       </Virtual>
+ *     <q:template>
+ *   </body>
+ * ```
+ *
+ *   Explanation:
+ *
+ *   - `q:portal=":3A;secondary:3B;other:5A"`
+ *
+ *       - Name: ``; Ref: `3A` - Where the default content went.
+ *       - Name: `secondary`; Ref: `3B` - Where the 'secondary' content went.
+ *       - Name: `other`; Ref: `%A` - Where the `other` content went. (Notice in this case the content is
+ *               left over and os it ends up en the `q:templates`. We can share one '<q:template>`
+ *               for all left over content.)
+ *   - `q:portal="^:2A;:3A"`
+ *
+ *       - Name: `^`; Ref: `2A` - Special pointer to the parent portal
+ *       - Name: ``; Ref: `3A` - Location of the default content in case there is nothing projected here.
+ *
+ *   ## Rendering
+ *
+ *   During SSR, the rendered can delay rendering the JSX nodes until correct portal comes up. The ID
+ *   system is already can make lazy references to the Nodes.
+ *
+ *   Client side rendering does not need to deal with IDs or `<q:template>` as un-rendered vNodes do
+ *   not need to be serialized into DOM, and can remain on heap.
+ *
+ *   ## Context
+ *
+ *   When looking up context it is possible to follow you real render parents or follow the portals.
+ *   All information is encoded in the portals.
+ *
+ *   ## Slot Projection
+ *
+ *   The ultimate user of portals is Slot projection. But the vNode do not understand slots, rather
+ *   they understand portal primitives which makes Slot implementation much simpler.
+ *
+ *   NOTE: The portals need to have IDs during serialization only. Once runtime takes over, there is
+ *   no need to have IDs or to write overflow to the `<q:template>`
+ */
+
 import { assertDefined, assertEqual, assertFalse, assertTrue } from '../../error/assert';
 import { throwErrorAndStop } from '../../util/log';
 import {
@@ -416,7 +535,7 @@ const indexOfAlphanumeric = (id: string, length: number): number => {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const mapApp_findIndx = (elementVNode: (string | null)[], key: string, start: number): number => {
+const mapApp_findIndx = <T>(elementVNode: (T | null)[], key: string, start: number): number => {
   assertTrue(start % 2 === 0, 'Expecting even number.');
   let bottom = (start as number) >> 1;
   let top = (elementVNode.length - 2) >> 1;
@@ -435,10 +554,10 @@ const mapApp_findIndx = (elementVNode: (string | null)[], key: string, start: nu
   return (bottom << 1) ^ -1;
 };
 
-export const mapArray_set = (
-  elementVNode: (string | null)[],
+export const mapArray_set = <T>(
+  elementVNode: (T | null)[],
   key: string,
-  value: string | null,
+  value: T | null,
   start: number
 ) => {
   const indx = mapApp_findIndx(elementVNode, key, start);
@@ -449,18 +568,33 @@ export const mapArray_set = (
       elementVNode[indx + 1] = value;
     }
   } else if (value != null) {
-    elementVNode.splice(indx ^ -1, 0, key, value);
+    elementVNode.splice(indx ^ -1, 0, key as any, value);
   }
 };
 
-export const mapArray_get = (
-  elementVNode: (string | null)[],
+export const mapApp_remove = <T>(
+  elementVNode: (T | null)[],
   key: string,
   start: number
-): string | null => {
+): T | null => {
+  const indx = mapApp_findIndx(elementVNode, key, start);
+  let value: T | null = null;
+  if (indx >= 0) {
+    value = elementVNode[indx + 1];
+    elementVNode.splice(indx, 2);
+    return value;
+  }
+  return value;
+};
+
+export const mapArray_get = <T>(
+  elementVNode: (T | null)[],
+  key: string,
+  start: number
+): T | null => {
   const indx = mapApp_findIndx(elementVNode, key, start);
   if (indx >= 0) {
-    return elementVNode[indx + 1] as string | null;
+    return elementVNode[indx + 1] as T | null;
   } else {
     return null;
   }
@@ -711,14 +845,14 @@ export const vnode_getProp = (vnode: VNode, key: string): string | null => {
 export const vnode_getResolvedProp = (
   vnode: VirtualVNode,
   key: string,
-  getObject: (id: number) => any
+  getObject: (id: string) => any
 ) => {
   ensureVirtualVNode(vnode);
   const idx = mapApp_findIndx(vnode as any, key, VirtualVNodeProps.PROPS_OFFSET);
   if (idx >= 0) {
     let value = vnode[idx + 1] as any;
     if (typeof value === 'string') {
-      vnode[idx + 1] = value = getObject(parseInt(value));
+      vnode[idx + 1] = value = getObject(value);
     }
     return value;
   }
@@ -870,6 +1004,7 @@ function materializeFromVNodeData(
     const start = nextToConsumeIdx;
     while (
       peek() <= 58 /* `:` */ ||
+      peekCh === 95 /* `_` */ ||
       (peekCh >= 65 /* `A` */ && peekCh <= 90) /* `Z` */ ||
       (peekCh >= 97 /* `a` */ && peekCh <= 122) /* `z` */
     ) {
@@ -922,17 +1057,20 @@ function materializeFromVNodeData(
       vnode_setProp(vParent, ELEMENT_KEY, consumeValue());
     } else if (peek() === 91 /* `[` */) {
       vnode_setProp(vParent, ELEMENT_SEQ, consumeValue());
+    } else if (peek() === 124 /* `|` */) {
+      const key = consumeValue();
+      const value = consumeValue();
+      vnode_setProp(vParent as VirtualVNode, key, value);
     } else if (peek() === 123 /* `{` */) {
       consume();
       addVNode(vnode_newVirtual(vParent));
-      stack.push(vParent, vFirst, vLast, child, previousTextNode);
+      stack.push(vParent, vFirst, vLast, previousTextNode);
       vParent = vLast as ElementVNode | VirtualVNode;
       vFirst = vLast = null;
     } else if (peek() === 125 /* `}` */) {
       consume();
       vParent[ElementVNodeProps.lastChild] = vLast;
       previousTextNode = stack.pop();
-      child = stack.pop();
       vLast = stack.pop();
       vFirst = stack.pop();
       vParent = stack.pop();

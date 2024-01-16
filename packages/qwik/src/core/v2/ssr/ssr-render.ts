@@ -13,6 +13,7 @@ import type { SSRContainer, SsrAttrs } from './types';
 import { isQrl } from '../../qrl/qrl-class';
 import { Virtual } from '../../render/jsx/jsx-runtime';
 import { ELEMENT_KEY, ELEMENT_PROPS, ELEMENT_QRL, OnRenderProp } from '../../util/markers';
+import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
 
 export async function ssrRenderToContainer(ssr: SSRContainer, jsx: JSXNode | JSXNode[]) {
   ssr.openContainer();
@@ -48,6 +49,9 @@ export function asyncWalkJSX(ssr: SSRContainer, value: any): Promise<void> {
         } else if (value === ssr.closeFragment) {
           ssr.closeFragment();
           continue;
+        } else if (value === ssr.closeComponent) {
+          ssr.closeComponent();
+          continue;
         }
       } else if (typeof value === 'object' && value !== null) {
         if (isPromise(value)) {
@@ -68,6 +72,51 @@ export function asyncWalkJSX(ssr: SSRContainer, value: any): Promise<void> {
   };
   drain();
   return drained;
+}
+
+export function syncWalkJSX(ssr: SSRContainer, value: any) {
+  const stack: any[] = [value];
+  const enqueue = (value: any, closingValue?: Function) => {
+    if (closingValue != null) {
+      stack.push(closingValue);
+    }
+    stack.push(value);
+  };
+  const resolveValue = (value: any) => {
+    stack.push(value);
+    drain();
+  };
+  const drain = () => {
+    while (stack.length) {
+      const value = stack.pop();
+      if (typeof value === 'function') {
+        if (value === ssr.closeElement) {
+          ssr.closeElement();
+          continue;
+        } else if (value === ssr.closeFragment) {
+          ssr.closeFragment();
+          continue;
+        } else if (value === ssr.closeComponent) {
+          ssr.closeComponent();
+          continue;
+        } else if (isQwikComponent(value)) {
+          // don't expand components;
+          continue;
+        }
+      } else if (typeof value === 'object' && value !== null) {
+        if (isPromise(value)) {
+          throw new Error('Promises not expected here.');
+        } else if (Array.isArray(value)) {
+          for (let i = value.length - 1; i >= 0; --i) {
+            stack.push(value[i]);
+          }
+          continue;
+        }
+      }
+      processJSXNode(ssr, enqueue, value);
+    }
+  };
+  drain();
 }
 
 function processJSXNode(
@@ -99,15 +148,21 @@ function processJSXNode(
           ssr.openFragment(toSsrAttrs(jsx.props, ssr.serializationCtx));
           enqueue(jsx.children, ssr.closeFragment);
         } else if (type === Slot) {
-          throw new Error('Not implemented:' + type);
-        } else if (type === Virtual) {
-          enqueue(applyQwikComponentBody(jsx, ssr));
-        } else if (isQwikComponent(type)) {
-          const virtual = applyQwikComponentHost(jsx, type, ssr);
-          if (virtual) {
-            ssr.openFragment([]);
-            enqueue(virtual, ssr.closeFragment);
+          const componentFrame = ssr.getCurrentComponentFrame()!;
+          ssr.openFragment([':', componentFrame.componentNode.id]);
+          const node = ssr.getLastNode();
+          const slotName = String(jsx.props.name || '');
+          const slotDefaultChildren = (jsx.props.children || null) as JSXChildren | null;
+          const slotChildren =
+            componentFrame.consumeChildrenForSlot(node, slotName) || slotDefaultChildren;
+          if (slotDefaultChildren && slotChildren !== slotDefaultChildren) {
+            ssr.addUnclaimedProjection(node, '', slotDefaultChildren);
           }
+          enqueue(slotChildren, ssr.closeFragment);
+        } else if (isQwikComponent(type)) {
+          ssr.openComponent([]);
+          ssr.getCurrentComponentFrame()!.distributeChildrenIntoSlots(jsx.children);
+          enqueue(applyQwikComponentBody(ssr, jsx, type), ssr.closeComponent);
         } else {
           enqueue(applyInlineComponent(type, jsx as JSXNode<Function>));
         }

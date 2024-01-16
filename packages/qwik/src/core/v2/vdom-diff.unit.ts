@@ -1,19 +1,27 @@
 import { Fragment, type JSXNode } from '@builder.io/qwik/jsx-runtime';
-import { expect, describe, it } from 'vitest';
-import type { ElementVNode, TextVNode, VNode } from './client/types';
+import { describe, expect, it } from 'vitest';
+import { isJSXNode } from '../render/jsx/jsx-runtime';
+import type { ElementVNode, QDocument, TextVNode, VNode } from './client/types';
 import {
+  vnode_getElementName,
   vnode_getFirstChild,
   vnode_getNextSibling,
+  vnode_getParent,
   vnode_getProp,
   vnode_getPropKeys,
-  vnode_getElementName,
   vnode_getText,
+  vnode_insertBefore,
   vnode_isElementVNode,
   vnode_isTextVNode,
   vnode_isVirtualVNode,
+  vnode_newText,
+  vnode_newUnMaterializedElement,
+  vnode_setProp,
 } from './client/vnode';
 import { isStringifiable, type Stringifiable } from './shared-types';
-import { isJSXNode } from '../render/jsx/jsx-runtime';
+
+import { createDocument } from '@builder.io/qwik-dom';
+import type { VirtualVNode } from './client/types';
 
 describe('vdom-diff.unit', () => {
   it('empty placeholder test to suppress warning', () => {});
@@ -196,4 +204,41 @@ export function walkJSX(
       throw new Error('Unknown type: ' + child);
     }
   }
+}
+
+export function vnode_fromJSX(jsx: JSXNode) {
+  const doc = createDocument() as QDocument;
+  doc.qVNodeData = new WeakMap();
+  const vBody = vnode_newUnMaterializedElement(null, doc.body);
+  let vParent: ElementVNode | VirtualVNode = vBody;
+  walkJSX(jsx, {
+    enter: (jsx) => {
+      const type = jsx.type;
+      if (typeof type === 'string') {
+        const child = vnode_newUnMaterializedElement(vParent, doc.createElement(type));
+        vnode_insertBefore(vParent, null, child);
+
+        const props = jsx.props;
+        for (const key in props) {
+          if (Object.prototype.hasOwnProperty.call(props, key)) {
+            vnode_setProp(child, key, String(props[key]));
+          }
+        }
+        vParent = child;
+      } else {
+        throw new Error('Unknown type:' + type);
+      }
+    },
+    leave: (jsx) => {
+      vParent = vnode_getParent(vParent) as any;
+    },
+    text: (value) => {
+      vnode_insertBefore(
+        vParent,
+        null,
+        vnode_newText(vParent, doc.createTextNode(String(value)), String(value))
+      );
+    },
+  });
+  return { vParent, vNode: vnode_getFirstChild(vParent) };
 }

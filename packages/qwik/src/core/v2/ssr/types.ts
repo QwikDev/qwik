@@ -91,7 +91,11 @@ export class SsrComponentFrame {
         const child = children[i];
         if (isJSXNode(child)) {
           const slotName = (child.props[QSlot] || '') as string;
-          mapArray_set(this.slots, slotName, child, 0);
+          if (slotName === '') {
+            defaultSlot.push(child);
+          } else {
+            mapArray_set(this.slots, slotName, child, 0);
+          }
         } else {
           defaultSlot.push(child);
         }

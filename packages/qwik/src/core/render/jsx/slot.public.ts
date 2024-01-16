@@ -11,7 +11,7 @@ import type { JSXChildren } from './types/jsx-qwik-attributes';
  */
 export const Slot: FunctionComponent<{
   name?: string;
-  children: JSXChildren;
+  children?: JSXChildren;
 }> = (props) => {
   return _jsxC(
     Virtual,

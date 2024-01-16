@@ -452,7 +452,8 @@ interface HTMLAttributesBase extends AriaAttributes {
   popover?: 'manual' | 'auto' | undefined;
 }
 
-interface HTMLElementAttrs extends HTMLAttributesBase, FilterBase<HTMLElement> {}
+/** @public */
+export interface HTMLElementAttrs extends HTMLAttributesBase, FilterBase<HTMLElement> {}
 
 /** @public */
 export interface HTMLAttributes<E extends Element> extends HTMLElementAttrs, DOMAttributes<E> {}

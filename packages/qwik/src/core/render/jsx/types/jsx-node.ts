@@ -33,7 +33,11 @@ export interface DevJSX {
   stack?: string;
 }
 
-/** @public */
+/**
+ * A JSX Node, an internal structure. You probably want to use `JSXOutput` instead.
+ *
+ * @public
+ */
 export interface JSXNode<T extends string | FunctionComponent | unknown = unknown> {
   type: T;
   props: T extends FunctionComponent<infer B> ? B : Record<any, unknown>;

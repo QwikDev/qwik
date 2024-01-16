@@ -1,7 +1,7 @@
 import { assertType, describe, expectTypeOf, test } from 'vitest';
 import { $ } from '../../../qrl/qrl.public';
 import type { EventHandler, QRLEventHandlerMulti } from './jsx-qwik-attributes';
-import type { FunctionComponent, JSXNode } from './jsx-node';
+import type { FunctionComponent, JSXOutput } from './jsx-node';
 import type { QwikIntrinsicElements } from './jsx-qwik-elements';
 import type { JSXChildren } from './jsx-qwik-attributes';
 import { component$, type PropsOf, type PublicProps } from '../../../component/component.public';
@@ -12,7 +12,7 @@ describe('types', () => {
   // Note, these type checks happen at compile time. We don't need to call anything, so we do ()=>()=>. We just need to
   // make sure the type check runs.
   test('basic', () => () => {
-    expectTypeOf(<div />).toEqualTypeOf<JSXNode>();
+    expectTypeOf(<div />).toEqualTypeOf<JSXOutput>();
     expectTypeOf<QRLEventHandlerMulti<PointerEvent, HTMLDivElement>>().toMatchTypeOf<
       QwikIntrinsicElements['div']['onAuxClick$']
     >();

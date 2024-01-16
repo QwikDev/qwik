@@ -11,7 +11,6 @@ import {
   type ResourceReturnInternal,
 } from './use-task';
 import { Fragment, jsx } from '../render/jsx/jsx-runtime';
-import type { JSXNode } from '../render/jsx/types/jsx-node';
 import { isServerPlatform } from '../platform/platform';
 import { untrack, useBindInvokeContext } from './use-core';
 
@@ -22,6 +21,7 @@ import { getProxyTarget } from '../state/common';
 import { isSignal, type Signal } from '../state/signal';
 import { isObject } from '../util/types';
 import { isPromise } from '../util/promises';
+import type { JSXOutput } from '../render/jsx/types/jsx-node';
 
 /**
  * Options to pass to `useResource$()`
@@ -188,9 +188,9 @@ export const useResource$ = <T>(
 /** @public */
 export interface ResourceProps<T> {
   readonly value: ResourceReturn<T> | Signal<Promise<T> | T> | Promise<T>;
-  onResolved: (value: T) => JSXNode;
-  onPending?: () => JSXNode;
-  onRejected?: (reason: Error) => JSXNode;
+  onResolved: (value: T) => JSXOutput;
+  onPending?: () => JSXOutput;
+  onRejected?: (reason: Error) => JSXOutput;
 }
 
 // <docs markdown="../readme.md#useResource">
@@ -248,7 +248,7 @@ export interface ResourceProps<T> {
  * @see ResourceReturn
  */
 // </docs>
-export const Resource = <T>(props: ResourceProps<T>): JSXNode => {
+export const Resource = <T>(props: ResourceProps<T>): JSXOutput => {
   const isBrowser = !isServerPlatform();
   const resource = props.value as ResourceReturnInternal<T> | Promise<T> | Signal<T>;
   let promise: Promise<T> | undefined;

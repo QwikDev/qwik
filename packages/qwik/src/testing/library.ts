@@ -1,6 +1,6 @@
-import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
 import { ElementFixture, trigger } from './element-fixture';
 import { setTestPlatform } from './platform';
+import type { JSXOutput } from '@builder.io/qwik';
 
 /**
  * CreatePlatform and CreateDocument
@@ -12,7 +12,7 @@ export const createDOM = async function ({ html }: { html?: string } = {}) {
   setTestPlatform(qwik.setPlatform);
   const host = new ElementFixture({ html }).host;
   return {
-    render: function (jsxElement: JSXNode) {
+    render: function (jsxElement: JSXOutput) {
       return qwik.render(host, jsxElement);
     },
     screen: host,

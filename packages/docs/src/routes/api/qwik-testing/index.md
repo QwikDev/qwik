@@ -12,7 +12,7 @@ CreatePlatform and CreateDocument
 createDOM: ({ html }?: { html?: string | undefined }) =>
   Promise<{
     render: (
-      jsxElement: JSXNode,
+      jsxElement: JSXOutput,
     ) => Promise<import("@builder.io/qwik").RenderResult>;
     screen: HTMLElement;
     userEvent: (

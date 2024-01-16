@@ -953,7 +953,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface HTMLAttributes<E extends Element> extends HTMLElementAttrs, DOMAttributes<E> \n```\n**Extends:** HTMLElementAttrs, [DOMAttributes](#domattributes)<!-- -->&lt;E&gt;",
+      "content": "```typescript\nexport interface HTMLAttributes<E extends Element> extends HTMLElementAttrs, DOMAttributes<E> \n```\n**Extends:** [HTMLElementAttrs](#htmlelementattrs)<!-- -->, [DOMAttributes](#domattributes)<!-- -->&lt;E&gt;",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts",
       "mdFile": "qwik.htmlattributes.md"
     },
@@ -970,6 +970,20 @@
       "content": "```typescript\nexport type HTMLCrossOriginAttribute = 'anonymous' | 'use-credentials' | '' | undefined;\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts",
       "mdFile": "qwik.htmlcrossoriginattribute.md"
+    },
+    {
+      "name": "HTMLElementAttrs",
+      "id": "htmlelementattrs",
+      "hierarchy": [
+        {
+          "name": "HTMLElementAttrs",
+          "id": "htmlelementattrs"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface HTMLElementAttrs extends HTMLAttributesBase, FilterBase<HTMLElement> \n```\n**Extends:** HTMLAttributesBase, FilterBase&lt;HTMLElement&gt;",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts",
+      "mdFile": "qwik.htmlelementattrs.md"
     },
     {
       "name": "HTMLFragment",
@@ -1899,6 +1913,20 @@
       "mdFile": "qwik.qwikanimationevent.md"
     },
     {
+      "name": "QwikAttributes",
+      "id": "qwikattributes",
+      "hierarchy": [
+        {
+          "name": "QwikAttributes",
+          "id": "qwikattributes"
+        }
+      ],
+      "kind": "Interface",
+      "content": "The Qwik DOM attributes without plain handlers, for use as function parameters\n\n\n```typescript\nexport interface QwikAttributes<EL extends Element> extends QwikAttributesBase, RefAttr<EL>, QwikEvents<EL, false> \n```\n**Extends:** QwikAttributesBase, RefAttr&lt;EL&gt;, QwikEvents&lt;EL, false&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [class?](#) |  | [ClassList](#classlist) \\| undefined | _(Optional)_ |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts",
+      "mdFile": "qwik.qwikattributes.md"
+    },
+    {
       "name": "QwikChangeEvent",
       "id": "qwikchangeevent",
       "hierarchy": [
@@ -1992,7 +2020,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "The DOM props without plain handlers, for use inside functions\n\n\n```typescript\nexport type QwikHTMLElements = {\n    [tag in keyof HTMLElementTagNameMap]: Augmented<HTMLElementTagNameMap[tag], SpecialAttrs[tag]> & HTMLElementAttrs & QwikAttributes<HTMLElementTagNameMap[tag]>;\n};\n```",
+      "content": "The DOM props without plain handlers, for use inside functions\n\n\n```typescript\nexport type QwikHTMLElements = {\n    [tag in keyof HTMLElementTagNameMap]: Augmented<HTMLElementTagNameMap[tag], SpecialAttrs[tag]> & HTMLElementAttrs & QwikAttributes<HTMLElementTagNameMap[tag]>;\n};\n```\n**References:** [HTMLElementAttrs](#htmlelementattrs)<!-- -->, [QwikAttributes](#qwikattributes)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts",
       "mdFile": "qwik.qwikhtmlelements.md"
     },
@@ -2776,7 +2804,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface SVGProps<T extends Element> extends SVGAttributes, QwikAttributes<T> \n```\n**Extends:** [SVGAttributes](#svgattributes)<!-- -->, QwikAttributes&lt;T&gt;",
+      "content": "```typescript\nexport interface SVGProps<T extends Element> extends SVGAttributes, QwikAttributes<T> \n```\n**Extends:** [SVGAttributes](#svgattributes)<!-- -->, [QwikAttributes](#qwikattributes)<!-- -->&lt;T&gt;",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts",
       "mdFile": "qwik.svgprops.md"
     },

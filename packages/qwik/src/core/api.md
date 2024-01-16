@@ -315,14 +315,19 @@ export type HTMLAttributeAnchorTarget = '_self' | '_blank' | '_parent' | '_top' 
 // @public (undocumented)
 export type HTMLAttributeReferrerPolicy = ReferrerPolicy;
 
-// Warning: (ae-forgotten-export) The symbol "HTMLElementAttrs" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
 export interface HTMLAttributes<E extends Element> extends HTMLElementAttrs, DOMAttributes<E> {
 }
 
 // @public (undocumented)
 export type HTMLCrossOriginAttribute = 'anonymous' | 'use-credentials' | '' | undefined;
+
+// Warning: (ae-forgotten-export) The symbol "HTMLAttributesBase" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "FilterBase" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export interface HTMLElementAttrs extends HTMLAttributesBase, FilterBase<HTMLElement> {
+}
 
 // @public (undocumented)
 export const HTMLFragment: FunctionComponent<{
@@ -681,6 +686,12 @@ export interface QuoteHTMLAttributes<T extends Element> extends Attrs<'q', T> {
 // @public @deprecated (undocumented)
 export type QwikAnimationEvent<T = Element> = NativeAnimationEvent;
 
+// @public
+export interface QwikAttributes<EL extends Element> extends QwikAttributesBase, RefAttr<EL>, QwikEvents<EL, false> {
+    // (undocumented)
+    class?: ClassList | undefined;
+}
+
 // @public @deprecated (undocumented)
 export type QwikChangeEvent<T = Element> = Event;
 
@@ -700,8 +711,6 @@ export type QwikDragEvent<T = Element> = NativeDragEvent;
 // @public @deprecated (undocumented)
 export type QwikFocusEvent<T = Element> = NativeFocusEvent;
 
-// Warning: (ae-forgotten-export) The symbol "QwikAttributes" needs to be exported by the entry point index.d.ts
-//
 // @public
 export type QwikHTMLElements = {
     [tag in keyof HTMLElementTagNameMap]: Augmented<HTMLElementTagNameMap[tag], SpecialAttrs[tag]> & HTMLElementAttrs & QwikAttributes<HTMLElementTagNameMap[tag]>;

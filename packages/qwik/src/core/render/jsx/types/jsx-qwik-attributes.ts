@@ -260,7 +260,7 @@ export interface DOMAttributes<EL extends Element>
   class?: ClassList | Signal<ClassList> | undefined;
 }
 
-/** The Qwik DOM attributes without plain handlers, for use as function parameters */
+/** The Qwik DOM attributes without plain handlers, for use as function parameters @public */
 export interface QwikAttributes<EL extends Element>
   extends QwikAttributesBase,
     RefAttr<EL>,

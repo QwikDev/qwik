@@ -139,7 +139,7 @@
     "build.wasm": "tsm scripts/index.ts --wasm",
     "build.watch": "tsm scripts/index.ts --build  --qwikcity --watch --dev --platform-binding",
     "cli": "pnpm build.cli && node packages/create-qwik/dist/create-qwik.cjs && tsm scripts/validate-cli.ts --copy-local-qwik-dist",
-    "cli.qwik": "pnpm build.cli && node packages/qwik/dist/qwik.cjs",
+    "cli.qwik": "pnpm build.cli && node packages/qwik/qwik-cli.cjs",
     "cli.validate": "tsm scripts/validate-cli.ts",
     "commit": "git-cz",
     "deps": "pnpm upgrade -i -r --latest",

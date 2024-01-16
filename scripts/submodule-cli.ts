@@ -44,7 +44,7 @@ export async function submoduleCli(config: BuildConfig) {
 
   await copyFile(
     join(config.srcQwikDir, submodule, 'qwik.cjs'),
-    join(config.distQwikPkgDir, 'qwik.cjs')
+    join(config.distQwikPkgDir, 'qwik-cli.cjs')
   );
 
   await copyStartersDir(config, config.distQwikPkgDir, ['features', 'adapters']);

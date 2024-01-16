@@ -1,5 +1,5 @@
 import { createDocument } from '@builder.io/qwik-dom';
-import { Fragment, type JSXNode } from '@builder.io/qwik/jsx-runtime';
+import { Fragment, Fragment as Component, type JSXNode } from '@builder.io/qwik/jsx-runtime';
 import { describe, expect, it } from 'vitest';
 import { component$ } from '../component/component.public';
 import { notifyChange } from '../render/dom/notify-render';
@@ -153,6 +153,42 @@ describe('v2 render', () => {
           <q:template style="display:none">
             <Fragment>default-value</Fragment>
           </q:template>
+        );
+      });
+      it('should render nested projection', async () => {
+        const Child = component$(() => {
+          return (
+            <div>
+              <Slot />
+            </div>
+          );
+        });
+        const Parent = component$(() => {
+          return (
+            <Child>
+              before
+              <Child>inner</Child>
+              after
+            </Child>
+          );
+        });
+        const { vNode } = await ssrRenderToDom(<Parent>second 3</Parent>, { debug: true });
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <Component>
+              <div>
+                <Fragment>
+                  before
+                  <Component>
+                    <div>
+                      <Fragment>inner</Fragment>
+                    </div>
+                  </Component>
+                  after
+                </Fragment>
+              </div>
+            </Component>
+          </Component>
         );
       });
     });

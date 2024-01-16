@@ -74,6 +74,7 @@ export function asyncWalkJSX(ssr: SSRContainer, value: any): Promise<void> {
   return drained;
 }
 
+// TODO(misko): can we dedup with `asyncWalkJSX`
 export function syncWalkJSX(ssr: SSRContainer, value: any) {
   const stack: any[] = [value];
   const enqueue = (value: any, closingValue?: Function) => {
@@ -81,10 +82,6 @@ export function syncWalkJSX(ssr: SSRContainer, value: any) {
       stack.push(closingValue);
     }
     stack.push(value);
-  };
-  const resolveValue = (value: any) => {
-    stack.push(value);
-    drain();
   };
   const drain = () => {
     while (stack.length) {

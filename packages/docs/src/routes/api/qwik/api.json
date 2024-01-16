@@ -676,45 +676,37 @@
     },
     {
       "name": "Element",
-      "id": "h-jsx-element",
+      "id": "qwikjsx-element",
       "hierarchy": [
         {
-          "name": "h",
-          "id": "h-jsx-element"
-        },
-        {
-          "name": "JSX",
-          "id": "h-jsx-element"
+          "name": "QwikJSX",
+          "id": "qwikjsx-element"
         },
         {
           "name": "Element",
-          "id": "h-jsx-element"
+          "id": "qwikjsx-element"
         }
       ],
-      "kind": "Interface",
-      "content": "```typescript\ninterface Element extends QwikJSX.Element \n```\n**Extends:** [QwikJSX.Element](#)",
-      "mdFile": "qwik.h.jsx.element.md"
+      "kind": "TypeAlias",
+      "content": "```typescript\ntype Element = JSXOutput;\n```\n**References:** [JSXOutput](#jsxoutput)",
+      "mdFile": "qwik.qwikjsx.element.md"
     },
     {
       "name": "ElementChildrenAttribute",
-      "id": "h-jsx-elementchildrenattribute",
+      "id": "qwikjsx-elementchildrenattribute",
       "hierarchy": [
         {
-          "name": "h",
-          "id": "h-jsx-elementchildrenattribute"
-        },
-        {
-          "name": "JSX",
-          "id": "h-jsx-elementchildrenattribute"
+          "name": "QwikJSX",
+          "id": "qwikjsx-elementchildrenattribute"
         },
         {
           "name": "ElementChildrenAttribute",
-          "id": "h-jsx-elementchildrenattribute"
+          "id": "qwikjsx-elementchildrenattribute"
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\ninterface ElementChildrenAttribute \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [children?](#) |  | any | _(Optional)_ |",
-      "mdFile": "qwik.h.jsx.elementchildrenattribute.md"
+      "content": "```typescript\ninterface ElementChildrenAttribute \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [children](#) |  | any |  |",
+      "mdFile": "qwik.qwikjsx.elementchildrenattribute.md"
     },
     {
       "name": "ElementType",
@@ -883,7 +875,7 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\nexport declare namespace h \n```\n\n\n|  Function | Description |\n|  --- | --- |\n|  [h(type)](#) |  |\n|  [h(type, data)](#) |  |\n|  [h(type, text)](#) |  |\n|  [h(type, children)](#) |  |\n|  [h(type, data, text)](#) |  |\n|  [h(type, data, children)](#) |  |\n|  [h(sel, data, children)](#) |  |\n\n\n|  Namespace | Description |\n|  --- | --- |\n|  [JSX](#h-jsx) |  |",
+      "content": "```typescript\nexport declare namespace h \n```\n\n\n|  Function | Description |\n|  --- | --- |\n|  [h(type)](#) |  |\n|  [h(type, data)](#) |  |\n|  [h(type, text)](#) |  |\n|  [h(type, children)](#) |  |\n|  [h(type, data, text)](#) |  |\n|  [h(type, data, children)](#) |  |\n|  [h(sel, data, children)](#) |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/factory.ts",
       "mdFile": "qwik.h.md"
     },
@@ -897,7 +889,7 @@
         }
       ],
       "kind": "Namespace",
-      "content": "```typescript\nexport declare namespace h \n```\n\n\n|  Function | Description |\n|  --- | --- |\n|  [h(type)](#) |  |\n|  [h(type, data)](#) |  |\n|  [h(type, text)](#) |  |\n|  [h(type, children)](#) |  |\n|  [h(type, data, text)](#) |  |\n|  [h(type, data, children)](#) |  |\n|  [h(sel, data, children)](#) |  |\n\n\n|  Namespace | Description |\n|  --- | --- |\n|  [JSX](#h-jsx) |  |",
+      "content": "```typescript\nexport declare namespace h \n```\n\n\n|  Function | Description |\n|  --- | --- |\n|  [h(type)](#) |  |\n|  [h(type, data)](#) |  |\n|  [h(type, text)](#) |  |\n|  [h(type, children)](#) |  |\n|  [h(type, data, text)](#) |  |\n|  [h(type, data, children)](#) |  |\n|  [h(sel, data, children)](#) |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/factory.ts",
       "mdFile": "qwik.h.md"
     },
@@ -1113,45 +1105,34 @@
     },
     {
       "name": "IntrinsicAttributes",
-      "id": "h-jsx-intrinsicattributes",
+      "id": "qwikjsx-intrinsicattributes",
       "hierarchy": [
         {
-          "name": "h",
-          "id": "h-jsx-intrinsicattributes"
-        },
-        {
-          "name": "JSX",
-          "id": "h-jsx-intrinsicattributes"
+          "name": "QwikJSX",
+          "id": "qwikjsx-intrinsicattributes"
         },
         {
           "name": "IntrinsicAttributes",
-          "id": "h-jsx-intrinsicattributes"
+          "id": "qwikjsx-intrinsicattributes"
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\ninterface IntrinsicAttributes extends QwikJSX.IntrinsicAttributes \n```\n**Extends:** [QwikJSX.IntrinsicAttributes](#)",
-      "mdFile": "qwik.h.jsx.intrinsicattributes.md"
+      "content": "```typescript\ninterface IntrinsicAttributes extends QwikIntrinsicAttributes \n```\n**Extends:** QwikIntrinsicAttributes",
+      "mdFile": "qwik.qwikjsx.intrinsicattributes.md"
     },
     {
       "name": "IntrinsicElements",
-      "id": "h-jsx-intrinsicelements",
+      "id": "intrinsicelements",
       "hierarchy": [
         {
-          "name": "h",
-          "id": "h-jsx-intrinsicelements"
-        },
-        {
-          "name": "JSX",
-          "id": "h-jsx-intrinsicelements"
-        },
-        {
           "name": "IntrinsicElements",
-          "id": "h-jsx-intrinsicelements"
+          "id": "intrinsicelements"
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\ninterface IntrinsicElements extends QwikJSX.IntrinsicElements \n```\n**Extends:** [QwikJSX.IntrinsicElements](#)",
-      "mdFile": "qwik.h.jsx.intrinsicelements.md"
+      "content": "```typescript\nexport interface IntrinsicElements extends IntrinsicHTMLElements, IntrinsicSVGElements \n```\n**Extends:** IntrinsicHTMLElements, IntrinsicSVGElements",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts",
+      "mdFile": "qwik.intrinsicelements.md"
     },
     {
       "name": "isSignal",
@@ -1180,23 +1161,6 @@
       "content": "```typescript\njsx: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS extends Record<any, any>> ? PROPS : Record<any, unknown>, key?: string | number | null) => JSXNode<T>\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts",
       "mdFile": "qwik.jsx.md"
-    },
-    {
-      "name": "JSX",
-      "id": "h-jsx",
-      "hierarchy": [
-        {
-          "name": "h",
-          "id": "h-jsx"
-        },
-        {
-          "name": "JSX",
-          "id": "h-jsx"
-        }
-      ],
-      "kind": "Namespace",
-      "content": "```typescript\nnamespace JSX \n```\n\n\n|  Interface | Description |\n|  --- | --- |\n|  [Element](#h-jsx-element) |  |\n|  [ElementChildrenAttribute](#h-jsx-elementchildrenattribute) |  |\n|  [IntrinsicAttributes](#h-jsx-intrinsicattributes) |  |\n|  [IntrinsicElements](#h-jsx-intrinsicelements) |  |",
-      "mdFile": "qwik.h.jsx.md"
     },
     {
       "name": "JSXChildren",
@@ -2090,7 +2054,7 @@
         }
       ],
       "kind": "Namespace",
-      "content": "```typescript\nexport declare namespace QwikJSX \n```\n\n\n|  Interface | Description |\n|  --- | --- |\n|  [Element](#) |  |\n|  [ElementChildrenAttribute](#) |  |\n|  [IntrinsicAttributes](#) |  |\n|  [IntrinsicElements](#) |  |\n\n\n|  Type Alias | Description |\n|  --- | --- |\n|  [ElementType](#qwikjsx-elementtype) |  |",
+      "content": "```typescript\nexport declare namespace QwikJSX \n```\n\n\n|  Interface | Description |\n|  --- | --- |\n|  [ElementChildrenAttribute](#qwikjsx-elementchildrenattribute) |  |\n|  [IntrinsicAttributes](#qwikjsx-intrinsicattributes) |  |\n|  [IntrinsicElements](#) |  |\n\n\n|  Type Alias | Description |\n|  --- | --- |\n|  [Element](#qwikjsx-element) |  |\n|  [ElementType](#qwikjsx-elementtype) |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik.ts",
       "mdFile": "qwik.qwikjsx.md"
     },
@@ -2272,7 +2236,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "Render JSX.\n\nUse this method to render JSX. This function does reconciling which means it always tries to reuse what is already in the DOM (rather then destroy and recreate content.) It returns a cleanup function you could use for cleaning up subscriptions.\n\n\n```typescript\nrender: (parent: Element | Document, jsxNode: JSXNode | FunctionComponent<any>, opts?: RenderOptions) => Promise<RenderResult>\n```",
+      "content": "Render JSX.\n\nUse this method to render JSX. This function does reconciling which means it always tries to reuse what is already in the DOM (rather then destroy and recreate content.) It returns a cleanup function you could use for cleaning up subscriptions.\n\n\n```typescript\nrender: (parent: Element | Document, jsxOutput: JSXOutput | FunctionComponent<any>, opts?: RenderOptions) => Promise<RenderResult>\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/dom/render.public.ts",
       "mdFile": "qwik.render.md"
     },
@@ -2342,7 +2306,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "This method works like an async memoized function that runs whenever some tracked value changes and returns some data.\n\n`useResource` however returns immediate a `ResourceReturn` object that contains the data and a state that indicates if the data is available or not.\n\nThe status can be one of the following:\n\n- 'pending' - the data is not yet available. - 'resolved' - the data is available. - 'rejected' - the data is not available due to an error or timeout.\n\n\\#\\#\\# Example\n\nExample showing how `useResource` to perform a fetch to request the weather, whenever the input city name changes.\n\n```tsx\nconst Cmp = component$(() => {\n  const cityS = useSignal('');\n\n  const weatherResource = useResource$(async ({ track, cleanup }) => {\n    const cityName = track(cityS);\n    const abortController = new AbortController();\n    cleanup(() => abortController.abort('cleanup'));\n    const res = await fetch(`http://weatherdata.com?city=${cityName}`, {\n      signal: abortController.signal,\n    });\n    const data = await res.json();\n    return data as { temp: number };\n  });\n\n  return (\n    <div>\n      <input name=\"city\" bind:value={cityS} />\n      <Resource\n        value={weatherResource}\n        onResolved={(weather) => {\n          return <div>Temperature: {weather.temp}</div>;\n        }}\n      />\n    </div>\n  );\n});\n```\n\n\n```typescript\nResource: <T>(props: ResourceProps<T>) => JSXNode\n```",
+      "content": "This method works like an async memoized function that runs whenever some tracked value changes and returns some data.\n\n`useResource` however returns immediate a `ResourceReturn` object that contains the data and a state that indicates if the data is available or not.\n\nThe status can be one of the following:\n\n- 'pending' - the data is not yet available. - 'resolved' - the data is available. - 'rejected' - the data is not available due to an error or timeout.\n\n\\#\\#\\# Example\n\nExample showing how `useResource` to perform a fetch to request the weather, whenever the input city name changes.\n\n```tsx\nconst Cmp = component$(() => {\n  const cityS = useSignal('');\n\n  const weatherResource = useResource$(async ({ track, cleanup }) => {\n    const cityName = track(cityS);\n    const abortController = new AbortController();\n    cleanup(() => abortController.abort('cleanup'));\n    const res = await fetch(`http://weatherdata.com?city=${cityName}`, {\n      signal: abortController.signal,\n    });\n    const data = await res.json();\n    return data as { temp: number };\n  });\n\n  return (\n    <div>\n      <input name=\"city\" bind:value={cityS} />\n      <Resource\n        value={weatherResource}\n        onResolved={(weather) => {\n          return <div>Temperature: {weather.temp}</div>;\n        }}\n      />\n    </div>\n  );\n});\n```\n\n\n```typescript\nResource: <T>(props: ResourceProps<T>) => JSXOutput\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts",
       "mdFile": "qwik.resource.md"
     },
@@ -2412,7 +2376,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface ResourceProps<T> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [onPending?](#) |  | () =&gt; [JSXNode](#jsxnode) | _(Optional)_ |\n|  [onRejected?](#) |  | (reason: Error) =&gt; [JSXNode](#jsxnode) | _(Optional)_ |\n|  [onResolved](#) |  | (value: T) =&gt; [JSXNode](#jsxnode) |  |\n|  [value](#) | <code>readonly</code> | [ResourceReturn](#resourcereturn)<!-- -->&lt;T&gt; \\| [Signal](#signal)<!-- -->&lt;Promise&lt;T&gt; \\| T&gt; \\| Promise&lt;T&gt; |  |",
+      "content": "```typescript\nexport interface ResourceProps<T> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [onPending?](#) |  | () =&gt; [JSXOutput](#jsxoutput) | _(Optional)_ |\n|  [onRejected?](#) |  | (reason: Error) =&gt; [JSXOutput](#jsxoutput) | _(Optional)_ |\n|  [onResolved](#) |  | (value: T) =&gt; [JSXOutput](#jsxoutput) |  |\n|  [value](#) | <code>readonly</code> | [ResourceReturn](#resourcereturn)<!-- -->&lt;T&gt; \\| [Signal](#signal)<!-- -->&lt;Promise&lt;T&gt; \\| T&gt; \\| Promise&lt;T&gt; |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts",
       "mdFile": "qwik.resourceprops.md"
     },

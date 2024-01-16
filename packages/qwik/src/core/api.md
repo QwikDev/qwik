@@ -284,23 +284,7 @@ namespace h {
     function h(type: any, data: any, children: Array<JSXNode<any> | undefined | null>): JSXNode<any>;
     // (undocumented)
     function h(sel: any, data: any | null, children: JSXNode<any>): JSXNode<any>;
-    // (undocumented)
-    namespace JSX {
-        // (undocumented)
-        interface Element extends QwikJSX.Element {
-        }
-        // (undocumented)
-        interface ElementChildrenAttribute {
-            // (undocumented)
-            children?: any;
-        }
-        // (undocumented)
-        interface IntrinsicAttributes extends QwikJSX.IntrinsicAttributes {
-        }
-        // (undocumented)
-        interface IntrinsicElements extends QwikJSX.IntrinsicElements {
-        }
-    }
+        { JSX };
 }
 export { h as createElement }
 export { h }
@@ -732,8 +716,7 @@ export type QwikInvalidEvent<T = Element> = Event;
 // @public (undocumented)
 export namespace QwikJSX {
     // (undocumented)
-    export interface Element extends JSXNode {
-    }
+    export type Element = JSXOutput;
     // (undocumented)
     export interface ElementChildrenAttribute {
         // (undocumented)
@@ -799,7 +782,7 @@ export type ReadonlySignal<T = unknown> = Readonly<Signal<T>>;
 export const _regSymbol: (symbol: any, hash: string) => any;
 
 // @public
-export const render: (parent: Element | Document, jsxNode: JSXNode | FunctionComponent<any>, opts?: RenderOptions) => Promise<RenderResult>;
+export const render: (parent: Element | Document, jsxOutput: JSXOutput | FunctionComponent<any>, opts?: RenderOptions) => Promise<RenderResult>;
 
 // @public (undocumented)
 export const RenderOnce: FunctionComponent<{
@@ -820,7 +803,7 @@ export interface RenderResult {
 }
 
 // @internal (undocumented)
-export const _renderSSR: (node: JSXNode, opts: RenderSSROptions) => Promise<void>;
+export const _renderSSR: (node: JSXOutput, opts: RenderSSROptions) => Promise<void>;
 
 // @public (undocumented)
 export interface RenderSSROptions {
@@ -843,7 +826,7 @@ export interface RenderSSROptions {
 }
 
 // @public
-export const Resource: <T>(props: ResourceProps<T>) => JSXNode;
+export const Resource: <T>(props: ResourceProps<T>) => JSXOutput;
 
 // @public (undocumented)
 export interface ResourceCtx<T> {
@@ -876,11 +859,11 @@ export interface ResourcePending<T> {
 // @public (undocumented)
 export interface ResourceProps<T> {
     // (undocumented)
-    onPending?: () => JSXNode;
+    onPending?: () => JSXOutput;
     // (undocumented)
-    onRejected?: (reason: Error) => JSXNode;
+    onRejected?: (reason: Error) => JSXOutput;
     // (undocumented)
-    onResolved: (value: T) => JSXNode;
+    onResolved: (value: T) => JSXOutput;
     // (undocumented)
     readonly value: ResourceReturn<T> | Signal<Promise<T> | T> | Promise<T>;
 }

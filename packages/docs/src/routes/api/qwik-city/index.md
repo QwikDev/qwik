@@ -364,7 +364,7 @@ export type FailReturn<T> = T & Failed;
 Form: <O, I>(
   { action, spaReset, reloadDocument, onSubmit$, ...rest }: FormProps<O, I>,
   key: string | null,
-) => QwikJSX.Element;
+) => import("@builder.io/qwik").JSXOutput;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/form-component.tsx)

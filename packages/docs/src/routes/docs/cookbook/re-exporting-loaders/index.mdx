@@ -2,6 +2,7 @@
 title: Cookbook | Re-exporting loaders
 contributors:
   - gioboa
+  - aendel
 updated_at: '2023-12-15T11:00:00Z'
 created_at: '2023-12-15T11:00:00Z'
 ---
@@ -13,7 +14,7 @@ import CodeSandbox, {CodeFile} from '../../../../components/code-sandbox/index.t
 `routeAction$` and `routeLoader$` are typically declared in route boundary files such as layout.tsx, index.tsx and plugin.tsx inside the routesDir directory
 [here is docs](https://qwik.builder.io/docs/route-loader/).
 
-Somethimes you would like to declared them outside of the route boundaries.
+Sometimes you would like to declared them outside of the route boundaries.
 This may be useful when you want to create reusable logic or a library.
 In such a case, it is essential that this function is re-exported from within the router boundary otherwise it will not run or throw exception.
 

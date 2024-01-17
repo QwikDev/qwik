@@ -18,11 +18,11 @@ export async function generatePackageJson(config: BuildConfig) {
     main: './core.mjs',
     types: './core.d.ts',
     bin: {
-      qwik: './qwik.cjs',
+      qwik: './qwik-cli.cjs',
     },
     type: 'module',
     peerDependencies: {
-      undici: '^5.14.0',
+      undici: '*',
     },
     dependencies: rootPkg.dependencies,
     exports: {

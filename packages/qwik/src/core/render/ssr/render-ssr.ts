@@ -2,7 +2,7 @@ import { isPromise, maybeThen } from '../../util/promises';
 import { type InvokeContext, newInvokeContext, invoke, trackSignal } from '../../use/use-core';
 import { Virtual, _jsxC, _jsxQ, createJSXError, isJSXNode } from '../jsx/jsx-runtime';
 import { isArray, isFunction, isString, type ValueOrPromise } from '../../util/types';
-import type { JSXNode } from '../jsx/types/jsx-node';
+import type { FunctionComponent, JSXNode, JSXOutput } from '../jsx/types/jsx-node';
 import {
   createRenderContext,
   executeComponent,
@@ -114,7 +114,7 @@ const createDocument = () => {
 };
 
 /** @internal */
-export const _renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
+export const _renderSSR = async (node: JSXOutput, opts: RenderSSROptions) => {
   const root = opts.containerTagName;
   const containerEl = createMockQContext(1).$element$;
   const containerState = createContainerState(containerEl as Element, opts.base ?? '/');
@@ -170,7 +170,7 @@ export const _renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
     containerState.$serverData$ = opts.serverData;
   }
 
-  node = _jsxQ(
+  const rootNode = _jsxQ(
     root,
     null,
     containerAttributes,
@@ -180,7 +180,7 @@ export const _renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
   );
   containerState.$hostsRendering$ = new Set();
   await Promise.resolve().then(() =>
-    renderRoot(node, rCtx, ssrCtx, opts.stream, containerState, opts)
+    renderRoot(rootNode, rCtx, ssrCtx, opts.stream, containerState, opts)
   );
 };
 
@@ -548,6 +548,13 @@ const renderNode = (
       throw new TypeError('Can only have one of class or className');
     }
     const handleProp = (rawProp: string, value: unknown, isImmutable: boolean) => {
+      if (rawProp === 'ref') {
+        if (value !== undefined) {
+          setRef(value, elm);
+          hasRef = true;
+        }
+        return;
+      }
       if (isOnProp(rawProp)) {
         setEvent(elCtx.li, rawProp, value, undefined);
         return;
@@ -601,15 +608,7 @@ const renderNode = (
       }
     }
     for (const prop in props) {
-      const value = props[prop];
-      if (prop === 'ref') {
-        if (value !== undefined) {
-          setRef(value, elm);
-          hasRef = true;
-        }
-        continue;
-      }
-      handleProp(prop, value, false);
+      handleProp(prop, props[prop], false);
     }
     const listeners = elCtx.li;
     if (hostCtx) {
@@ -827,7 +826,7 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
   // Inline component
   const res = invoke(
     ssrCtx.$invocationContext$,
-    tagName,
+    tagName as FunctionComponent,
     node.props,
     node.key,
     node.flags,

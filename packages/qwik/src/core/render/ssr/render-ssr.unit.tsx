@@ -1,4 +1,3 @@
-import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
 import { format } from 'prettier';
 
 import type { StreamWriter } from '../../../server/types';
@@ -18,6 +17,7 @@ import { _renderSSR, type RenderSSROptions } from './render-ssr';
 import { useStore } from '../../use/use-store.public';
 import { useSignal } from '../../use/use-signal';
 import { expect, test, vi } from 'vitest';
+import type { JSXOutput } from '../jsx/types/jsx-node';
 
 test('render attributes', async () => {
   await testSSR(
@@ -1839,7 +1839,7 @@ export const HtmlContext = component$(() => {
 });
 
 async function testSSR(
-  node: JSXNode,
+  node: JSXOutput,
   expected: string | string[],
   opts?: Partial<RenderSSROptions>
 ) {

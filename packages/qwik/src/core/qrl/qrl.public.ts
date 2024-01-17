@@ -160,7 +160,10 @@ type BivariantQrlFn<ARGS extends any[], RETURN> = {
   bivarianceHack(...args: ARGS): Promise<RETURN>;
 }['bivarianceHack'];
 
-/** @public */
+/**
+ * @deprecated Use `QRL<>` instead
+ * @public
+ */
 export type PropFnInterface<ARGS extends any[], RET> = {
   __qwik_serializable__?: any;
   (...args: ARGS): Promise<RET>;
@@ -168,12 +171,12 @@ export type PropFnInterface<ARGS extends any[], RET> = {
 
 let runtimeSymbolId = 0;
 
-/** @public */
-export type PropFunction<T extends Function = (...args: any) => any> = T extends (
-  ...args: infer ARGS
-) => infer RET
-  ? PropFnInterface<ARGS, Awaited<RET>>
-  : never;
+/**
+ * Alias for `QRL<T>`. Of historic relevance only.
+ *
+ * @public
+ */
+export type PropFunction<T> = QRL<T>;
 
 // <docs markdown="../readme.md#$">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!

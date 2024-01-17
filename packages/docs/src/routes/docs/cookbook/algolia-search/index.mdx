@@ -6,7 +6,7 @@ updated_at: '2024-01-09T11:00:00Z'
 created_at: '2024-01-09T11:00:00Z'
 ---
 
-import CodeSandbox, {CodeFile} from '../../../../components/code-sandbox/index.tsx';  
+import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
 
 # Algolia Search
 
@@ -34,7 +34,7 @@ Then obviously you can customize and create your graphical interface.
 Many times it makes sense to have a modal where you show the search and the results, such as the search you find in this Qwik documentation.
 You can check what Algolia returns via the [official documentation](https://www.algolia.com/doc/).
 
-<CodeSandbox url="/demo/cookbook/algolia-search/"  style={{ height: '20em' }}>
+<CodeSandbox src="/src/routes/demo/cookbook/algolia-search/"  style={{ height: '20em' }}>
 ```tsx
 import { $, component$, useSignal, useStylesScoped$ } from '@builder.io/qwik';
 
@@ -126,7 +126,7 @@ export default component$(() => {
     .list li .content .text {
       grid-area: text;
       color: black;
-    }    
+    }
   `);
   const termSignal = useSignal('');
   const hitsSig = useSignal<AlgoliaResult['hits']>([]);

@@ -115,10 +115,10 @@ export interface ColHTMLAttributes<T extends Element> extends Attrs<'col', T> {
 }
 
 // @public
-export const component$: <PROPS extends Record<any, any>>(onMount: (props: PROPS) => JSXNode | null) => Component<PROPS>;
+export const component$: <PROPS = unknown>(onMount: OnRenderFn<PROPS>) => Component<PROPS>;
 
 // @public
-export type Component<PROPS extends Record<any, any> = Record<string, unknown>> = FunctionComponent<PublicProps<PROPS>>;
+export type Component<PROPS = unknown> = FunctionComponent<PublicProps<PROPS>>;
 
 // @public (undocumented)
 export interface ComponentBaseProps {
@@ -246,11 +246,10 @@ export const Fragment: FunctionComponent<{
     key?: string | number | null;
 }>;
 
-// @public (undocumented)
-export interface FunctionComponent<P extends Record<any, any> = Record<any, unknown>> {
-    // (undocumented)
-    (props: P, key: string | null, flags: number, dev?: DevJSX): JSXNode | null;
-}
+// @public
+export type FunctionComponent<P extends Record<any, any> = Record<any, unknown>> = {
+    renderFn(props: P, key: string | null, flags: number, dev?: DevJSX): JSXOutput | Promise<JSXOutput>;
+}['renderFn'];
 
 // @internal (undocumented)
 export const _getContextElement: () => unknown;
@@ -285,23 +284,7 @@ namespace h {
     function h(type: any, data: any, children: Array<JSXNode<any> | undefined | null>): JSXNode<any>;
     // (undocumented)
     function h(sel: any, data: any | null, children: JSXNode<any>): JSXNode<any>;
-    // (undocumented)
-    namespace JSX {
-        // (undocumented)
-        interface Element extends QwikJSX.Element {
-        }
-        // (undocumented)
-        interface ElementChildrenAttribute {
-            // (undocumented)
-            children?: any;
-        }
-        // (undocumented)
-        interface IntrinsicAttributes extends QwikJSX.IntrinsicAttributes {
-        }
-        // (undocumented)
-        interface IntrinsicElements extends QwikJSX.IntrinsicElements {
-        }
-    }
+        { JSX };
 }
 export { h as createElement }
 export { h }
@@ -316,14 +299,19 @@ export type HTMLAttributeAnchorTarget = '_self' | '_blank' | '_parent' | '_top' 
 // @public (undocumented)
 export type HTMLAttributeReferrerPolicy = ReferrerPolicy;
 
-// Warning: (ae-forgotten-export) The symbol "HTMLElementAttrs" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
 export interface HTMLAttributes<E extends Element> extends HTMLElementAttrs, DOMAttributes<E> {
 }
 
 // @public (undocumented)
 export type HTMLCrossOriginAttribute = 'anonymous' | 'use-credentials' | '' | undefined;
+
+// Warning: (ae-forgotten-export) The symbol "HTMLAttributesBase" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "FilterBase" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export interface HTMLElementAttrs extends HTMLAttributesBase, FilterBase<HTMLElement> {
+}
 
 // @public (undocumented)
 export const HTMLFragment: FunctionComponent<{
@@ -416,16 +404,16 @@ export const _jsxBranch: <T>(input?: T | undefined) => T | undefined;
 // Warning: (ae-forgotten-export) The symbol "JsxDevOpts" needs to be exported by the entry point index.d.ts
 //
 // @internal
-export const _jsxC: <T extends string | FunctionComponent<Record<any, unknown>>>(type: T, mutableProps: (T extends FunctionComponent<infer PROPS extends Record<any, any>> ? PROPS : Record<any, unknown>) | null, flags: number, key: string | number | null, dev?: JsxDevOpts) => JSXNode<T>;
+export const _jsxC: <T extends string | FunctionComponent>(type: T, mutableProps: (T extends FunctionComponent<infer PROPS extends Record<any, any>> ? PROPS : Record<any, unknown>) | null, flags: number, key: string | number | null, dev?: JsxDevOpts) => JSXNode<T>;
 
 // @public (undocumented)
 export type JSXChildren = string | number | boolean | null | undefined | Function | RegExp | JSXChildren[] | Promise<JSXChildren> | Signal<JSXChildren> | JSXNode;
 
 // @public (undocumented)
-export const jsxDEV: <T extends string | FunctionComponent<Record<any, unknown>>>(type: T, props: T extends FunctionComponent<infer PROPS extends Record<any, any>> ? PROPS : Record<any, unknown>, key: string | number | null | undefined, _isStatic: boolean, opts: JsxDevOpts, _ctx: unknown) => JSXNode<T>;
+export const jsxDEV: <T extends string | FunctionComponent>(type: T, props: T extends FunctionComponent<infer PROPS extends Record<any, any>> ? PROPS : Record<any, unknown>, key: string | number | null | undefined, _isStatic: boolean, opts: JsxDevOpts, _ctx: unknown) => JSXNode<T>;
 
-// @public (undocumented)
-export interface JSXNode<T = string | FunctionComponent> {
+// @public
+export interface JSXNode<T extends string | FunctionComponent | unknown = unknown> {
     // (undocumented)
     children: JSXChildren | null;
     // (undocumented)
@@ -441,6 +429,9 @@ export interface JSXNode<T = string | FunctionComponent> {
     // (undocumented)
     type: T;
 }
+
+// @public
+export type JSXOutput = JSXNode | string | number | boolean | null | undefined | JSXOutput[];
 
 // @internal
 export const _jsxQ: <T extends string>(type: T, mutableProps: Record<any, unknown> | null, immutableProps: Record<any, unknown> | null, children: JSXChildren | null, flags: number, key: string | number | null, dev?: DevJSX) => JSXNode<T>;
@@ -565,7 +556,7 @@ export type _Only$<P> = {
 };
 
 // @public (undocumented)
-export type OnRenderFn<PROPS extends Record<any, any>> = (props: PROPS) => JSXNode | null;
+export type OnRenderFn<PROPS> = (props: PROPS) => JSXOutput;
 
 // @public (undocumented)
 export interface OnVisibleTaskOptions {
@@ -614,28 +605,31 @@ export const PrefetchServiceWorker: (opts: {
 export interface ProgressHTMLAttributes<T extends Element> extends Attrs<'progress', T> {
 }
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export type PropFnInterface<ARGS extends any[], RET> = {
     __qwik_serializable__?: any;
     (...args: ARGS): Promise<RET>;
 };
 
-// @public (undocumented)
-export type PropFunction<T extends Function = (...args: any) => any> = T extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, Awaited<RET>> : never;
+// @public
+export type PropFunction<T> = QRL<T>;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export type PropFunctionProps<PROPS extends Record<any, any>> = {
     [K in keyof PROPS]: PROPS[K] extends undefined ? PROPS[K] : PROPS[K] extends ((...args: infer ARGS) => infer RET) | undefined ? PropFnInterface<ARGS, Awaited<RET>> : PROPS[K];
 };
 
+// Warning: (ae-forgotten-export) The symbol "IsAny" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "ObjectProps" needs to be exported by the entry point index.d.ts
+//
 // @public
-export type PropsOf<COMP> = COMP extends Component<infer PROPS> ? NonNullable<PROPS> : COMP extends FunctionComponent<infer PROPS> ? NonNullable<PublicProps<PROPS>> : COMP extends keyof QwikIntrinsicElements ? QwikIntrinsicElements[COMP] : COMP extends string ? QwikIntrinsicElements['span'] : Record<string, unknown>;
+export type PropsOf<COMP> = COMP extends string ? COMP extends keyof QwikIntrinsicElements ? QwikIntrinsicElements[COMP] : QwikIntrinsicElements['span'] : NonNullable<COMP> extends never ? never : COMP extends FunctionComponent<infer PROPS> ? PROPS extends Record<any, infer V> ? IsAny<V> extends true ? never : ObjectProps<PROPS> : COMP extends Component<infer OrigProps> ? ObjectProps<OrigProps> : PROPS : never;
 
 // Warning: (ae-forgotten-export) The symbol "ComponentChildren" needs to be exported by the entry point index.d.ts
 // Warning: (ae-incompatible-release-tags) The symbol "PublicProps" is marked as @public, but its signature references "_Only$" which is marked as @internal
 //
 // @public
-export type PublicProps<PROPS extends Record<any, any>> = Omit<PROPS, `${string}$`> & _Only$<PROPS> & ComponentBaseProps & ComponentChildren<PROPS>;
+export type PublicProps<PROPS> = (PROPS extends Record<any, any> ? Omit<PROPS, `${string}$`> & _Only$<PROPS> : unknown extends PROPS ? {} : PROPS) & ComponentBaseProps & ComponentChildren<PROPS>;
 
 // Warning: (ae-forgotten-export) The symbol "BivariantQrlFn" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "QrlArgs" needs to be exported by the entry point index.d.ts
@@ -676,6 +670,12 @@ export interface QuoteHTMLAttributes<T extends Element> extends Attrs<'q', T> {
 // @public @deprecated (undocumented)
 export type QwikAnimationEvent<T = Element> = NativeAnimationEvent;
 
+// @public
+export interface QwikAttributes<EL extends Element> extends QwikAttributesBase, RefAttr<EL>, QwikEvents<EL, false> {
+    // (undocumented)
+    class?: ClassList | undefined;
+}
+
 // @public @deprecated (undocumented)
 export type QwikChangeEvent<T = Element> = Event;
 
@@ -695,8 +695,6 @@ export type QwikDragEvent<T = Element> = NativeDragEvent;
 // @public @deprecated (undocumented)
 export type QwikFocusEvent<T = Element> = NativeFocusEvent;
 
-// Warning: (ae-forgotten-export) The symbol "QwikAttributes" needs to be exported by the entry point index.d.ts
-//
 // @public
 export type QwikHTMLElements = {
     [tag in keyof HTMLElementTagNameMap]: Augmented<HTMLElementTagNameMap[tag], SpecialAttrs[tag]> & HTMLElementAttrs & QwikAttributes<HTMLElementTagNameMap[tag]>;
@@ -718,15 +716,14 @@ export type QwikInvalidEvent<T = Element> = Event;
 // @public (undocumented)
 export namespace QwikJSX {
     // (undocumented)
-    export interface Element extends JSXNode {
-    }
+    export type Element = JSXOutput;
     // (undocumented)
     export interface ElementChildrenAttribute {
         // (undocumented)
         children: any;
     }
     // (undocumented)
-    export type ElementType = string | ((...args: any[]) => JSXNode | null);
+    export type ElementType = string | FunctionComponent<Record<any, any>>;
     // Warning: (ae-forgotten-export) The symbol "QwikIntrinsicAttributes" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
@@ -785,7 +782,7 @@ export type ReadonlySignal<T = unknown> = Readonly<Signal<T>>;
 export const _regSymbol: (symbol: any, hash: string) => any;
 
 // @public
-export const render: (parent: Element | Document, jsxNode: JSXNode | FunctionComponent<any>, opts?: RenderOptions) => Promise<RenderResult>;
+export const render: (parent: Element | Document, jsxOutput: JSXOutput | FunctionComponent<any>, opts?: RenderOptions) => Promise<RenderResult>;
 
 // @public (undocumented)
 export const RenderOnce: FunctionComponent<{
@@ -806,7 +803,7 @@ export interface RenderResult {
 }
 
 // @internal (undocumented)
-export const _renderSSR: (node: JSXNode, opts: RenderSSROptions) => Promise<void>;
+export const _renderSSR: (node: JSXOutput, opts: RenderSSROptions) => Promise<void>;
 
 // @public (undocumented)
 export interface RenderSSROptions {
@@ -829,7 +826,7 @@ export interface RenderSSROptions {
 }
 
 // @public
-export const Resource: <T>(props: ResourceProps<T>) => JSXNode;
+export const Resource: <T>(props: ResourceProps<T>) => JSXOutput;
 
 // @public (undocumented)
 export interface ResourceCtx<T> {
@@ -862,11 +859,11 @@ export interface ResourcePending<T> {
 // @public (undocumented)
 export interface ResourceProps<T> {
     // (undocumented)
-    onPending?: () => JSXNode;
+    onPending?: () => JSXOutput;
     // (undocumented)
-    onRejected?: (reason: Error) => JSXNode;
+    onRejected?: (reason: Error) => JSXOutput;
     // (undocumented)
-    onResolved: (value: T) => JSXNode;
+    onResolved: (value: T) => JSXOutput;
     // (undocumented)
     readonly value: ResourceReturn<T> | Signal<Promise<T> | T> | Promise<T>;
 }

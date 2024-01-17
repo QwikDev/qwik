@@ -404,9 +404,7 @@ const MyComponent: Component<MyComponentProps> = component$(
 ```
 
 ```typescript
-export type Component<
-  PROPS extends Record<any, any> = Record<string, unknown>,
-> = FunctionComponent<PublicProps<PROPS>>;
+export type Component<PROPS = unknown> = FunctionComponent<PublicProps<PROPS>>;
 ```
 
 **References:** [FunctionComponent](#functioncomponent), [PublicProps](#publicprops)
@@ -456,9 +454,7 @@ export const OtherComponent = component$(() => {
 See also: `component`, `useCleanup`, `onResume`, `onPause`, `useOn`, `useOnDocument`, `useOnWindow`, `useStyles`
 
 ```typescript
-component$: <PROPS extends Record<any, any>>(
-  onMount: (props: PROPS) => JSXNode | null,
-) => Component<PROPS>;
+component$: <PROPS = unknown>(onMount: OnRenderFn<PROPS>) => Component<PROPS>;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts)
@@ -764,10 +760,10 @@ export type EagernessOptions = "visible" | "load" | "idle";
 ## Element
 
 ```typescript
-interface Element extends QwikJSX.Element
+type Element = JSXOutput;
 ```
 
-**Extends:** [QwikJSX.Element](#)
+**References:** [JSXOutput](#jsxoutput)
 
 ## ElementChildrenAttribute
 
@@ -775,17 +771,17 @@ interface Element extends QwikJSX.Element
 interface ElementChildrenAttribute
 ```
 
-| Property       | Modifiers | Type | Description  |
-| -------------- | --------- | ---- | ------------ |
-| [children?](#) |           | any  | _(Optional)_ |
+| Property      | Modifiers | Type | Description |
+| ------------- | --------- | ---- | ----------- |
+| [children](#) |           | any  |             |
 
 ## ElementType
 
 ```typescript
-type ElementType = string | ((...args: any[]) => JSXNode | null);
+type ElementType = string | FunctionComponent<Record<any, any>>;
 ```
 
-**References:** [JSXNode](#jsxnode)
+**References:** [FunctionComponent](#functioncomponent)
 
 ## EmbedHTMLAttributes
 
@@ -870,9 +866,26 @@ Fragment: FunctionComponent<{
 
 ## FunctionComponent
 
+Any sync or async function that returns JSXOutput.
+
+Note that this includes QRLs.
+
+The `key`, `flags` and `dev` parameters are for internal use.
+
 ```typescript
-export interface FunctionComponent<P extends Record<any, any> = Record<any, unknown>>
+export type FunctionComponent<
+  P extends Record<any, any> = Record<any, unknown>,
+> = {
+  renderFn(
+    props: P,
+    key: string | null,
+    flags: number,
+    dev?: DevJSX,
+  ): JSXOutput | Promise<JSXOutput>;
+}["renderFn"];
 ```
+
+**References:** [DevJSX](#devjsx), [JSXOutput](#jsxoutput)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-node.ts)
 
@@ -904,10 +917,6 @@ export declare namespace h
 | [h(type, data, children)](#) |             |
 | [h(sel, data, children)](#)  |             |
 
-| Namespace     | Description |
-| ------------- | ----------- |
-| [JSX](#h-jsx) |             |
-
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/factory.ts)
 
 ## h
@@ -925,10 +934,6 @@ export declare namespace h
 | [h(type, data, text)](#)     |             |
 | [h(type, data, children)](#) |             |
 | [h(sel, data, children)](#)  |             |
-
-| Namespace     | Description |
-| ------------- | ----------- |
-| [JSX](#h-jsx) |             |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/factory.ts)
 
@@ -969,7 +974,7 @@ export type HTMLAttributeReferrerPolicy = ReferrerPolicy;
 export interface HTMLAttributes<E extends Element> extends HTMLElementAttrs, DOMAttributes<E>
 ```
 
-**Extends:** HTMLElementAttrs, [DOMAttributes](#domattributes)&lt;E&gt;
+**Extends:** [HTMLElementAttrs](#htmlelementattrs), [DOMAttributes](#domattributes)&lt;E&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -982,6 +987,16 @@ export type HTMLCrossOriginAttribute =
   | ""
   | undefined;
 ```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## HTMLElementAttrs
+
+```typescript
+export interface HTMLElementAttrs extends HTMLAttributesBase, FilterBase<HTMLElement>
+```
+
+**Extends:** HTMLAttributesBase, FilterBase&lt;HTMLElement&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
@@ -1178,18 +1193,20 @@ export interface InsHTMLAttributes<T extends Element> extends Attrs<'ins', T>
 ## IntrinsicAttributes
 
 ```typescript
-interface IntrinsicAttributes extends QwikJSX.IntrinsicAttributes
+interface IntrinsicAttributes extends QwikIntrinsicAttributes
 ```
 
-**Extends:** [QwikJSX.IntrinsicAttributes](#)
+**Extends:** QwikIntrinsicAttributes
 
 ## IntrinsicElements
 
 ```typescript
-interface IntrinsicElements extends QwikJSX.IntrinsicElements
+export interface IntrinsicElements extends IntrinsicHTMLElements, IntrinsicSVGElements
 ```
 
-**Extends:** [QwikJSX.IntrinsicElements](#)
+**Extends:** IntrinsicHTMLElements, IntrinsicSVGElements
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## isSignal
 
@@ -1215,19 +1232,6 @@ jsx: <T extends string | FunctionComponent<any>>(
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts)
 
-## JSX
-
-```typescript
-namespace JSX
-```
-
-| Interface                                                   | Description |
-| ----------------------------------------------------------- | ----------- |
-| [Element](#h-jsx-element)                                   |             |
-| [ElementChildrenAttribute](#h-jsx-elementchildrenattribute) |             |
-| [IntrinsicAttributes](#h-jsx-intrinsicattributes)           |             |
-| [IntrinsicElements](#h-jsx-intrinsicelements)               |             |
-
 ## JSXChildren
 
 ```typescript
@@ -1252,7 +1256,7 @@ export type JSXChildren =
 ## jsxDEV
 
 ```typescript
-jsxDEV: <T extends string | FunctionComponent<Record<any, unknown>>>(
+jsxDEV: <T extends string | FunctionComponent>(
   type: T,
   props: T extends FunctionComponent<infer PROPS extends Record<any, any>>
     ? PROPS
@@ -1268,8 +1272,10 @@ jsxDEV: <T extends string | FunctionComponent<Record<any, unknown>>>(
 
 ## JSXNode
 
+A JSX Node, an internal structure. You probably want to use `JSXOutput` instead.
+
 ```typescript
-export interface JSXNode<T = string | FunctionComponent>
+export interface JSXNode<T extends string | FunctionComponent | unknown = unknown>
 ```
 
 | Property            | Modifiers | Type                                                                                              | Description  |
@@ -1281,6 +1287,25 @@ export interface JSXNode<T = string | FunctionComponent>
 | [key](#)            |           | string \| null                                                                                    |              |
 | [props](#)          |           | T extends [FunctionComponent](#functioncomponent)&lt;infer B&gt; ? B : Record&lt;any, unknown&gt; |              |
 | [type](#)           |           | T                                                                                                 |              |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-node.ts)
+
+## JSXOutput
+
+Any valid output for a component
+
+```typescript
+export type JSXOutput =
+  | JSXNode
+  | string
+  | number
+  | boolean
+  | null
+  | undefined
+  | JSXOutput[];
+```
+
+**References:** [JSXNode](#jsxnode), [JSXOutput](#jsxoutput)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-node.ts)
 
@@ -1611,12 +1636,10 @@ export interface OlHTMLAttributes<T extends Element> extends Attrs<'ol', T>
 ## OnRenderFn
 
 ```typescript
-export type OnRenderFn<PROPS extends Record<any, any>> = (
-  props: PROPS,
-) => JSXNode | null;
+export type OnRenderFn<PROPS> = (props: PROPS) => JSXOutput;
 ```
 
-**References:** [JSXNode](#jsxnode)
+**References:** [JSXOutput](#jsxoutput)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts)
 
@@ -1725,6 +1748,10 @@ export interface ProgressHTMLAttributes<T extends Element> extends Attrs<'progre
 
 ## PropFnInterface
 
+> Warning: This API is now obsolete.
+>
+> Use `QRL<>` instead
+
 ```typescript
 export type PropFnInterface<ARGS extends any[], RET> = {
   __qwik_serializable__?: any;
@@ -1736,18 +1763,21 @@ export type PropFnInterface<ARGS extends any[], RET> = {
 
 ## PropFunction
 
+Alias for `QRL<T>`. Of historic relevance only.
+
 ```typescript
-export type PropFunction<T extends Function = (...args: any) => any> =
-  T extends (...args: infer ARGS) => infer RET
-    ? PropFnInterface<ARGS, Awaited<RET>>
-    : never;
+export type PropFunction<T> = QRL<T>;
 ```
 
-**References:** [PropFnInterface](#propfninterface)
+**References:** [QRL](#qrl)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
 
 ## PropFunctionProps
+
+> Warning: This API is now obsolete.
+>
+> Use `QRL<>` on your function props instead
 
 ```typescript
 export type PropFunctionProps<PROPS extends Record<any, any>> = {
@@ -1765,27 +1795,45 @@ export type PropFunctionProps<PROPS extends Record<any, any>> = {
 
 ## PropsOf
 
-Infers `Props` from the component.
+Infers `Props` from the component or tag.
 
 ```typescript
-export const OtherComponent = component$(() => {
-  return $(() => <Counter value={100} />);
-});
+export type PropsOf<COMP> = COMP extends string
+  ? COMP extends keyof QwikIntrinsicElements
+    ? QwikIntrinsicElements[COMP]
+    : QwikIntrinsicElements["span"]
+  : NonNullable<COMP> extends never
+    ? never
+    : COMP extends FunctionComponent<infer PROPS>
+      ? PROPS extends Record<any, infer V>
+        ? IsAny<V> extends true
+          ? never
+          : ObjectProps<PROPS>
+        : COMP extends Component<infer OrigProps>
+          ? ObjectProps<OrigProps>
+          : PROPS
+      : never;
 ```
 
-```typescript
-export type PropsOf<COMP> = COMP extends Component<infer PROPS>
-  ? NonNullable<PROPS>
-  : COMP extends FunctionComponent<infer PROPS>
-    ? NonNullable<PublicProps<PROPS>>
-    : COMP extends keyof QwikIntrinsicElements
-      ? QwikIntrinsicElements[COMP]
-      : COMP extends string
-        ? QwikIntrinsicElements["span"]
-        : Record<string, unknown>;
-```
+**References:** [QwikIntrinsicElements](#qwikintrinsicelements), [FunctionComponent](#functioncomponent), [Component](#component)
 
-**References:** [Component](#component), [FunctionComponent](#functioncomponent), [PublicProps](#publicprops), [QwikIntrinsicElements](#qwikintrinsicelements)
+```tsx
+const Desc = component$(
+  ({ desc, ...props }: { desc: string } & PropsOf<"div">) => {
+    return <div {...props}>{desc}</div>;
+  },
+);
+
+const TitleBox = component$(
+  ({ title, ...props }: { title: string } & PropsOf<Box>) => {
+    return (
+      <Box {...props}>
+        <h1>{title}</h1>
+      </Box>
+    );
+  },
+);
+```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts)
 
@@ -1794,11 +1842,11 @@ export type PropsOf<COMP> = COMP extends Component<infer PROPS>
 Extends the defined component PROPS, adding the default ones (children and q:slot) and allowing plain functions to QRL arguments.
 
 ```typescript
-export type PublicProps<PROPS extends Record<any, any>> = Omit<
-  PROPS,
-  `${string}$`
-> &
-  _Only$<PROPS> &
+export type PublicProps<PROPS> = (PROPS extends Record<any, any>
+  ? Omit<PROPS, `${string}$`> & _Only$<PROPS>
+  : unknown extends PROPS
+    ? {}
+    : PROPS) &
   ComponentBaseProps &
   ComponentChildren<PROPS>;
 ```
@@ -1882,6 +1930,22 @@ export type QwikAnimationEvent<T = Element> = NativeAnimationEvent;
 **References:** [NativeAnimationEvent](#nativeanimationevent)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
+
+## QwikAttributes
+
+The Qwik DOM attributes without plain handlers, for use as function parameters
+
+```typescript
+export interface QwikAttributes<EL extends Element> extends QwikAttributesBase, RefAttr<EL>, QwikEvents<EL, false>
+```
+
+**Extends:** QwikAttributesBase, RefAttr&lt;EL&gt;, QwikEvents&lt;EL, false&gt;
+
+| Property    | Modifiers | Type                                 | Description  |
+| ----------- | --------- | ------------------------------------ | ------------ |
+| [class?](#) |           | [ClassList](#classlist) \| undefined | _(Optional)_ |
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts)
 
 ## QwikChangeEvent
 
@@ -1976,6 +2040,8 @@ export type QwikHTMLElements = {
 };
 ```
 
+**References:** [HTMLElementAttrs](#htmlelementattrs), [QwikAttributes](#qwikattributes)
+
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## QwikIdleEvent
@@ -2046,15 +2112,15 @@ export type QwikInvalidEvent<T = Element> = Event;
 export declare namespace QwikJSX
 ```
 
-| Interface                     | Description |
-| ----------------------------- | ----------- |
-| [Element](#)                  |             |
-| [ElementChildrenAttribute](#) |             |
-| [IntrinsicAttributes](#)      |             |
-| [IntrinsicElements](#)        |             |
+| Interface                                                     | Description |
+| ------------------------------------------------------------- | ----------- |
+| [ElementChildrenAttribute](#qwikjsx-elementchildrenattribute) |             |
+| [IntrinsicAttributes](#qwikjsx-intrinsicattributes)           |             |
+| [IntrinsicElements](#)                                        |             |
 
 | Type Alias                          | Description |
 | ----------------------------------- | ----------- |
+| [Element](#qwikjsx-element)         |             |
 | [ElementType](#qwikjsx-elementtype) |             |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik.ts)
@@ -2229,7 +2295,7 @@ Use this method to render JSX. This function does reconciling which means it alw
 ```typescript
 render: (
   parent: Element | Document,
-  jsxNode: JSXNode | FunctionComponent<any>,
+  jsxOutput: JSXOutput | FunctionComponent<any>,
   opts?: RenderOptions,
 ) => Promise<RenderResult>;
 ```
@@ -2334,7 +2400,7 @@ const Cmp = component$(() => {
 ```
 
 ```typescript
-Resource: <T>(props: ResourceProps<T>) => JSXNode;
+Resource: <T>(props: ResourceProps<T>) => JSXOutput;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
@@ -2402,9 +2468,9 @@ export interface ResourceProps<T>
 
 | Property         | Modifiers             | Type                                                                                                             | Description  |
 | ---------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------ |
-| [onPending?](#)  |                       | () =&gt; [JSXNode](#jsxnode)                                                                                     | _(Optional)_ |
-| [onRejected?](#) |                       | (reason: Error) =&gt; [JSXNode](#jsxnode)                                                                        | _(Optional)_ |
-| [onResolved](#)  |                       | (value: T) =&gt; [JSXNode](#jsxnode)                                                                             |              |
+| [onPending?](#)  |                       | () =&gt; [JSXOutput](#jsxoutput)                                                                                 | _(Optional)_ |
+| [onRejected?](#) |                       | (reason: Error) =&gt; [JSXOutput](#jsxoutput)                                                                    | _(Optional)_ |
+| [onResolved](#)  |                       | (value: T) =&gt; [JSXOutput](#jsxoutput)                                                                         |              |
 | [value](#)       | <code>readonly</code> | [ResourceReturn](#resourcereturn)&lt;T&gt; \| [Signal](#signal)&lt;Promise&lt;T&gt; \| T&gt; \| Promise&lt;T&gt; |              |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
@@ -2987,7 +3053,7 @@ export interface SVGAttributes<T extends Element = Element> extends AriaAttribut
 export interface SVGProps<T extends Element> extends SVGAttributes, QwikAttributes<T>
 ```
 
-**Extends:** [SVGAttributes](#svgattributes), QwikAttributes&lt;T&gt;
+**Extends:** [SVGAttributes](#svgattributes), [QwikAttributes](#qwikattributes)&lt;T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 

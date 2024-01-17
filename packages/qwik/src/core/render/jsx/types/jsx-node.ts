@@ -8,21 +8,14 @@ import type { JSXChildren } from './jsx-qwik-attributes';
 export type JSXOutput = JSXNode | string | number | boolean | null | undefined | JSXOutput[];
 
 /**
- * Any sync or async function that returns JSXOutput.
- *
- * Note that this includes QRLs.
+ * Any function taking a props object that returns JSXOutput.
  *
  * The `key`, `flags` and `dev` parameters are for internal use.
  *
  * @public
  */
-export type FunctionComponent<P extends Record<any, any> = Record<any, unknown>> = {
-  renderFn(
-    props: P,
-    key: string | null,
-    flags: number,
-    dev?: DevJSX
-  ): JSXOutput | Promise<JSXOutput>;
+export type FunctionComponent<P = unknown> = {
+  renderFn(props: P, key: string | null, flags: number, dev?: DevJSX): JSXOutput;
 }['renderFn'];
 
 /** @public */
@@ -40,7 +33,7 @@ export interface DevJSX {
  */
 export interface JSXNode<T extends string | FunctionComponent | unknown = unknown> {
   type: T;
-  props: T extends FunctionComponent<infer B> ? B : Record<any, unknown>;
+  props: T extends FunctionComponent<infer P> ? P : Record<any, unknown>;
   immutableProps: Record<any, unknown> | null;
   children: JSXChildren | null;
   flags: number;

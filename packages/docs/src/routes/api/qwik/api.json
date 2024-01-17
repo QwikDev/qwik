@@ -656,7 +656,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "The Qwik-specific attributes that DOM elements accept\n\n\n```typescript\nexport interface DOMAttributes<EL extends Element> extends QwikAttributesBase, RefAttr<EL>, QwikEvents<EL> \n```\n**Extends:** QwikAttributesBase, RefAttr&lt;EL&gt;, QwikEvents&lt;EL&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [class?](#) |  | [ClassList](#classlist) \\| [Signal](#signal)<!-- -->&lt;[ClassList](#classlist)<!-- -->&gt; \\| undefined | _(Optional)_ |",
+      "content": "The Qwik-specific attributes that DOM elements accept\n\n\n```typescript\nexport interface DOMAttributes<EL extends Element> extends DOMAttributesBase<EL>, QwikEvents<EL> \n```\n**Extends:** DOMAttributesBase&lt;EL&gt;, QwikEvents&lt;EL&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [class?](#) |  | [ClassList](#classlist) \\| [Signal](#signal)<!-- -->&lt;[ClassList](#classlist)<!-- -->&gt; \\| undefined | _(Optional)_ |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts",
       "mdFile": "qwik.domattributes.md"
     },
@@ -705,7 +705,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\ninterface ElementChildrenAttribute \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [children](#) |  | any |  |",
+      "content": "```typescript\ninterface ElementChildrenAttribute \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [children](#) |  | [JSXChildren](#jsxchildren) |  |",
       "mdFile": "qwik.qwikjsx.elementchildrenattribute.md"
     },
     {
@@ -847,7 +847,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "Any sync or async function that returns JSXOutput.\n\nNote that this includes QRLs.\n\nThe `key`<!-- -->, `flags` and `dev` parameters are for internal use.\n\n\n```typescript\nexport type FunctionComponent<P extends Record<any, any> = Record<any, unknown>> = {\n    renderFn(props: P, key: string | null, flags: number, dev?: DevJSX): JSXOutput | Promise<JSXOutput>;\n}['renderFn'];\n```\n**References:** [DevJSX](#devjsx)<!-- -->, [JSXOutput](#jsxoutput)",
+      "content": "Any function taking a props object that returns JSXOutput.\n\nThe `key`<!-- -->, `flags` and `dev` parameters are for internal use.\n\n\n```typescript\nexport type FunctionComponent<P = unknown> = {\n    renderFn(props: P, key: string | null, flags: number, dev?: DevJSX): JSXOutput;\n}['renderFn'];\n```\n**References:** [DevJSX](#devjsx)<!-- -->, [JSXOutput](#jsxoutput)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-node.ts",
       "mdFile": "qwik.functioncomponent.md"
     },
@@ -1158,7 +1158,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "```typescript\njsx: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS extends Record<any, any>> ? PROPS : Record<any, unknown>, key?: string | number | null) => JSXNode<T>\n```",
+      "content": "```typescript\njsx: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<any, unknown>, key?: string | number | null) => JSXNode<T>\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts",
       "mdFile": "qwik.jsx.md"
     },
@@ -1186,7 +1186,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "```typescript\njsxDEV: <T extends string | FunctionComponent>(type: T, props: T extends FunctionComponent<infer PROPS extends Record<any, any>> ? PROPS : Record<any, unknown>, key: string | number | null | undefined, _isStatic: boolean, opts: JsxDevOpts, _ctx: unknown) => JSXNode<T>\n```",
+      "content": "```typescript\njsxDEV: <T extends string | FunctionComponent<Record<any, unknown>>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<any, unknown>, key: string | number | null | undefined, _isStatic: boolean, opts: JsxDevOpts, _ctx: unknown) => JSXNode<T>\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts",
       "mdFile": "qwik.jsxdev.md"
     },
@@ -1200,7 +1200,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "A JSX Node, an internal structure. You probably want to use `JSXOutput` instead.\n\n\n```typescript\nexport interface JSXNode<T extends string | FunctionComponent | unknown = unknown> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [children](#) |  | [JSXChildren](#jsxchildren) \\| null |  |\n|  [dev?](#) |  | [DevJSX](#devjsx) | _(Optional)_ |\n|  [flags](#) |  | number |  |\n|  [immutableProps](#) |  | Record&lt;any, unknown&gt; \\| null |  |\n|  [key](#) |  | string \\| null |  |\n|  [props](#) |  | T extends [FunctionComponent](#functioncomponent)<!-- -->&lt;infer B&gt; ? B : Record&lt;any, unknown&gt; |  |\n|  [type](#) |  | T |  |",
+      "content": "A JSX Node, an internal structure. You probably want to use `JSXOutput` instead.\n\n\n```typescript\nexport interface JSXNode<T extends string | FunctionComponent | unknown = unknown> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [children](#) |  | [JSXChildren](#jsxchildren) \\| null |  |\n|  [dev?](#) |  | [DevJSX](#devjsx) | _(Optional)_ |\n|  [flags](#) |  | number |  |\n|  [immutableProps](#) |  | Record&lt;any, unknown&gt; \\| null |  |\n|  [key](#) |  | string \\| null |  |\n|  [props](#) |  | T extends [FunctionComponent](#functioncomponent)<!-- -->&lt;infer P&gt; ? P : Record&lt;any, unknown&gt; |  |\n|  [type](#) |  | T |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-node.ts",
       "mdFile": "qwik.jsxnode.md"
     },
@@ -1886,7 +1886,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "The Qwik DOM attributes without plain handlers, for use as function parameters\n\n\n```typescript\nexport interface QwikAttributes<EL extends Element> extends QwikAttributesBase, RefAttr<EL>, QwikEvents<EL, false> \n```\n**Extends:** QwikAttributesBase, RefAttr&lt;EL&gt;, QwikEvents&lt;EL, false&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [class?](#) |  | [ClassList](#classlist) \\| undefined | _(Optional)_ |",
+      "content": "The Qwik DOM attributes without plain handlers, for use as function parameters\n\n\n```typescript\nexport interface QwikAttributes<EL extends Element> extends DOMAttributesBase<EL>, QwikEvents<EL, false> \n```\n**Extends:** DOMAttributesBase&lt;EL&gt;, QwikEvents&lt;EL, false&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [class?](#) |  | [ClassList](#classlist) \\| undefined | _(Optional)_ |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts",
       "mdFile": "qwik.qwikattributes.md"
     },

@@ -193,12 +193,11 @@ export interface DevJSX {
 export interface DialogHTMLAttributes<T extends Element> extends Attrs<'dialog', T> {
 }
 
-// Warning: (ae-forgotten-export) The symbol "QwikAttributesBase" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "RefAttr" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "DOMAttributesBase" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "QwikEvents" needs to be exported by the entry point index.d.ts
 //
 // @public
-export interface DOMAttributes<EL extends Element> extends QwikAttributesBase, RefAttr<EL>, QwikEvents<EL> {
+export interface DOMAttributes<EL extends Element> extends DOMAttributesBase<EL>, QwikEvents<EL> {
     // (undocumented)
     class?: ClassList | Signal<ClassList> | undefined;
 }
@@ -247,8 +246,8 @@ export const Fragment: FunctionComponent<{
 }>;
 
 // @public
-export type FunctionComponent<P extends Record<any, any> = Record<any, unknown>> = {
-    renderFn(props: P, key: string | null, flags: number, dev?: DevJSX): JSXOutput | Promise<JSXOutput>;
+export type FunctionComponent<P = unknown> = {
+    renderFn(props: P, key: string | null, flags: number, dev?: DevJSX): JSXOutput;
 }['renderFn'];
 
 // @internal (undocumented)
@@ -394,7 +393,7 @@ export type IntrinsicSVGElements = {
 export const isSignal: <T = unknown>(obj: any) => obj is Signal<T>;
 
 // @public (undocumented)
-const jsx: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS extends Record<any, any>> ? PROPS : Record<any, unknown>, key?: string | number | null) => JSXNode<T>;
+const jsx: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<any, unknown>, key?: string | number | null) => JSXNode<T>;
 export { jsx }
 export { jsx as jsxs }
 
@@ -404,13 +403,13 @@ export const _jsxBranch: <T>(input?: T | undefined) => T | undefined;
 // Warning: (ae-forgotten-export) The symbol "JsxDevOpts" needs to be exported by the entry point index.d.ts
 //
 // @internal
-export const _jsxC: <T extends string | FunctionComponent>(type: T, mutableProps: (T extends FunctionComponent<infer PROPS extends Record<any, any>> ? PROPS : Record<any, unknown>) | null, flags: number, key: string | number | null, dev?: JsxDevOpts) => JSXNode<T>;
+export const _jsxC: <T extends string | FunctionComponent<Record<any, unknown>>>(type: T, mutableProps: (T extends FunctionComponent<infer PROPS> ? PROPS : Record<any, unknown>) | null, flags: number, key: string | number | null, dev?: JsxDevOpts) => JSXNode<T>;
 
 // @public (undocumented)
 export type JSXChildren = string | number | boolean | null | undefined | Function | RegExp | JSXChildren[] | Promise<JSXChildren> | Signal<JSXChildren> | JSXNode;
 
 // @public (undocumented)
-export const jsxDEV: <T extends string | FunctionComponent>(type: T, props: T extends FunctionComponent<infer PROPS extends Record<any, any>> ? PROPS : Record<any, unknown>, key: string | number | null | undefined, _isStatic: boolean, opts: JsxDevOpts, _ctx: unknown) => JSXNode<T>;
+export const jsxDEV: <T extends string | FunctionComponent<Record<any, unknown>>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<any, unknown>, key: string | number | null | undefined, _isStatic: boolean, opts: JsxDevOpts, _ctx: unknown) => JSXNode<T>;
 
 // @public
 export interface JSXNode<T extends string | FunctionComponent | unknown = unknown> {
@@ -425,7 +424,7 @@ export interface JSXNode<T extends string | FunctionComponent | unknown = unknow
     // (undocumented)
     key: string | null;
     // (undocumented)
-    props: T extends FunctionComponent<infer B> ? B : Record<any, unknown>;
+    props: T extends FunctionComponent<infer P> ? P : Record<any, unknown>;
     // (undocumented)
     type: T;
 }
@@ -671,7 +670,7 @@ export interface QuoteHTMLAttributes<T extends Element> extends Attrs<'q', T> {
 export type QwikAnimationEvent<T = Element> = NativeAnimationEvent;
 
 // @public
-export interface QwikAttributes<EL extends Element> extends QwikAttributesBase, RefAttr<EL>, QwikEvents<EL, false> {
+export interface QwikAttributes<EL extends Element> extends DOMAttributesBase<EL>, QwikEvents<EL, false> {
     // (undocumented)
     class?: ClassList | undefined;
 }
@@ -720,7 +719,7 @@ export namespace QwikJSX {
     // (undocumented)
     export interface ElementChildrenAttribute {
         // (undocumented)
-        children: any;
+        children: JSXChildren;
     }
     // (undocumented)
     export type ElementType = string | FunctionComponent<Record<any, any>>;

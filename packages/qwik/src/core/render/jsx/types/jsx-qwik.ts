@@ -1,4 +1,4 @@
-import type { DOMAttributes } from './jsx-qwik-attributes';
+import type { DOMAttributes, JSXChildren } from './jsx-qwik-attributes';
 import type { FunctionComponent, JSXOutput } from './jsx-node';
 import type { QwikIntrinsicAttributes, LenientQwikElements } from './jsx-qwik-elements';
 
@@ -9,7 +9,7 @@ export namespace QwikJSX {
 
   export interface IntrinsicAttributes extends QwikIntrinsicAttributes {}
   export interface ElementChildrenAttribute {
-    children: any;
+    children: JSXChildren;
   }
   export interface IntrinsicElements extends LenientQwikElements {}
 }

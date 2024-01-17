@@ -738,10 +738,10 @@ export interface DialogHTMLAttributes<T extends Element> extends Attrs<'dialog',
 The Qwik-specific attributes that DOM elements accept
 
 ```typescript
-export interface DOMAttributes<EL extends Element> extends QwikAttributesBase, RefAttr<EL>, QwikEvents<EL>
+export interface DOMAttributes<EL extends Element> extends DOMAttributesBase<EL>, QwikEvents<EL>
 ```
 
-**Extends:** QwikAttributesBase, RefAttr&lt;EL&gt;, QwikEvents&lt;EL&gt;
+**Extends:** DOMAttributesBase&lt;EL&gt;, QwikEvents&lt;EL&gt;
 
 | Property    | Modifiers | Type                                                                                     | Description  |
 | ----------- | --------- | ---------------------------------------------------------------------------------------- | ------------ |
@@ -771,9 +771,9 @@ type Element = JSXOutput;
 interface ElementChildrenAttribute
 ```
 
-| Property      | Modifiers | Type | Description |
-| ------------- | --------- | ---- | ----------- |
-| [children](#) |           | any  |             |
+| Property      | Modifiers | Type                        | Description |
+| ------------- | --------- | --------------------------- | ----------- |
+| [children](#) |           | [JSXChildren](#jsxchildren) |             |
 
 ## ElementType
 
@@ -866,22 +866,18 @@ Fragment: FunctionComponent<{
 
 ## FunctionComponent
 
-Any sync or async function that returns JSXOutput.
-
-Note that this includes QRLs.
+Any function taking a props object that returns JSXOutput.
 
 The `key`, `flags` and `dev` parameters are for internal use.
 
 ```typescript
-export type FunctionComponent<
-  P extends Record<any, any> = Record<any, unknown>,
-> = {
+export type FunctionComponent<P = unknown> = {
   renderFn(
     props: P,
     key: string | null,
     flags: number,
     dev?: DevJSX,
-  ): JSXOutput | Promise<JSXOutput>;
+  ): JSXOutput;
 }["renderFn"];
 ```
 
@@ -1223,7 +1219,7 @@ isSignal: <T = unknown>(obj: any) => obj is Signal<T>
 ```typescript
 jsx: <T extends string | FunctionComponent<any>>(
   type: T,
-  props: T extends FunctionComponent<infer PROPS extends Record<any, any>>
+  props: T extends FunctionComponent<infer PROPS>
     ? PROPS
     : Record<any, unknown>,
   key?: string | number | null,
@@ -1256,9 +1252,9 @@ export type JSXChildren =
 ## jsxDEV
 
 ```typescript
-jsxDEV: <T extends string | FunctionComponent>(
+jsxDEV: <T extends string | FunctionComponent<Record<any, unknown>>>(
   type: T,
-  props: T extends FunctionComponent<infer PROPS extends Record<any, any>>
+  props: T extends FunctionComponent<infer PROPS>
     ? PROPS
     : Record<any, unknown>,
   key: string | number | null | undefined,
@@ -1285,7 +1281,7 @@ export interface JSXNode<T extends string | FunctionComponent | unknown = unknow
 | [flags](#)          |           | number                                                                                            |              |
 | [immutableProps](#) |           | Record&lt;any, unknown&gt; \| null                                                                |              |
 | [key](#)            |           | string \| null                                                                                    |              |
-| [props](#)          |           | T extends [FunctionComponent](#functioncomponent)&lt;infer B&gt; ? B : Record&lt;any, unknown&gt; |              |
+| [props](#)          |           | T extends [FunctionComponent](#functioncomponent)&lt;infer P&gt; ? P : Record&lt;any, unknown&gt; |              |
 | [type](#)           |           | T                                                                                                 |              |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-node.ts)
@@ -1936,10 +1932,10 @@ export type QwikAnimationEvent<T = Element> = NativeAnimationEvent;
 The Qwik DOM attributes without plain handlers, for use as function parameters
 
 ```typescript
-export interface QwikAttributes<EL extends Element> extends QwikAttributesBase, RefAttr<EL>, QwikEvents<EL, false>
+export interface QwikAttributes<EL extends Element> extends DOMAttributesBase<EL>, QwikEvents<EL, false>
 ```
 
-**Extends:** QwikAttributesBase, RefAttr&lt;EL&gt;, QwikEvents&lt;EL, false&gt;
+**Extends:** DOMAttributesBase&lt;EL&gt;, QwikEvents&lt;EL, false&gt;
 
 | Property    | Modifiers | Type                                 | Description  |
 | ----------- | --------- | ------------------------------------ | ------------ |

@@ -6,7 +6,7 @@ import type { QwikIntrinsicElements } from './jsx-qwik-elements';
 import type { JSXChildren } from './jsx-qwik-attributes';
 import { component$, type PropsOf, type PublicProps } from '../../../component/component.public';
 import type { QwikHTMLElements, QwikSVGElements, Size } from './jsx-generated';
-import type { QwikJSX } from './jsx-qwik';
+import type { JSX } from '../jsx-runtime';
 
 describe('types', () => {
   // Note, these type checks happen at compile time. We don't need to call anything, so we do ()=>()=>. We just need to
@@ -49,6 +49,36 @@ describe('types', () => {
     expectTypeOf(Cmp).not.toEqualTypeOf<FunctionComponent<{ foo: string }>>();
   });
 
+  test('inferring FunctionComponent', () => () => {
+    const makeFC = <T,>(fn: (p: T) => JSX.Element): FunctionComponent<T> => fn;
+
+    const FCNoP = makeFC(() => <div />);
+    expectTypeOf<PropsOf<typeof FCNoP>>().toEqualTypeOf<never>();
+
+    const FCWithP = makeFC((p) => {
+      expectTypeOf(p).not.toBeAny();
+      expectTypeOf(p).toEqualTypeOf<unknown>();
+      return <div />;
+    });
+
+    expectTypeOf<PropsOf<typeof FCWithP>>().toEqualTypeOf<never>();
+  });
+
+  test('accepting FunctionComponent', () => () => {
+    const f = <P,>(fn: FunctionComponent<P>) => null as P;
+    expectTypeOf(f(() => <div />)).toEqualTypeOf<unknown>();
+    expectTypeOf(
+      f((p) => {
+        expectTypeOf(p).not.toBeAny();
+        expectTypeOf(p).toEqualTypeOf<unknown>();
+        return <div />;
+      })
+    ).toEqualTypeOf<unknown>();
+    expectTypeOf(f(component$<{ foo: string }>(() => <div />))).toEqualTypeOf<
+      PublicProps<{ foo: string }>
+    >();
+  });
+
   test('component', () => () => {
     const Cmp = component$((props: PropsOf<'svg'>) => {
       const { width = '240', height = '56', onClick$, ...rest } = props;
@@ -66,6 +96,12 @@ describe('types', () => {
     expectTypeOf<Parameters<typeof Cmp>[0]['onClick$']>().toMatchTypeOf<
       EventHandler<PointerEvent, SVGSVGElement> | QRLEventHandlerMulti<PointerEvent, SVGSVGElement>
     >();
+
+    return (
+      <p>
+        <Cmp />
+      </p>
+    );
   });
   test('PropFunction', () => () => {
     const CmpButton = component$<{
@@ -87,7 +123,7 @@ describe('types', () => {
         }}
       />
     );
-    expectTypeOf(t).toEqualTypeOf<QwikJSX.Element>();
+    expectTypeOf(t).toEqualTypeOf<JSX.Element>();
   });
 
   test('inferring', () => () => {
@@ -175,6 +211,8 @@ describe('types', () => {
       Parameters<Extract<Parameters<typeof Poly>[0]['onClick$'], EventHandler>>[1]
     >().toEqualTypeOf<HTMLDivElement>();
 
+    const MyCmp = component$((p: { name: string }) => <span>Hi {p.name}</span>);
+
     return (
       <>
         <Poly
@@ -213,12 +251,7 @@ describe('types', () => {
           Bar
         </Poly>
         <Poly as={Poly} />
-        <Poly
-          as={$((p: { name: string }) => (
-            <span>Hi {p.name}</span>
-          ))}
-          name="meep"
-        />
+        <Poly as={MyCmp} name="meep" />
       </>
     );
   });
@@ -248,7 +281,6 @@ describe('types', () => {
     expectTypeOf(() => null).toMatchTypeOf<FunctionComponent<{ hi: number }>>();
 
     expectTypeOf(() => new Date()).not.toMatchTypeOf<FunctionComponent>();
-    expectTypeOf((p: string) => null).not.toMatchTypeOf<FunctionComponent>();
   });
 
   test('PropsOf', () => () => {

@@ -81,6 +81,7 @@ export type PropsOf<COMP> = COMP extends string
  *
  * @public
  */
+// In reality, Component is a QRL but that makes the types too complex
 export type Component<PROPS = unknown> = FunctionComponent<PublicProps<PROPS>>;
 
 export type ComponentChildren<PROPS> = PROPS extends {

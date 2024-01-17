@@ -3,6 +3,7 @@ title: OG Image (og-img) | Integrations
 keywords: 'open-graph, image, satori, resvg'
 contributors:
   - fabian-hiller
+  - aendel
 updated_at: '2024-01-10T21:56:50Z'
 created_at: '2024-01-10T21:56:50Z'
 ---
@@ -67,16 +68,16 @@ Then all you need to do is point to this API endpoint with a meta tag in the hea
 </head>
 ```
 
-You can also generate the meta tag dynamically by exportiert a `head` object in your routes.
+You can also generate the meta tag dynamically by export a `head` object in your routes.
 
 ```tsx title="src/routes/index.tsx"
 import { component$ } from '@builder.io/qwik';
 import type { DocumentHead } from '@builder.io/qwik-city';
- 
+
 export default component$(() => {
   return <h1>Hello, world!</h1>;
 });
- 
+
 export const head: DocumentHead = {
   title: 'Hello, world!',
   meta: [

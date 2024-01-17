@@ -2,6 +2,7 @@
 title: Cookbook | Deploy with Node using Docker
 contributors:
   - nelsonprsousa
+  - aendel
 updated_at: '2023-12-28T16:00:00Z'
 created_at: '2023-12-28T16:00:00Z'
 ---
@@ -29,7 +30,7 @@ FROM node:${NODE_VERSION}-alpine as base
 WORKDIR /usr/src/app
 
 ################################################################################
-# Create a stage for installing production dependecies.
+# Create a stage for installing production dependencies.
 FROM base as deps
 
 # Download dependencies as a separate step to take advantage of Docker's caching.

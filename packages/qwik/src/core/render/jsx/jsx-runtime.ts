@@ -81,7 +81,7 @@ export const _jsxS = <T extends string>(
  *
  * Create a JSXNode for any tag, with possibly immutable props embedded in props
  */
-export const _jsxC = <T extends string | FunctionComponent>(
+export const _jsxC = <T extends string | FunctionComponent<Record<any, unknown>>>(
   type: T,
   mutableProps: (T extends FunctionComponent<infer PROPS> ? PROPS : Record<any, unknown>) | null,
   flags: number,
@@ -367,7 +367,7 @@ export const HTMLFragment: FunctionComponent<{ dangerouslySetInnerHTML: string }
   jsx(Virtual, props);
 
 /** @public */
-export const jsxDEV = <T extends string | FunctionComponent>(
+export const jsxDEV = <T extends string | FunctionComponent<Record<any, unknown>>>(
   type: T,
   props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<any, unknown>,
   key: string | number | null | undefined,

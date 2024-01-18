@@ -1,9 +1,19 @@
 ---
 title: Prisma | Integrations
-keywords: 'prisma, orm, database, data, storage, postgress, mondodb'
+keywords: 'prisma, orm, database, data, storage, postgres, mongodb'
 contributors:
   - manucorporat
   - ulic75
+  - igorbabko
+  - adcar
+  - ruheni
+  - Benny-Nottonson
+  - mrhoodz
+  - enesflow
+  - fabian-hiller
+  - aendel
+updated_at: '2023-10-03T18:53:23Z'
+created_at: '2023-04-25T11:05:50Z'
 ---
 
 # Prisma
@@ -34,6 +44,7 @@ import { PrismaClient } from '@prisma/client'
 
 export const useGetUsers = routeLoader$(async () => {
   const prisma = new PrismaClient();
+  // example read from SQLite
   const users = await prisma.user.findMany()
   return users;
 });

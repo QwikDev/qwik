@@ -27,6 +27,14 @@ contributors:
   - sreeisalso
   - wmertens
   - nicvazquez
+  - mrhoodz
+  - eecopa
+  - fabian-hiller
+  - julianobrasil
+  - aivarsliepa
+  - Balastrong
+updated_at: '2023-10-04T21:48:45Z'
+created_at: '2023-03-20T23:45:13Z'
 ---
 
 import CodeSandbox from '../../../../../components/code-sandbox/index.tsx';
@@ -75,12 +83,16 @@ Use `useStore(initialStateObject)` hook to create a reactive object. It takes an
 import { component$, useStore } from '@builder.io/qwik';
 
 export default component$(() => {
-  const state = useStore({ count: 0 });
+  const state = useStore({ count: 0, name: 'Qwik' });
 
   return (
     <>
       <button onClick$={() => state.count++}>Increment</button>
       <p>Count: {state.count}</p>
+      <input
+        value={state.name}
+        onInput$={(_, el) => (state.name = el.value)}
+      />
     </>
   );
 });
@@ -124,8 +136,8 @@ export default component$(() => {
         Add to list
       </button>
       <ul>
-        {store.list.map((item, index) => (
-          <li key={`items-${index}`}>{item}</li>
+        {store.list.map((item, key) => (
+          <li key={key}>{item}</li>
         ))}
       </ul>
     </>
@@ -397,11 +409,7 @@ export default component$(() => {
       <div>
         <label>
           Enter your name, and I'll guess your age!
-          <input
-            onInput$={(e: Event) =>
-              (name.value = (e.target as HTMLInputElement).value)
-            }
-          />
+          <input onInput$={(ev, el) => (name.value = el.value)} />
         </label>
       </div>
       <Resource

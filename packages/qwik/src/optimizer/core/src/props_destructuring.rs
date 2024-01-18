@@ -342,7 +342,7 @@ fn transform_pat(
                                 });
                                 local.push((
                                     id!(ident.id),
-                                    ident.sym.clone(),
+                                    key.sym.clone(),
                                     ast::Expr::Bin(ast::BinExpr {
                                         span: DUMMY_SP,
                                         op: ast::BinaryOp::NullishCoalescing,

@@ -38,12 +38,21 @@
 ## Cookbook
 
 - [Overview](/docs/cookbook/index.mdx)
-- [Portal](/docs/cookbook/portal/index.mdx)
+- [Algolia Search](/docs/cookbook/algolia-search/index.mdx)
+- [Fonts](/docs/cookbook/fonts/index.mdx)
+- [Glob Import](/docs/cookbook/glob-import/index.mdx)
 - [Media Controller](/docs/cookbook/mediaController/index.mdx)
+- [NavLink](/docs/cookbook/nav-link/index.mdx)
+- [Node Docker deploy](/docs/cookbook/node-docker-deploy/index.mdx)
+- [Portals](/docs/cookbook/portals/index.mdx)
+- [Re-exporting loaders](/docs/cookbook/re-exporting-loaders/index.mdx)
+- [Sync events w state](/docs/cookbook/sync-events/index.mdx)
+- [Theme Managment](/docs/cookbook/theme-management/index.mdx)
 
 ## Integrations
 
 - [Overview](integrations/index.mdx)
+- [Astro](integrations/astro/index.mdx)
 - [Auth.js](integrations/authjs/index.mdx)
 - [Bootstrap](integrations/bootstrap/index.mdx)
 - [Builder.io](integrations/builderio/index.mdx)
@@ -54,6 +63,7 @@
 - [Leaflet Map](integrations/leaflet-map/index.mdx)
 - [Modular Forms](integrations/modular-forms/index.mdx)
 - [Nx Monorepos](integrations/nx/index.mdx)
+- [OG Image](integrations/og-img/index.mdx)
 - [Orama](integrations/orama/index.mdx)
 - [Panda CSS](integrations/panda-css/index.mdx)
 - [Partytown](integrations/partytown/index.mdx)
@@ -108,7 +118,7 @@
 - [Library mode](</docs/(qwik)/advanced/library/index.mdx>)
 - [Qwikloader](</docs/(qwik)/advanced/qwikloader/index.mdx>)
 - [Optimizer](</docs/(qwik)/advanced/optimizer/index.mdx>)
-- [Prefetching](</docs/(qwik)/advanced/prefetching/index.mdx>)
+- [Modules Prefetching](</docs/(qwik)/advanced/modules-prefetching/index.mdx>)
 - [Build Directory](</docs/(qwik)/advanced/custom-build-dir/index.mdx>)
 - [Vite](</docs/(qwik)/advanced/vite/index.mdx>)
 - [Advanced Routing](</docs/(qwikcity)/advanced/routing/index.mdx>)

@@ -291,7 +291,7 @@ export const useContext: UseContext = <STATE extends object>(
   throw qError(QError_notFoundContext, context.id);
 };
 
-/** Find a wrapping Virtual component in the DOM that has contexts */
+/** Find a wrapping Virtual component in the DOM */
 const findParentCtx = (el: QwikElement | null, containerState: ContainerState) => {
   let node = el;
   let stack = 1;
@@ -332,18 +332,17 @@ const findParentCtx = (el: QwikElement | null, containerState: ContainerState) =
 };
 
 const getParentProvider = (ctx: QContext, containerState: ContainerState): QContext | null => {
+  // `null` means there's no parent, `undefined` means we don't know yet.
   if (ctx.$parentCtx$ === undefined) {
     // Not fully resumed container, find context from DOM
-    const wrappingCtx = findParentCtx(ctx.$element$, containerState);
-    ctx.$parentCtx$ =
-      !wrappingCtx || wrappingCtx.$contexts$
-        ? wrappingCtx
-        : // Keep trying until we find a provider
-          getParentProvider(wrappingCtx, containerState);
-  } else if (ctx.$parentCtx$ && !ctx.$parentCtx$.$contexts$) {
-    // Fully resumed container, but parent is not a provider: update the reference
-    ctx.$parentCtx$ = getParentProvider(ctx.$parentCtx$, containerState);
+    // We cannot recover $realParentCtx$ from this but that's fine because we don't need to pause on the client
+    ctx.$parentCtx$ = findParentCtx(ctx.$element$, containerState);
   }
+  /**
+   * Note, the parentCtx is used during pause to to get the immediate parent, so we can't shortcut
+   * the search for $contexts$ here. If that turns out to be needed, it needs to be cached in a
+   * separate property.
+   */
   return ctx.$parentCtx$;
 };
 

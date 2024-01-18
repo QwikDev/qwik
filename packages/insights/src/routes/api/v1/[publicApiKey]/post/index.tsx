@@ -5,8 +5,12 @@ import { getAppInfo, updateEdge, updateRoutes } from '~/db/query';
 import { dbGetManifestInfo } from '~/db/sql-manifest';
 import { toBucket, toBucketTimeline } from '~/stats/vector';
 
-export const onPost: RequestHandler = async ({ exit, json, request }) => {
-  const payload = InsightsPayload.parse(await request.json());
+export const onPost: RequestHandler = async ({ exit, json, request, params }) => {
+  const payloadJson = await request.json();
+  migrate1(payloadJson);
+  // publicApiKey is always part of the URL as route parameter.
+  payloadJson.publicApiKey = params.publicApiKey;
+  const payload = InsightsPayload.parse(payloadJson);
   // console.log('API: POST: symbol', payload);
   exit();
   json(200, { code: 200, message: 'OK' });
@@ -46,4 +50,10 @@ function cleanupSymbolName(symbolName: string | null): string | null {
   const shortName = symbolName.substring(symbolName.lastIndexOf('_') + 1 || 0);
   if (shortName == 'hW') return null;
   return shortName;
+}
+function migrate1(payloadJson: any) {
+  // delete payloadJson.sessionID;
+  if (!('qVersion' in payloadJson)) {
+    payloadJson.qVersion = 'unknown';
+  }
 }

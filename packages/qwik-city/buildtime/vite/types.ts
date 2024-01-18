@@ -1,5 +1,7 @@
 import type { MdxTransform } from '../markdown/mdx';
 import type { BuildContext, BuildEntry, BuildRoute, PluginOptions, MdxPlugins } from '../types';
+import type { Config as SVGOConfig } from 'svgo';
+import type { BuiltinsWithOptionalParams as SVGOBuiltinPluginsWithOptionalParams } from 'svgo/plugins/plugins-types';
 
 /** @public */
 export interface ImageOptimizationOptions {
@@ -9,6 +11,10 @@ export interface ImageOptimizationOptions {
     w?: string;
     h?: string;
     [key: string]: string | undefined;
+  };
+  svgo?: Pick<SVGOConfig, 'floatPrecision' | 'multipass' | 'plugins'> & {
+    defaultPresetOverrides?: SVGOBuiltinPluginsWithOptionalParams['preset-default']['overrides'];
+    prefixIds?: SVGOBuiltinPluginsWithOptionalParams['prefixIds'] | false;
   };
   enabled?: boolean | 'only-production';
 }

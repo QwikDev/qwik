@@ -3,6 +3,13 @@ title: Modular Forms | Integrations
 keywords: 'form, library, validation, type-safe'
 contributors:
   - fabian-hiller
+  - igorbabko
+  - RaeesBhatti
+  - uceumice
+  - Benny-Nottonson
+  - mrhoodz
+updated_at: '2023-10-03T18:53:59Z'
+created_at: '2023-04-28T22:00:03Z'
 ---
 
 import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
@@ -172,7 +179,7 @@ If we now put all the building blocks together, we get a working login form. Bel
 ```tsx
 // @ts-nocheck
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { $, component$ } from '@builder.io/qwik';
+import { $, component$, type QRL } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
 import type { InitialValues, SubmitHandler } from '@modular-forms/qwik';
 import { formAction$, useForm, valiForm$ } from '@modular-forms/qwik';
@@ -207,7 +214,7 @@ export default component$(() => {
     validate: valiForm$(LoginSchema),
   });
 
-  const handleSubmit: SubmitHandler<LoginForm> = $((values, event) => {
+  const handleSubmit: QRL<SubmitHandler<LoginForm>> = $((values, event) => {
     // Runs on client
     console.log(values);
   });

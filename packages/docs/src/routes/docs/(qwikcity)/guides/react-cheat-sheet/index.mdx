@@ -16,7 +16,12 @@ contributors:
   - AnthonyPAlicea
   - mhevery
   - nsdonato
+  - igorbabko
+  - jnsmtnr
+  - rjsdnql123
   - hamatoyogi
+updated_at: '2023-10-03T18:53:23Z'
+created_at: '2023-04-07T21:32:40Z'
 ---
 
 # React Vs Qwik
@@ -69,62 +74,6 @@ export const Button = component$(() => {
   <summary style={{color: "#17ADF5"}}>Remember $?</summary>
   <p>Event handlers in qwik behave in the same way as in other frameworks, you just have to keep in mind that their content will be loaded in a lazy way thanks to the dollar suffix.</p>
   <p>Attention ⚠️: JSX <a href="https://qwik.builder.io/docs/components/events/#inline-handler">handlers</a> such as onClick$ and onInput$ are only executed on the client. This is because they are DOM events, since there is no DOM on the server, they will not be executed on the server.</p>
-</details>
-
-## Using Props
-
-### ⚛️ From React
-
-```tsx
-export const Parent = (() => {
-  const [ count, setCount ] = useState<number>(0);
-
-  const increment = (() => {
-    setCount((prev) => prev + 1)
-  })
-  return <Child count={count} increment={increment} />;
-})
-
-interface ChildProps {
-  count: number;
-  increment: () => void;
-}
-
-export const Child = ((props: ChildProps) => {
-  return (
-    <>
-      <button onClick={props.increment}>Increment</button>
-      <p>Count: {props.count}</p>
-    </>
-  );
-})
-```
-
-### ⚡️ To Qwik
-
-```tsx
-export const Parent = component$(() => {
-  const userData = useStore({ count: 0 });
-  return <Child userData={userData} />;
-});
-
-interface ChildProps {
-  userData: { count: number };
-}
-
-export const Child = component$<ChildProps>(({ userData }) => {
-  return (
-    <>
-      <button onClick$={() => userData.count++}>Increment</button>
-      <p>Count: {userData.count}</p>
-    </>
-  );
-});
-```
-
-<details>
-  <summary style={{color: "#17ADF5"}}>Wait, I don't need to pass the handler as a prop?</summary>
-  <p>The reactive signal returned by <a href="https://qwik.builder.io/docs/components/state/#usesignal">useSignal()</a> consists of an object with a single property .value. If you change the value property of the signal, any component that depends on it will be updated automatically.</p>
 </details>
 
 ## Declare local state
@@ -181,6 +130,62 @@ export const Counter = component$(() => {
   );
 });
 ```
+
+## Using Props
+
+### ⚛️ From React
+
+```tsx
+export const Parent = (() => {
+  const [ count, setCount ] = useState<number>(0);
+
+  const increment = (() => {
+    setCount((prev) => prev + 1)
+  })
+  return <Child count={count} increment={increment} />;
+})
+
+interface ChildProps {
+  count: number;
+  increment: () => void;
+}
+
+export const Child = ((props: ChildProps) => {
+  return (
+    <>
+      <button onClick={props.increment}>Increment</button>
+      <p>Count: {props.count}</p>
+    </>
+  );
+})
+```
+
+### ⚡️ To Qwik
+
+```tsx
+export const Parent = component$(() => {
+  const userData = useStore({ count: 0 });
+  return <Child userData={userData} />;
+});
+
+interface ChildProps {
+  userData: { count: number };
+}
+
+export const Child = component$<ChildProps>(({ userData }) => {
+  return (
+    <>
+      <button onClick$={() => userData.count++}>Increment</button>
+      <p>Count: {userData.count}</p>
+    </>
+  );
+});
+```
+
+<details>
+  <summary style={{color: "#17ADF5"}}>Wait, I don't need to pass the handler as a prop?</summary>
+  <p>The reactive signal returned by <a href="https://qwik.builder.io/docs/components/state/#usesignal">useSignal()</a> consists of an object with a single property .value. If you change the value property of the signal, any component that depends on it will be updated automatically.</p>
+</details>
 
 ## Create a clock that increments every second
 

@@ -713,9 +713,8 @@ export const Issue2930 = component$(() => {
         style="border: 1px solid black"
         type="text"
         value={group.controls.ctrl.value}
-        onInput$={(e) => {
-          const val = (e.target as HTMLInputElement).value;
-          group.controls.ctrl.value = val;
+        onInput$={(ev, el) => {
+          group.controls.ctrl.value = el.value;
         }}
       />
       <Stringify data={group} />

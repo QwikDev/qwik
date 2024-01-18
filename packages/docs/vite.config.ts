@@ -16,6 +16,11 @@ export default defineConfig(async () => {
 
   const routesDir = resolve('src', 'routes');
   return {
+    dev: {
+      headers: {
+        'Cache-Control': 'public, max-age=0',
+      },
+    },
     preview: {
       headers: {
         'Cache-Control': 'public, max-age=600',
@@ -60,7 +65,7 @@ export default defineConfig(async () => {
         mdx: {
           rehypePlugins: [
             [
-              rehypePrettyCode,
+              rehypePrettyCode as any,
               {
                 theme: 'dark-plus',
                 onVisitLine(node: any) {
@@ -128,6 +133,20 @@ export default defineConfig(async () => {
       Inspect(),
       qwikInsights({ publicApiKey: loadEnv('', '.', '').PUBLIC_QWIK_INSIGHTS_KEY }),
     ],
+    build: {
+      rollupOptions: {
+        // For some unknown reason, types don't work from tsc
+        // Try removing these any casts and see if it works
+        onLog(level: any, log: any, defaultHandler: any) {
+          if (level == 'warn' && log.code === 'MODULE_LEVEL_DIRECTIVE') {
+            // Suppress errors like these:
+            // FILE Module level directives cause errors when bundled, "use client" in FILE was ignored.
+            return;
+          }
+          defaultHandler(level, log);
+        },
+      },
+    },
     clearScreen: false,
     server: {
       port: 3000,

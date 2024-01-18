@@ -18,8 +18,20 @@ import {
 import type { QwikManifest } from "@builder.io/qwik/optimizer";
 import type { Render, RenderToStreamOptions } from "@builder.io/qwik/server";
 import type { PackageJSON } from "../scripts/util";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { getErrorHtml } from "../packages/qwik-city/middleware/request-handler/error-handler";
+
+const isWindows = process.platform === "win32";
+
+// map the file path to a url for windows only
+const file = (filePath: string) => {
+  return isWindows ? pathToFileURL(filePath).toString() : filePath;
+};
+
+// Escape path for imports in windows
+const escapeChars = (filePath: string) => {
+  return isWindows ? filePath.replace(/\\/g, "\\\\") : filePath;
+};
 
 const app = express();
 const port = parseInt(process.argv[process.argv.length - 1], 10) || 3300;
@@ -95,7 +107,7 @@ async function buildApp(
   enableCityServer: boolean,
 ) {
   const optimizer: typeof import("@builder.io/qwik/optimizer") = await import(
-    qwikDistOptimizerPath
+    file(qwikDistOptimizerPath)
   );
   const appSrcDir = join(appDir, "src");
   const appDistDir = join(appDir, "dist");
@@ -127,7 +139,7 @@ async function buildApp(
         if (id.endsWith(qwikCityVirtualEntry)) {
           return `import { createQwikCity } from '@builder.io/qwik-city/middleware/node';
 import qwikCityPlan from '@qwik-city-plan';
-import render from '${resolve(appSrcDir, "entry.ssr")}';
+import render from '${escapeChars(resolve(appSrcDir, "entry.ssr"))}';
 const { router, notFound } = createQwikCity({
   render,
   qwikCityPlan,
@@ -151,7 +163,7 @@ export {
       },
     });
     const qwikCityVite: typeof import("@builder.io/qwik-city/vite") =
-      await import(qwikCityDistVite);
+      await import(file(qwikCityDistVite));
 
     plugins.push(qwikCityVite.qwikCity());
   }
@@ -255,7 +267,7 @@ async function cityApp(
 ) {
   const ssrPath = join(appDir, "server", `${qwikCityVirtualEntry}.js`);
 
-  const mod = await import(ssrPath);
+  const mod = await import(file(ssrPath));
   const router: any = mod.router;
   router(req, res, () => {
     mod.notFound(req, res, () => {
@@ -272,7 +284,7 @@ async function ssrApp(
   manifest: QwikManifest,
 ) {
   const ssrPath = join(appDir, "server", "entry.ssr.js");
-  const mod = await import(ssrPath);
+  const mod = await import(file(ssrPath));
   const render: Render = mod.default ?? mod.render;
 
   // ssr the document

@@ -31,6 +31,7 @@ export default component$(() => {
         <tbody>
           {queryData.results.data?.map((result: any, i: any) => (
             <tr
+              key={i}
               class={{
                 'bg-red-400': result.rate < 0,
                 'bg-green-400': result.rate > 0,

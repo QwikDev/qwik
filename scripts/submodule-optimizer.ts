@@ -29,6 +29,7 @@ export async function submoduleOptimizer(config: BuildConfig) {
       outdir: config.distQwikPkgDir,
       bundle: true,
       sourcemap: false,
+      platform: 'node',
       target,
       external: [
         /* no Node.js built-in externals allowed! */
@@ -68,7 +69,6 @@ export async function submoduleOptimizer(config: BuildConfig) {
         'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
         ...qwikloaderScripts,
       },
-      platform: 'node',
       target: nodeTarget,
       plugins: [RawPlugin()],
     });

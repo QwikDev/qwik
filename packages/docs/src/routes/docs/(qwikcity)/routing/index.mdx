@@ -14,6 +14,12 @@ contributors:
   - jakovljevic-mladen
   - claudioshiver
   - maiieul
+  - igorbabko
+  - jordanw66
+  - mrhoodz
+  - chsanch
+updated_at: '2023-10-02T22:44:45Z'
+created_at: '2023-03-20T23:45:13Z'
 ---
 
 # Routing
@@ -147,7 +153,7 @@ export default component$(() => {
 
 > In this example, a request handle will always set the `Cache-Control` header to `private` and the page will be rendered as an HTML page, but if the request contains a `format=json` query param, the endpoint will return a JSON response instead.
 
-## `layout.` files
+## `layout.tsx` files
 
 Layout modules are very similar to `index` files, both can handle requests and render Qwik components, however, layouts are designed to work like a middleware, allowing to **share UI and request handling (middleware)** to a set of routes.
 
@@ -178,7 +184,10 @@ For the route `https://example.com/admin`, the `onRequest` methods will be execu
 
 1. `src/routes/layout.tsx`'s `onRequest`
 2. `src/routes/admin/layout.tsx`'s `onRequest`
-3. `src/routes/admin/index.tsx`'s component
+3. `src/routes/admin/index.tsx`'s `onRequest`
+4. `src/routes/admin/index.tsx`'s component
+
+An `onRequest` handler in `src/routes/index.tsx` doesn't get executed.
 
 ### Nested layouts
 
@@ -226,9 +235,9 @@ export default component$(() => {
 });
 ```
 
-> The `Link` component uses the `useNavigate()` hook internally.
+> The `Link` component uses the `useNavigate()` hook [internally](https://github.com/BuilderIO/qwik/blob/e452582f4728cbcb7bf85d03293e757302286683/packages/qwik-city/runtime/src/link-component.tsx#L33).
 
-### Refreshing
+### `<Link reload>`
 
 The `Link` with the `reload` prop can be used to refresh the current page.
 You can also call the `nav()` function from the `useNavigate()` hook, without arguments.
@@ -260,7 +269,7 @@ export default component$(() => {
 
 > While refreshing the page, the `isNavigating` boolean from `useLocation()` will be `true` until the page is fully rendered.
 
-### Prefetching
+### `<Link prefetch>`
 
 The Link component's `prefetch` prop can be used to improve the perceived performance of the application. Although Qwik pages excel at lazy loading javascript, this feature can come in handy for content-heavy pages or SSR pages that need to wait for database or API calls.
 

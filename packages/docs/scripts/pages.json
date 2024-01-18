@@ -1,5 +1,13 @@
 [
   {
+    "href": "https://linkfang-portfolio.vercel.app/",
+    "tags": "portfolio"
+  },
+  {
+    "href": "https://blueagle.top/",
+    "tags": "portfolio,site,blog"
+  },
+  {
     "href": "https://quotemingle.com/",
     "tags": "site"
   },
@@ -9,6 +17,14 @@
   },
   {
     "href": "https://www.dimension.dev",
+    "tags": "saas"
+  },
+  {
+    "href": "https://index.app/beta",
+    "tags": "saas"
+  },
+  {
+    "href": "https://wiza.co",
     "tags": "saas"
   },
   {
@@ -60,10 +76,6 @@
   },
   {
     "href": "https://usaibis.com/",
-    "tags": "saas"
-  },
-  {
-    "href": "https://pasha-app.com/",
     "tags": "saas"
   },
   {
@@ -203,5 +215,9 @@
   {
     "href": "https://getpolaris.ai/",
     "tags": "saas"
+  },
+  {
+    "href": "https://juneikerc.com",
+    "tags": "portfolio,site,blog,services"
   }
 ]

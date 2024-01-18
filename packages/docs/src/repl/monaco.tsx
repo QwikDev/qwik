@@ -226,12 +226,6 @@ const loadDeps = async (qwikVersion: string) => {
       pkgPath: '/server.d.ts',
       path: '/node_modules/@types/builder.io__qwik/server.d.ts',
     },
-    {
-      pkgName: '@builder.io/qwik',
-      pkgVersion: qwikVersion,
-      pkgPath: '/build/index.d.ts',
-      path: '/node_modules/@types/builder.io__qwik/build/index.d.ts',
-    },
   ];
 
   const cache = await caches.open('QwikReplResults');
@@ -328,7 +322,7 @@ const getCdnUrl = (pkgName: string, pkgVersion: string, pkgPath: string) => {
   return `https://cdn.jsdelivr.net/npm/${pkgName}@${pkgVersion}${pkgPath}`;
 };
 
-const MONACO_VERSION = '0.33.0';
+const MONACO_VERSION = '0.45.0';
 const MONACO_VS_URL = getCdnUrl('monaco-editor', MONACO_VERSION, '/min/vs');
 const MONACO_LOADER_URL = `${MONACO_VS_URL}/loader.js`;
 

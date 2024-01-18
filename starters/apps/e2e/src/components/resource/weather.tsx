@@ -60,7 +60,7 @@ export const Weather = component$(() => {
         name="city"
         autoComplete="off"
         placeholder="City name"
-        onInput$={(ev) => (state.city = (ev.target as any).value)}
+        onInput$={(ev, el) => (state.city = el.value)}
       />
       <WeatherResults2 weather={weather} />
     </div>
@@ -101,7 +101,7 @@ export const WeatherResults2 = component$(
         <Resource
           value={props.weather}
           onPending={() => <div>loading data...</div>}
-          onRejected={(reason) => <div>error {reason}</div>}
+          onRejected={(reason) => <div>error {`${reason}`}</div>}
           onResolved={(weather) => {
             if (!weather) {
               return <div>Please write some city</div>;

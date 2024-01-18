@@ -240,7 +240,10 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
           trackUrl.pathname
         );
         elm = _getContextElement();
-        const pageData = (clientPageData = await loadClientData(trackUrl, elm, true, action));
+        const pageData = (clientPageData = await loadClientData(trackUrl, elm, {
+          action,
+          clearCache: true,
+        }));
         if (!pageData) {
           // Reset the path to the current path
           (routeInternal as any).untrackedValue = { type: navType, dest: trackUrl };
@@ -257,7 +260,13 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
             trackUrl.pathname
           );
         }
-        loadedRoute = await loadRoutePromise;
+
+        try {
+          loadedRoute = await loadRoutePromise;
+        } catch (e) {
+          window.location.href = newHref;
+          return;
+        }
       }
 
       if (loadedRoute) {
@@ -300,9 +309,11 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
           }
 
           if (
-            navigation.scroll &&
-            (!navigation.forceReload || !isSamePath(trackUrl, prevUrl)) &&
-            (navType === 'link' || navType === 'popstate')
+            (navigation.scroll &&
+              (!navigation.forceReload || !isSamePath(trackUrl, prevUrl)) &&
+              (navType === 'link' || navType === 'popstate')) ||
+            // Action might have responded with a redirect.
+            (navType === 'form' && !isSamePath(trackUrl, prevUrl))
           ) {
             // Mark next DOM render to scroll.
             document.__q_scroll_restore__ = () =>

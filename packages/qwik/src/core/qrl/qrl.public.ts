@@ -1,7 +1,11 @@
 import { implicit$FirstArg } from '../util/implicit_dollar';
 import { qDev, qRuntimeQrl } from '../util/qdev';
 import type { QRLDev } from './qrl';
-import { createQRL } from './qrl-class';
+import { SYNC_QRL, createQRL } from './qrl-class';
+
+// We use `unknown` instead of `never` when it's not a function so we allow assigning QRL<function> to QRL<any>
+export type QrlArgs<T> = T extends (...args: infer ARGS) => any ? ARGS : unknown[];
+export type QrlReturn<T> = T extends (...args: any) => infer R ? Awaited<R> : unknown;
 
 // <docs markdown="../readme.md#QRL">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -129,54 +133,50 @@ import { createQRL } from './qrl-class';
  * @see `$`
  */
 // </docs>
-export interface QRL<TYPE = any> {
+export type QRL<TYPE = unknown> = {
+  // Special type brand to let eslint that the Type is serializable
+  __qwik_serializable__?: any;
   __brand__QRL__: TYPE;
 
-  /**
-   * Resolve the QRL of closure and invoke it. The signal is used to abort the invocation.
-   *
-   * @param signal - An AbortSignal object.
-   * @param args - Closure arguments.
-   * @returns A promise of the return value of the closure.
-   */
-  (
-    signal: AbortSignal,
-    ...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never
-  ): Promise<TYPE extends (...args: any[]) => infer RETURN ? Awaited<RETURN> : never>;
+  /** Resolve the QRL and return the actual value. */
+  resolve(): Promise<TYPE>;
+  /** The resolved value, once `resolve()` returns. */
+  resolved: undefined | TYPE;
 
+  getCaptured(): unknown[] | null;
+  getSymbol(): string;
+  getHash(): string;
+  dev: QRLDev | null;
+} & BivariantQrlFn<QrlArgs<TYPE>, QrlReturn<TYPE>>;
+
+// https://stackoverflow.com/questions/52667959/what-is-the-purpose-of-bivariancehack-in-typescript-types/52668133#52668133
+type BivariantQrlFn<ARGS extends any[], RETURN> = {
   /**
    * Resolve the QRL of closure and invoke it.
    *
    * @param args - Closure arguments.
    * @returns A promise of the return value of the closure.
    */
-  (
-    ...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never
-  ): Promise<TYPE extends (...args: any[]) => infer RETURN ? Awaited<RETURN> : never>;
+  bivarianceHack(...args: ARGS): Promise<RETURN>;
+}['bivarianceHack'];
 
-  /** Resolve the QRL and return the actual value. */
-  resolve(): Promise<TYPE>;
-  /** The resolved value, once `resolve()` returns. */
-  resolved: undefined | TYPE;
-  getCaptured(): any[] | null;
-  getSymbol(): string;
-  getHash(): string;
-  dev: QRLDev | null;
-}
-
-/** @public */
-export interface PropFnInterface<ARGS extends any[], RET> {
+/**
+ * @deprecated Use `QRL<>` instead
+ * @public
+ */
+export type PropFnInterface<ARGS extends any[], RET> = {
+  __qwik_serializable__?: any;
   (...args: ARGS): Promise<RET>;
-}
+};
 
 let runtimeSymbolId = 0;
 
-/** @public */
-export type PropFunction<T extends Function = (...args: any[]) => any> = T extends (
-  ...args: infer ARGS
-) => infer RET
-  ? PropFnInterface<ARGS, Awaited<RET>>
-  : never;
+/**
+ * Alias for `QRL<T>`. Of historic relevance only.
+ *
+ * @public
+ */
+export type PropFunction<T> = QRL<T>;
 
 // <docs markdown="../readme.md#$">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -230,6 +230,7 @@ export type PropFunction<T extends Function = (...args: any[]) => any> = T exten
  *
  * import { createContextId, useContext, useContextProvider } from './use/use-context';
  * import { Resource, useResource$ } from './use/use-resource';
+ * import { useSignal } from './use/use-signal';
  *
  * export const greet = () => console.log('greet');
  * function topLevelFn() {}
@@ -271,3 +272,64 @@ export const eventQrl = <T>(qrl: QRL<T>): QRL<T> => {
 
 /** @public */
 export const event$ = implicit$FirstArg(eventQrl);
+
+export interface SyncQRL<TYPE extends Function = any> extends QRL<TYPE> {
+  __brand__SyncQRL__: TYPE;
+
+  /**
+   * Resolve the QRL of closure and invoke it.
+   *
+   * @param args - Closure arguments.
+   * @returns A return value of the closure.
+   */
+  (
+    ...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never
+  ): TYPE extends (...args: any[]) => infer RETURN ? RETURN : never;
+
+  resolved: TYPE;
+  dev: QRLDev | null;
+}
+
+/**
+ * Extract function into a synchronously loadable QRL.
+ *
+ * NOTE: Synchronous QRLs functions can't close over any variables, including exports.
+ *
+ * @param fn - Function to extract.
+ * @returns
+ * @alpha
+ */
+export const sync$ = <T extends Function>(fn: T): SyncQRL<T> => {
+  if (!qRuntimeQrl && qDev) {
+    throw new Error(
+      'Optimizer should replace all usages of sync$() with some special syntax. If you need to create a QRL manually, use inlinedSyncQrl() instead.'
+    );
+  }
+  if (qDev) {
+    // To make sure that in dev mode we don't accidentally capture context in `sync$()` we serialize and deserialize the function.
+    // eslint-disable-next-line no-new-func
+    fn = new Function('return ' + fn.toString())() as any;
+  }
+
+  return createQRL<T>('', SYNC_QRL, fn, null, null, null, null) as any;
+};
+
+/**
+ * Extract function into a synchronously loadable QRL.
+ *
+ * NOTE: Synchronous QRLs functions can't close over any variables, including exports.
+ *
+ * @param fn - Extracted function
+ * @param serializedFn - Serialized function in string form.
+ * @returns
+ * @alpha
+ */
+export const _qrlSync = function <TYPE extends Function>(
+  fn: TYPE,
+  serializedFn?: string
+): SyncQRL<TYPE> {
+  if (serializedFn === undefined) {
+    serializedFn = fn.toString();
+  }
+  return createQRL<TYPE>('', SYNC_QRL, fn, null, null, null, null) as any;
+};

@@ -1,81 +1,58 @@
 import { component$, type ReadonlySignal } from '@builder.io/qwik';
-import { routeLoader$ } from '@builder.io/qwik-city';
-import Histogram from '~/components/histogram';
-import { SymbolTile } from '~/components/symbol-tile';
+import { routeLoader$, useLocation } from '@builder.io/qwik-city';
+import { RoutesIcon } from '~/components/icons/routes';
 import { getDB } from '~/db';
 import { dbGetManifestHashes } from '~/db/sql-manifest';
-import { getRoutes, type RouteSymbolRow } from '~/db/sql-routes';
-import { TIMELINE_BUCKETS, vectorAvg, vectorSum } from '~/stats/vector';
-import { css } from '~/styled-system/css';
+import { getRouteNames, type RouteRow } from '~/db/sql-routes';
+import { AppLink } from '~/routes.config';
 
 export const useRouteData = routeLoader$(async ({ params }) => {
   const db = getDB();
   const publicApiKey = params.publicApiKey;
   const manifestHashes = await dbGetManifestHashes(db, publicApiKey);
-  const routes = await getRoutes(db, publicApiKey, manifestHashes);
-  return routeRowsToRouteTree(routes);
+  const routes = await getRouteNames(db, publicApiKey, manifestHashes);
+  return routes;
 });
 
 export default component$(() => {
-  const routeData: ReadonlySignal<RouteData[]> = useRouteData();
+  const location = useLocation();
+  const routesData: ReadonlySignal<RouteRow[]> = useRouteData();
   return (
     <div>
-      <ul>
-        {routeData.value.map((route) => (
-          <li key={route.route}>
-            <code>{route.route}</code>
-            <ol
-              class={css({
-                marginLeft: '1.5rem',
-              })}
-            >
-              {route.symbols.map((symbol) => (
-                <li key={symbol.symbolName}>
-                  <Histogram vector={symbol.timeline} buckets={TIMELINE_BUCKETS} />
-                  <SymbolTile symbol={symbol.symbolName} />
-                  {' - '}
-                  {symbol.timelineCount.toLocaleString()}
-                  {' / '}
-                  {Math.round(symbol.timelineDelay / 1000).toLocaleString()} seconds
-                </li>
-              ))}
-            </ol>
-          </li>
-        ))}
-      </ul>
+      <h1 class="h3">
+        <RoutesIcon />
+        Routes
+      </h1>
+      <table class="w-full text-sm text-left">
+        <thead class="text-xs text-slate-700 uppercase">
+          <tr class="border-b border-slate-200">
+            <th scope="col" class="px-6 py-3 bg-slate-50">
+              Path
+            </th>
+            <th scope="col" class="px-6 py-3  bg-slate-50">
+              Action
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {routesData.value.map((route) => (
+            <tr key={route.route} class="border-b border-slate-200 text-xs">
+              <th scope="col" class="px-6 py-3">
+                <code>{route.route}</code>
+              </th>
+              <td scope="col" class="px-6 py-3 w-32">
+                <AppLink
+                  route="/app/[publicApiKey]/routes/[route]/"
+                  param:publicApiKey={location.params.publicApiKey}
+                  param:route={route.route}
+                >
+                  View details
+                </AppLink>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 });
-
-interface RouteData {
-  route: string;
-  symbols: {
-    symbolName: string;
-    timelineDelay: number;
-    timelineCount: number;
-    timeline: number[];
-  }[];
-}
-
-function routeRowsToRouteTree(routes: RouteSymbolRow[]): RouteData[] {
-  const routeMap = new Map<string, RouteData>();
-  routes.forEach((route) => {
-    const routeData = getRoute(route.route);
-    routeData.symbols.push({
-      symbolName: route.symbol,
-      timelineDelay: vectorAvg(route.timeline, TIMELINE_BUCKETS),
-      timelineCount: vectorSum(route.timeline),
-      timeline: route.timeline,
-    });
-  });
-  return Array.from(routeMap.values());
-  ///////////
-
-  function getRoute(route: string): RouteData {
-    let routeData = routeMap.get(route);
-    if (routeData == undefined) {
-      routeMap.set(route, (routeData = { route, symbols: [] }));
-    }
-    return routeData;
-  }
-}

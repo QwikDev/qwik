@@ -32,6 +32,7 @@ import {
   type ReadonlySignal,
 } from '../state/signal';
 import { QObjectManagerSymbol } from '../state/constants';
+import { ComputedEvent, TaskEvent } from '../util/markers';
 
 export const TaskFlagsIsVisibleTask = 1 << 0;
 export const TaskFlagsIsTask = 1 << 1;
@@ -58,16 +59,27 @@ export const TaskFlagsIsCleanup = 1 << 5;
  * ```tsx
  * const Cmp = component$(() => {
  *   const store = useStore({ count: 0, doubleCount: 0 });
+ *   const signal = useSignal(0);
  *   useTask$(({ track }) => {
+ *     // Any signals or stores accessed inside the task will be tracked
  *     const count = track(() => store.count);
- *     store.doubleCount = 2 * count;
+ *     // You can also pass a signal to track() directly
+ *     const signalCount = track(signal);
+ *     store.doubleCount = count + signalCount;
  *   });
  *   return (
  *     <div>
  *       <span>
  *         {store.count} / {store.doubleCount}
  *       </span>
- *       <button onClick$={() => store.count++}>+</button>
+ *       <button
+ *         onClick$={() => {
+ *           store.count++;
+ *           signal.value++;
+ *         }}
+ *       >
+ *         +
+ *       </button>
  *     </div>
  *   );
  * });
@@ -82,7 +94,7 @@ export interface Tracker {
    * Include the expression using stores / signals to track:
    *
    * ```tsx
-   * track(() => store.value);
+   * track(() => store.count);
    * ```
    *
    * The `track()` function also returns the value of the scoped expression:
@@ -91,13 +103,21 @@ export interface Tracker {
    * const count = track(() => store.count);
    * ```
    */
-  <T>(ctx: () => T): T;
+  <T>(fn: () => T): T;
 
   /**
    * Used to track the whole object. If any property of the passed store changes, the task will be
-   * scheduled to run.
+   * scheduled to run. Also accepts signals.
+   *
+   * Note that the change tracking is not deep. If you want to track changes to nested properties,
+   * you need to use `track` on each of them.
+   *
+   * ```tsx
+   * track(store); // returns store
+   * track(signal); // returns signal.value
+   * ```
    */
-  <T extends {}>(obj: T): T;
+  <T extends object>(obj: T): T extends Signal<infer U> ? U : T;
 }
 
 /** @public */
@@ -121,7 +141,7 @@ export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => void)>;
 export type ComputedFn<T> = () => T;
 
 /** @public */
-export type ResourceFn<T> = (ctx: ResourceCtx<any>) => ValueOrPromise<T>;
+export type ResourceFn<T> = (ctx: ResourceCtx<unknown>) => ValueOrPromise<T>;
 
 /** @public */
 export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | ResourceRejected<T>;
@@ -148,20 +168,20 @@ export interface ResourceReturnInternal<T> {
   __brand: 'resource';
   _state: 'pending' | 'resolved' | 'rejected';
   _resolved: T | undefined;
-  _error: any;
+  _error: Error | undefined;
   _cache: number;
   _timeout: number;
   value: Promise<T>;
   loading: boolean;
 }
 /** @public */
-export interface DescriptorBase<T = any, B = undefined> {
+export interface DescriptorBase<T = unknown, B = unknown> {
   $qrl$: QRLInternal<T>;
   $el$: QwikElement;
   $flags$: number;
   $index$: number;
   $destroy$?: NoSerialize<() => void>;
-  $state$: B;
+  $state$: B | undefined;
 }
 
 /** @public */
@@ -212,9 +232,9 @@ export interface UseTaskOptions {
  *
  * ### Example
  *
- * The `useTask` function is used to observe the `state.count` property. Any changes to the
- * `state.count` cause the `taskFn` to execute which in turn updates the `state.doubleCount` to
- * the double of `state.count`.
+ * The `useTask` function is used to observe the `store.count` property. Any changes to the
+ * `store.count` cause the `taskFn` to execute which in turn updates the `store.doubleCount` to
+ * the double of `store.count`.
  *
  * ```tsx
  * const Cmp = component$(() => {
@@ -337,9 +357,9 @@ export const useComputed$: Computed = implicit$FirstArg(useComputedQrl);
  *
  * ### Example
  *
- * The `useTask` function is used to observe the `state.count` property. Any changes to the
- * `state.count` cause the `taskFn` to execute which in turn updates the `state.doubleCount` to
- * the double of `state.count`.
+ * The `useTask` function is used to observe the `store.count` property. Any changes to the
+ * `store.count` cause the `taskFn` to execute which in turn updates the `store.doubleCount` to
+ * the double of `store.count`.
  *
  * ```tsx
  * const Cmp = component$(() => {
@@ -410,7 +430,7 @@ export const useTask$ = /*#__PURE__*/ implicit$FirstArg(useTaskQrl);
  */
 // </docs>
 export const useVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions): void => {
-  const { val, set, i, iCtx, elCtx } = useSequentialScope<Task>();
+  const { val, set, i, iCtx, elCtx } = useSequentialScope<Task<TaskFn>>();
   const eagerness = opts?.strategy ?? 'intersection-observer';
   if (val) {
     if (isServerPlatform()) {
@@ -467,17 +487,20 @@ export type TaskDescriptor = DescriptorBase<TaskFn>;
 export interface ResourceDescriptor<T>
   extends DescriptorBase<ResourceFn<T>, ResourceReturnInternal<T>> {}
 
-export interface ComputedDescriptor<T> extends DescriptorBase<ComputedFn<T>, SignalInternal<T>> {}
+export interface ComputedDescriptor<T> extends DescriptorBase<ComputedFn<T>, Signal<T>> {}
 
 export type SubscriberHost = QwikElement;
 
-export type SubscriberEffect = TaskDescriptor | ResourceDescriptor<any> | ComputedDescriptor<any>;
+export type SubscriberEffect =
+  | TaskDescriptor
+  | ResourceDescriptor<unknown>
+  | ComputedDescriptor<unknown>;
 
-export const isResourceTask = (task: SubscriberEffect): task is ResourceDescriptor<any> => {
+export const isResourceTask = (task: SubscriberEffect): task is ResourceDescriptor<unknown> => {
   return (task.$flags$ & TaskFlagsIsResource) !== 0;
 };
 
-export const isComputedTask = (task: SubscriberEffect): task is ComputedDescriptor<any> => {
+export const isComputedTask = (task: SubscriberEffect): task is ComputedDescriptor<unknown> => {
   return (task.$flags$ & TaskFlagsIsComputed) !== 0;
 };
 export const runSubscriber = async (
@@ -499,13 +522,13 @@ export const runResource = <T>(
   task: ResourceDescriptor<T>,
   containerState: ContainerState,
   rCtx: RenderContext,
-  waitOn?: Promise<any>
+  waitOn?: Promise<unknown>
 ): ValueOrPromise<void> => {
   task.$flags$ &= ~TaskFlagsIsDirty;
   cleanupTask(task);
 
   const el = task.$el$;
-  const iCtx = newInvokeContext(rCtx.$static$.$locale$, el, undefined, 'TaskEvent');
+  const iCtx = newInvokeContext(rCtx.$static$.$locale$, el, undefined, TaskEvent);
   const { $subsManager$: subsManager } = containerState;
   iCtx.$renderCtx$ = rCtx;
   const taskFn = task.$qrl$.getFn(iCtx, () => {
@@ -520,7 +543,7 @@ export const runResource = <T>(
     task
   );
 
-  const track: Tracker = (obj: any, prop?: string) => {
+  const track: Tracker = (obj: (() => unknown) | object | Signal, prop?: string) => {
     if (isFunction(obj)) {
       const ctx = newInvokeContext();
       ctx.$renderCtx$ = rCtx;
@@ -534,7 +557,7 @@ export const runResource = <T>(
       logErrorAndStop(codeToText(QError_trackUseStore), obj);
     }
     if (prop) {
-      return obj[prop];
+      return (obj as Record<string, unknown>)[prop];
     } else if (isSignal(obj)) {
       return obj.value;
     } else {
@@ -560,26 +583,26 @@ export const runResource = <T>(
   };
 
   let resolve: (v: T) => void;
-  let reject: (v: any) => void;
+  let reject: (v: unknown) => void;
   let done = false;
 
-  const setState = (resolved: boolean, value: any) => {
+  const setState = (resolved: boolean, value: T | Error) => {
     if (!done) {
       done = true;
       if (resolved) {
         done = true;
         resource.loading = false;
         resource._state = 'resolved';
-        resource._resolved = value;
+        resource._resolved = value as T;
         resource._error = undefined;
 
-        resolve(value);
+        resolve(value as T);
       } else {
         done = true;
         resource.loading = false;
         resource._state = 'rejected';
-        resource._error = value;
-        reject(value);
+        resource._error = value as Error;
+        reject(value as Error);
       }
       return true;
     }
@@ -626,7 +649,7 @@ export const runResource = <T>(
 };
 
 export const runTask = (
-  task: TaskDescriptor | ComputedDescriptor<any>,
+  task: TaskDescriptor | ComputedDescriptor<unknown>,
   containerState: ContainerState,
   rCtx: RenderContext
 ): ValueOrPromise<void> => {
@@ -634,13 +657,13 @@ export const runTask = (
 
   cleanupTask(task);
   const hostElement = task.$el$;
-  const iCtx = newInvokeContext(rCtx.$static$.$locale$, hostElement, undefined, 'TaskEvent');
+  const iCtx = newInvokeContext(rCtx.$static$.$locale$, hostElement, undefined, TaskEvent);
   iCtx.$renderCtx$ = rCtx;
   const { $subsManager$: subsManager } = containerState;
   const taskFn = task.$qrl$.getFn(iCtx, () => {
     subsManager.$clearSub$(task);
   }) as TaskFn;
-  const track: Tracker = (obj: any, prop?: string) => {
+  const track: Tracker = (obj: (() => unknown) | object | Signal, prop?: string) => {
     if (isFunction(obj)) {
       const ctx = newInvokeContext();
       ctx.$subscriber$ = [0, task];
@@ -653,7 +676,9 @@ export const runTask = (
       logErrorAndStop(codeToText(QError_trackUseStore), obj);
     }
     if (prop) {
-      return obj[prop];
+      return (obj as Record<string, unknown>)[prop];
+    } else if (isSignal(obj)) {
+      return obj.value;
     } else {
       return obj;
     }
@@ -683,7 +708,7 @@ export const runTask = (
 };
 
 export const runComputed = (
-  task: ComputedDescriptor<any>,
+  task: ComputedDescriptor<unknown>,
   containerState: ContainerState,
   rCtx: RenderContext
 ): ValueOrPromise<void> => {
@@ -691,7 +716,7 @@ export const runComputed = (
   task.$flags$ &= ~TaskFlagsIsDirty;
   cleanupTask(task);
   const hostElement = task.$el$;
-  const iCtx = newInvokeContext(rCtx.$static$.$locale$, hostElement, undefined, 'ComputedEvent');
+  const iCtx = newInvokeContext(rCtx.$static$.$locale$, hostElement, undefined, ComputedEvent);
   iCtx.$subscriber$ = [0, task];
   iCtx.$renderCtx$ = rCtx;
 
@@ -704,7 +729,7 @@ export const runComputed = (
     taskFn,
     (returnValue) =>
       untrack(() => {
-        const signal = task.$state$;
+        const signal = task.$state$! as SignalInternal<unknown>;
         signal[QObjectSignalFlags] &= ~SIGNAL_UNASSIGNED;
         signal.untrackedValue = returnValue;
         signal[QObjectManagerSymbol].$notifySubs$();
@@ -731,7 +756,7 @@ export const destroyTask = (task: SubscriberEffect) => {
   if (task.$flags$ & TaskFlagsIsCleanup) {
     task.$flags$ &= ~TaskFlagsIsCleanup;
     const cleanup = task.$qrl$;
-    (cleanup as any)();
+    (cleanup as Function)();
   } else {
     cleanupTask(task);
   }
@@ -750,17 +775,25 @@ const useRunTask = (
   }
 };
 
-const getTaskHandlerQrl = (task: SubscriberEffect) => {
+const getTaskHandlerQrl = (task: SubscriberEffect): QRL<(ev: Event) => void> => {
   const taskQrl = task.$qrl$;
-  const taskHandler = createQRL(taskQrl.$chunk$, '_hW', _hW, null, null, [task], taskQrl.$symbol$);
+  const taskHandler = createQRL<(ev: Event) => void>(
+    taskQrl.$chunk$,
+    '_hW',
+    _hW,
+    null,
+    null,
+    [task],
+    taskQrl.$symbol$
+  );
   return taskHandler;
 };
 
-export const isTaskCleanup = (obj: any): obj is TaskDescriptor => {
+export const isTaskCleanup = (obj: unknown): obj is TaskDescriptor => {
   return isSubscriberDescriptor(obj) && !!(obj.$flags$ & TaskFlagsIsCleanup);
 };
 
-export const isSubscriberDescriptor = (obj: any): obj is SubscriberEffect => {
+export const isSubscriberDescriptor = (obj: unknown): obj is SubscriberEffect => {
   return isObject(obj) && obj instanceof Task;
 };
 
@@ -779,12 +812,12 @@ export const parseTask = (data: string) => {
   return new Task(strToInt(flags), strToInt(index), el as any, qrl as any, resource as any);
 };
 
-export class Task<T = undefined> implements DescriptorBase<any, T> {
+export class Task<T = unknown, B = T> implements DescriptorBase<unknown, Signal<B>> {
   constructor(
     public $flags$: number,
     public $index$: number,
     public $el$: QwikElement,
-    public $qrl$: QRLInternal<any>,
-    public $state$: T
+    public $qrl$: QRLInternal<T>,
+    public $state$: Signal<B> | undefined
   ) {}
 }

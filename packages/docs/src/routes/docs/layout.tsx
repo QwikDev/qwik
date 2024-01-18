@@ -9,6 +9,9 @@ import { GlobalStore } from '../../context';
 import styles from './docs.css?inline';
 import Contributors from '../../components/contributors';
 
+// eslint-disable-next-line
+export { useMarkdownItems } from '../../components/sidebar/sidebar';
+
 export default component$(() => {
   const loc = useLocation();
   const noRightMenu = ['/docs/'].includes(loc.url.pathname);

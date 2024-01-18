@@ -15,10 +15,7 @@ export default component$(() => {
   });
   return (
     <>
-      <input
-        value={store.value}
-        onInput$={(event) => (store.value = (event.target as HTMLInputElement).value)}
-      />
+      <input value={store.value} onInput$={(ev, el) => (store.value = el.value)} />
       <br />
       Current value: {store.value}
       <br />

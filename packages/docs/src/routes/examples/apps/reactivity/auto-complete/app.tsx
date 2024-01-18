@@ -46,10 +46,7 @@ export const AutoComplete = component$(() => {
 
   return (
     <div>
-      <input
-        type="text"
-        onInput$={(ev) => (state.searchInput = (ev.target as HTMLInputElement).value)}
-      />
+      <input type="text" onInput$={(ev, el) => (state.searchInput = el.value)} />
       <SuggestionsListComponent state={state}></SuggestionsListComponent>
     </div>
   );
@@ -81,14 +78,14 @@ const getPeople = (searchInput: string, controller?: AbortController): Promise<s
       return parsedResponse.results.map((people: { name: string }) => people.name);
     });
 
-function debounce<F extends (...args: any[]) => any>(fn: F, delay = 500) {
+function debounce<F extends (...args: any) => any>(fn: F, delay = 500) {
   let timeoutId: ReturnType<typeof setTimeout>;
 
   return (...args: Parameters<F>): Promise<ReturnType<F>> => {
     return new Promise((resolve) => {
       if (timeoutId) clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
-        resolve(fn(...args));
+        resolve(fn(...(args as any[])));
       }, delay);
     });
   };

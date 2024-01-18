@@ -20,11 +20,11 @@ export interface ClientConn {
  * @public
  * Request event created by the server.
  */
-export interface ServerRequestEvent<T = any> {
+export interface ServerRequestEvent<T = unknown> {
   mode: ServerRequestMode;
   url: URL;
   locale: string | undefined;
-  platform: any;
+  platform: QwikCityPlatform;
   request: Request;
   env: EnvGetter;
   getClientConn: () => ClientConn;
@@ -538,7 +538,7 @@ export interface CookieOptions {
    * Controls whether or not a cookie is sent with cross-site requests, providing some protection
    * against cross-site request forgery attacks (CSRF).
    */
-  sameSite?: 'strict' | 'lax' | 'none' | boolean;
+  sameSite?: 'strict' | 'lax' | 'none' | 'Strict' | 'Lax' | 'None' | boolean;
   /**
    * Indicates that the cookie is sent to the server only when a request is made with the `https:`
    * scheme (except on localhost)

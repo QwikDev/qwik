@@ -11,7 +11,6 @@ import {
   type ResourceReturnInternal,
 } from './use-task';
 import { Fragment, jsx } from '../render/jsx/jsx-runtime';
-import type { JSXNode } from '../render/jsx/types/jsx-node';
 import { isServerPlatform } from '../platform/platform';
 import { untrack, useBindInvokeContext } from './use-core';
 
@@ -22,6 +21,7 @@ import { getProxyTarget } from '../state/common';
 import { isSignal, type Signal } from '../state/signal';
 import { isObject } from '../util/types';
 import { isPromise } from '../util/promises';
+import type { JSXOutput } from '../render/jsx/types/jsx-node';
 
 /**
  * Options to pass to `useResource$()`
@@ -60,24 +60,22 @@ export interface ResourceOptions {
  *
  * ```tsx
  * const Cmp = component$(() => {
- *   const store = useStore({
- *     city: '',
- *   });
+ *   const cityS = useSignal('');
  *
- *   const weatherResource = useResource$<any>(async ({ track, cleanup }) => {
- *     const cityName = track(() => store.city);
+ *   const weatherResource = useResource$(async ({ track, cleanup }) => {
+ *     const cityName = track(cityS);
  *     const abortController = new AbortController();
  *     cleanup(() => abortController.abort('cleanup'));
  *     const res = await fetch(`http://weatherdata.com?city=${cityName}`, {
  *       signal: abortController.signal,
  *     });
- *     const data = res.json();
- *     return data;
+ *     const data = await res.json();
+ *     return data as { temp: number };
  *   });
  *
  *   return (
  *     <div>
- *       <input name="city" onInput$={(ev: any) => (store.city = ev.target.value)} />
+ *       <input name="city" bind:value={cityS} />
  *       <Resource
  *         value={weatherResource}
  *         onResolved={(weather) => {
@@ -148,24 +146,22 @@ export const useResourceQrl = <T>(
  *
  * ```tsx
  * const Cmp = component$(() => {
- *   const store = useStore({
- *     city: '',
- *   });
+ *   const cityS = useSignal('');
  *
- *   const weatherResource = useResource$<any>(async ({ track, cleanup }) => {
- *     const cityName = track(() => store.city);
+ *   const weatherResource = useResource$(async ({ track, cleanup }) => {
+ *     const cityName = track(cityS);
  *     const abortController = new AbortController();
  *     cleanup(() => abortController.abort('cleanup'));
  *     const res = await fetch(`http://weatherdata.com?city=${cityName}`, {
  *       signal: abortController.signal,
  *     });
- *     const data = res.json();
- *     return data;
+ *     const data = await res.json();
+ *     return data as { temp: number };
  *   });
  *
  *   return (
  *     <div>
- *       <input name="city" onInput$={(ev: any) => (store.city = ev.target.value)} />
+ *       <input name="city" bind:value={cityS} />
  *       <Resource
  *         value={weatherResource}
  *         onResolved={(weather) => {
@@ -192,9 +188,9 @@ export const useResource$ = <T>(
 /** @public */
 export interface ResourceProps<T> {
   readonly value: ResourceReturn<T> | Signal<Promise<T> | T> | Promise<T>;
-  onResolved: (value: T) => JSXNode;
-  onPending?: () => JSXNode;
-  onRejected?: (reason: any) => JSXNode;
+  onResolved: (value: T) => JSXOutput;
+  onPending?: () => JSXOutput;
+  onRejected?: (reason: Error) => JSXOutput;
 }
 
 // <docs markdown="../readme.md#useResource">
@@ -220,24 +216,22 @@ export interface ResourceProps<T> {
  *
  * ```tsx
  * const Cmp = component$(() => {
- *   const store = useStore({
- *     city: '',
- *   });
+ *   const cityS = useSignal('');
  *
- *   const weatherResource = useResource$<any>(async ({ track, cleanup }) => {
- *     const cityName = track(() => store.city);
+ *   const weatherResource = useResource$(async ({ track, cleanup }) => {
+ *     const cityName = track(cityS);
  *     const abortController = new AbortController();
  *     cleanup(() => abortController.abort('cleanup'));
  *     const res = await fetch(`http://weatherdata.com?city=${cityName}`, {
  *       signal: abortController.signal,
  *     });
- *     const data = res.json();
- *     return data;
+ *     const data = await res.json();
+ *     return data as { temp: number };
  *   });
  *
  *   return (
  *     <div>
- *       <input name="city" onInput$={(ev: any) => (store.city = ev.target.value)} />
+ *       <input name="city" bind:value={cityS} />
  *       <Resource
  *         value={weatherResource}
  *         onResolved={(weather) => {
@@ -254,7 +248,7 @@ export interface ResourceProps<T> {
  * @see ResourceReturn
  */
 // </docs>
-export const Resource = <T>(props: ResourceProps<T>): JSXNode => {
+export const Resource = <T>(props: ResourceProps<T>): JSXOutput => {
   const isBrowser = !isServerPlatform();
   const resource = props.value as ResourceReturnInternal<T> | Promise<T> | Signal<T>;
   let promise: Promise<T> | undefined;
@@ -263,7 +257,7 @@ export const Resource = <T>(props: ResourceProps<T>): JSXNode => {
       if (props.onRejected) {
         resource.value.catch(() => {});
         if (resource._state === 'rejected') {
-          return props.onRejected(resource._error);
+          return props.onRejected(resource._error!);
         }
       }
       if (props.onPending) {
@@ -327,11 +321,14 @@ export const getInternalResource = <T>(resource: ResourceReturn<T>): ResourceRet
   return getProxyTarget(resource) as any;
 };
 
-export const isResourceReturn = (obj: any): obj is ResourceReturn<any> => {
-  return isObject(obj) && obj.__brand === 'resource';
+export const isResourceReturn = (obj: any): obj is ResourceReturn<unknown> => {
+  return isObject(obj) && (obj as any).__brand === 'resource';
 };
 
-export const serializeResource = (resource: ResourceReturnInternal<any>, getObjId: GetObjID) => {
+export const serializeResource = (
+  resource: ResourceReturnInternal<unknown>,
+  getObjId: GetObjID
+) => {
   const state = resource._state;
   if (state === 'resolved') {
     return `0 ${getObjId(resource._resolved)}`;

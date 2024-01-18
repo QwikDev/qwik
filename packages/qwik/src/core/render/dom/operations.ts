@@ -38,6 +38,7 @@ const _setAttribute = (el: QwikElement, prop: string, value: any) => {
   if (value == null || value === false) {
     el.removeAttribute(prop);
   } else {
+    // element.setAttribute requires string. Boolean attributes automatically convert "" to `true`
     const str = value === true ? '' : String(value);
     directSetAttribute(el, prop, str);
   }
@@ -205,6 +206,7 @@ export const createTemplate = (doc: Document, slotName: string) => {
 
 export const executeDOMRender = (staticCtx: RenderStaticContext) => {
   for (const op of staticCtx.$operations$) {
+    // PERF(misko): polymorphic execution
     op.$operation$.apply(undefined, op.$args$);
   }
   resolveSlotProjection(staticCtx);

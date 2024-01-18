@@ -2,7 +2,7 @@ import { Extractor, ExtractorConfig } from '@microsoft/api-extractor';
 import { readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { generateApiMarkdownDocs } from './api-docs';
-import { type BuildConfig, panic } from './util';
+import { type BuildConfig, panic, ensureDir } from './util';
 
 /**
  * Create each submodule's bundled dts file, and ensure the public API has not changed for a
@@ -20,11 +20,17 @@ export async function apiExtractor(config: BuildConfig) {
     join(config.distQwikPkgDir, 'core.d.ts'),
     '.'
   );
-  createTypesApi(
-    config,
-    join(config.srcQwikDir, 'jsx-runtime'),
+  // Special case for jsx-runtime:
+  // It only re-exports JSX. Don't duplicate the types
+  const jsxContent = readFileSync(join(config.srcQwikDir, 'jsx-runtime', 'index.ts'), 'utf-8');
+  writeFileSync(
     join(config.distQwikPkgDir, 'jsx-runtime.d.ts'),
-    '.'
+    `// re-export to make TS happy when not using nodenext import resolution\n${jsxContent}`
+  );
+  ensureDir(join(config.distQwikPkgDir, 'jsx-runtime'));
+  writeFileSync(
+    join(config.distQwikPkgDir, 'jsx-runtime', 'index.d.ts'),
+    `// re-export to make TS happy when not using nodenext import resolution\n${jsxContent}`
   );
   createTypesApi(
     config,
@@ -278,6 +284,11 @@ declare module '*.mdx' {
   export const frontmatter: Record<string, any>;
   export default node;
 }
+// SVG ?jsx
+declare module '*.svg?jsx' {
+  const Cmp: import('./core').FunctionComponent<import('./core').QwikIntrinsicElements['svg']>
+  export default Cmp;
+}
 // Image ?jsx
 declare module '*?jsx' {
   const Cmp: import('./core').FunctionComponent<Omit<import('./core').QwikIntrinsicElements['img'], 'src' | 'width' | 'height' | 'srcSet'>>
@@ -286,7 +297,6 @@ declare module '*?jsx' {
   export const height: number;
   export const srcSet: string;
 }
-
 // Image &jsx
 declare module '*&jsx' {
   const Cmp: import('./core').FunctionComponent<Omit<import('./core').QwikIntrinsicElements['img'], 'src' | 'width' | 'height' | 'srcSet'>>
@@ -319,9 +329,6 @@ function fixDtsContent(config: BuildConfig, srcPath: string, relativePath?: stri
   if (relativePath) {
     dts = dts.replace(/'@builder\.io\/qwik(.*)'/g, `'${relativePath}$1'`);
   }
-
-  // for some reason api-extractor is adding this in  ¯\_(ツ)_/¯
-  dts = dts.replace('{};', '');
 
   // replace QWIK_VERSION with the actual version number, useful for debugging
   return dts.replace(/QWIK_VERSION/g, config.distVersion);

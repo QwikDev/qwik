@@ -720,7 +720,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface TransformModule \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [code](#) |  | string |  |\n|  [hook](#) |  | [HookAnalysis](#hookanalysis) \\| null |  |\n|  [isEntry](#) |  | boolean |  |\n|  [map](#) |  | string \\| null |  |\n|  [path](#) |  | string |  |",
+      "content": "```typescript\nexport interface TransformModule \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [code](#) |  | string |  |\n|  [hook](#) |  | [HookAnalysis](#hookanalysis) \\| null |  |\n|  [isEntry](#) |  | boolean |  |\n|  [map](#) |  | string \\| null |  |\n|  [origPath](#) |  | string \\| null |  |\n|  [path](#) |  | string |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
       "mdFile": "qwik.transformmodule.md"
     },

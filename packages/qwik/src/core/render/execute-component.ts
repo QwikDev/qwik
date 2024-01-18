@@ -3,7 +3,7 @@ import { RenderEvent } from '../util/markers';
 import { maybeThen, promiseAllLazy, safeCall } from '../util/promises';
 import { newInvokeContext } from '../use/use-core';
 import { isArray, isFunction, isString, type ValueOrPromise } from '../util/types';
-import type { JSXNode } from './jsx/types/jsx-node';
+import type { JSXNode, JSXOutput } from './jsx/types/jsx-node';
 import type { ClassList } from './jsx/types/jsx-qwik-attributes';
 import type { RenderContext } from './types';
 import { type ContainerState, intToStr } from '../container/container';
@@ -15,9 +15,10 @@ import { handleError } from './error-handling';
 import { HOST_FLAG_DIRTY, HOST_FLAG_MOUNTED, type QContext } from '../state/context';
 import { isSignal, SignalUnassignedException } from '../state/signal';
 import { isJSXNode } from './jsx/jsx-runtime';
+import { isUnitlessNumber } from '../util/unitless_number';
 
 export interface ExecuteComponentOutput {
-  node: JSXNode | null;
+  node: JSXOutput;
   rCtx: RenderContext;
 }
 
@@ -41,7 +42,7 @@ export const executeComponent = (
   // Set component context
   const newCtx = pushRenderContext(rCtx);
   newCtx.$cmpCtx$ = elCtx;
-  newCtx.$slotCtx$ = null;
+  newCtx.$slotCtx$ = undefined;
 
   // Invoke render hook
   iCtx.$subscriber$ = [0, hostElement];
@@ -97,7 +98,7 @@ export const createRenderContext = (
       $visited$: [],
     },
     $cmpCtx$: null,
-    $slotCtx$: null,
+    $slotCtx$: undefined,
   };
   seal(ctx);
   seal(ctx.$static$);
@@ -117,7 +118,7 @@ export const serializeClassWithHost = (
   obj: ClassList,
   hostCtx: QContext | undefined | null
 ): string => {
-  if (hostCtx && hostCtx.$scopeIds$) {
+  if (hostCtx?.$scopeIds$?.length) {
     return hostCtx.$scopeIds$.join(' ') + ' ' + serializeClass(obj);
   }
   return serializeClass(obj);
@@ -164,8 +165,11 @@ export const stringifyStyle = (obj: any): string => {
         if (Object.prototype.hasOwnProperty.call(obj, key)) {
           const value = obj[key];
           if (value != null) {
-            const normalizedKey = key.startsWith('--') ? key : fromCamelToKebabCase(key);
-            chunks.push(normalizedKey + ':' + value);
+            if (key.startsWith('--')) {
+              chunks.push(key + ':' + value);
+            } else {
+              chunks.push(fromCamelToKebabCase(key) + ':' + setValueForStyle(key, value));
+            }
           }
         }
       }
@@ -173,6 +177,13 @@ export const stringifyStyle = (obj: any): string => {
     }
   }
   return String(obj);
+};
+
+const setValueForStyle = (styleName: string, value: any) => {
+  if (typeof value === 'number' && value !== 0 && !isUnitlessNumber(styleName)) {
+    return value + 'px';
+  }
+  return value;
 };
 
 export const getNextIndex = (ctx: RenderContext) => {

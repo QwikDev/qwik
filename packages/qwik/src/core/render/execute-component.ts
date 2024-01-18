@@ -16,6 +16,9 @@ import { HOST_FLAG_DIRTY, HOST_FLAG_MOUNTED, type QContext } from '../state/cont
 import { isSignal, SignalUnassignedException } from '../state/signal';
 import { isJSXNode } from './jsx/jsx-runtime';
 import { isUnitlessNumber } from '../util/unitless_number';
+import { isServerPlatform } from '../platform/platform';
+import { executeSSRTasks } from './dom/notify-render';
+import { logWarn } from '../util/log';
 
 export interface ExecuteComponentOutput {
   node: JSXOutput;
@@ -35,7 +38,7 @@ export const executeComponent = (
   const componentQRL = elCtx.$componentQrl$;
   const props = elCtx.$props$;
   const iCtx = newInvokeContext(rCtx.$static$.$locale$, hostElement, undefined, RenderEvent);
-  const waitOn = (iCtx.$waitOn$ = []);
+  const waitOn: Promise<unknown>[] = (iCtx.$waitOn$ = []);
   assertDefined(componentQRL, `render: host element to render must have a $renderQrl$:`, elCtx);
   assertDefined(props, `render: host element to render must have defined props`, elCtx);
 
@@ -55,15 +58,25 @@ export const executeComponent = (
   return safeCall(
     () => componentFn(props),
     (jsxNode) => {
-      return maybeThen(promiseAllLazy(waitOn), () => {
-        if (elCtx.$flags$ & HOST_FLAG_DIRTY) {
-          return executeComponent(rCtx, elCtx);
+      return maybeThen(
+        isServerPlatform()
+          ? maybeThen(promiseAllLazy(waitOn), () =>
+              // Run dirty tasks before SSR output is generated.
+              maybeThen(executeSSRTasks(rCtx.$static$.$containerState$, rCtx), () =>
+                promiseAllLazy(waitOn)
+              )
+            )
+          : promiseAllLazy(waitOn),
+        () => {
+          if (elCtx.$flags$ & HOST_FLAG_DIRTY) {
+            return executeComponent(rCtx, elCtx, attempt ? attempt + 1 : 1);
+          }
+          return {
+            node: jsxNode,
+            rCtx: newCtx,
+          };
         }
-        return {
-          node: jsxNode,
-          rCtx: newCtx,
-        };
-      });
+      );
     },
     (err) => {
       if (err === SignalUnassignedException) {

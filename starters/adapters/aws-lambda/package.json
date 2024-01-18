@@ -1,5 +1,5 @@
 {
-  "description": "AWS Lambda .",
+  "description": "AWS Lambda",
   "scripts": {
     "build.server": "vite build -c adapters/aws-lambda/vite.config.ts",
     "serve": "qwik build && serverless offline",

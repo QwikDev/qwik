@@ -855,5 +855,21 @@
     },
     "href": "https://juneikerc.com",
     "tags": "portfolio,site,blog,services"
+  },
+  {
+    "title": "Valibot: The modular and type safe schema library",
+    "imgSrc": "/showcases/valibot_dev_.webp",
+    "perf": {
+      "score": 1,
+      "fcpDisplay": "1.1 s",
+      "fcpScore": 0.99,
+      "lcpDisplay": "1.7 s",
+      "lcpScore": 0.99,
+      "ttiDisplay": "1.1 s",
+      "ttiScore": 1,
+      "ttiTime": 1107
+    },
+    "href": "https://valibot.dev/",
+    "tags": "site,documentation"
   }
 ]

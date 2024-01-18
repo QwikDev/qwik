@@ -3,6 +3,7 @@
 **/.DS_Store
 *.
 dist
+vite
 node_modules
 lib
 lib-types

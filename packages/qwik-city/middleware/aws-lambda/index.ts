@@ -1,17 +1,16 @@
-
 import { createQwikCity as createQwikCityNode } from '@builder.io/qwik-city/middleware/node';
 import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
 import type { QwikCityPlan } from 'packages/qwik-city/runtime/src/types';
 import type { QwikManifest, Render } from 'packages/qwik/src/server/types';
 
 interface AwsOpt {
-  render: Render
-  manifest: QwikManifest,
-  qwikCityPlan: QwikCityPlan
+  render: Render;
+  manifest: QwikManifest;
+  qwikCityPlan: QwikCityPlan;
 }
 
 /** @public */
-export function createQwikCity(opts: AwsOpt){
+export function createQwikCity(opts: AwsOpt) {
   try {
     const { router, staticFile, notFound } = createQwikCityNode({
       render: opts.render,
@@ -45,12 +44,12 @@ export function createQwikCity(opts: AwsOpt){
       req.url = fixPath(req.url);
       staticFile(req, res, () => {
         router(req, res, () => {
-          notFound(req, res, () => { });
+          notFound(req, res, () => {});
         });
       });
-    }
+    };
 
-    return {fixPath, router, staticFile, notFound, handle};
+    return { fixPath, router, staticFile, notFound, handle };
   } catch (err: any) {
     throw new Error(err.message);
   }

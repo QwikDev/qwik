@@ -260,7 +260,13 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
             trackUrl.pathname
           );
         }
-        loadedRoute = await loadRoutePromise;
+
+        try {
+          loadedRoute = await loadRoutePromise;
+        } catch (e) {
+          window.location.href = newHref;
+          return;
+        }
       }
 
       if (loadedRoute) {

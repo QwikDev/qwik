@@ -31,6 +31,34 @@ export const maybeThen = <T, B>(
   return isPromise(promise) ? promise.then(thenFn as any) : thenFn(promise as any);
 };
 
+export const maybeThenMap = <T, MAP_RET, RET>(
+  array: ValueOrPromise<T>[],
+  thenMapFn: (item: T) => ValueOrPromise<MAP_RET>,
+  thenFn: (items: MAP_RET[]) => ValueOrPromise<RET>
+): ValueOrPromise<RET> => {
+  const length = array.length;
+  const mappedArray: MAP_RET[] = [];
+  let idx = 0;
+  const drain = (): ValueOrPromise<MAP_RET[]> => {
+    let result: ValueOrPromise<MAP_RET>;
+    do {
+      const item = array[idx];
+      result = isPromise(item) ? item.then(thenMapFn) : thenMapFn(item);
+      if (isPromise(result)) {
+        return result.then((value) => {
+          mappedArray[idx] = value;
+          return drain();
+        });
+      } else {
+        mappedArray[idx] = result;
+        idx++;
+      }
+    } while (idx < length);
+    return mappedArray;
+  };
+  return maybeThen(drain(), thenFn);
+};
+
 export const promiseAll = <T extends readonly unknown[] | []>(
   promises: T
 ): ValueOrPromise<{ -readonly [P in keyof T]: Awaited<T[P]> }> => {

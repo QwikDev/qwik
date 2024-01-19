@@ -21,6 +21,7 @@ import { isArray } from '../util/types';
 import { setLocale } from './use-locale';
 import type { Subscriber } from '../state/common';
 import type { Signal } from '../state/signal';
+import type { Container2 } from '../v2/shared/types';
 
 declare const document: QwikDocument;
 
@@ -46,13 +47,12 @@ export type PossibleEvents =
 
 export interface RenderInvokeContext extends InvokeContext {
   $renderCtx$: RenderContext;
-  /** The parent document */
-  $doc$: Document;
   // The below are just always-defined attributes of InvokeContext.
   $hostElement$: QwikElement;
   $event$: PossibleEvents;
   $waitOn$: Promise<unknown>[];
   $subscriber$: Subscriber | null;
+  $container2$: Container2;
 }
 
 export type InvokeTuple = [Element, Event, URL?];
@@ -77,6 +77,7 @@ export interface InvokeContext {
   $subscriber$: Subscriber | null | undefined;
   $renderCtx$: RenderContext | undefined;
   $locale$: string | undefined;
+  $container2$: Container2 | undefined;
 }
 
 let _context: InvokeContext | undefined;
@@ -196,6 +197,7 @@ export const newInvokeContext = (
     $subscriber$: undefined,
     $renderCtx$: undefined,
     $locale$: locale,
+    $container2$: undefined,
   };
   seal(ctx);
   return ctx;

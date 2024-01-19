@@ -11,6 +11,7 @@ import {
   LocalSubscriptionManager,
   type Subscriptions,
   verifySerializable,
+  type SubscriptionManager,
 } from './common';
 import { QObjectManagerSymbol, _IMMUTABLE, _IMMUTABLE_PREFIX } from './constants';
 import { _fnSignal } from '../qrl/inlined-fn';
@@ -29,11 +30,11 @@ export type ValueOrSignal<T> = T | Signal<T>;
 /** @internal */
 export const _createSignal = <T>(
   value: T,
-  containerState: ContainerState,
+  subsManager: SubscriptionManager,
   flags: number,
   subscriptions?: Subscriptions[]
 ): SignalInternal<T> => {
-  const manager = containerState.$subsManager$.$createManager$(subscriptions);
+  const manager = subsManager.$createManager$(subscriptions);
   const signal = new SignalImpl<T>(value, manager, flags);
   return signal;
 };

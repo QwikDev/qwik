@@ -19,7 +19,7 @@ import { renderComponent } from './render-dom';
 import type { RenderContext } from '../types';
 import { type ContainerState, _getContainerState } from '../../container/container';
 import { createRenderContext } from '../execute-component';
-import { getRootNode, type QwikElement } from './virtual-element';
+import { getRootNode, type QwikElement, type VirtualElement } from './virtual-element';
 import { appendChild, printRenderStats } from './operations';
 import { executeSignalOperation } from './signals';
 import { getPlatform, isServerPlatform } from '../../platform/platform';
@@ -29,6 +29,9 @@ import { resumeIfNeeded } from '../../container/resume';
 import { getContext, HOST_FLAG_DIRTY, type QContext } from '../../state/context';
 import { directGetAttribute } from '../fast-calls';
 import { QStyle } from '../../util/markers';
+import { vnode_isVNode } from '../../v2/client/vnode';
+import type { Container2 } from '../../v2/shared/types';
+import type { VirtualVNode } from '../../v2/client/types';
 
 export const notifyChange = (subAction: Subscriptions, containerState: ContainerState) => {
   if (subAction[0] === 0) {
@@ -57,31 +60,36 @@ export const notifyChange = (subAction: Subscriptions, containerState: Container
  * @returns A promise which is resolved when the component has been rendered.
  */
 const notifyRender = (hostElement: QwikElement, containerState: ContainerState): void => {
-  const server = isServerPlatform();
-  if (!server) {
-    resumeIfNeeded(containerState.$containerEl$);
-  }
-
-  const elCtx = getContext(hostElement, containerState);
-  assertDefined(
-    elCtx.$componentQrl$,
-    `render: notified host element must have a defined $renderQrl$`,
-    elCtx
-  );
-  if (elCtx.$flags$ & HOST_FLAG_DIRTY) {
-    return;
-  }
-  elCtx.$flags$ |= HOST_FLAG_DIRTY;
-  const activeRendering = containerState.$hostsRendering$ !== undefined;
-  if (activeRendering) {
-    containerState.$hostsStaging$.add(elCtx);
+  if (vnode_isVNode(hostElement)) {
+    const constainer2 = containerState as any as Container2;
+    constainer2.markForRender(hostElement as unknown as VirtualVNode);
   } else {
-    if (server) {
-      logWarn('Can not rerender in server platform');
-      return undefined;
+    const server = isServerPlatform();
+    if (!server) {
+      resumeIfNeeded(containerState.$containerEl$);
     }
-    containerState.$hostsNext$.add(elCtx);
-    scheduleFrame(containerState);
+
+    const elCtx = getContext(hostElement, containerState);
+    assertDefined(
+      elCtx.$componentQrl$,
+      `render: notified host element must have a defined $renderQrl$`,
+      elCtx
+    );
+    if (elCtx.$flags$ & HOST_FLAG_DIRTY) {
+      return;
+    }
+    elCtx.$flags$ |= HOST_FLAG_DIRTY;
+    const activeRendering = containerState.$hostsRendering$ !== undefined;
+    if (activeRendering) {
+      containerState.$hostsStaging$.add(elCtx);
+    } else {
+      if (server) {
+        logWarn('Can not rerender in server platform');
+        return undefined;
+      }
+      containerState.$hostsNext$.add(elCtx);
+      scheduleFrame(containerState);
+    }
   }
 };
 

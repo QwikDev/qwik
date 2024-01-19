@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
 import { component$ } from '../component/component.public';
-import { ssrRenderToDom } from './render.unit';
+import { ssrRenderToDom } from './ssr-render.unit';
 import './vdom-diff.unit';
+import { Fragment, Fragment as Component } from '@builder.io/qwik/jsx-runtime';
 
 describe('useSequentialScope', () => {
   it('should render component', async () => {
@@ -36,9 +37,14 @@ describe('useSequentialScope', () => {
     });
     await trigger(container.element, 'button', 'click');
     expect(vNode).toMatchVDOM(
-      <>
-        <>Hello World!</>
-      </>
+      <Component>
+        <Fragment>
+          {'Hello'}{' '}
+          <Component>
+            <Fragment>World</Fragment>
+          </Component>
+        </Fragment>
+      </Component>
     );
   });
 });

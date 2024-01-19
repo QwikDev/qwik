@@ -1,8 +1,9 @@
 /** @file Public types for the client deserialization */
 
 import type { ContainerState } from '../../container/container';
+import type { Container2 } from '../shared/types';
 
-export interface ClientContainer {
+export interface ClientContainer extends Container2 {
   document: QDocument;
   containerState: ContainerState;
   element: ContainerElement;
@@ -70,6 +71,12 @@ export const enum VNodeFlags {
   Text /* ********************* */ = 0b0100,
   /// Extra flag which marks if a node needs to be inflated.
   Inflated /* ***************** */ = 0b1000,
+}
+
+export const enum VNodeFlagsIndex {
+  mask /* ************* */ = ~0b1111,
+  negated_mask /* ****** */ = 0b1111,
+  shift /* ************* */ = 4,
 }
 
 export const enum VNodeProps {

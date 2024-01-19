@@ -4,7 +4,7 @@ import { component$ } from '../component/component.public';
 import { inlinedQrl } from '../qrl/qrl';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { useSignal } from '../use/use-signal';
-import { ssrRenderToDom } from './render.unit';
+import { ssrRenderToDom } from './ssr-render.unit';
 import './vdom-diff.unit';
 import type { Signal } from '../state/signal';
 import { Fragment } from '@builder.io/qwik/jsx-runtime';

@@ -2,7 +2,7 @@ import { componentQrl, isQwikComponent } from '../component/component.public';
 import { assertDefined, assertTrue } from '../error/assert';
 import { createQRL, isQrl, type QRLInternal } from '../qrl/qrl-class';
 import type { QRL } from '../qrl/qrl.public';
-import type { ClientContainer } from './client/dom-container';
+import type { DomContainer } from './client/dom-container';
 import { SERIALIZABLE_STATE } from '../container/serializers';
 import { vnode_locate } from './client/vnode';
 import { Fragment, JSXNodeImpl, isJSXNode } from '../render/jsx/jsx-runtime';
@@ -32,7 +32,7 @@ export const isDeserializerProxy = (value: any) => {
 };
 
 const UNWRAP_PROXY = Symbol('UNWRAP_PROXY');
-const wrapDeserializerProxy = (container: ClientContainer, value: any) => {
+const wrapDeserializerProxy = (container: DomContainer, value: any) => {
   if (
     typeof value === 'object' && // Must be an object
     value !== null && // which is not null
@@ -94,7 +94,7 @@ const wrapDeserializerProxy = (container: ClientContainer, value: any) => {
   return value;
 };
 
-export const deserialize = <T>(container: ClientContainer, value: any): any => {
+export const deserialize = <T>(container: DomContainer, value: any): any => {
   if (typeof value === 'object' && value !== null) {
     return wrapDeserializerProxy(container, value);
   } else if (typeof value === 'string' && value.length) {
@@ -178,7 +178,7 @@ export const deserialize = <T>(container: ClientContainer, value: any): any => {
   return value;
 };
 
-export function parseQRL(container: ClientContainer, qrl: string): QRL<any> {
+export function parseQRL(container: DomContainer, qrl: string): QRL<any> {
   const hashIdx = qrl.indexOf('#');
   const captureStart = qrl.indexOf('[', hashIdx);
   const captureEnd = qrl.indexOf(']', captureStart);
@@ -635,7 +635,7 @@ function serializeJSXType($addRoot$: (obj: any) => number, type: string | Functi
 }
 
 function deserializeJSXType(
-  container: ClientContainer,
+  container: DomContainer,
   type: string
 ): string | FunctionComponent<any> {
   if (type === ':slot') {

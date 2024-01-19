@@ -7,7 +7,7 @@ import {
   vnode_getFirstChild,
   vnode_getNextSibling,
   vnode_getParent,
-  vnode_getProp,
+  vnode_getAttr,
   vnode_getPropKeys,
   vnode_getText,
   vnode_insertBefore,
@@ -16,7 +16,7 @@ import {
   vnode_isVirtualVNode,
   vnode_newText,
   vnode_newUnMaterializedElement,
-  vnode_setProp,
+  vnode_setAttr,
 } from './client/vnode';
 import { isStringifiable, type Stringifiable } from './shared-types';
 
@@ -72,11 +72,11 @@ function diffJsxVNode(received: VNode, expected: JSXNode | string, path: string[
     const allProps = new Set([...expectedProps, ...receivedProps]);
     allProps.delete('children');
     allProps.forEach((prop) => {
-      if (prop.startsWith('on:')) {
+      if (prop.startsWith('on:') || (prop.startsWith('on') && prop.endsWith('$'))) {
         return;
       }
       const expectedValue = expected.props[prop];
-      const receivedValue = vnode_getProp(received, prop);
+      const receivedValue = vnode_getAttr(received, prop);
       if (expectedValue !== receivedValue) {
         diffs.push(`${path.join(' > ')}: [${prop}]`);
         diffs.push('  EXPECTED: ' + JSON.stringify(expectedValue));
@@ -168,8 +168,8 @@ function shouldSkip(vNode: VNode | null) {
     const tag = vnode_getElementName(vNode);
     if (
       tag === 'script' &&
-      (vnode_getProp(vNode, 'type') === 'qwik/vnode' ||
-        vnode_getProp(vNode, 'type') === 'qwik/state')
+      (vnode_getAttr(vNode, 'type') === 'qwik/vnode' ||
+        vnode_getAttr(vNode, 'type') === 'qwik/state')
     ) {
       return true;
     }
@@ -216,13 +216,16 @@ export function vnode_fromJSX(jsx: JSXNode) {
       const type = jsx.type;
       if (typeof type === 'string') {
         const child = vnode_newUnMaterializedElement(vParent, doc.createElement(type));
-        vnode_insertBefore(vParent, null, child);
+        vnode_insertBefore(vParent, child, null);
 
         const props = jsx.props;
         for (const key in props) {
           if (Object.prototype.hasOwnProperty.call(props, key)) {
-            vnode_setProp(child, key, String(props[key]));
+            vnode_setAttr(child, key, String(props[key]));
           }
+        }
+        if (jsx.key != null) {
+          vnode_setAttr(child, 'key', String(jsx.key));
         }
         vParent = child;
       } else {
@@ -235,10 +238,10 @@ export function vnode_fromJSX(jsx: JSXNode) {
     text: (value) => {
       vnode_insertBefore(
         vParent,
-        null,
-        vnode_newText(vParent, doc.createTextNode(String(value)), String(value))
+        vnode_newText(vParent, doc.createTextNode(String(value)), String(value)),
+        null
       );
     },
   });
-  return { vParent, vNode: vnode_getFirstChild(vParent) };
+  return { vParent, vNode: vnode_getFirstChild(vParent), document: doc };
 }

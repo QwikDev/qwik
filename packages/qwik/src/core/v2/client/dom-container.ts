@@ -1,18 +1,36 @@
 /** @file Public APIs for the SSR */
 
 import { createContainerState, type ContainerState } from '../../container/container';
-import { assertTrue } from '../../error/assert';
+import { assertDefined, assertTrue } from '../../error/assert';
+import { getPlatform } from '../../platform/platform';
+import type { QRLInternal } from '../../qrl/qrl-class';
+import { createSubscriptionManager, type SubscriptionManager } from '../../state/common';
+import { EMPTY_OBJ } from '../../util/flyweight';
 import { throwErrorAndStop } from '../../util/log';
-import { QContainerAttr, QContainerSelector } from '../../util/markers';
+import {
+  ELEMENT_PROPS,
+  OnRenderProp,
+  QContainerAttr,
+  QContainerSelector,
+} from '../../util/markers';
+import { maybeThen, maybeThenMap } from '../../util/promises';
 import { deserialize } from '../shared-serialization';
+import { executeComponent2 } from '../shared/component-execution';
+import type { fixMeAny } from '../shared/types';
 import type {
   ContainerElement,
   ElementVNode,
   ClientContainer as IClientContainer,
   QDocument,
-  VNode,
+  VirtualVNode,
 } from './types';
-import { vnode_getClosestParentNode, vnode_newUnMaterializedElement } from './vnode';
+import {
+  vnode_documentPosition,
+  vnode_getClosestParentNode,
+  vnode_getProp,
+  vnode_newUnMaterializedElement,
+} from './vnode';
+import { vnode_applyJournal, vnode_diff, type VNodeJournalEntry } from './vnode-diff';
 
 export function getDomContainer(element: HTMLElement | ElementVNode): IClientContainer {
   let htmlElement: HTMLElement | null = Array.isArray(element)
@@ -27,12 +45,12 @@ export function getDomContainer(element: HTMLElement | ElementVNode): IClientCon
   const qElement = htmlElement as ContainerElement;
   let container = qElement.qContainer;
   if (!container) {
-    qElement.qContainer = container = new ClientContainer(qElement);
+    qElement.qContainer = container = new DomContainer(qElement);
   }
   return container;
 }
 
-export class ClientContainer implements IClientContainer {
+export class DomContainer implements IClientContainer {
   public readonly containerState: ContainerState;
   public element: ContainerElement;
   public qContainer: string;
@@ -42,12 +60,17 @@ export class ClientContainer implements IClientContainer {
   public qManifestHash: string;
   public rootVNode: ElementVNode;
   public document: QDocument;
-  private rawStateData: any[];
+  public $journal$: VNodeJournalEntry[] = [];
+  public $subsManager$: SubscriptionManager;
+  public renderDone: Promise<void> | null = Promise.resolve();
+  public rendering: boolean = false;
+  private $rawStateData$: any[];
   private stateData: any[];
+  private $renderQueue$: Set<VirtualVNode> = new Set();
   constructor(element: ContainerElement) {
-    this.qContainer = element.getAttribute('q:container')!;
+    this.qContainer = element.getAttribute(QContainerAttr)!;
     if (!this.qContainer) {
-      throw new Error("Element must have 'q:version' attribute.");
+      throw new Error("Element must have 'q:container' attribute.");
     }
     this.document = element.ownerDocument as QDocument;
     this.element = element;
@@ -58,32 +81,60 @@ export class ClientContainer implements IClientContainer {
     this.qManifestHash = element.getAttribute('q:manifest-hash')!;
     this.rootVNode = vnode_newUnMaterializedElement(null, this.element);
     // These are here to initialize all properties at once for single class transition
-    this.rawStateData = null!;
+    this.$rawStateData$ = null!;
     this.stateData = null!;
     const document = this.element.ownerDocument as QDocument;
     if (!document.qVNodeData) {
       processVNodeData(document);
     }
     const qwikStates = element.querySelectorAll('script[type="qwik/state"]');
-    const lastState = qwikStates[qwikStates.length - 1];
-    this.rawStateData = JSON.parse(lastState.textContent!);
-    // NOTE: We want to deserialize the `rawStateData` so that we can cache the deserialized data.
-    this.stateData = deserialize(this, this.rawStateData);
-    this.containerState.$pauseCtx$ = {
-      getObject: (id: string) => {
-        // console.log('getObject', id);
-        return this.getObjectById(id);
-      },
-      meta: loggingProxy('meta', this.rawStateData),
-      refs: loggingProxy('refs', {}),
-    };
+    if (qwikStates.length !== 0) {
+      const lastState = qwikStates[qwikStates.length - 1];
+      this.$rawStateData$ = JSON.parse(lastState.textContent!);
+      // NOTE: We want to deserialize the `rawStateData` so that we can cache the deserialized data.
+      this.stateData = deserialize(this, this.$rawStateData$);
+      this.containerState.$pauseCtx$ = {
+        getObject: (id: string) => {
+          // console.log('getObject', id);
+          return this.getObjectById(id);
+        },
+        meta: loggingProxy('meta', this.$rawStateData$),
+        refs: loggingProxy('refs', {}),
+      };
+    }
+    this.$rawStateData$ = [];
+    this.stateData = [];
+    this.$subsManager$ = createSubscriptionManager(this as fixMeAny);
+  }
+
+  markForRender(hostElement: VirtualVNode): void {
+    this.$renderQueue$.add(hostElement);
+    if (!this.rendering) {
+      this.rendering = true;
+      this.renderDone = getPlatform().nextTick(() => this.renderMarked());
+    }
+  }
+
+  private async renderMarked() {
+    const components = Array.from(this.$renderQueue$);
+    this.$renderQueue$.clear();
+    components.sort(vnode_documentPosition);
+    maybeThenMap(
+      components,
+      (host) =>
+        maybeThen(executeComponent2(this, host, null, null), (jsx) => vnode_diff(this, jsx, host)),
+      () => {
+        vnode_applyJournal(this.$journal$);
+        this.rendering = false;
+      }
+    );
   }
 
   getObjectById = (id: number | string): any => {
     if (typeof id === 'string') {
       id = parseFloat(id);
     }
-    assertTrue(id < this.rawStateData.length, 'Invalid reference');
+    assertTrue(id < this.$rawStateData$.length, 'Invalid reference');
     return this.stateData[id];
   };
 }
@@ -93,9 +144,12 @@ export function processVNodeData(document: Document) {
   const vNodeDataMap =
     qDocument.qVNodeData || (qDocument.qVNodeData = new WeakMap<Element, string>());
   const vNodeData = document.querySelectorAll('script[type="qwik/vnode"]');
+  if (vNodeData.length === 0) {
+    return;
+  }
   const containers = document.querySelectorAll('[q\\:container]');
   const containerElement = containers[0] as ContainerElement;
-  const qVNodeRefs = (containerElement.qVNodeRefs = new Map<number, Element | VNode>());
+  const qVNodeRefs = (containerElement.qVNodeRefs = new Map<number, Element | ElementVNode>());
   const walker = document.createTreeWalker(
     containerElement.parentNode!,
     1 /* NodeFilter.SHOW_ELEMENT */

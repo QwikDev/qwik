@@ -17,11 +17,12 @@ export const useSignal: UseSignal = <STATE>(initialState?: STATE): Signal<STATE>
     return val;
   }
 
-  const containerState = iCtx.$renderCtx$.$static$.$containerState$;
+  const subsManager =
+    iCtx.$container2$?.$subsManager$ || iCtx.$renderCtx$.$static$.$containerState$.$subsManager$;
   const value =
     isFunction(initialState) && !isQwikComponent(initialState)
       ? invoke(undefined, initialState as any)
       : initialState;
-  const signal = _createSignal(value, containerState, 0, undefined) as Signal<STATE>;
+  const signal = _createSignal(value, subsManager, 0, undefined) as Signal<STATE>;
   return set(signal);
 };

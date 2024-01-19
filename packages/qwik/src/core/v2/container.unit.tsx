@@ -10,7 +10,7 @@ import { Fragment, JSXNodeImpl } from '../render/jsx/jsx-runtime';
 import { Slot } from '../render/jsx/slot.public';
 import { getDomContainer } from './client/dom-container';
 import type { ClientContainer, VNode } from './client/types';
-import { vnode_getFirstChild, vnode_getProp, vnode_getText } from './client/vnode';
+import { vnode_getFirstChild, vnode_getAttr, vnode_getText } from './client/vnode';
 import { isDeserializerProxy } from './shared-serialization';
 import { ssrCreateContainer } from './ssr/ssr-container';
 import { toSsrAttrs } from './ssr/ssr-render';
@@ -107,7 +107,7 @@ describe('serializer v2', () => {
           ssr.closeElement();
         });
         const vnodeSpan = clientContainer.getObjectById(0).someProp;
-        expect(vnode_getProp(vnodeSpan, 'id')).toBe('myId');
+        expect(vnode_getAttr(vnodeSpan, 'id')).toBe('myId');
       });
       it('should retrieve text node', () => {
         const clientContainer = withContainer((ssr) => {

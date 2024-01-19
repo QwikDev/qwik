@@ -95,6 +95,9 @@
     "./middleware/azure-swa": {
       "import": "./lib/middleware/azure-swa/index.mjs"
     },
+    "./middleware/aws-lambda": {
+      "import": "./lib/middleware/aws-lambda/index.mjs"
+    },
     "./middleware/cloudflare-pages": {
       "import": "./lib/middleware/cloudflare-pages/index.mjs"
     },

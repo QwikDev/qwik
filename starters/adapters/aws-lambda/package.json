@@ -7,9 +7,9 @@
   },
   "devDependencies": {
     "source-map-support": "^0.5.21",
-    "serverless": "^3.32.2",
+    "serverless": "^3.38.0",
     "serverless-http": "^3.2.0",
-    "serverless-offline": "^12.0.4"
+    "serverless-offline": "^13.3.2"
   },
   "__qwik__": {
     "priority": 30,

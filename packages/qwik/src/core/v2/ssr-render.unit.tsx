@@ -11,7 +11,7 @@ import {
   vnode_getFirstChild,
   vnode_getNextSibling,
   vnode_getParent,
-  vnode_getProp,
+  vnode_getAttr,
   vnode_getVNodeForChildNode,
   vnode_locate,
   vnode_toString,
@@ -24,7 +24,7 @@ import { renderToString } from '../../server/render';
 import { getPlatform, setPlatform } from '../platform/platform';
 import { Slot } from '../render/jsx/slot.public';
 
-describe('v2 render', () => {
+describe('v2 ssr render', () => {
   it('should render jsx', async () => {
     const { vNode } = await ssrRenderToDom(
       <span>
@@ -262,7 +262,7 @@ export async function rerenderComponent(element: HTMLElement) {
 
 function getHostVNode(vElement: VNode | null) {
   while (vElement != null) {
-    if (typeof vnode_getProp(vElement, OnRenderProp) == 'string') {
+    if (typeof vnode_getAttr(vElement, OnRenderProp) == 'string') {
       return vElement;
     }
     vElement = vnode_getParent(vElement);

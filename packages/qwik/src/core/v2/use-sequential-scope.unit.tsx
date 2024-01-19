@@ -5,7 +5,7 @@ import { inlinedQrl } from '../qrl/qrl';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { useSequentialScope } from '../use/use-sequential-scope';
 import './vdom-diff.unit';
-import { rerenderComponent, ssrRenderToDom } from './render.unit';
+import { rerenderComponent, ssrRenderToDom } from './ssr-render.unit';
 
 describe('useSequentialScope', () => {
   it('should update value', async () => {

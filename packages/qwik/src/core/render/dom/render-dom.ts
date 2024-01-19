@@ -7,6 +7,7 @@ import { logWarn } from '../../util/log';
 import { isNotNullable, isPromise, maybeThen, promiseAll } from '../../util/promises';
 import { qDev, qInspector, seal } from '../../util/qdev';
 import { isArray, isFunction, isObject, isString, type ValueOrPromise } from '../../util/types';
+import { getDomContainer } from '../../v2/client/dom-container';
 import type { ElementVNode } from '../../v2/client/types';
 import { vnode_isVNode } from '../../v2/client/vnode';
 import { vnode_applyJournal, vnode_diff, type VNodeJournalEntry } from '../../v2/client/vnode-diff';
@@ -51,18 +52,17 @@ export const renderComponent = (
       const vHostElement: ElementVNode = hostElement as any;
       // new vNode code path
       // TODO(misko): this should be moved to container state
-      // const container = getDomContainer(vHostElement);
-      const journal: VNodeJournalEntry[] = [];
+      const container = getDomContainer(vHostElement);
       return maybeThen(
         vnode_diff(
-          journal,
+          container,
           res.node as JSXNode,
           vHostElement,
           rCtx.$static$.$containerState$.$pauseCtx$?.getObject as any
         ),
         () => {
           // console.log('JOURNAL >>>>', journal);
-          vnode_applyJournal(journal);
+          vnode_applyJournal(container.$journal$);
         }
       );
     } else {

@@ -314,7 +314,7 @@ export const useComputedQrl: ComputedQRL = <T>(qrl: QRL<ComputedFn<T>>): Signal<
   const containerState = iCtx.$renderCtx$.$static$.$containerState$;
   const signal = _createSignal(
     undefined as Awaited<T>,
-    containerState,
+    containerState.$subsManager$,
     SIGNAL_UNASSIGNED | SIGNAL_IMMUTABLE,
     undefined
   );

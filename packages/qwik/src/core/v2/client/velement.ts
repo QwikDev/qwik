@@ -6,7 +6,7 @@ import {
   vnode_getElementName,
   vnode_getFirstChild,
   vnode_getNextSibling,
-  vnode_getProp,
+  vnode_getAttr,
   vnode_getText,
   vnode_isElementVNode,
   vnode_isVirtualVNode,
@@ -69,7 +69,7 @@ export class QwikElementAdapter extends Array {
   }
 
   getAttribute(name: string): string | null {
-    return vnode_getProp(this as any as VNode, name);
+    return vnode_getAttr(this as any as VNode, name);
   }
 
   hasAttribute(name: string): boolean {
@@ -153,7 +153,7 @@ export class QwikElementAdapter extends Array {
     return vnode_getText(this as any);
   }
   get $key$(): string | null {
-    return vnode_getProp(this as any, ELEMENT_ID);
+    return vnode_getAttr(this as any, ELEMENT_ID);
   }
 
   get $props$(): Record<string, any> {

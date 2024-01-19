@@ -12,6 +12,7 @@ import { ELEMENT_PROPS, OnRenderProp } from '../../util/markers';
 import { isPromise } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
 import { executeComponent2 } from '../shared/component-execution';
+import type { Container2, QElement2 } from '../shared/types';
 import type { SsrAttrs } from '../ssr/types';
 import {
   ElementVNodeProps,
@@ -28,8 +29,9 @@ import {
   vnode_getElementName,
   vnode_getFirstChild,
   vnode_getNextSibling,
+  vnode_getNode,
+  vnode_getAttr,
   vnode_getProp,
-  vnode_getResolvedProp,
   vnode_getText,
   vnode_getType,
   vnode_insertBefore,
@@ -39,8 +41,8 @@ import {
   vnode_newText,
   vnode_newVirtual,
   vnode_remove,
+  vnode_setAttr,
   vnode_setProp,
-  vnode_setResolvedProp,
   vnode_setText,
   vnode_truncate,
 } from './vnode';
@@ -67,12 +69,12 @@ export const enum VNodeJournalOpCode {
 export type ComponentQueue = Array<VNode>;
 
 export const vnode_diff = (
-  journal: VNodeJournalEntry[],
+  container: ClientContainer,
   jsxNode: JSXNode<any>,
-  vStartNode: VNode,
-  getObjectById: (id: number) => any
+  vStartNode: VNode
 ) => {
-  const document = vnode_getClosestParentNode(vStartNode)!.ownerDocument!;
+  const journal = container.$journal$;
+
   /**
    * Stack is used to keep track of the state of the traversal.
    *
@@ -87,7 +89,6 @@ export const vnode_diff = (
   //// Traverse state variables
   ////////////////////////////////
   let vParent: VNode = null!;
-  let vNode: VNode | null = null;
   /// Current node we compare against. (Think of it as a cursor.)
   /// (Node can be null, if we are at the end of the list.)
   let vCurrent: VNode | null = null;
@@ -95,7 +96,6 @@ export const vnode_diff = (
   /// NOTE: it can't be stored in `vCurrent` because `vNewCurrent` is in journal
   /// and is not connected to the tree.
   let vNewNode: VNode | null = null;
-  let vPrevious: VNode | null = null;
   /// Current set of JSX children.
   let jsxChildren: any[] = null!;
   // Current JSX child.
@@ -113,8 +113,9 @@ export const vnode_diff = (
 
   function diff(jsxNode: JSXNode<any>, vStartNode: VNode) {
     vParent = vStartNode;
-    vCurrent = vNewNode = vPrevious = vNode = vnode_getFirstChild(vStartNode);
-    stackPush(jsxNode);
+    vNewNode = null;
+    vCurrent = vnode_getFirstChild(vStartNode);
+    stackPush(jsxNode, true);
     while (stack.length) {
       while (jsxIdx < jsxCount) {
         if (typeof jsxValue === 'string') {
@@ -122,19 +123,22 @@ export const vnode_diff = (
         } else if (typeof jsxValue === 'number') {
           expectText(String(jsxValue));
         } else if (typeof jsxValue === 'object') {
-          if (isSignal(jsxValue)) {
+          if (Array.isArray(jsxValue)) {
+            descend(jsxValue, false);
+            continue; // we just descended, skip advance()
+          } else if (isSignal(jsxValue)) {
             throw new Error('implement');
           } else if (isJSXNode(jsxValue)) {
             const type = jsxValue.type;
             if (typeof type === 'string') {
               expectNoMoreTextNodes();
               expectElement(jsxValue, type);
-              descend(jsxValue.children);
+              descend(jsxValue.children, true);
               continue; // we just descended, skip advance()
             } else if (type === Fragment) {
               expectNoMoreTextNodes();
               expectVirtual();
-              descend(jsxValue.children);
+              descend(jsxValue.children, true);
               continue; // we just descended, skip advance()
             } else if (type === Slot) {
               expectSlot();
@@ -157,6 +161,89 @@ export const vnode_diff = (
       ascend();
     }
   }
+
+  function advance() {
+    jsxIdx++;
+    if (jsxIdx < jsxCount) {
+      jsxValue = jsxChildren[jsxIdx];
+    } else if (stack[stack.length - 1] === false) {
+      // this was special `descendVNode === false` so pop and try again
+      return ascend();
+    }
+    vNewNode = null;
+    vCurrent = vCurrent ? vnode_getNextSibling(vCurrent) : null;
+  }
+
+  /**
+   * @param children
+   * @param descendVNode - If true we are descending into vNode; This is set to false if we come
+   *   across an array in jsx, and we need to descend into the array without actually descending
+   *   into the vNode.
+   *
+   *   Example:
+   *
+   *   ```
+   *   <>
+   *   before
+   *   {[1,2].map((i) => <span>{i}</span>)}
+   *   after
+   *   </>
+   * ```
+   *
+   *   In the above example all nodes are on same level so we don't `descendVNode` even thought there
+   *   is an array produced by the `map` function.
+   */
+  function descend(children: any, descendVNode: boolean) {
+    stackPush(children, descendVNode);
+    if (descendVNode) {
+      assertDefined(vCurrent || vNewNode, 'Expecting vCurrent to be defined.');
+      vParent = vCurrent || vNewNode!;
+      vCurrent = vnode_getFirstChild(vParent);
+      vNewNode = null;
+    }
+  }
+
+  function ascend() {
+    const descendVNode = stack.pop(); // boolean: descendVNode
+    if (descendVNode) {
+      vCurrent = stack.pop();
+      vParent = stack.pop();
+    }
+    jsxValue = stack.pop();
+    jsxCount = stack.pop();
+    jsxIdx = stack.pop();
+    jsxChildren = stack.pop();
+    advance();
+  }
+
+  function stackPush(children: any, descendVNode: boolean) {
+    stack.push(jsxChildren, jsxIdx, jsxCount, jsxValue);
+    if (descendVNode) {
+      stack.push(vParent, vCurrent);
+    }
+    stack.push(descendVNode);
+    if (Array.isArray(children)) {
+      jsxIdx = 0;
+      jsxCount = children.length;
+      jsxChildren = children;
+      jsxValue = jsxCount > 0 ? children[0] : null;
+    } else if (children === undefined) {
+      // no children
+      jsxIdx = 0;
+      jsxValue = null;
+      jsxChildren = null!;
+      jsxCount = 0;
+    } else {
+      jsxIdx = 0;
+      jsxValue = children;
+      jsxChildren = null!;
+      jsxCount = 1;
+    }
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
 
   function drainComponentQueue(): ValueOrPromise<void> {
     while (componentQueue.length) {
@@ -193,8 +280,8 @@ export const vnode_diff = (
       journal.push(
         VNodeJournalOpCode.Insert,
         vParent,
-        vPrevious,
-        (vNewNode = vnode_newElement(vParent, document.createElement(tag), tag))
+        (vNewNode = vnode_newElement(vParent, container.document.createElement(tag), tag)),
+        vCurrent && vnode_getNextSibling(vCurrent)
       );
     }
     let jsxAttrs = (jsx as any as { attrs: SsrAttrs }).attrs;
@@ -204,7 +291,7 @@ export const vnode_diff = (
         if (jsxAttrs === EMPTY_ARRAY) {
           jsxAttrs = (jsx as any as { attrs: SsrAttrs }).attrs = [];
         }
-        mapArray_set(jsxAttrs, key, String(props[key]), 0);
+        mapArray_set(jsxAttrs, key, props[key], 0);
       }
     }
     setBulkProps((vNewNode || vCurrent) as ElementVNode, jsxAttrs);
@@ -220,7 +307,8 @@ export const vnode_diff = (
     const dstLength = dstAttrs.length;
     let srcKey: string | null = srcIdx < srcLength ? srcAttrs[srcIdx++] : null;
     let dstKey: string | null = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
-    const record = (key: string, value: string | null) => {
+    let patchEventDispatch = false;
+    const record = (key: string, value: any) => {
       if (!hasDiffs) {
         journal.push(VNodeJournalOpCode.Attributes, vnode);
         hasDiffs = true;
@@ -230,19 +318,22 @@ export const vnode_diff = (
     while (srcKey !== null || dstKey !== null) {
       if (srcKey == null) {
         // Source has more keys, so we need to remove them from destination
-        record(dstKey!, null);
-        dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
+        if (dstKey?.startsWith('on:')) {
+          patchEventDispatch = true;
+        } else {
+          record(dstKey!, null);
+        }
         dstIdx++; // skip the destination value, we don't care about it.
+        dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       } else if (dstKey == null) {
         // Destination has more keys, so we need to insert them from source.
+        const isEvent = srcKey.startsWith('on') && srcKey.endsWith('$');
+        if (isEvent) {
+          // Special handling for events
+          patchEventDispatch = true;
+        }
         record(srcKey!, srcAttrs[srcIdx++]);
         srcKey = srcIdx < srcLength ? srcAttrs[srcIdx++] : null;
-      } else if (srcKey.startsWith('on') && srcKey.endsWith('$')) {
-        // special handling for the on QRLs,
-        srcKey = srcIdx < srcLength ? srcAttrs[srcIdx++] : null;
-      } else if (dstKey.startsWith('on:')) {
-        // Ignore keys which were serialized.
-        dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       } else if (srcKey == dstKey) {
         const srcValue = srcAttrs[srcIdx++];
         const dstValue = dstAttrs[dstIdx++];
@@ -264,6 +355,23 @@ export const vnode_diff = (
         dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       }
     }
+    if (patchEventDispatch) {
+      const element = vnode_getNode(vnode) as QElement2;
+      if (!element.qDispatchEvent) {
+        element.qDispatchEvent = (event: Event) => {
+          const eventName = event.type;
+          const eventProp = 'on' + eventName.charAt(0).toUpperCase() + eventName.substring(1) + '$';
+          const qrls = vnode_getProp(vnode, eventProp, null);
+          let returnValue = false;
+          qrls &&
+            (Array.isArray(qrls) ? qrls : [qrls]).forEach((qrl) => {
+              const value = qrl(event);
+              returnValue = returnValue || value === true;
+            });
+          return returnValue;
+        };
+      }
+    }
   }
 
   function expectVirtual() {
@@ -273,8 +381,8 @@ export const vnode_diff = (
       journal.push(
         VNodeJournalOpCode.Insert,
         vParent,
-        vPrevious,
-        (vNewNode = vnode_newVirtual(vParent))
+        (vNewNode = vnode_newVirtual(vParent)),
+        vCurrent && vnode_getNextSibling(vCurrent)
       );
     }
   }
@@ -286,66 +394,18 @@ export const vnode_diff = (
   function expectComponent(component: Component<any>) {
     const [componentQRL] = (component as any)[SERIALIZABLE_STATE] as [QRLInternal<OnRenderFn<any>>];
     const host = (vCurrent || vNewNode) as VirtualVNode;
-    const vNodeQrl = vnode_getResolvedProp(host, OnRenderProp, getObjectById);
+    const vNodeQrl = vnode_getProp<QRLInternal>(host, OnRenderProp, container.getObjectById);
     let shouldRender = false;
-    if (componentQRL.$hash$ !== vNodeQrl.$hash$) {
-      vnode_setResolvedProp(host, OnRenderProp, componentQRL);
+    if (componentQRL.$hash$ !== vNodeQrl?.$hash$) {
+      vnode_setProp(host, OnRenderProp, componentQRL);
       shouldRender = true;
     }
-    const vNodeProps = vnode_getResolvedProp(host, ELEMENT_PROPS, getObjectById);
+    const vNodeProps = vnode_getProp<any>(host, ELEMENT_PROPS, container.getObjectById);
     const jsxPros = jsxValue.props;
     shouldRender = shouldRender || !shallowEqual(jsxPros, vNodeProps);
     if (shouldRender) {
-      const jsx = executeComponent2(host, componentQRL, jsxPros);
+      const jsx = executeComponent2(container, host, componentQRL, jsxPros);
       componentQueue.push(jsx, host);
-    }
-  }
-
-  function advance() {
-    jsxIdx++;
-    jsxValue = jsxIdx < jsxCount ? jsxChildren[jsxIdx] : null;
-    vPrevious = vCurrent;
-    vNewNode = null;
-    vCurrent = vCurrent ? vnode_getNextSibling(vCurrent) : null;
-  }
-
-  function ascend() {
-    jsxValue = stack.pop();
-    jsxCount = stack.pop();
-    jsxIdx = stack.pop();
-    jsxChildren = stack.pop();
-    vCurrent = stack.pop();
-    vPrevious = stack.pop();
-    vParent = stack.pop();
-    advance();
-  }
-
-  function descend(children: any) {
-    stackPush(children);
-    assertDefined(vCurrent || vNewNode, 'Expecting vCurrent to be defined.');
-    vParent = vCurrent || vNewNode!;
-    vCurrent = vnode_getFirstChild(vParent);
-    vNewNode = vPrevious = null;
-  }
-
-  function stackPush(children: any) {
-    stack.push(vParent, vPrevious, vCurrent, jsxChildren, jsxIdx, jsxCount, jsxValue);
-    if (Array.isArray(children)) {
-      jsxIdx = 0;
-      jsxCount = children.length;
-      jsxChildren = children;
-      jsxValue = jsxCount > 0 ? children[0] : null;
-    } else if (children === undefined) {
-      // no children
-      jsxIdx = 0;
-      jsxValue = null;
-      jsxChildren = null!;
-      jsxCount = 0;
-    } else {
-      jsxIdx = 0;
-      jsxValue = children;
-      jsxChildren = null!;
-      jsxCount = 1;
     }
   }
 
@@ -363,8 +423,8 @@ export const vnode_diff = (
     journal.push(
       VNodeJournalOpCode.Insert,
       vParent,
-      vCurrent,
-      vnode_newText(vParent, document.createTextNode(text), text)
+      vnode_newText(vParent, container.document.createTextNode(text), text),
+      vCurrent
     );
   }
 };
@@ -399,8 +459,9 @@ export const vnode_applyJournal = (journal: VNodeJournalEntry[]) => {
           const value = journal[idx++] as string | null;
           if (key.startsWith('on') && key.endsWith('$')) {
             // special handling for events.
-          } else {
             vnode_setProp(vnode, key, value);
+          } else {
+            vnode_setAttr(vnode, key, value);
           }
         }
         break;
@@ -408,6 +469,7 @@ export const vnode_applyJournal = (journal: VNodeJournalEntry[]) => {
         throwErrorAndStop(`Unsupported opCode: ${opCode}`);
     }
   }
+  journal.length = 0;
 };
 
 function shallowEqual(src: Record<string, any>, dst: Record<string, any>): boolean {

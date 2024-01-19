@@ -1,19 +1,12 @@
 import { Fragment, type JSXNode } from '@builder.io/qwik/jsx-runtime';
 import { isPromise } from 'util/types';
 import { isQwikComponent } from '../../component/component.public';
-import { Slot } from '../../render/jsx/slot.public';
-import { qrlToString, type SerializationContext } from '../shared-serialization';
-import type { Stringifiable } from '../shared-types';
-import {
-  applyInlineComponent,
-  applyQwikComponentBody,
-  applyQwikComponentHost,
-} from './ssr-render-component';
-import type { SSRContainer, SsrAttrs } from './types';
 import { isQrl } from '../../qrl/qrl-class';
-import { Virtual } from '../../render/jsx/jsx-runtime';
-import { ELEMENT_KEY, ELEMENT_PROPS, ELEMENT_QRL, OnRenderProp } from '../../util/markers';
+import { Slot } from '../../render/jsx/slot.public';
 import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
+import { qrlToString, type SerializationContext } from '../shared-serialization';
+import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
+import type { SSRContainer, SsrAttrs } from './types';
 
 export async function ssrRenderToContainer(ssr: SSRContainer, jsx: JSXNode | JSXNode[]) {
   ssr.openContainer();

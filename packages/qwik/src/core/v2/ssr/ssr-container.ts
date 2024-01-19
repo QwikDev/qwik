@@ -42,6 +42,7 @@ import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
 
 export function ssrCreateContainer(
   opts: {
+    locale?: string;
     tagName?: string;
     writer?: StreamWriter;
   } = {}
@@ -49,6 +50,7 @@ export function ssrCreateContainer(
   return new SSRContainer({
     tagName: opts.tagName || 'div',
     writer: opts.writer || new StringBufferWriter(),
+    locale: opts.locale || '',
   });
 }
 
@@ -81,6 +83,7 @@ class SSRContainer implements ISSRContainer {
   public tag: string;
   public writer: StreamWriter;
   public serializationCtx: SerializationContext;
+  public $locale$: string;
 
   private currentElementFrame: ContainerElementFrame | null = null;
   /**
@@ -97,6 +100,7 @@ class SSRContainer implements ISSRContainer {
   constructor(opts: Required<Required<Parameters<typeof ssrCreateContainer>>[0]>) {
     this.tag = opts.tagName;
     this.writer = opts.writer;
+    this.$locale$ = opts.locale;
     this.serializationCtx = createSerializationContext(SsrNode, null, this.writer);
   }
 
@@ -114,7 +118,7 @@ class SSRContainer implements ISSRContainer {
       'q:base',
       '/build/',
       'q:locale',
-      null,
+      this.$locale$,
       'q:manifest-hash',
       'dev',
     ]);

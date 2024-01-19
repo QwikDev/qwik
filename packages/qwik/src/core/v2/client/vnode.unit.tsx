@@ -17,9 +17,9 @@ import {
   vnode_newVirtual,
   vnode_newText,
   vnode_newUnMaterializedElement,
-  vnode_setProp,
+  vnode_setAttr,
   vnode_setText,
-  vnode_getResolvedProp,
+  vnode_getProp,
   vnode_locate,
 } from './vnode';
 import { Fragment } from '@builder.io/qwik/jsx-runtime';
@@ -182,15 +182,36 @@ describe('vnode', () => {
         </test>
       );
     });
+    it('should retrieve the correct node even after DOM manipulation', () => {
+      parent.innerHTML = `wrongtext`;
+      document.qVNodeData.set(parent, '{F}{E}{}');
+      parent.qVNodeRefs = new Map<number, Element | ElementVNode>([[0, parent]]);
+      vnode_getFirstChild(vParent);
+      vnode_insertBefore(
+        vParent,
+        vnode_newText(vParent, document.createTextNode('inserted'), 'inserted'),
+        vnode_getFirstChild(vParent)
+      );
+      const second = vnode_locate(vParent, '0B');
+      expect(second).toMatchVDOM(<>text</>);
+      expect(vParent).toMatchVDOM(
+        <test>
+          {'inserted'}
+          <Fragment>wrong</Fragment>
+          <Fragment>text</Fragment>
+          <Fragment />
+        </test>
+      );
+    });
   });
   describe('manipulation', () => {
     it('should create empty Virtual before element', () => {
       const fragment1 = vnode_newVirtual(vParent);
       const fragment2 = vnode_newVirtual(vParent);
       const fragment3 = vnode_newVirtual(fragment1);
-      vnode_setProp(fragment1, 'q:id', '1');
-      vnode_setProp(fragment2, 'q:id', '2');
-      vnode_setProp(fragment3, 'q:id', '3');
+      vnode_setAttr(fragment1, 'q:id', '1');
+      vnode_setAttr(fragment2, 'q:id', '2');
+      vnode_setAttr(fragment3, 'q:id', '3');
       const textA = vnode_newText(fragment1, document.createTextNode('1A'), '1A');
       const textB = vnode_newText(fragment2, document.createTextNode('2B'), '2B');
       const textC = vnode_newText(fragment3, document.createTextNode('3C'), '3C');
@@ -198,7 +219,7 @@ describe('vnode', () => {
       const textE = vnode_newText(vParent, document.createTextNode('E'), 'E');
       const textF = vnode_newText(vParent, document.createTextNode('F'), 'F');
 
-      vnode_insertBefore(vParent, null, fragment2);
+      vnode_insertBefore(vParent, fragment2, null);
       expect(vParent).toMatchVDOM(
         <test>
           <Fragment {...({ 'q:id': '2' } as any)} />
@@ -206,7 +227,7 @@ describe('vnode', () => {
       );
       expect(parent.innerHTML).toBe('');
 
-      vnode_insertBefore(vParent, fragment2, fragment1);
+      vnode_insertBefore(vParent, fragment1, fragment2);
       expect(vParent).toMatchVDOM(
         <test>
           <Fragment {...({ 'q:id': '1' } as any)} />
@@ -215,7 +236,7 @@ describe('vnode', () => {
       );
       expect(parent.innerHTML).toBe('');
 
-      vnode_insertBefore(fragment1, null, fragment3);
+      vnode_insertBefore(fragment1, fragment3, null);
       expect(vParent).toMatchVDOM(
         <test>
           <Fragment {...({ 'q:id': '1' } as any)}>
@@ -226,7 +247,7 @@ describe('vnode', () => {
       );
       expect(parent.innerHTML).toBe('');
 
-      vnode_insertBefore(fragment1, fragment3, textA);
+      vnode_insertBefore(fragment1, textA, fragment3);
       expect(vParent).toMatchVDOM(
         <test>
           <Fragment {...({ 'q:id': '1' } as any)}>
@@ -238,7 +259,7 @@ describe('vnode', () => {
       );
       expect(parent.innerHTML).toBe('1A');
 
-      vnode_insertBefore(fragment2, null, textB);
+      vnode_insertBefore(fragment2, textB, null);
       expect(vParent).toMatchVDOM(
         <test>
           <Fragment {...({ 'q:id': '1' } as any)}>
@@ -250,7 +271,7 @@ describe('vnode', () => {
       );
       expect(parent.innerHTML).toBe('1A2B');
 
-      vnode_insertBefore(fragment3, null, textC);
+      vnode_insertBefore(fragment3, textC, null);
       expect(vParent).toMatchVDOM(
         <test>
           <Fragment {...({ 'q:id': '1' } as any)}>
@@ -262,7 +283,7 @@ describe('vnode', () => {
       );
       expect(parent.innerHTML).toBe('1A3C2B');
 
-      vnode_insertBefore(vParent, null, textD);
+      vnode_insertBefore(vParent, textD, null);
       expect(vParent).toMatchVDOM(
         <test>
           <Fragment {...({ 'q:id': '1' } as any)}>
@@ -274,7 +295,7 @@ describe('vnode', () => {
       );
       expect(parent.innerHTML).toBe('1A3C2BD');
 
-      vnode_insertBefore(vParent, fragment1, textE);
+      vnode_insertBefore(vParent, textE, fragment1);
       expect(vParent).toMatchVDOM(
         <test>
           E
@@ -287,7 +308,7 @@ describe('vnode', () => {
       );
       expect(parent.innerHTML).toBe('E1A3C2BD');
 
-      vnode_insertBefore(vParent, fragment3, textF);
+      vnode_insertBefore(vParent, textF, fragment3);
       expect(vParent).toMatchVDOM(
         <test>
           E
@@ -311,8 +332,8 @@ describe('vnode', () => {
       const v2 = vnode_getNextSibling(v1) as VirtualVNode;
       expect(v1).toMatchVDOM(<>A</>);
       expect(v2).toMatchVDOM(<>B</>);
-      expect(vnode_getResolvedProp(v1, '', getVNode)).toBe(v2);
-      expect(vnode_getResolvedProp(v2, ':', getVNode)).toBe(v1);
+      expect(vnode_getProp(v1, '', getVNode)).toBe(v2);
+      expect(vnode_getProp(v2, ':', getVNode)).toBe(v1);
     });
   });
 }); 

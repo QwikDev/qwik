@@ -27,7 +27,8 @@ export interface ExecuteComponentOutput {
 
 export const executeComponent = (
   rCtx: RenderContext,
-  elCtx: QContext
+  elCtx: QContext,
+  attempt?: number
 ): ValueOrPromise<ExecuteComponentOutput> => {
   elCtx.$flags$ &= ~HOST_FLAG_DIRTY;
   elCtx.$flags$ |= HOST_FLAG_MOUNTED;
@@ -69,7 +70,11 @@ export const executeComponent = (
           : promiseAllLazy(waitOn),
         () => {
           if (elCtx.$flags$ & HOST_FLAG_DIRTY) {
-            return executeComponent(rCtx, elCtx, attempt ? attempt + 1 : 1);
+            if (attempt && attempt > 100) {
+              logWarn(`Infinite loop detected. Element: ${elCtx.$componentQrl$?.$symbol$}`);
+            } else {
+              return executeComponent(rCtx, elCtx, attempt ? attempt + 1 : 1);
+            }
           }
           return {
             node: jsxNode,
@@ -80,9 +85,13 @@ export const executeComponent = (
     },
     (err) => {
       if (err === SignalUnassignedException) {
-        return maybeThen(promiseAllLazy(waitOn), () => {
-          return executeComponent(rCtx, elCtx);
-        });
+        if (attempt && attempt > 100) {
+          logWarn(`Infinite loop detected. Element: ${elCtx.$componentQrl$?.$symbol$}`);
+        } else {
+          return maybeThen(promiseAllLazy(waitOn), () => {
+            return executeComponent(rCtx, elCtx, attempt ? attempt + 1 : 1);
+          });
+        }
       }
       handleError(err, hostElement, rCtx);
       return {

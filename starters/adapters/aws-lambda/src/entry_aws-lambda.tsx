@@ -7,8 +7,8 @@
  * - https://qwik.builder.io/docs/deployments/aws/
  *
  */
-import 'source-map-support/register';
-import serverless from 'serverless-http';
+import "source-map-support/register";
+import serverless from "serverless-http";
 import {
   createQwikCity,
   type PlatformAwsLambda,
@@ -18,10 +18,9 @@ import { manifest } from "@qwik-client-manifest";
 import render from "./entry.ssr";
 
 declare global {
-  interface QwikCityPlatform extends PlatformAwsLambda { }
+  interface QwikCityPlatform extends PlatformAwsLambda {}
 }
 
 export const { handle } = createQwikCity({ render, qwikCityPlan, manifest });
 
-export const qwikApp = serverless({handle},{binary: true},
-);
+export const qwikApp = serverless({ handle }, { binary: true });

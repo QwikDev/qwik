@@ -39,7 +39,7 @@
     "qwik-image": "^0.0.8",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "rehype-pretty-code": "^0.12.3",
+    "rehype-pretty-code": "^0.11.0",
     "shiki": "^0.14.7",
     "shikiji": "^0.7.0 || ^0.8.0 || ^0.9.0",
     "snarkdown": "^2.0.0",

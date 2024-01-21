@@ -4,7 +4,6 @@ import type { QwikWorkerGlobal } from './repl-service-worker';
 import type { MinifyOptions } from 'terser';
 import type { ReplInputOptions } from '../types';
 import { depResponse } from './repl-dependencies';
-import { QWIK_REPL_DEPS_CACHE } from './repl-constants';
 
 export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 'ssr'): Plugin => {
   const srcInputs = options.srcInputs;
@@ -76,20 +75,14 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
       `;
       }
       if (id === '\0qwikCore') {
-        const cache = await caches.open(QWIK_REPL_DEPS_CACHE);
         if (options.buildMode === 'production') {
-          const rsp = await depResponse(
-            cache,
-            '@builder.io/qwik',
-            options.version,
-            '/core.min.mjs'
-          );
+          const rsp = await depResponse('@builder.io/qwik', options.version, '/core.min.mjs');
           if (rsp) {
             return rsp.clone().text();
           }
         }
 
-        const rsp = await depResponse(cache, '@builder.io/qwik', options.version, '/core.mjs');
+        const rsp = await depResponse('@builder.io/qwik', options.version, '/core.mjs');
         if (rsp) {
           return rsp.clone().text();
         }

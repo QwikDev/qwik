@@ -15,7 +15,6 @@ import type { ReplStore, ReplUpdateMessage, ReplMessage, ReplAppInput } from './
 import { ReplDetailPanel } from './repl-detail-panel';
 import { getReplVersion } from './repl-version';
 import { updateReplOutput } from './repl-output-update';
-import { bundled } from './bundled';
 
 export const Repl = component$((props: ReplProps) => {
   useStyles$(styles);
@@ -77,27 +76,19 @@ export const Repl = component$((props: ReplProps) => {
     }
   });
 
-  useVisibleTask$(
-    async () => {
-      // only run on the client
-      // Get the version asap, most likely it will be cached.
-      const v = await getReplVersion(input.version, true);
+  useVisibleTask$(async () => {
+    // only run on the client
+    const v = await getReplVersion(input.version);
+    if (v.version) {
       store.versions = v.versions;
       input.version = v.version;
       store.serverUrl = new URL(`/repl/~repl-server-host.html?${store.clientId}`, origin).href;
 
-      window.addEventListener('message', (ev) => receiveMessageFromReplServer(ev, store, input));
-
-      // Now get the version from the network
-      const vNew = await getReplVersion(input.version, false);
-      store.versions = vNew.versions;
-      if (vNew.version !== input.version) {
-        input.version = v.version;
-        sendUserUpdateToReplServer(input, store);
-      }
-    },
-    { strategy: 'document-idle' }
-  );
+      window.addEventListener('message', (ev) => receiveMessageFromReplServer(ev, store));
+    } else {
+      console.debug(`Qwik REPL version not set`);
+    }
+  });
 
   useTask$(({ track }) => {
     track(() => input.buildId);
@@ -127,31 +118,23 @@ export const Repl = component$((props: ReplProps) => {
   );
 });
 
-export const receiveMessageFromReplServer = (
-  ev: MessageEvent,
-  store: ReplStore,
-  input: ReplAppInput
-) => {
+export const receiveMessageFromReplServer = (ev: MessageEvent, store: ReplStore) => {
   const msg: ReplMessage = ev.data;
-
-  if (!(msg && msg.type && msg.clientId === store.clientId)) {
-    return;
-  }
-  const type = msg.type;
-  if (type === 'replready') {
-    // keep a reference to the repl server window
-    store.serverWindow = noSerialize(ev.source as any);
-    sendUserUpdateToReplServer(input, store);
-  } else if (type === 'result') {
-    // received a message from the server
-    updateReplOutput(store, msg);
-  } else if (type === 'event') {
-    // received an event from the user's app
-    store.events = [...store.events, msg.event];
-  } else if (type === 'apploaded') {
-    store.isLoading = false;
-  } else {
-    console.log('unknown repl message', msg);
+  const type = msg?.type;
+  const clientId = msg?.clientId;
+  if (clientId === store.clientId) {
+    if (type === 'replready') {
+      // keep a reference to the repl server window
+      store.serverWindow = noSerialize(ev.source as any);
+    } else if (type === 'result') {
+      // received a message from the server
+      updateReplOutput(store, msg);
+    } else if (type === 'event') {
+      // received an event from the user's app
+      store.events = [...store.events, msg.event];
+    } else if (type === 'apploaded') {
+      store.isLoading = false;
+    }
   }
 };
 
@@ -170,7 +153,6 @@ export const sendUserUpdateToReplServer = (input: ReplAppInput, store: ReplStore
         },
         version: input.version,
         serverUrl: store.serverUrl,
-        bundled,
       },
     };
 

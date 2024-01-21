@@ -11,6 +11,7 @@ import { CookieValue } from '@builder.io/qwik-city/middleware/request-handler';
 import { DeferReturn } from '@builder.io/qwik-city/middleware/request-handler';
 import type { EnvGetter } from '@builder.io/qwik-city/middleware/request-handler';
 import { JSXNode } from '@builder.io/qwik';
+import { JSXOutput } from '@builder.io/qwik';
 import { QRL } from '@builder.io/qwik';
 import { QwikIntrinsicElements } from '@builder.io/qwik';
 import { QwikJSX } from '@builder.io/qwik';
@@ -211,7 +212,7 @@ export type FailOfRest<REST extends readonly DataValidator[]> = REST extends rea
 export type FailReturn<T> = T & Failed;
 
 // @public (undocumented)
-export const Form: <O, I>({ action, spaReset, reloadDocument, onSubmit$, ...rest }: FormProps<O, I>, key: string | null) => QwikJSX.Element;
+export const Form: <O, I>({ action, spaReset, reloadDocument, onSubmit$, ...rest }: FormProps<O, I>, key: string | null) => JSXOutput;
 
 // @public (undocumented)
 export interface FormProps<O, I> extends Omit<QwikJSX.IntrinsicElements['form'], 'action' | 'method'> {
@@ -262,8 +263,7 @@ export const Link: Component<LinkProps>;
 export interface LinkProps extends AnchorAttributes {
     // (undocumented)
     'link:app'?: boolean;
-    // (undocumented)
-    prefetch?: boolean;
+    prefetch?: boolean | 'js';
     // (undocumented)
     reload?: boolean;
     // (undocumented)
@@ -404,7 +404,7 @@ export type RouteNavigate = QRL<(path?: string, options?: {
 } | boolean) => Promise<void>>;
 
 // @public (undocumented)
-export const RouterOutlet: Component<Record<any, any>>;
+export const RouterOutlet: Component<unknown>;
 
 // @public (undocumented)
 export const server$: <T extends ServerFunction>(first: T) => ServerQRL<T>;

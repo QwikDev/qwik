@@ -28,6 +28,7 @@ contributors:
   - drumnistnakano
   - maiieul
   - wmertens
+  - aendel
 updated_at: '2023-12-14T18:38:38Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
@@ -109,7 +110,7 @@ export default component$(() => {
 
 ## Props
 
-Props are used to pass data from the parent into the component. Props are accesible via the `props` argument to the component$ function.
+Props are used to pass data from the parent into the component. Props are accessible via the `props` argument to the component$ function.
 
 In this example a component `Item` declares optional `name`, `quantity`, `description`, and `price`.
 
@@ -383,7 +384,7 @@ When you want to output a different type of element depending on props, you can 
 
 ```tsx
 export const Poly = component$(
-  <C extends string | FunctionComponent>({
+  <C extends string | FunctionComponent = string | FunctionComponent>({
     as: Cmp = 'div' as C,
     ...props
   }: { as?: C } & PropsOf<string extends C ? 'div' : C>) => {

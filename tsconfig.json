@@ -49,6 +49,7 @@
         "packages/qwik-city/adapters/static/vite/index.ts"
       ],
       "@builder.io/qwik-city/middleware/azure-swa": ["packages/qwik-city/middleware/azure-swa"],
+      "@builder.io/qwik-city/middleware/aws-lambda": ["packages/qwik-city/middleware/aws-lambda"],
       "@builder.io/qwik-city/middleware/cloudflare-pages": [
         "packages/qwik-city/middleware/cloudflare-pages"
       ],

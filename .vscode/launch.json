@@ -15,6 +15,15 @@
     },
     {
       "type": "node",
+      "name": "insights dev.debug",
+      "request": "launch",
+      "skipFiles": ["<node_internals>/**"],
+      "cwd": "${workspaceFolder}/packages/insights",
+      "program": "${workspaceFolder}/packages/insights/node_modules/vite/bin/vite.js",
+      "args": ["--mode", "ssr", "--force"]
+    },
+    {
+      "type": "node",
       "name": "docs build.client",
       "request": "launch",
       "skipFiles": ["<node_internals>/**"],

@@ -229,9 +229,9 @@ export type JSXChildren =
   | Signal<JSXChildren>
   | JSXNode;
 
-interface QwikAttributesBase extends PreventDefault {
+/** @public */
+export interface QwikIntrinsicAttributes {
   key?: string | number | null | undefined;
-  dangerouslySetInnerHTML?: string | undefined;
   children?: JSXChildren;
 
   /** Corresponding slot name used to project the element into. */
@@ -251,19 +251,21 @@ type RefFnInterface<EL> = {
 interface RefAttr<EL extends Element> {
   ref?: Ref<EL> | undefined;
 }
+interface DOMAttributesBase<EL extends Element>
+  extends QwikIntrinsicAttributes,
+    PreventDefault,
+    RefAttr<EL> {
+  dangerouslySetInnerHTML?: string | undefined;
+}
 
 /** The Qwik-specific attributes that DOM elements accept @public */
-export interface DOMAttributes<EL extends Element>
-  extends QwikAttributesBase,
-    RefAttr<EL>,
-    QwikEvents<EL> {
+export interface DOMAttributes<EL extends Element> extends DOMAttributesBase<EL>, QwikEvents<EL> {
   class?: ClassList | Signal<ClassList> | undefined;
 }
 
-/** The Qwik DOM attributes without plain handlers, for use as function parameters */
+/** The Qwik DOM attributes without plain handlers, for use as function parameters @public */
 export interface QwikAttributes<EL extends Element>
-  extends QwikAttributesBase,
-    RefAttr<EL>,
+  extends DOMAttributesBase<EL>,
     QwikEvents<EL, false> {
   class?: ClassList | undefined;
 }

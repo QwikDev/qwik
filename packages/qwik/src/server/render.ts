@@ -318,7 +318,7 @@ export function resolveManifest(
 }
 
 const escapeText = (str: string) => {
-  return str.replace(/<(\/?script)/g, '\\x3C$1');
+  return str.replace(/<(\/?script)/gi, '\\x3C$1');
 };
 
 function collectRenderSymbols(renderSymbols: string[], elements: QContext[]) {

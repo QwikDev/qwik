@@ -1,10 +1,9 @@
 /* eslint-disable no-console */
-import { ESLintUtils } from '@typescript-eslint/utils';
-import type { Scope } from '@typescript-eslint/utils/dist/ts-eslint-scope';
+import * as ESLintUtils from '@typescript-eslint/utils/eslint-utils';
 import ts from 'typescript';
 import type { Identifier } from 'estree';
 import redent from 'redent';
-import type { RuleContext } from '@typescript-eslint/utils/dist/ts-eslint';
+import type { RuleContext, Scope } from '@typescript-eslint/utils/dist/ts-eslint';
 import { QwikEslintExamples } from '../examples';
 
 const createRule = ESLintUtils.RuleCreator(
@@ -64,10 +63,10 @@ export const validLexicalScope = createRule({
     const relevantScopes: Map<any, string> = new Map();
     let exports: ts.Symbol[] = [];
 
-    function walkScope(scope: Scope) {
+    function walkScope(scope: Scope.Scope) {
       scope.references.forEach((ref) => {
         const declaredVariable = ref.resolved;
-        const declaredScope = ref.resolved?.scope;
+        const declaredScope = ref.resolved?.scope as Scope.Scope;
         if (declaredVariable && declaredScope) {
           const variableType = declaredVariable.defs.at(0)?.type;
           if (variableType === 'Type') {
@@ -76,7 +75,7 @@ export const validLexicalScope = createRule({
           if (variableType === 'ImportBinding') {
             return;
           }
-          let dollarScope: Scope | null = ref.from;
+          let dollarScope: Scope.Scope | null = ref.from;
           let dollarIdentifier: string | undefined;
           while (dollarScope) {
             dollarIdentifier = relevantScopes.get(dollarScope);
@@ -96,7 +95,7 @@ export const validLexicalScope = createRule({
             }
             const identifier = ref.identifier;
             const tsNode = esTreeNodeToTSNodeMap.get(identifier);
-            let ownerDeclared: Scope | null = declaredScope;
+            let ownerDeclared: Scope.Scope | null = declaredScope;
             while (ownerDeclared) {
               if (relevantScopes.has(ownerDeclared)) {
                 break;
@@ -163,17 +162,14 @@ export const validLexicalScope = createRule({
               relevantScopes.set(scope, name);
             } else if (firstArg.expression.type === 'Identifier') {
               const tsNode = esTreeNodeToTSNodeMap.get(firstArg.expression);
-              const type = typeChecker.getTypeAtLocation(tsNode);
+              const type = typeChecker.getTypeAtLocation(tsNode).getNonNullableType();
 
               if (!isTypeQRL(type)) {
                 if (type.isUnionOrIntersection()) {
                   if (
                     !type.types.every((t) => {
                       if (t.symbol) {
-                        return t.symbol.name === 'PropFnInterface';
-                      }
-                      if (t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)) {
-                        return true;
+                        return t.symbol.name === 'Component' || t.symbol.name === 'PropFnInterface';
                       }
                       return false;
                     })
@@ -464,7 +460,9 @@ function getTypesOfTupleType(
 }
 
 function isTypeQRL(type: ts.Type): boolean {
-  return !!(type.flags & ts.TypeFlags.Any) || !!type.getProperty('__brand__QRL__');
+  return (
+    !!(type.flags & ts.TypeFlags.Any) || !!type.getNonNullableType().getProperty('__brand__QRL__')
+  );
 }
 
 function getContent(symbol: ts.Symbol, sourceCode: string) {

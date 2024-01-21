@@ -6,7 +6,7 @@
   "devDependencies": {
     "@builder.io/qwik": "workspace:*",
     "vite": "^5.0.11",
-    "vite-plugin-static-copy": "^0.17.0"
+    "vite-plugin-static-copy": "^1.0.0"
   },
   "engines": {
     "node": ">=16.8.0 <18.0.0 || >=18.11"
@@ -24,7 +24,7 @@
   "license": "MIT",
   "main": "./lib/index.qwik.mjs",
   "peerDependencies": {
-    "@builder.io/qwik": "1.3.3"
+    "@builder.io/qwik": "workspace:*"
   },
   "qwik": "./lib/index.qwik.mjs",
   "repository": {

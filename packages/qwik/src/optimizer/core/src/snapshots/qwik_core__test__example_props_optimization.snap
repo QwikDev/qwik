@@ -62,7 +62,7 @@ export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)
         "some",
         "hello",
         "stuff",
-        "hey2"
+        "stuffDefault"
     ]);
     console.log(props.stuff, props.some ?? 3);
     useTaskQrl(/*#__PURE__*/ inlinedQrl(({ track  })=>{

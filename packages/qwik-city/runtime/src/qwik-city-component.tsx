@@ -240,7 +240,10 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
           trackUrl.pathname
         );
         elm = _getContextElement();
-        const pageData = (clientPageData = await loadClientData(trackUrl, elm, true, action));
+        const pageData = (clientPageData = await loadClientData(trackUrl, elm, {
+          action,
+          clearCache: true,
+        }));
         if (!pageData) {
           // Reset the path to the current path
           (routeInternal as any).untrackedValue = { type: navType, dest: trackUrl };
@@ -257,7 +260,13 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
             trackUrl.pathname
           );
         }
-        loadedRoute = await loadRoutePromise;
+
+        try {
+          loadedRoute = await loadRoutePromise;
+        } catch (e) {
+          window.location.href = newHref;
+          return;
+        }
       }
 
       if (loadedRoute) {

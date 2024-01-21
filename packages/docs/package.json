@@ -63,6 +63,7 @@
   "packageManager": "pnpm@8.14.0",
   "private": true,
   "scripts": {
+    "prebuild": "tsm check-qwik-build.ts",
     "build": "qwik build",
     "build.client": "vite build",
     "build.preview": "vite build --ssr src/entry.preview.tsx",

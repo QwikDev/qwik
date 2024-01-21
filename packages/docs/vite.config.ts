@@ -145,6 +145,9 @@ export default defineConfig(async () => {
           }
           defaultHandler(level, log);
         },
+        output: {
+          assetFileNames: 'assets/[hash].[ext]',
+        },
       },
     },
     clearScreen: false,

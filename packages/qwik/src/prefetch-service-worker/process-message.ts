@@ -63,6 +63,7 @@ export const log = (...args: any[]) => {
 export const processMessage = async (state: SWState, msg: SWMessages) => {
   const type = msg[0];
   state.$log$('received message:', type, msg[1], msg.slice(2));
+  await state.$openCache$();
   if (type === 'graph') {
     await processBundleGraph(state, msg[1], msg.slice(2), true);
   } else if (type === 'graph-url') {
@@ -80,6 +81,7 @@ export const processMessage = async (state: SWState, msg: SWMessages) => {
   } else {
     console.error('UNKNOWN MESSAGE:', msg);
   }
+  state.$cache$ = null!;
 };
 
 async function processBundleGraph(

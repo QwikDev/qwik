@@ -63,7 +63,7 @@
   "packageManager": "pnpm@8.14.0",
   "private": true,
   "scripts": {
-    "prebuild": "tsm check-qwik-build.ts",
+    "prebuild.core": "tsm check-qwik-build.ts",
     "build": "qwik build",
     "build.client": "vite build",
     "build.preview": "vite build --ssr src/entry.preview.tsx",
@@ -72,7 +72,7 @@
     "codesandbox.sync": "tsm codesandbox.sync.ts",
     "contributors": "tsm contributors.ts",
     "deploy": "wrangler pages publish ./dist",
-    "dev": "vite --mode ssr --open",
+    "dev": "tsm check-qwik-build.ts && vite --mode ssr --open",
     "dev.debug": "node --inspect-brk ../../node_modules/vite/bin/vite.js --mode ssr --force",
     "preview": "qwik build preview && vite preview --open",
     "preview.only": "NODE_DEBUG=net,http node --inspect-brk ../../node_modules/vite/bin/vite.js preview",

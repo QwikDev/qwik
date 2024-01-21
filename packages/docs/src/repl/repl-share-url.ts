@@ -15,9 +15,8 @@ export const parsePlaygroundShareUrl = (shareable: string) => {
       const data = { ...dataDefaults };
 
       const version = params.get('v')! || params.get('version')!;
-      if (typeof version === 'string' && version.split('.').length > 2) {
-        data.version = version;
-      }
+      data.version =
+        typeof version === 'string' && version.split('.').length > 2 ? version : 'bundled';
 
       const buildMode = params.get('buildMode')!;
       if (BUILD_MODE_OPTIONS.includes(buildMode)) {
@@ -117,7 +116,9 @@ export const dictionary = strToU8(
 
 export const createPlaygroundShareUrl = (data: PlaygroundShareUrl, pathname = '/playground/') => {
   const params = new URLSearchParams();
-  params.set('v', data.version);
+  if (data.version !== 'bundled') {
+    params.set('v', data.version);
+  }
   if (data.buildMode !== dataDefaults.buildMode) {
     params.set('buildMode', data.buildMode);
   }

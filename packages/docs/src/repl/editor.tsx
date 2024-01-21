@@ -52,11 +52,11 @@ export const Editor = component$((props: EditorProps) => {
   });
 
   useTask$(async ({ track }) => {
-    const v = track(() => props.input.version);
+    track(() => props.input.version);
     track(() => store.editor);
 
-    if (v && store.editor) {
-      await addQwikLibs(v);
+    if (props.input.version && store.editor) {
+      await addQwikLibs(props.input.version);
     }
   });
 

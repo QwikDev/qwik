@@ -1,6 +1,6 @@
 import type { ReplAppInput } from './types';
 
-export const ReplOptions = ({ input, versions, qwikVersion }: ReplOptionsProps) => {
+export const ReplOptions = ({ input, versions }: ReplOptionsProps) => {
   return (
     <div class="output-detail detail-options">
       <StoreOption
@@ -16,7 +16,6 @@ export const ReplOptions = ({ input, versions, qwikVersion }: ReplOptionsProps) 
         label="Version"
         inputProp="version"
         options={versions}
-        labels={{ bundled: qwikVersion }}
         input={input}
         isLoading={versions.length === 0}
       />
@@ -59,7 +58,7 @@ const StoreOption = (props: StoreOptionProps) => {
             selected={value === props.input[props.inputProp] ? true : undefined}
             key={value}
           >
-            {props.labels?.[value] || value}
+            {value}
           </option>
         ))}
         {props.isLoading ? <option>Loading...</option> : null}
@@ -75,7 +74,6 @@ export const ENTRY_STRATEGY_OPTIONS = ['component', 'hook', 'single', 'smart', '
 interface StoreOptionProps {
   label: string;
   options: string[];
-  labels?: { [value: string]: string };
   input: ReplAppInput;
   inputProp: keyof ReplAppInput;
   isLoading?: boolean;
@@ -90,5 +88,4 @@ interface StoreBooleanProps {
 interface ReplOptionsProps {
   input: ReplAppInput;
   versions: string[];
-  qwikVersion: string;
 }

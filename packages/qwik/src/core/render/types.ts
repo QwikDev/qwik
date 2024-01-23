@@ -14,7 +14,7 @@ export interface RenderContext {
   /** Current Qwik component */
   $cmpCtx$: QContext | null;
   /** Current Slot parent */
-  $slotCtx$: QContext | null;
+  $slotCtx$: QContext | undefined;
 }
 
 export interface RenderStaticContext {

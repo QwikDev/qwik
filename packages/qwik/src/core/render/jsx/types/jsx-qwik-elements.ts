@@ -5,10 +5,7 @@ import type {
   QwikSVGElements,
 } from './jsx-generated';
 
-/** @public */
-export interface QwikIntrinsicAttributes {
-  key?: string | number | undefined | null;
-}
+export type { QwikIntrinsicAttributes } from './jsx-qwik-attributes';
 
 /**
  * The interface holds available attributes of both native DOM elements and custom Qwik elements. An

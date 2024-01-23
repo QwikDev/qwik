@@ -1,5 +1,37 @@
 [
   {
+    "title": "Wep Apps | Zhou's Portfolio",
+    "imgSrc": "/showcases/linkfang-portfolio_vercel_app_.webp",
+    "perf": {
+      "score": 0.98,
+      "fcpDisplay": "1.4 s",
+      "fcpScore": 0.97,
+      "lcpDisplay": "2.2 s",
+      "lcpScore": 0.94,
+      "ttiDisplay": "1.4 s",
+      "ttiScore": 1,
+      "ttiTime": 1386
+    },
+    "href": "https://linkfang-portfolio.vercel.app/",
+    "tags": "portfolio"
+  },
+  {
+    "title": "Blueagle",
+    "imgSrc": "/showcases/blueagle_top_.webp",
+    "perf": {
+      "score": 0.98,
+      "fcpDisplay": "1.6 s",
+      "fcpScore": 0.94,
+      "lcpDisplay": "2.0 s",
+      "lcpScore": 0.97,
+      "ttiDisplay": "2.2 s",
+      "ttiScore": 0.99,
+      "ttiTime": 2237.5
+    },
+    "href": "https://blueagle.top/",
+    "tags": "portfolio,site,blog"
+  },
+  {
     "title": "QuoteMingle",
     "imgSrc": "/showcases/quotemingle_com_.webp",
     "perf": {
@@ -823,5 +855,21 @@
     },
     "href": "https://juneikerc.com",
     "tags": "portfolio,site,blog,services"
+  },
+  {
+    "title": "Valibot: The modular and type safe schema library",
+    "imgSrc": "/showcases/valibot_dev_.webp",
+    "perf": {
+      "score": 1,
+      "fcpDisplay": "1.1 s",
+      "fcpScore": 0.99,
+      "lcpDisplay": "1.7 s",
+      "lcpScore": 0.99,
+      "ttiDisplay": "1.1 s",
+      "ttiScore": 1,
+      "ttiTime": 1107
+    },
+    "href": "https://valibot.dev/",
+    "tags": "site,documentation"
   }
 ]

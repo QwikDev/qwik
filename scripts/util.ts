@@ -66,6 +66,7 @@ export interface BuildConfig {
   devRelease?: boolean;
   setDistTag?: string;
   tsc?: boolean;
+  tscDocs?: boolean;
   validate?: boolean;
   wasm?: boolean;
   watch?: boolean;
@@ -92,6 +93,7 @@ export function loadConfig(args: string[] = []) {
   config.distQwikCityPkgDir = join(config.packagesDir, 'qwik-city', 'lib');
   config.distBindingsDir = join(config.distQwikPkgDir, 'bindings');
   config.tscDir = join(config.tmpDir, 'tsc-out');
+  config.tscDocs = (config as any)['tsc-docs'];
   config.dtsDir = join(config.tmpDir, 'dts-out');
   config.esmNode = parseInt(process.version.slice(1).split('.')[0], 10) >= 14;
   config.platformBinding = (config as any)['platform-binding'];

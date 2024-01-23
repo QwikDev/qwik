@@ -251,12 +251,12 @@ export const postRendering = async (containerState: ContainerState, rCtx: Render
   }
 };
 
+const isTask = (task: SubscriberEffect) => (task.$flags$ & TaskFlagsIsTask) !== 0;
+const isResourceTask = (task: SubscriberEffect) => (task.$flags$ & TaskFlagsIsResource) !== 0;
 const executeTasksBefore = async (containerState: ContainerState, rCtx: RenderContext) => {
   const containerEl = containerState.$containerEl$;
   const resourcesPromises: ValueOrPromise<SubscriberEffect>[] = [];
   const taskPromises: ValueOrPromise<SubscriberEffect>[] = [];
-  const isTask = (task: SubscriberEffect) => (task.$flags$ & TaskFlagsIsTask) !== 0;
-  const isResourceTask = (task: SubscriberEffect) => (task.$flags$ & TaskFlagsIsResource) !== 0;
 
   containerState.$taskNext$.forEach((task) => {
     if (isTask(task)) {
@@ -298,7 +298,10 @@ const executeTasksBefore = async (containerState: ContainerState, rCtx: RenderCo
   if (resourcesPromises.length > 0) {
     const resources = await Promise.all(resourcesPromises);
     sortTasks(resources);
-    resources.forEach((task) => runSubscriber(task, containerState, rCtx));
+    // no await so these run concurrently with the rendering
+    for (const task of resources) {
+      runSubscriber(task, containerState, rCtx);
+    }
   }
 };
 

@@ -17,6 +17,7 @@ contributors:
   - ehrencrona
   - julianobrasil
   - adamdbradley
+  - aendel
 updated_at: '2023-10-18T07:33:22Z'
 created_at: '2023-03-31T02:40:50Z'
 ---
@@ -327,11 +328,11 @@ Sometimes a task needs to run only on the browser and after rendering, in that c
 > ```tsx
 > import { component$, useSignal, useTask$ } from '@builder.io/qwik';
 > import { isServer } from '@builder.io/qwik/build';
-> 
+>
 > export default component$(() => {
 >   const text = useSignal('Initial text');
 >   const isBold = useSignal(false);
-> 
+>
 >   useTask$(({ track }) => {
 >     track(() => text.value);
 >     if (isServer) {
@@ -340,7 +341,7 @@ Sometimes a task needs to run only on the browser and after rendering, in that c
 >     isBold.value = true;
 >     delay(1000).then(() => (isBold.value = false));
 >   });
-> 
+>
 >   return (
 >     <section>
 >       <label>
@@ -352,7 +353,7 @@ Sometimes a task needs to run only on the browser and after rendering, in that c
 >     </section>
 >   );
 > });
-> 
+>
 > const delay = (time: number) => new Promise((res) => setTimeout(res, time));
 > ```
 > </CodeSandbox>

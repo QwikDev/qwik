@@ -2,8 +2,11 @@ import type { Cookie as CookieInterface, CookieOptions, CookieValue } from './ty
 
 const SAMESITE = {
   lax: 'Lax',
+  Lax: 'Lax',
+  None: 'None',
   none: 'None',
   strict: 'Strict',
+  Strict: 'Strict',
 } as const;
 
 const UNIT = {
@@ -75,7 +78,7 @@ const parseCookieString = (cookieString: string | undefined | null) => {
   return cookie;
 };
 
-function resolveSameSite(sameSite: boolean | 'strict' | 'lax' | 'none' | undefined) {
+function resolveSameSite(sameSite: CookieOptions['sameSite']) {
   if (sameSite === true) {
     return 'Strict';
   }

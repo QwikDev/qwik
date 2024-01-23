@@ -1,14 +1,14 @@
-import type { IntegrationData, UpdateAppResult } from '../types';
-import { bgBlue, bgMagenta, blue, bold, cyan, magenta } from 'kleur/colors';
-import { bye, getPackageManager, note, panic, printHeader } from '../utils/utils';
 import { intro, isCancel, log, outro, select, spinner } from '@clack/prompts';
+import { bgBlue, bgMagenta, blue, bold, cyan, magenta } from 'kleur/colors';
+import type { IntegrationData, UpdateAppResult } from '../types';
 import { loadIntegrations, sortIntegrationsAndReturnAsClackOptions } from '../utils/integrations';
+import { bye, getPackageManager, note, panic, printHeader } from '../utils/utils';
 
 /* eslint-disable no-console */
-import type { AppCommand } from '../utils/app-command';
-import { logNextStep } from '../utils/log';
 import { relative } from 'node:path';
+import type { AppCommand } from '../utils/app-command';
 import { runInPkg } from '../utils/install-deps';
+import { logNextStep } from '../utils/log';
 import { updateApp } from './update-app';
 
 export async function runAddInteractive(app: AppCommand, id: string | undefined) {
@@ -69,7 +69,9 @@ export async function runAddInteractive(app: AppCommand, id: string | undefined)
     installDeps: runInstall,
   });
 
-  await logUpdateAppResult(pkgManager, result);
+  if (app.getArg('skipConfirmation') !== 'true') {
+    await logUpdateAppResult(pkgManager, result);
+  }
   await result.commit(true);
   const postInstall = result.integration.pkgJson.__qwik__?.postInstall;
   if (postInstall) {

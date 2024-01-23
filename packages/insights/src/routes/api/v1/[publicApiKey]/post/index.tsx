@@ -5,9 +5,11 @@ import { getAppInfo, updateEdge, updateRoutes } from '~/db/query';
 import { dbGetManifestInfo } from '~/db/sql-manifest';
 import { toBucket, toBucketTimeline } from '~/stats/vector';
 
-export const onPost: RequestHandler = async ({ exit, json, request }) => {
+export const onPost: RequestHandler = async ({ exit, json, request, params }) => {
   const payloadJson = await request.json();
   migrate1(payloadJson);
+  // publicApiKey is always part of the URL as route parameter.
+  payloadJson.publicApiKey = params.publicApiKey;
   const payload = InsightsPayload.parse(payloadJson);
   // console.log('API: POST: symbol', payload);
   exit();

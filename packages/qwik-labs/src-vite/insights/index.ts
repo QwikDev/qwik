@@ -2,7 +2,7 @@ import { type QwikVitePluginOptions } from '@builder.io/qwik/optimizer';
 import { existsSync, mkdirSync } from 'fs';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'node:path';
-import { PluginOption } from 'vite';
+import { type PluginOption } from 'vite';
 
 const logWarn = (message?: any) => {
   // eslint-disable-next-line no-console

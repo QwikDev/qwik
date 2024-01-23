@@ -2,7 +2,7 @@ import { Extractor, ExtractorConfig } from '@microsoft/api-extractor';
 import { readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { generateApiMarkdownDocs } from './api-docs';
-import { type BuildConfig, panic } from './util';
+import { type BuildConfig, panic, ensureDir } from './util';
 
 /**
  * Create each submodule's bundled dts file, and ensure the public API has not changed for a
@@ -20,11 +20,17 @@ export async function apiExtractor(config: BuildConfig) {
     join(config.distQwikPkgDir, 'core.d.ts'),
     '.'
   );
-  createTypesApi(
-    config,
-    join(config.srcQwikDir, 'jsx-runtime'),
+  // Special case for jsx-runtime:
+  // It only re-exports JSX. Don't duplicate the types
+  const jsxContent = readFileSync(join(config.srcQwikDir, 'jsx-runtime', 'index.ts'), 'utf-8');
+  writeFileSync(
     join(config.distQwikPkgDir, 'jsx-runtime.d.ts'),
-    '.'
+    `// re-export to make TS happy when not using nodenext import resolution\n${jsxContent}`
+  );
+  ensureDir(join(config.distQwikPkgDir, 'jsx-runtime'));
+  writeFileSync(
+    join(config.distQwikPkgDir, 'jsx-runtime', 'index.d.ts'),
+    `// re-export to make TS happy when not using nodenext import resolution\n${jsxContent}`
   );
   createTypesApi(
     config,
@@ -130,6 +136,11 @@ export async function apiExtractor(config: BuildConfig) {
     config,
     join(config.packagesDir, 'qwik-city', 'middleware', 'azure-swa'),
     join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'azure-swa', 'index.d.ts')
+  );
+  createTypesApi(
+    config,
+    join(config.packagesDir, 'qwik-city', 'middleware', 'aws-lambda'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'aws-lambda', 'index.d.ts')
   );
   createTypesApi(
     config,

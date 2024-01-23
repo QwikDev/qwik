@@ -17,7 +17,18 @@ export const untypedAppUrl = function appUrl(
       path.splice(i, 1);
     }
   }
-  return path.join('/');
+  let url = path.join('/');
+  let baseURL = import.meta.env.BASE_URL;
+  if (baseURL) {
+    if (!baseURL.endsWith('/')) {
+      baseURL += '/';
+    }
+    while (url.startsWith('/')) {
+      url = url.substring(1);
+    }
+    url = baseURL + url;
+  }
+  return url;
 };
 
 /**

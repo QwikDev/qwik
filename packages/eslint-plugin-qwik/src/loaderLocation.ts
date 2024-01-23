@@ -36,8 +36,15 @@ export const loaderLocation: Rule.RuleModule = {
       },
     ],
     messages: {
-      invalidLoaderLocation:
-        '`{{fnName}}()` can only be declared in `layout.tsx`, `index.tsx` and `plugin.tsx` inside the {{routesDir}} directory, instead it was declared in "{{path}}".\nPlease check the docs: https://qwik.builder.io/docs/route-loader/',
+      invalidLoaderLocation: `'{{fnName}}() are typically declared in route boundary files such as layout.tsx, index.tsx and plugin.tsx inside the {{routesDir}} directory
+(docs: https://qwik.builder.io/docs/route-loader/).
+
+This {{fnName}}() is declared outside of the route boundaries. This may be useful when you want to create reusable logic or a library. In such a case, it is essential that this function is re-exported from within the router boundary otherwise it will not run.
+(docs: https://qwik.builder.io/docs/cookbook/re-exporting-loaders/).
+
+If you understand this, you can disable this warning with:
+// eslint-disable-next-line qwik/loader-location
+`,
       missingExport:
         'The return of `{{fnName}}()` needs to be exported in the same module, like this\n```\nexport const {{id}} = {{fnName}}(() => { ... });\n```',
       wrongName:

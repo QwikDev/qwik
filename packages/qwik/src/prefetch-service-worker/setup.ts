@@ -7,9 +7,15 @@ export const setupServiceWorker = (swScope: ServiceWorkerGlobalScope) => {
   swScope.addEventListener('fetch', async (ev) => {
     const request = ev.request;
     if (request.method === 'GET') {
-      const response = directFetch(swState, new URL(request.url));
-      if (response) {
-        ev.respondWith(response);
+      const previousCache = swState.$cache$;
+      try {
+        !previousCache && swState.$openCache$();
+        const response = directFetch(swState, new URL(request.url));
+        if (response) {
+          ev.respondWith(response);
+        }
+      } finally {
+        swState.$cache$ = previousCache;
       }
     }
   });

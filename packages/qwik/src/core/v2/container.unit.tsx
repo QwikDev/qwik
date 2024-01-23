@@ -17,6 +17,7 @@ import { toSsrAttrs } from './ssr/ssr-render';
 import { SsrNode, type SSRContainer } from './ssr/types';
 import './vdom-diff.unit';
 import { walkJSX } from './vdom-diff.unit';
+import type { JSXOutput } from '../render/jsx/types/jsx-node';
 
 describe('serializer v2', () => {
   describe('rendering', () => {
@@ -477,7 +478,7 @@ function withContainer(
   return container;
 }
 
-function toHTML(jsx: JSXNode): string {
+function toHTML(jsx: JSXOutput): string {
   const ssrContainer = ssrCreateContainer({ tagName: 'div' });
   ssrContainer.openContainer();
   walkJSX(jsx, {

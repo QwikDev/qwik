@@ -22,13 +22,14 @@ import { isStringifiable, type Stringifiable } from './shared-types';
 
 import { createDocument } from '@builder.io/qwik-dom';
 import type { VirtualVNode } from './client/types';
+import type { JSXOutput } from '../render/jsx/types/jsx-node';
 
 describe('vdom-diff.unit', () => {
   it('empty placeholder test to suppress warning', () => {});
 });
 
 interface CustomMatchers<R = unknown> {
-  toMatchVDOM(expectedJSX: JSXNode): R;
+  toMatchVDOM(expectedJSX: JSXOutput): R;
 }
 
 declare module 'vitest' {
@@ -178,22 +179,26 @@ function shouldSkip(vNode: VNode | null) {
 }
 
 export function walkJSX(
-  jsx: JSXNode,
+  jsx: JSXOutput,
   apply: {
     enter: (jsx: JSXNode) => void;
     leave: (jsx: JSXNode) => void;
     text: (text: Stringifiable) => void;
   }
 ) {
-  apply.enter(jsx);
-  if (Array.isArray(jsx.children)) {
-    for (const child of jsx.children) {
-      processChild(child);
+  if (isJSXNode(jsx)) {
+    apply.enter(jsx);
+    if (Array.isArray(jsx.children)) {
+      for (const child of jsx.children) {
+        processChild(child);
+      }
+    } else if (jsx.children) {
+      processChild(jsx.children);
     }
-  } else if (jsx.children) {
-    processChild(jsx.children);
+    apply.leave(jsx);
+  } else {
+    throw new Error('unsupported');
   }
-  apply.leave(jsx);
 
   function processChild(child: any) {
     if (isStringifiable(child)) {

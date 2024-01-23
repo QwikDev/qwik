@@ -89,7 +89,6 @@ describe('useSignal', () => {
     const renderLog: string[] = [];
     const Counter = component$((props: { initVal: number }) => {
       renderLog.push('Counter');
-      console.log('Render: Counter');
       const count = useSignal(props.initVal);
       return (
         <>
@@ -100,14 +99,12 @@ describe('useSignal', () => {
     });
     const Incrementor = component$((props: { countSignal: Signal<number> }) => {
       renderLog.push('Incrementor');
-      console.log('Render: Incrementor');
       return (
         <button
           onClick$={inlinedQrl(
             () => {
               const [countSignal] = useLexicalScope();
               countSignal.value++;
-              console.log('increment', countSignal.value);
             },
             's_onClick',
             [props.countSignal]
@@ -119,7 +116,6 @@ describe('useSignal', () => {
     });
     const Display = component$((props: { displayValue: number }) => {
       renderLog.push('Display');
-      console.log('Render: Display');
       return <>Count: {props.displayValue}!</>;
     });
     const { vNode, container } = await ssrRenderToDom(<Counter initVal={123}>content</Counter>, {
@@ -130,7 +126,6 @@ describe('useSignal', () => {
     renderLog.length = 0;
     await trigger(container.element, 'button', 'click');
     expect(renderLog).toEqual(['Counter', 'Display']);
-    console.log('AFTER RENDER');
     expect(vNode).toMatchVDOM(
       <Fragment>
         <Fragment>

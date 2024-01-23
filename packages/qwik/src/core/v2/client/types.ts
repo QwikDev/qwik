@@ -1,11 +1,9 @@
 /** @file Public types for the client deserialization */
 
-import type { ContainerState } from '../../container/container';
 import type { Container2 } from '../shared/types';
 
 export interface ClientContainer extends Container2 {
   document: QDocument;
-  containerState: ContainerState;
   element: ContainerElement;
   qContainer: string;
   qVersion: string;

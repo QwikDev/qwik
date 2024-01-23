@@ -1,29 +1,30 @@
 import { createDocument } from '@builder.io/qwik-dom';
-import { Fragment, Fragment as Component, type JSXNode } from '@builder.io/qwik/jsx-runtime';
+import { Fragment as Component, Fragment } from '@builder.io/qwik/jsx-runtime';
 import { describe, expect, it } from 'vitest';
+import { renderToString } from '../../server/render';
 import { component$ } from '../component/component.public';
+import { getPlatform, setPlatform } from '../platform/platform';
 import { notifyChange } from '../render/dom/notify-render';
+import { Slot } from '../render/jsx/slot.public';
+import type { JSXOutput } from '../render/jsx/types/jsx-node';
 import type { Subscriptions } from '../state/common';
-import { ELEMENT_ID, OnRenderProp } from '../util/markers';
+import { OnRenderProp } from '../util/markers';
 import { DomContainer, getDomContainer } from './client/dom-container';
 import type { VNode } from './client/types';
 import {
+  vnode_getAttr,
   vnode_getFirstChild,
   vnode_getNextSibling,
   vnode_getParent,
-  vnode_getAttr,
   vnode_getVNodeForChildNode,
   vnode_locate,
   vnode_toString,
 } from './client/vnode';
+import { codeToName } from './shared-serialization';
+import type { fixMeAny } from './shared/types';
 import { ssrCreateContainer } from './ssr/ssr-container';
 import { ssrRenderToContainer } from './ssr/ssr-render';
 import './vdom-diff.unit';
-import { codeToName } from './shared-serialization';
-import { renderToString } from '../../server/render';
-import { getPlatform, setPlatform } from '../platform/platform';
-import { Slot } from '../render/jsx/slot.public';
-import type { fixMeAny } from './shared/types';
 
 describe('v2 ssr render', () => {
   it('should render jsx', async () => {
@@ -197,7 +198,7 @@ describe('v2 ssr render', () => {
 });
 
 export async function ssrRenderToDom(
-  jsx: JSXNode,
+  jsx: JSXOutput,
   opts: {
     /// Print debug information to console.
     debug?: boolean;

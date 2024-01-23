@@ -1,16 +1,16 @@
 import { createDocument } from '@builder.io/qwik-dom';
-import { Fragment, Fragment as Component, type JSXNode } from '@builder.io/qwik/jsx-runtime';
+import { Fragment as Component, type JSXNode } from '@builder.io/qwik/jsx-runtime';
 import { describe, expect, it } from 'vitest';
-import { render2 } from './client/render2';
-import type { ContainerElement } from './client/types';
-import './vdom-diff.unit';
-import { vnode_getFirstChild } from './client/vnode';
+import { trigger } from '../../testing/element-fixture';
 import { component$ } from '../component/component.public';
-import { useSignal } from '../use/use-signal';
 import { inlinedQrl } from '../qrl/qrl';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
-import type { Signal } from '../state/signal';
-import { trigger } from '../../testing/element-fixture';
+import { useSignal } from '../use/use-signal';
+import { render2 } from './client/render2';
+import type { ContainerElement } from './client/types';
+import { vnode_getFirstChild } from './client/vnode';
+import './vdom-diff.unit';
+import type { JSXOutput } from '../render/jsx/types/jsx-node';
 
 describe('v2 client render', () => {
   it('should render jsx', async () => {
@@ -136,7 +136,7 @@ describe('v2 client render', () => {
   });
 });
 
-async function clientRender(jsx: JSXNode) {
+async function clientRender(jsx: JSXOutput) {
   const document = createDocument();
   await render2(document.body, jsx);
   const containerElement = document.body as ContainerElement;

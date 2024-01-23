@@ -123,7 +123,6 @@ export class DomContainer implements IClientContainer {
 
   markForRender(hostElement: VirtualVNode): void {
     this.$renderQueue$.add(hostElement);
-    console.log('markForRender');
     if (!this.rendering) {
       this.rendering = true;
       this.renderDone = getPlatform().nextTick(() => this.renderMarked());

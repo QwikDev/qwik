@@ -7,8 +7,9 @@ import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
 import { qrlToString, type SerializationContext } from '../shared-serialization';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
 import type { SSRContainer, SsrAttrs } from './types';
+import type { JSXOutput } from '../../render/jsx/types/jsx-node';
 
-export async function ssrRenderToContainer(ssr: SSRContainer, jsx: JSXNode | JSXNode[]) {
+export async function ssrRenderToContainer(ssr: SSRContainer, jsx: JSXOutput) {
   ssr.openContainer();
   await asyncWalkJSX(ssr, jsx);
   ssr.closeContainer();
@@ -154,7 +155,7 @@ function processJSXNode(
           ssr.getCurrentComponentFrame()!.distributeChildrenIntoSlots(jsx.children);
           enqueue(applyQwikComponentBody(ssr, jsx, type), ssr.closeComponent);
         } else {
-          enqueue(applyInlineComponent(type, jsx as JSXNode<Function>));
+          enqueue(applyInlineComponent(type as any, jsx as JSXNode<Function>));
         }
       }
     }

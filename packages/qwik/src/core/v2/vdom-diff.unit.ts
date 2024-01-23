@@ -8,7 +8,7 @@ import {
   vnode_getNextSibling,
   vnode_getParent,
   vnode_getAttr,
-  vnode_getPropKeys,
+  vnode_getAttrKeys,
   vnode_getText,
   vnode_insertBefore,
   vnode_isElementVNode,
@@ -68,14 +68,14 @@ function diffJsxVNode(received: VNode, expected: JSXNode | string, path: string[
       diffs.push(path.join(' > ') + ' expecting= ' + expected.type + ' received=' + receivedTag);
     }
     const expectedProps = expected.props ? Object.keys(expected.props).sort() : [];
-    const receivedProps = vnode_isElementVNode(received) ? vnode_getPropKeys(received).sort() : [];
+    const receivedProps = vnode_isElementVNode(received) ? vnode_getAttrKeys(received).sort() : [];
     const allProps = new Set([...expectedProps, ...receivedProps]);
     allProps.delete('children');
     allProps.forEach((prop) => {
       if (prop.startsWith('on:') || (prop.startsWith('on') && prop.endsWith('$'))) {
         return;
       }
-      const expectedValue = expected.props[prop];
+      const expectedValue = prop == 'key' || prop == 'q:key' ? expected.key : expected.props[prop];
       const receivedValue = vnode_getAttr(received, prop);
       if (expectedValue !== receivedValue) {
         diffs.push(`${path.join(' > ')}: [${prop}]`);

@@ -1,37 +1,37 @@
+import { _getContainerState, type ContainerState } from '../../container/container';
+import { resumeIfNeeded } from '../../container/resume';
 import { assertDefined, assertTrue } from '../../error/assert';
-import { executeContextWithScrollAndTransition, IS_HEAD, IS_SVG, SVG_NS } from './visitor';
-import { getDocument } from '../../util/dom';
-import { logError, logWarn } from '../../util/log';
+import { getPlatform, isServerPlatform } from '../../platform/platform';
+import type { SubscriberSignal, Subscriptions } from '../../state/common';
+import { HOST_FLAG_DIRTY, getContext, type QContext } from '../../state/context';
 import { getWrappingContainer } from '../../use/use-core';
+import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import {
-  runSubscriber,
-  type SubscriberEffect,
   TaskFlagsIsDirty,
-  TaskFlagsIsVisibleTask,
   TaskFlagsIsResource,
   TaskFlagsIsTask,
+  TaskFlagsIsVisibleTask,
   isSubscriberDescriptor,
+  runSubscriber,
+  type SubscriberEffect,
 } from '../../use/use-task';
-import { maybeThen } from '../../util/promises';
-import type { ValueOrPromise } from '../../util/types';
-import { useLexicalScope } from '../../use/use-lexical-scope.public';
-import { renderComponent } from './render-dom';
-import type { RenderContext } from '../types';
-import { type ContainerState, _getContainerState } from '../../container/container';
-import { createRenderContext } from '../execute-component';
-import { getRootNode, type QwikElement, type VirtualElement } from './virtual-element';
-import { appendChild, printRenderStats } from './operations';
-import { executeSignalOperation } from './signals';
-import { getPlatform, isServerPlatform } from '../../platform/platform';
-import { qDev } from '../../util/qdev';
-import type { SubscriberSignal, Subscriptions } from '../../state/common';
-import { resumeIfNeeded } from '../../container/resume';
-import { getContext, HOST_FLAG_DIRTY, type QContext } from '../../state/context';
-import { directGetAttribute } from '../fast-calls';
+import { getDocument } from '../../util/dom';
+import { logError, logWarn } from '../../util/log';
 import { QStyle } from '../../util/markers';
+import { maybeThen } from '../../util/promises';
+import { qDev } from '../../util/qdev';
+import type { ValueOrPromise } from '../../util/types';
+import type { VirtualVNode } from '../../v2/client/types';
 import { vnode_isVNode } from '../../v2/client/vnode';
 import type { Container2 } from '../../v2/shared/types';
-import type { VirtualVNode } from '../../v2/client/types';
+import { createRenderContext } from '../execute-component';
+import { directGetAttribute } from '../fast-calls';
+import type { RenderContext } from '../types';
+import { appendChild, printRenderStats } from './operations';
+import { renderComponent } from './render-dom';
+import { executeSignalOperation } from './signals';
+import { getRootNode, type QwikElement } from './virtual-element';
+import { IS_HEAD, IS_SVG, SVG_NS, executeContextWithScrollAndTransition } from './visitor';
 
 export const notifyChange = (subAction: Subscriptions, containerState: ContainerState) => {
   if (subAction[0] === 0) {
@@ -61,8 +61,8 @@ export const notifyChange = (subAction: Subscriptions, containerState: Container
  */
 const notifyRender = (hostElement: QwikElement, containerState: ContainerState): void => {
   if (vnode_isVNode(hostElement)) {
-    const constainer2 = containerState as any as Container2;
-    constainer2.markForRender(hostElement as unknown as VirtualVNode);
+    const container2 = containerState as any as Container2;
+    container2.markForRender(hostElement as unknown as VirtualVNode);
   } else {
     const server = isServerPlatform();
     if (!server) {

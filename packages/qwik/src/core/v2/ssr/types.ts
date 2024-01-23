@@ -59,6 +59,9 @@ export class SsrNode {
    */
   public id: string;
 
+  /** Local props which don't serialize; */
+  private locals: SsrAttrs | null = null;
+
   constructor(
     nodeType: SsrNodeType,
     id: string,
@@ -72,7 +75,19 @@ export class SsrNode {
   }
 
   setProp(name: string, value: any): void {
-    mapArray_set(this.attrs, name, value, 0);
+    if (name.startsWith(':')) {
+      mapArray_set(this.locals || (this.locals = []), name, value, 0);
+    } else {
+      mapArray_set(this.attrs, name, value, 0);
+    }
+  }
+
+  getProp(name: string): any {
+    if (name.startsWith(':')) {
+      return this.locals ? mapArray_get(this.locals, name, 0) : null;
+    } else {
+      return mapArray_get(this.attrs, name, 0);
+    }
   }
 }
 

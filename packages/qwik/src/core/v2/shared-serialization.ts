@@ -130,8 +130,7 @@ export const deserialize = <T>(container: DomContainer, value: any): any => {
       case SerializationConstant.Signal_VALUE:
         const valueIdx = rest.indexOf(' ');
         const value = container.getObjectById(parseInt(rest.substring(0, valueIdx)));
-        const manager: LocalSubscriptionManager =
-          container.containerState.$subsManager$?.$createManager$();
+        const manager: LocalSubscriptionManager = container.$subsManager$?.$createManager$();
         const subscription = parseSubscription(
           rest.substring(valueIdx + 1),
           container.getObjectById

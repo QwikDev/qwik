@@ -11,7 +11,7 @@ import type { Container2, fixMeAny } from './types';
 import { ELEMENT_PROPS, OnRenderProp, RenderEvent } from '../../util/markers';
 import { EMPTY_OBJ } from '../../util/flyweight';
 import { handleError } from '../../render/error-handling';
-import { vnode_getProp } from '../client/vnode';
+import { vnode_clearLocalProps, vnode_getProp } from '../client/vnode';
 import { assertDefined } from '../../error/assert';
 
 export const executeComponent2 = (
@@ -20,7 +20,7 @@ export const executeComponent2 = (
   componentQRL: QRLInternal<OnRenderFn<any>> | null,
   props: Record<string, any> | null
 ): ValueOrPromise<JSXNode> => {
-  const iCtx = newInvokeContext(container.qLocale, host as fixMeAny, undefined, RenderEvent);
+  const iCtx = newInvokeContext(container.$locale$, host as fixMeAny, undefined, RenderEvent);
   // $renderCtx$ is no longer used.
   const waitOn = (iCtx.$waitOn$ = []);
   iCtx.$renderCtx$ = EMPTY_OBJ as fixMeAny;
@@ -31,6 +31,7 @@ export const executeComponent2 = (
     vnode_getProp<QRLInternal<OnRenderFn<any>>>(host, OnRenderProp, container.getObjectById)!;
   assertDefined(componentQRL, 'No Component found at this location');
   props = props || vnode_getProp<any>(host, ELEMENT_PROPS, container.getObjectById) || EMPTY_OBJ;
+  vnode_clearLocalProps(host);
   const componentFn = componentQRL.getFn(iCtx);
   return safeCall(
     () => componentFn(props) as ValueOrPromise<JSXNode>,

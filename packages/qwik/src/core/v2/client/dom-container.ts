@@ -1,22 +1,15 @@
 /** @file Public APIs for the SSR */
 
 import { createContainerState, type ContainerState } from '../../container/container';
-import { assertDefined, assertTrue } from '../../error/assert';
+import { assertTrue } from '../../error/assert';
 import { getPlatform } from '../../platform/platform';
-import type { QRLInternal } from '../../qrl/qrl-class';
 import { createSubscriptionManager, type SubscriptionManager } from '../../state/common';
-import { EMPTY_OBJ } from '../../util/flyweight';
 import { throwErrorAndStop } from '../../util/log';
-import {
-  ELEMENT_PROPS,
-  OnRenderProp,
-  QContainerAttr,
-  QContainerSelector,
-} from '../../util/markers';
+import { ELEMENT_PROPS, ELEMENT_SEQ, QContainerAttr, QContainerSelector } from '../../util/markers';
 import { maybeThen, maybeThenMap } from '../../util/promises';
 import { deserialize } from '../shared-serialization';
 import { executeComponent2 } from '../shared/component-execution';
-import type { fixMeAny } from '../shared/types';
+import type { HostElement, fixMeAny } from '../shared/types';
 import type {
   ContainerElement,
   ElementVNode,
@@ -29,6 +22,7 @@ import {
   vnode_getClosestParentNode,
   vnode_getProp,
   vnode_newUnMaterializedElement,
+  vnode_setProp,
 } from './vnode';
 import { vnode_applyJournal, vnode_diff, type VNodeJournalEntry } from './vnode-diff';
 
@@ -51,12 +45,12 @@ export function getDomContainer(element: HTMLElement | ElementVNode): IClientCon
 }
 
 export class DomContainer implements IClientContainer {
-  public readonly containerState: ContainerState;
+  // public readonly containerState: ContainerState;
   public element: ContainerElement;
   public qContainer: string;
   public qVersion: string;
   public qBase: string;
-  public qLocale: string;
+  public $locale$: string;
   public qManifestHash: string;
   public rootVNode: ElementVNode;
   public document: QDocument;
@@ -64,7 +58,7 @@ export class DomContainer implements IClientContainer {
   public $subsManager$: SubscriptionManager;
   public renderDone: Promise<void> | null = Promise.resolve();
   public rendering: boolean = false;
-  private $rawStateData$: any[];
+  public $rawStateData$: any[];
   private stateData: any[];
   private $renderQueue$: Set<VirtualVNode> = new Set();
   constructor(element: ContainerElement) {
@@ -76,8 +70,8 @@ export class DomContainer implements IClientContainer {
     this.element = element;
     this.qVersion = element.getAttribute('q:version')!;
     this.qBase = element.getAttribute('q:base')!;
-    this.containerState = createContainerState(element, this.qBase);
-    this.qLocale = element.getAttribute('q:locale')!;
+    // this.containerState = createContainerState(element, this.qBase);
+    this.$locale$ = element.getAttribute('q:locale')!;
     this.qManifestHash = element.getAttribute('q:manifest-hash')!;
     this.rootVNode = vnode_newUnMaterializedElement(null, this.element);
     // These are here to initialize all properties at once for single class transition
@@ -87,28 +81,49 @@ export class DomContainer implements IClientContainer {
     if (!document.qVNodeData) {
       processVNodeData(document);
     }
+    this.$rawStateData$ = [];
+    this.stateData = [];
     const qwikStates = element.querySelectorAll('script[type="qwik/state"]');
     if (qwikStates.length !== 0) {
       const lastState = qwikStates[qwikStates.length - 1];
       this.$rawStateData$ = JSON.parse(lastState.textContent!);
       // NOTE: We want to deserialize the `rawStateData` so that we can cache the deserialized data.
       this.stateData = deserialize(this, this.$rawStateData$);
-      this.containerState.$pauseCtx$ = {
-        getObject: (id: string) => {
-          // console.log('getObject', id);
-          return this.getObjectById(id);
-        },
-        meta: loggingProxy('meta', this.$rawStateData$),
-        refs: loggingProxy('refs', {}),
-      };
+      // this.containerState.$pauseCtx$ = {
+      //   getObject: (id: string) => {
+      //     // console.log('getObject', id);
+      //     return this.getObjectById(id);
+      //   },
+      //   meta: loggingProxy('meta', this.$rawStateData$),
+      //   refs: loggingProxy('refs', {}),
+      // };
     }
-    this.$rawStateData$ = [];
-    this.stateData = [];
     this.$subsManager$ = createSubscriptionManager(this as fixMeAny);
+  }
+
+  setHostProp<T>(host: HostElement, name: string, value: T): void {
+    const vNode: VirtualVNode = host as any;
+    vnode_setProp(vNode, name, value);
+  }
+
+  getHostProp<T>(host: HostElement, name: string): T | null {
+    const vNode: VirtualVNode = host as any;
+    let getObjectById: ((id: string) => any) | null = null;
+    switch (name) {
+      case ELEMENT_SEQ:
+      case ELEMENT_PROPS:
+        getObjectById = this.getObjectById;
+        break;
+      case ':seqIdx':
+        getObjectById = parseInt;
+        break;
+    }
+    return vnode_getProp(vNode, name, getObjectById);
   }
 
   markForRender(hostElement: VirtualVNode): void {
     this.$renderQueue$.add(hostElement);
+    console.log('markForRender');
     if (!this.rendering) {
       this.rendering = true;
       this.renderDone = getPlatform().nextTick(() => this.renderMarked());

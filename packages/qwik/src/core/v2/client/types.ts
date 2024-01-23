@@ -10,10 +10,9 @@ export interface ClientContainer extends Container2 {
   qContainer: string;
   qVersion: string;
   qBase: string;
-  qLocale: string;
+  $locale$: string;
   qManifestHash: string;
   rootVNode: ElementVNode;
-  readonly getObjectById: (id: number | string) => any;
 }
 
 export interface ContainerElement extends HTMLElement {
@@ -52,7 +51,7 @@ export interface QNode extends Node {
  *
  * - Materialized: The node has all of its children. Specifically `firstChild`/`lastChild` are NOT
  *   `undefined`. Materialization creates lazy instantiation of the children. NOTE: Only
- *   ElementVNode and need to be materialized.
+ *   ElementVNode need to be materialized.
  * - Inflation:
  *
  *   - If Text: It means that it is safe to write to the node. When Text nodes are first Deserialized

@@ -4,8 +4,8 @@ import { EMPTY_OBJ } from '../util/flyweight';
 import { ELEMENT_SEQ } from '../util/markers';
 import { qDev, qSerialize } from '../util/qdev';
 import type { VirtualVNode } from '../v2/client/types';
-import { vnode_getProp, vnode_setProp } from '../v2/client/vnode';
-import type { fixMeAny } from '../v2/shared/types';
+import { vnode_getProp, vnode_isVNode, vnode_setProp } from '../v2/client/vnode';
+import type { fixMeAny, HostElement } from '../v2/shared/types';
 import { type RenderInvokeContext, useInvokeContext } from './use-core';
 
 export interface SequentialScope<T> {
@@ -29,19 +29,19 @@ export const useSequentialScope = <T>(): SequentialScope<T> => {
   const hostElement = iCtx.$hostElement$;
   if (iCtx.$container2$) {
     // V2 implementation
-    const host: VirtualVNode = hostElement as any;
-    let seq = vnode_getProp<any[]>(host, ELEMENT_SEQ, iCtx.$container2$.getObjectById);
+    const host: HostElement = hostElement as any;
+    let seq = iCtx.$container2$.getHostProp<any[]>(host, ELEMENT_SEQ);
     if (seq === null) {
       seq = [];
-      vnode_setProp(host, ELEMENT_SEQ, seq);
+      iCtx.$container2$.setHostProp(host, ELEMENT_SEQ, seq);
     }
-    let seqIdx = vnode_getProp<number>(host, SEQ_IDX, null!);
+    let seqIdx = iCtx.$container2$.getHostProp<number>(host, SEQ_IDX);
     if (seqIdx === null) {
       seqIdx = 0;
-      vnode_setProp(host, SEQ_IDX, seqIdx);
     }
-    while (seq.length < seqIdx) {
-      seq.push(null);
+    iCtx.$container2$.setHostProp(host, SEQ_IDX, seqIdx + 1);
+    while (seq.length <= seqIdx) {
+      seq.push(undefined);
     }
     const set = (value: T) => {
       if (qDev && qSerialize) {

@@ -21,7 +21,7 @@ describe('useSignal', () => {
     });
 
     const { vNode, container } = await ssrRenderToDom(<Counter initial={123} />, {
-      debug: true,
+      // debug: true,
     });
     expect(vNode).toMatchVDOM(
       <>
@@ -35,7 +35,7 @@ describe('useSignal', () => {
       </>
     );
   });
-  it.only('should rerender child', async () => {
+  it('should rerender child', async () => {
     const log: string[] = [];
     const Display = component$((props: { dValue: number }) => {
       log.push('Display');
@@ -60,8 +60,8 @@ describe('useSignal', () => {
     });
 
     const { vNode, container } = await ssrRenderToDom(<Counter initial={123} />, {
-      debug: true,
-      oldSSR: true,
+      // debug: true,
+      // oldSSR: true,
     });
     expect(vNode).toMatchVDOM(
       <>
@@ -123,8 +123,8 @@ describe('useSignal', () => {
       return <>Count: {props.displayValue}!</>;
     });
     const { vNode, container } = await ssrRenderToDom(<Counter initVal={123}>content</Counter>, {
-      debug: true,
-      oldSSR: true,
+      // debug: true,
+      // oldSSR: true,
     });
     // expect(renderLog).toEqual(['Counter', 'Display', 'Incrementor']);
     renderLog.length = 0;

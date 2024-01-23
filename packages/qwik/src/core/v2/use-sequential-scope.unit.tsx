@@ -32,7 +32,7 @@ describe('useSequentialScope', () => {
       );
     });
 
-    const { vNode, container } = await ssrRenderToDom(<MyComp />, { debug: true });
+    const { vNode, container } = await ssrRenderToDom(<MyComp />, { debug: false });
     await trigger(container.element, 'button', 'click');
 
     expect(vNode).toMatchVDOM(

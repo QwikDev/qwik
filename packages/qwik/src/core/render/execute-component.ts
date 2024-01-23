@@ -3,7 +3,7 @@ import { RenderEvent } from '../util/markers';
 import { maybeThen, promiseAllLazy, safeCall } from '../util/promises';
 import { newInvokeContext } from '../use/use-core';
 import { isArray, isFunction, isString, type ValueOrPromise } from '../util/types';
-import type { JSXNode } from './jsx/types/jsx-node';
+import type { JSXNode, JSXOutput } from './jsx/types/jsx-node';
 import type { ClassList } from './jsx/types/jsx-qwik-attributes';
 import type { RenderContext } from './types';
 import { type ContainerState, intToStr } from '../container/container';
@@ -18,7 +18,7 @@ import { isJSXNode } from './jsx/jsx-runtime';
 import { isUnitlessNumber } from '../util/unitless_number';
 
 export interface ExecuteComponentOutput {
-  node: JSXNode | null;
+  node: JSXOutput;
   rCtx: RenderContext;
 }
 
@@ -42,7 +42,7 @@ export const executeComponent = (
   // Set component context
   const newCtx = pushRenderContext(rCtx);
   newCtx.$cmpCtx$ = elCtx;
-  newCtx.$slotCtx$ = null;
+  newCtx.$slotCtx$ = undefined;
 
   // Invoke render hook
   iCtx.$subscriber$ = [0, hostElement];
@@ -98,7 +98,7 @@ export const createRenderContext = (
       $visited$: [],
     },
     $cmpCtx$: null,
-    $slotCtx$: null,
+    $slotCtx$: undefined,
   };
   seal(ctx);
   seal(ctx.$static$);
@@ -118,7 +118,7 @@ export const serializeClassWithHost = (
   obj: ClassList,
   hostCtx: QContext | undefined | null
 ): string => {
-  if (hostCtx && hostCtx.$scopeIds$) {
+  if (hostCtx?.$scopeIds$?.length) {
     return hostCtx.$scopeIds$.join(' ') + ' ' + serializeClass(obj);
   }
   return serializeClass(obj);

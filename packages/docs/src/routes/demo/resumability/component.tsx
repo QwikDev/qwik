@@ -1,5 +1,5 @@
 import {
-  type QwikIntrinsicElements,
+  type PropsOf,
   component$,
   useStylesScoped$,
   Slot,
@@ -214,7 +214,7 @@ export const UnderstandingResumability = component$(() => {
   );
 });
 
-export function ReadyIcon(props: QwikIntrinsicElements['svg'], key: string) {
+export function ReadyIcon(props: PropsOf<'svg'>, key: string) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

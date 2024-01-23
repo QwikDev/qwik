@@ -44,6 +44,7 @@ export interface QContext {
   $props$: Record<string, any> | null;
   /** The QRL if this is `component$`-wrapped component. */
   $componentQrl$: QRLInternal<OnRenderFn<any>> | null;
+  /** The event handlers for this element */
   li: Listener[];
   /** Sequential data store for hooks, managed by useSequentialScope. */
   $seq$: any[] | null;
@@ -60,6 +61,11 @@ export interface QContext {
    * the owner virtual component, and for a virtual component it's the wrapping virtual component.
    */
   $parentCtx$: QContext | null | undefined;
+  /**
+   * During SSR, separately store the actual parent of slotted components to correctly pause
+   * subscriptions
+   */
+  $realParentCtx$: QContext | undefined;
 }
 
 export const tryGetContext = (element: QwikElement): QContext | undefined => {
@@ -173,6 +179,7 @@ export const createContext = (element: Element | VirtualElement): QContext => {
     $contexts$: null,
     $dynamicSlots$: null,
     $parentCtx$: undefined,
+    $realParentCtx$: undefined,
   } as QContext;
   seal(ctx);
   (element as any)[Q_CTX] = ctx;

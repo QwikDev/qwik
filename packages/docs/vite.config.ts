@@ -65,7 +65,7 @@ export default defineConfig(async () => {
         mdx: {
           rehypePlugins: [
             [
-              rehypePrettyCode,
+              rehypePrettyCode as any,
               {
                 theme: 'dark-plus',
                 onVisitLine(node: any) {
@@ -144,6 +144,9 @@ export default defineConfig(async () => {
             return;
           }
           defaultHandler(level, log);
+        },
+        output: {
+          assetFileNames: 'assets/[hash].[ext]',
         },
       },
     },

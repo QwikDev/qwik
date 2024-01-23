@@ -1,5 +1,5 @@
 import { $, type PropFnInterface, type QRL } from '../qrl/qrl.public';
-import type { JSXNode } from '../render/jsx/types/jsx-node';
+import type { JSXNode, JSXOutput } from '../render/jsx/types/jsx-node';
 import { OnRenderProp, QSlot } from '../util/markers';
 import type {
   ComponentBaseProps,
@@ -12,30 +12,58 @@ import { Virtual, _jsxC } from '../render/jsx/jsx-runtime';
 import { SERIALIZABLE_STATE } from '../container/serializers';
 import { qTest } from '../util/qdev';
 import { assertQrl } from '../qrl/qrl-class';
-import type { ValueOrPromise } from '../util/types';
 import { _IMMUTABLE } from '../state/constants';
 import { assertNumber } from '../error/assert';
 import type { QwikIntrinsicElements } from '../render/jsx/types/jsx-qwik-elements';
 
+// TS way to check for any
+type IsAny<T> = 0 extends T & 1 ? true : false;
+
+type ObjectProps<T> = IsAny<T> extends true
+  ? any
+  : // unknown means we don't accept any props
+    unknown extends T
+    ? never
+    : T extends Record<any, any>
+      ? T
+      : never;
+
 /**
- * Infers `Props` from the component.
+ * Infers `Props` from the component or tag.
  *
- * ```typescript
- * export const OtherComponent = component$(() => {
- *   return $(() => <Counter value={100} />);
+ * @example
+ *
+ * ```tsx
+ * const Desc = component$(({desc, ...props}: { desc: string } & PropsOf<'div'>) => {
+ *  return <div {...props}>{desc}</div>;
+ * });
+ *
+ * const TitleBox = component$(({title, ...props}: { title: string } & PropsOf<Box>) => {
+ *   return <Box {...props}><h1>{title}</h1></Box>;
  * });
  * ```
  *
  * @public
  */
 // </docs>
-export type PropsOf<COMP> = COMP extends Component<infer PROPS>
-  ? NonNullable<PROPS>
-  : COMP extends FunctionComponent<infer PROPS>
-    ? NonNullable<PublicProps<PROPS>>
-    : COMP extends string
-      ? QwikIntrinsicElements[COMP]
-      : Record<string, unknown>;
+export type PropsOf<COMP> = COMP extends string
+  ? COMP extends keyof QwikIntrinsicElements
+    ? QwikIntrinsicElements[COMP]
+    : // `<span/>` has no special attributes
+      QwikIntrinsicElements['span']
+  : NonNullable<COMP> extends never
+    ? never
+    : COMP extends FunctionComponent<infer PROPS>
+      ? PROPS extends Record<any, infer V>
+        ? IsAny<V> extends true
+          ? // we couldn't figure it out
+            never
+          : ObjectProps<PROPS>
+        : COMP extends Component<infer OrigProps>
+          ? ObjectProps<OrigProps>
+          : // something complex, just return as-is
+            PROPS
+      : never;
 
 /**
  * Type representing the Qwik component.
@@ -53,45 +81,51 @@ export type PropsOf<COMP> = COMP extends Component<infer PROPS>
  *
  * @public
  */
-export type Component<PROPS extends Record<any, any> = Record<string, unknown>> = FunctionComponent<
-  PublicProps<PROPS>
->;
+// In reality, Component is a QRL but that makes the types too complex
+export type Component<PROPS = unknown> = FunctionComponent<PublicProps<PROPS>>;
 
-export type ComponentChildren<PROPS extends Record<any, any>> = PROPS extends {
+export type ComponentChildren<PROPS> = PROPS extends {
   children: any;
 }
   ? never
   : { children?: JSXChildren };
 /**
- * Extends the defined component PROPS, adding the default ones (children and q:slot)..
+ * Extends the defined component PROPS, adding the default ones (children and q:slot) and allowing
+ * plain functions to QRL arguments.
  *
  * @public
  */
-export type PublicProps<PROPS extends Record<any, any>> = TransformProps<PROPS> &
-  ComponentBaseProps &
-  ComponentChildren<PROPS>;
+export type PublicProps<PROPS> =
+  // Use Omit + _Only$ so that inferring polymorpic components works
+  // Mapping the entire PROPS doesn't work, maybe TS doesn't like inferring through conditional types
+  (PROPS extends Record<any, any>
+    ? Omit<PROPS, `${string}$`> & _Only$<PROPS>
+    : unknown extends PROPS
+      ? {}
+      : PROPS) &
+    ComponentBaseProps &
+    ComponentChildren<PROPS>;
 
-/**
- * Transform the component PROPS.
- *
- * @public
- */
-export type TransformProps<PROPS extends Record<any, any>> = {
-  [K in keyof PROPS]: TransformProp<PROPS[K], K>;
+/** @internal */
+export type _AllowPlainQrl<Q> =
+  // QRLEventHandlerMulti gets a special case to simplify the result
+  // It needs to be handled carefully because it matches regular functions too
+  QRLEventHandlerMulti<any, any> extends Q
+    ? Q extends QRLEventHandlerMulti<infer EV, infer EL>
+      ?
+          | Q
+          // It can infer unknown and that breaks things
+          | (EL extends Element ? EventHandler<EV, EL> : never)
+      : Q
+    : Q extends QRL<infer U>
+      ? Q | U
+      : NonNullable<Q> extends never
+        ? Q
+        : QRL<Q> | Q;
+/** @internal */
+export type _Only$<P> = {
+  [K in keyof P as K extends `${string}$` ? K : never]: _AllowPlainQrl<P[K]>;
 };
-
-/** @public */
-export type TransformProp<T, K> = NonNullable<T> extends (...args: infer ARGS) => infer RET
-  ? (...args: ARGS) => ValueOrPromise<Awaited<RET>>
-  : T extends QRLEventHandlerMulti<infer EV, infer EL>
-    ? EventHandler<EV, EL> | T
-    : K extends `${string}$`
-      ? T extends QRL<infer U>
-        ? T | U
-        : T
-      : T;
-
-// const ELEMENTS_SKIP_KEY: JSXTagName[] = ['html', 'body', 'head'];
 
 // <docs markdown="../readme.md#component">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -177,7 +211,7 @@ export const isQwikComponent = <T extends Component<any>>(component: unknown): c
   return typeof component == 'function' && (component as any)[SERIALIZABLE_STATE] !== undefined;
 };
 
-/** @public */
+/** @public @deprecated Use `QRL<>` on your function props instead */
 export type PropFunctionProps<PROPS extends Record<any, any>> = {
   [K in keyof PROPS]: PROPS[K] extends undefined
     ? PROPS[K]
@@ -240,16 +274,14 @@ export type PropFunctionProps<PROPS extends Record<any, any>> = {
  * @public
  */
 // </docs>
-export const component$ = <PROPS extends Record<any, any>>(
-  onMount: (props: PROPS) => JSXNode | null
-): Component<PropFunctionProps<PROPS>> => {
-  return componentQrl<any>($(onMount));
+export const component$ = <PROPS = unknown>(onMount: OnRenderFn<PROPS>): Component<PROPS> => {
+  return componentQrl($(onMount));
 };
 
 /** @public */
-export type OnRenderFn<PROPS extends Record<any, any>> = (props: PROPS) => JSXNode | null;
+export type OnRenderFn<PROPS> = (props: PROPS) => JSXOutput;
 
-export interface RenderFactoryOutput<PROPS extends Record<any, any>> {
+export interface RenderFactoryOutput<PROPS> {
   renderQRL: QRL<OnRenderFn<PROPS>>;
   waitOn: any[];
 }

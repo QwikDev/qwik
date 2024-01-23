@@ -1,16 +1,18 @@
 ---
-title: Cookbook | Portal
+title: Cookbook | Portals
 contributors:
   - mhevery
+  - thejackshelton
   - fabian-hiller
   - igorbabko
+  - aendel
 updated_at: '2023-10-03T18:53:59Z'
 created_at: '2023-08-21T21:16:38Z'
 ---
 
 import CodeSandbox, {CodeFile} from '../../../../components/code-sandbox/index.tsx';
 
-# Portal
+# Portals
 
 In front-end development, sometimes we need to display a component (like a modal or tooltip) in a different place from where it was triggered. The issue is that the UI element needs to be rendered in a different part of the DOM tree, and the component that triggers the element needs to have a way to affect the location of rendering.
 
@@ -45,13 +47,13 @@ Some examples of non-modal components are:
 
 Qwik UI has taken it upon themselves by providing a polyfill with feature parity to the native spec. You can use the Popover API's behavior in production today with [Qwik UI's Popover](https://qwikui.com/docs/headless/popover/) component.
 
-In the case of components like a select or combobox, Qwik UI also provides the abiltiy to opt-in to "floating" behavior. For example, when a listbox anchors to an input element. You can do so by adding `floating={true}` to your Popover component. This will execute a bit of extra javascript needed for floating behavior.
+In the case of components like a select or combobox, Qwik UI also provides the ability to opt-in to "floating" behavior. For example, when a listbox anchors to an input element. You can do so by adding `floating={true}` to your Popover component. This will execute a bit of extra javascript needed for floating behavior.
 
 It is intentionally opt-in, at some point the CSS Anchor API will provide a native solution, and so there should be an easy migration path when that receives more general support.
 
 > Because these solutions are built on top of the native specs, that also means there's less javascript we need to prefetch, and therefore less work that needs to be done!
 
-Both Qwik UI's popover and modal components can be used regardless of meta-framework or microfrontend, as long as there is support for Qwik. 
+Both Qwik UI's popover and modal components can be used regardless of meta-framework or microfrontend, as long as there is support for Qwik.
 
 ## Custom Portals
 
@@ -65,7 +67,7 @@ The fundamental problems to solve are:
 
 ## Solution
 
-<CodeSandbox url="/demo/cookbook/portal/"  style={{ height: '15em' }}>
+<CodeSandbox src="/src/routes/demo/cookbook/portal/"  style={{ height: '15em' }}>
 </CodeSandbox>
 
 
@@ -79,7 +81,7 @@ Let's break down the solution into steps:
 ### Using the PortalProvider
 
 Let's assume that we already have a `PortalProvider` and let's focus on how it is used first.
-1. We get a hold of the `PortalProvider` API through: 
+1. We get a hold of the `PortalProvider` API through:
    ```tsx
    const portal = useContext(PortalAPI);
    ```
@@ -206,8 +208,8 @@ import {
   type ContextId,
   type QRL,
   type Signal,
+  type JSXOutput,
 } from '@builder.io/qwik';
-import { type JSXNode } from '@builder.io/qwik/jsx-runtime';
 import CSS from './portal-provider.css?inline';
 
 // Define public API for opening up Portals
@@ -220,7 +222,7 @@ export const PortalAPI = createContextId<
    * @returns A function used for closing the portal.
    */
   QRL<
-    (name: string, jsx: JSXNode, contexts?: ContextPair<any>[]) => () => void
+    (name: string, jsx: JSXOutput, contexts?: ContextPair<any>[]) => () => void
   >
 >('PortalProviderAPI');
 
@@ -235,7 +237,7 @@ const PortalsContextId = createContextId<Signal<Portal[]>>('Portals');
 
 interface Portal {
   name: string;
-  jsx: JSXNode;
+  jsx: JSXOutput;
   close: QRL<() => void>;
   contexts: Array<ContextPair<any>>;
 }
@@ -247,7 +249,7 @@ export const PortalProvider = component$(() => {
   // Provide the public API for the PopupManager for other components.
   useContextProvider(
     PortalAPI,
-    $((name: string, jsx: JSXNode, contexts?: ContextPair<any>[]) => {
+    $((name: string, jsx: JSXOutput, contexts?: ContextPair<any>[]) => {
       const portal: Portal = {
         name,
         jsx,
@@ -290,7 +292,7 @@ export const Portal = component$<{ name: string }>(({ name }) => {
 });
 
 export const WrapJsxInContext = component$<{
-  jsx: JSXNode;
+  jsx: JSXOutput;
   contexts: Array<ContextPair<any>>;
 }>(({ jsx, contexts }) => {
   contexts.forEach(({ id, value }) => {

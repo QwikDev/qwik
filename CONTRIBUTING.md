@@ -22,7 +22,7 @@ We adopt [trunk-based development](https://trunkbaseddevelopment.com/) therefore
 
 ### Good first issue
 
-The issues marked with [_Good first issue_](https://github.com/BuilderIO/qwik/issues?q=is:open+is:issue+label:%22good+first+issue%22) are a good starting point to familiarize yourself with the project.
+The issues marked with [_Good first issue_](https://github.com/BuilderIO/qwik/issues?q=is%3Aissue+is%3Aopen+label%3A%22COMMUNITY%3A++good+first+issue%22) are a good starting point to familiarize yourself with the project.
 
 Before solving the problem, please check with the maintainers that the issue is still relevant. Feel free to leave a comment on the issue to show your intention to work on it and prevent other people from unintentionally duplicating your effort.
 
@@ -61,16 +61,28 @@ This is the best approach because all required dependencies will be installed in
 You need to have these tools up and running in your local machine:
 
 - [VSCode](https://code.visualstudio.com/)
-- [Docker](https://www.docker.com/)
+
+and either [Docker](https://www.docker.com/) or [Nix](https://nixos.org).
 
 ### Steps
+
+If you want to use Docker:
 
 - Install the [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension in your VSCode.
 - Once installed you will be prompted to 'Reopen the folder to develop in a container [learn more](https://code.visualstudio.com/docs/devcontainers/containers) or Clone repository in Docker volume for [better I/O performance](https://code.visualstudio.com/docs/devcontainers/containers#_quick-start-open-a-git-repository-or-github-pr-in-an-isolated-container-volume)'. If you're not prompted, you can run the `Dev Containers: Open Folder in Container` command from the [VSCode Command Palette](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette).
 
+If you want to use Nix:
+
+- Install [Nix](https://nixos.org/download.html) on your machine and enable flakes. The [DetSys installer](https://github.com/DeterminateSystems/nix-installer) makes that easy.
+- run `nix develop` in the project root.
+
+Nix+Direnv (optional):
+
+You can additionally use [direnv](https://direnv.net/) to automatically load the dev environment when you enter the project directory.
+
 ### Using development container without Dev Containers and VSCode
 
-If you would like to make use of the devlopment container solution, but don't use VSCode or Dev Containers, you still can do so, by following steps:
+If you would like to make use of the development container solution, but don't use VSCode or Dev Containers, you still can do so, by following steps:
 
 - Build development container locally: `cd .devcontainer; docker build -t qwik-container .`
 - Run development container from Qwik project root, binding the directory to container: `cd ..; docker run --rm -d --name qwik-container -p 3300:3300 -p 9229:9299 -v $PWD:/home/circleci/project -t qwik-container`

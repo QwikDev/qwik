@@ -460,7 +460,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "Type representing the Qwik component.\n\n`Component` is the type returned by invoking `component$`<!-- -->.\n\n```tsx\ninterface MyComponentProps {\n  someProp: string;\n}\nconst MyComponent: Component<MyComponentProps> = component$((props: MyComponentProps) => {\n  return <span>{props.someProp}</span>;\n});\n```\n\n\n```typescript\nexport type Component<PROPS extends Record<any, any> = Record<string, unknown>> = FunctionComponent<PublicProps<PROPS>>;\n```\n**References:** [FunctionComponent](#functioncomponent)<!-- -->, [PublicProps](#publicprops)",
+      "content": "Type representing the Qwik component.\n\n`Component` is the type returned by invoking `component$`<!-- -->.\n\n```tsx\ninterface MyComponentProps {\n  someProp: string;\n}\nconst MyComponent: Component<MyComponentProps> = component$((props: MyComponentProps) => {\n  return <span>{props.someProp}</span>;\n});\n```\n\n\n```typescript\nexport type Component<PROPS = unknown> = FunctionComponent<PublicProps<PROPS>>;\n```\n**References:** [FunctionComponent](#functioncomponent)<!-- -->, [PublicProps](#publicprops)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts",
       "mdFile": "qwik.component.md"
     },
@@ -474,7 +474,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "Declare a Qwik component that can be used to create UI.\n\nUse `component$` to declare a Qwik component. A Qwik component is a special kind of component that allows the Qwik framework to lazy load and execute the component independently of other Qwik components as well as lazy load the component's life-cycle hooks and event handlers.\n\nSide note: You can also declare regular (standard JSX) components that will have standard synchronous behavior.\n\nQwik component is a facade that describes how the component should be used without forcing the implementation of the component to be eagerly loaded. A minimum Qwik definition consists of:\n\n\\#\\#\\# Example\n\nAn example showing how to create a counter component:\n\n```tsx\nexport interface CounterProps {\n  initialValue?: number;\n  step?: number;\n}\nexport const Counter = component$((props: CounterProps) => {\n  const state = useStore({ count: props.initialValue || 0 });\n  return (\n    <div>\n      <span>{state.count}</span>\n      <button onClick$={() => (state.count += props.step || 1)}>+</button>\n    </div>\n  );\n});\n```\n- `component$` is how a component gets declared. - `{ value?: number; step?: number }` declares the public (props) interface of the component. - `{ count: number }` declares the private (state) interface of the component.\n\nThe above can then be used like so:\n\n```tsx\nexport const OtherComponent = component$(() => {\n  return <Counter initialValue={100} />;\n});\n```\nSee also: `component`<!-- -->, `useCleanup`<!-- -->, `onResume`<!-- -->, `onPause`<!-- -->, `useOn`<!-- -->, `useOnDocument`<!-- -->, `useOnWindow`<!-- -->, `useStyles`\n\n\n```typescript\ncomponent$: <PROPS extends Record<any, any>>(onMount: (props: PROPS) => JSXNode | null) => Component<PropFunctionProps<PROPS>>\n```",
+      "content": "Declare a Qwik component that can be used to create UI.\n\nUse `component$` to declare a Qwik component. A Qwik component is a special kind of component that allows the Qwik framework to lazy load and execute the component independently of other Qwik components as well as lazy load the component's life-cycle hooks and event handlers.\n\nSide note: You can also declare regular (standard JSX) components that will have standard synchronous behavior.\n\nQwik component is a facade that describes how the component should be used without forcing the implementation of the component to be eagerly loaded. A minimum Qwik definition consists of:\n\n\\#\\#\\# Example\n\nAn example showing how to create a counter component:\n\n```tsx\nexport interface CounterProps {\n  initialValue?: number;\n  step?: number;\n}\nexport const Counter = component$((props: CounterProps) => {\n  const state = useStore({ count: props.initialValue || 0 });\n  return (\n    <div>\n      <span>{state.count}</span>\n      <button onClick$={() => (state.count += props.step || 1)}>+</button>\n    </div>\n  );\n});\n```\n- `component$` is how a component gets declared. - `{ value?: number; step?: number }` declares the public (props) interface of the component. - `{ count: number }` declares the private (state) interface of the component.\n\nThe above can then be used like so:\n\n```tsx\nexport const OtherComponent = component$(() => {\n  return <Counter initialValue={100} />;\n});\n```\nSee also: `component`<!-- -->, `useCleanup`<!-- -->, `onResume`<!-- -->, `onPause`<!-- -->, `useOn`<!-- -->, `useOnDocument`<!-- -->, `useOnWindow`<!-- -->, `useStyles`\n\n\n```typescript\ncomponent$: <PROPS = unknown>(onMount: OnRenderFn<PROPS>) => Component<PROPS>\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts",
       "mdFile": "qwik.component_.md"
     },
@@ -656,7 +656,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "The Qwik-specific attributes that DOM elements accept\n\n\n```typescript\nexport interface DOMAttributes<EL extends Element> extends QwikAttributesBase, RefAttr<EL>, QwikEvents<EL> \n```\n**Extends:** QwikAttributesBase, RefAttr&lt;EL&gt;, QwikEvents&lt;EL&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [class?](#) |  | [ClassList](#classlist) \\| [Signal](#signal)<!-- -->&lt;[ClassList](#classlist)<!-- -->&gt; \\| undefined | _(Optional)_ |",
+      "content": "The Qwik-specific attributes that DOM elements accept\n\n\n```typescript\nexport interface DOMAttributes<EL extends Element> extends DOMAttributesBase<EL>, QwikEvents<EL> \n```\n**Extends:** DOMAttributesBase&lt;EL&gt;, QwikEvents&lt;EL&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [class?](#) |  | [ClassList](#classlist) \\| [Signal](#signal)<!-- -->&lt;[ClassList](#classlist)<!-- -->&gt; \\| undefined | _(Optional)_ |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts",
       "mdFile": "qwik.domattributes.md"
     },
@@ -676,45 +676,37 @@
     },
     {
       "name": "Element",
-      "id": "h-jsx-element",
+      "id": "qwikjsx-element",
       "hierarchy": [
         {
-          "name": "h",
-          "id": "h-jsx-element"
-        },
-        {
-          "name": "JSX",
-          "id": "h-jsx-element"
+          "name": "QwikJSX",
+          "id": "qwikjsx-element"
         },
         {
           "name": "Element",
-          "id": "h-jsx-element"
+          "id": "qwikjsx-element"
         }
       ],
-      "kind": "Interface",
-      "content": "```typescript\ninterface Element extends QwikJSX.Element \n```\n**Extends:** [QwikJSX.Element](#)",
-      "mdFile": "qwik.h.jsx.element.md"
+      "kind": "TypeAlias",
+      "content": "```typescript\ntype Element = JSXOutput;\n```\n**References:** [JSXOutput](#jsxoutput)",
+      "mdFile": "qwik.qwikjsx.element.md"
     },
     {
       "name": "ElementChildrenAttribute",
-      "id": "h-jsx-elementchildrenattribute",
+      "id": "qwikjsx-elementchildrenattribute",
       "hierarchy": [
         {
-          "name": "h",
-          "id": "h-jsx-elementchildrenattribute"
-        },
-        {
-          "name": "JSX",
-          "id": "h-jsx-elementchildrenattribute"
+          "name": "QwikJSX",
+          "id": "qwikjsx-elementchildrenattribute"
         },
         {
           "name": "ElementChildrenAttribute",
-          "id": "h-jsx-elementchildrenattribute"
+          "id": "qwikjsx-elementchildrenattribute"
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\ninterface ElementChildrenAttribute \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [children?](#) |  | any | _(Optional)_ |",
-      "mdFile": "qwik.h.jsx.elementchildrenattribute.md"
+      "content": "```typescript\ninterface ElementChildrenAttribute \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [children](#) |  | [JSXChildren](#jsxchildren) |  |",
+      "mdFile": "qwik.qwikjsx.elementchildrenattribute.md"
     },
     {
       "name": "ElementType",
@@ -730,7 +722,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\ntype ElementType = string | ((...args: any[]) => JSXNode | null);\n```\n**References:** [JSXNode](#jsxnode)",
+      "content": "```typescript\ntype ElementType = string | FunctionComponent<Record<any, any>>;\n```\n**References:** [FunctionComponent](#functioncomponent)",
       "mdFile": "qwik.qwikjsx.elementtype.md"
     },
     {
@@ -774,6 +766,20 @@
       "content": "```typescript\nevent$: <T>(first: T) => QRL<T>\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts",
       "mdFile": "qwik.event_.md"
+    },
+    {
+      "name": "EventHandler",
+      "id": "eventhandler",
+      "hierarchy": [
+        {
+          "name": "EventHandler",
+          "id": "eventhandler"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "A DOM event handler\n\n\n```typescript\nexport type EventHandler<EV = Event, EL = Element> = {\n    bivarianceHack(event: EV, element: EL): any;\n}['bivarianceHack'];\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts",
+      "mdFile": "qwik.eventhandler.md"
     },
     {
       "name": "eventQrl",
@@ -840,8 +846,8 @@
           "id": "functioncomponent"
         }
       ],
-      "kind": "Interface",
-      "content": "```typescript\nexport interface FunctionComponent<P extends Record<any, any> = Record<any, unknown>> \n```",
+      "kind": "TypeAlias",
+      "content": "Any function taking a props object that returns JSXOutput.\n\nThe `key`<!-- -->, `flags` and `dev` parameters are for internal use.\n\n\n```typescript\nexport type FunctionComponent<P = unknown> = {\n    renderFn(props: P, key: string | null, flags: number, dev?: DevJSX): JSXOutput;\n}['renderFn'];\n```\n**References:** [DevJSX](#devjsx)<!-- -->, [JSXOutput](#jsxoutput)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-node.ts",
       "mdFile": "qwik.functioncomponent.md"
     },
@@ -869,7 +875,7 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\nexport declare namespace h \n```\n\n\n|  Function | Description |\n|  --- | --- |\n|  [h(type)](#) |  |\n|  [h(type, data)](#) |  |\n|  [h(type, text)](#) |  |\n|  [h(type, children)](#) |  |\n|  [h(type, data, text)](#) |  |\n|  [h(type, data, children)](#) |  |\n|  [h(sel, data, children)](#) |  |\n\n\n|  Namespace | Description |\n|  --- | --- |\n|  [JSX](#h-jsx) |  |",
+      "content": "```typescript\nexport declare namespace h \n```\n\n\n|  Function | Description |\n|  --- | --- |\n|  [h(type)](#) |  |\n|  [h(type, data)](#) |  |\n|  [h(type, text)](#) |  |\n|  [h(type, children)](#) |  |\n|  [h(type, data, text)](#) |  |\n|  [h(type, data, children)](#) |  |\n|  [h(sel, data, children)](#) |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/factory.ts",
       "mdFile": "qwik.h.md"
     },
@@ -883,7 +889,7 @@
         }
       ],
       "kind": "Namespace",
-      "content": "```typescript\nexport declare namespace h \n```\n\n\n|  Function | Description |\n|  --- | --- |\n|  [h(type)](#) |  |\n|  [h(type, data)](#) |  |\n|  [h(type, text)](#) |  |\n|  [h(type, children)](#) |  |\n|  [h(type, data, text)](#) |  |\n|  [h(type, data, children)](#) |  |\n|  [h(sel, data, children)](#) |  |\n\n\n|  Namespace | Description |\n|  --- | --- |\n|  [JSX](#h-jsx) |  |",
+      "content": "```typescript\nexport declare namespace h \n```\n\n\n|  Function | Description |\n|  --- | --- |\n|  [h(type)](#) |  |\n|  [h(type, data)](#) |  |\n|  [h(type, text)](#) |  |\n|  [h(type, children)](#) |  |\n|  [h(type, data, text)](#) |  |\n|  [h(type, data, children)](#) |  |\n|  [h(sel, data, children)](#) |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/factory.ts",
       "mdFile": "qwik.h.md"
     },
@@ -939,7 +945,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface HTMLAttributes<E extends Element> extends HTMLElementAttrs, DOMAttributes<E> \n```\n**Extends:** HTMLElementAttrs, [DOMAttributes](#domattributes)<!-- -->&lt;E&gt;",
+      "content": "```typescript\nexport interface HTMLAttributes<E extends Element> extends HTMLElementAttrs, DOMAttributes<E> \n```\n**Extends:** [HTMLElementAttrs](#htmlelementattrs)<!-- -->, [DOMAttributes](#domattributes)<!-- -->&lt;E&gt;",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts",
       "mdFile": "qwik.htmlattributes.md"
     },
@@ -956,6 +962,20 @@
       "content": "```typescript\nexport type HTMLCrossOriginAttribute = 'anonymous' | 'use-credentials' | '' | undefined;\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts",
       "mdFile": "qwik.htmlcrossoriginattribute.md"
+    },
+    {
+      "name": "HTMLElementAttrs",
+      "id": "htmlelementattrs",
+      "hierarchy": [
+        {
+          "name": "HTMLElementAttrs",
+          "id": "htmlelementattrs"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface HTMLElementAttrs extends HTMLAttributesBase, FilterBase<HTMLElement> \n```\n**Extends:** HTMLAttributesBase, FilterBase&lt;HTMLElement&gt;",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts",
+      "mdFile": "qwik.htmlelementattrs.md"
     },
     {
       "name": "HTMLFragment",
@@ -1085,45 +1105,34 @@
     },
     {
       "name": "IntrinsicAttributes",
-      "id": "h-jsx-intrinsicattributes",
+      "id": "qwikjsx-intrinsicattributes",
       "hierarchy": [
         {
-          "name": "h",
-          "id": "h-jsx-intrinsicattributes"
-        },
-        {
-          "name": "JSX",
-          "id": "h-jsx-intrinsicattributes"
+          "name": "QwikJSX",
+          "id": "qwikjsx-intrinsicattributes"
         },
         {
           "name": "IntrinsicAttributes",
-          "id": "h-jsx-intrinsicattributes"
+          "id": "qwikjsx-intrinsicattributes"
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\ninterface IntrinsicAttributes extends QwikJSX.IntrinsicAttributes \n```\n**Extends:** [QwikJSX.IntrinsicAttributes](#)",
-      "mdFile": "qwik.h.jsx.intrinsicattributes.md"
+      "content": "```typescript\ninterface IntrinsicAttributes extends QwikIntrinsicAttributes \n```\n**Extends:** QwikIntrinsicAttributes",
+      "mdFile": "qwik.qwikjsx.intrinsicattributes.md"
     },
     {
       "name": "IntrinsicElements",
-      "id": "h-jsx-intrinsicelements",
+      "id": "intrinsicelements",
       "hierarchy": [
         {
-          "name": "h",
-          "id": "h-jsx-intrinsicelements"
-        },
-        {
-          "name": "JSX",
-          "id": "h-jsx-intrinsicelements"
-        },
-        {
           "name": "IntrinsicElements",
-          "id": "h-jsx-intrinsicelements"
+          "id": "intrinsicelements"
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\ninterface IntrinsicElements extends QwikJSX.IntrinsicElements \n```\n**Extends:** [QwikJSX.IntrinsicElements](#)",
-      "mdFile": "qwik.h.jsx.intrinsicelements.md"
+      "content": "```typescript\nexport interface IntrinsicElements extends IntrinsicHTMLElements, IntrinsicSVGElements \n```\n**Extends:** IntrinsicHTMLElements, IntrinsicSVGElements",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts",
+      "mdFile": "qwik.intrinsicelements.md"
     },
     {
       "name": "isSignal",
@@ -1149,26 +1158,9 @@
         }
       ],
       "kind": "Variable",
-      "content": "```typescript\njsx: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS extends Record<any, any>> ? PROPS : Record<any, unknown>, key?: string | number | null) => JSXNode<T>\n```",
+      "content": "```typescript\njsx: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<any, unknown>, key?: string | number | null) => JSXNode<T>\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts",
       "mdFile": "qwik.jsx.md"
-    },
-    {
-      "name": "JSX",
-      "id": "h-jsx",
-      "hierarchy": [
-        {
-          "name": "h",
-          "id": "h-jsx"
-        },
-        {
-          "name": "JSX",
-          "id": "h-jsx"
-        }
-      ],
-      "kind": "Namespace",
-      "content": "```typescript\nnamespace JSX \n```\n\n\n|  Interface | Description |\n|  --- | --- |\n|  [Element](#h-jsx-element) |  |\n|  [ElementChildrenAttribute](#h-jsx-elementchildrenattribute) |  |\n|  [IntrinsicAttributes](#h-jsx-intrinsicattributes) |  |\n|  [IntrinsicElements](#h-jsx-intrinsicelements) |  |",
-      "mdFile": "qwik.h.jsx.md"
     },
     {
       "name": "JSXChildren",
@@ -1194,7 +1186,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "```typescript\njsxDEV: <T extends string | FunctionComponent<Record<any, unknown>>>(type: T, props: T extends FunctionComponent<infer PROPS extends Record<any, any>> ? PROPS : Record<any, unknown>, key: string | number | null | undefined, _isStatic: boolean, opts: JsxDevOpts, _ctx: unknown) => JSXNode<T>\n```",
+      "content": "```typescript\njsxDEV: <T extends string | FunctionComponent<Record<any, unknown>>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<any, unknown>, key: string | number | null | undefined, _isStatic: boolean, opts: JsxDevOpts, _ctx: unknown) => JSXNode<T>\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts",
       "mdFile": "qwik.jsxdev.md"
     },
@@ -1208,9 +1200,23 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface JSXNode<T = string | FunctionComponent> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [children](#) |  | [JSXChildren](#jsxchildren) \\| null |  |\n|  [dev?](#) |  | [DevJSX](#devjsx) | _(Optional)_ |\n|  [flags](#) |  | number |  |\n|  [immutableProps](#) |  | Record&lt;any, unknown&gt; \\| null |  |\n|  [key](#) |  | string \\| null |  |\n|  [props](#) |  | T extends [FunctionComponent](#functioncomponent)<!-- -->&lt;infer B&gt; ? B : Record&lt;any, unknown&gt; |  |\n|  [type](#) |  | T |  |",
+      "content": "A JSX Node, an internal structure. You probably want to use `JSXOutput` instead.\n\n\n```typescript\nexport interface JSXNode<T extends string | FunctionComponent | unknown = unknown> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [children](#) |  | [JSXChildren](#jsxchildren) \\| null |  |\n|  [dev?](#) |  | [DevJSX](#devjsx) | _(Optional)_ |\n|  [flags](#) |  | number |  |\n|  [immutableProps](#) |  | Record&lt;any, unknown&gt; \\| null |  |\n|  [key](#) |  | string \\| null |  |\n|  [props](#) |  | T extends [FunctionComponent](#functioncomponent)<!-- -->&lt;infer P&gt; ? P : Record&lt;any, unknown&gt; |  |\n|  [type](#) |  | T |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-node.ts",
       "mdFile": "qwik.jsxnode.md"
+    },
+    {
+      "name": "JSXOutput",
+      "id": "jsxoutput",
+      "hierarchy": [
+        {
+          "name": "JSXOutput",
+          "id": "jsxoutput"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "Any valid output for a component\n\n\n```typescript\nexport type JSXOutput = JSXNode | string | number | boolean | null | undefined | JSXOutput[];\n```\n**References:** [JSXNode](#jsxnode)<!-- -->, [JSXOutput](#jsxoutput)",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-node.ts",
+      "mdFile": "qwik.jsxoutput.md"
     },
     {
       "name": "JSXTagName",
@@ -1614,7 +1620,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type OnRenderFn<PROPS extends Record<any, any>> = (props: PROPS) => JSXNode | null;\n```\n**References:** [JSXNode](#jsxnode)",
+      "content": "```typescript\nexport type OnRenderFn<PROPS> = (props: PROPS) => JSXOutput;\n```\n**References:** [JSXOutput](#jsxoutput)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts",
       "mdFile": "qwik.onrenderfn.md"
     },
@@ -1689,6 +1695,34 @@
       "mdFile": "qwik.paramhtmlattributes.md"
     },
     {
+      "name": "PrefetchGraph",
+      "id": "prefetchgraph",
+      "hierarchy": [
+        {
+          "name": "PrefetchGraph",
+          "id": "prefetchgraph"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\nLoad the prefetch graph for the container.\n\nEach Qwik container needs to include its own prefetch graph.\n\n\n```typescript\nPrefetchGraph: (opts?: {\n    base?: string;\n    manifestHash?: string;\n    manifestURL?: string;\n}) => import(\"@builder.io/qwik/jsx-runtime\").JSXNode<\"script\">\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts",
+      "mdFile": "qwik.prefetchgraph.md"
+    },
+    {
+      "name": "PrefetchServiceWorker",
+      "id": "prefetchserviceworker",
+      "hierarchy": [
+        {
+          "name": "PrefetchServiceWorker",
+          "id": "prefetchserviceworker"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\nInstall a service worker which will prefetch the bundles.\n\nThere can only be one service worker per page. Because there can be many separate Qwik Containers on the page each container needs to load its prefetch graph using `PrefetchGraph` component.\n\n\n```typescript\nPrefetchServiceWorker: (opts: {\n    base?: string;\n    path?: string;\n    verbose?: boolean;\n    fetchBundleGraph?: boolean;\n}) => import(\"@builder.io/qwik/jsx-runtime\").JSXNode<\"script\">\n```",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts",
+      "mdFile": "qwik.prefetchserviceworker.md"
+    },
+    {
       "name": "ProgressHTMLAttributes",
       "id": "progresshtmlattributes",
       "hierarchy": [
@@ -1712,7 +1746,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type PropFnInterface<ARGS extends any[], RET> = {\n    __qwik_serializable__?: any;\n    (...args: ARGS): Promise<RET>;\n};\n```",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `QRL<>` instead\n> \n\n\n```typescript\nexport type PropFnInterface<ARGS extends any[], RET> = {\n    __qwik_serializable__?: any;\n    (...args: ARGS): Promise<RET>;\n};\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts",
       "mdFile": "qwik.propfninterface.md"
     },
@@ -1726,7 +1760,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type PropFunction<T extends Function = (...args: any) => any> = T extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, Awaited<RET>> : never;\n```\n**References:** [PropFnInterface](#propfninterface)",
+      "content": "Alias for `QRL<T>`<!-- -->. Of historic relevance only.\n\n\n```typescript\nexport type PropFunction<T> = QRL<T>;\n```\n**References:** [QRL](#qrl)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts",
       "mdFile": "qwik.propfunction.md"
     },
@@ -1740,7 +1774,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type PropFunctionProps<PROPS extends Record<any, any>> = {\n    [K in keyof PROPS]: PROPS[K] extends undefined ? PROPS[K] : PROPS[K] extends ((...args: infer ARGS) => infer RET) | undefined ? PropFnInterface<ARGS, Awaited<RET>> : PROPS[K];\n};\n```\n**References:** [PropFnInterface](#propfninterface)",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `QRL<>` on your function props instead\n> \n\n\n```typescript\nexport type PropFunctionProps<PROPS extends Record<any, any>> = {\n    [K in keyof PROPS]: PROPS[K] extends undefined ? PROPS[K] : PROPS[K] extends ((...args: infer ARGS) => infer RET) | undefined ? PropFnInterface<ARGS, Awaited<RET>> : PROPS[K];\n};\n```\n**References:** [PropFnInterface](#propfninterface)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts",
       "mdFile": "qwik.propfunctionprops.md"
     },
@@ -1754,7 +1788,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "Infers `Props` from the component.\n\n```typescript\nexport const OtherComponent = component$(() => {\n  return $(() => <Counter value={100} />);\n});\n```\n\n\n```typescript\nexport type PropsOf<COMP> = COMP extends Component<infer PROPS> ? NonNullable<PROPS> : COMP extends FunctionComponent<infer PROPS> ? NonNullable<PublicProps<PROPS>> : COMP extends string ? QwikIntrinsicElements[COMP] : Record<string, unknown>;\n```\n**References:** [Component](#component)<!-- -->, [FunctionComponent](#functioncomponent)<!-- -->, [PublicProps](#publicprops)<!-- -->, [QwikIntrinsicElements](#qwikintrinsicelements)",
+      "content": "Infers `Props` from the component or tag.\n\n\n```typescript\nexport type PropsOf<COMP> = COMP extends string ? COMP extends keyof QwikIntrinsicElements ? QwikIntrinsicElements[COMP] : QwikIntrinsicElements['span'] : NonNullable<COMP> extends never ? never : COMP extends FunctionComponent<infer PROPS> ? PROPS extends Record<any, infer V> ? IsAny<V> extends true ? never : ObjectProps<PROPS> : COMP extends Component<infer OrigProps> ? ObjectProps<OrigProps> : PROPS : never;\n```\n**References:** [QwikIntrinsicElements](#qwikintrinsicelements)<!-- -->, [FunctionComponent](#functioncomponent)<!-- -->, [Component](#component)\n\n\n\n```tsx\nconst Desc = component$(({desc, ...props}: { desc: string } & PropsOf<'div'>) => {\n return <div {...props}>{desc}</div>;\n});\n\nconst TitleBox = component$(({title, ...props}: { title: string } & PropsOf<Box>) => {\n  return <Box {...props}><h1>{title}</h1></Box>;\n});\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts",
       "mdFile": "qwik.propsof.md"
     },
@@ -1768,7 +1802,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "Extends the defined component PROPS, adding the default ones (children and q:slot)..\n\n\n```typescript\nexport type PublicProps<PROPS extends Record<any, any>> = TransformProps<PROPS> & ComponentBaseProps & ComponentChildren<PROPS>;\n```\n**References:** [ComponentBaseProps](#componentbaseprops)",
+      "content": "Extends the defined component PROPS, adding the default ones (children and q:slot) and allowing plain functions to QRL arguments.\n\n\n```typescript\nexport type PublicProps<PROPS> = (PROPS extends Record<any, any> ? Omit<PROPS, `${string}$`> & _Only$<PROPS> : unknown extends PROPS ? {} : PROPS) & ComponentBaseProps & ComponentChildren<PROPS>;\n```\n**References:** [ComponentBaseProps](#componentbaseprops)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts",
       "mdFile": "qwik.publicprops.md"
     },
@@ -1801,6 +1835,20 @@
       "mdFile": "qwik.qrl.md"
     },
     {
+      "name": "QRLEventHandlerMulti",
+      "id": "qrleventhandlermulti",
+      "hierarchy": [
+        {
+          "name": "QRLEventHandlerMulti",
+          "id": "qrleventhandlermulti"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "> This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\nAn event handler for Qwik events, can be a handler QRL or an array of handler QRLs.\n\n\n```typescript\nexport type QRLEventHandlerMulti<EV extends Event, EL> = QRL<EventHandler<EV, EL>> | undefined | null | QRLEventHandlerMulti<EV, EL>[];\n```\n**References:** [QRL](#qrl)<!-- -->, [EventHandler](#eventhandler)<!-- -->, [QRLEventHandlerMulti](#qrleventhandlermulti)",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts",
+      "mdFile": "qwik.qrleventhandlermulti.md"
+    },
+    {
       "name": "QuoteHTMLAttributes",
       "id": "quotehtmlattributes",
       "hierarchy": [
@@ -1827,6 +1875,20 @@
       "content": "> Warning: This API is now obsolete.\n> \n> Use `AnimationEvent` and use the second argument to the handler function for the current event target\n> \n\n\n```typescript\nexport type QwikAnimationEvent<T = Element> = NativeAnimationEvent;\n```\n**References:** [NativeAnimationEvent](#nativeanimationevent)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts",
       "mdFile": "qwik.qwikanimationevent.md"
+    },
+    {
+      "name": "QwikAttributes",
+      "id": "qwikattributes",
+      "hierarchy": [
+        {
+          "name": "QwikAttributes",
+          "id": "qwikattributes"
+        }
+      ],
+      "kind": "Interface",
+      "content": "The Qwik DOM attributes without plain handlers, for use as function parameters\n\n\n```typescript\nexport interface QwikAttributes<EL extends Element> extends DOMAttributesBase<EL>, QwikEvents<EL, false> \n```\n**Extends:** DOMAttributesBase&lt;EL&gt;, QwikEvents&lt;EL, false&gt;\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [class?](#) |  | [ClassList](#classlist) \\| undefined | _(Optional)_ |",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts",
+      "mdFile": "qwik.qwikattributes.md"
     },
     {
       "name": "QwikChangeEvent",
@@ -1922,7 +1984,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "The DOM props without plain handlers, for use inside functions\n\n\n```typescript\nexport type QwikHTMLElements = {\n    [tag in keyof HTMLElementTagNameMap]: Augmented<HTMLElementTagNameMap[tag], SpecialAttrs[tag]> & HTMLElementAttrs & QwikAttributes<HTMLElementTagNameMap[tag]>;\n} & {\n    [unknownTag: string]: {\n        [prop: string]: any;\n    } & HTMLElementAttrs & QwikAttributes<any>;\n};\n```",
+      "content": "The DOM props without plain handlers, for use inside functions\n\n\n```typescript\nexport type QwikHTMLElements = {\n    [tag in keyof HTMLElementTagNameMap]: Augmented<HTMLElementTagNameMap[tag], SpecialAttrs[tag]> & HTMLElementAttrs & QwikAttributes<HTMLElementTagNameMap[tag]>;\n};\n```\n**References:** [HTMLElementAttrs](#htmlelementattrs)<!-- -->, [QwikAttributes](#qwikattributes)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts",
       "mdFile": "qwik.qwikhtmlelements.md"
     },
@@ -1992,7 +2054,7 @@
         }
       ],
       "kind": "Namespace",
-      "content": "```typescript\nexport declare namespace QwikJSX \n```\n\n\n|  Interface | Description |\n|  --- | --- |\n|  [Element](#) |  |\n|  [ElementChildrenAttribute](#) |  |\n|  [IntrinsicAttributes](#) |  |\n|  [IntrinsicElements](#) |  |\n\n\n|  Type Alias | Description |\n|  --- | --- |\n|  [ElementType](#qwikjsx-elementtype) |  |",
+      "content": "```typescript\nexport declare namespace QwikJSX \n```\n\n\n|  Interface | Description |\n|  --- | --- |\n|  [ElementChildrenAttribute](#qwikjsx-elementchildrenattribute) |  |\n|  [IntrinsicAttributes](#qwikjsx-intrinsicattributes) |  |\n|  [IntrinsicElements](#) |  |\n\n\n|  Type Alias | Description |\n|  --- | --- |\n|  [Element](#qwikjsx-element) |  |\n|  [ElementType](#qwikjsx-elementtype) |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik.ts",
       "mdFile": "qwik.qwikjsx.md"
     },
@@ -2160,7 +2222,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type ReadonlySignal<T = any> = Readonly<Signal<T>>;\n```\n**References:** [Signal](#signal)",
+      "content": "```typescript\nexport type ReadonlySignal<T = unknown> = Readonly<Signal<T>>;\n```\n**References:** [Signal](#signal)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/state/signal.ts",
       "mdFile": "qwik.readonlysignal.md"
     },
@@ -2174,7 +2236,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "Render JSX.\n\nUse this method to render JSX. This function does reconciling which means it always tries to reuse what is already in the DOM (rather then destroy and recreate content.) It returns a cleanup function you could use for cleaning up subscriptions.\n\n\n```typescript\nrender: (parent: Element | Document, jsxNode: JSXNode | FunctionComponent<any>, opts?: RenderOptions) => Promise<RenderResult>\n```",
+      "content": "Render JSX.\n\nUse this method to render JSX. This function does reconciling which means it always tries to reuse what is already in the DOM (rather then destroy and recreate content.) It returns a cleanup function you could use for cleaning up subscriptions.\n\n\n```typescript\nrender: (parent: Element | Document, jsxOutput: JSXOutput | FunctionComponent<any>, opts?: RenderOptions) => Promise<RenderResult>\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/dom/render.public.ts",
       "mdFile": "qwik.render.md"
     },
@@ -2244,7 +2306,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "This method works like an async memoized function that runs whenever some tracked value changes and returns some data.\n\n`useResource` however returns immediate a `ResourceReturn` object that contains the data and a state that indicates if the data is available or not.\n\nThe status can be one of the following:\n\n- 'pending' - the data is not yet available. - 'resolved' - the data is available. - 'rejected' - the data is not available due to an error or timeout.\n\n\\#\\#\\# Example\n\nExample showing how `useResource` to perform a fetch to request the weather, whenever the input city name changes.\n\n```tsx\nconst Cmp = component$(() => {\n  const cityS = useSignal('');\n\n  const weatherResource = useResource$(async ({ track, cleanup }) => {\n    const cityName = track(cityS);\n    const abortController = new AbortController();\n    cleanup(() => abortController.abort('cleanup'));\n    const res = await fetch(`http://weatherdata.com?city=${cityName}`, {\n      signal: abortController.signal,\n    });\n    const data = await res.json();\n    return data as { temp: number };\n  });\n\n  return (\n    <div>\n      <input name=\"city\" bind:value={cityS} />\n      <Resource\n        value={weatherResource}\n        onResolved={(weather) => {\n          return <div>Temperature: {weather.temp}</div>;\n        }}\n      />\n    </div>\n  );\n});\n```\n\n\n```typescript\nResource: <T>(props: ResourceProps<T>) => JSXNode\n```",
+      "content": "This method works like an async memoized function that runs whenever some tracked value changes and returns some data.\n\n`useResource` however returns immediate a `ResourceReturn` object that contains the data and a state that indicates if the data is available or not.\n\nThe status can be one of the following:\n\n- 'pending' - the data is not yet available. - 'resolved' - the data is available. - 'rejected' - the data is not available due to an error or timeout.\n\n\\#\\#\\# Example\n\nExample showing how `useResource` to perform a fetch to request the weather, whenever the input city name changes.\n\n```tsx\nconst Cmp = component$(() => {\n  const cityS = useSignal('');\n\n  const weatherResource = useResource$(async ({ track, cleanup }) => {\n    const cityName = track(cityS);\n    const abortController = new AbortController();\n    cleanup(() => abortController.abort('cleanup'));\n    const res = await fetch(`http://weatherdata.com?city=${cityName}`, {\n      signal: abortController.signal,\n    });\n    const data = await res.json();\n    return data as { temp: number };\n  });\n\n  return (\n    <div>\n      <input name=\"city\" bind:value={cityS} />\n      <Resource\n        value={weatherResource}\n        onResolved={(weather) => {\n          return <div>Temperature: {weather.temp}</div>;\n        }}\n      />\n    </div>\n  );\n});\n```\n\n\n```typescript\nResource: <T>(props: ResourceProps<T>) => JSXOutput\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts",
       "mdFile": "qwik.resource.md"
     },
@@ -2314,7 +2376,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface ResourceProps<T> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [onPending?](#) |  | () =&gt; [JSXNode](#jsxnode) | _(Optional)_ |\n|  [onRejected?](#) |  | (reason: Error) =&gt; [JSXNode](#jsxnode) | _(Optional)_ |\n|  [onResolved](#) |  | (value: T) =&gt; [JSXNode](#jsxnode) |  |\n|  [value](#) | <code>readonly</code> | [ResourceReturn](#resourcereturn)<!-- -->&lt;T&gt; \\| [Signal](#signal)<!-- -->&lt;Promise&lt;T&gt; \\| T&gt; \\| Promise&lt;T&gt; |  |",
+      "content": "```typescript\nexport interface ResourceProps<T> \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [onPending?](#) |  | () =&gt; [JSXOutput](#jsxoutput) | _(Optional)_ |\n|  [onRejected?](#) |  | (reason: Error) =&gt; [JSXOutput](#jsxoutput) | _(Optional)_ |\n|  [onResolved](#) |  | (value: T) =&gt; [JSXOutput](#jsxoutput) |  |\n|  [value](#) | <code>readonly</code> | [ResourceReturn](#resourcereturn)<!-- -->&lt;T&gt; \\| [Signal](#signal)<!-- -->&lt;Promise&lt;T&gt; \\| T&gt; \\| Promise&lt;T&gt; |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts",
       "mdFile": "qwik.resourceprops.md"
     },
@@ -2706,7 +2768,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface SVGProps<T extends Element> extends SVGAttributes, QwikAttributes<T> \n```\n**Extends:** [SVGAttributes](#svgattributes)<!-- -->, QwikAttributes&lt;T&gt;",
+      "content": "```typescript\nexport interface SVGProps<T extends Element> extends SVGAttributes, QwikAttributes<T> \n```\n**Extends:** [SVGAttributes](#svgattributes)<!-- -->, [QwikAttributes](#qwikattributes)<!-- -->&lt;T&gt;",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts",
       "mdFile": "qwik.svgprops.md"
     },

@@ -257,6 +257,14 @@ export const vnode_isElementVNode = (vNode: VNode): vNode is ElementVNode => {
   return (flag & VNodeFlags.Element) === VNodeFlags.Element;
 };
 
+export const vnode_isElementOrVirtualVNode = (
+  vNode: VNode
+): vNode is ElementVNode | VirtualVNode => {
+  assertDefined(vNode, 'Missing vNode');
+  const flag = (vNode as VNode)[VNodeProps.flags];
+  return (flag & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) !== 0;
+};
+
 export const vnode_isMaterialized = (vNode: VNode): boolean => {
   assertDefined(vNode, 'Missing vNode');
   const flag = (vNode as VNode)[VNodeProps.flags];
@@ -326,7 +334,7 @@ export const vnode_getNodeTypeName = (vNode: VNode): string => {
 
 export const vnode_ensureElementInflated = (vnode: VNode) => {
   const flags = vnode[VNodeProps.flags];
-  if (flags === VNodeFlags.Element) {
+  if ((flags & VNodeFlags.TYPE_MASK) === VNodeFlags.Element) {
     const elementVNode = ensureElementVNode(vnode);
     elementVNode[VNodeProps.flags] ^= VNodeFlags.Inflated;
     const element = elementVNode[ElementVNodeProps.element];
@@ -649,7 +657,7 @@ export const vnode_getClosestParentNode = (vnode: VNode): Node | null => {
   return vnode && vnode[ElementVNodeProps.element];
 };
 
-export const vnode_remove = (vParent: VNode, vToRemove: VNode) => {
+export const vnode_remove = (vParent: VNode, vToRemove: VNode, removeDOM: boolean) => {
   const vPrevious = vToRemove[VNodeProps.previousSibling];
   const vNext = vToRemove[VNodeProps.nextSibling];
   if (vPrevious) {
@@ -662,7 +670,7 @@ export const vnode_remove = (vParent: VNode, vToRemove: VNode) => {
   } else {
     vParent[ElementVNodeProps.lastChild] = vPrevious;
   }
-  if (!vnode_isVirtualVNode(vParent)) {
+  if (removeDOM && !vnode_isVirtualVNode(vParent)) {
     vnode_getDOMParent(vParent)!.removeChild(vnode_getNode(vToRemove)!);
   }
 };
@@ -777,7 +785,7 @@ export const vnode_getPreviousSibling = (vnode: VNode): VNode | null => {
   return vnode[VNodeProps.previousSibling];
 };
 
-export const vnode_getPropKeys = (vnode: ElementVNode | VirtualVNode): string[] => {
+export const vnode_getAttrKeys = (vnode: ElementVNode | VirtualVNode): string[] => {
   const type = vnode[VNodeProps.flags];
   if ((type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) !== 0) {
     vnode_ensureElementInflated(vnode);
@@ -845,20 +853,34 @@ export const vnode_getAttr = (vnode: VNode, key: string): string | null => {
 };
 
 export const vnode_getProp = <T>(
-  vnode: VirtualVNode | ElementVNode,
+  vnode: VNode,
   key: string,
   getObject: ((id: string) => any) | null
 ): T | null => {
-  ensureElementOrVirtualVNode(vnode);
-  const idx = mapApp_findIndx(vnode as any, key, VirtualVNodeProps.PROPS_OFFSET);
-  if (idx >= 0) {
-    let value = vnode[idx + 1] as any;
-    if (typeof value === 'string' && getObject) {
-      vnode[idx + 1] = value = getObject(value);
+  const type = vnode[VNodeProps.flags];
+  if ((type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) !== 0) {
+    const idx = mapApp_findIndx(vnode as any, key, VirtualVNodeProps.PROPS_OFFSET);
+    if (idx >= 0) {
+      let value = vnode[idx + 1] as any;
+      if (typeof value === 'string' && getObject) {
+        vnode[idx + 1] = value = getObject(value);
+      }
+      return value;
     }
-    return value;
   }
   return null;
+};
+
+export const vnode_clearLocalProps = (vnode: VNode) => {
+  const type = vnode[VNodeProps.flags];
+  if ((type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) !== 0) {
+    for (let idx = VirtualVNodeProps.PROPS_OFFSET; idx < vnode.length; idx += 2) {
+      const key = vnode[idx] as string;
+      if (key.startsWith(':')) {
+        vnode[idx + 1] = null;
+      }
+    }
+  }
 };
 
 export const vnode_setProp = (vnode: VirtualVNode | ElementVNode, key: string, value: any) => {
@@ -927,7 +949,7 @@ export function vnode_toString(
       strings.push(JSON.stringify(vnode_getText(vnode)));
     } else if (vnode_isVirtualVNode(vnode)) {
       const attrs: string[] = [];
-      vnode_getPropKeys(vnode).forEach((key) => {
+      vnode_getAttrKeys(vnode).forEach((key) => {
         const value = vnode_getAttr(vnode!, key);
         attrs.push(' ' + key + '=' + JSON.stringify(value));
       });
@@ -939,7 +961,7 @@ export function vnode_toString(
     } else if (vnode_isElementVNode(vnode)) {
       const tag = vnode_getElementName(vnode);
       const attrs: string[] = [];
-      vnode_getPropKeys(vnode).forEach((key) => {
+      vnode_getAttrKeys(vnode).forEach((key) => {
         const value = vnode_getAttr(vnode!, key);
         attrs.push(' ' + key + '=' + JSON.stringify(value));
       });

@@ -80,7 +80,7 @@ test('defaults (buildMode: production, target: ssr)', async () => {
 
 test('debug true', async () => {
   const plugin = await mockPlugin();
-  const opts = plugin.normalizeOptions({ debug: true });
+  const opts = plugin.normalizeOptions({ debug: false });
   assert.deepEqual(opts.debug, true);
 });
 

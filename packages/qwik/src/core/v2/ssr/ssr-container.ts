@@ -39,6 +39,8 @@ import { isDev } from '../../../build';
 import { throwErrorAndStop } from '../../util/log';
 import { syncWalkJSX } from './ssr-render';
 import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
+import { createSubscriptionManager, type SubscriptionManager } from '../../state/common';
+import type { HostElement, fixMeAny } from '../shared/types';
 
 export function ssrCreateContainer(
   opts: {
@@ -46,7 +48,7 @@ export function ssrCreateContainer(
     tagName?: string;
     writer?: StreamWriter;
   } = {}
-): SSRContainer {
+): ISSRContainer {
   return new SSRContainer({
     tagName: opts.tagName || 'div',
     writer: opts.writer || new StringBufferWriter(),
@@ -84,6 +86,13 @@ class SSRContainer implements ISSRContainer {
   public writer: StreamWriter;
   public serializationCtx: SerializationContext;
   public $locale$: string;
+  public $subsManager$: SubscriptionManager = null!;
+  public getObjectById: (id: string | number) => any = () => {
+    throw new Error('SSR should not have deserialize objects.');
+  };
+  public markForRender(): void {
+    throw new Error('SSR can not mark components for render.');
+  }
 
   private currentElementFrame: ContainerElementFrame | null = null;
   /**
@@ -102,6 +111,16 @@ class SSRContainer implements ISSRContainer {
     this.writer = opts.writer;
     this.$locale$ = opts.locale;
     this.serializationCtx = createSerializationContext(SsrNode, null, this.writer);
+    this.$subsManager$ = createSubscriptionManager(this as fixMeAny);
+  }
+  setHostProp<T>(host: HostElement, name: string, value: T): void {
+    const ssrNode: SsrNode = host as any;
+    return ssrNode.setProp(name, value);
+  }
+
+  getHostProp<T>(host: HostElement, name: string): T | null {
+    const ssrNode: SsrNode = host as any;
+    return ssrNode.getProp(name);
   }
 
   openContainer() {

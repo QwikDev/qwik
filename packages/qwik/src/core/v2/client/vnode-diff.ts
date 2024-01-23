@@ -1,6 +1,6 @@
 import { isQwikComponent, type Component, type OnRenderFn } from '../../component/component.public';
 import { SERIALIZABLE_STATE } from '../../container/serializers';
-import { assertDefined, assertTrue } from '../../error/assert';
+import { assertDefined, assertFalse, assertTrue } from '../../error/assert';
 import type { QRLInternal } from '../../qrl/qrl-class';
 import { Fragment, isJSXNode } from '../../render/jsx/jsx-runtime';
 import { Slot } from '../../render/jsx/slot.public';
@@ -8,29 +8,27 @@ import type { JSXNode } from '../../render/jsx/types/jsx-node';
 import { isSignal } from '../../state/signal';
 import { EMPTY_ARRAY } from '../../util/flyweight';
 import { throwErrorAndStop } from '../../util/log';
-import { ELEMENT_PROPS, OnRenderProp } from '../../util/markers';
+import { ELEMENT_KEY, ELEMENT_PROPS, OnRenderProp } from '../../util/markers';
 import { isPromise } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
 import { executeComponent2 } from '../shared/component-execution';
-import type { Container2, QElement2 } from '../shared/types';
+import type { QElement2 } from '../shared/types';
 import type { SsrAttrs } from '../ssr/types';
 import {
   ElementVNodeProps,
+  type ClientContainer,
   type ElementVNode,
   type TextVNode,
   type VNode,
   type VirtualVNode,
-  type ClientContainer,
 } from './types';
 import {
   mapArray_set,
   vnode_ensureElementInflated,
-  vnode_getClosestParentNode,
   vnode_getElementName,
   vnode_getFirstChild,
   vnode_getNextSibling,
   vnode_getNode,
-  vnode_getAttr,
   vnode_getProp,
   vnode_getText,
   vnode_getType,
@@ -53,10 +51,10 @@ export const enum VNodeJournalOpCode {
   ////////// Generic
 
   /// ENCODING
-  /// 1. VNodeToRemove
   Insert,
   Truncate,
   Remove,
+  Move,
   ////////// TEXT
   TextSet,
   ////////// Element
@@ -83,7 +81,7 @@ export const vnode_diff = (
    */
   const stack: any[] = [];
 
-  const componentQueue: Array<VNode | ValueOrPromise<JSXNode>> = [];
+  const asyncQueue: Array<VNode | ValueOrPromise<JSXNode>> = [];
 
   ////////////////////////////////
   //// Traverse state variables
@@ -96,6 +94,11 @@ export const vnode_diff = (
   /// NOTE: it can't be stored in `vCurrent` because `vNewCurrent` is in journal
   /// and is not connected to the tree.
   let vNewNode: VNode | null = null;
+  /// When elements have keys they can be consumed out of order and therefore we can't use nextSibling.
+  /// In such a case this array will contain the elements after the current location.
+  /// The array even indices will contains keys and odd indices the vNode.
+  let vSiblings: Array<string | null | VNode> | null = null;
+  let vSiblingsIdx = -1;
   /// Current set of JSX children.
   let jsxChildren: any[] = null!;
   // Current JSX child.
@@ -105,7 +108,7 @@ export const vnode_diff = (
   ////////////////////////////////
 
   diff(jsxNode, vStartNode);
-  return drainComponentQueue();
+  return drainAsyncQueue();
 
   //////////////////////////////////////////////
   //////////////////////////////////////////////
@@ -118,6 +121,7 @@ export const vnode_diff = (
     stackPush(jsxNode, true);
     while (stack.length) {
       while (jsxIdx < jsxCount) {
+        assertFalse(vParent === vCurrent, "Parent and current can't be the same");
         if (typeof jsxValue === 'string') {
           expectText(jsxValue);
         } else if (typeof jsxValue === 'number') {
@@ -170,8 +174,22 @@ export const vnode_diff = (
       // this was special `descendVNode === false` so pop and try again
       return ascend();
     }
-    vNewNode = null;
-    vCurrent = vCurrent ? vnode_getNextSibling(vCurrent) : null;
+    if (vNewNode !== null) {
+      // We have a new Node.
+      // This means that the `vCurrent` was deemed not useful and we inserted in front of it.
+      // This means that the next node we should look at is the `vCurrent` so just clear the
+      // vNewNode  and try again.
+      vNewNode = null;
+    } else if (vSiblings !== null) {
+      // We came across a key, and we moved nodes around. This means we can no longer use
+      // `vnode_getNextSibling` to look at next node and instead we have to go by `vSiblings`.
+      vSiblingsIdx += 2; // advance;
+      vCurrent = vSiblingsIdx < vSiblings.length ? (vSiblings[vSiblingsIdx + 1] as any) : null;
+    } else {
+      // If we don't have a `vNewNode`, than that means we just reconciled the current node.
+      // So advance it.
+      vCurrent = vCurrent ? vnode_getNextSibling(vCurrent) : null;
+    }
   }
 
   /**
@@ -197,7 +215,9 @@ export const vnode_diff = (
     stackPush(children, descendVNode);
     if (descendVNode) {
       assertDefined(vCurrent || vNewNode, 'Expecting vCurrent to be defined.');
-      vParent = vCurrent || vNewNode!;
+      vSiblings = null;
+      vSiblingsIdx = -1;
+      vParent = vNewNode || vCurrent!;
       vCurrent = vnode_getFirstChild(vParent);
       vNewNode = null;
     }
@@ -206,6 +226,9 @@ export const vnode_diff = (
   function ascend() {
     const descendVNode = stack.pop(); // boolean: descendVNode
     if (descendVNode) {
+      vSiblingsIdx = stack.pop();
+      vSiblings = stack.pop();
+      vNewNode = stack.pop();
       vCurrent = stack.pop();
       vParent = stack.pop();
     }
@@ -219,7 +242,7 @@ export const vnode_diff = (
   function stackPush(children: any, descendVNode: boolean) {
     stack.push(jsxChildren, jsxIdx, jsxCount, jsxValue);
     if (descendVNode) {
-      stack.push(vParent, vCurrent);
+      stack.push(vParent, vCurrent, vNewNode, vSiblings, vSiblingsIdx);
     }
     stack.push(descendVNode);
     if (Array.isArray(children)) {
@@ -241,18 +264,29 @@ export const vnode_diff = (
     }
   }
 
+  function getInsertBefore() {
+    if (vNewNode) {
+      return vCurrent;
+    } else if (vSiblings !== null) {
+      const nextIdx = vSiblingsIdx + 3; // 2 plus 1 for node offset
+      return nextIdx < vSiblings.length ? vSiblings[nextIdx] : null;
+    } else {
+      return vCurrent && vnode_getNextSibling(vCurrent);
+    }
+  }
+
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
 
-  function drainComponentQueue(): ValueOrPromise<void> {
-    while (componentQueue.length) {
-      const jsxNode = componentQueue.shift() as ValueOrPromise<JSXNode>;
-      const vHostNode = componentQueue.shift() as VNode;
+  function drainAsyncQueue(): ValueOrPromise<void> {
+    while (asyncQueue.length) {
+      const jsxNode = asyncQueue.shift() as ValueOrPromise<JSXNode>;
+      const vHostNode = asyncQueue.shift() as VNode;
       if (isPromise(jsxNode)) {
         return jsxNode.then((jsxNode) => {
           diff(jsxNode, vHostNode);
-          return drainComponentQueue();
+          return drainAsyncQueue();
         });
       } else {
         diff(jsxNode, vHostNode);
@@ -261,6 +295,7 @@ export const vnode_diff = (
   }
 
   function expectNoMore() {
+    assertFalse(vParent === vCurrent, "Parent and current can't be the same");
     if (vCurrent !== null) {
       journal.push(VNodeJournalOpCode.Truncate, vParent, vCurrent);
     }
@@ -274,16 +309,40 @@ export const vnode_diff = (
   }
 
   function expectElement(jsx: JSXNode<any>, tag: string) {
-    if (vCurrent && vnode_isElementVNode(vCurrent)) {
+    const isSameTagName =
+      vCurrent && vnode_isElementVNode(vCurrent) && tag === vnode_getElementName(vCurrent);
+    let jsxKey: any;
+    if (
+      isSameTagName &&
+      (jsxKey = jsx.key) == vnode_getProp(vCurrent as ElementVNode, ELEMENT_KEY, null)
+    ) {
       // All is good.
+    } else if (jsxKey !== null) {
+      // So we have a key and it does not match the current node.
+      // We need to do a forward search to find it.
+      // The complication is that once we start taking nodes out of order we can't use `vnode_getNextSibling`
+      vNewNode = retrieveChildWithKey(jsxKey);
+      if (vNewNode === null) {
+        // No existing node with key exists, just create a new one.
+        journal.push(
+          VNodeJournalOpCode.Insert,
+          vParent,
+          (vNewNode = vnode_newElement(vParent, container.document.createElement(tag), tag)),
+          vCurrent
+        );
+      } else {
+        // Existing keyed node
+        journal.push(VNodeJournalOpCode.Move, vParent, vNewNode, vCurrent);
+      }
     } else {
       journal.push(
         VNodeJournalOpCode.Insert,
         vParent,
         (vNewNode = vnode_newElement(vParent, container.document.createElement(tag), tag)),
-        vCurrent && vnode_getNextSibling(vCurrent)
+        vCurrent
       );
     }
+    // reconcile attributes
     let jsxAttrs = (jsx as any as { attrs: SsrAttrs }).attrs;
     if (jsxAttrs === EMPTY_ARRAY) {
       const props = jsx.props;
@@ -292,6 +351,14 @@ export const vnode_diff = (
           jsxAttrs = (jsx as any as { attrs: SsrAttrs }).attrs = [];
         }
         mapArray_set(jsxAttrs, key, props[key], 0);
+      }
+      const jsxKey = jsx.key;
+      if (jsxKey !== null) {
+        if (jsxAttrs === EMPTY_ARRAY) {
+          jsxAttrs = (jsx as any as { attrs: SsrAttrs }).attrs = [ELEMENT_KEY, jsxKey];
+        } else {
+          mapArray_set(jsxAttrs, ELEMENT_KEY, jsxKey, 0);
+        }
       }
     }
     setBulkProps((vNewNode || vCurrent) as ElementVNode, jsxAttrs);
@@ -374,6 +441,37 @@ export const vnode_diff = (
     }
   }
 
+  function retrieveChildWithKey(key: string): ElementVNode | VirtualVNode | null {
+    let vNodeWithKey: ElementVNode | VirtualVNode | null = null;
+    if (vSiblingsIdx === -1) {
+      // it is not materialized; so materialize it.
+      vSiblings = [];
+      vSiblingsIdx = 0;
+      let vNode = vCurrent;
+      while (vNode) {
+        const vKey = vnode_getProp<string>(vNode, ELEMENT_KEY, null);
+        if (vNodeWithKey === null && vKey == key) {
+          vNodeWithKey = vNode as ElementVNode | VirtualVNode;
+        } else {
+          // we only add the elements which we did not find yet.
+          vSiblings.push(vKey, vNode);
+        }
+        vNode = vnode_getNextSibling(vNode);
+      }
+    } else {
+      for (let idx = vSiblingsIdx; idx < vSiblings!.length; idx += 2) {
+        const vKey = vSiblings![idx];
+        if (vKey == key) {
+          vNodeWithKey = vSiblings![idx + 1] as any;
+          // remove the node from the siblings array
+          vSiblings?.splice(idx, 2);
+          break;
+        }
+      }
+    }
+    return vNodeWithKey;
+  }
+
   function expectVirtual() {
     if (vCurrent && vnode_isVirtualVNode(vCurrent)) {
       // All is good.
@@ -382,7 +480,7 @@ export const vnode_diff = (
         VNodeJournalOpCode.Insert,
         vParent,
         (vNewNode = vnode_newVirtual(vParent)),
-        vCurrent && vnode_getNextSibling(vCurrent)
+        vCurrent && getInsertBefore(vCurrent)
       );
     }
   }
@@ -405,7 +503,7 @@ export const vnode_diff = (
     shouldRender = shouldRender || !shallowEqual(jsxPros, vNodeProps);
     if (shouldRender) {
       const jsx = executeComponent2(container, host, componentQRL, jsxPros);
-      componentQueue.push(jsx, host);
+      asyncQueue.push(jsx, host);
     }
   }
 
@@ -449,7 +547,14 @@ export const vnode_applyJournal = (journal: VNodeJournalEntry[]) => {
         vnode_truncate(journal[idx++] as ElementVNode | VirtualVNode, journal[idx++] as VNode);
         break;
       case VNodeJournalOpCode.Remove:
-        vnode_remove(journal[idx++] as ElementVNode | VirtualVNode, journal[idx++] as VNode);
+        vnode_remove(journal[idx++] as ElementVNode | VirtualVNode, journal[idx++] as VNode, true);
+        break;
+      case VNodeJournalOpCode.Move:
+        const vParent = journal[idx++] as ElementVNode | VirtualVNode;
+        const vNodeToMove = journal[idx++] as VNode;
+        const vNodeMoveInFrontOf = journal[idx++] as VNode | null;
+        vnode_remove(vParent, vNodeToMove, false);
+        vnode_insertBefore(vParent, vNodeToMove, vNodeMoveInFrontOf);
         break;
       case VNodeJournalOpCode.Attributes:
         const vnode = journal[idx++] as ElementVNode;
@@ -489,3 +594,7 @@ function shallowEqual(src: Record<string, any>, dst: Record<string, any>): boole
   }
   return true;
 }
+function vnode_getChildWithIdx(jsxKey: any) {
+  throw new Error('Function not implemented.');
+}
+

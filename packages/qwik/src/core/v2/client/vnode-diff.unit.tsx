@@ -125,15 +125,15 @@ describe('vNode-diff', () => {
     });
   });
   describe('keys', () => {
-    it.only('should not reuse element because old has a key and new one does not', () => {
+    it('should not reuse element because old has a key and new one does not', () => {
       const { vNode, vParent, document } = vnode_fromJSX(
         <test>
-          <b key="1"></b>
+          <b {...{ 'q:key': '1' }}>old</b>
         </test>
       );
       const test = (
         <test>
-          <b></b>
+          <b>new</b>
         </test>
       );
       const bOriginal = document.querySelector('b[key=1]')!;
@@ -142,6 +142,31 @@ describe('vNode-diff', () => {
       expect(vNode).toMatchVDOM(test);
       const bSecond = document.querySelector('b')!;
       expect(bSecond).not.toBe(bOriginal);
+    });
+    it('should reuse elements if keys match', () => {
+      const { vNode, vParent, document } = vnode_fromJSX(
+        <test>
+          <b {...{ 'q:key': '1' }}>1</b>
+          <b {...{ 'q:key': '2' }}>2</b>
+        </test>
+      );
+      const test = (
+        <test>
+          <b>before</b>
+          <b key="2">2</b>
+          <b key="3">3</b>
+          <b>in</b>
+          <b key="1">1</b>
+          <b>after</b>
+        </test>
+      );
+      const b1 = document.querySelector('b[key=1]')!;
+      const b2 = document.querySelector('b[key=1]')!;
+      vnode_diff({ $journal$: journal, document } as any, test, vParent);
+      vnode_applyJournal(journal);
+      expect(vNode).toMatchVDOM(test);
+      expect(b1).toBe(document.querySelector('b[key=1]')!);
+      expect(b2).toBe(document.querySelector('b[key=2]')!);
     });
   });
   describe.todo('fragments', () => {});

@@ -1,6 +1,5 @@
 import type { SubscriptionManager } from '../../state/common';
 import type { VirtualVNode } from '../client/types';
-import type { VNodeJournalEntry } from '../client/vnode-diff';
 
 /// Temporary type left behind which needs to be fixed.
 export type fixMeAny = any;
@@ -8,11 +7,18 @@ export type fixMeAny = any;
 export interface Container2 {
   markForRender(hostElement: VirtualVNode): void;
   $subsManager$: SubscriptionManager;
-  $journal$: VNodeJournalEntry[];
+  // $journal$: VNodeJournalEntry[];
   /// Current language locale
-  qLocale: string;
+  $locale$: string;
   /// Retrieve Object from paused serialized state.
-  getObjectById: (id: number | string) => any;
+  readonly getObjectById: (id: number | string) => any;
+
+  setHostProp<T>(host: HostElement, name: string, value: T): void;
+  getHostProp<T>(host: HostElement, name: string): T | null;
+}
+
+export interface HostElement {
+  __brand__: 'HostElement';
 }
 
 export interface QElement2 extends HTMLElement {

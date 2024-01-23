@@ -5,7 +5,7 @@ import { component$ } from '../component/component.public';
 import { notifyChange } from '../render/dom/notify-render';
 import type { Subscriptions } from '../state/common';
 import { ELEMENT_ID, OnRenderProp } from '../util/markers';
-import { getDomContainer } from './client/dom-container';
+import { DomContainer, getDomContainer } from './client/dom-container';
 import type { VNode } from './client/types';
 import {
   vnode_getFirstChild,
@@ -23,6 +23,7 @@ import { codeToName } from './shared-serialization';
 import { renderToString } from '../../server/render';
 import { getPlatform, setPlatform } from '../platform/platform';
 import { Slot } from '../render/jsx/slot.public';
+import type { fixMeAny } from './shared/types';
 
 describe('v2 ssr render', () => {
   it('should render jsx', async () => {
@@ -172,7 +173,7 @@ describe('v2 ssr render', () => {
             </Child>
           );
         });
-        const { vNode } = await ssrRenderToDom(<Parent>second 3</Parent>, { debug: true });
+        const { vNode } = await ssrRenderToDom(<Parent>second 3</Parent>, { debug: false });
         expect(vNode).toMatchVDOM(
           <Component>
             <Component>
@@ -228,12 +229,12 @@ export async function ssrRenderToDom(
   ]);
   const html = ssrContainer.writer.toString();
   const document = createDocument(html);
-  const container = getDomContainer(document.body.parentElement as HTMLElement);
+  const container = getDomContainer(document.body.parentElement as HTMLElement) as DomContainer;
   if (opts.debug) {
     console.log('HTML:', html);
     console.log(vnode_toString.call(container.rootVNode, Number.MAX_SAFE_INTEGER, '', true));
     console.log('CONTAINER: [');
-    const state = container.rawStateData;
+    const state = container.$rawStateData$;
     for (let i = 0; i < state.length; i++) {
       console.log(('    ' + i + ':').substr(-4), qwikJsonStringify(state[i]));
     }
@@ -255,9 +256,8 @@ export async function rerenderComponent(element: HTMLElement) {
   const container = getDomContainer(element);
   const vElement = vnode_locate(container.rootVNode, element);
   const host = getHostVNode(vElement)!;
-  const subAction: Subscriptions = [0, host];
-  notifyChange(subAction, container.containerState);
-  await container.containerState.$renderPromise$;
+  const subAction: Subscriptions = [0, host as fixMeAny];
+  notifyChange(subAction, container as fixMeAny);
 }
 
 function getHostVNode(vElement: VNode | null) {

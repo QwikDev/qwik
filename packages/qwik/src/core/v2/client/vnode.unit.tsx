@@ -178,7 +178,7 @@ describe('vnode', () => {
       document.qVNodeData.set(parent, '{=:id_?:sref_@:key_}');
       expect(vParent).toMatchVDOM(
         <test>
-          <Fragment {...({ 'q:id': ':id_', 'q:sref': ':sref_', 'q:key': ':key_' } as any)} />
+          <Fragment {...({ 'q:id': ':id_', 'q:sref': ':sref_' } as any)} key=":key_" />
         </test>
       );
     });

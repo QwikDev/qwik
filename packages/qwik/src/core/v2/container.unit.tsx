@@ -10,7 +10,7 @@ import { Fragment, JSXNodeImpl } from '../render/jsx/jsx-runtime';
 import { Slot } from '../render/jsx/slot.public';
 import { getDomContainer } from './client/dom-container';
 import type { ClientContainer, VNode } from './client/types';
-import { vnode_getFirstChild, vnode_getAttr, vnode_getText } from './client/vnode';
+import { vnode_getFirstChild, vnode_getAttr, vnode_getText, vnode_getNode } from './client/vnode';
 import { isDeserializerProxy } from './shared-serialization';
 import { ssrCreateContainer } from './ssr/ssr-container';
 import { toSsrAttrs } from './ssr/ssr-render';
@@ -22,7 +22,7 @@ describe('serializer v2', () => {
   describe('rendering', () => {
     it('should do basic serialize/deserialize', () => {
       const input = <span>test</span>;
-      const output = toVDOM(toDOM(toHTML(input)));
+      const output = toVNode(toDOM(toHTML(input)));
       expect(output).toMatchVDOM(input);
     });
 
@@ -32,7 +32,7 @@ describe('serializer v2', () => {
           {'Hello'} <b>{'world'}</b>!
         </>
       );
-      const output = toVDOM(toDOM(toHTML(input)));
+      const output = toVNode(toDOM(toHTML(input)));
       expect(output).toMatchVDOM(input);
     });
 
@@ -47,7 +47,7 @@ describe('serializer v2', () => {
           </>
         </main>
       );
-      const output = toVDOM(toDOM(toHTML(input)));
+      const output = toVNode(toDOM(toHTML(input)));
       expect(output).toMatchVDOM(input);
     });
 
@@ -64,7 +64,7 @@ describe('serializer v2', () => {
           </>
         </div>
       );
-      const output = toVDOM(toDOM(toHTML(input)));
+      const output = toVNode(toDOM(toHTML(input)));
       expect(output).toMatchVDOM(input);
     });
 
@@ -75,7 +75,7 @@ describe('serializer v2', () => {
           <span>C{'D'}</span>
         </div>
       );
-      const output = toVDOM(toDOM(toHTML(input)));
+      const output = toVNode(toDOM(toHTML(input)));
       expect(output).toMatchVDOM(input);
     });
 
@@ -88,7 +88,7 @@ describe('serializer v2', () => {
           {string(26)}
         </div>
       );
-      const output = toVDOM(toDOM(toHTML(input)));
+      const output = toVNode(toDOM(toHTML(input)));
       expect(output).toMatchVDOM(input);
     });
 
@@ -158,7 +158,7 @@ describe('serializer v2', () => {
   describe('attributes', () => {
     it('should serialize attributes', () => {
       const input = <span id="test" class="test" />;
-      const output = toVDOM(toDOM(toHTML(input)));
+      const output = toVNode(toDOM(toHTML(input)));
       expect(output).toMatchVDOM(input);
     });
   });
@@ -464,7 +464,7 @@ function withContainer(
   ssrFn: (ssrContainer: SSRContainer) => void,
   opts: { containerTag?: string } = {}
 ): ClientContainer {
-  const ssrContainer = ssrCreateContainer({
+  const ssrContainer: SSRContainer = ssrCreateContainer({
     tagName: opts.containerTag || 'div',
   });
   ssrContainer.openContainer();
@@ -512,7 +512,7 @@ function toDOM(html: string): HTMLElement {
   return document.body.firstElementChild! as HTMLElement;
 }
 
-function toVDOM(containerElement: HTMLElement): VNode {
+function toVNode(containerElement: HTMLElement): VNode {
   const container = getDomContainer(containerElement);
   const vNode = vnode_getFirstChild(container.rootVNode)!;
   return vNode;

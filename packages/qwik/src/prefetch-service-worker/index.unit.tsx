@@ -54,7 +54,7 @@ describe('service-worker', async () => {
       expect(swState.$bases$[0].$graph$).toEqual(differentGraph);
     });
 
-    it.only('should load graph from network', async () => {
+    it('should load graph from network', async () => {
       const swState = mockSwState();
       const graph = createGraph([['a.js', 'b.js'], ['b.js']]);
       processMessage(swState, ['graph-url', '/base/', 'q-graph.json']);

@@ -5,6 +5,7 @@
     "serve": "node server/entry.fastify"
   },
   "devDependencies": {
+    "dotenv": "^16.3.2",
     "@fastify/compress": "^6.2.1",
     "@fastify/static": "^6.10.1",
     "fastify": "^4.17.0",

@@ -55,7 +55,7 @@ async function enqueueFetchIfNeeded(swState: SWState, url: URL, priority: number
       swState.$log$('already in queue', mode, state, url.pathname);
     }
   } else {
-    const cacheEntry = await (await swState.$cache$).match(url);
+    const cacheEntry = await swState.$cache$.match(url);
     if (!cacheEntry) {
       swState.$log$('enqueue', mode, url.pathname);
       task = {
@@ -90,8 +90,14 @@ function taskTick(swState: SWState) {
         .$fetch$(task.$url$)
         .then(async (response) => {
           if (response.status === 200) {
-            swState.$log$('CACHED', task.$url$.pathname);
-            await (await swState.$cache$).put(task.$url$, response.clone());
+            const previousCache = swState.$cache$;
+            try {
+              !previousCache && swState.$openCache$();
+              swState.$log$('CACHED', task.$url$.pathname);
+              await swState.$cache$.put(task.$url$, response.clone());
+            } finally {
+              swState.$cache$ = previousCache;
+            }
           }
           task.$resolveResponse$(response);
         })

@@ -119,6 +119,9 @@ export const Repl = component$((props: ReplProps) => {
 });
 
 export const receiveMessageFromReplServer = (ev: MessageEvent, store: ReplStore) => {
+  if (ev.origin !== window.origin) {
+    return;
+  }
   const msg: ReplMessage = ev.data;
   const type = msg?.type;
   const clientId = msg?.clientId;

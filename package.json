@@ -158,6 +158,7 @@
     "lint.prettier": "prettier --cache --check .",
     "lint.rust": "make lint",
     "preinstall": "npx only-allow pnpm",
+    "postinstall": "pnpm build.local",
     "prettier.fix": "prettier --cache --write .",
     "qwik-save-artifacts": "tsm ./scripts/qwik-save-artifacts.ts",
     "release.prepare": "pnpm lint && pnpm test.unit --run && tsm scripts/index.ts --tsc --build --api --eslint --platform-binding --wasm --prepare-release",

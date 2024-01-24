@@ -1,5 +1,10 @@
 /* eslint-disable */
-import { component$, useComputed$, useSignal } from "@builder.io/qwik";
+import {
+  component$,
+  useComputed$,
+  useSignal,
+  useTask$,
+} from "@builder.io/qwik";
 
 export const ComputedRoot = component$(() => {
   const rerender = useSignal(0);
@@ -12,6 +17,7 @@ export const ComputedRoot = component$(() => {
       <ComputedBasic />
       <Issue3482 />
       <Issue3488 />
+      <Issue5738 />
     </div>
   );
 });
@@ -89,4 +95,15 @@ export const Issue3488 = component$(() => {
       <div id="issue-3488-result">{data.value.class}</div>
     </>
   );
+});
+
+export const Issue5738 = component$(() => {
+  const foo = useSignal(0);
+  const comp = useComputed$(() => {
+    return foo.value * 2;
+  });
+  useTask$(() => {
+    foo.value = 1;
+  });
+  return <div id="issue-5738-result">Calc: {comp.value}</div>;
 });

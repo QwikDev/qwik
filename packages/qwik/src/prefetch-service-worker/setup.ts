@@ -9,7 +9,7 @@ export const setupServiceWorker = (swScope: ServiceWorkerGlobalScope) => {
     if (request.method === 'GET') {
       const previousCache = swState.$cache$;
       try {
-        !previousCache && swState.$openCache$();
+        !previousCache && (await swState.$openCache$());
         const response = directFetch(swState, new URL(request.url));
         if (response) {
           ev.respondWith(response);

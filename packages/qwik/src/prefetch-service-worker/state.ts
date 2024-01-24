@@ -19,7 +19,7 @@ export interface SWState {
   $bases$: SWStateBase[];
   $openCache$: () => Promise<Cache>;
   // Browser Cache
-  $cache$: Cache;
+  $cache$?: Cache;
   // Maximum number of prefetch requests. (Direct requests are not limited.)
   $maxPrefetchRequests$: number;
   // Log function

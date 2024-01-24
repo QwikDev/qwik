@@ -19,14 +19,15 @@ import type { QwikIntrinsicElements } from '../render/jsx/types/jsx-qwik-element
 // TS way to check for any
 type IsAny<T> = 0 extends T & 1 ? true : false;
 
-type ObjectProps<T> = IsAny<T> extends true
-  ? any
-  : // unknown means we don't accept any props
-    unknown extends T
-    ? never
-    : T extends Record<any, any>
-      ? T
-      : never;
+type ObjectProps<T> =
+  IsAny<T> extends true
+    ? any
+    : // unknown means we don't accept any props
+      unknown extends T
+      ? never
+      : T extends Record<any, any>
+        ? T
+        : never;
 
 /**
  * Infers `Props` from the component or tag.

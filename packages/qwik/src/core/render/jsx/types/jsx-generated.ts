@@ -462,9 +462,8 @@ type Prettify<T> = {} & {
   [K in keyof T]: T[K];
 };
 
-type IfEquals<X, Y, A, B> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2
-  ? A
-  : B;
+type IfEquals<X, Y, A, B> =
+  (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2 ? A : B;
 type IsReadOnlyKey<T, K extends keyof T> = IfEquals<
   { [Q in K]: T[K] },
   { -readonly [Q in K]: T[K] },

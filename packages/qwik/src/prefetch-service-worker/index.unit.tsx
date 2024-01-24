@@ -281,9 +281,10 @@ describe('service-worker', async () => {
       swState.$fetch$.mock.get('/base/c.js')!.resolve(new Response('C'));
       await delay(0);
       expect(Array.from(swState.mockCache.mock.keys())).toEqual([
-        '/base/a.js',
         '/base/b.js',
         '/base/c.js',
+        // Due to async opening cache, which is fine
+        '/base/a.js',
       ]);
     });
 

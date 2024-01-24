@@ -19,7 +19,6 @@ export async function mergeIntegrationDir(
       const s = await fs.promises.stat(srcChildPath);
 
       if (s.isDirectory()) {
-        // await fs.promises.mkdir(destChildPath, { recursive: true });
         await mergeIntegrationDir(fileUpdates, opts, srcChildPath, destChildPath);
       } else if (s.isFile()) {
         if (destName === 'package.json') {
@@ -36,20 +35,18 @@ export async function mergeIntegrationDir(
           await mergeIgnoresFile(fileUpdates, srcChildPath, destChildPath);
         } else if (ext === '.css') {
           await mergeCss(fileUpdates, srcChildPath, destChildPath, opts);
+        } else if (fs.existsSync(destChildPath)) {
+          fileUpdates.files.push({
+            path: destChildPath,
+            content: await fs.promises.readFile(srcChildPath),
+            type: 'overwrite',
+          });
         } else {
-          if (fs.existsSync(destChildPath)) {
-            fileUpdates.files.push({
-              path: destChildPath,
-              content: await fs.promises.readFile(srcChildPath),
-              type: 'overwrite',
-            });
-          } else {
-            fileUpdates.files.push({
-              path: destChildPath,
-              content: await fs.promises.readFile(srcChildPath),
-              type: 'create',
-            });
-          }
+          fileUpdates.files.push({
+            path: destChildPath,
+            content: await fs.promises.readFile(srcChildPath),
+            type: 'create',
+          });
         }
       }
     })

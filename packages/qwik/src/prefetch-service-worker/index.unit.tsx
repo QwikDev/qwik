@@ -154,7 +154,7 @@ describe('service-worker', async () => {
 
     it('should cache response', async () => {
       const swState = mockSwState();
-      swState.$cache$.put('/base/abc.js', new Response('RESPONSE'));
+      swState.$cache$!.put('/base/abc.js', new Response('RESPONSE'));
       await processMessage(swState, ['graph', '/base/', 'abc.js']);
       swState.$openCache$();
       const response = await directFetch(swState, new URL('http://server/base/abc.js'));

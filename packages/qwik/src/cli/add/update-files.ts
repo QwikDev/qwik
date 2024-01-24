@@ -35,7 +35,7 @@ export async function mergeIntegrationDir(
         ) {
           await mergeIgnoresFile(fileUpdates, srcChildPath, destChildPath);
         } else if (ext === '.css') {
-          await mergeCss(fileUpdates, srcChildPath, destChildPath);
+          await mergeCss(fileUpdates, srcChildPath, destChildPath, opts);
         } else {
           if (fs.existsSync(destChildPath)) {
             fileUpdates.files.push({
@@ -177,7 +177,12 @@ async function mergeIgnoresFile(fileUpdates: FsUpdates, srcPath: string, destPat
   }
 }
 
-async function mergeCss(fileUpdates: FsUpdates, srcPath: string, destPath: string) {
+async function mergeCss(
+  fileUpdates: FsUpdates,
+  srcPath: string,
+  destPath: string,
+  opts: UpdateAppOptions
+) {
   const srcContent = await fs.promises.readFile(srcPath, 'utf-8');
 
   try {
@@ -185,10 +190,13 @@ async function mergeCss(fileUpdates: FsUpdates, srcPath: string, destPath: strin
     const destContent = await fs.promises.readFile(destPath, 'utf-8');
     const mergedContent = srcContent.trim() + '\n\n' + destContent.trim() + '\n';
 
+    const isAddingLibrary = opts.installDeps === true;
+    // When it's integrating a css library, use merge strategy
+    // Otherwise, it's initializing a new Qwik project, use overwrite strategy
     fileUpdates.files.push({
       path: destPath,
-      content: mergedContent,
-      type: 'modify',
+      content: isAddingLibrary ? mergedContent : srcContent,
+      type: isAddingLibrary ? 'modify' : 'overwrite',
     });
   } catch (e) {
     // css file doesn't already exist, just copy it over

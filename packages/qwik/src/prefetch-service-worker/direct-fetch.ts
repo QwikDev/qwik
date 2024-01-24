@@ -92,7 +92,7 @@ function taskTick(swState: SWState) {
           if (response.status === 200) {
             const previousCache = swState.$cache$;
             try {
-              !previousCache && swState.$openCache$();
+              !previousCache && (await swState.$openCache$());
               swState.$log$('CACHED', task.$url$.pathname);
               await swState.$cache$.put(task.$url$, response.clone());
             } finally {

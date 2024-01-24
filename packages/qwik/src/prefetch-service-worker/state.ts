@@ -17,8 +17,9 @@ export interface SWState {
   $msgQueuePromise$: Promise<void> | null;
   /** List of Base paths */
   $bases$: SWStateBase[];
+  $openCache$: () => Promise<Cache>;
   // Browser Cache
-  $cache$: Promise<Cache>;
+  $cache$: Cache;
   // Maximum number of prefetch requests. (Direct requests are not limited.)
   $maxPrefetchRequests$: number;
   // Log function
@@ -55,6 +56,7 @@ export const createState = (fetch: ServiceWorkerGlobalScope['fetch'], url: URL):
     $queue$: [],
     $bases$: [],
     $cache$: null!,
+    $openCache$: null!,
     $msgQueue$: [],
     $msgQueuePromise$: null,
     $maxPrefetchRequests$: 10,

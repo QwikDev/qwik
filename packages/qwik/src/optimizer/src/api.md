@@ -127,6 +127,8 @@ export interface OptimizerOptions {
     // (undocumented)
     inlineStylesUpToBytes?: number;
     // (undocumented)
+    sourcemap?: boolean;
+    // (undocumented)
     sys?: OptimizerSystem;
 }
 

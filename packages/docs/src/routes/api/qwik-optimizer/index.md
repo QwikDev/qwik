@@ -285,6 +285,7 @@ export interface OptimizerOptions
 | --------------------------- | --------- | ----------------------------------- | ------------ |
 | [binding?](#)               |           | any                                 | _(Optional)_ |
 | [inlineStylesUpToBytes?](#) |           | number                              | _(Optional)_ |
+| [sourcemap?](#)             |           | boolean                             | _(Optional)_ |
 | [sys?](#)                   |           | [OptimizerSystem](#optimizersystem) | _(Optional)_ |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)

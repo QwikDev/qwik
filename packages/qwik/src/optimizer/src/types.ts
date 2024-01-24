@@ -21,6 +21,7 @@ export interface OptimizerOptions {
   sys?: OptimizerSystem;
   binding?: any;
   inlineStylesUpToBytes?: number;
+  sourcemap?: boolean;
 }
 
 /** @public */

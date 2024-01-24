@@ -88,6 +88,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     entryStrategy: null as any,
     srcDir: null as any,
     srcInputs: null as any,
+    sourceMaps: !!optimizerOptions.sourcemap,
     manifestInput: null,
     insightsManifest: null,
     manifestOutput: null,
@@ -356,6 +357,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         preserveFilenames: true,
         mode,
         scope: opts.scope ? opts.scope : undefined,
+        sourceMaps: opts.sourceMaps,
       };
 
       if (opts.target === 'client') {
@@ -925,6 +927,7 @@ export interface QwikPluginOptions {
   srcDir?: string | null;
   scope?: string | null;
   srcInputs?: TransformModuleInput[] | null;
+  sourceMaps?: boolean;
   resolveQwikBuild?: boolean;
   target?: QwikBuildTarget;
   transformedModuleOutput?:

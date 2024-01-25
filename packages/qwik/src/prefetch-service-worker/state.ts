@@ -1,28 +1,26 @@
 import type { SWGraph, SWMessages } from './process-message';
 
-/**
- * Internal state of the Service Worker.
- *
- * Tha object acts as a state machine for the service worker.
- */
+/** Internal state of the Service Worker. */
 export interface SWState {
-  /// SW fetch for requesting bundles.
+  /** SW fetch for requesting bundles. */
   $fetch$: ServiceWorkerGlobalScope['fetch'];
-  /// SW base service worker URL, against which all bundles are resolved.
+  /** SW base service worker URL, against which all bundles are resolved. */
   $url$: URL;
-  /// Download queue.
+  /** Download queue. */
   $queue$: Array<SWTask>;
-  // List of messages to process.
+  /** List of messages to process. */
   $msgQueue$: Array<SWMessages>;
   $msgQueuePromise$: Promise<void> | null;
   /** List of Base paths */
   $bases$: SWStateBase[];
-  $openCache$: () => Promise<Cache>;
-  // Browser Cache
-  $cache$?: Cache;
-  // Maximum number of prefetch requests. (Direct requests are not limited.)
+  $getCache$: () => Promise<Cache> | Cache;
+  /** Browser Cache */
+  $cache$: Cache | null;
+  $put$: Cache['put'];
+  $match$: Cache['match'];
+  /** Maximum number of prefetch requests. (Direct requests are not limited.) */
   $maxPrefetchRequests$: number;
-  // Log function
+  /** Log function */
   $log$: (...msg: any[]) => void;
 }
 
@@ -50,17 +48,34 @@ export interface SWTask {
   $isFetching$: boolean;
 }
 
+class SWStateImpl implements SWState {
+  $queue$ = [];
+  $bases$ = [];
+  $cache$: SWState['$cache$'] = null;
+  $msgQueue$ = [];
+  $msgQueuePromise$ = null;
+  $maxPrefetchRequests$ = 10;
+
+  constructor(
+    readonly $fetch$: ServiceWorkerGlobalScope['fetch'],
+    readonly $url$: URL
+  ) {}
+
+  $getCache$() {
+    return this.$cache$!;
+  }
+  async $put$(request: URL | RequestInfo, response: Response) {
+    const cache = await this.$getCache$();
+    return cache.put(request, response);
+  }
+  async $match$(request: URL | RequestInfo) {
+    const cache = await this.$getCache$();
+    return cache.match(request);
+  }
+
+  $log$() {}
+}
+
 export const createState = (fetch: ServiceWorkerGlobalScope['fetch'], url: URL): SWState => {
-  return {
-    $fetch$: fetch,
-    $queue$: [],
-    $bases$: [],
-    $cache$: null!,
-    $openCache$: null!,
-    $msgQueue$: [],
-    $msgQueuePromise$: null,
-    $maxPrefetchRequests$: 10,
-    $url$: url,
-    $log$: (...args: any[]) => {},
-  };
+  return new SWStateImpl(fetch, url);
 };

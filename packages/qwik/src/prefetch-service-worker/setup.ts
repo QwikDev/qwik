@@ -7,9 +7,15 @@ export const setupServiceWorker = (swScope: ServiceWorkerGlobalScope) => {
   swScope.addEventListener('fetch', async (ev) => {
     const request = ev.request;
     if (request.method === 'GET') {
-      const response = directFetch(swState, new URL(request.url));
-      if (response) {
-        ev.respondWith(response);
+      const previousCache = swState.$cache$;
+      try {
+        !previousCache && (await swState.$openCache$());
+        const response = directFetch(swState, new URL(request.url));
+        if (response) {
+          ev.respondWith(response);
+        }
+      } finally {
+        swState.$cache$ = previousCache;
       }
     }
   });
@@ -20,6 +26,8 @@ export const setupServiceWorker = (swScope: ServiceWorkerGlobalScope) => {
   swScope.addEventListener('install', () => swScope.skipWaiting());
   swScope.addEventListener('activate', async (event) => {
     event.waitUntil(swScope.clients.claim());
-    swState.$cache$ = swScope.caches.open('QwikBundles');
+    swState.$openCache$ = async () => {
+      return (swState.$cache$ = await swScope.caches.open('QwikBundles'));
+    };
   });
 };

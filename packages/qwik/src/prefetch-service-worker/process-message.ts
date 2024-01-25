@@ -63,6 +63,7 @@ export const log = (...args: any[]) => {
 export const processMessage = async (state: SWState, msg: SWMessages) => {
   const type = msg[0];
   state.$log$('received message:', type, msg[1], msg.slice(2));
+  await state.$openCache$();
   if (type === 'graph') {
     await processBundleGraph(state, msg[1], msg.slice(2), true);
   } else if (type === 'graph-url') {
@@ -80,6 +81,7 @@ export const processMessage = async (state: SWState, msg: SWMessages) => {
   } else {
     console.error('UNKNOWN MESSAGE:', msg);
   }
+  state.$cache$ = null!;
 };
 
 async function processBundleGraph(
@@ -99,12 +101,13 @@ async function processBundleGraph(
   });
   if (cleanup) {
     const bundles = new Set<string>(graph.filter((item) => typeof item === 'string') as string[]);
-    for (const request of await (await swState.$cache$).keys()) {
+    !swState.$cache$ && (await swState.$openCache$());
+    for (const request of await swState.$cache$!.keys()) {
       const [cacheBase, filename] = parseBaseFilename(new URL(request.url));
       const promises: Promise<boolean>[] = [];
       if (cacheBase === base && !bundles.has(filename)) {
         swState.$log$('deleting', request.url);
-        promises.push((await swState.$cache$).delete(request));
+        promises.push(swState.$cache$!.delete(request));
       }
       await Promise.all(promises);
     }

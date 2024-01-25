@@ -5,6 +5,7 @@ import type { VirtualVNode } from '../client/types';
 export type fixMeAny = any;
 
 export interface Container2 {
+  getParentHost(host: HostElement): HostElement | null;
   markForRender(hostElement: VirtualVNode): void;
   $subsManager$: SubscriptionManager;
   // $journal$: VNodeJournalEntry[];

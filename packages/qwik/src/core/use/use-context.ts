@@ -15,6 +15,10 @@ import {
 } from '../render/dom/virtual-element';
 import { isComment } from '../util/element';
 import { Q_CTX, VIRTUAL_SYMBOL } from '../state/constants';
+import { QCtxAttr } from '../util/markers';
+import type { Container2, fixMeAny, HostElement } from '../v2/shared/types';
+import { mapArray_get, mapArray_set } from '../v2/client/vnode';
+import type { VirtualVNode } from '../v2/client/types';
 
 // <docs markdown="../readme.md#ContextId">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -195,19 +199,28 @@ export const useContextProvider = <STATE extends object>(
   context: ContextId<STATE>,
   newValue: STATE
 ) => {
-  const { val, set, elCtx } = useSequentialScope<boolean>();
+  const { val, set, elCtx, iCtx } = useSequentialScope<1>();
   if (val !== undefined) {
     return;
   }
   if (qDev) {
     validateContext(context);
   }
-  const contexts = (elCtx.$contexts$ ||= new Map());
   if (qDev && qSerialize) {
     verifySerializable(newValue);
   }
-  contexts.set(context.id, newValue);
-  set(true);
+  if (iCtx.$container2$) {
+    let providers = iCtx.$container2$.getHostProp<any[]>(iCtx.$hostElement$ as fixMeAny, QCtxAttr);
+    if (!providers) {
+      providers = [];
+      iCtx.$container2$.setHostProp(iCtx.$hostElement$ as fixMeAny, QCtxAttr, providers);
+    }
+    mapArray_set(providers, context.id, newValue, 0);
+  } else {
+    const contexts = (elCtx.$contexts$ ||= new Map());
+    contexts.set(context.id, newValue);
+  }
+  set(1);
 };
 
 export interface UseContext {
@@ -278,7 +291,12 @@ export const useContext: UseContext = <STATE extends object>(
     validateContext(context);
   }
 
-  const value = resolveContext(context, elCtx, iCtx.$renderCtx$.$static$.$containerState$);
+  let value: STATE | undefined;
+  if (iCtx.$container2$) {
+    value = resolveContext2<STATE>(iCtx.$container2$, iCtx.$hostElement$ as fixMeAny, context.id);
+  } else {
+    value = resolveContext<STATE>(context, elCtx, iCtx.$renderCtx$.$static$.$containerState$);
+  }
   if (typeof defaultValue === 'function') {
     return set(invoke(undefined, defaultValue, value));
   }
@@ -289,6 +307,23 @@ export const useContext: UseContext = <STATE extends object>(
     return set(defaultValue);
   }
   throw qError(QError_notFoundContext, context.id);
+};
+
+export const resolveContext2 = <STATE extends object>(
+  container: Container2,
+  host: HostElement | null,
+  id: string
+): STATE | undefined => {
+  while (host) {
+    const contexts = container.getHostProp<any[]>(host, QCtxAttr);
+    if (contexts) {
+      const context = mapArray_get(contexts, id, 0);
+      if (context) {
+        return context;
+      }
+    }
+    host = container.getParentHost(host);
+  }
 };
 
 /** Find a wrapping Virtual component in the DOM */

@@ -61,12 +61,15 @@ export class SsrNode {
 
   /** Local props which don't serialize; */
   private locals: SsrAttrs | null = null;
+  public parentComponentNode: SsrNode | null;
 
   constructor(
+    parentComponentNode: SsrNode | null,
     nodeType: SsrNodeType,
     id: string,
     private attrs: SsrAttrs
   ) {
+    this.parentComponentNode = parentComponentNode;
     this.nodeType = nodeType;
     this.id = id;
     if (isDev && id.indexOf('undefined') != -1) {

@@ -2,13 +2,14 @@ import { isQwikComponent, type Component, type OnRenderFn } from '../../componen
 import { SERIALIZABLE_STATE } from '../../container/serializers';
 import { assertDefined, assertFalse, assertTrue } from '../../error/assert';
 import type { QRLInternal } from '../../qrl/qrl-class';
-import { Fragment, isJSXNode } from '../../render/jsx/jsx-runtime';
+import { Fragment, JSXNodeImpl, isJSXNode } from '../../render/jsx/jsx-runtime';
 import { Slot } from '../../render/jsx/slot.public';
 import type { JSXNode } from '../../render/jsx/types/jsx-node';
+import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
 import { isSignal } from '../../state/signal';
-import { EMPTY_ARRAY } from '../../util/flyweight';
+import { EMPTY_ARRAY, EMPTY_OBJ } from '../../util/flyweight';
 import { throwErrorAndStop } from '../../util/log';
-import { ELEMENT_KEY, ELEMENT_PROPS, OnRenderProp } from '../../util/markers';
+import { ELEMENT_KEY, ELEMENT_PROPS, OnRenderProp, QSlot } from '../../util/markers';
 import { isPromise } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
 import { executeComponent2 } from '../shared/component-execution';
@@ -23,12 +24,14 @@ import {
   type VirtualVNode,
 } from './types';
 import {
+  mapApp_findIndx,
   mapArray_set,
   vnode_ensureElementInflated,
   vnode_getElementName,
   vnode_getFirstChild,
   vnode_getNextSibling,
   vnode_getNode,
+  vnode_getParent,
   vnode_getProp,
   vnode_getText,
   vnode_getType,
@@ -145,11 +148,18 @@ export const vnode_diff = (
               descend(jsxValue.children, true);
               continue; // we just descended, skip advance()
             } else if (type === Slot) {
+              expectNoMoreTextNodes();
               expectSlot();
+            } else if (type === Projection) {
+              expectProjection();
+              descend(jsxValue.children, true);
+              continue; // we just descended, skip advance()
             } else if (isQwikComponent(type)) {
               expectNoMoreTextNodes();
               expectVirtual();
               expectComponent(type);
+              descendProjection(jsxValue.children);
+              continue; // we just descended, skip advance()
             } else {
               throwErrorAndStop(`Unsupported type: ${type}`);
             }
@@ -278,6 +288,78 @@ export const vnode_diff = (
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
+
+  function descendProjection(children: JSXChildren) {
+    if (children) {
+      if (!Array.isArray(children)) {
+        children = [children];
+      }
+      if (children.length) {
+        const projection: Array<string | JSXNode> = [];
+        /// STEP 1: Bucketize the children based on the projection name.
+        for (let i = 0; i < children.length; i++) {
+          const child = children[i];
+          const slotName = String((isJSXNode(child) && child.props[QSlot]) || '');
+          const idx = mapApp_findIndx(projection, slotName, 0);
+          let jsxBucket: JSXNodeImpl<typeof Projection>;
+          if (idx >= 0) {
+            jsxBucket = projection[idx + 1] as any;
+          } else {
+            projection.splice(
+              ~idx,
+              0,
+              slotName,
+              (jsxBucket = new JSXNodeImpl(Projection, EMPTY_OBJ, null, [], 0, slotName))
+            );
+          }
+          (jsxBucket.children as JSXChildren[]).push(child);
+        }
+        /// STEP 2: remove the names
+        for (let i = projection.length - 2; i >= 0; i = i - 2) {
+          projection.splice(i, 1);
+        }
+        descend(projection, true);
+      }
+    }
+  }
+
+  function expectProjection() {
+    const slotName = jsxValue.props[QSlot] as string;
+    vCurrent = vnode_getProp<VirtualVNode | null>(
+      vParent, // The parent is the component and it should have our portal.
+      slotName,
+      container.getObjectById
+    );
+    if (vCurrent == null) {
+      vNewNode = vnode_newVirtual(null!);
+      vnode_setProp(vNewNode as VirtualVNode, QSlot, slotName);
+      vnode_setProp(vParent as VirtualVNode, slotName, vNewNode);
+    }
+  }
+
+  function expectSlot() {
+    const slotNameKey: string = jsxValue.key || '';
+    let vHost = vParent;
+    // Find the host node
+    while (vnode_getProp(vHost, OnRenderProp, null) !== null) {
+      vHost = vnode_getParent(vHost)!;
+    }
+    const vProjectedNode = vnode_getProp<VirtualVNode | null>(
+      vHost,
+      slotNameKey,
+      container.getObjectById
+    );
+    if (vProjectedNode === vCurrent) {
+      // All is good.
+    } else if (vProjectedNode) {
+      journal.push(
+        VNodeJournalOpCode.Insert,
+        vParent,
+        (vNewNode = vnode_newVirtual(null!)),
+        vCurrent && getInsertBefore()
+      );
+    }
+  }
 
   function drainAsyncQueue(): ValueOrPromise<void> {
     while (asyncQueue.length) {
@@ -480,18 +562,14 @@ export const vnode_diff = (
         VNodeJournalOpCode.Insert,
         vParent,
         (vNewNode = vnode_newVirtual(vParent)),
-        vCurrent && getInsertBefore(vCurrent)
+        vCurrent && getInsertBefore()
       );
     }
   }
 
-  function expectSlot() {
-    throw new Error('IMPLEMENT');
-  }
-
   function expectComponent(component: Component<any>) {
     const [componentQRL] = (component as any)[SERIALIZABLE_STATE] as [QRLInternal<OnRenderFn<any>>];
-    const host = (vCurrent || vNewNode) as VirtualVNode;
+    const host = (vNewNode || vCurrent) as VirtualVNode;
     const vNodeQrl = vnode_getProp<QRLInternal>(host, OnRenderProp, container.getObjectById);
     let shouldRender = false;
     if (componentQRL.$hash$ !== vNodeQrl?.$hash$) {
@@ -577,6 +655,33 @@ export const vnode_applyJournal = (journal: VNodeJournalEntry[]) => {
   journal.length = 0;
 };
 
+/**
+ * Marker class for JSX projection.
+ *
+ * Assume you have component like so
+ *
+ * ```
+ * <SomeComponent>
+ *   some-text
+ *   <span q:slot="name">some more text</span>
+ *   more-text
+ * </SomeComponent>
+ * ```
+ *
+ * Before the `<SomeCompetent/>` is processed its children are transformed into:
+ *
+ * ```
+ *   <Projection q:slot="">
+ *     some-text
+ *     more-text
+ *   </Projection>
+ *   <Projection q:slot="name">
+ *     <span q:slot="name">some more text</span>
+ *   </Projection>
+ * ```
+ */
+function Projection() {}
+
 function shallowEqual(src: Record<string, any>, dst: Record<string, any>): boolean {
   let srcKeys = Object.keys(src);
   let dstKeys = Object.keys(dst);
@@ -597,4 +702,3 @@ function shallowEqual(src: Record<string, any>, dst: Record<string, any>): boole
 function vnode_getChildWithIdx(jsxKey: any) {
   throw new Error('Function not implemented.');
 }
-

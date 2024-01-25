@@ -31,6 +31,7 @@ import {
   ELEMENT_PROPS,
   ELEMENT_SEQ,
   OnRenderProp,
+  QCtxAttr,
   QScopedStyle,
   QSlotParent,
   QSlotRef,
@@ -90,6 +91,8 @@ class SSRContainer implements ISSRContainer {
   public getObjectById: (id: string | number) => any = () => {
     throw new Error('SSR should not have deserialize objects.');
   };
+  private lastNode: SsrNode | null = null;
+  private parentComponentNode: SsrNode | null = null;
   public markForRender(): void {
     throw new Error('SSR can not mark components for render.');
   }
@@ -112,6 +115,9 @@ class SSRContainer implements ISSRContainer {
     this.$locale$ = opts.locale;
     this.serializationCtx = createSerializationContext(SsrNode, null, this.writer);
     this.$subsManager$ = createSubscriptionManager(this as fixMeAny);
+  }
+  getParentHost(host: HostElement): HostElement | null {
+    return (host as any as SsrNode).parentComponentNode as HostElement | null;
   }
   setHostProp<T>(host: HostElement, name: string, value: T): void {
     const ssrNode: SsrNode = host as any;
@@ -148,11 +154,13 @@ class SSRContainer implements ISSRContainer {
   }
 
   openElement(tag: string, attrs: SsrAttrs) {
+    this.lastNode = null;
     this.pushFrame(tag, this.depthFirstElementCount++, true);
     this.write('<');
     this.write(tag);
     this.writeAttrs(attrs);
     this.write('>');
+    this.lastNode = null;
   }
 
   closeElement() {
@@ -171,17 +179,21 @@ class SSRContainer implements ISSRContainer {
     if (newFrame) {
       vNodeData_incrementElementCount(newFrame.vNodeData);
     }
+    this.lastNode = null;
   }
 
   openFragment(attrs: SsrAttrs) {
+    this.lastNode = null;
     vNodeData_openFragment(this.currentElementFrame!.vNodeData, attrs);
   }
 
   closeFragment() {
     vNodeData_closeFragment(this.currentElementFrame!.vNodeData);
+    this.lastNode = null;
   }
 
   openComponent(attrs: SsrAttrs) {
+    this.parentComponentNode = this.getLastNode();
     this.openFragment(attrs);
     this.componentStack.push(new SsrComponentFrame(this.getLastNode()));
   }
@@ -195,6 +207,7 @@ class SSRContainer implements ISSRContainer {
     const componentFrame = this.componentStack.pop()!;
     componentFrame.releaseUnclaimedProjections(this.unclaimedProjections);
     this.closeFragment();
+    this.parentComponentNode = this.parentComponentNode?.parentComponentNode || null;
   }
 
   /** Write a text node with correct escaping. Save the length of the text node in the vNodeData. */
@@ -207,6 +220,7 @@ class SSRContainer implements ISSRContainer {
     }
     this.write(lastIdx === 0 ? text : text.substring(lastIdx));
     vNodeData_addTextSize(this.currentElementFrame!.vNodeData, text.length);
+    this.lastNode = null;
   }
 
   addRoot(obj: any): number {
@@ -214,10 +228,14 @@ class SSRContainer implements ISSRContainer {
   }
 
   getLastNode(): SsrNode {
-    return vNodeData_createSsrNodeReference(
-      this.currentElementFrame!.vNodeData,
-      this.depthFirstElementCount
-    );
+    if (!this.lastNode) {
+      this.lastNode = vNodeData_createSsrNodeReference(
+        this.parentComponentNode,
+        this.currentElementFrame!.vNodeData,
+        this.depthFirstElementCount
+      );
+    }
+    return this.lastNode;
   }
 
   addUnclaimedProjection(node: SsrNode, name: string, children: JSXChildren): void {
@@ -306,8 +324,17 @@ class SSRContainer implements ISSRContainer {
                     value = String(this.addRoot(value));
                   }
                   switch (key) {
+                    case QScopedStyle:
+                      this.write(';');
+                      break;
+                    case OnRenderProp:
+                      this.write('<');
+                      break;
                     case ELEMENT_ID:
                       this.write('=');
+                      break;
+                    case ELEMENT_PROPS:
+                      this.write('>');
                       break;
                     case QSlotRef:
                       this.write('?');
@@ -315,20 +342,19 @@ class SSRContainer implements ISSRContainer {
                     case ELEMENT_KEY:
                       this.write('@');
                       break;
-                    case QScopedStyle:
-                      this.write(';');
-                      break;
-                    case OnRenderProp:
-                      this.write('<');
-                      break;
-                    case ELEMENT_PROPS:
-                      this.write('>');
-                      break;
                     case ELEMENT_SEQ:
                       this.write('[');
                       break;
+                    // Skipping `\` character for now because it is used for escaping.
+                    case QCtxAttr:
+                      this.write(']');
+                      break;
                     default:
                       this.write('|');
+                      assertTrue(
+                        !!key.match(/[\w\d_:]*/),
+                        'Unsupported character in fragment attribute key: ' + key
+                      );
                       this.write(key);
                       this.write('|');
                   }

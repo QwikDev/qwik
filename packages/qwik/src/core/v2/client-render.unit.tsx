@@ -1,16 +1,16 @@
 import { createDocument } from '@builder.io/qwik-dom';
-import { Fragment as Component, type JSXNode } from '@builder.io/qwik/jsx-runtime';
+import { Fragment as Component } from '@builder.io/qwik/jsx-runtime';
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
 import { component$ } from '../component/component.public';
 import { inlinedQrl } from '../qrl/qrl';
+import type { JSXOutput } from '../render/jsx/types/jsx-node';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { useSignal } from '../use/use-signal';
 import { render2 } from './client/render2';
 import type { ContainerElement } from './client/types';
 import { vnode_getFirstChild } from './client/vnode';
 import './vdom-diff.unit';
-import type { JSXOutput } from '../render/jsx/types/jsx-node';
 
 describe('v2 client render', () => {
   it('should render jsx', async () => {

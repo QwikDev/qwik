@@ -4,7 +4,7 @@
  *   VNode is a DOM like API for walking the DOM but it:
  *
  *   1. Encodes virtual nodes which don't exist in the DOM
- *   2. Can serialize as port of SSR and than deserialize on the client.
+ *   2. Can serialize as part of SSR and than deserialize on the client.
  *
  *   # Virtual
  *
@@ -140,6 +140,7 @@ import {
   ELEMENT_PROPS,
   ELEMENT_SEQ,
   OnRenderProp,
+  QCtxAttr,
   QScopedStyle,
   QSlotRef,
 } from '../../util/markers';
@@ -544,7 +545,11 @@ const indexOfAlphanumeric = (id: string, length: number): number => {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const mapApp_findIndx = <T>(elementVNode: (T | null)[], key: string, start: number): number => {
+export const mapApp_findIndx = <T>(
+  elementVNode: (T | null)[],
+  key: string,
+  start: number
+): number => {
   assertTrue(start % 2 === 0, 'Expecting even number.');
   let bottom = (start as number) >> 1;
   let top = (elementVNode.length - 2) >> 1;
@@ -618,7 +623,6 @@ export const vnode_insertBefore = (
 ) => {
   ensureElementOrVirtualVNode(parent);
   const parentNode = vnode_getClosestParentNode(parent)!;
-  assertDefined(parentNode, 'Missing parentNode.');
   assertFalse(newChild === insertBefore, "Can't insert before itself");
   if (vnode_isElementVNode(parent)) {
     ensureMaterialized(parent);
@@ -628,7 +632,7 @@ export const vnode_insertBefore = (
     const insertBeforeNode = vnode_getDOMInsertBefore(
       shouldWeUseParentVirtual ? parent : insertBefore
     );
-    parentNode.insertBefore(vnode_getNode(newChild)!, insertBeforeNode);
+    parentNode && parentNode.insertBefore(vnode_getNode(newChild)!, insertBeforeNode);
   }
 
   // link newChild into the previous/next list
@@ -676,9 +680,8 @@ export const vnode_remove = (vParent: VNode, vToRemove: VNode, removeDOM: boolea
 };
 
 export const vnode_truncate = (vParent: ElementVNode | VirtualVNode, vDelete: VNode) => {
-  ensureElementVNode(vParent);
   assertDefined(vDelete, 'Missing vDelete.');
-  const parent = vnode_getNode(vParent)!;
+  const parent = vnode_getDOMParent(vParent)!;
   let child: Node | null = vnode_getNode(vDelete)!;
   while (child !== null) {
     const nextSibling = child.nextSibling as Node | null;
@@ -873,7 +876,7 @@ export const vnode_getProp = <T>(
 
 export const vnode_clearLocalProps = (vnode: VNode) => {
   const type = vnode[VNodeProps.flags];
-  if ((type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) !== 0) {
+  if ((type & VNodeFlags.Virtual) !== 0) {
     for (let idx = VirtualVNodeProps.PROPS_OFFSET; idx < vnode.length; idx += 2) {
       const key = vnode[idx] as string;
       if (key.startsWith(':')) {
@@ -884,7 +887,7 @@ export const vnode_clearLocalProps = (vnode: VNode) => {
 };
 
 export const vnode_setProp = (vnode: VirtualVNode | ElementVNode, key: string, value: any) => {
-  ensureElementOrVirtualVNode(vnode);
+  ensureVirtualVNode(vnode);
   const idx = mapApp_findIndx(vnode as any, key, VirtualVNodeProps.PROPS_OFFSET);
   if (idx >= 0) {
     vnode[idx + 1] = value;
@@ -946,12 +949,12 @@ export function vnode_toString(
   const strings: string[] = [];
   do {
     if (vnode_isTextVNode(vnode)) {
-      strings.push(JSON.stringify(vnode_getText(vnode)));
+      strings.push(stringify(vnode_getText(vnode)));
     } else if (vnode_isVirtualVNode(vnode)) {
       const attrs: string[] = [];
       vnode_getAttrKeys(vnode).forEach((key) => {
         const value = vnode_getAttr(vnode!, key);
-        attrs.push(' ' + key + '=' + JSON.stringify(value));
+        attrs.push(' ' + key + '=' + stringify(value));
       });
       const name = vnode_getAttr(vnode, OnRenderProp) != null ? 'Component' : 'Fragment';
       strings.push('<' + name + attrs.join('') + '>');
@@ -963,13 +966,13 @@ export function vnode_toString(
       const attrs: string[] = [];
       vnode_getAttrKeys(vnode).forEach((key) => {
         const value = vnode_getAttr(vnode!, key);
-        attrs.push(' ' + key + '=' + JSON.stringify(value));
+        attrs.push(' ' + key + '=' + stringify(value));
       });
       const node = vnode_getNode(vnode) as HTMLElement;
       if (node) {
         const vnodeData = (node.ownerDocument as QDocument).qVNodeData.get(node);
         if (vnodeData) {
-          attrs.push(' q:vnodeData=' + JSON.stringify(vnodeData));
+          attrs.push(' q:vnodeData=' + stringify(vnodeData));
         }
       }
       strings.push('<' + tag + attrs.join('') + '>');
@@ -1085,6 +1088,8 @@ function materializeFromVNodeData(
       vnode_setAttr(vParent, ELEMENT_KEY, consumeValue());
     } else if (peek() === 91 /* `[` */) {
       vnode_setAttr(vParent, ELEMENT_SEQ, consumeValue());
+    } else if (peek() === 93 /* `]` */) {
+      vnode_setAttr(vParent, QCtxAttr, consumeValue());
     } else if (peek() === 124 /* `|` */) {
       const key = consumeValue();
       const value = consumeValue();
@@ -1182,3 +1187,17 @@ export const vnode_documentPosition = (a: VNode, b: VNode) => {
   const DOCUMENT_POSITION_PRECEDING = 2; /// Node.DOCUMENT_POSITION_PRECEDING
   return (aNode!.compareDocumentPosition(bNode) & DOCUMENT_POSITION_PRECEDING) !== 0 ? 1 : -1;
 };
+
+const stringify = (value: any) => {
+  if (value === null) {
+    return 'null';
+  } else if (value === undefined) {
+    return 'undefined';
+  } else if (typeof value === 'string') {
+    return '"' + value + '"';
+  } else if (typeof value === 'function') {
+    return '"' + value.name + '()"';
+  } else {
+    return String(value);
+  }
+}

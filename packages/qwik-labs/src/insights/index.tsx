@@ -206,6 +206,7 @@ function symbolTracker(
   });
   window.addEventListener('error', (event: ErrorEvent) => {
     const error = event.error;
+    if (!(error && typeof error === 'object')) return;
     const payload = {
       url: location.toString(),
       manifestHash,

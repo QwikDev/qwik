@@ -4,6 +4,10 @@ dist
 server
 functions/**/*.js
 
+# Bundled files for REPL
+# Managed by check-qwik-build.ts
+public/repl/bundled
+
 !src/routes/api/qwik/server/
 
 # Development

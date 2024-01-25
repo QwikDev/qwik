@@ -305,6 +305,54 @@ const executeTasksBefore = async (containerState: ContainerState, rCtx: RenderCo
   }
 };
 
+/** Execute tasks that are dirty during SSR render */
+export const executeSSRTasks = (containerState: ContainerState, rCtx: RenderContext) => {
+  const containerEl = containerState.$containerEl$;
+  const staging = containerState.$taskStaging$;
+  if (!staging.size) {
+    return;
+  }
+  const taskPromises: ValueOrPromise<SubscriberEffect>[] = [];
+
+  let tries = 20;
+  const runTasks = () => {
+    // SSR dirty tasks are in taskStaging
+    staging.forEach((task) => {
+      console.error('task', task.$qrl$.$symbol$);
+      if (isTask(task)) {
+        taskPromises.push(maybeThen(task.$qrl$.$resolveLazy$(containerEl), () => task));
+      }
+      // We ignore other types of tasks, they are handled via waitOn
+    });
+
+    staging.clear();
+
+    // Wait for all promises
+    if (taskPromises.length > 0) {
+      return Promise.all(taskPromises).then(async (tasks): Promise<unknown> => {
+        sortTasks(tasks);
+        await Promise.all(
+          tasks.map((task) => {
+            return runSubscriber(task, containerState, rCtx);
+          })
+        );
+        taskPromises.length = 0;
+        if (--tries && staging.size > 0) {
+          return runTasks();
+        }
+        if (!tries) {
+          logWarn(
+            `Infinite task loop detected. Tasks:\n${Array.from(staging)
+              .map((task) => `  ${task.$qrl$.$symbol$}`)
+              .join('\n')}`
+          );
+        }
+      });
+    }
+  };
+  return runTasks();
+};
+
 const executeTasksAfter = async (
   containerState: ContainerState,
   rCtx: RenderContext,

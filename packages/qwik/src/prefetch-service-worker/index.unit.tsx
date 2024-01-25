@@ -57,10 +57,10 @@ describe('service-worker', async () => {
     it('should load graph from network', async () => {
       const swState = mockSwState();
       const graph = createGraph([['a.js', 'b.js'], ['b.js']]);
-      processMessage(swState, ['graph-url', '/base/', 'q-graph.json']);
+      const p = processMessage(swState, ['graph-url', '/base/', 'q-graph.json']);
       await delay(0);
       swState.$fetch$.mock.get('/base/q-graph.json')!.resolve(new Response(JSON.stringify(graph)));
-      await delay(0);
+      await p;
       expect(swState.$bases$.length).toBe(1);
       expect(swState.$bases$[0].$path$).toBe('/base/');
       expect(swState.$bases$[0].$graph$).toEqual([...graph, 'q-graph.json']);

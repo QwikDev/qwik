@@ -39,7 +39,7 @@ function getResponse(swState: SWState, url: URL): Promise<Response> {
     swState.$log$('CACHE HIT', url.pathname);
     return swState.$match$(url) as Promise<Response>;
   } else {
-    return currentRequestTask.$response$;
+    return currentRequestTask.$response$.then((response) => response.clone());
   }
 }
 

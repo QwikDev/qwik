@@ -1,5 +1,4 @@
-import { createDocument } from '@builder.io/qwik-dom';
-import { Fragment } from '@builder.io/qwik/jsx-runtime';
+import { createDocument } from '../../testing/document';
 import { describe, expect, it } from 'vitest';
 import { renderToString } from '../../server/render';
 import { component$ } from '../component/component.public';
@@ -24,6 +23,7 @@ import { ssrCreateContainer } from './ssr/ssr-container';
 import { ssrRenderToContainer } from './ssr/ssr-render';
 import './vdom-diff.unit';
 import { render2 } from './client/render2';
+import { Fragment } from '../render/jsx/jsx-runtime';
 
 describe('v2 ssr render', () => {
   it('should render jsx', async () => {
@@ -165,7 +165,7 @@ export async function rerenderComponent(element: HTMLElement) {
   const container = getDomContainer(element);
   const vElement = vnode_locate(container.rootVNode, element);
   const host = getHostVNode(vElement)!;
-  const subAction: Subscriptions = [0, host as fixMeAny];
+  const subAction: Subscriptions = [0, host as fixMeAny, undefined];
   notifyChange(subAction, container as fixMeAny);
 }
 

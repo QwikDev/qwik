@@ -6,15 +6,11 @@ import { ELEMENT_PROPS, OnRenderProp } from '../../util/markers';
 import { executeComponent2 } from '../shared/component-execution';
 import { type SSRContainer } from './types';
 
-export const applyInlineComponent = (component: Component<any>, jsx: JSXNode<Function>) => {
+export const applyInlineComponent = (component: Component, jsx: JSXNode) => {
   return component(jsx.props, jsx.key, jsx.flags);
 };
 
-export const applyQwikComponentBody = (
-  ssr: SSRContainer,
-  jsx: JSXNode,
-  component: Component<any>
-) => {
+export const applyQwikComponentBody = (ssr: SSRContainer, jsx: JSXNode, component: Component) => {
   const host = ssr.getLastNode();
   const [componentQrl] = (component as any)[SERIALIZABLE_STATE] as [QRLInternal<OnRenderFn<any>>];
   const srcProps = jsx.props;
@@ -30,4 +26,3 @@ export const applyQwikComponentBody = (
   hasProps && host.setProp(ELEMENT_PROPS, propsSansChildren);
   return executeComponent2(ssr, host as any, componentQrl, propsSansChildren);
 };
-

@@ -11,7 +11,7 @@ import { domRender, ssrRenderToDom } from './ssr-render.unit';
   // domRender, // Client
 ].forEach((render) => {
   describe(render.name + ': projection', () => {
-    it.only('should render basic projection', async () => {
+    it('should render basic projection', async () => {
       const Child = component$(() => {
         return (
           <div>

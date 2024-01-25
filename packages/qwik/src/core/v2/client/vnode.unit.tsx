@@ -1,4 +1,4 @@
-import { createDocument } from '@builder.io/qwik-dom';
+import { createDocument } from '../../../testing/document';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import '../vdom-diff.unit';
@@ -336,4 +336,4 @@ describe('vnode', () => {
       expect(vnode_getProp(v2, ':', getVNode)).toBe(v1);
     });
   });
-}); 
+});

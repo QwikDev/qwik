@@ -206,22 +206,9 @@ export type SubscriberC = readonly [
 
 export type Subscriber = SubscriberA | SubscriberB | SubscriberC;
 
-type A = [type: 0, host: SubscriberEffect | SubscriberHost, key: string | undefined];
-type B = [
-  type: 1 | 2,
-  host: SubscriberHost,
-  signal: Signal,
-  elm: QwikElement,
-  prop: string,
-  key: string | undefined,
-];
-type C = [
-  type: 3 | 4,
-  host: SubscriberHost | Text,
-  signal: Signal,
-  elm: Node | QwikElement,
-  key: string | undefined,
-];
+type A = readonly [...SubscriberA, key: string | undefined];
+type B = readonly [...SubscriberB, key: string | undefined];
+type C = readonly [...SubscriberC, key: string | undefined];
 
 export type SubscriberSignal = B | C;
 
@@ -274,18 +261,22 @@ export const parseSubscription = (sub: string, getObject: GetObject): Subscripti
   if (isSubscriberDescriptor(host) && !host.$el$) {
     return undefined;
   }
-  const subscription = [type, host];
   if (type === 0) {
     assertTrue(parts.length <= 3, 'Max 3 parts');
-    subscription.push(parts.length == 3 ? safeDecode(parts[2]) : undefined);
+    return [type, host, parts.length === 3 ? safeDecode(parts[2]) : undefined];
   } else if (type <= 2) {
-    assertTrue(parts.length === 5 || parts.length === 6, 'Type 1 has 5');
-    subscription.push(getObject(parts[2]), getObject(parts[3]), parts[4], safeDecode(parts[5]));
-  } else if (type <= 4) {
-    assertTrue(parts.length === 4 || parts.length === 5, 'Type 2 has 4');
-    subscription.push(getObject(parts[2]), getObject(parts[3]), safeDecode(parts[4]));
+    assertTrue(parts.length === 5 || parts.length === 6, 'Type B has 5');
+    return [
+      type as 1,
+      host,
+      getObject(parts[2]),
+      getObject(parts[3]),
+      parts[4],
+      safeDecode(parts[5]),
+    ];
   }
-  return subscription as any;
+  assertTrue(type <= 4 && (parts.length === 4 || parts.length === 5), 'Type C has 4');
+  return [type as 3, host, getObject(parts[2]), getObject(parts[3]), safeDecode(parts[4])];
 };
 
 const safeDecode = (str: string | undefined) => {

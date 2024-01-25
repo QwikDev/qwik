@@ -1,13 +1,13 @@
-import { Fragment, type JSXNode } from '@builder.io/qwik/jsx-runtime';
 import { isPromise } from 'util/types';
 import { isQwikComponent } from '../../component/component.public';
 import { isQrl } from '../../qrl/qrl-class';
 import { Slot } from '../../render/jsx/slot.public';
-import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
+import { Fragment } from '../../render/jsx/jsx-runtime';
 import { qrlToString, type SerializationContext } from '../shared-serialization';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
 import type { SSRContainer, SsrAttrs } from './types';
-import type { JSXOutput } from '../../render/jsx/types/jsx-node';
+import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
+import type { FunctionComponent, JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
 
 export async function ssrRenderToContainer(ssr: SSRContainer, jsx: JSXOutput) {
   ssr.openContainer();
@@ -127,6 +127,7 @@ function processJSXNode(
   } else if (typeof value === 'object') {
     if (Array.isArray(value)) {
       enqueue(value);
+      // [Wout] I don't understand?
       throw new Error('never gets here');
     } else {
       const jsx = value as JSXNode;
@@ -155,7 +156,7 @@ function processJSXNode(
           ssr.getCurrentComponentFrame()!.distributeChildrenIntoSlots(jsx.children);
           enqueue(applyQwikComponentBody(ssr, jsx, type), ssr.closeComponent);
         } else {
-          enqueue(applyInlineComponent(type as any, jsx as JSXNode<Function>));
+          enqueue(applyInlineComponent(type as FunctionComponent, jsx));
         }
       }
     }

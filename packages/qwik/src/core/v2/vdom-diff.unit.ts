@@ -1,6 +1,5 @@
-import { Fragment, type JSXNode } from '@builder.io/qwik/jsx-runtime';
 import { describe, expect, it } from 'vitest';
-import { isJSXNode } from '../render/jsx/jsx-runtime';
+import { isJSXNode, Fragment } from '../render/jsx/jsx-runtime';
 import type { ElementVNode, QDocument, TextVNode, VNode } from './client/types';
 import {
   vnode_getElementName,
@@ -20,9 +19,9 @@ import {
 } from './client/vnode';
 import { isStringifiable, type Stringifiable } from './shared-types';
 
-import { createDocument } from '@builder.io/qwik-dom';
+import { createDocument } from '../../testing/document';
 import type { VirtualVNode } from './client/types';
-import type { JSXOutput } from '../render/jsx/types/jsx-node';
+import type { JSXNode, JSXOutput } from '../render/jsx/types/jsx-node';
 
 describe('vdom-diff.unit', () => {
   it('empty placeholder test to suppress warning', () => {});
@@ -38,7 +37,7 @@ declare module 'vitest' {
 }
 
 expect.extend({
-  toMatchVDOM(this: { isNot: boolean }, received: VNode, expected: JSXNode) {
+  toMatchVDOM(this: { isNot: boolean }, received: VNode, expected: JSXOutput) {
     const { isNot } = this;
     const diffs = diffJsxVNode(received, expected);
     return {
@@ -48,7 +47,7 @@ expect.extend({
   },
 });
 
-function diffJsxVNode(received: VNode, expected: JSXNode | string, path: string[] = []): string[] {
+function diffJsxVNode(received: VNode, expected: JSXOutput, path: string[] = []): string[] {
   const diffs: string[] = [];
   if (typeof expected === 'string') {
     const receivedText = vnode_isTextVNode(received) ? vnode_getText(received as TextVNode) : null;
@@ -57,7 +56,7 @@ function diffJsxVNode(received: VNode, expected: JSXNode | string, path: string[
       diffs.push('EXPECTED', JSON.stringify(expected));
       diffs.push('RECEIVED:', JSON.stringify(receivedText));
     }
-  } else {
+  } else if (isJSXNode(expected)) {
     path.push(tagToString(expected.type));
     const receivedTag = vnode_isElementVNode(received)
       ? vnode_getElementName(received as ElementVNode)
@@ -102,6 +101,8 @@ function diffJsxVNode(received: VNode, expected: JSXNode | string, path: string[
       diffs.push('RECEIVED:', vnodeToHTML(received, '  '));
     }
     path.pop();
+  } else {
+    throw new Error('Unsupported JSX type:' + typeof expected);
   }
   return diffs;
 }
@@ -179,7 +180,7 @@ function shouldSkip(vNode: VNode | null) {
 }
 
 export function walkJSX(
-  jsx: JSXOutput,
+  jsx: JSXNode,
   apply: {
     enter: (jsx: JSXNode) => void;
     leave: (jsx: JSXNode) => void;
@@ -211,7 +212,10 @@ export function walkJSX(
   }
 }
 
-export function vnode_fromJSX(jsx: JSXNode) {
+export function vnode_fromJSX(jsx: JSXOutput) {
+  if (!isJSXNode(jsx)) {
+    throw new Error('Unsupported type:' + typeof jsx);
+  }
   const doc = createDocument() as QDocument;
   doc.qVNodeData = new WeakMap();
   const vBody = vnode_newUnMaterializedElement(null, doc.body);

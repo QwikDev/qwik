@@ -8,7 +8,7 @@ import './vdom-diff.unit';
 import { rerenderComponent, ssrRenderToDom } from './ssr-render.unit';
 
 describe('useSequentialScope', () => {
-  it.only('should update value', async () => {
+  it('should update value', async () => {
     const MyComp = component$(() => {
       const { set, i, val } = useSequentialScope();
       if (val == null) {

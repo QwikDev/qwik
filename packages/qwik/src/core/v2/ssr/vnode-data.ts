@@ -85,13 +85,19 @@ export function vNodeData_closeFragment(vNodeData: VNodeData) {
 }
 
 export function vNodeData_createSsrNodeReference(
+  parentComponentNode: SsrNode | null,
   vNodeData: VNodeData,
   depthFirstElementIdx: number
 ): SsrNode {
   vNodeData[0] |= VNodeDataFlag.REFERENCE;
   if (vNodeData.length == 1) {
     // Special case where we are referring to the Element directly. No need to descend into the tree.
-    return new SsrNode(SsrNode.ELEMENT_NODE, String(depthFirstElementIdx), EMPTY_ARRAY);
+    return new SsrNode(
+      parentComponentNode,
+      SsrNode.ELEMENT_NODE,
+      String(depthFirstElementIdx),
+      EMPTY_ARRAY
+    );
   } else {
     let fragmentAttrs: SsrAttrs = EMPTY_ARRAY;
     const stack: (SsrNodeType | number)[] = [SsrNode.ELEMENT_NODE, -1];
@@ -127,7 +133,7 @@ export function vNodeData_createSsrNodeReference(
       }
     }
     const type = stack[stack.length - 2] as SsrNodeType;
-    return new SsrNode(type, refId, fragmentAttrs);
+    return new SsrNode(parentComponentNode, type, refId, fragmentAttrs);
   }
 }
 

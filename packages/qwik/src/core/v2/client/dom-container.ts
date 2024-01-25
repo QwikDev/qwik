@@ -1,11 +1,17 @@
 /** @file Public APIs for the SSR */
 
-import { createContainerState, type ContainerState } from '../../container/container';
 import { assertTrue } from '../../error/assert';
 import { getPlatform } from '../../platform/platform';
 import { createSubscriptionManager, type SubscriptionManager } from '../../state/common';
 import { throwErrorAndStop } from '../../util/log';
-import { ELEMENT_PROPS, ELEMENT_SEQ, QContainerAttr, QContainerSelector } from '../../util/markers';
+import {
+  ELEMENT_PROPS,
+  ELEMENT_SEQ,
+  OnRenderProp,
+  QContainerAttr,
+  QContainerSelector,
+  QCtxAttr,
+} from '../../util/markers';
 import { maybeThen, maybeThenMap } from '../../util/promises';
 import { deserialize } from '../shared-serialization';
 import { executeComponent2 } from '../shared/component-execution';
@@ -20,7 +26,9 @@ import type {
 import {
   vnode_documentPosition,
   vnode_getClosestParentNode,
+  vnode_getParent,
   vnode_getProp,
+  vnode_isVirtualVNode,
   vnode_newUnMaterializedElement,
   vnode_setProp,
 } from './vnode';
@@ -100,6 +108,16 @@ export class DomContainer implements IClientContainer {
     }
     this.$subsManager$ = createSubscriptionManager(this as fixMeAny);
   }
+  getParentHost(host: HostElement): HostElement | null {
+    let vNode = vnode_getParent(host as any);
+    while (vNode) {
+      if (vnode_isVirtualVNode(vNode) && vnode_getProp(vNode, OnRenderProp, null) !== null) {
+        return vNode as any as HostElement;
+      }
+      vNode = vnode_getParent(vNode);
+    }
+    return null;
+  }
 
   setHostProp<T>(host: HostElement, name: string, value: T): void {
     const vNode: VirtualVNode = host as any;
@@ -112,6 +130,8 @@ export class DomContainer implements IClientContainer {
     switch (name) {
       case ELEMENT_SEQ:
       case ELEMENT_PROPS:
+      case OnRenderProp:
+      case QCtxAttr:
         getObjectById = this.getObjectById;
         break;
       case ':seqIdx':

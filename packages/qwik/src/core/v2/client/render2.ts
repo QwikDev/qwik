@@ -6,7 +6,21 @@ import { isDocument } from '../../util/element';
 import { QContainerAttr } from '../../util/markers';
 import { DomContainer, getDomContainer } from './dom-container';
 import { vnode_applyJournal, vnode_diff } from './vnode-diff';
+import { vnode_getFirstChild } from './vnode';
 
+/**
+ * Render JSX.
+ *
+ * Use this method to render JSX. This function does reconciling which means it always tries to
+ * reuse what is already in the DOM (rather then destroy and recreate content.) It returns a cleanup
+ * function you could use for cleaning up subscriptions.
+ *
+ * @param parent - Element which will act as a parent to `jsxNode`. When possible the rendering will
+ *   try to reuse existing nodes.
+ * @param jsxNode - JSX to render
+ * @returns An object containing a cleanup function.
+ * @public
+ */
 export const render2 = async (
   parent: Element | Document,
   jsxNode: JSXOutput,

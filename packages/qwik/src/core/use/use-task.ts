@@ -33,6 +33,7 @@ import {
 } from '../state/signal';
 import { QObjectManagerSymbol } from '../state/constants';
 import { ComputedEvent, TaskEvent } from '../util/markers';
+import type { VirtualVNode } from '../v2/client/types';
 
 export const TaskFlagsIsVisibleTask = 1 << 0;
 export const TaskFlagsIsTask = 1 << 1;
@@ -276,23 +277,35 @@ export interface UseTaskOptions {
  */
 // </docs>
 export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: UseTaskOptions): void => {
-  const { val, set, iCtx, i, elCtx } = useSequentialScope<boolean>();
+  const { val, set, iCtx, i, elCtx } = useSequentialScope<1>();
   if (val) {
     return;
   }
   assertQrl(qrl);
 
-  const containerState = iCtx.$renderCtx$.$static$.$containerState$;
-  const task = new Task(TaskFlagsIsDirty | TaskFlagsIsTask, i, elCtx.$element$, qrl, undefined);
-  set(true);
-  qrl.$resolveLazy$(containerState.$containerEl$);
-  if (!elCtx.$tasks$) {
-    elCtx.$tasks$ = [];
-  }
-  elCtx.$tasks$.push(task);
-  waitAndRun(iCtx, () => runTask(task, containerState, iCtx.$renderCtx$));
-  if (isServerPlatform()) {
-    useRunTask(task, opts?.eagerness);
+  if (iCtx.$container2$) {
+    const host = iCtx.$hostElement$ as unknown as VirtualVNode;
+    const task = new Task(
+      TaskFlagsIsDirty | TaskFlagsIsTask,
+      i,
+      iCtx.$hostElement$,
+      qrl,
+      undefined
+    );
+    set(1);
+  } else {
+    const containerState = iCtx.$renderCtx$.$static$.$containerState$;
+    const task = new Task(TaskFlagsIsDirty | TaskFlagsIsTask, i, elCtx.$element$, qrl, undefined);
+    set(1);
+    qrl.$resolveLazy$(containerState.$containerEl$);
+    if (!elCtx.$tasks$) {
+      elCtx.$tasks$ = [];
+    }
+    elCtx.$tasks$.push(task);
+    waitAndRun(iCtx, () => runTask(task, containerState, iCtx.$renderCtx$));
+    if (isServerPlatform()) {
+      useRunTask(task, opts?.eagerness);
+    }
   }
 };
 

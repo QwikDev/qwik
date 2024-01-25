@@ -1,11 +1,10 @@
 import { createDocument } from '@builder.io/qwik-dom';
-import { Fragment as Component, Fragment } from '@builder.io/qwik/jsx-runtime';
+import { Fragment } from '@builder.io/qwik/jsx-runtime';
 import { describe, expect, it } from 'vitest';
 import { renderToString } from '../../server/render';
 import { component$ } from '../component/component.public';
 import { getPlatform, setPlatform } from '../platform/platform';
 import { notifyChange } from '../render/dom/notify-render';
-import { Slot } from '../render/jsx/slot.public';
 import type { JSXOutput } from '../render/jsx/types/jsx-node';
 import type { Subscriptions } from '../state/common';
 import { OnRenderProp } from '../util/markers';
@@ -14,7 +13,6 @@ import type { VNode } from './client/types';
 import {
   vnode_getAttr,
   vnode_getFirstChild,
-  vnode_getNextSibling,
   vnode_getParent,
   vnode_getVNodeForChildNode,
   vnode_locate,
@@ -25,6 +23,7 @@ import type { fixMeAny } from './shared/types';
 import { ssrCreateContainer } from './ssr/ssr-container';
 import { ssrRenderToContainer } from './ssr/ssr-render';
 import './vdom-diff.unit';
+import { render2 } from './client/render2';
 
 describe('v2 ssr render', () => {
   it('should render jsx', async () => {
@@ -81,121 +80,30 @@ describe('v2 ssr render', () => {
         </Fragment>
       );
     });
-    describe('projection', () => {
-      it('should render basic projection', async () => {
-        const Child = component$(() => {
-          return <Slot />;
-        });
-        const Parent = component$(() => {
-          return <Child>parent-content</Child>;
-        });
-        const { vNode } = await ssrRenderToDom(<Parent>render-content</Parent>, { debug: false });
-        expect(vNode).toMatchVDOM(
-          <Fragment>
-            <Fragment>
-              <Fragment>parent-content</Fragment>
-            </Fragment>
-          </Fragment>
-        );
-      });
-      it('should render unused projection into template', async () => {
-        const Child = component$(() => {
-          return <span>no-projection</span>;
-        });
-        const Parent = component$(() => {
-          return <Child>parent-content</Child>;
-        });
-        const { vNode } = await ssrRenderToDom(<Parent>render-content</Parent>, { debug: false });
-        expect(vNode).toMatchVDOM(
-          <Fragment>
-            <Fragment>
-              <span>no-projection</span>
-            </Fragment>
-          </Fragment>
-        );
-        expect(vnode_getNextSibling(vNode!)).toMatchVDOM(
-          <q:template style="display:none">
-            <Fragment>parent-content</Fragment>
-            <Fragment>render-content</Fragment>
-          </q:template>
-        );
-      });
-      it('should render default projection', async () => {
-        const Child = component$(() => {
-          return <Slot>default-value</Slot>;
-        });
-        const Parent = component$(() => {
-          return <Child />;
-        });
-        const { vNode } = await ssrRenderToDom(<Parent />, { debug: false });
-        expect(vNode).toMatchVDOM(
-          <Fragment>
-            <Fragment>
-              <Fragment>default-value</Fragment>
-            </Fragment>
-          </Fragment>
-        );
-      });
-      it('should save default value in q:template if not used', async () => {
-        const Child = component$(() => {
-          return <Slot>default-value</Slot>;
-        });
-        const Parent = component$(() => {
-          return <Child>projection-value</Child>;
-        });
-        const { vNode } = await ssrRenderToDom(<Parent />, { debug: false });
-        expect(vNode).toMatchVDOM(
-          <Fragment>
-            <Fragment>
-              <Fragment>projection-value</Fragment>
-            </Fragment>
-          </Fragment>
-        );
-        expect(vnode_getNextSibling(vNode!)).toMatchVDOM(
-          <q:template style="display:none">
-            <Fragment>default-value</Fragment>
-          </q:template>
-        );
-      });
-      it('should render nested projection', async () => {
-        const Child = component$(() => {
-          return (
-            <div>
-              <Slot />
-            </div>
-          );
-        });
-        const Parent = component$(() => {
-          return (
-            <Child>
-              before
-              <Child>inner</Child>
-              after
-            </Child>
-          );
-        });
-        const { vNode } = await ssrRenderToDom(<Parent>second 3</Parent>, { debug: false });
-        expect(vNode).toMatchVDOM(
-          <Component>
-            <Component>
-              <div>
-                <Fragment>
-                  before
-                  <Component>
-                    <div>
-                      <Fragment>inner</Fragment>
-                    </div>
-                  </Component>
-                  after
-                </Fragment>
-              </div>
-            </Component>
-          </Component>
-        );
-      });
-    });
   });
 });
+
+export async function domRender(
+  jsx: JSXOutput,
+  opts: {
+    /// Print debug information to console.
+    debug?: boolean;
+    /// Use old SSR rendering ond print out debug state. Useful for comparing difference between serialization.
+    oldSSR?: boolean;
+  } = {}
+) {
+  const document = createDocument();
+  await render2(document.body, jsx);
+  const container = getDomContainer(document.body);
+  if (opts.debug) {
+    console.log(container.rootVNode.toString());
+  }
+  return {
+    document,
+    container,
+    vNode: container.rootVNode,
+  };
+}
 
 export async function ssrRenderToDom(
   jsx: JSXOutput,

@@ -24,6 +24,7 @@ export const initReplServer = (win: Window, doc: Document, nav: Navigator) => {
     iframe.classList.add('loading');
     iframe.src = `/repl/` + result.clientId + `/`;
     iframe.dataset.buildId = String(result.buildId);
+    iframe.setAttribute("sandbox", "allow-popups allow-modals allow-scripts allow-same-origin")
 
     iframe.addEventListener('load', () => {
       if (!iframe.nextElementSibling) {

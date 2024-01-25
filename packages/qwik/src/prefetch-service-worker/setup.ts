@@ -4,7 +4,7 @@ import { createState, type SWState } from './state';
 
 export const setupServiceWorker = (swScope: ServiceWorkerGlobalScope) => {
   const swState: SWState = createState(swScope.fetch.bind(swScope), new URL(swScope.location.href));
-  swScope.addEventListener('fetch', async (ev) => {
+  swScope.addEventListener('fetch', (ev) => {
     const request = ev.request;
     if (request.method === 'GET') {
       const response = directFetch(swState, new URL(request.url));
@@ -18,8 +18,18 @@ export const setupServiceWorker = (swScope: ServiceWorkerGlobalScope) => {
     drainMsgQueue(swState);
   });
   swScope.addEventListener('install', () => swScope.skipWaiting());
-  swScope.addEventListener('activate', async (event) => {
+  swScope.addEventListener('activate', (event) => {
+    let cacheTimeout: any;
+    swState.$getCache$ = () => {
+      if (swState.$cache$) {
+        return swState.$cache$;
+      }
+      clearTimeout(cacheTimeout);
+      setTimeout(() => {
+        swState.$cache$ = null;
+      }, 5000);
+      return swScope.caches.open('QwikBundles');
+    };
     event.waitUntil(swScope.clients.claim());
-    swState.$cache$ = swScope.caches.open('QwikBundles');
   });
 };

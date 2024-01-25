@@ -110,18 +110,7 @@ export default defineConfig(async () => {
           ],
         },
       }),
-      qwikVite({
-        // Entry strategy provided by qwik insights
-        // entryStrategy: {
-        //   type: 'smart',
-        //   manual: {
-        //     ...page,
-        //     ...menus,
-        //     ...algoliaSearch,
-        //     ...repl,
-        //   },
-        // },
-      }),
+      qwikVite(),
       partytownVite({
         dest: resolve('dist', '~partytown'),
       }),
@@ -156,72 +145,3 @@ export default defineConfig(async () => {
     },
   };
 });
-
-export const page = {
-  KnNE9eL0qfc: 'page',
-  '9t1uPE4yoLA': 'page',
-};
-
-export const menus = {
-  S0wV0vUzzSo: 'right',
-  '5wL0DAwmu0A': 'left',
-};
-
-export const algoliaSearch = bundle('algoliasearch', [
-  'hW',
-  '9t1uPE4yoLA',
-  'I5CyQjO9FjQ',
-  'NsnidK2eXPg',
-  'kDw0latGeM0',
-  '7YcOLMha9lM',
-  'Ly5oFWTkofs',
-  'NCpn2iO0Vo0',
-  'X3ZkFa9P7Dc',
-  'cGb8pS0shrs',
-  '0TG0b0n4wNg',
-  'qQlSSnFvEvs',
-  'qolFAthnlPo',
-  'vXb90XKAnjE',
-  'hYpp40gCb60',
-  'J3Nim3Y9sio',
-  'aWt0AqHIkGQ',
-  'H7LftCVcX8A',
-  'EhtTJVluy08',
-  'Rtwief4DyrI',
-  'uCl5Lf0Typ8',
-  'DCgB1xiHL28',
-  'VRTvy2D80Ww',
-  'r1y7UDjTtCw',
-  'ZiJmJ6Or9eY',
-  'UyYdc56f0ig',
-  'OmOFy2W4aT4',
-  'mnN5FJ8qddY',
-  '5o2hfyxmyXo',
-  'yqKaTNK0QR0',
-  'S0wV0vUzzSo',
-  'S0wV0vUzzSo',
-]);
-
-export const repl = bundle('repl', [
-  's_XoQB11UZ1S0',
-  's_AqHBIVNKf34',
-  's_IRhp4u7HN3o',
-  's_Qf2nEuUdHpM',
-  's_oEksvFPgMEM',
-  's_eePwnt3YTI8',
-  's_iw211Du0bw8',
-  's_lWGaPPYlcvs',
-  's_uCl5Lf0Typ8',
-  's_IW29huCoDkc',
-]);
-
-function bundle(bundleName: string, symbols: string[]) {
-  return symbols.reduce(
-    (obj, key) => {
-      // Sometimes symbols are prefixed with `s_`, remove it.
-      obj[key.replace('s_', '')] = obj[key] = bundleName;
-      return obj;
-    },
-    {} as Record<string, string>
-  );
-}

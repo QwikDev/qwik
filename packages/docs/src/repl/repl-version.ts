@@ -1,21 +1,24 @@
 /* eslint-disable no-console */
+import { bundled } from './bundled';
+
+const bundledVersion = bundled['@builder.io/qwik'].version;
 
 // The golden oldies
-const keepList = new Set('1.0.0,1.1.5'.split(','));
-// The bad apples
+const keepList = new Set('1.0.0,1.1.5,1.2.13'.split(','));
+
+// The bad apples - add versions that break the REPL here
 const blockList = new Set(
   '1.2.0,1.2.1,1.2.2,1.2.3,1.2.4,1.2.5,1.2.6,1.2.7,1.2.8,1.2.9,1.2.10,1.2.11,1.2.14,1.2.15,1.3.0'.split(
     ','
   )
 );
 
-export const getReplVersion = async (version: string | undefined) => {
-  let versions: string[] = [];
+export const getReplVersion = async (version: string | undefined, offline: boolean) => {
   let npmData: NpmData | null = null;
 
   try {
     npmData = JSON.parse(localStorage.getItem(NPM_STORAGE_KEY)!);
-    if (isExpiredNpmData(npmData)) {
+    if (!offline && isExpiredNpmData(npmData)) {
       // fetch most recent NPM version data
       console.debug(`Qwik REPL, fetch npm data: ${QWIK_NPM_DATA}`);
       const npmRsp = await fetch(QWIK_NPM_DATA);
@@ -29,82 +32,74 @@ export const getReplVersion = async (version: string | undefined) => {
   } catch (e) {
     console.warn('getReplVersion', e);
   }
+  const npmVersions = npmData?.versions || [];
 
-  if (npmData && Array.isArray(npmData.versions)) {
-    versions = npmData.versions.filter((v) => {
-      if (keepList.has(v)) {
-        // always include keepList, but we add them back later
-        return false;
-      }
-      if (v === version) {
-        return true;
-      }
-      if (blockList.has(v)) {
-        // always exclude blockList
-        return false;
-      }
-      if (npmData?.tags.latest === v) {
-        // always include "latest"
-        return true;
-      }
-      if (v.includes('-')) {
-        // filter out dev builds
-        return false;
-      }
-      const parts = v.split('.');
-      if (parts.length !== 3) {
-        // invalid, must have 3 parts
-        return false;
-      }
-      if (isNaN(parts[2] as any)) {
-        // last part cannot have letters in it
-        return false;
-      }
-      // mini-semver check, must be >= than 0.0.100
-      if (parts[0] === '0' && parts[1] === '0') {
-        if (parseInt(parts[2], 10) < 100) {
-          return false;
-        }
-      }
+  let hasVersion = false;
+  let versions = npmVersions.filter((v) => {
+    if (keepList.has(v) || v === bundledVersion) {
+      // always include keepList, but we add them back later
+      return false;
+    }
+    if (v === version) {
+      hasVersion = true;
       return true;
-    });
-
-    if (versions.length > 20 - keepList.size) {
-      versions = versions.slice(0, 20 - keepList.size);
     }
-    versions.unshift(...keepList);
-    // sort by version number
-    versions.sort((a, b) => {
-      const aParts = a.split('.');
-      const bParts = b.split('.');
-      for (let i = 0; i < 3; i++) {
-        const aNum = parseInt(aParts[i], 10);
-        const bNum = parseInt(bParts[i], 10);
-        if (aNum > bNum) {
-          return -1;
-        }
-        if (aNum < bNum) {
-          return 1;
-        }
+    if (blockList.has(v)) {
+      // always exclude blockList
+      return false;
+    }
+    if (npmData?.tags.latest === v) {
+      // always include "latest"
+      return true;
+    }
+    if (v.includes('-')) {
+      // filter out dev builds
+      return false;
+    }
+    const parts = v.split('.');
+    if (parts.length !== 3) {
+      // invalid, must have 3 parts
+      return false;
+    }
+    if (isNaN(parts[2] as any)) {
+      // last part cannot have letters in it
+      return false;
+    }
+    // mini-semver check, must be >= than 0.0.100
+    if (parts[0] === '0' && parts[1] === '0') {
+      if (parseInt(parts[2], 10) < 100) {
+        return false;
       }
-      return 0;
-    });
-
-    if (!version) {
-      version = versions[0];
     }
+    return true;
+  });
+  if (versions.length > 19 - keepList.size) {
+    versions = versions.slice(0, 19 - keepList.size);
   }
-
-  if (!npmData) {
-    console.debug(`Qwik REPL, npm data not found`);
+  versions.unshift(...keepList);
+  if (hasVersion && !versions.includes(version!)) {
+    versions.push(version!);
   }
+  // sort by version number
+  versions.sort((a, b) => {
+    const aParts = a.split('.');
+    const bParts = b.split('.');
+    for (let i = 0; i < 3; i++) {
+      const aNum = parseInt(aParts[i], 10);
+      const bNum = parseInt(bParts[i], 10);
+      if (aNum > bNum) {
+        return -1;
+      }
+      if (aNum < bNum) {
+        return 1;
+      }
+    }
+    return 0;
+  });
 
-  if (!Array.isArray(versions) || versions.length === 0) {
-    console.debug(`Qwik REPL, versions not found`);
-  }
-
-  if (!version) {
-    console.debug(`Qwik REPL, version not found`);
+  versions.unshift('bundled');
+  if (!hasVersion || !version) {
+    version = 'bundled';
   }
 
   return { version, versions };

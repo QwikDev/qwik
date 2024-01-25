@@ -33,13 +33,13 @@ export async function enqueueFileAndDependencies(
   taskTick(swState);
 }
 
-async function getResponse(swState: SWState, url: URL): Promise<Response> {
+function getResponse(swState: SWState, url: URL): Promise<Response> {
   const currentRequestTask = swState.$queue$.find((task) => task.$url$.pathname === url.pathname)!;
   if (!currentRequestTask) {
     swState.$log$('CACHE HIT', url.pathname);
-    return (await swState.$cache$).match(url) as Promise<Response>;
+    return swState.$match$(url) as Promise<Response>;
   } else {
-    return currentRequestTask.$response$;
+    return currentRequestTask.$response$.then((response) => response.clone());
   }
 }
 
@@ -55,7 +55,7 @@ async function enqueueFetchIfNeeded(swState: SWState, url: URL, priority: number
       swState.$log$('already in queue', mode, state, url.pathname);
     }
   } else {
-    const cacheEntry = await (await swState.$cache$).match(url);
+    const cacheEntry = await swState.$match$(url);
     if (!cacheEntry) {
       swState.$log$('enqueue', mode, url.pathname);
       task = {
@@ -89,11 +89,11 @@ function taskTick(swState: SWState) {
       swState
         .$fetch$(task.$url$)
         .then(async (response) => {
+          task.$resolveResponse$(response);
           if (response.status === 200) {
             swState.$log$('CACHED', task.$url$.pathname);
-            await (await swState.$cache$).put(task.$url$, response.clone());
+            await swState.$put$(task.$url$, response.clone());
           }
-          task.$resolveResponse$(response);
         })
         .finally(() => {
           swState.$log$('FETCH DONE', task.$url$.pathname);

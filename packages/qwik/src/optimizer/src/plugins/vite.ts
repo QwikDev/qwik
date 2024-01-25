@@ -54,6 +54,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   let rootDir: string | null = null;
 
   let ssrOutDir: string | null = null;
+  const fileFilter = qwikViteOpts.fileFilter || (() => true);
   const injections: GlobalInjections[] = [];
   const qwikPlugin = createPlugin(qwikViteOpts.optimizerOptions);
 
@@ -411,7 +412,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     },
 
     resolveId(id, importer, resolveIdOpts) {
-      if (id.startsWith('\0')) {
+      if (id.startsWith('\0') || !fileFilter(id, 'resolveId')) {
         return null;
       }
       if (isClientDevOnly && id === VITE_CLIENT_MODULE) {
@@ -421,7 +422,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     },
 
     load(id, loadOpts) {
-      if (id.startsWith('\0')) {
+      if (id.startsWith('\0') || !fileFilter(id, 'load')) {
         return null;
       }
 
@@ -440,7 +441,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     },
 
     transform(code, id, transformOpts) {
-      if (id.startsWith('\0')) {
+      if (id.startsWith('\0') || !fileFilter(id, 'transform')) {
         return null;
       }
       if (isClientDevOnly) {
@@ -883,6 +884,12 @@ interface QwikVitePluginCommonOptions {
      */
     clickToSource: string[] | false;
   };
+
+  /**
+   * Predicate function to filter out files from the optimizer. hook for resolveId, load, and
+   * transform
+   */
+  fileFilter?: (id: string, hook: string) => boolean;
 }
 
 interface QwikVitePluginCSROptions extends QwikVitePluginCommonOptions {

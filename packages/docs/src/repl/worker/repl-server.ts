@@ -46,6 +46,9 @@ export const initReplServer = (win: Window, doc: Document, nav: Navigator) => {
   };
 
   const receiveMessageFromMainApp = (ev: MessageEvent) => {
+    if (ev.origin !== win.location.origin) {
+      return;
+    }
     if (swRegistration && swRegistration.active) {
       try {
         if (ev.data) {
@@ -74,6 +77,9 @@ export const initReplServer = (win: Window, doc: Document, nav: Navigator) => {
   };
 
   const receiveMessageFromUserApp = (ev: MessageEvent) => {
+    if (ev.origin !== win.location.origin) {
+      return;
+    }
     if (ev.data) {
       const msg: ReplMessage = JSON.parse(ev.data);
       if (msg?.type === 'event') {

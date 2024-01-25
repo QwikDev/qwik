@@ -49,16 +49,16 @@ export interface SWTask {
 }
 
 class SWStateImpl implements SWState {
-  $queue$ = [];
-  $bases$ = [];
-  $cache$: SWState['$cache$'] = null;
-  $msgQueue$ = [];
-  $msgQueuePromise$ = null;
-  $maxPrefetchRequests$ = 10;
-
   constructor(
     readonly $fetch$: ServiceWorkerGlobalScope['fetch'],
-    readonly $url$: URL
+    readonly $url$: URL,
+    // We initialize here so the minifier works correctly
+    public $maxPrefetchRequests$ = 10,
+    public $cache$: SWState['$cache$'] = null,
+    public $msgQueuePromise$ = null,
+    readonly $queue$ = [],
+    readonly $bases$ = [],
+    readonly $msgQueue$ = []
   ) {}
 
   $getCache$() {

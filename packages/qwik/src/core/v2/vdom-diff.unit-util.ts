@@ -1,4 +1,4 @@
-import { expect, it } from 'vitest';
+import { expect } from 'vitest';
 import { Fragment, isJSXNode } from '../render/jsx/jsx-runtime';
 import type { ElementVNode, QDocument, TextVNode, VNode } from './client/types';
 import {
@@ -19,7 +19,7 @@ import {
 } from './client/vnode';
 import { isStringifiable, type Stringifiable } from './shared-types';
 
-import { createDocument } from '@builder.io/qwik-dom';
+import { createDocument } from '../../testing/document';
 import type { JSXNode, JSXOutput } from '../render/jsx/types/jsx-node';
 import type { VirtualVNode } from './client/types';
 
@@ -209,7 +209,7 @@ export function walkJSX(
   }
 }
 
-export function vnode_fromJSX(jsx: JSXNode) {
+export function vnode_fromJSX(jsx: JSXOutput) {
   const doc = createDocument() as QDocument;
   doc.qVNodeData = new WeakMap();
   const vBody = vnode_newUnMaterializedElement(null, doc.body);

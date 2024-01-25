@@ -18,7 +18,6 @@ import { Q_CTX, VIRTUAL_SYMBOL } from '../state/constants';
 import { QCtxAttr } from '../util/markers';
 import type { Container2, fixMeAny, HostElement } from '../v2/shared/types';
 import { mapArray_get, mapArray_set } from '../v2/client/vnode';
-import type { VirtualVNode } from '../v2/client/types';
 
 // <docs markdown="../readme.md#ContextId">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!

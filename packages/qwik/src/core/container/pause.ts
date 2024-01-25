@@ -385,7 +385,7 @@ Task Symbol: ${task.$qrl$.$symbol$}
         throw qError(QError_missingObjectId, obj);
       }
     }
-    return key;
+    return key as string;
   };
 
   // Compute subscriptions

@@ -16,7 +16,8 @@ import { directGetAttribute } from '../render/fast-calls';
 import type { QContext } from '../state/context';
 
 export type GetObject = (id: string) => any;
-export type GetObjID = (obj: any) => string | null;
+// v2 allows numbers
+export type GetObjID = (obj: any) => string | number | null;
 export type MustGetObjID = (obj: any) => string;
 
 /** @public */

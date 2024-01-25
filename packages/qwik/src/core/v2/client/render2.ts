@@ -6,7 +6,6 @@ import { isDocument } from '../../util/element';
 import { QContainerAttr } from '../../util/markers';
 import { DomContainer, getDomContainer } from './dom-container';
 import { vnode_applyJournal, vnode_diff } from './vnode-diff';
-import { vnode_getFirstChild } from './vnode';
 
 /**
  * Render JSX.

@@ -1,5 +1,4 @@
-import { createDocument } from '@builder.io/qwik-dom';
-import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
+import { createDocument } from '../../testing/document';
 import { describe, expect, it } from 'vitest';
 import { component$ } from '../component/component.public';
 import { SERIALIZABLE_STATE } from '../container/serializers';
@@ -10,7 +9,7 @@ import { Fragment, JSXNodeImpl } from '../render/jsx/jsx-runtime';
 import { Slot } from '../render/jsx/slot.public';
 import { getDomContainer } from './client/dom-container';
 import type { ClientContainer, VNode } from './client/types';
-import { vnode_getFirstChild, vnode_getAttr, vnode_getText, vnode_getNode } from './client/vnode';
+import { vnode_getFirstChild, vnode_getAttr, vnode_getText } from './client/vnode';
 import { isDeserializerProxy } from './shared-serialization';
 import { ssrCreateContainer } from './ssr/ssr-container';
 import { toSsrAttrs } from './ssr/ssr-render';

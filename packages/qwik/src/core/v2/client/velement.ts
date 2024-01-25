@@ -96,7 +96,7 @@ export class QwikElementAdapter extends Array {
   }
 
   insertBefore(newChild: VNode, refChild: VNode | null): void {
-    console.log('insertBefore', newChild.outerHTML, refChild?.toString());
+    console.log('insertBefore', vnode_toString.call(newChild), refChild?.toString());
   }
 
   set data(value: string) {
@@ -156,13 +156,13 @@ export class QwikElementAdapter extends Array {
     return vnode_getAttr(this as any, ELEMENT_ID);
   }
 
-  get $props$(): Record<string, any> {
+  get $props$(): Record<string, unknown> {
     return vnode_propsToRecord(this as any);
   }
-  get $immutableProps$(): Record<string, any> | null {
+  get $immutableProps$(): Record<string, unknown> | null {
     throw new Error('Implement');
   }
-  get$signal$(): Signal<any> | null {
+  get$signal$(): Signal<unknown> | null {
     throw new Error('Implement');
   }
 }

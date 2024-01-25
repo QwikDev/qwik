@@ -88,7 +88,7 @@ class SSRContainer implements ISSRContainer {
   public serializationCtx: SerializationContext;
   public $locale$: string;
   public $subsManager$: SubscriptionManager = null!;
-  public getObjectById: (id: string | number) => any = () => {
+  public getObjectById: (id: string | number) => unknown = () => {
     throw new Error('SSR should not have deserialize objects.');
   };
   private lastNode: SsrNode | null = null;
@@ -241,7 +241,7 @@ class SSRContainer implements ISSRContainer {
     this.lastNode = null;
   }
 
-  addRoot(obj: any): number {
+  addRoot(obj: unknown): number {
     return this.serializationCtx.$addRoot$(obj);
   }
 
@@ -554,4 +554,3 @@ class SSRContainer implements ISSRContainer {
 function newTagError(text: string) {
   return new Error('SsrError(tag): ' + text);
 }
-

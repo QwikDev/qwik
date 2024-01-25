@@ -7,10 +7,10 @@ import { logWarn } from '../../util/log';
 import { isNotNullable, isPromise, maybeThen, promiseAll } from '../../util/promises';
 import { qDev, qInspector, seal } from '../../util/qdev';
 import { isArray, isFunction, isObject, isString, type ValueOrPromise } from '../../util/types';
-import { getDomContainer } from '../../v2/client/dom-container';
+import { DomContainer, getDomContainer } from '../../v2/client/dom-container';
 import type { ElementVNode } from '../../v2/client/types';
 import { vnode_isVNode } from '../../v2/client/vnode';
-import { vnode_applyJournal, vnode_diff, type VNodeJournalEntry } from '../../v2/client/vnode-diff';
+import { vnode_applyJournal, vnode_diff } from '../../v2/client/vnode-diff';
 import { executeComponent, shouldWrapFunctional } from '../execute-component';
 import { _jsxC, isJSXNode, SKIP_RENDER_TYPE, Virtual } from '../jsx/jsx-runtime';
 import type { DevJSX, JSXNode } from '../jsx/types/jsx-node';
@@ -53,18 +53,10 @@ export const renderComponent = (
       // new vNode code path
       // TODO(misko): this should be moved to container state
       const container = getDomContainer(vHostElement);
-      return maybeThen(
-        vnode_diff(
-          container,
-          res.node as JSXNode,
-          vHostElement,
-          rCtx.$static$.$containerState$.$pauseCtx$?.getObject as any
-        ),
-        () => {
-          // console.log('JOURNAL >>>>', journal);
-          vnode_applyJournal(container.$journal$);
-        }
-      );
+      return maybeThen(vnode_diff(container, res.node as JSXNode, vHostElement), () => {
+        // console.log('JOURNAL >>>>', journal);
+        vnode_applyJournal((container as DomContainer).$journal$);
+      });
     } else {
       const processedJSXNode = processData(res.node, iCtx);
       return maybeThen(processedJSXNode, (processedJSXNode) => {

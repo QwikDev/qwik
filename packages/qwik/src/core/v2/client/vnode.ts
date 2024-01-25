@@ -295,21 +295,12 @@ const ensureTextVNode = (vNode: VNode): TextVNode => {
   return vNode as TextVNode;
 };
 
-const ensureElementOrVirtualVNode = (vNode: VNode): ElementVNode | VirtualVNode => {
+const ensureElementOrVirtualVNode = (vNode: VNode) => {
   assertDefined(vNode, 'Missing vNode');
   assertTrue(
     (vNode[VNodeProps.flags] & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) !== 0,
     'Expecting ElementVNode or VirtualVNode was: ' + vnode_getNodeTypeName(vNode)
   );
-  return vNode as ElementVNode | VirtualVNode;
-};
-
-const ensureVirtualVNode = (vNode: VNode): VirtualVNode => {
-  assertTrue(
-    vnode_isVirtualVNode(vNode),
-    'Expecting VirtualVNode was: ' + vnode_getNodeTypeName(vNode)
-  );
-  return vNode as VirtualVNode;
 };
 
 const ensureElementVNode = (vNode: VNode): ElementVNode => {
@@ -874,13 +865,13 @@ export const vnode_clearLocalProps = (vnode: VNode) => {
   }
 };
 
-export const vnode_setProp = (vnode: VirtualVNode | ElementVNode, key: string, value: any) => {
+export const vnode_setProp = (vnode: VirtualVNode | ElementVNode, key: string, value: unknown) => {
   ensureElementOrVirtualVNode(vnode);
   const idx = mapApp_findIndx(vnode as any, key, vnode_getPropStartIndex(vnode));
   if (idx >= 0) {
-    vnode[idx + 1] = value;
+    vnode[idx + 1] = value as any;
   } else if (value != null) {
-    vnode.splice(idx ^ -1, 0, key, value);
+    vnode.splice(idx ^ -1, 0, key, value as any);
   }
 };
 
@@ -895,8 +886,8 @@ export const vnode_getPropStartIndex = (vnode: VNode): number => {
   }
 };
 
-export const vnode_propsToRecord = (vnode: VNode): Record<string, any> => {
-  const props: Record<string, any> = {};
+export const vnode_propsToRecord = (vnode: VNode): Record<string, unknown> => {
+  const props: Record<string, unknown> = {};
   if (!vnode_isTextVNode(vnode)) {
     for (let i = vnode_getPropStartIndex(vnode); i < vnode.length; ) {
       const key = vnode[i++] as string;

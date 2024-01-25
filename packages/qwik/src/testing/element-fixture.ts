@@ -1,5 +1,4 @@
 import { assertDefined } from '../core/error/assert';
-import { getPlatform } from '../core/platform/platform';
 import type { QRLInternal } from '../core/qrl/qrl-class';
 import { tryGetContext, type QContext } from '../core/state/context';
 import { normalizeOnProp } from '../core/state/listeners';

@@ -8,31 +8,34 @@ import { vnode_locate } from './client/vnode';
 import { Fragment, JSXNodeImpl, isJSXNode } from '../render/jsx/jsx-runtime';
 import type { FunctionComponent } from '@builder.io/qwik/jsx-runtime';
 import { Slot } from '../render/jsx/slot.public';
-import { QObjectSignalFlags, SignalImpl } from '../state/signal';
+import { SignalImpl } from '../state/signal';
 import { QObjectManagerSymbol } from '../state/constants';
 import {
   parseSubscription,
   type LocalSubscriptionManager,
-  type Subscriber,
   serializeSubscription,
 } from '../state/common';
 import { isDev } from '../../build/index.dev';
 import type { StreamWriter } from '../../server/types';
 import { QwikElementAdapter } from './client/velement';
+import type { JSXChildren } from '../render/jsx/types/jsx-qwik-attributes';
 
-const deserializedProxyMap = new WeakMap<any, any>();
+const deserializedProxyMap = new WeakMap<object, unknown>();
 
-const unwrapDeserializerProxy = (value: any) => {
-  const unwrapped: object = typeof value === 'object' && value !== null && value[UNWRAP_PROXY];
+type DeserializerProxy<T extends object = object> = T & { [UNWRAP_PROXY]: object };
+
+const unwrapDeserializerProxy = (value: unknown) => {
+  const unwrapped =
+    typeof value === 'object' && value !== null && (value as DeserializerProxy)[UNWRAP_PROXY];
   return unwrapped ? unwrapped : value;
 };
 
-export const isDeserializerProxy = (value: any) => {
+export const isDeserializerProxy = (value: unknown): value is DeserializerProxy => {
   return typeof value === 'object' && value !== null && UNWRAP_PROXY in value;
 };
 
 const UNWRAP_PROXY = Symbol('UNWRAP_PROXY');
-const wrapDeserializerProxy = (container: DomContainer, value: any) => {
+const wrapDeserializerProxy = (container: DomContainer, value: unknown) => {
   if (
     typeof value === 'object' && // Must be an object
     value !== null && // which is not null
@@ -94,9 +97,9 @@ const wrapDeserializerProxy = (container: DomContainer, value: any) => {
   return value;
 };
 
-export const deserialize = <T>(container: DomContainer, value: any): any => {
+export const deserialize = <O>(container: DomContainer, value: string | object): O => {
   if (typeof value === 'object' && value !== null) {
-    return wrapDeserializerProxy(container, value);
+    return wrapDeserializerProxy(container, value) as O;
   } else if (typeof value === 'string' && value.length) {
     const code = value.charCodeAt(0);
     // only cut rest if we have a valid code
@@ -104,27 +107,27 @@ export const deserialize = <T>(container: DomContainer, value: any): any => {
     switch (code) {
       case SerializationConstant.REFERENCE_VALUE:
         const ref = parseInt(rest);
-        return container.getObjectById(ref);
+        return container.getObjectById(ref) as O;
       case SerializationConstant.UNDEFINED_VALUE:
-        return undefined;
+        return undefined as O;
       case SerializationConstant.QRL_VALUE:
-        return parseQRL(container, rest);
+        return parseQRL(container, rest) as O;
       case SerializationConstant.Task_VALUE:
         throw new Error('Not implemented');
       case SerializationConstant.Resource_VALUE:
         throw new Error('Not implemented');
       case SerializationConstant.URL_VALUE:
-        return new URL(rest);
+        return new URL(rest) as O;
       case SerializationConstant.Date_VALUE:
-        return new Date(rest);
+        return new Date(rest) as O;
       case SerializationConstant.Regex_VALUE:
         const idx = rest.lastIndexOf('/');
-        return new RegExp(rest.substring(1, idx), rest.substring(idx + 1));
+        return new RegExp(rest.substring(1, idx), rest.substring(idx + 1)) as O;
       case SerializationConstant.Error_VALUE:
         const obj = container.getObjectById(parseInt(rest));
-        return Object.assign(new Error(rest), obj);
+        return Object.assign(new Error(rest), obj) as O;
       case SerializationConstant.Component_VALUE:
-        return componentQrl(parseQRL(container, rest) as any);
+        return componentQrl(parseQRL(container, rest) as any) as O;
       case SerializationConstant.DerivedSignal_VALUE:
         throw new Error('Not implemented');
       case SerializationConstant.Signal_VALUE:
@@ -136,45 +139,46 @@ export const deserialize = <T>(container: DomContainer, value: any): any => {
           container.getObjectById
         );
         // console.log('DESERIALIZE', subscription);
-        subscription && manager.$addSub$(subscription);
-        return new SignalImpl(value, manager, 0);
+        // TODO we should strip off the key of Subscriptions or be sure we only receive Subscribers (no key)
+        subscription && manager.$addSub$(subscription as any);
+        return new SignalImpl(value, manager, 0) as O;
       case SerializationConstant.SignalWrapper_VALUE:
         throw new Error('Not implemented');
       case SerializationConstant.NaN_VALUE:
-        return Number.NaN;
+        return Number.NaN as O;
       case SerializationConstant.URLSearchParams_VALUE:
-        return new URLSearchParams(rest);
+        return new URLSearchParams(rest) as O;
       case SerializationConstant.FormData_VALUE:
         const formData = new FormData();
-        for (const [key, value] of container.getObjectById(parseInt(rest))) {
+        for (const [key, value] of container.getObjectById(parseInt(rest)) as any) {
           formData.append(key, value);
         }
-        return formData;
+        return formData as O;
       case SerializationConstant.JSXNode_VALUE:
         const [type, props, immutableProps, children, flags] = rest.split(' ');
         return new JSXNodeImpl(
           deserializeJSXType(container, type),
-          container.getObjectById(props),
-          container.getObjectById(immutableProps),
-          container.getObjectById(children),
+          container.getObjectById(props) as any,
+          container.getObjectById(immutableProps) as any,
+          container.getObjectById(children) as JSXChildren,
           parseInt(flags)
-        );
+        ) as O;
       case SerializationConstant.BigInt_VALUE:
-        return BigInt(rest);
+        return BigInt(rest) as O;
       case SerializationConstant.Set_VALUE:
-        return new Set(container.getObjectById(parseInt(rest)));
+        return new Set(container.getObjectById(parseInt(rest)) as Set<any>) as O;
       case SerializationConstant.Map_VALUE:
-        return new Map(container.getObjectById(parseInt(rest)));
+        return new Map(container.getObjectById(parseInt(rest)) as Map<any, any>) as O;
       case SerializationConstant.VNode_VALUE:
         return rest === ''
-          ? container.element.ownerDocument
-          : vnode_locate(container.rootVNode, rest);
+          ? (container.element.ownerDocument as O)
+          : (vnode_locate(container.rootVNode, rest) as O);
       case SerializationConstant.String_VALUE:
-        return rest;
+        return rest as O;
       default:
     }
   }
-  return value;
+  return value as O;
 };
 
 export function parseQRL(container: DomContainer, qrl: string): QRL<any> {
@@ -228,11 +232,11 @@ export interface SerializationContext {
    * Because objects can share child objects, we need a way to create secondary roots to share those
    * objects.
    */
-  $addRoot$: (obj: any) => number;
+  $addRoot$: (obj: unknown) => number;
 
-  $seen$: (obj: any) => void;
+  $seen$: (obj: unknown) => void;
 
-  $roots$: any[];
+  $roots$: unknown[];
 
   /**
    * Node constructor, for instanceof checks.
@@ -305,7 +309,7 @@ export function serialize(serializationContext: SerializationContext): void {
     $writer$.write(lastIdx === 0 ? text : text.substring(lastIdx));
   };
 
-  const writeValue = (value: any) => {
+  const writeValue = (value: unknown) => {
     if (typeof value === 'bigint') {
       return writeString(SerializationConstant.BigInt_CHAR + value.toString());
     } else if (typeof value === 'boolean') {
@@ -358,7 +362,7 @@ export function serialize(serializationContext: SerializationContext): void {
     }
   };
 
-  const writeObjectValue = (value: any) => {
+  const writeObjectValue = (value: unknown) => {
     // Objects are the only way to create circular dependencies.
     // So the first thing to to is to see if we have a circular dependency.
     // (NOTE: For root objects we need to serialize them regardless if we have seen
@@ -374,7 +378,7 @@ export function serialize(serializationContext: SerializationContext): void {
       const manager = value[QObjectManagerSymbol];
       const data: string[] = [];
       for (const sub of manager.$subs$) {
-        const serialized = serializeSubscription(sub, $addRoot$ as any);
+        const serialized = serializeSubscription(sub, $addRoot$);
         serialized && data.push(serialized);
       }
       writeString(
@@ -416,8 +420,8 @@ export function serialize(serializationContext: SerializationContext): void {
       const tuples: Array<[any, any]> = [];
       value.forEach((v, k) => tuples.push([k, v]));
       writeString(SerializationConstant.Map_CHAR + $addRoot$(tuples));
-    } else if (isJSXNode(value)) {
-      const type = writeString(
+    } else if (isJSXNode<any>(value)) {
+      writeString(
         SerializationConstant.JSXNode_CHAR +
           `${serializeJSXType($addRoot$, value.type)} ${$addRoot$(value.props)} ${$addRoot$(
             value.immutableProps
@@ -492,7 +496,7 @@ export function qrlToString(value: QRLInternal, getObjectId: (obj: any) => numbe
  * @param obj
  * @returns
  */
-function shouldTrackObj(obj: any) {
+function shouldTrackObj(obj: unknown) {
   return (
     (typeof obj === 'object' && obj !== null) ||
     // THINK: Not sure if we need to keep track of functions (QRLs) Let's skip them for now.
@@ -511,7 +515,7 @@ function shouldTrackObj(obj: any) {
  *
  * @param obj
  */
-function isObjectLiteral(obj: any) {
+function isObjectLiteral(obj: unknown) {
   // We are an object literal if:
   // - we are a direct instance of object OR
   // - we are an array
@@ -520,8 +524,11 @@ function isObjectLiteral(obj: any) {
   return prototype === Object.prototype || prototype === Array.prototype;
 }
 
-const breakCircularDependencies = (serializationContext: SerializationContext, rootObj: any) => {
-  const discoveredValues: any[] = [rootObj];
+const breakCircularDependencies = (
+  serializationContext: SerializationContext,
+  rootObj: unknown
+) => {
+  const discoveredValues: unknown[] = [rootObj];
   // let count = 100;
   while (discoveredValues.length) {
     // if (count-- < 0) {
@@ -546,7 +553,7 @@ const breakCircularDependencies = (serializationContext: SerializationContext, r
         } else if (isJSXNode(obj)) {
           discoveredValues.push(obj.type, obj.props, obj.immutableProps, obj.children);
         } else {
-          for (const key in obj) {
+          for (const key in obj as object) {
             if (Object.prototype.hasOwnProperty.call(obj, key)) {
               discoveredValues.push((obj as any)[key]);
             }
@@ -621,7 +628,7 @@ const enum SerializationConstant {
   LAST_VALUE = /* ------------------------ */ 0x1b,
 }
 
-function serializeJSXType($addRoot$: (obj: any) => number, type: string | FunctionComponent<any>) {
+function serializeJSXType($addRoot$: (obj: unknown) => number, type: string | FunctionComponent) {
   if (typeof type === 'string') {
     return type;
   } else if (type === Slot) {
@@ -633,10 +640,7 @@ function serializeJSXType($addRoot$: (obj: any) => number, type: string | Functi
   }
 }
 
-function deserializeJSXType(
-  container: DomContainer,
-  type: string
-): string | FunctionComponent<any> {
+function deserializeJSXType(container: DomContainer, type: string): string | FunctionComponent {
   if (type === ':slot') {
     return Slot;
   } else if (type === ':fragment') {
@@ -644,7 +648,7 @@ function deserializeJSXType(
   } else {
     const ch = type.charCodeAt(0);
     if (48 /* '0' */ <= ch && ch <= 57 /* '9' */) {
-      return container.getObjectById(type);
+      return container.getObjectById(type) as any;
     } else {
       return type;
     }

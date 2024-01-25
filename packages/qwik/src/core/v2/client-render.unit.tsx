@@ -1,5 +1,5 @@
-import { createDocument } from '@builder.io/qwik-dom';
-import { Fragment as Component } from '@builder.io/qwik/jsx-runtime';
+import { createDocument } from '../../testing/document';
+import { Fragment as Component } from '../../jsx-runtime';
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
 import { component$ } from '../component/component.public';

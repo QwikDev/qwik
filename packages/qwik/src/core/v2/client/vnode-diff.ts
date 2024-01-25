@@ -4,7 +4,7 @@ import { assertDefined, assertFalse, assertTrue } from '../../error/assert';
 import type { QRLInternal } from '../../qrl/qrl-class';
 import { Fragment, JSXNodeImpl, isJSXNode } from '../../render/jsx/jsx-runtime';
 import { Slot } from '../../render/jsx/slot.public';
-import type { JSXNode } from '../../render/jsx/types/jsx-node';
+import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
 import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
 import { isSignal } from '../../state/signal';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../../util/flyweight';
@@ -15,6 +15,7 @@ import type { ValueOrPromise } from '../../util/types';
 import { executeComponent2 } from '../shared/component-execution';
 import type { QElement2 } from '../shared/types';
 import type { SsrAttrs } from '../ssr/types';
+import type { DomContainer } from './dom-container';
 import {
   ElementVNodeProps,
   type ClientContainer,
@@ -69,12 +70,8 @@ export const enum VNodeJournalOpCode {
 
 export type ComponentQueue = Array<VNode>;
 
-export const vnode_diff = (
-  container: ClientContainer,
-  jsxNode: JSXNode<any>,
-  vStartNode: VNode
-) => {
-  const journal = container.$journal$;
+export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStartNode: VNode) => {
+  const journal = (container as DomContainer).$journal$;
 
   /**
    * Stack is used to keep track of the state of the traversal.
@@ -117,7 +114,7 @@ export const vnode_diff = (
   //////////////////////////////////////////////
   //////////////////////////////////////////////
 
-  function diff(jsxNode: JSXNode<any>, vStartNode: VNode) {
+  function diff(jsxNode: JSXOutput, vStartNode: VNode) {
     vParent = vStartNode;
     vNewNode = null;
     vCurrent = vnode_getFirstChild(vStartNode);
@@ -445,7 +442,7 @@ export const vnode_diff = (
     // reconcile attributes
     let jsxAttrs = (jsx as any as { attrs: SsrAttrs }).attrs;
     if (jsxAttrs === EMPTY_ARRAY) {
-      const props = jsx.props;
+      const props = (jsx as JSXNode).props;
       for (const key in props) {
         if (jsxAttrs === EMPTY_ARRAY) {
           jsxAttrs = (jsx as any as { attrs: SsrAttrs }).attrs = [];

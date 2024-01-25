@@ -4,7 +4,6 @@ import { logWarn } from '../util/log';
 import { qDev, qSerialize } from '../util/qdev';
 import { ComputedEvent, RenderEvent, ResourceEvent } from '../util/markers';
 import { isObject } from '../util/types';
-import type { ContainerState } from '../container/container';
 import {
   getSubscriptionManager,
   getProxyTarget,

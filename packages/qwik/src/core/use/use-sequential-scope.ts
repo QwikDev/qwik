@@ -1,10 +1,7 @@
 import { verifySerializable } from '../state/common';
 import { getContext, type QContext } from '../state/context';
-import { EMPTY_OBJ } from '../util/flyweight';
 import { ELEMENT_SEQ } from '../util/markers';
 import { qDev, qSerialize } from '../util/qdev';
-import type { VirtualVNode } from '../v2/client/types';
-import { vnode_getProp, vnode_isVNode, vnode_setProp } from '../v2/client/vnode';
 import type { fixMeAny, HostElement } from '../v2/shared/types';
 import { type RenderInvokeContext, useInvokeContext } from './use-core';
 

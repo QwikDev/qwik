@@ -66,8 +66,8 @@ export class DomContainer implements IClientContainer {
   public $subsManager$: SubscriptionManager;
   public renderDone: Promise<void> | null = Promise.resolve();
   public rendering: boolean = false;
-  public $rawStateData$: any[];
-  private stateData: any[];
+  public $rawStateData$: unknown[];
+  private stateData: unknown[];
   private $renderQueue$: Set<VirtualVNode> = new Set();
   constructor(element: ContainerElement) {
     this.qContainer = element.getAttribute(QContainerAttr)!;
@@ -164,7 +164,7 @@ export class DomContainer implements IClientContainer {
     );
   }
 
-  getObjectById = (id: number | string): any => {
+  getObjectById = (id: number | string): unknown => {
     if (typeof id === 'string') {
       id = parseFloat(id);
     }
@@ -265,12 +265,11 @@ export function processVNodeData(document: Document) {
     return /* `!` */ 33 <= ch && ch <= 47; /* `/` */
   }
 }
-function loggingProxy(name: string, dst: any): any {
-  return new Proxy(dst, {
-    get: (target: any, prop: string) => {
-      console.log('PROXY.get', name, prop);
-      return target[prop];
-    },
-  }) as any;
-}
-
+// function loggingProxy(name: string, dst: any): any {
+//   return new Proxy(dst, {
+//     get: (target: any, prop: string) => {
+//       console.log('PROXY.get', name, prop);
+//       return target[prop];
+//     },
+//   }) as any;
+// }

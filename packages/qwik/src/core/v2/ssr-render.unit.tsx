@@ -1,5 +1,6 @@
-import { createDocument } from '@builder.io/qwik-dom';
-import { Fragment, Fragment as Component } from '../render/jsx/jsx-runtime';
+// TODO remove no-console
+/* eslint-disable no-console */
+import { createDocument } from '../../testing/document';
 import { describe, expect, it } from 'vitest';
 import { renderToString } from '../../server/render';
 import { component$ } from '../component/component.public';
@@ -24,6 +25,7 @@ import { ssrCreateContainer } from './ssr/ssr-container';
 import { ssrRenderToContainer } from './ssr/ssr-render';
 import './vdom-diff.unit';
 import { render2 } from './client/render2';
+import { Fragment } from '../render/jsx/jsx-runtime';
 
 describe('v2 ssr render', () => {
   it('should render jsx', async () => {
@@ -137,7 +139,7 @@ export async function ssrRenderToDom(
     <body>{jsx}</body>,
   ]);
   const html = ssrContainer.writer.toString();
-  const document = createDocument(html);
+  const document = createDocument({ html });
   const container = getDomContainer(document.body.parentElement as HTMLElement) as DomContainer;
   if (opts.debug) {
     console.log('HTML:', html);
@@ -150,7 +152,8 @@ export async function ssrRenderToDom(
     console.log(']');
     if (false as boolean) {
       console.log('CONTAINER PROXY: [');
-      const proxyState = container.stateData;
+      // It's a private prop but not enforced
+      const proxyState = (container as any).stateData as DomContainer['stateData'];
       for (let i = 0; i < state.length; i++) {
         console.log(('    ' + i + ':').substr(-4), proxyState[i]);
       }
@@ -165,7 +168,7 @@ export async function rerenderComponent(element: HTMLElement) {
   const container = getDomContainer(element);
   const vElement = vnode_locate(container.rootVNode, element);
   const host = getHostVNode(vElement)!;
-  const subAction: Subscriptions = [0, host as fixMeAny];
+  const subAction: Subscriptions = [0, host as fixMeAny, undefined];
   notifyChange(subAction, container as fixMeAny);
 }
 

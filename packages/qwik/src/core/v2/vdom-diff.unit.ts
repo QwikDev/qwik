@@ -1,6 +1,5 @@
-import { Fragment, Fragment as Component } from '../render/jsx/jsx-runtime';
 import { describe, expect, it } from 'vitest';
-import { isJSXNode } from '../render/jsx/jsx-runtime';
+import { isJSXNode, Fragment } from '../render/jsx/jsx-runtime';
 import type { ElementVNode, QDocument, TextVNode, VNode } from './client/types';
 import {
   vnode_getElementName,
@@ -20,7 +19,7 @@ import {
 } from './client/vnode';
 import { isStringifiable, type Stringifiable } from './shared-types';
 
-import { createDocument } from '@builder.io/qwik-dom';
+import { createDocument } from '../../testing/document';
 import type { VirtualVNode } from './client/types';
 import type { JSXNode, JSXOutput } from '../render/jsx/types/jsx-node';
 
@@ -38,7 +37,7 @@ declare module 'vitest' {
 }
 
 expect.extend({
-  toMatchVDOM(this: { isNot: boolean }, received: VNode, expected: JSXNode) {
+  toMatchVDOM(this: { isNot: boolean }, received: VNode, expected: JSXOutput) {
     const { isNot } = this;
     const diffs = diffJsxVNode(received, expected);
     return {
@@ -48,7 +47,7 @@ expect.extend({
   },
 });
 
-function diffJsxVNode(received: VNode, expected: JSXNode | string, path: string[] = []): string[] {
+function diffJsxVNode(received: VNode, expected: JSXOutput, path: string[] = []): string[] {
   if (!received) {
     return [path.join(' > ') + ' missing'];
   }
@@ -60,7 +59,7 @@ function diffJsxVNode(received: VNode, expected: JSXNode | string, path: string[
       diffs.push('EXPECTED', JSON.stringify(expected));
       diffs.push('RECEIVED:', JSON.stringify(receivedText));
     }
-  } else {
+  } else if (isJSXNode(expected)) {
     path.push(tagToString(expected.type));
     const receivedTag = vnode_isElementVNode(received)
       ? vnode_getElementName(received as ElementVNode)
@@ -105,6 +104,8 @@ function diffJsxVNode(received: VNode, expected: JSXNode | string, path: string[
       diffs.push('RECEIVED:', vnodeToHTML(received, '  '));
     }
     path.pop();
+  } else {
+    throw new Error('Unsupported JSX type:' + typeof expected);
   }
   return diffs;
 }
@@ -200,7 +201,7 @@ export function walkJSX(
     }
     apply.leave(jsx);
   } else {
-    throw new Error('unsupported');
+    throw new Error('unsupported type: ' + typeof jsx);
   }
 
   function processChild(child: any) {
@@ -209,12 +210,15 @@ export function walkJSX(
     } else if (isJSXNode(child)) {
       walkJSX(child, apply);
     } else {
-      throw new Error('Unknown type: ' + child);
+      throw new Error('Unsupported type: ' + typeof child);
     }
   }
 }
 
-export function vnode_fromJSX(jsx: JSXNode) {
+export function vnode_fromJSX(jsx: JSXOutput) {
+  if (!isJSXNode(jsx)) {
+    throw new Error('Unsupported type:' + typeof jsx);
+  }
   const doc = createDocument() as QDocument;
   doc.qVNodeData = new WeakMap();
   const vBody = vnode_newUnMaterializedElement(null, doc.body);

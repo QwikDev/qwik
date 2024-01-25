@@ -1,10 +1,5 @@
 import type { OnRenderFn } from '../../component/component.public';
-import {
-  getEventName,
-  setRef,
-  type ContainerState,
-  type QContainerElement,
-} from '../../container/container';
+import { getEventName, setRef, type ContainerState } from '../../container/container';
 import {
   assertDefined,
   assertElement,

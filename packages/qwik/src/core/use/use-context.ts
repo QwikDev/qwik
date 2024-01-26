@@ -1,4 +1,3 @@
-import { fromCamelToKebabCase } from '../util/case';
 import { missingContextValueError, qError, QError_invalidContext } from '../error/error';
 import { qDev, qSerialize } from '../util/qdev';
 import { isObject } from '../util/types';
@@ -130,12 +129,11 @@ export interface ContextId<STATE> {
  * @public
  */
 // </docs>
-export const createContextId = <STATE = unknown>(name: string): ContextId<STATE> => {
+export const createContextId = <STATE = unknown>(name: string) => {
   assertTrue(/^[\w/.-]+$/.test(name), 'Context name must only contain A-Z,a-z,0-9, _', name);
   return /*#__PURE__*/ Object.freeze({
-    id: fromCamelToKebabCase(name),
-    name, // keep the original name to be used when context is being used but not yet provided in one of the parents
-  } as any);
+    id: name,
+  }) as ContextId<STATE>;
 };
 
 // <docs markdown="../readme.md#useContextProvider">
@@ -269,7 +267,7 @@ export interface UseContext {
 // </docs>
 export const useContext: UseContext = <STATE extends object>(
   context: ContextId<STATE>,
-  defaultValue?: STATE | ((value: STATE | undefined) => STATE), // type of default value should be the same as the context
+  defaultValue?: STATE | ((value: STATE | undefined) => STATE) // type of default value should be the same as the context
 ) => {
   const { val, set, iCtx, elCtx } = useSequentialScope<STATE>();
 
@@ -295,8 +293,7 @@ export const useContext: UseContext = <STATE extends object>(
     return set(defaultValue);
   }
 
-  // use the name from the context to provide a better error message
-  throw missingContextValueError((context as any).name);
+  throw missingContextValueError(context.id);
 };
 
 /** Find a wrapping Virtual component in the DOM */

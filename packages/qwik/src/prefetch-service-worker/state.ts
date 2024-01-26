@@ -73,10 +73,7 @@ class SWStateImpl implements SWState {
     return cache.match(request);
   }
 
-  $log$(...msg: any[]) {
-    // eslint-disable-next-line no-console
-    console.log('SW:', ...msg);
-  }
+  $log$() {}
 }
 
 export const createState = (fetch: ServiceWorkerGlobalScope['fetch'], url: URL): SWState => {

@@ -22,7 +22,7 @@ describe('useContext', () => {
     });
 
     const { vNode } = await ssrRenderToDom(<Provider />, {
-      debug: true,
+      // debug: true,
     });
     expect(vNode).toMatchVDOM(
       <Component>
@@ -51,7 +51,7 @@ describe('useContext', () => {
     });
 
     const { vNode, document } = await ssrRenderToDom(<Provider />, {
-      debug: true,
+      // debug: true,
     });
     await trigger(document.body, 'button', 'click');
     expect(vNode).toMatchVDOM(

@@ -7,5 +7,5 @@
     "**/cypress/**",
     "**/.{idea,git,cache,output,temp}/**"
   ],
-  "cSpell.words": ["Stringifiable"]
+  "cSpell.words": ["bucketize", "Stringifiable"]
 }

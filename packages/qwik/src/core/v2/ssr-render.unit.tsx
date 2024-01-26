@@ -1,5 +1,5 @@
 import { createDocument } from '@builder.io/qwik-dom';
-import { Fragment } from '@builder.io/qwik/jsx-runtime';
+import { Fragment, Fragment as Component } from '../render/jsx/jsx-runtime';
 import { describe, expect, it } from 'vitest';
 import { renderToString } from '../../server/render';
 import { component$ } from '../component/component.public';
@@ -101,7 +101,7 @@ export async function domRender(
   return {
     document,
     container,
-    vNode: container.rootVNode,
+    vNode: vnode_getFirstChild(container.rootVNode),
   };
 }
 

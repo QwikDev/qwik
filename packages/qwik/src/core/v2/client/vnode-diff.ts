@@ -32,6 +32,7 @@ import {
   vnode_getNextSibling,
   vnode_getNode,
   vnode_getParent,
+  vnode_getParentComponent,
   vnode_getProp,
   vnode_getText,
   vnode_getType,
@@ -149,7 +150,11 @@ export const vnode_diff = (
               continue; // we just descended, skip advance()
             } else if (type === Slot) {
               expectNoMoreTextNodes();
-              expectSlot();
+              if (!expectSlot()) {
+                // nothing to project, so try to render the Slot default content.
+                descend(jsxValue.children, true);
+                continue; // we just descended, skip advance()
+              }
             } else if (type === Projection) {
               expectProjection();
               descend(jsxValue.children, true);
@@ -158,8 +163,9 @@ export const vnode_diff = (
               expectNoMoreTextNodes();
               expectVirtual();
               expectComponent(type);
-              descendProjection(jsxValue.children);
-              continue; // we just descended, skip advance()
+              if (descendProjection(jsxValue.children)) {
+                continue; // we just descended, skip advance()
+              }
             } else {
               throwErrorAndStop(`Unsupported type: ${type}`);
             }
@@ -319,12 +325,15 @@ export const vnode_diff = (
           projection.splice(i, 1);
         }
         descend(projection, true);
+        return true;
       }
     }
+    return false;
   }
 
   function expectProjection() {
-    const slotName = jsxValue.props[QSlot] as string;
+    const slotName = jsxValue.key as string;
+    // console.log('expectProjection', JSON.stringify(slotName));
     vCurrent = vnode_getProp<VirtualVNode | null>(
       vParent, // The parent is the component and it should have our portal.
       slotName,
@@ -339,26 +348,37 @@ export const vnode_diff = (
 
   function expectSlot() {
     const slotNameKey: string = jsxValue.key || '';
+    // console.log('expectSlot', JSON.stringify(slotNameKey));
     let vHost = vParent;
     // Find the host node
-    while (vnode_getProp(vHost, OnRenderProp, null) !== null) {
-      vHost = vnode_getParent(vHost)!;
-    }
+    vHost = vnode_getParentComponent(vHost);
     const vProjectedNode = vnode_getProp<VirtualVNode | null>(
       vHost,
       slotNameKey,
       container.getObjectById
     );
-    if (vProjectedNode === vCurrent) {
-      // All is good.
-    } else if (vProjectedNode) {
+    // console.log('   ', String(vHost), String(vProjectedNode));
+    if (vProjectedNode == null) {
+      // Nothing to project, so render content of the slot.
       journal.push(
         VNodeJournalOpCode.Insert,
         vParent,
-        (vNewNode = vnode_newVirtual(null!)),
+        (vNewNode = vnode_newVirtual(vParent)),
+        vCurrent && getInsertBefore()
+      );
+      return false;
+    } else if (vProjectedNode === vCurrent) {
+      // All is good.
+      // console.log('  NOOP', String(vCurrent));
+    } else {
+      journal.push(
+        VNodeJournalOpCode.Insert,
+        vParent,
+        (vNewNode = vProjectedNode),
         vCurrent && getInsertBefore()
       );
     }
+    return true;
   }
 
   function drainAsyncQueue(): ValueOrPromise<void> {
@@ -699,6 +719,4 @@ function shallowEqual(src: Record<string, any>, dst: Record<string, any>): boole
   }
   return true;
 }
-function vnode_getChildWithIdx(jsxKey: any) {
-  throw new Error('Function not implemented.');
-}
+

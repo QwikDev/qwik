@@ -1,4 +1,4 @@
-import { Fragment, type JSXNode } from '@builder.io/qwik/jsx-runtime';
+import { Fragment, Fragment as Component } from '../render/jsx/jsx-runtime';
 import { describe, expect, it } from 'vitest';
 import { isJSXNode } from '../render/jsx/jsx-runtime';
 import type { ElementVNode, QDocument, TextVNode, VNode } from './client/types';
@@ -22,7 +22,7 @@ import { isStringifiable, type Stringifiable } from './shared-types';
 
 import { createDocument } from '@builder.io/qwik-dom';
 import type { VirtualVNode } from './client/types';
-import type { JSXOutput } from '../render/jsx/types/jsx-node';
+import type { JSXNode, JSXOutput } from '../render/jsx/types/jsx-node';
 
 describe('vdom-diff.unit', () => {
   it('empty placeholder test to suppress warning', () => {});
@@ -49,6 +49,9 @@ expect.extend({
 });
 
 function diffJsxVNode(received: VNode, expected: JSXNode | string, path: string[] = []): string[] {
+  if (!received) {
+    return [path.join(' > ') + ' missing'];
+  }
   const diffs: string[] = [];
   if (typeof expected === 'string') {
     const receivedText = vnode_isTextVNode(received) ? vnode_getText(received as TextVNode) : null;

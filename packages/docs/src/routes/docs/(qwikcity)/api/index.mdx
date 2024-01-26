@@ -306,7 +306,10 @@ const cases = [
 test.each(cases)('should render card with %s %s', async ({text, link}) => {
   const { screen, render } = await createDOM();
   await render(
-    <QwikCityMockProvider>
+    <QwikCityMockProvider
+      goto={$(async (path) => {
+        // Do something
+      })}>
       <Card text={text} link={link} />
     </QwikCityMockProvider>,
   );

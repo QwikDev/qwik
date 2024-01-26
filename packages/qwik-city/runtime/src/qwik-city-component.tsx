@@ -549,9 +549,11 @@ export const QwikCityMockProvider = component$<QwikCityMockProps>((props) => {
   const loaderState = useSignal({});
   const routeInternal = useSignal<RouteStateInternal>({ type: 'initial', dest: url });
 
-  const goto: RouteNavigate = props.goto ?? $(async (path) => {
-    console.warn('Not implemented');
-  });
+  const goto: RouteNavigate =
+    props.goto ??
+    $(async (path) => {
+      console.warn('Not implemented');
+    });
 
   const documentHead = useStore(createDocumentHead, { deep: false });
 

@@ -10,7 +10,7 @@ import { useSignal } from '../use/use-signal';
 import { render2 } from './client/render2';
 import type { ContainerElement } from './client/types';
 import { vnode_getFirstChild } from './client/vnode';
-import './vdom-diff.unit';
+import './vdom-diff.unit-util';
 
 describe('v2 client render', () => {
   it('should render jsx', async () => {

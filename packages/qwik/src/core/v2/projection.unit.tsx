@@ -4,8 +4,8 @@ import { inlinedQrl } from '../qrl/qrl';
 import { Fragment as Component, Fragment } from '../render/jsx/jsx-runtime';
 import { Slot } from '../render/jsx/slot.public';
 import { vnode_getNextSibling } from './client/vnode';
-import { domRender, ssrRenderToDom } from './ssr-render.unit';
-import './vdom-diff.unit';
+import { domRender, ssrRenderToDom } from './rendering.unit-util';
+import './vdom-diff.unit-util';
 
 [
   ssrRenderToDom, // SSR

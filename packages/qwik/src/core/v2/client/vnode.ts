@@ -1027,7 +1027,7 @@ function materializeFromVNodeData(
     consume();
     const start = nextToConsumeIdx;
     while (
-      peek() <= 58 /* `:` */ ||
+      (peek() <= 58 /* `:` */ && peekCh !== 0) ||
       peekCh === 95 /* `_` */ ||
       (peekCh >= 65 /* `A` */ && peekCh <= 90) /* `Z` */ ||
       (peekCh >= 97 /* `a` */ && peekCh <= 122) /* `z` */

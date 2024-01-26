@@ -1,14 +1,13 @@
-import { Fragment, Fragment as Component } from '../render/jsx/jsx-runtime';
-import { describe, expect, it } from 'vitest';
-import { isJSXNode } from '../render/jsx/jsx-runtime';
+import { expect, it } from 'vitest';
+import { Fragment, isJSXNode } from '../render/jsx/jsx-runtime';
 import type { ElementVNode, QDocument, TextVNode, VNode } from './client/types';
 import {
+  vnode_getAttr,
+  vnode_getAttrKeys,
   vnode_getElementName,
   vnode_getFirstChild,
   vnode_getNextSibling,
   vnode_getParent,
-  vnode_getAttr,
-  vnode_getAttrKeys,
   vnode_getText,
   vnode_insertBefore,
   vnode_isElementVNode,
@@ -21,12 +20,8 @@ import {
 import { isStringifiable, type Stringifiable } from './shared-types';
 
 import { createDocument } from '@builder.io/qwik-dom';
-import type { VirtualVNode } from './client/types';
 import type { JSXNode, JSXOutput } from '../render/jsx/types/jsx-node';
-
-describe('vdom-diff.unit', () => {
-  it('empty placeholder test to suppress warning', () => {});
-});
+import type { VirtualVNode } from './client/types';
 
 interface CustomMatchers<R = unknown> {
   toMatchVDOM(expectedJSX: JSXOutput): R;

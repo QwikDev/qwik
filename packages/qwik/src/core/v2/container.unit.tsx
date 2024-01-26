@@ -15,8 +15,8 @@ import { isDeserializerProxy } from './shared-serialization';
 import { ssrCreateContainer } from './ssr/ssr-container';
 import { toSsrAttrs } from './ssr/ssr-render';
 import { SsrNode, type SSRContainer } from './ssr/types';
-import './vdom-diff.unit';
-import { walkJSX } from './vdom-diff.unit';
+import './vdom-diff.unit-util';
+import { walkJSX } from './vdom-diff.unit-util';
 import type { JSXOutput } from '../render/jsx/types/jsx-node';
 
 describe('serializer v2', () => {

@@ -74,6 +74,7 @@ class SWStateImpl implements SWState {
   }
 
   $log$(...msg: any[]) {
+    // eslint-disable-next-line no-console
     console.log('SW:', ...msg);
   }
 }

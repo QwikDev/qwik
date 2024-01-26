@@ -52,6 +52,96 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
     return null;
   };
 
+  const routePs: Record<string, ReturnType<typeof _resolveRoute>> = {};
+  const _resolveRoute = async (
+    routeModulePaths: WeakMap<RouteModule<unknown>, string>,
+    matchPathname: string
+  ) => {
+    await updateBuildContext(ctx);
+    for (const d of ctx.diagnostics) {
+      if (d.type === 'error') {
+        console.error(d.message);
+      } else {
+        console.warn(d.message);
+      }
+    }
+
+    // use vite to dynamically load each layout/page module in this route's hierarchy
+    const loaderMap = new Map<string, string>();
+    const serverPlugins: RouteModule[] = [];
+    for (const file of ctx.serverPlugins) {
+      const layoutModule = await server.ssrLoadModule(file.filePath);
+      serverPlugins.push(layoutModule);
+      routeModulePaths.set(layoutModule, file.filePath);
+      checkModule(loaderMap, layoutModule, file.filePath);
+    }
+
+    const routeResult = matchRouteRequest(matchPathname);
+    const routeModules: RouteModule[] = [];
+
+    let params: PathParams = {};
+    if (routeResult) {
+      const route = routeResult.route;
+      params = routeResult.params;
+
+      // found a matching route
+      for (const layout of route.layouts) {
+        const layoutModule = await server.ssrLoadModule(layout.filePath);
+        routeModules.push(layoutModule);
+        routeModulePaths.set(layoutModule, layout.filePath);
+        checkModule(loaderMap, layoutModule, layout.filePath);
+      }
+      const endpointModule = await server.ssrLoadModule(route.filePath);
+      routeModules.push(endpointModule);
+      routeModulePaths.set(endpointModule, route.filePath);
+      checkModule(loaderMap, endpointModule, route.filePath);
+    }
+
+    let menu: ContentMenu | undefined = undefined;
+    const menus = ctx.menus.map((buildMenu) => {
+      const menuLoader: MenuModuleLoader = async () => {
+        const m = await server.ssrLoadModule(buildMenu.filePath);
+        const menuModule: MenuModule = {
+          default: m.default,
+        };
+        return menuModule;
+      };
+      const menuData: MenuData = [buildMenu.pathname, menuLoader];
+      return menuData;
+    });
+
+    const menuLoader = getMenuLoader(menus, matchPathname);
+    if (menuLoader) {
+      const menuModule = await menuLoader();
+      menu = menuModule?.default;
+    }
+
+    const loadedRoute = [
+      routeResult ? routeResult.route.pathname : '',
+      params,
+      routeModules,
+      menu,
+      undefined,
+    ] satisfies LoadedRoute;
+    return { serverPlugins, loadedRoute };
+  };
+  const resolveRoute = (routeModulePaths: WeakMap<RouteModule<unknown>, string>, url: URL) => {
+    const matchPathname = getRouteMatchPathname(url.pathname, ctx.opts.trailingSlash);
+    routePs[matchPathname] ||= _resolveRoute(routeModulePaths, matchPathname).then((r) => {
+      delete routePs[matchPathname];
+      return r;
+    });
+    return routePs[matchPathname];
+  };
+
+  // Preload the modules needed to handle /, so that they load faster on first request.
+  resolveRoute(new WeakMap(), new URL('/', 'http://localhost')).catch((e: unknown) => {
+    if (e instanceof Error) {
+      server.ssrFixStacktrace(e);
+      formatError(e);
+    }
+  });
+
   return async (req: Connect.IncomingMessage, res: ServerResponse, next: Connect.NextFunction) => {
     try {
       const url = getUrl(req, computeOrigin(req));
@@ -61,53 +151,9 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
         return;
       }
 
-      await updateBuildContext(ctx);
-
-      for (const d of ctx.diagnostics) {
-        if (d.type === 'error') {
-          console.error(d.message);
-        } else {
-          console.warn(d.message);
-        }
-      }
-
       const routeModulePaths = new WeakMap<RouteModule, string>();
       try {
-        const { _deserializeData, _serializeData, _verifySerializable } =
-          await server.ssrLoadModule('@qwik-serializer');
-        const qwikSerializer = { _deserializeData, _serializeData, _verifySerializable };
-
-        // use vite to dynamically load each layout/page module in this route's hierarchy
-        const loaderMap = new Map<string, string>();
-        const serverPlugins: RouteModule[] = [];
-        for (const file of ctx.serverPlugins) {
-          const layoutModule = await server.ssrLoadModule(file.filePath);
-          serverPlugins.push(layoutModule);
-          routeModulePaths.set(layoutModule, file.filePath);
-          checkModule(loaderMap, layoutModule, file.filePath);
-        }
-
-        const matchPathname = getRouteMatchPathname(url.pathname, ctx.opts.trailingSlash);
-        const routeResult = matchRouteRequest(matchPathname);
-        const routeModules: RouteModule[] = [];
-
-        let params: PathParams = {};
-        if (routeResult) {
-          const route = routeResult.route;
-          params = routeResult.params;
-
-          // found a matching route
-          for (const layout of route.layouts) {
-            const layoutModule = await server.ssrLoadModule(layout.filePath);
-            routeModules.push(layoutModule);
-            routeModulePaths.set(layoutModule, layout.filePath);
-            checkModule(loaderMap, layoutModule, layout.filePath);
-          }
-          const endpointModule = await server.ssrLoadModule(route.filePath);
-          routeModules.push(endpointModule);
-          routeModulePaths.set(endpointModule, route.filePath);
-          checkModule(loaderMap, endpointModule, route.filePath);
-        }
+        const { serverPlugins, loadedRoute } = await resolveRoute(routeModulePaths, url);
 
         const renderFn = async (requestEv: RequestEvent) => {
           // routeResult && requestEv.sharedMap.set('@routeName', routeResult.route.pathname);
@@ -149,32 +195,6 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
           }
         };
 
-        let menu: ContentMenu | undefined = undefined;
-        const menus = ctx.menus.map((buildMenu) => {
-          const menuLoader: MenuModuleLoader = async () => {
-            const m = await server.ssrLoadModule(buildMenu.filePath);
-            const menuModule: MenuModule = {
-              default: m.default,
-            };
-            return menuModule;
-          };
-          const menuData: MenuData = [buildMenu.pathname, menuLoader];
-          return menuData;
-        });
-
-        const menuLoader = getMenuLoader(menus, url.pathname);
-        if (menuLoader) {
-          const menuModule = await menuLoader();
-          menu = menuModule?.default;
-        }
-
-        const loadedRoute = [
-          routeResult ? routeResult.route.pathname : '',
-          params,
-          routeModules,
-          menu,
-          undefined,
-        ] satisfies LoadedRoute;
         const requestHandlers = resolveRequestHandlers(
           serverPlugins,
           loadedRoute,
@@ -195,6 +215,11 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
             injections: [],
             version: '1',
           };
+
+          const { _deserializeData, _serializeData, _verifySerializable } =
+            await server.ssrLoadModule('@qwik-serializer');
+          const qwikSerializer = { _deserializeData, _serializeData, _verifySerializable };
+
           const { completion, requestEv } = runQwikCity(
             serverRequestEv,
             loadedRoute,

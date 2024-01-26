@@ -144,6 +144,7 @@ import {
   QScopedStyle,
   QSlotRef,
 } from '../../util/markers';
+import { isQrl } from '../../qrl/qrl-class';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -344,7 +345,7 @@ export const vnode_ensureElementInflated = (vnode: VNode) => {
       const attr = attributes[idx];
       const key = attr.name;
       const value = attr.value;
-      mapArray_set(elementVNode as string[], key, value, ElementVNodeProps.PROPS_OFFSET);
+      mapArray_set(elementVNode as string[], key, value, vnode_getPropStartIndex(vnode));
     }
   }
 };
@@ -793,13 +794,7 @@ export const vnode_getAttrKeys = (vnode: ElementVNode | VirtualVNode): string[] 
   if ((type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) !== 0) {
     vnode_ensureElementInflated(vnode);
     const keys: string[] = [];
-    for (
-      let i = vnode_isElementVNode(vnode)
-        ? ElementVNodeProps.PROPS_OFFSET
-        : VirtualVNodeProps.PROPS_OFFSET;
-      i < vnode.length;
-      i = i + 2
-    ) {
+    for (let i = vnode_getPropStartIndex(vnode); i < vnode.length; i = i + 2) {
       keys.push(vnode[i] as string);
     }
     return keys;
@@ -811,11 +806,7 @@ export const vnode_setAttr = (vnode: VNode, key: string, value: string | null): 
   const type = vnode[VNodeProps.flags];
   if ((type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) !== 0) {
     vnode_ensureElementInflated(vnode);
-    const idx = mapApp_findIndx(
-      vnode as string[],
-      key,
-      vnode_isElementVNode(vnode) ? ElementVNodeProps.PROPS_OFFSET : VirtualVNodeProps.PROPS_OFFSET
-    );
+    const idx = mapApp_findIndx(vnode as string[], key, vnode_getPropStartIndex(vnode));
     if (idx >= 0) {
       if (vnode[idx + 1] != value && (type & VNodeFlags.Element) !== 0) {
         // Values are different, update DOM
@@ -846,11 +837,7 @@ export const vnode_getAttr = (vnode: VNode, key: string): string | null => {
   const type = vnode[VNodeProps.flags];
   if ((type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) !== 0) {
     vnode_ensureElementInflated(vnode);
-    return mapArray_get(
-      vnode as string[],
-      key,
-      vnode_isElementVNode(vnode) ? ElementVNodeProps.PROPS_OFFSET : VirtualVNodeProps.PROPS_OFFSET
-    );
+    return mapArray_get(vnode as string[], key, vnode_getPropStartIndex(vnode));
   }
   return null;
 };
@@ -887,8 +874,8 @@ export const vnode_clearLocalProps = (vnode: VNode) => {
 };
 
 export const vnode_setProp = (vnode: VirtualVNode | ElementVNode, key: string, value: any) => {
-  ensureVirtualVNode(vnode);
-  const idx = mapApp_findIndx(vnode as any, key, VirtualVNodeProps.PROPS_OFFSET);
+  ensureElementOrVirtualVNode(vnode);
+  const idx = mapApp_findIndx(vnode as any, key, vnode_getPropStartIndex(vnode));
   if (idx >= 0) {
     vnode[idx + 1] = value;
   } else if (value != null) {
@@ -896,16 +883,21 @@ export const vnode_setProp = (vnode: VirtualVNode | ElementVNode, key: string, v
   }
 };
 
+export const vnode_getPropStartIndex = (vnode: VNode): number => {
+  const type = vnode[VNodeProps.flags] & VNodeFlags.TYPE_MASK;
+  if (type === VNodeFlags.Element) {
+    return ElementVNodeProps.PROPS_OFFSET;
+  } else if (type === VNodeFlags.Virtual) {
+    return VirtualVNodeProps.PROPS_OFFSET;
+  } else {
+    return -1;
+  }
+};
+
 export const vnode_propsToRecord = (vnode: VNode): Record<string, any> => {
   const props: Record<string, any> = {};
   if (!vnode_isTextVNode(vnode)) {
-    for (
-      let i = vnode_isElementVNode(vnode)
-        ? ElementVNodeProps.PROPS_OFFSET
-        : VirtualVNodeProps.PROPS_OFFSET;
-      i < vnode.length;
-
-    ) {
+    for (let i = vnode_getPropStartIndex(vnode); i < vnode.length; ) {
       const key = vnode[i++] as string;
       const value = vnode[i++];
       props[key] = value;
@@ -1188,6 +1180,13 @@ export const vnode_documentPosition = (a: VNode, b: VNode) => {
   return (aNode!.compareDocumentPosition(bNode) & DOCUMENT_POSITION_PRECEDING) !== 0 ? 1 : -1;
 };
 
+export const vnode_getParentComponent = (vHost: VNode) => {
+  while (vnode_getProp(vHost, OnRenderProp, null) === null) {
+    vHost = vnode_getParent(vHost)!;
+  }
+  return vHost;
+};
+
 const stringify = (value: any) => {
   if (value === null) {
     return 'null';
@@ -1196,8 +1195,14 @@ const stringify = (value: any) => {
   } else if (typeof value === 'string') {
     return '"' + value + '"';
   } else if (typeof value === 'function') {
-    return '"' + value.name + '()"';
+    if (isQrl(value)) {
+      return '"' + (value.$chunk$ || '') + '#' + value.$hash$ + '"';
+    } else {
+      return '"' + value.name + '()"';
+    }
+  } else if (vnode_isVNode(value)) {
+    return '"' + String(value).replaceAll(/\n\s*/gm, '') + '"';
   } else {
     return String(value);
   }
-}
+};

@@ -1,17 +1,17 @@
-import { Fragment as Component, Fragment } from '@builder.io/qwik/jsx-runtime';
 import { describe, expect, it } from 'vitest';
 import { component$ } from '../component/component.public';
 import { Slot } from '../render/jsx/slot.public';
 import { vnode_getNextSibling } from './client/vnode';
 import './vdom-diff.unit';
 import { domRender, ssrRenderToDom } from './ssr-render.unit';
+import { Fragment, Fragment as Component } from '../render/jsx/jsx-runtime';
 
 [
   ssrRenderToDom, // SSR
-  // domRender, // Client
+  domRender, // Client
 ].forEach((render) => {
   describe(render.name + ': projection', () => {
-    it.only('should render basic projection', async () => {
+    it('should render basic projection', async () => {
       const Child = component$(() => {
         return (
           <div>
@@ -22,7 +22,7 @@ import { domRender, ssrRenderToDom } from './ssr-render.unit';
       const Parent = component$(() => {
         return <Child>parent-content</Child>;
       });
-      const { vNode } = await render(<Parent>render-content</Parent>, { debug: true });
+      const { vNode } = await render(<Parent>render-content</Parent>, { debug: false });
       expect(vNode).toMatchVDOM(
         <Fragment>
           <Fragment>
@@ -48,12 +48,14 @@ import { domRender, ssrRenderToDom } from './ssr-render.unit';
           </Fragment>
         </Fragment>
       );
-      expect(vnode_getNextSibling(vNode!)).toMatchVDOM(
-        <q:template style="display:none">
-          <Fragment>parent-content</Fragment>
-          <Fragment>render-content</Fragment>
-        </q:template>
-      );
+      if (render === ssrRenderToDom) {
+        expect(vnode_getNextSibling(vNode!)).toMatchVDOM(
+          <q:template style="display:none">
+            <Fragment>parent-content</Fragment>
+            <Fragment>render-content</Fragment>
+          </q:template>
+        );
+      }
     });
     it('should render default projection', async () => {
       const Child = component$(() => {
@@ -86,11 +88,13 @@ import { domRender, ssrRenderToDom } from './ssr-render.unit';
           </Fragment>
         </Fragment>
       );
-      expect(vnode_getNextSibling(vNode!)).toMatchVDOM(
-        <q:template style="display:none">
-          <Fragment>default-value</Fragment>
-        </q:template>
-      );
+      if (render === ssrRenderToDom) {
+        expect(vnode_getNextSibling(vNode!)).toMatchVDOM(
+          <q:template style="display:none">
+            <Fragment>default-value</Fragment>
+          </q:template>
+        );
+      }
     });
     it('should render nested projection', async () => {
       const Child = component$(() => {

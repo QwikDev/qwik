@@ -4,17 +4,17 @@
   "version": "0.0.1",
   "devDependencies": {
     "@builder.io/qwik": "workspace:*",
-    "@types/eslint": "^8.56.1",
-    "@types/node": "^20.10.8",
-    "@typescript-eslint/eslint-plugin": "^6.18.1",
-    "@typescript-eslint/parser": "^6.18.1",
+    "@types/eslint": "^8.56.2",
+    "@types/node": "^20.11.6",
+    "@typescript-eslint/eslint-plugin": "^6.19.1",
+    "@typescript-eslint/parser": "^6.19.1",
     "eslint": "^8.56.0",
     "eslint-plugin-qwik": "workspace:*",
     "np": "^8.0.4",
-    "prettier": "^3.1.1",
+    "prettier": "^3.2.4",
     "typescript": "5.3.3",
     "undici": "*",
-    "vite": "^5.0.11"
+    "vite": "^5.0.12"
   },
   "engines": {
     "node": ">=16.8.0 <18.0.0 || >=18.11"

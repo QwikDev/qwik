@@ -73,7 +73,9 @@ class SWStateImpl implements SWState {
     return cache.match(request);
   }
 
-  $log$() {}
+  $log$(...msg: any[]) {
+    console.log('SW:', ...msg);
+  }
 }
 
 export const createState = (fetch: ServiceWorkerGlobalScope['fetch'], url: URL): SWState => {

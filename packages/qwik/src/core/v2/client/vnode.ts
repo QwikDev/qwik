@@ -142,6 +142,7 @@ import {
   OnRenderProp,
   QCtxAttr,
   QScopedStyle,
+  QSlotParent,
   QSlotRef,
 } from '../../util/markers';
 import { isQrl } from '../../qrl/qrl-class';
@@ -1180,29 +1181,79 @@ export const vnode_documentPosition = (a: VNode, b: VNode) => {
   return (aNode!.compareDocumentPosition(bNode) & DOCUMENT_POSITION_PRECEDING) !== 0 ? 1 : -1;
 };
 
-export const vnode_getParentComponent = (vHost: VNode) => {
-  while (vnode_getProp(vHost, OnRenderProp, null) === null) {
-    vHost = vnode_getParent(vHost)!;
+/**
+ * Use this method to find the parent component for projection.
+ *
+ * Normally the parent component is just the first component which we encounter while traversing the
+ * parents.
+ *
+ * However, if during traversal we encounter a projection, than we have to follow the projection,
+ * and nod weth the projection component is further away (it is the parent's parent of the
+ * projection's)
+ *
+ * So in general we have to go up as many parent components as there are projections nestings.
+ *
+ * - No projection nesting first parent component.
+ * - One projection nesting, second parent component (parent's parent).
+ * - Three projection nesting, third parent component (parent's parent's parent).
+ * - And so on.
+ *
+ * @param vHost
+ * @param getObjectById
+ * @returns
+ */
+export const vnode_getProjectionParentComponent = (
+  vHost: VNode,
+  getObjectById: (id: string) => unknown
+) => {
+  let projectionDepth = 1;
+  while (projectionDepth--) {
+    while (
+      vHost && vnode_isVirtualVNode(vHost)
+        ? vnode_getProp(vHost, OnRenderProp, null) === null
+        : true
+    ) {
+      const vProjectionParent =
+        vnode_isVirtualVNode(vHost) &&
+        (vnode_getProp(vHost, QSlotParent, getObjectById) as VNode | null);
+      if (vProjectionParent) {
+        // We found a projection, so we need to go up one more level.
+        projectionDepth++;
+      }
+      vHost = vProjectionParent || vnode_getParent(vHost)!;
+    }
+    if (projectionDepth > 0) {
+      vHost = vnode_getParent(vHost)!;
+    }
   }
   return vHost;
 };
 
+let inStringify = false;
 const stringify = (value: any) => {
-  if (value === null) {
-    return 'null';
-  } else if (value === undefined) {
-    return 'undefined';
-  } else if (typeof value === 'string') {
-    return '"' + value + '"';
-  } else if (typeof value === 'function') {
-    if (isQrl(value)) {
-      return '"' + (value.$chunk$ || '') + '#' + value.$hash$ + '"';
+  if (inStringify) {
+    return '[...]';
+  }
+  inStringify = true;
+  try {
+    if (value === null) {
+      return 'null';
+    } else if (value === undefined) {
+      return 'undefined';
+    } else if (typeof value === 'string') {
+      return '"' + value + '"';
+    } else if (typeof value === 'function') {
+      if (isQrl(value)) {
+        return '"' + (value.$chunk$ || '') + '#' + value.$hash$ + '"';
+      } else {
+        return '"' + value.name + '()"';
+      }
+    } else if (vnode_isVNode(value)) {
+      return '"' + String(value).replaceAll(/\n\s*/gm, '') + '"';
     } else {
-      return '"' + value.name + '()"';
+      return String(value);
     }
-  } else if (vnode_isVNode(value)) {
-    return '"' + String(value).replaceAll(/\n\s*/gm, '') + '"';
-  } else {
-    return String(value);
+  } finally {
+    inStringify = false;
   }
 };

@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { component$ } from '../component/component.public';
+import { component$, componentQrl } from '../component/component.public';
+import { inlinedQrl } from '../qrl/qrl';
+import { Fragment as Component, Fragment } from '../render/jsx/jsx-runtime';
 import { Slot } from '../render/jsx/slot.public';
 import { vnode_getNextSibling } from './client/vnode';
-import './vdom-diff.unit';
 import { domRender, ssrRenderToDom } from './ssr-render.unit';
-import { Fragment, Fragment as Component } from '../render/jsx/jsx-runtime';
+import './vdom-diff.unit';
 
 [
   ssrRenderToDom, // SSR
@@ -128,6 +129,49 @@ import { Fragment, Fragment as Component } from '../render/jsx/jsx-runtime';
                 after
               </Fragment>
             </div>
+          </Component>
+        </Component>
+      );
+    });
+    it('should project projected', async () => {
+      const Child = componentQrl(
+        inlinedQrl(() => {
+          return (
+            <span>
+              <Slot name="child" />
+            </span>
+          );
+        }, 's_child')
+      );
+      const Parent = componentQrl(
+        inlinedQrl(() => {
+          return (
+            <Child>
+              <div q:slot="child">
+                <Slot name="parent" />
+              </div>
+            </Child>
+          );
+        }, 's_parent')
+      );
+      const { vNode } = await render(
+        <Parent>
+          <b q:slot="parent">parent</b>
+        </Parent>,
+        { debug: false }
+      );
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Component>
+            <span>
+              <Fragment>
+                <div q:slot="child">
+                  <Fragment>
+                    <b q:slot="parent">parent</b>
+                  </Fragment>
+                </div>
+              </Fragment>
+            </span>
           </Component>
         </Component>
       );

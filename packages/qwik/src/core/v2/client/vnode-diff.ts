@@ -9,7 +9,7 @@ import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
 import { isSignal } from '../../state/signal';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../../util/flyweight';
 import { throwErrorAndStop } from '../../util/log';
-import { ELEMENT_KEY, ELEMENT_PROPS, OnRenderProp, QSlot } from '../../util/markers';
+import { ELEMENT_KEY, ELEMENT_PROPS, OnRenderProp, QSlot, QSlotParent } from '../../util/markers';
 import { isPromise } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
 import { executeComponent2 } from '../shared/component-execution';
@@ -31,8 +31,7 @@ import {
   vnode_getFirstChild,
   vnode_getNextSibling,
   vnode_getNode,
-  vnode_getParent,
-  vnode_getParentComponent,
+  vnode_getProjectionParentComponent,
   vnode_getProp,
   vnode_getText,
   vnode_getType,
@@ -46,7 +45,7 @@ import {
   vnode_setAttr,
   vnode_setProp,
   vnode_setText,
-  vnode_truncate,
+  vnode_truncate
 } from './vnode';
 
 export type VNodeJournalEntry = VNodeJournalOpCode | VNode | null | string;
@@ -342,16 +341,15 @@ export const vnode_diff = (
     if (vCurrent == null) {
       vNewNode = vnode_newVirtual(null!);
       vnode_setProp(vNewNode as VirtualVNode, QSlot, slotName);
+      vnode_setProp(vNewNode as VirtualVNode, QSlotParent, vParent);
       vnode_setProp(vParent as VirtualVNode, slotName, vNewNode);
     }
   }
 
   function expectSlot() {
-    const slotNameKey: string = jsxValue.key || '';
+    const slotNameKey: string = jsxValue.props.name || '';
     // console.log('expectSlot', JSON.stringify(slotNameKey));
-    let vHost = vParent;
-    // Find the host node
-    vHost = vnode_getParentComponent(vHost);
+    const vHost = vnode_getProjectionParentComponent(vParent, container.getObjectById);
     const vProjectedNode = vnode_getProp<VirtualVNode | null>(
       vHost,
       slotNameKey,

@@ -177,4 +177,47 @@ import './vdom-diff.unit';
       );
     });
   });
+  it('should project default content', async () => {
+    const Child = componentQrl(
+      inlinedQrl(() => {
+        return (
+          <span>
+            <Slot name="child">Default Child</Slot>
+          </span>
+        );
+      }, 's_child')
+    );
+    const Parent = componentQrl(
+      inlinedQrl(() => {
+        return (
+          <Child>
+            <div q:slot="child">
+              <Slot name="parent">Default parent</Slot>
+            </div>
+          </Child>
+        );
+      }, 's_parent')
+    );
+    const { vNode } = await render(<Parent />, { debug: true });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Component>
+          <span>
+            <Fragment>
+              <div q:slot="child">
+                <Fragment>Default parent</Fragment>
+              </div>
+            </Fragment>
+          </span>
+        </Component>
+      </Component>
+    );
+    if (render === ssrRenderToDom) {
+      expect(vnode_getNextSibling(vNode!)).toMatchVDOM(
+        <q:template style="display:none">
+          <Fragment>Default Child</Fragment>
+        </q:template>
+      );
+    }
+  });
 });

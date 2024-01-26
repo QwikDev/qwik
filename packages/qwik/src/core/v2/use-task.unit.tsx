@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { component$ } from '../component/component.public';
 import { useSignal } from '../use/use-signal';
 import { useTask$ } from '../use/use-task';
-import { ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
+import { ssrRenderToDom } from './rendering.unit-util';
 
 describe('useTask', () => {
   it.skip('should execute task on SSR', async () => {

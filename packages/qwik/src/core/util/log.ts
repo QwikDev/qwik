@@ -81,8 +81,12 @@ const printElement = (el: Element) => {
 
 const createAndLogError = (asyncThrow: boolean, message?: any, ...optionalParams: any[]) => {
   const err = message instanceof Error ? message : new Error(message);
-  const messageStr = err.stack || err.message;
-  console.error('%cQWIK ERROR', STYLE, messageStr, ...printParams(optionalParams));
+  
+  // display the error message first, then the optional params, and finally the stack trace
+  // the stack needs to be displayed last because the given params will be lost among large stack traces so it will
+  // provide a bad developer experience
+  console.error('%cQWIK ERROR', STYLE, err.message, ...printParams(optionalParams), err.stack);
+
   asyncThrow &&
     !qTest &&
     setTimeout(() => {

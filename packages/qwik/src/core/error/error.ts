@@ -1,5 +1,6 @@
 import { logErrorAndStop } from '../util/log';
 import { qDev } from '../util/qdev';
+import { red, cyan, magenta } from 'kleur/colors';
 
 export const QError_stringifyClassOrStyle = 0;
 export const QError_cannotSerializeNode = 1; // 'Can not serialize a HTML Node that is not an Element'
@@ -34,6 +35,7 @@ export const QError_canNotRenderHTML = 29;
 export const QError_qrlMissingContainer = 30;
 export const QError_qrlMissingChunk = 31;
 export const QError_invalidRefValue = 32;
+
 export const qError = (code: number, ...parts: any[]): Error => {
   const text = codeToText(code);
   return logErrorAndStop(text, ...parts);
@@ -81,4 +83,24 @@ For more information see: https://qwik.builder.io/docs/components/tasks/#use-met
   } else {
     return `Code(${code})`;
   }
+};
+
+/**
+ * Get an error when context is being used but not provided in a parent
+ * This function displays the error message in the console in more readable way than qError()
+ * Also, it does not stop the app, so when the developer fixes the issue, the app will reload automatically
+ * without the need to start the development server again.
+ */
+export const missingContextValueError = (contextId: string) => {
+  if (qDev) {
+    const error = `${red('Qwik ERROR Error')}: Code(${cyan(
+      '13'
+    )}) Actual value for useContext() '${magenta(
+      `${contextId} context`
+    )}' can not be found, make sure some ancestor component has set a value using useContextProvider()`;
+
+    return new Error(error);
+  }
+
+  return new Error('Code(13)');
 };

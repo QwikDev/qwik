@@ -46,6 +46,9 @@ export function asyncWalkJSX(ssr: SSRContainer, value: any): Promise<void> {
         } else if (value === ssr.closeComponent) {
           ssr.closeComponent();
           continue;
+        } else if (value === ssr.closeProjection) {
+          ssr.closeProjection();
+          continue;
         }
       } else if (typeof value === 'object' && value !== null) {
         if (isPromise(value)) {
@@ -139,8 +142,9 @@ function processJSXNode(
           ssr.openFragment(toSsrAttrs(jsx.props, ssr.serializationCtx));
           enqueue(jsx.children, ssr.closeFragment);
         } else if (type === Slot) {
-          const componentFrame = ssr.getCurrentComponentFrame()!;
-          ssr.openFragment([':', componentFrame.componentNode.id]);
+          const currentFrame = ssr.getComponentFrame(0)!;
+          const componentFrame = ssr.getComponentFrame(currentFrame.projectionDepth)!;
+          ssr.openProjection([':', componentFrame.componentNode.id]);
           const node = ssr.getLastNode();
           const slotName = String(jsx.props.name || '');
           const slotDefaultChildren = (jsx.props.children || null) as JSXChildren | null;
@@ -149,10 +153,10 @@ function processJSXNode(
           if (slotDefaultChildren && slotChildren !== slotDefaultChildren) {
             ssr.addUnclaimedProjection(node, '', slotDefaultChildren);
           }
-          enqueue(slotChildren, ssr.closeFragment);
+          enqueue(slotChildren, ssr.closeProjection);
         } else if (isQwikComponent(type)) {
           ssr.openComponent([]);
-          ssr.getCurrentComponentFrame()!.distributeChildrenIntoSlots(jsx.children);
+          ssr.getComponentFrame(0)!.distributeChildrenIntoSlots(jsx.children);
           enqueue(applyQwikComponentBody(ssr, jsx, type), ssr.closeComponent);
         } else {
           enqueue(applyInlineComponent(type as any, jsx as JSXNode<Function>));

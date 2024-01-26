@@ -192,15 +192,33 @@ class SSRContainer implements ISSRContainer {
     this.lastNode = null;
   }
 
+  openProjection(attrs: SsrAttrs) {
+    this.openFragment(attrs);
+    this.getComponentFrame(0)!.projectionDepth++;
+  }
+
+  closeProjection() {
+    this.getComponentFrame(0)!.projectionDepth--;
+    this.closeFragment();
+  }
+
   openComponent(attrs: SsrAttrs) {
     this.parentComponentNode = this.getLastNode();
     this.openFragment(attrs);
     this.componentStack.push(new SsrComponentFrame(this.getLastNode()));
   }
 
-  getCurrentComponentFrame() {
+  /**
+   * Returns the current component frame.
+   *
+   * @param projectionDepth - How many levels of projection to skip. This is needed when projections
+   *   are nested inside other projections we need to have a way to read from a frame above.
+   * @returns
+   */
+  getComponentFrame(projectionDepth: number = 0): SsrComponentFrame | null {
     const length = this.componentStack.length;
-    return length > 0 ? this.componentStack[length - 1] : null;
+    const idx = length - projectionDepth - 1;
+    return idx >= 0 ? this.componentStack[idx] : null;
   }
 
   closeComponent() {

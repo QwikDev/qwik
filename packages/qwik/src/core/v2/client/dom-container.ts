@@ -231,13 +231,19 @@ export function processVNodeData(document: Document) {
           }
         }
         vNodeDataEnd = vNodeDataStart;
+        let depth = 0;
         while (true as boolean) {
           // look for the end of VNodeData
           if (vNodeDataEnd < currentVNodeDataLength) {
             ch = currentVNodeData.charCodeAt(vNodeDataEnd);
-            if (isSeparator(ch)) {
+            if (depth === 0 && isSeparator(ch)) {
               break;
             } else {
+              if (ch === 123 /* `{` */) {
+                depth++;
+              } else if (ch === 125 /* `}` */) {
+                depth--;
+              }
               vNodeDataEnd++;
             }
           } else {

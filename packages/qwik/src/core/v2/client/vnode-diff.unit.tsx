@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { vnode_getNode } from './vnode';
 import { vnode_applyJournal, vnode_diff, type VNodeJournalEntry } from './vnode-diff';
-import { vnode_fromJSX } from '../vdom-diff.unit';
+import { vnode_fromJSX } from '../vdom-diff.unit-util';
 
 describe('vNode-diff', () => {
   const journal: VNodeJournalEntry[] = [];

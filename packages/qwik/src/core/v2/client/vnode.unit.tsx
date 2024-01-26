@@ -1,7 +1,7 @@
 import { createDocument } from '@builder.io/qwik-dom';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import '../vdom-diff.unit';
+import '../vdom-diff.unit-util';
 import type {
   ElementVNode,
   VirtualVNode,

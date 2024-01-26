@@ -1,13 +1,13 @@
+import { Fragment } from '@builder.io/qwik/jsx-runtime';
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
 import { component$ } from '../component/component.public';
 import { inlinedQrl } from '../qrl/qrl';
+import type { Signal } from '../state/signal';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { useSignal } from '../use/use-signal';
-import { ssrRenderToDom } from './ssr-render.unit';
-import './vdom-diff.unit';
-import type { Signal } from '../state/signal';
-import { Fragment } from '@builder.io/qwik/jsx-runtime';
+import { ssrRenderToDom } from './rendering.unit-util';
+import './vdom-diff.unit-util';
 
 describe('useSignal', () => {
   it('should update value', async () => {

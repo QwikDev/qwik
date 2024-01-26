@@ -1,9 +1,9 @@
+import { Fragment as Component, Fragment } from '@builder.io/qwik/jsx-runtime';
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
 import { component$ } from '../component/component.public';
-import { ssrRenderToDom } from './ssr-render.unit';
-import './vdom-diff.unit';
-import { Fragment, Fragment as Component } from '@builder.io/qwik/jsx-runtime';
+import { ssrRenderToDom } from './rendering.unit-util';
+import './vdom-diff.unit-util';
 
 describe('useSequentialScope', () => {
   it('should render component', async () => {

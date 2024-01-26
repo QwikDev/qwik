@@ -3,7 +3,7 @@ import { component$ } from '../component/component.public';
 import { useSignal } from '../use/use-signal';
 import { useTask$ } from '../use/use-task';
 import { ssrRenderToDom } from './ssr-render.unit';
-import './vdom-diff.unit';
+import './vdom-diff.unit-util';
 
 describe('useTask', () => {
   it.skip('should execute task on SSR', async () => {

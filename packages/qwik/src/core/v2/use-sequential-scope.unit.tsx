@@ -4,11 +4,11 @@ import { component$ } from '../component/component.public';
 import { inlinedQrl } from '../qrl/qrl';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { useSequentialScope } from '../use/use-sequential-scope';
-import './vdom-diff.unit';
-import { rerenderComponent, ssrRenderToDom } from './ssr-render.unit';
+import { rerenderComponent, ssrRenderToDom } from './rendering.unit-util';
+import './vdom-diff.unit-util';
 
 describe('useSequentialScope', () => {
-  it.only('should update value', async () => {
+  it('should update value', async () => {
     const MyComp = component$(() => {
       const { set, i, val } = useSequentialScope();
       if (val == null) {

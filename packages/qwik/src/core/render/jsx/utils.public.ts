@@ -1,4 +1,4 @@
-import { jsx, _jsxQ, _jsxC, RenderOnce } from '../jsx/jsx-runtime';
+import { jsx, RenderOnce } from '../jsx/jsx-runtime';
 import type { StreamWriter } from '../ssr/render-ssr';
 import type { FunctionComponent, JSXNode } from './types/jsx-node';
 import type { JSXChildren } from './types/jsx-qwik-attributes';

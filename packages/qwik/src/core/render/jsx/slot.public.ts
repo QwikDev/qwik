@@ -1,5 +1,5 @@
 import { QSlotS } from '../../util/markers';
-import { Virtual, _jsxC, _jsxQ } from './jsx-runtime';
+import { Virtual, _jsxC } from './jsx-runtime';
 import type { FunctionComponent } from './types/jsx-node';
 
 /**

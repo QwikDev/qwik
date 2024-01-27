@@ -1,8 +1,10 @@
 /** @file Public APIs for the SSR */
 
+import type { V } from 'vitest/dist/reporters-qc5Smpt5';
 import { assertTrue } from '../../error/assert';
 import { getPlatform } from '../../platform/platform';
 import { createSubscriptionManager, type SubscriptionManager } from '../../state/common';
+import type { ContextId } from '../../use/use-context';
 import { throwErrorAndStop } from '../../util/log';
 import {
   ELEMENT_PROPS,
@@ -24,6 +26,9 @@ import type {
   VirtualVNode,
 } from './types';
 import {
+  mapArray_get,
+  mapArray_set,
+  vnode_clearLocalProps,
   vnode_documentPosition,
   vnode_getClosestParentNode,
   vnode_getParent,
@@ -108,6 +113,33 @@ export class DomContainer implements IClientContainer {
     }
     this.$subsManager$ = createSubscriptionManager(this as fixMeAny);
   }
+
+  setContext<T>(host: HostElement, context: ContextId<T>, value: T): void {
+    let ctx = this.getHostProp<Array<string | unknown>>(host, QCtxAttr);
+    if (!ctx) {
+      this.setHostProp(host, QCtxAttr, (ctx = []));
+    }
+    mapArray_set(ctx, context.id, value, 0);
+  }
+
+  resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | null {
+    while (host) {
+      const ctx = this.getHostProp<Array<string | unknown>>(host, QCtxAttr);
+      if (ctx) {
+        const value = mapArray_get(ctx, contextId.id, 0) as T;
+        if (value) {
+          return value as T;
+        }
+      }
+      host = this.getParentHost(host)!;
+    }
+    return null;
+  }
+
+  clearLocalProps(host: HostElement): void {
+    vnode_clearLocalProps(host as unknown as VirtualVNode);
+  }
+
   getParentHost(host: HostElement): HostElement | null {
     let vNode = vnode_getParent(host as any);
     while (vNode) {
@@ -271,11 +303,3 @@ export function processVNodeData(document: Document) {
     return /* `!` */ 33 <= ch && ch <= 47; /* `/` */
   }
 }
-// function loggingProxy(name: string, dst: any): any {
-//   return new Proxy(dst, {
-//     get: (target: any, prop: string) => {
-//       console.log('PROXY.get', name, prop);
-//       return target[prop];
-//     },
-//   }) as any;
-// }

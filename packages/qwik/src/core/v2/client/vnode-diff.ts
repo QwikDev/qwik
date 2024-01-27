@@ -23,6 +23,7 @@ import {
   type TextVNode,
   type VNode,
   type VirtualVNode,
+  VNodeProps,
 } from './types';
 import {
   mapApp_findIndx,
@@ -46,7 +47,7 @@ import {
   vnode_setAttr,
   vnode_setProp,
   vnode_setText,
-  vnode_truncate
+  vnode_truncate,
 } from './vnode';
 
 export type VNodeJournalEntry = VNodeJournalOpCode | VNode | null | string;
@@ -336,7 +337,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       container.getObjectById
     );
     if (vCurrent == null) {
-      vNewNode = vnode_newVirtual(null!);
+      vNewNode = vnode_newVirtual(vParent);
       vnode_setProp(vNewNode as VirtualVNode, QSlot, slotName);
       vnode_setProp(vNewNode as VirtualVNode, QSlotParent, vParent);
       vnode_setProp(vParent as VirtualVNode, slotName, vNewNode);
@@ -366,6 +367,10 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       // All is good.
       // console.log('  NOOP', String(vCurrent));
     } else {
+      /// We have to ensure that the projected node is correctly linked into the tree.
+      /// We need this because we need to be able to walk the context even before the
+      /// journal is processed.
+      vProjectedNode[VNodeProps.parent] = vParent;
       journal.push(
         VNodeJournalOpCode.Insert,
         vParent,

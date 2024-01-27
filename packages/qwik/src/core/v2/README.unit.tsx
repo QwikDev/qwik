@@ -33,7 +33,7 @@ import { Slot } from '../render/jsx/slot.public';
 import { vnode_getNextSibling } from './client/vnode';
 
 // To better understand what is going on in the test, set DEBUG to true and run the test.
-const DEBUG = false;
+const DEBUG = true;
 
 function log(...args: any[]) {
   // eslint-disable-next-line no-console

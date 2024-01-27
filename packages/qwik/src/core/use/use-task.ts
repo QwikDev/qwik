@@ -13,7 +13,7 @@ import { type ContainerState, intToStr, type MustGetObjID, strToInt } from '../c
 import { notifyTask, _hW } from '../render/dom/notify-render';
 import { useSequentialScope } from './use-sequential-scope';
 import type { QwikElement } from '../render/dom/virtual-element';
-import { handleError } from '../render/error-handling';
+import { handleError, handleError2 } from '../render/error-handling';
 import type { RenderContext } from '../render/types';
 import {
   getSubscriptionManager,
@@ -34,6 +34,8 @@ import {
 import { QObjectManagerSymbol } from '../state/constants';
 import { ComputedEvent, TaskEvent } from '../util/markers';
 import type { VirtualVNode } from '../v2/client/types';
+import type { Container2, fixMeAny } from '../v2/shared/types';
+import { isPromise } from 'util/types';
 
 export const TaskFlagsIsVisibleTask = 1 << 0;
 export const TaskFlagsIsTask = 1 << 1;
@@ -282,6 +284,7 @@ export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: UseTaskOptions): void => {
     return;
   }
   assertQrl(qrl);
+  set(1);
 
   if (iCtx.$container2$) {
     const host = iCtx.$hostElement$ as unknown as VirtualVNode;
@@ -292,11 +295,11 @@ export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: UseTaskOptions): void => {
       qrl,
       undefined
     );
-    set(1);
+    runTask2(task, iCtx.$container2$, host);
+    qrl.$resolveLazy$(host as fixMeAny);
   } else {
     const containerState = iCtx.$renderCtx$.$static$.$containerState$;
     const task = new Task(TaskFlagsIsDirty | TaskFlagsIsTask, i, elCtx.$element$, qrl, undefined);
-    set(1);
     qrl.$resolveLazy$(containerState.$containerEl$);
     if (!elCtx.$tasks$) {
       elCtx.$tasks$ = [];
@@ -306,6 +309,57 @@ export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: UseTaskOptions): void => {
     if (isServerPlatform()) {
       useRunTask(task, opts?.eagerness);
     }
+  }
+};
+
+export const runTask2 = (
+  task: TaskDescriptor | ComputedDescriptor<unknown>,
+  container: Container2,
+  host: VirtualVNode
+) => {
+  const iCtx = newInvokeContext(container.$locale$, host as fixMeAny, undefined, TaskEvent);
+  const taskFn = task.$qrl$.getFn(iCtx, () => {
+    container.$subsManager$.$clearSub$(task);
+  }) as TaskFn;
+
+  const track: Tracker = (obj: (() => unknown) | object | Signal, prop?: string) => {
+    if (isFunction(obj)) {
+      const ctx = newInvokeContext();
+      ctx.$subscriber$ = [0, task];
+      return invoke(ctx, obj);
+    }
+    const manager = getSubscriptionManager(obj);
+    if (manager) {
+      manager.$addSub$([0, task], prop);
+    } else {
+      logErrorAndStop(codeToText(QError_trackUseStore), obj);
+    }
+    if (prop) {
+      return (obj as Record<string, unknown>)[prop];
+    } else if (isSignal(obj)) {
+      return obj.value;
+    } else {
+      return obj;
+    }
+  };
+  const cleanups: (() => void)[] = [];
+  task.$destroy$ = noSerialize(() => {
+    cleanups.forEach((fn) => fn());
+  });
+
+  const taskApi: TaskCtx = {
+    track,
+    cleanup(callback) {
+      cleanups.push(callback);
+    },
+  };
+  const result = safeCall(
+    () => taskFn(taskApi),
+    (returnValue) => isFunction(returnValue) && cleanups.push(returnValue),
+    (reason) => handleError2(reason, host, container)
+  );
+  if (isPromise(result)) {
+    throw result;
   }
 };
 

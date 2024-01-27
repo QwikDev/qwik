@@ -1,23 +1,21 @@
-import { fromCamelToKebabCase } from '../util/case';
-import { qError, QError_invalidContext, QError_notFoundContext } from '../error/error';
-import { qDev, qSerialize } from '../util/qdev';
-import { isObject } from '../util/types';
-import { useSequentialScope } from './use-sequential-scope';
-import { assertTrue } from '../error/assert';
-import { verifySerializable } from '../state/common';
-import { getContext, type QContext } from '../state/context';
 import type { ContainerState } from '../container/container';
-import { invoke } from './use-core';
+import { assertTrue } from '../error/assert';
+import { qError, QError_invalidContext, QError_notFoundContext } from '../error/error';
 import {
+  getVirtualElement,
   type QwikElement,
   type VirtualElement,
-  getVirtualElement,
 } from '../render/dom/virtual-element';
-import { isComment } from '../util/element';
+import { verifySerializable } from '../state/common';
 import { Q_CTX, VIRTUAL_SYMBOL } from '../state/constants';
-import { QCtxAttr } from '../util/markers';
-import type { Container2, fixMeAny, HostElement } from '../v2/shared/types';
-import { mapArray_get, mapArray_set } from '../v2/client/vnode';
+import { getContext, type QContext } from '../state/context';
+import { fromCamelToKebabCase } from '../util/case';
+import { isComment } from '../util/element';
+import { qDev, qSerialize } from '../util/qdev';
+import { isObject } from '../util/types';
+import type { fixMeAny, HostElement } from '../v2/shared/types';
+import { invoke } from './use-core';
+import { useSequentialScope } from './use-sequential-scope';
 
 // <docs markdown="../readme.md#ContextId">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -209,12 +207,7 @@ export const useContextProvider = <STATE extends object>(
     verifySerializable(newValue);
   }
   if (iCtx.$container2$) {
-    let providers = iCtx.$container2$.getHostProp<any[]>(iCtx.$hostElement$ as fixMeAny, QCtxAttr);
-    if (!providers) {
-      providers = [];
-      iCtx.$container2$.setHostProp(iCtx.$hostElement$ as fixMeAny, QCtxAttr, providers);
-    }
-    mapArray_set(providers, context.id, newValue, 0);
+    iCtx.$container2$.setContext(iCtx.$hostElement$ as fixMeAny as HostElement, context, newValue);
   } else {
     const contexts = (elCtx.$contexts$ ||= new Map());
     contexts.set(context.id, newValue);
@@ -292,7 +285,7 @@ export const useContext: UseContext = <STATE extends object>(
 
   let value: STATE | undefined;
   if (iCtx.$container2$) {
-    value = resolveContext2<STATE>(iCtx.$container2$, iCtx.$hostElement$ as fixMeAny, context.id);
+    iCtx.$container2$.resolveContext(iCtx.$hostElement$ as fixMeAny as HostElement, context);
   } else {
     value = resolveContext<STATE>(context, elCtx, iCtx.$renderCtx$.$static$.$containerState$);
   }
@@ -306,23 +299,6 @@ export const useContext: UseContext = <STATE extends object>(
     return set(defaultValue);
   }
   throw qError(QError_notFoundContext, context.id);
-};
-
-export const resolveContext2 = <STATE extends object>(
-  container: Container2,
-  host: HostElement | null,
-  id: string
-): STATE | undefined => {
-  while (host) {
-    const contexts = container.getHostProp<any[]>(host, QCtxAttr);
-    if (contexts) {
-      const context = mapArray_get(contexts, id, 0);
-      if (context) {
-        return context;
-      }
-    }
-    host = container.getParentHost(host);
-  }
 };
 
 /** Find a wrapping Virtual component in the DOM */

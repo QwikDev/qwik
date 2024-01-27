@@ -22,6 +22,11 @@ import type { fixMeAny } from './shared/types';
 import { ssrCreateContainer } from './ssr/ssr-container';
 import { ssrRenderToContainer } from './ssr/ssr-render';
 import './vdom-diff.unit-util';
+import { componentQrl } from '../component/component.public';
+import { inlinedQrl } from '../qrl/qrl';
+import { Slot } from '../render/jsx/slot.public';
+import { useContextProvider } from '../use/use-context';
+import { ERROR_CONTEXT } from '../render/error-handling';
 
 export async function domRender(
   jsx: JSXOutput,
@@ -149,3 +154,14 @@ function qwikJsonStringify(value: any): string {
   });
   return json;
 }
+
+export const ErrorProvider = Object.assign(
+  componentQrl(
+    inlinedQrl(() => {
+      (ErrorProvider as any).error = null;
+      useContextProvider(ERROR_CONTEXT, ErrorProvider as any);
+      return <Slot />;
+    }, 's_ErrorProvider')
+  ),
+  { error: null as any }
+);

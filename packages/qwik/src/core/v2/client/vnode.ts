@@ -371,6 +371,21 @@ const vnode_getDOMInsertBefore = (vNode: VNode | null): Node | null => {
   return null;
 };
 
+export const vnode_getDOMChildNodes = (vHost: VNode, childNodes: Node[] = []): Node[] => {
+  let vNode = vnode_getFirstChild(vHost);
+  while (vNode) {
+    if (vnode_isElementVNode(vNode)) {
+      childNodes.push(vnode_getNode(vNode)!);
+    } else if (vnode_isTextVNode(vNode)) {
+      childNodes.push(vnode_getNode(vNode)!);
+    } else {
+      vnode_getDOMChildNodes(vNode, childNodes);
+    }
+    vNode = vnode_getNextSibling(vNode);
+  }
+  return childNodes;
+};
+
 const vnode_ensureTextInflated = (vnode: TextVNode) => {
   const textVNode = ensureTextVNode(vnode);
   const flags = textVNode[VNodeProps.flags];
@@ -1220,12 +1235,9 @@ export const vnode_getProjectionParentComponent = (
   return vHost;
 };
 
-let inStringify = false;
-const stringify = (value: any) => {
-  if (inStringify) {
-    return '[...]';
-  }
-  inStringify = true;
+const stringifyPath: any[] = [];
+const stringify = (value: any): any => {
+  stringifyPath.push(value);
   try {
     if (value === null) {
       return 'null';
@@ -1240,11 +1252,17 @@ const stringify = (value: any) => {
         return '"' + value.name + '()"';
       }
     } else if (vnode_isVNode(value)) {
-      return '"' + String(value).replaceAll(/\n\s*/gm, '') + '"';
+      if (stringifyPath.indexOf(value) !== -1) {
+        return '*';
+      } else {
+        return '"' + String(value).replaceAll(/\n\s*/gm, '') + '"';
+      }
+    } else if (Array.isArray(value)) {
+      return '[' + value.map(stringify).join(', ') + ']';
     } else {
       return String(value);
     }
   } finally {
-    inStringify = false;
+    stringifyPath.pop();
   }
 };

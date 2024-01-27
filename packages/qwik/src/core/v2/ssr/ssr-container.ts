@@ -42,6 +42,9 @@ import { syncWalkJSX } from './ssr-render';
 import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
 import { createSubscriptionManager, type SubscriptionManager } from '../../state/common';
 import type { HostElement, fixMeAny } from '../shared/types';
+import type { ContextId } from '../../use/use-context';
+import type { T } from 'vitest/dist/reporters-qc5Smpt5';
+import { mapArray_get, mapArray_set } from '../client/vnode';
 
 export function ssrCreateContainer(
   opts: {
@@ -92,7 +95,7 @@ class SSRContainer implements ISSRContainer {
     throw new Error('SSR should not have deserialize objects.');
   };
   private lastNode: SsrNode | null = null;
-  private parentComponentNode: SsrNode | null = null;
+  private currentComponentNode: SsrNode | null = null;
   public markForRender(): void {
     throw new Error('SSR can not mark components for render.');
   }
@@ -116,9 +119,41 @@ class SSRContainer implements ISSRContainer {
     this.serializationCtx = createSerializationContext(SsrNode, null, this.writer);
     this.$subsManager$ = createSubscriptionManager(this as fixMeAny);
   }
-  getParentHost(host: HostElement): HostElement | null {
-    return (host as any as SsrNode).parentComponentNode as HostElement | null;
+
+  setContext<T>(host: HostElement, context: ContextId<T>, value: T): void {
+    const ssrNode: SsrNode = host as any;
+    let ctx: Array<string | unknown> = ssrNode.getProp(QCtxAttr);
+    if (!ctx) {
+      ssrNode.setProp(QCtxAttr, (ctx = []));
+    }
+    mapArray_set(ctx, context.id, value, 0);
   }
+
+  resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | null {
+    let ssrNode: SsrNode | null = host as any;
+    while (ssrNode) {
+      const ctx: Array<string | unknown> = ssrNode.getProp(QCtxAttr);
+      if (ctx) {
+        const value = mapArray_get(ctx, contextId.id, 0) as T;
+        if (value) {
+          return value;
+        }
+      }
+      ssrNode = ssrNode.currentComponentNode;
+    }
+    return null;
+  }
+
+  clearLocalProps(host: HostElement): void {
+    const ssrNode: SsrNode = host as any;
+    ssrNode.clearLocalProps();
+  }
+
+  getParentHost(host: HostElement): HostElement | null {
+    const ssrNode: SsrNode = host as any;
+    return ssrNode.currentComponentNode as HostElement | null;
+  }
+
   setHostProp<T>(host: HostElement, name: string, value: T): void {
     const ssrNode: SsrNode = host as any;
     return ssrNode.setProp(name, value);
@@ -203,8 +238,8 @@ class SSRContainer implements ISSRContainer {
   }
 
   openComponent(attrs: SsrAttrs) {
-    this.parentComponentNode = this.getLastNode();
     this.openFragment(attrs);
+    this.currentComponentNode = this.getLastNode();
     this.componentStack.push(new SsrComponentFrame(this.getLastNode()));
   }
 
@@ -225,7 +260,7 @@ class SSRContainer implements ISSRContainer {
     const componentFrame = this.componentStack.pop()!;
     componentFrame.releaseUnclaimedProjections(this.unclaimedProjections);
     this.closeFragment();
-    this.parentComponentNode = this.parentComponentNode?.parentComponentNode || null;
+    this.currentComponentNode = this.currentComponentNode?.currentComponentNode || null;
   }
 
   /** Write a text node with correct escaping. Save the length of the text node in the vNodeData. */
@@ -248,7 +283,7 @@ class SSRContainer implements ISSRContainer {
   getLastNode(): SsrNode {
     if (!this.lastNode) {
       this.lastNode = vNodeData_createSsrNodeReference(
-        this.parentComponentNode,
+        this.currentComponentNode,
         this.currentElementFrame!.vNodeData,
         this.depthFirstElementCount
       );

@@ -11,7 +11,7 @@ import { render } from './render.public';
 import { useStylesQrl, useStylesScopedQrl } from '../../use/use-styles';
 import { pauseContainer } from '../../container/pause';
 import { useSignal } from '../../use/use-signal';
-import { assert, test, suite } from 'vitest';
+import { assert, test, suite, expect } from 'vitest';
 import { createDOM } from '../../../testing/library';
 import { renderToString } from '../../../server/render';
 import { createDocument } from '../../../testing/document';
@@ -1134,7 +1134,7 @@ test('should render value="" on option', async () => {
   assert.equal(option.outerHTML, '<option value="">Empty</option>');
 });
 
-async function throws<T>(fn: () => T, expected?: string | RegExp): Promise<void> {
+async function throws<T>(fn: () => T, expected?: string): Promise<void> {
   try {
     await fn();
 

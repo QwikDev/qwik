@@ -1,7 +1,7 @@
 import type { DevJSX, FunctionComponent, JSXNode } from './types/jsx-node';
 import type { QwikJSX } from './types/jsx-qwik';
 import { qDev, qRuntimeQrl, seal } from '../../util/qdev';
-import { logError, logOnceWarn, logWarn } from '../../util/log';
+import { logOnceWarn, logWarn } from '../../util/log';
 import { isArray, isFunction, isObject, isString } from '../../util/types';
 import { isQrl, type QRLInternal } from '../../qrl/qrl-class';
 import { invoke, untrack } from '../../use/use-core';

@@ -86,10 +86,10 @@ For more information see: https://qwik.builder.io/docs/components/tasks/#use-met
 };
 
 /**
- * Get an error when context is being used but not provided in a parent
- * This function displays the error message in the console in more readable way than qError()
- * Also, it does not stop the app, so when the developer fixes the issue, the app will reload automatically
- * without the need to start the development server again.
+ * Get an error when context is being used but not provided in a parent This function displays the
+ * error message in the console in more readable way than qError() Also, it does not stop the app,
+ * so when the developer fixes the issue, the app will reload automatically without the need to
+ * start the development server again.
  */
 export const missingContextValueError = (contextId: string) => {
   if (qDev) {

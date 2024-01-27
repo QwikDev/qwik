@@ -25,7 +25,7 @@ export const validLexicalScope = createRule({
     docs: {
       description:
         'Used the tsc typechecker to detect the capture of unserializable data in dollar ($) scopes.',
-      recommended: 'error',
+      recommended: 'recommended',
     },
 
     schema: [
@@ -184,7 +184,7 @@ export const validLexicalScope = createRule({
                     });
                   }
                 } else {
-                  const symbolName = type.symbol.name;
+                  const symbolName = type.symbol?.name;
                   if (symbolName === 'PropFnInterface') {
                     return;
                   }
@@ -295,7 +295,7 @@ function _isTypeCapturable(
     return {
       type,
       typeStr: checker.typeToString(type),
-      reason: 'is unknown, which could be serializable or not, please make the type for specific',
+      reason: 'is unknown, which could be serializable or not, please make the type more specific',
     };
   }
   const isAny = type.flags & ts.TypeFlags.Any;
@@ -466,7 +466,7 @@ function isTypeQRL(type: ts.Type): boolean {
 }
 
 function getContent(symbol: ts.Symbol, sourceCode: string) {
-  if (symbol.declarations && symbol.declarations.length > 0) {
+  if (symbol && symbol.declarations && symbol.declarations.length > 0) {
     const decl = symbol.declarations[0];
     // Remove empty lines
     const text = sourceCode.slice(decl.pos, decl.end).replace(/^\s*$/gm, '');

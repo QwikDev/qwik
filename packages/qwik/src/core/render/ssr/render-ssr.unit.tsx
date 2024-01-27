@@ -1494,13 +1494,15 @@ test('null component', async () => {
 });
 
 test('cleanse attribute name', async () => {
-  const o = {
-    '"><script>alert("ಠ~ಠ")</script>': 'xss',
-  };
-  await testSSR(
-    <body {...o}></body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test"><body></body></html>'
-  );
+  throws(async () => {
+    const o = {
+      '"><script>alert("ಠ~ಠ")</script>': 'xss',
+    };
+    await testSSR(
+      <body {...o}></body>,
+      '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test"><body></body></html>'
+    );
+  });
 });
 
 test('cleanse class attribute', async () => {

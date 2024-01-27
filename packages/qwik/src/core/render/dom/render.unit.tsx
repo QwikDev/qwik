@@ -271,7 +271,7 @@ test('should render component external props', async () => {
   );
 });
 
-test('should render a inner HTML content', async () => {
+test('should render inner HTML content', async () => {
   const fixture = new ElementFixture();
 
   await render(fixture.host, <InnerHTMLComponent />);
@@ -958,23 +958,16 @@ export const HostFixture = component$((props: { hostAttrs?: string; content?: st
 //////////////////////////////////////////////////////////////////////////////////////////
 export const InnerHTMLComponent = component$(() => {
   const html = '<span>WORKS</span>';
-  return (
-    <div dangerouslySetInnerHTML={html}>
-      <div>not rendered</div>
-    </div>
-  );
+  return <div dangerouslySetInnerHTML={html} />;
 });
-
 
 //////////////////////////////////////////////////////////////////////////////////////////
 export const NoChildrenWithInnerHTMLComponent = component$(() => {
   const htmlContent = '<span>HTML CONTENT</span>';
 
   return (
-    <div>
-      <div dangerouslySetInnerHTML={htmlContent}>
-        <span>Children Content</span>
-      </div>
+    <div dangerouslySetInnerHTML={htmlContent}>
+      <span>Children Content</span>
     </div>
   );
 });

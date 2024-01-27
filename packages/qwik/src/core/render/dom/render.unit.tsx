@@ -67,9 +67,7 @@ test('should serialize events correctly', async () => {
       <div
         on-document:load=""
         on-document:thing=""
-        on-document:-thing=""
         on-window:scroll=""
-        on-window:-scroll=""
     ></div>
     `
   );
@@ -273,11 +271,20 @@ test('should render component external props', async () => {
   );
 });
 
-test('should render a blank component', async () => {
+test('should render a inner HTML content', async () => {
   const fixture = new ElementFixture();
 
   await render(fixture.host, <InnerHTMLComponent />);
+
   await expectRendered(fixture, `<div><span>WORKS</span></div>`);
+});
+
+test('should not have innerHTML and children', async () => {
+  throws(async () => {
+    const fixture = new ElementFixture();
+
+    await render(fixture.host, <NoChildrenWithInnerHTMLComponent />);
+  }, "The JSX element <div> can not have both 'dangerouslySetInnerHTML' and children.");
 });
 
 test('should render a div then a component', async () => {
@@ -958,8 +965,21 @@ export const InnerHTMLComponent = component$(() => {
   );
 });
 
-//////////////////////////////////////////////////////////////////////////////////////////
 
+//////////////////////////////////////////////////////////////////////////////////////////
+export const NoChildrenWithInnerHTMLComponent = component$(() => {
+  const htmlContent = '<span>HTML CONTENT</span>';
+
+  return (
+    <div>
+      <div dangerouslySetInnerHTML={htmlContent}>
+        <span>Children Content</span>
+      </div>
+    </div>
+  );
+});
+
+//////////////////////////////////////////////////////////////////////////////////////////
 export const ToggleRootComponent = component$(() => {
   const state = useStore({
     cond: false,
@@ -1113,3 +1133,15 @@ test('should render value="" on option', async () => {
   assert.equal(option.getAttribute('value'), '');
   assert.equal(option.outerHTML, '<option value="">Empty</option>');
 });
+
+async function throws<T>(fn: () => T, expected?: string | RegExp): Promise<void> {
+  try {
+    await fn();
+
+    expect.unreachable('Expression should throw');
+  } catch (e: Error | any) {
+    if (expected) {
+      expect(e.message).toBe(expected);
+    }
+  }
+}

@@ -8,7 +8,14 @@ const STYLE = qDev
   : '';
 
 export const logError = (message?: any, ...optionalParams: any[]) => {
-  return createAndLogError(true, message, ...optionalParams);
+  const error = createAndLogError(true, message, ...optionalParams);
+
+  // make sure to throw the error in test mode so that the test fails
+  if (qTest) {
+    throw error;
+  }
+
+  return error;
 };
 
 export const throwErrorAndStop = (message?: any, ...optionalParams: any[]): never => {
@@ -79,13 +86,28 @@ const printElement = (el: Element) => {
   };
 };
 
-const createAndLogError = (asyncThrow: boolean, message?: any, ...optionalParams: any[]) => {
-  const err = message instanceof Error ? message : new Error(message);
+const createAndLogError = (
+  asyncThrow: boolean,
+  message?: Error | string,
+  ...optionalParams: any[]
+) => {
+  const hasOptions = optionalParams.length > 0;
+  // if three are params sent, then do not add the message (if string) in the Error object.
+  const err = message instanceof Error ? message : new Error(hasOptions ? '' : message);
 
-  // display the error message first, then the optional params, and finally the stack trace
-  // the stack needs to be displayed last because the given params will be lost among large stack traces so it will
-  // provide a bad developer experience
-  console.error('%cQWIK ERROR', STYLE, err.message, ...printParams(optionalParams), err.stack);
+  if (hasOptions) {
+    // // Display the error message first, then the optional params, and finally the stack trace.
+    // // This gives a better developer experience so the printed params do not get lost in the stack
+    console.error(
+      '%cQWIK ERROR',
+      STYLE,
+      err.message || message,
+      ...printParams(optionalParams),
+      err.stack?.replace('Error: ', '')
+    );
+  } else {
+    console.error('%cQWIK ERROR', STYLE, err.stack || err.message);
+  }
 
   asyncThrow &&
     !qTest &&
@@ -95,5 +117,6 @@ const createAndLogError = (asyncThrow: boolean, message?: any, ...optionalParams
       // reporting it to a third-party tools such as Qwik Insights, Sentry or New Relic.
       throw err;
     }, 0);
+
   return err;
 };

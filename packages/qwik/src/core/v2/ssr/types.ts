@@ -64,15 +64,15 @@ export class SsrNode {
 
   /** Local props which don't serialize; */
   private locals: SsrAttrs | null = null;
-  public parentComponentNode: SsrNode | null;
+  public currentComponentNode: SsrNode | null;
 
   constructor(
-    parentComponentNode: SsrNode | null,
+    currentComponentNode: SsrNode | null,
     nodeType: SsrNodeType,
     id: string,
     private attrs: SsrAttrs
   ) {
-    this.parentComponentNode = parentComponentNode;
+    this.currentComponentNode = currentComponentNode;
     this.nodeType = nodeType;
     this.id = id;
     if (isDev && id.indexOf('undefined') != -1) {
@@ -94,6 +94,9 @@ export class SsrNode {
     } else {
       return mapArray_get(this.attrs, name, 0);
     }
+  }
+  clearLocalProps() {
+    this.locals && (this.locals.length = 0);
   }
 }
 

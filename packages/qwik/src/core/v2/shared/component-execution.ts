@@ -1,18 +1,18 @@
 import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
+import { isPromise } from 'util/types';
 import type { OnRenderFn } from '../../component/component.public';
+import { assertDefined } from '../../error/assert';
 import type { QRLInternal } from '../../qrl/qrl-class';
+import { handleError2 } from '../../render/error-handling';
 import { SkipRender } from '../../render/jsx/utils.public';
-import { SignalUnassignedException } from '../../state/signal';
 import { newInvokeContext } from '../../use/use-core';
+import { EMPTY_OBJ } from '../../util/flyweight';
+import { ELEMENT_PROPS, OnRenderProp, RenderEvent } from '../../util/markers';
 import { maybeThen, promiseAllLazy, safeCall } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
 import type { VirtualVNode } from '../client/types';
+import { vnode_getProp } from '../client/vnode';
 import type { Container2, fixMeAny } from './types';
-import { ELEMENT_PROPS, OnRenderProp, RenderEvent } from '../../util/markers';
-import { EMPTY_OBJ } from '../../util/flyweight';
-import { handleError } from '../../render/error-handling';
-import { vnode_clearLocalProps, vnode_getProp } from '../client/vnode';
-import { assertDefined } from '../../error/assert';
 
 export const executeComponent2 = (
   container: Container2,
@@ -31,7 +31,7 @@ export const executeComponent2 = (
     vnode_getProp<QRLInternal<OnRenderFn<any>>>(host, OnRenderProp, container.getObjectById)!;
   assertDefined(componentQRL, 'No Component found at this location');
   props = props || vnode_getProp<any>(host, ELEMENT_PROPS, container.getObjectById) || EMPTY_OBJ;
-  vnode_clearLocalProps(host);
+  container.clearLocalProps(host);
   const componentFn = componentQRL.getFn(iCtx);
   return safeCall(
     () => componentFn(props) as ValueOrPromise<JSXNode>,
@@ -44,17 +44,16 @@ export const executeComponent2 = (
       });
     },
     (err) => {
-      if (err === SignalUnassignedException) {
-        return maybeThen(promiseAllLazy(waitOn), () => {
-          return executeComponent2(container, host, componentQRL, props);
-        });
+      if (isPromise(err)) {
+        return err.then(() => executeComponent2(container, host, componentQRL, props));
+      } else {
+        try {
+          handleError2(err, host as fixMeAny, container);
+        } catch (e) {
+          console.error('ERROR', e);
+        }
+        return SkipRender;
       }
-      try {
-        handleError(err, host as fixMeAny, null as fixMeAny);
-      } catch (e) {
-        console.error('ERROR', e);
-      }
-      return SkipRender;
     }
   );
 };

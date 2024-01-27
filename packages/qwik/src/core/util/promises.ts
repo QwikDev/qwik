@@ -13,11 +13,11 @@ export const safeCall = <T, B, C>(
   rejectFn: (reason: any) => ValueOrPromise<C>
 ): ValueOrPromise<B | C> => {
   try {
-    const promise = call();
-    if (isPromise(promise)) {
-      return promise.then(thenFn as any, rejectFn);
+    const result = call();
+    if (isPromise(result)) {
+      return result.then(thenFn as any, rejectFn);
     } else {
-      return thenFn(promise as any);
+      return thenFn(result as any);
     }
   } catch (e) {
     return rejectFn(e);

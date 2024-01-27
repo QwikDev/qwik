@@ -285,7 +285,7 @@ const validateJSXNode = (node: JSXNode) => {
             `The JSX element <${type}> can not have both 'dangerouslySetInnerHTML' and children.`,
             node
           );
-          
+
           // just throw it as an error because we do not need to crash the app
           throw err;
         }

@@ -286,8 +286,6 @@ It is recommended that you use this in your test files.
 
 > `QwikCityMockProvider` does not render any DOM elements, meaning it won't be visible in snapshots
 
-> a `goto` prop can be passed to customize the `navigate` behavior during tests
-
 If you are looking for a general example on how to integrate vitest into your Qwik look checkout the [vitest integration documentation](/docs/integrations/vitest/index.mdx)
 
 ```tsx title="src/components/card.spec.tsx"
@@ -306,14 +304,39 @@ const cases = [
 test.each(cases)('should render card with %s %s', async ({text, link}) => {
   const { screen, render } = await createDOM();
   await render(
-    <QwikCityMockProvider
-      goto={$(async (path) => {
-        // Do something
-      })}>
+    <QwikCityMockProvider>
       <Card text={text} link={link} />
     </QwikCityMockProvider>,
   );
   expect(screen.innerHTML).toMatchSnapshot();
+});
+```
+
+> a `goto` prop can be passed to customize the `navigate` behavior during tests
+
+```tsx title="src/components/button.spec.tsx"
+import { $ } from '@builder.io/qwik';
+import { createDOM } from '@builder.io/qwik/testing';
+import { test, expect, vi } from 'vitest';
+
+// Component with one prop. Uses useNavigate internally. Omitted for brevity
+import { Button } from '../button';
+
+const goto = vi.fn(async (path, options) => {
+  console.log(`Navigating to ${path} with ${options}`);
+});
+
+test('should render the button and navigate', async () => {
+  const { screen, render, userEvent } = await createDOM();
+  const goto$ = $(goto);
+  await render(
+    <QwikCityMockProvider goto={goto$}>
+      <Button id="button" />
+    </QwikCityMockProvider>,
+  );
+  expect(screen.innerHTML).toMatchSnapshot();
+  await userEvent('#button', 'click');
+  expect(goto).toHaveBeenCalled();
 });
 ```
 

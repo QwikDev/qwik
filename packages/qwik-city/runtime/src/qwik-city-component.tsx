@@ -551,7 +551,7 @@ export const QwikCityMockProvider = component$<QwikCityMockProps>((props) => {
 
   const goto: RouteNavigate =
     props.goto ??
-    $(async (path) => {
+    $(async () => {
       console.warn('Not implemented');
     });
 

@@ -95,7 +95,10 @@ export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikA
 
       const auth = await authOptions(req);
       if (actions.includes(action) && req.url.pathname.startsWith(prefix + '/')) {
-        const res = await Auth(req.request, auth);
+        // Casting to `Response` because, something is off with the types in `@auth/core` here:
+        // Without passing `raw`, it should know it's supposed to return a `Response` object, but it doesn't.
+        // https://github.com/nextauthjs/next-auth/blob/a67cfed64d96da1ecfc75f02e7106d9a403012be/packages/core/src/index.ts#L61-L69
+        const res = (await Auth(req.request, auth)) as Response;
         const cookie = res.headers.get('set-cookie');
         if (cookie) {
           req.headers.set('set-cookie', cookie);
@@ -136,10 +139,13 @@ async function authAction(
     body: body,
   });
   request.headers.set('content-type', 'application/x-www-form-urlencoded');
-  const res = await Auth(request, {
+  // Casting to `Response` because, something is off with the types in `@auth/core` here:
+  // Without passing `raw`, it should know it's supposed to return a `Response` object, but it doesn't.
+  // https://github.com/nextauthjs/next-auth/blob/a67cfed64d96da1ecfc75f02e7106d9a403012be/packages/core/src/index.ts#L61-L69
+  const res = (await Auth(request, {
     ...authOptions,
     skipCSRFCheck,
-  });
+  })) as Response;
 
   const cookies: string[] = [];
   res.headers.forEach((value, key) => {
@@ -193,7 +199,10 @@ async function getSessionData(req: Request, options: AuthConfig): GetSessionResu
   options.trustHost ??= true;
 
   const url = new URL('/api/auth/session', req.url);
-  const response = await Auth(new Request(url, { headers: req.headers }), options);
+  // Casting to `Response` because, something is off with the types in `@auth/core` here:
+  // Without passing `raw`, it should know it's supposed to return a `Response` object, but it doesn't.
+  // https://github.com/nextauthjs/next-auth/blob/a67cfed64d96da1ecfc75f02e7106d9a403012be/packages/core/src/index.ts#L61-L69
+  const response = (await Auth(new Request(url, { headers: req.headers }), options)) as Response;
 
   const { status = 200 } = response;
 

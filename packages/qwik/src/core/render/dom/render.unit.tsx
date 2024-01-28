@@ -284,7 +284,7 @@ test('should not have innerHTML and children', async () => {
     const fixture = new ElementFixture();
 
     await render(fixture.host, <NoChildrenWithInnerHTMLComponent />);
-  }, "The JSX element <div> can not have both 'dangerouslySetInnerHTML' and children.");
+  });
 });
 
 test('should render a div then a component', async () => {

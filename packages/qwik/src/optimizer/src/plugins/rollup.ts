@@ -195,6 +195,15 @@ export function normalizeRollupOutputOptions(
         outputOpts.chunkFileNames = 'build/[name].js';
       }
     }
+  } else if (opts.buildMode === 'production') {
+    // server production output
+    // everything in same dir so './@qwik-city...' imports work from entry and chunks
+    if (!outputOpts.chunkFileNames) {
+      outputOpts.chunkFileNames = 'q-[hash].js';
+    }
+    if (!outputOpts.assetFileNames) {
+      outputOpts.assetFileNames = 'assets/[hash].[ext]';
+    }
   }
 
   if (opts.target === 'client') {

@@ -265,8 +265,8 @@ importers:
         specifier: workspace:*
         version: link:../qwik-react
       '@builder.io/sdk-qwik':
-        specifier: ^0.8.1
-        version: 0.8.1(@builder.io/qwik@packages+qwik)
+        specifier: ^0.12.2
+        version: 0.12.3(@builder.io/qwik@packages+qwik)
       '@docsearch/css':
         specifier: ^3.5.2
         version: 3.5.2
@@ -1070,8 +1070,8 @@ packages:
       '@auth/core': 0.13.0
     dev: false
 
-  /@builder.io/sdk-qwik@0.8.1(@builder.io/qwik@packages+qwik):
-    resolution: {integrity: sha512-06fMtP6qoEwP8XX6q6yhwOyJuBv6DrKUF7/lnQECFj7bOkKu8QSikHtnkdz/T/+GxAUdmxz7Li5GTzUfFfhLWg==}
+  /@builder.io/sdk-qwik@0.12.3(@builder.io/qwik@packages+qwik):
+    resolution: {integrity: sha512-rwPt+qwxkqO1UVK3eHLPZW4hs0CL1PadoxLvRd9+5I9clIX4zDFKrJ2JF+rfU2Jw/ai+xvfW7SW3wCiGI+Glig==}
     peerDependencies:
       '@builder.io/qwik': '>=1.0.0'
     dependencies:

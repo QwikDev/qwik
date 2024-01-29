@@ -53,7 +53,7 @@ export default component$(() => {
   return (
     <div>
       <button onClick$={() => signal.value++}>+</button>
-        <button onClick$={() => signal.value--}>-</button>
+      <button onClick$={() => signal.value--}>-</button>
         <div>
           {signal.value > 0 ? 'Bigger than zero' : 'Smaller than zero'} - Current
           value: {signal.value}

@@ -12,7 +12,7 @@
     "@builder.io/qwik-city": "workspace:*",
     "@builder.io/qwik-labs": "workspace:*",
     "@builder.io/qwik-react": "workspace:*",
-    "@builder.io/sdk-qwik": "^0.8.1",
+    "@builder.io/sdk-qwik": "^0.12.2",
     "@docsearch/css": "^3.5.2",
     "@emotion/react": "^11.11.3",
     "@emotion/styled": "^11.11.0",

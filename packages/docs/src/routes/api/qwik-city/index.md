@@ -554,10 +554,11 @@ export declare type PathParams = Record<string, string>;
 export interface QwikCityMockProps
 ```
 
-| Property     | Modifiers | Type                         | Description  |
-| ------------ | --------- | ---------------------------- | ------------ |
-| [params?](#) |           | Record&lt;string, string&gt; | _(Optional)_ |
-| [url?](#)    |           | string                       | _(Optional)_ |
+| Property     | Modifiers | Type                            | Description  |
+| ------------ | --------- | ------------------------------- | ------------ |
+| [goto?](#)   |           | [RouteNavigate](#routenavigate) | _(Optional)_ |
+| [params?](#) |           | Record&lt;string, string&gt;    | _(Optional)_ |
+| [url?](#)    |           | string                          | _(Optional)_ |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/qwik-city-component.tsx)
 

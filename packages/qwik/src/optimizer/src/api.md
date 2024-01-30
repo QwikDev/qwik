@@ -256,6 +256,7 @@ export interface QwikRollupPluginOptions {
     csr?: boolean;
     debug?: boolean;
     entryStrategy?: EntryStrategy;
+    lint?: boolean;
     manifestInput?: QwikManifest;
     manifestOutput?: (manifest: QwikManifest) => Promise<void> | void;
     // (undocumented)

@@ -552,7 +552,7 @@ export const QwikCityMockProvider = component$<QwikCityMockProps>((props) => {
   const goto: RouteNavigate =
     props.goto ??
     $(async () => {
-      console.warn('Not implemented');
+      console.warn('QwikCityMockProvider: goto not provided');
     });
 
   const documentHead = useStore(createDocumentHead, { deep: false });

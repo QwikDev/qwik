@@ -267,9 +267,11 @@ export interface UseContext {
  * @public
  */
 // </docs>
+type DefaultStateFn<STATE> = (value: STATE | undefined) => STATE;
+
 export const useContext: UseContext = <STATE>(
   context: ContextId<STATE>,
-  defaultValue?: STATE | ((value: STATE | undefined) => STATE) // type of default value should be the same as the context
+  defaultValue?: STATE | DefaultStateFn<STATE> // type of default value should be the same as the context
 ) => {
   const { val, set, iCtx, elCtx } = useSequentialScope<STATE>();
 
@@ -284,7 +286,7 @@ export const useContext: UseContext = <STATE>(
   const value = resolveContext(context, elCtx, iCtx.$renderCtx$.$static$.$containerState$);
 
   if (typeof defaultValue === 'function') {
-    return set(invoke(undefined, defaultValue as (value: STATE | undefined) => STATE, value));
+    return set(invoke(undefined, defaultValue as DefaultStateFn<STATE>, value));
   }
 
   if (value !== undefined) {

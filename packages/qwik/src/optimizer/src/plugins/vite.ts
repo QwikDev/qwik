@@ -153,6 +153,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         vendorRoots: [...(qwikViteOpts.vendorRoots ?? []), ...vendorRoots.map((v) => v.path)],
         outDir: viteConfig.build?.outDir,
         devTools: qwikViteOpts.devTools,
+        sourcemap: !!viteConfig.build?.sourcemap,
       };
       if (!qwikViteOpts.csr) {
         if (target === 'ssr') {
@@ -388,6 +389,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         } catch (e) {
           // ok to ignore
         }
+      }
+      const useSourcemap = !!config.build.sourcemap;
+      if (useSourcemap && qwikViteOpts.optimizerOptions?.sourcemap === undefined) {
+        qwikPlugin.setSourceMapSupport(true);
       }
     },
 

@@ -73,7 +73,7 @@ const transformFsAsync = async (
       rootDir: fsOpts.rootDir!,
       entryStrategy: fsOpts.entryStrategy!,
       minify: fsOpts.minify!,
-      sourceMaps: fsOpts.sourceMaps!,
+      sourceMaps: !!fsOpts.sourceMaps,
       transpileTs: fsOpts.transpileTs!,
       transpileJsx: fsOpts.transpileJsx!,
       explicitExtensions: fsOpts.explicitExtensions!,

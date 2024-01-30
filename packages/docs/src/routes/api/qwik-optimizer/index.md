@@ -281,11 +281,12 @@ export interface Optimizer
 export interface OptimizerOptions
 ```
 
-| Property                    | Modifiers | Type                                | Description  |
-| --------------------------- | --------- | ----------------------------------- | ------------ |
-| [binding?](#)               |           | any                                 | _(Optional)_ |
-| [inlineStylesUpToBytes?](#) |           | number                              | _(Optional)_ |
-| [sys?](#)                   |           | [OptimizerSystem](#optimizersystem) | _(Optional)_ |
+| Property                    | Modifiers | Type                                | Description                                                        |
+| --------------------------- | --------- | ----------------------------------- | ------------------------------------------------------------------ |
+| [binding?](#)               |           | any                                 | _(Optional)_                                                       |
+| [inlineStylesUpToBytes?](#) |           | number                              | _(Optional)_ Inline the global styles if they're smaller than this |
+| [sourcemap?](#)             |           | boolean                             | _(Optional)_ Enable sourcemaps                                     |
+| [sys?](#)                   |           | [OptimizerSystem](#optimizersystem) | _(Optional)_                                                       |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 

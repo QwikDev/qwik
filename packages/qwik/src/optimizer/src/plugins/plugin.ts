@@ -99,6 +99,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       clickToSource: ['Alt'],
     },
     inlineStylesUpToBytes: null as any,
+    lint: true,
   };
 
   const init = async () => {
@@ -276,6 +277,10 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.inlineStylesUpToBytes = 0;
     }
 
+    if (typeof updatedOpts.lint === 'boolean') {
+      opts.lint = updatedOpts.lint;
+    }
+
     return { ...opts };
   };
 
@@ -309,7 +314,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     debug(`buildStart()`, opts.buildMode, opts.scope);
     const optimizer = getOptimizer();
 
-    if (optimizer.sys.env === 'node' && opts.target === 'ssr') {
+    if (optimizer.sys.env === 'node' && opts.target === 'ssr' && opts.lint) {
       try {
         linter = await createLinter(optimizer.sys, opts.rootDir, opts.tsconfigFileNames);
       } catch (err) {
@@ -947,6 +952,11 @@ export interface QwikPluginOptions {
    * Default: 20kb (20,000bytes)
    */
   inlineStylesUpToBytes?: number;
+  /**
+   * Run eslint on the source files for the ssr build or dev server. This can slow down startup on
+   * large projects. Defaults to `true`
+   */
+  lint?: boolean;
 }
 
 export interface NormalizedQwikPluginOptions extends Required<QwikPluginOptions> {

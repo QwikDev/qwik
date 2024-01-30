@@ -88,7 +88,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     entryStrategy: null as any,
     srcDir: null as any,
     srcInputs: null as any,
-    sourceMaps: !!optimizerOptions.sourcemap,
+    sourcemap: !!optimizerOptions.sourcemap,
     manifestInput: null,
     insightsManifest: null,
     manifestOutput: null,
@@ -124,6 +124,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     return optimizer.sys.path;
   };
 
+  /** Note that as a side-effect this updates the internal plugin `opts` */
   const normalizeOptions = (inputOpts?: QwikPluginOptions) => {
     const updatedOpts: QwikPluginOptions = Object.assign({}, inputOpts);
 
@@ -357,7 +358,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         preserveFilenames: true,
         mode,
         scope: opts.scope ? opts.scope : undefined,
-        sourceMaps: opts.sourceMaps,
+        sourceMaps: opts.sourcemap,
       };
 
       if (opts.target === 'client') {
@@ -604,7 +605,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         ],
         entryStrategy,
         minify: 'simplify',
-        sourceMaps: 'development' === opts.buildMode,
+        // Always enable sourcemaps in dev for click-to-source
+        sourceMaps: opts.sourcemap || 'development' === opts.buildMode,
         transpileTs: true,
         transpileJsx: true,
         explicitExtensions: true,
@@ -660,7 +662,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
           ],
           entryStrategy: opts.entryStrategy,
           minify: 'simplify',
-          sourceMaps: 'development' === opts.buildMode,
+          sourceMaps: opts.sourcemap || 'development' === opts.buildMode,
           transpileTs: true,
           transpileJsx: true,
           explicitExtensions: true,
@@ -816,6 +818,10 @@ export const isDev = ${JSON.stringify(isDev)};
 export const manifest = ${JSON.stringify(manifest)};\n`;
   }
 
+  function setSourceMapSupport(sourcemap: boolean) {
+    opts.sourcemap = sourcemap;
+  }
+
   return {
     buildStart,
     createOutputAnalyzer,
@@ -835,6 +841,7 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
     resolveId,
     transform,
     validateSource,
+    setSourceMapSupport,
   };
 }
 
@@ -927,7 +934,7 @@ export interface QwikPluginOptions {
   srcDir?: string | null;
   scope?: string | null;
   srcInputs?: TransformModuleInput[] | null;
-  sourceMaps?: boolean;
+  sourcemap?: boolean;
   resolveQwikBuild?: boolean;
   target?: QwikBuildTarget;
   transformedModuleOutput?:

@@ -124,9 +124,7 @@ export interface Optimizer {
 export interface OptimizerOptions {
     // (undocumented)
     binding?: any;
-    // (undocumented)
     inlineStylesUpToBytes?: number;
-    // (undocumented)
     sourcemap?: boolean;
     // (undocumented)
     sys?: OptimizerSystem;

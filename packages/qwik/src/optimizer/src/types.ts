@@ -20,7 +20,9 @@ export interface Optimizer {
 export interface OptimizerOptions {
   sys?: OptimizerSystem;
   binding?: any;
+  /** Inline the global styles if they're smaller than this */
   inlineStylesUpToBytes?: number;
+  /** Enable sourcemaps */
   sourcemap?: boolean;
 }
 

@@ -1,6 +1,23 @@
 import { logErrorAndStop } from '../util/log';
 import { qDev } from '../util/qdev';
-import { red, cyan, magenta } from 'kleur/colors';
+
+function color(x: number, y: number) {
+  const rgx = new RegExp(`\\x1b\\[${y}m`, 'g');
+  const open = `\x1b[${x}m`,
+    close = `\x1b[${y}m`;
+
+  return function (txt: string) {
+    if (!txt) {
+      return txt;
+    }
+
+    return open + (~('' + txt).indexOf(close) ? txt.replace(rgx, close + open) : txt) + close;
+  };
+}
+
+const red = color(31, 39);
+const magenta = color(35, 39);
+const cyan = color(36, 39);
 
 export const QError_stringifyClassOrStyle = 0;
 export const QError_cannotSerializeNode = 1; // 'Can not serialize a HTML Node that is not an Element'

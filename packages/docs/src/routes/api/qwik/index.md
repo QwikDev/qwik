@@ -3327,7 +3327,7 @@ export const Items = component$(() => {
 ```
 
 ```typescript
-useContextProvider: <STATE extends object>(context: ContextId<STATE>, newValue: STATE) => void
+useContextProvider: <STATE>(context: ContextId<STATE>, newValue: STATE) => void
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-context.ts)

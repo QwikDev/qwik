@@ -267,7 +267,7 @@ export interface UseContext {
  * ```
  *
  * @param context - The context to retrieve a value from.
- * @param defaultValue - The default value to return if the context is not provided by a parent.
+ * @param defaultValue - The default value to be used if value is missing.
  * @public
  */
 // </docs>

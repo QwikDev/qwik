@@ -33,7 +33,7 @@ import { Slot } from '../render/jsx/slot.public';
 import { vnode_getNextSibling } from './client/vnode';
 
 // To better understand what is going on in the test, set DEBUG to true and run the test.
-const DEBUG = true;
+const DEBUG = false;
 
 function log(...args: any[]) {
   // eslint-disable-next-line no-console
@@ -163,7 +163,7 @@ function log(...args: any[]) {
      * See the SSR output and look for where different parts of the projection are serialized into
      * to get an understanding of how the projection works.
      */
-    it.only('projection serialization example', async () => {
+    it('projection serialization example', async () => {
       const Child = componentQrl(
         inlinedQrl(() => {
           return (

@@ -5,7 +5,7 @@ import { normalizeOnProp } from '../core/state/listeners';
 import { getWrappingContainer, type PossibleEvents } from '../core/use/use-core';
 import { fromCamelToKebabCase } from '../core/util/case';
 import { getDomContainer } from '../core/v2/client/dom-container';
-import { parseQRL } from '../core/v2/shared-serialization';
+import { inflateQRL, parseQRL } from '../core/v2/shared-serialization';
 import type { QElement2, fixMeAny } from '../core/v2/shared/types';
 import { createWindow } from './document';
 import { getTestPlatform } from './platform';
@@ -139,7 +139,7 @@ export const dispatch = async (element: Element | null, attrName: string, event:
 
       qrl
         .split('\n')
-        .map((qrl) => parseQRL(container as fixMeAny, qrl.trim()))
+        .map((qrl) => inflateQRL(container as fixMeAny, parseQRL(qrl.trim())))
         .map((qrl) => qrl(event, element));
     }
     element = element.parentElement;

@@ -1,10 +1,10 @@
 /** @file Public APIs for the SSR */
 
-import type { V } from 'vitest/dist/reporters-qc5Smpt5';
 import { assertTrue } from '../../error/assert';
 import { getPlatform } from '../../platform/platform';
 import { createSubscriptionManager, type SubscriptionManager } from '../../state/common';
 import type { ContextId } from '../../use/use-context';
+import type { SubscriberEffect, Task } from '../../use/use-task';
 import { throwErrorAndStop } from '../../util/log';
 import {
   ELEMENT_PROPS,
@@ -14,10 +14,9 @@ import {
   QContainerSelector,
   QCtxAttr,
 } from '../../util/markers';
-import { maybeThen, maybeThenMap } from '../../util/promises';
-import { deserialize } from '../shared-serialization';
-import { executeComponent2 } from '../shared/component-execution';
-import type { HostElement, fixMeAny } from '../shared/types';
+import { wrapDeserializerProxy } from '../shared-serialization';
+import { ChoreType, createScheduler } from '../shared/scheduler';
+import type { fixMeAny, HostElement } from '../shared/types';
 import type {
   ContainerElement,
   ElementVNode,
@@ -29,7 +28,6 @@ import {
   mapArray_get,
   mapArray_set,
   vnode_clearLocalProps,
-  vnode_documentPosition,
   vnode_getClosestParentNode,
   vnode_getParent,
   vnode_getProp,
@@ -37,7 +35,7 @@ import {
   vnode_newUnMaterializedElement,
   vnode_setProp,
 } from './vnode';
-import { vnode_applyJournal, vnode_diff, type VNodeJournalEntry } from './vnode-diff';
+import { type VNodeJournalEntry } from './vnode-diff';
 
 export function getDomContainer(element: HTMLElement | ElementVNode): IClientContainer {
   let htmlElement: HTMLElement | null = Array.isArray(element)
@@ -57,6 +55,10 @@ export function getDomContainer(element: HTMLElement | ElementVNode): IClientCon
   return container;
 }
 
+export const isDomContainer = (container: any): container is DomContainer => {
+  return container instanceof DomContainer;
+};
+
 export class DomContainer implements IClientContainer {
   // public readonly containerState: ContainerState;
   public element: ContainerElement;
@@ -73,7 +75,7 @@ export class DomContainer implements IClientContainer {
   public rendering: boolean = false;
   public $rawStateData$: unknown[];
   private stateData: unknown[];
-  private $renderQueue$: Set<VirtualVNode> = new Set();
+  private $scheduler$: ReturnType<typeof createScheduler>;
   constructor(element: ContainerElement) {
     this.qContainer = element.getAttribute(QContainerAttr)!;
     if (!this.qContainer) {
@@ -100,18 +102,10 @@ export class DomContainer implements IClientContainer {
     if (qwikStates.length !== 0) {
       const lastState = qwikStates[qwikStates.length - 1];
       this.$rawStateData$ = JSON.parse(lastState.textContent!);
-      // NOTE: We want to deserialize the `rawStateData` so that we can cache the deserialized data.
-      this.stateData = deserialize(this, this.$rawStateData$);
-      // this.containerState.$pauseCtx$ = {
-      //   getObject: (id: string) => {
-      //     // console.log('getObject', id);
-      //     return this.getObjectById(id);
-      //   },
-      //   meta: loggingProxy('meta', this.$rawStateData$),
-      //   refs: loggingProxy('refs', {}),
-      // };
+      this.stateData = wrapDeserializerProxy(this, this.$rawStateData$);
     }
     this.$subsManager$ = createSubscriptionManager(this as fixMeAny);
+    this.$scheduler$ = createScheduler(this);
   }
 
   setContext<T>(host: HostElement, context: ContextId<T>, value: T): void {
@@ -122,7 +116,7 @@ export class DomContainer implements IClientContainer {
     mapArray_set(ctx, context.id, value, 0);
   }
 
-  resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | null {
+  resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined {
     while (host) {
       const ctx = this.getHostProp<Array<string | unknown>>(host, QCtxAttr);
       if (ctx) {
@@ -133,7 +127,7 @@ export class DomContainer implements IClientContainer {
       }
       host = this.getParentHost(host)!;
     }
-    return null;
+    return undefined;
   }
 
   clearLocalProps(host: HostElement): void {
@@ -173,27 +167,31 @@ export class DomContainer implements IClientContainer {
     return vnode_getProp(vNode, name, getObjectById);
   }
 
-  markForRender(hostElement: VirtualVNode): void {
-    this.$renderQueue$.add(hostElement);
+  scheduleRender() {
     if (!this.rendering) {
       this.rendering = true;
-      this.renderDone = getPlatform().nextTick(() => this.renderMarked());
+      this.renderDone = getPlatform().nextTick(() => this.$scheduler$.$drain$());
     }
   }
 
-  private async renderMarked() {
-    const components = Array.from(this.$renderQueue$);
-    this.$renderQueue$.clear();
-    components.sort(vnode_documentPosition);
-    maybeThenMap(
-      components,
-      (host) =>
-        maybeThen(executeComponent2(this, host, null, null), (jsx) => vnode_diff(this, jsx, host)),
-      () => {
-        vnode_applyJournal(this.$journal$);
-        this.rendering = false;
-      }
+  markTaskForRun(task: Task) {
+    this.$scheduler$.$schedule$(
+      ChoreType.TASK,
+      task.$el$ as fixMeAny,
+      task.$qrl$ as fixMeAny,
+      task.$index$,
+      task
     );
+    this.scheduleRender();
+  }
+
+  markComponentForRender(hostElement: VirtualVNode): void {
+    this.$scheduler$.$schedule$(
+      ChoreType.COMPONENT,
+      hostElement,
+      vnode_getProp(hostElement, OnRenderProp, this.getObjectById)!
+    );
+    this.scheduleRender();
   }
 
   getObjectById = (id: number | string): unknown => {

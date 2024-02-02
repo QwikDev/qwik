@@ -85,11 +85,7 @@ export async function ssrRenderToDom(
     <body>{jsx}</body>,
   ]);
   const html = ssrContainer.writer.toString();
-<<<<<<< HEAD
   const document = createDocument({ html });
-=======
-  const document = createDocument(html);
->>>>>>> e0341ba9a (WIP: Add README)
   const container = getDomContainer(document.body.parentElement as HTMLElement) as DomContainer;
   if (opts.debug) {
     console.log('========================================================');
@@ -106,12 +102,7 @@ export async function ssrRenderToDom(
     console.log(']');
     if (false as boolean) {
       console.log('CONTAINER PROXY: [');
-<<<<<<< HEAD
-      // It's a private prop but not enforced
-      const proxyState = (container as any).stateData as DomContainer['stateData'];
-=======
       const proxyState = container.stateData;
->>>>>>> e0341ba9a (WIP: Add README)
       for (let i = 0; i < state.length; i++) {
         console.log(('    ' + i + ':').substr(-4), proxyState[i]);
       }
@@ -127,11 +118,7 @@ export async function rerenderComponent(element: HTMLElement) {
   const container = getDomContainer(element);
   const vElement = vnode_locate(container.rootVNode, element);
   const host = getHostVNode(vElement)!;
-<<<<<<< HEAD
   const subAction: Subscriptions = [0, host as fixMeAny, undefined];
-=======
-  const subAction: Subscriptions = [0, host as fixMeAny];
->>>>>>> e0341ba9a (WIP: Add README)
   notifyChange(subAction, container as fixMeAny);
 }
 

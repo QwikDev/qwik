@@ -1,5 +1,5 @@
-import { createDocument } from '../../testing/document';
 import { describe, expect, it } from 'vitest';
+import { createDocument } from '../../testing/document';
 import { component$ } from '../component/component.public';
 import { SERIALIZABLE_STATE } from '../container/serializers';
 import { inlinedQrl, qrl } from '../qrl/qrl';
@@ -7,16 +7,17 @@ import type { QRLInternal } from '../qrl/qrl-class';
 import { $ } from '../qrl/qrl.public';
 import { Fragment, JSXNodeImpl } from '../render/jsx/jsx-runtime';
 import { Slot } from '../render/jsx/slot.public';
+import type { JSXOutput } from '../render/jsx/types/jsx-node';
 import { getDomContainer } from './client/dom-container';
 import type { ClientContainer, VNode } from './client/types';
-import { vnode_getFirstChild, vnode_getAttr, vnode_getText } from './client/vnode';
+import { vnode_getAttr, vnode_getFirstChild, vnode_getText } from './client/vnode';
 import { isDeserializerProxy } from './shared-serialization';
 import { ssrCreateContainer } from './ssr/ssr-container';
 import { toSsrAttrs } from './ssr/ssr-render';
 import { SsrNode, type SSRContainer } from './ssr/types';
 import './vdom-diff.unit-util';
 import { walkJSX } from './vdom-diff.unit-util';
-import type { JSXOutput } from '../render/jsx/types/jsx-node';
+
 
 describe('serializer v2', () => {
   describe('rendering', () => {
@@ -228,7 +229,7 @@ describe('serializer v2', () => {
         const obj: QRLInternal[] = [
           $(testFn) as QRLInternal,
           qrl('chunk.js', 's_123', ['Hello', 'World']) as QRLInternal,
-          inlinedQrl(testFn, 's_inline') as QRLInternal,
+          inlinedQrl(testFn, 's_inline', ['Hello']) as QRLInternal,
         ];
         const [qrl0, qrl1, qrl2] = withContainer((ssr) => ssr.addRoot(obj)).getObjectById(0);
         expect(qrl0.$hash$).toEqual(obj[0].$hash$);

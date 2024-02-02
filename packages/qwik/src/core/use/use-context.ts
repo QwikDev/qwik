@@ -285,7 +285,10 @@ export const useContext: UseContext = <STATE extends object>(
 
   let value: STATE | undefined;
   if (iCtx.$container2$) {
-    iCtx.$container2$.resolveContext(iCtx.$hostElement$ as fixMeAny as HostElement, context);
+    value = iCtx.$container2$.resolveContext(
+      iCtx.$hostElement$ as fixMeAny as HostElement,
+      context
+    );
   } else {
     value = resolveContext<STATE>(context, elCtx, iCtx.$renderCtx$.$static$.$containerState$);
   }

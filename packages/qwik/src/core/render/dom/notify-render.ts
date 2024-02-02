@@ -21,6 +21,7 @@ import { QStyle } from '../../util/markers';
 import { maybeThen } from '../../util/promises';
 import { qDev } from '../../util/qdev';
 import type { ValueOrPromise } from '../../util/types';
+import { isDomContainer } from '../../v2/client/dom-container';
 import type { VirtualVNode } from '../../v2/client/types';
 import { vnode_isVNode } from '../../v2/client/vnode';
 import type { Container2 } from '../../v2/shared/types';
@@ -62,7 +63,7 @@ export const notifyChange = (subAction: Subscriptions, containerState: Container
 const notifyRender = (hostElement: QwikElement, containerState: ContainerState): void => {
   if (vnode_isVNode(hostElement)) {
     const container2 = containerState as any as Container2;
-    container2.markForRender(hostElement as unknown as VirtualVNode);
+    container2.markComponentForRender(hostElement as unknown as VirtualVNode);
   } else {
     const server = isServerPlatform();
     if (!server) {
@@ -106,12 +107,17 @@ export const notifyTask = (task: SubscriberEffect, containerState: ContainerStat
   }
   task.$flags$ |= TaskFlagsIsDirty;
 
-  const activeRendering = containerState.$hostsRendering$ !== undefined;
-  if (activeRendering) {
-    containerState.$taskStaging$.add(task);
+  if (isDomContainer(containerState)) {
+    containerState.$tasks$.push(task);
+    containerState.scheduleRender();
   } else {
-    containerState.$taskNext$.add(task);
-    scheduleFrame(containerState);
+    const activeRendering = containerState.$hostsRendering$ !== undefined;
+    if (activeRendering) {
+      containerState.$taskStaging$.add(task);
+    } else {
+      containerState.$taskNext$.add(task);
+      scheduleFrame(containerState);
+    }
   }
 };
 

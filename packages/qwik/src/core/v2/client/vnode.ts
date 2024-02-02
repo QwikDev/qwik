@@ -133,7 +133,6 @@ import {
   VirtualVNodeProps,
   VNodeFlagsIndex,
 } from './types';
-import { QwikElementAdapter } from './velement';
 import {
   ELEMENT_ID,
   ELEMENT_KEY,
@@ -154,7 +153,7 @@ export const vnode_newElement = (
   element: Element,
   tag: string
 ): ElementVNode => {
-  const vnode: ElementVNode = QwikElementAdapter.createElement(
+  const vnode: ElementVNode = VNodeArray.createElement(
     VNodeFlags.Element | (-1 << VNodeFlagsIndex.shift), // Flag
     parentNode as VNode | null,
     null,
@@ -174,7 +173,7 @@ export const vnode_newUnMaterializedElement = (
   parentNode: VNode | null,
   element: Element
 ): ElementVNode => {
-  const vnode: ElementVNode = QwikElementAdapter.createElement(
+  const vnode: ElementVNode = VNodeArray.createElement(
     VNodeFlags.Element | (-1 << VNodeFlagsIndex.shift), // Flag
     parentNode as VNode | null,
     null,
@@ -196,7 +195,7 @@ export const vnode_newSharedText = (
   sharedTextNode: Text | null,
   textContent: string
 ): TextVNode => {
-  const vnode: TextVNode = QwikElementAdapter.createText(
+  const vnode: TextVNode = VNodeArray.createText(
     VNodeFlags.Text | (-1 << VNodeFlagsIndex.shift), // Flag
     parentNode, // Parent
     previousTextNode, // Previous TextNode (usually first child)
@@ -215,7 +214,7 @@ export const vnode_newText = (
   textNode: Text,
   textContent: string | undefined
 ): TextVNode => {
-  const vnode: TextVNode = QwikElementAdapter.createText(
+  const vnode: TextVNode = VNodeArray.createText(
     VNodeFlags.Text | VNodeFlags.Inflated | (-1 << VNodeFlagsIndex.shift), // Flags
     parentNode, // Parent
     null, // No previous sibling
@@ -230,7 +229,7 @@ export const vnode_newText = (
 };
 
 export const vnode_newVirtual = (parentNode: VNode): VirtualVNode => {
-  const vnode: VirtualVNode = QwikElementAdapter.createVirtual(
+  const vnode: VirtualVNode = VNodeArray.createVirtual(
     VNodeFlags.Virtual | (-1 << VNodeFlagsIndex.shift), // Flags
     parentNode,
     null,
@@ -247,11 +246,12 @@ export const vnode_newVirtual = (parentNode: VNode): VirtualVNode => {
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export const vnode_isVNode = (vNode: any): vNode is VNode => {
-  if (Array.isArray(vNode) && vNode.length > 0) {
-    const flag = (vNode as VNode)[VNodeProps.flags];
-    return typeof flag === 'number' && (flag & VNodeFlags.TYPE_MASK) !== 0;
-  }
-  return false;
+  return vNode instanceof VNodeArray;
+  // if (Array.isArray(vNode) && vNode.length > 0) {
+  //   const flag = (vNode as VNode)[VNodeProps.flags];
+  //   return typeof flag === 'number' && (flag & VNodeFlags.TYPE_MASK) !== 0;
+  // }
+  // return false;
 };
 
 export const vnode_isElementVNode = (vNode: VNode): vNode is ElementVNode => {
@@ -464,7 +464,7 @@ export const vnode_locate = (rootVNode: ElementVNode, id: string | Element): VNo
       parent = parent.parentElement!;
       elementPath.push(parent);
     }
-    // Start at rootVNode and fallow the `elementPath` to find the vnode.
+    // Start at rootVNode and follow the `elementPath` to find the vnode.
     for (let i = elementPath.length - 2; i >= 0; i--) {
       vNode = vnode_getVNodeForChildNode(vNode, elementPath[i]);
     }
@@ -969,7 +969,7 @@ export function vnode_toString(
       });
       const node = vnode_getNode(vnode) as HTMLElement;
       if (node) {
-        const vnodeData = (node.ownerDocument as QDocument).qVNodeData.get(node);
+        const vnodeData = (node.ownerDocument as QDocument).qVNodeData?.get(node);
         if (vnodeData) {
           attrs.push(' q:vnodeData=' + stringify(vnodeData));
         }
@@ -1152,36 +1152,44 @@ export const vnode_getType = (vnode: VNode): 1 | 3 | 11 => {
 const isElement = (node: any): node is Element =>
   node && typeof node == 'object' && node.nodeType === /** Node.ELEMENT_NODE* */ 1;
 
-export const vnode_documentPosition = (a: VNode, b: VNode) => {
+export const vnode_documentPosition = (a: VNode, b: VNode): -1 | 0 | 1 => {
   let aNode: Node | null = null;
-
+  if (a === b) {
+    return 0;
+  }
+  /**
+   * - We keep b as constant
+   * - We move a in a depth first way until we get to an element. Than we just compare elements.
+   */
   while (!aNode && a) {
     if (a === b) {
-      // 'a' started before b
-      return 1;
+      // 'a' started before b. (we walked `a` and reached `b`)
+      return -1;
     }
     const type = a[VNodeProps.flags];
     if (type & VNodeFlags.ELEMENT_OR_TEXT_MASK) {
       aNode = vnode_getNode(a) as Element;
     } else {
-      assertTrue(vnode_isVirtualVNode(a), 'Expecting Fragment');
+      assertTrue(vnode_isVirtualVNode(a), 'Expecting Virtual');
       let vNext = vnode_getFirstChild(a) || vnode_getNextSibling(a);
       while (vNext === null) {
         a = vnode_getParent(a)!;
         if (vnode_isElementVNode(a)) {
           // we traversed all nodes and did not find anything;
           aNode = vnode_getNode(a)!;
+          break;
+        } else {
+          vNext = vnode_getNextSibling(a);
         }
-        vNext = vnode_getNextSibling(a);
       }
-      a = vNext;
+      a = vNext!;
     }
   }
   const bNode = vnode_getDOMParent(b)!;
 
   if (aNode === bNode) {
     // This means that `b` must have been before `a`
-    return -1;
+    return 1;
   }
   const DOCUMENT_POSITION_PRECEDING = 2; /// Node.DOCUMENT_POSITION_PRECEDING
   return (aNode!.compareDocumentPosition(bNode) & DOCUMENT_POSITION_PRECEDING) !== 0 ? 1 : -1;
@@ -1264,5 +1272,58 @@ const stringify = (value: any): any => {
     }
   } finally {
     stringifyPath.pop();
+  }
+};
+
+const VNodeArray = class VNode extends Array {
+  static createElement(
+    flags: VNodeFlags,
+    parent: VNode | null,
+    previousSibling: VNode | null,
+    nextSibling: VNode | null,
+    firstChild: VNode | null | undefined,
+    lastChild: VNode | null | undefined,
+    element: Element,
+    tag: string | undefined
+  ) {
+    const vnode = new VNode(flags, parent, previousSibling, nextSibling) as any;
+    vnode.push(firstChild, lastChild, element, tag);
+    return vnode;
+  }
+
+  static createText(
+    flags: VNodeFlags,
+    parent: VNode | null,
+    previousSibling: VNode | null,
+    nextSibling: VNode | null,
+    textNode: Text | null,
+    text: string | undefined
+  ) {
+    const vnode = new VNode(flags, parent, previousSibling, nextSibling) as any;
+    vnode.push(textNode, text);
+    return vnode;
+  }
+
+  static createVirtual(
+    flags: VNodeFlags,
+    parent: VNode | null,
+    previousSibling: VNode | null,
+    nextSibling: VNode | null,
+    firstChild: VNode | null,
+    lastChild: VNode | null
+  ) {
+    const vnode = new VNode(flags, parent, previousSibling, nextSibling) as any;
+    vnode.push(firstChild, lastChild);
+    return vnode;
+  }
+
+  constructor(
+    flags: VNodeFlags,
+    parent: VNode | null,
+    previousSibling: VNode | null | undefined,
+    nextSibling: VNode | null | undefined
+  ) {
+    super();
+    this.push(flags, parent, previousSibling, nextSibling);
   }
 };

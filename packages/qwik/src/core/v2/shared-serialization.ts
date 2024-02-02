@@ -1,24 +1,25 @@
-import { componentQrl, isQwikComponent } from '../component/component.public';
-import { assertDefined, assertTrue } from '../error/assert';
-import { createQRL, isQrl, type QRLInternal } from '../qrl/qrl-class';
-import type { QRL } from '../qrl/qrl.public';
-import type { DomContainer } from './client/dom-container';
-import { SERIALIZABLE_STATE } from '../container/serializers';
-import { vnode_locate } from './client/vnode';
-import { Fragment, JSXNodeImpl, isJSXNode } from '../render/jsx/jsx-runtime';
 import type { FunctionComponent } from '@builder.io/qwik/jsx-runtime';
-import { Slot } from '../render/jsx/slot.public';
-import { SignalImpl } from '../state/signal';
-import { QObjectManagerSymbol } from '../state/constants';
-import {
-  parseSubscription,
-  type LocalSubscriptionManager,
-  serializeSubscription,
-} from '../state/common';
 import { isDev } from '../../build/index.dev';
 import type { StreamWriter } from '../../server/types';
-import { QwikElementAdapter } from './client/velement';
-import type { JSXChildren } from '../render/jsx/types/jsx-qwik-attributes';
+import { componentQrl, isQwikComponent } from '../component/component.public';
+import { SERIALIZABLE_STATE } from '../container/serializers';
+import { assertDefined, assertTrue } from '../error/assert';
+import { createQRL, isQrl, type QRLInternal } from '../qrl/qrl-class';
+import { Fragment, JSXNodeImpl, isJSXNode } from '../render/jsx/jsx-runtime';
+import { Slot } from '../render/jsx/slot.public';
+import {
+  getSubscriptionManager,
+  parseSubscription,
+  serializeSubscription,
+  type LocalSubscriptionManager,
+} from '../state/common';
+import { QObjectManagerSymbol } from '../state/constants';
+import { SignalImpl } from '../state/signal';
+import { Task } from '../use/use-task';
+import { throwErrorAndStop } from '../util/log';
+import type { DomContainer } from './client/dom-container';
+import { vnode_isVNode, vnode_locate } from './client/vnode';
+import type { fixMeAny } from './shared/types';
 
 const deserializedProxyMap = new WeakMap<object, unknown>();
 
@@ -35,12 +36,12 @@ export const isDeserializerProxy = (value: unknown): value is DeserializerProxy 
 };
 
 const UNWRAP_PROXY = Symbol('UNWRAP_PROXY');
-const wrapDeserializerProxy = (container: DomContainer, value: unknown) => {
+export const wrapDeserializerProxy = (container: DomContainer, value: unknown) => {
   if (
     typeof value === 'object' && // Must be an object
     value !== null && // which is not null
     isObjectLiteral(value) && // and is object literal (not URL, Data, etc.)
-    !(value instanceof QwikElementAdapter)
+    !vnode_isVNode(value) // and is not a VNode or Slot
   ) {
     if (isDeserializerProxy(value)) {
       // already wrapped
@@ -53,20 +54,29 @@ const wrapDeserializerProxy = (container: DomContainer, value: unknown) => {
             if (property === UNWRAP_PROXY) {
               return target;
             }
-            // console.log('STATE PROXY GET', property);
-            if (property === 'a') {
-              // throw new Error('WHY?');
-            }
             let propValue = Reflect.get(target, property, receiver);
+            let typeCode: number;
             if (
               typeof propValue === 'string' &&
               propValue.length >= 1 &&
-              propValue.charCodeAt(0) < SerializationConstant.LAST_VALUE
+              (typeCode = propValue.charCodeAt(0)) < SerializationConstant.LAST_VALUE
             ) {
-              propValue = deserialize(container, propValue);
+              const serializedValue = propValue;
+              if (typeCode === SerializationConstant.REFERENCE_VALUE) {
+                propValue = unwrapDeserializerProxy(
+                  container.getObjectById(parseInt(propValue.substring(1)))
+                );
+              } else if (typeCode === SerializationConstant.VNode_VALUE) {
+                propValue =
+                  propValue === SerializationConstant.VNode_CHAR
+                    ? container.element.ownerDocument
+                    : vnode_locate(container.rootVNode, propValue.substring(1));
+              } else {
+                propValue = allocate(propValue);
+              }
               if (
                 typeof propValue !== 'string' ||
-                (propValue.length > 0 && propValue.charCodeAt(0) < SerializationConstant.LAST_VALUE)
+                (propValue.length > 0 && typeCode < SerializationConstant.LAST_VALUE)
               ) {
                 /**
                  * So we want to cache the value so that we don't have to deserialize it again AND
@@ -77,7 +87,11 @@ const wrapDeserializerProxy = (container: DomContainer, value: unknown) => {
                  * value. But it is OK because even thought the identity of string may change on
                  * deserialization, the value string equality will not change.
                  */
-                Reflect.set(target, property, unwrapDeserializerProxy(propValue), receiver);
+                Reflect.set(target, property, propValue, receiver);
+                /** After we set the value we can now inflate the value if needed. */
+                if (typeCode >= SerializationConstant.Error_VALUE) {
+                  inflate(container, propValue, serializedValue);
+                }
               }
             }
             return wrapDeserializerProxy(container, propValue);
@@ -96,96 +110,164 @@ const wrapDeserializerProxy = (container: DomContainer, value: unknown) => {
   }
   return value;
 };
-
-export const deserialize = <O>(container: DomContainer, value: string | object): O => {
-  if (typeof value === 'object' && value !== null) {
-    return wrapDeserializerProxy(container, value) as O;
-  } else if (typeof value === 'string' && value.length) {
-    const code = value.charCodeAt(0);
-    // only cut rest if we have a valid code
-    const rest = code < SerializationConstant.LAST_VALUE ? value.substring(1) : null!;
-    switch (code) {
-      case SerializationConstant.REFERENCE_VALUE:
-        const ref = parseInt(rest);
-        return container.getObjectById(ref) as O;
-      case SerializationConstant.UNDEFINED_VALUE:
-        return undefined as O;
-      case SerializationConstant.QRL_VALUE:
-        return parseQRL(container, rest) as O;
-      case SerializationConstant.Task_VALUE:
-        throw new Error('Not implemented');
-      case SerializationConstant.Resource_VALUE:
-        throw new Error('Not implemented');
-      case SerializationConstant.URL_VALUE:
-        return new URL(rest) as O;
-      case SerializationConstant.Date_VALUE:
-        return new Date(rest) as O;
-      case SerializationConstant.Regex_VALUE:
-        const idx = rest.lastIndexOf('/');
-        return new RegExp(rest.substring(1, idx), rest.substring(idx + 1)) as O;
-      case SerializationConstant.Error_VALUE:
-        const obj = container.getObjectById(parseInt(rest));
-        return Object.assign(new Error(rest), obj) as O;
-      case SerializationConstant.Component_VALUE:
-        return componentQrl(parseQRL(container, rest) as any) as O;
-      case SerializationConstant.DerivedSignal_VALUE:
-        throw new Error('Not implemented');
-      case SerializationConstant.Signal_VALUE:
-        const valueIdx = rest.indexOf(' ');
-        const value = container.getObjectById(parseInt(rest.substring(0, valueIdx)));
-        const manager: LocalSubscriptionManager = container.$subsManager$?.$createManager$();
-        const subscription = parseSubscription(
-          rest.substring(valueIdx + 1),
-          container.getObjectById
-        );
-        // console.log('DESERIALIZE', subscription);
-        // TODO we should strip off the key of Subscriptions or be sure we only receive Subscribers (no key)
-        subscription && manager.$addSub$(subscription as any);
-        return new SignalImpl(value, manager, 0) as O;
-      case SerializationConstant.SignalWrapper_VALUE:
-        throw new Error('Not implemented');
-      case SerializationConstant.NaN_VALUE:
-        return Number.NaN as O;
-      case SerializationConstant.URLSearchParams_VALUE:
-        return new URLSearchParams(rest) as O;
-      case SerializationConstant.FormData_VALUE:
-        const formData = new FormData();
-        for (const [key, value] of container.getObjectById(parseInt(rest)) as any) {
-          formData.append(key, value);
-        }
-        return formData as O;
-      case SerializationConstant.JSXNode_VALUE:
-        const [type, props, immutableProps, children, flags] = rest.split(' ');
-        return new JSXNodeImpl(
-          deserializeJSXType(container, type),
-          container.getObjectById(props) as any,
-          container.getObjectById(immutableProps) as any,
-          container.getObjectById(children) as JSXChildren,
-          parseInt(flags)
-        ) as O;
-      case SerializationConstant.BigInt_VALUE:
-        return BigInt(rest) as O;
-      case SerializationConstant.Set_VALUE:
-        return new Set(container.getObjectById(parseInt(rest)) as Set<any>) as O;
-      case SerializationConstant.Map_VALUE:
-        return new Map(container.getObjectById(parseInt(rest)) as Map<any, any>) as O;
-      case SerializationConstant.VNode_VALUE:
-        return rest === ''
-          ? (container.element.ownerDocument as O)
-          : (vnode_locate(container.rootVNode, rest) as O);
-      case SerializationConstant.String_VALUE:
-        return rest as O;
-      default:
+const restStack: Array<number | string> = [];
+let rest: string = null!;
+let restIdx: number;
+const restInt = () => {
+  return parseInt(restString());
+};
+const restString = () => {
+  const start = restIdx;
+  const length = rest.length;
+  let depth = 0;
+  let ch: number;
+  do {
+    if (restIdx < length) {
+      ch = rest.charCodeAt(restIdx++);
+      if (ch === 91 /* [ */) {
+        depth++;
+      } else if (ch === 93 /* ] */) {
+        depth--;
+      }
+    } else {
+      restIdx = length + 1;
+      break;
     }
-  }
-  return value as O;
+  } while (depth > 0 || ch !== 32 /* space */);
+  return rest.substring(start, restIdx - 1);
 };
 
-export function parseQRL(container: DomContainer, qrl: string): QRL<any> {
+const inflate = (container: DomContainer, target: any, needsInflationData: string) => {
+  restStack.push(rest, restIdx);
+  rest = needsInflationData;
+  restIdx = 1;
+  switch (needsInflationData.charCodeAt(0)) {
+    case SerializationConstant.QRL_VALUE:
+      inflateQRL(container, target);
+      break;
+    case SerializationConstant.Task_VALUE:
+      const task = target as Task;
+      task.$flags$ = restInt();
+      task.$index$ = restInt();
+      task.$el$ = container.getObjectById(restInt()) as fixMeAny;
+      task.$qrl$ = inflateQRL(container, parseQRL(restString()));
+      const taskState = restString();
+      task.$state$ = taskState ? container.getObjectById(taskState) as fixMeAny : undefined;
+      break;
+    case SerializationConstant.Resource_VALUE:
+      throw new Error('Not implemented');
+      break;
+    case SerializationConstant.Component_VALUE:
+      inflateQRL(container, target[SERIALIZABLE_STATE][0]);
+      break;
+    case SerializationConstant.DerivedSignal_VALUE:
+      throw new Error('Not implemented');
+      break;
+    case SerializationConstant.Signal_VALUE:
+      const signal = target as SignalImpl<unknown>;
+      signal.untrackedValue = container.getObjectById(restInt());
+      const manager: LocalSubscriptionManager = (signal[QObjectManagerSymbol] =
+        container.$subsManager$?.$createManager$());
+      const subscription = parseSubscription(rest.substring(restIdx), container.getObjectById);
+      subscription && manager.$addSub$(subscription);
+      break;
+    case SerializationConstant.SignalWrapper_VALUE:
+      throw new Error('Not implemented');
+      break;
+    case SerializationConstant.Error_VALUE:
+      Object.assign(target, container.getObjectById(restInt()));
+      break;
+    case SerializationConstant.FormData_VALUE:
+      const formData = target as FormData;
+      for (const [key, value] of container.getObjectById(restInt())) {
+        formData.append(key, value);
+      }
+      break;
+    case SerializationConstant.JSXNode_VALUE:
+      const jsx = target as JSXNodeImpl<unknown>;
+      jsx.type = deserializeJSXType(container, restString());
+      jsx.props = container.getObjectById(restInt());
+      jsx.immutableProps = container.getObjectById(restInt());
+      jsx.children = container.getObjectById(restInt());
+      jsx.flags = restInt();
+      jsx.key = restString() || null;
+      break;
+    case SerializationConstant.Set_VALUE:
+      const set = target as Set<unknown>;
+      const setValues = container.getObjectById(restInt()) as Array<unknown>;
+      for (let i = 0; i < setValues.length; i++) {
+        set.add(setValues[i]);
+      }
+      break;
+    case SerializationConstant.Map_VALUE:
+      const map = target as Map<unknown, unknown>;
+      const mapKeyValue = container.getObjectById(restInt());
+      for (let i = 0; i < mapKeyValue.length; ) {
+        map.set(mapKeyValue[i++], mapKeyValue[i++]);
+      }
+      break;
+    default:
+      throw new Error('Not implemented');
+  }
+  restIdx = restStack.pop() as number;
+  rest = restStack.pop() as string;
+};
+
+const allocate = <T>(value: string): any => {
+  switch (value.charCodeAt(0)) {
+    case SerializationConstant.UNDEFINED_VALUE:
+      return undefined;
+    case SerializationConstant.QRL_VALUE:
+      return parseQRL(value);
+    case SerializationConstant.Task_VALUE:
+      return new Task(-1, -1, null!, null!, null!);
+    case SerializationConstant.Resource_VALUE:
+      throw new Error('Not implemented');
+    case SerializationConstant.URL_VALUE:
+      return new URL(value.substring(1));
+    case SerializationConstant.Date_VALUE:
+      return new Date(value.substring(1));
+    case SerializationConstant.Regex_VALUE:
+      const idx = value.lastIndexOf('/');
+      return new RegExp(value.substring(2, idx), value.substring(idx + 1));
+    case SerializationConstant.Error_VALUE:
+      return new Error();
+    case SerializationConstant.Component_VALUE:
+      return componentQrl(parseQRL(value) as any);
+    case SerializationConstant.DerivedSignal_VALUE:
+      throw new Error('Not implemented');
+    case SerializationConstant.Signal_VALUE:
+      return new SignalImpl(null!, null!, 0);
+    case SerializationConstant.SignalWrapper_VALUE:
+      throw new Error('Not implemented');
+    case SerializationConstant.NaN_VALUE:
+      return Number.NaN;
+    case SerializationConstant.URLSearchParams_VALUE:
+      return new URLSearchParams(value.substring(1));
+    case SerializationConstant.FormData_VALUE:
+      return new FormData();
+    case SerializationConstant.JSXNode_VALUE:
+      return new JSXNodeImpl(null!, null!, null!, null!, -1, null);
+    case SerializationConstant.BigInt_VALUE:
+      return BigInt(value.substring(1));
+    case SerializationConstant.Set_VALUE:
+      return new Set();
+    case SerializationConstant.Map_VALUE:
+      return new Map();
+    case SerializationConstant.String_VALUE:
+      return value.substring(1);
+    default:
+  }
+};
+
+export function parseQRL(qrl: string): QRLInternal<any> {
   const hashIdx = qrl.indexOf('#');
   const captureStart = qrl.indexOf('[', hashIdx);
   const captureEnd = qrl.indexOf(']', captureStart);
-  const chunk = hashIdx > -1 ? qrl.substring(0, hashIdx) : qrl;
+  const chunk =
+    hashIdx > -1
+      ? qrl.substring(qrl.charCodeAt(0) < SerializationConstant.LAST_VALUE ? 1 : 0, hashIdx)
+      : qrl;
   const symbol =
     captureStart > -1 ? qrl.substring(hashIdx + 1, captureStart) : qrl.substring(hashIdx + 1);
   let qrlRef = null;
@@ -196,15 +278,21 @@ export function parseQRL(container: DomContainer, qrl: string): QRL<any> {
           .split(' ')
           .filter((v) => v.length)
       : null;
-  const captureRefs = captureIds
-    ? captureIds.map((id) => container.getObjectById(parseInt(id)))
-    : null;
   if (isDev && chunk === QRL_RUNTIME_CHUNK) {
     const backChannel: Map<string, Function> = (globalThis as any)[QRL_RUNTIME_CHUNK];
     assertDefined(backChannel, 'Missing QRL_RUNTIME_CHUNK');
     qrlRef = backChannel.get(symbol);
   }
-  return createQRL(chunk, symbol, qrlRef, null, captureIds, captureRefs, null);
+  return createQRL(chunk, symbol, qrlRef, null, captureIds, null, null);
+}
+
+export function inflateQRL(container: DomContainer, qrl: QRLInternal<any>) {
+  const captureIds = qrl.$capture$;
+  qrl.$captureRef$ = captureIds
+    ? captureIds.map((id) => container.getObjectById(parseInt(id)))
+    : null;
+  qrl.$setContainer$(container.element);
+  return qrl;
 }
 
 export interface SerializationContext {
@@ -221,18 +309,25 @@ export interface SerializationContext {
    * - `Number.MIN_SAFE_INTEGER` - object has been seen, only once, and therefor does not need to be
    *   promoted into a root yet.
    */
-  $wasSeen$: (obj: any) => number | undefined;
+  $wasSeen$: (obj: unknown) => number | undefined;
 
-  $hasRootId$: (obj: any) => number | undefined;
+  $hasRootId$: (obj: unknown) => number | undefined;
 
   /**
    * Root objects which need to be serialized.
    *
    * Roots are entry points into the object graph. Typically the roots are held by the listeners.
-   * Because objects can share child objects, we need a way to create secondary roots to share those
-   * objects.
    */
   $addRoot$: (obj: unknown) => number;
+
+  /**
+   * Get root index of the object without create a new root.
+   *
+   * This is used during serialization, as new roots can't be created during serialization.
+   *
+   * The function throws if the root was not found.
+   */
+  $getRootId$: (obj: unknown) => number;
 
   $seen$: (obj: unknown) => void;
 
@@ -277,10 +372,17 @@ export const createSerializationContext = (
     },
     $addRoot$: (obj: any) => {
       let id = map.get(obj);
-      if (!id || id === Number.MIN_SAFE_INTEGER) {
+      if (typeof id !== 'number' || id === Number.MIN_SAFE_INTEGER) {
         id = roots.length;
         map.set(obj, id);
         roots.push(obj);
+      }
+      return id;
+    },
+    $getRootId$: (obj: any) => {
+      const id = map.get(obj);
+      if (!id || id === Number.MIN_SAFE_INTEGER) {
+        throw throwErrorAndStop('Missing root id for: ' + obj);
       }
       return id;
     },
@@ -290,7 +392,10 @@ export const createSerializationContext = (
 
 export function serialize(serializationContext: SerializationContext): void {
   const objRoots = serializationContext.$roots$;
-  for (let i = 0; i < objRoots.length; i++) {
+  /// As `breakCircularDependencies` it is adding new roots
+  /// But we don't need te re-scan them.
+  const objRootsLength = objRoots.length;
+  for (let i = 0; i < objRootsLength; i++) {
     breakCircularDependencies(serializationContext, objRoots[i]);
   }
 
@@ -415,17 +520,27 @@ export function serialize(serializationContext: SerializationContext): void {
     } else if (value instanceof URLSearchParams) {
       writeString(SerializationConstant.URLSearchParams_CHAR + value.toString());
     } else if (value instanceof Set) {
-      writeString(SerializationConstant.Set_CHAR + $addRoot$(Array.from(value.values())));
+      writeString(SerializationConstant.Set_CHAR + getSerializableDataRootId(value));
     } else if (value instanceof Map) {
-      const tuples: Array<[any, any]> = [];
-      value.forEach((v, k) => tuples.push([k, v]));
-      writeString(SerializationConstant.Map_CHAR + $addRoot$(tuples));
-    } else if (isJSXNode<any>(value)) {
-      writeString(
+      writeString(SerializationConstant.Map_CHAR + getSerializableDataRootId(value));
+    } else if (isJSXNode(value)) {
+      const type = writeString(
         SerializationConstant.JSXNode_CHAR +
           `${serializeJSXType($addRoot$, value.type)} ${$addRoot$(value.props)} ${$addRoot$(
             value.immutableProps
           )} ${$addRoot$(value.children)} ${value.flags}`
+      );
+    } else if (value instanceof Task) {
+      writeString(
+        SerializationConstant.Task_CHAR +
+          value.$flags$ +
+          ' ' +
+          value.$index$ +
+          ' ' +
+          $addRoot$(value.$el$) +
+          ' ' +
+          qrlToString(value.$qrl$, $addRoot$) +
+          (value.$state$ == null ? '' : ' ' + $addRoot$(value.$state$))
       );
     } else {
       throw new Error('implement: ' + value);
@@ -433,6 +548,20 @@ export function serialize(serializationContext: SerializationContext): void {
   };
 
   writeValue(objRoots);
+}
+
+function setSerializableDataRootId(
+  serializationContext: SerializationContext,
+  obj: object,
+  value: any
+) {
+  (obj as any)[SERIALIZABLE_ROOT_ID] = serializationContext.$addRoot$(value);
+}
+
+function getSerializableDataRootId(value: object) {
+  const id = (value as any)[SERIALIZABLE_ROOT_ID];
+  assertDefined(id, 'Missing SERIALIZABLE_ROOT_ID');
+  return id;
 }
 
 function serializeObjectLiteral(
@@ -480,7 +609,9 @@ export function qrlToString(value: QRLInternal, getObjectId: (obj: any) => numbe
     (value.$chunk$ || QRL_RUNTIME_CHUNK) +
     '#' +
     value.$symbol$ +
-    (value.$captureRef$ ? `[${value.$captureRef$.map(getObjectId).join(' ')}]` : '');
+    (value.$captureRef$ && value.$captureRef$.length
+      ? `[${value.$captureRef$.map(getObjectId).join(' ')}]`
+      : '');
   return qrlString;
 }
 
@@ -501,7 +632,6 @@ function shouldTrackObj(obj: unknown) {
     (typeof obj === 'object' && obj !== null) ||
     // THINK: Not sure if we need to keep track of functions (QRLs) Let's skip them for now.
     // and see if we have a test case which requires them.
-    // typeof obj === 'function' ||
     (typeof obj === 'string' && obj.length > 10)
   );
 }
@@ -524,10 +654,17 @@ function isObjectLiteral(obj: unknown) {
   return prototype === Object.prototype || prototype === Array.prototype;
 }
 
-const breakCircularDependencies = (
-  serializationContext: SerializationContext,
-  rootObj: unknown
-) => {
+const frameworkType = (obj: any) => {
+  return (
+    (typeof obj === 'object' &&
+      obj !== null &&
+      (obj instanceof SignalImpl || obj instanceof Task || isJSXNode(obj))) ||
+    isQrl(obj)
+  );
+};
+
+const breakCircularDependencies = (serializationContext: SerializationContext, rootObj: unknown) => {
+  // As we walk the object graph we insert newly discovered objects which need to be scanned here.
   const discoveredValues: unknown[] = [rootObj];
   // let count = 100;
   while (discoveredValues.length) {
@@ -535,7 +672,7 @@ const breakCircularDependencies = (
     //   throw new Error('INFINITE LOOP');
     // }
     const obj = discoveredValues.pop();
-    if (shouldTrackObj(obj)) {
+    if (shouldTrackObj(obj) || frameworkType(obj)) {
       const isRoot = obj === rootObj;
       // For root objects we pretend we have not seen them to force scan.
       const id = serializationContext.$wasSeen$(obj);
@@ -544,14 +681,31 @@ const breakCircularDependencies = (
         // But not for root.
         !isRoot && serializationContext.$seen$(obj);
         if (obj instanceof Set) {
-          obj.forEach((v) => discoveredValues.push(v));
+          const contents = Array.from(obj.values());
+          setSerializableDataRootId(serializationContext, obj, contents);
+          discoveredValues.push(...contents);
         } else if (obj instanceof Map) {
+          const tuples: any[] = [];
           obj.forEach((v, k) => {
-            discoveredValues.push(v);
-            discoveredValues.push(k);
+            tuples.push(k, v);
+            discoveredValues.push(k, v);
           });
+          setSerializableDataRootId(serializationContext, obj, tuples);
+          discoveredValues.push(tuples);
+        } else if (obj instanceof SignalImpl) {
+          discoveredValues.push(obj.untrackedValue);
+          const manager = getSubscriptionManager(obj);
+          manager?.$subs$.forEach((sub) => discoveredValues.push(sub[1]));
+          // const manager = obj[QObjectManagerSymbol];
+          // discoveredValues.push(...manager.$subs$);
+        } else if (obj instanceof Task) {
+          discoveredValues.push(obj.$el$, obj.$qrl$, obj.$state$);
         } else if (isJSXNode(obj)) {
           discoveredValues.push(obj.type, obj.props, obj.immutableProps, obj.children);
+        } else if (Array.isArray(obj)) {
+          discoveredValues.push(...obj);
+        } else if (isQrl(obj)) {
+          obj.$captureRef$ && obj.$captureRef$.length && discoveredValues.push(...obj.$captureRef$);
         } else {
           for (const key in obj as object) {
             if (Object.prototype.hasOwnProperty.call(obj, key)) {
@@ -569,26 +723,27 @@ const breakCircularDependencies = (
 };
 
 const QRL_RUNTIME_CHUNK = 'qwik-runtime-mock-chunk';
+const SERIALIZABLE_ROOT_ID = Symbol('SERIALIZABLE_ROOT_ID');
 
-const enum SerializationConstant {
+export const enum SerializationConstant {
   UNDEFINED_CHAR = /* ----------------- */ '\u0000',
   UNDEFINED_VALUE = /* -------------------- */ 0x0,
   REFERENCE_CHAR = /* ----------------- */ '\u0001',
   REFERENCE_VALUE = /* -------------------- */ 0x1,
-  QRL_CHAR = /* ----------------------- */ '\u0002',
-  QRL_VALUE = /* -------------------------- */ 0x2,
-  Task_CHAR = /* ---------------------- */ '\u0003',
-  Task_VALUE = /* ------------------------- */ 0x3,
-  Resource_CHAR = /* ------------------ */ '\u0004',
-  Resource_VALUE = /* --------------------- */ 0x4,
-  URL_CHAR = /* ----------------------- */ '\u0005',
-  URL_VALUE = /* -------------------------- */ 0x5,
-  Date_CHAR = /* ---------------------- */ '\u0006',
-  Date_VALUE = /* ------------------------- */ 0x6,
-  Regex_CHAR = /* --------------------- */ '\u0007',
-  Regex_VALUE = /* ------------------------ */ 0x7,
-  String_CHAR = /* -------------------- */ '\u0008',
-  String_VALUE = /* ----------------------- */ 0x8,
+  URL_CHAR = /* ----------------------- */ '\u0002',
+  URL_VALUE = /* -------------------------- */ 0x2,
+  Date_CHAR = /* ---------------------- */ '\u0003',
+  Date_VALUE = /* ------------------------- */ 0x3,
+  Regex_CHAR = /* --------------------- */ '\u0004',
+  Regex_VALUE = /* ------------------------ */ 0x4,
+  String_CHAR = /* -------------------- */ '\u0005',
+  String_VALUE = /* ----------------------- */ 0x5,
+  VNode_CHAR = /* --------------------- */ '\u0006',
+  VNode_VALUE = /* ------------------------ */ 0x6,
+  NaN_CHAR = /* ----------------------- */ '\u0007',
+  NaN_VALUE = /* -------------------------  */ 0x7,
+  BigInt_CHAR = /* -------------------- */ '\u0008',
+  BigInt_VALUE = /* ----------------------  */ 0x8,
   UNUSED_HORIZONTAL_TAB_CHAR = /* ----- */ '\u0009',
   UNUSED_HORIZONTAL_TAB_VALUE = /* -------- */ 0x9,
   UNUSED_NEW_LINE_CHAR = /* ----------- */ '\u000a',
@@ -599,28 +754,29 @@ const enum SerializationConstant {
   UNUSED_FORM_FEED_VALUE = /* ------------- */ 0xc,
   UNUSED_CARRIAGE_RETURN_CHAR = /* ---- */ '\u000d',
   UNUSED_CARRIAGE_RETURN_VALUE = /* ------- */ 0xd,
-  Error_CHAR = /* --------------------- */ '\u000e',
-  Error_VALUE = /* ------------------------ */ 0xe,
-  VNode_CHAR = /* --------------------- */ '\u000f',
-  VNode_VALUE = /* ------------------------ */ 0xf,
-  Component_CHAR = /* ----------------- */ '\u0010',
-  Component_VALUE = /* ------------------- */ 0x10,
-  DerivedSignal_CHAR = /* ------------- */ '\u0011',
-  DerivedSignal_VALUE = /* --------------- */ 0x11,
-  Signal_CHAR = /* -------------------- */ '\u0012',
-  Signal_VALUE = /* ---------------------- */ 0x12,
-  SignalWrapper_CHAR = /* ------------- */ '\u0013',
-  SignalWrapper_VALUE = /* --------------- */ 0x13,
-  NaN_CHAR = /* ----------------------- */ '\u0014',
-  NaN_VALUE = /* ------------------------- */ 0x14,
-  URLSearchParams_CHAR = /* ----------- */ '\u0015',
-  URLSearchParams_VALUE = /* ------------- */ 0x15,
-  FormData_CHAR = /* ------------------ */ '\u0016',
-  FormData_VALUE = /* -------------------- */ 0x16,
-  JSXNode_CHAR = /* ------------------- */ '\u0017',
-  JSXNode_VALUE = /* --------------------- */ 0x17,
-  BigInt_CHAR = /* -------------------- */ '\u0018',
-  BigInt_VALUE = /* ---------------------- */ 0x18,
+  URLSearchParams_CHAR = /* ----------- */ '\u000e',
+  URLSearchParams_VALUE = /* -------------- */ 0xe,
+  /// All values bellow need inflation
+  Error_CHAR = /* --------------------- */ '\u000f',
+  Error_VALUE = /* ------------------------ */ 0xf,
+  QRL_CHAR = /* ----------------------- */ '\u0010',
+  QRL_VALUE = /* ------------------------- */ 0x10,
+  Task_CHAR = /* ---------------------- */ '\u0011',
+  Task_VALUE = /* -------------------------*/ 0x11,
+  Resource_CHAR = /* ------------------ */ '\u0012',
+  Resource_VALUE = /* ---------------------*/ 0x12,
+  Component_CHAR = /* ----------------- */ '\u0013',
+  Component_VALUE = /* ------------------- */ 0x13,
+  DerivedSignal_CHAR = /* ------------- */ '\u0014',
+  DerivedSignal_VALUE = /* --------------- */ 0x14,
+  Signal_CHAR = /* -------------------- */ '\u0015',
+  Signal_VALUE = /* ---------------------- */ 0x15,
+  SignalWrapper_CHAR = /* ------------- */ '\u0016',
+  SignalWrapper_VALUE = /* --------------- */ 0x16,
+  FormData_CHAR = /* ------------------ */ '\u0017',
+  FormData_VALUE = /* -------------------- */ 0x17,
+  JSXNode_CHAR = /* ------------------- */ '\u0018',
+  JSXNode_VALUE = /* --------------------- */ 0x18,
   Set_CHAR = /* ----------------------- */ '\u0019',
   Set_VALUE = /* ------------------------- */ 0x19,
   Map_CHAR = /* ----------------------- */ '\u001a',

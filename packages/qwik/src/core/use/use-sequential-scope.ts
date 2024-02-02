@@ -3,7 +3,7 @@ import { getContext, type QContext } from '../state/context';
 import { ELEMENT_SEQ } from '../util/markers';
 import { qDev, qSerialize } from '../util/qdev';
 import type { fixMeAny, HostElement } from '../v2/shared/types';
-import { type RenderInvokeContext, useInvokeContext } from './use-core';
+import { useInvokeContext, type RenderInvokeContext } from './use-core';
 
 export interface SequentialScope<T> {
   /** The currently stored data for the hook that calls this */

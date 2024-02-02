@@ -7,6 +7,8 @@ import { vnode_getNextSibling } from './client/vnode';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
 
+const debug = false;
+
 [
   ssrRenderToDom, // SSR
   domRender, // Client
@@ -23,7 +25,7 @@ import './vdom-diff.unit-util';
       const Parent = component$(() => {
         return <Child>parent-content</Child>;
       });
-      const { vNode } = await render(<Parent>render-content</Parent>, { debug: false });
+      const { vNode } = await render(<Parent>render-content</Parent>, { debug });
       expect(vNode).toMatchVDOM(
         <Fragment>
           <Fragment>
@@ -41,7 +43,7 @@ import './vdom-diff.unit-util';
       const Parent = component$(() => {
         return <Child>parent-content</Child>;
       });
-      const { vNode } = await render(<Parent>render-content</Parent>, { debug: false });
+      const { vNode } = await render(<Parent>render-content</Parent>, { debug });
       expect(vNode).toMatchVDOM(
         <Fragment>
           <Fragment>
@@ -65,7 +67,7 @@ import './vdom-diff.unit-util';
       const Parent = component$(() => {
         return <Child />;
       });
-      const { vNode } = await render(<Parent />, { debug: false });
+      const { vNode } = await render(<Parent />, { debug });
       expect(vNode).toMatchVDOM(
         <Fragment>
           <Fragment>
@@ -81,7 +83,7 @@ import './vdom-diff.unit-util';
       const Parent = component$(() => {
         return <Child>projection-value</Child>;
       });
-      const { vNode } = await render(<Parent />, { debug: false });
+      const { vNode } = await render(<Parent />, { debug });
       expect(vNode).toMatchVDOM(
         <Fragment>
           <Fragment>
@@ -114,7 +116,7 @@ import './vdom-diff.unit-util';
           </Child>
         );
       });
-      const { vNode } = await render(<Parent>second 3</Parent>, { debug: false });
+      const { vNode } = await render(<Parent>second 3</Parent>, { debug });
       expect(vNode).toMatchVDOM(
         <Component>
           <Component>
@@ -158,7 +160,7 @@ import './vdom-diff.unit-util';
         <Parent>
           <b q:slot="parent">parent</b>
         </Parent>,
-        { debug: false }
+        { debug }
       );
       expect(vNode).toMatchVDOM(
         <Component>
@@ -198,7 +200,7 @@ import './vdom-diff.unit-util';
         );
       }, 's_parent')
     );
-    const { vNode } = await render(<Parent />, { debug: true });
+    const { vNode } = await render(<Parent />, { debug });
     expect(vNode).toMatchVDOM(
       <Component>
         <Component>

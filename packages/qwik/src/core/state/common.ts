@@ -8,8 +8,10 @@ import { canSerialize } from '../container/serializers';
 import type { ContainerState, GetObject, GetObjID } from '../container/container';
 import {
   isSubscriberDescriptor,
+  Task,
   type SubscriberEffect,
   type SubscriberHost,
+  isTask,
 } from '../use/use-task';
 import type { QwikElement } from '../render/dom/virtual-element';
 import { notifyChange } from '../render/dom/notify-render';
@@ -17,6 +19,9 @@ import { logError, throwErrorAndStop } from '../util/log';
 import { tryGetContext } from './context';
 import { QObjectFlagsSymbol, QObjectManagerSymbol, QOjectTargetSymbol } from './constants';
 import type { Signal } from './signal';
+import { isDomContainer } from '../v2/client/dom-container';
+import { vnode_isVNode } from '../v2/client/vnode';
+import type { VirtualVNode } from '../v2/client/types';
 
 export interface SubscriptionManager {
   $groupToManagers$: GroupToManagersMap;
@@ -410,7 +415,16 @@ export class LocalSubscriptionManager {
       if (key && compare && compare !== key) {
         continue;
       }
-      notifyChange(sub, this.$containerState$);
+      if (isDomContainer(this.$containerState$)) {
+        const target = sub[1];
+        if (isTask(target)) {
+          this.$containerState$.markTaskForRun(target);
+        } else if (vnode_isVNode(target)) {
+          this.$containerState$.markComponentForRender(target as VirtualVNode);
+        }
+      } else {
+        notifyChange(sub, this.$containerState$);
+      }
     }
   }
 }

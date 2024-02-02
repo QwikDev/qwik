@@ -703,6 +703,9 @@ export const vnode_applyJournal = (journal: VNodeJournalEntry[]) => {
 function Projection() {}
 
 function shallowEqual(src: Record<string, any>, dst: Record<string, any>): boolean {
+  if (!src || !dst) {
+    return false;
+  }
   let srcKeys = Object.keys(src);
   let dstKeys = Object.keys(dst);
   if (srcKeys.length !== dstKeys.length) {

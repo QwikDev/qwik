@@ -317,6 +317,7 @@ export const runTask2 = (
   container: Container2,
   host: VirtualVNode
 ) => {
+  task.$flags$ &= ~TaskFlagsIsDirty;
   const iCtx = newInvokeContext(container.$locale$, host as fixMeAny, undefined, TaskEvent);
   const taskFn = task.$qrl$.getFn(iCtx, () => {
     container.$subsManager$.$clearSub$(task);
@@ -888,3 +889,7 @@ export class Task<T = unknown, B = T> implements DescriptorBase<unknown, Signal<
     public $state$: Signal<B> | undefined
   ) {}
 }
+
+export const isTask = (value: any): value is Task => {
+  return value instanceof Task;
+};

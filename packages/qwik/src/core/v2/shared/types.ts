@@ -8,9 +8,9 @@ export type fixMeAny = any;
 export interface Container2 {
   clearLocalProps(host: HostElement): void;
   getParentHost(host: HostElement): HostElement | null;
-  markForRender(hostElement: VirtualVNode): void;
+  markComponentForRender(hostElement: VirtualVNode): void;
   setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
-  resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | null;
+  resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined;
   $subsManager$: SubscriptionManager;
   // $journal$: VNodeJournalEntry[];
   /// Current language locale

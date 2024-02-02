@@ -96,7 +96,7 @@ class SSRContainer implements ISSRContainer {
   };
   private lastNode: SsrNode | null = null;
   private currentComponentNode: SsrNode | null = null;
-  public markForRender(): void {
+  public markComponentForRender(): void {
     throw new Error('SSR can not mark components for render.');
   }
 
@@ -129,7 +129,7 @@ class SSRContainer implements ISSRContainer {
     mapArray_set(ctx, context.id, value, 0);
   }
 
-  resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | null {
+  resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined {
     let ssrNode: SsrNode | null = host as any;
     while (ssrNode) {
       const ctx: Array<string | unknown> = ssrNode.getProp(QCtxAttr);
@@ -141,7 +141,7 @@ class SSRContainer implements ISSRContainer {
       }
       ssrNode = ssrNode.currentComponentNode;
     }
-    return null;
+    return undefined;
   }
 
   clearLocalProps(host: HostElement): void {

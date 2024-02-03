@@ -1,7 +1,7 @@
 import { qError, QError_invalidRefValue } from '../error/error';
 import type { ResourceReturnInternal, SubscriberEffect } from '../use/use-task';
 import { seal } from '../util/qdev';
-import { isFunction, isObject } from '../util/types';
+import { isFunction } from '../util/types';
 import type { QRL } from '../qrl/qrl.public';
 import { fromKebabToCamelCase } from '../util/case';
 import { QContainerAttr } from '../util/markers';
@@ -11,9 +11,10 @@ import {
   type SubscriberSignal,
   type SubscriptionManager,
 } from '../state/common';
-import type { Signal } from '../state/signal';
+import { isSignal, type Signal, type SignalImpl } from '../state/signal';
 import { directGetAttribute } from '../render/fast-calls';
 import type { QContext } from '../state/context';
+import { isServerPlatform } from '../platform/platform';
 
 export type GetObject = (id: string) => any;
 // v2 allows numbers
@@ -148,8 +149,12 @@ export const removeContainerState = (containerEl: Element) => {
 export const setRef = (value: any, elm: Element) => {
   if (isFunction(value)) {
     return value(elm);
-  } else if (isObject(value)) {
-    if ('value' in value) {
+  } else if (isSignal(value)) {
+    if (isServerPlatform()) {
+      // During SSR, assigning a ref should not cause reactivity because
+      // the expectation is that the ref is filled in on the client
+      return ((value as SignalImpl<Element>).untrackedValue = elm);
+    } else {
       return ((value as Signal<Element>).value = elm);
     }
   }

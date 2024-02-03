@@ -88,6 +88,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     entryStrategy: null as any,
     srcDir: null as any,
     srcInputs: null as any,
+    sourcemap: !!optimizerOptions.sourcemap,
     manifestInput: null,
     insightsManifest: null,
     manifestOutput: null,
@@ -98,6 +99,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       clickToSource: ['Alt'],
     },
     inlineStylesUpToBytes: null as any,
+    lint: true,
   };
 
   const init = async () => {
@@ -123,6 +125,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     return optimizer.sys.path;
   };
 
+  /** Note that as a side-effect this updates the internal plugin `opts` */
   const normalizeOptions = (inputOpts?: QwikPluginOptions) => {
     const updatedOpts: QwikPluginOptions = Object.assign({}, inputOpts);
 
@@ -274,6 +277,10 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.inlineStylesUpToBytes = 0;
     }
 
+    if (typeof updatedOpts.lint === 'boolean') {
+      opts.lint = updatedOpts.lint;
+    }
+
     return { ...opts };
   };
 
@@ -307,7 +314,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     debug(`buildStart()`, opts.buildMode, opts.scope);
     const optimizer = getOptimizer();
 
-    if (optimizer.sys.env === 'node' && opts.target === 'ssr') {
+    if (optimizer.sys.env === 'node' && opts.target === 'ssr' && opts.lint) {
       try {
         linter = await createLinter(optimizer.sys, opts.rootDir, opts.tsconfigFileNames);
       } catch (err) {
@@ -356,6 +363,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         preserveFilenames: true,
         mode,
         scope: opts.scope ? opts.scope : undefined,
+        sourceMaps: opts.sourcemap,
       };
 
       if (opts.target === 'client') {
@@ -602,7 +610,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         ],
         entryStrategy,
         minify: 'simplify',
-        sourceMaps: 'development' === opts.buildMode,
+        // Always enable sourcemaps in dev for click-to-source
+        sourceMaps: opts.sourcemap || 'development' === opts.buildMode,
         transpileTs: true,
         transpileJsx: true,
         explicitExtensions: true,
@@ -658,7 +667,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
           ],
           entryStrategy: opts.entryStrategy,
           minify: 'simplify',
-          sourceMaps: 'development' === opts.buildMode,
+          sourceMaps: opts.sourcemap || 'development' === opts.buildMode,
           transpileTs: true,
           transpileJsx: true,
           explicitExtensions: true,
@@ -814,6 +823,10 @@ export const isDev = ${JSON.stringify(isDev)};
 export const manifest = ${JSON.stringify(manifest)};\n`;
   }
 
+  function setSourceMapSupport(sourcemap: boolean) {
+    opts.sourcemap = sourcemap;
+  }
+
   return {
     buildStart,
     createOutputAnalyzer,
@@ -833,6 +846,7 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
     resolveId,
     transform,
     validateSource,
+    setSourceMapSupport,
   };
 }
 
@@ -925,6 +939,7 @@ export interface QwikPluginOptions {
   srcDir?: string | null;
   scope?: string | null;
   srcInputs?: TransformModuleInput[] | null;
+  sourcemap?: boolean;
   resolveQwikBuild?: boolean;
   target?: QwikBuildTarget;
   transformedModuleOutput?:
@@ -937,6 +952,11 @@ export interface QwikPluginOptions {
    * Default: 20kb (20,000bytes)
    */
   inlineStylesUpToBytes?: number;
+  /**
+   * Run eslint on the source files for the ssr build or dev server. This can slow down startup on
+   * large projects. Defaults to `true`
+   */
+  lint?: boolean;
 }
 
 export interface NormalizedQwikPluginOptions extends Required<QwikPluginOptions> {

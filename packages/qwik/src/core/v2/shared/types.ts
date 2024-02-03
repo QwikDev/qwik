@@ -1,6 +1,7 @@
 import type { SubscriptionManager } from '../../state/common';
 import type { ContextId } from '../../use/use-context';
 import type { VirtualVNode } from '../client/types';
+import type { SsrNode } from '../ssr/types';
 
 /// Temporary type left behind which needs to be fixed.
 export type fixMeAny = any;
@@ -22,9 +23,7 @@ export interface Container2 {
   getHostProp<T>(host: HostElement, name: string): T | null;
 }
 
-export interface HostElement {
-  __brand__: 'HostElement';
-}
+export type HostElement = VirtualVNode | SsrNode;
 
 export interface QElement2 extends HTMLElement {
   qDispatchEvent?: (event: Event) => boolean;

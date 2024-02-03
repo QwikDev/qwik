@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+// TODO remove console statements
 import { createDocument } from '../../testing/document';
 import { expect } from 'vitest';
 import { renderToString } from '../../server/render';
@@ -102,7 +104,8 @@ export async function ssrRenderToDom(
     console.log(']');
     if (false as boolean) {
       console.log('CONTAINER PROXY: [');
-      const proxyState = container.stateData;
+      // stateDate is private but it's not enforced so we can access it for the test
+      const proxyState = (container as any).stateData;
       for (let i = 0; i < state.length; i++) {
         console.log(('    ' + i + ':').substr(-4), proxyState[i]);
       }

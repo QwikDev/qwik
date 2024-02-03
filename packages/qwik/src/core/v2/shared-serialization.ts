@@ -12,6 +12,7 @@ import {
   parseSubscription,
   serializeSubscription,
   type LocalSubscriptionManager,
+  type Subscriber,
 } from '../state/common';
 import { QObjectManagerSymbol } from '../state/constants';
 import { SignalImpl } from '../state/signal';
@@ -152,7 +153,7 @@ const inflate = (container: DomContainer, target: any, needsInflationData: strin
       task.$el$ = container.getObjectById(restInt()) as fixMeAny;
       task.$qrl$ = inflateQRL(container, parseQRL(restString()));
       const taskState = restString();
-      task.$state$ = taskState ? container.getObjectById(taskState) as fixMeAny : undefined;
+      task.$state$ = taskState ? (container.getObjectById(taskState) as fixMeAny) : undefined;
       break;
     case SerializationConstant.Resource_VALUE:
       throw new Error('Not implemented');
@@ -168,7 +169,11 @@ const inflate = (container: DomContainer, target: any, needsInflationData: strin
       signal.untrackedValue = container.getObjectById(restInt());
       const manager: LocalSubscriptionManager = (signal[QObjectManagerSymbol] =
         container.$subsManager$?.$createManager$());
-      const subscription = parseSubscription(rest.substring(restIdx), container.getObjectById);
+      // We're sure that this is a subscriber (no key on the array) and not a subscription
+      const subscription = parseSubscription(
+        rest.substring(restIdx),
+        container.getObjectById
+      ) as any as Subscriber;
       subscription && manager.$addSub$(subscription);
       break;
     case SerializationConstant.SignalWrapper_VALUE:
@@ -179,16 +184,16 @@ const inflate = (container: DomContainer, target: any, needsInflationData: strin
       break;
     case SerializationConstant.FormData_VALUE:
       const formData = target as FormData;
-      for (const [key, value] of container.getObjectById(restInt())) {
+      for (const [key, value] of container.getObjectById(restInt()) as Array<[string, string]>) {
         formData.append(key, value);
       }
       break;
     case SerializationConstant.JSXNode_VALUE:
       const jsx = target as JSXNodeImpl<unknown>;
       jsx.type = deserializeJSXType(container, restString());
-      jsx.props = container.getObjectById(restInt());
-      jsx.immutableProps = container.getObjectById(restInt());
-      jsx.children = container.getObjectById(restInt());
+      jsx.props = container.getObjectById(restInt()) as any;
+      jsx.immutableProps = container.getObjectById(restInt()) as any;
+      jsx.children = container.getObjectById(restInt()) as any;
       jsx.flags = restInt();
       jsx.key = restString() || null;
       break;
@@ -201,7 +206,7 @@ const inflate = (container: DomContainer, target: any, needsInflationData: strin
       break;
     case SerializationConstant.Map_VALUE:
       const map = target as Map<unknown, unknown>;
-      const mapKeyValue = container.getObjectById(restInt());
+      const mapKeyValue = container.getObjectById(restInt()) as Array<unknown>;
       for (let i = 0; i < mapKeyValue.length; ) {
         map.set(mapKeyValue[i++], mapKeyValue[i++]);
       }
@@ -524,9 +529,9 @@ export function serialize(serializationContext: SerializationContext): void {
     } else if (value instanceof Map) {
       writeString(SerializationConstant.Map_CHAR + getSerializableDataRootId(value));
     } else if (isJSXNode(value)) {
-      const type = writeString(
+      writeString(
         SerializationConstant.JSXNode_CHAR +
-          `${serializeJSXType($addRoot$, value.type)} ${$addRoot$(value.props)} ${$addRoot$(
+          `${serializeJSXType($addRoot$, value.type as string)} ${$addRoot$(value.props)} ${$addRoot$(
             value.immutableProps
           )} ${$addRoot$(value.children)} ${value.flags}`
       );
@@ -663,7 +668,10 @@ const frameworkType = (obj: any) => {
   );
 };
 
-const breakCircularDependencies = (serializationContext: SerializationContext, rootObj: unknown) => {
+const breakCircularDependencies = (
+  serializationContext: SerializationContext,
+  rootObj: unknown
+) => {
   // As we walk the object graph we insert newly discovered objects which need to be scanned here.
   const discoveredValues: unknown[] = [rootObj];
   // let count = 100;

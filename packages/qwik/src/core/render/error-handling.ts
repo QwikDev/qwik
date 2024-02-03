@@ -1,7 +1,7 @@
 import type { ContainerState } from '../container/container';
 import { isServerPlatform } from '../platform/platform';
 import { tryGetContext } from '../state/context';
-import { createContextId, resolveContext, resolveContext2 } from '../use/use-context';
+import { createContextId, resolveContext } from '../use/use-context';
 import { isVirtualElement } from '../util/element';
 import { qDev } from '../util/qdev';
 import type { VirtualVNode } from '../v2/client/types';

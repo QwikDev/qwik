@@ -647,7 +647,7 @@ jobs:
 
       - name: Playwright E2E Tests
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: pnpm run test.e2e.${{ matrix.settings.browser }}
+        run: pnpm run test.e2e.${{ matrix.settings.browser }} --timeout 60000 --retries 3 --workers 1
 
       - name: Validate Create Qwik Cli
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}

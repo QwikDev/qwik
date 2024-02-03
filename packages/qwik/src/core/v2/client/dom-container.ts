@@ -4,7 +4,7 @@ import { assertTrue } from '../../error/assert';
 import { getPlatform } from '../../platform/platform';
 import { createSubscriptionManager, type SubscriptionManager } from '../../state/common';
 import type { ContextId } from '../../use/use-context';
-import type { SubscriberEffect, Task } from '../../use/use-task';
+import type { Task } from '../../use/use-task';
 import { throwErrorAndStop } from '../../util/log';
 import {
   ELEMENT_PROPS,
@@ -102,7 +102,7 @@ export class DomContainer implements IClientContainer {
     if (qwikStates.length !== 0) {
       const lastState = qwikStates[qwikStates.length - 1];
       this.$rawStateData$ = JSON.parse(lastState.textContent!);
-      this.stateData = wrapDeserializerProxy(this, this.$rawStateData$);
+      this.stateData = wrapDeserializerProxy(this, this.$rawStateData$) as any;
     }
     this.$subsManager$ = createSubscriptionManager(this as fixMeAny);
     this.$scheduler$ = createScheduler(this);

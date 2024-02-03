@@ -8,7 +8,6 @@ import { canSerialize } from '../container/serializers';
 import type { ContainerState, GetObject, GetObjID } from '../container/container';
 import {
   isSubscriberDescriptor,
-  Task,
   type SubscriberEffect,
   type SubscriberHost,
   isTask,

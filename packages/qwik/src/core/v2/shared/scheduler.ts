@@ -2,7 +2,6 @@ import type { componentQrl } from '../../component/component.public';
 import type { QRLInternal } from '../../qrl/qrl-class';
 import type { QRL } from '../../qrl/qrl.public';
 import { handleError2 } from '../../render/error-handling';
-import { newInvokeContext } from '../../use/use-core';
 import {
   Task,
   runTask2,
@@ -11,14 +10,14 @@ import {
   type useTaskQrl,
   type useVisibleTaskQrl,
 } from '../../use/use-task';
-import { ComputedEvent, RenderEvent, ResourceEvent, TaskEvent } from '../../util/markers';
+// import { ComputedEvent, RenderEvent, ResourceEvent, TaskEvent } from '../../util/markers';
 import { isPromise, maybeThen } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
 import type { ClientContainer, VirtualVNode } from '../client/types';
 import { vnode_documentPosition } from '../client/vnode';
 import { vnode_applyJournal, vnode_diff } from '../client/vnode-diff';
 import { executeComponent2 } from './component-execution';
-import type { Container2, fixMeAny } from './types';
+import type { fixMeAny } from './types';
 
 export const enum ChoreStage {
   PRE_RENDER = 0,
@@ -34,15 +33,15 @@ export const enum ChoreType {
   VISIBLE = 4,
   SIMPLE = 5,
 }
-const TYPE2EVENT: Array<
-  typeof TaskEvent | typeof ComputedEvent | typeof ResourceEvent | typeof RenderEvent
-> = [
-  TaskEvent, ////// 0 - ChoreType.TASK
-  ComputedEvent, // 1 - ChoreType.COMPUTED
-  ResourceEvent, // 2 - ChoreType.RESOURCE
-  RenderEvent, //// 3 - ChoreType.COMPONENT
-  TaskEvent, ////// 4 - ChoreType.VISIBLE
-];
+// const TYPE2EVENT: Array<
+//   typeof TaskEvent | typeof ComputedEvent | typeof ResourceEvent | typeof RenderEvent
+// > = [
+//   TaskEvent, ////// 0 - ChoreType.TASK
+//   ComputedEvent, // 1 - ChoreType.COMPUTED
+//   ResourceEvent, // 2 - ChoreType.RESOURCE
+//   RenderEvent, //// 3 - ChoreType.COMPONENT
+//   TaskEvent, ////// 4 - ChoreType.VISIBLE
+// ];
 
 export interface Chore {
   $stage$: ChoreStage;

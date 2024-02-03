@@ -43,7 +43,6 @@ import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
 import { createSubscriptionManager, type SubscriptionManager } from '../../state/common';
 import type { HostElement, fixMeAny } from '../shared/types';
 import type { ContextId } from '../../use/use-context';
-import type { T } from 'vitest/dist/reporters-qc5Smpt5';
 import { mapArray_get, mapArray_set } from '../client/vnode';
 
 export function ssrCreateContainer(
@@ -144,22 +143,22 @@ class SSRContainer implements ISSRContainer {
     return undefined;
   }
 
-  clearLocalProps(host: HostElement): void {
+  clearLocalProps(host: SsrNode): void {
     const ssrNode: SsrNode = host as any;
     ssrNode.clearLocalProps();
   }
 
-  getParentHost(host: HostElement): HostElement | null {
+  getParentHost(host: SsrNode): SsrNode | null {
     const ssrNode: SsrNode = host as any;
-    return ssrNode.currentComponentNode as HostElement | null;
+    return ssrNode.currentComponentNode as SsrNode | null;
   }
 
-  setHostProp<T>(host: HostElement, name: string, value: T): void {
+  setHostProp<T>(host: SsrNode, name: string, value: T): void {
     const ssrNode: SsrNode = host as any;
     return ssrNode.setProp(name, value);
   }
 
-  getHostProp<T>(host: HostElement, name: string): T | null {
+  getHostProp<T>(host: SsrNode, name: string): T | null {
     const ssrNode: SsrNode = host as any;
     return ssrNode.getProp(name);
   }

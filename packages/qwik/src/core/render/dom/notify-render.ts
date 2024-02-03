@@ -108,7 +108,8 @@ export const notifyTask = (task: SubscriberEffect, containerState: ContainerStat
   task.$flags$ |= TaskFlagsIsDirty;
 
   if (isDomContainer(containerState)) {
-    containerState.$tasks$.push(task);
+    // TODO @mhevery please add $state$ to the ContainerState type if this is correct
+    (containerState as any).$tasks$.push(task);
     containerState.scheduleRender();
   } else {
     const activeRendering = containerState.$hostsRendering$ !== undefined;

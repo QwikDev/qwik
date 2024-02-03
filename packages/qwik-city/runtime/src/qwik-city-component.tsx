@@ -529,6 +529,7 @@ function getContainer(elm: Node): HTMLElement {
 export interface QwikCityMockProps {
   url?: string;
   params?: Record<string, string>;
+  goto?: RouteNavigate;
 }
 
 /** @public */
@@ -548,9 +549,11 @@ export const QwikCityMockProvider = component$<QwikCityMockProps>((props) => {
   const loaderState = useSignal({});
   const routeInternal = useSignal<RouteStateInternal>({ type: 'initial', dest: url });
 
-  const goto: RouteNavigate = $(async (path) => {
-    throw new Error('Not implemented');
-  });
+  const goto: RouteNavigate =
+    props.goto ??
+    $(async () => {
+      console.warn('QwikCityMockProvider: goto not provided');
+    });
 
   const documentHead = useStore(createDocumentHead, { deep: false });
 

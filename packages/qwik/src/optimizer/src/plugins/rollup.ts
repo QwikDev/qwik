@@ -56,6 +56,7 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
         manifestInput: qwikRollupOpts.manifestInput,
         transformedModuleOutput: qwikRollupOpts.transformedModuleOutput,
         inlineStylesUpToBytes: qwikRollupOpts.optimizerOptions?.inlineStylesUpToBytes,
+        lint: qwikRollupOpts.lint,
       };
 
       const opts = qwikPlugin.normalizeOptions(pluginOpts);
@@ -195,6 +196,15 @@ export function normalizeRollupOutputOptions(
         outputOpts.chunkFileNames = 'build/[name].js';
       }
     }
+  } else if (opts.buildMode === 'production') {
+    // server production output
+    // everything in same dir so './@qwik-city...' imports work from entry and chunks
+    if (!outputOpts.chunkFileNames) {
+      outputOpts.chunkFileNames = 'q-[hash].js';
+    }
+    if (!outputOpts.assetFileNames) {
+      outputOpts.assetFileNames = 'assets/[hash].[ext]';
+    }
   }
 
   if (opts.target === 'client') {
@@ -297,6 +307,11 @@ export interface QwikRollupPluginOptions {
   transformedModuleOutput?:
     | ((transformedModules: TransformModule[]) => Promise<void> | void)
     | null;
+  /**
+   * Run eslint on the source files for the ssr build or dev server. This can slow down startup on
+   * large projects. Defaults to `true`
+   */
+  lint?: boolean;
 }
 
 export interface QwikRollupPlugin extends Rollup.Plugin {}

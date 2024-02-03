@@ -44,7 +44,7 @@
     "prettier": "latest",
     "typescript": "latest",
     "undici": "latest",
-    "vite": "latest",
+    "vite": "^4.5.2",
     "vite-tsconfig-paths": "^4.2.1"
   },
   "__qwik__": {

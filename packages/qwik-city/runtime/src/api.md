@@ -310,6 +310,8 @@ export type PathParams = Record<string, string>;
 // @public (undocumented)
 export interface QwikCityMockProps {
     // (undocumented)
+    goto?: RouteNavigate;
+    // (undocumented)
     params?: Record<string, string>;
     // (undocumented)
     url?: string;

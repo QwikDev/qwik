@@ -18,6 +18,7 @@ scripts/**/*
 **/server/**/*.js
 *.tsbuildinfo
 packages/docs/api/**/*
+packages/docs/public/repl/bundled/**/*
 packages/docs/src/routes/examples/apps/**/*
 packages/docs/src/routes/playground/app/**/*
 packages/docs/src/routes/tutorial/**/*

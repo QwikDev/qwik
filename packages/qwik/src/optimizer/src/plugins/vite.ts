@@ -153,6 +153,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         vendorRoots: [...(qwikViteOpts.vendorRoots ?? []), ...vendorRoots.map((v) => v.path)],
         outDir: viteConfig.build?.outDir,
         devTools: qwikViteOpts.devTools,
+        sourcemap: !!viteConfig.build?.sourcemap,
+        lint: qwikViteOpts.lint,
       };
       if (!qwikViteOpts.csr) {
         if (target === 'ssr') {
@@ -388,6 +390,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         } catch (e) {
           // ok to ignore
         }
+      }
+      const useSourcemap = !!config.build.sourcemap;
+      if (useSourcemap && qwikViteOpts.optimizerOptions?.sourcemap === undefined) {
+        qwikPlugin.setSourceMapSupport(true);
       }
     },
 
@@ -884,12 +890,16 @@ interface QwikVitePluginCommonOptions {
      */
     clickToSource: string[] | false;
   };
-
   /**
    * Predicate function to filter out files from the optimizer. hook for resolveId, load, and
    * transform
    */
   fileFilter?: (id: string, hook: string) => boolean;
+  /**
+   * Run eslint on the source files for the ssr build or dev server. This can slow down startup on
+   * large projects. Defaults to `true`
+   */
+  lint?: boolean;
 }
 
 interface QwikVitePluginCSROptions extends QwikVitePluginCommonOptions {

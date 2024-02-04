@@ -1,4 +1,4 @@
-import { assertFail, assertTrue } from '../error/assert';
+import { assertDefined, assertFail, assertTrue } from '../error/assert';
 import { qError, QError_verifySerializable } from '../error/error';
 import { isNode } from '../util/element';
 import { seal } from '../util/qdev';
@@ -21,6 +21,11 @@ import type { Signal } from './signal';
 import { isDomContainer } from '../v2/client/dom-container';
 import { vnode_isVNode } from '../v2/client/vnode';
 import type { VirtualVNode } from '../v2/client/types';
+import { isContainer2, type fixMeAny, type HostElement } from '../v2/shared/types';
+import type { OnRenderFn } from '../component/component.public';
+import type { QRL } from '../qrl/qrl.public';
+import { ELEMENT_PROPS, OnRenderProp } from '../util/markers';
+import { JSX_LOCAL } from '../v2/shared/component-execution';
 
 export interface SubscriptionManager {
   $groupToManagers$: GroupToManagersMap;
@@ -414,12 +419,21 @@ export class LocalSubscriptionManager {
       if (key && compare && compare !== key) {
         continue;
       }
-      if (isDomContainer(this.$containerState$)) {
+      if (isContainer2(this.$containerState$)) {
         const target = sub[1];
+        const scheduler = this.$containerState$.$scheduler$;
         if (isTask(target)) {
-          this.$containerState$.markTaskForRun(target);
-        } else if (vnode_isVNode(target)) {
-          this.$containerState$.markComponentForRender(target as VirtualVNode);
+          scheduler.$scheduleTask$(target);
+        } else {
+          const host: HostElement = target as fixMeAny;
+          const componentQrl = this.$containerState$.getHostProp<QRL<OnRenderFn<any>>>(
+            host,
+            OnRenderProp
+          )!;
+          assertDefined(componentQrl, 'No Component found at this location');
+          this.$containerState$.setHostProp(host, JSX_LOCAL, null);
+          const componentProps = this.$containerState$.getHostProp<any>(host, ELEMENT_PROPS);
+          scheduler.$scheduleComponent$(host, componentQrl, componentProps);
         }
       } else {
         notifyChange(sub, this.$containerState$);

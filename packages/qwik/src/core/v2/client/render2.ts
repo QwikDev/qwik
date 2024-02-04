@@ -37,7 +37,6 @@ export const render2 = async (
   const container = getDomContainer(parent as HTMLElement) as DomContainer;
   await vnode_diff(container, jsxNode as JSXNode, container.rootVNode);
   vnode_applyJournal(container.$journal$);
-  container.$journal$.length = 0;
 
   return {
     cleanup: () => {

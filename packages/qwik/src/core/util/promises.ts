@@ -4,7 +4,7 @@ export type PromiseTree<T> = T | Promise<T> | Promise<T[]> | Array<PromiseTree<T
 
 export const isPromise = (value: any): value is Promise<any> => {
   // not using "value instanceof Promise" to have zone.js support
-  return value && typeof value.then === 'function';
+  return value && typeof value == 'object' && typeof value.then === 'function';
 };
 
 export const safeCall = <T, B, C>(

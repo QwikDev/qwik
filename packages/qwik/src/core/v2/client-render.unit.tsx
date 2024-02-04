@@ -11,6 +11,8 @@ import { render2 } from './client/render2';
 import type { ContainerElement } from './client/types';
 import { vnode_getFirstChild } from './client/vnode';
 import './vdom-diff.unit-util';
+import { get } from 'http';
+import { getTestPlatform } from '../../testing/platform';
 
 describe('v2 client render', () => {
   it('should render jsx', async () => {
@@ -139,6 +141,7 @@ describe('v2 client render', () => {
 async function clientRender(jsx: JSXOutput) {
   const document = createDocument();
   await render2(document.body, jsx);
+  await getTestPlatform().flush();
   const containerElement = document.body as ContainerElement;
   const container = containerElement.qContainer!;
   return {

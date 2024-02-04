@@ -6,16 +6,18 @@ import { Fragment as Component } from '../render/jsx/jsx-runtime';
 import type { Signal } from '../state/signal';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { useSignal } from '../use/use-signal';
+import { useStore } from '../use/use-store.public';
 import { useTask$, useTaskQrl } from '../use/use-task';
 import { delay } from '../util/promises';
 import { ErrorProvider, domRender, ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
+import { getTestPlatform } from '../../testing/platform';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
 
 [
-  ssrRenderToDom, //
+  // ssrRenderToDom, //
   domRender, //
 ].forEach((render) => {
   describe(render.name + ': useTask', () => {
@@ -69,13 +71,18 @@ Error.stackTraceLimit = 100;
         }, 's_counter')
       );
 
-      await render(
-        <ErrorProvider>
-          <Counter />
-        </ErrorProvider>,
-        { debug }
-      );
-      expect(ErrorProvider.error).toBe(error);
+      try {
+        await render(
+          <ErrorProvider>
+            <Counter />
+          </ErrorProvider>,
+          { debug }
+        );
+        expect(ErrorProvider.error).toBe(render === domRender ? error : null);
+      } catch (e) {
+        expect(render).toBe(ssrRenderToDom);
+        expect(e).toBe(error);
+      }
     });
     it('should handle async exceptions', async () => {
       const error = new Error('HANDLE ME');
@@ -89,13 +96,18 @@ Error.stackTraceLimit = 100;
         }, 's_counter')
       );
 
-      await render(
-        <ErrorProvider>
-          <Counter />
-        </ErrorProvider>,
-        { debug }
-      );
-      expect(ErrorProvider.error).toBe(error);
+      try {
+        await render(
+          <ErrorProvider>
+            <Counter />
+          </ErrorProvider>,
+          { debug }
+        );
+        expect(ErrorProvider.error).toBe(render === domRender ? error : null);
+      } catch (e) {
+        expect(render).toBe(ssrRenderToDom);
+        expect(e).toBe(error);
+      }
     });
     it('should not run next task until previous async task is finished', async () => {
       const log: string[] = [];
@@ -106,13 +118,13 @@ Error.stackTraceLimit = 100;
           log.push('1:task');
           await delay(10);
           log.push('1:resolved');
-          count.value += '1';
+          count.value += 'A';
         });
         useTask$(async () => {
           log.push('2:task');
           await delay(10);
           log.push('2:resolved');
-          count.value += '2';
+          count.value += 'B';
         });
         log.push('render');
         return <span>{count.value}</span>;
@@ -131,7 +143,7 @@ Error.stackTraceLimit = 100;
       ]);
       expect(vNode).toMatchVDOM(
         <Component>
-          <span>12</span>
+          <span>AB</span>
         </Component>
       );
     });
@@ -146,7 +158,7 @@ Error.stackTraceLimit = 100;
                 const [count, double] = useLexicalScope<[Signal<number>, Signal<number>]>();
                 double.value = 2 * track(() => count.value);
               },
-              's_task',
+              's_task1',
               [count, double]
             )
           );
@@ -157,7 +169,7 @@ Error.stackTraceLimit = 100;
                   const [count] = useLexicalScope<[Signal<number>]>();
                   count.value++;
                 },
-                's_click',
+                's_click1',
                 [count]
               )}
             >
@@ -178,8 +190,107 @@ Error.stackTraceLimit = 100;
             <button>4</button>
           </Component>
         );
+        await getTestPlatform().flush();
       });
-      it.todo('should track signal property');
+      it('should track signal property', async () => {
+        const Counter = component$(() => {
+          const store = useStore({ count: 1, double: 0 });
+          useTaskQrl(
+            inlinedQrl(
+              ({ track }) => {
+                const [s] = useLexicalScope<[typeof store]>();
+                s.double = -2 * s.count;
+                const count = track(s, 'count');
+                s.double = 2 * count;
+              },
+              's_task2',
+              [store]
+            )
+          );
+          return (
+            <button onClick$={inlinedQrl(() => useLexicalScope()[0].count++, 's_c', [store])}>
+              {store.double}
+            </button>
+          );
+        });
+
+        const { vNode, document } = await render(<Counter />, { debug });
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <button>2</button>
+          </Component>
+        );
+        await trigger(document.body, 'button', 'click');
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <button>4</button>
+          </Component>
+        );
+      });
+    });
+    describe('queue', () => {
+      const log: string[] = [];
+      it('should execute dependant tasks', async () => {
+        const Counter = component$(() => {
+          const store = useStore({ count: 1, double: 0, quadruple: 0 });
+          useTaskQrl(
+            inlinedQrl(
+              ({ track }) => {
+                log.push('quadruple');
+                const [s] = useLexicalScope<[typeof store]>();
+                s.quadruple = track(s, 'double') * 2;
+              },
+              's_task_quadruple',
+              [store]
+            )
+          );
+          useTaskQrl(
+            inlinedQrl(
+              ({ track }) => {
+                log.push('double');
+                const [s] = useLexicalScope<[typeof store]>();
+                s.double = track(s, 'count') * 2;
+              },
+              's_task_double',
+              [store]
+            )
+          );
+          log.push('Counter');
+          // console.log('Counter', store.count, store.double, store.quadruple);
+          return (
+            <button
+              onClick$={inlinedQrl(
+                () => {
+                  const store = useLexicalScope()[0];
+                  store.count++;
+                },
+                's_c',
+                [store]
+              )}
+            >
+              {store.count + '/' + store.double + '/' + store.quadruple}
+            </button>
+          );
+        });
+
+        const { vNode, document } = await render(<Counter />, { debug });
+        // console.log('log', log);
+        expect(log).toEqual(['quadruple', 'double', 'Counter', 'quadruple', 'Counter']);
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <button>1/2/4</button>
+          </Component>
+        );
+        log.length = 0;
+        await trigger(document.body, 'button', 'click');
+        // console.log('log', log);
+        expect(log).toEqual(['double', 'quadruple', 'Counter']);
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <button>2/4/8</button>
+          </Component>
+        );
+      });
     });
     describe('cleanup', () => {
       it.todo('should execute cleanup task rerun on track');

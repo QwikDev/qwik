@@ -71,7 +71,7 @@ export interface ContainerState {
   readonly $containerEl$: Element;
 
   readonly $proxyMap$: ObjToProxyMap;
-  $subsManager$: SubscriptionManager;
+  readonly $subsManager$: SubscriptionManager;
 
   readonly $taskNext$: Set<SubscriberEffect>;
   readonly $taskStaging$: Set<SubscriberEffect>;

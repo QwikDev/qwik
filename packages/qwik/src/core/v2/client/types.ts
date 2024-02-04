@@ -141,6 +141,6 @@ export type VirtualVNode = [
   VNode | null, /////////////// 5 - Last child
   /// Props
   ...(string | null)[], /////// 6 - attrs
-] & { __brand__: 'FragmentNode' };
+] & { __brand__: 'FragmentNode' & 'HostElement' };
 
 export type VNode = ElementVNode | TextVNode | VirtualVNode;

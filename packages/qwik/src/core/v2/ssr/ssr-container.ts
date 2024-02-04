@@ -1,30 +1,12 @@
 /** @file Public APIs for the SSR */
-import {
-  SsrNode,
-  type SSRContainer as ISSRContainer,
-  type SsrAttrs,
-  type StreamWriter,
-  SsrComponentFrame,
-} from './types';
-import {
-  CLOSE_FRAGMENT,
-  OPEN_FRAGMENT,
-  vNodeData_addTextSize,
-  vNodeData_closeFragment,
-  vNodeData_incrementElementCount,
-  vNodeData_openFragment,
-  VNodeDataFlag,
-  type VNodeData,
-  vNodeData_createSsrNodeReference,
-  encodeAsAlphanumeric,
-} from './vnode-data';
-import {
-  createSerializationContext,
-  serialize,
-  type SerializationContext,
-} from '../shared-serialization';
-import { TagNesting, allowedContent, initialTag, isTagAllowed } from './tag-nesting';
+import { isDev } from '../../../build';
+import type { ObjToProxyMap } from '../../container/container';
 import { assertDefined, assertTrue } from '../../error/assert';
+import type { JSXOutput } from '../../render/jsx/types/jsx-node';
+import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
+import { createSubscriptionManager, type SubscriptionManager } from '../../state/common';
+import type { ContextId } from '../../use/use-context';
+import { throwErrorAndStop } from '../../util/log';
 import {
   ELEMENT_ID,
   ELEMENT_KEY,
@@ -36,14 +18,35 @@ import {
   QSlotParent,
   QSlotRef,
 } from '../../util/markers';
-import { isDev } from '../../../build';
-import { throwErrorAndStop } from '../../util/log';
-import { syncWalkJSX } from './ssr-render';
-import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
-import { createSubscriptionManager, type SubscriptionManager } from '../../state/common';
-import type { HostElement, fixMeAny } from '../shared/types';
-import type { ContextId } from '../../use/use-context';
 import { mapArray_get, mapArray_set } from '../client/vnode';
+import {
+  createSerializationContext,
+  serialize,
+  type SerializationContext,
+} from '../shared-serialization';
+import { createScheduler, type Scheduler } from '../shared/scheduler';
+import type { HostElement, fixMeAny } from '../shared/types';
+import { syncWalkJSX } from './ssr-render';
+import { TagNesting, allowedContent, initialTag, isTagAllowed } from './tag-nesting';
+import {
+  SsrComponentFrame,
+  SsrNode,
+  type SSRContainer as ISSRContainer,
+  type SsrAttrs,
+  type StreamWriter,
+} from './types';
+import {
+  CLOSE_FRAGMENT,
+  OPEN_FRAGMENT,
+  VNodeDataFlag,
+  encodeAsAlphanumeric,
+  vNodeData_addTextSize,
+  vNodeData_closeFragment,
+  vNodeData_createSsrNodeReference,
+  vNodeData_incrementElementCount,
+  vNodeData_openFragment,
+  type VNodeData,
+} from './vnode-data';
 
 export function ssrCreateContainer(
   opts: {
@@ -90,14 +93,13 @@ class SSRContainer implements ISSRContainer {
   public serializationCtx: SerializationContext;
   public $locale$: string;
   public $subsManager$: SubscriptionManager = null!;
+  public $proxyMap$: ObjToProxyMap = new WeakMap();
+  public $scheduler$: Scheduler;
   public getObjectById: (id: string | number) => unknown = () => {
     throw new Error('SSR should not have deserialize objects.');
   };
   private lastNode: SsrNode | null = null;
   private currentComponentNode: SsrNode | null = null;
-  public markComponentForRender(): void {
-    throw new Error('SSR can not mark components for render.');
-  }
 
   private currentElementFrame: ContainerElementFrame | null = null;
   /**
@@ -117,6 +119,13 @@ class SSRContainer implements ISSRContainer {
     this.$locale$ = opts.locale;
     this.serializationCtx = createSerializationContext(SsrNode, null, this.writer);
     this.$subsManager$ = createSubscriptionManager(this as fixMeAny);
+    this.$scheduler$ = createScheduler(this, () => null);
+  }
+
+  processJsx(host: HostElement, jsx: JSXOutput): void {}
+
+  handleError(err: any, $host$: HostElement): void {
+    throw err;
   }
 
   setContext<T>(host: HostElement, context: ContextId<T>, value: T): void {
@@ -143,12 +152,7 @@ class SSRContainer implements ISSRContainer {
     return undefined;
   }
 
-  clearLocalProps(host: SsrNode): void {
-    const ssrNode: SsrNode = host as any;
-    ssrNode.clearLocalProps();
-  }
-
-  getParentHost(host: SsrNode): SsrNode | null {
+  getParentHost(host: HostElement): HostElement | null {
     const ssrNode: SsrNode = host as any;
     return ssrNode.currentComponentNode as SsrNode | null;
   }

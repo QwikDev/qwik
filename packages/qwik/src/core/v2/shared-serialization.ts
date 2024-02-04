@@ -12,6 +12,7 @@ import {
   parseSubscription,
   serializeSubscription,
   type LocalSubscriptionManager,
+  unwrapProxy,
   type Subscriber,
 } from '../state/common';
 import { QObjectManagerSymbol } from '../state/constants';
@@ -21,6 +22,7 @@ import { throwErrorAndStop } from '../util/log';
 import type { DomContainer } from './client/dom-container';
 import { vnode_isVNode, vnode_locate } from './client/vnode';
 import type { fixMeAny } from './shared/types';
+import { Store, getOrCreateProxy } from '../state/store';
 
 const deserializedProxyMap = new WeakMap<object, unknown>();
 
@@ -72,6 +74,11 @@ export const wrapDeserializerProxy = (container: DomContainer, value: unknown) =
                   propValue === SerializationConstant.VNode_CHAR
                     ? container.element.ownerDocument
                     : vnode_locate(container.rootVNode, propValue.substring(1));
+              } else if (typeCode === SerializationConstant.Store_VALUE) {
+                const target = container.getObjectById(
+                  propValue.substring(1, propValue.indexOf(';'))
+                );
+                propValue = getOrCreateProxy(target as object, container);
               } else {
                 propValue = allocate(propValue);
               }
@@ -163,6 +170,9 @@ const inflate = (container: DomContainer, target: any, needsInflationData: strin
       break;
     case SerializationConstant.DerivedSignal_VALUE:
       throw new Error('Not implemented');
+      break;
+    case SerializationConstant.Store_VALUE:
+      subscriptionManagerFromString(getSubscriptionManager(target)!, rest, container.getObjectById);
       break;
     case SerializationConstant.Signal_VALUE:
       const signal = target as SignalImpl<unknown>;
@@ -262,6 +272,7 @@ const allocate = <T>(value: string): any => {
     case SerializationConstant.String_VALUE:
       return value.substring(1);
     default:
+      throw new Error('unknown allocate type: ' + value.charCodeAt(0));
   }
 };
 
@@ -485,7 +496,7 @@ export function serialize(serializationContext: SerializationContext): void {
     } else if (isObjectLiteral(value)) {
       serializeObjectLiteral(value, $writer$, writeValue, writeString);
     } else if (value instanceof SignalImpl) {
-      const manager = value[QObjectManagerSymbol];
+      const manager = getSubscriptionManager(value);
       const data: string[] = [];
       for (const sub of manager.$subs$) {
         const serialized = serializeSubscription(sub, $addRoot$);
@@ -493,6 +504,14 @@ export function serialize(serializationContext: SerializationContext): void {
       }
       writeString(
         SerializationConstant.Signal_CHAR + $addRoot$(value.untrackedValue) + ' ' + data.join(' ')
+      );
+    } else if (value instanceof Store) {
+      const manager = getSubscriptionManager(value)!;
+      writeString(
+        SerializationConstant.Store_CHAR +
+          $addRoot$(unwrapProxy(value)) +
+          ';' +
+          subscriptionManagerToString(manager, $addRoot$)
       );
     } else if (value instanceof URL) {
       writeString(SerializationConstant.URL_CHAR + value.href);
@@ -599,6 +618,36 @@ function serializeObjectLiteral(
       }
     }
     $writer$.write('}');
+  }
+}
+
+function subscriptionManagerToString(
+  subscriptionManager: LocalSubscriptionManager,
+  $addRoot$: (obj: any) => number
+) {
+  const data: string[] = [];
+  for (const sub of subscriptionManager.$subs$) {
+    const serialized = serializeSubscription(sub, $addRoot$);
+    serialized && data.push(serialized);
+  }
+  return data.join(';');
+}
+
+function subscriptionManagerFromString(
+  subscriptionManager: LocalSubscriptionManager,
+  value: string,
+  getObjectById: (id: number) => any
+) {
+  const subs = value.split(';');
+  for (const sub of subs) {
+    const subscription = sub.split(' ') as fixMeAny[];
+    if (subscription.length > 2) {
+      subscription[1] = getObjectById(subscription[1]);
+      subscriptionManager.$addSub$(
+        [subscription[0], subscription[1]],
+        subscription.length == 3 ? subscription[2] : undefined
+      );
+    }
   }
 }
 
@@ -781,15 +830,17 @@ export const enum SerializationConstant {
   Signal_VALUE = /* ---------------------- */ 0x15,
   SignalWrapper_CHAR = /* ------------- */ '\u0016',
   SignalWrapper_VALUE = /* --------------- */ 0x16,
-  FormData_CHAR = /* ------------------ */ '\u0017',
-  FormData_VALUE = /* -------------------- */ 0x17,
-  JSXNode_CHAR = /* ------------------- */ '\u0018',
-  JSXNode_VALUE = /* --------------------- */ 0x18,
-  Set_CHAR = /* ----------------------- */ '\u0019',
-  Set_VALUE = /* ------------------------- */ 0x19,
-  Map_CHAR = /* ----------------------- */ '\u001a',
-  Map_VALUE = /* ------------------------- */ 0x1a,
-  LAST_VALUE = /* ------------------------ */ 0x1b,
+  Store_CHAR = /* --------------------- */ '\u0017',
+  Store_VALUE = /* ----------------------- */ 0x17,
+  FormData_CHAR = /* ------------------ */ '\u0018',
+  FormData_VALUE = /* -------------------- */ 0x18,
+  JSXNode_CHAR = /* ------------------- */ '\u0019',
+  JSXNode_VALUE = /* --------------------- */ 0x19,
+  Set_CHAR = /* ----------------------- */ '\u001a',
+  Set_VALUE = /* ------------------------- */ 0x1a,
+  Map_CHAR = /* ----------------------- */ '\u001b',
+  Map_VALUE = /* ------------------------- */ 0x1b,
+  LAST_VALUE = /* ------------------------ */ 0x1c,
 }
 
 function serializeJSXType($addRoot$: (obj: unknown) => number, type: string | FunctionComponent) {
@@ -857,6 +908,8 @@ export const codeToName = (code: number) => {
       return 'Component';
     case SerializationConstant.DerivedSignal_VALUE:
       return 'DerivedSignal';
+    case SerializationConstant.Store_VALUE:
+      return 'Store';
     case SerializationConstant.Signal_VALUE:
       return 'Signal';
     case SerializationConstant.SignalWrapper_VALUE:

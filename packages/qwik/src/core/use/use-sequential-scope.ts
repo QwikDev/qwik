@@ -21,7 +21,6 @@ export interface SequentialScope<T> {
  * The storage provider for hooks. Each invocation increases index i. Data is stored in an array.
  */
 export const useSequentialScope = <T>(): SequentialScope<T> => {
-  const SEQ_IDX = ':seqIdx';
   const iCtx = useInvokeContext();
   const hostElement = iCtx.$hostElement$;
   if (iCtx.$container2$) {
@@ -32,11 +31,11 @@ export const useSequentialScope = <T>(): SequentialScope<T> => {
       seq = [];
       iCtx.$container2$.setHostProp(host, ELEMENT_SEQ, seq);
     }
-    let seqIdx = iCtx.$container2$.getHostProp<number>(host, SEQ_IDX);
+    let seqIdx = iCtx.$container2$.getHostProp<number>(host, SEQ_IDX_LOCAL);
     if (seqIdx === null) {
       seqIdx = 0;
     }
-    iCtx.$container2$.setHostProp(host, SEQ_IDX, seqIdx + 1);
+    iCtx.$container2$.setHostProp(host, SEQ_IDX_LOCAL, seqIdx + 1);
     while (seq.length <= seqIdx) {
       seq.push(undefined);
     }
@@ -74,3 +73,5 @@ export const useSequentialScope = <T>(): SequentialScope<T> => {
     };
   }
 };
+
+export const SEQ_IDX_LOCAL = ':seqIdx';

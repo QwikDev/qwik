@@ -1,59 +1,83 @@
-import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
-import { isPromise } from 'util/types';
 import type { OnRenderFn } from '../../component/component.public';
 import { assertDefined } from '../../error/assert';
 import type { QRLInternal } from '../../qrl/qrl-class';
-import { handleError2 } from '../../render/error-handling';
-import { SkipRender } from '../../render/jsx/utils.public';
 import { newInvokeContext } from '../../use/use-core';
 import { EMPTY_OBJ } from '../../util/flyweight';
 import { ELEMENT_PROPS, OnRenderProp, RenderEvent } from '../../util/markers';
-import { maybeThen, promiseAllLazy, safeCall } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
-import type { VirtualVNode } from '../client/types';
-import { vnode_getProp } from '../client/vnode';
-import type { Container2, fixMeAny } from './types';
+import type { Container2, HostElement, fixMeAny } from './types';
+import type { JSXOutput } from '../../render/jsx/types/jsx-node';
+import { isPromise, maybeThen, safeCall } from '../../util/promises';
+import { SEQ_IDX_LOCAL } from '../../use/use-sequential-scope';
 
+/**
+ * Use `executeComponent2` to execute a component.
+ *
+ * Component execution can be complex because of:
+ *
+ * - It can by async
+ * - It can contain many tasks which need to be awaited
+ * - Each task can run multiple times if they track signals which change.
+ * - The JSX may be re-generated multiple times of a task needs to be rerun due to signal change.
+ * - It needs to keep track of hook state.
+ *
+ * @param container
+ * @param host
+ * @param componentQRL
+ * @param props
+ * @returns
+ */
 export const executeComponent2 = (
   container: Container2,
-  host: VirtualVNode,
+  host: HostElement,
   componentQRL: QRLInternal<OnRenderFn<any>> | null,
   props: Record<string, any> | null
-): ValueOrPromise<JSXNode> => {
+): ValueOrPromise<JSXOutput> => {
   const iCtx = newInvokeContext(container.$locale$, host as fixMeAny, undefined, RenderEvent);
   // $renderCtx$ is no longer used.
-  const waitOn = (iCtx.$waitOn$ = []);
-  iCtx.$renderCtx$ = EMPTY_OBJ as fixMeAny;
+  iCtx.$renderCtx$ = EMPTY_OBJ as fixMeAny; // TODO(mhevery): no longer needed
+  iCtx.$waitOn$ = []; // TODO(mhevery): no longer needed
   iCtx.$subscriber$ = [0, host as fixMeAny];
   iCtx.$container2$ = container;
-  componentQRL =
-    componentQRL ||
-    vnode_getProp<QRLInternal<OnRenderFn<any>>>(host, OnRenderProp, container.getObjectById)!;
+  componentQRL = componentQRL || container.getHostProp(host, OnRenderProp)!;
   assertDefined(componentQRL, 'No Component found at this location');
-  props = props || vnode_getProp<any>(host, ELEMENT_PROPS, container.getObjectById) || EMPTY_OBJ;
-  container.clearLocalProps(host);
+  props = props || container.getHostProp(host, ELEMENT_PROPS) || EMPTY_OBJ;
   const componentFn = componentQRL.getFn(iCtx);
-  return safeCall(
-    () => componentFn(props) as ValueOrPromise<JSXNode>,
-    (jsxNode) => {
-      return maybeThen(promiseAllLazy(waitOn), () => {
-        // if (elCtx.$flags$ & HOST_FLAG_DIRTY) {
-        //   return executeComponent2(rCtx, elCtx);
+
+  const executeComponentWithPromiseExceptionRetry = (): ValueOrPromise<JSXOutput> =>
+    safeCall<JSXOutput, JSXOutput, JSXOutput>(
+      () => {
+        const jsx = container.getHostProp<JSXOutput>(host, JSX_LOCAL);
+        // if (jsx !== null) {
+        //   return jsx;
         // }
-        return jsxNode;
-      });
-    },
-    (err) => {
-      if (isPromise(err)) {
-        return err.then(() => executeComponent2(container, host, componentQRL, props));
-      } else {
-        try {
-          handleError2(err, host as fixMeAny, container);
-        } catch (e) {
-          console.error('ERROR', e);
+        container.setHostProp(host, SEQ_IDX_LOCAL, null);
+        return componentFn(props);
+      },
+      (jsx) => {
+        container.setHostProp(host, JSX_LOCAL, jsx);
+        return container.$scheduler$.$drainComponent$(host);
+      },
+      (err: any) => {
+        if (isPromise(err)) {
+          return err.then(executeComponentWithPromiseExceptionRetry) as Promise<JSXOutput>;
+        } else {
+          throw err;
         }
-        return SkipRender;
       }
-    }
-  );
+    );
+  return executeComponentWithPromiseExceptionRetry();
 };
+
+/**
+ * Stores the JSX output of the last execution of the component.
+ *
+ * Component can execute multiple times because:
+ *
+ * - Component can have multiple tasks
+ * - Tasks can track signals
+ * - Task A can change signal which causes Task B to rerun.
+ *
+ * So when executing a component we only care about its last JSX Output.
+ */
+export const JSX_LOCAL = ':jsx';

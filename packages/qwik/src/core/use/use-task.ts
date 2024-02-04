@@ -34,7 +34,7 @@ import {
 import { QObjectManagerSymbol } from '../state/constants';
 import { ComputedEvent, TaskEvent } from '../util/markers';
 import type { VirtualVNode } from '../v2/client/types';
-import type { Container2, fixMeAny } from '../v2/shared/types';
+import type { Container2, HostElement, fixMeAny } from '../v2/shared/types';
 import { isPromise } from 'util/types';
 
 export const TaskFlagsIsVisibleTask = 1 << 0;
@@ -121,6 +121,18 @@ export interface Tracker {
    * ```
    */
   <T extends object>(obj: T): T extends Signal<infer U> ? U : T;
+
+  /**
+   * Used to track to track a specific property of an object.
+   *
+   * Note that the change tracking is not deep. If you want to track changes to nested properties,
+   * you need to use `track` on each of them.
+   *
+   * ```tsx
+   * track(store, 'propA'); // returns store.propA
+   * ```
+   */
+  <T extends object, P extends keyof T>(obj: T, prop: P): T[P];
 }
 
 /** @public */
@@ -287,7 +299,7 @@ export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: UseTaskOptions): void => {
   set(1);
 
   if (iCtx.$container2$) {
-    const host = iCtx.$hostElement$ as unknown as VirtualVNode;
+    const host = iCtx.$hostElement$ as unknown as HostElement;
     const task = new Task(
       TaskFlagsIsDirty | TaskFlagsIsTask,
       i,
@@ -315,7 +327,7 @@ export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: UseTaskOptions): void => {
 export const runTask2 = (
   task: TaskDescriptor | ComputedDescriptor<unknown>,
   container: Container2,
-  host: VirtualVNode
+  host: HostElement
 ) => {
   task.$flags$ &= ~TaskFlagsIsDirty;
   const iCtx = newInvokeContext(container.$locale$, host as fixMeAny, undefined, TaskEvent);
@@ -357,7 +369,7 @@ export const runTask2 = (
   const result = safeCall(
     () => taskFn(taskApi),
     (returnValue) => isFunction(returnValue) && cleanups.push(returnValue),
-    (reason) => handleError2(reason, host, container)
+    (reason) => container.handleError(reason, host)
   );
   if (isPromise(result)) {
     throw result;

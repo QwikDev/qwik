@@ -47,7 +47,9 @@ function createPlatform() {
         });
       } else if (renderMarked !== render.fn) {
         // TODO(misko): proper error and test
-        throw new Error('Must be same function');
+        throw new Error(
+          'Must be same function\nIt looks like previous test has not drained all ticks, and new test has started?'
+        );
       }
       return render.promise;
     },

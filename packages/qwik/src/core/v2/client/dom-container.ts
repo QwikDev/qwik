@@ -1,10 +1,13 @@
 /** @file Public APIs for the SSR */
 
+import type { ObjToProxyMap } from '../../container/container';
 import { assertTrue } from '../../error/assert';
 import { getPlatform } from '../../platform/platform';
+import { ERROR_CONTEXT, isRecoverable } from '../../render/error-handling';
+import type { JSXOutput } from '../../render/jsx/types/jsx-node';
 import { createSubscriptionManager, type SubscriptionManager } from '../../state/common';
 import type { ContextId } from '../../use/use-context';
-import type { Task } from '../../use/use-task';
+import { SEQ_IDX_LOCAL } from '../../use/use-sequential-scope';
 import { throwErrorAndStop } from '../../util/log';
 import {
   ELEMENT_PROPS,
@@ -14,8 +17,11 @@ import {
   QContainerSelector,
   QCtxAttr,
 } from '../../util/markers';
+import { maybeThen } from '../../util/promises';
+import { qDev } from '../../util/qdev';
+import type { ValueOrPromise } from '../../util/types';
 import { wrapDeserializerProxy } from '../shared-serialization';
-import { ChoreType, createScheduler } from '../shared/scheduler';
+import { createScheduler } from '../shared/scheduler';
 import type { fixMeAny, HostElement } from '../shared/types';
 import type {
   ContainerElement,
@@ -27,15 +33,17 @@ import type {
 import {
   mapArray_get,
   mapArray_set,
-  vnode_clearLocalProps,
   vnode_getClosestParentNode,
+  vnode_getDOMChildNodes,
   vnode_getParent,
   vnode_getProp,
+  vnode_insertBefore,
   vnode_isVirtualVNode,
+  vnode_newElement,
   vnode_newUnMaterializedElement,
   vnode_setProp,
 } from './vnode';
-import { type VNodeJournalEntry } from './vnode-diff';
+import { vnode_applyJournal, vnode_diff, type VNodeJournalEntry } from './vnode-diff';
 
 export function getDomContainer(element: HTMLElement | ElementVNode): IClientContainer {
   let htmlElement: HTMLElement | null = Array.isArray(element)
@@ -74,8 +82,11 @@ export class DomContainer implements IClientContainer {
   public renderDone: Promise<void> | null = Promise.resolve();
   public rendering: boolean = false;
   public $rawStateData$: unknown[];
+  public $proxyMap$: ObjToProxyMap = new WeakMap();
+  public $scheduler$: ReturnType<typeof createScheduler>;
+
   private stateData: unknown[];
-  private $scheduler$: ReturnType<typeof createScheduler>;
+
   constructor(element: ContainerElement) {
     this.qContainer = element.getAttribute(QContainerAttr)!;
     if (!this.qContainer) {
@@ -102,10 +113,45 @@ export class DomContainer implements IClientContainer {
     if (qwikStates.length !== 0) {
       const lastState = qwikStates[qwikStates.length - 1];
       this.$rawStateData$ = JSON.parse(lastState.textContent!);
-      this.stateData = wrapDeserializerProxy(this, this.$rawStateData$) as any;
+      this.stateData = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
     }
     this.$subsManager$ = createSubscriptionManager(this as fixMeAny);
-    this.$scheduler$ = createScheduler(this);
+    this.$scheduler$ = createScheduler(this, () => this.scheduleRender());
+  }
+  processJsx(host: HostElement, jsx: JSXOutput): ValueOrPromise<void> {
+    // console.log('>>>> processJsx', String(host), jsx.children);
+    return vnode_diff(this, jsx, host as VirtualVNode);
+  }
+
+  handleError(err: any, host: HostElement): void {
+    if (qDev) {
+      // Clean vdom
+      if (typeof document !== 'undefined') {
+        const vHost = host as VirtualVNode;
+        const errorDiv = document.createElement('errored-host');
+        if (err && err instanceof Error) {
+          (errorDiv as any).props = { error: err };
+        }
+        errorDiv.setAttribute('q:key', '_error_');
+        vnode_getDOMChildNodes(vHost).forEach((child) => errorDiv.appendChild(child));
+        const vErrorDiv = vnode_newElement(vHost, errorDiv, 'error-host');
+        vnode_insertBefore(vHost, vErrorDiv, null);
+      }
+
+      if (err && err instanceof Error) {
+        if (!('hostElement' in err)) {
+          (err as any)['hostElement'] = host;
+        }
+      }
+      if (!isRecoverable(err)) {
+        throw err;
+      }
+    }
+    const errorStore = this.resolveContext(host, ERROR_CONTEXT);
+    if (!errorStore) {
+      throw err;
+    }
+    errorStore.error = err;
   }
 
   setContext<T>(host: HostElement, context: ContextId<T>, value: T): void {
@@ -128,10 +174,6 @@ export class DomContainer implements IClientContainer {
       host = this.getParentHost(host)!;
     }
     return undefined;
-  }
-
-  clearLocalProps(host: HostElement): void {
-    vnode_clearLocalProps(host as unknown as VirtualVNode);
   }
 
   getParentHost(host: HostElement): HostElement | null {
@@ -160,7 +202,7 @@ export class DomContainer implements IClientContainer {
       case QCtxAttr:
         getObjectById = this.getObjectById;
         break;
-      case ':seqIdx':
+      case SEQ_IDX_LOCAL:
         getObjectById = parseInt;
         break;
     }
@@ -168,30 +210,19 @@ export class DomContainer implements IClientContainer {
   }
 
   scheduleRender() {
+    // console.log('>>>> scheduleRender', !!this.rendering);
     if (!this.rendering) {
       this.rendering = true;
-      this.renderDone = getPlatform().nextTick(() => this.$scheduler$.$drain$());
+      this.renderDone = getPlatform().nextTick(() => {
+        // console.log('>>>> scheduleRender nextTick', !!this.rendering);
+        maybeThen(this.$scheduler$.$drainAll$(), () => {
+          this.rendering = false;
+          // console.log('>>>> Drain Journal', this.$journal$.length);
+          vnode_applyJournal(this.$journal$);
+        });
+      });
     }
-  }
-
-  markTaskForRun(task: Task) {
-    this.$scheduler$.$schedule$(
-      ChoreType.TASK,
-      task.$el$ as fixMeAny,
-      task.$qrl$ as fixMeAny,
-      task.$index$,
-      task
-    );
-    this.scheduleRender();
-  }
-
-  markComponentForRender(hostElement: VirtualVNode): void {
-    this.$scheduler$.$schedule$(
-      ChoreType.COMPONENT,
-      hostElement,
-      vnode_getProp(hostElement, OnRenderProp, this.getObjectById)!
-    );
-    this.scheduleRender();
+    return this.renderDone;
   }
 
   getObjectById = (id: number | string): unknown => {
@@ -301,3 +332,4 @@ export function processVNodeData(document: Document) {
     return /* `!` */ 33 <= ch && ch <= 47; /* `/` */
   }
 }
+

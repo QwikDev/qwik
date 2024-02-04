@@ -3,7 +3,6 @@ import { type Component, type OnRenderFn } from '../../component/component.publi
 import { SERIALIZABLE_STATE } from '../../container/serializers';
 import type { QRLInternal } from '../../qrl/qrl-class';
 import { ELEMENT_PROPS, OnRenderProp } from '../../util/markers';
-import { executeComponent2 } from '../shared/component-execution';
 import { type SSRContainer } from './types';
 
 export const applyInlineComponent = (component: Component, jsx: JSXNode) => {
@@ -22,7 +21,9 @@ export const applyQwikComponentBody = (ssr: SSRContainer, jsx: JSXNode, componen
       hasProps = true;
     }
   }
+  const scheduler = ssr.$scheduler$;
   host.setProp(OnRenderProp, componentQrl);
   hasProps && host.setProp(ELEMENT_PROPS, propsSansChildren);
-  return executeComponent2(ssr, host as any, componentQrl, propsSansChildren);
+  scheduler.$scheduleComponent$(host, componentQrl, propsSansChildren);
+  return scheduler.$drainComponent$(host);
 };

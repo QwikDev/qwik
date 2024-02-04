@@ -145,6 +145,7 @@ import {
   QSlotRef,
 } from '../../util/markers';
 import { isQrl } from '../../qrl/qrl-class';
+import { isDev } from '@builder.io/qwik/build';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -868,17 +869,17 @@ export const vnode_getProp = <T>(
   return null;
 };
 
-export const vnode_clearLocalProps = (vnode: VNode) => {
-  const type = vnode[VNodeProps.flags];
-  if ((type & VNodeFlags.Virtual) !== 0) {
-    for (let idx = VirtualVNodeProps.PROPS_OFFSET; idx < vnode.length; idx += 2) {
-      const key = vnode[idx] as string;
-      if (key.startsWith(':')) {
-        vnode[idx + 1] = null;
-      }
-    }
-  }
-};
+// export const vnode_clearLocalProps = (vnode: VNode) => {
+//   const type = vnode[VNodeProps.flags];
+//   if ((type & VNodeFlags.Virtual) !== 0) {
+//     for (let idx = VirtualVNodeProps.PROPS_OFFSET; idx < vnode.length; idx += 2) {
+//       const key = vnode[idx] as string;
+//       if (key.startsWith(':')) {
+//         vnode[idx + 1] = null;
+//       }
+//     }
+//   }
+// };
 
 export const vnode_setProp = (vnode: VirtualVNode | ElementVNode, key: string, value: unknown) => {
   ensureElementOrVirtualVNode(vnode);
@@ -1325,5 +1326,8 @@ const VNodeArray = class VNode extends Array {
   ) {
     super();
     this.push(flags, parent, previousSibling, nextSibling);
+    if (isDev) {
+      this.toString = vnode_toString;
+    }
   }
 };

@@ -1,19 +1,20 @@
+import type { ObjToProxyMap } from '../container/container';
 import { assertEqual, assertNumber, assertTrue } from '../error/assert';
-import { qError, QError_immutableProps } from '../error/error';
+import { QError_immutableProps, qError } from '../error/error';
 import { tryGetInvokeContext } from '../use/use-core';
-import { qDev, qSerialize } from '../util/qdev';
+import { logError, logWarn } from '../util/log';
 import { ComputedEvent, RenderEvent, ResourceEvent } from '../util/markers';
+import { qDev, qSerialize } from '../util/qdev';
 import { isArray, isObject, isSerializableObject } from '../util/types';
-import type { ContainerState } from '../container/container';
 import {
-  fastSkipSerialize,
   LocalSubscriptionManager,
-  type Subscriber,
-  type Subscriptions,
+  fastSkipSerialize,
   unwrapProxy,
   verifySerializable,
+  type Subscriber,
+  type SubscriptionManager,
+  type Subscriptions,
 } from './common';
-import { isSignal } from './signal';
 import {
   QObjectFlagsSymbol,
   QObjectImmutable,
@@ -23,42 +24,43 @@ import {
   _IMMUTABLE,
   _IMMUTABLE_PREFIX,
 } from './constants';
-import { logError, logWarn } from '../util/log';
+import { isSignal } from './signal';
+
+export interface StoreTracker {
+  $proxyMap$: ObjToProxyMap;
+  $subsManager$: SubscriptionManager;
+}
 
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
 
 /** Creates a proxy that notifies of any writes. */
-export const getOrCreateProxy = <T extends object>(
-  target: T,
-  containerState: ContainerState,
-  flags = 0
-): T => {
-  const proxy = containerState.$proxyMap$.get(target);
+export const getOrCreateProxy = <T extends object>(target: T, storeMgr: StoreTracker, flags = 0): T => {
+  const proxy = storeMgr.$proxyMap$.get(target);
   if (proxy) {
     return proxy;
   }
   if (flags !== 0) {
     setObjectFlags(target, flags);
   }
-  return createProxy(target, containerState, undefined);
+  return createProxy(target, storeMgr, undefined);
 };
 
 export const createProxy = <T extends object>(
   target: T,
-  containerState: ContainerState,
+  storeTracker: StoreTracker,
   subs?: Subscriptions[]
 ): T => {
   assertEqual(unwrapProxy(target), target, 'Unexpected proxy at this location', target);
-  assertTrue(!containerState.$proxyMap$.has(target), 'Proxy was already created', target);
+  assertTrue(!storeTracker.$proxyMap$.has(target), 'Proxy was already created', target);
   assertTrue(isObject(target), 'Target must be an object');
   assertTrue(
     isSerializableObject(target) || isArray(target),
     'Target must be a serializable object'
   );
 
-  const manager = containerState.$subsManager$.$createManager$(subs);
-  const proxy = new Proxy(target, new ReadWriteProxyHandler(containerState, manager)) as any as T;
-  containerState.$proxyMap$.set(target, proxy);
+  const manager = storeTracker.$subsManager$.$createManager$(subs);
+  const proxy = new Proxy(target, new ReadWriteProxyHandler(storeTracker, manager)) as any as T;
+  storeTracker.$proxyMap$.set(target, proxy);
   return proxy;
 };
 
@@ -85,9 +87,11 @@ export const _restProps = (props: Record<string, any>, omit: string[]) => {
   return rest;
 };
 
+export class Store {}
+
 export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
   constructor(
-    private $containerState$: ContainerState,
+    private $storeTracker$: StoreTracker,
     private $manager$: LocalSubscriptionManager
   ) {}
 
@@ -100,6 +104,10 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     }
     this.$manager$.$notifySubs$(isArray(target) ? undefined : prop);
     return true;
+  }
+
+  getPrototypeOf(target: TargetType): object | null {
+    return Store.prototype;
   }
 
   get(target: TargetType, prop: string | symbol): any {
@@ -137,7 +145,7 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
       const isA = isArray(target);
       this.$manager$.$addSub$(subscriber, isA ? undefined : prop);
     }
-    return recursive ? wrap(value, this.$containerState$) : value;
+    return recursive ? wrap(value, this.$storeTracker$) : value;
   }
 
   set(target: TargetType, prop: string | symbol, newValue: any): boolean {
@@ -248,7 +256,7 @@ const immutableValue = (value: any) => {
   return value === _IMMUTABLE || isSignal(value);
 };
 
-const wrap = <T>(value: T, containerState: ContainerState): T => {
+const wrap = <T>(value: T, storeTracker: StoreTracker): T => {
   if (isObject(value)) {
     if (Object.isFrozen(value)) {
       return value;
@@ -262,8 +270,8 @@ const wrap = <T>(value: T, containerState: ContainerState): T => {
       return value;
     }
     if (isSerializableObject(nakedValue) || isArray(nakedValue)) {
-      const proxy = containerState.$proxyMap$.get(nakedValue);
-      return proxy ? proxy : getOrCreateProxy(nakedValue as any, containerState, QObjectRecursive);
+      const proxy = storeTracker.$proxyMap$.get(nakedValue);
+      return proxy ? proxy : getOrCreateProxy(nakedValue as any, storeTracker, QObjectRecursive);
     }
   }
   return value;

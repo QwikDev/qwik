@@ -10,7 +10,7 @@ import type { Subscriptions } from '../state/common';
 import { OnRenderProp } from '../util/markers';
 import { DomContainer, getDomContainer } from './client/dom-container';
 import { render2 } from './client/render2';
-import type { VNode } from './client/types';
+import type { VNode, VirtualVNode } from './client/types';
 import {
   vnode_getAttr,
   vnode_getFirstChild,
@@ -20,7 +20,7 @@ import {
   vnode_toString,
 } from './client/vnode';
 import { codeToName } from './shared-serialization';
-import type { fixMeAny } from './shared/types';
+import type { HostElement, fixMeAny } from './shared/types';
 import { ssrCreateContainer } from './ssr/ssr-container';
 import { ssrRenderToContainer } from './ssr/ssr-render';
 import './vdom-diff.unit-util';
@@ -29,6 +29,8 @@ import { inlinedQrl } from '../qrl/qrl';
 import { Slot } from '../render/jsx/slot.public';
 import { useContextProvider } from '../use/use-context';
 import { ERROR_CONTEXT } from '../render/error-handling';
+import { getTestPlatform } from '../../testing/platform';
+import type { QRL } from '../qrl/qrl.public';
 
 export async function domRender(
   jsx: JSXOutput,
@@ -41,6 +43,7 @@ export async function domRender(
 ) {
   const document = createDocument();
   await render2(document.body, jsx);
+  await getTestPlatform().flush();
   const container = getDomContainer(document.body);
   if (opts.debug) {
     console.log('========================================================');
@@ -121,14 +124,15 @@ export async function rerenderComponent(element: HTMLElement) {
   const container = getDomContainer(element);
   const vElement = vnode_locate(container.rootVNode, element);
   const host = getHostVNode(vElement)!;
-  const subAction: Subscriptions = [0, host as fixMeAny, undefined];
-  notifyChange(subAction, container as fixMeAny);
+  const qrl = container.getHostProp<QRL<any>>(host, OnRenderProp);
+  const props = container.getHostProp(host, 'props');
+  container.$scheduler$.$scheduleComponent$(host, qrl, props);
 }
 
 function getHostVNode(vElement: VNode | null) {
   while (vElement != null) {
     if (typeof vnode_getAttr(vElement, OnRenderProp) == 'string') {
-      return vElement;
+      return vElement as VirtualVNode;
     }
     vElement = vnode_getParent(vElement);
   }

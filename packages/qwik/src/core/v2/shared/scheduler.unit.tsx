@@ -11,6 +11,8 @@ import {
   vnode_setProp,
 } from '../client/vnode';
 import { ChoreType, createScheduler } from './scheduler';
+import { getDomContainer } from '../client/dom-container';
+import { QContainerAttr } from '../../util/markers';
 
 describe('scheduler', () => {
   let scheduler: ReturnType<typeof createScheduler> = null!;
@@ -22,8 +24,11 @@ describe('scheduler', () => {
   let vBHost1: VirtualVNode = null!;
   let vBHost2: VirtualVNode = null!;
   beforeEach(() => {
-    scheduler = createScheduler({ $locale$: 'en-US', $journal$: [] } as any);
     document = createDocument();
+    document.body.setAttribute(QContainerAttr, 'paused');
+    const container = getDomContainer(document.body);
+    container.processJsx = () => null!;
+    scheduler = createScheduler(container, () => null);
     document.body.innerHTML = '<a></a><b></b>';
     vBody = vnode_newUnMaterializedElement(null, document.body);
     vA = vnode_locate(vBody, document.querySelector('a') as Element) as ElementVNode;
@@ -63,7 +68,7 @@ describe('scheduler', () => {
         log.push('1');
       }, 's_1')
     );
-    scheduler.$drain$();
+    scheduler.$drainAll$();
     expect(log).toEqual(['1', '2', '3']);
   });
 
@@ -94,7 +99,7 @@ describe('scheduler', () => {
         log.push('1');
       }, 's_1')
     );
-    await scheduler.$drain$();
+    await scheduler.$drainAll$();
     expect(log).toEqual(['1', '2', '3']);
   });
   it('should not add the same SIMPLE twice', async () => {
@@ -116,7 +121,7 @@ describe('scheduler', () => {
         log.push('1');
       }, 's_3')
     );
-    await scheduler.$drain$();
+    await scheduler.$drainAll$();
     expect(log).toEqual(['1']);
   });
 });

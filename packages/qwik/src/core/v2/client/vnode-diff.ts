@@ -12,7 +12,6 @@ import { throwErrorAndStop } from '../../util/log';
 import { ELEMENT_KEY, ELEMENT_PROPS, OnRenderProp, QSlot, QSlotParent } from '../../util/markers';
 import { isPromise } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
-import { executeComponent2 } from '../shared/component-execution';
 import type { QElement2 } from '../shared/types';
 import type { SsrAttrs } from '../ssr/types';
 import type { DomContainer } from './dom-container';
@@ -82,7 +81,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
    */
   const stack: any[] = [];
 
-  const asyncQueue: Array<VNode | ValueOrPromise<JSXNode>> = [];
+  const asyncQueue: Array<VNode | ValueOrPromise<JSXOutput>> = [];
 
   ////////////////////////////////
   //// Traverse state variables
@@ -600,7 +599,9 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     const jsxPros = jsxValue.props;
     shouldRender = shouldRender || !shallowEqual(jsxPros, vNodeProps);
     if (shouldRender) {
-      const jsx = executeComponent2(container, host, componentQRL, jsxPros);
+      const jsx = container.$scheduler$
+        .$scheduleComponent$(host, componentQRL, jsxPros)
+        .$drainComponent$(host);
       asyncQueue.push(jsx, host);
     }
   }

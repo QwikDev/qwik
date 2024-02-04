@@ -11,6 +11,7 @@ export const loadClientData = async (
     action?: RouteActionValue;
     clearCache?: boolean;
     prefetchSymbols?: boolean;
+    isPrefetch?: boolean;
   }
 ) => {
   const pagePathname = url.pathname;
@@ -61,7 +62,9 @@ export const loadClientData = async (
           return clientData;
         });
       } else {
-        location.href = url.href;
+        if (opts?.isPrefetch !== true) {
+          location.href = url.href;
+        }
         return undefined;
       }
     });

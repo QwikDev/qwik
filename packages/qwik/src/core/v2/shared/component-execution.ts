@@ -47,10 +47,6 @@ export const executeComponent2 = (
   const executeComponentWithPromiseExceptionRetry = (): ValueOrPromise<JSXOutput> =>
     safeCall<JSXOutput, JSXOutput, JSXOutput>(
       () => {
-        const jsx = container.getHostProp<JSXOutput>(host, JSX_LOCAL);
-        // if (jsx !== null) {
-        //   return jsx;
-        // }
         container.setHostProp(host, SEQ_IDX_LOCAL, null);
         return componentFn(props);
       },

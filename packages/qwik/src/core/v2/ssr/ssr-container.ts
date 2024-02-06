@@ -188,6 +188,7 @@ class SSRContainer implements ISSRContainer {
   }
 
   closeContainer(): void {
+    this.$scheduler$.$drainCleanup$(null);
     this.closeElement();
   }
 

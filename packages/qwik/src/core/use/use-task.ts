@@ -13,7 +13,7 @@ import { type ContainerState, intToStr, type MustGetObjID, strToInt } from '../c
 import { notifyTask, _hW } from '../render/dom/notify-render';
 import { useSequentialScope } from './use-sequential-scope';
 import type { QwikElement } from '../render/dom/virtual-element';
-import { handleError, handleError2 } from '../render/error-handling';
+import { handleError } from '../render/error-handling';
 import type { RenderContext } from '../render/types';
 import {
   getSubscriptionManager,
@@ -195,7 +195,7 @@ export interface DescriptorBase<T = unknown, B = unknown> {
   $el$: QwikElement;
   $flags$: number;
   $index$: number;
-  $destroy$?: NoSerialize<() => void>;
+  $destroy$: NoSerialize<() => void> | null;
   $state$: B | undefined;
 }
 
@@ -305,13 +305,21 @@ export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: UseTaskOptions): void => {
       i,
       iCtx.$hostElement$,
       qrl,
-      undefined
+      undefined,
+      null
     );
     runTask2(task, iCtx.$container2$, host);
     qrl.$resolveLazy$(host as fixMeAny);
   } else {
     const containerState = iCtx.$renderCtx$.$static$.$containerState$;
-    const task = new Task(TaskFlagsIsDirty | TaskFlagsIsTask, i, elCtx.$element$, qrl, undefined);
+    const task = new Task(
+      TaskFlagsIsDirty | TaskFlagsIsTask,
+      i,
+      elCtx.$element$,
+      qrl,
+      undefined,
+      null
+    );
     qrl.$resolveLazy$(containerState.$containerEl$);
     if (!elCtx.$tasks$) {
       elCtx.$tasks$ = [];
@@ -355,22 +363,33 @@ export const runTask2 = (
       return obj;
     }
   };
-  const cleanups: (() => void)[] = [];
-  task.$destroy$ = noSerialize(() => {
-    cleanups.forEach((fn) => fn());
-  });
-
-  const taskApi: TaskCtx = {
-    track,
-    cleanup(callback) {
-      cleanups.push(callback);
-    },
+  const handleError = (reason: unknown) => container.handleError(reason, host);
+  let cleanupFns: (() => void)[] | null = null;
+  const cleanup = (fn: () => void) => {
+    if (typeof fn == 'function') {
+      if (!cleanupFns) {
+        cleanupFns = [];
+        task.$destroy$ = noSerialize(() => {
+          task.$destroy$ = null;
+          cleanupFns!.forEach((fn) => {
+            try {
+              fn();
+            } catch (err) {
+              handleError(err);
+            }
+          });
+        });
+        container.$scheduler$.$scheduleCleanup$(task);
+      }
+      cleanupFns.push(fn);
+    }
   };
-  const result = safeCall(
-    () => taskFn(taskApi),
-    (returnValue) => isFunction(returnValue) && cleanups.push(returnValue),
-    (reason) => container.handleError(reason, host)
-  );
+
+  const taskApi: TaskCtx = { track, cleanup };
+  const destroyFn = task.$destroy$;
+  task.$destroy$ = null;
+  destroyFn && destroyFn();
+  const result = safeCall(() => taskFn(taskApi), cleanup, handleError);
   if (isPromise(result)) {
     throw result;
   }
@@ -404,7 +423,8 @@ export const useComputedQrl: ComputedQRL = <T>(qrl: QRL<ComputedFn<T>>): Signal<
     i,
     elCtx.$element$,
     qrl,
-    signal
+    signal,
+    null
   );
   qrl.$resolveLazy$(containerState.$containerEl$);
   if (!elCtx.$tasks$) {
@@ -823,7 +843,7 @@ export const runComputed = (
 export const cleanupTask = (task: SubscriberEffect) => {
   const destroy = task.$destroy$;
   if (destroy) {
-    task.$destroy$ = undefined;
+    task.$destroy$ = null;
     try {
       destroy();
     } catch (err) {
@@ -889,7 +909,7 @@ export const serializeTask = (task: SubscriberEffect, getObjId: MustGetObjID) =>
 
 export const parseTask = (data: string) => {
   const [flags, index, qrl, el, resource] = data.split(' ');
-  return new Task(strToInt(flags), strToInt(index), el as any, qrl as any, resource as any);
+  return new Task(strToInt(flags), strToInt(index), el as any, qrl as any, resource as any, null);
 };
 
 export class Task<T = unknown, B = T> implements DescriptorBase<unknown, Signal<B>> {
@@ -898,7 +918,8 @@ export class Task<T = unknown, B = T> implements DescriptorBase<unknown, Signal<
     public $index$: number,
     public $el$: QwikElement,
     public $qrl$: QRLInternal<T>,
-    public $state$: Signal<B> | undefined
+    public $state$: Signal<B> | undefined,
+    public $destroy$: NoSerialize<() => void> | null
   ) {}
 }
 

@@ -372,8 +372,11 @@ const vnode_getDOMInsertBefore = (vNode: VNode | null): Node | null => {
   return null;
 };
 
-export const vnode_getDOMChildNodes = (vHost: VNode, childNodes: Node[] = []): Node[] => {
-  let vNode = vnode_getFirstChild(vHost);
+export const vnode_getDOMChildNodes = (root: VNode, childNodes: Node[] = []): Node[] => {
+  if (vnode_isElementVNode(root)) {
+    return [vnode_getNode(root)!];
+  }
+  let vNode = vnode_getFirstChild(root);
   while (vNode) {
     if (vnode_isElementVNode(vNode)) {
       childNodes.push(vnode_getNode(vNode)!);
@@ -691,11 +694,10 @@ export const vnode_remove = (vParent: VNode, vToRemove: VNode, removeDOM: boolea
 export const vnode_truncate = (vParent: ElementVNode | VirtualVNode, vDelete: VNode) => {
   assertDefined(vDelete, 'Missing vDelete.');
   const parent = vnode_getDOMParent(vParent)!;
-  let child: Node | null = vnode_getNode(vDelete)!;
-  while (child !== null) {
-    const nextSibling = child.nextSibling as Node | null;
+  const children = vnode_getDOMChildNodes(vDelete)!;
+  for (let idx = 0; idx < children.length; idx++) {
+    const child = children[idx];
     parent.removeChild(child);
-    child = nextSibling;
   }
   const vPrevious = vDelete[VNodeProps.previousSibling];
   if (vPrevious) {
@@ -704,6 +706,17 @@ export const vnode_truncate = (vParent: ElementVNode | VirtualVNode, vDelete: VN
     vParent[ElementVNodeProps.firstChild] = null;
   }
   vParent[ElementVNodeProps.lastChild] = vPrevious;
+};
+
+export const vnode_isChildOf = (vParent: VNode, vChild: VNode): boolean => {
+  let vNode = vChild;
+  while (vNode) {
+    if (vNode === vParent) {
+      return true;
+    }
+    vNode = vnode_getParent(vNode)!;
+  }
+  return false;
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////

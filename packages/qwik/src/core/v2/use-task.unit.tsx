@@ -17,7 +17,7 @@ const debug = false; //true;
 Error.stackTraceLimit = 100;
 
 [
-  // ssrRenderToDom, //
+  ssrRenderToDom, //
   domRender, //
 ].forEach((render) => {
   describe(render.name + ': useTask', () => {
@@ -293,8 +293,139 @@ Error.stackTraceLimit = 100;
       });
     });
     describe('cleanup', () => {
-      it.todo('should execute cleanup task rerun on track');
-      it.todo('should execute cleanup task on unmount');
+      it('should execute cleanup task rerun on track', async () => {
+        const log: string[] = [];
+        const Counter = component$(() => {
+          const count = useSignal(0);
+          useTaskQrl(
+            inlinedQrl(
+              ({ track }) => {
+                const [c] = useLexicalScope<[typeof count]>();
+                const _count = track(() => c.value);
+                log.push('task: ' + _count);
+                return () => log.push('cleanup: ' + _count);
+              },
+              's_task',
+              [count]
+            )
+          );
+          log.push('Counter: ' + count.value);
+          return (
+            <button onClick$={inlinedQrl(() => useLexicalScope()[0].value++, 's_c', [count])}>
+              {count.value}
+            </button>
+          );
+        });
+        const isCSR = render === domRender;
+
+        const { vNode, document } = await render(<Counter />, { debug });
+        // console.log('log', log);
+        expect(log).toEqual(
+          isCSR ? ['task: 0', 'Counter: 0'] : ['task: 0', 'Counter: 0', 'cleanup: 0']
+        );
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <button>0</button>
+          </Component>
+        );
+        log.length = 0;
+        await trigger(document.body, 'button', 'click');
+        // console.log('log', log);
+        expect(log).toEqual(
+          isCSR ? ['cleanup: 0', 'task: 1', 'Counter: 1'] : ['task: 1', 'Counter: 1']
+        );
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <button>1</button>
+          </Component>
+        );
+        log.length = 0;
+        await trigger(document.body, 'button', 'click');
+        // console.log('log', log);
+        expect(log).toEqual(['cleanup: 1', 'task: 2', 'Counter: 2']);
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <button>2</button>
+          </Component>
+        );
+      });
+      it('should execute cleanup task on unmount', async () => {
+        const log: string[] = [];
+        const Child = component$(() => {
+          useTaskQrl(
+            inlinedQrl(({ cleanup }) => {
+              log.push('task:');
+              cleanup(() => log.push('cleanup:'));
+            }, 's_task')
+          );
+          log.push('Child');
+          return <span>Child</span>;
+        });
+        const Parent = component$(() => {
+          const show = useSignal(true);
+          return (
+            <button
+              onClick$={inlinedQrl(
+                () => {
+                  const [show] = useLexicalScope();
+                  show.value = !show.value;
+                },
+                's_toggle',
+                [show]
+              )}
+            >
+              {show.value ? <Child /> : null}
+            </button>
+          );
+        });
+        const isCSR = render === domRender;
+
+        const { vNode, document } = await render(<Parent />, { debug });
+        // console.log('log', log);
+        expect(log).toEqual(isCSR ? ['task:', 'Child'] : ['task:', 'Child', 'cleanup:']);
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <button>
+              <Component>
+                <span>Child</span>
+              </Component>
+            </button>
+          </Component>
+        );
+        log.length = 0;
+        await trigger(document.body, 'button', 'click');
+        // console.log('log', log);
+        expect(log).toEqual(isCSR ? ['cleanup:'] : []);
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <button></button>
+          </Component>
+        );
+        log.length = 0;
+        await trigger(document.body, 'button', 'click');
+
+        expect(log).toEqual(['task:', 'Child']);
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <button>
+              <Component>
+                <span>Child</span>
+              </Component>
+            </button>
+          </Component>
+        );
+        log.length = 0;
+        await trigger(document.body, 'button', 'click');
+        // console.log('log', log);
+        expect(log).toEqual(['cleanup:']);
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <button></button>
+          </Component>
+        );
+        log.length = 0;
+        await trigger(document.body, 'button', 'click');
+      });
     });
   });
 });

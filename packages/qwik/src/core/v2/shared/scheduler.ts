@@ -12,23 +12,18 @@ import {
 import { EMPTY_ARRAY } from '../../util/flyweight';
 import { isPromise } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
-import { vnode_documentPosition, vnode_isVNode } from '../client/vnode';
+import { vnode_documentPosition, vnode_isChildOf, vnode_isVNode } from '../client/vnode';
 import { executeComponent2, JSX_LOCAL } from './component-execution';
 import type { Container2, fixMeAny, HostElement } from './types';
 
-export const enum ChoreStage {
-  PRE_RENDER = 0,
-  RENDER = 1,
-  POST_RENDER = 2,
-}
-
 export const enum ChoreType {
-  TASK = 0,
-  COMPUTED = 1,
+  COMPUTED = 0,
+  CLEANUP = 1,
   RESOURCE = 2,
-  COMPONENT = 3,
-  VISIBLE = 4,
-  SIMPLE = 5,
+  TASK = 3,
+  COMPONENT = 4,
+  VISIBLE = 5,
+  SIMPLE = 6,
 }
 // const TYPE2EVENT: Array<
 //   typeof TaskEvent | typeof ComputedEvent | typeof ResourceEvent | typeof RenderEvent
@@ -51,13 +46,16 @@ export type Scheduler = ReturnType<typeof createScheduler>;
 
 export const createScheduler = (container: Container2, scheduleDrain: () => void) => {
   const hostElementQueue: HostElement[] = [];
+  const hostElementCleanupQueue: HostElement[] = [];
   let drainResolve: ((value: void) => void) | null = null;
 
   const api = {
     $scheduleTask$: scheduleTask,
+    $scheduleCleanup$: scheduleCleanup,
     $scheduleComponent$: scheduleComponent,
     $schedule$: schedule,
     $drainAll$: drainAll,
+    $drainCleanup$: drainCleanup,
     $drainComponent$: drainComponent,
     $empty$: Promise.resolve(),
   };
@@ -68,6 +66,11 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
 
   function scheduleTask(task: Task) {
     schedule(ChoreType.TASK, task.$el$ as fixMeAny, task.$qrl$ as fixMeAny, task.$index$, task);
+    return api;
+  }
+
+  function scheduleCleanup(task: Task) {
+    schedule(ChoreType.CLEANUP, task.$el$ as fixMeAny, task.$qrl$ as fixMeAny, task.$index$, task);
     return api;
   }
 
@@ -82,6 +85,13 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
 
   function schedule(
     type: ChoreType.TASK,
+    host: HostElement,
+    qrl: Parameters<typeof useTaskQrl>[0],
+    idx: number,
+    task: Task
+  ): void;
+  function schedule(
+    type: ChoreType.CLEANUP,
     host: HostElement,
     qrl: Parameters<typeof useTaskQrl>[0],
     idx: number,
@@ -119,16 +129,21 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
     payload: unknown = null
   ) {
     // console.log('>>>> SCHEDULE', !drainResolve, String(host), qrl);
-    let hostChoreQueue = container.getHostProp<Chore[]>(host, CHORES_LOCAL);
+    const localQueueName = type == ChoreType.CLEANUP ? CLEANUP_LOCAL : CHORES_LOCAL;
+    let hostChoreQueue = container.getHostProp<Chore[]>(host, localQueueName);
     if (!hostChoreQueue) {
-      container.setHostProp(host, CHORES_LOCAL, (hostChoreQueue = []));
+      container.setHostProp(host, localQueueName, (hostChoreQueue = []));
     }
     sortedInsert(
       hostChoreQueue,
       { $type$: type, $idx$: idx, $qrl$: qrl as any, $payload$: payload },
       intraHostPredicate
     );
-    sortedInsert(hostElementQueue, host, hostElementPredicate);
+    sortedInsert(
+      type == ChoreType.CLEANUP ? hostElementCleanupQueue : hostElementQueue,
+      host,
+      hostElementPredicate
+    );
     if (!drainResolve) {
       scheduleDrain();
     }
@@ -178,6 +193,21 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
     return container.getHostProp<JSXOutput>(host, JSX_LOCAL)!;
   }
 
+  function drainCleanup(host: HostElement | null) {
+    let idx = host ? sortedFindIndex(hostElementCleanupQueue, host, hostElementPredicate) : 0;
+    if (idx < 0) {
+      idx = ~idx;
+    }
+    while (hostElementCleanupQueue.length > idx) {
+      const hostElement = hostElementCleanupQueue[idx];
+      if (host === null || vnode_isChildOf(host as fixMeAny, hostElement as fixMeAny)) {
+        hostElementCleanupQueue.splice(idx, idx + 1);
+        const hostChores = container.getHostProp<Chore[]>(hostElement, CLEANUP_LOCAL);
+        hostChores && hostChores.forEach((chore) => executeChore(hostElement, chore));
+      }
+    }
+  }
+
   function executeChore(host: HostElement, chore: Chore) {
     switch (chore.$type$) {
       case ChoreType.COMPONENT:
@@ -189,6 +219,10 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
         );
       case ChoreType.TASK:
         return runTask2(chore.$payload$ as any as Task<TaskFn, TaskFn>, container, host);
+      case ChoreType.CLEANUP:
+        const task = chore.$payload$ as Task<TaskFn, TaskFn>;
+        task.$destroy$ && task.$destroy$();
+        break;
       case ChoreType.SIMPLE:
         return chore.$qrl$.getFn()();
     }
@@ -227,7 +261,12 @@ export const intraHostPredicate = (a: Chore, b: Chore): number => {
 };
 
 const CHORES_LOCAL = ':chores';
-function sortedInsert<T>(sortedArray: T[], value: T, comparator: (a: T, b: T) => number) {
+const CLEANUP_LOCAL = ':cleanup';
+function sortedFindIndex<T>(
+  sortedArray: T[],
+  value: T,
+  comparator: (a: T, b: T) => number
+): number {
   /// We need to ensure that the `queue` is sorted by priority.
   /// 1. Find a place where to insert into.
   let bottom = 0;
@@ -242,28 +281,24 @@ function sortedInsert<T>(sortedArray: T[], value: T, comparator: (a: T, b: T) =>
       top = middle - 1;
     } else {
       // We already have the host in the queue.
-      return;
+      return middle;
     }
   }
-  /// 2. Insert the chore into the queue.
-  sortedArray.splice(bottom, 0, value);
+  return ~bottom;
+}
+function sortedInsert<T>(sortedArray: T[], value: T, comparator: (a: T, b: T) => number) {
+  /// We need to ensure that the `queue` is sorted by priority.
+  /// 1. Find a place where to insert into.
+  const idx = sortedFindIndex(sortedArray, value, comparator);
+  if (idx < 0) {
+    /// 2. Insert the chore into the queue.
+    sortedArray.splice(~idx, 0, value);
+  }
 }
 
 function sortedRemove<T>(sortedArray: T[], value: T, comparator: (a: T, b: T) => number) {
-  let bottom = 0;
-  let top = sortedArray.length;
-  while (bottom < top) {
-    const middle = bottom + ((top - bottom) >> 1);
-    const midChore = sortedArray[middle];
-    const comp = comparator(midChore, value);
-    if (comp < 0) {
-      bottom = middle + 1;
-    } else if (comp > 0) {
-      top = middle - 1;
-    } else {
-      // We found the host in the queue.
-      sortedArray.splice(middle, 1);
-      return;
-    }
+  const idx = sortedFindIndex(sortedArray, value, comparator);
+  if (idx >= 0) {
+    sortedArray.splice(idx, 1);
   }
 }

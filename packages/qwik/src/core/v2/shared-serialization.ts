@@ -9,20 +9,18 @@ import { Fragment, JSXNodeImpl, isJSXNode } from '../render/jsx/jsx-runtime';
 import { Slot } from '../render/jsx/slot.public';
 import {
   getSubscriptionManager,
-  parseSubscription,
   serializeSubscription,
-  type LocalSubscriptionManager,
   unwrapProxy,
-  type Subscriber,
+  type LocalSubscriptionManager,
 } from '../state/common';
-import { QObjectManagerSymbol } from '../state/constants';
 import { SignalImpl } from '../state/signal';
+import { Store, getOrCreateProxy } from '../state/store';
 import { Task } from '../use/use-task';
 import { throwErrorAndStop } from '../util/log';
 import type { DomContainer } from './client/dom-container';
 import { vnode_isVNode, vnode_locate } from './client/vnode';
 import type { fixMeAny } from './shared/types';
-import { Store, getOrCreateProxy } from '../state/store';
+import { QObjectManagerSymbol } from '../state/constants';
 
 const deserializedProxyMap = new WeakMap<object, unknown>();
 
@@ -176,15 +174,10 @@ const inflate = (container: DomContainer, target: any, needsInflationData: strin
       break;
     case SerializationConstant.Signal_VALUE:
       const signal = target as SignalImpl<unknown>;
-      signal.untrackedValue = container.getObjectById(restInt());
-      const manager: LocalSubscriptionManager = (signal[QObjectManagerSymbol] =
-        container.$subsManager$?.$createManager$());
-      // We're sure that this is a subscriber (no key on the array) and not a subscription
-      const subscription = parseSubscription(
-        rest.substring(restIdx),
-        container.getObjectById
-      ) as any as Subscriber;
-      subscription && manager.$addSub$(subscription);
+      const semiIdx = rest.indexOf(';');
+      const manager = (signal[QObjectManagerSymbol] = container.$subsManager$.$createManager$());
+      signal.untrackedValue = container.getObjectById(rest.substring(1, semiIdx));
+      subscriptionManagerFromString(manager, rest.substring(semiIdx + 1), container.getObjectById);
       break;
     case SerializationConstant.SignalWrapper_VALUE:
       throw new Error('Not implemented');
@@ -235,7 +228,7 @@ const allocate = <T>(value: string): any => {
     case SerializationConstant.QRL_VALUE:
       return parseQRL(value);
     case SerializationConstant.Task_VALUE:
-      return new Task(-1, -1, null!, null!, null!);
+      return new Task(-1, -1, null!, null!, null!, null);
     case SerializationConstant.Resource_VALUE:
       throw new Error('Not implemented');
     case SerializationConstant.URL_VALUE:
@@ -496,14 +489,12 @@ export function serialize(serializationContext: SerializationContext): void {
     } else if (isObjectLiteral(value)) {
       serializeObjectLiteral(value, $writer$, writeValue, writeString);
     } else if (value instanceof SignalImpl) {
-      const manager = getSubscriptionManager(value);
-      const data: string[] = [];
-      for (const sub of manager.$subs$) {
-        const serialized = serializeSubscription(sub, $addRoot$);
-        serialized && data.push(serialized);
-      }
+      const manager = getSubscriptionManager(value)!;
       writeString(
-        SerializationConstant.Signal_CHAR + $addRoot$(value.untrackedValue) + ' ' + data.join(' ')
+        SerializationConstant.Signal_CHAR +
+          $addRoot$(value.untrackedValue) +
+          ';' +
+          subscriptionManagerToString(manager, $addRoot$)
       );
     } else if (value instanceof Store) {
       const manager = getSubscriptionManager(value)!;
@@ -550,9 +541,9 @@ export function serialize(serializationContext: SerializationContext): void {
     } else if (isJSXNode(value)) {
       writeString(
         SerializationConstant.JSXNode_CHAR +
-          `${serializeJSXType($addRoot$, value.type as string)} ${$addRoot$(value.props)} ${$addRoot$(
-            value.immutableProps
-          )} ${$addRoot$(value.children)} ${value.flags}`
+          `${serializeJSXType($addRoot$, value.type as string)} ${$addRoot$(
+            value.props
+          )} ${$addRoot$(value.immutableProps)} ${$addRoot$(value.children)} ${value.flags}`
       );
     } else if (value instanceof Task) {
       writeString(
@@ -641,7 +632,7 @@ function subscriptionManagerFromString(
   const subs = value.split(';');
   for (const sub of subs) {
     const subscription = sub.split(' ') as fixMeAny[];
-    if (subscription.length > 2) {
+    if (subscription.length >= 2) {
       subscription[1] = getObjectById(subscription[1]);
       subscriptionManager.$addSub$(
         [subscription[0], subscription[1]],

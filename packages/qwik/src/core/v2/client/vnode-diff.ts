@@ -12,7 +12,7 @@ import { throwErrorAndStop } from '../../util/log';
 import { ELEMENT_KEY, ELEMENT_PROPS, OnRenderProp, QSlot, QSlotParent } from '../../util/markers';
 import { isPromise } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
-import type { QElement2 } from '../shared/types';
+import type { QElement2, fixMeAny } from '../shared/types';
 import type { SsrAttrs } from '../ssr/types';
 import type { DomContainer } from './dom-container';
 import {
@@ -105,6 +105,8 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
   let jsxValue: any = null;
   let jsxIdx = 0;
   let jsxCount = 0;
+  // When we descend into children, we need to skip advance() because we just descended.
+  let shouldAdvance = true;
   ////////////////////////////////
 
   diff(jsxNode, vStartNode);
@@ -138,30 +140,24 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
               expectNoMoreTextNodes();
               expectElement(jsxValue, type);
               descend(jsxValue.children, true);
-              continue; // we just descended, skip advance()
             } else if (type === Fragment) {
               expectNoMoreTextNodes();
               expectVirtual();
               descend(jsxValue.children, true);
-              continue; // we just descended, skip advance()
             } else if (type === Slot) {
               expectNoMoreTextNodes();
               if (!expectSlot()) {
                 // nothing to project, so try to render the Slot default content.
                 descend(jsxValue.children, true);
-                continue; // we just descended, skip advance()
               }
             } else if (type === Projection) {
               expectProjection();
               descend(jsxValue.children, true);
-              continue; // we just descended, skip advance()
             } else if (isQwikComponent(type)) {
               expectNoMoreTextNodes();
               expectVirtual();
               expectComponent(type);
-              if (descendProjection(jsxValue.children)) {
-                continue; // we just descended, skip advance()
-              }
+              descendProjection(jsxValue.children);
             } else {
               throwErrorAndStop(`Unsupported type: ${type}`);
             }
@@ -179,6 +175,10 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
   }
 
   function advance() {
+    if (!shouldAdvance) {
+      shouldAdvance = true;
+      return;
+    }
     jsxIdx++;
     if (jsxIdx < jsxCount) {
       jsxValue = jsxChildren[jsxIdx];
@@ -224,6 +224,10 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
    *   is an array produced by the `map` function.
    */
   function descend(children: any, descendVNode: boolean) {
+    if (children == null) {
+      expectNoChildren();
+      return;
+    }
     stackPush(children, descendVNode);
     if (descendVNode) {
       assertDefined(vCurrent || vNewNode, 'Expecting vCurrent to be defined.');
@@ -233,6 +237,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       vCurrent = vnode_getFirstChild(vParent);
       vNewNode = null;
     }
+    shouldAdvance = false;
   }
 
   function ascend() {
@@ -395,10 +400,26 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     }
   }
 
+  function expectNoChildren() {
+    let vChild = vCurrent && vnode_getFirstChild(vCurrent);
+    if (vChild !== null) {
+      journal.push(VNodeJournalOpCode.Truncate, vCurrent, vChild);
+      while (vChild) {
+        container.$scheduler$.$drainCleanup$(vChild as fixMeAny);
+        vChild = vnode_getNextSibling(vChild);
+      }
+    }
+  }
+
   function expectNoMore() {
     assertFalse(vParent === vCurrent, "Parent and current can't be the same");
     if (vCurrent !== null) {
       journal.push(VNodeJournalOpCode.Truncate, vParent, vCurrent);
+      let vChild: VNode | null = vCurrent;
+      while (vChild) {
+        container.$scheduler$.$drainCleanup$(vChild as fixMeAny);
+        vChild = vnode_getNextSibling(vChild);
+      }
     }
   }
 
@@ -406,6 +427,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     while (vCurrent !== null && vnode_getType(vCurrent) === 3 /* Text */) {
       journal.push(VNodeJournalOpCode.Remove, vParent, vCurrent);
       vCurrent = vnode_getNextSibling(vCurrent);
+      container.$scheduler$.$drainCleanup$(vCurrent as fixMeAny);
     }
   }
 

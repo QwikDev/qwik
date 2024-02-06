@@ -5,6 +5,7 @@ import { vnode_fromJSX } from '../vdom-diff.unit-util';
 
 describe('vNode-diff', () => {
   const journal: VNodeJournalEntry[] = [];
+  const scheduler = { $drainCleanup$: () => null };
   afterEach(() => {
     journal.length = 0;
   });
@@ -44,19 +45,31 @@ describe('vNode-diff', () => {
 
     it('should remove extra text nodes', () => {
       const { vNode, vParent, document } = vnode_fromJSX(<div>text{'removeMe'}</div>);
-      vnode_diff({ $journal$: journal, document } as any, <div>Hello</div>, vParent);
+      vnode_diff(
+        { $journal$: journal, $scheduler$: scheduler, document } as any,
+        <div>Hello</div>,
+        vParent
+      );
       vnode_applyJournal(journal);
       expect(vNode).toMatchVDOM(<div>Hello</div>);
     });
     it('should remove all text nodes', () => {
       const { vNode, vParent, document } = vnode_fromJSX(<div>text{'removeMe'}</div>);
-      vnode_diff({ $journal$: journal, document } as any, <div></div>, vParent);
+      vnode_diff(
+        { $journal$: journal, $scheduler$: scheduler, document } as any,
+        <div></div>,
+        vParent
+      );
       vnode_applyJournal(journal);
       expect(vNode).toMatchVDOM(<div></div>);
     });
     it('should treat undefined as no children', () => {
       const { vNode, vParent, document } = vnode_fromJSX(<div>text{'removeMe'}</div>);
-      vnode_diff({ $journal$: journal, document } as any, <div>{undefined}</div>, vParent);
+      vnode_diff(
+        { $journal$: journal, $scheduler$: scheduler, document } as any,
+        <div>{undefined}</div>,
+        vParent
+      );
       vnode_applyJournal(journal);
       expect(vNode).toMatchVDOM(<div></div>);
     });
@@ -119,7 +132,7 @@ describe('vNode-diff', () => {
           <span></span>
         </test>
       );
-      vnode_diff({ $journal$: journal, document } as any, test, vParent);
+      vnode_diff({ $journal$: journal, $scheduler$: scheduler, document } as any, test, vParent);
       vnode_applyJournal(journal);
       expect(vNode).toMatchVDOM(test);
     });
@@ -137,7 +150,7 @@ describe('vNode-diff', () => {
         </test>
       );
       const bOriginal = document.querySelector('b[key=1]')!;
-      vnode_diff({ $journal$: journal, document } as any, test, vParent);
+      vnode_diff({ $journal$: journal, $scheduler$: scheduler, document } as any, test, vParent);
       vnode_applyJournal(journal);
       expect(vNode).toMatchVDOM(test);
       const bSecond = document.querySelector('b')!;

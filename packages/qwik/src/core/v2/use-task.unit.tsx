@@ -150,7 +150,7 @@ Error.stackTraceLimit = 100;
     describe('track', () => {
       it('should rerun on track', async () => {
         const Counter = component$(() => {
-          const count = useSignal(1);
+          const count = useSignal(10);
           const double = useSignal(0);
           useTaskQrl(
             inlinedQrl(
@@ -181,13 +181,13 @@ Error.stackTraceLimit = 100;
         const { vNode, document } = await render(<Counter />, { debug });
         expect(vNode).toMatchVDOM(
           <Component>
-            <button>2</button>
+            <button>20</button>
           </Component>
         );
         await trigger(document.body, 'button', 'click');
         expect(vNode).toMatchVDOM(
           <Component>
-            <button>4</button>
+            <button>22</button>
           </Component>
         );
         await getTestPlatform().flush();

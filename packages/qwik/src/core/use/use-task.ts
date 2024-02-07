@@ -347,7 +347,7 @@ export const runTask2 = (
   const track: Tracker = (obj: (() => unknown) | object | Signal, prop?: string) => {
     if (isFunction(obj)) {
       const ctx = newInvokeContext();
-      ctx.$subscriber$ = [0, task];
+      ctx.$subscriber$ = [SubscriptionType.HOST, task];
       return invoke(ctx, obj);
     }
     const manager = getSubscriptionManager(obj);

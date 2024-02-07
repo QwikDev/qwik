@@ -12,8 +12,9 @@ import {
   serializeSubscription,
   unwrapProxy,
   type LocalSubscriptionManager,
+  SubscriptionProp,
 } from '../state/common';
-import { SignalImpl } from '../state/signal';
+import { SignalDerived, SignalImpl } from '../state/signal';
 import { Store, getOrCreateProxy } from '../state/store';
 import { Task } from '../use/use-task';
 import { throwErrorAndStop } from '../util/log';
@@ -167,7 +168,12 @@ const inflate = (container: DomContainer, target: any, needsInflationData: strin
       inflateQRL(container, target[SERIALIZABLE_STATE][0]);
       break;
     case SerializationConstant.DerivedSignal_VALUE:
-      throw new Error('Not implemented');
+      const derivedSignal = target as SignalDerived<unknown>;
+      derivedSignal.$func$ = container.getSyncFn(restInt());
+      const args: any[] = (derivedSignal.$args$ = []);
+      while (restIdx < rest.length) {
+        args.push(container.getObjectById(restInt()));
+      }
       break;
     case SerializationConstant.Store_VALUE:
       subscriptionManagerFromString(getSubscriptionManager(target)!, rest, container.getObjectById);
@@ -177,7 +183,7 @@ const inflate = (container: DomContainer, target: any, needsInflationData: strin
       const semiIdx = rest.indexOf(';');
       const manager = (signal[QObjectManagerSymbol] = container.$subsManager$.$createManager$());
       signal.untrackedValue = container.getObjectById(rest.substring(1, semiIdx));
-      subscriptionManagerFromString(manager, rest.substring(semiIdx + 1), container.getObjectById);
+      subscriptionManagerFromString(manager, rest, container.getObjectById);
       break;
     case SerializationConstant.SignalWrapper_VALUE:
       throw new Error('Not implemented');
@@ -243,7 +249,7 @@ const allocate = <T>(value: string): any => {
     case SerializationConstant.Component_VALUE:
       return componentQrl(parseQRL(value) as any);
     case SerializationConstant.DerivedSignal_VALUE:
-      throw new Error('Not implemented');
+      return new SignalDerived(null!, null!, null!);
     case SerializationConstant.Signal_VALUE:
       return new SignalImpl(null!, null!, 0);
     case SerializationConstant.SignalWrapper_VALUE:
@@ -342,6 +348,8 @@ export interface SerializationContext {
 
   $roots$: unknown[];
 
+  $addSyncFn$($funcStr$: string, argsCount: number): number;
+
   /**
    * Node constructor, for instanceof checks.
    *
@@ -353,6 +361,7 @@ export interface SerializationContext {
   } | null;
 
   $writer$: StreamWriter;
+  $syncFns$: string[];
 }
 
 export const createSerializationContext = (
@@ -368,6 +377,8 @@ export const createSerializationContext = (
     } as StreamWriter;
   }
   const map = new Map<any, number>();
+  const syncFnMap = new Map<string, number>();
+  const syncFns: string[] = [];
   const roots: any[] = [];
   return {
     $NodeConstructor$: NodeConstructor,
@@ -392,6 +403,20 @@ export const createSerializationContext = (
       const id = map.get(obj);
       if (!id || id === Number.MIN_SAFE_INTEGER) {
         throw throwErrorAndStop('Missing root id for: ' + obj);
+      }
+      return id;
+    },
+    $syncFns$: syncFns,
+    $addSyncFn$: (funcStr: string, argCount: number) => {
+      let id = syncFnMap.get(funcStr);
+      if (id === undefined) {
+        id = syncFns.length;
+        syncFnMap.set(funcStr, id);
+        let code = '(';
+        for (let i = 0; i < argCount; i++) {
+          code += (i == 0 ? 'p' : ',p') + i;
+        }
+        syncFns.push((code += ')=>' + funcStr));
       }
       return id;
     },
@@ -495,6 +520,11 @@ export function serialize(serializationContext: SerializationContext): void {
           $addRoot$(value.untrackedValue) +
           ';' +
           subscriptionManagerToString(manager, $addRoot$)
+      );
+    } else if (value instanceof SignalDerived) {
+      const syncFnId = serializationContext.$addSyncFn$(value.$funcStr$!, value.$args$.length);
+      return writeString(
+        SerializationConstant.DerivedSignal_CHAR + syncFnId + ' ' + value.$args$.map($addRoot$)
       );
     } else if (value instanceof Store) {
       const manager = getSubscriptionManager(value)!;
@@ -618,8 +648,9 @@ function subscriptionManagerToString(
 ) {
   const data: string[] = [];
   for (const sub of subscriptionManager.$subs$) {
-    const serialized = serializeSubscription(sub, $addRoot$);
-    serialized && data.push(serialized);
+    data.push(
+      sub.map((val, propId) => (propId === SubscriptionProp.TYPE ? val : $addRoot$(val))).join(' ')
+    );
   }
   return data.join(';');
 }
@@ -630,15 +661,15 @@ function subscriptionManagerFromString(
   getObjectById: (id: number) => any
 ) {
   const subs = value.split(';');
-  for (const sub of subs) {
+  for (let k = 1; k < subs.length; k++) {
+    const sub = subs[k];
     const subscription = sub.split(' ') as fixMeAny[];
-    if (subscription.length >= 2) {
-      subscription[1] = getObjectById(subscription[1]);
-      subscriptionManager.$addSub$(
-        [subscription[0], subscription[1]],
-        subscription.length == 3 ? subscription[2] : undefined
-      );
+    subscription[0] = parseInt(subscription[0]);
+    for (let i = 1; i < subscription.length; i++) {
+      subscription[i] = getObjectById(subscription[i]);
     }
+    const prop = subscription.pop() as string | undefined;
+    subscriptionManager.$addSub$(subscription as fixMeAny, prop);
   }
 }
 

@@ -9,6 +9,7 @@ import type { Container2, HostElement, fixMeAny } from './types';
 import type { JSXOutput } from '../../render/jsx/types/jsx-node';
 import { isPromise, maybeThen, safeCall } from '../../util/promises';
 import { SEQ_IDX_LOCAL } from '../../use/use-sequential-scope';
+import { SubscriptionType } from '../../state/common';
 
 /**
  * Use `executeComponent2` to execute a component.
@@ -37,7 +38,7 @@ export const executeComponent2 = (
   // $renderCtx$ is no longer used.
   iCtx.$renderCtx$ = EMPTY_OBJ as fixMeAny; // TODO(mhevery): no longer needed
   iCtx.$waitOn$ = []; // TODO(mhevery): no longer needed
-  iCtx.$subscriber$ = [0, host as fixMeAny];
+  iCtx.$subscriber$ = [SubscriptionType.HOST, host as fixMeAny];
   iCtx.$container2$ = container;
   componentQRL = componentQRL || container.getHostProp(host, OnRenderProp)!;
   assertDefined(componentQRL, 'No Component found at this location');

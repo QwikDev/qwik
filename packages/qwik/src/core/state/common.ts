@@ -18,14 +18,12 @@ import { logError, throwErrorAndStop } from '../util/log';
 import { tryGetContext } from './context';
 import { QObjectFlagsSymbol, QObjectManagerSymbol, QOjectTargetSymbol } from './constants';
 import type { Signal } from './signal';
-import { isDomContainer } from '../v2/client/dom-container';
-import { vnode_isVNode } from '../v2/client/vnode';
-import type { VirtualVNode } from '../v2/client/types';
-import { isContainer2, type fixMeAny, type HostElement } from '../v2/shared/types';
+import { isContainer2, type fixMeAny } from '../v2/shared/types';
 import type { OnRenderFn } from '../component/component.public';
 import type { QRL } from '../qrl/qrl.public';
 import { ELEMENT_PROPS, OnRenderProp } from '../util/markers';
 import { JSX_LOCAL } from '../v2/shared/component-execution';
+import { untrack } from '../use/use-core';
 
 export interface SubscriptionManager {
   $groupToManagers$: GroupToManagersMap;
@@ -458,20 +456,32 @@ export class LocalSubscriptionManager {
         continue;
       }
       if (isContainer2(this.$containerState$)) {
-        const target = sub[1];
+        const type = sub[SubscriptionProp.TYPE];
+        const host = sub[SubscriptionProp.HOST];
         const scheduler = this.$containerState$.$scheduler$;
-        if (isTask(target)) {
-          scheduler.$scheduleTask$(target);
+        if (type == SubscriptionType.HOST) {
+          if (isTask(host)) {
+            scheduler.$scheduleTask$(host);
+          } else {
+            const componentQrl = this.$containerState$.getHostProp<QRL<OnRenderFn<any>>>(
+              host as fixMeAny,
+              OnRenderProp
+            )!;
+            assertDefined(componentQrl, 'No Component found at this location');
+            this.$containerState$.setHostProp(host as fixMeAny, JSX_LOCAL, null);
+            const componentProps = this.$containerState$.getHostProp<any>(
+              host as fixMeAny,
+              ELEMENT_PROPS
+            );
+            scheduler.$scheduleComponent$(host as fixMeAny, componentQrl, componentProps);
+          }
         } else {
-          const host: HostElement = target as fixMeAny;
-          const componentQrl = this.$containerState$.getHostProp<QRL<OnRenderFn<any>>>(
-            host,
-            OnRenderProp
-          )!;
-          assertDefined(componentQrl, 'No Component found at this location');
-          this.$containerState$.setHostProp(host, JSX_LOCAL, null);
-          const componentProps = this.$containerState$.getHostProp<any>(host, ELEMENT_PROPS);
-          scheduler.$scheduleComponent$(host, componentQrl, componentProps);
+          const signal = sub[SubscriptionProp.SIGNAL];
+          scheduler.$scheduleDirectUpdate$(
+            host as fixMeAny,
+            sub[SubscriptionProp.ELEMENT] as fixMeAny,
+            untrack(() => signal.value)
+          );
         }
       } else {
         notifyChange(sub, this.$containerState$);

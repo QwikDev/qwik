@@ -6,7 +6,9 @@ import { Fragment, JSXNodeImpl, isJSXNode } from '../../render/jsx/jsx-runtime';
 import { Slot } from '../../render/jsx/slot.public';
 import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
 import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
+import { SubscriptionType } from '../../state/common';
 import { isSignal } from '../../state/signal';
+import { trackSignal } from '../../use/use-core';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../../util/flyweight';
 import { throwErrorAndStop } from '../../util/log';
 import { ELEMENT_KEY, ELEMENT_PROPS, OnRenderProp, QSlot, QSlotParent } from '../../util/markers';
@@ -38,6 +40,7 @@ import {
   vnode_getType,
   vnode_insertBefore,
   vnode_isElementVNode,
+  vnode_isTextVNode,
   vnode_isVirtualVNode,
   vnode_newElement,
   vnode_newText,
@@ -64,6 +67,7 @@ export const enum VNodeJournalOpCode {
   ////////// Element
   ElementInsert,
   Attributes,
+  Props,
   ////////// Fragment
   FragmentInsert,
 }
@@ -133,7 +137,16 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
             descend(jsxValue, false);
             continue; // we just descended, skip advance()
           } else if (isSignal(jsxValue)) {
-            throw new Error('implement');
+            expectVirtual();
+            descend(
+              trackSignal(jsxValue, [
+                SubscriptionType.TEXT_MUTABLE,
+                vCurrent || (vNewNode as fixMeAny), // This should be host, but not sure why
+                jsxValue,
+                vCurrent || (vNewNode as fixMeAny),
+              ]),
+              true
+            );
           } else if (isJSXNode(jsxValue)) {
             const type = jsxValue.type;
             if (typeof type === 'string') {
@@ -642,7 +655,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     journal.push(
       VNodeJournalOpCode.Insert,
       vParent,
-      vnode_newText(vParent, container.document.createTextNode(text), text),
+      (vNewNode = vnode_newText(vParent, container.document.createTextNode(text), text)),
       vCurrent
     );
   }
@@ -689,6 +702,16 @@ export const vnode_applyJournal = (journal: VNodeJournalEntry[]) => {
           } else {
             vnode_setAttr(vnode, key, value);
           }
+        }
+        break;
+      case VNodeJournalOpCode.Props:
+        const vElementOrText = journal[idx++] as VNode;
+        const prop = journal[idx++] as string;
+        const value = journal[idx++] as any;
+        if (vnode_isTextVNode(vElementOrText)) {
+          vnode_setText(vElementOrText, value);
+        } else {
+          vnode_setAttr(vElementOrText as ElementVNode, prop, value);
         }
         break;
       default:

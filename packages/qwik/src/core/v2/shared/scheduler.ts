@@ -2,6 +2,7 @@ import { componentQrl, type OnRenderFn } from '../../component/component.public'
 import type { QRLInternal } from '../../qrl/qrl-class';
 import type { QRL } from '../../qrl/qrl.public';
 import type { JSXOutput } from '../../render/jsx/types/jsx-node';
+import type { Signal } from '../../state/signal';
 import {
   runTask2,
   Task,
@@ -12,7 +13,9 @@ import {
 import { EMPTY_ARRAY } from '../../util/flyweight';
 import { isPromise } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
+import type { VirtualVNode } from '../client/types';
 import { vnode_documentPosition, vnode_isChildOf, vnode_isVNode } from '../client/vnode';
+import { vnode_diff } from '../client/vnode-diff';
 import { executeComponent2, JSX_LOCAL } from './component-execution';
 import type { Container2, fixMeAny, HostElement } from './types';
 
@@ -21,9 +24,11 @@ export const enum ChoreType {
   CLEANUP = 1,
   RESOURCE = 2,
   TASK = 3,
-  COMPONENT = 4,
-  VISIBLE = 5,
-  SIMPLE = 6,
+  NODE_DIFF = 4,
+  NODE_PROP = 5,
+  COMPONENT = 6,
+  VISIBLE = 7,
+  SIMPLE = 8,
 }
 // const TYPE2EVENT: Array<
 //   typeof TaskEvent | typeof ComputedEvent | typeof ResourceEvent | typeof RenderEvent
@@ -37,8 +42,8 @@ export const enum ChoreType {
 
 export interface Chore {
   $type$: ChoreType;
-  $idx$: number;
-  $qrl$: QRLInternal<(...args: unknown[]) => unknown>;
+  $idx$: number | string;
+  $target$: HostElement | QRLInternal<(...args: unknown[]) => unknown> | null;
   $payload$: unknown;
 }
 
@@ -51,6 +56,7 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
 
   const api = {
     $scheduleTask$: scheduleTask,
+    $scheduleNodeDiff$: scheduleNodeDiff,
     $scheduleCleanup$: scheduleCleanup,
     $scheduleComponent$: scheduleComponent,
     $schedule$: schedule,
@@ -66,6 +72,11 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
 
   function scheduleTask(task: Task) {
     schedule(ChoreType.TASK, task.$el$ as fixMeAny, task.$qrl$ as fixMeAny, task.$index$, task);
+    return api;
+  }
+
+  function scheduleNodeDiff(element: HostElement, target: HostElement, value: JSXOutput) {
+    schedule(ChoreType.NODE_DIFF, element as fixMeAny, target, 0, value);
     return api;
   }
 
@@ -89,6 +100,13 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
     qrl: Parameters<typeof useTaskQrl>[0],
     idx: number,
     task: Task
+  ): void;
+  function schedule(
+    type: ChoreType.NODE_DIFF,
+    host: HostElement,
+    target: HostElement,
+    idx: 0,
+    value: any
   ): void;
   function schedule(
     type: ChoreType.CLEANUP,
@@ -124,8 +142,8 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
   function schedule(
     type: ChoreType,
     host: HostElement,
-    qrl: QRL<(...args: any[]) => any>,
-    idx: number = 0,
+    target: HostElement | QRL<(...args: any[]) => any> | null,
+    idx: number | string = 0,
     payload: unknown = null
   ) {
     // console.log('>>>> SCHEDULE', !drainResolve, String(host), qrl);
@@ -136,7 +154,7 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
     }
     sortedInsert(
       hostChoreQueue,
-      { $type$: type, $idx$: idx, $qrl$: qrl as any, $payload$: payload },
+      { $type$: type, $idx$: idx, $target$: target as any, $payload$: payload },
       intraHostPredicate
     );
     sortedInsert(
@@ -162,7 +180,9 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
           drainAll();
         });
       }
-      container.processJsx(hostElement, jsx);
+      if (jsx !== null) {
+        container.processJsx(hostElement, jsx);
+      }
     }
     const resolve = drainResolve!;
     drainResolve = null;
@@ -214,17 +234,22 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
         return executeComponent2(
           container,
           host,
-          chore.$qrl$ as fixMeAny,
+          chore.$target$ as fixMeAny,
           chore.$payload$ as fixMeAny
         );
       case ChoreType.TASK:
         return runTask2(chore.$payload$ as any as Task<TaskFn, TaskFn>, container, host);
+      case ChoreType.NODE_DIFF:
+        const parentVirtualNode = chore.$target$ as VirtualVNode;
+        const jsx = chore.$payload$ as JSXOutput;
+        vnode_diff(container as fixMeAny, jsx, parentVirtualNode);
+        break;
       case ChoreType.CLEANUP:
         const task = chore.$payload$ as Task<TaskFn, TaskFn>;
         task.$destroy$ && task.$destroy$();
         break;
       case ChoreType.SIMPLE:
-        return chore.$qrl$.getFn()();
+        return (chore.$target$ as QRLInternal<(...args: unknown[]) => unknown>).getFn()();
     }
   }
 };
@@ -248,8 +273,12 @@ export const hostElementPredicate = (aHost: HostElement, bHost: HostElement): nu
   }
 };
 
+const toNumber = (value: number | string): number => {
+  return typeof value === 'number' ? value : -1;
+};
+
 export const intraHostPredicate = (a: Chore, b: Chore): number => {
-  const idxDiff = a.$idx$ - b.$idx$;
+  const idxDiff = toNumber(a.$idx$) - toNumber(b.$idx$);
   if (idxDiff !== 0) {
     return idxDiff;
   }

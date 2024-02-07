@@ -52,6 +52,7 @@ import {
 import { createPropsState, createProxy } from '../../state/store';
 import { Q_CTX, _IMMUTABLE, _IMMUTABLE_PREFIX } from '../../state/constants';
 import type { ClassList, JSXChildren } from '../jsx/types/jsx-qwik-attributes';
+import { SubscriptionType } from '../../state/common';
 
 const FLUSH_COMMENT = '<!--qkssr-f-->';
 
@@ -390,7 +391,7 @@ const renderSSRComponent = (
     const hostElement = elCtx.$element$;
     const newRCtx = res.rCtx;
     const iCtx = newInvokeContext(ssrCtx.$static$.$locale$, hostElement, undefined);
-    iCtx.$subscriber$ = [0, hostElement];
+    iCtx.$subscriber$ = [SubscriptionType.HOST, hostElement];
     iCtx.$renderCtx$ = newRCtx;
     const newSSrContext: SSRContext = {
       $static$: ssrCtx.$static$,
@@ -562,9 +563,21 @@ const renderNode = (
       if (isSignal(value)) {
         assertDefined(hostCtx, 'Signals can not be used outside the root');
         if (isImmutable) {
-          value = trackSignal(value, [1, elm, value, hostCtx.$element$, rawProp]);
+          value = trackSignal(value, [
+            SubscriptionType.PROP_IMMUTABLE,
+            elm,
+            value,
+            hostCtx.$element$,
+            rawProp,
+          ]);
         } else {
-          value = trackSignal(value, [2, hostCtx.$element$, value, elm, rawProp]);
+          value = trackSignal(value, [
+            SubscriptionType.PROP_MUTABLE,
+            hostCtx.$element$,
+            value,
+            elm,
+            rawProp,
+          ]);
         }
         useSignal = true;
       }
@@ -872,8 +885,13 @@ const processData = (
         const id = getNextIndex(rCtx);
         const subs =
           flags & IS_IMMUTABLE
-            ? ([3, ('#' + id) as any, node, ('#' + id) as any] as const)
-            : ([4, hostEl, node, ('#' + id) as any] as const);
+            ? ([
+                SubscriptionType.TEXT_IMMUTABLE,
+                ('#' + id) as any,
+                node,
+                ('#' + id) as any,
+              ] as const)
+            : ([SubscriptionType.TEXT_MUTABLE, hostEl, node, ('#' + id) as any] as const);
 
         value = trackSignal(node, subs);
         if (isString(value)) {

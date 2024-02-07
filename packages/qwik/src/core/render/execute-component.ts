@@ -19,6 +19,7 @@ import { isUnitlessNumber } from '../util/unitless_number';
 import { isServerPlatform } from '../platform/platform';
 import { executeSSRTasks } from './dom/notify-render';
 import { logWarn } from '../util/log';
+import { SubscriptionType } from '../state/common';
 
 export interface ExecuteComponentOutput {
   node: JSXOutput;
@@ -49,7 +50,7 @@ export const executeComponent = (
   newCtx.$slotCtx$ = undefined;
 
   // Invoke render hook
-  iCtx.$subscriber$ = [0, hostElement];
+  iCtx.$subscriber$ = [SubscriptionType.HOST, hostElement];
   iCtx.$renderCtx$ = rCtx;
 
   // Resolve render function

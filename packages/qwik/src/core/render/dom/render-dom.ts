@@ -1,4 +1,5 @@
 import { qError, QError_invalidJsxNodeType } from '../../error/error';
+import { SubscriptionType } from '../../state/common';
 import { HOST_FLAG_MOUNTED, type QContext } from '../../state/context';
 import { isSignal, type Signal } from '../../state/signal';
 import { invoke, newInvokeContext, type InvokeContext } from '../../use/use-core';
@@ -39,7 +40,7 @@ export const renderComponent = (
     const newCtx = res.rCtx;
     const iCtx = newInvokeContext(rCtx.$static$.$locale$, hostElement);
     staticCtx.$hostElements$.add(hostElement);
-    iCtx.$subscriber$ = [0, hostElement];
+    iCtx.$subscriber$ = [SubscriptionType.HOST, hostElement];
     iCtx.$renderCtx$ = newCtx;
     if (justMounted) {
       if (elCtx.$appendStyles$) {

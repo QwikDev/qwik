@@ -668,7 +668,7 @@ importers:
   packages/qwik-labs:
     devDependencies:
       '@builder.io/qwik':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../qwik
       '@types/eslint':
         specifier: ^8.56.2
@@ -686,7 +686,7 @@ importers:
         specifier: ^8.56.0
         version: 8.56.0
       eslint-plugin-qwik:
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../eslint-plugin-qwik
       np:
         specifier: ^8.0.4
@@ -707,7 +707,7 @@ importers:
   packages/qwik-react:
     devDependencies:
       '@builder.io/qwik':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../qwik
       '@types/react':
         specifier: ^18.2.48

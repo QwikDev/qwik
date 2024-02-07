@@ -20,6 +20,7 @@ import {
   noSerialize,
   type NoSerialize,
   unwrapProxy,
+  SubscriptionType,
 } from '../state/common';
 import {
   isSignal,
@@ -647,12 +648,12 @@ export const runResource = <T>(
     if (isFunction(obj)) {
       const ctx = newInvokeContext();
       ctx.$renderCtx$ = rCtx;
-      ctx.$subscriber$ = [0, task];
+      ctx.$subscriber$ = [SubscriptionType.HOST, task];
       return invoke(ctx, obj);
     }
     const manager = getSubscriptionManager(obj);
     if (manager) {
-      manager.$addSub$([0, task], prop);
+      manager.$addSub$([SubscriptionType.HOST, task], prop);
     } else {
       logErrorAndStop(codeToText(QError_trackUseStore), obj);
     }
@@ -766,12 +767,12 @@ export const runTask = (
   const track: Tracker = (obj: (() => unknown) | object | Signal, prop?: string) => {
     if (isFunction(obj)) {
       const ctx = newInvokeContext();
-      ctx.$subscriber$ = [0, task];
+      ctx.$subscriber$ = [SubscriptionType.HOST, task];
       return invoke(ctx, obj);
     }
     const manager = getSubscriptionManager(obj);
     if (manager) {
-      manager.$addSub$([0, task], prop);
+      manager.$addSub$([SubscriptionType.HOST, task], prop);
     } else {
       logErrorAndStop(codeToText(QError_trackUseStore), obj);
     }
@@ -817,7 +818,7 @@ export const runComputed = (
   cleanupTask(task);
   const hostElement = task.$el$;
   const iCtx = newInvokeContext(rCtx.$static$.$locale$, hostElement, undefined, ComputedEvent);
-  iCtx.$subscriber$ = [0, task];
+  iCtx.$subscriber$ = [SubscriptionType.HOST, task];
   iCtx.$renderCtx$ = rCtx;
 
   const { $subsManager$: subsManager } = containerState;

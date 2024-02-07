@@ -59,7 +59,8 @@ import { isBrowser } from '@builder.io/qwik/build';
 import {
   getProxyTarget,
   getSubscriptionManager,
-  type SubscriberC,
+  SubscriptionType,
+  type TextSubscriber,
   type SubscriptionManager,
 } from '../../state/common';
 import { _IMMUTABLE, _IMMUTABLE_PREFIX } from '../../state/constants';
@@ -419,7 +420,12 @@ export const diffVnode = (
     const signal = newVnode.$signal$;
     if (signal) {
       newVnode.$text$ = jsxToString(
-        trackSignal(signal, [4, currentComponent.$element$, signal, elm as Text])
+        trackSignal(signal, [
+          SubscriptionType.TEXT_MUTABLE,
+          currentComponent.$element$,
+          signal,
+          elm as Text,
+        ])
       );
     }
     setProperty(staticCtx, elm, 'data', newVnode.$text$);
@@ -465,7 +471,13 @@ export const diffVnode = (
         }
 
         if (isSignal(newValue)) {
-          newValue = trackSignal(newValue, [1, currentComponent.$element$, newValue, elm, prop]);
+          newValue = trackSignal(newValue, [
+            SubscriptionType.PROP_IMMUTABLE,
+            currentComponent.$element$,
+            newValue,
+            elm,
+            prop,
+          ]);
         }
         if (prop === 'class') {
           newValue = serializeClassWithHost(newValue, currentComponent);
@@ -699,8 +711,13 @@ export const createElm = (
         trackSignal(
           signal,
           flags & IS_IMMUTABLE
-            ? ([3, elm, signal, elm] as SubscriberC)
-            : ([4, currentComponent.$element$, signal, elm] as SubscriberC)
+            ? ([SubscriptionType.TEXT_IMMUTABLE, elm, signal, elm] as TextSubscriber)
+            : ([
+                SubscriptionType.TEXT_MUTABLE,
+                currentComponent.$element$,
+                signal,
+                elm,
+              ] as TextSubscriber)
         );
         // update the vNode for future diff.
         return (vnode.$elm$ = elm);
@@ -713,8 +730,13 @@ export const createElm = (
       trackSignal(
         signal,
         flags & IS_IMMUTABLE
-          ? ([3, elm, signal, elm] as SubscriberC)
-          : ([4, currentComponent.$element$, signal, elm] as SubscriberC)
+          ? ([SubscriptionType.TEXT_IMMUTABLE, elm, signal, elm] as TextSubscriber)
+          : ([
+              SubscriptionType.TEXT_MUTABLE,
+              currentComponent.$element$,
+              signal,
+              elm,
+            ] as TextSubscriber)
       );
       // update the vNode for future diff.
       return (vnode.$elm$ = elm);
@@ -1085,8 +1107,8 @@ export const setProperties = (
       newValue = trackSignal(
         newValue,
         immutable
-          ? [1, elm, newValue, hostCtx.$element$, prop]
-          : [2, hostCtx.$element$, newValue, elm, prop]
+          ? [SubscriptionType.PROP_IMMUTABLE, elm, newValue, hostCtx.$element$, prop]
+          : [SubscriptionType.PROP_MUTABLE, hostCtx.$element$, newValue, elm, prop]
       );
     }
 

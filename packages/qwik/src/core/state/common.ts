@@ -196,58 +196,90 @@ export const getProxyFlags = <T = object>(obj: T): number | undefined => {
   return (obj as any)[QObjectFlagsSymbol];
 };
 
-type SubscriberA = readonly [type: 0, host: SubscriberEffect | SubscriberHost];
+export const enum SubscriptionType {
+  HOST = 0,
+  PROP_IMMUTABLE = 1,
+  PROP_MUTABLE = 2,
+  TEXT_IMMUTABLE = 3,
+  TEXT_MUTABLE = 4,
+}
 
-type SubscriberB = readonly [
-  type: 1 | 2,
-  host: SubscriberHost,
-  signal: Signal,
-  elm: QwikElement,
-  prop: string,
+export const enum SubscriptionProp {
+  TYPE = 0,
+  HOST = 1,
+  SIGNAL = 2,
+  ELEMENT = 3,
+  ELEMENT_PROP = 4,
+  KEY = 5,
+}
+
+/** Used with: Host (component) or Task */
+type HostSubscriber = readonly [
+  type: SubscriptionType.HOST,
+  host: SubscriberEffect | SubscriberHost,
 ];
 
-export type SubscriberC = readonly [
-  type: 3 | 4,
+/** Used with derived signal on property: `<div prop={signal}>` */
+type PropSubscriber = readonly [
+  type: SubscriptionType.PROP_IMMUTABLE | SubscriptionType.PROP_MUTABLE,
+  host: SubscriberHost,
+  signal: Signal, // Derived Signal
+  elm: QwikElement,
+  elementProperty: string,
+];
+
+/** Used with derived signal on text node: `<span>{signal}</span>` */
+export type TextSubscriber = readonly [
+  type: SubscriptionType.TEXT_IMMUTABLE | SubscriptionType.TEXT_MUTABLE,
   host: SubscriberHost | Text,
-  signal: Signal,
+  signal: Signal, // Derived Signal
   elm: Node | QwikElement,
 ];
 
-export type Subscriber = SubscriberA | SubscriberB | SubscriberC;
+export type Subscriber = HostSubscriber | PropSubscriber | TextSubscriber;
 
-type A = [...SubscriberA, key: string | undefined];
-type B = [...SubscriberB, key: string | undefined];
-type C = [...SubscriberC, key: string | undefined];
+type HostSubscriberWithKey = [...HostSubscriber, key: string | undefined];
+type PropSubscriberWithKey = [...PropSubscriber, key: string | undefined];
+type TextSubscriberWithKey = [...TextSubscriber, key: string | undefined];
 
-export type SubscriberSignal = B | C;
+export type SubscriberSignal = PropSubscriberWithKey | TextSubscriberWithKey;
 
-export type Subscriptions = A | SubscriberSignal;
+export type Subscriptions = HostSubscriberWithKey | SubscriberSignal;
 
 type Group = SubscriberEffect | SubscriberHost | Node;
 
 export type GroupToManagersMap = Map<Group, LocalSubscriptionManager[]>;
 
 export const serializeSubscription = (sub: Subscriptions, getObjId: GetObjID) => {
-  const type = sub[0];
-  const host = typeof sub[1] === 'string' ? sub[1] : getObjId(sub[1]);
+  const type = sub[SubscriptionProp.TYPE];
+  const host =
+    typeof sub[SubscriptionProp.HOST] === 'string'
+      ? sub[SubscriptionProp.HOST]
+      : getObjId(sub[SubscriptionProp.HOST]);
   if (!host) {
     return undefined;
   }
   let base = type + ' ' + host;
   let key: string | undefined;
-  if (type === 0) {
-    key = sub[2];
+  if (type === SubscriptionType.HOST) {
+    key = sub[SubscriptionProp.SIGNAL];
   } else {
-    const signalID = getObjId(sub[2]);
+    const signalID = getObjId(sub[SubscriptionProp.SIGNAL]);
     if (!signalID) {
       return undefined;
     }
-    if (type <= 2) {
-      key = sub[5];
-      base += ` ${signalID} ${must(getObjId(sub[3]))} ${sub[4]}`;
-    } else if (type <= 4) {
-      key = sub[4];
-      const nodeID = typeof sub[3] === 'string' ? sub[3] : must(getObjId(sub[3]));
+    if (type <= SubscriptionType.PROP_MUTABLE) {
+      key = sub[SubscriptionProp.KEY];
+      base += ` ${signalID} ${must(getObjId(sub[SubscriptionProp.ELEMENT]))} ${
+        sub[SubscriptionProp.ELEMENT_PROP]
+      }`;
+    } else if (type <= SubscriptionType.TEXT_MUTABLE) {
+      key =
+        sub.length > SubscriptionProp.ELEMENT_PROP ? sub[SubscriptionProp.ELEMENT_PROP] : undefined;
+      const nodeID =
+        typeof sub[SubscriptionProp.ELEMENT] === 'string'
+          ? sub[SubscriptionProp.ELEMENT]
+          : must(getObjId(sub[SubscriptionProp.ELEMENT]));
       base += ` ${signalID} ${nodeID}`;
     } else {
       assertFail('Should not get here: ' + type);
@@ -270,13 +302,13 @@ export const parseSubscription = (sub: string, getObject: GetObject): Subscripti
   if (isSubscriberDescriptor(host) && !host.$el$) {
     return undefined;
   }
-  if (type === 0) {
+  if (type === SubscriptionType.HOST) {
     assertTrue(parts.length <= 3, 'Max 3 parts');
     return [type, host, parts.length === 3 ? safeDecode(parts[2]) : undefined];
   } else if (type <= 2) {
     assertTrue(parts.length === 5 || parts.length === 6, 'Type B has 5');
     return [
-      type as 1,
+      type as SubscriptionType.PROP_IMMUTABLE,
       host,
       getObject(parts[2]),
       getObject(parts[3]),
@@ -285,7 +317,13 @@ export const parseSubscription = (sub: string, getObject: GetObject): Subscripti
     ];
   }
   assertTrue(type <= 4 && (parts.length === 4 || parts.length === 5), 'Type C has 4');
-  return [type as 3, host, getObject(parts[2]), getObject(parts[3]), safeDecode(parts[4])];
+  return [
+    type as SubscriptionType.TEXT_IMMUTABLE,
+    host,
+    getObject(parts[2]),
+    getObject(parts[3]),
+    safeDecode(parts[4]),
+  ];
 };
 
 const safeDecode = (str: string | undefined) => {
@@ -401,9 +439,9 @@ export class LocalSubscriptionManager {
 
   $addSub$(sub: Subscriber, key?: string) {
     const subs = this.$subs$;
-    const group = sub[1];
+    const group = sub[SubscriptionProp.HOST];
     if (
-      sub[0] === 0 &&
+      sub[SubscriptionProp.TYPE] === SubscriptionType.HOST &&
       subs.some(([_type, _group, _key]) => _type === 0 && _group === group && _key === key)
     ) {
       return;

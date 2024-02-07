@@ -1,16 +1,21 @@
 /* eslint-disable no-console */
 // TODO remove console statements
-import { createDocument } from '../../testing/document';
 import { expect } from 'vitest';
-import { renderToString } from '../../server/render';
+import { Q_FUNCS_PREFIX, renderToString } from '../../server/render';
+import { createDocument } from '../../testing/document';
+import { getTestPlatform } from '../../testing/platform';
+import { componentQrl } from '../component/component.public';
 import { getPlatform, setPlatform } from '../platform/platform';
-import { notifyChange } from '../render/dom/notify-render';
+import { inlinedQrl } from '../qrl/qrl';
+import type { QRL } from '../qrl/qrl.public';
+import { ERROR_CONTEXT } from '../render/error-handling';
+import { Slot } from '../render/jsx/slot.public';
 import type { JSXOutput } from '../render/jsx/types/jsx-node';
-import type { Subscriptions } from '../state/common';
+import { useContextProvider } from '../use/use-context';
 import { OnRenderProp } from '../util/markers';
 import { DomContainer, getDomContainer } from './client/dom-container';
 import { render2 } from './client/render2';
-import type { VNode, VirtualVNode } from './client/types';
+import type { ContainerElement, VNode, VirtualVNode } from './client/types';
 import {
   vnode_getAttr,
   vnode_getFirstChild,
@@ -20,17 +25,9 @@ import {
   vnode_toString,
 } from './client/vnode';
 import { codeToName } from './shared-serialization';
-import type { HostElement, fixMeAny } from './shared/types';
 import { ssrCreateContainer } from './ssr/ssr-container';
 import { ssrRenderToContainer } from './ssr/ssr-render';
 import './vdom-diff.unit-util';
-import { componentQrl } from '../component/component.public';
-import { inlinedQrl } from '../qrl/qrl';
-import { Slot } from '../render/jsx/slot.public';
-import { useContextProvider } from '../use/use-context';
-import { ERROR_CONTEXT } from '../render/error-handling';
-import { getTestPlatform } from '../../testing/platform';
-import type { QRL } from '../qrl/qrl.public';
 
 export async function domRender(
   jsx: JSXOutput,
@@ -91,7 +88,16 @@ export async function ssrRenderToDom(
   ]);
   const html = ssrContainer.writer.toString();
   const document = createDocument({ html });
-  const container = getDomContainer(document.body.parentElement as HTMLElement) as DomContainer;
+  const qFuncs = document.body.querySelector('[q\\:func]');
+  const containerElement = document.body.parentElement as ContainerElement;
+  if (qFuncs) {
+    let code = qFuncs.textContent || '';
+    code = code.replace(Q_FUNCS_PREFIX, '');
+    if (code) {
+      containerElement.qFuncs = eval(code);
+    }
+  }
+  const container = getDomContainer(containerElement) as DomContainer;
   if (opts.debug) {
     console.log('========================================================');
     console.log('------------------------- SSR --------------------------');

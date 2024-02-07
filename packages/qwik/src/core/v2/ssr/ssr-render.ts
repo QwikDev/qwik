@@ -1,13 +1,18 @@
-import { Fragment } from '../../render/jsx/jsx-runtime';
 import { isPromise } from 'util/types';
 import { isQwikComponent } from '../../component/component.public';
 import { isQrl } from '../../qrl/qrl-class';
+import { Fragment } from '../../render/jsx/jsx-runtime';
 import { Slot } from '../../render/jsx/slot.public';
-import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
-import { qrlToString, type SerializationContext } from '../shared-serialization';
-import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
-import type { SSRContainer, SsrAttrs } from './types';
 import type { FunctionComponent, JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
+import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
+import { SubscriptionType } from '../../state/common';
+import { SignalDerived, isSignal } from '../../state/signal';
+import { trackSignal } from '../../use/use-core';
+import { qrlToString, type SerializationContext } from '../shared-serialization';
+import type { fixMeAny } from '../shared/types';
+import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
+import type { SsrAttrs, SSRContainer } from './types';
+import { EMPTY_ARRAY } from '../../util/flyweight';
 
 export async function ssrRenderToContainer(ssr: SSRContainer, jsx: JSXOutput) {
   ssr.openContainer();
@@ -128,10 +133,17 @@ function processJSXNode(
   } else if (typeof value === 'string') {
     ssr.textNode(value);
   } else if (typeof value === 'object') {
-    if (Array.isArray(value)) {
-      enqueue(value);
-      // [Wout] I don't understand?
-      throw new Error('never gets here');
+    if (isSignal(value)) {
+      const signal = value!;
+      ssr.openFragment(EMPTY_ARRAY);
+      const signalNode = ssr.getLastNode() as fixMeAny;
+      // TODO(mhevery): It is unclear to me why we need to serialize host for SignalDerived.
+      // const host = ssr.getComponentFrame(0)!.componentNode as fixMeAny;
+      const host = signalNode;
+      enqueue(
+        trackSignal(value, [SubscriptionType.TEXT_MUTABLE, host, signal, signalNode]),
+        ssr.closeFragment
+      );
     } else {
       const jsx = value as JSXNode;
       const type = jsx.type;

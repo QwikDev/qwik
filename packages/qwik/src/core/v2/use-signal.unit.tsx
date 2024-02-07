@@ -1,4 +1,4 @@
-import { Fragment } from '@builder.io/qwik/jsx-runtime';
+import { Fragment, Fragment as Component } from '@builder.io/qwik/jsx-runtime';
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
 import { component$ } from '../component/component.public';
@@ -8,6 +8,10 @@ import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { useSignal } from '../use/use-signal';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
+import { _jsxQ, _jsxC } from '../render/jsx/jsx-runtime';
+import { _IMMUTABLE, _fnSignal } from '../internal';
+import { untrack } from '../use/use-core';
+import type { fixMeAny } from './shared/types';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -87,59 +91,168 @@ Error.stackTraceLimit = 100;
         </>
       );
     });
-    it.skip('should update value when store, update and render are separated', async () => {
-      const renderLog: string[] = [];
-      const Counter = component$((props: { initVal: number }) => {
-        renderLog.push('Counter');
-        const count = useSignal(props.initVal);
-        return (
+    describe('derived', () => {
+      it('should update value directly in DOM', async () => {
+        const log: string[] = [];
+        const Counter = component$((props: { initial: number }) => {
+          const count = useSignal(props.initial);
+          log.push('Counter: ' + untrack(() => count.value));
+          return (
+            <button onClick$={inlinedQrl(() => useLexicalScope()[0].value++, 's_onClick', [count])}>
+              Count: {_fnSignal((p0) => p0.value, [count], 'p0.value')}!
+            </button>
+          );
+        });
+
+        const { vNode, container } = await render(<Counter initial={123} />, {
+          debug,
+          // oldSSR: true,
+        });
+        expect(log).toEqual(['Counter: 123']);
+        log.length = 0;
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <button>
+              Count: <>{'123'}</>!
+            </button>
+          </Component>
+        );
+        await trigger(container.element, 'button', 'click');
+        expect(log).toEqual([]);
+        log.length = 0;
+        expect(vNode).toMatchVDOM(
           <>
-            <Display displayValue={count.value} />
-            <Incrementor countSignal={count} />
+            <button>
+              Count: <>{'124'}</>!
+            </button>
           </>
         );
       });
-      const Incrementor = component$((props: { countSignal: Signal<number> }) => {
-        renderLog.push('Incrementor');
-        return (
-          <button
-            onClick$={inlinedQrl(
-              () => {
-                const [countSignal] = useLexicalScope();
-                countSignal.value++;
-              },
-              's_onClick',
-              [props.countSignal]
-            )}
-          >
-            +1
-          </button>
+      it('should allow signal to deliver value or JSX', async () => {
+        const log: string[] = [];
+        const Counter = component$(() => {
+          const count = useSignal<any>('initial');
+          log.push('Counter: ' + untrack(() => count.value));
+          return (
+            <button
+              onClick$={inlinedQrl(
+                () => {
+                  const [s] = useLexicalScope();
+                  s.value = typeof s.value == 'string' ? <b>JSX</b> : 'text';
+                },
+                's_onClick',
+                [count]
+              )}
+            >
+              -{_fnSignal((p0) => p0.value, [count], 'p0.value')}-
+            </button>
+          );
+        });
+
+        const { vNode, container } = await render(<Counter />, { debug });
+        expect(log).toEqual(['Counter: initial']);
+        log.length = 0;
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <button>
+              -<>{'initial'}</>-
+            </button>
+          </Component>
+        );
+        await trigger(container.element, 'button', 'click');
+        expect(log).toEqual([]);
+        log.length = 0;
+        expect(vNode).toMatchVDOM(
+          <>
+            <button>
+              -
+              <>
+                <b>JSX</b>
+              </>
+              -
+            </button>
+          </>
+        );
+        await trigger(container.element, 'button', 'click');
+        expect(log).toEqual([]);
+        log.length = 0;
+        expect(vNode).toMatchVDOM(
+          <>
+            <button>
+              -<>{'text'}</>-
+            </button>
+          </>
         );
       });
-      const Display = component$((props: { displayValue: number }) => {
-        renderLog.push('Display');
-        return <>Count: {props.displayValue}!</>;
-      });
-      const { vNode, container } = await render(<Counter initVal={123}>content</Counter>, {
-        // debug: true,
-        // oldSSR: true,
-      });
-      // expect(renderLog).toEqual(['Counter', 'Display', 'Incrementor']);
-      renderLog.length = 0;
-      await trigger(container.element, 'button', 'click');
-      expect(renderLog).toEqual(['Counter', 'Display']);
-      expect(vNode).toMatchVDOM(
-        <Fragment>
+      it.skip('should update value when store, update and render are separated', async () => {
+        const renderLog: string[] = [];
+        const Counter = component$(() => {
+          renderLog.push('Counter');
+          const count = useSignal(123);
+          return (
+            <>
+              {/* <Display displayValue={count.value} /> */}
+              {_jsxC(
+                Display as fixMeAny,
+                {
+                  get displayValue() {
+                    return count.value;
+                  },
+                  [_IMMUTABLE]: {
+                    displayValue: _fnSignal((p0) => p0.value, [count], 'p0.value'),
+                  },
+                },
+                3,
+                'H1_0'
+              )}
+              <Incrementor countSignal={count} />
+            </>
+          );
+        });
+        const Incrementor = component$((props: { countSignal: Signal<number> }) => {
+          renderLog.push('Incrementor');
+          return (
+            <button
+              onClick$={inlinedQrl(
+                () => {
+                  const [countSignal] = useLexicalScope();
+                  countSignal.value++;
+                },
+                's_onClick',
+                [props.countSignal]
+              )}
+            >
+              +1
+            </button>
+          );
+        });
+        const Display = component$((props: { displayValue: number }) => {
+          renderLog.push('Display');
+          return <>Count: {_fnSignal((p0) => p0.displayValue, [props], 'p0.displayValue')}!</>;
+        });
+        const { vNode, container } = await render(<Counter />, {
+          debug,
+        });
+        expect(renderLog).toEqual(['Counter', 'Display', 'Incrementor']);
+        renderLog.length = 0;
+        await trigger(container.element, 'button', 'click');
+        expect(renderLog).toEqual([]);
+        console.log(String(vNode));
+        expect(vNode).toMatchVDOM(
           <Fragment>
-            <Fragment>
-              <Fragment>Count: {'124'}!</Fragment>
-            </Fragment>
-            <Fragment>
-              <button>+1</button>
-            </Fragment>
+            <>
+              <Component>
+                <>
+                  Count: <>{'124'}</>!
+                </>
+              </Component>
+              <Component>
+                <button>+1</button>
+              </Component>
+            </>
           </Fragment>
-        </Fragment>
-      );
+        );
+      });
     });
   });
 });

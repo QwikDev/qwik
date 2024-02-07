@@ -29,6 +29,9 @@ export interface ContainerElement extends HTMLElement {
    * removes them from the map if they are not.
    */
   qVNodeRefs: Map<number, Element | ElementVNode>;
+
+  /** Map of Synchronous functions. */
+  qFuncs?: Array<Function>;
 }
 
 export interface QDocument extends Document {

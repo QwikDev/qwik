@@ -1,4 +1,5 @@
 /** @file Public APIs for the SSR */
+import { Q_FUNCS_PREFIX } from 'packages/qwik/src/server/render';
 import { isDev } from '../../../build';
 import type { ObjToProxyMap } from '../../container/container';
 import { assertDefined, assertTrue } from '../../error/assert';
@@ -95,9 +96,6 @@ class SSRContainer implements ISSRContainer {
   public $subsManager$: SubscriptionManager = null!;
   public $proxyMap$: ObjToProxyMap = new WeakMap();
   public $scheduler$: Scheduler;
-  public getObjectById: (id: string | number) => unknown = () => {
-    throw new Error('SSR should not have deserialize objects.');
-  };
   private lastNode: SsrNode | null = null;
   private currentComponentNode: SsrNode | null = null;
 
@@ -121,6 +119,9 @@ class SSRContainer implements ISSRContainer {
     this.$subsManager$ = createSubscriptionManager(this as fixMeAny);
     this.$scheduler$ = createScheduler(this, () => null);
   }
+  public getObjectById: (id: string | number) => unknown = () => {
+    throw new Error('SSR should not have to deserialize objects.');
+  };
 
   processJsx(host: HostElement, jsx: JSXOutput): void {}
 
@@ -305,6 +306,7 @@ class SSRContainer implements ISSRContainer {
     this.emitUnclaimedProjection();
     this.emitVNodeData();
     this.emitStateData();
+    this.emitSyncFnsData();
   }
 
   /**
@@ -445,6 +447,21 @@ class SSRContainer implements ISSRContainer {
     this.openElement('script', ['type', 'qwik/state']);
     serialize(this.serializationCtx);
     this.closeElement();
+  }
+
+  private emitSyncFnsData() {
+    const fns = this.serializationCtx.$syncFns$;
+    if (fns.length) {
+      this.openElement('script', ['q:func', 'qwik/json']);
+      this.write(Q_FUNCS_PREFIX);
+      for (let i = 0; i < fns.length; i++) {
+        const fn = fns[i];
+        this.write(i === 0 ? '[' : ',');
+        this.write(fn);
+      }
+      this.write(']');
+      this.closeElement();
+    }
   }
 
   private async emitUnclaimedProjection() {

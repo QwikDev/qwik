@@ -1,13 +1,14 @@
 /** @file Public APIs for the SSR */
 
 import type { ObjToProxyMap } from '../../container/container';
-import { assertTrue } from '../../error/assert';
+import { assertDefined, assertTrue } from '../../error/assert';
 import { getPlatform } from '../../platform/platform';
 import { ERROR_CONTEXT, isRecoverable } from '../../render/error-handling';
 import type { JSXOutput } from '../../render/jsx/types/jsx-node';
 import { createSubscriptionManager, type SubscriptionManager } from '../../state/common';
 import type { ContextId } from '../../use/use-context';
 import { SEQ_IDX_LOCAL } from '../../use/use-sequential-scope';
+import { EMPTY_ARRAY } from '../../util/flyweight';
 import { throwErrorAndStop } from '../../util/log';
 import {
   ELEMENT_PROPS,
@@ -43,7 +44,12 @@ import {
   vnode_newUnMaterializedElement,
   vnode_setProp,
 } from './vnode';
-import { vnode_applyJournal, vnode_diff, type VNodeJournalEntry } from './vnode-diff';
+import {
+  vnode_applyJournal,
+  vnode_diff,
+  VNodeJournalOpCode,
+  type VNodeJournalEntry,
+} from './vnode-diff';
 
 export function getDomContainer(element: HTMLElement | ElementVNode): IClientContainer {
   let htmlElement: HTMLElement | null = Array.isArray(element)
@@ -86,6 +92,7 @@ export class DomContainer implements IClientContainer {
   public $scheduler$: ReturnType<typeof createScheduler>;
 
   private stateData: unknown[];
+  private $qFuncs$: Array<(...args: unknown[]) => unknown>;
 
   constructor(element: ContainerElement) {
     this.qContainer = element.getAttribute(QContainerAttr)!;
@@ -117,7 +124,9 @@ export class DomContainer implements IClientContainer {
     }
     this.$subsManager$ = createSubscriptionManager(this as fixMeAny);
     this.$scheduler$ = createScheduler(this, () => this.scheduleRender());
+    this.$qFuncs$ = element.qFuncs || EMPTY_ARRAY;
   }
+
   processJsx(host: HostElement, jsx: JSXOutput): ValueOrPromise<void> {
     // console.log('>>>> processJsx', String(host), jsx.children);
     return vnode_diff(this, jsx, host as VirtualVNode);
@@ -232,6 +241,12 @@ export class DomContainer implements IClientContainer {
     assertTrue(id < this.$rawStateData$.length, 'Invalid reference');
     return this.stateData[id];
   };
+
+  getSyncFn(id: number): (...args: unknown[]) => unknown {
+    const fn = this.$qFuncs$[id];
+    assertTrue(typeof fn === 'function', 'Invalid reference: ' + id);
+    return fn;
+  }
 }
 
 export function processVNodeData(document: Document) {

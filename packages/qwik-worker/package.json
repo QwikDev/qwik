@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "bugs": "https://github.com/BuilderIO/qwik/issues",
   "devDependencies": {
-    "@builder.io/qwik": "workspace:*",
+    "@builder.io/qwik": "workspace:^",
     "vite": "^5.0.12",
     "vite-plugin-static-copy": "^1.0.0"
   },
@@ -24,7 +24,7 @@
   "license": "MIT",
   "main": "./lib/index.qwik.mjs",
   "peerDependencies": {
-    "@builder.io/qwik": "workspace:*"
+    "@builder.io/qwik": "workspace:^"
   },
   "qwik": "./lib/index.qwik.mjs",
   "repository": {

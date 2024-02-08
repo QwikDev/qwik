@@ -184,7 +184,7 @@ Error.stackTraceLimit = 100;
           </>
         );
       });
-      it.skip('should update value when store, update and render are separated', async () => {
+      it('should update value when store, update and render are separated', async () => {
         const renderLog: string[] = [];
         const Counter = component$(() => {
           renderLog.push('Counter');
@@ -230,14 +230,11 @@ Error.stackTraceLimit = 100;
           renderLog.push('Display');
           return <>Count: {_fnSignal((p0) => p0.displayValue, [props], 'p0.displayValue')}!</>;
         });
-        const { vNode, container } = await render(<Counter />, {
-          debug,
-        });
+        const { vNode, container } = await render(<Counter />, { debug });
         expect(renderLog).toEqual(['Counter', 'Display', 'Incrementor']);
         renderLog.length = 0;
         await trigger(container.element, 'button', 'click');
         expect(renderLog).toEqual([]);
-        console.log(String(vNode));
         expect(vNode).toMatchVDOM(
           <Fragment>
             <>

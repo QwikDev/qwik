@@ -270,6 +270,16 @@ pnpm --filter qwik-docs start
 
 More commands can be found in each package's package.json scripts section.
 
+### Updating dependencies
+
+To update all dependencies, run:
+
+```shell
+pnpm deps
+```
+
+This will show an interactive UI to update all dependencies. Be careful about performing major updates, especially for the docs site, since not all functionalitty has test coverage there.
+
 ## Starter CLI `create-qwik`
 
 - [Starter CLI](https://github.com/BuilderIO/qwik/blob/main/starters/README.md)

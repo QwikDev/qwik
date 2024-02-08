@@ -9,6 +9,29 @@
   "config": {
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
+    },
+    "syncpack": {
+      "versionGroups": [
+        {
+          "label": "use workspace protocol for local packages and allow patch versions (used in e.g. qwik-react)",
+          "dependencies": [
+            "$LOCAL"
+          ],
+          "dependencyTypes": [
+            "!local"
+          ],
+          "pinVersion": "workspace:^"
+        }
+      ],
+      "semverGroups": [
+        {
+          "label": "Undici should always be * until we remove it",
+          "range": "*",
+          "dependencies": [
+            "undici"
+          ]
+        }
+      ]
     }
   },
   "contributors": [
@@ -142,7 +165,7 @@
     "cli.qwik": "pnpm build.cli && node packages/qwik/qwik-cli.cjs",
     "cli.validate": "tsm scripts/validate-cli.ts",
     "commit": "git-cz",
-    "deps": "pnpm upgrade -i -r --latest",
+    "deps": "pnpm upgrade -i -r --latest && syncpack fix-mismatches",
     "docs.dev": "cd packages/docs && pnpm dev",
     "docs.preview": "cd packages/docs && pnpm preview",
     "docs.sync": "tsm scripts/docs_sync/index.ts && pnpm fmt",

@@ -13,17 +13,9 @@ export const applyQwikComponentBody = (ssr: SSRContainer, jsx: JSXNode, componen
   const host = ssr.getLastNode();
   const [componentQrl] = (component as any)[SERIALIZABLE_STATE] as [QRLInternal<OnRenderFn<any>>];
   const srcProps = jsx.props;
-  let hasProps = false;
-  const propsSansChildren: any = {};
-  for (const key in srcProps) {
-    if (Object.prototype.hasOwnProperty.call(srcProps, key) && key !== 'children') {
-      propsSansChildren[key] = srcProps[key];
-      hasProps = true;
-    }
-  }
   const scheduler = ssr.$scheduler$;
   host.setProp(OnRenderProp, componentQrl);
-  hasProps && host.setProp(ELEMENT_PROPS, propsSansChildren);
-  scheduler.$scheduleComponent$(host, componentQrl, propsSansChildren);
+  host.setProp(ELEMENT_PROPS, srcProps);
+  scheduler.$scheduleComponent$(host, componentQrl, srcProps);
   return scheduler.$drainComponent$(host);
 };

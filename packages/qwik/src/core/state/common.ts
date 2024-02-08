@@ -477,7 +477,7 @@ export class LocalSubscriptionManager {
           }
         } else {
           const signal = sub[SubscriptionProp.SIGNAL];
-          scheduler.$scheduleDirectUpdate$(
+          scheduler.$scheduleNodeDiff$(
             host as fixMeAny,
             sub[SubscriptionProp.ELEMENT] as fixMeAny,
             untrack(() => signal.value)

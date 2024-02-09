@@ -127,9 +127,8 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
   };
   const resolveRoute = (routeModulePaths: WeakMap<RouteModule<unknown>, string>, url: URL) => {
     const matchPathname = getRouteMatchPathname(url.pathname, ctx.opts.trailingSlash);
-    routePs[matchPathname] ||= _resolveRoute(routeModulePaths, matchPathname).then((r) => {
+    routePs[matchPathname] ||= _resolveRoute(routeModulePaths, matchPathname).finally(() => {
       delete routePs[matchPathname];
-      return r;
     });
     return routePs[matchPathname];
   };

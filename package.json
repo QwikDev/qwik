@@ -59,7 +59,7 @@
     "@builder.io/qwik": "workspace:^",
     "@clack/prompts": "^0.7.0",
     "@eslint/eslintrc": "^3.0.0",
-    "@mdx-js/mdx": "2.3.0",
+    "@mdx-js/mdx": "^3.0.0",
     "@microsoft/api-documenter": "^7.23.19",
     "@microsoft/api-extractor": "^7.39.3",
     "@napi-rs/cli": "^2.18.0",

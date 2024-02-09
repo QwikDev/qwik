@@ -23,4 +23,12 @@ createDOM: ({ html }?: { html?: string | undefined }) =>
   }>;
 ```
 
+| Parameter | Type                            | Description  |
+| --------- | ------------------------------- | ------------ |
+| { html }  | { html?: string \| undefined; } | _(Optional)_ |
+
+**Returns:**
+
+Promise&lt;{ render: (jsxElement: JSXOutput) =&gt; Promise&lt;import("@builder.io/qwik").RenderResult&gt;; screen: HTMLElement; userEvent: (queryOrElement: string \| Element \| keyof HTMLElementTagNameMap \| null, eventNameCamel: string \| keyof WindowEventMap, eventPayload?: any) =&gt; Promise&lt;void&gt;; }&gt;
+
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/testing/library.ts)

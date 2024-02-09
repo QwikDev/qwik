@@ -367,6 +367,15 @@ Form: <O, I>(
 ) => import("@builder.io/qwik").JSXOutput;
 ```
 
+| Parameter                                                | Type                                | Description |
+| -------------------------------------------------------- | ----------------------------------- | ----------- |
+| { action, spaReset, reloadDocument, onSubmit$, ...rest } | [FormProps](#formprops)&lt;O, I&gt; |             |
+| key                                                      | string \| null                      |             |
+
+**Returns:**
+
+import("@builder.io/qwik").JSXOutput
+
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/form-component.tsx)
 
 ## FormProps
@@ -717,6 +726,14 @@ RouterOutlet: import("@builder.io/qwik").Component<unknown>;
 server$: <T extends ServerFunction>(first: T) => ServerQRL<T>;
 ```
 
+| Parameter | Type | Description |
+| --------- | ---- | ----------- |
+| first     | T    |             |
+
+**Returns:**
+
+[ServerQRL](#serverqrl)&lt;T&gt;
+
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts)
 
 ## ServerFunction
@@ -731,17 +748,31 @@ export type ServerFunction = {
 
 ## serverQrl
 
+You can pass an AbortSignal as the first argument of a `server$` function and it will use it to abort the fetch when fired.
+
 ```typescript
-serverQrl: <T extends ServerFunction>(qrl: QRL<T>) => ServerQRL<T>;
+export type ServerQRL<T extends ServerFunction> = QRL<
+  | ((abort: AbortSignal, ...args: Parameters<T>) => ReturnType<T>)
+  | ((...args: Parameters<T>) => ReturnType<T>)
+>;
 ```
+
+**References:** [ServerFunction](#serverfunction)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts)
 
 ## ServerQRL
 
+You can pass an AbortSignal as the first argument of a `server$` function and it will use it to abort the fetch when fired.
+
 ```typescript
-serverQrl: <T extends ServerFunction>(qrl: QRL<T>) => ServerQRL<T>;
+export type ServerQRL<T extends ServerFunction> = QRL<
+  | ((abort: AbortSignal, ...args: Parameters<T>) => ReturnType<T>)
+  | ((...args: Parameters<T>) => ReturnType<T>)
+>;
 ```
+
+**References:** [ServerFunction](#serverfunction)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
@@ -751,6 +782,14 @@ serverQrl: <T extends ServerFunction>(qrl: QRL<T>) => ServerQRL<T>;
 ServiceWorkerRegister: (props: { nonce?: string }) =>
   import("@builder.io/qwik").JSXNode<"script">;
 ```
+
+| Parameter | Type                | Description |
+| --------- | ------------------- | ----------- |
+| props     | { nonce?: string; } |             |
+
+**Returns:**
+
+import("@builder.io/qwik").JSXNode&lt;"script"&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/sw-component.tsx)
 
@@ -808,6 +847,10 @@ export type TypedDataValidator<T extends zod.ZodType = zod.ZodType> = {
 useContent: () => import("./types").ContentState;
 ```
 
+**Returns:**
+
+import("./types").ContentState
+
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/use-functions.ts)
 
 ## useDocumentHead
@@ -820,6 +863,10 @@ useDocumentHead: <
 >() => Required<Required<import("./types").DocumentHeadValue<FrontMatter>>>;
 ```
 
+**Returns:**
+
+Required&lt;Required&lt;import("./types").[DocumentHeadValue](#documentheadvalue)&lt;FrontMatter&gt;&gt;&gt;
+
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/use-functions.ts)
 
 ## useLocation
@@ -828,6 +875,10 @@ useDocumentHead: <
 useLocation: () => RouteLocation;
 ```
 
+**Returns:**
+
+[RouteLocation](#routelocation)
+
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/use-functions.ts)
 
 ## useNavigate
@@ -835,6 +886,10 @@ useLocation: () => RouteLocation;
 ```typescript
 useNavigate: () => RouteNavigate;
 ```
+
+**Returns:**
+
+[RouteNavigate](#routenavigate)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/use-functions.ts)
 

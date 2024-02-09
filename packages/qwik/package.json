@@ -26,7 +26,7 @@
     "vite": "^5.0.12"
   },
   "devDependencies": {
-    "@builder.io/qwik-dom": "workspace:*",
+    "@builder.io/qwik-dom": "workspace:^",
     "image-size": "^1.0.2",
     "kleur": "4.1.5"
   },

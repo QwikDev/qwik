@@ -8,11 +8,11 @@
     "jsx-ast-utils": "^3.3.5"
   },
   "devDependencies": {
-    "@builder.io/qwik": "workspace:*",
+    "@builder.io/qwik": "workspace:^",
     "@types/eslint": "^8.56.2",
     "@types/estree": "^1.0.2",
-    "@typescript-eslint/rule-tester": "^6.19.1",
-    "@typescript-eslint/utils": "^6.19.1",
+    "@typescript-eslint/rule-tester": "^6.21.0",
+    "@typescript-eslint/utils": "^6.21.0",
     "redent": "^4.0.0"
   },
   "engines": {

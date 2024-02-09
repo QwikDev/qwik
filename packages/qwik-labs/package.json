@@ -5,13 +5,13 @@
   "devDependencies": {
     "@builder.io/qwik": "workspace:^",
     "@types/eslint": "^8.56.2",
-    "@types/node": "^20.11.6",
-    "@typescript-eslint/eslint-plugin": "^6.19.1",
-    "@typescript-eslint/parser": "^6.19.1",
+    "@types/node": "^20.11.16",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
     "eslint": "^8.56.0",
     "eslint-plugin-qwik": "workspace:^",
     "np": "^8.0.4",
-    "prettier": "^3.2.4",
+    "prettier": "^3.2.5",
     "typescript": "5.3.3",
     "undici": "*",
     "vite": "^5.0.12"

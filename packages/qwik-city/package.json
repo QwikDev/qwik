@@ -16,14 +16,14 @@
   },
   "devDependencies": {
     "@azure/functions": "^3.5.1",
-    "@builder.io/qwik": "workspace:*",
-    "@microsoft/api-extractor": "^7.39.3",
+    "@builder.io/qwik": "workspace:^",
+    "@microsoft/api-extractor": "^7.40.0",
     "@netlify/edge-functions": "^2.3.0",
     "@types/marked": "5.0.1",
-    "@types/mdast": "^4.0.1",
-    "@types/node": "^20.11.6",
-    "@types/refractor": "^3.0.3",
-    "@types/set-cookie-parser": "^2.4.4",
+    "@types/mdast": "^4.0.3",
+    "@types/node": "^20.11.16",
+    "@types/refractor": "^3.4.0",
+    "@types/set-cookie-parser": "^2.4.7",
     "estree-util-value-to-estree": "3.0.1",
     "github-slugger": "2.0.0",
     "hast-util-heading-rank": "2.1.1",
@@ -41,7 +41,7 @@
     "unified": "10.1.2",
     "unist-util-visit": "5.0.0",
     "uvu": "0.5.6",
-    "yaml": "^2.3.2"
+    "yaml": "^2.3.4"
   },
   "engines": {
     "node": ">=16.8.0 <18.0.0 || >=18.11"

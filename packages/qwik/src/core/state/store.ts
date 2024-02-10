@@ -6,6 +6,7 @@ import { logError, logWarn } from '../util/log';
 import { ComputedEvent, RenderEvent, ResourceEvent } from '../util/markers';
 import { qDev, qSerialize } from '../util/qdev';
 import { isArray, isObject, isSerializableObject } from '../util/types';
+import { SerializationConstant, subscriptionManagerFromString } from '../v2/shared-serialization';
 import {
   LocalSubscriptionManager,
   fastSkipSerialize,
@@ -29,12 +30,17 @@ import { isSignal } from './signal';
 export interface StoreTracker {
   $proxyMap$: ObjToProxyMap;
   $subsManager$: SubscriptionManager;
+  $getObjectById$: (id: string | number) => any;
 }
 
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
 
 /** Creates a proxy that notifies of any writes. */
-export const getOrCreateProxy = <T extends object>(target: T, storeMgr: StoreTracker, flags = 0): T => {
+export const getOrCreateProxy = <T extends object>(
+  target: T,
+  storeMgr: StoreTracker,
+  flags = 0
+): T => {
   const proxy = storeMgr.$proxyMap$.get(target);
   if (proxy) {
     return proxy;
@@ -61,6 +67,16 @@ export const createProxy = <T extends object>(
   const manager = storeTracker.$subsManager$.$createManager$(subs);
   const proxy = new Proxy(target, new ReadWriteProxyHandler(storeTracker, manager)) as any as T;
   storeTracker.$proxyMap$.set(target, proxy);
+  const serializedState = (target as any)[SerializationConstant.Store_CHAR];
+  if (serializedState) {
+    (target as any)[SerializationConstant.Store_CHAR] = undefined;
+    setObjectFlags(target, serializedState.charCodeAt(0) - 48 /*'0'*/);
+    subscriptionManagerFromString(
+      manager,
+      serializedState.substring(1),
+      storeTracker.$getObjectById$
+    );
+  }
   return proxy;
 };
 

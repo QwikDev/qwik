@@ -351,7 +351,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     vCurrent = vnode_getProp<VirtualVNode | null>(
       vParent, // The parent is the component and it should have our portal.
       slotName,
-      container.getObjectById
+      container.$getObjectById$
     );
     if (vCurrent == null) {
       vNewNode = vnode_newVirtual(vParent);
@@ -364,11 +364,11 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
   function expectSlot() {
     const slotNameKey: string = jsxValue.props.name || '';
     // console.log('expectSlot', JSON.stringify(slotNameKey));
-    const vHost = vnode_getProjectionParentComponent(vParent, container.getObjectById);
+    const vHost = vnode_getProjectionParentComponent(vParent, container.$getObjectById$);
     const vProjectedNode = vnode_getProp<VirtualVNode | null>(
       vHost,
       slotNameKey,
-      container.getObjectById
+      container.$getObjectById$
     );
     // console.log('   ', String(vHost), String(vProjectedNode));
     if (vProjectedNode == null) {
@@ -624,13 +624,13 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
   function expectComponent(component: Component<any>) {
     const [componentQRL] = (component as any)[SERIALIZABLE_STATE] as [QRLInternal<OnRenderFn<any>>];
     const host = (vNewNode || vCurrent) as VirtualVNode;
-    const vNodeQrl = vnode_getProp<QRLInternal>(host, OnRenderProp, container.getObjectById);
+    const vNodeQrl = vnode_getProp<QRLInternal>(host, OnRenderProp, container.$getObjectById$);
     let shouldRender = false;
     if (componentQRL.$hash$ !== vNodeQrl?.$hash$) {
       vnode_setProp(host, OnRenderProp, componentQRL);
       shouldRender = true;
     }
-    const vNodeProps = vnode_getProp<any>(host, ELEMENT_PROPS, container.getObjectById);
+    const vNodeProps = vnode_getProp<any>(host, ELEMENT_PROPS, container.$getObjectById$);
     const jsxPros = jsxValue.props;
     shouldRender = shouldRender || !shallowEqual(jsxPros, vNodeProps);
     if (shouldRender) {

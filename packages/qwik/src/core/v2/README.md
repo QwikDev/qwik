@@ -109,5 +109,5 @@ Arrays have predictable access cost and don't suffer from [megamorphic property 
 The new system is designed to address all of these issues.
 
 1. All of the data is stored in a single flat array. This makes it easy to understand what is being serialized.
-2. Deep objects are NOT flattened, unless a circular reference is detected. This makes the serialization much more efficient. This makes the cost of reference cheaper as we pay them only when we need to.
+2. Deep objects are NOT flattened unless a circular reference is detected. This makes the serialization much more efficient. This makes the cost of reference cheaper as we pay them only when we need to.
 3. The deserialized state is stored behind a proxy, which lazily materializes the data from the store. Only the data which is actively traversed by the client code is deserialized. This makes Qwik even more lazy than it was before.

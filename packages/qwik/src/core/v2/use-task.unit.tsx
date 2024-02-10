@@ -426,6 +426,49 @@ Error.stackTraceLimit = 100;
         log.length = 0;
         await trigger(document.body, 'button', 'click');
       });
+      it.skip('should handle promises', async () => {
+        const log: string[] = [];
+        const MyComp = component$(() => {
+          log.push('render');
+          const promise = useSignal(Promise.resolve(0));
+
+          useTask$(() => {
+            log.push('1a');
+            promise.value = Promise.resolve(0)
+              .then(() => {
+                log.push('inside.1');
+                return delay(10);
+              })
+              .then(() => {
+                log.push('1b');
+                return 1;
+              });
+          });
+
+          useTask$(async () => {
+            log.push('2a');
+            await new Promise((r) => setTimeout(r, 500));
+            log.push('2b');
+          });
+
+          useTask$(() => {
+            log.push('3a');
+            promise.value = (promise.value as Promise<number>)
+              .then(() => {
+                log.push('inside.3');
+                return delay(10);
+              })
+              .then(() => {
+                log.push('1b');
+                return 3;
+              });
+          });
+
+          return <p>Should have a number: "{promise}"</p>;
+        });
+        const { vNode, document } = await render(<MyComp />, { debug });
+        console.log(log);
+      });
     });
   });
 });

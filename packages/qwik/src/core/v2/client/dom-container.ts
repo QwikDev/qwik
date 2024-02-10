@@ -1,11 +1,12 @@
 /** @file Public APIs for the SSR */
 
 import type { ObjToProxyMap } from '../../container/container';
-import { assertDefined, assertTrue } from '../../error/assert';
+import { assertTrue } from '../../error/assert';
 import { getPlatform } from '../../platform/platform';
 import { ERROR_CONTEXT, isRecoverable } from '../../render/error-handling';
 import type { JSXOutput } from '../../render/jsx/types/jsx-node';
 import { createSubscriptionManager, type SubscriptionManager } from '../../state/common';
+import type { StoreTracker } from '../../state/store';
 import type { ContextId } from '../../use/use-context';
 import { SEQ_IDX_LOCAL } from '../../use/use-sequential-scope';
 import { EMPTY_ARRAY } from '../../util/flyweight';
@@ -23,7 +24,7 @@ import { qDev } from '../../util/qdev';
 import type { ValueOrPromise } from '../../util/types';
 import { wrapDeserializerProxy } from '../shared-serialization';
 import { createScheduler } from '../shared/scheduler';
-import type { fixMeAny, HostElement } from '../shared/types';
+import type { HostElement, fixMeAny } from '../shared/types';
 import type {
   ContainerElement,
   ElementVNode,
@@ -44,12 +45,7 @@ import {
   vnode_newUnMaterializedElement,
   vnode_setProp,
 } from './vnode';
-import {
-  vnode_applyJournal,
-  vnode_diff,
-  VNodeJournalOpCode,
-  type VNodeJournalEntry,
-} from './vnode-diff';
+import { vnode_applyJournal, vnode_diff, type VNodeJournalEntry } from './vnode-diff';
 
 export function getDomContainer(element: HTMLElement | ElementVNode): IClientContainer {
   let htmlElement: HTMLElement | null = Array.isArray(element)
@@ -73,7 +69,7 @@ export const isDomContainer = (container: any): container is DomContainer => {
   return container instanceof DomContainer;
 };
 
-export class DomContainer implements IClientContainer {
+export class DomContainer implements IClientContainer, StoreTracker {
   // public readonly containerState: ContainerState;
   public element: ContainerElement;
   public qContainer: string;
@@ -90,9 +86,9 @@ export class DomContainer implements IClientContainer {
   public $rawStateData$: unknown[];
   public $proxyMap$: ObjToProxyMap = new WeakMap();
   public $scheduler$: ReturnType<typeof createScheduler>;
+  public $qFuncs$: Array<(...args: unknown[]) => unknown>;
 
   private stateData: unknown[];
-  private $qFuncs$: Array<(...args: unknown[]) => unknown>;
 
   constructor(element: ContainerElement) {
     this.qContainer = element.getAttribute(QContainerAttr)!;
@@ -209,7 +205,7 @@ export class DomContainer implements IClientContainer {
       case ELEMENT_PROPS:
       case OnRenderProp:
       case QCtxAttr:
-        getObjectById = this.getObjectById;
+        getObjectById = this.$getObjectById$;
         break;
       case SEQ_IDX_LOCAL:
         getObjectById = parseInt;
@@ -234,7 +230,7 @@ export class DomContainer implements IClientContainer {
     return this.renderDone;
   }
 
-  getObjectById = (id: number | string): unknown => {
+  $getObjectById$ = (id: number | string): unknown => {
     if (typeof id === 'string') {
       id = parseFloat(id);
     }

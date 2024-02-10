@@ -1,0 +1,36 @@
+- [ ] Component
+  - [X] `useSequentialScope()`
+  - [X] `useSignal()`
+  - [X] `useStore()`
+  - [X] `useTask$()`
+  - [ ] `useResource$()`
+  - [ ] `useComputed$()`
+  - [ ] `useVisibleTask$()`
+  - [ ] `useOn()`/`useOnDocument()`/`useOnWindow()`
+  - [X] `useContext()`/`useContextProvider()`
+  - [X] Projection / `<Slot>`
+
+- [ ] Serialization
+  - [ ] `Promise`
+  - [X] `undefined`
+  - [X] `REFERENCE`
+  - [X] `URL`
+  - [X] `Date`
+  - [X] `Regex`
+  - [X] `String`
+  - [X] `VNode`
+  - [X] `NaN`
+  - [X] `BigInt`
+  - [X] `Error`
+  - [X] `QRL`
+  - [X] `Task`
+  - [ ] `Resource`
+  - [X] `Component`
+  - [X] `DerivedSignal`
+  - [X] `Signal`
+  - [ ] `SignalWrapper`
+  - [-] `Store`
+  - [X] `FormData`
+  - [ ] `JSXNode`
+  - [X] `Set`
+  - [X] `Map`

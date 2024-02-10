@@ -115,11 +115,11 @@ class SSRContainer implements ISSRContainer {
     this.tag = opts.tagName;
     this.writer = opts.writer;
     this.$locale$ = opts.locale;
-    this.serializationCtx = createSerializationContext(SsrNode, null, this.writer);
+    this.serializationCtx = createSerializationContext(SsrNode, null, this.$proxyMap$, this.writer);
     this.$subsManager$ = createSubscriptionManager(this as fixMeAny);
     this.$scheduler$ = createScheduler(this, () => null);
   }
-  public getObjectById: (id: string | number) => unknown = () => {
+  public $getObjectById$: (id: string | number) => unknown = () => {
     throw new Error('SSR should not have to deserialize objects.');
   };
 

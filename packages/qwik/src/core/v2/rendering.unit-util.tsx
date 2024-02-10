@@ -105,20 +105,20 @@ export async function ssrRenderToDom(
     console.log('--------------------------------------------------------');
     console.log(vnode_toString.call(container.rootVNode, Number.MAX_SAFE_INTEGER, '', true));
     console.log('------------------- SERIALIZED STATE -------------------');
-    console.log('[');
     const state = container.$rawStateData$;
     for (let i = 0; i < state.length; i++) {
       console.log(('    ' + i + ':').substr(-4), qwikJsonStringify(state[i]));
     }
-    console.log(']');
+    const funcs = container.$qFuncs$;
+    for (let i = 0; i < funcs.length; i++) {
+      console.log(('    ' + i + ':').substr(-4), qwikJsonStringify(funcs[i].toString()));
+    }
     if (false as boolean) {
-      console.log('CONTAINER PROXY: [');
       // stateDate is private but it's not enforced so we can access it for the test
       const proxyState = (container as any).stateData;
       for (let i = 0; i < state.length; i++) {
         console.log(('    ' + i + ':').substr(-4), proxyState[i]);
       }
-      console.log(']');
     }
     console.log('--------------------------------------------------------');
   }

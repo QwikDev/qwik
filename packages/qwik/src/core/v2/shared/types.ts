@@ -22,7 +22,7 @@ export interface Container2 {
   /// Current language locale
   readonly $locale$: string;
   /// Retrieve Object from paused serialized state.
-  readonly getObjectById: (id: number | string) => any;
+  readonly $getObjectById$: (id: number | string) => any;
 
   setHostProp<T>(host: HostElement, name: string, value: T): void;
   getHostProp<T>(host: HostElement, name: string): T | null;

@@ -12,6 +12,7 @@ import {
   getSubscriptionManager,
   unwrapProxy,
   type LocalSubscriptionManager,
+  getProxyFlags,
 } from '../state/common';
 import { QObjectManagerSymbol, _IMMUTABLE } from '../state/constants';
 import { SignalDerived, SignalImpl } from '../state/signal';
@@ -21,6 +22,7 @@ import { throwErrorAndStop } from '../util/log';
 import type { DomContainer } from './client/dom-container';
 import { vnode_isVNode, vnode_locate } from './client/vnode';
 import type { fixMeAny } from './shared/types';
+import type { ObjToProxyMap } from '../container/container';
 
 const deserializedProxyMap = new WeakMap<object, unknown>();
 
@@ -67,7 +69,7 @@ export const wrapDeserializerProxy = (container: DomContainer, value: unknown) =
               if (typeCode === SerializationConstant.REFERENCE_VALUE) {
                 // Special case of Reference, we don't go through allocation/inflation
                 propValue = unwrapDeserializerProxy(
-                  container.getObjectById(parseInt(propValue.substring(1)))
+                  container.$getObjectById$(parseInt(propValue.substring(1)))
                 );
               } else if (typeCode === SerializationConstant.VNode_VALUE) {
                 // Special case of VNode, we go directly to VNode to retrieve the element.
@@ -78,10 +80,10 @@ export const wrapDeserializerProxy = (container: DomContainer, value: unknown) =
               } else if (typeCode === SerializationConstant.Store_VALUE) {
                 // Special case of Store.
                 // Stores are proxies, Proxies need to get their target eagerly. So we can't use inflate()
-                // because that is too eagerly get a hold of the target.
-                const target = container.getObjectById(
-                  propValue.substring(1, propValue.indexOf(';'))
-                );
+                // because that would not allow us to get a hold of the target.
+                const target = container.$getObjectById$(propValue.substring(1)) as {
+                  [SerializationConstant.Store_CHAR]: string | undefined;
+                };
                 propValue = getOrCreateProxy(target as object, container);
               } else if (
                 typeCode === SerializationConstant.DerivedSignal_VALUE &&
@@ -230,10 +232,10 @@ const inflate = (container: DomContainer, target: any, needsInflationData: strin
       const task = target as Task;
       task.$flags$ = restInt();
       task.$index$ = restInt();
-      task.$el$ = container.getObjectById(restInt()) as fixMeAny;
+      task.$el$ = container.$getObjectById$(restInt()) as fixMeAny;
       task.$qrl$ = inflateQRL(container, parseQRL(restString()));
       const taskState = restString();
-      task.$state$ = taskState ? (container.getObjectById(taskState) as fixMeAny) : undefined;
+      task.$state$ = taskState ? (container.$getObjectById$(taskState) as fixMeAny) : undefined;
       break;
     case SerializationConstant.Resource_VALUE:
       throw new Error('Not implemented');
@@ -246,52 +248,55 @@ const inflate = (container: DomContainer, target: any, needsInflationData: strin
       derivedSignal.$func$ = container.getSyncFn(restInt());
       const args: any[] = (derivedSignal.$args$ = []);
       while (restIdx < rest.length) {
-        args.push(container.getObjectById(restInt()));
+        args.push(container.$getObjectById$(restInt()));
       }
       break;
     case SerializationConstant.Store_VALUE:
-      subscriptionManagerFromString(getSubscriptionManager(target)!, rest, container.getObjectById);
       break;
     case SerializationConstant.Signal_VALUE:
       const signal = target as SignalImpl<unknown>;
       const semiIdx = rest.indexOf(';');
       const manager = (signal[QObjectManagerSymbol] = container.$subsManager$.$createManager$());
-      signal.untrackedValue = container.getObjectById(
+      signal.untrackedValue = container.$getObjectById$(
         rest.substring(1, semiIdx === -1 ? rest.length : semiIdx)
       );
-      subscriptionManagerFromString(manager, rest, container.getObjectById);
+      subscriptionManagerFromString(
+        manager,
+        rest.substring(semiIdx + 1),
+        container.$getObjectById$
+      );
       break;
     case SerializationConstant.SignalWrapper_VALUE:
       throw new Error('Not implemented');
       break;
     case SerializationConstant.Error_VALUE:
-      Object.assign(target, container.getObjectById(restInt()));
+      Object.assign(target, container.$getObjectById$(restInt()));
       break;
     case SerializationConstant.FormData_VALUE:
       const formData = target as FormData;
-      for (const [key, value] of container.getObjectById(restInt()) as Array<[string, string]>) {
+      for (const [key, value] of container.$getObjectById$(restInt()) as Array<[string, string]>) {
         formData.append(key, value);
       }
       break;
     case SerializationConstant.JSXNode_VALUE:
       const jsx = target as JSXNodeImpl<unknown>;
       jsx.type = deserializeJSXType(container, restString());
-      jsx.props = container.getObjectById(restInt()) as any;
-      jsx.immutableProps = container.getObjectById(restInt()) as any;
-      jsx.children = container.getObjectById(restInt()) as any;
+      jsx.props = container.$getObjectById$(restInt()) as any;
+      jsx.immutableProps = container.$getObjectById$(restInt()) as any;
+      jsx.children = container.$getObjectById$(restInt()) as any;
       jsx.flags = restInt();
       jsx.key = restString() || null;
       break;
     case SerializationConstant.Set_VALUE:
       const set = target as Set<unknown>;
-      const setValues = container.getObjectById(restInt()) as Array<unknown>;
+      const setValues = container.$getObjectById$(restInt()) as Array<unknown>;
       for (let i = 0; i < setValues.length; i++) {
         set.add(setValues[i]);
       }
       break;
     case SerializationConstant.Map_VALUE:
       const map = target as Map<unknown, unknown>;
-      const mapKeyValue = container.getObjectById(restInt()) as Array<unknown>;
+      const mapKeyValue = container.$getObjectById$(restInt()) as Array<unknown>;
       for (let i = 0; i < mapKeyValue.length; ) {
         map.set(mapKeyValue[i++], mapKeyValue[i++]);
       }
@@ -380,7 +385,7 @@ export function parseQRL(qrl: string): QRLInternal<any> {
 export function inflateQRL(container: DomContainer, qrl: QRLInternal<any>) {
   const captureIds = qrl.$capture$;
   qrl.$captureRef$ = captureIds
-    ? captureIds.map((id) => container.getObjectById(parseInt(id)))
+    ? captureIds.map((id) => container.$getObjectById$(parseInt(id)))
     : null;
   qrl.$setContainer$(container.element);
   return qrl;
@@ -426,6 +431,8 @@ export interface SerializationContext {
 
   $addSyncFn$($funcStr$: string, argsCount: number): number;
 
+  $proxyMap$: ObjToProxyMap;
+
   /**
    * Node constructor, for instanceof checks.
    *
@@ -443,6 +450,7 @@ export interface SerializationContext {
 export const createSerializationContext = (
   NodeConstructor: SerializationContext['$NodeConstructor$'] | null,
   containerElement: Element | null,
+  $proxyMap$: ObjToProxyMap,
   writer?: StreamWriter
 ): SerializationContext => {
   if (!writer) {
@@ -482,6 +490,7 @@ export const createSerializationContext = (
       }
       return id;
     },
+    $proxyMap$,
     $syncFns$: syncFns,
     $addSyncFn$: (funcStr: string, argCount: number) => {
       let id = syncFnMap.get(funcStr);
@@ -588,7 +597,14 @@ export function serialize(serializationContext: SerializationContext): void {
       // Otherwise serialize as normal
       writeString(SerializationConstant.REFERENCE_CHAR + seen);
     } else if (isObjectLiteral(value)) {
-      serializeObjectLiteral(value, $writer$, writeValue, writeString);
+      serializeObjectLiteral(
+        value,
+        $writer$,
+        writeValue,
+        writeString,
+        serializationContext.$proxyMap$,
+        $addRoot$
+      );
     } else if (value instanceof SignalImpl) {
       const manager = getSubscriptionManager(value)!;
       const subscriptions = subscriptionManagerToString(manager, $addRoot$);
@@ -600,13 +616,7 @@ export function serialize(serializationContext: SerializationContext): void {
     } else if (value instanceof SignalDerived) {
       return writeString(serializeSignalDerived(serializationContext, value, $addRoot$));
     } else if (value instanceof Store) {
-      const manager = getSubscriptionManager(value)!;
-      writeString(
-        SerializationConstant.Store_CHAR +
-          $addRoot$(unwrapProxy(value)) +
-          ';' +
-          subscriptionManagerToString(manager, $addRoot$)
-      );
+      writeString(SerializationConstant.Store_CHAR + $addRoot$(unwrapProxy(value)));
     } else if (value instanceof URL) {
       writeString(SerializationConstant.URL_CHAR + value.href);
     } else if (value instanceof Date) {
@@ -669,7 +679,9 @@ export function serialize(serializationContext: SerializationContext): void {
     value: any,
     $writer$: StreamWriter,
     writeValue: (value: any) => void,
-    writeString: (text: string) => void
+    writeString: (text: string) => void,
+    objectMap: ObjToProxyMap,
+    $addRoot$: (obj: unknown) => number
   ) => {
     if (Array.isArray(value)) {
       // Serialize as array.
@@ -685,8 +697,17 @@ export function serialize(serializationContext: SerializationContext): void {
       const immutable = value[_IMMUTABLE];
 
       // Serialize as object.
-      $writer$.write('{');
       let delimiter = false;
+      $writer$.write('{');
+      const proxy = objectMap.get(value);
+      if (proxy !== undefined) {
+        const flags = getProxyFlags(value);
+        writeString(SerializationConstant.Store_CHAR);
+        $writer$.write(':');
+        const manager = getSubscriptionManager(proxy)!;
+        writeString(String(flags) + subscriptionManagerToString(manager, $addRoot$));
+        delimiter = true;
+      }
       for (const key in value) {
         if (immutable !== undefined && Object.prototype.hasOwnProperty.call(immutable, key)) {
           delimiter && $writer$.write(',');
@@ -747,13 +768,13 @@ function subscriptionManagerToString(
   return data.join(';');
 }
 
-function subscriptionManagerFromString(
+export function subscriptionManagerFromString(
   subscriptionManager: LocalSubscriptionManager,
   value: string,
   getObjectById: (id: number) => any
 ) {
   const subs = value.split(';');
-  for (let k = 1; k < subs.length; k++) {
+  for (let k = 0; k < subs.length; k++) {
     const sub = subs[k];
     const subscription = sub.split(' ') as fixMeAny[];
     subscription[0] = parseInt(subscription[0]);
@@ -977,7 +998,7 @@ function deserializeJSXType(container: DomContainer, type: string): string | Fun
   } else {
     const ch = type.charCodeAt(0);
     if (48 /* '0' */ <= ch && ch <= 57 /* '9' */) {
-      return container.getObjectById(type) as any;
+      return container.$getObjectById$(type) as any;
     } else {
       return type;
     }

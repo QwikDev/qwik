@@ -11,7 +11,7 @@ import type { JSXOutput } from '../render/jsx/types/jsx-node';
 import { getDomContainer } from './client/dom-container';
 import type { ClientContainer, VNode } from './client/types';
 import { vnode_getAttr, vnode_getFirstChild, vnode_getText } from './client/vnode';
-import { isDeserializerProxy } from './shared-serialization';
+import { isDeserializerProxy } from './shared/shared-serialization';
 import { ssrCreateContainer } from './ssr/ssr-container';
 import { toSsrAttrs } from './ssr/ssr-render';
 import { SsrNode, type SSRContainer } from './ssr/types';

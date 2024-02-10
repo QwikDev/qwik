@@ -22,7 +22,7 @@ import {
 import { maybeThen } from '../../util/promises';
 import { qDev } from '../../util/qdev';
 import type { ValueOrPromise } from '../../util/types';
-import { wrapDeserializerProxy } from '../shared-serialization';
+import { wrapDeserializerProxy } from '../shared/shared-serialization';
 import { createScheduler } from '../shared/scheduler';
 import type { HostElement, fixMeAny } from '../shared/types';
 import type {

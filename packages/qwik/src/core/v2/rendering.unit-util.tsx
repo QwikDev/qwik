@@ -24,7 +24,7 @@ import {
   vnode_locate,
   vnode_toString,
 } from './client/vnode';
-import { codeToName } from './shared-serialization';
+import { codeToName } from './shared/shared-serialization';
 import { ssrCreateContainer } from './ssr/ssr-container';
 import { ssrRenderToContainer } from './ssr/ssr-render';
 import './vdom-diff.unit-util';

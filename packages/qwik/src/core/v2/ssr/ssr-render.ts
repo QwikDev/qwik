@@ -9,7 +9,7 @@ import { SubscriptionType } from '../../state/common';
 import { isSignal } from '../../state/signal';
 import { trackSignal } from '../../use/use-core';
 import { EMPTY_ARRAY } from '../../util/flyweight';
-import { qrlToString, type SerializationContext } from '../shared-serialization';
+import { qrlToString, type SerializationContext } from '../shared/shared-serialization';
 import type { fixMeAny } from '../shared/types';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
 import type { SSRContainer, SsrAttrs } from './types';

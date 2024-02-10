@@ -4,8 +4,8 @@ import {
   createSerializationContext,
   serialize,
 } from './shared-serialization';
-import { Task } from '../use/use-task';
-import { inlinedQrl } from '../qrl/qrl';
+import { Task } from '../../use/use-task';
+import { inlinedQrl } from '../../qrl/qrl';
 
 const DEBUG = false;
 

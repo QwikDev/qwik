@@ -5,7 +5,7 @@ import { normalizeOnProp } from '../core/state/listeners';
 import { getWrappingContainer, type PossibleEvents } from '../core/use/use-core';
 import { fromCamelToKebabCase } from '../core/util/case';
 import { getDomContainer } from '../core/v2/client/dom-container';
-import { inflateQRL, parseQRL } from '../core/v2/shared-serialization';
+import { inflateQRL, parseQRL } from '../core/v2/shared/shared-serialization';
 import type { QElement2, fixMeAny } from '../core/v2/shared/types';
 import { createWindow } from './document';
 import { getTestPlatform } from './platform';

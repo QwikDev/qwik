@@ -24,7 +24,7 @@ import {
   createSerializationContext,
   serialize,
   type SerializationContext,
-} from '../shared-serialization';
+} from '../shared/shared-serialization';
 import { createScheduler, type Scheduler } from '../shared/scheduler';
 import type { HostElement, fixMeAny } from '../shared/types';
 import { syncWalkJSX } from './ssr-render';

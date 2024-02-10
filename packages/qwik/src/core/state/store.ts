@@ -6,7 +6,10 @@ import { logError, logWarn } from '../util/log';
 import { ComputedEvent, RenderEvent, ResourceEvent } from '../util/markers';
 import { qDev, qSerialize } from '../util/qdev';
 import { isArray, isObject, isSerializableObject } from '../util/types';
-import { SerializationConstant, subscriptionManagerFromString } from '../v2/shared-serialization';
+import {
+  SerializationConstant,
+  subscriptionManagerFromString,
+} from '../v2/shared/shared-serialization';
 import {
   LocalSubscriptionManager,
   fastSkipSerialize,

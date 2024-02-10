@@ -1,28 +1,28 @@
 import type { FunctionComponent } from '@builder.io/qwik/jsx-runtime';
-import { isDev } from '../../build/index.dev';
-import type { StreamWriter } from '../../server/types';
-import { componentQrl, isQwikComponent } from '../component/component.public';
-import { SERIALIZABLE_STATE } from '../container/serializers';
-import { assertDefined, assertTrue } from '../error/assert';
-import { createQRL, isQrl, type QRLInternal } from '../qrl/qrl-class';
-import { Fragment, JSXNodeImpl, isJSXNode } from '../render/jsx/jsx-runtime';
-import { Slot } from '../render/jsx/slot.public';
+import { isDev } from '../../../build/index.dev';
+import type { StreamWriter } from '../../../server/types';
+import { componentQrl, isQwikComponent } from '../../component/component.public';
+import { SERIALIZABLE_STATE } from '../../container/serializers';
+import { assertDefined, assertTrue } from '../../error/assert';
+import { createQRL, isQrl, type QRLInternal } from '../../qrl/qrl-class';
+import { Fragment, JSXNodeImpl, isJSXNode } from '../../render/jsx/jsx-runtime';
+import { Slot } from '../../render/jsx/slot.public';
 import {
   SubscriptionProp,
   getSubscriptionManager,
   unwrapProxy,
   type LocalSubscriptionManager,
   getProxyFlags,
-} from '../state/common';
-import { QObjectManagerSymbol, _IMMUTABLE } from '../state/constants';
-import { SignalDerived, SignalImpl } from '../state/signal';
-import { Store, getOrCreateProxy } from '../state/store';
-import { Task } from '../use/use-task';
-import { throwErrorAndStop } from '../util/log';
-import type { DomContainer } from './client/dom-container';
-import { vnode_isVNode, vnode_locate } from './client/vnode';
-import type { fixMeAny } from './shared/types';
-import type { ObjToProxyMap } from '../container/container';
+} from '../../state/common';
+import { QObjectManagerSymbol, _IMMUTABLE } from '../../state/constants';
+import { SignalDerived, SignalImpl } from '../../state/signal';
+import { Store, getOrCreateProxy } from '../../state/store';
+import { Task } from '../../use/use-task';
+import { throwErrorAndStop } from '../../util/log';
+import type { DomContainer } from '../client/dom-container';
+import { vnode_isVNode, vnode_locate } from '../client/vnode';
+import type { fixMeAny } from './types';
+import type { ObjToProxyMap } from '../../container/container';
 
 const deserializedProxyMap = new WeakMap<object, unknown>();
 

@@ -1,7 +1,7 @@
 /** @file Public types for the SSR */
 
 import { isDev } from '@builder.io/qwik/build';
-import type { SerializationContext } from '../shared-serialization';
+import type { SerializationContext } from '../shared/shared-serialization';
 import { mapApp_remove, mapArray_get, mapArray_set } from '../client/vnode';
 import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
 import { isJSXNode } from '../../render/jsx/jsx-runtime';

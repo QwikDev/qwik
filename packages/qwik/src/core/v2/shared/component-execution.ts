@@ -10,6 +10,9 @@ import type { JSXOutput } from '../../render/jsx/types/jsx-node';
 import { isPromise, maybeThen, safeCall } from '../../util/promises';
 import { SEQ_IDX_LOCAL } from '../../use/use-sequential-scope';
 import { SubscriptionType } from '../../state/common';
+import { USE_ON_LOCAL, type UseOnMap } from '../../use/use-on';
+import type { JSXNode } from 'packages/qwik/dist/core';
+import { isJSXNode } from '../../render/jsx/jsx-runtime';
 
 /**
  * Use `executeComponent2` to execute a component.
@@ -52,6 +55,8 @@ export const executeComponent2 = (
         return componentFn(props);
       },
       (jsx) => {
+        const useOnEvents = container.getHostProp<UseOnMap>(host, USE_ON_LOCAL);
+        useOnEvents && addUseOnEvents(host, jsx, useOnEvents);
         container.setHostProp(host, JSX_LOCAL, jsx);
         return container.$scheduler$.$drainComponent$(host);
       },
@@ -78,3 +83,40 @@ export const executeComponent2 = (
  * So when executing a component we only care about its last JSX Output.
  */
 export const JSX_LOCAL = ':jsx';
+
+function addUseOnEvents(host: HostElement, jsx: JSXOutput, useOnEvents: UseOnMap) {
+  const jsxElement = findFirstStringJSX(jsx);
+  if (!jsxElement) {
+    return;
+  }
+  const props = jsxElement.props;
+  for (const key in useOnEvents) {
+    if (Object.prototype.hasOwnProperty.call(useOnEvents, key)) {
+      let propValue = props[key] as UseOnMap['any'] | UseOnMap['any'][0] | undefined;
+      if (propValue === undefined) {
+        propValue = [];
+      } else if (!Array.isArray(propValue)) {
+        propValue = [propValue];
+      }
+      propValue.push(...useOnEvents[key]);
+      props[key] = propValue;
+    }
+  }
+}
+
+function findFirstStringJSX(jsx: JSXOutput): JSXNode<string> | null {
+  const queue: any[] = [jsx];
+  while (queue.length) {
+    const jsx = queue.shift();
+    if (isJSXNode(jsx)) {
+      if (typeof jsx.type === 'string') {
+        return jsx as JSXNode<string>;
+      }
+      queue.push(jsx.children);
+    } else if (Array.isArray(jsx)) {
+      queue.push(...jsx);
+    }
+  }
+  return null;
+}
+

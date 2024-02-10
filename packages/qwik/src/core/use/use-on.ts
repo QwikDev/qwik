@@ -9,6 +9,7 @@ import type {
   EventFromName,
   AllEventKeys,
 } from '../render/jsx/types/jsx-qwik-attributes';
+import type { fixMeAny, HostElement } from '../v2/shared/types';
 
 export type EventQRL<T extends string = AllEventKeys> =
   | QRL<EventHandler<EventFromName<T>, Element>>
@@ -28,7 +29,7 @@ export type EventQRL<T extends string = AllEventKeys> =
  */
 // </docs>
 export const useOn = <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => {
-  _useOn(createEventName(event, undefined), eventQrl);
+  _useOn(createEventName(event, undefined), createEventName2(event, undefined), eventQrl);
 };
 
 // <docs markdown="../readme.md#useOnDocument">
@@ -61,7 +62,7 @@ export const useOn = <T extends KnownEventNames>(event: T | T[], eventQrl: Event
  */
 // </docs>
 export const useOnDocument = <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => {
-  _useOn(createEventName(event, 'document'), eventQrl);
+  _useOn(createEventName(event, 'document'), createEventName2(event, 'document'), eventQrl);
 };
 
 // <docs markdown="../readme.md#useOnWindow">
@@ -95,7 +96,7 @@ export const useOnDocument = <T extends KnownEventNames>(event: T | T[], eventQr
  */
 // </docs>
 export const useOnWindow = <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => {
-  _useOn(createEventName(event, 'window'), eventQrl);
+  _useOn(createEventName(event, 'window'), createEventName2(event, 'window'), eventQrl);
 };
 
 const createEventName = (
@@ -109,19 +110,54 @@ const createEventName = (
   return res;
 };
 
-const _useOn = (eventName: string | string[], eventQrl: EventQRL) => {
+const createEventName2 = (
+  event: KnownEventNames | KnownEventNames[],
+  eventType: 'window' | 'document' | undefined
+) => {
+  const prefix = eventType !== undefined ? eventType + ':' : '';
+  const map = (name: string) =>
+    prefix + 'on' + name.charAt(0).toUpperCase() + name.substring(1) + '$';
+  const res = Array.isArray(event) ? event.map(map) : map(event);
+  return res;
+};
+
+const _useOn = (
+  eventName: string | string[],
+  eventName2: string | string[],
+  eventQrl: EventQRL
+) => {
   if (eventQrl) {
     const invokeCtx = useInvokeContext();
-    const elCtx = getContext(
-      invokeCtx.$hostElement$,
-      invokeCtx.$renderCtx$.$static$.$containerState$
-    );
-    assertQrl(eventQrl as any);
-    if (typeof eventName === 'string') {
-      elCtx.li.push([normalizeOnProp(eventName), eventQrl] as Listener);
+    if (invokeCtx.$container2$) {
+      const host: HostElement = invokeCtx.$hostElement$ as fixMeAny;
+      const container = invokeCtx.$container2$;
+      let onMap = container.getHostProp<UseOnMap>(host, USE_ON_LOCAL);
+      if (!onMap) {
+        container.setHostProp<UseOnMap>(host, USE_ON_LOCAL, (onMap = {}));
+      }
+      const addEvent = (eventName: string) => {
+        let events = onMap![eventName];
+        if (!events) {
+          onMap![eventName] = events = [];
+        }
+        events.push(eventQrl);
+      };
+      Array.isArray(eventName2) ? eventName2.forEach(addEvent) : addEvent(eventName2);
     } else {
-      elCtx.li.push(...eventName.map((name) => [normalizeOnProp(name), eventQrl] as Listener));
+      const elCtx = getContext(
+        invokeCtx.$hostElement$,
+        invokeCtx.$renderCtx$.$static$.$containerState$
+      );
+      assertQrl(eventQrl as any);
+      if (typeof eventName === 'string') {
+        elCtx.li.push([normalizeOnProp(eventName), eventQrl] as Listener);
+      } else {
+        elCtx.li.push(...eventName.map((name) => [normalizeOnProp(name), eventQrl] as Listener));
+      }
+      elCtx.$flags$ |= HOST_FLAG_NEED_ATTACH_LISTENER;
     }
-    elCtx.$flags$ |= HOST_FLAG_NEED_ATTACH_LISTENER;
   }
 };
+
+export const USE_ON_LOCAL = ':on';
+export type UseOnMap = Record<string, EventQRL<KnownEventNames>[]>;

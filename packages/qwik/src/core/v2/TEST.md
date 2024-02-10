@@ -29,8 +29,8 @@
   - [X] `DerivedSignal`
   - [X] `Signal`
   - [ ] `SignalWrapper`
-  - [-] `Store`
+  - [X] `Store`
   - [X] `FormData`
-  - [ ] `JSXNode`
+  - [X] `JSXNode`
   - [X] `Set`
   - [X] `Map`

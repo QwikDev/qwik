@@ -12,6 +12,7 @@ import { _jsxQ, _jsxC } from '../render/jsx/jsx-runtime';
 import { _IMMUTABLE, _fnSignal } from '../internal';
 import { untrack } from '../use/use-core';
 import type { fixMeAny } from './shared/types';
+import { Slot } from '../render/jsx/slot.public';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -87,6 +88,43 @@ Error.stackTraceLimit = 100;
             <>
               <span>Count: {'124'}!</span>
             </>
+          </button>
+        </>
+      );
+    });
+    it('should update from JSX', async () => {
+      const Counter = component$((props: { initial: number }) => {
+        const jsx = useSignal(<Child>content</Child>);
+        const show = useSignal(false);
+        return (
+          <button onClick$={inlinedQrl(() => useLexicalScope()[0].value++, 's_onClick', [show])}>
+            {show.value ? jsx.value : 'hidden'}
+          </button>
+        );
+      });
+      const Child = component$(() => {
+        return (
+          <span>
+            <Slot />
+          </span>
+        );
+      });
+
+      const { vNode, container } = await render(<Counter initial={123} />, { debug });
+      expect(vNode).toMatchVDOM(
+        <>
+          <button>hidden</button>
+        </>
+      );
+      await trigger(container.element, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <>
+          <button>
+            <Component>
+              <span>
+                <>content</>
+              </span>
+            </Component>
           </button>
         </>
       );

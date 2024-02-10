@@ -6,13 +6,13 @@ import { Slot } from '../../render/jsx/slot.public';
 import type { FunctionComponent, JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
 import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
 import { SubscriptionType } from '../../state/common';
-import { SignalDerived, isSignal } from '../../state/signal';
+import { isSignal } from '../../state/signal';
 import { trackSignal } from '../../use/use-core';
+import { EMPTY_ARRAY } from '../../util/flyweight';
 import { qrlToString, type SerializationContext } from '../shared-serialization';
 import type { fixMeAny } from '../shared/types';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
-import type { SsrAttrs, SSRContainer } from './types';
-import { EMPTY_ARRAY } from '../../util/flyweight';
+import type { SSRContainer, SsrAttrs } from './types';
 
 export async function ssrRenderToContainer(ssr: SSRContainer, jsx: JSXOutput) {
   ssr.openContainer();

@@ -482,7 +482,7 @@ class SSRContainer implements ISSRContainer {
         if (value instanceof SsrNode) {
           ssrComponentNode = value;
         } else if (typeof value === 'string') {
-          const children = unclaimedProjections[idx++] as JSXChildren;
+          const children = unclaimedProjections[idx++] as JSXOutput;
           this.openFragment([QSlotParent, ssrComponentNode!.id]);
           ssrComponentNode?.setProp(value, this.getLastNode().id);
           syncWalkJSX(this, children);

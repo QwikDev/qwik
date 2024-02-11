@@ -6,7 +6,7 @@ import { mapApp_remove, mapArray_get, mapArray_set } from '../client/vnode';
 import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
 import { isJSXNode } from '../../render/jsx/jsx-runtime';
 import { QSlot, QSlotParent } from '../../util/markers';
-import type { Container2, HostElement } from '../shared/types';
+import type { Container2 } from '../shared/types';
 import type { ValueOrPromise } from '../../util/types';
 
 export interface SSRContainer extends Container2 {
@@ -47,7 +47,7 @@ export interface StreamWriter {
  *
  * Once deserialized the client, they will be turned to actual DOM nodes.
  */
-export class SsrNode implements HostElement {
+export class SsrNode {
   __brand__!: 'HostElement';
 
   static ELEMENT_NODE = 1 as const;

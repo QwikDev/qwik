@@ -112,7 +112,7 @@ Error.stackTraceLimit = 100;
 
     it('should not rerun if value did not change', async () => {
       let runCount = 0;
-      const DoubleCounter = component$((props: { initial: number }) => {
+      const DoubleCounter = component$(() => {
         const count = useSignal(1);
         const doubleCount = useComputedQrl(
           inlinedQrl(() => {
@@ -127,7 +127,7 @@ Error.stackTraceLimit = 100;
         );
       });
 
-      const { vNode, container } = await render(<DoubleCounter initial={123} />, { debug });
+      const { vNode, container } = await render(<DoubleCounter />, { debug });
       expect(vNode).toMatchVDOM(
         <>
           <button>Double count: {'2'}!</button>

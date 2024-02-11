@@ -135,7 +135,6 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
         } else if (typeof jsxValue === 'object') {
           if (Array.isArray(jsxValue)) {
             descend(jsxValue, false);
-            continue; // we just descended, skip advance()
           } else if (isSignal(jsxValue)) {
             expectVirtual();
             descend(
@@ -768,4 +767,3 @@ function shallowEqual(src: Record<string, any>, dst: Record<string, any>): boole
   }
   return true;
 }
-

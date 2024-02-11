@@ -1,4 +1,3 @@
-import { should } from 'vitest';
 import { isQwikComponent, type Component, type OnRenderFn } from '../../component/component.public';
 import { SERIALIZABLE_STATE } from '../../container/serializers';
 import { assertDefined, assertFalse, assertTrue } from '../../error/assert';

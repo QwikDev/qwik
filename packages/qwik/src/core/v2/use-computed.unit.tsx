@@ -143,6 +143,33 @@ Error.stackTraceLimit = 100;
       expect(runCount).toBe(1);
     });
 
+    it('should allow return signal inside computed', async () => {
+      const Counter = component$(() => {
+        const foo = useSignal(1);
+        const count = useComputedQrl(
+          inlinedQrl(() => foo, 's_count', [foo])
+        );
+        return (
+          <button onClick$={inlinedQrl(() => useLexicalScope()[0].value.value++, 's_onClick', [count])}>
+            Count: {count.value.value}!
+          </button>
+        );
+      });
+
+      const { vNode, container } = await render(<Counter />, { debug });
+      expect(vNode).toMatchVDOM(
+        <>
+          <button>Count: {'1'}!</button>
+        </>
+      );
+      await trigger(container.element, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <>
+          <button>Count: {'2'}!</button>
+        </>
+      );
+    });
+
     it('should work with inner computed for issue 4979', async () => {
       const InnerComponent = component$((props: { value: number }) => {
         const foo = useComputedQrl(

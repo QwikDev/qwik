@@ -7,7 +7,7 @@ import { ELEMENT_PROPS, OnRenderProp, RenderEvent } from '../../util/markers';
 import type { ValueOrPromise } from '../../util/types';
 import type { Container2, HostElement, fixMeAny } from './types';
 import type { JSXOutput } from '../../render/jsx/types/jsx-node';
-import { isPromise, maybeThen, safeCall } from '../../util/promises';
+import { isPromise, safeCall } from '../../util/promises';
 import { SEQ_IDX_LOCAL } from '../../use/use-sequential-scope';
 import { SubscriptionType } from '../../state/common';
 import { USE_ON_LOCAL, type UseOnMap } from '../../use/use-on';
@@ -119,4 +119,3 @@ function findFirstStringJSX(jsx: JSXOutput): JSXNode<string> | null {
   }
   return null;
 }
-

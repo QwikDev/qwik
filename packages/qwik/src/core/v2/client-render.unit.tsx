@@ -11,7 +11,6 @@ import { render2 } from './client/render2';
 import type { ContainerElement } from './client/types';
 import { vnode_getFirstChild } from './client/vnode';
 import './vdom-diff.unit-util';
-import { get } from 'http';
 import { getTestPlatform } from '../../testing/platform';
 
 describe('v2 client render', () => {

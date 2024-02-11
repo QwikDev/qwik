@@ -8,7 +8,7 @@ import { useComputedQrl } from '../use/use-task';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
 
-const debug = false; //true;
+const debug = true; //true;
 Error.stackTraceLimit = 100;
 
 [
@@ -85,7 +85,7 @@ Error.stackTraceLimit = 100;
           inlinedQrl(() => {
             runCount++;
             return useLexicalScope()[0] * 2;
-          }, 's_quadrupleCount', [count])
+          }, 's_doubleCount', [count])
         );
         return (
           <button onClick$={inlinedQrl(() => useLexicalScope()[0]++, 's_onClick', [count])}>
@@ -118,7 +118,7 @@ Error.stackTraceLimit = 100;
           inlinedQrl(() => {
             runCount++;
             return useLexicalScope()[0].value * 2;
-          }, 's_quadrupleCount', [count])
+          }, 's_doubleCount', [count])
         );
         return (
           <button onClick$={inlinedQrl(() => useLexicalScope()[0].value = 1, 's_onClick', [count])}>
@@ -141,6 +141,45 @@ Error.stackTraceLimit = 100;
         </>
       );
       expect(runCount).toBe(1);
+    });
+
+    it('should work with inner computed for issue 4979', async () => {
+      const InnerComponent = component$((props: { value: number }) => {
+        const foo = useComputedQrl(
+          inlinedQrl(() => useLexicalScope()[0].value, 's_foo', [props])
+        );
+        return (
+          <div>{JSON.stringify(foo.value)}</div>
+        );
+      });
+
+      const OuterComponent = component$(() => {
+        const count = useSignal(123);
+        return (
+          <>
+            <button onClick$={inlinedQrl(() => useLexicalScope()[0].value += 1, 's_onClick', [count])}>
+              Next
+            </button>
+            {[count.value].map(o => <InnerComponent key={o} value={o} />)}
+          </>
+        );
+      });
+
+      const { vNode } = await render(<OuterComponent />, { debug });
+      expect(vNode).toMatchVDOM(
+        <>
+          <>
+            <button>
+              Next
+            </button>
+            <>
+              <div>
+                {'123'}
+              </div>
+            </>
+          </>
+        </>
+      );
     });
   });
 });

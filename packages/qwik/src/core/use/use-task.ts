@@ -34,7 +34,6 @@ import {
 } from '../state/signal';
 import { QObjectManagerSymbol } from '../state/constants';
 import { ComputedEvent, TaskEvent } from '../util/markers';
-import type { VirtualVNode } from '../v2/client/types';
 import type { Container2, HostElement, fixMeAny } from '../v2/shared/types';
 import { isPromise } from 'util/types';
 
@@ -396,6 +395,37 @@ export const runTask2 = (
   }
 };
 
+export const runComputed2 = (
+  task: TaskDescriptor | ComputedDescriptor<unknown>,
+  container: Container2,
+  host: HostElement
+): ValueOrPromise<void> => {
+  assertSignal(task.$state$);
+  task.$flags$ &= ~TaskFlagsIsDirty;
+  const iCtx = newInvokeContext(container.$locale$, host as fixMeAny, undefined, ComputedEvent);
+  iCtx.$subscriber$ = [SubscriptionType.HOST, task];
+
+  const taskFn = task.$qrl$.getFn(iCtx, () => {
+    container.$subsManager$.$clearSub$(task);
+  }) as ComputedFn<unknown>;
+
+  const handleError = (reason: unknown) => container.handleError(reason, host);
+  const result = safeCall(
+    taskFn,
+    (returnValue) =>
+      untrack(() => {
+        const signal = task.$state$! as SignalInternal<unknown>;
+        signal[QObjectSignalFlags] &= ~SIGNAL_UNASSIGNED;
+        signal.untrackedValue = returnValue;
+        signal[QObjectManagerSymbol].$notifySubs$();
+      }),
+    handleError
+  );
+  if (isPromise(result)) {
+    throw result;
+  }
+};
+
 interface ComputedQRL {
   <T>(qrl: QRL<ComputedFn<T>>): ReadonlySignal<Awaited<T>>;
 }
@@ -411,30 +441,53 @@ export const useComputedQrl: ComputedQRL = <T>(qrl: QRL<ComputedFn<T>>): Signal<
     return val;
   }
   assertQrl(qrl);
-  const containerState = iCtx.$renderCtx$.$static$.$containerState$;
-  const signal = _createSignal(
-    undefined as Awaited<T>,
-    containerState.$subsManager$,
-    SIGNAL_UNASSIGNED | SIGNAL_IMMUTABLE,
-    undefined
-  );
 
-  const task = new Task(
-    TaskFlagsIsDirty | TaskFlagsIsTask | TaskFlagsIsComputed,
-    i,
-    elCtx.$element$,
-    qrl,
-    signal,
-    null
-  );
-  qrl.$resolveLazy$(containerState.$containerEl$);
-  if (!elCtx.$tasks$) {
-    elCtx.$tasks$ = [];
+  if (iCtx.$container2$) {
+    const host = iCtx.$hostElement$ as unknown as HostElement;
+    const signal = _createSignal(
+      undefined as Awaited<T>,
+      iCtx.$container2$.$subsManager$,
+      SIGNAL_UNASSIGNED | SIGNAL_IMMUTABLE,
+      undefined
+    );
+
+    const task = new Task(
+      TaskFlagsIsDirty | TaskFlagsIsTask | TaskFlagsIsComputed,
+      i,
+      iCtx.$hostElement$,
+      qrl,
+      signal,
+      null
+    );
+    runComputed2(task, iCtx.$container2$, host);
+    qrl.$resolveLazy$(host as fixMeAny);
+    return set(signal);
+  } else {
+    const containerState = iCtx.$renderCtx$.$static$.$containerState$;
+    const signal = _createSignal(
+      undefined as Awaited<T>,
+      containerState.$subsManager$,
+      SIGNAL_UNASSIGNED | SIGNAL_IMMUTABLE,
+      undefined
+    );
+
+    const task = new Task(
+      TaskFlagsIsDirty | TaskFlagsIsTask | TaskFlagsIsComputed,
+      i,
+      elCtx.$element$,
+      qrl,
+      signal,
+      null
+    );
+    qrl.$resolveLazy$(containerState.$containerEl$);
+    if (!elCtx.$tasks$) {
+      elCtx.$tasks$ = [];
+    }
+    elCtx.$tasks$.push(task);
+
+    waitAndRun(iCtx, () => runComputed(task, containerState, iCtx.$renderCtx$));
+    return set(signal);
   }
-  elCtx.$tasks$.push(task);
-
-  waitAndRun(iCtx, () => runComputed(task, containerState, iCtx.$renderCtx$));
-  return set(signal);
 };
 
 /** @public */
@@ -540,7 +593,7 @@ export const useVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions)
     return;
   }
   assertQrl(qrl);
-  const task = new Task(TaskFlagsIsVisibleTask, i, elCtx.$element$, qrl, undefined);
+  const task = new Task(TaskFlagsIsVisibleTask, i, elCtx.$element$, qrl, undefined, null);
   const containerState = iCtx.$renderCtx$.$static$.$containerState$;
   if (!elCtx.$tasks$) {
     elCtx.$tasks$ = [];

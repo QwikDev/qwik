@@ -146,7 +146,6 @@ import {
 } from '../../util/markers';
 import { isQrl } from '../../qrl/qrl-class';
 import { isDev } from '@builder.io/qwik/build';
-import { text } from 'stream/consumers';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 

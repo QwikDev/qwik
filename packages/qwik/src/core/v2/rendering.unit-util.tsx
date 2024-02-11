@@ -4,7 +4,7 @@ import { expect } from 'vitest';
 import { Q_FUNCS_PREFIX, renderToString } from '../../server/render';
 import { createDocument } from '../../testing/document';
 import { getTestPlatform } from '../../testing/platform';
-import { componentQrl } from '../component/component.public';
+import { componentQrl, type OnRenderFn } from '../component/component.public';
 import { getPlatform, setPlatform } from '../platform/platform';
 import { inlinedQrl } from '../qrl/qrl';
 import type { QRL } from '../qrl/qrl.public';
@@ -136,7 +136,7 @@ export async function rerenderComponent(element: HTMLElement) {
   const container = getDomContainer(element);
   const vElement = vnode_locate(container.rootVNode, element);
   const host = getHostVNode(vElement)!;
-  const qrl = container.getHostProp<QRL<any>>(host, OnRenderProp);
+  const qrl = container.getHostProp<QRL<OnRenderFn<any>>>(host, OnRenderProp)!;
   const props = container.getHostProp(host, 'props');
   container.$scheduler$.$scheduleComponent$(host, qrl, props);
   container.$scheduler$.$drainAll$();

@@ -8,7 +8,7 @@ import { useComputedQrl } from '../use/use-task';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
 
-const debug = true; //true;
+const debug = false; //true;
 Error.stackTraceLimit = 100;
 
 [
@@ -75,6 +75,72 @@ Error.stackTraceLimit = 100;
           <button>Double count: {'496'}!</button>
         </>
       );
+    });
+
+    it('should not rerun if there are no signal dependencies', async () => {
+      let runCount = 0;
+      const DoubleCounter = component$((props: { initial: number }) => {
+        const count = props.initial;
+        const doubleCount = useComputedQrl(
+          inlinedQrl(() => {
+            runCount++;
+            return useLexicalScope()[0] * 2;
+          }, 's_quadrupleCount', [count])
+        );
+        return (
+          <button onClick$={inlinedQrl(() => useLexicalScope()[0]++, 's_onClick', [count])}>
+            Double count: {doubleCount.value}!
+          </button>
+        );
+      });
+
+      const { vNode, container } = await render(<DoubleCounter initial={123} />, { debug });
+      expect(vNode).toMatchVDOM(
+        <>
+          <button>Double count: {'246'}!</button>
+        </>
+      );
+      expect(runCount).toBe(1);
+      await trigger(container.element, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <>
+          <button>Double count: {'246'}!</button>
+        </>
+      );
+      expect(runCount).toBe(1);
+    });
+
+    it('should not rerun if value did not change', async () => {
+      let runCount = 0;
+      const DoubleCounter = component$((props: { initial: number }) => {
+        const count = useSignal(1);
+        const doubleCount = useComputedQrl(
+          inlinedQrl(() => {
+            runCount++;
+            return useLexicalScope()[0].value * 2;
+          }, 's_quadrupleCount', [count])
+        );
+        return (
+          <button onClick$={inlinedQrl(() => useLexicalScope()[0].value = 1, 's_onClick', [count])}>
+            Double count: {doubleCount.value}!
+          </button>
+        );
+      });
+
+      const { vNode, container } = await render(<DoubleCounter initial={123} />, { debug });
+      expect(vNode).toMatchVDOM(
+        <>
+          <button>Double count: {'2'}!</button>
+        </>
+      );
+      expect(runCount).toBe(1);
+      await trigger(container.element, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <>
+          <button>Double count: {'2'}!</button>
+        </>
+      );
+      expect(runCount).toBe(1);
     });
   });
 });

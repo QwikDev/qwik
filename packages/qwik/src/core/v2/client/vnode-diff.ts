@@ -1,3 +1,4 @@
+import { should } from 'vitest';
 import { isQwikComponent, type Component, type OnRenderFn } from '../../component/component.public';
 import { SERIALIZABLE_STATE } from '../../container/serializers';
 import { assertDefined, assertFalse, assertTrue } from '../../error/assert';
@@ -135,7 +136,6 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
         } else if (typeof jsxValue === 'object') {
           if (Array.isArray(jsxValue)) {
             descend(jsxValue, false);
-            continue; // we just descended, skip advance()
           } else if (isSignal(jsxValue)) {
             expectVirtual();
             descend(
@@ -768,4 +768,3 @@ function shallowEqual(src: Record<string, any>, dst: Record<string, any>): boole
   }
   return true;
 }
-

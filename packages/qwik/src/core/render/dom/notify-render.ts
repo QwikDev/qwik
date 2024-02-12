@@ -14,6 +14,7 @@ import {
   isSubscriberDescriptor,
   runSubscriber,
   type SubscriberEffect,
+  type TaskDescriptor,
 } from '../../use/use-task';
 import { getDocument } from '../../util/dom';
 import { logError, logWarn } from '../../util/log';
@@ -24,7 +25,7 @@ import type { ValueOrPromise } from '../../util/types';
 import { isDomContainer } from '../../v2/client/dom-container';
 import type { VirtualVNode } from '../../v2/client/types';
 import { vnode_isVNode } from '../../v2/client/vnode';
-import type { Container2 } from '../../v2/shared/types';
+import type { Container2, fixMeAny } from '../../v2/shared/types';
 import { createRenderContext } from '../execute-component';
 import { directGetAttribute } from '../fast-calls';
 import type { RenderContext } from '../types';
@@ -119,6 +120,19 @@ export const notifyTask = (task: SubscriberEffect, containerState: ContainerStat
       containerState.$taskNext$.add(task);
       scheduleFrame(containerState);
     }
+  }
+};
+
+export const notifyTask2 = (task: TaskDescriptor, container: Container2) => {
+  if (task.$flags$ & TaskFlagsIsDirty) {
+    return;
+  }
+  task.$flags$ |= TaskFlagsIsDirty;
+
+  container.$scheduler$.$scheduleTask$(task as fixMeAny);
+
+  if (isDomContainer(container)) {
+    container.scheduleRender();
   }
 };
 

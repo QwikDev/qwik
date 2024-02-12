@@ -10,7 +10,7 @@ import { assertQrl, assertSignal, createQRL, type QRLInternal } from '../qrl/qrl
 import { codeToText, QError_trackUseStore } from '../error/error';
 import { useOn, useOnDocument } from './use-on';
 import { type ContainerState, intToStr, type MustGetObjID, strToInt } from '../container/container';
-import { notifyTask, _hW } from '../render/dom/notify-render';
+import { notifyTask, _hW, notifyTask2 } from '../render/dom/notify-render';
 import { useSequentialScope } from './use-sequential-scope';
 import type { QwikElement } from '../render/dom/virtual-element';
 import { handleError } from '../render/error-handling';
@@ -37,6 +37,7 @@ import { ComputedEvent, TaskEvent } from '../util/markers';
 import type { VirtualVNode } from '../v2/client/types';
 import type { Container2, HostElement, fixMeAny } from '../v2/shared/types';
 import { isPromise } from 'util/types';
+import { isServer } from '@builder.io/qwik/build';
 
 export const TaskFlagsIsVisibleTask = 1 << 0;
 export const TaskFlagsIsTask = 1 << 1;
@@ -540,17 +541,29 @@ export const useVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions)
     return;
   }
   assertQrl(qrl);
-  const task = new Task(TaskFlagsIsVisibleTask, i, elCtx.$element$, qrl, undefined);
-  const containerState = iCtx.$renderCtx$.$static$.$containerState$;
-  if (!elCtx.$tasks$) {
-    elCtx.$tasks$ = [];
-  }
-  elCtx.$tasks$.push(task);
-  set(task);
-  useRunTask(task, eagerness);
-  if (!isServerPlatform()) {
-    qrl.$resolveLazy$(containerState.$containerEl$);
-    notifyTask(task, containerState);
+
+  if (iCtx.$container2$) {
+    const host = iCtx.$hostElement$ as unknown as HostElement;
+    const task = new Task(TaskFlagsIsVisibleTask, i, iCtx.$hostElement$, qrl, undefined, null);
+    set(task);
+    useRunTask(task, eagerness);
+    if (!isServerPlatform()) {
+      notifyTask2(task, iCtx.$container2$);
+      qrl.$resolveLazy$(host as fixMeAny);
+    }
+  } else {
+    const task = new Task(TaskFlagsIsVisibleTask, i, elCtx.$element$, qrl, undefined, null);
+    const containerState = iCtx.$renderCtx$.$static$.$containerState$;
+    if (!elCtx.$tasks$) {
+      elCtx.$tasks$ = [];
+    }
+    elCtx.$tasks$.push(task);
+    set(task);
+    useRunTask(task, eagerness);
+    if (!isServerPlatform()) {
+      qrl.$resolveLazy$(containerState.$containerEl$);
+      notifyTask(task, containerState);
+    }
   }
 };
 

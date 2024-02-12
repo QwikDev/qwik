@@ -448,6 +448,48 @@ const BigIntSerializer = /*#__PURE__*/ serializer<bigint>({
   $fill$: undefined,
 });
 
+const Uint8ArrayESerializer = /*#__PURE__*/ serializer<Uint8Array>({
+  $prefix$: '\u001c',
+  $test$: (v) => v instanceof Uint8Array && v.length % 2 === 0,
+  $serialize$: (v) => {
+    let str = '';
+    for (let i = 0; i < v.length; i += 2) {
+      str += String.fromCharCode(v[i] + (v[i + 1] << 8));
+    }
+    return str;
+  },
+  $prepare$: (data) => {
+    const buf = new ArrayBuffer(data.length * 2);
+    const view = new Uint16Array(buf);
+    for (let i = 0; i < data.length; i++) {
+      view[i] = data.charCodeAt(i);
+    }
+    return new Uint8Array(buf);
+  },
+  $fill$: undefined,
+});
+
+const Uint8ArrayOSerializer = /*#__PURE__*/ serializer<Uint8Array>({
+  $prefix$: '\u001d',
+  $test$: (v) => v instanceof Uint8Array && v.length % 2 === 1,
+  $serialize$: (v) => {
+    let str = '';
+    for (let i = 0; i < v.length - 1; i += 2) {
+      str += String.fromCharCode(v[i] + (v[i + 1] << 8));
+    }
+    return str + String.fromCharCode(v[v.length - 1]);
+  },
+  $prepare$: (data) => {
+    const buf = new ArrayBuffer(data.length * 2);
+    const view = new Uint16Array(buf);
+    for (let i = 0; i < data.length; i++) {
+      view[i] = data.charCodeAt(i);
+    }
+    return new Uint8Array(buf, 0, data.length * 2 - 1);
+  },
+  $fill$: undefined,
+});
+
 const DATA = Symbol();
 const SetSerializer = /*#__PURE__*/ serializer<Set<any>>({
   $prefix$: '\u0019',
@@ -544,6 +586,8 @@ const serializers: Serializer<any>[] = /*#__PURE__*/ [
   SetSerializer, ////////////// \u0019
   MapSerializer, ////////////// \u001a
   StringSerializer, /////////// \u001b
+  Uint8ArrayESerializer, ////// \u001c
+  Uint8ArrayOSerializer, ////// \u001d
 ];
 
 const serializerByPrefix: (Serializer<unknown> | undefined)[] = /*#__PURE__*/ (() => {

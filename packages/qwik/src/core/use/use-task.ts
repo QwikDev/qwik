@@ -382,7 +382,7 @@ export const runTask2 = (
             }
           });
         });
-        container.$scheduler$.$scheduleCleanup$(task);
+        container.$scheduler$.$scheduleCleanup$(task as fixMeAny);
       }
       cleanupFns.push(fn);
     }
@@ -422,9 +422,7 @@ export const runComputed2 = (
       }),
     handleError
   );
-  if (isPromise(result)) {
-    throw result;
-  }
+  return result;
 };
 
 interface ComputedQRL {
@@ -596,14 +594,9 @@ export const useVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions)
   assertQrl(qrl);
 
   if (iCtx.$container2$) {
-    const host = iCtx.$hostElement$ as unknown as HostElement;
     const task = new Task(TaskFlagsIsVisibleTask, i, iCtx.$hostElement$, qrl, undefined, null);
     set(task);
     useRunTask(task, eagerness);
-    if (!isServerPlatform()) {
-      notifyTask2(task, iCtx.$container2$);
-      qrl.$resolveLazy$(host as fixMeAny);
-    }
   } else {
     const task = new Task(TaskFlagsIsVisibleTask, i, elCtx.$element$, qrl, undefined, null);
     const containerState = iCtx.$renderCtx$.$static$.$containerState$;

@@ -5,7 +5,7 @@
   - [X] `useTask$()`
   - [ ] `useResource$()`
   - [X] `useComputed$()`
-  - [ ] `useVisibleTask$()`
+  - [X] `useVisibleTask$()`
   - [X] `useOn()`/`useOnDocument()`/`useOnWindow()`
   - [X] `useContext()`/`useContextProvider()`
   - [X] Projection / `<Slot>`
@@ -13,7 +13,6 @@
   - [ ] `useStyleScoped$()`
 
 - [ ] Serialization
-  - [ ] `Promise`
   - [X] `undefined`
   - [X] `REFERENCE`
   - [X] `URL`

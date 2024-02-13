@@ -678,7 +678,7 @@ export const vnode_insertBefore = (
   insertBefore: VNode | null
 ) => {
   ensureElementOrVirtualVNode(parent);
-  const parentNode = vnode_getClosestParentNode(parent)!;
+  const parentNode = vnode_getDomParent(parent)!;
   assertFalse(newChild === insertBefore, "Can't insert before itself");
   if (vnode_isElementVNode(parent)) {
     ensureMaterialized(parent);
@@ -715,7 +715,7 @@ export const vnode_insertBefore = (
   newChild[VNodeProps.nextSibling] = vNext;
 };
 
-export const vnode_getClosestParentNode = (vnode: VNode): Node | null => {
+export const vnode_getDomParent = (vnode: VNode): Node | null => {
   while (vnode && !vnode_isElementVNode(vnode)) {
     vnode = vnode[VNodeProps.parent]!;
   }

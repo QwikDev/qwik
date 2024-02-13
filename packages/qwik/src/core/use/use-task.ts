@@ -308,7 +308,10 @@ export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: UseTaskOptions): void => {
       undefined,
       null
     );
-    runTask2(task, iCtx.$container2$, host);
+    const result = runTask2(task, iCtx.$container2$, host);
+    if (isPromise(result)) {
+      throw result;
+    }
     qrl.$resolveLazy$(host as fixMeAny);
   } else {
     const containerState = iCtx.$renderCtx$.$static$.$containerState$;
@@ -390,9 +393,7 @@ export const runTask2 = (
   task.$destroy$ = null;
   destroyFn && destroyFn();
   const result = safeCall(() => taskFn(taskApi), cleanup, handleError);
-  if (isPromise(result)) {
-    throw result;
-  }
+  return result;
 };
 
 interface ComputedQRL {

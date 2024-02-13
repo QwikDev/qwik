@@ -11,7 +11,7 @@ import {
   type useVisibleTaskQrl,
 } from '../../use/use-task';
 import { EMPTY_ARRAY } from '../../util/flyweight';
-import { isPromise } from '../../util/promises';
+import { isPromise, maybeThen } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
 import type { VirtualVNode } from '../client/types';
 import { vnode_documentPosition, vnode_isChildOf, vnode_isVNode } from '../client/vnode';
@@ -146,7 +146,7 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
     idx: number | string = 0,
     payload: unknown = null
   ) {
-    // console.log('>>>> SCHEDULE', !drainResolve, String(host), qrl);
+    // console.log('>>>> SCHEDULE', !drainResolve, String(host));
     const localQueueName = type == ChoreType.CLEANUP ? CLEANUP_LOCAL : CHORES_LOCAL;
     let hostChoreQueue = container.getHostProp<Chore[]>(host, localQueueName);
     if (!hostChoreQueue) {
@@ -175,13 +175,13 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
       const hostElement = hostElementQueue.shift()!;
       const jsx = drainComponent(hostElement);
       if (isPromise(jsx)) {
-        return jsx.then((jsx) => {
-          container.processJsx(hostElement, jsx);
-          drainAll();
-        });
+        return jsx.then((jsx) => maybeThen(() => container.processJsx(hostElement, jsx), drainAll));
       }
       if (jsx !== null) {
-        container.processJsx(hostElement, jsx);
+        const process = container.processJsx(hostElement, jsx);
+        if (isPromise(process)) {
+          return process.then(drainAll);
+        }
       }
     }
     const resolve = drainResolve!;

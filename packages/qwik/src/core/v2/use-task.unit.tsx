@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
 import { component$, componentQrl } from '../component/component.public';
 import { inlinedQrl } from '../qrl/qrl';
-import { Fragment as Component } from '../render/jsx/jsx-runtime';
+import { Fragment, Fragment as Component } from '../render/jsx/jsx-runtime';
 import type { Signal } from '../state/signal';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { useSignal } from '../use/use-signal';
@@ -426,14 +426,15 @@ Error.stackTraceLimit = 100;
         log.length = 0;
         await trigger(document.body, 'button', 'click');
       });
-      it.skip('should handle promises', async () => {
+      it('should handle promises and tasks', async () => {
         const log: string[] = [];
         const MyComp = component$(() => {
           log.push('render');
-          const promise = useSignal(Promise.resolve(0));
+          const promise = useSignal<Promise<number>>();
 
+          // Tasks should run one after the other, awaiting returned promises.
+          // Here we "sideload" a promise via the signal
           useTask$(() => {
-            log.push('1a');
             promise.value = Promise.resolve(0)
               .then(() => {
                 log.push('inside.1');
@@ -443,31 +444,53 @@ Error.stackTraceLimit = 100;
                 log.push('1b');
                 return 1;
               });
+            log.push('1a');
           });
 
           useTask$(async () => {
             log.push('2a');
-            await new Promise((r) => setTimeout(r, 500));
+            await delay(10);
             log.push('2b');
           });
 
           useTask$(() => {
+            promise.value = promise.value!.then(() => {
+              log.push('3b');
+              return 3;
+            });
             log.push('3a');
-            promise.value = (promise.value as Promise<number>)
-              .then(() => {
-                log.push('inside.3');
-                return delay(10);
-              })
-              .then(() => {
-                log.push('1b');
-                return 3;
-              });
           });
 
-          return <p>Should have a number: "{promise}"</p>;
+          return <p>Should have a number: "{promise.value}"</p>;
         });
-        const { vNode, document } = await render(<MyComp />, { debug });
-        console.log(log);
+        const { vNode } = await render(<MyComp />, { debug });
+        expect(log).toEqual([
+          // 1st render
+          'render',
+          // task 1 returns sync and sideloads promise
+          '1a',
+          // task 2 runs sync after that and returns a promise
+          '2a',
+          // async microtasks run, task 1 queues a delay
+          'inside.1',
+          '2b',
+          // render waited until task 2 finished
+          // re-render because of signal change in task 1
+          'render',
+          // task 3 runs sync and attaches to the promise
+          '3a',
+          // microtasks run
+          '1b',
+          '3b',
+        ]);
+        // The DOM should have the final value of the sideloaded promise
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <p>
+              Should have a number: "<Fragment>3</Fragment>"
+            </p>
+          </Component>
+        );
       });
     });
   });

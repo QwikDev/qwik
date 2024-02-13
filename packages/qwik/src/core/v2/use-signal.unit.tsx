@@ -1,18 +1,18 @@
-import { Fragment, Fragment as Component } from '@builder.io/qwik/jsx-runtime';
+import { Fragment as Component, Fragment } from '@builder.io/qwik/jsx-runtime';
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
 import { component$ } from '../component/component.public';
+import { _IMMUTABLE, _fnSignal } from '../internal';
 import { inlinedQrl } from '../qrl/qrl';
+import { _jsxC } from '../render/jsx/jsx-runtime';
+import { Slot } from '../render/jsx/slot.public';
 import type { Signal } from '../state/signal';
+import { untrack } from '../use/use-core';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { useSignal } from '../use/use-signal';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
-import './vdom-diff.unit-util';
-import { _jsxQ, _jsxC } from '../render/jsx/jsx-runtime';
-import { _IMMUTABLE, _fnSignal } from '../internal';
-import { untrack } from '../use/use-core';
 import type { fixMeAny } from './shared/types';
-import { Slot } from '../render/jsx/slot.public';
+import './vdom-diff.unit-util';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -128,6 +128,47 @@ Error.stackTraceLimit = 100;
           </button>
         </>
       );
+    });
+    it('should render promise values', async () => {
+      const MpCmp = component$(() => {
+        const promise = Promise.resolve('const ');
+        const signal = useSignal(Promise.resolve(0));
+        return (
+          <button
+            onClick$={inlinedQrl(
+              () => {
+                const [s] = useLexicalScope<[typeof signal]>();
+                s.value = s.value.then((v) => v + 1);
+              },
+              's_click',
+              [signal]
+            )}
+          >
+            {promise}
+            {signal.value}
+          </button>
+        );
+      });
+
+      const { vNode, container, document } = await render(<MpCmp />, { debug });
+      expect(vNode).toMatchVDOM(
+        <>
+          <button>
+            <>const </>
+            <>0</>
+          </button>
+        </>
+      );
+      await trigger(container.element, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <>
+          <button>
+            <>const </>
+            <>1</>
+          </button>
+        </>
+      );
+      expect(document.querySelector('button')!.innerHTML).toBe('const 1');
     });
     describe('derived', () => {
       it('should update value directly in DOM', async () => {

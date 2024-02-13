@@ -123,7 +123,7 @@ export async function ssrRenderToDom(
     console.log('--------------------------------------------------------');
   }
   const bodyVNode = vnode_getVNodeForChildNode(container.rootVNode, document.body);
-  return { container, document, vNode: vnode_getFirstChild(bodyVNode) };
+  return { container, document, vNode: vnode_getFirstChild(bodyVNode)! };
 }
 
 export async function rerenderComponent(element: HTMLElement) {
@@ -133,6 +133,8 @@ export async function rerenderComponent(element: HTMLElement) {
   const qrl = container.getHostProp<QRL<any>>(host, OnRenderProp);
   const props = container.getHostProp(host, 'props');
   container.$scheduler$.$scheduleComponent$(host, qrl, props);
+  container.$scheduler$.$drainAll$();
+  await getTestPlatform().flush();
 }
 
 function getHostVNode(vElement: VNode | null) {

@@ -125,7 +125,7 @@ describe('vnode', () => {
       expect(vParent).toMatchVDOM(
         <test>
           {''}
-          <b></b>
+          <b />
           <>{''}</>
         </test>
       );
@@ -152,6 +152,50 @@ describe('vnode', () => {
       vnode_setText(text3, 'Name');
       vnode_setText(text4, '.');
       expect(parent.innerHTML).toEqual(`Salutation Name.`);
+    });
+    it('should inflate text nodes across virtual', () => {
+      parent.innerHTML = `123`;
+      document.qVNodeData.set(parent, '{{}{B}{}B{}}B');
+      vnode_getFirstChild(vParent) as VirtualVNode;
+      expect(vParent).toMatchVDOM(
+        <test>
+          <>
+            <></>
+            <>1</>
+            <></>
+            {'2'}
+            <></>
+          </>
+          3
+        </test>
+      );
+      const firstVirtual = vnode_getFirstChild(vParent) as VirtualVNode;
+      const lastText = vnode_getNextSibling(firstVirtual) as TextVNode;
+      vnode_setText(lastText, '!');
+      expect(parent.innerHTML).toEqual(`12!`);
+    });
+    it('should inflate text nodes across virtual', () => {
+      parent.innerHTML = `123`;
+      document.qVNodeData.set(parent, '{{}{B}{}B{}}B');
+      vnode_getFirstChild(vParent) as VirtualVNode;
+      expect(vParent).toMatchVDOM(
+        <test>
+          <>
+            <></>
+            <>1</>
+            <></>
+            {'2'}
+            <></>
+          </>
+          3
+        </test>
+      );
+      const firstVirtual = vnode_getFirstChild(vParent) as VirtualVNode;
+      const innerVirtual = vnode_getFirstChild(firstVirtual) as VirtualVNode;
+      const firstTextVirtual = vnode_getNextSibling(innerVirtual) as TextVNode;
+      const firstText = vnode_getFirstChild(firstTextVirtual) as TextVNode;
+      vnode_setText(firstText, '!');
+      expect(parent.innerHTML).toEqual(`!23`);
     });
   });
   describe('virtual', () => {

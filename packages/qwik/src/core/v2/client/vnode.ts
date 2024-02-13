@@ -146,6 +146,7 @@ import {
 } from '../../util/markers';
 import { isQrl } from '../../qrl/qrl-class';
 import { isDev } from '@builder.io/qwik/build';
+import { text } from 'stream/consumers';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -337,8 +338,10 @@ export const vnode_ensureElementInflated = (vnode: VNode) => {
     for (let idx = 0; idx < attributes.length; idx++) {
       const attr = attributes[idx];
       const key = attr.name;
-      const value = attr.value;
-      mapArray_set(elementVNode as string[], key, value, vnode_getPropStartIndex(vnode));
+      if (!key.startsWith('on:')) {
+        const value = attr.value;
+        mapArray_set(elementVNode as string[], key, value, vnode_getPropStartIndex(vnode));
+      }
     }
   }
 };
@@ -348,28 +351,6 @@ const vnode_getDOMParent = (vnode: VNode): Element | null => {
     vnode = vnode[VNodeProps.parent]!;
   }
   return vnode && vnode[ElementVNodeProps.element];
-};
-
-const vnode_getDOMInsertBefore = (vNode: VNode | null): Node | null => {
-  while (vNode) {
-    const type = vNode[VNodeProps.flags];
-    if (type & VNodeFlags.ELEMENT_OR_TEXT_MASK) {
-      return vnode_getNode(vNode);
-    } else {
-      assertTrue(vnode_isVirtualVNode(vNode), 'Expecting Fragment');
-      let vNext = vnode_getFirstChild(vNode) || vnode_getNextSibling(vNode);
-      while (vNext === null) {
-        vNode = vnode_getParent(vNode)!;
-        if (vNode == null || vnode_isElementVNode(vNode)) {
-          // we traversed all nodes and did not find anything;
-          return null;
-        }
-        vNext = vnode_getNextSibling(vNode);
-      }
-      vNode = vNext;
-    }
-  }
-  return null;
 };
 
 export const vnode_getDOMChildNodes = (root: VNode, childNodes: Node[] = []): Node[] => {
@@ -390,53 +371,117 @@ export const vnode_getDOMChildNodes = (root: VNode, childNodes: Node[] = []): No
   return childNodes;
 };
 
+/**
+ * Returns the previous/next sibling but from the point of view of the DOM.
+ *
+ * Given:
+ *
+ * ```
+ * <div>
+ *   <>a</>
+ *   <>
+ *     <></>
+ *     <>b</>
+ *     <></>
+ *   </>
+ *   <>c</>
+ * </div>
+ * ```
+ *
+ * Then:
+ *
+ * - Next: if we start at `a` the next DOM sibling is `b`, than `c`.
+ * - Previous: if we start at `c` the next DOM sibling is `b`, than `a`.
+ *
+ * @param vNode
+ * @returns
+ */
+const vnode_getDomSibling = (vNode: VNode, nextDirection: boolean): VNode | null => {
+  const childProp = nextDirection ? VirtualVNodeProps.firstChild : VirtualVNodeProps.lastChild;
+  const siblingProp = nextDirection ? VNodeProps.nextSibling : VNodeProps.previousSibling;
+  let cursor: VNode | null = vNode;
+  // first make sure we have a DOM node or no children.
+  while (cursor && vnode_isVirtualVNode(cursor)) {
+    const child: VNode | null = cursor[childProp];
+    if (!child) {
+      break;
+    }
+    if (child[VNodeProps.flags] & VNodeFlags.ELEMENT_OR_TEXT_MASK) {
+      return child;
+    }
+    cursor = child;
+  }
+  while (cursor) {
+    // Look at the previous/next sibling.
+    let sibling: VNode | null = cursor[siblingProp];
+    if (sibling && sibling[VNodeProps.flags] & VNodeFlags.ELEMENT_OR_TEXT_MASK) {
+      // we found a previous/next DOM node, return it.
+      return sibling;
+    } else if (!sibling) {
+      // If we don't have a sibling than walk up the tree until you find one.
+      let virtual: VNode | null = cursor[VNodeProps.parent];
+      while (virtual && !(sibling = virtual[siblingProp])) {
+        if (!vnode_isVirtualVNode(virtual)) {
+          // the parent node is not virtual, so we are done here.
+          return null;
+        }
+        virtual = virtual[VNodeProps.parent];
+      }
+    }
+    // At this point `sibling` is a next node to look at.
+    // Next step is to descend until we find a DOM done.
+    while (sibling) {
+      cursor = sibling;
+      if (cursor[VNodeProps.flags] & VNodeFlags.ELEMENT_OR_TEXT_MASK) {
+        return cursor;
+      }
+      sibling = (cursor as VirtualVNode)[childProp];
+    }
+    // If we are here we did not find anything and we need to go up the tree again.
+  }
+  return null;
+};
+
 const vnode_ensureTextInflated = (vnode: TextVNode) => {
   const textVNode = ensureTextVNode(vnode);
   const flags = textVNode[VNodeProps.flags];
-  if (flags === VNodeFlags.Text) {
-    // Find the first TextVNode
-    let firstTextVnode = vnode;
-    while (true as boolean) {
-      const previous = firstTextVnode[VNodeProps.previousSibling];
-      if (previous && vnode_isTextVNode(previous)) {
-        firstTextVnode = previous;
-      } else {
-        break;
-      }
-    }
-    // Find the last TextVNode
-    let lastTextVnode = vnode;
-    while (true as boolean) {
-      const next = lastTextVnode[VNodeProps.nextSibling];
-      if (next && vnode_isTextVNode(next)) {
-        lastTextVnode = next;
-      } else {
-        break;
-      }
-    }
-    // iterate over each text node and inflate it.
+  if ((flags & VNodeFlags.Inflated) === 0) {
     const parentNode = vnode_getDOMParent(vnode)!;
-    assertDefined(parentNode, 'Missing parentNode.');
+    const sharedTextNode = textVNode[TextVNodeProps.node] as Text;
     const doc = parentNode.ownerDocument;
-    // Process the last node first and use the existing dom Node as the last node.
-    let textNode = lastTextVnode[TextVNodeProps.node] as Text | null;
-    const textValue = lastTextVnode[TextVNodeProps.text] as string;
-    if (textNode === null) {
-      const insertBeforeNode = vnode_getDOMInsertBefore(vnode_getNextSibling(lastTextVnode));
-      textNode = lastTextVnode[TextVNodeProps.node] = doc.createTextNode(textValue);
-      parentNode.insertBefore(textNode, insertBeforeNode);
-    } else {
-      textNode.nodeValue = textValue;
+    // Walk the previous siblings and inflate them.
+    let cursor = vnode_getDomSibling(vnode, false);
+    // If text node is 0 length, than there is no text node.
+    // In that case we use the next node as a reference, in which
+    // case we know that the next node MUST be either NULL or an Element.
+    let insertBeforeNode: Node | null = sharedTextNode;
+    if (!insertBeforeNode) {
+      insertBeforeNode = (vnode_getDomSibling(vnode, true)?.[ElementVNodeProps.element] ||
+        null) as Node | null;
     }
-    lastTextVnode[VNodeProps.flags] = VNodeFlags.Text | VNodeFlags.Inflated;
-    while (firstTextVnode !== lastTextVnode) {
-      const previousTextNode = (firstTextVnode[TextVNodeProps.node] = doc.createTextNode(
-        firstTextVnode[TextVNodeProps.text] as string
-      ));
-      parentNode.insertBefore(previousTextNode, textNode);
-      firstTextVnode = firstTextVnode[VNodeProps.nextSibling] as TextVNode;
-      assertDefined(firstTextVnode, 'Missing firstTextVnode.');
-      firstTextVnode[VNodeProps.flags] = VNodeFlags.Text | VNodeFlags.Inflated;
+    let lastPreviousTextNode = insertBeforeNode;
+    while (cursor && vnode_isTextVNode(cursor)) {
+      const textNode = doc.createTextNode(cursor[TextVNodeProps.text]);
+      parentNode.insertBefore(textNode, lastPreviousTextNode);
+      lastPreviousTextNode = textNode;
+      cursor[TextVNodeProps.node] = textNode;
+      cursor[VNodeProps.flags] |= VNodeFlags.Inflated;
+      cursor = vnode_getDomSibling(cursor, false);
+    }
+    // Walk the next siblings and inflate them.
+    cursor = vnode;
+    while (cursor && vnode_isTextVNode(cursor)) {
+      const next = vnode_getDomSibling(cursor, true);
+      const isLastNode = next ? !vnode_isTextVNode(next) : true;
+      if (isLastNode && sharedTextNode) {
+        sharedTextNode.nodeValue = cursor[TextVNodeProps.text];
+      } else {
+        const textNode = doc.createTextNode(cursor[TextVNodeProps.text]);
+        parentNode.insertBefore(textNode, insertBeforeNode);
+        cursor[TextVNodeProps.node] = textNode;
+      }
+      cursor[VNodeProps.flags] |= VNodeFlags.Inflated;
+      cursor = next;
     }
   }
 };
@@ -641,10 +686,15 @@ export const vnode_insertBefore = (
   }
   if (!vnode_isVirtualVNode(newChild)) {
     const shouldWeUseParentVirtual = insertBefore == null && vnode_isVirtualVNode(parent);
-    const insertBeforeNode = vnode_getDOMInsertBefore(
-      shouldWeUseParentVirtual ? parent : insertBefore
+    const insertBeforeNode = vnode_getDomSibling(
+      (shouldWeUseParentVirtual ? parent : insertBefore)!,
+      true
     );
-    parentNode && parentNode.insertBefore(vnode_getNode(newChild)!, insertBeforeNode);
+    parentNode &&
+      parentNode.insertBefore(
+        vnode_getNode(newChild)!,
+        insertBeforeNode && vnode_getNode(insertBeforeNode)
+      );
   }
 
   // link newChild into the previous/next list
@@ -816,7 +866,10 @@ export const vnode_getAttrKeys = (vnode: ElementVNode | VirtualVNode): string[] 
     vnode_ensureElementInflated(vnode);
     const keys: string[] = [];
     for (let i = vnode_getPropStartIndex(vnode); i < vnode.length; i = i + 2) {
-      keys.push(vnode[i] as string);
+      const key = vnode[i] as string;
+      if (!key.startsWith(':')) {
+        keys.push(key);
+      }
     }
     return keys;
   }
@@ -870,7 +923,7 @@ export const vnode_getProp = <T>(
 ): T | null => {
   const type = vnode[VNodeProps.flags];
   if ((type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) !== 0) {
-    const idx = mapApp_findIndx(vnode as any, key, VirtualVNodeProps.PROPS_OFFSET);
+    const idx = mapApp_findIndx(vnode as any, key, vnode_getPropStartIndex(vnode));
     if (idx >= 0) {
       let value = vnode[idx + 1] as any;
       if (typeof value === 'string' && getObject) {
@@ -881,18 +934,6 @@ export const vnode_getProp = <T>(
   }
   return null;
 };
-
-// export const vnode_clearLocalProps = (vnode: VNode) => {
-//   const type = vnode[VNodeProps.flags];
-//   if ((type & VNodeFlags.Virtual) !== 0) {
-//     for (let idx = VirtualVNodeProps.PROPS_OFFSET; idx < vnode.length; idx += 2) {
-//       const key = vnode[idx] as string;
-//       if (key.startsWith(':')) {
-//         vnode[idx + 1] = null;
-//       }
-//     }
-//   }
-// };
 
 export const vnode_setProp = (vnode: VirtualVNode | ElementVNode, key: string, value: unknown) => {
   ensureElementOrVirtualVNode(vnode);

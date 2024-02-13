@@ -48,6 +48,8 @@ import {
   vNodeData_openFragment,
   type VNodeData,
 } from './vnode-data';
+import type { ValueOrPromise } from '../../util/types';
+import { maybeThen } from '../../util/promises';
 
 export function ssrCreateContainer(
   opts: {
@@ -188,9 +190,9 @@ class SSRContainer implements ISSRContainer {
     ]);
   }
 
-  closeContainer(): void {
+  closeContainer(): ValueOrPromise<void> {
     this.$scheduler$.$drainCleanup$(null);
-    this.closeElement();
+    return this.closeElement();
   }
 
   openElement(tag: string, attrs: SsrAttrs) {
@@ -203,14 +205,18 @@ class SSRContainer implements ISSRContainer {
     this.lastNode = null;
   }
 
-  closeElement() {
+  closeElement(): ValueOrPromise<void> {
     const currentFrame = this.currentElementFrame!;
     if (
       (currentFrame.parent === null && currentFrame.tagNesting !== TagNesting.HTML) ||
       currentFrame.tagNesting === TagNesting.BODY
     ) {
-      this.emitContainerData();
+      return maybeThen(this.emitContainerData(), () => this._closeElement());
     }
+    this._closeElement();
+  }
+
+  private _closeElement() {
     this.write('</');
     this.write(this.popFrame().elementName!);
     this.write('>');
@@ -302,11 +308,10 @@ class SSRContainer implements ISSRContainer {
 
   ////////////////////////////////////
 
-  emitContainerData() {
+  emitContainerData(): ValueOrPromise<void> {
     this.emitUnclaimedProjection();
     this.emitVNodeData();
-    this.emitStateData();
-    this.emitSyncFnsData();
+    return maybeThen(this.emitStateData(), () => this.emitSyncFnsData());
   }
 
   /**
@@ -443,10 +448,12 @@ class SSRContainer implements ISSRContainer {
     this.closeElement();
   }
 
-  private emitStateData() {
+  private emitStateData(): ValueOrPromise<void> {
     this.openElement('script', ['type', 'qwik/state']);
-    serialize(this.serializationCtx);
-    this.closeElement();
+    return maybeThen(this.serializationCtx.$breakCircularDepsAndAwaitPromises$(), () => {
+      serialize(this.serializationCtx);
+      this.closeElement();
+    });
   }
 
   private emitSyncFnsData() {

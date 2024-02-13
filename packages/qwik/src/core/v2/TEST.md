@@ -4,7 +4,7 @@
   - [X] `useStore()`
   - [X] `useTask$()`
   - [ ] `useResource$()`
-  - [ ] `useComputed$()`
+  - [X] `useComputed$()`
   - [ ] `useVisibleTask$()`
   - [X] `useOn()`/`useOnDocument()`/`useOnWindow()`
   - [X] `useContext()`/`useContextProvider()`

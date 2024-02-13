@@ -2,8 +2,8 @@ import { componentQrl, type OnRenderFn } from '../../component/component.public'
 import type { QRLInternal } from '../../qrl/qrl-class';
 import type { QRL } from '../../qrl/qrl.public';
 import type { JSXOutput } from '../../render/jsx/types/jsx-node';
-import type { Signal } from '../../state/signal';
 import {
+  runComputed2,
   runTask2,
   Task,
   type TaskFn,
@@ -56,6 +56,7 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
 
   const api = {
     $scheduleTask$: scheduleTask,
+    $scheduleComputed$: scheduleComputed,
     $scheduleNodeDiff$: scheduleNodeDiff,
     $scheduleCleanup$: scheduleCleanup,
     $scheduleComponent$: scheduleComponent,
@@ -72,6 +73,11 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
 
   function scheduleTask(task: Task) {
     schedule(ChoreType.TASK, task.$el$ as fixMeAny, task.$qrl$ as fixMeAny, task.$index$, task);
+    return api;
+  }
+
+  function scheduleComputed(task: Task) {
+    schedule(ChoreType.COMPUTED, task.$el$ as fixMeAny, task.$qrl$ as fixMeAny, task.$index$, task);
     return api;
   }
 
@@ -126,7 +132,8 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
     type: ChoreType.COMPUTED,
     host: HostElement,
     qrl: QRL<OnRenderFn<any>>,
-    idx: number
+    idx: number,
+    task: Task
   ): void;
   function schedule(
     type: ChoreType.VISIBLE,
@@ -237,8 +244,10 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
           chore.$target$ as fixMeAny,
           chore.$payload$ as fixMeAny
         );
+      case ChoreType.COMPUTED:
+        return runComputed2(chore.$payload$ as Task<TaskFn, TaskFn>, container, host);
       case ChoreType.TASK:
-        return runTask2(chore.$payload$ as any as Task<TaskFn, TaskFn>, container, host);
+        return runTask2(chore.$payload$ as Task<TaskFn, TaskFn>, container, host);
       case ChoreType.NODE_DIFF:
         const parentVirtualNode = chore.$target$ as VirtualVNode;
         const jsx = chore.$payload$ as JSXOutput;

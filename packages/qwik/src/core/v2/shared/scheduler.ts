@@ -153,7 +153,7 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
     idx: number | string = 0,
     payload: unknown = null
   ) {
-    // console.log('>>>> SCHEDULE', !drainResolve, String(host), qrl);
+    // console.log('>>>> SCHEDULE', !drainResolve, String(host));
     const localQueueName = type == ChoreType.CLEANUP ? CLEANUP_LOCAL : CHORES_LOCAL;
     let hostChoreQueue = container.getHostProp<Chore[]>(host, localQueueName);
     if (!hostChoreQueue) {

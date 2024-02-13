@@ -14,6 +14,7 @@ import {
   isSubscriberDescriptor,
   runSubscriber,
   type SubscriberEffect,
+  type TaskDescriptor,
 } from '../../use/use-task';
 import { getDocument } from '../../util/dom';
 import { logError, logWarn } from '../../util/log';
@@ -21,10 +22,10 @@ import { QStyle } from '../../util/markers';
 import { maybeThen } from '../../util/promises';
 import { qDev } from '../../util/qdev';
 import type { ValueOrPromise } from '../../util/types';
-import { isDomContainer } from '../../v2/client/dom-container';
+import { getDomContainer, isDomContainer } from '../../v2/client/dom-container';
 import type { VirtualVNode } from '../../v2/client/types';
 import { vnode_isVNode } from '../../v2/client/vnode';
-import type { Container2 } from '../../v2/shared/types';
+import type { Container2, fixMeAny } from '../../v2/shared/types';
 import { createRenderContext } from '../execute-component';
 import { directGetAttribute } from '../fast-calls';
 import type { RenderContext } from '../types';
@@ -122,6 +123,19 @@ export const notifyTask = (task: SubscriberEffect, containerState: ContainerStat
   }
 };
 
+export const notifyTask2 = (task: TaskDescriptor, container: Container2) => {
+  if (task.$flags$ & TaskFlagsIsDirty) {
+    return;
+  }
+  task.$flags$ |= TaskFlagsIsDirty;
+
+  container.$scheduler$.$scheduleTask$(task as fixMeAny);
+
+  if (isDomContainer(container)) {
+    container.scheduleRender();
+  }
+};
+
 const scheduleFrame = (containerState: ContainerState): Promise<void> => {
   if (containerState.$renderPromise$ === undefined) {
     containerState.$renderPromise$ = getPlatform().nextTick(() => renderMarked(containerState));
@@ -137,7 +151,13 @@ const scheduleFrame = (containerState: ContainerState): Promise<void> => {
  */
 export const _hW = () => {
   const [task] = useLexicalScope<[SubscriberEffect]>();
-  notifyTask(task, _getContainerState(getWrappingContainer(task.$el$)!));
+  if (vnode_isVNode(task.$el$)) {
+    const containerElement = getWrappingContainer(task.$el$ as fixMeAny) as HTMLElement;
+    const container = getDomContainer(containerElement);
+    container.$scheduler$.$scheduleTask$(task as fixMeAny);
+  } else {
+    notifyTask(task, _getContainerState(getWrappingContainer(task.$el$)!));
+  }
 };
 
 const renderMarked = async (containerState: ContainerState): Promise<void> => {

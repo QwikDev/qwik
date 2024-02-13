@@ -35,7 +35,7 @@ import type {
 import {
   mapArray_get,
   mapArray_set,
-  vnode_getClosestParentNode,
+  vnode_getDomParent,
   vnode_getDOMChildNodes,
   vnode_getParent,
   vnode_getProp,
@@ -49,7 +49,7 @@ import { vnode_applyJournal, vnode_diff, type VNodeJournalEntry } from './vnode-
 
 export function getDomContainer(element: HTMLElement | ElementVNode): IClientContainer {
   let htmlElement: HTMLElement | null = Array.isArray(element)
-    ? (vnode_getClosestParentNode(element) as HTMLElement)
+    ? (vnode_getDomParent(element) as HTMLElement)
     : element;
   while (htmlElement && !htmlElement.hasAttribute(QContainerAttr)) {
     htmlElement = htmlElement.closest(QContainerSelector);

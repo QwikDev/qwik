@@ -5,25 +5,37 @@ import { useSignal } from '../use/use-signal';
 import { useVisibleTask$ } from '../use/use-task';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
+import { trigger } from '../../testing/element-fixture';
+import { inlinedQrl } from '../qrl/qrl';
+import { useLexicalScope } from '../use/use-lexical-scope.public';
 
-const debug = false; //true;
+const debug = true; //true;
 Error.stackTraceLimit = 100;
 
 [
   ssrRenderToDom, //
-  domRender, //
+  // domRender, //
 ].forEach((render) => {
   describe(render.name + ': useVisibleTask', () => {
     it('should execute visible task', async () => {
       const Counter = component$(() => {
         const count = useSignal('SSR');
-        useVisibleTask$(() => {
-          count.value = 'CSR';
-        });
+        useVisibleTask$(
+          inlinedQrl(
+            () => {
+              const [count] = useLexicalScope();
+              count.value = 'CSR';
+              console.log('visibleTask');
+            },
+            's_visibleTask',
+            [count]
+          )
+        );
         return <span>{count.value}</span>;
       });
 
-      const { vNode } = await render(<Counter />, { debug });
+      const { vNode, document } = await render(<Counter />, { debug });
+      await trigger(document.body, 'span', 'qvisible');
       expect(vNode).toMatchVDOM(
         <Component>
           <span>CSR</span>

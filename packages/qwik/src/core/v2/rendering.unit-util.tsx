@@ -25,9 +25,8 @@ import {
   vnode_toString,
 } from './client/vnode';
 import { codeToName } from './shared/shared-serialization';
-import { ssrCreateContainer } from './ssr/ssr-container';
-import { ssrRenderToContainer } from './ssr/ssr-render';
 import './vdom-diff.unit-util';
+import { renderToString2 } from './ssr/render2';
 
 export async function domRender(
   jsx: JSXOutput,
@@ -79,14 +78,21 @@ export async function ssrRenderToDom(
       setPlatform(platform);
     }
   }
-  const ssrContainer = ssrCreateContainer({ tagName: 'html' });
-  await ssrRenderToContainer(ssrContainer, [
-    <head>
-      <title>{expect.getState().testPath}</title>
-    </head>,
-    <body>{jsx}</body>,
-  ]);
-  const html = ssrContainer.writer.toString();
+
+  let html = '';
+  const platform = getPlatform();
+  try {
+    const result = await renderToString2([
+      <head>
+        <title>{expect.getState().testPath}</title>
+      </head>,
+      <body>{jsx}</body>,
+    ]);
+    html = result.html;
+  } finally {
+    setPlatform(platform);
+  }
+
   const document = createDocument({ html });
   const qFuncs = document.body.querySelector('[q\\:func]');
   const containerElement = document.body.parentElement as ContainerElement;

@@ -165,11 +165,10 @@ Another important note is that Qwik City's request intercepting is _only_ for Qw
 
 So while Qwik City does provide a way to help prefetch and cache bundles, it does not take full control of the app's service worker. This still allows developers to add their service worker logic without conflicting with Qwik.
 
-## Disabled During Development and Preview
+## Disabled During Development
 
-One gotcha during development and using Vite's preview mode is that the service worker is disabled which also disables speculative module fetching. During development we want to always ensure the latest development code is being used, rather than previous code.
+Speculative module fetching only kicks in preview or on a production build. In development, the service worker is disabled which also disables speculative module fetching. This is because during development we want to always ensure the latest development code is being used, rather than what's been previously cached.
 
-Speculative module fetching only kicks on a production build. To see speculative module fetching in action you'll need to run the production build on a server other than development or preview.
 
 ### HTTP Cache vs. Service Worker Cache
 

@@ -1,10 +1,10 @@
 {
   "name": "@builder.io/qwik-react",
   "description": "QwikReact allows adding React components into existing Qwik application",
-  "version": "0.5.1",
+  "version": "0.5.4",
   "bugs": "https://github.com/BuilderIO/qwik/issues",
   "devDependencies": {
-    "@builder.io/qwik": "workspace:*",
+    "@builder.io/qwik": "workspace:^",
     "@types/react": "^18.2.48",
     "@types/react-dom": "^18.2.18",
     "react": "18.2.0",
@@ -35,7 +35,7 @@
   "license": "MIT",
   "main": "./lib/index.qwik.mjs",
   "peerDependencies": {
-    "@builder.io/qwik": "workspace:*",
+    "@builder.io/qwik": "workspace:^",
     "@types/react": "^18.2.48",
     "@types/react-dom": "^18.2.18",
     "react": "18.2.0",
@@ -58,7 +58,7 @@
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",
     "lint": "eslint \"src/**/*.ts*\"",
-    "release": "np",
+    "release": "pnpm run -w build.local && pnpm publish",
     "start": "npm run dev",
     "typecheck": "tsc --noEmit"
   },

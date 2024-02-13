@@ -48,7 +48,10 @@ export const Link = component$<LinkProps>((props) => {
           prefetchSymbols(url.pathname);
 
           if (elm.hasAttribute('data-prefetch')) {
-            loadClientData(url, elm, { prefetchSymbols: false });
+            loadClientData(url, elm, {
+              prefetchSymbols: false,
+              isPrefetch: true,
+            });
           }
         }
       })

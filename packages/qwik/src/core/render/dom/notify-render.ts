@@ -428,8 +428,9 @@ const sortNodes = (elements: QContext[]) => {
 };
 
 const sortTasks = (tasks: SubscriberEffect[]) => {
+  const isServer = isServerPlatform();
   tasks.sort((a, b) => {
-    if (a.$el$ === b.$el$) {
+    if (isServer || a.$el$ === b.$el$) {
       return a.$index$ < b.$index$ ? -1 : 1;
     }
     return (a.$el$.compareDocumentPosition(getRootNode(b.$el$)) & 2) !== 0 ? 1 : -1;

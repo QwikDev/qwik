@@ -11,6 +11,7 @@ import {
   type SubscriberEffect,
   type SubscriberHost,
   isTask,
+  isComputedTask,
 } from '../use/use-task';
 import type { QwikElement } from '../render/dom/virtual-element';
 import { notifyChange } from '../render/dom/notify-render';
@@ -461,7 +462,11 @@ export class LocalSubscriptionManager {
         const scheduler = this.$containerState$.$scheduler$;
         if (type == SubscriptionType.HOST) {
           if (isTask(host)) {
-            scheduler.$scheduleTask$(host);
+            if (isComputedTask(host)) {
+              scheduler.$scheduleComputed$(host);
+            } else {
+              scheduler.$scheduleTask$(host);
+            }
           } else {
             const componentQrl = this.$containerState$.getHostProp<QRL<OnRenderFn<any>>>(
               host as fixMeAny,

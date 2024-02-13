@@ -11,7 +11,7 @@ import {
   type useVisibleTaskQrl,
 } from '../../use/use-task';
 import { EMPTY_ARRAY } from '../../util/flyweight';
-import { isPromise } from '../../util/promises';
+import { isPromise, maybeThen } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
 import type { VirtualVNode } from '../client/types';
 import { vnode_documentPosition, vnode_isChildOf, vnode_isVNode } from '../client/vnode';
@@ -175,13 +175,13 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
       const hostElement = hostElementQueue.shift()!;
       const jsx = drainComponent(hostElement);
       if (isPromise(jsx)) {
-        return jsx.then((jsx) => {
-          container.processJsx(hostElement, jsx);
-          drainAll();
-        });
+        return jsx.then((jsx) => maybeThen(container.processJsx(hostElement, jsx), drainAll));
       }
       if (jsx !== null) {
-        container.processJsx(hostElement, jsx);
+        const shouldWait = container.processJsx(hostElement, jsx);
+        if (isPromise(shouldWait)) {
+          return shouldWait.then(drainAll);
+        }
       }
     }
     const resolve = drainResolve!;

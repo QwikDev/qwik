@@ -9,6 +9,8 @@
   - [X] `useOn()`/`useOnDocument()`/`useOnWindow()`
   - [X] `useContext()`/`useContextProvider()`
   - [X] Projection / `<Slot>`
+  - [ ] `useStyle$()`
+  - [ ] `useStyleScoped$()`
 
 - [ ] Serialization
   - [ ] `Promise`
@@ -34,3 +36,4 @@
   - [X] `JSXNode`
   - [X] `Set`
   - [X] `Map`
+  - [X] `Promise`

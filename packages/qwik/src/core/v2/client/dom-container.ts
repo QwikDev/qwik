@@ -220,7 +220,7 @@ export class DomContainer implements IClientContainer, StoreTracker {
       this.rendering = true;
       this.renderDone = getPlatform().nextTick(() => {
         // console.log('>>>> scheduleRender nextTick', !!this.rendering);
-        maybeThen(this.$scheduler$.$drainAll$(), () => {
+        return maybeThen(this.$scheduler$.$drainAll$(), () => {
           this.rendering = false;
           // console.log('>>>> Drain Journal', this.$journal$.length);
           vnode_applyJournal(this.$journal$);

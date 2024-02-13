@@ -147,6 +147,9 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
               ]),
               true
             );
+          } else if (isPromise(jsxValue)) {
+            expectVirtual();
+            asyncQueue.push(jsxValue, vNewNode || vCurrent);
           } else if (isJSXNode(jsxValue)) {
             const type = jsxValue.type;
             if (typeof type === 'string') {
@@ -534,8 +537,11 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
         if (isEvent) {
           // Special handling for events
           patchEventDispatch = true;
+          record(':' + srcKey!, srcAttrs[srcIdx]);
+        } else {
+          record(srcKey!, srcAttrs[srcIdx]);
         }
-        record(srcKey!, srcAttrs[srcIdx++]);
+        srcIdx++;
         srcKey = srcIdx < srcLength ? srcAttrs[srcIdx++] : null;
       } else if (srcKey == dstKey) {
         const srcValue = srcAttrs[srcIdx++];
@@ -563,7 +569,8 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       if (!element.qDispatchEvent) {
         element.qDispatchEvent = (event: Event) => {
           const eventName = event.type;
-          const eventProp = 'on' + eventName.charAt(0).toUpperCase() + eventName.substring(1) + '$';
+          const eventProp =
+            ':on' + eventName.charAt(0).toUpperCase() + eventName.substring(1) + '$';
           const qrls = vnode_getProp(vnode, eventProp, null);
           let returnValue = false;
           qrls &&
@@ -696,8 +703,7 @@ export const vnode_applyJournal = (journal: VNodeJournalEntry[]) => {
         while (typeof (key = journal[idx] as string | null) === 'string') {
           idx++;
           const value = journal[idx++] as string | null;
-          if (key.startsWith('on') && key.endsWith('$')) {
-            // special handling for events.
+          if (key.startsWith(':')) {
             vnode_setProp(vnode, key, value);
           } else {
             vnode_setAttr(vnode, key, value);

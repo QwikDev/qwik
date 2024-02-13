@@ -33,6 +33,9 @@ export function asyncWalkJSX(ssr: SSRContainer, value: any): Promise<void> {
       stack.push(closingValue);
     }
     stack.push(value);
+    if (isPromise(value)) {
+      stack.push(Promise);
+    }
   };
   const resolveValue = (value: any) => {
     stack.push(value);
@@ -43,7 +46,10 @@ export function asyncWalkJSX(ssr: SSRContainer, value: any): Promise<void> {
       const value = stack.pop();
       if (typeof value === 'function') {
         if (value === ssr.closeElement) {
-          ssr.closeElement();
+          const waitOn = ssr.closeElement();
+          if (waitOn) {
+            return waitOn.then(resolveValue, rejectDrain);
+          }
           continue;
         } else if (value === ssr.closeFragment) {
           ssr.closeFragment();
@@ -54,12 +60,12 @@ export function asyncWalkJSX(ssr: SSRContainer, value: any): Promise<void> {
         } else if (value === ssr.closeProjection) {
           ssr.closeProjection();
           continue;
+        } else if (value === Promise) {
+          stack.pop().then(resolveValue, rejectDrain);
+          break;
         }
       } else if (typeof value === 'object' && value !== null) {
-        if (isPromise(value)) {
-          value.then(resolveValue, rejectDrain);
-          break;
-        } else if (Array.isArray(value)) {
+        if (Array.isArray(value)) {
           for (let i = value.length - 1; i >= 0; --i) {
             stack.push(value[i]);
           }
@@ -144,6 +150,9 @@ function processJSXNode(
         trackSignal(value, [SubscriptionType.TEXT_MUTABLE, host, signal, signalNode]),
         ssr.closeFragment
       );
+    } else if (isPromise(value)) {
+      ssr.openFragment(EMPTY_ARRAY);
+      enqueue(value, ssr.closeFragment);
     } else {
       const jsx = value as JSXNode;
       const type = jsx.type;

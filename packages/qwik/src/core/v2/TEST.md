@@ -5,7 +5,7 @@
   - [X] `useTask$()`
   - [ ] `useResource$()`
   - [ ] `useComputed$()`
-  - [ ] `useVisibleTask$()`
+  - [X] `useVisibleTask$()`
   - [X] `useOn()`/`useOnDocument()`/`useOnWindow()`
   - [X] `useContext()`/`useContextProvider()`
   - [X] Projection / `<Slot>`

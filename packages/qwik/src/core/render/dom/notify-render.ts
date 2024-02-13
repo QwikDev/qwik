@@ -22,7 +22,7 @@ import { QStyle } from '../../util/markers';
 import { maybeThen } from '../../util/promises';
 import { qDev } from '../../util/qdev';
 import type { ValueOrPromise } from '../../util/types';
-import { isDomContainer } from '../../v2/client/dom-container';
+import { getDomContainer, isDomContainer } from '../../v2/client/dom-container';
 import type { VirtualVNode } from '../../v2/client/types';
 import { vnode_isVNode } from '../../v2/client/vnode';
 import type { Container2, fixMeAny } from '../../v2/shared/types';
@@ -151,7 +151,13 @@ const scheduleFrame = (containerState: ContainerState): Promise<void> => {
  */
 export const _hW = () => {
   const [task] = useLexicalScope<[SubscriberEffect]>();
-  notifyTask(task, _getContainerState(getWrappingContainer(task.$el$)!));
+  if (vnode_isVNode(task.$el$)) {
+    const containerElement = getWrappingContainer(task.$el$ as fixMeAny) as HTMLElement;
+    const container = getDomContainer(containerElement);
+    container.$scheduler$.$scheduleTask$(task as fixMeAny);
+  } else {
+    notifyTask(task, _getContainerState(getWrappingContainer(task.$el$)!));
+  }
 };
 
 const renderMarked = async (containerState: ContainerState): Promise<void> => {

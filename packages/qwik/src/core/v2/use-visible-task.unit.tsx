@@ -18,23 +18,24 @@ Error.stackTraceLimit = 100;
 ].forEach((render) => {
   describe(render.name + ': useVisibleTask', () => {
     it('should execute visible task', async () => {
-      const Counter = component$(() => {
-        const count = useSignal('SSR');
+      const VisibleCmp = component$(() => {
+        console.log('RUNNING: VisibleCmp');
+        const state = useSignal('SSR');
         useVisibleTask$(
           inlinedQrl(
             () => {
-              const [count] = useLexicalScope();
-              count.value = 'CSR';
-              console.log('visibleTask');
+              console.log('RUNNING: visibleTask');
+              const [state] = useLexicalScope();
+              state.value = 'CSR';
             },
             's_visibleTask',
-            [count]
+            [state]
           )
         );
-        return <span>{count.value}</span>;
+        return <span>{state.value}</span>;
       });
 
-      const { vNode, document } = await render(<Counter />, { debug });
+      const { vNode, document } = await render(<VisibleCmp />, { debug });
       await trigger(document.body, 'span', 'qvisible');
       expect(vNode).toMatchVDOM(
         <Component>

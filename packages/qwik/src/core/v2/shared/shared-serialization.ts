@@ -23,6 +23,8 @@ import type { DomContainer } from '../client/dom-container';
 import { vnode_isVNode, vnode_locate } from '../client/vnode';
 import type { fixMeAny } from './types';
 import type { ObjToProxyMap } from '../../container/container';
+import { isPromise } from 'util/types';
+import type { ValueOrPromise } from '../../util/types';
 
 const deserializedProxyMap = new WeakMap<object, unknown>();
 
@@ -301,6 +303,15 @@ const inflate = (container: DomContainer, target: any, needsInflationData: strin
         map.set(mapKeyValue[i++], mapKeyValue[i++]);
       }
       break;
+    case SerializationConstant.Promise_VALUE:
+      const promise = target as QPromise;
+      const id = restInt();
+      if (id >= 0) {
+        promise[PROMISE_RESOLVE](container.$getObjectById$(id));
+      } else {
+        promise[PROMISE_RESOLVE](container.$getObjectById$(~id));
+      }
+      break;
     default:
       throw new Error('Not implemented');
   }
@@ -351,10 +362,28 @@ const allocate = <T>(value: string): any => {
       return new Map();
     case SerializationConstant.String_VALUE:
       return value.substring(1);
+    case SerializationConstant.Promise_VALUE:
+      let resolve!: (value: any) => void;
+      let reject!: (error: any) => void;
+      const promise = new Promise((res, rej) => {
+        resolve = res;
+        reject = rej;
+      }) as QPromise;
+      promise[PROMISE_RESOLVE] = resolve;
+      promise[PROMISE_REJECT] = reject;
+      return promise;
     default:
       throw new Error('unknown allocate type: ' + value.charCodeAt(0));
   }
 };
+
+interface QPromise extends Promise<unknown> {
+  [PROMISE_RESOLVE]: (value: any) => void;
+  [PROMISE_REJECT]: (error: any) => void;
+}
+
+const PROMISE_RESOLVE = Symbol('resolve');
+const PROMISE_REJECT = Symbol('reject');
 
 export function parseQRL(qrl: string): QRLInternal<any> {
   const hashIdx = qrl.indexOf('#');
@@ -433,6 +462,8 @@ export interface SerializationContext {
 
   $proxyMap$: ObjToProxyMap;
 
+  $breakCircularDepsAndAwaitPromises$: () => ValueOrPromise<void>;
+
   /**
    * Node constructor, for instanceof checks.
    *
@@ -464,25 +495,29 @@ export const createSerializationContext = (
   const syncFnMap = new Map<string, number>();
   const syncFns: string[] = [];
   const roots: any[] = [];
+  const $wasSeen$ = (obj: any) => map.get(obj);
+  const $seen$ = (obj: any) => map.set(obj, Number.MIN_SAFE_INTEGER);
+  const $addRoot$ = (obj: any) => {
+    let id = map.get(obj);
+    if (typeof id !== 'number' || id === Number.MIN_SAFE_INTEGER) {
+      id = roots.length;
+      map.set(obj, id);
+      roots.push(obj);
+    }
+    return id;
+  };
+
   return {
     $NodeConstructor$: NodeConstructor,
     $containerElement$: containerElement,
-    $wasSeen$: (obj: any) => map.get(obj),
+    $wasSeen$,
     $roots$: roots,
-    $seen$: (obj: any) => map.set(obj, Number.MIN_SAFE_INTEGER),
+    $seen$,
     $hasRootId$: (obj: any) => {
       const id = map.get(obj);
       return id === undefined || id === Number.MIN_SAFE_INTEGER ? undefined : id;
     },
-    $addRoot$: (obj: any) => {
-      let id = map.get(obj);
-      if (typeof id !== 'number' || id === Number.MIN_SAFE_INTEGER) {
-        id = roots.length;
-        map.set(obj, id);
-        roots.push(obj);
-      }
-      return id;
-    },
+    $addRoot$,
     $getRootId$: (obj: any) => {
       const id = map.get(obj);
       if (!id || id === Number.MIN_SAFE_INTEGER) {
@@ -506,18 +541,101 @@ export const createSerializationContext = (
       return id;
     },
     $writer$: writer,
+    $breakCircularDepsAndAwaitPromises$: () => {
+      const promises: Promise<unknown>[] = [];
+      /// As `breakCircularDependencies` it is adding new roots
+      /// But we don't need te re-scan them.
+      const objRootsLength = roots.length;
+      for (let i = 0; i < objRootsLength; i++) {
+        breakCircularDependenciesAndResolvePromises(roots[i], promises);
+      }
+      const drain: () => ValueOrPromise<void> = () => {
+        if (promises.length) {
+          return Promise.all(promises).then(drain);
+        }
+      };
+      return drain();
+    },
   };
+
+  function breakCircularDependenciesAndResolvePromises(
+    rootObj: unknown,
+    promises: Promise<unknown>[]
+  ) {
+    // As we walk the object graph we insert newly discovered objects which need to be scanned here.
+    const discoveredValues: unknown[] = [rootObj];
+    // let count = 100;
+    while (discoveredValues.length) {
+      // if (count-- < 0) {
+      //   throw new Error('INFINITE LOOP');
+      // }
+      const obj = discoveredValues.pop();
+      if (shouldTrackObj(obj) || frameworkType(obj)) {
+        const isRoot = obj === rootObj;
+        // For root objects we pretend we have not seen them to force scan.
+        const id = $wasSeen$(obj);
+        if (id === undefined || isRoot) {
+          // Object has not been seen yet, must scan content
+          // But not for root.
+          !isRoot && $seen$(obj);
+          if (obj instanceof Set) {
+            const contents = Array.from(obj.values());
+            setSerializableDataRootId($addRoot$, obj, contents);
+            discoveredValues.push(...contents);
+          } else if (obj instanceof Map) {
+            const tuples: any[] = [];
+            obj.forEach((v, k) => {
+              tuples.push(k, v);
+              discoveredValues.push(k, v);
+            });
+            setSerializableDataRootId($addRoot$, obj, tuples);
+            discoveredValues.push(tuples);
+          } else if (obj instanceof SignalImpl) {
+            discoveredValues.push(obj.untrackedValue);
+            const manager = getSubscriptionManager(obj);
+            manager?.$subs$.forEach((sub) => discoveredValues.push(sub[1]));
+            // const manager = obj[QObjectManagerSymbol];
+            // discoveredValues.push(...manager.$subs$);
+          } else if (obj instanceof Task) {
+            discoveredValues.push(obj.$el$, obj.$qrl$, obj.$state$);
+          } else if (isJSXNode(obj)) {
+            discoveredValues.push(obj.type, obj.props, obj.immutableProps, obj.children);
+          } else if (Array.isArray(obj)) {
+            discoveredValues.push(...obj);
+          } else if (isQrl(obj)) {
+            obj.$captureRef$ &&
+              obj.$captureRef$.length &&
+              discoveredValues.push(...obj.$captureRef$);
+          } else if (isPromise(obj)) {
+            obj.then(
+              (value) => {
+                setSerializableDataRootId($addRoot$, obj, value);
+                promises.splice(promises.indexOf(obj as Promise<void>), 1);
+              },
+              (error) => {
+                (obj as any)[SERIALIZABLE_ROOT_ID] = ~$addRoot$(error);
+                promises.splice(promises.indexOf(obj as Promise<void>), 1);
+              }
+            );
+            promises.push(obj);
+          } else {
+            for (const key in obj as object) {
+              if (Object.prototype.hasOwnProperty.call(obj, key)) {
+                discoveredValues.push((obj as any)[key]);
+              }
+            }
+          }
+        } else if (id === Number.MIN_SAFE_INTEGER) {
+          // We are seeing this object second time => promoted it.
+          $addRoot$(obj);
+          // we don't need to scan the children, since we have already seen them.
+        }
+      }
+    }
+  }
 };
 
 export function serialize(serializationContext: SerializationContext): void {
-  const objRoots = serializationContext.$roots$;
-  /// As `breakCircularDependencies` it is adding new roots
-  /// But we don't need te re-scan them.
-  const objRootsLength = objRoots.length;
-  for (let i = 0; i < objRootsLength; i++) {
-    breakCircularDependencies(serializationContext, objRoots[i]);
-  }
-
   const { $writer$, $addRoot$, $NodeConstructor$: $Node$ } = serializationContext;
   let depth = -1;
 
@@ -670,6 +788,8 @@ export function serialize(serializationContext: SerializationContext): void {
           qrlToString(value.$qrl$, $addRoot$) +
           (value.$state$ == null ? '' : ' ' + $addRoot$(value.$state$))
       );
+    } else if (isPromise(value)) {
+      return writeString(SerializationConstant.Promise_CHAR + getSerializableDataRootId(value));
     } else {
       throw new Error('implement: ' + value);
     }
@@ -728,7 +848,7 @@ export function serialize(serializationContext: SerializationContext): void {
     }
   };
 
-  writeValue(objRoots);
+  writeValue(serializationContext.$roots$);
 }
 
 function serializeSignalDerived(
@@ -741,12 +861,8 @@ function serializeSignalDerived(
   return SerializationConstant.DerivedSignal_CHAR + syncFnId + (args.length ? ' ' + args : '');
 }
 
-function setSerializableDataRootId(
-  serializationContext: SerializationContext,
-  obj: object,
-  value: any
-) {
-  (obj as any)[SERIALIZABLE_ROOT_ID] = serializationContext.$addRoot$(value);
+function setSerializableDataRootId($addRoot$: (value: any) => number, obj: object, value: any) {
+  (obj as any)[SERIALIZABLE_ROOT_ID] = $addRoot$(value);
 }
 
 function getSerializableDataRootId(value: object) {
@@ -852,68 +968,6 @@ const frameworkType = (obj: any) => {
   );
 };
 
-const breakCircularDependencies = (
-  serializationContext: SerializationContext,
-  rootObj: unknown
-) => {
-  // As we walk the object graph we insert newly discovered objects which need to be scanned here.
-  const discoveredValues: unknown[] = [rootObj];
-  // let count = 100;
-  while (discoveredValues.length) {
-    // if (count-- < 0) {
-    //   throw new Error('INFINITE LOOP');
-    // }
-    const obj = discoveredValues.pop();
-    if (shouldTrackObj(obj) || frameworkType(obj)) {
-      const isRoot = obj === rootObj;
-      // For root objects we pretend we have not seen them to force scan.
-      const id = serializationContext.$wasSeen$(obj);
-      if (id === undefined || isRoot) {
-        // Object has not been seen yet, must scan content
-        // But not for root.
-        !isRoot && serializationContext.$seen$(obj);
-        if (obj instanceof Set) {
-          const contents = Array.from(obj.values());
-          setSerializableDataRootId(serializationContext, obj, contents);
-          discoveredValues.push(...contents);
-        } else if (obj instanceof Map) {
-          const tuples: any[] = [];
-          obj.forEach((v, k) => {
-            tuples.push(k, v);
-            discoveredValues.push(k, v);
-          });
-          setSerializableDataRootId(serializationContext, obj, tuples);
-          discoveredValues.push(tuples);
-        } else if (obj instanceof SignalImpl) {
-          discoveredValues.push(obj.untrackedValue);
-          const manager = getSubscriptionManager(obj);
-          manager?.$subs$.forEach((sub) => discoveredValues.push(sub[1]));
-          // const manager = obj[QObjectManagerSymbol];
-          // discoveredValues.push(...manager.$subs$);
-        } else if (obj instanceof Task) {
-          discoveredValues.push(obj.$el$, obj.$qrl$, obj.$state$);
-        } else if (isJSXNode(obj)) {
-          discoveredValues.push(obj.type, obj.props, obj.immutableProps, obj.children);
-        } else if (Array.isArray(obj)) {
-          discoveredValues.push(...obj);
-        } else if (isQrl(obj)) {
-          obj.$captureRef$ && obj.$captureRef$.length && discoveredValues.push(...obj.$captureRef$);
-        } else {
-          for (const key in obj as object) {
-            if (Object.prototype.hasOwnProperty.call(obj, key)) {
-              discoveredValues.push((obj as any)[key]);
-            }
-          }
-        }
-      } else if (id === Number.MIN_SAFE_INTEGER) {
-        // We are seeing this object second time => promoted it.
-        serializationContext.$addRoot$(obj);
-        // we don't need to scan the children, since we have already seen them.
-      }
-    }
-  }
-};
-
 const QRL_RUNTIME_CHUNK = 'qwik-runtime-mock-chunk';
 const SERIALIZABLE_ROOT_ID = Symbol('SERIALIZABLE_ROOT_ID');
 
@@ -975,7 +1029,11 @@ export const enum SerializationConstant {
   Set_VALUE = /* ------------------------- */ 0x1a,
   Map_CHAR = /* ----------------------- */ '\u001b',
   Map_VALUE = /* ------------------------- */ 0x1b,
-  LAST_VALUE = /* ------------------------ */ 0x1c,
+  Promise_CHAR = /* ------------------- */ '\u001c',
+  Promise_VALUE = /* --------------------- */ 0x1c,
+  LAST_VALUE = /* ------------------------ */ 0x1d,
+  /// Can't go past this value
+  SPACE_VALUE = /* ----------------------- */ 0x20,
 }
 
 function serializeJSXType($addRoot$: (obj: unknown) => number, type: string | FunctionComponent) {
@@ -1063,5 +1121,7 @@ export const codeToName = (code: number) => {
       return 'Set';
     case SerializationConstant.Map_VALUE:
       return 'Map';
+    case SerializationConstant.Promise_VALUE:
+      return 'Promise';
   }
 };

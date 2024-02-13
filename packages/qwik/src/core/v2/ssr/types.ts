@@ -7,6 +7,7 @@ import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
 import { isJSXNode } from '../../render/jsx/jsx-runtime';
 import { QSlot, QSlotParent } from '../../util/markers';
 import type { Container2, HostElement } from '../shared/types';
+import type { ValueOrPromise } from '../../util/types';
 
 export interface SSRContainer extends Container2 {
   tag: string;
@@ -17,7 +18,7 @@ export interface SSRContainer extends Container2 {
   closeContainer(): void;
 
   openElement(tag: string, attrs: SsrAttrs): void;
-  closeElement(): void;
+  closeElement(): ValueOrPromise<void>;
 
   openFragment(attrs: SsrAttrs): void;
   closeFragment(): void;

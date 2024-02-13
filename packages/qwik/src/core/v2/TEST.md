@@ -4,14 +4,15 @@
   - [X] `useStore()`
   - [X] `useTask$()`
   - [ ] `useResource$()`
-  - [ ] `useComputed$()`
+  - [X] `useComputed$()`
   - [X] `useVisibleTask$()`
   - [X] `useOn()`/`useOnDocument()`/`useOnWindow()`
   - [X] `useContext()`/`useContextProvider()`
   - [X] Projection / `<Slot>`
+  - [ ] `useStyle$()`
+  - [ ] `useStyleScoped$()`
 
 - [ ] Serialization
-  - [ ] `Promise`
   - [X] `undefined`
   - [X] `REFERENCE`
   - [X] `URL`
@@ -34,3 +35,4 @@
   - [X] `JSXNode`
   - [X] `Set`
   - [X] `Map`
+  - [X] `Promise`

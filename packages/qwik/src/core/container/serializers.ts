@@ -448,45 +448,129 @@ const BigIntSerializer = /*#__PURE__*/ serializer<bigint>({
   $fill$: undefined,
 });
 
-const Uint8ArrayESerializer = /*#__PURE__*/ serializer<Uint8Array>({
-  $prefix$: '\u001c',
-  $test$: (v) => v instanceof Uint8Array && v.length % 2 === 0,
-  $serialize$: (v) => {
-    let str = '';
-    for (let i = 0; i < v.length; i += 2) {
-      str += String.fromCharCode(v[i] + (v[i + 1] << 8));
+// pack bytes into valid UTF-16 string
+//
+// strategy:
+//
+// * using 0xFFFD as the escape character
+//  * if there is 0xFFFD in the bytes, double it
+// * if there is unmatched surrogate pair, mark it by the escape character
+// * and put a fake surrogate pair to make it valid
+//  * 0xD800 for fake high surrogate to be with unmatched low surrogate
+//  * 0xDC00 for fake low surrogate to be with unmatched high surrogate
+//
+// if the unmatched high surrogate is 0xD800, it is collided with the fake
+// high surrogate, so use [0xD801, 0xDC01] as the fake surrogate pair
+// representing the 0xD800.
+//
+// If the length of the bytes is odd, the last byte is put after the escape
+// character. As the bytes after the escape character are in 0xD800 to 0xDFFF,
+// we can distingwish the last byte by its high byte being 0x00.
+//
+export const packUint8Array = (bytes:Uint8Array) => {
+  const odd = bytes.length % 2 === 1;
+  const dbytes = new Uint16Array(bytes.buffer, 0, bytes.length >> 1);
+  let code = '';
+  let surrogate = false;
+  for (let i = 0; i < dbytes.length; i++) {
+    const c = dbytes[i];
+    // test high surrogate
+    if (c >= 0xD800 && c <= 0xDBFF) {
+      if (surrogate) { // unmatched high surrogate
+        const prev = dbytes[i - 1];
+        const [hi, lo] = prev === 0xD800 ? [0xD801, 0xDC01] : [prev, 0xDC00];
+        // put the 0xFFFD and the fake surrogate pair to make it valid
+        code += String.fromCharCode(0xFFFD, hi, lo);
+        // keep surrogate is true because c is high surrogate
+      }
+      surrogate = true;
+      continue;
     }
-    return str;
-  },
-  $prepare$: (data) => {
-    const buf = new ArrayBuffer(data.length * 2);
-    const view = new Uint16Array(buf);
-    for (let i = 0; i < data.length; i++) {
-      view[i] = data.charCodeAt(i);
+    // test low surrogate
+    if (c >= 0xDC00 && c <= 0xDFFF) {
+      if (surrogate) { // valid surrogate pair
+        code += String.fromCharCode(dbytes[i - 1], c);
+        surrogate = false;
+        continue;
+      }
+      // unmatched low surrogate
+      // put the 0xFFFD and the fake high surrogate to make it valid
+      code += String.fromCharCode(0xFFFD, 0xD800, c);
+      continue;
     }
-    return new Uint8Array(buf);
-  },
-  $fill$: undefined,
-});
+    if (surrogate) { // no low surrogate after high surrogate
+      const prev = dbytes[i - 1];
+      const [hi, lo] = prev === 0xD800 ? [0xD801, 0xDC01] : [prev, 0xDC00];
+      // put the 0xFFFD and the fake surrogate pair to make it valid
+      code += String.fromCharCode(0xFFFD, hi, lo);
+      surrogate = false; // reset surrogate
+    }
+    // double the escape character
+    if (c === 0xFFFD) {
+      code += String.fromCharCode(0xFFFD);
+    }
+    // normal codepoint
+    code += String.fromCharCode(c);
+  }
+  if (surrogate) { // ended with unmatched high surrogate
+    const c = dbytes[dbytes.length - 1];
+    const [hi, lo] = c === 0xD800 ? [0xD801, 0xDC01] : [c, 0xDC00];
+    code += String.fromCharCode(0xFFFD, hi, lo);
+  }
+  if (odd) {
+    // put the last byte
+    code += String.fromCharCode(0xFFFD, bytes[bytes.length - 1]);
+  }
+  return code;
+};
 
-const Uint8ArrayOSerializer = /*#__PURE__*/ serializer<Uint8Array>({
-  $prefix$: '\u001d',
-  $test$: (v) => v instanceof Uint8Array && v.length % 2 === 1,
-  $serialize$: (v) => {
-    let str = '';
-    for (let i = 0; i < v.length - 1; i += 2) {
-      str += String.fromCharCode(v[i] + (v[i + 1] << 8));
+// unpack encoded valid UTF-16 string into Uint8Array
+export const unpackUint8Array = (code:string) => {
+  const dbytes = new Uint16Array(code.length);
+  let j = 0;
+  let escaped = false;
+  for (let i = 0; i < code.length; i++) {
+    const c = code.charCodeAt(i);
+    // check the replacement character
+    if (c === 0xFFFD) {
+      if (escaped) {
+        dbytes[j++] = 0xFFFD; // unescape the escape character
+        escaped = false;
+        continue;
+      }
+      escaped = true;
+      continue;
+    } else if (escaped && (c & 0xFF00) === 0) { // test the last byte
+      dbytes[j++] = c;
+      break; // break with escaped being true to adjust the length
     }
-    return str + String.fromCharCode(v[v.length - 1]);
-  },
-  $prepare$: (data) => {
-    const buf = new ArrayBuffer(data.length * 2);
-    const view = new Uint16Array(buf);
-    for (let i = 0; i < data.length; i++) {
-      view[i] = data.charCodeAt(i);
+    if (c >= 0xD800 && c <= 0xDBFF && escaped) { // faked high surrogate
+      if (c === 0xD800) { // escaped low surrogate
+        i++; // skip the fake high surrogate
+        dbytes[j++] = code.charCodeAt(i); // save the low surrogate
+      } else if (c === 0xD801 && code.charCodeAt(i + 1) === 0xDC01) {
+        i++; // skip the fake low surrogate
+        dbytes[j++] = 0xD800; // save the escaped 0xD800
+      } else { // escaped high surrogate
+        dbytes[j++] = code.charCodeAt(i); // save the high surrogate
+        i++; // skip the fake low surrogate
+      }
+      escaped = false;
+      continue;
     }
-    return new Uint8Array(buf, 0, data.length * 2 - 1);
-  },
+    // normal codepoint
+    dbytes[j++] = c;
+  }
+  // if ended while escaped, the length is odd
+  const length = j*2 - (escaped ? 1 : 0);
+  return new Uint8Array(dbytes.subarray(0, j).buffer).subarray(0, length);
+};
+
+const Uint8ArraySerializer = /*#__PURE__*/ serializer<Uint8Array>({
+  $prefix$: '\u001c',
+  $test$: (v) => v instanceof Uint8Array,
+  $serialize$: (v) => packUint8Array(v),
+  $prepare$: (data) => unpackUint8Array(data),
   $fill$: undefined,
 });
 
@@ -586,8 +670,7 @@ const serializers: Serializer<any>[] = /*#__PURE__*/ [
   SetSerializer, ////////////// \u0019
   MapSerializer, ////////////// \u001a
   StringSerializer, /////////// \u001b
-  Uint8ArrayESerializer, ////// \u001c
-  Uint8ArrayOSerializer, ////// \u001d
+  Uint8ArraySerializer,  ////// \u001c
 ];
 
 const serializerByPrefix: (Serializer<unknown> | undefined)[] = /*#__PURE__*/ (() => {

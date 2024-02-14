@@ -7,6 +7,7 @@
 etc
 temp
 .history
+.lh
 *.
 **/*.log
 *.node
@@ -16,6 +17,7 @@ qwik-app/
 /server/
 /starters/**/server/
 /packages/*/server/
+!/packages/qwik/server/
 /packages/*/src/styled-system/
 todo-express/
 target
@@ -37,6 +39,7 @@ tsdoc-metadata.json
 .idea
 .eslintcache
 test-results
+.direnv
 
 # Package Managers
 .yarn/*
@@ -45,3 +48,4 @@ test-results
 
 # Local Netlify folder
 .netlify
+sandbox

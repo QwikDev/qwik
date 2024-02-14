@@ -452,7 +452,8 @@ interface HTMLAttributesBase extends AriaAttributes {
   popover?: 'manual' | 'auto' | undefined;
 }
 
-interface HTMLElementAttrs extends HTMLAttributesBase, FilterBase<HTMLElement> {}
+/** @public */
+export interface HTMLElementAttrs extends HTMLAttributesBase, FilterBase<HTMLElement> {}
 
 /** @public */
 export interface HTMLAttributes<E extends Element> extends HTMLElementAttrs, DOMAttributes<E> {}
@@ -461,9 +462,8 @@ type Prettify<T> = {} & {
   [K in keyof T]: T[K];
 };
 
-type IfEquals<X, Y, A, B> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2
-  ? A
-  : B;
+type IfEquals<X, Y, A, B> =
+  (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2 ? A : B;
 type IsReadOnlyKey<T, K extends keyof T> = IfEquals<
   { [Q in K]: T[K] },
   { -readonly [Q in K]: T[K] },
@@ -1275,19 +1275,21 @@ export type IntrinsicSVGElements = {
   >;
 };
 
-/** The DOM props without plain handlers, for use inside functions @public */
+/**
+ * The DOM props without plain handlers, for use inside functions
+ *
+ * @public
+ */
 export type QwikHTMLElements = {
   [tag in keyof HTMLElementTagNameMap]: Augmented<HTMLElementTagNameMap[tag], SpecialAttrs[tag]> &
     HTMLElementAttrs &
     QwikAttributes<HTMLElementTagNameMap[tag]>;
-} & {
-  /** For unknown tags we allow all props */
-  [unknownTag: string]: { [prop: string]: any } & HTMLElementAttrs &
-    // We use any instead of Element because this index type needs to be matched by
-    // all the other ones and those are subtypes of Element
-    QwikAttributes<any>;
 };
-/** The SVG props without plain handlers, for use inside functions @public */
+/**
+ * The SVG props without plain handlers, for use inside functions
+ *
+ * @public
+ */
 export type QwikSVGElements = {
   [K in keyof Omit<SVGElementTagNameMap, keyof HTMLElementTagNameMap>]: SVGProps<
     SVGElementTagNameMap[K]

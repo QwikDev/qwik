@@ -4,6 +4,7 @@ import type MonacoTypes from 'monaco-editor';
 import type { EditorProps, EditorStore } from './editor';
 import type { ReplStore } from './types';
 import { getColorPreference } from '../components/theme-toggle/theme-toggle';
+import { bundled, getNpmCdnUrl } from './bundled';
 
 export const initMonacoEditor = async (
   containerElm: any,
@@ -15,6 +16,7 @@ export const initMonacoEditor = async (
   const ts = monaco.languages.typescript;
 
   ts.typescriptDefaults.setCompilerOptions({
+    ...ts.typescriptDefaults.getCompilerOptions(),
     allowJs: true,
     allowNonTsExtensions: true,
     esModuleInterop: true,
@@ -25,7 +27,6 @@ export const initMonacoEditor = async (
     noEmit: true,
     skipLibCheck: true,
     target: ts.ScriptTarget.Latest,
-    typeRoots: ['node_modules/@types'],
   });
 
   ts.javascriptDefaults.setDiagnosticsOptions({
@@ -198,8 +199,11 @@ export const addQwikLibs = async (version: string) => {
 
   const deps = await loadDeps(version);
   deps.forEach((dep) => {
-    if (dep && typeof dep.code === 'string' && typeof dep.path === 'string') {
-      typescriptDefaults.addExtraLib(dep.code, `file://${dep.path}`);
+    if (dep && typeof dep.code === 'string') {
+      typescriptDefaults.addExtraLib(
+        `declare module '${dep.pkgName}${dep.import}' { ${dep.code}\n }`,
+        `/node_modules/${dep.pkgName}${dep.pkgPath}`
+      );
     }
   });
 
@@ -208,29 +212,33 @@ export const addQwikLibs = async (version: string) => {
 
 const loadDeps = async (qwikVersion: string) => {
   const deps: NodeModuleDep[] = [
+    // qwik
     {
       pkgName: '@builder.io/qwik',
       pkgVersion: qwikVersion,
       pkgPath: '/core.d.ts',
-      path: '/node_modules/@types/builder.io__qwik/index.d.ts',
+      import: '',
     },
+    // JSX runtime
     {
       pkgName: '@builder.io/qwik',
       pkgVersion: qwikVersion,
       pkgPath: '/jsx-runtime.d.ts',
-      path: '/node_modules/@types/builder.io__qwik/jsx-runtime.d.ts',
+      import: '/jsx-runtime',
     },
+    // server API
     {
       pkgName: '@builder.io/qwik',
       pkgVersion: qwikVersion,
       pkgPath: '/server.d.ts',
-      path: '/node_modules/@types/builder.io__qwik/server.d.ts',
+      import: '/server',
     },
+    // build constants
     {
       pkgName: '@builder.io/qwik',
       pkgVersion: qwikVersion,
       pkgPath: '/build/index.d.ts',
-      path: '/node_modules/@types/builder.io__qwik/build/index.d.ts',
+      import: '/build',
     },
   ];
 
@@ -247,7 +255,7 @@ const loadDeps = async (qwikVersion: string) => {
           pkgName: dep.pkgName,
           pkgVersion: dep.pkgVersion,
           pkgPath: dep.pkgPath,
-          path: dep.path,
+          import: dep.import,
         };
         monacoCtx.deps.push(storedDep);
 
@@ -266,18 +274,19 @@ const loadDeps = async (qwikVersion: string) => {
 };
 
 const fetchDep = async (cache: Cache, dep: NodeModuleDep) => {
-  const url = getCdnUrl(dep.pkgName, dep.pkgVersion, dep.pkgPath);
+  const url = getNpmCdnUrl(bundled, dep.pkgName, dep.pkgVersion, dep.pkgPath);
   const req = new Request(url);
   const cachedRes = await cache.match(req);
   if (cachedRes) {
-    return cachedRes.clone().text();
+    return cachedRes.text();
   }
   const fetchRes = await fetch(req);
   if (fetchRes.ok) {
-    if (!req.url.includes('localhost')) {
+    // dev mode uses / and prod bundles use data: urls
+    if (/^(http|\/)/.test(req.url) && !req.url.includes('localhost')) {
       await cache.put(req, fetchRes.clone());
     }
-    return fetchRes.clone().text();
+    return fetchRes.text();
   }
   throw new Error(`Unable to fetch: ${url}`);
 };
@@ -324,12 +333,8 @@ const monacoCtx: MonacoContext = {
   tsWorker: null,
 };
 
-const getCdnUrl = (pkgName: string, pkgVersion: string, pkgPath: string) => {
-  return `https://cdn.jsdelivr.net/npm/${pkgName}@${pkgVersion}${pkgPath}`;
-};
-
-const MONACO_VERSION = '0.33.0';
-const MONACO_VS_URL = getCdnUrl('monaco-editor', MONACO_VERSION, '/min/vs');
+const MONACO_VERSION = '0.45.0';
+const MONACO_VS_URL = getNpmCdnUrl(bundled, 'monaco-editor', MONACO_VERSION, '/min/vs');
 const MONACO_LOADER_URL = `${MONACO_VS_URL}/loader.js`;
 
 const CLIENT_LIB = `
@@ -359,8 +364,8 @@ interface MonacoContext {
 interface NodeModuleDep {
   pkgName: string;
   pkgPath: string;
+  import: string;
   pkgVersion: string;
-  path: string;
   code?: string;
   promise?: Promise<void>;
 }

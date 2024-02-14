@@ -1,10 +1,13 @@
 {
   "name": "@builder.io/qwik-auth",
-  "description": "Qwik Auth is powered by Next's Auth.js a battle tested library for authentication with 3rd party providers",
+  "description": "Qwik Auth is powered by Auth.js, a battle tested library for authentication with 3rd party providers",
   "version": "0.1.3",
   "bugs": "https://github.com/BuilderIO/qwik/issues",
+  "dependencies": {
+    "@auth/core": "0.21.0"
+  },
   "devDependencies": {
-    "@auth/core": "^0.13.0",
+    "@auth/core": "0.21.0",
     "@builder.io/qwik": "workspace:*",
     "@builder.io/qwik-city": "workspace:*",
     "@types/set-cookie-parser": "^2.4.4",
@@ -15,9 +18,9 @@
   },
   "exports": {
     ".": {
+      "types": "./lib/types/index.d.ts",
       "import": "./lib/index.qwik.mjs",
-      "require": "./lib/index.qwik.cjs",
-      "types": "./lib/types/index.d.ts"
+      "require": "./lib/index.qwik.cjs"
     }
   },
   "files": [
@@ -34,9 +37,6 @@
   ],
   "license": "MIT",
   "main": "./lib/index.qwik.mjs",
-  "peerDependencies": {
-    "@auth/core": "^0.13.0"
-  },
   "qwik": "./lib/index.qwik.mjs",
   "repository": {
     "type": "git",

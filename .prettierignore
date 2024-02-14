@@ -32,11 +32,13 @@ packages/docs/server
 packages/docs/src/routes/api
 packages/docs/**/*.md
 packages/docs/**/*.mdx
+packages/docs/public/repl/bundled
 packages/insights/drizzle
 packages/insights/.netlify
 packages/insights/scripts
 packages/insights/**/*.gen.d.ts
 packages/qwik-labs/lib-types
+packages/qwik-labs/vite
 
 # TODO: Figure out why this doesn't pass in CI
 packages/qwik/src/core/props/props.ts

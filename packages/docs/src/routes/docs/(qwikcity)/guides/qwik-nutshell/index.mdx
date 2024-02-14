@@ -1,6 +1,6 @@
 ---
 title: Qwik in a nutshell | Introduction
-description: Learn the general concepts of Qwik in this shoet introduction guide.
+description: Learn the general concepts of Qwik in this short introduction guide.
 contributors:
   - manucorporat
   - AnthonyPAlicea
@@ -15,6 +15,7 @@ contributors:
   - iancharlesdouglas
   - adamdbradley
   - hamatoyogi
+  - aendel
 updated_at: '2023-10-03T18:53:23Z'
 created_at: '2023-03-30T19:49:50Z'
 ---
@@ -36,7 +37,7 @@ Qwik components are very similar to React components. They are functions that re
 import { component$, Slot } from '@builder.io/qwik';
 import type { ClassList } from '@builder.io/qwik'
 
-export component$((props: { class?: ClassList }) => { // ✅
+export const MyOtherComponent = component$((props: { class?: ClassList }) => { // ✅
   return <div class={class}><Slot /></div>;
 });
 ```
@@ -72,7 +73,7 @@ export const MyComponent = component$((props: MyComponentProps) => {
         }}
       >
         <h1>Count: {count.value}</h1>
-        <MyOtherComponent class="correct-way" /> {/* ✅ */}
+        <MyOtherComponent class="correct-way"> {/* ✅ */}
           {count.value > 10 && <p>Count is greater than 10</p>}
           {count.value > 10 ? <p>Count is greater than 10</p> : <p>Count is less than 10</p>}
         </MyOtherComponent>

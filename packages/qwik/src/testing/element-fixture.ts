@@ -90,8 +90,10 @@ export async function trigger(
       : [queryOrElement];
   for (const element of elements) {
     const kebabEventName = fromCamelToKebabCase(eventNameCamel);
-    const event = root.ownerDocument.createEvent('Event');
-    event.initEvent(kebabEventName, true, true);
+    const event = new Event(kebabEventName, {
+      bubbles: true,
+      cancelable: true,
+    });
     Object.assign(event, eventPayload);
     const attrName = 'on:' + kebabEventName;
     await dispatch(element, attrName, event);

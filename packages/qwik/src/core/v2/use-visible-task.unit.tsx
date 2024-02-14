@@ -11,9 +11,8 @@ import './vdom-diff.unit-util';
 import { delay } from '../util/promises';
 import type { Signal } from '../state/signal';
 import { useStore } from '../use/use-store.public';
-import { getTestPlatform } from '../../testing/platform';
 
-const debug = false; //true;
+const debug = true; //true;
 Error.stackTraceLimit = 100;
 
 [
@@ -50,25 +49,27 @@ Error.stackTraceLimit = 100;
 
     it('should execute async visible task', async () => {
       const log: string[] = [];
-      const VisibleCmp = componentQrl(inlinedQrl(() => {
-        log.push('VisibleCmp');
-        const state = useSignal('SSR');
-        useVisibleTaskQrl(
-          inlinedQrl(
-            async () => {
-              const [state] = useLexicalScope();
-              log.push('task');
-              await delay(10);
-              log.push('resolved');
-              state.value = 'CSR';
-            },
-            's_visibleTask',
-            [state]
-          )
-        );
-        log.push('render');
-        return <span>{state.value}</span>;
-      }, 's_visible_cmp'));
+      const VisibleCmp = componentQrl(
+        inlinedQrl(() => {
+          log.push('VisibleCmp');
+          const state = useSignal('SSR');
+          useVisibleTaskQrl(
+            inlinedQrl(
+              async () => {
+                const [state] = useLexicalScope();
+                log.push('task');
+                await delay(10);
+                log.push('resolved');
+                state.value = 'CSR';
+              },
+              's_visibleTask',
+              [state]
+            )
+          );
+          log.push('render');
+          return <span>{state.value}</span>;
+        }, 's_visible_cmp')
+      );
       const { vNode, document } = await render(<VisibleCmp />, { debug });
       await trigger(document.body, 'span', 'qvisible');
       expect(log).toEqual(['VisibleCmp', 'render', 'task', 'resolved', 'VisibleCmp', 'render']);
@@ -136,28 +137,34 @@ Error.stackTraceLimit = 100;
       const Counter = component$(() => {
         log.push('Counter');
         const count = useSignal('');
+
         useVisibleTaskQrl(
-          inlinedQrl(async () => {
-            const [count] = useLexicalScope();
-            log.push('1:task');
-            await delay(10);
-            log.push('1:resolved');
-            count.value += 'A';
-          },
+          inlinedQrl(
+            async () => {
+              const [count] = useLexicalScope();
+              log.push('1:task');
+              await delay(10);
+              log.push('1:resolved');
+              count.value += 'A';
+            },
             's_visibleTask1',
             [count]
-          ));
+          )
+        );
+
         useVisibleTaskQrl(
-          inlinedQrl(async () => {
-            const [count] = useLexicalScope();
-            log.push('2:task');
-            await delay(10);
-            log.push('2:resolved');
-            count.value += 'B';
-          },
+          inlinedQrl(
+            async () => {
+              const [count] = useLexicalScope();
+              log.push('2:task');
+              await delay(10);
+              log.push('2:resolved');
+              count.value += 'B';
+            },
             's_visibleTask2',
             [count]
-          ));
+          )
+        );
         log.push('render');
         return <span>{count.value}</span>;
       });
@@ -186,13 +193,14 @@ Error.stackTraceLimit = 100;
         const Counter = component$(() => {
           const count = useSignal(10);
           const double = useSignal(0);
+
           useVisibleTaskQrl(
             inlinedQrl(
               ({ track }) => {
                 const [count, double] = useLexicalScope<[Signal<number>, Signal<number>]>();
-                double.value = 2 * track(() => count.value);
+                double.value = 2 * track(count);
               },
-              's_task1',
+              's_visibleTask1',
               [count, double]
             )
           );
@@ -226,7 +234,8 @@ Error.stackTraceLimit = 100;
           </Component>
         );
       });
-      it('should track signal property', async () => {
+
+      it('should track store property', async () => {
         const Counter = component$(() => {
           const store = useStore({ count: 1, double: 0 });
           useVisibleTaskQrl(
@@ -237,7 +246,7 @@ Error.stackTraceLimit = 100;
                 const count = track(s, 'count');
                 s.double = 2 * count;
               },
-              's_task2',
+              's_visibleTask2',
               [store]
             )
           );

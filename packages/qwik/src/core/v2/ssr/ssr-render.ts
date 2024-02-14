@@ -184,10 +184,11 @@ export function toSsrAttrs(
         let value: string | null = null;
         const qrls = record[key];
         if (Array.isArray(qrls)) {
-          for (const qrl of qrls) {
+          for (let i = 0; i <= qrls.length; i++) {
+            const qrl = qrls[i];
             if (isQrl(qrl)) {
-              value = qrlToString(qrl, serializationCtx.$addRoot$);
-              break;
+              const first = i === 0;
+              value = (first ? '' : value + '\n') + qrlToString(qrl, serializationCtx.$addRoot$);
             }
           }
         } else if (isQrl(qrls)) {

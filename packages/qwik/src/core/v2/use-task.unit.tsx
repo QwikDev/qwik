@@ -192,7 +192,7 @@ Error.stackTraceLimit = 100;
         );
         await getTestPlatform().flush();
       });
-      it('should track signal property', async () => {
+      it('should track store property', async () => {
         const Counter = component$(() => {
           const store = useStore({ count: 1, double: 0 });
           useTaskQrl(

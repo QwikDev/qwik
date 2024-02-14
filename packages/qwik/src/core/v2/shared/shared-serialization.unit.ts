@@ -54,7 +54,9 @@ describe('shared-serialization', () => {
     });
     it('should detect Task', async () => {
       const qrl = inlinedQrl(0, 's_zero') as any;
-      const objs = await serializeDeserialize(new Task(0, 0, shared1 as any, qrl, shared2 as any));
+      const objs = await serializeDeserialize(
+        new Task(0, 0, shared1 as any, qrl, shared2 as any, null)
+      );
       expect(objs).toEqual([
         SerializationConstant.Task_CHAR + '0 0 1 qwik-runtime-mock-chunk#s_zero 2',
         shared1,

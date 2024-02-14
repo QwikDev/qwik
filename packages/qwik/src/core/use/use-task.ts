@@ -5,7 +5,7 @@ import { QError_trackUseStore, codeToText } from '../error/error';
 import { isServerPlatform } from '../platform/platform';
 import { assertQrl, assertSignal, createQRL, type QRLInternal } from '../qrl/qrl-class';
 import type { QRL } from '../qrl/qrl.public';
-import { _hW, notifyTask, notifyTask2 } from '../render/dom/notify-render';
+import { _hW, notifyTask } from '../render/dom/notify-render';
 import type { QwikElement } from '../render/dom/virtual-element';
 import { handleError } from '../render/error-handling';
 import type { RenderContext } from '../render/types';
@@ -458,7 +458,10 @@ export const useComputedQrl: ComputedQRL = <T>(qrl: QRL<ComputedFn<T>>): Signal<
       signal,
       null
     );
-    runComputed2(task, iCtx.$container2$, host);
+    const result = runComputed2(task, iCtx.$container2$, host);
+    if (isPromise(result)) {
+      throw result;
+    }
     qrl.$resolveLazy$(host as fixMeAny);
     return set(signal);
   } else {
@@ -586,6 +589,7 @@ export const useVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions)
   const { val, set, i, iCtx, elCtx } = useSequentialScope<Task<TaskFn>>();
   const eagerness = opts?.strategy ?? 'intersection-observer';
   if (val) {
+    // TODO: check, sometimes for ssr render isServerPlatform is false
     if (isServerPlatform()) {
       useRunTask(val, eagerness);
     }
@@ -597,6 +601,9 @@ export const useVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions)
     const task = new Task(TaskFlagsIsVisibleTask, i, iCtx.$hostElement$, qrl, undefined, null);
     set(task);
     useRunTask(task, eagerness);
+    if (!isServerPlatform()) {
+      qrl.$resolveLazy$(iCtx.$hostElement$ as fixMeAny);
+    }
   } else {
     const task = new Task(TaskFlagsIsVisibleTask, i, elCtx.$element$, qrl, undefined, null);
     const containerState = iCtx.$renderCtx$.$static$.$containerState$;

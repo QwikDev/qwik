@@ -182,7 +182,11 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
       const hostElement = hostElementQueue.shift()!;
       const jsx = drainComponent(hostElement);
       if (isPromise(jsx)) {
-        return jsx.then((jsx) => maybeThen(container.processJsx(hostElement, jsx), drainAll));
+        return jsx.then((jsx) => {
+          if (jsx !== null) {
+            return maybeThen(container.processJsx(hostElement, jsx), drainAll);
+          }
+        });
       }
       if (jsx !== null) {
         const shouldWait = container.processJsx(hostElement, jsx);

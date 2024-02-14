@@ -10,6 +10,7 @@ import type {
   TransformModule,
   InsightManifest,
   Path,
+  QwikBundleGraph,
 } from '../types';
 import { versions } from '../versions';
 import { getImageSizeServer } from './image-size-server';
@@ -53,6 +54,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   let rootDir: string | null = null;
 
   let ssrOutDir: string | null = null;
+  const fileFilter = qwikViteOpts.fileFilter || (() => true);
   const injections: GlobalInjections[] = [];
   const qwikPlugin = createPlugin(qwikViteOpts.optimizerOptions);
 
@@ -151,6 +153,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         vendorRoots: [...(qwikViteOpts.vendorRoots ?? []), ...vendorRoots.map((v) => v.path)],
         outDir: viteConfig.build?.outDir,
         devTools: qwikViteOpts.devTools,
+        sourcemap: !!viteConfig.build?.sourcemap,
+        lint: qwikViteOpts.lint,
       };
       if (!qwikViteOpts.csr) {
         if (target === 'ssr') {
@@ -387,6 +391,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           // ok to ignore
         }
       }
+      const useSourcemap = !!config.build.sourcemap;
+      if (useSourcemap && qwikViteOpts.optimizerOptions?.sourcemap === undefined) {
+        qwikPlugin.setSourceMapSupport(true);
+      }
     },
 
     async buildStart() {
@@ -410,7 +418,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     },
 
     resolveId(id, importer, resolveIdOpts) {
-      if (id.startsWith('\0')) {
+      if (id.startsWith('\0') || !fileFilter(id, 'resolveId')) {
         return null;
       }
       if (isClientDevOnly && id === VITE_CLIENT_MODULE) {
@@ -420,7 +428,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     },
 
     load(id, loadOpts) {
-      if (id.startsWith('\0')) {
+      if (id.startsWith('\0') || !fileFilter(id, 'load')) {
         return null;
       }
 
@@ -439,7 +447,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     },
 
     transform(code, id, transformOpts) {
-      if (id.startsWith('\0')) {
+      if (id.startsWith('\0') || !fileFilter(id, 'transform')) {
         return null;
       }
       if (isClientDevOnly) {
@@ -534,6 +542,20 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             fileName: Q_MANIFEST_FILENAME,
             source: clientManifestStr,
           });
+          this.emitFile({
+            type: 'asset',
+            fileName: `build/q-bundle-graph-${manifest.manifestHash}.json`,
+            source: JSON.stringify(convertManifestToBundleGraph(manifest)),
+          });
+          const sys = qwikPlugin.getSys();
+          const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
+          const workerScriptPath = (await this.resolve('@builder.io/qwik/qwik-prefetch.js'))!.id;
+          const workerScript = await fs.promises.readFile(workerScriptPath, 'utf-8');
+          this.emitFile({
+            type: 'asset',
+            fileName: `qwik-prefetch-service-worker.js`,
+            source: workerScript,
+          });
 
           if (typeof opts.manifestOutput === 'function') {
             await opts.manifestOutput(manifest);
@@ -543,7 +565,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             await opts.transformedModuleOutput(qwikPlugin.getTransformedOutputs());
           }
 
-          const sys = qwikPlugin.getSys();
           if (tmpClientManifestPath && sys.env === 'node') {
             // Client build should write the manifest to a tmp dir
             const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
@@ -869,6 +890,16 @@ interface QwikVitePluginCommonOptions {
      */
     clickToSource: string[] | false;
   };
+  /**
+   * Predicate function to filter out files from the optimizer. hook for resolveId, load, and
+   * transform
+   */
+  fileFilter?: (id: string, hook: string) => boolean;
+  /**
+   * Run eslint on the source files for the ssr build or dev server. This can slow down startup on
+   * large projects. Defaults to `true`
+   */
+  lint?: boolean;
 }
 
 interface QwikVitePluginCSROptions extends QwikVitePluginCommonOptions {
@@ -991,4 +1022,35 @@ function absolutePathAwareJoin(path: Path, ...segments: string[]): string {
     }
   }
   return path.join(...segments);
+}
+
+export function convertManifestToBundleGraph(manifest: QwikManifest): QwikBundleGraph {
+  const bundleGraph: QwikBundleGraph = [];
+  const graph = manifest.bundles;
+  const map = new Map<string, { index: number; deps: string[] }>();
+  for (const bundleName in graph) {
+    const bundle = graph[bundleName];
+    const index = bundleGraph.length;
+    const deps: string[] = [];
+    bundle.imports && deps.push(...bundle.imports);
+    bundle.dynamicImports && deps.push(...bundle.dynamicImports);
+    map.set(bundleName, { index, deps });
+    bundleGraph.push(bundleName);
+    while (index + deps.length >= bundleGraph.length) {
+      bundleGraph.push(null!);
+    }
+  }
+  // Second pass to to update dependency pointers
+  for (const bundleName in graph) {
+    const { index, deps } = map.get(bundleName)!;
+    for (let i = 0; i < deps.length; i++) {
+      const depName = deps[i];
+      const { index: depIndex } = map.get(depName)!;
+      if (depIndex == undefined) {
+        throw new Error(`Missing dependency: ${depName}`);
+      }
+      bundleGraph[index + i + 1] = depIndex;
+    }
+  }
+  return bundleGraph;
 }

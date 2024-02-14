@@ -11,6 +11,7 @@ contributors:
   - thejackshelton
   - zanettin
   - wtlin1228
+  - aendel
 updated_at: '2023-06-25T19:43:33Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
@@ -164,11 +165,10 @@ Another important note is that Qwik City's request intercepting is _only_ for Qw
 
 So while Qwik City does provide a way to help prefetch and cache bundles, it does not take full control of the app's service worker. This still allows developers to add their service worker logic without conflicting with Qwik.
 
-## Disabled During Development and Preview
+## Disabled During Development
 
-One gotcha during development and using Vite's preview mode is that the service worker is disabled which also disables speculative module fetching. During development we want to always ensure the latest development code is being used, rather than previous code.
+Speculative module fetching only kicks in preview or on a production build. In development, the service worker is disabled which also disables speculative module fetching. This is because during development we want to always ensure the latest development code is being used, rather than what's been previously cached.
 
-Speculative module fetching only kicks on a production build. To see speculative module fetching in action you'll need to run the production build on a server other than development or preview.
 
 ### HTTP Cache vs. Service Worker Cache
 
@@ -182,7 +182,7 @@ Additionally, when "Empty Cache and Hard Reload" is used, the browser sends a `n
 
 ### Emptying the Service Worker Cache
 
-The recommended way to test specualtive module fetching is to:
+The recommended way to test speculative module fetching is to:
 
 - **Unregister the service worker**: In Chrome DevTools, go to the Application tab, and under Service Workers, click the "Unregister" link for the for your site's service worker.
 - **Delete the "QwikBuild" Cache Storage**: In Chrome DevTools, go to the Application tab, and under Cache Storage on the left side, right click "Delete" on the "QwikBuild" cache storage.

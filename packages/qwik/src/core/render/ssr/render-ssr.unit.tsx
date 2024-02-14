@@ -1,4 +1,3 @@
-import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
 import { format } from 'prettier';
 
 import type { StreamWriter } from '../../../server/types';
@@ -18,11 +17,12 @@ import { _renderSSR, type RenderSSROptions } from './render-ssr';
 import { useStore } from '../../use/use-store.public';
 import { useSignal } from '../../use/use-signal';
 import { expect, test, vi } from 'vitest';
+import type { JSXOutput } from '../jsx/types/jsx-node';
 
 test('render attributes', async () => {
   await testSSR(
     <body id="stuff" aria-required="true" role=""></body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test"><body id="stuff" aria-required="true" role></body></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test"><body id="stuff" aria-required="true" role=""></body></html>'
   );
 });
 
@@ -38,7 +38,7 @@ test('render aria value', async () => {
     ></body>,
     `
         <html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
-          <body id="stuff" aria-required="true" aria-busy="false" role preventdefault:click=""></body>
+          <body id="stuff" aria-required="true" aria-busy="false" role="" preventdefault:click></body>
         </html>
         `
   );
@@ -1839,7 +1839,7 @@ export const HtmlContext = component$(() => {
 });
 
 async function testSSR(
-  node: JSXNode,
+  node: JSXOutput,
   expected: string | string[],
   opts?: Partial<RenderSSROptions>
 ) {

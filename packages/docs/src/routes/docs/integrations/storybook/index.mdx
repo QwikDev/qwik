@@ -6,7 +6,8 @@ contributors:
   - igorbabko
   - Benny-Nottonson
   - mrhoodz
-updated_at: '2023-10-03T18:53:23Z'
+  - thenhawke
+updated_at: '2024-01-15T18:53:23Z'
 created_at: '2023-04-25T19:05:53Z'
 ---
 
@@ -31,3 +32,81 @@ Now you can serve the Storybook dashboard:
 ```shell
 npm run storybook
 ```
+
+## Examples
+
+### Simple component
+
+The following demonstrates a simple story that uses a qwik component:
+
+```tsx title="src/components/button.tsx"
+import { component$ } from "@builder.io/qwik";
+
+export interface ButtonProps {
+  label: string;
+}
+
+export const Button = component$<ButtonProps>(({label}) => {
+  return (
+    <button>
+      {label}
+    </button>
+  );
+});
+```
+
+```tsx title="src/components/button.stories.tsx"
+import type { Meta, StoryObj } from "storybook-framework-qwik";
+import {Button, type ButtonProps} from "./button";
+
+const meta: Meta<ButtonProps>  = {
+  component: Button,
+};
+
+export default meta;
+type Story = StoryObj<ButtonProps>; 
+
+export const Primary: Story = {
+  args: {
+    label: "Hello World", 
+  }
+};
+```
+
+### Component That Uses QwikCity
+
+When using Qwikcity, you must pass a context to the story by using the [`<QwikCityMockProvider>`](https://qwik.builder.io/docs/api/#qwikcitymockprovider):
+
+```tsx title="src/components/with-link.tsx"
+import { component$ } from "@builder.io/qwik";
+import { Link } from "@builder.io/qwik-city";
+
+export const WithLink = component$(() => {
+  return (
+    <Link href="https://google.com">Google Link</Link>
+  );
+});
+```
+
+```tsx title="src/components/with-link.stories.tsx"
+import type { Meta, StoryObj } from "storybook-framework-qwik";
+import { QwikCityMockProvider } from "@builder.io/qwik-city";
+
+import { WithLink } from "./with-link";
+
+const meta: Meta = {
+  component: WithLink,
+};
+
+type Story = StoryObj;
+export default meta;
+
+export const Primary: Story = {
+  render: () =>
+    <QwikCityMockProvider>
+      <WithLink />
+    </QwikCityMockProvider>
+};
+```
+
+For more information please refer to the [storybook documentation.](https://storybook.js.org/docs)

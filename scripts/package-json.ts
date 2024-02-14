@@ -18,11 +18,11 @@ export async function generatePackageJson(config: BuildConfig) {
     main: './core.mjs',
     types: './core.d.ts',
     bin: {
-      qwik: './qwik.cjs',
+      qwik: './qwik-cli.cjs',
     },
     type: 'module',
     peerDependencies: {
-      undici: '^5.14.0',
+      undici: '*',
     },
     dependencies: rootPkg.dependencies,
     exports: {
@@ -109,6 +109,8 @@ export async function generatePackageJson(config: BuildConfig) {
       },
       './qwikloader.js': './qwikloader.js',
       './qwikloader.debug.js': './qwikloader.debug.js',
+      './qwik-prefetch.js': './qwik-prefetch.js',
+      './qwik-prefetch.debug.js': './qwik-prefetch.debug.js',
       './package.json': './package.json',
     },
     files: Array.from(new Set(rootPkg.files)).sort((a, b) => {

@@ -281,11 +281,12 @@ export interface Optimizer
 export interface OptimizerOptions
 ```
 
-| Property                    | Modifiers | Type                                | Description  |
-| --------------------------- | --------- | ----------------------------------- | ------------ |
-| [binding?](#)               |           | any                                 | _(Optional)_ |
-| [inlineStylesUpToBytes?](#) |           | number                              | _(Optional)_ |
-| [sys?](#)                   |           | [OptimizerSystem](#optimizersystem) | _(Optional)_ |
+| Property                    | Modifiers | Type                                | Description                                                        |
+| --------------------------- | --------- | ----------------------------------- | ------------------------------------------------------------------ |
+| [binding?](#)               |           | any                                 | _(Optional)_                                                       |
+| [inlineStylesUpToBytes?](#) |           | number                              | _(Optional)_ Inline the global styles if they're smaller than this |
+| [sourcemap?](#)             |           | boolean                             | _(Optional)_ Enable sourcemaps                                     |
+| [sys?](#)                   |           | [OptimizerSystem](#optimizersystem) | _(Optional)_                                                       |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
@@ -436,6 +437,7 @@ export interface QwikRollupPluginOptions
 | [csr?](#)                     |           | boolean                                                                                                 | _(Optional)_                                                                                                                                                                                                                                      |
 | [debug?](#)                   |           | boolean                                                                                                 | <p>_(Optional)_ Prints verbose Qwik plugin debug logs.</p><p>Default <code>false</code></p>                                                                                                                                                       |
 | [entryStrategy?](#)           |           | [EntryStrategy](#entrystrategy)                                                                         | <p>_(Optional)_ The Qwik entry strategy to use while building for production. During development the type is always <code>hook</code>.</p><p>Default <code>{ type: &quot;smart&quot; }</code>)</p>                                                |
+| [lint?](#)                    |           | boolean                                                                                                 | _(Optional)_ Run eslint on the source files for the ssr build or dev server. This can slow down startup on large projects. Defaults to <code>true</code>                                                                                          |
 | [manifestInput?](#)           |           | [QwikManifest](#qwikmanifest)                                                                           | <p>_(Optional)_ The SSR build requires the manifest generated during the client build. The <code>manifestInput</code> option can be used to manually provide a manifest.</p><p>Default <code>undefined</code></p>                                 |
 | [manifestOutput?](#)          |           | (manifest: [QwikManifest](#qwikmanifest)) =&gt; Promise&lt;void&gt; \| void                             | <p>_(Optional)_ The client build will create a manifest and this hook is called with the generated build data.</p><p>Default <code>undefined</code></p>                                                                                           |
 | [optimizerOptions?](#)        |           | [OptimizerOptions](#optimizeroptions)                                                                   | _(Optional)_                                                                                                                                                                                                                                      |

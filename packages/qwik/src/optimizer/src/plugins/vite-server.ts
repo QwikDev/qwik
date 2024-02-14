@@ -13,6 +13,7 @@ import imageDevTools from './image-size-runtime.html?raw';
 import clickToComponent from './click-to-component.html?raw';
 import perfWarning from './perf-warning.html?raw';
 import errorHost from './error-host.html?raw';
+import { SYNC_QRL } from '../../../core/qrl/qrl-class';
 
 function getOrigin(req: IncomingMessage) {
   const { PROTOCOL_HEADER, HOST_HEADER } = process.env;
@@ -137,6 +138,9 @@ export async function configureDevServer(
             symbolMapper: isClientDevOnly
               ? undefined
               : (symbolName, mapper) => {
+                  if (symbolName === SYNC_QRL) {
+                    return [symbolName, ''];
+                  }
                   const defaultChunk = [
                     symbolName,
                     `/${srcBase}/${symbolName.toLowerCase()}.js`,

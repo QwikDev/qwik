@@ -1,8 +1,8 @@
-import { component$, useSignal, type PropFunction, useStylesScoped$ } from '@builder.io/qwik';
+import { component$, useSignal, type QRL, useStylesScoped$ } from '@builder.io/qwik';
 
 interface CopyIconProps {
   class?: string;
-  onClick$: PropFunction<() => void>;
+  onClick$: QRL<() => void>;
 }
 
 export const CopyIcon = component$<CopyIconProps>(({ onClick$, ...props }) => {
@@ -18,6 +18,9 @@ export const CopyIcon = component$<CopyIconProps>(({ onClick$, ...props }) => {
       class="wrapper"
       preventdefault:click
       onClick$={() => {
+        // Disable this lint issue until new Lint version is released with the fix
+        // eslint version 1.3.1 and higher should work
+        // eslint-disable-next-line
         onClick$();
         copiedSig.value = true;
         setTimeout(() => (copiedSig.value = false), 2000);

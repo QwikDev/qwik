@@ -76,6 +76,61 @@ export const Button = component$(() => {
   <p>Attention ⚠️: JSX <a href="https://qwik.builder.io/docs/components/events/#inline-handler">handlers</a> such as onClick$ and onInput$ are only executed on the client. This is because they are DOM events, since there is no DOM on the server, they will not be executed on the server.</p>
 </details>
 
+## Declare local state
+
+### ⚛️ From React
+
+```tsx
+export function UseStateExample() {
+  const [value, setValue] = useState(0);
+  return <div>Value is: {value}</div>;
+}
+```
+
+### ⚡️ To Qwik
+
+```tsx
+export const LocalStateExample = component$(() => {
+  const count = useSignal(0);
+  return <div>Value is: {count.value}</div>;
+});
+```
+
+<details>
+  <summary style={{color: "#17ADF5"}}>What if I have a more complex state?</summary>
+  <p><a href="https://qwik.builder.io/docs/components/state/#usestore">useStore()</a> Works very similarly to useSignal(), but it takes an object as its initial value and the reactivity extends to nested objects and arrays by default. One can think of a store as a multiple-value signal or an object made of several signals.</p>
+</details>
+
+## Create a counter component
+
+### ⚛️ From React
+
+```tsx
+export function Counter() {
+  const [count, setCount] = useState(0);
+  return (
+    <>
+      <p>Value is: {count}</p>
+      <button onClick={() => setCount(count + 1)}>Increment</button>
+    </>
+  );
+}
+```
+
+### ⚡️ To Qwik
+
+```tsx
+export const Counter = component$(() => {
+  const count = useSignal(0);
+  return (
+    <>
+      <p>Value is: {count.value}</p>
+      <button onClick$={() => count.value++}>Increment</button>
+    </>
+  );
+});
+```
+
 ## Using Props
 
 ### ⚛️ From React
@@ -131,61 +186,6 @@ export const Child = component$<ChildProps>(({ userData }) => {
   <summary style={{color: "#17ADF5"}}>Wait, I don't need to pass the handler as a prop?</summary>
   <p>The reactive signal returned by <a href="https://qwik.builder.io/docs/components/state/#usesignal">useSignal()</a> consists of an object with a single property .value. If you change the value property of the signal, any component that depends on it will be updated automatically.</p>
 </details>
-
-## Declare local state
-
-### ⚛️ From React
-
-```tsx
-export function UseStateExample() {
-  const [value, setValue] = useState(0);
-  return <div>Value is: {value}</div>;
-}
-```
-
-### ⚡️ To Qwik
-
-```tsx
-export const LocalStateExample = component$(() => {
-  const count = useSignal(0);
-  return <div>Value is: {count.value}</div>;
-});
-```
-
-<details>
-  <summary style={{color: "#17ADF5"}}>What if I have a more complex state?</summary>
-  <p><a href="https://qwik.builder.io/docs/components/state/#usestore">useStore()</a> Works very similarly to useSignal(), but it takes an object as its initial value and the reactivity extends to nested objects and arrays by default. One can think of a store as a multiple-value signal or an object made of several signals.</p>
-</details>
-
-## Create a counter component
-
-### ⚛️ From React
-
-```tsx
-export function Counter() {
-  const [count, setCount] = useState(0);
-  return (
-    <>
-      <p>Value is: {count}</p>
-      <button onClick={() => setCount(count + 1)}>Increment</button>
-    </>
-  );
-}
-```
-
-### ⚡️ To Qwik
-
-```tsx
-export const Counter = component$(() => {
-  const count = useSignal(0);
-  return (
-    <>
-      <p>Value is: {count.value}</p>
-      <button onClick$={() => count.value++}>Increment</button>
-    </>
-  );
-});
-```
 
 ## Create a clock that increments every second
 

@@ -34,6 +34,7 @@ export async function buildQwikCity(config: BuildConfig) {
     buildMiddlewareCloudflarePages(config),
     buildMiddlewareNetlifyEdge(config),
     buildMiddlewareAzureSwa(config),
+    buildMiddlewareAwsLambda(config),
     buildMiddlewareDeno(config),
     buildMiddlewareBun(config),
     buildMiddlewareNode(config),
@@ -115,6 +116,10 @@ export async function buildQwikCity(config: BuildConfig) {
       './middleware/azure-swa': {
         types: './middleware/azure-swa/index.d.ts',
         import: './middleware/azure-swa/index.mjs',
+      },
+      './middleware/aws-lambda': {
+        types: './middleware/aws-lambda/index.d.ts',
+        import: './middleware/aws-lambda/index.mjs',
       },
       './middleware/cloudflare-pages': {
         types: './middleware/cloudflare-pages/index.d.ts',
@@ -600,6 +605,21 @@ async function buildMiddlewareAzureSwa(config: BuildConfig) {
   await build({
     entryPoints,
     outfile: join(config.distQwikCityPkgDir, 'middleware', 'azure-swa', 'index.mjs'),
+    bundle: true,
+    platform: 'node',
+    target: nodeTarget,
+    format: 'esm',
+    external: MIDDLEWARE_EXTERNALS,
+    plugins: [resolveRequestHandler('../request-handler/index.mjs')],
+  });
+}
+
+async function buildMiddlewareAwsLambda(config: BuildConfig) {
+  const entryPoints = [join(config.srcQwikCityDir, 'middleware', 'aws-lambda', 'index.ts')];
+
+  await build({
+    entryPoints,
+    outfile: join(config.distQwikCityPkgDir, 'middleware', 'aws-lambda', 'index.mjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,

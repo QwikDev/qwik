@@ -589,7 +589,6 @@ export const useVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions)
   const { val, set, i, iCtx, elCtx } = useSequentialScope<Task<TaskFn>>();
   const eagerness = opts?.strategy ?? 'intersection-observer';
   if (val) {
-    // TODO: check, sometimes for ssr render isServerPlatform is false
     if (isServerPlatform()) {
       useRunTask(val, eagerness);
     }

@@ -94,13 +94,15 @@ export async function trigger(
     }
     const kebabEventName = fromCamelToKebabCase(eventNameCamel);
     const isDocumentOrWindow =
-      kebabEventName.startsWith('document:') || kebabEventName.startsWith('window:');
+      kebabEventName.startsWith(':document:') || kebabEventName.startsWith(':window:');
     const event = new Event(kebabEventName, {
       bubbles: true,
       cancelable: true,
     });
     Object.assign(event, eventPayload);
-    const attrName = `on${isDocumentOrWindow ? '-' : ':'}` + kebabEventName;
+    const attrName = isDocumentOrWindow
+      ? `on-${kebabEventName.substring(1)}`
+      : `on:${kebabEventName}`;
     await dispatch(element, attrName, event);
   }
   await getTestPlatform().flush();

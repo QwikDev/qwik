@@ -69,7 +69,7 @@ Error.stackTraceLimit = 100;
       );
 
       const { vNode, document } = await render(<VisibleCmp />, { debug });
-      await trigger(document.body, 'span', 'document:qinit');
+      await trigger(document.body, 'span', ':document:qinit');
       expect(vNode).toMatchVDOM(
         <Component>
           <span>CSR</span>
@@ -99,7 +99,7 @@ Error.stackTraceLimit = 100;
       );
 
       const { vNode, document } = await render(<VisibleCmp />, { debug });
-      await trigger(document.body, 'span', 'document:qidle');
+      await trigger(document.body, 'span', ':document:qidle');
 
       expect(vNode).toMatchVDOM(
         <Component>

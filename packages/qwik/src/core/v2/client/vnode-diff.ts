@@ -575,12 +575,11 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
         element.qDispatchEvent = (event: Event) => {
           let eventName = event.type;
           let prefix = '';
-          if (eventName.startsWith('document:')) {
-            eventName = eventName.substring(9);
-            prefix = ':document';
-          } else if (eventName.startsWith('window:')) {
-            eventName = eventName.substring(7);
-            prefix = ':window';
+          if (eventName.startsWith(':')) {
+            // :document:event or :window:event
+            const colonIndex = eventName.substring(1).indexOf(':');
+            prefix = eventName.substring(0, colonIndex + 1);
+            eventName = eventName.substring(colonIndex + 2);
           }
 
           const eventProp =
@@ -721,7 +720,7 @@ export const vnode_applyJournal = (journal: VNodeJournalEntry[]) => {
         while (typeof (key = journal[idx] as string | null) === 'string') {
           idx++;
           const value = journal[idx++] as string | null;
-          if (key.startsWith(':') || key.startsWith('document:') || key.startsWith('window:')) {
+          if (key.startsWith(':')) {
             vnode_setProp(vnode, key, value);
           } else {
             vnode_setAttr(vnode, key, value);

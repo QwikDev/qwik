@@ -1,5 +1,6 @@
 import { test, expect } from 'vitest';
 import { packUint8Array, unpackUint8Array } from './string';
+import crypto from 'node:crypto';
 
 test('pack/unpack bytes including surrogate pair', () => {
   const a = new Uint8Array([66, 216, 183, 223, 206, 145, 182, 91]);

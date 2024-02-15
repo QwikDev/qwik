@@ -173,6 +173,12 @@ function processJSXNode(
   }
 }
 
+export const isQrlSSREvent = (eventName: string): boolean =>
+  (eventName.startsWith('on') ||
+    eventName.startsWith('document:on') ||
+    eventName.startsWith('window:on')) &&
+  eventName.endsWith('$');
+
 export function toSsrAttrs(
   record: Record<string, unknown>,
   serializationCtx: SerializationContext
@@ -180,7 +186,7 @@ export function toSsrAttrs(
   const ssrAttrs: SsrAttrs = [];
   for (const key in record) {
     if (Object.prototype.hasOwnProperty.call(record, key)) {
-      if (key.startsWith('on') && key.endsWith('$')) {
+      if (isQrlSSREvent(key)) {
         let value: string | null = null;
         const qrls = record[key];
         if (Array.isArray(qrls)) {
@@ -194,8 +200,15 @@ export function toSsrAttrs(
         } else if (isQrl(qrls)) {
           value = qrlToString(qrls, serializationCtx.$addRoot$);
         }
-        const event = key.slice(2, -1).toLowerCase();
-        value && ssrAttrs.push('on:' + event, value);
+        if (key.startsWith('on')) {
+          // on event
+          const event = key.slice(2, -1).toLowerCase();
+          value && ssrAttrs.push('on:' + event, value);
+        } else {
+          // document:on event
+          const event = key.slice(11, -1).toLowerCase();
+          value && ssrAttrs.push('on-document:' + event, value);
+        }
       } else {
         if (key !== 'children') {
           ssrAttrs.push(key, String(record[key]));

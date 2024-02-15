@@ -15,6 +15,7 @@ import { ELEMENT_KEY, ELEMENT_PROPS, OnRenderProp, QSlot, QSlotParent } from '..
 import { isPromise } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
 import type { QElement2, fixMeAny } from '../shared/types';
+import { isQrlSSREvent } from '../ssr/ssr-render';
 import type { SsrAttrs } from '../ssr/types';
 import type { DomContainer } from './dom-container';
 import {
@@ -73,6 +74,11 @@ export const enum VNodeJournalOpCode {
 }
 
 export type ComponentQueue = Array<VNode>;
+
+export const isQrlDOMEvent = (eventName: string) =>
+  eventName.startsWith('on:') ||
+  eventName.startsWith('on-document:') ||
+  eventName.startsWith('on-window:');
 
 export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStartNode: VNode) => {
   const journal = (container as DomContainer).$journal$;
@@ -523,7 +529,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     while (srcKey !== null || dstKey !== null) {
       if (srcKey == null) {
         // Source has more keys, so we need to remove them from destination
-        if (dstKey?.startsWith('on:')) {
+        if (dstKey && isQrlDOMEvent(dstKey)) {
           patchEventDispatch = true;
         } else {
           record(dstKey!, null);
@@ -532,7 +538,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
         dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       } else if (dstKey == null) {
         // Destination has more keys, so we need to insert them from source.
-        const isEvent = srcKey.startsWith('on') && srcKey.endsWith('$');
+        const isEvent = isQrlSSREvent(srcKey);
         if (isEvent) {
           // Special handling for events
           patchEventDispatch = true;
@@ -567,9 +573,17 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       const element = vnode_getNode(vnode) as QElement2;
       if (!element.qDispatchEvent) {
         element.qDispatchEvent = (event: Event) => {
-          const eventName = event.type;
+          let eventName = event.type;
+          const isDocument = eventName.startsWith('document:');
+          if (isDocument) {
+            eventName = eventName.substring(9);
+          }
           const eventProp =
-            ':on' + eventName.charAt(0).toUpperCase() + eventName.substring(1) + '$';
+            (isDocument ? ':document' : '') +
+            ':on' +
+            eventName.charAt(0).toUpperCase() +
+            eventName.substring(1) +
+            '$';
           const qrls = vnode_getProp(vnode, eventProp, null);
           let returnValue = false;
           qrls &&
@@ -702,7 +716,7 @@ export const vnode_applyJournal = (journal: VNodeJournalEntry[]) => {
         while (typeof (key = journal[idx] as string | null) === 'string') {
           idx++;
           const value = journal[idx++] as string | null;
-          if (key.startsWith(':')) {
+          if (key.startsWith(':') || key.startsWith('document:') || key.startsWith('window:')) {
             vnode_setProp(vnode, key, value);
           } else {
             vnode_setAttr(vnode, key, value);

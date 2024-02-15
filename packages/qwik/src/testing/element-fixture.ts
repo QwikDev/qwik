@@ -89,13 +89,17 @@ export async function trigger(
       ? Array.from(root.querySelectorAll(queryOrElement))
       : [queryOrElement];
   for (const element of elements) {
+    if (!element) {
+      continue;
+    }
     const kebabEventName = fromCamelToKebabCase(eventNameCamel);
+    const isDocument = kebabEventName.startsWith('document:');
     const event = new Event(kebabEventName, {
       bubbles: true,
       cancelable: true,
     });
     Object.assign(event, eventPayload);
-    const attrName = 'on:' + kebabEventName;
+    const attrName = `on${isDocument ? '-' : ':'}` + kebabEventName;
     await dispatch(element, attrName, event);
   }
   await getTestPlatform().flush();
@@ -112,7 +116,7 @@ const QContainerSelector = '[q\\:container]';
  * @param attrName
  * @param event
  */
-export const dispatch = async (element: Element | null, attrName: string, event: any) => {
+export const dispatch = async (element: Element | null, attrName: string, event: Event) => {
   const preventAttributeName = PREVENT_DEFAULT + event.type;
   const collectListeners: { element: Element; qrl: QRLInternal }[] = [];
   while (element) {

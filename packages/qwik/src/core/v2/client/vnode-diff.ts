@@ -574,12 +574,17 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       if (!element.qDispatchEvent) {
         element.qDispatchEvent = (event: Event) => {
           let eventName = event.type;
-          const isDocument = eventName.startsWith('document:');
-          if (isDocument) {
+          let prefix = '';
+          if (eventName.startsWith('document:')) {
             eventName = eventName.substring(9);
+            prefix = ':document';
+          } else if (eventName.startsWith('window:')) {
+            eventName = eventName.substring(7);
+            prefix = ':window';
           }
+
           const eventProp =
-            (isDocument ? ':document' : '') +
+            prefix +
             ':on' +
             eventName.charAt(0).toUpperCase() +
             eventName.substring(1) +

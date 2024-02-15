@@ -201,13 +201,14 @@ export function toSsrAttrs(
           value = qrlToString(qrls, serializationCtx.$addRoot$);
         }
         if (key.startsWith('on')) {
-          // on event
           const event = key.slice(2, -1).toLowerCase();
           value && ssrAttrs.push('on:' + event, value);
-        } else {
-          // document:on event
+        } else if (key.startsWith('document:on')) {
           const event = key.slice(11, -1).toLowerCase();
           value && ssrAttrs.push('on-document:' + event, value);
+        } else if (key.startsWith('window:on')) {
+          const event = key.slice(9, -1).toLowerCase();
+          value && ssrAttrs.push('on-window:' + event, value);
         }
       } else {
         if (key !== 'children') {

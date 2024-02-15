@@ -199,7 +199,6 @@ Error.stackTraceLimit = 100;
             inlinedQrl(
               ({ track }) => {
                 const [s] = useLexicalScope<[typeof store]>();
-                s.double = -2 * s.count;
                 const count = track(s, 'count');
                 s.double = 2 * count;
               },

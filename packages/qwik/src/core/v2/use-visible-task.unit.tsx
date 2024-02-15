@@ -188,7 +188,7 @@ Error.stackTraceLimit = 100;
       );
     });
 
-    describe(render.name + ': track', () => {
+    describe('track', () => {
       it('should rerun on track', async () => {
         const Counter = component$(() => {
           const count = useSignal(10);
@@ -242,7 +242,6 @@ Error.stackTraceLimit = 100;
             inlinedQrl(
               ({ track }) => {
                 const [s] = useLexicalScope<[typeof store]>();
-                s.double = -2 * s.count;
                 const count = track(s, 'count');
                 s.double = 2 * count;
               },

@@ -17,7 +17,7 @@
     "@google-cloud/functions-framework": "^3.3.0",
     "firebase-admin": "^11.8.0",
     "firebase-functions": "^4.3.1",
-    "undici": "^5.26.0"
+    "undici": "*"
   },
   "devDependencies": {
     "firebase-functions-test": "^3.1.0"

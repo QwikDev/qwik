@@ -26,7 +26,7 @@ import type { Render, RenderToStringResult } from '@builder.io/qwik/server';
 import type { QRL, _deserializeData, _serializeData } from '@builder.io/qwik';
 import { getQwikCityServerData } from './response-page';
 import { RedirectMessage } from './redirect-handler';
-import type { ServerGT } from 'packages/qwik-city/runtime/src/server-functions';
+import type { ServerGT } from '../../runtime/src/server-functions';
 
 export const resolveRequestHandlers = (
   serverPlugins: RouteModule[] | undefined,

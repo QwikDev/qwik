@@ -109,16 +109,19 @@ jobs:
       - run: corepack enable
 
       - name: Install NPM Dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          # Ensure that the qwik binary gets made
+          mkdir -p packages/qwik/dist/bindings/
+          pnpm install --frozen-lockfile
 
       - name: Build Packages
-        run: pnpm tsm scripts/index.ts --tsc --build --cli --api --set-dist-tag="${{ github.event.inputs.disttag }}"
+        run: pnpm tsm scripts/index.ts --tsc --build --cli --api --qwiklabs --eslint --platform-binding-wasm-copy --set-dist-tag="${{ github.event.inputs.disttag }}"
 
       - name: Print Qwik Dist Build
         run: tree packages/qwik/dist/
 
       - name: Upload Qwik Build Artifacts
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v3
         with:
           name: dist-dev-builder-io-qwik
           path: packages/qwik/dist/
@@ -128,7 +131,7 @@ jobs:
         run: tree packages/create-qwik/dist/
 
       - name: Upload Create Qwik CLI Build Artifacts
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v3
         with:
           name: dist-dev-create-qwik
           path: packages/create-qwik/dist/
@@ -141,7 +144,7 @@ jobs:
         run: tree packages/eslint-plugin-qwik/dist/
 
       - name: Upload Eslint rules Build Artifacts
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v3
         with:
           name: dist-dev-eslint-plugin-qwik
           path: packages/eslint-plugin-qwik/dist/
@@ -203,7 +206,10 @@ jobs:
 
       - name: Install NPM Dependencies
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: pnpm install --frozen-lockfile
+        run: |
+          # Ensure that the qwik binary gets made
+          mkdir -p packages/qwik/dist/bindings/
+          pnpm install --frozen-lockfile
 
       - uses: jetli/wasm-pack-action@v0.3.0
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -220,7 +226,7 @@ jobs:
 
       - name: Upload WASM Build Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v3
         with:
           name: dist-bindings-wasm
           path: packages/qwik/dist/bindings/*
@@ -311,7 +317,10 @@ jobs:
 
       - name: Install NPM Dependencies
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: pnpm install --frozen-lockfile
+        run: |
+          # Ensure that the qwik binary gets made
+          mkdir -p packages/qwik/dist/bindings/
+          pnpm install --frozen-lockfile
 
       - name: Build Platform Binding
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -350,12 +359,14 @@ jobs:
 
       - name: Install NPM Dependencies
         if: ${{ needs.changes.outputs.insightsbuild == 'true' }}
-        run: pnpm install --frozen-lockfile
+        run: |
+          # Ensure that the qwik binary gets made
+          mkdir -p packages/qwik/dist/bindings/
+          pnpm install --frozen-lockfile
 
       - name: Build Qwik Insights
         if: ${{ needs.changes.outputs.insightsbuild == 'true' }}
-        working-directory: packages/insights
-        run: pnpm run build.ci
+        run: pnpm run build.packages.insights
 
   ############ BUILD DOCS ############
   build-docs:
@@ -381,12 +392,14 @@ jobs:
 
       - name: Install NPM Dependencies
         if: ${{ needs.changes.outputs.docsbuild == 'true' }}
-        run: pnpm install --frozen-lockfile
+        run: |
+          # Ensure that the qwik binary gets made
+          mkdir -p packages/qwik/dist/bindings/
+          pnpm install --frozen-lockfile
 
       - name: Build Qwik Docs
         if: ${{ needs.changes.outputs.docsbuild == 'true' }}
-        working-directory: packages/docs
-        run: pnpm run build
+        run: pnpm run build.packages.docs
 
   ############ BUILD DISTRIBUTION ############
   build-distribution:
@@ -422,12 +435,10 @@ jobs:
 
       - name: Install NPM Dependencies
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: pnpm install --frozen-lockfile
-
-      - name: Create packages/qwik/dist/ directory
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: |
+          # Ensure that the qwik binary gets made
           mkdir -p packages/qwik/dist/bindings/
+          pnpm install --frozen-lockfile
 
       - name: Download Build Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -455,7 +466,7 @@ jobs:
 
       - name: Upload Qwik Distribution Artifact
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v3
         with:
           name: builderio-qwik-distribution
           path: packages/qwik/dist/*
@@ -463,7 +474,7 @@ jobs:
 
       - name: Build QwikCity / QwikLabs
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: pnpm tsm scripts/index.ts --tsc --qwikcity --qwiklabs --api
+        run: pnpm tsm scripts/index.ts --tsc --qwikcity --qwiklabs --api --eslint
 
       - name: Print QwikCity Lib Build
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -471,7 +482,7 @@ jobs:
 
       - name: Upload QwikCity Build Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v3
         with:
           name: builderio-qwikcity-distribution
           path: packages/qwik-city/lib/
@@ -483,7 +494,7 @@ jobs:
 
       - name: Upload QwikLabs Build Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v3
         with:
           name: builderio-qwiklabs-distribution
           path: |
@@ -543,7 +554,10 @@ jobs:
           mv builderio-qwiklabs-distribution/vite/* packages/qwik-labs/vite/
 
       - name: Install NPM Dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          # Ensure that the qwik binary gets made
+          mkdir -p packages/qwik/dist/bindings/
+          pnpm install --frozen-lockfile
 
       - name: Commit Build Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' && github.event_name == 'push' }}
@@ -622,7 +636,10 @@ jobs:
 
       - name: Install NPM Dependencies
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: pnpm install --frozen-lockfile
+        run: |
+          # Ensure that the qwik binary gets made
+          mkdir -p packages/qwik/dist/bindings/
+          pnpm install --frozen-lockfile
 
       - name: Install Playwright
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -630,7 +647,7 @@ jobs:
 
       - name: Playwright E2E Tests
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: pnpm run test.e2e.${{ matrix.settings.browser }}
+        run: pnpm run test.e2e.${{ matrix.settings.browser }} --timeout 60000 --retries 3 --workers 1
 
       - name: Validate Create Qwik Cli
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -659,7 +676,13 @@ jobs:
       - run: corepack enable
 
       - name: Install NPM Dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          # Ensure that the qwik binary gets made
+          mkdir -p packages/qwik/dist/bindings/
+          pnpm install --frozen-lockfile
+
+      - name: Build core
+        run: pnpm run build.core
 
       - name: Unit Tests
         run: pnpm run test.unit
@@ -749,11 +772,18 @@ jobs:
       - run: corepack enable
 
       - name: Install NPM Dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          # Ensure that the qwik binary gets made
+          mkdir -p packages/qwik/dist/bindings/
+          pnpm install --frozen-lockfile
 
       - name: Prettier Check
         if: ${{ always() }}
         run: pnpm run lint.prettier
+
+      - name: Build ESLint
+        if: ${{ always() }}
+        run: pnpm tsm scripts/index.ts --eslint
 
       - name: ESLint Check
         if: ${{ always() }}

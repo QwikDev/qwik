@@ -14,10 +14,10 @@ export const HackerNews = component$(() => {
   });
 
   return (
-    <>
+    <div class="hacker-news">
       <Nav />
       <Stories data={store.data} />
-    </>
+    </div>
   );
 });
 

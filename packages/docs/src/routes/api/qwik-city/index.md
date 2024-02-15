@@ -4,6 +4,12 @@ title: \@builder.io/qwik-city API Reference
 
 # [API](/api) &rsaquo; @builder.io/qwik-city
 
+## "link:app"
+
+```typescript
+'link:app'?: boolean;
+```
+
 ## Action
 
 ```typescript
@@ -358,7 +364,7 @@ export type FailReturn<T> = T & Failed;
 Form: <O, I>(
   { action, spaReset, reloadDocument, onSubmit$, ...rest }: FormProps<O, I>,
   key: string | null,
-) => QwikJSX.Element;
+) => import("@builder.io/qwik").JSXOutput;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/form-component.tsx)
@@ -454,9 +460,7 @@ export type JSONValue =
 ## Link
 
 ```typescript
-Link: import("@builder.io/qwik").Component<
-  import("@builder.io/qwik").PropFunctionProps<LinkProps>
->;
+Link: import("@builder.io/qwik").Component<LinkProps>;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/link-component.tsx)
@@ -469,12 +473,13 @@ export interface LinkProps extends AnchorAttributes
 
 **Extends:** AnchorAttributes
 
-| Property           | Modifiers | Type    | Description  |
-| ------------------ | --------- | ------- | ------------ |
-| [prefetch?](#)     |           | boolean | _(Optional)_ |
-| [reload?](#)       |           | boolean | _(Optional)_ |
-| [replaceState?](#) |           | boolean | _(Optional)_ |
-| [scroll?](#)       |           | boolean | _(Optional)_ |
+| Property                             | Modifiers | Type            | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| ------------------------------------ | --------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ["link:app"?](#linkprops-_link_app_) |           | boolean         | _(Optional)_                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| [prefetch?](#)                       |           | boolean \| 'js' | <p>_(Optional)_ \*\*Defaults to \_true\_.\*\*</p><p>Whether Qwik should prefetch and cache the target page of this \*\*<code>Link</code>\*\*, this includes invoking any \*\*<code>routeLoader$</code>\*\*, \*\*<code>onGet</code>\*\*, etc.</p><p>This \*\*improves UX performance\*\* for client-side (\*\*SPA\*\*) navigations.</p><p>Prefetching occurs when a the Link enters the viewport in production (\*\*<code>on:qvisibile</code>\*\*), or with \*\*<code>mouseover</code>/<code>focus</code>\*\* during dev.</p><p>Prefetching will not occur if the user has the \*\*data saver\*\* setting enabled.</p><p>Setting this value to \*\*<code>&quot;js&quot;</code>\*\* will prefetch only javascript bundles required to render this page on the client, \*\*<code>false</code>\*\* will disable prefetching altogether.</p> |
+| [reload?](#)                         |           | boolean         | _(Optional)_                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| [replaceState?](#)                   |           | boolean         | _(Optional)_                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| [scroll?](#)                         |           | boolean         | _(Optional)_                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/link-component.tsx)
 
@@ -549,19 +554,18 @@ export declare type PathParams = Record<string, string>;
 export interface QwikCityMockProps
 ```
 
-| Property     | Modifiers | Type                         | Description  |
-| ------------ | --------- | ---------------------------- | ------------ |
-| [params?](#) |           | Record&lt;string, string&gt; | _(Optional)_ |
-| [url?](#)    |           | string                       | _(Optional)_ |
+| Property     | Modifiers | Type                            | Description  |
+| ------------ | --------- | ------------------------------- | ------------ |
+| [goto?](#)   |           | [RouteNavigate](#routenavigate) | _(Optional)_ |
+| [params?](#) |           | Record&lt;string, string&gt;    | _(Optional)_ |
+| [url?](#)    |           | string                          | _(Optional)_ |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/qwik-city-component.tsx)
 
 ## QwikCityMockProvider
 
 ```typescript
-QwikCityMockProvider: import("@builder.io/qwik").Component<
-  import("@builder.io/qwik").PropFunctionProps<QwikCityMockProps>
->;
+QwikCityMockProvider: import("@builder.io/qwik").Component<QwikCityMockProps>;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/qwik-city-component.tsx)
@@ -598,9 +602,7 @@ export interface QwikCityProps
 ## QwikCityProvider
 
 ```typescript
-QwikCityProvider: import("@builder.io/qwik").Component<
-  import("@builder.io/qwik").PropFunctionProps<QwikCityProps>
->;
+QwikCityProvider: import("@builder.io/qwik").Component<QwikCityProps>;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/qwik-city-component.tsx)
@@ -704,9 +706,7 @@ export type RouteNavigate = QRL<
 ## RouterOutlet
 
 ```typescript
-RouterOutlet: import("@builder.io/qwik").Component<
-  import("@builder.io/qwik").PropFunctionProps<Record<any, any>>
->;
+RouterOutlet: import("@builder.io/qwik").Component<unknown>;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/router-outlet-component.tsx)
@@ -719,6 +719,16 @@ server$: <T extends ServerFunction>(first: T) => ServerQRL<T>;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts)
 
+## ServerFunction
+
+```typescript
+export type ServerFunction = {
+  (this: RequestEventBase, ...args: any[]): any;
+};
+```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+
 ## serverQrl
 
 ```typescript
@@ -726,6 +736,14 @@ serverQrl: <T extends ServerFunction>(qrl: QRL<T>) => ServerQRL<T>;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts)
+
+## ServerQRL
+
+```typescript
+serverQrl: <T extends ServerFunction>(qrl: QRL<T>) => ServerQRL<T>;
+```
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
 ## ServiceWorkerRegister
 

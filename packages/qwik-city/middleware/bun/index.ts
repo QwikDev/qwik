@@ -75,7 +75,11 @@ export function createQwikCity(opts: QwikCityBunOptions) {
         mode: 'server',
         locale: undefined,
         url,
-        env: Bun.env,
+        env: {
+          get(key) {
+            return Bun.env[key];
+          },
+        },
         request,
         getWritableStream: (status, headers, cookies, resolve) => {
           const { readable, writable } = new TransformStream<Uint8Array>();

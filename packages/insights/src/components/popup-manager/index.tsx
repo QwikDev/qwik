@@ -4,6 +4,7 @@ import {
   component$,
   useStore,
   useSignal,
+  $,
   type NoSerialize,
 } from '@builder.io/qwik';
 import { CloseIcon } from '../icons/close';
@@ -72,7 +73,10 @@ export const PopupManager = component$(() => {
             left: popup.x + 4 + 'px',
           }}
         >
-          <CloseIcon onClick$={() => (popup.currentTarget = null)} class="absolute right-0 m-0" />
+          <CloseIcon
+            onClick$={$(() => (popup.currentTarget = null))}
+            class="absolute right-0 m-0"
+          />
           <popup.Component {...popup.props} />
         </div>
       ) : null}

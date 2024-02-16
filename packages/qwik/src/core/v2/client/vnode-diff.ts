@@ -558,13 +558,23 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
         dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       } else if (srcKey < dstKey) {
         // Destination is missing the key, so we need to insert it.
-        const srcValue = srcAttrs[srcIdx++];
-        record(srcKey, srcValue);
+        if (isQrlSSREvent(srcKey)) {
+          // Special handling for events
+          patchEventDispatch = true;
+          record(':' + srcKey, srcAttrs[srcIdx]);
+        } else {
+          record(srcKey, srcAttrs[srcIdx]);
+        }
+        srcIdx++;
         // advance srcValue
         srcKey = srcIdx < srcLength ? srcAttrs[srcIdx++] : null;
       } else {
         // Source is missing the key, so we need to remove it from destination.
-        record(dstKey, null);
+        if (isQrlDOMEvent(dstKey)) {
+          patchEventDispatch = true;
+        } else {
+          record(dstKey!, null);
+        }
         dstIdx++; // skip the destination value, we don't care about it.
         dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       }
@@ -583,11 +593,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
           }
 
           const eventProp =
-            prefix +
-            ':on' +
-            eventName.charAt(0).toUpperCase() +
-            eventName.substring(1) +
-            '$';
+            prefix + ':on' + eventName.charAt(0).toUpperCase() + eventName.substring(1) + '$';
           const qrls = vnode_getProp(vnode, eventProp, null);
           let returnValue = false;
           qrls &&

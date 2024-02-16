@@ -67,6 +67,10 @@ export interface ElementFixtureOptions {
   html?: string;
 }
 
+function isDocumentOrWindowEvent(eventName: string): boolean {
+  return eventName.startsWith(':document:') || eventName.startsWith(':window:');
+}
+
 /**
  * Trigger an event in unit tests on an element.
  *
@@ -93,8 +97,7 @@ export async function trigger(
       continue;
     }
     const kebabEventName = fromCamelToKebabCase(eventNameCamel);
-    const isDocumentOrWindow =
-      kebabEventName.startsWith(':document:') || kebabEventName.startsWith(':window:');
+    const isDocumentOrWindow = isDocumentOrWindowEvent(kebabEventName);
     const event = new Event(kebabEventName, {
       bubbles: true,
       cancelable: true,
@@ -120,7 +123,9 @@ const QContainerSelector = '[q\\:container]';
  * @param event
  */
 export const dispatch = async (element: Element | null, attrName: string, event: Event) => {
-  const preventAttributeName = PREVENT_DEFAULT + event.type;
+  const isDocumentOrWindow = isDocumentOrWindowEvent(event.type);
+  const preventAttributeName =
+    PREVENT_DEFAULT + isDocumentOrWindow ? event.type.substring(1) : event.type;
   const collectListeners: { element: Element; qrl: QRLInternal }[] = [];
   while (element) {
     const preventDefault = element.hasAttribute(preventAttributeName);

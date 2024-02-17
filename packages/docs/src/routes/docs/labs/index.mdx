@@ -53,3 +53,22 @@ Or just add this to your `package.json`
   }
 }
 ```
+
+> **WARNING:** Installation issue with NPM
+>
+> When installing Qwik Labs with NPM, you will probably get because of an `EUNSUPPORTEDPROTOCOL`.
+> To solve that, you want to install the parent of the breaking commit.
+> ```sh
+> npm i github:BuilderIo/qwik-labs-build#36582dc0503bf665daff9686d2a27d742145795d
+> ```
+> Or just add this to your `package.json`
+> ```javascript
+> {
+>   ...
+>   "dependencies": {
+>     ...
+>     "@builder.io/qwik-labs": "github:BuilderIo/qwik-labs-build#36582dc0503bf665daff9686d2a27d742145795d",
+>   }
+> }
+```
+> C.f. [this issue](https://github.com/BuilderIO/qwik/issues/5803)

@@ -192,14 +192,13 @@ Error.stackTraceLimit = 100;
         );
         await getTestPlatform().flush();
       });
-      it('should track signal property', async () => {
+      it('should track store property', async () => {
         const Counter = component$(() => {
           const store = useStore({ count: 1, double: 0 });
           useTaskQrl(
             inlinedQrl(
               ({ track }) => {
                 const [s] = useLexicalScope<[typeof store]>();
-                s.double = -2 * s.count;
                 const count = track(s, 'count');
                 s.double = 2 * count;
               },

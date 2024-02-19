@@ -15,6 +15,10 @@ import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-compo
 import type { SSRContainer, SsrAttrs } from './types';
 import type { ValueOrPromise } from '../../util/types';
 import { throwErrorAndStop } from '../../util/log';
+import {
+  convertEventNameFromJsxPropToHtmlAttr,
+  isJsxPropertyAnEventName,
+} from '../shared/event-names';
 
 /**
  * We support Promises in JSX but we don't expose this in the public API because it breaks signal
@@ -180,21 +184,23 @@ export function toSsrAttrs(
   const ssrAttrs: SsrAttrs = [];
   for (const key in record) {
     if (Object.prototype.hasOwnProperty.call(record, key)) {
-      if (key.startsWith('on') && key.endsWith('$')) {
+      if (isJsxPropertyAnEventName(key)) {
         let value: string | null = null;
         const qrls = record[key];
         if (Array.isArray(qrls)) {
-          for (const qrl of qrls) {
+          for (let i = 0; i <= qrls.length; i++) {
+            const qrl = qrls[i];
             if (isQrl(qrl)) {
-              value = qrlToString(qrl, serializationCtx.$addRoot$);
-              break;
+              const first = i === 0;
+              value = (first ? '' : value + '\n') + qrlToString(qrl, serializationCtx.$addRoot$);
             }
           }
         } else if (isQrl(qrls)) {
           value = qrlToString(qrls, serializationCtx.$addRoot$);
         }
-        const event = key.slice(2, -1).toLowerCase();
-        value && ssrAttrs.push('on:' + event, value);
+        if (isJsxPropertyAnEventName(key)) {
+          value && ssrAttrs.push(convertEventNameFromJsxPropToHtmlAttr(key), value);
+        }
       } else {
         if (key !== 'children') {
           ssrAttrs.push(key, String(record[key]));

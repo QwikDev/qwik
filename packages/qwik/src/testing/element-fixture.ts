@@ -67,6 +67,10 @@ export interface ElementFixtureOptions {
   html?: string;
 }
 
+function isDocumentOrWindowEvent(eventName: string): boolean {
+  return eventName.startsWith(':document:') || eventName.startsWith(':window:');
+}
+
 /**
  * Trigger an event in unit tests on an element.
  *
@@ -89,11 +93,19 @@ export async function trigger(
       ? Array.from(root.querySelectorAll(queryOrElement))
       : [queryOrElement];
   for (const element of elements) {
+    if (!element) {
+      continue;
+    }
     const kebabEventName = fromCamelToKebabCase(eventNameCamel);
-    const event = root.ownerDocument.createEvent('Event');
-    event.initEvent(kebabEventName, true, true);
+    const isDocumentOrWindow = isDocumentOrWindowEvent(kebabEventName);
+    const event = new Event(kebabEventName, {
+      bubbles: true,
+      cancelable: true,
+    });
     Object.assign(event, eventPayload);
-    const attrName = 'on:' + kebabEventName;
+    const attrName = isDocumentOrWindow
+      ? `on-${kebabEventName.substring(1)}`
+      : `on:${kebabEventName}`;
     await dispatch(element, attrName, event);
   }
   await getTestPlatform().flush();
@@ -110,8 +122,10 @@ const QContainerSelector = '[q\\:container]';
  * @param attrName
  * @param event
  */
-export const dispatch = async (element: Element | null, attrName: string, event: any) => {
-  const preventAttributeName = PREVENT_DEFAULT + event.type;
+export const dispatch = async (element: Element | null, attrName: string, event: Event) => {
+  const isDocumentOrWindow = isDocumentOrWindowEvent(event.type);
+  const preventAttributeName =
+    PREVENT_DEFAULT + isDocumentOrWindow ? event.type.substring(1) : event.type;
   const collectListeners: { element: Element; qrl: QRLInternal }[] = [];
   while (element) {
     const preventDefault = element.hasAttribute(preventAttributeName);

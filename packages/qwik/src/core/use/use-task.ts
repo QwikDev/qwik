@@ -5,7 +5,7 @@ import { QError_trackUseStore, codeToText } from '../error/error';
 import { isServerPlatform } from '../platform/platform';
 import { assertQrl, assertSignal, createQRL, type QRLInternal } from '../qrl/qrl-class';
 import type { QRL } from '../qrl/qrl.public';
-import { _hW, notifyTask, notifyTask2 } from '../render/dom/notify-render';
+import { _hW, notifyTask } from '../render/dom/notify-render';
 import type { QwikElement } from '../render/dom/virtual-element';
 import { handleError } from '../render/error-handling';
 import type { RenderContext } from '../render/types';
@@ -382,7 +382,7 @@ export const runTask2 = (
             }
           });
         });
-        container.$scheduler$.$scheduleCleanup$(task);
+        container.$scheduler$.$scheduleCleanup$(task as fixMeAny);
       }
       cleanupFns.push(fn);
     }
@@ -422,9 +422,7 @@ export const runComputed2 = (
       }),
     handleError
   );
-  if (isPromise(result)) {
-    throw result;
-  }
+  return result;
 };
 
 interface ComputedQRL {
@@ -460,7 +458,10 @@ export const useComputedQrl: ComputedQRL = <T>(qrl: QRL<ComputedFn<T>>): Signal<
       signal,
       null
     );
-    runComputed2(task, iCtx.$container2$, host);
+    const result = runComputed2(task, iCtx.$container2$, host);
+    if (isPromise(result)) {
+      throw result;
+    }
     qrl.$resolveLazy$(host as fixMeAny);
     return set(signal);
   } else {
@@ -596,13 +597,11 @@ export const useVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions)
   assertQrl(qrl);
 
   if (iCtx.$container2$) {
-    const host = iCtx.$hostElement$ as unknown as HostElement;
     const task = new Task(TaskFlagsIsVisibleTask, i, iCtx.$hostElement$, qrl, undefined, null);
     set(task);
     useRunTask(task, eagerness);
     if (!isServerPlatform()) {
-      notifyTask2(task, iCtx.$container2$);
-      qrl.$resolveLazy$(host as fixMeAny);
+      qrl.$resolveLazy$(iCtx.$hostElement$ as fixMeAny);
     }
   } else {
     const task = new Task(TaskFlagsIsVisibleTask, i, elCtx.$element$, qrl, undefined, null);

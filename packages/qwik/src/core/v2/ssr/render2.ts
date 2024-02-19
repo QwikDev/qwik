@@ -6,7 +6,7 @@ import type {
   StreamWriter,
   SnapshotResult,
 } from '../../../server/types';
-import { resolveManifest, type renderToString } from '../../../server/render';
+import { resolveManifest, type renderToString, renderToStream } from '../../../server/render';
 import type { JSXOutput } from '../../render/jsx/types/jsx-node';
 import { ssrCreateContainer } from './ssr-container';
 import { ssrRenderToContainer } from './ssr-render';
@@ -50,12 +50,12 @@ export const renderToStream2: typeof renderToStream = async (
   jsx: JSXOutput,
   opts: RenderToStreamOptions
 ): Promise<RenderToStreamResult> => {
-  let stream = opts.stream;
-  let bufferSize = 0;
-  let totalSize = 0;
-  let networkFlushes = 0;
-  let firstFlushTime = 0;
-  let buffer: string = '';
+  const stream = opts.stream;
+  const bufferSize = 0;
+  const totalSize = 0;
+  const networkFlushes = 0;
+  const firstFlushTime = 0;
+  const buffer: string = '';
   let snapshotResult: SnapshotResult | undefined;
   const inOrderStreaming = opts.streaming?.inOrder ?? {
     strategy: 'auto',
@@ -76,7 +76,6 @@ export const renderToStream2: typeof renderToStream = async (
 
   const ssrContainer = ssrCreateContainer({ tagName: 'html', locale: opts.locale, writer: stream });
   await ssrRenderToContainer(ssrContainer, jsx);
-  const html = ssrContainer.writer.toString();
 
   const isDynamic = false;
   const result: RenderToStreamResult = {

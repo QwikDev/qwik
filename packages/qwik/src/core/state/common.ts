@@ -445,7 +445,7 @@ export class LocalSubscriptionManager {
     ) {
       return;
     }
-    subs.push((__lastSubscription = [...sub, key] as any));
+    subs.push((__lastSubscription = [...sub, key] as fixMeAny));
     this.$addToGroup$(group, this);
   }
 

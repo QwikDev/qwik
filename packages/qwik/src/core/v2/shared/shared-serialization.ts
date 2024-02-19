@@ -21,26 +21,28 @@ import { Task } from '../../use/use-task';
 import { throwErrorAndStop } from '../../util/log';
 import type { DomContainer } from '../client/dom-container';
 import { vnode_isVNode, vnode_locate } from '../client/vnode';
-import type { fixMeAny } from './types';
+import type { Container2, fixMeAny } from './types';
 import type { ObjToProxyMap } from '../../container/container';
 import { isPromise } from 'util/types';
 import type { ValueOrPromise } from '../../util/types';
 
 const deserializedProxyMap = new WeakMap<object, unknown>();
 
-type DeserializerProxy<T extends object = object> = T & { [UNWRAP_PROXY]: object };
+type DeserializerProxy<T extends object = object> = T & { [SERIALIZER_PROXY_UNWRAP]: object };
 
 const unwrapDeserializerProxy = (value: unknown) => {
   const unwrapped =
-    typeof value === 'object' && value !== null && (value as DeserializerProxy)[UNWRAP_PROXY];
+    typeof value === 'object' &&
+    value !== null &&
+    (value as DeserializerProxy)[SERIALIZER_PROXY_UNWRAP];
   return unwrapped ? unwrapped : value;
 };
 
 export const isDeserializerProxy = (value: unknown): value is DeserializerProxy => {
-  return typeof value === 'object' && value !== null && UNWRAP_PROXY in value;
+  return typeof value === 'object' && value !== null && SERIALIZER_PROXY_UNWRAP in value;
 };
 
-const UNWRAP_PROXY = Symbol('UNWRAP_PROXY');
+export const SERIALIZER_PROXY_UNWRAP = Symbol('UNWRAP');
 export const wrapDeserializerProxy = (container: DomContainer, value: unknown) => {
   if (
     typeof value === 'object' && // Must be an object
@@ -54,80 +56,7 @@ export const wrapDeserializerProxy = (container: DomContainer, value: unknown) =
     } else {
       let proxy = deserializedProxyMap.get(value);
       if (!proxy) {
-        proxy = new Proxy(value, {
-          get(target, property, receiver) {
-            if (property === UNWRAP_PROXY) {
-              return target;
-            }
-            let propValue = Reflect.get(target, property, receiver);
-            let typeCode: number;
-            if (
-              typeof propValue === 'string' &&
-              propValue.length >= 1 &&
-              (typeCode = propValue.charCodeAt(0)) < SerializationConstant.LAST_VALUE
-            ) {
-              // It is a value which needs to be deserialized.
-              const serializedValue = propValue;
-              if (typeCode === SerializationConstant.REFERENCE_VALUE) {
-                // Special case of Reference, we don't go through allocation/inflation
-                propValue = unwrapDeserializerProxy(
-                  container.$getObjectById$(parseInt(propValue.substring(1)))
-                );
-              } else if (typeCode === SerializationConstant.VNode_VALUE) {
-                // Special case of VNode, we go directly to VNode to retrieve the element.
-                propValue =
-                  propValue === SerializationConstant.VNode_CHAR
-                    ? container.element.ownerDocument
-                    : vnode_locate(container.rootVNode, propValue.substring(1));
-              } else if (typeCode === SerializationConstant.Store_VALUE) {
-                // Special case of Store.
-                // Stores are proxies, Proxies need to get their target eagerly. So we can't use inflate()
-                // because that would not allow us to get a hold of the target.
-                const target = container.$getObjectById$(propValue.substring(1)) as {
-                  [SerializationConstant.Store_CHAR]: string | undefined;
-                };
-                propValue = getOrCreateProxy(target as object, container);
-              } else if (
-                typeCode === SerializationConstant.DerivedSignal_VALUE &&
-                !Array.isArray(target)
-              ) {
-                // Special case of derived signal. We need to create an [_IMMUTABLE] property.
-                return wrapDeserializerProxy(
-                  container,
-                  upgradePropsWithDerivedSignal(container, target, property)
-                );
-              } else {
-                propValue = allocate(propValue);
-              }
-              if (
-                typeof propValue !== 'string' ||
-                (propValue.length > 0 && typeCode < SerializationConstant.LAST_VALUE)
-              ) {
-                /**
-                 * So we want to cache the value so that we don't have to deserialize it again AND
-                 * so that deserialized object identity does not change.
-                 *
-                 * Unfortunately, there is a corner case! The deserialized value might be a string
-                 * which looks like a serialized value, so in that rare case we will not cache the
-                 * value. But it is OK because even thought the identity of string may change on
-                 * deserialization, the value string equality will not change.
-                 */
-                Reflect.set(target, property, propValue, receiver);
-                /** After we set the value we can now inflate the value if needed. */
-                if (typeCode >= SerializationConstant.Error_VALUE) {
-                  inflate(container, propValue, serializedValue);
-                }
-              }
-            }
-            return wrapDeserializerProxy(container, propValue);
-          },
-          has(target, property) {
-            if (property === UNWRAP_PROXY) {
-              return true;
-            }
-            return Object.prototype.hasOwnProperty.call(target, property);
-          },
-        });
+        proxy = new Proxy(value, new DeserializationHandler(container));
         deserializedProxyMap.set(value, proxy);
       }
       return proxy;
@@ -135,6 +64,83 @@ export const wrapDeserializerProxy = (container: DomContainer, value: unknown) =
   }
   return value;
 };
+
+class DeserializationHandler implements ProxyHandler<object> {
+  constructor(private $container$: DomContainer) {}
+
+  get(target: object, property: PropertyKey, receiver: object) {
+    if (property === SERIALIZER_PROXY_UNWRAP) {
+      return target;
+    }
+    let propValue = Reflect.get(target, property, receiver);
+    let typeCode: number;
+    if (
+      typeof propValue === 'string' &&
+      propValue.length >= 1 &&
+      (typeCode = propValue.charCodeAt(0)) < SerializationConstant.LAST_VALUE
+    ) {
+      const container = this.$container$;
+      // It is a value which needs to be deserialized.
+      const serializedValue = propValue;
+      if (typeCode === SerializationConstant.REFERENCE_VALUE) {
+        // Special case of Reference, we don't go through allocation/inflation
+        propValue = unwrapDeserializerProxy(
+          container.$getObjectById$(parseInt(propValue.substring(1)))
+        );
+      } else if (typeCode === SerializationConstant.VNode_VALUE) {
+        // Special case of VNode, we go directly to VNode to retrieve the element.
+        propValue =
+          propValue === SerializationConstant.VNode_CHAR
+            ? container.element.ownerDocument
+            : vnode_locate(container.rootVNode, propValue.substring(1));
+      } else if (typeCode === SerializationConstant.Store_VALUE) {
+        // Special case of Store.
+        // Stores are proxies, Proxies need to get their target eagerly. So we can't use inflate()
+        // because that would not allow us to get a hold of the target.
+        const target = container.$getObjectById$(propValue.substring(1)) as {
+          [SerializationConstant.Store_CHAR]: string | undefined;
+        };
+        propValue = getOrCreateProxy(target as object, container);
+      } else if (typeCode === SerializationConstant.DerivedSignal_VALUE && !Array.isArray(target)) {
+        // Special case of derived signal. We need to create an [_IMMUTABLE] property.
+        return wrapDeserializerProxy(
+          container,
+          upgradePropsWithDerivedSignal(container, target, property)
+        );
+      } else {
+        propValue = allocate(propValue);
+      }
+      if (
+        typeof propValue !== 'string' ||
+        (propValue.length > 0 && typeCode < SerializationConstant.LAST_VALUE)
+      ) {
+        /**
+         * So we want to cache the value so that we don't have to deserialize it again AND so that
+         * deserialized object identity does not change.
+         *
+         * Unfortunately, there is a corner case! The deserialized value might be a string which
+         * looks like a serialized value, so in that rare case we will not cache the value. But it
+         * is OK because even thought the identity of string may change on deserialization, the
+         * value string equality will not change.
+         */
+        Reflect.set(target, property, propValue, receiver);
+        /** After we set the value we can now inflate the value if needed. */
+        if (typeCode >= SerializationConstant.Error_VALUE) {
+          inflate(container, propValue, serializedValue);
+        }
+      }
+    }
+    propValue = wrapDeserializerProxy(this.$container$, propValue);
+    return propValue;
+  }
+
+  has(target: object, property: PropertyKey) {
+    if (property === SERIALIZER_PROXY_UNWRAP) {
+      return true;
+    }
+    return Object.prototype.hasOwnProperty.call(target, property);
+  }
+}
 
 /**
  * Convert an object (which is a component prop) to have derived signals (_IMMUTABLE).
@@ -169,7 +175,7 @@ export const wrapDeserializerProxy = (container: DomContainer, value: unknown) =
 function upgradePropsWithDerivedSignal(
   container: DomContainer,
   target: Record<string | symbol, any>,
-  property: string | symbol
+  property: string | symbol | number
 ): any {
   const immutable: Record<string, SignalDerived<unknown>> = {};
   for (const key in target) {
@@ -262,11 +268,13 @@ const inflate = (container: DomContainer, target: any, needsInflationData: strin
       signal.untrackedValue = container.$getObjectById$(
         rest.substring(1, semiIdx === -1 ? rest.length : semiIdx)
       );
-      subscriptionManagerFromString(
-        manager,
-        rest.substring(semiIdx + 1),
-        container.$getObjectById$
-      );
+      if (semiIdx > 0) {
+        subscriptionManagerFromString(
+          manager,
+          rest.substring(semiIdx + 1),
+          container.$getObjectById$
+        );
+      }
       break;
     case SerializationConstant.SignalWrapper_VALUE:
       throw new Error('Not implemented');

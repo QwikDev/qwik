@@ -123,19 +123,6 @@ export const notifyTask = (task: SubscriberEffect, containerState: ContainerStat
   }
 };
 
-export const notifyTask2 = (task: TaskDescriptor, container: Container2) => {
-  if (task.$flags$ & TaskFlagsIsDirty) {
-    return;
-  }
-  task.$flags$ |= TaskFlagsIsDirty;
-
-  container.$scheduler$.$scheduleTask$(task as fixMeAny);
-
-  if (isDomContainer(container)) {
-    container.scheduleRender();
-  }
-};
-
 const scheduleFrame = (containerState: ContainerState): Promise<void> => {
   if (containerState.$renderPromise$ === undefined) {
     containerState.$renderPromise$ = getPlatform().nextTick(() => renderMarked(containerState));

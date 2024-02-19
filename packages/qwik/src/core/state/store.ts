@@ -7,6 +7,7 @@ import { ComputedEvent, RenderEvent, ResourceEvent } from '../util/markers';
 import { qDev, qSerialize } from '../util/qdev';
 import { isArray, isObject, isSerializableObject } from '../util/types';
 import {
+  SERIALIZER_PROXY_UNWRAP,
   SerializationConstant,
   subscriptionManagerFromString,
 } from '../v2/shared/shared-serialization';
@@ -136,6 +137,13 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
       }
       if (prop === QObjectManagerSymbol) {
         return this.$manager$;
+      }
+      if (prop === SERIALIZER_PROXY_UNWRAP) {
+        // SERIALIZER_PROXY_UNWRAP is used by v2 serialization to unwrap proxies.
+        // Our target may be a v2 serialization proxy so if we let it through
+        // we will return the naked object which removes ourselves,
+        // and that is not the intention so prevent of SERIALIZER_PROXY_UNWRAP.
+        return undefined;
       }
       return target[prop];
     }

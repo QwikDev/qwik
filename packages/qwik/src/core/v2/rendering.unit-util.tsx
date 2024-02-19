@@ -113,17 +113,17 @@ export async function ssrRenderToDom(
     console.log('------------------- SERIALIZED STATE -------------------');
     const state = container.$rawStateData$;
     for (let i = 0; i < state.length; i++) {
-      console.log(('    ' + i + ':').substr(-4), qwikJsonStringify(state[i]));
+      console.log(('    ' + i + ':').substring(-4), qwikJsonStringify(state[i]));
     }
     const funcs = container.$qFuncs$;
     for (let i = 0; i < funcs.length; i++) {
-      console.log(('    ' + i + ':').substr(-4), qwikJsonStringify(funcs[i].toString()));
+      console.log(('    ' + i + ':').substring(-4), qwikJsonStringify(funcs[i].toString()));
     }
     if (false as boolean) {
       // stateDate is private but it's not enforced so we can access it for the test
       const proxyState = (container as any).stateData;
       for (let i = 0; i < state.length; i++) {
-        console.log(('    ' + i + ':').substr(-4), proxyState[i]);
+        console.log(('    ' + i + ':').substring(-4), proxyState[i]);
       }
     }
     console.log('--------------------------------------------------------');

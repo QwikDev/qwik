@@ -22,8 +22,7 @@ import { isStringifiable, type Stringifiable } from './shared-types';
 import { createDocument } from '../../testing/document';
 import type { JSXNode, JSXOutput } from '../render/jsx/types/jsx-node';
 import type { VirtualVNode } from './client/types';
-import { isQrlDOMEvent } from './client/vnode-diff';
-import { isQrlSSREvent } from './ssr/ssr-render';
+import { isHtmlAttributeAnEventName, isJsxPropertyAnEventName } from './shared/event-names';
 
 interface CustomMatchers<R = unknown> {
   toMatchVDOM(expectedJSX: JSXOutput): R;
@@ -73,7 +72,7 @@ function diffJsxVNode(received: VNode, expected: JSXNode | string, path: string[
     const allProps = new Set([...expectedProps, ...receivedProps]);
     allProps.delete('children');
     allProps.forEach((prop) => {
-      if (isQrlDOMEvent(prop) || isQrlSSREvent(prop)) {
+      if (isJsxPropertyAnEventName(prop) || isHtmlAttributeAnEventName(prop)) {
         return;
       }
       const expectedValue = prop == 'key' || prop == 'q:key' ? expected.key : expected.props[prop];

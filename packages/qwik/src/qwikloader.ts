@@ -105,7 +105,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
     doc.dispatchEvent(createEvent<T>(eventName, detail));
   };
 
-  const camelToKebab = (str: string) => str.replace(/([A-Z])/g, (a) => '-' + a.toLowerCase());
+  const camelToKebab = (str: string) => str.replace(/([A-Z\-])/g, (a) => '-' + a.toLowerCase());
 
   /**
    * Event handler responsible for processing browser events.

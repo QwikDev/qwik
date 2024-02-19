@@ -14,18 +14,23 @@ import { throwErrorAndStop } from '../../util/log';
 import { ELEMENT_KEY, ELEMENT_PROPS, OnRenderProp, QSlot, QSlotParent } from '../../util/markers';
 import { isPromise } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
+import {
+  getEventNameFromJsxProp,
+  getEventNameScopeFromJsxProp,
+  isHtmlAttributeAnEventName,
+  isJsxPropertyAnEventName,
+} from '../shared/event-names';
 import type { QElement2, fixMeAny } from '../shared/types';
-import { isQrlSSREvent } from '../ssr/ssr-render';
 import type { SsrAttrs } from '../ssr/types';
 import type { DomContainer } from './dom-container';
 import {
   ElementVNodeProps,
+  VNodeProps,
   type ClientContainer,
   type ElementVNode,
   type TextVNode,
   type VNode,
   type VirtualVNode,
-  VNodeProps,
 } from './types';
 import {
   mapApp_findIndx,
@@ -74,11 +79,6 @@ export const enum VNodeJournalOpCode {
 }
 
 export type ComponentQueue = Array<VNode>;
-
-export const isQrlDOMEvent = (eventName: string) =>
-  eventName.startsWith('on:') ||
-  eventName.startsWith('on-document:') ||
-  eventName.startsWith('on-window:');
 
 export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStartNode: VNode) => {
   const journal = (container as DomContainer).$journal$;
@@ -529,7 +529,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     while (srcKey !== null || dstKey !== null) {
       if (srcKey == null) {
         // Source has more keys, so we need to remove them from destination
-        if (dstKey && isQrlDOMEvent(dstKey)) {
+        if (dstKey && isHtmlAttributeAnEventName(dstKey)) {
           patchEventDispatch = true;
         } else {
           record(dstKey!, null);
@@ -538,11 +538,13 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
         dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       } else if (dstKey == null) {
         // Destination has more keys, so we need to insert them from source.
-        const isEvent = isQrlSSREvent(srcKey);
+        const isEvent = isJsxPropertyAnEventName(srcKey);
         if (isEvent) {
           // Special handling for events
           patchEventDispatch = true;
-          record(':' + srcKey!, srcAttrs[srcIdx]);
+          const eventName = getEventNameFromJsxProp(srcKey);
+          const scope = getEventNameScopeFromJsxProp(srcKey);
+          record(':' + scope + ':' + eventName, srcAttrs[srcIdx]);
         } else {
           record(srcKey!, srcAttrs[srcIdx]);
         }
@@ -558,10 +560,12 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
         dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       } else if (srcKey < dstKey) {
         // Destination is missing the key, so we need to insert it.
-        if (isQrlSSREvent(srcKey)) {
+        if (isJsxPropertyAnEventName(srcKey)) {
           // Special handling for events
           patchEventDispatch = true;
-          record(':' + srcKey, srcAttrs[srcIdx]);
+          const eventName = getEventNameFromJsxProp(srcKey);
+          const scope = getEventNameScopeFromJsxProp(srcKey);
+          record(':' + scope + ':' + eventName, srcAttrs[srcIdx]);
         } else {
           record(srcKey, srcAttrs[srcIdx]);
         }
@@ -570,7 +574,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
         srcKey = srcIdx < srcLength ? srcAttrs[srcIdx++] : null;
       } else {
         // Source is missing the key, so we need to remove it from destination.
-        if (isQrlDOMEvent(dstKey)) {
+        if (isHtmlAttributeAnEventName(dstKey)) {
           patchEventDispatch = true;
         } else {
           record(dstKey!, null);
@@ -584,16 +588,15 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       if (!element.qDispatchEvent) {
         element.qDispatchEvent = (event: Event) => {
           let eventName = event.type;
-          let prefix = '';
+          let scope = '';
           if (eventName.startsWith(':')) {
             // :document:event or :window:event
             const colonIndex = eventName.substring(1).indexOf(':');
-            prefix = eventName.substring(0, colonIndex + 1);
+            scope = eventName.substring(1, colonIndex + 1);
             eventName = eventName.substring(colonIndex + 2);
           }
 
-          const eventProp =
-            prefix + ':on' + eventName.charAt(0).toUpperCase() + eventName.substring(1) + '$';
+          const eventProp = ':' + scope + ':' + eventName;
           const qrls = vnode_getProp(vnode, eventProp, null);
           let returnValue = false;
           qrls &&

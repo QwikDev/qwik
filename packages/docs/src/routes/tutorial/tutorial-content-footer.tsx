@@ -1,20 +1,37 @@
-import { component$ } from '@builder.io/qwik';
+import { component$, useSignal } from '@builder.io/qwik';
 import { ensureDefaultFiles, type TutorialStore } from './layout';
 
 export const TutorialContentFooter = component$(({ store }: TutorialContentFooterProps) => {
+  let solutionViewState = useSignal(false);
+
   return (
     <div class="content-footer">
       <div>
-        <button
-          preventdefault:click
-          class="show-me"
-          onClick$={() => {
-            store.files = ensureDefaultFiles(store.app.solutionInputs);
-          }}
-          type="button"
-        >
-          Show Me
-        </button>
+        {solutionViewState.value ? (
+          <button
+            preventdefault:click
+            class="show-me"
+            onClick$={() => {
+              store.files = ensureDefaultFiles(store.app.problemInputs);
+              solutionViewState.value = false;
+            }}
+            type="button"
+          >
+            Reset
+          </button>
+        ) : (
+          <button
+            preventdefault:click
+            class="show-me"
+            onClick$={() => {
+              store.files = ensureDefaultFiles(store.app.solutionInputs);
+              solutionViewState.value = true;
+            }}
+            type="button"
+          >
+            Show Me
+          </button>
+        )}
       </div>
       <nav>
         {store.prev ? (

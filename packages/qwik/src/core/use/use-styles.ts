@@ -1,5 +1,5 @@
 import { styleContent, styleKey } from '../style/qrl-styles';
-import { $, type QRL } from '../qrl/qrl.public';
+import { type QRL } from '../qrl/qrl.public';
 import { implicit$FirstArg } from '../util/implicit_dollar';
 import { getScopedStyles } from '../style/scoped-stylesheet';
 import { useSequentialScope } from './use-sequential-scope';

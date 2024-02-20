@@ -452,10 +452,10 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     }
   }
 
-  function expectElement(jsx: JSXNode<any>, tag: string) {
+  function expectElement(jsx: JSXNode, tag: string) {
     const isSameTagName =
       vCurrent && vnode_isElementVNode(vCurrent) && tag === vnode_getElementName(vCurrent);
-    let jsxKey: any;
+    let jsxKey: string | null = null;
     if (
       isSameTagName &&
       (jsxKey = jsx.key) == vnode_getProp(vCurrent as ElementVNode, ELEMENT_KEY, null)

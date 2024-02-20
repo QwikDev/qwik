@@ -1,12 +1,17 @@
 import { styleContent, styleKey } from '../style/qrl-styles';
-import type { QRL } from '../qrl/qrl.public';
+import { $, type QRL } from '../qrl/qrl.public';
 import { implicit$FirstArg } from '../util/implicit_dollar';
 import { getScopedStyles } from '../style/scoped-stylesheet';
 import { useSequentialScope } from './use-sequential-scope';
 import { assertQrl } from '../qrl/qrl-class';
-import { isPromise } from '../util/promises';
+import { isPromise, maybeThen } from '../util/promises';
 import { assertDefined } from '../error/assert';
-import { ComponentStylesPrefixContent } from '../util/markers';
+import { ComponentStylesPrefixContent, QStyle } from '../util/markers';
+import type { Container2, HostElement, fixMeAny } from '../v2/shared/types';
+import { isDomContainer } from '../v2/client/dom-container';
+import type { SSRContainer } from '../v2/ssr/types';
+import { vnode_insertBefore, vnode_newUnMaterializedElement } from '../v2/client/vnode';
+import type { ValueOrPromise } from '../util/types';
 
 /** @public */
 export interface UseStylesScoped {
@@ -130,35 +135,74 @@ const _useStyles = (
   if (val) {
     return val;
   }
-  const styleId = styleKey(styleQrl, i);
-  const containerState = iCtx.$renderCtx$.$static$.$containerState$;
-  set(styleId);
+  if (iCtx.$container2$) {
+    const styleId = styleKey(styleQrl, i);
+    const host = iCtx.$hostElement$ as fixMeAny;
+    set(styleId);
+    const value = styleQrl.$resolveLazy$(host);
+    appendStyle(iCtx.$container2$, host, value, transform, scoped, styleId);
+    return styleId;
+  } else {
+    const styleId = styleKey(styleQrl, i);
+    const containerState = iCtx.$renderCtx$.$static$.$containerState$;
+    set(styleId);
 
-  if (!elCtx.$appendStyles$) {
-    elCtx.$appendStyles$ = [];
-  }
-  if (!elCtx.$scopeIds$) {
-    elCtx.$scopeIds$ = [];
-  }
-  if (scoped) {
-    elCtx.$scopeIds$.push(styleContent(styleId));
-  }
-  if (containerState.$styleIds$.has(styleId)) {
+    if (!elCtx.$appendStyles$) {
+      elCtx.$appendStyles$ = [];
+    }
+    if (!elCtx.$scopeIds$) {
+      elCtx.$scopeIds$ = [];
+    }
+    if (scoped) {
+      elCtx.$scopeIds$.push(styleContent(styleId));
+    }
+    if (containerState.$styleIds$.has(styleId)) {
+      return styleId;
+    }
+    containerState.$styleIds$.add(styleId);
+    const value = styleQrl.$resolveLazy$(containerState.$containerEl$);
+    const appendStyle = (styleText: string) => {
+      assertDefined(elCtx.$appendStyles$, 'appendStyles must be defined');
+      elCtx.$appendStyles$.push({
+        styleId,
+        content: transform(styleText, styleId),
+      });
+    };
+    if (isPromise(value)) {
+      iCtx.$waitOn$.push(value.then(appendStyle));
+    } else {
+      appendStyle(value);
+    }
     return styleId;
   }
-  containerState.$styleIds$.add(styleId);
-  const value = styleQrl.$resolveLazy$(containerState.$containerEl$);
-  const appendStyle = (styleText: string) => {
-    assertDefined(elCtx.$appendStyles$, 'appendStyles must be defined');
-    elCtx.$appendStyles$.push({
-      styleId,
-      content: transform(styleText, styleId),
-    });
-  };
-  if (isPromise(value)) {
-    iCtx.$waitOn$.push(value.then(appendStyle));
-  } else {
-    appendStyle(value);
-  }
-  return styleId;
 };
+
+function appendStyle(
+  container: Container2,
+  hostElement: HostElement,
+  styleValue: ValueOrPromise<string>,
+  transform: (str: string, styleId: string) => string,
+  scoped: boolean,
+  styleId: string
+) {
+  maybeThen(styleValue, (styleText) => {
+    if (scoped) {
+      const content = transform(styleText, styleId);
+      if (isDomContainer(container)) {
+        const styleNode = container.document.createElement('style');
+        styleNode.setAttribute(QStyle, styleId);
+        styleNode.textContent = content;
+        const child = vnode_newUnMaterializedElement(hostElement as fixMeAny, styleNode);
+        // const child = vnode_newElement(vHost, styleNode, 'style');
+        vnode_insertBefore(hostElement as fixMeAny, child, null);
+      } else {
+        const ssrContainer = container as SSRContainer;
+        ssrContainer.openElement('style', [QStyle, styleId]);
+        ssrContainer.textNode(content);
+        ssrContainer.closeElement();
+      }
+    } else {
+      // TODO: append to head
+    }
+  });
+}

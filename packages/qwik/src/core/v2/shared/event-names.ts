@@ -31,7 +31,7 @@ export const getEventNameFromJsxProp = (name: string): string | null => {
       idx = 11;
     }
     if (idx != -1) {
-      let isCaseSensitive = isDashAt(name, idx) && !isDashAt(name, idx + 1);
+      const isCaseSensitive = isDashAt(name, idx) && !isDashAt(name, idx + 1);
       if (isCaseSensitive) {
         idx++;
       }
@@ -140,5 +140,5 @@ export const convertEventNameFromJsxPropToHtmlAttr = (name: string): string | nu
 };
 
 const fromCamelToKebabCase = (text: string): string => {
-  return text.replace(/([A-Z\-])/g, '-$1').toLowerCase();
+  return text.replace(/([A-Z-])/g, '-$1').toLowerCase();
 };

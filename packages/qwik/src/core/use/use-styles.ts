@@ -140,7 +140,10 @@ const _useStyles = (
     const host = iCtx.$hostElement$ as fixMeAny;
     set(styleId);
     const value = styleQrl.$resolveLazy$(host);
-    appendStyle(iCtx.$container2$, host, value, transform, scoped, styleId);
+    if (isPromise(value)) {
+      throw value;
+    }
+    iCtx.$container2$.$appendStyle$(transform(value, styleId), styleId);
     return styleId;
   } else {
     const styleId = styleKey(styleQrl, i);
@@ -176,33 +179,3 @@ const _useStyles = (
     return styleId;
   }
 };
-
-function appendStyle(
-  container: Container2,
-  hostElement: HostElement,
-  styleValue: ValueOrPromise<string>,
-  transform: (str: string, styleId: string) => string,
-  scoped: boolean,
-  styleId: string
-) {
-  maybeThen(styleValue, (styleText) => {
-    if (scoped) {
-      const content = transform(styleText, styleId);
-      if (isDomContainer(container)) {
-        const styleNode = container.document.createElement('style');
-        styleNode.setAttribute(QStyle, styleId);
-        styleNode.textContent = content;
-        const child = vnode_newUnMaterializedElement(hostElement as fixMeAny, styleNode);
-        // const child = vnode_newElement(vHost, styleNode, 'style');
-        vnode_insertBefore(hostElement as fixMeAny, child, null);
-      } else {
-        const ssrContainer = container as SSRContainer;
-        ssrContainer.openElement('style', [QStyle, styleId]);
-        ssrContainer.textNode(content);
-        ssrContainer.closeElement();
-      }
-    } else {
-      // TODO: append to head
-    }
-  });
-}

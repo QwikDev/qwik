@@ -18,6 +18,8 @@ import {
   QContainerAttr,
   QContainerSelector,
   QCtxAttr,
+  QStyle,
+  QStyleSelector,
 } from '../../util/markers';
 import { maybeThen } from '../../util/promises';
 import { qDev } from '../../util/qdev';
@@ -45,7 +47,12 @@ import {
   vnode_newUnMaterializedElement,
   vnode_setProp,
 } from './vnode';
-import { vnode_applyJournal, vnode_diff, type VNodeJournalEntry } from './vnode-diff';
+import {
+  vnode_applyJournal,
+  vnode_diff,
+  VNodeJournalOpCode,
+  type VNodeJournalEntry,
+} from './vnode-diff';
 
 export function getDomContainer(element: HTMLElement | ElementVNode): IClientContainer {
   let htmlElement: HTMLElement | null = Array.isArray(element)
@@ -89,6 +96,7 @@ export class DomContainer implements IClientContainer, StoreTracker {
   public $qFuncs$: Array<(...args: unknown[]) => unknown>;
 
   private stateData: unknown[];
+  private $styleIds$: Set<string> | null = null;
 
   constructor(element: ContainerElement) {
     this.qContainer = element.getAttribute(QContainerAttr)!;
@@ -242,6 +250,22 @@ export class DomContainer implements IClientContainer, StoreTracker {
     const fn = this.$qFuncs$[id];
     assertTrue(typeof fn === 'function', 'Invalid reference: ' + id);
     return fn;
+  }
+
+  $appendStyle$(styleContent: string, styleId: string): void {
+    if (this.$styleIds$ == null) {
+      this.$styleIds$ = new Set();
+      this.element.querySelectorAll(QStyleSelector).forEach((style) => {
+        this.$styleIds$!.add(style.getAttribute(QStyle)!);
+      });
+    }
+    if (!this.$styleIds$.has(styleId)) {
+      this.$styleIds$.add(styleId);
+      const styleElement = this.document.createElement('style');
+      styleElement.setAttribute(QStyle, styleId);
+      styleElement.textContent = styleContent;
+      this.$journal$.push(VNodeJournalOpCode.AddStyle, this.document.head, styleElement);
+    }
   }
 }
 

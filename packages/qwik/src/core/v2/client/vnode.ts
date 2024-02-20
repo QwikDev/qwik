@@ -740,6 +740,27 @@ export const vnode_remove = (vParent: VNode, vToRemove: VNode, removeDOM: boolea
   }
 };
 
+export const vnode_queryDomNodes = (
+  vNode: VNode,
+  selector: string,
+  cb: (element: Element) => void
+) => {
+  if (vnode_isElementVNode(vNode)) {
+    const element = vnode_getNode(vNode) as HTMLElement;
+    if (element.matches(selector)) {
+      cb(element);
+    } else {
+      element.querySelectorAll(selector).forEach(cb);
+    }
+  } else {
+    let child = vnode_getFirstChild(vNode);
+    while (child) {
+      vnode_queryDomNodes(child, selector, cb);
+      child = vnode_getNextSibling(child);
+    }
+  }
+};
+
 export const vnode_truncate = (vParent: ElementVNode | VirtualVNode, vDelete: VNode) => {
   assertDefined(vDelete, 'Missing vDelete.');
   const parent = vnode_getDOMParent(vParent)!;

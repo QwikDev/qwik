@@ -18,6 +18,7 @@ import {
   QScopedStyle,
   QSlotParent,
   QSlotRef,
+  QStyle,
 } from '../../util/markers';
 import { mapArray_get, mapArray_set } from '../client/vnode';
 import {
@@ -100,6 +101,7 @@ class SSRContainer implements ISSRContainer {
   public $scheduler$: Scheduler;
   private lastNode: SsrNode | null = null;
   private currentComponentNode: SsrNode | null = null;
+  private styleIds = new Set<string>();
 
   private currentElementFrame: ContainerElementFrame | null = null;
   /**
@@ -304,6 +306,15 @@ class SSRContainer implements ISSRContainer {
 
   addUnclaimedProjection(node: SsrNode, name: string, children: JSXChildren): void {
     this.unclaimedProjections.push(node, name, children);
+  }
+
+  $appendStyle$(styleContent: string, styleId: string): void {
+    if (!this.styleIds.has(styleId)) {
+      this.styleIds.add(styleId);
+      this.openElement('style', [QStyle, styleId]);
+      this.textNode(styleContent);
+      this.closeElement();
+    }
   }
 
   ////////////////////////////////////

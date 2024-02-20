@@ -11,7 +11,14 @@ import { isSignal } from '../../state/signal';
 import { trackSignal } from '../../use/use-core';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../../util/flyweight';
 import { throwErrorAndStop } from '../../util/log';
-import { ELEMENT_KEY, ELEMENT_PROPS, OnRenderProp, QSlot, QSlotParent } from '../../util/markers';
+import {
+  ELEMENT_KEY,
+  ELEMENT_PROPS,
+  OnRenderProp,
+  QSlot,
+  QSlotParent,
+  QStyle,
+} from '../../util/markers';
 import { isPromise } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
 import {
@@ -36,6 +43,7 @@ import {
   mapApp_findIndx,
   mapArray_set,
   vnode_ensureElementInflated,
+  vnode_getAttr,
   vnode_getElementName,
   vnode_getFirstChild,
   vnode_getNextSibling,
@@ -58,7 +66,7 @@ import {
   vnode_truncate,
 } from './vnode';
 
-export type VNodeJournalEntry = VNodeJournalOpCode | VNode | null | string;
+export type VNodeJournalEntry = VNodeJournalOpCode | VNode | HTMLElement | null | string;
 
 export const enum VNodeJournalOpCode {
   ////////// Generic
@@ -76,6 +84,8 @@ export const enum VNodeJournalOpCode {
   Props,
   ////////// Fragment
   FragmentInsert,
+  ////////// Styles
+  AddStyle,
 }
 
 export type ComponentQueue = Array<VNode>;
@@ -131,6 +141,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     vNewNode = null;
     vCurrent = vnode_getFirstChild(vStartNode);
     stackPush(jsxNode, true);
+    expectNoQStyles();
     while (stack.length) {
       while (jsxIdx < jsxCount) {
         assertFalse(vParent === vCurrent, "Parent and current can't be the same");
@@ -452,6 +463,23 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     }
   }
 
+  /**
+   * In CSR we don't want the style nodes with the component. So if we find any, move them to the
+   * `<head>`.
+   */
+  function expectNoQStyles() {
+    while (vCurrent !== null && isQStyleVNode(vCurrent)) {
+      const next = vnode_getNextSibling(vCurrent);
+      vnode_remove(vParent, vCurrent, false);
+      journal.push(
+        VNodeJournalOpCode.AddStyle,
+        container.document.head,
+        vnode_getNode(vCurrent) as HTMLElement
+      );
+      vCurrent = next;
+    }
+  }
+
   function expectElement(jsx: JSXNode, tag: string) {
     const isSameTagName =
       vCurrent && vnode_isElementVNode(vCurrent) && tag === vnode_getElementName(vCurrent);
@@ -694,6 +722,14 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
   }
 };
 
+export const isQStyleVNode = (vNode: VNode): boolean => {
+  return (
+    vnode_isElementVNode(vNode) &&
+    vnode_getElementName(vNode) === 'style' &&
+    vnode_getAttr(vNode, QStyle) !== null
+  );
+};
+
 export const vnode_applyJournal = (journal: VNodeJournalEntry[]) => {
   let idx = 0;
   while (idx < journal.length) {
@@ -745,6 +781,9 @@ export const vnode_applyJournal = (journal: VNodeJournalEntry[]) => {
         } else {
           vnode_setAttr(vElementOrText as ElementVNode, prop, value);
         }
+        break;
+      case VNodeJournalOpCode.AddStyle:
+        (journal[idx++] as HTMLHeadElement).appendChild(journal[idx++] as HTMLStyleElement);
         break;
       default:
         throwErrorAndStop(`Unsupported opCode: ${opCode}`);

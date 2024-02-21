@@ -10,6 +10,8 @@ const root = join(__dirname, '..');
 const srcRepoRef = 'https://github.com/BuilderIO/qwik/commit/';
 
 (async () => {
+  // This replaces the `workspace:^` versions with the actual versions.
+  await $('npx', 'syncpack', 'fix-mismatches', '-c', '/dev/null');
   const finishQwik = await prepare({
     buildRepo: 'qwik-build',
     artifactsDir: join(root, 'packages', 'qwik', 'dist'),

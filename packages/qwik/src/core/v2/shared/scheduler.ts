@@ -245,6 +245,7 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
         return executeComponent2(
           container,
           host,
+          host,
           chore.$target$ as fixMeAny,
           chore.$payload$ as fixMeAny
         );

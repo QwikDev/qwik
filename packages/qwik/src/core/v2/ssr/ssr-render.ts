@@ -1,67 +1,60 @@
+import { isDev } from '@builder.io/qwik/build';
 import { isPromise } from 'util/types';
 import { isQwikComponent } from '../../component/component.public';
 import { isQrl } from '../../qrl/qrl-class';
 import { Fragment } from '../../render/jsx/jsx-runtime';
 import { Slot } from '../../render/jsx/slot.public';
-import type { FunctionComponent, JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
+import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
 import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
 import { SubscriptionType } from '../../state/common';
 import { isSignal } from '../../state/signal';
 import { trackSignal } from '../../use/use-core';
 import { EMPTY_ARRAY } from '../../util/flyweight';
-import { qrlToString, type SerializationContext } from '../shared/shared-serialization';
-import type { fixMeAny } from '../shared/types';
-import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
-import type { SSRContainer, SsrAttrs } from './types';
-import type { ValueOrPromise } from '../../util/types';
 import { throwErrorAndStop } from '../../util/log';
+import type { ValueOrPromise } from '../../util/types';
 import {
   convertEventNameFromJsxPropToHtmlAttr,
   isJsxPropertyAnEventName,
 } from '../shared/event-names';
+import { qrlToString, type SerializationContext } from '../shared/shared-serialization';
+import { DEBUG_TYPE, VirtualType, type fixMeAny } from '../shared/types';
+import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
+import type { SSRContainer, SsrAttrs } from './types';
 
 /**
  * We support Promises in JSX but we don't expose this in the public API because it breaks signal
  * tracking after the first await.
  */
 type JSXValue = ValueOrPromise<JSXOutput>;
-export async function ssrRenderToContainer(ssr: SSRContainer, jsx: JSXValue) {
+export async function ssrRenderToContainer(ssr: SSRContainer, jsx: JSXOutput) {
   ssr.openContainer();
-  await asyncWalkJSX(ssr, jsx);
+  await walkJSX(ssr, jsx, true);
   ssr.closeContainer();
 }
 
-type StackFn = () => void | Promise<void>;
-type StackValue = JSXValue | StackFn | typeof Promise;
-export function asyncWalkJSX(
+type StackFn = () => ValueOrPromise<void>;
+type StackValue = JSXOutput | StackFn | Promise<JSXOutput> | typeof Promise;
+export function walkJSX(
   ssr: SSRContainer,
-  value: JSXValue,
-  sync?: never | false
-): Promise<void>;
-export function asyncWalkJSX(ssr: SSRContainer, value: JSXOutput, sync?: true): false;
-export function asyncWalkJSX(
+  value: JSXOutput,
+  allowPromises: true
+): ValueOrPromise<void>;
+export function walkJSX(ssr: SSRContainer, value: JSXOutput, allowPromises: false): false;
+export function walkJSX(
   ssr: SSRContainer,
-  value: JSXValue,
-  sync?: boolean
-): Promise<void> | false {
+  value: JSXOutput,
+  allowPromises: boolean
+): ValueOrPromise<void> | false {
   const stack: StackValue[] = [value];
   let resolveDrain: () => void;
   let rejectDrain: (reason: any) => void;
   const drained =
-    !sync &&
+    allowPromises &&
     new Promise<void>((res, rej) => {
       resolveDrain = res;
       rejectDrain = rej;
     });
-  const enqueue = (value: JSXValue, closingValue?: StackFn) => {
-    if (closingValue != null) {
-      stack.push(closingValue);
-    }
-    stack.push(value);
-    if (isPromise(value)) {
-      stack.push(Promise);
-    }
-  };
+  const enqueue = (value: StackValue) => stack.push(value);
   const resolveValue = (value: JSXOutput) => {
     stack.push(value);
     drain();
@@ -71,38 +64,25 @@ export function asyncWalkJSX(
       const value = stack.pop();
       if (typeof value === 'function') {
         if (value === Promise) {
-          if (sync) {
+          if (!allowPromises) {
             return throwErrorAndStop('Promises not expected here.');
           }
           (stack.pop() as Promise<JSXOutput>).then(resolveValue, rejectDrain);
           return;
         }
-        if (sync && (isQwikComponent(value) || value === ssr.closeProjection)) {
-          // don't expand components because they might return Promise values
-          // don't close projections QUESTION @mhevery why?
-          continue;
-        }
         const waitOn = (value as StackFn).apply(ssr);
         if (waitOn) {
-          if (sync) {
+          if (!allowPromises) {
             return throwErrorAndStop('Promises not expected here.');
           }
           waitOn.then(drain, rejectDrain);
           return;
         }
         continue;
-      } else if (typeof value === 'object' && value !== null) {
-        if (Array.isArray(value)) {
-          // push in reverse order so we process in the original order
-          for (let i = value.length - 1; i >= 0; --i) {
-            stack.push(value[i]);
-          }
-          continue;
-        }
       }
-      processJSXNode(ssr, enqueue, value);
+      processJSXNode(ssr, enqueue, value as JSXOutput);
     }
-    if (stack.length === 0 && !sync) {
+    if (stack.length === 0 && allowPromises) {
       resolveDrain();
     }
   };
@@ -110,12 +90,10 @@ export function asyncWalkJSX(
   return drained;
 }
 
-export const syncWalkJSX = (ssr: SSRContainer, value: JSXOutput) => asyncWalkJSX(ssr, value, true);
-
 function processJSXNode(
   ssr: SSRContainer,
-  enqueue: (value: JSXValue, closingValue?: StackFn) => void,
-  value: JSXValue
+  enqueue: (value: JSXValue | (() => ValueOrPromise<void>) | typeof Promise) => void,
+  value: JSXOutput
 ) {
   // console.log('processJSXNode', value);
   if (value === null || value === undefined) {
@@ -127,35 +105,48 @@ function processJSXNode(
   } else if (typeof value === 'string') {
     ssr.textNode(value);
   } else if (typeof value === 'object') {
-    if (isSignal(value)) {
-      ssr.openFragment(EMPTY_ARRAY);
+    if (Array.isArray(value)) {
+      for (let i = value.length - 1; i >= 0; i--) {
+        enqueue(value[i]);
+      }
+    } else if (isSignal(value)) {
+      ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.DerivedSignal] : EMPTY_ARRAY);
       const signalNode = ssr.getLastNode() as fixMeAny;
       // TODO(mhevery): It is unclear to me why we need to serialize host for SignalDerived.
       // const host = ssr.getComponentFrame(0)!.componentNode as fixMeAny;
       const host = signalNode;
-      enqueue(
-        trackSignal(value, [SubscriptionType.TEXT_MUTABLE, host, value, signalNode]),
-        ssr.closeFragment
-      );
+      enqueue(ssr.closeFragment);
+      enqueue(trackSignal(value, [SubscriptionType.TEXT_MUTABLE, host, value, signalNode]));
     } else if (isPromise(value)) {
-      ssr.openFragment(EMPTY_ARRAY);
-      enqueue(value, ssr.closeFragment);
+      ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.Awaited] : EMPTY_ARRAY);
+      enqueue(ssr.closeFragment);
+      enqueue(value);
+      enqueue(Promise);
     } else {
       const jsx = value as JSXNode;
       const type = jsx.type;
       // Below, JSXChildren allows functions and regexes, but we assume the dev only uses those as appropriate.
       if (typeof type === 'string') {
         ssr.openElement(type, toSsrAttrs(jsx.props, ssr.serializationCtx));
-        enqueue(jsx.children as JSXOutput, ssr.closeElement);
+        enqueue(ssr.closeElement);
+        const children = jsx.children as JSXOutput;
+        children != undefined && enqueue(children);
       } else if (typeof type === 'function') {
         if (type === Fragment) {
-          ssr.openFragment(toSsrAttrs(jsx.props, ssr.serializationCtx));
+          ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.Fragment] : EMPTY_ARRAY);
+          enqueue(ssr.closeFragment);
           // In theory we could get functions or regexes, but we assume all is well
-          enqueue(jsx.children as JSXOutput, ssr.closeFragment);
+          const children = jsx.children as JSXOutput;
+          children !== undefined && enqueue(children);
         } else if (type === Slot) {
           const currentFrame = ssr.getComponentFrame(0)!;
           const componentFrame = ssr.getComponentFrame(currentFrame.projectionDepth)!;
-          ssr.openProjection([':', componentFrame.componentNode.id]);
+          ssr.openProjection(
+            isDev
+              ? [DEBUG_TYPE, VirtualType.Projection, ':', componentFrame.componentNode.id]
+              : [':', componentFrame.componentNode.id]
+          );
+          enqueue(ssr.closeProjection);
           const node = ssr.getLastNode();
           const slotName = String(jsx.props.name || '');
           const slotDefaultChildren = (jsx.props.children || null) as JSXChildren | null;
@@ -164,13 +155,26 @@ function processJSXNode(
           if (slotDefaultChildren && slotChildren !== slotDefaultChildren) {
             ssr.addUnclaimedProjection(node, '', slotDefaultChildren);
           }
-          enqueue(slotChildren as JSXOutput, ssr.closeProjection);
+          enqueue(slotChildren as JSXOutput);
         } else if (isQwikComponent(type)) {
-          ssr.openComponent([]);
+          ssr.openComponent(isDev ? [DEBUG_TYPE, VirtualType.Component] : []);
+          enqueue(ssr.closeComponent);
           ssr.getComponentFrame(0)!.distributeChildrenIntoSlots(jsx.children);
-          enqueue(applyQwikComponentBody(ssr, jsx, type), ssr.closeComponent);
+          const jsxOutput = applyQwikComponentBody(ssr, jsx, type);
+          enqueue(jsxOutput);
+          isPromise(jsxOutput) && enqueue(Promise);
         } else {
-          enqueue(applyInlineComponent(type as FunctionComponent, jsx));
+          ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.InlineComponent] : EMPTY_ARRAY);
+          enqueue(ssr.closeFragment);
+          const component = ssr.getComponentFrame(0)!;
+          const jsxOutput = applyInlineComponent(
+            ssr,
+            component && component.componentNode,
+            type as fixMeAny,
+            jsx
+          );
+          enqueue(jsxOutput);
+          isPromise(jsxOutput) && enqueue(Promise);
         }
       }
     }

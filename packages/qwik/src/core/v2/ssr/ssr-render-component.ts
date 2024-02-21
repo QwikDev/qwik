@@ -3,10 +3,17 @@ import { type Component, type OnRenderFn } from '../../component/component.publi
 import { SERIALIZABLE_STATE } from '../../container/serializers';
 import type { QRLInternal } from '../../qrl/qrl-class';
 import { ELEMENT_PROPS, OnRenderProp } from '../../util/markers';
-import { type SSRContainer } from './types';
+import { SsrNode, type SSRContainer } from './types';
+import { executeComponent2 } from '../shared/component-execution';
 
-export const applyInlineComponent = (component: Component, jsx: JSXNode) => {
-  return component(jsx.props, jsx.key, jsx.flags);
+export const applyInlineComponent = (
+  ssr: SSRContainer,
+  component$Host: SsrNode,
+  component: OnRenderFn<any>,
+  jsx: JSXNode
+) => {
+  const host = ssr.getLastNode();
+  return executeComponent2(ssr, host, component$Host, component, jsx.props);
 };
 
 export const applyQwikComponentBody = (ssr: SSRContainer, jsx: JSXNode, component: Component) => {

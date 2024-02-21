@@ -32,7 +32,7 @@ import { logError, logErrorAndStop } from '../util/log';
 import { ComputedEvent, TaskEvent } from '../util/markers';
 import { delay, maybeThen, safeCall } from '../util/promises';
 import { isFunction, isObject, type ValueOrPromise } from '../util/types';
-import type { Container2, HostElement, fixMeAny } from '../v2/shared/types';
+import { isContainer2, type Container2, type HostElement, type fixMeAny } from '../v2/shared/types';
 import { invoke, newInvokeContext, untrack, waitAndRun } from './use-core';
 import { useOn, useOnDocument } from './use-on';
 import { useSequentialScope } from './use-sequential-scope';
@@ -686,7 +686,7 @@ export const runSubscriber = async (
 
 export const runResource = <T>(
   task: ResourceDescriptor<T>,
-  containerState: ContainerState,
+  containerState: ContainerState | Container2,
   rCtx: RenderContext,
   waitOn?: Promise<unknown>
 ): ValueOrPromise<void> => {
@@ -694,7 +694,8 @@ export const runResource = <T>(
   cleanupTask(task);
 
   const el = task.$el$;
-  const iCtx = newInvokeContext(rCtx.$static$.$locale$, el, undefined, TaskEvent);
+  const locale = isContainer2(containerState) ? containerState.$locale$ : rCtx.$static$.$locale$;
+  const iCtx = newInvokeContext(locale, el, undefined, TaskEvent);
   const { $subsManager$: subsManager } = containerState;
   iCtx.$renderCtx$ = rCtx;
   const taskFn = task.$qrl$.getFn(iCtx, () => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { component$ } from '../component/component.public';
-import { Fragment } from '../render/jsx/jsx-runtime';
+import { Fragment, Fragment as InlineComponent } from '../render/jsx/jsx-runtime';
 import { ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
 
@@ -25,7 +25,11 @@ describe('v2 ssr render', () => {
         };
 
         const { vNode } = await ssrRenderToDom(<HelloWorld name="World" />);
-        expect(vNode).toMatchVDOM(<span>Hello {'World'}!</span>);
+        expect(vNode).toMatchVDOM(
+          <InlineComponent>
+            <span>Hello {'World'}!</span>
+          </InlineComponent>
+        );
       });
     });
     describe('component$', () => {

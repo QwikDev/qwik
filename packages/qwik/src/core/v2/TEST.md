@@ -3,7 +3,7 @@
   - [X] `useSignal()`
   - [X] `useStore()`
   - [X] `useTask$()`
-  - [ ] `useResource$()`
+  - [X] `useResource$()`
   - [X] `useComputed$()`
   - [X] `useVisibleTask$()`
   - [X] `useOn()`/`useOnDocument()`/`useOnWindow()`

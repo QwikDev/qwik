@@ -69,8 +69,6 @@ export interface PrefetchStrategy {
 // @public (undocumented)
 export interface QwikLoaderOptions {
     // (undocumented)
-    events?: string[];
-    // (undocumented)
     include?: 'always' | 'never' | 'auto';
     // (undocumented)
     position?: 'top' | 'bottom';

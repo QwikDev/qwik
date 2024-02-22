@@ -16,7 +16,7 @@
 //
 // If the length of the bytes is odd, the last byte is put after the escape
 // character. As the bytes after the escape character are in 0xD800 to 0xDFFF,
-// we can distingwish the last byte by its high byte being 0x00.
+// we can distinguish the last byte by its high byte being 0x00.
 //
 export const packUint8Array = (bytes: Uint8Array) => {
   const odd = bytes.length % 2 === 1;

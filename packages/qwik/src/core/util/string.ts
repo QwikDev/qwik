@@ -1,3 +1,4 @@
+'./string.unit.ts';
 // pack bytes into valid UTF-16 string
 //
 // strategy:
@@ -58,6 +59,12 @@ export const packUint8Array = (bytes: Uint8Array) => {
       code += String.fromCharCode(0xfffd, hi, lo);
       surrogate = false; // reset surrogate
     }
+    // escape the BOM
+    if (c === 0xfeff) {
+      // BOM
+      code += String.fromCharCode(0xfffd, 0xd801, 0xdc02);
+      continue;
+    }
     // double the escape character
     if (c === 0xfffd) {
       code += String.fromCharCode(0xfffd);
@@ -99,21 +106,33 @@ export const unpackUint8Array = (code: string) => {
       dbytes[j++] = c;
       break; // break with escaped being true to adjust the length
     }
-    if (c >= 0xd800 && c <= 0xdbff && escaped) {
+    if (escaped && c >= 0xd800 && c <= 0xdbff) {
+      escaped = false;
       // faked high surrogate
       if (c === 0xd800) {
-        // escaped low surrogate
         i++; // skip the fake high surrogate
         dbytes[j++] = code.charCodeAt(i); // save the low surrogate
-      } else if (c === 0xd801 && code.charCodeAt(i + 1) === 0xdc01) {
-        i++; // skip the fake low surrogate
-        dbytes[j++] = 0xd800; // save the escaped 0xD800
       } else {
+        if (c === 0xd801) {
+          switch (code.charCodeAt(i + 1)) {
+            case 0xdc00: // this is the fake low surrogate
+              break;
+            case 0xdc01:
+              i++; // skip the fake low surrogate
+              dbytes[j++] = 0xd800; // save the escaped 0xD800
+              continue;
+            case 0xdc02:
+              i++; // skip the fake low surrogate
+              dbytes[j++] = 0xfeff; // save the escaped BOM
+              continue;
+            default:
+              continue;
+          }
+        }
         // escaped high surrogate
         dbytes[j++] = code.charCodeAt(i); // save the high surrogate
         i++; // skip the fake low surrogate
       }
-      escaped = false;
       continue;
     }
     // normal codepoint

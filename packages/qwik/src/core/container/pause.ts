@@ -196,9 +196,7 @@ export const pauseContainer = async (
   // Emit event registration
   const extraListeners = Array.from(containerState.$events$, (s) => JSON.stringify(s));
   const eventsScript = doc.createElement('script');
-  eventsScript.textContent = `window.qwikevents||=[];window.qwikevents.push(${extraListeners.join(
-    ', '
-  )})`;
+  eventsScript.textContent = `(window.qwikevents||=[]).push(${extraListeners.join(', ')})`;
   parentJSON.appendChild(eventsScript);
 
   return data;

@@ -175,11 +175,15 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
     }
   };
 
-  if (!(doc as any).qR) {
+  if (!(Q_CONTEXT in doc)) {
+    // Mark qwik-loader presence
+    (doc as any)[Q_CONTEXT] = undefined;
     const qwikevents = win.qwikevents;
+    // If `qwikEvents` is an array, process it.
     if (Array.isArray(qwikevents)) {
       push(qwikevents);
     }
+    // Now rig up `qwikEvents` so we get notified of new registrations by other containers.
     win.qwikevents = {
       push: (...e: string[]) => push(e),
     };

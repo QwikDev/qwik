@@ -49,8 +49,7 @@ test.skip('should serialize content', async () => {
         <!--/qv-->
       </div>
       <script>
-        window.qwikevents ||= [];
-        window.qwikevents.push("click");
+        (window.qwikevents ||= []).push("click");
       </script>
     </body>`
   );

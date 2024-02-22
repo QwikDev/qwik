@@ -138,7 +138,6 @@ export interface QwikLoaderOptions
 
 | Property       | Modifiers | Type                          | Description  |
 | -------------- | --------- | ----------------------------- | ------------ |
-| [events?](#)   |           | string[]                      | _(Optional)_ |
 | [include?](#)  |           | 'always' \| 'never' \| 'auto' | _(Optional)_ |
 | [position?](#) |           | 'top' \| 'bottom'             | _(Optional)_ |
 

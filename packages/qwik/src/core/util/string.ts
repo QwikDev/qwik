@@ -1,4 +1,3 @@
-'./string.unit.ts';
 // pack bytes into valid UTF-16 string
 //
 // strategy:
@@ -6,16 +5,12 @@
 // * using 0xFFFD as the escape character
 //  * if there is 0xFFFD in the bytes, double it
 // * if there is unmatched surrogate pair, mark it by the escape character
-// * and put a fake surrogate pair to make it valid
-//  * 0xD800 for fake high surrogate to be with unmatched low surrogate
-//  * 0xDC00 for fake low surrogate to be with unmatched high surrogate
-//
-// if the unmatched high surrogate is 0xD800, it is collided with the fake
-// high surrogate, so use [0xD801, 0xDC01] as the fake surrogate pair
-// representing the 0xD800.
+// * and omit the MSB to make it normal code point.
+//  * high surrogates 0xD800-0xDBFF -> 0x5800-0x5BFF
+//  * low surrogates 0xDC00-0xDFFF -> 0x5C00-0x5FFF
 //
 // If the length of the bytes is odd, the last byte is put after the escape
-// character. As the bytes after the escape character are in 0xD800 to 0xDFFF,
+// character. As the bytes after the escape character are in 0x5800 to 0x5FFF,
 // we can distinguish the last byte by its high byte being 0x00.
 //
 export const packUint8Array = (bytes: Uint8Array) => {
@@ -29,11 +24,9 @@ export const packUint8Array = (bytes: Uint8Array) => {
     if (c >= 0xd800 && c <= 0xdbff) {
       if (surrogate) {
         // unmatched high surrogate
+        // omit the MSB to make it a normal codepoint
         const prev = dbytes[i - 1];
-        const [hi, lo] = prev === 0xd800 ? [0xd801, 0xdc01] : [prev, 0xdc00];
-        // put the 0xFFFD and the fake surrogate pair to make it valid
-        code += String.fromCharCode(0xfffd, hi, lo);
-        // keep surrogate is true because c is high surrogate
+        code += String.fromCharCode(0xfffd, prev & 0x7fff);
       }
       surrogate = true;
       continue;
@@ -47,22 +40,21 @@ export const packUint8Array = (bytes: Uint8Array) => {
         continue;
       }
       // unmatched low surrogate
-      // put the 0xFFFD and the fake high surrogate to make it valid
-      code += String.fromCharCode(0xfffd, 0xd800, c);
+      // omit the MSB to make it a normal codepoint
+      code += String.fromCharCode(0xfffd, c & 0x7fff);
       continue;
     }
     if (surrogate) {
       // no low surrogate after high surrogate
+      // omit the MSB to make it a normal codepoint
       const prev = dbytes[i - 1];
-      const [hi, lo] = prev === 0xd800 ? [0xd801, 0xdc01] : [prev, 0xdc00];
-      // put the 0xFFFD and the fake surrogate pair to make it valid
-      code += String.fromCharCode(0xfffd, hi, lo);
+      code += String.fromCharCode(0xfffd, prev & 0x7fff);
       surrogate = false; // reset surrogate
     }
     // escape the BOM
     if (c === 0xfeff) {
       // BOM
-      code += String.fromCharCode(0xfffd, 0xd801, 0xdc02);
+      code += String.fromCharCode(0xfffd, 0xffff);
       continue;
     }
     // double the escape character
@@ -74,9 +66,9 @@ export const packUint8Array = (bytes: Uint8Array) => {
   }
   if (surrogate) {
     // ended with unmatched high surrogate
+    // omit the MSB to make it a normal codepoint
     const c = dbytes[dbytes.length - 1];
-    const [hi, lo] = c === 0xd800 ? [0xd801, 0xdc01] : [c, 0xdc00];
-    code += String.fromCharCode(0xfffd, hi, lo);
+    code += String.fromCharCode(0xfffd, c & 0x7fff);
   }
   if (odd) {
     // put the last byte
@@ -106,32 +98,14 @@ export const unpackUint8Array = (code: string) => {
       dbytes[j++] = c;
       break; // break with escaped being true to adjust the length
     }
-    if (escaped && c >= 0xd800 && c <= 0xdbff) {
+    if (escaped) {
       escaped = false;
-      // faked high surrogate
-      if (c === 0xd800) {
-        i++; // skip the fake high surrogate
-        dbytes[j++] = code.charCodeAt(i); // save the low surrogate
+      if (c === 0xffff) {
+        // restore the BOM
+        dbytes[j++] = 0xfeff;
       } else {
-        if (c === 0xd801) {
-          switch (code.charCodeAt(i + 1)) {
-            case 0xdc00: // this is the fake low surrogate
-              break;
-            case 0xdc01:
-              i++; // skip the fake low surrogate
-              dbytes[j++] = 0xd800; // save the escaped 0xD800
-              continue;
-            case 0xdc02:
-              i++; // skip the fake low surrogate
-              dbytes[j++] = 0xfeff; // save the escaped BOM
-              continue;
-            default:
-              continue;
-          }
-        }
-        // escaped high surrogate
-        dbytes[j++] = code.charCodeAt(i); // save the high surrogate
-        i++; // skip the fake low surrogate
+        // restore the MSB
+        dbytes[j++] = c | 0x8000;
       }
       continue;
     }

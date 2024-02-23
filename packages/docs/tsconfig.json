@@ -24,6 +24,6 @@
     "inlineSourceMap": true,
     "inlineSources": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-  },
+    "forceConsistentCasingInFileNames": true
+  }
 }

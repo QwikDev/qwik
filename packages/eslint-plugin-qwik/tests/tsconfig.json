@@ -24,8 +24,8 @@
       "@builder.io/qwik": ["../../qwik/dist/core.d.ts"],
       "@builder.io/qwik/build": ["../../qwik/dist/build/index.d.ts"],
       "@builder.io/qwik/jsx-runtime": ["../../qwik/dist/jsx-runtime.d.ts"],
-      "@builder.io/qwik-city": ["../../qwik-city/lib/index.d.ts"],
-    },
+      "@builder.io/qwik-city": ["../../qwik-city/lib/index.d.ts"]
+    }
   },
-  "include": ["**/*.tsx", "**/*.ts"],
+  "include": ["**/*.tsx", "**/*.ts"]
 }

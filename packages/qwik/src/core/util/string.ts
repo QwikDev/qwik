@@ -110,7 +110,6 @@ export const unpackUint8Array = (code: string) => {
       dbytes[j++] = e | 0x8000;
     }
   }
-  // if ended while escaped, the length is odd
   const length = j * 2 - (odd ? 1 : 0);
   return new Uint8Array(dbytes.subarray(0, j).buffer).subarray(0, length);
 };

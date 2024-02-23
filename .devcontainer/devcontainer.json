@@ -3,7 +3,7 @@
 {
   "name": "Qwik devcontainer",
   "hostRequirements": {
-    "cpus": 4,
+    "cpus": 4
   },
   // Add the IDs of extensions you want installed when the container is created.
   "extensions": [
@@ -15,23 +15,23 @@
     "ms-azuretools.vscode-docker",
     "mitsuhiko.insta",
     "silvenon.mdx",
-    "csstools.postcss",
+    "csstools.postcss"
   ],
   "build": {
-    "dockerfile": "Dockerfile",
+    "dockerfile": "Dockerfile"
   },
   "waitFor": "updateContentCommand",
   "updateContentCommand": "corepack prepare & pnpm install",
   "forwardPorts": [3300, 9229],
   "customizations": {
     "codespaces": {
-      "openFiles": ["CONTRIBUTING.md"],
-    },
+      "openFiles": ["CONTRIBUTING.md"]
+    }
   },
   "portsAttributes": {
     "3300": {
       "label": "Serve",
-      "onAutoForward": "openPreview",
-    },
-  },
+      "onAutoForward": "openPreview"
+    }
+  }
 }

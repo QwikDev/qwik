@@ -81,38 +81,36 @@ export const packUint8Array = (bytes: Uint8Array) => {
 export const unpackUint8Array = (code: string) => {
   const dbytes = new Uint16Array(code.length);
   let j = 0;
-  let escaped = false;
+  let odd = false;
   for (let i = 0; i < code.length; i++) {
     const c = code.charCodeAt(i);
-    // check the replacement character
-    if (c === 0xfffd) {
-      if (escaped) {
-        dbytes[j++] = 0xfffd; // unescape the escape character
-        escaped = false;
-        continue;
-      }
-      escaped = true;
-      continue;
-    } else if (escaped && (c & 0xff00) === 0) {
-      // test the last byte
+    // check the escape character
+    if (c !== 0xfffd) {
+      // normal codepoint
       dbytes[j++] = c;
-      break; // break with escaped being true to adjust the length
-    }
-    if (escaped) {
-      escaped = false;
-      if (c === 0xffff) {
-        // restore the BOM
-        dbytes[j++] = 0xfeff;
-      } else {
-        // restore the MSB
-        dbytes[j++] = c | 0x8000;
-      }
       continue;
     }
-    // normal codepoint
-    dbytes[j++] = c;
+    // escaped character
+    const e = code.charCodeAt(++i);
+    if (e === 0xfffd) {
+      dbytes[j++] = 0xfffd; // unescape the escape character
+      continue;
+    }
+    // test the last byte
+    if ((e & 0xff00) === 0) {
+      dbytes[j++] = e;
+      odd = true;
+      break;
+    }
+    if (e === 0xffff) {
+      // restore the BOM
+      dbytes[j++] = 0xfeff;
+    } else {
+      // restore the MSB
+      dbytes[j++] = e | 0x8000;
+    }
   }
   // if ended while escaped, the length is odd
-  const length = j * 2 - (escaped ? 1 : 0);
+  const length = j * 2 - (odd ? 1 : 0);
   return new Uint8Array(dbytes.subarray(0, j).buffer).subarray(0, length);
 };

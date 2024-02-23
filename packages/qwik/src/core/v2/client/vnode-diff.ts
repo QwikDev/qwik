@@ -16,6 +16,7 @@ import {
   ELEMENT_KEY,
   ELEMENT_PROPS,
   OnRenderProp,
+  QScopedStyle,
   QSlot,
   QSlotParent,
   QStyle,
@@ -69,6 +70,7 @@ import {
   vnode_setText,
   vnode_truncate,
 } from './vnode';
+import { addPrefixForScopedStyleIdsString, isClassAttr } from '../shared/scoped-styles';
 
 export type VNodeJournalEntry = VNodeJournalOpCode | VNode | HTMLElement | null | string;
 
@@ -553,13 +555,20 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     let srcKey: string | null = srcIdx < srcLength ? srcAttrs[srcIdx++] : null;
     let dstKey: string | null = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
     let patchEventDispatch = false;
+    const scopedStyleId = vnode_getProp<string>(vParent, QScopedStyle, null);
+    const scopedStyleIdPrefix = scopedStyleId ? addPrefixForScopedStyleIdsString(scopedStyleId) : null;
+
     const record = (key: string, value: any) => {
       if (!hasDiffs) {
         journal.push(VNodeJournalOpCode.Attributes, vnode);
         hasDiffs = true;
       }
+      if (scopedStyleId && isClassAttr(key)) {
+        value = value ? `${scopedStyleIdPrefix} ${value}` : value;
+      }
       journal.push(key, value);
     };
+
     while (srcKey !== null || dstKey !== null) {
       if (srcKey == null) {
         // Source has more keys, so we need to remove them from destination

@@ -27,7 +27,7 @@ export interface Container2 {
   setHostProp<T>(host: HostElement, name: string, value: T): void;
   getHostProp<T>(host: HostElement, name: string): T | null;
 
-  $appendStyle$(arg0: string, styleId: string): void;
+  $appendStyle$(content: string, styleId: string, host: HostElement, scoped: boolean): void;
 }
 
 export type HostElement = VirtualVNode | SsrNode;
@@ -42,9 +42,9 @@ export const isContainer2 = (container: any): container is Container2 => {
 
 /**
  * A friendly name tag for a VirtualVNode.
- * 
+ *
  * Theses are used to give a name to a VirtualVNode. This is useful for debugging and testing.
- * 
+ *
  * The name is only added in development mode and is not included in production builds.
  */
 export const DEBUG_TYPE = 'q:type';
@@ -63,11 +63,11 @@ const START = '\x1b[34m';
 const END = '\x1b[0m';
 
 export const VirtualTypeName: Record<string, string> = {
-  [VirtualType.Virtual]: /* ********* */ START + 'Virtual' + END, //  
-  [VirtualType.Fragment]: /* ******** */ START + 'Fragment' + END, //  
-  [VirtualType.DerivedSignal]: /* ********** */ START + 'Signal' + END, //  
-  [VirtualType.Awaited]: /* ********* */ START + 'Awaited' + END, //  
-  [VirtualType.Component]: /* ******* */ START + 'Component' + END, //  
+  [VirtualType.Virtual]: /* ********* */ START + 'Virtual' + END, //
+  [VirtualType.Fragment]: /* ******** */ START + 'Fragment' + END, //
+  [VirtualType.DerivedSignal]: /* ********** */ START + 'Signal' + END, //
+  [VirtualType.Awaited]: /* ********* */ START + 'Awaited' + END, //
+  [VirtualType.Component]: /* ******* */ START + 'Component' + END, //
   [VirtualType.InlineComponent]: /* * */ START + 'InlineComponent' + END, //
-  [VirtualType.Projection]: /* ****** */ START + 'Projection' + END //
+  [VirtualType.Projection]: /* ****** */ START + 'Projection' + END, //
 };

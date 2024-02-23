@@ -18,6 +18,7 @@ import {
   QContainerAttr,
   QContainerSelector,
   QCtxAttr,
+  QScopedStyle,
   QStyle,
   QStyleSelector,
 } from '../../util/markers';
@@ -53,6 +54,10 @@ import {
   VNodeJournalOpCode,
   type VNodeJournalEntry,
 } from './vnode-diff';
+import {
+  convertScopedStyleIdsToArray,
+  convertScopedStyleIdsToString,
+} from '../shared/scoped-styles';
 
 export function getDomContainer(element: HTMLElement | ElementVNode): IClientContainer {
   let htmlElement: HTMLElement | null = Array.isArray(element)
@@ -252,7 +257,14 @@ export class DomContainer implements IClientContainer, StoreTracker {
     return fn;
   }
 
-  $appendStyle$(styleContent: string, styleId: string): void {
+  $appendStyle$(content: string, styleId: string, host: HostElement, scoped: boolean): void {
+    if (scoped) {
+      const scopedStyleIdsString = this.getHostProp<string>(host, QScopedStyle);
+      const scopedStyleIds = new Set(convertScopedStyleIdsToArray(scopedStyleIdsString));
+      scopedStyleIds.add(styleId);
+      this.setHostProp(host, QScopedStyle, convertScopedStyleIdsToString(scopedStyleIds));
+    }
+
     if (this.$styleIds$ == null) {
       this.$styleIds$ = new Set();
       this.element.querySelectorAll(QStyleSelector).forEach((style) => {
@@ -263,7 +275,7 @@ export class DomContainer implements IClientContainer, StoreTracker {
       this.$styleIds$.add(styleId);
       const styleElement = this.document.createElement('style');
       styleElement.setAttribute(QStyle, styleId);
-      styleElement.textContent = styleContent;
+      styleElement.textContent = content;
       this.$journal$.push(VNodeJournalOpCode.AddStyle, this.document.head, styleElement);
     }
   }
@@ -367,4 +379,3 @@ export function processVNodeData(document: Document) {
     return /* `!` */ 33 <= ch && ch <= 47; /* `/` */
   }
 }
-

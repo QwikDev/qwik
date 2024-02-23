@@ -4,14 +4,10 @@ import { implicit$FirstArg } from '../util/implicit_dollar';
 import { getScopedStyles } from '../style/scoped-stylesheet';
 import { useSequentialScope } from './use-sequential-scope';
 import { assertQrl } from '../qrl/qrl-class';
-import { isPromise, maybeThen } from '../util/promises';
+import { isPromise } from '../util/promises';
 import { assertDefined } from '../error/assert';
-import { ComponentStylesPrefixContent, QStyle } from '../util/markers';
-import type { Container2, HostElement, fixMeAny } from '../v2/shared/types';
-import { isDomContainer } from '../v2/client/dom-container';
-import type { SSRContainer } from '../v2/ssr/types';
-import { vnode_insertBefore, vnode_newUnMaterializedElement } from '../v2/client/vnode';
-import type { ValueOrPromise } from '../util/types';
+import { ComponentStylesPrefixContent } from '../util/markers';
+import type { fixMeAny } from '../v2/shared/types';
 
 /** @public */
 export interface UseStylesScoped {
@@ -143,7 +139,8 @@ const _useStyles = (
     if (isPromise(value)) {
       throw value;
     }
-    iCtx.$container2$.$appendStyle$(transform(value, styleId), styleId);
+
+    iCtx.$container2$.$appendStyle$(transform(value, styleId), styleId, host, scoped);
     return styleId;
   } else {
     const styleId = styleKey(styleQrl, i);

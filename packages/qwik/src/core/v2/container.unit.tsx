@@ -18,7 +18,6 @@ import { SsrNode, type SSRContainer } from './ssr/types';
 import './vdom-diff.unit-util';
 import { walkJSX } from './vdom-diff.unit-util';
 
-
 describe('serializer v2', () => {
   describe('rendering', () => {
     it('should do basic serialize/deserialize', () => {

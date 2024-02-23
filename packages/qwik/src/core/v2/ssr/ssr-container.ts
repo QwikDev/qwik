@@ -27,14 +27,8 @@ import {
   type SerializationContext,
 } from '../shared/shared-serialization';
 import { createScheduler, type Scheduler } from '../shared/scheduler';
-import {
-  DEBUG_TYPE,
-  VirtualTypeName,
-  type HostElement,
-  type fixMeAny,
-  VirtualType,
-} from '../shared/types';
-import { walkJSX, syncWalkJSX } from './ssr-render';
+import { DEBUG_TYPE, type HostElement, type fixMeAny, VirtualType } from '../shared/types';
+import { walkJSX } from './ssr-render';
 import { TagNesting, allowedContent, initialTag, isTagAllowed } from './tag-nesting';
 import {
   SsrComponentFrame,
@@ -57,6 +51,11 @@ import {
 } from './vnode-data';
 import type { ValueOrPromise } from '../../util/types';
 import { maybeThen } from '../../util/promises';
+import {
+  convertScopedStyleIdsToString,
+  getScopedStyleIdsAsPrefix,
+  isClassAttr,
+} from '../shared/scoped-styles';
 
 export function ssrCreateContainer(
   opts: {
@@ -314,11 +313,18 @@ class SSRContainer implements ISSRContainer {
     this.unclaimedProjections.push(node, name, children);
   }
 
-  $appendStyle$(styleContent: string, styleId: string): void {
+  $appendStyle$(content: string, styleId: string, host: HostElement, scoped: boolean): void {
+    if (scoped && host instanceof SsrNode) {
+      const componentFrame = this.getComponentFrame(0)!;
+      componentFrame.scopedStyleIds.add(styleId);
+      const scopedStyleIds = convertScopedStyleIdsToString(componentFrame.scopedStyleIds);
+      this.setHostProp(host, QScopedStyle, scopedStyleIds);
+    }
+
     if (!this.styleIds.has(styleId)) {
       this.styleIds.add(styleId);
       this.openElement('style', [QStyle, styleId]);
-      this.textNode(styleContent);
+      this.textNode(content);
       this.closeElement();
     }
   }
@@ -622,6 +628,10 @@ class SSRContainer implements ISSRContainer {
           this.write('="');
           let startIdx = 0;
           let quoteIdx: number;
+          const componentFrame = this.getComponentFrame(0);
+          if (isClassAttr(key) && componentFrame && componentFrame.scopedStyleIds.size) {
+            this.write(getScopedStyleIdsAsPrefix(componentFrame.scopedStyleIds) + ' ');
+          }
           while ((quoteIdx = value.indexOf('"', startIdx)) != -1) {
             this.write(value.substring(startIdx, quoteIdx));
             this.write('&quot;');

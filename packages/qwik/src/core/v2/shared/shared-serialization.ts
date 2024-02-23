@@ -21,7 +21,7 @@ import { Task } from '../../use/use-task';
 import { throwErrorAndStop } from '../../util/log';
 import type { DomContainer } from '../client/dom-container';
 import { vnode_isVNode, vnode_locate } from '../client/vnode';
-import type { Container2, fixMeAny } from './types';
+import type { fixMeAny } from './types';
 import type { ObjToProxyMap } from '../../container/container';
 import { isPromise } from 'util/types';
 import type { ValueOrPromise } from '../../util/types';
@@ -247,7 +247,6 @@ const inflate = (container: DomContainer, target: any, needsInflationData: strin
       break;
     case SerializationConstant.Resource_VALUE:
       throw new Error('Not implemented');
-      break;
     case SerializationConstant.Component_VALUE:
       inflateQRL(container, target[SERIALIZABLE_STATE][0]);
       break;
@@ -278,7 +277,6 @@ const inflate = (container: DomContainer, target: any, needsInflationData: strin
       break;
     case SerializationConstant.SignalWrapper_VALUE:
       throw new Error('Not implemented');
-      break;
     case SerializationConstant.Error_VALUE:
       Object.assign(target, container.$getObjectById$(restInt()));
       break;

@@ -146,6 +146,7 @@ import {
 } from '../../util/markers';
 import { isQrl } from '../../qrl/qrl-class';
 import { isDev } from '@builder.io/qwik/build';
+import { DEBUG_TYPE, VirtualType, VirtualTypeName } from '../shared/types';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1027,10 +1028,14 @@ export function vnode_toString(
     } else if (vnode_isVirtualVNode(vnode)) {
       const attrs: string[] = [];
       vnode_getAttrKeys(vnode).forEach((key) => {
-        const value = vnode_getAttr(vnode!, key);
-        attrs.push(' ' + key + '=' + stringify(value));
+        if (key !== DEBUG_TYPE) {
+          const value = vnode_getAttr(vnode!, key);
+          attrs.push(' ' + key + '=' + stringify(value));
+        }
       });
-      const name = vnode_getAttr(vnode, OnRenderProp) != null ? 'Component' : 'Fragment';
+      const name =
+        VirtualTypeName[vnode_getAttr(vnode, DEBUG_TYPE) || VirtualType.Virtual] ||
+        VirtualTypeName[VirtualType.Virtual];
       strings.push('<' + name + attrs.join('') + '>');
       const child = vnode_getFirstChild(vnode);
       child && strings.push('  ' + vnode_toString.call(child, depth - 1, offset + '  ', true));

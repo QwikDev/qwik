@@ -39,3 +39,35 @@ export interface QElement2 extends HTMLElement {
 export const isContainer2 = (container: any): container is Container2 => {
   return container && typeof container === 'object' && typeof container.setHostProp === 'function';
 };
+
+/**
+ * A friendly name tag for a VirtualVNode.
+ * 
+ * Theses are used to give a name to a VirtualVNode. This is useful for debugging and testing.
+ * 
+ * The name is only added in development mode and is not included in production builds.
+ */
+export const DEBUG_TYPE = 'q:type';
+
+export enum VirtualType {
+  Virtual = 'V',
+  Fragment = 'F',
+  DerivedSignal = 'D',
+  Awaited = 'A',
+  Component = 'C',
+  InlineComponent = 'I',
+  Projection = 'P',
+}
+
+const START = '\x1b[34m';
+const END = '\x1b[0m';
+
+export const VirtualTypeName: Record<string, string> = {
+  [VirtualType.Virtual]: /* ********* */ START + 'Virtual' + END, //  
+  [VirtualType.Fragment]: /* ******** */ START + 'Fragment' + END, //  
+  [VirtualType.DerivedSignal]: /* ********** */ START + 'Signal' + END, //  
+  [VirtualType.Awaited]: /* ********* */ START + 'Awaited' + END, //  
+  [VirtualType.Component]: /* ******* */ START + 'Component' + END, //  
+  [VirtualType.InlineComponent]: /* * */ START + 'InlineComponent' + END, //
+  [VirtualType.Projection]: /* ****** */ START + 'Projection' + END //
+};

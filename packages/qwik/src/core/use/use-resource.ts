@@ -1,27 +1,27 @@
-import { $, type QRL } from '../qrl/qrl.public';
+import { isServerPlatform } from '../platform/platform';
 import { assertQrl } from '../qrl/qrl-class';
+import { $, type QRL } from '../qrl/qrl.public';
+import { Fragment, jsx } from '../render/jsx/jsx-runtime';
+import { untrack, useBindInvokeContext } from './use-core';
 import {
-  type ResourceReturn,
-  type ResourceDescriptor,
-  type ResourceFn,
-  runResource,
+  Task,
   TaskFlagsIsDirty,
   TaskFlagsIsResource,
-  Task,
+  runResource,
+  type ResourceDescriptor,
+  type ResourceFn,
+  type ResourceReturn,
   type ResourceReturnInternal,
 } from './use-task';
-import { Fragment, jsx } from '../render/jsx/jsx-runtime';
-import { isServerPlatform } from '../platform/platform';
-import { untrack, useBindInvokeContext } from './use-core';
 
-import type { ContainerState, GetObjID } from '../container/container';
-import { useSequentialScope } from './use-sequential-scope';
-import { createProxy } from '../state/store';
+import type { GetObjID } from '../container/container';
+import type { JSXOutput } from '../render/jsx/types/jsx-node';
 import { getProxyTarget } from '../state/common';
 import { isSignal, type Signal } from '../state/signal';
-import { isObject } from '../util/types';
+import { createProxy, type StoreTracker } from '../state/store';
 import { isPromise } from '../util/promises';
-import type { JSXOutput } from '../render/jsx/types/jsx-node';
+import { isObject } from '../util/types';
+import { useSequentialScope } from './use-sequential-scope';
 
 /**
  * Options to pass to `useResource$()`
@@ -102,22 +102,25 @@ export const useResourceQrl = <T>(
   }
   assertQrl(qrl);
 
-  const containerState = iCtx.$renderCtx$.$static$.$containerState$;
+  const containerState = iCtx.$container2$ || iCtx.$renderCtx$.$static$.$containerState$;
   const resource = createResourceReturn<T>(containerState, opts);
-  const el = elCtx.$element$;
+  const el = iCtx.$hostElement$;
   const task = new Task(
     TaskFlagsIsDirty | TaskFlagsIsResource,
     i,
     el,
     qrl,
-    resource
+    resource,
+    null
   ) as ResourceDescriptor<any>;
   const previousWait = Promise.all(iCtx.$waitOn$.slice());
   runResource(task, containerState, iCtx.$renderCtx$, previousWait);
-  if (!elCtx.$tasks$) {
-    elCtx.$tasks$ = [];
+  if (!iCtx.$container2$) {
+    if (!elCtx.$tasks$) {
+      elCtx.$tasks$ = [];
+    }
+    elCtx.$tasks$.push(task);
   }
-  elCtx.$tasks$.push(task);
   set(resource);
 
   return resource;
@@ -307,7 +310,7 @@ export const _createResourceReturn = <T>(opts?: ResourceOptions): ResourceReturn
 };
 
 export const createResourceReturn = <T>(
-  containerState: ContainerState,
+  containerState: StoreTracker,
   opts?: ResourceOptions,
   initialPromise?: Promise<T>
 ): ResourceReturnInternal<T> => {

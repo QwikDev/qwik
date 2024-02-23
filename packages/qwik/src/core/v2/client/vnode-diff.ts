@@ -1,4 +1,5 @@
-import { isQwikComponent, type Component, type OnRenderFn } from '../../component/component.public';
+import { isDev } from '@builder.io/qwik/build';
+import { type OnRenderFn } from '../../component/component.public';
 import { SERIALIZABLE_STATE } from '../../container/serializers';
 import { assertDefined, assertFalse, assertTrue } from '../../error/assert';
 import type { QRLInternal } from '../../qrl/qrl-class';
@@ -21,6 +22,7 @@ import {
 } from '../../util/markers';
 import { isPromise } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
+import { executeComponent2 } from '../shared/component-execution';
 import {
   getEventNameFromJsxProp,
   getEventNameScopeFromJsxProp,
@@ -28,6 +30,7 @@ import {
   isJsxPropertyAnEventName,
 } from '../shared/event-names';
 import type { QElement2, fixMeAny } from '../shared/types';
+import { DEBUG_TYPE, VirtualType } from '../shared/types';
 import type { SsrAttrs } from '../ssr/types';
 import type { DomContainer } from './dom-container';
 import {
@@ -48,6 +51,7 @@ import {
   vnode_getFirstChild,
   vnode_getNextSibling,
   vnode_getNode,
+  vnode_getParent,
   vnode_getProjectionParentComponent,
   vnode_getProp,
   vnode_getText,
@@ -153,7 +157,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
           if (Array.isArray(jsxValue)) {
             descend(jsxValue, false);
           } else if (isSignal(jsxValue)) {
-            expectVirtual();
+            expectVirtual(VirtualType.DerivedSignal);
             descend(
               trackSignal(jsxValue, [
                 SubscriptionType.TEXT_MUTABLE,
@@ -164,7 +168,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
               true
             );
           } else if (isPromise(jsxValue)) {
-            expectVirtual();
+            expectVirtual(VirtualType.Awaited);
             asyncQueue.push(jsxValue, vNewNode || vCurrent);
           } else if (isJSXNode(jsxValue)) {
             const type = jsxValue.type;
@@ -172,24 +176,26 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
               expectNoMoreTextNodes();
               expectElement(jsxValue, type);
               descend(jsxValue.children, true);
-            } else if (type === Fragment) {
-              expectNoMoreTextNodes();
-              expectVirtual();
-              descend(jsxValue.children, true);
-            } else if (type === Slot) {
-              expectNoMoreTextNodes();
-              if (!expectSlot()) {
-                // nothing to project, so try to render the Slot default content.
+            } else if (typeof type === 'function') {
+              if (type === Fragment) {
+                expectNoMoreTextNodes();
+                expectVirtual(VirtualType.Fragment);
                 descend(jsxValue.children, true);
+              } else if (type === Slot) {
+                expectNoMoreTextNodes();
+                if (!expectSlot()) {
+                  // nothing to project, so try to render the Slot default content.
+                  descend(jsxValue.children, true);
+                }
+              } else if (type === Projection) {
+                expectProjection();
+                descend(jsxValue.children, true);
+              } else {
+                // Must be a component
+                expectNoMoreTextNodes();
+                expectVirtual(VirtualType.Component);
+                expectComponent(type);
               }
-            } else if (type === Projection) {
-              expectProjection();
-              descend(jsxValue.children, true);
-            } else if (isQwikComponent(type)) {
-              expectNoMoreTextNodes();
-              expectVirtual();
-              expectComponent(type);
-              descendProjection(jsxValue.children);
             } else {
               throwErrorAndStop(`Unsupported type: ${type}`);
             }
@@ -669,7 +675,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     return vNodeWithKey;
   }
 
-  function expectVirtual() {
+  function expectVirtual(type: VirtualType) {
     if (vCurrent && vnode_isVirtualVNode(vCurrent)) {
       // All is good.
     } else {
@@ -680,25 +686,56 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
         vCurrent && getInsertBefore()
       );
     }
+    isDev && vnode_setProp((vNewNode || vCurrent) as VirtualVNode, DEBUG_TYPE, type);
   }
 
-  function expectComponent(component: Component<any>) {
-    const [componentQRL] = (component as any)[SERIALIZABLE_STATE] as [QRLInternal<OnRenderFn<any>>];
+  function expectComponent(component: Function) {
+    const componentMeta = (component as any)[SERIALIZABLE_STATE] as [QRLInternal<OnRenderFn<any>>];
     const host = (vNewNode || vCurrent) as VirtualVNode;
     const vNodeQrl = vnode_getProp<QRLInternal>(host, OnRenderProp, container.$getObjectById$);
-    let shouldRender = false;
-    if (componentQRL.$hash$ !== vNodeQrl?.$hash$) {
-      vnode_setProp(host, OnRenderProp, componentQRL);
-      shouldRender = true;
-    }
-    const vNodeProps = vnode_getProp<any>(host, ELEMENT_PROPS, container.$getObjectById$);
-    const jsxPros = jsxValue.props;
-    shouldRender = shouldRender || !shallowEqual(jsxPros, vNodeProps);
-    if (shouldRender) {
-      const jsx = container.$scheduler$
-        .$scheduleComponent$(host, componentQRL, jsxPros)
-        .$drainComponent$(host);
-      asyncQueue.push(jsx, host);
+    const jsxProps = jsxValue.props;
+    if (componentMeta) {
+      let shouldRender = false;
+      // Component
+      const [componentQRL] = componentMeta;
+      if (componentQRL.$hash$ !== vNodeQrl?.$hash$) {
+        vnode_setProp(host, OnRenderProp, componentQRL);
+        shouldRender = true;
+      }
+      const vNodeProps = vnode_getProp<any>(host, ELEMENT_PROPS, container.$getObjectById$);
+      shouldRender = shouldRender || !shallowEqual(jsxProps, vNodeProps);
+      if (shouldRender) {
+        const jsx = container.$scheduler$
+          .$scheduleComponent$(host, componentQRL, jsxProps)
+          .$drainComponent$(host);
+        asyncQueue.push(jsx, host);
+      }
+      descendProjection(jsxValue.children);
+    } else {
+      // Inline Component
+      isDev &&
+        vnode_setProp(
+          (vNewNode || vCurrent) as VirtualVNode,
+          DEBUG_TYPE,
+          VirtualType.InlineComponent
+        );
+      let component$Host: VNode = host;
+      // Find the closest component host which has `OnRender` prop.
+      while (
+        component$Host &&
+        !vnode_isElementVNode(component$Host) &&
+        vnode_getProp(component$Host, OnRenderProp, null) === null
+      ) {
+        component$Host = vnode_getParent(component$Host)!;
+      }
+      const jsxOutput = executeComponent2(
+        container,
+        host,
+        component$Host as fixMeAny,
+        component as OnRenderFn<any>,
+        jsxProps
+      );
+      asyncQueue.push(jsxOutput, host);
     }
   }
 

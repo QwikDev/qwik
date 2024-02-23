@@ -27,8 +27,14 @@ import {
   type SerializationContext,
 } from '../shared/shared-serialization';
 import { createScheduler, type Scheduler } from '../shared/scheduler';
-import type { HostElement, fixMeAny } from '../shared/types';
-import { syncWalkJSX } from './ssr-render';
+import {
+  DEBUG_TYPE,
+  VirtualTypeName,
+  type HostElement,
+  type fixMeAny,
+  VirtualType,
+} from '../shared/types';
+import { walkJSX, syncWalkJSX } from './ssr-render';
 import { TagNesting, allowedContent, initialTag, isTagAllowed } from './tag-nesting';
 import {
   SsrComponentFrame,
@@ -494,9 +500,13 @@ class SSRContainer implements ISSRContainer {
           ssrComponentNode = value;
         } else if (typeof value === 'string') {
           const children = unclaimedProjections[idx++] as JSXOutput;
-          this.openFragment([QSlotParent, ssrComponentNode!.id]);
+          this.openFragment(
+            isDev
+              ? [DEBUG_TYPE, VirtualType.DerivedSignal, QSlotParent, ssrComponentNode!.id]
+              : [QSlotParent, ssrComponentNode!.id]
+          );
           ssrComponentNode?.setProp(value, this.getLastNode().id);
-          syncWalkJSX(this, children);
+          walkJSX(this, children, false);
           this.closeFragment();
         } else {
           throw throwErrorAndStop('should not get here');

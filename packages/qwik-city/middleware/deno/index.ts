@@ -17,16 +17,15 @@ import { extname, fromFileUrl, join } from 'https://deno.land/std/path/mod.ts';
 // @builder.io/qwik-city/middleware/deno
 
 /** @public */
-export interface Addr {
+export interface NetAddr {
   transport: 'tcp' | 'udp';
   hostname: string;
   port: number;
 }
 
 /** @public */
-export interface ConnInfo {
-  readonly localAddr: Addr;
-  readonly remoteAddr: Addr;
+export interface ServeHandlerInfo {
+  remoteAddr: NetAddr;
 }
 
 /** @public */
@@ -42,7 +41,7 @@ export function createQwikCity(opts: QwikCityDenoOptions) {
 
   const staticFolder = opts.static?.root ?? join(fromFileUrl(import.meta.url), '..', '..', 'dist');
 
-  async function router(request: Request, conn: ConnInfo) {
+  async function router(request: Request, info: ServeHandlerInfo) {
     try {
       const url = new URL(request.url);
 
@@ -66,9 +65,9 @@ export function createQwikCity(opts: QwikCityDenoOptions) {
         },
         getClientConn: () => {
           return opts.getClientConn
-            ? opts.getClientConn(request, conn)
+            ? opts.getClientConn(request, info)
             : {
-                ip: conn.remoteAddr.hostname,
+                ip: info.remoteAddr.hostname,
               };
         },
       };
@@ -175,5 +174,5 @@ export interface QwikCityDenoOptions extends ServerRenderOptions {
     /** Set the Cache-Control header for all static files */
     cacheControl?: string;
   };
-  getClientConn?: (request: Request, conn: ConnInfo) => ClientConn;
+  getClientConn?: (request: Request, info: ServeHandlerInfo) => ClientConn;
 }

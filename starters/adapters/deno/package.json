@@ -9,7 +9,7 @@
     "displayName": "Adapter: Deno Server",
     "docs": [
       "https://qwik.builder.io/deployments/deno/",
-      "https://deno.com/manual/examples/http_server"
+      "https://docs.deno.com/runtime/tutorials/http_server"
     ],
     "nextSteps": {
       "title": "Next Steps",

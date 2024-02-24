@@ -1,4 +1,4 @@
-import { Fragment as Component } from '@builder.io/qwik/jsx-runtime';
+import { Fragment as Component, Fragment } from '@builder.io/qwik/jsx-runtime';
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
 import { component$ } from '../component/component.public';
@@ -10,6 +10,7 @@ import { useStylesScopedQrl } from '../use/use-styles';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
 import { QStyleSelector } from '../util/markers';
+import { Slot } from '../render/jsx/slot.public';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -325,10 +326,72 @@ Error.stackTraceLimit = 100;
       expect(qStyles).toHaveLength(1);
     });
 
+    it('should render styles for component inside slot', async () => {
+      let rawStyleId1 = '';
+      let rawStyleId2 = '';
+
+      const Child = component$(() => {
+        const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_BLUE, 's_stylesScoped2'));
+        rawStyleId2 = stylesScopedData.scopeId;
+        return <div class="container">Hello world 2</div>;
+      });
+
+      const Parent = component$(() => {
+        const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped1'));
+        rawStyleId1 = stylesScopedData.scopeId;
+        return (
+          <div class="container">
+            <Slot />
+          </div>
+        );
+      });
+
+      const { vNode } = await render(
+        <Parent>
+          <Child />
+        </Parent>,
+        { debug }
+      );
+      const firstStyleId = rawStyleId1.substring(2);
+      const firstScopeStyle = getScopedStyles(STYLE_RED, firstStyleId);
+      const secondStyleId = rawStyleId2.substring(2);
+      const secondScopeStyle = getScopedStyles(STYLE_BLUE, secondStyleId);
+      if (render === ssrRenderToDom) {
+        expect(vNode).toMatchVDOM(
+          <Component>
+            {/* @ts-ignore-next-line */}
+            <style q:style={firstStyleId}>{firstScopeStyle}</style>
+            <div class={`${rawStyleId1} container`}>
+              <Fragment>
+                <Component>
+                  {/* @ts-ignore-next-line */}
+                  <style q:style={secondStyleId}>{secondScopeStyle}</style>
+                  <div class={`${rawStyleId2} container`}>Hello world 2</div>
+                </Component>
+              </Fragment>
+            </div>
+          </Component>
+        );
+      } else {
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <div class={`${rawStyleId1} container`}>
+              <Fragment>
+                <Component>
+                  <div class={`${rawStyleId2} container`}>Hello world 2</div>
+                </Component>
+              </Fragment>
+            </div>
+          </Component>
+        );
+      }
+    });
+
     it('should render styles for all nested components and elements', async () => {
       let rawStyleId1 = '';
       let rawStyleId2 = '';
       let rawStyleId3 = '';
+      let rawStyleId4 = '';
 
       const StyledComponent1 = component$(() => {
         const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped1'));
@@ -338,7 +401,9 @@ Error.stackTraceLimit = 100;
             <span>Hello world 1</span>
             <div class="container">Nested 1</div>
             <StyledComponent2 />
-            <StyledComponent3 />
+            <StyledComponent3>
+              <StyledComponent4 />
+            </StyledComponent3>
           </div>
         );
       });
@@ -355,8 +420,19 @@ Error.stackTraceLimit = 100;
       const StyledComponent3 = component$(() => {
         const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped3'));
         rawStyleId3 = stylesScopedData.scopeId;
-        return <div class="container">Hello world 3</div>;
+        return (
+          <div class="container">
+            Hello world 3
+            <Slot />
+          </div>
+        );
       });
+      const StyledComponent4 = component$(() => {
+        const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_BLUE, 's_stylesScoped4'));
+        rawStyleId4 = stylesScopedData.scopeId;
+        return <div class="container">Hello world 4</div>;
+      });
+
       const Parent = component$(() => {
         return (
           <div class="parent">
@@ -371,6 +447,8 @@ Error.stackTraceLimit = 100;
       const secondScopeStyle = getScopedStyles(STYLE_BLUE, secondStyleId);
       const thirdStyleId = rawStyleId3.substring(2);
       const thirdScopeStyle = getScopedStyles(STYLE_RED, thirdStyleId);
+      const fourthStyleId = rawStyleId4.substring(2);
+      const fourthScopeStyle = getScopedStyles(STYLE_BLUE, fourthStyleId);
       if (render === ssrRenderToDom) {
         expect(vNode).toMatchVDOM(
           <Component>
@@ -392,7 +470,16 @@ Error.stackTraceLimit = 100;
                   <Component>
                     {/* @ts-ignore-next-line */}
                     <style q:style={thirdStyleId}>{thirdScopeStyle}</style>
-                    <div class={`${rawStyleId3} container`}>Hello world 3</div>
+                    <div class={`${rawStyleId3} container`}>
+                      Hello world 3
+                      <Fragment>
+                        <Component>
+                          {/* @ts-ignore-next-line */}
+                          <style q:style={fourthStyleId}>{fourthScopeStyle}</style>
+                          <div class={`${rawStyleId4} container`}>Hello world 4</div>
+                        </Component>
+                      </Fragment>
+                    </div>
                   </Component>
                 </div>
               </Component>
@@ -414,7 +501,14 @@ Error.stackTraceLimit = 100;
                     </div>
                   </Component>
                   <Component>
-                    <div class={`${rawStyleId3} container`}>Hello world 3</div>
+                    <div class={`${rawStyleId3} container`}>
+                      Hello world 3
+                      <Fragment>
+                        <Component>
+                          <div class={`${rawStyleId4} container`}>Hello world 4</div>
+                        </Component>
+                      </Fragment>
+                    </div>
                   </Component>
                 </div>
               </Component>

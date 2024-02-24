@@ -325,7 +325,7 @@ Error.stackTraceLimit = 100;
       expect(qStyles).toHaveLength(1);
     });
 
-    it('should render styles for all nested components', async () => {
+    it('should render styles for all nested components and elements', async () => {
       let rawStyleId1 = '';
       let rawStyleId2 = '';
       let rawStyleId3 = '';
@@ -335,7 +335,8 @@ Error.stackTraceLimit = 100;
         rawStyleId1 = stylesScopedData.scopeId;
         return (
           <div class="container">
-            Hello world 1
+            <span>Hello world 1</span>
+            <div class="container">Nested 1</div>
             <StyledComponent2 />
             <StyledComponent3 />
           </div>
@@ -344,7 +345,12 @@ Error.stackTraceLimit = 100;
       const StyledComponent2 = component$(() => {
         const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_BLUE, 's_stylesScoped2'));
         rawStyleId2 = stylesScopedData.scopeId;
-        return <div class="container">Hello world 2</div>;
+        return (
+          <div class="container">
+            <span>Hello world 2</span>
+            <div class="container">Nested 2</div>
+          </div>
+        );
       });
       const StyledComponent3 = component$(() => {
         const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped3'));
@@ -373,11 +379,15 @@ Error.stackTraceLimit = 100;
                 {/* @ts-ignore-next-line */}
                 <style q:style={firstStyleId}>{firstScopeStyle}</style>
                 <div class={`${rawStyleId1} container`}>
-                  Hello world 1
+                  <span>Hello world 1</span>
+                  <div class={`${rawStyleId1} container`}>Nested 1</div>
                   <Component>
                     {/* @ts-ignore-next-line */}
                     <style q:style={secondStyleId}>{secondScopeStyle}</style>
-                    <div class={`${rawStyleId2} container`}>Hello world 2</div>
+                    <div class={`${rawStyleId2} container`}>
+                      <span>Hello world 2</span>
+                      <div class={`${rawStyleId2} container`}>Nested 2</div>
+                    </div>
                   </Component>
                   <Component>
                     {/* @ts-ignore-next-line */}
@@ -395,9 +405,13 @@ Error.stackTraceLimit = 100;
             <div class="parent">
               <Component>
                 <div class={`${rawStyleId1} container`}>
-                  Hello world 1
+                  <span>Hello world 1</span>
+                  <div class={`${rawStyleId1} container`}>Nested 1</div>
                   <Component>
-                    <div class={`${rawStyleId2} container`}>Hello world 2</div>
+                    <div class={`${rawStyleId2} container`}>
+                      <span>Hello world 2</span>
+                      <div class={`${rawStyleId2} container`}>Nested 2</div>
+                    </div>
                   </Component>
                   <Component>
                     <div class={`${rawStyleId3} container`}>Hello world 3</div>

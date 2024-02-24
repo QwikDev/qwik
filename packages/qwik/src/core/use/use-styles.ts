@@ -14,6 +14,11 @@ export interface UseStylesScoped {
   scopeId: string;
 }
 
+/** @public */
+export interface UseStyles {
+  styleId: string;
+}
+
 // <docs markdown="../readme.md#useStyles">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useStyles instead)
@@ -37,8 +42,10 @@ export interface UseStylesScoped {
  * @see `useStylesScoped`
  */
 // </docs>
-export const useStylesQrl = (styles: QRL<string>): void => {
-  _useStyles(styles, (str) => str, false);
+export const useStylesQrl = (styles: QRL<string>): UseStyles => {
+  return {
+    styleId: _useStyles(styles, (str) => str, false),
+  }
 };
 
 // <docs markdown="../readme.md#useStyles">

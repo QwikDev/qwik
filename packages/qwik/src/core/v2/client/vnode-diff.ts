@@ -133,6 +133,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
   let jsxCount = 0;
   // When we descend into children, we need to skip advance() because we just descended.
   let shouldAdvance = true;
+  let scopedStyleIdPrefix: string | null;
   ////////////////////////////////
 
   diff(jsxNode, vStartNode);
@@ -146,6 +147,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     vParent = vStartNode;
     vNewNode = null;
     vCurrent = vnode_getFirstChild(vStartNode);
+    setScopedStyleIdPrefix();
     stackPush(jsxNode, true);
     expectNoQStyles();
     while (stack.length) {
@@ -555,15 +557,13 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     let srcKey: string | null = srcIdx < srcLength ? srcAttrs[srcIdx++] : null;
     let dstKey: string | null = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
     let patchEventDispatch = false;
-    const scopedStyleId = vnode_getProp<string>(vParent, QScopedStyle, null);
-    const scopedStyleIdPrefix = scopedStyleId ? addPrefixForScopedStyleIdsString(scopedStyleId) : null;
 
     const record = (key: string, value: any) => {
       if (!hasDiffs) {
         journal.push(VNodeJournalOpCode.Attributes, vnode);
         hasDiffs = true;
       }
-      if (scopedStyleId && isClassAttr(key)) {
+      if (scopedStyleIdPrefix && isClassAttr(key)) {
         value = value ? `${scopedStyleIdPrefix} ${value}` : value;
       }
       journal.push(key, value);
@@ -650,6 +650,13 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
           return returnValue;
         };
       }
+    }
+  }
+
+  function setScopedStyleIdPrefix() {
+    if (vParent && vnode_getType(vParent) === 11 /* Virtual */) {
+      const scopedStyleId = vnode_getProp<string>(vParent, QScopedStyle, null);
+      scopedStyleIdPrefix = scopedStyleId ? addPrefixForScopedStyleIdsString(scopedStyleId) : null;
     }
   }
 

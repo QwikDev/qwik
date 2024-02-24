@@ -3,7 +3,8 @@ title: Deno Middleware | Deployments
 contributors:
   - adamdbradley
   - mrhoodz
-updated_at: '2023-06-25T19:43:33Z'
+  - gioboa
+updated_at: '2023-02-24T09:43:33Z'
 created_at: '2023-04-28T16:43:21Z'
 ---
 
@@ -46,3 +47,5 @@ Since you are choosing Deno, here you are in your own, after running `npm run bu
 
 - The `dist` folder will be created including all the static files.
 - The `server` folder will be created including all node server files.
+
+> By default, `SSG` mode is activated. If you want to change this behavior, you can edit the `vite.config.ts` file inside the `adapters/deno` folder. In this file you can configure the behavior of the `SSG` or remove the SSG part to switch to a complete `SSR`.

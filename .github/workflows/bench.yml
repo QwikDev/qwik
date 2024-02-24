@@ -11,7 +11,7 @@ jobs:
       optimizer: ${{ steps.filter.outputs.optimizer }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4.1.1
       - uses: dorny/paths-filter@v2
         id: filter
         with:
@@ -25,10 +25,10 @@ jobs:
     if: ${{ needs.changes.outputs.optimizer == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4.1.1
 
       - name: Cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/bin/

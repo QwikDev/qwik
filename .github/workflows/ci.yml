@@ -44,7 +44,7 @@ jobs:
         run: echo "${{ github.ref }}"
       - name: NPM Dist Tag
         run: echo "${{ github.event.inputs.disttag }}"
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4.1.1
       - uses: dorny/paths-filter@v2
         id: filter
         with:
@@ -95,12 +95,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.1.1
 
       - uses: pnpm/action-setup@v2.2.4
 
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4.0.2
         with:
           node-version: 18.x
           cache: 'pnpm'
@@ -121,7 +121,7 @@ jobs:
         run: tree packages/qwik/dist/
 
       - name: Upload Qwik Build Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4.3.1
         with:
           name: dist-dev-builder-io-qwik
           path: packages/qwik/dist/
@@ -131,7 +131,7 @@ jobs:
         run: tree packages/create-qwik/dist/
 
       - name: Upload Create Qwik CLI Build Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4.3.1
         with:
           name: dist-dev-create-qwik
           path: packages/create-qwik/dist/
@@ -144,7 +144,7 @@ jobs:
         run: tree packages/eslint-plugin-qwik/dist/
 
       - name: Upload Eslint rules Build Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4.3.1
         with:
           name: dist-dev-eslint-plugin-qwik
           path: packages/eslint-plugin-qwik/dist/
@@ -163,14 +163,14 @@ jobs:
 
       - name: Checkout
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.1.1
 
       - uses: pnpm/action-setup@v2.2.4
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
       - name: Setup Node
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4.0.2
         with:
           node-version: 18.x
           cache: 'pnpm'
@@ -188,7 +188,7 @@ jobs:
 
       - name: Cache cargo dependencies
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/bin/
@@ -199,7 +199,7 @@ jobs:
 
       - name: Cache cargo build
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: packages/qwik/src/wasm/target
           key: cargo-build-wasm-${{ runner.os }}-${{ hashFiles('./packages/qwik/src/wasm/Cargo.lock') }}
@@ -226,7 +226,7 @@ jobs:
 
       - name: Upload WASM Build Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4.3.1
         with:
           name: dist-bindings-wasm
           path: packages/qwik/dist/bindings/*
@@ -260,14 +260,14 @@ jobs:
     steps:
       - name: Checkout
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.1.1
 
       - uses: pnpm/action-setup@v2.2.4
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
       - name: Setup Node
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4.0.2
         with:
           node-version: 18.x
           cache: 'pnpm'
@@ -294,7 +294,7 @@ jobs:
 
       - name: Cache cargo dependencies
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/bin/
@@ -305,7 +305,7 @@ jobs:
 
       - name: Cache cargo build
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: target
           key: cargo-build-${{ matrix.settings.target }}-${{ hashFiles('Cargo.lock') }}
@@ -329,7 +329,7 @@ jobs:
 
       - name: Upload Platform Binding Artifact
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4.3.1
         with:
           name: dist-bindings-${{ matrix.settings.target }}
           path: packages/qwik/dist/bindings/*.node
@@ -344,14 +344,14 @@ jobs:
     steps:
       - name: Checkout
         if: ${{ needs.changes.outputs.insightsbuild == 'true' }}
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.1.1
 
       - uses: pnpm/action-setup@v2.2.4
         if: ${{ needs.changes.outputs.insightsbuild == 'true' }}
 
       - name: Setup Node
         if: ${{ needs.changes.outputs.insightsbuild == 'true' }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4.0.2
         with:
           node-version: 18.x
           cache: 'pnpm'
@@ -377,14 +377,14 @@ jobs:
     steps:
       - name: Checkout
         if: ${{ needs.changes.outputs.docsbuild == 'true' }}
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.1.1
 
       - uses: pnpm/action-setup@v2.2.4
         if: ${{ needs.changes.outputs.docsbuild == 'true' }}
 
       - name: Setup Node
         if: ${{ needs.changes.outputs.docsbuild == 'true' }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4.0.2
         with:
           node-version: 18.x
           cache: 'pnpm'
@@ -417,14 +417,14 @@ jobs:
     steps:
       - name: Checkout
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.1.1
 
       - uses: pnpm/action-setup@v2.2.4
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
       - name: Setup Node
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4.0.2
         with:
           node-version: 18.x
           cache: 'pnpm'
@@ -442,7 +442,7 @@ jobs:
 
       - name: Download Build Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4.1.2
 
       - name: Print Distribution Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -466,7 +466,7 @@ jobs:
 
       - name: Upload Qwik Distribution Artifact
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4.3.1
         with:
           name: builderio-qwik-distribution
           path: packages/qwik/dist/*
@@ -482,7 +482,7 @@ jobs:
 
       - name: Upload QwikCity Build Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4.3.1
         with:
           name: builderio-qwikcity-distribution
           path: packages/qwik-city/lib/
@@ -494,7 +494,7 @@ jobs:
 
       - name: Upload QwikLabs Build Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4.3.1
         with:
           name: builderio-qwiklabs-distribution
           path: |
@@ -517,12 +517,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.1.1
 
       - uses: pnpm/action-setup@v2.2.4
 
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4.0.2
         with:
           node-version: 18.x
           cache: 'pnpm'
@@ -531,7 +531,7 @@ jobs:
       - run: corepack enable
 
       - name: Download Build Artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4.1.2
 
       - name: Print Distribution Artifacts
         run: tree builderio-qwik-distribution/
@@ -601,14 +601,14 @@ jobs:
     steps:
       - name: Checkout
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.1.1
 
       - uses: pnpm/action-setup@v2.2.4
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
       - name: Setup Node ${{ matrix.settings.node }}
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4.0.2
         with:
           node-version: ${{ matrix.settings.node }}
           cache: 'pnpm'
@@ -620,7 +620,7 @@ jobs:
 
       - name: Download Build Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4.1.2
 
       - name: Move Distribution Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -662,12 +662,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.1.1
 
       - uses: pnpm/action-setup@v2.2.4
 
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4.0.2
         with:
           node-version: 18.x
           cache: 'pnpm'
@@ -697,7 +697,7 @@ jobs:
     steps:
       - name: Checkout
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.1.1
 
       - name: Install Rust toolchain
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -708,7 +708,7 @@ jobs:
 
       - name: Cache cargo dependencies
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/bin/
@@ -719,7 +719,7 @@ jobs:
 
       - name: Cache cargo build
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: target
           key: cargo-build-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
@@ -758,12 +758,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.1.1
 
       - uses: pnpm/action-setup@v2.2.4
 
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4.0.2
         with:
           node-version: 18.x
           cache: 'pnpm'

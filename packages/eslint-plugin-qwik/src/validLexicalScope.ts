@@ -486,6 +486,7 @@ const ALLOWED_CLASSES = {
   Set: true,
   Map: true,
   Uint8Array: true,
+  JSXNodeImpl: true,
 };
 
 const referencesOutsideGood = `

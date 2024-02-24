@@ -15,7 +15,7 @@
     "skipLibCheck": true,
     "incremental": true,
     "isolatedModules": true,
-    "types": ["vite/client"],
+    "types": ["vite/client"]
   },
-  "include": ["src"],
+  "include": ["src"]
 }

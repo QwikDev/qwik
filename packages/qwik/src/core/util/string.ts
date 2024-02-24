@@ -57,6 +57,11 @@ export const packUint8Array = (bytes: Uint8Array) => {
       code += String.fromCharCode(0xfffd, 0xffff);
       continue;
     }
+    // extra comaction againt the strinfigy of the control characters
+    if (c <= 31) {
+      code += String.fromCharCode(0xfffd, c + 0xf200);
+      continue;
+    }
     // double the escape character
     if (c === 0xfffd) {
       code += String.fromCharCode(0xfffd);
@@ -105,6 +110,9 @@ export const unpackUint8Array = (code: string) => {
     if (e === 0xffff) {
       // restore the BOM
       dbytes[j++] = 0xfeff;
+    } else if (e >= 0xf200 && e <= 0xf200 + 31) {
+      // restore the control characters
+      dbytes[j++] = e - 0xf200;
     } else {
       // restore the MSB
       dbytes[j++] = e | 0x8000;

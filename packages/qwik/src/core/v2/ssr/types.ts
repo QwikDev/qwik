@@ -28,6 +28,7 @@ export interface SSRContainer extends Container2 {
 
   openComponent(attrs: SsrAttrs): void;
   getComponentFrame(projectionDepth: number): SsrComponentFrame | null;
+  getNearestComponentFrame(): SsrComponentFrame | null;
   closeComponent(): void;
 
   textNode(text: string): void;

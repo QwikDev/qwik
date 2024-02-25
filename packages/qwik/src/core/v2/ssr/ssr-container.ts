@@ -274,6 +274,14 @@ class SSRContainer implements ISSRContainer {
     return idx >= 0 ? this.componentStack[idx] : null;
   }
 
+  getNearestComponentFrame(): SsrComponentFrame | null {
+    const currentFrame = this.getComponentFrame(0);
+    if (!currentFrame) {
+      return null;
+    }
+    return this.getComponentFrame(currentFrame.projectionDepth);
+  }
+
   closeComponent() {
     const componentFrame = this.componentStack.pop()!;
     componentFrame.releaseUnclaimedProjections(this.unclaimedProjections);
@@ -628,7 +636,7 @@ class SSRContainer implements ISSRContainer {
           this.write('="');
           let startIdx = 0;
           let quoteIdx: number;
-          const componentFrame = this.getComponentFrame(0);
+          const componentFrame = this.getNearestComponentFrame();
           if (isClassAttr(key) && componentFrame && componentFrame.scopedStyleIds.size) {
             this.write(getScopedStyleIdsAsPrefix(componentFrame.scopedStyleIds) + ' ');
           }

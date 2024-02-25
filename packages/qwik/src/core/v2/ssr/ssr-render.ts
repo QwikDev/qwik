@@ -139,8 +139,7 @@ function processJSXNode(
           const children = jsx.children as JSXOutput;
           children !== undefined && enqueue(children);
         } else if (type === Slot) {
-          const currentFrame = ssr.getComponentFrame(0)!;
-          const componentFrame = ssr.getComponentFrame(currentFrame.projectionDepth)!;
+          const componentFrame = ssr.getNearestComponentFrame()!;
           ssr.openProjection(
             isDev
               ? [DEBUG_TYPE, VirtualType.Projection, ':', componentFrame.componentNode.id]

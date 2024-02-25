@@ -82,7 +82,7 @@ export const packUint8Array = (bytes: Uint8Array) => {
   }
   if (odd) {
     // put the last byte
-    code += String.fromCharCode(ESC, bytes[bytes.length - 1] + 0xff00);
+    code += String.fromCharCode(ESC, bytes[bytes.length - 1] + 0x0900);
   }
   return code;
 };
@@ -107,8 +107,8 @@ export const unpackUint8Array = (code: string) => {
       continue;
     }
     // test the last byte
-    if ((e & 0xff00) === 0xff00) {
-      dbytes[j++] = e - 0xff00;
+    if ((e & 0xff00) === 0x0900) {
+      dbytes[j++] = e - 0x0900;
       odd = true;
       break;
     }

@@ -2,17 +2,22 @@
 //
 // strategy:
 //
-// * using 0xFFFD as the escape character
-//  * if there is 0xFFFD in the bytes, double it
+// * using esc as the escape character
+//  * if there is esc in the bytes, double it
 // * if there is unmatched surrogate pair, mark it by the escape character
-// * and omit the MSB to make it normal code point.
-//  * high surrogates 0xD800-0xDBFF -> 0x5800-0x5BFF
-//  * low surrogates 0xDC00-0xDFFF -> 0x5C00-0x5FFF
 //
-// If the length of the bytes is odd, the last byte is put after the escape
-// character. As the bytes after the escape character are in 0x5800 to 0x5FFF,
-// we can distinguish the last byte by its high byte being 0x00.
+// 0x007f: escape, because it's rare but still only one utf-8 byte.
+//   To escape itself, use 0x007f 0x08ff (two bytes utf-8)
+// 0x0000->0x001f: converted to esc + 0x0020->0x003f (two bytes utf-8)
+// unmatched pairs: converted to esc + (code-0xd800+0x0040) 0x0040->0x083f
+//   (two-four bytes utf-8)
+// BOM: esc + 0x08fe (four bytes utf-8)
 //
+// If the length of the bytes is odd, the last byte XX is put after the escape
+// character as 0xFFXX.
+//
+const ESC = 0x007f;
+const SURROGATE_OFFSET = 0xd800 - 0x0040;
 export const packUint8Array = (bytes: Uint8Array) => {
   const odd = bytes.length % 2 === 1;
   const dbytes = new Uint16Array(bytes.buffer, 0, bytes.length >> 1);
@@ -26,7 +31,7 @@ export const packUint8Array = (bytes: Uint8Array) => {
         // unmatched high surrogate
         // omit the MSB to make it a normal codepoint
         const prev = dbytes[i - 1];
-        code += String.fromCharCode(0xfffd, prev & 0x7fff);
+        code += String.fromCharCode(ESC, prev - SURROGATE_OFFSET);
       }
       surrogate = true;
       continue;
@@ -41,30 +46,30 @@ export const packUint8Array = (bytes: Uint8Array) => {
       }
       // unmatched low surrogate
       // omit the MSB to make it a normal codepoint
-      code += String.fromCharCode(0xfffd, c & 0x7fff);
+      code += String.fromCharCode(ESC, c - SURROGATE_OFFSET);
       continue;
     }
     if (surrogate) {
       // no low surrogate after high surrogate
       // omit the MSB to make it a normal codepoint
       const prev = dbytes[i - 1];
-      code += String.fromCharCode(0xfffd, prev & 0x7fff);
+      code += String.fromCharCode(ESC, prev - SURROGATE_OFFSET);
       surrogate = false; // reset surrogate
     }
     // escape the BOM
     if (c === 0xfeff) {
       // BOM
-      code += String.fromCharCode(0xfffd, 0xffff);
+      code += String.fromCharCode(ESC, 0x08fe);
       continue;
     }
     // extra comaction againt the strinfigy of the control characters
-    if (c <= 31) {
-      code += String.fromCharCode(0xfffd, c + 0xf200);
+    if (c <= 0x001f) {
+      code += String.fromCharCode(ESC, c + 0x0020);
       continue;
     }
     // double the escape character
-    if (c === 0xfffd) {
-      code += String.fromCharCode(0xfffd);
+    if (c === ESC) {
+      code += String.fromCharCode(0x08ff);
     }
     // normal codepoint
     code += String.fromCharCode(c);
@@ -73,11 +78,11 @@ export const packUint8Array = (bytes: Uint8Array) => {
     // ended with unmatched high surrogate
     // omit the MSB to make it a normal codepoint
     const c = dbytes[dbytes.length - 1];
-    code += String.fromCharCode(0xfffd, c & 0x7fff);
+    code += String.fromCharCode(ESC, c - SURROGATE_OFFSET);
   }
   if (odd) {
     // put the last byte
-    code += String.fromCharCode(0xfffd, bytes[bytes.length - 1]);
+    code += String.fromCharCode(ESC, bytes[bytes.length - 1] + 0xff00);
   }
   return code;
 };
@@ -90,32 +95,32 @@ export const unpackUint8Array = (code: string) => {
   for (let i = 0; i < code.length; i++) {
     const c = code.charCodeAt(i);
     // check the escape character
-    if (c !== 0xfffd) {
+    if (c !== ESC) {
       // normal codepoint
       dbytes[j++] = c;
       continue;
     }
     // escaped character
     const e = code.charCodeAt(++i);
-    if (e === 0xfffd) {
-      dbytes[j++] = 0xfffd; // unescape the escape character
+    if (e === 0x08ff) {
+      dbytes[j++] = ESC; // unescape the escape character
       continue;
     }
     // test the last byte
-    if ((e & 0xff00) === 0) {
-      dbytes[j++] = e;
+    if ((e & 0xff00) === 0xff00) {
+      dbytes[j++] = e - 0xff00;
       odd = true;
       break;
     }
-    if (e === 0xffff) {
+    if (e === 0x08fe) {
       // restore the BOM
       dbytes[j++] = 0xfeff;
-    } else if (e >= 0xf200 && e <= 0xf200 + 31) {
+    } else if (e >= 0x0020 && e <= 0x003f) {
       // restore the control characters
-      dbytes[j++] = e - 0xf200;
+      dbytes[j++] = e - 0x0020;
     } else {
       // restore the MSB
-      dbytes[j++] = e | 0x8000;
+      dbytes[j++] = e + SURROGATE_OFFSET;
     }
   }
   const length = j * 2 - (odd ? 1 : 0);

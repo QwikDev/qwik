@@ -52,7 +52,7 @@ test.describe("server$ inside resource", () => {
         await expect(result).toHaveText([
           "/qwikcity-test/server-func/resource/" + letter,
         ]);
-      })
+      }),
     );
   });
 });

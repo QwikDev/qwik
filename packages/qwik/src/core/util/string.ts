@@ -2,8 +2,8 @@
 //
 // strategy:
 //
-// * using esc as the escape character
-//  * if there is esc in the bytes, double it
+// * using 0x007f as the escape character
+//  * if there is esc in the bytes replace it with 0x007f 0x08ff
 // * if there is unmatched surrogate pair, mark it by the escape character
 //
 // 0x007f: escape, because it's rare but still only one utf-8 byte.
@@ -13,8 +13,8 @@
 //   (two-four bytes utf-8)
 // BOM: esc + 0x08fe (four bytes utf-8)
 //
-// If the length of the bytes is odd, the last byte XX is put after the escape
-// character as 0xFFXX.
+// If the length of the bytes is odd, the last byte XX is put before the escape
+// character as 0x00XX ESC.
 //
 const ESC = 0x007f;
 const SURROGATE_OFFSET = 0xd800 - 0x0040;
@@ -82,7 +82,7 @@ export const packUint8Array = (bytes: Uint8Array) => {
   }
   if (odd) {
     // put the last byte
-    code += String.fromCharCode(ESC, bytes[bytes.length - 1] + 0x0900);
+    code += String.fromCharCode(bytes[bytes.length - 1], ESC);
   }
   return code;
 };
@@ -90,8 +90,8 @@ export const packUint8Array = (bytes: Uint8Array) => {
 // unpack encoded valid UTF-16 string into Uint8Array
 export const unpackUint8Array = (code: string) => {
   const dbytes = new Uint16Array(code.length);
+  const odd = code.charCodeAt(code.length - 1) === ESC;
   let j = 0;
-  let odd = false;
   for (let i = 0; i < code.length; i++) {
     const c = code.charCodeAt(i);
     // check the escape character
@@ -102,15 +102,17 @@ export const unpackUint8Array = (code: string) => {
     }
     // escaped character
     const e = code.charCodeAt(++i);
+    if (odd && e === ESC) {
+      // if the ESC ESC at the end, it's the last byte
+      if (i === code.length - 1) {
+        dbytes[j++] = c; // put the last byte (equals to ESC)
+        j++; // put ESC virtually, it will be omitted
+        break;
+      }
+    }
     if (e === 0x08ff) {
       dbytes[j++] = ESC; // unescape the escape character
       continue;
-    }
-    // test the last byte
-    if ((e & 0xff00) === 0x0900) {
-      dbytes[j++] = e - 0x0900;
-      odd = true;
-      break;
     }
     if (e === 0x08fe) {
       // restore the BOM
@@ -122,6 +124,9 @@ export const unpackUint8Array = (code: string) => {
       // restore the unmatched surrogates
       dbytes[j++] = e + SURROGATE_OFFSET;
     }
+  }
+  if (odd) {
+    j--; // omit the last ESC
   }
   const length = j * 2 - (odd ? 1 : 0);
   return new Uint8Array(dbytes.subarray(0, j).buffer).subarray(0, length);

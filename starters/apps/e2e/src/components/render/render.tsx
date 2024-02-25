@@ -984,8 +984,6 @@ export const MultipleServerFunctionsInvokedInTask = component$(() => {
   useTask$(async () => {
     methods.a = await serverFunctionA();
     methods.b = await serverFunctionB();
-
-    console.log({ requestMethodOne: methods.a, requestMethodTwo: methods.b });
   });
 
   return (

@@ -17,7 +17,7 @@ import {
 } from '../util/markers';
 import { isPromise, safeCall } from '../util/promises';
 import { seal } from '../util/qdev';
-import { isArray, ValueOrPromise } from '../util/types';
+import { isArray, type ValueOrPromise } from '../util/types';
 import { setLocale } from './use-locale';
 import type { Subscriber } from '../state/common';
 import type { Signal } from '../state/signal';

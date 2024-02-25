@@ -531,9 +531,13 @@ export const runResource = <T>(
   const iCtx = newInvokeContext(rCtx.$static$.$locale$, el, undefined, TaskEvent);
   const { $subsManager$: subsManager } = containerState;
   iCtx.$renderCtx$ = rCtx;
-  const taskFn = task.$qrl$.getFn(iCtx, () => {
-    subsManager.$clearSub$(task);
-  });
+  const taskFn = task.$qrl$.getFn(
+    iCtx,
+    () => {
+      subsManager.$clearSub$(task);
+    },
+    isServerPlatform()
+  );
 
   const cleanups: (() => void)[] = [];
   const resource = task.$state$;
@@ -660,9 +664,13 @@ export const runTask = (
   const iCtx = newInvokeContext(rCtx.$static$.$locale$, hostElement, undefined, TaskEvent);
   iCtx.$renderCtx$ = rCtx;
   const { $subsManager$: subsManager } = containerState;
-  const taskFn = task.$qrl$.getFn(iCtx, () => {
-    subsManager.$clearSub$(task);
-  }) as TaskFn;
+  const taskFn = task.$qrl$.getFn(
+    iCtx,
+    () => {
+      subsManager.$clearSub$(task);
+    },
+    isServerPlatform()
+  ) as TaskFn;
   const track: Tracker = (obj: (() => unknown) | object | Signal, prop?: string) => {
     if (isFunction(obj)) {
       const ctx = newInvokeContext();
@@ -721,9 +729,13 @@ export const runComputed = (
   iCtx.$renderCtx$ = rCtx;
 
   const { $subsManager$: subsManager } = containerState;
-  const taskFn = task.$qrl$.getFn(iCtx, () => {
-    subsManager.$clearSub$(task);
-  }) as ComputedFn<unknown>;
+  const taskFn = task.$qrl$.getFn(
+    iCtx,
+    () => {
+      subsManager.$clearSub$(task);
+    },
+    isServerPlatform()
+  ) as ComputedFn<unknown>;
 
   return safeCall(
     taskFn,

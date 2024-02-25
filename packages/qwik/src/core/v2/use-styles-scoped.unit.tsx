@@ -391,7 +391,7 @@ Error.stackTraceLimit = 100;
       }
     });
 
-    it.only('should render styles for multiple slots', async () => {
+    it('should render styles for multiple slots', async () => {
       let rawStyleId1 = '';
       let rawStyleId2 = '';
       const RootStyles = component$(() => {

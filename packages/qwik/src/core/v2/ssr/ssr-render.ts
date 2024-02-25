@@ -159,7 +159,6 @@ function processJSXNode(
         } else if (isQwikComponent(type)) {
           ssr.openComponent(isDev ? [DEBUG_TYPE, VirtualType.Component] : []);
           enqueue(ssr.closeComponent);
-          console.log(ssr.getComponentFrame(0)?.scopedStyleIds);
           ssr.getComponentFrame(0)!.distributeChildrenIntoSlots(jsx.children);
           const jsxOutput = applyQwikComponentBody(ssr, jsx, type);
           enqueue(jsxOutput);

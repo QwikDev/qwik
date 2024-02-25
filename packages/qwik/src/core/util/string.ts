@@ -76,7 +76,7 @@ export const packUint8Array = (bytes: Uint8Array) => {
   }
   if (surrogate) {
     // ended with unmatched high surrogate
-    // omit the MSB to make it a normal codepoint
+    // subtract the offset to make it a normal codepoint
     const c = dbytes[dbytes.length - 1];
     code += String.fromCharCode(ESC, c - SURROGATE_OFFSET);
   }
@@ -119,7 +119,7 @@ export const unpackUint8Array = (code: string) => {
       // restore the control characters
       dbytes[j++] = e - 0x0020;
     } else {
-      // restore the MSB
+      // restore the unmatched surrogates
       dbytes[j++] = e + SURROGATE_OFFSET;
     }
   }

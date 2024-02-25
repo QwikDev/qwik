@@ -146,7 +146,7 @@ export const createQRL = <TYPE>(
             context.$event$ = this as Event;
           }
           emitUsedSymbol(symbol, context.$element$, start);
-          if (maybeAsync && isServerPlatform()) {
+          if (maybeAsync) {
             return asyncInvoke.call(this, context, f, ...(args as Parameters<typeof f>));
           }
           return invoke.call(this, context, f, ...(args as Parameters<typeof f>));

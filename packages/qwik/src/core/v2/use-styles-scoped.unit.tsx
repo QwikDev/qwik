@@ -1,4 +1,8 @@
-import { Fragment as Component, Fragment } from '@builder.io/qwik/jsx-runtime';
+import {
+  Fragment as Component,
+  Fragment,
+  Fragment as Projection,
+} from '@builder.io/qwik/jsx-runtime';
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
 import { component$ } from '../component/component.public';
@@ -382,6 +386,90 @@ Error.stackTraceLimit = 100;
                 </Component>
               </Fragment>
             </div>
+          </Component>
+        );
+      }
+    });
+
+    it.only('should render styles for multiple slots', async () => {
+      let rawStyleId1 = '';
+      let rawStyleId2 = '';
+      const RootStyles = component$(() => {
+        const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped1'));
+        rawStyleId1 = stylesScopedData.scopeId;
+        return (
+          <ComponentA>
+            <div q:slot="one">One</div>
+            <div q:slot="two">Two</div>
+            <div q:slot="three">
+              <span class="container">Three</span>
+            </div>
+          </ComponentA>
+        );
+      });
+
+      const ComponentA = component$(() => {
+        const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_BLUE, 's_stylesScoped2'));
+
+        rawStyleId2 = stylesScopedData.scopeId;
+        return (
+          <div class="container">
+            <Slot name="one" />
+            <Slot name="two" />
+            <Slot name="three" />
+          </div>
+        );
+      });
+
+      const { vNode } = await render(<RootStyles />, { debug });
+
+      const firstStyleId = rawStyleId1.substring(2);
+      const firstScopeStyle = getScopedStyles(STYLE_RED, firstStyleId);
+      const secondStyleId = rawStyleId2.substring(2);
+      const secondScopeStyle = getScopedStyles(STYLE_BLUE, secondStyleId);
+
+      if (render === ssrRenderToDom) {
+        expect(vNode).toMatchVDOM(
+          <Component>
+            {/* @ts-ignore-next-line */}
+            <style q:style={firstStyleId}>{firstScopeStyle}</style>
+            <Component>
+              {/* @ts-ignore-next-line */}
+              <style q:style={secondStyleId}>{secondScopeStyle}</style>
+              <div class={`${rawStyleId2} container`}>
+                <Projection>
+                  <div q:slot="one">One</div>
+                </Projection>
+                <Projection>
+                  <div q:slot="two">Two</div>
+                </Projection>
+                <Projection>
+                  <div q:slot="three">
+                    <span class={`${rawStyleId1} container`}>Three</span>
+                  </div>
+                </Projection>
+              </div>
+            </Component>
+          </Component>
+        );
+      } else {
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <Component>
+              <div class={`${rawStyleId2} container`}>
+                <Projection>
+                  <div q:slot="one">One</div>
+                </Projection>
+                <Projection>
+                  <div q:slot="two">Two</div>
+                </Projection>
+                <Projection>
+                  <div q:slot="three">
+                    <span class={`${rawStyleId1} container`}>Three</span>
+                  </div>
+                </Projection>
+              </div>
+            </Component>
           </Component>
         );
       }

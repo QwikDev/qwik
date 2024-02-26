@@ -13,15 +13,15 @@ import {
   unwrapProxy,
   type LocalSubscriptionManager,
   getProxyFlags,
+  type Subscriber,
 } from '../../state/common';
 import { QObjectManagerSymbol, _IMMUTABLE } from '../../state/constants';
-import { SignalDerived, SignalImpl } from '../../state/signal';
+import { SignalDerived, SignalImpl, type Signal } from '../../state/signal';
 import { Store, getOrCreateProxy } from '../../state/store';
 import { Task } from '../../use/use-task';
 import { throwErrorAndStop } from '../../util/log';
 import type { DomContainer } from '../client/dom-container';
 import { vnode_isVNode, vnode_locate } from '../client/vnode';
-import type { Container2, fixMeAny } from './types';
 import type { ObjToProxyMap } from '../../container/container';
 import { isPromise } from 'util/types';
 import type { ValueOrPromise } from '../../util/types';
@@ -240,10 +240,12 @@ const inflate = (container: DomContainer, target: any, needsInflationData: strin
       const task = target as Task;
       task.$flags$ = restInt();
       task.$index$ = restInt();
-      task.$el$ = container.$getObjectById$(restInt()) as fixMeAny;
+      task.$el$ = container.$getObjectById$(restInt()) as Element;
       task.$qrl$ = inflateQRL(container, parseQRL(restString()));
       const taskState = restString();
-      task.$state$ = taskState ? (container.$getObjectById$(taskState) as fixMeAny) : undefined;
+      task.$state$ = taskState
+        ? (container.$getObjectById$(taskState) as Signal<unknown>)
+        : undefined;
       break;
     case SerializationConstant.Resource_VALUE:
       throw new Error('Not implemented');
@@ -900,13 +902,13 @@ export function subscriptionManagerFromString(
   const subs = value.split(';');
   for (let k = 0; k < subs.length; k++) {
     const sub = subs[k];
-    const subscription = sub.split(' ') as fixMeAny[];
-    subscription[0] = parseInt(subscription[0]);
+    const subscription = sub.split(' ') as (string | number)[];
+    subscription[0] = parseInt(subscription[0] as string);
     for (let i = 1; i < subscription.length; i++) {
-      subscription[i] = getObjectById(subscription[i]);
+      subscription[i] = getObjectById(subscription[i] as number);
     }
     const prop = subscription.pop() as string | undefined;
-    subscriptionManager.$addSub$(subscription as fixMeAny, prop);
+    subscriptionManager.$addSub$(subscription as any as Subscriber, prop);
   }
 }
 

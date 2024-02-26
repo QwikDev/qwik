@@ -26,14 +26,8 @@ import {
   type SerializationContext,
 } from '../shared/shared-serialization';
 import { createScheduler, type Scheduler } from '../shared/scheduler';
-import {
-  DEBUG_TYPE,
-  VirtualTypeName,
-  type HostElement,
-  type fixMeAny,
-  VirtualType,
-} from '../shared/types';
-import { walkJSX, syncWalkJSX } from './ssr-render';
+import { DEBUG_TYPE, type HostElement, type fixMeAny, VirtualType } from '../shared/types';
+import { walkJSX } from './ssr-render';
 import { TagNesting, allowedContent, initialTag, isTagAllowed } from './tag-nesting';
 import {
   SsrComponentFrame,

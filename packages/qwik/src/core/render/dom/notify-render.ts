@@ -14,7 +14,6 @@ import {
   isSubscriberDescriptor,
   runSubscriber,
   type SubscriberEffect,
-  type TaskDescriptor,
 } from '../../use/use-task';
 import { getDocument } from '../../util/dom';
 import { logError, logWarn } from '../../util/log';

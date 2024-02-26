@@ -20,9 +20,9 @@
     "paths": {
       "~/*": ["./src/*"],
       "@builder.io/qwik-city/*": ["./node_modules/@builder.io/qwik-city/*"],
-      "@builder.io/qwik-labs": ["../qwik-labs/src/index.ts"],
-    },
+      "@builder.io/qwik-labs": ["../qwik-labs/src/index.ts"]
+    }
   },
-  "files": ["./.eslintrc.cjs", "vitest.config.ts"],
-  "include": ["src", "./*.d.ts"],
+  "files": ["./.eslintrc.cjs", "vitest.config.ts", "postcss.config.js", "tailwind.config.js"],
+  "include": ["src", "./*.d.ts"]
 }

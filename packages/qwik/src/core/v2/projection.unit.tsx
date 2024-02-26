@@ -6,6 +6,9 @@ import { Slot } from '../render/jsx/slot.public';
 import { vnode_getNextSibling } from './client/vnode';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
+import { trigger } from '../../testing/element-fixture';
+import { useLexicalScope } from '../use/use-lexical-scope.public';
+import { useSignal } from '../use/use-signal';
 
 const debug = false;
 
@@ -178,6 +181,43 @@ const debug = false;
         </Component>
       );
     });
+
+    it('should render conditional projection', async () => {
+      const Child = component$(() => {
+        const show = useSignal(false);
+        return (
+          <button
+            onClick$={inlinedQrl(() => (useLexicalScope()[0].value = true), 's_onClick', [show])}
+          >
+            {show.value && <Slot />}
+          </button>
+        );
+      });
+      const Parent = component$(() => {
+        return <Child>parent-content</Child>;
+      });
+      const { vNode, container} = await render(<Parent>render-content</Parent>, { debug });
+      expect(vNode).toMatchVDOM(
+        <Fragment>
+          <Fragment>
+            <button>
+              {''}
+            </button>
+          </Fragment>
+        </Fragment>
+      );
+      trigger(container.element, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Fragment>
+          <Fragment>
+            <button>
+              <Fragment>parent-content</Fragment>
+            </button>
+          </Fragment>
+        </Fragment>
+      );
+    });
+
   });
   it('should project default content', async () => {
     const Child = componentQrl(

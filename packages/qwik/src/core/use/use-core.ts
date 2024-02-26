@@ -22,7 +22,7 @@ import { setLocale } from './use-locale';
 import type { Subscriber } from '../state/common';
 import type { Signal } from '../state/signal';
 import type { Container2, fixMeAny } from '../v2/shared/types';
-import { vnode_getDomParent, vnode_getNode, vnode_isVNode } from '../v2/client/vnode';
+import { vnode_getDomParent, vnode_isVNode } from '../v2/client/vnode';
 
 declare const document: QwikDocument;
 

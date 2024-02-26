@@ -1,7 +1,7 @@
 /**
  * @file
  *
- *   This file contains tests a well documented tests so that you can familiarize yourself with:
+ *   This file contains well documented tests so that you can familiarize yourself with:
  *
  *   - How to write tests
  *   - How to run tests
@@ -17,6 +17,9 @@
  *   to use `inlinedQrl` which allows us to write tests without the optimizer, and give us full
  *   control on the name of the symbol so that it is better to understand what is going on under the
  *   hood.
+ * 
+ *   If you prefer watching a video "tutorial", we went over some of those concerns in one of the office hours:
+ *   https://around.co/playback/370fe7fd-46f6-4768-a016-95e92e6ce521?sharedKey=dd856234-7619-4974-902b-f8be743249d7
  */
 
 import { describe, expect, it } from 'vitest';

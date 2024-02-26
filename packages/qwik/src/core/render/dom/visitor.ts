@@ -1284,8 +1284,8 @@ export const registerQwikEvent = (prop: string) => {
   if (!qTest) {
     const eventName = getEventName(prop);
     try {
-      const qwikevents = ((globalThis as any).qwikevents ||= []);
-      qwikevents.push(eventName);
+      // This is managed by qwik-loader
+      ((globalThis as any).qwikevents ||= []).push(eventName);
     } catch (err) {
       logWarn(err);
     }

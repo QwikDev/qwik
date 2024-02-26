@@ -74,6 +74,7 @@ async function serializeDeserialize(...roots: any[]): Promise<any[]> {
   await sCtx.$breakCircularDepsAndAwaitPromises$();
   serialize(sCtx);
   const objs = JSON.parse(sCtx.$writer$.toString());
+  // eslint-disable-next-line no-console
   DEBUG && console.log(objs);
   return objs;
 }

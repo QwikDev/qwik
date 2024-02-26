@@ -37,7 +37,7 @@ export const getEventNameFromJsxProp = (name: string): string | null => {
       }
       let lastIdx = idx;
       let eventName = '';
-      while (true) {
+      while (true as boolean) {
         idx = name.indexOf('-', lastIdx);
         const chunk = name.substring(
           lastIdx,
@@ -78,7 +78,7 @@ export const getEventNameFromHtmlAttr = (name: string): string | null => {
   if (idx != -1) {
     let lastIdx = idx;
     let eventName = '';
-    while (true) {
+    while (true as boolean) {
       idx = name.indexOf('-', lastIdx);
       const chunk = name.substring(lastIdx, idx === -1 ? name.length : idx);
       eventName += chunk;
@@ -120,16 +120,16 @@ export const convertEventNameFromHtmlAttrToJsxProp = (name: string): string | nu
 export const convertEventNameFromJsxPropToHtmlAttr = (name: string): string | null => {
   if (name.endsWith('$')) {
     let prefix: string | null = null;
-    let idx = -1;
+    // let idx = -1;
     if (name.startsWith('on')) {
       prefix = 'on:';
-      idx = 2; // 'on'.length
+      // idx = 2; // 'on'.length
     } else if (name.startsWith('window:on')) {
       prefix = 'on-window:';
-      idx = 9; // 'window:on'.length
+      // idx = 9; // 'window:on'.length
     } else if (name.startsWith('document:on')) {
       prefix = 'on-document:';
-      idx = 11; // 'document:on'.length
+      // idx = 11; // 'document:on'.length
     }
     if (prefix !== null) {
       const eventName = getEventNameFromJsxProp(name)!;

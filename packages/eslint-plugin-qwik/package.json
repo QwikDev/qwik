@@ -8,11 +8,11 @@
     "jsx-ast-utils": "^3.3.5"
   },
   "devDependencies": {
-    "@builder.io/qwik": "workspace:*",
-    "@types/eslint": "^8.56.2",
+    "@builder.io/qwik": "workspace:^",
+    "@types/eslint": "^8.56.3",
     "@types/estree": "^1.0.2",
-    "@typescript-eslint/rule-tester": "^6.19.1",
-    "@typescript-eslint/utils": "^6.19.1",
+    "@typescript-eslint/rule-tester": "^7.0.2",
+    "@typescript-eslint/utils": "^7.0.2",
     "redent": "^4.0.0"
   },
   "engines": {
@@ -27,7 +27,7 @@
   "license": "MIT",
   "main": "dist/index.js",
   "peerDependencies": {
-    "eslint": "^8.56.0"
+    "eslint": "^8.57.0"
   },
   "repository": {
     "type": "git",

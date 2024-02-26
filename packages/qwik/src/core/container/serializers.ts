@@ -39,7 +39,6 @@ import { assertString, assertTrue } from '../error/assert';
 import { Fragment, JSXNodeImpl, isJSXNode } from '../render/jsx/jsx-runtime';
 import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
 import { Slot } from '../render/jsx/slot.public';
-import type { fixMeAny } from '../v2/shared/types';
 
 /**
  * - 0, 8, 9, A, B, C, D
@@ -651,9 +650,7 @@ export const createParser = (containerState: ContainerState, doc: Document): Par
 export const OBJECT_TRANSFORMS: Record<string, (obj: any, containerState: ContainerState) => any> =
   {
     '!': (obj: any, containerState: ContainerState) => {
-      return (
-        containerState.$proxyMap$.get(obj) ?? getOrCreateProxy(obj, containerState as fixMeAny)
-      );
+      return containerState.$proxyMap$.get(obj) ?? getOrCreateProxy(obj, containerState);
     },
     '~': (obj: any) => {
       return Promise.resolve(obj);

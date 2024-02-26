@@ -271,7 +271,7 @@ export class DomContainer implements IClientContainer, StoreTracker {
     if (!this.$styleIds$.has(styleId)) {
       this.$styleIds$.add(styleId);
       const styleElement = this.document.createElement('style');
-      styleElement.setAttribute(QStyle, styleId);
+      styleElement.setAttribute(QStyle, scoped ? styleId : '');
       styleElement.textContent = content;
       this.$journal$.push(VNodeJournalOpCode.AddStyle, this.document.head, styleElement);
     }

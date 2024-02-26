@@ -22,10 +22,8 @@ Error.stackTraceLimit = 100;
     const STYLE_BLUE = `.container {background-color: blue;}`;
 
     it('should render style', async () => {
-      let styleId = '';
       const StyledComponent = component$(() => {
-        const styleData = useStylesQrl(inlinedQrl(STYLE_RED, 's_styles'));
-        styleId = styleData.styleId;
+        useStylesQrl(inlinedQrl(STYLE_RED, 's_styles'));
         return <div class="container">Hello world</div>;
       });
 
@@ -34,13 +32,13 @@ Error.stackTraceLimit = 100;
         expect(vNode).toMatchVDOM(
           <>
             {/* @ts-ignore-next-line */}
-            <style q:style={styleId}>{STYLE_RED}</style>
+            <style q:style=''>{STYLE_RED}</style>
             <div class="container">Hello world</div>
           </>
         );
       } else {
         expect(styles).toEqual({
-          [styleId]: STYLE_RED,
+          '': STYLE_RED,
         });
         expect(vNode).toMatchVDOM(
           <>
@@ -51,10 +49,8 @@ Error.stackTraceLimit = 100;
     });
 
     it('should move style to <head> on rerender', async () => {
-      let styleId = '';
       const StyledComponent = component$(() => {
-        const styleData = useStylesQrl(inlinedQrl(STYLE_RED, 's_styles'));
-        styleId = styleData.styleId;
+        useStylesQrl(inlinedQrl(STYLE_RED, 's_styles'));
         const count = useSignal(0);
         return (
           <button
@@ -74,11 +70,10 @@ Error.stackTraceLimit = 100;
         </>
       );
       const style = container.document.querySelector(QStyleSelector);
-      expect(style?.outerHTML).toEqual(`<style q:style="${styleId}">${STYLE_RED}</style>`);
+      expect(style?.outerHTML).toEqual(`<style q:style="">${STYLE_RED}</style>`);
     });
 
     it('should save styles when JSX deleted', async () => {
-      let styleId = '';
       const Parent = component$(() => {
         const show = useSignal(true);
         return (
@@ -92,8 +87,7 @@ Error.stackTraceLimit = 100;
       });
 
       const StyledComponent = component$(() => {
-        const styleData = useStylesQrl(inlinedQrl(STYLE_RED, 's_styles'));
-        styleId = styleData.styleId;
+        useStylesQrl(inlinedQrl(STYLE_RED, 's_styles'));
         return <div>Hello world</div>;
       });
 
@@ -105,7 +99,7 @@ Error.stackTraceLimit = 100;
         </Component>
       );
       const style = container.document.querySelector(QStyleSelector);
-      expect(style?.outerHTML).toEqual(`<style q:style="${styleId}">${STYLE_RED}</style>`);
+      expect(style?.outerHTML).toEqual(`<style q:style="">${STYLE_RED}</style>`);
     });
 
     it('style node should contain q:style attribute', async () => {
@@ -120,16 +114,12 @@ Error.stackTraceLimit = 100;
     });
 
     it('should render styles for multiple components', async () => {
-      let styleId1 = '';
-      let styleId2 = '';
       const StyledComponent1 = component$(() => {
-        const styleData = useStylesQrl(inlinedQrl(STYLE_RED, 's_styles1'));
-        styleId1 = styleData.styleId;
+        useStylesQrl(inlinedQrl(STYLE_RED, 's_styles1'));
         return <div class="container">Hello world 1</div>;
       });
       const StyledComponent2 = component$(() => {
-        const styleData = useStylesQrl(inlinedQrl(STYLE_BLUE, 's_styles2'));
-        styleId2 = styleData.styleId;
+        useStylesQrl(inlinedQrl(STYLE_BLUE, 's_styles2'));
         return <div class="container">Hello world 2</div>;
       });
       const Parent = component$(() => {
@@ -147,12 +137,12 @@ Error.stackTraceLimit = 100;
             <div>
               <Component>
                 {/* @ts-ignore-next-line */}
-                <style q:style={styleId1}>{STYLE_RED}</style>
+                <style q:style=''>{STYLE_RED}</style>
                 <div class="container">Hello world 1</div>
               </Component>
               <Component>
                 {/* @ts-ignore-next-line */}
-                <style q:style={styleId2}>{STYLE_BLUE}</style>
+                <style q:style=''>{STYLE_BLUE}</style>
                 <div class="container">Hello world 2</div>
               </Component>
             </div>
@@ -160,8 +150,8 @@ Error.stackTraceLimit = 100;
         );
       } else {
         expect(styles).toEqual({
-          [styleId1]: STYLE_RED,
-          [styleId2]: STYLE_BLUE,
+          '': STYLE_RED,
+          '': STYLE_BLUE,
         });
         expect(vNode).toMatchVDOM(
           <>
@@ -179,16 +169,12 @@ Error.stackTraceLimit = 100;
     });
 
     it('should save styles for all child components', async () => {
-      let styleId1 = '';
-      let styleId2 = '';
       const StyledComponent1 = component$(() => {
-        const styleData = useStylesQrl(inlinedQrl(STYLE_RED, 's_styles1'));
-        styleId1 = styleData.styleId;
+        useStylesQrl(inlinedQrl(STYLE_RED, 's_styles1'));
         return <div class="container">Hello world 1</div>;
       });
       const StyledComponent2 = component$(() => {
-        const styleData = useStylesQrl(inlinedQrl(STYLE_BLUE, 's_styles2'));
-        styleId2 = styleData.styleId;
+        useStylesQrl(inlinedQrl(STYLE_BLUE, 's_styles2'));
         return <div class="container">Hello world 2</div>;
       });
       const Parent = component$(() => {
@@ -216,38 +202,6 @@ Error.stackTraceLimit = 100;
       );
       const qStyles = container.document.querySelectorAll(QStyleSelector);
       expect(qStyles).toHaveLength(2);
-      // TODO: uncomment this when useSequentialScope will work correctly
-      // expect(Array.from(qStyles).map((style) => style.outerHTML)).toEqual(
-      //   expect.arrayContaining([
-      //     `<style q:style="${styleId1}">${STYLE_RED}</style>`,
-      //     `<style q:style="${styleId2}">${STYLE_BLUE}</style>`,
-      //   ])
-      // );
-    });
-
-    it('should generate different styleIds for components', async () => {
-      let styleId1 = '';
-      let styleId2 = '';
-      const StyledComponent1 = component$(() => {
-        const styleData = useStylesQrl(inlinedQrl(STYLE_RED, 's_styles1'));
-        styleId1 = styleData.styleId;
-        return <div>Hello world 1</div>;
-      });
-      const StyledComponent2 = component$(() => {
-        const styleData = useStylesQrl(inlinedQrl(STYLE_RED, 's_styles2'));
-        styleId2 = styleData.styleId;
-        return <div>Hello world 2</div>;
-      });
-      const Parent = component$(() => {
-        return (
-          <>
-            <StyledComponent1 />
-            <StyledComponent2 />
-          </>
-        );
-      });
-      await render(<Parent />, { debug });
-      expect(styleId1).not.toEqual(styleId2);
     });
   });
 });

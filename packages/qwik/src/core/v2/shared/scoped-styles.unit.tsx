@@ -1,6 +1,5 @@
-import { describe } from 'node:test';
 import { ComponentStylesPrefixContent } from '../../util/markers';
-import { expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
   addPrefixForScopedStyleIdsString,
   convertScopedStyleIdsToArray as convertStyleIdsToArray,

@@ -331,7 +331,7 @@ class SSRContainer implements ISSRContainer {
 
     if (!this.styleIds.has(styleId)) {
       this.styleIds.add(styleId);
-      this.openElement('style', [QStyle, styleId]);
+      this.openElement('style', [QStyle, scoped ? styleId : '']);
       this.textNode(content);
       this.closeElement();
     }

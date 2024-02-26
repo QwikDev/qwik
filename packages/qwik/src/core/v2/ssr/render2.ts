@@ -74,7 +74,8 @@ export const renderToStream2: typeof renderToStream = async (
 
   await setServerPlatform(opts, resolvedManifest);
 
-  const ssrContainer = ssrCreateContainer({ tagName: 'html', locale: opts.locale, writer: stream });
+  const locale = typeof opts.locale === 'function' ? opts.locale(opts) : opts.locale;
+  const ssrContainer = ssrCreateContainer({ tagName: 'html', locale, writer: stream });
   await ssrRenderToContainer(ssrContainer, jsx);
 
   const isDynamic = false;

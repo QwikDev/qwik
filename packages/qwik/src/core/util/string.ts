@@ -6,6 +6,10 @@
 //  * if there is esc in the bytes replace it with 0x007f 0x08ff
 // * if there is unmatched surrogate pair, mark it by the escape character
 //
+// In a UTF-16 string, "high surrogate" values 0xD800-0xDBFF must be followed by
+// "low surrogate" values 0xDC00-0xDFFF. If this is not the case we must replace
+// the mismatched high or low surrogate with an escaped value.
+//
 // 0x007f: escape, because it's rare but still only one utf-8 byte.
 //   To escape itself, use 0x007f 0x08ff (two bytes utf-8)
 // 0x0000->0x001f: converted to esc + 0x0020->0x003f (two bytes utf-8)
@@ -48,7 +52,7 @@ export const packUint8Array = (bytes: Uint8Array) => {
       // unmatched low surrogate
       // omit the MSB to make it a normal codepoint
       const x = c - SURROGATE_OFFSET;
-      code += String.fromCharCode(ESC, x === ESC ? 0x08fd : x);
+      code += String.fromCharCode(ESC, x);
       continue;
     }
     if (surrogate) {
@@ -65,7 +69,7 @@ export const packUint8Array = (bytes: Uint8Array) => {
       code += String.fromCharCode(ESC, 0x08fe);
       continue;
     }
-    // extra comaction againt the strinfigy of the control characters
+    // escape control character range to keep JSON short
     if (c <= 0x001f) {
       code += String.fromCharCode(ESC, c + 0x0020);
       continue;

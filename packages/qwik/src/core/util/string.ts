@@ -75,19 +75,17 @@ export const packUint8Array = (bytes: Uint8Array) => {
   }
   if (surrogate) {
     // ended with unmatched high surrogate
-    const x = surrogate - SURROGATE_OFFSET;
-    code += String.fromCharCode(ESC, x === ESC ? 0x08fd : x);
+    code += String.fromCharCode(ESC, surrogate - SURROGATE_OFFSET);
   }
   if (!low && bytes.length > 0) {
     // put the last byte
-    code += String.fromCharCode(c, ESC);
+    code += String.fromCharCode(c === ESC ? 0x100 : c, ESC);
   }
   return code;
 };
 
 // unpack encoded valid UTF-16 string into Uint8Array
 export const unpackUint8Array = (code: string) => {
-  const odd = code.charCodeAt(code.length - 1) === ESC;
   const bytes = new Uint8Array(code.length * 2);
   let j = 0;
   let escaped = false;
@@ -117,10 +115,6 @@ export const unpackUint8Array = (code: string) => {
       const x = c + SURROGATE_OFFSET;
       bytes[j++] = x & 0xff;
       bytes[j++] = x >>> 8;
-    } else if (c === 0x08fd) {
-      // restore the 0xd83f collided with ESC ESC at the end of even array
-      bytes[j++] = 0x3f;
-      bytes[j++] = 0xd8;
     } else if (c === 0x08fe) {
       // restore the BOM
       bytes[j++] = 0xff;
@@ -132,18 +126,15 @@ export const unpackUint8Array = (code: string) => {
     }
     escaped = false;
   }
-  if (odd && !escaped) {
-    // the last 2 bytes was 0x007f 0x007f and unescaped as 0xd83f,
-    // so revert it as 0x007f.
-    // because of the `for...of` has no index, it is needed to do here
-    j -= 2;
-    bytes[j++] = ESC;
-  }
   // if ended while escaped, the length is odd
   if (escaped) {
-    // Array is odd-length, remove last byte
-    return bytes.subarray(0, j - 1);
-  } else {
-    return bytes.subarray(0, j);
+    // Array is odd-length
+    if (code.charCodeAt(code.length - 2) === 0x100) {
+      // restore ESC as the last byte
+      bytes[j - 2] = ESC;
+    }
+    // remove last byte
+    j--;
   }
+  return bytes.subarray(0, j);
 };

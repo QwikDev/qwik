@@ -1,0 +1,43 @@
+{
+  "description": "Headless TypeScript ORM with a head 🐲",
+  "__qwik__": {
+    "displayName": "Integration: Drizzle (Database ORM)",
+    "priority": -10,
+    "viteConfig": {},
+    "docs": [
+      "https://qwik.builder.io/integrations/integration/drizzle/",
+      "https://orm.drizzle.team/docs/overview"
+    ],
+    "nextSteps": {
+      "title": "Next Steps",
+      "lines": [
+        " Drizzle was installed with a simple DB schema and some demo routes,",
+        "",
+        " Neon serverless Postgres was configured by default,",
+        " but you can change to whatever database you wish,",
+        "",
+        "",
+        " After adding your database credentials to the .env file,",
+        " run `npm run drizzle:migrate` to push the schema to the database.",
+        " Drizzle studio was also added which you can access by running `npm run drizzle:studio`,",
+        "",
+        " Check out the Drizzle docs for more info:",
+        "   - https://orm.drizzle.team/docs/overview"
+      ]
+    }
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.20.14"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.29.1",
+    "@neondatabase/serverless": "^0.8.1",
+    "pg": "^8.11.3"
+  },
+  "scripts": {
+    "postinstall": "drizzle-kit generate:pg",
+    "drizzle:generate": "drizzle-kit generate:pg",
+    "drizzle:migrate": "drizzle-kit push:pg",
+    "drizzle:studio": "drizzle-kit studio --host 127.0.0.1"
+  }
+}

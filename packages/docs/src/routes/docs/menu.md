@@ -47,6 +47,7 @@
 - [Node Docker deploy](/docs/cookbook/node-docker-deploy/index.mdx)
 - [Portals](/docs/cookbook/portals/index.mdx)
 - [Re-exporting loaders](/docs/cookbook/re-exporting-loaders/index.mdx)
+- [Streaming loaders](/docs/cookbook/streaming-deferred-loaders/index.mdx)
 - [Sync events w state](/docs/cookbook/sync-events/index.mdx)
 - [Theme Managment](/docs/cookbook/theme-management/index.mdx)
 

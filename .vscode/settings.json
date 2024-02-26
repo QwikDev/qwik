@@ -7,8 +7,7 @@
     "**/cypress/**",
     "**/.{idea,git,cache,output,temp}/**"
   ],
-  "cSpell.words": [
-    "bucketize",
-    "Stringifiable"
-  ]
+  "cSpell.words": ["bucketize", "Stringifiable"],
+  "javascript.preferences.autoImportFileExcludePatterns": ["node:test"],
+  "typescript.preferences.preferTypeOnlyAutoImports": true
 }

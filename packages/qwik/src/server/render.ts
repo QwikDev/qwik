@@ -195,7 +195,6 @@ export async function renderToStream(
       const includeLoader = includeMode === 'always' || (includeMode === 'auto' && needLoader);
       if (includeLoader) {
         const qwikLoaderScript = getQwikLoaderScript({
-          events: opts.qwikLoader?.events,
           debug: opts.debug,
         });
         children.push(
@@ -207,12 +206,12 @@ export async function renderToStream(
         );
       }
 
+      // We emit the events separately so other qwikloaders can see them
       const extraListeners = Array.from(containerState.$events$, (s) => JSON.stringify(s));
       if (extraListeners.length > 0) {
-        let content = `window.qwikevents.push(${extraListeners.join(', ')})`;
-        if (!includeLoader) {
-          content = `window.qwikevents||=[];${content}`;
-        }
+        const content =
+          (includeLoader ? `window.qwikevents` : `(window.qwikevents||=[])`) +
+          `.push(${extraListeners.join(', ')})`;
         children.push(
           jsx('script', {
             dangerouslySetInnerHTML: content,

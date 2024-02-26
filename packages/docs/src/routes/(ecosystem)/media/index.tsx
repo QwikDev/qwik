@@ -114,6 +114,10 @@ export const MEDIA = mediaObj({
     youtube('JavaScript Streaming: A Qwik Glimpse Into The Future - Shai Reznik', '5vckrrqtWto', {
       promoted: true,
     }),
+    youtube('Get Started With Qwik: The JavaScript Framework Game-Changer', 'uXVaeKzN44Y', {
+      promoted: true,
+      author: 'camelCase',
+    }),
   ],
 
   /***/

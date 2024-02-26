@@ -3,14 +3,14 @@
     "title": "Book Doctor Appointment and Ambulance Service Online | Sasthya Seba",
     "imgSrc": "/showcases/sasthyaseba_com.webp",
     "perf": {
-      "score": 0.98,
-      "fcpDisplay": "1.4 s",
-      "fcpScore": 0.97,
-      "lcpDisplay": "2.3 s",
-      "lcpScore": 0.93,
-      "ttiDisplay": "1.4 s",
-      "ttiScore": 1,
-      "ttiTime": 1418.935
+      "score": 0.97,
+      "fcpDisplay": "1.6 s",
+      "fcpScore": 0.95,
+      "lcpDisplay": "2.4 s",
+      "lcpScore": 0.92,
+      "ttiDisplay": "2.5 s",
+      "ttiScore": 0.98,
+      "ttiTime": 2543.2670850753784
     },
     "href": "https://sasthyaseba.com",
     "size": "large",
@@ -23,11 +23,11 @@
       "score": 0.98,
       "fcpDisplay": "1.4 s",
       "fcpScore": 0.97,
-      "lcpDisplay": "2.2 s",
-      "lcpScore": 0.94,
+      "lcpDisplay": "2.3 s",
+      "lcpScore": 0.93,
       "ttiDisplay": "1.4 s",
       "ttiScore": 1,
-      "ttiTime": 1386
+      "ttiTime": 1422
     },
     "href": "https://linkfang-portfolio.vercel.app/",
     "tags": "portfolio"
@@ -36,14 +36,14 @@
     "title": "Blueagle",
     "imgSrc": "/showcases/blueagle_top_.webp",
     "perf": {
-      "score": 0.98,
-      "fcpDisplay": "1.6 s",
-      "fcpScore": 0.94,
-      "lcpDisplay": "2.0 s",
-      "lcpScore": 0.97,
-      "ttiDisplay": "2.2 s",
-      "ttiScore": 0.99,
-      "ttiTime": 2237.5
+      "score": 1,
+      "fcpDisplay": "1.2 s",
+      "fcpScore": 0.99,
+      "lcpDisplay": "1.5 s",
+      "lcpScore": 1,
+      "ttiDisplay": "1.9 s",
+      "ttiScore": 1,
+      "ttiTime": 1919
     },
     "href": "https://blueagle.top/",
     "tags": "portfolio,site,blog"
@@ -52,14 +52,14 @@
     "title": "QuoteMingle",
     "imgSrc": "/showcases/quotemingle_com_.webp",
     "perf": {
-      "score": 1,
-      "fcpDisplay": "1.5 s",
-      "fcpScore": 0.96,
-      "lcpDisplay": "1.5 s",
-      "lcpScore": 1,
-      "ttiDisplay": "1.6 s",
-      "ttiScore": 1,
-      "ttiTime": 1622.5
+      "score": 0.89,
+      "fcpDisplay": "1.3 s",
+      "fcpScore": 0.98,
+      "lcpDisplay": "3.1 s",
+      "lcpScore": 0.75,
+      "ttiDisplay": "4.7 s",
+      "ttiScore": 0.8,
+      "ttiTime": 4660.75
     },
     "href": "https://quotemingle.com/",
     "tags": "site"
@@ -69,13 +69,13 @@
     "imgSrc": "/showcases/frostytools_com.webp",
     "perf": {
       "score": 1,
-      "fcpDisplay": "1.0 s",
-      "fcpScore": 1,
-      "lcpDisplay": "1.6 s",
+      "fcpDisplay": "1.3 s",
+      "fcpScore": 0.98,
+      "lcpDisplay": "1.7 s",
       "lcpScore": 0.99,
       "ttiDisplay": "1.3 s",
       "ttiScore": 1,
-      "ttiTime": 1333
+      "ttiTime": 1305.5
     },
     "href": "https://frostytools.com",
     "tags": "saas"
@@ -84,14 +84,14 @@
     "title": "Dimension — The new standard for collaboration.",
     "imgSrc": "/showcases/www_dimension_dev.webp",
     "perf": {
-      "score": 0.93,
-      "fcpDisplay": "1.4 s",
-      "fcpScore": 0.97,
+      "score": 0.94,
+      "fcpDisplay": "1.5 s",
+      "fcpScore": 0.95,
       "lcpDisplay": "3.0 s",
       "lcpScore": 0.77,
-      "ttiDisplay": "2.4 s",
-      "ttiScore": 0.98,
-      "ttiTime": 2406
+      "ttiDisplay": "1.5 s",
+      "ttiScore": 1,
+      "ttiTime": 1520
     },
     "href": "https://www.dimension.dev",
     "tags": "saas"
@@ -100,30 +100,30 @@
     "title": "Index",
     "imgSrc": "/showcases/index_app_beta.webp",
     "perf": {
-      "score": 0.98,
+      "score": 0.99,
       "fcpDisplay": "1.5 s",
-      "fcpScore": 0.95,
+      "fcpScore": 0.96,
       "lcpDisplay": "1.8 s",
-      "lcpScore": 0.98,
-      "ttiDisplay": "2.9 s",
-      "ttiScore": 0.96,
-      "ttiTime": 2863.5
+      "lcpScore": 0.99,
+      "ttiDisplay": "2.2 s",
+      "ttiScore": 0.99,
+      "ttiTime": 2167
     },
     "href": "https://index.app/beta",
     "tags": "saas"
   },
   {
-    "title": "Email Finder for LinkedIn - B2B Database - Wiza",
+    "title": "Wiza | The Most Accurate B2B Contact Database",
     "imgSrc": "/showcases/wiza_co.webp",
     "perf": {
-      "score": 0.99,
+      "score": 0.84,
       "fcpDisplay": "1.4 s",
       "fcpScore": 0.97,
-      "lcpDisplay": "1.7 s",
-      "lcpScore": 0.99,
-      "ttiDisplay": "1.5 s",
-      "ttiScore": 1,
-      "ttiTime": 1465.5
+      "lcpDisplay": "2.2 s",
+      "lcpScore": 0.94,
+      "ttiDisplay": "8.0 s",
+      "ttiScore": 0.43,
+      "ttiTime": 7950
     },
     "href": "https://wiza.co",
     "tags": "saas"
@@ -132,46 +132,46 @@
     "title": "Wope: The New Era Of Rank Tracking",
     "imgSrc": "/showcases/wope_com_.webp",
     "perf": {
-      "score": 0.81,
-      "fcpDisplay": "1.4 s",
-      "fcpScore": 0.97,
-      "lcpDisplay": "2.3 s",
-      "lcpScore": 0.93,
-      "ttiDisplay": "8.5 s",
-      "ttiScore": 0.38,
-      "ttiTime": 8514.950938924118
+      "score": 0.56,
+      "fcpDisplay": "1.6 s",
+      "fcpScore": 0.93,
+      "lcpDisplay": "4.8 s",
+      "lcpScore": 0.31,
+      "ttiDisplay": "9.4 s",
+      "ttiScore": 0.3,
+      "ttiTime": 9448.75
     },
     "href": "https://wope.com/",
     "tags": "saas"
   },
   {
-    "title": "Builder.io - Drag and drop Visual CMS",
+    "title": "Builder.io: Design to Shipped. Faster.",
     "imgSrc": "/showcases/www_builder_io_.webp",
     "perf": {
-      "score": 0.96,
+      "score": 0.8,
       "fcpDisplay": "2.0 s",
       "fcpScore": 0.85,
-      "lcpDisplay": "2.4 s",
-      "lcpScore": 0.91,
-      "ttiDisplay": "2.4 s",
-      "ttiScore": 0.98,
-      "ttiTime": 2424.2056589872454
+      "lcpDisplay": "4.8 s",
+      "lcpScore": 0.31,
+      "ttiDisplay": "4.1 s",
+      "ttiScore": 0.86,
+      "ttiTime": 4120.5
     },
     "href": "https://www.builder.io/",
     "tags": "saas"
   },
   {
-    "title": "Reflect",
+    "title": "Reflect Notes",
     "imgSrc": "/showcases/reflect_app_.webp",
     "perf": {
-      "score": 0.91,
-      "fcpDisplay": "1.5 s",
-      "fcpScore": 0.96,
-      "lcpDisplay": "2.1 s",
-      "lcpScore": 0.95,
-      "ttiDisplay": "5.2 s",
-      "ttiScore": 0.75,
-      "ttiTime": 5150.5
+      "score": 0.96,
+      "fcpDisplay": "1.4 s",
+      "fcpScore": 0.97,
+      "lcpDisplay": "2.2 s",
+      "lcpScore": 0.94,
+      "ttiDisplay": "5.3 s",
+      "ttiScore": 0.73,
+      "ttiTime": 5310
     },
     "href": "https://reflect.app/",
     "tags": "saas"
@@ -180,111 +180,62 @@
     "title": "Jose Aguilar | Web developer 🚀",
     "imgSrc": "/showcases/jose-aguilar_vercel_app_.webp",
     "perf": {
-      "score": 1,
-      "fcpDisplay": "1.0 s",
-      "fcpScore": 1,
-      "lcpDisplay": "1.4 s",
-      "lcpScore": 1,
-      "ttiDisplay": "1.2 s",
+      "score": 0.99,
+      "fcpDisplay": "1.4 s",
+      "fcpScore": 0.97,
+      "lcpDisplay": "2.0 s",
+      "lcpScore": 0.97,
+      "ttiDisplay": "1.5 s",
       "ttiScore": 1,
-      "ttiTime": 1249.6620919589063
+      "ttiTime": 1469.5
     },
     "href": "https://jose-aguilar.vercel.app/",
     "tags": "portfolio"
   },
   {
-    "title": "Shaun Chander",
-    "imgSrc": "/showcases/shaunchander_me.webp",
-    "perf": {
-      "score": 0.84,
-      "fcpDisplay": "3.3 s",
-      "fcpScore": 0.41,
-      "lcpDisplay": "3.3 s",
-      "lcpScore": 0.7,
-      "ttiDisplay": "4.3 s",
-      "ttiScore": 0.85,
-      "ttiTime": 4266.5
-    },
-    "href": "https://shaunchander.me",
-    "tags": "portfolio"
-  },
-  {
-    "title": "Qwik City Movies",
-    "href": "https://qwik-city-movies-wm.netlify.app/",
-    "imgSrc": "/showcases/qwik-city-movies-wm_netlify_app_.webp",
-    "perf": {
-      "score": 0.99,
-      "fcpDisplay": "0.9 s",
-      "fcpScore": 1,
-      "lcpDisplay": "2.0 s",
-      "lcpScore": 0.97,
-      "ttiDisplay": "0.9 s",
-      "ttiScore": 1,
-      "ttiTime": 911.5
-    },
-    "size": "large",
-    "tags": "app"
-  },
-  {
     "title": "Hexa Center: Modern EMR (EPD) Solution for your Healthcare Practice",
     "imgSrc": "/showcases/www_hexa_center_.webp",
     "perf": {
-      "score": 0.99,
-      "fcpDisplay": "1.3 s",
-      "fcpScore": 0.98,
-      "lcpDisplay": "1.3 s",
+      "score": 1,
+      "fcpDisplay": "1.2 s",
+      "fcpScore": 0.99,
+      "lcpDisplay": "1.2 s",
       "lcpScore": 1,
-      "ttiDisplay": "1.3 s",
+      "ttiDisplay": "1.2 s",
       "ttiScore": 1,
-      "ttiTime": 1282
+      "ttiTime": 1235
     },
     "href": "https://www.hexa.center/",
     "tags": "saas"
   },
   {
-    "title": "IMG Models",
-    "imgSrc": "/showcases/img-models_vercel_app_.webp",
-    "perf": {
-      "score": 0.98,
-      "fcpDisplay": "1.7 s",
-      "fcpScore": 0.92,
-      "lcpDisplay": "2.1 s",
-      "lcpScore": 0.95,
-      "ttiDisplay": "1.7 s",
-      "ttiScore": 1,
-      "ttiTime": 1710
-    },
-    "href": "https://img-models.vercel.app/",
-    "tags": "ecommerce"
-  },
-  {
     "title": "Vendure Qwik Storefront",
-    "href": "https://qwik-storefront.vendure.io/",
     "imgSrc": "/showcases/qwik-storefront_vendure_io_.webp",
     "perf": {
-      "score": 0.99,
-      "fcpDisplay": "1.0 s",
-      "fcpScore": 1,
-      "lcpDisplay": "2.0 s",
-      "lcpScore": 0.97,
-      "ttiDisplay": "1.2 s",
+      "score": 0.98,
+      "fcpDisplay": "1.2 s",
+      "fcpScore": 0.99,
+      "lcpDisplay": "1.6 s",
+      "lcpScore": 0.99,
+      "ttiDisplay": "1.8 s",
       "ttiScore": 1,
-      "ttiTime": 1152
+      "ttiTime": 1836
     },
+    "href": "https://qwik-storefront.vendure.io/",
     "tags": "ecommerce"
   },
   {
-    "title": "Qwind — Free template for starts a website using Qwik + Tailwind CSS",
+    "title": "Qwind — Free template for Qwik + Tailwind CSS to build your new website.",
     "imgSrc": "/showcases/qwind_pages_dev_.webp",
     "perf": {
-      "score": 1,
-      "fcpDisplay": "1.0 s",
-      "fcpScore": 1,
-      "lcpDisplay": "1.0 s",
-      "lcpScore": 1,
-      "ttiDisplay": "1.1 s",
+      "score": 0.94,
+      "fcpDisplay": "1.3 s",
+      "fcpScore": 0.98,
+      "lcpDisplay": "3.0 s",
+      "lcpScore": 0.78,
+      "ttiDisplay": "1.5 s",
       "ttiScore": 1,
-      "ttiTime": 1098.5
+      "ttiTime": 1477
     },
     "href": "https://qwind.pages.dev/",
     "tags": "template",
@@ -295,83 +246,83 @@
     "title": "Crear chatbot WhatsApp en minutos — Servicio de chatbot para whatspp gratis proyecto OpenSource",
     "imgSrc": "/showcases/bot-whatsapp_netlify_app_.webp",
     "perf": {
-      "score": 0.97,
-      "fcpDisplay": "1.1 s",
+      "score": 1,
+      "fcpDisplay": "1.2 s",
       "fcpScore": 0.99,
       "lcpDisplay": "1.2 s",
       "lcpScore": 1,
-      "ttiDisplay": "1.3 s",
+      "ttiDisplay": "1.4 s",
       "ttiScore": 1,
-      "ttiTime": 1299.8369783707642
+      "ttiTime": 1368
     },
     "href": "https://bot-whatsapp.netlify.app/",
     "tags": "site"
   },
   {
     "title": "La mejor forma de cambiar — Ibis",
-    "href": "https://usaibis.com/",
     "imgSrc": "/showcases/usaibis_com_.webp",
     "perf": {
-      "score": 0.98,
-      "fcpDisplay": "1.0 s",
-      "fcpScore": 1,
-      "lcpDisplay": "2.1 s",
-      "lcpScore": 0.96,
-      "ttiDisplay": "2.2 s",
-      "ttiScore": 0.99,
-      "ttiTime": 2197.709
+      "score": 0.91,
+      "fcpDisplay": "1.7 s",
+      "fcpScore": 0.92,
+      "lcpDisplay": "2.7 s",
+      "lcpScore": 0.84,
+      "ttiDisplay": "3.1 s",
+      "ttiScore": 0.95,
+      "ttiTime": 3088
     },
+    "href": "https://usaibis.com/",
     "tags": "saas"
   },
   {
     "title": "Private Training Package Builder - Oasis Digital",
-    "href": "https://pricing.oasisdigital.com/",
     "imgSrc": "/showcases/pricing_oasisdigital_com_.webp",
     "perf": {
-      "score": 0.91,
-      "fcpDisplay": "2.4 s",
-      "fcpScore": 0.7,
-      "lcpDisplay": "3.0 s",
-      "lcpScore": 0.78,
-      "ttiDisplay": "2.5 s",
-      "ttiScore": 0.98,
-      "ttiTime": 2484
+      "score": 0.89,
+      "fcpDisplay": "2.7 s",
+      "fcpScore": 0.58,
+      "lcpDisplay": "3.2 s",
+      "lcpScore": 0.73,
+      "ttiDisplay": "2.7 s",
+      "ttiScore": 0.97,
+      "ttiTime": 2745
     },
+    "href": "https://pricing.oasisdigital.com/",
     "tags": "saas"
   },
   {
     "title": "Burgers on Fleek - Home",
     "imgSrc": "/showcases/www_burgersonfleek_ca_.webp",
     "perf": {
-      "score": 0.95,
-      "fcpDisplay": "0.8 s",
+      "score": 1,
+      "fcpDisplay": "1.0 s",
       "fcpScore": 1,
-      "lcpDisplay": "0.8 s",
+      "lcpDisplay": "1.5 s",
       "lcpScore": 1,
-      "ttiDisplay": "0.8 s",
+      "ttiDisplay": "1.0 s",
       "ttiScore": 1,
-      "ttiTime": 836
+      "ttiTime": 1029
     },
     "href": "https://www.burgersonfleek.ca/",
     "tags": "site",
     "repo": "https://github.com/saboooor/burgersonfleek"
   },
   {
-    "title": "SimplyMC: A Minecraft Multitool",
-    "imgSrc": "/showcases/simplymc_art_.webp",
+    "title": "Birdflop - Minecraft Hosting & Resources",
+    "imgSrc": "/showcases/birdflop_com_.webp",
     "perf": {
-      "score": 0.9,
-      "fcpDisplay": "1.8 s",
-      "fcpScore": 0.88,
-      "lcpDisplay": "2.2 s",
-      "lcpScore": 0.95,
-      "ttiDisplay": "3.4 s",
-      "ttiScore": 0.93,
-      "ttiTime": 3367
+      "score": 0.95,
+      "fcpDisplay": "2.1 s",
+      "fcpScore": 0.81,
+      "lcpDisplay": "2.1 s",
+      "lcpScore": 0.96,
+      "ttiDisplay": "2.5 s",
+      "ttiScore": 0.98,
+      "ttiTime": 2505.5
     },
-    "href": "https://simplymc.art/",
+    "href": "https://birdflop.com/",
     "tags": "site",
-    "repo": "https://github.com/LuminescentDev/SimplyMC"
+    "repo": "https://github.com/birdflop/web"
   },
   {
     "title": "Guillermo Peralta Scura",
@@ -380,11 +331,11 @@
       "score": 1,
       "fcpDisplay": "0.9 s",
       "fcpScore": 1,
-      "lcpDisplay": "0.9 s",
+      "lcpDisplay": "1.1 s",
       "lcpScore": 1,
-      "ttiDisplay": "0.9 s",
+      "ttiDisplay": "1.0 s",
       "ttiScore": 1,
-      "ttiTime": 930
+      "ttiTime": 967.5
     },
     "href": "https://goshi.dev/",
     "tags": "portfolio"
@@ -393,14 +344,14 @@
     "title": "ExpoBeds - Your Expo Hotel Booking And Information Directory",
     "imgSrc": "/showcases/www_expobeds_com_.webp",
     "perf": {
-      "score": 0.91,
-      "fcpDisplay": "1.6 s",
-      "fcpScore": 0.94,
-      "lcpDisplay": "3.4 s",
-      "lcpScore": 0.67,
-      "ttiDisplay": "3.9 s",
-      "ttiScore": 0.89,
-      "ttiTime": 3859
+      "score": 0.83,
+      "fcpDisplay": "1.7 s",
+      "fcpScore": 0.93,
+      "lcpDisplay": "3.1 s",
+      "lcpScore": 0.76,
+      "ttiDisplay": "4.0 s",
+      "ttiScore": 0.87,
+      "ttiTime": 4032.5
     },
     "href": "https://www.expobeds.com/",
     "size": "large",
@@ -408,129 +359,97 @@
   },
   {
     "title": "Jbnado - João Bernardo",
-    "href": "https://jbnado.dev/",
     "imgSrc": "/showcases/jbnado_dev_.webp",
     "perf": {
-      "score": 0.95,
-      "fcpDisplay": "2.3 s",
-      "fcpScore": 0.73,
-      "lcpDisplay": "2.3 s",
-      "lcpScore": 0.92,
-      "ttiDisplay": "2.3 s",
-      "ttiScore": 0.99,
-      "ttiTime": 2340
+      "score": 0.94,
+      "fcpDisplay": "2.5 s",
+      "fcpScore": 0.67,
+      "lcpDisplay": "2.5 s",
+      "lcpScore": 0.9,
+      "ttiDisplay": "2.5 s",
+      "ttiScore": 0.98,
+      "ttiTime": 2497.5
     },
+    "href": "https://jbnado.dev/",
     "tags": "portfolio"
   },
   {
-    "title": "La programación es el ahora y el futuro",
-    "href": "https://cursos.codigoencasa.com/node",
-    "imgSrc": "/showcases/cursos_codigoencasa_com_node.webp",
-    "perf": {
-      "score": 0.98,
-      "fcpDisplay": "0.9 s",
-      "fcpScore": 1,
-      "lcpDisplay": "0.9 s",
-      "lcpScore": 1,
-      "ttiDisplay": "1.1 s",
-      "ttiScore": 1,
-      "ttiTime": 1085.420796962091
-    },
-    "tags": "learning"
-  },
-  {
     "title": "The FREE Open-Source URL Shortener | Reduced.to",
-    "href": "https://reduced.to",
     "imgSrc": "/showcases/reduced_to.webp",
     "perf": {
-      "score": 0.98,
-      "fcpDisplay": "1.7 s",
-      "fcpScore": 0.91,
-      "lcpDisplay": "2.0 s",
-      "lcpScore": 0.97,
-      "ttiDisplay": "2.2 s",
-      "ttiScore": 0.99,
-      "ttiTime": 2238.5
+      "score": 0.83,
+      "fcpDisplay": "3.2 s",
+      "fcpScore": 0.44,
+      "lcpDisplay": "3.7 s",
+      "lcpScore": 0.59,
+      "ttiDisplay": "3.8 s",
+      "ttiScore": 0.9,
+      "ttiTime": 3759.5
     },
+    "href": "https://reduced.to",
     "tags": "app"
   },
   {
     "title": "Sanyam Jain",
-    "href": "https://sanyamjainqwik.vercel.app/",
     "imgSrc": "/showcases/sanyamjainqwik_vercel_app_.webp",
     "perf": {
-      "score": 0.97,
-      "fcpDisplay": "0.9 s",
+      "score": 1,
+      "fcpDisplay": "1.0 s",
       "fcpScore": 1,
-      "lcpDisplay": "0.9 s",
+      "lcpDisplay": "1.0 s",
       "lcpScore": 1,
-      "ttiDisplay": "1.3 s",
+      "ttiDisplay": "1.2 s",
       "ttiScore": 1,
-      "ttiTime": 1264.509
+      "ttiTime": 1249.6371574999998
     },
+    "href": "https://sanyamjainqwik.vercel.app/",
     "tags": "portfolio"
   },
   {
-    "title": "Blackflag Labs",
-    "imgSrc": "/showcases/www_blackflag_dev_.webp",
-    "perf": {
-      "score": 1,
-      "fcpDisplay": "0.8 s",
-      "fcpScore": 1,
-      "lcpDisplay": "0.9 s",
-      "lcpScore": 1,
-      "ttiDisplay": "0.8 s",
-      "ttiScore": 1,
-      "ttiTime": 811
-    },
-    "href": "https://www.blackflag.dev/",
-    "tags": "site"
-  },
-  {
-    "title": "Framework reimagined for the edge! - Qwik",
-    "href": "https://qwik.builder.io",
+    "title": "Framework reimagined for the edge! 📚 Qwik Documentation",
     "imgSrc": "/showcases/qwik_builder_io.webp",
     "perf": {
-      "score": 0.98,
-      "fcpDisplay": "1.1 s",
-      "fcpScore": 0.99,
-      "lcpDisplay": "2.3 s",
-      "lcpScore": 0.93,
-      "ttiDisplay": "1.3 s",
-      "ttiScore": 1,
-      "ttiTime": 1295.1120874307753
+      "score": 0.96,
+      "fcpDisplay": "2.1 s",
+      "fcpScore": 0.82,
+      "lcpDisplay": "2.2 s",
+      "lcpScore": 0.94,
+      "ttiDisplay": "2.6 s",
+      "ttiScore": 0.98,
+      "ttiTime": 2633
     },
+    "href": "https://qwik.builder.io",
     "tags": "site",
     "repo": "https://github.com/BuilderIO/qwik/tree/main/packages/docs"
   },
   {
     "title": "Pulsestax | Check the uptime and pulse of any website",
-    "href": "https://pulsestax.com/",
     "imgSrc": "/showcases/pulsestax_com_.webp",
     "perf": {
-      "score": 0.82,
-      "fcpDisplay": "2.6 s",
-      "fcpScore": 0.62,
-      "lcpDisplay": "3.1 s",
-      "lcpScore": 0.74,
-      "ttiDisplay": "2.7 s",
-      "ttiScore": 0.97,
-      "ttiTime": 2657
+      "score": 0.89,
+      "fcpDisplay": "1.6 s",
+      "fcpScore": 0.95,
+      "lcpDisplay": "1.6 s",
+      "lcpScore": 0.99,
+      "ttiDisplay": "1.6 s",
+      "ttiScore": 1,
+      "ttiTime": 1562.5
     },
+    "href": "https://pulsestax.com/",
     "tags": "saas"
   },
   {
-    "title": "Get Stockideas!",
+    "title": "Find Growth & Value Stocks | 7Baggers",
     "imgSrc": "/showcases/www_stockideashq_com_.webp",
     "perf": {
-      "score": 0.86,
-      "fcpDisplay": "1.7 s",
-      "fcpScore": 0.91,
-      "lcpDisplay": "1.8 s",
-      "lcpScore": 0.98,
-      "ttiDisplay": "2.8 s",
-      "ttiScore": 0.97,
-      "ttiTime": 2837.649483829424
+      "score": 0.71,
+      "fcpDisplay": "2.1 s",
+      "fcpScore": 0.82,
+      "lcpDisplay": "2.8 s",
+      "lcpScore": 0.83,
+      "ttiDisplay": "3.5 s",
+      "ttiScore": 0.92,
+      "ttiTime": 3502.75
     },
     "href": "https://www.stockideashq.com/",
     "tags": "investing"
@@ -540,13 +459,13 @@
     "imgSrc": "/showcases/promptle_art_.webp",
     "perf": {
       "score": 1,
-      "fcpDisplay": "0.8 s",
+      "fcpDisplay": "1.0 s",
       "fcpScore": 1,
-      "lcpDisplay": "1.5 s",
+      "lcpDisplay": "1.0 s",
       "lcpScore": 1,
-      "ttiDisplay": "0.8 s",
+      "ttiDisplay": "1.0 s",
       "ttiScore": 1,
-      "ttiTime": 837
+      "ttiTime": 999
     },
     "href": "https://promptle.art/",
     "tags": "game"
@@ -556,13 +475,13 @@
     "imgSrc": "/showcases/abdhashem_com.webp",
     "perf": {
       "score": 1,
-      "fcpDisplay": "1.0 s",
+      "fcpDisplay": "1.1 s",
       "fcpScore": 1,
-      "lcpDisplay": "1.0 s",
+      "lcpDisplay": "1.1 s",
       "lcpScore": 1,
-      "ttiDisplay": "1.2 s",
+      "ttiDisplay": "1.5 s",
       "ttiScore": 1,
-      "ttiTime": 1243.5
+      "ttiTime": 1478.5
     },
     "href": "https://abdhashem.com",
     "tags": "portfolio"
@@ -571,30 +490,30 @@
     "title": "Amirhossein Beigi | Front-end Developer",
     "imgSrc": "/showcases/amirhbeigi_ir.webp",
     "perf": {
-      "score": 0.94,
+      "score": 0.73,
       "fcpDisplay": "2.5 s",
-      "fcpScore": 0.67,
+      "fcpScore": 0.66,
       "lcpDisplay": "2.5 s",
-      "lcpScore": 0.9,
+      "lcpScore": 0.89,
       "ttiDisplay": "2.5 s",
       "ttiScore": 0.98,
-      "ttiTime": 2490
+      "ttiTime": 2543.5
     },
     "href": "https://amirhbeigi.ir",
     "tags": "portfolio"
   },
   {
-    "title": "Home Page | Puzzled By CSharp",
+    "title": "Home Page | Puzzled By C#",
     "imgSrc": "/showcases/puzzledbycsharp_com_.webp",
     "perf": {
-      "score": 1,
-      "fcpDisplay": "0.9 s",
-      "fcpScore": 1,
-      "lcpDisplay": "1.2 s",
-      "lcpScore": 1,
-      "ttiDisplay": "1.0 s",
-      "ttiScore": 1,
-      "ttiTime": 992.305
+      "score": 0.98,
+      "fcpDisplay": "1.8 s",
+      "fcpScore": 0.88,
+      "lcpDisplay": "2.2 s",
+      "lcpScore": 0.95,
+      "ttiDisplay": "2.0 s",
+      "ttiScore": 0.99,
+      "ttiTime": 1992
     },
     "href": "https://puzzledbycsharp.com/",
     "tags": "site"
@@ -603,14 +522,14 @@
     "title": "短链",
     "imgSrc": "/showcases/ss-link_netlify_app_.webp",
     "perf": {
-      "score": 1,
-      "fcpDisplay": "1.3 s",
-      "fcpScore": 0.98,
-      "lcpDisplay": "1.3 s",
+      "score": 0.79,
+      "fcpDisplay": "1.1 s",
+      "fcpScore": 0.99,
+      "lcpDisplay": "1.2 s",
       "lcpScore": 1,
       "ttiDisplay": "1.3 s",
       "ttiScore": 1,
-      "ttiTime": 1308.5
+      "ttiTime": 1343
     },
     "href": "https://ss-link.netlify.app/",
     "tags": "app"
@@ -619,14 +538,14 @@
     "title": "Necati Koçlu - Front-end Developer",
     "imgSrc": "/showcases/necatikcl_dev_.webp",
     "perf": {
-      "score": 0.99,
-      "fcpDisplay": "0.8 s",
+      "score": 0.89,
+      "fcpDisplay": "0.9 s",
       "fcpScore": 1,
-      "lcpDisplay": "2.0 s",
-      "lcpScore": 0.97,
-      "ttiDisplay": "0.8 s",
+      "lcpDisplay": "2.6 s",
+      "lcpScore": 0.88,
+      "ttiDisplay": "0.9 s",
       "ttiScore": 1,
-      "ttiTime": 811.244
+      "ttiTime": 912.5
     },
     "href": "https://necatikcl.dev/",
     "tags": "personal",
@@ -636,46 +555,30 @@
     "title": "TatbiqIT, the unique software company in Kuwait",
     "imgSrc": "/showcases/tatbiqit_com_.webp",
     "perf": {
-      "score": 0.97,
-      "fcpDisplay": "1.4 s",
-      "fcpScore": 0.97,
-      "lcpDisplay": "1.9 s",
-      "lcpScore": 0.98,
-      "ttiDisplay": "3.7 s",
-      "ttiScore": 0.9,
-      "ttiTime": 3725.370881979553
+      "score": 0.69,
+      "fcpDisplay": "1.7 s",
+      "fcpScore": 0.93,
+      "lcpDisplay": "1.7 s",
+      "lcpScore": 0.99,
+      "ttiDisplay": "6.4 s",
+      "ttiScore": 0.59,
+      "ttiTime": 6440
     },
     "href": "https://tatbiqit.com/",
     "tags": "company"
   },
   {
-    "title": "Mechanikas - Hand-Assembled Keyboardz",
-    "imgSrc": "/showcases/keyboardz_co_.webp",
-    "perf": {
-      "score": 0.95,
-      "fcpDisplay": "1.7 s",
-      "fcpScore": 0.92,
-      "lcpDisplay": "2.6 s",
-      "lcpScore": 0.87,
-      "ttiDisplay": "2.9 s",
-      "ttiScore": 0.96,
-      "ttiTime": 2871.039412290963
-    },
-    "href": "https://keyboardz.co/",
-    "tags": "ecommerce"
-  },
-  {
     "title": "Home",
     "imgSrc": "/showcases/itbusinesshub_com_.webp",
     "perf": {
-      "score": 0.84,
-      "fcpDisplay": "2.1 s",
-      "fcpScore": 0.8,
+      "score": 0.9,
+      "fcpDisplay": "2.2 s",
+      "fcpScore": 0.77,
       "lcpDisplay": "2.2 s",
       "lcpScore": 0.94,
-      "ttiDisplay": "6.2 s",
-      "ttiScore": 0.62,
-      "ttiTime": 6221.75
+      "ttiDisplay": "5.6 s",
+      "ttiScore": 0.69,
+      "ttiTime": 5627.5
     },
     "href": "https://itbusinesshub.com/",
     "tags": "blog"
@@ -685,13 +588,13 @@
     "imgSrc": "/showcases/travelcalc_pages_dev.webp",
     "perf": {
       "score": 1,
-      "fcpDisplay": "1.0 s",
+      "fcpDisplay": "1.1 s",
       "fcpScore": 1,
       "lcpDisplay": "1.5 s",
       "lcpScore": 1,
-      "ttiDisplay": "1.0 s",
+      "ttiDisplay": "1.2 s",
       "ttiScore": 1,
-      "ttiTime": 1042.1924936849105
+      "ttiTime": 1211.5
     },
     "href": "https://travelcalc.pages.dev",
     "tags": "app"
@@ -700,14 +603,14 @@
     "title": "upester",
     "imgSrc": "/showcases/upester_com.webp",
     "perf": {
-      "score": 0.81,
+      "score": 0.89,
       "fcpDisplay": "2.8 s",
-      "fcpScore": 0.57,
+      "fcpScore": 0.55,
       "lcpDisplay": "2.8 s",
-      "lcpScore": 0.84,
+      "lcpScore": 0.82,
       "ttiDisplay": "6.0 s",
       "ttiScore": 0.65,
-      "ttiTime": 5964.09901789313
+      "ttiTime": 5971.5
     },
     "href": "https://upester.com",
     "tags": "app"
@@ -716,14 +619,14 @@
     "title": "Pay4Me App | Fastest SEVIS Fees, WES Fees, & Payments",
     "imgSrc": "/showcases/pay4me_app.webp",
     "perf": {
-      "score": 0.96,
-      "fcpDisplay": "1.5 s",
-      "fcpScore": 0.96,
-      "lcpDisplay": "2.3 s",
-      "lcpScore": 0.93,
-      "ttiDisplay": "4.4 s",
-      "ttiScore": 0.83,
-      "ttiTime": 4406
+      "score": 0.94,
+      "fcpDisplay": "1.2 s",
+      "fcpScore": 0.99,
+      "lcpDisplay": "3.0 s",
+      "lcpScore": 0.78,
+      "ttiDisplay": "3.2 s",
+      "ttiScore": 0.95,
+      "ttiTime": 3157
     },
     "href": "https://pay4me.app",
     "tags": "saas"
@@ -732,14 +635,14 @@
     "title": "OSM POIS - Cities",
     "imgSrc": "/showcases/qwik-osm-poc_netlify_app_.webp",
     "perf": {
-      "score": 1,
-      "fcpDisplay": "1.2 s",
-      "fcpScore": 0.99,
-      "lcpDisplay": "1.2 s",
-      "lcpScore": 1,
-      "ttiDisplay": "1.2 s",
+      "score": 0.98,
+      "fcpDisplay": "1.5 s",
+      "fcpScore": 0.96,
+      "lcpDisplay": "2.1 s",
+      "lcpScore": 0.96,
+      "ttiDisplay": "1.5 s",
       "ttiScore": 1,
-      "ttiTime": 1195
+      "ttiTime": 1474.5
     },
     "href": "https://qwik-osm-poc.netlify.app/",
     "tags": "site"
@@ -748,14 +651,14 @@
     "title": "Welcome to LeoNerd",
     "imgSrc": "/showcases/leonerd_blog.webp",
     "perf": {
-      "score": 0.93,
-      "fcpDisplay": "1.2 s",
-      "fcpScore": 0.99,
-      "lcpDisplay": "1.6 s",
-      "lcpScore": 0.99,
-      "ttiDisplay": "2.2 s",
-      "ttiScore": 0.99,
-      "ttiTime": 2180
+      "score": 0.99,
+      "fcpDisplay": "1.3 s",
+      "fcpScore": 0.98,
+      "lcpDisplay": "1.9 s",
+      "lcpScore": 0.98,
+      "ttiDisplay": "1.7 s",
+      "ttiScore": 1,
+      "ttiTime": 1693
     },
     "href": "https://leonerd.blog",
     "tags": "portfolio"
@@ -764,14 +667,14 @@
     "title": "Seifen - detergente ultra concentrado para ropa deportiva",
     "imgSrc": "/showcases/seifen_vercel_app_.webp",
     "perf": {
-      "score": 1,
+      "score": 0.97,
       "fcpDisplay": "1.1 s",
       "fcpScore": 0.99,
-      "lcpDisplay": "1.1 s",
-      "lcpScore": 1,
+      "lcpDisplay": "2.6 s",
+      "lcpScore": 0.87,
       "ttiDisplay": "1.1 s",
       "ttiScore": 1,
-      "ttiTime": 1077.5
+      "ttiTime": 1119
     },
     "href": "https://seifen.vercel.app/",
     "tags": "site"
@@ -780,14 +683,14 @@
     "title": "Built with Appwrite",
     "imgSrc": "/showcases/builtwith_appwrite_io_.webp",
     "perf": {
-      "score": 0.79,
-      "fcpDisplay": "3.4 s",
-      "fcpScore": 0.39,
-      "lcpDisplay": "3.4 s",
-      "lcpScore": 0.66,
-      "ttiDisplay": "3.4 s",
-      "ttiScore": 0.93,
-      "ttiTime": 3391.5
+      "score": 0.83,
+      "fcpDisplay": "1.6 s",
+      "fcpScore": 0.93,
+      "lcpDisplay": "4.4 s",
+      "lcpScore": 0.4,
+      "ttiDisplay": "4.0 s",
+      "ttiScore": 0.88,
+      "ttiTime": 3969.5
     },
     "href": "https://builtwith.appwrite.io/",
     "tags": "site",
@@ -800,11 +703,11 @@
       "score": 1,
       "fcpDisplay": "1.0 s",
       "fcpScore": 1,
-      "lcpDisplay": "1.0 s",
-      "lcpScore": 1,
-      "ttiDisplay": "3.1 s",
-      "ttiScore": 0.95,
-      "ttiTime": 3134.5
+      "lcpDisplay": "1.7 s",
+      "lcpScore": 0.99,
+      "ttiDisplay": "1.1 s",
+      "ttiScore": 1,
+      "ttiTime": 1064.5
     },
     "href": "https://radixstream.com/",
     "tags": "site"
@@ -813,46 +716,30 @@
     "title": "Anirban Das - Fullstack Developer & UX Designer",
     "imgSrc": "/showcases/www_anirbandas_in_.webp",
     "perf": {
-      "score": 0.89,
-      "fcpDisplay": "2.9 s",
-      "fcpScore": 0.53,
-      "lcpDisplay": "2.9 s",
-      "lcpScore": 0.81,
-      "ttiDisplay": "4.0 s",
-      "ttiScore": 0.88,
-      "ttiTime": 3975
+      "score": 0.9,
+      "fcpDisplay": "2.7 s",
+      "fcpScore": 0.59,
+      "lcpDisplay": "2.7 s",
+      "lcpScore": 0.85,
+      "ttiDisplay": "3.9 s",
+      "ttiScore": 0.89,
+      "ttiTime": 3876.75
     },
     "href": "https://www.anirbandas.in/",
     "tags": "portfolio"
   },
   {
-    "title": "Qwik meet",
-    "imgSrc": "/showcases/qwik-meet_onrender_com_.webp",
-    "perf": {
-      "score": 0.98,
-      "fcpDisplay": "1.9 s",
-      "fcpScore": 0.86,
-      "lcpDisplay": "1.9 s",
-      "lcpScore": 0.97,
-      "ttiDisplay": "1.9 s",
-      "ttiScore": 0.99,
-      "ttiTime": 1946.5
-    },
-    "href": "https://qwik-meet.onrender.com/",
-    "tags": "webrtc"
-  },
-  {
-    "title": "Polaris: AI-powered Site Reliability",
+    "title": "Polaris: Developer Analytics",
     "imgSrc": "/showcases/getpolaris_ai_.webp",
     "perf": {
-      "score": 0.76,
+      "score": 0.91,
       "fcpDisplay": "2.7 s",
-      "fcpScore": 0.6,
-      "lcpDisplay": "4.5 s",
-      "lcpScore": 0.38,
-      "ttiDisplay": "6.0 s",
-      "ttiScore": 0.65,
-      "ttiTime": 5950.25
+      "fcpScore": 0.58,
+      "lcpDisplay": "2.7 s",
+      "lcpScore": 0.84,
+      "ttiDisplay": "2.7 s",
+      "ttiScore": 0.97,
+      "ttiTime": 2749
     },
     "href": "https://getpolaris.ai/",
     "tags": "saas"
@@ -861,14 +748,14 @@
     "title": "Juneiker Castillo - Frontend Web Developer.",
     "imgSrc": "/showcases/juneikerc_com.webp",
     "perf": {
-      "score": 0.85,
+      "score": 0.94,
       "fcpDisplay": "2.2 s",
       "fcpScore": 0.77,
-      "lcpDisplay": "4.1 s",
-      "lcpScore": 0.48,
+      "lcpDisplay": "2.7 s",
+      "lcpScore": 0.86,
       "ttiDisplay": "2.2 s",
       "ttiScore": 0.99,
-      "ttiTime": 2234.1500000000005
+      "ttiTime": 2221.6500000000005
     },
     "href": "https://juneikerc.com",
     "tags": "portfolio,site,blog,services"
@@ -877,14 +764,14 @@
     "title": "Valibot: The modular and type safe schema library",
     "imgSrc": "/showcases/valibot_dev_.webp",
     "perf": {
-      "score": 1,
-      "fcpDisplay": "1.1 s",
-      "fcpScore": 0.99,
-      "lcpDisplay": "1.7 s",
-      "lcpScore": 0.99,
-      "ttiDisplay": "1.1 s",
+      "score": 0.99,
+      "fcpDisplay": "1.3 s",
+      "fcpScore": 0.98,
+      "lcpDisplay": "1.8 s",
+      "lcpScore": 0.98,
+      "ttiDisplay": "1.3 s",
       "ttiScore": 1,
-      "ttiTime": 1107
+      "ttiTime": 1293.5
     },
     "href": "https://valibot.dev/",
     "tags": "site,documentation"

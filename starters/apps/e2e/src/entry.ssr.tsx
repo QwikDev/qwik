@@ -99,7 +99,6 @@ export default function (opts: RenderToStreamOptions) {
         qwikLoader: {
           include:
             url.searchParams.get("loader") === "false" ? "never" : "auto",
-          events: ["click"],
         },
         ...opts,
       },

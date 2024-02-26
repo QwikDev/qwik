@@ -28,37 +28,37 @@
       "@builder.io/qwik-react": ["packages/qwik-react/src/index.ts"],
       "@builder.io/qwik-city": ["packages/qwik-city/runtime/src/index.ts"],
       "@builder.io/qwik-city/service-worker": [
-        "packages/qwik-city/runtime/src/service-worker/index.ts",
+        "packages/qwik-city/runtime/src/service-worker/index.ts"
       ],
       "@builder.io/qwik-city/adapters/azure-swa/vite": [
-        "packages/qwik-city/adapters/azure-swa/vite/index.ts",
+        "packages/qwik-city/adapters/azure-swa/vite/index.ts"
       ],
       "@builder.io/qwik-city/adapters/cloudflare-pages/vite": [
-        "packages/qwik-city/adapters/cloudflare-pages/vite/index.ts",
+        "packages/qwik-city/adapters/cloudflare-pages/vite/index.ts"
       ],
       "@builder.io/qwik-city/adapters/node-server/vite": [
-        "packages/qwik-city/adapters/node-server/vite/index.ts",
+        "packages/qwik-city/adapters/node-server/vite/index.ts"
       ],
       "@builder.io/qwik-city/adapters/netlify-edge/vite": [
-        "packages/qwik-city/adapters/netlify-edge/vite/index.ts",
+        "packages/qwik-city/adapters/netlify-edge/vite/index.ts"
       ],
       "@builder.io/qwik-city/adapters/shared/vite": [
-        "packages/qwik-city/adapters/shared/vite/index.ts",
+        "packages/qwik-city/adapters/shared/vite/index.ts"
       ],
       "@builder.io/qwik-city/adapters/static/vite": [
-        "packages/qwik-city/adapters/static/vite/index.ts",
+        "packages/qwik-city/adapters/static/vite/index.ts"
       ],
       "@builder.io/qwik-city/middleware/azure-swa": ["packages/qwik-city/middleware/azure-swa"],
       "@builder.io/qwik-city/middleware/aws-lambda": ["packages/qwik-city/middleware/aws-lambda"],
       "@builder.io/qwik-city/middleware/cloudflare-pages": [
-        "packages/qwik-city/middleware/cloudflare-pages",
+        "packages/qwik-city/middleware/cloudflare-pages"
       ],
       "@builder.io/qwik-city/middleware/request-handler": [
-        "packages/qwik-city/middleware/request-handler",
+        "packages/qwik-city/middleware/request-handler"
       ],
       "@builder.io/qwik-city/middleware/node": ["packages/qwik-city/middleware/node"],
       "@builder.io/qwik-city/middleware/netlify-edge": [
-        "packages/qwik-city/middleware/netlify-edge",
+        "packages/qwik-city/middleware/netlify-edge"
       ],
       "@builder.io/qwik-city/static": ["packages/qwik-city/static/index.ts"],
       "@builder.io/qwik-city/vite": ["packages/qwik-city/buildtime/vite/index"],
@@ -70,16 +70,16 @@
       "@qwik-client-manifest": ["packages/qwik/src/server/server-modules.d.ts"],
       "@qwik-city-plan": ["packages/qwik-city/runtime/src/qwik-city-plan.ts"],
       "@qwik-city-sw-register-build": [
-        "packages/qwik-city/buildtime/runtime-generation/sw-register-build.ts",
+        "packages/qwik-city/buildtime/runtime-generation/sw-register-build.ts"
       ],
       "@qwik-city-sw-register": ["packages/qwik-city/runtime/src/sw-register-runtime.ts"],
       "@qwik-city-not-found-paths": [
-        "packages/qwik-city/middleware/request-handler/generated/not-found-paths.ts",
+        "packages/qwik-city/middleware/request-handler/generated/not-found-paths.ts"
       ],
       "@qwik-city-static-paths": [
-        "packages/qwik-city/middleware/request-handler/generated/static-paths.ts",
+        "packages/qwik-city/middleware/request-handler/generated/static-paths.ts"
       ],
-      "create-qwik": ["packages/create-qwik/api/index.ts"],
+      "create-qwik": ["packages/create-qwik/api/index.ts"]
     },
     "types": ["node", "vite/client"],
     "esModuleInterop": true,
@@ -87,7 +87,7 @@
     "inlineSourceMap": true,
     "inlineSources": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
+    "forceConsistentCasingInFileNames": true
   },
   "include": [
     "packages/create-qwik",
@@ -106,12 +106,12 @@
     "packages/qwik-react/vite",
     "@types/deno.d.ts",
     "@types/bun.d.ts",
-    "types.d.ts",
+    "types.d.ts"
   ],
   "exclude": [
     "packages/create-qwik/dist",
     "**/lib",
     "packages/qwik/**/*.d.ts",
-    "scripts/eslint-docs.ts",
-  ],
+    "scripts/eslint-docs.ts"
+  ]
 }

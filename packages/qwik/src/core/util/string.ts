@@ -23,49 +23,41 @@
 const ESC = 0x007f;
 const SURROGATE_OFFSET = 0xd800 - 0x0040;
 export const packUint8Array = (bytes: Uint8Array) => {
-  const odd = bytes.length % 2 === 1;
-  const length = bytes.length - (odd ? 1 : 0);
   let code = '';
-  let surrogate = false;
-  for (let i = 0; i < length; i += 2) {
-    const c = (bytes[i + 1] << 8) | bytes[i];
-    // test high surrogate
-    if (c >= 0xd800 && c <= 0xdbff) {
-      if (surrogate) {
-        // unmatched high surrogate
-        // omit the MSB to make it a normal codepoint
-        const prev = (bytes[i - 1] << 8) | bytes[i - 2];
-        code += String.fromCharCode(ESC, prev - SURROGATE_OFFSET);
-      }
-      surrogate = true;
+  let surrogate: number | undefined;
+  let low = true;
+  let c = 0;
+  for (const b of bytes) {
+    if (low) {
+      c = b;
+      low = false;
       continue;
     }
-    // test low surrogate
-    if (c >= 0xdc00 && c <= 0xdfff) {
-      if (surrogate) {
+    c |= b << 8;
+    low = true;
+    if (surrogate !== undefined) {
+      if (c >= 0xdc00 && c <= 0xdfff) {
         // valid surrogate pair
-        const prev = (bytes[i - 1] << 8) | bytes[i - 2];
-        code += String.fromCharCode(prev, c);
-        surrogate = false;
+        code += String.fromCharCode(surrogate, c);
+        surrogate = undefined;
         continue;
+      } else {
+        // surrogate was unmatched high surrogate, so escape it
+        code += String.fromCharCode(ESC, surrogate - SURROGATE_OFFSET);
+        surrogate = undefined;
       }
-      // unmatched low surrogate
-      // omit the MSB to make it a normal codepoint
-      const x = c - SURROGATE_OFFSET;
-      code += String.fromCharCode(ESC, x);
+    }
+    if (c >= 0xd800 && c <= 0xdbff) {
+      surrogate = c;
       continue;
     }
-    if (surrogate) {
-      // no low surrogate after high surrogate
-      // omit the MSB to make it a normal codepoint
-      const prev = (bytes[i - 1] << 8) | bytes[i - 2];
-      const x = prev - SURROGATE_OFFSET;
-      code += String.fromCharCode(ESC, x === ESC ? 0x08fd : x);
-      surrogate = false; // reset surrogate
+    if (c >= 0xdc00 && c <= 0xdfff) {
+      // unmatched low surrogate
+      code += String.fromCharCode(ESC, c - SURROGATE_OFFSET);
+      continue;
     }
     // escape the BOM
     if (c === 0xfeff) {
-      // BOM
       code += String.fromCharCode(ESC, 0x08fe);
       continue;
     }
@@ -74,23 +66,21 @@ export const packUint8Array = (bytes: Uint8Array) => {
       code += String.fromCharCode(ESC, c + 0x0020);
       continue;
     }
-    // double the escape character
     if (c === ESC) {
       code += String.fromCharCode(0x08ff);
+      continue;
     }
     // normal codepoint
     code += String.fromCharCode(c);
   }
   if (surrogate) {
     // ended with unmatched high surrogate
-    // subtract the offset to make it a normal codepoint
-    const c = (bytes[length - 1] << 8) | bytes[length - 2];
-    const x = c - SURROGATE_OFFSET;
+    const x = surrogate - SURROGATE_OFFSET;
     code += String.fromCharCode(ESC, x === ESC ? 0x08fd : x);
   }
-  if (odd) {
+  if (!low && bytes.length > 0) {
     // put the last byte
-    code += String.fromCharCode(bytes[bytes.length - 1], ESC);
+    code += String.fromCharCode(c, ESC);
   }
   return code;
 };
@@ -100,54 +90,60 @@ export const unpackUint8Array = (code: string) => {
   const odd = code.charCodeAt(code.length - 1) === ESC;
   const bytes = new Uint8Array(code.length * 2);
   let j = 0;
-  for (let i = 0; i < code.length; i++) {
-    const c = code.charCodeAt(i);
-    // check the escape character
-    if (c !== ESC) {
-      // normal codepoint
-      bytes[j++] = c & 0xff;
-      bytes[j++] = c >>> 8;
-      continue;
-    }
-    // dealing with the escaped character
-    if (i === code.length - 1) {
-      break; // nothing to do with the last ESC
-    }
-    const e = code.charCodeAt(++i);
-    if (odd && e === ESC) {
-      // if the ESC ESC at the end, it's the last byte
-      if (i === code.length - 1) {
-        bytes[j++] = e; // put the last byte (equals to ESC)
-        j++; // put ESC virtually, it will be omitted
-        break;
+  let escaped = false;
+  for (const s of code) {
+    const c = s.charCodeAt(0);
+    if (!escaped) {
+      if (c === ESC) {
+        escaped = true;
+      } else {
+        bytes[j++] = c & 0xff;
+        bytes[j++] = c >>> 8;
+        // check if s is surrogate pair
+        if (c >= 0xd800 && c <= 0xdbff) {
+          const d = s.charCodeAt(1);
+          bytes[j++] = d & 0xff;
+          bytes[j++] = d >>> 8;
+        }
       }
-    }
-    if (e === 0x08ff) {
-      bytes[j++] = ESC; // unescape the escape character
-      j++; // skip the high byte
       continue;
     }
-    if (e === 0x08fe) {
+    // escaped character
+    if (c < 0x0040) {
+      // restore the control characters
+      bytes[j++] = (c - 0x0020) & 0xff;
+      bytes[j++] = c >>> 8;
+    } else if (c <= 0xdfff - SURROGATE_OFFSET) {
+      const x = c + SURROGATE_OFFSET;
+      bytes[j++] = x & 0xff;
+      bytes[j++] = x >>> 8;
+    } else if (c === 0x08fd) {
+      // restore the 0xd83f collided with ESC ESC at the end of even array
+      bytes[j++] = 0x3f;
+      bytes[j++] = 0xd8;
+    } else if (c === 0x08fe) {
       // restore the BOM
       bytes[j++] = 0xff;
       bytes[j++] = 0xfe;
-    } else if (e === 0x08fd) {
-      // restore the 0xd83f (collided with ESC ESC)
-      bytes[j++] = 0x3f;
-      bytes[j++] = 0xd8;
-    } else if (e >= 0x0020 && e <= 0x003f) {
-      // restore the control characters
-      bytes[j++] = (e - 0x0020) & 0xff;
-      bytes[j++] = e >>> 8;
     } else {
-      // restore the unmatched surrogates
-      const x = e + SURROGATE_OFFSET;
-      bytes[j++] = x & 0xff;
-      bytes[j++] = x >>> 8;
+      // restore the escape character
+      bytes[j++] = ESC;
+      j++; // skip the high byte
     }
+    escaped = false;
   }
-  if (odd) {
-    j--; // omit the last ESC
+  if (odd && !escaped) {
+    // the last 2 bytes was 0x007f 0x007f and unescaped as 0xd83f,
+    // so revert it as 0x007f.
+    // because of the `for...of` has no index, it is needed to do here
+    j -= 2;
+    bytes[j++] = ESC;
   }
-  return bytes.subarray(0, j);
+  // if ended while escaped, the length is odd
+  if (escaped) {
+    // Array is odd-length, remove last byte
+    return bytes.subarray(0, j - 1);
+  } else {
+    return bytes.subarray(0, j);
+  }
 };

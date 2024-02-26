@@ -22,7 +22,6 @@ import { Task } from '../../use/use-task';
 import { throwErrorAndStop } from '../../util/log';
 import type { DomContainer } from '../client/dom-container';
 import { vnode_isVNode, vnode_locate } from '../client/vnode';
-import type { fixMeAny } from './types';
 import type { ObjToProxyMap } from '../../container/container';
 import { isPromise } from 'util/types';
 import type { ValueOrPromise } from '../../util/types';

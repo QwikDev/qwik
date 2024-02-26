@@ -49,21 +49,8 @@
     "tags": "portfolio"
   },
   {
-    "href": "https://shaunchander.me",
-    "tags": "portfolio"
-  },
-  {
-    "href": "https://qwik-city-movies-wm.netlify.app/",
-    "size": "large",
-    "tags": "app"
-  },
-  {
     "href": "https://www.hexa.center/",
     "tags": "saas"
-  },
-  {
-    "href": "https://img-models.vercel.app/",
-    "tags": "ecommerce"
   },
   {
     "href": "https://qwik-storefront.vendure.io/",
@@ -93,9 +80,9 @@
     "repo": "https://github.com/saboooor/burgersonfleek"
   },
   {
-    "href": "https://simplymc.art/",
+    "href": "https://birdflop.com/",
     "tags": "site",
-    "repo": "https://github.com/LuminescentDev/SimplyMC"
+    "repo": "https://github.com/birdflop/web"
   },
   {
     "href": "https://goshi.dev/",
@@ -111,20 +98,12 @@
     "tags": "portfolio"
   },
   {
-    "href": "https://cursos.codigoencasa.com/node",
-    "tags": "learning"
-  },
-  {
     "href": "https://reduced.to",
     "tags": "app"
   },
   {
     "href": "https://sanyamjainqwik.vercel.app/",
     "tags": "portfolio"
-  },
-  {
-    "href": "https://www.blackflag.dev/",
-    "tags": "site"
   },
   {
     "href": "https://qwik.builder.io",
@@ -169,10 +148,6 @@
     "tags": "company"
   },
   {
-    "href": "https://keyboardz.co/",
-    "tags": "ecommerce"
-  },
-  {
     "href": "https://itbusinesshub.com/",
     "tags": "blog"
   },
@@ -212,10 +187,6 @@
   {
     "href": "https://www.anirbandas.in/",
     "tags": "portfolio"
-  },
-  {
-    "href": "https://qwik-meet.onrender.com/",
-    "tags": "webrtc"
   },
   {
     "href": "https://getpolaris.ai/",

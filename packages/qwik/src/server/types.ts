@@ -102,7 +102,6 @@ export interface RenderResult {
 
 /** @public */
 export interface QwikLoaderOptions {
-  events?: string[];
   include?: 'always' | 'never' | 'auto';
   position?: 'top' | 'bottom';
 }

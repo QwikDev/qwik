@@ -394,17 +394,20 @@ Error.stackTraceLimit = 100;
     it('should render styles for multiple slots', async () => {
       let rawStyleId1 = '';
       let rawStyleId2 = '';
+      let rawStyleId3 = '';
       const RootStyles = component$(() => {
         const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped1'));
         rawStyleId1 = stylesScopedData.scopeId;
         return (
-          <ComponentA>
-            <div q:slot="one">One</div>
-            <div q:slot="two">Two</div>
-            <div q:slot="three">
-              <span class="container">Three</span>
+          <ComponentB>
+            <ComponentA q:slot="three">
+              <div q:slot="one">One</div>
+              <div q:slot="two">Two</div>
+            </ComponentA>
+            <div q:slot="four">
+              <span class="container">Four</span>
             </div>
-          </ComponentA>
+          </ComponentB>
         );
       });
 
@@ -413,10 +416,21 @@ Error.stackTraceLimit = 100;
 
         rawStyleId2 = stylesScopedData.scopeId;
         return (
-          <div class="container">
+          <div class="containerA">
             <Slot name="one" />
             <Slot name="two" />
+          </div>
+        );
+      });
+
+      const ComponentB = component$(() => {
+        const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped3'));
+
+        rawStyleId3 = stylesScopedData.scopeId;
+        return (
+          <div class="containerB">
             <Slot name="three" />
+            <Slot name="four" />
           </div>
         );
       });
@@ -427,6 +441,8 @@ Error.stackTraceLimit = 100;
       const firstScopeStyle = getScopedStyles(STYLE_RED, firstStyleId);
       const secondStyleId = rawStyleId2.substring(2);
       const secondScopeStyle = getScopedStyles(STYLE_BLUE, secondStyleId);
+      const thirdStyleId = rawStyleId3.substring(2);
+      const thirdScopeStyle = getScopedStyles(STYLE_RED, thirdStyleId);
 
       if (render === ssrRenderToDom) {
         expect(vNode).toMatchVDOM(
@@ -435,17 +451,26 @@ Error.stackTraceLimit = 100;
             <style q:style={firstStyleId}>{firstScopeStyle}</style>
             <Component>
               {/* @ts-ignore-next-line */}
-              <style q:style={secondStyleId}>{secondScopeStyle}</style>
-              <div class={`${rawStyleId2} container`}>
+              <style q:style={thirdStyleId}>{thirdScopeStyle}</style>
+              <div class={`${rawStyleId3} containerB`}>
+                {/* q:slot="three" */}
                 <Projection>
-                  <div q:slot="one">One</div>
+                  <Component>
+                    {/* @ts-ignore-next-line */}
+                    <style q:style={secondStyleId}>{secondScopeStyle}</style>
+                    <div class={`${rawStyleId2} containerA`}>
+                      <Projection>
+                        <div q:slot="one">One</div>
+                      </Projection>
+                      <Projection>
+                        <div q:slot="two">Two</div>
+                      </Projection>
+                    </div>
+                  </Component>
                 </Projection>
                 <Projection>
-                  <div q:slot="two">Two</div>
-                </Projection>
-                <Projection>
-                  <div q:slot="three">
-                    <span class={`${rawStyleId1} container`}>Three</span>
+                  <div q:slot="four">
+                    <span class={`${rawStyleId1} container`}>Four</span>
                   </div>
                 </Projection>
               </div>
@@ -456,16 +481,22 @@ Error.stackTraceLimit = 100;
         expect(vNode).toMatchVDOM(
           <Component>
             <Component>
-              <div class={`${rawStyleId2} container`}>
-                <Projection>
-                  <div q:slot="one">One</div>
+              <div class={`${rawStyleId3} containerB`}>
+                <Projection q:slot="three">
+                  <Component>
+                    <div class={`${rawStyleId2} containerA`}>
+                      <Projection>
+                        <div q:slot="one">One</div>
+                      </Projection>
+                      <Projection>
+                        <div q:slot="two">Two</div>
+                      </Projection>
+                    </div>
+                  </Component>
                 </Projection>
                 <Projection>
-                  <div q:slot="two">Two</div>
-                </Projection>
-                <Projection>
-                  <div q:slot="three">
-                    <span class={`${rawStyleId1} container`}>Three</span>
+                  <div q:slot="four">
+                    <span class={`${rawStyleId1} container`}>Four</span>
                   </div>
                 </Projection>
               </div>

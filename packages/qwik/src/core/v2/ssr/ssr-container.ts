@@ -52,7 +52,7 @@ import {
 import type { ValueOrPromise } from '../../util/types';
 import { maybeThen } from '../../util/promises';
 import {
-  convertScopedStyleIdsToString,
+  convertStyleIdsToString,
   getScopedStyleIdsAsPrefix,
   isClassAttr,
 } from '../shared/scoped-styles';
@@ -325,7 +325,7 @@ class SSRContainer implements ISSRContainer {
     if (scoped && host instanceof SsrNode) {
       const componentFrame = this.getComponentFrame(0)!;
       componentFrame.scopedStyleIds.add(styleId);
-      const scopedStyleIds = convertScopedStyleIdsToString(componentFrame.scopedStyleIds);
+      const scopedStyleIds = convertStyleIdsToString(componentFrame.scopedStyleIds);
       this.setHostProp(host, QScopedStyle, scopedStyleIds);
     }
 

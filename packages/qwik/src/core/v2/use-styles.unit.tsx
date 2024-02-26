@@ -120,133 +120,133 @@ Error.stackTraceLimit = 100;
     });
 
     it('should render styles for multiple components', async () => {
-        let styleId1 = '';
-        let styleId2 = '';
-        const StyledComponent1 = component$(() => {
-          const styleData = useStylesQrl(inlinedQrl(STYLE_RED, 's_styles1'));
-          styleId1 = styleData.styleId;
-          return <div class="container">Hello world 1</div>;
-        });
-        const StyledComponent2 = component$(() => {
-          const styleData = useStylesQrl(inlinedQrl(STYLE_BLUE, 's_styles2'));
-          styleId2 = styleData.styleId;
-          return <div class="container">Hello world 2</div>;
-        });
-        const Parent = component$(() => {
-          return (
-            <div>
-              <StyledComponent1 />
-              <StyledComponent2 />
-            </div>
-          );
-        });
-        const { vNode, styles } = await render(<Parent />, { debug });
-        if (render == ssrRenderToDom) {
-          expect(vNode).toMatchVDOM(
-            <>
-              <div>
-                <Component>
-                  {/* @ts-ignore-next-line */}
-                  <style q:style={styleId1}>{STYLE_RED}</style>
-                  <div class="container">Hello world 1</div>
-                </Component>
-                <Component>
-                  {/* @ts-ignore-next-line */}
-                  <style q:style={styleId2}>{STYLE_BLUE}</style>
-                  <div class="container">Hello world 2</div>
-                </Component>
-              </div>
-            </>
-          );
-        } else {
-          expect(styles).toEqual({
-            [styleId1]: STYLE_RED,
-            [styleId2]: STYLE_BLUE,
-          });
-          expect(vNode).toMatchVDOM(
-            <>
-              <div>
-                <Component>
-                  <div class="container">Hello world 1</div>
-                </Component>
-                <Component>
-                  <div class="container">Hello world 2</div>
-                </Component>
-              </div>
-            </>
-          );
-        }
+      let styleId1 = '';
+      let styleId2 = '';
+      const StyledComponent1 = component$(() => {
+        const styleData = useStylesQrl(inlinedQrl(STYLE_RED, 's_styles1'));
+        styleId1 = styleData.styleId;
+        return <div class="container">Hello world 1</div>;
       });
-  
-      it('should save styles for all child components', async () => {
-        let styleId1 = '';
-        let styleId2 = '';
-        const StyledComponent1 = component$(() => {
-          const styleData = useStylesQrl(inlinedQrl(STYLE_RED, 's_styles1'));
-          styleId1 = styleData.styleId;
-          return <div class="container">Hello world 1</div>;
-        });
-        const StyledComponent2 = component$(() => {
-          const styleData = useStylesQrl(inlinedQrl(STYLE_BLUE, 's_styles2'));
-          styleId2 = styleData.styleId;
-          return <div class="container">Hello world 2</div>;
-        });
-        const Parent = component$(() => {
-          const show = useSignal(true);
-          return (
-            <button
-              onClick$={inlinedQrl(() => (useLexicalScope()[0].value = false), 's_onClick', [show])}
-            >
-              {show.value && <StyledComponent1 />}
-              <StyledComponent2 />
-            </button>
-          );
-        });
-        const { vNode, container } = await render(<Parent />, { debug });
-        await trigger(container.element, 'button', 'click');
+      const StyledComponent2 = component$(() => {
+        const styleData = useStylesQrl(inlinedQrl(STYLE_BLUE, 's_styles2'));
+        styleId2 = styleData.styleId;
+        return <div class="container">Hello world 2</div>;
+      });
+      const Parent = component$(() => {
+        return (
+          <div>
+            <StyledComponent1 />
+            <StyledComponent2 />
+          </div>
+        );
+      });
+      const { vNode, styles } = await render(<Parent />, { debug });
+      if (render == ssrRenderToDom) {
         expect(vNode).toMatchVDOM(
-          <Component>
-            <button>
-              {''}
+          <>
+            <div>
+              <Component>
+                {/* @ts-ignore-next-line */}
+                <style q:style={styleId1}>{STYLE_RED}</style>
+                <div class="container">Hello world 1</div>
+              </Component>
+              <Component>
+                {/* @ts-ignore-next-line */}
+                <style q:style={styleId2}>{STYLE_BLUE}</style>
+                <div class="container">Hello world 2</div>
+              </Component>
+            </div>
+          </>
+        );
+      } else {
+        expect(styles).toEqual({
+          [styleId1]: STYLE_RED,
+          [styleId2]: STYLE_BLUE,
+        });
+        expect(vNode).toMatchVDOM(
+          <>
+            <div>
+              <Component>
+                <div class="container">Hello world 1</div>
+              </Component>
               <Component>
                 <div class="container">Hello world 2</div>
               </Component>
-            </button>
-          </Component>
+            </div>
+          </>
         );
-        const qStyles = container.document.querySelectorAll(QStyleSelector);
-        expect(qStyles).toHaveLength(2);
-        expect(Array.from(qStyles).map((style) => style.outerHTML)).toEqual(
-          expect.arrayContaining([
-            `<style q:style="${styleId1}">${STYLE_RED}</style>`,
-            `<style q:style="${styleId2}">${STYLE_BLUE}</style>`,
-          ])
+      }
+    });
+
+    it('should save styles for all child components', async () => {
+      let styleId1 = '';
+      let styleId2 = '';
+      const StyledComponent1 = component$(() => {
+        const styleData = useStylesQrl(inlinedQrl(STYLE_RED, 's_styles1'));
+        styleId1 = styleData.styleId;
+        return <div class="container">Hello world 1</div>;
+      });
+      const StyledComponent2 = component$(() => {
+        const styleData = useStylesQrl(inlinedQrl(STYLE_BLUE, 's_styles2'));
+        styleId2 = styleData.styleId;
+        return <div class="container">Hello world 2</div>;
+      });
+      const Parent = component$(() => {
+        const show = useSignal(true);
+        return (
+          <button
+            onClick$={inlinedQrl(() => (useLexicalScope()[0].value = false), 's_onClick', [show])}
+          >
+            {show.value && <StyledComponent1 />}
+            <StyledComponent2 />
+          </button>
         );
       });
-  
-      it('should generate different styleIds for components', async () => {
-        let styleId1 = '';
-        let styleId2 = '';
-        const StyledComponent1 = component$(() => {
-          const styleData = useStylesQrl(inlinedQrl(STYLE_RED, 's_styles1'));
-          styleId1 = styleData.styleId;
-          return <div>Hello world 1</div>;
-        });
-        const StyledComponent2 = component$(() => {
-          const styleData = useStylesQrl(inlinedQrl(STYLE_RED, 's_styles2'));
-          styleId2 = styleData.styleId;
-          return <div>Hello world 2</div>;
-        });
-        const Parent = component$(() => {
-          return (
-            <>
-              <StyledComponent1 />
-              <StyledComponent2 />
-            </>
-          );
-        });
-        await render(<Parent />, { debug });
-        expect(styleId1).not.toEqual(styleId2);
+      const { vNode, container } = await render(<Parent />, { debug });
+      await trigger(container.element, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            {''}
+            <Component>
+              <div class="container">Hello world 2</div>
+            </Component>
+          </button>
+        </Component>
+      );
+      const qStyles = container.document.querySelectorAll(QStyleSelector);
+      expect(qStyles).toHaveLength(2);
+      expect(Array.from(qStyles).map((style) => style.outerHTML)).toEqual(
+        expect.arrayContaining([
+          `<style q:style="${styleId1}">${STYLE_RED}</style>`,
+          `<style q:style="${styleId2}">${STYLE_BLUE}</style>`,
+        ])
+      );
+    });
+
+    it('should generate different styleIds for components', async () => {
+      let styleId1 = '';
+      let styleId2 = '';
+      const StyledComponent1 = component$(() => {
+        const styleData = useStylesQrl(inlinedQrl(STYLE_RED, 's_styles1'));
+        styleId1 = styleData.styleId;
+        return <div>Hello world 1</div>;
       });
+      const StyledComponent2 = component$(() => {
+        const styleData = useStylesQrl(inlinedQrl(STYLE_RED, 's_styles2'));
+        styleId2 = styleData.styleId;
+        return <div>Hello world 2</div>;
+      });
+      const Parent = component$(() => {
+        return (
+          <>
+            <StyledComponent1 />
+            <StyledComponent2 />
+          </>
+        );
+      });
+      await render(<Parent />, { debug });
+      expect(styleId1).not.toEqual(styleId2);
+    });
   });
 });

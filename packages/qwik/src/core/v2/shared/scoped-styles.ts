@@ -14,7 +14,7 @@ export function convertScopedStyleIdsToArray(scopedStyleIds?: string | null): Ar
   return scopedStyleIds?.split(' ') ?? null;
 }
 
-export function convertScopedStyleIdsToString(scopedStyleIds: Set<string>): string {
+export function convertStyleIdsToString(scopedStyleIds: Set<string>): string {
   return Array.from(scopedStyleIds).join(' ');
 }
 

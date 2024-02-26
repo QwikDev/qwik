@@ -54,10 +54,7 @@ import {
   VNodeJournalOpCode,
   type VNodeJournalEntry,
 } from './vnode-diff';
-import {
-  convertScopedStyleIdsToArray,
-  convertScopedStyleIdsToString,
-} from '../shared/scoped-styles';
+import { convertScopedStyleIdsToArray, convertStyleIdsToString } from '../shared/scoped-styles';
 
 export function getDomContainer(element: HTMLElement | ElementVNode): IClientContainer {
   let htmlElement: HTMLElement | null = Array.isArray(element)
@@ -262,7 +259,7 @@ export class DomContainer implements IClientContainer, StoreTracker {
       const scopedStyleIdsString = this.getHostProp<string>(host, QScopedStyle);
       const scopedStyleIds = new Set(convertScopedStyleIdsToArray(scopedStyleIdsString));
       scopedStyleIds.add(styleId);
-      this.setHostProp(host, QScopedStyle, convertScopedStyleIdsToString(scopedStyleIds));
+      this.setHostProp(host, QScopedStyle, convertStyleIdsToString(scopedStyleIds));
     }
 
     if (this.$styleIds$ == null) {

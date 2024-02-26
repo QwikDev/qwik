@@ -147,7 +147,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     vParent = vStartNode;
     vNewNode = null;
     vCurrent = vnode_getFirstChild(vStartNode);
-    setScopedStyleIdPrefix();
+    retrieveScopedStyleIdPrefix();
     stackPush(jsxNode, true);
     expectNoQStyles();
     while (stack.length) {
@@ -653,8 +653,8 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     }
   }
 
-  function setScopedStyleIdPrefix() {
-    if (vParent && vnode_getType(vParent) === 11 /* Virtual */) {
+  function retrieveScopedStyleIdPrefix() {
+    if (vParent && vnode_isVirtualVNode(vParent)) {
       const scopedStyleId = vnode_getProp<string>(vParent, QScopedStyle, null);
       scopedStyleIdPrefix = scopedStyleId ? addPrefixForScopedStyleIdsString(scopedStyleId) : null;
     }

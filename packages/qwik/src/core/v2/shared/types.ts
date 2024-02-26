@@ -65,7 +65,7 @@ const END = '\x1b[0m';
 export const VirtualTypeName: Record<string, string> = {
   [VirtualType.Virtual]: /* ********* */ START + 'Virtual' + END, //
   [VirtualType.Fragment]: /* ******** */ START + 'Fragment' + END, //
-  [VirtualType.DerivedSignal]: /* ********** */ START + 'Signal' + END, //
+  [VirtualType.DerivedSignal]: /* *** */ START + 'Signal' + END, //
   [VirtualType.Awaited]: /* ********* */ START + 'Awaited' + END, //
   [VirtualType.Component]: /* ******* */ START + 'Component' + END, //
   [VirtualType.InlineComponent]: /* * */ START + 'InlineComponent' + END, //

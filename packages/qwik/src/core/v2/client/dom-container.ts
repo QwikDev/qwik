@@ -254,7 +254,7 @@ export class DomContainer implements IClientContainer, StoreTracker {
     return fn;
   }
 
-  $appendStyle$(content: string, styleId: string, host: HostElement, scoped: boolean): void {
+  $appendStyle$(content: string, styleId: string, host: VirtualVNode, scoped: boolean): void {
     if (scoped) {
       const scopedStyleIdsString = this.getHostProp<string>(host, QScopedStyle);
       const scopedStyleIds = new Set(convertScopedStyleIdsToArray(scopedStyleIdsString));

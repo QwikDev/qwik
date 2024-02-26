@@ -321,8 +321,8 @@ class SSRContainer implements ISSRContainer {
     this.unclaimedProjections.push(node, name, children);
   }
 
-  $appendStyle$(content: string, styleId: string, host: HostElement, scoped: boolean): void {
-    if (scoped && host instanceof SsrNode) {
+  $appendStyle$(content: string, styleId: string, host: SsrNode, scoped: boolean): void {
+    if (scoped) {
       const componentFrame = this.getComponentFrame(0)!;
       componentFrame.scopedStyleIds.add(styleId);
       const scopedStyleIds = convertStyleIdsToString(componentFrame.scopedStyleIds);

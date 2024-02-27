@@ -485,6 +485,7 @@ const ALLOWED_CLASSES = {
   Error: true,
   Set: true,
   Map: true,
+  Uint8Array: true,
   JSXNodeImpl: true,
 };
 

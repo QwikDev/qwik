@@ -1,5 +1,6 @@
 import { describe, test, expect } from 'vitest';
 import { getSerializer } from './serializers';
+import crypto from 'node:crypto';
 
 describe('Uint8ArraySerializer', () => {
   const serializer = getSerializer('\u001c');

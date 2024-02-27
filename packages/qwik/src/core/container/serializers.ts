@@ -39,7 +39,6 @@ import { assertString, assertTrue } from '../error/assert';
 import { Fragment, JSXNodeImpl, isJSXNode } from '../render/jsx/jsx-runtime';
 import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
 import { Slot } from '../render/jsx/slot.public';
-import { packUint8Array, unpackUint8Array } from '../util/string';
 
 /**
  * - 0, 8, 9, A, B, C, D
@@ -443,11 +442,19 @@ const BigIntSerializer = /*#__PURE__*/ serializer<bigint>({
   },
 });
 
+const decoder = new TextDecoder();
 const Uint8ArraySerializer = /*#__PURE__*/ serializer<Uint8Array>({
   $prefix$: '\u001c',
   $test$: (v) => v instanceof Uint8Array,
-  $serialize$: (v) => packUint8Array(v),
-  $prepare$: (data) => unpackUint8Array(data),
+  $serialize$: (v) => btoa(decoder.decode(v)),
+  $prepare$: (data) => {
+    const buf = atob(data);
+    const array = new Uint8Array(buf.length);
+    for (let i = 0; i < buf.length; i++) {
+      array[i] = buf.charCodeAt(i);
+    }
+    return array;
+  },
   $fill$: undefined,
 });
 

@@ -442,18 +442,24 @@ const BigIntSerializer = /*#__PURE__*/ serializer<bigint>({
   },
 });
 
-const decoder = new TextDecoder();
 const Uint8ArraySerializer = /*#__PURE__*/ serializer<Uint8Array>({
   $prefix$: '\u001c',
   $test$: (v) => v instanceof Uint8Array,
-  $serialize$: (v) => btoa(decoder.decode(v)),
+  $serialize$: (v) => {
+    let buf = '';
+    for (const c of v) {
+      buf += String.fromCharCode(c);
+    }
+    return btoa(buf);
+  },
   $prepare$: (data) => {
     const buf = atob(data);
-    const array = new Uint8Array(buf.length);
-    for (let i = 0; i < buf.length; i++) {
-      array[i] = buf.charCodeAt(i);
+    const bytes = new Uint8Array(buf.length);
+    let i = 0;
+    for (const s of buf) {
+      bytes[i++] = s.charCodeAt(0);
     }
-    return array;
+    return bytes;
   },
   $fill$: undefined,
 });

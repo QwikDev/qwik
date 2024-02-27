@@ -12,11 +12,14 @@ describe('Uint8ArraySerializer', () => {
   });
 
   test('serialize/deserialize', () => {
-    const array = new Uint8Array([0, 1, 2, 3]);
-    expect(serializer.$test$(array)).toBe(true);
     const _: any = undefined;
-    const code = serializer.$serialize$!(array, _, _, _);
-    const decoded = serializer.$prepare$!(code, _, _);
-    expect(decoded).toStrictEqual(array);
+    const array = new Uint8Array(1024);
+    expect(serializer.$test$(array)).toBe(true);
+    for (let i = 0; i < 1000; i++) {
+      crypto.getRandomValues(array);
+      const code = serializer.$serialize$!(array, _, _, _);
+      const decoded = serializer.$prepare$!(code, _, _);
+      expect(decoded).toStrictEqual(array);
+    }
   });
 });

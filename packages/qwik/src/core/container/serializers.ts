@@ -450,7 +450,7 @@ const Uint8ArraySerializer = /*#__PURE__*/ serializer<Uint8Array>({
     for (const c of v) {
       buf += String.fromCharCode(c);
     }
-    return btoa(buf);
+    return btoa(buf).replace(/=+$/, '');
   },
   $prepare$: (data) => {
     const buf = atob(data);

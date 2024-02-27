@@ -208,5 +208,53 @@ Error.stackTraceLimit = 100;
         </>
       );
     });
+
+    it('should lazily evaluate the function for issue 3294', async () => {
+      let useComputedCount = 0;
+      const Issue3294 = component$(() => {
+        const firstName = useSignal('Misko');
+        const lastName = useSignal('Hevery');
+        const lastNameFirstPreference = useSignal(true);
+        const lastNameFirst = useComputedQrl(
+          inlinedQrl(
+            () => {
+              useComputedCount++;
+              return useLexicalScope()[1].value + ' ' + useLexicalScope()[0].value;
+            },
+            's_lastNameFirst',
+            [firstName, lastName]
+          )
+        );
+        const firstNameFirst = useComputedQrl(
+          inlinedQrl(
+            () => {
+              useComputedCount++;
+              return useLexicalScope()[0].value + ' ' + useLexicalScope()[1].value;
+            },
+            's_firstNameFirst',
+            [firstName, lastName]
+          )
+        );
+        return (
+          <div>
+            {lastNameFirstPreference.value ? (
+              <span>{lastNameFirst.value}</span>
+            ) : (
+              <span>{firstNameFirst.value}</span>
+            )}
+          </div>
+        );
+      });
+
+      const { vNode } = await render(<Issue3294 />, { debug });
+      expect(vNode).toMatchVDOM(
+        <>
+          <div>
+            <span>Hevery Misko</span>
+          </div>
+        </>
+      );
+      expect(useComputedCount).toBe(1);
+    });
   });
 });

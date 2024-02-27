@@ -1,22 +1,19 @@
 import { component$ } from "@builder.io/qwik";
 import { routeAction$, zod$, z, Form } from "@builder.io/qwik-city";
-import type { NeonQueryFunction } from "@neondatabase/serverless";
-import { neon } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-http";
-import { schema } from "../../../db/schema";
-
+import { drizzle } from "drizzle-orm/better-sqlite3";
+import Database from "better-sqlite3";
+import { schema } from "../../../drizzle/schema";
 export const useCreateUser = routeAction$(
-  async (data, requestEvent) => {
-    const DATABASE_URL = requestEvent.env.get("DATABASE_URL");
-    const sql = neon(DATABASE_URL!);
-    const db = drizzle(sql as NeonQueryFunction<boolean, boolean>, { schema });
+  async (data) => {
+    const sqlite = new Database("./drizzle/db/db.sqlite");
+    const db = drizzle(sqlite, { schema });
     const user = await db.insert(schema.users).values(data);
     return user;
   },
   zod$({
     name: z.string(),
     email: z.string().email(),
-  })
+  }),
 );
 
 export default component$(() => {

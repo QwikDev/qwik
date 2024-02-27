@@ -13,12 +13,10 @@
       "lines": [
         " Drizzle was installed with a simple DB schema and some demo routes,",
         "",
-        " Neon serverless Postgres was configured by default,",
-        " but you can change to whatever database you wish,",
+        " better-sqlite3 was configured by default, but in production",
+        " you'll want to use Postgres or MySQL.",
         "",
         "",
-        " After adding your database credentials to the .env file,",
-        " run `npm run drizzle:migrate` to push the schema to the database.",
         " Drizzle studio was also added which you can access by running `npm run drizzle:studio`,",
         "",
         " Check out the Drizzle docs for more info:",
@@ -27,17 +25,17 @@
     }
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.9",
     "drizzle-kit": "^0.20.14"
   },
   "dependencies": {
-    "drizzle-orm": "^0.29.1",
-    "@neondatabase/serverless": "^0.8.1",
-    "pg": "^8.11.3"
+    "better-sqlite3": "^9.4.3",
+    "drizzle-orm": "^0.29.4"
   },
   "scripts": {
-    "postinstall": "drizzle-kit generate:pg",
-    "drizzle:generate": "drizzle-kit generate:pg",
-    "drizzle:migrate": "drizzle-kit push:pg",
+    "postinstall": "drizzle-kit generate:sqlite",
+    "drizzle:generate": "drizzle-kit generate:sqlite",
+    "drizzle:migrate": "drizzle-kit push:sqlite",
     "drizzle:studio": "drizzle-kit studio --host 127.0.0.1"
   }
 }

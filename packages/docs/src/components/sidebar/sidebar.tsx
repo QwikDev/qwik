@@ -114,17 +114,17 @@ export function Items({
                 <Items items={item.items} pathname={pathname} markdownItems={markdownItems} />
               </details>
             ) : (
-              <>
-              {item.text}
-              {renderUpdated(item.href!, markdownItems)}
-            </>
               <a
                 href={item.href}
                 class={{
                   'is-active': pathname === item.href,
                 }}
-                style={{ display: 'flex',position: 'relative' }}
+                style={{ display: 'flex', position: 'relative' }}
               >
+                <>
+                  {renderUpdated(item.href!, markdownItems)}
+                  {item.text}
+                </>
               </a>
             )}
           </li>

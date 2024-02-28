@@ -119,11 +119,11 @@ export function Items({
                 class={{
                   'is-active': pathname === item.href,
                 }}
-                style={{ display: 'flex' }}
+                style={{ display: 'flex', position: 'relative' }}
               >
                 <>
-                  {item.text}
                   {renderUpdated(item.href!, markdownItems)}
+                  {item.text}
                 </>
               </a>
             )}

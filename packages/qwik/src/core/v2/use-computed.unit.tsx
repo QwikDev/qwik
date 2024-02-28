@@ -4,6 +4,7 @@ import { component$ } from '../component/component.public';
 import { inlinedQrl } from '../qrl/qrl';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { useSignal } from '../use/use-signal';
+import { useStore } from '../use/use-store.public';
 import { useComputedQrl } from '../use/use-task';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
@@ -209,7 +210,7 @@ Error.stackTraceLimit = 100;
       );
     });
 
-    it('should lazily evaluate the function for issue 3294', async () => {
+    it('should lazily evaluate the function for issue 3294 with useSignal', async () => {
       let useComputedCount = 0;
       const Issue3294 = component$(() => {
         const firstName = useSignal('Misko');
@@ -233,6 +234,53 @@ Error.stackTraceLimit = 100;
             },
             's_firstNameFirst',
             [firstName, lastName]
+          )
+        );
+        return (
+          <div>
+            {lastNameFirstPreference.value ? (
+              <span>{lastNameFirst.value}</span>
+            ) : (
+              <span>{firstNameFirst.value}</span>
+            )}
+          </div>
+        );
+      });
+
+      const { vNode } = await render(<Issue3294 />, { debug });
+      expect(vNode).toMatchVDOM(
+        <>
+          <div>
+            <span>Hevery Misko</span>
+          </div>
+        </>
+      );
+      expect(useComputedCount).toBe(1);
+    });
+
+    it('should lazily evaluate the function for issue 3294 with store', async () => {
+      let useComputedCount = 0;
+      const Issue3294 = component$(() => {
+        const store = useStore({ firstName: 'Misko', lastName: 'Hevery' });
+        const lastNameFirstPreference = useSignal(true);
+        const lastNameFirst = useComputedQrl(
+          inlinedQrl(
+            () => {
+              useComputedCount++;
+              return useLexicalScope()[0].lastName + ' ' + useLexicalScope()[0].firstName;
+            },
+            's_lastNameFirst',
+            [store]
+          )
+        );
+        const firstNameFirst = useComputedQrl(
+          inlinedQrl(
+            () => {
+              useComputedCount++;
+              return useLexicalScope()[0].firstName + ' ' + useLexicalScope()[0].lastName;
+            },
+            's_firstNameFirst',
+            [store]
           )
         );
         return (

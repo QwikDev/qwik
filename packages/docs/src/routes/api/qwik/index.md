@@ -17,6 +17,15 @@ _qrlSync: <TYPE extends Function>(fn: TYPE, serializedFn?: string) =>
   SyncQRL<TYPE>;
 ```
 
+| Parameter    | Type   | Description                                      |
+| ------------ | ------ | ------------------------------------------------ |
+| fn           | TYPE   | Extracted function                               |
+| serializedFn | string | _(Optional)_ Serialized function in string form. |
+
+**Returns:**
+
+SyncQRL&lt;TYPE&gt;
+
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
 
 ## "q:slot"
@@ -100,6 +109,14 @@ Use `$(...)` to tell Qwik Optimizer to extract the expression in `$(...)` into a
 ```typescript
 $: <T>(expression: T) => QRL<T>;
 ```
+
+| Parameter  | Type | Description                            |
+| ---------- | ---- | -------------------------------------- |
+| expression | T    | Expression which should be lazy loaded |
+
+**Returns:**
+
+[QRL](#qrl)&lt;T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
 
@@ -457,6 +474,14 @@ See also: `component`, `useCleanup`, `onResume`, `onPause`, `useOn`, `useOnDocum
 component$: <PROPS = unknown>(onMount: OnRenderFn<PROPS>) => Component<PROPS>;
 ```
 
+| Parameter | Type                                   | Description |
+| --------- | -------------------------------------- | ----------- |
+| onMount   | [OnRenderFn](#onrenderfn)&lt;PROPS&gt; |             |
+
+**Returns:**
+
+[Component](#component)&lt;PROPS&gt;
+
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts)
 
 ## ComponentBaseProps
@@ -519,6 +544,14 @@ componentQrl: <PROPS extends Record<any, any>>(
   componentQrl: QRL<OnRenderFn<PROPS>>,
 ) => Component<PROPS>;
 ```
+
+| Parameter    | Type                                                      | Description |
+| ------------ | --------------------------------------------------------- | ----------- |
+| componentQrl | [QRL](#qrl)&lt;[OnRenderFn](#onrenderfn)&lt;PROPS&gt;&gt; |             |
+
+**Returns:**
+
+[Component](#component)&lt;PROPS&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts)
 
@@ -666,6 +699,14 @@ export const Items = component$(() => {
 createContextId: <STATE = unknown>(name: string) => ContextId<STATE>;
 ```
 
+| Parameter | Type   | Description              |
+| --------- | ------ | ------------------------ |
+| name      | string | The name of the context. |
+
+**Returns:**
+
+[ContextId](#contextid)&lt;STATE&gt;
+
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-context.ts)
 
 ## CSSProperties
@@ -811,6 +852,14 @@ export interface ErrorBoundaryStore
 event$: <T>(first: T) => QRL<T>;
 ```
 
+| Parameter | Type | Description |
+| --------- | ---- | ----------- |
+| first     | T    |             |
+
+**Returns:**
+
+[QRL](#qrl)&lt;T&gt;
+
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
 
 ## EventHandler
@@ -830,6 +879,14 @@ export type EventHandler<EV = Event, EL = Element> = {
 ```typescript
 eventQrl: <T>(qrl: QRL<T>) => QRL<T>;
 ```
+
+| Parameter | Type                 | Description |
+| --------- | -------------------- | ----------- |
+| qrl       | [QRL](#qrl)&lt;T&gt; |             |
+
+**Returns:**
+
+[QRL](#qrl)&lt;T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
 
@@ -894,6 +951,10 @@ The `CorePlatform` is also responsible for retrieving the Manifest, that contain
 ```typescript
 getPlatform: () => CorePlatform;
 ```
+
+**Returns:**
+
+[CorePlatform](#coreplatform)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/platform/platform.ts)
 
@@ -1162,6 +1223,14 @@ implicit$FirstArg: <FIRST, REST extends any[], RET>(
     RET;
 ```
 
+| Parameter | Type                                                       | Description                                                                  |
+| --------- | ---------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| fn        | (first: [QRL](#qrl)&lt;FIRST&gt;, ...rest: REST) =&gt; RET | A function that should have its first argument automatically <code>$</code>. |
+
+**Returns:**
+
+(first: FIRST, ...rest: REST) =&gt; RET
+
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/util/implicit_dollar.ts)
 
 ## InputHTMLAttributes
@@ -1212,6 +1281,16 @@ Checks if a given object is a `Signal`.
 isSignal: <T = unknown>(obj: any) => obj is Signal<T>
 ```
 
+| Parameter | Type | Description                                 |
+| --------- | ---- | ------------------------------------------- |
+| obj       | any  | The object to check if <code>Signal</code>. |
+
+**Returns:**
+
+obj is [Signal](#signal)&lt;T&gt;
+
+Boolean - True if the object is a `Signal`.
+
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/state/signal.ts)
 
 ## jsx
@@ -1225,6 +1304,16 @@ jsx: <T extends string | FunctionComponent<any>>(
   key?: string | number | null,
 ) => JSXNode<T>;
 ```
+
+| Parameter | Type                                                                                                      | Description  |
+| --------- | --------------------------------------------------------------------------------------------------------- | ------------ |
+| type      | T                                                                                                         |              |
+| props     | T extends [FunctionComponent](#functioncomponent)&lt;infer PROPS&gt; ? PROPS : Record&lt;any, unknown&gt; |              |
+| key       | string \| number \| null                                                                                  | _(Optional)_ |
+
+**Returns:**
+
+[JSXNode](#jsxnode)&lt;T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts)
 
@@ -1263,6 +1352,19 @@ jsxDEV: <T extends string | FunctionComponent<Record<any, unknown>>>(
   _ctx: unknown,
 ) => JSXNode<T>;
 ```
+
+| Parameter  | Type                                                                                                      | Description |
+| ---------- | --------------------------------------------------------------------------------------------------------- | ----------- |
+| type       | T                                                                                                         |             |
+| props      | T extends [FunctionComponent](#functioncomponent)&lt;infer PROPS&gt; ? PROPS : Record&lt;any, unknown&gt; |             |
+| key        | string \| number \| null \| undefined                                                                     |             |
+| \_isStatic | boolean                                                                                                   |             |
+| opts       | JsxDevOpts                                                                                                |             |
+| \_ctx      | unknown                                                                                                   |             |
+
+**Returns:**
+
+[JSXNode](#jsxnode)&lt;T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts)
 
@@ -1571,32 +1673,28 @@ export type NativeWheelEvent = WheelEvent;
 
 ## noSerialize
 
-Marks a property on a store as non-serializable.
-
-At times it is necessary to store values on a store that are non-serializable. Normally this is a runtime error as Store wants to eagerly report when a non-serializable property is assigned to it.
-
-You can use `noSerialize()` to mark a value as non-serializable. The value is persisted in the Store but does not survive serialization. The implication is that when your application is resumed, the value of this object will be `undefined`. You will be responsible for recovering from this.
-
-See: [noSerialize Tutorial](http://qwik.builder.io/tutorial/store/no-serialize)
+Returned type of the `noSerialize()` function. It will be TYPE or undefined.
 
 ```typescript
-noSerialize: <T extends object | undefined>(input: T) => NoSerialize<T>;
+export type NoSerialize<T> =
+  | (T & {
+      __no_serialize__: true;
+    })
+  | undefined;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/state/common.ts)
 
 ## NoSerialize
 
-Marks a property on a store as non-serializable.
-
-At times it is necessary to store values on a store that are non-serializable. Normally this is a runtime error as Store wants to eagerly report when a non-serializable property is assigned to it.
-
-You can use `noSerialize()` to mark a value as non-serializable. The value is persisted in the Store but does not survive serialization. The implication is that when your application is resumed, the value of this object will be `undefined`. You will be responsible for recovering from this.
-
-See: [noSerialize Tutorial](http://qwik.builder.io/tutorial/store/no-serialize)
+Returned type of the `noSerialize()` function. It will be TYPE or undefined.
 
 ```typescript
-noSerialize: <T extends object | undefined>(input: T) => NoSerialize<T>;
+export type NoSerialize<T> =
+  | (T & {
+      __no_serialize__: true;
+    })
+  | undefined;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/state/common.ts)
@@ -1711,6 +1809,14 @@ PrefetchGraph: (opts?: {
 }) => import("@builder.io/qwik/jsx-runtime").JSXNode<"script">;
 ```
 
+| Parameter | Type                                                            | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| --------- | --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| opts      | { base?: string; manifestHash?: string; manifestURL?: string; } | <p>_(Optional)_ Options for the loading prefetch graph.</p><p>- <code>base</code> - Base of the graph. For a default installation this will default to <code>/build/</code>. But if more than one MFE is installed on the page, then each MFE needs to have its own base. - <code>manifestHash</code> - Hash of the manifest file to load. If not provided the hash will be extracted from the container attribute <code>q:manifest-hash</code> and assume the default build file <code>${base}/q-bundle-graph-${manifestHash}.json</code>. - <code>manifestURL</code> - URL of the manifest file to load if non-standard bundle graph location name.</p> |
+
+**Returns:**
+
+import("@builder.io/qwik/jsx-runtime").[JSXNode](#jsxnode)&lt;"script"&gt;
+
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
 
 ## PrefetchServiceWorker
@@ -1729,6 +1835,14 @@ PrefetchServiceWorker: (opts: {
   fetchBundleGraph?: boolean;
 }) => import("@builder.io/qwik/jsx-runtime").JSXNode<"script">;
 ```
+
+| Parameter | Type                                                                             | Description                                                                                                                                                    |
+| --------- | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| opts      | { base?: string; path?: string; verbose?: boolean; fetchBundleGraph?: boolean; } | <p>Options for the prefetch service worker.</p><p>- <code>base</code> - Base URL for the service worker. - <code>path</code> - Path to the service worker.</p> |
+
+**Returns:**
+
+import("@builder.io/qwik/jsx-runtime").[JSXNode](#jsxnode)&lt;"script"&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
 
@@ -1853,34 +1967,216 @@ export type PublicProps<PROPS> = (PROPS extends Record<any, any>
 
 ## qrl
 
-Used by Qwik Optimizer to point to lazy-loaded resources.
+The `QRL` type represents a lazy-loadable AND serializable resource.
 
-This function should be used by the Qwik Optimizer only. The function should not be directly referred to in the source code of the application.
+QRL stands for Qwik URL.
+
+Use `QRL` when you want to refer to a lazy-loaded resource. `QRL`s are most often used for code (functions) but can also be used for other resources such as `string`s in the case of styles.
+
+`QRL` is an opaque token that is generated by the Qwik Optimizer. (Do not rely on any properties in `QRL` as it may change between versions.)
+
+\#\# Creating `QRL` references
+
+Creating `QRL` is done using `$(...)` function. `$(...)` is a special marker for the Qwik Optimizer that marks that the code should be extracted into a lazy-loaded symbol.
+
+```tsx
+useOnDocument(
+  "mousemove",
+  $((event) => console.log("mousemove", event)),
+);
+```
+
+In the above code, the Qwik Optimizer detects `$(...)` and transforms the code as shown below:
+
+```tsx
+// FILE: <current file>
+useOnDocument("mousemove", qrl("./chunk-abc.js", "onMousemove"));
+
+// FILE: chunk-abc.js
+export const onMousemove = () => console.log("mousemove");
+```
+
+NOTE: `qrl(...)` is a result of Qwik Optimizer transformation. You should never have to invoke this function directly in your application. The `qrl(...)` function should be invoked only after the Qwik Optimizer transformation.
+
+\#\# Using `QRL`s
+
+Use `QRL` type in your application when you want to get a lazy-loadable reference to a resource (most likely a function).
+
+```tsx
+// Example of declaring a custom functions which takes callback as QRL.
+export function useMyFunction(callback: QRL<() => void>) {
+  doExtraStuff();
+  // The callback passed to `onDocument` requires `QRL`.
+  useOnDocument("mousemove", callback);
+}
+```
+
+In the above example, the way to think about the code is that you are not asking for a callback function but rather a reference to a lazy-loadable callback function. Specifically, the function loading should be delayed until it is actually needed. In the above example, the function would not load until after a `mousemove` event on `document` fires.
+
+\#\# Resolving `QRL` references
+
+At times it may be necessary to resolve a `QRL` reference to the actual value. This can be performed using `QRL.resolve(..)` function.
+
+```tsx
+// Assume you have QRL reference to a greet function
+const lazyGreet: QRL<() => void> = $(() => console.log("Hello World!"));
+
+// Use `qrlImport` to load / resolve the reference.
+const greet: () => void = await lazyGreet.resolve();
+
+//  Invoke it
+greet();
+```
+
+NOTE: `element` is needed because `QRL`s are relative and need a base location to resolve against. The base location is encoded in the HTML in the form of `<div q:base="/url">`.
+
+\#\# `QRL.resolved`
+
+Once `QRL.resolve()` returns, the value is stored under `QRL.resolved`. This allows the value to be used without having to await `QRL.resolve()` again.
+
+\#\# Question: Why not just use `import()`?
+
+At first glance, `QRL` serves the same purpose as `import()`. However, there are three subtle differences that need to be taken into account.
+
+1. `QRL`s must be serializable into HTML. 2. `QRL`s must be resolved by framework relative to `q:base`. 3. `QRL`s must be able to capture lexically scoped variables. 4. `QRL`s encapsulate the difference between running with and without Qwik Optimizer. 5. `QRL`s allow expressing lazy-loaded boundaries without thinking about chunk and symbol names.
+
+Let's assume that you intend to write code such as this:
+
+```tsx
+return <button onClick={() => (await import('./chunk-abc.js')).onClick}>
+```
+
+The above code needs to be serialized into DOM such as:
+
+```
+<div q:base="/build/">
+  <button on:click="./chunk-abc.js#onClick">...</button>
+</div>
+```
+
+1. Notice there is no easy way to extract chunk (`./chunk-abc.js`) and symbol (`onClick`) into HTML. 2. Notice that even if you could extract it, the `import('./chunk-abc.js')` would become relative to where the `import()` file is declared. Because it is our framework doing the load, the `./chunk-abc.js` would become relative to the framework file. This is not correct, as it should be relative to the original file generated by the bundler. 3. Next, the framework needs to resolve the `./chunk-abc.js` and needs a base location that is encoded in the HTML. 4. The QRL needs to be able to capture lexically scoped variables. (`import()` only allows loading top-level symbols which don't capture variables.) 5. As a developer, you don't want to think about `import` and naming the chunks and symbols. You just want to say: "this should be lazy."
+
+These are the main reasons why Qwik introduces its own concept of `QRL`.
 
 ```typescript
-qrl: <T = any>(
-  chunkOrFn: string | (() => Promise<any>),
-  symbol: string,
-  lexicalScopeCapture?: any[],
-  stackOffset?: number,
-) => QRL<T>;
+export type QRL<TYPE = unknown> = {
+  __qwik_serializable__?: any;
+  __brand__QRL__: TYPE;
+  resolve(): Promise<TYPE>;
+  resolved: undefined | TYPE;
+  getCaptured(): unknown[] | null;
+  getSymbol(): string;
+  getHash(): string;
+  dev: QRLDev | null;
+} & BivariantQrlFn<QrlArgs<TYPE>, QrlReturn<TYPE>>;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.ts)
 
 ## QRL
 
-Used by Qwik Optimizer to point to lazy-loaded resources.
+The `QRL` type represents a lazy-loadable AND serializable resource.
 
-This function should be used by the Qwik Optimizer only. The function should not be directly referred to in the source code of the application.
+QRL stands for Qwik URL.
+
+Use `QRL` when you want to refer to a lazy-loaded resource. `QRL`s are most often used for code (functions) but can also be used for other resources such as `string`s in the case of styles.
+
+`QRL` is an opaque token that is generated by the Qwik Optimizer. (Do not rely on any properties in `QRL` as it may change between versions.)
+
+\#\# Creating `QRL` references
+
+Creating `QRL` is done using `$(...)` function. `$(...)` is a special marker for the Qwik Optimizer that marks that the code should be extracted into a lazy-loaded symbol.
+
+```tsx
+useOnDocument(
+  "mousemove",
+  $((event) => console.log("mousemove", event)),
+);
+```
+
+In the above code, the Qwik Optimizer detects `$(...)` and transforms the code as shown below:
+
+```tsx
+// FILE: <current file>
+useOnDocument("mousemove", qrl("./chunk-abc.js", "onMousemove"));
+
+// FILE: chunk-abc.js
+export const onMousemove = () => console.log("mousemove");
+```
+
+NOTE: `qrl(...)` is a result of Qwik Optimizer transformation. You should never have to invoke this function directly in your application. The `qrl(...)` function should be invoked only after the Qwik Optimizer transformation.
+
+\#\# Using `QRL`s
+
+Use `QRL` type in your application when you want to get a lazy-loadable reference to a resource (most likely a function).
+
+```tsx
+// Example of declaring a custom functions which takes callback as QRL.
+export function useMyFunction(callback: QRL<() => void>) {
+  doExtraStuff();
+  // The callback passed to `onDocument` requires `QRL`.
+  useOnDocument("mousemove", callback);
+}
+```
+
+In the above example, the way to think about the code is that you are not asking for a callback function but rather a reference to a lazy-loadable callback function. Specifically, the function loading should be delayed until it is actually needed. In the above example, the function would not load until after a `mousemove` event on `document` fires.
+
+\#\# Resolving `QRL` references
+
+At times it may be necessary to resolve a `QRL` reference to the actual value. This can be performed using `QRL.resolve(..)` function.
+
+```tsx
+// Assume you have QRL reference to a greet function
+const lazyGreet: QRL<() => void> = $(() => console.log("Hello World!"));
+
+// Use `qrlImport` to load / resolve the reference.
+const greet: () => void = await lazyGreet.resolve();
+
+//  Invoke it
+greet();
+```
+
+NOTE: `element` is needed because `QRL`s are relative and need a base location to resolve against. The base location is encoded in the HTML in the form of `<div q:base="/url">`.
+
+\#\# `QRL.resolved`
+
+Once `QRL.resolve()` returns, the value is stored under `QRL.resolved`. This allows the value to be used without having to await `QRL.resolve()` again.
+
+\#\# Question: Why not just use `import()`?
+
+At first glance, `QRL` serves the same purpose as `import()`. However, there are three subtle differences that need to be taken into account.
+
+1. `QRL`s must be serializable into HTML. 2. `QRL`s must be resolved by framework relative to `q:base`. 3. `QRL`s must be able to capture lexically scoped variables. 4. `QRL`s encapsulate the difference between running with and without Qwik Optimizer. 5. `QRL`s allow expressing lazy-loaded boundaries without thinking about chunk and symbol names.
+
+Let's assume that you intend to write code such as this:
+
+```tsx
+return <button onClick={() => (await import('./chunk-abc.js')).onClick}>
+```
+
+The above code needs to be serialized into DOM such as:
+
+```
+<div q:base="/build/">
+  <button on:click="./chunk-abc.js#onClick">...</button>
+</div>
+```
+
+1. Notice there is no easy way to extract chunk (`./chunk-abc.js`) and symbol (`onClick`) into HTML. 2. Notice that even if you could extract it, the `import('./chunk-abc.js')` would become relative to where the `import()` file is declared. Because it is our framework doing the load, the `./chunk-abc.js` would become relative to the framework file. This is not correct, as it should be relative to the original file generated by the bundler. 3. Next, the framework needs to resolve the `./chunk-abc.js` and needs a base location that is encoded in the HTML. 4. The QRL needs to be able to capture lexically scoped variables. (`import()` only allows loading top-level symbols which don't capture variables.) 5. As a developer, you don't want to think about `import` and naming the chunks and symbols. You just want to say: "this should be lazy."
+
+These are the main reasons why Qwik introduces its own concept of `QRL`.
 
 ```typescript
-qrl: <T = any>(
-  chunkOrFn: string | (() => Promise<any>),
-  symbol: string,
-  lexicalScopeCapture?: any[],
-  stackOffset?: number,
-) => QRL<T>;
+export type QRL<TYPE = unknown> = {
+  __qwik_serializable__?: any;
+  __brand__QRL__: TYPE;
+  resolve(): Promise<TYPE>;
+  resolved: undefined | TYPE;
+  getCaptured(): unknown[] | null;
+  getSymbol(): string;
+  getHash(): string;
+  dev: QRLDev | null;
+} & BivariantQrlFn<QrlArgs<TYPE>, QrlReturn<TYPE>>;
 ```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
@@ -2296,6 +2592,18 @@ render: (
 ) => Promise<RenderResult>;
 ```
 
+| Parameter | Type                                                                          | Description                                                                                                               |
+| --------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| parent    | Element \| Document                                                           | Element which will act as a parent to <code>jsxNode</code>. When possible the rendering will try to reuse existing nodes. |
+| jsxOutput | [JSXOutput](#jsxoutput) \| [FunctionComponent](#functioncomponent)&lt;any&gt; | JSX to render                                                                                                             |
+| opts      | [RenderOptions](#renderoptions)                                               | _(Optional)_                                                                                                              |
+
+**Returns:**
+
+Promise&lt;[RenderResult](#renderresult)&gt;
+
+An object containing a cleanup function.
+
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/dom/render.public.ts)
 
 ## RenderOnce
@@ -2398,6 +2706,14 @@ const Cmp = component$(() => {
 ```typescript
 Resource: <T>(props: ResourceProps<T>) => JSXOutput;
 ```
+
+| Parameter | Type                                     | Description |
+| --------- | ---------------------------------------- | ----------- |
+| props     | [ResourceProps](#resourceprops)&lt;T&gt; |             |
+
+**Returns:**
+
+[JSXOutput](#jsxoutput)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
 
@@ -2539,6 +2855,14 @@ This is useful to override the platform in tests to change the behavior of, `req
 ```typescript
 setPlatform: (plt: CorePlatform) => CorePlatform;
 ```
+
+| Parameter | Type                          | Description |
+| --------- | ----------------------------- | ----------- |
+| plt       | [CorePlatform](#coreplatform) |             |
+
+**Returns:**
+
+[CorePlatform](#coreplatform)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/platform/platform.ts)
 
@@ -3065,6 +3389,14 @@ NOTE: Synchronous QRLs functions can't close over any variables, including expor
 sync$: <T extends Function>(fn: T) => SyncQRL<T>;
 ```
 
+| Parameter | Type | Description          |
+| --------- | ---- | -------------------- |
+| fn        | T    | Function to extract. |
+
+**Returns:**
+
+SyncQRL&lt;T&gt;
+
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
 
 ## TableHTMLAttributes
@@ -3216,6 +3548,14 @@ Don't track listeners for this callback
 untrack: <T>(fn: () => T) => T;
 ```
 
+| Parameter | Type       | Description |
+| --------- | ---------- | ----------- |
+| fn        | () =&gt; T |             |
+
+**Returns:**
+
+T
+
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-core.ts)
 
 ## useComputed$
@@ -3330,6 +3670,15 @@ export const Items = component$(() => {
 useContextProvider: <STATE extends object>(context: ContextId<STATE>, newValue: STATE) => void
 ```
 
+| Parameter | Type                                 | Description                       |
+| --------- | ------------------------------------ | --------------------------------- |
+| context   | [ContextId](#contextid)&lt;STATE&gt; | The context to assign a value to. |
+| newValue  | STATE                                |                                   |
+
+**Returns:**
+
+void
+
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-context.ts)
 
 ## useErrorBoundary
@@ -3338,6 +3687,10 @@ useContextProvider: <STATE extends object>(context: ContextId<STATE>, newValue: 
 useErrorBoundary: () => Readonly<ErrorBoundaryStore>;
 ```
 
+**Returns:**
+
+Readonly&lt;[ErrorBoundaryStore](#errorboundarystore)&gt;
+
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-error-boundary.ts)
 
 ## useId
@@ -3345,6 +3698,10 @@ useErrorBoundary: () => Readonly<ErrorBoundaryStore>;
 ```typescript
 useId: () => string;
 ```
+
+**Returns:**
+
+string
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-id.ts)
 
@@ -3358,6 +3715,15 @@ Used to programmatically add event listeners. Useful from custom `use*` methods,
 useOn: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => void
 ```
 
+| Parameter | Type              | Description |
+| --------- | ----------------- | ----------- |
+| event     | T \| T[]          |             |
+| eventQrl  | EventQRL&lt;T&gt; |             |
+
+**Returns:**
+
+void
+
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-on.ts)
 
 ## useOnDocument
@@ -3370,6 +3736,15 @@ Used to programmatically add event listeners. Useful from custom `use*` methods,
 useOnDocument: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => void
 ```
 
+| Parameter | Type              | Description |
+| --------- | ----------------- | ----------- |
+| event     | T \| T[]          |             |
+| eventQrl  | EventQRL&lt;T&gt; |             |
+
+**Returns:**
+
+void
+
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-on.ts)
 
 ## useOnWindow
@@ -3381,6 +3756,15 @@ Used to programmatically add event listeners. Useful from custom `use*` methods,
 ```typescript
 useOnWindow: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => void
 ```
+
+| Parameter | Type              | Description |
+| --------- | ----------------- | ----------- |
+| event     | T \| T[]          |             |
+| eventQrl  | EventQRL&lt;T&gt; |             |
+
+**Returns:**
+
+void
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-on.ts)
 
@@ -3432,6 +3816,15 @@ useResource$: <T>(generatorFn: ResourceFn<T>, opts?: ResourceOptions) =>
   ResourceReturn<T>;
 ```
 
+| Parameter   | Type                                | Description  |
+| ----------- | ----------------------------------- | ------------ |
+| generatorFn | [ResourceFn](#resourcefn)&lt;T&gt;  |              |
+| opts        | [ResourceOptions](#resourceoptions) | _(Optional)_ |
+
+**Returns:**
+
+[ResourceReturn](#resourcereturn)&lt;T&gt;
+
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
 
 ## useResourceQrl
@@ -3481,6 +3874,15 @@ const Cmp = component$(() => {
 useResourceQrl: <T>(qrl: QRL<ResourceFn<T>>, opts?: ResourceOptions) =>
   ResourceReturn<T>;
 ```
+
+| Parameter | Type                                                  | Description  |
+| --------- | ----------------------------------------------------- | ------------ |
+| qrl       | [QRL](#qrl)&lt;[ResourceFn](#resourcefn)&lt;T&gt;&gt; |              |
+| opts      | [ResourceOptions](#resourceoptions)                   | _(Optional)_ |
+
+**Returns:**
+
+[ResourceReturn](#resourcereturn)&lt;T&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
 
@@ -3580,6 +3982,15 @@ useStore: <STATE extends object>(
 ) => STATE;
 ```
 
+| Parameter    | Type                                | Description  |
+| ------------ | ----------------------------------- | ------------ |
+| initialState | STATE \| (() =&gt; STATE)           |              |
+| opts         | [UseStoreOptions](#usestoreoptions) | _(Optional)_ |
+
+**Returns:**
+
+STATE
+
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-store.public.ts)
 
 ## UseStoreOptions
@@ -3615,6 +4026,14 @@ export const CmpStyles = component$(() => {
 useStyles$: (first: string) => void
 ```
 
+| Parameter | Type   | Description |
+| --------- | ------ | ----------- |
+| first     | string |             |
+
+**Returns:**
+
+void
+
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts)
 
 ## useStylesQrl
@@ -3636,6 +4055,14 @@ export const CmpStyles = component$(() => {
 ```typescript
 useStylesQrl: (styles: QRL<string>) => void
 ```
+
+| Parameter | Type                      | Description |
+| --------- | ------------------------- | ----------- |
+| styles    | [QRL](#qrl)&lt;string&gt; |             |
+
+**Returns:**
+
+void
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts)
 
@@ -3671,6 +4098,14 @@ export const CmpScopedStyles = component$(() => {
 useStylesScoped$: (first: string) => UseStylesScoped;
 ```
 
+| Parameter | Type   | Description |
+| --------- | ------ | ----------- |
+| first     | string |             |
+
+**Returns:**
+
+[UseStylesScoped](#usestylesscoped)
+
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts)
 
 ## useStylesScopedQrl
@@ -3693,6 +4128,14 @@ export const CmpScopedStyles = component$(() => {
 useStylesScopedQrl: (styles: QRL<string>) => UseStylesScoped;
 ```
 
+| Parameter | Type                      | Description |
+| --------- | ------------------------- | ----------- |
+| styles    | [QRL](#qrl)&lt;string&gt; |             |
+
+**Returns:**
+
+[UseStylesScoped](#usestylesscoped)
+
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts)
 
 ## useTask$
@@ -3706,6 +4149,15 @@ The `taskFn` only executes if the observed inputs change. To observe the inputs,
 ```typescript
 useTask$: (first: TaskFn, opts?: UseTaskOptions | undefined) => void
 ```
+
+| Parameter | Type                                           | Description  |
+| --------- | ---------------------------------------------- | ------------ |
+| first     | [TaskFn](#taskfn)                              |              |
+| opts      | [UseTaskOptions](#usetaskoptions) \| undefined | _(Optional)_ |
+
+**Returns:**
+
+void
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
@@ -3732,6 +4184,15 @@ The `taskFn` only executes if the observed inputs change. To observe the inputs,
 ```typescript
 useTaskQrl: (qrl: QRL<TaskFn>, opts?: UseTaskOptions) => void
 ```
+
+| Parameter | Type                                 | Description  |
+| --------- | ------------------------------------ | ------------ |
+| qrl       | [QRL](#qrl)&lt;[TaskFn](#taskfn)&gt; |              |
+| opts      | [UseTaskOptions](#usetaskoptions)    | _(Optional)_ |
+
+**Returns:**
+
+void
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
@@ -3761,6 +4222,15 @@ const Timer = component$(() => {
 useVisibleTask$: (first: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void
 ```
 
+| Parameter | Type                                                       | Description  |
+| --------- | ---------------------------------------------------------- | ------------ |
+| first     | [TaskFn](#taskfn)                                          |              |
+| opts      | [OnVisibleTaskOptions](#onvisibletaskoptions) \| undefined | _(Optional)_ |
+
+**Returns:**
+
+void
+
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
 ## useVisibleTaskQrl
@@ -3788,6 +4258,15 @@ const Timer = component$(() => {
 ```typescript
 useVisibleTaskQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void
 ```
+
+| Parameter | Type                                          | Description  |
+| --------- | --------------------------------------------- | ------------ |
+| qrl       | [QRL](#qrl)&lt;[TaskFn](#taskfn)&gt;          |              |
+| opts      | [OnVisibleTaskOptions](#onvisibletaskoptions) | _(Optional)_ |
+
+**Returns:**
+
+void
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 

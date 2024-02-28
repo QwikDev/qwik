@@ -123,7 +123,7 @@ export function Items({
                 class={{
                   'is-active': pathname === item.href,
                 }}
-                style={{ display: 'flex' }}
+                style={{ display: 'flex',position: 'relative' }}
               >
               </a>
             )}

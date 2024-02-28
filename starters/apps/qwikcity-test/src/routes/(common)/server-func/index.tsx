@@ -4,6 +4,7 @@ import {
   useComputed$,
   useResource$,
   useSignal,
+  useStore,
   useTask$,
 } from "@builder.io/qwik";
 import { routeLoader$, server$ } from "@builder.io/qwik-city";
@@ -78,6 +79,29 @@ export default component$(() => {
           5 seconds streaming
         </button>
       </section>
+      <MultipleServerFunctionsInvokedInTask />
     </>
+  );
+});
+
+const serverFunctionA = server$(async function a() {
+  return this.method;
+});
+const serverFunctionB = server$(async function b() {
+  return this.method;
+});
+
+export const MultipleServerFunctionsInvokedInTask = component$(() => {
+  const methods = useStore<{ a: string; b: string }>({ a: "", b: "" });
+  useTask$(async () => {
+    methods.a = await serverFunctionA();
+    methods.b = await serverFunctionB();
+  });
+
+  return (
+    <div id="methods">
+      {methods.a}
+      {methods.b}
+    </div>
   );
 });

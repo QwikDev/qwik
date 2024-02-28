@@ -73,7 +73,7 @@ export function createRequestEvent(
 
     while (routeModuleIndex < requestHandlers.length) {
       const moduleRequestHandler = requestHandlers[routeModuleIndex];
-      const result = moduleRequestHandler(requestEv);
+      const result = globalThis.asyncStore? globalThis.asyncStore.run(requestEv, moduleRequestHandler,requestEv):moduleRequestHandler(requestEv)
       if (isPromise(result)) {
         await result;
       }

@@ -39,4 +39,20 @@ test.describe("server$", () => {
     await expect(logs).toHaveText("0123");
     await expect(logs).toHaveText("01234");
   });
-});
+
+  // test.describe("server$ inside resource", () => {
+  //   test("All functions have reference to requestevent", async ({ page }) => {
+  //     await page.goto("/qwikcity-test/server-func/resource");
+  
+  //     await Promise.all(
+  //       ["a", "b", "c"].map(async (letter) => {
+  //         const result = await page.locator(`#${letter}`);
+  
+  //         await expect(result).toHaveText([
+  //           "/qwikcity-test/server-func/resource/" + letter,
+  //         ]);
+  //       }),
+  //     );
+  //   });
+  // });
+  });

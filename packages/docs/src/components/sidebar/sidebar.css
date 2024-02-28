@@ -134,6 +134,7 @@ details li a {
   height: 6px;
   border-radius: 50%;
   margin-top: 0.2rem;
+  margin-right: 0.3rem;
   position: absolute;
   transform: translateX(-15px);
 }

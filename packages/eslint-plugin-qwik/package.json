@@ -9,10 +9,10 @@
   },
   "devDependencies": {
     "@builder.io/qwik": "workspace:^",
-    "@types/eslint": "^8.56.3",
+    "@types/eslint": "^8.56.4",
     "@types/estree": "^1.0.2",
-    "@typescript-eslint/rule-tester": "^7.0.2",
-    "@typescript-eslint/utils": "^7.0.2",
+    "@typescript-eslint/rule-tester": "^7.1.0",
+    "@typescript-eslint/utils": "^7.1.0",
     "redent": "^4.0.0"
   },
   "engines": {

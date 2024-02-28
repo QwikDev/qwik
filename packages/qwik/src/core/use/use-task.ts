@@ -406,9 +406,11 @@ export const runComputed2 = (
   const iCtx = newInvokeContext(container.$locale$, host as fixMeAny, undefined, ComputedEvent);
   iCtx.$subscriber$ = [SubscriptionType.HOST, task];
 
-  const taskFn = task.$qrl$.getFn(iCtx, () => {
+  // we need to know if the computed signal is used in the template
+  const condition = true;
+  const taskFn = condition ? task.$qrl$.getFn(iCtx, () => {
     container.$subsManager$.$clearSub$(task);
-  }) as ComputedFn<unknown>;
+  }) as ComputedFn<unknown> : () => { };
 
   const handleError = (reason: unknown) => container.handleError(reason, host);
   const result = safeCall(
@@ -651,9 +653,9 @@ export const useVisibleTask$ = /*#__PURE__*/ implicit$FirstArg(useVisibleTaskQrl
 export type TaskDescriptor = DescriptorBase<TaskFn>;
 
 export interface ResourceDescriptor<T>
-  extends DescriptorBase<ResourceFn<T>, ResourceReturnInternal<T>> {}
+  extends DescriptorBase<ResourceFn<T>, ResourceReturnInternal<T>> { }
 
-export interface ComputedDescriptor<T> extends DescriptorBase<ComputedFn<T>, Signal<T>> {}
+export interface ComputedDescriptor<T> extends DescriptorBase<ComputedFn<T>, Signal<T>> { }
 
 export type SubscriberHost = QwikElement;
 
@@ -987,7 +989,7 @@ export class Task<T = unknown, B = T> implements DescriptorBase<unknown, Signal<
     public $qrl$: QRLInternal<T>,
     public $state$: Signal<B> | undefined,
     public $destroy$: NoSerialize<() => void> | null
-  ) {}
+  ) { }
 }
 
 export const isTask = (value: any): value is Task => {

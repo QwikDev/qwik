@@ -288,7 +288,7 @@ export const serverQrl = <T extends ServerFunction>(qrl: QRL<T>): ServerQRL<T> =
       if (isServer) {
         // Running during SSR, we can call the function directly
         const contexts = [
-          (globalThis as any).asyncStore?.getStore(),
+          (globalThis as QGlobal).asyncStore?.getStore(),
           useQwikCityEnv()?.ev,
           this,
           _getContextEvent(),

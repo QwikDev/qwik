@@ -70,7 +70,7 @@ const _setProperty = (node: any, key: string, value: any) => {
       node.removeAttribute(key);
     }
   } catch (err) {
-    logError(codeToText(QError_setProperty), { node, key, value }, err);
+    logError(codeToText(QError_setProperty), key, { node, value }, err);
   }
 };
 

@@ -51,7 +51,7 @@ import type { RequestEventInternal } from '../../middleware/request-handler/requ
 // TODO: create single QGlobal type
 type AsyncStore = import('node:async_hooks').AsyncLocalStorage<RequestEventInternal>;
 interface QGlobal extends Global {
-  asyncStore?: AsyncStore;
+  qcAsyncRequestStore?: AsyncStore;
 }
 
 /** @public */
@@ -295,18 +295,18 @@ export const serverQrl = <T extends ServerFunction>(qrl: QRL<T>): ServerQRL<T> =
           : undefined;
       if (isServer) {
         // Running during SSR, we can call the function directly
-        const contexts = [
-          (globalThis as QGlobal).asyncStore?.getStore(),
-          useQwikCityEnv()?.ev,
-          this,
-          _getContextEvent(),
-        ];
-        const requestEvent = contexts.find(
-          (v) =>
-            v &&
-            Object.prototype.hasOwnProperty.call(v, 'sharedMap') &&
-            Object.prototype.hasOwnProperty.call(v, 'cookie')
-        );
+        let requestEvent = (globalThis as QGlobal).qcAsyncRequestStore?.getStore() as
+          | RequestEvent
+          | undefined;
+        if (!requestEvent) {
+          const contexts = [useQwikCityEnv()?.ev, this, _getContextEvent()] as RequestEvent[];
+          requestEvent = contexts.find(
+            (v) =>
+              v &&
+              Object.prototype.hasOwnProperty.call(v, 'sharedMap') &&
+              Object.prototype.hasOwnProperty.call(v, 'cookie')
+          );
+        }
         return qrl.apply(requestEvent, args);
       } else {
         // Running on the client, we need to call the function via HTTP

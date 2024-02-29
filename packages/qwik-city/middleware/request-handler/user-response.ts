@@ -47,7 +47,7 @@ export function runQwikCity<T>(
   return {
     response: responsePromise,
     requestEv,
-    completion: asyncStore ? console.error('eyeyya')||asyncStore.run(requestEv, runNext,requestEv, resolve!): runNext(requestEv, resolve!),
+    completion: asyncStore ? asyncStore.run(requestEv, runNext,requestEv, resolve!): runNext(requestEv, resolve!),
   };
 }
 

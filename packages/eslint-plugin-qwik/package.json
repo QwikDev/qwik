@@ -9,7 +9,7 @@
   },
   "devDependencies": {
     "@builder.io/qwik": "workspace:^",
-    "@types/eslint": "^8.56.4",
+    "@types/eslint": "^8.56.5",
     "@types/estree": "^1.0.2",
     "@typescript-eslint/rule-tester": "^7.1.0",
     "@typescript-eslint/utils": "^7.1.0",

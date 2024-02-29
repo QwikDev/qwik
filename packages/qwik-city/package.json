@@ -17,11 +17,10 @@
   "devDependencies": {
     "@azure/functions": "^3.5.1",
     "@builder.io/qwik": "workspace:^",
-    "@microsoft/api-extractor": "^7.41.0",
+    "@microsoft/api-extractor": "^7.42.0",
     "@netlify/edge-functions": "^2.3.1",
-    "@types/marked": "^6.0.0",
     "@types/mdast": "^4.0.1",
-    "@types/node": "^20.11.21",
+    "@types/node": "^20.11.22",
     "@types/refractor": "^3.0.3",
     "@types/set-cookie-parser": "^2.4.7",
     "estree-util-value-to-estree": "3.0.1",

@@ -19,67 +19,59 @@ import type { Connect } from 'vite';
 import type { OptimizerSystem } from '../types';
 
 // This map helps avoid validating for every single image type
-const firstBytes = {
+const firstBytes: Record<number, keyof typeof types> = {
   0x38: 'psd',
   0x42: 'bmp',
   0x44: 'dds',
   0x47: 'gif',
-  0x49: 'tiff',
-  0x4d: 'tiff',
   0x52: 'webp',
   0x69: 'icns',
   0x89: 'png',
   0xff: 'jpg',
 };
 
+// Put in order of most common to least common
 const types = {
+  webp: webp_1.WEBP,
+  jpg: jpg_1.JPG,
+  png: png_1.PNG,
+  svg: svg_1.SVG,
+  gif: gif_1.GIF,
   bmp: bmp_1.BMP,
   cur: cur_1.CUR,
   dds: dds_1.DDS,
-  gif: gif_1.GIF,
   icns: icns_1.ICNS,
   ico: ico_1.ICO,
   j2c: j2c_1.J2C,
   jp2: jp2_1.JP2,
-  jpg: jpg_1.JPG,
   ktx: ktx_1.KTX,
-  png: png_1.PNG,
   pnm: pnm_1.PNM,
   psd: psd_1.PSD,
-  svg: svg_1.SVG,
   tga: tga_1.TGA,
-  webp: webp_1.WEBP,
 };
 
-const keys = Object.keys(types);
+const keys = Object.keys(types) as (keyof typeof types)[];
 
-function detector(buffer: Buffer) {
+function detector(buffer: Buffer): keyof typeof types | undefined {
   const byte = buffer[0];
-  if (byte in firstBytes) {
-    const type = (firstBytes as any)[byte];
-    if (type && (types as any)[type].validate(buffer)) {
-      return type;
-    }
+  const type = firstBytes[byte];
+  if (type && types[type].validate(buffer)) {
+    return type;
   }
-  const finder = (key: string) => (types as any)[key].validate(buffer);
-  return keys.find(finder);
+  return keys.find((key) => types[key].validate(buffer));
 }
 
 function lookup(buffer: Buffer) {
-  // detect the file type.. don't rely on the extension
+  // detect the file type, don't rely on the extension
   const type = detector(buffer);
   if (typeof type !== 'undefined') {
     // find an appropriate handler for this file type
-    if (type in types) {
-      const size = (types as any)[type].calculate(buffer);
-      if (size !== undefined) {
-        size.type = type;
-        return size;
-      }
+    const size = types[type].calculate(buffer);
+    if (size !== undefined) {
+      size.type = type;
+      return size;
     }
   }
-  // throw up, if we don't understand the file
-  throw new TypeError('unsupported file type: ' + type);
 }
 export async function getInfoForSrc(src: string) {
   try {

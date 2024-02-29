@@ -19,7 +19,7 @@ import('node:async_hooks')
     const AsyncLocalStorage = module.AsyncLocalStorage;
     asyncStore = new AsyncLocalStorage<RequestEventInternal>();
     // TODO add type
-    (globalThis as any).asyncStore = asyncStore;
+    (globalThis as QGlobal).asyncStore = asyncStore;
   })
   .catch((err) => {
     console.warn(

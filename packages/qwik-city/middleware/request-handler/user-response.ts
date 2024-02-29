@@ -13,7 +13,8 @@ export interface QwikCityRun<T> {
   completion: Promise<unknown>;
 }
 
-export type AsyncStore = import('node:async_hooks').AsyncLocalStorage<RequestEventInternal>;
+// TODO: create single QGlobal type
+type AsyncStore = import('node:async_hooks').AsyncLocalStorage<RequestEventInternal>;
 interface QGlobal extends Global {
   asyncStore?: AsyncStore;
 }

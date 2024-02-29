@@ -43,6 +43,8 @@ export default defineConfig(async () => {
     },
     ssr: {
       noExternal: [
+        'async_hooks',
+        'node:async_hooks',
         '@mui/material',
         '@mui/system',
         '@emotion/react',

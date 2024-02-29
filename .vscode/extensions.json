@@ -9,7 +9,7 @@
     "manucorporat.vermoji",
     "vadimcn.vscode-lldb",
     "streetsidesoftware.code-spell-checker",
-    "ZixuanChen.vitest-explorer"
+    "vitest.explorer"
   ],
   "unwantedRecommendations": []
 }

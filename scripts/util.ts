@@ -155,11 +155,12 @@ export const getBanner = (moduleName: string, version: string) => {
  */
 export const target = 'es2020';
 
-export const nodeTarget = 'node14';
+export const nodeTarget = 'node16';
 
 /** Helper just to know which Node.js modules that should stay external. */
 export const nodeBuiltIns = [
   'assert',
+  'async_hooks',
   'child_process',
   'crypto',
   'fs',

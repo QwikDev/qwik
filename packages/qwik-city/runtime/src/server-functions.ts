@@ -46,6 +46,14 @@ import { z } from 'zod';
 import { isDev, isServer } from '@builder.io/qwik/build';
 import type { FormSubmitCompletedDetail } from './form-component';
 
+import type { RequestEventInternal } from '../../middleware/request-handler/request-event';
+
+// TODO: create single QGlobal type
+type AsyncStore = import('node:async_hooks').AsyncLocalStorage<RequestEventInternal>;
+interface QGlobal extends Global {
+  asyncStore?: AsyncStore;
+}
+
 /** @public */
 export const routeActionQrl = ((
   actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => unknown>,
@@ -287,7 +295,13 @@ export const serverQrl = <T extends ServerFunction>(qrl: QRL<T>): ServerQRL<T> =
           : undefined;
       if (isServer) {
         // Running during SSR, we can call the function directly
-        const requestEvent = [useQwikCityEnv()?.ev, this, _getContextEvent()].find(
+        const contexts = [
+          (globalThis as QGlobal).asyncStore?.getStore(),
+          useQwikCityEnv()?.ev,
+          this,
+          _getContextEvent(),
+        ];
+        const requestEvent = contexts.find(
           (v) =>
             v &&
             Object.prototype.hasOwnProperty.call(v, 'sharedMap') &&

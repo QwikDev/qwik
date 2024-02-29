@@ -74,7 +74,7 @@ export function createRequestEvent(
     while (routeModuleIndex < requestHandlers.length) {
       const moduleRequestHandler = requestHandlers[routeModuleIndex];
       const result = (globalThis as any).asyncStore
-        ? (globalThis as any).asyncStore.run(requestEv, moduleRequestHandler, requestEv)
+        ? (globalThis as QGlobal).asyncStore.run(requestEv, moduleRequestHandler, requestEv)
         : moduleRequestHandler(requestEv);
       if (isPromise(result)) {
         await result;

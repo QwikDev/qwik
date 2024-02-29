@@ -40,19 +40,27 @@ test.describe("server$", () => {
     await expect(logs).toHaveText("01234");
   });
 
-  // test.describe("server$ inside resource", () => {
-  //   test("All functions have reference to requestevent", async ({ page }) => {
-  //     await page.goto("/qwikcity-test/server-func/resource");
+  test.describe("server$ inside resource", () => {
+    test("All functions have reference to request event", async ({ page }) => {
+      await page.goto("/qwikcity-test/server-func/resource");
 
-  //     await Promise.all(
-  //       ["a", "b", "c"].map(async (letter) => {
-  //         const result = await page.locator(`#${letter}`);
+      await Promise.all(
+        ["a", "b", "c"].map(async (letter) => {
+          const result = await page.locator(`#${letter}`);
 
-  //         await expect(result).toHaveText([
-  //           "/qwikcity-test/server-func/resource/" + letter,
-  //         ]);
-  //       }),
-  //     );
-  //   });
-  // });
+          await expect(result).toHaveText([
+            "/qwikcity-test/server-func/resource/" + letter,
+          ]);
+        }),
+      );
+    });
+  });
+
+  test("Multiple server functions should use the same context when invoked from useTask$", async ({
+    page,
+  }) => {
+    await page.goto("/qwikcity-test/server-func/context");
+    const methodsContainer = page.locator("#methods");
+    await expect(methodsContainer).toContainText("GETGET");
+  });
 });

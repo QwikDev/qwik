@@ -4,7 +4,6 @@ import {
   useComputed$,
   useResource$,
   useSignal,
-  useStore,
   useTask$,
 } from "@builder.io/qwik";
 import { routeLoader$, server$ } from "@builder.io/qwik-city";
@@ -31,6 +30,30 @@ export const streamingFunc = server$(async function* () {
     await delay(1000);
     yield i;
   }
+});
+
+const serverFunctionA = server$(async function a() {
+  return this.method;
+});
+const serverFunctionB = server$(async function b() {
+  return this.method;
+});
+
+export const MultipleServerFunctionsInvokedInTask = component$(() => {
+  const methodA = useSignal("");
+  const methodB = useSignal("");
+  useTask$(async () => {
+    methodA.value = await serverFunctionA();
+    await delay(1);
+    methodB.value = await serverFunctionB();
+  });
+
+  return (
+    <div id="methods">
+      {methodA.value}
+      {methodB.value}
+    </div>
+  );
 });
 
 export default component$(() => {
@@ -81,28 +104,5 @@ export default component$(() => {
       </section>
       <MultipleServerFunctionsInvokedInTask />
     </>
-  );
-});
-
-const serverFunctionA = server$(async function a() {
-  return this.method;
-});
-const serverFunctionB = server$(async function b() {
-  return this.method;
-});
-
-export const MultipleServerFunctionsInvokedInTask = component$(() => {
-  const methods = useStore<{ a: string; b: string }>({ a: "", b: "" });
-  useTask$(async () => {
-    methods.a = await serverFunctionA();
-    await delay(1);
-    methods.b = await serverFunctionB();
-  });
-
-  return (
-    <div id="methods">
-      {methods.a}
-      {methods.b}
-    </div>
   );
 });

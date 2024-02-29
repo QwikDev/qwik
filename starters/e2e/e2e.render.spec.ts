@@ -535,11 +535,4 @@ test.describe("render", () => {
     const button = page.locator("#dynamic-button");
     await expect(button).toHaveClass("btn");
   });
-
-  test("Multiple server functions should use the same context when invoked from useTask$", async ({
-    page,
-  }) => {
-    const methodsContainer = page.locator("#methods");
-    await expect(methodsContainer).toContainText("GETGET");
-  });
 });

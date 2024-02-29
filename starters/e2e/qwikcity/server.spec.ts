@@ -56,11 +56,21 @@ test.describe("server$", () => {
     });
   });
 
-  test("Multiple server functions should use the same context when invoked from useTask$", async ({
-    page,
-  }) => {
-    await page.goto("/qwikcity-test/server-func/context");
-    const methodsContainer = page.locator("#methods");
-    await expect(methodsContainer).toContainText("GETGET");
+  test.describe("Multiple server$", () => {
+    test("should use the same context when invoked from useTask$ with resource", async ({
+      page,
+    }) => {
+      await page.goto("/qwikcity-test/server-func/");
+      const methodsContainer = page.locator("#methods");
+      await expect(methodsContainer).toContainText("GETGET");
+    });
+
+    test("should use the same context when invoked from useTask$", async ({
+      page,
+    }) => {
+      await page.goto("/qwikcity-test/server-func/context");
+      const methodsContainer = page.locator("#methods");
+      await expect(methodsContainer).toContainText("GETGET");
+    });
   });
 });

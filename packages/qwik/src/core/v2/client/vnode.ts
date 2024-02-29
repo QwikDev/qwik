@@ -737,7 +737,11 @@ export const vnode_remove = (vParent: VNode, vToRemove: VNode, removeDOM: boolea
     vParent[ElementVNodeProps.lastChild] = vPrevious;
   }
   if (removeDOM && !vnode_isVirtualVNode(vParent)) {
-    vnode_getDOMParent(vParent)!.removeChild(vnode_getNode(vToRemove)!);
+    const domChild = vnode_getNode(vToRemove)!;
+    if (domChild) {
+      const domParent = vnode_getDOMParent(vParent)!;
+      domParent.removeChild(domChild);
+    }
   }
 };
 
@@ -972,7 +976,7 @@ export const vnode_getParent = (vnode: VNode): VNode | null => {
   return vnode[VNodeProps.parent] || null;
 };
 
-export const vnode_getNode = (vnode: VNode) => {
+export const vnode_getNode = (vnode: VNode): Element | Text | null => {
   assertDefined(vnode, 'Missing vnode.');
   if (vnode_isVirtualVNode(vnode)) {
     return null;

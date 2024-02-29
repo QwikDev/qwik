@@ -16,7 +16,7 @@ export interface QwikCityRun<T> {
 // TODO: create single QGlobal type
 type AsyncStore = import('node:async_hooks').AsyncLocalStorage<RequestEventInternal>;
 interface QGlobal extends Global {
-  asyncStore?: AsyncStore;
+  qcAsyncRequestStore?: AsyncStore;
 }
 
 let asyncStore: AsyncStore | undefined;
@@ -24,7 +24,7 @@ import('node:async_hooks')
   .then((module) => {
     const AsyncLocalStorage = module.AsyncLocalStorage;
     asyncStore = new AsyncLocalStorage<RequestEventInternal>();
-    (globalThis as QGlobal).asyncStore = asyncStore;
+    (globalThis as QGlobal).qcAsyncRequestStore = asyncStore;
   })
   .catch((err) => {
     console.warn(

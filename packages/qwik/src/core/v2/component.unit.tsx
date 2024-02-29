@@ -57,47 +57,62 @@ describe('useSequentialScope', () => {
     ssrRenderToDom, //
     domRender, //
   ].forEach((render) => {
-    it('should show Child Component', async () => {
-      const Child = component$(() => {
-        return <div>Child</div>;
-      });
-      const Parent = component$(() => {
-        const showChild = useSignal(false);
-        return <>
-          <div>Parent</div>
-          <div>
-            <button onClick$={inlinedQrl(() => { useLexicalScope()[0].value = !useLexicalScope()[0].value }, 's_onClick', [showChild])}>Show child</button>
-            {showChild.value && <Child />}
-          </div>
-        </>;
-      });
+    describe(`render: ${render.name}`, () => {
+      it('should show Child Component', async () => {
+        const Child = component$(() => {
+          return <div>Child</div>;
+        });
+        const Parent = component$(() => {
+          const showChild = useSignal(false);
+          return (
+            <>
+              <div>Parent</div>
+              <div>
+                <button
+                  onClick$={inlinedQrl(
+                    () => {
+                      const [showChild] = useLexicalScope();
+                      showChild.value = !showChild.value;
+                    },
+                    's_onClick',
+                    [showChild]
+                  )}
+                >
+                  Show child
+                </button>
+                {showChild.value && <Child />}
+              </div>
+            </>
+          );
+        });
 
-      const { vNode, document } = await render(<Parent />, { debug });
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
-            <div>Parent</div>
-            <div>
-              <button>Show child</button>
-              {''}
-            </div>
-          </Fragment>
-        </Component >
-      );
-      await trigger(document.body, 'button', 'click');
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
-            <div>Parent</div>
-            <div>
-              <button>Show child</button>
-              <Component>
-                <div>Child</div>
-              </Component>
-            </div>
-          </Fragment>
-        </Component >
-      );
+        const { vNode, document } = await render(<Parent />, { debug });
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <Fragment>
+              <div>Parent</div>
+              <div>
+                <button>Show child</button>
+                {''}
+              </div>
+            </Fragment>
+          </Component>
+        );
+        await trigger(document.body, 'button', 'click');
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <Fragment>
+              <div>Parent</div>
+              <div>
+                <button>Show child</button>
+                <Component>
+                  <div>Child</div>
+                </Component>
+              </div>
+            </Fragment>
+          </Component>
+        );
+      });
     });
-  })
+  });
 });

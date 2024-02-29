@@ -13,12 +13,16 @@ export interface QwikCityRun<T> {
   completion: Promise<unknown>;
 }
 
-let asyncStore: import('node:async_hooks').AsyncLocalStorage<RequestEventInternal> | undefined;
+export type AsyncStore = import('node:async_hooks').AsyncLocalStorage<RequestEventInternal>;
+interface QGlobal extends Global {
+  asyncStore?: AsyncStore;
+}
+
+let asyncStore: AsyncStore | undefined;
 import('node:async_hooks')
   .then((module) => {
     const AsyncLocalStorage = module.AsyncLocalStorage;
     asyncStore = new AsyncLocalStorage<RequestEventInternal>();
-    // TODO add type
     (globalThis as QGlobal).asyncStore = asyncStore;
   })
   .catch((err) => {

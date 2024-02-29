@@ -13,14 +13,12 @@
     "displayName": "Adapter: Cloudflare Pages",
     "docs": [
       "https://qwik.builder.io/deployments/cloudflare-pages/",
-      "https://developers.cloudflare.com/pages",
-      "https://developers.cloudflare.com/workers/wrangler/configuration/#configure-wranglertoml"
+      "https://developers.cloudflare.com/pages"
     ],
     "nextSteps": {
       "title": "Next Steps",
       "lines": [
-        "Now you need to create a `wrangler.toml` file that includes `compatibility_flags = [ \"nodejs_als\" ]`",
-        "Then you can build and deploy to Cloudflare Pages with:",
+        "Now you can build and deploy to Cloudflare Pages with:",
         "",
         "- pnpm run build: production build for Cloudflare",
         "- pnpm run deploy: it will use the Cloudflare CLI to deploy your site"

@@ -164,6 +164,12 @@ test.describe("context", () => {
       await expect(child1).toContainText("Child 1, active: true");
       await expect(child2).toContainText("Child 2, active: false");
     });
+
+    test("issue 5793 scalar context values", async ({ page }) => {
+      const value = page.locator("#issue5793-value");
+
+      await expect(value).toHaveText("yes");
+    });
   }
 
   test.beforeEach(async ({ page }) => {

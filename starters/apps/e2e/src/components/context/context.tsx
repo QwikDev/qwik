@@ -19,6 +19,7 @@ export const Context2 = createContextId<ContextI>("ctx1");
 export const Context3 = createContextId<ContextI>("ctx2");
 export const ContextSlot = createContextId<ContextI>("slot");
 export const Unset = createContextId<ContextI>("unset");
+export const ContextString = createContextId<string>("ctx-string");
 
 export const ContextRoot = component$(() => {
   const count = useSignal(0);
@@ -57,6 +58,7 @@ export const ContextApp = component$(() => {
       <Issue2087 />
       <Issue2894 />
       <Issue5356 />
+      <Issue5793 />
     </div>
   );
 });
@@ -310,3 +312,13 @@ export const Issue5356_Child = component$<{ value: number; active: boolean }>(
     );
   },
 );
+
+export const Issue5793 = component$(() => {
+  useContextProvider(ContextString, "yes");
+  return <Issue5793_Child />;
+});
+
+export const Issue5793_Child = component$(() => {
+  const s = useContext(ContextString);
+  return <div id="issue5793-value">{s}</div>;
+});

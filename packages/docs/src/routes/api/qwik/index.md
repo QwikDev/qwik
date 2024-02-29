@@ -3628,7 +3628,7 @@ Assign a value to a Context.
 
 Use `useContextProvider()` to assign a value to a context. The assignment happens in the component's function. Once assigned, use `useContext()` in any child component to retrieve the value.
 
-Context is a way to pass stores to the child components without prop-drilling.
+Context is a way to pass stores to the child components without prop-drilling. Note that scalar values are allowed, but for reactivity you need signals or stores.
 
 ### Example
 
@@ -3667,7 +3667,7 @@ export const Items = component$(() => {
 ```
 
 ```typescript
-useContextProvider: <STATE extends object>(context: ContextId<STATE>, newValue: STATE) => void
+useContextProvider: <STATE>(context: ContextId<STATE>, newValue: STATE) => void
 ```
 
 | Parameter | Type                                 | Description                       |

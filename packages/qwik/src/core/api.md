@@ -1614,7 +1614,7 @@ export const useComputedQrl: ComputedQRL;
 export const useContext: UseContext;
 
 // @public
-export const useContextProvider: <STATE extends object>(context: ContextId<STATE>, newValue: STATE) => void;
+export const useContextProvider: <STATE>(context: ContextId<STATE>, newValue: STATE) => void;
 
 // @public (undocumented)
 export const useErrorBoundary: () => Readonly<ErrorBoundaryStore>;

@@ -76,7 +76,7 @@
     "prebuild.core": "tsm check-qwik-build.ts",
     "preview": "qwik build preview && vite preview --open",
     "preview.only": "NODE_DEBUG=net,http node --inspect-brk ../../node_modules/vite/bin/vite.js preview",
-    "preview.wrangler": "wrangler pages dev ./dist",
+    "preview.wrangler": "wrangler pages dev ./dist --compatibility-flags=nodejs_als",
     "start": "pnpm dev"
   }
 }

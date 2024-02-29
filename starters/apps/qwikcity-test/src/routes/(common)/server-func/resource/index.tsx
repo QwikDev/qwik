@@ -1,5 +1,6 @@
 import { component$, useResource$, Resource } from "@builder.io/qwik";
 import { server$ } from "@builder.io/qwik-city";
+import { delay } from "../../actions/login";
 
 const serverFunctionA = server$(async function a() {
   return this.pathname + "a";
@@ -16,7 +17,9 @@ const serverFunctionC = server$(async function c() {
 const ResourceServerFns = component$(() => {
   const resource = useResource$(async () => {
     const resultA = await serverFunctionA();
+    await delay(1);
     const resultB = await serverFunctionB();
+    await delay(1);
     const resultC = await serverFunctionC();
 
     return { resultA, resultB, resultC };

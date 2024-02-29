@@ -287,9 +287,8 @@ export const serverQrl = <T extends ServerFunction>(qrl: QRL<T>): ServerQRL<T> =
           : undefined;
       if (isServer) {
         // Running during SSR, we can call the function directly
-        const foo = [(globalThis as any).asyncStore?.getStore(), useQwikCityEnv()?.ev, this, _getContextEvent()]
-        console.trace('asdfasdfasdfasdfasdf', foo.map(Boolean))
-        const requestEvent = foo.find(
+        const contexts = [(globalThis as any).asyncStore?.getStore(), useQwikCityEnv()?.ev, this, _getContextEvent()]
+        const requestEvent = contexts.find(
           (v) =>
             v &&
             Object.prototype.hasOwnProperty.call(v, 'sharedMap') &&

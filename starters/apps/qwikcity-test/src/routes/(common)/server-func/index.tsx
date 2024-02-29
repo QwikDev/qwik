@@ -95,6 +95,7 @@ export const MultipleServerFunctionsInvokedInTask = component$(() => {
   const methods = useStore<{ a: string; b: string }>({ a: "", b: "" });
   useTask$(async () => {
     methods.a = await serverFunctionA();
+    await delay1);
     methods.b = await serverFunctionB();
   });
 

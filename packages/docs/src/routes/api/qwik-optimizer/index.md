@@ -38,6 +38,14 @@ export interface ComponentEntryStrategy
 createOptimizer: (optimizerOptions?: OptimizerOptions) => Promise<Optimizer>;
 ```
 
+| Parameter        | Type                                  | Description  |
+| ---------------- | ------------------------------------- | ------------ |
+| optimizerOptions | [OptimizerOptions](#optimizeroptions) | _(Optional)_ |
+
+**Returns:**
+
+Promise&lt;[Optimizer](#optimizer)&gt;
+
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/optimizer.ts)
 
 ## Diagnostic

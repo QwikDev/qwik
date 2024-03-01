@@ -16,7 +16,7 @@ export const useApps = routeLoader$<ApplicationRow[]>(async ({ sharedMap }) => {
   } else if (insightUser.applicationPublicApiKeys.length) {
     query = query.where(
       inArray(applicationTable.publicApiKey, insightUser.applicationPublicApiKeys)
-    );
+    ) as typeof query;
   } else {
     // The user has nothing attached to it.
     return [];

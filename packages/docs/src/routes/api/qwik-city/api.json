@@ -252,8 +252,8 @@
           "id": "form"
         }
       ],
-      "kind": "Variable",
-      "content": "```typescript\nForm: <O, I>({ action, spaReset, reloadDocument, onSubmit$, ...rest }: FormProps<O, I>, key: string | null) => import(\"@builder.io/qwik\").JSXOutput\n```",
+      "kind": "Function",
+      "content": "```typescript\nForm: <O, I>({ action, spaReset, reloadDocument, onSubmit$, ...rest }: FormProps<O, I>, key: string | null) => import(\"@builder.io/qwik\").JSXOutput\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  { action, spaReset, reloadDocument, onSubmit$, ...rest } | [FormProps](#formprops)<!-- -->&lt;O, I&gt; |  |\n|  key | string \\| null |  |\n\n**Returns:**\n\nimport(\"@builder.io/qwik\").JSXOutput",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/form-component.tsx",
       "mdFile": "qwik-city.form.md"
     },
@@ -672,8 +672,8 @@
           "id": "server_"
         }
       ],
-      "kind": "Variable",
-      "content": "```typescript\nserver$: <T extends ServerFunction>(first: T) => ServerQRL<T>\n```",
+      "kind": "Function",
+      "content": "```typescript\nserver$: <T extends ServerFunction>(first: T) => ServerQRL<T>\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  first | T |  |\n\n**Returns:**\n\n[ServerQRL](#serverqrl)<!-- -->&lt;T&gt;",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
       "mdFile": "qwik-city.server_.md"
     },
@@ -700,8 +700,8 @@
           "id": "serverqrl"
         }
       ],
-      "kind": "Variable",
-      "content": "```typescript\nserverQrl: <T extends ServerFunction>(qrl: QRL<T>) => ServerQRL<T>\n```",
+      "kind": "Function",
+      "content": "You can pass an AbortSignal as the first argument of a `server$` function and it will use it to abort the fetch when fired.\n\n\n```typescript\nexport type ServerQRL<T extends ServerFunction> = QRL<((abort: AbortSignal, ...args: Parameters<T>) => ReturnType<T>) | ((...args: Parameters<T>) => ReturnType<T>)>;\n```\n**References:** [ServerFunction](#serverfunction)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
       "mdFile": "qwik-city.serverqrl.md"
     },
@@ -715,7 +715,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nserverQrl: <T extends ServerFunction>(qrl: QRL<T>) => ServerQRL<T>\n```",
+      "content": "You can pass an AbortSignal as the first argument of a `server$` function and it will use it to abort the fetch when fired.\n\n\n```typescript\nexport type ServerQRL<T extends ServerFunction> = QRL<((abort: AbortSignal, ...args: Parameters<T>) => ReturnType<T>) | ((...args: Parameters<T>) => ReturnType<T>)>;\n```\n**References:** [ServerFunction](#serverfunction)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik-city.serverqrl.md"
     },
@@ -728,8 +728,8 @@
           "id": "serviceworkerregister"
         }
       ],
-      "kind": "Variable",
-      "content": "```typescript\nServiceWorkerRegister: (props: {\n    nonce?: string;\n}) => import(\"@builder.io/qwik\").JSXNode<\"script\">\n```",
+      "kind": "Function",
+      "content": "```typescript\nServiceWorkerRegister: (props: {\n    nonce?: string;\n}) => import(\"@builder.io/qwik\").JSXNode<\"script\">\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  props | { nonce?: string; } |  |\n\n**Returns:**\n\nimport(\"@builder.io/qwik\").JSXNode&lt;\"script\"&gt;",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/sw-component.tsx",
       "mdFile": "qwik-city.serviceworkerregister.md"
     },
@@ -798,8 +798,8 @@
           "id": "usecontent"
         }
       ],
-      "kind": "Variable",
-      "content": "```typescript\nuseContent: () => import(\"./types\").ContentState\n```",
+      "kind": "Function",
+      "content": "```typescript\nuseContent: () => import(\"./types\").ContentState\n```\n**Returns:**\n\nimport(\"./types\").ContentState",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/use-functions.ts",
       "mdFile": "qwik-city.usecontent.md"
     },
@@ -812,8 +812,8 @@
           "id": "usedocumenthead"
         }
       ],
-      "kind": "Variable",
-      "content": "Returns the document head for the current page. The generic type describes the front matter.\n\n\n```typescript\nuseDocumentHead: <FrontMatter extends Record<string, unknown> = Record<string, any>>() => Required<Required<import(\"./types\").DocumentHeadValue<FrontMatter>>>\n```",
+      "kind": "Function",
+      "content": "Returns the document head for the current page. The generic type describes the front matter.\n\n\n```typescript\nuseDocumentHead: <FrontMatter extends Record<string, unknown> = Record<string, any>>() => Required<Required<import(\"./types\").DocumentHeadValue<FrontMatter>>>\n```\n**Returns:**\n\nRequired&lt;Required&lt;import(\"./types\").[DocumentHeadValue](#documentheadvalue)<!-- -->&lt;FrontMatter&gt;&gt;&gt;",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/use-functions.ts",
       "mdFile": "qwik-city.usedocumenthead.md"
     },
@@ -826,8 +826,8 @@
           "id": "uselocation"
         }
       ],
-      "kind": "Variable",
-      "content": "```typescript\nuseLocation: () => RouteLocation\n```",
+      "kind": "Function",
+      "content": "```typescript\nuseLocation: () => RouteLocation\n```\n**Returns:**\n\n[RouteLocation](#routelocation)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/use-functions.ts",
       "mdFile": "qwik-city.uselocation.md"
     },
@@ -840,8 +840,8 @@
           "id": "usenavigate"
         }
       ],
-      "kind": "Variable",
-      "content": "```typescript\nuseNavigate: () => RouteNavigate\n```",
+      "kind": "Function",
+      "content": "```typescript\nuseNavigate: () => RouteNavigate\n```\n**Returns:**\n\n[RouteNavigate](#routenavigate)",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/use-functions.ts",
       "mdFile": "qwik-city.usenavigate.md"
     },

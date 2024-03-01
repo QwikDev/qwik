@@ -19,6 +19,7 @@ target
 output
 rollup.config.js
 build
+!packages/qwik/src/build
 .cache
 .rollup.cache
 tsconfig.tsbuildinfo

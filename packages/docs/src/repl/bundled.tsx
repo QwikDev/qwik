@@ -1,27 +1,26 @@
 import { version as qwikVersion } from '../../../qwik';
+import type { PkgUrls } from './types';
 
 import prettierPkgJson from 'prettier/package.json';
-import prettierParserHtml from 'prettier/plugins/html.js?url';
-import prettierStandaloneJs from 'prettier/standalone.js?url';
-import type { BundledFiles } from './types';
-import { qwikFiles } from './qwikFiles';
+import prettierParserHtml from 'prettier/plugins/html.js?raw';
+import prettierStandaloneJs from 'prettier/standalone.js?raw';
+import terserPkgJson from 'terser/package.json';
+import terserJs from '../../node_modules/terser/dist/bundle.min.js?raw';
+import qBuild from '../../node_modules/@builder.io/qwik/dist/build/index.d.ts?raw';
+import qCoreCjs from '../../node_modules/@builder.io/qwik/dist/core.cjs?raw';
+import qCoreDts from '../../node_modules/@builder.io/qwik/dist/core.d.ts?raw';
+import qCoreMinMjs from '../../node_modules/@builder.io/qwik/dist/core.min.mjs?raw';
+import qCoreMjs from '../../node_modules/@builder.io/qwik/dist/core.mjs?raw';
+import qJsxDts from '../../node_modules/@builder.io/qwik/dist/jsx-runtime.d.ts?raw';
+import qOptimizerCjs from '../../node_modules/@builder.io/qwik/dist/optimizer.cjs?raw';
+import qServerCjs from '../../node_modules/@builder.io/qwik/dist/server.cjs?raw';
+import qServerDts from '../../node_modules/@builder.io/qwik/dist/server.d.ts?raw';
 
-export const bundled: BundledFiles = {
-  '@builder.io/qwik': {
-    version: qwikVersion,
-    ...Object.fromEntries(
-      qwikFiles.map((f) => [`/${f}`, `${import.meta.env.BASE_URL}repl/bundled/qwik/${f}`])
-    ),
-  },
-  prettier: {
-    version: prettierPkgJson.version,
-    '/plugins/html.js': prettierParserHtml,
-    '/standalone.js': prettierStandaloneJs,
-  },
-};
+export const QWIK_PKG_NAME = '@builder.io/qwik';
+const ROLLUP_VERSION = '2.75.6';
 
 export const getNpmCdnUrl = (
-  bundled: BundledFiles,
+  bundled: PkgUrls,
   pkgName: string,
   pkgVersion: string,
   pkgPath: string
@@ -40,4 +39,44 @@ export const getNpmCdnUrl = (
     }
   }
   return `https://cdn.jsdelivr.net/npm/${pkgName}${pkgVersion ? '@' + pkgVersion : ''}${pkgPath}`;
+};
+
+// https://github.com/vitejs/vite/issues/15753
+const blobUrl = (code: string) => {
+  const blob = new Blob([code], { type: 'application/javascript' });
+  return URL.createObjectURL(blob);
+};
+
+export const bundled: PkgUrls = {
+  [QWIK_PKG_NAME]: {
+    version: qwikVersion,
+    '/build/index.d.ts': blobUrl(qBuild),
+    '/core.cjs': blobUrl(qCoreCjs),
+    '/core.d.ts': blobUrl(qCoreDts),
+    '/core.min.mjs': blobUrl(qCoreMinMjs),
+    '/core.mjs': blobUrl(qCoreMjs),
+    '/jsx-runtime.d.ts': blobUrl(qJsxDts),
+    '/optimizer.cjs': blobUrl(qOptimizerCjs),
+    '/server.cjs': blobUrl(qServerCjs),
+    '/server.d.ts': blobUrl(qServerDts),
+  },
+  prettier: {
+    version: prettierPkgJson.version,
+    '/plugins/html.js': blobUrl(prettierParserHtml),
+    '/standalone.js': blobUrl(prettierStandaloneJs),
+  },
+  // v4 of rollup uses wasm etc, need to figure out how to bundle that
+  rollup: {
+    version: ROLLUP_VERSION,
+    '/dist/rollup.browser.js': getNpmCdnUrl(
+      {},
+      'rollup',
+      ROLLUP_VERSION,
+      '/dist/rollup.browser.js'
+    ),
+  },
+  terser: {
+    version: terserPkgJson.version,
+    '/dist/bundle.min.js': blobUrl(terserJs),
+  },
 };

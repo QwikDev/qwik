@@ -320,6 +320,15 @@ const inflate = (container: DomContainer, target: any, needsInflationData: strin
         promise[PROMISE_RESOLVE](container.$getObjectById$(~id));
       }
       break;
+    case SerializationConstant.Uint8Array_VALUE:
+      const bytes = target as Uint8Array;
+      const buf = atob(restString());
+      let i = 0;
+      for (const s of buf) {
+        bytes[i++] = s.charCodeAt(0);
+      }
+      break;
+
     default:
       throw new Error('Not implemented');
   }
@@ -380,6 +389,12 @@ const allocate = <T>(value: string): any => {
       promise[PROMISE_RESOLVE] = resolve;
       promise[PROMISE_REJECT] = reject;
       return promise;
+    case SerializationConstant.Uint8Array_VALUE:
+      const encodedLength = value.length - 1;
+      const blocks = encodedLength >>> 2;
+      const rest = encodedLength & 3;
+      const decodedLength = blocks * 3 + (rest ? rest - 1 : 0);
+      return new Uint8Array(decodedLength);
     default:
       throw new Error('unknown allocate type: ' + value.charCodeAt(0));
   }
@@ -740,7 +755,7 @@ export function serialize(serializationContext: SerializationContext): void {
           (subscriptions === '' ? '' : ';' + subscriptions)
       );
     } else if (value instanceof SignalDerived) {
-      return writeString(serializeSignalDerived(serializationContext, value, $addRoot$));
+      writeString(serializeSignalDerived(serializationContext, value, $addRoot$));
     } else if (value instanceof Store) {
       writeString(SerializationConstant.Store_CHAR + $addRoot$(unwrapProxy(value)));
     } else if (value instanceof URL) {
@@ -797,7 +812,14 @@ export function serialize(serializationContext: SerializationContext): void {
           (value.$state$ == null ? '' : ' ' + $addRoot$(value.$state$))
       );
     } else if (isPromise(value)) {
-      return writeString(SerializationConstant.Promise_CHAR + getSerializableDataRootId(value));
+      writeString(SerializationConstant.Promise_CHAR + getSerializableDataRootId(value));
+    } else if (value instanceof Uint8Array) {
+      let buf = '';
+      for (const c of value) {
+        buf += String.fromCharCode(c);
+      }
+      const out = btoa(buf).replace(/=+$/, '');
+      writeString(SerializationConstant.Uint8Array_CHAR + out);
     } else {
       throw new Error('implement: ' + value);
     }
@@ -1039,9 +1061,10 @@ export const enum SerializationConstant {
   Map_VALUE = /* ------------------------- */ 0x1b,
   Promise_CHAR = /* ------------------- */ '\u001c',
   Promise_VALUE = /* --------------------- */ 0x1c,
-  LAST_VALUE = /* ------------------------ */ 0x1d,
+  Uint8Array_CHAR = /* ---------------- */ '\u001e',
+  Uint8Array_VALUE = /* ------------------- */ 0x1e,
   /// Can't go past this value
-  SPACE_VALUE = /* ----------------------- */ 0x20,
+  LAST_VALUE = /* ------------------------ */ 0x20,
 }
 
 function serializeJSXType($addRoot$: (obj: unknown) => number, type: string | FunctionComponent) {
@@ -1131,6 +1154,8 @@ export const codeToName = (code: number) => {
       return 'Map';
     case SerializationConstant.Promise_VALUE:
       return 'Promise';
+    case SerializationConstant.Uint8Array_VALUE:
+      return 'Uint8Array';
   }
 };
 

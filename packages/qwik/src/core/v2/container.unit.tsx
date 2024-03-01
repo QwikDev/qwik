@@ -17,6 +17,7 @@ import { toSsrAttrs } from './ssr/ssr-render';
 import { SsrNode, type SSRContainer } from './ssr/types';
 import './vdom-diff.unit-util';
 import { walkJSX } from './vdom-diff.unit-util';
+import crypto from 'node:crypto';
 
 describe('serializer v2', () => {
   describe('rendering', () => {
@@ -177,10 +178,10 @@ describe('serializer v2', () => {
 
     it('should escape string <>', () => {
       const container = withContainer((ssrContainer) => {
-        ssrContainer.addRoot({ '<scrip></script>': '"<scrip></script>"', '<': '<script>' });
+        ssrContainer.addRoot({ '</script>': '"<script></script>"', '<': '<script>' });
       });
       expect(container.$getObjectById$(0)).toEqual({
-        '<scrip></script>': '"<scrip></script>"',
+        '</script>': '"<script></script>"',
         '<': '<script>',
       });
     });
@@ -397,6 +398,17 @@ describe('serializer v2', () => {
     describe('StringSerializer, /////////// \u001b', () => {
       it('should serialize and deserialize', () => {
         const obj = '\u0010anything';
+        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
+      });
+    });
+    describe('Uint8Serializer, //////////// \u001c', () => {
+      it('should serialize and deserialize', () => {
+        const obj = new Uint8Array([1, 2, 3, 4, 5, 0]);
+        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
+      });
+      it('should handle large arrays', () => {
+        const obj = new Uint8Array(Math.random() * 100000 + 1);
+        crypto.getRandomValues(obj);
         expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
       });
     });

@@ -354,6 +354,9 @@ importers:
       tailwindcss:
         specifier: ^3.4.1
         version: 3.4.1
+      terser:
+        specifier: ^5.28.1
+        version: 5.28.1
       tsm:
         specifier: ^2.3.0
         version: 2.3.0

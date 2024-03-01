@@ -15,14 +15,14 @@ export interface ReplAppInput {
   debug?: boolean;
 }
 
-export type BundledFiles = { [pkgName: string]: { [path: string]: string; version: string } };
+export type PkgUrls = { [pkgName: string]: { [path: string]: string; version: string } };
 export interface ReplInputOptions extends Omit<QwikRollupPluginOptions, 'srcDir'> {
   buildId: number;
   srcInputs: ReplModuleInput[];
   version: string;
   buildMode: 'development' | 'production';
-  serverUrl: string;
-  bundled: BundledFiles;
+  serverUrl: string | undefined;
+  deps: PkgUrls;
 }
 
 export interface ReplStore {
@@ -41,7 +41,7 @@ export interface ReplStore {
   enableSsrOutput: boolean;
   ssrBuild: boolean;
   debug: boolean;
-  serverUrl: string;
+  serverUrl?: string;
   serverWindow: NoSerialize<MessageEventSource> | null;
   versions: string[];
   events: ReplEvent[];

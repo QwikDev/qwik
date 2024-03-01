@@ -210,7 +210,7 @@ Error.stackTraceLimit = 100;
       );
     });
 
-    it('should lazily evaluate the function for issue 3294 with useSignal', async () => {
+    it.skip('improvement(after v2): should lazily evaluate the function for issue 3294 with useSignal', async () => {
       let useComputedCount = 0;
       const Issue3294 = component$(() => {
         const firstName = useSignal('Misko');

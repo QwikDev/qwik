@@ -215,33 +215,33 @@ Error.stackTraceLimit = 100;
       const Issue3294 = component$(() => {
         const firstName = useSignal('Misko');
         const lastName = useSignal('Hevery');
-        const lastNameFirstPreference = useSignal(true);
-        const lastNameFirst = useComputedQrl(
+        const execFirstUseComputed = useSignal(true);
+        const firstUseComputed = useComputedQrl(
           inlinedQrl(
             () => {
               useComputedCount++;
               return useLexicalScope()[1].value + ' ' + useLexicalScope()[0].value;
             },
-            's_lastNameFirst',
+            's_firstUseComputed',
             [firstName, lastName]
           )
         );
-        const firstNameFirst = useComputedQrl(
+        const secondUseComputed = useComputedQrl(
           inlinedQrl(
             () => {
               useComputedCount++;
               return useLexicalScope()[0].value + ' ' + useLexicalScope()[1].value;
             },
-            's_firstNameFirst',
+            's_secondUseComputed',
             [firstName, lastName]
           )
         );
         return (
           <div>
-            {lastNameFirstPreference.value ? (
-              <span>{lastNameFirst.value}</span>
+            {execFirstUseComputed.value ? (
+              <span>{firstUseComputed.value}</span>
             ) : (
-              <span>{firstNameFirst.value}</span>
+              <span>{secondUseComputed.value}</span>
             )}
           </div>
         );
@@ -262,33 +262,33 @@ Error.stackTraceLimit = 100;
       let useComputedCount = 0;
       const Issue3294 = component$(() => {
         const store = useStore({ firstName: 'Misko', lastName: 'Hevery' });
-        const lastNameFirstPreference = useSignal(true);
-        const lastNameFirst = useComputedQrl(
+        const execFirstUseComputed = useSignal(true);
+        const firstUseComputed = useComputedQrl(
           inlinedQrl(
             () => {
               useComputedCount++;
               return useLexicalScope()[0].lastName + ' ' + useLexicalScope()[0].firstName;
             },
-            's_lastNameFirst',
+            's_firstUseComputed',
             [store]
           )
         );
-        const firstNameFirst = useComputedQrl(
+        const secondUseComputed = useComputedQrl(
           inlinedQrl(
             () => {
               useComputedCount++;
               return useLexicalScope()[0].firstName + ' ' + useLexicalScope()[0].lastName;
             },
-            's_firstNameFirst',
+            's_secondUseComputed',
             [store]
           )
         );
         return (
           <div>
-            {lastNameFirstPreference.value ? (
-              <span>{lastNameFirst.value}</span>
+            {execFirstUseComputed.value ? (
+              <span>{firstUseComputed.value}</span>
             ) : (
-              <span>{firstNameFirst.value}</span>
+              <span>{secondUseComputed.value}</span>
             )}
           </div>
         );

@@ -12,7 +12,6 @@ import type { SymbolMapperFn } from '@builder.io/qwik/optimizer';
 
 // @public
 export function getQwikLoaderScript(opts?: {
-    events?: string[];
     debug?: boolean;
 }): string;
 

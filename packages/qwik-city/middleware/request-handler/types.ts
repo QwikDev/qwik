@@ -494,7 +494,7 @@ export interface Cookie {
   /** Sets a `Response` cookie header using the `Set-Cookie` header. */
   set(name: string, value: string | number | Record<string, any>, options?: CookieOptions): void;
   /** Deletes cookie value by name using the `Response` cookie header. */
-  delete(name: string, options?: Pick<CookieOptions, 'path' | 'domain'>): void;
+  delete(name: string, options?: Pick<CookieOptions, 'path' | 'domain' | 'sameSite'>): void;
   /** Returns an array of all the set `Response` `Set-Cookie` header values. */
   headers(): string[];
 }

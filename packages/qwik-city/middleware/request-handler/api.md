@@ -39,7 +39,7 @@ export interface ClientConn {
 
 // @public (undocumented)
 export interface Cookie {
-    delete(name: string, options?: Pick<CookieOptions, 'path' | 'domain'>): void;
+    delete(name: string, options?: Pick<CookieOptions, 'path' | 'domain' | 'sameSite'>): void;
     get(name: string): CookieValue | null;
     getAll(): Record<string, CookieValue>;
     has(name: string): boolean;

@@ -76,15 +76,15 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
       }
       if (id === '\0qwikCore') {
         if (options.buildMode === 'production') {
-          const rsp = await depResponse('@builder.io/qwik', options.version, '/core.min.mjs');
+          const rsp = await depResponse('@builder.io/qwik', '/core.min.mjs');
           if (rsp) {
-            return rsp.clone().text();
+            return rsp.text();
           }
         }
 
-        const rsp = await depResponse('@builder.io/qwik', options.version, '/core.mjs');
+        const rsp = await depResponse('@builder.io/qwik', '/core.mjs');
         if (rsp) {
-          return rsp.clone().text();
+          return rsp.text();
         }
         throw new Error(`Unable to load Qwik core`);
       }

@@ -21,6 +21,26 @@ Error.stackTraceLimit = 100;
   domRender, //
 ].forEach((render) => {
   describe('useStore', () => {
+    it('should render value', async () => {
+      const Cmp = component$(() => {
+        const store = useStore({ items: [{ num: 0 }] });
+        return (<>
+          {store.items.map((item, key) => (
+            <div key={key}>{item.num}</div>
+          ))}
+        </>
+        );
+      });
+
+      const { vNode } = await render(<Cmp />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component >
+          <Fragment>
+            <div>0</div>
+          </Fragment>
+        </Component>
+      );
+    });
     it('should update value', async () => {
       const Counter = component$(() => {
         const count = useStore({ count: 123 });

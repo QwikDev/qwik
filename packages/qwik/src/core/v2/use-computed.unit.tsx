@@ -4,6 +4,7 @@ import { component$ } from '../component/component.public';
 import { inlinedQrl } from '../qrl/qrl';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { useSignal } from '../use/use-signal';
+import { useStore } from '../use/use-store.public';
 import { useComputedQrl } from '../use/use-task';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
@@ -207,6 +208,101 @@ Error.stackTraceLimit = 100;
           </>
         </>
       );
+    });
+
+    it.skip('improvement(after v2): should lazily evaluate the function for issue 3294 with useSignal', async () => {
+      let useComputedCount = 0;
+      const Issue3294 = component$(() => {
+        const firstName = useSignal('Misko');
+        const lastName = useSignal('Hevery');
+        const execFirstUseComputed = useSignal(true);
+        const firstUseComputed = useComputedQrl(
+          inlinedQrl(
+            () => {
+              useComputedCount++;
+              return useLexicalScope()[1].value + ' ' + useLexicalScope()[0].value;
+            },
+            's_firstUseComputed',
+            [firstName, lastName]
+          )
+        );
+        const secondUseComputed = useComputedQrl(
+          inlinedQrl(
+            () => {
+              useComputedCount++;
+              return useLexicalScope()[0].value + ' ' + useLexicalScope()[1].value;
+            },
+            's_secondUseComputed',
+            [firstName, lastName]
+          )
+        );
+        return (
+          <div>
+            {execFirstUseComputed.value ? (
+              <span>{firstUseComputed.value}</span>
+            ) : (
+              <span>{secondUseComputed.value}</span>
+            )}
+          </div>
+        );
+      });
+
+      const { vNode } = await render(<Issue3294 />, { debug });
+      expect(vNode).toMatchVDOM(
+        <>
+          <div>
+            <span>Hevery Misko</span>
+          </div>
+        </>
+      );
+      expect(useComputedCount).toBe(1);
+    });
+
+    it.skip('improvement(after v2): should lazily evaluate the function for issue 3294 with store', async () => {
+      let useComputedCount = 0;
+      const Issue3294 = component$(() => {
+        const store = useStore({ firstName: 'Misko', lastName: 'Hevery' });
+        const execFirstUseComputed = useSignal(true);
+        const firstUseComputed = useComputedQrl(
+          inlinedQrl(
+            () => {
+              useComputedCount++;
+              return useLexicalScope()[0].lastName + ' ' + useLexicalScope()[0].firstName;
+            },
+            's_firstUseComputed',
+            [store]
+          )
+        );
+        const secondUseComputed = useComputedQrl(
+          inlinedQrl(
+            () => {
+              useComputedCount++;
+              return useLexicalScope()[0].firstName + ' ' + useLexicalScope()[0].lastName;
+            },
+            's_secondUseComputed',
+            [store]
+          )
+        );
+        return (
+          <div>
+            {execFirstUseComputed.value ? (
+              <span>{firstUseComputed.value}</span>
+            ) : (
+              <span>{secondUseComputed.value}</span>
+            )}
+          </div>
+        );
+      });
+
+      const { vNode } = await render(<Issue3294 />, { debug });
+      expect(vNode).toMatchVDOM(
+        <>
+          <div>
+            <span>Hevery Misko</span>
+          </div>
+        </>
+      );
+      expect(useComputedCount).toBe(1);
     });
   });
 });

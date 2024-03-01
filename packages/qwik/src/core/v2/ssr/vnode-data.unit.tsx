@@ -60,10 +60,7 @@ describe('vnode data', () => {
 
       const { container } = await ssrRenderToDom(<Parent />, { debug });
       const state = container.$rawStateData$;
-      const vnodeData = state
-        .map((s) => convertQwikJsonToObject(s))
-        .filter((data) => data?.codeName === 'VNode')
-        .map((data) => data?.dataValue);
+      const vnodeData = getVNodeDataFromQwikState(state);
 
       expect(vnodeData).toEqual(['3A', '4A', '4B']);
     });
@@ -92,10 +89,7 @@ describe('vnode data', () => {
 
       const { container } = await ssrRenderToDom(<Parent />, { debug });
       const state = container.$rawStateData$;
-      const vnodeData = state
-        .map((s) => convertQwikJsonToObject(s))
-        .filter((data) => data?.codeName === 'VNode')
-        .map((data) => data?.dataValue);
+      const vnodeData = getVNodeDataFromQwikState(state);
 
       expect(vnodeData).toEqual(['3A', '3AAA', '3AAB']);
     });
@@ -132,10 +126,7 @@ describe('vnode data', () => {
 
       const { container } = await ssrRenderToDom(<Parent />, { debug });
       const state = container.$rawStateData$;
-      const vnodeData = state
-        .map((s) => convertQwikJsonToObject(s))
-        .filter((data) => data?.codeName === 'VNode')
-        .map((data) => data?.dataValue);
+      const vnodeData = getVNodeDataFromQwikState(state);
 
       expect(vnodeData).toEqual(['3A', '3AAB', '3AAD', '4A', '8A']);
     });
@@ -183,10 +174,7 @@ describe('vnode data', () => {
 
       const { container } = await ssrRenderToDom(<Parent />, { debug });
       const state = container.$rawStateData$;
-      const vnodeData = state
-        .map((s) => convertQwikJsonToObject(s))
-        .filter((data) => data?.codeName === 'VNode')
-        .map((data) => data?.dataValue);
+      const vnodeData = getVNodeDataFromQwikState(state);
 
       expect(vnodeData).toEqual([
         '3AAB',
@@ -202,6 +190,13 @@ describe('vnode data', () => {
     });
   });
 });
+
+function getVNodeDataFromQwikState(state: any[]) {
+  return state
+    .map((s) => convertQwikJsonToObject(s))
+    .filter((data) => data?.codeName === 'VNode')
+    .map((data) => data?.dataValue);
+}
 
 function convertQwikJsonToObject(value: any) {
   const json = JSON.stringify(value);

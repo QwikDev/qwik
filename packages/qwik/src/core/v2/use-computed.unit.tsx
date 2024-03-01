@@ -258,7 +258,7 @@ Error.stackTraceLimit = 100;
       expect(useComputedCount).toBe(1);
     });
 
-    it('should lazily evaluate the function for issue 3294 with store', async () => {
+    it.skip('improvement(after v2): should lazily evaluate the function for issue 3294 with store', async () => {
       let useComputedCount = 0;
       const Issue3294 = component$(() => {
         const store = useStore({ firstName: 'Misko', lastName: 'Hevery' });

@@ -8,6 +8,7 @@ import { _jsxC } from '../render/jsx/jsx-runtime';
 import type { Signal } from '../state/signal';
 import { untrack } from '../use/use-core';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
+import { useSignal } from '../use/use-signal';
 import { useStore } from '../use/use-store.public';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import type { fixMeAny } from './shared/types';
@@ -36,7 +37,7 @@ Error.stackTraceLimit = 100;
       expect(vNode).toMatchVDOM(
         <Component >
           <Fragment>
-            <div>0</div>
+            <div key="0">0</div>
           </Fragment>
         </Component>
       );
@@ -87,6 +88,35 @@ Error.stackTraceLimit = 100;
         <>
           <button>Count: {'124'}!</button>
         </>
+      );
+    });
+    it('should update value for issue 5597', async () => {
+      const Cmp = component$(() => {
+        const count = useSignal(0);
+        const store = useStore({ items: [{ num: 0 }] });
+        return (<>
+          <button
+            onClick$={inlinedQrl(() => useLexicalScope()[0].obj.value++, 's_onClick', [count])}
+          >
+            Count: {count}!
+          </button>
+          {store.items.map((item, key) => (
+            <div key={key}>{item.num}</div>
+          ))}
+        </>
+        );
+      });
+
+      const { vNode } = await render(<Cmp />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component >
+          <button>
+            Count: 0!
+          </button>
+          <div key="0">
+            0
+          </div>
+        </Component>
       );
     });
     it('should rerender child', async () => {

@@ -311,7 +311,8 @@ class SSRContainer implements ISSRContainer {
       this.lastNode = vNodeData_createSsrNodeReference(
         this.currentComponentNode,
         this.currentElementFrame!.vNodeData,
-        this.depthFirstElementCount
+        // we start at -1, so we need to add +1
+        this.currentElementFrame!.depthFirstElementIdx + 1
       );
     }
     return this.lastNode;

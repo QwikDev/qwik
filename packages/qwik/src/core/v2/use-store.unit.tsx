@@ -19,7 +19,7 @@ const debug = false; //true;
 Error.stackTraceLimit = 100;
 
 [
-  // ssrRenderToDom, //
+  ssrRenderToDom, //
   domRender, //
 ].forEach((render) => {
   describe(render.name + ': useStore', () => {
@@ -160,7 +160,9 @@ Error.stackTraceLimit = 100;
           }, 500);
 
           cleanup(() => clearInterval(intervalId));
-        }, 's_useTask', [count, store]));
+        }, 's_useTask', [count, store]), {
+          eagerness: 'visible',
+        });
         return (
           <>
             <div>
@@ -172,7 +174,8 @@ Error.stackTraceLimit = 100;
           </>
         );
       });
-      const { vNode } = await render(<Cmp />, { debug });
+      const { vNode, document } = await render(<Cmp />, { debug });
+      await trigger(document.body, 'div', 'qvisible');
       expect(vNode).toMatchVDOM(
         <Component>
           <Fragment>

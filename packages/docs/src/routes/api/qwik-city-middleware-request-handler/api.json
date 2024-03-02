@@ -114,7 +114,7 @@
         }
       ],
       "kind": "MethodSignature",
-      "content": "Deletes cookie value by name using the `Response` cookie header.\n\n\n```typescript\ndelete(name: string, options?: Pick<CookieOptions, 'path' | 'domain'>): void;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  name | string |  |\n|  options | Pick&lt;[CookieOptions](#cookieoptions)<!-- -->, 'path' \\| 'domain'&gt; | _(Optional)_ |\n\n**Returns:**\n\nvoid",
+      "content": "Deletes cookie value by name using the `Response` cookie header.\n\n\n```typescript\ndelete(name: string, options?: Pick<CookieOptions, 'path' | 'domain' | 'sameSite'>): void;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  name | string |  |\n|  options | Pick&lt;[CookieOptions](#cookieoptions)<!-- -->, 'path' \\| 'domain' \\| 'sameSite'&gt; | _(Optional)_ |\n\n**Returns:**\n\nvoid",
       "mdFile": "qwik-city.cookie.delete.md"
     },
     {

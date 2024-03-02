@@ -14,14 +14,14 @@ import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import type { fixMeAny } from './shared/types';
 import './vdom-diff.unit-util';
 
-const debug = false; //true;
+const debug = true; //true;
 Error.stackTraceLimit = 100;
 
 [
   ssrRenderToDom, //
   domRender, //
 ].forEach((render) => {
-  describe('useStore', () => {
+  describe(render.name + ': useStore', () => {
     it('should render value', async () => {
       const Cmp = component$(() => {
         const store = useStore({ items: [{ num: 0 }] });
@@ -111,7 +111,7 @@ Error.stackTraceLimit = 100;
       expect(vNode).toMatchVDOM(
         <Component >
           <button>
-            Count: 0!
+            Count: {'0'}!
           </button>
           <div key="0">
             0

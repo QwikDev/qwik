@@ -8,6 +8,7 @@ import { _jsxC } from '../render/jsx/jsx-runtime';
 import type { Signal } from '../state/signal';
 import { untrack } from '../use/use-core';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
+import { useSignal } from '../use/use-signal';
 import { useStore } from '../use/use-store.public';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import type { fixMeAny } from './shared/types';
@@ -20,7 +21,27 @@ Error.stackTraceLimit = 100;
   ssrRenderToDom, //
   domRender, //
 ].forEach((render) => {
-  describe('useStore', () => {
+  describe(render.name + ': useStore', () => {
+    it('should render value', async () => {
+      const Cmp = component$(() => {
+        const store = useStore({ items: [{ num: 0 }] });
+        return (<>
+          {store.items.map((item, key) => (
+            <div key={key}>{item.num}</div>
+          ))}
+        </>
+        );
+      });
+
+      const { vNode } = await render(<Cmp />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component >
+          <Fragment>
+            <div key="0">0</div>
+          </Fragment>
+        </Component>
+      );
+    });
     it('should update value', async () => {
       const Counter = component$(() => {
         const count = useStore({ count: 123 });
@@ -67,6 +88,60 @@ Error.stackTraceLimit = 100;
         <>
           <button>Count: {'124'}!</button>
         </>
+      );
+    });
+    it('should update value for issue 5597', async () => {
+      let clicks = 0;
+      const Issue5597 = component$(() => {
+        const count = useSignal(0);
+        const store = useStore({ items: [{ num: 0 }] });
+        return (
+          <>
+            <button
+              onClick$={inlinedQrl(() => {
+                const [count, store] = useLexicalScope();
+                count.value++;
+                store.items = store.items.map((i: { num: number }) => ({ num: i.num + 1 }));
+                clicks++;
+              }, 's_onClick', [count, store])}
+            >
+              Count: {count.value}!
+            </button>
+            {store.items.map((item, key) => (
+              <div key={key}>{item.num}</div>
+            ))}
+          </>
+        );
+      });
+
+      const { vNode, container } = await render(<Issue5597 />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button>
+              {'Count: '}
+              {clicks}
+              {'!'}
+            </button>
+            <div key="0">{clicks}</div>
+          </Fragment>
+        </Component>
+      );
+      await trigger(container.element, 'button', 'click');
+      await trigger(container.element, 'button', 'click');
+      await trigger(container.element, 'button', 'click');
+      await trigger(container.element, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button>
+              {'Count: '}
+              {clicks}
+              {'!'}
+            </button>
+            <div key="0">{clicks}</div>
+          </Fragment>
+        </Component>
       );
     });
     it('should rerender child', async () => {

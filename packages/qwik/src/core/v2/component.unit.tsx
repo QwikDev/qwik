@@ -158,7 +158,7 @@ describe('useSequentialScope', () => {
             <button>
               <Component>
                 <div>
-                  <span>Component 1</span>2
+                  <span>Component 1</span>1
                 </div>
               </Component>
               <Component>
@@ -174,11 +174,11 @@ describe('useSequentialScope', () => {
           <>
             <button>
               {''}
-              <Fragment>
+              <Component>
                 <div>
                   <span>Component 2</span>2
                 </div>
-              </Fragment>
+              </Component>
             </button>
           </>
         );

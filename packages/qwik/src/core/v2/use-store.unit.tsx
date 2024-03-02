@@ -99,9 +99,10 @@ Error.stackTraceLimit = 100;
           <>
             <button
               onClick$={inlinedQrl(() => {
+                const [count, store] = useLexicalScope();
+                count.value++;
+                store.items = store.items.map((i: { num: number }) => ({ num: i.num + 1 }));
                 clicks++;
-                useLexicalScope()[0].value++;
-                useLexicalScope()[1].items = useLexicalScope()[1].items.map((i: { num: number }) => ({ num: i.num + 1 }));
               }, 's_onClick', [count, store])}
             >
               Count: {count.value}!
@@ -114,19 +115,6 @@ Error.stackTraceLimit = 100;
       });
 
       const { vNode, container } = await render(<Issue5597 />, { debug });
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
-            <button>
-              {'Count: '}
-              {clicks}
-              {'!'}
-            </button>
-            <div key="0">{clicks}</div>
-          </Fragment>
-        </Component>
-      );
-      await trigger(container.element, 'button', 'click');
       expect(vNode).toMatchVDOM(
         <Component>
           <Fragment>

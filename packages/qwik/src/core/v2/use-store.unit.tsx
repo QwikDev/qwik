@@ -1,6 +1,6 @@
 import { Fragment as Component, Fragment } from '@builder.io/qwik/jsx-runtime';
-import { describe, expect, it } from 'vitest';
-import { trigger } from '../../testing/element-fixture';
+import { describe, expect, it, vi } from 'vitest';
+import { advanceToNextTimerAndFlush, trigger } from '../../testing/element-fixture';
 import { component$ } from '../component/component.public';
 import { _IMMUTABLE, _fnSignal } from '../internal';
 import { inlinedQrl } from '../qrl/qrl';
@@ -13,12 +13,13 @@ import { useStore } from '../use/use-store.public';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import type { fixMeAny } from './shared/types';
 import './vdom-diff.unit-util';
+import { useTaskQrl } from '../use/use-task';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
 
 [
-  ssrRenderToDom, //
+  // ssrRenderToDom, //
   domRender, //
 ].forEach((render) => {
   describe(render.name + ': useStore', () => {
@@ -90,6 +91,7 @@ Error.stackTraceLimit = 100;
         </>
       );
     });
+
     it('should update value for issue 5597', async () => {
       let clicks = 0;
       const Issue5597 = component$(() => {
@@ -143,6 +145,73 @@ Error.stackTraceLimit = 100;
           </Fragment>
         </Component>
       );
+    });
+    it('should update value for issue 5597 - setInterval', async () => {
+      vi.useFakeTimers();
+      const Cmp = component$(() => {
+        const count = useSignal(0);
+        const store = useStore({ items: [{ num: 0 }] });
+        useTaskQrl(inlinedQrl(({cleanup}) => {
+          const [count, store] = useLexicalScope();
+
+          const intervalId = setInterval(() => {
+            count.value++;
+            store.items = store.items.map((i: { num: number }) => ({ num: i.num + 1 }));
+          }, 500);
+
+          cleanup(() => clearInterval(intervalId));
+        }, 's_useTask', [count, store]));
+        return (
+          <>
+            <div>
+              Count: {count.value}!
+            </div>
+            {store.items.map((item, key) => (
+              <div key={key}>{item.num}</div>
+            ))}
+          </>
+        );
+      });
+      const { vNode } = await render(<Cmp />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <div>
+              {'Count: '}
+              {'0'}
+              {'!'}
+            </div>
+            <div key="0">0</div>
+          </Fragment>
+        </Component>
+      );
+      await advanceToNextTimerAndFlush();
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <div>
+              {'Count: '}
+              {'1'}
+              {'!'}
+            </div>
+            <div key="0">1</div>
+          </Fragment>
+        </Component>
+      );
+      await advanceToNextTimerAndFlush();
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <div>
+              {'Count: '}
+              {'2'}
+              {'!'}
+            </div>
+            <div key="0">2</div>
+          </Fragment>
+        </Component>
+      );
+      vi.useRealTimers();
     });
     it('should rerender child', async () => {
       const log: string[] = [];

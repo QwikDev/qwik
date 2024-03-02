@@ -6,9 +6,6 @@ import { Slot } from '../render/jsx/slot.public';
 import { vnode_getNextSibling } from './client/vnode';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
-import { trigger } from '../../testing/element-fixture';
-import { useLexicalScope } from '../use/use-lexical-scope.public';
-import { useSignal } from '../use/use-signal';
 
 const debug = false;
 

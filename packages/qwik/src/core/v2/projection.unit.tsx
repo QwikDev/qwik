@@ -6,6 +6,9 @@ import { Slot } from '../render/jsx/slot.public';
 import { vnode_getNextSibling } from './client/vnode';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
+import { trigger } from '../../testing/element-fixture';
+import { useLexicalScope } from '../use/use-lexical-scope.public';
+import { useSignal } from '../use/use-signal';
 
 const debug = false;
 
@@ -178,48 +181,81 @@ const debug = false;
         </Component>
       );
     });
-  });
-  it('should project default content', async () => {
-    const Child = componentQrl(
-      inlinedQrl(() => {
-        return (
-          <span>
-            <Slot name="child">Default Child</Slot>
-          </span>
-        );
-      }, 's_child')
-    );
-    const Parent = componentQrl(
-      inlinedQrl(() => {
-        return (
-          <Child>
-            <div q:slot="child">
-              <Slot name="parent">Default parent</Slot>
-            </div>
-          </Child>
-        );
-      }, 's_parent')
-    );
-    const { vNode } = await render(<Parent />, { debug });
-    expect(vNode).toMatchVDOM(
-      <Component>
-        <Component>
-          <span>
-            <Fragment>
-              <div q:slot="child">
-                <Fragment>Default parent</Fragment>
-              </div>
-            </Fragment>
-          </span>
-        </Component>
-      </Component>
-    );
-    if (render === ssrRenderToDom) {
-      expect(vnode_getNextSibling(vNode!)).toMatchVDOM(
-        <q:template style="display:none">
-          <Fragment>Default Child</Fragment>
-        </q:template>
+    it('should project default content', async () => {
+      const Child = componentQrl(
+        inlinedQrl(() => {
+          return (
+            <span>
+              <Slot name="child">Default Child</Slot>
+            </span>
+          );
+        }, 's_child')
       );
-    }
+      const Parent = componentQrl(
+        inlinedQrl(() => {
+          return (
+            <Child>
+              <div q:slot="child">
+                <Slot name="parent">Default parent</Slot>
+              </div>
+            </Child>
+          );
+        }, 's_parent')
+      );
+      const { vNode } = await render(<Parent />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Component>
+            <span>
+              <Fragment>
+                <div q:slot="child">
+                  <Fragment>Default parent</Fragment>
+                </div>
+              </Fragment>
+            </span>
+          </Component>
+        </Component>
+      );
+      if (render === ssrRenderToDom) {
+        expect(vnode_getNextSibling(vNode!)).toMatchVDOM(
+          <q:template style="display:none">
+            <Fragment>Default Child</Fragment>
+          </q:template>
+        );
+      }
+    });
+    it('should render conditional projection', async () => {
+      const Child = component$(() => {
+        const show = useSignal(false);
+        return (
+          <button
+            onClick$={inlinedQrl(() => (useLexicalScope()[0].value = true), 's_onClick', [show])}
+          >
+            {show.value && <Slot />}
+          </button>
+        );
+      });
+      const Parent = component$(() => {
+        return <Child>parent-content</Child>;
+      });
+      const { vNode, container } = await render(<Parent>render-content</Parent>, { debug });
+      expect(vNode).toMatchVDOM(
+        <Fragment>
+          <Fragment>
+            <button>{''}</button>
+          </Fragment>
+        </Fragment>
+      );
+      trigger(container.element, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Fragment>
+          <Fragment>
+            <button>
+              <Fragment>parent-content</Fragment>
+            </button>
+          </Fragment>
+        </Fragment>
+      );
+    });
   });
 });

@@ -518,6 +518,8 @@ export const vnode_locate = (rootVNode: ElementVNode, id: string | Element): VNo
       vNode = vnode_getVNodeForChildNode(vNode, elementPath[i]);
     }
     elementOffset != -1 && qVNodeRefs.set(elementOffset, vNode);
+  } else {
+    vNode = refElement;
   }
   if (typeof id === 'string') {
     // process virtual node search.

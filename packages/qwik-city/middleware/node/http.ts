@@ -5,7 +5,7 @@ import type {
   ServerRequestEvent,
 } from '@builder.io/qwik-city/middleware/request-handler';
 import type { ClientConn } from '../request-handler/types';
-import type { QwikCityNodeRequestOptions } from './index';
+import type { QwikCityNodeRequestOptions } from '.';
 
 export function computeOrigin(
   req: IncomingMessage | Http2ServerRequest,
@@ -124,7 +124,9 @@ export async function fromNodeHttp(
       ssr: true,
       incomingMessage: req,
       node: process.versions.node,
-    },
+
+      // Weirdly needed to make typecheck of insights happy
+    } as QwikCityPlatform,
     locale: undefined,
   };
 

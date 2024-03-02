@@ -1,6 +1,6 @@
 {
-  "name": "my-qwik-empty-starter",
-  "description": "App with Routing built-in ready to create your app",
+  "name": "insights",
+  "description": "Qwik Insights dashboard",
   "dependencies": {
     "@auth/core": "0.21.0",
     "@builder.io/qwik-auth": "workspace:^",

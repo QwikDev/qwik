@@ -14,7 +14,7 @@ import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import type { fixMeAny } from './shared/types';
 import './vdom-diff.unit-util';
 
-const debug = true; //true;
+const debug = false; //true;
 Error.stackTraceLimit = 100;
 
 [
@@ -91,31 +91,68 @@ Error.stackTraceLimit = 100;
       );
     });
     it('should update value for issue 5597', async () => {
-      const Cmp = component$(() => {
+      let clicks = 0;
+      const Issue5597 = component$(() => {
         const count = useSignal(0);
         const store = useStore({ items: [{ num: 0 }] });
-        return (<>
-          <button
-            onClick$={inlinedQrl(() => useLexicalScope()[0].obj.value++, 's_onClick', [count])}
-          >
-            Count: {count}!
-          </button>
-          {store.items.map((item, key) => (
-            <div key={key}>{item.num}</div>
-          ))}
-        </>
+        return (
+          <>
+            <button
+              onClick$={inlinedQrl(() => {
+                clicks++;
+                useLexicalScope()[0].value++;
+                useLexicalScope()[1].items = useLexicalScope()[1].items.map((i: { num: number }) => ({ num: i.num + 1 }));
+              }, 's_onClick', [count, store])}
+            >
+              Count: {count.value}!
+            </button>
+            {store.items.map((item, key) => (
+              <div key={key}>{item.num}</div>
+            ))}
+          </>
         );
       });
 
-      const { vNode } = await render(<Cmp />, { debug });
+      const { vNode, container } = await render(<Issue5597 />, { debug });
       expect(vNode).toMatchVDOM(
-        <Component >
-          <button>
-            Count: {'0'}!
-          </button>
-          <div key="0">
-            0
-          </div>
+        <Component>
+          <Fragment>
+            <button>
+              {'Count: '}
+              {clicks}
+              {'!'}
+            </button>
+            <div key="0">{clicks}</div>
+          </Fragment>
+        </Component>
+      );
+      await trigger(container.element, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button>
+              {'Count: '}
+              {clicks}
+              {'!'}
+            </button>
+            <div key="0">{clicks}</div>
+          </Fragment>
+        </Component>
+      );
+      await trigger(container.element, 'button', 'click');
+      await trigger(container.element, 'button', 'click');
+      await trigger(container.element, 'button', 'click');
+      await trigger(container.element, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button>
+              {'Count: '}
+              {clicks}
+              {'!'}
+            </button>
+            <div key="0">{clicks}</div>
+          </Fragment>
         </Component>
       );
     });

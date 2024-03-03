@@ -12,7 +12,7 @@ import { ERROR_CONTEXT } from '../render/error-handling';
 import { Slot } from '../render/jsx/slot.public';
 import type { JSXOutput } from '../render/jsx/types/jsx-node';
 import { useContextProvider } from '../use/use-context';
-import { OnRenderProp } from '../util/markers';
+import { OnRenderProp, QStyle, QStyleSelector } from '../util/markers';
 import { DomContainer, getDomContainer } from './client/dom-container';
 import { render2 } from './client/render2';
 import type { ContainerElement, VNode, VirtualVNode } from './client/types';
@@ -41,9 +41,21 @@ export async function domRender(
   await render2(document.body, jsx);
   await getTestPlatform().flush();
   const container = getDomContainer(document.body);
+  const styles: Record<string, string> = {};
+  const styleElements = container.document.head.querySelectorAll(QStyleSelector);
+  styleElements.forEach((style) => {
+    const id = style.getAttribute(QStyle)!;
+    styles[id] = style.textContent!;
+  });
   if (opts.debug) {
     console.log('========================================================');
     console.log('------------------------- CSR --------------------------');
+    if (styleElements.length) {
+      styleElements.forEach((style) => {
+        console.log(style.outerHTML);
+      });
+      console.log('-  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -');
+    }
     console.log(container.rootVNode.toString());
     console.log('--------------------------------------------------------');
   }
@@ -51,6 +63,7 @@ export async function domRender(
     document,
     container,
     vNode: vnode_getFirstChild(container.rootVNode),
+    styles,
   };
 }
 
@@ -129,7 +142,7 @@ export async function ssrRenderToDom(
     console.log('--------------------------------------------------------');
   }
   const bodyVNode = vnode_getVNodeForChildNode(container.rootVNode, document.body);
-  return { container, document, vNode: vnode_getFirstChild(bodyVNode)! };
+  return { container, document, vNode: vnode_getFirstChild(bodyVNode)!, styles: {} };
 }
 
 export async function rerenderComponent(element: HTMLElement) {

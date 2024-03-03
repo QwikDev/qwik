@@ -9,8 +9,8 @@
   - [X] `useOn()`/`useOnDocument()`/`useOnWindow()`
   - [X] `useContext()`/`useContextProvider()`
   - [X] Projection / `<Slot>`
-  - [ ] `useStyle$()`
-  - [ ] `useStyleScoped$()`
+  - [X] `useStyle$()`
+  - [X] `useStyleScoped$()`
 
 - [ ] Serialization
   - [X] `undefined`

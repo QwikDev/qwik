@@ -28,6 +28,7 @@ export interface SSRContainer extends Container2 {
 
   openComponent(attrs: SsrAttrs): void;
   getComponentFrame(projectionDepth: number): SsrComponentFrame | null;
+  getNearestComponentFrame(): SsrComponentFrame | null;
   closeComponent(): void;
 
   textNode(text: string): void;
@@ -105,6 +106,7 @@ export type SsrNodeType = 1 | 3 | 9 | 11;
 export class SsrComponentFrame {
   public slots = [];
   public projectionDepth = 0;
+  public scopedStyleIds = new Set<string>();
   constructor(public componentNode: SsrNode) {}
 
   distributeChildrenIntoSlots(children: JSXChildren) {

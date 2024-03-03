@@ -18,6 +18,7 @@ import {
   QScopedStyle,
   QSlotParent,
   QSlotRef,
+  QStyle,
 } from '../../util/markers';
 import { mapArray_get, mapArray_set } from '../client/vnode';
 import {
@@ -50,6 +51,11 @@ import {
 } from './vnode-data';
 import type { ValueOrPromise } from '../../util/types';
 import { maybeThen } from '../../util/promises';
+import {
+  convertStyleIdsToString,
+  getScopedStyleIdsAsPrefix,
+  isClassAttr,
+} from '../shared/scoped-styles';
 
 export function ssrCreateContainer(
   opts: {
@@ -100,6 +106,7 @@ class SSRContainer implements ISSRContainer {
   public $scheduler$: Scheduler;
   private lastNode: SsrNode | null = null;
   private currentComponentNode: SsrNode | null = null;
+  private styleIds = new Set<string>();
 
   private currentElementFrame: ContainerElementFrame | null = null;
   /**
@@ -267,6 +274,14 @@ class SSRContainer implements ISSRContainer {
     return idx >= 0 ? this.componentStack[idx] : null;
   }
 
+  getNearestComponentFrame(): SsrComponentFrame | null {
+    const currentFrame = this.getComponentFrame(0);
+    if (!currentFrame) {
+      return null;
+    }
+    return this.getComponentFrame(currentFrame.projectionDepth);
+  }
+
   closeComponent() {
     const componentFrame = this.componentStack.pop()!;
     componentFrame.releaseUnclaimedProjections(this.unclaimedProjections);
@@ -305,6 +320,22 @@ class SSRContainer implements ISSRContainer {
 
   addUnclaimedProjection(node: SsrNode, name: string, children: JSXChildren): void {
     this.unclaimedProjections.push(node, name, children);
+  }
+
+  $appendStyle$(content: string, styleId: string, host: SsrNode, scoped: boolean): void {
+    if (scoped) {
+      const componentFrame = this.getComponentFrame(0)!;
+      componentFrame.scopedStyleIds.add(styleId);
+      const scopedStyleIds = convertStyleIdsToString(componentFrame.scopedStyleIds);
+      this.setHostProp(host, QScopedStyle, scopedStyleIds);
+    }
+
+    if (!this.styleIds.has(styleId)) {
+      this.styleIds.add(styleId);
+      this.openElement('style', [QStyle, scoped ? styleId : '']);
+      this.textNode(content);
+      this.closeElement();
+    }
   }
 
   ////////////////////////////////////
@@ -606,6 +637,10 @@ class SSRContainer implements ISSRContainer {
           this.write('="');
           let startIdx = 0;
           let quoteIdx: number;
+          const componentFrame = this.getNearestComponentFrame();
+          if (isClassAttr(key) && componentFrame && componentFrame.scopedStyleIds.size) {
+            this.write(getScopedStyleIdsAsPrefix(componentFrame.scopedStyleIds) + ' ');
+          }
           while ((quoteIdx = value.indexOf('"', startIdx)) != -1) {
             this.write(value.substring(startIdx, quoteIdx));
             this.write('&quot;');

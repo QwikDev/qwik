@@ -18,6 +18,7 @@ export const QSlotParent = ':';
 export const QSlotRef = 'q:sref';
 export const QSlotS = 'q:s';
 export const QStyle = 'q:style';
+export const QStyleSelector = 'style[q\\:style]';
 export const QScopedStyle = 'q:sstyle';
 export const QCtxAttr = 'q:ctx';
 

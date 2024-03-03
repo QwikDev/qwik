@@ -249,7 +249,6 @@ const inflate = (container: DomContainer, target: any, needsInflationData: strin
       break;
     case SerializationConstant.Resource_VALUE:
       throw new Error('Not implemented');
-      break;
     case SerializationConstant.Component_VALUE:
       inflateQRL(container, target[SERIALIZABLE_STATE][0]);
       break;
@@ -280,7 +279,6 @@ const inflate = (container: DomContainer, target: any, needsInflationData: strin
       break;
     case SerializationConstant.SignalWrapper_VALUE:
       throw new Error('Not implemented');
-      break;
     case SerializationConstant.Error_VALUE:
       Object.assign(target, container.$getObjectById$(restInt()));
       break;
@@ -1160,3 +1158,4 @@ export const codeToName = (code: number) => {
       return 'Uint8Array';
   }
 };
+

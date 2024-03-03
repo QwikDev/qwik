@@ -246,7 +246,7 @@ const debug = false;
           </Fragment>
         </Fragment>
       );
-      trigger(container.element, 'button', 'click');
+      await trigger(container.element, 'button', 'click');
       expect(vNode).toMatchVDOM(
         <Fragment>
           <Fragment>

@@ -517,7 +517,7 @@ class SSRContainer implements ISSRContainer {
           const children = unclaimedProjections[idx++] as JSXOutput;
           this.openFragment(
             isDev
-              ? [DEBUG_TYPE, VirtualType.DerivedSignal, QSlotParent, ssrComponentNode!.id]
+              ? [DEBUG_TYPE, VirtualType.Projection, QSlotParent, ssrComponentNode!.id]
               : [QSlotParent, ssrComponentNode!.id]
           );
           ssrComponentNode?.setProp(value, this.getLastNode().id);

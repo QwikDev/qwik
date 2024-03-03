@@ -1,7 +1,7 @@
 import { Fragment as Component, Fragment } from '@builder.io/qwik/jsx-runtime';
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
-import { component$ } from '../component/component.public';
+import { component$, componentQrl } from '../component/component.public';
 import { inlinedQrl } from '../qrl/qrl';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { useSignal } from '../use/use-signal';
@@ -17,7 +17,7 @@ describe('useSequentialScope', () => {
       return <>Hello World!</>;
     });
 
-    const { vNode, container } = await ssrRenderToDom(<MyComp />, { debug: false });
+    const { vNode, container } = await ssrRenderToDom(<MyComp />, { debug });
     await trigger(container.element, 'button', 'click');
     expect(vNode).toMatchVDOM(
       <>
@@ -111,6 +111,83 @@ describe('useSequentialScope', () => {
               </div>
             </Fragment>
           </Component>
+        );
+      });
+
+      it('should rerender components correctly', async () => {
+        const Component1 = componentQrl(
+          inlinedQrl(() => {
+            const signal1 = useSignal(1);
+            return (
+              <div>
+                <span>Component 1</span>
+                {signal1.value}
+              </div>
+            );
+          }, 's_cmp1')
+        );
+        const Component2 = componentQrl(
+          inlinedQrl(() => {
+            const signal2 = useSignal(2);
+            return (
+              <div>
+                <span>Component 2</span>
+                {signal2.value}
+              </div>
+            );
+          }, 's_cmp2')
+        );
+        const Parent = componentQrl(
+          inlinedQrl(() => {
+            const show = useSignal(true);
+            return (
+              <button
+                onClick$={inlinedQrl(() => (useLexicalScope()[0].value = false), 's_onClick', [
+                  show,
+                ])}
+              >
+                {show.value && <Component1 />}
+                {show.value && <Component1 />}
+                <Component2 />
+              </button>
+            );
+          }, 's_parent')
+        );
+        const { vNode, container } = await render(<Parent />, { debug });
+        expect(vNode).toMatchVDOM(
+          <>
+            <button>
+              <Component>
+                <div>
+                  <span>Component 1</span>1
+                </div>
+              </Component>
+              <Component>
+                <div>
+                  <span>Component 1</span>1
+                </div>
+              </Component>
+              <Component>
+                <div>
+                  <span>Component 2</span>2
+                </div>
+              </Component>
+            </button>
+          </>
+        );
+        await trigger(container.element, 'button', 'click');
+        expect(vNode).toMatchVDOM(
+          <>
+            <button>
+              {''}
+              {''}
+              <Component>
+                <div>
+                  <span>Component 2</span>2
+                </div>
+              </Component>
+            </button>
+          </>
         );
       });
     });

@@ -147,6 +147,7 @@ describe('useSequentialScope', () => {
                 ])}
               >
                 {show.value && <Component1 />}
+                {show.value && <Component1 />}
                 <Component2 />
               </button>
             );
@@ -156,6 +157,11 @@ describe('useSequentialScope', () => {
         expect(vNode).toMatchVDOM(
           <>
             <button>
+              <Component>
+                <div>
+                  <span>Component 1</span>1
+                </div>
+              </Component>
               <Component>
                 <div>
                   <span>Component 1</span>1
@@ -173,6 +179,7 @@ describe('useSequentialScope', () => {
         expect(vNode).toMatchVDOM(
           <>
             <button>
+              {''}
               {''}
               <Component>
                 <div>

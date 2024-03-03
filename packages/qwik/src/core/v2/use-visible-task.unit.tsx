@@ -536,13 +536,13 @@ Error.stackTraceLimit = 100;
 
       it('should handle promises and visible tasks', async () => {
         const MyComp = component$(() => {
-          const promise = useSignal<Promise<number>>();
+          const promise = useSignal<Promise<number>>(Promise.resolve(0));
 
           useVisibleTaskQrl(
             inlinedQrl(
               () => {
                 const [promise] = useLexicalScope<[Signal<Promise<number>>]>();
-                promise.value = Promise.resolve(0)
+                promise.value = promise.value
                   .then(() => {
                     return delay(10);
                   })
@@ -559,7 +559,7 @@ Error.stackTraceLimit = 100;
             inlinedQrl(
               () => {
                 const [promise] = useLexicalScope<[Signal<Promise<number>>]>();
-                promise.value = promise.value!.then(() => {
+                promise.value = promise.value.then(() => {
                   return 2;
                 });
               },
@@ -571,6 +571,7 @@ Error.stackTraceLimit = 100;
           return <p>Should have a number: "{promise.value}"</p>;
         });
         const { vNode, document } = await render(<MyComp />, { debug });
+
         await trigger(document.body, 'p', 'qvisible');
         expect(vNode).toMatchVDOM(
           <Component>

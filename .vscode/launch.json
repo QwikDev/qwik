@@ -58,7 +58,7 @@
       "internalConsoleOptions": "neverOpen",
       "program": "${workspaceFolder}/./node_modules/vitest/vitest.mjs",
       "cwd": "${workspaceFolder}",
-      "args": ["${file}"]
+      "args": ["--test-timeout", "999999", "${file}"]
     }
   ]
 }

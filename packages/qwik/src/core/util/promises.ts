@@ -1,3 +1,4 @@
+import { throwErrorAndStop } from './log';
 import type { ValueOrPromise } from './types';
 
 export type PromiseTree<T> = T | Promise<T> | Promise<T[]> | Array<PromiseTree<T>>;
@@ -28,7 +29,11 @@ export const maybeThen = <T, B>(
   promise: ValueOrPromise<T>,
   thenFn: (arg: Awaited<T>) => ValueOrPromise<B>
 ): ValueOrPromise<B> => {
-  return isPromise(promise) ? promise.then(thenFn as any) : thenFn(promise as any);
+  return isPromise(promise) ? promise.then(thenFn as any, shouldNotError) : thenFn(promise as any);
+};
+
+export const shouldNotError = (reason: any): any => {
+  throwErrorAndStop('QWIK ERROR:', reason);
 };
 
 export const maybeThenMap = <T, MAP_RET, RET>(

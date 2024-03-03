@@ -749,9 +749,9 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       let component$Host: VNode = host;
       // Find the closest component host which has `OnRender` prop.
       while (
-        component$Host &&
-        !vnode_isElementVNode(component$Host) &&
-        vnode_getProp(component$Host, OnRenderProp, null) === null
+        component$Host && vnode_isVirtualVNode(component$Host)
+          ? vnode_getProp(component$Host, OnRenderProp, null) === null
+          : true
       ) {
         component$Host = vnode_getParent(component$Host)!;
       }

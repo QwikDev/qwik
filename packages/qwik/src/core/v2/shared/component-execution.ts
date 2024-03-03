@@ -50,7 +50,7 @@ export const executeComponent2 = (
   // $renderCtx$ is no longer used.
   iCtx.$renderCtx$ = EMPTY_OBJ as fixMeAny; // TODO(mhevery): no longer needed
   iCtx.$waitOn$ = []; // TODO(mhevery): no longer needed
-  iCtx.$subscriber$ = [SubscriptionType.HOST, renderHost as fixMeAny];
+  iCtx.$subscriber$ = [SubscriptionType.HOST, subscriptionHost as fixMeAny];
   iCtx.$container2$ = container;
   let componentFn: (props: unknown) => ValueOrPromise<JSXOutput>;
   if (componentQRL === null) {

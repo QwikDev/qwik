@@ -687,6 +687,21 @@ export const runSubscriber = async (
   }
 };
 
+export const runSubscriber2 = async (
+  task: SubscriberEffect,
+  container: Container2,
+  host: HostElement
+) => {
+  assertEqual(!!(task.$flags$ & TaskFlagsIsDirty), true, 'Resource is not dirty', task);
+  if (isResourceTask(task)) {
+    return runResource(task, container, host as fixMeAny);
+  } else if (isComputedTask(task)) {
+    return runComputed2(task, container, host);
+  } else {
+    return runTask2(task, container, host);
+  }
+};
+
 export const runResource = <T>(
   task: ResourceDescriptor<T>,
   containerState: ContainerState | Container2,

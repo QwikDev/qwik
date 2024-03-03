@@ -15,7 +15,8 @@ import type { ReplStore, ReplUpdateMessage, ReplMessage, ReplAppInput } from './
 import { ReplDetailPanel } from './repl-detail-panel';
 import { getReplVersion } from './repl-version';
 import { updateReplOutput } from './repl-output-update';
-import { QWIK_PKG_NAME, bundled, getNpmCdnUrl } from './bundled';
+import { QWIK_PKG_NAME, getBundled, getNpmCdnUrl } from './bundled';
+import { isServer } from '@builder.io/qwik/build';
 
 export const Repl = component$((props: ReplProps) => {
   useStyles$(styles);
@@ -79,6 +80,9 @@ export const Repl = component$((props: ReplProps) => {
 
   useVisibleTask$(
     async () => {
+      if (isServer) {
+        return;
+      }
       // only run on the client
       // Get the version asap, most likely it will be cached.
       const v = await getReplVersion(input.version, true);
@@ -132,6 +136,9 @@ export const receiveMessageFromReplServer = (
   store: ReplStore,
   input: ReplAppInput
 ) => {
+  if (isServer) {
+    return;
+  }
   if (ev.origin !== window.origin) {
     return;
   }
@@ -158,6 +165,7 @@ export const receiveMessageFromReplServer = (
   }
 };
 
+const bundled = getBundled();
 const getDependencies = (input: ReplAppInput) => {
   const out = { ...bundled };
   if (input.version !== 'bundled') {
@@ -175,6 +183,9 @@ const getDependencies = (input: ReplAppInput) => {
 };
 
 export const sendUserUpdateToReplServer = (input: ReplAppInput, store: ReplStore) => {
+  if (isServer) {
+    return;
+  }
   if (input.version && store.serverWindow) {
     const msg: ReplUpdateMessage = {
       type: 'update',

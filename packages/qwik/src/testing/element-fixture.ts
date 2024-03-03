@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { assertDefined } from '../core/error/assert';
 import type { QRLInternal } from '../core/qrl/qrl-class';
 import { tryGetContext, type QContext } from '../core/state/context';
@@ -185,4 +186,9 @@ export function qPropReadQRL(elCtx: QContext, prop: string): ((event: Event) => 
 }
 function isSyncQrl(qrl: QRLInternal<(event: PossibleEvents, elem?: Element | undefined) => any>) {
   return qrl.$chunk$ == '';
+}
+
+export async function advanceToNextTimerAndFlush() {
+  vi.advanceTimersToNextTimer();
+  await getTestPlatform().flush();
 }

@@ -15,6 +15,7 @@ import qJsxDts from '../../node_modules/@builder.io/qwik/dist/jsx-runtime.d.ts?r
 import qOptimizerCjs from '../../node_modules/@builder.io/qwik/dist/optimizer.cjs?raw';
 import qServerCjs from '../../node_modules/@builder.io/qwik/dist/server.cjs?raw';
 import qServerDts from '../../node_modules/@builder.io/qwik/dist/server.d.ts?raw';
+import { isServer } from '@builder.io/qwik/build';
 
 export const QWIK_PKG_NAME = '@builder.io/qwik';
 const ROLLUP_VERSION = '2.75.6';
@@ -43,11 +44,14 @@ export const getNpmCdnUrl = (
 
 // https://github.com/vitejs/vite/issues/15753
 const blobUrl = (code: string) => {
+  if (isServer) {
+    return '';
+  }
   const blob = new Blob([code], { type: 'application/javascript' });
   return URL.createObjectURL(blob);
 };
 
-export const bundled: PkgUrls = {
+const bundled: PkgUrls = {
   [QWIK_PKG_NAME]: {
     version: qwikVersion,
     '/build/index.d.ts': blobUrl(qBuild),
@@ -80,3 +84,10 @@ export const bundled: PkgUrls = {
     '/dist/bundle.min.js': blobUrl(terserJs),
   },
 };
+
+export const getBundled = () =>
+  isServer
+    ? {
+        [QWIK_PKG_NAME]: { version: qwikVersion },
+      }
+    : bundled;

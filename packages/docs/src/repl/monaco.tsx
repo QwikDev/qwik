@@ -4,7 +4,8 @@ import type MonacoTypes from 'monaco-editor';
 import type { EditorProps, EditorStore } from './editor';
 import type { ReplStore } from './types';
 import { getColorPreference } from '../components/theme-toggle/theme-toggle';
-import { bundled, getNpmCdnUrl } from './bundled';
+import { getBundled, getNpmCdnUrl } from './bundled';
+import { isServer } from '@builder.io/qwik/build';
 
 export const initMonacoEditor = async (
   containerElm: any,
@@ -273,6 +274,7 @@ const loadDeps = async (qwikVersion: string) => {
   return monacoCtx.deps;
 };
 
+const bundled = getBundled();
 const fetchDep = async (cache: Cache, dep: NodeModuleDep) => {
   const url = getNpmCdnUrl(bundled, dep.pkgName, dep.pkgVersion, dep.pkgPath);
   const req = new Request(url);
@@ -292,6 +294,9 @@ const fetchDep = async (cache: Cache, dep: NodeModuleDep) => {
 };
 
 const getMonaco = async (): Promise<Monaco> => {
+  if (isServer) {
+    throw new Error('Monaco cannot be used on the server');
+  }
   if (!monacoCtx.loader) {
     // lazy-load the monaco AMD script ol' school
     monacoCtx.loader = new Promise<Monaco>((resolve, reject) => {

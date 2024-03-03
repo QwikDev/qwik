@@ -325,7 +325,7 @@ export const getInternalResource = <T>(resource: ResourceReturn<T>): ResourceRet
 };
 
 export const isResourceReturn = (obj: any): obj is ResourceReturn<unknown> => {
-  return isObject(obj) && (obj as any).__brand === 'resource';
+  return isObject(obj) && (getProxyTarget(obj as any) || obj).__brand === 'resource';
 };
 
 export const serializeResource = (

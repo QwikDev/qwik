@@ -25,7 +25,7 @@
   - [X] `Error`
   - [X] `QRL`
   - [X] `Task`
-  - [ ] `Resource`
+  - [X] `Resource`
   - [X] `Component`
   - [X] `DerivedSignal`
   - [X] `Signal`

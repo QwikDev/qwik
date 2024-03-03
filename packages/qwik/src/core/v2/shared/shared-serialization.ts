@@ -851,7 +851,7 @@ export function serialize(serializationContext: SerializationContext): void {
       $writer$.write('{');
       const proxy = objectMap.get(value);
       if (proxy !== undefined) {
-        const flags = getProxyFlags(value);
+        const flags = getProxyFlags(value) || 0;
         writeString(SerializationConstant.Store_CHAR);
         $writer$.write(':');
         const manager = getSubscriptionManager(proxy)!;

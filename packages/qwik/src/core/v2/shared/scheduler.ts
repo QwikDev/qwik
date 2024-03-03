@@ -4,15 +4,16 @@ import type { QRL } from '../../qrl/qrl.public';
 import type { JSXOutput } from '../../render/jsx/types/jsx-node';
 import {
   runComputed2,
-  runTask2,
+  runSubscriber2,
   Task,
+  TaskFlagsIsDirty,
   type TaskFn,
   type useTaskQrl,
   type useVisibleTaskQrl,
 } from '../../use/use-task';
 import { EMPTY_ARRAY } from '../../util/flyweight';
 import { QStyleSelector } from '../../util/markers';
-import { isPromise, maybeThen } from '../../util/promises';
+import { isPromise, maybeThen, shouldNotError } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
 import { isDomContainer } from '../client/dom-container';
 import type { VirtualVNode, VNode } from '../client/types';
@@ -79,6 +80,7 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
   ////////////////////////////////////////////////////////////////////////////////
 
   function scheduleTask(task: Task) {
+    task.$flags$ |= TaskFlagsIsDirty;
     schedule(ChoreType.TASK, task.$el$ as fixMeAny, task.$qrl$ as fixMeAny, task.$index$, task);
     return api;
   }
@@ -182,6 +184,7 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
   }
 
   function drainAll(): ValueOrPromise<void> {
+    // console.log('>>>> drainAll', hostElementQueue.length, hostElementCleanupQueue.length);
     if (!drainResolve) {
       api.$empty$ = new Promise<void>((resolve) => (drainResolve = resolve));
     }
@@ -192,8 +195,10 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
         return jsx.then((jsx) => {
           if (jsx !== null) {
             return maybeThen(container.processJsx(hostElement, jsx), drainAll);
+          } else {
+            drainAll();
           }
-        });
+        }, shouldNotError);
       }
       if (jsx !== null) {
         const shouldWait = container.processJsx(hostElement, jsx);
@@ -204,6 +209,7 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
     }
     const resolve = drainResolve!;
     drainResolve = null;
+    // console.log('<<<< drainAll done');
     resolve && resolve();
   }
 
@@ -269,7 +275,7 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
       case ChoreType.COMPUTED:
         return runComputed2(chore.$payload$ as Task<TaskFn, TaskFn>, container, host);
       case ChoreType.TASK:
-        return runTask2(chore.$payload$ as Task<TaskFn, TaskFn>, container, host);
+        return runSubscriber2(chore.$payload$ as Task<TaskFn, TaskFn>, container, host);
       case ChoreType.NODE_DIFF:
         const parentVirtualNode = chore.$target$ as VirtualVNode;
         const jsx = chore.$payload$ as JSXOutput;

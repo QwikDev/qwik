@@ -313,6 +313,9 @@ export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: UseTaskOptions): void => {
       throw result;
     }
     qrl.$resolveLazy$(host as fixMeAny);
+    if (isServerPlatform()) {
+      useRunTask(task, opts?.eagerness);
+    }
   } else {
     const containerState = iCtx.$renderCtx$.$static$.$containerState$;
     const task = new Task(

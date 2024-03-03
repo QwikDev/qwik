@@ -262,6 +262,12 @@ export const vnode_isElementVNode = (vNode: VNode): vNode is ElementVNode => {
   return (flag & VNodeFlags.Element) === VNodeFlags.Element;
 };
 
+export const vnode_isElementOrTextVNode = (vNode: VNode): vNode is ElementVNode => {
+  assertDefined(vNode, 'Missing vNode');
+  const flag = (vNode as VNode)[VNodeProps.flags];
+  return (flag & VNodeFlags.ELEMENT_OR_TEXT_MASK) !== 0;
+};
+
 export const vnode_isElementOrVirtualVNode = (
   vNode: VNode
 ): vNode is ElementVNode | VirtualVNode => {
@@ -354,7 +360,7 @@ const vnode_getDOMParent = (vnode: VNode): Element | null => {
 };
 
 export const vnode_getDOMChildNodes = (root: VNode, childNodes: Node[] = []): Node[] => {
-  if (vnode_isElementVNode(root)) {
+  if (vnode_isElementOrTextVNode(root)) {
     return [vnode_getNode(root)!];
   }
   let vNode = vnode_getFirstChild(root);
@@ -686,17 +692,20 @@ export const vnode_insertBefore = (
   if (vnode_isElementVNode(parent)) {
     ensureMaterialized(parent);
   }
-  if (!vnode_isVirtualVNode(newChild)) {
-    const shouldWeUseParentVirtual = insertBefore == null && vnode_isVirtualVNode(parent);
-    const insertBeforeNode = vnode_getDomSibling(
-      (shouldWeUseParentVirtual ? parent : insertBefore)!,
-      true
-    );
-    parentNode &&
-      parentNode.insertBefore(
-        vnode_getNode(newChild)!,
-        insertBeforeNode && vnode_getNode(insertBeforeNode)
-      );
+  // If `insertBefore` is null, than we need to insert at the end of the list.
+  // Well, not quite. If the parent is a virtual node, our "last node" is not the same
+  // as the DOM "last node". So in that case we need to look for the "next node" from
+  // our parent.
+  const shouldWeUseParentVirtual = insertBefore == null && vnode_isVirtualVNode(parent);
+  const insertBeforeNode = vnode_getDomSibling(
+    (shouldWeUseParentVirtual ? parent : insertBefore)!,
+    true
+  );
+  const insertBeforeDomNode = insertBeforeNode && vnode_getNode(insertBeforeNode);
+  const children = vnode_getDOMChildNodes(newChild);
+  for (let idx = 0; idx < children.length; idx++) {
+    const child = children[idx];
+    parentNode && parentNode.insertBefore(child, insertBeforeDomNode);
   }
 
   // link newChild into the previous/next list

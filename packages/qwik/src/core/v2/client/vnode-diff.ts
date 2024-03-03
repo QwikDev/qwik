@@ -61,6 +61,7 @@ import {
   vnode_isElementVNode,
   vnode_isTextVNode,
   vnode_isVirtualVNode,
+  vnode_locate,
   vnode_newElement,
   vnode_newText,
   vnode_newVirtual,
@@ -397,7 +398,8 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     const vProjectedNode = vnode_getProp<VirtualVNode | null>(
       vHost,
       slotNameKey,
-      container.$getObjectById$
+      // for slots this id is vnode ref id
+      id => vnode_locate(container.rootVNode, id)
     );
     // console.log('   ', String(vHost), String(vProjectedNode));
     if (vProjectedNode == null) {
@@ -715,7 +717,16 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       // Component
       const [componentQRL] = componentMeta;
       if (componentQRL.$hash$ !== vNodeQrl?.$hash$) {
-        vnode_setProp(host, OnRenderProp, componentQRL);
+        if (vnode_getNextSibling(host) && jsxIdx > 0) {
+          journal.push(
+            VNodeJournalOpCode.Remove,
+            vParent,
+            host
+          );
+          jsxIdx--;
+        } else {
+          vnode_setProp(host, OnRenderProp, componentQRL);
+        }
         shouldRender = true;
       }
       const vNodeProps = vnode_getProp<any>(host, ELEMENT_PROPS, container.$getObjectById$);

@@ -407,7 +407,7 @@ describe('serializer v2', () => {
         expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
       });
       it('should handle large arrays', () => {
-        const obj = new Uint8Array(Math.random() * 100000 + 1);
+        const obj = new Uint8Array(Math.floor(Math.random() * 65530 + 1));
         crypto.getRandomValues(obj);
         expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
       });

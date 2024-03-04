@@ -1,6 +1,5 @@
 import { bgRed, cyan, red } from 'kleur/colors';
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
 import { log } from '@clack/prompts';
 import type { IntegrationData } from '../types';
@@ -15,10 +14,18 @@ export function runInPkg(pkgManager: string, args: string[], cwd: string) {
   return runCommand(cmd, args, cwd);
 }
 
+/**
+ * This does an initial install of the base dependencies in the background while the install is
+ * running. Afterwards the actual dependencies get added and the package manager re-run
+ */
 export function backgroundInstallDeps(pkgManager: string, baseApp: IntegrationData) {
   const { tmpInstallDir } = setupTmpInstall(baseApp);
 
   const { install, abort } = installDeps(pkgManager, tmpInstallDir);
+
+  install.finally(() => {
+    fs.rmdirSync(tmpInstallDir, { recursive: true });
+  });
 
   const complete = async (outDir: string) => {
     let success = false;
@@ -84,11 +91,12 @@ export function backgroundInstallDeps(pkgManager: string, baseApp: IntegrationDa
 
 function setupTmpInstall(baseApp: IntegrationData) {
   const tmpId =
-    'create-qwik-' +
+    '.create-qwik-' +
     Math.round(Math.random() * Number.MAX_SAFE_INTEGER)
       .toString(36)
       .toLowerCase();
-  const tmpInstallDir = path.join(os.tmpdir(), tmpId);
+  // Keep in same mountpoint so renames can move quickly
+  const tmpInstallDir = path.join(baseApp.dir, tmpId);
 
   try {
     fs.mkdirSync(tmpInstallDir);

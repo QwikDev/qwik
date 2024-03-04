@@ -20,6 +20,7 @@ import {
   QSlot,
   QSlotParent,
   QStyle,
+  QStyleSelector,
 } from '../../util/markers';
 import { isPromise } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
@@ -73,7 +74,7 @@ import {
 } from './vnode';
 import { addPrefixForScopedStyleIdsString, isClassAttr } from '../shared/scoped-styles';
 
-export type VNodeJournalEntry = VNodeJournalOpCode | VNode | HTMLElement | null | string;
+export type VNodeJournalEntry = VNodeJournalOpCode | VNode | HTMLElement | Document | null | string;
 
 export const enum VNodeJournalOpCode {
   ////////// Generic
@@ -93,6 +94,7 @@ export const enum VNodeJournalOpCode {
   FragmentInsert,
   ////////// Styles
   AddStyle,
+  HoistStyles,
 }
 
 export type ComponentQueue = Array<VNode>;
@@ -198,7 +200,6 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
               } else {
                 // Must be a component
                 expectNoMoreTextNodes();
-                expectVirtual(VirtualType.Component);
                 expectComponent(type);
               }
             } else {
@@ -385,6 +386,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     );
     if (vCurrent == null) {
       vNewNode = vnode_newVirtual(vParent);
+      isDev && vnode_setProp(vNewNode, DEBUG_TYPE, VirtualType.Projection);
       vnode_setProp(vNewNode as VirtualVNode, QSlot, slotName);
       vnode_setProp(vNewNode as VirtualVNode, QSlotParent, vParent);
       vnode_setProp(vParent as VirtualVNode, slotName, vNewNode);
@@ -399,7 +401,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       vHost,
       slotNameKey,
       // for slots this id is vnode ref id
-      id => vnode_locate(container.rootVNode, id)
+      (id) => vnode_locate(container.rootVNode, id)
     );
     // console.log('   ', String(vHost), String(vProjectedNode));
     if (vProjectedNode == null) {
@@ -410,6 +412,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
         (vNewNode = vnode_newVirtual(vParent)),
         vCurrent && getInsertBefore()
       );
+      isDev && vnode_setProp(vNewNode, DEBUG_TYPE, VirtualType.Projection);
       return false;
     } else if (vProjectedNode === vCurrent) {
       // All is good.
@@ -482,12 +485,11 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
   function expectNoQStyles() {
     while (vCurrent !== null && isQStyleVNode(vCurrent)) {
       const next = vnode_getNextSibling(vCurrent);
+      // We remove the VNode from the tree, but don't bother
+      // with the DOM, because the first time the journal is drained
+      // it has VNodeJournalOpCode.HoistStyles which bulk moves all
+      // of the styles in a single operation.
       vnode_remove(vParent, vCurrent, false);
-      journal.push(
-        VNodeJournalOpCode.AddStyle,
-        container.document.head,
-        vnode_getNode(vCurrent) as HTMLElement
-      );
       vCurrent = next;
     }
   }
@@ -662,6 +664,26 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     }
   }
 
+  /**
+   * Retrieve the child with the given key.
+   *
+   * By retrieving the child with the given key we are effectively removing it from the list of
+   * future elements. This means that we can't just use `vnode_getNextSibling` to find the next
+   * instead we have to keep track of the elements we have already seen.
+   *
+   * We call this materializing the elements.
+   *
+   * `vSiblingsIdx`:
+   *
+   * - -1: Not materialized
+   * - Positive number - the index of the next element in the `vSiblings` array.
+   *
+   * By retrieving the child with the given key we are effectively removing it from the list (hence
+   * we need to splice the `vSiblings` array).
+   *
+   * @param key
+   * @returns
+   */
   function retrieveChildWithKey(key: string): ElementVNode | VirtualVNode | null {
     let vNodeWithKey: ElementVNode | VirtualVNode | null = null;
     if (vSiblingsIdx === -1) {
@@ -670,7 +692,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       vSiblingsIdx = 0;
       let vNode = vCurrent;
       while (vNode) {
-        const vKey = vnode_getProp<string>(vNode, ELEMENT_KEY, null);
+        const vKey = getKey(vNode, container.$getObjectById$);
         if (vNodeWithKey === null && vKey == key) {
           vNodeWithKey = vNode as ElementVNode | VirtualVNode;
         } else {
@@ -708,25 +730,34 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
   }
 
   function expectComponent(component: Function) {
+    // expectVirtual(VirtualType.Component);
     const componentMeta = (component as any)[SERIALIZABLE_STATE] as [QRLInternal<OnRenderFn<any>>];
-    const host = (vNewNode || vCurrent) as VirtualVNode;
-    const vNodeQrl = vnode_getProp<QRLInternal>(host, OnRenderProp, container.$getObjectById$);
+    let host = (vNewNode || vCurrent) as VirtualVNode;
     const jsxProps = jsxValue.props;
     if (componentMeta) {
+      // QComponent
       let shouldRender = false;
-      // Component
       const [componentQRL] = componentMeta;
-      if (componentQRL.$hash$ !== vNodeQrl?.$hash$) {
-        if (vnode_getNextSibling(host) && jsxIdx > 0) {
-          journal.push(
-            VNodeJournalOpCode.Remove,
-            vParent,
-            host
-          );
-          jsxIdx--;
+      const jsxKey = jsxValue.key || componentQRL.$hash$;
+      const vNodeKey = getKey(host, container.$getObjectById$);
+      if (jsxKey !== vNodeKey) {
+        // See if we already have this component later on.
+        vNewNode = retrieveChildWithKey(jsxKey);
+        if (vNewNode) {
+          // We found the component, move it up.
+          journal.push(VNodeJournalOpCode.Move, vParent, vNewNode, vCurrent);
         } else {
-          vnode_setProp(host, OnRenderProp, componentQRL);
+          // We did not find the component, create it.
+          journal.push(
+            VNodeJournalOpCode.Insert,
+            vParent,
+            (vNewNode = vnode_newVirtual(vParent)),
+            vCurrent && getInsertBefore()
+          );
+          isDev && vnode_setProp(vNewNode, DEBUG_TYPE, VirtualType.Component);
+          container.setHostProp(vNewNode, OnRenderProp, componentQRL);
         }
+        host = vNewNode as VirtualVNode;
         shouldRender = true;
       }
       const vNodeProps = vnode_getProp<any>(host, ELEMENT_PROPS, container.$getObjectById$);
@@ -740,6 +771,16 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       descendProjection(jsxValue.children);
     } else {
       // Inline Component
+      if (!host) {
+        // We did not find the component, create it.
+        journal.push(
+          VNodeJournalOpCode.Insert,
+          vParent,
+          (vNewNode = vnode_newVirtual(vParent)),
+          vCurrent && getInsertBefore()
+        );
+        host = vNewNode;
+      }
       isDev &&
         vnode_setProp(
           (vNewNode || vCurrent) as VirtualVNode,
@@ -849,12 +890,43 @@ export const vnode_applyJournal = (journal: VNodeJournalEntry[]) => {
       case VNodeJournalOpCode.AddStyle:
         (journal[idx++] as HTMLHeadElement).appendChild(journal[idx++] as HTMLStyleElement);
         break;
+      case VNodeJournalOpCode.HoistStyles:
+        const document = journal[idx++] as Document;
+        const styles = document.querySelectorAll(QStyleSelector);
+        for (let i = 0; i < styles.length; i++) {
+          document.head.appendChild(styles[i]);
+        }
+        break;
       default:
         throwErrorAndStop(`Unsupported opCode: ${opCode}`);
     }
   }
   journal.length = 0;
 };
+
+/**
+ * Retrieve the key from the VNode.
+ *
+ * If the VNode does not have a key and it is a QComponent, we fallback to the QRL as the key.
+ *
+ * @param vNode - VNode to retrieve the key from
+ * @param getObject - Function to retrieve the object by id for QComponent QRL
+ * @returns Key
+ */
+function getKey(vNode: VNode | null, getObject: (id: string) => any): string | null {
+  if (vNode == null) {
+    return null;
+  }
+  let vKey = vnode_getProp<string>(vNode, ELEMENT_KEY, null);
+  if (vKey == null) {
+    const qrl = vnode_getProp<QRLInternal>(vNode, OnRenderProp, getObject);
+    // If this is a QComponent and it does not have a key, we fallback to the QRL as the key
+    if (qrl) {
+      vKey = qrl.$hash$;
+    }
+  }
+  return vKey;
+}
 
 /**
  * Marker class for JSX projection.

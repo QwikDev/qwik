@@ -16,6 +16,7 @@ import {
   OnRenderProp,
   QCtxAttr,
   QScopedStyle,
+  QSlot,
   QSlotParent,
   QSlotRef,
   QStyle,
@@ -86,6 +87,7 @@ interface ContainerElementFrame {
   parent: ContainerElementFrame | null;
   /** Element name. */
   elementName: string;
+  shouldSkipStyleElement: boolean;
   /**
    * Current element index.
    *
@@ -204,7 +206,7 @@ class SSRContainer implements ISSRContainer {
 
   openElement(tag: string, attrs: SsrAttrs) {
     this.lastNode = null;
-    this.pushFrame(tag, this.depthFirstElementCount++, true);
+    this.pushFrame(tag, this.depthFirstElementCount++, true, isQwikStyleElement(tag, attrs));
     this.write('<');
     this.write(tag);
     this.writeAttrs(attrs);
@@ -224,12 +226,13 @@ class SSRContainer implements ISSRContainer {
   }
 
   private _closeElement() {
+    const currentFrame = this.popFrame();
     this.write('</');
-    this.write(this.popFrame().elementName!);
+    this.write(currentFrame.elementName!);
     this.write('>');
     // Keep track of number of elements.
     const newFrame = this.currentElementFrame;
-    if (newFrame) {
+    if (newFrame && currentFrame && !currentFrame.shouldSkipStyleElement) {
       vNodeData_incrementElementCount(newFrame.vNodeData);
     }
     this.lastNode = null;
@@ -360,13 +363,16 @@ class SSRContainer implements ISSRContainer {
    *
    * ## Attribute encoding:
    *
-   * - `=` - `q:id` - ID of the element.
-   * - `?` - `q:sref` - Slot reference.
-   * - `@` - `q:key` - Element key.
    * - `;` - `q:sstyle` - Style attribute.
    * - `<` - `q:renderFn' - Component QRL render function (body)
+   * - `=` - `q:id` - ID of the element.
    * - `>` - `q:props' - Component QRL Props
+   * - `?` - `q:sref` - Slot reference.
+   * - `@` - `q:key` - Element key.
    * - `[` - `q:seq' - Seq value from `useSequentialScope()`
+   * - `\` - SKIP because `\` is used as escaping
+   * - `]` - `q:ctx' - Component context/props
+   * - `~` - `q:slot' - Slot name
    *
    * ## Separator Encoding:
    *
@@ -444,6 +450,9 @@ class SSRContainer implements ISSRContainer {
                     // Skipping `\` character for now because it is used for escaping.
                     case QCtxAttr:
                       this.write(']');
+                      break;
+                    case QSlot:
+                      this.write('~');
                       break;
                     default:
                       this.write('|');
@@ -558,7 +567,20 @@ class SSRContainer implements ISSRContainer {
     return elementIdx;
   }
 
-  private pushFrame(tag: string, depthFirstElementIdx: number, isElement: boolean) {
+  /**
+   * @param tag
+   * @param depthFirstElementIdx
+   * @param isElement
+   * @param shouldSkipStyleElement Should not count this element towards the number of elements in
+   *   VNodeData. This is used for skipping over styles which should be moved to the head of the
+   *   document.
+   */
+  private pushFrame(
+    tag: string,
+    depthFirstElementIdx: number,
+    isElement: boolean,
+    shouldSkipStyleElement: boolean
+  ) {
     let tagNesting: TagNesting = TagNesting.ANYTHING;
     if (isDev) {
       if (tag !== tag.toLowerCase()) {
@@ -607,6 +629,7 @@ class SSRContainer implements ISSRContainer {
       tagNesting: tagNesting,
       parent: this.currentElementFrame,
       elementName: tag,
+      shouldSkipStyleElement,
       depthFirstElementIdx: depthFirstElementIdx,
       vNodeData: [VNodeDataFlag.NONE],
     };
@@ -653,6 +676,18 @@ class SSRContainer implements ISSRContainer {
     }
   }
 }
+
+const isQwikStyleElement = (tag: string, attrs: SsrAttrs) => {
+  if (tag === 'style') {
+    for (let i = 0; i < attrs.length; i = i + 2) {
+      const attr = attrs[i];
+      if (attr === QStyle || attr === QScopedStyle) {
+        return true;
+      }
+    }
+  }
+  return false;
+};
 
 function newTagError(text: string) {
   return new Error('SsrError(tag): ' + text);

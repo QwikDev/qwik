@@ -141,8 +141,10 @@ import {
   OnRenderProp,
   QCtxAttr,
   QScopedStyle,
+  QSlot,
   QSlotParent,
   QSlotRef,
+  QStyle,
 } from '../../util/markers';
 import { isQrl } from '../../qrl/qrl-class';
 import { isDev } from '@builder.io/qwik/build';
@@ -860,10 +862,23 @@ const ensureMaterialized = (vnode: ElementVNode): VNode | null => {
   return vFirstChild;
 };
 
+const isQStyleElement = (node: Node | null): node is Element => {
+  return (
+    isElement(node) &&
+    node.nodeName === 'STYLE' &&
+    (node.hasAttribute(QScopedStyle) || node.hasAttribute(QStyle))
+  );
+};
+
 const materializeFromDOM = (vParent: ElementVNode, firstChild: ChildNode | null) => {
   let vFirstChild: VNode | null = null;
   // materialize from DOM
   let child = firstChild;
+  while (isQStyleElement(child)) {
+    // skip over style elements, as those need to be moved to the head.
+    // VNode pretends that `<style q:style q:sstyle>` elements do not exist.
+    child = child.nextSibling;
+  }
   let vChild: VNode | null = null;
   while (child) {
     const nodeType = child.nodeType;
@@ -1156,6 +1171,12 @@ function materializeFromVNodeData(
           );
         }
       }
+      // We pretend that style element's don't exist as they can get moved out.
+      while (isQStyleElement(child)) {
+        // skip over style elements, as those need to be moved to the head
+        // and are not included in the counts.
+        child = child.nextSibling;
+      }
       combinedText = null;
       previousTextNode = null;
       let value = 0;
@@ -1203,6 +1224,8 @@ function materializeFromVNodeData(
       vLast = stack.pop();
       vFirst = stack.pop();
       vParent = stack.pop();
+    } else if (peek() === 126 /* `~` */) {
+      vnode_setAttr(vParent, QSlot, consumeValue());
     } else {
       // must be alphanumeric
       let length = 0;

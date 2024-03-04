@@ -105,6 +105,15 @@ export class DomContainer implements IClientContainer, StoreTracker {
     if (!this.qContainer) {
       throw new Error("Element must have 'q:container' attribute.");
     }
+    this.$journal$ = [
+      // The first time we render we need to hoist the styles.
+      // (Meaning we need to move all styles from component inline to <head>)
+      // We bulk move all of the styles, because the expensive part is
+      // for the browser to recompute the styles, (not the actual DOM manipulation.)
+      // By moving all of them at once we can minimize the reflow.
+      VNodeJournalOpCode.HoistStyles,
+      element.ownerDocument,
+    ];
     this.document = element.ownerDocument as QDocument;
     this.element = element;
     this.qVersion = element.getAttribute('q:version')!;

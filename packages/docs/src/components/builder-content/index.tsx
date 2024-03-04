@@ -1,6 +1,7 @@
 import { component$, Resource, useResource$ } from '@builder.io/qwik';
 import { useLocation } from '@builder.io/qwik-city';
-import { getBuilderSearchParams, getContent, RenderContent } from '@builder.io/sdk-qwik';
+import { getBuilderSearchParams, fetchOneEntry, Content } from '@builder.io/sdk-qwik';
+import { QWIK_MODEL } from '../../constants';
 
 export default component$<{
   apiKey: string;
@@ -10,8 +11,14 @@ export default component$<{
   const location = useLocation();
   const builderContentRsrc = useResource$<any>(({ cache }) => {
     const query = location.url.searchParams;
-    const render =
-      typeof query.get === 'function' ? query.get('render') : (query as { render?: string }).render;
+    // This helper function is needed because CF Workers don't support URLSearchParams.get
+    const queryGet = (name: string) =>
+      typeof query.get === 'function'
+        ? query.get(name)
+        : (query as unknown as Record<string, string>)[name];
+
+    const render = queryGet('render');
+    const contentId = props.model === QWIK_MODEL ? queryGet('content') : undefined;
     const isSDK = render === 'sdk';
     cache('immutable');
     if (isSDK) {
@@ -24,8 +31,13 @@ export default component$<{
             urlPath: location.url.pathname,
             site: 'qwik.builder.io',
           },
+          ...(contentId && {
+            query: {
+              id: contentId,
+            },
+          }),
         },
-        getContent
+        fetchOneEntry
       );
     } else {
       return getCachedValue(
@@ -33,6 +45,7 @@ export default component$<{
           apiKey: props.apiKey,
           model: props.model,
           urlPath: location.url.pathname,
+          contentId: contentId,
         },
         getBuilderContent
       );
@@ -47,7 +60,7 @@ export default component$<{
         content.html ? (
           <props.tag class="builder" dangerouslySetInnerHTML={content.html} />
         ) : (
-          <RenderContent model={props.model} content={content} apiKey={props.apiKey} />
+          <Content model={props.model} content={content} apiKey={props.apiKey} />
         )
       }
     />
@@ -87,14 +100,18 @@ export async function getBuilderContent({
   apiKey,
   model,
   urlPath,
+  contentId,
   cacheBust = false,
 }: {
   apiKey: string;
   model: string;
   urlPath: string;
+  contentId?: string | null;
   cacheBust?: boolean;
 }): Promise<BuilderContent> {
-  const qwikUrl = new URL('https://cdn.builder.io/api/v1/qwik/' + model);
+  const qwikUrl = new URL(
+    'https://cdn.builder.io/api/v1/qwik/' + model + (contentId ? '/' + contentId : '')
+  );
   qwikUrl.searchParams.set('apiKey', apiKey);
   qwikUrl.searchParams.set('userAttributes.urlPath', urlPath);
   qwikUrl.searchParams.set('userAttributes.site', 'qwik.builder.io');
@@ -102,10 +119,14 @@ export async function getBuilderContent({
     qwikUrl.searchParams.set('cachebust', 'true');
   }
 
-  const response = await fetch(qwikUrl.href);
-  if (response.ok) {
-    const content: BuilderContent = JSON.parse(await response.text());
-    return content;
+  try {
+    const response = await fetch(qwikUrl.href);
+    if (response.ok) {
+      const content: BuilderContent = JSON.parse(await response.text());
+      return content;
+    }
+  } catch (err) {
+    console.error(err);
   }
-  throw new Error(`Unable to load Builder content from ${qwikUrl.toString()}`);
+  return { html: `<div>Unable to load Builder content from ${qwikUrl.toString()}</div>` };
 }

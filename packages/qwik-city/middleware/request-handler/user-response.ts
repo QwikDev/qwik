@@ -1,10 +1,11 @@
-import type { QwikSerializer, ServerRequestEvent } from './types';
+import type { QwikSerializer, ServerRequestEvent, StatusCodes } from './types';
 import type { RequestEvent, RequestHandler } from '@builder.io/qwik-city';
 import { createRequestEvent, getRequestMode, type RequestEventInternal } from './request-event';
 import { ErrorResponse, getErrorHtml, minimalHtmlResponse } from './error-handler';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
 import type { LoadedRoute } from '../../runtime/src/types';
 import { encoder } from './resolve-request-handlers';
+import type { QwikManifest, ResolvedManifest } from '@builder.io/qwik/optimizer';
 
 export interface QwikCityRun<T> {
   response: Promise<T | null>;
@@ -12,10 +13,31 @@ export interface QwikCityRun<T> {
   completion: Promise<unknown>;
 }
 
+// TODO: create single QGlobal type
+type AsyncStore = import('node:async_hooks').AsyncLocalStorage<RequestEventInternal>;
+interface QGlobal extends Global {
+  qcAsyncRequestStore?: AsyncStore;
+}
+
+let asyncStore: AsyncStore | undefined;
+import('node:async_hooks')
+  .then((module) => {
+    const AsyncLocalStorage = module.AsyncLocalStorage;
+    asyncStore = new AsyncLocalStorage<RequestEventInternal>();
+    (globalThis as QGlobal).qcAsyncRequestStore = asyncStore;
+  })
+  .catch((err) => {
+    console.warn(
+      'AsyncLocalStorage not available, continuing without it. This might impact concurrent server calls.',
+      err
+    );
+  });
+
 export function runQwikCity<T>(
   serverRequestEv: ServerRequestEvent<T>,
   loadedRoute: LoadedRoute | null,
   requestHandlers: RequestHandler<any>[],
+  manifest: QwikManifest | ResolvedManifest | undefined,
   trailingSlash = true,
   basePathname = '/',
   qwikSerializer: QwikSerializer
@@ -26,6 +48,7 @@ export function runQwikCity<T>(
     serverRequestEv,
     loadedRoute,
     requestHandlers,
+    manifest,
     trailingSlash,
     basePathname,
     qwikSerializer,
@@ -34,7 +57,9 @@ export function runQwikCity<T>(
   return {
     response: responsePromise,
     requestEv,
-    completion: runNext(requestEv, resolve!),
+    completion: asyncStore
+      ? asyncStore.run(requestEv, runNext, requestEv, resolve!)
+      : runNext(requestEv, resolve!),
   };
 }
 
@@ -50,7 +75,8 @@ async function runNext(requestEv: RequestEventInternal, resolve: (value: any) =>
       console.error(e);
       if (!requestEv.headersSent) {
         const html = getErrorHtml(e.status, e);
-        requestEv.html(e.status, html);
+        const status = e.status as StatusCodes;
+        requestEv.html(status, html);
       }
     } else if (!(e instanceof AbortMessage)) {
       if (getRequestMode(requestEv) !== 'dev') {
@@ -81,8 +107,8 @@ async function runNext(requestEv: RequestEventInternal, resolve: (value: any) =>
 }
 
 /**
- * The pathname used to match in the route regex array.
- * A pathname ending with /q-data.json should be treated as a pathname without it.
+ * The pathname used to match in the route regex array. A pathname ending with /q-data.json should
+ * be treated as a pathname without it.
  */
 export function getRouteMatchPathname(pathname: string, trailingSlash: boolean | undefined) {
   if (pathname.endsWith(QDATA_JSON)) {
@@ -95,9 +121,6 @@ export function getRouteMatchPathname(pathname: string, trailingSlash: boolean |
   return pathname;
 }
 
-export const isQDataJson = (pathname: string) => {
-  return pathname.endsWith(QDATA_JSON);
-};
-
+export const IsQData = '@isQData';
 export const QDATA_JSON = '/q-data.json';
-const QDATA_JSON_LEN = QDATA_JSON.length;
+export const QDATA_JSON_LEN = QDATA_JSON.length;

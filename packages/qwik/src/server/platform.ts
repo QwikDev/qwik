@@ -1,9 +1,12 @@
 import type { SerializeDocumentOptions } from './types';
 import { setPlatform } from '@builder.io/qwik';
-import type { ResolvedManifest } from './prefetch-strategy';
+import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
 import type { CorePlatformServer } from '../core/platform/types';
 
 declare const require: (module: string) => Record<string, any>;
+
+// Make sure this value is same as value in `qrl-class.ts`
+const SYNC_QRL = '<sync>';
 
 export function createPlatform(
   opts: SerializeDocumentOptions,
@@ -12,11 +15,14 @@ export function createPlatform(
   const mapper = resolvedManifest?.mapper;
   const mapperFn = opts.symbolMapper
     ? opts.symbolMapper
-    : (symbolName: string) => {
+    : (symbolName: string): readonly [string, string] | undefined => {
         if (mapper) {
           const hash = getSymbolHash(symbolName);
           const result = mapper[hash];
           if (!result) {
+            if (hash === SYNC_QRL) {
+              return [hash, ''] as const;
+            }
             const isRegistered = (globalThis as any).__qwik_reg_symbols?.has(hash);
             if (isRegistered) {
               return [symbolName, '_'] as const;
@@ -66,10 +72,7 @@ export function createPlatform(
   return serverPlatform;
 }
 
-/**
- * Applies NodeJS specific platform APIs to the passed in document instance.
- *
- */
+/** Applies NodeJS specific platform APIs to the passed in document instance. */
 export async function setServerPlatform(
   opts: SerializeDocumentOptions,
   manifest: ResolvedManifest | undefined

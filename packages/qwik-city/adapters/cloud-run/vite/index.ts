@@ -1,9 +1,7 @@
 import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
 import { type ServerAdapterOptions, viteAdapter } from '../../shared/vite';
 
-/**
- * @public
- */
+/** @public */
 export function cloudRunAdapter(opts: CloudRunAdapterOptions = {}): any {
   const env = process?.env;
   return viteAdapter({
@@ -11,7 +9,6 @@ export function cloudRunAdapter(opts: CloudRunAdapterOptions = {}): any {
     origin: env?.ORIGIN ?? env?.URL ?? 'https://your-app-name.run.app',
     ssg: opts.ssg,
     cleanStaticGenerated: true,
-
     config() {
       return {
         build: {
@@ -23,12 +20,8 @@ export function cloudRunAdapter(opts: CloudRunAdapterOptions = {}): any {
   });
 }
 
-/**
- * @public
- */
+/** @public */
 export interface CloudRunAdapterOptions extends ServerAdapterOptions {}
 
-/**
- * @public
- */
+/** @public */
 export type { StaticGenerateRenderOptions };

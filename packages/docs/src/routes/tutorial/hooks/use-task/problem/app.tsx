@@ -5,22 +5,19 @@ export default component$(() => {
     value: '',
     debouncedValue: '',
   });
-  useTask$(({ track }) => {
+  useTask$(({ track, cleanup }) => {
     // Use track to rerun this function when store's `value` property changes.
 
     // Setup a timer to copy `value => debouncedValue` after half a second.
 
     // Return cleanup function in case `value` property changes before time is up.
-    return () => {
+    cleanup(() => {
       // cleanup code
-    };
+    });
   });
   return (
     <>
-      <input
-        value={store.value}
-        onInput$={(event) => (store.value = (event.target as HTMLInputElement).value)}
-      />
+      <input value={store.value} onInput$={(ev, el) => (store.value = el.value)} />
       <br />
       Current value: {store.value}
       <br />

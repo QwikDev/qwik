@@ -1,0 +1,23 @@
+{
+  "description": "Vanilla Node server",
+  "scripts": {
+    "build.server": "vite build -c adapters/node-server/vite.config.ts",
+    "serve": "node server/entry.node-server"
+  },
+  "__qwik__": {
+    "priority": 19,
+    "displayName": "Adapter: Node.js Server",
+    "docs": [
+      "https://qwik.builder.io/deployments/node/"
+    ],
+    "nextSteps": {
+      "title": "Next Steps",
+      "lines": [
+        "Now you can build a production-ready node app:",
+        "",
+        "- pnpm run build: production build",
+        "- pnpm run serve: runs the production server locally"
+      ]
+    }
+  }
+}

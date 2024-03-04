@@ -1,18 +1,16 @@
-import { getBanner, importPath, nodeTarget, target, watcher } from './util';
+import { getBanner, importPath, nodeTarget, target } from './util';
 import { build, type BuildOptions } from 'esbuild';
-import { type BuildConfig, injectGlobalThisPoly, type PackageJSON } from './util';
+import { type BuildConfig, type PackageJSON } from './util';
 import { join } from 'node:path';
 import { writePackageJson } from './package-json';
 
-/**
- * Builds @builder.io/testing
- */
+/** Builds @builder.io/testing */
 export async function submoduleTesting(config: BuildConfig) {
   const submodule = 'testing';
 
   const opts: BuildOptions = {
-    entryPoints: [join(config.srcDir, submodule, 'index.ts')],
-    outdir: join(config.distPkgDir, submodule),
+    entryPoints: [join(config.srcQwikDir, submodule, 'index.ts')],
+    outdir: join(config.distQwikPkgDir, submodule),
     sourcemap: config.dev,
     bundle: true,
     target,
@@ -31,7 +29,6 @@ export async function submoduleTesting(config: BuildConfig) {
       importPath(/^@builder\.io\/qwik\/optimizer$/, '../optimizer.mjs'),
       importPath(/^@builder\.io\/qwik\/server$/, '../server.mjs'),
     ],
-    watch: watcher(config, submodule),
     define: {
       'globalThis.MODULE_EXT': `"mjs"`,
       'globalThis.RUNNER': `false`,
@@ -44,14 +41,13 @@ export async function submoduleTesting(config: BuildConfig) {
     format: 'cjs',
     outExtension: { '.js': '.cjs' },
     banner: {
-      js: getBanner('@builder.io/qwik/testing', config.distVersion) + injectGlobalThisPoly(),
+      js: getBanner('@builder.io/qwik/testing', config.distVersion),
     },
     plugins: [
       importPath(/^@builder\.io\/qwik$/, '../core.cjs'),
       importPath(/^@builder\.io\/qwik\/optimizer$/, '../optimizer.cjs'),
       importPath(/^@builder\.io\/qwik\/server$/, '../server.cjs'),
     ],
-    watch: watcher(config),
     define: {
       'globalThis.MODULE_EXT': `"cjs"`,
       'globalThis.RUNNER': `false`,
@@ -76,6 +72,6 @@ async function generateTestingPackageJson(config: BuildConfig) {
     private: true,
     type: 'module',
   };
-  const testingDistDir = join(config.distPkgDir, 'testing');
+  const testingDistDir = join(config.distQwikPkgDir, 'testing');
   await writePackageJson(testingDistDir, pkg);
 }

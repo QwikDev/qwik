@@ -1,4 +1,5 @@
 import jsxAstUtils from 'jsx-ast-utils';
+import { QwikEslintExamples } from '../examples';
 
 // ------------------------------------------------------------------------------
 // Rule Definition
@@ -15,7 +16,7 @@ const defaultOptions = {
 };
 
 const messages = {
-  missingIterKey: 'Missing "key" prop for element in iterator',
+  missingIterKey: 'Missing "key" prop for element in iterator.',
   missingIterKeyUsePrag:
     'Missing "key" prop for element in iterator. The key prop allows for improved rendering performance. Shorthand fragment syntax does not support providing keys. Use <Fragment> instead',
   missingArrayKey:
@@ -31,6 +32,7 @@ export const jsxKey = {
       description: 'Disallow missing `key` props in iterators/collection literals',
       category: 'Possible Errors',
       recommended: true,
+      url: 'https://qwik.builder.io/docs/advanced/eslint/#jsx-key',
     },
 
     messages,
@@ -58,6 +60,12 @@ export const jsxKey = {
   },
 
   create(context) {
+    const modifyJsxSource = context.sourceCode
+      .getAllComments()
+      .some((c) => c.value.includes('@jsxImportSource'));
+    if (modifyJsxSource) {
+      return {};
+    }
     const options = Object.assign({}, defaultOptions, context.options[0]);
     const checkFragmentShorthand = options.checkFragmentShorthand;
     const checkKeyMustBeforeSpread = options.checkKeyMustBeforeSpread;
@@ -118,8 +126,9 @@ export const jsxKey = {
     }
 
     /**
-     * Checks if the given node is a function expression or arrow function,
-     * and checks if there is a missing key prop in return statement's arguments
+     * Checks if the given node is a function expression or arrow function, and checks if there is a
+     * missing key prop in return statement's arguments
+     *
      * @param {ASTNode} node
      */
     function checkFunctionsBlockStatement(node) {
@@ -135,8 +144,9 @@ export const jsxKey = {
     }
 
     /**
-     * Checks if the given node is an arrow function that has an JSX Element or JSX Fragment in its body,
-     * and the JSX is missing a key prop
+     * Checks if the given node is an arrow function that has an JSX Element or JSX Fragment in its
+     * body, and the JSX is missing a key prop
+     *
      * @param {ASTNode} node
      */
     function checkArrowFunctionWithJSX(node) {
@@ -274,5 +284,247 @@ export const jsxKey = {
         checkFunctionsBlockStatement(fn);
       },
     };
+  },
+};
+
+const missingIterKeyGood = `
+import { component$ } from '@builder.io/qwik';
+
+export const Person = component$(() => {
+  const person  = {
+    firstName: 'John',
+    lastName: 'Doe',
+    age: 32,
+  }
+
+  return (
+    <ul>
+      {Object.keys(person).map((color) => (
+        <li key={\`person-\${key}\`}>{person[key]}</li>
+      )}
+    </ul>
+  );
+});`.trim();
+
+const missingIterKeyBad = `
+import { component$ } from '@builder.io/qwik';
+
+export const Person = component$(() => {
+  const person  = {
+    firstName: 'John',
+    lastName: 'Doe',
+    age: 32,
+  }
+
+  return (
+    <ul>
+      {Object.keys(person).map((color) => (
+        <li>{person[key]}</li>
+      )}
+    </ul>
+  );
+});`.trim();
+
+const missingIterKeyUsePragGood = `
+import { component$ } from '@builder.io/qwik';
+import Card from './Card';
+import Summary from './Summary';
+
+export const Person = component$(() => {
+  const person  = {
+    firstName: 'John',
+    lastName: 'Doe',
+    age: 32,
+  }
+
+  return (
+    {Object.keys(person).map((color) => (
+      <Fragment key={\`person-\${key}\`}>
+        <Card value={person[key]} />
+        <Summary value={person[key]} />
+      </Fragment>
+    )}
+  );
+});`.trim();
+
+const missingIterKeyUsePragBad = `
+import { component$ } from '@builder.io/qwik';
+import Card from './Card';
+import Summary from './Summary';
+
+export const Person = component$(() => {
+  const person  = {
+    firstName: 'John',
+    lastName: 'Doe',
+    age: 32,
+  }
+
+  return (
+    {Object.keys(person).map((color) => (
+      < key={\`person-\${key}\`}>
+        <Card value={person[key]} />
+        <Summary value={person[key]} />
+      </>
+    )}
+  );
+});`.trim();
+
+const missingArrayKeyGood = `
+import { component$ } from '@builder.io/qwik';
+
+export const ColorList = component$(() => {
+  const colors = ['red', 'green', 'blue'];
+
+  return (
+    <ul>
+      {colors.map((color) => (
+        <li key={\`color-\${color}\`}>{color}</li>
+      )}
+    </ul>
+  );
+});`.trim();
+
+const missingArrayKeyBad = `
+import { component$ } from '@builder.io/qwik';
+
+export const ColorList = component$(() => {
+  const colors = ['red', 'green', 'blue'];
+
+  return (
+    <ul>
+      {colors.map((color) => (
+        <li>{color}</li>
+      )}
+    </ul>
+  );
+});`.trim();
+
+const missingArrayKeyUsePragGood = `
+import { component$, Fragment } from '@builder.io/qwik';
+
+export const ColorList = component$(() => {
+  const colors = ['red', 'green', 'blue'];
+
+  return (
+    {colors.map((color) => (
+      <Fragment key={\`color-\${color}\`}>
+        <h2>{color}</h2>
+        <p>The color "\${color}" is a great color.</p>
+      </Fragment>
+    )}
+  );
+});`.trim();
+
+const missingArrayKeyUsePragBad = `
+import { component$ } from '@builder.io/qwik';
+
+export const ColorList = component$(() => {
+  const colors = ['red', 'green', 'blue'];
+
+  return (
+    {colors.map((color) => (
+      < key={\`color-\${color}\`}>
+        <h2>{color}</h2>
+        <p>The color "\${color}" is a great color.</p>
+      </>
+    )}
+  );
+});`.trim();
+
+const nonUniqueKeysGood = missingArrayKeyGood;
+
+const nonUniqueKeysBad = `
+import { component$ } from '@builder.io/qwik';
+
+export const ColorList = component$(() => {
+  const colors = ['red', 'green', 'blue'];
+
+  return (
+    <ul>
+      {colors.map((color) => (
+        <li key="not-a-good-idea">{color}</li>
+      )}
+    </ul>
+  );
+});`.trim();
+
+export const jsxKeyExamples: QwikEslintExamples = {
+  missingIterKey: {
+    good: [
+      {
+        codeHighlight: '{13} /key=/#a',
+        code: missingIterKeyGood,
+      },
+    ],
+    bad: [
+      {
+        codeHighlight: '{13}',
+        code: missingIterKeyBad,
+        description: 'Missing `key` prop for element in iterator.',
+      },
+    ],
+  },
+  missingIterKeyUsePrag: {
+    good: [
+      {
+        codeHighlight: '{14} /Fragment/#a',
+        code: missingIterKeyUsePragGood,
+      },
+    ],
+    bad: [
+      {
+        codeHighlight: '{14}',
+        code: missingIterKeyUsePragBad,
+        description:
+          'Missing `key` prop for element in iterator. The key prop allows for improved rendering performance. Shorthand fragment syntax does not support providing keys. Use `<Fragment>` instead',
+      },
+    ],
+  },
+  missingArrayKey: {
+    good: [
+      {
+        codeHighlight: '{9} /key=/#a',
+        code: missingArrayKeyGood,
+      },
+    ],
+    bad: [
+      {
+        codeHighlight: '{9}',
+        code: missingArrayKeyBad,
+        description:
+          'Missing `key` prop for element in array. The key prop allows for improved rendering performance.',
+      },
+    ],
+  },
+  missingArrayKeyUsePrag: {
+    good: [
+      {
+        codeHighlight: '{8,11} /Fragment/#a',
+        code: missingArrayKeyUsePragGood,
+      },
+    ],
+    bad: [
+      {
+        codeHighlight: '{8,11}',
+        code: missingArrayKeyUsePragBad,
+        description:
+          'Missing `key` prop for element in array. The key prop allows for improved rendering performance. Shorthand fragment syntax does not support providing keys. Use `<Fragment>` instead',
+      },
+    ],
+  },
+  nonUniqueKeys: {
+    good: [
+      {
+        codeHighlight: '{9} /key=/#a',
+        code: nonUniqueKeysGood,
+      },
+    ],
+    bad: [
+      {
+        codeHighlight: '{9} /key=/#a /not-a-good-idea/#b',
+        code: nonUniqueKeysBad,
+        description: 'The `key` prop must be unique.',
+      },
+    ],
   },
 };

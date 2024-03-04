@@ -1,7 +1,18 @@
 ---
-title: Static Site Generation (SSG) Overview
+title: Static Site Generation (SSG) Overview | Guides
+description: Learn how static site generation (SSG) works in Qwik City.
 contributors:
   - adamdbradley
+  - AnthonyPAlicea
+  - mhevery
+  - ibousfiha
+  - Kocal
+  - eric-burel
+  - julianobrasil
+  - mrhoodz
+  - hamatoyogi
+updated_at: '2023-10-04T10:27:27Z'
+created_at: '2023-03-20T23:45:13Z'
 ---
 
 # Static Site Generation (SSG) Overview
@@ -14,9 +25,9 @@ Additionally, due to Qwik's underlying architecture, page performance also benef
 
 Qwik City is capable of taking a Qwik application, no matter if it's a "webapp" or "website", and generate static HTML. Once it's generated as HTML, Qwik is fundamentally able to skip rebuilding the app by using [resumability](../../../(qwik)/concepts/resumable/index.mdx), since the app was already generated as HTML. Both Static Site Generation (SSG) and Server-Side Rendering (SSR) use the same process to generate the HTML. The main difference between the SSG and SSR however, is "when" the HTML is generated.
 
-In a traditional setup, SSG pre-renders each webpage at build-time, while SSR render's each webpage on-demand for each HTTP request. SSG only needs to generate the HTML one time per build, which is great for webpages where each visitor should see the same content. In contrast, SSR is great when the webpage may be different for each visitor, and would need to render custom HTML for each individual HTTP request.
+In a traditional setup, SSG pre-renders each webpage at build-time, while SSR render's each webpage on-demand for each HTTP request. SSG only needs to generate the HTML one time per build, which is great for webpages where multiple visitors should see the same content. In contrast, SSR is great when the webpage may be different for each visitor, and would need to render custom HTML for each individual HTTP request.
 
-For example, SSG is ideal for a blog or docs site, where all the content should be the same for each visitor. While SSR may work fine for a blog, it may be an unnecessary strain for your HTTP servers to render the blog content for every visitor, even though they'd all end up seeing the same HTML.
+For example, SSG is ideal for a blog or docs site, where all the content should be the same for multiple visitors. While SSR may work fine for a blog, it may be an unnecessary strain for your HTTP servers to render the blog content for every visitor, even though they'd all end up seeing the same HTML.
 
 However, an account dashboard would commonly have different content for each signed-in user. In this setup, each user should get their own rendered HTML with their account information, rather than everyone seeing the exact same content. This is where SSR would be preferred.
 
@@ -29,7 +40,7 @@ With Qwik City however, the decision to use SSG or SSR, does not have to be one 
 Static site generation is created from the built in adapter, to create an adapter run:
 
 ```shell
-npm run qwik add
+npm run qwik add static
 ```
 
 Select `Adapter: Static site (.html files)`. Done!
@@ -43,10 +54,10 @@ Running the above command will make the following changes to your project:
 
 Your build files will be generated into the `dist` folder.
 
-You can build and preview your static site using:
+You can build your static site using:
 
 ```shell
-npm run preview
+npm run build.server
 ```
 
 ### SSG Config
@@ -59,7 +70,7 @@ The URL `origin`, which is a combination of the scheme (protocol) and hostname (
 
 The `origin` is used to provide a full URL during Static Site Generation (SSG), and to simulate a complete URL rather than just the `pathname`. For example, in order to render a correct canonical tag URL or URLs within the `sitemap.xml`, the `origin` must be provided too.
 
-If the site also starts with a pathname other than `/`, please use the `basePathname` option in the Qwik City config options.
+If the site also starts with a pathname other than `/`, please use the `base` option in the Vite config options (the `basePathname` option in the Qwik City config options is deprecated).
 
 #### `outDir`
 
@@ -71,19 +82,25 @@ For a Javascript project, it's quite common for the build's runtime to be built 
 
 ## Dynamic SSG Routes
 
+So far, we've only discussed how to generate static HTML files for a single route path. However, in most cases, you'll want to generate HTML files for multiple route paths that has dynamic params. For example, a product site may have a route path for each product, such as `/product/:id`. In this case, you'll want to generate HTML files for each product page, which would require generating HTML files for each product ID.
+
 ```tsx
 import { component$ } from '@builder.io/qwik';
-import { useLocation } from '@builder.io/qwik-city';
-import type { StaticGenerateHandler } from '@builder.io/qwik-city';
+import { useLocation, type StaticGenerateHandler } from '@builder.io/qwik-city';
+import { loadProductIds } from './load-product-ids';
 
 export default component$(() => {
   const { params } = useLocation();
 
-  return <div>Example: {params.id}</div>;
+  return <p>Example: {params.id}</p>;
 });
 
-export const onStaticGenerate: StaticGenerateHandler = () => {
-  const ids = [...]; // id data load implementation
+export const onStaticGenerate: StaticGenerateHandler = async ({ env }) => {
+  // example of loading params for this use case
+  // every implementation will be different
+  const ids = await loadProductIds({
+    apiKey: env.get('API_KEY'),
+  });
 
   return {
     params: ids.map((id) => {
@@ -92,3 +109,20 @@ export const onStaticGenerate: StaticGenerateHandler = () => {
   };
 };
 ```
+
+In the above example, the `onStaticGenerate()` function is loading the product IDs from a `loadProductIds()` function by requesting an API behind an API key retrieved from an environment variable.
+This function would be custom for each implementation, but the general idea is that you'll need to load the data for each product ID, and then generate HTML files for each product ID.
+
+The `onStaticGenerate` function should be exported from the top-level of the module, and should return an object with a `params` property. The `params` property should be an array of objects, where each object is a set of params for the route path. For example, if the route path is `/product/:id`, then the `params` array should be an array of objects with an `id` property.
+
+The directory structure for this example would be:
+
+```bash
+src/
+└── routes/
+    └── product/
+        └── [id]/
+            └── index.tsx
+```
+
+Notice that the `index.tsx` file is inside a directory named `[id]`. This is a special directory name that tells Qwik City to generate HTML files for each `id` param. The `index.tsx` file is the default file that Qwik City will use when generating HTML files for a route path.

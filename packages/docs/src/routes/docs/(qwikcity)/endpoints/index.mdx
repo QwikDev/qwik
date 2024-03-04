@@ -1,172 +1,99 @@
 ---
-title: Qwik City - Page
+title: Endpoints | Qwik City
+description: Endpoints are middleware functions used to control and return data in various formats like RESTful API, GraphQL API, JSON, XML, reverse proxy, or other API types.
 contributors:
   - adamdbradley
   - manucorporat
-  - Oyemade
   - mhevery
-  - royboy789
+  - CoralWombat
+  - hamatoyogi
+  - igorbabko
+  - mrhoodz
+  - EamonHeffernan
+  - kumarasinghe
+  - electather
+  - wtlin1228
+  - PatrickJS
+  - the-r3aper7
+updated_at: '2023-10-03T18:53:23Z'
+created_at: '2023-03-20T23:45:13Z'
 ---
+
+import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
+
 
 # Endpoints
 
-Endpoints are `index.ts` files in the `src/routes` directory that does not export a `default` component. Instead, it exports a `onRequest`, `onGet`, `onPost`, `onPut`, `onDelete`, `onPatch`, `onHead` function, which will be used to handle the incoming request.
 
-The main use case for endpoints is to create a RESTful API for your application, or some HTTP handler that is rendered by Qwik.
+A [middleware function](/docs/middleware) that returns a response is called an endpoint. Endpoints are useful for returning data such as  RESTful API, GraphQL API, JSON, XML, reverse proxy or any other type of API where you need to control all aspects of the HTTP response. Returning a response (using `json` for example) will stop the execution of subsequent middleware functions past this point in the middleware chain. 
 
-```ts
-import type { RequestHandler } from '@builder.io/qwik-city';
+All endpoints receive a [`RequestEvent`](/docs/middleware/#requestevent) API for controlling the response of the endpoint. 
 
-// Called with every HTTP request (regardless of method)
-export const onRequest: RequestHandler = async (ev) => { ... }
 
-// Called when the HTTP method is POST
-export const onPost: RequestHandler = async (ev) => { ... }
+For example, when navigating to `/greet/` URL this endpoint will return `{"hello":"world"}`.
 
-// Called when the HTTP method is PUT
-export const onPut: RequestHandler = async (ev) => { ... }
-
-// Called when the HTTP method is PATCH
-export const onPatch: RequestHandler = async (ev) => { ... }
-
-// Called when the HTTP method is DELETE
-export const onDelete: RequestHandler = async (ev) => { ... }
-```
-
-These functions are executed according to the [HTTP method](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) used for this route.
-
-## Raw Response Control
-
-Endpoints are routes that will not render any Qwik page, instead they allow you to have full control over the HTTP response. From changing the status code to adding headers, and even sending a raw response body.
-
-### Changing the status code
-
+File: `src/routes/greet/index.tsx`
+<CodeSandbox src="/src/routes/demo/qwikcity/middleware/json/index.tsx">
 ```tsx
-import type { RequestHandler } from '@builder.io/qwik-city';
-
-export const onGet: RequestHandler = async ({ status }) => {
-  throw status(404);
-};
-```
-
-### Adding response headers
-
-```tsx
-import type { RequestHandler } from '@builder.io/qwik-city';
-
-export const onPost: RequestHandler = async ({ headers }) => {
-  headers.set('X-My-Custom-Header', 'Hello World');
-};
-```
-
-### Setting a cookie
-
-```tsx
-import type { RequestHandler } from '@builder.io/qwik-city';
-
-export const onGet: RequestHandler = async ({ cookie }) => {
-  cookie.set('my-cookie', 'Hello World');
-};
-```
-
-### Changing the cache-control header
-
-```tsx
-import type { RequestHandler } from '@builder.io/qwik-city';
-
-export const onGet: RequestHandler = async ({ cacheControl }) => {
-  cacheControl({
-    maxAge: 31536e3,
-    public: true,
-    immutable: true,
-    staleWhileRevalidate: 31536e3,
-  });
-};
-```
-
-### Sending a JSON body
-
-```tsx
-import type { RequestHandler } from '@builder.io/qwik-city';
+import { type RequestHandler } from '@builder.io/qwik-city';
 
 export const onGet: RequestHandler = async ({ json }) => {
   json(200, { hello: 'world' });
 };
 ```
+</CodeSandbox>
 
-### Sending a Text body
+> Sending a response is what differentiates an endpoint from a middleware. Sending a response (using `json()` for example) will therefore implicitly halt the middleware chain.
 
+
+
+## Create a reverse proxy using a fetch
+
+A reverse proxy can be created by using the `fetch()` method to make a request to another server, and then using the `send()` method to send the response back to the client.
+
+<CodeSandbox src="/src/routes/demo/qwikcity/middleware/proxy/index.tsx">
 ```tsx
 import type { RequestHandler } from '@builder.io/qwik-city';
 
-export const onGet: RequestHandler = async ({ text }) => {
-  text(200, 'Hello World');
+export const onGet: RequestHandler = async ({ send, url }) => {
+  const response = await fetch(
+    new URL('/demo/qwikcity/middleware/json/', url)
+  );
+  send(response.status, await response.text());
 };
 ```
+</CodeSandbox>
 
-### Sending a RAW response
+## Create a stream response manually
 
+Endpoints can manually write to the HTTP response stream, using the `getWritableStream()` method. This can be useful for creating a streaming endpoint, such as a server-sent events endpoint.
+
+<CodeSandbox src="/src/routes/demo/qwikcity/middleware/getWritableStream/index.tsx">
 ```tsx
 import type { RequestHandler } from '@builder.io/qwik-city';
 
-export const onGet: RequestHandler = async ({ send }) => {
-  const response = new Response('Hello World', {
-    status: 200,
-    headers: {
-      'Content-Type': 'text/plain',
-    },
-  });
-  send(response);
-};
-```
-
-### Create a reverse proxy using a fetch
-
-```tsx
-import type { RequestHandler } from '@builder.io/qwik-city';
-
-export const onGet: RequestHandler = async ({ send }) => {
-  const response = await fetch('https://example.com');
-  send(response);
-};
-```
-
-### Create a stream response manually
-
-```tsx
-import type { RequestHandler } from '@builder.io/qwik-city';
-
-export const onGet: RequestHandler = async ({ getWritableStream }) => {
-  const writableStream = getWritableStream();
+export const onGet: RequestHandler = async (requestEvent) => {
+  const writableStream = requestEvent.getWritableStream();
   const writer = writableStream.getWriter();
-  writer.write('Hello World');
+  const encoder = new TextEncoder();
+
+  writer.write(encoder.encode('Hello World\n'));
   await wait(100);
-  writer.write('After 100ms');
+  writer.write(encoder.encode('After 100ms\n'));
   await wait(100);
-  writer.write('After 200ms');
+  writer.write(encoder.encode('After 200ms\n'));
   await wait(100);
-  writer.write('END');
+  writer.write(encoder.encode('END'));
   writer.close();
 };
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 ```
+</CodeSandbox>
 
-### JSON GET Endpoint
+## Endpoint vs `server$`
 
-```ts title="src/routes/product/[skuId]/index.ts"
-import type { RequestHandler } from '@builder.io/qwik-city';
+Endpoints are low level APIs that give developers full control over the HTTP response. They are only recommended when you need to create an API to be consumed by an external entity such as a mobile app or a third-party service.
 
-interface ProductData {
-  skuId: string;
-  price: number;
-  description: string;
-}
+The [`server$`](/docs/(qwikcity)/server$/index.mdx) functions are usually a better option when you need to run some code on the server and return a response back to the app. The `server$` is strongly typed and provides a more convenient API for returning data.
 
-export const onGet: RequestHandler = async ({ json, params }) => {
-  // put your DB access here, we are hard coding a response for simplicity.
-  json(200, {
-    skuId: params.skuId,
-    price: 123.45,
-    description: `Description for ${params.skuId}`,
-  });
-};
-```

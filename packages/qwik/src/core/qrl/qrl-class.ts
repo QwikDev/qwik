@@ -1,61 +1,75 @@
+import type { QContainerElement } from '../container/container';
+import { assertDefined } from '../error/assert';
 import { qError, QError_qrlIsNotFunction } from '../error/error';
 import { getPlatform, isServerPlatform } from '../platform/platform';
 import { verifySerializable } from '../state/common';
 import { isSignal, type SignalInternal } from '../state/signal';
 import {
-  type InvokeContext,
-  newInvokeContext,
   invoke,
-  type InvokeTuple,
+  newInvokeContext,
   newInvokeContextFromTuple,
+  tryGetInvokeContext,
+  type InvokeContext,
+  type InvokeTuple,
 } from '../use/use-core';
-import { then } from '../util/promises';
-import { qDev, qTest, seal } from '../util/qdev';
+import { maybeThen } from '../util/promises';
+import { qDev, qSerialize, qTest, seal } from '../util/qdev';
 import { isArray, isFunction, type ValueOrPromise } from '../util/types';
 import type { QRLDev } from './qrl';
-import type { QRL } from './qrl.public';
+import type { QRL, QrlArgs, QrlReturn } from './qrl.public';
 
-export const isQrl = (value: any): value is QRLInternal => {
-  return typeof value === 'function' && typeof value.getSymbol === 'function';
+export const isQrl = <T = unknown>(value: unknown): value is QRLInternal<T> => {
+  return typeof value === 'function' && typeof (value as any).getSymbol === 'function';
 };
 
-export interface QRLInternalMethods<TYPE> {
+// Make sure this value is same as value in `platform.ts`
+export const SYNC_QRL = '<sync>';
+
+/** Sync QRL is a function which is serialized into `<script q:func="qwik/json">` tag. */
+export const isSyncQrl = (value: any): value is QRLInternal => {
+  return isQrl(value) && value.$symbol$ == SYNC_QRL;
+};
+
+export type QRLInternalMethods<TYPE> = {
   readonly $chunk$: string | null;
   readonly $symbol$: string;
   readonly $refSymbol$: string | null;
   readonly $hash$: string;
 
   $capture$: string[] | null;
-  $captureRef$: any[] | null;
+  $captureRef$: unknown[] | null;
   dev: QRLDev | null;
+
+  resolved: undefined | TYPE;
 
   resolve(): Promise<TYPE>;
   getSymbol(): string;
   getHash(): string;
-  getCaptured(): any[] | null;
+  getCaptured(): unknown[] | null;
   getFn(
     currentCtx?: InvokeContext | InvokeTuple,
     beforeFn?: () => void
-  ): TYPE extends (...args: infer ARGS) => infer Return
-    ? (...args: ARGS) => ValueOrPromise<Return>
-    : any;
+  ): TYPE extends (...args: any) => any
+    ? (...args: Parameters<TYPE>) => ValueOrPromise<ReturnType<TYPE>>
+    : // unknown so we allow assigning function QRLs to any
+      unknown;
 
   $setContainer$(containerEl: Element | undefined): Element | undefined;
   $resolveLazy$(containerEl?: Element): ValueOrPromise<TYPE>;
-}
+};
 
-export interface QRLInternal<TYPE = any> extends QRL<TYPE>, QRLInternalMethods<TYPE> {}
+export type QRLInternal<TYPE = unknown> = QRL<TYPE> & QRLInternalMethods<TYPE>;
 
 export const createQRL = <TYPE>(
   chunk: string | null,
   symbol: string,
   symbolRef: null | ValueOrPromise<TYPE>,
-  symbolFn: null | (() => Promise<Record<string, any>>),
-  capture: null | string[],
-  captureRef: any[] | null,
+  symbolFn: null | (() => Promise<Record<string, unknown>>),
+  capture: null | Readonly<string[]>,
+  captureRef: Readonly<unknown[]> | null,
   refSymbol: string | null
 ): QRLInternal<TYPE> => {
-  if (qDev) {
+  if (qDev && qSerialize) {
     if (captureRef) {
       for (const item of captureRef) {
         verifySerializable(item, 'Captured variable in the closure can not be serialized');
@@ -64,6 +78,12 @@ export const createQRL = <TYPE>(
   }
 
   let _containerEl: Element | undefined;
+
+  const qrl = async function (this: unknown, ...args: QrlArgs<TYPE>) {
+    const fn = invokeFn.call(this, tryGetInvokeContext());
+    const result = await fn(...args);
+    return result;
+  } as QRLInternal<TYPE>;
 
   const setContainer = (el: Element | undefined) => {
     if (!_containerEl) {
@@ -76,15 +96,23 @@ export const createQRL = <TYPE>(
     if (containerEl) {
       setContainer(containerEl);
     }
+    if (chunk == '') {
+      // Sync QRL
+      assertDefined(_containerEl, 'Sync QRL must have container element');
+      const qFuncs = (_containerEl as QContainerElement).qFuncs || [];
+      symbolRef = qFuncs[Number(symbol)] as TYPE;
+    }
     if (symbolRef !== null) {
       return symbolRef;
     }
     if (symbolFn !== null) {
-      return (symbolRef = symbolFn().then((module) => (symbolRef = module[symbol])));
+      return (symbolRef = symbolFn().then(
+        (module) => (qrl.resolved = symbolRef = module[symbol] as TYPE)
+      ));
     } else {
       const symbol2 = getPlatform().importSymbol(_containerEl, chunk, symbol);
-      return (symbolRef = then(symbol2, (ref) => {
-        return (symbolRef = ref);
+      return (symbolRef = maybeThen(symbol2, (ref) => {
+        return (qrl.resolved = symbolRef = ref);
       }));
     }
   };
@@ -94,32 +122,35 @@ export const createQRL = <TYPE>(
   };
 
   function invokeFn(
-    this: any,
+    this: unknown,
     currentCtx?: InvokeContext | InvokeTuple,
     beforeFn?: () => void | boolean
   ) {
-    return ((...args: any[]): any => {
+    return (...args: QrlArgs<TYPE>): QrlReturn<TYPE> => {
       const start = now();
       const fn = resolveLazy() as TYPE;
-      return then(fn, (fn) => {
-        if (isFunction(fn)) {
+      return maybeThen(fn, (f) => {
+        if (isFunction(f)) {
           if (beforeFn && beforeFn() === false) {
             return;
           }
-          const baseContext = createInvocationContext(currentCtx);
+          const baseContext = createOrReuseInvocationContext(currentCtx);
           const context: InvokeContext = {
             ...baseContext,
-            $qrl$: QRL as QRLInternal<any>,
+            $qrl$: qrl as QRLInternal,
           };
+          if (context.$event$ === undefined) {
+            context.$event$ = this as Event;
+          }
           emitUsedSymbol(symbol, context.$element$, start);
-          return invoke.call(this, context, fn as any, ...args);
+          return invoke.call(this, context, f, ...(args as Parameters<typeof f>));
         }
         throw qError(QError_qrlIsNotFunction);
       });
-    }) as any;
+    };
   }
 
-  const createInvocationContext = (invoke: InvokeContext | InvokeTuple | undefined) => {
+  const createOrReuseInvocationContext = (invoke: InvokeContext | InvokeTuple | undefined) => {
     if (invoke == null) {
       return newInvokeContext();
     } else if (isArray(invoke)) {
@@ -129,16 +160,10 @@ export const createQRL = <TYPE>(
     }
   };
 
-  const invokeQRL = async function (this: any, ...args: any) {
-    const fn = invokeFn.call(this);
-    const result = await fn(...args);
-    return result;
-  };
   const resolvedSymbol = refSymbol ?? symbol;
   const hash = getSymbolHash(resolvedSymbol);
 
-  const QRL: QRLInternal<TYPE> = invokeQRL as any;
-  const methods: QRLInternalMethods<TYPE> = {
+  Object.assign(qrl, {
     getSymbol: () => resolvedSymbol,
     getHash: () => hash,
     getCaptured: () => captureRef,
@@ -154,10 +179,12 @@ export const createQRL = <TYPE>(
     $capture$: capture,
     $captureRef$: captureRef,
     dev: null,
-  };
-  const qrl = Object.assign(invokeQRL, methods);
-  seal(qrl);
-  return qrl as any;
+    resolved: symbol == SYNC_QRL ? symbolRef : undefined,
+  });
+  if (qDev) {
+    seal(qrl);
+  }
+  return qrl;
 };
 
 export const getSymbolHash = (symbolName: string) => {
@@ -176,7 +203,7 @@ export function assertQrl<T>(qrl: QRL<T>): asserts qrl is QRLInternal<T> {
   }
 }
 
-export function assertSignal<T>(obj: any): asserts obj is SignalInternal<T> {
+export function assertSignal<T>(obj: unknown): asserts obj is SignalInternal<T> {
   if (qDev) {
     if (!isSignal(obj)) {
       throw new Error('Not a Signal');
@@ -184,7 +211,7 @@ export function assertSignal<T>(obj: any): asserts obj is SignalInternal<T> {
   }
 }
 
-const EMITTED = /*@__PURE__*/ new Set();
+const EMITTED = /*#__PURE__*/ new Set();
 
 export const emitUsedSymbol = (symbol: string, element: Element | undefined, reqTime: number) => {
   if (!EMITTED.has(symbol)) {
@@ -197,13 +224,13 @@ export const emitUsedSymbol = (symbol: string, element: Element | undefined, req
   }
 };
 
-export const emitEvent = (eventName: string, detail: any) => {
+export const emitEvent = <T extends CustomEvent = any>(eventName: string, detail: T['detail']) => {
   if (!qTest && !isServerPlatform() && typeof document === 'object') {
     document.dispatchEvent(
       new CustomEvent(eventName, {
         bubbles: false,
         detail,
-      })
+      }) as T
     );
   }
 };

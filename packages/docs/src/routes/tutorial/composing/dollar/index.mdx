@@ -1,11 +1,15 @@
 ---
-title: Creating APIs with $
+title: Creating APIs with $ | Tutorial
 contributors:
   - manucorporat
   - adamdbradley
+  - mrhoodz
+  - iancharlesdouglas
+updated_at: '2023-06-25T19:43:33Z'
+created_at: '2022-08-02T12:07:45Z'
 ---
 
-The powerful, part of Optimizer is that you can create your own APIs with `$` suffix.
+A powerful feature of the Optimizer is that you can create your own APIs with a `$` suffix.
 
 Imagine that we would like to have a delay method that lazy loads its callback. Normally we would have to write something like this:
 
@@ -54,10 +58,8 @@ export const delay$ = implicit$FirstArg(delayQrl);
 Here are the types to make it clearer as to what is going on.
 
 ```tsx
-declare;
-delayQrl: (fn: QRL<() => T>, delayInMs: number) => Promise<T>;
-declare;
-delay$: (fn: () => T, delayInMs: number) => Promise<T>;
+declare function delayQrl<T>(fn: QRL<() => T>, delayInMs: number): Promise<T>;
+declare function delay$<T>(fn: () => T, delayInMs: number): Promise<T>;
 ```
 
 The above allows us to use `delay$` in an inlined fashion, but the Optimizer converts the `delay$` to `delayQrl` form.

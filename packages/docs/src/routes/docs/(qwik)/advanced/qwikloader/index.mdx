@@ -1,9 +1,15 @@
 ---
-title: Qwikloader
+title: Qwikloader | Advanced
 contributors:
   - manucorporat
   - adamdbradley
   - literalpie
+  - mhevery
+  - mrhoodz
+  - thejackshelton
+  - wtlin1228
+updated_at: '2023-06-25T19:43:33Z'
+created_at: '2023-03-20T23:45:13Z'
 ---
 
 # Qwikloader
@@ -46,7 +52,7 @@ Below you can find simple HTML with Qwikloader and a button with associated beha
 4. The Qwikloader uses the `on:click` and `q:base` attributes along with the `document.baseURI` to build a full URL for fetching the lazy-loaded handler. Assuming the original page was served up from `http://localhost/` the fetch URL becomes `http://localhost/build/myHandler.js`.
 5. Qwikloader retrieves the `clickHandler` symbol, exported from `http://localhost/build/myHandler.js` and invokes it.
 
-## Events and qwikloader
+## Events and the Qwikloader
 
 The registration of the listener creates two problems in the context of SSR/SSG that Qwik needs to solve. (For context, remember that Qwik is resumable, that is, it can continue executing the application from where the server paused without being forced to download and execute code eagerly.)
 
@@ -63,4 +69,4 @@ Qwik serializes the event listeners into the DOM in the form of [QRLs](../qrl/in
 </div>
 ```
 
-The critical thing to notice is that Qwik generated an `on:click` attribute, containing the value `./chunk-a.js#Counter_button_onClick[0]`. In the above example the `on:click` attribute solves the listener location problem, and the attribute value solves the listener code location problem. By serializing the listeners into the HTML Qwik applications do not need to perform hydration on startup.
+The critical thing to notice is that Qwik generated an `on:click` attribute, containing the value `./chunk-a.js#Counter_button_onClick[0]`. In the above example the `on:click` attribute solves the listener location problem, and the attribute value solves the listener code problem. By serializing the listeners into the HTML Qwik applications do not need to perform hydration on startup.

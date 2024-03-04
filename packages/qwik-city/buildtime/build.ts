@@ -31,6 +31,7 @@ export async function updateBuildContext(ctx: BuildContext) {
         })
         .then((sourceFiles) => {
           const resolved = resolveSourceFiles(ctx.opts, sourceFiles);
+          rewriteRoutes(ctx, resolved);
           ctx.layouts = resolved.layouts;
           ctx.routes = resolved.routes;
           ctx.entries = resolved.entries;
@@ -44,6 +45,76 @@ export async function updateBuildContext(ctx: BuildContext) {
     });
   }
   return ctx.activeBuild;
+}
+
+function rewriteRoutes(ctx: BuildContext, resolved: ReturnType<typeof resolveSourceFiles>) {
+  if (ctx.opts.rewriteRoutes) {
+    ctx.opts.rewriteRoutes.forEach((rewriteOpt, rewriteIndex) => {
+      const rewriteFrom = Object.keys(rewriteOpt.paths || {});
+      const rewriteRoutes = (resolved.routes || []).filter(
+        (route) =>
+          rewriteFrom.some((from) => route.pathname.split('/').includes(from)) ||
+          (rewriteOpt.prefix && route.pathname === '/')
+      );
+
+      const replacePath = (part: string) => (rewriteOpt.paths || {})[part] ?? part;
+
+      rewriteRoutes.forEach((rewriteRoute) => {
+        const pathnamePrefix = rewriteOpt.prefix ? '/' + rewriteOpt.prefix : '';
+        const routeNamePrefix = rewriteOpt.prefix ? rewriteOpt.prefix + '/' : '';
+        const idSuffix = rewriteOpt.prefix?.toUpperCase().replace(/-/g, '');
+        const patternInfix = rewriteOpt.prefix ? [rewriteOpt.prefix] : [];
+
+        const splittedPathName = rewriteRoute.pathname.split('/');
+        const translatedPathParts = splittedPathName.map(replacePath);
+
+        const splittedRouteName = rewriteRoute.routeName.split('/');
+        const translatedRouteParts = splittedRouteName.map(replacePath);
+
+        const splittedPattern = rewriteRoute.pattern.toString().split('\\/');
+        const [translatedPatternFirst, ...translatedPatternOthers] =
+          splittedPattern.map(replacePath);
+        const translatedPatternParts = [
+          translatedPatternFirst,
+          ...patternInfix,
+          ...translatedPatternOthers,
+        ];
+        const translatedPatternString = translatedPatternParts.join('\\/');
+        const translatedRegExp = translatedPatternString.substring(
+          1,
+          rewriteRoute.pathname === '/'
+            ? translatedPatternString.length - 1
+            : translatedPatternString.length - 2
+        );
+
+        const translatedSegments = rewriteRoute.segments.map((segment) =>
+          segment.map((item) => ({ ...item, content: replacePath(item.content) }))
+        );
+
+        if (rewriteOpt.prefix) {
+          translatedSegments.splice(0, 0, [
+            {
+              content: rewriteOpt.prefix,
+              dynamic: false,
+              rest: false,
+            },
+          ]);
+        }
+
+        const translatedPath = translatedPathParts.join('/');
+        const translatedRoute = translatedRouteParts.join('/');
+
+        resolved.routes.push({
+          ...rewriteRoute,
+          id: rewriteRoute.id + (idSuffix || rewriteIndex),
+          pathname: pathnamePrefix + translatedPath,
+          routeName: routeNamePrefix + (translatedRoute !== '/' ? translatedRoute : ''),
+          pattern: new RegExp(translatedRegExp),
+          segments: translatedSegments,
+        });
+      });
+    });
+  }
 }
 
 function validateBuild(ctx: BuildContext) {

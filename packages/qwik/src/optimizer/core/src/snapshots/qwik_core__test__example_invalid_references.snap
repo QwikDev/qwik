@@ -1,5 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 858
 expression: output
 ---
 ==INPUT==
@@ -26,11 +27,13 @@ export const App = component$(({count}) => {
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
+const I1 = 12;
 const [I2, { I3 , v1: [I4] , I5 =v2 , ...I6 }, I7 = v3, ...I8] = obj;
 function I9() {}
 class I10 {
 }
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
+export { I1 as _auto_I1 };
 export { I10 as _auto_I10 };
 export { I2 as _auto_I2 };
 export { I3 as _auto_I3 };
@@ -42,9 +45,10 @@ export { I8 as _auto_I8 };
 export { I9 as _auto_I9 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAIA,MAAM,CAAC,IAAI,EAAC,GAAE,EAAE,IAAI,CAAC,GAAG,CAAA,EAAE,IAAG,GAAE,EAAE,GAAG,IAAG,EAAE,KAAG,EAAE,EAAE,GAAG,GAAG,GAAG;AACzD,SAAS,KAAK,CAAC;AACf,MAAM;AAAK;AAEX,OAAO,MAAM,oBAAM,wGAQjB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,MAAM,KAAK;AACX,MAAM,CAAC,IAAI,EAAC,GAAE,EAAE,IAAI,CAAC,GAAG,CAAA,EAAE,IAAG,GAAE,EAAE,GAAG,IAAG,EAAE,KAAG,EAAE,EAAE,GAAG,GAAG,GAAG;AACzD,SAAS,KAAK,CAAC;AACf,MAAM;AAAK;AAEX,OAAO,MAAM,oBAAM,wGAQjB\"}")
 ============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
 
+import { _auto_I1 as I1 } from "./test";
 import { _auto_I2 as I2 } from "./test";
 import { _auto_I3 as I3 } from "./test";
 import { _auto_I4 as I4 } from "./test";
@@ -55,13 +59,13 @@ import { _auto_I8 as I8 } from "./test";
 import { _auto_I9 as I9 } from "./test";
 import { qrl } from "@builder.io/qwik";
 export const App_component_ckEPmXZlub0 = (props)=>{
-    console.log(12, I2, I3, I4, I5, I6, I7, I8, I9);
+    console.log(I1, I2, I3, I4, I5, I6, I7, I8, I9);
     console.log(itsok, v1, v2, v3, obj);
     return /*#__PURE__*/ qrl(()=>import("./app_component_1_w0t0o3qmovu"), "App_component_1_w0t0o3QMovU");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;yCAQ8B,SAAa;IACvC,QAAQ,GAAG,CANJ,IAMS,IAAI,IAAI,IAAI,IAAI,IAAI,IAAI,IAAI;IAC5C,QAAQ,GAAG,CAAC,OAAO,IAAI,IAAI,IAAI;IAC/B;AAKJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;yCAQ8B,SAAa;IACvC,QAAQ,GAAG,CAAC,IAAI,IAAI,IAAI,IAAI,IAAI,IAAI,IAAI,IAAI;IAC5C,QAAQ,GAAG,CAAC,OAAO,IAAI,IAAI,IAAI;IAC/B;AAKJ\"}")
 /*
 {
   "origin": "test.tsx",

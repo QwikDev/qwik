@@ -2,13 +2,11 @@ import { getNextIndex } from '../render/execute-component';
 import { hashCode } from '../util/hash_code';
 import { useSequentialScope } from './use-sequential-scope';
 
-/**
- * @public
- */
+/** @public */
 export const useId = (): string => {
-  const { get, set, elCtx, iCtx } = useSequentialScope<string>();
-  if (get != null) {
-    return get;
+  const { val, set, elCtx, iCtx } = useSequentialScope<string>();
+  if (val != null) {
+    return val;
   }
 
   const containerBase = iCtx.$renderCtx$?.$static$?.$containerState$?.$base$ || '';

@@ -10,6 +10,8 @@ const root = join(__dirname, '..');
 const srcRepoRef = 'https://github.com/BuilderIO/qwik/commit/';
 
 (async () => {
+  // This replaces the `workspace:^` versions with the actual versions.
+  await $('npx', 'syncpack', 'fix-mismatches', '-c', '/dev/null');
   const finishQwik = await prepare({
     buildRepo: 'qwik-build',
     artifactsDir: join(root, 'packages', 'qwik', 'dist'),
@@ -18,8 +20,18 @@ const srcRepoRef = 'https://github.com/BuilderIO/qwik/commit/';
     buildRepo: 'qwik-city-build',
     artifactsDir: join(root, 'packages', 'qwik-city', 'lib'),
   });
+  const finishCreateQwikCli = await prepare({
+    buildRepo: 'qwik-create-cli-build',
+    artifactsDir: join(root, 'packages', 'create-qwik', 'dist'),
+  });
+  const finishQwikLabs = await prepare({
+    buildRepo: 'qwik-labs-build',
+    artifactsDir: join(root, 'packages', 'qwik-labs'),
+  });
   await finishQwik();
   await finishQwikCity();
+  await finishCreateQwikCli();
+  await finishQwikLabs();
 })();
 
 async function prepare({ buildRepo, artifactsDir }: { buildRepo: string; artifactsDir: string }) {
@@ -29,7 +41,7 @@ async function prepare({ buildRepo, artifactsDir }: { buildRepo: string; artifac
     return () => null;
   }
   console.log(
-    'preparing to save artifacts to ' + artifactsDir + ' into BuilderIO/' + buildRepo + ' repo.'
+    'preparing to save artifacts from ' + artifactsDir + ' into BuilderIO/' + buildRepo + ' repo.'
   );
   const buildRepoDir = join(root, 'dist-dev', buildRepo);
   const repo = token
@@ -60,7 +72,13 @@ async function prepare({ buildRepo, artifactsDir }: { buildRepo: string; artifac
     await $('git', 'checkout', '-b', branch);
   }
 
-  await $('cp', '-r', ...(await expand(artifactsDir)), buildRepoDir);
+  await $(
+    'cp',
+    '-r',
+    ...(await expand(artifactsDir, ['.gitignore', 'node_modules'])),
+    buildRepoDir
+  );
+  await $('cp', join(root, 'CONTINUOUS_BUILD.md'), 'README.md');
   await $('git', 'add', '--all');
   await $(
     'git',
@@ -102,10 +120,11 @@ async function $(cmd: string, ...args: string[]): Promise<string> {
   return output;
 }
 
-async function expand(path: string): Promise<string[]> {
-  const { stdout } = await execa('ls', [path]);
+async function expand(path: string, ignore: string[] = []): Promise<string[]> {
+  const { stdout } = await execa('ls', ['-a', path]);
   const paths = String(stdout)
     .split('\n')
+    .filter((v) => v !== '.' && v !== '..' && v !== '.git' && !ignore.includes(v))
     .map((file) => path + '/' + file.trim());
   return paths;
 }

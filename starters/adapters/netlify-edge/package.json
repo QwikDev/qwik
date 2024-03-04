@@ -6,7 +6,7 @@
   },
   "devDependencies": {
     "@netlify/edge-functions": "^2.0.0",
-    "netlify-cli": "^12.0.11"
+    "netlify-cli": "^15.0.0"
   },
   "__qwik__": {
     "priority": 30,
@@ -19,10 +19,10 @@
     "nextSteps": {
       "title": "Next Steps",
       "lines": [
-        " Now you can build and deploy to Netlify with:",
+        "Now you can build and deploy to Netlify with:",
         "",
-        "  - pnpm run build: production build for Netlify",
-        "  - pnpm run deploy: it will use the netlify CLI to deploy your site"
+        "- pnpm run build: production build for Netlify",
+        "- pnpm run deploy: it will use the netlify CLI to deploy your site"
       ]
     }
   }

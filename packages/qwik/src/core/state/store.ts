@@ -1,8 +1,8 @@
 import { assertEqual, assertNumber, assertTrue } from '../error/assert';
 import { qError, QError_immutableProps } from '../error/error';
 import { tryGetInvokeContext } from '../use/use-core';
-import { qDev } from '../util/qdev';
-import { RenderEvent } from '../util/markers';
+import { qDev, qSerialize } from '../util/qdev';
+import { ComputedEvent, RenderEvent, ResourceEvent } from '../util/markers';
 import { isArray, isObject, isSerializableObject } from '../util/types';
 import type { ContainerState } from '../container/container';
 import {
@@ -23,13 +23,11 @@ import {
   _IMMUTABLE,
   _IMMUTABLE_PREFIX,
 } from './constants';
-import { logError } from '../util/log';
+import { logError, logWarn } from '../util/log';
 
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
 
-/**
- * Creates a proxy that notifies of any writes.
- */
+/** Creates a proxy that notifies of any writes. */
 export const getOrCreateProxy = <T extends object>(
   target: T,
   containerState: ContainerState,
@@ -76,9 +74,7 @@ export const setObjectFlags = (obj: object, flags: number) => {
 
 export type TargetType = Record<string | symbol, any>;
 
-/**
- * @internal
- */
+/** @internal */
 export const _restProps = (props: Record<string, any>, omit: string[]) => {
   const rest: Record<string, any> = {};
   for (const key in props) {
@@ -116,31 +112,26 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
       }
       return target[prop];
     }
-    let subscriber: Subscriber | undefined | null;
     const flags = target[QObjectFlagsSymbol] ?? 0;
     assertNumber(flags, 'flags must be an number');
     const invokeCtx = tryGetInvokeContext();
     const recursive = (flags & QObjectRecursive) !== 0;
     const immutable = (flags & QObjectImmutable) !== 0;
-    let value = target[prop];
+    const hiddenSignal = target[_IMMUTABLE_PREFIX + prop];
+    let subscriber: Subscriber | undefined | null;
+    let value;
     if (invokeCtx) {
       subscriber = invokeCtx.$subscriber$;
     }
-    if (immutable) {
-      const hiddenSignal = target[_IMMUTABLE_PREFIX + prop];
-      const immutableMeta = target[_IMMUTABLE]?.[prop];
-      if (
-        !(prop in target) ||
-        !!hiddenSignal ||
-        isSignal(immutableMeta) ||
-        immutableMeta === _IMMUTABLE
-      ) {
-        subscriber = null;
-      }
-      if (hiddenSignal) {
-        assertTrue(isSignal(hiddenSignal), '$$ prop must be a signal');
-        value = hiddenSignal.value;
-      }
+    if (immutable && (!(prop in target) || immutableValue(target[_IMMUTABLE]?.[prop]))) {
+      subscriber = null;
+    }
+    if (hiddenSignal) {
+      assertTrue(isSignal(hiddenSignal), '$$ prop must be a signal');
+      value = hiddenSignal.value;
+      subscriber = null;
+    } else {
+      value = target[prop];
     }
     if (subscriber) {
       const isA = isArray(target);
@@ -163,13 +154,27 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     const recursive = (flags & QObjectRecursive) !== 0;
     const unwrappedNewValue = recursive ? unwrapProxy(newValue) : newValue;
     if (qDev) {
-      verifySerializable(unwrappedNewValue);
+      if (qSerialize) {
+        verifySerializable(unwrappedNewValue);
+      }
       const invokeCtx = tryGetInvokeContext();
-      if (invokeCtx && invokeCtx.$event$ === RenderEvent) {
-        logError(
-          'State mutation inside render function. Move mutation to useTask$() or useVisibleTask$()',
-          prop
-        );
+      if (invokeCtx) {
+        if (invokeCtx.$event$ === RenderEvent) {
+          logError(
+            'State mutation inside render function. Move mutation to useTask$() or useVisibleTask$()',
+            prop
+          );
+        } else if (invokeCtx.$event$ === ComputedEvent) {
+          logWarn(
+            'State mutation inside useComputed$() is an antipattern. Use useTask$() instead',
+            invokeCtx.$hostElement$
+          );
+        } else if (invokeCtx.$event$ === ResourceEvent) {
+          logWarn(
+            'State mutation inside useResource$() is an antipattern. Use useTask$() instead',
+            invokeCtx.$hostElement$
+          );
+        }
       }
     }
     const isA = isArray(target);
@@ -180,14 +185,14 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     }
 
     const oldValue = target[prop];
+    target[prop] = unwrappedNewValue;
     if (oldValue !== unwrappedNewValue) {
-      target[prop] = unwrappedNewValue;
       this.$manager$.$notifySubs$(prop);
     }
     return true;
   }
 
-  has(target: TargetType, property: string | symbol) {
+  has(target: TargetType, property: string | symbol): boolean {
     if (property === QOjectTargetSymbol) {
       return true;
     }
@@ -225,7 +230,10 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     });
   }
 
-  getOwnPropertyDescriptor(target: TargetType, prop: string) {
+  getOwnPropertyDescriptor(
+    target: TargetType,
+    prop: string | symbol
+  ): PropertyDescriptor | undefined {
     if (isArray(target) || typeof prop === 'symbol') {
       return Object.getOwnPropertyDescriptor(target, prop);
     }
@@ -235,6 +243,10 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     };
   }
 }
+
+const immutableValue = (value: any) => {
+  return value === _IMMUTABLE || isSignal(value);
+};
 
 const wrap = <T>(value: T, containerState: ContainerState): T => {
   if (isObject(value)) {

@@ -1,5 +1,5 @@
 ---
-title: Resumable
+title: Resumable | Concepts
 contributors:
   - voluntadpear
   - RATIU5
@@ -7,6 +7,12 @@ contributors:
   - manucorporat
   - Craiqser
   - ahashem95
+  - mhevery
+  - aboudard
+  - mrhoodz
+  - iancharlesdouglas
+updated_at: '2023-09-26T14:47:51Z'
+created_at: '2023-03-20T23:45:13Z'
 ---
 
 # Resumable vs. Hydration
@@ -17,7 +23,7 @@ When an SSR/SSG application boots up on a client, it requires that the framework
 
 1. Listeners - locate event listeners and install them on the DOM nodes to make the application interactive.
 2. Component tree - build up an internal data structure representing the application component tree.
-3. Application state - restore the application state.
+3. Application state - restore any data that was fetched or saved in a `store` on the server.
 
 Collectively, this is known as hydration. All current generations of frameworks require this step to make the application interactive.
 
@@ -26,17 +32,19 @@ Collectively, this is known as hydration. All current generations of frameworks 
 1. The frameworks have to download all of the component code associated with the current page.
 2. The frameworks have to execute the templates associated with the components on the page to rebuild the listener location and the internal component tree.
 
-![Resumable vs Hydration](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F04681212764f4025b2b5f5c6a258ad6e?format=webp&width=2000)
+<img src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F04681212764f4025b2b5f5c6a258ad6e?format=webp&width=945" 
+     alt="Resumable vs Hydration" 
+     style="width: 100%;aspect-ratio: 2.216;"/>
 
 Qwik is different because it does not require hydration to resume an application on the client. Not requiring hydration is what makes the Qwik application startup instantaneous.
 
-All other frameworks' hydration **replays** all the application logic in the client. Qwik instead pauses execution in the server, and resumes execution in the client.
+All other frameworks' hydration **replays** all the application logic on the client. Qwik instead pauses execution on the server, and resumes execution on the client.
 
 ## Introducing Resumability
 
-Resumability is about pausing execution in the server and resuming execution in the client without having to replay and download all of the application logic.
+Resumability is about pausing execution on the server and resuming execution on the client without having to replay and download all of the application logic.
 
-A good mental model is that Qwik applications at any point in their lifecycle can be serialized and moved to a different VM instance (server to browser). There, the application simply resumes where the serialization stopped. No hydration is required. This is why we say that Qwik applications don't hydrate; they resume.
+A good mental model is that Qwik applications at any point of their lifecycle can be serialized and moved to a different VM instance (server to browser). There, the application simply resumes where the serialization stopped. No hydration is required. This is why we say that Qwik applications don't hydrate; they resume.
 
 In order to achieve this, Qwik needs to solve the 3 problems (listeners, component tree, application state) in a way that is compatible with a no-code startup.
 
@@ -51,6 +59,7 @@ Existing frameworks solve the event listener by downloading the components and e
 3. Requires the event handler code to be downloaded eagerly (to be attached).
 
 The above approach does not scale. As the application becomes more complicated, the amount of code needed to download eagerly and execute grows proportionally with the size of the application. This negatively impacts the application startup performance and hence the user experience.
+In other frameworks, lazy-loading chunks of the application becomes a development task in itself that consumes time and effort. In Qwik, lazy-loading is a natural consequence of the resumable architecture.
 
 Qwik solves the above issue by serializing the event listeners into DOM like so:
 
@@ -60,15 +69,15 @@ Qwik solves the above issue by serializing the event listeners into DOM like so:
 
 Qwik still needs to collect the listener information, but this step is done as part of the SSR/SSG. The results of SSR/SSG are then serialized into HTML so that the browser does not need to do anything to resume the execution. Notice that the `on:click` attribute contains all of the information to resume the application without doing anything eagerly.
 
-1. Qwikloader sets up a single global listener instead of many individual listeners per DOM element. This step can be done with no application code present.
-2. The HTML contains a URL to the chunk and symbol name. The attribute tells Qwikloader which code chunk to download and which symbol to retrieve from the chunk.
-3. Finally, to make all of the above possible, Qwik's event processing implementation understands asynchronicity which allows insertion of asynchronous lazy loading.
+1. [Qwikloader](https://qwik.builder.io/docs/advanced/qwikloader/) sets up a single global listener instead of many individual listeners per DOM element. This step can be done with no application code present.
+2. The HTML contains a URL to the chunk and symbol name. The attribute tells Qwikloader which code chunk to download and which symbol to retrieve from the chunk and then to be executed.
+3. Finally, to make all of the above possible, Qwik's event processing implementation understands asynchronicity which allows it to lazy load closures automatically.
 
 ### Component Trees
 
 Frameworks work with component trees. To that end, frameworks need a complete understanding of the component trees to know which components need to be rerendered and when. If you look into the existing framework SSR/SSG output, the component boundary information has been destroyed. There is no way of knowing where component boundaries are by looking at the resulting HTML. To recreate this information, frameworks re-execute the component templates and memoize the component boundary location. Re-execution is what hydration is. Hydration is expensive as it requires both the download of component templates and their execution.
 
-Qwik collects component boundary information as part of the SSR/SSG and then serializes that information into HTML. The result is that Qwik can:
+Qwik collects [component boundary information](https://qwik.builder.io/docs/cheat/serialization/) as part of the SSR/SSG and then serializes that information into HTML. The result is that Qwik can:
 
 1. Rebuild the component hierarchy information without the component code actually being present. The component code can remain lazy.
 2. Qwik can do this lazily only for the components which need to be re-rendered rather than all upfront.
@@ -84,24 +93,26 @@ The simplest way to think about serialization is through `JSON.stringify`. Howev
 
 Limitations of JSON which Qwik solves:
 
-- JSON produces DAG. DAG stands for Directed Acyclic Graph, which means that the object which is being serialized can't have circular references. This is a big limitation because the application state is often circular. Qwik ensures that when the graph of objects gets serialized, the circular references get properly saved and then restored.
-- JSON can't serialize some object types. For example, DOM references, Dates, etc... Qwik serialization format ensures that such objects can correctly be serialized and restored. Here is a list of types that can be serialized with Qwik:
+- JSON produces a DAG. DAG stands for Directed Acyclic Graph, which means that the object which is being serialized can't have circular references. This is a big limitation because the application state is often circular. Qwik ensures that when the graph of objects gets serialized, the circular references get properly saved and then restored.
+- JSON can't serialize some object types. For example, DOM references, or Dates. Qwik's serialization format ensures that such objects can correctly be serialized and restored. Here is a list of types that can be serialized with Qwik:
   - DOM references
   - Promises (See [resources](../../components/resource/))
   - Function closures (if wrapped in QRL)
   - Dates
   - `URL` objects
-  - `Map` and `Set` instances
+  - `Map` and `Set` instances.
 
 Limitations of JSON that Qwik does not solve:
 
 - Serialization of classes (`instanceof` and prototype)
   - Although some built-in classes, such as [Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date), [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL), [Map](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map), [Set](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set) are supported.
-- Serialization of Streams, etc...
+- Serialization of Streams.
+
+For cases where serialization is not possible, code should run [on client only](https://qwik.builder.io/docs/components/lifecycle/#serverbrowser-only-task).
 
 ### Writing applications with serializability in mind
 
-The resumability property of the framework must extend to resumability of the application as well. This means that the framework must provide mechanisms for the developer to express Components and Entities of the applications in a way which can be serialized and then resumed (without re-bootstrapping). This necessitates that applications are written with resumability constraints in mind. It is simply not possible for developers to continue to write applications in a heap-centric way and expect that a better framework can somehow make up for this sub-optimal approach.
+The resumability capability of the framework must extend to resumability of the application as well. This means that the framework must provide mechanisms for the developer to express *components* and *entities* of the application in a way which can be serialized and then resumed (without re-bootstrapping). This necessitates that the application is written with resumability constraints in mind. It is simply not possible for developers to continue to write applications in a heap-centric way and expect that a better framework can somehow make up for this sub-optimal approach.
 
 Developers must write their applications in a DOM-centric way. This will require a change of behavior and retooling of web developers' skills. Frameworks need to provide guidance and APIs to make it easy for developers to write the applications in this way.
 

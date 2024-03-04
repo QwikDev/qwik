@@ -12,22 +12,22 @@ export default component$(() => {
   useOn(
     'mousemove',
     $((event) => {
-      store.element.x = (event as MouseEvent).x;
-      store.element.y = (event as MouseEvent).y;
+      store.element.x = event.x;
+      store.element.y = event.y;
     })
   );
   useOnDocument(
     'mousemove',
     $((event) => {
-      store.document.x = (event as MouseEvent).x;
-      store.document.y = (event as MouseEvent).y;
+      store.document.x = event.x;
+      store.document.y = event.y;
     })
   );
   useOnWindow(
     'mousemove',
     $((event) => {
-      store.window.x = (event as MouseEvent).x;
-      store.window.y = (event as MouseEvent).y;
+      store.window.x = event.x;
+      store.window.y = event.y;
     })
   );
 

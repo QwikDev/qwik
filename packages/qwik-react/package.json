@@ -1,7 +1,52 @@
 {
   "name": "@builder.io/qwik-react",
-  "version": "0.5.0",
   "description": "QwikReact allows adding React components into existing Qwik application",
+  "version": "0.5.4",
+  "bugs": "https://github.com/BuilderIO/qwik/issues",
+  "devDependencies": {
+    "@builder.io/qwik": "workspace:^",
+    "@types/react": "^18.2.61",
+    "@types/react-dom": "^18.2.19",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "typescript": "5.3.3",
+    "vite": "^5.1.4"
+  },
+  "engines": {
+    "node": ">=16.8.0 <18.0.0 || >=18.11"
+  },
+  "exports": {
+    ".": {
+      "types": "./lib/types/index.qwik.d.ts",
+      "import": "./lib/index.qwik.mjs",
+      "require": "./lib/index.qwik.cjs"
+    },
+    "./vite": {
+      "types": "./lib/types/vite.d.ts",
+      "import": "./lib/vite.mjs",
+      "require": "./lib/vite.cjs"
+    }
+  },
+  "files": [
+    "lib",
+    "vite"
+  ],
+  "homepage": "https://qwik.builder.io/",
+  "license": "MIT",
+  "main": "./lib/index.qwik.mjs",
+  "peerDependencies": {
+    "@builder.io/qwik": "workspace:^",
+    "@types/react": "^18.2.61",
+    "@types/react-dom": "^18.2.19",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
+  },
+  "qwik": "./lib/index.qwik.mjs",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BuilderIO/qwik.git",
+    "directory": "packages/qwik-react"
+  },
   "scripts": {
     "build": "npm run build.lib",
     "build.client": "vite build",
@@ -13,57 +58,10 @@
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",
     "lint": "eslint \"src/**/*.ts*\"",
-    "release": "np",
+    "release": "pnpm run -w build.local && pnpm publish",
     "start": "npm run dev",
     "typecheck": "tsc --noEmit"
   },
-  "devDependencies": {
-    "@builder.io/qwik": "workspace:*",
-    "@types/react": "18.0.31",
-    "@types/react-dom": "18.0.11",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
-    "typescript": "5.0.3",
-    "vite": "4.2.1"
-  },
-  "peerDependencies": {
-    "@builder.io/qwik": ">=0.22.0",
-    "@types/react": ">=18.0.1",
-    "@types/react-dom": ">=18.0.0",
-    "react": ">=18.0.0",
-    "react-dom": ">=18.0.0"
-  },
-  "engines": {
-    "node": ">=16"
-  },
-  "exports": {
-    ".": {
-      "import": "./lib/index.qwik.mjs",
-      "require": "./lib/index.qwik.cjs",
-      "types": "./lib/types/index.qwik.d.ts"
-    },
-    "./vite": {
-      "import": "./lib/vite.mjs",
-      "require": "./lib/vite.cjs",
-      "types": "./lib/types/vite.d.ts"
-    }
-  },
-  "files": [
-    "lib",
-    "vite"
-  ],
-  "license": "MIT",
-  "homepage": "https://qwik.builder.io/",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/BuilderIO/qwik.git",
-    "directory": "packages/qwik-react"
-  },
-  "bugs": {
-    "url": "https://github.com/BuilderIO/qwik/issues"
-  },
   "type": "module",
-  "main": "./lib/index.qwik.mjs",
-  "qwik": "./lib/index.qwik.mjs",
   "types": "./lib/types/index.qwik.d.ts"
 }

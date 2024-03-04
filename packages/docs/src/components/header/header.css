@@ -13,6 +13,25 @@
   }
 }
 
+.header-container.home-page-header {
+  background: transparent !important;
+  color: white;
+}
+
+.header-open .header-container.home-page-header .menu-toolkit {
+  background: #101010 !important;
+}
+
+.home-page-header .sun-and-moon:not(:hover) > :is(.moon, .sun, .sun-beams) {
+  fill: #e3e2e9 !important;
+  stroke: #e3e2e9 !important;
+}
+
+.home-page-header.sun-and-moon:is(:hover) > :is(.moon, .sun, .sun-beams) {
+  fill: #b9b8be !important;
+  stroke: #b9b8be !important;
+}
+
 .fixed-header .header-container {
   width: 100%;
   z-index: 40;
@@ -50,9 +69,9 @@ header .mobile-menu {
   @apply p-5 lg:hidden;
 }
 
-header ul {
-  @apply hidden lg:block;
-  @apply pt-0 pb-6 lg:pt-0;
+header .menu-toolkit {
+  @apply hidden lg:flex;
+  @apply pt-0 lg:pt-0 pb-0;
   height: 100%;
   align-items: center;
 }
@@ -107,7 +126,7 @@ header .header-logo {
     padding: 0.5rem 1rem;
   }
 
-  .header-open header ul {
+  .header-open header ul:not([role='listbox']) {
     position: absolute;
     z-index: 10;
     display: block;

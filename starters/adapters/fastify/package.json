@@ -5,25 +5,26 @@
     "serve": "node server/entry.fastify"
   },
   "devDependencies": {
-    "@fastify/static": "^6.9.0",
-    "@fastify/compress": "^6.2.0",
-    "fastify-plugin": "^4.5.0",
-    "fastify": "^4.15.0"
+    "dotenv": "^16.3.2",
+    "@fastify/compress": "^6.2.1",
+    "@fastify/static": "^6.10.1",
+    "fastify": "^4.17.0",
+    "fastify-plugin": "^4.5.0"
   },
   "__qwik__": {
     "priority": 20,
     "displayName": "Adapter: Node.js Fastify Server",
     "docs": [
       "https://qwik.builder.io/integrations/deployments/node/",
-      "https://www.fastify.io/"
+      "https://fastify.dev/"
     ],
     "nextSteps": {
       "title": "Next Steps",
       "lines": [
-        " Now you can build a production-ready Fastify app:",
+        "Now you can build a production-ready Fastify app:",
         "",
-        "  - pnpm run build: production build for Fastify",
-        "  - pnpm run serve: runs the production server locally"
+        "- pnpm run build: production build for Fastify",
+        "- pnpm run serve: runs the production server locally"
       ]
     }
   }

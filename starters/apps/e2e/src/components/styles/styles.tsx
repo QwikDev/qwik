@@ -5,26 +5,26 @@ import {
   Slot,
   useSignal,
   Fragment,
-} from '@builder.io/qwik';
-import parent from './parent.css?inline';
-import parent2 from './parent2.css?inline';
-import child from './child.css?inline';
-import child2 from './child2.css?inline';
-import empty from './empty.css?inline';
+} from "@builder.io/qwik";
+import parent from "./parent.css?inline";
+import parent2 from "./parent2.css?inline";
+import child from "./child.css?inline";
+import child2 from "./child2.css?inline";
+import empty from "./empty.css?inline";
 
 export const Styles = component$(() => {
   const reload = useSignal(0);
   return (
     <>
-      <button id="reload" onClick$={() => reload.value++}>
+      <button id="reload" data-v={reload.value} onClick$={() => reload.value++}>
         Reload
       </button>
-      <StylesChildren key={reload.value} />
+      <StylesChildren v={reload.value} key={reload.value} />
     </>
   );
 });
 
-export const StylesChildren = component$(() => {
+export const StylesChildren = component$<{ v: number }>(({ v }) => {
   useStylesScoped$(parent);
   useStylesScoped$(parent2);
 
@@ -33,7 +33,8 @@ export const StylesChildren = component$(() => {
   });
   return (
     <div class="parent-container">
-      <div class={['parent', `count-${store.count}`]}>
+      <div id="renderCount">Render {v}</div>
+      <div class={["parent", `count-${store.count}`]}>
         Parent
         <button id="add-child" type="button" onClick$={() => store.count++}>
           Add Child

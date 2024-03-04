@@ -4,7 +4,7 @@ use crate::collector::{
 };
 use crate::entry_strategy::EntryPolicy;
 use crate::has_branches::{is_conditional_jsx, is_conditional_jsx_block};
-use crate::inlined_fn::convert_inlined_fn;
+use crate::inlined_fn::{convert_inlined_fn, render_expr};
 use crate::is_immutable::is_immutable_expr;
 use crate::parse::{EmitMode, PathData};
 use crate::words::*;
@@ -99,9 +99,11 @@ pub struct QwikTransform<'a> {
     in_component: bool,
     marker_functions: HashMap<Id, JsWord>,
     jsx_functions: HashSet<Id>,
+    immutable_function_cmp: HashSet<Id>,
     qcomponent_fn: Option<Id>,
     qhook_fn: Option<Id>,
     inlined_qrl_fn: Option<Id>,
+    sync_qrl_fn: Option<Id>,
     h_fn: Option<Id>,
     fragment_fn: Option<Id>,
 
@@ -183,6 +185,37 @@ impl<'a> QwikTransform<'a> {
             })
             .collect();
 
+        let immutable_function_cmp = options
+            .global_collect
+            .imports
+            .iter()
+            .flat_map(|(id, import)| {
+                match (
+                    import.kind,
+                    import.source.as_ref(),
+                    import.specifier.as_ref(),
+                ) {
+                    (
+                        ImportKind::Named,
+                        "@builder.io/qwik/jsx-runtime" | "@builder.io/qwik/jsx-dev-runtime",
+                        "Fragment",
+                    ) => Some(id.clone()),
+                    (
+                        ImportKind::Named,
+                        "@builder.io/qwik",
+                        "Fragment" | "RenderOnce" | "HTMLFragment",
+                    ) => Some(id.clone()),
+                    (ImportKind::Named, "@builder.io/qwik-city", "Link") => Some(id.clone()),
+                    (_, source, _) => {
+                        if source.ends_with("?jsx") || source.ends_with(".md") {
+                            Some(id.clone())
+                        } else {
+                            None
+                        }
+                    }
+                }
+            })
+            .collect();
         QwikTransform {
             file_hash: hasher.finish(),
             jsx_key_counter: 0,
@@ -198,6 +231,9 @@ impl<'a> QwikTransform<'a> {
             qcomponent_fn: options
                 .global_collect
                 .get_imported_local(&QCOMPONENT, &options.core_module),
+            sync_qrl_fn: options
+                .global_collect
+                .get_imported_local(&Q_SYNC, &options.core_module),
             qhook_fn: options
                 .global_collect
                 .get_imported_local(&QHOOK, &options.core_module),
@@ -212,6 +248,7 @@ impl<'a> QwikTransform<'a> {
                 .get_imported_local(&FRAGMENT, &options.core_module),
             marker_functions,
             jsx_functions,
+            immutable_function_cmp,
             root_jsx_mode: true,
             jsx_mutable: false,
             options,
@@ -381,15 +418,6 @@ impl<'a> QwikTransform<'a> {
             })
         };
         let local_idents = self.get_local_idents(&folded);
-
-        for id in &local_idents {
-            if !self.options.global_collect.exports.contains_key(id)
-                && self.options.global_collect.root.contains_key(id)
-            {
-                self.ensure_export(id);
-            }
-        }
-
         let hook_data = HookData {
             extension: self.options.extension.clone(),
             local_idents,
@@ -402,7 +430,17 @@ impl<'a> QwikTransform<'a> {
             need_transform: false,
             hash,
         };
-        if !self.should_emit_hook(&hook_data) {
+        let should_emit = self.should_emit_hook(&hook_data);
+        if should_emit {
+            for id in &hook_data.local_idents {
+                if !self.options.global_collect.exports.contains_key(id)
+                    && self.options.global_collect.root.contains_key(id)
+                {
+                    self.ensure_export(id);
+                }
+            }
+        }
+        if !should_emit {
             self.create_noop_qrl(&symbol_name, hook_data)
         } else if self.is_inline() {
             let folded = if self.should_reg_hook(&hook_data.ctx_name) {
@@ -455,6 +493,45 @@ impl<'a> QwikTransform<'a> {
         }
     }
 
+    fn handle_sync_qrl(&mut self, mut node: ast::CallExpr) -> ast::CallExpr {
+        if let Some(ast::ExprOrSpread {
+            expr: first_arg, ..
+        }) = node.args.pop()
+        {
+            match *first_arg {
+                ast::Expr::Arrow(..) | ast::Expr::Fn(..) => {
+                    let serialize = render_expr(first_arg.as_ref());
+                    let new_callee = self.ensure_core_import(&_QRL_SYNC);
+                    ast::CallExpr {
+                        callee: ast::Callee::Expr(Box::new(ast::Expr::Ident(new_ident_from_id(
+                            &new_callee,
+                        )))),
+                        span: DUMMY_SP,
+                        type_args: None,
+                        args: vec![
+                            ast::ExprOrSpread {
+                                spread: None,
+                                expr: first_arg,
+                            },
+                            // string serialized version of first argument
+                            ast::ExprOrSpread {
+                                spread: None,
+                                expr: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
+                                    span: DUMMY_SP,
+                                    value: serialize.into(),
+                                    raw: None,
+                                }))),
+                            },
+                        ],
+                    }
+                }
+                _ => node,
+            }
+        } else {
+            node
+        }
+    }
+
     fn create_synthetic_qqhook(
         &mut self,
         first_arg: ast::Expr,
@@ -477,18 +554,24 @@ impl<'a> QwikTransform<'a> {
         let folded = first_arg;
 
         let mut set: HashSet<Id> = HashSet::new();
+        let mut contains_side_effect = false;
         for ident in &descendent_idents {
             if self.options.global_collect.is_global(ident) {
+                contains_side_effect = true;
+            } else if invalid_decl.iter().any(|entry| entry.0 == *ident) {
                 return (None, false);
-            }
-            if invalid_decl.iter().any(|entry| entry.0 == *ident) {
-                return (None, false);
-            }
-            if decl_collect.iter().any(|entry| entry.0 == *ident) {
+            } else if decl_collect.iter().any(|entry| entry.0 == *ident) {
                 set.insert(ident.clone());
+            } else if ident.0.starts_with('$') {
+                // TODO: remove, this is a workaround for $localize to work
+                return (None, false);
             }
         }
         let mut scoped_idents: Vec<Id> = set.into_iter().collect();
+
+        if contains_side_effect {
+            return (None, scoped_idents.is_empty());
+        }
         scoped_idents.sort();
 
         let serialize_fn = matches!(self.options.is_server, None | Some(true));
@@ -549,27 +632,6 @@ impl<'a> QwikTransform<'a> {
         // Collect local idents
         let local_idents = self.get_local_idents(&folded);
 
-        for id in &local_idents {
-            if !self.options.global_collect.exports.contains_key(id) {
-                if self.options.global_collect.root.contains_key(id) {
-                    self.ensure_export(id);
-                }
-                if invalid_decl.iter().any(|entry| entry.0 == *id) {
-                    HANDLER.with(|handler| {
-                        handler
-                            .struct_err_with_code(
-                                &format!(
-                                    "Reference to identifier '{}' can not be used inside a Qrl($) scope because it's a function",
-                                    id.0
-                                ),
-                                errors::get_diagnostic_id(errors::Error::FunctionReference),
-                            )
-                            .emit();
-                    });
-                }
-            }
-        }
-
         let (mut scoped_idents, immutable) =
             compute_scoped_idents(&descendent_idents, &decl_collect);
         if !can_capture && !scoped_idents.is_empty() {
@@ -597,7 +659,30 @@ impl<'a> QwikTransform<'a> {
             need_transform: true,
             hash,
         };
-        if !self.should_emit_hook(&hook_data) {
+        let should_emit = self.should_emit_hook(&hook_data);
+        if should_emit {
+            for id in &hook_data.local_idents {
+                if !self.options.global_collect.exports.contains_key(id) {
+                    if self.options.global_collect.root.contains_key(id) {
+                        self.ensure_export(id);
+                    }
+                    if invalid_decl.iter().any(|entry| entry.0 == *id) {
+                        HANDLER.with(|handler| {
+                            handler
+                                .struct_err_with_code(
+                                    &format!(
+                                        "Reference to identifier '{}' can not be used inside a Qrl($) scope because it's a function",
+                                        id.0
+                                    ),
+                                    errors::get_diagnostic_id(errors::Error::FunctionReference),
+                                )
+                                .emit();
+                        });
+                    }
+                }
+            }
+        }
+        if !should_emit {
             (self.create_noop_qrl(&symbol_name, hook_data), immutable)
         } else if self.is_inline() {
             let folded = if !hook_data.scoped_idents.is_empty() {
@@ -718,7 +803,9 @@ impl<'a> QwikTransform<'a> {
             }
             ast::Expr::Ident(ident) => {
                 self.stack_ctxt.push(ident.sym.to_string());
-                self.jsx_mutable = true;
+                if !self.immutable_function_cmp.contains(&id!(ident)) {
+                    self.jsx_mutable = true;
+                }
                 (true, true, false)
             }
             _ => {
@@ -1203,11 +1290,12 @@ impl<'a> QwikTransform<'a> {
                                     }
                                 } else if !is_fn && key_word.starts_with("bind:") {
                                     let folded = node.value.clone().fold_with(self);
+                                    let prop_name: JsWord = key_word[5..].into();
                                     immutable_props.push(ast::PropOrSpread::Prop(Box::new(
                                         ast::Prop::KeyValue(ast::KeyValueProp {
                                             key: ast::PropName::Str(ast::Str {
                                                 span: DUMMY_SP,
-                                                value: key_word[5..].into(),
+                                                value: prop_name.clone(),
                                                 raw: None,
                                             }),
                                             value: folded.clone(),
@@ -1241,10 +1329,7 @@ impl<'a> QwikTransform<'a> {
                                                     ast::MemberExpr {
                                                         obj: Box::new(ast::Expr::Ident(elm)),
                                                         prop: ast::MemberProp::Ident(
-                                                            ast::Ident::new(
-                                                                "value".into(),
-                                                                DUMMY_SP,
-                                                            ),
+                                                            ast::Ident::new(prop_name, DUMMY_SP),
                                                         ),
                                                         span: DUMMY_SP,
                                                     },
@@ -1455,6 +1540,10 @@ impl<'a> QwikTransform<'a> {
                 } else {
                     mutable_props.extend(event_handlers.into_iter());
                 }
+
+                mutable_props.sort_by(sort_props);
+                immutable_props.sort_by(sort_props);
+
                 if static_subtree {
                     flags |= 1 << 1;
                 }
@@ -1521,7 +1610,16 @@ impl<'a> QwikTransform<'a> {
         if let Some(expr) = inlined.0 {
             return Some((expr, inlined.1));
         }
-
+        if inlined.1 {
+            return if is_fn {
+                Some((
+                    ast::Expr::Ident(new_ident_from_id(&self.ensure_core_import(&_IMMUTABLE))),
+                    true,
+                ))
+            } else {
+                Some((expr.clone(), true))
+            };
+        }
         if let ast::Expr::Member(member) = expr {
             let prop_sym = prop_to_string(&member.prop);
             if let Some(prop_sym) = prop_sym {
@@ -1563,6 +1661,8 @@ impl<'a> QwikTransform<'a> {
         }
         if inlined_expr.is_some() {
             return inlined_expr;
+        } else if immutable {
+            return None;
         }
         if let ast::Expr::Member(member) = expr {
             let prop_sym = prop_to_string(&member.prop);
@@ -1727,6 +1827,13 @@ impl<'a> Fold for QwikTransform<'a> {
             current_scope.push((id!(node.ident), IdentType::Fn));
         }
         self.stack_ctxt.push(node.ident.sym.to_string());
+
+        let o = node.fold_children_with(self);
+        self.stack_ctxt.pop();
+        o
+    }
+
+    fn fold_function(&mut self, node: ast::Function) -> ast::Function {
         self.decl_stack.push(vec![]);
         let prev = self.root_jsx_mode;
         self.root_jsx_mode = true;
@@ -1736,14 +1843,18 @@ impl<'a> Fold for QwikTransform<'a> {
 
         let is_component = self.in_component;
         self.in_component = false;
-
+        let is_condition = is_conditional_jsx_block(
+            node.body.as_ref().unwrap(),
+            &self.jsx_functions,
+            &self.immutable_function_cmp,
+        );
         let current_scope = self
             .decl_stack
             .last_mut()
             .expect("Declaration stack empty!");
-        for param in &node.function.params {
-            let mut identifiers = vec![];
 
+        for param in &node.params {
+            let mut identifiers = vec![];
             collect_from_pat(&param.pat, &mut identifiers);
             let is_constant = is_component && matches!(param.pat, ast::Pat::Ident(_));
             current_scope.extend(
@@ -1752,21 +1863,9 @@ impl<'a> Fold for QwikTransform<'a> {
                     .map(|(id, _)| (id, IdentType::Var(is_constant))),
             );
         }
-
-        let o = node.fold_children_with(self);
-        self.root_jsx_mode = prev;
-        self.jsx_mutable = prev_jsx_mutable;
-        self.stack_ctxt.pop();
-        self.decl_stack.pop();
-
-        o
-    }
-
-    fn fold_function(&mut self, node: ast::Function) -> ast::Function {
-        let mut node = node.fold_children_with(self);
-        if let Some(body) = &mut node.body {
-            let is_condition = is_conditional_jsx_block(body, &self.jsx_functions);
-            if is_condition {
+        let mut o = node.fold_children_with(self);
+        if is_condition {
+            if let Some(body) = &mut o.body {
                 body.stmts.insert(
                     0,
                     ast::Stmt::Expr(ast::ExprStmt {
@@ -1780,7 +1879,11 @@ impl<'a> Fold for QwikTransform<'a> {
                 );
             }
         }
-        node
+        self.root_jsx_mode = prev;
+        self.jsx_mutable = prev_jsx_mutable;
+        self.decl_stack.pop();
+
+        o
     }
 
     fn fold_arrow_expr(&mut self, node: ast::ArrowExpr) -> ast::ArrowExpr {
@@ -1793,7 +1896,11 @@ impl<'a> Fold for QwikTransform<'a> {
 
         let is_component = self.in_component;
         self.in_component = false;
-        let is_condition = is_conditional_jsx(&node.body, &self.jsx_functions);
+        let is_condition = is_conditional_jsx(
+            &node.body,
+            &self.jsx_functions,
+            &self.immutable_function_cmp,
+        );
         let current_scope = self
             .decl_stack
             .last_mut()
@@ -2032,7 +2139,9 @@ impl<'a> Fold for QwikTransform<'a> {
                 }
             }
             ast::Callee::Expr(box ast::Expr::Ident(ident)) => {
-                if id_eq!(ident, &self.qhook_fn) {
+                if id_eq!(ident, &self.sync_qrl_fn) {
+                    return self.handle_sync_qrl(node);
+                } else if id_eq!(ident, &self.qhook_fn) {
                     if let Some(comments) = self.options.comments {
                         comments.add_pure_comment(ident.span.lo);
                     }
@@ -2340,4 +2449,29 @@ fn is_text_only(node: &str) -> bool {
         node,
         "text" | "textarea" | "title" | "option" | "script" | "style" | "noscript"
     )
+}
+
+fn sort_props(a: &ast::PropOrSpread, b: &ast::PropOrSpread) -> std::cmp::Ordering {
+    match (a, b) {
+        (
+            ast::PropOrSpread::Prop(box ast::Prop::KeyValue(ref a)),
+            ast::PropOrSpread::Prop(box ast::Prop::KeyValue(ref b)),
+        ) => {
+            let a_key = match &a.key {
+                ast::PropName::Ident(ident) => Some(ident.sym.as_ref()),
+                ast::PropName::Str(s) => Some(s.value.as_ref()),
+                _ => None,
+            };
+            let b_key = match b.key {
+                ast::PropName::Ident(ref ident) => Some(ident.sym.as_ref()),
+                ast::PropName::Str(ref s) => Some(s.value.as_ref()),
+                _ => None,
+            };
+            match (a_key, b_key) {
+                (Some(a_key), Some(b_key)) => a_key.cmp(b_key),
+                _ => std::cmp::Ordering::Equal,
+            }
+        }
+        _ => std::cmp::Ordering::Equal,
+    }
 }

@@ -1,5 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 1125
 expression: output
 ---
 ==INPUT==
@@ -58,10 +59,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= foo_component_htdrsvublie.js (ENTRY POINT)==
 
 import { _jsxQ } from "@builder.io/qwik";
+import { hW } from "./test";
+import { handleWatch } from "./test";
 import { qrl } from "@builder.io/qwik";
 export const Foo_component_HTDRsvUbLiE = ()=>{
     useStyles$('thing');
-    const qwik = 54;
+    const qwik = hW + handleWatch;
     console.log(qwik);
     return /*#__PURE__*/ _jsxQ("div", null, {
         onClick$: /*#__PURE__*/ qrl(()=>import("./foo_component_div_onclick_m48dyiidsjw"), "Foo_component_div_onClick_M48DYiidSJw")
@@ -69,7 +72,7 @@ export const Foo_component_HTDRsvUbLiE = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAU8B,IAAM;IAChC,WAAW;IACX,MAAM,OAAO;IACb,QAAQ,GAAG,CAAC;IAEZ,qBACI,MAAC;QAAI,QAAQ;;AAErB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAU8B,IAAM;IAChC,WAAW;IACX,MAAM,OAAO,KAAK;IAClB,QAAQ,GAAG,CAAC;IAEZ,qBACI,MAAC;QAAI,QAAQ;;AAErB\"}")
 /*
 {
   "origin": "test.tsx",

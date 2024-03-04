@@ -1,0 +1,44 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 685
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@builder.io/qwik';
+
+export const Issue3795 = component$(() => {
+    let base = "foo";
+    const firstAssignment = base;
+    base += "bar";
+    const secondAssignment = base;
+    return (
+      <div id='issue-3795-result'>{firstAssignment} {secondAssignment}</div>
+    )
+  });
+
+============================= test.js ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { _jsxQ } from "@builder.io/qwik";
+import { inlinedQrl } from "@builder.io/qwik";
+export const Issue3795 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
+    let base = "foo";
+    const firstAssignment = base;
+    base += "bar";
+    const secondAssignment = base;
+    return /*#__PURE__*/ _jsxQ("div", null, {
+        id: "issue-3795-result"
+    }, [
+        firstAssignment,
+        " ",
+        secondAssignment
+    ], 1, "u6_0");
+}, "Issue3795_component_wsE8beycatI"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,0BAAY,sCAAW,IAAM;IACtC,IAAI,OAAO;IACX,MAAM,kBAAkB;IACxB,QAAQ;IACR,MAAM,mBAAmB;IACzB,qBACE,MAAC;QAAI,IAAG;;QAAqB;QAAgB;QAAE;;AAEnD,uCAAG\"}")
+== DIAGNOSTICS ==
+
+[]

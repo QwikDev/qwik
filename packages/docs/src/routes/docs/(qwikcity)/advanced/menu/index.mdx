@@ -1,5 +1,6 @@
 ---
-title: Qwik City - Menu
+title: Menu | Advanced
+description: How to use menus to define site navigation.
 contributors:
   - manucorporat
   - adamdbradley
@@ -9,6 +10,11 @@ contributors:
   - nnelgxorz
   - jakovljevic-mladen
   - cunzaizhuyi
+  - AnthonyPAlicea
+  - mrhoodz
+  - hamatoyogi
+updated_at: '2023-06-25T19:43:33Z'
+created_at: '2023-03-20T23:45:13Z'
 ---
 
 # Menu
@@ -22,7 +28,7 @@ Menus allow you to describe the site navigation structure in a simple declarativ
 
 First layout files as follows:
 
-```
+```bash
 src/
 └── routes/
     └── some/
@@ -45,9 +51,7 @@ Use `menu.md` to declare the menu structure.
 - Use the headings (`#`, `##`, etc..) to define menu depth
 - Use the bulleted list (`-`) to define menu items.
 
-```markdown
-<!-- File: src/routes/some/menu.md -->
-
+```markdown title="src/route/some/menu.md"
 # Docs
 
 ## Getting Started
@@ -103,7 +107,7 @@ export default component$(() => {
   const { url } = useLocation();
 
   return (
-    <div class="menu">
+    <nav class="menu">
       {menu
         ? menu.items?.map((item) => (
             <>
@@ -125,7 +129,7 @@ export default component$(() => {
             </>
           ))
         : null}
-    </div>
+    </nav>
   );
 });
 ```

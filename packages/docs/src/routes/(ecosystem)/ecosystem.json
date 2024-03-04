@@ -2,70 +2,229 @@
   "integrations": [
     {
       "title": "Qwik/React",
-      "href": "/integrations/react/",
+      "href": "/docs/integrations/react/",
       "imgSrc": "/ecosystem/react.svg"
     },
     {
+      "title": "Builder.io CMS",
+      "href": "/docs/integrations/builderio/",
+      "imgSrc": "/ecosystem/builderio.svg"
+    },
+    {
       "title": "Partytown",
-      "href": "/integrations/partytown/",
+      "href": "/docs/integrations/partytown/",
       "imgSrc": "/ecosystem/partytown.svg"
     },
     {
+      "title": "Auth.js",
+      "href": "/docs/integrations/authjs/",
+      "imgSrc": "/ecosystem/authjs.png"
+    },
+    {
+      "title": "Cypress",
+      "href": "/docs/integrations/cypress/",
+      "imgSrc": "/ecosystem/cypress.svg"
+    },
+    {
+      "title": "Nx",
+      "href": "/docs/integrations/nx/",
+      "imgSrc": "/ecosystem/nx.svg"
+    },
+    {
       "title": "Playwright",
-      "href": "/integrations/playwright/",
+      "href": "/docs/integrations/playwright/",
       "imgSrc": "/ecosystem/playwright.svg"
     },
     {
       "title": "PostCSS",
-      "href": "/integrations/postcss/",
+      "href": "/docs/integrations/postcss/",
       "imgSrc": "/ecosystem/postcss.svg"
     },
     {
+      "title": "Prisma",
+      "href": "/docs/integrations/prisma/",
+      "imgSrc": "/ecosystem/prisma.svg"
+    },
+    {
+      "title": "Storybook",
+      "href": "/docs/integrations/storybook/",
+      "imgSrc": "/ecosystem/storybook.svg"
+    },
+    {
       "title": "Styled-Vanilla-Extract",
-      "href": "/integrations/styled-vanilla-extract/",
+      "href": "/docs/integrations/styled-vanilla-extract/",
       "imgSrc": "/ecosystem/styled-vanilla-extract.svg"
     },
     {
+      "title": "Supabase",
+      "href": "/docs/integrations/supabase/",
+      "imgSrc": "/ecosystem/supabase.svg"
+    },
+    {
       "title": "Tailwind",
-      "href": "/integrations/tailwind/",
+      "href": "/docs/integrations/tailwind/",
       "imgSrc": "/ecosystem/tailwind.svg"
     },
     {
       "title": "Vitest",
-      "href": "/integrations/vitest/",
+      "href": "/docs/integrations/vitest/",
       "imgSrc": "/ecosystem/vitest.svg"
     }
   ],
   "deployments": [
     {
+      "title": "Aws",
+      "href": "/docs/deployments/aws-lambda/",
+      "imgSrc": "/ecosystem/aws.svg"
+    },
+    {
       "title": "Azure",
-      "href": "/deployments/azure-swa/",
+      "href": "/docs/deployments/azure-swa/",
       "imgSrc": "/ecosystem/azure.svg"
     },
     {
       "title": "Cloudflare",
-      "href": "/deployments/cloudflare-pages/",
+      "href": "/docs/deployments/cloudflare-pages/",
       "imgSrc": "/ecosystem/cloudflare.svg"
     },
     {
+      "title": "Deno",
+      "href": "/docs/deployments/deno/",
+      "imgSrc": "/ecosystem/deno.svg"
+    },
+    {
+      "title": "Bun",
+      "href": "/docs/deployments/bun/",
+      "imgSrc": "/ecosystem/bun.svg"
+    },
+    {
+      "title": "Firebase",
+      "href": "/docs/deployments/firebase/",
+      "imgSrc": "/ecosystem/firebase.svg"
+    },
+    {
       "title": "Google Cloud Run",
-      "href": "/deployments/gcp-cloud-run/",
+      "href": "/docs/deployments/gcp-cloud-run/",
       "imgSrc": "/ecosystem/google-cloud.svg"
     },
     {
       "title": "Netlify",
-      "href": "/deployments/netlify-edge/",
+      "href": "/docs/deployments/netlify-edge/",
       "imgSrc": "/ecosystem/netlify.svg"
     },
     {
       "title": "Node.js",
-      "href": "/deployments/node/",
+      "href": "/docs/deployments/node/",
       "imgSrc": "/ecosystem/nodejs.svg"
     },
     {
       "title": "Vercel",
-      "href": "/deployments/vercel-edge/",
+      "href": "/docs/deployments/vercel-edge/",
       "imgSrc": "/ecosystem/vercel.svg"
+    }
+  ],
+  "libraries": [
+    {
+      "title": "@modular-forms/qwik",
+      "github": "https://modularforms.dev/qwik/guides/introduction",
+      "imgSrc": "/ecosystem/modular-forms.svg",
+      "width": 90,
+      "height": 90,
+      "description": "The modular and type-safe form library"
+    },
+    {
+      "title": "@qwikest/icons",
+      "github": "https://github.com/qwikest/icons",
+      "imgSrc": "/ecosystem/rocket.svg",
+      "width": 90,
+      "height": 90,
+      "description": "Thousand of Open Source icons"
+    },
+    {
+      "title": "qwik-speak",
+      "github": "https://github.com/robisim74/qwik-speak",
+      "imgSrc": "/ecosystem/speak.svg",
+      "description": "Easy i18n"
+    },
+    {
+      "title": "qwik-rive",
+      "github": "https://github.com/qwikverse/qwik-rive",
+      "imgSrc": "/ecosystem/rive.png",
+      "width": 90,
+      "height": 90,
+      "description": "Rive animations"
+    },
+    {
+      "title": "qwik-lottie",
+      "github": "https://github.com/qwikverse/qwik-lottie",
+      "imgSrc": "/ecosystem/lottie.png",
+      "width": 90,
+      "height": 90,
+      "description": "Lottie animations"
+    },
+    {
+      "title": "@papanasi/qwik",
+      "github": "https://github.com/CKGrafico/papanasi",
+      "imgSrc": "/ecosystem/papanasi.svg",
+      "width": 90,
+      "height": 90,
+      "description": "Cross platform UI library"
+    },
+    {
+      "title": "qwik-wrap-balancer",
+      "github": "https://github.com/harshmangalam/qwik-wrap-balancer",
+      "imgSrc": "/ecosystem/balance.svg",
+      "width": 90,
+      "height": 90,
+      "description": "Good looking balanced paragraphs"
+    },
+    {
+      "title": "@qwik-ui/headless",
+      "github": "https://github.com/qwikifiers/qwik-ui",
+      "imgSrc": "/ecosystem/qwik-ui.png",
+      "width": 231,
+      "height": 90,
+      "description": "Headless UI library"
+    },
+    {
+      "title": "@qwikbits/headless-ui",
+      "github": "https://github.com/genie-design/qwikbits",
+      "imgSrc": "/ecosystem/qwikbits.svg",
+      "width": 90,
+      "height": 90,
+      "description": "Headless UI components and other helpers"
+    },
+    {
+      "title": "qwik-spin-delay",
+      "github": "https://github.com/harshmangalam/qwik-spin-delay",
+      "imgSrc": "/ecosystem/qwik-spin-delay.png",
+      "width": 90,
+      "height": 90,
+      "description": "Smart spinner component for Qwik, to manage the duration of loading states."
+    },
+    {
+      "title": "qwik-image",
+      "github": "https://github.com/qwikifiers/qwik-image",
+      "imgSrc": "/ecosystem/qwik-image-logo.png",
+      "width": 90,
+      "height": 90,
+      "description": "Performant images with automatic optimization."
+    },
+    {
+      "title": "qwik-d3",
+      "github": "https://github.com/gilf/qwik-d3",
+      "imgSrc": "/ecosystem/qwik-d3.png",
+      "width": 90,
+      "height": 90,
+      "description": "A small library to integrate d3 into your Qwik project."
+    },
+    {
+      "title": "qwik-storefront-ui",
+      "github": "https://github.com/qwikifiers/qwik-storefront-ui",
+      "imgSrc": "/ecosystem/qwik-storefront-ui.png",
+      "width": 231,
+      "height": 90,
+      "description": "UI library that helps developers create storefronts"
     }
   ],
   "communities": [
@@ -88,6 +247,26 @@
       "title": "London",
       "href": "https://www.meetup.com/qwik-london/",
       "imgSrc": "/ecosystem/qwik-london.svg"
+    },
+    {
+      "title": "Amsterdam",
+      "href": "https://www.meetup.com/qwik-amsterdam-meetup-group/",
+      "imgSrc": "/ecosystem/qwik-amsterdam.svg"
+    },
+    {
+      "title": "India",
+      "href": "https://www.meetup.com/qwik-india/",
+      "imgSrc": "/ecosystem/qwik-india.svg"
+    },
+    {
+      "title": "Uruguay",
+      "href": "https://www.meetup.com/qwik-uruguay/",
+      "imgSrc": "/ecosystem/qwik-uruguay.svg"
+    },
+    {
+      "title": "Argentina",
+      "href": "https://www.meetup.com/qwik-argentina/",
+      "imgSrc": "/ecosystem/qwik-argentina.svg"
     }
   ],
   "social": [

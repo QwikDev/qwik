@@ -1,9 +1,8 @@
-import { test } from 'uvu';
-import { equal } from 'uvu/assert';
 import type { BuildRoute } from '../types';
 import { createFileId } from '../../utils/fs';
 import { parseRoutePathname } from './parse-pathname';
 import { routeSortCompare } from './sort-routes';
+import { test, assert } from 'vitest';
 
 test('routeSortCompare', () => {
   const pathnames = [
@@ -30,23 +29,23 @@ test('routeSortCompare', () => {
 
   const routesSame = [...pathnames].map((p) => route({ pathname: p }));
   const actualSame = routesSame.sort(routeSortCompare).map((r) => r.pathname);
-  equal(actualSame, pathnames);
+  assert.deepEqual(actualSame, pathnames);
 
   const routesReversed = [...pathnames].reverse().map((p) => route({ pathname: p }));
   const actualReversed = routesReversed.sort(routeSortCompare).map((r) => r.pathname);
-  equal(actualReversed, pathnames);
+  assert.deepEqual(actualReversed, pathnames);
 
   const routesRandom = [...pathnames]
     .sort(() => Math.random() - 0.5)
     .map((p) => route({ pathname: p }));
   const actualRandom = routesRandom.sort(routeSortCompare).map((r) => r.pathname);
-  equal(actualRandom, pathnames);
+  assert.deepEqual(actualRandom, pathnames);
 });
 
 function route(r: TestRoute) {
   const pathname = r.pathname || '/';
   const route: BuildRoute = {
-    id: createFileId('', pathname),
+    id: createFileId('', pathname, 'Route'),
     filePath: pathname,
     pathname,
     ext: '.tsx',
@@ -60,5 +59,3 @@ interface TestRoute {
   paramNames?: string[];
   pathname?: string;
 }
-
-test.run();

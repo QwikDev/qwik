@@ -5,7 +5,7 @@
     "deploy": "vercel deploy"
   },
   "devDependencies": {
-    "vercel": "^28.4.17"
+    "vercel": "^29.1.1"
   },
   "__qwik__": {
     "priority": 30,
@@ -18,10 +18,10 @@
     "nextSteps": {
       "title": "Next Steps",
       "lines": [
-        " Now you can build and deploy to Vercel with:",
+        "Now you can build and deploy to Vercel with:",
         "",
-        "  - pnpm run build: production build for Vercel",
-        "  - pnpm run deploy: it will use the Vercel CLI to deploy your site"
+        "- pnpm run build: production build for Vercel",
+        "- pnpm run deploy: it will use the Vercel CLI to deploy your site"
       ]
     }
   }

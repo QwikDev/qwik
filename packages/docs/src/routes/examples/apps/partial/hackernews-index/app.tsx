@@ -14,10 +14,10 @@ export const HackerNews = component$(() => {
   });
 
   return (
-    <>
+    <div class="hacker-news">
       <Nav />
       <Stories data={store.data} />
-    </>
+    </div>
   );
 });
 
@@ -55,13 +55,13 @@ export const Nav = component$(() => {
   );
 });
 
-export const Stories = component$((props: { data: any }) => {
+export const Stories = component$<{ data: any }>((props) => {
   const page = 1;
   const type = 'list';
   const stories = props.data;
   return (
-    <div class="news-view">
-      <div class="news-list-nav">
+    <main class="news-view">
+      <section class="news-list-nav">
         {page > 1 ? (
           <a class="page-link" href={`/?type=${type}&page=${page - 1}`} aria-label="Previous Page">
             {'<'} prev
@@ -81,8 +81,8 @@ export const Stories = component$((props: { data: any }) => {
             more {'>'}
           </span>
         )}
-      </div>
-      <main class="news-list">
+      </section>
+      <article class="news-list">
         {stories && (
           <ul>
             {stories.map((story: IStory) => (
@@ -90,12 +90,12 @@ export const Stories = component$((props: { data: any }) => {
             ))}
           </ul>
         )}
-      </main>
-    </div>
+      </article>
+    </main>
   );
 });
 
-export const StoryPreview = component$((props: { story: IStory }) => {
+export const StoryPreview = component$<{ story: IStory }>((props) => {
   return (
     <li class="news-item">
       <span class="score">{props.story.points}</span>

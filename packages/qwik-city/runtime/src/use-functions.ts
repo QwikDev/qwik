@@ -14,25 +14,22 @@ import type {
   RouteAction,
 } from './types';
 
-/**
- * @public
- */
+/** @public */
 export const useContent = () => useContext(ContentContext);
 
 /**
+ * Returns the document head for the current page. The generic type describes the front matter.
+ *
  * @public
  */
-export const useDocumentHead = (): Required<ResolvedDocumentHead> =>
-  useContext(DocumentHeadContext);
+export const useDocumentHead = <
+  FrontMatter extends Record<string, unknown> = Record<string, any>,
+>(): Required<ResolvedDocumentHead<FrontMatter>> => useContext<any>(DocumentHeadContext);
 
-/**
- * @public
- */
+/** @public */
 export const useLocation = (): RouteLocation => useContext(RouteLocationContext);
 
-/**
- * @public
- */
+/** @public */
 export const useNavigate = (): RouteNavigate => useContext(RouteNavigateContext);
 
 export const useAction = (): RouteAction => useContext(RouteActionContext);

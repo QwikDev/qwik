@@ -1,6 +1,6 @@
 import { isDocument } from '../../util/element';
-import { isJSXNode, jsx } from '../jsx/jsx-runtime';
-import type { JSXNode, FunctionComponent } from '../jsx/types/jsx-node';
+import { jsx } from '../jsx/jsx-runtime';
+import type { JSXOutput, FunctionComponent } from '../jsx/types/jsx-node';
 import { cleanupTree, domToVnode, smartUpdateChildren } from './visitor';
 import { getDocument } from '../../util/dom';
 import { qDev } from '../../util/qdev';
@@ -21,16 +21,12 @@ import { logError } from '../../util/log';
 import { appendQwikDevTools } from '../../container/resume';
 import type { RenderContext } from '../types';
 
-/**
- * @public
- */
+/** @public */
 export interface RenderOptions {
   serverData?: Record<string, any>;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface RenderResult {
   cleanup(): void;
 }
@@ -38,25 +34,24 @@ export interface RenderResult {
 /**
  * Render JSX.
  *
- * Use this method to render JSX. This function does reconciling which means
- * it always tries to reuse what is already in the DOM (rather then destroy and
- * recreate content.)
- * It returns a cleanup function you could use for cleaning up subscriptions.
+ * Use this method to render JSX. This function does reconciling which means it always tries to
+ * reuse what is already in the DOM (rather then destroy and recreate content.) It returns a cleanup
+ * function you could use for cleaning up subscriptions.
  *
- * @param parent - Element which will act as a parent to `jsxNode`. When
- *     possible the rendering will try to reuse existing nodes.
- * @param jsxNode - JSX to render
- * @returns an object containing a cleanup function.
+ * @param parent - Element which will act as a parent to `jsxNode`. When possible the rendering will
+ *   try to reuse existing nodes.
+ * @param jsxOutput - JSX to render
+ * @returns An object containing a cleanup function.
  * @public
  */
 export const render = async (
   parent: Element | Document,
-  jsxNode: JSXNode | FunctionComponent<any>,
+  jsxOutput: JSXOutput | FunctionComponent<any>,
   opts?: RenderOptions
 ): Promise<RenderResult> => {
-  // If input is not JSX, convert it
-  if (!isJSXNode(jsxNode)) {
-    jsxNode = jsx(jsxNode, null);
+  // If input is a component, convert it
+  if (typeof jsxOutput === 'function') {
+    jsxOutput = jsx(jsxOutput, null);
   }
   const doc = getDocument(parent);
   const containerEl = getElement(parent);
@@ -77,7 +72,8 @@ export const render = async (
   }
   const rCtx = createRenderContext(doc, containerState);
   containerState.$hostsRendering$ = new Set();
-  await renderRoot(rCtx, containerEl, jsxNode, doc, containerState, containerEl);
+  containerState.$styleMoved$ = true;
+  await renderRoot(rCtx, containerEl, jsxOutput, doc, containerState, containerEl);
 
   await postRendering(containerState, rCtx);
 
@@ -91,7 +87,7 @@ export const render = async (
 const renderRoot = async (
   rCtx: RenderContext,
   parent: Element,
-  jsxNode: JSXNode<unknown> | FunctionComponent<any>,
+  jsxOutput: JSXOutput,
   doc: Document,
   containerState: ContainerState,
   containerEl: Element
@@ -99,10 +95,10 @@ const renderRoot = async (
   const staticCtx = rCtx.$static$;
 
   try {
-    const processedNodes = await processData(jsxNode);
+    const processedNodes = await processData(jsxOutput);
     // const rootJsx = getVdom(parent);
     const rootJsx = domToVnode(parent);
-    await smartUpdateChildren(rCtx, rootJsx, wrapJSX(parent, processedNodes), 'root', 0);
+    await smartUpdateChildren(rCtx, rootJsx, wrapJSX(parent, processedNodes), 0);
   } catch (err) {
     logError(err);
   }

@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import {
   component$,
   useSignal,
@@ -11,7 +10,7 @@ import {
   routeAction$,
   server$,
 } from '@builder.io/qwik-city';
-import STYLES from './index.css?inline';
+import styles from './index.css?inline';
 
 export const useDadJoke = routeLoader$(async () => {
   const response = await fetch('https://icanhazdadjoke.com/', {
@@ -24,13 +23,14 @@ export const useDadJoke = routeLoader$(async () => {
   };
 });
 
-const useJokeVoteAction = routeAction$((props) => {
+export const useJokeVoteAction = routeAction$((props) => {
   console.log('VOTE', props);
 });
 
 export default component$(() => {
-  useStylesScoped$(STYLES);
+  useStylesScoped$(styles);
   const isFavoriteSignal = useSignal(false);
+  // Calling our `useDadJoke` hook, will return a reactive signal to the loaded data.
   const dadJokeSignal = useDadJoke();
   const favoriteJokeAction = useJokeVoteAction();
   useTask$(({ track }) => {
@@ -41,8 +41,8 @@ export default component$(() => {
     })();
   });
   return (
-    <div class="section bright">
-      <div>{dadJokeSignal.value.joke}</div>
+    <section class="section bright">
+      <p>{dadJokeSignal.value.joke}</p>
       <Form action={favoriteJokeAction}>
         <input type="hidden" name="jokeID" value={dadJokeSignal.value.id} />
         <button name="vote" value="up">
@@ -57,6 +57,6 @@ export default component$(() => {
       >
         {isFavoriteSignal.value ? '❤️' : '🤍'}
       </button>
-    </div>
+    </section>
   );
 });

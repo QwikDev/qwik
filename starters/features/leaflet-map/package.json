@@ -1,0 +1,30 @@
+{
+  "description": "Use Leaflet Maps in your Qwik app",
+  "__qwik__": {
+    "displayName": "Integration: Leaflet Maps",
+    "priority": -10,
+    "viteConfig": {},
+    "docs": [
+      "https://leafletjs.com/reference.html",
+      "https://leafletjs.com/examples/quick-start/",
+      "https://www.sitepoint.com/leaflet-create-map-beginner-guide/"
+    ],
+    "nextSteps": {
+      "lines": [
+        "We start the project with the `start` npm script",
+        "Once started, we access the /basic-map path to see the demo example.",
+        "You can make changes and experiment within src/routes/basic-map/index.tsx",
+        "to add a new location, zoom,... and any improvements to the maps component",
+        "can be done in the src/components/leaflet-map/index.tsx section.",
+        "Have a look at the docs for more info:",
+        "https://leafletjs.com/"
+      ]
+    }
+  },
+  "dependencies": {
+    "leaflet": "1.9.4"
+  },
+  "devDependencies": {
+    "@types/leaflet": "^1.9.6"
+  }
+}

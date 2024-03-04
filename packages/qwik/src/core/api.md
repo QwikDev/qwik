@@ -4,13 +4,28 @@
 
 ```ts
 
+import * as CSS_2 from 'csstype';
+import { JSXNode as JSXNode_2 } from '@builder.io/qwik/jsx-runtime';
+
 // @public
 export const $: <T>(expression: T) => QRL<T>;
 
+// @internal (undocumented)
+export type _AllowPlainQrl<Q> = QRLEventHandlerMulti<any, any> extends Q ? Q extends QRLEventHandlerMulti<infer EV, infer EL> ? Q | (EL extends Element ? EventHandler<EV, EL> : never) : Q : Q extends QRL<infer U> ? Q | U : NonNullable<Q> extends never ? Q : QRL<Q> | Q;
+
+// Warning: (ae-forgotten-export) The symbol "Attrs" needs to be exported by the entry point index.d.ts
+//
 // @public (undocumented)
+export interface AnchorHTMLAttributes<T extends Element> extends Attrs<'a', T> {
+}
+
+// @public (undocumented)
+export interface AreaHTMLAttributes<T extends Element> extends Attrs<'area', T> {
+}
+
+// @public
 export interface AriaAttributes {
     'aria-activedescendant'?: string | undefined;
-    // Warning: (ae-forgotten-export) The symbol "Booleanish" needs to be exported by the entry point index.d.ts
     'aria-atomic'?: Booleanish | undefined;
     'aria-autocomplete'?: 'none' | 'inline' | 'list' | 'both' | undefined;
     'aria-busy'?: Booleanish | undefined;
@@ -65,11 +80,45 @@ export interface AriaAttributes {
 // @public (undocumented)
 export type AriaRole = 'alert' | 'alertdialog' | 'application' | 'article' | 'banner' | 'button' | 'cell' | 'checkbox' | 'columnheader' | 'combobox' | 'complementary' | 'contentinfo' | 'definition' | 'dialog' | 'directory' | 'document' | 'feed' | 'figure' | 'form' | 'grid' | 'gridcell' | 'group' | 'heading' | 'img' | 'link' | 'list' | 'listbox' | 'listitem' | 'log' | 'main' | 'marquee' | 'math' | 'menu' | 'menubar' | 'menuitem' | 'menuitemcheckbox' | 'menuitemradio' | 'navigation' | 'none' | 'note' | 'option' | 'presentation' | 'progressbar' | 'radio' | 'radiogroup' | 'region' | 'row' | 'rowgroup' | 'rowheader' | 'scrollbar' | 'search' | 'searchbox' | 'separator' | 'slider' | 'spinbutton' | 'status' | 'switch' | 'tab' | 'table' | 'tablist' | 'tabpanel' | 'term' | 'textbox' | 'timer' | 'toolbar' | 'tooltip' | 'tree' | 'treegrid' | 'treeitem' | (string & {});
 
-// @public
-export const component$: <PROPS extends {}>(onMount: OnRenderFn<PROPS>) => Component<PROPS>;
+// @public (undocumented)
+export interface AudioHTMLAttributes<T extends Element> extends Attrs<'audio', T> {
+}
+
+// @public (undocumented)
+export interface BaseHTMLAttributes<T extends Element> extends Attrs<'base', T> {
+}
+
+// @public (undocumented)
+export interface BlockquoteHTMLAttributes<T extends Element> extends Attrs<'blockquote', T> {
+}
+
+// @public (undocumented)
+export type Booleanish = boolean | `${boolean}`;
+
+// @public (undocumented)
+export interface ButtonHTMLAttributes<T extends Element> extends Attrs<'button', T> {
+}
+
+// @public (undocumented)
+export interface CanvasHTMLAttributes<T extends Element> extends Attrs<'canvas', T> {
+}
 
 // @public
-export type Component<PROPS extends {}> = FunctionComponent<PublicProps<PROPS>>;
+export type ClassList = string | undefined | null | false | Record<string, boolean | string | number | null | undefined> | ClassList[];
+
+// @public (undocumented)
+export interface ColgroupHTMLAttributes<T extends Element> extends Attrs<'colgroup', T> {
+}
+
+// @public (undocumented)
+export interface ColHTMLAttributes<T extends Element> extends Attrs<'col', T> {
+}
+
+// @public
+export const component$: <PROPS = unknown>(onMount: OnRenderFn<PROPS>) => Component<PROPS>;
+
+// @public
+export type Component<PROPS = unknown> = FunctionComponent<PublicProps<PROPS>>;
 
 // @public (undocumented)
 export interface ComponentBaseProps {
@@ -80,7 +129,7 @@ export interface ComponentBaseProps {
 }
 
 // @public
-export const componentQrl: <PROPS extends {}>(componentQrl: QRL<OnRenderFn<PROPS>>) => Component<PROPS>;
+export const componentQrl: <PROPS extends Record<any, any>>(componentQrl: QRL<OnRenderFn<PROPS>>) => Component<PROPS>;
 
 // @public
 export interface ContextId<STATE> {
@@ -98,24 +147,67 @@ export interface CorePlatform {
 }
 
 // @public
+export interface CorrectedToggleEvent extends Event {
+    // (undocumented)
+    readonly newState: 'open' | 'closed';
+    // (undocumented)
+    readonly prevState: 'open' | 'closed';
+}
+
+// @public
 export const createContextId: <STATE = unknown>(name: string) => ContextId<STATE>;
+
+// @public (undocumented)
+export interface CSSProperties extends CSS_2.Properties<string | number>, CSS_2.PropertiesHyphen<string | number> {
+    [v: `--${string}`]: string | number | undefined;
+}
+
+// @public (undocumented)
+export interface DataHTMLAttributes<T extends Element> extends Attrs<'data', T> {
+}
+
+// @public (undocumented)
+export interface DelHTMLAttributes<T extends Element> extends Attrs<'del', T> {
+}
 
 // @internal (undocumented)
 export const _deserializeData: (data: string, element?: unknown) => any;
 
-// Warning: (ae-forgotten-export) The symbol "QwikProps" needs to be exported by the entry point index.d.ts
+// @public (undocumented)
+export interface DetailsHTMLAttributes<T extends Element> extends Attrs<'details', T> {
+}
+
+// @public (undocumented)
+export interface DevJSX {
+    // (undocumented)
+    columnNumber: number;
+    // (undocumented)
+    fileName: string;
+    // (undocumented)
+    lineNumber: number;
+    // (undocumented)
+    stack?: string;
+}
+
+// @public (undocumented)
+export interface DialogHTMLAttributes<T extends Element> extends Attrs<'dialog', T> {
+}
+
+// Warning: (ae-forgotten-export) The symbol "DOMAttributesBase" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "QwikEvents" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
-export interface DOMAttributes<T> extends QwikProps<T>, QwikEvents<T> {
+// @public
+export interface DOMAttributes<EL extends Element> extends DOMAttributesBase<EL>, QwikEvents<EL> {
     // (undocumented)
-    children?: JSXChildren;
-    // (undocumented)
-    key?: string | number | null | undefined;
+    class?: ClassList | Signal<ClassList> | undefined;
 }
 
 // @public (undocumented)
 export type EagernessOptions = 'visible' | 'load' | 'idle';
+
+// @public (undocumented)
+export interface EmbedHTMLAttributes<T extends Element> extends Attrs<'embed', T> {
+}
 
 // @public (undocumented)
 export interface ErrorBoundaryStore {
@@ -126,13 +218,26 @@ export interface ErrorBoundaryStore {
 // @public (undocumented)
 export const event$: <T>(first: T) => QRL<T>;
 
+// @public
+export type EventHandler<EV = Event, EL = Element> = {
+    bivarianceHack(event: EV, element: EL): any;
+}['bivarianceHack'];
+
 // @public (undocumented)
 export const eventQrl: <T>(qrl: QRL<T>) => QRL<T>;
+
+// @public (undocumented)
+export interface FieldsetHTMLAttributes<T extends Element> extends Attrs<'fieldset', T> {
+}
 
 // Warning: (ae-forgotten-export) The symbol "SignalDerived" needs to be exported by the entry point index.d.ts
 //
 // @internal (undocumented)
-export const _fnSignal: <T extends (...args: any[]) => any>(fn: T, args: any[], fnStr?: string) => SignalDerived<any, any[]>;
+export const _fnSignal: <T extends (...args: any) => any>(fn: T, args: Parameters<T>, fnStr?: string) => SignalDerived<ReturnType<T>, Parameters<T>>;
+
+// @public (undocumented)
+export interface FormHTMLAttributes<T extends Element> extends Attrs<'form', T> {
+}
 
 // @public (undocumented)
 export const Fragment: FunctionComponent<{
@@ -140,14 +245,16 @@ export const Fragment: FunctionComponent<{
     key?: string | number | null;
 }>;
 
-// @public (undocumented)
-export interface FunctionComponent<P = Record<string, any>> {
-    // (undocumented)
-    (props: P, key: string | null, flags: number): JSXNode | null;
-}
+// @public
+export type FunctionComponent<P = unknown> = {
+    renderFn(props: P, key: string | null, flags: number, dev?: DevJSX): JSXOutput;
+}['renderFn'];
 
 // @internal (undocumented)
 export const _getContextElement: () => unknown;
+
+// @internal (undocumented)
+export const _getContextEvent: () => unknown;
 
 // Warning: (ae-internal-missing-underscore) The name "getLocale" should be prefixed with an underscore because the declaration is marked as @internal
 //
@@ -176,109 +283,60 @@ namespace h {
     function h(type: any, data: any, children: Array<JSXNode<any> | undefined | null>): JSXNode<any>;
     // (undocumented)
     function h(sel: any, data: any | null, children: JSXNode<any>): JSXNode<any>;
-    // (undocumented)
-    namespace JSX {
-        // (undocumented)
-        interface Element extends QwikJSX.Element {
-        }
-        // (undocumented)
-        interface ElementChildrenAttribute {
-            // (undocumented)
-            children?: any;
-        }
-        // (undocumented)
-        interface IntrinsicAttributes extends QwikJSX.IntrinsicAttributes {
-        }
-        // (undocumented)
-        interface IntrinsicElements extends QwikJSX.IntrinsicElements {
-        }
-    }
+        { JSX };
 }
 export { h as createElement }
 export { h }
 
 // @public (undocumented)
-export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
-    // (undocumented)
-    about?: string | undefined;
-    // (undocumented)
-    accessKey?: string | undefined;
-    // (undocumented)
-    autoCapitalize?: string | undefined;
-    // (undocumented)
-    autoCorrect?: string | undefined;
-    // (undocumented)
-    autoSave?: string | undefined;
-    // (undocumented)
-    color?: string | undefined;
-    // (undocumented)
-    contentEditable?: 'true' | 'false' | 'inherit' | undefined;
-    // (undocumented)
-    contextMenu?: string | undefined;
-    // (undocumented)
-    datatype?: string | undefined;
-    // (undocumented)
-    dir?: 'ltr' | 'rtl' | 'auto' | undefined;
-    // (undocumented)
-    draggable?: boolean | undefined;
-    // (undocumented)
-    hidden?: boolean | undefined;
-    // (undocumented)
-    id?: string | undefined;
-    // (undocumented)
-    inlist?: any;
-    inputMode?: 'none' | 'text' | 'tel' | 'url' | 'email' | 'numeric' | 'decimal' | 'search' | undefined;
-    is?: string | undefined;
-    // (undocumented)
-    itemID?: string | undefined;
-    // (undocumented)
-    itemProp?: string | undefined;
-    // (undocumented)
-    itemRef?: string | undefined;
-    // (undocumented)
-    itemScope?: boolean | undefined;
-    // (undocumented)
-    itemType?: string | undefined;
-    // (undocumented)
-    lang?: string | undefined;
-    // (undocumented)
-    placeholder?: string | undefined;
-    // (undocumented)
-    prefix?: string | undefined;
-    // (undocumented)
-    property?: string | undefined;
-    // (undocumented)
-    radioGroup?: string | undefined;
-    // (undocumented)
-    resource?: string | undefined;
-    // (undocumented)
-    results?: number | undefined;
-    // (undocumented)
-    role?: AriaRole | undefined;
-    // (undocumented)
-    security?: string | undefined;
-    // (undocumented)
-    slot?: string | undefined;
-    // (undocumented)
-    spellcheck?: boolean | undefined;
-    // (undocumented)
-    style?: Record<string, string | number | undefined> | string | undefined;
-    // (undocumented)
-    tabIndex?: number | undefined;
-    // (undocumented)
-    title?: string | undefined;
-    // (undocumented)
-    translate?: 'yes' | 'no' | undefined;
-    // (undocumented)
-    typeof?: string | undefined;
-    // (undocumented)
-    unselectable?: 'on' | 'off' | undefined;
-    // (undocumented)
-    vocab?: string | undefined;
+export interface HrHTMLAttributes<T extends Element> extends Attrs<'hr', T> {
 }
+
+// @public (undocumented)
+export type HTMLAttributeAnchorTarget = '_self' | '_blank' | '_parent' | '_top' | (string & {});
+
+// @public (undocumented)
+export type HTMLAttributeReferrerPolicy = ReferrerPolicy;
+
+// @public (undocumented)
+export interface HTMLAttributes<E extends Element> extends HTMLElementAttrs, DOMAttributes<E> {
+}
+
+// @public (undocumented)
+export type HTMLCrossOriginAttribute = 'anonymous' | 'use-credentials' | '' | undefined;
+
+// Warning: (ae-forgotten-export) The symbol "HTMLAttributesBase" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "FilterBase" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export interface HTMLElementAttrs extends HTMLAttributesBase, FilterBase<HTMLElement> {
+}
+
+// @public (undocumented)
+export const HTMLFragment: FunctionComponent<{
+    dangerouslySetInnerHTML: string;
+}>;
+
+// @public (undocumented)
+export interface HtmlHTMLAttributes<T extends Element> extends Attrs<'html', T> {
+}
+
+// @public (undocumented)
+export type HTMLInputAutocompleteAttribute = 'on' | 'off' | 'billing' | 'shipping' | 'name' | 'honorific-prefix' | 'given-name' | 'additional-name' | 'family-name' | 'honorific-suffix' | 'nickname' | 'username' | 'new-password' | 'current-password' | 'one-time-code' | 'organization-title' | 'organization' | 'street-address' | 'address-line1' | 'address-line2' | 'address-line3' | 'address-level4' | 'address-level3' | 'address-level2' | 'address-level1' | 'country' | 'country-name' | 'postal-code' | 'cc-name' | 'cc-given-name' | 'cc-additional-name' | 'cc-family-name' | 'cc-number' | 'cc-exp' | 'cc-exp-month' | 'cc-exp-year' | 'cc-csc' | 'cc-type' | 'transaction-currency' | 'transaction-amount' | 'language' | 'bday' | 'bday-day' | 'bday-month' | 'bday-year' | 'sex' | 'url' | 'photo';
+
+// @public (undocumented)
+export type HTMLInputTypeAttribute = 'button' | 'checkbox' | 'color' | 'date' | 'datetime-local' | 'email' | 'file' | 'hidden' | 'image' | 'month' | 'number' | 'password' | 'radio' | 'range' | 'reset' | 'search' | 'submit' | 'tel' | 'text' | 'time' | 'url' | 'week' | (string & {});
 
 // @internal
 export const _hW: () => void;
+
+// @public (undocumented)
+export interface IframeHTMLAttributes<T extends Element> extends Attrs<'iframe', T> {
+}
+
+// @public (undocumented)
+export interface ImgHTMLAttributes<T extends Element> extends Attrs<'img', T> {
+}
 
 // @internal (undocumented)
 export const _IMMUTABLE: unique symbol;
@@ -298,87 +356,175 @@ export const inlinedQrl: <T>(symbol: T, symbolName: string, lexicalScopeCapture?
 export const inlinedQrlDEV: <T = any>(symbol: T, symbolName: string, opts: QRLDev, lexicalScopeCapture?: any[]) => QRL<T>;
 
 // @public (undocumented)
-const jsx: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>, key?: string | number | null) => JSXNode<T>;
+export type InputHTMLAttributes<T extends Element> = Attrs<'input', T, HTMLInputElement>;
+
+// @public (undocumented)
+export interface InsHTMLAttributes<T extends Element> extends Attrs<'ins', T> {
+}
+
+// Warning: (ae-incompatible-release-tags) The symbol "IntrinsicElements" is marked as @public, but its signature references "IntrinsicHTMLElements" which is marked as @internal
+// Warning: (ae-incompatible-release-tags) The symbol "IntrinsicElements" is marked as @public, but its signature references "IntrinsicSVGElements" which is marked as @internal
+//
+// @public (undocumented)
+export interface IntrinsicElements extends IntrinsicHTMLElements, IntrinsicSVGElements {
+}
+
+// Warning: (ae-forgotten-export) The symbol "Augmented" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "SpecialAttrs" needs to be exported by the entry point index.d.ts
+// Warning: (ae-internal-missing-underscore) The name "IntrinsicHTMLElements" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export type IntrinsicHTMLElements = {
+    [key in keyof HTMLElementTagNameMap]: Augmented<HTMLElementTagNameMap[key], SpecialAttrs[key]> & HTMLAttributes<HTMLElementTagNameMap[key]>;
+} & {
+    [unknownTag: string]: {
+        [prop: string]: any;
+    } & HTMLElementAttrs & HTMLAttributes<any>;
+};
+
+// Warning: (ae-internal-missing-underscore) The name "IntrinsicSVGElements" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export type IntrinsicSVGElements = {
+    [K in keyof Omit<SVGElementTagNameMap, keyof HTMLElementTagNameMap>]: LenientSVGProps<SVGElementTagNameMap[K]>;
+};
+
+// @public
+export const isSignal: <T = unknown>(obj: any) => obj is Signal<T>;
+
+// @public (undocumented)
+const jsx: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<any, unknown>, key?: string | number | null) => JSXNode<T>;
 export { jsx }
 export { jsx as jsxs }
 
 // @internal (undocumented)
-export const _jsxBranch: (input?: any) => any;
+export const _jsxBranch: <T>(input?: T | undefined) => T | undefined;
 
 // Warning: (ae-forgotten-export) The symbol "JsxDevOpts" needs to be exported by the entry point index.d.ts
 //
-// @internal (undocumented)
-export const _jsxC: <T extends string | FunctionComponent<any>>(type: T, mutableProps: (T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>) | null, flags: number, key: string | number | null, dev?: JsxDevOpts) => JSXNode<T>;
+// @internal
+export const _jsxC: <T extends string | FunctionComponent<Record<any, unknown>>>(type: T, mutableProps: (T extends FunctionComponent<infer PROPS> ? PROPS : Record<any, unknown>) | null, flags: number, key: string | number | null, dev?: JsxDevOpts) => JSXNode<T>;
 
 // @public (undocumented)
 export type JSXChildren = string | number | boolean | null | undefined | Function | RegExp | JSXChildren[] | Promise<JSXChildren> | Signal<JSXChildren> | JSXNode;
 
 // @public (undocumented)
-export const jsxDEV: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>, key: string | number | null | undefined, _isStatic: boolean, opts: JsxDevOpts, _ctx: any) => JSXNode<T>;
+export const jsxDEV: <T extends string | FunctionComponent<Record<any, unknown>>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<any, unknown>, key: string | number | null | undefined, _isStatic: boolean, opts: JsxDevOpts, _ctx: unknown) => JSXNode<T>;
 
-// @public (undocumented)
-export interface JSXNode<T = string | FunctionComponent> {
+// @public
+export interface JSXNode<T extends string | FunctionComponent | unknown = unknown> {
     // (undocumented)
-    children: any | null;
-    // Warning: (ae-forgotten-export) The symbol "DevJSX" needs to be exported by the entry point index.d.ts
-    //
+    children: JSXChildren | null;
     // (undocumented)
     dev?: DevJSX;
     // (undocumented)
     flags: number;
     // (undocumented)
-    immutableProps: Record<string, any> | null;
+    immutableProps: Record<any, unknown> | null;
     // (undocumented)
     key: string | null;
     // (undocumented)
-    props: T extends FunctionComponent<infer B> ? B : Record<string, any>;
+    props: T extends FunctionComponent<infer P> ? P : Record<any, unknown>;
     // (undocumented)
     type: T;
 }
 
-// @internal (undocumented)
-export const _jsxQ: <T extends string>(type: T, mutableProps: (T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>) | null, immutableProps: Record<string, any> | null, children: any | null, flags: number, key: string | number | null, dev?: DevJSX) => JSXNode<T>;
+// @public
+export type JSXOutput = JSXNode | string | number | boolean | null | undefined | JSXOutput[];
 
-// @internal (undocumented)
-export const _jsxS: <T extends string>(type: T, mutableProps: (T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>) | null, immutableProps: Record<string, any> | null, flags: number, key: string | number | null, dev?: DevJSX) => JSXNode<T>;
+// @internal
+export const _jsxQ: <T extends string>(type: T, mutableProps: Record<any, unknown> | null, immutableProps: Record<any, unknown> | null, children: JSXChildren | null, flags: number, key: string | number | null, dev?: DevJSX) => JSXNode<T>;
+
+// @internal
+export const _jsxS: <T extends string>(type: T, mutableProps: Record<any, unknown> | null, immutableProps: Record<any, unknown> | null, flags: number, key: string | number | null, dev?: DevJSX) => JSXNode<T>;
 
 // @public (undocumented)
 export type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLElementTagNameMap>;
 
+// @public @deprecated (undocumented)
+export interface KeygenHTMLAttributes<T extends Element> extends Attrs<'base', T> {
+}
+
+// Warning: (ae-forgotten-export) The symbol "LiteralUnion" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "AllEventKeys" needs to be exported by the entry point index.d.ts
+//
+// @public
+export type KnownEventNames = LiteralUnion<AllEventKeys, string>;
+
 // @public (undocumented)
+export interface LabelHTMLAttributes<T extends Element> extends Attrs<'label', T> {
+}
+
+// Warning: (ae-internal-missing-underscore) The name "LenientSVGProps" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export interface LenientSVGProps<T extends Element> extends SVGAttributes, DOMAttributes<T> {
+}
+
+// @public (undocumented)
+export interface LiHTMLAttributes<T extends Element> extends Attrs<'li', T> {
+}
+
+// @public (undocumented)
+export interface LinkHTMLAttributes<T extends Element> extends Attrs<'link', T> {
+}
+
+// @public (undocumented)
+export interface MapHTMLAttributes<T extends Element> extends Attrs<'map', T> {
+}
+
+// @public (undocumented)
+export interface MediaHTMLAttributes<T extends Element> extends HTMLAttributes<T>, Augmented<HTMLMediaElement, {
+    crossOrigin?: HTMLCrossOriginAttribute;
+}> {
+}
+
+// @public (undocumented)
+export interface MenuHTMLAttributes<T extends Element> extends Attrs<'menu', T> {
+}
+
+// @public (undocumented)
+export interface MetaHTMLAttributes<T extends Element> extends Attrs<'meta', T> {
+}
+
+// @public (undocumented)
+export interface MeterHTMLAttributes<T extends Element> extends Attrs<'meter', T> {
+}
+
+// @public @deprecated (undocumented)
 export type NativeAnimationEvent = AnimationEvent;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export type NativeClipboardEvent = ClipboardEvent;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export type NativeCompositionEvent = CompositionEvent;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export type NativeDragEvent = DragEvent;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export type NativeFocusEvent = FocusEvent;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export type NativeKeyboardEvent = KeyboardEvent;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export type NativeMouseEvent = MouseEvent;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export type NativePointerEvent = PointerEvent;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export type NativeTouchEvent = TouchEvent;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export type NativeTransitionEvent = TransitionEvent;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export type NativeUIEvent = UIEvent;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export type NativeWheelEvent = WheelEvent;
 
 // @internal (undocumented)
@@ -393,53 +539,112 @@ export type NoSerialize<T> = (T & {
 export const noSerialize: <T extends object | undefined>(input: T) => NoSerialize<T>;
 
 // @public (undocumented)
-export type OnRenderFn<PROPS> = (props: PROPS) => JSXNode<any> | null;
+export type Numberish = number | `${number}`;
+
+// @public (undocumented)
+export interface ObjectHTMLAttributes<T extends Element> extends Attrs<'object', T> {
+}
+
+// @public (undocumented)
+export interface OlHTMLAttributes<T extends Element> extends Attrs<'ol', T> {
+}
+
+// @internal (undocumented)
+export type _Only$<P> = {
+    [K in keyof P as K extends `${string}$` ? K : never]: _AllowPlainQrl<P[K]>;
+};
+
+// @public (undocumented)
+export type OnRenderFn<PROPS> = (props: PROPS) => JSXOutput;
 
 // @public (undocumented)
 export interface OnVisibleTaskOptions {
     strategy?: VisibleTaskStrategy;
 }
 
+// @public (undocumented)
+export interface OptgroupHTMLAttributes<T extends Element> extends Attrs<'optgroup', T> {
+}
+
+// @public (undocumented)
+export interface OptionHTMLAttributes<T extends Element> extends Attrs<'option', T> {
+}
+
+// @public (undocumented)
+export interface OutputHTMLAttributes<T extends Element> extends Attrs<'output', T> {
+}
+
+// @public @deprecated (undocumented)
+export interface ParamHTMLAttributes<T extends Element> extends Attrs<'base', T, HTMLParamElement> {
+}
+
 // Warning: (ae-forgotten-export) The symbol "QContext" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "ContainerState" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "GetObjID" needs to be exported by the entry point index.d.ts
 //
-// @internal (undocumented)
-export const _pauseFromContexts: (allContexts: QContext[], containerState: ContainerState, fallbackGetObjId?: GetObjID) => Promise<SnapshotResult>;
+// @internal
+export const _pauseFromContexts: (allContexts: QContext[], containerState: ContainerState, fallbackGetObjId?: GetObjID, textNodes?: Map<string, string>) => Promise<SnapshotResult>;
+
+// @alpha
+export const PrefetchGraph: (opts?: {
+    base?: string;
+    manifestHash?: string;
+    manifestURL?: string;
+}) => JSXNode_2<"script">;
+
+// @alpha
+export const PrefetchServiceWorker: (opts: {
+    base?: string;
+    path?: string;
+    verbose?: boolean;
+    fetchBundleGraph?: boolean;
+}) => JSXNode_2<"script">;
 
 // @public (undocumented)
-export interface PropFnInterface<ARGS extends any[], RET> {
-    // (undocumented)
-    (...args: ARGS): Promise<RET>;
+export interface ProgressHTMLAttributes<T extends Element> extends Attrs<'progress', T> {
 }
 
-// @public (undocumented)
-export type PropFunction<T extends Function> = T extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, RET> : never;
+// @public @deprecated (undocumented)
+export type PropFnInterface<ARGS extends any[], RET> = {
+    __qwik_serializable__?: any;
+    (...args: ARGS): Promise<RET>;
+};
 
 // @public
-export type PropsOf<COMP extends Component<any>> = COMP extends Component<infer PROPS> ? NonNullable<PROPS> : never;
+export type PropFunction<T> = QRL<T>;
 
-// Warning: (ae-forgotten-export) The symbol "TransformProps" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "ComponentChildren" needs to be exported by the entry point index.d.ts
+// @public @deprecated (undocumented)
+export type PropFunctionProps<PROPS extends Record<any, any>> = {
+    [K in keyof PROPS]: PROPS[K] extends undefined ? PROPS[K] : PROPS[K] extends ((...args: infer ARGS) => infer RET) | undefined ? PropFnInterface<ARGS, Awaited<RET>> : PROPS[K];
+};
+
+// Warning: (ae-forgotten-export) The symbol "IsAny" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "ObjectProps" needs to be exported by the entry point index.d.ts
 //
 // @public
-export type PublicProps<PROPS extends {}> = TransformProps<PROPS> & ComponentBaseProps & ComponentChildren<PROPS>;
+export type PropsOf<COMP> = COMP extends string ? COMP extends keyof QwikIntrinsicElements ? QwikIntrinsicElements[COMP] : QwikIntrinsicElements['span'] : NonNullable<COMP> extends never ? never : COMP extends FunctionComponent<infer PROPS> ? PROPS extends Record<any, infer V> ? IsAny<V> extends true ? never : ObjectProps<PROPS> : COMP extends Component<infer OrigProps> ? ObjectProps<OrigProps> : PROPS : never;
 
+// Warning: (ae-forgotten-export) The symbol "ComponentChildren" needs to be exported by the entry point index.d.ts
+// Warning: (ae-incompatible-release-tags) The symbol "PublicProps" is marked as @public, but its signature references "_Only$" which is marked as @internal
+//
 // @public
-export interface QRL<TYPE = any> {
-    // (undocumented)
+export type PublicProps<PROPS> = (PROPS extends Record<any, any> ? Omit<PROPS, `${string}$`> & _Only$<PROPS> : unknown extends PROPS ? {} : PROPS) & ComponentBaseProps & ComponentChildren<PROPS>;
+
+// Warning: (ae-forgotten-export) The symbol "BivariantQrlFn" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "QrlArgs" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "QrlReturn" needs to be exported by the entry point index.d.ts
+//
+// @public
+export type QRL<TYPE = unknown> = {
+    __qwik_serializable__?: any;
     __brand__QRL__: TYPE;
-    (...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never): Promise<TYPE extends (...args: any[]) => infer RETURN ? Awaited<RETURN> : never>;
-    // (undocumented)
-    dev: QRLDev | null;
-    // (undocumented)
-    getCaptured(): any[] | null;
-    // (undocumented)
-    getHash(): string;
-    // (undocumented)
-    getSymbol(): string;
     resolve(): Promise<TYPE>;
-}
+    resolved: undefined | TYPE;
+    getCaptured(): unknown[] | null;
+    getSymbol(): string;
+    getHash(): string;
+    dev: QRLDev | null;
+} & BivariantQrlFn<QrlArgs<TYPE>, QrlReturn<TYPE>>;
 
 // @public
 export const qrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, lexicalScopeCapture?: any[], stackOffset?: number) => QRL<T>;
@@ -449,244 +654,138 @@ export const qrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: st
 // @internal (undocumented)
 export const qrlDEV: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, opts: QRLDev, lexicalScopeCapture?: any[]) => QRL<T>;
 
-// Warning: (ae-forgotten-export) The symbol "SyntheticEvent" needs to be exported by the entry point index.d.ts
+// @beta
+export type QRLEventHandlerMulti<EV extends Event, EL> = QRL<EventHandler<EV, EL>> | undefined | null | QRLEventHandlerMulti<EV, EL>[];
+
+// Warning: (ae-forgotten-export) The symbol "SyncQRL" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
-export interface QwikAnimationEvent<T = Element> extends SyntheticEvent<T, NativeAnimationEvent> {
-    // (undocumented)
-    animationName: string;
-    // (undocumented)
-    elapsedTime: number;
-    // (undocumented)
-    pseudoElement: string;
-}
+// @alpha
+export const _qrlSync: <TYPE extends Function>(fn: TYPE, serializedFn?: string) => SyncQRL<TYPE>;
 
 // @public (undocumented)
-export interface QwikChangeEvent<T = Element> extends SyntheticEvent<T> {
-    // (undocumented)
-    target: EventTarget & T;
+export interface QuoteHTMLAttributes<T extends Element> extends Attrs<'q', T> {
 }
 
-// @public (undocumented)
-export interface QwikClipboardEvent<T = Element> extends SyntheticEvent<T, NativeClipboardEvent> {
+// @public @deprecated (undocumented)
+export type QwikAnimationEvent<T = Element> = NativeAnimationEvent;
+
+// @public
+export interface QwikAttributes<EL extends Element> extends DOMAttributesBase<EL>, QwikEvents<EL, false> {
     // (undocumented)
-    clipboardData: DataTransfer;
+    class?: ClassList | undefined;
 }
 
-// @public (undocumented)
-export interface QwikCompositionEvent<T = Element> extends SyntheticEvent<T, NativeCompositionEvent> {
-    // (undocumented)
-    data: string;
-}
+// @public @deprecated (undocumented)
+export type QwikChangeEvent<T = Element> = Event;
+
+// @public @deprecated (undocumented)
+export type QwikClipboardEvent<T = Element> = NativeClipboardEvent;
+
+// @public @deprecated (undocumented)
+export type QwikCompositionEvent<T = Element> = NativeCompositionEvent;
 
 // @public (undocumented)
-export interface QwikDOMAttributes extends DOMAttributes<any> {
+export interface QwikDOMAttributes extends DOMAttributes<Element> {
 }
 
-// @public (undocumented)
-export interface QwikDragEvent<T = Element> extends QwikMouseEvent<T, NativeDragEvent> {
-    // (undocumented)
-    dataTransfer: DataTransfer;
+// @public @deprecated (undocumented)
+export type QwikDragEvent<T = Element> = NativeDragEvent;
+
+// @public @deprecated (undocumented)
+export type QwikFocusEvent<T = Element> = NativeFocusEvent;
+
+// @public
+export type QwikHTMLElements = {
+    [tag in keyof HTMLElementTagNameMap]: Augmented<HTMLElementTagNameMap[tag], SpecialAttrs[tag]> & HTMLElementAttrs & QwikAttributes<HTMLElementTagNameMap[tag]>;
+};
+
+// @public
+export type QwikIdleEvent = CustomEvent<{}>;
+
+// @public
+export type QwikInitEvent = CustomEvent<{}>;
+
+// @public
+export interface QwikIntrinsicElements extends QwikHTMLElements, QwikSVGElements {
 }
 
-// @public (undocumented)
-export interface QwikFocusEvent<T = Element> extends SyntheticEvent<T, NativeFocusEvent> {
-    // (undocumented)
-    relatedTarget: EventTarget | null;
-    // (undocumented)
-    target: EventTarget & T;
-}
-
-// Warning: (ae-forgotten-export) The symbol "IntrinsicHTMLElements" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export interface QwikIntrinsicElements extends IntrinsicHTMLElements {
-    // Warning: (ae-forgotten-export) The symbol "QwikCustomHTMLAttributes" needs to be exported by the entry point index.d.ts
-    // Warning: (ae-forgotten-export) The symbol "QwikCustomHTMLElement" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    [key: string]: QwikCustomHTMLAttributes<QwikCustomHTMLElement>;
-    // Warning: (ae-forgotten-export) The symbol "QwikScriptHTMLAttributes" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    script: QwikScriptHTMLAttributes<HTMLScriptElement>;
-}
-
-// @public (undocumented)
-export interface QwikInvalidEvent<T = Element> extends SyntheticEvent<T> {
-    // (undocumented)
-    target: EventTarget & T;
-}
+// @public @deprecated (undocumented)
+export type QwikInvalidEvent<T = Element> = Event;
 
 // @public (undocumented)
 export namespace QwikJSX {
     // (undocumented)
-    export interface Element extends JSXNode {
-    }
+    export type Element = JSXOutput;
     // (undocumented)
     export interface ElementChildrenAttribute {
         // (undocumented)
-        children: any;
+        children: JSXChildren;
     }
+    // (undocumented)
+    export type ElementType = string | FunctionComponent<Record<any, any>>;
     // Warning: (ae-forgotten-export) The symbol "QwikIntrinsicAttributes" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
     export interface IntrinsicAttributes extends QwikIntrinsicAttributes {
     }
+    // Warning: (ae-forgotten-export) The symbol "LenientQwikElements" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
-    export interface IntrinsicElements extends QwikIntrinsicElements {
+    export interface IntrinsicElements extends LenientQwikElements {
     }
 }
 
-// @public (undocumented)
-export interface QwikKeyboardEvent<T = Element> extends SyntheticEvent<T, NativeKeyboardEvent> {
-    // (undocumented)
-    altKey: boolean;
-    // (undocumented)
-    charCode: number;
-    // (undocumented)
-    ctrlKey: boolean;
-    getModifierState(key: string): boolean;
-    key: string;
-    // (undocumented)
-    keyCode: number;
-    // (undocumented)
-    locale: string;
-    // (undocumented)
-    location: number;
-    // (undocumented)
-    metaKey: boolean;
-    // (undocumented)
-    repeat: boolean;
-    // (undocumented)
-    shiftKey: boolean;
-    // (undocumented)
-    which: number;
-}
+// @public @deprecated (undocumented)
+export type QwikKeyboardEvent<T = Element> = NativeKeyboardEvent;
+
+// @public @deprecated (undocumented)
+export type QwikMouseEvent<T = Element, E = NativeMouseEvent> = E;
+
+// @public @deprecated (undocumented)
+export type QwikPointerEvent<T = Element> = NativePointerEvent;
+
+// @public @deprecated (undocumented)
+export type QwikSubmitEvent<T = Element> = SubmitEvent;
+
+// @public
+export type QwikSVGElements = {
+    [K in keyof Omit<SVGElementTagNameMap, keyof HTMLElementTagNameMap>]: SVGProps<SVGElementTagNameMap[K]>;
+};
+
+// @public
+export type QwikSymbolEvent = CustomEvent<{
+    symbol: string;
+    element: Element;
+    reqTime: number;
+}>;
+
+// @public @deprecated (undocumented)
+export type QwikTouchEvent<T = Element> = NativeTouchEvent;
+
+// @public @deprecated (undocumented)
+export type QwikTransitionEvent<T = Element> = NativeTransitionEvent;
+
+// @public @deprecated (undocumented)
+export type QwikUIEvent<T = Element> = NativeUIEvent;
+
+// @public
+export type QwikVisibleEvent = CustomEvent<IntersectionObserverEntry>;
+
+// @public @deprecated (undocumented)
+export type QwikWheelEvent<T = Element> = NativeWheelEvent;
 
 // @public (undocumented)
-export interface QwikMouseEvent<T = Element, E = NativeMouseEvent> extends SyntheticEvent<T, E> {
-    // (undocumented)
-    altKey: boolean;
-    // (undocumented)
-    button: number;
-    // (undocumented)
-    buttons: number;
-    // (undocumented)
-    clientX: number;
-    // (undocumented)
-    clientY: number;
-    // (undocumented)
-    ctrlKey: boolean;
-    getModifierState(key: string): boolean;
-    // (undocumented)
-    metaKey: boolean;
-    // (undocumented)
-    movementX: number;
-    // (undocumented)
-    movementY: number;
-    // (undocumented)
-    pageX: number;
-    // (undocumented)
-    pageY: number;
-    // (undocumented)
-    relatedTarget: EventTarget | null;
-    // (undocumented)
-    screenX: number;
-    // (undocumented)
-    screenY: number;
-    // (undocumented)
-    shiftKey: boolean;
-    // (undocumented)
-    x: number;
-    // (undocumented)
-    y: number;
-}
-
-// @public (undocumented)
-export interface QwikPointerEvent<T = Element> extends QwikMouseEvent<T, NativePointerEvent> {
-    // (undocumented)
-    height: number;
-    // (undocumented)
-    isPrimary: boolean;
-    // (undocumented)
-    pointerId: number;
-    // (undocumented)
-    pointerType: 'mouse' | 'pen' | 'touch';
-    // (undocumented)
-    pressure: number;
-    // (undocumented)
-    tiltX: number;
-    // (undocumented)
-    tiltY: number;
-    // (undocumented)
-    width: number;
-}
-
-// @public (undocumented)
-export interface QwikSubmitEvent<T = Element> extends SyntheticEvent<T> {
-}
-
-// @public (undocumented)
-export interface QwikTouchEvent<T = Element> extends SyntheticEvent<T, NativeTouchEvent> {
-    // (undocumented)
-    altKey: boolean;
-    // (undocumented)
-    changedTouches: TouchList;
-    // (undocumented)
-    ctrlKey: boolean;
-    getModifierState(key: string): boolean;
-    // (undocumented)
-    metaKey: boolean;
-    // (undocumented)
-    shiftKey: boolean;
-    // (undocumented)
-    targetTouches: TouchList;
-    // (undocumented)
-    touches: TouchList;
-}
-
-// @public (undocumented)
-export interface QwikTransitionEvent<T = Element> extends SyntheticEvent<T, NativeTransitionEvent> {
-    // (undocumented)
-    elapsedTime: number;
-    // (undocumented)
-    propertyName: string;
-    // (undocumented)
-    pseudoElement: string;
-}
-
-// @public (undocumented)
-export interface QwikUIEvent<T = Element> extends SyntheticEvent<T, NativeUIEvent> {
-    // (undocumented)
-    detail: number;
-    // Warning: (ae-forgotten-export) The symbol "AbstractView" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    view: AbstractView;
-}
-
-// @public (undocumented)
-export interface QwikWheelEvent<T = Element> extends QwikMouseEvent<T, NativeWheelEvent> {
-    // (undocumented)
-    deltaMode: number;
-    // (undocumented)
-    deltaX: number;
-    // (undocumented)
-    deltaY: number;
-    // (undocumented)
-    deltaZ: number;
-}
+export type ReadonlySignal<T = unknown> = Readonly<Signal<T>>;
 
 // @internal (undocumented)
 export const _regSymbol: (symbol: any, hash: string) => any;
 
 // @public
-export const render: (parent: Element | Document, jsxNode: JSXNode | FunctionComponent<any>, opts?: RenderOptions) => Promise<RenderResult>;
+export const render: (parent: Element | Document, jsxOutput: JSXOutput | FunctionComponent<any>, opts?: RenderOptions) => Promise<RenderResult>;
 
 // @public (undocumented)
 export const RenderOnce: FunctionComponent<{
-    children?: any;
+    children?: unknown;
     key?: string | number | null | undefined;
 }>;
 
@@ -703,14 +802,14 @@ export interface RenderResult {
 }
 
 // @internal (undocumented)
-export const _renderSSR: (node: JSXNode, opts: RenderSSROptions) => Promise<void>;
+export const _renderSSR: (node: JSXOutput, opts: RenderSSROptions) => Promise<void>;
 
 // @public (undocumented)
 export interface RenderSSROptions {
     // (undocumented)
     base?: string;
     // (undocumented)
-    beforeClose?: (contexts: QContext[], containerState: ContainerState, containsDynamic: boolean) => Promise<JSXNode>;
+    beforeClose?: (contexts: QContext[], containerState: ContainerState, containsDynamic: boolean, textNodes: Map<string, string>) => Promise<JSXNode>;
     // (undocumented)
     beforeContent?: JSXNode<string>[];
     // (undocumented)
@@ -718,15 +817,15 @@ export interface RenderSSROptions {
     // (undocumented)
     containerTagName: string;
     // (undocumented)
+    manifestHash: string;
+    // (undocumented)
     serverData?: Record<string, any>;
     // (undocumented)
     stream: StreamWriter;
-    // (undocumented)
-    url?: string;
 }
 
 // @public
-export const Resource: <T>(props: ResourceProps<T>) => JSXNode;
+export const Resource: <T>(props: ResourceProps<T>) => JSXOutput;
 
 // @public (undocumented)
 export interface ResourceCtx<T> {
@@ -735,13 +834,13 @@ export interface ResourceCtx<T> {
     // (undocumented)
     cleanup(callback: () => void): void;
     // (undocumented)
-    previous: T | undefined;
+    readonly previous: T | undefined;
     // (undocumented)
-    track: Tracker;
+    readonly track: Tracker;
 }
 
 // @public (undocumented)
-export type ResourceFn<T> = (ctx: ResourceCtx<T>) => ValueOrPromise<T>;
+export type ResourceFn<T> = (ctx: ResourceCtx<unknown>) => ValueOrPromise<T>;
 
 // @public
 export interface ResourceOptions {
@@ -759,11 +858,11 @@ export interface ResourcePending<T> {
 // @public (undocumented)
 export interface ResourceProps<T> {
     // (undocumented)
-    onPending?: () => JSXNode;
+    onPending?: () => JSXOutput;
     // (undocumented)
-    onRejected?: (reason: any) => JSXNode;
+    onRejected?: (reason: Error) => JSXOutput;
     // (undocumented)
-    onResolved: (value: T) => JSXNode;
+    onResolved: (value: T) => JSXOutput;
     // (undocumented)
     readonly value: ResourceReturn<T> | Signal<Promise<T> | T> | Promise<T>;
 }
@@ -790,6 +889,14 @@ export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | Resou
 // @internal (undocumented)
 export const _restProps: (props: Record<string, any>, omit: string[]) => Record<string, any>;
 
+// @public (undocumented)
+export interface ScriptHTMLAttributes<T extends Element> extends Attrs<'script', T> {
+}
+
+// @public (undocumented)
+export interface SelectHTMLAttributes<T extends Element> extends Attrs<'select', T> {
+}
+
 // @internal (undocumented)
 export const _serializeData: (data: any, pureQRL?: boolean) => Promise<string>;
 
@@ -803,12 +910,19 @@ export interface Signal<T = any> {
 }
 
 // @public (undocumented)
+export type Size = number | string;
+
+// @public (undocumented)
 export const SkipRender: JSXNode;
 
 // @public
 export const Slot: FunctionComponent<{
     name?: string;
 }>;
+
+// @public (undocumented)
+export interface SlotHTMLAttributes<T extends Element> extends Attrs<'slot', T> {
+}
 
 // @public (undocumented)
 export interface SnapshotListener {
@@ -866,18 +980,21 @@ export interface SnapshotState {
 }
 
 // @public (undocumented)
+export interface SourceHTMLAttributes<T extends Element> extends Attrs<'source', T> {
+}
+
+// @public (undocumented)
 export const SSRComment: FunctionComponent<{
     data: string;
 }>;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export const SSRHint: FunctionComponent<SSRHintProps>;
 
 // @public (undocumented)
-export interface SSRHintProps {
-    // (undocumented)
+export type SSRHintProps = {
     dynamic?: boolean;
-}
+};
 
 // @public (undocumented)
 export const SSRRaw: FunctionComponent<{
@@ -893,15 +1010,549 @@ export const SSRStreamBlock: FunctionComponent<{
 }>;
 
 // @public (undocumented)
-export interface SSRStreamProps {
-    // (undocumented)
+export type SSRStreamProps = {
     children: AsyncGenerator<JSXChildren, void, any> | ((stream: StreamWriter) => Promise<void>) | (() => AsyncGenerator<JSXChildren, void, any>);
-}
+};
 
 // @public (undocumented)
 export type StreamWriter = {
     write: (chunk: string) => void;
 };
+
+// @public (undocumented)
+export interface StyleHTMLAttributes<T extends Element> extends Attrs<'style', T> {
+}
+
+// @public
+export interface SVGAttributes<T extends Element = Element> extends AriaAttributes {
+    // (undocumented)
+    'accent-height'?: number | string | undefined;
+    // (undocumented)
+    'alignment-baseline'?: 'auto' | 'baseline' | 'before-edge' | 'text-before-edge' | 'middle' | 'central' | 'after-edge' | 'text-after-edge' | 'ideographic' | 'alphabetic' | 'hanging' | 'mathematical' | 'inherit' | undefined;
+    // (undocumented)
+    'arabic-form'?: 'initial' | 'medial' | 'terminal' | 'isolated' | undefined;
+    // (undocumented)
+    'baseline-shift'?: number | string | undefined;
+    // (undocumented)
+    'cap-height'?: number | string | undefined;
+    // (undocumented)
+    'clip-path'?: string | undefined;
+    // (undocumented)
+    'clip-rule'?: number | string | undefined;
+    // (undocumented)
+    'color-interpolation'?: number | string | undefined;
+    // (undocumented)
+    'color-interpolation-filters'?: 'auto' | 's-rGB' | 'linear-rGB' | 'inherit' | undefined;
+    // (undocumented)
+    'color-profile'?: number | string | undefined;
+    // (undocumented)
+    'color-rendering'?: number | string | undefined;
+    // (undocumented)
+    'dominant-baseline'?: number | string | undefined;
+    // (undocumented)
+    'edge-mode'?: number | string | undefined;
+    // (undocumented)
+    'enable-background'?: number | string | undefined;
+    // (undocumented)
+    'fill-opacity'?: number | string | undefined;
+    // (undocumented)
+    'fill-rule'?: 'nonzero' | 'evenodd' | 'inherit' | undefined;
+    // (undocumented)
+    'flood-color'?: number | string | undefined;
+    // (undocumented)
+    'flood-opacity'?: number | string | undefined;
+    // (undocumented)
+    'font-family'?: string | undefined;
+    // (undocumented)
+    'font-size'?: number | string | undefined;
+    // (undocumented)
+    'font-size-adjust'?: number | string | undefined;
+    // (undocumented)
+    'font-stretch'?: number | string | undefined;
+    // (undocumented)
+    'font-style'?: number | string | undefined;
+    // (undocumented)
+    'font-variant'?: number | string | undefined;
+    // (undocumented)
+    'font-weight'?: number | string | undefined;
+    // (undocumented)
+    'glyph-name'?: number | string | undefined;
+    // (undocumented)
+    'glyph-orientation-horizontal'?: number | string | undefined;
+    // (undocumented)
+    'glyph-orientation-vertical'?: number | string | undefined;
+    // (undocumented)
+    'horiz-adv-x'?: number | string | undefined;
+    // (undocumented)
+    'horiz-origin-x'?: number | string | undefined;
+    // (undocumented)
+    'image-rendering'?: number | string | undefined;
+    // (undocumented)
+    'letter-spacing'?: number | string | undefined;
+    // (undocumented)
+    'lighting-color'?: number | string | undefined;
+    // (undocumented)
+    'marker-end'?: string | undefined;
+    // (undocumented)
+    'marker-mid'?: string | undefined;
+    // (undocumented)
+    'marker-start'?: string | undefined;
+    // (undocumented)
+    'overline-position'?: number | string | undefined;
+    // (undocumented)
+    'overline-thickness'?: number | string | undefined;
+    // (undocumented)
+    'paint-order'?: number | string | undefined;
+    // (undocumented)
+    'pointer-events'?: number | string | undefined;
+    // (undocumented)
+    'rendering-intent'?: number | string | undefined;
+    // (undocumented)
+    'shape-rendering'?: number | string | undefined;
+    // (undocumented)
+    'stop-color'?: string | undefined;
+    // (undocumented)
+    'stop-opacity'?: number | string | undefined;
+    // (undocumented)
+    'strikethrough-position'?: number | string | undefined;
+    // (undocumented)
+    'strikethrough-thickness'?: number | string | undefined;
+    // (undocumented)
+    'stroke-dasharray'?: string | number | undefined;
+    // (undocumented)
+    'stroke-dashoffset'?: string | number | undefined;
+    // (undocumented)
+    'stroke-linecap'?: 'butt' | 'round' | 'square' | 'inherit' | undefined;
+    // (undocumented)
+    'stroke-linejoin'?: 'miter' | 'round' | 'bevel' | 'inherit' | undefined;
+    // (undocumented)
+    'stroke-miterlimit'?: string | undefined;
+    // (undocumented)
+    'stroke-opacity'?: number | string | undefined;
+    // (undocumented)
+    'stroke-width'?: number | string | undefined;
+    // (undocumented)
+    'text-anchor'?: string | undefined;
+    // (undocumented)
+    'text-decoration'?: number | string | undefined;
+    // (undocumented)
+    'text-rendering'?: number | string | undefined;
+    // (undocumented)
+    'underline-position'?: number | string | undefined;
+    // (undocumented)
+    'underline-thickness'?: number | string | undefined;
+    // (undocumented)
+    'unicode-bidi'?: number | string | undefined;
+    // (undocumented)
+    'unicode-range'?: number | string | undefined;
+    // (undocumented)
+    'units-per-em'?: number | string | undefined;
+    // (undocumented)
+    'v-alphabetic'?: number | string | undefined;
+    // (undocumented)
+    'v-hanging'?: number | string | undefined;
+    // (undocumented)
+    'v-ideographic'?: number | string | undefined;
+    // (undocumented)
+    'v-mathematical'?: number | string | undefined;
+    // (undocumented)
+    'vector-effect'?: number | string | undefined;
+    // (undocumented)
+    'vert-adv-y'?: number | string | undefined;
+    // (undocumented)
+    'vert-origin-x'?: number | string | undefined;
+    // (undocumented)
+    'vert-origin-y'?: number | string | undefined;
+    // (undocumented)
+    'word-spacing'?: number | string | undefined;
+    // (undocumented)
+    'writing-mode'?: number | string | undefined;
+    // (undocumented)
+    'x-channel-selector'?: string | undefined;
+    // (undocumented)
+    'x-height'?: number | string | undefined;
+    // (undocumented)
+    'xlink:actuate'?: string | undefined;
+    // (undocumented)
+    'xlink:arcrole'?: string | undefined;
+    // (undocumented)
+    'xlink:href'?: string | undefined;
+    // (undocumented)
+    'xlink:role'?: string | undefined;
+    // (undocumented)
+    'xlink:show'?: string | undefined;
+    // (undocumented)
+    'xlink:title'?: string | undefined;
+    // (undocumented)
+    'xlink:type'?: string | undefined;
+    // (undocumented)
+    'xml:base'?: string | undefined;
+    // (undocumented)
+    'xml:lang'?: string | undefined;
+    // (undocumented)
+    'xml:space'?: string | undefined;
+    // (undocumented)
+    'xmlns:xlink'?: string | undefined;
+    // (undocumented)
+    accumulate?: 'none' | 'sum' | undefined;
+    // (undocumented)
+    additive?: 'replace' | 'sum' | undefined;
+    // (undocumented)
+    allowReorder?: 'no' | 'yes' | undefined;
+    // (undocumented)
+    alphabetic?: number | string | undefined;
+    // (undocumented)
+    amplitude?: number | string | undefined;
+    // (undocumented)
+    ascent?: number | string | undefined;
+    // (undocumented)
+    attributeName?: string | undefined;
+    // (undocumented)
+    attributeType?: string | undefined;
+    // (undocumented)
+    autoReverse?: Booleanish | undefined;
+    // (undocumented)
+    azimuth?: number | string | undefined;
+    // (undocumented)
+    baseFrequency?: number | string | undefined;
+    // (undocumented)
+    baseProfile?: number | string | undefined;
+    // (undocumented)
+    bbox?: number | string | undefined;
+    // (undocumented)
+    begin?: number | string | undefined;
+    // (undocumented)
+    bias?: number | string | undefined;
+    // (undocumented)
+    by?: number | string | undefined;
+    // (undocumented)
+    calcMode?: number | string | undefined;
+    // (undocumented)
+    clip?: number | string | undefined;
+    // (undocumented)
+    clipPathUnits?: number | string | undefined;
+    // (undocumented)
+    color?: string | undefined;
+    // (undocumented)
+    contentScriptType?: number | string | undefined;
+    // (undocumented)
+    contentStyleType?: number | string | undefined;
+    // (undocumented)
+    crossOrigin?: HTMLCrossOriginAttribute;
+    // (undocumented)
+    cursor?: number | string;
+    // (undocumented)
+    cx?: number | string | undefined;
+    // (undocumented)
+    cy?: number | string | undefined;
+    // (undocumented)
+    d?: string | undefined;
+    // (undocumented)
+    decelerate?: number | string | undefined;
+    // (undocumented)
+    descent?: number | string | undefined;
+    // (undocumented)
+    diffuseConstant?: number | string | undefined;
+    // (undocumented)
+    direction?: number | string | undefined;
+    // (undocumented)
+    display?: number | string | undefined;
+    // (undocumented)
+    divisor?: number | string | undefined;
+    // (undocumented)
+    dur?: number | string | undefined;
+    // (undocumented)
+    dx?: number | string | undefined;
+    // (undocumented)
+    dy?: number | string | undefined;
+    // (undocumented)
+    elevation?: number | string | undefined;
+    // (undocumented)
+    end?: number | string | undefined;
+    // (undocumented)
+    exponent?: number | string | undefined;
+    // (undocumented)
+    externalResourcesRequired?: number | string | undefined;
+    // (undocumented)
+    fill?: string | undefined;
+    // (undocumented)
+    filter?: string | undefined;
+    // (undocumented)
+    filterRes?: number | string | undefined;
+    // (undocumented)
+    filterUnits?: number | string | undefined;
+    // (undocumented)
+    focusable?: number | string | undefined;
+    // (undocumented)
+    format?: number | string | undefined;
+    // (undocumented)
+    fr?: number | string | undefined;
+    // (undocumented)
+    from?: number | string | undefined;
+    // (undocumented)
+    fx?: number | string | undefined;
+    // (undocumented)
+    fy?: number | string | undefined;
+    // (undocumented)
+    g1?: number | string | undefined;
+    // (undocumented)
+    g2?: number | string | undefined;
+    // (undocumented)
+    glyphRef?: number | string | undefined;
+    // (undocumented)
+    gradientTransform?: string | undefined;
+    // (undocumented)
+    gradientUnits?: string | undefined;
+    // (undocumented)
+    hanging?: number | string | undefined;
+    // (undocumented)
+    height?: Size | undefined;
+    // (undocumented)
+    href?: string | undefined;
+    // (undocumented)
+    id?: string | undefined;
+    // (undocumented)
+    ideographic?: number | string | undefined;
+    // (undocumented)
+    in?: string | undefined;
+    // (undocumented)
+    in2?: number | string | undefined;
+    // (undocumented)
+    intercept?: number | string | undefined;
+    // (undocumented)
+    k?: number | string | undefined;
+    // (undocumented)
+    k1?: number | string | undefined;
+    // (undocumented)
+    k2?: number | string | undefined;
+    // (undocumented)
+    k3?: number | string | undefined;
+    // (undocumented)
+    k4?: number | string | undefined;
+    // (undocumented)
+    kernelMatrix?: number | string | undefined;
+    // (undocumented)
+    kernelUnitLength?: number | string | undefined;
+    // (undocumented)
+    kerning?: number | string | undefined;
+    // (undocumented)
+    keyPoints?: number | string | undefined;
+    // (undocumented)
+    keySplines?: number | string | undefined;
+    // (undocumented)
+    keyTimes?: number | string | undefined;
+    // (undocumented)
+    lang?: string | undefined;
+    // (undocumented)
+    lengthAdjust?: number | string | undefined;
+    // (undocumented)
+    limitingConeAngle?: number | string | undefined;
+    // (undocumented)
+    local?: number | string | undefined;
+    // (undocumented)
+    markerHeight?: number | string | undefined;
+    // (undocumented)
+    markerUnits?: number | string | undefined;
+    // (undocumented)
+    markerWidth?: number | string | undefined;
+    // (undocumented)
+    mask?: string | undefined;
+    // (undocumented)
+    maskContentUnits?: number | string | undefined;
+    // (undocumented)
+    maskUnits?: number | string | undefined;
+    // (undocumented)
+    mathematical?: number | string | undefined;
+    // (undocumented)
+    max?: number | string | undefined;
+    // (undocumented)
+    media?: string | undefined;
+    // (undocumented)
+    method?: string | undefined;
+    // (undocumented)
+    min?: number | string | undefined;
+    // (undocumented)
+    mode?: number | string | undefined;
+    // (undocumented)
+    name?: string | undefined;
+    // (undocumented)
+    numOctaves?: number | string | undefined;
+    // (undocumented)
+    offset?: number | string | undefined;
+    // (undocumented)
+    opacity?: number | string | undefined;
+    // (undocumented)
+    operator?: number | string | undefined;
+    // (undocumented)
+    order?: number | string | undefined;
+    // (undocumented)
+    orient?: number | string | undefined;
+    // (undocumented)
+    orientation?: number | string | undefined;
+    // (undocumented)
+    origin?: number | string | undefined;
+    // (undocumented)
+    overflow?: number | string | undefined;
+    // (undocumented)
+    panose1?: number | string | undefined;
+    // (undocumented)
+    path?: string | undefined;
+    // (undocumented)
+    pathLength?: number | string | undefined;
+    // (undocumented)
+    patternContentUnits?: string | undefined;
+    // (undocumented)
+    patternTransform?: number | string | undefined;
+    // (undocumented)
+    patternUnits?: string | undefined;
+    // (undocumented)
+    points?: string | undefined;
+    // (undocumented)
+    pointsAtX?: number | string | undefined;
+    // (undocumented)
+    pointsAtY?: number | string | undefined;
+    // (undocumented)
+    pointsAtZ?: number | string | undefined;
+    // (undocumented)
+    preserveAlpha?: number | string | undefined;
+    // (undocumented)
+    preserveAspectRatio?: string | undefined;
+    // (undocumented)
+    primitiveUnits?: number | string | undefined;
+    // (undocumented)
+    r?: number | string | undefined;
+    // (undocumented)
+    radius?: number | string | undefined;
+    // (undocumented)
+    refX?: number | string | undefined;
+    // (undocumented)
+    refY?: number | string | undefined;
+    // (undocumented)
+    repeatCount?: number | string | undefined;
+    // (undocumented)
+    repeatDur?: number | string | undefined;
+    // (undocumented)
+    requiredextensions?: number | string | undefined;
+    // (undocumented)
+    requiredFeatures?: number | string | undefined;
+    // (undocumented)
+    restart?: number | string | undefined;
+    // (undocumented)
+    result?: string | undefined;
+    // (undocumented)
+    role?: string | undefined;
+    // (undocumented)
+    rotate?: number | string | undefined;
+    // (undocumented)
+    rx?: number | string | undefined;
+    // (undocumented)
+    ry?: number | string | undefined;
+    // (undocumented)
+    scale?: number | string | undefined;
+    // (undocumented)
+    seed?: number | string | undefined;
+    // (undocumented)
+    slope?: number | string | undefined;
+    // (undocumented)
+    spacing?: number | string | undefined;
+    // (undocumented)
+    specularConstant?: number | string | undefined;
+    // (undocumented)
+    specularExponent?: number | string | undefined;
+    // (undocumented)
+    speed?: number | string | undefined;
+    // (undocumented)
+    spreadMethod?: string | undefined;
+    // (undocumented)
+    startOffset?: number | string | undefined;
+    // (undocumented)
+    stdDeviation?: number | string | undefined;
+    // (undocumented)
+    stemh?: number | string | undefined;
+    // (undocumented)
+    stemv?: number | string | undefined;
+    // (undocumented)
+    stitchTiles?: number | string | undefined;
+    // (undocumented)
+    string?: number | string | undefined;
+    // (undocumented)
+    stroke?: string | undefined;
+    // (undocumented)
+    style?: CSSProperties | string | undefined;
+    // (undocumented)
+    surfaceScale?: number | string | undefined;
+    // (undocumented)
+    systemLanguage?: number | string | undefined;
+    // (undocumented)
+    tabindex?: number | undefined;
+    // (undocumented)
+    tableValues?: number | string | undefined;
+    // (undocumented)
+    target?: string | undefined;
+    // (undocumented)
+    targetX?: number | string | undefined;
+    // (undocumented)
+    targetY?: number | string | undefined;
+    // (undocumented)
+    textLength?: number | string | undefined;
+    // (undocumented)
+    to?: number | string | undefined;
+    // (undocumented)
+    transform?: string | undefined;
+    // (undocumented)
+    type?: string | undefined;
+    // (undocumented)
+    u1?: number | string | undefined;
+    // (undocumented)
+    u2?: number | string | undefined;
+    // (undocumented)
+    unicode?: number | string | undefined;
+    // (undocumented)
+    values?: string | undefined;
+    // (undocumented)
+    version?: string | undefined;
+    // (undocumented)
+    viewBox?: string | undefined;
+    // (undocumented)
+    viewTarget?: number | string | undefined;
+    // (undocumented)
+    visibility?: number | string | undefined;
+    // (undocumented)
+    width?: Size | undefined;
+    // (undocumented)
+    widths?: number | string | undefined;
+    // (undocumented)
+    x?: number | string | undefined;
+    // (undocumented)
+    x1?: number | string | undefined;
+    // (undocumented)
+    x2?: number | string | undefined;
+    // (undocumented)
+    xmlns?: string | undefined;
+    // (undocumented)
+    y?: number | string | undefined;
+    // (undocumented)
+    y1?: number | string | undefined;
+    // (undocumented)
+    y2?: number | string | undefined;
+    // (undocumented)
+    yChannelSelector?: string | undefined;
+    // (undocumented)
+    z?: number | string | undefined;
+    // (undocumented)
+    zoomAndPan?: string | undefined;
+}
+
+// @public (undocumented)
+export interface SVGProps<T extends Element> extends SVGAttributes, QwikAttributes<T> {
+}
+
+// @alpha
+export const sync$: <T extends Function>(fn: T) => SyncQRL<T>;
+
+// @public (undocumented)
+export interface TableHTMLAttributes<T extends Element> extends Attrs<'table', T> {
+}
 
 // @public (undocumented)
 export interface TaskCtx {
@@ -914,13 +1565,37 @@ export interface TaskCtx {
 // @public (undocumented)
 export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => void)>;
 
-// @public
-export interface Tracker {
-    <T>(ctx: () => T): T;
-    <T extends {}>(obj: T): T;
+// @public (undocumented)
+export interface TdHTMLAttributes<T extends Element> extends Attrs<'td', T> {
 }
 
 // @public (undocumented)
+export interface TextareaHTMLAttributes<T extends Element> extends Attrs<'textarea', T> {
+}
+
+// @public (undocumented)
+export interface ThHTMLAttributes<T extends Element> extends Attrs<'tr', T> {
+}
+
+// @public (undocumented)
+export interface TimeHTMLAttributes<T extends Element> extends Attrs<'time', T> {
+}
+
+// @public (undocumented)
+export interface TitleHTMLAttributes<T extends Element> extends Attrs<'title', T> {
+}
+
+// @public
+export interface Tracker {
+    <T>(fn: () => T): T;
+    <T extends object>(obj: T): T extends Signal<infer U> ? U : T;
+}
+
+// @public (undocumented)
+export interface TrackHTMLAttributes<T extends Element> extends Attrs<'track', T> {
+}
+
+// @public
 export const untrack: <T>(fn: () => T) => T;
 
 // Warning: (ae-forgotten-export) The symbol "Computed" needs to be exported by the entry point index.d.ts
@@ -939,7 +1614,7 @@ export const useComputedQrl: ComputedQRL;
 export const useContext: UseContext;
 
 // @public
-export const useContextProvider: <STATE extends object>(context: ContextId<STATE>, newValue: STATE) => void;
+export const useContextProvider: <STATE>(context: ContextId<STATE>, newValue: STATE) => void;
 
 // @public (undocumented)
 export const useErrorBoundary: () => Readonly<ErrorBoundaryStore>;
@@ -952,14 +1627,16 @@ export const useId: () => string;
 // @internal
 export const useLexicalScope: <VARS extends any[]>() => VARS;
 
+// Warning: (ae-forgotten-export) The symbol "EventQRL" needs to be exported by the entry point index.d.ts
+//
 // @public
-export const useOn: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void;
+export const useOn: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => void;
 
 // @public
-export const useOnDocument: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void;
+export const useOnDocument: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => void;
 
 // @public
-export const useOnWindow: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void;
+export const useOnWindow: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => void;
 
 // @public
 export const useResource$: <T>(generatorFn: ResourceFn<T>, opts?: ResourceOptions) => ResourceReturn<T>;
@@ -1038,10 +1715,55 @@ export const _verifySerializable: <T>(value: T, preMessage?: string) => T;
 export const version: string;
 
 // @public (undocumented)
+export interface VideoHTMLAttributes<T extends Element> extends Attrs<'video', T> {
+}
+
+// @public (undocumented)
 export type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | 'document-idle';
 
 // @internal (undocumented)
-export const _weakSerialize: <T extends Record<string, any>>(input: T) => Partial<T>;
+export const _waitUntilRendered: (elm: Element) => Promise<void>;
+
+// @internal (undocumented)
+export const _weakSerialize: <T extends object>(input: T) => Partial<T>;
+
+// @public @deprecated (undocumented)
+export interface WebViewHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
+    // (undocumented)
+    allowFullScreen?: boolean | undefined;
+    // (undocumented)
+    allowpopups?: boolean | undefined;
+    // (undocumented)
+    autoFocus?: boolean | undefined;
+    // (undocumented)
+    autosize?: boolean | undefined;
+    // (undocumented)
+    blinkfeatures?: string | undefined;
+    // (undocumented)
+    disableblinkfeatures?: string | undefined;
+    // (undocumented)
+    disableguestresize?: boolean | undefined;
+    // (undocumented)
+    disablewebsecurity?: boolean | undefined;
+    // (undocumented)
+    guestinstance?: string | undefined;
+    // (undocumented)
+    httpreferrer?: string | undefined;
+    // (undocumented)
+    nodeintegration?: boolean | undefined;
+    // (undocumented)
+    partition?: string | undefined;
+    // (undocumented)
+    plugins?: boolean | undefined;
+    // (undocumented)
+    preload?: string | undefined;
+    // (undocumented)
+    src?: string | undefined;
+    // (undocumented)
+    useragent?: string | undefined;
+    // (undocumented)
+    webpreferences?: string | undefined;
+}
 
 // Warning: (ae-internal-missing-underscore) The name "withLocale" should be prefixed with an underscore because the declaration is marked as @internal
 //

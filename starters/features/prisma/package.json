@@ -1,0 +1,35 @@
+{
+  "description": "Next-generation Node.js TypeScript ORM",
+  "__qwik__": {
+    "displayName": "Integration: Prisma (Database ORM)",
+    "priority": -10,
+    "viteConfig": {},
+    "docs": [
+      "https://qwik.builder.io/integrations/integration/prisma/",
+      "https://www.prisma.io/docs/concepts/overview/what-is-prisma"
+    ],
+    "postInstall": "prisma migrate dev --name initial",
+    "nextSteps": {
+      "title": "Next Steps",
+      "lines": [
+        " Prisma was installed with a default DB schema and some demo routes,",
+        "",
+        " Sqlite was configured by default, but in production",
+        " you'll want to use Postgres or MongoDB.",
+        "",
+        " Check out the Prisma docs for more info:",
+        "   - https://www.prisma.io/docs/getting-started"
+      ]
+    }
+  },
+  "devDependencies": {
+    "@prisma/client": "5.3.1",
+    "prisma": "^5.3.1"
+  },
+  "scripts": {
+    "postinstall": "prisma generate",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:migrate:prod": "prisma migrate deploy"
+  }
+}

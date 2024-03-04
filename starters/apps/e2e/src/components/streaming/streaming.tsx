@@ -6,7 +6,7 @@ import {
   useResource$,
   useStore,
   useStyles$,
-} from '@builder.io/qwik';
+} from "@builder.io/qwik";
 
 export function delay(time: number) {
   return new Promise<void>((resolve) => {
@@ -21,7 +21,7 @@ export const StreamingRoot = component$(() => {
   return (
     <>
       <button id="client-render" onClick$={() => store.count++}>
-        Client rerender
+        Client rerender: {store.count}
       </button>
       <Streaming key={store.count} />
     </>
@@ -35,7 +35,7 @@ export const Streaming = component$(() => {
   return (
     <div>
       <button id="count" onClick$={() => store.count++}>
-        Rerender {store.count}
+        Rerender: {store.count}
       </button>
 
       <ul>

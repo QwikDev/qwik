@@ -1,8 +1,8 @@
 /**
- * Source for url: "/repl/~repl-server.js"
- * Created from the route: "src/routes/repl/~repl-server.js/entry.ts"
- * Script executed from url: "/repl/~repl-server-host.html"
- * Public static html source file: "public/repl/~repl-server-host.html"
+ * - Source for url: "/repl/~repl-server.js"
+ * - Created from the route: "src/routes/repl/~repl-server.js/entry.ts"
+ * - Script executed from url: "/repl/~repl-server-host.html"
+ * - Public static html source file: "public/repl/~repl-server-host.html"
  */
 
 /* eslint-disable no-console */
@@ -24,6 +24,7 @@ export const initReplServer = (win: Window, doc: Document, nav: Navigator) => {
     iframe.classList.add('loading');
     iframe.src = `/repl/` + result.clientId + `/`;
     iframe.dataset.buildId = String(result.buildId);
+    iframe.setAttribute('sandbox', 'allow-popups allow-modals allow-scripts allow-same-origin');
 
     iframe.addEventListener('load', () => {
       if (!iframe.nextElementSibling) {
@@ -46,6 +47,9 @@ export const initReplServer = (win: Window, doc: Document, nav: Navigator) => {
   };
 
   const receiveMessageFromMainApp = (ev: MessageEvent) => {
+    if (ev.origin !== win.location.origin) {
+      return;
+    }
     if (swRegistration && swRegistration.active) {
       try {
         if (ev.data) {
@@ -74,6 +78,9 @@ export const initReplServer = (win: Window, doc: Document, nav: Navigator) => {
   };
 
   const receiveMessageFromUserApp = (ev: MessageEvent) => {
+    if (ev.origin !== win.location.origin) {
+      return;
+    }
     if (ev.data) {
       const msg: ReplMessage = JSON.parse(ev.data);
       if (msg?.type === 'event') {

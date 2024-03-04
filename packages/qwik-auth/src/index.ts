@@ -12,7 +12,8 @@ import {
 import { isServer } from '@builder.io/qwik/build';
 import { parseString, splitCookiesString } from 'set-cookie-parser';
 
-export interface QwikAuthConfig extends AuthConfig {}
+export type GetSessionResult = Promise<{ data: Session | null; cookie: any }>;
+export type QwikAuthConfig = AuthConfig;
 
 const actions: AuthAction[] = [
   'providers',
@@ -25,48 +26,6 @@ const actions: AuthAction[] = [
   'error',
 ];
 
-export async function authAction(
-  body: URLSearchParams | undefined,
-  req: RequestEventCommon,
-  path: string,
-  authOptions: QwikAuthConfig
-) {
-  const request = new Request(new URL(path, req.request.url), {
-    method: req.request.method,
-    headers: req.request.headers,
-    body: body,
-  });
-  request.headers.set('content-type', 'application/x-www-form-urlencoded');
-  const res = await Auth(request, {
-    ...authOptions,
-    skipCSRFCheck,
-  });
-  res.headers.forEach((value, key) => {
-    req.headers.set(key, value);
-  });
-  fixCookies(req);
-
-  try {
-    return await res.json();
-  } catch (error) {
-    return await res.text();
-  }
-}
-
-export const fixCookies = (req: RequestEventCommon) => {
-  req.headers.set('set-cookie', req.headers.get('set-cookie') || '');
-  const cookie = req.headers.get('set-cookie');
-  if (cookie) {
-    req.headers.delete('set-cookie');
-    splitCookiesString(cookie).forEach((cookie) => {
-      const { name, value, ...rest } = parseString(cookie);
-      req.cookie.set(name, value, rest as any);
-    });
-  }
-};
-
-export const getCurrentPageForAction = (req: RequestEventCommon) => req.url.href.split('q-')[0];
-
 export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikAuthConfig>) {
   const useAuthSignin = globalAction$(
     async ({ providerId, callbackUrl: deprecated, options, authorizationParams }, req) => {
@@ -75,7 +34,7 @@ export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikA
           '\x1b[33mWARNING: callbackUrl is deprecated - use options.callbackUrl instead\x1b[0m'
         );
       }
-      const { callbackUrl = deprecated ?? getCurrentPageForAction(req), ...rest } = options ?? {};
+      const { callbackUrl = deprecated ?? defaultCallbackURL(req), ...rest } = options ?? {};
 
       const isCredentials = providerId === 'credentials';
 
@@ -114,7 +73,7 @@ export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikA
 
   const useAuthSignout = globalAction$(
     async ({ callbackUrl }, req) => {
-      callbackUrl ??= getCurrentPageForAction(req);
+      callbackUrl ??= defaultCallbackURL(req);
       const auth = await authOptions(req);
       const body = new URLSearchParams({ callbackUrl });
       await authAction(body, req, `/api/auth/signout`, auth);
@@ -136,7 +95,10 @@ export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikA
 
       const auth = await authOptions(req);
       if (actions.includes(action) && req.url.pathname.startsWith(prefix + '/')) {
-        const res = await Auth(req.request, auth);
+        // Casting to `Response` because, something is off with the types in `@auth/core` here:
+        // Without passing `raw`, it should know it's supposed to return a `Response` object, but it doesn't.
+        // https://github.com/nextauthjs/next-auth/blob/a67cfed64d96da1ecfc75f02e7106d9a403012be/packages/core/src/index.ts#L61-L69
+        const res = (await Auth(req.request, auth)) as Response;
         const cookie = res.headers.get('set-cookie');
         if (cookie) {
           req.headers.set('set-cookie', cookie);
@@ -145,7 +107,12 @@ export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikA
         }
         throw req.send(res);
       } else {
-        req.sharedMap.set('session', await getSessionData(req.request, auth));
+        const { data, cookie } = await getSessionData(req.request, auth);
+        req.sharedMap.set('session', data);
+        if (cookie) {
+          req.headers.set('set-cookie', cookie);
+          fixCookies(req);
+        }
       }
     }
   };
@@ -160,6 +127,61 @@ export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikA
 
 export const serverAuth$ = /*#__PURE__*/ implicit$FirstArg(serverAuthQrl);
 
+async function authAction(
+  body: URLSearchParams | undefined,
+  req: RequestEventCommon,
+  path: string,
+  authOptions: QwikAuthConfig
+) {
+  const request = new Request(new URL(path, req.request.url), {
+    method: req.request.method,
+    headers: req.request.headers,
+    body: body,
+  });
+  request.headers.set('content-type', 'application/x-www-form-urlencoded');
+  // Casting to `Response` because, something is off with the types in `@auth/core` here:
+  // Without passing `raw`, it should know it's supposed to return a `Response` object, but it doesn't.
+  // https://github.com/nextauthjs/next-auth/blob/a67cfed64d96da1ecfc75f02e7106d9a403012be/packages/core/src/index.ts#L61-L69
+  const res = (await Auth(request, {
+    ...authOptions,
+    skipCSRFCheck,
+  })) as Response;
+
+  const cookies: string[] = [];
+  res.headers.forEach((value, key) => {
+    if (key === 'set-cookie') {
+      // while browsers would support setting multiple cookies, the fetch implementation does not, so we join them later.
+      cookies.push(value);
+    } else if (!req.headers.has(key)) {
+      req.headers.set(key, value);
+    }
+  });
+
+  if (cookies.length > 0) {
+    req.headers.set('set-cookie', cookies.join(', '));
+  }
+
+  fixCookies(req);
+
+  try {
+    return await res.json();
+  } catch (error) {
+    return await res.text();
+  }
+}
+
+const fixCookies = (req: RequestEventCommon) => {
+  req.headers.set('set-cookie', req.headers.get('set-cookie') || '');
+  const cookie = req.headers.get('set-cookie');
+  if (cookie) {
+    req.headers.delete('set-cookie');
+    splitCookiesString(cookie).forEach((cookie) => {
+      const { name, value, ...rest } = parseString(cookie);
+      req.cookie.set(name, value, rest as any);
+    });
+  }
+};
+
 export const ensureAuthMiddleware = (req: RequestEvent) => {
   const isLoggedIn = req.sharedMap.has('session');
   if (!isLoggedIn) {
@@ -167,23 +189,31 @@ export const ensureAuthMiddleware = (req: RequestEvent) => {
   }
 };
 
-export type GetSessionResult = Promise<Session | null>;
+const defaultCallbackURL = (req: RequestEventCommon) => {
+  req.url.searchParams.delete('qaction');
+  return req.url.href;
+};
 
-export async function getSessionData(req: Request, options: AuthConfig): GetSessionResult {
+async function getSessionData(req: Request, options: AuthConfig): GetSessionResult {
   options.secret ??= process.env.AUTH_SECRET;
   options.trustHost ??= true;
 
   const url = new URL('/api/auth/session', req.url);
-  const response = await Auth(new Request(url, { headers: req.headers }), options);
+  // Casting to `Response` because, something is off with the types in `@auth/core` here:
+  // Without passing `raw`, it should know it's supposed to return a `Response` object, but it doesn't.
+  // https://github.com/nextauthjs/next-auth/blob/a67cfed64d96da1ecfc75f02e7106d9a403012be/packages/core/src/index.ts#L61-L69
+  const response = (await Auth(new Request(url, { headers: req.headers }), options)) as Response;
 
   const { status = 200 } = response;
 
   const data = await response.json();
+  const cookie = response.headers.get('set-cookie');
   if (!data || !Object.keys(data).length) {
-    return null;
+    return { data: null, cookie };
   }
   if (status === 200) {
-    return data;
+    return { data, cookie };
   }
+
   throw new Error(data.message);
 }

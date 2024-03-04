@@ -520,11 +520,12 @@ export const Works = component$(({
     some = 1+2,
     hello = CONST,
     stuff: hey,
+    stuffDefault: hey2 = 123,
     ...rest}) => {
     console.log(hey, some);
     useTask$(({track}) => {
         track(() => count);
-        console.log(count, rest, hey, some);
+        console.log(count, rest, hey, some, hey2);
     });
     return (
         <div some={some} params={{ some }} class={count} {...rest}>{count}</div>
@@ -624,6 +625,34 @@ export const Issue3561 = component$(() => {
 }
 
 #[test]
+fn example_optimization_issue_4386() {
+    test_input!(TestInput {
+        code: r#"
+import { component$ } from '@builder.io/qwik';
+
+export const FOO_MAPPING = {
+    A: 1,
+    B: 2,
+    C: 3,
+  };
+
+  export default component$(() => {
+    const key = 'A';
+    const value = FOO_MAPPING[key];
+
+    return <>{value}</>;
+  });
+"#
+        .to_string(),
+        transpile_jsx: false,
+        entry_strategy: EntryStrategy::Inline,
+        transpile_ts: true,
+        is_server: Some(false),
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn example_optimization_issue_3542() {
     test_input!(TestInput {
         code: r#"
@@ -646,6 +675,74 @@ export const AtomStatus = component$(({ctx,atom})=>{
         transpile_jsx: false,
         entry_strategy: EntryStrategy::Inline,
         transpile_ts: true,
+        is_server: Some(false),
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_optimization_issue_3795() {
+    test_input!(TestInput {
+        code: r#"
+import { component$ } from '@builder.io/qwik';
+
+export const Issue3795 = component$(() => {
+    let base = "foo";
+    const firstAssignment = base;
+    base += "bar";
+    const secondAssignment = base;
+    return (
+      <div id='issue-3795-result'>{firstAssignment} {secondAssignment}</div>
+    )
+  });
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Inline,
+        transpile_ts: true,
+        transpile_jsx: true,
+        is_server: Some(false),
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_drop_side_effects() {
+    test_input!(TestInput {
+        code: r#"
+import { component$ } from '@builder.io/qwik';
+import { server$ } from '@builder.io/qwik-city';
+import { clientSupabase } from 'supabase';
+import { Client } from 'openai';
+import { secret } from './secret';
+import { sideEffect } from './secret';
+
+const supabase = clientSupabase();
+const dfd = new Client(secret);
+
+(function() {
+    console.log('run');
+  })();
+  (() => {
+    console.log('run');
+  })();
+
+sideEffect();
+
+export const api = server$(() => {
+    supabase.from('ffg').do(dfd);
+});
+
+export default component$(() => {
+    return (
+      <button onClick$={() => await api()}></button>
+    )
+  });
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Hook,
+        strip_ctx_name: Some(vec!["server".into()]),
+        transpile_ts: true,
+        transpile_jsx: true,
         is_server: Some(false),
         ..TestInput::default()
     });
@@ -1926,6 +2023,7 @@ fn example_immutable_analysis() {
         code: r#"
 import { component$, useStore, $ } from '@builder.io/qwik';
 import importedValue from 'v';
+import styles from './styles.module.css';
 
 export const App = component$((props) => {
     const {Model} = props;
@@ -1941,7 +2039,10 @@ export const App = component$((props) => {
         <>
             <p class="stuff" onClick$={props.onClick$}>Hello Qwik</p>
             <Div
+                class={styles.foo}
+                document={window.document}
                 onClick$={props.onClick$}
+                onEvent$={() => console.log('stuff')}
                 transparent$={() => {console.log('stuff')}}
                 immutable1="stuff"
                 immutable2={{
@@ -2259,8 +2360,8 @@ export const App = component$((props: Stuff) => {
 fn example_mutable_children() {
     test_input!(TestInput {
         code: r#"
-import { component$, useStore } from '@builder.io/qwik';
-
+import { component$, useStore, Slot, Fragment } from '@builder.io/qwik';
+import Image from './image.jpg?jsx';
 
 export function Fn1(props: Stuff) {
     return (
@@ -2341,7 +2442,10 @@ export const AppStatic = component$((props: Stuff) => {
             <div>Static {f ? 1 : 3}</div>
             <div>{prop < 2 ? <p>1</p> : <p>2</p>}</div>
 
-            <div>{prop.value && <div></div>}<div></div></div>
+            <div>{prop.value && <div></div>}</div>
+            <div>{prop.value && <Fragment><Slot></Slot></Fragment>}</div>
+            <div>{prop.value && <><div></div></>}</div>
+            <div>{prop.value && <Image/>}</div>
             <div>Static {f ? 1 : 3}</div>
             <div>Static</div>
             <div>Static {props.value}</div>
@@ -2360,6 +2464,28 @@ export const AppStatic = component$((props: Stuff) => {
     });
 }
 
+#[test]
+fn example_immutable_function_components() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore, Slot } from '@builder.io/qwik';
+
+export const App = component$((props: Stuff) => {
+    return (
+        <div>
+            <Slot/>
+        </div>
+    );
+});
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Hoist,
+        transpile_ts: true,
+        transpile_jsx: true,
+        explicit_extensions: true,
+        ..TestInput::default()
+    });
+}
 #[test]
 fn example_transpile_ts_only() {
     test_input!(TestInput {
@@ -2516,6 +2642,7 @@ fn example_derived_signals_div() {
 import { component$, useStore, mutable } from '@builder.io/qwik';
 
 import {dep} from './file';
+import styles from './styles.module.css';
 
 export const App = component$(() => {
     const signal = useSignal(0);
@@ -2530,6 +2657,8 @@ export const App = component$(() => {
                 stable0: true,
                 hidden: false,
             }}
+            staticClass={styles.foo}
+            staticDocument={window.document}
             staticText="text"
             staticText2={`text`}
             staticNumber={1}
@@ -2559,6 +2688,30 @@ export const App = component$(() => {
             noInline4={signal.value + dep}
         />
 
+    );
+});
+"#
+        .to_string(),
+        transpile_jsx: true,
+        transpile_ts: true,
+        entry_strategy: EntryStrategy::Hoist,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_issue_4438() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useSignal } from '@builder.io/qwik';
+
+export const App = component$(() => {
+    const toggle = useSignal(false);
+    return (
+        <>
+            <div data-nu={toggle.value ? $localize`singular` : 'plural'}></div>
+            <div>{toggle.value ? $localize`singular` : $localize`plural`}</div>
+        </>
     );
 });
 "#
@@ -2756,6 +2909,33 @@ export const App = component$(() => {
     });
 }
 
+#[test]
+fn example_issue_33443() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useSignal } from '@builder.io/qwik';
+
+export const Issue3742 = component$(({description = '', other}: any) => {
+    const counter = useSignal(0);
+    return (
+      <div
+        title={(description && 'description' in other) ? `Hello ${counter.value}` : `Bye ${counter.value}`}
+      >
+        Issue3742
+        <button onClick$={() => counter.value++}>
+          Increment
+        </button>
+      </div>
+    )
+  });
+  "#
+        .to_string(),
+        transpile_jsx: true,
+        transpile_ts: true,
+        entry_strategy: EntryStrategy::Hoist,
+        ..TestInput::default()
+    });
+}
 #[test]
 fn example_getter_generation() {
     test_input!(TestInput {
@@ -3010,8 +3190,8 @@ export { qwikify$, qwikifyQrl, renderToString };
 fn example_qwik_sdk_inline() {
     test_input!(TestInput {
         code: include_str!("fixtures/index.qwik.mjs").to_string(),
-        filename: "../node_modules/@builder.io/qwik-react/index.qwik.mjs".to_string(),
-        entry_strategy: EntryStrategy::Component,
+        filename: "../node_modules/@builder.io/qwik-city/index.qwik.mjs".to_string(),
+        entry_strategy: EntryStrategy::Smart,
         explicit_extensions: true,
         mode: EmitMode::Prod,
         ..TestInput::default()
@@ -3239,6 +3419,84 @@ export const Greeter = component$(() => {
         }
     }
 }
+
+#[test]
+fn issue_5008() {
+    test_input!(TestInput {
+        code: r#"
+        import { component$, useStore } from "@builder.io/qwik";
+
+        export default component$(() => {
+        const store = useStore([{ value: 0 }]);
+        return (
+            <>
+            <button onClick$={() => store[0].value++}>+1</button>
+            {store.map(function (v, idx) {
+                return <div key={"fn_" + idx}>Function: {v.value}</div>;
+            })}
+            {store.map((v, idx) => (
+                <div key={"arrow_" + idx}>Arrow: {v.value}</div>
+            ))}
+            </>
+        );
+        });
+        "#
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_of_synchronous_qrl() {
+    test_input!(TestInput {
+        code: r#"
+        import { sync$, component$ } from "@builder.io/qwik";
+
+        export default component$(() => {
+        return (
+            <>
+                <input onClick$={sync$(function(event, target) {
+                    // comment should be removed
+                    event.preventDefault();
+                })}/>
+                <input onClick$={sync$((event, target) => {
+                    event.preventDefault();
+                })}/>
+                <input onClick$={sync$((event, target) => event.preventDefault())}/>
+            </>
+        );
+        });
+        "#
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
+}
+
+// TODO(misko): Make this test work by implementing strict serialization.
+// #[test]
+// fn example_of_synchronous_qrl_that_cant_be_serialized() {
+//     test_input!(TestInput {
+//         code: r#"
+//         import { sync$, component$ } from "@builder.io/qwik";
+
+//         export default component$(() => {
+//         return (
+//             <input onClick$={sync$(function(event, target) {
+//                 console.log(component$);
+//             })}/>
+//         );
+//         });
+//         "#
+//         .to_string(),
+//         transpile_ts: true,
+//         transpile_jsx: true,
+//         ..TestInput::default()
+//     });
+// }
 
 fn get_hash(name: &str) -> String {
     name.split('_').last().unwrap().into()

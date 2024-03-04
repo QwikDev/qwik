@@ -2,8 +2,8 @@ import { qError, QError_invalidJsxNodeType } from '../../error/error';
 import { type InvokeContext, newInvokeContext, invoke } from '../../use/use-core';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../../util/flyweight';
 import { logWarn } from '../../util/log';
-import { isNotNullable, isPromise, promiseAll, then } from '../../util/promises';
-import { qDev, seal } from '../../util/qdev';
+import { isNotNullable, isPromise, promiseAll, maybeThen } from '../../util/promises';
+import { qDev, qInspector, seal } from '../../util/qdev';
 import { isArray, isFunction, isObject, isString, type ValueOrPromise } from '../../util/types';
 import { domToVnode, smartUpdateChildren } from './visitor';
 import { SkipRender } from '../jsx/utils.public';
@@ -30,13 +30,13 @@ export const renderComponent = (
   containerState.$subsManager$.$clearSub$(hostElement);
 
   // TODO, serialize scopeIds
-  return then(executeComponent(rCtx, elCtx), (res) => {
+  return maybeThen(executeComponent(rCtx, elCtx), (res) => {
     const staticCtx = rCtx.$static$;
     const newCtx = res.rCtx;
-    const invocationContext = newInvokeContext(rCtx.$static$.$locale$, hostElement);
+    const iCtx = newInvokeContext(rCtx.$static$.$locale$, hostElement);
     staticCtx.$hostElements$.add(hostElement);
-    invocationContext.$subscriber$ = [0, hostElement];
-    invocationContext.$renderCtx$ = newCtx;
+    iCtx.$subscriber$ = [0, hostElement];
+    iCtx.$renderCtx$ = newCtx;
     if (justMounted) {
       if (elCtx.$appendStyles$) {
         for (const style of elCtx.$appendStyles$) {
@@ -44,12 +44,12 @@ export const renderComponent = (
         }
       }
     }
-    const processedJSXNode = processData(res.node, invocationContext);
-    return then(processedJSXNode, (processedJSXNode) => {
+    const processedJSXNode = processData(res.node, iCtx);
+    return maybeThen(processedJSXNode, (processedJSXNode) => {
       const newVdom = wrapJSX(hostElement, processedJSXNode);
       // const oldVdom = getVdom(hostElement);
       const oldVdom = getVdom(elCtx);
-      return then(smartUpdateChildren(newCtx, oldVdom, newVdom, 'root', flags), () => {
+      return maybeThen(smartUpdateChildren(newCtx, oldVdom, newVdom, flags), () => {
         // setVdom(hostElement, newVdom);
         elCtx.$vdom$ = newVdom;
       });
@@ -69,6 +69,7 @@ export class ProcessedJSXNodeImpl implements ProcessedJSXNode {
   $text$: string = '';
   $signal$: Signal<any> | null = null;
   $id$: string;
+  $dev$: DevJSX | undefined;
 
   constructor(
     public $type$: string,
@@ -79,6 +80,9 @@ export class ProcessedJSXNodeImpl implements ProcessedJSXNode {
     public $key$: string | null
   ) {
     this.$id$ = $type$ + ($key$ ? ':' + $key$ : '');
+    if (qDev && qInspector) {
+      this.$dev$ = undefined;
+    }
     seal(this);
   }
 }
@@ -94,7 +98,7 @@ export const processNode = (
   } else if (type === Virtual) {
     textType = VIRTUAL;
   } else if (isFunction(type)) {
-    const res = invoke(invocationContext, type, props, key, flags);
+    const res = invoke(invocationContext, type, props, key, flags, node.dev);
     if (!shouldWrapFunctional(res, node)) {
       return processData(res, invocationContext);
     }
@@ -102,13 +106,13 @@ export const processNode = (
   } else {
     throw qError(QError_invalidJsxNodeType, type);
   }
-  let convertedChildren: ProcessedJSXNode[] = EMPTY_ARRAY;
+  let convertedChildren = EMPTY_ARRAY as ProcessedJSXNode[];
   if (children != null) {
-    return then(processData(children, invocationContext), (result) => {
+    return maybeThen(processData(children, invocationContext), (result) => {
       if (result !== undefined) {
         convertedChildren = isArray(result) ? result : [result];
       }
-      return new ProcessedJSXNodeImpl(
+      const vnode = new ProcessedJSXNodeImpl(
         textType,
         props,
         immutableProps,
@@ -116,9 +120,24 @@ export const processNode = (
         flags,
         key
       );
+      if (qDev && qInspector) {
+        vnode.$dev$ = node.dev;
+      }
+      return vnode;
     });
   } else {
-    return new ProcessedJSXNodeImpl(textType, props, immutableProps, convertedChildren, flags, key);
+    const vnode = new ProcessedJSXNodeImpl(
+      textType,
+      props,
+      immutableProps,
+      convertedChildren,
+      flags,
+      key
+    );
+    if (qDev && qInspector) {
+      vnode.$dev$ = node.dev;
+    }
+    return vnode;
   }
 };
 
@@ -126,7 +145,8 @@ export const wrapJSX = (
   element: QwikElement,
   input: ProcessedJSXNode[] | ProcessedJSXNode | undefined
 ) => {
-  const children = input === undefined ? EMPTY_ARRAY : isArray(input) ? input : [input];
+  const children: ProcessedJSXNode[] =
+    input === undefined ? EMPTY_ARRAY : isArray(input) ? input : [input];
   const node = new ProcessedJSXNodeImpl(':virtual', {}, null, children, 0, null);
   node.$elm$ = element;
   return node;
@@ -146,12 +166,12 @@ export const processData = (
   } else if (isJSXNode(node)) {
     return processNode(node, invocationContext);
   } else if (isSignal(node)) {
-    const newNode = new ProcessedJSXNodeImpl('#text', EMPTY_OBJ, null, EMPTY_ARRAY, 0, null);
+    const newNode = new ProcessedJSXNodeImpl('#signal', EMPTY_OBJ, null, EMPTY_ARRAY, 0, null);
     newNode.$signal$ = node;
     return newNode;
   } else if (isArray(node)) {
     const output = promiseAll(node.flatMap((n) => processData(n, invocationContext)));
-    return then(output, (array) => array.flat(100).filter(isNotNullable));
+    return maybeThen(output, (array) => array.flat(100).filter(isNotNullable));
   } else if (isPromise(node)) {
     return node.then((node) => processData(node, invocationContext));
   } else if (node === SkipRender) {
@@ -180,8 +200,15 @@ export const isPrimitive = (obj: any) => {
   return isString(obj) || typeof obj === 'number';
 };
 
+export type ProcessedJSXNodeType =
+  | '#text'
+  | ':virtual'
+  | ':signal'
+  | typeof SKIP_RENDER_TYPE
+  | string;
+
 export interface ProcessedJSXNode {
-  $type$: string;
+  $type$: ProcessedJSXNodeType;
   $id$: string;
   $props$: Record<string, any>;
   $immutableProps$: Record<string, any> | null;

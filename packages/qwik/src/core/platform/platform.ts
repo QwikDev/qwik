@@ -3,7 +3,6 @@ import { qError, QError_qrlMissingChunk, QError_qrlMissingContainer } from '../e
 import { getSymbolHash } from '../qrl/qrl-class';
 import type { QwikElement } from '../render/dom/virtual-element';
 import { qDynamicPlatform } from '../util/qdev';
-import { isObject } from '../util/types';
 import type { CorePlatform } from './types';
 
 export const createPlatform = (): CorePlatform => {
@@ -29,7 +28,7 @@ export const createPlatform = (): CorePlatform => {
       urlCopy.search = '';
       const importURL = urlCopy.href;
       return import(/* @vite-ignore */ importURL).then((mod) => {
-        return findSymbol(mod, symbolName);
+        return mod[symbolName];
       });
     },
     raf: (fn) => {
@@ -51,27 +50,19 @@ export const createPlatform = (): CorePlatform => {
     },
   };
 };
-const findSymbol = (module: any, symbol: string) => {
-  if (symbol in module) {
-    return module[symbol];
-  }
-  for (const v of Object.values(module)) {
-    if (isObject(v) && symbol in v) {
-      return (v as any)[symbol];
-    }
-  }
-};
 
 /**
  * Convert relative base URI and relative URL into a fully qualified URL.
  *
  * @param base -`QRL`s are relative, and therefore they need a base for resolution.
- *    - `Element` use `base.ownerDocument.baseURI`
- *    - `Document` use `base.baseURI`
- *    - `string` use `base` as is
- *    - `QConfig` use `base.baseURI`
- * @param url - relative URL
- * @returns fully qualified URL.
+ *
+ *   - `Element` use `base.ownerDocument.baseURI`
+ *   - `Document` use `base.baseURI`
+ *   - `string` use `base` as is
+ *   - `QConfig` use `base.baseURI`
+ *
+ * @param url - Relative URL
+ * @returns Fully qualified URL.
  */
 export const toUrl = (doc: Document, containerEl: QwikElement, url: string | URL): URL => {
   const baseURI = doc.baseURI;
@@ -79,7 +70,7 @@ export const toUrl = (doc: Document, containerEl: QwikElement, url: string | URL
   return new URL(url, base);
 };
 
-let _platform = /* @__PURE__ */ createPlatform();
+let _platform = /*#__PURE__ */ createPlatform();
 
 // <docs markdown="./readme.md#setPlatform">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -103,11 +94,11 @@ export const setPlatform = (plt: CorePlatform) => (_platform = plt);
 /**
  * Retrieve the `CorePlatform`.
  *
- * The `CorePlatform` is also responsible for retrieving the Manifest, that contains mappings
- * from symbols to javascript import chunks. For this reason, `CorePlatform` can't be global, but
- * is specific to the application currently running. On server it is possible that many different
- * applications are running in a single server instance, and for this reason the `CorePlatform`
- * is associated with the application document.
+ * The `CorePlatform` is also responsible for retrieving the Manifest, that contains mappings from
+ * symbols to javascript import chunks. For this reason, `CorePlatform` can't be global, but is
+ * specific to the application currently running. On server it is possible that many different
+ * applications are running in a single server instance, and for this reason the `CorePlatform` is
+ * associated with the application document.
  *
  * @param docOrNode - The document (or node) of the application for which the platform is needed.
  * @public

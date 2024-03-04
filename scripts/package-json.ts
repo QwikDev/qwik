@@ -3,9 +3,9 @@ import { readFile, writeFile } from './util';
 import { join } from 'node:path';
 
 /**
- * The published build does not use the package.json found in the root directory.
- * This function generates the package.json file for package to be published.
- * Note that some of the properties can be pulled from the root package.json.
+ * The published build does not use the package.json found in the root directory. This function
+ * generates the package.json file for package to be published. Note that some of the properties can
+ * be pulled from the root package.json.
  */
 export async function generatePackageJson(config: BuildConfig) {
   const rootPkg = await readPackageJson(join(config.packagesDir, 'qwik'));
@@ -18,12 +18,13 @@ export async function generatePackageJson(config: BuildConfig) {
     main: './core.mjs',
     types: './core.d.ts',
     bin: {
-      qwik: './qwik.cjs',
+      qwik: './qwik-cli.cjs',
     },
     type: 'module',
     peerDependencies: {
-      undici: '^5.14.0',
+      undici: '*',
     },
+    dependencies: rootPkg.dependencies,
     exports: {
       '.': {
         types: './core.d.ts',
@@ -31,12 +32,12 @@ export async function generatePackageJson(config: BuildConfig) {
           min: './core.min.mjs',
           development: './core.mjs',
           production: './core.prod.mjs',
-          default: './core.mjs',
+          default: './core.prod.mjs',
         },
         require: {
           development: './core.cjs',
           production: './core.prod.cjs',
-          default: './core.cjs',
+          default: './core.prod.cjs',
         },
       },
       './cli': {
@@ -48,12 +49,12 @@ export async function generatePackageJson(config: BuildConfig) {
           min: './core.min.mjs',
           development: './core.mjs',
           production: './core.prod.mjs',
-          default: './core.mjs',
+          default: './core.prod.mjs',
         },
         require: {
           development: './core.cjs',
           production: './core.prod.cjs',
-          default: './core.cjs',
+          default: './core.prod.cjs',
         },
       },
       './jsx-dev-runtime': {
@@ -71,9 +72,16 @@ export async function generatePackageJson(config: BuildConfig) {
         },
       },
       './build': {
-        types: './build/index.d.ts',
-        import: './build/index.mjs',
-        require: './build/index.cjs',
+        import: {
+          development: './build/index.dev.mjs',
+          production: './build/index.prod.mjs',
+          default: './build/index.mjs',
+        },
+        require: {
+          development: './build/index.dev.cjs',
+          production: './build/index.prod.cjs',
+          default: './build/index.cjs',
+        },
       },
       './loader': {
         types: './loader/index.d.ts',
@@ -101,6 +109,8 @@ export async function generatePackageJson(config: BuildConfig) {
       },
       './qwikloader.js': './qwikloader.js',
       './qwikloader.debug.js': './qwikloader.debug.js',
+      './qwik-prefetch.js': './qwik-prefetch.js',
+      './qwik-prefetch.debug.js': './qwik-prefetch.debug.js',
       './package.json': './package.json',
     },
     files: Array.from(new Set(rootPkg.files)).sort((a, b) => {
@@ -116,8 +126,8 @@ export async function generatePackageJson(config: BuildConfig) {
     engines: rootPkg.engines,
   };
 
-  await writePackageJson(config.distPkgDir, distPkg);
-  console.log(config.distPkgDir);
+  await writePackageJson(config.distQwikPkgDir, distPkg);
+  console.log(config.distQwikPkgDir);
 
   await generateLegacyCjsSubmodule(config, 'core');
   await generateLegacyCjsSubmodule(config, 'jsx-runtime');
@@ -152,7 +162,7 @@ export async function generateLegacyCjsSubmodule(
       },
     },
   };
-  const submoduleDistDir = join(config.distPkgDir, pkgName);
+  const submoduleDistDir = join(config.distQwikPkgDir, pkgName);
   ensureDir(submoduleDistDir);
   await writePackageJson(submoduleDistDir, pkg);
 }

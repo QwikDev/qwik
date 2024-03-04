@@ -7,6 +7,7 @@ export interface CreateAppOptions {
 
 export interface CreateAppResult extends CreateAppOptions {
   docs: string[];
+  pkgManager: string;
 }
 
 export interface UpdateAppOptions {
@@ -29,6 +30,7 @@ export interface FsUpdates {
     type: 'create' | 'overwrite' | 'modify';
   }[];
   installedDeps: { [dep: string]: string };
+  installedScripts: string[];
 }
 
 export interface IntegrationData {
@@ -71,6 +73,7 @@ export interface IntegrationPackageJson {
   exports?: any;
   module?: string;
   qwik?: string;
+  qwikTemplates?: string[];
   types?: string;
   type?: string;
   __qwik__?: {
@@ -93,5 +96,19 @@ export interface ViteConfigUpdates {
   imports?: EnsureImport[];
   viteConfig?: { [key: string]: string };
   vitePlugins?: string[];
+  vitePluginsPrepend?: string[];
   qwikViteConfig?: { [key: string]: string };
+}
+
+export interface Template {
+  absolute: string;
+  relative: string;
+}
+
+export interface TemplateSet {
+  id: string;
+  component: Template[];
+  route: Template[];
+  markdown: Template[];
+  mdx: Template[];
 }

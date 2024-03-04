@@ -1,12 +1,12 @@
 import { assertEqual, assertTrue } from '../error/assert';
 import { tryGetInvokeContext } from '../use/use-core';
 import { logWarn } from '../util/log';
-import { qDev } from '../util/qdev';
-import { RenderEvent } from '../util/markers';
+import { qDev, qSerialize } from '../util/qdev';
+import { ComputedEvent, RenderEvent, ResourceEvent } from '../util/markers';
 import { isObject } from '../util/types';
 import type { ContainerState } from '../container/container';
 import {
-  getProxyManager,
+  getSubscriptionManager,
   getProxyTarget,
   LocalSubscriptionManager,
   type Subscriptions,
@@ -15,21 +15,18 @@ import {
 import { QObjectManagerSymbol, _IMMUTABLE, _IMMUTABLE_PREFIX } from './constants';
 import { _fnSignal } from '../qrl/inlined-fn';
 
-/**
- * @public
- */
+/** @public */
 export interface Signal<T = any> {
   value: T;
 }
 
-/**
- * @public
- */
+/** @public */
+export type ReadonlySignal<T = unknown> = Readonly<Signal<T>>;
+
+/** @public */
 export type ValueOrSignal<T> = T | Signal<T>;
 
-/**
- * @internal
- */
+/** @internal */
 export const _createSignal = <T>(
   value: T,
   containerState: ContainerState,
@@ -70,7 +67,9 @@ export class SignalImpl<T> extends SignalBase implements Signal<T> {
 
   // prevent accidental use as value
   valueOf() {
-    throw new TypeError('Cannot coerce a Signal, use `.value` instead');
+    if (qDev) {
+      throw new TypeError('Cannot coerce a Signal, use `.value` instead');
+    }
   }
   toString() {
     return `[Signal ${String(this.value)}]`;
@@ -95,7 +94,9 @@ export class SignalImpl<T> extends SignalBase implements Signal<T> {
       if (this[QObjectSignalFlags] & SIGNAL_IMMUTABLE) {
         throw new Error('Cannot mutate immutable signal');
       }
-      verifySerializable(v);
+      if (qSerialize) {
+        verifySerializable(v);
+      }
       const invokeCtx = tryGetInvokeContext();
       if (invokeCtx) {
         if (invokeCtx.$event$ === RenderEvent) {
@@ -103,10 +104,14 @@ export class SignalImpl<T> extends SignalBase implements Signal<T> {
             'State mutation inside render function. Use useTask$() instead.',
             invokeCtx.$hostElement$
           );
-        }
-        if (invokeCtx.$event$ === 'ComputedEvent') {
+        } else if (invokeCtx.$event$ === ComputedEvent) {
           logWarn(
             'State mutation inside useComputed$() is an antipattern. Use useTask$() instead',
+            invokeCtx.$hostElement$
+          );
+        } else if (invokeCtx.$event$ === ResourceEvent) {
+          logWarn(
+            'State mutation inside useResource$() is an antipattern. Use useTask$() instead',
             invokeCtx.$hostElement$
           );
         }
@@ -121,23 +126,30 @@ export class SignalImpl<T> extends SignalBase implements Signal<T> {
   }
 }
 
-export class SignalDerived<T = any, ARGS extends any[] = any[]> extends SignalBase {
-  constructor(public $func$: (...args: ARGS) => T, public $args$: ARGS, public $funcStr$?: string) {
+export class SignalDerived<RETURN = unknown, ARGS extends any[] = unknown[]> extends SignalBase {
+  constructor(
+    public $func$: (...args: ARGS) => RETURN,
+    public $args$: ARGS,
+    public $funcStr$?: string
+  ) {
     super();
   }
 
-  get value(): T {
+  get value(): RETURN {
     return this.$func$.apply(undefined, this.$args$);
   }
 }
 
 export class SignalWrapper<T extends Record<string, any>, P extends keyof T> extends SignalBase {
-  constructor(public ref: T, public prop: P) {
+  constructor(
+    public ref: T,
+    public prop: P
+  ) {
     super();
   }
 
   get [QObjectManagerSymbol]() {
-    return getProxyManager(this.ref);
+    return getSubscriptionManager(this.ref);
   }
 
   get value(): T[P] {
@@ -149,22 +161,23 @@ export class SignalWrapper<T extends Record<string, any>, P extends keyof T> ext
   }
 }
 
-export const isSignal = (obj: any): obj is Signal<any> => {
+/**
+ * Checks if a given object is a `Signal`.
+ *
+ * @param obj - The object to check if `Signal`.
+ * @returns Boolean - True if the object is a `Signal`.
+ * @public
+ */
+export const isSignal = <T = unknown>(obj: any): obj is Signal<T> => {
   return obj instanceof SignalBase;
 };
 
-/**
- * @internal
- */
+/** @internal */
 export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(obj: T, prop: P): any => {
   if (!isObject(obj)) {
     return obj[prop];
   }
-  if (obj instanceof SignalImpl) {
-    assertEqual(prop, 'value', 'Left side is a signal, prop must be value');
-    return obj;
-  }
-  if (obj instanceof SignalWrapper) {
+  if (obj instanceof SignalBase) {
     assertEqual(prop, 'value', 'Left side is a signal, prop must be value');
     return obj;
   }
@@ -186,9 +199,7 @@ export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(obj: T,
   return _IMMUTABLE;
 };
 
-/**
- * @internal
- */
+/** @internal */
 export const _wrapSignal = <T extends Record<any, any>, P extends keyof T>(
   obj: T,
   prop: P

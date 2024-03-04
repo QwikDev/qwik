@@ -1,5 +1,6 @@
 ---
-title: Qwik City - MDX
+title: Markdown and MDX | Guides
+description: Learn how to use Markdown and MDX in Qwik City.
 contributors:
   - manucorporat
   - adamdbradley
@@ -7,6 +8,15 @@ contributors:
   - mhevery
   - nnelgxorz
   - cunzaizhuyi
+  - the-r3aper7
+  - zanettin
+  - ihaback
+  - YannickFricke
+  - mrhoodz
+  - erikras
+  - hamatoyogi
+updated_at: '2023-10-17T20:22:18Z'
+created_at: '2023-03-20T23:45:13Z'
 ---
 
 # MDX
@@ -15,7 +25,7 @@ An alternative way to author content is using `.mdx` files ([Markdown JSX](https
 
 Let's assume you have your routes set up like this:
 
-```
+```bash
 src/
 └── routes/
     └── some/
@@ -23,7 +33,7 @@ src/
             └── index.mdx    # https://example.com/some/path
 ```
 
-```Markdown title="src/routes/some/path/index.mdx"
+```markdown title="src/routes/some/path/index.mdx"
 ---
 title: Hello World Title
 ---
@@ -38,17 +48,18 @@ The above component will be rendered at `https://example.com/some/path`.
 
 [MDX](https://mdxjs.com/) is a creative opportunity for you to come up with new content quickly ("Qwikly" 🙂) and if you need more interaction on your page you can seamlessly integrate your Qwik components like so:
 
-```
+```bash
 src/
 ├── components/
-│   └──  counter.tsx
+|   └── counter
+│       └──  counter.tsx
 └── routes/
     └── some/
         └── path/
             └── index.mdx    # https://example.com/some/path
 ```
 
-```Markdown title="src/routes/some/path/index.mdx"
+```markdown title="src/routes/some/path/index.mdx"
 ---
 title: Hello World Title
 ---
@@ -88,7 +99,7 @@ Qwik City includes 3 plugins by default.
 
 These plugins can be disabled independently in the following way:
 
-```tsx
+```tsx title="vite.config.js"
 import { defineConfig } from 'vite';
 import { qwikCity } from '@builder.io/qwik-city/vite';
 // See below
@@ -134,7 +145,7 @@ Setting `og:title` or `og:description` to `true` will check and use outside `tit
 
 The above example will generate the following HTML code.
 
-```HTML
+```html
 <title>My Title</title>
 <meta name="description" content="My Description" />
 
@@ -145,4 +156,43 @@ The above example will generate the following HTML code.
 <meta property="og:image:alt" content="A shiny red apple with a bite taken out" />
 
 <meta property="og:image" content="https://example.com/rock2.jpg" />
+```
+
+## Reading frontmatter data
+Frontmatter keys are accessible by leveraging the `useDocumentHead()` hook.
+
+```markdown title="src/routes/some/path/index.mdx"
+---
+title: Hello World Title
+tags:
+  - super
+  - exiting
+  - docs
+---
+import { Tags } from "../../../components/tags/tags";
+
+This is a simple hello world component.
+
+<Tags />
+```
+
+```tsx title="src/components/tags/tags.tsx"
+import { component$ } from '@builder.io/qwik';
+import { useDocumentHead } from '@builder.io/qwik-city';
+
+export const Tags = component$(() => {
+  const { frontmatter } = useDocumentHead();
+  
+  if (frontmatter.tags.length === 0) {
+    return null;
+  }
+  
+  return (
+    <ul>
+      {frontmatter.tags.map((tag: string) => (
+        <li key={`tag-${tag}`}>{tag}</li>
+      ))}
+    </ul>
+  );
+});
 ```

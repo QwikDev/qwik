@@ -1,5 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 1600
 expression: output
 ---
 ==INPUT==
@@ -131,7 +132,7 @@ export const Parent_component_0TaiDayHrlo = ()=>{
         state
     ]));
     return /*#__PURE__*/ _jsxQ("div", null, {
-        onClick$: /*#__PURE__*/ qrl(()=>import("./chunk_clicks"), "Parent_component_div_onClick_C5XE49Nqd3A")
+        onClick$: /*#__PURE__*/ qrl(()=>import("./parent_component_div_onclick_c5xe49nqd3a"), "Parent_component_div_onClick_C5XE49Nqd3A")
     }, _fnSignal((p0)=>p0.text, [
         state
     ], "p0.text"), 3, "u6_0");
@@ -158,7 +159,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= parent_component_div_onclick_c5xe49nqd3a.js ==
+============================= parent_component_div_onclick_c5xe49nqd3a.js (ENTRY POINT)==
 
 export const Parent_component_div_onClick_C5XE49Nqd3A = ()=>console.log('parent');
 
@@ -168,7 +169,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 {
   "origin": "test.tsx",
   "name": "Parent_component_div_onClick_C5XE49Nqd3A",
-  "entry": "chunk_clicks",
+  "entry": null,
   "displayName": "Parent_component_div_onClick",
   "hash": "C5XE49Nqd3A",
   "canonicalFilename": "parent_component_div_onclick_c5xe49nqd3a",
@@ -199,7 +200,7 @@ export const Child_component_9GyF01GDKqw = ()=>{
         state
     ]));
     return /*#__PURE__*/ _jsxQ("div", null, {
-        onClick$: /*#__PURE__*/ qrl(()=>import("./chunk_clicks"), "Child_component_div_onClick_elliVSnAiOQ")
+        onClick$: /*#__PURE__*/ qrl(()=>import("./child_component_div_onclick_ellivsnaioq"), "Child_component_div_onClick_elliVSnAiOQ")
     }, _fnSignal((p0)=>p0.text, [
         state
     ], "p0.text"), 3, "u6_1");
@@ -226,7 +227,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= child_component_div_onclick_ellivsnaioq.js ==
+============================= child_component_div_onclick_ellivsnaioq.js (ENTRY POINT)==
 
 export const Child_component_div_onClick_elliVSnAiOQ = ()=>console.log('child');
 
@@ -236,7 +237,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 {
   "origin": "test.tsx",
   "name": "Child_component_div_onClick_elliVSnAiOQ",
-  "entry": "chunk_clicks",
+  "entry": null,
   "displayName": "Child_component_div_onClick",
   "hash": "elliVSnAiOQ",
   "canonicalFilename": "child_component_div_onclick_ellivsnaioq",
@@ -251,13 +252,6 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= chunk_clicks.js (ENTRY POINT)==
-
-export { Parent_component_div_onClick_C5XE49Nqd3A } from "./parent_component_div_onclick_c5xe49nqd3a";
-export { Child_component_div_onClick_elliVSnAiOQ } from "./child_component_div_onclick_ellivsnaioq";
-
-
-None
 ============================= entry_Child.js (ENTRY POINT)==
 
 export { Child_component_useTask_Oh4n7ZeqJkU } from "./child_component_usetask_oh4n7zeqjku";

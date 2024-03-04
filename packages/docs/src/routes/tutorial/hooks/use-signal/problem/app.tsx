@@ -15,13 +15,13 @@ export default component$(() => {
   });
 
   return (
-    <div>
-      <div style={{ border: '1px solid red', width: '100px' }}>
+    <main>
+      <aside style={{ border: '1px solid red', width: '100px' }}>
         Change text value here to stretch the box.
-      </div>
-      <div>
+      </aside>
+      <p>
         The above red box is {store.height} pixels high and {store.width} pixels wide.
-      </div>
-    </div>
+      </p>
+    </main>
   );
 });

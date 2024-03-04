@@ -1,0 +1,113 @@
+---
+title: Internationalization | Integrations
+contributors:
+  - mhevery
+  - manucorporat
+  - gioboa
+  - tzdesign
+  - Benny-Nottonson
+  - mrhoodz
+updated_at: '2023-10-08T10:16:44Z'
+created_at: '2023-04-19T22:13:46Z'
+---
+
+# Internationalization
+
+Internationalization is a complex problem. Qwik does not solve the internationalization problem directly instead it only provides low-level APIs to allow other libraries to solve it.
+
+## Runtime vs compile time translation
+
+At a high level there are two ways in which the translation problem can be solved:
+
+- Runtime: load a translation map and look up the translations at runtime.
+- Compile time: Have a compile step inline the translations into the output string.
+
+Both of the above approaches have trade-offs that one should take into consideration.
+
+The advantages of runtime approaches are:
+
+- Simplicity. Does not require an additional build step.
+
+Disadvantages of the runtime approach are:
+
+- Each string is present in triplicate:
+  1. Once as the original string in the code.
+  2. Once as a key in a translation map.
+  3. Once as a translated value in the translation map.
+- The tools don't know how to break up the translation map, for this reason, the whole translation map must be loaded eagerly on application startup. This is a problem because it undoes the effort Qwik put into breaking up and lazy load your codebase. In addition because translation maps are not broken up, the browser will download unnecessary translations. For example, translations for static components that will never re-render on the client.
+- There is a runtime cost to translation lookups.
+
+The advantages of compile-time approaches are:
+
+- Qwik's lazy loading of code now extends to the lazy loading of translation strings. (No unnecessary translation text is loaded)
+- No runtime translation map means strings are not in triplicate.
+
+Disadvantages of compile time approaches are:
+
+- Extra build step.
+- Changing languages requires a page reload.
+
+## Recommendation
+
+With the above in mind, Qwik recommends that you use a tool that best fits your constraints. To help you make a decision there are three different considerations: Browser, Server, and Development.
+
+### Browser
+
+Qwik's goal is to deliver the best possible user experience. It achieves this by deferring the loading of code to later so that the initial startup performance is not overwhelmed. Because the runtime approach requires eager loading of all translations, we don't recommend this approach. We think that the compile-time approach is best for the browser.
+
+### Server
+
+The server does not have the constraint of lazy loading. For this reason, the server can use either the runtime or compiled approach. The disadvantage of compile time approach on the server is that we need to have a separate deployment for each translation. This complicates the deployment process as well as puts greater demand on number of servers. For this reason, we think the runtime approach is preferable on the server.
+
+### Development
+
+During development, fewer build steps will result in a faster turnaround. For this reason, runtime translation should result in a simpler development workflow.
+
+### Our Recommendation
+
+Our recommendation is to use a tool that would provide a runtime approach on the server, and runtime or compile time on the client depending on whether we are in development or production. This way it is possible to prove the best user experience and development experience, and use the least server resources.
+
+## Internationalization libraries
+
+### $localize
+
+[$localize](https://angular.io/api/localize/init/$localize) the translation system is based on the $localize system from [Angular](https://angular.io/). The translations can be extracted in xmb, xlf, xlif, xliff, xlf2, xlif2, xliff2, and json formats.
+
+>NOTE: The $localize system is a compile-time translation system and is completely removed from the final output. $localize is a sub-project of Angular, and including its usage does not mean that Angular is used for rendering of applications.
+
+The easiest way to add $localize to Qwik is using the `pnpm qwik add localize` command. This will install the required dependencies and create a new public route `/src/routes/[locale]` showcasing i18n $localize integration.
+
+```bash
+npm run qwik add localize
+```
+
+For further reference, please check this [example repo](https://github.com/mhevery/qwik-i18n).
+
+#### Extract translations
+
+When you are done with your changes, you can use `npm run i18n-extract` to extract the translations from the code. 
+This will update the file you see in `package.json`.
+
+#### Auto translations for $localize with deepl
+
+For auto translations, you can use the [deepl-localize](https://www.npmjs.com/package/deepl-localize) package. It will automatically translate your strings using the [deepl.com](https://deepl.com/) API.
+
+Use the `deepl-localize` command to translate your strings with npx:
+```bash
+npx deepl-localize translate -b src/locales/message.en.json -l de-DE fr-FR -a "YOUR-DEEPL-API-KEY"
+```
+
+Alternatively, you can use the `deepl-localize` command to translate your strings within your script section:
+```json
+{
+  "scripts":{
+    "translate":"deepl-localize translate -b src/locales/message.en.json -l de-DE fr-FR -a 'your-deepl-api-key'"
+  }
+}
+```
+
+### qwik-speak
+
+[qwik-speak](https://github.com/robisim74/qwik-speak) library to translate texts, dates and numbers in Qwik apps.
+
+The easiest way to add qwik-speak to Qwik is following the official [guide](https://github.com/robisim74/qwik-speak/blob/main/docs/quick-start.md).

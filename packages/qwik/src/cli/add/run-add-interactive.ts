@@ -1,14 +1,15 @@
-/* eslint-disable no-console */
-import type { AppCommand } from '../utils/app-command';
-import { loadIntegrations, sortIntegrationsAndReturnAsClackOptions } from '../utils/integrations';
-import { bgBlue, bold, magenta, cyan, bgMagenta } from 'kleur/colors';
-import { bye, getPackageManager, panic, printHeader, note } from '../utils/utils';
-import { updateApp } from './update-app';
+import { intro, isCancel, log, outro, select, spinner } from '@clack/prompts';
+import { bgBlue, bgMagenta, blue, bold, cyan, magenta } from 'kleur/colors';
 import type { IntegrationData, UpdateAppResult } from '../types';
+import { loadIntegrations, sortIntegrationsAndReturnAsClackOptions } from '../utils/integrations';
+import { bye, getPackageManager, note, panic, printHeader } from '../utils/utils';
+
+/* eslint-disable no-console */
 import { relative } from 'node:path';
-import { logNextStep } from '../utils/log';
+import type { AppCommand } from '../utils/app-command';
 import { runInPkg } from '../utils/install-deps';
-import { intro, isCancel, select, log, spinner, outro } from '@clack/prompts';
+import { logNextStep } from '../utils/log';
+import { updateApp } from './update-app';
 
 export async function runAddInteractive(app: AppCommand, id: string | undefined) {
   const pkgManager = getPackageManager();
@@ -68,7 +69,9 @@ export async function runAddInteractive(app: AppCommand, id: string | undefined)
     installDeps: runInstall,
   });
 
-  await logUpdateAppResult(pkgManager, result);
+  if (app.getArg('skipConfirmation') !== 'true') {
+    await logUpdateAppResult(pkgManager, result);
+  }
   await result.commit(true);
   const postInstall = result.integration.pkgJson.__qwik__?.postInstall;
   if (postInstall) {
@@ -88,12 +91,15 @@ async function logUpdateAppResult(pkgManager: string, result: UpdateAppResult) {
   const overwriteFiles = result.updates.files.filter((f) => f.type === 'overwrite');
   const createFiles = result.updates.files.filter((f) => f.type === 'create');
   const installDepNames = Object.keys(result.updates.installedDeps);
+  const installScripts = result.updates.installedScripts;
+
   const installDeps = installDepNames.length > 0;
 
   if (
     modifyFiles.length === 0 &&
     overwriteFiles.length === 0 &&
     createFiles.length === 0 &&
+    installScripts.length === 0 &&
     !installDeps
   ) {
     panic(`No updates made`);
@@ -128,13 +134,23 @@ async function logUpdateAppResult(pkgManager: string, result: UpdateAppResult) {
     );
   }
 
-  if (installDepNames) {
+  if (installDepNames.length > 0) {
     log.message(
       [
         `💾 ${cyan(`Install ${pkgManager} dependenc${installDepNames.length > 1 ? 'ies' : 'y'}:`)}`,
         ...installDepNames.map(
           (depName) => `   - ${depName} ${result.updates.installedDeps[depName]}`
         ),
+      ].join('\n')
+    );
+  }
+
+  if (installScripts.length > 0) {
+    const prefix = pkgManager === 'npm' ? 'npm run' : pkgManager;
+    log.message(
+      [
+        `📜 ${cyan(`New ${pkgManager} script${installDepNames.length > 1 ? 's' : ''}:`)}`,
+        ...installScripts.map((script) => `   - ${prefix} ${script}`),
       ].join('\n')
     );
   }
@@ -152,10 +168,19 @@ async function logUpdateAppResult(pkgManager: string, result: UpdateAppResult) {
   }
 }
 
-function logUpdateAppCommitResult(result: UpdateAppResult, packageManager: string) {
+function logUpdateAppCommitResult(result: UpdateAppResult, pkgManager: string) {
+  if (result.updates.installedScripts.length > 0) {
+    const prefix = pkgManager === 'npm' || pkgManager === 'bun' ? `${pkgManager} run` : pkgManager;
+    const message = result.updates.installedScripts
+      .map((script) => `- ${prefix} ${blue(script)}`)
+      .join('\n');
+    note(message, 'New scripts added');
+  }
+
   const nextSteps = result.integration.pkgJson.__qwik__?.nextSteps;
   if (nextSteps) {
-    note(logNextStep(nextSteps, packageManager), 'Note');
+    const noteMessage = `🟣 ${bgMagenta(` ${nextSteps.title ?? 'Action Required!'} `)}`;
+    note(logNextStep(nextSteps, pkgManager), noteMessage);
   }
 
   outro(`🦄 ${bgMagenta(` Success! `)} Added ${bold(cyan(result.integration.id))} to your app`);

@@ -1,0 +1,48 @@
+{
+  "id": "qwik-city-middleware-aws-lambda",
+  "package": "@builder.io/qwik-city/middleware/aws-lambda",
+  "members": [
+    {
+      "name": "createQwikCity",
+      "id": "createqwikcity",
+      "hierarchy": [
+        {
+          "name": "createQwikCity",
+          "id": "createqwikcity"
+        }
+      ],
+      "kind": "Function",
+      "content": "```typescript\nexport declare function createQwikCity(opts: AwsOpt): {\n    fixPath: (pathT: string) => string;\n    router: (req: import(\"http\").IncomingMessage | import(\"http2\").Http2ServerRequest, res: import(\"http\").ServerResponse<import(\"http\").IncomingMessage>, next: import(\"@builder.io/qwik-city/middleware/node\").NodeRequestNextFunction) => Promise<void>;\n    staticFile: (req: import(\"http\").IncomingMessage | import(\"http2\").Http2ServerRequest, res: import(\"http\").ServerResponse<import(\"http\").IncomingMessage>, next: (e?: any) => void) => Promise<void>;\n    notFound: (req: import(\"http\").IncomingMessage | import(\"http2\").Http2ServerRequest, res: import(\"http\").ServerResponse<import(\"http\").IncomingMessage>, next: (e: any) => void) => Promise<void>;\n    handle: (req: any, res: any) => void;\n};\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  opts | AwsOpt |  |\n\n**Returns:**\n\n{ fixPath: (pathT: string) =&gt; string; router: (req: import(\"http\").IncomingMessage \\| import(\"http2\").Http2ServerRequest, res: import(\"http\").ServerResponse&lt;import(\"http\").IncomingMessage&gt;, next: import(\"@builder.io/qwik-city/middleware/node\").NodeRequestNextFunction) =&gt; Promise&lt;void&gt;; staticFile: (req: import(\"http\").IncomingMessage \\| import(\"http2\").Http2ServerRequest, res: import(\"http\").ServerResponse&lt;import(\"http\").IncomingMessage&gt;, next: (e?: any) =&gt; void) =&gt; Promise&lt;void&gt;; notFound: (req: import(\"http\").IncomingMessage \\| import(\"http2\").Http2ServerRequest, res: import(\"http\").ServerResponse&lt;import(\"http\").IncomingMessage&gt;, next: (e: any) =&gt; void) =&gt; Promise&lt;void&gt;; handle: (req: any, res: any) =&gt; void; }",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/aws-lambda/index.ts",
+      "mdFile": "qwik-city.createqwikcity.md"
+    },
+    {
+      "name": "PlatformAwsLambda",
+      "id": "platformawslambda",
+      "hierarchy": [
+        {
+          "name": "PlatformAwsLambda",
+          "id": "platformawslambda"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface PlatformAwsLambda extends Object \n```\n**Extends:** Object",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/aws-lambda/index.ts",
+      "mdFile": "qwik-city.platformawslambda.md"
+    },
+    {
+      "name": "QwikCityAwsLambdaOptions",
+      "id": "qwikcityawslambdaoptions",
+      "hierarchy": [
+        {
+          "name": "QwikCityAwsLambdaOptions",
+          "id": "qwikcityawslambdaoptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface QwikCityAwsLambdaOptions extends ServerRenderOptions \n```\n**Extends:** ServerRenderOptions",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/aws-lambda/index.ts",
+      "mdFile": "qwik-city.qwikcityawslambdaoptions.md"
+    }
+  ]
+}

@@ -4,14 +4,16 @@
 
 ```ts
 
-import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
+import type { JSXOutput } from '@builder.io/qwik';
 import { RenderResult } from '@builder.io/qwik';
 
 // @public
-export const createDOM: () => Promise<{
-    render: (jsxElement: JSXNode) => Promise<RenderResult>;
+export const createDOM: ({ html }?: {
+    html?: string | undefined;
+}) => Promise<{
+    render: (jsxElement: JSXOutput) => Promise<RenderResult>;
     screen: HTMLElement;
-    userEvent: (queryOrElement: string | Element | null, eventNameCamel: string, eventPayload?: any) => Promise<void>;
+    userEvent: (queryOrElement: string | Element | keyof HTMLElementTagNameMap | null, eventNameCamel: string | keyof WindowEventMap, eventPayload?: any) => Promise<void>;
 }>;
 
 // (No @packageDocumentation comment for this package)

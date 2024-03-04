@@ -1,0 +1,13 @@
+{
+  "name": "qwik-empty-starter",
+  "description": "App with Routing built-in ready to create your app",
+  "type": "module",
+  "__qwik__": {
+    "priority": 1,
+    "displayName": "Empty App (Qwik City + Qwik)",
+    "qwikCity": true,
+    "docs": [
+      "https://qwik.builder.io/docs/getting-started/"
+    ]
+  }
+}

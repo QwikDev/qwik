@@ -1,8 +1,8 @@
-import type { RequestHandler } from '@builder.io/qwik-city';
-import os from 'node:os';
-import url from 'node:url';
-import path from 'node:path';
-import fs from 'node:fs';
+import type { RequestHandler } from "@builder.io/qwik-city";
+import os from "node:os";
+import url from "node:url";
+import path from "node:path";
+import fs from "node:fs";
 
 export const onRequest: RequestHandler = ({
   request,
@@ -15,34 +15,34 @@ export const onRequest: RequestHandler = ({
   getWritableStream,
   status,
 }) => {
-  const format = query.get('format');
+  const format = query.get("format");
 
-  if (format === 'img') {
+  if (format === "img") {
     const faviconPath = path.join(
       path.dirname(url.fileURLToPath(import.meta.url)),
-      '..',
-      'public',
-      'favicon.ico'
+      "..",
+      "public",
+      "favicon.ico",
     );
 
     status(200);
-    headers.set('Content-Type', 'image/x-icon');
+    headers.set("Content-Type", "image/x-icon");
 
     const writer = getWritableStream().getWriter();
     fs.createReadStream(faviconPath)
-      .on('data', (chunk) => {
+      .on("data", (chunk) => {
         writer.write(chunk as any);
       })
-      .on('end', () => {
+      .on("end", () => {
         writer.close();
       });
 
     return;
   }
 
-  if (format === 'csv') {
+  if (format === "csv") {
     status(203);
-    headers.set('Content-Type', 'text/plain');
+    headers.set("Content-Type", "text/plain");
     const { writable, readable } = new TextEncoderStream();
     readable.pipeTo(getWritableStream());
     const stream = writable.getWriter();
@@ -59,19 +59,19 @@ export const onRequest: RequestHandler = ({
     return;
   }
 
-  if (format === 'text') {
-    headers.set('Content-Type', 'text/plain');
-    send(202, format + ' ' + request.method + ' ' + new Date().toISOString());
+  if (format === "text") {
+    headers.set("Content-Type", "text/plain");
+    send(202, format + " " + request.method + " " + new Date().toISOString());
     return;
   }
 
-  if (format === 'html') {
-    html(201, format + ' ' + request.method + ' ' + new Date().toISOString());
+  if (format === "html") {
+    html(201, format + " " + request.method + " " + new Date().toISOString());
     return;
   }
 
   json(200, {
-    shared: sharedMap.get('root') ?? 'not set',
+    shared: sharedMap.get("root") ?? "not set",
     timestamp: new Date().toISOString(),
     method: request.method,
     url: request.url,
@@ -84,7 +84,7 @@ export const onRequest: RequestHandler = ({
 function csvLine(num: number) {
   let l = String(num);
   while (l.length < 18000) {
-    l += ',' + new Date().toISOString();
+    l += "," + new Date().toISOString();
   }
-  return l + '\n';
+  return l + "\n";
 }

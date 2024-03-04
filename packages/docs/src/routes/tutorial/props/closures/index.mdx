@@ -1,11 +1,17 @@
 ---
-title: Passing Closures
+title: Passing Closures | Tutorial
 contributors:
   - adamdbradley
   - Nico385412
   - the-r3aper7
   - jmmon
   - manucorporat
+  - mhevery
+  - Arthur-Fedotiev
+  - mrhoodz
+  - iancharlesdouglas
+updated_at: '2023-06-25T19:43:33Z'
+created_at: '2022-08-02T12:07:45Z'
 ---
 
 Props must be serializable so that Qwik can resume and render each component independently from other components on the page. This poses a problem if we wish to pass a callback to a child component. Callbacks are functions and functions are not directly serializable, but they are serializable through the `$()` by converting them to QRLs first.
@@ -14,24 +20,24 @@ Props must be serializable so that Qwik can resume and render each component ind
 
 Functions passing across serializable boundaries must be done through QRLs. QRLs are serialized forms of a function. (See [QRL](/docs/(qwik)/advanced/qrl/index.mdx) in the advanced section.)
 
-Qwik has convenience APIs that end in `$` these are equivalent to calling `$()` directly. These two lines are equivalent:
+Qwik has convenience APIs that end in `$` - these are equivalent to calling `$()` directly. These two lines are equivalent:
 
 - inline: `useTask$(() => {...}/>`
 - explicit: `const callbackQrl = $(() => {...}); useTaskQrl(callbackQrl)`
 
-Most of the time we use the first form as it allows us to inline our callbacks directly into the API. But at times it is necessary to use the second form so that we can separate where the function is declared and where it is used.
+Most of the time we use the first form as it allows us to inline our callbacks directly into the API. But at times it is necessary to use the second form so that we can separate where the function is declared from where it is used.
 
 ## Declaring callback props
 
 A component can declare a callback in its props by:
 
 - Property that ends in `$` (as in `goodbye$`)
-- The type of the property is `PropFunction<T>` where `T` is the lazy reference type that the QRL points to (function signature).
+- The type of the property is `QRL<T>` where `T` is the lazy reference type that the QRL points to (function signature).
 
 ```tsx
 interface MyComponentProps {
-  goodbye$: PropFunction<() => void>;
-  hello$: PropFunction<() => void>;
+  goodbye$: QRL<() => void>;
+  hello$: QRL<() => void>;
 }
 
 export const MyComponent = component$((props: MyComponentProps) => { ... });

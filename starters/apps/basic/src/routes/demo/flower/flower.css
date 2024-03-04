@@ -17,8 +17,12 @@
   contain: strict;
 }
 
+h1 {
+  margin-bottom: 60px;
+}
+
 .input {
-  width: 100%;
+  width: 60%;
 }
 
 .square {
@@ -27,7 +31,9 @@
   display: block;
   width: var(--size);
   height: var(--size);
-  transform: rotateZ(calc(var(--rotation) * var(--state) * (var(--center) - var(--index))));
+  transform: rotateZ(
+    calc(var(--rotation) * var(--state) * (var(--center) - var(--index)))
+  );
   transition-property: transform, border-color;
   transition-duration: 5s;
   transition-timing-function: ease-in-out;

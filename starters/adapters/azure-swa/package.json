@@ -6,7 +6,7 @@
   },
   "devDependencies": {
     "@azure/functions": "^3.5.0",
-    "@azure/static-web-apps-cli": "^1.0.3"
+    "@azure/static-web-apps-cli": "^1.1.1"
   },
   "__qwik__": {
     "priority": 30,
@@ -18,10 +18,10 @@
     "nextSteps": {
       "title": "Next Steps",
       "lines": [
-        " Now you can build and deploy to Azure with:",
+        "Now you can build and deploy to Azure with:",
         "",
-        "  - pnpm run build: production build for Azure SWA",
-        "  - pnpm run deploy: it will use the SWA CLI to deploy your site"
+        "- pnpm run build: production build for Azure SWA",
+        "- pnpm run deploy: it will use the SWA CLI to deploy your site"
       ]
     }
   }

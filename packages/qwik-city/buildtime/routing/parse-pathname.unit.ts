@@ -1,9 +1,9 @@
-import { test } from 'uvu';
-import { equal } from 'uvu/assert';
+import { assert, test } from 'vitest';
 import { parseRoutePathname } from './parse-pathname';
 
 /**
  * Adopted from SvelteKit
+ *
  * https://github.com/sveltejs/kit/blob/master/LICENSE
  */
 
@@ -63,14 +63,22 @@ const tests = {
     pattern: /^\/xyz\/abc\.dot\/?$/,
     paramNames: [],
   },
+  '/xyz/%D8%B9%D8%B1%D8%A8%D9%8A/': {
+    basePathname: '/',
+    pattern: /^\/xyz\/%D8%B9%D8%B1%D8%A8%D9%8A\/?$/,
+    paramNames: [],
+  },
+  '/xyz/server$/': {
+    basePathname: '/',
+    pattern: /^\/xyz\/server\$\/?$/,
+    paramNames: [],
+  },
 };
 
 for (const [key, t] of Object.entries(tests)) {
   test(`parseRoutePathname: "${key}"`, () => {
     const actual = parseRoutePathname(t.basePathname, key);
-    equal(actual.pattern.toString(), t.pattern.toString());
-    equal(actual.paramNames, t.paramNames);
+    assert.equal(actual.pattern.toString(), t.pattern.toString());
+    assert.deepEqual(actual.paramNames, t.paramNames);
   });
 }
-
-test.run();

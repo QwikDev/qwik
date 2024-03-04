@@ -19,6 +19,6 @@ server
 .cache
 .vscode
 .rollup.cache
-dist
 tsconfig.tsbuildinfo
 src/pages/**/*.mdx
+src/**/*.gen.*

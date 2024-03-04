@@ -13,6 +13,7 @@ export type {
   DocumentLink,
   DocumentMeta,
   DocumentStyle,
+  DocumentScript,
   PageModule,
   PathParams,
   RequestHandler,
@@ -30,12 +31,11 @@ export type {
   ActionStore,
   LoaderSignal,
   ActionConstructor,
-  ActionOptions,
-  ActionOptionsWithValidation,
   FailReturn,
   ZodConstructor,
   StaticGenerate,
   RouteNavigate,
+  NavigationType,
   DeferReturn,
   RequestEventBase,
   JSONObject,
@@ -43,9 +43,13 @@ export type {
 } from './types';
 
 export { RouterOutlet } from './router-outlet-component';
-export { QwikCityProvider, QwikCityMockProvider } from './qwik-city-component';
-export { Link } from './link-component';
-export type { LinkProps } from './link-component';
+export {
+  type QwikCityProps,
+  QwikCityProvider,
+  type QwikCityMockProps,
+  QwikCityMockProvider,
+} from './qwik-city-component';
+export { type LinkProps, Link } from './link-component';
 export { ServiceWorkerRegister } from './sw-component';
 export { useDocumentHead, useLocation, useContent, useNavigate } from './use-functions';
 export { routeAction$, routeActionQrl } from './server-functions';
@@ -59,3 +63,15 @@ export { z } from 'zod';
 
 export { Form } from './form-component';
 export type { FormProps } from './form-component';
+
+export type {
+  TypedDataValidator,
+  DataValidator,
+  GetValidatorType,
+  FailOfRest,
+  ActionReturn,
+  StrictUnion,
+  ValidatorReturn,
+  ServerQRL,
+  ServerFunction,
+} from './types';

@@ -13,11 +13,15 @@ import { setServerPlatform } from '@builder.io/qwik/server';
 
 // @builder.io/qwik-city/middleware/cloudflare-pages
 
-/**
- * @public
- */
+/** @public */
 export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
-  (globalThis as any).TextEncoderStream = TextEncoderStream;
+  try {
+    // https://developers.cloudflare.com/workers/configuration/compatibility-dates/#streams-constructors
+    // this will throw if CF compatibility_date < 2022-11-30
+    new globalThis.TextEncoderStream();
+  } catch (e) {
+    (globalThis as any).TextEncoderStream = TextEncoderStream;
+  }
   const qwikSerializer = {
     _deserializeData,
     _serializeData,
@@ -26,13 +30,17 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
   if (opts.manifest) {
     setServerPlatform(opts.manifest);
   }
-  async function onCloudflarePagesRequest({ request, env, waitUntil, next }: EventPluginContext) {
+  async function onCloudflarePagesFetch(
+    request: PlatformCloudflarePages['request'],
+    env: PlatformCloudflarePages['env'] & { ASSETS: { fetch: (req: Request) => Response } },
+    ctx: PlatformCloudflarePages['ctx']
+  ) {
     try {
       const url = new URL(request.url);
 
       if (isStaticPath(request.method, url)) {
         // known static path, let cloudflare handle it
-        return next();
+        return env.ASSETS.fetch(request);
       }
 
       // https://developers.cloudflare.com/workers/runtime-apis/cache/
@@ -69,7 +77,17 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
           resolve(response);
           return writable;
         },
-        platform: env,
+        getClientConn: () => {
+          return {
+            ip: request.headers.get('CF-connecting-ip') || '',
+            country: request.headers.get('CF-IPCountry') || '',
+          };
+        },
+        platform: {
+          request,
+          env,
+          ctx,
+        },
       };
 
       // send request to qwik city request handler
@@ -86,7 +104,7 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
             // Store the fetched response as cacheKey
             // Use waitUntil so you can return the response without blocking on
             // writing to cache
-            waitUntil(handledResponse.completion.then(() => cache.put(cacheKey, response.clone())));
+            ctx.waitUntil(handledResponse.completion.then(() => cache.put(cacheKey, response.clone())));
           }
           return response;
         }
@@ -108,29 +126,17 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
     }
   }
 
-  return onCloudflarePagesRequest;
+  return onCloudflarePagesFetch;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface QwikCityCloudflarePagesOptions extends ServerRenderOptions {}
 
-/**
- * @public
- */
-export interface EventPluginContext {
-  request: Request;
-  waitUntil: (promise: Promise<any>) => void;
-  next: (input?: Request | string, init?: RequestInit) => Promise<Response>;
-  env: Record<string, any>;
-}
-
-/**
- * @public
- */
+/** @public */
 export interface PlatformCloudflarePages {
-  env?: EventPluginContext['env'];
+  request: Request;
+  env?: Record<string, any>;
+  ctx: { waitUntil: (promise: Promise<any>) => void };
 }
 
 const resolved = Promise.resolve();

@@ -11,7 +11,7 @@ export default component$(() => {
   });
   return (
     <>
-      <div>Current Time: {store.time}</div>
+      <p>Current Time: {store.time}</p>
       <button
         onClick$={() => {
           // @ts-ignore

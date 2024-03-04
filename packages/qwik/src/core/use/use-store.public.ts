@@ -4,20 +4,12 @@ import { isFunction } from '../util/types';
 import { invoke } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';
 
-/**
- * @public
- */
+/** @public */
 export interface UseStoreOptions {
-  /**
-   * If `true` then all nested objects and arrays will be tracked as well.
-   * Default is `false`.
-   */
+  /** If `true` then all nested objects and arrays will be tracked as well. Default is `false`. */
   deep?: boolean;
 
-  /**
-   * If `false` then the object will not be tracked for changes.
-   * Default is `true`.
-   */
+  /** If `false` then the object will not be tracked for changes. Default is `true`. */
   reactive?: boolean;
 }
 
@@ -27,8 +19,8 @@ export interface UseStoreOptions {
 /**
  * Creates an object that Qwik can track across serializations.
  *
- * Use `useStore` to create a state for your application. The returned object is a proxy that has
- * a unique ID. The ID of the object is used in the `QRL`s to refer to the store.
+ * Use `useStore` to create a state for your application. The returned object is a proxy that has a
+ * unique ID. The ID of the object is used in the `QRL`s to refer to the store.
  *
  * ### Example
  *
@@ -88,9 +80,9 @@ export const useStore = <STATE extends object>(
   initialState: STATE | (() => STATE),
   opts?: UseStoreOptions
 ): STATE => {
-  const { get, set, iCtx } = useSequentialScope<STATE>();
-  if (get != null) {
-    return get;
+  const { val, set, iCtx } = useSequentialScope<STATE>();
+  if (val != null) {
+    return val;
   }
   const value = isFunction(initialState) ? invoke(undefined, initialState) : initialState;
   if (opts?.reactive === false) {
@@ -98,7 +90,7 @@ export const useStore = <STATE extends object>(
     return value;
   } else {
     const containerState = iCtx.$renderCtx$.$static$.$containerState$;
-    const recursive = opts?.deep ?? false;
+    const recursive = opts?.deep ?? true;
     const flags = recursive ? QObjectRecursive : 0;
     const newStore = getOrCreateProxy(value, containerState, flags);
     set(newStore);

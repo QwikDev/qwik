@@ -26,15 +26,14 @@ export default component$(() => {
 
   console.log('Render');
   return (
-    <div>
-      <span>
-        GitHub username:
-        <input
-          value={github.org}
-          onInput$={(ev) => (github.org = (ev.target as HTMLInputElement).value)}
-        />
-      </span>
-      <div>
+    <main>
+      <p>
+        <label>
+          GitHub username:
+          <input value={github.org} onInput$={(ev, el) => (github.org = el.value)} />
+        </label>
+      </p>
+      <section>
         {/* Use <Resource> to display the data from the useResource$() function. */}
         {/* To help, here's a callback function to display the data on resolved. */}
         {/* (repos) => (
@@ -46,8 +45,8 @@ export default component$(() => {
               ))}
             </ul>
           ) */}
-      </div>
-    </div>
+      </section>
+    </main>
   );
 });
 

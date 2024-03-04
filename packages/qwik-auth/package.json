@@ -1,55 +1,51 @@
 {
   "name": "@builder.io/qwik-auth",
-  "version": "0.1.0",
-  "description": "Qwik Auth is powered by Next's Auth.js a battle tested library for authentication with 3rd party providers",
-  "keywords": [
-    "auth.js",
-    "qwik",
-    "login",
-    "authentication",
-    "ssr",
-    "plugin"
-  ],
-  "scripts": {
-    "build": "vite build --mode lib"
+  "description": "Qwik Auth is powered by Auth.js, a battle tested library for authentication with 3rd party providers",
+  "version": "0.1.3",
+  "bugs": "https://github.com/BuilderIO/qwik/issues",
+  "dependencies": {
+    "@auth/core": "0.21.0"
+  },
+  "devDependencies": {
+    "@auth/core": "0.21.0",
+    "@builder.io/qwik": "workspace:^",
+    "@builder.io/qwik-city": "workspace:^",
+    "@types/set-cookie-parser": "^2.4.7",
+    "set-cookie-parser": "^2.6.0"
   },
   "engines": {
     "node": ">=16.8.0 <18.0.0 || >=18.11"
   },
   "exports": {
     ".": {
+      "types": "./lib/types/index.d.ts",
       "import": "./lib/index.qwik.mjs",
-      "require": "./lib/index.qwik.cjs",
-      "types": "./lib/types/index.d.ts"
+      "require": "./lib/index.qwik.cjs"
     }
   },
   "files": [
     "lib"
   ],
-  "license": "MIT",
   "homepage": "https://qwik.builder.io/",
+  "keywords": [
+    "auth.js",
+    "authentication",
+    "login",
+    "plugin",
+    "qwik",
+    "ssr"
+  ],
+  "license": "MIT",
+  "main": "./lib/index.qwik.mjs",
+  "qwik": "./lib/index.qwik.mjs",
   "repository": {
     "type": "git",
     "url": "https://github.com/BuilderIO/qwik.git",
     "directory": "packages/qwik-auth"
   },
-  "bugs": {
-    "url": "https://github.com/BuilderIO/qwik/issues"
+  "scripts": {
+    "build": "vite build --mode lib"
   },
   "type": "module",
-  "main": "./lib/index.qwik.mjs",
-  "qwik": "./lib/index.qwik.mjs",
-  "types": "./lib/types/index.d.ts",
-  "devDependencies": {
-    "@auth/core": "^0.5.1",
-    "@builder.io/qwik": "workspace:*",
-    "@builder.io/qwik-city": "workspace:*",
-    "@types/set-cookie-parser": "^2.4.2",
-    "set-cookie-parser": "^2.6.0"
-  },
-  "peerDependencies": {
-    "@auth/core": ">=0.4.0",
-    "@builder.io/qwik": ">=0.100.0",
-    "@builder.io/qwik-city": ">=0.6.0"
-  }
+  "types": "./lib/types/index.d.ts"
 }

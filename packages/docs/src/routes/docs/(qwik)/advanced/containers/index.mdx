@@ -1,5 +1,5 @@
 ---
-title: Containers
+title: Containers | Advanced
 contributors:
   - the-r3aper7
   - RATIU5
@@ -7,6 +7,11 @@ contributors:
   - manucorporat
   - cunzaizhuyi
   - Craiqser
+  - mhevery
+  - bab2683
+  - mrhoodz
+updated_at: '2023-08-23T23:06:42Z'
+created_at: '2023-03-20T23:45:13Z'
 ---
 
 # Containers
@@ -21,7 +26,7 @@ Every Qwik application is contained inside a element, usually the `<html>` eleme
 
 ## Container Attributes
 
-Since containers are implicitally rendered by the Qwik runtime, it's not possible to define custom HTML attributes using JSX, however, the SSR render APIs, like `renderToString` and `renderToStream`, provide the `containerAttributes` option to define custom attributes:
+Since containers are implicitly rendered by the Qwik runtime, it's not possible to define custom HTML attributes using JSX, however, the SSR render APIs, like `renderToString` and `renderToStream`, provide the `containerAttributes` option to define custom attributes:
 
 ```tsx
 renderToStream(<Root />, {

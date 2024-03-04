@@ -1,4 +1,4 @@
-import type { Plugin, WatchMode } from 'esbuild';
+import type { Plugin } from 'esbuild';
 import { join } from 'node:path';
 import mri from 'mri';
 import {
@@ -24,21 +24,23 @@ import { execa, type Options } from 'execa';
 import { fileURLToPath } from 'node:url';
 
 /**
- * Contains information about the build we're generating by parsing
- * CLI args, and figuring out all the absolute file paths the
- * build will be reading from and writing to.
+ * Contains information about the build we're generating by parsing CLI args, and figuring out all
+ * the absolute file paths the build will be reading from and writing to.
  */
 export interface BuildConfig {
   rootDir: string;
   packagesDir: string;
   tmpDir: string;
   srcNapiDir: string;
-  srcDir: string;
+  srcQwikDir: string;
+  srcQwikCityDir: string;
+  srcQwikLabsDir: string;
   scriptsDir: string;
   startersDir: string;
   tscDir: string;
   dtsDir: string;
-  distPkgDir: string;
+  distQwikPkgDir: string;
+  distQwikCityPkgDir: string;
   distBindingsDir: string;
   esmNode: boolean;
   distVersion: string;
@@ -48,7 +50,10 @@ export interface BuildConfig {
   build?: boolean;
   qwikcity?: boolean;
   qwikreact?: boolean;
+  qwiklabs?: boolean;
   qwikauth?: boolean;
+  qwikworker?: boolean;
+  supabaseauthhelpers?: boolean;
   cli?: boolean;
   eslint?: boolean;
   commit?: boolean;
@@ -61,14 +66,15 @@ export interface BuildConfig {
   devRelease?: boolean;
   setDistTag?: string;
   tsc?: boolean;
+  tscDocs?: boolean;
   validate?: boolean;
   wasm?: boolean;
   watch?: boolean;
 }
 
 /**
- * Create the `BuildConfig` from the process args, and set the
- * absolute paths the build will be reading from and writing to.
+ * Create the `BuildConfig` from the process args, and set the absolute paths the build will be
+ * reading from and writing to.
  */
 export function loadConfig(args: string[] = []) {
   const config: BuildConfig = mri(args) as any;
@@ -77,13 +83,17 @@ export function loadConfig(args: string[] = []) {
   config.rootDir = join(__dirname, '..');
   config.packagesDir = join(config.rootDir, 'packages');
   config.tmpDir = join(config.rootDir, 'dist-dev');
-  config.srcDir = join(config.packagesDir, 'qwik', 'src');
-  config.srcNapiDir = join(config.srcDir, 'napi');
+  config.srcQwikDir = join(config.packagesDir, 'qwik', 'src');
+  config.srcQwikCityDir = join(config.packagesDir, 'qwik-city');
+  config.srcQwikLabsDir = join(config.packagesDir, 'qwik-labs');
+  config.srcNapiDir = join(config.srcQwikDir, 'napi');
   config.scriptsDir = join(config.rootDir, 'scripts');
   config.startersDir = join(config.rootDir, 'starters');
-  config.distPkgDir = join(config.packagesDir, 'qwik', 'dist');
-  config.distBindingsDir = join(config.distPkgDir, 'bindings');
+  config.distQwikPkgDir = join(config.packagesDir, 'qwik', 'dist');
+  config.distQwikCityPkgDir = join(config.packagesDir, 'qwik-city', 'lib');
+  config.distBindingsDir = join(config.distQwikPkgDir, 'bindings');
   config.tscDir = join(config.tmpDir, 'tsc-out');
+  config.tscDocs = (config as any)['tsc-docs'];
   config.dtsDir = join(config.tmpDir, 'dts-out');
   config.esmNode = parseInt(process.version.slice(1).split('.')[0], 10) >= 14;
   config.platformBinding = (config as any)['platform-binding'];
@@ -112,9 +122,7 @@ export function terser(opts: MinifyOptions): RollupPlugin {
   };
 }
 
-/**
- * Esbuild plugin to change an import path, but keep it an external path.
- */
+/** Esbuild plugin to change an import path, but keep it an external path. */
 export function importPath(filter: RegExp, newModulePath: string) {
   const plugin: Plugin = {
     name: 'importPathPlugin',
@@ -128,26 +136,7 @@ export function importPath(filter: RegExp, newModulePath: string) {
   return plugin;
 }
 
-/**
- * Esbuild plugin to print out console logs the rebuild has finished or if it has errors.
- */
-export function watcher(config: BuildConfig, filename?: string): WatchMode | boolean {
-  if (config.watch) {
-    return {
-      onRebuild(error) {
-        if (error) console.error('watch build failed:', error);
-        else {
-          if (filename) console.log('rebuilt:', filename);
-        }
-      },
-    };
-  }
-  return false;
-}
-
-/**
- * Standard license banner to place at the top of the generated files.
- */
+/** Standard license banner to place at the top of the generated files. */
 export const getBanner = (moduleName: string, version: string) => {
   return `
 /**
@@ -161,18 +150,17 @@ export const getBanner = (moduleName: string, version: string) => {
 };
 
 /**
- * The JavaScript target we're going for. Reusing a constant just to make sure
- * all the builds are using the same target.
+ * The JavaScript target we're going for. Reusing a constant just to make sure all the builds are
+ * using the same target.
  */
 export const target = 'es2020';
 
-export const nodeTarget = 'node14';
+export const nodeTarget = 'node16';
 
-/**
- * Helper just to know which Node.js modules that should stay external.
- */
+/** Helper just to know which Node.js modules that should stay external. */
 export const nodeBuiltIns = [
   'assert',
+  'async_hooks',
   'child_process',
   'crypto',
   'fs',
@@ -185,27 +173,7 @@ export const nodeBuiltIns = [
   'util',
 ];
 
-export function injectGlobalThisPoly() {
-  return `
-if (typeof globalThis == 'undefined') {
-  const g = 'undefined' != typeof global ? global : 'undefined' != typeof window ? window : 'undefined' != typeof self ? self : {};
-  g.globalThis = g;
-}
-`;
-}
-
-export function injectGlobalPoly() {
-  return `
-if (typeof global == 'undefined') {
-  const g = 'undefined' != typeof globalThis ? globalThis : 'undefined' != typeof window ? window : 'undefined' != typeof self ? self : {};
-  g.global = g;
-}
-`;
-}
-
-/**
- * Utility just to ignore certain rollup warns we already know aren't issues.
- */
+/** Utility just to ignore certain rollup warns we already know aren't issues. */
 export function rollupOnWarn(warning: any, warn: any) {
   // skip certain warnings
   if (warning.code === `CIRCULAR_DEPENDENCY`) return;
@@ -215,9 +183,7 @@ export function rollupOnWarn(warning: any, warn: any) {
   warn(warning);
 }
 
-/**
- * Helper just to get and format a file's size for logging.
- */
+/** Helper just to get and format a file's size for logging. */
 export async function fileSize(filePath: string) {
   const text = await readFile(filePath);
   const { default: compress } = await import('brotli/compress.js');
@@ -300,9 +266,7 @@ export function panic(msg: string) {
   process.exit(1);
 }
 
-/**
- * Interface for package.json
- */
+/** Interface for package.json */
 export interface PackageJSON {
   name: string;
   version: string;

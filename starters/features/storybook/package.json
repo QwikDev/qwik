@@ -1,0 +1,25 @@
+{
+  "description": "Add Storybook",
+  "__qwik__": {
+    "displayName": "Integration: Storybook",
+    "priority": -10,
+    "docs": [
+      "https://qwik.builder.io/integrations/integration/storybook/",
+      "https://storybook.js.org/docs/qwik/get-started/why-storybook"
+    ]
+  },
+  "devDependencies": {
+    "@storybook/addon-essentials": "^7.4.6",
+    "@storybook/addon-links": "^7.4.6",
+    "@storybook/blocks": "^7.4.6",
+    "@storybook/builder-vite": "^7.4.6",
+    "@storybook/html": "^7.4.6",
+    "@storybook/html-vite": "^7.4.6",
+    "storybook": "^7.4.6",
+    "storybook-framework-qwik": "^0.2.4"
+  },
+  "scripts": {
+    "build-storybook": "storybook build",
+    "storybook": "storybook dev -p 6006"
+  }
+}

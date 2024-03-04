@@ -6,6 +6,7 @@ use std::path::{Component, Path, PathBuf};
 use std::str;
 
 use crate::add_side_effect::SideEffectVisitor;
+use crate::clean_side_effects::Treeshaker;
 use crate::code_move::{new_module, NewModuleCtx};
 use crate::collector::global_collect;
 use crate::const_replace::ConstReplacerVisitor;
@@ -17,7 +18,6 @@ use crate::utils::{Diagnostic, DiagnosticCategory, DiagnosticScope, SourceLocati
 use crate::EntryStrategy;
 use path_slash::PathExt;
 use serde::{Deserialize, Serialize};
-use swc_ecmascript::transforms::optimization::simplify::inlining::inlining;
 
 #[cfg(feature = "fs")]
 use std::fs;
@@ -283,6 +283,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                             Some(&comments),
                             react_options,
                             top_level_mark,
+                            unresolved_mark,
                         ));
                     }
 
@@ -292,11 +293,6 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         top_level_mark,
                         is_type_script && !transpile_ts,
                     ));
-
-                    if transpile_ts {
-                        main_module.visit_mut_with(&mut inlining(Default::default()));
-                    }
-
                     // Collect import/export metadata
                     let mut collect = global_collect(&main_module);
 
@@ -336,7 +332,11 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                     // Run main transform
                     main_module = main_module.fold_with(&mut qwik_transform);
 
+                    let mut treeshaker = Treeshaker::new();
+
                     if config.minify != MinifyMode::None {
+                        main_module.visit_mut_with(&mut treeshaker.marker);
+
                         main_module = main_module.fold_with(&mut simplify::simplifier(
                             unresolved_mark,
                             simplify::Config {
@@ -357,6 +357,22 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                             &path_data,
                             config.src_dir,
                         ));
+                    } else if config.minify != MinifyMode::None
+                        && matches!(config.is_server, Some(false))
+                    {
+                        main_module.visit_mut_with(&mut treeshaker.cleaner);
+                        if treeshaker.cleaner.did_drop {
+                            main_module = main_module.fold_with(&mut simplify::simplifier(
+                                unresolved_mark,
+                                simplify::Config {
+                                    dce: simplify::dce::Config {
+                                        preserve_imports_with_side_effects: false,
+                                        ..Default::default()
+                                    },
+                                    ..Default::default()
+                                },
+                            ));
+                        }
                     }
                     main_module.visit_mut_with(&mut hygiene_with_config(Default::default()));
                     main_module.visit_mut_with(&mut fixer(None));
@@ -503,6 +519,7 @@ fn parse(
     let syntax = if is_type_script {
         Syntax::Typescript(TsConfig {
             tsx: is_jsx,
+            decorators: true,
             ..Default::default()
         })
     } else {

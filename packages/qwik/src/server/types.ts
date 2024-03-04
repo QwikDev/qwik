@@ -1,27 +1,25 @@
 import type { SnapshotResult, StreamWriter } from '@builder.io/qwik';
-import type { QwikManifest, SymbolMapperFn, SymbolMapper } from '@builder.io/qwik/optimizer';
-import type { ResolvedManifest } from './prefetch-strategy';
+import type {
+  QwikManifest,
+  SymbolMapperFn,
+  SymbolMapper,
+  ResolvedManifest,
+} from '@builder.io/qwik/optimizer';
 
-/**
- * @public
- */
+/** @public */
 export interface SerializeDocumentOptions {
   manifest?: QwikManifest | ResolvedManifest;
   symbolMapper?: SymbolMapperFn;
   debug?: boolean;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface PrefetchStrategy {
   implementation?: PrefetchImplementation;
   symbolsToPrefetch?: SymbolsToPrefetch;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface PrefetchImplementation {
   /**
    * `js-append`: Use JS runtime to create each `<link>` and append to the body.
@@ -30,14 +28,15 @@ export interface PrefetchImplementation {
    */
   linkInsert?: 'js-append' | 'html-append' | null;
   /**
-   * Value of the `<link rel="...">` attribute when link is used.
-   * Defaults to `prefetch` if links are inserted.
+   * Value of the `<link rel="...">` attribute when link is used. Defaults to `prefetch` if links
+   * are inserted.
    */
   linkRel?: 'prefetch' | 'preload' | 'modulepreload' | null;
   /**
    * `always`: Always include the worker fetch JS runtime.
    *
-   * `no-link-support`: Only include the worker fetch JS runtime when the browser doesn't support `<link>` prefetch/preload/modulepreload.
+   * `no-link-support`: Only include the worker fetch JS runtime when the browser doesn't support
+   * `<link>` prefetch/preload/modulepreload.
    */
   workerFetchInsert?: 'always' | 'no-link-support' | null;
   /**
@@ -59,23 +58,19 @@ export interface PrefetchImplementation {
 }
 
 /**
- * auto: Prefetch all possible QRLs used by the document. Default
+ * Auto: Prefetch all possible QRLs used by the document. Default
  *
  * @public
  */
 export type SymbolsToPrefetch = 'auto' | ((opts: { manifest: QwikManifest }) => PrefetchResource[]);
 
-/**
- * @public
- */
+/** @public */
 export interface PrefetchResource {
   url: string;
   imports: PrefetchResource[];
 }
 
-/**
- * @public
- */
+/** @public */
 export interface RenderToStreamResult extends RenderResult {
   flushes: number;
   size: number;
@@ -86,9 +81,7 @@ export interface RenderToStreamResult extends RenderResult {
   };
 }
 
-/**
- * @public
- */
+/** @public */
 export interface RenderToStringResult extends RenderResult {
   html: string;
   timing: {
@@ -97,9 +90,7 @@ export interface RenderToStringResult extends RenderResult {
   };
 }
 
-/**
- * @public
- */
+/** @public */
 export interface RenderResult {
   prefetchResources: PrefetchResource[];
   snapshotResult: SnapshotResult | undefined;
@@ -109,112 +100,114 @@ export interface RenderResult {
   _symbols?: string[];
 }
 
-/**
- * @public
- */
+/** @public */
 export interface QwikLoaderOptions {
-  events?: string[];
   include?: 'always' | 'never' | 'auto';
   position?: 'top' | 'bottom';
 }
 
 /**
+ * Options which determine how the Qwik Prefetch Service Worker is added to the document.
+ *
+ * Qwik Prefetch Service Worker is used to prefetch resources so that the QwikLoader will always
+ * have a cache hit. This will ensure that there will not be any delays for the end user while
+ * interacting with the application.
+ *
  * @public
  */
-export interface RenderOptions extends SerializeDocumentOptions {
+export interface QwikPrefetchServiceWorkerOptions {
   /**
-   * Defaults to `true`
+   * Should the Qwik Prefetch Service Worker be added to the container. Defaults to `false` until
+   * the QwikCity Service Worker is deprecated.
    */
+  include?: boolean;
+  /**
+   * Where should the Qwik Prefetch Service Worker be added to the container. Defaults to `top` to
+   * get prefetching going as fast as possible.
+   */
+  position?: 'top' | 'bottom';
+}
+
+/** @public */
+export interface RenderOptions extends SerializeDocumentOptions {
+  /** Defaults to `true` */
   snapshot?: boolean;
 
   /**
-   * Specifies the root of the JS files of the client build.
-   * Setting a base, will cause the render of the `q:base` attribute in the `q:container` element.
+   * Specifies the root of the JS files of the client build. Setting a base, will cause the render
+   * of the `q:base` attribute in the `q:container` element.
    */
   base?: string | ((options: RenderOptions) => string);
 
-  /**
-   * Language to use when rendering the document.
-   */
+  /** Language to use when rendering the document. */
   locale?: string | ((options: RenderOptions) => string);
 
   /**
-   * Specifies if the Qwik Loader script is added to the document or not. Defaults to `{ include: true }`.
+   * Specifies if the Qwik Loader script is added to the document or not.
+   *
+   * Defaults to `{ include: true }`.
    */
   qwikLoader?: QwikLoaderOptions;
+
+  /**
+   * Specifies if the Qwik Prefetch Service Worker script is added to the document or not.
+   *
+   * Defaults to `{ include: false }`. NOTE: This may be change in the future.
+   */
+  qwikPrefetchServiceWorker?: QwikPrefetchServiceWorkerOptions;
 
   prefetchStrategy?: PrefetchStrategy | null;
 
   /**
-   * When set, the app is serialized into a fragment. And the returned html is not a complete document.
-   * Defaults to `html`
+   * When set, the app is serialized into a fragment. And the returned html is not a complete
+   * document. Defaults to `html`
    */
   containerTagName?: string;
   containerAttributes?: Record<string, string>;
   serverData?: Record<string, any>;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface RenderToStringOptions extends RenderOptions {}
 
-/**
- * @public
- */
+/** @public */
 export interface InOrderAuto {
   strategy: 'auto';
   maximunInitialChunk?: number;
   maximunChunk?: number;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface InOrderDisabled {
   strategy: 'disabled';
 }
 
-/**
- * @public
- */
+/** @public */
 export interface InOrderDirect {
   strategy: 'direct';
 }
 
-/**
- * @public
- */
+/** @public */
 export type InOrderStreaming = InOrderAuto | InOrderDisabled | InOrderDirect;
 
-/**
- * @public
- */
+/** @public */
 export interface StreamingOptions {
   inOrder?: InOrderStreaming;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface RenderToStreamOptions extends RenderOptions {
   stream: StreamWriter;
   streaming?: StreamingOptions;
 }
 
-/**
- * @public
- */
+/** @public */
 export type RenderToString = (opts: RenderToStringOptions) => Promise<RenderToStringResult>;
 
-/**
- * @public
- */
+/** @public */
 export type RenderToStream = (opts: RenderToStreamOptions) => Promise<RenderToStreamResult>;
 
-/**
- * @public
- */
+/** @public */
 export type Render = RenderToString | RenderToStream;
 
 export type { SnapshotResult, SymbolMapper, QwikManifest, StreamWriter };

@@ -1,10 +1,8 @@
+import { assert, describe, test } from 'vitest';
 import { parseRoutePathname } from '../../buildtime/routing/parse-pathname';
-import { suite, test } from 'uvu';
-import { equal } from 'uvu/assert';
-import { getPathParams, getMenuLoader } from './routing';
+import { getMenuLoader } from './routing';
 import type { MenuData } from './types';
-
-const routingTest = suite('routing');
+import { matchRoute } from './route-matcher';
 
 const routeTests = [
   {
@@ -105,18 +103,15 @@ const routeTests = [
   },
 ];
 
-for (const t of routeTests) {
-  routingTest(`matches ${t.pathname} with ${t.pattern}`, () => {
-    const actual = parseRoutePathname(t.basenamePath, t.pattern);
-    const matched = actual.pattern.exec(t.pathname);
-
-    if (matched === null) {
-      equal(t.result, null);
-    } else {
-      equal(getPathParams(actual.paramNames, matched), t.result);
-    }
-  });
-}
+describe('routing', () => {
+  for (const t of routeTests) {
+    test(`matches ${t.pathname} with ${t.pattern}`, () => {
+      const actual = parseRoutePathname(t.basenamePath, t.pattern);
+      const params = matchRoute(actual.routeName, t.pathname);
+      assert.deepEqual(params, t.result);
+    });
+  }
+});
 
 test(`getMenuLoader, crawl up root, trailing slash`, async () => {
   const menus: MenuData[] = [
@@ -125,7 +120,7 @@ test(`getMenuLoader, crawl up root, trailing slash`, async () => {
     ['/', async () => ({ default: { text: 'Root' } })],
   ];
   const loader = getMenuLoader(menus, '/a/b/c/');
-  equal(await loader!(), { default: { text: 'Root' } });
+  assert.deepEqual(await loader!(), { default: { text: 'Root' } });
 });
 
 test(`getMenuLoader, crawl up root, no trailing slash`, async () => {
@@ -135,7 +130,7 @@ test(`getMenuLoader, crawl up root, no trailing slash`, async () => {
     ['/', async () => ({ default: { text: 'Root' } })],
   ];
   const loader = getMenuLoader(menus, '/a/b/c');
-  equal(await loader!(), { default: { text: 'Root' } });
+  assert.deepEqual(await loader!(), { default: { text: 'Root' } });
 });
 
 test(`getMenuLoader, crawl up one, trailing slash`, async () => {
@@ -145,7 +140,7 @@ test(`getMenuLoader, crawl up one, trailing slash`, async () => {
     ['/', async () => ({ default: { text: 'Root' } })],
   ];
   const loader = getMenuLoader(menus, '/foo/no-menu/');
-  equal(await loader!(), { default: { text: 'Foo' } });
+  assert.deepEqual(await loader!(), { default: { text: 'Foo' } });
 });
 
 test(`getMenuLoader, crawl up one, no trailing slash`, async () => {
@@ -155,7 +150,7 @@ test(`getMenuLoader, crawl up one, no trailing slash`, async () => {
     ['/', async () => ({ default: { text: 'Root' } })],
   ];
   const loader = getMenuLoader(menus, '/foo/no-menu');
-  equal(await loader!(), { default: { text: 'Foo' } });
+  assert.deepEqual(await loader!(), { default: { text: 'Foo' } });
 });
 
 test(`getMenuLoader, exact path, trailing slash`, async () => {
@@ -165,7 +160,7 @@ test(`getMenuLoader, exact path, trailing slash`, async () => {
     ['/', async () => ({ default: { text: 'Root' } })],
   ];
   const loader = getMenuLoader(menus, '/foo/bar/');
-  equal(await loader!(), { default: { text: 'Bar' } });
+  assert.deepEqual(await loader!(), { default: { text: 'Bar' } });
 });
 
 test(`getMenuLoader, exact path, no trailing slash`, async () => {
@@ -175,7 +170,7 @@ test(`getMenuLoader, exact path, no trailing slash`, async () => {
     ['/', async () => ({ default: { text: 'Root' } })],
   ];
   const loader = getMenuLoader(menus, '/foo/bar');
-  equal(await loader!(), { default: { text: 'Bar' } });
+  assert.deepEqual(await loader!(), { default: { text: 'Bar' } });
 });
 
 test(`getMenuLoader, root`, async () => {
@@ -185,8 +180,5 @@ test(`getMenuLoader, root`, async () => {
     ['/', async () => ({ default: { text: 'Root' } })],
   ];
   const loader = getMenuLoader(menus, '/');
-  equal(await loader!(), { default: { text: 'Root' } });
+  assert.deepEqual(await loader!(), { default: { text: 'Root' } });
 });
-
-routingTest.run();
-test.run();

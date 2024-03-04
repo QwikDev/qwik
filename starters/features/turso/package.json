@@ -1,0 +1,30 @@
+{
+  "description": "Use Turso in your Qwik app",
+  "__qwik__": {
+    "displayName": "Integration: Turso (database)",
+    "priority": -10,
+    "viteConfig": {},
+    "docs": [
+      "https://qwik.builder.io/integrations/integration/turso/",
+      "https://docs.turso.tech"
+    ],
+    "nextSteps": {
+      "title": "Create and set up your turso database",
+      "lines": [
+        " Install the Turso CLI (https://docs.turso.tech/reference/turso-cli#installation)",
+        " You can then create a new Turso database by running:",
+        "   turso db create <db-name>",
+        " To see information about the database, including a connection URL, run:",
+        "   turso db show <db-name>",
+        " To get an authentication token for the database, run:",
+        "   turso db tokens create <db-name>"
+      ]
+    }
+  },
+  "dependencies": {
+    "@libsql/client": "^0.3.1"
+  },
+  "devDependencies": {
+    "@builder.io/qwik-city": "^1.2.13"
+  }
+}

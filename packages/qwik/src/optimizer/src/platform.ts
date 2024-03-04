@@ -45,8 +45,8 @@ export async function getSystem() {
         // TextEncoder/TextDecoder needs to be on the global scope for the WASM file
         // https://nodejs.org/api/util.html#class-utiltextdecoder
         const nodeUtil: typeof import('util') = await sys.dynamicImport('node:util');
-        global.TextEncoder = nodeUtil.TextEncoder;
-        global.TextDecoder = nodeUtil.TextDecoder;
+        globalThis.TextEncoder = nodeUtil.TextEncoder;
+        globalThis.TextDecoder = nodeUtil.TextDecoder;
       }
     } else if (sysEnv === 'webworker' || sysEnv === 'browsermain') {
       sys.strictDynamicImport = (path) => import(path);
@@ -82,7 +82,7 @@ export const getPlatformInputFiles = async (sys: OptimizerSystem) => {
     return async (rootDir: string) => {
       const getChildFilePaths = async (dir: string): Promise<string[]> => {
         const stats = await fs.promises.stat(dir);
-        const flatted = [];
+        const flatted: string[] = [];
         if (stats.isDirectory()) {
           const dirItems = await fs.promises.readdir(dir);
 
@@ -99,7 +99,7 @@ export const getPlatformInputFiles = async (sys: OptimizerSystem) => {
         } else {
           flatted.push(dir);
         }
-        return flatted.filter((a) => extensions[sys.path.extname(a)]);
+        return flatted.filter((a) => sys.path.extname(a).toLowerCase() in extensions);
       };
 
       const filePaths = await getChildFilePaths(rootDir);
@@ -265,6 +265,10 @@ const getEnv = (): SystemEnvironment => {
     return 'deno';
   }
 
+  if (typeof Bun !== 'undefined') {
+    return 'bun';
+  }
+
   if (
     typeof process !== 'undefined' &&
     typeof global !== 'undefined' &&
@@ -307,7 +311,7 @@ const extensions: { [ext: string]: boolean } = {
   '.mjs': true,
 };
 
-declare const globalThis: { IS_CJS: boolean; IS_ESM: boolean };
-declare const global: { [key: string]: any };
+declare const globalThis: { IS_CJS: boolean; IS_ESM: boolean; [key: string]: any };
 declare const WorkerGlobalScope: any;
 declare const Deno: any;
+declare const Bun: any;

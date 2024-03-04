@@ -1,11 +1,17 @@
 ---
-title: QRL
+title: QRL | Advanced
 contributors:
   - ahhshm
   - manucorporat
   - adamdbradley
   - literalpie
   - the-r3aper7
+  - mhevery
+  - wtlin1228
+  - bebraw
+  - mrhoodz
+updated_at: '2023-10-12T18:28:54Z'
+created_at: '2023-03-20T23:45:13Z'
 ---
 
 # QRL
@@ -35,7 +41,7 @@ Qwik uses `q:base` to resolve a QRL into an absolute URL if the URL is relative.
 QRLs can also restore lexically scoped variables. In that case, the variables are encoded in the QRL at the end in the form of an array of indexes into the `q:obj` attribute.
 
 ```
-./path/to/chunk.js#SymbolName[0,2]
+./path/to/chunk.js#SymbolName[0,1]
 ```
 
 The array is used by `useLexicalScope()` to restore the variables.
@@ -60,18 +66,14 @@ The optimizer breaks above code into pieces like so:
 const Counter = component(qrl('./chunk-a.js', 'Counter_onMount'));
 ```
 
-`chunk-a.js`:
-
-```tsx
+```tsx title="chunk-a.js"
 export const Counter_onMount = (props) => {
   const count = useSignal(0);
   return qrl('./chunk-b.js', 'Counter_onRender', [count, props]);
 };
 ```
 
-`chunk-b.js`:
-
-```tsx
+```tsx title="chunk-b.js"
 const Counter_onRender = () => {
   const [count, props] = useLexicalScope();
   return (
@@ -80,9 +82,7 @@ const Counter_onRender = () => {
 };
 ```
 
-`chunk-c.js`:
-
-```tsx
+```tsx title="chunk-c.js"
 const Counter_onClick = () => {
   const [count, props] = useLexicalScope();
   return (count.value += props.step || 1);
@@ -115,23 +115,23 @@ The main thing to note is the `on:click` attribute. This attribute gets read by 
 2. User clicks on the `<button>`. This fires a `click` event which bubbles up and is handled by the Qwikloader.
 3. Qwikloader retraces the event bubble path and looks for `on:click` attribute, which it finds on `<button>`.
 4. Qwikloader now tries to load the corresponding chunk. To do that, the Qwikloader needs to resolve the relative path of `./chunk-c.js`. It uses these values to build an absolute path starting at `<button>` and walking towards the document.
-   - `on:click="./chunk-c.js#Counter_onClick[0,2]"`
+   - `on:click="./chunk-c.js#Counter_onClick[0,1]"`
    - `<body q:base="/build/">`
    - `document.baseURI = "http://localhost/index.html"`
    - The resulting absolute URL is `http://localhost/build/chunk-c.js` which Qwikloader fetches.
 5. Qwikloader now retrieves the `Counter_onClick` reference from `http://localhost/build/chunk-c.js` and invokes it.
    ```tsx
    const Counter_onClick = () => {
-     const [store, props] = useLexicalScope();
-     return (store.count += props.step || 1);
+     const [count, props] = useLexicalScope();
+     return (count.value += props.step || 1);
    };
    ```
 6. At this point, the execution is handed off from Qwikloader to the lazy-loaded chunk. This is done so that the Qwikloader can be as small as possible as it is inlined into the HTML.
-7. `useLexicalScope` is imported from `@builder.io/qwik` and is responsible for retrieving the `store` and `props`.
-   `const [store, props] = useLexicalScope();`
+7. `useLexicalScope` is imported from `@builder.io/qwik` and is responsible for retrieving the `count` and `props`.
+   `const [count, props] = useLexicalScope();`
 8. Parse the `<script type="qwik/json">{...json...}</script>` JSON and distribute the deserialized objects per `q:obj` attribute. In our case
-   - `<div q:id="123" q:obj="456" q:host>` gets object with id `123`. This will be the `store` created in the `Counter_onMount` function.
-   - `<button q:obj="456, 123"` gets `store` as well as a reference to the `<div q:id="457">`
+   - `<div q:id="123" q:obj="456" q:host>` gets object with id `123`. This will be the `count` created in the `Counter_onMount` function.
+   - `<button q:obj="456, 123"` gets `count` as well as a reference to the `<div q:id="457">`
 9. Once the `qwik/json` is deserialized, `useLexicalScope` can use the QRL's `[0,1]` array to look into `q:obj="456, 123"` to retrieve object with id `456` and `123`, which are props of `<div q:id="123" q:obj="456" q:host>` as well as `store` from `Counter_onMount` function.
 
 > **NOTE:** For performance reasons the `q:obj` and `<script type="qwik/json">` are only updated when the application is deserialized into HTML. When the application is running, these attributes may have stale values.
@@ -152,4 +152,4 @@ Because of the above differences, Qwik introduces QRLs as a mechanism for lazy l
 
 ## See Also
 
-- `qrl`: API used to create QRLs.
+- [`qrl`: API used to create QRLs.](https://qwik.builder.io/api/qwik/#qrl)

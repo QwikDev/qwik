@@ -1,8 +1,8 @@
-import { component$, useSignal, $ } from '@builder.io/qwik';
+import { component$, useSignal, $ } from "@builder.io/qwik";
 
 export const EventsClient = component$(() => {
   const enabled = useSignal(false);
-  const input = useSignal('');
+  const input = useSignal("");
 
   return (
     <div>
@@ -14,8 +14,8 @@ export const EventsClient = component$(() => {
           id="input"
           onInput$={
             enabled.value
-              ? $((ev: any) => {
-                  input.value = ev.target.value;
+              ? $((ev, el) => {
+                  input.value = el.value;
                 })
               : undefined
           }

@@ -4,8 +4,11 @@
 
 ```ts
 
+import type { BuiltinsWithOptionalParams } from 'svgo/plugins/plugins-types';
 import { CompileOptions } from '@mdx-js/mdx/lib/compile';
+import type { Config } from 'svgo';
 import { ConfigEnv } from 'vite';
+import type { PluginOption } from 'vite';
 import { UserConfigExport } from 'vite';
 
 // @public (undocumented)
@@ -15,7 +18,7 @@ export function extendConfig(baseConfigExport: UserConfigExport, serverConfigExp
 export type MdxOptions = CompileOptions;
 
 // @public (undocumented)
-export function qwikCity(userOpts?: QwikCityVitePluginOptions): any;
+export function qwikCity(userOpts?: QwikCityVitePluginOptions): PluginOption[];
 
 // @public (undocumented)
 export interface QwikCityPlugin {
@@ -31,6 +34,10 @@ export interface QwikCityPlugin {
 //
 // @public (undocumented)
 export interface QwikCityVitePluginOptions extends Omit<PluginOptions, 'basePathname'> {
+    // Warning: (ae-forgotten-export) The symbol "ImageOptimizationOptions" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    imageOptimization?: ImageOptimizationOptions;
     // (undocumented)
     mdx?: MdxOptions;
     // Warning: (ae-forgotten-export) The symbol "MdxPlugins" needs to be exported by the entry point index.d.ts

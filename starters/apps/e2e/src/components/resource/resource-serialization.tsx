@@ -1,6 +1,12 @@
 /* eslint-disable */
-import { component$, useStore, useResource$, Resource, useSignal } from '@builder.io/qwik';
-import { delay } from './resource';
+import {
+  component$,
+  useStore,
+  useResource$,
+  Resource,
+  useSignal,
+} from "@builder.io/qwik";
+import { delay } from "./resource";
 
 export const ResourceSerialization = component$(() => {
   const state = useStore({
@@ -10,24 +16,24 @@ export const ResourceSerialization = component$(() => {
   const resourceSuccess = useResource$(
     async () => {
       await delay(100);
-      return 'Success';
+      return "Success";
     },
     {
       timeout: 1000,
-    }
+    },
   );
   const resourceFailure = useResource$(async () => {
     await delay(100);
-    throw new Error('failed');
+    throw new Error("failed");
   });
   const resourceTimeout = useResource$(
     async () => {
       await delay(1000);
-      return 'Success';
+      return "Success";
     },
     {
       timeout: 100,
-    }
+    },
   );
 
   return (
@@ -79,7 +85,7 @@ export const ResourceSerialization = component$(() => {
 
 export const Issue2014 = component$(() => {
   const count = useSignal(0);
-  console.log('render');
+  console.log("render");
 
   const resource = useResource$<any>(async ({ track }) => {
     track(count);
@@ -91,7 +97,10 @@ export const Issue2014 = component$(() => {
   return (
     <div>
       <button id="issue-2014-btn" onClick$={() => count.value++}>
-        <Resource value={resource} onResolved={(data) => <>{data.timestamp}</>} />
+        <Resource
+          value={resource}
+          onResolved={(data) => <>{data.timestamp}</>}
+        />
         (count is here: {count.value})
       </button>
     </div>

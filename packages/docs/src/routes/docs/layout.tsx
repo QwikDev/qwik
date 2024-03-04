@@ -7,6 +7,10 @@ import { OnThisPage } from '../../components/on-this-page/on-this-page';
 import { createBreadcrumbs, SideBar } from '../../components/sidebar/sidebar';
 import { GlobalStore } from '../../context';
 import styles from './docs.css?inline';
+import Contributors from '../../components/contributors';
+
+// eslint-disable-next-line
+export { useMarkdownItems } from '../../components/sidebar/sidebar';
 
 export default component$(() => {
   const loc = useLocation();
@@ -40,8 +44,8 @@ export default component$(() => {
         </button>
         {breadcrumbs.length > 0 ? (
           <ol>
-            {breadcrumbs.map((b) => (
-              <li>{b.text}</li>
+            {breadcrumbs.map((b, key) => (
+              <li key={key}>{b.text}</li>
             ))}
           </ol>
         ) : null}
@@ -55,6 +59,7 @@ export default component$(() => {
         <div class="docs-container">
           <article>
             <Slot />
+            <Contributors />
           </article>
           <ContentNav />
           <Footer />

@@ -1,16 +1,14 @@
-import type { CompileOptions } from '@mdx-js/mdx/lib/compile';
 import { SourceMapGenerator } from 'source-map';
-import { rehypePage, rehypeSlug, renameClassname } from './rehype';
+import { rehypePage, rehypeSlug, renameClassname, wrapTableWithDiv } from './rehype';
 import { rehypeSyntaxHighlight } from './syntax-highlight';
 import type { BuildContext } from '../types';
 import { parseFrontmatter } from './frontmatter';
 import { getExtension } from '../../utils/fs';
 import { createHash } from 'node:crypto';
+import type { CompileOptions } from '@mdx-js/mdx';
 
 export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransform> {
-  const { createFormatAwareProcessors } = await import(
-    '@mdx-js/mdx/lib/util/create-format-aware-processors.js'
-  );
+  const { compile } = await import('@mdx-js/mdx');
   const { default: remarkFrontmatter } = await import('remark-frontmatter');
   const { default: remarkGfm } = await import('remark-gfm');
   const { default: rehypeAutolinkHeadings } = await import('rehype-autolink-headings');
@@ -46,7 +44,7 @@ export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransf
     coreRehypePlugins.push(rehypeAutolinkHeadings);
   }
 
-  const mdxOpts: CompileOptions = {
+  const options: CompileOptions = {
     SourceMapGenerator,
     jsxImportSource: '@builder.io/qwik',
     ...userMdxOpts,
@@ -63,16 +61,14 @@ export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransf
       ...coreRehypePlugins,
       [rehypePage, ctx],
       renameClassname,
+      wrapTableWithDiv,
     ],
   };
-
-  const { extnames, process } = createFormatAwareProcessors(mdxOpts);
-
   return async function (code: string, id: string) {
     const ext = getExtension(id);
-    if (extnames.includes(ext)) {
+    if (['.mdx', '.md', '.markdown'].includes(ext)) {
       const file = new VFile({ value: code, path: id });
-      const compiled = await process(file);
+      const compiled = await compile(file, options);
       const output = String(compiled.value);
       const hasher = createHash('sha256');
       const key = hasher
@@ -84,13 +80,17 @@ export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransf
       const addImport = `import { _jsxC, RenderOnce } from '@builder.io/qwik';\n`;
       const newDefault = `
 const WrappedMdxContent = () => {
-  return _jsxC(RenderOnce, {children: _jsxC(MDXContent, {}, 3, null)}, 3, ${JSON.stringify(key)});
+  return _jsxC(RenderOnce, {children: _jsxC(_createMdxContent, {}, 3, null)}, 3, ${JSON.stringify(key)});
 };
 export default WrappedMdxContent;
 `;
-
+      const exportIndex = output.lastIndexOf('export default ');
+      if (exportIndex === -1) {
+        throw new Error('Could not find default export in mdx output');
+      }
+      const wrappedOutput = addImport + output.slice(0, exportIndex) + newDefault;
       return {
-        code: addImport + output.replace('export default MDXContent;\n', newDefault),
+        code: wrappedOutput,
         map: compiled.map,
       };
     }

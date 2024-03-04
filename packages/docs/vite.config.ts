@@ -1,17 +1,51 @@
-import { defineConfig } from 'vite';
-import { qwikVite } from '@builder.io/qwik/optimizer';
-import { resolve } from 'node:path';
-import { qwikCity } from '@builder.io/qwik-city/vite';
 import { partytownVite } from '@builder.io/partytown/utils';
+import { qwikCity } from '@builder.io/qwik-city/vite';
+import { qwikInsights } from '@builder.io/qwik-labs/vite';
+import { qwikReact } from '@builder.io/qwik-react/vite';
+import { qwikVite } from '@builder.io/qwik/optimizer';
+import path, { resolve } from 'node:path';
+import { defineConfig, loadEnv } from 'vite';
+import Inspect from 'vite-plugin-inspect';
 import { examplesData, playgroundData, tutorialData } from './vite.repl-apps';
 import { sourceResolver } from './vite.source-resolver';
-import rehypePrettyCode from 'rehype-pretty-code';
 
-export default defineConfig(() => {
+export const PUBLIC_QWIK_INSIGHT_KEY = loadEnv('', '.', 'PUBLIC').PUBLIC_QWIK_INSIGHTS_KEY;
+
+export default defineConfig(async () => {
+  const { default: rehypePrettyCode } = await import('rehype-pretty-code');
+
   const routesDir = resolve('src', 'routes');
   return {
+    dev: {
+      headers: {
+        'Cache-Control': 'public, max-age=0',
+      },
+    },
+    preview: {
+      headers: {
+        'Cache-Control': 'public, max-age=600',
+      },
+    },
+    resolve: {
+      alias: [
+        {
+          find: '~',
+          replacement: path.resolve(__dirname, 'src'),
+        },
+        {
+          // HACK: For some reason supabase imports node-fetch but only in CloudFlare build
+          // This hack is here to prevent the import from happening since we don't need to
+          // polyfill fetch in the edge.
+          find: '@supabase/node-fetch',
+          replacement: path.resolve(__dirname, 'src', 'empty.ts'),
+        },
+      ],
+    },
     ssr: {
       noExternal: [
+        '@mui/material',
+        '@mui/system',
+        '@emotion/react',
         '@algolia/autocomplete-core/dist/esm/resolve',
         '@algolia/autocomplete-core',
         '@algolia/autocomplete-shared',
@@ -21,6 +55,7 @@ export default defineConfig(() => {
         'algoliasearch/dist/algoliasearch-lite.esm.browser',
       ],
     },
+
     plugins: [
       qwikCity({
         mdxPlugins: {
@@ -31,7 +66,7 @@ export default defineConfig(() => {
         mdx: {
           rehypePlugins: [
             [
-              rehypePrettyCode,
+              rehypePrettyCode as any,
               {
                 theme: 'dark-plus',
                 onVisitLine(node: any) {
@@ -43,7 +78,9 @@ export default defineConfig(() => {
                 },
                 onVisitHighlightedLine(node: any) {
                   // Each line node by default has `class="line"`.
-                  node.properties.className.push('line--highlighted');
+                  if (node.properties.className) {
+                    node.properties.className.push('line--highlighted');
+                  }
                 },
                 onVisitHighlightedWord(node: any, id: string) {
                   // Each word node has no className by default.
@@ -74,16 +111,7 @@ export default defineConfig(() => {
           ],
         },
       }),
-      qwikVite({
-        entryStrategy: {
-          type: 'smart',
-          manual: {
-            ...page,
-            ...algoliaSearch,
-            ...repl,
-          },
-        },
-      }),
+      qwikVite(),
       partytownVite({
         dest: resolve('dist', '~partytown'),
       }),
@@ -91,48 +119,31 @@ export default defineConfig(() => {
       playgroundData(routesDir),
       tutorialData(routesDir),
       sourceResolver(resolve('.')),
+      qwikReact(),
+      Inspect(),
+      qwikInsights({ publicApiKey: loadEnv('', '.', '').PUBLIC_QWIK_INSIGHTS_KEY }),
     ],
-    clearScreen: false,
-    optimizeDeps: {
-      force: true,
+    build: {
+      sourcemap: true,
+      rollupOptions: {
+        // For some unknown reason, types don't work from tsc
+        // Try removing these any casts and see if it works
+        onLog(level: any, log: any, defaultHandler: any) {
+          if (level == 'warn' && log.code === 'MODULE_LEVEL_DIRECTIVE') {
+            // Suppress errors like these:
+            // FILE Module level directives cause errors when bundled, "use client" in FILE was ignored.
+            return;
+          }
+          defaultHandler(level, log);
+        },
+        output: {
+          assetFileNames: 'assets/[hash].[ext]',
+        },
+      },
     },
+    clearScreen: false,
     server: {
       port: 3000,
     },
   };
 });
-
-const page = {
-  xEi06O8vOjU: 'page',
-  '9t1uPE4yoLA': 'page',
-};
-
-const algoliaSearch = {
-  I5CyQjO9FjQ: 'algoliasearch',
-  NsnidK2eXPg: 'algoliasearch',
-  kDw0latGeM0: 'algoliasearch',
-  '9dP8xDD36tk': 'algoliasearch',
-  '7YcOLMha9lM': 'algoliasearch',
-  Ly5oFWTkofs: 'algoliasearch',
-  fTU5LQ1VhcU: 'algoliasearch',
-  X3ZkFa9P7Dc: 'algoliasearch',
-  cGb8pS0shrs: 'algoliasearch',
-  '0TG0b0n4wNg': 'algoliasearch',
-  qQlSSnFvEvs: 'algoliasearch',
-  '01FQcGhldRU': 'algoliasearch',
-  qolFAthnlPo: 'algoliasearch',
-  J3Nim3Y9sio: 'algoliasearch',
-};
-
-const repl = {
-  XoQB11UZ1S0: 'repl',
-  AqHBIVNKf34: 'repl',
-  IRhp4u7HN3o: 'repl',
-  Qf2nEuUdHpM: 'repl',
-  oEksvFPgMEM: 'repl',
-  eePwnt3YTI8: 'repl',
-  iw211Du0bw8: 'repl',
-  lWGaPPYlcvs: 'repl',
-  uCl5Lf0Typ8: 'repl',
-  IW29huCoDkc: 'repl',
-};

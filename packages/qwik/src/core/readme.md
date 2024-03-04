@@ -81,11 +81,11 @@ The `taskFn` only executes if the observed inputs change. To observe the inputs,
 
 ### Example
 
-The `useTask` function is used to observe the `state.count` property. Any changes to the `state.count` cause the `taskFn` to execute which in turn updates the `state.doubleCount` to the double of `state.count`.
+The `useTask` function is used to observe the `store.count` property. Any changes to the `store.count` cause the `taskFn` to execute which in turn updates the `store.doubleCount` to the double of `store.count`.
 
 <docs code="./examples.tsx#use-task"/>
 
-@param watch - Function which should be re-executed when changes to the inputs are detected
+@param task - Function which should be re-executed when changes to the inputs are detected
 @public
 
 # `useVisibleTask`
@@ -246,6 +246,10 @@ At times it may be necessary to resolve a `QRL` reference to the actual value. T
 
 NOTE: `element` is needed because `QRL`s are relative and need a base location to resolve against. The base location is encoded in the HTML in the form of `<div q:base="/url">`.
 
+## `QRL.resolved`
+
+Once `QRL.resolve()` returns, the value is stored under `QRL.resolved`. This allows the value to be used without having to await `QRL.resolve()` again.
+
 ## Question: Why not just use `import()`?
 
 At first glance, `QRL` serves the same purpose as `import()`. However, there are three subtle differences that need to be taken into account.
@@ -383,7 +387,7 @@ Use `createContextId()` to create a `ContextId`. A `ContextId` is just a seriali
 
 Assign a value to a Context.
 
-Use `useContextProvider()` to assign a value to a context. The assignment happens in the component's function. Once assign use `useContext()` in any child component to retrieve the value.
+Use `useContextProvider()` to assign a value to a context. The assignment happens in the component's function. Once assigned, use `useContext()` in any child component to retrieve the value.
 
 Context is a way to pass stores to the child components without prop-drilling.
 

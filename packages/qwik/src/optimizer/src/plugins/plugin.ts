@@ -1,11 +1,14 @@
-import { createOptimizer } from '../optimizer';
+import type { Rollup } from 'vite';
+import { hashCode } from '../../../core/util/hash_code';
 import { generateManifestFromBundles, getValidManifest } from '../manifest';
+import { createOptimizer } from '../optimizer';
 import type {
   Diagnostic,
   EntryStrategy,
   GeneratedOutputBundle,
   GlobalInjections,
   HookAnalysis,
+  InsightManifest,
   Optimizer,
   OptimizerOptions,
   QwikManifest,
@@ -16,7 +19,6 @@ import type {
   TransformOutput,
 } from '../types';
 import { createLinter, type QwikLinter } from './eslint-plugin';
-import type { Rollup } from 'vite';
 
 const REG_CTX_NAME = ['server'];
 
@@ -42,7 +44,14 @@ const SERVER_STRIP_CTX_NAME = [
   'validator$',
   'globalAction$',
 ];
-const CLIENT_STRIP_CTX_NAME = ['useClient', 'useBrowser', 'useVisibleTask', 'client', 'browser'];
+const CLIENT_STRIP_CTX_NAME = [
+  'useClient',
+  'useBrowser',
+  'useVisibleTask',
+  'client',
+  'browser',
+  'event$',
+];
 export interface QwikPackages {
   id: string;
   path: string;
@@ -59,6 +68,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   let internalOptimizer: Optimizer | null = null;
   let linter: QwikLinter | undefined = undefined;
+  const hookManifest: Record<string, string> = {};
   let diagnosticsCallback: (
     d: Diagnostic[],
     optimizer: Optimizer,
@@ -66,18 +76,21 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   ) => void = () => {};
 
   const opts: NormalizedQwikPluginOptions = {
+    csr: false,
     target: 'client',
     buildMode: 'development',
     debug: false,
     rootDir: null as any,
+    tsconfigFileNames: ['./tsconfig.json'],
     input: null as any,
     outDir: null as any,
-    resolveQwikBuild: false,
-    forceFullBuild: false,
+    resolveQwikBuild: true,
     entryStrategy: null as any,
     srcDir: null as any,
     srcInputs: null as any,
+    sourcemap: !!optimizerOptions.sourcemap,
     manifestInput: null,
+    insightsManifest: null,
     manifestOutput: null,
     transformedModuleOutput: null,
     vendorRoots: [],
@@ -85,6 +98,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     devTools: {
       clickToSource: ['Alt'],
     },
+    inlineStylesUpToBytes: null as any,
+    lint: true,
   };
 
   const init = async () => {
@@ -110,6 +125,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     return optimizer.sys.path;
   };
 
+  /** Note that as a side-effect this updates the internal plugin `opts` */
   const normalizeOptions = (inputOpts?: QwikPluginOptions) => {
     const updatedOpts: QwikPluginOptions = Object.assign({}, inputOpts);
 
@@ -174,29 +190,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.srcDir = srcDir;
     }
 
-    if (typeof updatedOpts.forceFullBuild === 'boolean') {
-      opts.forceFullBuild = updatedOpts.forceFullBuild;
-    } else {
-      opts.forceFullBuild =
-        (opts.entryStrategy.type !== 'hook' &&
-          opts.entryStrategy.type !== 'inline' &&
-          opts.entryStrategy.type !== 'hoist') ||
-        !!updatedOpts.srcInputs;
-    }
-
-    if (
-      opts.forceFullBuild === false &&
-      opts.entryStrategy.type !== 'hook' &&
-      opts.entryStrategy.type !== 'inline' &&
-      opts.entryStrategy.type !== 'hoist'
-    ) {
-      console.error(`forceFullBuild cannot be false with entryStrategy ${opts.entryStrategy.type}`);
-      opts.forceFullBuild = true;
-    }
-
-    if (opts.forceFullBuild === false && !!updatedOpts.srcInputs) {
-      console.error(`forceFullBuild reassigned to "true" since "srcInputs" have been provided`);
-      opts.forceFullBuild = true;
+    if (Array.isArray(updatedOpts.tsconfigFileNames) && updatedOpts.tsconfigFileNames.length > 0) {
+      opts.tsconfigFileNames = updatedOpts.tsconfigFileNames;
     }
 
     if (Array.isArray(opts.srcInputs)) {
@@ -207,44 +202,46 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.srcDir = normalizePath(path.resolve(opts.rootDir, normalizePath(opts.srcDir)));
     }
 
-    if (Array.isArray(updatedOpts.input)) {
-      opts.input = [...updatedOpts.input];
-    } else if (typeof updatedOpts.input === 'string') {
-      opts.input = [updatedOpts.input];
-    } else {
-      if (opts.target === 'ssr') {
-        // ssr input default
-        opts.input = [path.resolve(srcDir, 'entry.ssr.tsx')];
-      } else if (opts.target === 'client') {
-        // client input default
-        opts.input = [path.resolve(srcDir, 'root.tsx')];
-      } else if (opts.target === 'lib') {
-        // lib input default
-        opts.input = [path.resolve(srcDir, 'index.ts')];
+    if (!updatedOpts.csr) {
+      if (Array.isArray(updatedOpts.input)) {
+        opts.input = [...updatedOpts.input];
+      } else if (typeof updatedOpts.input === 'string') {
+        opts.input = [updatedOpts.input];
       } else {
-        opts.input = [];
+        if (opts.target === 'ssr') {
+          // ssr input default
+          opts.input = [path.resolve(srcDir, 'entry.ssr.tsx')];
+        } else if (opts.target === 'client') {
+          // client input default
+          opts.input = [path.resolve(srcDir, 'root.tsx')];
+        } else if (opts.target === 'lib') {
+          // lib input default
+          opts.input = [path.resolve(srcDir, 'index.ts')];
+        } else {
+          opts.input = [];
+        }
       }
-    }
-    opts.input = opts.input.reduce((inputs, i) => {
-      let input = i;
-      if (!i.startsWith('@') && !i.startsWith('~')) {
-        input = normalizePath(path.resolve(opts.rootDir, i));
-      }
-      if (!inputs.includes(input)) {
-        inputs.push(input);
-      }
-      return inputs;
-    }, [] as string[]);
+      opts.input = opts.input.reduce((inputs, i) => {
+        let input = i;
+        if (!i.startsWith('@') && !i.startsWith('~')) {
+          input = normalizePath(path.resolve(opts.rootDir, i));
+        }
+        if (!inputs.includes(input)) {
+          inputs.push(input);
+        }
+        return inputs;
+      }, [] as string[]);
 
-    if (typeof updatedOpts.outDir === 'string') {
-      opts.outDir = normalizePath(path.resolve(opts.rootDir, normalizePath(updatedOpts.outDir)));
-    } else {
-      if (opts.target === 'ssr') {
-        opts.outDir = normalizePath(path.resolve(opts.rootDir, SSR_OUT_DIR));
-      } else if (opts.target === 'lib') {
-        opts.outDir = normalizePath(path.resolve(opts.rootDir, LIB_OUT_DIR));
+      if (typeof updatedOpts.outDir === 'string') {
+        opts.outDir = normalizePath(path.resolve(opts.rootDir, normalizePath(updatedOpts.outDir)));
       } else {
-        opts.outDir = normalizePath(path.resolve(opts.rootDir, CLIENT_OUT_DIR));
+        if (opts.target === 'ssr') {
+          opts.outDir = normalizePath(path.resolve(opts.rootDir, SSR_OUT_DIR));
+        } else if (opts.target === 'lib') {
+          opts.outDir = normalizePath(path.resolve(opts.rootDir, LIB_OUT_DIR));
+        } else {
+          opts.outDir = normalizePath(path.resolve(opts.rootDir, CLIENT_OUT_DIR));
+        }
       }
     }
 
@@ -272,6 +269,16 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       if ('clickToSource' in updatedOpts.devTools) {
         opts.devTools.clickToSource = updatedOpts.devTools.clickToSource;
       }
+    }
+    opts.csr = !!updatedOpts.csr;
+
+    opts.inlineStylesUpToBytes = optimizerOptions.inlineStylesUpToBytes ?? 20000;
+    if (typeof opts.inlineStylesUpToBytes !== 'number' || opts.inlineStylesUpToBytes < 0) {
+      opts.inlineStylesUpToBytes = 0;
+    }
+
+    if (typeof updatedOpts.lint === 'boolean') {
+      opts.lint = updatedOpts.lint;
     }
 
     return { ...opts };
@@ -303,30 +310,26 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
   };
 
-  const buildStart = async (_ctx: any) => {
-    log(
-      `buildStart()`,
-      opts.buildMode,
-      opts.forceFullBuild ? 'full build' : 'isolated build',
-      opts.scope
-    );
+  const buildStart = async (ctx: any) => {
+    debug(`buildStart()`, opts.buildMode, opts.scope);
     const optimizer = getOptimizer();
 
-    if (optimizer.sys.env === 'node' && opts.target !== 'ssr') {
+    if (optimizer.sys.env === 'node' && opts.target === 'ssr' && opts.lint) {
       try {
-        linter = await createLinter(optimizer.sys, opts.rootDir);
+        linter = await createLinter(optimizer.sys, opts.rootDir, opts.tsconfigFileNames);
       } catch (err) {
         // Nothing
       }
     }
 
-    if (opts.forceFullBuild) {
+    const generatePreManifest = !['hoist', 'hook', 'inline'].includes(opts.entryStrategy.type);
+    if (generatePreManifest) {
       const path = getPath();
 
       let srcDir = '/';
       if (typeof opts.srcDir === 'string') {
         srcDir = normalizePath(opts.srcDir);
-        log(`buildStart() srcDir`, opts.srcDir);
+        debug(`buildStart() srcDir`, opts.srcDir);
       } else if (Array.isArray(opts.srcInputs)) {
         optimizer.sys.getInputFiles = async (rootDir) =>
           opts.srcInputs!.map((i) => {
@@ -336,14 +339,14 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
             };
             return relInput;
           });
-        log(`buildStart() opts.srcInputs (${opts.srcInputs.length})`);
+        debug(`buildStart() opts.srcInputs (${opts.srcInputs.length})`);
       }
       const vendorRoots = opts.vendorRoots;
       if (vendorRoots.length > 0) {
-        log(`vendorRoots`, vendorRoots);
+        debug(`vendorRoots`, vendorRoots);
       }
 
-      log(`transformedOutput.clear()`);
+      debug(`transformedOutput.clear()`);
       transformedOutputs.clear();
 
       const mode =
@@ -360,6 +363,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         preserveFilenames: true,
         mode,
         scope: opts.scope ? opts.scope : undefined,
+        sourceMaps: opts.sourcemap,
       };
 
       if (opts.target === 'client') {
@@ -376,9 +380,19 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       const result = await optimizer.transformFs(transformOpts);
       for (const output of result.modules) {
         const key = normalizePath(path.join(srcDir, output.path)!);
-        log(`buildStart() add transformedOutput`, key, output.hook?.displayName);
+        debug(`buildStart() add transformedOutput`, key, output.hook?.displayName);
         transformedOutputs.set(key, [output, key]);
         ssrTransformedOutputs.set(key, [output, key]);
+        if (output.hook) {
+          hookManifest[output.hook.hash] = key;
+          // The original path must be absolute
+          output.origPath = path.resolve(srcDir, output.hook.origin);
+        } else if (output.isEntry) {
+          ctx.emitFile({
+            id: key,
+            type: 'chunk',
+          });
+        }
       }
 
       diagnosticsCallback(result.diagnostics, optimizer, srcDir);
@@ -389,17 +403,16 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 
   const resolveId = async (
-    _ctx: Rollup.PluginContext,
+    ctx: Rollup.PluginContext,
     id: string,
     importer: string | undefined,
-    resolveIdOpts?: { ssr?: boolean }
+    ssrOpts?: { ssr?: boolean }
   ) => {
-    if (id.startsWith('\0')) {
+    debug(`resolveId()`, 'Start', id, importer);
+    if (id.startsWith('\0') || id.startsWith('/@fs')) {
       return;
     }
-    if (id.startsWith('/@fs')) {
-      return;
-    }
+
     if (opts.target === 'lib' && id.startsWith(QWIK_CORE_ID)) {
       return {
         external: true,
@@ -407,8 +420,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       };
     }
 
-    if (opts.resolveQwikBuild && id === QWIK_BUILD_ID) {
-      log(`resolveId()`, 'Resolved', QWIK_BUILD_ID);
+    if (opts.resolveQwikBuild && id.endsWith(QWIK_BUILD_ID)) {
+      debug(`resolveId()`, 'Resolved', QWIK_BUILD_ID);
       return {
         id: normalizePath(getPath().resolve(opts.rootDir, QWIK_BUILD_ID)),
         moduleSideEffects: false,
@@ -416,7 +429,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
 
     if (id.endsWith(QWIK_CLIENT_MANIFEST_ID)) {
-      log(`resolveId()`, 'Resolved', QWIK_CLIENT_MANIFEST_ID);
+      debug(`resolveId()`, 'Resolved', QWIK_CLIENT_MANIFEST_ID);
       if (opts.target === 'lib') {
         return {
           id: id,
@@ -430,19 +443,29 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       };
     }
 
-    // Only process relative links
-    if (!id.startsWith('.') && !id.startsWith('/')) {
-      return;
-    }
+    const path = getPath();
+    const isSSR = ssrOpts?.ssr ?? opts.target === 'ssr';
 
     if (importer) {
+      // Only process relative links
+      if (!id.startsWith('.') && !path.isAbsolute(id)) {
+        // Handle nested node_modules imports from moved code
+        const transformedOutput = isSSR
+          ? ssrTransformedOutputs.get(importer)
+          : transformedOutputs.get(importer);
+        const originalPath = transformedOutput?.[0].origPath || transformedOutput?.[1];
+        if (originalPath) {
+          // Resolve imports relative to original source path
+          return ctx.resolve(id, originalPath, { skipSelf: true });
+        }
+        return;
+      }
       const parsedId = parseId(id);
       let importeePathId = normalizePath(parsedId.pathId);
-      const path = getPath();
-      const ext = path.extname(importeePathId);
-      if (RESOLVE_EXTS[ext]) {
+      const ext = path.extname(importeePathId).toLowerCase();
+      if (ext in RESOLVE_EXTS) {
         importer = normalizePath(importer);
-        log(`resolveId("${importeePathId}", "${importer}")`);
+        debug(`resolveId("${importeePathId}", "${importer}")`);
         const parsedImporterId = parseId(importer);
         const dir = path.dirname(parsedImporterId.pathId);
         if (parsedImporterId.pathId.endsWith('.html') && !importeePathId.endsWith('.html')) {
@@ -450,12 +473,29 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         } else {
           importeePathId = normalizePath(path.resolve(dir, importeePathId));
         }
-        const transformedOutput = resolveIdOpts?.ssr
+        const transformedOutput = isSSR
           ? ssrTransformedOutputs.get(importeePathId)
           : transformedOutputs.get(importeePathId);
 
         if (transformedOutput) {
-          log(`resolveId() Resolved ${importeePathId} from transformedOutputs`);
+          debug(`resolveId() Resolved ${importeePathId} from transformedOutputs`);
+          return {
+            id: importeePathId + parsedId.query,
+          };
+        }
+      }
+    } else if (path.isAbsolute(id)) {
+      const parsedId = parseId(id);
+      const importeePathId = normalizePath(parsedId.pathId);
+      const ext = path.extname(importeePathId).toLowerCase();
+      if (ext in RESOLVE_EXTS) {
+        debug(`resolveId("${importeePathId}", "${importer}")`);
+        const transformedOutput = isSSR
+          ? ssrTransformedOutputs.get(importeePathId)
+          : transformedOutputs.get(importeePathId);
+
+        if (transformedOutput) {
+          debug(`resolveId() Resolved ${importeePathId} from transformedOutputs`);
           return {
             id: importeePathId + parsedId.query,
           };
@@ -465,34 +505,34 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     return null;
   };
 
-  const load = async (_ctx: any, id: string, loadOpts: { ssr?: boolean } = {}) => {
+  const load = async (_ctx: any, id: string, ssrOpts: { ssr?: boolean } = {}) => {
     if (id.startsWith('\0') || id.startsWith('/@fs/')) {
       return;
     }
+    const isSSR = ssrOpts?.ssr ?? opts.target === 'ssr';
     if (opts.resolveQwikBuild && id.endsWith(QWIK_BUILD_ID)) {
-      log(`load()`, QWIK_BUILD_ID, opts.buildMode);
+      debug(`load()`, QWIK_BUILD_ID, opts.buildMode);
       return {
         moduleSideEffects: false,
-        code: getQwikBuildModule(loadOpts),
+        code: getQwikBuildModule(isSSR, opts.target),
       };
     }
 
     if (id.endsWith(QWIK_CLIENT_MANIFEST_ID)) {
-      log(`load()`, QWIK_CLIENT_MANIFEST_ID, opts.buildMode);
+      debug(`load()`, QWIK_CLIENT_MANIFEST_ID, opts.buildMode);
       return {
         moduleSideEffects: false,
-        code: await getQwikServerManifestModule(loadOpts),
+        code: await getQwikServerManifestModule(isSSR),
       };
     }
     const parsedId = parseId(id);
     const path = getPath();
     id = normalizePath(parsedId.pathId);
 
-    const transformedModule = loadOpts?.ssr
-      ? ssrTransformedOutputs.get(id)
-      : transformedOutputs.get(id);
+    const transformedModule = isSSR ? ssrTransformedOutputs.get(id) : transformedOutputs.get(id);
+
     if (transformedModule) {
-      log(`load()`, 'Found', id);
+      debug(`load()`, 'Found', id);
 
       let code = transformedModule[0].code;
       if (opts.target === 'ssr') {
@@ -521,25 +561,30 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     id: string,
     ssrOpts: { ssr?: boolean } = {}
   ) {
-    if (opts.forceFullBuild) {
-      // Only run when moduleIsolated === true
-      return null;
+    if (id.startsWith('\0') || id.startsWith('/@fs/')) {
+      return;
     }
-
+    const isSSR = ssrOpts.ssr ?? opts.target === 'ssr';
+    const currentOutputs = isSSR ? ssrTransformedOutputs : transformedOutputs;
+    if (currentOutputs.has(id)) {
+      return;
+    }
     const optimizer = getOptimizer();
     const path = getPath();
 
     const { pathId } = parseId(id);
-    const { ext, dir, base } = path.parse(pathId);
-
+    const parsedPathId = path.parse(pathId);
+    const dir = parsedPathId.dir;
+    const base = parsedPathId.base;
+    const ext = parsedPathId.ext.toLowerCase();
     if (
-      TRANSFORM_EXTS[ext] ||
+      ext in TRANSFORM_EXTS ||
       TRANSFORM_REGEX.test(pathId) ||
       insideRoots(ext, dir, opts.srcDir, opts.vendorRoots)
     ) {
       const strip = opts.target === 'client' || opts.target === 'ssr';
       const normalizedID = normalizePath(pathId);
-      log(`transform()`, 'Transforming', pathId);
+      debug(`transform()`, 'Transforming', pathId);
 
       let filePath = base;
       if (opts.srcDir) {
@@ -547,7 +592,15 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       }
       filePath = normalizePath(filePath);
       const srcDir = opts.srcDir ? opts.srcDir : normalizePath(dir);
-      const mode = opts.buildMode === 'development' ? 'dev' : 'prod';
+      const mode =
+        opts.target === 'lib' ? 'lib' : opts.buildMode === 'development' ? 'dev' : 'prod';
+      // const entryStrategy: EntryStrategy = ['hoist', 'hook', 'inline'].includes(opts.entryStrategy.type)
+      //   ? opts.entryStrategy
+      //   : {
+      //     type: 'hook',
+      //     manual: hookManifest,
+      //   };
+      const entryStrategy: EntryStrategy = opts.entryStrategy;
       const transformOpts: TransformModulesOptions = {
         input: [
           {
@@ -555,9 +608,10 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
             path: filePath,
           },
         ],
-        entryStrategy: opts.entryStrategy,
+        entryStrategy,
         minify: 'simplify',
-        sourceMaps: 'development' === opts.buildMode,
+        // Always enable sourcemaps in dev for click-to-source
+        sourceMaps: opts.sourcemap || 'development' === opts.buildMode,
         transpileTs: true,
         transpileJsx: true,
         explicitExtensions: true,
@@ -567,18 +621,19 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         mode: mode,
         scope: opts.scope ? opts.scope : void 0,
       };
-      const isSSR = !!ssrOpts.ssr;
+      if (isSSR) {
+        transformOpts.isServer = isSSR;
+        transformOpts.entryStrategy = { type: 'hoist' };
+      }
       if (strip) {
+        transformOpts.isServer = isSSR;
         if (isSSR) {
           transformOpts.stripCtxName = CLIENT_STRIP_CTX_NAME;
           transformOpts.stripEventHandlers = true;
-          transformOpts.entryStrategy = { type: 'hoist' };
           transformOpts.regCtxName = REG_CTX_NAME;
-          transformOpts.isServer = true;
         } else {
           transformOpts.stripCtxName = SERVER_STRIP_CTX_NAME;
           transformOpts.stripExports = SERVER_STRIP_EXPORTS;
-          transformOpts.isServer = false;
         }
       }
 
@@ -594,15 +649,11 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       } else {
         results.set(normalizedID, newOutput);
       }
-      const deps = new Set();
+      const deps = new Set<string>();
       for (const mod of newOutput.modules) {
-        if (mod.isEntry) {
+        if (isTransformedFile(mod)) {
           const key = normalizePath(path.join(srcDir, mod.path));
-          if (isSSR) {
-            ssrTransformedOutputs.set(key, [mod, id]);
-          } else {
-            transformedOutputs.set(key, [mod, id]);
-          }
+          currentOutputs.set(key, [mod, id]);
           deps.add(key);
         }
       }
@@ -616,7 +667,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
           ],
           entryStrategy: opts.entryStrategy,
           minify: 'simplify',
-          sourceMaps: 'development' === opts.buildMode,
+          sourceMaps: opts.sourcemap || 'development' === opts.buildMode,
           transpileTs: true,
           transpileJsx: true,
           explicitExtensions: true,
@@ -635,7 +686,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
         results.set(normalizedID, clientNewOutput);
         for (const mod of clientNewOutput.modules) {
-          if (mod.isEntry) {
+          if (isTransformedFile(mod)) {
             const key = normalizePath(path.join(srcDir, mod.path));
             ctx.addWatchFile(key);
             transformedOutputs.set(key, [mod, id]);
@@ -644,7 +695,15 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         }
       }
 
-      const module = newOutput.modules.find((m) => !m.isEntry)!;
+      // Force loading generated submodules into Rollup cache so later
+      // unchanged imports are not missing in our internal transform cache
+      // This can happen in the repl when the plugin is re-initialized
+      // and possibly in other places
+      for (const id of deps.values()) {
+        await ctx.load({ id });
+      }
+
+      const module = newOutput.modules.find((mod) => !isTransformedFile(mod))!;
       return {
         code: module.code,
         map: module.map,
@@ -655,7 +714,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       };
     }
 
-    log(`transform()`, 'No Transforming', id);
+    debug(`transform()`, 'No Transforming', id);
 
     return null;
   };
@@ -694,6 +753,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         }
       }
 
+      manifest.manifestHash = hashCode(JSON.stringify(manifest));
+
       return manifest;
     };
 
@@ -708,11 +769,16 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     });
   };
 
-  const log = (...str: any[]) => {
+  const debug = (...str: any[]) => {
     if (opts.debug) {
       // eslint-disable-next-line no-console
       console.debug(`[QWIK PLUGIN: ${id}]`, ...str);
     }
+  };
+
+  const log = (...str: any[]) => {
+    // eslint-disable-next-line no-console
+    console.log(`[QWIK PLUGIN: ${id}]`, ...str);
   };
 
   const onDiagnostics = (cb: (d: Diagnostic[], optimizer: Optimizer, srcDir: string) => void) => {
@@ -741,8 +807,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     return id;
   };
 
-  function getQwikBuildModule(loadOpts: { ssr?: boolean }) {
-    const isServer = opts.target === 'ssr' || !!loadOpts.ssr;
+  function getQwikBuildModule(isSSR: boolean, target: QwikBuildTarget) {
+    const isServer = isSSR || target === 'test';
     const isDev = opts.buildMode === 'development';
     return `// @builder.io/qwik/build
 export const isServer = ${JSON.stringify(isServer)};
@@ -751,11 +817,14 @@ export const isDev = ${JSON.stringify(isDev)};
 `;
   }
 
-  async function getQwikServerManifestModule(loadOpts: { ssr?: boolean }) {
-    const isServer = opts.target === 'ssr' || !!loadOpts.ssr;
-    const manifest = isServer ? opts.manifestInput : null;
+  async function getQwikServerManifestModule(isSSR: boolean) {
+    const manifest = isSSR ? opts.manifestInput : null;
     return `// @qwik-client-manifest
 export const manifest = ${JSON.stringify(manifest)};\n`;
+  }
+
+  function setSourceMapSupport(sourcemap: boolean) {
+    opts.sourcemap = sourcemap;
   }
 
   return {
@@ -769,6 +838,7 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
     getTransformedOutputs,
     init,
     load,
+    debug,
     log,
     normalizeOptions,
     normalizePath,
@@ -776,6 +846,7 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
     resolveId,
     transform,
     validateSource,
+    setSourceMapSupport,
   };
 }
 
@@ -793,6 +864,10 @@ const insideRoots = (ext: string, dir: string, srcDir: string | null, vendorRoot
   }
   return false;
 };
+
+function isTransformedFile(mod: TransformModule) {
+  return mod.isEntry || mod.hook;
+}
 
 export function parseId(originalId: string) {
   const [pathId, query] = originalId.split('?');
@@ -830,6 +905,8 @@ export const QWIK_JSX_RUNTIME_ID = '@builder.io/qwik/jsx-runtime';
 
 export const QWIK_JSX_DEV_RUNTIME_ID = '@builder.io/qwik/jsx-dev-runtime';
 
+export const QWIK_CORE_SERVER = '@builder.io/qwik/server';
+
 export const QWIK_CLIENT_MANIFEST_ID = '@qwik-client-manifest';
 
 export const SRC_DIR_DEFAULT = 'src';
@@ -842,40 +919,52 @@ const LIB_OUT_DIR = 'lib';
 
 export const Q_MANIFEST_FILENAME = 'q-manifest.json';
 
+export interface QwikPluginDevTools {
+  clickToSource?: string[] | false;
+}
+
 export interface QwikPluginOptions {
+  csr?: boolean;
   buildMode?: QwikBuildMode;
   debug?: boolean;
   entryStrategy?: EntryStrategy;
-  forceFullBuild?: boolean;
   rootDir?: string;
+  tsconfigFileNames?: string[];
   vendorRoots?: string[];
   manifestOutput?: ((manifest: QwikManifest) => Promise<void> | void) | null;
   manifestInput?: QwikManifest | null;
+  insightsManifest?: InsightManifest | null;
   input?: string[] | string | { [entry: string]: string };
   outDir?: string;
   srcDir?: string | null;
   scope?: string | null;
   srcInputs?: TransformModuleInput[] | null;
+  sourcemap?: boolean;
   resolveQwikBuild?: boolean;
   target?: QwikBuildTarget;
   transformedModuleOutput?:
     | ((transformedModules: TransformModule[]) => Promise<void> | void)
     | null;
-  devTools?: {
-    clickToSource?: string[] | false;
-  };
+  devTools?: QwikPluginDevTools;
+  /**
+   * Inline styles up to a certain size (in bytes) instead of using a separate file.
+   *
+   * Default: 20kb (20,000bytes)
+   */
+  inlineStylesUpToBytes?: number;
+  /**
+   * Run eslint on the source files for the ssr build or dev server. This can slow down startup on
+   * large projects. Defaults to `true`
+   */
+  lint?: boolean;
 }
 
 export interface NormalizedQwikPluginOptions extends Required<QwikPluginOptions> {
   input: string[];
 }
 
-/**
- * @public
- */
+/** @public */
 export type QwikBuildTarget = 'client' | 'ssr' | 'lib' | 'test';
 
-/**
- * @public
- */
+/** @public */
 export type QwikBuildMode = 'production' | 'development';

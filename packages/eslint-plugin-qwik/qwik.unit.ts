@@ -1,11 +1,17 @@
-/* eslint-disable */
+import * as vitest from 'vitest';
 // @ts-ignore
-import Utils from '@typescript-eslint/utils';
-import { fileURLToPath } from 'node:url';
-import { test } from 'uvu';
-import { rules } from './index';
+import { RuleTester } from '@typescript-eslint/rule-tester';
 
-const RuleTester = Utils.ESLintUtils.RuleTester;
+import { fileURLToPath } from 'node:url';
+import { rules } from './index';
+import { readdir, readFile, stat } from 'node:fs/promises';
+import { join, dirname } from 'path';
+
+// https://typescript-eslint.io/packages/rule-tester/#vitest
+RuleTester.afterAll = vitest.afterAll;
+RuleTester.it = vitest.it;
+RuleTester.itOnly = vitest.it.only;
+RuleTester.describe = vitest.describe;
 
 const testConfig = {
   parser: '@typescript-eslint/parser',
@@ -14,7 +20,7 @@ const testConfig = {
   },
   parserOptions: {
     tsconfigRootDir: fileURLToPath(new URL('.', import.meta.url)),
-    project: ['./tsconfig-tests.json'],
+    project: ['./tests/tsconfig.json'],
     ecmaFeatures: {
       jsx: true,
     },
@@ -24,437 +30,66 @@ const testConfig = {
 };
 
 const ruleTester = new RuleTester(testConfig as any);
-test('no-use-after-await', () => {
-  ruleTester.run('my-rule', rules['no-use-after-await'] as any, {
-    valid: [
-      `
-      export const HelloWorld = component$(async () => {
-          useMethod();
-          await something();
-          let a;
-          a = 2;
-          return $(() => {
-            return <div>{a}</div>
-          });
-        });
-        const A = () => { console.log('A') };
-        export const B = () => {
-          A();
+interface TestCase {
+  name: string;
+  filename: string;
+  code: string;
+}
+interface InvalidTestCase extends TestCase {
+  errors: { messageId: string }[];
+}
+await (async function setupEsLintRuleTesters() {
+  // list './test' directory content and set up one RuleTester per directory
+  const testDir = join(dirname(new URL(import.meta.url).pathname), './tests');
+  const ruleNames = await readdir(testDir);
+  for (const ruleName of ruleNames) {
+    const rule = rules[ruleName];
+    if (ruleName.endsWith('.json')) {
+      continue;
+    }
+    if (!rule) {
+      throw new Error(
+        `Test directory has rule '${ruleName}' but related eslint rule is missing. Valid rules are: ${Object.keys(
+          rules
+        ).join(', ')}`
+      );
+    }
+    const ruleDir = join(testDir, ruleName);
+    const valid: TestCase[] = [];
+    const invalid: InvalidTestCase[] = [];
+    const testCaseNames = await readdir(ruleDir);
+    for (const testCaseName of testCaseNames) {
+      let path = join(ruleDir, testCaseName);
+      while ((await stat(path)).isDirectory()) {
+        const files = await readdir(path);
+        if (files.length !== 1) {
+          throw new Error(`Test directory '${path}' must have exactly one file.`);
         }
-        `,
-      `export const HelloWorld = component$(async () => {
-          useMethod();
-          await something();
-          await stuff();
-          return $(() => {
-            useHostElement();
-            return <div></div>
-          });
-        });`,
-    ],
-    invalid: [
-      {
-        code: `export const HelloWorld = component$(async () => {
-            await something();
-            useMethod();
-            return $(() => {
-              return (
-                <div>
-                  {prop}
-                </div>
-              );
-            });
-          });`,
-        errors: ['Calling use* methods after await is not safe.'],
-      },
-      {
-        code: `export const HelloWorld = component$(async () => {
-            if (stuff) {
-              await something();
-            }
-            useMethod();
-            return $(() => {
-              return (
-                <div>
-                  {prop}
-                </div>
-              );
-            });
-          });`,
-        errors: ['Calling use* methods after await is not safe.'],
-      },
-    ],
-  });
-});
-
-test('valid-lexical-scope', () => {
-  ruleTester.run('valid-lexical-scope', rules['valid-lexical-scope'], {
-    valid: [
-      `
-      import { component$, SSRStream } from "@builder.io/qwik";
-import { Readable } from "stream";
-
-export const RemoteApp = component$(({ name }: { name: string }) => {
-  return (
-    <>
-      <SSRStream>
-        {async (stream) => {
-          const res = await fetch('path');
-          const reader = res.body as any as Readable;
-          reader.setEncoding("utf8");
-
-          // Readable streams emit 'data' events once a listener is added.
-          reader.on("data", (chunk) => {
-            chunk = String(chunk).replace(
-              'q:base="/build/"',
-            );
-            stream.write(chunk);
-          });
-
-          return new Promise((resolve) => {
-            reader.on("end", () => resolve());
-          });
-        }}
-      </SSRStream>
-    </>
-  );
-});
-`,
-      `
-      export type NoSerialize<T> = (T & { __no_serialize__: true }) | undefined;
-      import { useMethod, component$ } from 'stuff';
-      export interface Value {
-        value: number;
-        fn: NoSerialize<() => void>;
-        other: Value;
+        path = join(path, files[0]);
       }
-      export function getFn(): NoSerialize<() => void> {
-        return () => {};
+      const code = String(await readFile(path, 'utf-8'));
+      const filename = path.replace(testDir, './tests');
+      if (testCaseName.startsWith('valid-')) {
+        valid.push({ name: testCaseName, filename, code });
+      } else if (testCaseName.startsWith('invalid-')) {
+        const EXPECT_ERROR_COMMENT = '// Expect error: ';
+        const errors = code
+          .split('\n')
+          .map((line) => line.trim())
+          .filter((line) => line.startsWith(EXPECT_ERROR_COMMENT))
+          .map((line) => JSON.parse(line.substring(EXPECT_ERROR_COMMENT.length)));
+        if (!errors.length) {
+          throw new Error(
+            `Invalid test case '${filename}' does not have '${EXPECT_ERROR_COMMENT}' comment.`
+          );
+        }
+        invalid.push({ name: testCaseName, filename, code, errors });
+      } else {
+        throw new Error(`Unexpected file '${testCaseName}' in directory '${ruleDir}'`);
       }
-      export const HelloWorld = component$(() => {
-        const state: Value = { value: 12, fn: getFn() };
-        useTask$(() => {
-          console.log(state.value);
-        });
-        return <div></div>
-      });`,
-      `
-        import { useMethod, component$ } from 'stuff';
-        interface Value {
-          value: 12;
-        }
-        type NullValue = Value | null;
-
-        export const HelloWorld = component$(() => {
-          const bar = () => 'bar';
-          const foo = 'bar';
-          const a: Value = {value: 12};
-          const b: NullValue = null;
-          useMethod(foo, bar);
-          return <div></div>
-        });`,
-      `export const HelloWorld = component$(() => {
-          const getMethod = () => {
-            return 'value';
-          }
-          const useMethod = getMethod();
-          useTask$(() => {
-            console.log(useMethod);
-          });
-          return <div></div>;
-        });`,
-
-      `export const HelloWorld = component$(() => {
-          const getMethod = () => {
-            return {
-              value: 'string',
-              other: 12,
-              values: ['23', 22, {prop: number}],
-              foo: {
-                bar: 'string'
-              }
-            };
-          }
-          const useMethod = getMethod();
-          useTask$(() => {
-            console.log(useMethod);
-          });
-          return <div></div>;
-        });`,
-      `
-        export const useMethod = () => {
-          console.log('');
-        }
-        export const HelloWorld = component$(() => {
-          const foo = 'bar';
-          useMethod(foo);
-          return <div></div>
-        });`,
-      `
-          import { useTask$ } from '@builder.io/qwik';
-          export const HelloWorld = component$(() => {
-            function getValue(): number | string | null | undefined | { prop: string } {
-              return window.aaa;
-            }
-            const a = getValue();
-            useTask$(() => {
-              console.log(a);
-            });
-            return <div></div>;
-          });`,
-      `
-          export const HelloWorld = component$(() => {
-            const getMethod = () => {
-              return Promise.resolve();
-            }
-            const useMethod = getMethod();
-            const obj = {
-              stuff: 12,
-              b: false,
-              n: null,
-              stuff: new Date(),
-              url: new URL(),
-              regex: new RegExp("dfdf"),
-              u: undefined,
-              manu: 'string',
-              complex: {
-                s: true,
-              }
-            };
-            useTask$(() => {
-              console.log(useMethod, obj);
-            });
-            return <div></div>;
-          });`,
-      `
-          import { useTask$ } from '@builder.io/qwik';
-          export const HelloWorld = component$(() => {
-            async function getValue() {
-              return 'ffg';
-            }
-            const a = getValue();
-            return <div onClick$={() => {
-              console.log(a);
-            }}></div>;
-          });`,
-
-      `
-  export interface PropFnInterface<ARGS extends any[], RET> {
-    (...args: ARGS): Promise<RET>
+    }
+    if (valid.length || invalid.length) {
+      await ruleTester.run(ruleName, rule, { valid, invalid });
+    }
   }
-
-  export type PropFunction<T extends Function> = T extends (...args: infer ARGS) => infer RET
-    ? PropFnInterface<ARGS, RET>
-    : never;
-
-  export interface Props {
-    method$: PropFunction<() => void>;
-  }
-
-  export const HelloWorld = component$(({method$}: Props) => {
-    return <div
-     onKeydown$={method$}
-     onClick$={async () => {
-      await method$();
-    }}></div>;
-  });
-      `,
-      ``,
-      `
-import { component$ } from "@builder.io/qwik";
-
-export const version = "0.13";
-
-export default component$(() => {
-  return {
-    version,
-  };
-});
-`,
-      `
-        import { component$ } from "@builder.io/qwik";
-
-        export interface Props {
-          serializableTuple: [string, number, boolean];
-        }
-
-        export const HelloWorld = component$((props: Props) => {
-          return (
-            <button onClick$={() => props.serializableTuple}></button>
-          );
-        });
-      `,
-      `
-      import { component$ } from "@builder.io/qwik";
-
-      export const HelloWorld = component$(({onClick}: any) => {
-        return (
-          <button onClick$={onClick}></button>
-        );
-      });
-    `,
-      `
-          const useMethod = 12;
-          export const HelloWorld = component$(() => {
-            const foo = 'bar';
-            useMethod(foo);
-            return <div></div>
-          });`,
-    ],
-    invalid: [
-      {
-        code: `
-          export const HelloWorld = component$(() => {
-            const getMethod = () => {
-              return () => {};
-            }
-            const useMethod = getMethod();
-            useTask$(() => {
-              console.log(useMethod);
-            });
-            return <div></div>;
-          });`,
-        errors: [{ messageId: 'referencesOutside' }],
-      },
-      {
-        code: `
-          export const HelloWorld = component$(() => {
-            function useMethod() {
-              console.log('stuff');
-            };
-            useTask$(() => {
-              console.log(useMethod);
-            });
-            return <div></div>;
-          });`,
-
-        errors: [{ messageId: 'referencesOutside' }],
-      },
-      {
-        code: `
-          export const HelloWorld = component$(() => {
-            class Stuff { }
-            useTask$(() => {
-              console.log(new Stuff(), useMethod);
-            });
-            return <div></div>;
-          });`,
-
-        errors: [{ messageId: 'referencesOutside' }],
-      },
-      {
-        code: `
-          export const HelloWorld = component$(() => {
-            class Stuff { }
-            const stuff = new Stuff();
-            useTask$(() => {
-              console.log(stuff, useMethod);
-            });
-            return <div></div>;
-          });`,
-
-        errors: [{ messageId: 'referencesOutside' }],
-      },
-      {
-        code: `
-          import { useTask$ } from '@builder.io/qwik';
-          export const HelloWorld = component$(() => {
-            const a = Symbol();
-            useTask$(() => {
-              console.log(a);
-            });
-            return <div></div>;
-          });`,
-
-        errors: [{ messageId: 'referencesOutside' }],
-      },
-      {
-        code: `
-          import { useTask$ } from '@builder.io/qwik';
-          export const HelloWorld = component$(() => {
-            function getValue() {
-              if (Math.random() < 0.5) {
-                return 'string';
-              } else {
-                return () => { console.log() };
-              }
-            }
-            const a = getValue();
-            useTask$(() => {
-              console.log(a);
-            });
-            return <div></div>;
-          });`,
-
-        errors: [{ messageId: 'referencesOutside' }],
-      },
-      {
-        code: `
-        import { useMethod, component$ } from 'stuff';
-        export interface Value {
-          value: () => void;
-        }
-        export const HelloWorld = component$(() => {
-          const state: Value = { value: () => console.log('thing') };
-          useTask$(() => {
-            console.log(state.value);
-          });
-          return <div></div>
-        });`,
-        errors: [{ messageId: 'referencesOutside' }],
-      },
-      {
-        code: `
-        import { component$ } from 'stuff';
-        export const HelloWorld = component$(() => {
-          const click = () => console.log();
-          return (
-            <button onClick$={click}>
-            </button>
-          );
-        });`,
-        errors: [
-          {
-            messageId: 'invalidJsxDollar',
-          },
-        ],
-      },
-      {
-        code: `
-        import { component$ } from 'stuff';
-        export const HelloWorld = component$(() => {
-          let click: string = '';
-          return (
-            <button onClick$={() => {
-              click = '';
-
-            }}>
-            </button>
-          );
-        });`,
-        errors: [
-          {
-            messageId: 'mutableIdentifier',
-          },
-        ],
-      },
-      {
-        code: `
-        import { component$ } from "@builder.io/qwik";
-
-        export interface Props {
-          nonserializableTuple: [string, number, boolean, Function];
-        }
-
-        export const HelloWorld = component$((props: Props) => {
-          return (
-            <button onClick$={() => props.nonserializableTuple}></button>
-          );
-        });`,
-        errors: [{ messageId: 'referencesOutside' }],
-      },
-    ],
-  });
-});
-
-export {};
+})();

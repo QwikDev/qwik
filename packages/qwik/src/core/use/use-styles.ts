@@ -2,16 +2,13 @@ import { styleContent, styleKey } from '../style/qrl-styles';
 import type { QRL } from '../qrl/qrl.public';
 import { implicit$FirstArg } from '../util/implicit_dollar';
 import { getScopedStyles } from '../style/scoped-stylesheet';
-import { hasStyle } from '../render/execute-component';
 import { useSequentialScope } from './use-sequential-scope';
 import { assertQrl } from '../qrl/qrl-class';
 import { isPromise } from '../util/promises';
 import { assertDefined } from '../error/assert';
 import { ComponentStylesPrefixContent } from '../util/markers';
 
-/**
- * @public
- */
+/** @public */
 export interface UseStylesScoped {
   scopeId: string;
 }
@@ -35,9 +32,8 @@ export interface UseStylesScoped {
  * });
  * ```
  *
- * @see `useStylesScoped`
- *
  * @public
+ * @see `useStylesScoped`
  */
 // </docs>
 export const useStylesQrl = (styles: QRL<string>): void => {
@@ -63,9 +59,8 @@ export const useStylesQrl = (styles: QRL<string>): void => {
  * });
  * ```
  *
- * @see `useStylesScoped`
- *
  * @public
+ * @see `useStylesScoped`
  */
 // </docs>
 export const useStyles$ = /*#__PURE__*/ implicit$FirstArg(useStylesQrl);
@@ -89,9 +84,8 @@ export const useStyles$ = /*#__PURE__*/ implicit$FirstArg(useStylesQrl);
  * });
  * ```
  *
- * @see `useStyles`
- *
  * @public
+ * @see `useStyles`
  */
 // </docs>
 export const useStylesScopedQrl = (styles: QRL<string>): UseStylesScoped => {
@@ -119,9 +113,8 @@ export const useStylesScopedQrl = (styles: QRL<string>): UseStylesScoped => {
  * });
  * ```
  *
- * @see `useStyles`
- *
  * @public
+ * @see `useStyles`
  */
 // </docs>
 export const useStylesScoped$ = /*#__PURE__*/ implicit$FirstArg(useStylesScopedQrl);
@@ -133,9 +126,9 @@ const _useStyles = (
 ): string => {
   assertQrl(styleQrl);
 
-  const { get, set, iCtx, i, elCtx } = useSequentialScope<string>();
-  if (get) {
-    return get;
+  const { val, set, iCtx, i, elCtx } = useSequentialScope<string>();
+  if (val) {
+    return val;
   }
   const styleId = styleKey(styleQrl, i);
   const containerState = iCtx.$renderCtx$.$static$.$containerState$;
@@ -150,7 +143,7 @@ const _useStyles = (
   if (scoped) {
     elCtx.$scopeIds$.push(styleContent(styleId));
   }
-  if (hasStyle(containerState, styleId)) {
+  if (containerState.$styleIds$.has(styleId)) {
     return styleId;
   }
   containerState.$styleIds$.add(styleId);

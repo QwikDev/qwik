@@ -4,7 +4,7 @@ import { normalizePath } from '../../utils/fs';
 import { visit } from 'unist-util-visit';
 import { parse as parseYaml } from 'yaml';
 import type { ResolvedDocumentHead } from '../../runtime/src';
-import type { DocumentMeta, Editable } from 'packages/qwik-city/runtime/src/types';
+import type { DocumentMeta, Editable } from '../../runtime/src/types';
 
 export function parseFrontmatter(ctx: BuildContext): Transformer {
   return (mdast, vfile) => {
@@ -57,6 +57,7 @@ export function frontmatterAttrsToDocumentHead(attrs: FrontmatterAttrs | undefin
         meta: [],
         styles: [],
         links: [],
+        scripts: [],
         frontmatter: {},
       };
 

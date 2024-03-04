@@ -1,6 +1,6 @@
-import { component$ } from '@builder.io/qwik';
+import { component$ } from "@builder.io/qwik";
 
-import './global.css';
+import "./global.css";
 
 export const Root = component$(() => {
   return (
@@ -75,6 +75,9 @@ export const Root = component$(() => {
         <a href="/e2e/signals">Signals</a>
       </p>
       <p>
+        <a href="/e2e/signals/issue-5001">Signals: Issue #5001</a>
+      </p>
+      <p>
         <a href="/e2e/attributes">Attributes</a>
       </p>
       <p>
@@ -91,6 +94,9 @@ export const Root = component$(() => {
       </p>
       <p>
         <a href="/e2e/slot-cleanup">Slot cleanup</a>
+      </p>
+      <p>
+        <a href="/e2e/build-variables">Build Variables</a>
       </p>
     </section>
   );

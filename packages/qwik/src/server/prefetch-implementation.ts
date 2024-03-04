@@ -1,6 +1,7 @@
 import { Fragment, jsx, type JSXNode } from '@builder.io/qwik';
 import {
   flattenPrefetchResources,
+  getMostReferenced,
   prefetchUrlsEventScript,
   workerFetchScript,
 } from './prefetch-utils';
@@ -43,19 +44,28 @@ function prefetchUrlsEvent(
   prefetchResources: PrefetchResource[],
   nonce?: string
 ) {
+  const mostReferenced = getMostReferenced(prefetchResources);
+  for (const url of mostReferenced) {
+    prefetchNodes.push(
+      jsx('link', {
+        rel: 'modulepreload',
+        href: url,
+        nonce,
+      })
+    );
+  }
   prefetchNodes.push(
     jsx('script', {
-      type: 'module',
-      dangerouslySetInnerHTML: prefetchUrlsEventScript(prefetchResources),
+      'q:type': 'prefetch-bundles',
+      dangerouslySetInnerHTML:
+        prefetchUrlsEventScript(prefetchResources) +
+        `;document.dispatchEvent(new CustomEvent('qprefetch', {detail:{links: [location.pathname]}}))`,
       nonce,
     })
   );
 }
 
-/**
- * Creates the `<link>` within the rendered html.
- * Optionally add the JS worker fetch
- */
+/** Creates the `<link>` within the rendered html. Optionally add the JS worker fetch */
 function linkHtmlImplementation(
   prefetchNodes: JSXNode[],
   prefetchResources: PrefetchResource[],
@@ -79,9 +89,8 @@ function linkHtmlImplementation(
 }
 
 /**
- * Uses JS to add the `<link>` elements at runtime, and if the
- * link prefetching isn't supported, it'll also add the
- * web worker fetch.
+ * Uses JS to add the `<link>` elements at runtime, and if the link prefetching isn't supported,
+ * it'll also add the web worker fetch.
  */
 function linkJsImplementation(
   prefetchNodes: JSXNode[],
@@ -128,6 +137,7 @@ function linkJsImplementation(
   prefetchNodes.push(
     jsx('script', {
       type: 'module',
+      'q:type': 'link-js',
       dangerouslySetInnerHTML: s,
       nonce,
     })
@@ -145,6 +155,7 @@ function workerFetchImplementation(
   prefetchNodes.push(
     jsx('script', {
       type: 'module',
+      'q:type': 'prefetch-worker',
       dangerouslySetInnerHTML: s,
       nonce,
     })
@@ -154,13 +165,7 @@ function workerFetchImplementation(
 function normalizePrefetchImplementation(
   input: PrefetchImplementation | undefined
 ): Required<PrefetchImplementation> {
-  if (input && typeof input === 'object') {
-    // user provided PrefetchImplementation
-    return input as any;
-  }
-
-  // default PrefetchImplementation
-  return PrefetchImplementationDefault;
+  return { ...PrefetchImplementationDefault, ...input };
 }
 
 const PrefetchImplementationDefault: Required<PrefetchImplementation> = {

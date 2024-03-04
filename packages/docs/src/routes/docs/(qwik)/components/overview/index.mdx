@@ -1,5 +1,5 @@
 ---
-title: Overview
+title: Overview | Components
 contributors:
   - RATIU5
   - leifermendez
@@ -18,13 +18,28 @@ contributors:
   - estherbrunner
   - kumarasinghe
   - mhevery
+  - AnthonyPAlicea
+  - khalilou88
+  - n8sabes
+  - fabian-hiller
+  - gioboa
+  - mrhoodz
+  - eecopa
+  - drumnistnakano
+  - maiieul
+  - wmertens
+  - aendel
+updated_at: '2023-12-14T18:38:38Z'
+created_at: '2023-03-20T23:45:13Z'
 ---
 
 import CodeSandbox from '../../../../../components/code-sandbox/index.tsx';
 
 # Components
 
-Components are the basic building blocks of Qwik Applications. Qwik components are unique in that:
+Components are the basic building blocks of Qwik Applications. They are reusable piece of code that can be used to build a UI.
+
+Qwik components are unique in that:
 
 - Qwik components automatically get broken down into lazy-loaded chunks by the [Optimizer](../../advanced/optimizer/index.mdx).
 - They are [resumable](../../concepts/resumable/index.mdx) (a component can get created on a server and continue its execution on the client).
@@ -32,16 +47,14 @@ Components are the basic building blocks of Qwik Applications. Qwik components a
 
 ## `component$()`
 
-A component is a small, reusable piece of code that can be used to build a UI.
+A Qwik component is a function that returns JSX wrapped in a `component$` call.
 
-In Qwik, they are declared using the `component$` method:
-
-<CodeSandbox src="/src/routes/demo/component/simple/index.tsx" sandboxStyle={{ height: '3em' }}>
+<CodeSandbox src="/src/routes/demo/component/simple/index.tsx" style={{ height: '3em' }}>
 ```tsx /component$/
 import { component$ } from '@builder.io/qwik';
 
 export default component$(() => {
-  return <span>Hello World!</span>;
+  return <div>Hello World!</div>;
 });
 ```
 </CodeSandbox>
@@ -52,30 +65,33 @@ export default component$(() => {
 
 Components can be composed together to create more complex components.
 
-<CodeSandbox src="/src/routes/demo/component/child/index.tsx" sandboxStyle={{ height: '6em' }}>
+
+<CodeSandbox src="/src/routes/demo/component/child/index.tsx" style={{ height: '6em' }}>
 ```tsx {7}
 import { component$ } from '@builder.io/qwik';
 
 export default component$(() => {
   return (
     <>
-      <div>Parent Text</div>
+      <p>Parent Text</p>
       <Child />
     </>
   );
 });
 
 const Child = component$(() => {
-  return <div>Child Text</div>;
+  return <p>Child Text</p>;
 });
 ```
 </CodeSandbox>
+
+> Notice that Qwik components are already lazy loaded thanks to the `$` sign. That means that you don't need to dynamically import the child component manually, Qwik will do it for you.
 
 ### Counter Example
 
 A slightly more complex example of a counter.
 
-<CodeSandbox src="/src/routes/demo/state/counter/index.tsx" sandboxStyle={{ height: '6em' }}>
+<CodeSandbox src="/src/routes/demo/state/counter/index.tsx" style={{ height: '6em' }}>
 ```tsx
 import { component$, useSignal } from '@builder.io/qwik';
 
@@ -84,8 +100,8 @@ export default component$(() => {
 
   return (
     <>
-      <div>Count: {count.value}</div>
-      <button onClick$={(e) => count.value++}>Increment</button>
+      <p>Count: {count.value}</p>
+      <button onClick$={() => count.value++}>Increment</button>
     </>
   );
 });
@@ -94,11 +110,11 @@ export default component$(() => {
 
 ## Props
 
-Props are used to pass data from the parent into the component. Props are accesible via the `props` argument to the component$ function.
+Props are used to pass data from the parent into the component. Props are accessible via the `props` argument to the component$ function.
 
 In this example a component `Item` declares optional `name`, `quantity`, `description`, and `price`.
 
-<CodeSandbox src="/src/routes/demo/component/props/index.tsx" sandboxStyle={{ height: '10em' }}>
+<CodeSandbox src="/src/routes/demo/component/props/index.tsx" style={{ height: '10em' }}>
 ```tsx {3-8, 27} /ItemProps/
 import { component$ } from '@builder.io/qwik';
 
@@ -133,6 +149,24 @@ export default component$(() => {
 
 > In the example above we are using `component$<ItemProps>` to provide an explicit type for the props. This is optional but it allows the TypeScript compiler to check that the props are used correctly.
 
+### Default props
+
+You can use the destructuring pattern with props to provide default values.
+
+```tsx
+interface Props {
+  enabled?: boolean;
+  placeholder?: string;
+}
+
+// We can use JS's destructuring of props to provide a default value.
+export default component$<Props>(({enabled = true, placeholder = ''}) => {
+  return (
+    <input disabled={!enabled} placeholder={placeholder} />
+  );
+});
+```
+
 ## Rendering on Reactivity
 
 Qwik components are reactive. This means that they automatically update on a state change. There are two kinds of updates:
@@ -148,7 +182,9 @@ A state change causes the component to get invalidated. When components get inva
 
 Use `ref` to get hold of a DOM element. Create a signal to store DOM element. Then pass the signal to the JSX `ref` property.
 
-<CodeSandbox src="/src/routes/demo/component/ref/index.tsx" sandboxStyle={{ height: '10em' }}>
+> Getting a reference to DOM elements can be useful to calculate the element size (`getBoundingClientRect`), computed styles, initializing a WebGL canvas, or even wire-up some third-party library that interacts with DOM elements directly.
+
+<CodeSandbox src="/src/routes/demo/component/ref/index.tsx" style={{ height: '10em' }}>
 ```tsx /const outputRef = useSignal<Element>();/ /ref={outputRef}/
 import { component$, useVisibleTask$, useSignal } from '@builder.io/qwik';
 
@@ -166,15 +202,62 @@ export default component$(() => {
   });
 
   return (
-    <div>
-      <div ref={outputRef} style={{ border: '1px solid red', width: '100px' }}>
+    <section>
+      <article
+        ref={outputRef}
+        style={{ border: '1px solid red', width: '100px' }}
+      >
         Change text value here to stretch the box.
-      </div>
-      <div>
+      </article>
+      <p>
         The above red box is {height.value} pixels high and {width.value}{' '}
         pixels wide.
+      </p>
+    </section>
+  );
+});
+```
+</CodeSandbox>
+
+## Accessing Elements by `id` Across Server and Client Environments
+
+In server and client environments, elements must sometimes be accessed by their `id`. Use the `useId()` function to get a unique identifier for the current component that remains consistent across server-side rendering (SSR) and client-side operations. This is pivotal when server-rendered components need client-side scripting, such as:
+
+1. **Animation Engines**
+2. **Accessibility Enhancement**
+3. **Other Client-Side Libraries**
+
+In a microfrontends setup, where multiple fragments run concurrently, `useId()` ensures unique and consistent IDs across execution environments, eliminating conflicts.
+
+<CodeSandbox src="/src/routes/demo/component/useId/index.tsx" style={{ height: '10em' }}>
+```tsx /const outputRef = useSignal<Element>();/ /ref={outputRef}/
+import {
+  component$,
+  useId,
+  useSignal,
+  useVisibleTask$,
+} from '@builder.io/qwik';
+
+export default component$(() => {
+  const elemIdSignal = useSignal<string | null>(null);
+  const id = useId();
+  const elemId = `${id}-example`;
+  console.log('server-side id:', elemId);
+
+  useVisibleTask$(() => {
+    const elem = document.getElementById(elemId);
+    elemIdSignal.value = elem?.getAttribute('id') || null;
+    console.log('client-side id:', elemIdSignal.value);
+  });
+
+  return (
+    <section>
+      <div id={elemId}>
+        Both server-side and client-side console should match this id:
+        <br />
+        <b>{elemIdSignal.value || null}</b>
       </div>
-    </div>
+    </section>
   );
 });
 ```
@@ -198,12 +281,12 @@ In the above example, referring to the `Parent` component implies a transitive r
 
 To avoid the above problem we don't refer to components directly, instead, we refer to the lazy wrapper. This is created automatically by the `component$()` function.
 
-<CodeSandbox src="/src/routes/demo/component/lazy/index.tsx" sandboxStyle={{ height: '10em' }} sandbox={false}>
+<CodeSandbox src="/src/routes/demo/component/lazy/index.tsx" style={{ height: '4em' }} sandbox={false}>
 ```tsx
 import { component$ } from '@builder.io/qwik';
 
 export const Child = component$(() => {
-  return <span>child</span>;
+  return <p>child</p>;
 });
 
 export const Parent = component$(() => {
@@ -213,6 +296,8 @@ export const Parent = component$(() => {
     </section>
   );
 });
+
+export default Parent;
 ```
 </CodeSandbox>
 
@@ -237,11 +322,11 @@ Notice that after the Optimizer transforms the code, the `Parent` no longer dire
 So what happens when the `Parent` component needs to render a `Child` component, but the `Child` component has not yet been downloaded? First, the `Parent` component renders its DOM like so.
 
 ```html
-<div>
+<main>
   <section>
     <!--qv--><!--/qv-->
   </section>
-</div>
+</main>
 ```
 
 As you can see in the above example, the `<!--qv-->` acts as a marker where the `Child` component will be inserted once it is lazy-loaded.
@@ -252,7 +337,7 @@ In addition to the standard `component$()` with all of it's lazy-loaded
 properties, Qwik also supports lightweight (inline) components that act more
 like components in traditional frameworks.
 
-<CodeSandbox src="/src/routes/demo/component/inline-child/index.tsx" sandboxStyle={{height: '4em'}}>
+<CodeSandbox src="/src/routes/demo/component/inline-child/index.tsx" style={{height: '4em'}}>
 ```tsx
 import { component$ } from '@builder.io/qwik';
 
@@ -264,10 +349,10 @@ export const MyButton = (props: { text: string }) => {
 // Component: declared using `component$()`.
 export default component$(() => {
   return (
-    <div>
+    <p>
       Some text:
       <MyButton text="Click me" />
-    </div>
+    </p>
   );
 });
 ```
@@ -286,12 +371,37 @@ You can think of inline components as being inlined into the component where the
 ### Limitations
 Inline components come with some limitations that the standard `component$()`
 does not have. Inline components:
-- Cannot use `use` methods such as `useSignal` or `useStore`.
+- Cannot use `use*` methods such as `useSignal` or `useStore`.
+- Cannot project content with a `<Slot>`.
 
 As the name implies, inline components are best used sparingly for
 lightweight pieces of markup since they offer the convenience of being
 bundled with the parent component.
 
+## Polymorphic components
+
+When you want to output a different type of element depending on props, you can do it using something like this:
+
+```tsx
+export const Poly = component$(
+  <C extends string | FunctionComponent = string | FunctionComponent>({
+    as: Cmp = 'div' as C,
+    ...props
+  }: { as?: C } & PropsOf<string extends C ? 'div' : C>) => {
+    return <Cmp {...props}>hi</Cmp>;
+  }
+);
+
+// These all work with correct types
+<>
+  <Poly>Hello from a div</Poly>
+  <Poly as="a" href="/blog">Blog</Poly>
+  <Poly as="input" onInput$={(ev, el) => console.log(el.value)} />
+  <Poly as={OtherComponent} someProp />
+</>
+```
+
+Note the `string extends C`, that is only true when TypeScript couldn't infer the type from the `as` prop, and so you can specify the default type.
 
 ## API Overview
 
@@ -310,20 +420,20 @@ bundled with the parent component.
 
 ### Events
 
-- [`useOn()`](../events/index.mdx) - appends a listener to the current component programatically
-- [`useOnWindow()`](../events/index.mdx) - appends a listener to the window object programatically
-- [`useOnDocument()`](../events/index.mdx) - appends a listener to the document object programatically
+- [`useOn()`](../events/index.mdx#useonwindowdocument-hook) - appends a listener to the current component programmatically
+- [`useOnWindow()`](../events/index.mdx#useonwindowdocument-hook) - appends a listener to the window object programmatically
+- [`useOnDocument()`](../events/index.mdx#useonwindowdocument-hook) - appends a listener to the document object programmatically
 
 ### Tasks/Lifecycle
 
 - [`useTask$()`](../tasks/index.mdx#usetask) - defines a callback that will be called before render and/or when a watched store changes
 - [`useVisibleTask$()`](../tasks/index.mdx#usevisibletask) - defines a callback that will be called after rendering in the client only (browser)
-- [`useResource$()`](../tasks/index.mdx#useresource) - creates a resource to asynchronously load data
+- [`useResource$()`](../state/index.mdx#useresource) - creates a resource to asynchronously load data
 
 ### Other
 
 - [`$()`](../../advanced/qrl/index.mdx) - creates a QRL
-- `noSerialize()`
+- [`noSerialize()`](/docs/components/state/#noserialize)
 - `useErrorBoundary()`
 
 ### Components

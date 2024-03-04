@@ -96,7 +96,7 @@ export const ReplOutputPanel = ({ input, store }: ReplOutputPanelProps) => {
               />
             </svg>
           ) : null}
-          <iframe class="repl-server" src={store.serverUrl} />
+          {store.serverUrl && <iframe class="repl-server" src={store.serverUrl} />}
         </div>
 
         {store.selectedOutputPanel === 'html' ? (
@@ -122,7 +122,9 @@ export const ReplOutputPanel = ({ input, store }: ReplOutputPanelProps) => {
             {diagnosticsLen === 0 ? (
               <p class="no-diagnostics">- No Reported Diagnostics -</p>
             ) : (
-              [...store.diagnostics, ...store.monacoDiagnostics].map((d) => <p>{d.message}</p>)
+              [...store.diagnostics, ...store.monacoDiagnostics].map((d, key) => (
+                <p key={key}>{d.message}</p>
+              ))
             )}
           </div>
         ) : null}

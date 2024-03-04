@@ -1,4 +1,4 @@
-import { component$ } from '@builder.io/qwik';
+import { component$ } from "@builder.io/qwik";
 import {
   type DocumentHead,
   routeLoader$,
@@ -6,8 +6,8 @@ import {
   zod$,
   z,
   Form,
-} from '@builder.io/qwik-city';
-import styles from './todolist.module.css';
+} from "@builder.io/qwik-city";
+import styles from "./todolist.module.css";
 
 interface ListItem {
   text: string;
@@ -28,7 +28,7 @@ export const useAddToListAction = routeAction$(
   },
   zod$({
     text: z.string().trim().min(1),
-  })
+  }),
 );
 
 export default component$(() => {
@@ -37,37 +37,42 @@ export default component$(() => {
 
   return (
     <>
-      <div class="section">
-        <div class="container center">
-          <h1 class="hero">TODO List</h1>
-        </div>
+      <div class="container container-center">
+        <h1>
+          <span class="highlight">TODO</span> List
+        </h1>
       </div>
 
-      <div class="section bright">
-        <div class="container center mh-300">
-          {(list.value.length && (
-            <ul class={styles.list}>
-              {list.value.map((item, index) => (
-                <li key={`items-${index}`}>{item.text}</li>
-              ))}
-            </ul>
-          )) || <span class="no-content">No items found</span>}
-        </div>
+      <div role="presentation" class="ellipsis"></div>
+
+      <div class="container container-center">
+        {list.value.length === 0 ? (
+          <span class={styles.empty}>No items found</span>
+        ) : (
+          <ul class={styles.list}>
+            {list.value.map((item, index) => (
+              <li key={`items-${index}`}>{item.text}</li>
+            ))}
+          </ul>
+        )}
       </div>
 
-      <div class="section">
-        <div class="container center">
-          <Form action={action} spaReset>
-            <input type="text" name="text" required /> <button type="submit">Add item</button>
-          </Form>
+      <div class="container container-center">
+        <Form action={action} spaReset>
+          <input type="text" name="text" required class={styles.input} />{" "}
+          <button type="submit" class="button-dark">
+            Add item
+          </button>
+        </Form>
 
-          <p class={styles.hint}>PS: This little app works even when JavaScript is disabled.</p>
-        </div>
+        <p class={styles.hint}>
+          PS: This little app works even when JavaScript is disabled.
+        </p>
       </div>
     </>
   );
 });
 
 export const head: DocumentHead = {
-  title: 'Qwik Todo List',
+  title: "Qwik Todo List",
 };

@@ -1,11 +1,17 @@
 import type { SearchClient } from 'algoliasearch/lite';
-import { component$, useStore, useStyles$, useSignal } from '@builder.io/qwik';
-import type { DocSearchHit, InternalDocSearchHit, StoredDocSearchHit } from './types';
+import {
+  component$,
+  useStore,
+  useStyles$,
+  useSignal,
+  createContextId,
+  useContextProvider,
+  type Signal,
+} from '@builder.io/qwik';
+import type { DocSearchHit, InternalDocSearchHit } from './types';
 import { type ButtonTranslations, DocSearchButton } from './doc-search-button';
 import { DocSearchModal, type ModalTranslations } from './doc-search-modal';
 import styles from './doc-search.css?inline';
-import type { StoredSearchPlugin } from './stored-searches';
-import type { QwikKeyboardEvent } from '../../../../../packages/qwik/src/core/render/jsx/types/jsx-qwik-events';
 
 export type DocSearchTranslations = Partial<{
   button: ButtonTranslations;
@@ -25,8 +31,6 @@ export type DocSearchState = {
   snippetLength: number;
   status: 'idle' | 'loading' | 'stalled' | 'error';
   initialQuery?: string;
-  favoriteSearches?: StoredSearchPlugin<StoredDocSearchHit>;
-  recentSearches?: StoredSearchPlugin<StoredDocSearchHit>;
 };
 
 export interface DocSearchProps {
@@ -39,21 +43,23 @@ export interface DocSearchProps {
   translations?: DocSearchTranslations;
 }
 
-export function isEditingContent(event: QwikKeyboardEvent<HTMLElement>): boolean {
+export function isEditingContent(event: KeyboardEvent): boolean {
   const { isContentEditable, tagName } = event.target as HTMLElement;
 
   return isContentEditable || tagName === 'INPUT' || tagName === 'SELECT' || tagName === 'TEXTAREA';
 }
 
+export const AiResultOpenContext = createContextId<Signal<boolean>>('aiResultOpen');
+
 export const DocSearch = component$((props: DocSearchProps) => {
   useStyles$(styles);
-  // useContextBoundary();
+  const aiResultOpen = useSignal(false);
+
+  useContextProvider(AiResultOpenContext, aiResultOpen);
 
   const state = useStore<DocSearchState>({
     isOpen: false,
     initialQuery: '',
-    favoriteSearches: null as any,
-    recentSearches: null as any,
     query: '',
     collections: [],
     context: {
@@ -64,11 +70,11 @@ export const DocSearch = component$((props: DocSearchProps) => {
     snippetLength: 10,
   });
 
-  const searchButtonRef = useSignal();
+  const searchButtonRef = useSignal<Element>();
 
   return (
     <div
-      class="docsearch"
+      class={{ docsearch: true, 'ai-result-open': aiResultOpen.value }}
       window:onKeyDown$={(event) => {
         function open() {
           // We check that no other DocSearch modal is showing before opening
@@ -111,11 +117,11 @@ export const DocSearch = component$((props: DocSearchProps) => {
       />
       {state.isOpen && (
         <DocSearchModal
-          {...props}
+          aiResultOpen={aiResultOpen.value}
+          indexName={props.indexName}
+          apiKey={props.apiKey}
+          appId={props.appId}
           state={state}
-          onClose$={() => {
-            state.isOpen = false;
-          }}
         />
       )}
     </div>

@@ -145,13 +145,13 @@ export const CmpInline = component$(() => {
       debounced: 0,
     });
 
-    // Double count watch
+    // Double count task
     useTask$(({ track }) => {
       const count = track(() => store.count);
       store.doubleCount = 2 * count;
     });
 
-    // Debouncer watch
+    // Debouncer task
     useTask$(({ track }) => {
       const doubleCount = track(() => store.doubleCount);
       const timer = setTimeout(() => {
@@ -177,24 +177,22 @@ export const CmpInline = component$(() => {
 () => {
   // <docs anchor="use-resource">
   const Cmp = component$(() => {
-    const store = useStore({
-      city: '',
-    });
+    const cityS = useSignal('');
 
-    const weatherResource = useResource$<any>(async ({ track, cleanup }) => {
-      const cityName = track(() => store.city);
+    const weatherResource = useResource$(async ({ track, cleanup }) => {
+      const cityName = track(cityS);
       const abortController = new AbortController();
       cleanup(() => abortController.abort('cleanup'));
       const res = await fetch(`http://weatherdata.com?city=${cityName}`, {
         signal: abortController.signal,
       });
-      const data = res.json();
-      return data;
+      const data = await res.json();
+      return data as { temp: number };
     });
 
     return (
       <div>
-        <input name="city" onInput$={(ev: any) => (store.city = ev.target.value)} />
+        <input name="city" bind:value={cityS} />
         <Resource
           value={weatherResource}
           onResolved={(weather) => {
@@ -212,16 +210,27 @@ export const CmpInline = component$(() => {
   // <docs anchor="use-task-simple">
   const Cmp = component$(() => {
     const store = useStore({ count: 0, doubleCount: 0 });
+    const signal = useSignal(0);
     useTask$(({ track }) => {
+      // Any signals or stores accessed inside the task will be tracked
       const count = track(() => store.count);
-      store.doubleCount = 2 * count;
+      // You can also pass a signal to track() directly
+      const signalCount = track(signal);
+      store.doubleCount = count + signalCount;
     });
     return (
       <div>
         <span>
           {store.count} / {store.doubleCount}
         </span>
-        <button onClick$={() => store.count++}>+</button>
+        <button
+          onClick$={() => {
+            store.count++;
+            signal.value++;
+          }}
+        >
+          +
+        </button>
       </div>
     );
   });
@@ -466,6 +475,7 @@ function doExtraStuff() {
 
 import { createContextId, useContext, useContextProvider } from './use/use-context';
 import { Resource, useResource$ } from './use/use-resource';
+import { useSignal } from './use/use-signal';
 
 export const greet = () => console.log('greet');
 function topLevelFn() {}

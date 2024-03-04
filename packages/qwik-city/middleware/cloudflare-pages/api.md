@@ -7,24 +7,22 @@
 import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
 
 // @public (undocumented)
-export function createQwikCity(opts: QwikCityCloudflarePagesOptions): ({ request, env, waitUntil, next }: EventPluginContext) => Promise<Response>;
-
-// @public (undocumented)
-export interface EventPluginContext {
-    // (undocumented)
-    env: Record<string, any>;
-    // (undocumented)
-    next: (input?: Request | string, init?: RequestInit) => Promise<Response>;
-    // (undocumented)
-    request: Request;
-    // (undocumented)
-    waitUntil: (promise: Promise<any>) => void;
-}
+export function createQwikCity(opts: QwikCityCloudflarePagesOptions): (request: PlatformCloudflarePages['request'], env: Record<string, any> & {
+    ASSETS: {
+        fetch: (req: Request) => Response;
+    };
+}, ctx: PlatformCloudflarePages['ctx']) => Promise<Response>;
 
 // @public (undocumented)
 export interface PlatformCloudflarePages {
     // (undocumented)
-    env?: EventPluginContext['env'];
+    ctx: {
+        waitUntil: (promise: Promise<any>) => void;
+    };
+    // (undocumented)
+    env?: Record<string, any>;
+    // (undocumented)
+    request: Request;
 }
 
 // @public (undocumented)

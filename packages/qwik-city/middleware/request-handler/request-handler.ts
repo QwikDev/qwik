@@ -1,12 +1,13 @@
-import type { RouteData } from '@builder.io/qwik-city';
 import type { Render } from '@builder.io/qwik/server';
 import type { QwikSerializer, ServerRenderOptions, ServerRequestEvent } from './types';
-import type { MenuData, RouteModule } from '../../runtime/src/types';
+import type { QwikCityPlan } from '../../runtime/src/types';
 import { getRouteMatchPathname, type QwikCityRun, runQwikCity } from './user-response';
 import { renderQwikMiddleware, resolveRequestHandlers } from './resolve-request-handlers';
 import { loadRoute } from '../../runtime/src/routing';
 
 /**
+ * The request handler for QwikCity. Called by every integration.
+ *
  * @public
  */
 export async function requestHandler<T = unknown>(
@@ -14,17 +15,14 @@ export async function requestHandler<T = unknown>(
   opts: ServerRenderOptions,
   qwikSerializer: QwikSerializer
 ): Promise<QwikCityRun<T> | null> {
-  const { render, qwikCityPlan } = opts;
-  const { routes, serverPlugins, menus, cacheModules, trailingSlash, basePathname } = qwikCityPlan;
+  const { render, qwikCityPlan, manifest, checkOrigin } = opts;
   const pathname = serverRequestEv.url.pathname;
-  const matchPathname = getRouteMatchPathname(pathname, trailingSlash);
+  const matchPathname = getRouteMatchPathname(pathname, qwikCityPlan.trailingSlash);
   const route = await loadRequestHandlers(
-    serverPlugins,
-    routes,
-    menus,
-    cacheModules,
+    qwikCityPlan,
     matchPathname,
     serverRequestEv.request.method,
+    checkOrigin ?? true,
     render
   );
   if (route) {
@@ -32,8 +30,9 @@ export async function requestHandler<T = unknown>(
       serverRequestEv,
       route[0],
       route[1],
-      trailingSlash,
-      basePathname,
+      manifest,
+      qwikCityPlan.trailingSlash,
+      qwikCityPlan.basePathname,
       qwikSerializer
     );
   }
@@ -41,19 +40,19 @@ export async function requestHandler<T = unknown>(
 }
 
 async function loadRequestHandlers(
-  serverPlugins: RouteModule[] | undefined,
-  routes: RouteData[] | undefined,
-  menus: MenuData[] | undefined,
-  cacheModules: boolean | undefined,
+  qwikCityPlan: QwikCityPlan,
   pathname: string,
   method: string,
+  checkOrigin: boolean,
   renderFn: Render
 ) {
+  const { routes, serverPlugins, menus, cacheModules } = qwikCityPlan;
   const route = await loadRoute(routes, menus, cacheModules, pathname);
   const requestHandlers = resolveRequestHandlers(
     serverPlugins,
     route,
     method,
+    checkOrigin,
     renderQwikMiddleware(renderFn)
   );
   if (requestHandlers.length > 0) {

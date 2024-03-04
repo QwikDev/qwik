@@ -1,3 +1,24 @@
+---
+title: Qwik in a nutshell | Introduction
+description: Learn the general concepts of Qwik in this short introduction guide.
+contributors:
+  - manucorporat
+  - AnthonyPAlicea
+  - the-r3aper7
+  - igorbabko
+  - mrhoodz
+  - hbendev
+  - willnguyen1312
+  - julianobrasil
+  - devagja
+  - vanvuongngo
+  - iancharlesdouglas
+  - adamdbradley
+  - hamatoyogi
+  - aendel
+updated_at: '2023-10-03T18:53:23Z'
+created_at: '2023-03-30T19:49:50Z'
+---
 # Qwik in a nutshell
 
 ## Components
@@ -10,6 +31,16 @@ Qwik components are very similar to React components. They are functions that re
 - For `<input>`, the `onChange` event is called `onInput$` in Qwik.
 - JSX prefers HTML attributes. `class` instead of `className`. `for` instead of `htmlFor`.
 - Conditional rendering is done with the ternary operator `?` and the `&&` operator, just like React.
+
+
+```tsx title="src/components/my-other-component/index.tsx"
+import { component$, Slot } from '@builder.io/qwik';
+import type { ClassList } from '@builder.io/qwik'
+
+export const MyOtherComponent = component$((props: { class?: ClassList }) => { // ✅
+  return <div class={class}><Slot /></div>;
+});
+```
 
 ```tsx
 import { component$, useSignal } from '@builder.io/qwik';
@@ -38,11 +69,11 @@ export const MyComponent = component$((props: MyComponentProps) => {
       <main
         class={{
           even: count.value % 2 === 0,
-          omode: count.value % 2 === 1,
+          odd: count.value % 2 === 1,
         }}
       >
         <h1>Count: {count.value}</h1>
-        <MyOtherComponent>
+        <MyOtherComponent class="correct-way"> {/* ✅ */}
           {count.value > 10 && <p>Count is greater than 10</p>}
           {count.value > 10 ? <p>Count is greater than 10</p> : <p>Count is less than 10</p>}
         </MyOtherComponent>
@@ -90,8 +121,8 @@ export const MyComponent = component$(() => {
   const count = useSignal(0);
 
   // Notice the `$(...)` around the event handler function.
-  const inputHandler = $((event) => {
-    console.log('input', event.target.name, event.target.value);
+  const inputHandler = $((event, elem) => {
+    console.log(event.type, elem.value);
   });
 
   return (
@@ -149,14 +180,13 @@ Methods that start with `use` are special in Qwik, such as `useSignal()`, `useSt
 
 ## Styling
 
-Qwik supports out of the box, CSS modules, global CSS imports and lazy loading scoped CSS using `useStyleScoped$()`.
+Qwik supports out of the box, CSS modules, or even Tailwind, global CSS imports and lazy loading scoped CSS using `useStylesScoped$()`. CSS Modules are the recommended way to style Qwik components.
 
 ### CSS Modules
 
 To use CSS modules, simply create a `.module.css` file. For example, `src/components/MyComponent/MyComponent.module.css`.
 
-```css
-/* File: src/components/MyComponent/MyComponent.module.css */
+```css title="src/components/MyComponent/MyComponent.module.css"
 .container {
   background-color: red;
 }
@@ -164,9 +194,7 @@ To use CSS modules, simply create a `.module.css` file. For example, `src/compon
 
 Then, import the CSS module in your component.
 
-```tsx
-// File: src/components/MyComponent/MyComponent.tsx
-
+```tsx title="src/components/MyComponent/MyComponent.tsx"
 import { component$ } from '@builder.io/qwik';
 import styles from './MyComponent.module.css';
 
@@ -177,65 +205,11 @@ export default component$(() => {
 
 Remember that Qwik uses `class` instead of `className` for CSS classes.
 
-### Global CSS
-
-To use global CSS, simply import the CSS file from any typescript file. For example, `src/components/MyComponent/MyComponent.tsx`.
-
-```tsx
-// File: src/components/MyComponent/MyComponent.tsx
-
-import { component$ } from '@builder.io/qwik';
-import './MyComponent.css';
-
-export default component$(() => {
-  return <div class="container">Hello world</div>;
-});
-```
-
-### Scoped CSS
-
-To use scoped CSS, you can use the `useStyleScoped$()` hook exported from `@builder.io/qwik`.
-
-```tsx
-// File: src/components/MyComponent/MyComponent.tsx
-
-import { component$, useStyleScoped$ } from '@builder.io/qwik';
-
-export default component$(() => {
-  useStyleScoped$(`
-    .container {
-      background-color: red;
-    }
-  `);
-  return <div class="container">Hello world</div>;
-});
-```
-
-It can also import an external CSS file. For that you need to add the `?inline` query parameter to the import of the CSS file, and pass the default export of the CSS file to the `useStyleScoped$()` hook.
-
-```css
-/* File: src/components/MyComponent/MyComponent.css */
-.container {
-  background-color: red;
-}
-```
-
-```tsx
-// File: src/components/MyComponent/MyComponent.tsx
-import { component$, useStyleScoped$ } from '@builder.io/qwik';
-import styles from './MyComponent.css?inline';
-
-export default component$(() => {
-  useStyleScoped$(styles);
-  return <div class="container">Hello world</div>;
-});
-```
-
 ## $(...) rules
 
 The `$(...)` function and any function that end with `$` are special in Qwik, such as: `$()`, `useTask$()`, `useVisibleTask$()`... The `$` at the end represents a lazy loading boundary. There are some rules that apply to the first argument of any `$` function. It is NOT related to jQuery at all.
 
-- The first argument must be a imported variable.
+- The first argument must be an imported variable.
 - The first argument must be a declared variable at the top level of the same module.
 - The first argument must be an expression any variables.
 - If the first argument is a function, it can only capture variables that are declared at the top level of the same module or which value is serializable. Serializable values include: `string`, `number`, `boolean`, `null`, `undefined`, `Array`, `Object`, `Date`, `RegExp`, `Map`, `Set`, `BigInt`, `Promise`, `Error`, `JSX nodes`, `Signal`, `Store` and even HTMLElements.
@@ -251,14 +225,14 @@ export function exportedFunction() {
 
 export default component$(() => {
   // The first argument is a function.
-  const valid1 = $((event) => {
-    console.log('input', event.target.name, event.target.value);
+  const valid1 = $((event, elem) => {
+    console.log(event.type, elem.value);
   });
 
-  // The first argument is a imported identifier.
+  // The first argument is an imported identifier.
   const valid2 = $(importedFunction);
 
-  // The first argument is a identifier declared at the top level of the same module.
+  // The first argument is an identifier declared at the top level of the same module.
   const valid3 = $(exportedFunction);
 
   // The first argument is an expression without local variables.
@@ -303,7 +277,7 @@ export default component$(() => {
 
 ### `useSignal(initialValue?)`
 
-`useSignal()` is the main way to create reactive state. Signals can be shared across components, and any component or task that reads the signal (executing: `signal.value`) will be render when the signal changes.
+`useSignal()` is the main way to create reactive state. Signals can be shared across components, and any component or task that reads the signal (executing: `signal.value`) will be rendered when the signal changes.
 
 ```ts
 // Typescript definition for `Signal<T>` and `useSignal<T>`
@@ -315,11 +289,11 @@ export interface Signal<T> {
 export const useSignal: <T>(value?: T | (() => T)): Signal<T>;
 ```
 
-`useSignal(initialValue?)` takes an optional initial value and returns a `Signal<T>` object. The `Signal<T>` object has a `value` property that can be read and written to. When a component or task access the `value` property, it automatically creates a subscription, so when the `value` is changed, every component, task or another computed signals that read the `value` will be re-evaluated.
+`useSignal(initialValue?)` takes an optional initial value and returns a `Signal<T>` object. The `Signal<T>` object has a `value` property that can be read and written to. When a component or task accesses the `value` property, it automatically creates a subscription, so when the `value` is changed, every component, task or another computed signals that read the `value` will be re-evaluated.
 
 ### `useStore(initialValue?)`
 
-`useStore(initialValue?)` is similar to `useSignal` except that it creates a reactive javascript object, where making every property of the object becomes reactive, just the `value` of a signal. Under the hood, `useStore` is implemented using a `Proxy` object, that intercepts all property access making them reactive.
+`useStore(initialValue?)` is similar to `useSignal` except that it creates a reactive javascript object, making every property of the object reactive, just like the `value` of a signal. Under the hood, `useStore` is implemented using a `Proxy` object that intercepts all property access, making the property reactive.
 
 ```ts
 // Typescript definition `useStore<T>`
@@ -334,14 +308,13 @@ export interface StoreOptions {
 export const useStore: <T>(value?: T | (() => T), options?: StoreOptions): Reactive<T>;
 ```
 
-In practive, useSignal and useStore are very similar, but useSignal is prefered most of the times. `useSignal(0) === useStore({ value: 0 })`, some use cases to use `useStore` are:
+In practice, `useSignal` and `useStore` are very similar -- `useSignal(0) === useStore({ value: 0 })` -- but `useSignal` is preferable most of the time.  Some use cases for `useStore` are:
 
 - When you need reactivity in an array.
 - When you want a reactive object that you can easily add properties to.
-- When you want to use the `deep` option to make nested properties reactive.
 
 ```tsx
-import { component$, useSignal } from '@builder.io/qwik';
+import { component$, useStore } from '@builder.io/qwik';
 
 export const Counter = component$(() => {
   // The `useStore` hook is used to create a reactive store.
@@ -381,13 +354,13 @@ export const Counter = component$(() => {
 
 ### `useTask$(() => { ... })`
 
-`useTask$` is used to create a async task. Tasks are useful to implement side effects, running heavy computation and async code as part of the rendering lifecycle. `useTask$` execute before the first render, and then whenever a tracked signal or store changes, the task is re-executed.
+`useTask$` is used to create an async task. Tasks are useful to implement side effects, running heavy computation and async code as part of the rendering lifecycle. `useTask$` tasks are executed before the first render, and subsequently whenever a tracked signal or store changes, the task is re-executed.
 
 ```tsx
 import { component$, useSignal, useTask$ } from '@builder.io/qwik';
 
 export const Counter = component$(() => {
-  const currentPage = useSignal(0);
+  const page = useSignal(0);
   const listOfUsers = useSignal([]);
 
   // The `useTask$` hook is used to create a task.
@@ -398,7 +371,8 @@ export const Counter = component$(() => {
 
   // You can create multiple tasks, and they can be async.
   useTask$(async (taskContext) => {
-    // Since we want to re-run the task whenever the `page` changes, we need to track it.
+    // Since we want to re-run the task whenever the `page` changes,
+    // we need to track it.
     taskContext.track(() => page.value);
     console.log('Task executed before the first render AND when page changes');
     console.log('Current page:', page.value);
@@ -431,15 +405,15 @@ export const Counter = component$(() => {
 
 ### `useVisibleTask$(() => { ... })`
 
-`useVisibleTask$` is used to create a task that happens right AFTER the component is first mounted in the DOM. It's similar to `useTask$` except that it only runs on the client, and it's executed after the first render. Because it's executed after the render, it's ok to inspect the DOM, or use browser APIS.
+`useVisibleTask$` is used to create a task that happens right AFTER the component is first mounted in the DOM. It's similar to `useTask$` except that it only runs on the client, and it's executed after the first render. Because it's executed after the render, it's ok to inspect the DOM, or use browser APIs.
 
 ```tsx
 import { component$, useSignal, useVisibleTask$ } from '@builder.io/qwik';
 
 export const Clock = component$(() => {
-  const seconds = useSignal(0);
+  const time = useSignal(0);
 
-  // The `useVisibleTask$` hook is used to create a task that runs eagarly on the client.
+  // The `useVisibleTask$` hook is used to create a task that runs eagerly on the client.
   useVisibleTask$((taskContext) => {
     // Since this VisibleTask is not tracking any signals, it will only run once.
 
@@ -460,21 +434,20 @@ export const Clock = component$(() => {
 });
 ```
 
-Since Qwik does NOT execute any Javascript on the browser before user interaction. `useVisibleTask$()` is the only API that will run execute eagarly on the client, which is why it's a good place to do things like:
+Since Qwik does NOT execute any Javascript on the browser before user interaction, `useVisibleTask$()` is the only API that will run eagerly on the client, which is why it's a good place to do things like:
 
 - Access DOM APIs
 - Initialize browser-only libraries
 - Run analytics code
-- Start an animation, or a timer
+- Start an animation, or a timer.
 
-Notice that `useVisibleTask$()` should not be used to fetch data, because it will not run on the server. Instead, you should use `useTask$()` to fetch data, and then use `useVisibleTask$()` to do things like start an animation. Abusing `useVisibleTask$()` can lead to a bad performance.
+Note that `useVisibleTask$()` should not be used to fetch data, because it will not run on the server. Instead, you should use `useTask$()` to fetch data, and then use `useVisibleTask$()` to do things like start an animation. Abusing `useVisibleTask$()` can lead to poor performance.
 
 ## Routing
 
-Qwik comes with a file-based router, which is similar to Next.js, but with a few differences. The router is based on the file-system, specifically in `src/routes/`. Creating a new `index.tsx` file in `src/routes/` will create a new route. For example, `src/routes/home/index.tsx` will create a route at `/home/`.
+Qwik comes with a file-based router, which is similar to Next.js, but with a few differences. The router is based on the file-system, specifically in `src/routes/`. Creating a new `index.tsx` file in a folder under `src/routes/` will create a new route. For example, `src/routes/home/index.tsx` will create a route at `/home/`.
 
-```tsx
-// File: src/routes/home/index.tsx
+```tsx title="src/routes/home/index.tsx"
 
 import { component$ } from '@builder.io/qwik';
 
@@ -487,10 +460,9 @@ It is very important to export the component as the default export, otherwise th
 
 ### Route Parameters
 
-You can create dynamic routes by adding a folder with like `[param]` in the route path. For example, `src/routes/user/[id]/index.tsx` will create a route at `/user/:id/`. In order to access the route parameter, you can use the `useLocation` hook exported from `@builder.io/qwik-city`.
+You can create dynamic routes by adding a folder with `[param]` in the route path. For example, `src/routes/user/[id]/index.tsx` will create a route at `/user/:id/`. In order to access the route parameter, you can use the `useLocation` hook exported from `@builder.io/qwik-city`.
 
-```tsx
-// File: src/routes/user/[userID]/index.tsx
+```tsx title="src/routes/user/[userID]/index.tsx"
 
 import { component$ } from '@builder.io/qwik';
 import { useLocation } from '@builder.io/qwik-city';
@@ -499,9 +471,9 @@ export default component$(() => {
   const loc = useLocation();
   return (
     <main>
-      {loc.isNavigating && <div>Loading...</div>}
+      {loc.isNavigating && <p>Loading...</p>}
       <h1>User: {loc.params.userID}</h1>
-      <div>Current URL: {loc.url.href}</div>
+      <p>Current URL: {loc.url.href}</p>
     </main>
   );
 });
@@ -524,8 +496,7 @@ export interface RouteLocation {
 
 To link to other routes, you can use the `Link` component exported from `@builder.io/qwik-city`. The `Link` component takes all the properties of the `<a>` HTMLAnchorElement. The only difference is that it will use the Qwik router to SPA navigate to the route instead of doing a full page navigation.
 
-```tsx
-// File: src/routes/index.tsx
+```tsx title="src/routes/index.tsx"
 
 import { component$ } from '@builder.io/qwik';
 import { Link } from '@builder.io/qwik-city';
@@ -543,10 +514,9 @@ export default component$(() => {
 
 ## Fetching / loading data
 
-The recommended way to load data from the server is to use the `routeLoader$()` function exported from `@builder.io/qwik-city`. The `routeLoader$()` function is used to create a data loader that will be executed on the server before the route is rendered. The return of `routeLoader$()` must exported as a name export from the route file, ie, it can only be used in a `index.tsx`, inside of `src/routes/`.
+The recommended way to load data from the server is to use the `routeLoader$()` function exported from `@builder.io/qwik-city`. The `routeLoader$()` function is used to create a data loader that will be executed on the server before the route is rendered. The return of `routeLoader$()` must be exported as a named export from the route file, ie, it can only be used in a `index.tsx`, inside of `src/routes/`.
 
-```tsx
-// File: src/routes/user/[userID]/index.tsx
+```tsx title="src/routes/user/[userID]/index.tsx"
 
 import { component$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
@@ -556,7 +526,8 @@ import { routeLoader$ } from '@builder.io/qwik-city';
 export const useUserData = routeLoader$(async (requestContext) => {
   const user = await db.table('users').get(requestContext.params.userID);
   return {
-    user,
+    name: user.name,
+    email: user.email,
   };
 });
 
@@ -566,24 +537,38 @@ export default component$(() => {
   return (
     <main>
       <h1>User data</h1>
-      <div>User name: {userData.value.user.name}</div>
-      <div>User email: {userData.value.user.email}</div>
+      <p>User name: {userData.value.name}</p>
+      <p>User email: {userData.value.email}</p>
     </main>
   );
 });
+
+// Exported `head` function is used to set the document head for the route.
+export const head: DocumentHead = ({resolveValue}) => {
+  // It can use the `resolveValue()` method to resolve the value from `routeLoader$()`.
+  const user = resolveValue(useUserData);
+  return {
+    title: `User: "${user.name}"`,
+    meta: [
+      {
+        name: 'description',
+        content: 'User page',
+      },
+    ],
+  };
+};
 ```
 
 The `routeLoader$()` function takes a function that returns a promise. The promise is resolved on the server, and the resolved value is passed to the `useCustomLoader$()` hook. The `useCustomLoader$()` hook is a custom hook that is created by the `routeLoader$()` function. The `useCustomLoader$()` hook returns a `Signal` that contains the resolved value of the promise returned from the `routeLoader$()` function. The `useCustomLoader$()` hook will re-render the component whenever the route changes, and the `routeLoader$()` function is re-run.
 
 ## Handle form submissions
 
-Qwik provides the `routeAction$()` API exported from `@builder.io/qwik-city` to handle form requests in the server. `routeAction$()` is very similar to `routeLoader$()`, both are used to create a custom hook that can be used to access data returned from the server. The main difference is that `routeAction$()` is only executed when the form is submitted, while `routeLoader$()` is executed on the server before the route is rendered.
+Qwik provides the `routeAction$()` API exported from `@builder.io/qwik-city` to handle form requests on the server. `routeAction$()` is only executed on the server when the form is submitted.
 
-```tsx
-// File: src/routes/user/[userID]/index.tsx
+```tsx title="src/routes/user/[userID]/index.tsx"
 
 import { component$ } from '@builder.io/qwik';
-import { routeAction$, Form } from '@builder.io/qwik-city';
+import { routeAction$, Form, zod$, z } from '@builder.io/qwik-city';
 
 // The `routeAction$()` function is used to create a data loader that will be executed on the server when the form is submitted.
 // The return of `routeAction$()` is a custom use hook, which can be used to access the data returned from `routeAction$()`.
@@ -595,10 +580,13 @@ export const useUserUpdate = routeAction$(async (data, requestContext) => {
   return {
     user,
   };
-});
+}, zod$({
+  name: z.string(),
+  email: z.string(),
+}));
 
 export default component$(() => {
-  // The `useUserUpdate` hook will return a `ActionStore<T>` containing the `value` returned from `routeAction$()`, and some other properties, such as `submit()`, which is used to submit the form programmatically, and `isRunning`. All of these properties are reactive, and will re-render the component whenever they change.
+  // The `useUserUpdate` hook will return an `ActionStore<T>` containing the `value` returned from `routeAction$()`, and some other properties, such as `submit()`, which is used to submit the form programmatically, and `isRunning`. All of these properties are reactive, and will re-render the component whenever they change.
   const userData = useUserUpdate();
   // userData.value is the value returned from `routeAction$()`, which is `undefined` before the form is submitted.
   // userData.formData is the form data that was submitted, it is `undefined` before the form is submitted.
@@ -610,13 +598,13 @@ export default component$(() => {
       <h1>User data</h1>
       <Form action={userData}>
         <div>
-          User name: <input name="name" defaultValue={userData.formData?.get('name')} />
+          <label>User name: <input name="name" defaultValue={userData.formData?.get('name')} /></label>
         </div>
         <div>
-          User email: <input name="email" defaultValue={userData.formData?.get('email')} />
+          <label>User email: <input name="email" defaultValue={userData.formData?.get('email')} /></label>
         </div>
         <button type="submit">Update</button>
-      </form>
+      </Form>
     </main>
   );
 });
@@ -625,11 +613,11 @@ export default component$(() => {
 The `routeAction$()` is used on pair with the `Form` component exported from `@builder.io/qwik-city`. The `Form` component is a wrapper around the native HTML `<form>` element. The `Form` component takes an `ActionStore<T>` as the `action` property. The `ActionStore<T>` is the return value of the `routeAction$()` function.
 
 
-## Run code only on the browser
+## Run code only in the browser
 
-Qwik executes the same code in the server and in the browser.
+Since Qwik executes the same code on the server and in the browser, you cannot use `window` or other browser APIs in your code, because they don't exist when the code is executed on the server.
 
-Sometimes it's desired to execute code only in browser, because you need the DOM, or other browser API such as: `window`, `document`, `localStorage`, `sessionStorage`, `indexedDB`, `navigator`, `fetch`, `requestAnimationFrame`, `setInterval`, `setTimeout`, `WebSockets`, `WebGL`.
+If you want to access browser APIs, such as `window`, `document`, `localStorage`, `sessionStorage`, `webgl` etc, you need to check if the code is running in the browser before accessing the browser APIs.
 
 ```tsx
 import { component$, useTask$, useVisibleTask$, useSignal } from '@builder.io/qwik';
@@ -638,8 +626,9 @@ import { isBrowser } from '@builder.io/qwik/build';
 export default component$(() => {
   const ref = useSignal<Element>();
 
-  // useVisibleTask$ will only run on the browser, so you don't need to check for `isBrowser` before accessing the DOM
+  // useVisibleTask$ will only run in the browser
   useVisibleTask$(() => {
+    // No need to check for `isBrowser` before accessing the DOM, because useVisibleTask$ will only run in the browser
     ref.value?.focus();
     document.title = 'Hello world';
   });
@@ -647,7 +636,7 @@ export default component$(() => {
   // useTask might run on the server, so you need to check for `isBrowser` before accessing the DOM
   useTask$(() => {
     if (isBrowser) {
-      // This code will only run on the browser only when the component is first rendered in the browser
+      // This code will only run in the browser only when the component is first rendered there
       ref.value?.focus();
       document.title = 'Hello world';
     }
@@ -657,7 +646,7 @@ export default component$(() => {
     <button
       ref={ref}
       onClick$={() => {
-        // All event handlers are only executed on the browser, so it's safe to access the DOM
+        // All event handlers are only executed in the browser, so it's safe to access the DOM
         ref.value?.focus();
         document.title = 'Hello world';
       }}
@@ -678,20 +667,30 @@ JSX handlers such as `onClick$` and `onInput$` are only executed on the client. 
 
 ### `isBrowser` conditional
 
-Qwik provides a `isBrowser` boolean exported from `@builder.io/qwik/build`. You can use this to ensure that code only runs on the browser.
+Qwik provides an `isBrowser` boolean exported from `@builder.io/qwik/build`. You can use this to ensure that code only runs in the browser.
 
 ## Run code only on the server
 
-Sometimes you need to run code only on the server, such as fetching data, or running analytics code. To solve this problem, Qwik provides a few APIs to run code only on the server.
+Sometimes you need to run code only on the server, such as fetching data or accessing a database. To solve this problem, Qwik provides a few APIs to run code only on the server.
 
 ```tsx
 import { component$, useTask$ } from '@builder.io/qwik';
-import { server$ } from '@builder.io/qwik/qwik-city';
+import { server$, routeLoader$ } from '@builder.io/qwik/qwik-city';
 import { isServer } from '@builder.io/qwik/build';
 
-const sumInTheServer = server$((a: number, b: number) => {
+
+export const useGetProducts = routeLoader$((requestEvent) => {
   // This code will only run on the server
-  return a + b;
+  const db = await openDB(requestEvent.env.get('DB_PRIVATE_KEY'));
+  const product = await db.table('products').select();
+  return product;
+})
+
+const encryptOnServer = server$(function(message: string) {
+  // `this` is the `requestEvent
+  const secretKey = this.env.get('SECRET_KEY');
+  const encryptedMessage = encrypt(message, secretKey);
+  return encryptedMessage;
 });
 
 export default component$(() => {
@@ -714,7 +713,8 @@ export default component$(() => {
       <button
         onClick$={() => {
           // This code will call the server function, and wait for the result
-          const sum = await sumInTheServer(1, 2);
+          const encrypted = await encryptOnServer('Hello world');
+          console.log(encrypted);
         }}
       >
         Click me
@@ -724,13 +724,17 @@ export default component$(() => {
 });
 ```
 
+### `routeAction$()`
+
+The `routeAction$()` is a special component that is only executed on the server. It's used to handle form submissions, and other actions. For example, you can use it to add a user to a database, and then redirect to the user profile page.
+
 ### `routeLoader$()`
 
 The `routeLoader$()` is a special component that is only executed on the server. It's used to fetch data, and then render the page. For example, you can use it to fetch data from an API, and then render the page with the data.
 
 ### `server$((...args) => { ... })`
 
-The `server$()` is a special way to declare functions that only run in the server. If called from the client, they will behave like a RPC call, and will be executed on the server. They can take any serializable arguments, and return any serializable value.
+The `server$()` is a special way to declare functions that only run on the server. If called from the client, they will behave like an RPC call, and will be executed on the server. They can take any serializable arguments, and return any serializable value.
 
 ### `isServer` conditional
 

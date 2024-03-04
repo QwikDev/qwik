@@ -97,80 +97,78 @@ function prioritizeSymbolNames(manifest: QwikManifest) {
 }
 
 // User triggered events should have priority
-const EVENT_PRIORITY = [
-  // Click Events
-  'click',
-  'dblclick',
-  'contextmenu',
-  'auxclick',
+const EVENT_PRIORITY = /*#__PURE__*/ (() =>
+  [
+    // Click Events
+    'click',
+    'dblclick',
+    'contextmenu',
+    'auxclick',
 
-  // Pointer Events
-  'pointerdown',
-  'pointerup',
-  'pointermove',
-  'pointerover',
-  'pointerenter',
-  'pointerleave',
-  'pointerout',
-  'pointercancel',
-  'gotpointercapture',
-  'lostpointercapture',
+    // Pointer Events
+    'pointerdown',
+    'pointerup',
+    'pointermove',
+    'pointerover',
+    'pointerenter',
+    'pointerleave',
+    'pointerout',
+    'pointercancel',
+    'gotpointercapture',
+    'lostpointercapture',
 
-  // Touch Events
-  'touchstart',
-  'touchend',
-  'touchmove',
-  'touchcancel',
+    // Touch Events
+    'touchstart',
+    'touchend',
+    'touchmove',
+    'touchcancel',
 
-  // Mouse Events
-  'mousedown',
-  'mouseup',
-  'mousemove',
-  'mouseenter',
-  'mouseleave',
-  'mouseover',
-  'mouseout',
-  'wheel',
+    // Mouse Events
+    'mousedown',
+    'mouseup',
+    'mousemove',
+    'mouseenter',
+    'mouseleave',
+    'mouseover',
+    'mouseout',
+    'wheel',
 
-  // Gesture Events
-  'gesturestart',
-  'gesturechange',
-  'gestureend',
+    // Gesture Events
+    'gesturestart',
+    'gesturechange',
+    'gestureend',
 
-  // Keyboard Events
-  'keydown',
-  'keyup',
-  'keypress',
+    // Keyboard Events
+    'keydown',
+    'keyup',
+    'keypress',
 
-  // Input/Change Events
-  'input',
-  'change',
-  'search',
-  'invalid',
-  'beforeinput',
-  'select',
+    // Input/Change Events
+    'input',
+    'change',
+    'search',
+    'invalid',
+    'beforeinput',
+    'select',
 
-  // Focus/Blur Events
-  'focusin',
-  'focusout',
-  'focus',
-  'blur',
+    // Focus/Blur Events
+    'focusin',
+    'focusout',
+    'focus',
+    'blur',
 
-  // Form Events
-  'submit',
-  'reset',
+    // Form Events
+    'submit',
+    'reset',
 
-  // Scroll Events
-  'scroll',
-].map((n) => `on${n.toLowerCase()}$`);
+    // Scroll Events
+    'scroll',
+  ].map((n) => `on${n.toLowerCase()}$`))();
 
-const FUNCTION_PRIORITY = [
-  'useTask$',
-  'useVisibleTask$',
-  'component$',
-  'useStyles$',
-  'useStylesScoped$',
-].map((n) => n.toLowerCase());
+const FUNCTION_PRIORITY = /*#__PURE__*/ (() =>
+  ['useTask$', 'useVisibleTask$', 'component$', 'useStyles$', 'useStylesScoped$'].map((n) =>
+    n.toLowerCase()
+  ))();
 
 function sortBundleNames(manifest: QwikManifest) {
   // this doesn't really matter at build time
@@ -253,6 +251,7 @@ export function generateManifestFromBundles(
   opts: NormalizedQwikPluginOptions
 ) {
   const manifest: QwikManifest = {
+    manifestHash: '',
     symbols: {},
     mapping: {},
     bundles: {},
@@ -261,7 +260,6 @@ export function generateManifestFromBundles(
     options: {
       target: opts.target,
       buildMode: opts.buildMode,
-      forceFullBuild: opts.forceFullBuild,
       entryStrategy: opts.entryStrategy,
     },
   };
@@ -288,6 +286,7 @@ export function generateManifestFromBundles(
         ctxName: hook.ctxName,
         captures: hook.captures,
         parent: hook.parent,
+        loc: hook.loc,
       };
 
       addBundleToManifest(path, manifest, outputBundle, bundleFileName);

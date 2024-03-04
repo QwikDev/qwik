@@ -1,6 +1,6 @@
 import { setPlatform } from '@builder.io/qwik';
 import { createPlatform } from './platform';
-import type { ResolvedManifest } from './prefetch-strategy';
+import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
 import { resolveManifest } from './render';
 import type { QwikManifest } from './types';
 
@@ -27,11 +27,9 @@ export type {
 } from './types';
 export { renderToString, renderToStream, resolveManifest } from './render';
 export { versions } from './utils';
-export { getQwikLoaderScript } from './scripts';
+export { getQwikLoaderScript, getQwikPrefetchWorkerScript } from './scripts';
 
-/**
- * @public
- */
+/** @public */
 export async function setServerPlatform(manifest: QwikManifest | ResolvedManifest | undefined) {
   const platform = createPlatform({ manifest }, resolveManifest(manifest));
   setPlatform(platform);

@@ -1,10 +1,11 @@
 // import { qDev } from './qdev';
 
-export const EMPTY_ARRAY = [];
-export const EMPTY_OBJ = {};
+import { qDev } from './qdev';
 
-// if (qDev) {
-Object.freeze(EMPTY_ARRAY);
-Object.freeze(EMPTY_OBJ);
-// Error.stackTraceLimit = 9999;
-// }
+export const EMPTY_ARRAY = [] as any[];
+export const EMPTY_OBJ = {} as Record<string, any>;
+
+if (qDev) {
+  Object.freeze(EMPTY_ARRAY);
+  Object.freeze(EMPTY_OBJ);
+}

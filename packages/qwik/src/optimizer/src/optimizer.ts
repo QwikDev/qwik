@@ -12,9 +12,7 @@ import type {
   OptimizerOptions,
 } from './types';
 
-/**
- * @public
- */
+/** @public */
 export const createOptimizer = async (optimizerOptions: OptimizerOptions = {}) => {
   const sys = optimizerOptions?.sys || (await getSystem());
   const binding = optimizerOptions?.binding || (await loadPlatformBinding(sys));
@@ -38,9 +36,7 @@ export const createOptimizer = async (optimizerOptions: OptimizerOptions = {}) =
   return optimizer;
 };
 
-/**
- * Transforms the input code string, does not access the file system.
- */
+/** Transforms the input code string, does not access the file system. */
 const transformModulesSync = (binding: PlatformBinding, opts: TransformModulesOptions) => {
   return binding.transform_modules(convertOptions(opts));
 };
@@ -77,7 +73,7 @@ const transformFsAsync = async (
       rootDir: fsOpts.rootDir!,
       entryStrategy: fsOpts.entryStrategy!,
       minify: fsOpts.minify!,
-      sourceMaps: fsOpts.sourceMaps!,
+      sourceMaps: !!fsOpts.sourceMaps,
       transpileTs: fsOpts.transpileTs!,
       transpileJsx: fsOpts.transpileJsx!,
       explicitExtensions: fsOpts.explicitExtensions!,

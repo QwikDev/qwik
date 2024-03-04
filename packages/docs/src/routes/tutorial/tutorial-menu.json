@@ -106,8 +106,15 @@
         "enableSsrOutput": false
       },
       {
-        "id": "synchronous",
-        "title": "Synchronous Events",
+        "id": "synchronous-sync",
+        "title": "Synchronous Events with sync()",
+        "enableHtmlOutput": false,
+        "enableClientOutput": false,
+        "enableSsrOutput": false
+      },
+      {
+        "id": "synchronous-visible",
+        "title": "Synchronous Events with useVisibleTask$()",
         "enableHtmlOutput": false,
         "enableClientOutput": false,
         "enableSsrOutput": false
@@ -167,13 +174,6 @@
         "enableSsrOutput": false
       },
       {
-        "id": "store",
-        "title": "Passing Stores",
-        "enableHtmlOutput": false,
-        "enableClientOutput": false,
-        "enableSsrOutput": false
-      },
-      {
         "id": "closures",
         "title": "Passing Closures",
         "enableHtmlOutput": false,
@@ -188,7 +188,7 @@
     "apps": [
       {
         "id": "template",
-        "title": "Implicit Template Updates",
+        "title": "template - Implicit Reactivity",
         "enableHtmlOutput": false,
         "enableClientOutput": false,
         "enableSsrOutput": false

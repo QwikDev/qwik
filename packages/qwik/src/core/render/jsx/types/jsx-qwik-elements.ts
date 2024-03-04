@@ -1,27 +1,40 @@
-import type { HTMLAttributes, IntrinsicHTMLElements, ScriptHTMLAttributes } from './jsx-generated';
+import type {
+  IntrinsicHTMLElements,
+  IntrinsicSVGElements,
+  QwikHTMLElements,
+  QwikSVGElements,
+} from './jsx-generated';
 
-interface QwikScriptHTMLAttributes<T> extends ScriptHTMLAttributes<T> {
-  events?: string[];
-}
-
-interface QwikCustomHTMLAttributes<T> extends HTMLAttributes<T> {
-  [key: string]: any;
-}
-
-interface QwikCustomHTMLElement extends HTMLElement {}
+export type { QwikIntrinsicAttributes } from './jsx-qwik-attributes';
 
 /**
+ * The interface holds available attributes of both native DOM elements and custom Qwik elements. An
+ * example showing how to define a customizable wrapper component:
+ *
+ * ```tsx
+ * import { component$, Slot, type QwikIntrinsicElements } from "@builder.io/qwik";
+ *
+ * type WrapperProps = {
+ *   attributes?: QwikIntrinsicElements["div"];
+ * };
+ *
+ * export default component$<WrapperProps>(({ attributes }) => {
+ *   return (
+ *     <div {...attributes} class="p-2">
+ *       <Slot />
+ *     </div>
+ *   );
+ * });
+ * ```
+ *
+ * Note: It is shorter to use `PropsOf<'div'>`
+ *
  * @public
  */
-export interface QwikIntrinsicAttributes {
-  key?: string | number | undefined | null;
-  children?: any;
-}
+export interface QwikIntrinsicElements extends QwikHTMLElements, QwikSVGElements {}
 
 /**
- * @public
+ * These definitions are for the JSX namespace, they allow passing plain event handlers instead of
+ * QRLs
  */
-export interface QwikIntrinsicElements extends IntrinsicHTMLElements {
-  script: QwikScriptHTMLAttributes<HTMLScriptElement>;
-  [key: string]: QwikCustomHTMLAttributes<QwikCustomHTMLElement>;
-}
+export interface LenientQwikElements extends IntrinsicHTMLElements, IntrinsicSVGElements {}

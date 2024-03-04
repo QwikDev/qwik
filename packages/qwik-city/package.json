@@ -1,11 +1,50 @@
 {
   "name": "@builder.io/qwik-city",
-  "version": "0.101.0",
   "description": "The meta-framework for Qwik.",
-  "main": "./lib/index.qwik.mjs",
-  "qwik": "./lib/index.qwik.mjs",
-  "types": "./lib/index.d.ts",
-  "type": "module",
+  "version": "1.4.5",
+  "bugs": "https://github.com/BuilderIO/qwik/issues",
+  "dependencies": {
+    "@mdx-js/mdx": "^3.0.1",
+    "@types/mdx": "^2.0.11",
+    "source-map": "0.7.4",
+    "svgo": "^3.2.0",
+    "undici": "*",
+    "vfile": "^6.0.1",
+    "vite": "^5.1.4",
+    "vite-imagetools": "^6.2.9",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@azure/functions": "^3.5.1",
+    "@builder.io/qwik": "workspace:^",
+    "@microsoft/api-extractor": "^7.42.2",
+    "@netlify/edge-functions": "^2.3.1",
+    "@types/mdast": "^4.0.1",
+    "@types/node": "^20.11.24",
+    "@types/refractor": "^3.0.3",
+    "@types/set-cookie-parser": "^2.4.7",
+    "estree-util-value-to-estree": "3.0.1",
+    "github-slugger": "2.0.0",
+    "hast-util-heading-rank": "2.1.1",
+    "hast-util-to-string": "2.0.0",
+    "kleur": "4.1.5",
+    "marked": "^12.0.0",
+    "mdast-util-mdx": "^3.0.0",
+    "refractor": "4.8.1",
+    "rehype-autolink-headings": "7.1.0",
+    "remark-frontmatter": "5.0.0",
+    "remark-gfm": "4.0.0",
+    "set-cookie-parser": "^2.6.0",
+    "tsm": "^2.3.0",
+    "typescript": "5.3.3",
+    "unified": "11.0.4",
+    "unist-util-visit": "5.0.0",
+    "uvu": "0.5.6",
+    "yaml": "^2.4.0"
+  },
+  "engines": {
+    "node": ">=16.8.0 <18.0.0 || >=18.11"
+  },
   "exports": {
     ".": {
       "types": "./lib/index.d.ts",
@@ -23,6 +62,14 @@
     "./adapters/cloud-run/vite": {
       "import": "./lib/adapters/cloud-run/vite/index.mjs",
       "require": "./lib/adapters/cloud-run/vite/index.cjs"
+    },
+    "./adapters/bun-server/vite": {
+      "import": "./lib/adapters/bun-server/vite/index.mjs",
+      "require": "./lib/adapters/bun-server/vite/index.cjs"
+    },
+    "./adapters/deno-server/vite": {
+      "import": "./lib/adapters/deno-server/vite/index.mjs",
+      "require": "./lib/adapters/deno-server/vite/index.cjs"
     },
     "./adapters/node-server/vite": {
       "import": "./lib/adapters/node-server/vite/index.mjs",
@@ -47,8 +94,17 @@
     "./middleware/azure-swa": {
       "import": "./lib/middleware/azure-swa/index.mjs"
     },
+    "./middleware/aws-lambda": {
+      "import": "./lib/middleware/aws-lambda/index.mjs"
+    },
     "./middleware/cloudflare-pages": {
       "import": "./lib/middleware/cloudflare-pages/index.mjs"
+    },
+    "./middleware/deno": {
+      "import": "./lib/middleware/deno/index.mjs"
+    },
+    "./middleware/bun": {
+      "import": "./lib/middleware/bun/index.mjs"
     },
     "./middleware/netlify-edge": {
       "import": "./lib/middleware/netlify-edge/index.mjs"
@@ -74,62 +130,22 @@
       "require": "./lib/service-worker.cjs"
     }
   },
-  "scripts": {
-    "build": "cd runtime && vite build --mode lib -c vite.config.ts"
-  },
-  "dependencies": {
-    "@mdx-js/mdx": "2.3.0",
-    "@types/mdx": "2.0.4",
-    "source-map": "0.7.4",
-    "vfile": "5.3.7",
-    "zod": "^3.21.4"
-  },
-  "devDependencies": {
-    "@azure/functions": "^3.5.0",
-    "@builder.io/qwik": "workspace:*",
-    "@microsoft/api-extractor": "7.34.4",
-    "@netlify/edge-functions": "^2.0.0",
-    "@types/marked": "4.0.8",
-    "@types/mdast": "^3.0.11",
-    "@types/node": "^18.15.9",
-    "@types/refractor": "3.0.2",
-    "estree-util-value-to-estree": "2.1.0",
-    "github-slugger": "2.0.0",
-    "hast-util-heading-rank": "2.1.1",
-    "hast-util-to-string": "2.0.0",
-    "kleur": "4.1.5",
-    "marked": "4.3.0",
-    "mdast-util-mdx": "^2.0.1",
-    "refractor": "4.8.1",
-    "rehype-autolink-headings": "6.1.1",
-    "remark-frontmatter": "4.0.1",
-    "remark-gfm": "3.0.1",
-    "tsm": "2.3.0",
-    "typescript": "5.0.3",
-    "unified": "10.1.2",
-    "unist-util-visit": "4.1.2",
-    "uvu": "0.5.6",
-    "vite": "4.2.1",
-    "yaml": "2.2.1"
-  },
-  "peerDependencies": {
-    "@builder.io/qwik": ">=0.22.0"
-  },
-  "license": "MIT",
   "homepage": "https://qwik.builder.io/",
+  "license": "MIT",
+  "main": "./lib/index.qwik.mjs",
+  "private": true,
+  "publishConfig": {
+    "access": "public"
+  },
+  "qwik": "./lib/index.qwik.mjs",
   "repository": {
     "type": "git",
     "url": "https://github.com/BuilderIO/qwik.git",
     "directory": "packages/qwik-city"
   },
-  "bugs": {
-    "url": "https://github.com/BuilderIO/qwik/issues"
+  "scripts": {
+    "build": "cd runtime && vite build --mode lib -c vite.config.ts"
   },
-  "engines": {
-    "node": ">=16.8.0 <18.0.0 || >=18.11"
-  },
-  "private": true,
-  "publishConfig": {
-    "access": "public"
-  }
+  "type": "module",
+  "types": "./lib/index.d.ts"
 }

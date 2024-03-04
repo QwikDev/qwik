@@ -1,5 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 2941
 expression: output
 ---
 ==INPUT==
@@ -127,13 +128,13 @@ export const App_component_ckEPmXZlub0 = ()=>{
             return signal.formData?.get('username');
         },
         [_IMMUTABLE]: {
-            prop: _IMMUTABLE,
             count: _fnSignal((p0)=>p0.count, [
                 store
             ], "p0.count"),
             nested: _fnSignal((p0)=>p0.nested.count, [
                 store
             ], "p0.nested.count"),
+            prop: _IMMUTABLE,
             signal: _IMMUTABLE,
             store: _fnSignal((p0)=>p0.stuff + 12, [
                 store
@@ -146,7 +147,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAG8B,IAAM;IAChC,MAAM,QAAQ,SAAS;QACnB,OAAO;QACP,OAAO;QACP,QAAQ;YACJ,OAAO;QACX;IACJ;IACA,MAAM,SAAS,UAAU;IACzB,qBACI,MAAC;QACG,MAAmB;YACnB;mBAAO,MAAM,KAAK;;YAClB;mBAAQ,MAAM,MAAM,CAAC,KAAK;;QAC1B,QAAQ;YACR;mBAAO,MAAM,KAAK,GAAG;;YACrB;mBAAO,OAAO,QAAQ,EAAE,IAAI;;;YAL5B,IAAI;YACJ,KAAK,kBAAE,GAAM,KAAK;;;YAClB,MAAM,kBAAE,GAAM,MAAM,CAAC,KAAK;;;YAC1B,MAAM;YACN,KAAK,kBAAE,GAAM,KAAK,GAAG;;;YACrB,KAAK,kBAAE,GAAO,QAAQ,EAAE,IAAI;;;;;AAIxC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAG8B,IAAM;IAChC,MAAM,QAAQ,SAAS;QACnB,OAAO;QACP,OAAO;QACP,QAAQ;YACJ,OAAO;QACX;IACJ;IACA,MAAM,SAAS,UAAU;IACzB,qBACI,MAAC;QACG,MAAmB;YACnB;mBAAO,MAAM,KAAK;;YAClB;mBAAQ,MAAM,MAAM,CAAC,KAAK;;QAC1B,QAAQ;YACR;mBAAO,MAAM,KAAK,GAAG;;YACrB;mBAAO,OAAO,QAAQ,EAAE,IAAI;;;YAJ5B,KAAK,kBAAE,GAAM,KAAK;;;YAClB,MAAM,kBAAE,GAAM,MAAM,CAAC,KAAK;;;YAF1B,IAAI;YAGJ,MAAM;YACN,KAAK,kBAAE,GAAM,KAAK,GAAG;;;YACrB,KAAK,kBAAE,GAAO,QAAQ,EAAE,IAAI;;;;;AAIxC\"}")
 /*
 {
   "origin": "test.tsx",

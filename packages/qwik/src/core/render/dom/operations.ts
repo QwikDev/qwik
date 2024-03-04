@@ -1,8 +1,9 @@
+import type { ContainerState } from '../../container/container';
 import { assertDefined } from '../../error/assert';
 import { codeToText, QError_setProperty } from '../../error/error';
 import type { StyleAppend } from '../../use/use-core';
 import { getDocument } from '../../util/dom';
-import { isElement, isNode } from '../../util/element';
+import { isElement, isNode, isQwikElement } from '../../util/element';
 import { logDebug, logError, logWarn } from '../../util/log';
 import { QSlot, QSlotRef, QStyle } from '../../util/markers';
 import { qDev } from '../../util/qdev';
@@ -16,6 +17,7 @@ import {
   directInsertBefore,
   directRemoveChild,
   getChildren,
+  isChildComponent,
   isSlotTemplate,
   SVG_NS,
 } from './visitor';
@@ -36,6 +38,7 @@ const _setAttribute = (el: QwikElement, prop: string, value: any) => {
   if (value == null || value === false) {
     el.removeAttribute(prop);
   } else {
+    // element.setAttribute requires string. Boolean attributes automatically convert "" to `true`
     const str = value === true ? '' : String(value);
     directSetAttribute(el, prop, str);
   }
@@ -67,7 +70,7 @@ const _setProperty = (node: any, key: string, value: any) => {
       node.removeAttribute(key);
     }
   } catch (err) {
-    logError(codeToText(QError_setProperty), { node, key, value }, err);
+    logError(codeToText(QError_setProperty), key, { node, value }, err);
   }
 };
 
@@ -119,7 +122,7 @@ export const appendHeadStyle = (staticCtx: RenderStaticContext, styleTask: Style
   staticCtx.$containerState$.$styleIds$.add(styleTask.styleId);
   staticCtx.$postOperations$.push({
     $operation$: _appendHeadStyle,
-    $args$: [staticCtx.$containerState$.$containerEl$, styleTask],
+    $args$: [staticCtx.$containerState$, styleTask],
   });
 };
 
@@ -141,7 +144,8 @@ export const _setClasslist = (elm: Element, toRemove: string[], toAdd: string[])
   classList.add(...toAdd);
 };
 
-export const _appendHeadStyle = (containerEl: Element, styleTask: StyleAppend) => {
+export const _appendHeadStyle = (containerState: ContainerState, styleTask: StyleAppend) => {
+  const containerEl = containerState.$containerEl$;
   const doc = getDocument(containerEl);
   const isDoc = doc.documentElement === containerEl;
   const headEl = doc.head;
@@ -172,7 +176,7 @@ export const directPrepend = (parent: QwikElement, newChild: Node) => {
 };
 
 export const removeNode = (staticCtx: RenderStaticContext, el: Node | VirtualElement) => {
-  if (el.nodeType === 1 || el.nodeType === 111) {
+  if (isQwikElement(el)) {
     const subsManager = staticCtx.$containerState$.$subsManager$;
     cleanupTree(el as Element, staticCtx, subsManager, true);
   }
@@ -202,6 +206,7 @@ export const createTemplate = (doc: Document, slotName: string) => {
 
 export const executeDOMRender = (staticCtx: RenderStaticContext) => {
   for (const op of staticCtx.$operations$) {
+    // PERF(misko): polymorphic execution
     op.$operation$.apply(undefined, op.$args$);
   }
   resolveSlotProjection(staticCtx);
@@ -224,15 +229,15 @@ export const resolveSlotProjection = (staticCtx: RenderStaticContext) => {
     const key = getKey(slotEl);
     assertDefined(key, 'slots must have a key');
 
-    const slotChildren = getChildren(slotEl, 'root');
+    const slotChildren = getChildren(slotEl, isChildComponent);
     if (slotChildren.length > 0) {
       const sref = slotEl.getAttribute(QSlotRef);
       const hostCtx = staticCtx.$roots$.find((r) => r.$id$ === sref);
       if (hostCtx) {
         const hostElm = hostCtx.$element$;
         if (hostElm.isConnected) {
-          const hasTemplate = Array.from(hostElm.childNodes).some(
-            (node) => isSlotTemplate(node) && directGetAttribute(node, QSlot) === key
+          const hasTemplate = getChildren(hostElm, isSlotTemplate).some(
+            (node: any) => directGetAttribute(node, QSlot) === key
           );
 
           if (!hasTemplate) {
@@ -260,12 +265,11 @@ export const resolveSlotProjection = (staticCtx: RenderStaticContext) => {
     const key = getKey(slotEl);
     assertDefined(key, 'slots must have a key');
 
-    const template = Array.from(hostElm.childNodes).find((node) => {
-      return isSlotTemplate(node) && node.getAttribute(QSlot) === key;
+    const template = getChildren(hostElm, isSlotTemplate).find((node: any) => {
+      return node.getAttribute(QSlot) === key;
     }) as Element | undefined;
     if (template) {
-      const children = getChildren(template, 'root');
-      children.forEach((child) => {
+      getChildren(template, isChildComponent).forEach((child) => {
         directAppendChild(slotEl, child);
       });
       template.remove();

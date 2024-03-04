@@ -17,11 +17,15 @@ export default component$(() => {
   });
 
   return (
-    <div>
-      Enter text: <input bind:value={text} />
-      Is uppercase? <input type="checkbox" bind:checked={isUppercase} />
-      <div>Delay text: {delayText}</div>
-    </div>
+    <section>
+      <label>
+        Enter text: <input bind:value={text} />
+      </label>
+      <label>
+        Is uppercase? <input type="checkbox" bind:checked={isUppercase} />
+      </label>
+      <p>Delay text: {delayText}</p>
+    </section>
   );
 });
 

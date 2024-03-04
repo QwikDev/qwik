@@ -14,17 +14,17 @@ import {
 
 import { isBrowser, isServer } from '@builder.io/qwik/build';
 import type { Root } from 'react-dom/client';
-import type { FunctionComponent } from 'react';
+import type { FunctionComponent as ReactFC } from 'react';
 import * as client from './client';
 import { renderFromServer } from './server-render';
 import { getHostProps, main, mainExactProps, useWakeupSignal } from './slot';
 import type { Internal, QwikifyOptions, QwikifyProps } from './types';
 
-export function qwikifyQrl<PROPS extends {}>(
-  reactCmp$: QRL<FunctionComponent<PROPS & { children?: any }>>,
+export function qwikifyQrl<PROPS extends Record<any, any>>(
+  reactCmp$: QRL<ReactFC<PROPS & { children?: any }>>,
   opts?: QwikifyOptions
 ) {
-  return component$<QwikifyProps<PROPS>>((props) => {
+  return component$((props: QwikifyProps<PROPS>) => {
     const { scopeId } = useStylesScoped$(
       `q-slot{display:none} q-slotc,q-slotc>q-slot{display:contents}`
     );
@@ -35,7 +35,7 @@ export function qwikifyQrl<PROPS extends {}>(
     const hydrationKeys = {};
     const TagName = opts?.tagName ?? ('qwik-react' as any);
 
-    // Watch takes cares of updates and partial hydration
+    // Task takes cares of updates and partial hydration
     useTask$(async ({ track }) => {
       const trackedProps = track(() => ({ ...props }));
       track(signal);

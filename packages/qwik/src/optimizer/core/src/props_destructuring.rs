@@ -46,17 +46,209 @@ macro_rules! id_eq {
     };
 }
 
+enum TransformInit {
+    Keep,
+    Remove,
+    Replace(ast::Expr),
+}
+
+impl<'a> PropsDestructuring<'a> {
+    fn transform_component_props(&mut self, arrow: &mut ast::ArrowExpr) {
+        if let Some(ast::Pat::Object(obj)) = arrow.params.first() {
+            let new_ident = private_ident!("props");
+            if let Some((rest_id, local)) =
+                transform_pat(ast::Expr::Ident(new_ident.clone()), obj, self)
+            {
+                if let Some(rest_id) = rest_id {
+                    let omit_fn = self.global_collect.import(&_REST_PROPS, self.core_module);
+                    let omit = local.iter().map(|(_, id, _)| id.clone()).collect();
+                    transform_rest(
+                        arrow,
+                        &omit_fn,
+                        &rest_id,
+                        ast::Expr::Ident(new_ident.clone()),
+                        omit,
+                    );
+                }
+                for (id, _, expr) in local {
+                    self.identifiers.insert(id, expr);
+                }
+                arrow.params[0] = ast::Pat::Ident(ast::BindingIdent::from(new_ident));
+            }
+        }
+        if let ast::BlockStmtOrExpr::BlockStmt(body) = &mut *arrow.body {
+            self.transform_component_body(body);
+        }
+    }
+    fn transform_component_body(&mut self, body: &mut ast::BlockStmt) {
+        let mut inserts = vec![];
+        for (index, stmt) in body.stmts.iter_mut().enumerate() {
+            if let ast::Stmt::Decl(ast::Decl::Var(var_decl)) = stmt {
+                if var_decl.kind == ast::VarDeclKind::Const {
+                    for decl in var_decl.decls.iter_mut() {
+                        let convert = match &decl.init {
+                            Some(box ast::Expr::Lit(lit)) => {
+                                let new_ident = private_ident!("_unused");
+                                Some((
+                                    new_ident,
+                                    ast::Expr::Lit(lit.clone()),
+                                    TransformInit::Remove,
+                                ))
+                            }
+                            Some(box ast::Expr::Member(member_expr)) => match &member_expr.obj {
+                                box ast::Expr::Ident(ident) => {
+                                    let new_ident = private_ident!("_unused");
+                                    let expr = self
+                                        .identifiers
+                                        .get(&id!(ident.clone()))
+                                        .cloned()
+                                        .unwrap_or_else(|| ast::Expr::Ident(ident.clone()));
+
+                                    let mut cloned_prop = member_expr.prop.clone();
+                                    cloned_prop.visit_mut_with(self);
+                                    let new_replace = ast::Expr::Member(ast::MemberExpr {
+                                        obj: Box::new(expr),
+                                        prop: cloned_prop,
+                                        span: member_expr.span,
+                                    });
+                                    Some((new_ident, new_replace, TransformInit::Remove))
+                                }
+                                box ast::Expr::Call(call_expr) => {
+                                    if let ast::Callee::Expr(box ast::Expr::Ident(ref ident)) =
+                                        &call_expr.callee
+                                    {
+                                        if ident.sym.starts_with("use") {
+                                            let new_ident =
+                                                private_ident!(ident.sym[3..].to_lowercase());
+
+                                            let mut cloned_prop = member_expr.prop.clone();
+                                            cloned_prop.visit_mut_with(self);
+
+                                            let new_replace = ast::Expr::Member(ast::MemberExpr {
+                                                obj: Box::new(ast::Expr::Ident(new_ident.clone())),
+                                                prop: cloned_prop,
+                                                span: DUMMY_SP,
+                                            });
+                                            Some((
+                                                new_ident,
+                                                new_replace,
+                                                TransformInit::Replace(ast::Expr::Call(
+                                                    call_expr.clone(),
+                                                )),
+                                            ))
+                                        } else {
+                                            None
+                                        }
+                                    } else {
+                                        None
+                                    }
+                                }
+                                _ => None,
+                            },
+                            Some(box ast::Expr::Ident(ref ident)) => {
+                                let new_ident = private_ident!("_unused");
+                                let new_replace = self
+                                    .identifiers
+                                    .get(&id!(ident.clone()))
+                                    .cloned()
+                                    .unwrap_or_else(|| ast::Expr::Ident(ident.clone()));
+                                Some((new_ident, new_replace, TransformInit::Remove))
+                            }
+                            Some(box ast::Expr::Call(call_expr)) => {
+                                if let ast::Callee::Expr(box ast::Expr::Ident(ref ident)) =
+                                    &call_expr.callee
+                                {
+                                    if ident.sym.starts_with("use") {
+                                        let new_ident =
+                                            private_ident!(ident.sym[3..].to_lowercase());
+                                        let new_replace = ast::Expr::Ident(new_ident.clone());
+                                        Some((new_ident, new_replace, TransformInit::Keep))
+                                    } else {
+                                        None
+                                    }
+                                } else {
+                                    None
+                                }
+                            }
+                            _ => None,
+                        };
+                        if let Some((replace_pat, new_ref, init)) = convert {
+                            let keep_ident = matches!(init, TransformInit::Keep);
+                            let mut transform_init = init;
+                            match &decl.name {
+                                ast::Pat::Ident(ident) => {
+                                    if !keep_ident {
+                                        self.identifiers.insert(id!(ident.id.clone()), new_ref);
+                                        decl.name =
+                                            ast::Pat::Ident(ast::BindingIdent::from(replace_pat));
+                                    } else {
+                                        transform_init = TransformInit::Keep;
+                                    }
+                                }
+                                ast::Pat::Object(obj_pat) => {
+                                    if let Some((rest_id, local)) =
+                                        transform_pat(new_ref.clone(), obj_pat, self)
+                                    {
+                                        if let Some(rest_id) = rest_id {
+                                            let omit_fn = self
+                                                .global_collect
+                                                .import(&_REST_PROPS, self.core_module);
+                                            let omit =
+                                                local.iter().map(|(_, id, _)| id.clone()).collect();
+
+                                            let element = create_omit_props(
+                                                &omit_fn, &rest_id, new_ref, omit,
+                                            );
+                                            inserts.push((index + 1 + inserts.len(), element));
+                                        }
+                                        for (id, _, expr) in local {
+                                            self.identifiers.insert(id, expr);
+                                        }
+                                        decl.name =
+                                            ast::Pat::Ident(ast::BindingIdent::from(replace_pat));
+                                    } else {
+                                        transform_init = TransformInit::Keep;
+                                    }
+                                }
+                                _ => {
+                                    transform_init = TransformInit::Keep;
+                                }
+                            }
+                            match transform_init {
+                                TransformInit::Remove => {
+                                    decl.init = None;
+                                }
+                                TransformInit::Replace(expr) => {
+                                    decl.init = Some(Box::new(expr));
+                                }
+                                TransformInit::Keep => {}
+                            }
+                        }
+                    }
+                } else {
+                    break;
+                }
+            }
+        }
+
+        for (index, stmt) in inserts {
+            body.stmts.insert(index, stmt);
+        }
+    }
+}
+
 impl<'a> VisitMut for PropsDestructuring<'a> {
     fn visit_mut_call_expr(&mut self, node: &mut ast::CallExpr) {
         if let ast::Callee::Expr(box ast::Expr::Ident(ref ident)) = &node.callee {
             if id_eq!(ident, &self.component_ident) {
                 if let Some(first_arg) = node.args.first_mut() {
                     if let ast::Expr::Arrow(arrow) = &mut *first_arg.expr {
-                        transform_component_props(arrow, self);
+                        self.transform_component_props(arrow);
                     }
                 }
             }
         }
+
         node.visit_mut_children_with(self);
     }
 
@@ -83,182 +275,6 @@ impl<'a> VisitMut for PropsDestructuring<'a> {
             }
         }
         node.visit_mut_children_with(self);
-    }
-}
-
-fn transform_component_props(arrow: &mut ast::ArrowExpr, props_transform: &mut PropsDestructuring) {
-    if let Some(ast::Pat::Object(obj)) = arrow.params.first() {
-        let new_ident = private_ident!("props");
-        if let Some((rest_id, local)) =
-            transform_pat(ast::Expr::Ident(new_ident.clone()), obj, props_transform)
-        {
-            if let Some(rest_id) = rest_id {
-                let omit_fn = props_transform
-                    .global_collect
-                    .import(&_REST_PROPS, props_transform.core_module);
-                let omit = local.iter().map(|(_, id, _)| id.clone()).collect();
-                transform_rest(
-                    arrow,
-                    &omit_fn,
-                    &rest_id,
-                    ast::Expr::Ident(new_ident.clone()),
-                    omit,
-                );
-            }
-            for (id, _, expr) in local {
-                props_transform.identifiers.insert(id, expr);
-            }
-            arrow.params[0] = ast::Pat::Ident(ast::BindingIdent::from(new_ident));
-        }
-    }
-    if let ast::BlockStmtOrExpr::BlockStmt(body) = &mut *arrow.body {
-        transform_component_body(body, props_transform);
-    }
-}
-
-enum TransformInit {
-    Keep,
-    Remove,
-    Replace(ast::Expr),
-}
-
-fn transform_component_body(body: &mut ast::BlockStmt, props_transform: &mut PropsDestructuring) {
-    let mut inserts = vec![];
-    for (index, stmt) in body.stmts.iter_mut().enumerate() {
-        if let ast::Stmt::Decl(ast::Decl::Var(var_decl)) = stmt {
-            if var_decl.kind == ast::VarDeclKind::Const {
-                for decl in var_decl.decls.iter_mut() {
-                    let convert = match &decl.init {
-                        Some(box ast::Expr::Member(member_expr)) => match &member_expr.obj {
-                            box ast::Expr::Ident(ident) => {
-                                let new_ident = private_ident!("_unused");
-                                let expr = props_transform
-                                    .identifiers
-                                    .get(&id!(ident.clone()))
-                                    .cloned()
-                                    .unwrap_or_else(|| ast::Expr::Ident(ident.clone()));
-
-                                let new_replace = ast::Expr::Member(ast::MemberExpr {
-                                    obj: Box::new(expr),
-                                    prop: member_expr.prop.clone(),
-                                    span: member_expr.span,
-                                });
-                                Some((new_ident, new_replace, TransformInit::Remove))
-                            }
-                            box ast::Expr::Call(call_expr) => {
-                                if let ast::Callee::Expr(box ast::Expr::Ident(ref ident)) =
-                                    &call_expr.callee
-                                {
-                                    if ident.sym.starts_with("use") {
-                                        let new_ident =
-                                            private_ident!(ident.sym[3..].to_lowercase());
-                                        let new_replace = ast::Expr::Member(ast::MemberExpr {
-                                            obj: Box::new(ast::Expr::Ident(new_ident.clone())),
-                                            prop: member_expr.prop.clone(),
-                                            span: DUMMY_SP,
-                                        });
-                                        Some((
-                                            new_ident,
-                                            new_replace,
-                                            TransformInit::Replace(ast::Expr::Call(
-                                                call_expr.clone(),
-                                            )),
-                                        ))
-                                    } else {
-                                        None
-                                    }
-                                } else {
-                                    None
-                                }
-                            }
-                            _ => None,
-                        },
-                        Some(box ast::Expr::Ident(ref ident)) => {
-                            let new_ident = private_ident!("_unused");
-                            let new_replace = props_transform
-                                .identifiers
-                                .get(&id!(ident.clone()))
-                                .cloned()
-                                .unwrap_or_else(|| ast::Expr::Ident(ident.clone()));
-                            Some((new_ident, new_replace, TransformInit::Remove))
-                        }
-                        Some(box ast::Expr::Call(call_expr)) => {
-                            if let ast::Callee::Expr(box ast::Expr::Ident(ref ident)) =
-                                &call_expr.callee
-                            {
-                                if ident.sym.starts_with("use") {
-                                    let new_ident = private_ident!(ident.sym[3..].to_lowercase());
-                                    let new_replace = ast::Expr::Ident(new_ident.clone());
-                                    Some((new_ident, new_replace, TransformInit::Keep))
-                                } else {
-                                    None
-                                }
-                            } else {
-                                None
-                            }
-                        }
-                        _ => None,
-                    };
-                    if let Some((replace_pat, new_ref, init)) = convert {
-                        let keep_ident = matches!(init, TransformInit::Keep);
-                        let mut transform_init = init;
-                        match &decl.name {
-                            ast::Pat::Ident(ident) => {
-                                if !keep_ident {
-                                    props_transform
-                                        .identifiers
-                                        .insert(id!(ident.id.clone()), new_ref);
-                                    decl.name =
-                                        ast::Pat::Ident(ast::BindingIdent::from(replace_pat));
-                                } else {
-                                    transform_init = TransformInit::Keep;
-                                }
-                            }
-                            ast::Pat::Object(obj_pat) => {
-                                if let Some((rest_id, local)) =
-                                    transform_pat(new_ref.clone(), obj_pat, props_transform)
-                                {
-                                    if let Some(rest_id) = rest_id {
-                                        let omit_fn = props_transform
-                                            .global_collect
-                                            .import(&_REST_PROPS, props_transform.core_module);
-                                        let omit =
-                                            local.iter().map(|(_, id, _)| id.clone()).collect();
-
-                                        let element =
-                                            create_omit_props(&omit_fn, &rest_id, new_ref, omit);
-                                        inserts.push((index + 1 + inserts.len(), element));
-                                    }
-                                    for (id, _, expr) in local {
-                                        props_transform.identifiers.insert(id, expr);
-                                    }
-                                    decl.name =
-                                        ast::Pat::Ident(ast::BindingIdent::from(replace_pat));
-                                } else {
-                                    transform_init = TransformInit::Keep;
-                                }
-                            }
-                            _ => {
-                                transform_init = TransformInit::Keep;
-                            }
-                        }
-                        match transform_init {
-                            TransformInit::Remove => {
-                                decl.init = None;
-                            }
-                            TransformInit::Replace(expr) => {
-                                decl.init = Some(Box::new(expr));
-                            }
-                            TransformInit::Keep => {}
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    for (index, stmt) in inserts {
-        body.stmts.insert(index, stmt);
     }
 }
 
@@ -300,15 +316,47 @@ fn transform_pat(
             }
             ast::ObjectPatProp::KeyValue(ref v) => {
                 if let ast::PropName::Ident(ref key) = v.key {
-                    if let ast::Pat::Ident(ref ident) = *v.value {
-                        let access = ast::Expr::Member(ast::MemberExpr {
-                            obj: Box::new(new_ident.clone()),
-                            prop: ast::MemberProp::Ident(key.clone()),
-                            span: DUMMY_SP,
-                        });
-                        local.push((id!(ident), key.sym.clone(), access));
-                    } else {
-                        skip = true;
+                    match &v.value {
+                        box ast::Pat::Ident(ref ident) => {
+                            let access = ast::Expr::Member(ast::MemberExpr {
+                                obj: Box::new(new_ident.clone()),
+                                prop: ast::MemberProp::Ident(key.clone()),
+                                span: DUMMY_SP,
+                            });
+                            local.push((id!(ident), key.sym.clone(), access));
+                        }
+                        box ast::Pat::Assign(ast::AssignPat {
+                            left: box ast::Pat::Ident(ident),
+                            right: value,
+                            ..
+                        }) => {
+                            if is_immutable_expr(
+                                value.as_ref(),
+                                props_transform.global_collect,
+                                None,
+                            ) {
+                                let access = ast::Expr::Member(ast::MemberExpr {
+                                    obj: Box::new(new_ident.clone()),
+                                    prop: ast::MemberProp::Ident(key.clone()),
+                                    span: DUMMY_SP,
+                                });
+                                local.push((
+                                    id!(ident.id),
+                                    key.sym.clone(),
+                                    ast::Expr::Bin(ast::BinExpr {
+                                        span: DUMMY_SP,
+                                        op: ast::BinaryOp::NullishCoalescing,
+                                        left: Box::new(access),
+                                        right: value.clone(),
+                                    }),
+                                ));
+                            } else {
+                                skip = true;
+                            }
+                        }
+                        _ => {
+                            skip = true;
+                        }
                     }
                 } else {
                     skip = true;

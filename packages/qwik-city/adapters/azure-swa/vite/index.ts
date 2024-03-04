@@ -3,9 +3,7 @@ import { type ServerAdapterOptions, viteAdapter } from '../../shared/vite';
 import { join } from 'node:path';
 import fs from 'node:fs';
 
-/**
- * @public
- */
+/** @public */
 export function azureSwaAdapter(opts: AzureSwaAdapterOptions = {}): any {
   const env = process?.env;
   return viteAdapter({
@@ -14,7 +12,7 @@ export function azureSwaAdapter(opts: AzureSwaAdapterOptions = {}): any {
     ssg: opts.ssg,
     cleanStaticGenerated: true,
 
-    async generate({ outputEntries, serverOutDir, clientOutDir }) {
+    async generate({ outputEntries, serverOutDir, clientPublicOutDir }) {
       const serverPackageJsonPath = join(serverOutDir!, 'package.json');
       const serverPackageJsonCode = `{"type":"module"}`;
       await fs.promises.mkdir(serverOutDir!, { recursive: true });
@@ -59,19 +57,15 @@ export function azureSwaAdapter(opts: AzureSwaAdapterOptions = {}): any {
       await fs.promises.writeFile(funcJsonPath, funcJson);
 
       // Azure SWA needs an index.html in the dist folder (otherwise it won't deploy)
-      if (!fs.existsSync(join(clientOutDir, 'index.html'))) {
-        await fs.promises.writeFile(join(clientOutDir, 'index.html'), '');
+      if (!fs.existsSync(join(clientPublicOutDir, 'index.html'))) {
+        await fs.promises.writeFile(join(clientPublicOutDir, 'index.html'), '');
       }
     },
   });
 }
 
-/**
- * @public
- */
+/** @public */
 export interface AzureSwaAdapterOptions extends ServerAdapterOptions {}
 
-/**
- * @public
- */
+/** @public */
 export type { StaticGenerateRenderOptions };

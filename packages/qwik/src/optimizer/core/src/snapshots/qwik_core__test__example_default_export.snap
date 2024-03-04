@@ -1,5 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 1436
 expression: output
 ---
 ==INPUT==
@@ -24,7 +25,7 @@ export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("../../..
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...slug]].tsx\"],\"names\":[],\"mappings\":\";;AAIA,6BAAe,qHAKZ\"}")
-============================= _____slug___component_div_onclick_oesymv0so3o.js ==
+============================= _____slug___component_div_onclick_oesymv0so3o.js (ENTRY POINT)==
 
 import { sibling } from "./src/routes/_repl/[id]/sibling";
 export const _____slug___component_div_onClick_OesyMV0SO3o = ()=>console.log(mongodb, sibling);
@@ -35,7 +36,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...sl
 {
   "origin": "src/routes/_repl/[id]/[[...slug]].tsx",
   "name": "_____slug___component_div_onClick_OesyMV0SO3o",
-  "entry": "entry______slug__",
+  "entry": null,
   "displayName": "_____slug___component_div_onClick",
   "hash": "OesyMV0SO3o",
   "canonicalFilename": "_____slug___component_div_onclick_oesymv0so3o",
@@ -56,7 +57,7 @@ import { _jsxQ } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 export const _____slug___component_vgk6N3QaQd4 = ()=>{
     return /*#__PURE__*/ _jsxQ("div", null, {
-        onClick$: /*#__PURE__*/ qrl(()=>import("./entry______slug__.js"), "_____slug___component_div_onClick_OesyMV0SO3o")
+        onClick$: /*#__PURE__*/ qrl(()=>import("./_____slug___component_div_onclick_oesymv0so3o.js"), "_____slug___component_div_onClick_OesyMV0SO3o")
     }, null, 3, "W4_0");
 };
 
@@ -83,7 +84,6 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...sl
 */
 ============================= entry______slug__.js (ENTRY POINT)==
 
-export { _____slug___component_div_onClick_OesyMV0SO3o } from "./_____slug___component_div_onclick_oesymv0so3o.js";
 export { _____slug___component_vgk6N3QaQd4 } from "./_____slug___component_vgk6n3qaqd4.js";
 
 

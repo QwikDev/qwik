@@ -104,7 +104,9 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
             // Store the fetched response as cacheKey
             // Use waitUntil so you can return the response without blocking on
             // writing to cache
-            ctx.waitUntil(cache.put(cacheKey, response.clone()));
+            ctx.waitUntil(
+              handledResponse.completion.then(() => cache.put(cacheKey, response.clone()))
+            );
           }
           return response;
         }

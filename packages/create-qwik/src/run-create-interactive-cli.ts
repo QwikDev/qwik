@@ -111,7 +111,7 @@ export async function runCreateInteractiveCli(): Promise<CreateAppResult> {
 
   if (!runDepInstall) {
     backgroundInstall.abort();
-  } else {
+  } else if (typeof backgroundInstall.success === 'undefined') {
     try {
       const joke = await confirm({
         message: `Finishing the install. Wanna hear a joke?`,

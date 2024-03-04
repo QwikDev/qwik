@@ -492,7 +492,7 @@ export interface LinkProps extends AnchorAttributes
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/link-component.tsx)
 
-## Loader
+## Loader_2
 
 ```typescript
 export type Loader<RETURN> = {

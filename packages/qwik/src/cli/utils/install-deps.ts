@@ -59,7 +59,7 @@ export function backgroundInstallDeps(pkgManager: string, baseApp: IntegrationDa
         }
 
         success = true;
-        fs.rmdirSync(tmpInstallDir, { recursive: true });
+        fs.rmSync(tmpInstallDir, { recursive: true });
       }
     } catch (e: any) {
       if (e) {
@@ -84,7 +84,7 @@ export function backgroundInstallDeps(pkgManager: string, baseApp: IntegrationDa
   };
 
   const out = {
-    abort: () => abort().finally(() => fs.rmdirSync(tmpInstallDir, { recursive: true })),
+    abort: () => abort().finally(() => fs.rmSync(tmpInstallDir, { recursive: true })),
     complete,
     success: undefined as boolean | undefined,
   };

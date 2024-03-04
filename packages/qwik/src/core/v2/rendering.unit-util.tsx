@@ -12,7 +12,7 @@ import { ERROR_CONTEXT } from '../render/error-handling';
 import { Slot } from '../render/jsx/slot.public';
 import type { JSXOutput } from '../render/jsx/types/jsx-node';
 import { useContextProvider } from '../use/use-context';
-import { OnRenderProp, QStyle, QStyleSelector } from '../util/markers';
+import { OnRenderProp, QScopedStyle, QStyle, QStyleSelector } from '../util/markers';
 import { DomContainer, getDomContainer } from './client/dom-container';
 import { render2 } from './client/render2';
 import type { ContainerElement, VNode, VirtualVNode } from './client/types';
@@ -40,30 +40,43 @@ export async function domRender(
   const document = createDocument();
   await render2(document.body, jsx);
   await getTestPlatform().flush();
+  const getStyles = getStylesFactory(document);
   const container = getDomContainer(document.body);
-  const styles: Record<string, string> = {};
-  const styleElements = container.document.head.querySelectorAll(QStyleSelector);
-  styleElements.forEach((style) => {
-    const id = style.getAttribute(QStyle)!;
-    styles[id] = style.textContent!;
-  });
   if (opts.debug) {
     console.log('========================================================');
     console.log('------------------------- CSR --------------------------');
-    if (styleElements.length) {
-      styleElements.forEach((style) => {
-        console.log(style.outerHTML);
-      });
-      console.log('-  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -');
-    }
     console.log(container.rootVNode.toString());
+    renderStyles(getStyles);
     console.log('--------------------------------------------------------');
   }
   return {
     document,
     container,
     vNode: vnode_getFirstChild(container.rootVNode),
-    styles,
+    getStyles: getStylesFactory(document),
+  };
+}
+
+function getStylesFactory(document: Document) {
+  return () => {
+    const styles: Record<string, string | string[]> = {};
+    Array.from(document.querySelectorAll('style')).forEach((style) => {
+      const id = style.hasAttribute(QStyle)
+        ? style.getAttribute(QStyle)
+        : style.getAttribute(QScopedStyle)
+          ? style.getAttribute(QScopedStyle)
+          : null;
+      if (id !== null) {
+        const text = style.textContent!;
+        if (id in styles) {
+          const existing = styles[id];
+          Array.isArray(existing) ? existing.push(text) : (styles[id] = [existing, text]);
+        } else {
+          styles[id] = text;
+        }
+      }
+    });
+    return styles;
   };
 }
 
@@ -117,10 +130,12 @@ export async function ssrRenderToDom(
     }
   }
   const container = getDomContainer(containerElement) as DomContainer;
+  const getStyles = getStylesFactory(document);
   if (opts.debug) {
     console.log('========================================================');
     console.log('------------------------- SSR --------------------------');
     console.log(html);
+    renderStyles(getStyles);
     console.log('--------------------------------------------------------');
     console.log(vnode_toString.call(container.rootVNode, Number.MAX_SAFE_INTEGER, '', true));
     console.log('------------------- SERIALIZED STATE -------------------');
@@ -142,7 +157,18 @@ export async function ssrRenderToDom(
     console.log('--------------------------------------------------------');
   }
   const bodyVNode = vnode_getVNodeForChildNode(container.rootVNode, document.body);
-  return { container, document, vNode: vnode_getFirstChild(bodyVNode)!, styles: {} };
+  return { container, document, vNode: vnode_getFirstChild(bodyVNode)!, getStyles };
+}
+
+function renderStyles(getStyles: () => Record<string, string | string[]>) {
+  const START = '\x1b[34m';
+  const END = '\x1b[0m';
+  Object.entries(getStyles()).forEach(([key, value], idx) => {
+    if (idx == 0) {
+      console.log('-  -  -  -  -  -  -  <style>  -  -  -  -  -  -  -  -  -');
+    }
+    console.log(START + key + ': ' + END + value);
+  });
 }
 
 export async function rerenderComponent(element: HTMLElement) {

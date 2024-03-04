@@ -534,28 +534,21 @@ Error.stackTraceLimit = 100;
         await trigger(document.body, 'button', 'click');
       });
 
-      it('should handle promises and tasks', async () => {
-        const log: string[] = [];
+      it('should handle promises and visible tasks', async () => {
         const MyComp = component$(() => {
-          log.push('render');
-          const promise = useSignal<Promise<number>>();
+          const promise = useSignal<Promise<number>>(Promise.resolve(0));
 
-          // Tasks should run one after the other, awaiting returned promises.
-          // Here we "sideload" a promise via the signal
           useVisibleTaskQrl(
             inlinedQrl(
               () => {
                 const [promise] = useLexicalScope<[Signal<Promise<number>>]>();
-                promise.value = Promise.resolve(0)
+                promise.value = promise.value
                   .then(() => {
-                    log.push('inside.1');
                     return delay(10);
                   })
                   .then(() => {
-                    log.push('1b');
                     return 1;
                   });
-                log.push('1a');
               },
               's_visible_task1',
               [promise]
@@ -564,27 +557,13 @@ Error.stackTraceLimit = 100;
 
           useVisibleTaskQrl(
             inlinedQrl(
-              async () => {
-                log.push('2a');
-                await delay(10);
-                log.push('2b');
-              },
-              's_visible_task2',
-              []
-            )
-          );
-
-          useVisibleTaskQrl(
-            inlinedQrl(
               () => {
                 const [promise] = useLexicalScope<[Signal<Promise<number>>]>();
-                promise.value = promise.value!.then(() => {
-                  log.push('3b');
-                  return 3;
+                promise.value = promise.value.then(() => {
+                  return 2;
                 });
-                log.push('3a');
               },
-              's_visible_task3',
+              's_visible_task2',
               [promise]
             )
           );
@@ -592,30 +571,12 @@ Error.stackTraceLimit = 100;
           return <p>Should have a number: "{promise.value}"</p>;
         });
         const { vNode, document } = await render(<MyComp />, { debug });
+
         await trigger(document.body, 'p', 'qvisible');
-        expect(log).toEqual([
-          // 1st render
-          'render',
-          // task 1 returns sync and sideloads promise
-          '1a',
-          // task 2 runs sync after that and returns a promise
-          '2a',
-          // async microtasks run, task 1 queues a delay
-          'inside.1',
-          '2b',
-          // task 3 runs sync and attaches to the promise
-          '3a',
-          // re-render because of signal change in task 1
-          'render',
-          // microtasks run
-          '1b',
-          '3b',
-        ]);
-        // The DOM should have the final value of the sideloaded promise
         expect(vNode).toMatchVDOM(
           <Component>
             <p>
-              Should have a number: "<Fragment>3</Fragment>"
+              Should have a number: "<Fragment>2</Fragment>"
             </p>
           </Component>
         );

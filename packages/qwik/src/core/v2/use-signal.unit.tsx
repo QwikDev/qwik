@@ -170,6 +170,56 @@ Error.stackTraceLimit = 100;
       );
       expect(document.querySelector('button')!.innerHTML).toBe('const 1');
     });
+    it('should manage different class definitions', async () => {
+      const Cmp = component$(() => {
+        const enable = useSignal(true);
+        return (<div>
+          <button onClick$={inlinedQrl(() => {
+            const { enable } = useLexicalScope()[0];
+            enable.value != enable.value;
+          }, 's_onClick', [enable])}>
+            Value: {enable.value.toString()}!
+          </button>
+          <div class={`my-class ${enable.value ? 'enable' : 'disable'}`} />
+          <span class={{
+            'my-class': true,
+            'enable': enable.value,
+            'disable': !enable.value,
+            'another-class': false
+          }} />
+          <span class={[
+            'my-class',
+            enable.value.toString(),
+            'signal-' + enable.value.toString(),
+            enable.value ? 'enable' : 'disable'
+          ]} />
+        </div>
+        )
+      });
+
+      const { vNode, container } = await render(<Cmp />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <div>
+            <button>{'Value: '}{'true'}{'!'}</button>
+            <div class="my-class enable" />
+            <span class="my-class enable" />
+            <span class="my-class true signal-true enable" />
+          </div >
+        </Component >
+      );
+      await trigger(container.element, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <div>
+            <button>{'Value: '}{'false'}{'!'}</button>
+            <div class="my-class disable" />
+            <span class="my-class disable" />
+            <span class="my-class false signal-false disable" />
+          </div>
+        </Component>
+      );
+    });
     describe('derived', () => {
       it('should update value directly in DOM', async () => {
         const log: string[] = [];

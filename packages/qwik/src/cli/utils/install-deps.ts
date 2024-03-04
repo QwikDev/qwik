@@ -23,10 +23,6 @@ export function backgroundInstallDeps(pkgManager: string, baseApp: IntegrationDa
 
   const { install, abort } = installDeps(pkgManager, tmpInstallDir);
 
-  install.finally(() => {
-    fs.rmdirSync(tmpInstallDir, { recursive: true });
-  });
-
   const complete = async (outDir: string) => {
     let success = false;
 
@@ -63,6 +59,7 @@ export function backgroundInstallDeps(pkgManager: string, baseApp: IntegrationDa
         }
 
         success = true;
+        fs.rmdirSync(tmpInstallDir, { recursive: true });
       }
     } catch (e: any) {
       if (e) {
@@ -86,7 +83,14 @@ export function backgroundInstallDeps(pkgManager: string, baseApp: IntegrationDa
     return success;
   };
 
-  return { abort, complete };
+  const out = {
+    abort: () => abort().finally(() => fs.rmdirSync(tmpInstallDir, { recursive: true })),
+    complete,
+    success: undefined as boolean | undefined,
+  };
+  install.then((success) => (out.success = success));
+
+  return out;
 }
 
 function setupTmpInstall(baseApp: IntegrationData) {

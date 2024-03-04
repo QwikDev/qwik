@@ -27,25 +27,15 @@ Error.stackTraceLimit = 100;
         return <div class="container">Hello world</div>;
       });
 
-      const { vNode, styles } = await render(<StyledComponent />, { debug });
-      if (render == ssrRenderToDom) {
-        expect(vNode).toMatchVDOM(
-          <>
-            {/* @ts-ignore-next-line */}
-            <style q:style=''>{STYLE_RED}</style>
-            <div class="container">Hello world</div>
-          </>
-        );
-      } else {
-        expect(styles).toEqual({
-          '': STYLE_RED,
-        });
-        expect(vNode).toMatchVDOM(
-          <>
-            <div class={'container'}>Hello world</div>
-          </>
-        );
-      }
+      const { vNode, getStyles } = await render(<StyledComponent />, { debug });
+      expect(getStyles()).toEqual({
+        '': STYLE_RED,
+      });
+      expect(vNode).toMatchVDOM(
+        <>
+          <div class={'container'}>Hello world</div>
+        </>
+      );
     });
 
     it('should move style to <head> on rerender', async () => {
@@ -130,42 +120,23 @@ Error.stackTraceLimit = 100;
           </div>
         );
       });
-      const { vNode, styles } = await render(<Parent />, { debug });
-      if (render == ssrRenderToDom) {
-        expect(vNode).toMatchVDOM(
-          <>
-            <div>
-              <Component>
-                {/* @ts-ignore-next-line */}
-                <style q:style=''>{STYLE_RED}</style>
-                <div class="container">Hello world 1</div>
-              </Component>
-              <Component>
-                {/* @ts-ignore-next-line */}
-                <style q:style=''>{STYLE_BLUE}</style>
-                <div class="container">Hello world 2</div>
-              </Component>
-            </div>
-          </>
-        );
-      } else {
-        expect(styles).toEqual({
-          '': STYLE_RED,
-          '': STYLE_BLUE,
-        });
-        expect(vNode).toMatchVDOM(
-          <>
-            <div>
-              <Component>
-                <div class="container">Hello world 1</div>
-              </Component>
-              <Component>
-                <div class="container">Hello world 2</div>
-              </Component>
-            </div>
-          </>
-        );
-      }
+      const { vNode, getStyles } = await render(<Parent />, { debug });
+
+      expect(getStyles()).toEqual({
+        '': [STYLE_RED, STYLE_BLUE],
+      });
+      expect(vNode).toMatchVDOM(
+        <>
+          <div>
+            <Component>
+              <div class="container">Hello world 1</div>
+            </Component>
+            <Component>
+              <div class="container">Hello world 2</div>
+            </Component>
+          </div>
+        </>
+      );
     });
 
     it('should save styles for all child components', async () => {

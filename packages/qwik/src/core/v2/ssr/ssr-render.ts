@@ -20,6 +20,7 @@ import { qrlToString, type SerializationContext } from '../shared/shared-seriali
 import { DEBUG_TYPE, VirtualType, type fixMeAny } from '../shared/types';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
 import type { SSRContainer, SsrAttrs } from './types';
+import { QSlot } from '../../util/markers';
 
 /**
  * We support Promises in JSX but we don't expose this in the public API because it breaks signal
@@ -140,14 +141,21 @@ function processJSXNode(
           children !== undefined && enqueue(children);
         } else if (type === Slot) {
           const componentFrame = ssr.getNearestComponentFrame()!;
+          const slotName = String(jsx.props.name || '');
           ssr.openProjection(
             isDev
-              ? [DEBUG_TYPE, VirtualType.Projection, ':', componentFrame.componentNode.id]
-              : [':', componentFrame.componentNode.id]
+              ? [
+                  DEBUG_TYPE,
+                  VirtualType.Projection,
+                  ':',
+                  componentFrame.componentNode.id,
+                  QSlot,
+                  slotName,
+                ]
+              : [':', componentFrame.componentNode.id, QSlot, slotName]
           );
           enqueue(ssr.closeProjection);
           const node = ssr.getLastNode();
-          const slotName = String(jsx.props.name || '');
           const slotDefaultChildren = (jsx.props.children || null) as JSXChildren | null;
           const slotChildren =
             componentFrame.consumeChildrenForSlot(node, slotName) || slotDefaultChildren;

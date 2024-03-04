@@ -43,8 +43,10 @@ export async function domRender(
   const container = getDomContainer(document.body);
   const styles: Record<string, string> = {};
   const styleElements = container.document.head.querySelectorAll(QStyleSelector);
-  styleElements.forEach((style) => {
-    const id = style.getAttribute(QStyle)!;
+  styleElements.forEach((style, index) => {
+    const styleId = style.getAttribute(QStyle);
+    // for non scoped styles styleId is empty
+    const id = styleId && styleId.length ? styleId : index;
     styles[id] = style.textContent!;
   });
   if (opts.debug) {

@@ -717,16 +717,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       // Component
       const [componentQRL] = componentMeta;
       if (componentQRL.$hash$ !== vNodeQrl?.$hash$) {
-        if (vnode_getNextSibling(host) && jsxIdx > 0) {
-          journal.push(
-            VNodeJournalOpCode.Remove,
-            vParent,
-            host
-          );
-          jsxIdx--;
-        } else {
-          vnode_setProp(host, OnRenderProp, componentQRL);
-        }
+        vnode_setProp(host, OnRenderProp, componentQRL);
         shouldRender = true;
       }
       const vNodeProps = vnode_getProp<any>(host, ELEMENT_PROPS, container.$getObjectById$);

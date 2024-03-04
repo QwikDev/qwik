@@ -38,7 +38,7 @@ Error.stackTraceLimit = 100;
         );
       } else {
         expect(styles).toEqual({
-          '': STYLE_RED,
+          '0': STYLE_RED,
         });
         expect(vNode).toMatchVDOM(
           <>
@@ -150,8 +150,8 @@ Error.stackTraceLimit = 100;
         );
       } else {
         expect(styles).toEqual({
-          '': STYLE_RED,
-          '': STYLE_BLUE,
+          '0': STYLE_RED,
+          '1': STYLE_BLUE,
         });
         expect(vNode).toMatchVDOM(
           <>

@@ -33,9 +33,14 @@
   "trustedDependencies": [
     "sharp"
   ],
+  "trustedDependencies-annotation": "Needed for bun to allow running install scripts",
   "engines": {
-    "node": ">=16.8.0 <18.0.0 || >=18.11"
+    "node": "^18.17.0 || ^20.3.0 || >=21.0.0",
+    "npm": ">=10.0.0",
+    "pnpm": ">=8.0.0",
+    "yarn": ">=3.0.0"
   },
+  "engines-annotation": "Mostly required by sharp which needs a Node-API v9 compatible runtime",
   "private": true,
   "type": "module"
 }

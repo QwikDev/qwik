@@ -91,24 +91,30 @@ async function prepare({ buildRepo, artifactsDir }: { buildRepo: string; artifac
     '-m',
     msg + '\n\n' + srcRepoRef + SHA
   );
-  const { exitCode } = await execa('git', ['diff', 'HEAD', 'HEAD~', '--quiet', '--exit-code']);
-  if (exitCode === 0) {
-    console.log(`${artifactsDir}: No changes to save.`);
-    await $('rm', '-rf', buildRepoDir);
-    return () => {};
+  let hasChanges = false;
+  try {
+    await execa('git', ['diff', 'HEAD', 'HEAD~', '--quiet', '--exit-code']);
+  } catch {
+    hasChanges = true;
   }
-  const dstSHA = await $('git', 'rev-parse', 'HEAD');
-  console.log('##############################################################');
-  console.log('##############################################################');
-  console.log(`### ${artifactsDir} => BuilderIO/${buildRepo}`);
-  console.log(`### ${srcRepoRef}/${dstSHA}`);
-  console.log('##############################################################');
-  console.log('##############################################################');
+  if (hasChanges) {
+    const dstSHA = await $('git', 'rev-parse', 'HEAD');
+    console.log('##############################################################');
+    console.log('##############################################################');
+    console.log(`### ${artifactsDir} => BuilderIO/${buildRepo}`);
+    console.log(`### ${srcRepoRef}/${dstSHA}`);
+    console.log('##############################################################');
+    console.log('##############################################################');
+  }
   const cwd = process.cwd();
   return async () => {
-    process.chdir(cwd);
-    console.log('PUSHING:', repo, `HEAD:${branch}`, 'in', cwd);
-    await $('git', 'push', repo, `HEAD:${branch}`);
+    if (hasChanges) {
+      process.chdir(cwd);
+      console.log('PUSHING:', repo, `HEAD:${branch}`, 'in', cwd);
+      await $('git', 'push', repo, `HEAD:${branch}`);
+    } else {
+      console.log('No changes to push.');
+    }
     await $('rm', '-rf', buildRepoDir);
   };
 }

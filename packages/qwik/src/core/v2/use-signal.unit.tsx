@@ -21,7 +21,7 @@ Error.stackTraceLimit = 100;
   ssrRenderToDom, //
   domRender, //
 ].forEach((render) => {
-  describe('useSignal', () => {
+  describe(render.name + 'useSignal', () => {
     it('should update value', async () => {
       const Counter = component$((props: { initial: number }) => {
         const count = useSignal(props.initial);
@@ -170,7 +170,7 @@ Error.stackTraceLimit = 100;
       );
       expect(document.querySelector('button')!.innerHTML).toBe('const 1');
     });
-    it('should manage different class definitions', async () => {
+    it('should handle all ClassList cases', async () => {
       const Cmp = component$(() => {
         const enable = useSignal(true);
         return (<div>

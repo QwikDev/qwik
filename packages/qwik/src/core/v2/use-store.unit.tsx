@@ -472,11 +472,11 @@ Error.stackTraceLimit = 100;
           </div>
         </Component>
       );
-      await trigger(container.element, 'span:first-of-type', 'click');
-      await trigger(container.element, 'span:first-of-type', 'click');
-      await trigger(container.element, 'span:first-of-type', 'click');
-      await trigger(container.element, 'span:first-of-type', 'click');
-      await trigger(container.element, 'span:first-of-type', 'click');
+      await trigger(container.element, 'span', 'click');
+      await trigger(container.element, 'span', 'click');
+      await trigger(container.element, 'span', 'click');
+      await trigger(container.element, 'span', 'click');
+      await trigger(container.element, 'span', 'click');
       expect(vNode).toMatchVDOM(
         <Component>
           <div>

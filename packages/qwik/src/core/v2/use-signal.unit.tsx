@@ -175,8 +175,8 @@ Error.stackTraceLimit = 100;
         const enable = useSignal(true);
         return (<div>
           <button onClick$={inlinedQrl(() => {
-            const { enable } = useLexicalScope()[0];
-            enable.value != enable.value;
+            const enable = useLexicalScope()[0];
+            enable.value = !enable.value;
           }, 's_onClick', [enable])}>
             Value: {enable.value.toString()}!
           </button>

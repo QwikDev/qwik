@@ -91,6 +91,12 @@ async function prepare({ buildRepo, artifactsDir }: { buildRepo: string; artifac
     '-m',
     msg + '\n\n' + srcRepoRef + SHA
   );
+  const { exitCode } = await execa('git', ['diff', 'HEAD', 'HEAD~', '--quiet', '--exit-code']);
+  if (exitCode === 0) {
+    console.log(`${artifactsDir}: No changes to save.`);
+    await $('rm', '-rf', buildRepoDir);
+    return () => {};
+  }
   const dstSHA = await $('git', 'rev-parse', 'HEAD');
   console.log('##############################################################');
   console.log('##############################################################');

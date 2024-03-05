@@ -6,6 +6,7 @@ WORKDIR /app
 # It is recommended that you only install production dependencies with
 # `npm i --omit=dev`. You may need to check which dependencies are missing
 RUN npm i
+RUN npm run build
 
 
 # A light-weight image for running the app

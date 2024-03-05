@@ -10,10 +10,10 @@ import { untrack } from '../use/use-core';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { useSignal } from '../use/use-signal';
 import { useStore } from '../use/use-store.public';
+import { useTaskQrl } from '../use/use-task';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import type { fixMeAny } from './shared/types';
 import './vdom-diff.unit-util';
-import { useTaskQrl } from '../use/use-task';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -301,7 +301,7 @@ Error.stackTraceLimit = 100;
     });
   });
 
-  describe('regression', () => {
+  describe(render.name + 'regression', () => {
     it('#5597 - should update value', async () => {
       let clicks = 0;
       const Issue5597 = component$(() => {
@@ -362,7 +362,7 @@ Error.stackTraceLimit = 100;
       const Cmp = component$(() => {
         const count = useSignal(0);
         const store = useStore({ items: [{ num: 0 }] });
-        useTaskQrl(inlinedQrl(({cleanup}) => {
+        useTaskQrl(inlinedQrl(({ cleanup }) => {
           const [count, store] = useLexicalScope();
 
           const intervalId = setInterval(() => {

@@ -16,7 +16,7 @@ Error.stackTraceLimit = 100;
   ssrRenderToDom, //
   domRender, //
 ].forEach((render) => {
-  describe('useComputed', () => {
+  describe(render.name + 'useComputed', () => {
     it('should update value based on signal', async () => {
       const DoubleCounter = component$((props: { initial: number }) => {
         const count = useSignal(props.initial);

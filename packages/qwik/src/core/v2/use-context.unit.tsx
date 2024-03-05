@@ -16,7 +16,7 @@ Error.stackTraceLimit = 100;
   ssrRenderToDom, //
   domRender, //
 ].forEach((render) => {
-  describe('useContext', () => {
+  describe(render.name + 'useContext', () => {
     it('should provide and retrieve a context', async () => {
       const contextId = createContextId<{ value: string }>('myTest');
       const Provider = component$(() => {

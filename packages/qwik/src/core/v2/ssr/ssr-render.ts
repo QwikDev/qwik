@@ -1,7 +1,9 @@
 import { isDev } from '@builder.io/qwik/build';
+import type { ClassList } from 'packages/qwik/dist/core';
 import { isPromise } from 'util/types';
 import { isQwikComponent } from '../../component/component.public';
 import { isQrl } from '../../qrl/qrl-class';
+import { serializeClass } from '../../render/execute-component';
 import { Fragment } from '../../render/jsx/jsx-runtime';
 import { Slot } from '../../render/jsx/slot.public';
 import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
@@ -11,16 +13,17 @@ import { isSignal } from '../../state/signal';
 import { trackSignal } from '../../use/use-core';
 import { EMPTY_ARRAY } from '../../util/flyweight';
 import { throwErrorAndStop } from '../../util/log';
-import type { ValueOrPromise } from '../../util/types';
+import { QSlot } from '../../util/markers';
+import { type ValueOrPromise } from '../../util/types';
 import {
   convertEventNameFromJsxPropToHtmlAttr,
   isJsxPropertyAnEventName,
 } from '../shared/event-names';
+import { isClassAttr } from '../shared/scoped-styles';
 import { qrlToString, type SerializationContext } from '../shared/shared-serialization';
 import { DEBUG_TYPE, VirtualType, type fixMeAny } from '../shared/types';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
 import type { SSRContainer, SsrAttrs } from './types';
-import { QSlot } from '../../util/markers';
 
 /**
  * We support Promises in JSX but we don't expose this in the public API because it breaks signal
@@ -214,7 +217,10 @@ export function toSsrAttrs(
         }
       } else {
         if (key !== 'children') {
-          ssrAttrs.push(key, String(record[key]));
+          const value = isClassAttr(key)
+            ? serializeClass(record[key] as ClassList)
+            : String(record[key]);
+          ssrAttrs.push(key, value);
         }
       }
     }

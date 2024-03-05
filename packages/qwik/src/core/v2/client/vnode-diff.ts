@@ -3,6 +3,7 @@ import { type OnRenderFn } from '../../component/component.public';
 import { SERIALIZABLE_STATE } from '../../container/serializers';
 import { assertDefined, assertFalse, assertTrue } from '../../error/assert';
 import type { QRLInternal } from '../../qrl/qrl-class';
+import { serializeClass } from '../../render/execute-component';
 import { Fragment, JSXNodeImpl, isJSXNode } from '../../render/jsx/jsx-runtime';
 import { Slot } from '../../render/jsx/slot.public';
 import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
@@ -23,7 +24,7 @@ import {
   QStyleSelector,
 } from '../../util/markers';
 import { isPromise } from '../../util/promises';
-import type { ValueOrPromise } from '../../util/types';
+import { type ValueOrPromise } from '../../util/types';
 import { executeComponent2 } from '../shared/component-execution';
 import {
   getEventNameFromJsxProp,
@@ -31,6 +32,7 @@ import {
   isHtmlAttributeAnEventName,
   isJsxPropertyAnEventName,
 } from '../shared/event-names';
+import { addPrefixForScopedStyleIdsString, isClassAttr } from '../shared/scoped-styles';
 import type { QElement2, fixMeAny } from '../shared/types';
 import { DEBUG_TYPE, VirtualType } from '../shared/types';
 import type { SsrAttrs } from '../ssr/types';
@@ -72,7 +74,6 @@ import {
   vnode_setText,
   vnode_truncate,
 } from './vnode';
-import { addPrefixForScopedStyleIdsString, isClassAttr } from '../shared/scoped-styles';
 
 export type VNodeJournalEntry = VNodeJournalOpCode | VNode | HTMLElement | Document | null | string;
 
@@ -567,8 +568,12 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
         journal.push(VNodeJournalOpCode.Attributes, vnode);
         hasDiffs = true;
       }
-      if (scopedStyleIdPrefix && isClassAttr(key)) {
-        value = value ? `${scopedStyleIdPrefix} ${value}` : value;
+      if (isClassAttr(key)) {
+        const serializedClass = serializeClass(value);
+        value =
+          scopedStyleIdPrefix && serializedClass
+            ? `${scopedStyleIdPrefix} ${serializedClass}`
+            : serializedClass;
       }
       journal.push(key, value);
     };

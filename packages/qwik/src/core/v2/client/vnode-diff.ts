@@ -161,7 +161,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
           expectText(jsxValue);
         } else if (typeof jsxValue === 'number') {
           expectText(String(jsxValue));
-        } else if (typeof jsxValue === 'object') {
+        } else if (jsxValue && typeof jsxValue === 'object') {
           if (Array.isArray(jsxValue)) {
             descend(jsxValue, false);
           } else if (isSignal(jsxValue)) {

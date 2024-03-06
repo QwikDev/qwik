@@ -16,7 +16,7 @@ Error.stackTraceLimit = 100;
   ssrRenderToDom, //
   domRender, //
 ].forEach((render) => {
-  describe('useComputed', () => {
+  describe(render.name + 'useComputed', () => {
     it('should update value based on signal', async () => {
       const DoubleCounter = component$((props: { initial: number }) => {
         const count = useSignal(props.initial);
@@ -171,7 +171,7 @@ Error.stackTraceLimit = 100;
       );
     });
 
-    it('should work with inner computed for issue 4979', async () => {
+    it('#4979 - should work with inner computed', async () => {
       const InnerComponent = component$((props: { value: number }) => {
         const foo = useComputedQrl(
           inlinedQrl(() => useLexicalScope()[0].value, 's_foo', [props])
@@ -210,7 +210,7 @@ Error.stackTraceLimit = 100;
       );
     });
 
-    it.skip('improvement(after v2): should lazily evaluate the function for issue 3294 with useSignal', async () => {
+    it.skip('#3294 - improvement(after v2): should lazily evaluate the function with useSignal', async () => {
       let useComputedCount = 0;
       const Issue3294 = component$(() => {
         const firstName = useSignal('Misko');
@@ -258,7 +258,7 @@ Error.stackTraceLimit = 100;
       expect(useComputedCount).toBe(1);
     });
 
-    it.skip('improvement(after v2): should lazily evaluate the function for issue 3294 with store', async () => {
+    it.skip('#3294 - improvement(after v2): should lazily evaluate the function with store', async () => {
       let useComputedCount = 0;
       const Issue3294 = component$(() => {
         const store = useStore({ firstName: 'Misko', lastName: 'Hevery' });

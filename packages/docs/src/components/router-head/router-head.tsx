@@ -1,16 +1,11 @@
 /* eslint-disable no-console */
-import { component$,  useTask$ } from '@builder.io/qwik';
-import {  useDocumentHead, useLocation } from '@builder.io/qwik-city';
+import { component$ } from '@builder.io/qwik';
+import { useDocumentHead, useLocation } from '@builder.io/qwik-city';
 import { Social } from './social';
 import { Vendor } from './vendor';
 import { ThemeScript } from './theme-script';
 
-
-
-
 export const RouterHead = component$(() => {
-
-
   const { url } = useLocation();
   const head = useDocumentHead();
   const title = head.title
@@ -24,78 +19,44 @@ export const RouterHead = component$(() => {
 
   const ogImageUrl = new URL('https://opengraphqwik.vercel.app/api/og');
 
-  //turn the title into array
+  //turn the title into array with [0] -> Title [1] -> subTitle
   const arrayedTitle = pageTitle.split(' | ');
 
-  //check if we are on home page or level 0 or 1 route
-  let isBaseRoute = true;
-  isBaseRoute = arrayedTitle.length > 0 ? false : true;
+  const OGImage = {
+    //check if we are on home route
+    isBaseRoute: arrayedTitle.length > 0 ? false : true,
 
-  
+    routeLevel: 0,
+    imageURL: '',
+    ogImgTitle: '',
+    ogImgSubTitle: '',
 
+    get URL() {
+      const biggerTitle = this.isBaseRoute ? undefined : arrayedTitle[0];
+      const smallerTitle = this.isBaseRoute ? undefined : arrayedTitle[1];
 
-  const OGImage= {
+      // set the text for title and subtitle
+      this.ogImgTitle = biggerTitle as string;
+      this.ogImgSubTitle = smallerTitle as string;
 
+      //decide whether or not to show subtitle and title
+      if (this.ogImgSubTitle == undefined || this.ogImgTitle == undefined) {
+        this.routeLevel = 0;
+        this.imageURL = new URL(`/logos/social-card.jpg`, url).href;
 
-    isBaseRoute:arrayedTitle.length > 0 ? false : true,
-     routeLevelX:0,
-       imageURL:"",
-    ogImgTitle:"",
-    ogImgSubTitle:"",
+        return this.imageURL;
+      } else {
+        this.routeLevel = 1;
 
-get URL(){
+        ogImageUrl.searchParams.set('title', this.ogImgTitle);
+        ogImageUrl.searchParams.set('subtitle', this.ogImgSubTitle);
+        ogImageUrl.searchParams.set('level', this.routeLevel.toString());
 
-console.log(this.isBaseRoute)
-
-  // set the text for the ogimage
-  const biggerTitle = isBaseRoute ? undefined : arrayedTitle[0];
-  // console.log("biggerTitle ", biggerTitle)
-  const smallerTitle = isBaseRoute ? undefined : arrayedTitle[1];
-  // console.log("smallerTitle ", smallerTitle)
-
-
-
-  this.ogImgTitle = biggerTitle as any;
-  this.ogImgSubTitle= smallerTitle  as any;
-
-
-
-
-    //decide whether or not to show subtitle
-    if (this.ogImgSubTitle == undefined || this.ogImgTitle == undefined) {
-      this.ogImgTitle = biggerTitle  as any;
-
-      this.routeLevelX = 0;
-      // console.log("you are currently on level ", this.routeLevelX)
-      this.imageURL = new URL(`/logos/social-card.jpg`, url).href;
-
-// console.log("your image url is ", this.imageURL)
-return this.imageURL
-
-
-    } else {
-      this.routeLevelX = 1;
-      // console.log("you are currently on level ", this.routeLevelX)
-
-      ogImageUrl.searchParams.set('title', this.ogImgTitle);
-      ogImageUrl.searchParams.set('subtitle', this.ogImgSubTitle);
-      ogImageUrl.searchParams.set('level', this.routeLevelX.toString());
-
-      // console.log("2222 ", this.imageURL)
-
-      this.imageURL = ogImageUrl.toString();
-      console.log("333333 ", true)
-      return this.imageURL
-    }
-
-
-  // return "kkkk"
-}
-
-
-  }
-
-
+        this.imageURL = ogImageUrl.toString();
+        return this.imageURL;
+      }
+    },
+  };
 
   return (
     <>
@@ -112,17 +73,12 @@ return this.imageURL
       <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png" />
       <link rel="icon" href="/favicons/favicon.svg" type="image/svg+xml" />
 
-      {/* {import.meta.env.PROD && ( */}
+      {import.meta.env.PROD && (
         <>
-          <Social
-            title={title}
-            description={description}
-            href={url.href}
-            ogImage={OGImage.URL}
-          />
+          <Social title={title} description={description} href={url.href} ogImage={OGImage.URL} />
           <Vendor />
         </>
-      {/* )} */}
+      )}
 
       {head.meta
         // Skip description because that was already added at the top

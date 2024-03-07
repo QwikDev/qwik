@@ -1,15 +1,5 @@
 import { component$, Slot } from '@builder.io/qwik';
-import { routeLoader$, type RequestHandler } from '@builder.io/qwik-city';
-
-
-
-export const useOgParamsloader = routeLoader$( (request)  => {
-
-  request
-  // request
-  // console.log( request.params )
-return request.params
-} )
+import { type RequestHandler } from '@builder.io/qwik-city';
 
 export default component$(() => {
   return <Slot />;

@@ -49,7 +49,7 @@ That's why if the CI checks aren't passing your PR branch is probably not up to 
 
 1. Merge `main` into your PR branch
 2. Run `pnpm api.update`
-3. Run `pnpm build.full`
+3. Run `pnpm build.local` or `pnpm build.full` if you made a change to the Rust code
 4. Commit and push any changes as a result of the above steps
 
 ## Local development
@@ -145,18 +145,43 @@ If you're not able to use the dev container, follow these instructions:
 
 ## Development
 
-To build Qwik for local development, install the dev dependencies using [pnpm](https://pnpm.io/):
+To build Qwik for local development, install the dev dependencies using [pnpm](https://pnpm.io/) and then do an initial build:
 
 ```shell
-pnpm install
+pnpm install && pnpm build.local
 ```
 
 ### Fast build
 
-It will build all JS and all packages, but not Rust.
+It will build only Qwik and Qwik City.
 
 ```shell
-pnpm build
+pnpm build.core
+```
+
+### Custom build
+
+E.g. to build only the react integration:
+
+```shell
+pnpm build --qwikreact
+```
+
+Run without arguments for all supported flags. Notable:
+
+- `--tsm`: typecheck
+- `--build`: Qwik (you'll probably also need `--api`)
+- `--qwikcity`: Qwik City (you'll probably also need `--api`)
+- `--qwikreact`: Qwik React
+- `--qwiklabs`: Qwik React
+- `--eslint`: Eslint plugin
+
+### Full build without Rust
+
+It will build everything except Rust prerequisites and the optimizer binaries.
+
+```shell
+pnpm build.local
 ```
 
 ### Full build

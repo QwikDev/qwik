@@ -23,61 +23,87 @@ import type { Plugin as RollupPlugin } from 'rollup';
 import { execa, type Options } from 'execa';
 import { fileURLToPath } from 'node:url';
 
+const stringOptions = [
+  'distBindingsDir',
+  'distQwikCityPkgDir',
+  'distQwikPkgDir',
+  'distVersion',
+  'dtsDir',
+  'packagesDir',
+  'platformTarget',
+  'rootDir',
+  'scriptsDir',
+  'setDistTag',
+  'srcNapiDir',
+  'srcQwikCityDir',
+  'srcQwikDir',
+  'srcQwikLabsDir',
+  'startersDir',
+  'tmpDir',
+  'tscDir',
+] as const;
+const booleanOptions = [
+  'api',
+  'build',
+  'cli',
+  'commit',
+  'dev',
+  'devRelease',
+  'dryRun',
+  'eslint',
+  'esmNode',
+  'platformBinding',
+  'platformBindingWasmCopy',
+  'prepareRelease',
+  'qwikauth',
+  'qwikcity',
+  'qwiklabs',
+  'qwikreact',
+  'qwikworker',
+  'release',
+  'supabaseauthhelpers',
+  'tsc',
+  'tscDocs',
+  'validate',
+  'wasm',
+  'watch',
+] as const;
 /**
  * Contains information about the build we're generating by parsing CLI args, and figuring out all
  * the absolute file paths the build will be reading from and writing to.
  */
-export interface BuildConfig {
-  rootDir: string;
-  packagesDir: string;
-  tmpDir: string;
-  srcNapiDir: string;
-  srcQwikDir: string;
-  srcQwikCityDir: string;
-  srcQwikLabsDir: string;
-  scriptsDir: string;
-  startersDir: string;
-  tscDir: string;
-  dtsDir: string;
-  distQwikPkgDir: string;
-  distQwikCityPkgDir: string;
-  distBindingsDir: string;
-  esmNode: boolean;
-  distVersion: string;
-  platformTarget?: string;
-
-  api?: boolean;
-  build?: boolean;
-  qwikcity?: boolean;
-  qwikreact?: boolean;
-  qwiklabs?: boolean;
-  qwikauth?: boolean;
-  qwikworker?: boolean;
-  supabaseauthhelpers?: boolean;
-  cli?: boolean;
-  eslint?: boolean;
-  commit?: boolean;
-  dev?: boolean;
-  dryRun?: boolean;
-  platformBinding?: boolean;
-  platformBindingWasmCopy?: boolean;
-  prepareRelease?: boolean;
-  release?: boolean;
-  devRelease?: boolean;
-  setDistTag?: string;
-  tsc?: boolean;
-  tscDocs?: boolean;
-  validate?: boolean;
-  wasm?: boolean;
-  watch?: boolean;
-}
+export type BuildConfig = { [key in (typeof stringOptions)[number]]: string } & {
+  [key in (typeof booleanOptions)[number]]?: boolean;
+} & {
+  _: string[];
+};
 
 /**
  * Create the `BuildConfig` from the process args, and set the absolute paths the build will be
  * reading from and writing to.
  */
 export function loadConfig(args: string[] = []) {
-  const config: BuildConfig = mri(args) as any;
+  const config: BuildConfig = mri(args, {
+    boolean: booleanOptions as any,
+    string: stringOptions as any,
+  }) as any;
+  // config always has _ key with the unknown args
+  const parseError =
+    config._.length > 0
+      ? `!!! Unknown args: ${config._.join(' ')}\n\n`
+      : Object.keys(config).length === 1
+        ? `No args provided. `
+        : undefined;
+  if (parseError) {
+    console.error(
+      `\n${parseError}Known args:\n${stringOptions
+        .map((k) => `  --${k.replace(/[A-Z]/g, (l) => `-${l.toLowerCase()}`)} <string>\n`)
+        .join('')}${booleanOptions
+        .map((k) => `  --${k.replace(/[A-Z]/g, (l) => `-${l.toLowerCase()}`)}\n`)
+        .join('')}\n=== Use pnpm build.local for initial build. ===\n\n`
+    );
+    process.exit(1);
+  }
   const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
   config.rootDir = join(__dirname, '..');

@@ -493,4 +493,99 @@ Error.stackTraceLimit = 100;
       });
     });
   });
+
+  describe('regression', () => {
+    it('#5782', async () => {
+      // TODO: not finished!
+      const Issue5782 = component$(() => {
+        const counterDefault = useSignal(0);
+        const sig = useSignal(counterDefault);
+        const showChild = useSignal(false);
+        return (
+          <>
+            <button
+              id="decrease"
+              onClick$={inlinedQrl(
+                () => {
+                  const [sig] = useLexicalScope();
+                  sig.value.value--;
+                },
+                's_decrease',
+                [sig]
+              )}
+            >
+              --
+            </button>
+            {sig.value.value}
+            <button
+              id="increase"
+              onClick$={inlinedQrl(
+                () => {
+                  const [sig] = useLexicalScope();
+                  sig.value.value++;
+                },
+                's_increase',
+                [sig]
+              )}
+            >
+              ++
+            </button>
+            <button
+              id="toggle"
+              onClick$={inlinedQrl(
+                () => {
+                  const [showChild] = useLexicalScope();
+                  showChild.value = !showChild.value;
+                },
+                's_toggle',
+                [showChild]
+              )}
+            >
+              Toggle
+            </button>
+            {showChild.value && <Child sig={sig} />}
+          </>
+        );
+      });
+
+      const Child = component$(({ sig }: { sig: Signal<Signal<number>> }) => {
+        const counter = useSignal(0);
+        useTask$(({ track }) => {
+          track(sig);
+          sig.value = counter;
+        });
+        return <p>{counter.value}</p>;
+      });
+
+      const { vNode, document } = await render(<Issue5782 />, { debug });
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button id="decrease">--</button>
+            {'0'}
+            <button id="increase">++</button>
+            <button id="toggle">Toggle</button>
+            {''}
+          </Fragment>
+        </Component>
+      );
+
+      await trigger(document.body, '#toggle', 'click');
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button id="decrease">--</button>
+            {'0'}
+            <button id="increase">++</button>
+            <button id="toggle">Toggle</button>
+            <Component>
+              <p>0</p>
+            </Component>
+          </Fragment>
+        </Component>
+      );
+    });
+  });
 });

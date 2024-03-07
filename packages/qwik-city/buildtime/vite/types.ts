@@ -2,6 +2,7 @@ import type { MdxTransform } from '../markdown/mdx';
 import type { BuildContext, BuildEntry, BuildRoute, PluginOptions, MdxPlugins } from '../types';
 import type { Config as SVGOConfig } from 'svgo';
 import type { BuiltinsWithOptionalParams as SVGOBuiltinPluginsWithOptionalParams } from 'svgo/plugins/plugins-types';
+import type { RollupBabelInputPluginOptions } from '@rollup/plugin-babel';
 
 /** @public */
 export interface ImageOptimizationOptions {
@@ -20,7 +21,9 @@ export interface ImageOptimizationOptions {
 }
 
 /** @public */
-export interface QwikCityVitePluginOptions extends Omit<PluginOptions, 'basePathname'> {
+export interface QwikCityVitePluginOptions
+  extends Omit<PluginOptions, 'basePathname'>,
+    Partial<Pick<RollupBabelInputPluginOptions, 'include' | 'exclude' | 'extensions'>> {
   mdxPlugins?: MdxPlugins;
   mdx?: MdxOptions;
   platform?: Record<string, unknown>;

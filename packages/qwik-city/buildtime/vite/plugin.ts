@@ -28,10 +28,11 @@ import {
 } from '../../adapters/shared/vite';
 import { postBuild } from '../../adapters/shared/vite/post-build';
 import { imagePlugin } from './image-jsx';
+import { undecoratePlugin } from './plugin-decorator';
 
 /** @public */
 export function qwikCity(userOpts?: QwikCityVitePluginOptions): PluginOption[] {
-  return [qwikCityPlugin(userOpts), ...imagePlugin(userOpts)];
+  return [qwikCityPlugin(userOpts), ...imagePlugin(userOpts), ...undecoratePlugin(userOpts)];
 }
 
 function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {

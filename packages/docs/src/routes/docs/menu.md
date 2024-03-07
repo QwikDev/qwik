@@ -40,6 +40,7 @@
 - [Overview](/docs/cookbook/index.mdx)
 - [Algolia Search](/docs/cookbook/algolia-search/index.mdx)
 - [Combine Handlers](/docs/cookbook/combine-request-handlers/index.mdx)
+- [Debouncer](/docs/cookbook/debouncer/index.mdx)
 - [Fonts](/docs/cookbook/fonts/index.mdx)
 - [Glob Import](/docs/cookbook/glob-import/index.mdx)
 - [Media Controller](/docs/cookbook/mediaController/index.mdx)

@@ -775,5 +775,21 @@
     },
     "href": "https://valibot.dev/",
     "tags": "site,documentation"
+  },
+  {
+    "title": "The Date Today - TodaysDateNow.com",
+    "imgSrc": "/showcases/todaysdatenow_com_.webp",
+    "perf": {
+      "score": 0.98,
+      "fcpDisplay": "1.4 s",
+      "fcpScore": 0.97,
+      "lcpDisplay": "1.4 s",
+      "lcpScore": 1,
+      "ttiDisplay": "1.7 s",
+      "ttiScore": 1,
+      "ttiTime": 1698.5
+    },
+    "href": "https://todaysdatenow.com/",
+    "tags": "site,tools,time"
   }
 ]

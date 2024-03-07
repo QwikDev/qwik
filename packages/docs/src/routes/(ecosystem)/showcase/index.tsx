@@ -27,9 +27,11 @@ export default component$(() => {
       <h1>Showcase</h1>
 
       <ul class="grid">
-        {pages.sort(() => Math.random() > 0.5 ? 1 : -1).map((entry) => (
-          <SiteLink entry={entry as any} key={entry.href} />
-        ))}
+        {pages
+          .sort(() => (Math.random() > 0.5 ? 1 : -1))
+          .map((entry) => (
+            <SiteLink entry={entry as any} key={entry.href} />
+          ))}
       </ul>
       <section>
         <h2>Add Site</h2>

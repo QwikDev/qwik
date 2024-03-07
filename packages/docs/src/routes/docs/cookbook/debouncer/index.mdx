@@ -1,0 +1,84 @@
+---
+title: Cookbook | Debouncer
+contributors:
+  - n8sabes
+  - KenAKAFrosty
+updated_at: '2024-03-07T01:00:00Z'
+created_at: '2024-02-07T01:00:00Z'
+---
+
+import CodeSandbox, {CodeFile} from '../../../../components/code-sandbox/index.tsx';
+
+# What is a debouncer and why it's important
+
+A debouncer is a programming pattern used to ensure that time-consuming tasks do not fire so often, thereby causing performance issues or overwhelming servers with requests. This is particularly useful in scenarios like search inputs where you may not want to trigger a search request with every keystroke, but rather after the user has paused typing. By implementing a debouncer, you can improve user experience and application efficiency by delaying the execution of a function until a certain amount of time has passed since the last time it was invoked.
+
+
+## When to use debouncers
+
+Debouncers are best used in situations where you want to limit the frequency of function calls. Common use cases include:
+
+- User input validation: Delaying validation until the user stops typing to avoid unnecessary processing for every keystroke.
+- Search functionality: Waiting until a user finishes typing a search query to begin the search process, reducing the number of search requests sent to the server.
+- Window resizing: Limiting the number of recalculations or adjustments when the browser window is resized.
+
+## How to implement a debouncer in Qwik
+
+The Qwik framework provides unique capabilities for managing state and effects in a way that is both serializable and efficient. Implementing a debouncer in Qwik involves using Qwik's primitives, such as `useSignal` for state management and `$` for marking functions that can capture state without breaking serialization. Below is a simple debouncer pattern. It behaves similarly to closure-based debouncers that execute a function when the timeout is reached.
+
+<CodeFile src="/src/routes/demo/cookbook/mediaController/index.tsx">
+```tsx
+export const useDebouncer = (fn: QRL<(args: any) => void>, delay: number) => {
+  const timeoutId = useSignal<number>();
+
+  return $((args: any) => {
+    clearTimeout(timeoutId.value);
+    timeoutId.value = Number(setTimeout(() => fn(args), delay));
+  });
+};
+```
+</CodeFile>
+
+This debouncer takes a function and a delay as arguments. It uses `useSignal` to track the `timeoutID` in a way that's compatible with Qwik's QRL's and hydration model. The returned function, when called, clears any existing timeout and sets a new one to invoke the provided function after the specified delay.
+
+
+## How to use the debouncer
+
+The example below demonstrates using the debouncer in a component to efficiently manage user input. By debouncing the input, the application updates the state only after the user has stopped typing for 1-second, optimizing performance for operations such as API calls or data filtering.
+
+<CodeFile src="/src/routes/demo/cookbook/mediaController/index.tsx">
+```tsx
+import { $, useSignal, component$, type QRL } from "@builder.io/qwik";
+import { useDebouncer } from "~/utils/debouncer";
+
+export default component$(() => {
+  const debouncedValue = useSignal("");
+
+  const debounce = useDebouncer(
+    $((value: string) => {
+      debouncedValue.value = value;
+    }),
+    1000
+  );
+
+  return (
+    <>
+      <input
+        onInput$={(_, target) => {
+          debounce(target.value);
+        }}
+      />
+      <p>{debouncedValue.value}</p>
+    </>
+  );
+});
+```
+</CodeFile>
+
+## Live Demo
+
+In the live demo below, `useDebouncer` is used to update the `debouncedValue` signal after a 1-second delay has elapsed since the last keystroke.
+
+<CodeSandbox src="/src/routes/demo/cookbook/debouncer/"  style={{ height: '250px' }}>
+</CodeSandbox>
+

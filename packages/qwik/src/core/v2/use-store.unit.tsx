@@ -10,10 +10,10 @@ import { untrack } from '../use/use-core';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { useSignal } from '../use/use-signal';
 import { useStore } from '../use/use-store.public';
+import { useTaskQrl } from '../use/use-task';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import type { fixMeAny } from './shared/types';
 import './vdom-diff.unit-util';
-import { useTaskQrl } from '../use/use-task';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -26,17 +26,18 @@ Error.stackTraceLimit = 100;
     it('should render value', async () => {
       const Cmp = component$(() => {
         const store = useStore({ items: [{ num: 0 }] });
-        return (<>
-          {store.items.map((item, key) => (
-            <div key={key}>{item.num}</div>
-          ))}
-        </>
+        return (
+          <>
+            {store.items.map((item, key) => (
+              <div key={key}>{item.num}</div>
+            ))}
+          </>
         );
       });
 
       const { vNode } = await render(<Cmp />, { debug });
       expect(vNode).toMatchVDOM(
-        <Component >
+        <Component>
           <Fragment>
             <div key="0">0</div>
           </Fragment>
@@ -301,7 +302,7 @@ Error.stackTraceLimit = 100;
     });
   });
 
-  describe('regression', () => {
+  describe(render.name + 'regression', () => {
     it('#5597 - should update value', async () => {
       let clicks = 0;
       const Issue5597 = component$(() => {
@@ -310,12 +311,16 @@ Error.stackTraceLimit = 100;
         return (
           <>
             <button
-              onClick$={inlinedQrl(() => {
-                const [count, store] = useLexicalScope();
-                count.value++;
-                store.items = store.items.map((i: { num: number }) => ({ num: i.num + 1 }));
-                clicks++;
-              }, 's_onClick', [count, store])}
+              onClick$={inlinedQrl(
+                () => {
+                  const [count, store] = useLexicalScope();
+                  count.value++;
+                  store.items = store.items.map((i: { num: number }) => ({ num: i.num + 1 }));
+                  clicks++;
+                },
+                's_onClick',
+                [count, store]
+              )}
             >
               Count: {count.value}!
             </button>
@@ -362,23 +367,28 @@ Error.stackTraceLimit = 100;
       const Cmp = component$(() => {
         const count = useSignal(0);
         const store = useStore({ items: [{ num: 0 }] });
-        useTaskQrl(inlinedQrl(({cleanup}) => {
-          const [count, store] = useLexicalScope();
+        useTaskQrl(
+          inlinedQrl(
+            ({ cleanup }) => {
+              const [count, store] = useLexicalScope();
 
-          const intervalId = setInterval(() => {
-            count.value++;
-            store.items = store.items.map((i: { num: number }) => ({ num: i.num + 1 }));
-          }, 500);
+              const intervalId = setInterval(() => {
+                count.value++;
+                store.items = store.items.map((i: { num: number }) => ({ num: i.num + 1 }));
+              }, 500);
 
-          cleanup(() => clearInterval(intervalId));
-        }, 's_useTask', [count, store]), {
-          eagerness: 'visible',
-        });
+              cleanup(() => clearInterval(intervalId));
+            },
+            's_useTask',
+            [count, store]
+          ),
+          {
+            eagerness: 'visible',
+          }
+        );
         return (
           <>
-            <div>
-              Count: {count.value}!
-            </div>
+            <div>Count: {count.value}!</div>
             {store.items.map((item, key) => (
               <div key={key}>{item.num}</div>
             ))}
@@ -426,6 +436,54 @@ Error.stackTraceLimit = 100;
         </Component>
       );
       vi.useRealTimers();
+    });
+
+    it('#5662 - should update value in the list', async () => {
+      const Cmp = component$(() => {
+        const store = useStore<{ users: { name: string }[] }>({ users: [{ name: 'Giorgio' }] });
+
+        return (
+          <div>
+            {store.users.map((user, key) => (
+              <span
+                key={key}
+                onClick$={inlinedQrl(
+                  () => {
+                    const [store] = useLexicalScope();
+                    store.users = store.users.map(({ name }: { name: string }) => ({
+                      name: name === user.name ? name + '!' : name,
+                    }));
+                  },
+                  's_onClick',
+                  [store]
+                )}
+              >
+                {user.name}
+              </span>
+            ))}
+          </div>
+        );
+      });
+      const { vNode, container } = await render(<Cmp />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <div>
+            <span key="0">{'Giorgio'}</span>
+          </div>
+        </Component>
+      );
+      await trigger(container.element, 'span', 'click');
+      await trigger(container.element, 'span', 'click');
+      await trigger(container.element, 'span', 'click');
+      await trigger(container.element, 'span', 'click');
+      await trigger(container.element, 'span', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <div>
+            <span key="0">{'Giorgio!!!!!'}</span>
+          </div>
+        </Component>
+      );
     });
   });
 });

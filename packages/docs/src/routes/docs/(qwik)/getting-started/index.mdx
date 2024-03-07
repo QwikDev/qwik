@@ -331,9 +331,17 @@ export default component$(() => {
 
 In Qwik, a [task](/docs/components/tasks/#usetask) is work that needs to happen when a state changes. (This is similar to an "effect" in other frameworks.) In this example, we use the task to invoke code on the server.
 
-1. Import `useTask$` from `qwik`.
-   ```tsx /useTask$/
+1. Import `useTask$` from `qwik` and `$server` from `qwik-city`.
+   ```tsx /useTask\$/ /\$server/
    import { component$, useSignal, useTask$ } from "@builder.io/qwik";
+   import {
+     routeLoader$,
+     Form,
+     routeAction$,
+     server$,
+   } from '@builder.io/qwik-city';
+   ```
+
 2. Create a new task that tracks the `isFavoriteSignal` state:
    ```tsx /useTask\$/
    useTask$(({ track }) => {});

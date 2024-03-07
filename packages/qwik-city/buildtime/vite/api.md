@@ -9,6 +9,7 @@ import { CompileOptions } from '@mdx-js/mdx/lib/compile';
 import type { Config } from 'svgo';
 import { ConfigEnv } from 'vite';
 import type { PluginOption } from 'vite';
+import type { RollupBabelInputPluginOptions } from '@rollup/plugin-babel';
 import { UserConfigExport } from 'vite';
 
 // @public (undocumented)
@@ -33,7 +34,7 @@ export interface QwikCityPlugin {
 // Warning: (ae-forgotten-export) The symbol "PluginOptions" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export interface QwikCityVitePluginOptions extends Omit<PluginOptions, 'basePathname'> {
+export interface QwikCityVitePluginOptions extends Omit<PluginOptions, 'basePathname'>, Partial<Pick<RollupBabelInputPluginOptions, 'include' | 'exclude' | 'extensions'>> {
     // Warning: (ae-forgotten-export) The symbol "ImageOptimizationOptions" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)

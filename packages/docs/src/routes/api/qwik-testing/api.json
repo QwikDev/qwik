@@ -11,8 +11,8 @@
           "id": "createdom"
         }
       ],
-      "kind": "Variable",
-      "content": "CreatePlatform and CreateDocument\n\n\n```typescript\ncreateDOM: ({ html }?: {\n    html?: string | undefined;\n}) => Promise<{\n    render: (jsxElement: JSXOutput) => Promise<import(\"@builder.io/qwik\").RenderResult>;\n    screen: HTMLElement;\n    userEvent: (queryOrElement: string | Element | keyof HTMLElementTagNameMap | null, eventNameCamel: string | keyof WindowEventMap, eventPayload?: any) => Promise<void>;\n}>\n```",
+      "kind": "Function",
+      "content": "CreatePlatform and CreateDocument\n\n\n```typescript\ncreateDOM: ({ html }?: {\n    html?: string | undefined;\n}) => Promise<{\n    render: (jsxElement: JSXOutput) => Promise<import(\"@builder.io/qwik\").RenderResult>;\n    screen: HTMLElement;\n    userEvent: (queryOrElement: string | Element | keyof HTMLElementTagNameMap | null, eventNameCamel: string | keyof WindowEventMap, eventPayload?: any) => Promise<void>;\n}>\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  { html } | { html?: string \\| undefined; } | _(Optional)_ |\n\n**Returns:**\n\nPromise&lt;{ render: (jsxElement: JSXOutput) =&gt; Promise&lt;import(\"@builder.io/qwik\").RenderResult&gt;; screen: HTMLElement; userEvent: (queryOrElement: string \\| Element \\| keyof HTMLElementTagNameMap \\| null, eventNameCamel: string \\| keyof WindowEventMap, eventPayload?: any) =&gt; Promise&lt;void&gt;; }&gt;",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/testing/library.ts",
       "mdFile": "qwik.createdom.md"
     }

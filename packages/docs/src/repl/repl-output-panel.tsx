@@ -96,7 +96,7 @@ export const ReplOutputPanel = ({ input, store }: ReplOutputPanelProps) => {
               />
             </svg>
           ) : null}
-          <iframe class="repl-server" src={store.serverUrl} />
+          {store.serverUrl && <iframe class="repl-server" src={store.serverUrl} />}
         </div>
 
         {store.selectedOutputPanel === 'html' ? (

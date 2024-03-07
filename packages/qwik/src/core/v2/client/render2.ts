@@ -5,7 +5,8 @@ import type { JSXOutput } from '../../render/jsx/types/jsx-node';
 import { isDocument } from '../../util/element';
 import { QContainerAttr } from '../../util/markers';
 import { DomContainer, getDomContainer } from './dom-container';
-import { vnode_applyJournal, vnode_diff } from './vnode-diff';
+import { vnode_diff } from './vnode-diff';
+import { vnode_applyJournal } from './vnode';
 
 /**
  * Render JSX.

@@ -1,7 +1,7 @@
 import { isDev } from '@builder.io/qwik/build';
 import { type OnRenderFn } from '../../component/component.public';
 import { SERIALIZABLE_STATE } from '../../container/serializers';
-import { assertDefined, assertFalse, assertTrue } from '../../error/assert';
+import { assertDefined, assertFalse } from '../../error/assert';
 import type { QRLInternal } from '../../qrl/qrl-class';
 import { serializeClass } from '../../render/execute-component';
 import { Fragment, JSXNodeImpl, isJSXNode } from '../../render/jsx/jsx-runtime';
@@ -21,7 +21,6 @@ import {
   QSlot,
   QSlotParent,
   QStyle,
-  QStyleSelector,
 } from '../../util/markers';
 import { isPromise } from '../../util/promises';
 import { type ValueOrPromise } from '../../util/types';
@@ -62,7 +61,6 @@ import {
   vnode_getType,
   vnode_insertBefore,
   vnode_isElementVNode,
-  vnode_isTextVNode,
   vnode_isVirtualVNode,
   vnode_locate,
   vnode_newElement,
@@ -74,29 +72,6 @@ import {
   vnode_setText,
   vnode_truncate,
 } from './vnode';
-
-export type VNodeJournalEntry = VNodeJournalOpCode | VNode | HTMLElement | Document | null | string;
-
-export const enum VNodeJournalOpCode {
-  ////////// Generic
-
-  /// ENCODING
-  Insert,
-  Truncate,
-  Remove,
-  Move,
-  ////////// TEXT
-  TextSet,
-  ////////// Element
-  ElementInsert,
-  Attributes,
-  Props,
-  ////////// Fragment
-  FragmentInsert,
-  ////////// Styles
-  AddStyle,
-  HoistStyles,
-}
 
 export type ComponentQueue = Array<VNode>;
 
@@ -153,7 +128,6 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     vCurrent = vnode_getFirstChild(vStartNode);
     retrieveScopedStyleIdPrefix();
     stackPush(jsxNode, true);
-    expectNoQStyles();
     while (stack.length) {
       while (jsxIdx < jsxCount) {
         assertFalse(vParent === vCurrent, "Parent and current can't be the same");
@@ -331,7 +305,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       return vCurrent;
     } else if (vSiblings !== null) {
       const nextIdx = vSiblingsIdx + 3; // 2 plus 1 for node offset
-      return nextIdx < vSiblings.length ? vSiblings[nextIdx] : null;
+      return nextIdx < vSiblings.length ? (vSiblings[nextIdx] as VNode) : null;
     } else {
       return vCurrent && vnode_getNextSibling(vCurrent);
     }
@@ -407,9 +381,9 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     // console.log('   ', String(vHost), String(vProjectedNode));
     if (vProjectedNode == null) {
       // Nothing to project, so render content of the slot.
-      journal.push(
-        VNodeJournalOpCode.Insert,
-        vParent,
+      vnode_insertBefore(
+        journal,
+        vParent as ElementVNode | VirtualVNode,
         (vNewNode = vnode_newVirtual(vParent)),
         vCurrent && getInsertBefore()
       );
@@ -423,9 +397,9 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       /// We need this because we need to be able to walk the context even before the
       /// journal is processed.
       vProjectedNode[VNodeProps.parent] = vParent;
-      journal.push(
-        VNodeJournalOpCode.Insert,
-        vParent,
+      vnode_insertBefore(
+        journal,
+        vParent as ElementVNode | VirtualVNode,
         (vNewNode = vProjectedNode),
         vCurrent && getInsertBefore()
       );
@@ -451,7 +425,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
   function expectNoChildren() {
     let vChild = vCurrent && vnode_getFirstChild(vCurrent);
     if (vChild !== null) {
-      journal.push(VNodeJournalOpCode.Truncate, vCurrent, vChild);
+      vnode_truncate(journal, vCurrent as ElementVNode | VirtualVNode, vChild);
       while (vChild) {
         container.$scheduler$.$drainCleanup$(vChild as fixMeAny);
         vChild = vnode_getNextSibling(vChild);
@@ -462,7 +436,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
   function expectNoMore() {
     assertFalse(vParent === vCurrent, "Parent and current can't be the same");
     if (vCurrent !== null) {
-      journal.push(VNodeJournalOpCode.Truncate, vParent, vCurrent);
+      vnode_truncate(journal, vParent as ElementVNode | VirtualVNode, vCurrent);
       let vChild: VNode | null = vCurrent;
       while (vChild) {
         container.$scheduler$.$drainCleanup$(vChild as fixMeAny);
@@ -473,25 +447,9 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
 
   function expectNoMoreTextNodes() {
     while (vCurrent !== null && vnode_getType(vCurrent) === 3 /* Text */) {
-      journal.push(VNodeJournalOpCode.Remove, vParent, vCurrent);
+      vnode_remove(journal, vParent, vCurrent, true);
       vCurrent = vnode_getNextSibling(vCurrent);
       container.$scheduler$.$drainCleanup$(vCurrent as fixMeAny);
-    }
-  }
-
-  /**
-   * In CSR we don't want the style nodes with the component. So if we find any, move them to the
-   * `<head>`.
-   */
-  function expectNoQStyles() {
-    while (vCurrent !== null && isQStyleVNode(vCurrent)) {
-      const next = vnode_getNextSibling(vCurrent);
-      // We remove the VNode from the tree, but don't bother
-      // with the DOM, because the first time the journal is drained
-      // it has VNodeJournalOpCode.HoistStyles which bulk moves all
-      // of the styles in a single operation.
-      vnode_remove(vParent, vCurrent, false);
-      vCurrent = next;
     }
   }
 
@@ -511,20 +469,21 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       vNewNode = retrieveChildWithKey(jsxKey);
       if (vNewNode === null) {
         // No existing node with key exists, just create a new one.
-        journal.push(
-          VNodeJournalOpCode.Insert,
-          vParent,
+        vnode_insertBefore(
+          journal,
+          vParent as ElementVNode,
           (vNewNode = vnode_newElement(vParent, container.document.createElement(tag), tag)),
           vCurrent
         );
       } else {
         // Existing keyed node
-        journal.push(VNodeJournalOpCode.Move, vParent, vNewNode, vCurrent);
+        vnode_remove(journal, vParent, vNewNode, false);
+        vnode_insertBefore(journal, vParent as ElementVNode, vNewNode, vCurrent);
       }
     } else {
-      journal.push(
-        VNodeJournalOpCode.Insert,
-        vParent,
+      vnode_insertBefore(
+        journal,
+        vParent as ElementVNode,
         (vNewNode = vnode_newElement(vParent, container.document.createElement(tag), tag)),
         vCurrent
       );
@@ -554,7 +513,6 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
   function setBulkProps(vnode: ElementVNode, srcAttrs: SsrAttrs) {
     vnode_ensureElementInflated(vnode);
     const dstAttrs = vnode as SsrAttrs;
-    let hasDiffs = false;
     let srcIdx = 0;
     const srcLength = srcAttrs.length;
     let dstIdx = ElementVNodeProps.PROPS_OFFSET;
@@ -564,18 +522,18 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     let patchEventDispatch = false;
 
     const record = (key: string, value: any) => {
-      if (!hasDiffs) {
-        journal.push(VNodeJournalOpCode.Attributes, vnode);
-        hasDiffs = true;
+      if (key.startsWith(':')) {
+        vnode_setProp(vnode, key, value);
+      } else {
+        if (isClassAttr(key)) {
+          const serializedClass = serializeClass(value);
+          value =
+            scopedStyleIdPrefix && serializedClass
+              ? `${scopedStyleIdPrefix} ${serializedClass}`
+              : serializedClass;
+        }
+        vnode_setAttr(journal, vnode, key, value);
       }
-      if (isClassAttr(key)) {
-        const serializedClass = serializeClass(value);
-        value =
-          scopedStyleIdPrefix && serializedClass
-            ? `${scopedStyleIdPrefix} ${serializedClass}`
-            : serializedClass;
-      }
-      journal.push(key, value);
     };
 
     while (srcKey !== null || dstKey !== null) {
@@ -724,9 +682,9 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     if (vCurrent && vnode_isVirtualVNode(vCurrent)) {
       // All is good.
     } else {
-      journal.push(
-        VNodeJournalOpCode.Insert,
-        vParent,
+      vnode_insertBefore(
+        journal,
+        vParent as VirtualVNode,
         (vNewNode = vnode_newVirtual(vParent)),
         vCurrent && getInsertBefore()
       );
@@ -750,12 +708,13 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
         vNewNode = retrieveChildWithKey(jsxKey);
         if (vNewNode) {
           // We found the component, move it up.
-          journal.push(VNodeJournalOpCode.Move, vParent, vNewNode, vCurrent);
+          vnode_remove(journal, vParent, vNewNode, false);
+          vnode_insertBefore(journal, vParent as VirtualVNode, vNewNode, vCurrent);
         } else {
           // We did not find the component, create it.
-          journal.push(
-            VNodeJournalOpCode.Insert,
-            vParent,
+          vnode_insertBefore(
+            journal,
+            vParent as VirtualVNode,
             (vNewNode = vnode_newVirtual(vParent)),
             vCurrent && getInsertBefore()
           );
@@ -778,9 +737,9 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       // Inline Component
       if (!host) {
         // We did not find the component, create it.
-        journal.push(
-          VNodeJournalOpCode.Insert,
-          vParent,
+        vnode_insertBefore(
+          journal,
+          vParent as VirtualVNode,
           (vNewNode = vnode_newVirtual(vParent)),
           vCurrent && getInsertBefore()
         );
@@ -817,15 +776,15 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       const type = vnode_getType(vCurrent);
       if (type === 3 /* Text */) {
         if (text !== vnode_getText(vCurrent as TextVNode)) {
-          journal.push(VNodeJournalOpCode.TextSet, vCurrent, text);
+          vnode_setText(journal, vCurrent as TextVNode, text);
           return;
         }
         return;
       }
     }
-    journal.push(
-      VNodeJournalOpCode.Insert,
-      vParent,
+    vnode_insertBefore(
+      journal,
+      vParent as VirtualVNode,
       (vNewNode = vnode_newText(vParent, container.document.createTextNode(text), text)),
       vCurrent
     );
@@ -840,74 +799,6 @@ export const isQStyleVNode = (vNode: VNode): boolean => {
   );
 };
 
-export const vnode_applyJournal = (journal: VNodeJournalEntry[]) => {
-  let idx = 0;
-  while (idx < journal.length) {
-    const opCode = journal[idx++] as number;
-    assertTrue(typeof opCode === 'number', 'Expecting opCode to be a number.');
-    switch (opCode) {
-      case VNodeJournalOpCode.TextSet:
-        vnode_setText(journal[idx++] as TextVNode, journal[idx++] as string);
-        break;
-      case VNodeJournalOpCode.Insert:
-        vnode_insertBefore(
-          journal[idx++] as ElementVNode | VirtualVNode,
-          journal[idx++] as VNode,
-          journal[idx++] as VNode
-        );
-        break;
-      case VNodeJournalOpCode.Truncate:
-        vnode_truncate(journal[idx++] as ElementVNode | VirtualVNode, journal[idx++] as VNode);
-        break;
-      case VNodeJournalOpCode.Remove:
-        vnode_remove(journal[idx++] as ElementVNode | VirtualVNode, journal[idx++] as VNode, true);
-        break;
-      case VNodeJournalOpCode.Move:
-        const vParent = journal[idx++] as ElementVNode | VirtualVNode;
-        const vNodeToMove = journal[idx++] as VNode;
-        const vNodeMoveInFrontOf = journal[idx++] as VNode | null;
-        vnode_remove(vParent, vNodeToMove, false);
-        vnode_insertBefore(vParent, vNodeToMove, vNodeMoveInFrontOf);
-        break;
-      case VNodeJournalOpCode.Attributes:
-        const vnode = journal[idx++] as ElementVNode;
-        let key: string | null = null;
-        while (typeof (key = journal[idx] as string | null) === 'string') {
-          idx++;
-          const value = journal[idx++] as string | null;
-          if (key.startsWith(':')) {
-            vnode_setProp(vnode, key, value);
-          } else {
-            vnode_setAttr(vnode, key, value);
-          }
-        }
-        break;
-      case VNodeJournalOpCode.Props:
-        const vElementOrText = journal[idx++] as VNode;
-        const prop = journal[idx++] as string;
-        const value = journal[idx++] as any;
-        if (vnode_isTextVNode(vElementOrText)) {
-          vnode_setText(vElementOrText, value);
-        } else {
-          vnode_setAttr(vElementOrText as ElementVNode, prop, value);
-        }
-        break;
-      case VNodeJournalOpCode.AddStyle:
-        (journal[idx++] as HTMLHeadElement).appendChild(journal[idx++] as HTMLStyleElement);
-        break;
-      case VNodeJournalOpCode.HoistStyles:
-        const document = journal[idx++] as Document;
-        const styles = document.querySelectorAll(QStyleSelector);
-        for (let i = 0; i < styles.length; i++) {
-          document.head.appendChild(styles[i]);
-        }
-        break;
-      default:
-        throwErrorAndStop(`Unsupported opCode: ${opCode}`);
-    }
-  }
-  journal.length = 0;
-};
 
 /**
  * Retrieve the key from the VNode.

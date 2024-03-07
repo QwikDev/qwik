@@ -494,7 +494,7 @@ Error.stackTraceLimit = 100;
     });
   });
 
- describe('regression', () => {
+  describe('regression', () => {
     it('#5782', async () => {
       // TODO: not finished!
       const Issue5782 = component$(() => {

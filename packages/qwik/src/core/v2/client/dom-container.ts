@@ -47,13 +47,11 @@ import {
   vnode_newElement,
   vnode_newUnMaterializedElement,
   vnode_setProp,
-} from './vnode';
-import {
-  vnode_applyJournal,
-  vnode_diff,
+  type VNodeJournal,
   VNodeJournalOpCode,
-  type VNodeJournalEntry,
-} from './vnode-diff';
+  vnode_applyJournal,
+} from './vnode';
+import { vnode_diff } from './vnode-diff';
 import { convertScopedStyleIdsToArray, convertStyleIdsToString } from '../shared/scoped-styles';
 
 export function getDomContainer(element: HTMLElement | ElementVNode): IClientContainer {
@@ -88,7 +86,7 @@ export class DomContainer implements IClientContainer, StoreTracker {
   public qManifestHash: string;
   public rootVNode: ElementVNode;
   public document: QDocument;
-  public $journal$: VNodeJournalEntry[] = [];
+  public $journal$: VNodeJournal;
   public $subsManager$: SubscriptionManager;
   public renderDone: Promise<void> | null = Promise.resolve();
   public rendering: boolean = false;
@@ -159,7 +157,9 @@ export class DomContainer implements IClientContainer, StoreTracker {
         errorDiv.setAttribute('q:key', '_error_');
         vnode_getDOMChildNodes(vHost).forEach((child) => errorDiv.appendChild(child));
         const vErrorDiv = vnode_newElement(vHost, errorDiv, 'error-host');
-        vnode_insertBefore(vHost, vErrorDiv, null);
+        const journal: VNodeJournal = [];
+        vnode_insertBefore(journal, vHost, vErrorDiv, null);
+        vnode_applyJournal(journal);
       }
 
       if (err && err instanceof Error) {
@@ -282,7 +282,7 @@ export class DomContainer implements IClientContainer, StoreTracker {
       const styleElement = this.document.createElement('style');
       styleElement.setAttribute(QStyle, scoped ? styleId : '');
       styleElement.textContent = content;
-      this.$journal$.push(VNodeJournalOpCode.AddStyle, this.document.head, styleElement);
+      this.$journal$.push(VNodeJournalOpCode.Insert, this.document.head, styleElement, null);
     }
   }
 }

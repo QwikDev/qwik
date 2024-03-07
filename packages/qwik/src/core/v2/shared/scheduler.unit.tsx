@@ -34,14 +34,14 @@ describe('scheduler', () => {
     vA = vnode_locate(vBody, document.querySelector('a') as Element) as ElementVNode;
     vAHost = vnode_newVirtual(vA);
     vnode_setProp(vAHost, 'id', 'A');
-    vnode_insertBefore(vA, vAHost, null);
+    vnode_insertBefore([], vA, vAHost, null);
     vB = vnode_locate(vBody, document.querySelector('b') as Element) as ElementVNode;
     vBHost1 = vnode_newVirtual(vB);
     vnode_setProp(vBHost1, 'id', 'b1');
     vBHost2 = vnode_newVirtual(vB);
     vnode_setProp(vBHost2, 'id', 'b2');
-    vnode_insertBefore(vB, vBHost1, null);
-    vnode_insertBefore(vB, vBHost2, null);
+    vnode_insertBefore([], vB, vBHost1, null);
+    vnode_insertBefore([], vB, vBHost2, null);
   });
 
   it('should execute SIMPLE', () => {

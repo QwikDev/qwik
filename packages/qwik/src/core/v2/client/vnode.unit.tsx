@@ -1,28 +1,31 @@
-import { createDocument } from '../../../testing/document';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { createDocument } from '../../../testing/document';
 
+import { Fragment } from '@builder.io/qwik/jsx-runtime';
 import '../vdom-diff.unit-util';
 import type {
+  ContainerElement,
   ElementVNode,
-  VirtualVNode,
   QDocument,
   TextVNode,
-  ContainerElement,
   VNode,
+  VirtualVNode,
 } from './types';
 import {
+  vnode_applyJournal,
   vnode_getFirstChild,
   vnode_getNextSibling,
+  vnode_getProp,
   vnode_insertBefore,
-  vnode_newVirtual,
+  vnode_locate,
   vnode_newText,
   vnode_newUnMaterializedElement,
+  vnode_newVirtual,
+  vnode_remove,
   vnode_setAttr,
   vnode_setText,
-  vnode_getProp,
-  vnode_locate,
+  type VNodeJournal
 } from './vnode';
-import { Fragment } from '@builder.io/qwik/jsx-runtime';
 
 describe('vnode', () => {
   let parent: ContainerElement;
@@ -30,6 +33,7 @@ describe('vnode', () => {
   let vParent: ElementVNode;
   let qVNodeRefs: Map<number, Element | ElementVNode>;
   let getVNode: (id: string) => VNode | null;
+  let journal: VNodeJournal;
   beforeEach(() => {
     document = createDocument() as QDocument;
     document.qVNodeData = new WeakMap();
@@ -37,6 +41,7 @@ describe('vnode', () => {
     parent.qVNodeRefs = qVNodeRefs = new Map();
     vParent = vnode_newUnMaterializedElement(null, parent);
     getVNode = (id: string) => vnode_locate(vParent, id);
+    journal = [];
   });
   afterEach(() => {
     parent = null!;
@@ -132,8 +137,9 @@ describe('vnode', () => {
       const firstText = vnode_getFirstChild(vParent) as TextVNode;
       const virtual = vnode_getNextSibling(vnode_getNextSibling(firstText)!)! as VirtualVNode;
       const fragmentText = vnode_getFirstChild(virtual)! as TextVNode;
-      vnode_setText(fragmentText, 'Virtual Text');
-      vnode_setText(firstText, 'First Text');
+      vnode_setText(journal, fragmentText, 'Virtual Text');
+      vnode_setText(journal, firstText, 'First Text');
+      vnode_applyJournal(journal);
       expect(parent.innerHTML).toEqual(`First Text<b></b>Virtual Text`);
     });
     it('should inflate text nodes on write', () => {
@@ -148,9 +154,10 @@ describe('vnode', () => {
       const text2 = vnode_getNextSibling(text1) as TextVNode;
       const text3 = vnode_getNextSibling(text2) as TextVNode;
       const text4 = vnode_getNextSibling(text3) as TextVNode;
-      vnode_setText(text1, 'Salutation');
-      vnode_setText(text3, 'Name');
-      vnode_setText(text4, '.');
+      vnode_setText(journal, text1, 'Salutation');
+      vnode_setText(journal, text3, 'Name');
+      vnode_setText(journal, text4, '.');
+      vnode_applyJournal(journal);
       expect(parent.innerHTML).toEqual(`Salutation Name.`);
     });
     it('should inflate text nodes across virtual', () => {
@@ -171,7 +178,8 @@ describe('vnode', () => {
       );
       const firstVirtual = vnode_getFirstChild(vParent) as VirtualVNode;
       const lastText = vnode_getNextSibling(firstVirtual) as TextVNode;
-      vnode_setText(lastText, '!');
+      vnode_setText(journal, lastText, '!');
+      vnode_applyJournal(journal);
       expect(parent.innerHTML).toEqual(`12!`);
     });
     it('should inflate text nodes across virtual', () => {
@@ -194,7 +202,8 @@ describe('vnode', () => {
       const innerVirtual = vnode_getFirstChild(firstVirtual) as VirtualVNode;
       const firstTextVirtual = vnode_getNextSibling(innerVirtual) as TextVNode;
       const firstText = vnode_getFirstChild(firstTextVirtual) as TextVNode;
-      vnode_setText(firstText, '!');
+      vnode_setText(journal, firstText, '!');
+      vnode_applyJournal(journal);
       expect(parent.innerHTML).toEqual(`!23`);
     });
   });
@@ -232,10 +241,12 @@ describe('vnode', () => {
       parent.qVNodeRefs = new Map<number, Element | ElementVNode>([[0, parent]]);
       vnode_getFirstChild(vParent);
       vnode_insertBefore(
+        journal,
         vParent,
         vnode_newText(vParent, document.createTextNode('inserted'), 'inserted'),
         vnode_getFirstChild(vParent)
       );
+      vnode_applyJournal(journal);
       const second = vnode_locate(vParent, '0B');
       expect(second).toMatchVDOM(<>text</>);
       expect(vParent).toMatchVDOM(
@@ -253,9 +264,9 @@ describe('vnode', () => {
       const fragment1 = vnode_newVirtual(vParent);
       const fragment2 = vnode_newVirtual(vParent);
       const fragment3 = vnode_newVirtual(fragment1);
-      vnode_setAttr(fragment1, 'q:id', '1');
-      vnode_setAttr(fragment2, 'q:id', '2');
-      vnode_setAttr(fragment3, 'q:id', '3');
+      vnode_setAttr(null, fragment1, 'q:id', '1');
+      vnode_setAttr(null, fragment2, 'q:id', '2');
+      vnode_setAttr(null, fragment3, 'q:id', '3');
       const textA = vnode_newText(fragment1, document.createTextNode('1A'), '1A');
       const textB = vnode_newText(fragment2, document.createTextNode('2B'), '2B');
       const textC = vnode_newText(fragment3, document.createTextNode('3C'), '3C');
@@ -263,24 +274,26 @@ describe('vnode', () => {
       const textE = vnode_newText(vParent, document.createTextNode('E'), 'E');
       const textF = vnode_newText(vParent, document.createTextNode('F'), 'F');
 
-      vnode_insertBefore(vParent, fragment2, null);
+      vnode_insertBefore(journal, vParent, fragment2, null);
       expect(vParent).toMatchVDOM(
         <test>
           <Fragment {...({ 'q:id': '2' } as any)} />
         </test>
       );
+      vnode_applyJournal(journal);
       expect(parent.innerHTML).toBe('');
 
-      vnode_insertBefore(vParent, fragment1, fragment2);
+      vnode_insertBefore(journal, vParent, fragment1, fragment2);
       expect(vParent).toMatchVDOM(
         <test>
           <Fragment {...({ 'q:id': '1' } as any)} />
           <Fragment {...({ 'q:id': '2' } as any)} />
         </test>
       );
+      vnode_applyJournal(journal);
       expect(parent.innerHTML).toBe('');
 
-      vnode_insertBefore(fragment1, fragment3, null);
+      vnode_insertBefore(journal, fragment1, fragment3, null);
       expect(vParent).toMatchVDOM(
         <test>
           <Fragment {...({ 'q:id': '1' } as any)}>
@@ -289,9 +302,10 @@ describe('vnode', () => {
           <Fragment {...({ 'q:id': '2' } as any)} />
         </test>
       );
+      vnode_applyJournal(journal);
       expect(parent.innerHTML).toBe('');
 
-      vnode_insertBefore(fragment1, textA, fragment3);
+      vnode_insertBefore(journal, fragment1, textA, fragment3);
       expect(vParent).toMatchVDOM(
         <test>
           <Fragment {...({ 'q:id': '1' } as any)}>
@@ -301,9 +315,10 @@ describe('vnode', () => {
           <Fragment {...({ 'q:id': '2' } as any)} />
         </test>
       );
+      vnode_applyJournal(journal);
       expect(parent.innerHTML).toBe('1A');
 
-      vnode_insertBefore(fragment2, textB, null);
+      vnode_insertBefore(journal, fragment2, textB, null);
       expect(vParent).toMatchVDOM(
         <test>
           <Fragment {...({ 'q:id': '1' } as any)}>
@@ -313,9 +328,10 @@ describe('vnode', () => {
           <Fragment {...({ 'q:id': '2' } as any)}>2B</Fragment>
         </test>
       );
+      vnode_applyJournal(journal);
       expect(parent.innerHTML).toBe('1A2B');
 
-      vnode_insertBefore(fragment3, textC, null);
+      vnode_insertBefore(journal, fragment3, textC, null);
       expect(vParent).toMatchVDOM(
         <test>
           <Fragment {...({ 'q:id': '1' } as any)}>
@@ -325,9 +341,10 @@ describe('vnode', () => {
           <Fragment {...({ 'q:id': '2' } as any)}>2B</Fragment>
         </test>
       );
+      vnode_applyJournal(journal);
       expect(parent.innerHTML).toBe('1A3C2B');
 
-      vnode_insertBefore(vParent, textD, null);
+      vnode_insertBefore(journal, vParent, textD, null);
       expect(vParent).toMatchVDOM(
         <test>
           <Fragment {...({ 'q:id': '1' } as any)}>
@@ -337,9 +354,10 @@ describe('vnode', () => {
           <Fragment {...({ 'q:id': '2' } as any)}>2B</Fragment>D
         </test>
       );
+      vnode_applyJournal(journal);
       expect(parent.innerHTML).toBe('1A3C2BD');
 
-      vnode_insertBefore(vParent, textE, fragment1);
+      vnode_insertBefore(journal, vParent, textE, fragment1);
       expect(vParent).toMatchVDOM(
         <test>
           E
@@ -350,9 +368,10 @@ describe('vnode', () => {
           <Fragment {...({ 'q:id': '2' } as any)}>2B</Fragment>D
         </test>
       );
+      vnode_applyJournal(journal);
       expect(parent.innerHTML).toBe('E1A3C2BD');
 
-      vnode_insertBefore(vParent, textF, fragment3);
+      vnode_insertBefore(journal, vParent, textF, fragment3);
       expect(vParent).toMatchVDOM(
         <test>
           E
@@ -364,6 +383,7 @@ describe('vnode', () => {
           <Fragment {...({ 'q:id': '2' } as any)}>2B</Fragment>D
         </test>
       );
+      vnode_applyJournal(journal);
       expect(parent.innerHTML).toBe('E1AF3C2BD');
     });
   });
@@ -378,6 +398,106 @@ describe('vnode', () => {
       expect(v2).toMatchVDOM(<>B</>);
       expect(vnode_getProp(v1, '', getVNode)).toBe(v2);
       expect(vnode_getProp(v2, ':', getVNode)).toBe(v1);
+    });
+  });
+  describe('journal', () => {
+    describe('vnode_insertBefore', () => {
+      it('should insert before null', () => {
+        const v1 = vnode_newText(vParent, document.createTextNode('1'), '1');
+        const v2 = vnode_newText(vParent, document.createTextNode('2'), '2');
+        vnode_insertBefore(journal, vParent, v1, null);
+        vnode_insertBefore(journal, vParent, v2, null);
+        expect(vParent).toMatchVDOM(
+          <test>
+            {'1'}
+            {'2'}
+          </test>
+        );
+        expect(parent.innerHTML).toBe('');
+        vnode_applyJournal(journal);
+        expect(parent.innerHTML).toBe('12');
+      });
+      it('should insert before existing', () => {
+        const v1 = vnode_newText(vParent, document.createTextNode('1'), '1');
+        const v2 = vnode_newText(vParent, document.createTextNode('2'), '2');
+        const v3 = vnode_newText(vParent, document.createTextNode('3'), '3');
+        vnode_insertBefore(journal, vParent, v3, null);
+        vnode_insertBefore(journal, vParent, v1, v3);
+        vnode_insertBefore(journal, vParent, v2, v3);
+        expect(vParent).toMatchVDOM(
+          <test>
+            {'1'}
+            {'2'}
+            {'3'}
+          </test>
+        );
+        expect(parent.innerHTML).toBe('');
+        vnode_applyJournal(journal);
+        expect(parent.innerHTML).toBe('123');
+      });
+    });
+    describe('vnode_remove', () => {
+      it('should remove', () => {
+        parent.innerHTML = '<b>1</b><b>2</b><b>3</b>';
+        const b1 = vnode_getFirstChild(vParent) as ElementVNode;
+        const b2 = vnode_getNextSibling(b1) as ElementVNode;
+        const b3 = vnode_getNextSibling(b2) as ElementVNode;
+        vnode_remove(journal, vParent, b2, true);
+        expect(vParent).toMatchVDOM(
+          <test>
+            <b>1</b>
+            <b>3</b>
+          </test>
+        );
+        vnode_applyJournal(journal);
+        expect(parent.innerHTML).toBe('<b>1</b><b>3</b>');
+        vnode_remove(journal, vParent, b1, true);
+        expect(vParent).toMatchVDOM(
+          <test>
+            <b>3</b>
+          </test>
+        );
+        vnode_applyJournal(journal);
+        expect(parent.innerHTML).toBe('<b>3</b>');
+        vnode_remove(journal, vParent, b3, true);
+        expect(vParent).toMatchVDOM(<test></test>);
+        vnode_applyJournal(journal);
+        expect(parent.innerHTML).toBe('');
+      });
+    });
+    describe('vnode_setAttr', () => {
+      it('should set attribute', () => {
+        parent.innerHTML = '<div foo="bar"></div>';
+        const div = vnode_getFirstChild(vParent) as ElementVNode;
+        vnode_setAttr(journal, div, 'key', '123');
+        vnode_applyJournal(journal);
+        expect(parent.innerHTML).toBe('<div foo="bar" key="123"></div>');
+        vnode_setAttr(journal, div, 'foo', null);
+        vnode_applyJournal(journal);
+        expect(parent.innerHTML).toBe('<div key="123"></div>');
+      });
+    });
+    describe('vnode_setText', () => {
+      it('should set text', () => {
+        parent.innerHTML = 'text';
+        const text = vnode_getFirstChild(vParent) as TextVNode;
+        vnode_setText(journal, text, 'new text');
+        expect(parent.innerHTML).toBe('text');
+        vnode_applyJournal(journal);
+        expect(parent.innerHTML).toBe('new text');
+      });
+      it('should inflate text node', () => {
+        parent.innerHTML = 'ABC';
+        document.qVNodeData.set(parent, 'BBB');
+        const a = vnode_getFirstChild(vParent) as TextVNode;
+        const b = vnode_getNextSibling(a) as TextVNode;
+        vnode_setText(journal, b, '123');
+        expect(parent.innerHTML).toBe('ABC');
+        expect(parent.firstChild?.nodeValue).toEqual('ABC');
+        vnode_applyJournal(journal);
+        expect(parent.firstChild?.nodeValue).toEqual('A');
+        expect(parent.innerHTML).toBe('A123C');
+      });
     });
   });
 });

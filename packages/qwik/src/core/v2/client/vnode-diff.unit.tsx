@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { vnode_getNode } from './vnode';
-import { vnode_applyJournal, vnode_diff, type VNodeJournalEntry } from './vnode-diff';
 import { vnode_fromJSX } from '../vdom-diff.unit-util';
+import { vnode_applyJournal, vnode_getNode, type VNodeJournal } from './vnode';
+import { vnode_diff } from './vnode-diff';
 
 describe('vNode-diff', () => {
-  const journal: VNodeJournalEntry[] = [];
+  const journal: VNodeJournal = [];
   const scheduler = { $drainCleanup$: () => null };
   afterEach(() => {
     journal.length = 0;
@@ -22,18 +22,20 @@ describe('vNode-diff', () => {
     it('should update text', () => {
       const { vNode, vParent, document } = vnode_fromJSX(<div>Hello</div>);
       vnode_diff({ $journal$: journal, document } as any, <div>World</div>, vParent);
-      expect(vNode).toMatchVDOM(<div>Hello</div>);
-      expect(journal).not.toEqual([]);
-      vnode_applyJournal(journal);
       expect(vNode).toMatchVDOM(<div>World</div>);
+      expect(journal).not.toEqual([]);
+      expect((vnode_getNode(vNode) as Element).outerHTML).toEqual('<div>Hello</div>');
+      vnode_applyJournal(journal);
+      expect((vnode_getNode(vNode) as Element).outerHTML).toEqual('<div>World</div>');
     });
 
     it('should add missing text node', () => {
       const { vNode, vParent, document } = vnode_fromJSX(<div></div>);
       vnode_diff({ $journal$: journal, document } as any, <div>Hello</div>, vParent);
-      expect(vNode).toMatchVDOM(<div></div>);
-      vnode_applyJournal(journal);
       expect(vNode).toMatchVDOM(<div>Hello</div>);
+      expect((vnode_getNode(vNode) as Element).outerHTML).toEqual('<div></div>');
+      vnode_applyJournal(journal);
+      expect((vnode_getNode(vNode) as Element).outerHTML).toEqual('<div>Hello</div>');
     });
 
     it('should update and add missing text node', () => {

@@ -2,6 +2,7 @@ import { expect } from 'vitest';
 import { Fragment, isJSXNode } from '../render/jsx/jsx-runtime';
 import type { ElementVNode, QDocument, TextVNode, VNode } from './client/types';
 import {
+  vnode_applyJournal,
   vnode_getAttr,
   vnode_getAttrKeys,
   vnode_getElementName,
@@ -16,6 +17,7 @@ import {
   vnode_newText,
   vnode_newUnMaterializedElement,
   vnode_setAttr,
+  type VNodeJournal,
 } from './client/vnode';
 import { isStringifiable, type Stringifiable } from './shared-types';
 
@@ -215,21 +217,22 @@ export function vnode_fromJSX(jsx: JSXOutput) {
   doc.qVNodeData = new WeakMap();
   const vBody = vnode_newUnMaterializedElement(null, doc.body);
   let vParent: ElementVNode | VirtualVNode = vBody;
+  const journal: VNodeJournal = [];
   walkJSX(jsx, {
     enter: (jsx) => {
       const type = jsx.type;
       if (typeof type === 'string') {
         const child = vnode_newUnMaterializedElement(vParent, doc.createElement(type));
-        vnode_insertBefore(vParent, child, null);
+        vnode_insertBefore(journal, vParent, child, null);
 
         const props = jsx.props;
         for (const key in props) {
           if (Object.prototype.hasOwnProperty.call(props, key)) {
-            vnode_setAttr(child, key, String(props[key]));
+            vnode_setAttr(journal, child, key, String(props[key]));
           }
         }
         if (jsx.key != null) {
-          vnode_setAttr(child, 'key', String(jsx.key));
+          vnode_setAttr(journal, child, 'key', String(jsx.key));
         }
         vParent = child;
       } else {
@@ -241,11 +244,13 @@ export function vnode_fromJSX(jsx: JSXOutput) {
     },
     text: (value) => {
       vnode_insertBefore(
+        journal,
         vParent,
         vnode_newText(vParent, doc.createTextNode(String(value)), String(value)),
         null
       );
     },
   });
+  vnode_applyJournal(journal);
   return { vParent, vNode: vnode_getFirstChild(vParent), document: doc };
 }

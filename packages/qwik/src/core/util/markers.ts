@@ -19,6 +19,8 @@ export const QSlotRef = 'q:sref';
 export const QSlotS = 'q:s';
 export const QStyle = 'q:style';
 export const QStyleSelector = 'style[q\\:style]';
+export const QStyleSSelector = 'style[q\\:sstyle]';
+export const QStylesAllSelector = QStyleSelector + ',' + QStyleSSelector;
 export const QScopedStyle = 'q:sstyle';
 export const QCtxAttr = 'q:ctx';
 

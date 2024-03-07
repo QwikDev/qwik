@@ -380,5 +380,26 @@ Error.stackTraceLimit = 100;
         );
       });
     });
+    it('#3730 - should manage dynamic import', async () => {
+      const Cmp = component$(() => {
+        const loading = useSignal(true);
+
+        let DynamicComponent;
+
+        new Promise((resolve) => resolve('Test'))
+          .then((temp) => (DynamicComponent = temp))
+          .finally(() => {
+            loading.value = false;
+          });
+
+        return loading.value ? <h1>Loading.....</h1> : DynamicComponent || <h1>Fallback</h1>;
+      });
+      const { vNode } = await render(<Cmp />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <h1>Fallback</h1>
+        </Component>
+      );
+    });
   });
 });

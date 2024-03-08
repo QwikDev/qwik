@@ -11,7 +11,9 @@ import CodeSandbox, {CodeFile} from '../../../../components/code-sandbox/index.t
 
 # What is a debouncer and why it's important
 
-A debouncer is a programming pattern used to ensure that time-consuming tasks do not fire so often, thereby causing performance issues or overwhelming servers with requests. This is particularly useful in scenarios like search inputs where you may not want to trigger a search request with every keystroke, but rather after the user has paused typing. By implementing a debouncer, you can improve user experience and application efficiency by delaying the execution of a function until a certain amount of time has passed since the last time it was invoked.
+A debouncer is a programming pattern used to ensure that time-consuming tasks do not fire too frequently, thereby preventing performance issues or the overwhelming of servers with requests. This is particularly useful in scenarios such as search inputs where you may not want to trigger a search request with every keystroke, but rather after the user has paused typing. 
+
+By implementing a debouncer, you can enhance both user experience and application efficiency. This is achieved by delaying a function's execution until a specified amount of time has elapsed since its last invocation.
 
 
 ## When to use debouncers
@@ -39,8 +41,7 @@ export const useDebouncer = (fn: QRL<(args: any) => void>, delay: number) => {
 ```
 </CodeFile>
 
-This debouncer takes a function and a delay as arguments. It uses `useSignal` to track the `timeoutID` in a way that's compatible with Qwik's QRL's and hydration model. The returned function, when called, clears any existing timeout and sets a new one to invoke the provided function after the specified delay.
-
+This debouncer takes a function and a delay as arguments. It utilizes `useSignal` to track the `timeoutID`, ensuring compatibility with Qwik's resumability model and its use of [QRL's](https://qwik.dev/docs/advanced/qrl/). The returned function, when called, clears any existing timeout and sets a new one to invoke the provided function after the specified delay.
 
 ## How to use the debouncer
 

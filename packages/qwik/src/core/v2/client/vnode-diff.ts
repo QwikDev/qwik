@@ -436,10 +436,10 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
   function expectNoMore() {
     assertFalse(vParent === vCurrent, "Parent and current can't be the same");
     if (vCurrent !== null) {
-      vnode_truncate(journal, vParent as ElementVNode | VirtualVNode, vCurrent);
       let vChild: VNode | null = vCurrent;
       while (vChild) {
         container.$scheduler$.$drainCleanup$(vChild as fixMeAny);
+        vnode_truncate(journal, vParent as ElementVNode | VirtualVNode, vChild);
         vChild = vnode_getNextSibling(vChild);
       }
     }
@@ -720,6 +720,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
           );
           isDev && vnode_setProp(vNewNode, DEBUG_TYPE, VirtualType.Component);
           container.setHostProp(vNewNode, OnRenderProp, componentQRL);
+          container.setHostProp(vNewNode, ELEMENT_PROPS, jsxProps);
         }
         host = vNewNode as VirtualVNode;
         shouldRender = true;

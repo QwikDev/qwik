@@ -15,44 +15,35 @@ export const RouterHead = component$(() => {
     head.meta.find((m) => m.name === 'description')?.content ||
     `No hydration, auto lazy-loading, edge-optimized, and fun 🎉!`;
 
-  const pageTitle = head.title;
-
-  const ogImageUrl = new URL('https://opengraphqwik.vercel.app/api/og');
-
-  //turn the title into array with [0] -> Title [1] -> subTitle
-  const arrayedTitle = pageTitle.split(' | ');
-
   const OGImage = {
-    //check if we are on home route
-    isBaseRoute: arrayedTitle.length > 0 ? false : true,
-
-    routeLevel: 0,
     imageURL: '',
     ogImgTitle: '',
-    ogImgSubTitle: '',
+    ogImgSubTitle: '' as string | undefined,
 
     get URL() {
-      const biggerTitle = this.isBaseRoute ? undefined : arrayedTitle[0];
-      const smallerTitle = this.isBaseRoute ? undefined : arrayedTitle[1];
+      //turn the title into array with [0] -> Title [1] -> subTitle
+      const arrayedTitle = title.split(' | ');
+      const ogImageUrl = new URL('https://opengraphqwik.vercel.app/api/og?level=1');
 
-      // set the text for title and subtitle
-      this.ogImgTitle = biggerTitle as string;
-      this.ogImgSubTitle = smallerTitle as string;
+      // biggerTitle
+      this.ogImgTitle = arrayedTitle[0];
+      //smallerTitle
+      this.ogImgSubTitle = arrayedTitle[1]
+        ? arrayedTitle[1].replace(' 📚 Qwik Documentation', '')
+        : undefined;
 
-      //decide whether or not to show subtitle and title
+      //decide whether or not to show dynamic OGimage or use docs default social card
       if (this.ogImgSubTitle == undefined || this.ogImgTitle == undefined) {
-        this.routeLevel = 0;
         this.imageURL = new URL(`/logos/social-card.jpg`, url).href;
 
         return this.imageURL;
       } else {
-        this.routeLevel = 1;
-
         ogImageUrl.searchParams.set('title', this.ogImgTitle);
         ogImageUrl.searchParams.set('subtitle', this.ogImgSubTitle);
-        ogImageUrl.searchParams.set('level', this.routeLevel.toString());
+        // ogImageUrl.searchParams.set('level', this.routeLevel.toString());
 
         this.imageURL = ogImageUrl.toString();
+
         return this.imageURL;
       }
     },

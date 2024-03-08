@@ -203,7 +203,7 @@ export interface Bundle {
 export function computeBundles(symbolVectors: SymbolVectors): Bundle[] {
   const bundles: Bundle[] = [];
   const dbscan = new DBSCAN();
-  // We want to set the distance so that it is just bellow (90%) the distance between two unrelated symbols.
+  // We want to set the distance so that it is just below (90%) the distance between two unrelated symbols.
   const maxDistance = 0.95 * Math.sqrt(Math.pow(1, 2) + Math.pow(1, 2));
   const clusters = dbscan.run(symbolVectors.vectors, maxDistance, 1);
   clusters.forEach((cluster) => {

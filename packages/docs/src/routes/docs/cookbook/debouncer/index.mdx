@@ -3,11 +3,12 @@ title: Cookbook | Debouncer
 contributors:
   - n8sabes
   - KenAKAFrosty
+  - shairez
 updated_at: '2024-03-07T01:00:00Z'
 created_at: '2024-02-07T01:00:00Z'
 ---
 
-import CodeSandbox, {CodeFile} from '../../../../components/code-sandbox/index.tsx';
+import CodeSandbox, { CodeFile } from '../../../../components/code-sandbox/index.tsx';
 
 # What is a debouncer and why it's important
 
@@ -82,4 +83,39 @@ In the live demo below, `useDebouncer` is used to update the `debouncedValue` si
 
 <CodeSandbox src="/src/routes/demo/cookbook/debouncer/"  style={{ height: '250px' }}>
 </CodeSandbox>
+
+## Bonus: `useDebouncer$`
+
+To save our developers the extra "wrapping with a $()" action.
+
+We can leverage Qwik's `implicit$FirstArg` function to create a `useDebouncer$` function that automatically wraps the provided function with `$()`.
+
+This is how Qwik actually implements all of its built-in $ hooks.
+
+```tsx
+export const useDebouncerQrl = (fn: QRL<(args: any) => void>, delay: number) => {
+  const timeoutId = useSignal<number>();
+
+  return $((args: any) => {
+    clearTimeout(timeoutId.value);
+    timeoutId.value = Number(setTimeout(() => fn(args), delay));
+  });
+};
+
+export const useDebouncer$ = implicit$FirstArg(useDebouncerQrl);
+```
+
+And now we could do:
+
+```tsx
+const debounce = useDebouncer$(
+  (value: string) => {
+    debouncedValue.value = value;
+  },
+  1000
+);
+```
+
+Pretty great, huh? :)
+
 

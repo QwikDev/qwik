@@ -68,67 +68,75 @@ const booleanOptions = [
   'wasm',
   'watch',
 ] as const;
+
 /**
  * Contains information about the build we're generating by parsing CLI args, and figuring out all
  * the absolute file paths the build will be reading from and writing to.
  */
 export type BuildConfig = { [key in (typeof stringOptions)[number]]: string } & {
   [key in (typeof booleanOptions)[number]]?: boolean;
-} & {
-  _: string[];
 };
+
+const kebab = (str: string) => str.replace(/[A-Z]/g, (l) => `-${l.toLowerCase()}`);
 
 /**
  * Create the `BuildConfig` from the process args, and set the absolute paths the build will be
  * reading from and writing to.
  */
 export function loadConfig(args: string[] = []) {
-  const config: BuildConfig = mri(args, {
-    boolean: booleanOptions as any,
-    string: stringOptions as any,
-  }) as any;
-  // config always has _ key with the unknown args
+  const __dirname = fileURLToPath(new URL('.', import.meta.url));
+  const rootDir = join(__dirname, '..');
+  const packagesDir = join(rootDir, 'packages');
+  const srcQwikDir = join(packagesDir, 'qwik', 'src');
+  const distQwikPkgDir = join(packagesDir, 'qwik', 'dist');
+  const tmpDir = join(rootDir, 'dist-dev');
+  const knownOptions = [...stringOptions, ...booleanOptions] as const;
+  const kebabOptions = knownOptions.map(kebab);
+  // Add _ to known options
+  kebabOptions.push('_');
+
+  const config = mri<BuildConfig>(args, {
+    boolean: [...booleanOptions],
+    string: [...stringOptions],
+    alias: Object.fromEntries(knownOptions.map((k, i) => [kebabOptions[i], k])),
+    default: {
+      rootDir,
+      packagesDir,
+      srcQwikDir,
+      tmpDir,
+      srcQwikCityDir: join(packagesDir, 'qwik-city'),
+      srcQwikLabsDir: join(packagesDir, 'qwik-labs'),
+      srcNapiDir: join(srcQwikDir, 'napi'),
+      scriptsDir: join(rootDir, 'scripts'),
+      startersDir: join(rootDir, 'starters'),
+      distQwikPkgDir,
+      distQwikCityPkgDir: join(packagesDir, 'qwik-city', 'lib'),
+      distBindingsDir: join(distQwikPkgDir, 'bindings'),
+      tscDir: join(tmpDir, 'tsc-out'),
+      dtsDir: join(tmpDir, 'dts-out'),
+      esmNode: parseInt(process.version.slice(1).split('.')[0], 10) >= 14,
+    } as BuildConfig,
+  });
   const parseError =
     config._.length > 0
-      ? `!!! Unknown args: ${config._.join(' ')}\n\n`
+      ? `!!! Extra non-args: ${config._.join(' ')}\n\n`
       : Object.keys(config).length === 1
         ? `No args provided. `
-        : undefined;
+        : Object.keys(config).some((k) => !kebabOptions.includes(kebab(k)))
+          ? `!!! Unknown args: ${Object.keys(config)
+              .filter((k) => !kebabOptions.includes(kebab(k)))
+              .join(' ')}\n\n`
+          : undefined;
   if (parseError) {
     console.error(
-      `\n${parseError}Known args:\n${stringOptions
-        .map((k) => `  --${k.replace(/[A-Z]/g, (l) => `-${l.toLowerCase()}`)} <string>\n`)
-        .join('')}${booleanOptions
-        .map((k) => `  --${k.replace(/[A-Z]/g, (l) => `-${l.toLowerCase()}`)}\n`)
+      `\n${parseError}Known args:\n${booleanOptions
+        .map((k) => `  --${kebab(k)}\n`)
+        .join('')}${stringOptions
+        .map((k) => `  --${kebab(k)} <string>\n`)
         .join('')}\n=== Use pnpm build.local for initial build. ===\n\n`
     );
     process.exit(1);
   }
-  const __dirname = fileURLToPath(new URL('.', import.meta.url));
-
-  config.rootDir = join(__dirname, '..');
-  config.packagesDir = join(config.rootDir, 'packages');
-  config.tmpDir = join(config.rootDir, 'dist-dev');
-  config.srcQwikDir = join(config.packagesDir, 'qwik', 'src');
-  config.srcQwikCityDir = join(config.packagesDir, 'qwik-city');
-  config.srcQwikLabsDir = join(config.packagesDir, 'qwik-labs');
-  config.srcNapiDir = join(config.srcQwikDir, 'napi');
-  config.scriptsDir = join(config.rootDir, 'scripts');
-  config.startersDir = join(config.rootDir, 'starters');
-  config.distQwikPkgDir = join(config.packagesDir, 'qwik', 'dist');
-  config.distQwikCityPkgDir = join(config.packagesDir, 'qwik-city', 'lib');
-  config.distBindingsDir = join(config.distQwikPkgDir, 'bindings');
-  config.tscDir = join(config.tmpDir, 'tsc-out');
-  config.tscDocs = (config as any)['tsc-docs'];
-  config.dtsDir = join(config.tmpDir, 'dts-out');
-  config.esmNode = parseInt(process.version.slice(1).split('.')[0], 10) >= 14;
-  config.platformBinding = (config as any)['platform-binding'];
-  config.platformBindingWasmCopy = (config as any)['platform-binding-wasm-copy'];
-  config.prepareRelease = (config as any)['prepare-release'];
-  config.platformTarget = (config as any)['platform-target'];
-  config.setDistTag = (config as any)['set-dist-tag'];
-  config.devRelease = !!(config as any)['dev-release'];
-  config.dryRun = (config as any)['dry-run'];
 
   return config;
 }

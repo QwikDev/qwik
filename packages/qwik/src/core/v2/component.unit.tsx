@@ -7,6 +7,7 @@ import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { useSignal } from '../use/use-signal';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
+import type { JSXOutput } from '../render/jsx/types/jsx-node';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -205,6 +206,158 @@ Error.stackTraceLimit = 100;
             </Component>
           </button>
         </>
+      );
+    });
+  });
+
+  describe(render.name + ': regression', () => {   
+    it('#5647', async () => {
+      const Issue5647 = componentQrl(
+        inlinedQrl(() => {
+          return (
+            <>
+              <Child1 refId="first" ele={<span>Hi, this doesn't work...</span>} />
+              <Child1 refId="second" ele={<ChildNested />} />
+            </>
+          );
+        }, 's_issue5647')
+      );
+      const ChildNested = component$(() => {
+        return <div>Nested</div>;
+      });
+      const Child1 = component$<{ refId: string; ele: JSXOutput }>((props) => {
+        const isShow = useSignal(true);
+        return (
+          <div>
+            {isShow.value && props.ele}
+            <p>isShow value: {`${isShow.value}`}</p>
+            <button
+              id={props.refId}
+              onClick$={inlinedQrl(
+                () => {
+                  const [isShow] = useLexicalScope();
+                  isShow.value = !isShow.value;
+                },
+                's_onClick',
+                [isShow]
+              )}
+            >
+              Toggle
+            </button>
+          </div>
+        );
+      });
+      const { vNode, container } = await render(<Issue5647 />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <Component>
+              <div>
+                <span>Hi, this doesn't work...</span>
+                <p>
+                  {'isShow value: '}
+                  {'true'}
+                </p>
+                <button id="first">Toggle</button>
+              </div>
+            </Component>
+            <Component>
+              <div>
+                <Component>
+                  <div>Nested</div>
+                </Component>
+                <p>
+                  {'isShow value: '}
+                  {'true'}
+                </p>
+                <button id="second">Toggle</button>
+              </div>
+            </Component>
+          </Fragment>
+        </Component>
+      );
+      await trigger(container.element, 'button#first', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <Component>
+              <div>
+                {''}
+                <p>
+                  {'isShow value: '}
+                  {'false'}
+                </p>
+                <button id="first">Toggle</button>
+              </div>
+            </Component>
+            <Component>
+              <div>
+                <Component>
+                  <div>Nested</div>
+                </Component>
+                <p>
+                  {'isShow value: '}
+                  {'true'}
+                </p>
+                <button id="second">Toggle</button>
+              </div>
+            </Component>
+          </Fragment>
+        </Component>
+      );
+      await trigger(container.element, 'button#second', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <Component>
+              <div>
+                {''}
+                <p>
+                  {'isShow value: '}
+                  {'false'}
+                </p>
+                <button id="first">Toggle</button>
+              </div>
+            </Component>
+            <Component>
+              <div>
+                {''}
+                <p>
+                  {'isShow value: '}
+                  {'false'}
+                </p>
+                <button id="second">Toggle</button>
+              </div>
+            </Component>
+          </Fragment>
+        </Component>
+      );
+      await trigger(container.element, 'button#first', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <Component>
+              <div>
+                <span>Hi, this doesn't work...</span>
+                <p>
+                  {'isShow value: '}
+                  {'true'}
+                </p>
+                <button id="first">Toggle</button>
+              </div>
+            </Component>
+            <Component>
+              <div>
+                {''}
+                <p>
+                  {'isShow value: '}
+                  {'false'}
+                </p>
+                <button id="second">Toggle</button>
+              </div>
+            </Component>
+          </Fragment>
+        </Component>
       );
     });
   });

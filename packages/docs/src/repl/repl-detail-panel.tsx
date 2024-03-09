@@ -1,4 +1,4 @@
-import { bundled } from './bundled';
+import { QWIK_PKG_NAME, getBundled } from './bundled';
 import { ReplConsole } from './repl-console';
 import { ReplOptions } from './repl-options';
 import { ReplTabButton } from './repl-tab-button';
@@ -31,7 +31,7 @@ export const ReplDetailPanel = ({ input, store }: ReplDetailPanelProps) => {
           <ReplOptions
             input={input}
             versions={store.versions}
-            qwikVersion={bundled['@builder.io/qwik'].version}
+            qwikVersion={getBundled()[QWIK_PKG_NAME].version}
           />
         ) : null}
       </div>

@@ -194,6 +194,9 @@ export const newInvokeContext = (
   event?: PossibleEvents,
   url?: URL
 ): InvokeContext => {
+  // ServerRequestEvent has .locale, but it's not always defined.
+  const $locale$ =
+    locale || (typeof event === 'object' && event && 'locale' in event ? event.locale : undefined);
   const ctx: InvokeContext = {
     $url$: url,
     $i$: 0,
@@ -204,7 +207,7 @@ export const newInvokeContext = (
     $waitOn$: undefined,
     $subscriber$: undefined,
     $renderCtx$: undefined,
-    $locale$: locale,
+    $locale$,
     $container2$: undefined,
   };
   seal(ctx);

@@ -1,7 +1,7 @@
 import { readFileSync, symlinkSync, writeFileSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 
-const node_modules = ['.', 'packages/docs', 'packages/insights'];
+const node_modules = ['.', 'packages/insights'];
 const __dirname = new URL(import.meta.url).pathname;
 
 node_modules.forEach((dir) => {

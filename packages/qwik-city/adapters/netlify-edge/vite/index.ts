@@ -23,6 +23,7 @@ export function netlifyEdgeAdapter(opts: NetlifyEdgeAdapterOptions = {}): any {
         ssr: {
           target: 'webworker',
           noExternal: true,
+          external: ['node:async_hooks'],
         },
         build: {
           ssr: true,

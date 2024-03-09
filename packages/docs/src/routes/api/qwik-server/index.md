@@ -9,15 +9,12 @@ title: \@builder.io/qwik/server API Reference
 Provides the `qwikloader.js` file as a string. Useful for tooling to inline the qwikloader script into HTML.
 
 ```typescript
-export declare function getQwikLoaderScript(opts?: {
-  events?: string[];
-  debug?: boolean;
-}): string;
+export declare function getQwikLoaderScript(opts?: { debug?: boolean }): string;
 ```
 
-| Parameter | Type                                    | Description  |
-| --------- | --------------------------------------- | ------------ |
-| opts      | { events?: string[]; debug?: boolean; } | _(Optional)_ |
+| Parameter | Type                 | Description  |
+| --------- | -------------------- | ------------ |
+| opts      | { debug?: boolean; } | _(Optional)_ |
 
 **Returns:**
 

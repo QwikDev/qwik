@@ -7,7 +7,7 @@ const QWIK_LOADER_DEFAULT_DEBUG: string = (globalThis as any).QWIK_LOADER_DEFAUL
  *
  * @public
  */
-export function getQwikLoaderScript(opts: { events?: string[]; debug?: boolean } = {}) {
+export function getQwikLoaderScript(opts: { debug?: boolean } = {}) {
   // default script selector behavior
   return opts.debug ? QWIK_LOADER_DEFAULT_DEBUG : QWIK_LOADER_DEFAULT_MINIFIED;
 }

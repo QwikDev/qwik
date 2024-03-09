@@ -150,7 +150,7 @@ export class Cookie implements CookieInterface {
     this[RES_COOKIE][cookieName] = createSetCookieValue(cookieName, resolvedValue, options);
   }
 
-  delete(name: string, options?: Pick<CookieOptions, 'path' | 'domain'>) {
+  delete(name: string, options?: Pick<CookieOptions, 'path' | 'domain' | 'sameSite'>) {
     this.set(name, 'deleted', { ...options, maxAge: 0 });
     this[LIVE_COOKIE][name] = null;
   }

@@ -5,7 +5,7 @@
   "author": "Qwik Team",
   "bugs": "https://github.com/BuilderIO/qwik/issues",
   "dependencies": {
-    "@supabase/auth-helpers-shared": "^0.5.0"
+    "@supabase/auth-helpers-shared": "^0.6.3"
   },
   "devDependencies": {
     "@builder.io/qwik": "workspace:^",

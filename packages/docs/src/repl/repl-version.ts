@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
-import { bundled } from './bundled';
+import { QWIK_PKG_NAME, getBundled } from './bundled';
 
-const bundledVersion = bundled['@builder.io/qwik'].version;
+const bundledVersion = getBundled()[QWIK_PKG_NAME].version;
 
 // The golden oldies
 const keepList = new Set('1.0.0,1.1.5,1.2.13'.split(','));

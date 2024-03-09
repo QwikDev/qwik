@@ -2,7 +2,7 @@ import { Extractor, ExtractorConfig } from '@microsoft/api-extractor';
 import { readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { generateApiMarkdownDocs } from './api-docs';
-import { type BuildConfig, panic, ensureDir } from './util';
+import { type BuildConfig, panic, ensureDir, copyFile } from './util';
 
 /**
  * Create each submodule's bundled dts file, and ensure the public API has not changed for a
@@ -234,28 +234,10 @@ function createTypesApi(
 }
 
 function generateQwikCityReferenceModules(config: BuildConfig) {
-  // @builder.io/qwik-city/server-modules.d.ts
-  const referenceDts = `
-declare module '@qwik-city-plan' {
-  export const routes: any[];
-  export const menus: any[];
-  export const trailingSlash: boolean;
-  export const basePathname: string;
-  export const cacheModules: boolean;
-  const defaultExport: {
-    routes: any[];
-    menus: any[];
-    trailingSlash: boolean;
-    basePathname: string;
-    cacheModules: boolean;
-  };
-  export default defaultExport;
-}
-`;
   const srcModulesPath = join(config.packagesDir, 'qwik-city', 'lib');
 
   const destModulesPath = join(srcModulesPath, 'modules.d.ts');
-  writeFileSync(destModulesPath, referenceDts);
+  copyFile(join(config.packagesDir, 'qwik-city', 'modules.d.ts'), destModulesPath);
 
   // manually prepend the ts reference since api extractor removes it
   const prependReferenceDts = `/// <reference path="./modules.d.ts" />\n\n`;

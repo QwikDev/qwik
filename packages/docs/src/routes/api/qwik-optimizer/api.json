@@ -42,8 +42,8 @@
           "id": "createoptimizer"
         }
       ],
-      "kind": "Variable",
-      "content": "```typescript\ncreateOptimizer: (optimizerOptions?: OptimizerOptions) => Promise<Optimizer>\n```",
+      "kind": "Function",
+      "content": "```typescript\ncreateOptimizer: (optimizerOptions?: OptimizerOptions) => Promise<Optimizer>\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  optimizerOptions | [OptimizerOptions](#optimizeroptions) | _(Optional)_ |\n\n**Returns:**\n\nPromise&lt;[Optimizer](#optimizer)<!-- -->&gt;",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/optimizer.ts",
       "mdFile": "qwik.createoptimizer.md"
     },

@@ -42,7 +42,7 @@ const shim = async (path: string, symbol: string) => {
       const imp = new Function('url', 'return import(url)');
       (await imp(url.href))[symbol](currentScript);
     } else {
-      (await import(path))[symbol](currentScript);
+      (await import(url.href))[symbol](currentScript);
     }
   }
 };

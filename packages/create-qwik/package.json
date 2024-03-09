@@ -1,7 +1,7 @@
 {
   "name": "create-qwik",
   "description": "Interactive CLI for create Qwik projects and adding features.",
-  "version": "1.4.5",
+  "version": "1.5.1",
   "author": "Builder.io Team",
   "bin": "./create-qwik.cjs",
   "bugs": "https://github.com/BuilderIO/qwik/issues",
@@ -12,9 +12,12 @@
     "yargs": "17.7.2"
   },
   "engines": {
-    "node": ">=16.8.0 <18.0.0 || >=18.11",
-    "npm": ">=6.0.0"
+    "node": "^18.17.0 || ^20.3.0 || >=21.0.0",
+    "npm": ">=10.0.0",
+    "pnpm": ">=8.0.0",
+    "yarn": ">=3.0.0"
   },
+  "engines-annotation": "Mostly required by sharp which needs a Node-API v9 compatible runtime",
   "files": [
     "create-qwik.cjs",
     "index.cjs",

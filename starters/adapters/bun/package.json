@@ -20,5 +20,8 @@
         "- bun run serve: runs the production server locally"
       ]
     }
+  },
+  "devDependencies": {
+    "@types/bun": "*"
   }
 }

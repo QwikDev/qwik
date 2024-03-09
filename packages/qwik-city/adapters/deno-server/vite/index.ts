@@ -18,6 +18,7 @@ export function denoServerAdapter(opts: DenoServerAdapterOptions = {}): any {
         ssr: {
           target: 'webworker',
           noExternal: true,
+          external: ['node:async_hooks'],
         },
         build: {
           ssr: true,

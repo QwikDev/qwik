@@ -1,8 +1,8 @@
 /* eslint-disable no-console */
-import { dim, cyan, bgMagenta, magenta, } from 'kleur/colors';
-import type { AppCommand } from '../utils/app-command';
+import { dim, cyan, bgMagenta, magenta } from 'kleur/colors';
+import type { AppCommand } from './app-command';
 import { execaCommand } from 'execa';
-import { getPackageManager, pmRunCmd } from '../utils/utils';
+import { getPackageManager, pmRunCmd } from './utils';
 interface Step {
   title: string;
   stdout?: string;
@@ -34,12 +34,12 @@ export async function runBuildCommand(app: AppCommand) {
   const mode = app.getArg('mode');
 
   const prebuildScripts = Object.keys(pkgJsonScripts)
-    .filter(s => s.startsWith('prebuild.'))
+    .filter((s) => s.startsWith('prebuild.'))
     .map(getScript)
     .filter(isString);
 
   const postbuildScripts = Object.keys(pkgJsonScripts)
-    .filter(s => s.startsWith('postbuild.'))
+    .filter((s) => s.startsWith('postbuild.'))
     .map(getScript)
     .filter(isString);
 
@@ -105,17 +105,17 @@ export async function runBuildCommand(app: AppCommand) {
       stderr: 'inherit',
       cwd: app.rootDir,
     })
-    .then(() => ({
-      title: 'Type checked',
-    }))
-    .catch((e) => {
-      let out = e.stdout;
-      if (out.startsWith('tsc')) {
-        out = out.slice(3);
-      }
-      console.log('\n' + out);
-      process.exit(1);
-    });
+      .then(() => ({
+        title: 'Type checked',
+      }))
+      .catch((e) => {
+        let out = e.stdout || '';
+        if (out.startsWith('tsc')) {
+          out = out.slice(3);
+        }
+        console.log('\n' + out);
+        process.exit(1);
+      });
   }
 
   if (buildClientScript) {
@@ -144,20 +144,20 @@ export async function runBuildCommand(app: AppCommand) {
         FORCE_COLOR: 'true',
       },
     })
-    .then(e => ({
-      title: 'Built library modules',
-      stdout: e.stdout
-    }))
-    .catch((e) => {
-      console.log(``);
-      if (e.stderr) {
-        console.log(e.stderr);
-      } else {
-        console.log(e.stdout);
-      }
-      console.log(``);
-      process.exit(1);
-    });
+      .then((e) => ({
+        title: 'Built library modules',
+        stdout: e.stdout,
+      }))
+      .catch((e) => {
+        console.log(``);
+        if (e.stderr) {
+          console.log(e.stderr);
+        } else {
+          console.log(e.stdout);
+        }
+        console.log(``);
+        process.exit(1);
+      });
     step2.push(libBuild);
   }
 
@@ -171,20 +171,20 @@ export async function runBuildCommand(app: AppCommand) {
         FORCE_COLOR: 'true',
       },
     })
-    .then(e => ({
-      title: 'Built preview (ssr) modules',
-      stdout: e.stdout
-    }))
-    .catch((e) => {
-      console.log(``);
-      if (e.stderr) {
-        console.log(e.stderr);
-      } else {
-        console.log(e.stdout);
-      }
-      console.log(``);
-      process.exit(1);
-    });
+      .then((e) => ({
+        title: 'Built preview (ssr) modules',
+        stdout: e.stdout,
+      }))
+      .catch((e) => {
+        console.log(``);
+        if (e.stderr) {
+          console.log(e.stderr);
+        } else {
+          console.log(e.stdout);
+        }
+        console.log(``);
+        process.exit(1);
+      });
     step2.push(previewBuild);
   }
 
@@ -198,20 +198,20 @@ export async function runBuildCommand(app: AppCommand) {
         FORCE_COLOR: 'true',
       },
     })
-    .then(e => ({
-      title: 'Built server (ssr) modules',
-      stdout: e.stdout
-    }))
-    .catch((e) => {
-      console.log(``);
-      if (e.stderr) {
-        console.log(e.stderr);
-      } else {
-        console.log(e.stdout);
-      }
-      console.log(``);
-      process.exit(1);
-    });
+      .then((e) => ({
+        title: 'Built server (ssr) modules',
+        stdout: e.stdout,
+      }))
+      .catch((e) => {
+        console.log(``);
+        if (e.stderr) {
+          console.log(e.stderr);
+        } else {
+          console.log(e.stdout);
+        }
+        console.log(``);
+        process.exit(1);
+      });
     step2.push(serverBuild);
   }
 
@@ -224,20 +224,20 @@ export async function runBuildCommand(app: AppCommand) {
         FORCE_COLOR: 'true',
       },
     })
-    .then(e => ({
-      title: 'Built static (ssg) modules',
-      stdout: e.stdout
-    }))
-    .catch((e) => {
-      console.log(``);
-      if (e.stderr) {
-        console.log(e.stderr);
-      } else {
-        console.log(e.stdout);
-      }
-      console.log(``);
-      process.exit(1);
-    });
+      .then((e) => ({
+        title: 'Built static (ssg) modules',
+        stdout: e.stdout,
+      }))
+      .catch((e) => {
+        console.log(``);
+        if (e.stderr) {
+          console.log(e.stderr);
+        } else {
+          console.log(e.stdout);
+        }
+        console.log(``);
+        process.exit(1);
+      });
     step2.push(staticBuild);
   }
 
@@ -254,22 +254,22 @@ export async function runBuildCommand(app: AppCommand) {
         FORCE_COLOR: 'true',
       },
     })
-    .then(() => ({
-      title: 'Lint checked',
-    }))
-    .catch((e) => {
-      console.log(``);
-      console.log(e.stdout);
-      console.error(e.stderr);
-      console.log(``);
-      process.exit(1);
-    });
+      .then(() => ({
+        title: 'Lint checked',
+      }))
+      .catch((e) => {
+        console.log(``);
+        console.log(e.stdout);
+        console.error(e.stderr);
+        console.log(``);
+        process.exit(1);
+      });
     step2.push(lintBuild);
   }
 
   if (step2.length > 0) {
     await Promise.all(step2).then((steps) => {
-      steps.forEach(step => {
+      steps.forEach((step) => {
         if (step.stdout) {
           console.log('');
           console.log(step.stdout);
@@ -278,7 +278,7 @@ export async function runBuildCommand(app: AppCommand) {
       });
 
       if (!isPreviewBuild && !buildServerScript && !buildStaticScript && !isLibraryBuild) {
-        const pmRun = pmRunCmd()
+        const pmRun = pmRunCmd();
         console.log(``);
         console.log(`${bgMagenta(' Missing an integration ')}`);
         console.log(``);
@@ -290,7 +290,7 @@ export async function runBuildCommand(app: AppCommand) {
         return execaCommand(buildStaticScript, {
           stdout: 'inherit',
           stderr: 'inherit',
-              cwd: app.rootDir,
+          cwd: app.rootDir,
           env: {
             FORCE_COLOR: 'true',
           },
@@ -331,7 +331,7 @@ function attachArg(command: string, key: string, value?: string): string {
   if (value !== undefined) {
     return `${command} --${key} ${value}`;
   }
-  return command
+  return command;
 }
 
 function isString(s: string | null | undefined): s is string {

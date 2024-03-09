@@ -5,7 +5,7 @@ import { runAddCommand } from './add/run-add-command';
 import { runNewCommand } from './new/run-new-command';
 import { runJokeCommand } from './joke/run-joke-command';
 import { note, panic, pmRunCmd, printHeader, bye } from './utils/utils';
-import { runBuildCommand } from './build/run-build-command';
+import { runBuildCommand } from './utils/run-build-command';
 import { intro, isCancel, select, confirm } from '@clack/prompts';
 
 const SPACE_TO_HINT = 18;

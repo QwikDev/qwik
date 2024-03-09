@@ -1,41 +1,17 @@
 /* eslint-disable no-console */
-import type { BundledFiles, ReplInputOptions } from '../types';
-import {
-  QWIK_PKG_NAME,
-  QWIK_REPL_DEPS_CACHE,
-  ROLLUP_VERSION,
-  TERSER_VERSION,
-} from './repl-constants';
+import type { ReplInputOptions } from '../types';
+import { QWIK_PKG_NAME, QWIK_REPL_DEPS_CACHE } from './repl-constants';
 import type { QwikWorkerGlobal } from './repl-service-worker';
 
 let options: ReplInputOptions;
 let cache: Cache;
 
-// Copied from bundled.tsx. Can't import it because it breaks the sw bundle.
-const getNpmCdnUrl = (
-  bundled: BundledFiles,
-  pkgName: string,
-  pkgVersion: string,
-  pkgPath: string
-) => {
-  if (pkgVersion === 'bundled') {
-    const files = bundled[pkgName];
-    if (files) {
-      pkgVersion = files.version;
-      const url = files[pkgPath];
-      if (url) {
-        return url;
-      }
-    } else {
-      // fall back to latest
-      pkgVersion = '';
-    }
+export const depResponse = async (pkgName: string, pkgPath: string) => {
+  const url = options.deps[pkgName][pkgPath];
+  if (!url) {
+    throw new Error(`No URL given for dep: ${pkgName}${pkgPath}`);
   }
-  return `https://cdn.jsdelivr.net/npm/${pkgName}${pkgVersion ? '@' + pkgVersion : ''}${pkgPath}`;
-};
-
-export const depResponse = async (pkgName: string, pkgVersion: string, pkgPath: string) => {
-  const req = getNpmCdnRequest(pkgName, pkgVersion, pkgPath);
+  const req = new Request(url);
   const cachedRes = await cache.match(req);
   if (cachedRes) {
     return cachedRes;
@@ -47,37 +23,22 @@ export const depResponse = async (pkgName: string, pkgVersion: string, pkgPath: 
     }
     return fetchRes;
   }
+  throw new Error('Failed to fetch: ' + req.url);
 };
 
-const exec = async (cache: Cache, pkgName: string, pkgVersion: string, pkgPath: string) => {
-  const res = await depResponse(pkgName, pkgVersion, pkgPath);
-  if (res) {
-    console.debug(`Run: ${res.url}`);
-    // eslint-disable-next-line no-new-func
-    const run = new Function(await res.clone().text());
-    run();
-  } else {
-    throw new Error(
-      `Unable to run: ${getNpmCdnUrl(options.bundled, pkgName, pkgVersion, pkgPath)}`
-    );
-  }
+const exec = async (pkgName: string, pkgPath: string) => {
+  const res = await depResponse(pkgName, pkgPath);
+  console.debug(`Run: ${pkgName}${pkgPath} ${res.url}`);
+  // eslint-disable-next-line no-new-func
+  const run = new Function(await res.text());
+  run();
 };
 
-export const loadDependencies = async (replOptions: ReplInputOptions) => {
+const _loadDependencies = async (replOptions: ReplInputOptions) => {
   options = replOptions;
   const qwikVersion = options.version;
 
   cache = await caches.open(QWIK_REPL_DEPS_CACHE);
-  await Promise.all([
-    depResponse(QWIK_PKG_NAME, qwikVersion, '/core.cjs'),
-    depResponse(QWIK_PKG_NAME, qwikVersion, '/core.mjs'),
-    depResponse(QWIK_PKG_NAME, qwikVersion, '/core.min.mjs'),
-    depResponse(QWIK_PKG_NAME, qwikVersion, '/optimizer.cjs'),
-    depResponse(QWIK_PKG_NAME, qwikVersion, '/server.cjs'),
-    depResponse('rollup', ROLLUP_VERSION, '/dist/rollup.browser.js'),
-    depResponse('prettier', 'bundled', '/standalone.js'),
-    depResponse('prettier', 'bundled', '/plugins/html.js'),
-  ]);
 
   self.qwikBuild = {
     isServer: true,
@@ -85,8 +46,8 @@ export const loadDependencies = async (replOptions: ReplInputOptions) => {
     isDev: false,
   };
 
-  if (!isSameQwikVersion(self.qwikCore?.version, qwikVersion)) {
-    await exec(cache, QWIK_PKG_NAME, qwikVersion, '/core.cjs');
+  if (!isSameQwikVersion(self.qwikCore?.version)) {
+    await exec(QWIK_PKG_NAME, '/core.cjs');
     if (self.qwikCore) {
       console.debug(`Loaded @builder.io/qwik: ${self.qwikCore.version}`);
     } else {
@@ -94,8 +55,8 @@ export const loadDependencies = async (replOptions: ReplInputOptions) => {
     }
   }
 
-  if (!isSameQwikVersion(self.qwikOptimizer?.versions.qwik, qwikVersion)) {
-    await exec(cache, QWIK_PKG_NAME, qwikVersion, '/optimizer.cjs');
+  if (!isSameQwikVersion(self.qwikOptimizer?.versions.qwik)) {
+    await exec(QWIK_PKG_NAME, '/optimizer.cjs');
     if (self.qwikOptimizer) {
       console.debug(`Loaded @builder.io/qwik/optimizer: ${self.qwikOptimizer.versions.qwik}`);
     } else {
@@ -103,8 +64,8 @@ export const loadDependencies = async (replOptions: ReplInputOptions) => {
     }
   }
 
-  if (!isSameQwikVersion(self.qwikServer?.versions.qwik, qwikVersion)) {
-    await exec(cache, QWIK_PKG_NAME, qwikVersion, '/server.cjs');
+  if (!isSameQwikVersion(self.qwikServer?.versions.qwik)) {
+    await exec(QWIK_PKG_NAME, '/server.cjs');
     if (self.qwikServer) {
       console.debug(`Loaded @builder.io/qwik/server: ${self.qwikServer.versions.qwik}`);
     } else {
@@ -112,18 +73,18 @@ export const loadDependencies = async (replOptions: ReplInputOptions) => {
     }
   }
 
-  if (self.rollup?.VERSION !== ROLLUP_VERSION) {
-    await exec(cache, 'rollup', ROLLUP_VERSION, '/dist/rollup.browser.js');
+  if (!self.rollup) {
+    await exec('rollup', '/dist/rollup.browser.js');
     if (self.rollup) {
-      console.debug(`Loaded rollup: ${self.rollup!.VERSION}`);
+      console.debug(`Loaded rollup: ${(self.rollup as any).VERSION}`);
     } else {
-      throw new Error(`Unable to load rollup ${ROLLUP_VERSION}`);
+      throw new Error(`Unable to load rollup`);
     }
   }
 
   if (!self.prettier) {
-    await exec(cache, 'prettier', 'bundled', '/standalone.js');
-    await exec(cache, 'prettier', 'bundled', '/plugins/html.js');
+    await exec('prettier', '/standalone.js');
+    await exec('prettier', '/plugins/html.js');
     if (self.prettier) {
       console.debug(`Loaded prettier: ${(self.prettier as any)!.version}`);
     } else {
@@ -132,12 +93,11 @@ export const loadDependencies = async (replOptions: ReplInputOptions) => {
   }
 
   if (options.buildMode === 'production' && !self.Terser) {
-    await depResponse('terser', TERSER_VERSION, '/dist/bundle.min.js');
-    await exec(cache, 'terser', TERSER_VERSION, '/dist/bundle.min.js');
+    await exec('terser', '/dist/bundle.min.js');
     if (self.Terser) {
-      console.debug(`Loaded terser: ${TERSER_VERSION}`);
+      console.debug(`Loaded terser`);
     } else {
-      throw new Error(`Unable to load terser ${TERSER_VERSION}`);
+      throw new Error(`Unable to load terser`);
     }
   }
 
@@ -152,15 +112,26 @@ export const loadDependencies = async (replOptions: ReplInputOptions) => {
   });
 };
 
-const getNpmCdnRequest = (pkgName: string, pkgVersion: string, pkgPath: string) => {
-  return new Request(getNpmCdnUrl(options.bundled, pkgName, pkgVersion, pkgPath));
+let loadP: Promise<void> | undefined;
+let again = false;
+export const loadDependencies = (replOptions: ReplInputOptions) => {
+  if (loadP) {
+    again = true;
+  } else {
+    loadP = _loadDependencies(replOptions).finally(() => {
+      if (again) {
+        again = false;
+        loadP = undefined;
+        return loadDependencies(replOptions);
+      }
+      loadP = undefined;
+    });
+  }
+  return loadP;
 };
 
-const isSameQwikVersion = (a: string | undefined, b: string) => {
-  if (b === 'bundled') {
-    b = options.bundled['@builder.io/qwik'].version;
-  }
-  if (!a || a !== b) {
+const isSameQwikVersion = (a: string | undefined) => {
+  if (!a || a !== options.deps[QWIK_PKG_NAME].version) {
     return false;
   }
   return true;

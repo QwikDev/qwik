@@ -106,13 +106,13 @@ export type DeferReturn<T> = () => Promise<T>;
 Deletes cookie value by name using the `Response` cookie header.
 
 ```typescript
-delete(name: string, options?: Pick<CookieOptions, 'path' | 'domain'>): void;
+delete(name: string, options?: Pick<CookieOptions, 'path' | 'domain' | 'sameSite'>): void;
 ```
 
-| Parameter | Type                                                            | Description  |
-| --------- | --------------------------------------------------------------- | ------------ |
-| name      | string                                                          |              |
-| options   | Pick&lt;[CookieOptions](#cookieoptions), 'path' \| 'domain'&gt; | _(Optional)_ |
+| Parameter | Type                                                                          | Description  |
+| --------- | ----------------------------------------------------------------------------- | ------------ |
+| name      | string                                                                        |              |
+| options   | Pick&lt;[CookieOptions](#cookieoptions), 'path' \| 'domain' \| 'sameSite'&gt; | _(Optional)_ |
 
 **Returns:**
 
@@ -208,6 +208,15 @@ string[]
 ```typescript
 mergeHeadersCookies: (headers: Headers, cookies: CookieInterface) => Headers;
 ```
+
+| Parameter | Type                       | Description |
+| --------- | -------------------------- | ----------- |
+| headers   | Headers                    |             |
+| cookies   | [CookieInterface](#cookie) |             |
+
+**Returns:**
+
+Headers
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/cookie.ts)
 

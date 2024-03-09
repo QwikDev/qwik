@@ -2,7 +2,7 @@ import { createDOM } from '../../testing/library';
 import { expectDOM } from '../../testing/expect-dom';
 import { inlinedQrl } from '../qrl/qrl';
 import { useStylesQrl } from '../use/use-styles';
-import { type PropsOf, component$ } from './component.public';
+import { type PropsOf, component$, type Component } from './component.public';
 import { useStore } from '../use/use-store.public';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { describe, test, expectTypeOf } from 'vitest';
@@ -220,6 +220,15 @@ describe('q-component', () => {
     });
     expectTypeOf<TestProps['test$']>().toMatchTypeOf<Parameters<typeof Test1>[0]['test$']>();
     expectTypeOf<QRL<() => void>>().toMatchTypeOf<Parameters<typeof Test1>[0]['test$']>();
+  });
+
+  test('Inline Components should be able to use Component', () => () => {
+    const InlineComponent: Component<PropsOf<'div'>> = (props) => {
+      expectTypeOf(props).not.toBeAny();
+      return <div {...props} />;
+    };
+    // Passing a plain function should not error
+    return <InlineComponent onClick$={() => {}} />;
   });
 });
 

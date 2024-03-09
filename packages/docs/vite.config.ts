@@ -44,6 +44,7 @@ export default defineConfig(async () => {
     ssr: {
       noExternal: [
         '@mui/material',
+        '@mui/system',
         '@emotion/react',
         '@algolia/autocomplete-core/dist/esm/resolve',
         '@algolia/autocomplete-core',
@@ -123,6 +124,7 @@ export default defineConfig(async () => {
       qwikInsights({ publicApiKey: loadEnv('', '.', '').PUBLIC_QWIK_INSIGHTS_KEY }),
     ],
     build: {
+      sourcemap: true,
       rollupOptions: {
         // For some unknown reason, types don't work from tsc
         // Try removing these any casts and see if it works

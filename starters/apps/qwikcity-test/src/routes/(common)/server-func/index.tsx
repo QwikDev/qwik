@@ -32,6 +32,30 @@ export const streamingFunc = server$(async function* () {
   }
 });
 
+const serverFunctionA = server$(async function a() {
+  return this.method;
+});
+const serverFunctionB = server$(async function b() {
+  return this.method;
+});
+
+export const MultipleServerFunctionsInvokedInTask = component$(() => {
+  const methodA = useSignal("");
+  const methodB = useSignal("");
+  useTask$(async () => {
+    methodA.value = await serverFunctionA();
+    await delay(1);
+    methodB.value = await serverFunctionB();
+  });
+
+  return (
+    <div id="methods">
+      {methodA.value}
+      {methodB.value}
+    </div>
+  );
+});
+
 export default component$(() => {
   const resource = useResource$(() => getUserAgent());
   const userAgent = useSignal("");
@@ -78,6 +102,7 @@ export default component$(() => {
           5 seconds streaming
         </button>
       </section>
+      <MultipleServerFunctionsInvokedInTask />
     </>
   );
 });

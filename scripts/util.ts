@@ -23,86 +23,120 @@ import type { Plugin as RollupPlugin } from 'rollup';
 import { execa, type Options } from 'execa';
 import { fileURLToPath } from 'node:url';
 
+const stringOptions = [
+  'distBindingsDir',
+  'distQwikCityPkgDir',
+  'distQwikPkgDir',
+  'distVersion',
+  'dtsDir',
+  'packagesDir',
+  'platformTarget',
+  'rootDir',
+  'scriptsDir',
+  'setDistTag',
+  'srcNapiDir',
+  'srcQwikCityDir',
+  'srcQwikDir',
+  'srcQwikLabsDir',
+  'startersDir',
+  'tmpDir',
+  'tscDir',
+] as const;
+const booleanOptions = [
+  'api',
+  'build',
+  'cli',
+  'commit',
+  'dev',
+  'devRelease',
+  'dryRun',
+  'eslint',
+  'esmNode',
+  'platformBinding',
+  'platformBindingWasmCopy',
+  'prepareRelease',
+  'qwikauth',
+  'qwikcity',
+  'qwiklabs',
+  'qwikreact',
+  'qwikworker',
+  'release',
+  'supabaseauthhelpers',
+  'tsc',
+  'tscDocs',
+  'validate',
+  'wasm',
+  'watch',
+] as const;
+
 /**
  * Contains information about the build we're generating by parsing CLI args, and figuring out all
  * the absolute file paths the build will be reading from and writing to.
  */
-export interface BuildConfig {
-  rootDir: string;
-  packagesDir: string;
-  tmpDir: string;
-  srcNapiDir: string;
-  srcQwikDir: string;
-  srcQwikCityDir: string;
-  srcQwikLabsDir: string;
-  scriptsDir: string;
-  startersDir: string;
-  tscDir: string;
-  dtsDir: string;
-  distQwikPkgDir: string;
-  distQwikCityPkgDir: string;
-  distBindingsDir: string;
-  esmNode: boolean;
-  distVersion: string;
-  platformTarget?: string;
+export type BuildConfig = { [key in (typeof stringOptions)[number]]: string } & {
+  [key in (typeof booleanOptions)[number]]?: boolean;
+};
 
-  api?: boolean;
-  build?: boolean;
-  qwikcity?: boolean;
-  qwikreact?: boolean;
-  qwiklabs?: boolean;
-  qwikauth?: boolean;
-  qwikworker?: boolean;
-  supabaseauthhelpers?: boolean;
-  cli?: boolean;
-  eslint?: boolean;
-  commit?: boolean;
-  dev?: boolean;
-  dryRun?: boolean;
-  platformBinding?: boolean;
-  platformBindingWasmCopy?: boolean;
-  prepareRelease?: boolean;
-  release?: boolean;
-  devRelease?: boolean;
-  setDistTag?: string;
-  tsc?: boolean;
-  tscDocs?: boolean;
-  validate?: boolean;
-  wasm?: boolean;
-  watch?: boolean;
-}
+const kebab = (str: string) => str.replace(/[A-Z]/g, (l) => `-${l.toLowerCase()}`);
 
 /**
  * Create the `BuildConfig` from the process args, and set the absolute paths the build will be
  * reading from and writing to.
  */
 export function loadConfig(args: string[] = []) {
-  const config: BuildConfig = mri(args) as any;
   const __dirname = fileURLToPath(new URL('.', import.meta.url));
+  const rootDir = join(__dirname, '..');
+  const packagesDir = join(rootDir, 'packages');
+  const srcQwikDir = join(packagesDir, 'qwik', 'src');
+  const distQwikPkgDir = join(packagesDir, 'qwik', 'dist');
+  const tmpDir = join(rootDir, 'dist-dev');
+  const knownOptions = [...stringOptions, ...booleanOptions] as const;
+  const kebabOptions = knownOptions.map(kebab);
+  // Add _ to known options
+  kebabOptions.push('_');
 
-  config.rootDir = join(__dirname, '..');
-  config.packagesDir = join(config.rootDir, 'packages');
-  config.tmpDir = join(config.rootDir, 'dist-dev');
-  config.srcQwikDir = join(config.packagesDir, 'qwik', 'src');
-  config.srcQwikCityDir = join(config.packagesDir, 'qwik-city');
-  config.srcQwikLabsDir = join(config.packagesDir, 'qwik-labs');
-  config.srcNapiDir = join(config.srcQwikDir, 'napi');
-  config.scriptsDir = join(config.rootDir, 'scripts');
-  config.startersDir = join(config.rootDir, 'starters');
-  config.distQwikPkgDir = join(config.packagesDir, 'qwik', 'dist');
-  config.distQwikCityPkgDir = join(config.packagesDir, 'qwik-city', 'lib');
-  config.distBindingsDir = join(config.distQwikPkgDir, 'bindings');
-  config.tscDir = join(config.tmpDir, 'tsc-out');
-  config.tscDocs = (config as any)['tsc-docs'];
-  config.dtsDir = join(config.tmpDir, 'dts-out');
-  config.esmNode = parseInt(process.version.slice(1).split('.')[0], 10) >= 14;
-  config.platformBinding = (config as any)['platform-binding'];
-  config.platformBindingWasmCopy = (config as any)['platform-binding-wasm-copy'];
-  config.prepareRelease = (config as any)['prepare-release'];
-  config.platformTarget = (config as any)['platform-target'];
-  config.setDistTag = (config as any)['set-dist-tag'];
-  config.devRelease = !!(config as any)['dev-release'];
-  config.dryRun = (config as any)['dry-run'];
+  const config = mri<BuildConfig>(args, {
+    boolean: [...booleanOptions],
+    string: [...stringOptions],
+    alias: Object.fromEntries(knownOptions.map((k, i) => [kebabOptions[i], k])),
+    default: {
+      rootDir,
+      packagesDir,
+      srcQwikDir,
+      tmpDir,
+      srcQwikCityDir: join(packagesDir, 'qwik-city'),
+      srcQwikLabsDir: join(packagesDir, 'qwik-labs'),
+      srcNapiDir: join(srcQwikDir, 'napi'),
+      scriptsDir: join(rootDir, 'scripts'),
+      startersDir: join(rootDir, 'starters'),
+      distQwikPkgDir,
+      distQwikCityPkgDir: join(packagesDir, 'qwik-city', 'lib'),
+      distBindingsDir: join(distQwikPkgDir, 'bindings'),
+      tscDir: join(tmpDir, 'tsc-out'),
+      dtsDir: join(tmpDir, 'dts-out'),
+      esmNode: parseInt(process.version.slice(1).split('.')[0], 10) >= 14,
+    } as BuildConfig,
+  });
+  const parseError =
+    config._.length > 0
+      ? `!!! Extra non-args: ${config._.join(' ')}\n\n`
+      : Object.keys(config).length === 1
+        ? `No args provided. `
+        : Object.keys(config).some((k) => !kebabOptions.includes(kebab(k)))
+          ? `!!! Unknown args: ${Object.keys(config)
+              .filter((k) => !kebabOptions.includes(kebab(k)))
+              .join(' ')}\n\n`
+          : undefined;
+  if (parseError) {
+    console.error(
+      `\n${parseError}Known args:\n${booleanOptions
+        .map((k) => `  --${kebab(k)}\n`)
+        .join('')}${stringOptions
+        .map((k) => `  --${kebab(k)} <string>\n`)
+        .join('')}\n=== Use pnpm build.local for initial build. ===\n\n`
+    );
+    process.exit(1);
+  }
 
   return config;
 }
@@ -155,11 +189,12 @@ export const getBanner = (moduleName: string, version: string) => {
  */
 export const target = 'es2020';
 
-export const nodeTarget = 'node14';
+export const nodeTarget = 'node16';
 
 /** Helper just to know which Node.js modules that should stay external. */
 export const nodeBuiltIns = [
   'assert',
+  'async_hooks',
   'child_process',
   'crypto',
   'fs',

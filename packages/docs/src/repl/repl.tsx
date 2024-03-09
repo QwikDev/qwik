@@ -15,7 +15,8 @@ import type { ReplStore, ReplUpdateMessage, ReplMessage, ReplAppInput } from './
 import { ReplDetailPanel } from './repl-detail-panel';
 import { getReplVersion } from './repl-version';
 import { updateReplOutput } from './repl-output-update';
-import { bundled } from './bundled';
+import { QWIK_PKG_NAME, getBundled, getNpmCdnUrl } from './bundled';
+import { isServer } from '@builder.io/qwik/build';
 
 export const Repl = component$((props: ReplProps) => {
   useStyles$(styles);
@@ -41,7 +42,7 @@ export const Repl = component$((props: ReplProps) => {
       selectedOutputDetail: 'console',
       ssrBuild: true,
       debug: false,
-      serverUrl: 'about:blank',
+      serverUrl: undefined,
       serverWindow: null,
       versions: [],
       events: [],
@@ -79,14 +80,17 @@ export const Repl = component$((props: ReplProps) => {
 
   useVisibleTask$(
     async () => {
+      if (isServer) {
+        return;
+      }
       // only run on the client
       // Get the version asap, most likely it will be cached.
       const v = await getReplVersion(input.version, true);
       store.versions = v.versions;
       input.version = v.version;
-      store.serverUrl = new URL(`/repl/~repl-server-host.html?${store.clientId}`, origin).href;
 
       window.addEventListener('message', (ev) => receiveMessageFromReplServer(ev, store, input));
+      store.serverUrl = new URL(`/repl/~repl-server-host.html?${store.clientId}`, origin).href;
 
       // Now get the version from the network
       const vNew = await getReplVersion(input.version, false);
@@ -96,7 +100,7 @@ export const Repl = component$((props: ReplProps) => {
         sendUserUpdateToReplServer(input, store);
       }
     },
-    { strategy: 'document-idle' }
+    { strategy: 'document-ready' }
   );
 
   useTask$(({ track }) => {
@@ -132,6 +136,9 @@ export const receiveMessageFromReplServer = (
   store: ReplStore,
   input: ReplAppInput
 ) => {
+  if (isServer) {
+    return;
+  }
   if (ev.origin !== window.origin) {
     return;
   }
@@ -158,7 +165,27 @@ export const receiveMessageFromReplServer = (
   }
 };
 
+const bundled = getBundled();
+const getDependencies = (input: ReplAppInput) => {
+  const out = { ...bundled };
+  if (input.version !== 'bundled') {
+    out[QWIK_PKG_NAME] = {
+      version: input.version,
+
+      '/core.cjs': getNpmCdnUrl(bundled, QWIK_PKG_NAME, input.version, '/core.cjs'),
+      '/core.mjs': getNpmCdnUrl(bundled, QWIK_PKG_NAME, input.version, '/core.mjs'),
+      '/core.min.mjs': getNpmCdnUrl(bundled, QWIK_PKG_NAME, input.version, '/core.min.mjs'),
+      '/optimizer.cjs': getNpmCdnUrl(bundled, QWIK_PKG_NAME, input.version, '/optimizer.cjs'),
+      '/server.cjs': getNpmCdnUrl(bundled, QWIK_PKG_NAME, input.version, '/server.cjs'),
+    };
+  }
+  return out;
+};
+
 export const sendUserUpdateToReplServer = (input: ReplAppInput, store: ReplStore) => {
+  if (isServer) {
+    return;
+  }
   if (input.version && store.serverWindow) {
     const msg: ReplUpdateMessage = {
       type: 'update',
@@ -173,7 +200,7 @@ export const sendUserUpdateToReplServer = (input: ReplAppInput, store: ReplStore
         },
         version: input.version,
         serverUrl: store.serverUrl,
-        bundled,
+        deps: getDependencies(input),
       },
     };
 

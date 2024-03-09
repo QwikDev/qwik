@@ -273,9 +273,10 @@ export interface LinkProps extends AnchorAttributes {
 }
 
 // @public (undocumented)
-export type Loader<RETURN> = {
+type Loader_2<RETURN> = {
     (): LoaderSignal<RETURN>;
 };
+export { Loader_2 as Loader }
 
 // @public (undocumented)
 export type LoaderSignal<TYPE> = TYPE extends () => ValueOrPromise<infer VALIDATOR> ? ReadonlySignal<ValueOrPromise<VALIDATOR>> : ReadonlySignal<TYPE>;

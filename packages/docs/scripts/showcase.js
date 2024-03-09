@@ -16,8 +16,9 @@ async function captureMultipleScreenshots() {
     // launch headless Chromium browser
     browser = await puppeteer.launch({
       headless: true,
+      incognito: true,
     });
-    const incognito = await browser.createIncognitoBrowserContext();
+    const incognito = await browser.createBrowserContext();
     let existingJson = [];
     try {
       const data = fs.readFileSync(OUTPUT_JSON, 'utf8');

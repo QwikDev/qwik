@@ -116,7 +116,7 @@ cookie.delete('my-cookie');
 cookie.set('my-cookie', 'deleted', new Date(0));
 ```
 
-Optionally, you can set the path and/or domain when deleting the cookie. If your cookie was created with a path/domain, you must set these fields for the deletion to take effect.
+Optionally, you can set the path, sameSite and/or domain when deleting the cookie. If your cookie was created with a path/domain, you must set these fields for the deletion to take effect.
 
 ```tsx
 cookie.delete('my-cookie', { domain: 'https://qwik.builder.io', path: '/docs/' });

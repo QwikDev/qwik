@@ -11,11 +11,13 @@ import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
 import { SubscriptionType } from '../../state/common';
 import { isSignal } from '../../state/signal';
 import { trackSignal } from '../../use/use-core';
+import { destroyTask, isTask, type SubscriberEffect } from '../../use/use-task';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../../util/flyweight';
 import { throwErrorAndStop } from '../../util/log';
 import {
   ELEMENT_KEY,
   ELEMENT_PROPS,
+  ELEMENT_SEQ,
   OnRenderProp,
   QScopedStyle,
   QSlot,
@@ -38,6 +40,7 @@ import type { SsrAttrs } from '../ssr/types';
 import type { DomContainer } from './dom-container';
 import {
   ElementVNodeProps,
+  VNodeFlags,
   VNodeProps,
   type ClientContainer,
   type ElementVNode,
@@ -61,6 +64,7 @@ import {
   vnode_getType,
   vnode_insertBefore,
   vnode_isElementVNode,
+  vnode_isTextVNode,
   vnode_isVirtualVNode,
   vnode_locate,
   vnode_newElement,
@@ -436,6 +440,11 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
   function expectNoMore() {
     assertFalse(vParent === vCurrent, "Parent and current can't be the same");
     if (vCurrent !== null) {
+      let vCleanup: VNode | null = vCurrent;
+      while (vCleanup) {
+        releaseSubscriptions(container, vCleanup);
+        vCleanup = vnode_getNextSibling(vCleanup);
+      }
       vnode_truncate(journal, vParent as ElementVNode | VirtualVNode, vCurrent);
       let vChild: VNode | null = vCurrent;
       while (vChild) {
@@ -447,6 +456,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
 
   function expectNoMoreTextNodes() {
     while (vCurrent !== null && vnode_getType(vCurrent) === 3 /* Text */) {
+      releaseSubscriptions(container, vCurrent);
       vnode_remove(journal, vParent, vCurrent, true);
       vCurrent = vnode_getNextSibling(vCurrent);
       container.$scheduler$.$drainCleanup$(vCurrent as fixMeAny);
@@ -799,7 +809,6 @@ export const isQStyleVNode = (vNode: VNode): boolean => {
   );
 };
 
-
 /**
  * Retrieve the key from the VNode.
  *
@@ -871,3 +880,69 @@ function shallowEqual(src: Record<string, any>, dst: Record<string, any>): boole
   }
   return true;
 }
+
+/**
+ * If vnode is removed, it is necessary to release all subscriptions associated with it.
+ *
+ * This function will traverse the vnode and release all subscriptions.
+ */
+function releaseSubscriptions(container: ClientContainer, vNode: VNode) {
+  let vCursor: VNode | null = vNode;
+  // Depth first traversal
+  if (vnode_isTextVNode(vNode)) {
+    // Text nodes don't have subscriptions or children;
+    return;
+  }
+  do {
+    const type = vCursor[VNodeProps.flags];
+    if (type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) {
+      // Only elements and virtual nodes need to be traversed for children
+      if (type & VNodeFlags.Virtual) {
+        // ONly virtual nodes need can have subscriptions
+        container.$subsManager$.$clearSub$(vCursor as fixMeAny);
+        const seq = container.getHostProp<Array<any>>(vCursor as fixMeAny, ELEMENT_SEQ);
+        if (seq) {
+          for (let i = 0; i < seq.length; i++) {
+            const obj = seq[i];
+            if (isTask(obj)) {
+              const task = obj as SubscriberEffect;
+              container.$subsManager$.$clearSub$(task);
+              destroyTask(task);
+            }
+          }
+        }
+      }
+      // Descend into children
+      const vFirstChild = vnode_getFirstChild(vCursor);
+      if (vFirstChild) {
+        vCursor = vFirstChild;
+        continue;
+      }
+    }
+    // Out of children, go to next sibling
+    const vNextSibling = vnode_getNextSibling(vCursor);
+    if (vNextSibling) {
+      vCursor = vNextSibling;
+      continue;
+    }
+    if (vCursor === vNode) {
+      // we are back where we started, we are done.
+      return;
+    }
+    // Out of siblings, got to parent
+    let vParent = vnode_getParent(vCursor);
+    while (vParent) {
+      if (vParent === vNode) {
+        // We are back where we started, we are done.
+        return;
+      }
+      const vNextParentSibling = vnode_getNextSibling(vParent);
+      if (vNextParentSibling) {
+        vCursor = vNextParentSibling;
+        break;
+      }
+      vParent = vnode_getParent(vParent);
+    }
+  } while (true as boolean);
+}
+

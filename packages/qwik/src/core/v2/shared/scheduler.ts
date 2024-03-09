@@ -12,18 +12,11 @@ import {
   type useVisibleTaskQrl,
 } from '../../use/use-task';
 import { EMPTY_ARRAY } from '../../util/flyweight';
-import { QStyleSelector } from '../../util/markers';
 import { isPromise, maybeThen, shouldNotError } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
-import { isDomContainer } from '../client/dom-container';
-import type { VirtualVNode, VNode } from '../client/types';
-import {
-  vnode_documentPosition,
-  vnode_isChildOf,
-  vnode_isVNode,
-  vnode_queryDomNodes,
-} from '../client/vnode';
-import { vnode_diff, VNodeJournalOpCode } from '../client/vnode-diff';
+import type { VirtualVNode } from '../client/types';
+import { vnode_documentPosition, vnode_isChildOf, vnode_isVNode } from '../client/vnode';
+import { vnode_diff } from '../client/vnode-diff';
 import { executeComponent2, JSX_LOCAL } from './component-execution';
 import type { Container2, fixMeAny, HostElement } from './types';
 
@@ -242,16 +235,7 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
     if (idx < 0) {
       idx = ~idx;
     }
-    // Hoist the styles
-    if (host && isDomContainer(container)) {
-      vnode_queryDomNodes(host as VNode, QStyleSelector, (style) => {
-        container.$journal$.push(
-          VNodeJournalOpCode.AddStyle,
-          container.document.head,
-          style as HTMLStyleElement
-        );
-      });
-    }
+
     while (hostElementCleanupQueue.length > idx) {
       const hostElement = hostElementCleanupQueue[idx];
       if (host === null || vnode_isChildOf(host as fixMeAny, hostElement as fixMeAny)) {

@@ -26,7 +26,13 @@ import { ELEMENT_PROPS, OnRenderProp } from '../util/markers';
 import { JSX_LOCAL } from '../v2/shared/component-execution';
 import { untrack } from '../use/use-core';
 
+/**
+ * Top level manager of subscriptions (singleton, attached to DOM Container).
+ * 
+ * Use the `SubscriptionManager` to create a new `LocalSubscriptionManager` for tracking subscriptions.
+ */
 export interface SubscriptionManager {
+  /** Map of all subscriptions from `Group` to their respective managers. */
   $groupToManagers$: GroupToManagersMap;
   $createManager$(map?: Subscriptions[]): LocalSubscriptionManager;
   $clearSub$: (group: Group) => void;
@@ -398,7 +404,7 @@ export class LocalSubscriptionManager {
   $unsubGroup$(group: Group) {
     const subs = this.$subs$;
     for (let i = 0; i < subs.length; i++) {
-      const found = subs[i][1] === group;
+      const found = subs[i][SubscriptionProp.HOST] === group;
       if (found) {
         subs.splice(i, 1);
         i--;

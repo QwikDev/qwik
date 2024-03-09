@@ -635,11 +635,11 @@ Error.stackTraceLimit = 100;
         <Component>
           <Fragment>
             <button id="decrease">--</button>
-            {'1'}
+            {'0'}
             <button id="increase">++</button>
             <button id="toggle">Toggle</button>
             <Component>
-              <p>1</p>
+              <p>0</p>
             </Component>
           </Fragment>
         </Component>

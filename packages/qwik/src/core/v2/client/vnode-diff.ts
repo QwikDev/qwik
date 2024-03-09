@@ -445,11 +445,11 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
         releaseSubscriptions(container, vCleanup);
         vCleanup = vnode_getNextSibling(vCleanup);
       }
-      vnode_truncate(journal, vParent as ElementVNode | VirtualVNode, vCurrent);
       let vChild: VNode | null = vCurrent;
       while (vChild) {
-        container.$scheduler$.$drainCleanup$(vChild as fixMeAny);
-        vnode_truncate(journal, vParent as ElementVNode | VirtualVNode, vChild);
+        // container.$scheduler$.$drainCleanup$(vChild as fixMeAny);
+        releaseSubscriptions(container, vChild);
+        vnode_remove(journal, vParent as ElementVNode | VirtualVNode, vChild, true);
         vChild = vnode_getNextSibling(vChild);
       }
     }

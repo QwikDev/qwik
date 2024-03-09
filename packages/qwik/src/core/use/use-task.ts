@@ -609,6 +609,7 @@ export const useVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions)
     useRunTask(task, eagerness);
     if (!isServerPlatform()) {
       qrl.$resolveLazy$(iCtx.$hostElement$ as fixMeAny);
+      iCtx.$container2$.$scheduler$.$scheduleTask$(task);
     }
   } else {
     const task = new Task(TaskFlagsIsVisibleTask, i, elCtx.$element$, qrl, undefined, null);

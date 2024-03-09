@@ -73,6 +73,7 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
   ////////////////////////////////////////////////////////////////////////////////
 
   function scheduleTask(task: Task) {
+    // console.log('scheduleTask', task.$qrl$.$symbol$, task.$flags$ & TaskFlagsIsDirty);
     task.$flags$ |= TaskFlagsIsDirty;
     schedule(ChoreType.TASK, task.$el$ as fixMeAny, task.$qrl$ as fixMeAny, task.$index$, task);
     return api;

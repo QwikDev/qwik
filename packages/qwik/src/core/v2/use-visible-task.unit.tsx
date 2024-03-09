@@ -39,7 +39,9 @@ Error.stackTraceLimit = 100;
       );
 
       const { vNode, document } = await render(<VisibleCmp />, { debug });
-      await trigger(document.body, 'span', 'qvisible');
+      if (render === ssrRenderToDom) {
+        await trigger(document.body, 'span', 'qvisible');
+      }
       expect(vNode).toMatchVDOM(
         <Component>
           <span>CSR</span>
@@ -132,7 +134,9 @@ Error.stackTraceLimit = 100;
         }, 's_visible_cmp')
       );
       const { vNode, document } = await render(<VisibleCmp />, { debug });
-      await trigger(document.body, 'span', 'qvisible');
+      if (render === ssrRenderToDom) {
+        await trigger(document.body, 'span', 'qvisible');
+      }
       expect(log).toEqual(['VisibleCmp', 'render', 'task', 'resolved', 'VisibleCmp', 'render']);
       expect(vNode).toMatchVDOM(
         <Component>
@@ -162,7 +166,9 @@ Error.stackTraceLimit = 100;
         </ErrorProvider>,
         { debug }
       );
-      await trigger(document.body, 'span', 'qvisible');
+      if (render === ssrRenderToDom) {
+        await trigger(document.body, 'span', 'qvisible');
+      }
       expect(ErrorProvider.error).toBe(render === domRender ? error : null);
     });
 
@@ -189,7 +195,9 @@ Error.stackTraceLimit = 100;
         </ErrorProvider>,
         { debug }
       );
-      await trigger(document.body, 'span', 'qvisible');
+      if (render === ssrRenderToDom) {
+        await trigger(document.body, 'span', 'qvisible');
+      }
       expect(ErrorProvider.error).toBe(render === domRender ? error : null);
     });
 
@@ -231,7 +239,9 @@ Error.stackTraceLimit = 100;
       });
 
       const { vNode, document } = await render(<Counter />, { debug });
-      await trigger(document.body, 'span', 'qvisible');
+      if (render === ssrRenderToDom) {
+        await trigger(document.body, 'span', 'qvisible');
+      }
       expect(log).toEqual([
         'Counter',
         'render',
@@ -282,7 +292,9 @@ Error.stackTraceLimit = 100;
         });
 
         const { vNode, document } = await render(<Counter />, { debug });
-        await trigger(document.body, 'button', 'qvisible');
+        if (render === ssrRenderToDom) {
+          await trigger(document.body, 'button', 'qvisible');
+        }
         expect(vNode).toMatchVDOM(
           <Component>
             <button>20</button>
@@ -318,7 +330,9 @@ Error.stackTraceLimit = 100;
         });
 
         const { vNode, document } = await render(<Counter />, { debug });
-        await trigger(document.body, 'button', 'qvisible');
+        if (render === ssrRenderToDom) {
+          await trigger(document.body, 'button', 'qvisible');
+        }
         expect(vNode).toMatchVDOM(
           <Component>
             <button>2</button>
@@ -378,7 +392,9 @@ Error.stackTraceLimit = 100;
         });
 
         const { vNode, document } = await render(<Counter />, { debug });
-        await trigger(document.body, 'button', 'qvisible');
+        if (render === ssrRenderToDom) {
+          await trigger(document.body, 'button', 'qvisible');
+        }
         expect(log).toEqual(['Counter', 'quadruple', 'double', 'quadruple', 'Counter']);
         expect(vNode).toMatchVDOM(
           <Component>
@@ -431,7 +447,9 @@ Error.stackTraceLimit = 100;
         });
 
         const { vNode, document } = await render(<Counter />, { debug });
-        await trigger(document.body, 'button', 'qvisible');
+        if (render === ssrRenderToDom) {
+          await trigger(document.body, 'button', 'qvisible');
+        }
         expect(log).toEqual(['Counter: 0', 'task: 0']);
         expect(vNode).toMatchVDOM(
           <Component>
@@ -461,7 +479,7 @@ Error.stackTraceLimit = 100;
         const Child = component$(() => {
           useVisibleTaskQrl(
             inlinedQrl(({ cleanup }) => {
-              log.push('task:');
+              log.push('visible_task:');
               cleanup(() => log.push('cleanup:'));
             }, 's_visible_task')
           );
@@ -487,8 +505,11 @@ Error.stackTraceLimit = 100;
         });
 
         const { vNode, document } = await render(<Parent />, { debug });
-        await trigger(document.body, 'span', 'qvisible');
-        expect(log).toEqual(['Child', 'task:']);
+        if (render === ssrRenderToDom) {
+          // only if it is SSR do we need to trigger the qvisible event, in CSR visibleTasks run automatically
+          await trigger(document.body, 'span', 'qvisible');
+        }
+        expect(log).toEqual(['Child', 'visible_task:']);
         expect(vNode).toMatchVDOM(
           <Component>
             <button>
@@ -509,9 +530,8 @@ Error.stackTraceLimit = 100;
         );
         log = [];
         await trigger(document.body, 'button', 'click');
-        await trigger(document.body, 'span', 'qvisible');
 
-        expect(log).toEqual(['Child', 'task:']);
+        expect(log).toEqual(['Child', 'visible_task:']);
         expect(vNode).toMatchVDOM(
           <Component>
             <button>
@@ -572,7 +592,9 @@ Error.stackTraceLimit = 100;
         });
         const { vNode, document } = await render(<MyComp />, { debug });
 
-        await trigger(document.body, 'p', 'qvisible');
+        if (render === ssrRenderToDom) {
+          await trigger(document.body, 'p', 'qvisible');
+        }
         expect(vNode).toMatchVDOM(
           <Component>
             <p>

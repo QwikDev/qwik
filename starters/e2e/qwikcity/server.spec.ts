@@ -102,7 +102,7 @@ test.describe("server$", () => {
       await expect(usersContainer1).toContainText("user1user1");
       await expect(usersContainer2).toContainText("user2user2");
     });
-    test.only("should have multiple server$ should set cookie value", async ({
+    test("should have multiple server$ should set cookie value", async ({
       browser,
     }) => {
       const user1Context = await browser.newContext();

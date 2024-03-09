@@ -89,7 +89,7 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
               if (once) {
                 response.cookies = cookies.headers().map((header) => parseString(header));
                 headers.forEach((value, key) => (response.headers[key] = value));
-                once = false;
+                once = true;
               }
               if (response.body instanceof Uint8Array) {
                 const newBuffer = new Uint8Array(response.body.length + chunk.length);

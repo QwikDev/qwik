@@ -100,7 +100,7 @@ function setupTmpInstall(baseApp: IntegrationData) {
       .toString(36)
       .toLowerCase();
   // Keep in same mountpoint so renames can move quickly
-  const tmpInstallDir = path.join(baseApp.dir, tmpId);
+  const tmpInstallDir = path.resolve(baseApp.target!, '..', tmpId);
 
   try {
     fs.mkdirSync(tmpInstallDir);

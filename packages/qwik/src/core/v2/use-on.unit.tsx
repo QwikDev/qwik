@@ -65,12 +65,14 @@ Error.stackTraceLimit = 100;
       });
 
       const { vNode, container } = await render(<Counter initial={123} />, { debug });
-      expect(vNode).toMatchVDOM(
-        <>
-          <button>Count: {'123'}!</button>
-        </>
-      );
-      await trigger(container.element, 'button', 'qvisible');
+      if (render === ssrRenderToDom) {
+        expect(vNode).toMatchVDOM(
+          <>
+            <button>Count: {'123'}!</button>
+          </>
+        );
+        await trigger(container.element, 'button', 'qvisible');
+      }
       expect(vNode).toMatchVDOM(
         <>
           <button>Count: {'125'}!</button>
@@ -177,12 +179,14 @@ Error.stackTraceLimit = 100;
       });
 
       const { vNode, container } = await render(<Counter initial={123} />, { debug });
-      expect(vNode).toMatchVDOM(
-        <>
-          <button>Count: {'123'}!</button>
-        </>
-      );
-      await trigger(container.element, 'button', 'qvisible');
+      if (render === ssrRenderToDom) {
+        expect(vNode).toMatchVDOM(
+          <>
+            <button>Count: {'123'}!</button>
+          </>
+        );
+        await trigger(container.element, 'button', 'qvisible');
+      }
       expect(vNode).toMatchVDOM(
         <>
           <button>Count: {'125'}!</button>
@@ -289,12 +293,14 @@ Error.stackTraceLimit = 100;
       });
 
       const { vNode, container } = await render(<Counter initial={123} />, { debug });
-      expect(vNode).toMatchVDOM(
-        <>
-          <button>Count: {'123'}!</button>
-        </>
-      );
-      await trigger(container.element, 'button', 'qvisible');
+      if (render === ssrRenderToDom) {
+        expect(vNode).toMatchVDOM(
+          <>
+            <button>Count: {'123'}!</button>
+          </>
+        );
+        await trigger(container.element, 'button', 'qvisible');
+      }
       expect(vNode).toMatchVDOM(
         <>
           <button>Count: {'125'}!</button>
@@ -391,12 +397,14 @@ Error.stackTraceLimit = 100;
     });
 
     const { vNode, container } = await render(<Counter initial={123} />, { debug });
-    expect(vNode).toMatchVDOM(
-      <>
-        <button>Count: {'123'}!</button>
-      </>
-    );
-    await trigger(container.element, 'button', 'qvisible');
+    if (render === ssrRenderToDom) {
+      expect(vNode).toMatchVDOM(
+        <>
+          <button>Count: {'123'}!</button>
+        </>
+      );
+      await trigger(container.element, 'button', 'qvisible');
+    }
     expect(vNode).toMatchVDOM(
       <>
         <button>Count: {'125'}!</button>

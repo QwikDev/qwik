@@ -15,11 +15,7 @@ import { EMPTY_ARRAY } from '../../util/flyweight';
 import { isPromise, maybeThen, shouldNotError } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
 import type { VirtualVNode } from '../client/types';
-import {
-  vnode_documentPosition,
-  vnode_isChildOf,
-  vnode_isVNode,
-} from '../client/vnode';
+import { vnode_documentPosition, vnode_isChildOf, vnode_isVNode } from '../client/vnode';
 import { vnode_diff } from '../client/vnode-diff';
 import { executeComponent2, JSX_LOCAL } from './component-execution';
 import type { Container2, fixMeAny, HostElement } from './types';
@@ -77,6 +73,7 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
   ////////////////////////////////////////////////////////////////////////////////
 
   function scheduleTask(task: Task) {
+    // console.log('scheduleTask', task.$qrl$.$symbol$, task.$flags$ & TaskFlagsIsDirty);
     task.$flags$ |= TaskFlagsIsDirty;
     schedule(ChoreType.TASK, task.$el$ as fixMeAny, task.$qrl$ as fixMeAny, task.$index$, task);
     return api;

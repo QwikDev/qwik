@@ -210,7 +210,7 @@ Error.stackTraceLimit = 100;
     });
   });
 
-  describe(render.name + ': regression', () => {   
+  describe(render.name + ': regression', () => {
     it('#5647', async () => {
       const Issue5647 = componentQrl(
         inlinedQrl(() => {

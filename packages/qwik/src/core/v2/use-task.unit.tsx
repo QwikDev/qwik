@@ -496,7 +496,6 @@ Error.stackTraceLimit = 100;
 
   describe('regression', () => {
     it('#5782', async () => {
-      // TODO: not finished!
       const Issue5782 = component$(() => {
         const counterDefault = useSignal(0);
         const sig = useSignal(counterDefault);
@@ -573,6 +572,65 @@ Error.stackTraceLimit = 100;
 
       await trigger(document.body, '#toggle', 'click');
 
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button id="decrease">--</button>
+            {'0'}
+            <button id="increase">++</button>
+            <button id="toggle">Toggle</button>
+            <Component>
+              <p>0</p>
+            </Component>
+          </Fragment>
+        </Component>
+      );
+
+      await trigger(document.body, '#increase', 'click');
+      await trigger(document.body, '#increase', 'click');
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button id="decrease">--</button>
+            {'2'}
+            <button id="increase">++</button>
+            <button id="toggle">Toggle</button>
+            <Component>
+              <p>2</p>
+            </Component>
+          </Fragment>
+        </Component>
+      );
+      await trigger(document.body, '#decrease', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button id="decrease">--</button>
+            {'1'}
+            <button id="increase">++</button>
+            <button id="toggle">Toggle</button>
+            <Component>
+              <p>1</p>
+            </Component>
+          </Fragment>
+        </Component>
+      );
+
+      await trigger(document.body, '#toggle', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button id="decrease">--</button>
+            {'1'}
+            <button id="increase">++</button>
+            <button id="toggle">Toggle</button>
+            {''}
+          </Fragment>
+        </Component>
+      );
+
+      await trigger(document.body, '#toggle', 'click');
       expect(vNode).toMatchVDOM(
         <Component>
           <Fragment>

@@ -291,7 +291,7 @@ export interface UseTaskOptions {
  */
 // </docs>
 export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: UseTaskOptions): void => {
-  const { val, set, iCtx, i, elCtx } = useSequentialScope<1>();
+  const { val, set, iCtx, i, elCtx } = useSequentialScope<1 | Task>();
   if (val) {
     return;
   }
@@ -308,6 +308,10 @@ export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: UseTaskOptions): void => {
       undefined,
       null
     );
+    // In V2 we add the task to the sequential scope. We need to do this
+    // in order to be able to retrieve it later when the parent element is
+    // deleted and we need to be able to release the task subscriptions.
+    set(task);
     const result = runTask2(task, iCtx.$container2$, host);
     if (isPromise(result)) {
       throw result;
@@ -357,7 +361,7 @@ export const runTask2 = (
     }
     const manager = getSubscriptionManager(obj);
     if (manager) {
-      manager.$addSub$([0, task], prop);
+      manager.$addSub$([SubscriptionType.HOST, task], prop);
     } else {
       logErrorAndStop(codeToText(QError_trackUseStore), obj);
     }
@@ -605,6 +609,7 @@ export const useVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions)
     useRunTask(task, eagerness);
     if (!isServerPlatform()) {
       qrl.$resolveLazy$(iCtx.$hostElement$ as fixMeAny);
+      iCtx.$container2$.$scheduler$.$scheduleTask$(task);
     }
   } else {
     const task = new Task(TaskFlagsIsVisibleTask, i, elCtx.$element$, qrl, undefined, null);

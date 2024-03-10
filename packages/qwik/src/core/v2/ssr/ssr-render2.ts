@@ -11,7 +11,7 @@ import type { JSXOutput } from '../../render/jsx/types/jsx-node';
 import { ssrCreateContainer } from './ssr-container';
 import { ssrRenderToContainer } from './ssr-render-jsx';
 import { setServerPlatform } from '../../../server/platform';
-import { createTimer, getBuildBase } from '../../../server/utils';
+import { getBuildBase } from '../../../server/utils';
 
 export const renderToString2: typeof renderToString = async (
   jsx: JSXOutput,
@@ -61,7 +61,6 @@ export const renderToStream2: typeof renderToStream = async (
     maximunInitialChunk: 50000,
     maximunChunk: 30000,
   };
-  const timer = createTimer();
   const timing: RenderToStreamResult['timing'] = {
     firstFlush: 0,
     render: 0,
@@ -75,7 +74,7 @@ export const renderToStream2: typeof renderToStream = async (
   const resolvedManifest = resolveManifest(opts.manifest);
 
   const locale = typeof opts.locale === 'function' ? opts.locale(opts) : opts.locale;
-  const ssrContainer = ssrCreateContainer({ tagName: containerTagName, locale, writer: stream });
+  const ssrContainer = ssrCreateContainer({ tagName: containerTagName, locale, writer: stream, timing });
 
   await setServerPlatform(opts, resolvedManifest);
   await ssrRenderToContainer(ssrContainer, jsx);

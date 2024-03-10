@@ -13,7 +13,7 @@ import type { ClientContainer, VNode } from './client/types';
 import { vnode_getAttr, vnode_getFirstChild, vnode_getText } from './client/vnode';
 import { isDeserializerProxy } from './shared/shared-serialization';
 import { ssrCreateContainer } from './ssr/ssr-container';
-import { toSsrAttrs } from './ssr/ssr-render';
+import { toSsrAttrs } from './ssr/ssr-render-jsx';
 import { SsrNode, type SSRContainer } from './ssr/types';
 import './vdom-diff.unit-util';
 import { walkJSX } from './vdom-diff.unit-util';

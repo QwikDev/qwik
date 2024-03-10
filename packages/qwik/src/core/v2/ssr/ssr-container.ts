@@ -29,7 +29,7 @@ import {
 } from '../shared/shared-serialization';
 import { createScheduler, type Scheduler } from '../shared/scheduler';
 import { DEBUG_TYPE, type HostElement, type fixMeAny, VirtualType } from '../shared/types';
-import { walkJSX } from './ssr-render';
+import { walkJSX } from './ssr-render-jsx';
 import { TagNesting, allowedContent, initialTag, isTagAllowed } from './tag-nesting';
 import {
   SsrComponentFrame,

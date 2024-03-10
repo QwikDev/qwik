@@ -28,6 +28,7 @@ export interface Container2 {
   getHostProp<T>(host: HostElement, name: string): T | null;
 
   $appendStyle$(content: string, styleId: string, host: HostElement, scoped: boolean): void;
+  $serverData$: Record<string, any>;
 }
 
 export type HostElement = VirtualVNode | SsrNode;

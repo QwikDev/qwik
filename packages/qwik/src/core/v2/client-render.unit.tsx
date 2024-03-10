@@ -7,7 +7,7 @@ import { inlinedQrl } from '../qrl/qrl';
 import type { JSXOutput } from '../render/jsx/types/jsx-node';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { useSignal } from '../use/use-signal';
-import { render2 } from './client/render2';
+import { render2 } from './client/dom-render';
 import type { ContainerElement } from './client/types';
 import { vnode_getFirstChild } from './client/vnode';
 import './vdom-diff.unit-util';

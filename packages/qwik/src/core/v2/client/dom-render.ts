@@ -1,11 +1,11 @@
 import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
 import { isElement } from 'packages/qwik/src/testing/html';
 import type { RenderOptions, RenderResult } from '../../render/dom/render.public';
-import type { JSXOutput } from '../../render/jsx/types/jsx-node';
+import type { FunctionComponent, JSXOutput } from '../../render/jsx/types/jsx-node';
 import { isDocument } from '../../util/element';
 import { QContainerAttr } from '../../util/markers';
 import { DomContainer, getDomContainer } from './dom-container';
-import { vnode_diff } from './vnode-diff';
+import { releaseSubscriptions, vnode_diff } from './vnode-diff';
 import { vnode_applyJournal } from './vnode';
 
 /**
@@ -23,9 +23,13 @@ import { vnode_applyJournal } from './vnode';
  */
 export const render2 = async (
   parent: Element | Document,
-  jsxNode: JSXOutput,
-  opts?: RenderOptions
+  jsxNode: JSXOutput | FunctionComponent<any>,
+  opts: RenderOptions = {}
 ): Promise<RenderResult> => {
+  opts = {
+    serverData: {},
+    ...opts,
+  };
   if (isDocument(parent)) {
     let child = parent.firstChild;
     while (child && !isElement(child)) {
@@ -36,12 +40,13 @@ export const render2 = async (
   parent.setAttribute(QContainerAttr, 'resumed');
 
   const container = getDomContainer(parent as HTMLElement) as DomContainer;
+  container.$serverData$ = opts.serverData!;
   await vnode_diff(container, jsxNode as JSXNode, container.rootVNode);
   vnode_applyJournal(container.$journal$);
 
   return {
     cleanup: () => {
-      throw new Error('IMPLEMENT');
+      releaseSubscriptions(container, container.rootVNode);
     },
   };
 };

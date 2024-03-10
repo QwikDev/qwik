@@ -9,7 +9,7 @@ import type {
 import { resolveManifest, type renderToString, renderToStream } from '../../../server/render';
 import type { JSXOutput } from '../../render/jsx/types/jsx-node';
 import { ssrCreateContainer } from './ssr-container';
-import { ssrRenderToContainer } from './ssr-render';
+import { ssrRenderToContainer } from './ssr-render-jsx';
 import { setServerPlatform } from '../../../server/platform';
 import { createTimer, getBuildBase } from '../../../server/utils';
 
@@ -54,7 +54,6 @@ export const renderToStream2: typeof renderToStream = async (
   const bufferSize = 0;
   const totalSize = 0;
   const networkFlushes = 0;
-  const firstFlushTime = 0;
   const buffer: string = '';
   let snapshotResult: SnapshotResult | undefined;
   const inOrderStreaming = opts.streaming?.inOrder ?? {
@@ -62,20 +61,23 @@ export const renderToStream2: typeof renderToStream = async (
     maximunInitialChunk: 50000,
     maximunChunk: 30000,
   };
-  const renderTimer = createTimer();
+  const timer = createTimer();
+  const timing: RenderToStreamResult['timing'] = {
+    firstFlush: 0,
+    render: 0,
+    snapshot: 0,
+  };
   const renderSymbols: string[] = [];
   const containerTagName = opts.containerTagName ?? 'html';
   const containerAttributes = opts.containerAttributes ?? {};
   const nativeStream = stream;
-  const firstFlushTimer = createTimer();
   const buildBase = getBuildBase(opts);
   const resolvedManifest = resolveManifest(opts.manifest);
-  const snapshotTime = createTimer();
-
-  await setServerPlatform(opts, resolvedManifest);
 
   const locale = typeof opts.locale === 'function' ? opts.locale(opts) : opts.locale;
-  const ssrContainer = ssrCreateContainer({ tagName: 'html', locale, writer: stream });
+  const ssrContainer = ssrCreateContainer({ tagName: containerTagName, locale, writer: stream });
+
+  await setServerPlatform(opts, resolvedManifest);
   await ssrRenderToContainer(ssrContainer, jsx);
 
   const isDynamic = false;
@@ -86,11 +88,7 @@ export const renderToStream2: typeof renderToStream = async (
     manifest: resolvedManifest?.manifest,
     size: totalSize,
     isStatic: !isDynamic,
-    timing: {
-      render: renderTimer(),
-      snapshot: snapshotTime(),
-      firstFlush: firstFlushTime,
-    },
+    timing: timing,
     _symbols: renderSymbols,
   };
 

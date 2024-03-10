@@ -6,7 +6,6 @@ import { logError, logWarn } from '../util/log';
 import { ComputedEvent, RenderEvent, ResourceEvent } from '../util/markers';
 import { qDev, qSerialize } from '../util/qdev';
 import { isArray, isObject, isSerializableObject } from '../util/types';
-import { isDomContainer } from '../v2/client/dom-container';
 import {
   SERIALIZER_PROXY_UNWRAP,
   SerializationConstant,

@@ -473,15 +473,14 @@ Error.stackTraceLimit = 100;
         </Component>
       );
       await trigger(container.element, 'span', 'click');
-      // await trigger(container.element, 'span', 'click');
-      // await trigger(container.element, 'span', 'click');
-      // await trigger(container.element, 'span', 'click');
-      // await trigger(container.element, 'span', 'click');
+      await trigger(container.element, 'span', 'click');
+      await trigger(container.element, 'span', 'click');
+      await trigger(container.element, 'span', 'click');
+      await trigger(container.element, 'span', 'click');
       expect(vNode).toMatchVDOM(
         <Component>
           <div>
-            {/* <span key="0">{'Giorgio!!!!!'}</span> */}
-            <span key="0">{'Giorgio!'}</span>
+            <span key="0">{'Giorgio!!!!!'}</span>
           </div>
         </Component>
       );

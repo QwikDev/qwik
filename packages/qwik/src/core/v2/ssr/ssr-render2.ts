@@ -78,7 +78,9 @@ export const renderToStream2: typeof renderToStream = async (
   const ssrContainer = ssrCreateContainer({ tagName: containerTagName, locale, writer: stream });
 
   await setServerPlatform(opts, resolvedManifest);
-  await ssrRenderToContainer(ssrContainer, jsx);
+  await ssrRenderToContainer(ssrContainer, jsx, {
+    buildBase,
+  });
 
   const isDynamic = false;
   const result: RenderToStreamResult = {

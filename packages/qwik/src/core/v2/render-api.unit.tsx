@@ -187,7 +187,15 @@ describe('render api', () => {
       it.todo('should render', async () => {});
     });
     describe('base', () => {
-      it.todo('should render', async () => {});
+      it('should render', async () => {
+        const testBase = '/abcd/123-test/';
+        const result = await renderToString2(<Counter />, {
+          containerTagName: 'div',
+          base: testBase
+        });
+        const regex = /q:base=["']?((?:.(?!["']?\s+(?:\S+)=|\s*?[>"']))+.)["']?/;
+        expect(result.html.match(regex)?.[1]).toEqual(testBase);
+      });
     });
     describe('locale', () => {
       it.todo('should render', async () => {});

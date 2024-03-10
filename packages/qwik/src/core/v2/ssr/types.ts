@@ -14,7 +14,7 @@ export interface SSRContainer extends Container2 {
   writer: StreamWriter;
   serializationCtx: SerializationContext;
 
-  openContainer(): void;
+  openContainer(opts?: OpenContainerOptions): void;
   closeContainer(): void;
 
   openElement(tag: string, attrs: SsrAttrs): void;
@@ -35,6 +35,10 @@ export interface SSRContainer extends Container2 {
   addRoot(obj: any): number;
   getLastNode(): SsrNode;
   addUnclaimedProjection(node: SsrNode, name: string, children: JSXChildren): void;
+}
+
+export interface OpenContainerOptions {
+  buildBase?: string;
 }
 
 export type SsrAttrs = Array<string | null>;

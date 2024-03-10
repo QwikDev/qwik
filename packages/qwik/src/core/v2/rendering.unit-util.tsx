@@ -12,7 +12,7 @@ import { ERROR_CONTEXT } from '../render/error-handling';
 import { Slot } from '../render/jsx/slot.public';
 import type { JSXOutput } from '../render/jsx/types/jsx-node';
 import { useContextProvider } from '../use/use-context';
-import { OnRenderProp, QScopedStyle, QStyle, QStyleSelector } from '../util/markers';
+import { OnRenderProp, QScopedStyle, QStyle } from '../util/markers';
 import { DomContainer, getDomContainer } from './client/dom-container';
 import { render2 } from './client/render2';
 import type { ContainerElement, VNode, VirtualVNode } from './client/types';

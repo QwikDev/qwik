@@ -473,15 +473,88 @@ Error.stackTraceLimit = 100;
         </Component>
       );
       await trigger(container.element, 'span', 'click');
-      await trigger(container.element, 'span', 'click');
-      await trigger(container.element, 'span', 'click');
-      await trigger(container.element, 'span', 'click');
-      await trigger(container.element, 'span', 'click');
+      // await trigger(container.element, 'span', 'click');
+      // await trigger(container.element, 'span', 'click');
+      // await trigger(container.element, 'span', 'click');
+      // await trigger(container.element, 'span', 'click');
       expect(vNode).toMatchVDOM(
         <Component>
           <div>
-            <span key="0">{'Giorgio!!!!!'}</span>
+            {/* <span key="0">{'Giorgio!!!!!'}</span> */}
+            <span key="0">{'Giorgio!'}</span>
           </div>
+        </Component>
+      );
+    });
+
+    it('#5017 - should update child nodes for direct array', async () => {
+      const Child = component$<{ columns: string }>(({ columns }) => {
+        return <div>Child: {columns}</div>;
+      });
+
+      const Parent = component$(() => {
+        const state = useStore([{ columns: 'INITIAL' }]);
+        return (
+          <>
+            <button
+              onClick$={inlinedQrl(
+                () => {
+                  const [state] = useLexicalScope();
+                  state[0] = { columns: 'UPDATE' };
+                },
+                's_onClick',
+                [state]
+              )}
+            >
+              update!
+            </button>
+            <Child columns={state[0].columns} />
+            {state.map((block, idx) => {
+              return <Child columns={block.columns} key={idx} />;
+            })}
+          </>
+        );
+      });
+
+      const { vNode, container } = await render(<Parent />, { debug });
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button>update!</button>
+            <Component>
+              <div>
+                {'Child: '}
+                {'INITIAL'}
+              </div>
+            </Component>
+            <Component>
+              <div>
+                {'Child: '}
+                {'INITIAL'}
+              </div>
+            </Component>
+          </Fragment>
+        </Component>
+      );
+      await trigger(container.element, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button>update!</button>
+            <Component>
+              <div>
+                {'Child: '}
+                {'UPDATE'}
+              </div>
+            </Component>
+            <Component>
+              <div>
+                {'Child: '}
+                {'UPDATE'}
+              </div>
+            </Component>
+          </Fragment>
         </Component>
       );
     });

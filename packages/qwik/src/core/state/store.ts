@@ -6,6 +6,7 @@ import { logError, logWarn } from '../util/log';
 import { ComputedEvent, RenderEvent, ResourceEvent } from '../util/markers';
 import { qDev, qSerialize } from '../util/qdev';
 import { isArray, isObject, isSerializableObject } from '../util/types';
+import { isDomContainer } from '../v2/client/dom-container';
 import {
   SERIALIZER_PROXY_UNWRAP,
   SerializationConstant,
@@ -71,7 +72,7 @@ export const createProxy = <T extends object>(
   const manager = storeTracker.$subsManager$.$createManager$(subs);
   const proxy = new Proxy(target, new ReadWriteProxyHandler(storeTracker, manager)) as any as T;
   storeTracker.$proxyMap$.set(target, proxy);
-  const serializedState = (target as any)[SerializationConstant.Store_CHAR];
+  const serializedState: string | undefined = (target as any)[SerializationConstant.Store_CHAR];
   if (serializedState) {
     (target as any)[SerializationConstant.Store_CHAR] = undefined;
     setObjectFlags(target, serializedState.charCodeAt(0) - 48 /*'0'*/);

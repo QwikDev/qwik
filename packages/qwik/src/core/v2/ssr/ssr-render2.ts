@@ -61,7 +61,6 @@ export const renderToStream2: typeof renderToStream = async (
     maximunInitialChunk: 50000,
     maximunChunk: 30000,
   };
-  const timer = createTimer();
   const timing: RenderToStreamResult['timing'] = {
     firstFlush: 0,
     render: 0,
@@ -75,7 +74,7 @@ export const renderToStream2: typeof renderToStream = async (
   const resolvedManifest = resolveManifest(opts.manifest);
 
   const locale = typeof opts.locale === 'function' ? opts.locale(opts) : opts.locale;
-  const ssrContainer = ssrCreateContainer({ tagName: containerTagName, locale, writer: stream });
+  const ssrContainer = ssrCreateContainer({ tagName: containerTagName, locale, writer: stream, timing });
 
   await setServerPlatform(opts, resolvedManifest);
   await ssrRenderToContainer(ssrContainer, jsx);

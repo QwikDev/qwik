@@ -85,6 +85,7 @@ export interface RenderToStreamResult extends RenderResult {
 export interface RenderToStringResult extends RenderResult {
   html: string;
   timing: {
+    firstFlush: number;
     render: number;
     snapshot: number;
   };

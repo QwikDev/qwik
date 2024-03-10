@@ -1,13 +1,12 @@
 import { isDev } from '@builder.io/qwik/build';
-import type { ClassList } from 'packages/qwik/dist/core';
-import { isPromise } from 'util/types';
+import { isPromise } from '../../util/promises';
 import { isQwikComponent } from '../../component/component.public';
 import { isQrl } from '../../qrl/qrl-class';
 import { serializeClass } from '../../render/execute-component';
 import { Fragment } from '../../render/jsx/jsx-runtime';
 import { Slot } from '../../render/jsx/slot.public';
 import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
-import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
+import type { ClassList, JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
 import { SubscriptionType } from '../../state/common';
 import { isSignal } from '../../state/signal';
 import { trackSignal } from '../../use/use-core';

@@ -63,7 +63,7 @@ export const notifyChange = (subAction: Subscriptions, containerState: Container
 const notifyRender = (hostElement: QwikElement, containerState: ContainerState): void => {
   if (vnode_isVNode(hostElement)) {
     const container2 = containerState as any as Container2;
-    container2.markComponentForRender(hostElement as unknown as VirtualVNode);
+    (container2 as fixMeAny).markComponentForRender(hostElement as unknown as VirtualVNode);
   } else {
     const server = isServerPlatform();
     if (!server) {
@@ -109,8 +109,8 @@ export const notifyTask = (task: SubscriberEffect, containerState: ContainerStat
 
   if (isDomContainer(containerState)) {
     // TODO @mhevery please add $state$ to the ContainerState type if this is correct
-    (containerState as any).$tasks$.push(task);
-    containerState.scheduleRender();
+    (containerState as fixMeAny).$tasks$.push(task);
+    (containerState as fixMeAny).scheduleRender();
   } else {
     const activeRendering = containerState.$hostsRendering$ !== undefined;
     if (activeRendering) {

@@ -1,7 +1,7 @@
 /** @file Public types for the client deserialization */
 
 import type { Container2 } from '../shared/types';
-import type { VNodeJournalEntry } from './vnode-diff';
+import type { VNodeJournal } from './vnode';
 
 export interface ClientContainer extends Container2 {
   document: QDocument;
@@ -12,7 +12,7 @@ export interface ClientContainer extends Container2 {
   $locale$: string;
   qManifestHash: string;
   rootVNode: ElementVNode;
-  $journal$: VNodeJournalEntry[];
+  $journal$: VNodeJournal;
 }
 
 export interface ContainerElement extends HTMLElement {

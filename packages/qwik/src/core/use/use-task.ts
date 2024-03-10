@@ -1,4 +1,4 @@
-import { isPromise } from 'util/types';
+import { isPromise } from '../util/promises';
 import { intToStr, strToInt, type ContainerState, type MustGetObjID } from '../container/container';
 import { assertDefined, assertEqual } from '../error/assert';
 import { QError_trackUseStore, codeToText } from '../error/error';

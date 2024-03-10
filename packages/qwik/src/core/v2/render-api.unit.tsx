@@ -193,8 +193,7 @@ describe('render api', () => {
           containerTagName: 'div',
           base: testBase
         });
-        const regex = /q:base=["']?((?:.(?!["']?\s+(?:\S+)=|\s*?[>"']))+.)["']?/;
-        expect(result.html.match(regex)?.[1]).toEqual(testBase);
+        expect(result.html.includes(`q:base="${testBase}"`)).toBeTruthy();
       });
     });
     describe('locale', () => {

@@ -11,7 +11,7 @@ import type { JSXOutput } from '../../render/jsx/types/jsx-node';
 import { ssrCreateContainer } from './ssr-container';
 import { ssrRenderToContainer } from './ssr-render-jsx';
 import { setServerPlatform } from '../../../server/platform';
-import { createTimer, getBuildBase } from '../../../server/utils';
+import { getBuildBase } from '../../../server/utils';
 
 export const renderToString2: typeof renderToString = async (
   jsx: JSXOutput,

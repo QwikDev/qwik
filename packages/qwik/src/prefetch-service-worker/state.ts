@@ -13,7 +13,7 @@ export interface SWState {
   $msgQueuePromise$: Promise<void> | null;
   /** List of Base paths */
   $bases$: SWStateBase[];
-  $getCache$: () => Promise<Cache> | Cache;
+  $getCache$: () => Promise<Cache> | Cache | null;
   /** Browser Cache */
   $cache$: Cache | null;
   $put$: Cache['put'];
@@ -62,15 +62,15 @@ class SWStateImpl implements SWState {
   ) {}
 
   $getCache$() {
-    return this.$cache$!;
+    return this.$cache$;
   }
   async $put$(request: URL | RequestInfo, response: Response) {
     const cache = await this.$getCache$();
-    return cache.put(request, response);
+    return cache?.put(request, response);
   }
   async $match$(request: URL | RequestInfo) {
     const cache = await this.$getCache$();
-    return cache.match(request);
+    return cache?.match(request);
   }
 
   $log$() {}

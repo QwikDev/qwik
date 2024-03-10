@@ -645,5 +645,69 @@ Error.stackTraceLimit = 100;
         </Component>
       );
     });
+
+    it('#4332', async () => {
+      const Child = component$((props: { val: string }) => {
+        useTask$(({ track }) => {
+          track(() => props.val)
+        });
+        return <>{props.val}</>;
+      });
+      
+      const Parent = component$(() => {
+        const sig = useSignal<{ data: string } | undefined>({ data: 'abcd' });
+      
+        return (
+          <>
+            <button onClick$={inlinedQrl(() => {
+              const [sig] = useLexicalScope();
+              sig.value = sig.value ? undefined : { data: 'abcd' };
+            }, 's_onClick', [sig])}>Toggle</button>
+            {sig.value && <Child val={sig.value.data} />}
+          </>
+        );
+      });
+      const { vNode, document } = await render(<Parent />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button>
+              Toggle
+            </button>
+            <Component>
+              <Fragment>
+                abcd
+              </Fragment>
+            </Component>
+          </Fragment>
+        </Component>
+      );
+      await trigger(document.body, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button>
+              Toggle
+            </button>
+            {''}
+          </Fragment>
+        </Component>
+      );
+      await trigger(document.body, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button>
+              Toggle
+            </button>
+            <Component>
+              <Fragment>
+                abcd
+              </Fragment>
+            </Component>
+          </Fragment>
+        </Component>
+      );
+    });
   });
 });

@@ -57,18 +57,26 @@ import {
   getScopedStyleIdsAsPrefix,
   isClassAttr,
 } from '../shared/scoped-styles';
+import { createTimer } from 'packages/qwik/src/server/utils';
+import type { RenderToStreamResult } from 'packages/qwik/src/server/types';
 
 export function ssrCreateContainer(
   opts: {
     locale?: string;
     tagName?: string;
     writer?: StreamWriter;
+    timing?: RenderToStreamResult['timing'];
   } = {}
 ): ISSRContainer {
   return new SSRContainer({
     tagName: opts.tagName || 'div',
     writer: opts.writer || new StringBufferWriter(),
     locale: opts.locale || '',
+    timing: opts.timing || {
+      firstFlush: 0,
+      render: 0,
+      snapshot: 0,
+    },
   });
 }
 
@@ -102,15 +110,19 @@ class SSRContainer implements ISSRContainer {
   public tag: string;
   public writer: StreamWriter;
   public serializationCtx: SerializationContext;
+  public timing: RenderToStreamResult['timing'];
   public $locale$: string;
   public $subsManager$: SubscriptionManager = null!;
   public $proxyMap$: ObjToProxyMap = new WeakMap();
   public $scheduler$: Scheduler;
+  public $serverData$: Record<string, any>;
   private lastNode: SsrNode | null = null;
   private currentComponentNode: SsrNode | null = null;
   private styleIds = new Set<string>();
 
   private currentElementFrame: ContainerElementFrame | null = null;
+
+  private renderTimer: ReturnType<typeof createTimer>;
   /**
    * Current element index.
    *
@@ -123,9 +135,13 @@ class SSRContainer implements ISSRContainer {
   private unclaimedProjections: Array<SsrNode | string | JSXChildren> = [];
 
   constructor(opts: Required<Required<Parameters<typeof ssrCreateContainer>>[0]>) {
+    this.renderTimer = createTimer();
     this.tag = opts.tagName;
     this.writer = opts.writer;
+    this.timing = opts.timing;
     this.$locale$ = opts.locale;
+    // TODO
+    this.$serverData$ = {};
     this.serializationCtx = createSerializationContext(SsrNode, null, this.$proxyMap$, this.writer);
     this.$subsManager$ = createSubscriptionManager(this as fixMeAny);
     this.$scheduler$ = createScheduler(this, () => null);
@@ -220,7 +236,14 @@ class SSRContainer implements ISSRContainer {
       (currentFrame.parent === null && currentFrame.tagNesting !== TagNesting.HTML) ||
       currentFrame.tagNesting === TagNesting.BODY
     ) {
-      return maybeThen(this.emitContainerData(), () => this._closeElement());
+      this.timing.render = this.renderTimer();
+      const snapshotTimer = createTimer();
+      return maybeThen(
+        maybeThen(this.emitContainerData(), () => this._closeElement()),
+        () => {
+          this.timing.snapshot = snapshotTimer();
+        }
+      );
     }
     this._closeElement();
   }

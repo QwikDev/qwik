@@ -167,12 +167,6 @@ describe('render api', () => {
           containerTagName: 'div',
         });
         console.log('result', result.html);
-        const timing = result.timing;
-        console.log('timing', timing);
-        expect(timing).toMatchObject({
-          render: expect.any(Number),
-          snapshot: expect.any(Number),
-        });
         expect(result).toMatchObject({
           isStatic: true,
           prefetchResources: [],
@@ -182,6 +176,20 @@ describe('render api', () => {
           html: expect.any(String),
         });
       });
+
+      it('should have timings greater than 0', async () => {
+        const result = await renderToString2(<Counter />, {
+          containerTagName: 'div',
+        });
+        const timing = result.timing;
+        expect(timing).toMatchObject({
+          firstFlush: expect.any(Number),
+          render: expect.any(Number),
+          snapshot: expect.any(Number),
+        });
+        expect(timing.render).toBeGreaterThan(0);
+        expect(timing.snapshot).toBeGreaterThan(0);
+      })
     });
     describe('version', () => {
       it.todo('should render', async () => {});

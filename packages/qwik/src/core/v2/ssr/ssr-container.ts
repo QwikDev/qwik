@@ -37,6 +37,7 @@ import {
   type SSRContainer as ISSRContainer,
   type SsrAttrs,
   type StreamWriter,
+  type OpenContainerOptions,
 } from './types';
 import {
   CLOSE_FRAGMENT,
@@ -195,7 +196,7 @@ class SSRContainer implements ISSRContainer {
     return ssrNode.getProp(name);
   }
 
-  openContainer() {
+  openContainer(opts?: OpenContainerOptions) {
     if (this.tag == 'html') {
       this.write('<!DOCTYPE html>');
     }
@@ -207,7 +208,7 @@ class SSRContainer implements ISSRContainer {
       'q:version',
       'dev',
       'q:base',
-      '/build/',
+      opts?.buildBase || '/build/',
       'q:locale',
       this.$locale$,
       'q:manifest-hash',

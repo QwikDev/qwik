@@ -195,7 +195,14 @@ describe('render api', () => {
       it.todo('should render', async () => {});
     });
     describe('base', () => {
-      it.todo('should render', async () => {});
+      it('should render', async () => {
+        const testBase = '/abcd/123-test/';
+        const result = await renderToString2(<Counter />, {
+          containerTagName: 'div',
+          base: testBase
+        });
+        expect(result.html.includes(`q:base="${testBase}"`)).toBeTruthy();
+      });
     });
     describe('locale', () => {
       it.todo('should render', async () => {});

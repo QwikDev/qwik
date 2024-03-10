@@ -888,7 +888,7 @@ function shallowEqual(src: Record<string, any>, dst: Record<string, any>): boole
  *
  * This function will traverse the vnode and release all subscriptions.
  */
-function releaseSubscriptions(container: ClientContainer, vNode: VNode) {
+export function releaseSubscriptions(container: ClientContainer, vNode: VNode) {
   let vCursor: VNode | null = vNode;
   // Depth first traversal
   if (vnode_isTextVNode(vNode)) {

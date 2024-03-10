@@ -94,6 +94,7 @@ export class DomContainer implements IClientContainer, StoreTracker {
   public $proxyMap$: ObjToProxyMap = new WeakMap();
   public $scheduler$: ReturnType<typeof createScheduler>;
   public $qFuncs$: Array<(...args: unknown[]) => unknown>;
+  public $serverData$: Record<string, any> = {};
 
   private stateData: unknown[];
   private $styleIds$: Set<string> | null = null;

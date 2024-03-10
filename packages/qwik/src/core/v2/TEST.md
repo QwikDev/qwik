@@ -1,4 +1,4 @@
-- [ ] Component
+- [X] Component
   - [X] `useSequentialScope()`
   - [X] `useSignal()`
   - [X] `useStore()`
@@ -36,3 +36,8 @@
   - [X] `Set`
   - [X] `Map`
   - [X] `Promise`
+
+- Render API
+  - [X] `render()`
+  - [ ] `renderToString()`
+  - [ ] `renderToStream()`

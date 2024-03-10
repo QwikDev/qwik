@@ -14,7 +14,7 @@ import type { JSXOutput } from '../render/jsx/types/jsx-node';
 import { useContextProvider } from '../use/use-context';
 import { OnRenderProp, QScopedStyle, QStyle } from '../util/markers';
 import { DomContainer, getDomContainer } from './client/dom-container';
-import { render2 } from './client/render2';
+import { render2 } from './client/dom-render';
 import type { ContainerElement, VNode, VirtualVNode } from './client/types';
 import {
   vnode_getAttr,
@@ -26,7 +26,7 @@ import {
 } from './client/vnode';
 import { codeToName } from './shared/shared-serialization';
 import './vdom-diff.unit-util';
-import { renderToString2 } from './ssr/render2';
+import { renderToString2 } from './ssr/ssr-render2';
 
 export async function domRender(
   jsx: JSXOutput,

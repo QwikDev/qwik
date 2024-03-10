@@ -23,7 +23,7 @@ import { throwErrorAndStop } from '../../util/log';
 import type { DomContainer } from '../client/dom-container';
 import { vnode_isVNode, vnode_locate } from '../client/vnode';
 import type { ObjToProxyMap } from '../../container/container';
-import { isPromise } from 'util/types';
+import { isPromise } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
 
 const deserializedProxyMap = new WeakMap<object, unknown>();
@@ -100,7 +100,7 @@ class DeserializationHandler implements ProxyHandler<object> {
         const target = container.$getObjectById$(propValue.substring(1)) as {
           [SerializationConstant.Store_CHAR]: string | undefined;
         };
-        propValue = getOrCreateProxy(target as object, container);
+        propValue = getOrCreateProxy(target, container);
       } else if (typeCode === SerializationConstant.DerivedSignal_VALUE && !Array.isArray(target)) {
         // Special case of derived signal. We need to create an [_IMMUTABLE] property.
         return wrapDeserializerProxy(

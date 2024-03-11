@@ -1,4 +1,4 @@
-import { describe, it, expect, expectTypeOf, beforeEach } from 'vitest';
+import { describe, it, expect, expectTypeOf, beforeEach, vi, afterEach } from 'vitest';
 import { render2 } from './client/dom-render';
 import { render } from '../render/dom/render.public';
 import { renderToStream, renderToString } from '@builder.io/qwik/server';
@@ -166,7 +166,7 @@ describe('render api', () => {
         const result = await renderToString2(<Counter />, {
           containerTagName: 'div',
         });
-        console.log('result', result.html);
+        // console.log('result', result.html);
         expect(result).toMatchObject({
           isStatic: true,
           prefetchResources: [],
@@ -189,23 +189,65 @@ describe('render api', () => {
         });
         expect(timing.render).toBeGreaterThan(0);
         expect(timing.snapshot).toBeGreaterThan(0);
-      })
+      });
     });
     describe('version', () => {
-      it.todo('should render', async () => {});
+      afterEach(async () => {
+        // restore default value
+        const version = await import('./../version');
+        vi.spyOn(version, 'version', 'get').mockReturnValue('dev');
+      });
+
+      it('should render', async () => {
+        const testVersion = 'qwik-v-test123';
+        const version = await import('./../version');
+        vi.spyOn(version, 'version', 'get').mockReturnValue(testVersion);
+        const result = await renderToString2(<Counter />, {
+          containerTagName: 'div',
+        });
+        expect(result.html.includes(`q:version="${testVersion}"`)).toBeTruthy();
+        vi.clearAllMocks();
+      });
     });
     describe('base', () => {
       it('should render', async () => {
         const testBase = '/abcd/123-test/';
         const result = await renderToString2(<Counter />, {
           containerTagName: 'div',
-          base: testBase
+          base: testBase,
         });
         expect(result.html.includes(`q:base="${testBase}"`)).toBeTruthy();
       });
     });
     describe('locale', () => {
-      it.todo('should render', async () => {});
+      it('should render', async () => {
+        const testLocale = 'pl';
+        const result = await renderToString2(<Counter />, {
+          containerTagName: 'div',
+          locale: testLocale,
+        });
+        expect(result.html.includes(`q:locale="${testLocale}"`)).toBeTruthy();
+      });
+      it('should render for function', async () => {
+        const testLocale = 'pl';
+        const result = await renderToString2(<Counter />, {
+          containerTagName: 'div',
+          locale: () => testLocale,
+        });
+        expect(result.html.includes(`q:locale="${testLocale}"`)).toBeTruthy();
+      });
+      it('should render from serverData', async () => {
+        const testLocale = 'pl';
+        const testServerDataLocale = 'en';
+        const result = await renderToString2(<Counter />, {
+          containerTagName: 'div',
+          locale: testLocale,
+          serverData: {
+            locale: testServerDataLocale,
+          },
+        });
+        expect(result.html.includes(`q:locale="${testServerDataLocale}"`)).toBeTruthy();
+      });
     });
     describe('qwikLoader', () => {
       it.todo('should render', async () => {});
@@ -217,13 +259,110 @@ describe('render api', () => {
       it.todo('should render', async () => {});
     });
     describe('containerTagName/containerAttributes', () => {
-      it.todo('should render', async () => {});
+      it('should render correct container tag name', async () => {
+        const testTag = 'test-tag';
+        const result = await renderToString2(<Counter />, {
+          containerTagName: testTag,
+        });
+        const document = createDocument(result.html);
+        expect(document.body.firstChild?.nodeName.toLowerCase()).toEqual(testTag);
+      });
+      it('should render custom container attributes', async () => {
+        const testAttrName = 'test-attr';
+        const testAttrValue = 'test-value';
+        const result = await renderToString2(<Counter />, {
+          containerTagName: 'div',
+          containerAttributes: {
+            [testAttrName]: testAttrValue,
+          },
+        });
+        expect(result.html.includes(`${testAttrName}="${testAttrValue}"`)).toBeTruthy();
+      });
+      describe('qRender', () => {
+        afterEach(async () => {
+          // restore default value
+          const qDev = await import('./../util/qdev');
+          vi.spyOn(qDev, 'qDev', 'get').mockReturnValue(true);
+        });
+        it('should render qRender with "ssr-dev" value in dev mode', async () => {
+          const result = await renderToString2(<Counter />, {
+            containerTagName: 'div',
+          });
+          expect(result.html.includes('q:render="ssr-dev"')).toBeTruthy();
+        });
+        it('should render qRender with "ssr" value in prod mode', async () => {
+          const qDev = await import('./../util/qdev');
+          vi.spyOn(qDev, 'qDev', 'get').mockReturnValue(false);
+
+          const result = await renderToString2(<Counter />, {
+            containerTagName: 'div',
+          });
+          expect(result.html.includes('q:render="ssr"')).toBeTruthy();
+        });
+        it('should render qRender with custom value in dev mode', async () => {
+          const testRender = 'ssr-test';
+          const result = await renderToString2(<Counter />, {
+            containerTagName: 'div',
+            containerAttributes: {
+              'q:render': testRender,
+            },
+          });
+          expect(result.html.includes(`q:render="${testRender}-ssr-dev"`)).toBeTruthy();
+        });
+        it('should render qRender with custom value in prod mode', async () => {
+          const qDev = await import('./../util/qdev');
+          vi.spyOn(qDev, 'qDev', 'get').mockReturnValue(false);
+
+          const testRender = 'ssr-test';
+          const result = await renderToString2(<Counter />, {
+            containerTagName: 'div',
+            containerAttributes: {
+              'q:render': testRender,
+            },
+          });
+          expect(result.html.includes(`q:render="${testRender}-ssr"`)).toBeTruthy();
+        });
+      });
     });
     describe('serverData', () => {
-      it.todo('should render', async () => {});
+      it('should render', async () => {
+        const TestCmp = componentQrl(
+          inlinedQrl(() => {
+            const myKey = useServerData<string>('my-key');
+            const defaultKey = useServerData<string>('other-key', 'default-value');
+            return (
+              <span>
+                {myKey}/{defaultKey}
+              </span>
+            );
+          }, 's_cmp1')
+        );
+
+        const result = await renderToString2(<TestCmp />, {
+          containerTagName: 'div',
+          serverData: { 'my-key': 'my-value' },
+        });
+        const document = createDocument(result.html);
+        const componentElement = document.body.firstChild;
+        expect(componentElement?.firstChild?.textContent).toEqual('my-value/default-value');
+      });
     });
     describe('manifest/symbolMapper', () => {
       it.todo('should render', async () => {});
+      it('should render manifest hash attribute', async () => {
+        const testManifestHash = 'testManifestHash';
+        const result = await renderToString2(<Counter />, {
+          containerTagName: 'div',
+          manifest: {
+            manifestHash: testManifestHash,
+            symbols: {},
+            bundles: {},
+            mapping: {},
+            version: '1',
+          },
+        });
+        expect(result.html.includes(`q:manifest-hash="${testManifestHash}"`)).toBeTruthy();
+      });
     });
     describe('debug', () => {
       it.todo('should render', async () => {});

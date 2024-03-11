@@ -37,7 +37,6 @@ import {
   type SSRContainer as ISSRContainer,
   type SsrAttrs,
   type StreamWriter,
-  type OpenContainerOptions,
 } from './types';
 import {
   CLOSE_FRAGMENT,
@@ -60,6 +59,8 @@ import {
 } from '../shared/scoped-styles';
 import { createTimer } from 'packages/qwik/src/server/utils';
 import type { RenderToStreamResult } from 'packages/qwik/src/server/types';
+import { version } from '../../version';
+import { qDev } from '../../util/qdev';
 
 export function ssrCreateContainer(
   opts: {
@@ -67,6 +68,10 @@ export function ssrCreateContainer(
     tagName?: string;
     writer?: StreamWriter;
     timing?: RenderToStreamResult['timing'];
+    buildBase?: string;
+    containerAttributes?: Record<string, string>;
+    serverData?: Record<string, any>;
+    manifestHash?: string;
   } = {}
 ): ISSRContainer {
   return new SSRContainer({
@@ -78,6 +83,10 @@ export function ssrCreateContainer(
       render: 0,
       snapshot: 0,
     },
+    buildBase: opts.buildBase || '/build/',
+    containerAttributes: opts.containerAttributes || {},
+    serverData: opts.serverData || {},
+    manifestHash: opts.manifestHash || 'dev',
   });
 }
 
@@ -112,6 +121,9 @@ class SSRContainer implements ISSRContainer {
   public writer: StreamWriter;
   public serializationCtx: SerializationContext;
   public timing: RenderToStreamResult['timing'];
+  public buildBase: string;
+  public containerAttributes: Record<string, string>;
+  public manifestHash: string;
   public $locale$: string;
   public $subsManager$: SubscriptionManager = null!;
   public $proxyMap$: ObjToProxyMap = new WeakMap();
@@ -140,9 +152,11 @@ class SSRContainer implements ISSRContainer {
     this.tag = opts.tagName;
     this.writer = opts.writer;
     this.timing = opts.timing;
+    this.buildBase = opts.buildBase;
+    this.containerAttributes = opts.containerAttributes;
+    this.manifestHash = opts.manifestHash;
     this.$locale$ = opts.locale;
-    // TODO
-    this.$serverData$ = {};
+    this.$serverData$ = opts.serverData;
     this.serializationCtx = createSerializationContext(SsrNode, null, this.$proxyMap$, this.writer);
     this.$subsManager$ = createSubscriptionManager(this as fixMeAny);
     this.$scheduler$ = createScheduler(this, () => null);
@@ -196,24 +210,34 @@ class SSRContainer implements ISSRContainer {
     return ssrNode.getProp(name);
   }
 
-  openContainer(opts?: OpenContainerOptions) {
+  openContainer() {
     if (this.tag == 'html') {
       this.write('<!DOCTYPE html>');
     }
-    this.openElement(this.tag, [
-      'q:container',
-      'paused',
-      'q:render',
-      'static-ssr',
-      'q:version',
-      'dev',
-      'q:base',
-      opts?.buildBase || '/build/',
-      'q:locale',
-      this.$locale$,
-      'q:manifest-hash',
-      'dev',
-    ]);
+    let qRender = qDev ? 'ssr-dev' : 'ssr';
+    if (this.containerAttributes['q:render']) {
+      qRender = `${this.containerAttributes['q:render']}-${qRender}`;
+    }
+
+    const containerAttributes: Record<string, string> = {
+      ...this.containerAttributes,
+      'q:container': 'paused',
+      'q:version': version ?? 'dev',
+      'q:render': qRender,
+      'q:base': this.buildBase,
+      'q:locale': this.$serverData$.locale || this.$locale$,
+      'q:manifest-hash': this.manifestHash,
+    };
+
+    const containerAttributeArray = Object.entries(containerAttributes).reduce<string[]>(
+      (acc, [key, value]) => {
+        acc.push(key, value);
+        return acc;
+      },
+      []
+    );
+
+    this.openElement(this.tag, containerAttributeArray);
   }
 
   closeContainer(): ValueOrPromise<void> {

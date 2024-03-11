@@ -12,7 +12,6 @@ import { ssrCreateContainer } from './ssr-container';
 import { ssrRenderToContainer } from './ssr-render-jsx';
 import { setServerPlatform } from '../../../server/platform';
 import { getBuildBase } from '../../../server/utils';
-import { manifest } from '@qwik-client-manifest';
 
 export const renderToString2: typeof renderToString = async (
   jsx: JSXOutput,

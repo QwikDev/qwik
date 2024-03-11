@@ -22,15 +22,15 @@ import { isClassAttr } from '../shared/scoped-styles';
 import { qrlToString, type SerializationContext } from '../shared/shared-serialization';
 import { DEBUG_TYPE, VirtualType, type fixMeAny } from '../shared/types';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
-import type { OpenContainerOptions, SSRContainer, SsrAttrs } from './types';
+import type { SSRContainer, SsrAttrs } from './types';
 
 /**
  * We support Promises in JSX but we don't expose this in the public API because it breaks signal
  * tracking after the first await.
  */
 type JSXValue = ValueOrPromise<JSXOutput>;
-export async function ssrRenderToContainer(ssr: SSRContainer, jsx: JSXOutput, opts?: OpenContainerOptions) {
-  ssr.openContainer(opts);
+export async function ssrRenderToContainer(ssr: SSRContainer, jsx: JSXOutput) {
+  ssr.openContainer();
   await walkJSX(ssr, jsx, true);
   ssr.closeContainer();
 }

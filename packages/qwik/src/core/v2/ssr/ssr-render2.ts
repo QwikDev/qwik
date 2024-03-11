@@ -74,12 +74,20 @@ export const renderToStream2: typeof renderToStream = async (
   const resolvedManifest = resolveManifest(opts.manifest);
 
   const locale = typeof opts.locale === 'function' ? opts.locale(opts) : opts.locale;
-  const ssrContainer = ssrCreateContainer({ tagName: containerTagName, locale, writer: stream, timing });
+
+  const ssrContainer = ssrCreateContainer({
+    tagName: containerTagName,
+    locale,
+    writer: stream,
+    timing,
+    buildBase,
+    containerAttributes,
+    serverData: opts.serverData,
+    manifestHash: resolvedManifest?.manifest.manifestHash,
+  });
 
   await setServerPlatform(opts, resolvedManifest);
-  await ssrRenderToContainer(ssrContainer, jsx, {
-    buildBase,
-  });
+  await ssrRenderToContainer(ssrContainer, jsx);
 
   const isDynamic = false;
   const result: RenderToStreamResult = {

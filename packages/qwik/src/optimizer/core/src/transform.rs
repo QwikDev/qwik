@@ -317,7 +317,8 @@ impl<'a> QwikTransform<'a> {
             display_name += "s_";
         }
         display_name = escape_sym(&display_name);
-        if display_name.starts_with(|c| matches!(c, '0'..='9')) {
+        let first_char = display_name.chars().next();
+        if first_char.map_or(false, |c| c.is_ascii_digit()) {
             display_name = format!("_{}", display_name);
         }
         let index = match self.hooks_names.get_mut(&display_name) {
@@ -1745,7 +1746,6 @@ impl<'a> Fold for QwikTransform<'a> {
                 {
                     self.hooks
                         .drain(..)
-                        .into_iter()
                         .map(|hook| {
                             let id = (hook.name.clone(), SyntaxContext::from_u32(hook.hash as u32));
                             ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::Var(Box::new(
@@ -2170,12 +2170,11 @@ impl<'a> Fold for QwikTransform<'a> {
                     } else {
                         let new_specifier =
                             convert_signal_word(&ident.sym).expect("Specifier ends with $");
-                        let new_local = global_collect
+                        global_collect
                             .exports
                             .keys()
-                            .find(|id| id.0 == new_specifier);
-
-                        new_local.map_or_else(
+                            .find(|id| id.0 == new_specifier)
+                            .map_or_else(
                                 || {
                                     HANDLER.with(|handler| {
                                         handler

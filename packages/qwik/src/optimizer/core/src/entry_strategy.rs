@@ -183,7 +183,7 @@ pub fn parse_entry_strategy(
     manual_chunks: Option<HashMap<String, JsWord>>,
 ) -> Box<dyn EntryPolicy> {
     match strategy {
-        EntryStrategy::Inline | EntryStrategy::Hoist => Box::new(InlineStrategy::default()),
+        EntryStrategy::Inline | EntryStrategy::Hoist => Box::<InlineStrategy>::default(),
         EntryStrategy::Hook => Box::new(PerHookStrategy::new(manual_chunks)),
         EntryStrategy::Single => Box::new(SingleStrategy::new(manual_chunks)),
         EntryStrategy::Component => Box::new(PerComponentStrategy::new(manual_chunks)),

@@ -1466,21 +1466,12 @@ impl<'a> QwikTransform<'a> {
                                         )));
                                         mutable_props.push(prop.fold_with(self));
                                     } else {
-                                        immutable_props.push(ast::PropOrSpread::Prop(Box::new(
-                                            ast::Prop::KeyValue(ast::KeyValueProp {
-                                                key: normalize_jsx_key(&node.key, &key_word),
-                                                value: node.value.clone(),
-                                            }),
-                                        )));
+                                        immutable_props.push(prop.fold_with(self));
                                     }
                                 } else if let Some((getter, is_immutable)) =
                                     self.convert_to_getter(&node.value, is_fn)
                                 {
-                                    let key = if is_fn {
-                                        node.key.clone()
-                                    } else {
-                                        normalize_jsx_key(&node.key, &key_word)
-                                    };
+                                    let key = node.key.clone();
                                     if is_fn {
                                         mutable_props.push(ast::PropOrSpread::Prop(Box::new(
                                             ast::Prop::Getter(ast::GetterProp {
@@ -1510,13 +1501,6 @@ impl<'a> QwikTransform<'a> {
                                     } else {
                                         mutable_props.push(entry);
                                     }
-                                } else if !is_fn && key_word == *CLASS_NAME {
-                                    mutable_props.push(ast::PropOrSpread::Prop(Box::new(
-                                        ast::Prop::KeyValue(ast::KeyValueProp {
-                                            key: normalize_jsx_key(&node.key, &key_word),
-                                            value: node.value.clone(),
-                                        }),
-                                    )));
                                 } else {
                                     mutable_props.push(prop.fold_with(self));
                                 }
@@ -2427,13 +2411,6 @@ fn make_wrap(method: &Id, obj: Box<ast::Expr>, prop: JsWord) -> ast::Expr {
         span: DUMMY_SP,
         type_args: None,
     })
-}
-
-fn normalize_jsx_key(key: &ast::PropName, key_word: &JsWord) -> PropName {
-    if key_word == "className" {
-        return ast::PropName::Ident(ast::Ident::new("class".into(), DUMMY_SP));
-    }
-    key.clone()
 }
 
 fn get_null_arg() -> ast::ExprOrSpread {

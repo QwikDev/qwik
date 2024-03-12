@@ -956,6 +956,7 @@ const noop: PropHandler = () => {
 export const PROP_HANDLER_MAP: Record<string, PropHandler | undefined> = {
   style: handleStyle,
   class: handleClass,
+  className: handleClass,
   value: checkBeforeAssign,
   checked: checkBeforeAssign,
   href: forceAttribute,

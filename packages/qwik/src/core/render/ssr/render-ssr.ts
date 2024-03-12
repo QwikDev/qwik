@@ -544,9 +544,6 @@ const renderNode = (
     let hasRef = false;
     let classStr = '';
     let htmlStr = null;
-    if (qDev && props.class && props.className) {
-      throw new TypeError('Can only have one of class or className');
-    }
     const handleProp = (rawProp: string, value: unknown, isImmutable: boolean) => {
       if (rawProp === 'ref') {
         if (value !== undefined) {
@@ -577,7 +574,7 @@ const renderNode = (
       }
       let attrValue;
       const prop = rawProp === 'htmlFor' ? 'for' : rawProp;
-      if (prop === 'class') {
+      if (prop === 'class' || prop === 'className') {
         classStr = serializeClass(value as ClassList);
       } else if (prop === 'style') {
         attrValue = stringifyStyle(value);

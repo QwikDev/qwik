@@ -180,7 +180,7 @@ export async function renderToStream(
       const children: (JSXNode | null)[] = [];
       if (opts.prefetchStrategy !== null) {
         // skip prefetch implementation if prefetchStrategy === null
-        const prefetchResources = getPrefetchResources(snapshotResult, opts, resolvedManifest);
+        const prefetchResources = getPrefetchResources(snapshotResult.qrls, opts, resolvedManifest);
         if (prefetchResources.length > 0) {
           const prefetchImpl = applyPrefetchImplementation(
             opts.prefetchStrategy,

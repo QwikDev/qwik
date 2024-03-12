@@ -1,16 +1,12 @@
 import { getBuildBase } from './utils';
-import type {
-  PrefetchResource,
-  QwikManifest,
-  RenderToStringOptions,
-  SnapshotResult,
-} from './types';
+import type { PrefetchResource, QwikManifest, RenderToStringOptions } from './types';
 
 import type { QRLInternal } from '../core/qrl/qrl-class';
 import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
+import type { QRL } from '@builder.io/qwik';
 
 export function getPrefetchResources(
-  snapshotResult: SnapshotResult | null,
+  qrls: QRL[],
   opts: RenderToStringOptions,
   resolvedManifest: ResolvedManifest | undefined
 ): PrefetchResource[] {
@@ -32,7 +28,7 @@ export function getPrefetchResources(
       // if prefetchStrategy is undefined
       // or prefetchStrategy.symbolsToPrefetch is undefined
       // get event QRLs used in this document
-      return getAutoPrefetch(snapshotResult, resolvedManifest, buildBase);
+      return getAutoPrefetch(qrls, resolvedManifest, buildBase);
     }
 
     if (typeof prefetchStrategy.symbolsToPrefetch === 'function') {
@@ -48,17 +44,12 @@ export function getPrefetchResources(
   return [];
 }
 
-function getAutoPrefetch(
-  snapshotResult: SnapshotResult | null,
-  resolvedManifest: ResolvedManifest,
-  buildBase: string
-) {
+function getAutoPrefetch(qrls: QRL[], resolvedManifest: ResolvedManifest, buildBase: string) {
   const prefetchResources: PrefetchResource[] = [];
-  const qrls = snapshotResult?.qrls;
   const { mapper, manifest } = resolvedManifest;
   const urls = new Map<string, PrefetchResource>();
 
-  if (Array.isArray(qrls)) {
+  if (mapper && manifest) {
     for (const obj of qrls) {
       const qrlSymbolName = obj.getHash();
       const resolvedSymbol = mapper[qrlSymbolName];

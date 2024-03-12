@@ -8,11 +8,13 @@ import { isJSXNode } from '../../render/jsx/jsx-runtime';
 import { QSlot, QSlotParent } from '../../util/markers';
 import type { Container2 } from '../shared/types';
 import type { ValueOrPromise } from '../../util/types';
+import type { PrefetchResource } from '@builder.io/qwik/server';
 
 export interface SSRContainer extends Container2 {
   tag: string;
   writer: StreamWriter;
   serializationCtx: SerializationContext;
+  prefetchResources: PrefetchResource[];
 
   openContainer(): void;
   closeContainer(): void;

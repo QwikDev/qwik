@@ -162,14 +162,20 @@ describe('render api', () => {
       );
     });
     describe('render result', () => {
-      it.todo('should render', async () => {
+      it('should render', async () => {
         const result = await renderToString2(<Counter />, {
           containerTagName: 'div',
+          manifest: {
+            manifestHash: '',
+            symbols: {},
+            bundles: {},
+            mapping: {},
+            version: '1',
+          },
         });
-        // console.log('result', result.html);
         expect(result).toMatchObject({
           isStatic: true,
-          prefetchResources: [],
+          prefetchResources: expect.any(Array),
           timing: expect.any(Object),
           manifest: expect.any(Object),
           snapshotResult: expect.any(Object),
@@ -205,7 +211,7 @@ describe('render api', () => {
         const result = await renderToString2(<Counter />, {
           containerTagName: 'div',
         });
-        expect(result.html.includes(`q:version="${testVersion}"`)).toBeTruthy();
+        expect(result.html).toContain(`q:version="${testVersion}"`);
         vi.clearAllMocks();
       });
     });
@@ -216,7 +222,7 @@ describe('render api', () => {
           containerTagName: 'div',
           base: testBase,
         });
-        expect(result.html.includes(`q:base="${testBase}"`)).toBeTruthy();
+        expect(result.html).toContain(`q:base="${testBase}"`);
       });
     });
     describe('locale', () => {
@@ -226,7 +232,7 @@ describe('render api', () => {
           containerTagName: 'div',
           locale: testLocale,
         });
-        expect(result.html.includes(`q:locale="${testLocale}"`)).toBeTruthy();
+        expect(result.html).toContain(`q:locale="${testLocale}"`);
       });
       it('should render for function', async () => {
         const testLocale = 'pl';
@@ -234,7 +240,7 @@ describe('render api', () => {
           containerTagName: 'div',
           locale: () => testLocale,
         });
-        expect(result.html.includes(`q:locale="${testLocale}"`)).toBeTruthy();
+        expect(result.html).toContain(`q:locale="${testLocale}"`);
       });
       it('should render from serverData', async () => {
         const testLocale = 'pl';
@@ -246,17 +252,249 @@ describe('render api', () => {
             locale: testServerDataLocale,
           },
         });
-        expect(result.html.includes(`q:locale="${testServerDataLocale}"`)).toBeTruthy();
+        expect(result.html).toContain(`q:locale="${testServerDataLocale}"`);
       });
     });
     describe('qwikLoader', () => {
-      it.todo('should render', async () => {});
+      it.todo('should render', async () => { });
     });
     describe('qwikPrefetchServiceWorker', () => {
-      it.todo('should render', async () => {});
+      it.todo('should render', async () => { });
     });
     describe('prefetchStrategy', () => {
-      it.todo('should render', async () => {});
+      it('should render with default prefetch implementation', async () => {
+        const result = await renderToString2(<Counter />, {
+          containerTagName: 'div',
+          prefetchStrategy: {
+            symbolsToPrefetch: 'auto',
+          },
+          manifest: {
+            manifestHash: 'manifest-hash',
+            symbols: {},
+            bundles: {},
+            mapping: {
+              'counter': 'counter.js'
+            },
+            version: '1',
+          },
+        });
+        expect(result.prefetchResources).toEqual(expect.any(Array));
+        const document = createDocument(result.html);
+        expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
+        expect(document.querySelectorAll('script[q\\:type=link-js]')).toHaveLength(0);
+        expect(document.querySelectorAll('script[q\\:type=prefetch-worker]')).toHaveLength(0);
+        expect(document.querySelectorAll('link')).toHaveLength(0);
+      });
+      it('should render with linkInsert: "html-append"', async () => {
+        const result = await renderToString2(<Counter />, {
+          containerTagName: 'div',
+          prefetchStrategy: {
+            symbolsToPrefetch: 'auto',
+            implementation: {
+              linkInsert: 'html-append',
+            }
+          },
+          manifest: {
+            manifestHash: 'manifest-hash',
+            symbols: {},
+            bundles: {},
+            mapping: {
+              'counter': 'counter.js'
+            },
+            version: '1',
+          },
+        });
+        const document = createDocument(result.html);
+        expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
+        expect(document.querySelectorAll('script[q\\:type=link-js]')).toHaveLength(0);
+        expect(document.querySelectorAll('script[q\\:type=prefetch-worker]')).toHaveLength(0);
+        expect(document.querySelectorAll('link[rel=prefetch][as=script]')).toHaveLength(1);
+      });
+      it('should render with linkInsert: "js-append"', async () => {
+        const result = await renderToString2(<Counter />, {
+          containerTagName: 'div',
+          prefetchStrategy: {
+            symbolsToPrefetch: 'auto',
+            implementation: {
+              linkInsert: 'js-append',
+            }
+          },
+          manifest: {
+            manifestHash: 'manifest-hash',
+            symbols: {},
+            bundles: {},
+            mapping: {
+              'counter': 'counter.js'
+            },
+            version: '1',
+          },
+        });
+        const document = createDocument(result.html);
+        expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
+        const linkJsScript = document.querySelectorAll('script[q\\:type=link-js]');
+        expect(linkJsScript).toHaveLength(1);
+        expect(linkJsScript[0]?.textContent).toContain('setAttribute("rel","prefetch")');
+        expect(document.querySelectorAll('script[q\\:type=prefetch-worker]')).toHaveLength(0);
+        expect(document.querySelectorAll('link')).toHaveLength(0);
+      });
+      it('should render with linkInsert: "html-append" and linkRel: "modulepreload"', async () => {
+        const result = await renderToString2(<Counter />, {
+          containerTagName: 'div',
+          prefetchStrategy: {
+            symbolsToPrefetch: 'auto',
+            implementation: {
+              linkInsert: 'html-append',
+              linkRel: 'modulepreload',
+            }
+          },
+          manifest: {
+            manifestHash: 'manifest-hash',
+            symbols: {},
+            bundles: {},
+            mapping: {
+              'counter': 'counter.js'
+            },
+            version: '1',
+          },
+        });
+        const document = createDocument(result.html);
+        expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
+        expect(document.querySelectorAll('script[q\\:type=link-js]')).toHaveLength(0);
+        expect(document.querySelectorAll('script[q\\:type=prefetch-worker]')).toHaveLength(0);
+        expect(document.querySelectorAll('link[rel=modulepreload]')).toHaveLength(1);
+      });
+      it('should render with linkInsert: "js-append" and linkRel: "modulepreload"', async () => {
+        const result = await renderToString2(<Counter />, {
+          containerTagName: 'div',
+          prefetchStrategy: {
+            symbolsToPrefetch: 'auto',
+            implementation: {
+              linkInsert: 'js-append',
+              linkRel: 'modulepreload',
+            }
+          },
+          manifest: {
+            manifestHash: 'manifest-hash',
+            symbols: {},
+            bundles: {},
+            mapping: {
+              'counter': 'counter.js'
+            },
+            version: '1',
+          },
+        });
+        const document = createDocument(result.html);
+        expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
+        const linkJsScript = document.querySelectorAll('script[q\\:type=link-js]');
+        expect(linkJsScript).toHaveLength(1);
+        expect(linkJsScript[0]?.textContent).toContain('setAttribute("rel","modulepreload")');
+        expect(document.querySelectorAll('script[q\\:type=prefetch-worker]')).toHaveLength(0);
+        expect(document.querySelectorAll('link')).toHaveLength(0);
+      });
+      it('should render with linkInsert: "html-append" and linkRel: "preload"', async () => {
+        const result = await renderToString2(<Counter />, {
+          containerTagName: 'div',
+          prefetchStrategy: {
+            symbolsToPrefetch: 'auto',
+            implementation: {
+              linkInsert: 'html-append',
+              linkRel: 'preload',
+            }
+          },
+          manifest: {
+            manifestHash: 'manifest-hash',
+            symbols: {},
+            bundles: {},
+            mapping: {
+              'counter': 'counter.js'
+            },
+            version: '1',
+          },
+        });
+        const document = createDocument(result.html);
+        expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
+        expect(document.querySelectorAll('script[q\\:type=link-js]')).toHaveLength(0);
+        expect(document.querySelectorAll('script[q\\:type=prefetch-worker]')).toHaveLength(0);
+        expect(document.querySelectorAll('link[rel=preload]')).toHaveLength(1);
+      });
+      it('should render with linkInsert: "js-append" and linkRel: "preload"', async () => {
+        const result = await renderToString2(<Counter />, {
+          containerTagName: 'div',
+          prefetchStrategy: {
+            symbolsToPrefetch: 'auto',
+            implementation: {
+              linkInsert: 'js-append',
+              linkRel: 'preload',
+            }
+          },
+          manifest: {
+            manifestHash: 'manifest-hash',
+            symbols: {},
+            bundles: {},
+            mapping: {
+              'counter': 'counter.js'
+            },
+            version: '1',
+          },
+        });
+        const document = createDocument(result.html);
+        expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
+        const linkJsScript = document.querySelectorAll('script[q\\:type=link-js]');
+        expect(linkJsScript).toHaveLength(1);
+        expect(linkJsScript[0]?.textContent).toContain('setAttribute("rel","preload")');
+        expect(document.querySelectorAll('script[q\\:type=prefetch-worker]')).toHaveLength(0);
+        expect(document.querySelectorAll('link')).toHaveLength(0);
+      });
+      it('should render with prefetchEvent: "null"', async () => {
+        const result = await renderToString2(<Counter />, {
+          containerTagName: 'div',
+          prefetchStrategy: {
+            symbolsToPrefetch: 'auto',
+            implementation: {
+              prefetchEvent: null,
+            }
+          },
+          manifest: {
+            manifestHash: 'manifest-hash',
+            symbols: {},
+            bundles: {},
+            mapping: {
+              'counter': 'counter.js'
+            },
+            version: '1',
+          },
+        });
+        const document = createDocument(result.html);
+        expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(0);
+        expect(document.querySelectorAll('script[q\\:type=link-js]')).toHaveLength(0);
+        expect(document.querySelectorAll('script[q\\:type=prefetch-worker]')).toHaveLength(0);
+        expect(document.querySelectorAll('link')).toHaveLength(0);
+      });
+      it('should render with workerFetchInsert: "always"', async () => {
+        const result = await renderToString2(<Counter />, {
+          containerTagName: 'div',
+          prefetchStrategy: {
+            symbolsToPrefetch: 'auto',
+            implementation: {
+              workerFetchInsert: 'always',
+            }
+          },
+          manifest: {
+            manifestHash: 'manifest-hash',
+            symbols: {},
+            bundles: {},
+            mapping: {
+              'counter': 'counter.js'
+            },
+            version: '1',
+          },
+        });
+        const document = createDocument(result.html);
+        expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
+        expect(document.querySelectorAll('script[q\\:type=link-js]')).toHaveLength(0);
+        expect(document.querySelectorAll('script[q\\:type=prefetch-worker]')).toHaveLength(1);
+        expect(document.querySelectorAll('link')).toHaveLength(0);
+      });
     });
     describe('containerTagName/containerAttributes', () => {
       it('should render correct container tag name', async () => {
@@ -348,7 +586,7 @@ describe('render api', () => {
       });
     });
     describe('manifest/symbolMapper', () => {
-      it.todo('should render', async () => {});
+      it.todo('should render', async () => { });
       it('should render manifest hash attribute', async () => {
         const testManifestHash = 'testManifestHash';
         const result = await renderToString2(<Counter />, {
@@ -365,12 +603,12 @@ describe('render api', () => {
       });
     });
     describe('debug', () => {
-      it.todo('should render', async () => {});
+      it.todo('should render', async () => { });
     });
   });
   describe('renderToStream()', () => {
     describe('render result', () => {
-      it.todo('should render', async () => {});
+      it.todo('should render', async () => { });
     });
     describe('stream', () => {
       it.todo('should render');

@@ -25,6 +25,7 @@ import { vnode_isVNode, vnode_locate } from '../client/vnode';
 import type { ObjToProxyMap } from '../../container/container';
 import { isPromise } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
+import type { QRL } from '../../qrl/qrl.public';
 
 const deserializedProxyMap = new WeakMap<object, unknown>();
 
@@ -499,6 +500,8 @@ export interface SerializationContext {
 
   $writer$: StreamWriter;
   $syncFns$: string[];
+
+  $qrls$: Set<QRL>;
 }
 
 export const createSerializationContext = (
@@ -579,6 +582,7 @@ export const createSerializationContext = (
       };
       return drain();
     },
+    $qrls$: new Set<QRL>(),
   };
 
   function breakCircularDependenciesAndResolvePromises(
@@ -681,9 +685,11 @@ export function serialize(serializationContext: SerializationContext): void {
       $writer$.write(String(value));
     } else if (typeof value === 'function') {
       if (isQrl(value)) {
+        serializationContext.$qrls$.add(value);
         writeString(SerializationConstant.QRL_CHAR + qrlToString(value, $addRoot$));
       } else if (isQwikComponent(value)) {
         const [qrl]: [QRLInternal] = (value as any)[SERIALIZABLE_STATE];
+        serializationContext.$qrls$.add(qrl);
         writeString(SerializationConstant.Component_CHAR + qrlToString(qrl, $addRoot$));
       } else {
         // throw new Error('implement: ' + value);
@@ -800,6 +806,7 @@ export function serialize(serializationContext: SerializationContext): void {
           )} ${$addRoot$(value.immutableProps)} ${$addRoot$(value.children)} ${value.flags}`
       );
     } else if (value instanceof Task) {
+      serializationContext.$qrls$.add(value.$qrl$);
       writeString(
         SerializationConstant.Task_CHAR +
           value.$flags$ +
@@ -1158,4 +1165,3 @@ export const codeToName = (code: number) => {
       return 'Uint8Array';
   }
 };
-

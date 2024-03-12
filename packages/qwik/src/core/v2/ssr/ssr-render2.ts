@@ -55,7 +55,13 @@ export const renderToStream2: typeof renderToStream = async (
   const totalSize = 0;
   const networkFlushes = 0;
   const buffer: string = '';
-  let snapshotResult: SnapshotResult | undefined;
+  const snapshotResult: SnapshotResult = {
+    funcs: [],
+    // TODO
+    mode: 'render',
+    qrls: [],
+    resources: [],
+  };
   const inOrderStreaming = opts.streaming?.inOrder ?? {
     strategy: 'auto',
     maximunInitialChunk: 50000,
@@ -81,17 +87,18 @@ export const renderToStream2: typeof renderToStream = async (
     writer: stream,
     timing,
     buildBase,
-    containerAttributes,
-    serverData: opts.serverData,
-    manifestHash: resolvedManifest?.manifest.manifestHash,
+    resolvedManifest,
+    renderOptions: opts,
   });
 
   await setServerPlatform(opts, resolvedManifest);
   await ssrRenderToContainer(ssrContainer, jsx);
 
+  snapshotResult.qrls = Array.from(ssrContainer.serializationCtx.$qrls$);
+
   const isDynamic = false;
   const result: RenderToStreamResult = {
-    prefetchResources: undefined as any,
+    prefetchResources: ssrContainer.prefetchResources,
     snapshotResult,
     flushes: networkFlushes,
     manifest: resolvedManifest?.manifest,

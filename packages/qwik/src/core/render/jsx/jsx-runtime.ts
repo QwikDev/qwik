@@ -58,7 +58,7 @@ export const _jsxQ = <T extends string>(
 /**
  * @internal
  *
- * Create a JSXNode for a string tag, with the children extracted from the mutableProps
+ * A string tag with dynamic props, possibly containing children
  */
 export const _jsxS = <T extends string>(
   type: T,
@@ -127,7 +127,11 @@ export const _jsxC = <T extends string | FunctionComponent<Record<any, unknown>>
   return node;
 };
 
-/** @public */
+/**
+ * @public
+ * Used by the JSX transpilers to create a JSXNode.
+ * Note that the optimizer will not use this, instead using _jsxQ, _jsxS, and _jsxC directly.
+ */
 export const jsx = <T extends string | FunctionComponent<any>>(
   type: T,
   props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<any, unknown>,

@@ -777,6 +777,23 @@
     "tags": "site,documentation"
   },
   {
+    "title": "Assisted Living Prices & Ratings | Senior Living Advisors | Mirador",
+    "imgSrc": "/showcases/miradorliving_com_.webp",
+    "perf": {
+      "score": 0.43,
+      "fcpDisplay": "4.5 s",
+      "fcpScore": 0.14,
+      "lcpDisplay": "6.9 s",
+      "lcpScore": 0.06,
+      "ttiDisplay": "11.3 s",
+      "ttiScore": 0.19,
+      "ttiTime": 11290.38582611084
+    },
+    "href": "https://miradorliving.com/",
+    "size": "large",
+    "tags": "site,app,company,consumer"
+  },
+  {
     "title": "The Date Today - TodaysDateNow.com",
     "imgSrc": "/showcases/todaysdatenow_com_.webp",
     "perf": {

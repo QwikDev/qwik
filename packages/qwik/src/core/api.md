@@ -392,7 +392,7 @@ export type IntrinsicSVGElements = {
 // @public
 export const isSignal: <T = unknown>(obj: any) => obj is Signal<T>;
 
-// @public (undocumented)
+// @public
 const jsx: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<any, unknown>, key?: string | number | null) => JSXNode<T>;
 export { jsx }
 export { jsx as jsxs }

@@ -1158,7 +1158,7 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\njsx: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<any, unknown>, key?: string | number | null) => JSXNode<T>\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  type | T |  |\n|  props | T extends [FunctionComponent](#functioncomponent)<!-- -->&lt;infer PROPS&gt; ? PROPS : Record&lt;any, unknown&gt; |  |\n|  key | string \\| number \\| null | _(Optional)_ |\n\n**Returns:**\n\n[JSXNode](#jsxnode)<!-- -->&lt;T&gt;",
+      "content": "Used by the JSX transpilers to create a JSXNode. Note that the optimizer will not use this, instead using \\_jsxQ, \\_jsxS, and \\_jsxC directly.\n\n\n```typescript\njsx: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<any, unknown>, key?: string | number | null) => JSXNode<T>\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  type | T |  |\n|  props | T extends [FunctionComponent](#functioncomponent)<!-- -->&lt;infer PROPS&gt; ? PROPS : Record&lt;any, unknown&gt; |  |\n|  key | string \\| number \\| null | _(Optional)_ |\n\n**Returns:**\n\n[JSXNode](#jsxnode)<!-- -->&lt;T&gt;",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts",
       "mdFile": "qwik.jsx.md"
     },

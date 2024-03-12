@@ -24,7 +24,7 @@ use swc_atoms::{js_word, JsWord};
 use swc_common::comments::{Comments, SingleThreadedComments};
 use swc_common::SyntaxContext;
 use swc_common::{errors::HANDLER, sync::Lrc, SourceMap, Span, Spanned, DUMMY_SP};
-use swc_ecmascript::ast::{self, PropName};
+use swc_ecmascript::ast::{self};
 use swc_ecmascript::utils::{private_ident, quote_ident, ExprFactory};
 use swc_ecmascript::visit::{noop_fold_type, Fold, FoldWith, VisitWith};
 
@@ -533,6 +533,7 @@ impl<'a> QwikTransform<'a> {
         }
     }
 
+    /** Converts inline expressions into QRLs. Returns (expr?, true) if succeeded. */
     fn create_synthetic_qqhook(
         &mut self,
         first_arg: ast::Expr,
@@ -1143,6 +1144,7 @@ impl<'a> QwikTransform<'a> {
         let (dynamic_props, mut mutable_props, mut immutable_props, children, flags) =
             self.internal_handle_jsx_props_obj(expr, is_fn, is_text_only);
 
+        // For functions, put the immutable props under the "_IMMUTABLE" prop
         if is_fn && !immutable_props.is_empty() {
             mutable_props.push(ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(
                 ast::KeyValueProp {
@@ -1453,7 +1455,7 @@ impl<'a> QwikTransform<'a> {
                                     &self.options.global_collect,
                                     Some(&immutable_idents),
                                 ) {
-                                    if is_fn {
+                                    if is_fn || dynamic_props {
                                         immutable_props.push(ast::PropOrSpread::Prop(Box::new(
                                             ast::Prop::KeyValue(ast::KeyValueProp {
                                                 key: node.key.clone(),
@@ -1472,7 +1474,7 @@ impl<'a> QwikTransform<'a> {
                                     self.convert_to_getter(&node.value, is_fn)
                                 {
                                     let key = node.key.clone();
-                                    if is_fn {
+                                    if is_fn || dynamic_props {
                                         mutable_props.push(ast::PropOrSpread::Prop(Box::new(
                                             ast::Prop::Getter(ast::GetterProp {
                                                 span: DUMMY_SP,
@@ -1525,9 +1527,6 @@ impl<'a> QwikTransform<'a> {
                 } else {
                     mutable_props.extend(event_handlers.into_iter());
                 }
-
-                mutable_props.sort_by(sort_props);
-                immutable_props.sort_by(sort_props);
 
                 if static_subtree {
                     flags |= 1 << 1;
@@ -1590,6 +1589,7 @@ impl<'a> QwikTransform<'a> {
         }
     }
 
+    /* Convert an expression to a QRL or a getter. Returns (expr, isImmutable) */
     fn convert_to_getter(&mut self, expr: &ast::Expr, is_fn: bool) -> Option<(ast::Expr, bool)> {
         let inlined = self.create_synthetic_qqhook(expr.clone(), true);
         if let Some(expr) = inlined.0 {
@@ -2425,29 +2425,4 @@ fn is_text_only(node: &str) -> bool {
         node,
         "text" | "textarea" | "title" | "option" | "script" | "style" | "noscript"
     )
-}
-
-fn sort_props(a: &ast::PropOrSpread, b: &ast::PropOrSpread) -> std::cmp::Ordering {
-    match (a, b) {
-        (
-            ast::PropOrSpread::Prop(box ast::Prop::KeyValue(ref a)),
-            ast::PropOrSpread::Prop(box ast::Prop::KeyValue(ref b)),
-        ) => {
-            let a_key = match &a.key {
-                ast::PropName::Ident(ident) => Some(ident.sym.as_ref()),
-                ast::PropName::Str(s) => Some(s.value.as_ref()),
-                _ => None,
-            };
-            let b_key = match b.key {
-                ast::PropName::Ident(ref ident) => Some(ident.sym.as_ref()),
-                ast::PropName::Str(ref s) => Some(s.value.as_ref()),
-                _ => None,
-            };
-            match (a_key, b_key) {
-                (Some(a_key), Some(b_key)) => a_key.cmp(b_key),
-                _ => std::cmp::Ordering::Equal,
-            }
-        }
-        _ => std::cmp::Ordering::Equal,
-    }
 }

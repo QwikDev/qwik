@@ -18,6 +18,7 @@ import { useTask$ } from '../use/use-task';
 import { getPlatform, setPlatform } from '../platform/platform';
 import { getTestPlatform } from '../../testing/platform';
 import { Resource, useResourceQrl } from '../use/use-resource';
+import { _fnSignal } from '../internal';
 
 describe('render api', () => {
   let document: Document;
@@ -618,14 +619,31 @@ describe('render api', () => {
       it.todo('should render', async () => { });
     });
     describe('snapshotResult', () => {
-      it('should contain resources and qrls', async () => {
+      it('should contain qrls and resources', async () => {
         const result = await renderToString2(<body><ResourceComponent /></body>, {
           containerTagName: 'html',
         });
         expect(result.snapshotResult?.qrls).toHaveLength(1);
         expect(result.snapshotResult?.resources).toHaveLength(1);
+        expect(result.snapshotResult?.funcs).toHaveLength(0);
       });
-      it.todo('should contain funcs', async () => { });
+      it('should contain qrls and funcs', async () => {
+        const CounterDerived = component$((props: { initial: number }) => {
+          const count = useSignal(props.initial);
+          return (
+            <button onClick$={inlinedQrl(() => useLexicalScope()[0].value++, 's_onClick', [count])}>
+              Count: {_fnSignal((p0) => p0.value, [count], 'p0.value')}!
+            </button>
+          );
+        });
+        const result = await renderToString2(<body><CounterDerived initial={123} /></body>, {
+          containerTagName: 'html',
+        });
+        expect(result.snapshotResult?.qrls).toHaveLength(1);
+        expect(result.snapshotResult?.resources).toHaveLength(0);
+        expect(result.snapshotResult?.funcs).toHaveLength(1);
+      });
+      it.todo('should contain correct mode', async () => { })
     });
   });
   describe('renderToStream()', () => {

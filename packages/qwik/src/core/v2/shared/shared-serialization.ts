@@ -503,6 +503,7 @@ export interface SerializationContext {
 
   $qrls$: Set<QRL>;
   $resources$: Set<ResourceReturnInternal<unknown>>;
+  $inlinedFunctions$: Set<string>;
 }
 
 export const createSerializationContext = (
@@ -585,6 +586,7 @@ export const createSerializationContext = (
     },
     $qrls$: new Set<QRL>(),
     $resources$: new Set<ResourceReturnInternal<unknown>>(),
+    $inlinedFunctions$: new Set<string>(),
   };
 
   function breakCircularDependenciesAndResolvePromises(
@@ -766,7 +768,13 @@ export function serialize(serializationContext: SerializationContext): void {
           (subscriptions === '' ? '' : ';' + subscriptions)
       );
     } else if (value instanceof SignalDerived) {
-      writeString(serializeSignalDerived(serializationContext, value, $addRoot$));
+      const serializedSignalDerived = serializeSignalDerived(
+        serializationContext,
+        value,
+        $addRoot$
+      );
+      serializationContext.$inlinedFunctions$.add(serializedSignalDerived);
+      writeString(serializedSignalDerived);
     } else if (value instanceof Store) {
       writeString(SerializationConstant.Store_CHAR + $addRoot$(unwrapProxy(value)));
     } else if (value instanceof URL) {

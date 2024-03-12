@@ -88,7 +88,7 @@ export const renderToStream2: typeof renderToStream = async (
   await ssrRenderToContainer(ssrContainer, jsx);
 
   const snapshotResult: SnapshotResult = {
-    funcs: [],
+    funcs: Array.from(ssrContainer.serializationCtx.$inlinedFunctions$),
     // TODO
     mode: 'render',
     qrls: Array.from(ssrContainer.serializationCtx.$qrls$),

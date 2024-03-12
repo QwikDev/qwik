@@ -29,7 +29,7 @@ export interface SnapshotMetaValue {
 /** @public */
 export type SnapshotMeta = Record<string, SnapshotMetaValue>;
 
-/** @public */
+/** @public @deprecated not longer used in v2 */
 export interface SnapshotState {
   ctx: SnapshotMeta;
   refs: Record<string, string>;
@@ -46,10 +46,12 @@ export interface SnapshotListener {
 
 /** @public */
 export interface SnapshotResult {
-  state: SnapshotState;
+  /** @deprecated not longer used in v2 */
+  state?: SnapshotState;
   funcs: string[];
   qrls: QRL[];
-  objs: any[];
+  /** @deprecated not longer used in v2 */
+  objs?: any[];
   resources: ResourceReturnInternal<any>[];
   mode: 'render' | 'listeners' | 'static';
 }

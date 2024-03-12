@@ -58,9 +58,16 @@ import {
   isClassAttr,
 } from '../shared/scoped-styles';
 import { createTimer } from 'packages/qwik/src/server/utils';
-import type { RenderToStreamResult } from 'packages/qwik/src/server/types';
+import type {
+  PrefetchResource,
+  RenderOptions,
+  RenderToStreamResult,
+} from 'packages/qwik/src/server/types';
 import { version } from '../../version';
 import { qDev } from '../../util/qdev';
+import { getPrefetchResources } from 'packages/qwik/src/server/prefetch-strategy';
+import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
+import { applyPrefetchImplementation2 } from 'packages/qwik/src/server/prefetch-implementation';
 
 export function ssrCreateContainer(
   opts: {
@@ -69,9 +76,8 @@ export function ssrCreateContainer(
     writer?: StreamWriter;
     timing?: RenderToStreamResult['timing'];
     buildBase?: string;
-    containerAttributes?: Record<string, string>;
-    serverData?: Record<string, any>;
-    manifestHash?: string;
+    resolvedManifest?: ResolvedManifest;
+    renderOptions?: RenderOptions;
   } = {}
 ): ISSRContainer {
   return new SSRContainer({
@@ -84,9 +90,17 @@ export function ssrCreateContainer(
       snapshot: 0,
     },
     buildBase: opts.buildBase || '/build/',
-    containerAttributes: opts.containerAttributes || {},
-    serverData: opts.serverData || {},
-    manifestHash: opts.manifestHash || 'dev',
+    resolvedManifest: opts.resolvedManifest || {
+      mapper: {},
+      manifest: {
+        manifestHash: 'dev',
+        mapping: {},
+        bundles: {},
+        symbols: {},
+        version: '1',
+      },
+    },
+    renderOptions: opts.renderOptions || {},
   });
 }
 
@@ -122,8 +136,9 @@ class SSRContainer implements ISSRContainer {
   public serializationCtx: SerializationContext;
   public timing: RenderToStreamResult['timing'];
   public buildBase: string;
-  public containerAttributes: Record<string, string>;
-  public manifestHash: string;
+  public resolvedManifest: ResolvedManifest;
+  public renderOptions: RenderOptions;
+  public prefetchResources: PrefetchResource[] = [];
   public $locale$: string;
   public $subsManager$: SubscriptionManager = null!;
   public $proxyMap$: ObjToProxyMap = new WeakMap();
@@ -153,10 +168,10 @@ class SSRContainer implements ISSRContainer {
     this.writer = opts.writer;
     this.timing = opts.timing;
     this.buildBase = opts.buildBase;
-    this.containerAttributes = opts.containerAttributes;
-    this.manifestHash = opts.manifestHash;
+    this.resolvedManifest = opts.resolvedManifest;
+    this.renderOptions = opts.renderOptions;
     this.$locale$ = opts.locale;
-    this.$serverData$ = opts.serverData;
+    this.$serverData$ = opts.renderOptions.serverData ?? {};
     this.serializationCtx = createSerializationContext(SsrNode, null, this.$proxyMap$, this.writer);
     this.$subsManager$ = createSubscriptionManager(this as fixMeAny);
     this.$scheduler$ = createScheduler(this, () => null);
@@ -215,18 +230,18 @@ class SSRContainer implements ISSRContainer {
       this.write('<!DOCTYPE html>');
     }
     let qRender = qDev ? 'ssr-dev' : 'ssr';
-    if (this.containerAttributes['q:render']) {
-      qRender = `${this.containerAttributes['q:render']}-${qRender}`;
+    if (this.renderOptions.containerAttributes?.['q:render']) {
+      qRender = `${this.renderOptions.containerAttributes['q:render']}-${qRender}`;
     }
 
     const containerAttributes: Record<string, string> = {
-      ...this.containerAttributes,
+      ...this.renderOptions.containerAttributes,
       'q:container': 'paused',
       'q:version': version ?? 'dev',
       'q:render': qRender,
       'q:base': this.buildBase,
       'q:locale': this.$serverData$.locale || this.$locale$,
-      'q:manifest-hash': this.manifestHash,
+      'q:manifest-hash': this.resolvedManifest.manifest.manifestHash,
     };
 
     const containerAttributeArray = Object.entries(containerAttributes).reduce<string[]>(
@@ -394,7 +409,10 @@ class SSRContainer implements ISSRContainer {
   emitContainerData(): ValueOrPromise<void> {
     this.emitUnclaimedProjection();
     this.emitVNodeData();
-    return maybeThen(this.emitStateData(), () => this.emitSyncFnsData());
+    return maybeThen(
+      maybeThen(this.emitStateData(), () => this.emitSyncFnsData()),
+      () => this.emitPrefetchResourcesData()
+    );
   }
 
   /**
@@ -557,6 +575,22 @@ class SSRContainer implements ISSRContainer {
       }
       this.write(']');
       this.closeElement();
+    }
+  }
+
+  private emitPrefetchResourcesData() {
+    const qrls = Array.from(this.serializationCtx.$qrls$);
+    if (this.renderOptions.prefetchStrategy !== null && qrls.length) {
+      // skip prefetch implementation if prefetchStrategy === null
+      const prefetchResources = getPrefetchResources(
+        qrls,
+        this.renderOptions,
+        this.resolvedManifest
+      );
+      if (prefetchResources.length > 0) {
+        applyPrefetchImplementation2(this, this.renderOptions.prefetchStrategy, prefetchResources);
+        this.prefetchResources = prefetchResources;
+      }
     }
   }
 

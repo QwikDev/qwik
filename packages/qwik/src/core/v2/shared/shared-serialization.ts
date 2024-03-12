@@ -18,13 +18,14 @@ import {
 import { QObjectManagerSymbol, _IMMUTABLE } from '../../state/constants';
 import { SignalDerived, SignalImpl, type Signal } from '../../state/signal';
 import { Store, getOrCreateProxy } from '../../state/store';
-import { Task } from '../../use/use-task';
+import { Task, type ResourceReturnInternal } from '../../use/use-task';
 import { throwErrorAndStop } from '../../util/log';
 import type { DomContainer } from '../client/dom-container';
 import { vnode_isVNode, vnode_locate } from '../client/vnode';
 import type { ObjToProxyMap } from '../../container/container';
 import { isPromise } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
+import type { QRL } from '../../qrl/qrl.public';
 
 const deserializedProxyMap = new WeakMap<object, unknown>();
 
@@ -499,6 +500,10 @@ export interface SerializationContext {
 
   $writer$: StreamWriter;
   $syncFns$: string[];
+
+  $qrls$: Set<QRL>;
+  $resources$: Set<ResourceReturnInternal<unknown>>;
+  $inlinedFunctions$: Set<string>;
 }
 
 export const createSerializationContext = (
@@ -579,6 +584,9 @@ export const createSerializationContext = (
       };
       return drain();
     },
+    $qrls$: new Set<QRL>(),
+    $resources$: new Set<ResourceReturnInternal<unknown>>(),
+    $inlinedFunctions$: new Set<string>(),
   };
 
   function breakCircularDependenciesAndResolvePromises(
@@ -681,9 +689,11 @@ export function serialize(serializationContext: SerializationContext): void {
       $writer$.write(String(value));
     } else if (typeof value === 'function') {
       if (isQrl(value)) {
+        serializationContext.$qrls$.add(value);
         writeString(SerializationConstant.QRL_CHAR + qrlToString(value, $addRoot$));
       } else if (isQwikComponent(value)) {
         const [qrl]: [QRLInternal] = (value as any)[SERIALIZABLE_STATE];
+        serializationContext.$qrls$.add(qrl);
         writeString(SerializationConstant.Component_CHAR + qrlToString(qrl, $addRoot$));
       } else {
         // throw new Error('implement: ' + value);
@@ -738,6 +748,9 @@ export function serialize(serializationContext: SerializationContext): void {
       // Otherwise serialize as normal
       writeString(SerializationConstant.REFERENCE_CHAR + seen);
     } else if (isObjectLiteral(value)) {
+      if (isResource(value)) {
+        serializationContext.$resources$.add(value);
+      }
       serializeObjectLiteral(
         value,
         $writer$,
@@ -755,7 +768,13 @@ export function serialize(serializationContext: SerializationContext): void {
           (subscriptions === '' ? '' : ';' + subscriptions)
       );
     } else if (value instanceof SignalDerived) {
-      writeString(serializeSignalDerived(serializationContext, value, $addRoot$));
+      const serializedSignalDerived = serializeSignalDerived(
+        serializationContext,
+        value,
+        $addRoot$
+      );
+      serializationContext.$inlinedFunctions$.add(serializedSignalDerived);
+      writeString(serializedSignalDerived);
     } else if (value instanceof Store) {
       writeString(SerializationConstant.Store_CHAR + $addRoot$(unwrapProxy(value)));
     } else if (value instanceof URL) {
@@ -800,6 +819,7 @@ export function serialize(serializationContext: SerializationContext): void {
           )} ${$addRoot$(value.immutableProps)} ${$addRoot$(value.children)} ${value.flags}`
       );
     } else if (value instanceof Task) {
+      serializationContext.$qrls$.add(value.$qrl$);
       writeString(
         SerializationConstant.Task_CHAR +
           value.$flags$ +
@@ -980,13 +1000,17 @@ function shouldTrackObj(obj: unknown) {
  *
  * @param obj
  */
-function isObjectLiteral(obj: unknown) {
+function isObjectLiteral(obj: unknown): obj is object {
   // We are an object literal if:
   // - we are a direct instance of object OR
   // - we are an array
   // In all other cases it is a subclass which requires more checks.
   const prototype = Object.getPrototypeOf(obj);
   return prototype === Object.prototype || prototype === Array.prototype;
+}
+
+function isResource<T = unknown>(value: object): value is ResourceReturnInternal<T> {
+  return '__brand' in value && value.__brand === 'resource';
 }
 
 const frameworkType = (obj: any) => {
@@ -1158,4 +1182,3 @@ export const codeToName = (code: number) => {
       return 'Uint8Array';
   }
 };
-

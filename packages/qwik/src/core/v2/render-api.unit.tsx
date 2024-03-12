@@ -17,6 +17,7 @@ import { useServerData } from '../use/use-env-data';
 import { useTask$ } from '../use/use-task';
 import { getPlatform, setPlatform } from '../platform/platform';
 import { getTestPlatform } from '../../testing/platform';
+import { Resource, useResourceQrl } from '../use/use-resource';
 
 describe('render api', () => {
   let document: Document;
@@ -51,6 +52,17 @@ describe('render api', () => {
         </button>
       );
     }, 's_counter')
+  );
+
+  const ResourceComponent = componentQrl(
+    inlinedQrl(() => {
+      const rsrc = useResourceQrl(inlinedQrl(() => 'RESOURCE_VALUE', 's_resource'));
+      return (
+        <div>
+          <Resource value={rsrc} onResolved={(v) => <span>{v}</span>} />
+        </div>
+      );
+    }, 's_cmpResource')
   );
 
   describe('types', () => {
@@ -604,6 +616,16 @@ describe('render api', () => {
     });
     describe('debug', () => {
       it.todo('should render', async () => { });
+    });
+    describe('snapshotResult', () => {
+      it('should contain resources and qrls', async () => {
+        const result = await renderToString2(<body><ResourceComponent /></body>, {
+          containerTagName: 'html',
+        });
+        expect(result.snapshotResult?.qrls).toHaveLength(1);
+        expect(result.snapshotResult?.resources).toHaveLength(1);
+      });
+      it.todo('should contain funcs', async () => { });
     });
   });
   describe('renderToStream()', () => {

@@ -55,13 +55,6 @@ export const renderToStream2: typeof renderToStream = async (
   const totalSize = 0;
   const networkFlushes = 0;
   const buffer: string = '';
-  const snapshotResult: SnapshotResult = {
-    funcs: [],
-    // TODO
-    mode: 'render',
-    qrls: [],
-    resources: [],
-  };
   const inOrderStreaming = opts.streaming?.inOrder ?? {
     strategy: 'auto',
     maximunInitialChunk: 50000,
@@ -94,9 +87,15 @@ export const renderToStream2: typeof renderToStream = async (
   await setServerPlatform(opts, resolvedManifest);
   await ssrRenderToContainer(ssrContainer, jsx);
 
-  snapshotResult.qrls = Array.from(ssrContainer.serializationCtx.$qrls$);
+  const snapshotResult: SnapshotResult = {
+    funcs: [],
+    // TODO
+    mode: 'render',
+    qrls: Array.from(ssrContainer.serializationCtx.$qrls$),
+    resources: Array.from(ssrContainer.serializationCtx.$resources$),
+  };
 
-  const isDynamic = false;
+  const isDynamic = snapshotResult.resources.some((r) => r._cache !== Infinity);
   const result: RenderToStreamResult = {
     prefetchResources: ssrContainer.prefetchResources,
     snapshotResult,

@@ -1,9 +1,5 @@
 import { getBuildBase } from './utils';
-import type {
-  PrefetchResource,
-  QwikManifest,
-  RenderToStringOptions,
-} from './types';
+import type { PrefetchResource, QwikManifest, RenderToStringOptions } from './types';
 
 import type { QRLInternal } from '../core/qrl/qrl-class';
 import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
@@ -48,11 +44,7 @@ export function getPrefetchResources(
   return [];
 }
 
-function getAutoPrefetch(
-  qrls: QRL[],
-  resolvedManifest: ResolvedManifest,
-  buildBase: string
-) {
+function getAutoPrefetch(qrls: QRL[], resolvedManifest: ResolvedManifest, buildBase: string) {
   const prefetchResources: PrefetchResource[] = [];
   const { mapper, manifest } = resolvedManifest;
   const urls = new Map<string, PrefetchResource>();

@@ -18,7 +18,7 @@ import {
 import { QObjectManagerSymbol, _IMMUTABLE } from '../../state/constants';
 import { SignalDerived, SignalImpl, type Signal } from '../../state/signal';
 import { Store, getOrCreateProxy } from '../../state/store';
-import { Task } from '../../use/use-task';
+import { Task, type ResourceReturnInternal } from '../../use/use-task';
 import { throwErrorAndStop } from '../../util/log';
 import type { DomContainer } from '../client/dom-container';
 import { vnode_isVNode, vnode_locate } from '../client/vnode';
@@ -502,6 +502,7 @@ export interface SerializationContext {
   $syncFns$: string[];
 
   $qrls$: Set<QRL>;
+  $resources$: Set<ResourceReturnInternal<unknown>>;
 }
 
 export const createSerializationContext = (
@@ -583,6 +584,7 @@ export const createSerializationContext = (
       return drain();
     },
     $qrls$: new Set<QRL>(),
+    $resources$: new Set<ResourceReturnInternal<unknown>>(),
   };
 
   function breakCircularDependenciesAndResolvePromises(
@@ -744,6 +746,9 @@ export function serialize(serializationContext: SerializationContext): void {
       // Otherwise serialize as normal
       writeString(SerializationConstant.REFERENCE_CHAR + seen);
     } else if (isObjectLiteral(value)) {
+      if (isResource(value)) {
+        serializationContext.$resources$.add(value);
+      }
       serializeObjectLiteral(
         value,
         $writer$,
@@ -987,13 +992,17 @@ function shouldTrackObj(obj: unknown) {
  *
  * @param obj
  */
-function isObjectLiteral(obj: unknown) {
+function isObjectLiteral(obj: unknown): obj is object {
   // We are an object literal if:
   // - we are a direct instance of object OR
   // - we are an array
   // In all other cases it is a subclass which requires more checks.
   const prototype = Object.getPrototypeOf(obj);
   return prototype === Object.prototype || prototype === Array.prototype;
+}
+
+function isResource<T = unknown>(value: object): value is ResourceReturnInternal<T> {
+  return '__brand' in value && value.__brand === 'resource';
 }
 
 const frameworkType = (obj: any) => {

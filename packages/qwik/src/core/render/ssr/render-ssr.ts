@@ -535,7 +535,7 @@ const renderNode = (
   if (typeof tagName === 'string') {
     const key = node.key;
     const props = node.props;
-    const immutable = node.immutableProps;
+    const immutable = node.immutableProps || EMPTY_OBJ;
     const elCtx = createMockQContext(1);
     const elm = elCtx.$element$ as Element;
     const isHead = tagName === 'head';
@@ -599,13 +599,28 @@ const renderNode = (
         }
       }
     };
-    if (immutable) {
-      for (const prop in immutable) {
-        handleProp(prop, immutable[prop], true);
-      }
-    }
     for (const prop in props) {
-      handleProp(prop, props[prop], false);
+      let isImmutable = false;
+      let value;
+      if (prop in immutable) {
+        isImmutable = true;
+        value = immutable[prop];
+        if (value === _IMMUTABLE) {
+          value = props[prop];
+        }
+      } else {
+        value = props[prop];
+      }
+      handleProp(prop, value, isImmutable);
+    }
+    for (const prop in immutable) {
+      if (prop in props) {
+        continue;
+      }
+      const value = immutable[prop];
+      if (value !== _IMMUTABLE) {
+        handleProp(prop, value, true);
+      }
     }
     const listeners = elCtx.li;
     if (hostCtx) {

@@ -36,6 +36,10 @@ impl<'a> ImmutableCollector<'a> {
     }
 }
 
+// A prop is considered mutable if it:
+// - calls a function
+// - accesses a member
+// - is a variable that is not an import, an export, or in the immutable stack
 impl<'a> Visit for ImmutableCollector<'a> {
     noop_visit_type!();
 

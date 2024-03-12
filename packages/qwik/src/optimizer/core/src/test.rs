@@ -528,7 +528,7 @@ export const Works = component$(({
         console.log(count, rest, hey, some, hey2);
     });
     return (
-        <div some={some} params={{ some }} class={count} {...rest}>{count}</div>
+        <div some={some} params={{ some }} class={count} {...rest} override>{count}</div>
     );
 });
 
@@ -2644,7 +2644,7 @@ import { component$, useStore, mutable } from '@builder.io/qwik';
 import {dep} from './file';
 import styles from './styles.module.css';
 
-export const App = component$(() => {
+export const App = component$((props) => {
     const signal = useSignal(0);
     const store = useStore({});
     const count = props.counter.count;

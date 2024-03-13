@@ -46,11 +46,11 @@ export interface SnapshotListener {
 
 /** @public */
 export interface SnapshotResult {
-  /** @deprecated not longer used in v2 */
+  /** @deprecated Not longer used in v2 */
   state?: SnapshotState;
   funcs: string[];
   qrls: QRL[];
-  /** @deprecated not longer used in v2 */
+  /** @deprecated Not longer used in v2 */
   objs?: any[];
   resources: ResourceReturnInternal<any>[];
   mode: 'render' | 'listeners' | 'static';

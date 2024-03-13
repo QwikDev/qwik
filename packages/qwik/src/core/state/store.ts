@@ -74,21 +74,21 @@ export const createProxy = <T extends object>(
 
   const addSubscriptionsForTarget = (target: object) => {
     const serializedState: string | undefined = (target as any)[SerializationConstant.Store_CHAR];
-      if (serializedState) {
-        (target as any)[SerializationConstant.Store_CHAR] = undefined;
-        setObjectFlags(target, serializedState.charCodeAt(0) - 48 /*'0'*/);
-        subscriptionManagerFromString(
-          manager,
-          serializedState.substring(1),
-          storeTracker.$getObjectById$
-        );
-      }
-  }
+    if (serializedState) {
+      (target as any)[SerializationConstant.Store_CHAR] = undefined;
+      setObjectFlags(target, serializedState.charCodeAt(0) - 48 /*'0'*/);
+      subscriptionManagerFromString(
+        manager,
+        serializedState.substring(1),
+        storeTracker.$getObjectById$
+      );
+    }
+  };
 
   if (Array.isArray(target)) {
-    target.forEach(data => {
+    target.forEach((data) => {
       addSubscriptionsForTarget(data);
-    })
+    });
   } else {
     addSubscriptionsForTarget(target);
   }

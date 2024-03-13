@@ -63,7 +63,7 @@ export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(()=>import("./tes
 }));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAMA,SAAS,UAAU,QAAQ,WAAW;AAKrC,CAAA,WAAW;IACR,QAAQ,GAAG,CAAC;AACd,CAAA;AACC,CAAA,IAAM;IACL,QAAQ,GAAG,CAAC;AACd,CAAA;AAEF;AAEA,OAAO,MAAM,MAAM;;;;;IAEhB;AAEH,6BAAe;;;;;IAIV\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAMA,SAAS,UAAU,QAAQ,WAAW;AAKtC,CAAC;IACG,QAAQ,GAAG,CAAC;AACd,CAAC;AACD,CAAC;IACC,QAAQ,GAAG,CAAC;AACd,CAAC;AAEH;AAEA,OAAO,MAAM,MAAM;;;;;IAEhB;AAEH,6BAAe;;;;;IAIV\"}")
 ============================= test_component_button_onclick_dgk9xlyroka.js (ENTRY POINT)==
 
 import { api } from "./test";
@@ -111,7 +111,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;0CAwB0B,IAAM;IAC5B,qBACE,MAAC;QAAO,QAAQ;;;;;;;;;;;AAEpB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;0CAwB0B;IACtB,qBACE,MAAC;QAAO,QAAQ;;;;;;;;;;;AAEpB\"}")
 /*
 {
   "origin": "test.tsx",

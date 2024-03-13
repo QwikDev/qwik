@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 3540
+assertion_line: 3541
 expression: output
 ---
 ==INPUT==
@@ -43,7 +43,7 @@ export const Counter_component_zTmRHlL09Gg = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;6CAEkC,IAAM;IACtC,MAAM,QAAQ,UAAU;IAExB,qBACE,MAAC;sBACC,MAAC;YAAE;4BAAQ,GAAM,KAAK;;;;sBACtB,MAAC,+BACC,MAAC;YAAO,QAAQ;;;WAAuB;;AAI/C\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;6CAEkC;IAChC,MAAM,QAAQ,UAAU;IAExB,qBACE,MAAC;sBACC,MAAC;YAAE;4BAAQ,GAAM,KAAK;;;;sBACtB,MAAC,+BACC,MAAC;YAAO,QAAQ;;;WAAuB;;AAI/C\"}")
 /*
 {
   "origin": "test.tsx",

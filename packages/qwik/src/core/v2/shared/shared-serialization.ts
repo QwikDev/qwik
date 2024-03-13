@@ -502,6 +502,7 @@ export interface SerializationContext {
   $syncFns$: string[];
 
   $eventQrls$: Set<QRL>;
+  $eventNames$: Set<string>;
   $resources$: Set<ResourceReturnInternal<unknown>>;
   $signalDerivedFunctions$: Set<string>;
   $renderSymbols$: Set<string>;
@@ -586,6 +587,7 @@ export const createSerializationContext = (
       return drain();
     },
     $eventQrls$: new Set<QRL>(),
+    $eventNames$: new Set<string>(),
     $resources$: new Set<ResourceReturnInternal<unknown>>(),
     $signalDerivedFunctions$: new Set<string>(),
     $renderSymbols$: new Set<string>(),

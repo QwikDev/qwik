@@ -20,6 +20,7 @@ import { getTestPlatform } from '../../testing/platform';
 import { Resource, useResourceQrl } from '../use/use-resource';
 import { _fnSignal } from '../internal';
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
+import { useOn } from '../use/use-on';
 
 const defaultManifest: QwikManifest = {
   manifestHash: 'manifest-hash',
@@ -273,7 +274,9 @@ describe('render api', () => {
           containerTagName: 'div',
         });
         const document = createDocument(result.html);
-        const qwikLoaderScriptElement = document.body.firstChild?.lastChild as HTMLElement;
+        // qwik loader is one before last
+        const qwikLoaderScriptElement = document.body.firstChild?.lastChild
+          ?.previousSibling as HTMLElement;
         expect(qwikLoaderScriptElement?.tagName.toLowerCase()).toEqual('script');
         expect(qwikLoaderScriptElement?.getAttribute('id')).toEqual('qwikloader');
       });
@@ -285,7 +288,9 @@ describe('render api', () => {
           },
         });
         const document = createDocument(result.html);
-        const qwikLoaderScriptElement = document.body.firstChild?.lastChild as HTMLElement;
+        // qwik loader is one before last
+        const qwikLoaderScriptElement = document.body.firstChild?.lastChild
+          ?.previousSibling as HTMLElement;
         expect(qwikLoaderScriptElement?.tagName.toLowerCase()).toEqual('script');
         expect(qwikLoaderScriptElement?.getAttribute('id')).toEqual('qwikloader');
       });
@@ -335,6 +340,45 @@ describe('render api', () => {
       });
     });
     describe('qwikEvents', () => {
+      it('should render', async () => {
+        const ManyEventsComponent = componentQrl(
+          inlinedQrl(() => {
+            useOn(
+              'focus',
+              inlinedQrl(() => {}, 's_useOnFocus')
+            );
+            return (
+              <div>
+                <button
+                  onClick$={inlinedQrl(() => {}, 's_click1')}
+                  onDblClick$={inlinedQrl(() => {}, 's_dblclick1')}
+                >
+                  click
+                </button>
+                <button
+                  onClick$={inlinedQrl(() => {}, 's_click2')}
+                  onBlur$={inlinedQrl(() => {}, 's_blur1')}
+                >
+                  click
+                </button>
+              </div>
+            );
+          }, 's_manyEventsCmp')
+        );
+
+        const result = await renderToString2(<ManyEventsComponent />, {
+          containerTagName: 'div',
+        });
+        const document = createDocument(result.html);
+        // event script is next sibling of the qwik loader
+        const eventScript = document.querySelector('script[id=qwikloader]')
+          ?.nextSibling as HTMLElement;
+        expect(eventScript.textContent).toContain(
+          'window.qwikevents.push("focus", "click", "dblclick", "blur")'
+        );
+      });
+    });
+    describe('qwikFuncs', () => {
       it.todo('should render', async () => {});
     });
     describe('qwikPrefetchServiceWorker', () => {

@@ -202,14 +202,16 @@ export function toSsrAttrs(
         const qrls = record[key];
         if (Array.isArray(qrls)) {
           for (let i = 0; i <= qrls.length; i++) {
-            const qrl = qrls[i];
+            const qrl: unknown = qrls[i];
             if (isQrl(qrl)) {
               const first = i === 0;
               value = (first ? '' : value + '\n') + qrlToString(qrl, serializationCtx.$addRoot$);
+              serializationCtx.$eventQrls$.add(qrl);
             }
           }
         } else if (isQrl(qrls)) {
           value = qrlToString(qrls, serializationCtx.$addRoot$);
+          serializationCtx.$eventQrls$.add(qrls);
         }
         if (isJsxPropertyAnEventName(key)) {
           value && ssrAttrs.push(convertEventNameFromJsxPropToHtmlAttr(key), value);

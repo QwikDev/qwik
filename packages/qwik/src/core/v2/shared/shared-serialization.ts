@@ -501,9 +501,10 @@ export interface SerializationContext {
   $writer$: StreamWriter;
   $syncFns$: string[];
 
-  $qrls$: Set<QRL>;
+  $eventQrls$: Set<QRL>;
   $resources$: Set<ResourceReturnInternal<unknown>>;
-  $inlinedFunctions$: Set<string>;
+  $signalDerivedFunctions$: Set<string>;
+  $renderSymbols$: Set<string>;
 }
 
 export const createSerializationContext = (
@@ -584,9 +585,10 @@ export const createSerializationContext = (
       };
       return drain();
     },
-    $qrls$: new Set<QRL>(),
+    $eventQrls$: new Set<QRL>(),
     $resources$: new Set<ResourceReturnInternal<unknown>>(),
-    $inlinedFunctions$: new Set<string>(),
+    $signalDerivedFunctions$: new Set<string>(),
+    $renderSymbols$: new Set<string>(),
   };
 
   function breakCircularDependenciesAndResolvePromises(
@@ -689,11 +691,10 @@ export function serialize(serializationContext: SerializationContext): void {
       $writer$.write(String(value));
     } else if (typeof value === 'function') {
       if (isQrl(value)) {
-        serializationContext.$qrls$.add(value);
         writeString(SerializationConstant.QRL_CHAR + qrlToString(value, $addRoot$));
       } else if (isQwikComponent(value)) {
         const [qrl]: [QRLInternal] = (value as any)[SERIALIZABLE_STATE];
-        serializationContext.$qrls$.add(qrl);
+        serializationContext.$renderSymbols$.add(qrl.$symbol$);
         writeString(SerializationConstant.Component_CHAR + qrlToString(qrl, $addRoot$));
       } else {
         // throw new Error('implement: ' + value);
@@ -773,7 +774,7 @@ export function serialize(serializationContext: SerializationContext): void {
         value,
         $addRoot$
       );
-      serializationContext.$inlinedFunctions$.add(serializedSignalDerived);
+      serializationContext.$signalDerivedFunctions$.add(serializedSignalDerived);
       writeString(serializedSignalDerived);
     } else if (value instanceof Store) {
       writeString(SerializationConstant.Store_CHAR + $addRoot$(unwrapProxy(value)));
@@ -819,7 +820,6 @@ export function serialize(serializationContext: SerializationContext): void {
           )} ${$addRoot$(value.immutableProps)} ${$addRoot$(value.children)} ${value.flags}`
       );
     } else if (value instanceof Task) {
-      serializationContext.$qrls$.add(value.$qrl$);
       writeString(
         SerializationConstant.Task_CHAR +
           value.$flags$ +

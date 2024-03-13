@@ -19,6 +19,22 @@ import { getPlatform, setPlatform } from '../platform/platform';
 import { getTestPlatform } from '../../testing/platform';
 import { Resource, useResourceQrl } from '../use/use-resource';
 import { _fnSignal } from '../internal';
+import type { QwikManifest } from '@builder.io/qwik/optimizer';
+
+const defaultManifest: QwikManifest = {
+  manifestHash: 'manifest-hash',
+  symbols: {},
+  bundles: {},
+  mapping: {},
+  version: '1',
+};
+
+const defaultCounterManifest: QwikManifest = {
+  ...defaultManifest,
+  mapping: {
+    click: 'click.js',
+  },
+};
 
 describe('render api', () => {
   let document: Document;
@@ -53,17 +69,6 @@ describe('render api', () => {
         </button>
       );
     }, 's_counter')
-  );
-
-  const ResourceComponent = componentQrl(
-    inlinedQrl(() => {
-      const rsrc = useResourceQrl(inlinedQrl(() => 'RESOURCE_VALUE', 's_resource'));
-      return (
-        <div>
-          <Resource value={rsrc} onResolved={(v) => <span>{v}</span>} />
-        </div>
-      );
-    }, 's_cmpResource')
   );
 
   describe('types', () => {
@@ -178,13 +183,7 @@ describe('render api', () => {
       it('should render', async () => {
         const result = await renderToString2(<Counter />, {
           containerTagName: 'div',
-          manifest: {
-            manifestHash: '',
-            symbols: {},
-            bundles: {},
-            mapping: {},
-            version: '1',
-          },
+          manifest: defaultManifest,
         });
         expect(result).toMatchObject({
           isStatic: true,
@@ -269,10 +268,10 @@ describe('render api', () => {
       });
     });
     describe('qwikLoader', () => {
-      it.todo('should render', async () => { });
+      it.todo('should render', async () => {});
     });
     describe('qwikPrefetchServiceWorker', () => {
-      it.todo('should render', async () => { });
+      it.todo('should render', async () => {});
     });
     describe('prefetchStrategy', () => {
       it('should render with default prefetch implementation', async () => {
@@ -281,15 +280,7 @@ describe('render api', () => {
           prefetchStrategy: {
             symbolsToPrefetch: 'auto',
           },
-          manifest: {
-            manifestHash: 'manifest-hash',
-            symbols: {},
-            bundles: {},
-            mapping: {
-              'counter': 'counter.js'
-            },
-            version: '1',
-          },
+          manifest: defaultCounterManifest,
         });
         expect(result.prefetchResources).toEqual(expect.any(Array));
         const document = createDocument(result.html);
@@ -305,17 +296,9 @@ describe('render api', () => {
             symbolsToPrefetch: 'auto',
             implementation: {
               linkInsert: 'html-append',
-            }
-          },
-          manifest: {
-            manifestHash: 'manifest-hash',
-            symbols: {},
-            bundles: {},
-            mapping: {
-              'counter': 'counter.js'
             },
-            version: '1',
           },
+          manifest: defaultCounterManifest,
         });
         const document = createDocument(result.html);
         expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
@@ -330,17 +313,9 @@ describe('render api', () => {
             symbolsToPrefetch: 'auto',
             implementation: {
               linkInsert: 'js-append',
-            }
-          },
-          manifest: {
-            manifestHash: 'manifest-hash',
-            symbols: {},
-            bundles: {},
-            mapping: {
-              'counter': 'counter.js'
             },
-            version: '1',
           },
+          manifest: defaultCounterManifest,
         });
         const document = createDocument(result.html);
         expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
@@ -358,17 +333,9 @@ describe('render api', () => {
             implementation: {
               linkInsert: 'html-append',
               linkRel: 'modulepreload',
-            }
-          },
-          manifest: {
-            manifestHash: 'manifest-hash',
-            symbols: {},
-            bundles: {},
-            mapping: {
-              'counter': 'counter.js'
             },
-            version: '1',
           },
+          manifest: defaultCounterManifest,
         });
         const document = createDocument(result.html);
         expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
@@ -384,17 +351,9 @@ describe('render api', () => {
             implementation: {
               linkInsert: 'js-append',
               linkRel: 'modulepreload',
-            }
-          },
-          manifest: {
-            manifestHash: 'manifest-hash',
-            symbols: {},
-            bundles: {},
-            mapping: {
-              'counter': 'counter.js'
             },
-            version: '1',
           },
+          manifest: defaultCounterManifest,
         });
         const document = createDocument(result.html);
         expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
@@ -412,17 +371,9 @@ describe('render api', () => {
             implementation: {
               linkInsert: 'html-append',
               linkRel: 'preload',
-            }
-          },
-          manifest: {
-            manifestHash: 'manifest-hash',
-            symbols: {},
-            bundles: {},
-            mapping: {
-              'counter': 'counter.js'
             },
-            version: '1',
           },
+          manifest: defaultCounterManifest,
         });
         const document = createDocument(result.html);
         expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
@@ -438,17 +389,9 @@ describe('render api', () => {
             implementation: {
               linkInsert: 'js-append',
               linkRel: 'preload',
-            }
-          },
-          manifest: {
-            manifestHash: 'manifest-hash',
-            symbols: {},
-            bundles: {},
-            mapping: {
-              'counter': 'counter.js'
             },
-            version: '1',
           },
+          manifest: defaultCounterManifest,
         });
         const document = createDocument(result.html);
         expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
@@ -465,17 +408,9 @@ describe('render api', () => {
             symbolsToPrefetch: 'auto',
             implementation: {
               prefetchEvent: null,
-            }
-          },
-          manifest: {
-            manifestHash: 'manifest-hash',
-            symbols: {},
-            bundles: {},
-            mapping: {
-              'counter': 'counter.js'
             },
-            version: '1',
           },
+          manifest: defaultCounterManifest,
         });
         const document = createDocument(result.html);
         expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(0);
@@ -490,17 +425,9 @@ describe('render api', () => {
             symbolsToPrefetch: 'auto',
             implementation: {
               workerFetchInsert: 'always',
-            }
-          },
-          manifest: {
-            manifestHash: 'manifest-hash',
-            symbols: {},
-            bundles: {},
-            mapping: {
-              'counter': 'counter.js'
             },
-            version: '1',
           },
+          manifest: defaultCounterManifest,
         });
         const document = createDocument(result.html);
         expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
@@ -599,32 +526,106 @@ describe('render api', () => {
       });
     });
     describe('manifest/symbolMapper', () => {
-      it.todo('should render', async () => { });
+      it.todo('should render', async () => {});
       it('should render manifest hash attribute', async () => {
         const testManifestHash = 'testManifestHash';
         const result = await renderToString2(<Counter />, {
           containerTagName: 'div',
           manifest: {
+            ...defaultManifest,
             manifestHash: testManifestHash,
-            symbols: {},
-            bundles: {},
-            mapping: {},
-            version: '1',
           },
         });
         expect(result.html.includes(`q:manifest-hash="${testManifestHash}"`)).toBeTruthy();
       });
     });
     describe('debug', () => {
-      it.todo('should render', async () => { });
+      it.todo('should render', async () => {});
     });
     describe('snapshotResult', () => {
+      it('should contain resources', async () => {
+        const ResourceComponent = componentQrl(
+          inlinedQrl(() => {
+            const rsrc = useResourceQrl(inlinedQrl(() => 'RESOURCE_VALUE', 's_resource'));
+            return (
+              <div>
+                <Resource value={rsrc} onResolved={(v) => <span>{v}</span>} />
+              </div>
+            );
+          }, 's_cmpResource')
+        );
+        const result = await renderToString2(
+          <body>
+            <ResourceComponent />
+          </body>,
+          {
+            containerTagName: 'html',
+          }
+        );
+        expect(result.snapshotResult?.qrls).toHaveLength(0);
+        expect(result.snapshotResult?.resources).toHaveLength(1);
+        expect(result.snapshotResult?.funcs).toHaveLength(0);
+      });
       it('should contain qrls and resources', async () => {
-        const result = await renderToString2(<body><ResourceComponent /></body>, {
-          containerTagName: 'html',
-        });
+        const ResourceAndSignalComponent = componentQrl(
+          inlinedQrl(() => {
+            const sig = useSignal(0);
+            const rsrc = useResourceQrl(inlinedQrl(() => 'RESOURCE_VALUE', 's_resource'));
+            return (
+              <button
+                onClick$={inlinedQrl(
+                  () => {
+                    const [sig] = useLexicalScope();
+                    sig.value++;
+                  },
+                  's_click',
+                  [sig]
+                )}
+              >
+                <Resource value={rsrc} onResolved={(v) => <span>{v}</span>} />
+                {sig.value}
+              </button>
+            );
+          }, 's_cmpResourceSignal')
+        );
+        const result = await renderToString2(
+          <body>
+            <ResourceAndSignalComponent />
+          </body>,
+          {
+            containerTagName: 'html',
+          }
+        );
         expect(result.snapshotResult?.qrls).toHaveLength(1);
         expect(result.snapshotResult?.resources).toHaveLength(1);
+        expect(result.snapshotResult?.funcs).toHaveLength(0);
+      });
+      it('should contain qrls', async () => {
+        const FunctionComponent = componentQrl(
+          inlinedQrl(() => {
+            const sig = useSignal(0);
+            const fn = (v: number) => 'aaa' + v;
+            return (
+              <button
+                onClick$={inlinedQrl(
+                  () => {
+                    const [sig] = useLexicalScope();
+                    sig.value++;
+                  },
+                  's_click',
+                  [sig]
+                )}
+              >
+                {fn(sig.value)}
+              </button>
+            );
+          }, 's_cmpFunction')
+        );
+        const result = await renderToString2(<FunctionComponent />, {
+          containerTagName: 'div',
+        });
+        expect(result.snapshotResult?.qrls).toHaveLength(1);
+        expect(result.snapshotResult?.resources).toHaveLength(0);
         expect(result.snapshotResult?.funcs).toHaveLength(0);
       });
       it('should contain qrls and funcs', async () => {
@@ -636,19 +637,77 @@ describe('render api', () => {
             </button>
           );
         });
-        const result = await renderToString2(<body><CounterDerived initial={123} /></body>, {
-          containerTagName: 'html',
-        });
+        const result = await renderToString2(
+          <body>
+            <CounterDerived initial={123} />
+          </body>,
+          {
+            containerTagName: 'html',
+          }
+        );
         expect(result.snapshotResult?.qrls).toHaveLength(1);
         expect(result.snapshotResult?.resources).toHaveLength(0);
         expect(result.snapshotResult?.funcs).toHaveLength(1);
       });
-      it.todo('should contain correct mode', async () => { })
+      it('should set static mode', async () => {
+        let result = await renderToString2(<div>static content</div>, {
+          containerTagName: 'div',
+        });
+        expect(result.snapshotResult?.mode).toEqual('static');
+
+        const StaticComponent = componentQrl(
+          inlinedQrl(() => {
+            return <div>static content</div>;
+          }, 's_static')
+        );
+
+        result = await renderToString2(<StaticComponent />, {
+          containerTagName: 'div',
+        });
+        expect(result.snapshotResult?.mode).toEqual('static');
+      });
+      it('should set listeners mode', async () => {
+        const result = await renderToString2(<Counter />, {
+          containerTagName: 'div',
+        });
+        expect(result.snapshotResult?.mode).toEqual('listeners');
+      });
+      it.todo('should set render mode', async () => {
+        const ComponentA = componentQrl(
+          inlinedQrl(() => {
+            const test = useSignal(0);
+            const fn = (a: number) => a + 'abcd';
+
+            return (
+              <div>
+                <button
+                  onClick$={inlinedQrl(
+                    () => {
+                      const [test] = useLexicalScope();
+                      test.value++;
+                    },
+                    's_click',
+                    [test]
+                  )}
+                >
+                  Test
+                </button>
+                {fn(test.value)}
+              </div>
+            );
+          }, 's_comp')
+        );
+
+        const result = await renderToString2(<ComponentA />, {
+          containerTagName: 'div',
+        });
+        expect(result.snapshotResult?.mode).toEqual('render');
+      });
     });
   });
   describe('renderToStream()', () => {
     describe('render result', () => {
-      it.todo('should render', async () => { });
+      it.todo('should render', async () => {});
     });
     describe('stream', () => {
       it.todo('should render');

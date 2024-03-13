@@ -606,10 +606,6 @@ class SSRContainer implements ISSRContainer {
   private emitQwikLoaderAtTopIfNeeded(positionMode: QwikLoaderOptions['position']) {
     if (positionMode === 'top') {
       this.emitQwikLoader();
-      // Assume there will be at least click handlers
-      this.openElement('script', []);
-      this.write(`window.qwikevents.push('click')`);
-      this.closeElement();
     }
   }
 
@@ -634,6 +630,25 @@ class SSRContainer implements ISSRContainer {
       }
       this.openElement('script', scriptAttrs);
       this.write(qwikLoaderScript);
+      this.closeElement();
+    }
+
+    this.emitQwikEvents(includeLoader);
+  }
+
+  private emitQwikEvents(includeLoader: boolean) {
+    const extraListeners = Array.from(this.serializationCtx.$eventNames$, (s) => JSON.stringify(s));
+    if (extraListeners.length > 0) {
+      const content =
+        (includeLoader ? `window.qwikevents` : `(window.qwikevents||=[])`) +
+        `.push(${extraListeners.join(', ')})`;
+
+      const scriptAttrs: SsrAttrs = [];
+      if (this.renderOptions.serverData?.nonce) {
+        scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
+      }
+      this.openElement('script', scriptAttrs);
+      this.write(content);
       this.closeElement();
     }
   }

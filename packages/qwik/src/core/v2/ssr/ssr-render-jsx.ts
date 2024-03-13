@@ -16,6 +16,7 @@ import { QSlot } from '../../util/markers';
 import { type ValueOrPromise } from '../../util/types';
 import {
   convertEventNameFromJsxPropToHtmlAttr,
+  getEventNameFromJsxProp,
   isJsxPropertyAnEventName,
 } from '../shared/event-names';
 import { isClassAttr } from '../shared/scoped-styles';
@@ -23,6 +24,7 @@ import { qrlToString, type SerializationContext } from '../shared/shared-seriali
 import { DEBUG_TYPE, VirtualType, type fixMeAny } from '../shared/types';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
 import type { SSRContainer, SsrAttrs } from './types';
+import type { QRL } from '../../qrl/qrl.public';
 
 /**
  * We support Promises in JSX but we don't expose this in the public API because it breaks signal
@@ -206,12 +208,12 @@ export function toSsrAttrs(
             if (isQrl(qrl)) {
               const first = i === 0;
               value = (first ? '' : value + '\n') + qrlToString(qrl, serializationCtx.$addRoot$);
-              serializationCtx.$eventQrls$.add(qrl);
+              addQwikEventToSerializationContext(serializationCtx, key, qrl);
             }
           }
         } else if (isQrl(qrls)) {
           value = qrlToString(qrls, serializationCtx.$addRoot$);
-          serializationCtx.$eventQrls$.add(qrls);
+          addQwikEventToSerializationContext(serializationCtx, key, qrls);
         }
         if (isJsxPropertyAnEventName(key)) {
           value && ssrAttrs.push(convertEventNameFromJsxPropToHtmlAttr(key), value);
@@ -227,4 +229,16 @@ export function toSsrAttrs(
     }
   }
   return ssrAttrs;
+}
+
+function addQwikEventToSerializationContext(
+  serializationCtx: SerializationContext,
+  key: string,
+  qrl: QRL
+) {
+  const eventName = getEventNameFromJsxProp(key);
+  if (eventName) {
+    serializationCtx.$eventNames$.add(eventName);
+    serializationCtx.$eventQrls$.add(qrl);
+  }
 }

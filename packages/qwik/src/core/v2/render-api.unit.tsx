@@ -19,6 +19,22 @@ import { getPlatform, setPlatform } from '../platform/platform';
 import { getTestPlatform } from '../../testing/platform';
 import { Resource, useResourceQrl } from '../use/use-resource';
 import { _fnSignal } from '../internal';
+import type { QwikManifest } from '@builder.io/qwik/optimizer';
+
+const defaultManifest: QwikManifest = {
+  manifestHash: 'manifest-hash',
+  symbols: {},
+  bundles: {},
+  mapping: {},
+  version: '1',
+};
+
+const defaultCounterManifest: QwikManifest = {
+  ...defaultManifest,
+  mapping: {
+    click: 'click.js',
+  },
+};
 
 describe('render api', () => {
   let document: Document;
@@ -167,13 +183,7 @@ describe('render api', () => {
       it('should render', async () => {
         const result = await renderToString2(<Counter />, {
           containerTagName: 'div',
-          manifest: {
-            manifestHash: '',
-            symbols: {},
-            bundles: {},
-            mapping: {},
-            version: '1',
-          },
+          manifest: defaultManifest,
         });
         expect(result).toMatchObject({
           isStatic: true,
@@ -270,15 +280,7 @@ describe('render api', () => {
           prefetchStrategy: {
             symbolsToPrefetch: 'auto',
           },
-          manifest: {
-            manifestHash: 'manifest-hash',
-            symbols: {},
-            bundles: {},
-            mapping: {
-              click: 'click.js',
-            },
-            version: '1',
-          },
+          manifest: defaultCounterManifest,
         });
         expect(result.prefetchResources).toEqual(expect.any(Array));
         const document = createDocument(result.html);
@@ -296,15 +298,7 @@ describe('render api', () => {
               linkInsert: 'html-append',
             },
           },
-          manifest: {
-            manifestHash: 'manifest-hash',
-            symbols: {},
-            bundles: {},
-            mapping: {
-              click: 'click.js',
-            },
-            version: '1',
-          },
+          manifest: defaultCounterManifest,
         });
         const document = createDocument(result.html);
         expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
@@ -321,15 +315,7 @@ describe('render api', () => {
               linkInsert: 'js-append',
             },
           },
-          manifest: {
-            manifestHash: 'manifest-hash',
-            symbols: {},
-            bundles: {},
-            mapping: {
-              click: 'click.js',
-            },
-            version: '1',
-          },
+          manifest: defaultCounterManifest,
         });
         const document = createDocument(result.html);
         expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
@@ -349,15 +335,7 @@ describe('render api', () => {
               linkRel: 'modulepreload',
             },
           },
-          manifest: {
-            manifestHash: 'manifest-hash',
-            symbols: {},
-            bundles: {},
-            mapping: {
-              click: 'click.js',
-            },
-            version: '1',
-          },
+          manifest: defaultCounterManifest,
         });
         const document = createDocument(result.html);
         expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
@@ -375,15 +353,7 @@ describe('render api', () => {
               linkRel: 'modulepreload',
             },
           },
-          manifest: {
-            manifestHash: 'manifest-hash',
-            symbols: {},
-            bundles: {},
-            mapping: {
-              click: 'click.js',
-            },
-            version: '1',
-          },
+          manifest: defaultCounterManifest,
         });
         const document = createDocument(result.html);
         expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
@@ -403,15 +373,7 @@ describe('render api', () => {
               linkRel: 'preload',
             },
           },
-          manifest: {
-            manifestHash: 'manifest-hash',
-            symbols: {},
-            bundles: {},
-            mapping: {
-              click: 'click.js',
-            },
-            version: '1',
-          },
+          manifest: defaultCounterManifest,
         });
         const document = createDocument(result.html);
         expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
@@ -429,15 +391,7 @@ describe('render api', () => {
               linkRel: 'preload',
             },
           },
-          manifest: {
-            manifestHash: 'manifest-hash',
-            symbols: {},
-            bundles: {},
-            mapping: {
-              click: 'click.js',
-            },
-            version: '1',
-          },
+          manifest: defaultCounterManifest,
         });
         const document = createDocument(result.html);
         expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
@@ -456,15 +410,7 @@ describe('render api', () => {
               prefetchEvent: null,
             },
           },
-          manifest: {
-            manifestHash: 'manifest-hash',
-            symbols: {},
-            bundles: {},
-            mapping: {
-              click: 'click.js',
-            },
-            version: '1',
-          },
+          manifest: defaultCounterManifest,
         });
         const document = createDocument(result.html);
         expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(0);
@@ -481,15 +427,7 @@ describe('render api', () => {
               workerFetchInsert: 'always',
             },
           },
-          manifest: {
-            manifestHash: 'manifest-hash',
-            symbols: {},
-            bundles: {},
-            mapping: {
-              click: 'click.js',
-            },
-            version: '1',
-          },
+          manifest: defaultCounterManifest,
         });
         const document = createDocument(result.html);
         expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
@@ -594,11 +532,8 @@ describe('render api', () => {
         const result = await renderToString2(<Counter />, {
           containerTagName: 'div',
           manifest: {
+            ...defaultManifest,
             manifestHash: testManifestHash,
-            symbols: {},
-            bundles: {},
-            mapping: {},
-            version: '1',
           },
         });
         expect(result.html.includes(`q:manifest-hash="${testManifestHash}"`)).toBeTruthy();

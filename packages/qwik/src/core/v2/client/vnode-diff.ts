@@ -947,4 +947,3 @@ export function releaseSubscriptions(container: ClientContainer, vNode: VNode) {
     }
   } while (true as boolean);
 }
-

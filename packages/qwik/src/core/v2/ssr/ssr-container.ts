@@ -579,7 +579,7 @@ class SSRContainer implements ISSRContainer {
   }
 
   private emitPrefetchResourcesData() {
-    const qrls = Array.from(this.serializationCtx.$qrls$);
+    const qrls = Array.from(this.serializationCtx.$eventQrls$);
     if (this.renderOptions.prefetchStrategy !== null && qrls.length) {
       // skip prefetch implementation if prefetchStrategy === null
       const prefetchResources = getPrefetchResources(

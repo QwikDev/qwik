@@ -12,6 +12,7 @@ import { ssrCreateContainer } from './ssr-container';
 import { ssrRenderToContainer } from './ssr-render-jsx';
 import { setServerPlatform } from '../../../server/platform';
 import { getBuildBase } from '../../../server/utils';
+import type { SSRContainer } from './types';
 
 export const renderToString2: typeof renderToString = async (
   jsx: JSXOutput,
@@ -65,7 +66,6 @@ export const renderToStream2: typeof renderToStream = async (
     render: 0,
     snapshot: 0,
   };
-  const renderSymbols: string[] = [];
   const containerTagName = opts.containerTagName ?? 'html';
   const containerAttributes = opts.containerAttributes ?? {};
   const nativeStream = stream;
@@ -87,13 +87,7 @@ export const renderToStream2: typeof renderToStream = async (
   await setServerPlatform(opts, resolvedManifest);
   await ssrRenderToContainer(ssrContainer, jsx);
 
-  const snapshotResult: SnapshotResult = {
-    funcs: Array.from(ssrContainer.serializationCtx.$inlinedFunctions$),
-    // TODO
-    mode: 'render',
-    qrls: Array.from(ssrContainer.serializationCtx.$qrls$),
-    resources: Array.from(ssrContainer.serializationCtx.$resources$),
-  };
+  const snapshotResult = getSnapshotResult(ssrContainer);
 
   const isDynamic = snapshotResult.resources.some((r) => r._cache !== Infinity);
   const result: RenderToStreamResult = {
@@ -104,8 +98,28 @@ export const renderToStream2: typeof renderToStream = async (
     size: totalSize,
     isStatic: !isDynamic,
     timing: timing,
-    _symbols: renderSymbols,
+    _symbols: Array.from(ssrContainer.serializationCtx.$renderSymbols$),
   };
 
   return result;
 };
+
+function getSnapshotResult(ssrContainer: SSRContainer): SnapshotResult {
+  const hasListeners = ssrContainer.serializationCtx.$eventQrls$.size > 0;
+  // TODO
+  const canRender = false;
+
+  return hasListeners
+    ? {
+        funcs: Array.from(ssrContainer.serializationCtx.$signalDerivedFunctions$),
+        mode: canRender ? 'render' : 'listeners',
+        qrls: Array.from(ssrContainer.serializationCtx.$eventQrls$),
+        resources: Array.from(ssrContainer.serializationCtx.$resources$),
+      }
+    : {
+        funcs: [],
+        mode: 'static',
+        qrls: [],
+        resources: Array.from(ssrContainer.serializationCtx.$resources$),
+      };
+}

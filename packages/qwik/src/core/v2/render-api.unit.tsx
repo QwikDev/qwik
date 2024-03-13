@@ -48,15 +48,15 @@ describe('render api', () => {
     document = createDocument();
   });
 
-  const Greeter = componentQrl<{ salutation?: string; name?: string }>(
-    inlinedQrl(({ salutation, name }) => {
-      return (
-        <span>
-          {salutation || 'Hello'} {name || 'World'}!
-        </span>
-      );
-    }, 's_greeter')
-  );
+  // const Greeter = componentQrl<{ salutation?: string; name?: string }>(
+  //   inlinedQrl(({ salutation, name }) => {
+  //     return (
+  //       <span>
+  //         {salutation || 'Hello'} {name || 'World'}!
+  //       </span>
+  //     );
+  //   }, 's_greeter')
+  // );
 
   const Counter = componentQrl(
     inlinedQrl(() => {

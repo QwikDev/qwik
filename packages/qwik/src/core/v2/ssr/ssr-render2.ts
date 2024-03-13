@@ -53,22 +53,22 @@ export const renderToStream2: typeof renderToStream = async (
   opts: RenderToStreamOptions
 ): Promise<RenderToStreamResult> => {
   const stream = opts.stream;
-  const bufferSize = 0;
-  const totalSize = 0;
-  const networkFlushes = 0;
-  const buffer: string = '';
-  const inOrderStreaming = opts.streaming?.inOrder ?? {
-    strategy: 'auto',
-    maximunInitialChunk: 50000,
-    maximunChunk: 30000,
-  };
+  // const bufferSize = 0;
+  // const buffer: string = '';
+  // const inOrderStreaming = opts.streaming?.inOrder ?? {
+  //   strategy: 'auto',
+  //   maximunInitialChunk: 50000,
+  //   maximunChunk: 30000,
+  // };
+  // const nativeStream = stream;
   const timing: RenderToStreamResult['timing'] = {
     firstFlush: 0,
     render: 0,
     snapshot: 0,
   };
   const containerTagName = opts.containerTagName ?? 'html';
-  const nativeStream = stream;
+  const totalSize = 0;
+  const networkFlushes = 0;
   const buildBase = getBuildBase(opts);
   const resolvedManifest = resolveManifest(opts.manifest);
 

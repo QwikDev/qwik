@@ -297,23 +297,6 @@ export const getVnodeFromEl = (el: Node | VirtualElement) => {
 };
 
 export const domToVnode = (node: Node | VirtualElement): ProcessedJSXNode => {
-  const elem = (node as any).$elm$;
-  if (elem) {
-    return elem;
-  }
-  if (isElement(node)) {
-    const container = node.closest && (node.closest(QContainerAttr) as ContainerElement);
-    const rootVNode = container.qContainer?.rootVNode;
-    if (rootVNode) {
-      const vnode = vnode_locate(rootVNode, node);
-      if (vnode) {
-        return vnode as any;
-      }
-    }
-  }
-  // if ((true as boolean) === true) {
-  //   throw new Error('Should not get here because vNode should be emulating this.');
-  // }
   if (isQwikElement(node)) {
     const t = new ProcessedJSXNodeImpl(
       node.localName,

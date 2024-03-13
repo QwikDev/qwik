@@ -60,6 +60,7 @@ import {
 import { createTimer } from 'packages/qwik/src/server/utils';
 import type {
   PrefetchResource,
+  QwikLoaderOptions,
   RenderOptions,
   RenderToStreamResult,
 } from 'packages/qwik/src/server/types';
@@ -68,6 +69,7 @@ import { qDev } from '../../util/qdev';
 import { getPrefetchResources } from 'packages/qwik/src/server/prefetch-strategy';
 import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
 import { applyPrefetchImplementation2 } from 'packages/qwik/src/server/prefetch-implementation';
+import { getQwikLoaderScript } from '@builder.io/qwik/server';
 
 export function ssrCreateContainer(
   opts: {
@@ -407,12 +409,15 @@ class SSRContainer implements ISSRContainer {
   ////////////////////////////////////
 
   emitContainerData(): ValueOrPromise<void> {
+    const qwikLoaderPositionMode = this.renderOptions.qwikLoader?.position ?? 'bottom';
+    this.emitQwikLoaderAtTopIfNeeded(qwikLoaderPositionMode);
     this.emitUnclaimedProjection();
     this.emitVNodeData();
-    return maybeThen(
-      maybeThen(this.emitStateData(), () => this.emitSyncFnsData()),
-      () => this.emitPrefetchResourcesData()
-    );
+    return maybeThen(this.emitStateData(), () => {
+      this.emitSyncFnsData();
+      this.emitPrefetchResourcesData();
+      this.emitQwikLoaderAtBottomIfNeeded(qwikLoaderPositionMode);
+    });
   }
 
   /**
@@ -591,6 +596,45 @@ class SSRContainer implements ISSRContainer {
         applyPrefetchImplementation2(this, this.renderOptions.prefetchStrategy, prefetchResources);
         this.prefetchResources = prefetchResources;
       }
+    }
+  }
+
+  isStatic(): boolean {
+    return this.serializationCtx.$eventQrls$.size === 0;
+  }
+
+  private emitQwikLoaderAtTopIfNeeded(positionMode: QwikLoaderOptions['position']) {
+    if (positionMode === 'top') {
+      this.emitQwikLoader();
+      // Assume there will be at least click handlers
+      this.openElement('script', []);
+      this.write(`window.qwikevents.push('click')`);
+      this.closeElement();
+    }
+  }
+
+  private emitQwikLoaderAtBottomIfNeeded(positionMode: QwikLoaderOptions['position']) {
+    if (positionMode === 'bottom') {
+      this.emitQwikLoader();
+    }
+  }
+
+  private emitQwikLoader() {
+    const needLoader = !this.isStatic();
+    const includeMode = this.renderOptions.qwikLoader?.include ?? 'auto';
+
+    const includeLoader = includeMode === 'always' || (includeMode === 'auto' && needLoader);
+    if (includeLoader) {
+      const qwikLoaderScript = getQwikLoaderScript({
+        debug: this.renderOptions.debug,
+      });
+      const scriptAttrs = ['id', 'qwikloader'];
+      if (this.renderOptions.serverData?.nonce) {
+        scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
+      }
+      this.openElement('script', scriptAttrs);
+      this.write(qwikLoaderScript);
+      this.closeElement();
     }
   }
 

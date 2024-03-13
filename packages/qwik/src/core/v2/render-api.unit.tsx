@@ -268,6 +268,73 @@ describe('render api', () => {
       });
     });
     describe('qwikLoader', () => {
+      it('should render at bottom by default', async () => {
+        const result = await renderToString2(<Counter />, {
+          containerTagName: 'div',
+        });
+        const document = createDocument(result.html);
+        const qwikLoaderScriptElement = document.body.firstChild?.lastChild as HTMLElement;
+        expect(qwikLoaderScriptElement?.tagName.toLowerCase()).toEqual('script');
+        expect(qwikLoaderScriptElement?.getAttribute('id')).toEqual('qwikloader');
+      });
+      it('should render at bottom', async () => {
+        const result = await renderToString2(<Counter />, {
+          containerTagName: 'div',
+          qwikLoader: {
+            position: 'bottom',
+          },
+        });
+        const document = createDocument(result.html);
+        const qwikLoaderScriptElement = document.body.firstChild?.lastChild as HTMLElement;
+        expect(qwikLoaderScriptElement?.tagName.toLowerCase()).toEqual('script');
+        expect(qwikLoaderScriptElement?.getAttribute('id')).toEqual('qwikloader');
+      });
+      it('should render at top', async () => {
+        const result = await renderToString2(<Counter />, {
+          containerTagName: 'div',
+          qwikLoader: {
+            position: 'top',
+          },
+        });
+        const document = createDocument(result.html);
+        // find last component element - button
+        const button = document.querySelector('button') as HTMLButtonElement;
+        const qwikLoaderScriptElement = button.nextSibling as HTMLElement;
+        expect(qwikLoaderScriptElement?.tagName.toLowerCase()).toEqual('script');
+        expect(qwikLoaderScriptElement?.getAttribute('id')).toEqual('qwikloader');
+      });
+      it('should always render', async () => {
+        const result = await renderToString2(<div>static</div>, {
+          containerTagName: 'div',
+          qwikLoader: {
+            include: 'always',
+          },
+        });
+        const document = createDocument(result.html);
+        expect(document.querySelectorAll('script[id=qwikloader]')).toHaveLength(1);
+      });
+      it('should not render for static content and auto include', async () => {
+        const result = await renderToString2(<div>static</div>, {
+          containerTagName: 'div',
+          qwikLoader: {
+            include: 'auto',
+          },
+        });
+        const document = createDocument(result.html);
+        expect(document.querySelectorAll('script[id=qwikloader]')).toHaveLength(0);
+      });
+      it('should never render', async () => {
+        const result = await renderToString2(<Counter />, {
+          containerTagName: 'div',
+          qwikLoader: {
+            include: 'never',
+          },
+        });
+        const document = createDocument(result.html);
+        expect(document.querySelectorAll('script[id=qwikloader]')).toHaveLength(0);
+      });
+    });
+    describe('qwikEvents', () => {
       it.todo('should render', async () => {});
     });
     describe('qwikPrefetchServiceWorker', () => {

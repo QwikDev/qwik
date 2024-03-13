@@ -37,6 +37,7 @@ export interface SSRContainer extends Container2 {
   addRoot(obj: any): number;
   getLastNode(): SsrNode;
   addUnclaimedProjection(node: SsrNode, name: string, children: JSXChildren): void;
+  isStatic(): boolean;
 }
 
 export type SsrAttrs = Array<string | null>;

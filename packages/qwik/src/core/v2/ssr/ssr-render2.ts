@@ -67,7 +67,6 @@ export const renderToStream2: typeof renderToStream = async (
     snapshot: 0,
   };
   const containerTagName = opts.containerTagName ?? 'html';
-  const containerAttributes = opts.containerAttributes ?? {};
   const nativeStream = stream;
   const buildBase = getBuildBase(opts);
   const resolvedManifest = resolveManifest(opts.manifest);
@@ -105,7 +104,7 @@ export const renderToStream2: typeof renderToStream = async (
 };
 
 function getSnapshotResult(ssrContainer: SSRContainer): SnapshotResult {
-  const hasListeners = ssrContainer.serializationCtx.$eventQrls$.size > 0;
+  const hasListeners = !ssrContainer.isStatic();
   // TODO
   const canRender = false;
 

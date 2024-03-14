@@ -577,11 +577,8 @@ class SSRContainer implements ISSRContainer {
       }
       this.openElement('script', scriptAttrs);
       this.write(Q_FUNCS_PREFIX);
-      for (let i = 0; i < fns.length; i++) {
-        const fn = fns[i];
-        this.write(i === 0 ? '[' : ',');
-        this.write(fn);
-      }
+      this.write('[');
+      this.writeArray(fns, ',');
       this.write(']');
       this.closeElement();
     }
@@ -643,16 +640,15 @@ class SSRContainer implements ISSRContainer {
   private emitQwikEvents(includeLoader: boolean) {
     const extraListeners = Array.from(this.serializationCtx.$eventNames$, (s) => JSON.stringify(s));
     if (extraListeners.length > 0) {
-      const content =
-        (includeLoader ? `window.qwikevents` : `(window.qwikevents||=[])`) +
-        `.push(${extraListeners.join(', ')})`;
-
       const scriptAttrs: SsrAttrs = [];
       if (this.renderOptions.serverData?.nonce) {
         scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
       }
       this.openElement('script', scriptAttrs);
-      this.write(content);
+      this.write(includeLoader ? `window.qwikevents` : `(window.qwikevents||=[])`);
+      this.write('.push(');
+      this.writeArray(extraListeners, ', ');
+      this.write(')');
       this.closeElement();
     }
   }
@@ -792,6 +788,16 @@ class SSRContainer implements ISSRContainer {
   ////////////////////////////////////
   private write(text: string) {
     this.writer.write(text);
+  }
+
+  writeArray(array: string[], separator: string) {
+    for (let i = 0; i < array.length; i++) {
+      const element = array[i];
+      if (i > 0) {
+        this.write(separator);
+      }
+      this.write(element);
+    }
   }
 
   private writeAttrs(attrs: (string | null)[]) {

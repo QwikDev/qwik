@@ -211,6 +211,7 @@ describe('render api', () => {
           render: expect.any(Number),
           snapshot: expect.any(Number),
         });
+        expect(timing.firstFlush).toBeGreaterThan(0);
         expect(timing.render).toBeGreaterThan(0);
         expect(timing.snapshot).toBeGreaterThan(0);
       });

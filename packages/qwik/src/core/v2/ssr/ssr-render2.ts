@@ -11,7 +11,7 @@ import type { JSXOutput } from '../../render/jsx/types/jsx-node';
 import { ssrCreateContainer } from './ssr-container';
 import { ssrRenderToContainer } from './ssr-render-jsx';
 import { setServerPlatform } from '../../../server/platform';
-import { getBuildBase } from '../../../server/utils';
+import { createTimer, getBuildBase } from '../../../server/utils';
 import type { SSRContainer } from './types';
 
 export const renderToString2: typeof renderToString = async (
@@ -52,15 +52,15 @@ export const renderToStream2: typeof renderToStream = async (
   jsx: JSXOutput,
   opts: RenderToStreamOptions
 ): Promise<RenderToStreamResult> => {
-  const stream = opts.stream;
-  const bufferSize = 0;
-  const totalSize = 0;
-  const networkFlushes = 0;
-  const buffer: string = '';
+  let stream = opts.stream;
+  let bufferSize = 0;
+  let totalSize = 0;
+  let networkFlushes = 0;
+  let buffer = '';
   const inOrderStreaming = opts.streaming?.inOrder ?? {
     strategy: 'auto',
-    maximunInitialChunk: 50000,
-    maximunChunk: 30000,
+    maximumInitialChunk: 3000,
+    maximumChunk: 1000,
   };
   const timing: RenderToStreamResult['timing'] = {
     firstFlush: 0,
@@ -71,6 +71,48 @@ export const renderToStream2: typeof renderToStream = async (
   const nativeStream = stream;
   const buildBase = getBuildBase(opts);
   const resolvedManifest = resolveManifest(opts.manifest);
+  const firstFlushTimer = createTimer();
+
+  function flush() {
+    if (buffer) {
+      nativeStream.write(buffer);
+      buffer = '';
+      bufferSize = 0;
+      networkFlushes++;
+      if (networkFlushes === 1) {
+        timing.firstFlush = firstFlushTimer();
+      }
+    }
+  }
+  function enqueue(chunk: string) {
+    const len = chunk.length;
+    bufferSize += len;
+    totalSize += len;
+    buffer += chunk;
+  }
+  switch (inOrderStreaming.strategy) {
+    case 'disabled':
+      stream = {
+        write: enqueue,
+      };
+      break;
+    case 'direct':
+      stream = nativeStream;
+      break;
+    case 'auto':
+      const minimumChunkSize = inOrderStreaming.maximumChunk ?? 0;
+      const initialChunkSize = inOrderStreaming.maximumInitialChunk ?? 0;
+      stream = {
+        write(chunk) {
+          enqueue(chunk);
+          const chunkSize = networkFlushes === 0 ? initialChunkSize : minimumChunkSize;
+          if (bufferSize >= chunkSize) {
+            flush();
+          }
+        },
+      };
+      break;
+  }
 
   const locale = typeof opts.locale === 'function' ? opts.locale(opts) : opts.locale;
 
@@ -89,6 +131,8 @@ export const renderToStream2: typeof renderToStream = async (
 
   const snapshotResult = getSnapshotResult(ssrContainer);
 
+  // Flush remaining chunks in the buffer
+  flush();
   const isDynamic = snapshotResult.resources.some((r) => r._cache !== Infinity);
   const result: RenderToStreamResult = {
     prefetchResources: ssrContainer.prefetchResources,

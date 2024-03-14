@@ -414,8 +414,8 @@ class SSRContainer implements ISSRContainer {
     this.emitUnclaimedProjection();
     this.emitVNodeData();
     return maybeThen(this.emitStateData(), () => {
-      this.emitSyncFnsData();
       this.emitPrefetchResourcesData();
+      this.emitSyncFnsData();
       this.emitQwikLoaderAtBottomIfNeeded(qwikLoaderPositionMode);
     });
   }
@@ -571,7 +571,11 @@ class SSRContainer implements ISSRContainer {
   private emitSyncFnsData() {
     const fns = this.serializationCtx.$syncFns$;
     if (fns.length) {
-      this.openElement('script', ['q:func', 'qwik/json']);
+      const scriptAttrs = ['q:func', 'qwik/json'];
+      if (this.renderOptions.serverData?.nonce) {
+        scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
+      }
+      this.openElement('script', scriptAttrs);
       this.write(Q_FUNCS_PREFIX);
       for (let i = 0; i < fns.length; i++) {
         const fn = fns[i];

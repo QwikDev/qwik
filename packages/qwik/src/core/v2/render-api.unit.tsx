@@ -379,7 +379,25 @@ describe('render api', () => {
       });
     });
     describe('qwikFuncs', () => {
-      it.todo('should render', async () => {});
+      it('should render', async () => {
+        const CounterDerived = component$((props: { initial: number }) => {
+          const count = useSignal(props.initial);
+          return (
+            <button onClick$={inlinedQrl(() => useLexicalScope()[0].value++, 's_onClick', [count])}>
+              Count: {_fnSignal((p0) => p0.value, [count], 'p0.value')}!
+            </button>
+          );
+        });
+        const result = await renderToString2(<CounterDerived initial={123} />, {
+          containerTagName: 'div',
+        });
+        const document = createDocument(result.html);
+        const qwikFuncScriptElements = document.querySelectorAll('script[q\\:func=qwik/json]');
+        expect(qwikFuncScriptElements).toHaveLength(1);
+        expect(qwikFuncScriptElements[0].textContent).toEqual(
+          'document.currentScript.closest("[q\\\\:container]").qFuncs=[(p0)=>p0.value]'
+        );
+      });
     });
     describe('qwikPrefetchServiceWorker', () => {
       it.todo('should render', async () => {});

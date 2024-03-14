@@ -110,7 +110,7 @@ function getSnapshotResult(ssrContainer: SSRContainer): SnapshotResult {
 
   return hasListeners
     ? {
-        funcs: Array.from(ssrContainer.serializationCtx.$signalDerivedFunctions$),
+        funcs: Array.from(ssrContainer.serializationCtx.$syncFns$),
         mode: canRender ? 'render' : 'listeners',
         qrls: Array.from(ssrContainer.serializationCtx.$eventQrls$),
         resources: Array.from(ssrContainer.serializationCtx.$resources$),

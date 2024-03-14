@@ -133,7 +133,7 @@ import {
   QSlotParent,
   QSlotRef,
   QStyle,
-  QStylesAllSelector
+  QStylesAllSelector,
 } from '../../util/markers';
 import { DEBUG_TYPE, VirtualType, VirtualTypeName } from '../shared/types';
 import {

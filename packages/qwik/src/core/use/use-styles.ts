@@ -45,7 +45,7 @@ export interface UseStyles {
 export const useStylesQrl = (styles: QRL<string>): UseStyles => {
   return {
     styleId: _useStyles(styles, (str) => str, false),
-  }
+  };
 };
 
 // <docs markdown="../readme.md#useStyles">

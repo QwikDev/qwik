@@ -649,20 +649,28 @@ Error.stackTraceLimit = 100;
     it('#4332', async () => {
       const Child = component$((props: { val: string }) => {
         useTask$(({ track }) => {
-          track(() => props.val)
+          track(() => props.val);
         });
         return <>{props.val}</>;
       });
-      
+
       const Parent = component$(() => {
         const sig = useSignal<{ data: string } | undefined>({ data: 'abcd' });
-      
+
         return (
           <>
-            <button onClick$={inlinedQrl(() => {
-              const [sig] = useLexicalScope();
-              sig.value = sig.value ? undefined : { data: 'abcd' };
-            }, 's_onClick', [sig])}>Toggle</button>
+            <button
+              onClick$={inlinedQrl(
+                () => {
+                  const [sig] = useLexicalScope();
+                  sig.value = sig.value ? undefined : { data: 'abcd' };
+                },
+                's_onClick',
+                [sig]
+              )}
+            >
+              Toggle
+            </button>
             {sig.value && <Child val={sig.value.data} />}
           </>
         );
@@ -671,13 +679,9 @@ Error.stackTraceLimit = 100;
       expect(vNode).toMatchVDOM(
         <Component>
           <Fragment>
-            <button>
-              Toggle
-            </button>
+            <button>Toggle</button>
             <Component>
-              <Fragment>
-                abcd
-              </Fragment>
+              <Fragment>abcd</Fragment>
             </Component>
           </Fragment>
         </Component>
@@ -686,9 +690,7 @@ Error.stackTraceLimit = 100;
       expect(vNode).toMatchVDOM(
         <Component>
           <Fragment>
-            <button>
-              Toggle
-            </button>
+            <button>Toggle</button>
             {''}
           </Fragment>
         </Component>
@@ -697,13 +699,9 @@ Error.stackTraceLimit = 100;
       expect(vNode).toMatchVDOM(
         <Component>
           <Fragment>
-            <button>
-              Toggle
-            </button>
+            <button>Toggle</button>
             <Component>
-              <Fragment>
-                abcd
-              </Fragment>
+              <Fragment>abcd</Fragment>
             </Component>
           </Fragment>
         </Component>

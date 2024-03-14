@@ -24,7 +24,7 @@ import {
   vnode_remove,
   vnode_setAttr,
   vnode_setText,
-  type VNodeJournal
+  type VNodeJournal,
 } from './vnode';
 
 describe('vnode', () => {

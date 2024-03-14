@@ -28,8 +28,9 @@ import { untrack } from '../use/use-core';
 
 /**
  * Top level manager of subscriptions (singleton, attached to DOM Container).
- * 
- * Use the `SubscriptionManager` to create a new `LocalSubscriptionManager` for tracking subscriptions.
+ *
+ * Use the `SubscriptionManager` to create a new `LocalSubscriptionManager` for tracking
+ * subscriptions.
  */
 export interface SubscriptionManager {
   /** Map of all subscriptions from `Group` to their respective managers. */

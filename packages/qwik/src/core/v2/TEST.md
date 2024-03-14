@@ -1,43 +1,45 @@
-- [X] Component
-  - [X] `useSequentialScope()`
-  - [X] `useSignal()`
-  - [X] `useStore()`
-  - [X] `useTask$()`
-  - [X] `useResource$()`
-  - [X] `useComputed$()`
-  - [X] `useVisibleTask$()`
-  - [X] `useOn()`/`useOnDocument()`/`useOnWindow()`
-  - [X] `useContext()`/`useContextProvider()`
-  - [X] Projection / `<Slot>`
-  - [X] `useStyle$()`
-  - [X] `useStyleScoped$()`
+- [x] Component
+
+  - [x] `useSequentialScope()`
+  - [x] `useSignal()`
+  - [x] `useStore()`
+  - [x] `useTask$()`
+  - [x] `useResource$()`
+  - [x] `useComputed$()`
+  - [x] `useVisibleTask$()`
+  - [x] `useOn()`/`useOnDocument()`/`useOnWindow()`
+  - [x] `useContext()`/`useContextProvider()`
+  - [x] Projection / `<Slot>`
+  - [x] `useStyle$()`
+  - [x] `useStyleScoped$()`
 
 - [ ] Serialization
-  - [X] `undefined`
-  - [X] `REFERENCE`
-  - [X] `URL`
-  - [X] `Date`
-  - [X] `Regex`
-  - [X] `String`
-  - [X] `VNode`
-  - [X] `NaN`
-  - [X] `BigInt`
-  - [X] `Error`
-  - [X] `QRL`
-  - [X] `Task`
-  - [X] `Resource`
-  - [X] `Component`
-  - [X] `DerivedSignal`
-  - [X] `Signal`
+
+  - [x] `undefined`
+  - [x] `REFERENCE`
+  - [x] `URL`
+  - [x] `Date`
+  - [x] `Regex`
+  - [x] `String`
+  - [x] `VNode`
+  - [x] `NaN`
+  - [x] `BigInt`
+  - [x] `Error`
+  - [x] `QRL`
+  - [x] `Task`
+  - [x] `Resource`
+  - [x] `Component`
+  - [x] `DerivedSignal`
+  - [x] `Signal`
   - [ ] `SignalWrapper`
-  - [X] `Store`
-  - [X] `FormData`
-  - [X] `JSXNode`
-  - [X] `Set`
-  - [X] `Map`
-  - [X] `Promise`
+  - [x] `Store`
+  - [x] `FormData`
+  - [x] `JSXNode`
+  - [x] `Set`
+  - [x] `Map`
+  - [x] `Promise`
 
 - Render API
-  - [X] `render()`
+  - [x] `render()`
   - [ ] `renderToString()`
   - [ ] `renderToStream()`

@@ -170,16 +170,16 @@ describe('vnode data', () => {
       );
 
       const { container } = await ssrRenderToDom(<Parent />, { debug });
-      
+
       expectVNodeSymbol(container, '3A', 'parent');
-      expectVNodeProps(container, '4A', {hostRefId: "1", nestedRefId: "2"});
-      expectVNodeRefProp(container, '4AAB', "2");
-      expectVNodeProps(container, '3AAB', {hostRefId: "3", nestedRefId: "4"});
-      expectVNodeRefProp(container, '3AABAB', "4");
-      expectVNodeProps(container, '10A', {hostRefId: "5", nestedRefId: "6"});
-      expectVNodeRefProp(container, '10AAB', "6");
-      expectVNodeProps(container, '3AAD', {hostRefId: "7", nestedRefId: "8"});
-      expectVNodeRefProp(container, '3AADAB', "8");
+      expectVNodeProps(container, '4A', { hostRefId: '1', nestedRefId: '2' });
+      expectVNodeRefProp(container, '4AAB', '2');
+      expectVNodeProps(container, '3AAB', { hostRefId: '3', nestedRefId: '4' });
+      expectVNodeRefProp(container, '3AABAB', '4');
+      expectVNodeProps(container, '10A', { hostRefId: '5', nestedRefId: '6' });
+      expectVNodeRefProp(container, '10AAB', '6');
+      expectVNodeProps(container, '3AAD', { hostRefId: '7', nestedRefId: '8' });
+      expectVNodeRefProp(container, '3AADAB', '8');
     });
   });
 });

@@ -35,6 +35,7 @@ export const renderToString2: typeof renderToString = async (
     qwikLoader: opts.qwikLoader,
     serverData: opts.serverData,
     prefetchStrategy: opts.prefetchStrategy,
+    debug: opts.debug,
     stream,
   });
   return {
@@ -110,7 +111,7 @@ function getSnapshotResult(ssrContainer: SSRContainer): SnapshotResult {
 
   return hasListeners
     ? {
-        funcs: Array.from(ssrContainer.serializationCtx.$signalDerivedFunctions$),
+        funcs: Array.from(ssrContainer.serializationCtx.$syncFns$),
         mode: canRender ? 'render' : 'listeners',
         qrls: Array.from(ssrContainer.serializationCtx.$eventQrls$),
         resources: Array.from(ssrContainer.serializationCtx.$resources$),

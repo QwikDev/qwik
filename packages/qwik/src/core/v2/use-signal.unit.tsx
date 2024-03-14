@@ -173,46 +173,65 @@ Error.stackTraceLimit = 100;
     it('should handle all ClassList cases', async () => {
       const Cmp = component$(() => {
         const enable = useSignal(true);
-        return (<div>
-          <button onClick$={inlinedQrl(() => {
-            const enable = useLexicalScope()[0];
-            enable.value = !enable.value;
-          }, 's_onClick', [enable])}>
-            Value: {enable.value.toString()}!
-          </button>
-          <div class={`my-class ${enable.value ? 'enable' : 'disable'}`} />
-          <span class={{
-            'my-class': true,
-            'enable': enable.value,
-            'disable': !enable.value,
-            'another-class': false
-          }} />
-          <span class={[
-            'my-class',
-            enable.value.toString(),
-            'signal-' + enable.value.toString(),
-            enable.value ? 'enable' : 'disable'
-          ]} />
-        </div>
-        )
+        return (
+          <div>
+            <button
+              onClick$={inlinedQrl(
+                () => {
+                  const enable = useLexicalScope()[0];
+                  enable.value = !enable.value;
+                },
+                's_onClick',
+                [enable]
+              )}
+            >
+              Value: {enable.value.toString()}!
+            </button>
+            <div class={`my-class ${enable.value ? 'enable' : 'disable'}`} />
+            <span
+              class={{
+                'my-class': true,
+                enable: enable.value,
+                disable: !enable.value,
+                'another-class': false,
+              }}
+            />
+            <span
+              class={[
+                'my-class',
+                enable.value.toString(),
+                'signal-' + enable.value.toString(),
+                enable.value ? 'enable' : 'disable',
+              ]}
+            />
+          </div>
+        );
       });
 
       const { vNode, container } = await render(<Cmp />, { debug });
       expect(vNode).toMatchVDOM(
         <Component>
           <div>
-            <button>{'Value: '}{'true'}{'!'}</button>
+            <button>
+              {'Value: '}
+              {'true'}
+              {'!'}
+            </button>
             <div class="my-class enable" />
             <span class="my-class enable" />
             <span class="my-class true signal-true enable" />
-          </div >
-        </Component >
+          </div>
+        </Component>
       );
       await trigger(container.element, 'button', 'click');
       expect(vNode).toMatchVDOM(
         <Component>
           <div>
-            <button>{'Value: '}{'false'}{'!'}</button>
+            <button>
+              {'Value: '}
+              {'false'}
+              {'!'}
+            </button>
             <div class="my-class disable" />
             <span class="my-class disable" />
             <span class="my-class false signal-false disable" />

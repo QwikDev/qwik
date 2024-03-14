@@ -104,6 +104,9 @@ export const renderToStream2: typeof renderToStream = async (
       const initialChunkSize = inOrderStreaming.maximumInitialChunk ?? 0;
       stream = {
         write(chunk) {
+          if (chunk === undefined || chunk === null) {
+            return;
+          }
           enqueue(chunk);
           const chunkSize = networkFlushes === 0 ? initialChunkSize : minimumChunkSize;
           if (bufferSize >= chunkSize) {

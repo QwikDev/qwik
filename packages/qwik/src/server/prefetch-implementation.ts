@@ -110,10 +110,11 @@ function prefetchUrlsEvent2(
     scriptAttrs.push('nonce', nonce);
   }
   container.openElement('script', scriptAttrs);
+  container.writer.write(prefetchUrlsEventScript(prefetchResources));
   container.writer.write(
-    prefetchUrlsEventScript(prefetchResources) +
-      `;document.dispatchEvent(new CustomEvent('qprefetch', {detail:{links: [location.pathname]}}))`
+    `;document.dispatchEvent(new CustomEvent('qprefetch', {detail:{links: [location.pathname]}}))`
   );
+
   container.closeElement();
 }
 
@@ -223,48 +224,46 @@ function linkJsImplementation2(
   prefetchImpl: Required<PrefetchImplementation>,
   nonce?: string
 ) {
-  const rel = prefetchImpl.linkRel || 'prefetch';
-  let s = ``;
-
-  if (prefetchImpl.workerFetchInsert === 'no-link-support') {
-    s += `let supportsLinkRel = true;`;
-  }
-
-  s += `const u=${JSON.stringify(flattenPrefetchResources(prefetchResources))};`;
-  s += `u.map((u,i)=>{`;
-
-  s += `const l=document.createElement('link');`;
-  s += `l.setAttribute("href",u);`;
-  s += `l.setAttribute("rel","${rel}");`;
-
-  if (prefetchImpl.workerFetchInsert === 'no-link-support') {
-    s += `if(i===0){`;
-    s += `try{`;
-    s += `supportsLinkRel=l.relList.supports("${rel}");`;
-    s += `}catch(e){}`;
-    s += `}`;
-  }
-
-  s += `document.body.appendChild(l);`;
-
-  s += `});`;
-
-  if (prefetchImpl.workerFetchInsert === 'no-link-support') {
-    s += `if(!supportsLinkRel){`;
-    s += workerFetchScript();
-    s += `}`;
-  }
-
-  if (prefetchImpl.workerFetchInsert === 'always') {
-    s += workerFetchScript();
-  }
-
   const scriptAttrs = ['type', 'module', 'q:type', 'link-js'];
   if (nonce) {
     scriptAttrs.push('nonce', nonce);
   }
   container.openElement('script', scriptAttrs);
-  container.writer.write(s);
+
+  const rel = prefetchImpl.linkRel || 'prefetch';
+
+  if (prefetchImpl.workerFetchInsert === 'no-link-support') {
+    container.writer.write(`let supportsLinkRel = true;`);
+  }
+
+  container.writer.write(`const u=${JSON.stringify(flattenPrefetchResources(prefetchResources))};`);
+  container.writer.write(`u.map((u,i)=>{`);
+
+  container.writer.write(`const l=document.createElement('link');`);
+  container.writer.write(`l.setAttribute("href",u);`);
+  container.writer.write(`l.setAttribute("rel","${rel}");`);
+
+  if (prefetchImpl.workerFetchInsert === 'no-link-support') {
+    container.writer.write(`if(i===0){`);
+    container.writer.write(`try{`);
+    container.writer.write(`supportsLinkRel=l.relList.supports("${rel}");`);
+    container.writer.write(`}catch(e){}`);
+    container.writer.write(`}`);
+  }
+
+  container.writer.write(`document.body.appendChild(l);`);
+
+  container.writer.write(`});`);
+
+  if (prefetchImpl.workerFetchInsert === 'no-link-support') {
+    container.writer.write(`if(!supportsLinkRel){`);
+    container.writer.write(workerFetchScript());
+    container.writer.write(`}`);
+  }
+
+  if (prefetchImpl.workerFetchInsert === 'always') {
+    container.writer.write(workerFetchScript());
+  }
   container.closeElement();
 }
 
@@ -291,15 +290,15 @@ function workerFetchImplementation2(
   prefetchResources: PrefetchResource[],
   nonce?: string
 ) {
-  let s = `const u=${JSON.stringify(flattenPrefetchResources(prefetchResources))};`;
-  s += workerFetchScript();
-
   const scriptAttrs = ['type', 'module', 'q:type', 'prefetch-worker'];
   if (nonce) {
     scriptAttrs.push(nonce, 'nonce');
   }
   container.openElement('script', scriptAttrs);
-  container.writer.write(s);
+
+  container.writer.write(`const u=${JSON.stringify(flattenPrefetchResources(prefetchResources))};`);
+  container.writer.write(workerFetchScript());
+
   container.closeElement();
 }
 

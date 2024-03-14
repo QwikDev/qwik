@@ -22,6 +22,11 @@ import { _fnSignal } from '../internal';
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
 import { useOn } from '../use/use-on';
 
+vi.hoisted(() => {
+  vi.stubGlobal('QWIK_LOADER_DEFAULT_MINIFIED', 'min');
+  vi.stubGlobal('QWIK_LOADER_DEFAULT_DEBUG', 'debug');
+});
+
 const defaultManifest: QwikManifest = {
   manifestHash: 'manifest-hash',
   symbols: {},
@@ -400,7 +405,9 @@ describe('render api', () => {
       });
     });
     describe('qwikPrefetchServiceWorker', () => {
-      it.todo('should render', async () => {});
+      it.todo('should render', async () => {
+        // TODO: not used?
+      });
     });
     describe('prefetchStrategy', () => {
       it('should render with default prefetch implementation', async () => {
@@ -655,7 +662,39 @@ describe('render api', () => {
       });
     });
     describe('manifest/symbolMapper', () => {
-      it.todo('should render', async () => {});
+      it('should render', async () => {
+        const testManifest: QwikManifest = {
+          manifestHash: 'test-manifest-hash',
+          symbols: {
+            symbol1: {
+              canonicalFilename: 'symbol1filename',
+              captures: false,
+              ctxKind: 'event',
+              ctxName: 'symbol1ctxname',
+              displayName: 'symbol1displayname',
+              hash: 'symbol1hash',
+              loc: [0, 0],
+              origin: 'symbol1origin',
+              parent: null,
+            },
+          },
+          bundles: {
+            bundle1: {
+              size: 1,
+              dynamicImports: [],
+            },
+          },
+          mapping: {
+            counter: 'counter.js',
+          },
+          version: '1',
+        };
+        const result = await renderToString2(<Counter />, {
+          containerTagName: 'div',
+          manifest: testManifest,
+        });
+        expect(result.manifest).toEqual(testManifest);
+      });
       it('should render manifest hash attribute', async () => {
         const testManifestHash = 'testManifestHash';
         const result = await renderToString2(<Counter />, {
@@ -669,7 +708,21 @@ describe('render api', () => {
       });
     });
     describe('debug', () => {
-      it.todo('should render', async () => {});
+      it('should emit qwik loader with debug mode', async () => {
+        const result = await renderToString2(<Counter />, {
+          containerTagName: 'div',
+          debug: true,
+        });
+        expect(result.html).toContain('<script id="qwikloader">debug</script>');
+      });
+
+      it('should emit qwik loader without debug mode', async () => {
+        const result = await renderToString2(<Counter />, {
+          containerTagName: 'div',
+          debug: false,
+        });
+        expect(result.html).toContain('<script id="qwikloader">min</script>');
+      });
     });
     describe('snapshotResult', () => {
       it('should contain resources', async () => {

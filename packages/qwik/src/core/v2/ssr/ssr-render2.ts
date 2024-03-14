@@ -35,6 +35,7 @@ export const renderToString2: typeof renderToString = async (
     qwikLoader: opts.qwikLoader,
     serverData: opts.serverData,
     prefetchStrategy: opts.prefetchStrategy,
+    debug: opts.debug,
     stream,
   });
   return {

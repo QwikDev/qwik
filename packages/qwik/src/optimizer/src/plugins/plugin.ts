@@ -100,6 +100,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     },
     inlineStylesUpToBytes: null as any,
     lint: true,
+    base: '/',
   };
 
   const init = async () => {
@@ -133,7 +134,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     const path = optimizer.sys.path;
 
     opts.debug = !!updatedOpts.debug;
-
+    opts.base = updatedOpts.base ?? '/';
     updatedOpts.target === 'test';
     if (
       updatedOpts.target === 'ssr' ||
@@ -957,6 +958,7 @@ export interface QwikPluginOptions {
    * large projects. Defaults to `true`
    */
   lint?: boolean;
+  base?: string
 }
 
 export interface NormalizedQwikPluginOptions extends Required<QwikPluginOptions> {

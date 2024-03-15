@@ -118,7 +118,7 @@ export async function configureDevServer(
                   location: 'head',
                   attributes: {
                     rel: 'stylesheet',
-                    href: url,
+                    href: `${opts.base}${url}`,
                   },
                 });
               }

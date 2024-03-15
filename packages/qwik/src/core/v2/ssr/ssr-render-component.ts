@@ -3,12 +3,12 @@ import { type Component, type OnRenderFn } from '../../component/component.publi
 import { SERIALIZABLE_STATE } from '../../container/serializers';
 import type { QRLInternal } from '../../qrl/qrl-class';
 import { ELEMENT_PROPS, OnRenderProp } from '../../util/markers';
-import { SsrNode, type SSRContainer } from './types';
+import { type ISsrNode, type SSRContainer } from './ssr-types';
 import { executeComponent2 } from '../shared/component-execution';
 
 export const applyInlineComponent = (
   ssr: SSRContainer,
-  component$Host: SsrNode,
+  component$Host: ISsrNode,
   component: OnRenderFn<any>,
   jsx: JSXNode
 ) => {

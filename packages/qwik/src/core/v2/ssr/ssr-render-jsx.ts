@@ -1,7 +1,7 @@
 import { isDev } from '@builder.io/qwik/build';
-import { isPromise } from '../../util/promises';
 import { isQwikComponent } from '../../component/component.public';
 import { isQrl } from '../../qrl/qrl-class';
+import type { QRL } from '../../qrl/qrl.public';
 import { serializeClass } from '../../render/execute-component';
 import { Fragment } from '../../render/jsx/jsx-runtime';
 import { Slot } from '../../render/jsx/slot.public';
@@ -13,6 +13,7 @@ import { trackSignal } from '../../use/use-core';
 import { EMPTY_ARRAY } from '../../util/flyweight';
 import { throwErrorAndStop } from '../../util/log';
 import { QSlot } from '../../util/markers';
+import { isPromise } from '../../util/promises';
 import { type ValueOrPromise } from '../../util/types';
 import {
   convertEventNameFromJsxPropToHtmlAttr,
@@ -23,29 +24,21 @@ import { isClassAttr } from '../shared/scoped-styles';
 import { qrlToString, type SerializationContext } from '../shared/shared-serialization';
 import { DEBUG_TYPE, VirtualType, type fixMeAny } from '../shared/types';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
-import type { SSRContainer, SsrAttrs } from './types';
-import type { QRL } from '../../qrl/qrl.public';
-
-/**
- * We support Promises in JSX but we don't expose this in the public API because it breaks signal
- * tracking after the first await.
- */
-type JSXValue = ValueOrPromise<JSXOutput>;
-export async function ssrRenderToContainer(ssr: SSRContainer, jsx: JSXOutput) {
-  ssr.openContainer();
-  await walkJSX(ssr, jsx, true);
-  ssr.closeContainer();
-}
+import type { SSRContainer, SsrAttrs } from './ssr-types';
 
 type StackFn = () => ValueOrPromise<void>;
 type StackValue = JSXOutput | StackFn | Promise<JSXOutput> | typeof Promise;
-export function walkJSX(
+
+/** @internal */
+export function _walkJSX(
   ssr: SSRContainer,
   value: JSXOutput,
   allowPromises: true
 ): ValueOrPromise<void>;
-export function walkJSX(ssr: SSRContainer, value: JSXOutput, allowPromises: false): false;
-export function walkJSX(
+/** @internal */
+export function _walkJSX(ssr: SSRContainer, value: JSXOutput, allowPromises: false): false;
+/** @internal */
+export function _walkJSX(
   ssr: SSRContainer,
   value: JSXOutput,
   allowPromises: boolean
@@ -97,7 +90,9 @@ export function walkJSX(
 
 function processJSXNode(
   ssr: SSRContainer,
-  enqueue: (value: JSXValue | (() => ValueOrPromise<void>) | typeof Promise) => void,
+  enqueue: (
+    value: ValueOrPromise<JSXOutput> | (() => ValueOrPromise<void>) | typeof Promise
+  ) => void,
   value: JSXOutput
 ) {
   // console.log('processJSXNode', value);

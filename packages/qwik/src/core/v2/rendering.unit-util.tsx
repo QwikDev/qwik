@@ -26,7 +26,7 @@ import {
 } from './client/vnode';
 import { codeToName } from './shared/shared-serialization';
 import './vdom-diff.unit-util';
-import { renderToString2 } from './ssr/ssr-render2';
+import { renderToString2 } from '../../server/v2-ssr-render2';
 
 export async function domRender(
   jsx: JSXOutput,

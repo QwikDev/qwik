@@ -110,8 +110,10 @@ export interface RenderResult {
 // @public (undocumented)
 export type RenderToStream = (opts: RenderToStreamOptions) => Promise<RenderToStreamResult>;
 
+// Warning: (ae-forgotten-export) The symbol "renderToStream_2" needs to be exported by the entry point index.d.ts
+//
 // @public
-export function renderToStream(rootNode: any, opts: RenderToStreamOptions): Promise<RenderToStreamResult>;
+export const renderToStream: typeof renderToStream_2;
 
 // @public (undocumented)
 export interface RenderToStreamOptions extends RenderOptions {
@@ -138,8 +140,10 @@ export interface RenderToStreamResult extends RenderResult {
 // @public (undocumented)
 export type RenderToString = (opts: RenderToStringOptions) => Promise<RenderToStringResult>;
 
+// Warning: (ae-forgotten-export) The symbol "renderToString_2" needs to be exported by the entry point index.d.ts
+//
 // @public
-export function renderToString(rootNode: any, opts?: RenderToStringOptions): Promise<RenderToStringResult>;
+export const renderToString: typeof renderToString_2;
 
 // @public (undocumented)
 export interface RenderToStringOptions extends RenderOptions {
@@ -151,6 +155,7 @@ export interface RenderToStringResult extends RenderResult {
     html: string;
     // (undocumented)
     timing: {
+        firstFlush: number;
         render: number;
         snapshot: number;
     };

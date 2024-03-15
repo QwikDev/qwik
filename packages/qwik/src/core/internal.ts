@@ -1,6 +1,8 @@
 export { _pauseFromContexts, _serializeData } from './container/pause';
 export { _noopQrl, _regSymbol } from './qrl/qrl';
 export { _renderSSR } from './render/ssr/render-ssr';
+export { _walkJSX } from './v2/ssr/ssr-render-jsx';
+export { _SharedContainer } from './v2/shared/shared-container';
 export { _hW } from './render/dom/notify-render';
 export { _wrapSignal, _wrapProp } from './state/signal';
 export { _restProps } from './state/store';
@@ -14,5 +16,5 @@ export {
   _jsxBranch,
   _waitUntilRendered,
 } from './use/use-core';
-export { _jsxQ, _jsxC, _jsxS } from './render/jsx/jsx-runtime';
+export { _jsxQ, _jsxC, _jsxS, isJSXNode as _isJSXNode } from './render/jsx/jsx-runtime';
 export { _fnSignal } from './qrl/inlined-fn';

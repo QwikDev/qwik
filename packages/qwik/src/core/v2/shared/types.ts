@@ -4,18 +4,15 @@ import type { SubscriptionManager } from '../../state/common';
 import type { ContextId } from '../../use/use-context';
 import type { ValueOrPromise } from '../../util/types';
 import type { VirtualVNode } from '../client/types';
-import type { SsrNode } from '../ssr/types';
+import type { ISsrNode, StreamWriter } from '../ssr/ssr-types';
 import type { Scheduler } from './scheduler';
+import type { SerializationContext } from './shared-serialization';
 
 /// Temporary type left behind which needs to be fixed.
 export type fixMeAny = any;
 
 export interface Container2 {
-  processJsx(host: HostElement, jsx: JSXOutput): ValueOrPromise<void>;
-  handleError(err: any, $host$: HostElement): void;
-  getParentHost(host: HostElement): HostElement | null;
-  setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
-  resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined;
+  readonly $version$: string;
   readonly $scheduler$: Scheduler;
   readonly $subsManager$: SubscriptionManager;
   readonly $proxyMap$: ObjToProxyMap;
@@ -23,15 +20,23 @@ export interface Container2 {
   readonly $locale$: string;
   /// Retrieve Object from paused serialized state.
   readonly $getObjectById$: (id: number | string) => any;
+  readonly $serverData$: Record<string, any>;
 
+  processJsx(host: HostElement, jsx: JSXOutput): ValueOrPromise<void>;
+  handleError(err: any, $host$: HostElement): void;
+  getParentHost(host: HostElement): HostElement | null;
+  setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
+  resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined;
   setHostProp<T>(host: HostElement, name: string, value: T): void;
   getHostProp<T>(host: HostElement, name: string): T | null;
-
   $appendStyle$(content: string, styleId: string, host: HostElement, scoped: boolean): void;
-  $serverData$: Record<string, any>;
+  serializationCtxFactory(
+    NodeConstructor: SerializationContext['$NodeConstructor$'] | null,
+    writer?: StreamWriter
+  ): SerializationContext;
 }
 
-export type HostElement = VirtualVNode | SsrNode;
+export type HostElement = VirtualVNode | ISsrNode;
 
 export interface QElement2 extends HTMLElement {
   qDispatchEvent?: (event: Event) => boolean;

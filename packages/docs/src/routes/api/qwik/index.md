@@ -942,6 +942,24 @@ export type FunctionComponent<P = unknown> = {
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-node.ts)
 
+## getDomContainer
+
+```typescript
+export declare function getDomContainer(
+  element: HTMLElement | ElementVNode,
+): IClientContainer;
+```
+
+| Parameter | Type                        | Description |
+| --------- | --------------------------- | ----------- |
+| element   | HTMLElement \| ElementVNode |             |
+
+**Returns:**
+
+IClientContainer
+
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/v2/client/dom-container.ts)
+
 ## getPlatform
 
 Retrieve the `CorePlatform`.
@@ -2585,9 +2603,9 @@ Render JSX.
 Use this method to render JSX. This function does reconciling which means it always tries to reuse what is already in the DOM (rather then destroy and recreate content.) It returns a cleanup function you could use for cleaning up subscriptions.
 
 ```typescript
-render: (
+render2: (
   parent: Element | Document,
-  jsxOutput: JSXOutput | FunctionComponent<any>,
+  jsxNode: JSXOutput | FunctionComponent<any>,
   opts?: RenderOptions,
 ) => Promise<RenderResult>;
 ```
@@ -2595,7 +2613,7 @@ render: (
 | Parameter | Type                                                                          | Description                                                                                                               |
 | --------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
 | parent    | Element \| Document                                                           | Element which will act as a parent to <code>jsxNode</code>. When possible the rendering will try to reuse existing nodes. |
-| jsxOutput | [JSXOutput](#jsxoutput) \| [FunctionComponent](#functioncomponent)&lt;any&gt; | JSX to render                                                                                                             |
+| jsxNode   | [JSXOutput](#jsxoutput) \| [FunctionComponent](#functioncomponent)&lt;any&gt; | JSX to render                                                                                                             |
 | opts      | [RenderOptions](#renderoptions)                                               | _(Optional)_                                                                                                              |
 
 **Returns:**
@@ -2604,7 +2622,7 @@ Promise&lt;[RenderResult](#renderresult)&gt;
 
 An object containing a cleanup function.
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/dom/render.public.ts)
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/v2/client/dom-render.ts)
 
 ## RenderOnce
 
@@ -2901,6 +2919,7 @@ Allows to project the children of the current component. <Slot/> can only be use
 ```typescript
 Slot: FunctionComponent<{
   name?: string;
+  children?: JSXChildren;
 }>;
 ```
 
@@ -2961,18 +2980,22 @@ export interface SnapshotMetaValue
 export interface SnapshotResult
 ```
 
-| Property       | Modifiers | Type                                | Description |
-| -------------- | --------- | ----------------------------------- | ----------- |
-| [funcs](#)     |           | string[]                            |             |
-| [mode](#)      |           | 'render' \| 'listeners' \| 'static' |             |
-| [objs](#)      |           | any[]                               |             |
-| [qrls](#)      |           | [QRL](#qrl)[]                       |             |
-| [resources](#) |           | ResourceReturnInternal&lt;any&gt;[] |             |
-| [state](#)     |           | [SnapshotState](#snapshotstate)     |             |
+| Property       | Modifiers | Type                                | Description  |
+| -------------- | --------- | ----------------------------------- | ------------ |
+| [funcs](#)     |           | string[]                            |              |
+| [mode](#)      |           | 'render' \| 'listeners' \| 'static' |              |
+| [objs?](#)     |           | any[]                               | _(Optional)_ |
+| [qrls](#)      |           | [QRL](#qrl)[]                       |              |
+| [resources](#) |           | ResourceReturnInternal&lt;any&gt;[] |              |
+| [state?](#)    |           | [SnapshotState](#snapshotstate)     | _(Optional)_ |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/container/container.ts)
 
 ## SnapshotState
+
+> Warning: This API is now obsolete.
+>
+> not longer used in v2
 
 ```typescript
 export interface SnapshotState
@@ -4023,7 +4046,7 @@ export const CmpStyles = component$(() => {
 ```
 
 ```typescript
-useStyles$: (first: string) => void
+useStyles$: (first: string) => UseStyles;
 ```
 
 | Parameter | Type   | Description |
@@ -4032,7 +4055,7 @@ useStyles$: (first: string) => void
 
 **Returns:**
 
-void
+UseStyles
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts)
 
@@ -4053,7 +4076,7 @@ export const CmpStyles = component$(() => {
 ```
 
 ```typescript
-useStylesQrl: (styles: QRL<string>) => void
+useStylesQrl: (styles: QRL<string>) => UseStyles;
 ```
 
 | Parameter | Type                      | Description |
@@ -4062,7 +4085,7 @@ useStylesQrl: (styles: QRL<string>) => void
 
 **Returns:**
 
-void
+UseStyles
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts)
 

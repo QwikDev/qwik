@@ -12,15 +12,7 @@ import { assertQrl, isQrl } from '../../qrl/qrl-class';
 import { PREVENT_DEFAULT, isOnProp, setEvent } from '../../state/listeners';
 import { isElement, isQwikElement, isText, isVirtualElement } from '../../util/element';
 import { logWarn } from '../../util/log';
-import {
-  ELEMENT_ID,
-  OnRenderProp,
-  QContainerAttr,
-  QSlot,
-  QSlotRef,
-  QSlotS,
-  QStyle,
-} from '../../util/markers';
+import { ELEMENT_ID, OnRenderProp, QSlot, QSlotRef, QSlotS, QStyle } from '../../util/markers';
 import { isPromise, maybeThen, promiseAll, promiseAllLazy } from '../../util/promises';
 import { qDev, qInspector, qTest } from '../../util/qdev';
 import type { ValueOrPromise } from '../../util/types';
@@ -92,8 +84,6 @@ import {
   setProperty,
   setPropertyPost,
 } from './operations';
-import type { ContainerElement } from '../../v2/client/types';
-import { vnode_locate } from '../../v2/client/vnode';
 
 export const SVG_NS = 'http://www.w3.org/2000/svg';
 

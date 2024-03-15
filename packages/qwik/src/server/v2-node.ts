@@ -1,49 +1,7 @@
-/** @file Public types for the SSR */
-
+import { _isJSXNode as isJSXNode } from '@builder.io/qwik';
 import { isDev } from '@builder.io/qwik/build';
-import type { SerializationContext } from '../shared/shared-serialization';
-import { mapApp_remove, mapArray_get, mapArray_set } from '../client/vnode';
-import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
-import { isJSXNode } from '../../render/jsx/jsx-runtime';
-import { QSlot, QSlotParent } from '../../util/markers';
-import type { Container2 } from '../shared/types';
-import type { ValueOrPromise } from '../../util/types';
-import type { PrefetchResource } from '@builder.io/qwik/server';
-
-export interface SSRContainer extends Container2 {
-  tag: string;
-  writer: StreamWriter;
-  serializationCtx: SerializationContext;
-  prefetchResources: PrefetchResource[];
-
-  openContainer(): void;
-  closeContainer(): void;
-
-  openElement(tag: string, attrs: SsrAttrs): void;
-  closeElement(): ValueOrPromise<void>;
-
-  openFragment(attrs: SsrAttrs): void;
-  closeFragment(): void;
-
-  openProjection(attrs: SsrAttrs): void;
-  closeProjection(): void;
-
-  openComponent(attrs: SsrAttrs): void;
-  getComponentFrame(projectionDepth: number): SsrComponentFrame | null;
-  getNearestComponentFrame(): SsrComponentFrame | null;
-  closeComponent(): void;
-
-  textNode(text: string): void;
-  addRoot(obj: any): number;
-  getLastNode(): SsrNode;
-  addUnclaimedProjection(node: SsrNode, name: string, children: JSXChildren): void;
-  isStatic(): boolean;
-}
-
-export type SsrAttrs = Array<string | null>;
-export interface StreamWriter {
-  write(chunk: string): void;
-}
+import { QSlot, QSlotParent, mapApp_remove, mapArray_get, mapArray_set } from './qwik-copy';
+import type { JSXChildren, SsrAttrs, ISsrNode, ISsrComponentFrame } from './qwik-types';
 
 /**
  * Server has no DOM, so we need to create a fake node to represent the DOM for serialization
@@ -51,7 +9,7 @@ export interface StreamWriter {
  *
  * Once deserialized the client, they will be turned to actual DOM nodes.
  */
-export class SsrNode {
+export class SsrNode implements ISsrNode {
   __brand__!: 'HostElement';
 
   static ELEMENT_NODE = 1 as const;
@@ -71,10 +29,10 @@ export class SsrNode {
 
   /** Local props which don't serialize; */
   private locals: SsrAttrs | null = null;
-  public currentComponentNode: SsrNode | null;
+  public currentComponentNode: ISsrNode | null;
 
   constructor(
-    currentComponentNode: SsrNode | null,
+    currentComponentNode: ISsrNode | null,
     nodeType: SsrNodeType,
     id: string,
     private attrs: SsrAttrs
@@ -106,11 +64,11 @@ export class SsrNode {
 
 export type SsrNodeType = 1 | 3 | 9 | 11;
 
-export class SsrComponentFrame {
+export class SsrComponentFrame implements ISsrComponentFrame {
   public slots = [];
   public projectionDepth = 0;
   public scopedStyleIds = new Set<string>();
-  constructor(public componentNode: SsrNode) {}
+  constructor(public componentNode: ISsrNode) {}
 
   distributeChildrenIntoSlots(children: JSXChildren) {
     if (isJSXNode(children)) {
@@ -137,7 +95,7 @@ export class SsrComponentFrame {
     }
   }
 
-  consumeChildrenForSlot(projectionNode: SsrNode, slotName: string): JSXChildren | null {
+  consumeChildrenForSlot(projectionNode: ISsrNode, slotName: string): JSXChildren | null {
     const children = mapApp_remove(this.slots, slotName, 0);
     if (children !== null) {
       this.componentNode.setProp(slotName, projectionNode.id);
@@ -146,7 +104,7 @@ export class SsrComponentFrame {
     return children;
   }
 
-  releaseUnclaimedProjections(unclaimedProjections: (SsrNode | JSXChildren)[]) {
+  releaseUnclaimedProjections(unclaimedProjections: (ISsrNode | JSXChildren)[]) {
     if (this.slots.length) {
       unclaimedProjections.push(this.componentNode);
       unclaimedProjections.push.apply(unclaimedProjections, this.slots);

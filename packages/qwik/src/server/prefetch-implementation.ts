@@ -6,7 +6,7 @@ import {
   workerFetchScript,
 } from './prefetch-utils';
 import type { PrefetchImplementation, PrefetchResource, PrefetchStrategy } from './types';
-import type { SsrAttrs, SSRContainer } from '../core/v2/ssr/types';
+import type { SsrAttrs, SSRContainer } from './qwik-types';
 
 export function applyPrefetchImplementation(
   prefetchStrategy: PrefetchStrategy | undefined,

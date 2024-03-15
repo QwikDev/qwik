@@ -2,7 +2,7 @@ import { describe, it, expect, expectTypeOf, beforeEach, vi, afterEach } from 'v
 import { render2 } from './client/dom-render';
 import { render } from '../render/dom/render.public';
 import { renderToStream, renderToString } from '@builder.io/qwik/server';
-import { renderToStream2, renderToString2 } from './ssr/ssr-render2';
+import { renderToStream2, renderToString2 } from '../../server/v2-ssr-render2';
 import { component$, componentQrl } from '../component/component.public';
 import { useSignal } from '../use/use-signal';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
@@ -48,15 +48,15 @@ describe('render api', () => {
     document = createDocument();
   });
 
-  const Greeter = componentQrl<{ salutation?: string; name?: string }>(
-    inlinedQrl(({ salutation, name }) => {
-      return (
-        <span>
-          {salutation || 'Hello'} {name || 'World'}!
-        </span>
-      );
-    }, 's_greeter')
-  );
+  // const Greeter = componentQrl<{ salutation?: string; name?: string }>(
+  //   inlinedQrl(({ salutation, name }) => {
+  //     return (
+  //       <span>
+  //         {salutation || 'Hello'} {name || 'World'}!
+  //       </span>
+  //     );
+  //   }, 's_greeter')
+  // );
 
   const Counter = componentQrl(
     inlinedQrl(() => {
@@ -612,7 +612,7 @@ describe('render api', () => {
           const result = await renderToString2(<Counter />, {
             containerTagName: 'div',
           });
-          expect(result.html.includes('q:render="ssr"')).toBeTruthy();
+          expect(result.html.includes('q:render="ssr-dev"')).toBeTruthy();
         });
         it('should render qRender with custom value in dev mode', async () => {
           const testRender = 'ssr-test';
@@ -635,7 +635,7 @@ describe('render api', () => {
               'q:render': testRender,
             },
           });
-          expect(result.html.includes(`q:render="${testRender}-ssr"`)).toBeTruthy();
+          expect(result.html.includes(`q:render="${testRender}-ssr-dev"`)).toBeTruthy();
         });
       });
     });

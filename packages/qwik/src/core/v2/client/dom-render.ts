@@ -1,8 +1,7 @@
 import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
-import { isElement } from 'packages/qwik/src/testing/html';
 import type { RenderOptions, RenderResult } from '../../render/dom/render.public';
 import type { FunctionComponent, JSXOutput } from '../../render/jsx/types/jsx-node';
-import { isDocument } from '../../util/element';
+import { isDocument, isElement } from '../../util/element';
 import { QContainerAttr } from '../../util/markers';
 import { DomContainer, getDomContainer } from './dom-container';
 import { releaseSubscriptions, vnode_diff } from './vnode-diff';

@@ -1,5 +1,6 @@
 /** @file Public types for the client deserialization */
 
+import type { QRL } from '../../qrl/qrl.public';
 import type { Container2 } from '../shared/types';
 import type { VNodeJournal } from './vnode';
 
@@ -7,12 +8,12 @@ export interface ClientContainer extends Container2 {
   document: QDocument;
   element: ContainerElement;
   qContainer: string;
-  qVersion: string;
   qBase: string;
   $locale$: string;
   qManifestHash: string;
   rootVNode: ElementVNode;
   $journal$: VNodeJournal;
+  parseQRL<T = unknown>(qrl: string): QRL<T>;
 }
 
 export interface ContainerElement extends HTMLElement {

@@ -1,19 +1,23 @@
+import { setServerPlatform } from './platform';
+import type { JSXOutput, SSRContainer } from './qwik-types';
+import { renderToStream, resolveManifest, type renderToString } from './render';
 import type {
-  RenderToStringOptions,
   RenderToStreamOptions,
-  RenderToStringResult,
   RenderToStreamResult,
-  StreamWriter,
+  RenderToStringOptions,
+  RenderToStringResult,
   SnapshotResult,
-} from '../../../server/types';
-import { resolveManifest, type renderToString, renderToStream } from '../../../server/render';
-import type { JSXOutput } from '../../render/jsx/types/jsx-node';
-import { ssrCreateContainer } from './ssr-container';
-import { ssrRenderToContainer } from './ssr-render-jsx';
-import { setServerPlatform } from '../../../server/platform';
-import { createTimer, getBuildBase } from '../../../server/utils';
-import type { SSRContainer } from './types';
+  StreamWriter,
+} from './types';
+import { getBuildBase } from './utils';
+import { ssrCreateContainer } from './v2-ssr-container';
 
+/**
+ * Creates a server-side `document`, renders to root node to the document, then serializes the
+ * document to a string.
+ *
+ * @public
+ */
 export const renderToString2: typeof renderToString = async (
   jsx: JSXOutput,
   opts: RenderToStringOptions = {}
@@ -48,74 +52,35 @@ export const renderToString2: typeof renderToString = async (
   };
 };
 
+/**
+ * Creates a server-side `document`, renders to root node to the document, then serializes the
+ * document to a string.
+ *
+ * @public
+ */
 export const renderToStream2: typeof renderToStream = async (
   jsx: JSXOutput,
   opts: RenderToStreamOptions
 ): Promise<RenderToStreamResult> => {
-  let stream = opts.stream;
-  let bufferSize = 0;
-  let totalSize = 0;
-  let networkFlushes = 0;
-  let buffer = '';
-  const inOrderStreaming = opts.streaming?.inOrder ?? {
-    strategy: 'auto',
-    maximumInitialChunk: 3000,
-    maximumChunk: 1000,
-  };
+  const stream = opts.stream;
+  // const bufferSize = 0;
+  // const buffer: string = '';
+  // const inOrderStreaming = opts.streaming?.inOrder ?? {
+  //   strategy: 'auto',
+  //   maximunInitialChunk: 50000,
+  //   maximunChunk: 30000,
+  // };
+  // const nativeStream = stream;
   const timing: RenderToStreamResult['timing'] = {
     firstFlush: 0,
     render: 0,
     snapshot: 0,
   };
   const containerTagName = opts.containerTagName ?? 'html';
-  const nativeStream = stream;
+  const totalSize = 0;
+  const networkFlushes = 0;
   const buildBase = getBuildBase(opts);
   const resolvedManifest = resolveManifest(opts.manifest);
-  const firstFlushTimer = createTimer();
-
-  function flush() {
-    if (buffer) {
-      nativeStream.write(buffer);
-      buffer = '';
-      bufferSize = 0;
-      networkFlushes++;
-      if (networkFlushes === 1) {
-        timing.firstFlush = firstFlushTimer();
-      }
-    }
-  }
-  function enqueue(chunk: string) {
-    const len = chunk.length;
-    bufferSize += len;
-    totalSize += len;
-    buffer += chunk;
-  }
-  switch (inOrderStreaming.strategy) {
-    case 'disabled':
-      stream = {
-        write: enqueue,
-      };
-      break;
-    case 'direct':
-      stream = nativeStream;
-      break;
-    case 'auto':
-      const minimumChunkSize = inOrderStreaming.maximumChunk ?? 0;
-      const initialChunkSize = inOrderStreaming.maximumInitialChunk ?? 0;
-      stream = {
-        write(chunk) {
-          if (chunk === undefined || chunk === null) {
-            return;
-          }
-          enqueue(chunk);
-          const chunkSize = networkFlushes === 0 ? initialChunkSize : minimumChunkSize;
-          if (bufferSize >= chunkSize) {
-            flush();
-          }
-        },
-      };
-      break;
-  }
 
   const locale = typeof opts.locale === 'function' ? opts.locale(opts) : opts.locale;
 
@@ -130,12 +95,10 @@ export const renderToStream2: typeof renderToStream = async (
   });
 
   await setServerPlatform(opts, resolvedManifest);
-  await ssrRenderToContainer(ssrContainer, jsx);
+  await ssrContainer.render(jsx);
 
   const snapshotResult = getSnapshotResult(ssrContainer);
 
-  // Flush remaining chunks in the buffer
-  flush();
   const isDynamic = snapshotResult.resources.some((r) => r._cache !== Infinity);
   const result: RenderToStreamResult = {
     prefetchResources: ssrContainer.prefetchResources,

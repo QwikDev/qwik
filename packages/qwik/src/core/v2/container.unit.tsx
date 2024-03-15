@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 import { createDocument } from '../../testing/document';
 import { component$ } from '../component/component.public';
@@ -12,12 +13,12 @@ import { getDomContainer } from './client/dom-container';
 import type { ClientContainer, VNode } from './client/types';
 import { vnode_getAttr, vnode_getFirstChild, vnode_getText } from './client/vnode';
 import { isDeserializerProxy } from './shared/shared-serialization';
-import { ssrCreateContainer } from './ssr/ssr-container';
-import { toSsrAttrs } from './ssr/ssr-render-jsx';
-import { SsrNode, type SSRContainer } from './ssr/types';
+import { ssrCreateContainer } from '../../server/v2-ssr-container';
+import { type SSRContainer } from './ssr/ssr-types';
 import './vdom-diff.unit-util';
 import { walkJSX } from './vdom-diff.unit-util';
-import crypto from 'node:crypto';
+import { SsrNode } from '../../server/v2-node';
+import { toSsrAttrs } from './ssr/ssr-render-jsx';
 
 describe('serializer v2', () => {
   describe('rendering', () => {

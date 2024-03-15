@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { component$, componentQrl } from '../../component/component.public';
-import { inlinedQrl } from '../../qrl/qrl';
-import { useSignal } from '../../use/use-signal';
-import { ssrRenderToDom } from '../rendering.unit-util';
-import { encodeAsAlphanumeric } from './vnode-data';
-import { vnode_getProp, vnode_locate } from '../client/vnode';
-import { ELEMENT_PROPS, OnRenderProp } from '../../util/markers';
-import { type QRLInternal } from '../../qrl/qrl-class';
-import type { DomContainer } from '../client/dom-container';
+import { component$, componentQrl } from '../core/component/component.public';
+import { inlinedQrl } from '../core/qrl/qrl';
+import { useSignal } from '../core/use/use-signal';
+import { ssrRenderToDom } from '../core/v2/rendering.unit-util';
+import { encodeAsAlphanumeric } from './v2-vnode-data';
+import { vnode_getProp, vnode_locate } from '../core/v2/client/vnode';
+import { ELEMENT_PROPS, OnRenderProp } from '../core/util/markers';
+import { type QRLInternal } from '../core/qrl/qrl-class';
+import type { DomContainer } from '../core/v2/client/dom-container';
 
 const debug = false;
 
@@ -170,16 +170,16 @@ describe('vnode data', () => {
       );
 
       const { container } = await ssrRenderToDom(<Parent />, { debug });
-      
+
       expectVNodeSymbol(container, '3A', 'parent');
-      expectVNodeProps(container, '4A', {hostRefId: "1", nestedRefId: "2"});
-      expectVNodeRefProp(container, '4AAB', "2");
-      expectVNodeProps(container, '3AAB', {hostRefId: "3", nestedRefId: "4"});
-      expectVNodeRefProp(container, '3AABAB', "4");
-      expectVNodeProps(container, '10A', {hostRefId: "5", nestedRefId: "6"});
-      expectVNodeRefProp(container, '10AAB', "6");
-      expectVNodeProps(container, '3AAD', {hostRefId: "7", nestedRefId: "8"});
-      expectVNodeRefProp(container, '3AADAB', "8");
+      expectVNodeProps(container, '4A', { hostRefId: '1', nestedRefId: '2' });
+      expectVNodeRefProp(container, '4AAB', '2');
+      expectVNodeProps(container, '3AAB', { hostRefId: '3', nestedRefId: '4' });
+      expectVNodeRefProp(container, '3AABAB', '4');
+      expectVNodeProps(container, '10A', { hostRefId: '5', nestedRefId: '6' });
+      expectVNodeRefProp(container, '10AAB', '6');
+      expectVNodeProps(container, '3AAD', { hostRefId: '7', nestedRefId: '8' });
+      expectVNodeRefProp(container, '3AADAB', '8');
     });
   });
 });

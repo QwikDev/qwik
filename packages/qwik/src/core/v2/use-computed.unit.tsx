@@ -83,10 +83,14 @@ Error.stackTraceLimit = 100;
       const DoubleCounter = component$((props: { initial: number }) => {
         const count = props.initial;
         const doubleCount = useComputedQrl(
-          inlinedQrl(() => {
-            runCount++;
-            return useLexicalScope()[0] * 2;
-          }, 's_doubleCount', [count])
+          inlinedQrl(
+            () => {
+              runCount++;
+              return useLexicalScope()[0] * 2;
+            },
+            's_doubleCount',
+            [count]
+          )
         );
         return (
           <button onClick$={inlinedQrl(() => useLexicalScope()[0]++, 's_onClick', [count])}>
@@ -116,13 +120,19 @@ Error.stackTraceLimit = 100;
       const DoubleCounter = component$(() => {
         const count = useSignal(1);
         const doubleCount = useComputedQrl(
-          inlinedQrl(() => {
-            runCount++;
-            return useLexicalScope()[0].value * 2;
-          }, 's_doubleCount', [count])
+          inlinedQrl(
+            () => {
+              runCount++;
+              return useLexicalScope()[0].value * 2;
+            },
+            's_doubleCount',
+            [count]
+          )
         );
         return (
-          <button onClick$={inlinedQrl(() => useLexicalScope()[0].value = 1, 's_onClick', [count])}>
+          <button
+            onClick$={inlinedQrl(() => (useLexicalScope()[0].value = 1), 's_onClick', [count])}
+          >
             Double count: {doubleCount.value}!
           </button>
         );
@@ -147,11 +157,11 @@ Error.stackTraceLimit = 100;
     it('should allow return signal inside computed', async () => {
       const Counter = component$(() => {
         const foo = useSignal(1);
-        const count = useComputedQrl(
-          inlinedQrl(() => foo, 's_count', [foo])
-        );
+        const count = useComputedQrl(inlinedQrl(() => foo, 's_count', [foo]));
         return (
-          <button onClick$={inlinedQrl(() => useLexicalScope()[0].value.value++, 's_onClick', [count])}>
+          <button
+            onClick$={inlinedQrl(() => useLexicalScope()[0].value.value++, 's_onClick', [count])}
+          >
             Count: {count.value.value}!
           </button>
         );
@@ -173,22 +183,22 @@ Error.stackTraceLimit = 100;
 
     it('#4979 - should work with inner computed', async () => {
       const InnerComponent = component$((props: { value: number }) => {
-        const foo = useComputedQrl(
-          inlinedQrl(() => useLexicalScope()[0].value, 's_foo', [props])
-        );
-        return (
-          <div>{JSON.stringify(foo.value)}</div>
-        );
+        const foo = useComputedQrl(inlinedQrl(() => useLexicalScope()[0].value, 's_foo', [props]));
+        return <div>{JSON.stringify(foo.value)}</div>;
       });
 
       const OuterComponent = component$(() => {
         const count = useSignal(123);
         return (
           <>
-            <button onClick$={inlinedQrl(() => useLexicalScope()[0].value += 1, 's_onClick', [count])}>
+            <button
+              onClick$={inlinedQrl(() => (useLexicalScope()[0].value += 1), 's_onClick', [count])}
+            >
               Next
             </button>
-            {[count.value].map(o => <InnerComponent key={o} value={o} />)}
+            {[count.value].map((o) => (
+              <InnerComponent key={o} value={o} />
+            ))}
           </>
         );
       });
@@ -197,13 +207,9 @@ Error.stackTraceLimit = 100;
       expect(vNode).toMatchVDOM(
         <>
           <>
-            <button>
-              Next
-            </button>
+            <button>Next</button>
             <>
-              <div>
-                {'123'}
-              </div>
+              <div>{'123'}</div>
             </>
           </>
         </>

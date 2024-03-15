@@ -3,9 +3,9 @@
 import type { ObjToProxyMap } from '../../container/container';
 import { assertTrue } from '../../error/assert';
 import { getPlatform } from '../../platform/platform';
+import type { QRL } from '../../qrl/qrl.public';
 import { ERROR_CONTEXT, isRecoverable } from '../../render/error-handling';
 import type { JSXOutput } from '../../render/jsx/types/jsx-node';
-import { createSubscriptionManager, type SubscriptionManager } from '../../state/common';
 import type { StoreTracker } from '../../state/store';
 import type { ContextId } from '../../use/use-context';
 import { SEQ_IDX_LOCAL } from '../../use/use-sequential-scope';
@@ -25,9 +25,10 @@ import {
 import { maybeThen } from '../../util/promises';
 import { qDev } from '../../util/qdev';
 import type { ValueOrPromise } from '../../util/types';
-import { wrapDeserializerProxy } from '../shared/shared-serialization';
-import { createScheduler } from '../shared/scheduler';
-import type { HostElement, fixMeAny } from '../shared/types';
+import { convertScopedStyleIdsToArray, convertStyleIdsToString } from '../shared/scoped-styles';
+import { _SharedContainer } from '../shared/shared-container';
+import { inflateQRL, parseQRL, wrapDeserializerProxy } from '../shared/shared-serialization';
+import type { HostElement } from '../shared/types';
 import type {
   ContainerElement,
   ElementVNode,
@@ -36,10 +37,12 @@ import type {
   VirtualVNode,
 } from './types';
 import {
+  VNodeJournalOpCode,
   mapArray_get,
   mapArray_set,
-  vnode_getDomParent,
+  vnode_applyJournal,
   vnode_getDOMChildNodes,
+  vnode_getDomParent,
   vnode_getParent,
   vnode_getProp,
   vnode_insertBefore,
@@ -48,12 +51,10 @@ import {
   vnode_newUnMaterializedElement,
   vnode_setProp,
   type VNodeJournal,
-  VNodeJournalOpCode,
-  vnode_applyJournal,
 } from './vnode';
 import { vnode_diff } from './vnode-diff';
-import { convertScopedStyleIdsToArray, convertStyleIdsToString } from '../shared/scoped-styles';
 
+/** @public */
 export function getDomContainer(element: HTMLElement | ElementVNode): IClientContainer {
   let htmlElement: HTMLElement | null = Array.isArray(element)
     ? (vnode_getDomParent(element) as HTMLElement)
@@ -76,30 +77,26 @@ export const isDomContainer = (container: any): container is DomContainer => {
   return container instanceof DomContainer;
 };
 
-export class DomContainer implements IClientContainer, StoreTracker {
+export class DomContainer extends _SharedContainer implements IClientContainer, StoreTracker {
   // public readonly containerState: ContainerState;
   public element: ContainerElement;
   public qContainer: string;
-  public qVersion: string;
   public qBase: string;
-  public $locale$: string;
   public qManifestHash: string;
   public rootVNode: ElementVNode;
   public document: QDocument;
   public $journal$: VNodeJournal;
-  public $subsManager$: SubscriptionManager;
   public renderDone: Promise<void> | null = Promise.resolve();
   public rendering: boolean = false;
   public $rawStateData$: unknown[];
   public $proxyMap$: ObjToProxyMap = new WeakMap();
-  public $scheduler$: ReturnType<typeof createScheduler>;
   public $qFuncs$: Array<(...args: unknown[]) => unknown>;
-  public $serverData$: Record<string, any> = {};
 
   private stateData: unknown[];
   private $styleIds$: Set<string> | null = null;
 
   constructor(element: ContainerElement) {
+    super(() => this.scheduleRender(), {}, element.getAttribute('q:locale')!);
     this.qContainer = element.getAttribute(QContainerAttr)!;
     if (!this.qContainer) {
       throw new Error("Element must have 'q:container' attribute.");
@@ -115,10 +112,8 @@ export class DomContainer implements IClientContainer, StoreTracker {
     ];
     this.document = element.ownerDocument as QDocument;
     this.element = element;
-    this.qVersion = element.getAttribute('q:version')!;
     this.qBase = element.getAttribute('q:base')!;
     // this.containerState = createContainerState(element, this.qBase);
-    this.$locale$ = element.getAttribute('q:locale')!;
     this.qManifestHash = element.getAttribute('q:manifest-hash')!;
     this.rootVNode = vnode_newUnMaterializedElement(null, this.element);
     // These are here to initialize all properties at once for single class transition
@@ -136,9 +131,11 @@ export class DomContainer implements IClientContainer, StoreTracker {
       this.$rawStateData$ = JSON.parse(lastState.textContent!);
       this.stateData = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
     }
-    this.$subsManager$ = createSubscriptionManager(this as fixMeAny);
-    this.$scheduler$ = createScheduler(this, () => this.scheduleRender());
     this.$qFuncs$ = element.qFuncs || EMPTY_ARRAY;
+  }
+
+  parseQRL<T = unknown>(qrl: string): QRL<T> {
+    return inflateQRL(this, parseQRL(qrl)) as QRL<T>;
   }
 
   processJsx(host: HostElement, jsx: JSXOutput): ValueOrPromise<void> {

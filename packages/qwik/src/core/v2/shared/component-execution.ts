@@ -1,4 +1,4 @@
-import type { OnRenderFn } from '../../component/component.public';
+import { isQwikComponent, type OnRenderFn } from '../../component/component.public';
 import { assertDefined } from '../../error/assert';
 import { isQrl, type QRLInternal } from '../../qrl/qrl-class';
 import { invokeApply, newInvokeContext } from '../../use/use-core';
@@ -60,9 +60,16 @@ export const executeComponent2 = (
   if (isQrl(componentQRL)) {
     props = props || container.getHostProp(renderHost, ELEMENT_PROPS) || EMPTY_OBJ;
     componentFn = componentQRL.getFn(iCtx);
+  } else if (isQwikComponent(componentQRL)) {
+    const qComponentFn = componentQRL as (
+      pros: Record<string, any>,
+      key: string | null,
+      flags: number
+    ) => JSXNode;
+    componentFn = () => invokeApply(iCtx, qComponentFn, [props || EMPTY_OBJ, null, 0]);
   } else {
-    const inlineComponent = componentQRL;
-    componentFn = () => invokeApply(iCtx, inlineComponent, [props]);
+    const inlineComponent = componentQRL as (props: Record<string, any>) => JSXOutput;
+    componentFn = () => invokeApply(iCtx, inlineComponent, [props || EMPTY_OBJ]);
   }
 
   const executeComponentWithPromiseExceptionRetry = (): ValueOrPromise<JSXOutput> =>

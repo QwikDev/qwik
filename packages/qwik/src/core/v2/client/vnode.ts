@@ -133,7 +133,7 @@ import {
   QSlotParent,
   QSlotRef,
   QStyle,
-  QStylesAllSelector
+  QStylesAllSelector,
 } from '../../util/markers';
 import { DEBUG_TYPE, VirtualType, VirtualTypeName } from '../shared/types';
 import {
@@ -756,7 +756,6 @@ export const vnode_insertBefore = (
   insertBefore: VNode | null
 ) => {
   ensureElementOrVirtualVNode(parent);
-  assertFalse(newChild === insertBefore, "Can't insert before itself");
   if (vnode_isElementVNode(parent)) {
     ensureMaterialized(parent);
   }

@@ -1,6 +1,5 @@
-import { assertEqual } from '../../error/assert';
-import { EMPTY_ARRAY } from '../../util/flyweight';
-import { SsrNode, type SsrAttrs, type SsrNodeType } from './types';
+import { type ISsrNode, type SsrAttrs } from './qwik-types';
+import { SsrNode, type SsrNodeType } from './v2-node';
 
 /**
  * Array of numbers which describes virtual nodes in the tree.
@@ -33,6 +32,8 @@ export type VNodeData = [VNodeDataFlag, ...(SsrAttrs | number)[]];
 
 export const OPEN_FRAGMENT = Number.MAX_SAFE_INTEGER;
 export const CLOSE_FRAGMENT = Number.MAX_SAFE_INTEGER - 1;
+
+const EMPTY_ARRAY: any[] = [];
 
 /// Flags for VNodeData (Flags con be bitwise combined)
 export const enum VNodeDataFlag {
@@ -85,10 +86,10 @@ export function vNodeData_closeFragment(vNodeData: VNodeData) {
 }
 
 export function vNodeData_createSsrNodeReference(
-  currentComponentNode: SsrNode | null,
+  currentComponentNode: ISsrNode | null,
   vNodeData: VNodeData,
   depthFirstElementIdx: number
-): SsrNode {
+): ISsrNode {
   vNodeData[0] |= VNodeDataFlag.REFERENCE;
   if (vNodeData.length == 1) {
     // Special case where we are referring to the Element directly. No need to descend into the tree.
@@ -107,7 +108,6 @@ export function vNodeData_createSsrNodeReference(
       if (Array.isArray(value)) {
         fragmentAttrs = value as SsrAttrs;
         i++; // skip the `OPEN_FRAGMENT` value
-        assertEqual(vNodeData[i], OPEN_FRAGMENT, 'OPEN_FRAGMENT EXPECTED');
         stack[stack.length - 1]++;
         stack.push(SsrNode.DOCUMENT_FRAGMENT_NODE, -1);
       } else if (value === CLOSE_FRAGMENT) {

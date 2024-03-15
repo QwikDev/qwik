@@ -1,9 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  SerializationConstant,
-  createSerializationContext,
-  serialize,
-} from './shared-serialization';
+import { SerializationConstant, createSerializationContext } from './shared-serialization';
 import { Task } from '../../use/use-task';
 import { inlinedQrl } from '../../qrl/qrl';
 
@@ -67,12 +63,12 @@ describe('shared-serialization', () => {
 });
 
 async function serializeDeserialize(...roots: any[]): Promise<any[]> {
-  const sCtx = createSerializationContext(null, null, new WeakMap());
+  const sCtx = createSerializationContext(null, new WeakMap());
   for (const root of roots) {
     sCtx.$addRoot$(root);
   }
   await sCtx.$breakCircularDepsAndAwaitPromises$();
-  serialize(sCtx);
+  sCtx.$serialize$();
   const objs = JSON.parse(sCtx.$writer$.toString());
   // eslint-disable-next-line no-console
   DEBUG && console.log(objs);

@@ -445,7 +445,8 @@ export function inflateQRL(container: DomContainer, qrl: QRLInternal<any>) {
 }
 
 export interface SerializationContext {
-  $containerElement$: Element | null;
+  $serialize$: () => void;
+
   /**
    * Map from object to root index.
    *
@@ -509,7 +510,6 @@ export interface SerializationContext {
 
 export const createSerializationContext = (
   NodeConstructor: SerializationContext['$NodeConstructor$'] | null,
-  containerElement: Element | null,
   $proxyMap$: ObjToProxyMap,
   writer?: StreamWriter
 ): SerializationContext => {
@@ -537,8 +537,10 @@ export const createSerializationContext = (
   };
 
   return {
+    $serialize$(): void {
+      serialize(this);
+    },
     $NodeConstructor$: NodeConstructor,
-    $containerElement$: containerElement,
     $wasSeen$,
     $roots$: roots,
     $seen$,
@@ -668,7 +670,7 @@ export const createSerializationContext = (
   }
 };
 
-export function serialize(serializationContext: SerializationContext): void {
+function serialize(serializationContext: SerializationContext): void {
   const { $writer$, $addRoot$, $NodeConstructor$: $Node$ } = serializationContext;
   let depth = -1;
 

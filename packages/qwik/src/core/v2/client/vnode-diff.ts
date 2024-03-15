@@ -36,7 +36,7 @@ import {
 import { addPrefixForScopedStyleIdsString, isClassAttr } from '../shared/scoped-styles';
 import type { QElement2, fixMeAny } from '../shared/types';
 import { DEBUG_TYPE, VirtualType } from '../shared/types';
-import type { SsrAttrs } from '../ssr/types';
+import type { SsrAttrs } from '../ssr/ssr-types';
 import type { DomContainer } from './dom-container';
 import {
   ElementVNodeProps,

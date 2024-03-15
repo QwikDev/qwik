@@ -1,19 +1,23 @@
+import { setServerPlatform } from './platform';
+import type { JSXOutput, SSRContainer } from './qwik-types';
+import { renderToStream, resolveManifest, type renderToString } from './render';
 import type {
-  RenderToStringOptions,
   RenderToStreamOptions,
-  RenderToStringResult,
   RenderToStreamResult,
-  StreamWriter,
+  RenderToStringOptions,
+  RenderToStringResult,
   SnapshotResult,
-} from '../../../server/types';
-import { resolveManifest, type renderToString, renderToStream } from '../../../server/render';
-import type { JSXOutput } from '../../render/jsx/types/jsx-node';
-import { ssrCreateContainer } from './ssr-container';
-import { ssrRenderToContainer } from './ssr-render-jsx';
-import { setServerPlatform } from '../../../server/platform';
-import { getBuildBase } from '../../../server/utils';
-import type { SSRContainer } from './types';
+  StreamWriter,
+} from './types';
+import { getBuildBase } from './utils';
+import { ssrCreateContainer } from './v2-ssr-container';
 
+/**
+ * Creates a server-side `document`, renders to root node to the document, then serializes the
+ * document to a string.
+ *
+ * @public
+ */
 export const renderToString2: typeof renderToString = async (
   jsx: JSXOutput,
   opts: RenderToStringOptions = {}
@@ -48,27 +52,33 @@ export const renderToString2: typeof renderToString = async (
   };
 };
 
+/**
+ * Creates a server-side `document`, renders to root node to the document, then serializes the
+ * document to a string.
+ *
+ * @public
+ */
 export const renderToStream2: typeof renderToStream = async (
   jsx: JSXOutput,
   opts: RenderToStreamOptions
 ): Promise<RenderToStreamResult> => {
   const stream = opts.stream;
-  const bufferSize = 0;
-  const totalSize = 0;
-  const networkFlushes = 0;
-  const buffer: string = '';
-  const inOrderStreaming = opts.streaming?.inOrder ?? {
-    strategy: 'auto',
-    maximunInitialChunk: 50000,
-    maximunChunk: 30000,
-  };
+  // const bufferSize = 0;
+  // const buffer: string = '';
+  // const inOrderStreaming = opts.streaming?.inOrder ?? {
+  //   strategy: 'auto',
+  //   maximunInitialChunk: 50000,
+  //   maximunChunk: 30000,
+  // };
+  // const nativeStream = stream;
   const timing: RenderToStreamResult['timing'] = {
     firstFlush: 0,
     render: 0,
     snapshot: 0,
   };
   const containerTagName = opts.containerTagName ?? 'html';
-  const nativeStream = stream;
+  const totalSize = 0;
+  const networkFlushes = 0;
   const buildBase = getBuildBase(opts);
   const resolvedManifest = resolveManifest(opts.manifest);
 
@@ -85,7 +95,7 @@ export const renderToStream2: typeof renderToStream = async (
   });
 
   await setServerPlatform(opts, resolvedManifest);
-  await ssrRenderToContainer(ssrContainer, jsx);
+  await ssrContainer.render(jsx);
 
   const snapshotResult = getSnapshotResult(ssrContainer);
 

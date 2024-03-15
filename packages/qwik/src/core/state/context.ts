@@ -10,7 +10,6 @@ import type { ContainerState } from '../container/container';
 import { getDomListeners, type Listener } from './listeners';
 import { seal } from '../util/qdev';
 import { directGetAttribute } from '../render/fast-calls';
-import { isElement } from '../../testing/html';
 import { assertQwikElement } from '../error/assert';
 import {
   ELEMENT_ID,
@@ -21,6 +20,7 @@ import {
 } from '../util/markers';
 import { createPropsState, createProxy, setObjectFlags } from './store';
 import { _IMMUTABLE, _IMMUTABLE_PREFIX, Q_CTX, QObjectImmutable } from './constants';
+import { isElement } from '../util/element';
 
 export interface QContextEvents {
   [eventName: string]: QRL | undefined;

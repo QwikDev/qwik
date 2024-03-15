@@ -6,6 +6,7 @@
 
 import * as CSS_2 from 'csstype';
 import { JSXNode as JSXNode_2 } from '@builder.io/qwik/jsx-runtime';
+import type { StreamWriter as StreamWriter_2 } from '@builder.io/qwik';
 
 // @public
 export const $: <T>(expression: T) => QRL<T>;
@@ -256,6 +257,12 @@ export const _getContextElement: () => unknown;
 // @internal (undocumented)
 export const _getContextEvent: () => unknown;
 
+// Warning: (ae-forgotten-export) The symbol "ElementVNode" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "ClientContainer" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export function getDomContainer(element: HTMLElement | ElementVNode): ClientContainer;
+
 // Warning: (ae-internal-missing-underscore) The name "getLocale" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal
@@ -388,6 +395,9 @@ export type IntrinsicHTMLElements = {
 export type IntrinsicSVGElements = {
     [K in keyof Omit<SVGElementTagNameMap, keyof HTMLElementTagNameMap>]: LenientSVGProps<SVGElementTagNameMap[K]>;
 };
+
+// @internal (undocumented)
+export const _isJSXNode: <T>(n: unknown) => n is JSXNode<T>;
 
 // @public
 export const isSignal: <T = unknown>(obj: any) => obj is Signal<T>;
@@ -781,7 +791,7 @@ export type ReadonlySignal<T = unknown> = Readonly<Signal<T>>;
 export const _regSymbol: (symbol: any, hash: string) => any;
 
 // @public
-export const render: (parent: Element | Document, jsxOutput: JSXOutput | FunctionComponent<any>, opts?: RenderOptions) => Promise<RenderResult>;
+export const render: (parent: Element | Document, jsxNode: JSXOutput | FunctionComponent<any>, opts?: RenderOptions) => Promise<RenderResult>;
 
 // @public (undocumented)
 export const RenderOnce: FunctionComponent<{
@@ -903,6 +913,56 @@ export const _serializeData: (data: any, pureQRL?: boolean) => Promise<string>;
 // @public
 export const setPlatform: (plt: CorePlatform) => CorePlatform;
 
+// Warning: (ae-forgotten-export) The symbol "Container2" needs to be exported by the entry point index.d.ts
+//
+// @internal (undocumented)
+export abstract class _SharedContainer implements Container2 {
+    // (undocumented)
+    abstract $appendStyle$(content: string, styleId: string, host: HostElement, scoped: boolean): void;
+    // (undocumented)
+    readonly $getObjectById$: (id: number | string) => any;
+    // (undocumented)
+    readonly $locale$: string;
+    // Warning: (ae-forgotten-export) The symbol "ObjToProxyMap" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    readonly $proxyMap$: ObjToProxyMap;
+    // Warning: (ae-forgotten-export) The symbol "Scheduler" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    readonly $scheduler$: Scheduler;
+    // (undocumented)
+    readonly $serverData$: Record<string, any>;
+    // Warning: (ae-forgotten-export) The symbol "SubscriptionManager" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    readonly $subsManager$: SubscriptionManager;
+    // (undocumented)
+    readonly $version$: string;
+    constructor(scheduleDrain: () => void, serverData: Record<string, any>, locale: string);
+    // (undocumented)
+    abstract getHostProp<T>(host: HostElement, name: string): T | null;
+    // (undocumented)
+    abstract getParentHost(host: HostElement): HostElement | null;
+    // (undocumented)
+    abstract handleError(err: any, $host$: HostElement): void;
+    // Warning: (ae-forgotten-export) The symbol "HostElement" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    abstract processJsx(host: HostElement, jsx: JSXOutput): ValueOrPromise<void>;
+    // (undocumented)
+    abstract resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined;
+    // Warning: (ae-forgotten-export) The symbol "SerializationContext" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "StreamWriter_3" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    serializationCtxFactory(NodeConstructor: SerializationContext['$NodeConstructor$'] | null, writer?: StreamWriter_3): SerializationContext;
+    // (undocumented)
+    abstract setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
+    // (undocumented)
+    abstract setHostProp<T>(host: HostElement, name: string, value: T): void;
+}
+
 // @public (undocumented)
 export interface Signal<T = any> {
     // (undocumented)
@@ -918,6 +978,7 @@ export const SkipRender: JSXNode;
 // @public
 export const Slot: FunctionComponent<{
     name?: string;
+    children?: JSXChildren;
 }>;
 
 // @public (undocumented)
@@ -955,19 +1016,19 @@ export interface SnapshotResult {
     funcs: string[];
     // (undocumented)
     mode: 'render' | 'listeners' | 'static';
-    // (undocumented)
-    objs: any[];
+    // @deprecated (undocumented)
+    objs?: any[];
     // (undocumented)
     qrls: QRL[];
     // Warning: (ae-forgotten-export) The symbol "ResourceReturnInternal" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
     resources: ResourceReturnInternal<any>[];
-    // (undocumented)
-    state: SnapshotState;
+    // @deprecated (undocumented)
+    state?: SnapshotState;
 }
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export interface SnapshotState {
     // (undocumented)
     ctx: SnapshotMeta;
@@ -1589,6 +1650,7 @@ export interface TitleHTMLAttributes<T extends Element> extends Attrs<'title', T
 export interface Tracker {
     <T>(fn: () => T): T;
     <T extends object>(obj: T): T extends Signal<infer U> ? U : T;
+    <T extends object, P extends keyof T>(obj: T, prop: P): T[P];
 }
 
 // @public (undocumented)
@@ -1670,11 +1732,13 @@ export interface UseStoreOptions {
     reactive?: boolean;
 }
 
+// Warning: (ae-forgotten-export) The symbol "UseStyles" needs to be exported by the entry point index.d.ts
+//
 // @public
-export const useStyles$: (first: string) => void;
+export const useStyles$: (first: string) => UseStyles;
 
 // @public
-export const useStylesQrl: (styles: QRL<string>) => void;
+export const useStylesQrl: (styles: QRL<string>) => UseStyles;
 
 // @public
 export const useStylesScoped$: (first: string) => UseStylesScoped;
@@ -1723,6 +1787,14 @@ export type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | '
 
 // @internal (undocumented)
 export const _waitUntilRendered: (elm: Element) => Promise<void>;
+
+// Warning: (ae-forgotten-export) The symbol "SSRContainer" needs to be exported by the entry point index.d.ts
+//
+// @internal (undocumented)
+export function _walkJSX(ssr: SSRContainer, value: JSXOutput, allowPromises: true): ValueOrPromise<void>;
+
+// @internal (undocumented)
+export function _walkJSX(ssr: SSRContainer, value: JSXOutput, allowPromises: false): false;
 
 // @internal (undocumented)
 export const _weakSerialize: <T extends object>(input: T) => Partial<T>;

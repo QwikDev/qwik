@@ -756,7 +756,6 @@ export const vnode_insertBefore = (
   insertBefore: VNode | null
 ) => {
   ensureElementOrVirtualVNode(parent);
-  assertFalse(newChild === insertBefore, "Can't insert before itself");
   if (vnode_isElementVNode(parent)) {
     ensureMaterialized(parent);
   }

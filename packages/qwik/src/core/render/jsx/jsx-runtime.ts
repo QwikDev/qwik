@@ -317,6 +317,7 @@ const printObjectLiteral = (obj: Record<string, unknown>) => {
     .join(', ')} }`;
 };
 
+/** @internal */
 export const isJSXNode = <T>(n: unknown): n is JSXNode<T> => {
   if (qDev) {
     if (n instanceof JSXNodeImpl) {

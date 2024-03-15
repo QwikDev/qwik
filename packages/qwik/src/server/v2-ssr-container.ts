@@ -1,14 +1,12 @@
 /** @file Public APIs for the SSR */
-import { Q_FUNCS_PREFIX } from 'packages/qwik/src/server/render';
-import { isDev } from '../../../build';
-import type { ObjToProxyMap } from '../../container/container';
-import { assertDefined, assertTrue } from '../../error/assert';
-import type { JSXOutput } from '../../render/jsx/types/jsx-node';
-import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
-import { createSubscriptionManager, type SubscriptionManager } from '../../state/common';
-import type { ContextId } from '../../use/use-context';
-import { throwErrorAndStop } from '../../util/log';
+import { _SharedContainer, _walkJSX } from '@builder.io/qwik';
+import { isDev } from '@builder.io/qwik/build';
+import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
+import { getQwikLoaderScript } from '@builder.io/qwik/server';
+import { applyPrefetchImplementation2 } from './prefetch-implementation';
+import { getPrefetchResources } from './prefetch-strategy';
 import {
+  DEBUG_TYPE,
   ELEMENT_ID,
   ELEMENT_KEY,
   ELEMENT_PROPS,
@@ -20,24 +18,39 @@ import {
   QSlotParent,
   QSlotRef,
   QStyle,
-} from '../../util/markers';
-import { mapArray_get, mapArray_set } from '../client/vnode';
+  VirtualType,
+  convertStyleIdsToString,
+  getScopedStyleIdsAsPrefix,
+  isClassAttr,
+  mapArray_get,
+  mapArray_set,
+  maybeThen,
+} from './qwik-copy';
+import type {
+  ContextId,
+  ISsrNode,
+  JSXChildren,
+  JSXOutput,
+  SerializationContext,
+  ValueOrPromise,
+} from './qwik-types';
 import {
-  createSerializationContext,
-  serialize,
-  type SerializationContext,
-} from '../shared/shared-serialization';
-import { createScheduler, type Scheduler } from '../shared/scheduler';
-import { DEBUG_TYPE, type HostElement, type fixMeAny, VirtualType } from '../shared/types';
-import { walkJSX } from './ssr-render-jsx';
-import { TagNesting, allowedContent, initialTag, isTagAllowed } from './tag-nesting';
-import {
-  SsrComponentFrame,
-  SsrNode,
+  type HostElement,
   type SSRContainer as ISSRContainer,
+  type ISsrComponentFrame,
   type SsrAttrs,
   type StreamWriter,
+} from './qwik-types';
+import { Q_FUNCS_PREFIX } from './render';
+import type {
+  PrefetchResource,
+  QwikLoaderOptions,
+  RenderOptions,
+  RenderToStreamResult,
 } from './types';
+import { createTimer } from './utils';
+import { SsrComponentFrame, SsrNode } from './v2-node';
+import { TagNesting, allowedContent, initialTag, isTagAllowed } from './v2-tag-nesting';
 import {
   CLOSE_FRAGMENT,
   OPEN_FRAGMENT,
@@ -49,27 +62,7 @@ import {
   vNodeData_incrementElementCount,
   vNodeData_openFragment,
   type VNodeData,
-} from './vnode-data';
-import type { ValueOrPromise } from '../../util/types';
-import { maybeThen } from '../../util/promises';
-import {
-  convertStyleIdsToString,
-  getScopedStyleIdsAsPrefix,
-  isClassAttr,
-} from '../shared/scoped-styles';
-import { createTimer } from 'packages/qwik/src/server/utils';
-import type {
-  PrefetchResource,
-  QwikLoaderOptions,
-  RenderOptions,
-  RenderToStreamResult,
-} from 'packages/qwik/src/server/types';
-import { version } from '../../version';
-import { qDev } from '../../util/qdev';
-import { getPrefetchResources } from 'packages/qwik/src/server/prefetch-strategy';
-import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
-import { applyPrefetchImplementation2 } from 'packages/qwik/src/server/prefetch-implementation';
-import { getQwikLoaderScript } from '@builder.io/qwik/server';
+} from './v2-vnode-data';
 
 export function ssrCreateContainer(
   opts: {
@@ -99,7 +92,7 @@ export function ssrCreateContainer(
         mapping: {},
         bundles: {},
         symbols: {},
-        version: '1',
+        version: 'dev-mode',
       },
     },
     renderOptions: opts.renderOptions || {},
@@ -132,22 +125,19 @@ interface ContainerElementFrame {
   vNodeData: VNodeData;
 }
 
-class SSRContainer implements ISSRContainer {
+const EMPTY_OBJ = {};
+
+class SSRContainer extends _SharedContainer implements ISSRContainer {
   public tag: string;
   public writer: StreamWriter;
-  public serializationCtx: SerializationContext;
   public timing: RenderToStreamResult['timing'];
   public buildBase: string;
   public resolvedManifest: ResolvedManifest;
   public renderOptions: RenderOptions;
   public prefetchResources: PrefetchResource[] = [];
-  public $locale$: string;
-  public $subsManager$: SubscriptionManager = null!;
-  public $proxyMap$: ObjToProxyMap = new WeakMap();
-  public $scheduler$: Scheduler;
-  public $serverData$: Record<string, any>;
-  private lastNode: SsrNode | null = null;
-  private currentComponentNode: SsrNode | null = null;
+  public serializationCtx: SerializationContext;
+  private lastNode: ISsrNode | null = null;
+  private currentComponentNode: ISsrNode | null = null;
   private styleIds = new Set<string>();
 
   private currentElementFrame: ContainerElementFrame | null = null;
@@ -161,10 +151,12 @@ class SSRContainer implements ISSRContainer {
    */
   private depthFirstElementCount: number = -1;
   private vNodeData: VNodeData[] = [];
-  private componentStack: SsrComponentFrame[] = [];
-  private unclaimedProjections: Array<SsrNode | string | JSXChildren> = [];
+  private componentStack: ISsrComponentFrame[] = [];
+  private unclaimedProjections: Array<ISsrNode | string | JSXChildren> = [];
 
   constructor(opts: Required<Required<Parameters<typeof ssrCreateContainer>>[0]>) {
+    super(() => null, opts.renderOptions.serverData ?? EMPTY_OBJ, opts.locale);
+    this.serializationCtx = this.serializationCtxFactory(SsrNode, opts.writer);
     this.renderTimer = createTimer();
     this.tag = opts.tagName;
     this.writer = opts.writer;
@@ -172,15 +164,7 @@ class SSRContainer implements ISSRContainer {
     this.buildBase = opts.buildBase;
     this.resolvedManifest = opts.resolvedManifest;
     this.renderOptions = opts.renderOptions;
-    this.$locale$ = opts.locale;
-    this.$serverData$ = opts.renderOptions.serverData ?? {};
-    this.serializationCtx = createSerializationContext(SsrNode, null, this.$proxyMap$, this.writer);
-    this.$subsManager$ = createSubscriptionManager(this as fixMeAny);
-    this.$scheduler$ = createScheduler(this, () => null);
   }
-  public $getObjectById$: (id: string | number) => unknown = () => {
-    throw new Error('SSR should not have to deserialize objects.');
-  };
 
   processJsx(host: HostElement, jsx: JSXOutput): void {}
 
@@ -188,8 +172,14 @@ class SSRContainer implements ISSRContainer {
     throw err;
   }
 
+  async render(jsx: JSXOutput) {
+    this.openContainer();
+    await _walkJSX(this, jsx, true);
+    this.closeContainer();
+  }
+
   setContext<T>(host: HostElement, context: ContextId<T>, value: T): void {
-    const ssrNode: SsrNode = host as any;
+    const ssrNode: ISsrNode = host as any;
     let ctx: Array<string | unknown> = ssrNode.getProp(QCtxAttr);
     if (!ctx) {
       ssrNode.setProp(QCtxAttr, (ctx = []));
@@ -198,7 +188,7 @@ class SSRContainer implements ISSRContainer {
   }
 
   resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined {
-    let ssrNode: SsrNode | null = host as any;
+    let ssrNode: ISsrNode | null = host as any;
     while (ssrNode) {
       const ctx: Array<string | unknown> = ssrNode.getProp(QCtxAttr);
       if (ctx) {
@@ -213,17 +203,17 @@ class SSRContainer implements ISSRContainer {
   }
 
   getParentHost(host: HostElement): HostElement | null {
-    const ssrNode: SsrNode = host as any;
-    return ssrNode.currentComponentNode as SsrNode | null;
+    const ssrNode: ISsrNode = host as any;
+    return ssrNode.currentComponentNode as ISsrNode | null;
   }
 
-  setHostProp<T>(host: SsrNode, name: string, value: T): void {
-    const ssrNode: SsrNode = host as any;
+  setHostProp<T>(host: ISsrNode, name: string, value: T): void {
+    const ssrNode: ISsrNode = host as any;
     return ssrNode.setProp(name, value);
   }
 
-  getHostProp<T>(host: SsrNode, name: string): T | null {
-    const ssrNode: SsrNode = host as any;
+  getHostProp<T>(host: ISsrNode, name: string): T | null {
+    const ssrNode: ISsrNode = host as any;
     return ssrNode.getProp(name);
   }
 
@@ -231,7 +221,7 @@ class SSRContainer implements ISSRContainer {
     if (this.tag == 'html') {
       this.write('<!DOCTYPE html>');
     }
-    let qRender = qDev ? 'ssr-dev' : 'ssr';
+    let qRender = isDev ? 'ssr-dev' : 'ssr';
     if (this.renderOptions.containerAttributes?.['q:render']) {
       qRender = `${this.renderOptions.containerAttributes['q:render']}-${qRender}`;
     }
@@ -239,7 +229,7 @@ class SSRContainer implements ISSRContainer {
     const containerAttributes: Record<string, string> = {
       ...this.renderOptions.containerAttributes,
       'q:container': 'paused',
-      'q:version': version ?? 'dev',
+      'q:version': this.$version$ ?? 'dev',
       'q:render': qRender,
       'q:base': this.buildBase,
       'q:locale': this.$serverData$.locale || this.$locale$,
@@ -336,13 +326,13 @@ class SSRContainer implements ISSRContainer {
    *   are nested inside other projections we need to have a way to read from a frame above.
    * @returns
    */
-  getComponentFrame(projectionDepth: number = 0): SsrComponentFrame | null {
+  getComponentFrame(projectionDepth: number = 0): ISsrComponentFrame | null {
     const length = this.componentStack.length;
     const idx = length - projectionDepth - 1;
     return idx >= 0 ? this.componentStack[idx] : null;
   }
 
-  getNearestComponentFrame(): SsrComponentFrame | null {
+  getNearestComponentFrame(): ISsrComponentFrame | null {
     const currentFrame = this.getComponentFrame(0);
     if (!currentFrame) {
       return null;
@@ -374,7 +364,7 @@ class SSRContainer implements ISSRContainer {
     return this.serializationCtx.$addRoot$(obj);
   }
 
-  getLastNode(): SsrNode {
+  getLastNode(): ISsrNode {
     if (!this.lastNode) {
       this.lastNode = vNodeData_createSsrNodeReference(
         this.currentComponentNode,
@@ -383,14 +373,14 @@ class SSRContainer implements ISSRContainer {
         this.currentElementFrame!.depthFirstElementIdx + 1
       );
     }
-    return this.lastNode;
+    return this.lastNode!;
   }
 
-  addUnclaimedProjection(node: SsrNode, name: string, children: JSXChildren): void {
+  addUnclaimedProjection(node: ISsrNode, name: string, children: JSXChildren): void {
     this.unclaimedProjections.push(node, name, children);
   }
 
-  $appendStyle$(content: string, styleId: string, host: SsrNode, scoped: boolean): void {
+  $appendStyle$(content: string, styleId: string, host: ISsrNode, scoped: boolean): void {
     if (scoped) {
       const componentFrame = this.getComponentFrame(0)!;
       componentFrame.scopedStyleIds.add(styleId);
@@ -527,19 +517,8 @@ class SSRContainer implements ISSRContainer {
                       break;
                     default:
                       this.write('|');
-                      assertTrue(
-                        !!key.match(/[\w\d_:]*/),
-                        'Unsupported character in fragment attribute key: ' + key
-                      );
                       this.write(key);
                       this.write('|');
-                  }
-                  if (isDev) {
-                    assertDefined(value, 'Fragment attribute value must be defined.');
-                    assertTrue(
-                      !!value.match(/(\d|\w|_|:|;|<|>)*/),
-                      'Unsupported character in fragment attribute value: ' + value
-                    );
                   }
                   this.write(value!);
                 }
@@ -563,7 +542,7 @@ class SSRContainer implements ISSRContainer {
   private emitStateData(): ValueOrPromise<void> {
     this.openElement('script', ['type', 'qwik/state']);
     return maybeThen(this.serializationCtx.$breakCircularDepsAndAwaitPromises$(), () => {
-      serialize(this.serializationCtx);
+      this.serializationCtx.$serialize$();
       this.closeElement();
     });
   }
@@ -658,7 +637,7 @@ class SSRContainer implements ISSRContainer {
     if (unclaimedProjections.length) {
       this.openElement('q:template', ['style', 'display:none']);
       let idx = 0;
-      let ssrComponentNode: SsrNode | null = null;
+      let ssrComponentNode: ISsrNode | null = null;
       while (idx < unclaimedProjections.length) {
         const value = unclaimedProjections[idx++];
         if (value instanceof SsrNode) {
@@ -671,10 +650,10 @@ class SSRContainer implements ISSRContainer {
               : [QSlotParent, ssrComponentNode!.id]
           );
           ssrComponentNode?.setProp(value, this.getLastNode().id);
-          walkJSX(this, children, false);
+          _walkJSX(this, children, false);
           this.closeFragment();
         } else {
-          throw throwErrorAndStop('should not get here');
+          throw Error(); // 'should not get here'
         }
       }
       this.closeElement();

@@ -189,25 +189,21 @@ export interface RenderResult
 
 ## renderToStream
 
+Creates a server-side `document`, renders to root node to the document, then serializes the document to a string.
+
 ```typescript
-export type RenderToStream = (
-  opts: RenderToStreamOptions,
-) => Promise<RenderToStreamResult>;
+renderToStream2: typeof renderToStream;
 ```
 
-**References:** [RenderToStreamOptions](#rendertostreamoptions), [RenderToStreamResult](#rendertostreamresult)
-
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/render.ts)
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/v2-ssr-render2.ts)
 
 ## RenderToStream
 
-```typescript
-export type RenderToStream = (
-  opts: RenderToStreamOptions,
-) => Promise<RenderToStreamResult>;
-```
+Creates a server-side `document`, renders to root node to the document, then serializes the document to a string.
 
-**References:** [RenderToStreamOptions](#rendertostreamoptions), [RenderToStreamResult](#rendertostreamresult)
+```typescript
+renderToStream2: typeof renderToStream;
+```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts)
 
@@ -244,25 +240,21 @@ export interface RenderToStreamResult extends RenderResult
 
 ## renderToString
 
+Creates a server-side `document`, renders to root node to the document, then serializes the document to a string.
+
 ```typescript
-export type RenderToString = (
-  opts: RenderToStringOptions,
-) => Promise<RenderToStringResult>;
+renderToString2: typeof renderToString;
 ```
 
-**References:** [RenderToStringOptions](#rendertostringoptions), [RenderToStringResult](#rendertostringresult)
-
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/render.ts)
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/v2-ssr-render2.ts)
 
 ## RenderToString
 
-```typescript
-export type RenderToString = (
-  opts: RenderToStringOptions,
-) => Promise<RenderToStringResult>;
-```
+Creates a server-side `document`, renders to root node to the document, then serializes the document to a string.
 
-**References:** [RenderToStringOptions](#rendertostringoptions), [RenderToStringResult](#rendertostringresult)
+```typescript
+renderToString2: typeof renderToString;
+```
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts)
 
@@ -284,10 +276,10 @@ export interface RenderToStringResult extends RenderResult
 
 **Extends:** [RenderResult](#renderresult)
 
-| Property    | Modifiers | Type                                  | Description |
-| ----------- | --------- | ------------------------------------- | ----------- |
-| [html](#)   |           | string                                |             |
-| [timing](#) |           | { render: number; snapshot: number; } |             |
+| Property    | Modifiers | Type                                                      | Description |
+| ----------- | --------- | --------------------------------------------------------- | ----------- |
+| [html](#)   |           | string                                                    |             |
+| [timing](#) |           | { firstFlush: number; render: number; snapshot: number; } |             |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts)
 

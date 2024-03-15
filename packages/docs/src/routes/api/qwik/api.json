@@ -852,6 +852,20 @@
       "mdFile": "qwik.functioncomponent.md"
     },
     {
+      "name": "getDomContainer",
+      "id": "getdomcontainer",
+      "hierarchy": [
+        {
+          "name": "getDomContainer",
+          "id": "getdomcontainer"
+        }
+      ],
+      "kind": "Function",
+      "content": "```typescript\nexport declare function getDomContainer(element: HTMLElement | ElementVNode): IClientContainer;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  element | HTMLElement \\| ElementVNode |  |\n\n**Returns:**\n\nIClientContainer",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/v2/client/dom-container.ts",
+      "mdFile": "qwik.getdomcontainer.md"
+    },
+    {
       "name": "getPlatform",
       "id": "getplatform",
       "hierarchy": [
@@ -2236,8 +2250,8 @@
         }
       ],
       "kind": "Function",
-      "content": "Render JSX.\n\nUse this method to render JSX. This function does reconciling which means it always tries to reuse what is already in the DOM (rather then destroy and recreate content.) It returns a cleanup function you could use for cleaning up subscriptions.\n\n\n```typescript\nrender: (parent: Element | Document, jsxOutput: JSXOutput | FunctionComponent<any>, opts?: RenderOptions) => Promise<RenderResult>\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  parent | Element \\| Document | Element which will act as a parent to <code>jsxNode</code>. When possible the rendering will try to reuse existing nodes. |\n|  jsxOutput | [JSXOutput](#jsxoutput) \\| [FunctionComponent](#functioncomponent)<!-- -->&lt;any&gt; | JSX to render |\n|  opts | [RenderOptions](#renderoptions) | _(Optional)_ |\n\n**Returns:**\n\nPromise&lt;[RenderResult](#renderresult)<!-- -->&gt;\n\nAn object containing a cleanup function.",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/dom/render.public.ts",
+      "content": "Render JSX.\n\nUse this method to render JSX. This function does reconciling which means it always tries to reuse what is already in the DOM (rather then destroy and recreate content.) It returns a cleanup function you could use for cleaning up subscriptions.\n\n\n```typescript\nrender2: (parent: Element | Document, jsxNode: JSXOutput | FunctionComponent<any>, opts?: RenderOptions) => Promise<RenderResult>\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  parent | Element \\| Document | Element which will act as a parent to <code>jsxNode</code>. When possible the rendering will try to reuse existing nodes. |\n|  jsxNode | [JSXOutput](#jsxoutput) \\| [FunctionComponent](#functioncomponent)<!-- -->&lt;any&gt; | JSX to render |\n|  opts | [RenderOptions](#renderoptions) | _(Optional)_ |\n\n**Returns:**\n\nPromise&lt;[RenderResult](#renderresult)<!-- -->&gt;\n\nAn object containing a cleanup function.",
+      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/v2/client/dom-render.ts",
       "mdFile": "qwik.render.md"
     },
     {
@@ -2516,7 +2530,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "Allows to project the children of the current component. <Slot/> can only be used within the context of a component defined with `component$`<!-- -->.\n\n\n```typescript\nSlot: FunctionComponent<{\n    name?: string;\n}>\n```",
+      "content": "Allows to project the children of the current component. <Slot/> can only be used within the context of a component defined with `component$`<!-- -->.\n\n\n```typescript\nSlot: FunctionComponent<{\n    name?: string;\n    children?: JSXChildren;\n}>\n```",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/slot.public.ts",
       "mdFile": "qwik.slot.md"
     },
@@ -2586,7 +2600,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface SnapshotResult \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [funcs](#) |  | string\\[\\] |  |\n|  [mode](#) |  | 'render' \\| 'listeners' \\| 'static' |  |\n|  [objs](#) |  | any\\[\\] |  |\n|  [qrls](#) |  | [QRL](#qrl)<!-- -->\\[\\] |  |\n|  [resources](#) |  | ResourceReturnInternal&lt;any&gt;\\[\\] |  |\n|  [state](#) |  | [SnapshotState](#snapshotstate) |  |",
+      "content": "```typescript\nexport interface SnapshotResult \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [funcs](#) |  | string\\[\\] |  |\n|  [mode](#) |  | 'render' \\| 'listeners' \\| 'static' |  |\n|  [objs?](#) |  | any\\[\\] | _(Optional)_ |\n|  [qrls](#) |  | [QRL](#qrl)<!-- -->\\[\\] |  |\n|  [resources](#) |  | ResourceReturnInternal&lt;any&gt;\\[\\] |  |\n|  [state?](#) |  | [SnapshotState](#snapshotstate) | _(Optional)_ |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/container/container.ts",
       "mdFile": "qwik.snapshotresult.md"
     },
@@ -2600,7 +2614,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface SnapshotState \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [ctx](#) |  | [SnapshotMeta](#snapshotmeta) |  |\n|  [objs](#) |  | any\\[\\] |  |\n|  [refs](#) |  | Record&lt;string, string&gt; |  |\n|  [subs](#) |  | any\\[\\] |  |",
+      "content": "> Warning: This API is now obsolete.\n> \n> not longer used in v2\n> \n\n\n```typescript\nexport interface SnapshotState \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [ctx](#) |  | [SnapshotMeta](#snapshotmeta) |  |\n|  [objs](#) |  | any\\[\\] |  |\n|  [refs](#) |  | Record&lt;string, string&gt; |  |\n|  [subs](#) |  | any\\[\\] |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/container/container.ts",
       "mdFile": "qwik.snapshotstate.md"
     },
@@ -3174,7 +3188,7 @@
         }
       ],
       "kind": "Function",
-      "content": "A lazy-loadable reference to a component's styles.\n\nComponent styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)\n\n```tsx\nimport styles from './code-block.css?inline';\n\nexport const CmpStyles = component$(() => {\n  useStyles$(styles);\n\n  return <div>Some text</div>;\n});\n```\n\n\n```typescript\nuseStyles$: (first: string) => void\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  first | string |  |\n\n**Returns:**\n\nvoid",
+      "content": "A lazy-loadable reference to a component's styles.\n\nComponent styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)\n\n```tsx\nimport styles from './code-block.css?inline';\n\nexport const CmpStyles = component$(() => {\n  useStyles$(styles);\n\n  return <div>Some text</div>;\n});\n```\n\n\n```typescript\nuseStyles$: (first: string) => UseStyles\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  first | string |  |\n\n**Returns:**\n\nUseStyles",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts",
       "mdFile": "qwik.usestyles_.md"
     },
@@ -3188,7 +3202,7 @@
         }
       ],
       "kind": "Function",
-      "content": "A lazy-loadable reference to a component's styles.\n\nComponent styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)\n\n```tsx\nimport styles from './code-block.css?inline';\n\nexport const CmpStyles = component$(() => {\n  useStyles$(styles);\n\n  return <div>Some text</div>;\n});\n```\n\n\n```typescript\nuseStylesQrl: (styles: QRL<string>) => void\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  styles | [QRL](#qrl)<!-- -->&lt;string&gt; |  |\n\n**Returns:**\n\nvoid",
+      "content": "A lazy-loadable reference to a component's styles.\n\nComponent styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)\n\n```tsx\nimport styles from './code-block.css?inline';\n\nexport const CmpStyles = component$(() => {\n  useStyles$(styles);\n\n  return <div>Some text</div>;\n});\n```\n\n\n```typescript\nuseStylesQrl: (styles: QRL<string>) => UseStyles\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  styles | [QRL](#qrl)<!-- -->&lt;string&gt; |  |\n\n**Returns:**\n\nUseStyles",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts",
       "mdFile": "qwik.usestylesqrl.md"
     },

@@ -658,8 +658,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   private emitQwikEvents(includeLoader: boolean, eventNames: string[]) {
-    const extraListeners = eventNames;
-    if (extraListeners.length > 0) {
+    if (eventNames.length > 0) {
       const scriptAttrs: SsrAttrs = [];
       if (this.renderOptions.serverData?.nonce) {
         scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
@@ -667,7 +666,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       this.openElement('script', scriptAttrs);
       this.write(includeLoader ? `window.qwikevents` : `(window.qwikevents||=[])`);
       this.write('.push(');
-      this.writeArray(extraListeners, ', ');
+      this.writeArray(eventNames, ', ');
       this.write(')');
       this.closeElement();
     }

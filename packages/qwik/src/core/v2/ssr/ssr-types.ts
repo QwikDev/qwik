@@ -59,4 +59,6 @@ export interface SSRContainer extends Container2 {
   addUnclaimedProjection(node: ISsrNode, name: string, children: JSXChildren): void;
   isStatic(): boolean;
   render(jsx: JSXOutput): Promise<void>;
+
+  $appendHeadNodes$(): void;
 }

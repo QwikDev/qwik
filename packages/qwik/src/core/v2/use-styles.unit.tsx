@@ -9,6 +9,10 @@ import { useStylesQrl } from '../use/use-styles';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
 import { QStyleSelector } from '../util/markers';
+import { renderToString2 } from '../../server/v2-ssr-render2';
+import { Slot } from '../render/jsx/slot.public';
+import { getPlatform, setPlatform } from '../platform/platform';
+import { createDocument } from '@builder.io/qwik-dom';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -174,5 +178,34 @@ Error.stackTraceLimit = 100;
       const qStyles = container.document.querySelectorAll(QStyleSelector);
       expect(qStyles).toHaveLength(2);
     });
+  });
+});
+
+describe('html wrapper', () => {
+  it('should append style to head', async () => {
+    const STYLE = `.container{color: blue;}`;
+    const Wrapper = component$(() => {
+      useStylesQrl(inlinedQrl(STYLE, 's_styles1'));
+      return <Slot />;
+    });
+    let document = createDocument();
+    const platform = getPlatform();
+    try {
+      const result = await renderToString2(
+        <Wrapper>
+          <head>
+            <script></script>
+          </head>
+          <body>
+            <div>content</div>
+          </body>
+        </Wrapper>
+      );
+      document = createDocument(result.html);
+    } finally {
+      setPlatform(platform);
+    }
+    const styleElement = document.head.lastChild as HTMLElement;
+    expect(styleElement.textContent).toContain(STYLE);
   });
 });

@@ -15,6 +15,9 @@ import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
 import { QStyleSelector } from '../util/markers';
 import { Slot } from '../render/jsx/slot.public';
+import { createDocument } from '@builder.io/qwik-dom';
+import { getPlatform, setPlatform } from '../platform/platform';
+import { renderToString2 } from '../../server/v2-ssr-render2';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -518,5 +521,39 @@ Error.stackTraceLimit = 100;
         </Component>
       );
     });
+  });
+});
+
+describe('html wrapper', () => {
+  it('should append scoped style to head', async () => {
+    const STYLE = `.container{color: blue;}`;
+    let rawStyleId = '';
+    const Wrapper = component$(() => {
+      const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE, 's_styles1'));
+      rawStyleId = stylesScopedData.scopeId;
+      return <Slot />;
+    });
+    let document = createDocument();
+    const platform = getPlatform();
+    try {
+      const result = await renderToString2(
+        <Wrapper>
+          <head>
+            <script></script>
+          </head>
+          <body>
+            <div>content</div>
+          </body>
+        </Wrapper>
+      );
+      document = createDocument(result.html);
+    } finally {
+      setPlatform(platform);
+    }
+
+    const styleId = rawStyleId.substring(2);
+    const scopeStyle = getScopedStyles(STYLE, styleId);
+    const styleElement = document.head.lastChild as HTMLElement;
+    expect(styleElement.textContent).toContain(scopeStyle);
   });
 });

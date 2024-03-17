@@ -389,13 +389,13 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
     if (!this.styleIds.has(styleId)) {
       this.styleIds.add(styleId);
-      if (this.currentElementFrame?.elementName !== 'html') {
-        this._styleNode(styleId, {
+      if (this.currentElementFrame?.elementName === 'html') {
+        this.headStyles.set(styleId, {
           content,
           scoped,
         });
       } else {
-        this.headStyles.set(styleId, {
+        this._styleNode(styleId, {
           content,
           scoped,
         });

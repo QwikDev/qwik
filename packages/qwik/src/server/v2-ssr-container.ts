@@ -619,7 +619,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         this.emitQwikLoader();
 
         // Assume there will be at least click handlers
-        this.emitQwikEvents(true, ['"click"']);
+        this.emitQwikEvents(['"click"'], {
+          includeLoader: true,
+          includeNonce: false,
+        });
       }
     }
   }
@@ -639,8 +642,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
     // always emit qwik events regardless of position
     this.emitQwikEvents(
-      includeLoader,
-      Array.from(this.serializationCtx.$eventNames$, (s) => JSON.stringify(s))
+      Array.from(this.serializationCtx.$eventNames$, (s) => JSON.stringify(s)),
+      {
+        includeLoader,
+        includeNonce: true,
+      }
     );
   }
 
@@ -657,14 +663,17 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.closeElement();
   }
 
-  private emitQwikEvents(includeLoader: boolean, eventNames: string[]) {
+  private emitQwikEvents(
+    eventNames: string[],
+    opts: { includeNonce: boolean; includeLoader: boolean }
+  ) {
     if (eventNames.length > 0) {
       const scriptAttrs: SsrAttrs = [];
-      if (this.renderOptions.serverData?.nonce) {
+      if (this.renderOptions.serverData?.nonce && opts.includeNonce) {
         scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
       }
       this.openElement('script', scriptAttrs);
-      this.write(includeLoader ? `window.qwikevents` : `(window.qwikevents||=[])`);
+      this.write(opts.includeLoader ? `window.qwikevents` : `(window.qwikevents||=[])`);
       this.write('.push(');
       this.writeArray(eventNames, ', ');
       this.write(')');

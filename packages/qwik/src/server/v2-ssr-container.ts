@@ -33,21 +33,14 @@ import type {
   JSXOutput,
   SerializationContext,
   ValueOrPromise,
-} from './qwik-types';
-import {
-  type HostElement,
-  type SSRContainer as ISSRContainer,
-  type ISsrComponentFrame,
-  type SsrAttrs,
-  type StreamWriter,
+  HostElement,
+  SSRContainer as ISSRContainer,
+  ISsrComponentFrame,
+  SsrAttrs,
+  StreamWriter,
 } from './qwik-types';
 import { Q_FUNCS_PREFIX } from './render';
-import type {
-  PrefetchResource,
-  QwikLoaderOptions,
-  RenderOptions,
-  RenderToStreamResult,
-} from './types';
+import type { PrefetchResource, RenderOptions, RenderToStreamResult } from './types';
 import { createTimer } from './utils';
 import { SsrComponentFrame, SsrNode } from './v2-node';
 import { TagNesting, allowedContent, initialTag, isTagAllowed } from './v2-tag-nesting';
@@ -125,6 +118,11 @@ interface ContainerElementFrame {
   vNodeData: VNodeData;
 }
 
+interface StyleData {
+  content: string;
+  scoped: boolean;
+}
+
 const EMPTY_OBJ = {};
 
 class SSRContainer extends _SharedContainer implements ISSRContainer {
@@ -139,6 +137,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private lastNode: ISsrNode | null = null;
   private currentComponentNode: ISsrNode | null = null;
   private styleIds = new Set<string>();
+  private headStyles = new Map<string, StyleData>();
 
   private currentElementFrame: ContainerElementFrame | null = null;
 
@@ -390,23 +389,43 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
     if (!this.styleIds.has(styleId)) {
       this.styleIds.add(styleId);
-      this.openElement('style', [QStyle, scoped ? styleId : '']);
-      this.textNode(content);
-      this.closeElement();
+      if (this.currentElementFrame?.elementName === 'html') {
+        this.headStyles.set(styleId, {
+          content,
+          scoped,
+        });
+      } else {
+        this._styleNode(styleId, {
+          content,
+          scoped,
+        });
+      }
     }
+  }
+
+  $appendHeadNodes$(): void {
+    // render styles inside head
+    this.headStyles.forEach((value, styleId) => this._styleNode(styleId, value));
+    this.headStyles.clear();
+
+    this.emitQwikLoaderAtTopIfNeeded();
+  }
+
+  private _styleNode(styleId: string, value: StyleData) {
+    this.openElement('style', [QStyle, value.scoped ? styleId : '']);
+    this.textNode(value.content);
+    this.closeElement();
   }
 
   ////////////////////////////////////
 
   emitContainerData(): ValueOrPromise<void> {
-    const qwikLoaderPositionMode = this.renderOptions.qwikLoader?.position ?? 'bottom';
-    this.emitQwikLoaderAtTopIfNeeded(qwikLoaderPositionMode);
     this.emitUnclaimedProjection();
     this.emitVNodeData();
     return maybeThen(this.emitStateData(), () => {
       this.emitPrefetchResourcesData();
       this.emitSyncFnsData();
-      this.emitQwikLoaderAtBottomIfNeeded(qwikLoaderPositionMode);
+      this.emitQwikLoaderAtBottomIfNeeded();
     });
   }
 
@@ -583,50 +602,80 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     return this.serializationCtx.$eventQrls$.size === 0;
   }
 
-  private emitQwikLoaderAtTopIfNeeded(positionMode: QwikLoaderOptions['position']) {
+  private getQwikLoaderPositionMode() {
+    return this.renderOptions.qwikLoader?.position ?? 'bottom';
+  }
+
+  private getQwikLoaderIncludeMode() {
+    return this.renderOptions.qwikLoader?.include ?? 'auto';
+  }
+
+  private emitQwikLoaderAtTopIfNeeded() {
+    const positionMode = this.getQwikLoaderPositionMode();
     if (positionMode === 'top') {
-      this.emitQwikLoader();
+      const includeMode = this.getQwikLoaderIncludeMode();
+      const includeLoader = includeMode !== 'never';
+      if (includeLoader) {
+        this.emitQwikLoader();
+
+        // Assume there will be at least click handlers
+        this.emitQwikEvents(['"click"'], {
+          includeLoader: true,
+          includeNonce: false,
+        });
+      }
     }
   }
 
-  private emitQwikLoaderAtBottomIfNeeded(positionMode: QwikLoaderOptions['position']) {
+  private emitQwikLoaderAtBottomIfNeeded() {
+    const positionMode = this.getQwikLoaderPositionMode();
+    let includeLoader = true;
+
     if (positionMode === 'bottom') {
-      this.emitQwikLoader();
+      const needLoader = !this.isStatic();
+      const includeMode = this.getQwikLoaderIncludeMode();
+      includeLoader = includeMode === 'always' || (includeMode === 'auto' && needLoader);
+      if (includeLoader) {
+        this.emitQwikLoader();
+      }
     }
+
+    // always emit qwik events regardless of position
+    this.emitQwikEvents(
+      Array.from(this.serializationCtx.$eventNames$, (s) => JSON.stringify(s)),
+      {
+        includeLoader,
+        includeNonce: true,
+      }
+    );
   }
 
   private emitQwikLoader() {
-    const needLoader = !this.isStatic();
-    const includeMode = this.renderOptions.qwikLoader?.include ?? 'auto';
-
-    const includeLoader = includeMode === 'always' || (includeMode === 'auto' && needLoader);
-    if (includeLoader) {
-      const qwikLoaderScript = getQwikLoaderScript({
-        debug: this.renderOptions.debug,
-      });
-      const scriptAttrs = ['id', 'qwikloader'];
-      if (this.renderOptions.serverData?.nonce) {
-        scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
-      }
-      this.openElement('script', scriptAttrs);
-      this.write(qwikLoaderScript);
-      this.closeElement();
+    const qwikLoaderScript = getQwikLoaderScript({
+      debug: this.renderOptions.debug,
+    });
+    const scriptAttrs = ['id', 'qwikloader'];
+    if (this.renderOptions.serverData?.nonce) {
+      scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
     }
-
-    this.emitQwikEvents(includeLoader);
+    this.openElement('script', scriptAttrs);
+    this.write(qwikLoaderScript);
+    this.closeElement();
   }
 
-  private emitQwikEvents(includeLoader: boolean) {
-    const extraListeners = Array.from(this.serializationCtx.$eventNames$, (s) => JSON.stringify(s));
-    if (extraListeners.length > 0) {
+  private emitQwikEvents(
+    eventNames: string[],
+    opts: { includeNonce: boolean; includeLoader: boolean }
+  ) {
+    if (eventNames.length > 0) {
       const scriptAttrs: SsrAttrs = [];
-      if (this.renderOptions.serverData?.nonce) {
+      if (this.renderOptions.serverData?.nonce && opts.includeNonce) {
         scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
       }
       this.openElement('script', scriptAttrs);
-      this.write(includeLoader ? `window.qwikevents` : `(window.qwikevents||=[])`);
+      this.write(opts.includeLoader ? `window.qwikevents` : `(window.qwikevents||=[])`);
       this.write('.push(');
-      this.writeArray(extraListeners, ', ');
+      this.writeArray(eventNames, ', ');
       this.write(')');
       this.closeElement();
     }

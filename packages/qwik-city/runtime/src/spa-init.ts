@@ -73,9 +73,9 @@ export default $((currentScript: HTMLScriptElement) => {
       if (currentPath !== location.pathname + location.search) {
         // Hook into useNavigate context, if available.
         // We hijack a <Link> here, goes through the loader, resumes, app, etc. Simple.
-        // TODO Will only work with <Link>, is there a better way? Will `q:key` change?
+        // TODO Will only work with <Link>, is there a better way?
         const container = currentScript!.closest('[q\\:container]')!;
-        const link = container.querySelector('a[q\\:key="AD_1"]');
+        const link = container.querySelector('a[q\\:link]');
 
         if (link) {
           // Re-acquire container, link may be in a nested container.

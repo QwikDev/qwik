@@ -127,7 +127,11 @@ function processJSXNode(
       const type = jsx.type;
       // Below, JSXChildren allows functions and regexes, but we assume the dev only uses those as appropriate.
       if (typeof type === 'string') {
-        ssr.openElement(type, toSsrAttrs(jsx.props, ssr.serializationCtx));
+        ssr.openElement(
+          type,
+          toSsrAttrs(jsx.props, ssr.serializationCtx),
+          toSsrAttrs(jsx.immutableProps, ssr.serializationCtx)
+        );
         enqueue(ssr.closeElement);
         if (type === 'head') {
           enqueue(ssr.$appendHeadNodes$);
@@ -193,7 +197,18 @@ function processJSXNode(
 export function toSsrAttrs(
   record: Record<string, unknown>,
   serializationCtx: SerializationContext
-): SsrAttrs {
+): SsrAttrs;
+export function toSsrAttrs(
+  record: Record<string, unknown> | null | undefined,
+  serializationCtx: SerializationContext
+): SsrAttrs | null;
+export function toSsrAttrs(
+  record: Record<string, unknown> | null | undefined,
+  serializationCtx: SerializationContext
+): SsrAttrs | null {
+  if (record == null) {
+    return null;
+  }
   const ssrAttrs: SsrAttrs = [];
   for (const key in record) {
     if (Object.prototype.hasOwnProperty.call(record, key)) {

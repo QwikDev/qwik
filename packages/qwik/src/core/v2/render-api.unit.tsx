@@ -76,22 +76,6 @@ const ManyEventsComponent = componentQrl(
   }, 's_manyEventsCmp')
 );
 
-describe('render api', () => {
-  let document: Document;
-  beforeEach(() => {
-    document = createDocument();
-  });
-
-  // const Greeter = componentQrl<{ salutation?: string; name?: string }>(
-  //   inlinedQrl(({ salutation, name }) => {
-  //     return (
-  //       <span>
-  //         {salutation || 'Hello'} {name || 'World'}!
-  //       </span>
-  //     );
-  //   }, 's_greeter')
-  // );
-
 const Counter = componentQrl(
   inlinedQrl(() => {
     const count = useSignal(123);

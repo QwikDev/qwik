@@ -39,7 +39,7 @@ export interface SSRContainer extends Container2 {
   openContainer(): void;
   closeContainer(): void;
 
-  openElement(tag: string, attrs: SsrAttrs): void;
+  openElement(tag: string, attrs: SsrAttrs | null, immutableAttrs?: SsrAttrs | null): void;
   closeElement(): ValueOrPromise<void>;
 
   openFragment(attrs: SsrAttrs): void;

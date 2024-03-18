@@ -71,6 +71,7 @@ export const enum VNodeFlags {
   ELEMENT_OR_VIRTUAL_MASK /* ** */ = 0b0011,
   ELEMENT_OR_TEXT_MASK /* ***** */ = 0b0101,
   TYPE_MASK /* **************** */ = 0b0111,
+  INFLATED_TYPE_MASK /* ******* */ = 0b1111,
   Text /* ********************* */ = 0b0100,
   /// Extra flag which marks if a node needs to be inflated.
   Inflated /* ***************** */ = 0b1000,

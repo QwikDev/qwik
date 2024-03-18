@@ -932,7 +932,7 @@ export abstract class _SharedContainer implements Container2 {
     // (undocumented)
     readonly $scheduler$: Scheduler;
     // (undocumented)
-    readonly $serverData$: Record<string, any>;
+    $serverData$: Record<string, any>;
     // Warning: (ae-forgotten-export) The symbol "SubscriptionManager" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)

@@ -2,7 +2,9 @@ import { isDev } from '@builder.io/qwik/build';
 import { type OnRenderFn } from '../../component/component.public';
 import { SERIALIZABLE_STATE } from '../../container/serializers';
 import { assertDefined, assertFalse } from '../../error/assert';
+import { _IMMUTABLE } from '../../internal';
 import type { QRLInternal } from '../../qrl/qrl-class';
+import type { QRL } from '../../qrl/qrl.public';
 import { serializeClass } from '../../render/execute-component';
 import { Fragment, JSXNodeImpl, isJSXNode } from '../../render/jsx/jsx-runtime';
 import { Slot } from '../../render/jsx/slot.public';
@@ -464,10 +466,47 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     }
   }
 
+  /** @param tag Returns true if `qDispatchEvent` needs patching */
+  function createNewElement(jsx: JSXNode, tag: string): boolean {
+    const element = container.document.createElement(tag);
+    vnode_insertBefore(
+      journal,
+      vParent as ElementVNode,
+      (vNewNode = vnode_newElement(vParent, element, tag)),
+      vCurrent
+    );
+    const immutableProps = jsx.immutableProps;
+    let needsQDispatchEventPatch = false;
+    if (immutableProps) {
+      // Immutable props are well immutable, they will never change!
+      // For this reason we can cheat and write them directly into the DOM.
+      // We never tell the vNode about them saving us time and memory.
+      for (const key in immutableProps) {
+        let value = immutableProps[key];
+        if (value !== _IMMUTABLE) {
+          if (isJsxPropertyAnEventName(key)) {
+            // So for event handlers we must add them to the vNode so that qwikloader can look them up
+            // But we need to mark them so that they don't get pulled into the diff.
+            const eventName = getEventNameFromJsxProp(key);
+            const scope = getEventNameScopeFromJsxProp(key);
+            vnode_setProp(vNewNode, IMMUTABLE_PREFIX + ':' + scope + ':' + eventName, value);
+            needsQDispatchEventPatch = true;
+            continue;
+          } else if (isClassAttr(key)) {
+            value = serializeClassWithScopedStyle(value);
+          }
+          element.setAttribute(key, String(value));
+        }
+      }
+    }
+    return needsQDispatchEventPatch;
+  }
+
   function expectElement(jsx: JSXNode, tag: string) {
     const isSameTagName =
       vCurrent && vnode_isElementVNode(vCurrent) && tag === vnode_getElementName(vCurrent);
     let jsxKey: string | null = null;
+    let needsQDispatchEventPatch = false;
     if (
       isSameTagName &&
       (jsxKey = jsx.key) == vnode_getProp(vCurrent as ElementVNode, ELEMENT_KEY, null)
@@ -480,24 +519,14 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       vNewNode = retrieveChildWithKey(jsxKey);
       if (vNewNode === null) {
         // No existing node with key exists, just create a new one.
-        vnode_insertBefore(
-          journal,
-          vParent as ElementVNode,
-          (vNewNode = vnode_newElement(vParent, container.document.createElement(tag), tag)),
-          vCurrent
-        );
+        needsQDispatchEventPatch = createNewElement(jsx, tag);
       } else {
         // Existing keyed node
         vnode_remove(journal, vParent, vNewNode, false);
         vnode_insertBefore(journal, vParent as ElementVNode, vNewNode, vCurrent);
       }
     } else {
-      vnode_insertBefore(
-        journal,
-        vParent as ElementVNode,
-        (vNewNode = vnode_newElement(vParent, container.document.createElement(tag), tag)),
-        vCurrent
-      );
+      needsQDispatchEventPatch = createNewElement(jsx, tag);
     }
     // reconcile attributes
     let jsxAttrs = (jsx as any as { attrs: SsrAttrs }).attrs;
@@ -518,16 +547,48 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
         }
       }
     }
-    setBulkProps((vNewNode || vCurrent) as ElementVNode, jsxAttrs);
+    const vNode = (vNewNode || vCurrent) as ElementVNode;
+    needsQDispatchEventPatch = setBulkProps(vNode, jsxAttrs) || needsQDispatchEventPatch;
+    if (needsQDispatchEventPatch) {
+      // Event handler needs to be patched onto the element.
+      const element = vnode_getNode(vNode) as QElement2;
+      if (!element.qDispatchEvent) {
+        element.qDispatchEvent = (event: Event) => {
+          let eventName = event.type;
+          let scope = '';
+          if (eventName.startsWith(':')) {
+            // :document:event or :window:event
+            const colonIndex = eventName.substring(1).indexOf(':');
+            scope = eventName.substring(1, colonIndex + 1);
+            eventName = eventName.substring(colonIndex + 2);
+          }
+
+          const eventProp = ':' + scope + ':' + eventName;
+          const qrls = [
+            vnode_getProp<QRL>(vNode, eventProp, null),
+            vnode_getProp<QRL>(vNode, IMMUTABLE_PREFIX + eventProp, null),
+          ];
+          let returnValue = false;
+          qrls.flat(2).forEach((qrl) => {
+            if (qrl) {
+              const value = qrl(event) as any;
+              returnValue = returnValue || value === true;
+            }
+          });
+          return returnValue;
+        };
+      }
+    }
   }
 
-  function setBulkProps(vnode: ElementVNode, srcAttrs: SsrAttrs) {
+  /** @param tag Returns true if `qDispatchEvent` needs patching */
+  function setBulkProps(vnode: ElementVNode, srcAttrs: SsrAttrs): boolean {
     vnode_ensureElementInflated(vnode);
     const dstAttrs = vnode as SsrAttrs;
     let srcIdx = 0;
     const srcLength = srcAttrs.length;
     let dstIdx = ElementVNodeProps.PROPS_OFFSET;
-    const dstLength = dstAttrs.length;
+    let dstLength = dstAttrs.length;
     let srcKey: string | null = srcIdx < srcLength ? srcAttrs[srcIdx++] : null;
     let dstKey: string | null = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
     let patchEventDispatch = false;
@@ -537,18 +598,23 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
         vnode_setProp(vnode, key, value);
       } else {
         if (isClassAttr(key)) {
-          const serializedClass = serializeClass(value);
-          value =
-            scopedStyleIdPrefix && serializedClass
-              ? `${scopedStyleIdPrefix} ${serializedClass}`
-              : serializedClass;
+          value = serializeClassWithScopedStyle(value);
         }
         vnode_setAttr(journal, vnode, key, value);
+        if (value === null) {
+          // if we set `null` than attribute was removed and we need to shorten the dstLength
+          dstLength = dstAttrs.length;
+        }
       }
     };
 
     while (srcKey !== null || dstKey !== null) {
-      if (srcKey == null) {
+      if (dstKey?.startsWith(IMMUTABLE_PREFIX)) {
+        // This is a special key which we use to mark the event handlers as immutable.
+        // we need to ignore them.
+        dstIdx++; // skip the destination value, we don't care about it.
+        dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
+      } else if (srcKey == null) {
         // Source has more keys, so we need to remove them from destination
         if (dstKey && isHtmlAttributeAnEventName(dstKey)) {
           patchEventDispatch = true;
@@ -604,31 +670,16 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
         dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       }
     }
-    if (patchEventDispatch) {
-      const element = vnode_getNode(vnode) as QElement2;
-      if (!element.qDispatchEvent) {
-        element.qDispatchEvent = (event: Event) => {
-          let eventName = event.type;
-          let scope = '';
-          if (eventName.startsWith(':')) {
-            // :document:event or :window:event
-            const colonIndex = eventName.substring(1).indexOf(':');
-            scope = eventName.substring(1, colonIndex + 1);
-            eventName = eventName.substring(colonIndex + 2);
-          }
+    return patchEventDispatch;
+  }
 
-          const eventProp = ':' + scope + ':' + eventName;
-          const qrls = vnode_getProp(vnode, eventProp, null);
-          let returnValue = false;
-          qrls &&
-            (Array.isArray(qrls) ? qrls : [qrls]).forEach((qrl) => {
-              const value = qrl(event);
-              returnValue = returnValue || value === true;
-            });
-          return returnValue;
-        };
-      }
-    }
+  function serializeClassWithScopedStyle(value: any) {
+    const serializedClass = serializeClass(value);
+    value =
+      scopedStyleIdPrefix && serializedClass
+        ? `${scopedStyleIdPrefix} ${serializedClass}`
+        : serializedClass;
+    return value;
   }
 
   function retrieveScopedStyleIdPrefix() {
@@ -947,3 +998,9 @@ export function releaseSubscriptions(container: ClientContainer, vNode: VNode) {
     }
   } while (true as boolean);
 }
+
+/**
+ * This marks the property as immutable. It is needed for the QRLs so that QwikLoader can get a hold
+ * of them. This character must be `:` so that the `vnode_getAttr` can ignore them.
+ */
+const IMMUTABLE_PREFIX = ':';

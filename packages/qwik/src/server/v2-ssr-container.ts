@@ -251,12 +251,19 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     return this.closeElement();
   }
 
-  openElement(tag: string, attrs: SsrAttrs) {
+  openElement(tag: string, attrs: SsrAttrs | null, immutableAttrs?: SsrAttrs | null) {
     this.lastNode = null;
-    this.pushFrame(tag, this.depthFirstElementCount++, true, isQwikStyleElement(tag, attrs));
+    const isQwikStyle = isQwikStyleElement(tag, attrs) || isQwikStyleElement(tag, immutableAttrs);
+    this.pushFrame(tag, this.depthFirstElementCount++, true, isQwikStyle);
     this.write('<');
     this.write(tag);
-    this.writeAttrs(attrs);
+    if (attrs) {
+      this.writeAttrs(attrs);
+    }
+    if (immutableAttrs) {
+      this.write(' :');
+      this.writeAttrs(immutableAttrs);
+    }
     this.write('>');
     this.lastNode = null;
   }
@@ -688,7 +695,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private async emitUnclaimedProjection() {
     const unclaimedProjections = this.unclaimedProjections;
     if (unclaimedProjections.length) {
-      this.openElement('q:template', ['style', 'display:none']);
+      this.openElement('q:template', ['style', 'display:none'], null);
       let idx = 0;
       let ssrComponentNode: ISsrNode | null = null;
       while (idx < unclaimedProjections.length) {
@@ -860,8 +867,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 }
 
-const isQwikStyleElement = (tag: string, attrs: SsrAttrs) => {
-  if (tag === 'style') {
+const isQwikStyleElement = (tag: string, attrs: SsrAttrs | null | undefined) => {
+  if (tag === 'style' && attrs != null) {
     for (let i = 0; i < attrs.length; i = i + 2) {
       const attr = attrs[i];
       if (attr === QStyle || attr === QScopedStyle) {

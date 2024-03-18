@@ -179,7 +179,7 @@ export const vnode_newElement = (
   tag: string
 ): ElementVNode => {
   const vnode: ElementVNode = VNodeArray.createElement(
-    VNodeFlags.Element | (-1 << VNodeFlagsIndex.shift), // Flag
+    VNodeFlags.Element | VNodeFlags.Inflated | (-1 << VNodeFlagsIndex.shift), // Flag
     parentNode as VNode | null,
     null,
     null,
@@ -359,15 +359,18 @@ export const vnode_getNodeTypeName = (vNode: VNode): string => {
 
 export const vnode_ensureElementInflated = (vnode: VNode) => {
   const flags = vnode[VNodeProps.flags];
-  if ((flags & VNodeFlags.TYPE_MASK) === VNodeFlags.Element) {
-    const elementVNode = ensureElementVNode(vnode);
+  if ((flags & VNodeFlags.INFLATED_TYPE_MASK) === VNodeFlags.Element) {
+    const elementVNode = vnode as ElementVNode;
     elementVNode[VNodeProps.flags] ^= VNodeFlags.Inflated;
     const element = elementVNode[ElementVNodeProps.element];
     const attributes = element.attributes;
     for (let idx = 0; idx < attributes.length; idx++) {
       const attr = attributes[idx];
       const key = attr.name;
-      if (!key.startsWith('on:')) {
+      if (key == ':') {
+        // all attributes after the ':' are considered immutable, and so we ignore them.
+        break;
+      } else if (!key.startsWith('on:')) {
         const value = attr.value;
         mapArray_set(elementVNode as string[], key, value, vnode_getPropStartIndex(vnode));
       }

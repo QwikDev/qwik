@@ -1833,7 +1833,7 @@ PrefetchGraph: (opts?: {
 
 **Returns:**
 
-import("@builder.io/qwik/jsx-runtime").[JSXNode](#jsxnode)&lt;"script"&gt;
+import("@builder.io/qwik/jsx-runtime").JSXNode&lt;"script"&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
 
@@ -1860,7 +1860,7 @@ PrefetchServiceWorker: (opts: {
 
 **Returns:**
 
-import("@builder.io/qwik/jsx-runtime").[JSXNode](#jsxnode)&lt;"script"&gt;
+import("@builder.io/qwik/jsx-runtime").JSXNode&lt;"script"&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
 

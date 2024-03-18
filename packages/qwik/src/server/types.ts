@@ -174,8 +174,8 @@ export interface RenderToStringOptions extends RenderOptions {}
 /** @public */
 export interface InOrderAuto {
   strategy: 'auto';
-  maximunInitialChunk?: number;
-  maximunChunk?: number;
+  maximumInitialChunk?: number;
+  maximumChunk?: number;
 }
 
 /** @public */

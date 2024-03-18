@@ -21,6 +21,15 @@ import { Resource, useResourceQrl } from '../use/use-resource';
 import { _fnSignal } from '../internal';
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
 import { useOn } from '../use/use-on';
+import type {
+  RenderToStreamOptions,
+  RenderToStreamResult,
+  RenderToStringOptions,
+  RenderToStringResult,
+  StreamWriter,
+  StreamingOptions,
+} from '../../server/types';
+import type { JSXOutput } from '../../server/qwik-types';
 
 vi.hoisted(() => {
   vi.stubGlobal('QWIK_LOADER_DEFAULT_MINIFIED', 'min');
@@ -67,40 +76,62 @@ const ManyEventsComponent = componentQrl(
   }, 's_manyEventsCmp')
 );
 
+const Counter = componentQrl(
+  inlinedQrl(() => {
+    const count = useSignal(123);
+    return (
+      <button
+        onClick$={inlinedQrl(
+          () => {
+            useLexicalScope()[0].value++;
+          },
+          's_click',
+          [count]
+        )}
+      >
+        {count.value}
+      </button>
+    );
+  }, 's_counter')
+);
+
+// const Greeter = componentQrl<{ salutation?: string; name?: string }>(
+//   inlinedQrl(({ salutation, name }) => {
+//     return (
+//       <span>
+//         {salutation || 'Hello'} {name || 'World'}!
+//       </span>
+//     );
+//   }, 's_greeter')
+// );
+
+const renderToStringAndSetPlatform = async (jsx: JSXOutput, opts: RenderToStringOptions = {}) => {
+  const platform = getPlatform();
+  let result: RenderToStringResult;
+  try {
+    result = await renderToString2(jsx, opts);
+  } finally {
+    setPlatform(platform);
+  }
+  return result;
+};
+
+const renderToStreamAndSetPlatform = async (jsx: JSXOutput, opts: RenderToStreamOptions) => {
+  const platform = getPlatform();
+  let result: RenderToStreamResult;
+  try {
+    result = await renderToStream2(jsx, opts);
+  } finally {
+    setPlatform(platform);
+  }
+  return result;
+};
+
 describe('render api', () => {
   let document: Document;
   beforeEach(() => {
     document = createDocument();
   });
-
-  // const Greeter = componentQrl<{ salutation?: string; name?: string }>(
-  //   inlinedQrl(({ salutation, name }) => {
-  //     return (
-  //       <span>
-  //         {salutation || 'Hello'} {name || 'World'}!
-  //       </span>
-  //     );
-  //   }, 's_greeter')
-  // );
-
-  const Counter = componentQrl(
-    inlinedQrl(() => {
-      const count = useSignal(123);
-      return (
-        <button
-          onClick$={inlinedQrl(
-            () => {
-              useLexicalScope()[0].value++;
-            },
-            's_click',
-            [count]
-          )}
-        >
-          {count.value}
-        </button>
-      );
-    }, 's_counter')
-  );
 
   describe('types', () => {
     it('should have same type signature()', () => {
@@ -187,15 +218,10 @@ describe('render api', () => {
           </button>
         );
       });
-      const platform = getPlatform();
-      try {
-        const result = await renderToString2(<TestCmp />, {
-          containerTagName: 'div',
-        });
-        document = createDocument(result.html);
-      } finally {
-        setPlatform(platform);
-      }
+      const result = await renderToStringAndSetPlatform(<TestCmp />, {
+        containerTagName: 'div',
+      });
+      document = createDocument(result.html);
       const container = getDomContainer(document.body.firstChild as HTMLElement);
       const vNode = vnode_getFirstChild(container.rootVNode);
       expect(vNode).toMatchVDOM(
@@ -212,7 +238,7 @@ describe('render api', () => {
     });
     describe('render result', () => {
       it('should render', async () => {
-        const result = await renderToString2(<Counter />, {
+        const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: 'div',
           manifest: defaultManifest,
         });
@@ -227,7 +253,7 @@ describe('render api', () => {
       });
 
       it('should have timings greater than 0', async () => {
-        const result = await renderToString2(<Counter />, {
+        const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: 'div',
         });
         const timing = result.timing;
@@ -236,6 +262,7 @@ describe('render api', () => {
           render: expect.any(Number),
           snapshot: expect.any(Number),
         });
+        expect(timing.firstFlush).toBeGreaterThan(0);
         expect(timing.render).toBeGreaterThan(0);
         expect(timing.snapshot).toBeGreaterThan(0);
       });
@@ -251,7 +278,7 @@ describe('render api', () => {
         const testVersion = 'qwik-v-test123';
         const version = await import('./../version');
         vi.spyOn(version, 'version', 'get').mockReturnValue(testVersion);
-        const result = await renderToString2(<Counter />, {
+        const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: 'div',
         });
         expect(result.html).toContain(`q:version="${testVersion}"`);
@@ -261,7 +288,7 @@ describe('render api', () => {
     describe('base', () => {
       it('should render', async () => {
         const testBase = '/abcd/123-test/';
-        const result = await renderToString2(<Counter />, {
+        const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: 'div',
           base: testBase,
         });
@@ -271,7 +298,7 @@ describe('render api', () => {
     describe('locale', () => {
       it('should render', async () => {
         const testLocale = 'pl';
-        const result = await renderToString2(<Counter />, {
+        const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: 'div',
           locale: testLocale,
         });
@@ -279,7 +306,7 @@ describe('render api', () => {
       });
       it('should render for function', async () => {
         const testLocale = 'pl';
-        const result = await renderToString2(<Counter />, {
+        const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: 'div',
           locale: () => testLocale,
         });
@@ -288,7 +315,7 @@ describe('render api', () => {
       it('should render from serverData', async () => {
         const testLocale = 'pl';
         const testServerDataLocale = 'en';
-        const result = await renderToString2(<Counter />, {
+        const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: 'div',
           locale: testLocale,
           serverData: {
@@ -300,7 +327,7 @@ describe('render api', () => {
     });
     describe('qwikLoader', () => {
       it('should render at bottom by default', async () => {
-        const result = await renderToString2(<Counter />, {
+        const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: 'div',
         });
         const document = createDocument(result.html);
@@ -311,7 +338,7 @@ describe('render api', () => {
         expect(qwikLoaderScriptElement?.getAttribute('id')).toEqual('qwikloader');
       });
       it('should render at bottom', async () => {
-        const result = await renderToString2(<Counter />, {
+        const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: 'div',
           qwikLoader: {
             position: 'bottom',
@@ -327,7 +354,7 @@ describe('render api', () => {
         expect(document.head.lastChild?.textContent ?? '').not.toContain('window.qwikevents.push');
       });
       it('should render at top', async () => {
-        const result = await renderToString2(
+        const result = await renderToStringAndSetPlatform(
           [
             <head>
               <script></script>
@@ -362,7 +389,7 @@ describe('render api', () => {
         expect(qwikLoaderScriptElement?.getAttribute('id')).toEqual('qwikloader');
       });
       it('should always render', async () => {
-        const result = await renderToString2(<div>static</div>, {
+        const result = await renderToStringAndSetPlatform(<div>static</div>, {
           containerTagName: 'div',
           qwikLoader: {
             include: 'always',
@@ -374,7 +401,7 @@ describe('render api', () => {
         expect(document.querySelectorAll('script[id=qwikloader]')).toHaveLength(1);
       });
       it('should not render for static content and auto include', async () => {
-        const result = await renderToString2(<div>static</div>, {
+        const result = await renderToStringAndSetPlatform(<div>static</div>, {
           containerTagName: 'div',
           qwikLoader: {
             include: 'auto',
@@ -386,7 +413,7 @@ describe('render api', () => {
         expect(document.querySelectorAll('script[id=qwikloader]')).toHaveLength(0);
       });
       it('should never render', async () => {
-        const result = await renderToString2(<Counter />, {
+        const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: 'div',
           qwikLoader: {
             include: 'never',
@@ -400,7 +427,7 @@ describe('render api', () => {
     });
     describe('qwikEvents', () => {
       it('should render', async () => {
-        const result = await renderToString2(<ManyEventsComponent />, {
+        const result = await renderToStringAndSetPlatform(<ManyEventsComponent />, {
           containerTagName: 'div',
         });
         const document = createDocument(result.html);
@@ -422,7 +449,7 @@ describe('render api', () => {
             </button>
           );
         });
-        const result = await renderToString2(<CounterDerived initial={123} />, {
+        const result = await renderToStringAndSetPlatform(<CounterDerived initial={123} />, {
           containerTagName: 'div',
         });
         const document = createDocument(result.html);
@@ -440,7 +467,7 @@ describe('render api', () => {
     });
     describe('prefetchStrategy', () => {
       it('should render with default prefetch implementation', async () => {
-        const result = await renderToString2(<Counter />, {
+        const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: 'div',
           prefetchStrategy: {
             symbolsToPrefetch: 'auto',
@@ -455,7 +482,7 @@ describe('render api', () => {
         expect(document.querySelectorAll('link')).toHaveLength(0);
       });
       it('should render with linkInsert: "html-append"', async () => {
-        const result = await renderToString2(<Counter />, {
+        const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: 'div',
           prefetchStrategy: {
             symbolsToPrefetch: 'auto',
@@ -472,7 +499,7 @@ describe('render api', () => {
         expect(document.querySelectorAll('link[rel=prefetch][as=script]')).toHaveLength(1);
       });
       it('should render with linkInsert: "js-append"', async () => {
-        const result = await renderToString2(<Counter />, {
+        const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: 'div',
           prefetchStrategy: {
             symbolsToPrefetch: 'auto',
@@ -491,7 +518,7 @@ describe('render api', () => {
         expect(document.querySelectorAll('link')).toHaveLength(0);
       });
       it('should render with linkInsert: "html-append" and linkRel: "modulepreload"', async () => {
-        const result = await renderToString2(<Counter />, {
+        const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: 'div',
           prefetchStrategy: {
             symbolsToPrefetch: 'auto',
@@ -509,7 +536,7 @@ describe('render api', () => {
         expect(document.querySelectorAll('link[rel=modulepreload]')).toHaveLength(1);
       });
       it('should render with linkInsert: "js-append" and linkRel: "modulepreload"', async () => {
-        const result = await renderToString2(<Counter />, {
+        const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: 'div',
           prefetchStrategy: {
             symbolsToPrefetch: 'auto',
@@ -529,7 +556,7 @@ describe('render api', () => {
         expect(document.querySelectorAll('link')).toHaveLength(0);
       });
       it('should render with linkInsert: "html-append" and linkRel: "preload"', async () => {
-        const result = await renderToString2(<Counter />, {
+        const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: 'div',
           prefetchStrategy: {
             symbolsToPrefetch: 'auto',
@@ -547,7 +574,7 @@ describe('render api', () => {
         expect(document.querySelectorAll('link[rel=preload]')).toHaveLength(1);
       });
       it('should render with linkInsert: "js-append" and linkRel: "preload"', async () => {
-        const result = await renderToString2(<Counter />, {
+        const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: 'div',
           prefetchStrategy: {
             symbolsToPrefetch: 'auto',
@@ -567,7 +594,7 @@ describe('render api', () => {
         expect(document.querySelectorAll('link')).toHaveLength(0);
       });
       it('should render with prefetchEvent: "null"', async () => {
-        const result = await renderToString2(<Counter />, {
+        const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: 'div',
           prefetchStrategy: {
             symbolsToPrefetch: 'auto',
@@ -584,7 +611,7 @@ describe('render api', () => {
         expect(document.querySelectorAll('link')).toHaveLength(0);
       });
       it('should render with workerFetchInsert: "always"', async () => {
-        const result = await renderToString2(<Counter />, {
+        const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: 'div',
           prefetchStrategy: {
             symbolsToPrefetch: 'auto',
@@ -604,7 +631,7 @@ describe('render api', () => {
     describe('containerTagName/containerAttributes', () => {
       it('should render correct container tag name', async () => {
         const testTag = 'test-tag';
-        const result = await renderToString2(<Counter />, {
+        const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: testTag,
         });
         const document = createDocument(result.html);
@@ -613,7 +640,7 @@ describe('render api', () => {
       it('should render custom container attributes', async () => {
         const testAttrName = 'test-attr';
         const testAttrValue = 'test-value';
-        const result = await renderToString2(<Counter />, {
+        const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: 'div',
           containerAttributes: {
             [testAttrName]: testAttrValue,
@@ -628,7 +655,7 @@ describe('render api', () => {
           vi.spyOn(qDev, 'qDev', 'get').mockReturnValue(true);
         });
         it('should render qRender with "ssr-dev" value in dev mode', async () => {
-          const result = await renderToString2(<Counter />, {
+          const result = await renderToStringAndSetPlatform(<Counter />, {
             containerTagName: 'div',
           });
           expect(result.html.includes('q:render="ssr-dev"')).toBeTruthy();
@@ -637,14 +664,14 @@ describe('render api', () => {
           const qDev = await import('./../util/qdev');
           vi.spyOn(qDev, 'qDev', 'get').mockReturnValue(false);
 
-          const result = await renderToString2(<Counter />, {
+          const result = await renderToStringAndSetPlatform(<Counter />, {
             containerTagName: 'div',
           });
           expect(result.html.includes('q:render="ssr-dev"')).toBeTruthy();
         });
         it('should render qRender with custom value in dev mode', async () => {
           const testRender = 'ssr-test';
-          const result = await renderToString2(<Counter />, {
+          const result = await renderToStringAndSetPlatform(<Counter />, {
             containerTagName: 'div',
             containerAttributes: {
               'q:render': testRender,
@@ -657,7 +684,7 @@ describe('render api', () => {
           vi.spyOn(qDev, 'qDev', 'get').mockReturnValue(false);
 
           const testRender = 'ssr-test';
-          const result = await renderToString2(<Counter />, {
+          const result = await renderToStringAndSetPlatform(<Counter />, {
             containerTagName: 'div',
             containerAttributes: {
               'q:render': testRender,
@@ -681,7 +708,7 @@ describe('render api', () => {
           }, 's_cmp1')
         );
 
-        const result = await renderToString2(<TestCmp />, {
+        const result = await renderToStringAndSetPlatform(<TestCmp />, {
           containerTagName: 'div',
           serverData: { 'my-key': 'my-value' },
         });
@@ -718,7 +745,7 @@ describe('render api', () => {
           },
           version: '1',
         };
-        const result = await renderToString2(<Counter />, {
+        const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: 'div',
           manifest: testManifest,
         });
@@ -726,7 +753,7 @@ describe('render api', () => {
       });
       it('should render manifest hash attribute', async () => {
         const testManifestHash = 'testManifestHash';
-        const result = await renderToString2(<Counter />, {
+        const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: 'div',
           manifest: {
             ...defaultManifest,
@@ -738,7 +765,7 @@ describe('render api', () => {
     });
     describe('debug', () => {
       it('should emit qwik loader with debug mode', async () => {
-        const result = await renderToString2(<Counter />, {
+        const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: 'div',
           debug: true,
         });
@@ -746,7 +773,7 @@ describe('render api', () => {
       });
 
       it('should emit qwik loader without debug mode', async () => {
-        const result = await renderToString2(<Counter />, {
+        const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: 'div',
           debug: false,
         });
@@ -765,7 +792,7 @@ describe('render api', () => {
             );
           }, 's_cmpResource')
         );
-        const result = await renderToString2(
+        const result = await renderToStringAndSetPlatform(
           <body>
             <ResourceComponent />
           </body>,
@@ -799,7 +826,7 @@ describe('render api', () => {
             );
           }, 's_cmpResourceSignal')
         );
-        const result = await renderToString2(
+        const result = await renderToStringAndSetPlatform(
           <body>
             <ResourceAndSignalComponent />
           </body>,
@@ -832,7 +859,7 @@ describe('render api', () => {
             );
           }, 's_cmpFunction')
         );
-        const result = await renderToString2(<FunctionComponent />, {
+        const result = await renderToStringAndSetPlatform(<FunctionComponent />, {
           containerTagName: 'div',
         });
         expect(result.snapshotResult?.qrls).toHaveLength(1);
@@ -848,7 +875,7 @@ describe('render api', () => {
             </button>
           );
         });
-        const result = await renderToString2(
+        const result = await renderToStringAndSetPlatform(
           <body>
             <CounterDerived initial={123} />
           </body>,
@@ -861,7 +888,7 @@ describe('render api', () => {
         expect(result.snapshotResult?.funcs).toHaveLength(1);
       });
       it('should set static mode', async () => {
-        let result = await renderToString2(<div>static content</div>, {
+        let result = await renderToStringAndSetPlatform(<div>static content</div>, {
           containerTagName: 'div',
         });
         expect(result.snapshotResult?.mode).toEqual('static');
@@ -872,13 +899,13 @@ describe('render api', () => {
           }, 's_static')
         );
 
-        result = await renderToString2(<StaticComponent />, {
+        result = await renderToStringAndSetPlatform(<StaticComponent />, {
           containerTagName: 'div',
         });
         expect(result.snapshotResult?.mode).toEqual('static');
       });
       it('should set listeners mode', async () => {
-        const result = await renderToString2(<Counter />, {
+        const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: 'div',
         });
         expect(result.snapshotResult?.mode).toEqual('listeners');
@@ -909,22 +936,106 @@ describe('render api', () => {
           }, 's_comp')
         );
 
-        const result = await renderToString2(<ComponentA />, {
+        const result = await renderToStringAndSetPlatform(<ComponentA />, {
           containerTagName: 'div',
         });
         expect(result.snapshotResult?.mode).toEqual('render');
       });
     });
   });
+
   describe('renderToStream()', () => {
     describe('render result', () => {
-      it.todo('should render', async () => {});
+      it('should renderToStream', async () => {
+        const chunks: string[] = [];
+        const stream: StreamWriter = {
+          write(chunk) {
+            chunks.push(chunk);
+          },
+        };
+        await renderToStreamAndSetPlatform(<Counter />, {
+          containerTagName: 'div',
+          stream,
+        });
+        document = createDocument(chunks.join(''));
+        const container = getDomContainer(document.body.firstChild as HTMLElement);
+        const vNode = vnode_getFirstChild(container.rootVNode);
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <button>123</button>
+          </Component>
+        );
+        await trigger(container.element, 'button', 'click');
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <button>124</button>
+          </Component>
+        );
+      });
     });
     describe('stream', () => {
-      it.todo('should render');
+      it('should render', async () => {
+        const stream: StreamWriter = {
+          write: vi.fn(),
+        };
+        await renderToStreamAndSetPlatform(<Counter />, {
+          containerTagName: 'div',
+          stream,
+        });
+        expect(stream.write).toHaveBeenCalled();
+      });
     });
     describe('streaming', () => {
-      it.todo('should render');
+      it('should render all at once', async () => {
+        const stream: StreamWriter = {
+          write: vi.fn(),
+        };
+        const streaming: StreamingOptions = {
+          inOrder: {
+            strategy: 'disabled',
+          },
+        };
+        await renderToStreamAndSetPlatform(<Counter />, {
+          containerTagName: 'div',
+          stream,
+          streaming,
+        });
+        expect(stream.write).toHaveBeenCalledTimes(1);
+      });
+      it('should render by direct streaming', async () => {
+        const stream: StreamWriter = {
+          write: vi.fn(),
+        };
+        const streaming: StreamingOptions = {
+          inOrder: {
+            strategy: 'direct',
+          },
+        };
+        await renderToStreamAndSetPlatform(<Counter />, {
+          containerTagName: 'div',
+          stream,
+          streaming,
+        });
+        expect(stream.write).toHaveBeenCalledTimes(124);
+      });
+      it('should render chunk by chunk with auto streaming', async () => {
+        const stream: StreamWriter = {
+          write: vi.fn(),
+        };
+        const streaming: StreamingOptions = {
+          inOrder: {
+            strategy: 'auto',
+            maximumInitialChunk: 200,
+            maximumChunk: 100,
+          },
+        };
+        await renderToStreamAndSetPlatform(<Counter />, {
+          containerTagName: 'div',
+          stream,
+          streaming,
+        });
+        expect(stream.write).toHaveBeenCalledTimes(4);
+      });
     });
   });
 });

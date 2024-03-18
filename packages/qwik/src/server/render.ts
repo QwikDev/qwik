@@ -38,8 +38,8 @@ export async function renderToStream(
   let snapshotResult: SnapshotResult | undefined;
   const inOrderStreaming = opts.streaming?.inOrder ?? {
     strategy: 'auto',
-    maximunInitialChunk: 50000,
-    maximunChunk: 30000,
+    maximumInitialChunk: 50000,
+    maximumChunk: 30000,
   };
   const containerTagName = opts.containerTagName ?? 'html';
   const containerAttributes = opts.containerAttributes ?? {};
@@ -76,8 +76,8 @@ export async function renderToStream(
     case 'auto':
       let count = 0;
       let forceFlush = false;
-      const minimunChunkSize = inOrderStreaming.maximunChunk ?? 0;
-      const initialChunkSize = inOrderStreaming.maximunInitialChunk ?? 0;
+      const minimumChunkSize = inOrderStreaming.maximumChunk ?? 0;
+      const initialChunkSize = inOrderStreaming.maximumInitialChunk ?? 0;
       stream = {
         write(chunk) {
           if (chunk === '<!--qkssr-f-->') {
@@ -89,7 +89,7 @@ export async function renderToStream(
           } else {
             enqueue(chunk);
           }
-          const chunkSize = networkFlushes === 0 ? initialChunkSize : minimunChunkSize;
+          const chunkSize = networkFlushes === 0 ? initialChunkSize : minimumChunkSize;
           if (count === 0 && (forceFlush || bufferSize >= chunkSize)) {
             forceFlush = false;
             flush();

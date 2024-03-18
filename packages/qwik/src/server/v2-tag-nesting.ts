@@ -78,7 +78,7 @@ export const initialTag = (tag: string) => {
 };
 
 /** Determine if the tag is allowed to be nested inside the current tag. */
-export function isTagAllowed(state: number, tag: string): number {
+export function isTagAllowed(state: number, tag: string): TagNesting {
   switch (state) {
     case TagNesting.TEXT:
     case TagNesting.NOT_ALLOWED:
@@ -108,7 +108,7 @@ export function isTagAllowed(state: number, tag: string): number {
   return TagNesting.NOT_ALLOWED;
 }
 
-function isInHtml(text: string): number {
+function isInHtml(text: string): TagNesting {
   switch (text) {
     case 'head':
       return TagNesting.HEAD;
@@ -119,7 +119,7 @@ function isInHtml(text: string): number {
   }
 }
 
-function isInHead(text: string): number {
+function isInHead(text: string): TagNesting {
   switch (text) {
     case 'title':
     case 'script':
@@ -137,13 +137,8 @@ function isInHead(text: string): number {
   }
 }
 
-function isInAnything(text: string): number {
+export function isEmptyTag(text: string): boolean {
   switch (text) {
-    case 'script':
-    case 'style':
-    case 'noscript':
-    case 'noframes':
-      return TagNesting.TEXT;
     case 'area':
     case 'base':
     case 'basefont':
@@ -162,7 +157,23 @@ function isInAnything(text: string): number {
     case 'source':
     case 'track':
     case 'wbr':
-      return TagNesting.EMPTY;
+      return true;
+    default:
+      return false;
+  }
+}
+
+function isInAnything(text: string): TagNesting {
+  if (isEmptyTag(text)) {
+    return TagNesting.EMPTY;
+  }
+
+  switch (text) {
+    case 'script':
+    case 'style':
+    case 'noscript':
+    case 'noframes':
+      return TagNesting.TEXT;
     case 'p':
     case 'pre':
       return TagNesting.PHRASING;
@@ -178,7 +189,7 @@ function isInAnything(text: string): number {
   }
 }
 
-function isInTable(text: string): number {
+function isInTable(text: string): TagNesting {
   switch (text) {
     case 'caption':
       return TagNesting.ANYTHING;
@@ -193,7 +204,7 @@ function isInTable(text: string): number {
   }
 }
 
-function isInTableBody(text: string): number {
+function isInTableBody(text: string): TagNesting {
   switch (text) {
     case 'tr':
       return TagNesting.TABLE_ROW;
@@ -202,7 +213,7 @@ function isInTableBody(text: string): number {
   }
 }
 
-function isInTableRow(text: string): number {
+function isInTableRow(text: string): TagNesting {
   switch (text) {
     case 'td':
     case 'th':
@@ -212,7 +223,7 @@ function isInTableRow(text: string): number {
   }
 }
 
-function isInTableColGroup(text: string): number {
+function isInTableColGroup(text: string): TagNesting {
   switch (text) {
     case 'col':
       return TagNesting.EMPTY;
@@ -221,7 +232,7 @@ function isInTableColGroup(text: string): number {
   }
 }
 
-function isInPhrasing(text: string): number {
+function isInPhrasing(text: string): TagNesting {
   switch (text) {
     case 'a':
     case 'abbr':

@@ -129,6 +129,9 @@ function processJSXNode(
       if (typeof type === 'string') {
         ssr.openElement(type, toSsrAttrs(jsx.props, ssr.serializationCtx));
         enqueue(ssr.closeElement);
+        if (type === 'head') {
+          enqueue(ssr.$appendHeadNodes$);
+        }
         const children = jsx.children as JSXOutput;
         children != undefined && enqueue(children);
       } else if (typeof type === 'function') {

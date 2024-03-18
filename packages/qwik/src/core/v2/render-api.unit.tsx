@@ -51,6 +51,47 @@ const defaultCounterManifest: QwikManifest = {
   },
 };
 
+const ManyEventsComponent = componentQrl(
+  inlinedQrl(() => {
+    useOn(
+      'focus',
+      inlinedQrl(() => {}, 's_useOnFocus')
+    );
+    return (
+      <div>
+        <button
+          onClick$={inlinedQrl(() => {}, 's_click1')}
+          onDblClick$={inlinedQrl(() => {}, 's_dblclick1')}
+        >
+          click
+        </button>
+        <button
+          onClick$={inlinedQrl(() => {}, 's_click2')}
+          onBlur$={inlinedQrl(() => {}, 's_blur1')}
+        >
+          click
+        </button>
+      </div>
+    );
+  }, 's_manyEventsCmp')
+);
+
+describe('render api', () => {
+  let document: Document;
+  beforeEach(() => {
+    document = createDocument();
+  });
+
+  // const Greeter = componentQrl<{ salutation?: string; name?: string }>(
+  //   inlinedQrl(({ salutation, name }) => {
+  //     return (
+  //       <span>
+  //         {salutation || 'Hello'} {name || 'World'}!
+  //       </span>
+  //     );
+  //   }, 's_greeter')
+  // );
+
 const Counter = componentQrl(
   inlinedQrl(() => {
     const count = useSignal(123);
@@ -325,18 +366,41 @@ describe('render api', () => {
           ?.previousSibling as HTMLElement;
         expect(qwikLoaderScriptElement?.tagName.toLowerCase()).toEqual('script');
         expect(qwikLoaderScriptElement?.getAttribute('id')).toEqual('qwikloader');
+        // should not contain qwik events script for top position
+        expect(document.head.lastChild?.textContent ?? '').not.toContain('window.qwikevents.push');
       });
       it('should render at top', async () => {
-        const result = await renderToStringAndSetPlatform(<Counter />, {
-          containerTagName: 'div',
-          qwikLoader: {
-            position: 'top',
-          },
-        });
+        const result = await renderToStringAndSetPlatform(
+          [
+            <head>
+              <script></script>
+            </head>,
+            <body>
+              <ManyEventsComponent />
+            </body>,
+          ],
+          {
+            containerTagName: 'html',
+            qwikLoader: {
+              position: 'top',
+            },
+          }
+        );
         const document = createDocument(result.html);
-        // find last component element - button
-        const button = document.querySelector('button') as HTMLButtonElement;
-        const qwikLoaderScriptElement = button.nextSibling as HTMLElement;
+        // should render in head
+        const head = document.head as HTMLButtonElement;
+        // qwik events should be the last script
+        const firstQwikEventsScriptElement = head.lastChild as HTMLElement;
+        // qwik loader should be one before qwik events script
+        const qwikLoaderScriptElement = firstQwikEventsScriptElement.previousSibling as HTMLElement;
+        // qwik events should be the last script of body
+        const secondQwikEventsScriptElement = document.body.lastChild as HTMLElement;
+
+        expect(firstQwikEventsScriptElement.textContent).toContain(
+          'window.qwikevents.push("click")'
+        );
+        expect(secondQwikEventsScriptElement.textContent).toContain('window.qwikevents.push');
+
         expect(qwikLoaderScriptElement?.tagName.toLowerCase()).toEqual('script');
         expect(qwikLoaderScriptElement?.getAttribute('id')).toEqual('qwikloader');
       });
@@ -348,6 +412,8 @@ describe('render api', () => {
           },
         });
         const document = createDocument(result.html);
+        // should not contain qwik events script for top position
+        expect(document.head.lastChild?.textContent ?? '').not.toContain('window.qwikevents.push');
         expect(document.querySelectorAll('script[id=qwikloader]')).toHaveLength(1);
       });
       it('should not render for static content and auto include', async () => {
@@ -358,6 +424,8 @@ describe('render api', () => {
           },
         });
         const document = createDocument(result.html);
+        // should not contain qwik events script for top position
+        expect(document.head.lastChild?.textContent ?? '').not.toContain('window.qwikevents.push');
         expect(document.querySelectorAll('script[id=qwikloader]')).toHaveLength(0);
       });
       it('should never render', async () => {
@@ -369,35 +437,12 @@ describe('render api', () => {
         });
         const document = createDocument(result.html);
         expect(document.querySelectorAll('script[id=qwikloader]')).toHaveLength(0);
+        // should not contain qwik events script for top position
+        expect(document.head.lastChild?.textContent ?? '').not.toContain('window.qwikevents.push');
       });
     });
     describe('qwikEvents', () => {
       it('should render', async () => {
-        const ManyEventsComponent = componentQrl(
-          inlinedQrl(() => {
-            useOn(
-              'focus',
-              inlinedQrl(() => {}, 's_useOnFocus')
-            );
-            return (
-              <div>
-                <button
-                  onClick$={inlinedQrl(() => {}, 's_click1')}
-                  onDblClick$={inlinedQrl(() => {}, 's_dblclick1')}
-                >
-                  click
-                </button>
-                <button
-                  onClick$={inlinedQrl(() => {}, 's_click2')}
-                  onBlur$={inlinedQrl(() => {}, 's_blur1')}
-                >
-                  click
-                </button>
-              </div>
-            );
-          }, 's_manyEventsCmp')
-        );
-
         const result = await renderToStringAndSetPlatform(<ManyEventsComponent />, {
           containerTagName: 'div',
         });

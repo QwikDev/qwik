@@ -20,7 +20,7 @@ export abstract class _SharedContainer implements Container2 {
   readonly $locale$: string;
   /// Retrieve Object from paused serialized state.
   readonly $getObjectById$: (id: number | string) => any;
-  readonly $serverData$: Record<string, any>;
+  $serverData$: Record<string, any>;
 
   constructor(scheduleDrain: () => void, serverData: Record<string, any>, locale: string) {
     this.$serverData$ = serverData;

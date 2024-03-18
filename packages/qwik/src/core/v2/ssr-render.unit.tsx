@@ -17,6 +17,18 @@ describe('v2 ssr render', () => {
       </span>
     );
   });
+  it('should render void element correctly', async () => {
+    const { vNode, container } = await ssrRenderToDom(
+      <meta content="dark light" name="color-scheme" />
+    );
+    expect(vNode).toMatchVDOM(<meta content="dark light" name="color-scheme" />);
+    expect(container.document.documentElement.outerHTML).toContain(
+      '<meta content="dark light" name="color-scheme">'
+    );
+    expect(container.document.documentElement.outerHTML).not.toContain(
+      '<meta content="dark light" name="color-scheme"></meta>'
+    );
+  });
   describe('component', () => {
     describe('inline', () => {
       it('should render inline component', async () => {

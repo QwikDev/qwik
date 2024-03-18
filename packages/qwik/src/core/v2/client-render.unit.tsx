@@ -18,6 +18,20 @@ describe('v2 client render', () => {
     const { vNode } = await clientRender(<span>Hello World!</span>);
     expect(vnode_getFirstChild(vNode)).toMatchVDOM(<span>Hello World!</span>);
   });
+  it('should render void element correctly', async () => {
+    const { vNode, container } = await clientRender(
+      <meta content="dark light" name="color-scheme" />
+    );
+    expect(vnode_getFirstChild(vNode)).toMatchVDOM(
+      <meta content="dark light" name="color-scheme" />
+    );
+    expect(container.document.documentElement.outerHTML).toContain(
+      '<meta content="dark light" name="color-scheme">'
+    );
+    expect(container.document.documentElement.outerHTML).not.toContain(
+      '<meta content="dark light" name="color-scheme"></meta>'
+    );
+  });
   it('should render Components', async () => {
     const Display = component$((props: { text: string }) => {
       return <b>{props.text}</b>;

@@ -43,7 +43,7 @@ import { Q_FUNCS_PREFIX } from './render';
 import type { PrefetchResource, RenderOptions, RenderToStreamResult } from './types';
 import { createTimer } from './utils';
 import { SsrComponentFrame, SsrNode } from './v2-node';
-import { TagNesting, allowedContent, initialTag, isTagAllowed } from './v2-tag-nesting';
+import { TagNesting, allowedContent, initialTag, isEmptyTag, isTagAllowed } from './v2-tag-nesting';
 import {
   CLOSE_FRAGMENT,
   OPEN_FRAGMENT,
@@ -281,9 +281,13 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   private _closeElement() {
     const currentFrame = this.popFrame();
-    this.write('</');
-    this.write(currentFrame.elementName!);
-    this.write('>');
+    const elementName = currentFrame.elementName!;
+    const isEmptyElement = isEmptyTag(elementName);
+    if (!isEmptyElement) {
+      this.write('</');
+      this.write(elementName);
+      this.write('>');
+    }
     // Keep track of number of elements.
     const newFrame = this.currentElementFrame;
     if (newFrame && currentFrame && !currentFrame.shouldSkipStyleElement) {

@@ -9,7 +9,7 @@ import type {
   SnapshotResult,
   StreamWriter,
 } from './types';
-import { getBuildBase } from './utils';
+import { createTimer, getBuildBase } from './utils';
 import { ssrCreateContainer } from './v2-ssr-container';
 
 /**
@@ -62,27 +62,18 @@ export const renderToStream2: typeof renderToStream = async (
   jsx: JSXOutput,
   opts: RenderToStreamOptions
 ): Promise<RenderToStreamResult> => {
-  const stream = opts.stream;
-  // const bufferSize = 0;
-  // const buffer: string = '';
-  // const inOrderStreaming = opts.streaming?.inOrder ?? {
-  //   strategy: 'auto',
-  //   maximunInitialChunk: 50000,
-  //   maximunChunk: 30000,
-  // };
-  // const nativeStream = stream;
   const timing: RenderToStreamResult['timing'] = {
     firstFlush: 0,
     render: 0,
     snapshot: 0,
   };
   const containerTagName = opts.containerTagName ?? 'html';
-  const totalSize = 0;
-  const networkFlushes = 0;
   const buildBase = getBuildBase(opts);
   const resolvedManifest = resolveManifest(opts.manifest);
 
   const locale = typeof opts.locale === 'function' ? opts.locale(opts) : opts.locale;
+
+  const { stream, flush, networkFlushes, totalSize } = handleStreaming(opts, timing);
 
   const ssrContainer = ssrCreateContainer({
     tagName: containerTagName,
@@ -96,6 +87,9 @@ export const renderToStream2: typeof renderToStream = async (
 
   await setServerPlatform(opts, resolvedManifest);
   await ssrContainer.render(jsx);
+
+  // Flush remaining chunks in the buffer
+  flush();
 
   const snapshotResult = getSnapshotResult(ssrContainer);
 
@@ -132,4 +126,72 @@ function getSnapshotResult(ssrContainer: SSRContainer): SnapshotResult {
         qrls: [],
         resources: Array.from(ssrContainer.serializationCtx.$resources$),
       };
+}
+
+function handleStreaming(opts: RenderToStreamOptions, timing: RenderToStreamResult['timing']) {
+  const firstFlushTimer = createTimer();
+  let stream = opts.stream;
+  let bufferSize = 0;
+  let buffer: string = '';
+  let totalSize = 0;
+  let networkFlushes = 0;
+  const inOrderStreaming = opts.streaming?.inOrder ?? {
+    strategy: 'auto',
+    maximumInitialChunk: 20_000,
+    maximumChunk: 10_000,
+  };
+  const nativeStream = stream;
+
+  function flush() {
+    if (buffer) {
+      nativeStream.write(buffer);
+      buffer = '';
+      bufferSize = 0;
+      networkFlushes++;
+      if (networkFlushes === 1) {
+        timing.firstFlush = firstFlushTimer();
+      }
+    }
+  }
+
+  function enqueue(chunk: string) {
+    const len = chunk.length;
+    bufferSize += len;
+    totalSize += len;
+    buffer += chunk;
+  }
+
+  switch (inOrderStreaming.strategy) {
+    case 'disabled':
+      stream = {
+        write: enqueue,
+      };
+      break;
+    case 'direct':
+      stream = nativeStream;
+      break;
+    case 'auto':
+      const minimumChunkSize = inOrderStreaming.maximumChunk ?? 0;
+      const initialChunkSize = inOrderStreaming.maximumInitialChunk ?? 0;
+      stream = {
+        write(chunk) {
+          if (chunk === undefined || chunk === null) {
+            return;
+          }
+          enqueue(chunk);
+          const chunkSize = networkFlushes === 0 ? initialChunkSize : minimumChunkSize;
+          if (bufferSize >= chunkSize) {
+            flush();
+          }
+        },
+      };
+      break;
+  }
+
+  return {
+    stream,
+    flush,
+    networkFlushes,
+    totalSize,
+  };
 }

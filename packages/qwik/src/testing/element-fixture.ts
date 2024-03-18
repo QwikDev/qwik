@@ -128,7 +128,7 @@ interface QElement extends HTMLElement {
 export const dispatch = async (element: Element | null, attrName: string, event: Event) => {
   const isDocumentOrWindow = isDocumentOrWindowEvent(event.type);
   const preventAttributeName =
-    PREVENT_DEFAULT + isDocumentOrWindow ? event.type.substring(1) : event.type;
+    PREVENT_DEFAULT + (isDocumentOrWindow ? event.type.substring(1) : event.type);
   const collectListeners: { element: Element; qrl: QRLInternal }[] = [];
   while (element) {
     const preventDefault = element.hasAttribute(preventAttributeName);

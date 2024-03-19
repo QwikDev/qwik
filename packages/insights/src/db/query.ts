@@ -30,10 +30,13 @@ export async function getEdges(
   { limit, manifestHashes }: { limit?: number; manifestHashes: string[] }
 ) {
   return time('edgeTable.getEdges', async () => {
-    const where = and(
-      eq(edgeTable.publicApiKey, publicApiKey),
-      inArray(edgeTable.manifestHash, manifestHashes)
-    )!;
+    const where = manifestHashes.length
+      ? and(
+          eq(edgeTable.publicApiKey, publicApiKey),
+          inArray(edgeTable.manifestHash, manifestHashes)
+        )
+      : eq(edgeTable.publicApiKey, publicApiKey);
+
     const query = db
       .select({
         from: edgeTable.from,

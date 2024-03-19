@@ -24,7 +24,7 @@ use swc_atoms::{js_word, JsWord};
 use swc_common::comments::{Comments, SingleThreadedComments};
 use swc_common::SyntaxContext;
 use swc_common::{errors::HANDLER, sync::Lrc, SourceMap, Span, Spanned, DUMMY_SP};
-use swc_ecmascript::ast::{self, PropName};
+use swc_ecmascript::ast::{self};
 use swc_ecmascript::utils::{private_ident, quote_ident, ExprFactory};
 use swc_ecmascript::visit::{noop_fold_type, Fold, FoldWith, VisitWith};
 
@@ -317,7 +317,8 @@ impl<'a> QwikTransform<'a> {
             display_name += "s_";
         }
         display_name = escape_sym(&display_name);
-        if display_name.starts_with(|c| matches!(c, '0'..='9')) {
+        let first_char = display_name.chars().next();
+        if first_char.map_or(false, |c| c.is_ascii_digit()) {
             display_name = format!("_{}", display_name);
         }
         let index = match self.hooks_names.get_mut(&display_name) {
@@ -532,6 +533,7 @@ impl<'a> QwikTransform<'a> {
         }
     }
 
+    /** Converts inline expressions into QRLs. Returns (expr?, true) if succeeded. */
     fn create_synthetic_qqhook(
         &mut self,
         first_arg: ast::Expr,
@@ -1142,6 +1144,7 @@ impl<'a> QwikTransform<'a> {
         let (dynamic_props, mut mutable_props, mut immutable_props, children, flags) =
             self.internal_handle_jsx_props_obj(expr, is_fn, is_text_only);
 
+        // For functions, put the immutable props under the "_IMMUTABLE" prop
         if is_fn && !immutable_props.is_empty() {
             mutable_props.push(ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(
                 ast::KeyValueProp {
@@ -1452,7 +1455,7 @@ impl<'a> QwikTransform<'a> {
                                     &self.options.global_collect,
                                     Some(&immutable_idents),
                                 ) {
-                                    if is_fn {
+                                    if is_fn || dynamic_props {
                                         immutable_props.push(ast::PropOrSpread::Prop(Box::new(
                                             ast::Prop::KeyValue(ast::KeyValueProp {
                                                 key: node.key.clone(),
@@ -1465,22 +1468,13 @@ impl<'a> QwikTransform<'a> {
                                         )));
                                         mutable_props.push(prop.fold_with(self));
                                     } else {
-                                        immutable_props.push(ast::PropOrSpread::Prop(Box::new(
-                                            ast::Prop::KeyValue(ast::KeyValueProp {
-                                                key: normalize_jsx_key(&node.key, &key_word),
-                                                value: node.value.clone(),
-                                            }),
-                                        )));
+                                        immutable_props.push(prop.fold_with(self));
                                     }
                                 } else if let Some((getter, is_immutable)) =
                                     self.convert_to_getter(&node.value, is_fn)
                                 {
-                                    let key = if is_fn {
-                                        node.key.clone()
-                                    } else {
-                                        normalize_jsx_key(&node.key, &key_word)
-                                    };
-                                    if is_fn {
+                                    let key = node.key.clone();
+                                    if is_fn || dynamic_props {
                                         mutable_props.push(ast::PropOrSpread::Prop(Box::new(
                                             ast::Prop::Getter(ast::GetterProp {
                                                 span: DUMMY_SP,
@@ -1509,13 +1503,6 @@ impl<'a> QwikTransform<'a> {
                                     } else {
                                         mutable_props.push(entry);
                                     }
-                                } else if !is_fn && key_word == *CLASS_NAME {
-                                    mutable_props.push(ast::PropOrSpread::Prop(Box::new(
-                                        ast::Prop::KeyValue(ast::KeyValueProp {
-                                            key: normalize_jsx_key(&node.key, &key_word),
-                                            value: node.value.clone(),
-                                        }),
-                                    )));
                                 } else {
                                     mutable_props.push(prop.fold_with(self));
                                 }
@@ -1540,9 +1527,6 @@ impl<'a> QwikTransform<'a> {
                 } else {
                     mutable_props.extend(event_handlers.into_iter());
                 }
-
-                mutable_props.sort_by(sort_props);
-                immutable_props.sort_by(sort_props);
 
                 if static_subtree {
                     flags |= 1 << 1;
@@ -1605,6 +1589,7 @@ impl<'a> QwikTransform<'a> {
         }
     }
 
+    /* Convert an expression to a QRL or a getter. Returns (expr, isImmutable) */
     fn convert_to_getter(&mut self, expr: &ast::Expr, is_fn: bool) -> Option<(ast::Expr, bool)> {
         let inlined = self.create_synthetic_qqhook(expr.clone(), true);
         if let Some(expr) = inlined.0 {
@@ -1745,7 +1730,6 @@ impl<'a> Fold for QwikTransform<'a> {
                 {
                     self.hooks
                         .drain(..)
-                        .into_iter()
                         .map(|hook| {
                             let id = (hook.name.clone(), SyntaxContext::from_u32(hook.hash as u32));
                             ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::Var(Box::new(
@@ -2170,12 +2154,11 @@ impl<'a> Fold for QwikTransform<'a> {
                     } else {
                         let new_specifier =
                             convert_signal_word(&ident.sym).expect("Specifier ends with $");
-                        let new_local = global_collect
+                        global_collect
                             .exports
                             .keys()
-                            .find(|id| id.0 == new_specifier);
-
-                        new_local.map_or_else(
+                            .find(|id| id.0 == new_specifier)
+                            .map_or_else(
                                 || {
                                     HANDLER.with(|handler| {
                                         handler
@@ -2430,13 +2413,6 @@ fn make_wrap(method: &Id, obj: Box<ast::Expr>, prop: JsWord) -> ast::Expr {
     })
 }
 
-fn normalize_jsx_key(key: &ast::PropName, key_word: &JsWord) -> PropName {
-    if key_word == "className" {
-        return ast::PropName::Ident(ast::Ident::new("class".into(), DUMMY_SP));
-    }
-    key.clone()
-}
-
 fn get_null_arg() -> ast::ExprOrSpread {
     ast::ExprOrSpread {
         spread: None,
@@ -2449,29 +2425,4 @@ fn is_text_only(node: &str) -> bool {
         node,
         "text" | "textarea" | "title" | "option" | "script" | "style" | "noscript"
     )
-}
-
-fn sort_props(a: &ast::PropOrSpread, b: &ast::PropOrSpread) -> std::cmp::Ordering {
-    match (a, b) {
-        (
-            ast::PropOrSpread::Prop(box ast::Prop::KeyValue(ref a)),
-            ast::PropOrSpread::Prop(box ast::Prop::KeyValue(ref b)),
-        ) => {
-            let a_key = match &a.key {
-                ast::PropName::Ident(ident) => Some(ident.sym.as_ref()),
-                ast::PropName::Str(s) => Some(s.value.as_ref()),
-                _ => None,
-            };
-            let b_key = match b.key {
-                ast::PropName::Ident(ref ident) => Some(ident.sym.as_ref()),
-                ast::PropName::Str(ref s) => Some(s.value.as_ref()),
-                _ => None,
-            };
-            match (a_key, b_key) {
-                (Some(a_key), Some(b_key)) => a_key.cmp(b_key),
-                _ => std::cmp::Ordering::Equal,
-            }
-        }
-        _ => std::cmp::Ordering::Equal,
-    }
 }

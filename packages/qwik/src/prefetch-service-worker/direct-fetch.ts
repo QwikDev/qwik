@@ -79,8 +79,8 @@ function taskTick(swState: SWState) {
     if (task.$isFetching$) {
       outstandingRequests++;
     } else if (
-      outstandingRequests < swState.$maxPrefetchRequests$ ||
-      task.$priority$ >= DIRECT_PRIORITY
+      swState.$getCache$() &&
+      (outstandingRequests < swState.$maxPrefetchRequests$ || task.$priority$ >= DIRECT_PRIORITY)
     ) {
       task.$isFetching$ = true;
       outstandingRequests++;

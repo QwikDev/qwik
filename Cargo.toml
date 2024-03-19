@@ -6,6 +6,7 @@ members = [
     "packages/qwik/src/optimizer/core",
 ]
 exclude = ["packages/qwik/src/wasm"]
+resolver = "2"
 
 [profile.release]
 debug = 0

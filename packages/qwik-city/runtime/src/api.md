@@ -261,8 +261,6 @@ export const Link: Component<LinkProps>;
 //
 // @public (undocumented)
 export interface LinkProps extends AnchorAttributes {
-    // (undocumented)
-    'link:app'?: boolean;
     prefetch?: boolean | 'js';
     // (undocumented)
     reload?: boolean;

@@ -100,14 +100,16 @@ async function processBundleGraph(
   if (cleanup) {
     const bundles = new Set<string>(graph.filter((item) => typeof item === 'string') as string[]);
     const cache = await swState.$getCache$();
-    for (const request of await cache.keys()) {
-      const [cacheBase, filename] = parseBaseFilename(new URL(request.url));
-      const promises: Promise<boolean>[] = [];
-      if (cacheBase === base && !bundles.has(filename)) {
-        swState.$log$('deleting', request.url);
-        promises.push(cache.delete(request));
+    if (cache) {
+      for (const request of await cache.keys()) {
+        const [cacheBase, filename] = parseBaseFilename(new URL(request.url));
+        const promises: Promise<boolean>[] = [];
+        if (cacheBase === base && !bundles.has(filename)) {
+          swState.$log$('deleting', request.url);
+          promises.push(cache.delete(request));
+        }
+        await Promise.all(promises);
       }
-      await Promise.all(promises);
     }
   }
 }

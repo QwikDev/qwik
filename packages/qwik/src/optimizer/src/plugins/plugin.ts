@@ -134,7 +134,13 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     const path = optimizer.sys.path;
 
     opts.debug = !!updatedOpts.debug;
-    opts.base = updatedOpts.base ?? '/';
+
+    opts.base = !updatedOpts?.base || updatedOpts.base.length === 1
+    ? '/'
+    : updatedOpts.base.endsWith('/')
+      ? updatedOpts.base.slice(0, -1)
+      : updatedOpts.base;
+
     updatedOpts.target === 'test';
     if (
       updatedOpts.target === 'ssr' ||

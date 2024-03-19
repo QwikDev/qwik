@@ -130,6 +130,7 @@ export async function configureDevServer(
             : 'src';
 
           const renderOpts: RenderToStreamOptions = {
+            base: opts.base,
             debug: true,
             locale: serverData.locale,
             stream: res,

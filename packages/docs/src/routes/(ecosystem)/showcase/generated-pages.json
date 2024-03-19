@@ -808,5 +808,21 @@
     },
     "href": "https://todaysdatenow.com/",
     "tags": "site,tools,time"
+  },
+  {
+    "title": "Finally, the Free and Fun Way to learn Stock Investing and Gain Financial Literacy",
+    "imgSrc": "/showcases/finallyweb_com_.webp",
+    "perf": {
+      "score": 0.9,
+      "fcpDisplay": "1.4 s",
+      "fcpScore": 0.97,
+      "lcpDisplay": "2.4 s",
+      "lcpScore": 0.92,
+      "ttiDisplay": "2.6 s",
+      "ttiScore": 0.98,
+      "ttiTime": 2582.5
+    },
+    "href": "https://finallyweb.com/",
+    "tags": "stock market education"
   }
 ]

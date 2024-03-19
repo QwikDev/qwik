@@ -39,6 +39,7 @@ export interface IntegrationData {
   name: string;
   pkgJson: IntegrationPackageJson;
   dir: string;
+  target?: string;
   priority: number;
   docs: string[];
   viteConfig?: ViteConfigUpdates;

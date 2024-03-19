@@ -207,7 +207,7 @@ export function computeBundles(symbolVectors: SymbolVectors): Bundle[] {
   const maxDistance = 0.95 * Math.sqrt(Math.pow(1, 2) + Math.pow(1, 2));
   const clusters = dbscan.run(symbolVectors.vectors, maxDistance, 1);
   clusters.forEach((cluster) => {
-    const symbols = cluster.map((id) => symbolVectors.symbols[id]);
+    const symbols = cluster.map((id) => symbolVectors.symbols[id]).filter(Boolean);
     const symbolNames = symbols.map((s) => s.name);
     symbolNames.sort();
     bundles.push({

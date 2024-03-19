@@ -759,11 +759,23 @@ export const createElm = (
       }
     }
     if (vnode.$immutableProps$) {
-      setProperties(staticCtx, elCtx, currentComponent, vnode.$immutableProps$, isSvg, true);
+      const immProps =
+        props !== EMPTY_OBJ
+          ? Object.fromEntries(
+              Object.entries(vnode.$immutableProps$).map(([k, v]) => [
+                k,
+                v === _IMMUTABLE ? props[k] : v,
+              ])
+            )
+          : vnode.$immutableProps$;
+      setProperties(staticCtx, elCtx, currentComponent, immProps, isSvg, true);
     }
     if (props !== EMPTY_OBJ) {
       elCtx.$vdom$ = vnode;
-      vnode.$props$ = setProperties(staticCtx, elCtx, currentComponent, props, isSvg, false);
+      const p = vnode.$immutableProps$
+        ? Object.fromEntries(Object.entries(props).filter(([k]) => !(k in vnode.$immutableProps$!)))
+        : props;
+      vnode.$props$ = setProperties(staticCtx, elCtx, currentComponent, p, isSvg, false);
     }
     if (isSvg && tag === 'foreignObject') {
       isSvg = false;
@@ -950,7 +962,12 @@ const checkBeforeAssign: PropHandler = (ctx, elm, newValue, prop) => {
   if (prop in elm) {
     // a selected <option> is different from a selected <option value> (innerText vs '')
     if ((elm as any)[prop] !== newValue || (prop === 'value' && !elm.hasAttribute(prop))) {
-      if (elm.tagName === 'SELECT') {
+      if (
+        // we must set value last so that it adheres to min,max,step
+        prop === 'value' &&
+        // but we must also set options first so they are present before updating select
+        elm.tagName !== 'OPTION'
+      ) {
         setPropertyPost(ctx, elm, prop, newValue);
       } else {
         setProperty(ctx, elm, prop, newValue);
@@ -978,6 +995,7 @@ const noop: PropHandler = () => {
 export const PROP_HANDLER_MAP: Record<string, PropHandler | undefined> = {
   style: handleStyle,
   class: handleClass,
+  className: handleClass,
   value: checkBeforeAssign,
   checked: checkBeforeAssign,
   href: forceAttribute,

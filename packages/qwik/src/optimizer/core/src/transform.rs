@@ -1238,6 +1238,7 @@ impl<'a> QwikTransform<'a> {
 					.cloned()
 					.collect();
 
+				// Do we have spread arguments?
 				let dynamic_props = object
 					.props
 					.iter()

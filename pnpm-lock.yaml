@@ -525,6 +525,9 @@ importers:
         specifier: ^5.1.6
         version: 5.2.2(@types/node@20.11.30)(terser@5.29.2)
     devDependencies:
+      '@builder.io/qwik':
+        specifier: workspace:^
+        version: 'link:'
       '@builder.io/qwik-dom':
         specifier: workspace:^
         version: link:../qwik-dom

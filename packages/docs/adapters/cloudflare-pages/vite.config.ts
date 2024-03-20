@@ -18,7 +18,7 @@ export default extendConfig(baseConfig, () => {
           exclude: ['/demo/*', '/shop/*'],
           origin:
             (process.env.CF_PAGES_BRANCH !== 'main' ? process.env.CF_PAGES_URL : null) ??
-            'https://qwik.builder.io',
+            'https://qwik.dev',
         },
       }),
     ],

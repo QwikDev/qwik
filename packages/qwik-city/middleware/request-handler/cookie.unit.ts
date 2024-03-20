@@ -59,8 +59,8 @@ test('creates correct headers', () => {
     {
       key: 'j',
       value: '10',
-      options: { domain: 'https://qwik.builder.io' },
-      expect: 'j=10; Domain=https://qwik.builder.io',
+      options: { domain: 'https://qwik.dev' },
+      expect: 'j=10; Domain=https://qwik.dev',
     },
     {
       key: 'k',

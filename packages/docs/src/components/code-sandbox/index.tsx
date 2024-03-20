@@ -57,7 +57,7 @@ export default component$<{
               target="_blank"
               class="url-link text-ellipsis overflow-hidden"
             >
-              {new URL(examplePath(exampleUrl), 'https://qwik.builder.io').toString()}
+              {new URL(examplePath(exampleUrl), 'https://qwik.dev').toString()}
             </a>
           </div>
           <ul>

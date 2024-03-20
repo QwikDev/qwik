@@ -91,7 +91,7 @@ export const App = component$(() => {
           (Lazy hydration is what gives even large apps instant on behavior.)
         </li>
         <li>
-          Read the docs <a href="https://qwik.builder.io/">here</a>.
+          Read the docs <a href="https://qwik.dev/">here</a>.
         </li>
         <li>Replace the content of this component with your code.</li>
         <li>Build amazing web-sites with unbeatable startup performance.</li>

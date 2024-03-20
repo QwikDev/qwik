@@ -29,7 +29,7 @@ export default component$<{
           options: getBuilderSearchParams(query),
           userAttributes: {
             urlPath: location.url.pathname,
-            site: 'qwik.builder.io',
+            site: 'qwik.dev',
           },
           ...(contentId && {
             query: {
@@ -114,7 +114,7 @@ export async function getBuilderContent({
   );
   qwikUrl.searchParams.set('apiKey', apiKey);
   qwikUrl.searchParams.set('userAttributes.urlPath', urlPath);
-  qwikUrl.searchParams.set('userAttributes.site', 'qwik.builder.io');
+  qwikUrl.searchParams.set('userAttributes.site', 'qwik.dev');
   if (cacheBust) {
     qwikUrl.searchParams.set('cachebust', 'true');
   }

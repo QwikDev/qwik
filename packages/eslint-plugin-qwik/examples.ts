@@ -1,5 +1,5 @@
 /**
- * @file This file is used as examples in https://qwik.builder.io/docs/advanced/eslint/
+ * @file This file is used as examples in https://qwik.dev/docs/advanced/eslint/
  *
  *   Call `pnpm eslint.update` to update the examples in the docs.
  */

@@ -125,7 +125,7 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
           if (renderModulePath && qwikCityPlanModulePath && clientOutDir && clientPublicOutDir) {
             let ssgOrigin = opts.ssg?.origin ?? opts.origin;
             if (!ssgOrigin) {
-              ssgOrigin = `https://yoursite.qwik.builder.io`;
+              ssgOrigin = `https://yoursite.qwik.dev`;
             }
             if (
               ssgOrigin.length > 0 &&
@@ -138,9 +138,9 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
               ssgOrigin = new URL(ssgOrigin).origin;
             } catch (e) {
               this.warn(
-                `Invalid "origin" option: "${ssgOrigin}". Using default origin: "https://yoursite.qwik.builder.io"`
+                `Invalid "origin" option: "${ssgOrigin}". Using default origin: "https://yoursite.qwik.dev"`
               );
-              ssgOrigin = `https://yoursite.qwik.builder.io`;
+              ssgOrigin = `https://yoursite.qwik.dev`;
             }
 
             const staticGenerate = await import('../../../static');
@@ -262,8 +262,8 @@ export interface AdapterSSGOptions extends Omit<StaticGenerateRenderOptions, 'ou
 
   /**
    * The URL `origin`, which is a combination of the scheme (protocol) and hostname (domain). For
-   * example, `https://qwik.builder.io` has the protocol `https://` and domain `qwik.builder.io`.
-   * However, the `origin` does not include a `pathname`.
+   * example, `https://qwik.dev` has the protocol `https://` and domain `qwik.dev`. However, the
+   * `origin` does not include a `pathname`.
    *
    * The `origin` is used to provide a full URL during Static Site Generation (SSG), and to simulate
    * a complete URL rather than just the `pathname`. For example, in order to render a correct

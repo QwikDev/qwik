@@ -300,7 +300,7 @@ const validateJSXNode = (node: JSXNode) => {
 In order to disable content escaping use '<style dangerouslySetInnerHTML={content}/>'
 
 However, if the use case is to inject component styleContent, use 'useStyles$()' instead, it will be a lot more efficient.
-See https://qwik.builder.io/docs/components/styles/#usestyles for more information.`);
+See https://qwik.dev/docs/components/styles/#usestyles for more information.`);
           }
         }
         if (type === 'script') {

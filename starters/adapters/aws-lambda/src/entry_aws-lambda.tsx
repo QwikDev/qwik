@@ -4,7 +4,7 @@
  * It's the entry point for Aws Lambda when building for production.
  *
  * Learn more about the Aws Lambda integration here:
- * - https://qwik.builder.io/docs/deployments/aws/
+ * - https://qwik.dev/docs/deployments/aws/
  *
  */
 import "source-map-support/register";

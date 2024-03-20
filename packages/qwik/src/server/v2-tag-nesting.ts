@@ -24,6 +24,7 @@ export const enum TagNesting {
   BODY = /* ------------------- */ 0b0000_0000_1000_0010,
   PHRASING_ANY = /* ----------- */ 0b0000_0001_0000_0010,
   PHRASING_INSIDE_INPUT = /* -- */ 0b0000_0010_0000_0010,
+  PHRASING_CONTAINER = /* ----- */ 0b0000_0100_0000_0010,
   /** Table related tags. */
   TABLE = /* ------------------ */ 0b0001_0000_0000_0000,
   TABLE_BODY = /* ------------- */ 0b0010_0000_0000_0000,
@@ -60,6 +61,7 @@ export const allowedContent = (state: TagNesting): [string, string | null] => {
       return ['table column group', '<col>'];
     case TagNesting.PHRASING_ANY:
     case TagNesting.PHRASING_INSIDE_INPUT:
+    case TagNesting.PHRASING_CONTAINER:
       return ['phrasing content', '<a>, <b>, <img>, <input> ... (no <div>, <p> ...)'];
     case TagNesting.DOCUMENT:
       return ['document', '<html>'];
@@ -91,6 +93,7 @@ export function isTagAllowed(state: number, tag: string): TagNesting {
       return isInHead(tag);
     case TagNesting.BODY:
     case TagNesting.ANYTHING:
+    case TagNesting.PHRASING_CONTAINER:
       return isInAnything(tag);
     case TagNesting.TABLE:
       return isInTable(tag);
@@ -203,8 +206,9 @@ function isInTable(text: string): TagNesting {
       return TagNesting.ANYTHING;
     case 'colgroup':
       return TagNesting.TABLE_COLGROUP;
-    case 'tbody':
     case 'thead':
+      return TagNesting.TABLE_ROW;
+    case 'tbody':
     case 'tfoot':
       return TagNesting.TABLE_BODY;
     default:
@@ -242,6 +246,9 @@ function isInTableColGroup(text: string): TagNesting {
 
 function isInPhrasing(text: string, allowInput: boolean): TagNesting {
   switch (text) {
+    case 'svg':
+    case 'math':
+      return TagNesting.PHRASING_CONTAINER;
     case 'button':
     case 'input':
     case 'textarea':
@@ -275,7 +282,6 @@ function isInPhrasing(text: string, allowInput: boolean): TagNesting {
     case 'link':
     case 'map':
     case 'mark':
-    case 'math':
     case 'meta':
     case 'meter':
     case 'noscript':
@@ -296,7 +302,6 @@ function isInPhrasing(text: string, allowInput: boolean): TagNesting {
     case 'strong':
     case 'sub':
     case 'sup':
-    case 'svg':
     case 'template':
     case 'time':
     case 'u':

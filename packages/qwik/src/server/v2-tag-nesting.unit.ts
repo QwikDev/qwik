@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { TagNesting, isTagAllowed } from './v2-tag-nesting';
 
 describe('tag-nesting', () => {
-  it.only('debug', () => {
+  it('debug', () => {
     expect(isValidNesting('html>body>button>span')).toBe(true);
   });
   it('should test cases', () => {
@@ -35,7 +35,10 @@ describe('tag-nesting', () => {
       ['html>body>table>tr', 'tr'],
       ['html>body>button>button', 'button'],
       ['html>body>button>span', true],
+      ['html>body>table>thead>th>div', true],
       ['html>body>table>tbody>tr>td>div', true],
+      ['html>body>button>svg>circle', true],
+      ['html>body>math>mrow', true],
     ];
     cases.forEach(([path, expectation]) => expect(isValidNesting(path)).toBe(expectation));
   });

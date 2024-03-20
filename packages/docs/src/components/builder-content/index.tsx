@@ -114,7 +114,7 @@ export async function getBuilderContent({
   );
   qwikUrl.searchParams.set('apiKey', apiKey);
   qwikUrl.searchParams.set('userAttributes.urlPath', urlPath);
-  qwikUrl.searchParams.set('userAttributes.site', 'qwik.dev');
+  qwikUrl.searchParams.set('userAttributes.site', 'qwik.builder.io');
   if (cacheBust) {
     qwikUrl.searchParams.set('cachebust', 'true');
   }

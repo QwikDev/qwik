@@ -188,9 +188,9 @@ export const Projector = component$((props: { state: any; id: string }) => {
 
 export const Button = component$((props: { id?: string }) => {
   return (
-    <button type="button" id={props.id}>
+    <div role="button" id={props.id}>
       <Slot />
-    </button>
+    </div>
   );
 });
 

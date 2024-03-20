@@ -324,6 +324,16 @@ describe('render api', () => {
         });
         expect(result.html).toContain(`q:locale="${testServerDataLocale}"`);
       });
+      it('should render from containerAttributes', async () => {
+        const testLocale = 'en-us';
+        const result = await renderToStringAndSetPlatform(<Counter />, {
+          containerTagName: 'div',
+          containerAttributes: {
+            locale: 'en-us',
+          },
+        });
+        expect(result.html).toContain(`q:locale="${testLocale}"`);
+      });
     });
     describe('qwikLoader', () => {
       it('should render at bottom by default', async () => {
@@ -1016,7 +1026,7 @@ describe('render api', () => {
           stream,
           streaming,
         });
-        expect(stream.write).toHaveBeenCalledTimes(124);
+        expect(stream.write).toHaveBeenCalledTimes(121);
       });
       it('should render chunk by chunk with auto streaming', async () => {
         const stream: StreamWriter = {

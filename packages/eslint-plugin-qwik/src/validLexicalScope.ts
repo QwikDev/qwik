@@ -7,7 +7,7 @@ import type { RuleContext, Scope } from '@typescript-eslint/utils/dist/ts-eslint
 import { QwikEslintExamples } from '../examples';
 
 const createRule = ESLintUtils.RuleCreator(
-  (name) => `https://qwik.builder.io/docs/advanced/eslint/#${name}`
+  (name) => `https://qwik.dev/docs/advanced/eslint/#${name}`
 );
 
 interface DetectorOptions {
@@ -44,11 +44,11 @@ export const validLexicalScope = createRule({
 
     messages: {
       referencesOutside:
-        'When referencing "{{varName}}" inside a different scope ({{dollarName}}), Qwik needs to serialize the value, however {{reason}}.\nCheck out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
+        'When referencing "{{varName}}" inside a different scope ({{dollarName}}), Qwik needs to serialize the value, however {{reason}}.\nCheck out https://qwik.dev/docs/advanced/dollar/ for more details.',
       invalidJsxDollar:
-        'Using "{{varName}}" as an event handler, however functions are not serializable.\nDid you mean to wrap it in `$()`?\n\n{{solution}}\nCheck out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
+        'Using "{{varName}}" as an event handler, however functions are not serializable.\nDid you mean to wrap it in `$()`?\n\n{{solution}}\nCheck out https://qwik.dev/docs/advanced/dollar/ for more details.',
       mutableIdentifier:
-        'Mutating let "{{varName}}" within the ({{dollarName}}) closure is not allowed, instead create an object/store/signal and mutate one of its properties.\nCheck out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
+        'Mutating let "{{varName}}" within the ({{dollarName}}) closure is not allowed, instead create an object/store/signal and mutate one of its properties.\nCheck out https://qwik.dev/docs/advanced/dollar/ for more details.',
     },
   },
   create(context) {

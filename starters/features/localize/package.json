@@ -5,7 +5,7 @@
     "priority": -10,
     "viteConfig": {},
     "docs": [
-      "https://qwik.builder.io/docs/integrations/i18n/#localize",
+      "https://qwik.dev/docs/integrations/i18n/#localize",
       "https://github.com/mhevery/qwik-i18n",
       "https://angular.io/api/localize/init/$localize"
     ],
@@ -15,7 +15,7 @@
         " - /src/routes/[locale]: New public route showcasing i18n $localize integration",
         "",
         " Check out the i18n $localize docs for more info:",
-        "   - https://qwik.builder.io/docs/integrations/i18n/#localize",
+        "   - https://qwik.dev/docs/integrations/i18n/#localize",
         "   - https://github.com/mhevery/qwik-i18n",
         "   - https://angular.io/api/localize/init/$localize"
       ]

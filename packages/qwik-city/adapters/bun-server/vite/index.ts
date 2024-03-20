@@ -6,7 +6,7 @@ export function bunServerAdapter(opts: bunServerAdapterOptions = {}): any {
   const env = process?.env;
   return viteAdapter({
     name: opts.name || 'bun-server',
-    origin: env?.ORIGIN ?? env?.URL ?? 'https://yoursitename.qwik.builder.io',
+    origin: env?.ORIGIN ?? env?.URL ?? 'https://yoursitename.qwik.dev',
     ssg: opts.ssg,
     cleanStaticGenerated: true,
 

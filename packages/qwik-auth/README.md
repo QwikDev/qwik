@@ -50,10 +50,10 @@ npm run build.server
 
 ## Related
 
-- [Qwik Docs](https://qwik.builder.io/docs/)
+- [Qwik Docs](https://qwik.dev/docs/)
 - [Qwik on GitHub](https://github.com/BuilderIO/qwik)
 - [@QwikDev](https://twitter.com/QwikDev)
-- [Discord](https://qwik.builder.io/chat)
+- [Discord](https://qwik.dev/chat)
 - [Vite](https://vitejs.dev/)
 - [Partytown](https://partytown.builder.io/)
 - [Mitosis](https://github.com/BuilderIO/mitosis)

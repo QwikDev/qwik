@@ -137,7 +137,7 @@ function validateBuild(ctx: BuildContext) {
     .forEach((l) => {
       addWarning(
         ctx,
-        `The "top" layout feature, which is used by "${l.filePath}" has been deprecated and will be removed from future versions. In most cases the "group" layout feature can be used in its place: https://qwik.builder.io/qwikcity/layout/grouped/`
+        `The "top" layout feature, which is used by "${l.filePath}" has been deprecated and will be removed from future versions. In most cases the "group" layout feature can be used in its place: https://qwik.dev/qwikcity/layout/grouped/`
       );
     });
 }

@@ -59,7 +59,7 @@
     "yarn": "please-use-pnpm",
     "pnpm": ">=8.6.12"
   },
-  "homepage": "https://qwik.builder.io/",
+  "homepage": "https://qwik.dev/",
   "license": "MIT",
   "packageManager": "pnpm@8.14.0",
   "private": true,

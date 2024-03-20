@@ -6,7 +6,7 @@ export const noUseVisibleTask: Rule.RuleModule = {
     docs: {
       description: 'Detect useVisibleTask$() functions.',
       recommended: true,
-      url: 'https://qwik.builder.io/docs/guides/best-practices/#use-usevisibletask-as-a-last-resort',
+      url: 'https://qwik.dev/docs/guides/best-practices/#use-usevisibletask-as-a-last-resort',
     },
     messages: {
       noUseVisibleTask: `useVisibleTask$() runs eagerly and blocks the main thread, preventing user interaction until the task is finished. Consider using useTask$(), useOn(), useOnDocument(), or useOnWindow() instead. If you have to use a useVisibleTask$(), you can disable the warning with a '// eslint-disable-next-line qwik/no-use-visible-task' comment.`,

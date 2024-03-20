@@ -15,7 +15,7 @@
     "priority": 20,
     "displayName": "Adapter: Node.js Fastify Server",
     "docs": [
-      "https://qwik.builder.io/integrations/deployments/node/",
+      "https://qwik.dev/integrations/deployments/node/",
       "https://fastify.dev/"
     ],
     "nextSteps": {

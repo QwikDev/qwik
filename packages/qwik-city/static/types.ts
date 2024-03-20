@@ -43,8 +43,8 @@ export interface StaticGenerateRenderOptions extends RenderOptions {
   outDir: string;
   /**
    * The URL `origin`, which is a combination of the scheme (protocol) and hostname (domain). For
-   * example, `https://qwik.builder.io` has the protocol `https://` and domain `qwik.builder.io`.
-   * However, the `origin` does not include a `pathname`.
+   * example, `https://qwik.dev` has the protocol `https://` and domain `qwik.dev`. However, the
+   * `origin` does not include a `pathname`.
    *
    * The `origin` is used to provide a full URL during Static Site Generation (SSG), and to simulate
    * a complete URL rather than just the `pathname`. For example, in order to render a correct

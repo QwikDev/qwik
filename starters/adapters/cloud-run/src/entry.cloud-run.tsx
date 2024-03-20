@@ -4,7 +4,7 @@
  * It's the entry point for the Google Cloud Run middleware when building for production.
  *
  * Learn more about the Cloud Run integration here:
- * - https://qwik.builder.io/docs/deployments/gcp-cloud-run/
+ * - https://qwik.dev/docs/deployments/gcp-cloud-run/
  *
  */
 import {

@@ -244,7 +244,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       'q:version': this.$version$ ?? 'dev',
       'q:render': qRender,
       'q:base': this.buildBase,
-      'q:locale': this.$serverData$.locale || this.$locale$,
+      'q:locale':
+        this.$serverData$.locale || this.$locale$ || this.renderOptions.containerAttributes?.locale,
       'q:manifest-hash': this.resolvedManifest.manifest.manifestHash,
     };
 

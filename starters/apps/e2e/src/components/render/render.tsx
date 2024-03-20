@@ -869,7 +869,7 @@ export const Issue4292 = component$(() => {
           $toggled.value = !$toggled.value;
         }}
       >
-        <div>Hello, World!</div>
+        <span>Hello, World!</span>
       </TestB>
     </>
   );

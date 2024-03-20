@@ -329,7 +329,7 @@ describe('render api', () => {
         const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: 'div',
           containerAttributes: {
-            locale: 'en-us',
+            locale: testLocale,
           },
         });
         expect(result.html).toContain(`q:locale="${testLocale}"`);

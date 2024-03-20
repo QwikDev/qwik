@@ -66,21 +66,23 @@ export interface QNode extends Node {
  * Inflation and materialization are not the same, they are two independent things.
  */
 export const enum VNodeFlags {
-  Element /* ****************** */ = 0b0001,
-  Virtual /* ****************** */ = 0b0010,
-  ELEMENT_OR_VIRTUAL_MASK /* ** */ = 0b0011,
-  ELEMENT_OR_TEXT_MASK /* ***** */ = 0b0101,
-  TYPE_MASK /* **************** */ = 0b0111,
-  INFLATED_TYPE_MASK /* ******* */ = 0b1111,
-  Text /* ********************* */ = 0b0100,
+  Element /* ****************** */ = 0b00001,
+  Virtual /* ****************** */ = 0b00010,
+  ELEMENT_OR_VIRTUAL_MASK /* ** */ = 0b00011,
+  ELEMENT_OR_TEXT_MASK /* ***** */ = 0b00101,
+  TYPE_MASK /* **************** */ = 0b00111,
+  INFLATED_TYPE_MASK /* ******* */ = 0b01111,
+  Text /* ********************* */ = 0b00100,
   /// Extra flag which marks if a node needs to be inflated.
-  Inflated /* ***************** */ = 0b1000,
+  Inflated /* ***************** */ = 0b01000,
+  /// Marks if the `ensureProjectionResolved` has been called on the node.
+  Resolved /* ***************** */ = 0b10000,
 }
 
 export const enum VNodeFlagsIndex {
-  mask /* ************* */ = ~0b1111,
-  negated_mask /* ****** */ = 0b1111,
-  shift /* ************* */ = 4,
+  mask /* ************* */ = ~0b11111,
+  negated_mask /* ****** */ = 0b11111,
+  shift /* ************* */ = 5,
 }
 
 export const enum VNodeProps {

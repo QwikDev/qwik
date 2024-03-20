@@ -161,20 +161,21 @@ Error.stackTraceLimit = 100;
         inlinedQrl(() => {
           const show = useSignal(true);
           return (
-            <button
+            <div
+              class="parent"
               onClick$={inlinedQrl(() => (useLexicalScope()[0].value = false), 's_onClick', [show])}
             >
               {show.value && <Component1 />}
               {show.value && <Component1 />}
               <Component2 />
-            </button>
+            </div>
           );
         }, 's_parent')
       );
       const { vNode, container } = await render(<Parent />, { debug });
       expect(vNode).toMatchVDOM(
         <>
-          <button>
+          <div class="parent">
             <Component>
               <div>
                 <span>Component 1</span>1
@@ -190,13 +191,13 @@ Error.stackTraceLimit = 100;
                 <span>Component 2</span>2
               </div>
             </Component>
-          </button>
+          </div>
         </>
       );
-      await trigger(container.element, 'button', 'click');
+      await trigger(container.element, 'div.parent', 'click');
       expect(vNode).toMatchVDOM(
         <>
-          <button>
+          <div class="parent">
             {''}
             {''}
             <Component>
@@ -204,9 +205,41 @@ Error.stackTraceLimit = 100;
                 <span>Component 2</span>2
               </div>
             </Component>
-          </button>
+          </div>
         </>
       );
+    });
+
+    it('should remove children from component$', async () => {
+      const log: string[] = [];
+      const MyComp = component$((props: any) => {
+        log.push('children' in props ? 'children' : 'no children');
+        return <span>Hello world</span>;
+      });
+
+      const { vNode } = await render(<MyComp>CHILDREN</MyComp>, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <span>Hello world</span>
+        </Component>
+      );
+      expect(log).toEqual(['no children']);
+    });
+
+    it('should NOT remove children from inline component', async () => {
+      const log: string[] = [];
+      const MyComp = (props: any) => {
+        log.push('children' in props ? 'has children' : 'no children');
+        return <span>Hello world</span>;
+      };
+
+      const { vNode } = await render(<MyComp>CHILDREN</MyComp>, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <span>Hello world</span>
+        </Component>
+      );
+      expect(log).toEqual(['has children']);
     });
   });
 

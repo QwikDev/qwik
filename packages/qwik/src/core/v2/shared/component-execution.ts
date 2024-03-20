@@ -53,12 +53,16 @@ export const executeComponent2 = (
   iCtx.$subscriber$ = [SubscriptionType.HOST, subscriptionHost as fixMeAny];
   iCtx.$container2$ = container;
   let componentFn: (props: unknown) => ValueOrPromise<JSXOutput>;
+  container.ensureProjectionResolved(renderHost);
   if (componentQRL === null) {
     componentQRL = componentQRL || container.getHostProp(renderHost, OnRenderProp)!;
     assertDefined(componentQRL, 'No Component found at this location');
   }
   if (isQrl(componentQRL)) {
     props = props || container.getHostProp(renderHost, ELEMENT_PROPS) || EMPTY_OBJ;
+    if (props && 'children' in props) {
+      delete props.children;
+    }
     componentFn = componentQRL.getFn(iCtx);
   } else if (isQwikComponent(componentQRL)) {
     const qComponentFn = componentQRL as (
@@ -66,6 +70,9 @@ export const executeComponent2 = (
       key: string | null,
       flags: number
     ) => JSXNode;
+    if (props && 'children' in props) {
+      delete props.children;
+    }
     componentFn = () => invokeApply(iCtx, qComponentFn, [props || EMPTY_OBJ, null, 0]);
   } else {
     const inlineComponent = componentQRL as (props: Record<string, any>) => JSXOutput;
@@ -113,9 +120,12 @@ function addUseOnEvents(host: HostElement, jsx: JSXOutput, useOnEvents: UseOnMap
   if (!jsxElement) {
     return;
   }
-  const props = jsxElement.props;
   for (const key in useOnEvents) {
     if (Object.prototype.hasOwnProperty.call(useOnEvents, key)) {
+      let props = jsxElement.props;
+      if (props === EMPTY_OBJ) {
+        props = jsxElement.props = {};
+      }
       let propValue = props[key] as UseOnMap['any'] | UseOnMap['any'][0] | undefined;
       if (propValue === undefined) {
         propValue = [];

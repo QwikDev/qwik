@@ -26,6 +26,7 @@ import type { ObjToProxyMap } from '../../container/container';
 import { isPromise } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
 import type { QRL } from '../../qrl/qrl.public';
+import type { SymbolToChunkResolver } from '../ssr/ssr-types';
 
 const deserializedProxyMap = new WeakMap<object, unknown>();
 
@@ -447,6 +448,8 @@ export function inflateQRL(container: DomContainer, qrl: QRLInternal<any>) {
 export interface SerializationContext {
   $serialize$: () => void;
 
+  $symbolToChunkResolver$: SymbolToChunkResolver;
+
   /**
    * Map from object to root index.
    *
@@ -511,6 +514,7 @@ export interface SerializationContext {
 export const createSerializationContext = (
   NodeConstructor: SerializationContext['$NodeConstructor$'] | null,
   $proxyMap$: ObjToProxyMap,
+  symbolToChunkResolver: SymbolToChunkResolver,
   writer?: StreamWriter
 ): SerializationContext => {
   if (!writer) {
@@ -541,6 +545,7 @@ export const createSerializationContext = (
       serialize(this);
     },
     $NodeConstructor$: NodeConstructor,
+    $symbolToChunkResolver$: symbolToChunkResolver,
     $wasSeen$,
     $roots$: roots,
     $seen$,
@@ -693,11 +698,11 @@ function serialize(serializationContext: SerializationContext): void {
       $writer$.write(String(value));
     } else if (typeof value === 'function') {
       if (isQrl(value)) {
-        writeString(SerializationConstant.QRL_CHAR + qrlToString(value, $addRoot$));
+        writeString(SerializationConstant.QRL_CHAR + qrlToString(serializationContext, value));
       } else if (isQwikComponent(value)) {
         const [qrl]: [QRLInternal] = (value as any)[SERIALIZABLE_STATE];
         serializationContext.$renderSymbols$.add(qrl.$symbol$);
-        writeString(SerializationConstant.Component_CHAR + qrlToString(qrl, $addRoot$));
+        writeString(SerializationConstant.Component_CHAR + qrlToString(serializationContext, qrl));
       } else {
         // throw new Error('implement: ' + value);
         writeString(value.toString());
@@ -829,7 +834,7 @@ function serialize(serializationContext: SerializationContext): void {
           ' ' +
           $addRoot$(value.$el$) +
           ' ' +
-          qrlToString(value.$qrl$, $addRoot$) +
+          qrlToString(serializationContext, value.$qrl$) +
           (value.$state$ == null ? '' : ' ' + $addRoot$(value.$state$))
       );
     } else if (isPromise(value)) {
@@ -884,8 +889,14 @@ function serialize(serializationContext: SerializationContext): void {
           delimiter && $writer$.write(',');
           writeString(key);
           $writer$.write(':');
-          const propValue = immutable[key] as SignalDerived;
-          writeString(serializeSignalDerived(serializationContext, propValue, $addRoot$));
+          const propValue = immutable[key];
+          if (propValue === _IMMUTABLE) {
+            writeString('null');
+          } else if (propValue instanceof SignalDerived) {
+            writeString(serializeSignalDerived(serializationContext, propValue, $addRoot$));
+          } else {
+            throw new Error();
+          }
           delimiter = true;
         } else if (Object.prototype.hasOwnProperty.call(value, key)) {
           delimiter && $writer$.write(',');
@@ -953,20 +964,30 @@ export function subscriptionManagerFromString(
   }
 }
 
-export function qrlToString(value: QRLInternal, getObjectId: (obj: any) => number | undefined) {
-  if (isDev && !value.$chunk$) {
+export function qrlToString(serializationContext: SerializationContext, value: QRLInternal) {
+  let chunk = value.$chunk$;
+  if (!chunk) {
+    chunk = serializationContext.$symbolToChunkResolver$(value.$hash$);
+  }
+  if (isDev) {
     let backChannel: Map<string, Function> = (globalThis as any)[QRL_RUNTIME_CHUNK];
     if (!backChannel) {
       backChannel = (globalThis as any)[QRL_RUNTIME_CHUNK] = new Map();
     }
     backChannel.set(value.$symbol$, (value as any)._devOnlySymbolRef);
+    if (!chunk) {
+      chunk = QRL_RUNTIME_CHUNK;
+    }
+  }
+  if (!chunk) {
+    throwErrorAndStop('Missing chunk for: ' + value.$symbol$);
   }
   const qrlString =
-    (value.$chunk$ || QRL_RUNTIME_CHUNK) +
+    chunk +
     '#' +
     value.$symbol$ +
     (value.$captureRef$ && value.$captureRef$.length
-      ? `[${value.$captureRef$.map(getObjectId).join(' ')}]`
+      ? `[${value.$captureRef$.map(serializationContext.$addRoot$).join(' ')}]`
       : '');
   return qrlString;
 }

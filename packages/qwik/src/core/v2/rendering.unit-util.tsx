@@ -87,6 +87,8 @@ export async function ssrRenderToDom(
     debug?: boolean;
     /// Use old SSR rendering ond print out debug state. Useful for comparing difference between serialization.
     oldSSR?: boolean;
+    /// Treat JSX as raw, (don't wrap in in head/body)
+    raw?: boolean;
   } = {}
 ) {
   if (opts.oldSSR) {
@@ -108,12 +110,15 @@ export async function ssrRenderToDom(
   let html = '';
   const platform = getPlatform();
   try {
-    const result = await renderToString2([
-      <head>
-        <title>{expect.getState().testPath}</title>
-      </head>,
-      <body>{jsx}</body>,
-    ]);
+    const jsxToRender = opts.raw
+      ? jsx
+      : [
+          <head>
+            <title>{expect.getState().testPath}</title>
+          </head>,
+          <body>{jsx}</body>,
+        ];
+    const result = await renderToString2(jsxToRender);
     html = result.html;
   } finally {
     setPlatform(platform);
@@ -121,7 +126,7 @@ export async function ssrRenderToDom(
 
   const document = createDocument({ html });
   const qFuncs = document.body.querySelector('[q\\:func]');
-  const containerElement = document.body.parentElement as ContainerElement;
+  const containerElement = document.querySelector('[q\\:container]') as ContainerElement;
   if (qFuncs) {
     let code = qFuncs.textContent || '';
     code = code.replace(Q_FUNCS_PREFIX, '');
@@ -156,8 +161,10 @@ export async function ssrRenderToDom(
     }
     console.log('--------------------------------------------------------');
   }
-  const bodyVNode = vnode_getVNodeForChildNode(container.rootVNode, document.body);
-  return { container, document, vNode: vnode_getFirstChild(bodyVNode)!, getStyles };
+  const containerVNode = opts.raw
+    ? container.rootVNode
+    : vnode_getVNodeForChildNode(container.rootVNode, document.body);
+  return { container, document, vNode: vnode_getFirstChild(containerVNode)!, getStyles };
 }
 
 function renderStyles(getStyles: () => Record<string, string | string[]>) {

@@ -162,11 +162,11 @@ import {
  * - Set text node value
  */
 export const enum VNodeJournalOpCode {
-  Insert = 1,
-  Remove = 2,
-  SetAttribute = 3,
-  SetText = 4,
-  HoistStyles = 5,
+  SetText = 1, // ------ [SetAttribute, target, text]
+  SetAttribute = 2, // - [SetAttribute, target, ...(key, values)]]
+  HoistStyles = 3, // -- [HoistStyles, document]
+  Remove = 4, // ------- [Insert, target(parent), ...nodes]
+  Insert = 5, // ------- [Insert, target(parent), reference, ...nodes]
 }
 
 export type VNodeJournal = Array<VNodeJournalOpCode | Document | Element | Text | string | null>;
@@ -386,10 +386,19 @@ const vnode_getDOMParent = (vnode: VNode): Element | null => {
 };
 
 export const vnode_getDOMChildNodes = (
+  journal: VNodeJournal,
   root: VNode,
   childNodes: (Element | Text)[] = []
 ): (Element | Text)[] => {
   if (vnode_isElementOrTextVNode(root)) {
+    if (vnode_isTextVNode(root)) {
+      /**
+       * If we are collecting text nodes, we need to ensure that they are inflated. If not inflated
+       * we would return a single text node which represents many actual text nodes, or removing a
+       * single text node would remove many text nodes.
+       */
+      vnode_ensureTextInflated(journal, root);
+    }
     return [vnode_getNode(root)!];
   }
   let vNode = vnode_getFirstChild(root);
@@ -397,9 +406,15 @@ export const vnode_getDOMChildNodes = (
     if (vnode_isElementVNode(vNode)) {
       childNodes.push(vnode_getNode(vNode)!);
     } else if (vnode_isTextVNode(vNode)) {
+      /**
+       * If we are collecting text nodes, we need to ensure that they are inflated. If not inflated
+       * we would return a single text node which represents many actual text nodes, or removing a
+       * single text node would remove many text nodes.
+       */
+      vnode_ensureTextInflated(journal, vNode);
       childNodes.push(vnode_getNode(vNode)!);
     } else {
-      vnode_getDOMChildNodes(vNode, childNodes);
+      vnode_getDOMChildNodes(journal, vNode, childNodes);
     }
     vNode = vnode_getNextSibling(vNode);
   }
@@ -428,15 +443,21 @@ export const vnode_getDOMChildNodes = (
  * - Next: if we start at `a` the next DOM sibling is `b`, than `c`.
  * - Previous: if we start at `c` the next DOM sibling is `b`, than `a`.
  *
- * @param vNode
+ * @param vNode - Starting node
+ * @param nextDirection - Direction to search true=next, false=previous
+ * @param descend - If true, than we will descend into the children first.
  * @returns
  */
-const vnode_getDomSibling = (vNode: VNode, nextDirection: boolean): VNode | null => {
+const vnode_getDomSibling = (
+  vNode: VNode,
+  nextDirection: boolean,
+  descend: boolean
+): VNode | null => {
   const childProp = nextDirection ? VirtualVNodeProps.firstChild : VirtualVNodeProps.lastChild;
   const siblingProp = nextDirection ? VNodeProps.nextSibling : VNodeProps.previousSibling;
   let cursor: VNode | null = vNode;
   // first make sure we have a DOM node or no children.
-  while (cursor && vnode_isVirtualVNode(cursor)) {
+  while (descend && cursor && vnode_isVirtualVNode(cursor)) {
     const child: VNode | null = cursor[childProp];
     if (!child) {
       break;
@@ -485,36 +506,34 @@ const vnode_ensureTextInflated = (journal: VNodeJournal, vnode: TextVNode) => {
     const sharedTextNode = textVNode[TextVNodeProps.node] as Text;
     const doc = parentNode.ownerDocument;
     // Walk the previous siblings and inflate them.
-    let cursor = vnode_getDomSibling(vnode, false);
+    let cursor = vnode_getDomSibling(vnode, false, true);
     // If text node is 0 length, than there is no text node.
     // In that case we use the next node as a reference, in which
     // case we know that the next node MUST be either NULL or an Element.
     let insertBeforeNode: Element | Text | null = sharedTextNode;
     if (!insertBeforeNode) {
-      insertBeforeNode = (vnode_getDomSibling(vnode, true)?.[ElementVNodeProps.element] || null) as
-        | Element
-        | Text
-        | null;
+      insertBeforeNode = (vnode_getDomSibling(vnode, true, true)?.[ElementVNodeProps.element] ||
+        null) as Element | Text | null;
     }
     let lastPreviousTextNode = insertBeforeNode;
     while (cursor && vnode_isTextVNode(cursor)) {
       const textNode = doc.createTextNode(cursor[TextVNodeProps.text]);
-      journal.push(VNodeJournalOpCode.Insert, parentNode, textNode, lastPreviousTextNode);
+      journal.push(VNodeJournalOpCode.Insert, parentNode, lastPreviousTextNode, textNode);
       lastPreviousTextNode = textNode;
       cursor[TextVNodeProps.node] = textNode;
       cursor[VNodeProps.flags] |= VNodeFlags.Inflated;
-      cursor = vnode_getDomSibling(cursor, false);
+      cursor = vnode_getDomSibling(cursor, false, true);
     }
     // Walk the next siblings and inflate them.
     cursor = vnode;
     while (cursor && vnode_isTextVNode(cursor)) {
-      const next = vnode_getDomSibling(cursor, true);
+      const next = vnode_getDomSibling(cursor, true, true);
       const isLastNode = next ? !vnode_isTextVNode(next) : true;
       if (isLastNode && sharedTextNode) {
         journal.push(VNodeJournalOpCode.SetText, sharedTextNode, cursor[TextVNodeProps.text]);
       } else {
         const textNode = doc.createTextNode(cursor[TextVNodeProps.text]);
-        journal.push(VNodeJournalOpCode.Insert, parentNode, textNode, insertBeforeNode);
+        journal.push(VNodeJournalOpCode.Insert, parentNode, insertBeforeNode, textNode);
         cursor[TextVNodeProps.node] = textNode;
       }
       cursor[VNodeProps.flags] |= VNodeFlags.Inflated;
@@ -642,36 +661,48 @@ const indexOfAlphanumeric = (id: string, length: number): number => {
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export const vnode_applyJournal = (journal: VNodeJournal) => {
-  for (let i = 0; i < journal.length; ) {
-    const op = journal[i++] as VNodeJournalOpCode;
-    const parent = journal[i++] as Element | Text | Document;
+  let idx = 0;
+  const length = journal.length;
+  while (idx < length) {
+    const op = journal[idx++] as VNodeJournalOpCode;
     switch (op) {
-      case VNodeJournalOpCode.Insert:
-        const newChild = journal[i++] as Element | Text;
-        const insertBefore = journal[i++] as Element | Text | null;
-        parent.insertBefore(newChild, insertBefore);
-        break;
-      case VNodeJournalOpCode.Remove:
-        const removeChild = journal[i++] as Element | Text;
-        parent.removeChild(removeChild);
+      case VNodeJournalOpCode.SetText:
+        const text = journal[idx++] as Text;
+        text.nodeValue = journal[idx++] as string;
         break;
       case VNodeJournalOpCode.SetAttribute:
-        const key = journal[i++] as string;
-        const value = journal[i++] as string | null;
+        const element = journal[idx++] as Element;
+        const key = journal[idx++] as string;
+        const value = journal[idx++] as string | null;
         if (value == null) {
-          (parent as Element).removeAttribute(key);
+          element.removeAttribute(key);
         } else {
-          (parent as Element).setAttribute(key, value);
+          element.setAttribute(key, value);
         }
         break;
-      case VNodeJournalOpCode.SetText:
-        (parent as Text).nodeValue = journal[i++] as string;
-        break;
       case VNodeJournalOpCode.HoistStyles:
-        const head = (parent as Document).head;
-        const styles = (parent as Document).querySelectorAll(QStylesAllSelector);
+        const document = journal[idx++] as Document;
+        const head = document.head;
+        const styles = document.querySelectorAll(QStylesAllSelector);
         for (let i = 0; i < styles.length; i++) {
           head.appendChild(styles[i]);
+        }
+        break;
+      case VNodeJournalOpCode.Remove:
+        const removeParent = journal[idx++] as Element;
+        let nodeToRemove: any;
+        while (idx < length && typeof (nodeToRemove = journal[idx]) !== 'number') {
+          removeParent.removeChild(nodeToRemove as Element | Text);
+          idx++;
+        }
+        break;
+      case VNodeJournalOpCode.Insert:
+        const insertParent = journal[idx++] as Element;
+        const insertBefore = journal[idx++] as Element | Text | null;
+        let newChild: any;
+        while (idx < length && typeof (newChild = journal[idx]) !== 'number') {
+          insertParent.insertBefore(newChild, insertBefore);
+          idx++;
         }
         break;
     }
@@ -769,11 +800,12 @@ export const vnode_insertBefore = (
       // Well, not quite. If the parent is a virtual node, our "last node" is not the same
       // as the DOM "last node". So in that case we need to look for the "next node" from
       // our parent.
-      insertBeforeNode = vnode_getNode(vnode_getDomSibling(parent, true));
+
+      insertBeforeNode = vnode_getNode(vnode_getDomSibling(parent, true, false));
     }
   } else if (vnode_isVirtualVNode(insertBefore)) {
     // If the `insertBefore` is virtual, than we need to descend into the virtual and find e actual
-    insertBeforeNode = vnode_getNode(vnode_getDomSibling(insertBefore, true));
+    insertBeforeNode = vnode_getNode(vnode_getDomSibling(insertBefore, true, true));
   } else {
     insertBeforeNode = vnode_getNode(insertBefore);
   }
@@ -787,10 +819,10 @@ export const vnode_insertBefore = (
   //   : insertBefore;
   const parentNode = vnode_getDomParent(parent)!;
   if (parentNode) {
-    const children = vnode_getDOMChildNodes(newChild);
+    const children = vnode_getDOMChildNodes(journal, newChild);
     for (let idx = 0; idx < children.length; idx++) {
       const child = children[idx];
-      journal.push(VNodeJournalOpCode.Insert, parentNode, child, insertBeforeNode);
+      journal.push(VNodeJournalOpCode.Insert, parentNode, insertBeforeNode, child);
     }
   }
 
@@ -811,6 +843,7 @@ export const vnode_insertBefore = (
   }
   newChild[VNodeProps.previousSibling] = vPrevious;
   newChild[VNodeProps.nextSibling] = vNext;
+  newChild[VNodeProps.parent] = parent;
 };
 
 export const vnode_getDomParent = (vnode: VNode): Element | Text | null => {
@@ -838,11 +871,16 @@ export const vnode_remove = (
   } else {
     vParent[ElementVNodeProps.lastChild] = vPrevious;
   }
-  if (removeDOM && !vnode_isVirtualVNode(vParent)) {
-    const domChild = vnode_getNode(vToRemove)!;
-    if (domChild) {
-      const domParent = vnode_getDOMParent(vParent)!;
-      journal.push(VNodeJournalOpCode.Remove, domParent, domChild);
+  if (removeDOM) {
+    const domParent = vnode_getDOMParent(vParent)!;
+    if (vnode_isVirtualVNode(vParent)) {
+      journal.push(VNodeJournalOpCode.Remove, domParent);
+      vnode_getDOMChildNodes(journal, vToRemove, journal as Array<Element | Text>);
+    } else {
+      const domChild = vnode_getNode(vToRemove)!;
+      if (domChild) {
+        journal.push(VNodeJournalOpCode.Remove, domParent, domChild);
+      }
     }
   }
 };
@@ -875,11 +913,8 @@ export const vnode_truncate = (
 ) => {
   assertDefined(vDelete, 'Missing vDelete.');
   const parent = vnode_getDOMParent(vParent)!;
-  const children = vnode_getDOMChildNodes(vDelete)!;
-  for (let idx = 0; idx < children.length; idx++) {
-    const child = children[idx];
-    journal.push(VNodeJournalOpCode.Remove, parent, child);
-  }
+  journal.push(VNodeJournalOpCode.Remove, parent);
+  vnode_getDOMChildNodes(journal, vDelete, journal as Array<Element | Text>)!;
   const vPrevious = vDelete[VNodeProps.previousSibling];
   if (vPrevious) {
     vPrevious[VNodeProps.nextSibling] = null;
@@ -1430,13 +1465,12 @@ export const vnode_documentPosition = (a: VNode, b: VNode): -1 | 0 | 1 => {
 export const vnode_getProjectionParentComponent = (
   vHost: VNode,
   getObjectById: (id: string) => unknown
-) => {
+): VirtualVNode | null => {
   let projectionDepth = 1;
   while (projectionDepth--) {
     while (
-      vHost && vnode_isVirtualVNode(vHost)
-        ? vnode_getProp(vHost, OnRenderProp, null) === null
-        : true
+      vHost &&
+      (vnode_isVirtualVNode(vHost) ? vnode_getProp(vHost, OnRenderProp, null) === null : true)
     ) {
       const vProjectionParent =
         vnode_isVirtualVNode(vHost) &&
@@ -1451,7 +1485,7 @@ export const vnode_getProjectionParentComponent = (
       vHost = vnode_getParent(vHost)!;
     }
   }
-  return vHost;
+  return vHost as VirtualVNode | null;
 };
 
 const stringifyPath: any[] = [];

@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { component$, componentQrl } from '../component/component.public';
 import { inlinedQrl } from '../qrl/qrl';
-import { Fragment as Component, Fragment } from '../render/jsx/jsx-runtime';
+import {
+  Fragment as Component,
+  Fragment as InlineComponent,
+  Fragment as Projection,
+  Fragment,
+} from '../render/jsx/jsx-runtime';
 import { Slot } from '../render/jsx/slot.public';
 import { vnode_getNextSibling } from './client/vnode';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
@@ -9,6 +14,7 @@ import './vdom-diff.unit-util';
 import { trigger } from '../../testing/element-fixture';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { useSignal } from '../use/use-signal';
+import { useStore } from '../use/use-store.public';
 
 const debug = false;
 
@@ -256,6 +262,183 @@ const debug = false;
           </Fragment>
         </Fragment>
       );
+    });
+    it('should ignore Slot inside inline-component', async () => {
+      const Child = (props: { children: any }) => {
+        return (
+          <span>
+            <Slot />({props.children})
+          </span>
+        );
+      };
+      const { vNode } = await render(<Child>render-content</Child>, { debug });
+      expect(vNode).toMatchVDOM(
+        <InlineComponent>
+          <span>
+            <Projection />
+            {'('}render-content{')'}
+          </span>
+        </InlineComponent>
+      );
+    });
+    it('should project Slot inside inline-component', async () => {
+      const Parent = component$(() => {
+        return <Child>child-content</Child>;
+      });
+      const Child = (props: { children: any }) => {
+        return (
+          <span>
+            <Slot />({props.children})
+          </span>
+        );
+      };
+      const { vNode } = await render(<Parent>parent-content</Parent>, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <InlineComponent>
+            <span>
+              <Projection>{'parent-content'}</Projection>
+              {'('}child-content{')'}
+            </span>
+          </InlineComponent>
+        </Component>
+      );
+    });
+    describe.skip('ensureProjectionResolved', () => {
+      const Child = component$<{ show: boolean }>((props) => {
+        const show = useSignal(props.show);
+        return (
+          <span
+            class="child"
+            onClick$={inlinedQrl(
+              () => {
+                console.log('child.click');
+                const [show] = useLexicalScope();
+                show.value = !show.value;
+              },
+              's_onClickChild',
+              [show]
+            )}
+          >
+            {show.value && <Slot />}
+          </span>
+        );
+      });
+      const Parent = component$<{ show: boolean; childShow: boolean }>((props) => {
+        const show = useSignal(props.show);
+        return (
+          <div
+            class="parent"
+            onClick$={inlinedQrl(
+              () => {
+                console.log('parent.click');
+                const [show] = useLexicalScope();
+                show.value = !show.value;
+              },
+              's_onClickParent',
+              [show]
+            )}
+          >
+            <Child show={props.childShow}>{show.value && 'child-content'}</Child>
+          </div>
+        );
+      });
+      it.todo('should work when parent removes content', async () => {
+        const { vNode, document } = await render(<Parent show={true} childShow={true} />, {
+          debug,
+        });
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <div class="parent">
+              <Component>
+                <span class="child">
+                  <Projection>child-content</Projection>
+                </span>
+              </Component>
+            </div>
+          </Component>
+        );
+        await trigger(document.body, 'button.parent', 'click');
+        console.log(String(vNode));
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <div class="parent">
+              <Component>
+                <span class="child">
+                  <Projection>{''}</Projection>
+                </span>
+              </Component>
+            </div>
+          </Component>
+        );
+      });
+      it.todo('should work when child removes projection', async () => {});
+      it.todo('should work when parent adds content', async () => {});
+      it.todo('should work when child adds projection', async () => {});
+    });
+    describe('regression', () => {
+      it('#1630', async () => {
+        const Child = component$(() => <b>CHILD</b>);
+        const Issue1630 = component$((props) => {
+          const store = useStore({ open: true });
+          return (
+            <>
+              <button
+                onClick$={inlinedQrl(
+                  () => {
+                    const [store] = useLexicalScope();
+                    store.open = !store.open;
+                  },
+                  's_click',
+                  [store]
+                )}
+              ></button>
+              <Slot name="static" />
+              {store.open && <Slot />}
+            </>
+          );
+        });
+        const { vNode, document } = await render(
+          <Issue1630>
+            <Child />
+            <p q:slot="static"></p>
+            DYNAMIC
+          </Issue1630>,
+          { debug }
+        );
+        expect(document.body.innerHTML).toContain('</p><b>CHILD</b>DYNAMIC');
+        await trigger(document.body, 'button', 'click');
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <Fragment>
+              <button></button>
+              <Projection q:slot="static">
+                <p q:slot="static"></p>
+              </Projection>
+              {''}
+            </Fragment>
+          </Component>
+        );
+        expect(document.body.innerHTML).not.toContain('<b>CHILD</b>DYNAMIC');
+        await trigger(document.body, 'button', 'click');
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <Fragment>
+              <button></button>
+              <Projection q:slot="static">
+                <p q:slot="static"></p>
+              </Projection>
+              <Projection q:slot="">
+                <Component>
+                  <b>{'CHILD'}</b>
+                </Component>
+                {'DYNAMIC'}
+              </Projection>
+            </Fragment>
+          </Component>
+        );
+        expect(document.body.innerHTML).toContain('</p><b>CHILD</b>DYNAMIC');
+      });
     });
   });
 });

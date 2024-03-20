@@ -71,12 +71,12 @@ Error.stackTraceLimit = 100;
       const Parent = component$(() => {
         const show = useSignal(true);
         return (
-          <button
+          <div
             class="parent"
             onClick$={inlinedQrl(() => (useLexicalScope()[0].value = false), 's_onClick', [show])}
           >
             {show.value && <StyledComponent />}
-          </button>
+          </div>
         );
       });
 
@@ -86,10 +86,10 @@ Error.stackTraceLimit = 100;
       });
 
       const { vNode, container } = await render(<Parent />, { debug });
-      await trigger(container.element, 'button', 'click');
+      await trigger(container.element, 'div.parent', 'click');
       expect(vNode).toMatchVDOM(
         <Component>
-          <button class="parent">{''}</button>
+          <div class="parent">{''}</div>
         </Component>
       );
       const style = container.document.querySelector(QStyleSelector);
@@ -155,24 +155,25 @@ Error.stackTraceLimit = 100;
       const Parent = component$(() => {
         const show = useSignal(true);
         return (
-          <button
+          <div
+            class="parent"
             onClick$={inlinedQrl(() => (useLexicalScope()[0].value = false), 's_onClick', [show])}
           >
             {show.value && <StyledComponent1 />}
             <StyledComponent2 />
-          </button>
+          </div>
         );
       });
       const { vNode, container } = await render(<Parent />, { debug });
-      await trigger(container.element, 'button', 'click');
+      await trigger(container.element, 'div.parent', 'click');
       expect(vNode).toMatchVDOM(
         <Component>
-          <button>
+          <div class="parent">
             {''}
             <Component>
               <div class="container">Hello world 2</div>
             </Component>
-          </button>
+          </div>
         </Component>
       );
       const qStyles = container.document.querySelectorAll(QStyleSelector);

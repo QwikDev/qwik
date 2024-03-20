@@ -72,7 +72,7 @@ Error.stackTraceLimit = 100;
     });
   });
 
-  describe('regression', () => {
+  describe(render.name + 'regression', () => {
     it('#4038', async () => {
       interface MyStore {
         value: number;
@@ -171,6 +171,76 @@ Error.stackTraceLimit = 100;
               </div>
             </Component>
           </Projection>
+        </Component>
+      );
+    });
+    it('#5270 - retrieve context on un-projected component', async () => {
+      const Issue5270Context = createContextId<{ hi: string }>('5270');
+      const ProviderParent = component$(() => {
+        useContextProvider(Issue5270Context, { hi: 'hello' });
+        const projectSlot = useSignal(false);
+        return (
+          <div>
+            <button
+              id="issue-5270-button"
+              onClick$={inlinedQrl(
+                () => {
+                  const [projectSlot] = useLexicalScope();
+                  projectSlot.value = !projectSlot.value;
+                },
+                's_click',
+                [projectSlot]
+              )}
+            >
+              toggle
+            </button>
+            <br />
+            {projectSlot.value && <Slot />}
+          </div>
+        );
+      });
+      const ContextChild = component$(() => {
+        // return <debug />;
+        const t = useContext(Issue5270Context);
+        return <div id="issue-5270-div">Ctx: {t.hi}</div>;
+      });
+      const Issue5270 = component$(() => {
+        useContextProvider(Issue5270Context, { hi: 'wrong' });
+        return (
+          <ProviderParent>
+            <ContextChild />
+          </ProviderParent>
+        );
+      });
+      const { vNode, document } = await render(<Issue5270 />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Component>
+            <div>
+              <button id="issue-5270-button">toggle</button>
+              <br></br>
+              {'' /** Slot not projected */}
+            </div>
+          </Component>
+        </Component>
+      );
+      await trigger(document.body, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Component>
+            <div>
+              <button id="issue-5270-button">toggle</button>
+              <br></br>
+              <Projection>
+                <Component>
+                  <div id="issue-5270-div">
+                    {'Ctx: '}
+                    {'hello'}
+                  </div>
+                </Component>
+              </Projection>
+            </div>
+          </Component>
         </Component>
       );
     });

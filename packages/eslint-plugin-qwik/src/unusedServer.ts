@@ -8,7 +8,7 @@ export const unusedServer: Rule.RuleModule = {
     docs: {
       description: 'Detect unused server$() functions.',
       recommended: true,
-      url: 'https://qwik.builder.io/docs/advanced/eslint/#unused-server',
+      url: 'https://qwik.dev/docs/advanced/eslint/#unused-server',
     },
     messages: {
       unusedServer:

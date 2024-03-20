@@ -20,7 +20,7 @@
   "files": [
     "lib"
   ],
-  "homepage": "https://qwik.builder.io/",
+  "homepage": "https://qwik.dev/",
   "license": "MIT",
   "main": "./lib/index.qwik.mjs",
   "peerDependencies": {

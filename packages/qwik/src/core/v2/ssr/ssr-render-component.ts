@@ -23,6 +23,9 @@ export const applyQwikComponentBody = (ssr: SSRContainer, jsx: JSXNode, componen
   const scheduler = ssr.$scheduler$;
   host.setProp(OnRenderProp, componentQrl);
   host.setProp(ELEMENT_PROPS, srcProps);
+  if ('children' in srcProps) {
+    delete srcProps.children;
+  }
   scheduler.$scheduleComponent$(host, componentQrl, srcProps);
   return scheduler.$drainComponent$(host);
 };

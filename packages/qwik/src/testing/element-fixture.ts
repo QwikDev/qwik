@@ -9,6 +9,7 @@ import { getDomContainer } from '@builder.io/qwik';
 import { createWindow } from './document';
 import { getTestPlatform } from './platform';
 import type { MockDocument, MockWindow } from './types';
+import { delay } from '../core/util/promises';
 
 /**
  * Creates a simple DOM structure for testing components.
@@ -149,7 +150,8 @@ export const dispatch = async (element: Element | null, attrName: string, event:
         }
       }
     } else if ('qDispatchEvent' in (element as QElement)) {
-      (element as QElement).qDispatchEvent!(event);
+      await(element as QElement).qDispatchEvent!(event);
+      await delay(0); // Unsure why this is needed for tests
     } else if (element.hasAttribute(attrName)) {
       const container = getDomContainer(element as HTMLElement);
       const qrl = element.getAttribute(attrName)!;

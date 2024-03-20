@@ -29,12 +29,14 @@ import { convertScopedStyleIdsToArray, convertStyleIdsToString } from '../shared
 import { _SharedContainer } from '../shared/shared-container';
 import { inflateQRL, parseQRL, wrapDeserializerProxy } from '../shared/shared-serialization';
 import type { HostElement } from '../shared/types';
-import type {
-  ContainerElement,
-  ElementVNode,
-  ClientContainer as IClientContainer,
-  QDocument,
-  VirtualVNode,
+import {
+  VNodeFlags,
+  type ContainerElement,
+  type ElementVNode,
+  type ClientContainer as IClientContainer,
+  type QDocument,
+  type VirtualVNode,
+  VNodeProps,
 } from './types';
 import {
   VNodeJournalOpCode,
@@ -51,6 +53,8 @@ import {
   vnode_newUnMaterializedElement,
   vnode_setProp,
   type VNodeJournal,
+  vnode_locate,
+  vnode_getPropStartIndex,
 } from './vnode';
 import { vnode_diff } from './vnode-diff';
 
@@ -153,9 +157,9 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
           (errorDiv as any).props = { error: err };
         }
         errorDiv.setAttribute('q:key', '_error_');
-        vnode_getDOMChildNodes(vHost).forEach((child) => errorDiv.appendChild(child));
-        const vErrorDiv = vnode_newElement(vHost, errorDiv, 'error-host');
         const journal: VNodeJournal = [];
+        vnode_getDOMChildNodes(journal, vHost).forEach((child) => errorDiv.appendChild(child));
+        const vErrorDiv = vnode_newElement(vHost, errorDiv, 'error-host');
         vnode_insertBefore(journal, vHost, vErrorDiv, null);
         vnode_applyJournal(journal);
       }
@@ -247,6 +251,22 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
     return this.renderDone;
   }
 
+  ensureProjectionResolved(host: HostElement): void {
+    const vNode: VirtualVNode = host as any;
+    if ((vNode[VNodeProps.flags] & VNodeFlags.Resolved) === 0) {
+      vNode[VNodeProps.flags] |= VNodeFlags.Resolved;
+      for (let i = vnode_getPropStartIndex(vNode); i < vNode.length; i = i + 2) {
+        const prop = vNode[i] as string;
+        if (!prop.startsWith('q:')) {
+          const value = vNode[i + 1];
+          if (typeof value == 'string') {
+            vNode[i + 1] = vnode_locate(this.rootVNode, value);
+          }
+        }
+      }
+    }
+  }
+
   $getObjectById$ = (id: number | string): unknown => {
     if (typeof id === 'string') {
       id = parseFloat(id);
@@ -280,7 +300,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
       const styleElement = this.document.createElement('style');
       styleElement.setAttribute(QStyle, scoped ? styleId : '');
       styleElement.textContent = content;
-      this.$journal$.push(VNodeJournalOpCode.Insert, this.document.head, styleElement, null);
+      this.$journal$.push(VNodeJournalOpCode.Insert, this.document.head, null, styleElement);
     }
   }
 }

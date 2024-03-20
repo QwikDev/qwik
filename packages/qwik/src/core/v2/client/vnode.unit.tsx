@@ -387,6 +387,39 @@ describe('vnode', () => {
       expect(parent.innerHTML).toBe('E1AF3C2BD');
     });
   });
+  describe('insert', () => {
+    it('should insert at the end', () => {
+      parent.innerHTML = '<b></b><i></i>';
+      document.qVNodeData.set(parent, '{{1}}1');
+      expect(vParent).toMatchVDOM(
+        <test>
+          <>
+            <>
+              <b />
+            </>
+          </>
+          <i />
+        </test>
+      );
+      const fragment1 = vnode_getFirstChild(vParent) as VirtualVNode;
+      const fragment2 = vnode_getFirstChild(fragment1) as VirtualVNode;
+      const text = vnode_newText(fragment2, document.createTextNode('INSERT'), 'INSERT');
+      vnode_insertBefore(journal, fragment2, text, null);
+      vnode_applyJournal(journal);
+      expect(vParent).toMatchVDOM(
+        <test>
+          <>
+            <>
+              <b />
+              INSERT
+            </>
+          </>
+          <i />
+        </test>
+      );
+      expect(parent.innerHTML).toBe('<b></b>INSERT<i></i>');
+    });
+  });
   describe('portal', () => {
     it('should link source-destination', () => {
       parent.innerHTML = 'AB';
@@ -464,6 +497,7 @@ describe('vnode', () => {
         vnode_applyJournal(journal);
         expect(parent.innerHTML).toBe('');
       });
+      it.todo('should remove virtual');
     });
     describe('vnode_setAttr', () => {
       it('should set attribute', () => {

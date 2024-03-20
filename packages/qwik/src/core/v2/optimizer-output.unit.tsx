@@ -5,15 +5,17 @@
  *   these tests call the internal JSX methods directly instead of relying on the JSX syntax.
  */
 
+import { Fragment as Component } from '@builder.io/qwik/jsx-runtime';
 import { describe, expect, it } from 'vitest';
-import { component$ } from '../component/component.public';
-import { _jsxQ } from '../internal';
-import { domRender, ssrRenderToDom } from './rendering.unit-util';
-import './vdom-diff.unit-util';
-import { inlinedQrl } from '../qrl/qrl';
-import { useSignal } from '../use/use-signal';
 import { trigger } from '../../testing/element-fixture';
+import { component$ } from '../component/component.public';
+import { _IMMUTABLE, _jsxC, _jsxQ } from '../internal';
+import { inlinedQrl } from '../qrl/qrl';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
+import { useSignal } from '../use/use-signal';
+import { domRender, ssrRenderToDom } from './rendering.unit-util';
+import type { fixMeAny } from './shared/types';
+import './vdom-diff.unit-util';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -23,7 +25,7 @@ Error.stackTraceLimit = 100;
   domRender, //
 ].forEach((render) => {
   describe(render.name + ': optimizer output', () => {
-    it('should handle immutable fields', async () => {
+    it('should handle immutable props', async () => {
       const log: string[] = [];
       const MyCmp = component$((props: { initial: number }) => {
         const count = useSignal(123);
@@ -77,6 +79,38 @@ Error.stackTraceLimit = 100;
         <>
           <button>124</button>
         </>
+      );
+    });
+    it('should handle immutable props on component', async () => {
+      const Child = component$<{ name: string; num: number }>((props) => (
+        <b>
+          {props.name}={props.num}
+        </b>
+      ));
+      const MyCmp = component$(() => {
+        return (
+          <button>
+            {_jsxC(
+              Child as fixMeAny,
+              { name: 'NAME', num: 123, [_IMMUTABLE]: { name: _IMMUTABLE, num: _IMMUTABLE } }, // mutable props
+              3,
+              null
+            )}
+          </button>
+        );
+      });
+
+      const { vNode } = await render(<MyCmp />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            <Component>
+              <b>
+                {'NAME'}={'123'}
+              </b>
+            </Component>
+          </button>
+        </Component>
       );
     });
   });

@@ -14,20 +14,21 @@
  */
 
 export const enum TagNesting {
-  NOT_ALLOWED = /* ---- */ 0b0000_0000_0000_0000,
-  DOCUMENT = /* ------- */ 0b0000_0000_0000_0001,
-  TEXT = /* ----------- */ 0b0000_0000_0000_0010,
-  EMPTY = /* ---------- */ 0b0000_0000_0000_0100,
-  ANYTHING = /* ------- */ 0b0000_0000_0000_1010,
-  HTML = /* ----------- */ 0b0000_0000_0010_0000,
-  HEAD = /* ----------- */ 0b0000_0000_0100_0000,
-  BODY = /* ----------- */ 0b0000_0000_1000_0010,
-  PHRASING = /* ------- */ 0b0000_0001_0000_0010,
+  NOT_ALLOWED = /* ------------ */ 0b0000_0000_0000_0000,
+  DOCUMENT = /* --------------- */ 0b0000_0000_0000_0001,
+  TEXT = /* ------------------- */ 0b0000_0000_0000_0010,
+  EMPTY = /* ------------------ */ 0b0000_0000_0000_0100,
+  ANYTHING = /* --------------- */ 0b0000_0000_0000_1010,
+  HTML = /* ------------------- */ 0b0000_0000_0010_0000,
+  HEAD = /* ------------------- */ 0b0000_0000_0100_0000,
+  BODY = /* ------------------- */ 0b0000_0000_1000_0010,
+  PHRASING_ANY = /* ----------- */ 0b0000_0001_0000_0010,
+  PHRASING_INSIDE_INPUT = /* -- */ 0b0000_0010_0000_0010,
   /** Table related tags. */
-  TABLE = /* ---------- */ 0b0001_0000_0000_0000,
-  TABLE_BODY = /* ----- */ 0b0010_0000_0000_0000,
-  TABLE_ROW = /* ------ */ 0b0100_0000_0000_0000,
-  TABLE_COLGROUP = /* - */ 0b1000_0000_0000_0000,
+  TABLE = /* ------------------ */ 0b0001_0000_0000_0000,
+  TABLE_BODY = /* ------------- */ 0b0010_0000_0000_0000,
+  TABLE_ROW = /* -------------- */ 0b0100_0000_0000_0000,
+  TABLE_COLGROUP = /* --------- */ 0b1000_0000_0000_0000,
 }
 
 export const allowedContent = (state: TagNesting): [string, string | null] => {
@@ -57,7 +58,8 @@ export const allowedContent = (state: TagNesting): [string, string | null] => {
       return ['table row', '<td>, <th>'];
     case TagNesting.TABLE_COLGROUP:
       return ['table column group', '<col>'];
-    case TagNesting.PHRASING:
+    case TagNesting.PHRASING_ANY:
+    case TagNesting.PHRASING_INSIDE_INPUT:
       return ['phrasing content', '<a>, <b>, <img>, <input> ... (no <div>, <p> ...)'];
     case TagNesting.DOCUMENT:
       return ['document', '<html>'];
@@ -98,8 +100,10 @@ export function isTagAllowed(state: number, tag: string): TagNesting {
       return isInTableRow(tag);
     case TagNesting.TABLE_COLGROUP:
       return isInTableColGroup(tag);
-    case TagNesting.PHRASING:
-      return isInPhrasing(tag);
+    case TagNesting.PHRASING_ANY:
+      return isInPhrasing(tag, true);
+    case TagNesting.PHRASING_INSIDE_INPUT:
+      return isInPhrasing(tag, false);
     case TagNesting.DOCUMENT:
       if (tag === 'html') {
         return TagNesting.HTML;
@@ -176,13 +180,17 @@ function isInAnything(text: string): TagNesting {
       return TagNesting.TEXT;
     case 'p':
     case 'pre':
-      return TagNesting.PHRASING;
+      return TagNesting.PHRASING_ANY;
     case 'table':
       return TagNesting.TABLE;
     case 'html':
     case 'head':
     case 'body':
       return TagNesting.NOT_ALLOWED;
+    case 'button':
+    case 'input':
+    case 'textarea':
+      return TagNesting.PHRASING_INSIDE_INPUT;
 
     default:
       return TagNesting.ANYTHING;
@@ -232,8 +240,12 @@ function isInTableColGroup(text: string): TagNesting {
   }
 }
 
-function isInPhrasing(text: string): TagNesting {
+function isInPhrasing(text: string, allowInput: boolean): TagNesting {
   switch (text) {
+    case 'button':
+    case 'input':
+    case 'textarea':
+      return allowInput ? TagNesting.PHRASING_INSIDE_INPUT : TagNesting.NOT_ALLOWED;
     case 'a':
     case 'abbr':
     case 'area':
@@ -242,7 +254,6 @@ function isInPhrasing(text: string): TagNesting {
     case 'bdi':
     case 'bdo':
     case 'br':
-    case 'button':
     case 'canvas':
     case 'cite':
     case 'code':
@@ -256,7 +267,6 @@ function isInPhrasing(text: string): TagNesting {
     case 'i':
     case 'iframe':
     case 'img':
-    case 'input':
     case 'ins':
     case 'itemprop':
     case 'kbd':
@@ -288,13 +298,14 @@ function isInPhrasing(text: string): TagNesting {
     case 'sup':
     case 'svg':
     case 'template':
-    case 'textarea':
     case 'time':
     case 'u':
     case 'var':
     case 'video':
     case 'wbr':
-      return TagNesting.PHRASING;
+      return allowInput ? TagNesting.PHRASING_ANY : TagNesting.PHRASING_INSIDE_INPUT;
+    case 'style':
+      return TagNesting.TEXT;
     default:
       return TagNesting.NOT_ALLOWED;
   }

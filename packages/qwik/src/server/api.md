@@ -23,9 +23,9 @@ export function getQwikPrefetchWorkerScript(opts?: {
 // @public (undocumented)
 export interface InOrderAuto {
     // (undocumented)
-    maximunChunk?: number;
+    maximumChunk?: number;
     // (undocumented)
-    maximunInitialChunk?: number;
+    maximumInitialChunk?: number;
     // (undocumented)
     strategy: 'auto';
 }

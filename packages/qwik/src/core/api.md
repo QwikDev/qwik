@@ -940,23 +940,26 @@ export abstract class _SharedContainer implements Container2 {
     // (undocumented)
     readonly $version$: string;
     constructor(scheduleDrain: () => void, serverData: Record<string, any>, locale: string);
+    // Warning: (ae-forgotten-export) The symbol "HostElement" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    abstract ensureProjectionResolved(host: HostElement): void;
     // (undocumented)
     abstract getHostProp<T>(host: HostElement, name: string): T | null;
     // (undocumented)
     abstract getParentHost(host: HostElement): HostElement | null;
     // (undocumented)
     abstract handleError(err: any, $host$: HostElement): void;
-    // Warning: (ae-forgotten-export) The symbol "HostElement" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     abstract processJsx(host: HostElement, jsx: JSXOutput): ValueOrPromise<void>;
     // (undocumented)
     abstract resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined;
     // Warning: (ae-forgotten-export) The symbol "SerializationContext" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "SymbolToChunkResolver" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "StreamWriter_3" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    serializationCtxFactory(NodeConstructor: SerializationContext['$NodeConstructor$'] | null, writer?: StreamWriter_3): SerializationContext;
+    serializationCtxFactory(NodeConstructor: SerializationContext['$NodeConstructor$'] | null, symbolToChunkResolver: SymbolToChunkResolver, writer?: StreamWriter_3): SerializationContext;
     // (undocumented)
     abstract setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
     // (undocumented)

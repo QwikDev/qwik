@@ -40,7 +40,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface InOrderAuto \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [maximunChunk?](#) |  | number | _(Optional)_ |\n|  [maximunInitialChunk?](#) |  | number | _(Optional)_ |\n|  [strategy](#) |  | 'auto' |  |",
+      "content": "```typescript\nexport interface InOrderAuto \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [maximumChunk?](#) |  | number | _(Optional)_ |\n|  [maximumInitialChunk?](#) |  | number | _(Optional)_ |\n|  [strategy](#) |  | 'auto' |  |",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts",
       "mdFile": "qwik.inorderauto.md"
     },

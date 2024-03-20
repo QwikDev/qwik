@@ -56,6 +56,7 @@ import {
   vNodeData_openFragment,
   type VNodeData,
 } from './v2-vnode-data';
+import type { SymbolToChunkResolver } from '../core/v2/ssr/ssr-types';
 
 export function ssrCreateContainer(
   opts: {
@@ -107,7 +108,6 @@ interface ContainerElementFrame {
   parent: ContainerElementFrame | null;
   /** Element name. */
   elementName: string;
-  shouldSkipStyleElement: boolean;
   /**
    * Current element index.
    *
@@ -131,6 +131,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   public timing: RenderToStreamResult['timing'];
   public buildBase: string;
   public resolvedManifest: ResolvedManifest;
+  public symbolToChunkResolver: SymbolToChunkResolver;
   public renderOptions: RenderOptions;
   public prefetchResources: PrefetchResource[] = [];
   public serializationCtx: SerializationContext;
@@ -155,7 +156,16 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   constructor(opts: Required<Required<Parameters<typeof ssrCreateContainer>>[0]>) {
     super(() => null, opts.renderOptions.serverData ?? EMPTY_OBJ, opts.locale);
-    this.serializationCtx = this.serializationCtxFactory(SsrNode, opts.writer);
+    this.symbolToChunkResolver = (symbol: string): string => {
+      const idx = symbol.lastIndexOf('_');
+      const chunk = this.resolvedManifest.mapper[idx == -1 ? symbol : symbol.substring(idx + 1)];
+      return chunk ? chunk[1] : '';
+    };
+    this.serializationCtx = this.serializationCtxFactory(
+      SsrNode,
+      this.symbolToChunkResolver,
+      opts.writer
+    );
     this.renderTimer = createTimer();
     this.tag = opts.tagName;
     this.writer = opts.writer;
@@ -164,6 +174,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.resolvedManifest = opts.resolvedManifest;
     this.renderOptions = opts.renderOptions;
   }
+
+  ensureProjectionResolved(host: HostElement): void {}
 
   processJsx(host: HostElement, jsx: JSXOutput): void {}
 
@@ -227,6 +239,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
     const containerAttributes: Record<string, string> = {
       ...this.renderOptions.containerAttributes,
+      'q:runtime': '2',
       'q:container': 'paused',
       'q:version': this.$version$ ?? 'dev',
       'q:render': qRender,
@@ -255,7 +268,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   openElement(tag: string, attrs: SsrAttrs | null, immutableAttrs?: SsrAttrs | null) {
     this.lastNode = null;
     const isQwikStyle = isQwikStyleElement(tag, attrs) || isQwikStyleElement(tag, immutableAttrs);
-    this.pushFrame(tag, this.depthFirstElementCount++, true, isQwikStyle);
+    if (!isQwikStyle && this.currentElementFrame) {
+      vNodeData_incrementElementCount(this.currentElementFrame.vNodeData);
+    }
+
+    this.pushFrame(tag, this.depthFirstElementCount++, true);
     this.write('<');
     this.write(tag);
     if (attrs) {
@@ -295,11 +312,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       this.write('</');
       this.write(elementName);
       this.write('>');
-    }
-    // Keep track of number of elements.
-    const newFrame = this.currentElementFrame;
-    if (newFrame && currentFrame && !currentFrame.shouldSkipStyleElement) {
-      vNodeData_incrementElementCount(newFrame.vNodeData);
     }
     this.lastNode = null;
   }
@@ -468,6 +480,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
    *
    * ## Separator Encoding:
    *
+   * - `~` is a reference to the node. Save it.
    * - `!` is vNodeData separator skipping 0. (ie next vNode)
    * - `"` is vNodeData separator skipping 1.
    * - `#` is vNodeData separator skipping 2.
@@ -501,12 +514,21 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         }
         if (flag & (VNodeDataFlag.TEXT_DATA | VNodeDataFlag.VIRTUAL_NODE)) {
           let fragmentAttrs: SsrAttrs | null = null;
+          /**
+           * We keep track of how many virtual open/close fragments we have seen so far. Normally we
+           * should not have to do it, but if you put a fragment around `<body>` tag than we start
+           * emitting before `<body/>` close tag. This means that the system did not get a chance to
+           * insert the close fragment. So we just assume that there will be nothing else and
+           * auto-close.
+           */
+          let depth = 0;
           for (let i = 1; i < vNode.length; i++) {
             const value = vNode[i];
             if (Array.isArray(value)) {
               vNodeAttrsStack.push(fragmentAttrs!);
               fragmentAttrs = value;
             } else if (value === OPEN_FRAGMENT) {
+              depth++;
               this.write('{');
             } else if (value === CLOSE_FRAGMENT) {
               // write out fragment attributes
@@ -555,6 +577,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
                 }
                 fragmentAttrs = vNodeAttrsStack.pop()!;
               }
+              depth--;
               this.write('}');
             } else if (value >= 0) {
               // Text nodes get encoded as alphanumeric characters.
@@ -563,6 +586,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
               // Element counts get encoded as numbers.
               this.write(String(0 - value));
             }
+          }
+          while (depth-- > 0) {
+            this.write('}');
           }
         }
       }
@@ -696,28 +722,35 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private async emitUnclaimedProjection() {
     const unclaimedProjections = this.unclaimedProjections;
     if (unclaimedProjections.length) {
-      this.openElement('q:template', ['style', 'display:none'], null);
-      let idx = 0;
-      let ssrComponentNode: ISsrNode | null = null;
-      while (idx < unclaimedProjections.length) {
-        const value = unclaimedProjections[idx++];
-        if (value instanceof SsrNode) {
-          ssrComponentNode = value;
-        } else if (typeof value === 'string') {
-          const children = unclaimedProjections[idx++] as JSXOutput;
-          this.openFragment(
-            isDev
-              ? [DEBUG_TYPE, VirtualType.Projection, QSlotParent, ssrComponentNode!.id]
-              : [QSlotParent, ssrComponentNode!.id]
-          );
-          ssrComponentNode?.setProp(value, this.getLastNode().id);
-          _walkJSX(this, children, false);
-          this.closeFragment();
-        } else {
-          throw Error(); // 'should not get here'
+      const previousCurrentComponentNode = this.currentComponentNode;
+      try {
+        this.openElement('q:template', ['style', 'display:none'], null);
+        let idx = 0;
+        let ssrComponentNode: ISsrNode | null = null;
+        while (idx < unclaimedProjections.length) {
+          const value = unclaimedProjections[idx++];
+          if (value instanceof SsrNode) {
+            // It is important to restore the `ssrComponentNode` so that the content
+            // can pretend to be inside the component.
+            ssrComponentNode = this.currentComponentNode = value;
+          } else if (typeof value === 'string') {
+            const children = unclaimedProjections[idx++] as JSXOutput;
+            this.openFragment(
+              isDev
+                ? [DEBUG_TYPE, VirtualType.Projection, QSlotParent, ssrComponentNode!.id]
+                : [QSlotParent, ssrComponentNode!.id]
+            );
+            ssrComponentNode?.setProp(value, this.getLastNode().id);
+            _walkJSX(this, children, false);
+            this.closeFragment();
+          } else {
+            throw Error(); // 'should not get here'
+          }
         }
+        this.closeElement();
+      } finally {
+        this.currentComponentNode = previousCurrentComponentNode;
       }
-      this.closeElement();
     }
   }
 
@@ -752,16 +785,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
    * @param tag
    * @param depthFirstElementIdx
    * @param isElement
-   * @param shouldSkipStyleElement Should not count this element towards the number of elements in
-   *   VNodeData. This is used for skipping over styles which should be moved to the head of the
-   *   document.
    */
-  private pushFrame(
-    tag: string,
-    depthFirstElementIdx: number,
-    isElement: boolean,
-    shouldSkipStyleElement: boolean
-  ) {
+  private pushFrame(tag: string, depthFirstElementIdx: number, isElement: boolean) {
     let tagNesting: TagNesting = TagNesting.ANYTHING;
     if (isDev) {
       if (tag !== tag.toLowerCase()) {
@@ -810,7 +835,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       tagNesting: tagNesting,
       parent: this.currentElementFrame,
       elementName: tag,
-      shouldSkipStyleElement,
       depthFirstElementIdx: depthFirstElementIdx,
       vNodeData: [VNodeDataFlag.NONE],
     };

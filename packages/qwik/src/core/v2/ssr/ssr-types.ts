@@ -30,11 +30,14 @@ export interface ISsrComponentFrame {
   distributeChildrenIntoSlots(children: JSXChildren): void;
 }
 
+export type SymbolToChunkResolver = (symbol: string) => string;
+
 export interface SSRContainer extends Container2 {
-  tag: string;
-  writer: StreamWriter;
-  prefetchResources: PrefetchResource[];
-  serializationCtx: SerializationContext;
+  readonly tag: string;
+  readonly writer: StreamWriter;
+  readonly prefetchResources: PrefetchResource[];
+  readonly serializationCtx: SerializationContext;
+  readonly symbolToChunkResolver: SymbolToChunkResolver;
 
   openContainer(): void;
   closeContainer(): void;

@@ -4,7 +4,7 @@ import type { SubscriptionManager } from '../../state/common';
 import type { ContextId } from '../../use/use-context';
 import type { ValueOrPromise } from '../../util/types';
 import type { VirtualVNode } from '../client/types';
-import type { ISsrNode, StreamWriter } from '../ssr/ssr-types';
+import type { ISsrNode, StreamWriter, SymbolToChunkResolver } from '../ssr/ssr-types';
 import type { Scheduler } from './scheduler';
 import type { SerializationContext } from './shared-serialization';
 
@@ -30,8 +30,18 @@ export interface Container2 {
   setHostProp<T>(host: HostElement, name: string, value: T): void;
   getHostProp<T>(host: HostElement, name: string): T | null;
   $appendStyle$(content: string, styleId: string, host: HostElement, scoped: boolean): void;
+  /**
+   * When component is about to be executed, it may add/remove children. This can cause problems
+   * with the projection because deleting content will prevent the projection references from
+   * looking up vnodes. Therefore before we execute the component we need to ensure that all of its
+   * references to vnode are resolved.
+   *
+   * @param renderHost - Host element to ensure projection is resolved.
+   */
+  ensureProjectionResolved(host: HostElement): void;
   serializationCtxFactory(
     NodeConstructor: SerializationContext['$NodeConstructor$'] | null,
+    symbolToChunkResolver: SymbolToChunkResolver,
     writer?: StreamWriter
   ): SerializationContext;
 }

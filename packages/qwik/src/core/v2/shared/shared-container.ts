@@ -7,7 +7,7 @@ import type { Scheduler } from './scheduler';
 import { createSerializationContext, type SerializationContext } from './shared-serialization';
 import type { Container2, fixMeAny, HostElement } from './types';
 import { createScheduler } from './scheduler';
-import type { StreamWriter } from '../ssr/ssr-types';
+import type { StreamWriter, SymbolToChunkResolver } from '../ssr/ssr-types';
 import { version } from '../../version';
 
 /** @internal */
@@ -37,11 +37,18 @@ export abstract class _SharedContainer implements Container2 {
 
   serializationCtxFactory(
     NodeConstructor: SerializationContext['$NodeConstructor$'] | null,
+    symbolToChunkResolver: SymbolToChunkResolver,
     writer?: StreamWriter
   ): SerializationContext {
-    return createSerializationContext(NodeConstructor, this.$proxyMap$, writer);
+    return createSerializationContext(
+      NodeConstructor,
+      this.$proxyMap$,
+      symbolToChunkResolver,
+      writer
+    );
   }
 
+  abstract ensureProjectionResolved(host: HostElement): void;
   abstract processJsx(host: HostElement, jsx: JSXOutput): ValueOrPromise<void>;
   abstract handleError(err: any, $host$: HostElement): void;
   abstract getParentHost(host: HostElement): HostElement | null;

@@ -50,8 +50,8 @@ export interface InOrderAuto
 
 | Property                  | Modifiers | Type   | Description  |
 | ------------------------- | --------- | ------ | ------------ |
-| [maximunChunk?](#)        |           | number | _(Optional)_ |
-| [maximunInitialChunk?](#) |           | number | _(Optional)_ |
+| [maximumChunk?](#)        |           | number | _(Optional)_ |
+| [maximumInitialChunk?](#) |           | number | _(Optional)_ |
 | [strategy](#)             |           | 'auto' |              |
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts)

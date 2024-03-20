@@ -147,28 +147,28 @@ function processJSXNode(
           children !== undefined && enqueue(children);
         } else if (type === Slot) {
           const componentFrame = ssr.getNearestComponentFrame()!;
-          const slotName = String(jsx.props.name || '');
-          ssr.openProjection(
-            isDev
-              ? [
-                  DEBUG_TYPE,
-                  VirtualType.Projection,
-                  ':',
-                  componentFrame.componentNode.id,
-                  QSlot,
-                  slotName,
-                ]
-              : [':', componentFrame.componentNode.id, QSlot, slotName]
-          );
-          enqueue(ssr.closeProjection);
-          const node = ssr.getLastNode();
-          const slotDefaultChildren = (jsx.props.children || null) as JSXChildren | null;
-          const slotChildren =
-            componentFrame.consumeChildrenForSlot(node, slotName) || slotDefaultChildren;
-          if (slotDefaultChildren && slotChildren !== slotDefaultChildren) {
-            ssr.addUnclaimedProjection(node, '', slotDefaultChildren);
+          if (componentFrame) {
+            const slotName = String(jsx.props.name || '');
+            const compId = componentFrame.componentNode.id || '';
+            ssr.openProjection(
+              isDev
+                ? [DEBUG_TYPE, VirtualType.Projection, ':', compId, QSlot, slotName]
+                : [':', compId, QSlot, slotName]
+            );
+            enqueue(ssr.closeProjection);
+            const node = ssr.getLastNode();
+            const slotDefaultChildren = (jsx.props.children || null) as JSXChildren | null;
+            const slotChildren =
+              componentFrame.consumeChildrenForSlot(node, slotName) || slotDefaultChildren;
+            if (slotDefaultChildren && slotChildren !== slotDefaultChildren) {
+              ssr.addUnclaimedProjection(node, '', slotDefaultChildren);
+            }
+            enqueue(slotChildren as JSXOutput);
+          } else {
+            // Even thought we are not projecting we still need to leave a marker for the slot.
+            ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.Projection] : EMPTY_ARRAY);
+            ssr.closeFragment();
           }
-          enqueue(slotChildren as JSXOutput);
         } else if (isQwikComponent(type)) {
           ssr.openComponent(isDev ? [DEBUG_TYPE, VirtualType.Component] : []);
           enqueue(ssr.closeComponent);
@@ -220,12 +220,12 @@ export function toSsrAttrs(
             const qrl: unknown = qrls[i];
             if (isQrl(qrl)) {
               const first = i === 0;
-              value = (first ? '' : value + '\n') + qrlToString(qrl, serializationCtx.$addRoot$);
+              value = (first ? '' : value + '\n') + qrlToString(serializationCtx, qrl);
               addQwikEventToSerializationContext(serializationCtx, key, qrl);
             }
           }
         } else if (isQrl(qrls)) {
-          value = qrlToString(qrls, serializationCtx.$addRoot$);
+          value = qrlToString(serializationCtx, qrls);
           addQwikEventToSerializationContext(serializationCtx, key, qrls);
         }
         if (isJsxPropertyAnEventName(key)) {

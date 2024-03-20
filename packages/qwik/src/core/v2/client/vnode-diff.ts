@@ -68,7 +68,6 @@ import {
   vnode_isElementVNode,
   vnode_isTextVNode,
   vnode_isVirtualVNode,
-  vnode_locate,
   vnode_newElement,
   vnode_newText,
   vnode_newVirtual,
@@ -378,12 +377,15 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     const slotNameKey: string = jsxValue.props.name || '';
     // console.log('expectSlot', JSON.stringify(slotNameKey));
     const vHost = vnode_getProjectionParentComponent(vParent, container.$getObjectById$);
-    const vProjectedNode = vnode_getProp<VirtualVNode | null>(
-      vHost,
-      slotNameKey,
-      // for slots this id is vnode ref id
-      (id) => vnode_locate(container.rootVNode, id)
-    );
+    const vProjectedNode = vHost
+      ? vnode_getProp<VirtualVNode | null>(
+          vHost,
+          slotNameKey,
+          // for slots this id is vnode ref id
+          null // Projections should have been resolved through container.ensureProjectionResolved
+          //(id) => vnode_locate(container.rootVNode, id)
+        )
+      : null;
     // console.log('   ', String(vHost), String(vProjectedNode));
     if (vProjectedNode == null) {
       // Nothing to project, so render content of the slot.
@@ -399,10 +401,6 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       // All is good.
       // console.log('  NOOP', String(vCurrent));
     } else {
-      /// We have to ensure that the projected node is correctly linked into the tree.
-      /// We need this because we need to be able to walk the context even before the
-      /// journal is processed.
-      vProjectedNode[VNodeProps.parent] = vParent;
       vnode_insertBefore(
         journal,
         vParent as ElementVNode | VirtualVNode,
@@ -817,16 +815,17 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       let component$Host: VNode = host;
       // Find the closest component host which has `OnRender` prop.
       while (
-        component$Host && vnode_isVirtualVNode(component$Host)
+        component$Host &&
+        (vnode_isVirtualVNode(component$Host)
           ? vnode_getProp(component$Host, OnRenderProp, null) === null
-          : true
+          : true)
       ) {
         component$Host = vnode_getParent(component$Host)!;
       }
       const jsxOutput = executeComponent2(
         container,
         host,
-        component$Host as fixMeAny,
+        (component$Host || container.rootVNode) as fixMeAny,
         component as OnRenderFn<any>,
         jsxProps
       );

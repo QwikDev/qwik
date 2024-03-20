@@ -182,6 +182,22 @@ describe('vnode data', () => {
       expectVNodeRefProp(container, '3AADAB', '8');
     });
   });
+  it('fragment as child of HTML', async () => {
+    const { vNode } = await ssrRenderToDom(
+      <>
+        <head></head>
+        <body></body>
+      </>,
+      { debug, raw: true }
+    );
+
+    expect(vNode).toMatchVDOM(
+      <>
+        <head></head>
+        <body></body>
+      </>
+    );
+  });
 });
 
 interface NestedRefIdProp {

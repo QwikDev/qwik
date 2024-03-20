@@ -10,7 +10,7 @@
   "devDependencies": {
     "@builder.io/qwik": "workspace:^",
     "@builder.io/qwik-city": "workspace:^",
-    "@supabase/supabase-js": "^2.39.7"
+    "@supabase/supabase-js": "^2.39.8"
   },
   "exports": {
     ".": {
@@ -31,7 +31,7 @@
   "license": "MIT",
   "main": "./lib/index.qwik.mjs",
   "peerDependencies": {
-    "@supabase/supabase-js": "^2.39.7"
+    "@supabase/supabase-js": "^2.39.8"
   },
   "publishConfig": {
     "access": "public"

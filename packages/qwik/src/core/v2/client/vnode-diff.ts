@@ -68,6 +68,7 @@ import {
   vnode_isElementVNode,
   vnode_isTextVNode,
   vnode_isVirtualVNode,
+  vnode_locate,
   vnode_newElement,
   vnode_newText,
   vnode_newVirtual,
@@ -321,39 +322,38 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
   /////////////////////////////////////////////////////////////////////////////
 
   function descendProjection(children: JSXChildren) {
-    if (children) {
-      if (!Array.isArray(children)) {
-        children = [children];
-      }
-      if (children.length) {
-        const projection: Array<string | JSXNode> = [];
-        /// STEP 1: Bucketize the children based on the projection name.
-        for (let i = 0; i < children.length; i++) {
-          const child = children[i];
-          const slotName = String((isJSXNode(child) && child.props[QSlot]) || '');
-          const idx = mapApp_findIndx(projection, slotName, 0);
-          let jsxBucket: JSXNodeImpl<typeof Projection>;
-          if (idx >= 0) {
-            jsxBucket = projection[idx + 1] as any;
-          } else {
-            projection.splice(
-              ~idx,
-              0,
-              slotName,
-              (jsxBucket = new JSXNodeImpl(Projection, EMPTY_OBJ, null, [], 0, slotName))
-            );
-          }
-          (jsxBucket.children as JSXChildren[]).push(child);
-        }
-        /// STEP 2: remove the names
-        for (let i = projection.length - 2; i >= 0; i = i - 2) {
-          projection.splice(i, 1);
-        }
-        descend(projection, true);
-        return true;
-      }
+    if (children == null) {
+      return;
     }
-    return false;
+    if (!Array.isArray(children)) {
+      children = [children];
+    }
+    if (children.length) {
+      const projection: Array<string | JSXNode> = [];
+      /// STEP 1: Bucketize the children based on the projection name.
+      for (let i = 0; i < children.length; i++) {
+        const child = children[i];
+        const slotName = String((isJSXNode(child) && child.props[QSlot]) || '');
+        const idx = mapApp_findIndx(projection, slotName, 0);
+        let jsxBucket: JSXNodeImpl<typeof Projection>;
+        if (idx >= 0) {
+          jsxBucket = projection[idx + 1] as any;
+        } else {
+          projection.splice(
+            ~idx,
+            0,
+            slotName,
+            (jsxBucket = new JSXNodeImpl(Projection, EMPTY_OBJ, null, [], 0, slotName))
+          );
+        }
+        (jsxBucket.children as JSXChildren[]).push(child);
+      }
+      /// STEP 2: remove the names
+      for (let i = projection.length - 2; i >= 0; i = i - 2) {
+        projection.splice(i, 1);
+      }
+      descend(projection, true);
+    }
   }
 
   function expectProjection() {
@@ -362,7 +362,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     vCurrent = vnode_getProp<VirtualVNode | null>(
       vParent, // The parent is the component and it should have our portal.
       slotName,
-      container.$getObjectById$
+      (id) => vnode_locate(container.rootVNode, id)
     );
     if (vCurrent == null) {
       vNewNode = vnode_newVirtual(vParent);
@@ -786,7 +786,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
         shouldRender = true;
       }
       const vNodeProps = vnode_getProp<any>(host, ELEMENT_PROPS, container.$getObjectById$);
-      shouldRender = shouldRender || !shallowEqual(jsxProps, vNodeProps);
+      shouldRender = shouldRender || propsDiffer(jsxProps, vNodeProps);
       if (shouldRender) {
         const jsx = container.$scheduler$
           .$scheduleComponent$(host, componentQRL, jsxProps)
@@ -912,14 +912,14 @@ function getKey(vNode: VNode | null, getObject: (id: string) => any): string | n
  */
 function Projection() {}
 
-function shallowEqual(src: Record<string, any>, dst: Record<string, any>): boolean {
+function propsDiffer(src: Record<string, any>, dst: Record<string, any>): boolean {
   if (!src || !dst) {
-    return false;
+    return true;
   }
-  let srcKeys = Object.keys(src);
-  let dstKeys = Object.keys(dst);
+  let srcKeys = removeChildrenKey(Object.keys(src));
+  let dstKeys = removeChildrenKey(Object.keys(dst));
   if (srcKeys.length !== dstKeys.length) {
-    return false;
+    return true;
   }
   srcKeys = srcKeys.sort();
   dstKeys = dstKeys.sort();
@@ -927,10 +927,18 @@ function shallowEqual(src: Record<string, any>, dst: Record<string, any>): boole
     const srcKey = srcKeys[idx];
     const dstKey = dstKeys[idx];
     if (srcKey !== dstKey || src[srcKey] !== dst[dstKey]) {
-      return false;
+      return true;
     }
   }
-  return true;
+  return false;
+}
+
+function removeChildrenKey(keys: string[]): string[] {
+  const childrenIdx = keys.indexOf('children');
+  if (childrenIdx !== -1) {
+    keys.splice(childrenIdx, 1);
+  }
+  return keys;
 }
 
 /**

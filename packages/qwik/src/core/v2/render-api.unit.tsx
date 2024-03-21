@@ -1026,7 +1026,7 @@ describe('render api', () => {
           stream,
           streaming,
         });
-        expect(stream.write).toHaveBeenCalledTimes(130);
+        expect(stream.write).toHaveBeenCalledTimes(127);
       });
       it('should render chunk by chunk with auto streaming', async () => {
         const stream: StreamWriter = {

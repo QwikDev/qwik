@@ -1,20 +1,22 @@
 import { beforeEach, describe, expect, it } from 'vitest';
+import { trigger } from '../../testing/element-fixture';
 import { component$, componentQrl } from '../component/component.public';
 import { inlinedQrl } from '../qrl/qrl';
 import {
   Fragment as Component,
+  Fragment,
   Fragment as InlineComponent,
   Fragment as Projection,
-  Fragment,
+  _jsxC,
 } from '../render/jsx/jsx-runtime';
 import { Slot } from '../render/jsx/slot.public';
-import { vnode_getNextSibling } from './client/vnode';
-import { domRender, ssrRenderToDom } from './rendering.unit-util';
-import './vdom-diff.unit-util';
-import { trigger } from '../../testing/element-fixture';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { useSignal } from '../use/use-signal';
 import { useStore } from '../use/use-store.public';
+import { vnode_getNextSibling } from './client/vnode';
+import { ssrRenderToDom } from './rendering.unit-util';
+import './vdom-diff.unit-util';
+import { _IMMUTABLE, _fnSignal, _jsxQ } from '../internal';
 
 const debug = true;
 
@@ -560,35 +562,75 @@ const debug = true;
         expect(document.body.innerHTML).toContain('</p><b>CHILD</b>DYNAMIC');
       });
 
-      it('#2688', async () => {
+      it.only('#2688', async () => {
         const Switch = component$((props: { name: string }) => {
-          return <Slot name={props.name} />;
+          return _jsxC(
+            Slot,
+            {
+              get name() {
+                return props.name;
+              },
+              [_IMMUTABLE as any]: {
+                name: _fnSignal((p0) => p0.name, [props], 'p0.name'),
+              },
+            },
+            3,
+            null
+          );
         });
 
         const Issue2688 = component$(({ count }: { count: number }) => {
           const store = useStore({ flip: false });
 
-          return (
-            <>
-              <button
-                onClick$={inlinedQrl(
-                  () => {
-                    const [store] = useLexicalScope();
-                    store.flip = !store.flip;
+          return _jsxC(
+            Fragment,
+            {
+              children: [
+                _jsxQ(
+                  'button',
+                  {
+                    onClick$: inlinedQrl(
+                      () => {
+                        const [store] = useLexicalScope();
+                        store.flip = !store.flip;
+                      },
+                      's_click',
+                      [store]
+                    ),
                   },
-                  's_click',
-                  [store]
-                )}
-              >
-                Toggle
-              </button>
-              <div>
-                <Switch name={store.flip ? 'b' : 'a'}>
-                  <div q:slot="a">Alpha {count}</div>
-                  <div q:slot="b">Bravo {count}</div>
-                </Switch>
-              </div>
-            </>
+                  null,
+                  'Toggle',
+                  2,
+                  null
+                ),
+                _jsxQ(
+                  'div',
+                  null,
+                  null,
+                  _jsxC(
+                    Switch as any,
+                    {
+                      get name() {
+                        return store.flip ? 'b' : 'a';
+                      },
+                      children: [
+                        _jsxQ('div', { 'q:slot': 'a' }, null, ['Alpha ', count], 1, null),
+                        _jsxQ('div', { 'q:slot': 'b' }, null, ['Bravo ', count], 1, null),
+                      ],
+                      [_IMMUTABLE]: {
+                        name: _fnSignal((p0) => (p0.flip ? 'b' : 'a'), [store], 'p0.flip?"b":"a"'),
+                      },
+                    },
+                    1,
+                    'ub_1'
+                  ),
+                  1,
+                  null
+                ),
+              ],
+            },
+            1,
+            'ub_2'
           );
         });
 

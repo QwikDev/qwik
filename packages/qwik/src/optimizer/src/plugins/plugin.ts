@@ -135,11 +135,12 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     opts.debug = !!updatedOpts.debug;
 
-    opts.base = !updatedOpts?.base || updatedOpts.base.length === 1
-    ? ''
-    : updatedOpts.base.endsWith('/')
-      ? updatedOpts.base.slice(0, -1)
-      : updatedOpts.base;
+    opts.base =
+      !updatedOpts?.base || updatedOpts.base.length === 1
+        ? ''
+        : updatedOpts.base.endsWith('/')
+          ? updatedOpts.base.slice(0, -1)
+          : updatedOpts.base;
 
     updatedOpts.target === 'test';
     if (
@@ -964,7 +965,7 @@ export interface QwikPluginOptions {
    * large projects. Defaults to `true`
    */
   lint?: boolean;
-  base?: string
+  base?: string;
 }
 
 export interface NormalizedQwikPluginOptions extends Required<QwikPluginOptions> {

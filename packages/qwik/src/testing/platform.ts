@@ -96,9 +96,9 @@ export function setTestPlatform(_setPlatform: Function) {
  * @returns Fully qualified URL.
  */
 export function toUrl(doc: Document, containerEl: Element, url: string | URL): URL {
-  const baseURI = new URL(doc.baseURI)
-  const base = containerEl?.getAttribute('q:base') ?? '/'
-  const pathUrl= (base + url).replace(/\/+/g, '/');
+  const baseURI = new URL(doc.baseURI);
+  const base = containerEl?.getAttribute('q:base') ?? '/';
+  const pathUrl = (base + url).replace(/\/+/g, '/');
   return new URL(pathUrl, baseURI.origin);
 }
 

@@ -486,7 +486,7 @@ export interface SerializationContext {
 
   $roots$: unknown[];
 
-  $addSyncFn$($funcStr$: string, argsCount: number): number;
+  $addSyncFn$($funcStr$: string | undefined, argsCount: number, fn: Function): number;
 
   $proxyMap$: ObjToProxyMap;
 
@@ -563,16 +563,24 @@ export const createSerializationContext = (
     },
     $proxyMap$,
     $syncFns$: syncFns,
-    $addSyncFn$: (funcStr: string, argCount: number) => {
-      let id = syncFnMap.get(funcStr);
+    $addSyncFn$: (funcStr: string | undefined, argCount: number, fn: Function) => {
+      const isFullFn = funcStr === undefined;
+      if (isFullFn) {
+        funcStr = fn.toString();
+      }
+      let id = syncFnMap.get(funcStr!);
       if (id === undefined) {
         id = syncFns.length;
-        syncFnMap.set(funcStr, id);
-        let code = '(';
-        for (let i = 0; i < argCount; i++) {
-          code += (i == 0 ? 'p' : ',p') + i;
+        syncFnMap.set(funcStr!, id);
+        if (isFullFn) {
+          syncFns.push(funcStr!);
+        } else {
+          let code = '(';
+          for (let i = 0; i < argCount; i++) {
+            code += (i == 0 ? 'p' : ',p') + i;
+          }
+          syncFns.push((code += ')=>' + funcStr));
         }
-        syncFns.push((code += ')=>' + funcStr));
       }
       return id;
     },
@@ -633,11 +641,15 @@ export const createSerializationContext = (
           } else if (obj instanceof SignalImpl) {
             discoveredValues.push(obj.untrackedValue);
             const manager = getSubscriptionManager(obj);
-            manager?.$subs$.forEach((sub) => discoveredValues.push(sub[1]));
+            manager?.$subs$.forEach((sub) => {
+              discoveredValues.push(sub[SubscriptionProp.HOST]);
+            });
             // const manager = obj[QObjectManagerSymbol];
             // discoveredValues.push(...manager.$subs$);
           } else if (obj instanceof Task) {
             discoveredValues.push(obj.$el$, obj.$qrl$, obj.$state$);
+          } else if (NodeConstructor && obj instanceof NodeConstructor) {
+            // ignore the nodes
           } else if (isJSXNode(obj)) {
             discoveredValues.push(obj.type, obj.props, obj.immutableProps, obj.children);
           } else if (Array.isArray(obj)) {
@@ -918,7 +930,11 @@ function serializeSignalDerived(
   value: SignalDerived<any, any>,
   $addRoot$: (obj: unknown) => number
 ) {
-  const syncFnId = serializationContext.$addSyncFn$(value.$funcStr$!, value.$args$.length);
+  const syncFnId = serializationContext.$addSyncFn$(
+    value.$funcStr$,
+    value.$args$.length,
+    value.$func$
+  );
   const args = value.$args$.map($addRoot$).join(' ');
   return SerializationConstant.DerivedSignal_CHAR + syncFnId + (args.length ? ' ' + args : '');
 }

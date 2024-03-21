@@ -1,8 +1,8 @@
-import { Fragment as Component, Fragment } from '@builder.io/qwik/jsx-runtime';
+import { Fragment as Component, Fragment, Fragment as Signal_ } from '@builder.io/qwik/jsx-runtime';
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
 import { component$ } from '../component/component.public';
-import { _IMMUTABLE, _fnSignal } from '../internal';
+import { _IMMUTABLE, _fnSignal, _jsxQ } from '../internal';
 import { inlinedQrl } from '../qrl/qrl';
 import { _jsxC } from '../render/jsx/jsx-runtime';
 import { Slot } from '../render/jsx/slot.public';
@@ -396,6 +396,94 @@ Error.stackTraceLimit = 100;
               </Component>
             </>
           </Fragment>
+        );
+      });
+      it('should pass signal as prop into child component', async () => {
+        /**
+         * ```
+         * 0: "Signal: 10;4 6 8 6 9"
+         * 1: {"value":"DerivedSignal: 0 0"}
+         * 2: "QRL: qwik-runtime-mock-chunk#s0"
+         * 3: {}
+         * 4: "QRL: qwik-runtime-mock-chunk#s1"
+         * 5: ["REFERENCE: 0"]
+         * 6: "VNode: 5A"
+         * 7: ["JSXNode: button 11 12 9 0","JSXNode: 13 1 12 9 3"] <==== DELETE
+         * 8: "DerivedSignal: 0 1"
+         * 9: "UNDEFINED: "
+         * 10: 123
+         * 11: {"onClick$":"QRL: qwik-runtime-mock-chunk#s_click[0]"} <==== DELETE
+         * 12: null
+         * 13: "Component: qwik-runtime-mock-chunk#s0" <==== DELETE
+         * 0: "(p0)=>undefined" <==== WRONG
+         * ```
+         *
+         * Things to fix:
+         *
+         * - [ ] ["JSXNode: button 11 12 9 0","JSXNode: 13 1 12 9 3"] <==== DELETE
+         * - [ ] {"onClick$":"QRL: qwik-runtime-mock-chunk#s_click[0]"} <==== DELETE
+         * - [ ] "Component: qwik-runtime-mock-chunk#s0" <==== DELETE
+         * - [X] "(p0)=>undefined" <==== WRONG
+         */
+        const Display = component$((props: { value: number }) => {
+          return _jsxQ(
+            'div',
+            null,
+            null,
+            _fnSignal((p0) => p0.value, [props]),
+            3,
+            null
+          );
+        });
+        const Counter = component$(() => {
+          // const count = useStore({ value: 123 });
+          const count = useSignal(123);
+          return (
+            <>
+              <button
+                onClick$={inlinedQrl(() => useLexicalScope()[0].value++, 's_click', [count])}
+              />
+              {_jsxC(
+                Display as fixMeAny,
+                {
+                  get value() {
+                    return count.value;
+                  },
+                  [_IMMUTABLE]: {
+                    value: _fnSignal((p0) => p0.value, [count]),
+                  },
+                },
+                3,
+                null
+              )}
+            </>
+          );
+        });
+        const { vNode, container } = await render(<Counter />, { debug });
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <Fragment>
+              <button></button>
+              <Component>
+                <div>
+                  <Signal_>123</Signal_>
+                </div>
+              </Component>
+            </Fragment>
+          </Component>
+        );
+        await trigger(container.element, 'button', 'click');
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <Fragment>
+              <button></button>
+              <Component>
+                <div>
+                  <Signal_>124</Signal_>
+                </div>
+              </Component>
+            </Fragment>
+          </Component>
         );
       });
     });

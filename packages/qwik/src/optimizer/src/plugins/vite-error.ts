@@ -128,7 +128,7 @@ vite-error-overlay::part(stack):after {
 }
 
 vite-error-overlay::part(tip):before {
-  content: "Not sure how to solve this? Visit https://qwik.builder.io or connect with the community on Discord.";
+  content: "Not sure how to solve this? Visit https://qwik.dev or connect with the community on Discord.";
   display: block;
   margin-bottom: 1em;
 }

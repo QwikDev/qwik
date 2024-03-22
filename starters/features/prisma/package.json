@@ -5,7 +5,7 @@
     "priority": -10,
     "viteConfig": {},
     "docs": [
-      "https://qwik.builder.io/integrations/integration/prisma/",
+      "https://qwik.dev/integrations/integration/prisma/",
       "https://www.prisma.io/docs/concepts/overview/what-is-prisma"
     ],
     "postInstall": "prisma migrate dev --name initial",

@@ -8,7 +8,7 @@
     "priority": 19,
     "displayName": "Adapter: Node.js Server",
     "docs": [
-      "https://qwik.builder.io/deployments/node/"
+      "https://qwik.dev/deployments/node/"
     ],
     "nextSteps": {
       "title": "Next Steps",

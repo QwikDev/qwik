@@ -1,6 +1,6 @@
 ## Qwik Components
 
-[Qwik](https://qwik.builder.io/) components are very similar to React components, they are functions that return JSX, but there are some main differences:
+[Qwik](https://qwik.dev/) components are very similar to React components, they are functions that return JSX, but there are some main differences:
 
 - Non of the React APIs are available, instead Qwik provides a set of hooks and components that are designed to work with Qwik.
 - Components are always declared with the `component$` function.

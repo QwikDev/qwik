@@ -1,6 +1,6 @@
 import { ESLintUtils, TSESTree } from '@typescript-eslint/utils';
 
-const createRule = ESLintUtils.RuleCreator(() => 'https://qwik.builder.io/docs/advanced/dollar/');
+const createRule = ESLintUtils.RuleCreator(() => 'https://qwik.dev/docs/advanced/dollar/');
 
 export const jsxAtag = createRule({
   defaultOptions: [],

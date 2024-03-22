@@ -19,7 +19,7 @@ export function normalizePathname(
 
         // normalize the basePath and pathname together
         // origin doesn't matter here
-        pathname = new URL(basePathname + pathname, `https://qwik.builder.io`).pathname;
+        pathname = new URL(basePathname + pathname, `https://qwik.dev`).pathname;
 
         if (pathname !== basePathname) {
           if (trailingSlash) {

@@ -15,7 +15,7 @@
     "priority": 20,
     "displayName": "Adapter: Node.js Express Server",
     "docs": [
-      "https://qwik.builder.io/deployments/node/",
+      "https://qwik.dev/deployments/node/",
       "https://expressjs.com/"
     ],
     "nextSteps": {

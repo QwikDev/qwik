@@ -1,7 +1,7 @@
 # Qwik Library ⚡️
 
-- [Qwik Docs](https://qwik.builder.io/)
-- [Discord](https://qwik.builder.io/chat)
+- [Qwik Docs](https://qwik.dev/)
+- [Discord](https://qwik.dev/chat)
 - [Qwik on GitHub](https://github.com/BuilderIO/qwik)
 - [@QwikDev](https://twitter.com/QwikDev)
 - [Vite](https://vitejs.dev/)

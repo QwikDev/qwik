@@ -4,7 +4,7 @@
  * It's the entry point for the Express HTTP server when building for production.
  *
  * Learn more about Node.js server integrations here:
- * - https://qwik.builder.io/docs/deployments/node/
+ * - https://qwik.dev/docs/deployments/node/
  *
  */
 import {

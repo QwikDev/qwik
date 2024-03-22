@@ -4,7 +4,7 @@
  * It's the entry point for the Azure Static Web Apps middleware when building for production.
  *
  * Learn more about the Azure Static Web Apps integration here:
- * - https://qwik.builder.io/docs/deployments/azure-swa/
+ * - https://qwik.dev/docs/deployments/azure-swa/
  *
  */
 import {

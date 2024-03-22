@@ -2,7 +2,7 @@ import { ESLintUtils, TSESTree } from '@typescript-eslint/utils';
 import { QwikEslintExamples } from '../examples';
 
 const createRule = ESLintUtils.RuleCreator(
-  (name) => `https://qwik.builder.io/docs/advanced/eslint/#${name}`
+  (name) => `https://qwik.dev/docs/advanced/eslint/#${name}`
 );
 
 export const jsxImg = createRule({
@@ -23,7 +23,7 @@ export const jsxImg = createRule({
   import {{importName}} from '{{importSrc}}';
   <{{importName}} />
 
-See https://qwik.builder.io/docs/integrations/image-optimization/#responsive-images`,
+See https://qwik.dev/docs/integrations/image-optimization/#responsive-images`,
       noWidthHeight:
         'Missing "width" or "height" attribute.\nFor performance reasons, always provide width and height attributes for <img> elements, it will prevent layout shifts, boosting performance and UX.',
     },

@@ -12,7 +12,7 @@
     "priority": 30,
     "displayName": "Adapter: Azure Static Web Apps",
     "docs": [
-      "https://qwik.builder.io/deployments/azure-swa/",
+      "https://qwik.dev/deployments/azure-swa/",
       "https://learn.microsoft.com/en-us/azure/static-web-apps/"
     ],
     "nextSteps": {

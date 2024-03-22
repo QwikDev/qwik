@@ -5,7 +5,7 @@ export default component$(() => {
   useVisibleTask$(({ cleanup }) => {
     const handler = (event: Event) => {
       event.preventDefault();
-      window.open('http://qwik.builder.io');
+      window.open('http://qwik.dev');
     };
     aHref.value!.addEventListener('click', handler);
     cleanup(() => aHref.value!.removeEventListener('click', handler));

@@ -319,7 +319,7 @@ export interface RequestEventBase<PLATFORM = QwikCityPlatform> {
    * provide the most common values for auto-complete, but you can use any string you want).
    *
    * See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control and
-   * https://qwik.builder.io/docs/caching/#CDN-Cache-Controls for more information.
+   * https://qwik.dev/docs/caching/#CDN-Cache-Controls for more information.
    */
   readonly cacheControl: (cacheControl: CacheControl, target?: CacheControlTarget) => void;
 

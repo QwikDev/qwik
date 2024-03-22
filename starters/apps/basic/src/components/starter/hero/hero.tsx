@@ -70,7 +70,7 @@ export default component$(() => {
           Time to celebrate
         </button>
         <a
-          href="https://qwik.builder.io/docs"
+          href="https://qwik.dev/docs"
           target="_blank"
           class="button button-dark"
         >

@@ -5,7 +5,7 @@
     "priority": -10,
     "viteConfig": {},
     "docs": [
-      "https://qwik.builder.io/integrations/integration/postcss/",
+      "https://qwik.dev/integrations/integration/postcss/",
       "https://github.com/postcss/postcss-load-config"
     ]
   },

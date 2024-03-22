@@ -1,8 +1,4 @@
-import {
-  Fragment as Component,
-  Fragment,
-  Fragment as Projection,
-} from '@builder.io/qwik/jsx-runtime';
+import { Fragment as Component, Fragment } from '@builder.io/qwik/jsx-runtime';
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
 import { component$, componentQrl } from '../component/component.public';
@@ -12,7 +8,6 @@ import { useSignal } from '../use/use-signal';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
 import type { JSXOutput } from '../render/jsx/types/jsx-node';
-import { Slot } from '../render/jsx/slot.public';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -257,7 +252,7 @@ Error.stackTraceLimit = 100;
             </svg>
           );
         });
-        const { vNode } = await render(<SvgComp />, { debug });
+        const { vNode, container } = await render(<SvgComp />, { debug });
         expect(vNode).toMatchVDOM(
           <Component>
             <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -265,6 +260,9 @@ Error.stackTraceLimit = 100;
               <circle cx="50" cy="50" r="50" />
             </svg>
           </Component>
+        );
+        expect(container.document.body.innerHTML.toLowerCase()).toContain(
+          '<svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><fegaussianblur></fegaussianblur><circle cx="50" cy="50" r="50"></circle></svg>'
         );
       });
       it('should write attributes to svg', async () => {
@@ -275,13 +273,16 @@ Error.stackTraceLimit = 100;
             </svg>
           );
         });
-        const { vNode } = await render(<SvgComp cx="10" cy="10" />, { debug });
+        const { vNode, container } = await render(<SvgComp cx="10" cy="10" />, { debug });
         expect(vNode).toMatchVDOM(
           <Component>
             <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
               <circle cx="10" cy="10" r="50" />
             </svg>
           </Component>
+        );
+        expect(container.document.body.innerHTML.toLowerCase()).toContain(
+          '<svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="50"></circle></svg>'
         );
       });
       it('should rerender svg', async () => {
@@ -316,6 +317,9 @@ Error.stackTraceLimit = 100;
           </Component>
         );
 
+        expect(container.document.body.innerHTML.toLowerCase()).not.toContain(
+          '<svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">'
+        );
         await trigger(container.element, 'button', 'click');
         expect(vNode).toMatchVDOM(
           <Component>
@@ -329,11 +333,19 @@ Error.stackTraceLimit = 100;
           </Component>
         );
 
+        expect(container.document.body.innerHTML.toLowerCase()).toContain(
+          '<svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="50"></circle></svg>'
+        );
+
         await trigger(container.element, 'button', 'click');
         expect(vNode).toMatchVDOM(
           <Component>
             <button>{''}</button>
           </Component>
+        );
+
+        expect(container.document.body.innerHTML.toLowerCase()).not.toContain(
+          '<svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">'
         );
       });
       it('should rerender svg child elements', async () => {
@@ -377,6 +389,9 @@ Error.stackTraceLimit = 100;
             </button>
           </Component>
         );
+        expect(container.document.body.innerHTML.toLowerCase()).toContain(
+          '<svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="15" cy="15" r="50"></circle></svg>'
+        );
 
         await trigger(container.element, 'button', 'click');
         expect(vNode).toMatchVDOM(
@@ -391,6 +406,9 @@ Error.stackTraceLimit = 100;
             </button>
           </Component>
         );
+        expect(container.document.body.innerHTML.toLowerCase()).toContain(
+          '<svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="15" cy="15" r="50"></circle><line stroke="black" x1="0" x2="100" y1="80" y2="20"></line></svg>'
+        );
 
         await trigger(container.element, 'button', 'click');
         expect(vNode).toMatchVDOM(
@@ -404,6 +422,9 @@ Error.stackTraceLimit = 100;
               </Component>
             </button>
           </Component>
+        );
+        expect(container.document.body.innerHTML.toLowerCase()).toContain(
+          '<svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="15" cy="15" r="50"></circle></svg>'
         );
       });
     });

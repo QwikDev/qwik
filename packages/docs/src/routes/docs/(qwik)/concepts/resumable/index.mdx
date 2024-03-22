@@ -69,7 +69,7 @@ Qwik solves the above issue by serializing the event listeners into DOM like so:
 
 Qwik still needs to collect the listener information, but this step is done as part of the SSR/SSG. The results of SSR/SSG are then serialized into HTML so that the browser does not need to do anything to resume the execution. Notice that the `on:click` attribute contains all of the information to resume the application without doing anything eagerly.
 
-1. [Qwikloader](https://qwik.builder.io/docs/advanced/qwikloader/) sets up a single global listener instead of many individual listeners per DOM element. This step can be done with no application code present.
+1. [Qwikloader](https://qwik.dev/docs/advanced/qwikloader/) sets up a single global listener instead of many individual listeners per DOM element. This step can be done with no application code present.
 2. The HTML contains a URL to the chunk and symbol name. The attribute tells Qwikloader which code chunk to download and which symbol to retrieve from the chunk and then to be executed.
 3. Finally, to make all of the above possible, Qwik's event processing implementation understands asynchronicity which allows it to lazy load closures automatically.
 
@@ -77,7 +77,7 @@ Qwik still needs to collect the listener information, but this step is done as p
 
 Frameworks work with component trees. To that end, frameworks need a complete understanding of the component trees to know which components need to be rerendered and when. If you look into the existing framework SSR/SSG output, the component boundary information has been destroyed. There is no way of knowing where component boundaries are by looking at the resulting HTML. To recreate this information, frameworks re-execute the component templates and memoize the component boundary location. Re-execution is what hydration is. Hydration is expensive as it requires both the download of component templates and their execution.
 
-Qwik collects [component boundary information](https://qwik.builder.io/docs/cheat/serialization/) as part of the SSR/SSG and then serializes that information into HTML. The result is that Qwik can:
+Qwik collects [component boundary information](https://qwik.dev/docs/cheat/serialization/) as part of the SSR/SSG and then serializes that information into HTML. The result is that Qwik can:
 
 1. Rebuild the component hierarchy information without the component code actually being present. The component code can remain lazy.
 2. Qwik can do this lazily only for the components which need to be re-rendered rather than all upfront.
@@ -108,7 +108,7 @@ Limitations of JSON that Qwik does not solve:
   - Although some built-in classes, such as [Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date), [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL), [Map](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map), [Set](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set) are supported.
 - Serialization of Streams.
 
-For cases where serialization is not possible, code should run [on client only](https://qwik.builder.io/docs/components/lifecycle/#serverbrowser-only-task).
+For cases where serialization is not possible, code should run [on client only](https://qwik.dev/docs/components/lifecycle/#serverbrowser-only-task).
 
 ### Writing applications with serializability in mind
 

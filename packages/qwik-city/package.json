@@ -10,25 +10,25 @@
     "svgo": "^3.2.0",
     "undici": "*",
     "vfile": "^6.0.1",
-    "vite": "^5.1.4",
+    "vite": "^5.1.6",
     "vite-imagetools": "^6.2.9",
     "zod": "^3.22.4"
   },
   "devDependencies": {
     "@azure/functions": "^3.5.1",
     "@builder.io/qwik": "workspace:^",
-    "@microsoft/api-extractor": "^7.42.2",
+    "@microsoft/api-extractor": "^7.43.0",
     "@netlify/edge-functions": "^2.3.1",
     "@types/mdast": "^4.0.1",
-    "@types/node": "^20.11.24",
-    "@types/refractor": "^3.0.3",
+    "@types/node": "^20.11.30",
+    "@types/refractor": "^3.4.1",
     "@types/set-cookie-parser": "^2.4.7",
     "estree-util-value-to-estree": "3.0.1",
     "github-slugger": "2.0.0",
     "hast-util-heading-rank": "2.1.1",
     "hast-util-to-string": "2.0.0",
     "kleur": "4.1.5",
-    "marked": "^12.0.0",
+    "marked": "^12.0.1",
     "mdast-util-mdx": "^3.0.0",
     "refractor": "4.8.1",
     "rehype-autolink-headings": "7.1.0",
@@ -36,11 +36,11 @@
     "remark-gfm": "4.0.0",
     "set-cookie-parser": "^2.6.0",
     "tsm": "^2.3.0",
-    "typescript": "5.3.3",
+    "typescript": "5.4.2",
     "unified": "11.0.4",
     "unist-util-visit": "5.0.0",
     "uvu": "0.5.6",
-    "yaml": "^2.4.0"
+    "yaml": "^2.4.1"
   },
   "engines": {
     "node": ">=16.8.0 <18.0.0 || >=18.11"
@@ -130,7 +130,7 @@
       "require": "./lib/service-worker.cjs"
     }
   },
-  "homepage": "https://qwik.builder.io/",
+  "homepage": "https://qwik.dev/",
   "license": "MIT",
   "main": "./lib/index.qwik.mjs",
   "private": true,

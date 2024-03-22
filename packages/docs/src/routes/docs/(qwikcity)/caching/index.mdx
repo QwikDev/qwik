@@ -48,7 +48,7 @@ With the above setup we will not only have better performance (pages are always 
 
 ## `cacheControl`
 
-Any method that takes a [request event](https://qwik.builder.io/docs/advanced/request-handling/#request-event) can call `request.cacheControl` to set the cache control headers for the response:
+Any method that takes a [request event](https://qwik.dev/docs/advanced/request-handling/#request-event) can call `request.cacheControl` to set the cache control headers for the response:
 
 ```tsx title="src/routes/layout.tsx"
 import type { RequestHandler } from "@builder.io/qwik-city";
@@ -80,7 +80,7 @@ export const onGet: RequestHandler = async ({ cacheControl }) => {
 
 ```
 
-You can see the full [API reference](https://qwik.builder.io/api/qwik-city-middleware-request-handler/) of options you can pass to `request.cacheControl`.
+You can see the full [API reference](https://qwik.dev/api/qwik-city-middleware-request-handler/) of options you can pass to `request.cacheControl`.
 
 ## When not to cache
 

@@ -188,7 +188,7 @@ export async function resolveContext(docsData: any[]) {
           .slice(8, -1)
           .filter((a) => !a.startsWith('('))
           .join('/');
-        const docsURL = `https://qwik.builder.io/${parts}/`;
+        const docsURL = `https://qwik.dev/${parts}/`;
         docsLines.push('FROM (' + docsURL + '):\n');
         docsLines.push(...lines);
         docsLines.push('');

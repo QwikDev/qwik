@@ -197,10 +197,10 @@ export const routeLoaderQrl = ((
       if (!(id in state)) {
         throw new Error(`routeLoader$ "${loaderQrl.getSymbol()}" was invoked in a route where it was not declared.
     This is because the routeLoader$ was not exported in a 'layout.tsx' or 'index.tsx' file of the existing route.
-    For more information check: https://qwik.builder.io/qwikcity/route-loader/
+    For more information check: https://qwik.dev/qwikcity/route-loader/
 
     If your are managing reusable logic or a library it is essential that this function is re-exported from within 'layout.tsx' or 'index.tsx file of the existing route otherwise it will not run or throw exception.
-    For more information check: https://qwik.builder.io/docs/cookbook/re-exporting-loaders/`);
+    For more information check: https://qwik.dev/docs/cookbook/re-exporting-loaders/`);
       }
       return _wrapSignal(state, id);
     });

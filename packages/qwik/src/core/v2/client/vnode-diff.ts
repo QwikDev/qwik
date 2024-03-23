@@ -419,6 +419,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       if (isPromise(jsxNode)) {
         return jsxNode.then((jsxNode) => {
           diff(jsxNode, vHostNode);
+          // TODO(hack): for some reason the journal is not applied if there is a signal with a promise
           vnode_applyJournal(container.$journal$);
           return drainAsyncQueue();
         });

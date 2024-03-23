@@ -320,59 +320,59 @@ Error.stackTraceLimit = 100;
         </Component>
       );
       await trigger(container.element, 'button#second', 'click');
-      // expect(vNode).toMatchVDOM(
-      //   <Component>
-      //     <Fragment>
-      //       <Component>
-      //         <div>
-      //           {''}
-      //           <p>
-      //             {'isShow value: '}
-      //             <Signal>{'false'}</Signal>
-      //           </p>
-      //           <button id="first">Toggle</button>
-      //         </div>
-      //       </Component>
-      //       <Component>
-      //         <div>
-      //           {''}
-      //           <p>
-      //             {'isShow value: '}
-      //             <Signal>{'false'}</Signal>
-      //           </p>
-      //           <button id="second">Toggle</button>
-      //         </div>
-      //       </Component>
-      //     </Fragment>
-      //   </Component>
-      // );
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <Component>
+              <div>
+                {''}
+                <p>
+                  {'isShow value: '}
+                  <Signal>{'false'}</Signal>
+                </p>
+                <button id="first">Toggle</button>
+              </div>
+            </Component>
+            <Component>
+              <div>
+                {''}
+                <p>
+                  {'isShow value: '}
+                  <Signal>{'false'}</Signal>
+                </p>
+                <button id="second">Toggle</button>
+              </div>
+            </Component>
+          </Fragment>
+        </Component>
+      );
       await trigger(container.element, 'button#first', 'click');
-      // expect(vNode).toMatchVDOM(
-      //   <Component>
-      //     <Fragment>
-      //       <Component>
-      //         <div>
-      //           <span>Hi, this doesn't work...</span>
-      //           <p>
-      //             {'isShow value: '}
-      //             <Signal>{'true'}</Signal>
-      //           </p>
-      //           <button id="first">Toggle</button>
-      //         </div>
-      //       </Component>
-      //       <Component>
-      //         <div>
-      //           {''}
-      //           <p>
-      //             {'isShow value: '}
-      //             <Signal>{'false'}</Signal>
-      //           </p>
-      //           <button id="second">Toggle</button>
-      //         </div>
-      //       </Component>
-      //     </Fragment>
-      //   </Component>
-      // );
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <Component>
+              <div>
+                <span>Hi, this doesn't work...</span>
+                <p>
+                  {'isShow value: '}
+                  <Signal>{'true'}</Signal>
+                </p>
+                <button id="first">Toggle</button>
+              </div>
+            </Component>
+            <Component>
+              <div>
+                {''}
+                <p>
+                  {'isShow value: '}
+                  <Signal>{'false'}</Signal>
+                </p>
+                <button id="second">Toggle</button>
+              </div>
+            </Component>
+          </Fragment>
+        </Component>
+      );
     });
   });
 });

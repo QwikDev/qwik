@@ -142,3 +142,53 @@ export const head: DocumentHead = ({ head }) => {
   };
 };
 ```
+
+### Head `script` export and Google Structured Data
+```tsx {8} /head/ title="src/routes/about/index.tsx"
+import { component$ } from '@builder.io/qwik';
+import type { DocumentHead } from '@builder.io/qwik-city';
+
+export default component$(() => {
+  return <h1>About page</h1>;
+});
+
+export const head: DocumentHead = {
+  scripts: [
+    {
+      props: {
+        type: "application/ld+json",
+      },
+      script: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+      }),
+    },
+  ],
+};
+```
+The example above sets some [Structured Data Markup](https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data?hl=en).
+
+> **Note**: You need to change `router-head` to render `head.scripts`.
+
+```tsx {8} /head/ title="src\components\router-head\router-head.tsx"
+import { component$ } from "@builder.io/qwik";
+import { useDocumentHead, useLocation } from "@builder.io/qwik-city";
+
+export const RouterHead = component$(() => {
+  const head = useDocumentHead();
+  const loc = useLocation();
+
+  return (
+    <>
+      <title>{head.title}</title>
+
+      {/* add this  */}
+      {head.scripts.map((s) => (
+        <script key={s.key} {...s.props} dangerouslySetInnerHTML={s.script} />
+      ))}
+    </>
+  );
+});
+
+```
+

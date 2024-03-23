@@ -2,17 +2,17 @@ import {
   Fragment as Component,
   Fragment,
   Fragment as Projection,
+  Fragment as Signal,
 } from '@builder.io/qwik/jsx-runtime';
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
 import { component$ } from '../component/component.public';
-import { inlinedQrl } from '../qrl/qrl';
 import { createContextId, useContext, useContextProvider } from '../use/use-context';
-import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { useSignal } from '../use/use-signal';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
 import { Slot } from '../render/jsx/slot.public';
+import { $ } from '../qrl/qrl.public';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -24,40 +24,36 @@ Error.stackTraceLimit = 100;
   describe(render.name + 'useContext', () => {
     it('should provide and retrieve a context', async () => {
       const contextId = createContextId<{ value: string }>('myTest');
-      const Provider = component$(() => {
-        useContextProvider(contextId, { value: 'CONTEXT_VALUE' });
-        return <Consumer />;
-      });
       const Consumer = component$(() => {
         const ctxValue = useContext(contextId);
         return <span>{ctxValue.value}</span>;
+      });
+      const Provider = component$(() => {
+        useContextProvider(contextId, { value: 'CONTEXT_VALUE' });
+        return <Consumer />;
       });
 
       const { vNode } = await render(<Provider />, { debug });
       expect(vNode).toMatchVDOM(
         <Component>
           <Component>
-            <span>CONTEXT_VALUE</span>
+            <span>
+              <Signal>CONTEXT_VALUE</Signal>
+            </span>
           </Component>
         </Component>
       );
     });
     it('should provide and retrieve a context on client change', async () => {
       const contextId = createContextId<{ value: string }>('myTest');
-      const Provider = component$(() => {
-        useContextProvider(contextId, { value: 'CONTEXT_VALUE' });
-        const show = useSignal(false);
-        return show.value ? (
-          <Consumer />
-        ) : (
-          <button
-            onClick$={inlinedQrl(() => (useLexicalScope()[0].value = true), 's_click', [show])}
-          />
-        );
-      });
       const Consumer = component$(() => {
         const ctxValue = useContext(contextId);
         return <span>{ctxValue.value}</span>;
+      });
+      const Provider = component$(() => {
+        useContextProvider(contextId, { value: 'CONTEXT_VALUE' });
+        const show = useSignal(false);
+        return show.value ? <Consumer /> : <button onClick$={() => (show.value = true)} />;
       });
 
       const { vNode, document } = await render(<Provider />, { debug });
@@ -65,7 +61,9 @@ Error.stackTraceLimit = 100;
       expect(vNode).toMatchVDOM(
         <Component>
           <Component>
-            <span>CONTEXT_VALUE</span>
+            <span>
+              <Signal>CONTEXT_VALUE</Signal>
+            </span>
           </Component>
         </Component>
       );
@@ -97,18 +95,7 @@ Error.stackTraceLimit = 100;
             <p>{props.val}</p>
             <p>{c(count.value)}</p>
             <p>{count.value}</p>
-            <button
-              onClick$={inlinedQrl(
-                () => {
-                  const [count] = useLexicalScope();
-                  count.value++;
-                },
-                's_onClick',
-                [count]
-              )}
-            >
-              Increment
-            </button>
+            <button onClick$={() => count.value++}>Increment</button>
           </>
         );
       });
@@ -183,14 +170,7 @@ Error.stackTraceLimit = 100;
           <div>
             <button
               id="issue-5270-button"
-              onClick$={inlinedQrl(
-                () => {
-                  const [projectSlot] = useLexicalScope();
-                  projectSlot.value = !projectSlot.value;
-                },
-                's_click',
-                [projectSlot]
-              )}
+              onClick$={() => (projectSlot.value = !projectSlot.value)}
             >
               toggle
             </button>
@@ -235,7 +215,7 @@ Error.stackTraceLimit = 100;
                 <Component>
                   <div id="issue-5270-div">
                     {'Ctx: '}
-                    {'hello'}
+                    <Signal>{'hello'}</Signal>
                   </div>
                 </Component>
               </Projection>

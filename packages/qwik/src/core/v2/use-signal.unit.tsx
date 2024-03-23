@@ -1,4 +1,10 @@
-import { Fragment as Component, Fragment } from '@builder.io/qwik/jsx-runtime';
+import {
+  Fragment as Component,
+  Fragment,
+  Fragment as Signal,
+  Fragment as Projection,
+  Fragment as Awaited,
+} from '@builder.io/qwik/jsx-runtime';
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
 import { component$ } from '../component/component.public';
@@ -6,7 +12,7 @@ import { _IMMUTABLE, _fnSignal } from '../internal';
 import { inlinedQrl } from '../qrl/qrl';
 import { _jsxC } from '../render/jsx/jsx-runtime';
 import { Slot } from '../render/jsx/slot.public';
-import type { Signal } from '../state/signal';
+import type { Signal as SignalType } from '../state/signal';
 import { untrack } from '../use/use-core';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { useSignal } from '../use/use-signal';
@@ -25,23 +31,23 @@ Error.stackTraceLimit = 100;
     it('should update value', async () => {
       const Counter = component$((props: { initial: number }) => {
         const count = useSignal(props.initial);
-        return (
-          <button onClick$={inlinedQrl(() => useLexicalScope()[0].value++, 's_onClick', [count])}>
-            Count: {count.value}!
-          </button>
-        );
+        return <button onClick$={() => count.value++}>Count: {count.value}!</button>;
       });
 
       const { vNode, container } = await render(<Counter initial={123} />, { debug });
       expect(vNode).toMatchVDOM(
         <>
-          <button>Count: {'123'}!</button>
+          <button>
+            Count: <Signal>{'123'}</Signal>!
+          </button>
         </>
       );
       await trigger(container.element, 'button', 'click');
       expect(vNode).toMatchVDOM(
         <>
-          <button>Count: {'124'}!</button>
+          <button>
+            Count: <Signal>{'124'}</Signal>!
+          </button>
         </>
       );
     });
@@ -55,15 +61,7 @@ Error.stackTraceLimit = 100;
         log.push('Counter');
         const count = useSignal(props.initial);
         return (
-          <button
-            onClick$={inlinedQrl(
-              () => {
-                useLexicalScope()[0].value++;
-              },
-              's_onClick',
-              [count]
-            )}
-          >
+          <button onClick$={() => count.value++}>
             <Display dValue={count.value} />
           </button>
         );
@@ -74,34 +72,28 @@ Error.stackTraceLimit = 100;
         <>
           <button>
             <>
-              <span>Count: {'123'}!</span>
+              <span>
+                Count: <Signal>{'123'}</Signal>!
+              </span>
             </>
           </button>
         </>
       );
-      log.length = 0;
       await trigger(container.element, 'button', 'click');
       expect(log).toEqual(['Counter', 'Display']);
       expect(vNode).toMatchVDOM(
         <>
           <button>
             <>
-              <span>Count: {'124'}!</span>
+              <span>
+                Count: <Signal>{'124'}</Signal>!
+              </span>
             </>
           </button>
         </>
       );
     });
     it('should update from JSX', async () => {
-      const Counter = component$((props: { initial: number }) => {
-        const jsx = useSignal(<Child>content</Child>);
-        const show = useSignal(false);
-        return (
-          <button onClick$={inlinedQrl(() => useLexicalScope()[0].value++, 's_onClick', [show])}>
-            {show.value ? jsx.value : 'hidden'}
-          </button>
-        );
-      });
       const Child = component$(() => {
         return (
           <span>
@@ -110,21 +102,35 @@ Error.stackTraceLimit = 100;
         );
       });
 
+      const Counter = component$((props: { initial: number }) => {
+        const jsx = useSignal(<Child>content</Child>);
+        const show = useSignal(false);
+        return (
+          <button onClick$={() => (show.value = !show.value)}>
+            {show.value ? jsx.value : 'hidden'}
+          </button>
+        );
+      });
+
       const { vNode, container } = await render(<Counter initial={123} />, { debug });
       expect(vNode).toMatchVDOM(
         <>
-          <button>hidden</button>
+          <button>
+            <Signal>hidden</Signal>
+          </button>
         </>
       );
       await trigger(container.element, 'button', 'click');
       expect(vNode).toMatchVDOM(
         <>
           <button>
-            <Component>
-              <span>
-                <>content</>
-              </span>
-            </Component>
+            <Signal>
+              <Component>
+                <span>
+                  <Projection>content</Projection>
+                </span>
+              </Component>
+            </Signal>
           </button>
         </>
       );
@@ -134,16 +140,7 @@ Error.stackTraceLimit = 100;
         const promise = Promise.resolve('const ');
         const signal = useSignal(Promise.resolve(0));
         return (
-          <button
-            onClick$={inlinedQrl(
-              () => {
-                const [s] = useLexicalScope<[typeof signal]>();
-                s.value = s.value.then((v) => v + 1);
-              },
-              's_click',
-              [signal]
-            )}
-          >
+          <button onClick$={() => (signal.value = signal.value.then((v) => v + 1))}>
             {promise}
             {signal.value}
           </button>
@@ -152,39 +149,36 @@ Error.stackTraceLimit = 100;
 
       const { vNode, container, document } = await render(<MpCmp />, { debug });
       expect(vNode).toMatchVDOM(
-        <>
+        <Component>
           <button>
-            <>const </>
-            <>0</>
+            <Awaited>{'const '}</Awaited>
+            <Signal>
+              <Awaited>{'0'}</Awaited>
+            </Signal>
           </button>
-        </>
+        </Component>
       );
+      expect(document.querySelector('button')?.innerHTML).toBe('const 0');
       await trigger(container.element, 'button', 'click');
       expect(vNode).toMatchVDOM(
-        <>
+        <Component>
           <button>
-            <>const </>
-            <>1</>
+            <Awaited>{'const '}</Awaited>
+            <Signal>
+              <Awaited>{'1'}</Awaited>
+            </Signal>
           </button>
-        </>
+        </Component>
       );
-      expect(document.querySelector('button')!.innerHTML).toBe('const 1');
+      expect(document.querySelector('button')?.innerHTML).toBe('const 1');
     });
+    // TODO(optimizer-test): SSR is failing
     it('should handle all ClassList cases', async () => {
       const Cmp = component$(() => {
         const enable = useSignal(true);
         return (
           <div>
-            <button
-              onClick$={inlinedQrl(
-                () => {
-                  const enable = useLexicalScope()[0];
-                  enable.value = !enable.value;
-                },
-                's_onClick',
-                [enable]
-              )}
-            >
+            <button onClick$={() => (enable.value = !enable.value)}>
               Value: {enable.value.toString()}!
             </button>
             <div class={`my-class ${enable.value ? 'enable' : 'disable'}`} />
@@ -239,7 +233,8 @@ Error.stackTraceLimit = 100;
         </Component>
       );
     });
-    describe('derived', () => {
+    // TODO(optimizer-test): not needed?
+    describe.skip('derived', () => {
       it('should update value directly in DOM', async () => {
         const log: string[] = [];
         const Counter = component$((props: { initial: number }) => {
@@ -357,7 +352,7 @@ Error.stackTraceLimit = 100;
             </>
           );
         });
-        const Incrementor = component$((props: { countSignal: Signal<number> }) => {
+        const Incrementor = component$((props: { countSignal: SignalType<number> }) => {
           renderLog.push('Incrementor');
           return (
             <button

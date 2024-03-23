@@ -489,11 +489,20 @@ export class LocalSubscriptionManager {
           }
         } else {
           const signal = sub[SubscriptionProp.SIGNAL];
-          scheduler.$scheduleNodeDiff$(
-            host as fixMeAny,
-            sub[SubscriptionProp.ELEMENT] as fixMeAny,
-            untrack(() => signal.value)
-          );
+          if (type == SubscriptionType.PROP_IMMUTABLE || type == SubscriptionType.PROP_MUTABLE) {
+            scheduler.$scheduleNodeProp$(
+              host as fixMeAny,
+              sub[SubscriptionProp.ELEMENT] as fixMeAny,
+              sub[SubscriptionProp.ELEMENT_PROP],
+              signal
+            );
+          } else {
+            scheduler.$scheduleNodeDiff$(
+              host as fixMeAny,
+              sub[SubscriptionProp.ELEMENT] as fixMeAny,
+              untrack(() => signal.value)
+            );
+          }
         }
       } else {
         notifyChange(sub, this.$containerState$);

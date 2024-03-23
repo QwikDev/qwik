@@ -118,11 +118,6 @@ interface ContainerElementFrame {
   vNodeData: VNodeData;
 }
 
-interface StyleData {
-  content: string;
-  scoped: boolean;
-}
-
 const EMPTY_OBJ = {};
 
 class SSRContainer extends _SharedContainer implements ISSRContainer {
@@ -138,7 +133,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private lastNode: ISsrNode | null = null;
   private currentComponentNode: ISsrNode | null = null;
   private styleIds = new Set<string>();
-  private headStyles = new Map<string, StyleData>();
+  private headStyles = new Map<string, string>();
 
   private currentElementFrame: ContainerElementFrame | null = null;
 
@@ -414,15 +409,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (!this.styleIds.has(styleId)) {
       this.styleIds.add(styleId);
       if (this.currentElementFrame?.elementName === 'html') {
-        this.headStyles.set(styleId, {
-          content,
-          scoped,
-        });
+        this.headStyles.set(styleId, content);
       } else {
-        this._styleNode(styleId, {
-          content,
-          scoped,
-        });
+        this._styleNode(styleId, content);
       }
     }
   }
@@ -435,9 +424,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.emitQwikLoaderAtTopIfNeeded();
   }
 
-  private _styleNode(styleId: string, value: StyleData) {
-    this.openElement('style', [QStyle, value.scoped ? styleId : '']);
-    this.textNode(value.content);
+  private _styleNode(styleId: string, content: string) {
+    this.openElement('style', [QStyle, styleId]);
+    this.textNode(content);
     this.closeElement();
   }
 

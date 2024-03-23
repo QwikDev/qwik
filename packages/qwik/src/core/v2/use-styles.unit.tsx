@@ -1,9 +1,8 @@
-import { Fragment as Component } from '@builder.io/qwik/jsx-runtime';
-import { describe, expect, it } from 'vitest';
+import { Fragment as Component, Fragment as Signal } from '@builder.io/qwik/jsx-runtime';
+import { afterEach, describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
 import { component$ } from '../component/component.public';
 import { inlinedQrl } from '../qrl/qrl';
-import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { useSignal } from '../use/use-signal';
 import { useStylesQrl } from '../use/use-styles';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
@@ -22,18 +21,26 @@ Error.stackTraceLimit = 100;
   domRender, //
 ].forEach((render) => {
   describe(render.name + ': useStyles', () => {
+    afterEach(() => {
+      (globalThis as any).rawStyleId = undefined;
+      (globalThis as any).rawStyleId1 = undefined;
+      (globalThis as any).rawStyleId2 = undefined;
+    });
+
     const STYLE_RED = `.container {background-color: red;}`;
     const STYLE_BLUE = `.container {background-color: blue;}`;
 
     it('should render style', async () => {
+      (globalThis as any).rawStyleId = '';
       const StyledComponent = component$(() => {
-        useStylesQrl(inlinedQrl(STYLE_RED, 's_styles'));
+        const styleData = useStylesQrl(inlinedQrl(STYLE_RED, 's_styles'));
+        (globalThis as any).rawStyleId = styleData.styleId;
         return <div class="container">Hello world</div>;
       });
 
       const { vNode, getStyles } = await render(<StyledComponent />, { debug });
       expect(getStyles()).toEqual({
-        '': STYLE_RED,
+        [(globalThis as any).rawStyleId]: STYLE_RED,
       });
       expect(vNode).toMatchVDOM(
         <>
@@ -43,14 +50,13 @@ Error.stackTraceLimit = 100;
     });
 
     it('should move style to <head> on rerender', async () => {
+      (globalThis as any).rawStyleId = '';
       const StyledComponent = component$(() => {
-        useStylesQrl(inlinedQrl(STYLE_RED, 's_styles'));
+        const styleData = useStylesQrl(inlinedQrl(STYLE_RED, 's_styles'));
+        (globalThis as any).rawStyleId = styleData.styleId;
         const count = useSignal(0);
         return (
-          <button
-            class="container"
-            onClick$={inlinedQrl(() => useLexicalScope()[0].value++, 's_onClick', [count])}
-          >
+          <button class="container" onClick$={() => count.value++}>
             {count.value}
           </button>
         );
@@ -60,29 +66,32 @@ Error.stackTraceLimit = 100;
       await trigger(container.element, 'button', 'click');
       expect(vNode).toMatchVDOM(
         <>
-          <button class="container">1</button>
+          <button class="container">
+            <Signal>1</Signal>
+          </button>
         </>
       );
       const style = container.document.querySelector(QStyleSelector);
-      expect(style?.outerHTML).toEqual(`<style q:style="">${STYLE_RED}</style>`);
+      expect(style?.outerHTML).toEqual(
+        `<style q:style="${(globalThis as any).rawStyleId}">${STYLE_RED}</style>`
+      );
     });
 
     it('should save styles when JSX deleted', async () => {
+      (globalThis as any).rawStyleId = '';
+      const StyledComponent = component$(() => {
+        const styleData = useStylesQrl(inlinedQrl(STYLE_RED, 's_styles'));
+        (globalThis as any).rawStyleId = styleData.styleId;
+        return <div>Hello world</div>;
+      });
+
       const Parent = component$(() => {
         const show = useSignal(true);
         return (
-          <div
-            class="parent"
-            onClick$={inlinedQrl(() => (useLexicalScope()[0].value = false), 's_onClick', [show])}
-          >
+          <div class="parent" onClick$={() => (show.value = false)}>
             {show.value && <StyledComponent />}
           </div>
         );
-      });
-
-      const StyledComponent = component$(() => {
-        useStylesQrl(inlinedQrl(STYLE_RED, 's_styles'));
-        return <div>Hello world</div>;
       });
 
       const { vNode, container } = await render(<Parent />, { debug });
@@ -93,7 +102,9 @@ Error.stackTraceLimit = 100;
         </Component>
       );
       const style = container.document.querySelector(QStyleSelector);
-      expect(style?.outerHTML).toEqual(`<style q:style="">${STYLE_RED}</style>`);
+      expect(style?.outerHTML).toEqual(
+        `<style q:style="${(globalThis as any).rawStyleId}">${STYLE_RED}</style>`
+      );
     });
 
     it('style node should contain q:style attribute', async () => {
@@ -108,12 +119,16 @@ Error.stackTraceLimit = 100;
     });
 
     it('should render styles for multiple components', async () => {
+      (globalThis as any).rawStyleId1 = '';
+      (globalThis as any).rawStyleId2 = '';
       const StyledComponent1 = component$(() => {
-        useStylesQrl(inlinedQrl(STYLE_RED, 's_styles1'));
+        const styleData = useStylesQrl(inlinedQrl(STYLE_RED, 's_styles1'));
+        (globalThis as any).rawStyleId1 = styleData.styleId;
         return <div class="container">Hello world 1</div>;
       });
       const StyledComponent2 = component$(() => {
-        useStylesQrl(inlinedQrl(STYLE_BLUE, 's_styles2'));
+        const styleData = useStylesQrl(inlinedQrl(STYLE_BLUE, 's_styles2'));
+        (globalThis as any).rawStyleId2 = styleData.styleId;
         return <div class="container">Hello world 2</div>;
       });
       const Parent = component$(() => {
@@ -127,7 +142,8 @@ Error.stackTraceLimit = 100;
       const { vNode, getStyles } = await render(<Parent />, { debug });
 
       expect(getStyles()).toEqual({
-        '': [STYLE_RED, STYLE_BLUE],
+        [(globalThis as any).rawStyleId1]: STYLE_RED,
+        [(globalThis as any).rawStyleId2]: STYLE_BLUE,
       });
       expect(vNode).toMatchVDOM(
         <>
@@ -155,10 +171,7 @@ Error.stackTraceLimit = 100;
       const Parent = component$(() => {
         const show = useSignal(true);
         return (
-          <div
-            class="parent"
-            onClick$={inlinedQrl(() => (useLexicalScope()[0].value = false), 's_onClick', [show])}
-          >
+          <div class="parent" onClick$={() => (show.value = false)}>
             {show.value && <StyledComponent1 />}
             <StyledComponent2 />
           </div>

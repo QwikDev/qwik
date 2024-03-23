@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
-import { component$, useSignal, useStore, useComputed$ } from '@builder.io/qwik';
+import {
+  component$,
+  useSignal,
+  useStore,
+  useComputed$,
+  Fragment as Signal,
+} from '@builder.io/qwik';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
 
@@ -17,7 +23,7 @@ Error.stackTraceLimit = 100;
         const count = useSignal(props.initial);
         const doubleCount = useComputed$(() => count.value * 2);
         return (
-          <button onClick$={() => count.value++}>
+          <button onClick$={() => count.value++} id={count.value.toString()}>
             Double count: {doubleCount.value}! {count.value}
           </button>
         );
@@ -26,16 +32,16 @@ Error.stackTraceLimit = 100;
       const { vNode, container } = await render(<DoubleCounter initial={123} />, { debug });
       expect(vNode).toMatchVDOM(
         <>
-          <button>
-            Double count: {'246'}! {'123'}
+          <button id="123">
+            Double count: <Signal>{'246'}</Signal>! <Signal>{'123'}</Signal>
           </button>
         </>
       );
       await trigger(container.element, 'button', 'click');
       expect(vNode).toMatchVDOM(
         <>
-          <button>
-            Double count: {'248'}! {'124'}
+          <button id="124">
+            Double count: <Signal>{'248'}</Signal>! <Signal>{'124'}</Signal>
           </button>
         </>
       );
@@ -54,23 +60,27 @@ Error.stackTraceLimit = 100;
       const { vNode, container } = await render(<QuadrupleCounter initial={123} />, { debug });
       expect(vNode).toMatchVDOM(
         <>
-          <button>Double count: {'492'}!</button>
+          <button>
+            Double count: <Signal>{'492'}</Signal>!
+          </button>
         </>
       );
       await trigger(container.element, 'button', 'click');
       expect(vNode).toMatchVDOM(
         <>
-          <button>Double count: {'496'}!</button>
+          <button>
+            Double count: <Signal>{'496'}</Signal>!
+          </button>
         </>
       );
     });
 
     it('should not rerun if there are no signal dependencies', async () => {
-      globalThis.runCount = 0;
+      (globalThis as any).runCount = 0;
       const DoubleCounter = component$((props: { initial: number }) => {
         const count = props.initial;
         const doubleCount = useComputed$(() => {
-          globalThis.runCount++;
+          (globalThis as any).runCount++;
           return count * 2;
         });
         return (
@@ -81,25 +91,29 @@ Error.stackTraceLimit = 100;
       const { vNode, container } = await render(<DoubleCounter initial={123} />, { debug });
       expect(vNode).toMatchVDOM(
         <>
-          <button>Double count: {'246'}!</button>
+          <button>
+            Double count: <Signal>{'246'}</Signal>!
+          </button>
         </>
       );
-      expect(globalThis.runCount).toBe(1);
+      expect((globalThis as any).runCount).toBe(1);
       await trigger(container.element, 'button', 'click');
       expect(vNode).toMatchVDOM(
         <>
-          <button>Double count: {'246'}!</button>
+          <button>
+            Double count: <Signal>{'246'}</Signal>!
+          </button>
         </>
       );
-      expect(globalThis.runCount).toBe(1);
+      expect((globalThis as any).runCount).toBe(1);
     });
 
     it('should not rerun if value did not change', async () => {
-      globalThis.runCount = 0;
+      (globalThis as any).runCount = 0;
       const DoubleCounter = component$(() => {
         const count = useSignal(1);
         const doubleCount = useComputed$(() => {
-          globalThis.runCount++;
+          (globalThis as any).runCount++;
           return count.value * 2;
         });
         return (
@@ -110,17 +124,21 @@ Error.stackTraceLimit = 100;
       const { vNode, container } = await render(<DoubleCounter />, { debug });
       expect(vNode).toMatchVDOM(
         <>
-          <button>Double count: {'2'}!</button>
+          <button>
+            Double count: <Signal>{'2'}</Signal>!
+          </button>
         </>
       );
-      expect(globalThis.runCount).toBe(1);
+      expect((globalThis as any).runCount).toBe(1);
       await trigger(container.element, 'button', 'click');
       expect(vNode).toMatchVDOM(
         <>
-          <button>Double count: {'2'}!</button>
+          <button>
+            Double count: <Signal>{'2'}</Signal>!
+          </button>
         </>
       );
-      expect(globalThis.runCount).toBe(1);
+      expect((globalThis as any).runCount).toBe(1);
     });
 
     it('should allow return signal inside computed', async () => {
@@ -133,13 +151,17 @@ Error.stackTraceLimit = 100;
       const { vNode, container } = await render(<Counter />, { debug });
       expect(vNode).toMatchVDOM(
         <>
-          <button>Count: {'1'}!</button>
+          <button>
+            Count: <Signal>{'1'}</Signal>!
+          </button>
         </>
       );
       await trigger(container.element, 'button', 'click');
       expect(vNode).toMatchVDOM(
         <>
-          <button>Count: {'2'}!</button>
+          <button>
+            Count: <Signal>{'2'}</Signal>!
+          </button>
         </>
       );
     });

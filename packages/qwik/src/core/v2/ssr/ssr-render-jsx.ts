@@ -2,7 +2,7 @@ import { isDev } from '@builder.io/qwik/build';
 import { isQwikComponent } from '../../component/component.public';
 import { isQrl } from '../../qrl/qrl-class';
 import type { QRL } from '../../qrl/qrl.public';
-import { serializeClass } from '../../render/execute-component';
+import { serializeClass, stringifyStyle } from '../../render/execute-component';
 import { Fragment } from '../../render/jsx/jsx-runtime';
 import { Slot } from '../../render/jsx/slot.public';
 import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
@@ -25,6 +25,7 @@ import { qrlToString, type SerializationContext } from '../shared/shared-seriali
 import { DEBUG_TYPE, VirtualType, type fixMeAny } from '../shared/types';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
 import type { SSRContainer, SsrAttrs } from './ssr-types';
+import { SsrNode } from 'packages/qwik/src/server/v2-node';
 
 type StackFn = () => ValueOrPromise<void>;
 type StackValue = JSXOutput | StackFn | Promise<JSXOutput> | typeof Promise;
@@ -129,8 +130,8 @@ function processJSXNode(
       if (typeof type === 'string') {
         ssr.openElement(
           type,
-          toSsrAttrs(jsx.props, ssr.serializationCtx),
-          toSsrAttrs(jsx.immutableProps, ssr.serializationCtx)
+          toSsrAttrs(jsx.props, ssr, false),
+          toSsrAttrs(jsx.immutableProps, ssr, true)
         );
         enqueue(ssr.closeElement);
         if (type === 'head') {
@@ -196,52 +197,84 @@ function processJSXNode(
 
 export function toSsrAttrs(
   record: Record<string, unknown>,
-  serializationCtx: SerializationContext
+  ssrContainer: SSRContainer,
+  isImmutable: boolean
 ): SsrAttrs;
 export function toSsrAttrs(
   record: Record<string, unknown> | null | undefined,
-  serializationCtx: SerializationContext
+  ssrContainer: SSRContainer,
+  isImmutable: boolean
 ): SsrAttrs | null;
 export function toSsrAttrs(
   record: Record<string, unknown> | null | undefined,
-  serializationCtx: SerializationContext
+  ssrContainer: SSRContainer,
+  isImmutable: boolean
 ): SsrAttrs | null {
   if (record == null) {
     return null;
   }
+  const { serializationCtx } = ssrContainer;
   const ssrAttrs: SsrAttrs = [];
   for (const key in record) {
-    if (Object.prototype.hasOwnProperty.call(record, key)) {
-      if (isJsxPropertyAnEventName(key)) {
-        let value: string | null = null;
-        const qrls = record[key];
-        if (Array.isArray(qrls)) {
-          for (let i = 0; i <= qrls.length; i++) {
-            const qrl: unknown = qrls[i];
-            if (isQrl(qrl)) {
-              const first = i === 0;
-              value = (first ? '' : value + '\n') + qrlToString(serializationCtx, qrl);
-              addQwikEventToSerializationContext(serializationCtx, key, qrl);
-            }
-          }
-        } else if (isQrl(qrls)) {
-          value = qrlToString(serializationCtx, qrls);
-          addQwikEventToSerializationContext(serializationCtx, key, qrls);
-        }
-        if (isJsxPropertyAnEventName(key)) {
-          value && ssrAttrs.push(convertEventNameFromJsxPropToHtmlAttr(key), value);
-        }
-      } else {
-        if (key !== 'children') {
-          const value = isClassAttr(key)
-            ? serializeClass(record[key] as ClassList)
-            : String(record[key]);
-          ssrAttrs.push(key, value);
-        }
+    if (key === 'children') {
+      continue;
+    }
+    let value = record[key];
+    if (isJsxPropertyAnEventName(key)) {
+      const eventValue = setEvent(serializationCtx, key, value);
+      if (eventValue) {
+        ssrAttrs.push(convertEventNameFromJsxPropToHtmlAttr(key), eventValue);
       }
+      continue;
+    }
+
+    if (isSignal(value)) {
+      const signalNode = ssrContainer.getLastNode();
+      // TODO(hack): last node is previous node, not current,
+      // because we are creating this node now and don't have it yet
+      signalNode.id = String((ssrContainer as any).depthFirstElementCount + 1);
+
+      value = trackSignal(value, [
+        isImmutable ? SubscriptionType.PROP_IMMUTABLE : SubscriptionType.PROP_MUTABLE,
+        signalNode as fixMeAny,
+        value,
+        signalNode as fixMeAny,
+        key,
+      ]);
+    }
+
+    if (isClassAttr(key)) {
+      ssrAttrs.push(key, serializeClass(value as ClassList));
+    } else if (key === 'style') {
+      ssrAttrs.push(key, stringifyStyle(value));
+    } else {
+      ssrAttrs.push(key, String(value));
     }
   }
   return ssrAttrs;
+}
+
+function setEvent(serializationCtx: SerializationContext, key: string, rawValue: unknown) {
+  let value: string | null = null;
+  const qrls = rawValue;
+  if (Array.isArray(qrls)) {
+    for (let i = 0; i <= qrls.length; i++) {
+      const qrl: unknown = qrls[i];
+      if (isQrl(qrl)) {
+        const first = i === 0;
+        value = (first ? '' : value + '\n') + qrlToString(serializationCtx, qrl);
+        addQwikEventToSerializationContext(serializationCtx, key, qrl);
+      }
+    }
+  } else if (isQrl(qrls)) {
+    value = qrlToString(serializationCtx, qrls);
+    addQwikEventToSerializationContext(serializationCtx, key, qrls);
+  }
+
+  if (isJsxPropertyAnEventName(key)) {
+    return value;
+  }
+  return null;
 }
 
 function addQwikEventToSerializationContext(

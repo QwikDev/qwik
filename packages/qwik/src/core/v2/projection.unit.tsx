@@ -5,6 +5,7 @@ import {
   Fragment as Component,
   Fragment as InlineComponent,
   Fragment as Projection,
+  Fragment as Signal,
   Fragment,
 } from '../render/jsx/jsx-runtime';
 import { Slot } from '../render/jsx/slot.public';
@@ -282,9 +283,6 @@ const debug = false;
       );
     });
     it('should project Slot inside inline-component', async () => {
-      const Parent = component$(() => {
-        return <Child>child-content</Child>;
-      });
       const Child = (props: { children: any }) => {
         return (
           <span>
@@ -292,6 +290,9 @@ const debug = false;
           </span>
         );
       };
+      const Parent = component$(() => {
+        return <Child>child-content</Child>;
+      });
       const { vNode } = await render(<Parent>parent-content</Parent>, { debug });
       expect(vNode).toMatchVDOM(
         <Component>
@@ -362,7 +363,9 @@ const debug = false;
             <div class="parent">
               <Component>
                 <span class="child">
-                  <Projection>child-content</Projection>
+                  <Projection>
+                    <Signal>child-content</Signal>
+                  </Projection>
                 </span>
               </Component>
             </div>
@@ -392,7 +395,9 @@ const debug = false;
             <div class="parent">
               <Component>
                 <span class="child">
-                  <Projection>child-content</Projection>
+                  <Projection>
+                    <Signal>child-content</Signal>
+                  </Projection>
                 </span>
               </Component>
             </div>
@@ -446,7 +451,9 @@ const debug = false;
             <div class="parent">
               <Component>
                 <span class="child">
-                  <Projection>{''}</Projection>
+                  <Projection>
+                    <Signal>{''}</Signal>
+                  </Projection>
                 </span>
               </Component>
             </div>
@@ -459,7 +466,9 @@ const debug = false;
             <div class="parent">
               <Component>
                 <span class="child">
-                  <Projection>{'child-content'}</Projection>
+                  <Projection>
+                    <Signal>{'child-content'}</Signal>
+                  </Projection>
                 </span>
               </Component>
             </div>
@@ -487,7 +496,9 @@ const debug = false;
             <div class="parent">
               <Component>
                 <span class="child">
-                  <Projection>{'child-content'}</Projection>
+                  <Projection>
+                    <Signal>child-content</Signal>
+                  </Projection>
                 </span>
               </Component>
             </div>

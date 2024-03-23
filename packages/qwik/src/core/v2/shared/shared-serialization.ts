@@ -16,7 +16,7 @@ import {
   type Subscriber,
 } from '../../state/common';
 import { QObjectManagerSymbol, _IMMUTABLE } from '../../state/constants';
-import { SignalDerived, SignalImpl, type Signal } from '../../state/signal';
+import { SignalDerived, SignalImpl, type Signal, SignalWrapper } from '../../state/signal';
 import { Store, getOrCreateProxy } from '../../state/store';
 import { Task, type ResourceReturnInternal } from '../../use/use-task';
 import { throwErrorAndStop } from '../../util/log';
@@ -847,7 +847,7 @@ function serialize(serializationContext: SerializationContext): void {
       const out = btoa(buf).replace(/=+$/, '');
       writeString(SerializationConstant.Uint8Array_CHAR + out);
     } else {
-      throw new Error('implement: ' + value);
+      throw new Error('implement: ' + JSON.stringify(value));
     }
   };
 
@@ -894,8 +894,10 @@ function serialize(serializationContext: SerializationContext): void {
             writeString('null');
           } else if (propValue instanceof SignalDerived) {
             writeString(serializeSignalDerived(serializationContext, propValue, $addRoot$));
+          } else if (propValue instanceof SignalWrapper) {
+            throw new Error('Signal wrapper not implemented!');
           } else {
-            throw new Error();
+            throw new Error('Not implemented: ' + propValue);
           }
           delimiter = true;
         } else if (Object.prototype.hasOwnProperty.call(value, key)) {
@@ -918,6 +920,10 @@ function serializeSignalDerived(
   value: SignalDerived<any, any>,
   $addRoot$: (obj: unknown) => number
 ) {
+  // TODO(hack): if value is an object then we need to wrap this in ()
+  if (value.$funcStr$ && value.$funcStr$[0] === '{') {
+    value.$funcStr$ = `(${value.$funcStr$})`;
+  }
   const syncFnId = serializationContext.$addSyncFn$(value.$funcStr$!, value.$args$.length);
   const args = value.$args$.map($addRoot$).join(' ');
   return SerializationConstant.DerivedSignal_CHAR + syncFnId + (args.length ? ' ' + args : '');

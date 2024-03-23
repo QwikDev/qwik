@@ -219,28 +219,13 @@ export function toSsrAttrs(
     if (key === 'children') {
       continue;
     }
-    let value = record[key];
+    const value = record[key];
     if (isJsxPropertyAnEventName(key)) {
       const eventValue = setEvent(serializationCtx, key, value);
       if (eventValue) {
         ssrAttrs.push(convertEventNameFromJsxPropToHtmlAttr(key), eventValue);
       }
       continue;
-    }
-
-    if (isSignal(value)) {
-      const signalNode = ssrContainer.getLastNode();
-      // TODO(hack): last node is previous node, not current,
-      // because we are creating this node now and don't have it yet
-      signalNode.id = String((ssrContainer as any).depthFirstElementCount + 1);
-
-      value = trackSignal(value, [
-        isImmutable ? SubscriptionType.PROP_IMMUTABLE : SubscriptionType.PROP_MUTABLE,
-        signalNode as fixMeAny,
-        value,
-        signalNode as fixMeAny,
-        key,
-      ]);
     }
 
     if (isClassAttr(key)) {

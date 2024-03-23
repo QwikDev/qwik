@@ -37,6 +37,7 @@ Error.stackTraceLimit = 100;
           </button>
         </>
       );
+      expect(container.document.querySelector('button[id=123]')).toBeTruthy();
       await trigger(container.element, 'button', 'click');
       expect(vNode).toMatchVDOM(
         <>
@@ -45,6 +46,7 @@ Error.stackTraceLimit = 100;
           </button>
         </>
       );
+      expect(container.document.querySelector('button[id=124]')).toBeTruthy();
     });
 
     it('should update value based on another computed', async () => {

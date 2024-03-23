@@ -76,7 +76,6 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
     $scheduleTask$: scheduleTask,
     $scheduleComputed$: scheduleComputed,
     $scheduleNodeDiff$: scheduleNodeDiff,
-    $scheduleNodeProp$: scheduleNodeProp,
     $scheduleCleanup$: scheduleCleanup,
     $scheduleComponent$: scheduleComponent,
     $schedule$: schedule,
@@ -107,16 +106,6 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
     return api;
   }
 
-  function scheduleNodeProp(
-    host: HostElement,
-    element: HostElement,
-    prop: string,
-    signal: Signal<any>
-  ) {
-    schedule(ChoreType.NODE_PROP, host, element as fixMeAny, 0, { prop, signal });
-    return api;
-  }
-
   function scheduleCleanup(task: Task) {
     schedule(ChoreType.CLEANUP, task.$el$ as fixMeAny, task.$qrl$ as fixMeAny, task.$index$, task);
     return api;
@@ -144,13 +133,6 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
     target: HostElement,
     idx: 0,
     value: any
-  ): void;
-  function schedule(
-    type: ChoreType.NODE_PROP,
-    host: HostElement,
-    element: HostElement,
-    idx: 0,
-    data: NodePropPayload
   ): void;
   function schedule(
     type: ChoreType.CLEANUP,
@@ -300,20 +282,6 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
         const parentVirtualNode = chore.$target$ as VirtualVNode;
         const jsx = chore.$payload$ as JSXOutput;
         vnode_diff(container as fixMeAny, jsx, parentVirtualNode);
-        break;
-      }
-      case ChoreType.NODE_PROP: {
-        const target = chore.$target$ as VirtualVNode;
-        const data = chore.$payload$ as NodePropPayload;
-        const prop = data.prop;
-        let value = data.signal.value;
-        if (prop === 'class') {
-          value = serializeClassWithHost2(value, host as fixMeAny);
-        } else if (prop === 'style') {
-          value = stringifyStyle(value);
-        }
-
-        vnode_setAttr((container as ClientContainer).$journal$, target, prop, value);
         break;
       }
       case ChoreType.CLEANUP: {

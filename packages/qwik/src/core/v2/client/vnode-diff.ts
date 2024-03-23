@@ -26,7 +26,7 @@ import {
   QSlotParent,
   QStyle,
 } from '../../util/markers';
-import { isPromise } from '../../util/promises';
+import { isPromise, maybeThen } from '../../util/promises';
 import { type ValueOrPromise } from '../../util/types';
 import { executeComponent2 } from '../shared/component-execution';
 import {
@@ -493,6 +493,15 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
             vnode_setProp(vNewNode, IMMUTABLE_PREFIX + ':' + scope + ':' + eventName, value);
             needsQDispatchEventPatch = true;
             continue;
+          }
+          if (isSignal(value)) {
+            value = trackSignal(value, [
+              SubscriptionType.PROP_IMMUTABLE,
+              vNewNode as fixMeAny,
+              value,
+              vNewNode as fixMeAny,
+              key,
+            ]);
           }
 
           if (isClassAttr(key)) {

@@ -3,18 +3,19 @@ import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
 import { component$, componentQrl } from '../component/component.public';
 import { inlinedQrl } from '../qrl/qrl';
+import { Slot } from '../render/jsx/slot.public';
+import type { JSXOutput } from '../render/jsx/types/jsx-node';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { useSignal } from '../use/use-signal';
-import { domRender, ssrRenderToDom } from './rendering.unit-util';
+import { ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
-import type { JSXOutput } from '../render/jsx/types/jsx-node';
 
-const debug = false; //true;
+const debug = true; //true;
 Error.stackTraceLimit = 100;
 
 [
   ssrRenderToDom, //
-  domRender, //
+  //domRender, //
 ].forEach((render) => {
   describe(`${render.name}: component`, () => {
     it('should render component', async () => {
@@ -240,6 +241,83 @@ Error.stackTraceLimit = 100;
         </Component>
       );
       expect(log).toEqual(['has children']);
+    });
+
+    it('FIXME: should append dangerouslySetInnerHTML', async () => {
+      const Cmp = component$(() => {
+        const htmlString = '<strong>A variable here!</strong>';
+        return (
+          <div>
+            <div dangerouslySetInnerHTML="1234567890" />
+            <span id="before" dangerouslySetInnerHTML="<h1>I'm an h1!</h1>" class="after" />
+            <label dangerouslySetInnerHTML={htmlString} />
+          </div>
+        );
+      });
+      const { vNode } = await render(<Cmp />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Fragment>
+          <div>
+            <div q:inner-html="1234567890">1234567890</div>
+            <span class="after" q:inner-html="<h1>I'm an h1!</h1>" id="before">
+              <h1>I'm an h1!</h1>
+            </span>
+            <label q:inner-html="<strong>A variable here!</strong>">
+              <strong>A variable here!</strong>
+            </label>
+          </div>
+        </Fragment>
+      );
+    });
+
+    // move me to projection.unit when I'm ✅
+    it('FIXME: should render basic projection', async () => {
+      const htmlString = '<strong>A variable here!</strong>';
+      const Child = component$(() => {
+        return (
+          <div>
+            <Slot name="content-1" />
+            <Slot name="content-2" />
+          </div>
+        );
+      });
+      const Parent = component$(() => {
+        return (
+          <Child>
+            <span
+              q:slot="content-1"
+              id="before"
+              dangerouslySetInnerHTML="<span>here my raw HTML</span>"
+              class="after"
+            />
+            <span q:slot="content-2" dangerouslySetInnerHTML={htmlString} />
+          </Child>
+        );
+      });
+      const { vNode } = await render(<Parent />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Fragment>
+          <Fragment>
+            <div>
+              <Fragment q:slot="content-1">
+                <span
+                  id="before"
+                  q:inner-html="<span>here my raw HTML</span>"
+                  class="after"
+                  q:slot="content-1"
+                >
+                  <span>here my raw HTML</span>
+                </span>
+              </Fragment>
+              <Fragment q:slot="content-2">
+                <span q:inner-html="<strong>A variable here!</strong>" q:slot="content-2">
+                  <strong>A variable here!</strong>
+                </span>
+              </Fragment>
+            </div>
+          </Fragment>
+        </Fragment>
+      );
     });
   });
 

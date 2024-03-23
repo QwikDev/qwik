@@ -3,6 +3,7 @@ import { _SharedContainer, _walkJSX } from '@builder.io/qwik';
 import { isDev } from '@builder.io/qwik/build';
 import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
 import { getQwikLoaderScript } from '@builder.io/qwik/server';
+import type { SymbolToChunkResolver } from '../core/v2/ssr/ssr-types';
 import { applyPrefetchImplementation2 } from './prefetch-implementation';
 import { getPrefetchResources } from './prefetch-strategy';
 import {
@@ -28,16 +29,16 @@ import {
 } from './qwik-copy';
 import type {
   ContextId,
+  HostElement,
+  SSRContainer as ISSRContainer,
+  ISsrComponentFrame,
   ISsrNode,
   JSXChildren,
   JSXOutput,
   SerializationContext,
-  ValueOrPromise,
-  HostElement,
-  SSRContainer as ISSRContainer,
-  ISsrComponentFrame,
   SsrAttrs,
   StreamWriter,
+  ValueOrPromise,
 } from './qwik-types';
 import { Q_FUNCS_PREFIX } from './render';
 import type { PrefetchResource, RenderOptions, RenderToStreamResult } from './types';
@@ -56,7 +57,6 @@ import {
   vNodeData_openFragment,
   type VNodeData,
 } from './v2-vnode-data';
-import type { SymbolToChunkResolver } from '../core/v2/ssr/ssr-types';
 
 export function ssrCreateContainer(
   opts: {
@@ -380,6 +380,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
     this.write(lastIdx === 0 ? text : text.substring(lastIdx));
     vNodeData_addTextSize(this.currentElementFrame!.vNodeData, text.length);
+    this.lastNode = null;
+  }
+
+  htmlNode(rawHtml: string) {
+    this.write(rawHtml);
+    vNodeData_addTextSize(this.currentElementFrame!.vNodeData, rawHtml.length);
     this.lastNode = null;
   }
 

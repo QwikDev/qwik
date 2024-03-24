@@ -25,15 +25,11 @@ import type { QRL } from '../qrl/qrl.public';
 import { ELEMENT_PROPS, OnRenderProp } from '../util/markers';
 import { JSX_LOCAL } from '../v2/shared/component-execution';
 import { untrack } from '../use/use-core';
-import {
-  ElementVNodeProps,
-  type ClientContainer,
-  type VirtualVNode,
-  type VNode,
-} from '../v2/client/types';
+import { ElementVNodeProps, type VirtualVNode, type VNode } from '../v2/client/types';
 import { serializeClassWithHost2, stringifyStyle } from '../render/execute-component';
-import { type VNodeJournal, vnode_setAttr, VNodeJournalOpCode } from '../v2/client/vnode';
+import { vnode_setAttr, VNodeJournalOpCode } from '../v2/client/vnode';
 import type { ClassList } from '../render/jsx/types/jsx-qwik-attributes';
+import type { DomContainer } from '../v2/client/dom-container';
 
 /**
  * Top level manager of subscriptions (singleton, attached to DOM Container).
@@ -502,7 +498,7 @@ export class LocalSubscriptionManager {
             const target = sub[SubscriptionProp.ELEMENT] as fixMeAny as VirtualVNode;
             const propKey = sub[SubscriptionProp.ELEMENT_PROP];
             updateNodeProp(
-              (this.$containerState$ as fixMeAny as ClientContainer).$journal$,
+              this.$containerState$ as fixMeAny as DomContainer,
               host as fixMeAny as HostElement,
               target,
               propKey,
@@ -525,7 +521,7 @@ export class LocalSubscriptionManager {
 }
 
 function updateNodeProp(
-  journal: VNodeJournal,
+  container: DomContainer,
   host: HostElement,
   target: VNode,
   propKey: string,
@@ -539,12 +535,13 @@ function updateNodeProp(
     value = stringifyStyle(value);
   }
   if (!immutable) {
-    vnode_setAttr(journal, target, propKey, value);
+    vnode_setAttr(container.$journal$, target, propKey, value);
   } else {
     // the immutable attr/prop should not be saved into vnode props, so just push to the journal
     const element = target[ElementVNodeProps.element] as Element;
-    journal.push(VNodeJournalOpCode.SetAttribute, element, propKey, value);
+    container.$journal$.push(VNodeJournalOpCode.SetAttribute, element, propKey, value);
   }
+  container.scheduleRender();
 }
 
 let __lastSubscription: Subscriptions | undefined;

@@ -38,7 +38,6 @@ import {
 import { addPrefixForScopedStyleIdsString, isClassAttr } from '../shared/scoped-styles';
 import type { QElement2, fixMeAny } from '../shared/types';
 import { DEBUG_TYPE, VirtualType } from '../shared/types';
-import type { SsrAttrKey, SsrAttrs } from '../ssr/ssr-types';
 import type { DomContainer } from './dom-container';
 import {
   ElementVNodeProps,
@@ -49,6 +48,8 @@ import {
   type TextVNode,
   type VNode,
   type VirtualVNode,
+  type ClientAttrs,
+  type ClientAttrKey,
 } from './types';
 import {
   mapApp_findIndx,
@@ -540,19 +541,19 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       needsQDispatchEventPatch = createNewElement(jsx, tag);
     }
     // reconcile attributes
-    let jsxAttrs = (jsx as unknown as { attrs: SsrAttrs }).attrs;
+    let jsxAttrs = (jsx as unknown as { attrs: ClientAttrs }).attrs;
     if (jsxAttrs === EMPTY_ARRAY) {
       const props = jsx.props;
       for (const key in props) {
         if (jsxAttrs === EMPTY_ARRAY) {
-          jsxAttrs = (jsx as unknown as { attrs: SsrAttrs }).attrs = [];
+          jsxAttrs = (jsx as unknown as { attrs: ClientAttrs }).attrs = [];
         }
         mapArray_set(jsxAttrs, key, props[key], 0);
       }
       const jsxKey = jsx.key;
       if (jsxKey !== null) {
         if (jsxAttrs === EMPTY_ARRAY) {
-          jsxAttrs = (jsx as unknown as { attrs: SsrAttrs }).attrs = [ELEMENT_KEY, jsxKey];
+          jsxAttrs = (jsx as unknown as { attrs: ClientAttrs }).attrs = [ELEMENT_KEY, jsxKey];
         } else {
           mapArray_set(jsxAttrs, ELEMENT_KEY, jsxKey, 0);
         }
@@ -593,15 +594,15 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
   }
 
   /** @param tag Returns true if `qDispatchEvent` needs patching */
-  function setBulkProps(vnode: ElementVNode, srcAttrs: SsrAttrs): boolean {
+  function setBulkProps(vnode: ElementVNode, srcAttrs: ClientAttrs): boolean {
     vnode_ensureElementInflated(vnode);
-    const dstAttrs = vnode as SsrAttrs;
+    const dstAttrs = vnode as ClientAttrs;
     let srcIdx = 0;
     const srcLength = srcAttrs.length;
     let dstIdx = ElementVNodeProps.PROPS_OFFSET;
     let dstLength = dstAttrs.length;
-    let srcKey = srcIdx < srcLength ? (srcAttrs[srcIdx++] as SsrAttrKey) : null;
-    let dstKey = dstIdx < dstLength ? (dstAttrs[dstIdx++] as SsrAttrKey) : null;
+    let srcKey: ClientAttrKey | null = srcIdx < srcLength ? srcAttrs[srcIdx++] : null;
+    let dstKey: ClientAttrKey | null = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
     let patchEventDispatch = false;
 
     const record = (key: string, value: any) => {
@@ -627,7 +628,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
         // This is a special key which we use to mark the event handlers as immutable.
         // we need to ignore them.
         dstIdx++; // skip the destination value, we don't care about it.
-        dstKey = dstIdx < dstLength ? (dstAttrs[dstIdx++] as SsrAttrKey) : null;
+        dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       } else if (srcKey == null) {
         // Source has more keys, so we need to remove them from destination
         if (dstKey && isHtmlAttributeAnEventName(dstKey)) {
@@ -636,7 +637,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
           record(dstKey!, null);
         }
         dstIdx++; // skip the destination value, we don't care about it.
-        dstKey = dstIdx < dstLength ? (dstAttrs[dstIdx++] as SsrAttrKey) : null;
+        dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       } else if (dstKey == null) {
         // Destination has more keys, so we need to insert them from source.
         const isEvent = isJsxPropertyAnEventName(srcKey);
@@ -650,15 +651,15 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
           record(srcKey!, srcAttrs[srcIdx]);
         }
         srcIdx++;
-        srcKey = srcIdx < srcLength ? (srcAttrs[srcIdx++] as SsrAttrKey) : null;
+        srcKey = srcIdx < srcLength ? srcAttrs[srcIdx++] : null;
       } else if (srcKey == dstKey) {
         const srcValue = srcAttrs[srcIdx++];
         const dstValue = dstAttrs[dstIdx++];
         if (srcValue !== dstValue) {
           record(dstKey, srcValue);
         }
-        srcKey = srcIdx < srcLength ? (srcAttrs[srcIdx++] as SsrAttrKey) : null;
-        dstKey = dstIdx < dstLength ? (dstAttrs[dstIdx++] as SsrAttrKey) : null;
+        srcKey = srcIdx < srcLength ? srcAttrs[srcIdx++] : null;
+        dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       } else if (srcKey < dstKey) {
         // Destination is missing the key, so we need to insert it.
         if (isJsxPropertyAnEventName(srcKey)) {
@@ -672,7 +673,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
         }
         srcIdx++;
         // advance srcValue
-        srcKey = srcIdx < srcLength ? (srcAttrs[srcIdx++] as SsrAttrKey) : null;
+        srcKey = srcIdx < srcLength ? srcAttrs[srcIdx++] : null;
       } else {
         // Source is missing the key, so we need to remove it from destination.
         if (isHtmlAttributeAnEventName(dstKey)) {
@@ -681,7 +682,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
           record(dstKey!, null);
         }
         dstIdx++; // skip the destination value, we don't care about it.
-        dstKey = dstIdx < dstLength ? (dstAttrs[dstIdx++] as SsrAttrKey) : null;
+        dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       }
     }
     return patchEventDispatch;

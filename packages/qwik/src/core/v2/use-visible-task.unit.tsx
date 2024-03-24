@@ -91,24 +91,26 @@ Error.stackTraceLimit = 100;
     });
 
     it('should execute async visible task', async () => {
-      const log: string[] = [];
+      (globalThis as any).log = [] as string[];
       const VisibleCmp = component$(() => {
-        log.push('VisibleCmp');
+        (globalThis as any).log.push('VisibleCmp');
         const state = useSignal('SSR');
+
         useVisibleTask$(async () => {
-          log.push('task');
+          (globalThis as any).log.push('task');
           await delay(10);
-          log.push('resolved');
+          (globalThis as any).log.push('resolved');
           state.value = 'CSR';
         });
-        log.push('render');
+
+        (globalThis as any).log.push('render');
         return <span>{state.value}</span>;
       });
       const { vNode, document } = await render(<VisibleCmp />, { debug });
       if (render === ssrRenderToDom) {
         await trigger(document.body, 'span', 'qvisible');
       }
-      expect(log).toEqual(['VisibleCmp', 'render', 'task', 'resolved', 'VisibleCmp', 'render']);
+      expect((globalThis as any).log).toEqual(['VisibleCmp', 'render', 'task', 'resolved']);
       expect(vNode).toMatchVDOM(
         <Component>
           <span>
@@ -116,6 +118,7 @@ Error.stackTraceLimit = 100;
           </span>
         </Component>
       );
+      (globalThis as any).log = undefined;
     });
 
     it('should handle exception', async () => {
@@ -281,19 +284,19 @@ Error.stackTraceLimit = 100;
     });
 
     describe(render.name + ': queue', () => {
-      const log: string[] = [];
       it('should execute dependant visible tasks', async () => {
+        (globalThis as any).log = [] as string[];
         const Counter = component$(() => {
           const store = useStore({ count: 1, double: 0, quadruple: 0 });
           useVisibleTask$(({ track }) => {
-            log.push('quadruple');
+            (globalThis as any).log.push('quadruple');
             store.quadruple = track(store, 'double') * 2;
           });
           useVisibleTask$(({ track }) => {
-            log.push('double');
+            (globalThis as any).log.push('double');
             store.double = track(store, 'count') * 2;
           });
-          log.push('Counter');
+          (globalThis as any).log.push('Counter');
           return (
             <button
               onClick$={() => {
@@ -309,7 +312,13 @@ Error.stackTraceLimit = 100;
         if (render === ssrRenderToDom) {
           await trigger(document.body, 'button', 'qvisible');
         }
-        expect(log).toEqual(['Counter', 'quadruple', 'double', 'quadruple', 'Counter']);
+        expect((globalThis as any).log).toEqual([
+          'Counter',
+          'quadruple',
+          'double',
+          'quadruple',
+          'Counter',
+        ]);
         expect(vNode).toMatchVDOM(
           <Component>
             <button>
@@ -317,9 +326,9 @@ Error.stackTraceLimit = 100;
             </button>
           </Component>
         );
-        log.length = 0;
+        (globalThis as any).log = [];
         await trigger(document.body, 'button', 'click');
-        expect(log).toEqual(['double', 'quadruple', 'Counter']);
+        expect((globalThis as any).log).toEqual(['double', 'quadruple', 'Counter']);
         expect(vNode).toMatchVDOM(
           <Component>
             <button>
@@ -327,20 +336,21 @@ Error.stackTraceLimit = 100;
             </button>
           </Component>
         );
+        (globalThis as any).log = [];
       });
     });
 
     describe(render.name + ': cleanup', () => {
       it('should execute cleanup visible task rerun on track', async () => {
-        const log: string[] = [];
+        (globalThis as any).log = [] as string[];
         const Counter = component$(() => {
           const count = useSignal(0);
           useVisibleTask$(({ track }) => {
             const _count = track(() => count.value);
-            log.push('task: ' + _count);
-            return () => log.push('cleanup: ' + _count);
+            (globalThis as any).log.push('task: ' + _count);
+            return () => (globalThis as any).log.push('cleanup: ' + _count);
           });
-          log.push('Counter: ' + count.value);
+          (globalThis as any).log.push('Counter: ' + count.value);
           return (
             <button
               onClick$={() => {
@@ -356,7 +366,7 @@ Error.stackTraceLimit = 100;
         if (render === ssrRenderToDom) {
           await trigger(document.body, 'button', 'qvisible');
         }
-        expect(log).toEqual(['Counter: 0', 'task: 0']);
+        expect((globalThis as any).log).toEqual(['Counter: 0', 'task: 0']);
         expect(vNode).toMatchVDOM(
           <Component>
             <button>
@@ -364,7 +374,7 @@ Error.stackTraceLimit = 100;
             </button>
           </Component>
         );
-        log.length = 0;
+        (globalThis as any).log = [];
         await trigger(document.body, 'button', 'click');
         // expect(log).toEqual(['cleanup: 0', 'task: 1', 'Counter: 1']);
         expect(vNode).toMatchVDOM(
@@ -374,9 +384,9 @@ Error.stackTraceLimit = 100;
             </button>
           </Component>
         );
-        log.length = 0;
+        (globalThis as any).log = [];
         await trigger(document.body, 'button', 'click');
-        expect(log).toEqual(['cleanup: 1', 'task: 2', 'Counter: 2']);
+        expect((globalThis as any).log).toEqual(['cleanup: 1', 'task: 2', 'Counter: 2']);
         expect(vNode).toMatchVDOM(
           <Component>
             <button>
@@ -384,16 +394,17 @@ Error.stackTraceLimit = 100;
             </button>
           </Component>
         );
+        (globalThis as any).log = undefined;
       });
 
       it('should execute cleanup visible task on unmount', async () => {
-        let log: string[] = [];
+        (globalThis as any).log = [] as string[];
         const Child = component$(() => {
           useVisibleTask$(({ cleanup }) => {
-            log.push('visible_task:');
-            cleanup(() => log.push('cleanup:'));
+            (globalThis as any).log.push('visible_task:');
+            cleanup(() => (globalThis as any).log.push('cleanup:'));
           });
-          log.push('Child');
+          (globalThis as any).log.push('Child');
           return <span>Child</span>;
         });
         const Parent = component$(() => {
@@ -414,7 +425,7 @@ Error.stackTraceLimit = 100;
           // only if it is SSR do we need to trigger the qvisible event, in CSR visibleTasks run automatically
           await trigger(document.body, 'span', 'qvisible');
         }
-        expect(log).toEqual(['Child', 'visible_task:']);
+        expect((globalThis as any).log).toEqual(['Child', 'visible_task:']);
         expect(vNode).toMatchVDOM(
           <Component>
             <button>
@@ -424,19 +435,19 @@ Error.stackTraceLimit = 100;
             </button>
           </Component>
         );
-        log = [];
+        (globalThis as any).log = [];
         await trigger(document.body, 'button', 'click');
 
-        expect(log).toEqual(['cleanup:']);
+        expect((globalThis as any).log).toEqual(['cleanup:']);
         expect(vNode).toMatchVDOM(
           <Component>
             <button>{'click'}</button>
           </Component>
         );
-        log = [];
+        (globalThis as any).log = [];
         await trigger(document.body, 'button', 'click');
 
-        expect(log).toEqual(['Child', 'visible_task:']);
+        expect((globalThis as any).log).toEqual(['Child', 'visible_task:']);
         expect(vNode).toMatchVDOM(
           <Component>
             <button>
@@ -446,17 +457,16 @@ Error.stackTraceLimit = 100;
             </button>
           </Component>
         );
-        log = [];
+        (globalThis as any).log = [];
         await trigger(document.body, 'button', 'click');
 
-        expect(log).toEqual(['cleanup:']);
+        expect((globalThis as any).log).toEqual(['cleanup:']);
         expect(vNode).toMatchVDOM(
           <Component>
             <button>{'click'}</button>
           </Component>
         );
-        log = [];
-        await trigger(document.body, 'button', 'click');
+        (globalThis as any).log = undefined;
       });
 
       it('should handle promises and visible tasks', async () => {

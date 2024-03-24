@@ -7,15 +7,15 @@ import { Slot } from '../render/jsx/slot.public';
 import type { JSXOutput } from '../render/jsx/types/jsx-node';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { useSignal } from '../use/use-signal';
-import { ssrRenderToDom } from './rendering.unit-util';
+import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
 
-const debug = true; //true;
+const debug = false; //true;
 Error.stackTraceLimit = 100;
 
 [
   ssrRenderToDom, //
-  //domRender, //
+  domRender, //
 ].forEach((render) => {
   describe(`${render.name}: component`, () => {
     it('should render component', async () => {
@@ -258,11 +258,11 @@ Error.stackTraceLimit = 100;
       expect(vNode).toMatchVDOM(
         <Fragment>
           <div>
-            <div q:inner-html="1234567890">1234567890</div>
-            <span class="after" q:inner-html="<h1>I'm an h1!</h1>" id="before">
+            <div dangerouslySetInnerHTML="1234567890">1234567890</div>
+            <span class="after" dangerouslySetInnerHTML="<h1>I'm an h1!</h1>" id="before">
               <h1>I'm an h1!</h1>
             </span>
-            <label q:inner-html="<strong>A variable here!</strong>">
+            <label dangerouslySetInnerHTML="<strong>A variable here!</strong>">
               <strong>A variable here!</strong>
             </label>
           </div>

@@ -383,12 +383,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.lastNode = null;
   }
 
-  htmlNode(rawHtml: string) {
-    this.write(rawHtml);
-    vNodeData_addTextSize(this.currentElementFrame!.vNodeData, rawHtml.length);
-    this.lastNode = null;
-  }
-
   addRoot(obj: unknown): number {
     return this.serializationCtx.$addRoot$(obj);
   }

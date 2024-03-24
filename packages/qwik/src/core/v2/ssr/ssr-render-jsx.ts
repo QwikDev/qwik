@@ -2,7 +2,7 @@ import { isDev } from '@builder.io/qwik/build';
 import { isQwikComponent } from '../../component/component.public';
 import { isQrl } from '../../qrl/qrl-class';
 import type { QRL } from '../../qrl/qrl.public';
-import { dangerouslySetInnerHTML, serializeClass } from '../../render/execute-component';
+import { serializeClass } from '../../render/execute-component';
 import { Fragment } from '../../render/jsx/jsx-runtime';
 import { Slot } from '../../render/jsx/slot.public';
 import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
@@ -132,10 +132,6 @@ function processJSXNode(
           toSsrAttrs(jsx.props, ssr.serializationCtx),
           toSsrAttrs(jsx.immutableProps, ssr.serializationCtx)
         );
-        const rawHTML = jsx.props[dangerouslySetInnerHTML];
-        if (rawHTML) {
-          ssr.htmlNode(rawHTML as string);
-        }
         enqueue(ssr.closeElement);
         if (type === 'head') {
           enqueue(ssr.$appendHeadNodes$);
@@ -240,7 +236,7 @@ export function toSsrAttrs(
           const value = isClassAttr(key)
             ? serializeClass(record[key] as ClassList)
             : String(record[key]);
-          ssrAttrs.push(key === dangerouslySetInnerHTML ? 'q:inner-html' : key, value);
+          ssrAttrs.push(key, value);
         }
       }
     }

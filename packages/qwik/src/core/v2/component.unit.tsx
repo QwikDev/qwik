@@ -241,6 +241,193 @@ Error.stackTraceLimit = 100;
       );
       expect(log).toEqual(['has children']);
     });
+
+    describe('svg', () => {
+      it('should render svg', async () => {
+        const SvgComp = component$(() => {
+          return (
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+              <feGaussianBlur></feGaussianBlur>
+              <circle cx="50" cy="50" r="50" />
+            </svg>
+          );
+        });
+        const { vNode, container } = await render(<SvgComp />, { debug });
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+              <feGaussianBlur></feGaussianBlur>
+              <circle cx="50" cy="50" r="50" />
+            </svg>
+          </Component>
+        );
+        expect(container.document.body.innerHTML.toLowerCase()).toContain(
+          '<svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><fegaussianblur></fegaussianblur><circle cx="50" cy="50" r="50"></circle></svg>'
+        );
+      });
+      it('should write attributes to svg', async () => {
+        const SvgComp = component$((props: { cx: string; cy: string }) => {
+          return (
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+              <circle {...props} r="50" />
+            </svg>
+          );
+        });
+        const { vNode, container } = await render(<SvgComp cx="10" cy="10" />, { debug });
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="10" cy="10" r="50" />
+            </svg>
+          </Component>
+        );
+        expect(container.document.body.innerHTML.toLowerCase()).toContain(
+          '<svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="50"></circle></svg>'
+        );
+      });
+      it('should rerender svg', async () => {
+        const SvgComp = component$((props: { cx: string; cy: string }) => {
+          return (
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+              <circle cx={props.cx} cy={props.cy} r="50" />
+            </svg>
+          );
+        });
+        const Parent = component$(() => {
+          const show = useSignal(false);
+          return (
+            <button
+              onClick$={inlinedQrl(
+                () => {
+                  const [show] = useLexicalScope();
+                  show.value = !show.value;
+                },
+                's_click',
+                [show]
+              )}
+            >
+              {show.value && <SvgComp cx="10" cy="10" />}
+            </button>
+          );
+        });
+        const { vNode, container } = await render(<Parent />, { debug });
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <button>{''}</button>
+          </Component>
+        );
+
+        expect(container.document.body.innerHTML.toLowerCase()).not.toContain(
+          '<svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">'
+        );
+        await trigger(container.element, 'button', 'click');
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <button>
+              <Component>
+                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="10" cy="10" r="50" />
+                </svg>
+              </Component>
+            </button>
+          </Component>
+        );
+
+        expect(container.document.body.innerHTML.toLowerCase()).toContain(
+          '<svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="50"></circle></svg>'
+        );
+
+        await trigger(container.element, 'button', 'click');
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <button>{''}</button>
+          </Component>
+        );
+
+        expect(container.document.body.innerHTML.toLowerCase()).not.toContain(
+          '<svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">'
+        );
+      });
+      it('should rerender svg child elements', async () => {
+        const SvgComp = component$((props: { child: JSXOutput }) => {
+          return (
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="15" cy="15" r="50" />
+              {props.child}
+            </svg>
+          );
+        });
+        const Parent = component$(() => {
+          const show = useSignal(false);
+          return (
+            <button
+              onClick$={inlinedQrl(
+                () => {
+                  const [show] = useLexicalScope();
+                  show.value = !show.value;
+                },
+                's_click',
+                [show]
+              )}
+            >
+              <SvgComp
+                child={show.value ? <line x1="0" y1="80" x2="100" y2="20" stroke="black" /> : <></>}
+              />
+            </button>
+          );
+        });
+        const { vNode, container } = await render(<Parent />, { debug });
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <button>
+              <Component>
+                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="15" cy="15" r="50"></circle>
+                  <Fragment></Fragment>
+                </svg>
+              </Component>
+            </button>
+          </Component>
+        );
+        expect(container.document.body.innerHTML.toLowerCase()).toContain(
+          '<svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="15" cy="15" r="50"></circle></svg>'
+        );
+
+        await trigger(container.element, 'button', 'click');
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <button>
+              <Component>
+                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="15" cy="15" r="50"></circle>
+                  <line x1="0" y1="80" x2="100" y2="20" stroke="black"></line>
+                </svg>
+              </Component>
+            </button>
+          </Component>
+        );
+        expect(container.document.body.innerHTML.toLowerCase()).toContain(
+          '<svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="15" cy="15" r="50"></circle><line stroke="black" x1="0" x2="100" y1="80" y2="20"></line></svg>'
+        );
+
+        await trigger(container.element, 'button', 'click');
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <button>
+              <Component>
+                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="15" cy="15" r="50"></circle>
+                  <Fragment></Fragment>
+                </svg>
+              </Component>
+            </button>
+          </Component>
+        );
+        expect(container.document.body.innerHTML.toLowerCase()).toContain(
+          '<svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="15" cy="15" r="50"></circle></svg>'
+        );
+      });
+    });
   });
 
   describe(render.name + ': regression', () => {

@@ -38,6 +38,7 @@ import type {
   ISsrComponentFrame,
   SsrAttrs,
   StreamWriter,
+  SymbolToChunkResolver,
 } from './qwik-types';
 import { Q_FUNCS_PREFIX } from './render';
 import type { PrefetchResource, RenderOptions, RenderToStreamResult } from './types';
@@ -56,7 +57,6 @@ import {
   vNodeData_openFragment,
   type VNodeData,
 } from './v2-vnode-data';
-import type { SymbolToChunkResolver } from '../core/v2/ssr/ssr-types';
 
 export function ssrCreateContainer(
   opts: {
@@ -789,9 +789,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private pushFrame(tag: string, depthFirstElementIdx: number, isElement: boolean) {
     let tagNesting: TagNesting = TagNesting.ANYTHING;
     if (isDev) {
-      if (tag !== tag.toLowerCase()) {
-        throw newTagError(`Tag '${tag}' must be lower case, because HTML is case insensitive.`);
-      }
       if (!this.currentElementFrame) {
         tagNesting = initialTag(tag);
       } else {

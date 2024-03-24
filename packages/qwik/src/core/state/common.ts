@@ -19,12 +19,21 @@ import { logError, throwErrorAndStop } from '../util/log';
 import { tryGetContext } from './context';
 import { QObjectFlagsSymbol, QObjectManagerSymbol, QOjectTargetSymbol } from './constants';
 import type { Signal } from './signal';
-import { isContainer2, type fixMeAny } from '../v2/shared/types';
+import { isContainer2, type fixMeAny, type HostElement } from '../v2/shared/types';
 import type { OnRenderFn } from '../component/component.public';
 import type { QRL } from '../qrl/qrl.public';
 import { ELEMENT_PROPS, OnRenderProp } from '../util/markers';
 import { JSX_LOCAL } from '../v2/shared/component-execution';
 import { untrack } from '../use/use-core';
+import {
+  ElementVNodeProps,
+  type ClientContainer,
+  type VirtualVNode,
+  type VNode,
+} from '../v2/client/types';
+import { serializeClassWithHost2, stringifyStyle } from '../render/execute-component';
+import { type VNodeJournal, vnode_setAttr, VNodeJournalOpCode } from '../v2/client/vnode';
+import type { ClassList } from '../render/jsx/types/jsx-qwik-attributes';
 
 /**
  * Top level manager of subscriptions (singleton, attached to DOM Container).
@@ -490,11 +499,15 @@ export class LocalSubscriptionManager {
         } else {
           const signal = sub[SubscriptionProp.SIGNAL];
           if (type == SubscriptionType.PROP_IMMUTABLE || type == SubscriptionType.PROP_MUTABLE) {
-            scheduler.$scheduleNodeProp$(
-              host as fixMeAny,
-              sub[SubscriptionProp.ELEMENT] as fixMeAny,
-              sub[SubscriptionProp.ELEMENT_PROP],
-              signal
+            const target = sub[SubscriptionProp.ELEMENT] as fixMeAny as VirtualVNode;
+            const propKey = sub[SubscriptionProp.ELEMENT_PROP];
+            updateNodeProp(
+              (this.$containerState$ as fixMeAny as ClientContainer).$journal$,
+              host as fixMeAny as HostElement,
+              target,
+              propKey,
+              String(signal.value),
+              type == SubscriptionType.PROP_IMMUTABLE
             );
           } else {
             scheduler.$scheduleNodeDiff$(
@@ -508,6 +521,29 @@ export class LocalSubscriptionManager {
         notifyChange(sub, this.$containerState$);
       }
     }
+  }
+}
+
+function updateNodeProp(
+  journal: VNodeJournal,
+  host: HostElement,
+  target: VNode,
+  propKey: string,
+  propValue: string,
+  immutable: boolean
+) {
+  let value = propValue;
+  if (propKey === 'class') {
+    value = serializeClassWithHost2(value as ClassList, host as fixMeAny);
+  } else if (propKey === 'style') {
+    value = stringifyStyle(value);
+  }
+  if (!immutable) {
+    vnode_setAttr(journal, target, propKey, value);
+  } else {
+    // the immutable attr/prop should not be saved into vnode props, so just push to the journal
+    const element = target[ElementVNodeProps.element] as Element;
+    journal.push(VNodeJournalOpCode.SetAttribute, element, propKey, value);
   }
 }
 

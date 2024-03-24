@@ -26,7 +26,7 @@ import {
   QSlotParent,
   QStyle,
 } from '../../util/markers';
-import { isPromise, maybeThen } from '../../util/promises';
+import { isPromise } from '../../util/promises';
 import { type ValueOrPromise } from '../../util/types';
 import { executeComponent2 } from '../shared/component-execution';
 import {
@@ -38,7 +38,7 @@ import {
 import { addPrefixForScopedStyleIdsString, isClassAttr } from '../shared/scoped-styles';
 import type { QElement2, fixMeAny } from '../shared/types';
 import { DEBUG_TYPE, VirtualType } from '../shared/types';
-import type { SsrAttrs } from '../ssr/ssr-types';
+import type { SsrAttrKey, SsrAttrs } from '../ssr/ssr-types';
 import type { DomContainer } from './dom-container';
 import {
   ElementVNodeProps,
@@ -53,7 +53,6 @@ import {
 import {
   mapApp_findIndx,
   mapArray_set,
-  vnode_applyJournal,
   vnode_ensureElementInflated,
   vnode_getAttr,
   vnode_getElementName,
@@ -419,8 +418,6 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       if (isPromise(jsxNode)) {
         return jsxNode.then((jsxNode) => {
           diff(jsxNode, vHostNode);
-          // TODO(hack): for some reason the journal is not applied if there is a signal with a promise
-          vnode_applyJournal(container.$journal$);
           return drainAsyncQueue();
         });
       } else {
@@ -543,19 +540,19 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       needsQDispatchEventPatch = createNewElement(jsx, tag);
     }
     // reconcile attributes
-    let jsxAttrs = (jsx as any as { attrs: SsrAttrs }).attrs;
+    let jsxAttrs = (jsx as unknown as { attrs: SsrAttrs }).attrs;
     if (jsxAttrs === EMPTY_ARRAY) {
-      const props = (jsx as JSXNode).props;
+      const props = jsx.props;
       for (const key in props) {
         if (jsxAttrs === EMPTY_ARRAY) {
-          jsxAttrs = (jsx as any as { attrs: SsrAttrs }).attrs = [];
+          jsxAttrs = (jsx as unknown as { attrs: SsrAttrs }).attrs = [];
         }
         mapArray_set(jsxAttrs, key, props[key], 0);
       }
       const jsxKey = jsx.key;
       if (jsxKey !== null) {
         if (jsxAttrs === EMPTY_ARRAY) {
-          jsxAttrs = (jsx as any as { attrs: SsrAttrs }).attrs = [ELEMENT_KEY, jsxKey];
+          jsxAttrs = (jsx as unknown as { attrs: SsrAttrs }).attrs = [ELEMENT_KEY, jsxKey];
         } else {
           mapArray_set(jsxAttrs, ELEMENT_KEY, jsxKey, 0);
         }
@@ -603,8 +600,8 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     const srcLength = srcAttrs.length;
     let dstIdx = ElementVNodeProps.PROPS_OFFSET;
     let dstLength = dstAttrs.length;
-    let srcKey: string | null = srcIdx < srcLength ? srcAttrs[srcIdx++] : null;
-    let dstKey: string | null = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
+    let srcKey = srcIdx < srcLength ? (srcAttrs[srcIdx++] as SsrAttrKey) : null;
+    let dstKey = dstIdx < dstLength ? (dstAttrs[dstIdx++] as SsrAttrKey) : null;
     let patchEventDispatch = false;
 
     const record = (key: string, value: any) => {
@@ -630,7 +627,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
         // This is a special key which we use to mark the event handlers as immutable.
         // we need to ignore them.
         dstIdx++; // skip the destination value, we don't care about it.
-        dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
+        dstKey = dstIdx < dstLength ? (dstAttrs[dstIdx++] as SsrAttrKey) : null;
       } else if (srcKey == null) {
         // Source has more keys, so we need to remove them from destination
         if (dstKey && isHtmlAttributeAnEventName(dstKey)) {
@@ -639,7 +636,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
           record(dstKey!, null);
         }
         dstIdx++; // skip the destination value, we don't care about it.
-        dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
+        dstKey = dstIdx < dstLength ? (dstAttrs[dstIdx++] as SsrAttrKey) : null;
       } else if (dstKey == null) {
         // Destination has more keys, so we need to insert them from source.
         const isEvent = isJsxPropertyAnEventName(srcKey);
@@ -653,15 +650,15 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
           record(srcKey!, srcAttrs[srcIdx]);
         }
         srcIdx++;
-        srcKey = srcIdx < srcLength ? srcAttrs[srcIdx++] : null;
+        srcKey = srcIdx < srcLength ? (srcAttrs[srcIdx++] as SsrAttrKey) : null;
       } else if (srcKey == dstKey) {
         const srcValue = srcAttrs[srcIdx++];
         const dstValue = dstAttrs[dstIdx++];
         if (srcValue !== dstValue) {
           record(dstKey, srcValue);
         }
-        srcKey = srcIdx < srcLength ? srcAttrs[srcIdx++] : null;
-        dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
+        srcKey = srcIdx < srcLength ? (srcAttrs[srcIdx++] as SsrAttrKey) : null;
+        dstKey = dstIdx < dstLength ? (dstAttrs[dstIdx++] as SsrAttrKey) : null;
       } else if (srcKey < dstKey) {
         // Destination is missing the key, so we need to insert it.
         if (isJsxPropertyAnEventName(srcKey)) {
@@ -675,7 +672,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
         }
         srcIdx++;
         // advance srcValue
-        srcKey = srcIdx < srcLength ? srcAttrs[srcIdx++] : null;
+        srcKey = srcIdx < srcLength ? (srcAttrs[srcIdx++] as SsrAttrKey) : null;
       } else {
         // Source is missing the key, so we need to remove it from destination.
         if (isHtmlAttributeAnEventName(dstKey)) {
@@ -684,7 +681,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
           record(dstKey!, null);
         }
         dstIdx++; // skip the destination value, we don't care about it.
-        dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
+        dstKey = dstIdx < dstLength ? (dstAttrs[dstIdx++] as SsrAttrKey) : null;
       }
     }
     return patchEventDispatch;

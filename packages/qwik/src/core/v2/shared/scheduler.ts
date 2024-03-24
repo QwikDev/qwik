@@ -1,13 +1,7 @@
 import { componentQrl, type OnRenderFn } from '../../component/component.public';
 import type { QRLInternal } from '../../qrl/qrl-class';
 import type { QRL } from '../../qrl/qrl.public';
-import {
-  serializeClassWithHost,
-  serializeClassWithHost2,
-  stringifyStyle,
-} from '../../render/execute-component';
 import type { JSXOutput } from '../../render/jsx/types/jsx-node';
-import type { Signal } from '../../state/signal';
 import {
   runComputed2,
   runSubscriber2,
@@ -20,14 +14,8 @@ import {
 import { EMPTY_ARRAY } from '../../util/flyweight';
 import { isPromise, maybeThen, shouldNotError } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
-import type { ClientContainer, VirtualVNode } from '../client/types';
-import {
-  vnode_documentPosition,
-  vnode_isChildOf,
-  vnode_isVNode,
-  vnode_setAttr,
-  vnode_setProp,
-} from '../client/vnode';
+import type { VirtualVNode } from '../client/types';
+import { vnode_documentPosition, vnode_isChildOf, vnode_isVNode } from '../client/vnode';
 import { vnode_diff } from '../client/vnode-diff';
 import { executeComponent2, JSX_LOCAL } from './component-execution';
 import type { Container2, fixMeAny, HostElement } from './types';
@@ -38,7 +26,8 @@ export const enum ChoreType {
   RESOURCE = 2,
   TASK = 3,
   NODE_DIFF = 4,
-  NODE_PROP = 5,
+  // TODO: not needed, updating prop does not require scheduler
+  // NODE_PROP = 5,
   COMPONENT = 6,
   VISIBLE = 7,
   SIMPLE = 8,
@@ -60,11 +49,6 @@ export interface Chore {
   $payload$: unknown;
 }
 
-export interface NodePropPayload {
-  prop: string;
-  signal: Signal<any>;
-}
-
 export type Scheduler = ReturnType<typeof createScheduler>;
 
 export const createScheduler = (container: Container2, scheduleDrain: () => void) => {
@@ -76,7 +60,6 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
     $scheduleTask$: scheduleTask,
     $scheduleComputed$: scheduleComputed,
     $scheduleNodeDiff$: scheduleNodeDiff,
-    $scheduleNodeProp$: scheduleNodeProp,
     $scheduleCleanup$: scheduleCleanup,
     $scheduleComponent$: scheduleComponent,
     $schedule$: schedule,
@@ -107,16 +90,6 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
     return api;
   }
 
-  function scheduleNodeProp(
-    host: HostElement,
-    element: HostElement,
-    prop: string,
-    signal: Signal<any>
-  ) {
-    schedule(ChoreType.NODE_PROP, host, element as fixMeAny, 0, { prop, signal });
-    return api;
-  }
-
   function scheduleCleanup(task: Task) {
     schedule(ChoreType.CLEANUP, task.$el$ as fixMeAny, task.$qrl$ as fixMeAny, task.$index$, task);
     return api;
@@ -144,13 +117,6 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
     target: HostElement,
     idx: 0,
     value: any
-  ): void;
-  function schedule(
-    type: ChoreType.NODE_PROP,
-    host: HostElement,
-    element: HostElement,
-    idx: 0,
-    data: NodePropPayload
   ): void;
   function schedule(
     type: ChoreType.CLEANUP,
@@ -299,22 +265,7 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
       case ChoreType.NODE_DIFF: {
         const parentVirtualNode = chore.$target$ as VirtualVNode;
         const jsx = chore.$payload$ as JSXOutput;
-        vnode_diff(container as fixMeAny, jsx, parentVirtualNode);
-        break;
-      }
-      case ChoreType.NODE_PROP: {
-        const target = chore.$target$ as VirtualVNode;
-        const data = chore.$payload$ as NodePropPayload;
-        const prop = data.prop;
-        let value = data.signal.value;
-        if (prop === 'class') {
-          value = serializeClassWithHost2(value, host as fixMeAny);
-        } else if (prop === 'style') {
-          value = stringifyStyle(value);
-        }
-
-        vnode_setAttr((container as ClientContainer).$journal$, target, prop, value);
-        break;
+        return vnode_diff(container as fixMeAny, jsx, parentVirtualNode);
       }
       case ChoreType.CLEANUP: {
         const task = chore.$payload$ as Task<TaskFn, TaskFn>;

@@ -25,7 +25,6 @@ import { qrlToString, type SerializationContext } from '../shared/shared-seriali
 import { DEBUG_TYPE, VirtualType, type fixMeAny } from '../shared/types';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
 import type { SSRContainer, SsrAttrs } from './ssr-types';
-import { SsrNode } from 'packages/qwik/src/server/v2-node';
 
 type StackFn = () => ValueOrPromise<void>;
 type StackValue = JSXOutput | StackFn | Promise<JSXOutput> | typeof Promise;
@@ -130,8 +129,8 @@ function processJSXNode(
       if (typeof type === 'string') {
         ssr.openElement(
           type,
-          toSsrAttrs(jsx.props, ssr, false),
-          toSsrAttrs(jsx.immutableProps, ssr, true)
+          toSsrAttrs(jsx.props, ssr.serializationCtx),
+          toSsrAttrs(jsx.immutableProps, ssr.serializationCtx)
         );
         enqueue(ssr.closeElement);
         if (type === 'head') {
@@ -197,23 +196,19 @@ function processJSXNode(
 
 export function toSsrAttrs(
   record: Record<string, unknown>,
-  ssrContainer: SSRContainer,
-  isImmutable: boolean
+  serializationCtx: SerializationContext
 ): SsrAttrs;
 export function toSsrAttrs(
   record: Record<string, unknown> | null | undefined,
-  ssrContainer: SSRContainer,
-  isImmutable: boolean
+  serializationCtx: SerializationContext
 ): SsrAttrs | null;
 export function toSsrAttrs(
   record: Record<string, unknown> | null | undefined,
-  ssrContainer: SSRContainer,
-  isImmutable: boolean
+  serializationCtx: SerializationContext
 ): SsrAttrs | null {
   if (record == null) {
     return null;
   }
-  const { serializationCtx } = ssrContainer;
   const ssrAttrs: SsrAttrs = [];
   for (const key in record) {
     if (key === 'children') {
@@ -229,27 +224,20 @@ export function toSsrAttrs(
     }
 
     if (isSignal(value)) {
-      const signalNode = ssrContainer.getLastNode();
-      // TODO(hack): last node is previous node, not current,
-      // because we are creating this node now and don't have it yet
-      signalNode.id = String((ssrContainer as any).depthFirstElementCount + 1);
-
-      value = trackSignal(value, [
-        isImmutable ? SubscriptionType.PROP_IMMUTABLE : SubscriptionType.PROP_MUTABLE,
-        signalNode as fixMeAny,
-        value,
-        signalNode as fixMeAny,
-        key,
-      ]);
+      // write signal as is. We will track this signal inside `writeAttrs`
+      ssrAttrs.push(key, value);
+      continue;
     }
 
     if (isClassAttr(key)) {
-      ssrAttrs.push(key, serializeClass(value as ClassList));
+      value = serializeClass(value as ClassList);
     } else if (key === 'style') {
-      ssrAttrs.push(key, stringifyStyle(value));
+      value = stringifyStyle(value);
     } else {
-      ssrAttrs.push(key, String(value));
+      value = String(value);
     }
+
+    ssrAttrs.push(key, value as string);
   }
   return ssrAttrs;
 }

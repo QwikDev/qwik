@@ -28,6 +28,9 @@ export type {
   ISsrNode,
   SSRContainer,
   SsrAttrs,
+  SsrAttrKey,
+  SsrAttrValue,
   StreamWriter,
 } from '../core/v2/ssr/ssr-types';
 export type { ResolvedManifest, SymbolMapper } from '../optimizer/src/types';
+export type { fixMeAny } from '../core/v2/shared/types';

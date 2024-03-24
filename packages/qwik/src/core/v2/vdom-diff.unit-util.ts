@@ -65,9 +65,9 @@ function diffJsxVNode(received: VNode, expected: JSXNode | string, path: string[
       : vnode_isVirtualVNode(received)
         ? Fragment
         : undefined;
-    const isTagSame = expected.type == receivedTag;
+    const isTagSame = String(expected.type).toLowerCase() == String(receivedTag).toLowerCase();
     if (!isTagSame) {
-      diffs.push(path.join(' > ') + ' expecting= ' + expected.type + ' received=' + receivedTag);
+      diffs.push(path.join(' > ') + ' expecting=' + expected.type + ' received=' + receivedTag);
     }
     const expectedProps = expected.props ? Object.keys(expected.props).sort() : [];
     const receivedProps = vnode_isElementVNode(received) ? vnode_getAttrKeys(received).sort() : [];

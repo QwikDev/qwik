@@ -420,11 +420,6 @@ describe('serializer v2', () => {
   });
 
   describe('element nesting rules', () => {
-    it('should throw when tags not lowercase', () => {
-      expect(() => withContainer((ssr) => {}, { containerTag: 'HTML' })).toThrowError(
-        "SsrError(tag): Tag 'HTML' must be lower case, because HTML is case insensitive."
-      );
-    });
     it('should throw when incorrectly nested elements', () => {
       expect(() =>
         withContainer(

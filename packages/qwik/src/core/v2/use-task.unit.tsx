@@ -211,7 +211,8 @@ Error.stackTraceLimit = 100;
           const store = useStore({ count: 1, double: 0, quadruple: 0 });
           useTask$(({ track }) => {
             (globalThis as any).log.push('quadruple');
-            store.quadruple = track(store, 'double') * 2;
+            const trackingValue = track(store, 'double') * 2;
+            store.quadruple = trackingValue;
           });
           useTask$(({ track }) => {
             (globalThis as any).log.push('double');
@@ -226,13 +227,7 @@ Error.stackTraceLimit = 100;
         });
 
         const { vNode, document } = await render(<Counter />, { debug });
-        expect((globalThis as any).log).toEqual([
-          'quadruple',
-          'double',
-          'Counter',
-          'quadruple',
-          'Counter',
-        ]);
+        expect((globalThis as any).log).toEqual(['quadruple', 'double', 'Counter', 'quadruple']);
         expect(vNode).toMatchVDOM(
           <Component>
             <button>
@@ -243,7 +238,7 @@ Error.stackTraceLimit = 100;
         (globalThis as any).log.length = 0;
         await trigger(document.body, 'button', 'click');
         // console.log('log', log);
-        expect((globalThis as any).log).toEqual(['double', 'quadruple', 'Counter']);
+        expect((globalThis as any).log).toEqual(['double', 'quadruple']);
         expect(vNode).toMatchVDOM(
           <Component>
             <button>

@@ -1,11 +1,5 @@
 /** @file Public APIs for the SSR */
-import {
-  _SharedContainer,
-  _walkJSX,
-  isSignal,
-  trackSignal,
-  SubscriptionType,
-} from '@builder.io/qwik';
+import { _SharedContainer, _walkJSX, isSignal } from '@builder.io/qwik';
 import { isDev } from '@builder.io/qwik/build';
 import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
 import { getQwikLoaderScript } from '@builder.io/qwik/server';
@@ -31,6 +25,7 @@ import {
   mapArray_get,
   mapArray_set,
   maybeThen,
+  SubscriptionType,
 } from './qwik-copy';
 import type {
   ContextId,
@@ -872,7 +867,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
         if (isSignal(value)) {
           const lastNode = this.getLastNode();
-          value = trackSignal(value, [
+          value = this.trackSignalValue(value, [
             immutable ? SubscriptionType.PROP_IMMUTABLE : SubscriptionType.PROP_MUTABLE,
             lastNode as fixMeAny,
             value,

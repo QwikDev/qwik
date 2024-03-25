@@ -280,7 +280,10 @@ const inflate = (container: DomContainer, target: any, needsInflationData: strin
       }
       break;
     case SerializationConstant.SignalWrapper_VALUE:
-      throw new Error('Not implemented');
+      const signalWrapper = target as SignalWrapper<Record<string, unknown>, string>;
+      signalWrapper.ref = container.$getObjectById$(restInt()) as Record<string, unknown>;
+      signalWrapper.prop = restString();
+      break;
     case SerializationConstant.Error_VALUE:
       Object.assign(target, container.$getObjectById$(restInt()));
       break;
@@ -330,7 +333,8 @@ const inflate = (container: DomContainer, target: any, needsInflationData: strin
         bytes[i++] = s.charCodeAt(0);
       }
       break;
-
+    case SerializationConstant.Immutable_VALUE:
+      break;
     default:
       throw new Error('Not implemented');
   }
@@ -364,7 +368,7 @@ const allocate = <T>(value: string): any => {
     case SerializationConstant.Signal_VALUE:
       return new SignalImpl(null!, null!, 0);
     case SerializationConstant.SignalWrapper_VALUE:
-      throw new Error('Not implemented');
+      return new SignalWrapper(null!, null!);
     case SerializationConstant.NaN_VALUE:
       return Number.NaN;
     case SerializationConstant.URLSearchParams_VALUE:
@@ -397,6 +401,8 @@ const allocate = <T>(value: string): any => {
       const rest = encodedLength & 3;
       const decodedLength = blocks * 3 + (rest ? rest - 1 : 0);
       return new Uint8Array(decodedLength);
+    case SerializationConstant.Immutable_VALUE:
+      return _IMMUTABLE;
     default:
       throw new Error('unknown allocate type: ' + value.charCodeAt(0));
   }
@@ -736,8 +742,8 @@ function serialize(serializationContext: SerializationContext): void {
       } else {
         writeString(value);
       }
-    } else if (typeof value === 'symbol') {
-      throw new Error('implement');
+    } else if (typeof value === 'symbol' && value === _IMMUTABLE) {
+      writeString(SerializationConstant.Immutable_CHAR);
     } else if (typeof value === 'undefined') {
       writeString(SerializationConstant.UNDEFINED_CHAR);
     } else {
@@ -782,6 +788,10 @@ function serialize(serializationContext: SerializationContext): void {
         $addRoot$
       );
       writeString(serializedSignalDerived);
+    } else if (value instanceof SignalWrapper) {
+      writeString(
+        SerializationConstant.SignalWrapper_CHAR + $addRoot$(value.ref) + ' ' + value.prop
+      );
     } else if (value instanceof Store) {
       writeString(SerializationConstant.Store_CHAR + $addRoot$(unwrapProxy(value)));
     } else if (value instanceof URL) {
@@ -846,6 +856,8 @@ function serialize(serializationContext: SerializationContext): void {
       }
       const out = btoa(buf).replace(/=+$/, '');
       writeString(SerializationConstant.Uint8Array_CHAR + out);
+    } else if (value instanceof Symbol && value === _IMMUTABLE) {
+      writeString(SerializationConstant.Store_CHAR);
     } else {
       throw new Error('implement: ' + JSON.stringify(value));
     }
@@ -870,8 +882,6 @@ function serialize(serializationContext: SerializationContext): void {
       }
       $writer$.write(']');
     } else {
-      const immutable = value[_IMMUTABLE];
-
       // Serialize as object.
       let delimiter = false;
       $writer$.write('{');
@@ -885,29 +895,22 @@ function serialize(serializationContext: SerializationContext): void {
         delimiter = true;
       }
       for (const key in value) {
-        if (immutable !== undefined && Object.prototype.hasOwnProperty.call(immutable, key)) {
-          delimiter && $writer$.write(',');
-          writeString(key);
-          $writer$.write(':');
-          const propValue = immutable[key];
-          if (propValue === _IMMUTABLE) {
-            writeString('null');
-          } else if (propValue instanceof SignalDerived) {
-            writeString(serializeSignalDerived(serializationContext, propValue, $addRoot$));
-          } else if (propValue instanceof SignalWrapper) {
-            throw new Error('Signal wrapper not implemented!');
-          } else {
-            throw new Error('Not implemented: ' + propValue);
-          }
-          delimiter = true;
-        } else if (Object.prototype.hasOwnProperty.call(value, key)) {
-          delimiter && $writer$.write(',');
-          writeString(key);
-          $writer$.write(':');
-          writeValue(value[key]);
-          delimiter = true;
-        }
+        delimiter && $writer$.write(',');
+        writeString(key);
+        $writer$.write(':');
+        writeValue(value[key]);
+        delimiter = true;
       }
+      // TODO(immutable)
+      // serialize _IMMUTABLE
+      // const immutable = value[_IMMUTABLE];
+      // if (immutable) {
+      //   delimiter && $writer$.write(',');
+      //   writeString(SerializationConstant.Immutable_CHAR);
+      //   $writer$.write(':');
+      //   writeValue(immutable);
+      //   delimiter = true;
+      // }
       $writer$.write('}');
     }
   };
@@ -1115,6 +1118,8 @@ export const enum SerializationConstant {
   Promise_VALUE = /* --------------------- */ 0x1c,
   Uint8Array_CHAR = /* ---------------- */ '\u001e',
   Uint8Array_VALUE = /* ------------------- */ 0x1e,
+  Immutable_CHAR = /* ----------------- */ '\u001f',
+  Immutable_VALUE = /* -------------------- */ 0x1f,
   /// Can't go past this value
   LAST_VALUE = /* ------------------------ */ 0x20,
 }
@@ -1208,5 +1213,7 @@ export const codeToName = (code: number) => {
       return 'Promise';
     case SerializationConstant.Uint8Array_VALUE:
       return 'Uint8Array';
+    case SerializationConstant.Immutable_VALUE:
+      return 'Immutable';
   }
 };

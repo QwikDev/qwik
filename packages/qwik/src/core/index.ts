@@ -126,7 +126,6 @@ export { type NoSerialize, SubscriptionType } from './state/common';
 export { noSerialize } from './state/common';
 export { isSignal } from './state/signal';
 export { version } from './version';
-export { trackSignal } from './use/use-core';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Qwik Events

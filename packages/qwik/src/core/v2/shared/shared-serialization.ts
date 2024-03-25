@@ -923,7 +923,7 @@ function serializeSignalDerived(
   value: SignalDerived<any, any>,
   $addRoot$: (obj: unknown) => number
 ) {
-  // TODO(hack): if value is an object then we need to wrap this in ()
+  // if value is an object then we need to wrap this in ()
   if (value.$funcStr$ && value.$funcStr$[0] === '{') {
     value.$funcStr$ = `(${value.$funcStr$})`;
   }

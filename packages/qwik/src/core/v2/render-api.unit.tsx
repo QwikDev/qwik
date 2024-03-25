@@ -30,6 +30,7 @@ import type {
   StreamingOptions,
 } from '../../server/types';
 import type { JSXOutput } from '../../server/qwik-types';
+import { emulateExecutionOfQwikFuncs } from './rendering.unit-util';
 
 vi.hoisted(() => {
   vi.stubGlobal('QWIK_LOADER_DEFAULT_MINIFIED', 'min');
@@ -221,6 +222,7 @@ describe('render api', () => {
         containerTagName: 'div',
       });
       document = createDocument(result.html);
+      emulateExecutionOfQwikFuncs(document);
       const container = getDomContainer(document.body.firstChild as HTMLElement);
       const vNode = vnode_getFirstChild(container.rootVNode);
       expect(vNode).toMatchVDOM(
@@ -964,6 +966,7 @@ describe('render api', () => {
           stream,
         });
         document = createDocument(chunks.join(''));
+        emulateExecutionOfQwikFuncs(document);
         const container = getDomContainer(document.body.firstChild as HTMLElement);
         const vNode = vnode_getFirstChild(container.rootVNode);
         expect(vNode).toMatchVDOM(

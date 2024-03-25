@@ -469,7 +469,7 @@ describe('vnode', () => {
         vnode_applyJournal(journal);
         expect(parent.innerHTML).toBe('123');
       });
-      it('should todo', () => {
+      it.only('should todo', () => {
         const vVirtual = vnode_newVirtual(vParent);
         const vSpan1 = vnode_newElement(vVirtual, document.createElement('div'), 'div');
         const v1 = vnode_newText(vSpan1, document.createTextNode('1'), '1');

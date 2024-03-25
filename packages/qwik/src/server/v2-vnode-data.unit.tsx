@@ -40,7 +40,7 @@ describe('vnode data', () => {
     });
   });
   describe('integration tests', () => {
-    it('components inside the div', async () => {
+    it.only('components inside the div', async () => {
       const Component = component$<RefIdProp>(({ refId }) => {
         const data = useSignal(1);
         return (

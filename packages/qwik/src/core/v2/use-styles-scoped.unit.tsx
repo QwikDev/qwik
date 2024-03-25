@@ -402,7 +402,7 @@ Error.stackTraceLimit = 100;
         <Component>
           <Component>
             <div class={`${rawStyleId3} containerB`}>
-              <Projection q:slot="three">
+              <Projection>
                 <Component>
                   <div class={`${rawStyleId2} containerA`}>
                     <Projection>

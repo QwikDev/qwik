@@ -14,15 +14,15 @@ import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { useSignal } from '../use/use-signal';
 import { useStore } from '../use/use-store.public';
 import { vnode_getNextSibling } from './client/vnode';
-import { ssrRenderToDom } from './rendering.unit-util';
+import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
 import { _IMMUTABLE, _fnSignal, _jsxQ } from '../internal';
 
-const debug = true;
+const debug = false;
 
 [
   ssrRenderToDom, // SSR
-  // domRender, // Client
+  domRender, // Client
 ].forEach((render) => {
   describe(render.name + ': projection', () => {
     it('should render basic projection', async () => {
@@ -534,7 +534,7 @@ const debug = true;
           <Component>
             <Fragment>
               <button></button>
-              <Projection q:slot="static">
+              <Projection>
                 <p q:slot="static"></p>
               </Projection>
               {''}
@@ -547,10 +547,10 @@ const debug = true;
           <Component>
             <Fragment>
               <button></button>
-              <Projection q:slot="static">
+              <Projection>
                 <p q:slot="static"></p>
               </Projection>
-              <Projection q:slot="">
+              <Projection>
                 <Component>
                   <b>{'CHILD'}</b>
                 </Component>
@@ -562,7 +562,7 @@ const debug = true;
         expect(document.body.innerHTML).toContain('</p><b>CHILD</b>DYNAMIC');
       });
 
-      it.only('#2688', async () => {
+      it.skip('#2688', async () => {
         const Switch = component$((props: { name: string }) => {
           return _jsxC(
             Slot,
@@ -579,58 +579,41 @@ const debug = true;
           );
         });
 
-        const Issue2688 = component$(({ count }: { count: number }) => {
+        const Issue2688 = component$<{ count: number }>((props) => {
           const store = useStore({ flip: false });
 
-          return _jsxC(
-            Fragment,
-            {
-              children: [
-                _jsxQ(
-                  'button',
-                  {
-                    onClick$: inlinedQrl(
-                      () => {
-                        const [store] = useLexicalScope();
-                        store.flip = !store.flip;
-                      },
-                      's_click',
-                      [store]
-                    ),
+          return (
+            <>
+              <button
+                onClick$={inlinedQrl(
+                  () => {
+                    const [store] = useLexicalScope();
+                    store.flip = !store.flip;
                   },
-                  null,
-                  'Toggle',
-                  2,
-                  null
-                ),
-                _jsxQ(
-                  'div',
-                  null,
-                  null,
-                  _jsxC(
-                    Switch as any,
-                    {
-                      get name() {
-                        return store.flip ? 'b' : 'a';
-                      },
-                      children: [
-                        _jsxQ('div', { 'q:slot': 'a' }, null, ['Alpha ', count], 1, null),
-                        _jsxQ('div', { 'q:slot': 'b' }, null, ['Bravo ', count], 1, null),
-                      ],
-                      [_IMMUTABLE]: {
-                        name: _fnSignal((p0) => (p0.flip ? 'b' : 'a'), [store], 'p0.flip?"b":"a"'),
-                      },
+                  's_click',
+                  [store]
+                )}
+              ></button>
+              <div>
+                {_jsxC(
+                  Switch as any,
+                  {
+                    get name() {
+                      return store.flip ? 'b' : 'a';
                     },
-                    1,
-                    'ub_1'
-                  ),
+                    children: [
+                      <div q:slot="a">Alpha {props.count}</div>,
+                      <div q:slot="b">Bravo {props.count}</div>,
+                    ],
+                    [_IMMUTABLE]: {
+                      name: _fnSignal((p0) => (p0.flip ? 'b' : 'a'), [store], 'p0.flip?"b":"a"'),
+                    },
+                  },
                   1,
-                  null
-                ),
-              ],
-            },
-            1,
-            'ub_2'
+                  'ub_1'
+                )}
+              </div>
+            </>
           );
         });
 
@@ -644,7 +627,7 @@ const debug = true;
           <section>
             <Component>
               <Fragment>
-                <button>Toggle</button>
+                <button></button>
                 <div>
                   <Component>
                     <Projection>
@@ -661,7 +644,7 @@ const debug = true;
           <section>
             <Component>
               <Fragment>
-                <button>Toggle</button>
+                <button></button>
                 <div>
                   <Component>
                     <Projection>

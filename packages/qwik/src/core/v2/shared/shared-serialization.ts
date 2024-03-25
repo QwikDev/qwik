@@ -970,6 +970,10 @@ export function subscriptionManagerFromString(
   const subs = value.split(';');
   for (let k = 0; k < subs.length; k++) {
     const sub = subs[k];
+    if (!sub) {
+      // skip empty strings
+      continue;
+    } 
     const subscription = sub.split(' ') as (string | number)[];
     subscription[0] = parseInt(subscription[0] as string);
     for (let i = 1; i < subscription.length; i++) {

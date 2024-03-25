@@ -28,7 +28,6 @@ lazy_static! {
 	pub static ref USE_SERVER_MOUNT: JsWord = JsWord::from("useServerMount$");
 	pub static ref H: JsWord = JsWord::from("h");
 	pub static ref FRAGMENT: JsWord = JsWord::from("Fragment");
-	pub static ref _IMMUTABLE: JsWord = JsWord::from("_IMMUTABLE");
 	pub static ref _INLINED_FN: JsWord = JsWord::from("_fnSignal");
 	pub static ref IS_SERVER: JsWord = JsWord::from("isServer");
 	pub static ref IS_BROWSER: JsWord = JsWord::from("isBrowser");
@@ -38,7 +37,6 @@ lazy_static! {
 	pub static ref _JSX_BRANCH: JsWord = JsWord::from("_jsxBranch");
 	pub static ref _QRL_SYNC: JsWord = JsWord::from("_qrlSync");
 	pub static ref _WRAP_PROP: JsWord = JsWord::from("_wrapProp");
-	pub static ref _WRAP_SIGNAL: JsWord = JsWord::from("_wrapSignal");
 	pub static ref _JSX_Q: JsWord = JsWord::from("_jsxQ");
 	pub static ref _JSX_C: JsWord = JsWord::from("_jsxC");
 	pub static ref JSX: JsWord = JsWord::from("jsx");

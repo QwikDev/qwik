@@ -11,28 +11,28 @@ import { SignalDerived, isSignal } from '../../state/signal';
 import { isPromise } from '../../util/promises';
 import { SkipRender } from './utils.public';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../../util/flyweight';
-import { _IMMUTABLE } from '../../internal';
+import { _CONST_PROPS } from '../../internal';
 import { isBrowser } from '@builder.io/qwik/build';
 import { static_subtree } from '../execute-component';
 import type { JsxChild } from 'typescript';
 import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS } from '../../util/markers';
 import type { JSXChildren } from './types/jsx-qwik-attributes';
-import { fixJsxProps } from '../../v2/shared/jsx-props';
+import { _VAR_PROPS } from '../../state/constants';
 
 /**
  * Create a JSXNode with children already split
  *
  * @param type - The JSX type
- * @param mutableProps - The properties of the tag
- * @param immutableProps - The properties of the tag that are known to be static and don't need
- *   checking for changes on re-render
+ * @param varProps - The properties of the tag
+ * @param constProps - The properties of the tag that are known to be constant references and don't
+ *   need checking for changes on re-render
  * @param children - JSX children. Any `children` in the props objects are ignored.
  * @internal
  */
 export const _jsxQ = <T>(
   type: T,
-  mutableProps: Record<any, unknown>,
-  immutableProps: Record<any, unknown> | null,
+  varProps: Record<string, unknown> | null,
+  constProps: Record<string, unknown> | null,
   children: JSXChildren | null,
   flags: number,
   key: string | number | null,
@@ -41,14 +41,12 @@ export const _jsxQ = <T>(
   const processed = key == null ? null : String(key);
   const node = new JSXNodeImpl(
     type,
-    mutableProps as any,
-    immutableProps,
+    (varProps as any) || {},
+    constProps,
     children,
     flags,
     processed
   );
-  // TODO(hack): sometimes mutable props are immutable props too
-  fixJsxProps(node);
   if (qDev && dev) {
     node.dev = {
       stack: new Error().stack,
@@ -64,26 +62,26 @@ export const _jsxQ = <T>(
  * Create a JSXNode
  *
  * @param type - The tag type
- * @param mutableProps - The properties of the tag that could change, including children
- * @param immutableProps - The properties of the tag that are known to be static and don't need
- *   checking for changes on re-render
+ * @param varProps - The properties of the tag that could change, including children
+ * @param constProps - The properties of the tag that are known to be static and don't need checking
+ *   for changes on re-render
  * @internal
  */
 export const _jsxC = <T extends string | FunctionComponent<any>>(
   type: T,
-  mutableProps: Record<any, unknown> | null,
-  immutableProps: Record<any, unknown> | null,
+  varProps: Record<string, unknown> | null,
+  constProps: Record<string, unknown> | null,
   flags: number,
   key: string | number | null,
   dev?: DevJSX
 ): JSXNode<T> => {
   let children;
-  if (mutableProps) {
-    children = mutableProps.children;
+  if (varProps) {
+    children = varProps.children;
   } else {
-    mutableProps = typeof type === 'string' ? EMPTY_OBJ : {};
+    varProps = typeof type === 'string' ? EMPTY_OBJ : {};
   }
-  return _jsxQ(type, mutableProps, immutableProps, children as JSXChildren, flags, key, dev);
+  return _jsxQ(type, varProps, constProps, children as JSXChildren, flags, key, dev);
 };
 
 /**
@@ -93,7 +91,7 @@ export const _jsxC = <T extends string | FunctionComponent<any>>(
  */
 export const jsx = <T extends string | FunctionComponent<any>>(
   type: T,
-  props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<any, unknown>,
+  props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, unknown>,
   key?: string | number | null
 ): JSXNode<T> => {
   const processed = key == null ? null : String(key);
@@ -106,34 +104,62 @@ export const jsx = <T extends string | FunctionComponent<any>>(
 
 export const SKIP_RENDER_TYPE = ':skipRender';
 
+// _jsxQ('div', {vars}, {consts});
+// => JSXNode 'div', {vars}, {consts}
+// => SSR => <div {...consts} : {...vars} />
+// => resume => VNODE['div', ...vars]
+// => CSR =>
+
+// <div foo bar />
+// => JSXNode 'div', {}, {foo, bar}
+
+// <div foo {...props} bar />
+// => JSXNode 'div', {foo, ...props}, {bar}
+// => JSXNode 'div', {foo, ...omit(props.var, props.const, ['bar'])}, {bar}
+// => JSXNode 'div', {foo, ...props.var}, {...props.const, bar}
+
+// component$<props>(({abc}) => {
+// abc
+// component$<props>((props) => {
+// props.abc
+
 export class JSXNodeImpl<T> implements JSXNode<T> {
   dev?: DevJSX;
   constructor(
     public type: T,
-    public mutableProps: T extends FunctionComponent<infer PROPS> ? PROPS : Record<any, unknown>,
-    public immutableProps: Record<any, unknown> | null,
+    public varProps: Record<string, unknown>,
+    public constProps: Record<string, unknown> | null,
     public children: JSXChildren,
     public flags: number,
     public key: string | null = null,
     public attrs: Array<string | null> = EMPTY_ARRAY
   ) {}
 
-  _proxy?: typeof this.mutableProps;
-  get props() {
-    // We use a proxy to merge the immutableProps if they exist and to evaluate derived signals
-    this._proxy ||= new Proxy<any>(this.mutableProps as object, {
+  private _proxy?: typeof this.varProps;
+  get props(): T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, unknown> {
+    // We use a proxy to merge the constProps if they exist and to evaluate derived signals
+    this._proxy ||= new Proxy<any>(this.varProps as object, {
       get: (target, prop) => {
         // escape hatch to get the separated props from a component
-        if (prop === _IMMUTABLE) {
-          return { mutable: this.mutableProps, immutable: this.immutableProps };
+        if (prop === _CONST_PROPS) {
+          return this.constProps;
+        }
+        if (prop === _VAR_PROPS) {
+          return this.varProps;
         }
         const value =
-          prop in this.immutableProps! ? this.immutableProps![prop as string] : target[prop];
+          this.constProps && prop in this.constProps
+            ? this.constProps[prop as string]
+            : target[prop];
         // a proxied value that the optimizer made
         return value instanceof SignalDerived ? value.value : value;
       },
       set: (target, prop, value) => {
-        target[prop] = value;
+        if (this.constProps && prop in this.constProps) {
+          this.constProps[prop as string] = value;
+        } else {
+          target[prop] = value;
+        }
         return true;
       },
       deleteProperty: (target, prop) => {
@@ -141,19 +167,28 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
           return false;
         }
         let didDelete = delete target[prop];
-        if (this.immutableProps) {
-          didDelete = delete this.immutableProps[prop as string] || didDelete;
+        if (this.constProps) {
+          didDelete = delete this.constProps[prop as string] || didDelete;
         }
         return didDelete;
       },
       has: (target, prop) => {
-        return prop in target || prop in this.immutableProps!;
+        return (
+          prop === _CONST_PROPS ||
+          prop === _VAR_PROPS ||
+          prop in target ||
+          (this.constProps ? prop in this.constProps : false)
+        );
       },
       ownKeys: (target) => {
-        return [...Object.keys(target), ...Object.keys(this.immutableProps!)];
+        const out = Object.keys(target);
+        if (this.constProps) {
+          out.concat(Object.keys(this.constProps));
+        }
+        return out;
       },
     });
-    return this._proxy!;
+    return this._proxy! as any;
   }
 }
 
@@ -164,7 +199,7 @@ export const Virtual: FunctionComponent<{
   [OnRenderProp]?: QRLInternal<OnRenderFn<any>>;
   [QSlot]?: string;
   [QSlotS]?: string;
-  props?: Record<any, unknown>;
+  props?: Record<string, unknown>;
   [QScopedStyle]?: string;
   [ELEMENT_ID]?: string;
 }> = (props: any) => props.children;
@@ -179,7 +214,7 @@ export const RenderOnce: FunctionComponent<{
 
 const validateJSXNode = (node: JSXNode<any>) => {
   if (qDev) {
-    const { type, props, immutableProps, children } = node;
+    const { type, varProps, constProps, children } = node;
     invoke(undefined, () => {
       const isQwikC = isQwikComponent(type);
       if (!isString(type) && !isFunction(type)) {
@@ -215,7 +250,7 @@ const validateJSXNode = (node: JSXNode<any>) => {
           });
         }
         if (isBrowser) {
-          if (isFunction(type) || immutableProps) {
+          if (isFunction(type) || constProps) {
             const keys: Record<string, boolean> = {};
             flatChildren.forEach((child: unknown) => {
               if (isJSXNode(child) && child.key != null) {
@@ -242,8 +277,8 @@ const validateJSXNode = (node: JSXNode<any>) => {
       }
 
       const allProps = [
-        ...(props ? Object.entries(props) : []),
-        ...(immutableProps ? Object.entries(immutableProps) : []),
+        ...(varProps ? Object.entries(varProps) : []),
+        ...(constProps ? Object.entries(constProps) : []),
       ];
       if (!qRuntimeQrl) {
         for (const [prop, value] of allProps) {
@@ -273,9 +308,9 @@ const validateJSXNode = (node: JSXNode<any>) => {
           );
           logError(err);
         }
-        if (allProps.some((a) => a[0] === 'children')) {
-          throw new Error(`The JSX element <${type}> can not have both 'children' as a property.`);
-        }
+        // if (allProps.some((a) => a[0] === 'children')) {
+        //   throw new Error(`The JSX element <${type}> can not have both 'children' as a property.`);
+        // }
         if (type === 'style') {
           if (children) {
             logOnceWarn(`jsx: Using <style>{content}</style> will escape the content, effectively breaking the CSS.
@@ -354,9 +389,9 @@ export const HTMLFragment: FunctionComponent<{ dangerouslySetInnerHTML: string }
   jsx(Virtual, props);
 
 /** @public */
-export const jsxDEV = <T extends string | FunctionComponent<Record<any, unknown>>>(
+export const jsxDEV = <T extends string | FunctionComponent<Record<string, unknown>>>(
   type: T,
-  props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<any, unknown>,
+  props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, unknown>,
   key: string | number | null | undefined,
   _isStatic: boolean,
   opts: JsxDevOpts,

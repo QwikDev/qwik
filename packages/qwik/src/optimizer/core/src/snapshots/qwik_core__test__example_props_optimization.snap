@@ -54,7 +54,7 @@ import { componentQrl } from "@builder.io/qwik";
 import { useTaskQrl } from "@builder.io/qwik";
 import { useLexicalScope } from "@builder.io/qwik";
 import { inlinedQrl } from "@builder.io/qwik";
-import { _wrapSignal } from "@builder.io/qwik";
+import { _wrapProp } from "@builder.io/qwik";
 import { _jsxC } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
 export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
@@ -79,7 +79,7 @@ export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)
         params: {
             some: props.some ?? 3
         },
-        class: _wrapSignal(props, "count"),
+        class: _wrapProp(props, "count"),
         ...rest
     }, {
         override: true

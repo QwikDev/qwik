@@ -50,7 +50,7 @@ import {
   type QContext,
 } from '../../state/context';
 import { createPropsState, createProxy } from '../../state/store';
-import { Q_CTX, _IMMUTABLE, _IMMUTABLE_PREFIX } from '../../state/constants';
+import { Q_CTX, _CONST_PROPS, _IMMUTABLE_PREFIX } from '../../state/constants';
 import type { ClassList, JSXChildren } from '../jsx/types/jsx-qwik-attributes';
 import { SubscriptionType } from '../../state/common';
 
@@ -537,7 +537,7 @@ const renderNode = (
   if (typeof tagName === 'string') {
     const key = node.key;
     const props = node.props;
-    const immutable = node.immutableProps;
+    const immutable = node.constProps;
     const elCtx = createMockQContext(1);
     const elm = elCtx.$element$ as Element;
     const isHead = tagName === 'head';
@@ -1030,8 +1030,8 @@ const setComponentProps = (
   if (keys.length === 0) {
     return;
   }
-  const immutableMeta = ((target as any)[_IMMUTABLE] =
-    (expectProps as any)[_IMMUTABLE] ?? EMPTY_OBJ);
+  const immutableMeta = ((target as any)[_CONST_PROPS] =
+    (expectProps as any)[_CONST_PROPS] ?? EMPTY_OBJ);
   for (const prop of keys) {
     if (prop === 'children' || prop === QSlot) {
       continue;

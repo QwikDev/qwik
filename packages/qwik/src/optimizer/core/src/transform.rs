@@ -5,7 +5,7 @@ use crate::collector::{
 use crate::entry_strategy::EntryPolicy;
 use crate::has_branches::{is_conditional_jsx, is_conditional_jsx_block};
 use crate::inlined_fn::{convert_inlined_fn, render_expr};
-use crate::is_immutable::is_immutable_expr;
+use crate::is_const::is_const_expr;
 use crate::parse::{EmitMode, PathData};
 use crate::words::*;
 use crate::{errors, EntryStrategy};
@@ -634,7 +634,7 @@ impl<'a> QwikTransform<'a> {
 		// Collect local idents
 		let local_idents = self.get_local_idents(&folded);
 
-		let (mut scoped_idents, immutable) =
+		let (mut scoped_idents, is_const) =
 			compute_scoped_idents(&descendent_idents, &decl_collect);
 		if !can_capture && !scoped_idents.is_empty() {
 			HANDLER.with(|handler| {
@@ -685,7 +685,7 @@ impl<'a> QwikTransform<'a> {
 			}
 		}
 		if !should_emit {
-			(self.create_noop_qrl(&symbol_name, hook_data), immutable)
+			(self.create_noop_qrl(&symbol_name, hook_data), is_const)
 		} else if self.is_inline() {
 			let folded = if !hook_data.scoped_idents.is_empty() {
 				let new_local = self.ensure_core_import(&USE_LEXICAL_SCOPE);
@@ -707,12 +707,12 @@ impl<'a> QwikTransform<'a> {
 			};
 			(
 				self.create_inline_qrl(hook_data, folded, symbol_name, span),
-				immutable,
+				is_const,
 			)
 		} else {
 			(
 				self.create_hook(hook_data, folded, symbol_name, span, hook_hash),
-				immutable,
+				is_const,
 			)
 		}
 	}
@@ -818,7 +818,7 @@ impl<'a> QwikTransform<'a> {
 		let should_emit_key = is_fn || self.root_jsx_mode;
 		self.root_jsx_mode = false;
 
-		let (has_spread_props, mutable_props, immutable_props, children, flags) =
+		let (has_spread_props, var_props, const_props, children, flags) =
 			self.handle_jsx_props_obj(node_props, is_fn, is_text_only);
 
 		let key = if node.args.len() == 1 {
@@ -838,23 +838,16 @@ impl<'a> QwikTransform<'a> {
 			get_null_arg()
 		};
 
+		// TODO use _restProps or similar to remove const props from spread props
 		let (jsx_func, mut args) = if is_fn || has_spread_props {
 			(
 				self.ensure_core_import(&_JSX_C),
-				vec![node_type, mutable_props, immutable_props, flags, key],
+				vec![node_type, var_props, const_props, flags, key],
 			)
 		} else {
 			(
 				self.ensure_core_import(&_JSX_Q),
-				vec![
-					node_type,
-					// TODO check that this is never null
-					mutable_props,
-					immutable_props,
-					children,
-					flags,
-					key,
-				],
+				vec![node_type, var_props, const_props, children, flags, key],
 			)
 		};
 		if self.options.mode == EmitMode::Dev {
@@ -1137,28 +1130,28 @@ impl<'a> QwikTransform<'a> {
 		ast::ExprOrSpread,
 		ast::ExprOrSpread,
 	) {
-		let (has_spread_props, mutable_props, immutable_props, children, flags) =
+		let (has_spread_props, var_props_raw, const_props_raw, children, flags) =
 			self.internal_handle_jsx_props_obj(expr, is_fn, is_text_only);
 
-		let mutable = if mutable_props.is_empty() {
+		let var_props = if var_props_raw.is_empty() {
 			get_null_arg()
 		} else {
 			self.jsx_mutable = true;
 			ast::ExprOrSpread {
 				spread: None,
 				expr: Box::new(ast::Expr::Object(ast::ObjectLit {
-					props: mutable_props,
+					props: var_props_raw,
 					span: DUMMY_SP,
 				})),
 			}
 		};
-		let immutable_props = if immutable_props.is_empty() {
+		let const_props = if const_props_raw.is_empty() {
 			get_null_arg()
 		} else {
 			ast::ExprOrSpread {
 				spread: None,
 				expr: Box::new(ast::Expr::Object(ast::ObjectLit {
-					props: immutable_props,
+					props: const_props_raw,
 					span: DUMMY_SP,
 				})),
 			}
@@ -1181,7 +1174,7 @@ impl<'a> QwikTransform<'a> {
 				raw: None,
 			}))),
 		};
-		(has_spread_props, mutable, immutable_props, children, flags)
+		(has_spread_props, var_props, const_props, children, flags)
 	}
 
 	#[allow(clippy::cognitive_complexity)]
@@ -1202,12 +1195,12 @@ impl<'a> QwikTransform<'a> {
 				expr: box ast::Expr::Object(object),
 				..
 			} => {
-				let mut mutable_props = vec![];
-				let mut immutable_props = vec![];
+				let mut var_props = vec![];
+				let mut const_props = vec![];
 				let mut children = None;
 				let mut event_handlers = vec![];
 				// The identifiers that are static
-				let immutable_idents: Vec<_> = self
+				let const_idents: Vec<_> = self
 					.decl_stack
 					.iter()
 					.flat_map(|v| v.iter())
@@ -1227,11 +1220,11 @@ impl<'a> QwikTransform<'a> {
 
 				for prop in object.props {
 					let mut name_token = false;
-					// If we have spread props, all the props that come before it are mutable even if they're static
+					// If we have spread props, all the props that come before it are variable even if they're static
 					let maybe_static_props = if spread_props_count > 0 {
-						&mut mutable_props
+						&mut var_props
 					} else {
-						&mut immutable_props
+						&mut const_props
 					};
 					match prop {
 						// regular props
@@ -1252,7 +1245,7 @@ impl<'a> QwikTransform<'a> {
 									self.jsx_mutable = false;
 									let folded = node.value.clone();
 									let transformed_children = if let Some(new_children) =
-										self.convert_children(&folded, &immutable_idents)
+										self.convert_children(&folded, &const_idents)
 									{
 										if is_text_only {
 											self.jsx_mutable = true;
@@ -1271,7 +1264,7 @@ impl<'a> QwikTransform<'a> {
 									if is_fn || spread_props_count > 0 {
 										// self.jsx_mutable = true;
 										// static_subtree = false;
-										mutable_props.push(ast::PropOrSpread::Prop(Box::new(
+										var_props.push(ast::PropOrSpread::Prop(Box::new(
 											ast::Prop::KeyValue(ast::KeyValueProp {
 												key: node.key.clone(),
 												value: transformed_children,
@@ -1340,13 +1333,13 @@ impl<'a> QwikTransform<'a> {
 										"bind:checked" => "onInput$",
 										_ => "onChange$",
 									});
-									let (converted_expr, immutable) = self._create_synthetic_qhook(
+									let (converted_expr, is_const) = self._create_synthetic_qhook(
 										arrow_fn,
 										HookKind::EventHandler,
 										event_handler.clone(),
 										None,
 									);
-									if !immutable {
+									if !is_const {
 										static_listeners = false;
 									}
 									let converted_prop = ast::PropOrSpread::Prop(Box::new(
@@ -1362,11 +1355,11 @@ impl<'a> QwikTransform<'a> {
 									event_handlers.push(converted_prop);
 								} else if !is_fn && (key_word == *REF || key_word == *QSLOT) {
 									// skip
-									mutable_props.push(prop.fold_with(self));
+									var_props.push(prop.fold_with(self));
 								} else if convert_qrl_word(&key_word).is_some() {
 									if matches!(*node.value, ast::Expr::Arrow(_) | ast::Expr::Fn(_))
 									{
-										let (converted_expr, immutable) = self
+										let (converted_expr, is_const) = self
 											._create_synthetic_qhook(
 												*node.value.clone(),
 												if is_fn {
@@ -1385,14 +1378,14 @@ impl<'a> QwikTransform<'a> {
 											}),
 										));
 										if is_fn {
-											if immutable {
+											if is_const {
 												maybe_static_props
 													.push(converted_prop.fold_with(self));
 											} else {
-												mutable_props.push(converted_prop.fold_with(self));
+												var_props.push(converted_prop.fold_with(self));
 											}
 										} else {
-											if immutable {
+											if is_const {
 												event_handlers.push(converted_prop.fold_with(self));
 											} else {
 												static_listeners = false;
@@ -1401,33 +1394,33 @@ impl<'a> QwikTransform<'a> {
 											}
 										}
 									} else {
-										let immutable_prop = is_immutable_expr(
+										let const_prop = is_const_expr(
 											&node.value,
 											&self.options.global_collect,
-											Some(&immutable_idents),
+											Some(&const_idents),
 										);
-										if !immutable_prop {
+										if !const_prop {
 											static_listeners = false;
 										}
 
 										if is_fn || spread_props_count > 0 {
-											if immutable_prop {
+											if const_prop {
 												maybe_static_props.push(prop.fold_with(self));
 											} else {
-												mutable_props.push(prop.fold_with(self));
+												var_props.push(prop.fold_with(self));
 											}
 										} else {
 											event_handlers.push(prop.fold_with(self));
 										}
 									}
-								} else if is_immutable_expr(
+								} else if is_const_expr(
 									&node.value,
 									&self.options.global_collect,
-									Some(&immutable_idents),
+									Some(&const_idents),
 								) {
 									maybe_static_props.push(prop.fold_with(self));
-								} else if let Some((getter, is_immutable)) =
-									self.convert_to_getter(&node.value, is_fn)
+								} else if let Some((getter, is_const)) =
+									self.convert_to_getter(&node.value)
 								{
 									let key = node.key.clone();
 									let entry = ast::PropOrSpread::Prop(Box::new(
@@ -1436,21 +1429,21 @@ impl<'a> QwikTransform<'a> {
 											value: Box::new(getter),
 										}),
 									));
-									if is_fn || is_immutable {
+									if is_fn || is_const {
 										maybe_static_props.push(entry);
 									} else {
-										mutable_props.push(entry);
+										var_props.push(entry);
 									}
 								} else {
-									mutable_props.push(prop.fold_with(self));
+									var_props.push(prop.fold_with(self));
 								}
 							} else {
-								mutable_props.push(prop.fold_with(self));
+								var_props.push(prop.fold_with(self));
 							}
 						}
 						// spread props
 						prop => {
-							mutable_props.push(prop.fold_with(self));
+							var_props.push(prop.fold_with(self));
 							spread_props_count -= 1;
 						}
 					};
@@ -1461,21 +1454,15 @@ impl<'a> QwikTransform<'a> {
 				let mut flags = 0;
 				if static_listeners {
 					flags |= 1 << 0;
-					immutable_props.extend(event_handlers.into_iter());
+					const_props.extend(event_handlers.into_iter());
 				} else {
-					mutable_props.extend(event_handlers.into_iter());
+					var_props.extend(event_handlers.into_iter());
 				}
 
 				if static_subtree {
 					flags |= 1 << 1;
 				}
-				(
-					has_spread_props,
-					mutable_props,
-					immutable_props,
-					children,
-					flags,
-				)
+				(has_spread_props, var_props, const_props, children, flags)
 			}
 			_ => (true, vec![], vec![], None, 0),
 		}
@@ -1484,7 +1471,7 @@ impl<'a> QwikTransform<'a> {
 	fn convert_children(
 		&mut self,
 		expr: &ast::Expr,
-		immutable_idents: &Vec<IdPlusType>,
+		const_idents: &Vec<IdPlusType>,
 	) -> Option<ast::Expr> {
 		match expr {
 			ast::Expr::Call(call_expr) => {
@@ -1507,9 +1494,7 @@ impl<'a> QwikTransform<'a> {
 					.iter()
 					.map(|e| {
 						if let Some(e) = e {
-							if let Some(new) =
-								self.convert_to_signal_item(&e.expr, immutable_idents)
-							{
+							if let Some(new) = self.convert_to_signal_item(&e.expr, const_idents) {
 								Some(ast::ExprOrSpread {
 									spread: e.spread,
 									expr: Box::new(new),
@@ -1523,13 +1508,13 @@ impl<'a> QwikTransform<'a> {
 					})
 					.collect(),
 			})),
-			expr => self.convert_to_signal_item(expr, immutable_idents),
+			expr => self.convert_to_signal_item(expr, const_idents),
 		}
 	}
 
-	/// Convert an expression to a QRL or a getter. Returns (expr, isImmutable)
+	/// Convert an expression to a QRL or a getter. Returns (expr, isConst)
 	/// This is needed to make sure signals aren't read unless they're used by the component
-	fn convert_to_getter(&mut self, expr: &ast::Expr, is_fn: bool) -> Option<(ast::Expr, bool)> {
+	fn convert_to_getter(&mut self, expr: &ast::Expr) -> Option<(ast::Expr, bool)> {
 		let inlined = self.create_synthetic_qqhook(expr.clone(), true);
 		if let Some(expr) = inlined.0 {
 			return Some((expr, inlined.1));
@@ -1540,11 +1525,7 @@ impl<'a> QwikTransform<'a> {
 		if let ast::Expr::Member(member) = expr {
 			let prop_sym = prop_to_string(&member.prop);
 			if let Some(prop_sym) = prop_sym {
-				let id = if is_fn {
-					self.ensure_core_import(&_WRAP_PROP)
-				} else {
-					self.ensure_core_import(&_WRAP_SIGNAL)
-				};
+				let id = self.ensure_core_import(&_WRAP_PROP);
 				return Some((make_wrap(&id, member.obj.clone(), prop_sym), false));
 			}
 		}
@@ -1554,7 +1535,7 @@ impl<'a> QwikTransform<'a> {
 	fn convert_to_signal_item(
 		&mut self,
 		expr: &ast::Expr,
-		immutable_idents: &Vec<IdPlusType>,
+		const_idents: &Vec<IdPlusType>,
 	) -> Option<ast::Expr> {
 		if let ast::Expr::Call(call_expr) = expr {
 			match &call_expr.callee {
@@ -1569,22 +1550,22 @@ impl<'a> QwikTransform<'a> {
 			};
 			return None;
 		}
-		if is_immutable_expr(expr, &self.options.global_collect, Some(immutable_idents)) {
+		if is_const_expr(expr, &self.options.global_collect, Some(const_idents)) {
 			return None;
 		}
-		let (inlined_expr, immutable) = self.create_synthetic_qqhook(expr.clone(), false);
-		if !immutable {
+		let (inlined_expr, is_const) = self.create_synthetic_qqhook(expr.clone(), false);
+		if !is_const {
 			self.jsx_mutable = true;
 		}
 		if inlined_expr.is_some() {
 			return inlined_expr;
-		} else if immutable {
+		} else if is_const {
 			return None;
 		}
 		if let ast::Expr::Member(member) = expr {
 			let prop_sym = prop_to_string(&member.prop);
 			if let Some(prop_sym) = prop_sym {
-				let id = self.ensure_core_import(&_WRAP_SIGNAL);
+				let id = self.ensure_core_import(&_WRAP_PROP);
 				return Some(make_wrap(&id, member.obj.clone(), prop_sym));
 			}
 		}
@@ -2234,18 +2215,18 @@ fn base64(nu: u64) -> String {
 
 fn compute_scoped_idents(all_idents: &[Id], all_decl: &[IdPlusType]) -> (Vec<Id>, bool) {
 	let mut set: HashSet<Id> = HashSet::new();
-	let mut immutable = true;
+	let mut is_const = true;
 	for ident in all_idents {
 		if let Some(item) = all_decl.iter().find(|item| item.0 == *ident) {
 			set.insert(ident.clone());
 			if !matches!(item.1, IdentType::Var(true)) {
-				immutable = false;
+				is_const = false;
 			}
 		}
 	}
 	let mut output: Vec<Id> = set.into_iter().collect();
 	output.sort();
-	(output, immutable)
+	(output, is_const)
 }
 
 fn get_canonical_filename(symbol_name: &JsWord) -> JsWord {

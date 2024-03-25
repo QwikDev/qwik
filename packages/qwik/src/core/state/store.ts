@@ -26,7 +26,7 @@ import {
   QObjectManagerSymbol,
   QObjectRecursive,
   QOjectTargetSymbol,
-  _IMMUTABLE,
+  _CONST_PROPS,
   _IMMUTABLE_PREFIX,
 } from './constants';
 import { isSignal } from './signal';
@@ -108,14 +108,13 @@ export const setObjectFlags = (obj: object, flags: number) => {
 export type TargetType = Record<string | symbol, any>;
 
 /** @internal */
-export const _restProps = (props: Record<string, any>, omit: string[]) => {
-  const rest: Record<string, any> = {};
+export const _restProps = (props: Record<string, any>, omit: string[], target = {}) => {
   for (const key in props) {
     if (!omit.includes(key)) {
-      rest[key] = props[key];
+      (target as any)[key] = props[key];
     }
   }
-  return rest;
+  return target;
 };
 
 export class Store {}
@@ -169,7 +168,7 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     if (invokeCtx) {
       subscriber = invokeCtx.$subscriber$;
     }
-    if (immutable && (!(prop in target) || immutableValue(target[_IMMUTABLE]?.[prop]))) {
+    if (immutable && (!(prop in target) || immutableValue(target[_CONST_PROPS]?.[prop]))) {
       subscriber = null;
     }
     if (hiddenSignal) {
@@ -291,7 +290,7 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
 }
 
 const immutableValue = (value: any) => {
-  return value === _IMMUTABLE || isSignal(value);
+  return value === _CONST_PROPS || isSignal(value);
 };
 
 const wrap = <T>(value: T, storeTracker: StoreTracker): T => {

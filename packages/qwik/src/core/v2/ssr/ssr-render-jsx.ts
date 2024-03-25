@@ -24,7 +24,7 @@ import { qrlToString, type SerializationContext } from '../shared/shared-seriali
 import { DEBUG_TYPE, VirtualType, type fixMeAny } from '../shared/types';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
 import type { SSRContainer, SsrAttrs } from './ssr-types';
-import { _IMMUTABLE } from '../../internal';
+import { _CONST_PROPS } from '../../internal';
 
 type StackFn = () => ValueOrPromise<void>;
 type StackValue = JSXOutput | StackFn | Promise<JSXOutput> | typeof Promise;
@@ -129,8 +129,8 @@ function processJSXNode(
       if (typeof type === 'string') {
         ssr.openElement(
           type,
-          toSsrAttrs(jsx.props, ssr.serializationCtx),
-          toSsrAttrs(jsx.immutableProps, ssr.serializationCtx)
+          toSsrAttrs(jsx.varProps, ssr.serializationCtx),
+          toSsrAttrs(jsx.constProps, ssr.serializationCtx)
         );
         enqueue(ssr.closeElement);
         if (type === 'head') {
@@ -155,14 +155,14 @@ function processJSXNode(
             const host = componentFrame.componentNode;
             let slotName: string = '';
             const node = ssr.getLastNode();
-            const immutableProps = jsx.immutableProps || jsx.props[_IMMUTABLE];
-            if (immutableProps && typeof immutableProps == 'object' && 'name' in immutableProps) {
-              const immutableValue = immutableProps.name;
-              if (immutableValue instanceof SignalDerived) {
-                slotName = trackSignal(immutableValue, [
+            const constProps = jsx.constProps || jsx.props[_CONST_PROPS as any];
+            if (constProps && typeof constProps == 'object' && 'name' in constProps) {
+              const constValue = constProps.name;
+              if (constValue instanceof SignalDerived) {
+                slotName = trackSignal(constValue, [
                   SubscriptionType.PROP_MUTABLE,
                   host,
-                  immutableValue,
+                  constValue,
                   node,
                 ]);
               }

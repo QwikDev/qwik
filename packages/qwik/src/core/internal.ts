@@ -16,5 +16,5 @@ export {
   _jsxBranch,
   _waitUntilRendered,
 } from './use/use-core';
-export { _jsxQ, _jsxC, _jsxS, isJSXNode as _isJSXNode } from './render/jsx/jsx-runtime';
+export { _jsxQ, _jsxC, isJSXNode as _isJSXNode } from './render/jsx/jsx-runtime';
 export { _fnSignal } from './qrl/inlined-fn';

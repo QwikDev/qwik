@@ -185,7 +185,7 @@ export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(obj: T,
   if (target) {
     const signal = target[_IMMUTABLE_PREFIX + (prop as any)];
     if (signal) {
-      assertTrue(isSignal(signal), `${_IMMUTABLE_PREFIX} has to be a signal kind`);
+      assertTrue(isSignal(signal), `${_IMMUTABLE_PREFIX}${prop as string} has to be a signal kind`);
       return signal;
     }
     if ((target as any)[_IMMUTABLE]?.[prop] !== true) {

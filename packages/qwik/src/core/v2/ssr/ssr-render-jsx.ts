@@ -7,9 +7,9 @@ import { Fragment } from '../../render/jsx/jsx-runtime';
 import { Slot } from '../../render/jsx/slot.public';
 import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
 import type { ClassList, JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
-import { SubscriptionType } from '../../state/common';
-import { isSignal } from '../../state/signal';
-import { trackSignal } from '../../use/use-core';
+import { SubscriptionProp, SubscriptionType } from '../../state/common';
+import { SignalDerived, isSignal } from '../../state/signal';
+import { trackRead, trackSignal } from '../../use/use-core';
 import { EMPTY_ARRAY } from '../../util/flyweight';
 import { throwErrorAndStop } from '../../util/log';
 import { QSlot } from '../../util/markers';
@@ -25,6 +25,7 @@ import { qrlToString, type SerializationContext } from '../shared/shared-seriali
 import { DEBUG_TYPE, VirtualType, type fixMeAny } from '../shared/types';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
 import type { SSRContainer, SsrAttrs } from './ssr-types';
+import { _IMMUTABLE } from '../../internal';
 
 type StackFn = () => ValueOrPromise<void>;
 type StackValue = JSXOutput | StackFn | Promise<JSXOutput> | typeof Promise;
@@ -148,15 +149,29 @@ function processJSXNode(
         } else if (type === Slot) {
           const componentFrame = ssr.getNearestComponentFrame()!;
           if (componentFrame) {
-            const slotName = String(jsx.props.name || '');
+            const projectionAttrs = isDev ? [DEBUG_TYPE, VirtualType.Projection] : [];
             const compId = componentFrame.componentNode.id || '';
-            ssr.openProjection(
-              isDev
-                ? [DEBUG_TYPE, VirtualType.Projection, ':', compId, QSlot, slotName]
-                : [':', compId, QSlot, slotName]
-            );
-            enqueue(ssr.closeProjection);
+            projectionAttrs.push(':', compId);
+            ssr.openProjection(projectionAttrs);
+            const host = componentFrame.componentNode;
+            let slotName: string = '';
             const node = ssr.getLastNode();
+            const immutableProps = jsx.immutableProps || jsx.props[_IMMUTABLE];
+            if (immutableProps && typeof immutableProps == 'object' && 'name' in immutableProps) {
+              const immutableValue = immutableProps.name;
+              if (immutableValue instanceof SignalDerived) {
+                slotName = trackSignal(immutableValue, [
+                  SubscriptionType.PROP_MUTABLE,
+                  host,
+                  immutableValue,
+                  node,
+                ]);
+              }
+            } else {
+              slotName = String(jsx.props.name || '');
+            }
+            slotName = String(slotName || '');
+            enqueue(ssr.closeProjection);
             const slotDefaultChildren = (jsx.props.children || null) as JSXChildren | null;
             const slotChildren =
               componentFrame.consumeChildrenForSlot(node, slotName) || slotDefaultChildren;

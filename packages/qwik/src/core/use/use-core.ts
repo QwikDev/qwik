@@ -247,6 +247,11 @@ export const trackSignal = <T>(signal: Signal, sub: Subscriber): T => {
   return invoke(trackInvocation, () => signal.value);
 };
 
+export const trackRead = <T>(readFn: () => T, sub: Subscriber): T => {
+  trackInvocation.$subscriber$ = sub;
+  return invoke(trackInvocation, readFn);
+};
+
 /** @internal */
 export const _getContextElement = (): unknown => {
   const iCtx = tryGetInvokeContext();

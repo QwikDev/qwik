@@ -10,6 +10,7 @@ contributors:
   - igorbabko
   - mrhoodz
   - dario-piotrowicz
+  - matthewlal
 updated_at: '2023-10-03T18:53:23Z'
 created_at: '2023-04-06T21:28:28Z'
 ---
@@ -38,6 +39,14 @@ The adapter will add a new `vite.config.ts` within the `adapters/` directory, an
 
 Additionally, within the `package.json`, the `build.server` and `deploy` scripts will be updated.
 
+Take note of your nodejs version in your local environment by running the `node -v` command:
+```shell
+node -v
+v20.11.1
+```
+
+When using `npm create qwik@latest` to setup your Qwik app it will likely use a different nodejs version than what Cloudflare Pages uses by default (v16.20.2).
+
 ## Production build
 
 To build the application for production, use the `build` command, this command will automatically run `npm run build.server` and `npm run build.client`:
@@ -51,6 +60,15 @@ npm run build
 ## Deploy to Cloudflare Pages
 
 After installing the integration using `npm run qwik add cloudflare-pages`, the project is ready to be deployed to Cloudflare Pages.
+
+If the nodejs version is different in your environment than Cloudflare Pages (v16.20.2) you'll need to add a `NODE_VERSION` environment variable and set the value to the version that you got from running the `node -v` command in your environment:
+
+```shell
+node -v
+v20.11.1
+```
+
+To do this in Cloudflare go to **Workers & Pages > YOUR_PROJECT > Settings > Environment variables > Production (and Preview) > Add variables > Save **
 
 Please refer to the [Cloudflare Pages docs](https://developers.cloudflare.com/pages/framework-guides/deploy-a-qwik-site/) for more information on how to deploy your site.
 

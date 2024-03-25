@@ -150,7 +150,7 @@ export async function ssrRenderToDom(
     }
     const funcs = container.$qFuncs$;
     for (let i = 0; i < funcs.length; i++) {
-      console.log(('    ' + i + ':').substring(-4), qwikJsonStringify(funcs[i].toString()));
+      console.log(('    ' + i + ':').substring(-4), funcs[i].toString());
     }
     if (false as boolean) {
       // stateDate is private but it's not enforced so we can access it for the test

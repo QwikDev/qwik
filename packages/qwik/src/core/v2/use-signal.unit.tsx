@@ -13,6 +13,7 @@ import { useSignal } from '../use/use-signal';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import type { fixMeAny } from './shared/types';
 import './vdom-diff.unit-util';
+import { useStore } from '../use/use-store.public';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -399,32 +400,6 @@ Error.stackTraceLimit = 100;
         );
       });
       it('should pass signal as prop into child component', async () => {
-        /**
-         * ```
-         * 0: "Signal: 10;4 6 8 6 9"
-         * 1: {"value":"DerivedSignal: 0 0"}
-         * 2: "QRL: qwik-runtime-mock-chunk#s0"
-         * 3: {}
-         * 4: "QRL: qwik-runtime-mock-chunk#s1"
-         * 5: ["REFERENCE: 0"]
-         * 6: "VNode: 5A"
-         * 7: ["JSXNode: button 11 12 9 0","JSXNode: 13 1 12 9 3"] <==== DELETE
-         * 8: "DerivedSignal: 0 1"
-         * 9: "UNDEFINED: "
-         * 10: 123
-         * 11: {"onClick$":"QRL: qwik-runtime-mock-chunk#s_click[0]"} <==== DELETE
-         * 12: null
-         * 13: "Component: qwik-runtime-mock-chunk#s0" <==== DELETE
-         * 0: "(p0)=>undefined" <==== WRONG
-         * ```
-         *
-         * Things to fix:
-         *
-         * - [ ] ["JSXNode: button 11 12 9 0","JSXNode: 13 1 12 9 3"] <==== DELETE
-         * - [ ] {"onClick$":"QRL: qwik-runtime-mock-chunk#s_click[0]"} <==== DELETE
-         * - [ ] "Component: qwik-runtime-mock-chunk#s0" <==== DELETE
-         * - [X] "(p0)=>undefined" <==== WRONG
-         */
         const Display = component$((props: { value: number }) => {
           return _jsxQ(
             'div',

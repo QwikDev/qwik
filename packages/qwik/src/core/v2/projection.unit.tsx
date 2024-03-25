@@ -1,20 +1,22 @@
 import { beforeEach, describe, expect, it } from 'vitest';
+import { trigger } from '../../testing/element-fixture';
 import { component$, componentQrl } from '../component/component.public';
 import { inlinedQrl } from '../qrl/qrl';
 import {
   Fragment as Component,
+  Fragment,
   Fragment as InlineComponent,
   Fragment as Projection,
-  Fragment,
+  _jsxC,
 } from '../render/jsx/jsx-runtime';
 import { Slot } from '../render/jsx/slot.public';
-import { vnode_getNextSibling } from './client/vnode';
-import { domRender, ssrRenderToDom } from './rendering.unit-util';
-import './vdom-diff.unit-util';
-import { trigger } from '../../testing/element-fixture';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { useSignal } from '../use/use-signal';
 import { useStore } from '../use/use-store.public';
+import { vnode_getNextSibling } from './client/vnode';
+import { domRender, ssrRenderToDom } from './rendering.unit-util';
+import './vdom-diff.unit-util';
+import { _IMMUTABLE, _fnSignal, _jsxQ } from '../internal';
 
 const debug = false;
 
@@ -532,7 +534,7 @@ const debug = false;
           <Component>
             <Fragment>
               <button></button>
-              <Projection q:slot="static">
+              <Projection>
                 <p q:slot="static"></p>
               </Projection>
               {''}
@@ -545,10 +547,10 @@ const debug = false;
           <Component>
             <Fragment>
               <button></button>
-              <Projection q:slot="static">
+              <Projection>
                 <p q:slot="static"></p>
               </Projection>
-              <Projection q:slot="">
+              <Projection>
                 <Component>
                   <b>{'CHILD'}</b>
                 </Component>
@@ -558,6 +560,102 @@ const debug = false;
           </Component>
         );
         expect(document.body.innerHTML).toContain('</p><b>CHILD</b>DYNAMIC');
+      });
+
+      it.skip('#2688', async () => {
+        const Switch = component$((props: { name: string }) => {
+          return _jsxC(
+            Slot,
+            {
+              get name() {
+                return props.name;
+              },
+              [_IMMUTABLE as any]: {
+                name: _fnSignal((p0) => p0.name, [props], 'p0.name'),
+              },
+            },
+            3,
+            null
+          );
+        });
+
+        const Issue2688 = component$<{ count: number }>((props) => {
+          const store = useStore({ flip: false });
+
+          return (
+            <>
+              <button
+                onClick$={inlinedQrl(
+                  () => {
+                    const [store] = useLexicalScope();
+                    store.flip = !store.flip;
+                  },
+                  's_click',
+                  [store]
+                )}
+              ></button>
+              <div>
+                {_jsxC(
+                  Switch as any,
+                  {
+                    get name() {
+                      return store.flip ? 'b' : 'a';
+                    },
+                    children: [
+                      <div q:slot="a">Alpha {props.count}</div>,
+                      <div q:slot="b">Bravo {props.count}</div>,
+                    ],
+                    [_IMMUTABLE]: {
+                      name: _fnSignal((p0) => (p0.flip ? 'b' : 'a'), [store], 'p0.flip?"b":"a"'),
+                    },
+                  },
+                  1,
+                  'ub_1'
+                )}
+              </div>
+            </>
+          );
+        });
+
+        const { vNode, document } = await render(
+          <section>
+            <Issue2688 count={123} />
+          </section>,
+          { debug }
+        );
+        expect(vNode).toMatchVDOM(
+          <section>
+            <Component>
+              <Fragment>
+                <button></button>
+                <div>
+                  <Component>
+                    <Projection>
+                      <div q:slot="a">Alpha {'123'}</div>
+                    </Projection>
+                  </Component>
+                </div>
+              </Fragment>
+            </Component>
+          </section>
+        );
+        await trigger(document.body, 'button', 'click');
+        expect(vNode).toMatchVDOM(
+          <section>
+            <Component>
+              <Fragment>
+                <button></button>
+                <div>
+                  <Component>
+                    <Projection>
+                      <div q:slot="b">Bravo {'123'}</div>
+                    </Projection>
+                  </Component>
+                </div>
+              </Fragment>
+            </Component>
+          </section>
+        );
       });
     });
   });

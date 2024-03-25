@@ -8,12 +8,9 @@ test('getCacheToDelete, delete bundles no longer possible', () => {
     ['q-abc.js', [], []],
     ['q-def.js', [], []],
   ];
-  const cachedUrls = [
-    'https://qwik.builder.io/build/q-abc.js',
-    'https://qwik.builder.io/build/q-xyz.js',
-  ];
+  const cachedUrls = ['https://qwik.dev/build/q-abc.js', 'https://qwik.dev/build/q-xyz.js'];
   const c = getCacheToDelete(appBundles, cachedUrls);
-  assert.deepEqual(c, ['https://qwik.builder.io/build/q-xyz.js']);
+  assert.deepEqual(c, ['https://qwik.dev/build/q-xyz.js']);
 });
 
 test('getCacheToDelete, none to delete', () => {
@@ -21,7 +18,7 @@ test('getCacheToDelete, none to delete', () => {
     ['q-abc.js', [], []],
     ['q-def.js', [], []],
   ];
-  const cachedUrls = ['https://qwik.builder.io/build/q-abc.js'];
+  const cachedUrls = ['https://qwik.dev/build/q-abc.js'];
   const c = getCacheToDelete(appBundles, cachedUrls);
   assert.deepEqual(c, []);
 });
@@ -77,7 +74,7 @@ test('useCache', () => {
 });
 
 export function mockRequest(url?: string): Request {
-  url = url || 'https://qwik.builder.io/';
+  url = url || 'https://qwik.dev/';
   return new NodeRequest(url) as any;
 }
 

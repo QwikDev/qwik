@@ -141,7 +141,7 @@ export async function mainThread(sys: System) {
 
       const addToQueue = (pathname: string | undefined | null, params: PathParams | undefined) => {
         if (pathname) {
-          pathname = new URL(pathname, `https://qwik.builder.io`).pathname;
+          pathname = new URL(pathname, `https://qwik.dev`).pathname;
 
           if (pathname !== opts.basePathname) {
             if (trailingSlash) {

@@ -12,10 +12,26 @@ import { useSignal } from '../use/use-signal';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
 import { Slot } from '../render/jsx/slot.public';
-import { $ } from '../qrl/qrl.public';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
+
+/**
+ * Below are helper functions that are constant. They have to be in the top level scope so that the
+ * optimizer doesn't consider them as captured scope. It would be great if the optimizer could
+ * detect that these are constant and don't require capturing.
+ */
+interface MyStore {
+  value: number;
+}
+const myFooFnContext = createContextId<MyStore>('mytitle');
+const useFooFn = () => {
+  const state = useContext(myFooFnContext);
+
+  return (val: number) => {
+    return (state.value + val).toString();
+  };
+};
 
 [
   ssrRenderToDom, //
@@ -72,23 +88,12 @@ Error.stackTraceLimit = 100;
 
   describe(render.name + 'regression', () => {
     it('#4038', async () => {
-      interface MyStore {
-        value: number;
-      }
-      const myContext = createContextId<MyStore>('mytitle');
-      const useFn = () => {
-        const state = useContext(myContext);
-
-        return (val: number) => {
-          return (state.value + val).toString();
-        };
-      };
       interface IMyComponent {
         val: string;
       }
       const MyComponent = component$((props: IMyComponent) => {
         const count = useSignal(0);
-        const c = useFn();
+        const c = useFooFn();
 
         return (
           <>
@@ -101,7 +106,7 @@ Error.stackTraceLimit = 100;
       });
 
       const Parent = component$(() => {
-        const c = useFn();
+        const c = useFooFn();
 
         return (
           <div>
@@ -111,7 +116,7 @@ Error.stackTraceLimit = 100;
       });
 
       const Layout = component$(() => {
-        useContextProvider(myContext, {
+        useContextProvider(myFooFnContext, {
           value: 0,
         });
         return <Slot />;
@@ -129,9 +134,13 @@ Error.stackTraceLimit = 100;
               <div>
                 <Component>
                   <Fragment>
-                    <p>1</p>
+                    <p>
+                      <Signal>1</Signal>
+                    </p>
                     <p>0</p>
-                    <p>0</p>
+                    <p>
+                      <Signal>0</Signal>
+                    </p>
                     <button>Increment</button>
                   </Fragment>
                 </Component>
@@ -149,9 +158,13 @@ Error.stackTraceLimit = 100;
               <div>
                 <Component>
                   <Fragment>
-                    <p>1</p>
+                    <p>
+                      <Signal>1</Signal>
+                    </p>
                     <p>2</p>
-                    <p>2</p>
+                    <p>
+                      <Signal>2</Signal>
+                    </p>
                     <button>Increment</button>
                   </Fragment>
                 </Component>

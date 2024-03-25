@@ -317,7 +317,8 @@ Error.stackTraceLimit = 100;
           'quadruple',
           'double',
           'quadruple',
-          'Counter',
+          // not called with the optimizer
+          // 'Counter',
         ]);
         expect(vNode).toMatchVDOM(
           <Component>
@@ -328,7 +329,12 @@ Error.stackTraceLimit = 100;
         );
         (globalThis as any).log = [];
         await trigger(document.body, 'button', 'click');
-        expect((globalThis as any).log).toEqual(['double', 'quadruple', 'Counter']);
+        expect((globalThis as any).log).toEqual([
+          'double',
+          'quadruple',
+          // not called with the optimizer
+          // 'Counter',
+        ]);
         expect(vNode).toMatchVDOM(
           <Component>
             <button>

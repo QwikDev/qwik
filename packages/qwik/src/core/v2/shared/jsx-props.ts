@@ -30,5 +30,5 @@ export function fixJsxProps(jsx: JSXNode<unknown>) {
     }
   }
   jsx.props = mutablePropsResult;
-  jsx.immutableProps = immutablePropsResult;
+  jsx.immutableProps = jsx.immutableProps ? immutablePropsResult : null;
 }

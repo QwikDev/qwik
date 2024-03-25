@@ -19,6 +19,19 @@ import { useStore } from '../use/use-store.public';
 
 const debug = false;
 
+/**
+ * Below are helper components that are constant. They have to be in the top level scope so that the
+ * optimizer doesn't consider them as captured scope. It would be great if the optimizer could
+ * detect that these are constant and don't require capturing.
+ */
+const ChildSlotInline = (props: { children: any }) => {
+  return (
+    <span>
+      <Slot />({props.children})
+    </span>
+  );
+};
+
 [
   ssrRenderToDom, // SSR
   domRender, // Client
@@ -283,15 +296,8 @@ const debug = false;
       );
     });
     it('should project Slot inside inline-component', async () => {
-      const Child = (props: { children: any }) => {
-        return (
-          <span>
-            <Slot />({props.children})
-          </span>
-        );
-      };
       const Parent = component$(() => {
-        return <Child>child-content</Child>;
+        return <ChildSlotInline>child-content</ChildSlotInline>;
       });
       const { vNode } = await render(<Parent>parent-content</Parent>, { debug });
       expect(vNode).toMatchVDOM(
@@ -306,54 +312,40 @@ const debug = false;
       );
     });
     describe('ensureProjectionResolved', () => {
-      const log: string[] = [];
+      (globalThis as any).log = [] as string[];
       beforeEach(() => {
-        log.length = 0;
+        (globalThis as any).log.length = 0;
       });
-      const Child = componentQrl<{ show: boolean }>(
-        inlinedQrl((props) => {
-          log.push('render:Child');
-          const show = useSignal(props.show);
-          return (
-            <span
-              class="child"
-              onClick$={inlinedQrl(
-                () => {
-                  log.push('click:Child');
-                  const [show] = useLexicalScope();
-                  show.value = !show.value;
-                },
-                's_onClickChild',
-                [show]
-              )}
-            >
-              {show.value && <Slot />}
-            </span>
-          );
-        }, 's_Child')
-      );
-      const Parent = componentQrl<{ content: boolean; slot: boolean }>(
-        inlinedQrl((props) => {
-          log.push('render:Parent');
-          const show = useSignal(props.content);
-          return (
-            <div
-              class="parent"
-              onClick$={inlinedQrl(
-                () => {
-                  log.push('click:Parent');
-                  const [show] = useLexicalScope();
-                  show.value = !show.value;
-                },
-                's_onClickParent',
-                [show]
-              )}
-            >
-              <Child show={props.slot}>{show.value && 'child-content'}</Child>
-            </div>
-          );
-        }, 's_Parent')
-      );
+      const Child = component$<{ show: boolean }>((props) => {
+        (globalThis as any).log.push('render:Child');
+        const show = useSignal(props.show);
+        return (
+          <span
+            class="child"
+            onClick$={() => {
+              (globalThis as any).log.push('click:Child');
+              show.value = !show.value;
+            }}
+          >
+            {show.value && <Slot />}
+          </span>
+        );
+      });
+      const Parent = component$<{ content: boolean; slot: boolean }>((props) => {
+        (globalThis as any).log.push('render:Parent');
+        const show = useSignal(props.content);
+        return (
+          <div
+            class="parent"
+            onClick$={() => {
+              (globalThis as any).log.push('click:Parent');
+              show.value = !show.value;
+            }}
+          >
+            <Child show={props.slot}>{show.value && 'child-content'}</Child>
+          </div>
+        );
+      });
       it('should work when parent removes content', async () => {
         const { vNode, document } = await render(<Parent content={true} slot={true} />, {
           debug,
@@ -371,20 +363,22 @@ const debug = false;
             </div>
           </Component>
         );
-        log.length = 0;
+        (globalThis as any).log.length = 0;
         await trigger(document.body, '.parent', 'click');
         expect(vNode).toMatchVDOM(
           <Component>
             <div class="parent">
               <Component>
                 <span class="child">
-                  <Projection>{''}</Projection>
+                  <Projection>
+                    <Signal>{''}</Signal>
+                  </Projection>
                 </span>
               </Component>
             </div>
           </Component>
         );
-        expect(log).toEqual(['click:Parent', 'render:Parent']);
+        expect((globalThis as any).log).toEqual(['click:Parent']);
       });
       it('should work when child removes projection', async () => {
         const { vNode, document } = await render(<Parent content={true} slot={true} />, {
@@ -403,9 +397,9 @@ const debug = false;
             </div>
           </Component>
         );
-        log.length = 0;
+        (globalThis as any).log.length = 0;
         await trigger(document.body, '.child', 'click');
-        expect(log).toEqual(['click:Child', 'render:Child']);
+        expect((globalThis as any).log).toEqual(['click:Child', 'render:Child']);
         expect(vNode).toMatchVDOM(
           <Component>
             <div class="parent">
@@ -415,9 +409,9 @@ const debug = false;
             </div>
           </Component>
         );
-        log.length = 0;
+        (globalThis as any).log.length = 0;
         await trigger(document.body, '.parent', 'click');
-        expect(log).toEqual(['click:Parent', 'render:Parent']);
+        expect((globalThis as any).log).toEqual(['click:Parent']);
         expect(vNode).toMatchVDOM(
           <Component>
             <div class="parent">
@@ -427,15 +421,17 @@ const debug = false;
             </div>
           </Component>
         );
-        log.length = 0;
+        (globalThis as any).log.length = 0;
         await trigger(document.body, '.child', 'click');
-        expect(log).toEqual(['click:Child', 'render:Child']);
+        expect((globalThis as any).log).toEqual(['click:Child', 'render:Child']);
         expect(vNode).toMatchVDOM(
           <Component>
             <div class="parent">
               <Component>
                 <span class="child">
-                  <Projection>{''}</Projection>
+                  <Projection>
+                    <Signal>child-content</Signal>
+                  </Projection>
                 </span>
               </Component>
             </div>
@@ -459,7 +455,7 @@ const debug = false;
             </div>
           </Component>
         );
-        log.length = 0;
+        (globalThis as any).log.length = 0;
         await trigger(document.body, '.parent', 'click');
         expect(vNode).toMatchVDOM(
           <Component>
@@ -474,7 +470,7 @@ const debug = false;
             </div>
           </Component>
         );
-        expect(log).toEqual(['click:Parent', 'render:Parent']);
+        expect((globalThis as any).log).toEqual(['click:Parent']);
       });
       it('should work when child adds projection', async () => {
         const { vNode, document } = await render(<Parent content={true} slot={false} />, {
@@ -489,7 +485,7 @@ const debug = false;
             </div>
           </Component>
         );
-        log.length = 0;
+        (globalThis as any).log.length = 0;
         await trigger(document.body, '.child', 'click');
         expect(vNode).toMatchVDOM(
           <Component>
@@ -504,7 +500,7 @@ const debug = false;
             </div>
           </Component>
         );
-        expect(log).toEqual(['click:Child', 'render:Child']);
+        expect((globalThis as any).log).toEqual(['click:Child', 'render:Child']);
       });
     });
     describe('regression', () => {

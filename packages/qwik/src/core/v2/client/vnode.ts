@@ -476,6 +476,9 @@ const vnode_getDomSibling = (
     } else if (!sibling) {
       // If we don't have a sibling than walk up the tree until you find one.
       let virtual: VNode | null = cursor[VNodeProps.parent];
+      if (virtual && !vnode_isVirtualVNode(virtual)) {
+        return null;
+      }
       while (virtual && !(sibling = virtual[siblingProp])) {
         if (!vnode_isVirtualVNode(virtual)) {
           // the parent node is not virtual, so we are done here.

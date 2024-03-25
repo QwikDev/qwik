@@ -150,7 +150,7 @@ export const dispatch = async (element: Element | null, attrName: string, event:
         }
       }
     } else if ('qDispatchEvent' in (element as QElement)) {
-      await(element as QElement).qDispatchEvent!(event);
+      await (element as QElement).qDispatchEvent!(event);
       await delay(0); // Unsure why this is needed for tests
       return;
     } else if (element.hasAttribute(attrName)) {
@@ -161,7 +161,7 @@ export const dispatch = async (element: Element | null, attrName: string, event:
         .split('\n')
         .map((qrl) => container.parseQRL(qrl.trim()))
         .map((qrl) => qrl(event, element));
-        return;
+      return;
     }
     element = element.parentElement;
   }

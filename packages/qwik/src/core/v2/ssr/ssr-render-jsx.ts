@@ -2,7 +2,7 @@ import { isDev } from '@builder.io/qwik/build';
 import { isQwikComponent } from '../../component/component.public';
 import { isQrl } from '../../qrl/qrl-class';
 import type { QRL } from '../../qrl/qrl.public';
-import { serializeClass } from '../../render/execute-component';
+import { serializeClass, stringifyStyle } from '../../render/execute-component';
 import { Fragment } from '../../render/jsx/jsx-runtime';
 import { Slot } from '../../render/jsx/slot.public';
 import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
@@ -211,37 +211,58 @@ export function toSsrAttrs(
   }
   const ssrAttrs: SsrAttrs = [];
   for (const key in record) {
-    if (Object.prototype.hasOwnProperty.call(record, key)) {
-      if (isJsxPropertyAnEventName(key)) {
-        let value: string | null = null;
-        const qrls = record[key];
-        if (Array.isArray(qrls)) {
-          for (let i = 0; i <= qrls.length; i++) {
-            const qrl: unknown = qrls[i];
-            if (isQrl(qrl)) {
-              const first = i === 0;
-              value = (first ? '' : value + '\n') + qrlToString(serializationCtx, qrl);
-              addQwikEventToSerializationContext(serializationCtx, key, qrl);
-            }
-          }
-        } else if (isQrl(qrls)) {
-          value = qrlToString(serializationCtx, qrls);
-          addQwikEventToSerializationContext(serializationCtx, key, qrls);
-        }
-        if (isJsxPropertyAnEventName(key)) {
-          value && ssrAttrs.push(convertEventNameFromJsxPropToHtmlAttr(key), value);
-        }
-      } else {
-        if (key !== 'children') {
-          const value = isClassAttr(key)
-            ? serializeClass(record[key] as ClassList)
-            : String(record[key]);
-          ssrAttrs.push(key, value);
-        }
-      }
+    if (key === 'children') {
+      continue;
     }
+    let value = record[key];
+    if (isJsxPropertyAnEventName(key)) {
+      const eventValue = setEvent(serializationCtx, key, value);
+      if (eventValue) {
+        ssrAttrs.push(convertEventNameFromJsxPropToHtmlAttr(key), eventValue);
+      }
+      continue;
+    }
+
+    if (isSignal(value)) {
+      // write signal as is. We will track this signal inside `writeAttrs`
+      ssrAttrs.push(key, value);
+      continue;
+    }
+
+    if (isClassAttr(key)) {
+      value = serializeClass(value as ClassList);
+    } else if (key === 'style') {
+      value = stringifyStyle(value);
+    } else {
+      value = String(value);
+    }
+
+    ssrAttrs.push(key, value as string);
   }
   return ssrAttrs;
+}
+
+function setEvent(serializationCtx: SerializationContext, key: string, rawValue: unknown) {
+  let value: string | null = null;
+  const qrls = rawValue;
+  if (Array.isArray(qrls)) {
+    for (let i = 0; i <= qrls.length; i++) {
+      const qrl: unknown = qrls[i];
+      if (isQrl(qrl)) {
+        const first = i === 0;
+        value = (first ? '' : value + '\n') + qrlToString(serializationCtx, qrl);
+        addQwikEventToSerializationContext(serializationCtx, key, qrl);
+      }
+    }
+  } else if (isQrl(qrls)) {
+    value = qrlToString(serializationCtx, qrls);
+    addQwikEventToSerializationContext(serializationCtx, key, qrls);
+  }
+
+  if (isJsxPropertyAnEventName(key)) {
+    return value;
+  }
+  return null;
 }
 
 function addQwikEventToSerializationContext(

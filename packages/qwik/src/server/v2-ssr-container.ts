@@ -1,5 +1,5 @@
 /** @file Public APIs for the SSR */
-import { _SharedContainer, _walkJSX } from '@builder.io/qwik';
+import { _SharedContainer, _walkJSX, isSignal } from '@builder.io/qwik';
 import { isDev } from '@builder.io/qwik/build';
 import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
 import { getQwikLoaderScript } from '@builder.io/qwik/server';
@@ -25,6 +25,7 @@ import {
   mapArray_get,
   mapArray_set,
   maybeThen,
+  SubscriptionType,
 } from './qwik-copy';
 import type {
   ContextId,
@@ -38,6 +39,9 @@ import type {
   ISsrComponentFrame,
   SsrAttrs,
   StreamWriter,
+  fixMeAny,
+  SsrAttrKey,
+  SsrAttrValue,
 } from './qwik-types';
 import { Q_FUNCS_PREFIX } from './render';
 import type { PrefetchResource, RenderOptions, RenderToStreamResult } from './types';
@@ -118,11 +122,6 @@ interface ContainerElementFrame {
   vNodeData: VNodeData;
 }
 
-interface StyleData {
-  content: string;
-  scoped: boolean;
-}
-
 const EMPTY_OBJ = {};
 
 class SSRContainer extends _SharedContainer implements ISSRContainer {
@@ -138,7 +137,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private lastNode: ISsrNode | null = null;
   private currentComponentNode: ISsrNode | null = null;
   private styleIds = new Set<string>();
-  private headStyles = new Map<string, StyleData>();
+  private headStyles = new Map<string, string>();
 
   private currentElementFrame: ContainerElementFrame | null = null;
 
@@ -276,11 +275,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.write('<');
     this.write(tag);
     if (attrs) {
-      this.writeAttrs(attrs);
+      this.writeAttrs(attrs, false);
     }
     if (immutableAttrs) {
       this.write(' :');
-      this.writeAttrs(immutableAttrs);
+      this.writeAttrs(immutableAttrs, true);
     }
     this.write('>');
     this.lastNode = null;
@@ -414,15 +413,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (!this.styleIds.has(styleId)) {
       this.styleIds.add(styleId);
       if (this.currentElementFrame?.elementName === 'html') {
-        this.headStyles.set(styleId, {
-          content,
-          scoped,
-        });
+        this.headStyles.set(styleId, content);
       } else {
-        this._styleNode(styleId, {
-          content,
-          scoped,
-        });
+        this._styleNode(styleId, content);
       }
     }
   }
@@ -435,9 +428,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.emitQwikLoaderAtTopIfNeeded();
   }
 
-  private _styleNode(styleId: string, value: StyleData) {
-    this.openElement('style', [QStyle, value.scoped ? styleId : '']);
-    this.textNode(value.content);
+  private _styleNode(styleId: string, content: string) {
+    this.openElement('style', [QStyle, styleId]);
+    this.textNode(content);
     this.closeElement();
   }
 
@@ -864,14 +857,26 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
   }
 
-  private writeAttrs(attrs: (string | null)[]) {
+  private writeAttrs(attrs: SsrAttrs, immutable: boolean) {
     if (attrs.length) {
       for (let i = 0; i < attrs.length; i++) {
-        const key = attrs[i++] as string;
-        const value = attrs[i];
+        const key = attrs[i++] as SsrAttrKey;
+        let value = attrs[i] as SsrAttrValue;
         this.write(' ');
         this.write(key);
-        if (value != null) {
+
+        if (isSignal(value)) {
+          const lastNode = this.getLastNode();
+          value = this.trackSignalValue(value, [
+            immutable ? SubscriptionType.PROP_IMMUTABLE : SubscriptionType.PROP_MUTABLE,
+            lastNode as fixMeAny,
+            value,
+            lastNode as fixMeAny,
+            key,
+          ]);
+        }
+
+        if (value != null && typeof value === 'string') {
           this.write('="');
           let startIdx = 0;
           let quoteIdx: number;
@@ -885,6 +890,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             startIdx = quoteIdx;
           }
           this.write(startIdx === 0 ? value : value.substring(startIdx));
+
           this.write('"');
         }
       }

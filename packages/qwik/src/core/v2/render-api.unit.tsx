@@ -10,14 +10,14 @@ import { inlinedQrl } from '../qrl/qrl';
 import { createDocument } from '@builder.io/qwik-dom';
 import { getDomContainer } from './client/dom-container';
 import { vnode_getFirstChild } from './client/vnode';
-import { Fragment as Component } from '@builder.io/qwik/jsx-runtime';
+import { Fragment as Component, Fragment as Signal } from '@builder.io/qwik/jsx-runtime';
 import './vdom-diff.unit-util';
 import { trigger } from '../../testing/element-fixture';
 import { useServerData } from '../use/use-env-data';
 import { useTask$ } from '../use/use-task';
 import { getPlatform, setPlatform } from '../platform/platform';
 import { getTestPlatform } from '../../testing/platform';
-import { Resource, useResourceQrl } from '../use/use-resource';
+import { Resource, useResource$, useResourceQrl } from '../use/use-resource';
 import { _fnSignal } from '../internal';
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
 import { useOn } from '../use/use-on';
@@ -30,6 +30,7 @@ import type {
   StreamingOptions,
 } from '../../server/types';
 import type { JSXOutput } from '../../server/qwik-types';
+import { emulateExecutionOfQwikFuncs } from './rendering.unit-util';
 
 vi.hoisted(() => {
   vi.stubGlobal('QWIK_LOADER_DEFAULT_MINIFIED', 'min');
@@ -51,30 +52,25 @@ const defaultCounterManifest: QwikManifest = {
   },
 };
 
-const ManyEventsComponent = componentQrl(
-  inlinedQrl(() => {
-    useOn(
-      'focus',
-      inlinedQrl(() => {}, 's_useOnFocus')
-    );
-    return (
-      <div>
-        <button
-          onClick$={inlinedQrl(() => {}, 's_click1')}
-          onDblClick$={inlinedQrl(() => {}, 's_dblclick1')}
-        >
-          click
-        </button>
-        <button
-          onClick$={inlinedQrl(() => {}, 's_click2')}
-          onBlur$={inlinedQrl(() => {}, 's_blur1')}
-        >
-          click
-        </button>
-      </div>
-    );
-  }, 's_manyEventsCmp')
-);
+const ManyEventsComponent = component$(() => {
+  useOn(
+    'focus',
+    inlinedQrl(() => {}, 's_useOnFocus')
+  );
+  return (
+    <div>
+      <button
+        onClick$={inlinedQrl(() => {}, 's_click1')}
+        onDblClick$={inlinedQrl(() => {}, 's_dblclick1')}
+      >
+        click
+      </button>
+      <button onClick$={inlinedQrl(() => {}, 's_click2')} onBlur$={inlinedQrl(() => {}, 's_blur1')}>
+        click
+      </button>
+    </div>
+  );
+});
 
 const Counter = componentQrl(
   inlinedQrl(() => {
@@ -148,13 +144,17 @@ describe('render api', () => {
       const vNode = vnode_getFirstChild(container.rootVNode);
       expect(vNode).toMatchVDOM(
         <Component>
-          <button>123</button>
+          <button>
+            <Signal>123</Signal>
+          </button>
         </Component>
       );
       await trigger(container.element, 'button', 'click');
       expect(vNode).toMatchVDOM(
         <Component>
-          <button>124</button>
+          <button>
+            <Signal>124</Signal>
+          </button>
         </Component>
       );
     });
@@ -222,17 +222,22 @@ describe('render api', () => {
         containerTagName: 'div',
       });
       document = createDocument(result.html);
+      emulateExecutionOfQwikFuncs(document);
       const container = getDomContainer(document.body.firstChild as HTMLElement);
       const vNode = vnode_getFirstChild(container.rootVNode);
       expect(vNode).toMatchVDOM(
         <Component>
-          <button>123</button>
+          <button>
+            <Signal>123</Signal>
+          </button>
         </Component>
       );
       await trigger(container.element, 'button', 'click');
       expect(vNode).toMatchVDOM(
         <Component>
-          <button>124</button>
+          <button>
+            <Signal>124</Signal>
+          </button>
         </Component>
       );
     });
@@ -815,27 +820,20 @@ describe('render api', () => {
         expect(result.snapshotResult?.funcs).toHaveLength(0);
       });
       it('should contain qrls and resources', async () => {
-        const ResourceAndSignalComponent = componentQrl(
-          inlinedQrl(() => {
-            const sig = useSignal(0);
-            const rsrc = useResourceQrl(inlinedQrl(() => 'RESOURCE_VALUE', 's_resource'));
-            return (
-              <button
-                onClick$={inlinedQrl(
-                  () => {
-                    const [sig] = useLexicalScope();
-                    sig.value++;
-                  },
-                  's_click',
-                  [sig]
-                )}
-              >
-                <Resource value={rsrc} onResolved={(v) => <span>{v}</span>} />
-                {sig.value}
-              </button>
-            );
-          }, 's_cmpResourceSignal')
-        );
+        const ResourceAndSignalComponent = component$(() => {
+          const sig = useSignal(0);
+          const rsrc = useResource$(() => 'RESOURCE_VALUE');
+          return (
+            <button
+              onClick$={() => {
+                sig.value++;
+              }}
+            >
+              <Resource value={rsrc} onResolved={(v) => <span>{v}</span>} />
+              {sig.value}
+            </button>
+          );
+        });
         const result = await renderToStringAndSetPlatform(
           <body>
             <ResourceAndSignalComponent />
@@ -846,7 +844,7 @@ describe('render api', () => {
         );
         expect(result.snapshotResult?.qrls).toHaveLength(1);
         expect(result.snapshotResult?.resources).toHaveLength(1);
-        expect(result.snapshotResult?.funcs).toHaveLength(0);
+        expect(result.snapshotResult?.funcs).toHaveLength(1);
       });
       it('should contain qrls', async () => {
         const FunctionComponent = componentQrl(
@@ -968,17 +966,22 @@ describe('render api', () => {
           stream,
         });
         document = createDocument(chunks.join(''));
+        emulateExecutionOfQwikFuncs(document);
         const container = getDomContainer(document.body.firstChild as HTMLElement);
         const vNode = vnode_getFirstChild(container.rootVNode);
         expect(vNode).toMatchVDOM(
           <Component>
-            <button>123</button>
+            <button>
+              <Signal>123</Signal>
+            </button>
           </Component>
         );
         await trigger(container.element, 'button', 'click');
         expect(vNode).toMatchVDOM(
           <Component>
-            <button>124</button>
+            <button>
+              <Signal>124</Signal>
+            </button>
           </Component>
         );
       });
@@ -1026,7 +1029,7 @@ describe('render api', () => {
           stream,
           streaming,
         });
-        expect(stream.write).toHaveBeenCalledTimes(127);
+        expect(stream.write).toHaveBeenCalledTimes(153);
       });
       it('should render chunk by chunk with auto streaming', async () => {
         const stream: StreamWriter = {
@@ -1044,7 +1047,7 @@ describe('render api', () => {
           stream,
           streaming,
         });
-        expect(stream.write).toHaveBeenCalledTimes(4);
+        expect(stream.write).toHaveBeenCalledTimes(5);
       });
     });
   });

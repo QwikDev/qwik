@@ -14,7 +14,7 @@ import './vdom-diff.unit-util';
 import { delay } from '../util/promises';
 import { trigger } from '../../testing/element-fixture';
 
-const debug = !false; //true;
+const debug = false; //true;
 Error.stackTraceLimit = 100;
 
 [
@@ -88,41 +88,3 @@ Error.stackTraceLimit = 100;
     });
   });
 });
-
-// function Cmp() {
-//   console.log('render', Cmp.toString());
-//   const count = useSignal(0);
-//   const rsrc = useResourceQrl(
-//     /*#__PURE__*/ inlinedQrlDEV(
-//       Cmp_component_rsrc_useResource_Rxy93YhMmbg,
-//       'Cmp_component_rsrc_useResource_Rxy93YhMmbg',
-//       {},
-//       [count]
-//     )
-//   );
-//   return /*#__PURE__*/ _jsxQ(
-//     'button',
-//     null,
-//     {
-//       onClick$: /*#__PURE__*/ _noopQrl(
-//         'Cmp_component_button_onClick_4DloTE5PTmc',
-//         [count]
-//       ),
-//     },
-//     /*#__PURE__*/ _jsxC(
-//       Resource,
-//       {
-//         onResolved: (v) =>
-//           /*#__PURE__*/ _jsxQ('span', null, null, v, 1, 'H1_0', {}),
-//         value: rsrc,
-//         [_IMMUTABLE]: { onResolved: _IMMUTABLE, value: _IMMUTABLE, },
-//       },
-//       3,
-//       'H1_1',
-//       {}
-//     ),
-//     1,
-//     'H1_2',
-//     {}
-//   );
-// }

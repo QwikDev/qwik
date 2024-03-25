@@ -122,7 +122,7 @@ export type { ErrorBoundaryStore } from './render/error-handling';
 //////////////////////////////////////////////////////////////////////////////////////////
 export type { ValueOrPromise } from './util/types';
 export type { Signal, ReadonlySignal } from './state/signal';
-export type { NoSerialize } from './state/common';
+export { type NoSerialize, SubscriptionType } from './state/common';
 export { noSerialize } from './state/common';
 export { isSignal } from './state/signal';
 export { version } from './version';

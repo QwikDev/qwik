@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [
     qwikVite({
       // debug: true,
-      srcDir: `${__dirname}/packages/qwik/src`,
+      srcDir: `./packages/qwik/src`,
     }),
     tsconfigPaths({ ignoreConfigErrors: true }),
   ],

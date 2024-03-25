@@ -19,6 +19,7 @@ import type { JsxChild } from 'typescript';
 import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS } from '../../util/markers';
 import type { JSXChildren } from './types/jsx-qwik-attributes';
 import { _IMMUTABLE_PREFIX } from '../../state/constants';
+import { fixJsxProps } from '../../v2/shared/jsx-props';
 
 /**
  * @internal
@@ -44,6 +45,8 @@ export const _jsxQ = <T extends string>(
     flags,
     processed
   );
+  // TODO(hack): sometimes mutable props are immutable props too
+  fixJsxProps(node);
   if (qDev && dev) {
     node.dev = {
       stack: new Error().stack,

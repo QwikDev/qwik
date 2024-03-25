@@ -243,6 +243,26 @@ Error.stackTraceLimit = 100;
       expect(log).toEqual(['has children']);
     });
 
+    it.only('FIXME: should append dangerouslySetInnerHTML', async () => {
+      const Cmp = component$(() => {
+        return (
+          <div>
+            <span dangerouslySetInnerHTML="vanilla HTML here" />
+          </div>
+        );
+      });
+      const { vNode, document } = await render(<Cmp />, { debug });
+      const firstChild = document.body.firstChild! as HTMLElement;
+      expect(firstChild.innerHTML).toContain('<span>vanilla HTML here</span>');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <div>
+            <span dangerouslySetInnerHTML="vanilla HTML here"></span>
+          </div>
+        </Component>
+      );
+    });
+
     it('FIXME: should append dangerouslySetInnerHTML', async () => {
       const Cmp = component$(() => {
         const htmlString = '<strong>A variable here!</strong>';

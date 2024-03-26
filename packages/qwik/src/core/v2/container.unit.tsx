@@ -497,7 +497,7 @@ function toHTML(jsx: JSXOutput): string {
         ssrContainer.openElement(
           jsx.type,
           toSsrAttrs(jsx.props as any, ssrContainer.serializationCtx),
-          toSsrAttrs(jsx.immutableProps as any, ssrContainer.serializationCtx)
+          toSsrAttrs(jsx.constProps as any, ssrContainer.serializationCtx)
         );
       } else {
         ssrContainer.openFragment([]);

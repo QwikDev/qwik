@@ -16,7 +16,7 @@ import { useStore } from '../use/use-store.public';
 import { vnode_getNextSibling } from './client/vnode';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
-import { _IMMUTABLE, _fnSignal, _jsxC, _jsxQ } from '../internal';
+import { _fnSignal, _jsxC, _jsxQ } from '../internal';
 
 const debug = false;
 
@@ -571,16 +571,13 @@ const ChildSlotInline = (props: { children: any }) => {
 
       it.skip('#2688', async () => {
         const Switch = component$((props: { name: string }) => {
-          return _jsxC(
+          return _jsxQ(
             Slot,
+            null,
             {
-              get name() {
-                return props.name;
-              },
-              [_IMMUTABLE as any]: {
-                name: _fnSignal((p0) => p0.name, [props], 'p0.name'),
-              },
+              name: _fnSignal((p0) => p0.name, [props], 'p0.name'),
             },
+            null,
             3,
             null
           );
@@ -605,16 +602,13 @@ const ChildSlotInline = (props: { children: any }) => {
                 {_jsxC(
                   Switch as any,
                   {
-                    get name() {
-                      return store.flip ? 'b' : 'a';
-                    },
                     children: [
                       <div q:slot="a">Alpha {props.count}</div>,
                       <div q:slot="b">Bravo {props.count}</div>,
                     ],
-                    [_IMMUTABLE]: {
-                      name: _fnSignal((p0) => (p0.flip ? 'b' : 'a'), [store], 'p0.flip?"b":"a"'),
-                    },
+                  },
+                  {
+                    name: _fnSignal((p0) => (p0.flip ? 'b' : 'a'), [store], 'p0.flip?"b":"a"'),
                   },
                   1,
                   'ub_1'

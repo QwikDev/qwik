@@ -44,10 +44,10 @@ export const executeSignalOperation = (rCtx: RenderContext, operation: Subscribe
           value = stringifyStyle(value);
         }
         const vdom = getVdom(elCtx);
-        if (prop in vdom.$props$ && vdom.$props$[prop] === value) {
+        if (prop in vdom.$varProps$ && vdom.$varProps$[prop] === value) {
           return;
         }
-        vdom.$props$[prop] = value;
+        vdom.$varProps$[prop] = value;
         return smartSetProperty(staticCtx, elm, prop, value, isSVG);
       }
       case 3:

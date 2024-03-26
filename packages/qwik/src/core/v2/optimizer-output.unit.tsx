@@ -9,7 +9,7 @@ import { Fragment as Component } from '@builder.io/qwik/jsx-runtime';
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
 import { component$ } from '../component/component.public';
-import { _IMMUTABLE, _jsxC, _jsxQ } from '../internal';
+import { _CONST_PROPS, _jsxC, _jsxQ } from '../internal';
 import { inlinedQrl } from '../qrl/qrl';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { useSignal } from '../use/use-signal';
@@ -90,14 +90,7 @@ Error.stackTraceLimit = 100;
       ));
       const MyCmp = component$(() => {
         return (
-          <button>
-            {_jsxC(
-              Child as fixMeAny,
-              { name: 'NAME', num: 123, [_IMMUTABLE]: { name: _IMMUTABLE, num: _IMMUTABLE } }, // mutable props
-              3,
-              null
-            )}
-          </button>
+          <button>{_jsxC(Child as fixMeAny, null, { name: 'NAME', num: 123 }, 3, null)}</button>
         );
       });
 

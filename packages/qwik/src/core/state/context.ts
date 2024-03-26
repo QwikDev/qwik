@@ -19,7 +19,7 @@ import {
   QScopedStyle,
 } from '../util/markers';
 import { createPropsState, createProxy, setObjectFlags } from './store';
-import { _IMMUTABLE, _IMMUTABLE_PREFIX, Q_CTX, QObjectImmutable } from './constants';
+import { _CONST_PROPS, _IMMUTABLE_PREFIX, Q_CTX, QObjectImmutable } from './constants';
 import { isElement } from '../util/element';
 
 export interface QContextEvents {
@@ -128,7 +128,7 @@ export const getContext = (el: QwikElement, containerState: ContainerState): QCo
               const propsObj = getObject(props);
               elCtx.$props$ = propsObj;
               setObjectFlags(propsObj, QObjectImmutable);
-              propsObj[_IMMUTABLE] = getImmutableFromProps(propsObj);
+              propsObj[_CONST_PROPS] = getImmutableFromProps(propsObj);
             } else {
               elCtx.$props$ = createProxy(createPropsState(), containerState);
             }

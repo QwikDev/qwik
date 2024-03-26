@@ -12,7 +12,7 @@ import {
   verifySerializable,
   type SubscriptionManager,
 } from './common';
-import { QObjectManagerSymbol, _IMMUTABLE, _IMMUTABLE_PREFIX } from './constants';
+import { QObjectManagerSymbol, _CONST_PROPS, _IMMUTABLE_PREFIX } from './constants';
 import { _fnSignal } from '../qrl/inlined-fn';
 
 /** @public */
@@ -177,36 +177,15 @@ export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(obj: T,
   if (!isObject(obj)) {
     return obj[prop];
   }
-  if (obj instanceof SignalBase) {
+  if (isSignal(obj)) {
     assertEqual(prop, 'value', 'Left side is a signal, prop must be value');
     return obj;
   }
+  // TODO handle PropsProxy to retain derived signals
   const target = getProxyTarget(obj);
   if (target) {
-    const signal = target[_IMMUTABLE_PREFIX + (prop as any)];
-    if (signal) {
-      assertTrue(isSignal(signal), `${_IMMUTABLE_PREFIX} has to be a signal kind`);
-      return signal;
-    }
-    if ((target as any)[_IMMUTABLE]?.[prop] !== true) {
-      return new SignalWrapper(obj, prop);
-    }
+    const signal = target[prop];
+    return isSignal(signal) ? signal : new SignalWrapper(obj, prop);
   }
-  const immutable = (obj as any)[_IMMUTABLE]?.[prop];
-  if (isSignal(immutable)) {
-    return immutable;
-  }
-  return _IMMUTABLE;
-};
-
-/** @internal */
-export const _wrapSignal = <T extends Record<any, any>, P extends keyof T>(
-  obj: T,
-  prop: P
-): any => {
-  const r = _wrapProp(obj, prop);
-  if (r === _IMMUTABLE) {
-    return obj[prop];
-  }
-  return r;
+  return obj[prop];
 };

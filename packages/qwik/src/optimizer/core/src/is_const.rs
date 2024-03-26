@@ -9,46 +9,46 @@ macro_rules! id {
 	};
 }
 
-pub fn is_immutable_expr(
+pub fn is_const_expr(
 	expr: &ast::Expr,
 	global: &GlobalCollect,
 	current_stack: Option<&Vec<IdPlusType>>,
 ) -> bool {
-	let mut collector = ImmutableCollector::new(global, current_stack);
+	let mut collector = ConstCollector::new(global, current_stack);
 	collector.visit_expr(expr);
-	collector.is_immutable
+	collector.is_const
 }
 
-pub struct ImmutableCollector<'a> {
+pub struct ConstCollector<'a> {
 	global: &'a GlobalCollect,
-	immutable_idents: Option<&'a Vec<IdPlusType>>,
+	const_idents: Option<&'a Vec<IdPlusType>>,
 
-	pub is_immutable: bool,
+	pub is_const: bool,
 }
 
-impl<'a> ImmutableCollector<'a> {
-	const fn new(global: &'a GlobalCollect, immutable_idents: Option<&'a Vec<IdPlusType>>) -> Self {
+impl<'a> ConstCollector<'a> {
+	const fn new(global: &'a GlobalCollect, const_idents: Option<&'a Vec<IdPlusType>>) -> Self {
 		Self {
 			global,
-			is_immutable: true,
-			immutable_idents,
+			is_const: true,
+			const_idents,
 		}
 	}
 }
 
-// A prop is considered mutable if it:
+// A prop is considered var if it:
 // - calls a function
 // - accesses a member
-// - is a variable that is not an import, an export, or in the immutable stack
-impl<'a> Visit for ImmutableCollector<'a> {
+// - is a variable that is not an import, an export, or in the const stack
+impl<'a> Visit for ConstCollector<'a> {
 	noop_visit_type!();
 
 	fn visit_call_expr(&mut self, _: &ast::CallExpr) {
-		self.is_immutable = false;
+		self.is_const = false;
 	}
 
 	fn visit_member_expr(&mut self, _: &ast::MemberExpr) {
-		self.is_immutable = false;
+		self.is_const = false;
 	}
 
 	fn visit_arrow_expr(&mut self, _: &ast::ArrowExpr) {}
@@ -61,7 +61,7 @@ impl<'a> Visit for ImmutableCollector<'a> {
 		if self.global.exports.contains_key(&id) {
 			return;
 		}
-		if let Some(current_stack) = self.immutable_idents {
+		if let Some(current_stack) = self.const_idents {
 			if current_stack
 				.iter()
 				.any(|item| item.1 == IdentType::Var(true) && item.0 == id)
@@ -69,6 +69,6 @@ impl<'a> Visit for ImmutableCollector<'a> {
 				return;
 			}
 		}
-		self.is_immutable = false;
+		self.is_const = false;
 	}
 }

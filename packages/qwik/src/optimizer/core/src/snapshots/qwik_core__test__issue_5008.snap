@@ -36,7 +36,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
 import { _jsxC } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
-import { _wrapSignal } from "@builder.io/qwik";
+import { _wrapProp } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 import { useStore } from "@builder.io/qwik";
 export const test_component_LUXeXe0DQrg = ()=>{
@@ -55,19 +55,19 @@ export const test_component_LUXeXe0DQrg = ()=>{
             store.map(function(v, idx) {
                 return /*#__PURE__*/ _jsxQ("div", null, null, [
                     "Function: ",
-                    _wrapSignal(v, "value")
+                    _wrapProp(v, "value")
                 ], 1, "fn_" + idx);
             }),
             store.map((v, idx)=>/*#__PURE__*/ _jsxQ("div", null, null, [
                     "Arrow: ",
-                    _wrapSignal(v, "value")
+                    _wrapProp(v, "value")
                 ], 1, "arrow_" + idx))
         ]
-    }, 1, "u6_0");
+    }, null, 1, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;0CAGkC,IAAM;IAChC,MAAM,QAAQ,SAAS;QAAC;YAAE,OAAO;QAAE;KAAE;IACrC,qBACI;;0BACA,MAAC;gBAAO,QAAQ;;;eAA0B;YACzC,MAAM,GAAG,CAAC,SAAU,CAAC,EAAE,GAAG,EAAE;gBACzB,qBAAO,MAAC;oBAAsB;gCAAW;sBAAxB,QAAQ;YAC7B;YACC,MAAM,GAAG,CAAC,CAAC,GAAG,oBACX,MAAC;oBAAyB;gCAAQ;sBAAxB,WAAW;;;AAI7B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;0CAGkC,IAAM;IAChC,MAAM,QAAQ,SAAS;QAAC;YAAE,OAAO;QAAE;KAAE;IACrC,qBACI;;0BACA,MAAC;gBAAO,QAAQ;;;eAA0B;YACzC,MAAM,GAAG,CAAC,SAAU,CAAC,EAAE,GAAG,EAAE;gBACzB,qBAAO,MAAC;oBAAsB;8BAAW;sBAAxB,QAAQ;YAC7B;YACC,MAAM,GAAG,CAAC,CAAC,GAAG,oBACX,MAAC;oBAAyB;8BAAQ;sBAAxB,WAAW;;;AAI7B\"}")
 /*
 {
   "origin": "test.tsx",

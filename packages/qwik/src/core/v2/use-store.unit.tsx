@@ -2,7 +2,7 @@ import { Fragment as Component, Fragment, Fragment as Signal } from '@builder.io
 import { describe, expect, it, vi } from 'vitest';
 import { advanceToNextTimerAndFlush, trigger } from '../../testing/element-fixture';
 import { component$ } from '../component/component.public';
-import { _IMMUTABLE, _fnSignal } from '../internal';
+import { _CONST_PROPS, _fnSignal } from '../internal';
 import { inlinedQrl } from '../qrl/qrl';
 import { _jsxC } from '../render/jsx/jsx-runtime';
 import type { Signal as SignalType } from '../state/signal';

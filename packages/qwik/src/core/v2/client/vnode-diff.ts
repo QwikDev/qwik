@@ -2,7 +2,7 @@ import { isDev } from '@builder.io/qwik/build';
 import { type OnRenderFn } from '../../component/component.public';
 import { SERIALIZABLE_STATE } from '../../container/serializers';
 import { assertDefined, assertFalse } from '../../error/assert';
-import { _IMMUTABLE } from '../../internal';
+import { _CONST_PROPS } from '../../internal';
 import type { QRLInternal } from '../../qrl/qrl-class';
 import type { QRL } from '../../qrl/qrl.public';
 import { serializeClass, stringifyStyle } from '../../render/execute-component';
@@ -474,21 +474,21 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       (vNewNode = vnode_newElement(vParent, element, tag)),
       vCurrent
     );
-    const immutableProps = jsx.immutableProps;
+    const { constProps } = jsx;
     let needsQDispatchEventPatch = false;
-    if (immutableProps) {
-      // Immutable props are well immutable, they will never change!
+    if (constProps) {
+      // Const props are, well, constant, they will never change!
       // For this reason we can cheat and write them directly into the DOM.
       // We never tell the vNode about them saving us time and memory.
-      for (const key in immutableProps) {
-        let value = immutableProps[key];
-        if (value !== _IMMUTABLE) {
+      for (const key in constProps) {
+        let value = constProps[key];
+        if (value !== _CONST_PROPS) {
           if (isJsxPropertyAnEventName(key)) {
             // So for event handlers we must add them to the vNode so that qwikloader can look them up
             // But we need to mark them so that they don't get pulled into the diff.
             const eventName = getEventNameFromJsxProp(key);
             const scope = getEventNameScopeFromJsxProp(key);
-            vnode_setProp(vNewNode, IMMUTABLE_PREFIX + ':' + scope + ':' + eventName, value);
+            vnode_setProp(vNewNode, HANDLER_PREFIX + ':' + scope + ':' + eventName, value);
             needsQDispatchEventPatch = true;
             continue;
           }
@@ -578,7 +578,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
           const eventProp = ':' + scope + ':' + eventName;
           const qrls = [
             vnode_getProp<QRL>(vNode, eventProp, null),
-            vnode_getProp<QRL>(vNode, IMMUTABLE_PREFIX + eventProp, null),
+            vnode_getProp<QRL>(vNode, HANDLER_PREFIX + eventProp, null),
           ];
           let returnValue = false;
           qrls.flat(2).forEach((qrl) => {
@@ -624,7 +624,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     };
 
     while (srcKey !== null || dstKey !== null) {
-      if (dstKey?.startsWith(IMMUTABLE_PREFIX)) {
+      if (dstKey?.startsWith(HANDLER_PREFIX)) {
         // This is a special key which we use to mark the event handlers as immutable.
         // we need to ignore them.
         dstIdx++; // skip the destination value, we don't care about it.
@@ -1027,4 +1027,4 @@ export function releaseSubscriptions(container: ClientContainer, vNode: VNode) {
  * This marks the property as immutable. It is needed for the QRLs so that QwikLoader can get a hold
  * of them. This character must be `:` so that the `vnode_getAttr` can ignore them.
  */
-const IMMUTABLE_PREFIX = ':';
+const HANDLER_PREFIX = ':';

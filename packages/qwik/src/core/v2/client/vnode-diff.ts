@@ -99,27 +99,44 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
   //// Traverse state variables
   ////////////////////////////////
   let vParent: VNode = null!;
+
   /// Current node we compare against. (Think of it as a cursor.)
   /// (Node can be null, if we are at the end of the list.)
   let vCurrent: VNode | null = null;
+
   /// When we insert new node we start it here so that we can descend into it.
   /// NOTE: it can't be stored in `vCurrent` because `vNewCurrent` is in journal
   /// and is not connected to the tree.
-  let vNewNode: VNode | null = null;
+  let vNewNode: VNode | null = null; // TODO: delete, because journal is on vNode, the above comment no longer applies
+
   /// When elements have keys they can be consumed out of order and therefore we can't use nextSibling.
   /// In such a case this array will contain the elements after the current location.
   /// The array even indices will contains keys and odd indices the vNode.
   let vSiblings: Array<string | null | VNode> | null = null;
   let vSiblingsIdx = -1;
+
   /// Current set of JSX children.
   let jsxChildren: any[] = null!;
   // Current JSX child.
   let jsxValue: any = null;
   let jsxIdx = 0;
   let jsxCount = 0;
+
   // When we descend into children, we need to skip advance() because we just descended.
   let shouldAdvance = true;
   let scopedStyleIdPrefix: string | null;
+
+  /**
+   * When we are rendering inside a projection we don't want to process child components. Child
+   * components will be processed only if the projection is re-projected with a `<Slot>`.
+   *
+   * Example: <Parent> <div> <Child/> </div> </Parent>
+   *
+   * In the above example, the `Child` component will not be processed because it is inside a
+   * projection. Only if the `<Parent>` projects its content with `<Slot>` will the `Child`
+   * component be processed.
+   */
+  // let inContentProjection = false;
   ////////////////////////////////
 
   diff(jsxNode, vStartNode);
@@ -322,7 +339,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
 
-  function descendProjection(children: JSXChildren) {
+  function descendContentToProject(children: JSXChildren) {
     if (children == null) {
       return;
     }
@@ -366,11 +383,18 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       (id) => vnode_locate(container.rootVNode, id)
     );
     if (vCurrent == null) {
-      vNewNode = vnode_newVirtual(vParent);
+      vNewNode = vnode_newVirtual();
       isDev && vnode_setProp(vNewNode, DEBUG_TYPE, VirtualType.Projection);
+      isDev && vnode_setProp(vNewNode, 'q:code', 'expectProjection');
       vnode_setProp(vNewNode as VirtualVNode, QSlot, slotName);
       vnode_setProp(vNewNode as VirtualVNode, QSlotParent, vParent);
       vnode_setProp(vParent as VirtualVNode, slotName, vNewNode);
+      // vnode_insertBefore(
+      //   journal,
+      //   vParent as ElementVNode | VirtualVNode,
+      //   vNewNode,
+      //   vCurrent && getInsertBefore()
+      // );
     }
   }
 
@@ -393,10 +417,11 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       vnode_insertBefore(
         journal,
         vParent as ElementVNode | VirtualVNode,
-        (vNewNode = vnode_newVirtual(vParent)),
+        (vNewNode = vnode_newVirtual()),
         vCurrent && getInsertBefore()
       );
       isDev && vnode_setProp(vNewNode, DEBUG_TYPE, VirtualType.Projection);
+      isDev && vnode_setProp(vNewNode, 'q:code', 'expectSlot');
       return false;
     } else if (vProjectedNode === vCurrent) {
       // All is good.
@@ -471,7 +496,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     vnode_insertBefore(
       journal,
       vParent as ElementVNode,
-      (vNewNode = vnode_newElement(vParent, element, tag)),
+      (vNewNode = vnode_newElement(element, tag)),
       vCurrent
     );
     const { constProps } = jsx;
@@ -509,6 +534,11 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
         element.setAttribute(key, String(value));
       }
     }
+    const key = jsx.key;
+    if (key) {
+      element.setAttribute(ELEMENT_KEY, key);
+      vnode_setProp(vNewNode, ELEMENT_KEY, key);
+    }
     return needsQDispatchEventPatch;
   }
 
@@ -539,29 +569,19 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       needsQDispatchEventPatch = createNewElement(jsx, tag);
     }
     // reconcile attributes
-    let jsxAttrs = (jsx as unknown as { attrs: ClientAttrs }).attrs;
-    if (jsxAttrs === EMPTY_ARRAY) {
-      const props = jsx.varProps;
-      for (const key in props) {
-        if (jsxAttrs === EMPTY_ARRAY) {
-          jsxAttrs = (jsx as unknown as { attrs: ClientAttrs }).attrs = [];
-        }
-        let value = props[key];
-        if (isClassAttr(key)) {
-          value = serializeClassWithScopedStyle(value);
-        } else if (key === 'style') {
-          value = stringifyStyle(value);
-        }
-        mapArray_set(jsxAttrs, key, value, 0);
+    const jsxAttrs = [] as ClientAttrs;
+    const props = jsx.varProps;
+    for (const key in props) {
+      let value = props[key];
+      if (isClassAttr(key)) {
+        value = serializeClassWithScopedStyle(value);
+      } else if (key === 'style') {
+        value = stringifyStyle(value);
       }
-      const jsxKey = jsx.key;
-      if (jsxKey !== null) {
-        if (jsxAttrs === EMPTY_ARRAY) {
-          jsxAttrs = (jsx as unknown as { attrs: ClientAttrs }).attrs = [ELEMENT_KEY, jsxKey];
-        } else {
-          mapArray_set(jsxAttrs, ELEMENT_KEY, jsxKey, 0);
-        }
-      }
+      mapArray_set(jsxAttrs, key, value, 0);
+    }
+    if (jsxKey !== null) {
+      mapArray_set(jsxAttrs, ELEMENT_KEY, jsxKey, 0);
     }
     const vNode = (vNewNode || vCurrent) as ElementVNode;
     needsQDispatchEventPatch = setBulkProps(vNode, jsxAttrs) || needsQDispatchEventPatch;
@@ -622,9 +642,9 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     };
 
     while (srcKey !== null || dstKey !== null) {
-      if (dstKey?.startsWith(HANDLER_PREFIX)) {
-        // This is a special key which we use to mark the event handlers as immutable.
-        // we need to ignore them.
+      if (dstKey?.startsWith(HANDLER_PREFIX) || dstKey == ELEMENT_KEY) {
+        // These are a special keys which we use to mark the event handlers as immutable or
+        // element key we need to ignore them.
         dstIdx++; // skip the destination value, we don't care about it.
         dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       } else if (srcKey == null) {
@@ -760,7 +780,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       vnode_insertBefore(
         journal,
         vParent as VirtualVNode,
-        (vNewNode = vnode_newVirtual(vParent)),
+        (vNewNode = vnode_newVirtual()),
         vCurrent && getInsertBefore()
       );
     }
@@ -790,7 +810,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
           vnode_insertBefore(
             journal,
             vParent as VirtualVNode,
-            (vNewNode = vnode_newVirtual(vParent)),
+            (vNewNode = vnode_newVirtual()),
             vCurrent && getInsertBefore()
           );
           isDev && vnode_setProp(vNewNode, DEBUG_TYPE, VirtualType.Component);
@@ -808,7 +828,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
           .$drainComponent$(host);
         asyncQueue.push(jsx, host);
       }
-      descendProjection(jsxValue.children);
+      descendContentToProject(jsxValue.children);
     } else {
       // Inline Component
       if (!host) {
@@ -816,7 +836,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
         vnode_insertBefore(
           journal,
           vParent as VirtualVNode,
-          (vNewNode = vnode_newVirtual(vParent)),
+          (vNewNode = vnode_newVirtual()),
           vCurrent && getInsertBefore()
         );
         host = vNewNode;
@@ -862,7 +882,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     vnode_insertBefore(
       journal,
       vParent as VirtualVNode,
-      (vNewNode = vnode_newText(vParent, container.document.createTextNode(text), text)),
+      (vNewNode = vnode_newText(container.document.createTextNode(text), text)),
       vCurrent
     );
   }

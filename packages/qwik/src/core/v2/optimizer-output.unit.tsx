@@ -96,5 +96,102 @@ Error.stackTraceLimit = 100;
         </Component>
       );
     });
+    describe('key', () => {
+      const KeyTest = component$<{ keyTrue: string | null; keyFalse: string | null }>(
+        function self(props) {
+          const toggle = useSignal(false);
+          // console.log(self.toString());
+          return (
+            <button onClick$={() => (toggle.value = !toggle.value)}>
+              {toggle.value ? (
+                <b key={props.keyTrue} class="true">
+                  true
+                </b>
+              ) : (
+                <b key={props.keyFalse} class="false">
+                  false
+                </b>
+              )}
+            </button>
+          );
+        }
+      );
+      it('should reuse if no key', async () => {
+        const { vNode, document } = await render(<KeyTest keyFalse={null} keyTrue={null} />, {
+          debug,
+        });
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <button>
+              <b class="false">false</b>
+            </button>
+          </Component>
+        );
+        const bElement = document.querySelector('b');
+        await trigger(document.body, 'button', 'click');
+        const bElement2 = document.querySelector('b');
+        expect(bElement2).toBe(bElement);
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <button>
+              {/* we would expect `class=true` but because it is immutable the system ignores
+               * it and ends up with a wrong value. This is intentional.
+               */}
+              <b class="false">true</b>
+            </button>
+          </Component>
+        );
+      });
+      it('should not reuse if different key', async () => {
+        const { vNode, document } = await render(<KeyTest keyFalse={'A'} keyTrue={'B'} />, {
+          debug,
+        });
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <button>
+              <b class="false" key="A">
+                false
+              </b>
+            </button>
+          </Component>
+        );
+        document.querySelector('b')!.setAttribute('mark', 'existing');
+        await trigger(document.body, 'button', 'click');
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <button>
+              <b class="true" key="B">
+                true
+              </b>
+            </button>
+          </Component>
+        );
+        expect(document.querySelector('b')!.hasAttribute('mark')).toBeFalsy();
+      });
+      it('should not reuse if different key and null', async () => {
+        const { vNode, document } = await render(<KeyTest keyFalse={'A'} keyTrue={null} />, {
+          debug,
+        });
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <button>
+              <b class="false" key="A">
+                false
+              </b>
+            </button>
+          </Component>
+        );
+        document.querySelector('b')!.setAttribute('mark', 'existing');
+        await trigger(document.body, 'button', 'click');
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <button>
+              <b class="true">true</b>
+            </button>
+          </Component>
+        );
+        expect(document.querySelector('b')!.hasAttribute('mark')).toBeFalsy();
+      });
+    });
   });
 });

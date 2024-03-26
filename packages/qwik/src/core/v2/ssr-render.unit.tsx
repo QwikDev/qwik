@@ -22,11 +22,8 @@ describe('v2 ssr render', () => {
       <meta content="dark light" name="color-scheme" key="0" />
     );
     expect(vNode).toMatchVDOM(<meta content="dark light" name="color-scheme" />);
-    expect(container.document.documentElement.outerHTML).toContain(
-      '<meta :="" content="dark light" name="color-scheme" q:key="0">'
-    );
-    expect(container.document.documentElement.outerHTML).not.toContain(
-      '<meta :="" content="dark light" name="color-scheme" q:key="0"></meta>'
+    expect(container.document.querySelector('meta')).toMatchDOM(
+      <meta content="dark light" name="color-scheme" key="0" />
     );
   });
   describe('component', () => {

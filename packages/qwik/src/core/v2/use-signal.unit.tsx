@@ -153,11 +153,7 @@ Error.stackTraceLimit = 100;
           </button>
         </Component>
       );
-      await expect(document.querySelector('button')).toMatchDOM(`
-        <button q:key="0">
-          const 0
-        </button>
-      `);
+      await expect(document.querySelector('button')).toMatchDOM(<button key="0">const 0</button>);
       await trigger(container.element, 'button', 'click');
       expect(vNode).toMatchVDOM(
         <Component>
@@ -169,11 +165,7 @@ Error.stackTraceLimit = 100;
           </button>
         </Component>
       );
-      await expect(document.querySelector('button')).toMatchDOM(`
-        <button q:key="0">
-          const 1
-        </button>
-      `);
+      await expect(document.querySelector('button')).toMatchDOM(<button key="0">const 1</button>);
     });
     it('should handle all ClassList cases', async () => {
       const Cmp = component$(() => {

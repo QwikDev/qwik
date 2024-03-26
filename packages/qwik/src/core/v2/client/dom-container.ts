@@ -19,6 +19,7 @@ import {
   QContainerSelector,
   QCtxAttr,
   QScopedStyle,
+  QSlotParent,
   QStyle,
   QStyleSelector,
 } from '../../util/markers';
@@ -37,6 +38,7 @@ import {
   type QDocument,
   type VirtualVNode,
   VNodeProps,
+  type VNode,
 } from './types';
 import {
   VNodeJournalOpCode,
@@ -98,6 +100,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
 
   private stateData: unknown[];
   private $styleIds$: Set<string> | null = null;
+  private $vnodeLocate$: (id: string) => VNode = (id) => vnode_locate(this.rootVNode, id);
 
   constructor(element: ContainerElement) {
     super(() => this.scheduleRender(), {}, element.getAttribute('q:locale')!);
@@ -119,7 +122,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
     this.qBase = element.getAttribute('q:base')!;
     // this.containerState = createContainerState(element, this.qBase);
     this.qManifestHash = element.getAttribute('q:manifest-hash')!;
-    this.rootVNode = vnode_newUnMaterializedElement(null, this.element);
+    this.rootVNode = vnode_newUnMaterializedElement(this.element);
     // These are here to initialize all properties at once for single class transition
     this.$rawStateData$ = null!;
     this.stateData = null!;
@@ -159,7 +162,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
         errorDiv.setAttribute('q:key', '_error_');
         const journal: VNodeJournal = [];
         vnode_getDOMChildNodes(journal, vHost).forEach((child) => errorDiv.appendChild(child));
-        const vErrorDiv = vnode_newElement(vHost, errorDiv, 'error-host');
+        const vErrorDiv = vnode_newElement(errorDiv, 'error-host');
         vnode_insertBefore(journal, vHost, vErrorDiv, null);
         vnode_applyJournal(journal);
       }
@@ -205,8 +208,16 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
   getParentHost(host: HostElement): HostElement | null {
     let vNode = vnode_getParent(host as any);
     while (vNode) {
-      if (vnode_isVirtualVNode(vNode) && vnode_getProp(vNode, OnRenderProp, null) !== null) {
-        return vNode as any as HostElement;
+      if (vnode_isVirtualVNode(vNode)) {
+        if (vnode_getProp(vNode, OnRenderProp, null) !== null) {
+          return vNode as any as HostElement;
+        }
+        // If virtual node, than it could be a slot so we need to read its parent.
+        const parent = vnode_getProp<VNode>(vNode, QSlotParent, this.$vnodeLocate$);
+        if (parent) {
+          vNode = parent;
+          continue;
+        }
       }
       vNode = vnode_getParent(vNode);
     }
@@ -260,7 +271,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
         if (!prop.startsWith('q:')) {
           const value = vNode[i + 1];
           if (typeof value == 'string') {
-            vNode[i + 1] = vnode_locate(this.rootVNode, value);
+            vNode[i + 1] = this.$vnodeLocate$(value);
           }
         }
       }

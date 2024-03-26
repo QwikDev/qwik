@@ -1,23 +1,23 @@
+import { isBrowser } from '@builder.io/qwik/build';
+import type { JsxChild } from 'typescript';
+import { isQwikComponent, type OnRenderFn } from '../../component/component.public';
+import { _CONST_PROPS } from '../../internal';
+import { isQrl, type QRLInternal } from '../../qrl/qrl-class';
+import { verifySerializable } from '../../state/common';
+import { _VAR_PROPS } from '../../state/constants';
+import { isSignal, SignalDerived } from '../../state/signal';
+import { invoke, untrack } from '../../use/use-core';
+import { EMPTY_OBJ } from '../../util/flyweight';
+import { logError, logOnceWarn, logWarn } from '../../util/log';
+import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS } from '../../util/markers';
+import { isPromise } from '../../util/promises';
+import { qDev, qRuntimeQrl, seal } from '../../util/qdev';
+import { isArray, isFunction, isObject, isString } from '../../util/types';
+import { static_subtree } from '../execute-component';
 import type { DevJSX, FunctionComponent, JSXNode } from './types/jsx-node';
 import type { QwikJSX } from './types/jsx-qwik';
-import { qDev, qRuntimeQrl, seal } from '../../util/qdev';
-import { logError, logOnceWarn, logWarn } from '../../util/log';
-import { isArray, isFunction, isObject, isString } from '../../util/types';
-import { isQrl, type QRLInternal } from '../../qrl/qrl-class';
-import { invoke, untrack } from '../../use/use-core';
-import { verifySerializable } from '../../state/common';
-import { isQwikComponent, type OnRenderFn } from '../../component/component.public';
-import { SignalDerived, isSignal } from '../../state/signal';
-import { isPromise } from '../../util/promises';
-import { SkipRender } from './utils.public';
-import { EMPTY_ARRAY, EMPTY_OBJ } from '../../util/flyweight';
-import { _CONST_PROPS } from '../../internal';
-import { isBrowser } from '@builder.io/qwik/build';
-import { static_subtree } from '../execute-component';
-import type { JsxChild } from 'typescript';
-import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS } from '../../util/markers';
 import type { JSXChildren } from './types/jsx-qwik-attributes';
-import { _VAR_PROPS } from '../../state/constants';
+import { SkipRender } from './utils.public';
 
 export type Props = Record<string, unknown>;
 
@@ -120,9 +120,17 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
     public constProps: Props | null,
     public children: JSXChildren,
     public flags: number,
-    public key: string | null = null,
-    public attrs: Array<string | null> = EMPTY_ARRAY
-  ) {}
+    public key: string | null = null
+  ) {
+    if (qDev) {
+      if (typeof varProps !== 'object') {
+        throw new Error(`JSXNodeImpl: varProps must be objects: ` + JSON.stringify(varProps));
+      }
+      if (typeof constProps !== 'object') {
+        throw new Error(`JSXNodeImpl: constProps must be objects: ` + JSON.stringify(constProps));
+      }
+    }
+  }
 
   private _proxy?: typeof this.varProps;
   get props(): T extends FunctionComponent<infer PROPS> ? PROPS : Props {

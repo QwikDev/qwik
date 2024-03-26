@@ -40,7 +40,7 @@ describe('vnode', () => {
     document.qVNodeData = new WeakMap();
     parent = document.createElement('test') as ContainerElement;
     parent.qVNodeRefs = qVNodeRefs = new Map();
-    vParent = vnode_newUnMaterializedElement(null, parent);
+    vParent = vnode_newUnMaterializedElement(parent);
     getVNode = (id: string) => vnode_locate(vParent, id);
     journal = [];
   });
@@ -244,7 +244,7 @@ describe('vnode', () => {
       vnode_insertBefore(
         journal,
         vParent,
-        vnode_newText(vParent, document.createTextNode('inserted'), 'inserted'),
+        vnode_newText(document.createTextNode('inserted'), 'inserted'),
         vnode_getFirstChild(vParent)
       );
       vnode_applyJournal(journal);
@@ -262,18 +262,18 @@ describe('vnode', () => {
   });
   describe('manipulation', () => {
     it('should create empty Virtual before element', () => {
-      const fragment1 = vnode_newVirtual(vParent);
-      const fragment2 = vnode_newVirtual(vParent);
-      const fragment3 = vnode_newVirtual(fragment1);
+      const fragment1 = vnode_newVirtual();
+      const fragment2 = vnode_newVirtual();
+      const fragment3 = vnode_newVirtual();
       vnode_setAttr(null, fragment1, 'q:id', '1');
       vnode_setAttr(null, fragment2, 'q:id', '2');
       vnode_setAttr(null, fragment3, 'q:id', '3');
-      const textA = vnode_newText(fragment1, document.createTextNode('1A'), '1A');
-      const textB = vnode_newText(fragment2, document.createTextNode('2B'), '2B');
-      const textC = vnode_newText(fragment3, document.createTextNode('3C'), '3C');
-      const textD = vnode_newText(vParent, document.createTextNode('D'), 'D');
-      const textE = vnode_newText(vParent, document.createTextNode('E'), 'E');
-      const textF = vnode_newText(vParent, document.createTextNode('F'), 'F');
+      const textA = vnode_newText(document.createTextNode('1A'), '1A');
+      const textB = vnode_newText(document.createTextNode('2B'), '2B');
+      const textC = vnode_newText(document.createTextNode('3C'), '3C');
+      const textD = vnode_newText(document.createTextNode('D'), 'D');
+      const textE = vnode_newText(document.createTextNode('E'), 'E');
+      const textF = vnode_newText(document.createTextNode('F'), 'F');
 
       vnode_insertBefore(journal, vParent, fragment2, null);
       expect(vParent).toMatchVDOM(
@@ -404,7 +404,7 @@ describe('vnode', () => {
       );
       const fragment1 = vnode_getFirstChild(vParent) as VirtualVNode;
       const fragment2 = vnode_getFirstChild(fragment1) as VirtualVNode;
-      const text = vnode_newText(fragment2, document.createTextNode('INSERT'), 'INSERT');
+      const text = vnode_newText(document.createTextNode('INSERT'), 'INSERT');
       vnode_insertBefore(journal, fragment2, text, null);
       vnode_applyJournal(journal);
       expect(vParent).toMatchVDOM(
@@ -437,8 +437,8 @@ describe('vnode', () => {
   describe('journal', () => {
     describe('vnode_insertBefore', () => {
       it('should insert before null', () => {
-        const v1 = vnode_newText(vParent, document.createTextNode('1'), '1');
-        const v2 = vnode_newText(vParent, document.createTextNode('2'), '2');
+        const v1 = vnode_newText(document.createTextNode('1'), '1');
+        const v2 = vnode_newText(document.createTextNode('2'), '2');
         vnode_insertBefore(journal, vParent, v1, null);
         vnode_insertBefore(journal, vParent, v2, null);
         expect(vParent).toMatchVDOM(
@@ -452,9 +452,9 @@ describe('vnode', () => {
         expect(parent.innerHTML).toBe('12');
       });
       it('should insert before existing', () => {
-        const v1 = vnode_newText(vParent, document.createTextNode('1'), '1');
-        const v2 = vnode_newText(vParent, document.createTextNode('2'), '2');
-        const v3 = vnode_newText(vParent, document.createTextNode('3'), '3');
+        const v1 = vnode_newText(document.createTextNode('1'), '1');
+        const v2 = vnode_newText(document.createTextNode('2'), '2');
+        const v3 = vnode_newText(document.createTextNode('3'), '3');
         vnode_insertBefore(journal, vParent, v3, null);
         vnode_insertBefore(journal, vParent, v1, v3);
         vnode_insertBefore(journal, vParent, v2, v3);
@@ -470,10 +470,10 @@ describe('vnode', () => {
         expect(parent.innerHTML).toBe('123');
       });
       it('should insert element before existing', () => {
-        const vVirtual = vnode_newVirtual(vParent);
-        const vSpan1 = vnode_newElement(vVirtual, document.createElement('div'), 'div');
-        const v1 = vnode_newText(vSpan1, document.createTextNode('1'), '1');
-        const vSpan2 = vnode_newElement(vVirtual, document.createElement('span'), 'span');
+        const vVirtual = vnode_newVirtual();
+        const vSpan1 = vnode_newElement(document.createElement('div'), 'div');
+        const v1 = vnode_newText(document.createTextNode('1'), '1');
+        const vSpan2 = vnode_newElement(document.createElement('span'), 'span');
         vnode_insertBefore(journal, vParent, vSpan1, null);
         vnode_insertBefore(journal, vSpan1, vVirtual, null);
         vnode_insertBefore(journal, vParent, vSpan2, null);

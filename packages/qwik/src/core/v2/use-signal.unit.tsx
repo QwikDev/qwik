@@ -8,7 +8,7 @@ import {
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
 import { component$ } from '../component/component.public';
-import { _IMMUTABLE, _fnSignal, _jsxQ } from '../internal';
+import { _CONST_PROPS, _fnSignal, _jsxQ } from '../internal';
 import { inlinedQrl } from '../qrl/qrl';
 import { _jsxC } from '../render/jsx/jsx-runtime';
 import { Slot } from '../render/jsx/slot.public';
@@ -399,7 +399,7 @@ Error.stackTraceLimit = 100;
                   get value() {
                     return count.value;
                   },
-                  [_IMMUTABLE]: {
+                  [_CONST_PROPS]: {
                     value: _fnSignal((p0) => p0.value, [count]),
                   },
                 },

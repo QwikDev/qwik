@@ -5,7 +5,7 @@ import { componentQrl, isQwikComponent } from '../../component/component.public'
 import { SERIALIZABLE_STATE } from '../../container/serializers';
 import { assertDefined, assertTrue } from '../../error/assert';
 import { createQRL, isQrl, type QRLInternal } from '../../qrl/qrl-class';
-import { Fragment, JSXNodeImpl, isJSXNode } from '../../render/jsx/jsx-runtime';
+import { Fragment, JSXNodeImpl, isJSXNode, isPropsProxy } from '../../render/jsx/jsx-runtime';
 import { Slot } from '../../render/jsx/slot.public';
 import {
   SubscriptionProp,
@@ -15,7 +15,7 @@ import {
   getProxyFlags,
   type Subscriber,
 } from '../../state/common';
-import { QObjectManagerSymbol, _IMMUTABLE } from '../../state/constants';
+import { QObjectManagerSymbol, _CONST_PROPS, _VAR_PROPS } from '../../state/constants';
 import { SignalDerived, SignalImpl, type Signal, SignalWrapper } from '../../state/signal';
 import { Store, getOrCreateProxy } from '../../state/store';
 import { Task, type ResourceReturnInternal } from '../../use/use-task';
@@ -198,7 +198,7 @@ function upgradePropsWithDerivedSignal(
       }
     }
   }
-  target[_IMMUTABLE] = immutable;
+  target[_CONST_PROPS] = immutable;
   return target[property];
 }
 
@@ -296,8 +296,8 @@ const inflate = (container: DomContainer, target: any, needsInflationData: strin
     case SerializationConstant.JSXNode_VALUE:
       const jsx = target as JSXNodeImpl<unknown>;
       jsx.type = deserializeJSXType(container, restString());
-      jsx.props = container.$getObjectById$(restInt()) as any;
-      jsx.immutableProps = container.$getObjectById$(restInt()) as any;
+      jsx.varProps = container.$getObjectById$(restInt()) as any;
+      jsx.constProps = container.$getObjectById$(restInt()) as any;
       jsx.children = container.$getObjectById$(restInt()) as any;
       jsx.flags = restInt();
       jsx.key = restString() || null;
@@ -332,8 +332,6 @@ const inflate = (container: DomContainer, target: any, needsInflationData: strin
       for (const s of buf) {
         bytes[i++] = s.charCodeAt(0);
       }
-      break;
-    case SerializationConstant.Immutable_VALUE:
       break;
     default:
       throw new Error('Not implemented');
@@ -401,8 +399,6 @@ const allocate = <T>(value: string): any => {
       const rest = encodedLength & 3;
       const decodedLength = blocks * 3 + (rest ? rest - 1 : 0);
       return new Uint8Array(decodedLength);
-    case SerializationConstant.Immutable_VALUE:
-      return _IMMUTABLE;
     default:
       throw new Error('unknown allocate type: ' + value.charCodeAt(0));
   }
@@ -657,7 +653,7 @@ export const createSerializationContext = (
           } else if (NodeConstructor && obj instanceof NodeConstructor) {
             // ignore the nodes
           } else if (isJSXNode(obj)) {
-            discoveredValues.push(obj.type, obj.props, obj.immutableProps, obj.children);
+            discoveredValues.push(obj.type, obj.props, obj.constProps, obj.children);
           } else if (Array.isArray(obj)) {
             discoveredValues.push(...obj);
           } else if (isQrl(obj)) {
@@ -754,8 +750,6 @@ function serialize(serializationContext: SerializationContext): void {
       } else {
         writeString(value);
       }
-    } else if (typeof value === 'symbol' && value === _IMMUTABLE) {
-      writeString(SerializationConstant.Immutable_CHAR);
     } else if (typeof value === 'undefined') {
       writeString(SerializationConstant.UNDEFINED_CHAR);
     } else {
@@ -773,6 +767,16 @@ function serialize(serializationContext: SerializationContext): void {
       // We have seen this object before, so we can serialize it as a reference.
       // Otherwise serialize as normal
       writeString(SerializationConstant.REFERENCE_CHAR + seen);
+      // TODO PropsProxy serialization
+      // } else if (isPropsProxy(value)) {
+      //   const varProps = value[_VAR_PROPS];
+      //   const constProps = value[_CONST_PROPS];
+      //   writeString(
+      //     SerializationConstant.PropsProxy_CHAR +
+      //       `${serializeJSXType($addRoot$, 'props')} ${$addRoot$(constProps)} ${$addRoot$(
+      //         varProps
+      //       )} ${$addRoot$(props.children)} ${props.flags}`
+      //   );
     } else if (isObjectLiteral(value)) {
       if (isResource(value)) {
         serializationContext.$resources$.add(value);
@@ -844,8 +848,10 @@ function serialize(serializationContext: SerializationContext): void {
       writeString(
         SerializationConstant.JSXNode_CHAR +
           `${serializeJSXType($addRoot$, value.type as string)} ${$addRoot$(
-            value.props
-          )} ${$addRoot$(value.immutableProps)} ${$addRoot$(value.children)} ${value.flags}`
+            value.varProps
+          )} ${$addRoot$(
+            value.constProps
+          )} ${$addRoot$(value.constProps)} ${$addRoot$(value.children)} ${value.flags}`
       );
     } else if (value instanceof Task) {
       writeString(
@@ -868,8 +874,6 @@ function serialize(serializationContext: SerializationContext): void {
       }
       const out = btoa(buf).replace(/=+$/, '');
       writeString(SerializationConstant.Uint8Array_CHAR + out);
-    } else if (value instanceof Symbol && value === _IMMUTABLE) {
-      writeString(SerializationConstant.Store_CHAR);
     } else {
       throw new Error('implement: ' + JSON.stringify(value));
     }
@@ -907,22 +911,14 @@ function serialize(serializationContext: SerializationContext): void {
         delimiter = true;
       }
       for (const key in value) {
-        delimiter && $writer$.write(',');
-        writeString(key);
-        $writer$.write(':');
-        writeValue(value[key]);
-        delimiter = true;
+        if (Object.prototype.hasOwnProperty.call(value, key)) {
+          delimiter && $writer$.write(',');
+          writeString(key);
+          $writer$.write(':');
+          writeValue(value[key]);
+          delimiter = true;
+        }
       }
-      // TODO(immutable)
-      // serialize _IMMUTABLE
-      // const immutable = value[_IMMUTABLE];
-      // if (immutable) {
-      //   delimiter && $writer$.write(',');
-      //   writeString(SerializationConstant.Immutable_CHAR);
-      //   $writer$.write(':');
-      //   writeValue(immutable);
-      //   delimiter = true;
-      // }
       $writer$.write('}');
     }
   };
@@ -1138,8 +1134,8 @@ export const enum SerializationConstant {
   Promise_VALUE = /* --------------------- */ 0x1c,
   Uint8Array_CHAR = /* ---------------- */ '\u001e',
   Uint8Array_VALUE = /* ------------------- */ 0x1e,
-  Immutable_CHAR = /* ----------------- */ '\u001f',
-  Immutable_VALUE = /* -------------------- */ 0x1f,
+  PropsProxy_CHAR = /* ---------------- */ '\u001f',
+  PropsProxy_VALUE = /* ------------------- */ 0x1f,
   /// Can't go past this value
   LAST_VALUE = /* ------------------------ */ 0x20,
 }
@@ -1233,7 +1229,5 @@ export const codeToName = (code: number) => {
       return 'Promise';
     case SerializationConstant.Uint8Array_VALUE:
       return 'Uint8Array';
-    case SerializationConstant.Immutable_VALUE:
-      return 'Immutable';
   }
 };

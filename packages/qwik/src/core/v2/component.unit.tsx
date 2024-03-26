@@ -330,7 +330,7 @@ Error.stackTraceLimit = 100;
       it('should rerender svg child elements', async () => {
         const SvgComp = component$((props: { child: JSXOutput }) => {
           return (
-            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <svg key="hi" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
               <circle cx="15" cy="15" r="50" />
               {props.child}
             </svg>
@@ -351,7 +351,7 @@ Error.stackTraceLimit = 100;
           <Component>
             <button>
               <Component>
-                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <svg key="hi" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                   <circle cx="15" cy="15" r="50"></circle>
                   <Fragment></Fragment>
                 </svg>
@@ -359,8 +359,8 @@ Error.stackTraceLimit = 100;
             </button>
           </Component>
         );
-        expect(container.document.body.innerHTML.toLowerCase()).toContain(
-          '<svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="15" cy="15" r="50"></circle></svg>'
+        expect(container.document.body.innerHTML.toLowerCase()).toMatch(
+          '<svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" q:key="hi"><circle cx="15" cy="15" r="50"></circle></svg>'
         );
 
         await trigger(container.element, 'button', 'click');

@@ -150,17 +150,17 @@ Error.stackTraceLimit = 100;
       const Parent = component$(() => {
         const show = useSignal(true);
         return (
-          <div class="parent" onClick$={() => (show.value = false)}>
+          <main class="parent" onClick$={() => (show.value = false)}>
             {show.value && <Component1 />}
             {show.value && <Component1 />}
             <Component2 />
-          </div>
+          </main>
         );
       });
       const { vNode, container } = await render(<Parent />, { debug });
       expect(vNode).toMatchVDOM(
         <>
-          <div class="parent">
+          <main class="parent">
             <Component>
               <div>
                 <span>Component 1</span>
@@ -179,13 +179,13 @@ Error.stackTraceLimit = 100;
                 <Signal>2</Signal>
               </div>
             </Component>
-          </div>
+          </main>
         </>
       );
-      await trigger(container.element, 'div.parent', 'click');
+      await trigger(container.element, 'main.parent', 'click');
       expect(vNode).toMatchVDOM(
         <>
-          <div class="parent">
+          <main class="parent">
             {''}
             {''}
             <Component>
@@ -194,7 +194,7 @@ Error.stackTraceLimit = 100;
                 <Signal>2</Signal>
               </div>
             </Component>
-          </div>
+          </main>
         </>
       );
     });
@@ -250,12 +250,12 @@ Error.stackTraceLimit = 100;
             </svg>
           </Component>
         );
-        await expect(container.document.body.firstChild).toMatchDOM(`
-          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" q:key="ka">
+        await expect(container.document.body.firstChild).toMatchDOM(
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" key="ka">
             <fegaussianblur></fegaussianblur>
             <circle cx="50" cy="50" r="50"></circle>
           </svg>
-        `);
+        );
       });
       // PropsProxy is an empty object, so this does not work!
       it.skip('should write attributes to svg', async () => {
@@ -305,7 +305,7 @@ Error.stackTraceLimit = 100;
           </Component>
         );
 
-        await expect(container.document.body.firstChild?.textContent).toMatchDOM('');
+        await expect(container.document.querySelector('button')).toMatchDOM(<button></button>);
         await trigger(container.element, 'button', 'click');
         expect(vNode).toMatchVDOM(
           <Component>
@@ -319,11 +319,11 @@ Error.stackTraceLimit = 100;
           </Component>
         );
 
-        await expect(container.document.body.firstChild?.firstChild).toMatchDOM(`
-          <svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" q:key="0">
+        await expect(container.document.querySelector('svg')).toMatchDOM(
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" key="0">
             <circle r="50" cx="10" cy="10"></circle>
           </svg>
-        `);
+        );
 
         await trigger(container.element, 'button', 'click');
         expect(vNode).toMatchVDOM(
@@ -332,7 +332,7 @@ Error.stackTraceLimit = 100;
           </Component>
         );
 
-        await expect(container.document.body.firstChild?.textContent).toMatchDOM('');
+        await expect(container.document.body.querySelector('button')).toMatchDOM(<button></button>);
       });
       it('should rerender svg child elements', async () => {
         const SvgComp = component$((props: { child: JSXOutput }) => {
@@ -372,11 +372,11 @@ Error.stackTraceLimit = 100;
             </button>
           </Component>
         );
-        await expect(container.document.body.firstChild?.firstChild).toMatchDOM(`
-          <svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" q:key="hi">
+        await expect(container.document.querySelector('svg')).toMatchDOM(
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" key="hi">
             <circle cx="15" cy="15" r="50"></circle>
           </svg>
-        `);
+        );
 
         await trigger(container.element, 'button', 'click');
         expect(vNode).toMatchVDOM(
@@ -392,12 +392,12 @@ Error.stackTraceLimit = 100;
           </Component>
         );
 
-        await expect(container.document.body.firstChild?.firstChild).toMatchDOM(`
-          <svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" q:key="hi">
+        await expect(container.document.querySelector('svg')).toMatchDOM(
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" key="hi">
             <circle cx="15" cy="15" r="50"></circle>
-            <line x1="0" y1="80" x2="100" y2="20" stroke="black" q:key="1"></line>
+            <line x1="0" y1="80" x2="100" y2="20" stroke="black" key="1"></line>
           </svg>
-        `);
+        );
 
         await trigger(container.element, 'button', 'click');
         expect(vNode).toMatchVDOM(
@@ -412,11 +412,11 @@ Error.stackTraceLimit = 100;
             </button>
           </Component>
         );
-        await expect(container.document.body.firstChild?.firstChild).toMatchDOM(`
-          <svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" q:key="hi">
+        await expect(container.document.querySelector('svg')).toMatchDOM(
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" key="hi">
             <circle cx="15" cy="15" r="50"></circle>
           </svg>
-        `);
+        );
       });
     });
   });

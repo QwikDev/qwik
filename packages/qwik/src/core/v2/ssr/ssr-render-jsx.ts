@@ -12,6 +12,7 @@ import { SignalDerived, isSignal } from '../../state/signal';
 import { trackSignal } from '../../use/use-core';
 import { EMPTY_ARRAY } from '../../util/flyweight';
 import { throwErrorAndStop } from '../../util/log';
+import { ELEMENT_KEY } from '../../util/markers';
 import { isPromise } from '../../util/promises';
 import { type ValueOrPromise } from '../../util/types';
 import {
@@ -24,8 +25,6 @@ import { qrlToString, type SerializationContext } from '../shared/shared-seriali
 import { DEBUG_TYPE, VirtualType, type fixMeAny } from '../shared/types';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
 import type { SSRContainer, SsrAttrs } from './ssr-types';
-import { _CONST_PROPS } from '../../internal';
-import { ELEMENT_KEY } from '../../util/markers';
 
 type StackFn = () => ValueOrPromise<void>;
 type StackValue = JSXOutput | StackFn | Promise<JSXOutput> | typeof Promise;
@@ -130,8 +129,8 @@ function processJSXNode(
       if (typeof type === 'string') {
         ssr.openElement(
           type,
-          toSsrAttrs(jsx.varProps, ssr.serializationCtx),
-          toSsrAttrs(jsx.constProps, ssr.serializationCtx, jsx.key)
+          toSsrAttrs(jsx.varProps, ssr.serializationCtx, jsx.key),
+          toSsrAttrs(jsx.constProps, ssr.serializationCtx)
         );
         enqueue(ssr.closeElement);
         if (type === 'head') {

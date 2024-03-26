@@ -30,7 +30,7 @@ import { format } from 'prettier';
 
 interface CustomMatchers<R = unknown> {
   toMatchVDOM(expectedJSX: JSXOutput): R;
-  toMatchDOM(expectedDOM: string): Promise<R>;
+  toMatchDOM(expectedDOM: JSXOutput): Promise<R>;
 }
 
 declare module 'vitest' {
@@ -50,10 +50,9 @@ expect.extend({
 });
 
 expect.extend({
-  async toMatchDOM(this: { isNot: boolean }, received: HTMLElement, expected: string) {
+  async toMatchDOM(this: { isNot: boolean }, received: HTMLElement, expected: JSXOutput) {
     const { isNot } = this;
-    const receivedString = received?.outerHTML || '';
-    const diffs = await diffNode(receivedString, expected);
+    const diffs = await diffNode(received, expected);
     return {
       pass: isNot ? diffs.length !== 0 : diffs.length === 0,
       message: () => diffs.join('\n'),
@@ -219,7 +218,7 @@ export function walkJSX(
     }
     apply.leave(jsx);
   } else {
-    throw new Error('unsupported');
+    throw new Error('unsupported: ' + jsx);
   }
 
   function processChild(child: any) {
@@ -236,14 +235,14 @@ export function walkJSX(
 export function vnode_fromJSX(jsx: JSXOutput) {
   const doc = createDocument() as QDocument;
   doc.qVNodeData = new WeakMap();
-  const vBody = vnode_newUnMaterializedElement(null, doc.body);
+  const vBody = vnode_newUnMaterializedElement(doc.body);
   let vParent: ElementVNode | VirtualVNode = vBody;
   const journal: VNodeJournal = [];
   walkJSX(jsx, {
     enter: (jsx) => {
       const type = jsx.type;
       if (typeof type === 'string') {
-        const child = vnode_newUnMaterializedElement(vParent, doc.createElement(type));
+        const child = vnode_newUnMaterializedElement(doc.createElement(type));
         vnode_insertBefore(journal, vParent, child, null);
 
         // TODO(hack): jsx.props is an empty object
@@ -268,7 +267,7 @@ export function vnode_fromJSX(jsx: JSXOutput) {
       vnode_insertBefore(
         journal,
         vParent,
-        vnode_newText(vParent, doc.createTextNode(String(value)), String(value)),
+        vnode_newText(doc.createTextNode(String(value)), String(value)),
         null
       );
     },
@@ -305,25 +304,52 @@ function propsAdd(existing: string[], incoming: string[]) {
   }
 }
 
-async function diffNode(received: string, expected: string): Promise<string[]> {
-  const diff: string[] = [];
-
-  received = received
-    .replaceAll(':=""', '')
-    .replaceAll('=""', '')
-    .replaceAll(/on:(.*?)="(.*?)"\s/g, '')
-    .replaceAll(/on-document:(.*?)="(.*?)"\s/g, '')
-    .replaceAll(/on-window:(.*?)="(.*?)"\s/g, '');
-
-  const options = { parser: 'html', htmlWhitespaceSensitivity: 'ignore' as const };
-  const formattedReceivedHTMLString = await format(received, options);
-  const formattedExpectedHTMLString = await format(expected, options);
-  if (formattedReceivedHTMLString.toLowerCase() !== formattedExpectedHTMLString.toLowerCase()) {
-    diff.push('EXPECTED:');
-    diff.push(formattedExpectedHTMLString);
-    diff.push('RECEIVED:');
-    diff.push(formattedReceivedHTMLString);
+async function diffNode(received: HTMLElement, expected: JSXOutput): Promise<string[]> {
+  const diffs: string[] = [];
+  const nodePath: Node[] = [received];
+  const path: string[] = [];
+  walkJSX(expected, {
+    enter: (jsx) => {
+      // console.log('enter', jsx.type);
+      const element = nodePath[nodePath.length - 1] as HTMLElement;
+      if (jsx.type !== element.tagName.toLowerCase()) {
+        diffs.push(
+          path.join(' > ') + `: expecting=${jsx.type} received=${element.tagName.toLowerCase()}`
+        );
+      }
+      path.push(jsx.type as string);
+      const entries = Object.entries(jsx.varProps);
+      if (jsx.constProps) {
+        entries.push(...Object.entries(jsx.constProps));
+      }
+      if (jsx.key != null) {
+        entries.push(['q:key', jsx.key]);
+      }
+      entries.forEach(([expectedKey, expectedValue]) => {
+        const receivedValue = element.getAttribute(expectedKey);
+        if (expectedValue !== receivedValue) {
+          diffs.push(path.join(' > ') + `: [${expectedKey}]`);
+          diffs.push('  EXPECTED: ' + JSON.stringify(expectedValue));
+          diffs.push('  RECEIVED: ' + JSON.stringify(receivedValue));
+        }
+      });
+      nodePath.push(element.firstElementChild!);
+    },
+    leave: () => {
+      // console.log('leave');
+      nodePath.pop();
+      nodePath[nodePath.length - 1] = (
+        nodePath[nodePath.length - 1] as HTMLElement
+      ).nextElementSibling!;
+      path.pop();
+    },
+    text: () => {},
+  });
+  if (diffs.length) {
+    const html = await format(received.outerHTML, formatOptions);
+    diffs.unshift('\n' + html);
   }
-
-  return diff;
+  return diffs;
 }
+
+const formatOptions = { parser: 'html', htmlWhitespaceSensitivity: 'ignore' as const };

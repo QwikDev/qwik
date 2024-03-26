@@ -64,7 +64,7 @@ Error.stackTraceLimit = 100;
     });
     it('should handle exceptions', async () => {
       const error = new Error('HANDLE ME');
-      const Counter = component$(() => {
+      const ThrowError = component$(() => {
         useTask$(() => {
           throw error;
         });
@@ -74,7 +74,9 @@ Error.stackTraceLimit = 100;
       try {
         await render(
           <ErrorProvider>
-            <Counter />
+            <div>
+              <ThrowError />
+            </div>
           </ErrorProvider>,
           { debug }
         );

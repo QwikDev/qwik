@@ -5,7 +5,7 @@ import { componentQrl, isQwikComponent } from '../../component/component.public'
 import { SERIALIZABLE_STATE } from '../../container/serializers';
 import { assertDefined, assertTrue } from '../../error/assert';
 import { createQRL, isQrl, type QRLInternal } from '../../qrl/qrl-class';
-import { Fragment, JSXNodeImpl, isJSXNode } from '../../render/jsx/jsx-runtime';
+import { Fragment, JSXNodeImpl, isJSXNode, isPropsProxy } from '../../render/jsx/jsx-runtime';
 import { Slot } from '../../render/jsx/slot.public';
 import {
   SubscriptionProp,
@@ -15,7 +15,7 @@ import {
   getProxyFlags,
   type Subscriber,
 } from '../../state/common';
-import { QObjectManagerSymbol, _CONST_PROPS } from '../../state/constants';
+import { QObjectManagerSymbol, _CONST_PROPS, _VAR_PROPS } from '../../state/constants';
 import { SignalDerived, SignalImpl, type Signal, SignalWrapper } from '../../state/signal';
 import { Store, getOrCreateProxy } from '../../state/store';
 import { Task, type ResourceReturnInternal } from '../../use/use-task';
@@ -767,6 +767,16 @@ function serialize(serializationContext: SerializationContext): void {
       // We have seen this object before, so we can serialize it as a reference.
       // Otherwise serialize as normal
       writeString(SerializationConstant.REFERENCE_CHAR + seen);
+      // TODO PropsProxy serialization
+      // } else if (isPropsProxy(value)) {
+      //   const varProps = value[_VAR_PROPS];
+      //   const constProps = value[_CONST_PROPS];
+      //   writeString(
+      //     SerializationConstant.PropsProxy_CHAR +
+      //       `${serializeJSXType($addRoot$, 'props')} ${$addRoot$(constProps)} ${$addRoot$(
+      //         varProps
+      //       )} ${$addRoot$(props.children)} ${props.flags}`
+      //   );
     } else if (isObjectLiteral(value)) {
       if (isResource(value)) {
         serializationContext.$resources$.add(value);
@@ -838,7 +848,9 @@ function serialize(serializationContext: SerializationContext): void {
       writeString(
         SerializationConstant.JSXNode_CHAR +
           `${serializeJSXType($addRoot$, value.type as string)} ${$addRoot$(
-            value.props
+            value.varProps
+          )} ${$addRoot$(
+            value.constProps
           )} ${$addRoot$(value.constProps)} ${$addRoot$(value.children)} ${value.flags}`
       );
     } else if (value instanceof Task) {
@@ -886,8 +898,6 @@ function serialize(serializationContext: SerializationContext): void {
       }
       $writer$.write(']');
     } else {
-      const immutable = value[_CONST_PROPS];
-
       // Serialize as object.
       let delimiter = false;
       $writer$.write('{');
@@ -901,18 +911,7 @@ function serialize(serializationContext: SerializationContext): void {
         delimiter = true;
       }
       for (const key in value) {
-        if (immutable !== undefined && Object.prototype.hasOwnProperty.call(immutable, key)) {
-          delimiter && $writer$.write(',');
-          writeString(key);
-          $writer$.write(':');
-          const propValue = immutable[key];
-          if (propValue instanceof SignalDerived) {
-            writeString(serializeSignalDerived(serializationContext, propValue, $addRoot$));
-          } else {
-            throw new Error();
-          }
-          delimiter = true;
-        } else if (Object.prototype.hasOwnProperty.call(value, key)) {
+        if (Object.prototype.hasOwnProperty.call(value, key)) {
           delimiter && $writer$.write(',');
           writeString(key);
           $writer$.write(':');
@@ -1135,6 +1134,8 @@ export const enum SerializationConstant {
   Promise_VALUE = /* --------------------- */ 0x1c,
   Uint8Array_CHAR = /* ---------------- */ '\u001e',
   Uint8Array_VALUE = /* ------------------- */ 0x1e,
+  PropsProxy_CHAR = /* ---------------- */ '\u001f',
+  PropsProxy_VALUE = /* ------------------- */ 0x1f,
   /// Can't go past this value
   LAST_VALUE = /* ------------------------ */ 0x20,
 }

@@ -19,6 +19,8 @@ import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS } from '../../uti
 import type { JSXChildren } from './types/jsx-qwik-attributes';
 import { _VAR_PROPS } from '../../state/constants';
 
+export type Props = Record<string, unknown>;
+
 /**
  * Create a JSXNode with children already split
  *
@@ -31,8 +33,8 @@ import { _VAR_PROPS } from '../../state/constants';
  */
 export const _jsxQ = <T>(
   type: T,
-  varProps: Record<string, unknown> | null,
-  constProps: Record<string, unknown> | null,
+  varProps: Props | null,
+  constProps: Props | null,
   children: JSXChildren | null,
   flags: number,
   key: string | number | null,
@@ -69,8 +71,8 @@ export const _jsxQ = <T>(
  */
 export const _jsxC = <T extends string | FunctionComponent<any>>(
   type: T,
-  varProps: Record<string, unknown> | null,
-  constProps: Record<string, unknown> | null,
+  varProps: Props | null,
+  constProps: Props | null,
   flags: number,
   key: string | number | null,
   dev?: DevJSX
@@ -91,7 +93,7 @@ export const _jsxC = <T extends string | FunctionComponent<any>>(
  */
 export const jsx = <T extends string | FunctionComponent<any>>(
   type: T,
-  props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, unknown>,
+  props: T extends FunctionComponent<infer PROPS> ? PROPS : Props,
   key?: string | number | null
 ): JSXNode<T> => {
   const processed = key == null ? null : String(key);
@@ -104,31 +106,18 @@ export const jsx = <T extends string | FunctionComponent<any>>(
 
 export const SKIP_RENDER_TYPE = ':skipRender';
 
-// _jsxQ('div', {vars}, {consts});
-// => JSXNode 'div', {vars}, {consts}
-// => SSR => <div {...consts} : {...vars} />
-// => resume => VNODE['div', ...vars]
-// => CSR =>
-
-// <div foo bar />
-// => JSXNode 'div', {}, {foo, bar}
-
-// <div foo {...props} bar />
-// => JSXNode 'div', {foo, ...props}, {bar}
-// => JSXNode 'div', {foo, ...omit(props.var, props.const, ['bar'])}, {bar}
-// => JSXNode 'div', {foo, ...props.var}, {...props.const, bar}
-
-// component$<props>(({abc}) => {
-// abc
-// component$<props>((props) => {
-// props.abc
+export const isPropsProxy = (
+  obj: any
+): obj is { [_VAR_PROPS]: Props; [_CONST_PROPS]: Props | null } => {
+  return obj && obj[_VAR_PROPS] !== undefined;
+};
 
 export class JSXNodeImpl<T> implements JSXNode<T> {
   dev?: DevJSX;
   constructor(
     public type: T,
-    public varProps: Record<string, unknown>,
-    public constProps: Record<string, unknown> | null,
+    public varProps: Props,
+    public constProps: Props | null,
     public children: JSXChildren,
     public flags: number,
     public key: string | null = null,
@@ -136,7 +125,7 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
   ) {}
 
   private _proxy?: typeof this.varProps;
-  get props(): T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, unknown> {
+  get props(): T extends FunctionComponent<infer PROPS> ? PROPS : Props {
     // We use a proxy to merge the constProps if they exist and to evaluate derived signals
     this._proxy ||= new Proxy<any>(this.varProps as object, {
       get: (target, prop) => {
@@ -199,7 +188,7 @@ export const Virtual: FunctionComponent<{
   [OnRenderProp]?: QRLInternal<OnRenderFn<any>>;
   [QSlot]?: string;
   [QSlotS]?: string;
-  props?: Record<string, unknown>;
+  props?: Props;
   [QScopedStyle]?: string;
   [ELEMENT_ID]?: string;
 }> = (props: any) => props.children;
@@ -331,7 +320,7 @@ In order to disable content escaping use '<script dangerouslySetInnerHTML={conte
   }
 };
 
-const printObjectLiteral = (obj: Record<string, unknown>) => {
+const printObjectLiteral = (obj: Props) => {
   return `{ ${Object.keys(obj)
     .map((key) => `"${key}"`)
     .join(', ')} }`;
@@ -389,9 +378,9 @@ export const HTMLFragment: FunctionComponent<{ dangerouslySetInnerHTML: string }
   jsx(Virtual, props);
 
 /** @public */
-export const jsxDEV = <T extends string | FunctionComponent<Record<string, unknown>>>(
+export const jsxDEV = <T extends string | FunctionComponent<Props>>(
   type: T,
-  props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, unknown>,
+  props: T extends FunctionComponent<infer PROPS> ? PROPS : Props,
   key: string | number | null | undefined,
   _isStatic: boolean,
   opts: JsxDevOpts,

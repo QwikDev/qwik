@@ -23,10 +23,10 @@ describe('v2 ssr render', () => {
     );
     expect(vNode).toMatchVDOM(<meta content="dark light" name="color-scheme" />);
     expect(container.document.documentElement.outerHTML).toContain(
-      '<meta content="dark light" name="color-scheme">'
+      '<meta :="" content="dark light" name="color-scheme">'
     );
     expect(container.document.documentElement.outerHTML).not.toContain(
-      '<meta content="dark light" name="color-scheme"></meta>'
+      '<meta :="" content="dark light" name="color-scheme"></meta>'
     );
   });
   describe('component', () => {

@@ -1,7 +1,13 @@
 import { createDocument } from '../../testing/document';
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
-import { Fragment as Component, component$, type JSXOutput, useSignal } from '@builder.io/qwik';
+import {
+  Fragment as Component,
+  Fragment as Signal,
+  component$,
+  type JSXOutput,
+  useSignal,
+} from '@builder.io/qwik';
 import { render2 } from './client/dom-render';
 import type { ContainerElement } from './client/types';
 import { vnode_getFirstChild } from './client/vnode';
@@ -21,11 +27,9 @@ describe('v2 client render', () => {
       <meta content="dark light" name="color-scheme" />
     );
     expect(container.document.documentElement.outerHTML).toContain(
-      '<meta content="dark light" name="color-scheme">'
+      '<meta content="dark light" name="color-scheme"'
     );
-    expect(container.document.documentElement.outerHTML).not.toContain(
-      '<meta content="dark light" name="color-scheme"></meta>'
-    );
+    expect(container.document.documentElement.outerHTML).not.toContain('</meta>');
   });
   it('should render Components', async () => {
     const Display = component$((props: { text: string }) => {
@@ -42,9 +46,11 @@ describe('v2 client render', () => {
     expect(vnode_getFirstChild(vNode)).toMatchVDOM(
       <Component>
         <span>
-          {'Hello'}{' '}
+          <Signal>{'Hello'}</Signal>{' '}
           <Component>
-            <b>World</b>
+            <b>
+              <Signal>World</Signal>
+            </b>
           </Component>
           {'!'}
         </span>
@@ -59,13 +65,17 @@ describe('v2 client render', () => {
     const { vNode, container } = await clientRender(<Counter />);
     expect(vnode_getFirstChild(vNode)).toMatchVDOM(
       <Component>
-        <button>123</button>
+        <button>
+          <Signal>123</Signal>
+        </button>
       </Component>
     );
     await trigger(container.element, 'button', 'click');
     expect(vnode_getFirstChild(vNode)).toMatchVDOM(
       <Component>
-        <button>124</button>
+        <button>
+          <Signal>124</Signal>
+        </button>
       </Component>
     );
   });

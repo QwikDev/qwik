@@ -80,8 +80,8 @@ function diffJsxVNode(received: VNode, expected: JSXNode | string, path: string[
       const receivedValue = vnode_getAttr(received, prop);
       const expectedValue =
         prop === 'key' || prop === 'q:key'
-          ? expected.key || receivedValue
-          : expected.props[prop] || expected.immutableProps?.[prop];
+          ? expected.key ?? receivedValue
+          : expected.props[prop] ?? expected.immutableProps?.[prop];
       if (expectedValue !== receivedValue) {
         diffs.push(`${path.join(' > ')}: [${prop}]`);
         diffs.push('  EXPECTED: ' + JSON.stringify(expectedValue));

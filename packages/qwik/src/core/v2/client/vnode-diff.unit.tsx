@@ -11,29 +11,31 @@ describe('vNode-diff', () => {
   });
 
   it('should find no difference', () => {
-    const { vNode, vParent, document } = vnode_fromJSX(<div>Hello</div>);
+    const { vNode, vParent, document } = vnode_fromJSX(<div key="KA_0">Hello</div>);
     expect(vNode).toMatchVDOM(<div>Hello</div>);
-    expect(vnode_getNode(vNode!)!.ownerDocument!.body.innerHTML).toEqual('<div>Hello</div>');
+    expect(vnode_getNode(vNode!)!.ownerDocument!.body.innerHTML).toEqual(
+      '<div key="KA_0">Hello</div>'
+    );
     vnode_diff({ $journal$: journal, document } as any, <div>Hello</div>, vParent);
     expect(journal.length).toEqual(0);
   });
 
   describe('text', () => {
     it('should update text', () => {
-      const { vNode, vParent, document } = vnode_fromJSX(<div>Hello</div>);
+      const { vNode, vParent, document } = vnode_fromJSX(<div key="KA_0">Hello</div>);
       vnode_diff({ $journal$: journal, document } as any, <div>World</div>, vParent);
       expect(vNode).toMatchVDOM(<div>World</div>);
       expect(journal).not.toEqual([]);
-      expect((vnode_getNode(vNode) as Element).outerHTML).toEqual('<div>Hello</div>');
+      expect((vnode_getNode(vNode) as Element).outerHTML).toEqual('<div key="KA_0">Hello</div>');
       vnode_applyJournal(journal);
       expect((vnode_getNode(vNode) as Element).outerHTML).toEqual('<div>World</div>');
     });
 
     it('should add missing text node', () => {
-      const { vNode, vParent, document } = vnode_fromJSX(<div></div>);
+      const { vNode, vParent, document } = vnode_fromJSX(<div key="KA_0"></div>);
       vnode_diff({ $journal$: journal, document } as any, <div>Hello</div>, vParent);
-      expect(vNode).toMatchVDOM(<div>Hello</div>);
-      expect((vnode_getNode(vNode) as Element).outerHTML).toEqual('<div></div>');
+      expect(vNode).toMatchVDOM(<div key="KA_0">Hello</div>);
+      expect((vnode_getNode(vNode) as Element).outerHTML).toEqual('<div key="KA_0"></div>');
       vnode_applyJournal(journal);
       expect((vnode_getNode(vNode) as Element).outerHTML).toEqual('<div>Hello</div>');
     });
@@ -80,20 +82,20 @@ describe('vNode-diff', () => {
     it('should do nothing on same', () => {
       expect(journal.length).toEqual(0);
       const { vNode, vParent, document } = vnode_fromJSX(
-        <test>
-          <span></span>
-          <b></b>
+        <test key="KA_0">
+          <span key="KA_1"></span>
+          <b key="KA_2"></b>
         </test>
       );
       const test = (
-        <test>
-          <span></span>
-          <b></b>
+        <test key="KA_0">
+          <span key="KA_1"></span>
+          <b key="KA_2"></b>
         </test>
       );
       vnode_diff({ $journal$: journal, document } as any, test, vParent);
-      expect(journal.length).toEqual(0);
       expect(vNode).toMatchVDOM(test);
+      expect(journal.length).toEqual(0);
     });
     it('should add missing element', () => {
       const { vNode, vParent, document } = vnode_fromJSX(<test></test>);

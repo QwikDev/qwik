@@ -33,3 +33,4 @@ export {
   getScopedStyleIdsAsPrefix,
   isClassAttr,
 } from '../core/v2/shared/scoped-styles';
+export { SubscriptionType } from '../core/state/common';

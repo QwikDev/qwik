@@ -2,13 +2,13 @@ import {
   Fragment as Component,
   Fragment,
   Fragment as Projection,
+  Fragment as Signal,
 } from '@builder.io/qwik/jsx-runtime';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
 import { component$ } from '../component/component.public';
 import { inlinedQrl } from '../qrl/qrl';
 import { getScopedStyles } from '../style/scoped-stylesheet';
-import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { useSignal } from '../use/use-signal';
 import { useStylesScopedQrl } from '../use/use-styles';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
@@ -30,52 +30,59 @@ Error.stackTraceLimit = 100;
     const STYLE_RED = `.container {background-color: red;}`;
     const STYLE_BLUE = `.container {background-color: blue;}`;
 
+    afterEach(() => {
+      (globalThis as any).rawStyleId = undefined;
+      (globalThis as any).rawStyleId1 = undefined;
+      (globalThis as any).rawStyleId2 = undefined;
+      (globalThis as any).rawStyleId3 = undefined;
+      (globalThis as any).rawStyleId4 = undefined;
+    });
+
     it('should render style', async () => {
-      let rawStyleId = '';
+      (globalThis as any).rawStyleId = '';
 
       const StyledComponent = component$(() => {
         const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped'));
-        rawStyleId = stylesScopedData.scopeId;
+        (globalThis as any).rawStyleId = stylesScopedData.scopeId;
         return <div class="container">Hello world</div>;
       });
 
       const { vNode, getStyles } = await render(<StyledComponent />, { debug });
-      const styleId = rawStyleId.substring(2);
+      const styleId = (globalThis as any).rawStyleId.substring(2);
       const scopeStyle = getScopedStyles(STYLE_RED, styleId);
       expect(getStyles()).toEqual({
         [styleId]: scopeStyle,
       });
       expect(vNode).toMatchVDOM(
         <>
-          <div class={rawStyleId + ' container'}>Hello world</div>
+          <div class={(globalThis as any).rawStyleId + ' container'}>Hello world</div>
         </>
       );
     });
 
     it('should move style to <head> on rerender', async () => {
-      let rawStyleId = '';
+      (globalThis as any).rawStyleId = '';
 
       const StyledComponent = component$(() => {
         const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped'));
         const count = useSignal(0);
-        rawStyleId = stylesScopedData.scopeId;
+        (globalThis as any).rawStyleId = stylesScopedData.scopeId;
         return (
-          <button
-            class="container"
-            onClick$={inlinedQrl(() => useLexicalScope()[0].value++, 's_onClick', [count])}
-          >
+          <button class="container" onClick$={() => count.value++}>
             {count.value}
           </button>
         );
       });
 
       const { vNode, container } = await render(<StyledComponent />, { debug });
-      const styleId = rawStyleId.substring(2);
+      const styleId = (globalThis as any).rawStyleId.substring(2);
       const scopeStyle = getScopedStyles(STYLE_RED, styleId);
       await trigger(container.element, 'button', 'click');
       expect(vNode).toMatchVDOM(
         <>
-          <button class={`${rawStyleId} container`}>1</button>
+          <button class={`${(globalThis as any).rawStyleId} container`}>
+            <Signal>1</Signal>
+          </button>
         </>
       );
       const style = container.document.querySelector(QStyleSelector);
@@ -83,28 +90,25 @@ Error.stackTraceLimit = 100;
     });
 
     it('should save styles when JSX deleted', async () => {
-      let rawStyleId = '';
+      (globalThis as any).rawStyleId = '';
+
+      const StyledComponent = component$(() => {
+        const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped'));
+        (globalThis as any).rawStyleId = stylesScopedData.scopeId;
+        return <div>Hello world</div>;
+      });
 
       const Parent = component$(() => {
         const show = useSignal(true);
         return (
-          <div
-            class="parent"
-            onClick$={inlinedQrl(() => (useLexicalScope()[0].value = false), 's_onClick', [show])}
-          >
+          <div class="parent" onClick$={() => (show.value = false)}>
             {show.value && <StyledComponent />}
           </div>
         );
       });
 
-      const StyledComponent = component$(() => {
-        const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped'));
-        rawStyleId = stylesScopedData.scopeId;
-        return <div>Hello world</div>;
-      });
-
       const { vNode, container } = await render(<Parent />, { debug });
-      const styleId = rawStyleId.substring(2);
+      const styleId = (globalThis as any).rawStyleId.substring(2);
       const scopeStyle = getScopedStyles(STYLE_RED, styleId);
       await trigger(container.element, 'div.parent', 'click');
       expect(vNode).toMatchVDOM(
@@ -128,16 +132,16 @@ Error.stackTraceLimit = 100;
     });
 
     it('should render styles for multiple components', async () => {
-      let rawStyleId1 = '';
-      let rawStyleId2 = '';
+      (globalThis as any).rawStyleId1 = '';
+      (globalThis as any).rawStyleId2 = '';
       const StyledComponent1 = component$(() => {
         const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped1'));
-        rawStyleId1 = stylesScopedData.scopeId;
+        (globalThis as any).rawStyleId1 = stylesScopedData.scopeId;
         return <div class="container">Hello world 1</div>;
       });
       const StyledComponent2 = component$(() => {
         const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_BLUE, 's_stylesScoped2'));
-        rawStyleId2 = stylesScopedData.scopeId;
+        (globalThis as any).rawStyleId2 = stylesScopedData.scopeId;
         return <div class="container">Hello world 2</div>;
       });
       const Parent = component$(() => {
@@ -149,9 +153,9 @@ Error.stackTraceLimit = 100;
         );
       });
       const { vNode, getStyles } = await render(<Parent />, { debug });
-      const firstStyleId = rawStyleId1.substring(2);
+      const firstStyleId = (globalThis as any).rawStyleId1.substring(2);
       const firstScopeStyle = getScopedStyles(STYLE_RED, firstStyleId);
-      const secondStyleId = rawStyleId2.substring(2);
+      const secondStyleId = (globalThis as any).rawStyleId2.substring(2);
       const secondScopeStyle = getScopedStyles(STYLE_BLUE, secondStyleId);
       expect(getStyles()).toEqual({
         [firstStyleId]: firstScopeStyle,
@@ -161,10 +165,10 @@ Error.stackTraceLimit = 100;
         <>
           <div>
             <Component>
-              <div class={`${rawStyleId1} container`}>Hello world 1</div>
+              <div class={`${(globalThis as any).rawStyleId1} container`}>Hello world 1</div>
             </Component>
             <Component>
-              <div class={`${rawStyleId2} container`}>Hello world 2</div>
+              <div class={`${(globalThis as any).rawStyleId2} container`}>Hello world 2</div>
             </Component>
           </div>
         </>
@@ -172,34 +176,31 @@ Error.stackTraceLimit = 100;
     });
 
     it('should save styles for all child components', async () => {
-      let rawStyleId1 = '';
-      let rawStyleId2 = '';
+      (globalThis as any).rawStyleId1 = '';
+      (globalThis as any).rawStyleId2 = '';
       const StyledComponent1 = component$(() => {
         const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped1'));
-        rawStyleId1 = stylesScopedData.scopeId;
+        (globalThis as any).rawStyleId1 = stylesScopedData.scopeId;
         return <div class="container">Hello world 1</div>;
       });
       const StyledComponent2 = component$(() => {
         const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_BLUE, 's_stylesScoped2'));
-        rawStyleId2 = stylesScopedData.scopeId;
+        (globalThis as any).rawStyleId2 = stylesScopedData.scopeId;
         return <div class="container">Hello world 2</div>;
       });
       const Parent = component$(() => {
         const show = useSignal(true);
         return (
-          <div
-            class="parent"
-            onClick$={inlinedQrl(() => (useLexicalScope()[0].value = false), 's_onClick', [show])}
-          >
+          <div class="parent" onClick$={() => (show.value = false)}>
             {show.value && <StyledComponent1 />}
             <StyledComponent2 />
           </div>
         );
       });
       const { vNode, container } = await render(<Parent />, { debug });
-      const firstStyleId = rawStyleId1.substring(2);
+      const firstStyleId = (globalThis as any).rawStyleId1.substring(2);
       const firstScopeStyle = getScopedStyles(STYLE_RED, firstStyleId);
-      const secondStyleId = rawStyleId2.substring(2);
+      const secondStyleId = (globalThis as any).rawStyleId2.substring(2);
       const secondScopeStyle = getScopedStyles(STYLE_BLUE, secondStyleId);
       await trigger(container.element, 'div.parent', 'click');
       expect(vNode).toMatchVDOM(
@@ -207,7 +208,7 @@ Error.stackTraceLimit = 100;
           <div class="parent">
             {''}
             <Component>
-              <div class={`${rawStyleId2} container`}>Hello world 2</div>
+              <div class={`${(globalThis as any).rawStyleId2} container`}>Hello world 2</div>
             </Component>
           </div>
         </Component>
@@ -223,16 +224,16 @@ Error.stackTraceLimit = 100;
     });
 
     it('should generate different styleIds for components', async () => {
-      let rawStyleId1 = '';
-      let rawStyleId2 = '';
+      (globalThis as any).rawStyleId1 = '';
+      (globalThis as any).rawStyleId2 = '';
       const StyledComponent1 = component$(() => {
         const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped1'));
-        rawStyleId1 = stylesScopedData.scopeId;
+        (globalThis as any).rawStyleId1 = stylesScopedData.scopeId;
         return <div>Hello world 1</div>;
       });
       const StyledComponent2 = component$(() => {
         const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped2'));
-        rawStyleId2 = stylesScopedData.scopeId;
+        (globalThis as any).rawStyleId2 = stylesScopedData.scopeId;
         return <div>Hello world 2</div>;
       });
       const Parent = component$(() => {
@@ -244,25 +245,25 @@ Error.stackTraceLimit = 100;
         );
       });
       await render(<Parent />, { debug });
-      const firstStyleId = rawStyleId1.substring(2);
-      const secondStyleId = rawStyleId2.substring(2);
+      const firstStyleId = (globalThis as any).rawStyleId1.substring(2);
+      const secondStyleId = (globalThis as any).rawStyleId2.substring(2);
       expect(firstStyleId).not.toEqual(secondStyleId);
     });
 
     it('should render styles with multiple useStylesScoped', async () => {
-      let rawStyleId1 = '';
-      let rawStyleId2 = '';
+      (globalThis as any).rawStyleId1 = '';
+      (globalThis as any).rawStyleId2 = '';
       const StyledComponent = component$(() => {
         const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped1'));
-        rawStyleId1 = stylesScopedData.scopeId;
+        (globalThis as any).rawStyleId1 = stylesScopedData.scopeId;
         const stylesScopedData2 = useStylesScopedQrl(inlinedQrl(STYLE_BLUE, 's_stylesScoped2'));
-        rawStyleId2 = stylesScopedData2.scopeId;
+        (globalThis as any).rawStyleId2 = stylesScopedData2.scopeId;
         return <div class="container">Hello world</div>;
       });
       const { vNode, getStyles } = await render(<StyledComponent />, { debug });
-      const firstStyleId = rawStyleId1.substring(2);
+      const firstStyleId = (globalThis as any).rawStyleId1.substring(2);
       const firstScopeStyle = getScopedStyles(STYLE_RED, firstStyleId);
-      const secondStyleId = rawStyleId2.substring(2);
+      const secondStyleId = (globalThis as any).rawStyleId2.substring(2);
       const secondScopeStyle = getScopedStyles(STYLE_BLUE, secondStyleId);
       expect(getStyles()).toEqual({
         [firstStyleId]: firstScopeStyle,
@@ -270,7 +271,11 @@ Error.stackTraceLimit = 100;
       });
       expect(vNode).toMatchVDOM(
         <>
-          <div class={`${rawStyleId1} ${rawStyleId2} container`}>Hello world</div>
+          <div
+            class={`${(globalThis as any).rawStyleId1} ${(globalThis as any).rawStyleId2} container`}
+          >
+            Hello world
+          </div>
         </>
       );
     });
@@ -294,18 +299,18 @@ Error.stackTraceLimit = 100;
     });
 
     it('should render styles for component inside slot', async () => {
-      let rawStyleId1 = '';
-      let rawStyleId2 = '';
+      (globalThis as any).rawStyleId1 = '';
+      (globalThis as any).rawStyleId2 = '';
 
       const Child = component$(() => {
         const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_BLUE, 's_stylesScoped2'));
-        rawStyleId2 = stylesScopedData.scopeId;
+        (globalThis as any).rawStyleId2 = stylesScopedData.scopeId;
         return <div class="container">Hello world 2</div>;
       });
 
       const Parent = component$(() => {
         const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped1'));
-        rawStyleId1 = stylesScopedData.scopeId;
+        (globalThis as any).rawStyleId1 = stylesScopedData.scopeId;
         return (
           <div class="container">
             <Slot />
@@ -319,9 +324,9 @@ Error.stackTraceLimit = 100;
         </Parent>,
         { debug }
       );
-      const firstStyleId = rawStyleId1.substring(2);
+      const firstStyleId = (globalThis as any).rawStyleId1.substring(2);
       const firstScopeStyle = getScopedStyles(STYLE_RED, firstStyleId);
-      const secondStyleId = rawStyleId2.substring(2);
+      const secondStyleId = (globalThis as any).rawStyleId2.substring(2);
       const secondScopeStyle = getScopedStyles(STYLE_BLUE, secondStyleId);
       expect(getStyles()).toEqual({
         [firstStyleId]: firstScopeStyle,
@@ -329,10 +334,10 @@ Error.stackTraceLimit = 100;
       });
       expect(vNode).toMatchVDOM(
         <Component>
-          <div class={`${rawStyleId1} container`}>
+          <div class={`${(globalThis as any).rawStyleId1} container`}>
             <Fragment>
               <Component>
-                <div class={`${rawStyleId2} container`}>Hello world 2</div>
+                <div class={`${(globalThis as any).rawStyleId2} container`}>Hello world 2</div>
               </Component>
             </Fragment>
           </div>
@@ -341,12 +346,37 @@ Error.stackTraceLimit = 100;
     });
 
     it('should render styles for multiple slots', async () => {
-      let rawStyleId1 = '';
-      let rawStyleId2 = '';
-      let rawStyleId3 = '';
+      (globalThis as any).rawStyleId1 = '';
+      (globalThis as any).rawStyleId2 = '';
+      (globalThis as any).rawStyleId3 = '';
+
+      const ComponentA = component$(() => {
+        const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_BLUE, 's_stylesScoped2'));
+
+        (globalThis as any).rawStyleId2 = stylesScopedData.scopeId;
+        return (
+          <div class="containerA">
+            <Slot name="one" />
+            <Slot name="two" />
+          </div>
+        );
+      });
+
+      const ComponentB = component$(() => {
+        const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped3'));
+
+        (globalThis as any).rawStyleId3 = stylesScopedData.scopeId;
+        return (
+          <div class="containerB">
+            <Slot name="three" />
+            <Slot name="four" />
+          </div>
+        );
+      });
+
       const RootStyles = component$(() => {
         const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped1'));
-        rawStyleId1 = stylesScopedData.scopeId;
+        (globalThis as any).rawStyleId1 = stylesScopedData.scopeId;
         return (
           <ComponentB>
             <ComponentA q:slot="three">
@@ -360,37 +390,13 @@ Error.stackTraceLimit = 100;
         );
       });
 
-      const ComponentA = component$(() => {
-        const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_BLUE, 's_stylesScoped2'));
-
-        rawStyleId2 = stylesScopedData.scopeId;
-        return (
-          <div class="containerA">
-            <Slot name="one" />
-            <Slot name="two" />
-          </div>
-        );
-      });
-
-      const ComponentB = component$(() => {
-        const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped3'));
-
-        rawStyleId3 = stylesScopedData.scopeId;
-        return (
-          <div class="containerB">
-            <Slot name="three" />
-            <Slot name="four" />
-          </div>
-        );
-      });
-
       const { vNode, getStyles } = await render(<RootStyles />, { debug });
 
-      const firstStyleId = rawStyleId1.substring(2);
+      const firstStyleId = (globalThis as any).rawStyleId1.substring(2);
       const firstScopeStyle = getScopedStyles(STYLE_RED, firstStyleId);
-      const secondStyleId = rawStyleId2.substring(2);
+      const secondStyleId = (globalThis as any).rawStyleId2.substring(2);
       const secondScopeStyle = getScopedStyles(STYLE_BLUE, secondStyleId);
-      const thirdStyleId = rawStyleId3.substring(2);
+      const thirdStyleId = (globalThis as any).rawStyleId3.substring(2);
       const thirdScopeStyle = getScopedStyles(STYLE_RED, thirdStyleId);
       expect(getStyles()).toEqual({
         [firstStyleId]: firstScopeStyle,
@@ -401,10 +407,10 @@ Error.stackTraceLimit = 100;
       expect(vNode).toMatchVDOM(
         <Component>
           <Component>
-            <div class={`${rawStyleId3} containerB`}>
-              <Projection>
+            <div class={`${(globalThis as any).rawStyleId3} containerB`}>
+              <Projection q:slot="three">
                 <Component>
-                  <div class={`${rawStyleId2} containerA`}>
+                  <div class={`${(globalThis as any).rawStyleId2} containerA`}>
                     <Projection>
                       <div q:slot="one">One</div>
                     </Projection>
@@ -416,7 +422,7 @@ Error.stackTraceLimit = 100;
               </Projection>
               <Projection>
                 <div q:slot="four">
-                  <span class={`${rawStyleId1} container`}>Four</span>
+                  <span class={`${(globalThis as any).rawStyleId1} container`}>Four</span>
                 </div>
               </Projection>
             </div>
@@ -426,14 +432,40 @@ Error.stackTraceLimit = 100;
     });
 
     it('should render styles for all nested components and elements', async () => {
-      let rawStyleId1 = '';
-      let rawStyleId2 = '';
-      let rawStyleId3 = '';
-      let rawStyleId4 = '';
+      (globalThis as any).rawStyleId1 = '';
+      (globalThis as any).rawStyleId2 = '';
+      (globalThis as any).rawStyleId3 = '';
+      (globalThis as any).rawStyleId4 = '';
+
+      const StyledComponent2 = component$(() => {
+        const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_BLUE, 's_stylesScoped2'));
+        (globalThis as any).rawStyleId2 = stylesScopedData.scopeId;
+        return (
+          <div class="container">
+            <span>Hello world 2</span>
+            <div class="container">Nested 2</div>
+          </div>
+        );
+      });
+      const StyledComponent3 = component$(() => {
+        const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped3'));
+        (globalThis as any).rawStyleId3 = stylesScopedData.scopeId;
+        return (
+          <div class="container">
+            Hello world 3
+            <Slot />
+          </div>
+        );
+      });
+      const StyledComponent4 = component$(() => {
+        const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_BLUE, 's_stylesScoped4'));
+        (globalThis as any).rawStyleId4 = stylesScopedData.scopeId;
+        return <div class="container">Hello world 4</div>;
+      });
 
       const StyledComponent1 = component$(() => {
         const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped1'));
-        rawStyleId1 = stylesScopedData.scopeId;
+        (globalThis as any).rawStyleId1 = stylesScopedData.scopeId;
         return (
           <div class="container">
             <span>Hello world 1</span>
@@ -445,31 +477,6 @@ Error.stackTraceLimit = 100;
           </div>
         );
       });
-      const StyledComponent2 = component$(() => {
-        const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_BLUE, 's_stylesScoped2'));
-        rawStyleId2 = stylesScopedData.scopeId;
-        return (
-          <div class="container">
-            <span>Hello world 2</span>
-            <div class="container">Nested 2</div>
-          </div>
-        );
-      });
-      const StyledComponent3 = component$(() => {
-        const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped3'));
-        rawStyleId3 = stylesScopedData.scopeId;
-        return (
-          <div class="container">
-            Hello world 3
-            <Slot />
-          </div>
-        );
-      });
-      const StyledComponent4 = component$(() => {
-        const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_BLUE, 's_stylesScoped4'));
-        rawStyleId4 = stylesScopedData.scopeId;
-        return <div class="container">Hello world 4</div>;
-      });
 
       const Parent = component$(() => {
         return (
@@ -479,13 +486,13 @@ Error.stackTraceLimit = 100;
         );
       });
       const { vNode, getStyles } = await render(<Parent />, { debug });
-      const firstStyleId = rawStyleId1.substring(2);
+      const firstStyleId = (globalThis as any).rawStyleId1.substring(2);
       const firstScopeStyle = getScopedStyles(STYLE_RED, firstStyleId);
-      const secondStyleId = rawStyleId2.substring(2);
+      const secondStyleId = (globalThis as any).rawStyleId2.substring(2);
       const secondScopeStyle = getScopedStyles(STYLE_BLUE, secondStyleId);
-      const thirdStyleId = rawStyleId3.substring(2);
+      const thirdStyleId = (globalThis as any).rawStyleId3.substring(2);
       const thirdScopeStyle = getScopedStyles(STYLE_RED, thirdStyleId);
-      const fourthStyleId = rawStyleId4.substring(2);
+      const fourthStyleId = (globalThis as any).rawStyleId4.substring(2);
       const fourthScopeStyle = getScopedStyles(STYLE_BLUE, fourthStyleId);
       expect(getStyles()).toEqual({
         [firstStyleId]: firstScopeStyle,
@@ -497,21 +504,23 @@ Error.stackTraceLimit = 100;
         <Component>
           <div class="parent">
             <Component>
-              <div class={`${rawStyleId1} container`}>
+              <div class={`${(globalThis as any).rawStyleId1} container`}>
                 <span>Hello world 1</span>
-                <div class={`${rawStyleId1} container`}>Nested 1</div>
+                <div class={`${(globalThis as any).rawStyleId1} container`}>Nested 1</div>
                 <Component>
-                  <div class={`${rawStyleId2} container`}>
+                  <div class={`${(globalThis as any).rawStyleId2} container`}>
                     <span>Hello world 2</span>
-                    <div class={`${rawStyleId2} container`}>Nested 2</div>
+                    <div class={`${(globalThis as any).rawStyleId2} container`}>Nested 2</div>
                   </div>
                 </Component>
                 <Component>
-                  <div class={`${rawStyleId3} container`}>
+                  <div class={`${(globalThis as any).rawStyleId3} container`}>
                     Hello world 3
                     <Fragment>
                       <Component>
-                        <div class={`${rawStyleId4} container`}>Hello world 4</div>
+                        <div class={`${(globalThis as any).rawStyleId4} container`}>
+                          Hello world 4
+                        </div>
                       </Component>
                     </Fragment>
                   </div>
@@ -528,10 +537,10 @@ Error.stackTraceLimit = 100;
 describe('html wrapper', () => {
   it('should append scoped style to head', async () => {
     const STYLE = `.container{color: blue;}`;
-    let rawStyleId = '';
+    (globalThis as any).rawStyleId = '';
     const Wrapper = component$(() => {
       const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE, 's_styles1'));
-      rawStyleId = stylesScopedData.scopeId;
+      (globalThis as any).rawStyleId = stylesScopedData.scopeId;
       return <Slot />;
     });
     let document = createDocument();
@@ -552,7 +561,7 @@ describe('html wrapper', () => {
       setPlatform(platform);
     }
 
-    const styleId = rawStyleId.substring(2);
+    const styleId = (globalThis as any).rawStyleId.substring(2);
     const scopeStyle = getScopedStyles(STYLE, styleId);
     const styleElement = document.head.lastChild as HTMLElement;
     expect(styleElement.textContent).toContain(scopeStyle);

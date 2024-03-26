@@ -5,7 +5,7 @@ import { assertDefined, assertFalse } from '../../error/assert';
 import { _IMMUTABLE } from '../../internal';
 import type { QRLInternal } from '../../qrl/qrl-class';
 import type { QRL } from '../../qrl/qrl.public';
-import { serializeClass } from '../../render/execute-component';
+import { serializeClass, stringifyStyle } from '../../render/execute-component';
 import { Fragment, JSXNodeImpl, isJSXNode } from '../../render/jsx/jsx-runtime';
 import { Slot } from '../../render/jsx/slot.public';
 import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
@@ -38,7 +38,6 @@ import {
 import { addPrefixForScopedStyleIdsString, isClassAttr } from '../shared/scoped-styles';
 import type { QElement2, fixMeAny } from '../shared/types';
 import { DEBUG_TYPE, VirtualType } from '../shared/types';
-import type { SsrAttrs } from '../ssr/ssr-types';
 import type { DomContainer } from './dom-container';
 import {
   ElementVNodeProps,
@@ -49,6 +48,8 @@ import {
   type TextVNode,
   type VNode,
   type VirtualVNode,
+  type ClientAttrs,
+  type ClientAttrKey,
 } from './types';
 import {
   mapApp_findIndx,
@@ -490,8 +491,21 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
             vnode_setProp(vNewNode, IMMUTABLE_PREFIX + ':' + scope + ':' + eventName, value);
             needsQDispatchEventPatch = true;
             continue;
-          } else if (isClassAttr(key)) {
+          }
+          if (isSignal(value)) {
+            value = trackSignal(value, [
+              SubscriptionType.PROP_IMMUTABLE,
+              vNewNode as fixMeAny,
+              value,
+              vNewNode as fixMeAny,
+              key,
+            ]);
+          }
+
+          if (isClassAttr(key)) {
             value = serializeClassWithScopedStyle(value);
+          } else if (key === 'style') {
+            value = stringifyStyle(value);
           }
           element.setAttribute(key, String(value));
         }
@@ -527,19 +541,19 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       needsQDispatchEventPatch = createNewElement(jsx, tag);
     }
     // reconcile attributes
-    let jsxAttrs = (jsx as any as { attrs: SsrAttrs }).attrs;
+    let jsxAttrs = (jsx as unknown as { attrs: ClientAttrs }).attrs;
     if (jsxAttrs === EMPTY_ARRAY) {
-      const props = (jsx as JSXNode).props;
+      const props = jsx.props;
       for (const key in props) {
         if (jsxAttrs === EMPTY_ARRAY) {
-          jsxAttrs = (jsx as any as { attrs: SsrAttrs }).attrs = [];
+          jsxAttrs = (jsx as unknown as { attrs: ClientAttrs }).attrs = [];
         }
         mapArray_set(jsxAttrs, key, props[key], 0);
       }
       const jsxKey = jsx.key;
       if (jsxKey !== null) {
         if (jsxAttrs === EMPTY_ARRAY) {
-          jsxAttrs = (jsx as any as { attrs: SsrAttrs }).attrs = [ELEMENT_KEY, jsxKey];
+          jsxAttrs = (jsx as unknown as { attrs: ClientAttrs }).attrs = [ELEMENT_KEY, jsxKey];
         } else {
           mapArray_set(jsxAttrs, ELEMENT_KEY, jsxKey, 0);
         }
@@ -580,29 +594,32 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
   }
 
   /** @param tag Returns true if `qDispatchEvent` needs patching */
-  function setBulkProps(vnode: ElementVNode, srcAttrs: SsrAttrs): boolean {
+  function setBulkProps(vnode: ElementVNode, srcAttrs: ClientAttrs): boolean {
     vnode_ensureElementInflated(vnode);
-    const dstAttrs = vnode as SsrAttrs;
+    const dstAttrs = vnode as ClientAttrs;
     let srcIdx = 0;
     const srcLength = srcAttrs.length;
     let dstIdx = ElementVNodeProps.PROPS_OFFSET;
     let dstLength = dstAttrs.length;
-    let srcKey: string | null = srcIdx < srcLength ? srcAttrs[srcIdx++] : null;
-    let dstKey: string | null = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
+    let srcKey: ClientAttrKey | null = srcIdx < srcLength ? srcAttrs[srcIdx++] : null;
+    let dstKey: ClientAttrKey | null = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
     let patchEventDispatch = false;
 
     const record = (key: string, value: any) => {
       if (key.startsWith(':')) {
         vnode_setProp(vnode, key, value);
-      } else {
-        if (isClassAttr(key)) {
-          value = serializeClassWithScopedStyle(value);
-        }
-        vnode_setAttr(journal, vnode, key, value);
-        if (value === null) {
-          // if we set `null` than attribute was removed and we need to shorten the dstLength
-          dstLength = dstAttrs.length;
-        }
+        return;
+      }
+      if (isClassAttr(key)) {
+        value = serializeClassWithScopedStyle(value);
+      } else if (key === 'style') {
+        value = stringifyStyle(value);
+      }
+
+      vnode_setAttr(journal, vnode, key, value);
+      if (value === null) {
+        // if we set `null` than attribute was removed and we need to shorten the dstLength
+        dstLength = dstAttrs.length;
       }
     };
 

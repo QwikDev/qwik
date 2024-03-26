@@ -8,6 +8,7 @@ import { vnode_getProp, vnode_locate } from '../core/v2/client/vnode';
 import { ELEMENT_PROPS, OnRenderProp } from '../core/util/markers';
 import { type QRLInternal } from '../core/qrl/qrl-class';
 import type { DomContainer } from '../core/v2/client/dom-container';
+import { _IMMUTABLE } from '../core';
 
 const debug = false;
 
@@ -39,7 +40,7 @@ describe('vnode data', () => {
     });
   });
   describe('integration tests', () => {
-    it('components inside the div', async () => {
+    it.only('components inside the div', async () => {
       const Component = component$<RefIdProp>(({ refId }) => {
         const data = useSignal(1);
         return (

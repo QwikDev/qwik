@@ -4,6 +4,10 @@ import type { QRL } from '../../qrl/qrl.public';
 import type { Container2 } from '../shared/types';
 import type { VNodeJournal } from './vnode';
 
+export type ClientAttrKey = string;
+export type ClientAttrValue = string | null;
+export type ClientAttrs = Array<ClientAttrKey | ClientAttrValue>;
+
 export interface ClientContainer extends Container2 {
   document: QDocument;
   element: ContainerElement;

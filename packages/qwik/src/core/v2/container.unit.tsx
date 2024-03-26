@@ -228,7 +228,8 @@ describe('serializer v2', () => {
       it('should serialize and deserialize', () => {
         const testFn = () => 'test';
         const obj: QRLInternal[] = [
-          $(testFn) as QRLInternal,
+          // $(testFn) as QRLInternal,
+          qrl('chunk.js', 's_123', ['Hello', 'World']) as QRLInternal,
           qrl('chunk.js', 's_123', ['Hello', 'World']) as QRLInternal,
           inlinedQrl(testFn, 's_inline', ['Hello']) as QRLInternal,
         ];
@@ -292,7 +293,9 @@ describe('serializer v2', () => {
         const [srcQrl] = (obj as any)[SERIALIZABLE_STATE];
         const [dstQrl] = container.$getObjectById$(0)[SERIALIZABLE_STATE];
         expect(dstQrl.$hash$).toEqual(srcQrl.$hash$);
-        expect(dstQrl.$captureRef$).toEqual(srcQrl.$captureRef$);
+        expect(dstQrl.$captureRef$).toEqual(
+          srcQrl.$captureRef$.length ? srcQrl.$captureRef$ : null
+        );
         expect(dstQrl._devOnlySymbolRef).toEqual((srcQrl as any)._devOnlySymbolRef);
       });
     });

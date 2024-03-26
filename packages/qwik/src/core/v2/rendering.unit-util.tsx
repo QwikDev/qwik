@@ -125,15 +125,8 @@ export async function ssrRenderToDom(
   }
 
   const document = createDocument({ html });
-  const qFuncs = document.body.querySelector('[q\\:func]');
   const containerElement = document.querySelector('[q\\:container]') as ContainerElement;
-  if (qFuncs) {
-    let code = qFuncs.textContent || '';
-    code = code.replace(Q_FUNCS_PREFIX, '');
-    if (code) {
-      containerElement.qFuncs = eval(code);
-    }
-  }
+  emulateExecutionOfQwikFuncs(document);
   const container = getDomContainer(containerElement) as DomContainer;
   const getStyles = getStylesFactory(document);
   if (opts.debug) {
@@ -165,6 +158,18 @@ export async function ssrRenderToDom(
     ? container.rootVNode
     : vnode_getVNodeForChildNode(container.rootVNode, document.body);
   return { container, document, vNode: vnode_getFirstChild(containerVNode)!, getStyles };
+}
+
+export function emulateExecutionOfQwikFuncs(document: Document) {
+  const qFuncs = document.body.querySelector('[q\\:func]');
+  const containerElement = document.querySelector('[q\\:container]') as ContainerElement;
+  if (qFuncs) {
+    let code = qFuncs.textContent || '';
+    code = code.replace(Q_FUNCS_PREFIX, '');
+    if (code) {
+      containerElement.qFuncs = eval(code);
+    }
+  }
 }
 
 function renderStyles(getStyles: () => Record<string, string | string[]>) {

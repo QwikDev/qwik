@@ -1,9 +1,7 @@
-import { Fragment as Component, Fragment } from '@builder.io/qwik/jsx-runtime';
+import { Fragment as Component, Fragment, Fragment as Signal } from '@builder.io/qwik/jsx-runtime';
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
-import { component$, componentQrl } from '../component/component.public';
-import { inlinedQrl } from '../qrl/qrl';
-import { useLexicalScope } from '../use/use-lexical-scope.public';
+import { component$ } from '../component/component.public';
 import { useSignal } from '../use/use-signal';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
@@ -89,14 +87,9 @@ Error.stackTraceLimit = 100;
             <div>Parent</div>
             <div>
               <button
-                onClick$={inlinedQrl(
-                  () => {
-                    const [showChild] = useLexicalScope();
-                    showChild.value = !showChild.value;
-                  },
-                  's_onClick',
-                  [showChild]
-                )}
+                onClick$={() => {
+                  showChild.value = !showChild.value;
+                }}
               >
                 Show child
               </button>
@@ -135,60 +128,54 @@ Error.stackTraceLimit = 100;
     });
 
     it('should rerender components correctly', async () => {
-      const Component1 = componentQrl(
-        inlinedQrl(() => {
-          const signal1 = useSignal(1);
-          return (
-            <div>
-              <span>Component 1</span>
-              {signal1.value}
-            </div>
-          );
-        }, 's_cmp1')
-      );
-      const Component2 = componentQrl(
-        inlinedQrl(() => {
-          const signal2 = useSignal(2);
-          return (
-            <div>
-              <span>Component 2</span>
-              {signal2.value}
-            </div>
-          );
-        }, 's_cmp2')
-      );
-      const Parent = componentQrl(
-        inlinedQrl(() => {
-          const show = useSignal(true);
-          return (
-            <div
-              class="parent"
-              onClick$={inlinedQrl(() => (useLexicalScope()[0].value = false), 's_onClick', [show])}
-            >
-              {show.value && <Component1 />}
-              {show.value && <Component1 />}
-              <Component2 />
-            </div>
-          );
-        }, 's_parent')
-      );
+      const Component1 = component$(() => {
+        const signal1 = useSignal(1);
+        return (
+          <div>
+            <span>Component 1</span>
+            {signal1.value}
+          </div>
+        );
+      });
+      const Component2 = component$(() => {
+        const signal2 = useSignal(2);
+        return (
+          <div>
+            <span>Component 2</span>
+            {signal2.value}
+          </div>
+        );
+      });
+      const Parent = component$(() => {
+        const show = useSignal(true);
+        return (
+          <div class="parent" onClick$={() => (show.value = false)}>
+            {show.value && <Component1 />}
+            {show.value && <Component1 />}
+            <Component2 />
+          </div>
+        );
+      });
       const { vNode, container } = await render(<Parent />, { debug });
       expect(vNode).toMatchVDOM(
         <>
           <div class="parent">
             <Component>
               <div>
-                <span>Component 1</span>1
+                <span>Component 1</span>
+                <Signal>1</Signal>
               </div>
             </Component>
             <Component>
               <div>
-                <span>Component 1</span>1
+                <span>Component 1</span>
+                <Signal>1</Signal>
               </div>
             </Component>
             <Component>
               <div>
-                <span>Component 2</span>2
+                <span>Component 2</span>
+                <Signal>2</Signal>
               </div>
             </Component>
           </div>
@@ -202,7 +189,8 @@ Error.stackTraceLimit = 100;
             {''}
             <Component>
               <div>
-                <span>Component 2</span>2
+                <span>Component 2</span>
+                <Signal>2</Signal>
               </div>
             </Component>
           </div>
@@ -296,16 +284,7 @@ Error.stackTraceLimit = 100;
         const Parent = component$(() => {
           const show = useSignal(false);
           return (
-            <button
-              onClick$={inlinedQrl(
-                () => {
-                  const [show] = useLexicalScope();
-                  show.value = !show.value;
-                },
-                's_click',
-                [show]
-              )}
-            >
+            <button onClick$={() => (show.value = !show.value)}>
               {show.value && <SvgComp cx="10" cy="10" />}
             </button>
           );
@@ -360,16 +339,7 @@ Error.stackTraceLimit = 100;
         const Parent = component$(() => {
           const show = useSignal(false);
           return (
-            <button
-              onClick$={inlinedQrl(
-                () => {
-                  const [show] = useLexicalScope();
-                  show.value = !show.value;
-                },
-                's_click',
-                [show]
-              )}
-            >
+            <button onClick$={() => (show.value = !show.value)}>
               <SvgComp
                 child={show.value ? <line x1="0" y1="80" x2="100" y2="20" stroke="black" /> : <></>}
               />
@@ -432,16 +402,6 @@ Error.stackTraceLimit = 100;
 
   describe(render.name + ': regression', () => {
     it('#5647', async () => {
-      const Issue5647 = componentQrl(
-        inlinedQrl(() => {
-          return (
-            <>
-              <Child1 refId="first" ele={<span>Hi, this doesn't work...</span>} />
-              <Child1 refId="second" ele={<ChildNested />} />
-            </>
-          );
-        }, 's_issue5647')
-      );
       const ChildNested = component$(() => {
         return <div>Nested</div>;
       });
@@ -453,18 +413,21 @@ Error.stackTraceLimit = 100;
             <p>isShow value: {`${isShow.value}`}</p>
             <button
               id={props.refId}
-              onClick$={inlinedQrl(
-                () => {
-                  const [isShow] = useLexicalScope();
-                  isShow.value = !isShow.value;
-                },
-                's_onClick',
-                [isShow]
-              )}
+              onClick$={() => {
+                isShow.value = !isShow.value;
+              }}
             >
               Toggle
             </button>
           </div>
+        );
+      });
+      const Issue5647 = component$(() => {
+        return (
+          <>
+            <Child1 refId="first" ele={<span>Hi, this doesn't work...</span>} />
+            <Child1 refId="second" ele={<ChildNested />} />
+          </>
         );
       });
       const { vNode, container } = await render(<Issue5647 />, { debug });
@@ -476,7 +439,7 @@ Error.stackTraceLimit = 100;
                 <span>Hi, this doesn't work...</span>
                 <p>
                   {'isShow value: '}
-                  {'true'}
+                  <Signal>{'true'}</Signal>
                 </p>
                 <button id="first">Toggle</button>
               </div>
@@ -488,7 +451,7 @@ Error.stackTraceLimit = 100;
                 </Component>
                 <p>
                   {'isShow value: '}
-                  {'true'}
+                  <Signal>{'true'}</Signal>
                 </p>
                 <button id="second">Toggle</button>
               </div>
@@ -505,7 +468,7 @@ Error.stackTraceLimit = 100;
                 {''}
                 <p>
                   {'isShow value: '}
-                  {'false'}
+                  <Signal>{'false'}</Signal>
                 </p>
                 <button id="first">Toggle</button>
               </div>
@@ -517,7 +480,7 @@ Error.stackTraceLimit = 100;
                 </Component>
                 <p>
                   {'isShow value: '}
-                  {'true'}
+                  <Signal>{'true'}</Signal>
                 </p>
                 <button id="second">Toggle</button>
               </div>
@@ -534,7 +497,7 @@ Error.stackTraceLimit = 100;
                 {''}
                 <p>
                   {'isShow value: '}
-                  {'false'}
+                  <Signal>{'false'}</Signal>
                 </p>
                 <button id="first">Toggle</button>
               </div>
@@ -544,7 +507,7 @@ Error.stackTraceLimit = 100;
                 {''}
                 <p>
                   {'isShow value: '}
-                  {'false'}
+                  <Signal>{'false'}</Signal>
                 </p>
                 <button id="second">Toggle</button>
               </div>
@@ -561,7 +524,7 @@ Error.stackTraceLimit = 100;
                 <span>Hi, this doesn't work...</span>
                 <p>
                   {'isShow value: '}
-                  {'true'}
+                  <Signal>{'true'}</Signal>
                 </p>
                 <button id="first">Toggle</button>
               </div>
@@ -571,7 +534,7 @@ Error.stackTraceLimit = 100;
                 {''}
                 <p>
                   {'isShow value: '}
-                  {'false'}
+                  <Signal>{'false'}</Signal>
                 </p>
                 <button id="second">Toggle</button>
               </div>

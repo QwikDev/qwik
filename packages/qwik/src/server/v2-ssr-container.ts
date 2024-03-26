@@ -3,6 +3,7 @@ import { _SharedContainer, _walkJSX } from '@builder.io/qwik';
 import { isDev } from '@builder.io/qwik/build';
 import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
 import { getQwikLoaderScript } from '@builder.io/qwik/server';
+import { dangerouslySetInnerHTML } from '../core/render/execute-component';
 import type { SymbolToChunkResolver } from '../core/v2/ssr/ssr-types';
 import { applyPrefetchImplementation2 } from './prefetch-implementation';
 import { getPrefetchResources } from './prefetch-strategy';
@@ -276,6 +277,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.write('<');
     this.write(tag);
     if (attrs) {
+      attrs = this.attrs_removeByKey(attrs, dangerouslySetInnerHTML);
       this.writeAttrs(attrs);
     }
     if (immutableAttrs) {
@@ -284,6 +286,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
     this.write('>');
     this.lastNode = null;
+  }
+
+  private attrs_removeByKey(attrs: SsrAttrs, key: string) {
+    const idx = attrs.indexOf(key);
+    return idx === -1 ? attrs : attrs.filter((_, i) => i !== idx && i !== idx + 1);
   }
 
   closeElement(): ValueOrPromise<void> {
@@ -380,6 +387,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
     this.write(lastIdx === 0 ? text : text.substring(lastIdx));
     vNodeData_addTextSize(this.currentElementFrame!.vNodeData, text.length);
+    this.lastNode = null;
+  }
+
+  htmlNode(rawHtml: string) {
+    this.write(rawHtml);
+    vNodeData_addTextSize(this.currentElementFrame!.vNodeData, rawHtml.length);
     this.lastNode = null;
   }
 

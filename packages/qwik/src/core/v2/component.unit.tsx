@@ -247,20 +247,19 @@ Error.stackTraceLimit = 100;
       const Cmp = component$(() => {
         return (
           <div>
-            <span dangerouslySetInnerHTML="vanilla HTML here" />
+            <div>
+              <span dangerouslySetInnerHTML="vanilla HTML here" />
+            </div>
+            <div>
+              <span id="before" dangerouslySetInnerHTML="<h1>I'm an h1!</h1>" class="after" />
+            </div>
           </div>
         );
       });
-      const { vNode, document } = await render(<Cmp />, { debug });
-      const firstChild = document.body.firstChild! as HTMLElement;
-      expect(firstChild.innerHTML).toContain('<span>vanilla HTML here</span>');
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <div>
-            <span dangerouslySetInnerHTML="vanilla HTML here"></span>
-          </div>
-        </Component>
-      );
+      const { document } = await render(<Cmp />, { debug });
+      const divElement = document.body.children[0];
+      expect(divElement.children[0].innerHTML).toContain('<span>vanilla HTML here</span>');
+      expect(divElement.children[1].innerHTML).toContain(`<span id="before" class="after"><h1>I'm an h1!</h1></span>`);
     });
 
     it('FIXME: should append dangerouslySetInnerHTML', async () => {

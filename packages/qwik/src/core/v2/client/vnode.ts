@@ -762,7 +762,7 @@ export const mapArray_set = <T>(
       elementVNode[indx + 1] = value;
     }
   } else if (value != null) {
-    elementVNode.splice(indx ^ -1, 0, key as any, value);
+    elementVNode.push(key as any, value);
   }
 };
 

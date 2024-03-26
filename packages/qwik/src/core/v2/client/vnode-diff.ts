@@ -529,13 +529,13 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     // reconcile attributes
     let jsxAttrs = (jsx as any as { attrs: SsrAttrs }).attrs;
     if (jsxAttrs === EMPTY_ARRAY) {
-      const props = (jsx as JSXNode).props;
-      for (const key in props) {
+      const props = Object.entries((jsx as JSXNode).props);
+      props.map(([key, value]) => {
         if (jsxAttrs === EMPTY_ARRAY) {
           jsxAttrs = (jsx as any as { attrs: SsrAttrs }).attrs = [];
         }
-        mapArray_set(jsxAttrs, key, props[key], 0);
-      }
+        mapArray_set(jsxAttrs, key, value, 0);
+      });
       const jsxKey = jsx.key;
       if (jsxKey !== null) {
         if (jsxAttrs === EMPTY_ARRAY) {

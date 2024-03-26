@@ -802,9 +802,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private pushFrame(tag: string, depthFirstElementIdx: number, isElement: boolean) {
     let tagNesting: TagNesting = TagNesting.ANYTHING;
     if (isDev) {
-      if (tag !== tag.toLowerCase()) {
-        throw newTagError(`Tag '${tag}' must be lower case, because HTML is case insensitive.`);
-      }
       if (!this.currentElementFrame) {
         tagNesting = initialTag(tag);
       } else {

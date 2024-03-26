@@ -886,11 +886,11 @@ export const vnode_remove = (
   }
   if (removeDOM) {
     const domParent = vnode_getDOMParent(vParent)!;
-    if (vnode_isVirtualVNode(vParent)) {
-      journal.push(VNodeJournalOpCode.Remove, domParent);
-      vnode_getDOMChildNodes(journal, vToRemove, journal as Array<Element | Text>);
-    } else {
-      const domChild = vnode_getNode(vToRemove)!;
+    journal.push(VNodeJournalOpCode.Remove, domParent);
+    vnode_getDOMChildNodes(journal, vToRemove, journal as Array<Element | Text>);
+
+    if (!vnode_isVirtualVNode(vParent)) {
+      const domChild = vnode_getNode(vToRemove);
       if (domChild) {
         journal.push(VNodeJournalOpCode.Remove, domParent, domChild);
       }

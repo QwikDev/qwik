@@ -382,7 +382,7 @@ const vnode_getDOMParent = (vnode: VNode): Element | null => {
   while (vnode && !vnode_isElementVNode(vnode)) {
     vnode = vnode[VNodeProps.parent]!;
   }
-  return vnode && vnode[ElementVNodeProps.element];
+  return (vnode && vnode[ElementVNodeProps.element]) as Element | null;
 };
 
 export const vnode_getDOMChildNodes = (
@@ -399,7 +399,8 @@ export const vnode_getDOMChildNodes = (
        */
       vnode_ensureTextInflated(journal, root);
     }
-    return [vnode_getNode(root)!];
+    childNodes.push(vnode_getNode(root)!);
+    return childNodes;
   }
   let vNode = vnode_getFirstChild(root);
   while (vNode) {
@@ -853,7 +854,7 @@ export const vnode_getDomParent = (vnode: VNode): Element | Text | null => {
   while (vnode && !vnode_isElementVNode(vnode)) {
     vnode = vnode[VNodeProps.parent]!;
   }
-  return vnode && vnode[ElementVNodeProps.element];
+  return (vnode && vnode[ElementVNodeProps.element]) as Element | Text | null;
 };
 
 export const vnode_remove = (

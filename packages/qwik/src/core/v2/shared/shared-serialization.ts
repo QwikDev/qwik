@@ -5,7 +5,7 @@ import { componentQrl, isQwikComponent } from '../../component/component.public'
 import { SERIALIZABLE_STATE } from '../../container/serializers';
 import { assertDefined, assertTrue } from '../../error/assert';
 import { createQRL, isQrl, type QRLInternal } from '../../qrl/qrl-class';
-import { Fragment, JSXNodeImpl, isJSXNode, isPropsProxy } from '../../render/jsx/jsx-runtime';
+import { Fragment, JSXNodeImpl, isJSXNode } from '../../render/jsx/jsx-runtime';
 import { Slot } from '../../render/jsx/slot.public';
 import {
   SubscriptionProp,
@@ -847,11 +847,17 @@ function serialize(serializationContext: SerializationContext): void {
     } else if (isJSXNode(value)) {
       writeString(
         SerializationConstant.JSXNode_CHAR +
-          `${serializeJSXType($addRoot$, value.type as string)} ${$addRoot$(
-            value.varProps
-          )} ${$addRoot$(
-            value.constProps
-          )} ${$addRoot$(value.constProps)} ${$addRoot$(value.children)} ${value.flags}`
+          serializeJSXType($addRoot$, value.type as string) +
+          ' ' +
+          $addRoot$(value.varProps) +
+          ' ' +
+          $addRoot$(value.constProps) +
+          ' ' +
+          $addRoot$(value.children) +
+          ' ' +
+          value.flags +
+          ' ' +
+          (value.key || '')
       );
     } else if (value instanceof Task) {
       writeString(

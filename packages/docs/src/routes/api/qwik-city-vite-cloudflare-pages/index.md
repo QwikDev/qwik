@@ -12,10 +12,33 @@ export declare function cloudflarePagesAdapter(
 ): any;
 ```
 
-| Parameter | Type                                                            | Description  |
-| --------- | --------------------------------------------------------------- | ------------ |
-| opts      | [CloudflarePagesAdapterOptions](#cloudflarepagesadapteroptions) | _(Optional)_ |
+<table><thead><tr><th>
 
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+opts
+
+</td><td>
+
+[CloudflarePagesAdapterOptions](#cloudflarepagesadapteroptions)
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
 **Returns:**
 
 any
@@ -30,9 +53,57 @@ export interface CloudflarePagesAdapterOptions extends ServerAdapterOptions
 
 **Extends:** ServerAdapterOptions
 
-| Property             | Modifiers | Type     | Description                                                                                                                                                                                                                                                             |
-| -------------------- | --------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [functionRoutes?](#) |           | boolean  | <p>_(Optional)_ Determines if the build should generate the function invocation routes <code>\_routes.json</code> file.</p><p>https://developers.cloudflare.com/pages/platform/functions/routing/\#functions-invocation-routes</p><p>Defaults to <code>true</code>.</p> |
-| [staticPaths?](#)    |           | string[] | _(Optional)_ Manually add pathnames that should be treated as static paths and not SSR. For example, when these pathnames are requested, their response should come from a static file, rather than a server-side rendered response.                                    |
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[functionRoutes?](#)
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_ Determines if the build should generate the function invocation routes `_routes.json` file.
+
+https://developers.cloudflare.com/pages/platform/functions/routing/\#functions-invocation-routes
+
+Defaults to `true`.
+
+</td></tr>
+<tr><td>
+
+[staticPaths?](#)
+
+</td><td>
+
+</td><td>
+
+string[]
+
+</td><td>
+
+_(Optional)_ Manually add pathnames that should be treated as static paths and not SSR. For example, when these pathnames are requested, their response should come from a static file, rather than a server-side rendered response.
+
+</td></tr>
+</tbody></table>
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/cloudflare-pages/vite/index.ts)

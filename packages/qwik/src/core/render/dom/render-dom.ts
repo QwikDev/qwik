@@ -188,7 +188,9 @@ export const processData = (
     return newNode;
   } else if (isArray(node)) {
     const output = promiseAll(node.flatMap((n) => processData(n, invocationContext)));
-    return maybeThen(output, (array) => array.flat(100).filter(isNotNullable));
+    return maybeThen(output, (array) => array.flat(100).filter(isNotNullable)) as ValueOrPromise<
+      ProcessedJSXNode[] | ProcessedJSXNode | undefined
+    >;
   } else if (isPromise(node)) {
     return node.then((node) => processData(node, invocationContext));
   } else if (node === SkipRender) {

@@ -10,10 +10,33 @@ title: \@builder.io/qwik-city/vite/azure-swa API Reference
 export declare function azureSwaAdapter(opts?: AzureSwaAdapterOptions): any;
 ```
 
-| Parameter | Type                                              | Description  |
-| --------- | ------------------------------------------------- | ------------ |
-| opts      | [AzureSwaAdapterOptions](#azureswaadapteroptions) | _(Optional)_ |
+<table><thead><tr><th>
 
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+opts
+
+</td><td>
+
+[AzureSwaAdapterOptions](#azureswaadapteroptions)
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
 **Returns:**
 
 any

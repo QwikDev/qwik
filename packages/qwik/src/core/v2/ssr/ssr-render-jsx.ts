@@ -155,21 +155,20 @@ function processJSXNode(
             const host = componentFrame.componentNode;
             let slotName: string = '';
             const node = ssr.getLastNode();
-            const constProps = jsx.constProps || jsx.props[_CONST_PROPS as any];
+            const constProps = jsx.constProps;
             if (constProps && typeof constProps == 'object' && 'name' in constProps) {
               const constValue = constProps.name;
               if (constValue instanceof SignalDerived) {
                 slotName = trackSignal(constValue, [
                   SubscriptionType.PROP_MUTABLE,
-                  host,
+                  host as fixMeAny,
                   constValue,
-                  node,
+                  node as fixMeAny,
+                  'name',
                 ]);
               }
-            } else {
-              slotName = String(jsx.props.name || '');
             }
-            slotName = String(slotName || '');
+            slotName = String(slotName || jsx.props.name || '');
             enqueue(ssr.closeProjection);
             const slotDefaultChildren = (jsx.props.children || null) as JSXChildren | null;
             const slotChildren =

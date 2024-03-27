@@ -535,7 +535,7 @@ const ChildSlotInline = (props: { children: any }) => {
           </Issue1630>,
           { debug }
         );
-        expect(document.body.innerHTML).toContain('</p><b>CHILD</b>DYNAMIC');
+        expect(removeKeyAttrs(document.body.innerHTML)).toContain('</p><b>CHILD</b>DYNAMIC');
         await trigger(document.body, 'button', 'click');
         expect(vNode).toMatchVDOM(
           <Component>
@@ -548,7 +548,7 @@ const ChildSlotInline = (props: { children: any }) => {
             </Fragment>
           </Component>
         );
-        expect(document.body.innerHTML).not.toContain('<b>CHILD</b>DYNAMIC');
+        expect(removeKeyAttrs(document.body.innerHTML)).not.toContain('<b>CHILD</b>DYNAMIC');
         await trigger(document.body, 'button', 'click');
         expect(vNode).toMatchVDOM(
           <Component>
@@ -566,7 +566,7 @@ const ChildSlotInline = (props: { children: any }) => {
             </Fragment>
           </Component>
         );
-        expect(document.body.innerHTML).toContain('</p><b>CHILD</b>DYNAMIC');
+        expect(removeKeyAttrs(document.body.innerHTML)).toContain('</p><b>CHILD</b>DYNAMIC');
       });
 
       it.skip('#2688', async () => {
@@ -661,3 +661,7 @@ const ChildSlotInline = (props: { children: any }) => {
     });
   });
 });
+function removeKeyAttrs(innerHTML: string): any {
+  return innerHTML.replaceAll(/ q:key="[^"]+"/g, '');
+}
+

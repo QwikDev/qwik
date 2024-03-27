@@ -812,7 +812,7 @@ export const createElm = (
         if (prop !== 'children' && prop !== QSlot) {
           const immutableValue = immutableMeta[prop];
           if (isSignal(immutableValue)) {
-            target[_IMMUTABLE_PREFIX + prop] = immutableValue;
+            target['_IMMUTABLE_PREFIX' + prop] = immutableValue;
           } else {
             target[prop] = expectProps[prop];
           }

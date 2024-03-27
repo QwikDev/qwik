@@ -5,7 +5,6 @@ import { component$ } from '../component/component.public';
 import { SERIALIZABLE_STATE } from '../container/serializers';
 import { inlinedQrl, qrl } from '../qrl/qrl';
 import type { QRLInternal } from '../qrl/qrl-class';
-import { $ } from '../qrl/qrl.public';
 import { Fragment, JSXNodeImpl } from '../render/jsx/jsx-runtime';
 import { Slot } from '../render/jsx/slot.public';
 import type { JSXOutput } from '../render/jsx/types/jsx-node';

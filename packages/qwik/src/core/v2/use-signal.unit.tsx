@@ -399,9 +399,9 @@ Error.stackTraceLimit = 100;
                   get value() {
                     return count.value;
                   },
-                  [_CONST_PROPS]: {
-                    value: _fnSignal((p0) => p0.value, [count]),
-                  },
+                },
+                {
+                  value: _fnSignal((p0) => p0.value, [count]),
                 },
                 3,
                 null

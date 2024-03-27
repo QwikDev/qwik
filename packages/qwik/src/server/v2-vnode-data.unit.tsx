@@ -8,7 +8,6 @@ import { vnode_getProp, vnode_locate } from '../core/v2/client/vnode';
 import { ELEMENT_PROPS, OnRenderProp } from '../core/util/markers';
 import { type QRLInternal } from '../core/qrl/qrl-class';
 import type { DomContainer } from '../core/v2/client/dom-container';
-import { _IMMUTABLE } from '../core';
 
 const debug = false;
 

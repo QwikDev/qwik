@@ -14,7 +14,7 @@ Error.stackTraceLimit = 100;
 
 [
   ssrRenderToDom, //
-  // domRender, //
+  domRender, //
 ].forEach((render) => {
   describe(render.name + ': useVisibleTask', () => {
     it('should execute visible task', async () => {

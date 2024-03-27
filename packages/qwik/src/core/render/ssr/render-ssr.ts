@@ -50,7 +50,7 @@ import {
   type QContext,
 } from '../../state/context';
 import { createPropsState, createProxy } from '../../state/store';
-import { Q_CTX, _CONST_PROPS, _IMMUTABLE_PREFIX } from '../../state/constants';
+import { Q_CTX, _CONST_PROPS } from '../../state/constants';
 import type { ClassList, JSXChildren } from '../jsx/types/jsx-qwik-attributes';
 import { SubscriptionType } from '../../state/common';
 
@@ -977,7 +977,7 @@ const walkChildren = (
       currentIndex++;
       return undefined;
     }
-  }, undefined);
+  }, undefined) as ValueOrPromise<void>;
 };
 
 const flatVirtualChildren = (children: any, ssrCtx: SSRContext): any[] | null => {
@@ -1037,7 +1037,7 @@ const setComponentProps = (
       continue;
     }
     if (isSignal(immutableMeta[prop])) {
-      target[_IMMUTABLE_PREFIX + prop] = immutableMeta[prop];
+      target['_IMMUTABLE_PREFIX' + prop] = immutableMeta[prop];
     } else {
       target[prop] = expectProps[prop];
     }

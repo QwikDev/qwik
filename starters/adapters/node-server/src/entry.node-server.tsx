@@ -34,5 +34,6 @@ server.on("request", (req, res) => {
 });
 
 server.listen(PORT, () => {
+  // eslint-disable-next-line no-console
   console.log(`Node server listening on http://localhost:${PORT}`);
 });

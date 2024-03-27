@@ -9,4 +9,4 @@ After running a full build, you can preview the build using the command:
 npm run serve
 ```
 
-Then visit [http://localhost:8080/](http://localhost:8080/)
+Then visit [http://localhost:3004/](http://localhost:3004/)

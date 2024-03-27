@@ -2,30 +2,42 @@ import type { FunctionComponent } from '@builder.io/qwik/jsx-runtime';
 import { isDev } from '../../../build/index.dev';
 import type { StreamWriter } from '../../../server/types';
 import { componentQrl, isQwikComponent } from '../../component/component.public';
+import type { ObjToProxyMap } from '../../container/container';
 import { SERIALIZABLE_STATE } from '../../container/serializers';
 import { assertDefined, assertTrue } from '../../error/assert';
 import { createQRL, isQrl, type QRLInternal } from '../../qrl/qrl-class';
-import { Fragment, JSXNodeImpl, isJSXNode } from '../../render/jsx/jsx-runtime';
+import type { QRL } from '../../qrl/qrl.public';
+import {
+  Fragment,
+  JSXNodeImpl,
+  createPropsProxy,
+  isJSXNode,
+  isPropsProxy
+} from '../../render/jsx/jsx-runtime';
 import { Slot } from '../../render/jsx/slot.public';
 import {
   SubscriptionProp,
+  getProxyFlags,
   getSubscriptionManager,
   unwrapProxy,
   type LocalSubscriptionManager,
-  getProxyFlags,
   type Subscriber,
 } from '../../state/common';
 import { QObjectManagerSymbol, _CONST_PROPS, _VAR_PROPS } from '../../state/constants';
-import { SignalDerived, SignalImpl, type Signal, SignalWrapper } from '../../state/signal';
+import {
+  SignalDerived,
+  SignalImpl,
+  SignalWrapper,
+  isSignal,
+  type Signal,
+} from '../../state/signal';
 import { Store, getOrCreateProxy } from '../../state/store';
 import { Task, type ResourceReturnInternal } from '../../use/use-task';
 import { throwErrorAndStop } from '../../util/log';
-import type { DomContainer } from '../client/dom-container';
-import { vnode_isVNode, vnode_locate } from '../client/vnode';
-import type { ObjToProxyMap } from '../../container/container';
 import { isPromise } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
-import type { QRL } from '../../qrl/qrl.public';
+import type { DomContainer } from '../client/dom-container';
+import { vnode_isVNode, vnode_locate } from '../client/vnode';
 import type { SymbolToChunkResolver } from '../ssr/ssr-types';
 
 const deserializedProxyMap = new WeakMap<object, unknown>();
@@ -333,6 +345,11 @@ const inflate = (container: DomContainer, target: any, needsInflationData: strin
         bytes[i++] = s.charCodeAt(0);
       }
       break;
+    case SerializationConstant.PropsProxy_VALUE:
+      const propsProxy = target as any;
+      propsProxy[_VAR_PROPS] = container.$getObjectById$(restInt()) as any;
+      propsProxy[_CONST_PROPS] = container.$getObjectById$(restInt()) as any;
+      break;
     default:
       throw new Error('Not implemented');
   }
@@ -399,6 +416,8 @@ const allocate = <T>(value: string): any => {
       const rest = encodedLength & 3;
       const decodedLength = blocks * 3 + (rest ? rest - 1 : 0);
       return new Uint8Array(decodedLength);
+    case SerializationConstant.PropsProxy_VALUE:
+      return createPropsProxy(null!, null);
     default:
       throw new Error('unknown allocate type: ' + value.charCodeAt(0));
   }
@@ -614,6 +633,12 @@ export const createSerializationContext = (
   ) {
     // As we walk the object graph we insert newly discovered objects which need to be scanned here.
     const discoveredValues: unknown[] = [rootObj];
+    // discoveredValues.push = (...value: unknown[]) => {
+    //   if (isSignal(value[0])) {
+    //     debugger;
+    //   }
+    //   Array.prototype.push.apply(discoveredValues, value);
+    // };
     // let count = 100;
     while (discoveredValues.length) {
       // if (count-- < 0) {
@@ -640,18 +665,21 @@ export const createSerializationContext = (
             });
             setSerializableDataRootId($addRoot$, obj, tuples);
             discoveredValues.push(tuples);
-          } else if (obj instanceof SignalImpl) {
-            discoveredValues.push(obj.untrackedValue);
-            const manager = getSubscriptionManager(obj);
-            manager?.$subs$.forEach((sub) => {
-              discoveredValues.push(sub[SubscriptionProp.HOST]);
-            });
+          } else if (isSignal(obj)) {
+            if (obj instanceof SignalImpl) {
+              discoveredValues.push(obj.untrackedValue);
+              const manager = getSubscriptionManager(obj);
+              manager?.$subs$.forEach((sub) => {
+                discoveredValues.push(sub[SubscriptionProp.HOST], sub[SubscriptionProp.SIGNAL]);
+              });
+            }
             // const manager = obj[QObjectManagerSymbol];
             // discoveredValues.push(...manager.$subs$);
           } else if (obj instanceof Task) {
             discoveredValues.push(obj.$el$, obj.$qrl$, obj.$state$);
           } else if (NodeConstructor && obj instanceof NodeConstructor) {
             // ignore the nodes
+            // debugger;
           } else if (isJSXNode(obj)) {
             discoveredValues.push(obj.type, obj.props, obj.constProps, obj.children);
           } else if (Array.isArray(obj)) {
@@ -660,6 +688,8 @@ export const createSerializationContext = (
             obj.$captureRef$ &&
               obj.$captureRef$.length &&
               discoveredValues.push(...obj.$captureRef$);
+          } else if (isPropsProxy(obj)) {
+            discoveredValues.push(obj[_VAR_PROPS], obj[_CONST_PROPS]);
           } else if (isPromise(obj)) {
             obj.then(
               (value) => {
@@ -768,15 +798,12 @@ function serialize(serializationContext: SerializationContext): void {
       // Otherwise serialize as normal
       writeString(SerializationConstant.REFERENCE_CHAR + seen);
       // TODO PropsProxy serialization
-      // } else if (isPropsProxy(value)) {
-      //   const varProps = value[_VAR_PROPS];
-      //   const constProps = value[_CONST_PROPS];
-      //   writeString(
-      //     SerializationConstant.PropsProxy_CHAR +
-      //       `${serializeJSXType($addRoot$, 'props')} ${$addRoot$(constProps)} ${$addRoot$(
-      //         varProps
-      //       )} ${$addRoot$(props.children)} ${props.flags}`
-      //   );
+    } else if (isPropsProxy(value)) {
+      const varProps = value[_VAR_PROPS];
+      const varId = $addRoot$(varProps);
+      const constProps = value[_CONST_PROPS];
+      const constId = $addRoot$(constProps);
+      writeString(SerializationConstant.PropsProxy_CHAR + varId + ' ' + constId);
     } else if (isObjectLiteral(value)) {
       if (isResource(value)) {
         serializationContext.$resources$.add(value);
@@ -1235,5 +1262,7 @@ export const codeToName = (code: number) => {
       return 'Promise';
     case SerializationConstant.Uint8Array_VALUE:
       return 'Uint8Array';
+    case SerializationConstant.PropsProxy_VALUE:
+      return 'Props';
   }
 };

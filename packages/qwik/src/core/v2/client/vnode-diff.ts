@@ -482,33 +482,31 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       // We never tell the vNode about them saving us time and memory.
       for (const key in constProps) {
         let value = constProps[key];
-        if (value !== _CONST_PROPS) {
-          if (isJsxPropertyAnEventName(key)) {
-            // So for event handlers we must add them to the vNode so that qwikloader can look them up
-            // But we need to mark them so that they don't get pulled into the diff.
-            const eventName = getEventNameFromJsxProp(key);
-            const scope = getEventNameScopeFromJsxProp(key);
-            vnode_setProp(vNewNode, HANDLER_PREFIX + ':' + scope + ':' + eventName, value);
-            needsQDispatchEventPatch = true;
-            continue;
-          }
-          if (isSignal(value)) {
-            value = trackSignal(value, [
-              SubscriptionType.PROP_IMMUTABLE,
-              vNewNode as fixMeAny,
-              value,
-              vNewNode as fixMeAny,
-              key,
-            ]);
-          }
-
-          if (isClassAttr(key)) {
-            value = serializeClassWithScopedStyle(value);
-          } else if (key === 'style') {
-            value = stringifyStyle(value);
-          }
-          element.setAttribute(key, String(value));
+        if (isJsxPropertyAnEventName(key)) {
+          // So for event handlers we must add them to the vNode so that qwikloader can look them up
+          // But we need to mark them so that they don't get pulled into the diff.
+          const eventName = getEventNameFromJsxProp(key);
+          const scope = getEventNameScopeFromJsxProp(key);
+          vnode_setProp(vNewNode, HANDLER_PREFIX + ':' + scope + ':' + eventName, value);
+          needsQDispatchEventPatch = true;
+          continue;
         }
+        if (isSignal(value)) {
+          value = trackSignal(value, [
+            SubscriptionType.PROP_IMMUTABLE,
+            vNewNode as fixMeAny,
+            value,
+            vNewNode as fixMeAny,
+            key,
+          ]);
+        }
+
+        if (isClassAttr(key)) {
+          value = serializeClassWithScopedStyle(value);
+        } else if (key === 'style') {
+          value = stringifyStyle(value);
+        }
+        element.setAttribute(key, String(value));
       }
     }
     return needsQDispatchEventPatch;
@@ -543,12 +541,18 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     // reconcile attributes
     let jsxAttrs = (jsx as unknown as { attrs: ClientAttrs }).attrs;
     if (jsxAttrs === EMPTY_ARRAY) {
-      const props = jsx.props;
+      const props = jsx.varProps;
       for (const key in props) {
         if (jsxAttrs === EMPTY_ARRAY) {
           jsxAttrs = (jsx as unknown as { attrs: ClientAttrs }).attrs = [];
         }
-        mapArray_set(jsxAttrs, key, props[key], 0);
+        let value = props[key];
+        if (isClassAttr(key)) {
+          value = serializeClassWithScopedStyle(value);
+        } else if (key === 'style') {
+          value = stringifyStyle(value);
+        }
+        mapArray_set(jsxAttrs, key, value, 0);
       }
       const jsxKey = jsx.key;
       if (jsxKey !== null) {
@@ -610,12 +614,6 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
         vnode_setProp(vnode, key, value);
         return;
       }
-      if (isClassAttr(key)) {
-        value = serializeClassWithScopedStyle(value);
-      } else if (key === 'style') {
-        value = stringifyStyle(value);
-      }
-
       vnode_setAttr(journal, vnode, key, value);
       if (value === null) {
         // if we set `null` than attribute was removed and we need to shorten the dstLength

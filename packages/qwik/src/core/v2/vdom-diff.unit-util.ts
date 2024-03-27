@@ -238,7 +238,7 @@ export function vnode_fromJSX(jsx: JSXOutput) {
           }
         }
         if (jsx.key != null) {
-          vnode_setAttr(journal, child, 'key', String(jsx.key));
+          vnode_setAttr(journal, child, 'q:key', String(jsx.key));
         }
         vParent = child;
       } else {

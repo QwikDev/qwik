@@ -879,13 +879,6 @@ export const vnode_remove = (
     const domParent = vnode_getDOMParent(vParent)!;
     journal.push(VNodeJournalOpCode.Remove, domParent);
     vnode_getDOMChildNodes(journal, vToRemove, journal as Array<Element | Text>);
-
-    if (!vnode_isVirtualVNode(vParent)) {
-      const domChild = vnode_getNode(vToRemove);
-      if (domChild) {
-        journal.push(VNodeJournalOpCode.Remove, domParent, domChild);
-      }
-    }
   }
 };
 
@@ -1205,7 +1198,8 @@ export function vnode_toString(
     } else if (vnode_isElementVNode(vnode)) {
       const tag = vnode_getElementName(vnode);
       const attrs: string[] = [];
-      vnode_getAttrKeys(vnode).forEach((key) => {
+      const keys = vnode_getAttrKeys(vnode);
+      keys.forEach((key) => {
         const value = vnode_getAttr(vnode!, key);
         attrs.push(' ' + key + '=' + stringify(value));
       });
@@ -1214,6 +1208,13 @@ export function vnode_toString(
         const vnodeData = (node.ownerDocument as QDocument).qVNodeData?.get(node);
         if (vnodeData) {
           attrs.push(' q:vnodeData=' + stringify(vnodeData));
+        }
+      }
+      const domAttrs = node.attributes;
+      for (let i = 0; i < domAttrs.length; i++) {
+        const attr = domAttrs[i];
+        if (keys.indexOf(attr.name) === -1) {
+          attrs.push(' ' + attr.name + (attr.value ? '=' + stringify(attr.value) : ''));
         }
       }
       strings.push('<' + tag + attrs.join('') + '>');

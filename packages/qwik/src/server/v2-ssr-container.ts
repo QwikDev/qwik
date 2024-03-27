@@ -1,5 +1,5 @@
 /** @file Public APIs for the SSR */
-import { _SharedContainer, _walkJSX, isSignal } from '@builder.io/qwik';
+import { _SharedContainer, _walkJSX, isSignal, type ClassList } from '@builder.io/qwik';
 import { isDev } from '@builder.io/qwik/build';
 import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
 import { getQwikLoaderScript } from '@builder.io/qwik/server';
@@ -61,6 +61,7 @@ import {
   vNodeData_openFragment,
   type VNodeData,
 } from './v2-vnode-data';
+import { serializeClass, stringifyStyle } from '../core/render/execute-component';
 
 export function ssrCreateContainer(
   opts: {
@@ -871,6 +872,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             lastNode as fixMeAny,
             key,
           ]);
+        }
+
+        if (isClassAttr(key)) {
+          value = serializeClass(value as ClassList);
+        } else if (key === 'style') {
+          value = stringifyStyle(value);
         }
 
         if (value != null && typeof value === 'string') {

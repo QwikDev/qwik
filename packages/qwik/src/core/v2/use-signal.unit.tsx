@@ -1,23 +1,18 @@
 import {
+  Fragment as Awaited,
   Fragment as Component,
   Fragment,
-  Fragment as Signal,
   Fragment as Projection,
-  Fragment as Awaited,
+  Fragment as Signal,
 } from '@builder.io/qwik/jsx-runtime';
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
 import { component$ } from '../component/component.public';
-import { _CONST_PROPS, _fnSignal, _jsxQ } from '../internal';
-import { inlinedQrl } from '../qrl/qrl';
-import { _jsxC } from '../render/jsx/jsx-runtime';
 import { Slot } from '../render/jsx/slot.public';
 import type { Signal as SignalType } from '../state/signal';
 import { untrack } from '../use/use-core';
-import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { useSignal } from '../use/use-signal';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
-import type { fixMeAny } from './shared/types';
 import './vdom-diff.unit-util';
 
 const debug = false; //true;
@@ -172,7 +167,6 @@ Error.stackTraceLimit = 100;
       );
       expect(document.querySelector('button')?.innerHTML).toBe('const 1');
     });
-    // TODO(optimizer-test): SSR is failing
     it('should handle all ClassList cases', async () => {
       const Cmp = component$(() => {
         const enable = useSignal(true);
@@ -239,11 +233,7 @@ Error.stackTraceLimit = 100;
         const Counter = component$((props: { initial: number }) => {
           const count = useSignal(props.initial);
           log.push('Counter: ' + untrack(() => count.value));
-          return (
-            <button onClick$={inlinedQrl(() => useLexicalScope()[0].value++, 's_onClick', [count])}>
-              Count: {_fnSignal((p0) => p0.value, [count], 'p0.value')}!
-            </button>
-          );
+          return <button onClick$={() => count.value++}>Count: {count.value}!</button>;
         });
 
         const { vNode, container } = await render(<Counter initial={123} />, {
@@ -277,16 +267,9 @@ Error.stackTraceLimit = 100;
           log.push('Counter: ' + untrack(() => count.value));
           return (
             <button
-              onClick$={inlinedQrl(
-                () => {
-                  const [s] = useLexicalScope();
-                  s.value = typeof s.value == 'string' ? <b>JSX</b> : 'text';
-                },
-                's_onClick',
-                [count]
-              )}
+              onClick$={() => (count.value = typeof count.value == 'string' ? <b>JSX</b> : 'text')}
             >
-              -{_fnSignal((p0) => p0.value, [count], 'p0.value')}-
+              -{count.value}-
             </button>
           );
         });
@@ -376,36 +359,15 @@ Error.stackTraceLimit = 100;
       });
       it('should pass signal as prop into child component', async () => {
         const Display = component$((props: { value: number }) => {
-          return _jsxQ(
-            'div',
-            null,
-            null,
-            _fnSignal((p0) => p0.value, [props]),
-            3,
-            null
-          );
+          return <div>{props.value}</div>;
         });
         const Counter = component$(() => {
           // const count = useStore({ value: 123 });
           const count = useSignal(123);
           return (
             <>
-              <button
-                onClick$={inlinedQrl(() => useLexicalScope()[0].value++, 's_click', [count])}
-              />
-              {_jsxC(
-                Display as fixMeAny,
-                {
-                  get value() {
-                    return count.value;
-                  },
-                },
-                {
-                  value: _fnSignal((p0) => p0.value, [count]),
-                },
-                3,
-                null
-              )}
+              <button onClick$={() => count.value++} />
+              <Display value={count.value} />
             </>
           );
         });

@@ -127,56 +127,9 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
   private _proxy?: typeof this.varProps;
   get props(): T extends FunctionComponent<infer PROPS> ? PROPS : Props {
     // We use a proxy to merge the constProps if they exist and to evaluate derived signals
-    this._proxy ||= new Proxy<any>(this.varProps as object, {
-      get: (target, prop) => {
-        // escape hatch to get the separated props from a component
-        if (prop === _CONST_PROPS) {
-          return this.constProps;
-        }
-        if (prop === _VAR_PROPS) {
-          return this.varProps;
-        }
-        const value =
-          this.constProps && prop in this.constProps
-            ? this.constProps[prop as string]
-            : target[prop];
-        // a proxied value that the optimizer made
-        return value instanceof SignalDerived ? value.value : value;
-      },
-      set: (target, prop, value) => {
-        if (this.constProps && prop in this.constProps) {
-          this.constProps[prop as string] = value;
-        } else {
-          target[prop] = value;
-        }
-        return true;
-      },
-      deleteProperty: (target, prop) => {
-        if (typeof prop !== 'string') {
-          return false;
-        }
-        let didDelete = delete target[prop];
-        if (this.constProps) {
-          didDelete = delete this.constProps[prop as string] || didDelete;
-        }
-        return didDelete;
-      },
-      has: (target, prop) => {
-        return (
-          prop === _CONST_PROPS ||
-          prop === _VAR_PROPS ||
-          prop in target ||
-          (this.constProps ? prop in this.constProps : false)
-        );
-      },
-      ownKeys: (target) => {
-        const out = Object.keys(target);
-        if (this.constProps) {
-          out.concat(Object.keys(this.constProps));
-        }
-        return out;
-      },
-    });
+    if (!this._proxy) {
+      this._proxy = createPropsProxy(this.varProps, this.constProps);
+    }
     return this._proxy! as any;
   }
 }
@@ -428,4 +381,76 @@ const filterStack = (stack: string, offset: number = 0) => {
   return stack.split('\n').slice(offset).join('\n');
 };
 
+export function createPropsProxy(varProps: Props, constProps: Props | null): Props {
+  return new Proxy<any>({}, new PropsProxyHandler(varProps, constProps));
+}
+
+class PropsProxyHandler implements ProxyHandler<any> {
+  constructor(
+    private $varProps$: Props,
+    private $constProps$: Props | null
+  ) {}
+  get(_: any, prop: string | symbol) {
+    // escape hatch to get the separated props from a component
+    if (prop === _CONST_PROPS) {
+      return this.$constProps$;
+    }
+    if (prop === _VAR_PROPS) {
+      return this.$varProps$;
+    }
+    const value =
+      this.$constProps$ && prop in this.$constProps$
+        ? this.$constProps$[prop as string]
+        : this.$varProps$[prop as string];
+    // a proxied value that the optimizer made
+    return value instanceof SignalDerived ? value.value : value;
+  }
+  set(_: any, prop: string | symbol, value: any) {
+    if (prop === _CONST_PROPS) {
+      this.$constProps$ = value;
+      return true;
+    }
+    if (prop === _VAR_PROPS) {
+      this.$varProps$ = value;
+      return true;
+    }
+    if (this.$constProps$ && prop in this.$constProps$) {
+      this.$constProps$[prop as string] = value;
+    } else {
+      this.$varProps$[prop as string] = value;
+    }
+    return true;
+  }
+  deleteProperty(_: any, prop: string | symbol) {
+    if (typeof prop !== 'string') {
+      return false;
+    }
+    let didDelete = delete this.$varProps$[prop];
+    if (this.$constProps$) {
+      didDelete = delete this.$constProps$[prop as string] || didDelete;
+    }
+    return didDelete;
+  }
+  has(_: any, prop: string | symbol) {
+    const hasProp =
+      prop === _CONST_PROPS ||
+      prop === _VAR_PROPS ||
+      prop in this.$varProps$ ||
+      (this.$constProps$ ? prop in this.$constProps$ : false);
+    return hasProp;
+  }
+  ownKeys() {
+    let out = Object.keys(this.$varProps$);
+    if (this.$constProps$) {
+      for (const key in this.$constProps$) {
+        if (out.indexOf(key) === -1) {
+          out.push(key);
+        }
+      }
+    }
+    return out;
+  }
+}
+
 export { jsx as jsxs };
+

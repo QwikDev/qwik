@@ -1,35 +1,35 @@
-import { assertDefined, assertFail, assertTrue } from '../error/assert';
-import { qError, QError_verifySerializable } from '../error/error';
-import { isNode } from '../util/element';
-import { seal } from '../util/qdev';
-import { isArray, isFunction, isObject, isSerializableObject } from '../util/types';
-import { isPromise } from '../util/promises';
+import type { OnRenderFn } from '../component/component.public';
+import type { ContainerState, GetObjID, GetObject } from '../container/container';
 import { canSerialize } from '../container/serializers';
-import type { ContainerState, GetObject, GetObjID } from '../container/container';
+import { assertDefined, assertFail, assertTrue } from '../error/assert';
+import { QError_verifySerializable, qError } from '../error/error';
+import type { QRL } from '../qrl/qrl.public';
+import { notifyChange } from '../render/dom/notify-render';
+import type { QwikElement } from '../render/dom/virtual-element';
+import { serializeClassWithHost2, stringifyStyle } from '../render/execute-component';
+import { untrack } from '../use/use-core';
 import {
+  isComputedTask,
   isSubscriberDescriptor,
+  isTask,
   type SubscriberEffect,
   type SubscriberHost,
-  isTask,
-  isComputedTask,
 } from '../use/use-task';
-import type { QwikElement } from '../render/dom/virtual-element';
-import { notifyChange } from '../render/dom/notify-render';
+import { isNode } from '../util/element';
 import { logError, throwErrorAndStop } from '../util/log';
-import { tryGetContext } from './context';
-import { QObjectFlagsSymbol, QObjectManagerSymbol, QOjectTargetSymbol } from './constants';
-import type { Signal } from './signal';
-import { isContainer2, type fixMeAny, type HostElement } from '../v2/shared/types';
-import type { OnRenderFn } from '../component/component.public';
-import type { QRL } from '../qrl/qrl.public';
 import { ELEMENT_PROPS, OnRenderProp } from '../util/markers';
-import { JSX_LOCAL } from '../v2/shared/component-execution';
-import { untrack } from '../use/use-core';
-import { ElementVNodeProps, type VirtualVNode, type VNode } from '../v2/client/types';
-import { serializeClassWithHost2, stringifyStyle } from '../render/execute-component';
-import { vnode_setAttr, VNodeJournalOpCode } from '../v2/client/vnode';
-import type { ClassList } from '../render/jsx/types/jsx-qwik-attributes';
+import { isPromise } from '../util/promises';
+import { seal } from '../util/qdev';
+import { isArray, isFunction, isObject, isSerializableObject } from '../util/types';
 import type { DomContainer } from '../v2/client/dom-container';
+import { ElementVNodeProps, type VNode, type VirtualVNode } from '../v2/client/types';
+import { VNodeJournalOpCode, vnode_setAttr } from '../v2/client/vnode';
+import { JSX_LOCAL } from '../v2/shared/component-execution';
+import { isClassAttr } from '../v2/shared/scoped-styles';
+import { isContainer2, type HostElement, type fixMeAny } from '../v2/shared/types';
+import { QObjectFlagsSymbol, QObjectManagerSymbol, QOjectTargetSymbol } from './constants';
+import { tryGetContext } from './context';
+import type { Signal } from './signal';
 
 /**
  * Top level manager of subscriptions (singleton, attached to DOM Container).
@@ -207,9 +207,7 @@ export const getProxyFlags = <T = object>(obj: T): number | undefined => {
   return (obj as any)[QObjectFlagsSymbol];
 };
 
-/**
- * @internal
- */
+/** @internal */
 export const enum SubscriptionType {
   HOST = 0,
   PROP_IMMUTABLE = 1,
@@ -505,7 +503,7 @@ export class LocalSubscriptionManager {
               host as fixMeAny as HostElement,
               target,
               propKey,
-              String(signal.value),
+              signal.value,
               type == SubscriptionType.PROP_IMMUTABLE
             );
           } else {
@@ -528,15 +526,16 @@ function updateNodeProp(
   host: HostElement,
   target: VNode,
   propKey: string,
-  propValue: string,
+  propValue: any,
   immutable: boolean
 ) {
   let value = propValue;
-  if (propKey === 'class') {
-    value = serializeClassWithHost2(value as ClassList, host as fixMeAny);
+  if (isClassAttr(propKey)) {
+    value = serializeClassWithHost2(value, host);
   } else if (propKey === 'style') {
     value = stringifyStyle(value);
   }
+
   if (!immutable) {
     vnode_setAttr(container.$journal$, target, propKey, value);
   } else {

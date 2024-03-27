@@ -181,6 +181,13 @@ export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(obj: T,
     assertEqual(prop, 'value', 'Left side is a signal, prop must be value');
     return obj;
   }
+  const constProps = (obj as any)[_CONST_PROPS];
+  if (constProps) {
+    if (prop in constProps) {
+      const constProp = constProps[prop];
+      return constProp;
+    }
+  }
   // TODO handle PropsProxy to retain derived signals
   const target = getProxyTarget(obj);
   if (target) {

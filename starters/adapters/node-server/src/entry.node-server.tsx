@@ -33,4 +33,6 @@ server.on("request", (req, res) => {
   });
 });
 
-server.listen(PORT);
+server.listen(PORT, () => {
+  console.log(`Node server listening on http://localhost:${PORT}`);
+});

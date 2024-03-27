@@ -27,7 +27,6 @@ import {
   QObjectRecursive,
   QOjectTargetSymbol,
   _CONST_PROPS,
-  _IMMUTABLE_PREFIX,
 } from './constants';
 import { isSignal } from './signal';
 
@@ -162,7 +161,7 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     const invokeCtx = tryGetInvokeContext();
     const recursive = (flags & QObjectRecursive) !== 0;
     const immutable = (flags & QObjectImmutable) !== 0;
-    const hiddenSignal = target[_IMMUTABLE_PREFIX + prop];
+    const hiddenSignal = target['_IMMUTABLE_PREFIX' + prop];
     let subscriber: Subscriber | undefined | null;
     let value;
     if (invokeCtx) {
@@ -245,7 +244,10 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     if (hasOwnProperty.call(target, property)) {
       return true;
     }
-    if (typeof property === 'string' && hasOwnProperty.call(target, _IMMUTABLE_PREFIX + property)) {
+    if (
+      typeof property === 'string' &&
+      hasOwnProperty.call(target, '_IMMUTABLE_PREFIX' + property)
+    ) {
       return true;
     }
     return false;
@@ -269,8 +271,8 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
       return Reflect.ownKeys(target);
     }
     return Reflect.ownKeys(target).map((a) => {
-      return typeof a === 'string' && a.startsWith(_IMMUTABLE_PREFIX)
-        ? a.slice(_IMMUTABLE_PREFIX.length)
+      return typeof a === 'string' && a.startsWith('_IMMUTABLE_PREFIX')
+        ? a.slice('_IMMUTABLE_PREFIX'.length)
         : a;
     });
   }

@@ -1,4 +1,4 @@
-import { assertEqual, assertTrue } from '../error/assert';
+import { assertEqual } from '../error/assert';
 import { tryGetInvokeContext } from '../use/use-core';
 import { logWarn } from '../util/log';
 import { qDev, qSerialize } from '../util/qdev';
@@ -12,7 +12,7 @@ import {
   verifySerializable,
   type SubscriptionManager,
 } from './common';
-import { QObjectManagerSymbol, _CONST_PROPS, _IMMUTABLE_PREFIX } from './constants';
+import { QObjectManagerSymbol, _CONST_PROPS } from './constants';
 import { _fnSignal } from '../qrl/inlined-fn';
 
 /** @public */

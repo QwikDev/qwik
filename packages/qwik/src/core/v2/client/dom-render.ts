@@ -30,13 +30,13 @@ export const render2 = async (
     ...opts,
   };
   if (isDocument(parent)) {
-    let child = parent.firstChild;
+    let child: Node | null = parent.firstChild;
     while (child && !isElement(child)) {
       child = child.nextSibling;
     }
-    parent = child!;
+    parent = child as Element;
   }
-  parent.setAttribute(QContainerAttr, 'resumed');
+  (parent as Element).setAttribute(QContainerAttr, 'resumed');
 
   const container = getDomContainer(parent as HTMLElement) as DomContainer;
   container.$serverData$ = opts.serverData!;

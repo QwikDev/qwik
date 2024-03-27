@@ -8,6 +8,7 @@ import {
   vnode_getElementName,
   vnode_getFirstChild,
   vnode_getNextSibling,
+  vnode_getNode,
   vnode_getParent,
   vnode_getText,
   vnode_insertBefore,
@@ -70,14 +71,18 @@ function diffJsxVNode(received: VNode, expected: JSXNode | string, path: string[
       diffs.push(path.join(' > ') + ' expecting=' + expected.type + ' received=' + receivedTag);
     }
     const expectedProps = expected.props ? Object.keys(expected.props).sort() : [];
+    const receivedElement = vnode_isElementVNode(received)
+      ? (vnode_getNode(received) as Element)
+      : null;
     const receivedProps = vnode_isElementVNode(received) ? vnode_getAttrKeys(received).sort() : [];
+    receivedElement && addConstPropsFromElement(receivedProps, receivedElement);
     const allProps = new Set([...expectedProps, ...receivedProps]);
     allProps.delete('children');
     allProps.forEach((prop) => {
       if (isJsxPropertyAnEventName(prop) || isHtmlAttributeAnEventName(prop)) {
         return;
       }
-      const receivedValue = vnode_getAttr(received, prop);
+      const receivedValue = vnode_getAttr(received, prop) || receivedElement?.getAttribute(prop);
       const expectedValue =
         prop === 'key' || prop === 'q:key' ? expected.key ?? receivedValue : expected.props[prop];
       if (expectedValue !== receivedValue) {
@@ -255,3 +260,13 @@ export function vnode_fromJSX(jsx: JSXOutput) {
   vnode_applyJournal(journal);
   return { vParent, vNode: vnode_getFirstChild(vParent), document: doc };
 }
+function addConstPropsFromElement(receivedProps: string[], element: Element) {
+  for (let i = 0; i < element.attributes.length; i++) {
+    const attr = element.attributes[i];
+    if (!receivedProps.includes(attr.name) && attr.name !== ':') {
+      receivedProps.push(attr.name);
+    }
+  }
+  receivedProps.sort();
+}
+

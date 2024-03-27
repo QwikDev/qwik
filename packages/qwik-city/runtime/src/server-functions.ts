@@ -5,12 +5,12 @@ import {
   type QRL,
   useContext,
   type ValueOrPromise,
-  _wrapSignal,
   useStore,
   _serializeData,
   _deserializeData,
   _getContextElement,
   _getContextEvent,
+  _wrapProp,
 } from '@builder.io/qwik';
 
 import type { RequestEventLoader } from '../../middleware/request-handler/types';
@@ -202,7 +202,7 @@ export const routeLoaderQrl = ((
     If your are managing reusable logic or a library it is essential that this function is re-exported from within 'layout.tsx' or 'index.tsx file of the existing route otherwise it will not run or throw exception.
     For more information check: https://qwik.dev/docs/cookbook/re-exporting-loaders/`);
       }
-      return _wrapSignal(state, id);
+      return _wrapProp(state, id);
     });
   }
   loader.__brand = 'server_loader' as const;

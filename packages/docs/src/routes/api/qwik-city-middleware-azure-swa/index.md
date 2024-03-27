@@ -12,10 +12,31 @@ export declare function createQwikCity(
 ): AzureFunction;
 ```
 
-| Parameter | Type                                          | Description |
-| --------- | --------------------------------------------- | ----------- |
-| opts      | [QwikCityAzureOptions](#qwikcityazureoptions) |             |
+<table><thead><tr><th>
 
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+opts
+
+</td><td>
+
+[QwikCityAzureOptions](#qwikcityazureoptions)
+
+</td><td>
+
+</td></tr>
+</tbody></table>
 **Returns:**
 
 AzureFunction

@@ -13,7 +13,7 @@
     "declarationDir": "./dist-dev/dts-out",
     "strict": true,
     "verbatimModuleSyntax": true,
-    "moduleResolution": "node",
+    "moduleResolution": "Bundler",
     "baseUrl": ".",
     "assumeChangesOnlyAffectDirectDependencies": true,
     "noUnusedLocals": true,

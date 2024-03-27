@@ -8,7 +8,7 @@
         "module": "ES2020",
         "resolveJsonModule": true,
         "isolatedModules": true,
-        "moduleResolution": "node",
+        "moduleResolution": "Bundler",
         "skipLibCheck": true
       },
       "include": ["dist-dev/dts-out/packages/qwik/src"]

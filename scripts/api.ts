@@ -1,4 +1,4 @@
-import { Extractor, ExtractorConfig } from '@microsoft/api-extractor';
+import { Extractor, ExtractorConfig, ExtractorLogLevel } from '@microsoft/api-extractor';
 import { readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { generateApiMarkdownDocs } from './api-docs';
@@ -208,6 +208,15 @@ function createTypesApi(
     showDiagnostics: true,
     messageCallback(msg) {
       msg.handled = true;
+      if (
+        msg.messageId === 'ae-wrong-input-file-type' &&
+        msg.sourceFilePath?.endsWith('implicit_dollar.ts')
+      ) {
+        // I don't know how the API Extractor is getting the implicit_dollar.d.ts file, so disabling this error for now.
+        console.warn(`🤔 API Extractor, submodule: "${inPath}"\n${extractorConfigPath}\n`, msg);
+        msg.logLevel = ExtractorLogLevel.None;
+        return;
+      }
       if (msg.logLevel === 'verbose' || msg.logLevel === 'warning') {
         return;
       }

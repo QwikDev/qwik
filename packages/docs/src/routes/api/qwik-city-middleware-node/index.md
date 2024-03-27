@@ -26,10 +26,31 @@ export declare function createQwikCity(opts: QwikCityNodeRequestOptions): {
 };
 ```
 
-| Parameter | Type                                                      | Description |
-| --------- | --------------------------------------------------------- | ----------- |
-| opts      | [QwikCityNodeRequestOptions](#qwikcitynoderequestoptions) |             |
+<table><thead><tr><th>
 
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+opts
+
+</td><td>
+
+[QwikCityNodeRequestOptions](#qwikcitynoderequestoptions)
+
+</td><td>
+
+</td></tr>
+</tbody></table>
 **Returns:**
 
 { router: (req: IncomingMessage \| Http2ServerRequest, res: ServerResponse, next: [NodeRequestNextFunction](#noderequestnextfunction)) =&gt; Promise&lt;void&gt;; notFound: (req: IncomingMessage \| Http2ServerRequest, res: ServerResponse, next: (e: any) =&gt; void) =&gt; Promise&lt;void&gt;; staticFile: (req: IncomingMessage \| Http2ServerRequest, res: ServerResponse, next: (e?: any) =&gt; void) =&gt; Promise&lt;void&gt;; }
@@ -50,11 +71,69 @@ export interface NodeRequestNextFunction
 export interface PlatformNode
 ```
 
-| Property              | Modifiers | Type                                  | Description  |
-| --------------------- | --------- | ------------------------------------- | ------------ |
-| [incomingMessage?](#) |           | IncomingMessage \| Http2ServerRequest | _(Optional)_ |
-| [node?](#)            |           | string                                | _(Optional)_ |
-| [ssr?](#)             |           | true                                  | _(Optional)_ |
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[incomingMessage?](#)
+
+</td><td>
+
+</td><td>
+
+IncomingMessage \| Http2ServerRequest
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[node?](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[ssr?](#)
+
+</td><td>
+
+</td><td>
+
+true
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/node/index.ts)
 
@@ -66,11 +145,87 @@ export interface QwikCityNodeRequestOptions extends ServerRenderOptions
 
 **Extends:** ServerRenderOptions
 
-| Property            | Modifiers | Type                                                              | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| ------------------- | --------- | ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [getClientConn?](#) |           | (req: IncomingMessage \| Http2ServerRequest) =&gt; ClientConn     | _(Optional)_ Provide a function that returns a <code>ClientConn</code> for the given request.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| [getOrigin?](#)     |           | (req: IncomingMessage \| Http2ServerRequest) =&gt; string \| null | <p>_(Optional)_ Provide a function that computes the origin of the server, used to resolve relative URLs and validate the request origin against CSRF attacks.</p><p>When not specified, it defaults to the <code>ORIGIN</code> environment variable (if set).</p><p>If <code>ORIGIN</code> is not set, it's derived from the incoming request, which is not recommended for production use. You can specify the <code>PROTOCOL_HEADER</code>, <code>HOST_HEADER</code> to <code>X-Forwarded-Proto</code> and <code>X-Forwarded-Host</code> respectively to override the default behavior.</p> |
-| [origin?](#)        |           | string                                                            | _(Optional)_                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| [static?](#)        |           | { root?: string; cacheControl?: string; }                         | _(Optional)_ Options for serving static files                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[getClientConn?](#)
+
+</td><td>
+
+</td><td>
+
+(req: IncomingMessage \| Http2ServerRequest) =&gt; ClientConn
+
+</td><td>
+
+_(Optional)_ Provide a function that returns a `ClientConn` for the given request.
+
+</td></tr>
+<tr><td>
+
+[getOrigin?](#)
+
+</td><td>
+
+</td><td>
+
+(req: IncomingMessage \| Http2ServerRequest) =&gt; string \| null
+
+</td><td>
+
+_(Optional)_ Provide a function that computes the origin of the server, used to resolve relative URLs and validate the request origin against CSRF attacks.
+
+When not specified, it defaults to the `ORIGIN` environment variable (if set).
+
+If `ORIGIN` is not set, it's derived from the incoming request, which is not recommended for production use. You can specify the `PROTOCOL_HEADER`, `HOST_HEADER` to `X-Forwarded-Proto` and `X-Forwarded-Host` respectively to override the default behavior.
+
+</td></tr>
+<tr><td>
+
+[origin?](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[static?](#)
+
+</td><td>
+
+</td><td>
+
+{ root?: string; cacheControl?: string; }
+
+</td><td>
+
+_(Optional)_ Options for serving static files
+
+</td></tr>
+</tbody></table>
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/node/index.ts)

@@ -19,7 +19,7 @@ import {
   QScopedStyle,
 } from '../util/markers';
 import { createPropsState, createProxy, setObjectFlags } from './store';
-import { _CONST_PROPS, _IMMUTABLE_PREFIX, Q_CTX, QObjectImmutable } from './constants';
+import { _CONST_PROPS, Q_CTX, QObjectImmutable } from './constants';
 import { isElement } from '../util/element';
 
 export interface QContextEvents {
@@ -154,8 +154,8 @@ const getImmutableFromProps = (props: Record<string, any>): Record<string, any> 
   const immutable: Record<string, any> = {};
   const target = getProxyTarget(props);
   for (const key in target) {
-    if (key.startsWith(_IMMUTABLE_PREFIX)) {
-      immutable[key.slice(_IMMUTABLE_PREFIX.length)] = target[key];
+    if (key.startsWith('_IMMUTABLE_PREFIX')) {
+      immutable[key.slice('_IMMUTABLE_PREFIX'.length)] = target[key];
     }
   }
   return immutable;

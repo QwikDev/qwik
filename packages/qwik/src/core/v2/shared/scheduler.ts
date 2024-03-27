@@ -167,7 +167,7 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
       hostChoreQueue,
       { $type$: type, $idx$: idx, $target$: target as any, $payload$: payload },
       intraHostPredicate,
-      type === ChoreType.NODE_DIFF ? nodeDiffUpdate : undefined
+      choreUpdate
     );
     sortedInsert(
       type == ChoreType.CLEANUP ? hostElementCleanupQueue : hostElementQueue,
@@ -307,8 +307,10 @@ const toNumber = (value: number | string): number => {
  * times during component execution. For this reason it is necessary for us to update the schedule
  * work with the latest result of the signal.
  */
-const nodeDiffUpdate = (existing: Chore, newChore: Chore): void => {
-  existing.$payload$ = newChore.$payload$;
+const choreUpdate = (existing: Chore, newChore: Chore): void => {
+  if (existing.$type$ === ChoreType.NODE_DIFF) {
+    existing.$payload$ = newChore.$payload$;
+  }
 };
 
 export const intraHostPredicate = (a: Chore, b: Chore): number => {
@@ -319,6 +321,14 @@ export const intraHostPredicate = (a: Chore, b: Chore): number => {
   const typeDiff = a.$type$ - b.$type$;
   if (typeDiff !== 0) {
     return typeDiff;
+  }
+  if (a.$payload$ !== b.$payload$) {
+    return 0;
+  }
+  if (a.$payload$ instanceof Task && b.$payload$ instanceof Task) {
+    const aHash = a.$payload$.$qrl$.$hash$;
+    const bHash = b.$payload$.$qrl$.$hash$;
+    return aHash === bHash ? 0 : aHash < bHash ? -1 : 1;
   }
   return 0;
 };

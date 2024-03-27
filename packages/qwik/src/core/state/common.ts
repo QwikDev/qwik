@@ -207,6 +207,9 @@ export const getProxyFlags = <T = object>(obj: T): number | undefined => {
   return (obj as any)[QObjectFlagsSymbol];
 };
 
+/**
+ * @internal
+ */
 export const enum SubscriptionType {
   HOST = 0,
   PROP_IMMUTABLE = 1,

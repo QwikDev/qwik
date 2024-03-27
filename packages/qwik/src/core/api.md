@@ -132,6 +132,9 @@ export interface ComponentBaseProps {
 // @public
 export const componentQrl: <PROPS extends Record<any, any>>(componentQrl: QRL<OnRenderFn<PROPS>>) => Component<PROPS>;
 
+// @internal (undocumented)
+export const _CONST_PROPS: unique symbol;
+
 // @public
 export interface ContextId<STATE> {
     readonly __brand_context_type__: STATE;
@@ -345,9 +348,6 @@ export interface IframeHTMLAttributes<T extends Element> extends Attrs<'iframe',
 export interface ImgHTMLAttributes<T extends Element> extends Attrs<'img', T> {
 }
 
-// @internal (undocumented)
-export const _IMMUTABLE: unique symbol;
-
 // @public
 export const implicit$FirstArg: <FIRST, REST extends any[], RET>(fn: (first: QRL<FIRST>, ...rest: REST) => RET) => (first: FIRST, ...rest: REST) => RET;
 
@@ -402,51 +402,52 @@ export const _isJSXNode: <T>(n: unknown) => n is JSXNode<T>;
 // @public
 export const isSignal: <T = unknown>(obj: any) => obj is Signal<T>;
 
+// Warning: (ae-forgotten-export) The symbol "Props" needs to be exported by the entry point index.d.ts
+//
 // @public
-const jsx: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<any, unknown>, key?: string | number | null) => JSXNode<T>;
+const jsx: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Props, key?: string | number | null) => JSXNode<T>;
 export { jsx }
 export { jsx as jsxs }
 
 // @internal (undocumented)
 export const _jsxBranch: <T>(input?: T | undefined) => T | undefined;
 
-// Warning: (ae-forgotten-export) The symbol "JsxDevOpts" needs to be exported by the entry point index.d.ts
-//
 // @internal
-export const _jsxC: <T extends string | FunctionComponent<Record<any, unknown>>>(type: T, mutableProps: (T extends FunctionComponent<infer PROPS> ? PROPS : Record<any, unknown>) | null, flags: number, key: string | number | null, dev?: JsxDevOpts) => JSXNode<T>;
+export const _jsxC: <T extends string | FunctionComponent<any>>(type: T, varProps: Props | null, constProps: Props | null, flags: number, key: string | number | null, dev?: DevJSX) => JSXNode<T>;
 
 // @public (undocumented)
 export type JSXChildren = string | number | boolean | null | undefined | Function | RegExp | JSXChildren[] | Promise<JSXChildren> | Signal<JSXChildren> | JSXNode;
 
+// Warning: (ae-forgotten-export) The symbol "JsxDevOpts" needs to be exported by the entry point index.d.ts
+//
 // @public (undocumented)
-export const jsxDEV: <T extends string | FunctionComponent<Record<any, unknown>>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<any, unknown>, key: string | number | null | undefined, _isStatic: boolean, opts: JsxDevOpts, _ctx: unknown) => JSXNode<T>;
+export const jsxDEV: <T extends string | FunctionComponent<Props>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Props, key: string | number | null | undefined, _isStatic: boolean, opts: JsxDevOpts, _ctx: unknown) => JSXNode<T>;
 
 // @public
 export interface JSXNode<T extends string | FunctionComponent | unknown = unknown> {
     // (undocumented)
     children: JSXChildren | null;
     // (undocumented)
+    constProps: Record<any, unknown> | null;
+    // (undocumented)
     dev?: DevJSX;
     // (undocumented)
     flags: number;
-    // (undocumented)
-    immutableProps: Record<any, unknown> | null;
     // (undocumented)
     key: string | null;
     // (undocumented)
     props: T extends FunctionComponent<infer P> ? P : Record<any, unknown>;
     // (undocumented)
     type: T;
+    // (undocumented)
+    varProps: Record<any, unknown>;
 }
 
 // @public
 export type JSXOutput = JSXNode | string | number | boolean | null | undefined | JSXOutput[];
 
 // @internal
-export const _jsxQ: <T extends string>(type: T, mutableProps: Record<any, unknown> | null, immutableProps: Record<any, unknown> | null, children: JSXChildren | null, flags: number, key: string | number | null, dev?: DevJSX) => JSXNode<T>;
-
-// @internal
-export const _jsxS: <T extends string>(type: T, mutableProps: Record<any, unknown> | null, immutableProps: Record<any, unknown> | null, flags: number, key: string | number | null, dev?: DevJSX) => JSXNode<T>;
+export const _jsxQ: <T>(type: T, varProps: Props | null, constProps: Props | null, children: JSXChildren | null, flags: number, key: string | number | null, dev?: DevJSX) => JSXNode<T>;
 
 // @public (undocumented)
 export type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLElementTagNameMap>;
@@ -600,7 +601,7 @@ export const PrefetchGraph: (opts?: {
     base?: string;
     manifestHash?: string;
     manifestURL?: string;
-}) => JSXNode_2<"script">;
+}) => JSXNode_2<string>;
 
 // @alpha
 export const PrefetchServiceWorker: (opts: {
@@ -608,7 +609,7 @@ export const PrefetchServiceWorker: (opts: {
     path?: string;
     verbose?: boolean;
     fetchBundleGraph?: boolean;
-}) => JSXNode_2<"script">;
+}) => JSXNode_2<string>;
 
 // @public (undocumented)
 export interface ProgressHTMLAttributes<T extends Element> extends Attrs<'progress', T> {
@@ -897,7 +898,7 @@ export interface ResourceResolved<T> {
 export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | ResourceRejected<T>;
 
 // @internal (undocumented)
-export const _restProps: (props: Record<string, any>, omit: string[]) => Record<string, any>;
+export const _restProps: (props: Record<string, any>, omit: string[], target?: {}) => {};
 
 // @public (undocumented)
 export interface ScriptHTMLAttributes<T extends Element> extends Attrs<'script', T> {
@@ -964,6 +965,10 @@ export abstract class _SharedContainer implements Container2 {
     abstract setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
     // (undocumented)
     abstract setHostProp<T>(host: HostElement, name: string, value: T): void;
+    // Warning: (ae-forgotten-export) The symbol "Subscriber" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    trackSignalValue<T>(signal: Signal, sub: Subscriber): T;
 }
 
 // @public (undocumented)
@@ -1085,6 +1090,22 @@ export type StreamWriter = {
 
 // @public (undocumented)
 export interface StyleHTMLAttributes<T extends Element> extends Attrs<'style', T> {
+}
+
+// Warning: (ae-internal-missing-underscore) The name "SubscriptionType" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export const enum SubscriptionType {
+    // (undocumented)
+    HOST = 0,
+    // (undocumented)
+    PROP_IMMUTABLE = 1,
+    // (undocumented)
+    PROP_MUTABLE = 2,
+    // (undocumented)
+    TEXT_IMMUTABLE = 3,
+    // (undocumented)
+    TEXT_MUTABLE = 4
 }
 
 // @public
@@ -1776,6 +1797,9 @@ export const useVisibleTaskQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) 
 export type ValueOrPromise<T> = T | Promise<T>;
 
 // @internal (undocumented)
+export const _VAR_PROPS: unique symbol;
+
+// @internal (undocumented)
 export const _verifySerializable: <T>(value: T, preMessage?: string) => T;
 
 // @public
@@ -1847,9 +1871,6 @@ export function withLocale<T>(locale: string, fn: () => T): T;
 
 // @internal (undocumented)
 export const _wrapProp: <T extends Record<any, any>, P extends keyof T>(obj: T, prop: P) => any;
-
-// @internal (undocumented)
-export const _wrapSignal: <T extends Record<any, any>, P extends keyof T>(obj: T, prop: P) => any;
 
 // (No @packageDocumentation comment for this package)
 

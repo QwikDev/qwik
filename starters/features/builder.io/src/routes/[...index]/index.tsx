@@ -12,7 +12,7 @@ export const useBuilderContent = routeLoader$(async (event) => {
   const isPreviewing = event.url.searchParams.has("builder.preview");
 
   const builderContent = await fetchOneEntry({
-    model: "page",
+    model: BUILDER_MODEL,
     apiKey: import.meta.env.PUBLIC_BUILDER_API_KEY,
     userAttributes: { urlPath: event.url.pathname },
     options: event.query,
@@ -35,7 +35,7 @@ export default component$(() => {
   // of your space (specified by the API Key)
   return (
     <Content
-      model="page"
+      model={BUILDER_MODEL}
       content={content.value}
       apiKey={import.meta.env.PUBLIC_BUILDER_API_KEY}
       customComponents={CUSTOM_COMPONENTS}

@@ -113,7 +113,7 @@
     "syncpack": "^12.3.0",
     "terser": "^5.29.2",
     "tsm": "^2.3.0",
-    "typescript": "5.3.3",
+    "typescript": "5.4.3",
     "undici": "*",
     "vfile": "^6.0.1",
     "vite": "^5.1.6",
@@ -133,7 +133,8 @@
   "packageManager": "pnpm@8.15.5",
   "pnpm": {
     "overrides": {
-      "vfile": "^6.0.1",
+      "typescript": "$typescript",
+      "vfile": "$vfile",
       "@supabase/realtime-js": "2.8.4"
     },
     "patchedDependencies": {
@@ -187,7 +188,6 @@
     "serve": "tsm --inspect --conditions=development starters/dev-server.ts 3300",
     "serve.debug": "tsm --inspect-brk --conditions=development starters/dev-server.ts 3300",
     "start": "concurrently \"npm:build.watch\"  \"npm:tsc.watch\" -n build,tsc -c green,cyan",
-    "vitest": "vitest",
     "test": "pnpm build.full && pnpm test.unit && pnpm test.e2e",
     "test.e2e": "pnpm test.e2e.chromium && pnpm test.e2e.webkit",
     "test.e2e.chromium": "playwright test starters --browser=chromium --config starters/playwright.config.ts",
@@ -203,7 +203,8 @@
     "tsc.check": "tsc --noEmit",
     "tsc.trace": "tsc -p tsconfig.json --traceResolution > tsc.log",
     "tsc.watch": "tsc --noEmit --watch --preserveWatchOutput",
-    "update.qwik.builds": "tsm scripts/update-qwik-builds.ts packages/docs && tsm scripts/update-qwik-builds.ts packages/insights; pnpm install"
+    "update.qwik.builds": "tsm scripts/update-qwik-builds.ts packages/docs && tsm scripts/update-qwik-builds.ts packages/insights; pnpm install",
+    "vitest": "vitest"
   },
   "type": "module"
 }

@@ -9,5 +9,7 @@
   ],
   "cSpell.words": ["bucketize", "Stringifiable"],
   "javascript.preferences.autoImportFileExcludePatterns": ["node:test"],
-  "typescript.preferences.preferTypeOnlyAutoImports": true
+  "typescript.preferences.preferTypeOnlyAutoImports": true,
+  "typescript.tsdk": "./node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true
 }

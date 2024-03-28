@@ -1029,7 +1029,7 @@ describe('render api', () => {
           stream,
           streaming,
         });
-        expect(stream.write).toHaveBeenCalledTimes(153);
+        expect(stream.write).toHaveBeenCalledTimes(157);
       });
       it('should render chunk by chunk with auto streaming', async () => {
         const stream: StreamWriter = {
@@ -1047,7 +1047,7 @@ describe('render api', () => {
           stream,
           streaming,
         });
-        expect(stream.write).toHaveBeenCalledTimes(5);
+        expect(stream.write).toHaveBeenCalledTimes(6);
       });
     });
   });

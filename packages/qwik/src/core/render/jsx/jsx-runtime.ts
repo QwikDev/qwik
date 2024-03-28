@@ -440,7 +440,7 @@ class PropsProxyHandler implements ProxyHandler<any> {
     return hasProp;
   }
   ownKeys() {
-    let out = Object.keys(this.$varProps$);
+    const out = Object.keys(this.$varProps$);
     if (this.$constProps$) {
       for (const key in this.$constProps$) {
         if (out.indexOf(key) === -1) {
@@ -453,4 +453,3 @@ class PropsProxyHandler implements ProxyHandler<any> {
 }
 
 export { jsx as jsxs };
-

@@ -26,8 +26,7 @@ import {
   QObjectManagerSymbol,
   QObjectRecursive,
   QOjectTargetSymbol,
-  _IMMUTABLE,
-  _IMMUTABLE_PREFIX,
+  _CONST_PROPS,
 } from './constants';
 import { isSignal } from './signal';
 
@@ -108,14 +107,13 @@ export const setObjectFlags = (obj: object, flags: number) => {
 export type TargetType = Record<string | symbol, any>;
 
 /** @internal */
-export const _restProps = (props: Record<string, any>, omit: string[]) => {
-  const rest: Record<string, any> = {};
+export const _restProps = (props: Record<string, any>, omit: string[], target = {}) => {
   for (const key in props) {
     if (!omit.includes(key)) {
-      rest[key] = props[key];
+      (target as any)[key] = props[key];
     }
   }
-  return rest;
+  return target;
 };
 
 export class Store {}
@@ -163,13 +161,13 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     const invokeCtx = tryGetInvokeContext();
     const recursive = (flags & QObjectRecursive) !== 0;
     const immutable = (flags & QObjectImmutable) !== 0;
-    const hiddenSignal = target[_IMMUTABLE_PREFIX + prop];
+    const hiddenSignal = target['_IMMUTABLE_PREFIX' + prop];
     let subscriber: Subscriber | undefined | null;
     let value;
     if (invokeCtx) {
       subscriber = invokeCtx.$subscriber$;
     }
-    if (immutable && (!(prop in target) || immutableValue(target[_IMMUTABLE]?.[prop]))) {
+    if (immutable && (!(prop in target) || immutableValue(target[_CONST_PROPS]?.[prop]))) {
       subscriber = null;
     }
     if (hiddenSignal) {
@@ -246,7 +244,10 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     if (hasOwnProperty.call(target, property)) {
       return true;
     }
-    if (typeof property === 'string' && hasOwnProperty.call(target, _IMMUTABLE_PREFIX + property)) {
+    if (
+      typeof property === 'string' &&
+      hasOwnProperty.call(target, '_IMMUTABLE_PREFIX' + property)
+    ) {
       return true;
     }
     return false;
@@ -270,8 +271,8 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
       return Reflect.ownKeys(target);
     }
     return Reflect.ownKeys(target).map((a) => {
-      return typeof a === 'string' && a.startsWith(_IMMUTABLE_PREFIX)
-        ? a.slice(_IMMUTABLE_PREFIX.length)
+      return typeof a === 'string' && a.startsWith('_IMMUTABLE_PREFIX')
+        ? a.slice('_IMMUTABLE_PREFIX'.length)
         : a;
     });
   }
@@ -291,7 +292,7 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
 }
 
 const immutableValue = (value: any) => {
-  return value === _IMMUTABLE || isSignal(value);
+  return value === _CONST_PROPS || isSignal(value);
 };
 
 const wrap = <T>(value: T, storeTracker: StoreTracker): T => {

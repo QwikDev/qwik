@@ -1,5 +1,6 @@
 {
   "name": "insights",
+  "version": "0.1.0",
   "description": "Qwik Insights dashboard",
   "dependencies": {
     "@auth/core": "0.21.0",
@@ -33,7 +34,7 @@
     "prettier": "^3.2.5",
     "prettier-plugin-tailwindcss": "^0.5.12",
     "tailwindcss": "^3.4.1",
-    "typescript": "5.4.2",
+    "typescript": "5.4.3",
     "undici": "*",
     "vite": "^5.1.6",
     "vite-tsconfig-paths": "^4.3.2",

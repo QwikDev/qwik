@@ -9,7 +9,7 @@ import { Fragment as Component } from '@builder.io/qwik/jsx-runtime';
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
 import { component$ } from '../component/component.public';
-import { _IMMUTABLE, _jsxC, _jsxQ } from '../internal';
+import { _CONST_PROPS, _jsxC, _jsxQ } from '../internal';
 import { inlinedQrl } from '../qrl/qrl';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { useSignal } from '../use/use-signal';
@@ -26,10 +26,10 @@ Error.stackTraceLimit = 100;
 ].forEach((render) => {
   describe(render.name + ': optimizer output', () => {
     it('should handle immutable props', async () => {
-      const log: string[] = [];
+      (globalThis as any).log = [] as string[];
       const MyCmp = component$((props: { initial: number }) => {
         const count = useSignal(123);
-        log.push('render');
+        (globalThis as any).log.push('render');
         return _jsxQ(
           'button',
           null, // mutable props
@@ -40,7 +40,7 @@ Error.stackTraceLimit = 100;
             class: ['abc', { xyz: true }],
             onClick$: inlinedQrl(
               () => {
-                log.push('click');
+                (globalThis as any).log.push('click');
                 useLexicalScope()[0].value++;
               },
               's_click',
@@ -60,7 +60,7 @@ Error.stackTraceLimit = 100;
 
       const { vNode, document } = await render(<MyCmp initial={123} />, { debug });
       const button = document.querySelector('button')!;
-      expect(log).toEqual(['render']);
+      expect((globalThis as any).log).toEqual(['render']);
       expect(button.getAttribute('data-text')).toEqual('TEXT');
       expect(button.getAttribute('data-idx')).toEqual('3');
       expect(button.getAttribute('class')).toEqual('abc xyz');
@@ -69,9 +69,9 @@ Error.stackTraceLimit = 100;
           <button>123</button>
         </>
       );
-      log.length = 0;
+      (globalThis as any).log.length = 0;
       await trigger(document.body, 'button', 'click');
-      expect(log).toEqual(['click', 'render']);
+      expect((globalThis as any).log).toEqual(['click', 'render']);
       expect(button.getAttribute('data-text')).toEqual('TEXT');
       expect(button.getAttribute('data-idx')).toEqual('3');
       expect(button.getAttribute('class')).toEqual('abc xyz');
@@ -80,6 +80,7 @@ Error.stackTraceLimit = 100;
           <button>124</button>
         </>
       );
+      (globalThis as any).log.length = 0;
     });
     it('should handle immutable props on component', async () => {
       const Child = component$<{ name: string; num: number }>((props) => (
@@ -89,14 +90,7 @@ Error.stackTraceLimit = 100;
       ));
       const MyCmp = component$(() => {
         return (
-          <button>
-            {_jsxC(
-              Child as fixMeAny,
-              { name: 'NAME', num: 123, [_IMMUTABLE]: { name: _IMMUTABLE, num: _IMMUTABLE } }, // mutable props
-              3,
-              null
-            )}
-          </button>
+          <button>{_jsxC(Child as fixMeAny, null, { name: 'NAME', num: 123 }, 3, null)}</button>
         );
       });
 

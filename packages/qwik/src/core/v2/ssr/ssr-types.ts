@@ -8,8 +8,11 @@ import type {
   ValueOrPromise,
 } from '../../../server/qwik-types';
 import type { PrefetchResource } from '../../../server/types';
+import type { Signal } from '../../state/signal';
 
-export type SsrAttrs = Array<string | null>;
+export type SsrAttrKey = string;
+export type SsrAttrValue = string | Signal<any> | null;
+export type SsrAttrs = Array<SsrAttrKey | SsrAttrValue>;
 export interface StreamWriter {
   write(chunk: string): void;
 }

@@ -55,7 +55,7 @@ import {
   type TextSubscriber,
   type SubscriptionManager,
 } from '../../state/common';
-import { _IMMUTABLE, _IMMUTABLE_PREFIX } from '../../state/constants';
+import { _CONST_PROPS } from '../../state/constants';
 import {
   HOST_FLAG_DIRTY,
   HOST_FLAG_NEED_ATTACH_LISTENER,
@@ -408,7 +408,7 @@ export const diffVnode = (
   }
   assertQwikElement(elm);
 
-  const props = newVnode.$props$;
+  const props = newVnode.$varProps$;
   const vnodeFlags = newVnode.$flags$;
   const elCtx = getContext(elm, containerState);
 
@@ -425,8 +425,8 @@ export const diffVnode = (
       if ((vnodeFlags & static_listeners) === 0) {
         elCtx.li.length = 0;
       }
-      const values = oldVnode.$props$;
-      newVnode.$props$ = values;
+      const values = oldVnode.$varProps$;
+      newVnode.$varProps$ = values;
       for (const prop in props) {
         let newValue = props[prop];
         if (prop === 'ref') {
@@ -649,7 +649,7 @@ const getSlotCtx = (
 };
 
 const getSlotName = (node: ProcessedJSXNode): string => {
-  return node.$props$[QSlot] ?? '';
+  return node.$varProps$[QSlot] ?? '';
 };
 
 export const createElm = (
@@ -723,7 +723,7 @@ export const createElm = (
     isSvg = true;
   }
   const isVirtual = tag === VIRTUAL;
-  const props = vnode.$props$;
+  const props = vnode.$varProps$;
   const staticCtx = rCtx.$static$;
   const containerState = staticCtx.$containerState$;
   if (isVirtual) {
@@ -758,24 +758,12 @@ export const createElm = (
         );
       }
     }
-    if (vnode.$immutableProps$) {
-      const immProps =
-        props !== EMPTY_OBJ
-          ? Object.fromEntries(
-              Object.entries(vnode.$immutableProps$).map(([k, v]) => [
-                k,
-                v === _IMMUTABLE ? props[k] : v,
-              ])
-            )
-          : vnode.$immutableProps$;
-      setProperties(staticCtx, elCtx, currentComponent, immProps, isSvg, true);
+    if (vnode.$constProps$) {
+      setProperties(staticCtx, elCtx, currentComponent, vnode.$constProps$, isSvg, true);
     }
     if (props !== EMPTY_OBJ) {
       elCtx.$vdom$ = vnode;
-      const p = vnode.$immutableProps$
-        ? Object.fromEntries(Object.entries(props).filter(([k]) => !(k in vnode.$immutableProps$!)))
-        : props;
-      vnode.$props$ = setProperties(staticCtx, elCtx, currentComponent, p, isSvg, false);
+      vnode.$varProps$ = setProperties(staticCtx, elCtx, currentComponent, props, isSvg, false);
     }
     if (isSvg && tag === 'foreignObject') {
       isSvg = false;
@@ -817,14 +805,14 @@ export const createElm = (
     containerState.$proxyMap$.set(target, proxy);
     elCtx.$props$ = proxy;
     if (expectProps !== EMPTY_OBJ) {
-      const immutableMeta = ((target as any)[_IMMUTABLE] =
-        (expectProps as any)[_IMMUTABLE] ?? EMPTY_OBJ);
+      const immutableMeta = ((target as any)[_CONST_PROPS] =
+        (expectProps as any)[_CONST_PROPS] ?? EMPTY_OBJ);
 
       for (const prop in expectProps) {
         if (prop !== 'children' && prop !== QSlot) {
           const immutableValue = immutableMeta[prop];
           if (isSignal(immutableValue)) {
-            target[_IMMUTABLE_PREFIX + prop] = immutableValue;
+            target['_IMMUTABLE_PREFIX' + prop] = immutableValue;
           } else {
             target[prop] = expectProps[prop];
           }
@@ -1005,6 +993,8 @@ export const PROP_HANDLER_MAP: Record<string, PropHandler | undefined> = {
   download: forceAttribute,
   innerHTML: noop,
   [dangerouslySetInnerHTML]: setInnerHTML,
+  // handled by jsx
+  children: noop,
 };
 
 export const smartSetProperty = (
@@ -1138,8 +1128,8 @@ export const setComponentProps = (
   const target = getProxyTarget(props);
   assertDefined(target, `props have to be a proxy, but it is not`, props);
 
-  const immutableMeta = ((target as any)[_IMMUTABLE] =
-    (expectProps as any)[_IMMUTABLE] ?? EMPTY_OBJ);
+  const immutableMeta = ((target as any)[_CONST_PROPS] =
+    (expectProps as any)[_CONST_PROPS] ?? EMPTY_OBJ);
 
   for (const prop in expectProps) {
     if (prop !== 'children' && prop !== QSlot && !immutableMeta[prop]) {

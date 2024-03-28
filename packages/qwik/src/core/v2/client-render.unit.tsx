@@ -1,12 +1,13 @@
 import { createDocument } from '../../testing/document';
-import { Fragment as Component } from '../../jsx-runtime';
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
-import { component$ } from '../component/component.public';
-import { inlinedQrl } from '../qrl/qrl';
-import type { JSXOutput } from '../render/jsx/types/jsx-node';
-import { useLexicalScope } from '../use/use-lexical-scope.public';
-import { useSignal } from '../use/use-signal';
+import {
+  Fragment as Component,
+  Fragment as Signal,
+  component$,
+  type JSXOutput,
+  useSignal,
+} from '@builder.io/qwik';
 import { render2 } from './client/dom-render';
 import type { ContainerElement } from './client/types';
 import { vnode_getFirstChild } from './client/vnode';
@@ -26,11 +27,9 @@ describe('v2 client render', () => {
       <meta content="dark light" name="color-scheme" />
     );
     expect(container.document.documentElement.outerHTML).toContain(
-      '<meta content="dark light" name="color-scheme">'
+      '<meta content="dark light" name="color-scheme"'
     );
-    expect(container.document.documentElement.outerHTML).not.toContain(
-      '<meta content="dark light" name="color-scheme"></meta>'
-    );
+    expect(container.document.documentElement.outerHTML).not.toContain('</meta>');
   });
   it('should render Components', async () => {
     const Display = component$((props: { text: string }) => {
@@ -47,9 +46,11 @@ describe('v2 client render', () => {
     expect(vnode_getFirstChild(vNode)).toMatchVDOM(
       <Component>
         <span>
-          {'Hello'}{' '}
+          <Signal>{'Hello'}</Signal>{' '}
           <Component>
-            <b>World</b>
+            <b>
+              <Signal>World</Signal>
+            </b>
           </Component>
           {'!'}
         </span>
@@ -59,22 +60,22 @@ describe('v2 client render', () => {
   it('should render counter and increment', async (async) => {
     const Counter = component$(() => {
       const count = useSignal(123);
-      return (
-        <button onClick$={inlinedQrl(() => useLexicalScope()[0].value++, 's_1', [count])}>
-          {count.value}
-        </button>
-      );
+      return <button onClick$={() => count.value++}>{count.value}</button>;
     });
     const { vNode, container } = await clientRender(<Counter />);
     expect(vnode_getFirstChild(vNode)).toMatchVDOM(
       <Component>
-        <button>123</button>
+        <button>
+          <Signal>123</Signal>
+        </button>
       </Component>
     );
     await trigger(container.element, 'button', 'click');
     expect(vnode_getFirstChild(vNode)).toMatchVDOM(
       <Component>
-        <button>124</button>
+        <button>
+          <Signal>124</Signal>
+        </button>
       </Component>
     );
   });
@@ -86,9 +87,7 @@ describe('v2 client render', () => {
       const show = useSignal(false);
       return (
         <>
-          <button onClick$={inlinedQrl(() => (useLexicalScope()[0].value = true), 's_1', [show])}>
-            {String(show.value)}
-          </button>
+          <button onClick$={() => (show.value = true)}>{String(show.value)}</button>
           {show.value && <Child />}
         </>
       );
@@ -119,9 +118,7 @@ describe('v2 client render', () => {
       const signal = useSignal([1]);
       return (
         <>
-          <button
-            onClick$={inlinedQrl(() => (useLexicalScope()[0].value = [3, 2, 1]), 's_1', [signal])}
-          ></button>
+          <button onClick$={() => (signal.value = [3, 2, 1])}></button>
           {signal.value.map((i) => (
             <b>{i}</b>
           ))}

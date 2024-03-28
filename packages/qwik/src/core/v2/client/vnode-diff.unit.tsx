@@ -11,49 +11,55 @@ describe('vNode-diff', () => {
   });
 
   it('should find no difference', () => {
-    const { vNode, vParent, document } = vnode_fromJSX(<div>Hello</div>);
+    const { vNode, vParent, document } = vnode_fromJSX(<div key="KA_0">Hello</div>);
     expect(vNode).toMatchVDOM(<div>Hello</div>);
-    expect(vnode_getNode(vNode!)!.ownerDocument!.body.innerHTML).toEqual('<div>Hello</div>');
-    vnode_diff({ $journal$: journal, document } as any, <div>Hello</div>, vParent);
+    expect(vnode_getNode(vNode!)!.ownerDocument!.body.innerHTML).toEqual(
+      '<div q:key="KA_0">Hello</div>'
+    );
+    vnode_diff({ $journal$: journal, document } as any, <div key="KA_0">Hello</div>, vParent);
     expect(journal.length).toEqual(0);
   });
 
   describe('text', () => {
     it('should update text', () => {
-      const { vNode, vParent, document } = vnode_fromJSX(<div>Hello</div>);
-      vnode_diff({ $journal$: journal, document } as any, <div>World</div>, vParent);
+      const { vNode, vParent, document } = vnode_fromJSX(<div key="KA_0">Hello</div>);
+      vnode_diff({ $journal$: journal, document } as any, <div key="KA_0">World</div>, vParent);
       expect(vNode).toMatchVDOM(<div>World</div>);
       expect(journal).not.toEqual([]);
-      expect((vnode_getNode(vNode) as Element).outerHTML).toEqual('<div>Hello</div>');
+      expect((vnode_getNode(vNode) as Element).outerHTML).toEqual('<div q:key="KA_0">Hello</div>');
       vnode_applyJournal(journal);
-      expect((vnode_getNode(vNode) as Element).outerHTML).toEqual('<div>World</div>');
+      expect((vnode_getNode(vNode) as Element).outerHTML).toEqual('<div q:key="KA_0">World</div>');
     });
 
     it('should add missing text node', () => {
-      const { vNode, vParent, document } = vnode_fromJSX(<div></div>);
-      vnode_diff({ $journal$: journal, document } as any, <div>Hello</div>, vParent);
-      expect(vNode).toMatchVDOM(<div>Hello</div>);
-      expect((vnode_getNode(vNode) as Element).outerHTML).toEqual('<div></div>');
+      const { vNode, vParent, document } = vnode_fromJSX(<div key="KA_0"></div>);
+      vnode_diff({ $journal$: journal, document } as any, <div key="KA_0">Hello</div>, vParent);
+      expect(vNode).toMatchVDOM(<div key="KA_0">Hello</div>);
+      expect((vnode_getNode(vNode) as Element).outerHTML).toEqual('<div q:key="KA_0"></div>');
       vnode_applyJournal(journal);
-      expect((vnode_getNode(vNode) as Element).outerHTML).toEqual('<div>Hello</div>');
+      expect((vnode_getNode(vNode) as Element).outerHTML).toEqual('<div q:key="KA_0">Hello</div>');
     });
 
     it('should update and add missing text node', () => {
-      const { vNode, vParent, document } = vnode_fromJSX(<div>text</div>);
-      vnode_diff({ $journal$: journal, document } as any, <div>Hello {'World'}</div>, vParent);
-      vnode_applyJournal(journal);
-      expect(vNode).toMatchVDOM(<div>Hello {'World'}</div>);
-    });
-
-    it('should remove extra text nodes', () => {
-      const { vNode, vParent, document } = vnode_fromJSX(<div>text{'removeMe'}</div>);
+      const { vNode, vParent, document } = vnode_fromJSX(<div key="KA_6">text</div>);
       vnode_diff(
-        { $journal$: journal, $scheduler$: scheduler, document } as any,
-        <div>Hello</div>,
+        { $journal$: journal, document } as any,
+        <div key="KA_6">Hello {'World'}</div>,
         vParent
       );
       vnode_applyJournal(journal);
-      expect(vNode).toMatchVDOM(<div>Hello</div>);
+      expect(vNode).toMatchVDOM(<div key="KA_6">Hello {'World'}</div>);
+    });
+
+    it('should remove extra text nodes', () => {
+      const { vNode, vParent, document } = vnode_fromJSX(<div key="KA_6">text{'removeMe'}</div>);
+      vnode_diff(
+        { $journal$: journal, $scheduler$: scheduler, document } as any,
+        <div key="KA_6">Hello</div>,
+        vParent
+      );
+      vnode_applyJournal(journal);
+      expect(vNode).toMatchVDOM(<div key="KA_6">Hello</div>);
     });
     it('should remove all text nodes', () => {
       const { vNode, vParent, document } = vnode_fromJSX(<div>text{'removeMe'}</div>);
@@ -80,25 +86,25 @@ describe('vNode-diff', () => {
     it('should do nothing on same', () => {
       expect(journal.length).toEqual(0);
       const { vNode, vParent, document } = vnode_fromJSX(
-        <test>
-          <span></span>
-          <b></b>
+        <test key="KA_0">
+          <span key="KA_1"></span>
+          <b key="KA_2"></b>
         </test>
       );
       const test = (
-        <test>
-          <span></span>
-          <b></b>
+        <test key="KA_0">
+          <span key="KA_1"></span>
+          <b key="KA_2"></b>
         </test>
       );
       vnode_diff({ $journal$: journal, document } as any, test, vParent);
-      expect(journal.length).toEqual(0);
       expect(vNode).toMatchVDOM(test);
+      expect(journal.length).toEqual(0);
     });
     it('should add missing element', () => {
-      const { vNode, vParent, document } = vnode_fromJSX(<test></test>);
+      const { vNode, vParent, document } = vnode_fromJSX(<test key="KA_6"></test>);
       const test = (
-        <test>
+        <test key="KA_6">
           <span class="B" about="ABOUT"></span>
         </test>
       );
@@ -123,14 +129,14 @@ describe('vNode-diff', () => {
     });
     it('should remove extra text node', () => {
       const { vNode, vParent, document } = vnode_fromJSX(
-        <test>
+        <test key="0">
           {'before'}
           <span />
           {'after'}
         </test>
       );
       const test = (
-        <test>
+        <test key="0">
           <span></span>
         </test>
       );
@@ -142,12 +148,12 @@ describe('vNode-diff', () => {
   describe('keys', () => {
     it('should not reuse element because old has a key and new one does not', () => {
       const { vNode, vParent, document } = vnode_fromJSX(
-        <test>
+        <test key="KA_6">
           <b {...{ 'q:key': '1' }}>old</b>
         </test>
       );
       const test = (
-        <test>
+        <test key="KA_6">
           <b>new</b>
         </test>
       );
@@ -160,13 +166,13 @@ describe('vNode-diff', () => {
     });
     it('should reuse elements if keys match', () => {
       const { vNode, vParent, document } = vnode_fromJSX(
-        <test>
+        <test key="KA_6">
           <b {...{ 'q:key': '1' }}>1</b>
           <b {...{ 'q:key': '2' }}>2</b>
         </test>
       );
       const test = (
-        <test>
+        <test key="KA_6">
           <b>before</b>
           <b key="2">2</b>
           <b key="3">3</b>

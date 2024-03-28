@@ -904,6 +904,8 @@ interface QwikVitePluginCommonOptions {
 interface QwikVitePluginCSROptions extends QwikVitePluginCommonOptions {
   /** Client Side Rendering (CSR) mode. It will not support SSR, default to Vite's `index.html` file. */
   csr: true;
+  ssr: never;
+  client: never;
 }
 
 interface QwikVitePluginSSROptions extends QwikVitePluginCommonOptions {

@@ -46,7 +46,7 @@ export class ElementFixture {
       this.host.querySelectorAll('script[q\\:func="qwik/json"]').forEach((script) => {
         const code = script.textContent;
         if (code?.startsWith(Q_FUNCS_PREFIX)) {
-          const qFuncs = eval(code.substring(Q_FUNCS_PREFIX.length));
+          const qFuncs = (0, eval)(code.substring(Q_FUNCS_PREFIX.length));
           const container = this.host.closest(QContainerSelector);
           (container as any as { qFuncs?: Function[] }).qFuncs = qFuncs;
         }
@@ -150,7 +150,7 @@ export const dispatch = async (element: Element | null, attrName: string, event:
         }
       }
     } else if ('qDispatchEvent' in (element as QElement)) {
-      await(element as QElement).qDispatchEvent!(event);
+      await (element as QElement).qDispatchEvent!(event);
       await delay(0); // Unsure why this is needed for tests
       return;
     } else if (element.hasAttribute(attrName)) {
@@ -161,7 +161,7 @@ export const dispatch = async (element: Element | null, attrName: string, event:
         .split('\n')
         .map((qrl) => container.parseQRL(qrl.trim()))
         .map((qrl) => qrl(event, element));
-        return;
+      return;
     }
     element = element.parentElement;
   }

@@ -1,4 +1,4 @@
-import { $, type PropFnInterface, type QRL } from '../qrl/qrl.public';
+import { dollar, type PropFnInterface, type QRL } from '../qrl/qrl.public';
 import type { JSXNode, JSXOutput } from '../render/jsx/types/jsx-node';
 import { OnRenderProp, QSlot } from '../util/markers';
 import type {
@@ -12,7 +12,7 @@ import { Virtual, _jsxC } from '../render/jsx/jsx-runtime';
 import { SERIALIZABLE_STATE } from '../container/serializers';
 import { qTest } from '../util/qdev';
 import { assertQrl } from '../qrl/qrl-class';
-import { _IMMUTABLE } from '../state/constants';
+import { _CONST_PROPS, _VAR_PROPS, _jsxQ } from '../internal';
 import { assertNumber } from '../error/assert';
 import type { QwikIntrinsicElements } from '../render/jsx/types/jsx-qwik-elements';
 
@@ -186,20 +186,21 @@ export const componentQrl = <PROPS extends Record<any, any>>(
   componentQrl: QRL<OnRenderFn<PROPS>>
 ): Component<PROPS> => {
   // Return a QComponent Factory function.
+  // This is only used in v1, in v2 we use componentQrl directly
   function QwikComponent(props: PublicProps<PROPS>, key: string | null, flags: number): JSXNode {
     assertQrl(componentQrl);
     assertNumber(flags, 'The Qwik Component was not invoked correctly');
     const hash = qTest ? 'sX' : componentQrl.$hash$.slice(0, 4);
     const finalKey = hash + ':' + (key ? key : '');
-    return _jsxC(
+    return _jsxQ(
       Virtual,
       {
         [OnRenderProp]: componentQrl,
         [QSlot]: props[QSlot],
-        [_IMMUTABLE]: (props as any)[_IMMUTABLE],
-        children: props.children,
         props,
       },
+      null,
+      props.children,
       flags,
       finalKey
     ) as any;
@@ -276,7 +277,7 @@ export type PropFunctionProps<PROPS extends Record<any, any>> = {
  */
 // </docs>
 export const component$ = <PROPS = unknown>(onMount: OnRenderFn<PROPS>): Component<PROPS> => {
-  return componentQrl($(onMount));
+  return componentQrl(dollar(onMount));
 };
 
 /** @public */

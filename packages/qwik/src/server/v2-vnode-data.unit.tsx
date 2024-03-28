@@ -39,7 +39,7 @@ describe('vnode data', () => {
     });
   });
   describe('integration tests', () => {
-    it('components inside the div', async () => {
+    it.only('components inside the div', async () => {
       const Component = component$<RefIdProp>(({ refId }) => {
         const data = useSignal(1);
         return (
@@ -131,21 +131,21 @@ describe('vnode data', () => {
     });
 
     it('nested components inside the fragments and the divs', async () => {
+      const Nested = component$<RefIdProp>(({ refId }) => {
+        const data = useSignal(2);
+        return (
+          <>
+            <span id={refId}>{data.value}</span>
+          </>
+        );
+      });
+
       const Component = component$<NestedRefIdProp>(({ hostRefId, nestedRefId }) => {
         const data = useSignal(1);
         return (
           <>
             <span id={hostRefId}>{data.value}</span>
             <Nested refId={nestedRefId} />
-          </>
-        );
-      });
-
-      const Nested = component$<RefIdProp>(({ refId }) => {
-        const data = useSignal(2);
-        return (
-          <>
-            <span id={refId}>{data.value}</span>
           </>
         );
       });

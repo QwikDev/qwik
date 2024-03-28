@@ -119,8 +119,6 @@ export const useInvokeContext = (): RenderInvokeContext => {
     throw qError(QError_useInvokeContext);
   }
   assertDefined(ctx.$hostElement$, `invoke: $hostElement$ must be defined`, ctx);
-  assertDefined(ctx.$waitOn$, `invoke: $waitOn$ must be defined`, ctx);
-  assertDefined(ctx.$renderCtx$, `invoke: $renderCtx$ must be defined`, ctx);
   assertDefined(ctx.$subscriber$, `invoke: $subscriber$ must be defined`, ctx);
 
   return ctx as RenderInvokeContext;
@@ -245,6 +243,11 @@ const trackInvocation = /*#__PURE__*/ newInvokeContext(
 export const trackSignal = <T>(signal: Signal, sub: Subscriber): T => {
   trackInvocation.$subscriber$ = sub;
   return invoke(trackInvocation, () => signal.value);
+};
+
+export const trackRead = <T>(readFn: () => T, sub: Subscriber): T => {
+  trackInvocation.$subscriber$ = sub;
+  return invoke(trackInvocation, readFn);
 };
 
 /** @internal */

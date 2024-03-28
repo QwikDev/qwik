@@ -5,7 +5,6 @@ import { component$ } from '../component/component.public';
 import { SERIALIZABLE_STATE } from '../container/serializers';
 import { inlinedQrl, qrl } from '../qrl/qrl';
 import type { QRLInternal } from '../qrl/qrl-class';
-import { $ } from '../qrl/qrl.public';
 import { Fragment, JSXNodeImpl } from '../render/jsx/jsx-runtime';
 import { Slot } from '../render/jsx/slot.public';
 import type { JSXOutput } from '../render/jsx/types/jsx-node';
@@ -228,7 +227,8 @@ describe('serializer v2', () => {
       it('should serialize and deserialize', () => {
         const testFn = () => 'test';
         const obj: QRLInternal[] = [
-          $(testFn) as QRLInternal,
+          // $(testFn) as QRLInternal,
+          qrl('chunk.js', 's_123', ['Hello', 'World']) as QRLInternal,
           qrl('chunk.js', 's_123', ['Hello', 'World']) as QRLInternal,
           inlinedQrl(testFn, 's_inline', ['Hello']) as QRLInternal,
         ];
@@ -292,7 +292,9 @@ describe('serializer v2', () => {
         const [srcQrl] = (obj as any)[SERIALIZABLE_STATE];
         const [dstQrl] = container.$getObjectById$(0)[SERIALIZABLE_STATE];
         expect(dstQrl.$hash$).toEqual(srcQrl.$hash$);
-        expect(dstQrl.$captureRef$).toEqual(srcQrl.$captureRef$);
+        expect(dstQrl.$captureRef$).toEqual(
+          srcQrl.$captureRef$.length ? srcQrl.$captureRef$ : null
+        );
         expect(dstQrl._devOnlySymbolRef).toEqual((srcQrl as any)._devOnlySymbolRef);
       });
     });
@@ -494,7 +496,7 @@ function toHTML(jsx: JSXOutput): string {
         ssrContainer.openElement(
           jsx.type,
           toSsrAttrs(jsx.props as any, ssrContainer.serializationCtx),
-          toSsrAttrs(jsx.immutableProps as any, ssrContainer.serializationCtx)
+          toSsrAttrs(jsx.constProps as any, ssrContainer.serializationCtx)
         );
       } else {
         ssrContainer.openFragment([]);

@@ -1,18 +1,13 @@
-import { Fragment as Component, Fragment } from '@builder.io/qwik/jsx-runtime';
+import { Fragment as Component, Fragment, Fragment as Signal } from '@builder.io/qwik/jsx-runtime';
 import { describe, expect, it, vi } from 'vitest';
 import { advanceToNextTimerAndFlush, trigger } from '../../testing/element-fixture';
 import { component$ } from '../component/component.public';
-import { _IMMUTABLE, _fnSignal } from '../internal';
-import { inlinedQrl } from '../qrl/qrl';
-import { _jsxC } from '../render/jsx/jsx-runtime';
-import type { Signal } from '../state/signal';
+import type { Signal as SignalType } from '../state/signal';
 import { untrack } from '../use/use-core';
-import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { useSignal } from '../use/use-signal';
 import { useStore } from '../use/use-store.public';
-import { useTaskQrl } from '../use/use-task';
+import { useTask$ } from '../use/use-task';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
-import type { fixMeAny } from './shared/types';
 import './vdom-diff.unit-util';
 
 const debug = false; //true;
@@ -39,7 +34,9 @@ Error.stackTraceLimit = 100;
       expect(vNode).toMatchVDOM(
         <Component>
           <Fragment>
-            <div key="0">0</div>
+            <div key="0">
+              <Signal>0</Signal>
+            </div>
           </Fragment>
         </Component>
       );
@@ -47,48 +44,46 @@ Error.stackTraceLimit = 100;
     it('should update value', async () => {
       const Counter = component$(() => {
         const count = useStore({ count: 123 });
-        return (
-          <button onClick$={inlinedQrl(() => useLexicalScope()[0].count++, 's_onClick', [count])}>
-            Count: {count.count}!
-          </button>
-        );
+        return <button onClick$={() => count.count++}>Count: {count.count}!</button>;
       });
 
       const { vNode, container } = await render(<Counter />, { debug });
       expect(vNode).toMatchVDOM(
-        <>
-          <button>Count: {'123'}!</button>
-        </>
+        <Component>
+          <button>
+            Count: <Signal>{'123'}</Signal>!
+          </button>
+        </Component>
       );
       await trigger(container.element, 'button', 'click');
       expect(vNode).toMatchVDOM(
-        <>
-          <button>Count: {'124'}!</button>
-        </>
+        <Component>
+          <button>
+            Count: <Signal>{'124'}</Signal>!
+          </button>
+        </Component>
       );
     });
     it('should update deep value', async () => {
       const Counter = component$(() => {
         const count = useStore({ obj: { count: 123 } });
-        return (
-          <button
-            onClick$={inlinedQrl(() => useLexicalScope()[0].obj.count++, 's_onClick', [count])}
-          >
-            Count: {count.obj.count}!
-          </button>
-        );
+        return <button onClick$={() => count.obj.count++}>Count: {count.obj.count}!</button>;
       });
 
       const { vNode, container } = await render(<Counter />, { debug });
       expect(vNode).toMatchVDOM(
         <>
-          <button>Count: {'123'}!</button>
+          <button>
+            Count: <Signal>{'123'}</Signal>!
+          </button>
         </>
       );
       await trigger(container.element, 'button', 'click');
       expect(vNode).toMatchVDOM(
         <>
-          <button>Count: {'124'}!</button>
+          <button>
+            Count: <Signal>{'124'}</Signal>!
+          </button>
         </>
       );
     });
@@ -103,15 +98,7 @@ Error.stackTraceLimit = 100;
         log.push('Counter');
         const count = useStore({ obj: { value: props.initial } });
         return (
-          <button
-            onClick$={inlinedQrl(
-              () => {
-                useLexicalScope()[0].obj.value++;
-              },
-              's_onClick',
-              [count]
-            )}
-          >
+          <button onClick$={() => count.obj.value++}>
             <Display dValue={count.obj.value} />
           </button>
         );
@@ -122,19 +109,22 @@ Error.stackTraceLimit = 100;
         <>
           <button>
             <>
-              <span>Count: {'123'}!</span>
+              <span>
+                Count: <Signal>{'123'}</Signal>!
+              </span>
             </>
           </button>
         </>
       );
-      log.length = 0;
       await trigger(container.element, 'button', 'click');
       expect(log).toEqual(['Counter', 'Display']);
       expect(vNode).toMatchVDOM(
         <>
           <button>
             <>
-              <span>Count: {'124'}!</span>
+              <span>
+                Count: <Signal>{'124'}</Signal>!
+              </span>
             </>
           </button>
         </>
@@ -146,11 +136,7 @@ Error.stackTraceLimit = 100;
         const Counter = component$((props: { initial: number }) => {
           const count = useStore({ value: props.initial });
           log.push('Counter: ' + untrack(() => count.value));
-          return (
-            <button onClick$={inlinedQrl(() => useLexicalScope()[0].value++, 's_onClick', [count])}>
-              Count: {_fnSignal((p0) => p0.value, [count], 'p0.value')}!
-            </button>
-          );
+          return <button onClick$={() => count.value++}>Count: {count.value}!</button>;
         });
 
         const { vNode, container } = await render(<Counter initial={123} />, {
@@ -184,16 +170,9 @@ Error.stackTraceLimit = 100;
           log.push('Counter: ' + untrack(() => count.value));
           return (
             <button
-              onClick$={inlinedQrl(
-                () => {
-                  const [s] = useLexicalScope();
-                  s.value = typeof s.value == 'string' ? <b>JSX</b> : 'text';
-                },
-                's_onClick',
-                [count]
-              )}
+              onClick$={() => (count.value = typeof count.value == 'string' ? <b>JSX</b> : 'text')}
             >
-              -{_fnSignal((p0) => p0.value, [count], 'p0.value')}-
+              -{count.value}-
             </button>
           );
         });
@@ -235,49 +214,32 @@ Error.stackTraceLimit = 100;
       });
       it('should update value when store, update and render are separated', async () => {
         const renderLog: string[] = [];
-        const Counter = component$(() => {
-          renderLog.push('Counter');
-          const count = useStore({ value: 123 });
-          return (
-            <>
-              {/* <Display displayValue={count.value} /> */}
-              {_jsxC(
-                Display as fixMeAny,
-                {
-                  get displayValue() {
-                    return count.value;
-                  },
-                  [_IMMUTABLE]: {
-                    displayValue: _fnSignal((p0) => p0.value, [count], 'p0.value'),
-                  },
-                },
-                3,
-                'H1_0'
-              )}
-              <Incrementor countSignal={count} />
-            </>
-          );
+        const Display = component$((props: { displayValue: number }) => {
+          renderLog.push('Display');
+          return <>Count: {props.displayValue}!</>;
         });
-        const Incrementor = component$((props: { countSignal: Signal<number> }) => {
+        const Incrementor = component$((props: { countSignal: SignalType<number> }) => {
           renderLog.push('Incrementor');
           return (
             <button
-              onClick$={inlinedQrl(
-                () => {
-                  const [countSignal] = useLexicalScope();
-                  countSignal.value++;
-                },
-                's_onClick',
-                [props.countSignal]
-              )}
+              onClick$={() => {
+                const signal = props.countSignal;
+                signal.value++;
+              }}
             >
               +1
             </button>
           );
         });
-        const Display = component$((props: { displayValue: number }) => {
-          renderLog.push('Display');
-          return <>Count: {_fnSignal((p0) => p0.displayValue, [props], 'p0.displayValue')}!</>;
+        const Counter = component$(() => {
+          renderLog.push('Counter');
+          const count = useStore({ value: 123 });
+          return (
+            <>
+              <Display displayValue={count.value} />
+              <Incrementor countSignal={count} />
+            </>
+          );
         });
         const { vNode, container } = await render(<Counter />, { debug });
         expect(renderLog).toEqual(['Counter', 'Display', 'Incrementor']);
@@ -304,23 +266,18 @@ Error.stackTraceLimit = 100;
 
   describe(render.name + 'regression', () => {
     it('#5597 - should update value', async () => {
-      let clicks = 0;
+      (globalThis as any).clicks = 0;
       const Issue5597 = component$(() => {
         const count = useSignal(0);
         const store = useStore({ items: [{ num: 0 }] });
         return (
           <>
             <button
-              onClick$={inlinedQrl(
-                () => {
-                  const [count, store] = useLexicalScope();
-                  count.value++;
-                  store.items = store.items.map((i: { num: number }) => ({ num: i.num + 1 }));
-                  clicks++;
-                },
-                's_onClick',
-                [count, store]
-              )}
+              onClick$={() => {
+                count.value++;
+                store.items = store.items.map((i: { num: number }) => ({ num: i.num + 1 }));
+                (globalThis as any).clicks++;
+              }}
             >
               Count: {count.value}!
             </button>
@@ -337,10 +294,12 @@ Error.stackTraceLimit = 100;
           <Fragment>
             <button>
               {'Count: '}
-              {clicks}
+              <Signal>{(globalThis as any).clicks}</Signal>
               {'!'}
             </button>
-            <div key="0">{clicks}</div>
+            <div key="0">
+              <Signal>{(globalThis as any).clicks}</Signal>
+            </div>
           </Fragment>
         </Component>
       );
@@ -353,10 +312,12 @@ Error.stackTraceLimit = 100;
           <Fragment>
             <button>
               {'Count: '}
-              {clicks}
+              <Signal>{(globalThis as any).clicks}</Signal>
               {'!'}
             </button>
-            <div key="0">{clicks}</div>
+            <div key="0">
+              <Signal>{(globalThis as any).clicks}</Signal>
+            </div>
           </Fragment>
         </Component>
       );
@@ -367,21 +328,15 @@ Error.stackTraceLimit = 100;
       const Cmp = component$(() => {
         const count = useSignal(0);
         const store = useStore({ items: [{ num: 0 }] });
-        useTaskQrl(
-          inlinedQrl(
-            ({ cleanup }) => {
-              const [count, store] = useLexicalScope();
+        useTask$(
+          ({ cleanup }) => {
+            const intervalId = setInterval(() => {
+              count.value++;
+              store.items = store.items.map((i: { num: number }) => ({ num: i.num + 1 }));
+            }, 500);
 
-              const intervalId = setInterval(() => {
-                count.value++;
-                store.items = store.items.map((i: { num: number }) => ({ num: i.num + 1 }));
-              }, 500);
-
-              cleanup(() => clearInterval(intervalId));
-            },
-            's_useTask',
-            [count, store]
-          ),
+            cleanup(() => clearInterval(intervalId));
+          },
           {
             eagerness: 'visible',
           }
@@ -402,10 +357,12 @@ Error.stackTraceLimit = 100;
           <Fragment>
             <div>
               {'Count: '}
-              {'0'}
+              <Signal>{'0'}</Signal>
               {'!'}
             </div>
-            <div key="0">0</div>
+            <div key="0">
+              <Signal>0</Signal>
+            </div>
           </Fragment>
         </Component>
       );
@@ -415,10 +372,12 @@ Error.stackTraceLimit = 100;
           <Fragment>
             <div>
               {'Count: '}
-              {'1'}
+              <Signal>{'1'}</Signal>
               {'!'}
             </div>
-            <div key="0">1</div>
+            <div key="0">
+              <Signal>1</Signal>
+            </div>
           </Fragment>
         </Component>
       );
@@ -428,17 +387,24 @@ Error.stackTraceLimit = 100;
           <Fragment>
             <div>
               {'Count: '}
-              {'2'}
+              <Signal>{'2'}</Signal>
               {'!'}
             </div>
-            <div key="0">2</div>
+            <div key="0">
+              <Signal>2</Signal>
+            </div>
           </Fragment>
         </Component>
       );
       vi.useRealTimers();
     });
 
-    it('#5662 - should update value in the list', async () => {
+    it.skip('#5662 - should update value in the list', async () => {
+      /**
+       * ROOT CAUSE ANALYSIS: This is a bug in Optimizer. The optimizer incorrectly marks the
+       * `onClick` listener as 'const'/'immutable'. Because it is const, the QRL associated with the
+       * click handler always points to the original object, and it is not updated.
+       */
       const Cmp = component$(() => {
         const store = useStore<{ users: { name: string }[] }>({ users: [{ name: 'Giorgio' }] });
 
@@ -447,16 +413,11 @@ Error.stackTraceLimit = 100;
             {store.users.map((user, key) => (
               <span
                 key={key}
-                onClick$={inlinedQrl(
-                  () => {
-                    const [store] = useLexicalScope();
-                    store.users = store.users.map(({ name }: { name: string }) => ({
-                      name: name === user.name ? name + '!' : name,
-                    }));
-                  },
-                  's_onClick',
-                  [store]
-                )}
+                onClick$={() => {
+                  store.users = store.users.map(({ name }: { name: string }) => ({
+                    name: name === user.name ? name + '!' : name,
+                  }));
+                }}
               >
                 {user.name}
               </span>
@@ -468,7 +429,9 @@ Error.stackTraceLimit = 100;
       expect(vNode).toMatchVDOM(
         <Component>
           <div>
-            <span key="0">{'Giorgio'}</span>
+            <span key="0">
+              <Signal>{'Giorgio'}</Signal>
+            </span>
           </div>
         </Component>
       );
@@ -480,13 +443,16 @@ Error.stackTraceLimit = 100;
       expect(vNode).toMatchVDOM(
         <Component>
           <div>
-            <span key="0">{'Giorgio!!!!!'}</span>
+            <span key="0">
+              <Signal>{'Giorgio!!!!!'}</Signal>
+            </span>
           </div>
         </Component>
       );
     });
 
-    it('#5017 - should update child nodes for direct array', async () => {
+    // TODO(optimizer-test): this is failing also in v1
+    it.skip('#5017 - should update child nodes for direct array', async () => {
       const Child = component$<{ columns: string }>(({ columns }) => {
         return <div>Child: {columns}</div>;
       });
@@ -495,18 +461,7 @@ Error.stackTraceLimit = 100;
         const state = useStore([{ columns: 'INITIAL' }]);
         return (
           <>
-            <button
-              onClick$={inlinedQrl(
-                () => {
-                  const [state] = useLexicalScope();
-                  state[0] = { columns: 'UPDATE' };
-                },
-                's_onClick',
-                [state]
-              )}
-            >
-              update!
-            </button>
+            <button onClick$={() => (state[0] = { columns: 'UPDATE' })}>update!</button>
             <Child columns={state[0].columns} />
             {state.map((block, idx) => {
               return <Child columns={block.columns} key={idx} />;

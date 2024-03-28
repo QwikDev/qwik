@@ -19,6 +19,7 @@ import {
   vnode_getProp,
   vnode_insertBefore,
   vnode_locate,
+  vnode_newElement,
   vnode_newText,
   vnode_newUnMaterializedElement,
   vnode_newVirtual,
@@ -493,6 +494,27 @@ describe('vnode', () => {
         expect(parent.innerHTML).toBe('');
         vnode_applyJournal(journal);
         expect(parent.innerHTML).toBe('123');
+      });
+      it.only('should todo', () => {
+        const vVirtual = vnode_newVirtual(vParent);
+        const vSpan1 = vnode_newElement(vVirtual, document.createElement('div'), 'div');
+        const v1 = vnode_newText(vSpan1, document.createTextNode('1'), '1');
+        const vSpan2 = vnode_newElement(vVirtual, document.createElement('span'), 'span');
+        vnode_insertBefore(journal, vParent, vSpan1, null);
+        vnode_insertBefore(journal, vSpan1, vVirtual, null);
+        vnode_insertBefore(journal, vParent, vSpan2, null);
+        vnode_insertBefore(journal, vVirtual, v1, null);
+        expect(vParent).toMatchVDOM(
+          <test>
+            <div>
+              <Fragment>{'1'}</Fragment>
+            </div>
+            <span></span>
+          </test>
+        );
+        expect(parent.innerHTML).toBe('');
+        vnode_applyJournal(journal);
+        expect(parent.innerHTML).toBe('<div>1</div><span></span>');
       });
     });
     describe('vnode_remove', () => {

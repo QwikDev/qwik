@@ -369,7 +369,8 @@ export const vnode_ensureElementInflated = (vnode: VNode) => {
     for (let idx = 0; idx < attributes.length; idx++) {
       const attr = attributes[idx];
       const key = attr.name;
-      if (key == ':') {
+      if (key == ':' || !key) {
+        // SVG in Domino does not support ':' so it becomes an empty string.
         // all attributes after the ':' are considered immutable, and so we ignore them.
         break;
       } else if (key.startsWith(QContainerAttr)) {
@@ -393,7 +394,7 @@ const vnode_getDOMParent = (vnode: VNode): Element | null => {
   while (vnode && !vnode_isElementVNode(vnode)) {
     vnode = vnode[VNodeProps.parent]!;
   }
-  return vnode && vnode[ElementVNodeProps.element];
+  return (vnode && vnode[ElementVNodeProps.element]) as Element | null;
 };
 
 export const vnode_getDOMChildNodes = (
@@ -410,7 +411,8 @@ export const vnode_getDOMChildNodes = (
        */
       vnode_ensureTextInflated(journal, root);
     }
-    return [vnode_getNode(root)!];
+    childNodes.push(vnode_getNode(root)!);
+    return childNodes;
   }
   let vNode = vnode_getFirstChild(root);
   while (vNode) {
@@ -487,6 +489,9 @@ const vnode_getDomSibling = (
     } else if (!sibling) {
       // If we don't have a sibling than walk up the tree until you find one.
       let virtual: VNode | null = cursor[VNodeProps.parent];
+      if (virtual && !vnode_isVirtualVNode(virtual)) {
+        return null;
+      }
       while (virtual && !(sibling = virtual[siblingProp])) {
         if (!vnode_isVirtualVNode(virtual)) {
           // the parent node is not virtual, so we are done here.
@@ -863,7 +868,7 @@ export const vnode_getDomParent = (vnode: VNode): Element | Text | null => {
   while (vnode && !vnode_isElementVNode(vnode)) {
     vnode = vnode[VNodeProps.parent]!;
   }
-  return vnode && vnode[ElementVNodeProps.element];
+  return (vnode && vnode[ElementVNodeProps.element]) as Element | Text | null;
 };
 
 export const vnode_remove = (
@@ -888,13 +893,6 @@ export const vnode_remove = (
     const domParent = vnode_getDOMParent(vParent)!;
     journal.push(VNodeJournalOpCode.Remove, domParent);
     vnode_getDOMChildNodes(journal, vToRemove, journal as Array<Element | Text>);
-
-    if (!vnode_isVirtualVNode(vParent)) {
-      const domChild = vnode_getNode(vToRemove);
-      if (domChild) {
-        journal.push(VNodeJournalOpCode.Remove, domParent, domChild);
-      }
-    }
   }
 };
 
@@ -1231,7 +1229,8 @@ export function vnode_toString(
     } else if (vnode_isElementVNode(vnode)) {
       const tag = vnode_getElementName(vnode);
       const attrs: string[] = [];
-      vnode_getAttrKeys(vnode).forEach((key) => {
+      const keys = vnode_getAttrKeys(vnode);
+      keys.forEach((key) => {
         const value = vnode_getAttr(vnode!, key);
         attrs.push(' ' + key + '=' + stringify(value));
       });
@@ -1240,6 +1239,13 @@ export function vnode_toString(
         const vnodeData = (node.ownerDocument as QDocument).qVNodeData?.get(node);
         if (vnodeData) {
           attrs.push(' q:vnodeData=' + stringify(vnodeData));
+        }
+      }
+      const domAttrs = node.attributes;
+      for (let i = 0; i < domAttrs.length; i++) {
+        const attr = domAttrs[i];
+        if (keys.indexOf(attr.name) === -1) {
+          attrs.push(' ' + attr.name + (attr.value ? '=' + stringify(attr.value) : ''));
         }
       }
       strings.push('<' + tag + attrs.join('') + '>');

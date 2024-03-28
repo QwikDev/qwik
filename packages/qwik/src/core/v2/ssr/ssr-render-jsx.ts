@@ -2,17 +2,17 @@ import { isDev } from '@builder.io/qwik/build';
 import { isQwikComponent } from '../../component/component.public';
 import { isQrl } from '../../qrl/qrl-class';
 import type { QRL } from '../../qrl/qrl.public';
-import { dangerouslySetInnerHTML, serializeClass } from '../../render/execute-component';
+import { dangerouslySetInnerHTML, serializeClass, stringifyStyle } from '../../render/execute-component';
 import { Fragment } from '../../render/jsx/jsx-runtime';
 import { Slot } from '../../render/jsx/slot.public';
 import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
 import type { ClassList, JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
 import { SubscriptionType } from '../../state/common';
-import { isSignal } from '../../state/signal';
+import { SignalDerived, isSignal } from '../../state/signal';
 import { trackSignal } from '../../use/use-core';
 import { EMPTY_ARRAY } from '../../util/flyweight';
 import { throwErrorAndStop } from '../../util/log';
-import { QSlot } from '../../util/markers';
+import { ELEMENT_KEY } from '../../util/markers';
 import { isPromise } from '../../util/promises';
 import { type ValueOrPromise } from '../../util/types';
 import {
@@ -129,8 +129,8 @@ function processJSXNode(
       if (typeof type === 'string') {
         ssr.openElement(
           type,
-          toSsrAttrs(jsx.props, ssr.serializationCtx),
-          toSsrAttrs(jsx.immutableProps, ssr.serializationCtx)
+          toSsrAttrs(jsx.varProps, ssr.serializationCtx),
+          toSsrAttrs(jsx.constProps, ssr.serializationCtx, jsx.key)
         );
         const rawHTML = jsx.props[dangerouslySetInnerHTML];
         if (rawHTML) {
@@ -152,15 +152,28 @@ function processJSXNode(
         } else if (type === Slot) {
           const componentFrame = ssr.getNearestComponentFrame()!;
           if (componentFrame) {
-            const slotName = String(jsx.props.name || '');
+            const projectionAttrs = isDev ? [DEBUG_TYPE, VirtualType.Projection] : [];
             const compId = componentFrame.componentNode.id || '';
-            ssr.openProjection(
-              isDev
-                ? [DEBUG_TYPE, VirtualType.Projection, ':', compId, QSlot, slotName]
-                : [':', compId, QSlot, slotName]
-            );
-            enqueue(ssr.closeProjection);
+            projectionAttrs.push(':', compId);
+            ssr.openProjection(projectionAttrs);
+            const host = componentFrame.componentNode;
+            let slotName: string = '';
             const node = ssr.getLastNode();
+            const constProps = jsx.constProps;
+            if (constProps && typeof constProps == 'object' && 'name' in constProps) {
+              const constValue = constProps.name;
+              if (constValue instanceof SignalDerived) {
+                slotName = trackSignal(constValue, [
+                  SubscriptionType.PROP_MUTABLE,
+                  host as fixMeAny,
+                  constValue,
+                  node as fixMeAny,
+                  'name',
+                ]);
+              }
+            }
+            slotName = String(slotName || jsx.props.name || '');
+            enqueue(ssr.closeProjection);
             const slotDefaultChildren = (jsx.props.children || null) as JSXChildren | null;
             const slotChildren =
               componentFrame.consumeChildrenForSlot(node, slotName) || slotDefaultChildren;
@@ -200,52 +213,79 @@ function processJSXNode(
 
 export function toSsrAttrs(
   record: Record<string, unknown>,
-  serializationCtx: SerializationContext
+  serializationCtx: SerializationContext,
+  key?: string | null
 ): SsrAttrs;
 export function toSsrAttrs(
   record: Record<string, unknown> | null | undefined,
-  serializationCtx: SerializationContext
+  serializationCtx: SerializationContext,
+  key?: string | null
 ): SsrAttrs | null;
 export function toSsrAttrs(
   record: Record<string, unknown> | null | undefined,
-  serializationCtx: SerializationContext
+  serializationCtx: SerializationContext,
+  key?: string | null
 ): SsrAttrs | null {
   if (record == null) {
     return null;
   }
   const ssrAttrs: SsrAttrs = [];
   for (const key in record) {
-    if (Object.prototype.hasOwnProperty.call(record, key)) {
-      if (isJsxPropertyAnEventName(key)) {
-        let value: string | null = null;
-        const qrls = record[key];
-        if (Array.isArray(qrls)) {
-          for (let i = 0; i <= qrls.length; i++) {
-            const qrl: unknown = qrls[i];
-            if (isQrl(qrl)) {
-              const first = i === 0;
-              value = (first ? '' : value + '\n') + qrlToString(serializationCtx, qrl);
-              addQwikEventToSerializationContext(serializationCtx, key, qrl);
-            }
-          }
-        } else if (isQrl(qrls)) {
-          value = qrlToString(serializationCtx, qrls);
-          addQwikEventToSerializationContext(serializationCtx, key, qrls);
-        }
-        if (isJsxPropertyAnEventName(key)) {
-          value && ssrAttrs.push(convertEventNameFromJsxPropToHtmlAttr(key), value);
-        }
-      } else {
-        if (key !== 'children') {
-          const value = isClassAttr(key)
-            ? serializeClass(record[key] as ClassList)
-            : String(record[key]);
-          ssrAttrs.push(key, value);
-        }
-      }
+    if (key === 'children') {
+      continue;
     }
+    let value = record[key];
+    if (isJsxPropertyAnEventName(key)) {
+      const eventValue = setEvent(serializationCtx, key, value);
+      if (eventValue) {
+        ssrAttrs.push(convertEventNameFromJsxPropToHtmlAttr(key), eventValue);
+      }
+      continue;
+    }
+
+    if (isSignal(value)) {
+      // write signal as is. We will track this signal inside `writeAttrs`
+      ssrAttrs.push(key, value);
+      continue;
+    }
+
+    if (isClassAttr(key)) {
+      value = serializeClass(value as ClassList);
+    } else if (key === 'style') {
+      value = stringifyStyle(value);
+    } else {
+      value = String(value);
+    }
+
+    ssrAttrs.push(key, value as string);
+  }
+  if (key != null) {
+    ssrAttrs.push(ELEMENT_KEY, key);
   }
   return ssrAttrs;
+}
+
+function setEvent(serializationCtx: SerializationContext, key: string, rawValue: unknown) {
+  let value: string | null = null;
+  const qrls = rawValue;
+  if (Array.isArray(qrls)) {
+    for (let i = 0; i <= qrls.length; i++) {
+      const qrl: unknown = qrls[i];
+      if (isQrl(qrl)) {
+        const first = i === 0;
+        value = (first ? '' : value + '\n') + qrlToString(serializationCtx, qrl);
+        addQwikEventToSerializationContext(serializationCtx, key, qrl);
+      }
+    }
+  } else if (isQrl(qrls)) {
+    value = qrlToString(serializationCtx, qrls);
+    addQwikEventToSerializationContext(serializationCtx, key, qrls);
+  }
+
+  if (isJsxPropertyAnEventName(key)) {
+    return value;
+  }
+  return null;
 }
 
 function addQwikEventToSerializationContext(

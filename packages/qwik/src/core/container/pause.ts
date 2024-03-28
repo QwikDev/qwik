@@ -750,8 +750,7 @@ const getPromiseValue = (promise: Promise<any>): PromiseValue | undefined => {
 
 export const collectValue = (obj: unknown, collector: Collector, leaks: boolean | QwikElement) => {
   if (obj != null) {
-    const objType = typeof obj;
-    switch (objType) {
+    switch (typeof obj) {
       case 'function':
       case 'object': {
         if (collector.$seen$.has(obj)) {
@@ -799,7 +798,7 @@ export const collectValue = (obj: unknown, collector: Collector, leaks: boolean 
           return;
         }
 
-        if (objType === 'object') {
+        if (typeof obj === 'object') {
           if (isNode(obj)) {
             return;
           }

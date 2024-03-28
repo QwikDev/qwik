@@ -300,7 +300,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
     if (!this.$styleIds$.has(styleId)) {
       this.$styleIds$.add(styleId);
       const styleElement = this.document.createElement('style');
-      styleElement.setAttribute(QStyle, scoped ? styleId : '');
+      styleElement.setAttribute(QStyle, styleId);
       styleElement.textContent = content;
       this.$journal$.push(VNodeJournalOpCode.Insert, this.document.head, null, styleElement);
     }

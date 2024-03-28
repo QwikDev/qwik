@@ -10,12 +10,25 @@
     "declaration": true,
     "declarationDir": "lib-types",
     "resolveJsonModule": true,
-    "moduleResolution": "node",
+    "moduleResolution": "Bundler",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "incremental": true,
     "isolatedModules": true,
-    "types": ["vite/client"]
+    "types": [
+      "vite/client"
+    ],
+    "paths": {
+      "@qwik-client-manifest": [
+        "../../qwik/src/server/server-modules.d.ts"
+      ],
+      "@builder.io/qwik/jsx-runtime": [
+        "../../qwik/src/jsx-runtime/index.ts"
+      ],
+      "@builder.io/qwik/jsx-dev-runtime": [
+        "../../qwik/src/jsx-runtime/index.ts"
+      ],
+    }
   },
   "include": ["src"]
 }

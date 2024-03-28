@@ -35,10 +35,54 @@ export type CacheControl =
 export interface ClientConn
 ```
 
-| Property      | Modifiers | Type   | Description  |
-| ------------- | --------- | ------ | ------------ |
-| [country?](#) |           | string | _(Optional)_ |
-| [ip?](#)      |           | string | _(Optional)_ |
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[country?](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[ip?](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
 
@@ -48,14 +92,70 @@ export interface ClientConn
 export interface Cookie
 ```
 
-| Method                                   | Description                                                                                  |
-| ---------------------------------------- | -------------------------------------------------------------------------------------------- |
-| [delete(name, options)](#cookie-delete)  | Deletes cookie value by name using the <code>Response</code> cookie header.                  |
-| [get(name)](#cookie-get)                 | Gets a <code>Request</code> cookie header value by name.                                     |
-| [getAll()](#cookie-getall)               | Gets all <code>Request</code> cookie headers.                                                |
-| [has(name)](#cookie-has)                 | Checks if the <code>Request</code> cookie header name exists.                                |
-| [headers()](#cookie-headers)             | Returns an array of all the set <code>Response</code> <code>Set-Cookie</code> header values. |
-| [set(name, value, options)](#cookie-set) | Sets a <code>Response</code> cookie header using the <code>Set-Cookie</code> header.         |
+<table><thead><tr><th>
+
+Method
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[delete(name, options)](#cookie-delete)
+
+</td><td>
+
+Deletes cookie value by name using the `Response` cookie header.
+
+</td></tr>
+<tr><td>
+
+[get(name)](#cookie-get)
+
+</td><td>
+
+Gets a `Request` cookie header value by name.
+
+</td></tr>
+<tr><td>
+
+[getAll()](#cookie-getall)
+
+</td><td>
+
+Gets all `Request` cookie headers.
+
+</td></tr>
+<tr><td>
+
+[has(name)](#cookie-has)
+
+</td><td>
+
+Checks if the `Request` cookie header name exists.
+
+</td></tr>
+<tr><td>
+
+[headers()](#cookie-headers)
+
+</td><td>
+
+Returns an array of all the set `Response` `Set-Cookie` header values.
+
+</td></tr>
+<tr><td>
+
+[set(name, value, options)](#cookie-set)
+
+</td><td>
+
+Sets a `Response` cookie header using the `Set-Cookie` header.
+
+</td></tr>
+</tbody></table>
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
 
@@ -67,15 +167,129 @@ https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
 export interface CookieOptions
 ```
 
-| Property       | Modifiers | Type                                                                       | Description                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| -------------- | --------- | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [domain?](#)   |           | string                                                                     | _(Optional)_ Defines the host to which the cookie will be sent. If omitted, this attribute defaults to the host of the current document URL, not including subdomains.                                                                                                                                                                                                                                                                 |
-| [expires?](#)  |           | Date \| string                                                             | _(Optional)_ Indicates the maximum lifetime of the cookie as an HTTP-date timestamp. If both <code>expires</code> and <code>maxAge</code> are set, <code>maxAge</code> has precedence.                                                                                                                                                                                                                                                 |
-| [httpOnly?](#) |           | boolean                                                                    | _(Optional)_ Forbids JavaScript from accessing the cookie, for example, through the <code>document.cookie</code> property.                                                                                                                                                                                                                                                                                                             |
-| [maxAge?](#)   |           | number \| [number, 'seconds' \| 'minutes' \| 'hours' \| 'days' \| 'weeks'] | _(Optional)_ Indicates the number of seconds until the cookie expires. A zero or negative number will expire the cookie immediately. If both <code>expires</code> and <code>maxAge</code> are set, <code>maxAge</code> has precedence. You can also use the array syntax to set the max-age using minutes, hours, days or weeks. For example, <code>{ maxAge: [3, &quot;days&quot;] }</code> would set the cookie to expire in 3 days. |
-| [path?](#)     |           | string                                                                     | _(Optional)_ Indicates the path that must exist in the requested URL for the browser to send the Cookie header.                                                                                                                                                                                                                                                                                                                        |
-| [sameSite?](#) |           | 'strict' \| 'lax' \| 'none' \| 'Strict' \| 'Lax' \| 'None' \| boolean      | _(Optional)_ Controls whether or not a cookie is sent with cross-site requests, providing some protection against cross-site request forgery attacks (CSRF).                                                                                                                                                                                                                                                                           |
-| [secure?](#)   |           | boolean                                                                    | _(Optional)_ Indicates that the cookie is sent to the server only when a request is made with the <code>https:</code> scheme (except on localhost)                                                                                                                                                                                                                                                                                     |
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[domain?](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_ Defines the host to which the cookie will be sent. If omitted, this attribute defaults to the host of the current document URL, not including subdomains.
+
+</td></tr>
+<tr><td>
+
+[expires?](#)
+
+</td><td>
+
+</td><td>
+
+Date \| string
+
+</td><td>
+
+_(Optional)_ Indicates the maximum lifetime of the cookie as an HTTP-date timestamp. If both `expires` and `maxAge` are set, `maxAge` has precedence.
+
+</td></tr>
+<tr><td>
+
+[httpOnly?](#)
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_ Forbids JavaScript from accessing the cookie, for example, through the `document.cookie` property.
+
+</td></tr>
+<tr><td>
+
+[maxAge?](#)
+
+</td><td>
+
+</td><td>
+
+number \| [number, 'seconds' \| 'minutes' \| 'hours' \| 'days' \| 'weeks']
+
+</td><td>
+
+_(Optional)_ Indicates the number of seconds until the cookie expires. A zero or negative number will expire the cookie immediately. If both `expires` and `maxAge` are set, `maxAge` has precedence. You can also use the array syntax to set the max-age using minutes, hours, days or weeks. For example, `{ maxAge: [3, "days"] }` would set the cookie to expire in 3 days.
+
+</td></tr>
+<tr><td>
+
+[path?](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_ Indicates the path that must exist in the requested URL for the browser to send the Cookie header.
+
+</td></tr>
+<tr><td>
+
+[sameSite?](#)
+
+</td><td>
+
+</td><td>
+
+'strict' \| 'lax' \| 'none' \| 'Strict' \| 'Lax' \| 'None' \| boolean
+
+</td><td>
+
+_(Optional)_ Controls whether or not a cookie is sent with cross-site requests, providing some protection against cross-site request forgery attacks (CSRF).
+
+</td></tr>
+<tr><td>
+
+[secure?](#)
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_ Indicates that the cookie is sent to the server only when a request is made with the `https:` scheme (except on localhost)
+
+</td></tr>
+</tbody></table>
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
 
@@ -85,11 +299,63 @@ export interface CookieOptions
 export interface CookieValue
 ```
 
-| Property    | Modifiers | Type                          | Description |
-| ----------- | --------- | ----------------------------- | ----------- |
-| [json](#)   |           | &lt;T = unknown&gt;() =&gt; T |             |
-| [number](#) |           | () =&gt; number               |             |
-| [value](#)  |           | string                        |             |
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[json](#)
+
+</td><td>
+
+</td><td>
+
+&lt;T = unknown&gt;() =&gt; T
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[number](#)
+
+</td><td>
+
+</td><td>
+
+() =&gt; number
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[value](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+</tbody></table>
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
 
@@ -109,11 +375,44 @@ Deletes cookie value by name using the `Response` cookie header.
 delete(name: string, options?: Pick<CookieOptions, 'path' | 'domain' | 'sameSite'>): void;
 ```
 
-| Parameter | Type                                                                          | Description  |
-| --------- | ----------------------------------------------------------------------------- | ------------ |
-| name      | string                                                                        |              |
-| options   | Pick&lt;[CookieOptions](#cookieoptions), 'path' \| 'domain' \| 'sameSite'&gt; | _(Optional)_ |
+<table><thead><tr><th>
 
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+name
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+options
+
+</td><td>
+
+Pick&lt;[CookieOptions](#cookieoptions), 'path' \| 'domain' \| 'sameSite'&gt;
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
 **Returns:**
 
 void
@@ -124,9 +423,23 @@ void
 export interface EnvGetter
 ```
 
-| Method        | Description |
-| ------------- | ----------- |
-| [get(key)](#) |             |
+<table><thead><tr><th>
+
+Method
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[get(key)](#)
+
+</td><td>
+
+</td></tr>
+</tbody></table>
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
 
@@ -138,10 +451,31 @@ Gets a `Request` cookie header value by name.
 get(name: string): CookieValue | null;
 ```
 
-| Parameter | Type   | Description |
-| --------- | ------ | ----------- |
-| name      | string |             |
+<table><thead><tr><th>
 
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+name
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+</tbody></table>
 **Returns:**
 
 [CookieValue](#cookievalue) \| null
@@ -164,11 +498,42 @@ Record&lt;string, [CookieValue](#cookievalue)&gt;
 export declare function getErrorHtml(status: number, e: any): string;
 ```
 
-| Parameter | Type   | Description |
-| --------- | ------ | ----------- |
-| status    | number |             |
-| e         | any    |             |
+<table><thead><tr><th>
 
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+status
+
+</td><td>
+
+number
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+e
+
+</td><td>
+
+any
+
+</td><td>
+
+</td></tr>
+</tbody></table>
 **Returns:**
 
 string
@@ -183,10 +548,31 @@ Checks if the `Request` cookie header name exists.
 has(name: string): boolean;
 ```
 
-| Parameter | Type   | Description |
-| --------- | ------ | ----------- |
-| name      | string |             |
+<table><thead><tr><th>
 
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+name
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+</tbody></table>
 **Returns:**
 
 boolean
@@ -209,11 +595,42 @@ string[]
 mergeHeadersCookies: (headers: Headers, cookies: CookieInterface) => Headers;
 ```
 
-| Parameter | Type                       | Description |
-| --------- | -------------------------- | ----------- |
-| headers   | Headers                    |             |
-| cookies   | [CookieInterface](#cookie) |             |
+<table><thead><tr><th>
 
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+headers
+
+</td><td>
+
+Headers
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+cookies
+
+</td><td>
+
+[CookieInterface](#cookie)
+
+</td><td>
+
+</td></tr>
+</tbody></table>
 **Returns:**
 
 Headers
@@ -238,12 +655,94 @@ export interface RequestEvent<PLATFORM = QwikCityPlatform> extends RequestEventC
 
 **Extends:** [RequestEventCommon](#requesteventcommon)&lt;PLATFORM&gt;
 
-| Property               | Modifiers             | Type                                      | Description                                                                                                                                                                                 |
-| ---------------------- | --------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [exited](#)            | <code>readonly</code> | boolean                                   | True if the middleware chain has finished executing.                                                                                                                                        |
-| [getWritableStream](#) | <code>readonly</code> | () =&gt; WritableStream&lt;Uint8Array&gt; | Low-level access to write to the HTTP response stream. Once <code>getWritableStream()</code> is called, the status and headers can no longer be modified and will be sent over the network. |
-| [headersSent](#)       | <code>readonly</code> | boolean                                   | True if headers have been sent, preventing any more headers from being set.                                                                                                                 |
-| [next](#)              | <code>readonly</code> | () =&gt; Promise&lt;void&gt;              | <p>Invoke the next middleware function in the chain.</p><p>NOTE: Ensure that the call to <code>next()</code> is <code>await</code>ed.</p>                                                   |
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[exited](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+boolean
+
+</td><td>
+
+True if the middleware chain has finished executing.
+
+</td></tr>
+<tr><td>
+
+[getWritableStream](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+() =&gt; WritableStream&lt;Uint8Array&gt;
+
+</td><td>
+
+Low-level access to write to the HTTP response stream. Once `getWritableStream()` is called, the status and headers can no longer be modified and will be sent over the network.
+
+</td></tr>
+<tr><td>
+
+[headersSent](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+boolean
+
+</td><td>
+
+True if headers have been sent, preventing any more headers from being set.
+
+</td></tr>
+<tr><td>
+
+[next](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+() =&gt; Promise&lt;void&gt;
+
+</td><td>
+
+Invoke the next middleware function in the chain.
+
+NOTE: Ensure that the call to `next()` is `await`ed.
+
+</td></tr>
+</tbody></table>
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
 
@@ -255,9 +754,37 @@ export interface RequestEventAction<PLATFORM = QwikCityPlatform> extends Request
 
 **Extends:** [RequestEventCommon](#requesteventcommon)&lt;PLATFORM&gt;
 
-| Property  | Modifiers | Type                                                                                                 | Description |
-| --------- | --------- | ---------------------------------------------------------------------------------------------------- | ----------- |
-| [fail](#) |           | &lt;T extends Record&lt;string, any&gt;&gt;(status: number, returnData: T) =&gt; FailReturn&lt;T&gt; |             |
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[fail](#)
+
+</td><td>
+
+</td><td>
+
+&lt;T extends Record&lt;string, any&gt;&gt;(status: number, returnData: T) =&gt; FailReturn&lt;T&gt;
+
+</td><td>
+
+</td></tr>
+</tbody></table>
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
 
@@ -267,24 +794,310 @@ export interface RequestEventAction<PLATFORM = QwikCityPlatform> extends Request
 export interface RequestEventBase<PLATFORM = QwikCityPlatform>
 ```
 
-| Property          | Modifiers             | Type                                                                                  | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| ----------------- | --------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [basePathname](#) | <code>readonly</code> | string                                                                                | The base pathname of the request, which can be configured at build time. Defaults to <code>/</code>.                                                                                                                                                                                                                                                                                                                                                                           |
-| [cacheControl](#) | <code>readonly</code> | (cacheControl: [CacheControl](#cachecontrol), target?: CacheControlTarget) =&gt; void | <p>Convenience method to set the Cache-Control header. Depending on your CDN, you may want to add another cacheControl with the second argument set to <code>CDN-Cache-Control</code> or any other value (we provide the most common values for auto-complete, but you can use any string you want).</p><p>See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control and https://qwik.dev/docs/caching/\#CDN-Cache-Controls for more information.</p> |
-| [clientConn](#)   | <code>readonly</code> | [ClientConn](#clientconn)                                                             | Provides information about the client connection, such as the IP address and the country the request originated from.                                                                                                                                                                                                                                                                                                                                                          |
-| [cookie](#)       | <code>readonly</code> | [Cookie](#cookie)                                                                     | <p>HTTP request and response cookie. Use the <code>get()</code> method to retrieve a request cookie value. Use the <code>set()</code> method to set a response cookie value.</p><p>https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies</p>                                                                                                                                                                                                                               |
-| [env](#)          | <code>readonly</code> | [EnvGetter](#envgetter)                                                               | Platform provided environment variables.                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| [headers](#)      | <code>readonly</code> | Headers                                                                               | <p>HTTP response headers. Notice it will be empty until you first add a header. If you want to read the request headers, use <code>request.headers</code> instead.</p><p>https://developer.mozilla.org/en-US/docs/Glossary/Response\_header</p>                                                                                                                                                                                                                                |
-| [method](#)       | <code>readonly</code> | string                                                                                | <p>HTTP request method.</p><p>https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods</p>                                                                                                                                                                                                                                                                                                                                                                                    |
-| [params](#)       | <code>readonly</code> | Readonly&lt;Record&lt;string, string&gt;&gt;                                          | URL path params which have been parsed from the current url pathname segments. Use <code>query</code> to instead retrieve the query string search params.                                                                                                                                                                                                                                                                                                                      |
-| [parseBody](#)    | <code>readonly</code> | () =&gt; Promise&lt;unknown&gt;                                                       | <p>This method will check the request headers for a <code>Content-Type</code> header and parse the body accordingly. It supports <code>application/json</code>, <code>application/x-www-form-urlencoded</code>, and <code>multipart/form-data</code> content types.</p><p>If the <code>Content-Type</code> header is not set, it will return <code>null</code>.</p>                                                                                                            |
-| [pathname](#)     | <code>readonly</code> | string                                                                                | <p>URL pathname. Does not include the protocol, domain, query string (search params) or hash.</p><p>https://developer.mozilla.org/en-US/docs/Web/API/URL/pathname</p>                                                                                                                                                                                                                                                                                                          |
-| [platform](#)     | <code>readonly</code> | PLATFORM                                                                              | Platform specific data and functions                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| [query](#)        | <code>readonly</code> | URLSearchParams                                                                       | <p>URL Query Strings (URL Search Params). Use <code>params</code> to instead retrieve the route params found in the url pathname.</p><p>https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams</p>                                                                                                                                                                                                                                                                   |
-| [request](#)      | <code>readonly</code> | Request                                                                               | HTTP request information.                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| [sharedMap](#)    | <code>readonly</code> | Map&lt;string, any&gt;                                                                | Shared Map across all the request handlers. Every HTTP request will get a new instance of the shared map. The shared map is useful for sharing data between request handlers.                                                                                                                                                                                                                                                                                                  |
-| [signal](#)       | <code>readonly</code> | AbortSignal                                                                           | Request's AbortSignal (same as <code>request.signal</code>). This signal indicates that the request has been aborted.                                                                                                                                                                                                                                                                                                                                                          |
-| [url](#)          | <code>readonly</code> | URL                                                                                   | HTTP request URL.                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[basePathname](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+string
+
+</td><td>
+
+The base pathname of the request, which can be configured at build time. Defaults to `/`.
+
+</td></tr>
+<tr><td>
+
+[cacheControl](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+(cacheControl: [CacheControl](#cachecontrol), target?: CacheControlTarget) =&gt; void
+
+</td><td>
+
+Convenience method to set the Cache-Control header. Depending on your CDN, you may want to add another cacheControl with the second argument set to `CDN-Cache-Control` or any other value (we provide the most common values for auto-complete, but you can use any string you want).
+
+See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control and https://qwik.dev/docs/caching/\#CDN-Cache-Controls for more information.
+
+</td></tr>
+<tr><td>
+
+[clientConn](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+[ClientConn](#clientconn)
+
+</td><td>
+
+Provides information about the client connection, such as the IP address and the country the request originated from.
+
+</td></tr>
+<tr><td>
+
+[cookie](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+[Cookie](#cookie)
+
+</td><td>
+
+HTTP request and response cookie. Use the `get()` method to retrieve a request cookie value. Use the `set()` method to set a response cookie value.
+
+https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies
+
+</td></tr>
+<tr><td>
+
+[env](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+[EnvGetter](#envgetter)
+
+</td><td>
+
+Platform provided environment variables.
+
+</td></tr>
+<tr><td>
+
+[headers](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+Headers
+
+</td><td>
+
+HTTP response headers. Notice it will be empty until you first add a header. If you want to read the request headers, use `request.headers` instead.
+
+https://developer.mozilla.org/en-US/docs/Glossary/Response\_header
+
+</td></tr>
+<tr><td>
+
+[method](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+string
+
+</td><td>
+
+HTTP request method.
+
+https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
+
+</td></tr>
+<tr><td>
+
+[params](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+Readonly&lt;Record&lt;string, string&gt;&gt;
+
+</td><td>
+
+URL path params which have been parsed from the current url pathname segments. Use `query` to instead retrieve the query string search params.
+
+</td></tr>
+<tr><td>
+
+[parseBody](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+() =&gt; Promise&lt;unknown&gt;
+
+</td><td>
+
+This method will check the request headers for a `Content-Type` header and parse the body accordingly. It supports `application/json`, `application/x-www-form-urlencoded`, and `multipart/form-data` content types.
+
+If the `Content-Type` header is not set, it will return `null`.
+
+</td></tr>
+<tr><td>
+
+[pathname](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+string
+
+</td><td>
+
+URL pathname. Does not include the protocol, domain, query string (search params) or hash.
+
+https://developer.mozilla.org/en-US/docs/Web/API/URL/pathname
+
+</td></tr>
+<tr><td>
+
+[platform](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+PLATFORM
+
+</td><td>
+
+Platform specific data and functions
+
+</td></tr>
+<tr><td>
+
+[query](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+URLSearchParams
+
+</td><td>
+
+URL Query Strings (URL Search Params). Use `params` to instead retrieve the route params found in the url pathname.
+
+https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams
+
+</td></tr>
+<tr><td>
+
+[request](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+Request
+
+</td><td>
+
+HTTP request information.
+
+</td></tr>
+<tr><td>
+
+[sharedMap](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+Map&lt;string, any&gt;
+
+</td><td>
+
+Shared Map across all the request handlers. Every HTTP request will get a new instance of the shared map. The shared map is useful for sharing data between request handlers.
+
+</td></tr>
+<tr><td>
+
+[signal](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+AbortSignal
+
+</td><td>
+
+Request's AbortSignal (same as `request.signal`). This signal indicates that the request has been aborted.
+
+</td></tr>
+<tr><td>
+
+[url](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+URL
+
+</td><td>
+
+HTTP request URL.
+
+</td></tr>
+</tbody></table>
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
 
@@ -296,17 +1109,181 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform> extends Request
 
 **Extends:** [RequestEventBase](#requesteventbase)&lt;PLATFORM&gt;
 
-| Property      | Modifiers             | Type                                                                              | Description                                                                                                                                                                                                                                                                                  |
-| ------------- | --------------------- | --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [error](#)    | <code>readonly</code> | (statusCode: ErrorCodes, message: string) =&gt; ErrorResponse                     | When called, the response will immediately end with the given status code. This could be useful to end a response with <code>404</code>, and use the 404 handler in the routes directory. See https://developer.mozilla.org/en-US/docs/Web/HTTP/Status for which status code should be used. |
-| [exit](#)     | <code>readonly</code> | () =&gt; [AbortMessage](#abortmessage)                                            |                                                                                                                                                                                                                                                                                              |
-| [html](#)     | <code>readonly</code> | (statusCode: StatusCodes, html: string) =&gt; [AbortMessage](#abortmessage)       | Convenience method to send an HTML body response. The response will be automatically set the <code>Content-Type</code> header to<code>text/html; charset=utf-8</code>. An <code>html()</code> response can only be called once.                                                              |
-| [json](#)     | <code>readonly</code> | (statusCode: StatusCodes, data: any) =&gt; [AbortMessage](#abortmessage)          | Convenience method to JSON stringify the data and send it in the response. The response will be automatically set the <code>Content-Type</code> header to <code>application/json; charset=utf-8</code>. A <code>json()</code> response can only be called once.                              |
-| [locale](#)   | <code>readonly</code> | (local?: string) =&gt; string                                                     | <p>Which locale the content is in.</p><p>The locale value can be retrieved from selected methods using <code>getLocale()</code>:</p>                                                                                                                                                         |
-| [redirect](#) | <code>readonly</code> | (statusCode: RedirectCode, url: string) =&gt; [RedirectMessage](#redirectmessage) | <p>URL to redirect to. When called, the response will immediately end with the correct redirect status and headers.</p><p>https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections</p>                                                                                                 |
-| [send](#)     | <code>readonly</code> | SendMethod                                                                        | Send a body response. The <code>Content-Type</code> response header is not automatically set when using <code>send()</code> and must be set manually. A <code>send()</code> response can only be called once.                                                                                |
-| [status](#)   | <code>readonly</code> | (statusCode?: StatusCodes) =&gt; number                                           | <p>HTTP response status code. Sets the status code when called with an argument. Always returns the status code, so calling <code>status()</code> without an argument will can be used to return the current status code.</p><p>https://developer.mozilla.org/en-US/docs/Web/HTTP/Status</p> |
-| [text](#)     | <code>readonly</code> | (statusCode: StatusCodes, text: string) =&gt; [AbortMessage](#abortmessage)       | Convenience method to send an text body response. The response will be automatically set the <code>Content-Type</code> header to<code>text/plain; charset=utf-8</code>. An <code>text()</code> response can only be called once.                                                             |
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[error](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+(statusCode: ErrorCodes, message: string) =&gt; ErrorResponse
+
+</td><td>
+
+When called, the response will immediately end with the given status code. This could be useful to end a response with `404`, and use the 404 handler in the routes directory. See https://developer.mozilla.org/en-US/docs/Web/HTTP/Status for which status code should be used.
+
+</td></tr>
+<tr><td>
+
+[exit](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+() =&gt; [AbortMessage](#abortmessage)
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[html](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+(statusCode: StatusCodes, html: string) =&gt; [AbortMessage](#abortmessage)
+
+</td><td>
+
+Convenience method to send an HTML body response. The response will be automatically set the `Content-Type` header to`text/html; charset=utf-8`. An `html()` response can only be called once.
+
+</td></tr>
+<tr><td>
+
+[json](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+(statusCode: StatusCodes, data: any) =&gt; [AbortMessage](#abortmessage)
+
+</td><td>
+
+Convenience method to JSON stringify the data and send it in the response. The response will be automatically set the `Content-Type` header to `application/json; charset=utf-8`. A `json()` response can only be called once.
+
+</td></tr>
+<tr><td>
+
+[locale](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+(local?: string) =&gt; string
+
+</td><td>
+
+Which locale the content is in.
+
+The locale value can be retrieved from selected methods using `getLocale()`:
+
+</td></tr>
+<tr><td>
+
+[redirect](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+(statusCode: RedirectCode, url: string) =&gt; [RedirectMessage](#redirectmessage)
+
+</td><td>
+
+URL to redirect to. When called, the response will immediately end with the correct redirect status and headers.
+
+https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections
+
+</td></tr>
+<tr><td>
+
+[send](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+SendMethod
+
+</td><td>
+
+Send a body response. The `Content-Type` response header is not automatically set when using `send()` and must be set manually. A `send()` response can only be called once.
+
+</td></tr>
+<tr><td>
+
+[status](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+(statusCode?: StatusCodes) =&gt; number
+
+</td><td>
+
+HTTP response status code. Sets the status code when called with an argument. Always returns the status code, so calling `status()` without an argument will can be used to return the current status code.
+
+https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+
+</td></tr>
+<tr><td>
+
+[text](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+(statusCode: StatusCodes, text: string) =&gt; [AbortMessage](#abortmessage)
+
+</td><td>
+
+Convenience method to send an text body response. The response will be automatically set the `Content-Type` header to`text/plain; charset=utf-8`. An `text()` response can only be called once.
+
+</td></tr>
+</tbody></table>
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
 
@@ -318,10 +1295,50 @@ export interface RequestEventLoader<PLATFORM = QwikCityPlatform> extends Request
 
 **Extends:** [RequestEventAction](#requesteventaction)&lt;PLATFORM&gt;
 
-| Property          | Modifiers | Type                                                                                                              | Description |
-| ----------------- | --------- | ----------------------------------------------------------------------------------------------------------------- | ----------- |
-| [defer](#)        |           | &lt;T&gt;(returnData: Promise&lt;T&gt; \| (() =&gt; Promise&lt;T&gt;)) =&gt; [DeferReturn](#deferreturn)&lt;T&gt; |             |
-| [resolveValue](#) |           | [ResolveValue](#resolvevalue)                                                                                     |             |
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[defer](#)
+
+</td><td>
+
+</td><td>
+
+&lt;T&gt;(returnData: Promise&lt;T&gt; \| (() =&gt; Promise&lt;T&gt;)) =&gt; [DeferReturn](#deferreturn)&lt;T&gt;
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[resolveValue](#)
+
+</td><td>
+
+</td><td>
+
+[ResolveValue](#resolvevalue)
+
+</td><td>
+
+</td></tr>
+</tbody></table>
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
 
@@ -373,11 +1390,71 @@ export interface ServerRenderOptions extends RenderOptions
 
 **Extends:** RenderOptions
 
-| Property          | Modifiers | Type         | Description                                                                                                                                                                                                                                                                                                                                                   |
-| ----------------- | --------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [checkOrigin?](#) |           | boolean      | <p>_(Optional)_ Protection against cross-site request forgery (CSRF) attacks.</p><p>When <code>true</code>, for every incoming POST, PUT, PATCH, or DELETE form submissions, the request origin is checked to match the server's origin.</p><p>Be careful when disabling this option as it may lead to CSRF attacks.</p><p>Defaults to <code>true</code>.</p> |
-| [qwikCityPlan](#) |           | QwikCityPlan |                                                                                                                                                                                                                                                                                                                                                               |
-| [render](#)       |           | Render       |                                                                                                                                                                                                                                                                                                                                                               |
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[checkOrigin?](#)
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_ Protection against cross-site request forgery (CSRF) attacks.
+
+When `true`, for every incoming POST, PUT, PATCH, or DELETE form submissions, the request origin is checked to match the server's origin.
+
+Be careful when disabling this option as it may lead to CSRF attacks.
+
+Defaults to `true`.
+
+</td></tr>
+<tr><td>
+
+[qwikCityPlan](#)
+
+</td><td>
+
+</td><td>
+
+QwikCityPlan
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[render](#)
+
+</td><td>
+
+</td><td>
+
+Render
+
+</td><td>
+
+</td></tr>
+</tbody></table>
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
 
@@ -389,16 +1466,128 @@ Request event created by the server.
 export interface ServerRequestEvent<T = unknown>
 ```
 
-| Property               | Modifiers | Type                                                     | Description |
-| ---------------------- | --------- | -------------------------------------------------------- | ----------- |
-| [env](#)               |           | [EnvGetter](#envgetter)                                  |             |
-| [getClientConn](#)     |           | () =&gt; [ClientConn](#clientconn)                       |             |
-| [getWritableStream](#) |           | [ServerResponseHandler](#serverresponsehandler)&lt;T&gt; |             |
-| [locale](#)            |           | string \| undefined                                      |             |
-| [mode](#)              |           | [ServerRequestMode](#serverrequestmode)                  |             |
-| [platform](#)          |           | QwikCityPlatform                                         |             |
-| [request](#)           |           | Request                                                  |             |
-| [url](#)               |           | URL                                                      |             |
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[env](#)
+
+</td><td>
+
+</td><td>
+
+[EnvGetter](#envgetter)
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[getClientConn](#)
+
+</td><td>
+
+</td><td>
+
+() =&gt; [ClientConn](#clientconn)
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[getWritableStream](#)
+
+</td><td>
+
+</td><td>
+
+[ServerResponseHandler](#serverresponsehandler)&lt;T&gt;
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[locale](#)
+
+</td><td>
+
+</td><td>
+
+string \| undefined
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[mode](#)
+
+</td><td>
+
+</td><td>
+
+[ServerRequestMode](#serverrequestmode)
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[platform](#)
+
+</td><td>
+
+</td><td>
+
+QwikCityPlatform
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[request](#)
+
+</td><td>
+
+</td><td>
+
+Request
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[url](#)
+
+</td><td>
+
+</td><td>
+
+URL
+
+</td><td>
+
+</td></tr>
+</tbody></table>
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
 
@@ -434,12 +1623,55 @@ Sets a `Response` cookie header using the `Set-Cookie` header.
 set(name: string, value: string | number | Record<string, any>, options?: CookieOptions): void;
 ```
 
-| Parameter | Type                                          | Description  |
-| --------- | --------------------------------------------- | ------------ |
-| name      | string                                        |              |
-| value     | string \| number \| Record&lt;string, any&gt; |              |
-| options   | [CookieOptions](#cookieoptions)               | _(Optional)_ |
+<table><thead><tr><th>
 
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+name
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+value
+
+</td><td>
+
+string \| number \| Record&lt;string, any&gt;
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+options
+
+</td><td>
+
+[CookieOptions](#cookieoptions)
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
 **Returns:**
 
 void

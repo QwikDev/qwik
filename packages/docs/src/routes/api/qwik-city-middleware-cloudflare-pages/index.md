@@ -18,10 +18,31 @@ export declare function createQwikCity(opts: QwikCityCloudflarePagesOptions): (
 ) => Promise<Response>;
 ```
 
-| Parameter | Type                                                              | Description |
-| --------- | ----------------------------------------------------------------- | ----------- |
-| opts      | [QwikCityCloudflarePagesOptions](#qwikcitycloudflarepagesoptions) |             |
+<table><thead><tr><th>
 
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+opts
+
+</td><td>
+
+[QwikCityCloudflarePagesOptions](#qwikcitycloudflarepagesoptions)
+
+</td><td>
+
+</td></tr>
+</tbody></table>
 **Returns:**
 
 (request: [PlatformCloudflarePages](#platformcloudflarepages)['request'], env: Record&lt;string, any&gt; &amp; { ASSETS: { fetch: (req: Request) =&gt; Response; }; }, ctx: [PlatformCloudflarePages](#platformcloudflarepages)['ctx']) =&gt; Promise&lt;Response&gt;
@@ -34,11 +55,65 @@ export declare function createQwikCity(opts: QwikCityCloudflarePagesOptions): (
 export interface PlatformCloudflarePages
 ```
 
-| Property     | Modifiers | Type                                                     | Description  |
-| ------------ | --------- | -------------------------------------------------------- | ------------ |
-| [ctx](#)     |           | { waitUntil: (promise: Promise&lt;any&gt;) =&gt; void; } |              |
-| [env?](#)    |           | Record&lt;string, any&gt;                                | _(Optional)_ |
-| [request](#) |           | Request                                                  |              |
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[ctx](#)
+
+</td><td>
+
+</td><td>
+
+{ waitUntil: (promise: Promise&lt;any&gt;) =&gt; void; }
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[env?](#)
+
+</td><td>
+
+</td><td>
+
+Record&lt;string, any&gt;
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[request](#)
+
+</td><td>
+
+</td><td>
+
+Request
+
+</td><td>
+
+</td></tr>
+</tbody></table>
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/cloudflare-pages/index.ts)
 

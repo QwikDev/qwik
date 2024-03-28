@@ -90,8 +90,8 @@ export class ProcessedJSXNodeImpl implements ProcessedJSXNode {
 
   constructor(
     public $type$: string,
-    public $props$: Record<string, any>,
-    public $immutableProps$: Record<string, any> | null,
+    public $varProps$: Record<string, any>,
+    public $constProps$: Record<string, any> | null,
     public $children$: ProcessedJSXNode[],
     public $flags$: number,
     public $key$: string | null
@@ -108,18 +108,18 @@ export const processNode = (
   node: JSXNode,
   invocationContext?: InvokeContext
 ): ValueOrPromise<ProcessedJSXNode | ProcessedJSXNode[] | undefined> => {
-  const { key, type, props, children, flags, immutableProps } = node;
+  const { key, type, varProps, children, flags, constProps } = node;
   let textType = '';
   if (isString(type)) {
     textType = type;
   } else if (type === Virtual) {
     textType = VIRTUAL;
   } else if (isFunction(type)) {
-    const res = invoke(invocationContext, type, props, key, flags, node.dev);
+    const res = invoke(invocationContext, type, node.props, key, flags, node.dev);
     if (!shouldWrapFunctional(res, node)) {
       return processData(res, invocationContext);
     }
-    return processNode(_jsxC(Virtual, { children: res }, 0, key), invocationContext);
+    return processNode(_jsxC(Virtual, { children: res }, null, 0, key), invocationContext);
   } else {
     throw qError(QError_invalidJsxNodeType, type);
   }
@@ -131,8 +131,8 @@ export const processNode = (
       }
       const vnode = new ProcessedJSXNodeImpl(
         textType,
-        props,
-        immutableProps,
+        varProps,
+        constProps,
         convertedChildren,
         flags,
         key
@@ -145,8 +145,8 @@ export const processNode = (
   } else {
     const vnode = new ProcessedJSXNodeImpl(
       textType,
-      props,
-      immutableProps,
+      varProps,
+      constProps,
       convertedChildren,
       flags,
       key
@@ -188,7 +188,9 @@ export const processData = (
     return newNode;
   } else if (isArray(node)) {
     const output = promiseAll(node.flatMap((n) => processData(n, invocationContext)));
-    return maybeThen(output, (array) => array.flat(100).filter(isNotNullable));
+    return maybeThen(output, (array) => array.flat(100).filter(isNotNullable)) as ValueOrPromise<
+      ProcessedJSXNode[] | ProcessedJSXNode | undefined
+    >;
   } else if (isPromise(node)) {
     return node.then((node) => processData(node, invocationContext));
   } else if (node === SkipRender) {
@@ -227,8 +229,8 @@ export type ProcessedJSXNodeType =
 export interface ProcessedJSXNode {
   $type$: ProcessedJSXNodeType;
   $id$: string;
-  $props$: Record<string, any>;
-  $immutableProps$: Record<string, any> | null;
+  $varProps$: Record<string, any>;
+  $constProps$: Record<string, any> | null;
   $flags$: number;
   $children$: ProcessedJSXNode[];
   $key$: string | null;

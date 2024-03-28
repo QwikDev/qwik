@@ -26,7 +26,8 @@ export const enum ChoreType {
   RESOURCE = 2,
   TASK = 3,
   NODE_DIFF = 4,
-  NODE_PROP = 5,
+  // TODO: not needed, updating prop does not require scheduler
+  // NODE_PROP = 5,
   COMPONENT = 6,
   VISIBLE = 7,
   SIMPLE = 8,
@@ -165,7 +166,8 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
     sortedInsert(
       hostChoreQueue,
       { $type$: type, $idx$: idx, $target$: target as any, $payload$: payload },
-      intraHostPredicate
+      intraHostPredicate,
+      choreUpdate
     );
     sortedInsert(
       type == ChoreType.CLEANUP ? hostElementCleanupQueue : hostElementQueue,
@@ -261,15 +263,16 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
         return runComputed2(chore.$payload$ as Task<TaskFn, TaskFn>, container, host);
       case ChoreType.TASK:
         return runSubscriber2(chore.$payload$ as Task<TaskFn, TaskFn>, container, host);
-      case ChoreType.NODE_DIFF:
+      case ChoreType.NODE_DIFF: {
         const parentVirtualNode = chore.$target$ as VirtualVNode;
         const jsx = chore.$payload$ as JSXOutput;
-        vnode_diff(container as fixMeAny, jsx, parentVirtualNode);
-        break;
-      case ChoreType.CLEANUP:
+        return vnode_diff(container as fixMeAny, jsx, parentVirtualNode);
+      }
+      case ChoreType.CLEANUP: {
         const task = chore.$payload$ as Task<TaskFn, TaskFn>;
         task.$destroy$ && task.$destroy$();
         break;
+      }
       case ChoreType.SIMPLE:
         return (chore.$target$ as QRLInternal<(...args: unknown[]) => unknown>).getFn()();
     }
@@ -299,6 +302,17 @@ const toNumber = (value: number | string): number => {
   return typeof value === 'number' ? value : -1;
 };
 
+/**
+ * When a derived signal is update we need to run vnode_diff. However the signal can update multiple
+ * times during component execution. For this reason it is necessary for us to update the schedule
+ * work with the latest result of the signal.
+ */
+const choreUpdate = (existing: Chore, newChore: Chore): void => {
+  if (existing.$type$ === ChoreType.NODE_DIFF) {
+    existing.$payload$ = newChore.$payload$;
+  }
+};
+
 export const intraHostPredicate = (a: Chore, b: Chore): number => {
   const idxDiff = toNumber(a.$idx$) - toNumber(b.$idx$);
   if (idxDiff !== 0) {
@@ -307,6 +321,14 @@ export const intraHostPredicate = (a: Chore, b: Chore): number => {
   const typeDiff = a.$type$ - b.$type$;
   if (typeDiff !== 0) {
     return typeDiff;
+  }
+  if (a.$payload$ !== b.$payload$) {
+    return 0;
+  }
+  if (a.$payload$ instanceof Task && b.$payload$ instanceof Task) {
+    const aHash = a.$payload$.$qrl$.$hash$;
+    const bHash = b.$payload$.$qrl$.$hash$;
+    return aHash === bHash ? 0 : aHash < bHash ? -1 : 1;
   }
   return 0;
 };
@@ -337,13 +359,20 @@ function sortedFindIndex<T>(
   }
   return ~bottom;
 }
-function sortedInsert<T>(sortedArray: T[], value: T, comparator: (a: T, b: T) => number) {
+function sortedInsert<T>(
+  sortedArray: T[],
+  value: T,
+  comparator: (a: T, b: T) => number,
+  updater?: (a: T, b: T) => void
+) {
   /// We need to ensure that the `queue` is sorted by priority.
   /// 1. Find a place where to insert into.
   const idx = sortedFindIndex(sortedArray, value, comparator);
   if (idx < 0) {
     /// 2. Insert the chore into the queue.
     sortedArray.splice(~idx, 0, value);
+  } else if (updater) {
+    updater(sortedArray[idx], value);
   }
 }
 

@@ -12,10 +12,33 @@ title: \@builder.io/qwik-city/vite/bun-server API Reference
 export declare function bunServerAdapter(opts?: bunServerAdapterOptions): any;
 ```
 
-| Parameter | Type                                                | Description  |
-| --------- | --------------------------------------------------- | ------------ |
-| opts      | [bunServerAdapterOptions](#bunserveradapteroptions) | _(Optional)_ |
+<table><thead><tr><th>
 
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+opts
+
+</td><td>
+
+[bunServerAdapterOptions](#bunserveradapteroptions)
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
 **Returns:**
 
 any
@@ -32,8 +55,38 @@ export interface bunServerAdapterOptions extends ServerAdapterOptions
 
 **Extends:** ServerAdapterOptions
 
-| Property   | Modifiers | Type   | Description                |
-| ---------- | --------- | ------ | -------------------------- |
-| [name?](#) |           | string | **_(ALPHA)_** _(Optional)_ |
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[name?](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+**_(ALPHA)_** _(Optional)_
+
+</td></tr>
+</tbody></table>
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/bun-server/vite/index.ts)

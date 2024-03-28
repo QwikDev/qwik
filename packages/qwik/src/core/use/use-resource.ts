@@ -1,6 +1,6 @@
 import { isServerPlatform } from '../platform/platform';
 import { assertQrl } from '../qrl/qrl-class';
-import { $, type QRL } from '../qrl/qrl.public';
+import { dollar, type QRL } from '../qrl/qrl.public';
 import { Fragment, jsx } from '../render/jsx/jsx-runtime';
 import { untrack, useBindInvokeContext } from './use-core';
 import {
@@ -22,6 +22,7 @@ import { createProxy, type StoreTracker } from '../state/store';
 import { isPromise } from '../util/promises';
 import { isObject } from '../util/types';
 import { useSequentialScope } from './use-sequential-scope';
+import { EMPTY_ARRAY } from '../util/flyweight';
 
 /**
  * Options to pass to `useResource$()`
@@ -113,7 +114,7 @@ export const useResourceQrl = <T>(
     resource,
     null
   ) as ResourceDescriptor<any>;
-  const previousWait = Promise.all(iCtx.$waitOn$.slice());
+  const previousWait = Promise.all(iCtx.$waitOn$ ? iCtx.$waitOn$.slice() : EMPTY_ARRAY);
   runResource(task, containerState, iCtx.$renderCtx$, previousWait);
   if (!iCtx.$container2$) {
     if (!elCtx.$tasks$) {
@@ -185,7 +186,7 @@ export const useResource$ = <T>(
   generatorFn: ResourceFn<T>,
   opts?: ResourceOptions
 ): ResourceReturn<T> => {
-  return useResourceQrl<T>($(generatorFn), opts);
+  return useResourceQrl<T>(dollar(generatorFn), opts);
 };
 
 /** @public */

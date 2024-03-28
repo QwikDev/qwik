@@ -1,5 +1,5 @@
 import { assertDefined } from '../error/assert';
-import { RenderEvent } from '../util/markers';
+import { QScopedStyle, RenderEvent } from '../util/markers';
 import { maybeThen, promiseAllLazy, safeCall } from '../util/promises';
 import { newInvokeContext } from '../use/use-core';
 import { isArray, isFunction, isString, type ValueOrPromise } from '../util/types';
@@ -20,6 +20,8 @@ import { isServerPlatform } from '../platform/platform';
 import { executeSSRTasks } from './dom/notify-render';
 import { logWarn } from '../util/log';
 import { SubscriptionType } from '../state/common';
+import { type HostElement } from '../../server/qwik-types';
+import { vnode_getProp, vnode_isVNode } from '../v2/client/vnode';
 
 export interface ExecuteComponentOutput {
   node: JSXOutput;
@@ -143,6 +145,21 @@ export const serializeClassWithHost = (
 ): string => {
   if (hostCtx?.$scopeIds$?.length) {
     return hostCtx.$scopeIds$.join(' ') + ' ' + serializeClass(obj);
+  }
+  return serializeClass(obj);
+};
+
+export const serializeClassWithHost2 = (
+  obj: ClassList,
+  host: HostElement | undefined | null
+): string => {
+  if (host) {
+    const scopedStyleIdsString = vnode_isVNode(host)
+      ? vnode_getProp(host, QScopedStyle, null)
+      : host.getProp(QScopedStyle);
+    if (scopedStyleIdsString && scopedStyleIdsString.length) {
+      return scopedStyleIdsString + ' ' + serializeClass(obj);
+    }
   }
   return serializeClass(obj);
 };

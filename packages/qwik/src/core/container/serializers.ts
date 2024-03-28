@@ -389,7 +389,7 @@ const JSXNodeSerializer = /*#__PURE__*/ serializer<JSXNode>({
   $collect$: (node, collector, leaks) => {
     collectValue(node.children, collector, leaks);
     collectValue(node.props, collector, leaks);
-    collectValue(node.immutableProps, collector, leaks);
+    collectValue(node.constProps, collector, leaks);
     collectValue(node.key, collector, leaks);
     let type = node.type;
     if (type === Slot) {
@@ -406,7 +406,7 @@ const JSXNodeSerializer = /*#__PURE__*/ serializer<JSXNode>({
     } else if (type === Fragment) {
       type = ':fragment';
     }
-    return `${getObjID(type)} ${getObjID(node.props)} ${getObjID(node.immutableProps)} ${getObjID(
+    return `${getObjID(type)} ${getObjID(node.props)} ${getObjID(node.constProps)} ${getObjID(
       node.key
     )} ${getObjID(node.children)} ${node.flags}`;
   },
@@ -425,7 +425,7 @@ const JSXNodeSerializer = /*#__PURE__*/ serializer<JSXNode>({
   $fill$: (node, getObject) => {
     node.type = getResolveJSXType(getObject(node.type as string));
     node.props = getObject(node.props as any as string);
-    node.immutableProps = getObject(node.immutableProps as any as string);
+    node.constProps = getObject(node.constProps as any as string);
     node.key = getObject(node.key as string);
     node.children = getObject(node.children as string);
   },

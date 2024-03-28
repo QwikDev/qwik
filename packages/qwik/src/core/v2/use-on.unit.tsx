@@ -1,13 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
-import { component$ } from '../component/component.public';
-import { inlinedQrl } from '../qrl/qrl';
-import { useLexicalScope } from '../use/use-lexical-scope.public';
-import { useOn, useOnDocument, useOnWindow } from '../use/use-on';
-import { useSignal } from '../use/use-signal';
+import {
+  $,
+  Fragment as Component,
+  Fragment as Signal,
+  component$,
+  useOn,
+  useOnDocument,
+  useOnWindow,
+  useSignal,
+  useVisibleTask$,
+} from '@builder.io/qwik';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
-import { useVisibleTaskQrl } from '../use/use-task';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -22,21 +27,25 @@ Error.stackTraceLimit = 100;
         const count = useSignal(props.initial);
         useOn(
           'click',
-          inlinedQrl(() => useLexicalScope()[0].value++, 's_onClick', [count])
+          $(() => count.value++)
         );
         return <button>Count: {count.value}!</button>;
       });
 
       const { vNode, container } = await render(<Counter initial={123} />, { debug });
       expect(vNode).toMatchVDOM(
-        <>
-          <button>Count: {'123'}!</button>
-        </>
+        <Component>
+          <button>
+            Count: <Signal>{'123'}</Signal>!
+          </button>
+        </Component>
       );
       await trigger(container.element, 'button', 'click');
       expect(vNode).toMatchVDOM(
         <>
-          <button>Count: {'124'}!</button>
+          <button>
+            Count: <Signal>{'124'}</Signal>!
+          </button>
         </>
       );
     });
@@ -46,49 +55,53 @@ Error.stackTraceLimit = 100;
         const count = useSignal(props.initial);
         useOn(
           'click',
-          inlinedQrl(() => useLexicalScope()[0].value++, 's_onClick', [count])
+          $(() => count.value++)
         );
         useOn(
           'focus',
-          inlinedQrl(
-            () => {
-              useLexicalScope()[0].value += 2;
-            },
-            's_onFocus',
-            [count]
-          )
+          $(() => {
+            count.value += 2;
+          })
         );
-        useVisibleTaskQrl(
-          inlinedQrl(() => (useLexicalScope()[0].value += 2), 's_visibleTask', [count])
-        );
+        useVisibleTask$(() => {
+          count.value += 2;
+        });
         return <button>Count: {count.value}!</button>;
       });
 
       const { vNode, container } = await render(<Counter initial={123} />, { debug });
       if (render === ssrRenderToDom) {
         expect(vNode).toMatchVDOM(
-          <>
-            <button>Count: {'123'}!</button>
-          </>
+          <Component>
+            <button>
+              Count: <Signal>{'123'}</Signal>!
+            </button>
+          </Component>
         );
         await trigger(container.element, 'button', 'qvisible');
       }
       expect(vNode).toMatchVDOM(
-        <>
-          <button>Count: {'125'}!</button>
-        </>
+        <Component>
+          <button>
+            Count: <Signal>{'125'}</Signal>!
+          </button>
+        </Component>
       );
       await trigger(container.element, 'button', 'click');
       expect(vNode).toMatchVDOM(
-        <>
-          <button>Count: {'126'}!</button>
-        </>
+        <Component>
+          <button>
+            Count: <Signal>{'126'}</Signal>!
+          </button>
+        </Component>
       );
       await trigger(container.element, 'button', 'focus');
       expect(vNode).toMatchVDOM(
-        <>
-          <button>Count: {'128'}!</button>
-        </>
+        <Component>
+          <button>
+            Count: <Signal>{'128'}</Signal>!
+          </button>
+        </Component>
       );
     });
 
@@ -97,34 +110,34 @@ Error.stackTraceLimit = 100;
         const count = useSignal(props.initial);
         useOn(
           'click',
-          inlinedQrl(() => useLexicalScope()[0].value++, 's_onClick', [count])
+          $(() => count.value++)
         );
-        return (
-          <button
-            onFocus$={inlinedQrl(() => (useLexicalScope()[0].value += 2), 's_onFocus', [count])}
-          >
-            Count: {count.value}!
-          </button>
-        );
+        return <button onFocus$={() => (count.value += 2)}>Count: {count.value}!</button>;
       });
 
       const { vNode, container } = await render(<Counter initial={123} />, { debug });
       expect(vNode).toMatchVDOM(
-        <>
-          <button>Count: {'123'}!</button>
-        </>
+        <Component>
+          <button>
+            Count: <Signal>{'123'}</Signal>!
+          </button>
+        </Component>
       );
       await trigger(container.element, 'button', 'click');
       expect(vNode).toMatchVDOM(
-        <>
-          <button>Count: {'124'}!</button>
-        </>
+        <Component>
+          <button>
+            Count: <Signal>{'124'}</Signal>!
+          </button>
+        </Component>
       );
       await trigger(container.element, 'button', 'focus');
       expect(vNode).toMatchVDOM(
-        <>
-          <button>Count: {'126'}!</button>
-        </>
+        <Component>
+          <button>
+            Count: <Signal>{'126'}</Signal>!
+          </button>
+        </Component>
       );
     });
   });
@@ -135,23 +148,27 @@ Error.stackTraceLimit = 100;
         const count = useSignal(props.initial);
         useOnDocument(
           'click',
-          inlinedQrl(() => useLexicalScope()[0].value++, 's_onClick', [count])
+          $(() => count.value++)
         );
         return <button>Count: {count.value}!</button>;
       });
 
       const { vNode, container } = await render(<Counter initial={123} />, { debug });
       expect(vNode).toMatchVDOM(
-        <>
-          <button>Count: {'123'}!</button>
-        </>
+        <Component>
+          <button>
+            Count: <Signal>{'123'}</Signal>!
+          </button>
+        </Component>
       );
 
       await trigger(container.element, 'button', ':document:click');
       expect(vNode).toMatchVDOM(
-        <>
-          <button>Count: {'124'}!</button>
-        </>
+        <Component>
+          <button>
+            Count: <Signal>{'124'}</Signal>!
+          </button>
+        </Component>
       );
     });
 
@@ -160,49 +177,53 @@ Error.stackTraceLimit = 100;
         const count = useSignal(props.initial);
         useOnDocument(
           'click',
-          inlinedQrl(() => useLexicalScope()[0].value++, 's_onClick', [count])
+          $(() => count.value++)
         );
         useOnDocument(
           'focus',
-          inlinedQrl(
-            () => {
-              useLexicalScope()[0].value += 2;
-            },
-            's_onFocus',
-            [count]
-          )
+          $(() => {
+            count.value += 2;
+          })
         );
-        useVisibleTaskQrl(
-          inlinedQrl(() => (useLexicalScope()[0].value += 2), 's_visibleTask', [count])
-        );
+        useVisibleTask$(() => {
+          count.value += 2;
+        });
         return <button>Count: {count.value}!</button>;
       });
 
       const { vNode, container } = await render(<Counter initial={123} />, { debug });
       if (render === ssrRenderToDom) {
         expect(vNode).toMatchVDOM(
-          <>
-            <button>Count: {'123'}!</button>
-          </>
+          <Component>
+            <button>
+              Count: <Signal>{'123'}</Signal>!
+            </button>
+          </Component>
         );
         await trigger(container.element, 'button', 'qvisible');
       }
       expect(vNode).toMatchVDOM(
-        <>
-          <button>Count: {'125'}!</button>
-        </>
+        <Component>
+          <button>
+            Count: <Signal>{'125'}</Signal>!
+          </button>
+        </Component>
       );
       await trigger(container.element, 'button', ':document:click');
       expect(vNode).toMatchVDOM(
-        <>
-          <button>Count: {'126'}!</button>
-        </>
+        <Component>
+          <button>
+            Count: <Signal>{'126'}</Signal>!
+          </button>
+        </Component>
       );
       await trigger(container.element, 'button', ':document:focus');
       expect(vNode).toMatchVDOM(
-        <>
-          <button>Count: {'128'}!</button>
-        </>
+        <Component>
+          <button>
+            Count: <Signal>{'128'}</Signal>!
+          </button>
+        </Component>
       );
     });
 
@@ -211,34 +232,34 @@ Error.stackTraceLimit = 100;
         const count = useSignal(props.initial);
         useOnWindow(
           'click',
-          inlinedQrl(() => useLexicalScope()[0].value++, 's_onClick', [count])
+          $(() => count.value++)
         );
-        return (
-          <button
-            onFocus$={inlinedQrl(() => (useLexicalScope()[0].value += 2), 's_onFocus', [count])}
-          >
-            Count: {count.value}!
-          </button>
-        );
+        return <button onFocus$={() => (count.value += 2)}>Count: {count.value}!</button>;
       });
 
       const { vNode, container } = await render(<Counter initial={123} />, { debug });
       expect(vNode).toMatchVDOM(
-        <>
-          <button>Count: {'123'}!</button>
-        </>
+        <Component>
+          <button>
+            Count: <Signal>{'123'}</Signal>!
+          </button>
+        </Component>
       );
       await trigger(container.element, 'button', ':window:click');
       expect(vNode).toMatchVDOM(
-        <>
-          <button>Count: {'124'}!</button>
-        </>
+        <Component>
+          <button>
+            Count: <Signal>{'124'}</Signal>!
+          </button>
+        </Component>
       );
       await trigger(container.element, 'button', 'focus');
       expect(vNode).toMatchVDOM(
-        <>
-          <button>Count: {'126'}!</button>
-        </>
+        <Component>
+          <button>
+            Count: <Signal>{'126'}</Signal>!
+          </button>
+        </Component>
       );
     });
   });
@@ -249,23 +270,27 @@ Error.stackTraceLimit = 100;
         const count = useSignal(props.initial);
         useOnWindow(
           'click',
-          inlinedQrl(() => useLexicalScope()[0].value++, 's_onClick', [count])
+          $(() => count.value++)
         );
         return <button>Count: {count.value}!</button>;
       });
 
       const { vNode, container } = await render(<Counter initial={123} />, { debug });
       expect(vNode).toMatchVDOM(
-        <>
-          <button>Count: {'123'}!</button>
-        </>
+        <Component>
+          <button>
+            Count: <Signal>{'123'}</Signal>!
+          </button>
+        </Component>
       );
 
       await trigger(container.element, 'button', ':window:click');
       expect(vNode).toMatchVDOM(
-        <>
-          <button>Count: {'124'}!</button>
-        </>
+        <Component>
+          <button>
+            Count: <Signal>{'124'}</Signal>!
+          </button>
+        </Component>
       );
     });
 
@@ -274,49 +299,53 @@ Error.stackTraceLimit = 100;
         const count = useSignal(props.initial);
         useOnWindow(
           'click',
-          inlinedQrl(() => useLexicalScope()[0].value++, 's_onClick', [count])
+          $(() => count.value++)
         );
         useOnWindow(
           'focus',
-          inlinedQrl(
-            () => {
-              useLexicalScope()[0].value += 2;
-            },
-            's_onFocus',
-            [count]
-          )
+          $(() => {
+            count.value += 2;
+          })
         );
-        useVisibleTaskQrl(
-          inlinedQrl(() => (useLexicalScope()[0].value += 2), 's_visibleTask', [count])
-        );
+        useVisibleTask$(() => {
+          count.value += 2;
+        });
         return <button>Count: {count.value}!</button>;
       });
 
       const { vNode, container } = await render(<Counter initial={123} />, { debug });
       if (render === ssrRenderToDom) {
         expect(vNode).toMatchVDOM(
-          <>
-            <button>Count: {'123'}!</button>
-          </>
+          <Component>
+            <button>
+              Count: <Signal>{'123'}</Signal>!
+            </button>
+          </Component>
         );
         await trigger(container.element, 'button', 'qvisible');
       }
       expect(vNode).toMatchVDOM(
-        <>
-          <button>Count: {'125'}!</button>
-        </>
+        <Component>
+          <button>
+            Count: <Signal>{'125'}</Signal>!
+          </button>
+        </Component>
       );
       await trigger(container.element, 'button', ':window:click');
       expect(vNode).toMatchVDOM(
-        <>
-          <button>Count: {'126'}!</button>
-        </>
+        <Component>
+          <button>
+            Count: <Signal>{'126'}</Signal>!
+          </button>
+        </Component>
       );
       await trigger(container.element, 'button', ':window:focus');
       expect(vNode).toMatchVDOM(
-        <>
-          <button>Count: {'128'}!</button>
-        </>
+        <Component>
+          <button>
+            Count: <Signal>{'128'}</Signal>!
+          </button>
+        </Component>
       );
     });
 
@@ -325,34 +354,34 @@ Error.stackTraceLimit = 100;
         const count = useSignal(props.initial);
         useOnDocument(
           'click',
-          inlinedQrl(() => useLexicalScope()[0].value++, 's_onClick', [count])
+          $(() => count.value++)
         );
-        return (
-          <button
-            onFocus$={inlinedQrl(() => (useLexicalScope()[0].value += 2), 's_onFocus', [count])}
-          >
-            Count: {count.value}!
-          </button>
-        );
+        return <button onFocus$={() => (count.value += 2)}>Count: {count.value}!</button>;
       });
 
       const { vNode, container } = await render(<Counter initial={123} />, { debug });
       expect(vNode).toMatchVDOM(
-        <>
-          <button>Count: {'123'}!</button>
-        </>
+        <Component>
+          <button>
+            Count: <Signal>{'123'}</Signal>!
+          </button>
+        </Component>
       );
       await trigger(container.element, 'button', ':document:click');
       expect(vNode).toMatchVDOM(
-        <>
-          <button>Count: {'124'}!</button>
-        </>
+        <Component>
+          <button>
+            Count: <Signal>{'124'}</Signal>!
+          </button>
+        </Component>
       );
       await trigger(container.element, 'button', 'focus');
       expect(vNode).toMatchVDOM(
-        <>
-          <button>Count: {'126'}!</button>
-        </>
+        <Component>
+          <button>
+            Count: <Signal>{'126'}</Signal>!
+          </button>
+        </Component>
       );
     });
   });
@@ -362,77 +391,75 @@ Error.stackTraceLimit = 100;
       const count = useSignal(props.initial);
       useOn(
         'click',
-        inlinedQrl(() => useLexicalScope()[0].value++, 's_onClick', [count])
+        $(() => count.value++)
       );
       useOnWindow(
         'focus',
-        inlinedQrl(
-          () => {
-            useLexicalScope()[0].value += 2;
-          },
-          's_onFocus',
-          [count]
-        )
+        $(() => {
+          count.value += 2;
+        })
       );
       useOnDocument(
         'blur',
-        inlinedQrl(
-          () => {
-            useLexicalScope()[0].value += 3;
-          },
-          's_onBlur',
-          [count]
-        )
+        $(() => {
+          count.value += 3;
+        })
       );
-      useVisibleTaskQrl(
-        inlinedQrl(() => (useLexicalScope()[0].value += 2), 's_visibleTask', [count])
-      );
-      return (
-        <button
-          onResize$={inlinedQrl(() => (useLexicalScope()[0].value += 4), 's_onResize', [count])}
-        >
-          Count: {count.value}!
-        </button>
-      );
+      useVisibleTask$(() => {
+        count.value += 2;
+      });
+      return <button onResize$={() => (count.value += 4)}>Count: {count.value}!</button>;
     });
 
     const { vNode, container } = await render(<Counter initial={123} />, { debug });
     if (render === ssrRenderToDom) {
       expect(vNode).toMatchVDOM(
-        <>
-          <button>Count: {'123'}!</button>
-        </>
+        <Component>
+          <button>
+            Count: <Signal>{'123'}</Signal>!
+          </button>
+        </Component>
       );
       await trigger(container.element, 'button', 'qvisible');
     }
     expect(vNode).toMatchVDOM(
-      <>
-        <button>Count: {'125'}!</button>
-      </>
+      <Component>
+        <button>
+          Count: <Signal>{'125'}</Signal>!
+        </button>
+      </Component>
     );
     await trigger(container.element, 'button', 'click');
     expect(vNode).toMatchVDOM(
-      <>
-        <button>Count: {'126'}!</button>
-      </>
+      <Component>
+        <button>
+          Count: <Signal>{'126'}</Signal>!
+        </button>
+      </Component>
     );
     await trigger(container.element, 'button', ':window:focus');
     expect(vNode).toMatchVDOM(
-      <>
-        <button>Count: {'128'}!</button>
-      </>
+      <Component>
+        <button>
+          Count: <Signal>{'128'}</Signal>!
+        </button>
+      </Component>
     );
     await trigger(container.element, 'button', ':document:blur');
     expect(vNode).toMatchVDOM(
-      <>
-        <button>Count: {'131'}!</button>
-      </>
+      <Component>
+        <button>
+          Count: <Signal>{'131'}</Signal>!
+        </button>
+      </Component>
     );
     await trigger(container.element, 'button', 'resize');
     expect(vNode).toMatchVDOM(
-      <>
-        <button>Count: {'135'}!</button>
-      </>
+      <Component>
+        <button>
+          Count: <Signal>{'135'}</Signal>!
+        </button>
+      </Component>
     );
   });
 });

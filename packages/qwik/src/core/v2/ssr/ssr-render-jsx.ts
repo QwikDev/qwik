@@ -25,6 +25,7 @@ import { DEBUG_TYPE, VirtualType, type fixMeAny } from '../shared/types';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
 import type { SSRContainer, SsrAttrs } from './ssr-types';
 import { _CONST_PROPS } from '../../internal';
+import { ELEMENT_KEY } from '../../util/markers';
 
 type StackFn = () => ValueOrPromise<void>;
 type StackValue = JSXOutput | StackFn | Promise<JSXOutput> | typeof Promise;
@@ -130,7 +131,7 @@ function processJSXNode(
         ssr.openElement(
           type,
           toSsrAttrs(jsx.varProps, ssr.serializationCtx),
-          toSsrAttrs(jsx.constProps, ssr.serializationCtx)
+          toSsrAttrs(jsx.constProps, ssr.serializationCtx, jsx.key)
         );
         enqueue(ssr.closeElement);
         if (type === 'head') {
@@ -209,15 +210,18 @@ function processJSXNode(
 
 export function toSsrAttrs(
   record: Record<string, unknown>,
-  serializationCtx: SerializationContext
+  serializationCtx: SerializationContext,
+  key?: string | null
 ): SsrAttrs;
 export function toSsrAttrs(
   record: Record<string, unknown> | null | undefined,
-  serializationCtx: SerializationContext
+  serializationCtx: SerializationContext,
+  key?: string | null
 ): SsrAttrs | null;
 export function toSsrAttrs(
   record: Record<string, unknown> | null | undefined,
-  serializationCtx: SerializationContext
+  serializationCtx: SerializationContext,
+  key?: string | null
 ): SsrAttrs | null {
   if (record == null) {
     return null;
@@ -251,6 +255,9 @@ export function toSsrAttrs(
     }
 
     ssrAttrs.push(key, value as string);
+  }
+  if (key != null) {
+    ssrAttrs.push(ELEMENT_KEY, key);
   }
   return ssrAttrs;
 }

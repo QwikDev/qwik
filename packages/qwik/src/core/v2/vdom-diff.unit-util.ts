@@ -70,14 +70,15 @@ function diffJsxVNode(received: VNode, expected: JSXNode | string, path: string[
     if (!isTagSame) {
       diffs.push(path.join(' > ') + ' expecting=' + expected.type + ' received=' + receivedTag);
     }
-    const expectedProps = expected.props ? Object.keys(expected.props).sort() : [];
+    const allProps: string[] = [];
+    propsAdd(allProps, Object.keys(expected.varProps));
+    expected.constProps && propsAdd(allProps, Object.keys(expected.constProps));
     const receivedElement = vnode_isElementVNode(received)
       ? (vnode_getNode(received) as Element)
       : null;
-    const receivedProps = vnode_isElementVNode(received) ? vnode_getAttrKeys(received).sort() : [];
-    receivedElement && addConstPropsFromElement(receivedProps, receivedElement);
-    const allProps = new Set([...expectedProps, ...receivedProps]);
-    allProps.delete('children');
+    propsAdd(allProps, vnode_isElementVNode(received) ? vnode_getAttrKeys(received).sort() : []);
+    receivedElement && propsAdd(allProps, addConstPropsFromElement(receivedElement));
+    allProps.sort();
     allProps.forEach((prop) => {
       if (isJsxPropertyAnEventName(prop) || isHtmlAttributeAnEventName(prop)) {
         return;
@@ -260,13 +261,32 @@ export function vnode_fromJSX(jsx: JSXOutput) {
   vnode_applyJournal(journal);
   return { vParent, vNode: vnode_getFirstChild(vParent), document: doc };
 }
-function addConstPropsFromElement(receivedProps: string[], element: Element) {
+function addConstPropsFromElement(element: Element) {
+  const props: string[] = [];
   for (let i = 0; i < element.attributes.length; i++) {
     const attr = element.attributes[i];
-    if (!receivedProps.includes(attr.name) && attr.name !== ':') {
-      receivedProps.push(attr.name);
+    if (attr.name !== '' && attr.name !== ':') {
+      props.push(attr.name);
     }
   }
-  receivedProps.sort();
+  props.sort();
+  return props;
+}
+
+function propsAdd(existing: string[], incoming: string[]) {
+  for (const prop of incoming) {
+    if (prop !== 'children') {
+      let found = false;
+      for (let i = 0; i < existing.length; i++) {
+        if (existing[i].toLowerCase() === prop.toLowerCase()) {
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        existing.push(prop);
+      }
+    }
+  }
 }
 

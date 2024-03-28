@@ -3686,26 +3686,21 @@ export type PropFunctionProps<PROPS extends Record<any, any>> = {
 Infers `Props` from the component or tag.
 
 ```typescript
-export type PropsOf<COMP> =
-  IsAny<COMP> extends true
+export type PropsOf<COMP> = COMP extends string
+  ? COMP extends keyof QwikIntrinsicElements
+    ? QwikIntrinsicElements[COMP]
+    : QwikIntrinsicElements["span"]
+  : NonNullable<COMP> extends never
     ? never
-    : unknown extends COMP
-      ? never
-      : COMP extends string
-        ? COMP extends keyof QwikIntrinsicElements
-          ? QwikIntrinsicElements[COMP]
-          : QwikIntrinsicElements["span"]
-        : NonNullable<COMP> extends never
+    : COMP extends FunctionComponent<infer PROPS>
+      ? PROPS extends Record<any, infer V>
+        ? IsAny<V> extends true
           ? never
-          : COMP extends FunctionComponent<infer PROPS>
-            ? PROPS extends Record<any, infer V>
-              ? IsAny<V> extends true
-                ? never
-                : ObjectProps<PROPS>
-              : COMP extends Component<infer OrigProps>
-                ? ObjectProps<OrigProps>
-                : PROPS
-            : never;
+          : ObjectProps<PROPS>
+        : COMP extends Component<infer OrigProps>
+          ? ObjectProps<OrigProps>
+          : PROPS
+      : never;
 ```
 
 **References:** [QwikIntrinsicElements](#qwikintrinsicelements), [FunctionComponent](#functioncomponent), [Component](#component)

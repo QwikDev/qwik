@@ -5,13 +5,11 @@
  *   these tests call the internal JSX methods directly instead of relying on the JSX syntax.
  */
 
-import { Fragment as Component } from '@builder.io/qwik/jsx-runtime';
+import { Fragment as Component, Fragment as Signal } from '@builder.io/qwik/jsx-runtime';
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
 import { component$ } from '../component/component.public';
-import { _CONST_PROPS, _jsxC, _jsxQ } from '../internal';
-import { inlinedQrl } from '../qrl/qrl';
-import { useLexicalScope } from '../use/use-lexical-scope.public';
+import { _CONST_PROPS, _jsxC } from '../internal';
 import { useSignal } from '../use/use-signal';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import type { fixMeAny } from './shared/types';
@@ -28,33 +26,20 @@ Error.stackTraceLimit = 100;
     it('should handle immutable props', async () => {
       (globalThis as any).log = [] as string[];
       const MyCmp = component$((props: { initial: number }) => {
-        const count = useSignal(123);
+        const count = useSignal(props.initial);
         (globalThis as any).log.push('render');
-        return _jsxQ(
-          'button',
-          null, // mutable props
-          {
-            // immutable props
-            'data-text': 'TEXT',
-            'data-idx': 3,
-            class: ['abc', { xyz: true }],
-            onClick$: inlinedQrl(
-              () => {
-                (globalThis as any).log.push('click');
-                useLexicalScope()[0].value++;
-              },
-              's_click',
-              [count]
-            ),
-          },
-          count.value,
-          3,
-          null,
-          {
-            fileName: 'app.tsx',
-            lineNumber: 4,
-            columnNumber: 10,
-          }
+        return (
+          <button
+            data-text="TEXT"
+            data-idx={3}
+            class={['abc', { xyz: true }]}
+            onClick$={() => {
+              (globalThis as any).log.push('click');
+              count.value++;
+            }}
+          >
+            {count.value}
+          </button>
         );
       });
 
@@ -65,20 +50,24 @@ Error.stackTraceLimit = 100;
       expect(button.getAttribute('data-idx')).toEqual('3');
       expect(button.getAttribute('class')).toEqual('abc xyz');
       expect(vNode).toMatchVDOM(
-        <>
-          <button>123</button>
-        </>
+        <Component>
+          <button data-text="TEXT" data-idx="3" class="abc xyz">
+            <Signal>123</Signal>
+          </button>
+        </Component>
       );
       (globalThis as any).log.length = 0;
       await trigger(document.body, 'button', 'click');
-      expect((globalThis as any).log).toEqual(['click', 'render']);
+      expect((globalThis as any).log).toEqual(['click']);
       expect(button.getAttribute('data-text')).toEqual('TEXT');
       expect(button.getAttribute('data-idx')).toEqual('3');
       expect(button.getAttribute('class')).toEqual('abc xyz');
       expect(vNode).toMatchVDOM(
-        <>
-          <button>124</button>
-        </>
+        <Component>
+          <button data-text="TEXT" data-idx="3" class="abc xyz">
+            <Signal>124</Signal>
+          </button>
+        </Component>
       );
       (globalThis as any).log.length = 0;
     });

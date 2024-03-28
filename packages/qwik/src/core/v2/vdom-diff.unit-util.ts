@@ -71,13 +71,13 @@ function diffJsxVNode(received: VNode, expected: JSXNode | string, path: string[
       diffs.push(path.join(' > ') + ' expecting=' + expected.type + ' received=' + receivedTag);
     }
     const allProps: string[] = [];
-    propsAdd(allProps, Object.keys(expected.varProps));
+    expected.varProps && propsAdd(allProps, Object.keys(expected.varProps));
     expected.constProps && propsAdd(allProps, Object.keys(expected.constProps));
     const receivedElement = vnode_isElementVNode(received)
       ? (vnode_getNode(received) as Element)
       : null;
     propsAdd(allProps, vnode_isElementVNode(received) ? vnode_getAttrKeys(received).sort() : []);
-    receivedElement && propsAdd(allProps, addConstPropsFromElement(receivedElement));
+    receivedElement && propsAdd(allProps, constPropsFromElement(receivedElement));
     allProps.sort();
     allProps.forEach((prop) => {
       if (isJsxPropertyAnEventName(prop) || isHtmlAttributeAnEventName(prop)) {
@@ -232,7 +232,8 @@ export function vnode_fromJSX(jsx: JSXOutput) {
         const child = vnode_newUnMaterializedElement(vParent, doc.createElement(type));
         vnode_insertBefore(journal, vParent, child, null);
 
-        const props = jsx.props;
+        // TODO(hack): jsx.props is an empty object
+        const props = jsx.varProps;
         for (const key in props) {
           if (Object.prototype.hasOwnProperty.call(props, key)) {
             vnode_setAttr(journal, child, key, String(props[key]));
@@ -261,7 +262,7 @@ export function vnode_fromJSX(jsx: JSXOutput) {
   vnode_applyJournal(journal);
   return { vParent, vNode: vnode_getFirstChild(vParent), document: doc };
 }
-function addConstPropsFromElement(element: Element) {
+function constPropsFromElement(element: Element) {
   const props: string[] = [];
   for (let i = 0; i < element.attributes.length; i++) {
     const attr = element.attributes[i];
@@ -289,4 +290,3 @@ function propsAdd(existing: string[], incoming: string[]) {
     }
   }
 }
-

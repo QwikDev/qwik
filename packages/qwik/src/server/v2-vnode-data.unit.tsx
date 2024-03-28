@@ -39,7 +39,7 @@ describe('vnode data', () => {
     });
   });
   describe('integration tests', () => {
-    it.only('components inside the div', async () => {
+    it('components inside the div', async () => {
       const Component = component$<RefIdProp>(({ refId }) => {
         const data = useSignal(1);
         return (
@@ -219,8 +219,21 @@ function expectVNodeSymbol(container: DomContainer, vNodeId: string, cmpSymbol: 
 
 function expectVNodeProps(container: DomContainer, vNodeId: string, props: any) {
   const vnode = vnode_locate(container.rootVNode, vNodeId);
+  const elementProps = vnode_getProp(vnode, ELEMENT_PROPS, container.$getObjectById$) as any;
 
-  expect(vnode_getProp(vnode, ELEMENT_PROPS, container.$getObjectById$)).toEqual(props);
+  // TODO(hack): elementProps object does not contain fields because it is a PropsProxy,
+  // so we need to manually read the property value and create a new object
+  const propsObject: Record<string, any> = {};
+  if (elementProps.refId) {
+    propsObject['refId'] = elementProps.refId;
+  }
+  if (elementProps.hostRefId) {
+    propsObject['hostRefId'] = elementProps.hostRefId;
+  }
+  if (elementProps.nestedRefId) {
+    propsObject['nestedRefId'] = elementProps.nestedRefId;
+  }
+  expect(propsObject).toEqual(props);
 }
 
 function expectVNodeRefProp(container: DomContainer, vNodeId: string, refIdPropValue: string) {

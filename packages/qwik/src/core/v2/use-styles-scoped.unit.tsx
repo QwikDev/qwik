@@ -408,7 +408,7 @@ Error.stackTraceLimit = 100;
         <Component>
           <Component>
             <div class={`${(globalThis as any).rawStyleId3} containerB`}>
-              <Projection q:slot="three">
+              <Projection>
                 <Component>
                   <div class={`${(globalThis as any).rawStyleId2} containerA`}>
                     <Projection>

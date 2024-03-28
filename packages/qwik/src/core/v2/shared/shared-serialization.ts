@@ -12,7 +12,7 @@ import {
   JSXNodeImpl,
   createPropsProxy,
   isJSXNode,
-  isPropsProxy
+  isPropsProxy,
 } from '../../render/jsx/jsx-runtime';
 import { Slot } from '../../render/jsx/slot.public';
 import {

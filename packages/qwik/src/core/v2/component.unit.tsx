@@ -6,6 +6,7 @@ import { useSignal } from '../use/use-signal';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
 import type { JSXOutput } from '../render/jsx/types/jsx-node';
+import type { QDocument } from './client/types';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -234,7 +235,7 @@ Error.stackTraceLimit = 100;
       it('should render svg', async () => {
         const SvgComp = component$(() => {
           return (
-            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" key="ka">
               <feGaussianBlur></feGaussianBlur>
               <circle cx="50" cy="50" r="50" />
             </svg>
@@ -249,8 +250,8 @@ Error.stackTraceLimit = 100;
             </svg>
           </Component>
         );
-        expect(container.document.body.innerHTML.toLowerCase()).toContain(
-          '<svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><fegaussianblur></fegaussianblur><circle cx="50" cy="50" r="50"></circle></svg>'
+        expect(getCleanupBodyHTML(container.document)).toContain(
+          '<svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" q:key="ka"><fegaussianblur></fegaussianblur><circle cx="50" cy="50" r="50"></circle></svg>'
         );
       });
       it('should write attributes to svg', async () => {
@@ -269,7 +270,7 @@ Error.stackTraceLimit = 100;
             </svg>
           </Component>
         );
-        expect(container.document.body.innerHTML.toLowerCase()).toContain(
+        expect(getCleanupBodyHTML(container.document)).toContain(
           '<svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="50"></circle></svg>'
         );
       });
@@ -296,7 +297,7 @@ Error.stackTraceLimit = 100;
           </Component>
         );
 
-        expect(container.document.body.innerHTML.toLowerCase()).not.toContain(
+        expect(getCleanupBodyHTML(container.document)).not.toContain(
           '<svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">'
         );
         await trigger(container.element, 'button', 'click');
@@ -312,8 +313,8 @@ Error.stackTraceLimit = 100;
           </Component>
         );
 
-        expect(container.document.body.innerHTML.toLowerCase()).toContain(
-          '<svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="50"></circle></svg>'
+        expect(getCleanupBodyHTML(container.document)).toContain(
+          '<svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" q:key="b9_52"><circle r="50" cx="10" cy="10"></circle></svg>'
         );
 
         await trigger(container.element, 'button', 'click');
@@ -323,8 +324,8 @@ Error.stackTraceLimit = 100;
           </Component>
         );
 
-        expect(container.document.body.innerHTML.toLowerCase()).not.toContain(
-          '<svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">'
+        expect(getCleanupBodyHTML(container.document)).not.toContain(
+          '<svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" q:key="b9_52">'
         );
       });
       it('should rerender svg child elements', async () => {
@@ -359,7 +360,7 @@ Error.stackTraceLimit = 100;
             </button>
           </Component>
         );
-        expect(container.document.body.innerHTML.toLowerCase()).toMatch(
+        expect(getCleanupBodyHTML(container.document)).toMatch(
           '<svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" q:key="hi"><circle cx="15" cy="15" r="50"></circle></svg>'
         );
 
@@ -376,8 +377,8 @@ Error.stackTraceLimit = 100;
             </button>
           </Component>
         );
-        expect(container.document.body.innerHTML.toLowerCase()).toContain(
-          '<svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="15" cy="15" r="50"></circle><line stroke="black" x1="0" x2="100" y1="80" y2="20"></line></svg>'
+        expect(getCleanupBodyHTML(container.document)).toContain(
+          '<svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" q:key="hi"><circle cx="15" cy="15" r="50"></circle><line x1="0" y1="80" x2="100" y2="20" stroke="black" q:key="b9_60"></line></svg>'
         );
 
         await trigger(container.element, 'button', 'click');
@@ -393,8 +394,8 @@ Error.stackTraceLimit = 100;
             </button>
           </Component>
         );
-        expect(container.document.body.innerHTML.toLowerCase()).toContain(
-          '<svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="15" cy="15" r="50"></circle></svg>'
+        expect(getCleanupBodyHTML(container.document)).toContain(
+          '<svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" q:key="hi"><circle cx="15" cy="15" r="50"></circle></svg>'
         );
       });
     });
@@ -545,3 +546,10 @@ Error.stackTraceLimit = 100;
     });
   });
 });
+function getCleanupBodyHTML(document: QDocument): any {
+  let html = document.body.innerHTML;
+  html = html.toLowerCase();
+  html = html.replace(/ =""/g, '');
+  return html;
+}
+

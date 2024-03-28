@@ -8,7 +8,6 @@ describe('PrefetchServiceWorker', () => {
       // eslint-disable-next-line no-console
       const output = await renderToString(<PrefetchServiceWorker />, { containerTagName: 'div' });
       // eslint-disable-next-line no-console
-      console.log('>>>>', output.html);
     });
   });
 });

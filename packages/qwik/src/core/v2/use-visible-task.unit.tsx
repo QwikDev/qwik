@@ -475,8 +475,7 @@ Error.stackTraceLimit = 100;
         (globalThis as any).log = undefined;
       });
 
-      // TODO: later
-      it.skip('should handle promises and visible tasks', async () => {
+      it('should handle promises and visible tasks', async () => {
         // vi.useFakeTimers();
         const MyComp = component$(() => {
           const promise = useSignal<Promise<number>>(Promise.resolve(0));
@@ -509,7 +508,7 @@ Error.stackTraceLimit = 100;
             <p>
               Should have a number: "
               <Fragment>
-                <Signal>2</Signal>
+                <Signal>{render == ssrRenderToDom ? '0' : '2'}</Signal>
               </Fragment>
               "
             </p>

@@ -447,6 +447,13 @@ class PropsProxyHandler implements ProxyHandler<any> {
       (this.$constProps$ ? prop in this.$constProps$ : false);
     return hasProp;
   }
+  getOwnPropertyDescriptor(target: any, p: string | symbol): PropertyDescriptor | undefined {
+    return {
+      configurable: true,
+      enumerable: true,
+      value: this.get(target, p),
+    };
+  }
   ownKeys() {
     const out = Object.keys(this.$varProps$);
     if (this.$constProps$) {

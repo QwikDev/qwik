@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-restricted-imports */
 /**
  * @file
  *
@@ -34,3 +35,4 @@ export {
   isClassAttr,
 } from '../core/v2/shared/scoped-styles';
 export { SubscriptionType } from '../core/state/common';
+export { serializeClass, stringifyStyle } from '../core/render/execute-component';

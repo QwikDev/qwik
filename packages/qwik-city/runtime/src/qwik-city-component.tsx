@@ -87,7 +87,6 @@ export interface QwikCityProps {
 
 /** @public */
 export const QwikCityProvider = component$<QwikCityProps>((props) => {
-  useStyles$(`:root{view-transition-name:none}`);
   const env = useQwikCityEnv();
   if (!env?.params) {
     throw new Error(`Missing Qwik City Env Data`);

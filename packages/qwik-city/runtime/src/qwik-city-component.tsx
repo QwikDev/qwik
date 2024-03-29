@@ -11,7 +11,6 @@ import {
   useTask$,
   _getContextElement,
   _weakSerialize,
-  useStyles$,
   _waitUntilRendered,
 } from '@builder.io/qwik';
 import { isBrowser, isDev, isServer } from '@builder.io/qwik/build';

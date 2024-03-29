@@ -25,16 +25,19 @@
 
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
-import { componentQrl } from '../component/component.public';
+import { component$, componentQrl } from '../component/component.public';
 import { inlinedQrl } from '../qrl/qrl';
-import { Fragment, Fragment as Component } from '../render/jsx/jsx-runtime';
-import type { Signal } from '../state/signal';
-import { useLexicalScope } from '../use/use-lexical-scope.public';
+import {
+  Fragment as Component,
+  Fragment,
+  Fragment as Projection,
+  Fragment as SignalTarget,
+} from '../render/jsx/jsx-runtime';
+import { Slot } from '../render/jsx/slot.public';
 import { useSignal } from '../use/use-signal';
+import { vnode_getNextSibling } from './client/vnode';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
-import { Slot } from '../render/jsx/slot.public';
-import { vnode_getNextSibling } from './client/vnode';
 
 // To better understand what is going on in the test, set DEBUG to true and run the test.
 const DEBUG = false;
@@ -50,7 +53,7 @@ function log(...args: any[]) {
   domRender, // CSR - everything renders on the client.
 ].forEach((render) => {
   // TODO(optimizer-test): adjust sample test at the end
-  describe.skip(render.name + ': contributing', () => {
+  describe(render.name + ': contributing', () => {
     /**
      * This test demonstrates basic rendering of component. Here are the key learnings:
      *
@@ -126,30 +129,20 @@ function log(...args: any[]) {
      */
     it('basic counter', async () => {
       /// Declare a component which renders a counter.
-      /// Notice we use the `inlineQrl` for so that we can assign a name to the symbol for debugging.
-      const Counter = componentQrl(
-        /// use inlinedQrl to assign a `s_counter` to the symbol for debugging.
-        inlinedQrl((props: { initialCount: number }) => {
-          const count = useSignal(props.initialCount);
-          log('Counter', count.value);
-          return (
-            <button
-              onClick$={inlinedQrl(
-                () => {
-                  log('Counter:click');
-                  // Use `useLexicalScope` to recover the `count` from serialization.
-                  const [count] = useLexicalScope<[Signal<number>]>();
-                  count.value++;
-                },
-                's_click', // Use inlinedQrl to assign a `s_click` to the symbol for debugging.
-                [count] // Capture `count` for serialization
-              )}
-            >
-              {count.value}
-            </button>
-          );
-        }, 's_counter')
-      );
+      const Counter = component$((props: { initialCount: number }) => {
+        const count = useSignal(props.initialCount);
+        log('Counter', count.value);
+        return (
+          <button
+            onClick$={() => {
+              log('Counter:click');
+              count.value++;
+            }}
+          >
+            {count.value}
+          </button>
+        );
+      });
       // Render the output of the component.
       const { vNode, document } = await render(<Counter initialCount={123} />, { debug: DEBUG });
       // Perform an action
@@ -157,7 +150,9 @@ function log(...args: any[]) {
       // Assert correct output
       expect(vNode).toMatchVDOM(
         <Component>
-          <button>124</button>
+          <button>
+            <SignalTarget>124</SignalTarget>
+          </button>
         </Component>
       );
     });
@@ -196,9 +191,9 @@ function log(...args: any[]) {
         <Component>
           <Component>
             <div>
-              <Fragment>
+              <Projection>
                 <i>child-default-value</i>
-              </Fragment>
+              </Projection>
             </div>
           </Component>
         </Component>

@@ -343,7 +343,18 @@ async function diffNode(received: HTMLElement, expected: JSXOutput): Promise<str
       ).nextElementSibling!;
       path.pop();
     },
-    text: () => {},
+    text: (expectText) => {
+      // console.log('text', expectText);
+      const text = nodePath[nodePath.length - 1] as Text;
+      if (!text) {
+        diffs.push(path.join(' > ') + ' missing text node');
+      } else if (text.textContent !== expected) {
+        diffs.push(path.join(' > '));
+        diffs.push('EXPECTED', JSON.stringify(expected));
+        diffs.push('RECEIVED:', JSON.stringify(text.textContent));
+        nodePath[nodePath.length - 1] = text.nextSibling!;
+      }
+    },
   });
   if (diffs.length) {
     const html = await format(received.outerHTML, formatOptions);

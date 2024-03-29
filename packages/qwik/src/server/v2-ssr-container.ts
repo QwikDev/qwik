@@ -26,6 +26,8 @@ import {
   mapArray_set,
   maybeThen,
   SubscriptionType,
+  serializeClass,
+  stringifyStyle,
 } from './qwik-copy';
 import type {
   ContextId,
@@ -61,7 +63,6 @@ import {
   vNodeData_openFragment,
   type VNodeData,
 } from './v2-vnode-data';
-import { serializeClass, stringifyStyle } from '../core/render/execute-component';
 
 export function ssrCreateContainer(
   opts: {

@@ -2,11 +2,10 @@ import { Fragment as Component, Fragment, Fragment as Signal } from '@builder.io
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
 import { component$ } from '../component/component.public';
+import type { JSXOutput } from '../render/jsx/types/jsx-node';
 import { useSignal } from '../use/use-signal';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
-import type { JSXOutput } from '../render/jsx/types/jsx-node';
-import type { QDocument } from './client/types';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -257,13 +256,11 @@ Error.stackTraceLimit = 100;
           </svg>
         );
       });
-      // PropsProxy is an empty object, so this does not work!
-      it.skip('should write attributes to svg', async () => {
+      it('should write attributes to svg', async () => {
         const SvgComp = component$((props: { cx: string; cy: string }) => {
           return (
             <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" key="0">
               {/* <circle cx={props.cx} cy={props.cy} r="50" /> */}
-              {/* TODO(hack): PropsProxy is an empty object, so this does not work: */}
               <circle {...props} r="50" />
             </svg>
           );
@@ -276,11 +273,11 @@ Error.stackTraceLimit = 100;
             </svg>
           </Component>
         );
-        await expect(container.document.body).toMatchDOM(`
-          <svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" q:key="0">
+        await expect(container.document.querySelector('svg')).toMatchDOM(
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" key="0">
             <circle cx="10" cy="10" r="50"></circle>
           </svg>
-        `);
+        );
       });
       it('should rerender svg', async () => {
         const SvgComp = component$((props: { cx: string; cy: string }) => {

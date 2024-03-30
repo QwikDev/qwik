@@ -149,9 +149,12 @@ import {
   type TextVNode,
   type VNode,
   type VirtualVNode,
+  type ClientContainer,
 } from './types';
 import { isHtmlElement } from '../../util/types';
 import { isText } from '../../util/element';
+import { VNodeDataChar } from '../shared/vnode-data-types';
+import { getDomContainer } from './dom-container';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1041,7 +1044,7 @@ const ensureMaterialized = (vnode: ElementVNode): VNode | null => {
     const firstChild = element.firstChild;
     const vNodeData = (element.ownerDocument as QDocument)?.qVNodeData?.get(element);
     vFirstChild = vNodeData
-      ? materializeFromVNodeData(vParent, vNodeData, firstChild)
+      ? materializeFromVNodeData(vParent, vNodeData, element, firstChild)
       : materializeFromDOM(vParent, firstChild);
   }
   assertTrue(vParent[ElementVNodeProps.firstChild] !== undefined, 'Did not materialize.');
@@ -1301,6 +1304,7 @@ const stack: any[] = [];
 function materializeFromVNodeData(
   vParent: ElementVNode | VirtualVNode,
   vData: string,
+  element: Element,
   child: Node | null
 ): VNode {
   let idx = 0;
@@ -1352,6 +1356,7 @@ function materializeFromVNodeData(
 
   let textIdx = 0;
   let combinedText: string | null = null;
+  let container: ClientContainer | null = null;
   // console.log(
   //   'processVNodeData',
   //   vNodeData,
@@ -1386,34 +1391,39 @@ function materializeFromVNodeData(
         child = child!.nextSibling;
       }
       // collect the elements;
-    } else if (peek() === 59 /* `;` */) {
+    } else if (peek() === VNodeDataChar.SCOPED_STYLE) {
       vnode_setAttr(null, vParent, QScopedStyle, consumeValue());
-    } else if (peek() === 60 /* `<` */) {
+    } else if (peek() === VNodeDataChar.RENDER_FN) {
       vnode_setAttr(null, vParent, OnRenderProp, consumeValue());
-    } else if (peek() === 61 /* `=` */) {
-      vnode_setAttr(null, vParent, ELEMENT_ID, consumeValue());
-    } else if (peek() === 62 /* `>` */) {
+    } else if (peek() === VNodeDataChar.ID) {
+      if (!container) {
+        container = getDomContainer(element);
+      }
+      const id = consumeValue();
+      container.stateData[id] = vParent;
+      isDev && vnode_setAttr(null, vParent, ELEMENT_ID, id);
+    } else if (peek() === VNodeDataChar.PROPS) {
       vnode_setAttr(null, vParent, ELEMENT_PROPS, consumeValue());
-    } else if (peek() === 63 /* `?` */) {
+    } else if (peek() === VNodeDataChar.SLOT_REF) {
       vnode_setAttr(null, vParent, QSlotRef, consumeValue());
-    } else if (peek() === 64 /* `@` */) {
+    } else if (peek() === VNodeDataChar.KEY) {
       vnode_setAttr(null, vParent, ELEMENT_KEY, consumeValue());
-    } else if (peek() === 91 /* `[` */) {
+    } else if (peek() === VNodeDataChar.SEQ) {
       vnode_setAttr(null, vParent, ELEMENT_SEQ, consumeValue());
-    } else if (peek() === 93 /* `]` */) {
+    } else if (peek() === VNodeDataChar.CONTEXT) {
       vnode_setAttr(null, vParent, QCtxAttr, consumeValue());
-    } else if (peek() === 124 /* `|` */) {
-      const key = consumeValue();
-      const value = consumeValue();
-      vnode_setAttr(null, vParent as VirtualVNode, key, value);
-    } else if (peek() === 123 /* `{` */) {
+    } else if (peek() === VNodeDataChar.OPEN) {
       consume();
       addVNode(vnode_newVirtual());
       stack.push(vParent, vFirst, vLast, previousTextNode, idx);
       idx = 0;
       vParent = vLast as ElementVNode | VirtualVNode;
       vFirst = vLast = null;
-    } else if (peek() === 125 /* `}` */) {
+    } else if (peek() === VNodeDataChar.SEPARATOR) {
+      const key = consumeValue();
+      const value = consumeValue();
+      vnode_setAttr(null, vParent as VirtualVNode, key, value);
+    } else if (peek() === VNodeDataChar.CLOSE) {
       consume();
       vParent[ElementVNodeProps.lastChild] = vLast;
       idx = stack.pop();
@@ -1421,7 +1431,7 @@ function materializeFromVNodeData(
       vLast = stack.pop();
       vFirst = stack.pop();
       vParent = stack.pop();
-    } else if (peek() === 126 /* `~` */) {
+    } else if (peek() === VNodeDataChar.SLOT) {
       vnode_setAttr(null, vParent, QSlot, consumeValue());
     } else {
       // must be alphanumeric

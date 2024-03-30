@@ -21,6 +21,7 @@ import {
   vnode_getFirstChild,
   vnode_getParent,
   vnode_getVNodeForChildNode,
+  vnode_isVNode,
   vnode_locate,
   vnode_toString,
 } from './client/vnode';
@@ -207,11 +208,15 @@ function getHostVNode(vElement: VNode | null) {
 function qwikJsonStringify(value: any): string {
   const RED = '\x1b[31m';
   const RESET = '\x1b[0m';
-  let json = JSON.stringify(value);
-  json = json.replace(/"\\u00([0-9a-f][0-9a-f])/gm, (_, value) => {
-    return '"' + RED + codeToName(parseInt(value, 16)) + ': ' + RESET;
-  });
-  return json;
+  if (vnode_isVNode(value)) {
+    return vnode_toString.call(value, 1, '', true).replaceAll(/\n\s*/gm, '');
+  } else {
+    let json = JSON.stringify(value);
+    json = json.replace(/"\\u00([0-9a-f][0-9a-f])/gm, (_, value) => {
+      return '"' + RED + codeToName(parseInt(value, 16)) + ': ' + RESET;
+    });
+    return json;
+  }
 }
 
 export const ErrorProvider = Object.assign(

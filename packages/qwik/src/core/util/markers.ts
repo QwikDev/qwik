@@ -37,6 +37,14 @@ export const TaskEvent = 'qTask';
 /** `<q:slot name="...">` */
 export const QSlotInertName = '\u0000';
 
+/**
+ * Attribute to mark that this VNode has a pointer to itself from the `qwik/json` state.
+ * 
+ * As the VNode get materialized the vnode now becomes eligible for mutation. Once the vnode 
+ * mutates the `VNode` references from the `qwik/json` may become invalid. For this reason,
+ * these references need to be eagerly resolved. `VNODE_REF` stores a pointer to "this" vnode.
+ * This allows the system to eagerly resolve these pointes as the vnodes are materialized.
+ */
 export const ELEMENT_ID = 'q:id';
 export const ELEMENT_KEY = 'q:key';
 export const ELEMENT_PROPS = 'q:props';

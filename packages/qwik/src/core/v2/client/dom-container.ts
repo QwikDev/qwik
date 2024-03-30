@@ -30,6 +30,7 @@ import { convertScopedStyleIdsToArray, convertStyleIdsToString } from '../shared
 import { _SharedContainer } from '../shared/shared-container';
 import { inflateQRL, parseQRL, wrapDeserializerProxy } from '../shared/shared-serialization';
 import type { HostElement } from '../shared/types';
+import { VNodeDataChar, VNodeDataSeparator } from '../shared/vnode-data-types';
 import {
   VNodeFlags,
   type ContainerElement,
@@ -61,9 +62,9 @@ import {
 import { vnode_diff } from './vnode-diff';
 
 /** @public */
-export function getDomContainer(element: HTMLElement | ElementVNode): IClientContainer {
-  let htmlElement: HTMLElement | null = Array.isArray(element)
-    ? (vnode_getDomParent(element) as HTMLElement)
+export function getDomContainer(element: Element | ElementVNode): IClientContainer {
+  let htmlElement: Element | null = Array.isArray(element)
+    ? (vnode_getDomParent(element) as Element)
     : element;
   while (htmlElement && !htmlElement.hasAttribute(QContainerAttr)) {
     htmlElement = htmlElement.closest(QContainerSelector);
@@ -354,14 +355,14 @@ export function processVNodeData(document: Document) {
         while (isSeparator((ch = currentVNodeData.charCodeAt(vNodeDataStart)))) {
           // Keep consuming the separators and incrementing the vNodeIndex
           // console.log('ADVANCE', vNodeElementIndex, ch, ch - 33);
-          vNodeElementIndex += 1 << (ch - 33) /*`!`*/;
+          vNodeElementIndex += 1 << (ch - VNodeDataSeparator.SKIP_0);
           vNodeDataStart++;
           if (vNodeDataStart >= currentVNodeDataLength) {
             // we reached the end of the vNodeData stop.
             break;
           }
         }
-        const shouldStoreRef = ch === 126; /*`~` */
+        const shouldStoreRef = ch === VNodeDataSeparator.REFERENCE;
         if (shouldStoreRef) {
           // if we need to store the ref handle it here.
           needsToStoreRef = vNodeElementIndex;
@@ -369,8 +370,8 @@ export function processVNodeData(document: Document) {
           if (vNodeDataStart < currentVNodeDataLength) {
             ch = currentVNodeData.charCodeAt(vNodeDataEnd);
           } else {
-            // assume separator on ond.
-            ch = 33 /* `!` */;
+            // assume separator on end.
+            ch = VNodeDataSeparator.SKIP_0;
           }
         }
         vNodeDataEnd = vNodeDataStart;
@@ -382,9 +383,9 @@ export function processVNodeData(document: Document) {
             if (depth === 0 && isSeparator(ch)) {
               break;
             } else {
-              if (ch === 123 /* `{` */) {
+              if (ch === VNodeDataChar.OPEN) {
                 depth++;
-              } else if (ch === 125 /* `}` */) {
+              } else if (ch === VNodeDataChar.CLOSE) {
                 depth--;
               }
               vNodeDataEnd++;

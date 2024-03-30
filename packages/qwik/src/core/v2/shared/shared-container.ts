@@ -54,6 +54,7 @@ export abstract class _SharedContainer implements Container2 {
       NodeConstructor,
       this.$proxyMap$,
       symbolToChunkResolver,
+      this.setHostProp.bind(this),
       writer
     );
   }

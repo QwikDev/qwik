@@ -63,21 +63,30 @@ import { vnode_diff } from './vnode-diff';
 
 /** @public */
 export function getDomContainer(element: Element | ElementVNode): IClientContainer {
-  let htmlElement: Element | null = Array.isArray(element)
-    ? (vnode_getDomParent(element) as Element)
-    : element;
-  while (htmlElement && !htmlElement.hasAttribute(QContainerAttr)) {
-    htmlElement = htmlElement.closest(QContainerSelector);
-  }
+  const htmlElement = getHtmlElement(element);
   if (!htmlElement) {
     throwErrorAndStop('Unable to find q:container.');
   }
+  return getDomContainerFromHTMLElement(htmlElement!);
+}
+
+export function getDomContainerFromHTMLElement(htmlElement: Element): IClientContainer {
   const qElement = htmlElement as ContainerElement;
   let container = qElement.qContainer;
   if (!container) {
     qElement.qContainer = container = new DomContainer(qElement);
   }
   return container;
+}
+
+export function getHtmlElement(element: Element | ElementVNode): Element | null {
+  let htmlElement: Element | null = Array.isArray(element)
+    ? (vnode_getDomParent(element) as Element)
+    : element;
+  while (htmlElement && !htmlElement.hasAttribute(QContainerAttr)) {
+    htmlElement = htmlElement.closest(QContainerSelector);
+  }
+  return htmlElement;
 }
 
 export const isDomContainer = (container: any): container is DomContainer => {

@@ -128,10 +128,7 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
               ssgOrigin = `https://yoursite.qwik.dev`;
             }
             // allow for capacitor:// or http://
-            if (
-              ssgOrigin.length > 0 &&
-              !/:\/\//.test(ssgOrigin)
-            ) {
+            if (ssgOrigin.length > 0 && !/:\/\//.test(ssgOrigin)) {
               ssgOrigin = `https://${ssgOrigin}`;
             }
             if (ssgOrigin.startsWith('//')) {

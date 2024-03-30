@@ -3,6 +3,7 @@ import { useContent, useLocation } from '@builder.io/qwik-city';
 import { ContentNav } from '../../components/content-nav/content-nav';
 import { Footer } from '../../components/footer/footer';
 import { Header } from '../../components/header/header';
+import { OnThisPage } from '../../components/on-this-page/on-this-page';
 import { createBreadcrumbs, SideBar } from '../../components/sidebar/sidebar';
 import { GlobalStore } from '../../context';
 import styles from './docs.css?inline';
@@ -12,6 +13,8 @@ import Contributors from '../../components/contributors';
 export { useMarkdownItems } from '../../components/sidebar/sidebar';
 
 export default component$(() => {
+  const loc = useLocation();
+  const noRightMenu = ['/docs/'].includes(loc.url.pathname);
   useStyles$(styles);
   const { menu } = useContent();
   const globalStore = useContext(GlobalStore);
@@ -47,17 +50,22 @@ export default component$(() => {
           </ol>
         ) : null}
       </nav>
-      <div class="flex gap-12 xl:gap-20 items-stretch content-container">
-        <SideBar />
-        <main class="docs-container">
+      <SideBar />
+      <main
+        class={{
+          'no-right-menu': noRightMenu,
+        }}
+      >
+        <div class="docs-container">
           <article>
             <Slot />
             <Contributors />
           </article>
           <ContentNav />
           <Footer />
-        </main>
-      </div>
+        </div>
+        <OnThisPage />
+      </main>
     </div>
   );
 });

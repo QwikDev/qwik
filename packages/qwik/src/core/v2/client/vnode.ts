@@ -135,7 +135,7 @@ import {
   QStyle,
   QStylesAllSelector,
 } from '../../util/markers';
-import { DEBUG_TYPE, VirtualType, VirtualTypeName } from '../shared/types';
+import { DEBUG_TYPE, VirtualType, VirtualTypeName, type fixMeAny } from '../shared/types';
 import {
   ElementVNodeProps,
   TextVNodeProps,
@@ -154,7 +154,7 @@ import {
 import { isHtmlElement } from '../../util/types';
 import { isText } from '../../util/element';
 import { VNodeDataChar } from '../shared/vnode-data-types';
-import { getDomContainer } from './dom-container';
+import { getDomContainer, getDomContainerFromHTMLElement, getHtmlElement } from './dom-container';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1446,12 +1446,23 @@ function materializeFromVNodeData(
       }
       length += consume() - 65; /* `A` */
       const text = combinedText === null ? '' : combinedText.substring(textIdx, textIdx + length);
+
+      let textNode = child;
+      // we have an empty text node
+      if (combinedText === null) {
+        if (!container) {
+          const htmlElement = getHtmlElement(element);
+          if (htmlElement) {
+            container = getDomContainerFromHTMLElement(htmlElement);
+          }
+        }
+        // we need to create a new empty text node for this
+        // if we don't have container just leave null object
+        textNode = container?.document.createTextNode('') || null;
+      }
+
       addVNode(
-        (previousTextNode = vnode_newSharedText(
-          previousTextNode,
-          combinedText === null ? null : (child as Text),
-          text
-        ))
+        (previousTextNode = vnode_newSharedText(previousTextNode, textNode as Text | null, text))
       );
       textIdx += length;
       // Text nodes get encoded as alphanumeric characters.

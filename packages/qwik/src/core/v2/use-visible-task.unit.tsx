@@ -165,27 +165,26 @@ Error.stackTraceLimit = 100;
       expect(ErrorProvider.error).toBe(render === domRender ? error : null);
     });
 
-    // TODO(optimizer-test): infinity loop
-    it.skip('should not run next visible task until previous async visible task is finished', async () => {
-      const log: string[] = [];
+    it('should not run next visible task until previous async visible task is finished', async () => {
+      (globalThis as any).log = [] as string[];
       const Counter = component$(() => {
-        log.push('Counter');
+        (globalThis as any).log.push('Counter');
         const count = useSignal('');
 
         useVisibleTask$(async () => {
-          log.push('1:task');
+          (globalThis as any).log.push('1:task');
           await delay(10);
-          log.push('1:resolved');
+          (globalThis as any).log.push('1:resolved');
           count.value += 'A';
         });
 
         useVisibleTask$(async () => {
-          log.push('2:task');
+          (globalThis as any).log.push('2:task');
           await delay(10);
-          log.push('2:resolved');
+          (globalThis as any).log.push('2:resolved');
           count.value += 'B';
         });
-        log.push('render');
+        (globalThis as any).log.push('render');
         return <span>{count.value}</span>;
       });
 
@@ -193,19 +192,19 @@ Error.stackTraceLimit = 100;
       if (render === ssrRenderToDom) {
         await trigger(document.body, 'span', 'qvisible');
       }
-      expect(log).toEqual([
+      expect((globalThis as any).log).toEqual([
         'Counter',
         'render',
         '1:task',
         '1:resolved',
         '2:task',
         '2:resolved',
-        'Counter',
-        'render',
       ]);
       expect(vNode).toMatchVDOM(
         <Component>
-          <span>AB</span>
+          <span>
+            <Signal>AB</Signal>
+          </span>
         </Component>
       );
     });

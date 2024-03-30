@@ -33,7 +33,7 @@ These include:
 
 ## @qwikdev/astro 💜
 
-This integration leverages the power of [Resumability](https://qwik.builder.io/docs/concepts/resumable/) inside of Astro, using Qwik components.
+This integration leverages the power of [Resumability](https://qwik.dev/docs/concepts/resumable/) inside of Astro, using Qwik components.
 
 ## Installation
 
@@ -157,7 +157,7 @@ If we want to introduce interactivity with a framework such as React, Vue, Svelt
 
 Qwik builds on top of Astro's **Zero JS, by defaut** principle and then some. Thanks to resumability, the components are not executed unless resumed. Even with interactivity, the framework is also not executed until it needs to be. It is O(1) constant, and zero effort on the developer.
 
-Instead, upon page load, a tiny 1kb minified piece of JavaScript, known as the [Qwikloader](https://qwik.builder.io/docs/advanced/qwikloader/), downloads the rest of the application as needed.
+Instead, upon page load, a tiny 1kb minified piece of JavaScript, known as the [Qwikloader](https://qwik.dev/docs/advanced/qwikloader/), downloads the rest of the application as needed.
 
 ### Fine-grained lazy loading
 
@@ -167,15 +167,15 @@ Qwik works exceptionally well in Astro due to Resumability and its ability to la
 
 ### Instant interactivity
 
-As of `@qwikdev/astro` v0.4, we have added support for [Speculative Module Fetching](https://qwik.builder.io/docs/advanced/speculative-module-fetching/) in Astro.
+As of `@qwikdev/astro` v0.4, we have added support for [Speculative Module Fetching](https://qwik.dev/docs/advanced/speculative-module-fetching/) in Astro.
 
 This enables instant interactivity for your Qwik components. Speculative module fetching will prefetch the application bundles in the background of a service worker, so that when needed, the code is already present in the browser cache.
 
-> You should be able to use [Qwik insights](https://qwik.builder.io/docs/labs/insights/) out of the box!
+> You should be able to use [Qwik insights](https://qwik.dev/docs/labs/insights/) out of the box!
 
 ## Containers vs. Islands
 
-While Astro generally adopts an islands architecture with other frameworks, Qwik uses a different strategy known as [Qwik containers](https://qwik.builder.io/docs/advanced/containers/). Despite the differences in approach, both share similar limitations.
+While Astro generally adopts an islands architecture with other frameworks, Qwik uses a different strategy known as [Qwik containers](https://qwik.dev/docs/advanced/containers/). Despite the differences in approach, both share similar limitations.
 
 In the DOM, you may notice there aren't any `<astro-island>` custom elements, this is because to Astro, Qwik looks like static data.
 
@@ -286,7 +286,7 @@ After creating our counter, it can be consumed in our [index.astro](https://gith
 
 Notice that in `.astro` files we use a `qwik:` hydration directive prefix, this is to prevent a conflict with Astro's hydration directives that are provided out of the box.
 
-You can also use the `client:*` prefix, but only in tsx files. You can find a list of directives in [Adding Interactivity](https://qwik.builder.io/docs/integrations/react/#adding-interactivity) section of the Qwik docs.
+You can also use the `client:*` prefix, but only in tsx files. You can find a list of directives in [Adding Interactivity](https://qwik.dev/docs/integrations/react/#adding-interactivity) section of the Qwik docs.
 
 > Qwik React components still have hydration, thus it is recommended to use Qwik-React as a migration strategy to resumable components.
 
@@ -294,7 +294,7 @@ You can also use the `client:*` prefix, but only in tsx files. You can find a li
 
 Unfortunately, TypeScript can only have one `jsxImportSource` default. If you're using React, Solid, or Preact's Astro integration in your Astro app alongside, please override each component's import source.
 
-> If you're using [@astrojs/react](https://www.npmjs.com/package/@astrojs/react), you can use [qwik-react](https://qwik.builder.io/docs/integrations/react/#qwik-react-%EF%B8%8F) instead. The proper configuration will be supported out of the box.
+> If you're using [@astrojs/react](https://www.npmjs.com/package/@astrojs/react), you can use [qwik-react](https://qwik.dev/docs/integrations/react/#qwik-react-%EF%B8%8F) instead. The proper configuration will be supported out of the box.
 
 ```tsx
 /** @jsxImportSource react */

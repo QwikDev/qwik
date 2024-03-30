@@ -108,7 +108,7 @@ export const OnThisPage = component$(() => {
       icon: AlertIcon,
     },
     {
-      href: 'https://qwik.builder.io/chat',
+      href: 'https://qwik.dev/chat',
       text: 'Join our community',
       icon: ChatIcon,
     },

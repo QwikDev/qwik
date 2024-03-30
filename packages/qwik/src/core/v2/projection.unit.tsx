@@ -382,10 +382,6 @@ const ChildSlotInline = (props: { children: any }) => {
         expect((globalThis as any).log).toEqual(['click:Parent']);
       });
       it('should work when child removes projection', async () => {
-        if (render === domRender) {
-          // TODO: figure out why CSR fails to set up subscription
-          return;
-        }
         const { vNode, document } = await render(<Parent content={true} slot={true} />, {
           debug,
         });
@@ -410,7 +406,9 @@ const ChildSlotInline = (props: { children: any }) => {
           </body>
         );
         (globalThis as any).log.length = 0;
+        // console.log('--- HIDE PROJECTION ---');
         await trigger(document.body, '.child', 'click'); // hide projection
+        // console.log('---');
         expect((globalThis as any).log).toEqual(['click:Child', 'render:Child']);
         expect(vNode).toMatchVDOM(
           <Component>
@@ -429,7 +427,9 @@ const ChildSlotInline = (props: { children: any }) => {
           </body>
         );
         (globalThis as any).log.length = 0;
+        // console.log('--- HIDE CONTENT ---');
         await trigger(document.body, '.parent', 'click'); // hide content
+        // console.log('---');
         expect((globalThis as any).log).toEqual(['click:Parent']);
         expect(vNode).toMatchVDOM(
           <Component>
@@ -448,7 +448,9 @@ const ChildSlotInline = (props: { children: any }) => {
           </body>
         );
         (globalThis as any).log.length = 0;
+        // console.log('--- UN-HIDE PROJECTION (no content) ---');
         await trigger(document.body, '.child', 'click'); // un-hide projection (no content)
+        // console.log('---');
         expect((globalThis as any).log).toEqual(['click:Child', 'render:Child']);
         expect(vNode).toMatchVDOM(
           <Component>
@@ -471,7 +473,9 @@ const ChildSlotInline = (props: { children: any }) => {
           </body>
         );
         (globalThis as any).log.length = 0;
+        // console.log('--- RE-ADD CONTENT ---');
         await trigger(document.body, '.parent', 'click');
+        // console.log('---');
         expect((globalThis as any).log).toEqual(['click:Parent']);
         expect(vNode).toMatchVDOM(
           <Component>

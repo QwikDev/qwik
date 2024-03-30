@@ -12,7 +12,7 @@ import { SignalDerived, isSignal } from '../../state/signal';
 import { trackSignal } from '../../use/use-core';
 import { EMPTY_ARRAY } from '../../util/flyweight';
 import { throwErrorAndStop } from '../../util/log';
-import { ELEMENT_KEY } from '../../util/markers';
+import { ELEMENT_KEY, QSlot } from '../../util/markers';
 import { isPromise } from '../../util/promises';
 import { type ValueOrPromise } from '../../util/types';
 import {
@@ -147,8 +147,8 @@ function processJSXNode(
           children !== undefined && enqueue(children);
         } else if (type === Slot) {
           const componentFrame = ssr.getNearestComponentFrame()!;
+          const projectionAttrs = isDev ? [DEBUG_TYPE, VirtualType.Projection] : [];
           if (componentFrame) {
-            const projectionAttrs = isDev ? [DEBUG_TYPE, VirtualType.Projection] : [];
             const compId = componentFrame.componentNode.id || '';
             projectionAttrs.push(':', compId);
             ssr.openProjection(projectionAttrs);
@@ -169,6 +169,7 @@ function processJSXNode(
               }
             }
             slotName = String(slotName || jsx.props.name || '');
+            projectionAttrs.push(QSlot, slotName);
             enqueue(ssr.closeProjection);
             const slotDefaultChildren = (jsx.props.children || null) as JSXChildren | null;
             const slotChildren =

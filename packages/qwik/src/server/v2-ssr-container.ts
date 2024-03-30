@@ -28,6 +28,7 @@ import {
   SubscriptionType,
   serializeClass,
   stringifyStyle,
+  VNodeDataChar,
 } from './qwik-copy';
 import type {
   ContextId,
@@ -440,8 +441,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   emitContainerData(): ValueOrPromise<void> {
     this.emitUnclaimedProjection();
-    this.emitVNodeData();
+    this.addVNodeDataToSerializationRoots();
     return maybeThen(this.emitStateData(), () => {
+      this.emitVNodeData();
       this.emitPrefetchResourcesData();
       this.emitSyncFnsData();
       this.emitQwikLoaderAtBottomIfNeeded();
@@ -524,7 +526,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
               fragmentAttrs = value;
             } else if (value === OPEN_FRAGMENT) {
               depth++;
-              this.write('{');
+              this.write(VNodeDataChar.OPEN_CHAR);
             } else if (value === CLOSE_FRAGMENT) {
               // write out fragment attributes
               if (fragmentAttrs) {
@@ -536,44 +538,44 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
                   }
                   switch (key) {
                     case QScopedStyle:
-                      this.write(';');
+                      this.write(VNodeDataChar.SCOPED_STYLE_CHAR);
                       break;
                     case OnRenderProp:
-                      this.write('<');
+                      this.write(VNodeDataChar.RENDER_FN_CHAR);
                       break;
                     case ELEMENT_ID:
-                      this.write('=');
+                      this.write(VNodeDataChar.ID_CHAR);
                       break;
                     case ELEMENT_PROPS:
-                      this.write('>');
+                      this.write(VNodeDataChar.PROPS_CHAR);
                       break;
                     case QSlotRef:
-                      this.write('?');
+                      this.write(VNodeDataChar.SLOT_REF_CHAR);
                       break;
                     case ELEMENT_KEY:
-                      this.write('@');
+                      this.write(VNodeDataChar.KEY_CHAR);
                       break;
                     case ELEMENT_SEQ:
-                      this.write('[');
+                      this.write(VNodeDataChar.SEQ_CHAR);
                       break;
                     // Skipping `\` character for now because it is used for escaping.
                     case QCtxAttr:
-                      this.write(']');
+                      this.write(VNodeDataChar.CONTEXT_CHAR);
                       break;
                     case QSlot:
-                      this.write('~');
+                      this.write(VNodeDataChar.SLOT_CHAR);
                       break;
                     default:
-                      this.write('|');
+                      this.write(VNodeDataChar.SEPARATOR_CHAR);
                       this.write(key);
-                      this.write('|');
+                      this.write(VNodeDataChar.SEPARATOR_CHAR);
                   }
                   this.write(value!);
                 }
                 fragmentAttrs = vNodeAttrsStack.pop()!;
               }
               depth--;
-              this.write('}');
+              this.write(VNodeDataChar.CLOSE_CHAR);
             } else if (value >= 0) {
               // Text nodes get encoded as alphanumeric characters.
               this.write(encodeAsAlphanumeric(value));
@@ -583,12 +585,44 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             }
           }
           while (depth-- > 0) {
-            this.write('}');
+            this.write(VNodeDataChar.CLOSE_CHAR);
           }
         }
       }
     }
     this.closeElement();
+  }
+
+  addVNodeDataToSerializationRoots() {
+    const vNodeAttrsStack: SsrAttrs[] = [];
+    const vNodeData = this.vNodeData;
+    for (let elementIdx = 0; elementIdx < vNodeData.length; elementIdx++) {
+      const vNode = vNodeData[elementIdx];
+      const flag = vNode[0];
+      if (flag !== VNodeDataFlag.NONE) {
+        if (flag & (VNodeDataFlag.TEXT_DATA | VNodeDataFlag.VIRTUAL_NODE)) {
+          let fragmentAttrs: SsrAttrs | null = null;
+          for (let i = 1; i < vNode.length; i++) {
+            const value = vNode[i];
+            if (Array.isArray(value)) {
+              vNodeAttrsStack.push(fragmentAttrs!);
+              fragmentAttrs = value;
+            } else if (value === CLOSE_FRAGMENT) {
+              // write out fragment attributes
+              if (fragmentAttrs) {
+                for (let i = 0; i < fragmentAttrs.length; i++) {
+                  const value = fragmentAttrs[i] as string;
+                  if (typeof value !== 'string') {
+                    fragmentAttrs[i] = String(this.addRoot(value));
+                  }
+                }
+                fragmentAttrs = vNodeAttrsStack.pop()!;
+              }
+            }
+          }
+        }
+      }
+    }
   }
 
   private emitStateData(): ValueOrPromise<void> {

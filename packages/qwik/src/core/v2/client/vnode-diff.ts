@@ -14,7 +14,7 @@ import { SubscriptionType } from '../../state/common';
 import { isSignal } from '../../state/signal';
 import { trackSignal } from '../../use/use-core';
 import { destroyTask, isTask, type SubscriberEffect } from '../../use/use-task';
-import { EMPTY_ARRAY, EMPTY_OBJ } from '../../util/flyweight';
+import { EMPTY_OBJ } from '../../util/flyweight';
 import { throwErrorAndStop } from '../../util/log';
 import {
   ELEMENT_KEY,

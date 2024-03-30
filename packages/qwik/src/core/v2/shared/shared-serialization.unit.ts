@@ -63,7 +63,7 @@ describe('shared-serialization', () => {
 });
 
 async function serializeDeserialize(...roots: any[]): Promise<any[]> {
-  const sCtx = createSerializationContext(null, new WeakMap(), () => '');
+  const sCtx = createSerializationContext(null, new WeakMap(), () => '', null!);
   for (const root of roots) {
     sCtx.$addRoot$(root);
   }

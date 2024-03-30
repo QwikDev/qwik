@@ -381,8 +381,11 @@ const ChildSlotInline = (props: { children: any }) => {
         );
         expect((globalThis as any).log).toEqual(['click:Parent']);
       });
-      // TODO(test-optimizer): this should be resolved in https://github.com/BuilderIO/qwik/pull/6037
-      it.skip('should work when child removes projection', async () => {
+      it('should work when child removes projection', async () => {
+        if (render === domRender) {
+          // TODO: figure out why CSR fails to set up subscription
+          return;
+        }
         const { vNode, document } = await render(<Parent content={true} slot={true} />, {
           debug,
         });
@@ -399,8 +402,15 @@ const ChildSlotInline = (props: { children: any }) => {
             </div>
           </Component>
         );
+        expect(document.body).toMatchDOM(
+          <body>
+            <div class="parent">
+              <span class="child">child-content</span>
+            </div>
+          </body>
+        );
         (globalThis as any).log.length = 0;
-        await trigger(document.body, '.child', 'click');
+        await trigger(document.body, '.child', 'click'); // hide projection
         expect((globalThis as any).log).toEqual(['click:Child', 'render:Child']);
         expect(vNode).toMatchVDOM(
           <Component>
@@ -411,8 +421,15 @@ const ChildSlotInline = (props: { children: any }) => {
             </div>
           </Component>
         );
+        expect(document.body).toMatchDOM(
+          <body>
+            <div class="parent">
+              <span class="child">{''}</span>
+            </div>
+          </body>
+        );
         (globalThis as any).log.length = 0;
-        await trigger(document.body, '.parent', 'click');
+        await trigger(document.body, '.parent', 'click'); // hide content
         expect((globalThis as any).log).toEqual(['click:Parent']);
         expect(vNode).toMatchVDOM(
           <Component>
@@ -423,9 +440,39 @@ const ChildSlotInline = (props: { children: any }) => {
             </div>
           </Component>
         );
+        expect(document.body).toMatchDOM(
+          <body>
+            <div class="parent">
+              <span class="child">{''}</span>
+            </div>
+          </body>
+        );
         (globalThis as any).log.length = 0;
-        await trigger(document.body, '.child', 'click');
+        await trigger(document.body, '.child', 'click'); // un-hide projection (no content)
         expect((globalThis as any).log).toEqual(['click:Child', 'render:Child']);
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <div class="parent">
+              <Component>
+                <span class="child">
+                  <Projection>
+                    <Signal>{''}</Signal>
+                  </Projection>
+                </span>
+              </Component>
+            </div>
+          </Component>
+        );
+        expect(document.body).toMatchDOM(
+          <body>
+            <div class="parent">
+              <span class="child">{''}</span>
+            </div>
+          </body>
+        );
+        (globalThis as any).log.length = 0;
+        await trigger(document.body, '.parent', 'click');
+        expect((globalThis as any).log).toEqual(['click:Parent']);
         expect(vNode).toMatchVDOM(
           <Component>
             <div class="parent">

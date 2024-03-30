@@ -27,6 +27,7 @@ import type { JSXNode, JSXOutput } from '../render/jsx/types/jsx-node';
 import type { VirtualVNode } from './client/types';
 import { isHtmlAttributeAnEventName, isJsxPropertyAnEventName } from './shared/event-names';
 import { format } from 'prettier';
+import { isText } from '../util/element';
 
 interface CustomMatchers<R = unknown> {
   toMatchVDOM(expectedJSX: JSXOutput): R;
@@ -306,7 +307,7 @@ function propsAdd(existing: string[], incoming: string[]) {
 
 async function diffNode(received: HTMLElement, expected: JSXOutput): Promise<string[]> {
   const diffs: string[] = [];
-  const nodePath: Node[] = [received];
+  const nodePath: (Node | null)[] = [received];
   const path: string[] = [];
   walkJSX(expected, {
     enter: (jsx) => {
@@ -333,7 +334,7 @@ async function diffNode(received: HTMLElement, expected: JSXOutput): Promise<str
           diffs.push('  RECEIVED: ' + JSON.stringify(receivedValue));
         }
       });
-      nodePath.push(element.firstElementChild!);
+      nodePath.push(element.firstChild!);
     },
     leave: () => {
       // console.log('leave');
@@ -345,14 +346,18 @@ async function diffNode(received: HTMLElement, expected: JSXOutput): Promise<str
     },
     text: (expectText) => {
       // console.log('text', expectText);
-      const text = nodePath[nodePath.length - 1] as Text;
-      if (!text) {
-        diffs.push(path.join(' > ') + ' missing text node');
-      } else if (text.textContent !== expected) {
+      let node: Node | null = nodePath.pop()!;
+      let receivedText = '';
+      while (node && isText(node)) {
+        receivedText += node.textContent;
+        node = node.nextSibling;
+      }
+      nodePath.push(node);
+
+      if (receivedText !== expectText) {
         diffs.push(path.join(' > '));
-        diffs.push('EXPECTED', JSON.stringify(expected));
-        diffs.push('RECEIVED:', JSON.stringify(text.textContent));
-        nodePath[nodePath.length - 1] = text.nextSibling!;
+        diffs.push('EXPECTED', JSON.stringify(expectText));
+        diffs.push('RECEIVED:', JSON.stringify(receivedText));
       }
     },
   });

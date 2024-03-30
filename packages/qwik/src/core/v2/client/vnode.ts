@@ -135,7 +135,7 @@ import {
   QStyle,
   QStylesAllSelector,
 } from '../../util/markers';
-import { DEBUG_TYPE, VirtualType, VirtualTypeName, type fixMeAny } from '../shared/types';
+import { DEBUG_TYPE, VirtualType, VirtualTypeName } from '../shared/types';
 import {
   ElementVNodeProps,
   TextVNodeProps,

@@ -50,6 +50,7 @@ import {
   type VirtualVNode,
   type ClientAttrs,
   type ClientAttrKey,
+  VirtualVNodeProps,
 } from './types';
 import {
   mapApp_findIndx,
@@ -463,20 +464,15 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     }
   }
 
+  /** Expect no more nodes - Any nodes which are still at cursor, need to be removed. */
   function expectNoMore() {
     assertFalse(vParent === vCurrent, "Parent and current can't be the same");
     if (vCurrent !== null) {
       let vCleanup: VNode | null = vCurrent;
       while (vCleanup) {
         releaseSubscriptions(container, vCleanup);
+        vnode_remove(journal, vParent as ElementVNode | VirtualVNode, vCleanup, true);
         vCleanup = vnode_getNextSibling(vCleanup);
-      }
-      let vChild: VNode | null = vCurrent;
-      while (vChild) {
-        // container.$scheduler$.$drainCleanup$(vChild as fixMeAny);
-        releaseSubscriptions(container, vChild);
-        vnode_remove(journal, vParent as ElementVNode | VirtualVNode, vChild, true);
-        vChild = vnode_getNextSibling(vChild);
       }
     }
   }
@@ -979,7 +975,12 @@ function removeChildrenKey(keys: string[]): string[] {
 /**
  * If vnode is removed, it is necessary to release all subscriptions associated with it.
  *
- * This function will traverse the vnode and release all subscriptions.
+ * This function will traverse the vnode tree in depth-first order and release all subscriptions.
+ *
+ * The function takes into account:
+ *
+ * - Projection nodes by not recursing into them.
+ * - Component nodes by recursing into the component content nodes (which may be projected).
  */
 export function releaseSubscriptions(container: ClientContainer, vNode: VNode) {
   let vCursor: VNode | null = vNode;
@@ -993,7 +994,7 @@ export function releaseSubscriptions(container: ClientContainer, vNode: VNode) {
     if (type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) {
       // Only elements and virtual nodes need to be traversed for children
       if (type & VNodeFlags.Virtual) {
-        // ONly virtual nodes need can have subscriptions
+        // Only virtual nodes need can have subscriptions
         container.$subsManager$.$clearSub$(vCursor as fixMeAny);
         const seq = container.getHostProp<Array<any>>(vCursor as fixMeAny, ELEMENT_SEQ);
         if (seq) {
@@ -1007,11 +1008,35 @@ export function releaseSubscriptions(container: ClientContainer, vNode: VNode) {
           }
         }
       }
+      if (
+        type & VNodeFlags.Virtual &&
+        vnode_getProp(vCursor as VirtualVNode, OnRenderProp, null) !== null
+      ) {
+        // SPECIAL CASE: If we are a component, we need to descend into the projected content and release the content.
+        const attrs = vCursor as ClientAttrs;
+        for (let i = VirtualVNodeProps.PROPS_OFFSET; i < vCursor.length; i = i + 2) {
+          const key = attrs[i]!;
+          if (!key.startsWith(':') && !key.startsWith('q:')) {
+            // any prop which does not start with `:` or `q:` is a content-projection prop.
+            const value = attrs[i];
+            const vNode =
+              typeof value === 'string'
+                ? vnode_locate(container.rootVNode, value)
+                : (value as any as VNode);
+            releaseSubscriptions(container, vNode);
+          }
+        }
+      }
       // Descend into children
-      const vFirstChild = vnode_getFirstChild(vCursor);
-      if (vFirstChild) {
-        vCursor = vFirstChild;
-        continue;
+      if (
+        !(type & VNodeFlags.Virtual && vnode_getProp(vCursor as VirtualVNode, QSlot, null) !== null)
+      ) {
+        // Only if it is not a projection
+        const vFirstChild = vnode_getFirstChild(vCursor);
+        if (vFirstChild) {
+          vCursor = vFirstChild;
+          continue;
+        }
       }
     }
     // Out of children, go to next sibling

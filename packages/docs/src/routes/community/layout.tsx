@@ -15,19 +15,17 @@ export default component$(() => {
   return (
     <div class="docs fixed-header">
       <Header />
-      <div class="flex gap-12 xl:gap-20 items-stretch content-container">
-        <SideBar />
-        <main class="contents">
-          <div class="docs-container">
-            <article>
-              <Slot />
-            </article>
-            <ContentNav />
-            <Footer />
-          </div>
-          <OnThisPage />
-        </main>
-      </div>
+      <SideBar />
+      <main>
+        <div class="docs-container">
+          <article>
+            <Slot />
+          </article>
+          <ContentNav />
+          <Footer />
+        </div>
+        <OnThisPage />
+      </main>
     </div>
   );
 });

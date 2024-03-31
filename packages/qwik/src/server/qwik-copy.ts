@@ -35,5 +35,5 @@ export {
   isClassAttr,
 } from '../core/v2/shared/scoped-styles';
 export { SubscriptionType } from '../core/state/common';
-export { serializeClass, stringifyStyle } from '../core/render/execute-component';
+export { serializeAttribute } from '../core/render/execute-component';
 export { VNodeDataChar } from '../core/v2/shared/vnode-data-types';

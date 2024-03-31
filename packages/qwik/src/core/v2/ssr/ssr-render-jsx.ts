@@ -2,11 +2,11 @@ import { isDev } from '@builder.io/qwik/build';
 import { isQwikComponent } from '../../component/component.public';
 import { isQrl } from '../../qrl/qrl-class';
 import type { QRL } from '../../qrl/qrl.public';
-import { serializeClass, stringifyStyle } from '../../render/execute-component';
+import { serializeAttribute } from '../../render/execute-component';
 import { Fragment } from '../../render/jsx/jsx-runtime';
 import { Slot } from '../../render/jsx/slot.public';
 import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
-import type { ClassList, JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
+import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
 import { SubscriptionType } from '../../state/common';
 import { SignalDerived, isSignal } from '../../state/signal';
 import { trackSignal } from '../../use/use-core';
@@ -20,7 +20,6 @@ import {
   getEventNameFromJsxProp,
   isJsxPropertyAnEventName,
 } from '../shared/event-names';
-import { isClassAttr } from '../shared/scoped-styles';
 import { qrlToString, type SerializationContext } from '../shared/shared-serialization';
 import { DEBUG_TYPE, VirtualType, type fixMeAny } from '../shared/types';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
@@ -246,13 +245,7 @@ export function toSsrAttrs(
       continue;
     }
 
-    if (isClassAttr(key)) {
-      value = serializeClass(value as ClassList);
-    } else if (key === 'style') {
-      value = stringifyStyle(value);
-    } else {
-      value = String(value);
-    }
+    value = serializeAttribute(key, value);
 
     ssrAttrs.push(key, value as string);
   }

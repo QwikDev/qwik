@@ -1,5 +1,5 @@
 /** @file Public APIs for the SSR */
-import { _SharedContainer, _walkJSX, isSignal, type ClassList } from '@builder.io/qwik';
+import { _SharedContainer, _walkJSX, isSignal } from '@builder.io/qwik';
 import { isDev } from '@builder.io/qwik/build';
 import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
 import { getQwikLoaderScript } from '@builder.io/qwik/server';
@@ -26,8 +26,7 @@ import {
   mapArray_set,
   maybeThen,
   SubscriptionType,
-  serializeClass,
-  stringifyStyle,
+  serializeAttribute,
   VNodeDataChar,
 } from './qwik-copy';
 import type {
@@ -895,8 +894,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       for (let i = 0; i < attrs.length; i++) {
         const key = attrs[i++] as SsrAttrKey;
         let value = attrs[i] as SsrAttrValue;
-        this.write(' ');
-        this.write(key);
 
         if (isSignal(value)) {
           const lastNode = this.getLastNode();
@@ -909,13 +906,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           ]);
         }
 
-        if (isClassAttr(key)) {
-          value = serializeClass(value as ClassList);
-        } else if (key === 'style') {
-          value = stringifyStyle(value);
-        }
+        value = serializeAttribute(key, value);
 
         if (value != null && typeof value === 'string') {
+          this.write(' ');
+          this.write(key);
           this.write('="');
           let startIdx = 0;
           let quoteIdx: number;

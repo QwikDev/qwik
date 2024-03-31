@@ -6,7 +6,7 @@ import { QError_verifySerializable, qError } from '../error/error';
 import type { QRL } from '../qrl/qrl.public';
 import { notifyChange } from '../render/dom/notify-render';
 import type { QwikElement } from '../render/dom/virtual-element';
-import { serializeClassWithHost2, stringifyStyle } from '../render/execute-component';
+import { serializeAttribute } from '../render/execute-component';
 import { untrack } from '../use/use-core';
 import {
   isComputedTask,
@@ -17,13 +17,18 @@ import {
 } from '../use/use-task';
 import { isNode } from '../util/element';
 import { logError, throwErrorAndStop } from '../util/log';
-import { ELEMENT_PROPS, OnRenderProp } from '../util/markers';
+import { ELEMENT_PROPS, OnRenderProp, QScopedStyle } from '../util/markers';
 import { isPromise } from '../util/promises';
 import { seal } from '../util/qdev';
 import { isArray, isFunction, isObject, isSerializableObject } from '../util/types';
 import type { DomContainer } from '../v2/client/dom-container';
 import { ElementVNodeProps, type VNode, type VirtualVNode } from '../v2/client/types';
-import { VNodeJournalOpCode, vnode_setAttr } from '../v2/client/vnode';
+import {
+  VNodeJournalOpCode,
+  vnode_getProp,
+  vnode_isVNode,
+  vnode_setAttr,
+} from '../v2/client/vnode';
 import { JSX_LOCAL } from '../v2/shared/component-execution';
 import { isClassAttr } from '../v2/shared/scoped-styles';
 import { isContainer2, type HostElement, type fixMeAny } from '../v2/shared/types';
@@ -530,11 +535,15 @@ function updateNodeProp(
   immutable: boolean
 ) {
   let value = propValue;
+
+  let styleScopedId: string | null = null;
   if (isClassAttr(propKey)) {
-    value = serializeClassWithHost2(value, host);
-  } else if (propKey === 'style') {
-    value = stringifyStyle(value);
+    styleScopedId = vnode_isVNode(host)
+      ? vnode_getProp(host, QScopedStyle, null)
+      : host.getProp(QScopedStyle);
   }
+
+  value = serializeAttribute(propKey, value, styleScopedId || undefined);
 
   if (!immutable) {
     vnode_setAttr(container.$journal$, target, propKey, value);

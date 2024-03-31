@@ -209,7 +209,7 @@ function qwikJsonStringify(value: any): string {
   const RED = '\x1b[31m';
   const RESET = '\x1b[0m';
   if (vnode_isVNode(value)) {
-    return vnode_toString.call(value, 1, '', true).replaceAll(/\n\s*/gm, '');
+    return vnode_toString.call(value, 1, '', true).replaceAll(/\n.*/gm, '');
   } else {
     let json = JSON.stringify(value);
     json = json.replace(/"\\u00([0-9a-f][0-9a-f])/gm, (_, value) => {

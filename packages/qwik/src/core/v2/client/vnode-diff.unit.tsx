@@ -161,7 +161,7 @@ describe('vNode-diff', () => {
       vnode_applyJournal(journal);
       expect(vNode).toMatchVDOM(test);
     });
-    it('should remove extra text node', () => {
+    it('should remove extra text node', async () => {
       const { vNode, vParent, document } = vnode_fromJSX(
         <test key="0">
           {'before'}
@@ -177,6 +177,7 @@ describe('vNode-diff', () => {
       vnode_diff({ $journal$: journal, $scheduler$: scheduler, document } as any, test, vParent);
       vnode_applyJournal(journal);
       expect(vNode).toMatchVDOM(test);
+      await expect(document.querySelector('test')).toMatchDOM(test);
     });
   });
   describe('keys', () => {

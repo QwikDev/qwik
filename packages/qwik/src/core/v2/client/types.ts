@@ -18,6 +18,7 @@ export interface ClientContainer extends Container2 {
   rootVNode: ElementVNode;
   $journal$: VNodeJournal;
   parseQRL<T = unknown>(qrl: string): QRL<T>;
+  $setRawState$(id: number, vParent: ElementVNode | VirtualVNode): void;
 }
 
 export interface ContainerElement extends HTMLElement {

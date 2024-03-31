@@ -344,7 +344,7 @@ async function diffNode(received: HTMLElement, expected: JSXOutput): Promise<str
       if (jsx.constProps) {
         entries.push(...Object.entries(jsx.constProps));
       }
-      if (jsx.key != null) {
+      if (jsx.key) {
         entries.push(['q:key', jsx.key]);
       }
       entries.forEach(([expectedKey, expectedValue]) => {

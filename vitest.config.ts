@@ -11,7 +11,7 @@ export default defineConfig({
     tsconfigPaths({ ignoreConfigErrors: true }),
   ],
   test: {
-    include: ['packages/**/*.unit.?(c|m)[jt]s?(x)'],
+    include: ['packages/**/*.unit.?(c|m)[jt]s?(x)', 'starters/apps/e2e/**/*.e2e.?(c|m)[jt]s?(x)'],
     setupFiles: ['./vitest-setup.ts'],
   },
 });

@@ -471,8 +471,9 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       let vCleanup: VNode | null = vCurrent;
       while (vCleanup) {
         releaseSubscriptions(container, vCleanup);
+        const next = vnode_getNextSibling(vCleanup);
         vnode_remove(journal, vParent as ElementVNode | VirtualVNode, vCleanup, true);
-        vCleanup = vnode_getNextSibling(vCleanup);
+        vCleanup = next;
       }
     }
   }
@@ -480,8 +481,9 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
   function expectNoMoreTextNodes() {
     while (vCurrent !== null && vnode_getType(vCurrent) === 3 /* Text */) {
       releaseSubscriptions(container, vCurrent);
+      const next = vnode_getNextSibling(vCurrent);
       vnode_remove(journal, vParent, vCurrent, true);
-      vCurrent = vnode_getNextSibling(vCurrent);
+      vCurrent = next;
       container.$scheduler$.$drainCleanup$(vCurrent as fixMeAny);
     }
   }
@@ -556,7 +558,6 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
         needsQDispatchEventPatch = createNewElement(jsx, tag);
       } else {
         // Existing keyed node
-        vnode_remove(journal, vParent, vNewNode, false);
         vnode_insertBefore(journal, vParent as ElementVNode, vNewNode, vCurrent);
       }
     } else {
@@ -786,7 +787,6 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
         vNewNode = retrieveChildWithKey(jsxKey);
         if (vNewNode) {
           // We found the component, move it up.
-          vnode_remove(journal, vParent, vNewNode, false);
           vnode_insertBefore(journal, vParent as VirtualVNode, vNewNode, vCurrent);
         } else {
           // We did not find the component, create it.
@@ -1005,7 +1005,7 @@ export function releaseSubscriptions(container: ClientContainer, vNode: VNode) {
           const key = attrs[i]!;
           if (!key.startsWith(':') && !key.startsWith('q:')) {
             // any prop which does not start with `:` or `q:` is a content-projection prop.
-            const value = attrs[i];
+            const value = attrs[i + 1];
             const vNode =
               typeof value === 'string'
                 ? vnode_locate(container.rootVNode, value)

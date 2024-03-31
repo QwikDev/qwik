@@ -151,6 +151,10 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
     this.$qFuncs$ = element.qFuncs || EMPTY_ARRAY;
   }
 
+  $setRawState$(id: number, vParent: ElementVNode | VirtualVNode): void {
+    this.stateData[id] = vParent;
+  }
+
   parseQRL<T = unknown>(qrl: string): QRL<T> {
     return inflateQRL(this, parseQRL(qrl)) as QRL<T>;
   }

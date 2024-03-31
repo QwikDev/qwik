@@ -22,13 +22,13 @@ import {
 } from './client/vnode';
 import { isStringifiable, type Stringifiable } from './shared-types';
 
+import { format } from 'prettier';
 import { createDocument } from '../../testing/document';
+import { serializeBooleanOrNumberAttribute } from '../render/execute-component';
 import type { JSXNode, JSXOutput } from '../render/jsx/types/jsx-node';
+import { isText } from '../util/element';
 import type { VirtualVNode } from './client/types';
 import { isHtmlAttributeAnEventName, isJsxPropertyAnEventName } from './shared/event-names';
-import { format } from 'prettier';
-import { isText } from '../util/element';
-import { serializeBooleanOrNumberAttribute } from '../render/execute-component';
 
 interface CustomMatchers<R = unknown> {
   toMatchVDOM(expectedJSX: JSXOutput): R;
@@ -49,11 +49,15 @@ expect.extend({
       message: () => diffs.join('\n'),
     };
   },
-});
 
-expect.extend({
   async toMatchDOM(this: { isNot: boolean }, received: HTMLElement, expected: JSXOutput) {
     const { isNot } = this;
+    if (!received) {
+      return {
+        pass: false,
+        message: () => 'Missing element',
+      };
+    }
     const diffs = await diffNode(received, expected);
     return {
       pass: isNot ? diffs.length !== 0 : diffs.length === 0,
@@ -320,6 +324,16 @@ async function diffNode(received: HTMLElement, expected: JSXOutput): Promise<str
     enter: (jsx) => {
       // console.log('enter', jsx.type);
       const element = nodePath[nodePath.length - 1] as HTMLElement;
+      if (!element) {
+        diffs.push(path.join(' > ') + ': expecting element');
+        diffs.push('  RECEIVED: nothing ');
+        return;
+      }
+      if (isText(element)) {
+        diffs.push(path.join(' > ') + ': expecting element');
+        diffs.push('  RECEIVED: #text ' + element.textContent);
+        return;
+      }
       if (jsx.type !== element.tagName.toLowerCase()) {
         diffs.push(
           path.join(' > ') + `: expecting=${jsx.type} received=${element.tagName.toLowerCase()}`
@@ -352,9 +366,13 @@ async function diffNode(received: HTMLElement, expected: JSXOutput): Promise<str
     leave: () => {
       // console.log('leave');
       nodePath.pop();
-      nodePath[nodePath.length - 1] = (
-        nodePath[nodePath.length - 1] as HTMLElement
-      ).nextElementSibling!;
+      const parentNode = nodePath[nodePath.length - 1] as HTMLElement;
+      if (!parentNode) {
+        diffs.push('  EXPECTED: (sibling)');
+        diffs.push('  RECEIVED: (nothing)');
+        return;
+      }
+      nodePath[nodePath.length - 1] = parentNode.nextElementSibling!;
       path.pop();
     },
     text: (expectText) => {

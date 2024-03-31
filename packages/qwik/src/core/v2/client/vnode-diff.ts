@@ -976,6 +976,7 @@ export function releaseSubscriptions(container: ClientContainer, vNode: VNode) {
     // Text nodes don't have subscriptions or children;
     return;
   }
+  let vParent: VNode | null = null;
   do {
     const type = vCursor[VNodeProps.flags];
     if (type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) {
@@ -1006,11 +1007,14 @@ export function releaseSubscriptions(container: ClientContainer, vNode: VNode) {
           if (!key.startsWith(':') && !key.startsWith('q:')) {
             // any prop which does not start with `:` or `q:` is a content-projection prop.
             const value = attrs[i + 1];
-            const vNode =
-              typeof value === 'string'
-                ? vnode_locate(container.rootVNode, value)
-                : (value as any as VNode);
-            releaseSubscriptions(container, vNode);
+            if (value) {
+              attrs[i + 1] = null; // prevent infinite loop
+              const vNode =
+                typeof value === 'string'
+                  ? vnode_locate(container.rootVNode, value)
+                  : (value as any as VNode);
+              releaseSubscriptions(container, vNode);
+            }
           }
         }
       }
@@ -1036,8 +1040,8 @@ export function releaseSubscriptions(container: ClientContainer, vNode: VNode) {
       // we are back where we started, we are done.
       return;
     }
-    // Out of siblings, got to parent
-    let vParent = vnode_getParent(vCursor);
+    // Out of siblings, go to parent
+    vParent = vnode_getParent(vCursor);
     while (vParent) {
       if (vParent === vNode) {
         // We are back where we started, we are done.
@@ -1050,7 +1054,7 @@ export function releaseSubscriptions(container: ClientContainer, vNode: VNode) {
       }
       vParent = vnode_getParent(vParent);
     }
-  } while (true as boolean);
+  } while (vParent);
 }
 
 /**

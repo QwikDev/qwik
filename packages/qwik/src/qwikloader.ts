@@ -1,6 +1,7 @@
 import type { QwikSymbolEvent, QwikVisibleEvent } from './core/render/jsx/types/jsx-qwik-events';
 import type { QContainerElement } from './core/container/container';
 import type { QContext } from './core/state/context';
+import type { QElement2 } from './core/v2/shared/types';
 
 /**
  * Set up event listening for browser.
@@ -60,6 +61,8 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
     if (element.hasAttribute('preventdefault:' + eventName)) {
       ev.preventDefault();
     }
+    // <DELETE ME LATER>: After Qwik 2.0 release
+    // This needs to be here for backward compatibility with Qwik 1.0, but at some point we can drop it.
     const ctx = (element as any)['_qc_'] as QContext | undefined;
     const relevantListeners = ctx && ctx.li.filter((li) => li[0] === attrName);
     if (relevantListeners && relevantListeners.length > 0) {
@@ -68,6 +71,11 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
         await listener[1].getFn([element, ev], () => element[isConnected])(ev, element);
       }
       return;
+    }
+    // </DELETE ME LATER>
+    const qDispatchEvent = (element as QElement2)['qDispatchEvent'];
+    if (qDispatchEvent) {
+      return qDispatchEvent(ev);
     }
     const attrValue = element[getAttribute](attrName);
     if (attrValue) {

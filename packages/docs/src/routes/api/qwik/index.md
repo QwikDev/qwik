@@ -2200,7 +2200,7 @@ export type FunctionComponent<P = unknown> = {
 
 ```typescript
 export declare function getDomContainer(
-  element: HTMLElement | ElementVNode,
+  element: Element | ElementVNode,
 ): IClientContainer;
 ```
 
@@ -2223,7 +2223,7 @@ element
 
 </td><td>
 
-HTMLElement \| ElementVNode
+Element \| ElementVNode
 
 </td><td>
 
@@ -2774,7 +2774,7 @@ props
 
 </td><td>
 
-T extends [FunctionComponent](#functioncomponent)&lt;infer PROPS&gt; ? PROPS : Record&lt;any, unknown&gt;
+T extends [FunctionComponent](#functioncomponent)&lt;infer PROPS&gt; ? PROPS : Props
 
 </td><td>
 
@@ -2863,7 +2863,7 @@ props
 
 </td><td>
 
-T extends [FunctionComponent](#functioncomponent)&lt;infer PROPS&gt; ? PROPS : Record&lt;any, unknown&gt;
+T extends [FunctionComponent](#functioncomponent)&lt;infer PROPS&gt; ? PROPS : Props
 
 </td><td>
 
@@ -2959,6 +2959,19 @@ Description
 </td></tr>
 <tr><td>
 
+[constProps](#)
+
+</td><td>
+
+</td><td>
+
+Record&lt;any, unknown&gt; \| null
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
 [dev?](#)
 
 </td><td>
@@ -2981,19 +2994,6 @@ _(Optional)_
 </td><td>
 
 number
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[immutableProps](#)
-
-</td><td>
-
-</td><td>
-
-Record&lt;any, unknown&gt; \| null
 
 </td><td>
 
@@ -3033,6 +3033,19 @@ T extends [FunctionComponent](#functioncomponent)&lt;infer P&gt; ? P : Record&lt
 </td><td>
 
 T
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[varProps](#)
+
+</td><td>
+
+</td><td>
+
+Record&lt;any, unknown&gt;
 
 </td><td>
 

@@ -894,8 +894,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       for (let i = 0; i < attrs.length; i++) {
         const key = attrs[i++] as SsrAttrKey;
         let value = attrs[i] as SsrAttrValue;
-        this.write(' ');
-        this.write(key);
 
         if (isSignal(value)) {
           const lastNode = this.getLastNode();
@@ -911,6 +909,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         value = serializeAttribute(key, value);
 
         if (value != null && typeof value === 'string') {
+          this.write(' ');
+          this.write(key);
           this.write('="');
           let startIdx = 0;
           let quoteIdx: number;

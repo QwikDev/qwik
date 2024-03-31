@@ -264,7 +264,7 @@ export const _getContextEvent: () => unknown;
 // Warning: (ae-forgotten-export) The symbol "ClientContainer" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export function getDomContainer(element: HTMLElement | ElementVNode): ClientContainer;
+export function getDomContainer(element: Element | ElementVNode): ClientContainer;
 
 // Warning: (ae-internal-missing-underscore) The name "getLocale" should be prefixed with an underscore because the declaration is marked as @internal
 //

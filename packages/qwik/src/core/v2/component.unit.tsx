@@ -443,7 +443,6 @@ describe.each([
       await expect(document.body.querySelector('input')).toMatchDOM(
         <input
           id="input"
-          required={false}
           aria-hidden="true"
           aria-required="false"
           draggable={false}
@@ -457,7 +456,6 @@ describe.each([
             <button id="req"></button>
             <input
               id="input"
-              required={false}
               aria-hidden="true"
               aria-required="false"
               draggable={false}
@@ -492,6 +490,34 @@ describe.each([
               aria-required="false"
               draggable={true}
               spellcheck={true}
+              tabIndex={-1}
+            />
+          </Fragment>
+        </Component>
+      );
+
+      await trigger(document.body, '#req', 'click');
+
+      await expect(document.body.querySelector('input')).toMatchDOM(
+        <input
+          id="input"
+          aria-hidden="true"
+          aria-required="false"
+          draggable={false}
+          spellcheck={false}
+          tabIndex={-1}
+        />
+      );
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button id="req"></button>
+            <input
+              id="input"
+              aria-hidden="true"
+              aria-required="false"
+              draggable={false}
+              spellcheck={false}
               tabIndex={-1}
             />
           </Fragment>

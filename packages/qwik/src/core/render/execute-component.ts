@@ -230,11 +230,17 @@ export function serializeAttribute(key: string, value: any, styleScopedId?: stri
     value = styleScopedId ? styleScopedId + ' ' + serializedClass : serializedClass;
   } else if (key === 'style') {
     value = stringifyStyle(value);
-  } else if (typeof value === 'boolean' || typeof value === 'number') {
-    // required, aria attrs, tabindex etc.
+  } else if (isEnumeratedBooleanAttribute(key) || typeof value === 'number') {
+    // aria attrs, tabindex etc.
     value = serializeBooleanOrNumberAttribute(value);
+  } else if (value === false || value == null) {
+    value = null;
   }
   return value;
+}
+
+function isEnumeratedBooleanAttribute(key: string) {
+  return isAriaAttribute(key) || ['spellcheck', 'draggable', 'contenteditable'].includes(key);
 }
 
 const setValueForStyle = (styleName: string, value: any) => {

@@ -523,7 +523,9 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
         }
 
         value = serializeAttribute(key, value, scopedStyleIdPrefix || undefined);
-        element.setAttribute(key, String(value));
+        if (value != null) {
+          element.setAttribute(key, String(value));
+        }
       }
     }
     const key = jsx.key;
@@ -566,7 +568,9 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     for (const key in props) {
       let value = props[key];
       value = serializeAttribute(key, value, scopedStyleIdPrefix || undefined);
-      mapArray_set(jsxAttrs, key, value, 0);
+      if (value != null) {
+        mapArray_set(jsxAttrs, key, value, 0);
+      }
     }
     if (jsxKey !== null) {
       mapArray_set(jsxAttrs, ELEMENT_KEY, jsxKey, 0);

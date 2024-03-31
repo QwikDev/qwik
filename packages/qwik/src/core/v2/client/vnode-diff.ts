@@ -5,7 +5,7 @@ import { assertDefined, assertFalse } from '../../error/assert';
 import { _CONST_PROPS } from '../../internal';
 import type { QRLInternal } from '../../qrl/qrl-class';
 import type { QRL } from '../../qrl/qrl.public';
-import { serializeClass, stringifyStyle } from '../../render/execute-component';
+import { serializeAttribute } from '../../render/execute-component';
 import { Fragment, JSXNodeImpl, isJSXNode } from '../../render/jsx/jsx-runtime';
 import { Slot } from '../../render/jsx/slot.public';
 import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
@@ -35,7 +35,7 @@ import {
   isHtmlAttributeAnEventName,
   isJsxPropertyAnEventName,
 } from '../shared/event-names';
-import { addPrefixForScopedStyleIdsString, isClassAttr } from '../shared/scoped-styles';
+import { addPrefixForScopedStyleIdsString } from '../shared/scoped-styles';
 import type { QElement2, fixMeAny } from '../shared/types';
 import { DEBUG_TYPE, VirtualType } from '../shared/types';
 import type { DomContainer } from './dom-container';
@@ -522,11 +522,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
           ]);
         }
 
-        if (isClassAttr(key)) {
-          value = serializeClassWithScopedStyle(value);
-        } else if (key === 'style') {
-          value = stringifyStyle(value);
-        }
+        value = serializeAttribute(key, value, scopedStyleIdPrefix || undefined);
         element.setAttribute(key, String(value));
       }
     }
@@ -569,11 +565,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     const props = jsx.varProps;
     for (const key in props) {
       let value = props[key];
-      if (isClassAttr(key)) {
-        value = serializeClassWithScopedStyle(value);
-      } else if (key === 'style') {
-        value = stringifyStyle(value);
-      }
+      value = serializeAttribute(key, value, scopedStyleIdPrefix || undefined);
       mapArray_set(jsxAttrs, key, value, 0);
     }
     if (jsxKey !== null) {
@@ -700,15 +692,6 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       }
     }
     return patchEventDispatch;
-  }
-
-  function serializeClassWithScopedStyle(value: any) {
-    const serializedClass = serializeClass(value);
-    value =
-      scopedStyleIdPrefix && serializedClass
-        ? `${scopedStyleIdPrefix} ${serializedClass}`
-        : serializedClass;
-    return value;
   }
 
   function retrieveScopedStyleIdPrefix() {

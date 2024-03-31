@@ -22,6 +22,7 @@ import { logWarn } from '../util/log';
 import { SubscriptionType } from '../state/common';
 import { type HostElement } from '../../server/qwik-types';
 import { vnode_getProp, vnode_isVNode } from '../v2/client/vnode';
+import { isClassAttr } from '../v2/shared/scoped-styles';
 
 export interface ExecuteComponentOutput {
   node: JSXOutput;
@@ -218,6 +219,23 @@ export const stringifyStyle = (obj: any): string => {
   }
   return String(obj);
 };
+
+export const serializeBooleanOrNumberAttribute = (value: any) => {
+  return value != null ? String(value) : null;
+};
+
+export function serializeAttribute(key: string, value: any, styleScopedId?: string): string {
+  if (isClassAttr(key)) {
+    const serializedClass = serializeClass(value as ClassList);
+    value = styleScopedId ? styleScopedId + ' ' + serializedClass : serializedClass;
+  } else if (key === 'style') {
+    value = stringifyStyle(value);
+  } else if (typeof value === 'boolean' || typeof value === 'number') {
+    // required, aria attrs, tabindex etc.
+    value = serializeBooleanOrNumberAttribute(value);
+  }
+  return value;
+}
 
 const setValueForStyle = (styleName: string, value: any) => {
   if (typeof value === 'number' && value !== 0 && !isUnitlessNumber(styleName)) {

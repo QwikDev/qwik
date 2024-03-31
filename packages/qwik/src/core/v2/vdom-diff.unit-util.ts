@@ -28,6 +28,7 @@ import type { VirtualVNode } from './client/types';
 import { isHtmlAttributeAnEventName, isJsxPropertyAnEventName } from './shared/event-names';
 import { format } from 'prettier';
 import { isText } from '../util/element';
+import { serializeBooleanOrNumberAttribute } from '../render/execute-component';
 
 interface CustomMatchers<R = unknown> {
   toMatchVDOM(expectedJSX: JSXOutput): R;
@@ -97,9 +98,15 @@ function diffJsxVNode(received: VNode, expected: JSXNode | string, path: string[
       if (isJsxPropertyAnEventName(prop) || isHtmlAttributeAnEventName(prop)) {
         return;
       }
-      const receivedValue = vnode_getAttr(received, prop) || receivedElement?.getAttribute(prop);
-      const expectedValue =
+      let receivedValue = vnode_getAttr(received, prop) || receivedElement?.getAttribute(prop);
+      let expectedValue =
         prop === 'key' || prop === 'q:key' ? expected.key ?? receivedValue : expected.props[prop];
+      if (typeof receivedValue === 'boolean' || typeof receivedValue === 'number') {
+        receivedValue = serializeBooleanOrNumberAttribute(receivedValue);
+      }
+      if (typeof expectedValue === 'boolean' || typeof expectedValue === 'number') {
+        expectedValue = serializeBooleanOrNumberAttribute(expectedValue);
+      }
       if (expectedValue !== receivedValue) {
         diffs.push(`${path.join(' > ')}: [${prop}]`);
         diffs.push('  EXPECTED: ' + JSON.stringify(expectedValue));
@@ -327,7 +334,13 @@ async function diffNode(received: HTMLElement, expected: JSXOutput): Promise<str
         entries.push(['q:key', jsx.key]);
       }
       entries.forEach(([expectedKey, expectedValue]) => {
-        const receivedValue = element.getAttribute(expectedKey);
+        let receivedValue = element.getAttribute(expectedKey);
+        if (typeof receivedValue === 'boolean' || typeof receivedValue === 'number') {
+          receivedValue = serializeBooleanOrNumberAttribute(receivedValue);
+        }
+        if (typeof expectedValue === 'boolean' || typeof expectedValue === 'number') {
+          expectedValue = serializeBooleanOrNumberAttribute(expectedValue);
+        }
         if (expectedValue !== receivedValue) {
           diffs.push(path.join(' > ') + `: [${expectedKey}]`);
           diffs.push('  EXPECTED: ' + JSON.stringify(expectedValue));

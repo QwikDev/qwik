@@ -89,6 +89,7 @@ describe.each([
       const updatedInput = document.querySelector(
         "#input-5506",
       ) as HTMLInputElement;
+      expect(updatedInput.checked).toBe(false);
       await expect(document.querySelector("#input-5506")).toMatchDOM(
         <input id="input-5506" type="checkbox" checked={false} />,
       );

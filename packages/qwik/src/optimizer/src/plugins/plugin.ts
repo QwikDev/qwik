@@ -100,7 +100,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     },
     inlineStylesUpToBytes: null as any,
     lint: true,
-    base: '/',
+    base: '',
   };
 
   const init = async () => {
@@ -136,7 +136,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     opts.debug = !!updatedOpts.debug;
 
     opts.base =
-      !updatedOpts?.base || updatedOpts.base.length === 1
+      !updatedOpts?.base || updatedOpts.base.length === '/'
         ? ''
         : updatedOpts.base.endsWith('/')
           ? updatedOpts.base.slice(0, -1)

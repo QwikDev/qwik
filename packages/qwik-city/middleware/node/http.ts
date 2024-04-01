@@ -115,6 +115,7 @@ export async function fromNodeHttp(
           });
         },
         close() {
+          once = false;
           res.end();
         },
       });

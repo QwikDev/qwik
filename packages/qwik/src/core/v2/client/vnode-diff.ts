@@ -600,7 +600,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
           let returnValue = false;
           qrls.flat(2).forEach((qrl) => {
             if (qrl) {
-              const value = qrl(event) as any;
+              const value = qrl(event, element) as any;
               returnValue = returnValue || value === true;
             }
           });

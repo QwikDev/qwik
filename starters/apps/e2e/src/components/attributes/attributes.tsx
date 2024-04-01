@@ -40,7 +40,6 @@ export const AttributesChild = component$<{ v: number }>(({ v }) => {
   renders.count++;
   const rerenders = renders.count + 0;
 
-  console.warn(state.stuff);
   return (
     <>
       <div>
@@ -104,9 +103,9 @@ export const AttributesChild = component$<{ v: number }>(({ v }) => {
       <div>
         {hide.value ? (
           <>
-            <label id="label" />
-            <input id="input" />
-            <svg id="svg">
+            <label id="label" key="abc" />
+            <input id="input" key="1" />
+            <svg id="svg" key="cba">
               <feGaussianBlur></feGaussianBlur>
               <foreignObject>
                 <foreignObject></foreignObject>
@@ -119,12 +118,14 @@ export const AttributesChild = component$<{ v: number }>(({ v }) => {
           <>
             <label
               id="label"
+              key="abcd"
               for={state.label}
               form="my-form"
               title={title.value}
             ></label>
             <input
               id="input"
+              key="2"
               required={required.value}
               aria-hidden={state.dataAria as any}
               aria-label={state.label}
@@ -140,6 +141,7 @@ export const AttributesChild = component$<{ v: number }>(({ v }) => {
             />
             <svg
               id="svg"
+              key="dcba"
               width="15"
               height="15"
               class="is-svg"

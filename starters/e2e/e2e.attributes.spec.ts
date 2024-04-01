@@ -25,12 +25,12 @@ test.describe("attributes", () => {
       await expect(input).toHaveAttribute("aria-required", "false");
       await expect(input).toHaveAttribute("draggable", "false");
       await expect(input).toHaveAttribute("spellcheck", "false");
-      await expect(input).not.hasAttribute("required");
-      await expect(input).not.hasAttribute("title");
+      await expect(input).not.toHaveAttribute("required");
+      await expect(input).not.toHaveAttribute("title");
 
       await expect(label).toHaveAttribute("for", "even");
       await expect(label).toHaveAttribute("form", "my-form");
-      await expect(label).not.hasAttribute("title");
+      await expect(label).not.toHaveAttribute("title");
 
       await expect(svg).toHaveAttribute("width", "15");
       await expect(svg).toHaveAttribute("height", "15");
@@ -53,7 +53,7 @@ test.describe("attributes", () => {
       const renders = page.locator("#renders");
 
       await expect(inputCopy).toHaveJSProperty("value", "");
-      await input.type("Hello");
+      await input.pressSequentially("Hello");
       await expect(input).toHaveJSProperty("value", "Hello");
       await expect(inputCopy).toHaveJSProperty("value", "Hello");
       await expect(inputValue).toHaveText("Hello");
@@ -62,12 +62,12 @@ test.describe("attributes", () => {
       await stuffBtn.click();
       await expect(inputCopy).toHaveJSProperty("value", "Hello");
       await expect(inputValue).toHaveText("Hello");
-      await expect(renders).toHaveText("2");
+      await expect(renders).toHaveText("1");
 
-      await input.type("Bye");
+      await input.pressSequentially("Bye");
       await expect(inputCopy).toHaveJSProperty("value", "ByeHello");
       await expect(inputValue).toHaveText("ByeHello");
-      await expect(renders).toHaveText("2");
+      await expect(renders).toHaveText("1");
 
       await expect(svg).toHaveAttribute("width", "15");
       await expect(svg).toHaveAttribute("height", "15");
@@ -91,7 +91,7 @@ test.describe("attributes", () => {
       await expect(input).toHaveAttribute("aria-required", "false");
       await expect(input).toHaveAttribute("draggable", "false");
       await expect(input).toHaveAttribute("spellcheck", "false");
-      await expect(input).not.hasAttribute("required");
+      await expect(input).not.toHaveAttribute("required");
       await expect(renders).toHaveText("1");
     });
 
@@ -109,8 +109,8 @@ test.describe("attributes", () => {
 
       await countBtn.click();
       await expect(input).not.toHaveAttribute("title", "some title");
-      await expect(input).not.hasAttribute("title");
-      await expect(label).not.hasAttribute("title");
+      await expect(input).not.toHaveAttribute("title");
+      await expect(label).not.toHaveAttribute("title");
       await expect(renders).toHaveText("1");
     });
 
@@ -127,7 +127,7 @@ test.describe("attributes", () => {
       await expect(input).toHaveAttribute("aria-required", "false");
       await expect(input).toHaveAttribute("draggable", "false");
       await expect(input).toHaveAttribute("spellcheck", "false");
-      await expect(input).not.hasAttribute("required");
+      await expect(input).not.toHaveAttribute("required");
       await expect(svg).toHaveAttribute("aria-hidden", "false");
       await expect(renders).toHaveText("1");
     });
@@ -144,7 +144,7 @@ test.describe("attributes", () => {
       await expect(input).toHaveAttribute("aria-required", "true");
       await expect(input).toHaveAttribute("draggable", "true");
       await expect(input).toHaveAttribute("spellcheck", "true");
-      await expect(input).hasAttribute("required");
+      await expect(input).toHaveAttribute("required");
       await expect(renders).toHaveText("1");
     });
 
@@ -159,13 +159,13 @@ test.describe("attributes", () => {
       await countBtn.click();
       await expect(input).not.toHaveAttribute("aria-hidden", "true");
 
-      await expect(input).not.hasAttribute("aria-hidden");
-      await expect(input).not.hasAttribute("aria-label");
-      await expect(input).not.hasAttribute("tabindex");
-      await expect(input).not.hasAttribute("required");
-      await expect(input).not.hasAttribute("aria-required");
-      await expect(input).not.hasAttribute("draggable");
-      await expect(input).not.hasAttribute("spellcheck");
+      await expect(input).not.toHaveAttribute("aria-hidden");
+      await expect(input).not.toHaveAttribute("aria-label");
+      await expect(input).not.toHaveAttribute("tabindex");
+      await expect(input).not.toHaveAttribute("required");
+      await expect(input).not.toHaveAttribute("aria-required");
+      await expect(input).not.toHaveAttribute("draggable");
+      await expect(input).not.toHaveAttribute("spellcheck");
       await expect(renders).toHaveText("2");
     });
 
@@ -180,20 +180,20 @@ test.describe("attributes", () => {
       await countBtn.click();
       await expect(input).not.toHaveAttribute("aria-hidden", "true");
 
-      await expect(input).not.hasAttribute("aria-hidden");
-      await expect(input).not.hasAttribute("aria-label");
-      await expect(input).not.hasAttribute("tabindex");
-      await expect(input).not.hasAttribute("required");
-      await expect(input).not.hasAttribute("aria-required");
-      await expect(input).not.hasAttribute("draggable");
-      await expect(input).not.hasAttribute("spellcheck");
-      await expect(label).not.hasAttribute("for");
-      await expect(label).not.hasAttribute("form");
-      await expect(svg).not.hasAttribute("width");
-      await expect(svg).not.hasAttribute("height");
-      await expect(svg).not.hasAttribute("preserveAspectRatio");
+      await expect(input).not.toHaveAttribute("aria-hidden");
+      await expect(input).not.toHaveAttribute("aria-label");
+      await expect(input).not.toHaveAttribute("tabindex");
+      await expect(input).not.toHaveAttribute("required");
+      await expect(input).not.toHaveAttribute("aria-required");
+      await expect(input).not.toHaveAttribute("draggable");
+      await expect(input).not.toHaveAttribute("spellcheck");
+      await expect(label).not.toHaveAttribute("for");
+      await expect(label).not.toHaveAttribute("form");
+      await expect(svg).not.toHaveAttribute("width");
+      await expect(svg).not.toHaveAttribute("height");
+      await expect(svg).not.toHaveAttribute("preserveAspectRatio");
       await expect(svg).toHaveClass("");
-      await expect(svg).not.hasAttribute("aria-hidden");
+      await expect(svg).not.toHaveAttribute("aria-hidden");
 
       await expect(renders).toHaveText("2");
 
@@ -202,7 +202,7 @@ test.describe("attributes", () => {
       await expect(input).toHaveAttribute("aria-hidden", "true");
       await expect(input).toHaveAttribute("aria-label", "even");
       await expect(input).toHaveAttribute("tabindex", "-1");
-      await expect(input).not.hasAttribute("required");
+      await expect(input).not.toHaveAttribute("required");
       await expect(input).toHaveAttribute("aria-required", "false");
       await expect(input).toHaveAttribute("draggable", "false");
       await expect(input).toHaveAttribute("spellcheck", "false");
@@ -222,19 +222,19 @@ test.describe("attributes", () => {
 
       await countBtn.click();
       await expect(svg).not.toHaveAttribute("aria-hidden", "true");
-      await expect(input).not.hasAttribute("aria-hidden");
-      await expect(input).not.hasAttribute("aria-label");
-      await expect(input).not.hasAttribute("tabindex");
-      await expect(input).not.hasAttribute("required");
-      await expect(input).not.hasAttribute("aria-required");
-      await expect(input).not.hasAttribute("draggable");
-      await expect(input).not.hasAttribute("spellcheck");
-      await expect(label).not.hasAttribute("for");
-      await expect(label).not.hasAttribute("form");
-      await expect(svg).not.hasAttribute("width");
-      await expect(svg).not.hasAttribute("height");
-      await expect(svg).not.hasAttribute("preserveAspectRatio");
-      await expect(svg).not.hasAttribute("aria-hidden");
+      await expect(input).not.toHaveAttribute("aria-hidden");
+      await expect(input).not.toHaveAttribute("aria-label");
+      await expect(input).not.toHaveAttribute("tabindex");
+      await expect(input).not.toHaveAttribute("required");
+      await expect(input).not.toHaveAttribute("aria-required");
+      await expect(input).not.toHaveAttribute("draggable");
+      await expect(input).not.toHaveAttribute("spellcheck");
+      await expect(label).not.toHaveAttribute("for");
+      await expect(label).not.toHaveAttribute("form");
+      await expect(svg).not.toHaveAttribute("width");
+      await expect(svg).not.toHaveAttribute("height");
+      await expect(svg).not.toHaveAttribute("preserveAspectRatio");
+      await expect(svg).not.toHaveAttribute("aria-hidden");
       await expect(svg).toHaveClass("");
       await expect(renders).toHaveText("4");
 
@@ -243,7 +243,7 @@ test.describe("attributes", () => {
       await expect(input).toHaveAttribute("aria-hidden", "true");
       await expect(input).toHaveAttribute("aria-label", "even");
       await expect(input).toHaveAttribute("tabindex", "-1");
-      await expect(input).not.hasAttribute("required");
+      await expect(input).not.toHaveAttribute("required");
       await expect(input).toHaveAttribute("aria-required", "false");
       await expect(input).toHaveAttribute("draggable", "false");
       await expect(input).toHaveAttribute("spellcheck", "false");
@@ -276,9 +276,9 @@ test.describe("attributes", () => {
       await button.click();
 
       await expect(button).toHaveClass("moop");
-      await expect(button).not.hasAttribute("data-works");
-      await expect(button).not.hasAttribute("aria-label");
-      await expect(button).not.hasAttribute("title");
+      await expect(button).not.toHaveAttribute("data-works");
+      await expect(button).not.toHaveAttribute("aria-label");
+      await expect(button).not.toHaveAttribute("title");
     });
 
     test("issue 4718 (undefined)", async ({ page }) => {
@@ -291,9 +291,9 @@ test.describe("attributes", () => {
       await button.click();
 
       await expect(button).toHaveClass("moop");
-      await expect(button).not.hasAttribute("data-works");
-      await expect(button).not.hasAttribute("aria-label");
-      await expect(button).not.hasAttribute("title");
+      await expect(button).not.toHaveAttribute("data-works");
+      await expect(button).not.toHaveAttribute("aria-label");
+      await expect(button).not.toHaveAttribute("title");
     });
   }
 

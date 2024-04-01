@@ -29,6 +29,7 @@ import type { JSXNode, JSXOutput } from '../render/jsx/types/jsx-node';
 import { isText } from '../util/element';
 import type { VirtualVNode } from './client/types';
 import { isHtmlAttributeAnEventName, isJsxPropertyAnEventName } from './shared/event-names';
+import { isElement } from '../../testing/html';
 
 interface CustomMatchers<R = unknown> {
   toMatchVDOM(expectedJSX: JSXOutput): R;
@@ -108,10 +109,10 @@ function diffJsxVNode(received: VNode, expected: JSXNode | string, path: string[
       if (typeof receivedValue === 'boolean' || typeof receivedValue === 'number') {
         receivedValue = serializeBooleanOrNumberAttribute(receivedValue);
       }
-      if (typeof expectedValue === 'boolean' || typeof expectedValue === 'number') {
+      if (typeof expectedValue === 'number') {
         expectedValue = serializeBooleanOrNumberAttribute(expectedValue);
       }
-      if (expectedValue !== receivedValue) {
+      if (!attrsEqual(expectedValue, receivedValue)) {
         diffs.push(`${path.join(' > ')}: [${prop}]`);
         diffs.push('  EXPECTED: ' + JSON.stringify(expectedValue));
         diffs.push('  RECEIVED: ' + JSON.stringify(receivedValue));
@@ -334,6 +335,11 @@ async function diffNode(received: HTMLElement, expected: JSXOutput): Promise<str
         diffs.push('  RECEIVED: #text ' + element.textContent);
         return;
       }
+      if (!isElement(element)) {
+        diffs.push(path.join(' > ') + ': expecting element');
+        diffs.push('  RECEIVED: ' + String(element));
+        return;
+      }
       if (jsx.type !== element.tagName.toLowerCase()) {
         diffs.push(
           path.join(' > ') + `: expecting=${jsx.type} received=${element.tagName.toLowerCase()}`
@@ -352,10 +358,10 @@ async function diffNode(received: HTMLElement, expected: JSXOutput): Promise<str
         if (typeof receivedValue === 'boolean' || typeof receivedValue === 'number') {
           receivedValue = serializeBooleanOrNumberAttribute(receivedValue);
         }
-        if (typeof expectedValue === 'boolean' || typeof expectedValue === 'number') {
+        if (typeof expectedValue === 'number') {
           expectedValue = serializeBooleanOrNumberAttribute(expectedValue);
         }
-        if (expectedValue !== receivedValue) {
+        if (!attrsEqual(expectedValue, receivedValue)) {
           diffs.push(path.join(' > ') + `: [${expectedKey}]`);
           diffs.push('  EXPECTED: ' + JSON.stringify(expectedValue));
           diffs.push('  RECEIVED: ' + JSON.stringify(receivedValue));
@@ -393,10 +399,22 @@ async function diffNode(received: HTMLElement, expected: JSXOutput): Promise<str
     },
   });
   if (diffs.length) {
-    const html = await format(received.outerHTML, formatOptions);
+    const inputHTML = received.outerHTML.replaceAll(':=""', '');
+    const html = await format(inputHTML, formatOptions);
     diffs.unshift('\n' + html);
   }
   return diffs;
 }
 
 const formatOptions = { parser: 'html', htmlWhitespaceSensitivity: 'ignore' as const };
+function attrsEqual(expectedValue: any, receivedValue: any) {
+  const isEqual =
+    typeof expectedValue == 'boolean'
+      ? expectedValue
+        ? receivedValue !== null
+        : receivedValue === null || receivedValue === 'false'
+      : expectedValue == receivedValue;
+  // console.log('attrsEqual', expectedValue, receivedValue, isEqual);
+  return isEqual;
+}
+

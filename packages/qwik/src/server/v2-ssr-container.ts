@@ -908,24 +908,27 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
         value = serializeAttribute(key, value);
 
-        if (value != null && typeof value === 'string') {
+        if (value != null && value !== false) {
           this.write(' ');
           this.write(key);
-          this.write('="');
-          let startIdx = 0;
-          let quoteIdx: number;
-          const componentFrame = this.getNearestComponentFrame();
-          if (isClassAttr(key) && componentFrame && componentFrame.scopedStyleIds.size) {
-            this.write(getScopedStyleIdsAsPrefix(componentFrame.scopedStyleIds) + ' ');
-          }
-          while ((quoteIdx = value.indexOf('"', startIdx)) != -1) {
-            this.write(value.substring(startIdx, quoteIdx));
-            this.write('&quot;');
-            startIdx = quoteIdx;
-          }
-          this.write(startIdx === 0 ? value : value.substring(startIdx));
+          if (value !== true) {
+            this.write('="');
+            let startIdx = 0;
+            let quoteIdx: number;
+            const componentFrame = this.getNearestComponentFrame();
+            if (isClassAttr(key) && componentFrame && componentFrame.scopedStyleIds.size) {
+              this.write(getScopedStyleIdsAsPrefix(componentFrame.scopedStyleIds) + ' ');
+            }
+            const strValue = String(value);
+            while ((quoteIdx = strValue.indexOf('"', startIdx)) != -1) {
+              this.write(strValue.substring(startIdx, quoteIdx));
+              this.write('&quot;');
+              startIdx = quoteIdx;
+            }
+            this.write(startIdx === 0 ? strValue : strValue.substring(startIdx));
 
-          this.write('"');
+            this.write('"');
+          }
         }
       }
     }

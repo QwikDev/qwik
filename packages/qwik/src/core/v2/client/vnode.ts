@@ -1529,6 +1529,10 @@ export const vnode_documentPosition = (a: VNode, b: VNode): -1 | 0 | 1 => {
       let vNext = vnode_getFirstChild(a) || vnode_getNextSibling(a);
       while (vNext === null) {
         a = vnode_getParent(a)!;
+        if (a === null) {
+          // this happens if we are inside a non-projected content.
+          return -1;
+        }
         if (vnode_isElementVNode(a)) {
           // we traversed all nodes and did not find anything;
           aNode = vnode_getNode(a)!;
@@ -1542,6 +1546,10 @@ export const vnode_documentPosition = (a: VNode, b: VNode): -1 | 0 | 1 => {
   }
   const bNode = vnode_getDOMParent(b)!;
 
+  if (bNode === null) {
+    // this happens if we are inside a non-projected content.
+    return -1;
+  }
   if (aNode === bNode) {
     // This means that `b` must have been before `a`
     return 1;

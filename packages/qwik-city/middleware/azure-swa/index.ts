@@ -99,6 +99,7 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
               }
             },
             close() {
+              once = false;
               resolve(response);
             },
           });

@@ -799,6 +799,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
           isDev && vnode_setProp(vNewNode, DEBUG_TYPE, VirtualType.Component);
           container.setHostProp(vNewNode, OnRenderProp, componentQRL);
           container.setHostProp(vNewNode, ELEMENT_PROPS, jsxProps);
+          container.setHostProp(vNewNode, ELEMENT_KEY, jsxKey);
         }
         host = vNewNode as VirtualVNode;
         shouldRender = true;
@@ -1054,7 +1055,11 @@ export function releaseSubscriptions(container: ClientContainer, vNode: VNode) {
       }
       vParent = vnode_getParent(vParent);
     }
-  } while (vParent);
+    if (vParent == null) {
+      // We are done.
+      return;
+    }
+  } while (true as boolean);
 }
 
 /**

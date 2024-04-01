@@ -745,12 +745,21 @@ export const vnode_applyJournal = (journal: VNodeJournal) => {
         break;
       case VNodeJournalOpCode.SetAttribute:
         const element = journal[idx++] as Element;
-        const key = journal[idx++] as string;
-        const value = journal[idx++] as string | null;
-        if (value == null) {
-          element.removeAttribute(key);
+        let key = journal[idx++] as string;
+        if (key === 'className') {
+          key = 'class';
+        }
+        const value = journal[idx++] as string | null | boolean;
+        if (key === 'checked' && key in element) {
+          (element as HTMLInputElement).checked = value === 'true' || value === true;
+        } else if (key === 'value' && key in element) {
+          (element as any).value = String(value);
         } else {
-          element.setAttribute(key, value);
+          if (value == null) {
+            element.removeAttribute(key);
+          } else {
+            element.setAttribute(key, String(value));
+          }
         }
         break;
       case VNodeJournalOpCode.HoistStyles:

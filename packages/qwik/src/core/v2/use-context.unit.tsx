@@ -35,60 +35,58 @@ const useFooFn = () => {
   });
 };
 
-[
-  ssrRenderToDom, //
-  domRender, //
-].forEach((render) => {
-  describe(render.name + 'useContext', () => {
-    it('should provide and retrieve a context', async () => {
-      const contextId = createContextId<{ value: string }>('myTest');
-      const Consumer = component$(() => {
-        const ctxValue = useContext(contextId);
-        return <span>{ctxValue.value}</span>;
-      });
-      const Provider = component$(() => {
-        useContextProvider(contextId, { value: 'CONTEXT_VALUE' });
-        return <Consumer />;
-      });
-
-      const { vNode } = await render(<Provider />, { debug });
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <Component>
-            <span>
-              <Signal>CONTEXT_VALUE</Signal>
-            </span>
-          </Component>
-        </Component>
-      );
+describe.each([
+  { render: ssrRenderToDom }, //
+  { render: domRender }, //
+])('$render.name: useContext', ({ render }) => {
+  it('should provide and retrieve a context', async () => {
+    const contextId = createContextId<{ value: string }>('myTest');
+    const Consumer = component$(() => {
+      const ctxValue = useContext(contextId);
+      return <span>{ctxValue.value}</span>;
     });
-    it('should provide and retrieve a context on client change', async () => {
-      const contextId = createContextId<{ value: string }>('myTest');
-      const Consumer = component$(() => {
-        const ctxValue = useContext(contextId);
-        return <span>{ctxValue.value}</span>;
-      });
-      const Provider = component$(() => {
-        useContextProvider(contextId, { value: 'CONTEXT_VALUE' });
-        const show = useSignal(false);
-        return show.value ? <Consumer /> : <button onClick$={() => (show.value = true)} />;
-      });
-
-      const { vNode, document } = await render(<Provider />, { debug });
-      await trigger(document.body, 'button', 'click');
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <Component>
-            <span>
-              <Signal>CONTEXT_VALUE</Signal>
-            </span>
-          </Component>
-        </Component>
-      );
+    const Provider = component$(() => {
+      useContextProvider(contextId, { value: 'CONTEXT_VALUE' });
+      return <Consumer />;
     });
+
+    const { vNode } = await render(<Provider />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Component>
+          <span>
+            <Signal>CONTEXT_VALUE</Signal>
+          </span>
+        </Component>
+      </Component>
+    );
+  });
+  it('should provide and retrieve a context on client change', async () => {
+    const contextId = createContextId<{ value: string }>('myTest');
+    const Consumer = component$(() => {
+      const ctxValue = useContext(contextId);
+      return <span>{ctxValue.value}</span>;
+    });
+    const Provider = component$(() => {
+      useContextProvider(contextId, { value: 'CONTEXT_VALUE' });
+      const show = useSignal(false);
+      return show.value ? <Consumer /> : <button onClick$={() => (show.value = true)} />;
+    });
+
+    const { vNode, document } = await render(<Provider />, { debug });
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Component>
+          <span>
+            <Signal>CONTEXT_VALUE</Signal>
+          </span>
+        </Component>
+      </Component>
+    );
   });
 
-  describe(render.name + 'regression', () => {
+  describe('regression', () => {
     it('#4038', async () => {
       interface IMyComponent {
         val: string;

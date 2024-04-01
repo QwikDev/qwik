@@ -13,258 +13,256 @@ import './vdom-diff.unit-util';
 const debug = false; //true;
 Error.stackTraceLimit = 100;
 
-[
-  ssrRenderToDom, //
-  domRender, //
-].forEach((render) => {
-  describe(render.name + ': useStore', () => {
-    it('should render value', async () => {
-      const Cmp = component$(() => {
-        const store = useStore({ items: [{ num: 0 }] });
-        return (
+describe.each([
+  { render: ssrRenderToDom }, //
+  { render: domRender }, //
+])('$render.name: useStore', ({ render }) => {
+  it('should render value', async () => {
+    const Cmp = component$(() => {
+      const store = useStore({ items: [{ num: 0 }] });
+      return (
+        <>
+          {store.items.map((item, key) => (
+            <div key={key}>{item.num}</div>
+          ))}
+        </>
+      );
+    });
+
+    const { vNode } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <div key="0">
+            <Signal>0</Signal>
+          </div>
+        </Fragment>
+      </Component>
+    );
+  });
+  it('should update value', async () => {
+    const Counter = component$(() => {
+      const count = useStore({ count: 123 });
+      return <button onClick$={() => count.count++}>Count: {count.count}!</button>;
+    });
+
+    const { vNode, container } = await render(<Counter />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <button>
+          Count: <Signal>{'123'}</Signal>!
+        </button>
+      </Component>
+    );
+    await trigger(container.element, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <button>
+          Count: <Signal>{'124'}</Signal>!
+        </button>
+      </Component>
+    );
+  });
+  it('should update deep value', async () => {
+    const Counter = component$(() => {
+      const count = useStore({ obj: { count: 123 } });
+      return <button onClick$={() => count.obj.count++}>Count: {count.obj.count}!</button>;
+    });
+
+    const { vNode, container } = await render(<Counter />, { debug });
+    expect(vNode).toMatchVDOM(
+      <>
+        <button>
+          Count: <Signal>{'123'}</Signal>!
+        </button>
+      </>
+    );
+    await trigger(container.element, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <>
+        <button>
+          Count: <Signal>{'124'}</Signal>!
+        </button>
+      </>
+    );
+  });
+
+  it('should rerender child', async () => {
+    const log: string[] = [];
+    const Display = component$((props: { dValue: number }) => {
+      log.push('Display');
+      return <span>Count: {props.dValue}!</span>;
+    });
+    const Counter = component$((props: { initial: number }) => {
+      log.push('Counter');
+      const count = useStore({ obj: { value: props.initial } });
+      return (
+        <button onClick$={() => count.obj.value++}>
+          <Display dValue={count.obj.value} />
+        </button>
+      );
+    });
+
+    const { vNode, container } = await render(<Counter initial={123} />, { debug });
+    expect(vNode).toMatchVDOM(
+      <>
+        <button>
           <>
-            {store.items.map((item, key) => (
-              <div key={key}>{item.num}</div>
-            ))}
+            <span>
+              Count: <Signal>{'123'}</Signal>!
+            </span>
           </>
-        );
-      });
-
-      const { vNode } = await render(<Cmp />, { debug });
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
-            <div key="0">
-              <Signal>0</Signal>
-            </div>
-          </Fragment>
-        </Component>
-      );
-    });
-    it('should update value', async () => {
-      const Counter = component$(() => {
-        const count = useStore({ count: 123 });
-        return <button onClick$={() => count.count++}>Count: {count.count}!</button>;
-      });
-
-      const { vNode, container } = await render(<Counter />, { debug });
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <button>
-            Count: <Signal>{'123'}</Signal>!
-          </button>
-        </Component>
-      );
-      await trigger(container.element, 'button', 'click');
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <button>
-            Count: <Signal>{'124'}</Signal>!
-          </button>
-        </Component>
-      );
-    });
-    it('should update deep value', async () => {
-      const Counter = component$(() => {
-        const count = useStore({ obj: { count: 123 } });
-        return <button onClick$={() => count.obj.count++}>Count: {count.obj.count}!</button>;
-      });
-
-      const { vNode, container } = await render(<Counter />, { debug });
-      expect(vNode).toMatchVDOM(
-        <>
-          <button>
-            Count: <Signal>{'123'}</Signal>!
-          </button>
-        </>
-      );
-      await trigger(container.element, 'button', 'click');
-      expect(vNode).toMatchVDOM(
-        <>
-          <button>
-            Count: <Signal>{'124'}</Signal>!
-          </button>
-        </>
-      );
-    });
-
-    it('should rerender child', async () => {
+        </button>
+      </>
+    );
+    await trigger(container.element, 'button', 'click');
+    expect(log).toEqual(['Counter', 'Display']);
+    expect(vNode).toMatchVDOM(
+      <>
+        <button>
+          <>
+            <span>
+              Count: <Signal>{'124'}</Signal>!
+            </span>
+          </>
+        </button>
+      </>
+    );
+  });
+  describe('derived', () => {
+    it('should update value directly in DOM', async () => {
       const log: string[] = [];
-      const Display = component$((props: { dValue: number }) => {
-        log.push('Display');
-        return <span>Count: {props.dValue}!</span>;
-      });
       const Counter = component$((props: { initial: number }) => {
-        log.push('Counter');
-        const count = useStore({ obj: { value: props.initial } });
-        return (
-          <button onClick$={() => count.obj.value++}>
-            <Display dValue={count.obj.value} />
-          </button>
-        );
+        const count = useStore({ value: props.initial });
+        log.push('Counter: ' + untrack(() => count.value));
+        return <button onClick$={() => count.value++}>Count: {count.value}!</button>;
       });
 
-      const { vNode, container } = await render(<Counter initial={123} />, { debug });
+      const { vNode, container } = await render(<Counter initial={123} />, {
+        debug,
+        // oldSSR: true,
+      });
+      expect(log).toEqual(['Counter: 123']);
+      log.length = 0;
       expect(vNode).toMatchVDOM(
-        <>
+        <Component>
           <button>
-            <>
-              <span>
-                Count: <Signal>{'123'}</Signal>!
-              </span>
-            </>
+            Count: <>{'123'}</>!
           </button>
-        </>
+        </Component>
       );
       await trigger(container.element, 'button', 'click');
-      expect(log).toEqual(['Counter', 'Display']);
+      expect(log).toEqual([]);
+      log.length = 0;
       expect(vNode).toMatchVDOM(
         <>
           <button>
-            <>
-              <span>
-                Count: <Signal>{'124'}</Signal>!
-              </span>
-            </>
+            Count: <>{'124'}</>!
           </button>
         </>
       );
     });
-    describe('derived', () => {
-      it('should update value directly in DOM', async () => {
-        const log: string[] = [];
-        const Counter = component$((props: { initial: number }) => {
-          const count = useStore({ value: props.initial });
-          log.push('Counter: ' + untrack(() => count.value));
-          return <button onClick$={() => count.value++}>Count: {count.value}!</button>;
-        });
-
-        const { vNode, container } = await render(<Counter initial={123} />, {
-          debug,
-          // oldSSR: true,
-        });
-        expect(log).toEqual(['Counter: 123']);
-        log.length = 0;
-        expect(vNode).toMatchVDOM(
-          <Component>
-            <button>
-              Count: <>{'123'}</>!
-            </button>
-          </Component>
+    it('should allow signal to deliver value or JSX', async () => {
+      const log: string[] = [];
+      const Counter = component$(() => {
+        const count = useStore<any>({ value: 'initial' });
+        log.push('Counter: ' + untrack(() => count.value));
+        return (
+          <button
+            onClick$={() => (count.value = typeof count.value == 'string' ? <b>JSX</b> : 'text')}
+          >
+            -{count.value}-
+          </button>
         );
-        await trigger(container.element, 'button', 'click');
-        expect(log).toEqual([]);
-        log.length = 0;
-        expect(vNode).toMatchVDOM(
+      });
+
+      const { vNode, container } = await render(<Counter />, { debug });
+      expect(log).toEqual(['Counter: initial']);
+      log.length = 0;
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            -<>{'initial'}</>-
+          </button>
+        </Component>
+      );
+      await trigger(container.element, 'button', 'click');
+      expect(log).toEqual([]);
+      log.length = 0;
+      expect(vNode).toMatchVDOM(
+        <>
+          <button>
+            -
+            <>
+              <b>JSX</b>
+            </>
+            -
+          </button>
+        </>
+      );
+      await trigger(container.element, 'button', 'click');
+      expect(log).toEqual([]);
+      log.length = 0;
+      expect(vNode).toMatchVDOM(
+        <>
+          <button>
+            -<>{'text'}</>-
+          </button>
+        </>
+      );
+    });
+    it('should update value when store, update and render are separated', async () => {
+      const renderLog: string[] = [];
+      const Display = component$((props: { displayValue: number }) => {
+        renderLog.push('Display');
+        return <>Count: {props.displayValue}!</>;
+      });
+      const Incrementor = component$((props: { countSignal: SignalType<number> }) => {
+        renderLog.push('Incrementor');
+        return (
+          <button
+            onClick$={() => {
+              const signal = props.countSignal;
+              signal.value++;
+            }}
+          >
+            +1
+          </button>
+        );
+      });
+      const Counter = component$(() => {
+        renderLog.push('Counter');
+        const count = useStore({ value: 123 });
+        return (
           <>
-            <button>
-              Count: <>{'124'}</>!
-            </button>
+            <Display displayValue={count.value} />
+            <Incrementor countSignal={count} />
           </>
         );
       });
-      it('should allow signal to deliver value or JSX', async () => {
-        const log: string[] = [];
-        const Counter = component$(() => {
-          const count = useStore<any>({ value: 'initial' });
-          log.push('Counter: ' + untrack(() => count.value));
-          return (
-            <button
-              onClick$={() => (count.value = typeof count.value == 'string' ? <b>JSX</b> : 'text')}
-            >
-              -{count.value}-
-            </button>
-          );
-        });
-
-        const { vNode, container } = await render(<Counter />, { debug });
-        expect(log).toEqual(['Counter: initial']);
-        log.length = 0;
-        expect(vNode).toMatchVDOM(
-          <Component>
-            <button>
-              -<>{'initial'}</>-
-            </button>
-          </Component>
-        );
-        await trigger(container.element, 'button', 'click');
-        expect(log).toEqual([]);
-        log.length = 0;
-        expect(vNode).toMatchVDOM(
+      const { vNode, container } = await render(<Counter />, { debug });
+      expect(renderLog).toEqual(['Counter', 'Display', 'Incrementor']);
+      renderLog.length = 0;
+      await trigger(container.element, 'button', 'click');
+      expect(renderLog).toEqual([]);
+      expect(vNode).toMatchVDOM(
+        <Fragment>
           <>
-            <button>
-              -
+            <Component>
               <>
-                <b>JSX</b>
+                Count: <>{'124'}</>!
               </>
-              -
-            </button>
+            </Component>
+            <Component>
+              <button>+1</button>
+            </Component>
           </>
-        );
-        await trigger(container.element, 'button', 'click');
-        expect(log).toEqual([]);
-        log.length = 0;
-        expect(vNode).toMatchVDOM(
-          <>
-            <button>
-              -<>{'text'}</>-
-            </button>
-          </>
-        );
-      });
-      it('should update value when store, update and render are separated', async () => {
-        const renderLog: string[] = [];
-        const Display = component$((props: { displayValue: number }) => {
-          renderLog.push('Display');
-          return <>Count: {props.displayValue}!</>;
-        });
-        const Incrementor = component$((props: { countSignal: SignalType<number> }) => {
-          renderLog.push('Incrementor');
-          return (
-            <button
-              onClick$={() => {
-                const signal = props.countSignal;
-                signal.value++;
-              }}
-            >
-              +1
-            </button>
-          );
-        });
-        const Counter = component$(() => {
-          renderLog.push('Counter');
-          const count = useStore({ value: 123 });
-          return (
-            <>
-              <Display displayValue={count.value} />
-              <Incrementor countSignal={count} />
-            </>
-          );
-        });
-        const { vNode, container } = await render(<Counter />, { debug });
-        expect(renderLog).toEqual(['Counter', 'Display', 'Incrementor']);
-        renderLog.length = 0;
-        await trigger(container.element, 'button', 'click');
-        expect(renderLog).toEqual([]);
-        expect(vNode).toMatchVDOM(
-          <Fragment>
-            <>
-              <Component>
-                <>
-                  Count: <>{'124'}</>!
-                </>
-              </Component>
-              <Component>
-                <button>+1</button>
-              </Component>
-            </>
-          </Fragment>
-        );
-      });
+        </Fragment>
+      );
     });
   });
 
-  describe(render.name + 'regression', () => {
+  describe('regression', () => {
     it('#5597 - should update value', async () => {
       (globalThis as any).clicks = 0;
       const Issue5597 = component$(() => {

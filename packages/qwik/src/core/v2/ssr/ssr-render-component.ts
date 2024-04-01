@@ -2,7 +2,7 @@ import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
 import { type Component, type OnRenderFn } from '../../component/component.public';
 import { SERIALIZABLE_STATE } from '../../container/serializers';
 import type { QRLInternal } from '../../qrl/qrl-class';
-import { ELEMENT_PROPS, OnRenderProp } from '../../util/markers';
+import { ELEMENT_KEY, ELEMENT_PROPS, OnRenderProp } from '../../util/markers';
 import { type ISsrNode, type SSRContainer } from './ssr-types';
 import { executeComponent2 } from '../shared/component-execution';
 
@@ -23,6 +23,9 @@ export const applyQwikComponentBody = (ssr: SSRContainer, jsx: JSXNode, componen
   const scheduler = ssr.$scheduler$;
   host.setProp(OnRenderProp, componentQrl);
   host.setProp(ELEMENT_PROPS, srcProps);
+  if (jsx.key !== null) {
+    host.setProp(ELEMENT_KEY, jsx.key);
+  }
   if ('children' in srcProps) {
     delete srcProps.children;
   }

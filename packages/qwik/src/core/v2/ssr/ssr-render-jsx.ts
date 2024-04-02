@@ -139,7 +139,11 @@ function processJSXNode(
         children != undefined && enqueue(children);
       } else if (typeof type === 'function') {
         if (type === Fragment) {
-          ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.Fragment] : EMPTY_ARRAY);
+          let attrs = jsx.key != null ? [ELEMENT_KEY, jsx.key] : EMPTY_ARRAY;
+          if (isDev) {
+            attrs = [DEBUG_TYPE, VirtualType.Fragment, ...attrs]; // Add debug info.
+          }
+          ssr.openFragment(attrs);
           enqueue(ssr.closeFragment);
           // In theory we could get functions or regexes, but we assume all is well
           const children = jsx.children as JSXOutput;

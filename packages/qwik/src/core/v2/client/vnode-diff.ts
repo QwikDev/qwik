@@ -2,7 +2,6 @@ import { isDev } from '@builder.io/qwik/build';
 import { type OnRenderFn } from '../../component/component.public';
 import { SERIALIZABLE_STATE } from '../../container/serializers';
 import { assertDefined, assertFalse } from '../../error/assert';
-import { _CONST_PROPS } from '../../internal';
 import type { QRLInternal } from '../../qrl/qrl-class';
 import type { QRL } from '../../qrl/qrl.public';
 import { serializeAttribute } from '../../render/execute-component';
@@ -43,14 +42,14 @@ import {
   ElementVNodeProps,
   VNodeFlags,
   VNodeProps,
+  VirtualVNodeProps,
+  type ClientAttrKey,
+  type ClientAttrs,
   type ClientContainer,
   type ElementVNode,
   type TextVNode,
   type VNode,
   type VirtualVNode,
-  type ClientAttrs,
-  type ClientAttrKey,
-  VirtualVNodeProps,
 } from './types';
 import {
   mapApp_findIndx,
@@ -164,7 +163,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
           if (Array.isArray(jsxValue)) {
             descend(jsxValue, false);
           } else if (isSignal(jsxValue)) {
-            expectVirtual(VirtualType.DerivedSignal);
+            expectVirtual(VirtualType.DerivedSignal, null);
             descend(
               trackSignal(jsxValue, [
                 SubscriptionType.TEXT_MUTABLE,
@@ -175,7 +174,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
               true
             );
           } else if (isPromise(jsxValue)) {
-            expectVirtual(VirtualType.Awaited);
+            expectVirtual(VirtualType.Awaited, null);
             asyncQueue.push(jsxValue, vNewNode || vCurrent);
           } else if (isJSXNode(jsxValue)) {
             const type = jsxValue.type;
@@ -186,7 +185,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
             } else if (typeof type === 'function') {
               if (type === Fragment) {
                 expectNoMoreTextNodes();
-                expectVirtual(VirtualType.Fragment);
+                expectVirtual(VirtualType.Fragment, jsxValue.key);
                 descend(jsxValue.children, true);
               } else if (type === Slot) {
                 expectNoMoreTextNodes();
@@ -600,7 +599,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
           let returnValue = false;
           qrls.flat(2).forEach((qrl) => {
             if (qrl) {
-              const value = qrl(event) as any;
+              const value = qrl(event, element) as any;
               returnValue = returnValue || value === true;
             }
           });
@@ -757,17 +756,36 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     return vNodeWithKey;
   }
 
-  function expectVirtual(type: VirtualType) {
-    if (vCurrent && vnode_isVirtualVNode(vCurrent)) {
+  function expectVirtual(type: VirtualType, jsxKey: string | null) {
+    if (
+      vCurrent &&
+      vnode_isVirtualVNode(vCurrent) &&
+      vnode_getProp(vCurrent, ELEMENT_KEY, null) === jsxKey
+    ) {
       // All is good.
-    } else {
-      vnode_insertBefore(
-        journal,
-        vParent as VirtualVNode,
-        (vNewNode = vnode_newVirtual()),
-        vCurrent && getInsertBefore()
-      );
+      return;
+    } else if (jsxKey !== null) {
+      // We have a key find it
+      vNewNode = retrieveChildWithKey(jsxKey);
+      if (vNewNode != null) {
+        // We found it, move it up.
+        vnode_insertBefore(
+          journal,
+          vParent as VirtualVNode,
+          (vNewNode = vnode_newVirtual()),
+          vCurrent && getInsertBefore()
+        );
+        return;
+      }
     }
+    // Did not find it, insert a new one.
+    vnode_insertBefore(
+      journal,
+      vParent as VirtualVNode,
+      (vNewNode = vnode_newVirtual()),
+      vCurrent && getInsertBefore()
+    );
+    vnode_setProp(vNewNode as VirtualVNode, ELEMENT_KEY, jsxKey);
     isDev && vnode_setProp((vNewNode || vCurrent) as VirtualVNode, DEBUG_TYPE, type);
   }
 

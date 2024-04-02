@@ -732,6 +732,42 @@ export const vnode_journalToString = (journal: VNodeJournal): string => {
   return lines.join('\n');
 };
 
+const parseBoolean = (value: string | boolean | null): boolean => {
+  if (value === 'false') {
+    return false;
+  }
+  return Boolean(value);
+};
+
+const isBooleanAttr = (element: Element, key: string): boolean => {
+  const isBoolean =
+    key == 'allowfullscreen' ||
+    key == 'async' ||
+    key == 'autofocus' ||
+    key == 'autoplay' ||
+    key == 'checked' ||
+    key == 'controls' ||
+    key == 'default' ||
+    key == 'defer' ||
+    key == 'disabled' ||
+    key == 'formnovalidate' ||
+    key == 'inert' ||
+    key == 'ismap' ||
+    key == 'itemscope' ||
+    key == 'loop' ||
+    key == 'multiple' ||
+    key == 'muted' ||
+    key == 'nomodule' ||
+    key == 'novalidate' ||
+    key == 'open' ||
+    key == 'playsinline' ||
+    key == 'readonly' ||
+    key == 'required' ||
+    key == 'reversed' ||
+    key == 'selected';
+  return isBoolean && key in element;
+};
+
 export const vnode_applyJournal = (journal: VNodeJournal) => {
   // console.log('APPLY JOURNAL', vnode_journalToString(journal));
   let idx = 0;
@@ -750,12 +786,12 @@ export const vnode_applyJournal = (journal: VNodeJournal) => {
           key = 'class';
         }
         const value = journal[idx++] as string | null | boolean;
-        if (key === 'checked' && key in element) {
-          (element as HTMLInputElement).checked = value === 'true' || value === true;
+        if (isBooleanAttr(element, key)) {
+          (element as any)[key] = parseBoolean(value);
         } else if (key === 'value' && key in element) {
           (element as any).value = String(value);
         } else {
-          if (value == null) {
+          if (value == null || value === false) {
             element.removeAttribute(key);
           } else {
             element.setAttribute(key, String(value));

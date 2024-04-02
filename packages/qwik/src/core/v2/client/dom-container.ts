@@ -266,10 +266,11 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
       this.rendering = true;
       this.renderDone = getPlatform().nextTick(() => {
         // console.log('>>>> scheduleRender nextTick', !!this.rendering);
-        return maybeThen(this.$scheduler$.$drainAll$(), () => {
+        return maybeThen(this.$scheduler$.$drainAllNonVisibleTasks$(), () => {
           this.rendering = false;
           // console.log('>>>> Drain Journal', this.$journal$.length);
           vnode_applyJournal(this.$journal$);
+          return this.$scheduler$.$drainAllVisibleTasks$();
         });
       });
     }

@@ -897,13 +897,18 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
         if (isSignal(value)) {
           const lastNode = this.getLastNode();
-          value = this.trackSignalValue(value, [
-            immutable ? SubscriptionType.PROP_IMMUTABLE : SubscriptionType.PROP_MUTABLE,
-            lastNode as fixMeAny,
-            value,
-            lastNode as fixMeAny,
-            key,
-          ]);
+          if (key === 'ref') {
+            value.value = lastNode;
+            continue;
+          } else {
+            value = this.trackSignalValue(value, [
+              immutable ? SubscriptionType.PROP_IMMUTABLE : SubscriptionType.PROP_MUTABLE,
+              lastNode as fixMeAny,
+              value,
+              lastNode as fixMeAny,
+              key,
+            ]);
+          }
         }
 
         value = serializeAttribute(key, value);

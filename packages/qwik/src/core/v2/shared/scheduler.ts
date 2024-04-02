@@ -7,6 +7,7 @@ import {
   runSubscriber2,
   Task,
   TaskFlagsIsDirty,
+  TaskFlagsIsVisibleTask,
   type TaskFn,
   type useTaskQrl,
   type useVisibleTaskQrl,
@@ -26,21 +27,14 @@ export const enum ChoreType {
   RESOURCE = 2,
   TASK = 3,
   NODE_DIFF = 4,
-  // TODO: not needed, updating prop does not require scheduler
-  // NODE_PROP = 5,
-  COMPONENT = 6,
-  VISIBLE = 7,
-  SIMPLE = 8,
+  COMPONENT = 5,
+  VISIBLE = 6,
+  TEST = 7,
 }
-// const TYPE2EVENT: Array<
-//   typeof TaskEvent | typeof ComputedEvent | typeof ResourceEvent | typeof RenderEvent
-// > = [
-//   TaskEvent, ////// 0 - ChoreType.TASK
-//   ComputedEvent, // 1 - ChoreType.COMPUTED
-//   ResourceEvent, // 2 - ChoreType.RESOURCE
-//   RenderEvent, //// 3 - ChoreType.COMPONENT
-//   TaskEvent, ////// 4 - ChoreType.VISIBLE
-// ];
+
+const BEFORE_JOURNAL_FLUSH_CHORES_LOCAL = ':beforeChores';
+const AFTER_JOURNAL_FLUSH_CHORES_LOCAL = ':afterChores';
+const CLEANUP_LOCAL = ':cleanup';
 
 export interface Chore {
   $type$: ChoreType;
@@ -51,8 +45,18 @@ export interface Chore {
 
 export type Scheduler = ReturnType<typeof createScheduler>;
 
+type QueueName =
+  | typeof BEFORE_JOURNAL_FLUSH_CHORES_LOCAL
+  | typeof AFTER_JOURNAL_FLUSH_CHORES_LOCAL
+  | typeof CLEANUP_LOCAL;
+
 export const createScheduler = (container: Container2, scheduleDrain: () => void) => {
-  const hostElementQueue: HostElement[] = [];
+  // we have 3 queues:
+  // queue for chores before render
+  const hostElementBeforeJournalQueue: HostElement[] = [];
+  // queue for chores after render
+  const hostElementAfterJournalQueue: HostElement[] = [];
+  // queue for cleanups
   const hostElementCleanupQueue: HostElement[] = [];
   let drainResolve: ((value: void) => void) | null = null;
 
@@ -63,9 +67,17 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
     $scheduleCleanup$: scheduleCleanup,
     $scheduleComponent$: scheduleComponent,
     $schedule$: schedule,
-    $drainAll$: drainAll,
-    $drainCleanup$: drainCleanup,
-    $drainComponent$: drainComponent,
+    $drainAllNonVisibleTasks$: () =>
+      drainAll(hostElementBeforeJournalQueue, BEFORE_JOURNAL_FLUSH_CHORES_LOCAL),
+    $drainAllVisibleTasks$: () =>
+      drainAll(hostElementAfterJournalQueue, AFTER_JOURNAL_FLUSH_CHORES_LOCAL),
+    $drainCleanup$: drainCleanup, //TODO: change this to drainAll later
+    $drainComponent$: (hostElement: HostElement) => {
+      const hostChores =
+        container.getHostProp<Chore[]>(hostElement, BEFORE_JOURNAL_FLUSH_CHORES_LOCAL) ||
+        EMPTY_ARRAY;
+      return drainComponent(hostElement, hostChores);
+    },
     $empty$: Promise.resolve(),
   };
   return api;
@@ -76,7 +88,14 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
   function scheduleTask(task: Task) {
     // console.log('scheduleTask', task.$qrl$.$symbol$, task.$flags$ & TaskFlagsIsDirty);
     task.$flags$ |= TaskFlagsIsDirty;
-    schedule(ChoreType.TASK, task.$el$ as fixMeAny, task.$qrl$ as fixMeAny, task.$index$, task);
+    const isVisibleTask = task.$flags$ & TaskFlagsIsVisibleTask;
+    schedule(
+      isVisibleTask ? ChoreType.VISIBLE : ChoreType.TASK,
+      task.$el$ as fixMeAny,
+      task.$qrl$ as fixMeAny,
+      task.$index$,
+      task
+    );
     return api;
   }
 
@@ -105,7 +124,7 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
   }
 
   function schedule(
-    type: ChoreType.TASK,
+    type: ChoreType.TASK | ChoreType.VISIBLE,
     host: HostElement,
     qrl: Parameters<typeof useTaskQrl>[0],
     idx: number,
@@ -146,7 +165,7 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
     idx: number
   ): void;
   function schedule(
-    type: ChoreType.SIMPLE,
+    type: ChoreType.TEST,
     host: HostElement,
     qrl: Parameters<typeof useVisibleTaskQrl>[0]
   ): void;
@@ -158,7 +177,16 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
     payload: unknown = null
   ) {
     // console.log('>>>> SCHEDULE', !drainResolve, String(host));
-    const localQueueName = type == ChoreType.CLEANUP ? CLEANUP_LOCAL : CHORES_LOCAL;
+    let localQueueName = BEFORE_JOURNAL_FLUSH_CHORES_LOCAL;
+    let queue = hostElementBeforeJournalQueue;
+    if (type == ChoreType.CLEANUP) {
+      localQueueName = CLEANUP_LOCAL;
+      queue = hostElementCleanupQueue;
+    } else if (type == ChoreType.VISIBLE) {
+      localQueueName = AFTER_JOURNAL_FLUSH_CHORES_LOCAL;
+      queue = hostElementAfterJournalQueue;
+    }
+
     let hostChoreQueue = container.getHostProp<Chore[]>(host, localQueueName);
     if (!hostChoreQueue) {
       container.setHostProp(host, localQueueName, (hostChoreQueue = []));
@@ -169,50 +197,47 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
       intraHostPredicate,
       choreUpdate
     );
-    sortedInsert(
-      type == ChoreType.CLEANUP ? hostElementCleanupQueue : hostElementQueue,
-      host,
-      hostElementPredicate
-    );
-    if (!drainResolve) {
-      scheduleDrain();
-    }
+    sortedInsert(queue, host, hostElementPredicate);
+    // if (!drainResolve) {
+    // console.log('before scheduleDrain');
+    scheduleDrain();
+    // }
   }
 
-  function drainAll(): ValueOrPromise<void> {
+  function drainAll(queue: HostElement[], queueName: QueueName): ValueOrPromise<void> {
     // console.log('>>>> drainAll', hostElementQueue.length, hostElementCleanupQueue.length);
     if (!drainResolve) {
       api.$empty$ = new Promise<void>((resolve) => (drainResolve = resolve));
     }
-    while (hostElementQueue.length) {
-      const hostElement = hostElementQueue.shift()!;
-      const jsx = drainComponent(hostElement);
+    while (queue.length) {
+      const hostElement = queue.shift()!;
+      const hostChores = container.getHostProp<Chore[]>(hostElement, queueName) || EMPTY_ARRAY;
+      const jsx = drainComponent(hostElement, hostChores);
       if (isPromise(jsx)) {
         return jsx.then((jsx) => {
           if (jsx !== null) {
-            return maybeThen(container.processJsx(hostElement, jsx), drainAll);
+            return maybeThen(container.processJsx(hostElement, jsx), () =>
+              drainAll(queue, queueName)
+            );
           } else {
-            drainAll();
+            drainAll(queue, queueName);
           }
         }, shouldNotError);
       }
       if (jsx !== null) {
         const shouldWait = container.processJsx(hostElement, jsx);
         if (isPromise(shouldWait)) {
-          return shouldWait.then(drainAll);
+          return shouldWait.then(() => drainAll(queue, queueName));
         }
       }
     }
     const resolve = drainResolve!;
     drainResolve = null;
-    // console.log('<<<< drainAll done');
+    // console.log('<<<< drainAll done', queueName);
     resolve && resolve();
   }
 
-  function drainComponent(host: HostElement, hostChores?: Chore[]): ValueOrPromise<JSXOutput> {
-    if (!hostChores) {
-      hostChores = container.getHostProp<Chore[]>(host, CHORES_LOCAL) || EMPTY_ARRAY;
-    }
+  function drainComponent(host: HostElement, hostChores: Chore[]): ValueOrPromise<JSXOutput> {
     // console.log('drainComponent', hostChores.length, hostChores[0]?.$type$);
     while (hostChores.length) {
       const chore = hostChores.shift()!;
@@ -229,7 +254,7 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
         handleError(err);
       }
     }
-    sortedRemove(hostElementQueue, host, hostElementPredicate);
+    sortedRemove(hostElementBeforeJournalQueue, host, hostElementPredicate);
     return container.getHostProp<JSXOutput>(host, JSX_LOCAL)!;
   }
 
@@ -262,6 +287,7 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
       case ChoreType.COMPUTED:
         return runComputed2(chore.$payload$ as Task<TaskFn, TaskFn>, container, host);
       case ChoreType.TASK:
+      case ChoreType.VISIBLE:
         return runSubscriber2(chore.$payload$ as Task<TaskFn, TaskFn>, container, host);
       case ChoreType.NODE_DIFF: {
         const parentVirtualNode = chore.$target$ as VirtualVNode;
@@ -273,7 +299,7 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
         task.$destroy$ && task.$destroy$();
         break;
       }
-      case ChoreType.SIMPLE:
+      case ChoreType.TEST:
         return (chore.$target$ as QRLInternal<(...args: unknown[]) => unknown>).getFn()();
     }
   }
@@ -333,8 +359,6 @@ export const intraHostPredicate = (a: Chore, b: Chore): number => {
   return 0;
 };
 
-const CHORES_LOCAL = ':chores';
-const CLEANUP_LOCAL = ':cleanup';
 function sortedFindIndex<T>(
   sortedArray: T[],
   value: T,

@@ -48,27 +48,27 @@ describe('scheduler', () => {
     const log: string[] = [];
 
     scheduler.$schedule$(
-      ChoreType.SIMPLE,
+      ChoreType.TEST,
       vBHost1,
       inlinedQrl(() => {
         log.push('2');
       }, 's_2')
     );
     scheduler.$schedule$(
-      ChoreType.SIMPLE,
+      ChoreType.TEST,
       vBHost2,
       inlinedQrl(() => {
         log.push('3');
       }, 's_3')
     );
     scheduler.$schedule$(
-      ChoreType.SIMPLE,
+      ChoreType.TEST,
       vAHost,
       inlinedQrl(() => {
         log.push('1');
       }, 's_1')
     );
-    scheduler.$drainAll$();
+    scheduler.$drainAllNonVisibleTasks$();
     expect(log).toEqual(['1', '2', '3']);
   });
 
@@ -76,7 +76,7 @@ describe('scheduler', () => {
     const log: string[] = [];
 
     scheduler.$schedule$(
-      ChoreType.SIMPLE,
+      ChoreType.TEST,
       vBHost2,
       inlinedQrl(() => {
         delay(1);
@@ -84,7 +84,7 @@ describe('scheduler', () => {
       }, 's_3')
     );
     scheduler.$schedule$(
-      ChoreType.SIMPLE,
+      ChoreType.TEST,
       vBHost1,
       inlinedQrl(() => {
         delay(1);
@@ -92,21 +92,21 @@ describe('scheduler', () => {
       }, 's_2')
     );
     scheduler.$schedule$(
-      ChoreType.SIMPLE,
+      ChoreType.TEST,
       vAHost,
       inlinedQrl(() => {
         delay(1);
         log.push('1');
       }, 's_1')
     );
-    await scheduler.$drainAll$();
+    await scheduler.$drainAllNonVisibleTasks$();
     expect(log).toEqual(['1', '2', '3']);
   });
   it('should not add the same SIMPLE twice', async () => {
     const log: string[] = [];
 
     scheduler.$schedule$(
-      ChoreType.SIMPLE,
+      ChoreType.TEST,
       vBHost2,
       inlinedQrl(() => {
         delay(1);
@@ -114,14 +114,14 @@ describe('scheduler', () => {
       }, 's_3')
     );
     scheduler.$schedule$(
-      ChoreType.SIMPLE,
+      ChoreType.TEST,
       vBHost2,
       inlinedQrl(() => {
         delay(1);
         log.push('1');
       }, 's_3')
     );
-    await scheduler.$drainAll$();
+    await scheduler.$drainAllNonVisibleTasks$();
     expect(log).toEqual(['1']);
   });
 });

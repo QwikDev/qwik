@@ -232,7 +232,8 @@
   overflow: hidden;
 }
 
-.output-modules .file-tree-items a:hover {
+.output-modules .file-tree-items a:hover,
+.output-modules .file-tree-items a.in-view {
   color: var(--qwik-blue);
 }
 

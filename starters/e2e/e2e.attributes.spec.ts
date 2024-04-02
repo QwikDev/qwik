@@ -155,8 +155,8 @@ test.describe("attributes", () => {
       const requiredBtn = page.locator("#required");
       await requiredBtn.click();
 
-      const countBtn = page.locator("#hide");
-      await countBtn.click();
+      const hideBtn = page.locator("#hide");
+      await hideBtn.click();
       await expect(input).not.toHaveAttribute("aria-hidden", "true");
 
       await expect(input).not.hasAttribute("aria-hidden");

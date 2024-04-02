@@ -23,7 +23,7 @@ const config: PlaywrightTestConfig = {
     },
   },
   testIgnore: /.*example.spec.tsx?$/,
-  retries: 3,
+  retries: 0,
   webServer: {
     command: "pnpm tsm ./starters/dev-server.ts 3301",
     port: 3301,

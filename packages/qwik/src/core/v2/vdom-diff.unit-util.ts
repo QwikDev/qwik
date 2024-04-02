@@ -24,12 +24,12 @@ import { isStringifiable, type Stringifiable } from './shared-types';
 
 import { format } from 'prettier';
 import { createDocument } from '../../testing/document';
+import { isElement } from '../../testing/html';
 import { serializeBooleanOrNumberAttribute } from '../render/execute-component';
 import type { JSXNode, JSXOutput } from '../render/jsx/types/jsx-node';
 import { isText } from '../util/element';
 import type { VirtualVNode } from './client/types';
 import { isHtmlAttributeAnEventName, isJsxPropertyAnEventName } from './shared/event-names';
-import { isElement } from '../../testing/html';
 
 interface CustomMatchers<R = unknown> {
   toMatchVDOM(expectedJSX: JSXOutput): R;
@@ -91,7 +91,7 @@ function diffJsxVNode(received: VNode, expected: JSXNode | string, path: string[
       diffs.push(path.join(' > ') + ' expecting=' + expected.type + ' received=' + receivedTag);
     }
     const allProps: string[] = [];
-    expected.varProps && propsAdd(allProps, Object.keys(expected.varProps));
+    expected.varProps &&  propsAdd(allProps, Object.keys(expected.varProps));
     expected.constProps && propsAdd(allProps, Object.keys(expected.constProps));
     const receivedElement = vnode_isElementVNode(received)
       ? (vnode_getNode(received) as Element)

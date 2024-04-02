@@ -2,7 +2,7 @@ import { $, component$, sync$, useStore, useStyles$ } from '@builder.io/qwik';
 import { CopyCode as CopyCodeIcon } from '../svgs/copy-code-icon';
 import styles from './copy-code.css?inline';
 
-const Check = component$(({ height = '12', width = '12' }) => {
+const Check = component$(({ height = 12, width = 12 }: { height: number; width: number }) => {
   useStyles$(styles);
 
   return (
@@ -43,15 +43,24 @@ export const CopyCode = component$(({ code }: { code: string }) => {
       }}
       class="absolute text-white right-2 top-2 shadow-2xl bg-[#1e1e1e] z-10"
     >
-      {store.copied ? (
-        <span class="check">
-          <Check />
-        </span>
-      ) : (
-        <span class="check">
-          <CopyCodeIcon />
-        </span>
-      )}
+      <span
+        class={{
+          animate: true,
+          visible: store.copied,
+          hidden: !store.copied,
+        }}
+      >
+        <Check />
+      </span>
+      <span
+        class={{
+          animate: true,
+          visible: !store.copied,
+          hidden: store.copied,
+        }}
+      >
+        <CopyCodeIcon />
+      </span>
     </button>
   );
 });

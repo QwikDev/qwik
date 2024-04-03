@@ -279,8 +279,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (attrs) {
       this.writeAttrs(attrs, false);
     }
-    if (immutableAttrs) {
-      this.write(' :');
+    if (immutableAttrs && immutableAttrs.length) {
+      // we have to skip the `ref` prop, so we don't need `:` if there is only this `ref` prop
+      if (immutableAttrs[0] !== 'ref') {
+        this.write(' :');
+      }
       this.writeAttrs(immutableAttrs, true);
     }
     this.write('>');

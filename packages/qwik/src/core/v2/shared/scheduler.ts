@@ -76,7 +76,7 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
       const hostChores =
         container.getHostProp<Chore[]>(hostElement, BEFORE_JOURNAL_FLUSH_CHORES_LOCAL) ||
         EMPTY_ARRAY;
-      return drainComponent(hostElement, hostChores);
+      return drainComponent(hostElement, hostChores, hostElementBeforeJournalQueue);
     },
     $empty$: Promise.resolve(),
   };
@@ -198,21 +198,21 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
       choreUpdate
     );
     sortedInsert(queue, host, hostElementPredicate);
-    // if (!drainResolve) {
-    // console.log('before scheduleDrain');
-    scheduleDrain();
-    // }
+    if (!drainResolve) {
+      // console.log('before scheduleDrain');
+      scheduleDrain();
+    }
   }
 
   function drainAll(queue: HostElement[], queueName: QueueName): ValueOrPromise<void> {
-    // console.log('>>>> drainAll', hostElementQueue.length, hostElementCleanupQueue.length);
+    // console.log('>>>> drainAll', queue.length, hostElementCleanupQueue.length, queueName);
     if (!drainResolve) {
       api.$empty$ = new Promise<void>((resolve) => (drainResolve = resolve));
     }
     while (queue.length) {
       const hostElement = queue.shift()!;
       const hostChores = container.getHostProp<Chore[]>(hostElement, queueName) || EMPTY_ARRAY;
-      const jsx = drainComponent(hostElement, hostChores);
+      const jsx = drainComponent(hostElement, hostChores, queue);
       if (isPromise(jsx)) {
         return jsx.then((jsx) => {
           if (jsx !== null) {
@@ -237,7 +237,11 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
     resolve && resolve();
   }
 
-  function drainComponent(host: HostElement, hostChores: Chore[]): ValueOrPromise<JSXOutput> {
+  function drainComponent(
+    host: HostElement,
+    hostChores: Chore[],
+    queue: HostElement[]
+  ): ValueOrPromise<JSXOutput> {
     // console.log('drainComponent', hostChores.length, hostChores[0]?.$type$);
     while (hostChores.length) {
       const chore = hostChores.shift()!;
@@ -246,7 +250,7 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
         const result = executeChore(host, chore);
         if (isPromise(result)) {
           return result.then(
-            () => drainComponent(host, hostChores),
+            () => drainComponent(host, hostChores, queue),
             handleError
           ) as ValueOrPromise<JSXOutput>;
         }
@@ -254,7 +258,7 @@ export const createScheduler = (container: Container2, scheduleDrain: () => void
         handleError(err);
       }
     }
-    sortedRemove(hostElementBeforeJournalQueue, host, hostElementPredicate);
+    sortedRemove(queue, host, hostElementPredicate);
     return container.getHostProp<JSXOutput>(host, JSX_LOCAL)!;
   }
 

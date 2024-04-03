@@ -14,13 +14,12 @@ Error.stackTraceLimit = 100;
 
 describe.each([
   { render: ssrRenderToDom }, //
-  // { render: domRender }, //
+  { render: domRender }, //
 ])('$render.name: useVisibleTask', ({ render }) => {
-  it.only('should execute visible task', async () => {
+  it('should execute visible task', async () => {
     const VisibleCmp = component$(() => {
       const state = useSignal('SSR');
       useVisibleTask$(() => {
-        console.log('task');
         state.value = 'CSR';
       });
       return <span>{state.value}</span>;

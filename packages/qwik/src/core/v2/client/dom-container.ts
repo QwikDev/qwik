@@ -29,7 +29,7 @@ import type { ValueOrPromise } from '../../util/types';
 import { convertScopedStyleIdsToArray, convertStyleIdsToString } from '../shared/scoped-styles';
 import { _SharedContainer } from '../shared/shared-container';
 import { inflateQRL, parseQRL, wrapDeserializerProxy } from '../shared/shared-serialization';
-import type { HostElement } from '../shared/types';
+import type { HostElement, fixMeAny } from '../shared/types';
 import { VNodeDataChar, VNodeDataSeparator } from '../shared/vnode-data-types';
 import {
   VNodeFlags,
@@ -270,7 +270,9 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
           this.rendering = false;
           // console.log('>>>> Drain Journal', this.$journal$.length);
           vnode_applyJournal(this.$journal$);
-          return this.$scheduler$.$drainAllVisibleTasks$();
+          return maybeThen(this.$scheduler$.$drainAllVisibleTasks$(), () => {
+            (getPlatform() as fixMeAny).flush?.();
+          });
         });
       });
     }

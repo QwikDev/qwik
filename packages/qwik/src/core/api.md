@@ -940,7 +940,7 @@ export abstract class _SharedContainer implements Container2 {
     readonly $subsManager$: SubscriptionManager;
     // (undocumented)
     readonly $version$: string;
-    constructor(scheduleDrain: () => void, serverData: Record<string, any>, locale: string);
+    constructor(scheduleDrain: () => void, journalFlush: () => void, serverData: Record<string, any>, locale: string);
     // Warning: (ae-forgotten-export) The symbol "HostElement" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)

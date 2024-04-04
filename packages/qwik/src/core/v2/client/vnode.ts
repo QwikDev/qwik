@@ -1551,56 +1551,87 @@ export const vnode_getType = (vnode: VNode): 1 | 3 | 11 => {
 
 const isElement = (node: any): node is Element =>
   node && typeof node == 'object' && node.nodeType === /** Node.ELEMENT_NODE* */ 1;
+  
 
+/// These global variables are used to avoid creating new arrays for each call to `vnode_getPathToClosestDomNode`.
+type VNodePath = [number, ...(VNode)[]];
+const aPath:VNodePath = [0];
+const bPath:VNodePath = [0];
 export const vnode_documentPosition = (a: VNode, b: VNode): -1 | 0 | 1 => {
-  let aNode: Node | null = null;
   if (a === b) {
     return 0;
   }
-  /**
-   * - We keep b as constant
-   * - We move a in a depth first way until we get to an element. Than we just compare elements.
-   */
-  while (!aNode && a) {
-    if (a === b) {
-      // 'a' started before b. (we walked `a` and reached `b`)
+
+  const aNode = vnode_getPathToClosestDomNode(a, aPath)!;
+  const bNode = vnode_getPathToClosestDomNode(b, bPath)!;
+  if (aNode === bNode) {
+    let aDepth = aPath[0];
+    let bDepth = bPath[0];
+    while (aDepth > 0 && bDepth > 0) {
+      const aVNode = aPath[aDepth] as VNode;
+      const bVNode = bPath[bDepth] as VNode;
+      if (aVNode === bVNode) {
+        aDepth--;
+        bDepth--;
+      } else {
+        // We found a difference so we need to scan nodes at this level.
+        let cursor: VNode | null = bVNode;
+        do {
+          cursor = vnode_getNextSibling(cursor);
+          if (cursor === aVNode) {
+            return 1;
+          }
+        } while (cursor);
+        cursor = bVNode;
+        do {
+          cursor = vnode_getPreviousSibling(cursor);
+          if (cursor === aVNode) {
+            return -1;
+          }
+        } while (cursor);
+      }
+    }
+    return aDepth < bDepth ? -1 : 1;
+  } else {
+    if (bNode === null) {
       return -1;
     }
-    const type = a[VNodeProps.flags];
-    if (type & VNodeFlags.ELEMENT_OR_TEXT_MASK) {
-      aNode = vnode_getNode(a) as Element;
+    if (aNode === null) {
+      return 1;
+    }
+
+    const DOCUMENT_POSITION_PRECEDING = 2; /// Node.DOCUMENT_POSITION_PRECEDING
+    const DOCUMENT_POSITION_FOLLOWING = 4; /// Node.DOCUMENT_POSITION_FOLLOWING
+    const result = aNode.compareDocumentPosition(bNode);
+    if (result & DOCUMENT_POSITION_PRECEDING) {
+      return 1;
+    } else if (result & DOCUMENT_POSITION_FOLLOWING) {
+      return -1;
     } else {
-      assertTrue(vnode_isVirtualVNode(a), 'Expecting Virtual');
-      let vNext = vnode_getFirstChild(a) || vnode_getNextSibling(a);
-      while (vNext === null) {
-        a = vnode_getParent(a)!;
-        if (a === null) {
-          // this happens if we are inside a non-projected content.
-          return -1;
-        }
-        if (vnode_isElementVNode(a)) {
-          // we traversed all nodes and did not find anything;
-          aNode = vnode_getNode(a)!;
-          break;
-        } else {
-          vNext = vnode_getNextSibling(a);
-        }
-      }
-      a = vNext!;
+      return 0;
     }
   }
-  const bNode = vnode_getDOMParent(b)!;
+};
 
-  if (bNode === null) {
-    // this happens if we are inside a non-projected content.
-    return -1;
+const vnode_getPathToClosestDomNode = (vnode: VNode, path: VNodePath): Element | Text | null => {
+  let idx = 0;
+  while (vnode) {
+    path[++idx] = vnode;
+    const flag = vnode[VNodeProps.flags];
+    if (flag & VNodeFlags.Element) {
+      path[0] = idx;
+      return (vnode as ElementVNode)[ElementVNodeProps.element];
+    } else if (flag & VNodeFlags.Text) {
+      path[0] = idx;
+      const text = (vnode as TextVNode)[TextVNodeProps.node]!;
+      assertDefined(text, 'Missing text node.');
+      return text;
+    } else {
+      vnode = vnode[VNodeProps.parent]!;
+    }
   }
-  if (aNode === bNode) {
-    // This means that `b` must have been before `a`
-    return 1;
-  }
-  const DOCUMENT_POSITION_PRECEDING = 2; /// Node.DOCUMENT_POSITION_PRECEDING
-  return (aNode!.compareDocumentPosition(bNode) & DOCUMENT_POSITION_PRECEDING) !== 0 ? 1 : -1;
+  path[0] = idx;
+  return null;
 };
 
 /**

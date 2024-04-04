@@ -28,7 +28,12 @@ export abstract class _SharedContainer implements Container2 {
   readonly $getObjectById$: (id: number | string) => any;
   $serverData$: Record<string, any>;
 
-  constructor(scheduleDrain: () => void, serverData: Record<string, any>, locale: string) {
+  constructor(
+    scheduleDrain: () => void,
+    journalFlush: () => void,
+    serverData: Record<string, any>,
+    locale: string
+  ) {
     this.$serverData$ = serverData;
     this.$locale$ = locale;
     this.$version$ = version;
@@ -38,7 +43,7 @@ export abstract class _SharedContainer implements Container2 {
     };
 
     this.$subsManager$ = createSubscriptionManager(this as fixMeAny);
-    this.$scheduler$ = createScheduler(this, scheduleDrain);
+    this.$scheduler$ = createScheduler(this, scheduleDrain, journalFlush);
   }
 
   trackSignalValue<T>(signal: Signal, sub: Subscriber): T {

@@ -30,6 +30,7 @@ import {
   vnode_setAttr,
 } from '../v2/client/vnode';
 import { JSX_LOCAL } from '../v2/shared/component-execution';
+import { ChoreType } from '../v2/shared/scheduler';
 import { isClassAttr } from '../v2/shared/scoped-styles';
 import { isContainer2, type HostElement, type fixMeAny } from '../v2/shared/types';
 import { QObjectFlagsSymbol, QObjectManagerSymbol, QOjectTargetSymbol } from './constants';
@@ -552,7 +553,7 @@ function updateNodeProp(
     const element = target[ElementVNodeProps.element] as Element;
     container.$journal$.push(VNodeJournalOpCode.SetAttribute, element, propKey, value);
   }
-  container.scheduleRender();
+  container.$scheduler$.$schedule$(ChoreType.JOURNAL_FLUSH);
 }
 
 let __lastSubscription: Subscriptions | undefined;

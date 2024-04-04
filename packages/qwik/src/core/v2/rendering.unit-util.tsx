@@ -191,7 +191,7 @@ export async function rerenderComponent(element: HTMLElement) {
   const qrl = container.getHostProp<QRL<OnRenderFn<any>>>(host, OnRenderProp)!;
   const props = container.getHostProp(host, 'props');
   container.$scheduler$.$scheduleComponent$(host, qrl, props);
-  container.$scheduler$.$drainAllNonVisibleTasks$();
+  container.$scheduler$.$drainAll$();
   await getTestPlatform().flush();
 }
 

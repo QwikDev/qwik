@@ -113,7 +113,12 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
   private $vnodeLocate$: (id: string) => VNode = (id) => vnode_locate(this.rootVNode, id);
 
   constructor(element: ContainerElement) {
-    super(() => this.scheduleRender(), {}, element.getAttribute('q:locale')!);
+    super(
+      () => this.scheduleRender(),
+      () => vnode_applyJournal(this.$journal$),
+      {},
+      element.getAttribute('q:locale')!
+    );
     this.qContainer = element.getAttribute(QContainerAttr)!;
     if (!this.qContainer) {
       throw new Error("Element must have 'q:container' attribute.");
@@ -266,13 +271,8 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
       this.rendering = true;
       this.renderDone = getPlatform().nextTick(() => {
         // console.log('>>>> scheduleRender nextTick', !!this.rendering);
-        return maybeThen(this.$scheduler$.$drainAllNonVisibleTasks$(), () => {
+        return maybeThen(this.$scheduler$.$drainAll$(), () => {
           this.rendering = false;
-          // console.log('>>>> Drain Journal', this.$journal$.length);
-          vnode_applyJournal(this.$journal$);
-          return maybeThen(this.$scheduler$.$drainAllVisibleTasks$(), () => {
-            (getPlatform() as fixMeAny).flush?.();
-          });
         });
       });
     }

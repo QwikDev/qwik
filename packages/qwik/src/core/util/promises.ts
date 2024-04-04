@@ -32,6 +32,13 @@ export const maybeThen = <T, B>(
   return isPromise(promise) ? promise.then(thenFn as any, shouldNotError) : thenFn(promise as any);
 };
 
+export const maybeThenPassError = <T, B>(
+  promise: ValueOrPromise<T>,
+  thenFn: (arg: Awaited<T>) => ValueOrPromise<B>
+): ValueOrPromise<B> => {
+  return isPromise(promise) ? promise.then(thenFn as any) : thenFn(promise as any);
+};
+
 export const shouldNotError = (reason: any): any => {
   throwErrorAndStop('QWIK ERROR:', reason);
 };

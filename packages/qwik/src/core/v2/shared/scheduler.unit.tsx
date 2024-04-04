@@ -1,8 +1,10 @@
+import { $, type QRL } from '@builder.io/qwik';
 import { createDocument } from '@builder.io/qwik-dom';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { inlinedQrl } from '../../qrl/qrl';
-import { delay } from '../../util/promises';
-import type { ElementVNode, VirtualVNode } from '../client/types';
+import { TaskFlagsIsVisibleTask, type Task } from '../../use/use-task';
+import { QContainerAttr } from '../../util/markers';
+import { getDomContainer } from '../client/dom-container';
+import type { ElementVNode, VNode, VirtualVNode } from '../client/types';
 import {
   vnode_insertBefore,
   vnode_locate,
@@ -10,9 +12,11 @@ import {
   vnode_newVirtual,
   vnode_setProp,
 } from '../client/vnode';
-import { ChoreType, createScheduler } from './scheduler';
-import { getDomContainer } from '../client/dom-container';
-import { QContainerAttr } from '../../util/markers';
+import { createScheduler } from './scheduler';
+
+declare global {
+  let testLog: string[];
+}
 
 describe('scheduler', () => {
   let scheduler: ReturnType<typeof createScheduler> = null!;
@@ -24,104 +28,86 @@ describe('scheduler', () => {
   let vBHost1: VirtualVNode = null!;
   let vBHost2: VirtualVNode = null!;
   beforeEach(() => {
+    (globalThis as any as { testLog: string[] }).testLog = [];
     document = createDocument();
     document.body.setAttribute(QContainerAttr, 'paused');
     const container = getDomContainer(document.body);
     container.processJsx = () => null!;
-    scheduler = createScheduler(container, () => null);
+    scheduler = createScheduler(
+      container,
+      () => null,
+      () => testLog.push('journalFlush')
+    );
     document.body.innerHTML = '<a></a><b></b>';
     vBody = vnode_newUnMaterializedElement(document.body);
     vA = vnode_locate(vBody, document.querySelector('a') as Element) as ElementVNode;
     vAHost = vnode_newVirtual();
-    vnode_setProp(vAHost, 'id', 'A');
+    vnode_setProp(vAHost, 'q:id', 'A');
     vnode_insertBefore([], vA, vAHost, null);
     vB = vnode_locate(vBody, document.querySelector('b') as Element) as ElementVNode;
     vBHost1 = vnode_newVirtual();
-    vnode_setProp(vBHost1, 'id', 'b1');
+    vnode_setProp(vBHost1, 'q:id', 'b1');
     vBHost2 = vnode_newVirtual();
-    vnode_setProp(vBHost2, 'id', 'b2');
+    vnode_setProp(vBHost2, 'q:id', 'b2');
     vnode_insertBefore([], vB, vBHost1, null);
     vnode_insertBefore([], vB, vBHost2, null);
   });
 
-  it('should execute SIMPLE', () => {
-    const log: string[] = [];
-
-    scheduler.$schedule$(
-      ChoreType.TEST,
-      vBHost1,
-      inlinedQrl(() => {
-        log.push('2');
-      }, 's_2')
-    );
-    scheduler.$schedule$(
-      ChoreType.TEST,
-      vBHost2,
-      inlinedQrl(() => {
-        log.push('3');
-      }, 's_3')
-    );
-    scheduler.$schedule$(
-      ChoreType.TEST,
-      vAHost,
-      inlinedQrl(() => {
-        log.push('1');
-      }, 's_1')
-    );
-    scheduler.$drainAllNonVisibleTasks$();
-    expect(log).toEqual(['1', '2', '3']);
+  it('should execute sort tasks', async () => {
+    scheduler.$scheduleTask$(mockTask(vBHost1, { index: 2, qrl: $(() => testLog.push('b1.2')) }));
+    scheduler.$scheduleTask$(mockTask(vAHost, { qrl: $(() => testLog.push('a1')) }));
+    scheduler.$scheduleTask$(mockTask(vBHost1, { qrl: $(() => testLog.push('b1.0')) }));
+    await scheduler.$drainAll$();
+    expect(testLog).toEqual([
+      'a1', // DepthFirst a host component is before b host component.
+      'b1.0', // Same component but smaller index.
+      'b1.2', // Same component but larger index.
+    ]);
   });
-
-  it('should execute async SIMPLE', async () => {
-    const log: string[] = [];
-
-    scheduler.$schedule$(
-      ChoreType.TEST,
-      vBHost2,
-      inlinedQrl(() => {
-        delay(1);
-        log.push('3');
-      }, 's_3')
+  it('should execute visible tasks after journal flush', async () => {
+    scheduler.$scheduleTask$(
+      mockTask(vBHost2, { index: 2, qrl: $(() => testLog.push('b2.2: Task')) })
     );
-    scheduler.$schedule$(
-      ChoreType.TEST,
+    scheduler.$scheduleTask$(mockTask(vBHost1, { qrl: $(() => testLog.push('b1.0: Task')) }));
+    scheduler.$scheduleTask$(
+      mockTask(vBHost2, {
+        index: 2,
+        qrl: $(() => testLog.push('b2.2: VisibleTask')),
+        visible: true,
+      })
+    );
+    scheduler.$scheduleTask$(
+      mockTask(vBHost1, {
+        qrl: $(() => {
+          testLog.push('b1.0: VisibleTask');
+        }),
+        visible: true,
+      })
+    );
+    scheduler.$scheduleComponent$(
       vBHost1,
-      inlinedQrl(() => {
-        delay(1);
-        log.push('2');
-      }, 's_2')
+      $(() => testLog.push('b1: Render')),
+      {}
     );
-    scheduler.$schedule$(
-      ChoreType.TEST,
-      vAHost,
-      inlinedQrl(() => {
-        delay(1);
-        log.push('1');
-      }, 's_1')
-    );
-    await scheduler.$drainAllNonVisibleTasks$();
-    expect(log).toEqual(['1', '2', '3']);
-  });
-  it('should not add the same SIMPLE twice', async () => {
-    const log: string[] = [];
-
-    scheduler.$schedule$(
-      ChoreType.TEST,
-      vBHost2,
-      inlinedQrl(() => {
-        delay(1);
-        log.push('1');
-      }, 's_3')
-    );
-    scheduler.$schedule$(
-      ChoreType.TEST,
-      vBHost2,
-      inlinedQrl(() => {
-        delay(1);
-        log.push('1');
-      }, 's_3')
-    );
-    await scheduler.$drainAllNonVisibleTasks$();
-    expect(log).toEqual(['1']);
+    await scheduler.$drainAll$();
+    expect(testLog).toEqual([
+      'b1.0: Task',
+      'b1: Render',
+      'b2.2: Task',
+      'journalFlush',
+      'b1.0: VisibleTask',
+      'b2.2: VisibleTask',
+    ]);
   });
 });
+
+function mockTask(host: VNode, opts: { index?: number; qrl?: QRL; visible?: boolean }): Task {
+  return {
+    $flags$: opts.visible ? TaskFlagsIsVisibleTask : 0,
+    $index$: opts.index || 0,
+    $el$: host as any,
+    $qrl$: opts.qrl || ($(() => null) as any),
+    $state$: null!,
+    $destroy$: null!,
+  };
+}

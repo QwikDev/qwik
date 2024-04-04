@@ -156,7 +156,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private unclaimedProjections: Array<ISsrNode | string | JSXChildren> = [];
 
   constructor(opts: Required<Required<Parameters<typeof ssrCreateContainer>>[0]>) {
-    super(() => null, opts.renderOptions.serverData ?? EMPTY_OBJ, opts.locale);
+    super(
+      () => null,
+      () => null,
+      opts.renderOptions.serverData ?? EMPTY_OBJ,
+      opts.locale
+    );
     this.symbolToChunkResolver = (symbol: string): string => {
       const idx = symbol.lastIndexOf('_');
       const chunk = this.resolvedManifest.mapper[idx == -1 ? symbol : symbol.substring(idx + 1)];

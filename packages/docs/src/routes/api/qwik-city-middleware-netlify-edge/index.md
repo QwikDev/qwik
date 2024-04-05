@@ -12,10 +12,31 @@ export declare function createQwikCity(
 ): (request: Request, context: Context) => Promise<Response>;
 ```
 
-| Parameter | Type                                              | Description |
-| --------- | ------------------------------------------------- | ----------- |
-| opts      | [QwikCityNetlifyOptions](#qwikcitynetlifyoptions) |             |
+<table><thead><tr><th>
 
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+opts
+
+</td><td>
+
+[QwikCityNetlifyOptions](#qwikcitynetlifyoptions)
+
+</td><td>
+
+</td></tr>
+</tbody></table>
 **Returns:**
 
 (request: Request, context: Context) =&gt; Promise&lt;Response&gt;

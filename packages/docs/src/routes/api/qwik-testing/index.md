@@ -23,10 +23,33 @@ createDOM: ({ html }?: { html?: string | undefined }) =>
   }>;
 ```
 
-| Parameter | Type                            | Description  |
-| --------- | ------------------------------- | ------------ |
-| { html }  | { html?: string \| undefined; } | _(Optional)_ |
+<table><thead><tr><th>
 
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+{ html }
+
+</td><td>
+
+{ html?: string \| undefined; }
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
 **Returns:**
 
 Promise&lt;{ render: (jsxElement: JSXOutput) =&gt; Promise&lt;import("@builder.io/qwik").RenderResult&gt;; screen: HTMLElement; userEvent: (queryOrElement: string \| Element \| keyof HTMLElementTagNameMap \| null, eventNameCamel: string \| keyof WindowEventMap, eventPayload?: any) =&gt; Promise&lt;void&gt;; }&gt;

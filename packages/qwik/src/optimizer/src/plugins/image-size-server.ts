@@ -14,7 +14,7 @@ import psd_1 from 'image-size/dist/types/psd.js';
 import svg_1 from 'image-size/dist/types/svg.js';
 import tga_1 from 'image-size/dist/types/tga.js';
 import webp_1 from 'image-size/dist/types/webp.js';
-import heif_1 from "image-size/dist/types/heif.js";
+import heif_1 from 'image-size/dist/types/heif.js';
 
 import type { Connect } from 'vite';
 import type { OptimizerSystem } from '../types';

@@ -1,11 +1,12 @@
 .docs .content-container {
   @apply px-8 lg:pl-0 xl:pr-0;
   @apply mx-auto min-h-[100vh];
-  max-width: var(--container-max-width);
+  max-width: min(var(--container-max-width), 100vw);
 }
 
 .docs .docs-container {
   @apply pt-8 lg:pt-5;
+  @apply min-w-48;
 
   @screen lg {
     /* approx 85ch, but since the contents use font-sizes in absolute values,

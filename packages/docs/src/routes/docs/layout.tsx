@@ -1,12 +1,12 @@
 import { component$, Slot, useContext, useStyles$ } from '@builder.io/qwik';
 import { useContent, useLocation } from '@builder.io/qwik-city';
 import { ContentNav } from '../../components/content-nav/content-nav';
+import Contributors from '../../components/contributors';
 import { Footer } from '../../components/footer/footer';
 import { Header } from '../../components/header/header';
 import { createBreadcrumbs, SideBar } from '../../components/sidebar/sidebar';
 import { GlobalStore } from '../../context';
 import styles from './docs.css?inline';
-import Contributors from '../../components/contributors';
 
 // eslint-disable-next-line
 export { useMarkdownItems } from '../../components/sidebar/sidebar';
@@ -47,7 +47,7 @@ export default component$(() => {
           </ol>
         ) : null}
       </nav>
-      <div class="flex gap-12 xl:gap-20 items-stretch content-container">
+      <div class="md:flex gap-12 xl:gap-20 items-stretch content-container">
         <SideBar />
         <main class="docs-container">
           <article>

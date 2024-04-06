@@ -60,6 +60,7 @@
 :root {
   color-scheme: light;
   --header-height: 80px;
+  --aside-width: 300px;
   --container-max-width: 1400px;
   --builder-bar-height: 56px;
   --panel-toggle-height: 0px;

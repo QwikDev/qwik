@@ -16,7 +16,7 @@ export default component$(() => {
   useStyles$(styles);
   const loc = useLocation();
   // hide OnThisPage on docs overview page; only show on sub-pages
-  const hasOnThisPage = !['/docs/'].includes(loc.url.pathname);
+  const hasOnThisPage = '/docs/' !== loc.url.pathname;
   const { menu } = useContent();
   const globalStore = useContext(GlobalStore);
   const { url } = useLocation();
@@ -62,7 +62,7 @@ export default component$(() => {
             <ContentNav />
             <Footer />
           </div>
-          {hasOnThisPage ? <OnThisPage /> : null}
+          {hasOnThisPage && <OnThisPage />}
         </main>
       </div>
     </div>

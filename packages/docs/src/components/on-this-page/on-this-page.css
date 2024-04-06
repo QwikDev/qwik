@@ -4,7 +4,7 @@
 
   position: sticky;
   top: var(--header-height);
-  min-width: fit-content;
+  min-width: var(--aside-width);
   max-height: calc(100vh - var(--header-height));
 }
 

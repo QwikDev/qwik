@@ -4,6 +4,7 @@ import { ContentNav } from '../../components/content-nav/content-nav';
 import Contributors from '../../components/contributors';
 import { Footer } from '../../components/footer/footer';
 import { Header } from '../../components/header/header';
+import { OnThisPage } from '../../components/on-this-page/on-this-page';
 import { createBreadcrumbs, SideBar } from '../../components/sidebar/sidebar';
 import { GlobalStore } from '../../context';
 import styles from './docs.css?inline';
@@ -13,6 +14,9 @@ export { useMarkdownItems } from '../../components/sidebar/sidebar';
 
 export default component$(() => {
   useStyles$(styles);
+  const loc = useLocation();
+  // hide OnThisPage on docs overview page; only show on sub-pages
+  const hasOnThisPage = loc.url.pathname !== '/docs/';
   const { menu } = useContent();
   const globalStore = useContext(GlobalStore);
   const { url } = useLocation();
@@ -47,15 +51,18 @@ export default component$(() => {
           </ol>
         ) : null}
       </nav>
-      <div class="md:flex gap-12 xl:gap-20 items-stretch content-container">
+      <div class="flex gap-12 xl:gap-20 items-stretch content-container">
         <SideBar />
-        <main class="docs-container">
-          <article>
-            <Slot />
-            <Contributors />
-          </article>
-          <ContentNav />
-          <Footer />
+        <main class="contents">
+          <div class="docs-container">
+            <article>
+              <Slot />
+              <Contributors />
+            </article>
+            <ContentNav />
+            <Footer />
+          </div>
+          {hasOnThisPage && <OnThisPage />}
         </main>
       </div>
     </div>

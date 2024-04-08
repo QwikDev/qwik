@@ -262,7 +262,7 @@ export function toSsrAttrs(
     if (isJsxPropertyAnEventName(key)) {
       if (anotherRecord) {
         /**
-         * If we have to sources of the same event like this:
+         * If we have two sources of the same event like this:
          *
          * ```tsx
          * const Counter = component$((props: { initial: number }) => {

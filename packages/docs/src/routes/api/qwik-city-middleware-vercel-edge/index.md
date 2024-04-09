@@ -12,10 +12,31 @@ export declare function createQwikCity(
 ): (request: Request) => Promise<Response>;
 ```
 
-| Parameter | Type                                                    | Description |
-| --------- | ------------------------------------------------------- | ----------- |
-| opts      | [QwikCityVercelEdgeOptions](#qwikcityverceledgeoptions) |             |
+<table><thead><tr><th>
 
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+opts
+
+</td><td>
+
+[QwikCityVercelEdgeOptions](#qwikcityverceledgeoptions)
+
+</td><td>
+
+</td></tr>
+</tbody></table>
 **Returns:**
 
 (request: Request) =&gt; Promise&lt;Response&gt;

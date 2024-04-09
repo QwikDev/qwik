@@ -136,7 +136,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     opts.debug = !!updatedOpts.debug;
 
     opts.base =
-      !updatedOpts?.base || updatedOpts.base.length === '/'
+      !updatedOpts?.base || updatedOpts.base === '/'
         ? ''
         : updatedOpts.base.endsWith('/')
           ? updatedOpts.base.slice(0, -1)

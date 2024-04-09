@@ -12,7 +12,7 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\nexport declare function createQwikCity(opts: QwikCityNetlifyOptions): (request: Request, context: Context) => Promise<Response>;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  opts | [QwikCityNetlifyOptions](#qwikcitynetlifyoptions) |  |\n\n**Returns:**\n\n(request: Request, context: Context) =&gt; Promise&lt;Response&gt;",
+      "content": "```typescript\nexport declare function createQwikCity(opts: QwikCityNetlifyOptions): (request: Request, context: Context) => Promise<Response>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n[QwikCityNetlifyOptions](#qwikcitynetlifyoptions)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n(request: Request, context: Context) =&gt; Promise&lt;Response&gt;",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/netlify-edge/index.ts",
       "mdFile": "qwik-city.createqwikcity.md"
     },

@@ -165,15 +165,17 @@ export {
     const qwikCityVite: typeof import("@builder.io/qwik-city/vite") =
       await import(file(qwikCityDistVite));
 
-    plugins.push(qwikCityVite.qwikCity({
-      rewriteRoutes: [
-        {
-          paths: {
-            'projects': 'projekte'
+    plugins.push(
+      qwikCityVite.qwikCity({
+        rewriteRoutes: [
+          {
+            paths: {
+              projects: "projekte",
+            },
           },
-        },
-      ]
-    }));
+        ],
+      }),
+    );
   }
 
   const getInlineConf = (extra?: InlineConfig): InlineConfig => ({

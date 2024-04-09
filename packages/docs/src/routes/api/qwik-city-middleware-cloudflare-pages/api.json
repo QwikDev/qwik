@@ -12,7 +12,7 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\nexport declare function createQwikCity(opts: QwikCityCloudflarePagesOptions): (request: PlatformCloudflarePages['request'], env: Record<string, any> & {\n    ASSETS: {\n        fetch: (req: Request) => Response;\n    };\n}, ctx: PlatformCloudflarePages['ctx']) => Promise<Response>;\n```\n\n\n|  Parameter | Type | Description |\n|  --- | --- | --- |\n|  opts | [QwikCityCloudflarePagesOptions](#qwikcitycloudflarepagesoptions) |  |\n\n**Returns:**\n\n(request: [PlatformCloudflarePages](#platformcloudflarepages)<!-- -->\\['request'\\], env: Record&lt;string, any&gt; &amp; { ASSETS: { fetch: (req: Request) =&gt; Response; }; }, ctx: [PlatformCloudflarePages](#platformcloudflarepages)<!-- -->\\['ctx'\\]) =&gt; Promise&lt;Response&gt;",
+      "content": "```typescript\nexport declare function createQwikCity(opts: QwikCityCloudflarePagesOptions): (request: PlatformCloudflarePages['request'], env: Record<string, any> & {\n    ASSETS: {\n        fetch: (req: Request) => Response;\n    };\n}, ctx: PlatformCloudflarePages['ctx']) => Promise<Response>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n[QwikCityCloudflarePagesOptions](#qwikcitycloudflarepagesoptions)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n(request: [PlatformCloudflarePages](#platformcloudflarepages)<!-- -->\\['request'\\], env: Record&lt;string, any&gt; &amp; { ASSETS: { fetch: (req: Request) =&gt; Response; }; }, ctx: [PlatformCloudflarePages](#platformcloudflarepages)<!-- -->\\['ctx'\\]) =&gt; Promise&lt;Response&gt;",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/cloudflare-pages/index.ts",
       "mdFile": "qwik-city.createqwikcity.md"
     },
@@ -26,7 +26,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface PlatformCloudflarePages \n```\n\n\n|  Property | Modifiers | Type | Description |\n|  --- | --- | --- | --- |\n|  [ctx](#) |  | { waitUntil: (promise: Promise&lt;any&gt;) =&gt; void; } |  |\n|  [env?](#) |  | Record&lt;string, any&gt; | _(Optional)_ |\n|  [request](#) |  | Request |  |",
+      "content": "```typescript\nexport interface PlatformCloudflarePages \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[ctx](#)\n\n\n</td><td>\n\n\n</td><td>\n\n{ waitUntil: (promise: Promise&lt;any&gt;) =&gt; void; }\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[env?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nRecord&lt;string, any&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[request](#)\n\n\n</td><td>\n\n\n</td><td>\n\nRequest\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/cloudflare-pages/index.ts",
       "mdFile": "qwik-city.platformcloudflarepages.md"
     },

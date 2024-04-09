@@ -10,10 +10,33 @@ title: \@builder.io/qwik-city/vite/cloud-run API Reference
 export declare function cloudRunAdapter(opts?: CloudRunAdapterOptions): any;
 ```
 
-| Parameter | Type                                              | Description  |
-| --------- | ------------------------------------------------- | ------------ |
-| opts      | [CloudRunAdapterOptions](#cloudrunadapteroptions) | _(Optional)_ |
+<table><thead><tr><th>
 
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+opts
+
+</td><td>
+
+[CloudRunAdapterOptions](#cloudrunadapteroptions)
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
 **Returns:**
 
 any

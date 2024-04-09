@@ -14,10 +14,31 @@ export declare function generate(
 ): Promise<StaticGenerateResult>;
 ```
 
-| Parameter | Type                                            | Description |
-| --------- | ----------------------------------------------- | ----------- |
-| opts      | [StaticGenerateOptions](#staticgenerateoptions) |             |
+<table><thead><tr><th>
 
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+opts
+
+</td><td>
+
+[StaticGenerateOptions](#staticgenerateoptions)
+
+</td><td>
+
+</td></tr>
+</tbody></table>
 **Returns:**
 
 Promise&lt;[StaticGenerateResult](#staticgenerateresult)&gt;
@@ -32,12 +53,84 @@ export interface StaticGenerateOptions extends StaticGenerateRenderOptions
 
 **Extends:** [StaticGenerateRenderOptions](#staticgeneraterenderoptions)
 
-| Property                    | Modifiers | Type   | Description                                                                                                            |
-| --------------------------- | --------- | ------ | ---------------------------------------------------------------------------------------------------------------------- |
-| [basePathname?](#)          |           | string | _(Optional)_ Defaults to <code>/</code>                                                                                |
-| [qwikCityPlanModulePath](#) |           | string | Path to the Qwik City Plan module exporting the default <code>@qwik-city-plan</code>.                                  |
-| [renderModulePath](#)       |           | string | Path to the SSR module exporting the default render function. In most cases it'll be <code>./src/entry.ssr.tsx</code>. |
-| [rootDir?](#)               |           | string | _(Optional)_                                                                                                           |
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[basePathname?](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_ Defaults to `/`
+
+</td></tr>
+<tr><td>
+
+[qwikCityPlanModulePath](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+Path to the Qwik City Plan module exporting the default `@qwik-city-plan`.
+
+</td></tr>
+<tr><td>
+
+[renderModulePath](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+Path to the SSR module exporting the default render function. In most cases it'll be `./src/entry.ssr.tsx`.
+
+</td></tr>
+<tr><td>
+
+[rootDir?](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/static/types.ts)
 
@@ -49,19 +142,193 @@ export interface StaticGenerateRenderOptions extends RenderOptions
 
 **Extends:** RenderOptions
 
-| Property                | Modifiers | Type           | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| ----------------------- | --------- | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [emit404Pages?](#)      |           | boolean        | _(Optional)_ Set to <code>false</code> if the static build should not write custom or default <code>404.html</code> pages. Defaults to <code>true</code>.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| [emitData?](#)          |           | boolean        | _(Optional)_ Set to <code>false</code> if the generated <code>q-data.json</code> data files should not be written to disk. Defaults to <code>true</code>.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| [emitHtml?](#)          |           | boolean        | _(Optional)_ Set to <code>false</code> if the generated static HTML files should not be written to disk. Setting to <code>false</code> is useful if the SSG should only write the <code>q-data.json</code> files to disk. Defaults to <code>true</code>.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| [exclude?](#)           |           | string[]       | _(Optional)_ Defines file system routes relative to the source <code>routes</code> directory that should not be static generated. Accepts wildcard behavior. This should not include the "base" pathname. <code>exclude</code> always takes priority over <code>include</code>.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| [include?](#)           |           | string[]       | _(Optional)_ Defines file system routes relative to the source <code>routes</code> directory that should be static generated. Accepts wildcard behavior. This should not include the "base" pathname. If not provided, all routes will be static generated. <code>exclude</code> always takes priority over <code>include</code>.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| [log?](#)               |           | 'debug'        | _(Optional)_ Log level.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| [maxTasksPerWorker?](#) |           | number         | _(Optional)_ Maximum number of tasks to be running at one time per worker. Defaults to <code>20</code>.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| [maxWorkers?](#)        |           | number         | _(Optional)_ Maximum number of workers to use while generating the static pages. Defaults to the number of CPUs available.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| [origin](#)             |           | string         | <p>The URL <code>origin</code>, which is a combination of the scheme (protocol) and hostname (domain). For example, <code>https://qwik.dev</code> has the protocol <code>https://</code> and domain <code>qwik.dev</code>. However, the <code>origin</code> does not include a <code>pathname</code>.</p><p>The <code>origin</code> is used to provide a full URL during Static Site Generation (SSG), and to simulate a complete URL rather than just the <code>pathname</code>. For example, in order to render a correct canonical tag URL or URLs within the <code>sitemap.xml</code>, the <code>origin</code> must be provided too.</p><p>If the site also starts with a pathname other than <code>/</code>, please use the <code>basePathname</code> option in the Qwik City config options.</p> |
-| [outDir](#)             |           | string         | File system directory where the static files should be written.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| [sitemapOutFile?](#)    |           | string \| null | _(Optional)_ File system path to write the <code>sitemap.xml</code> to. Defaults to <code>sitemap.xml</code> and written to the root of the <code>outDir</code>. Setting to <code>null</code> will prevent the sitemap from being created.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[emit404Pages?](#)
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_ Set to `false` if the static build should not write custom or default `404.html` pages. Defaults to `true`.
+
+</td></tr>
+<tr><td>
+
+[emitData?](#)
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_ Set to `false` if the generated `q-data.json` data files should not be written to disk. Defaults to `true`.
+
+</td></tr>
+<tr><td>
+
+[emitHtml?](#)
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_ Set to `false` if the generated static HTML files should not be written to disk. Setting to `false` is useful if the SSG should only write the `q-data.json` files to disk. Defaults to `true`.
+
+</td></tr>
+<tr><td>
+
+[exclude?](#)
+
+</td><td>
+
+</td><td>
+
+string[]
+
+</td><td>
+
+_(Optional)_ Defines file system routes relative to the source `routes` directory that should not be static generated. Accepts wildcard behavior. This should not include the "base" pathname. `exclude` always takes priority over `include`.
+
+</td></tr>
+<tr><td>
+
+[include?](#)
+
+</td><td>
+
+</td><td>
+
+string[]
+
+</td><td>
+
+_(Optional)_ Defines file system routes relative to the source `routes` directory that should be static generated. Accepts wildcard behavior. This should not include the "base" pathname. If not provided, all routes will be static generated. `exclude` always takes priority over `include`.
+
+</td></tr>
+<tr><td>
+
+[log?](#)
+
+</td><td>
+
+</td><td>
+
+'debug'
+
+</td><td>
+
+_(Optional)_ Log level.
+
+</td></tr>
+<tr><td>
+
+[maxTasksPerWorker?](#)
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+_(Optional)_ Maximum number of tasks to be running at one time per worker. Defaults to `20`.
+
+</td></tr>
+<tr><td>
+
+[maxWorkers?](#)
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+_(Optional)_ Maximum number of workers to use while generating the static pages. Defaults to the number of CPUs available.
+
+</td></tr>
+<tr><td>
+
+[origin](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+The URL `origin`, which is a combination of the scheme (protocol) and hostname (domain). For example, `https://qwik.dev` has the protocol `https://` and domain `qwik.dev`. However, the `origin` does not include a `pathname`.
+
+The `origin` is used to provide a full URL during Static Site Generation (SSG), and to simulate a complete URL rather than just the `pathname`. For example, in order to render a correct canonical tag URL or URLs within the `sitemap.xml`, the `origin` must be provided too.
+
+If the site also starts with a pathname other than `/`, please use the `basePathname` option in the Qwik City config options.
+
+</td></tr>
+<tr><td>
+
+[outDir](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+File system directory where the static files should be written.
+
+</td></tr>
+<tr><td>
+
+[sitemapOutFile?](#)
+
+</td><td>
+
+</td><td>
+
+string \| null
+
+</td><td>
+
+_(Optional)_ File system path to write the `sitemap.xml` to. Defaults to `sitemap.xml` and written to the root of the `outDir`. Setting to `null` will prevent the sitemap from being created.
+
+</td></tr>
+</tbody></table>
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/static/types.ts)
 
@@ -71,11 +338,75 @@ export interface StaticGenerateRenderOptions extends RenderOptions
 export interface StaticGenerateResult
 ```
 
-| Property         | Modifiers | Type     | Description |
-| ---------------- | --------- | -------- | ----------- |
-| [duration](#)    |           | number   |             |
-| [errors](#)      |           | number   |             |
-| [rendered](#)    |           | number   |             |
-| [staticPaths](#) |           | string[] |             |
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[duration](#)
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[errors](#)
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[rendered](#)
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[staticPaths](#)
+
+</td><td>
+
+</td><td>
+
+string[]
+
+</td><td>
+
+</td></tr>
+</tbody></table>
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/static/types.ts)

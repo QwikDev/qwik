@@ -11,7 +11,7 @@
     "nextSteps": {
       "title": "Create and set up your turso database",
       "lines": [
-        " Install the Turso CLI (https://docs.turso.tech/reference/turso-cli#installation)",
+        " Install the Turso CLI (https://docs.turso.tech/quickstart)",
         " You can then create a new Turso database by running:",
         "   turso db create <db-name>",
         " To see information about the database, including a connection URL, run:",
@@ -22,9 +22,9 @@
     }
   },
   "dependencies": {
-    "@libsql/client": "^0.3.1"
+    "@libsql/client": "@latest"
   },
   "devDependencies": {
-    "@builder.io/qwik-city": "^1.2.13"
+    "@builder.io/qwik-city": "@latest"
   }
 }

@@ -1,9 +1,9 @@
 ---
 title: Turso | Integrations
-keywords: 'database, edge'
+keywords: 'database, edge, sqlite'
 contributors:
   - xinnks
-updated_at: '2023-07-23T00:17:06Z'
+updated_at: '2024-04-10T01:34:03Z'
 created_at: '2023-07-23T00:17:06Z'
 ---
 
@@ -32,8 +32,8 @@ It also adds new files inside your project folder:
 and adds or modifies a `.env.local` file to include
 
 ```txt title=".env.local"
-PRIVATE_TURSO_DB_URL=
-PRIVATE_TURSO_DB_AUTH_TOKEN=
+PRIVATE_TURSO_DATABASE_URL=
+PRIVATE_TURSO_AUTH_TOKEN=
 ```
 
 ## Using file databases
@@ -66,11 +66,11 @@ sqlite> insert into todo(id, task) values(2, "Buy groceries");
 
 Quit the shell `.quit`
 
-Then, assign the database file path to the `PRIVATE_TURSO_DB_URL` environment variable
+Then, assign the database file path to the `PRIVATE_TURSO_DATABASE_URL` environment variable
 inside `.env.local`.
 
 ```
-PRIVATE_TURSO_DB_URL=file:foo.db
+PRIVATE_TURSO_DATABASE_URL=file:foo.db
 ```
 
 > ***Note***: A database token is not needed when working with file databases.
@@ -110,7 +110,7 @@ Starting with the database url, run the following command.
 turso db show <database-name> --url
 ```
 
-Copy the resulting URL and assign it to the `PRIVATE_TURSO_DB_URL` environment variable.
+Copy the resulting URL and assign it to the `PRIVATE_TURSO_DATABASE_URL` environment variable.
 
 And, for the database authentication token, run the command.
 
@@ -118,7 +118,7 @@ And, for the database authentication token, run the command.
 turso db tokens create <database-name>
 ```
 
-Copy the resulting token and assign it to the `PRIVATE_TURSO_DB_AUTH_TOKEN` environment
+Copy the resulting token and assign it to the `PRIVATE_TURSO_AUTH_TOKEN` environment
 variable.
 
 ## How to use Turso inside Qwik
@@ -147,10 +147,10 @@ export const useRouteLoader = routeLoader$(
 For more information, please visit the [Turso docs].
 
 [Turso]: https://turso.tech
-[libSQL]: https://libsql.org
+[libSQL]: https://turso.tech/libsql
 [this link for installation instructions]: https://sqlite.org/download.html
 [install the Turso CLI]:
     https://docs.turso.tech/reference/turso-cli#installation
 [create a Turso database]:
-    https://docs.turso.tech/reference/turso-cli#create-a-logical-database
+    https://docs.turso.tech/quickstart
 [Turso docs]: https://docs.turso.tech

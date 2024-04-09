@@ -30,47 +30,7 @@ export async function loadFixture(inlineConfig: InlineConfig) {
   const qwikDistOptimizerPath = join(qwikDistDir, 'optimizer.mjs');
   const qwikCityDistVite = join(qwikCityDistDir, 'vite', 'index.mjs');
 
-  const qwikCityVirtualEntry = '@city-ssr-entry';
-  const entrySsrFileName = 'entry.ssr.tsx';
-  const qwikCityNotFoundPaths = '@qwik-city-not-found-paths';
-  const qwikCityStaticPaths = '@qwik-city-static-paths';
   const plugins: PluginOption[] = [];
-  plugins.push({
-    name: 'devPlugin',
-    resolveId(id) {
-      if (id.endsWith(qwikCityVirtualEntry)) {
-        return qwikCityVirtualEntry;
-      }
-      if (id === qwikCityStaticPaths || id === qwikCityNotFoundPaths) {
-        return './' + id;
-      }
-    },
-    load(id) {
-      if (id.endsWith(qwikCityVirtualEntry)) {
-        return `
-          import { createQwikCity } from '@builder.io/qwik-city/middleware/node';
-          import qwikCityPlan from '@qwik-city-plan';
-          import render from '${escapeChars(resolve(appSrcDir, 'entry.ssr'))}';
-          const { router, notFound } = createQwikCity({ 
-                render,
-                qwikCityPlan,
-                base:'${basePath}build/',
-          });
-          export { 
-            router,
-            notFound
-          }
-        `;
-      }
-      if (id.endsWith(qwikCityStaticPaths)) {
-        return `export function isStaticPath(){ return false; };`;
-      }
-      if (id.endsWith(qwikCityNotFoundPaths)) {
-        const notFoundHtml = getErrorHtml(404, 'Resource Not Found');
-        return `export function getNotFound(){ return ${JSON.stringify(notFoundHtml)}; };`;
-      }
-    },
-  });
 
   const qwikCityVite: typeof import('@builder.io/qwik-city/vite') = await import(
     file(qwikCityDistVite)

@@ -16,8 +16,8 @@
 //   devServer.close();
 // });
 
-test('basic', async () => {
-  // const m = await fixture.fetch('/');
-  // const html = load(m);
-  expect(1).toBe(1);
-});
+// test('basic', async () => {
+//   const m = await fixture.fetch('/');
+//   const html = load(m);
+//   expect(1).toBe(1);
+// });

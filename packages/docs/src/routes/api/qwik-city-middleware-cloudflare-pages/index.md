@@ -47,7 +47,7 @@ opts
 
 (request: [PlatformCloudflarePages](#platformcloudflarepages)['request'], env: Record&lt;string, any&gt; &amp; { ASSETS: { fetch: (req: Request) =&gt; Response; }; }, ctx: [PlatformCloudflarePages](#platformcloudflarepages)['ctx']) =&gt; Promise&lt;Response&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/cloudflare-pages/index.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/cloudflare-pages/index.ts)
 
 ## PlatformCloudflarePages
 
@@ -115,7 +115,7 @@ Request
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/cloudflare-pages/index.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/cloudflare-pages/index.ts)
 
 ## QwikCityCloudflarePagesOptions
 
@@ -125,4 +125,4 @@ export interface QwikCityCloudflarePagesOptions extends ServerRenderOptions
 
 **Extends:** ServerRenderOptions
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/cloudflare-pages/index.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/cloudflare-pages/index.ts)

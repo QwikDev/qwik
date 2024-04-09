@@ -43,7 +43,7 @@ opts
 
 Promise&lt;[StaticGenerateResult](#staticgenerateresult)&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/static/index.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/static/index.ts)
 
 ## StaticGenerateOptions
 
@@ -132,7 +132,7 @@ _(Optional)_
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/static/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/static/types.ts)
 
 ## StaticGenerateRenderOptions
 
@@ -330,7 +330,7 @@ _(Optional)_ File system path to write the `sitemap.xml` to. Defaults to `sitema
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/static/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/static/types.ts)
 
 ## StaticGenerateResult
 
@@ -409,4 +409,4 @@ string[]
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/static/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/static/types.ts)

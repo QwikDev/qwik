@@ -83,7 +83,7 @@ export default component$(() => {
               </li>
               <li>
                 <span>Open issues and contribute on </span>
-                <a href="https://github.com/BuilderIO/qwik" target="_blank">
+                <a href="https://github.com/QwikDev/qwik" target="_blank">
                   GitHub
                 </a>
               </li>

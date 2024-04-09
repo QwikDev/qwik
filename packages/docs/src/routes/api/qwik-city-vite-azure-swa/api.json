@@ -13,7 +13,7 @@
       ],
       "kind": "Function",
       "content": "```typescript\nexport declare function azureSwaAdapter(opts?: AzureSwaAdapterOptions): any;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n[AzureSwaAdapterOptions](#azureswaadapteroptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nany",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/azure-swa/vite/index.ts",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/adapters/azure-swa/vite/index.ts",
       "mdFile": "qwik-city.azureswaadapter.md"
     },
     {
@@ -27,7 +27,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface AzureSwaAdapterOptions extends ServerAdapterOptions \n```\n**Extends:** ServerAdapterOptions",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/azure-swa/vite/index.ts",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/adapters/azure-swa/vite/index.ts",
       "mdFile": "qwik-city.azureswaadapteroptions.md"
     }
   ]

@@ -18,8 +18,8 @@ export const App = component$(() => {
         </a>
       </p>
       <p class="congrats">
-        Congratulations <a href="https://github.com/QwikDev/qwik">Qwik</a>{" "}
-        with <a href="https://partytown.builder.io/">Partytown</a> is working!
+        Congratulations <a href="https://github.com/QwikDev/qwik">Qwik</a> with{" "}
+        <a href="https://partytown.builder.io/">Partytown</a> is working!
       </p>
 
       <p>

@@ -6,8 +6,6 @@ import { red, yellow } from 'kleur/colors';
 import { createAppFacade } from './src/create-app-facade';
 
 export async function runCli() {
-  console.clear();
-
   printHeader();
 
   checkNodeVersion();

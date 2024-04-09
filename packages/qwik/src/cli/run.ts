@@ -62,7 +62,6 @@ const COMMANDS = [
 ];
 
 export async function runCli() {
-  console.clear();
   printHeader();
 
   try {

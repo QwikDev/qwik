@@ -16,7 +16,6 @@ export async function runAddInteractive(app: AppCommand, id: string | undefined)
   const integrations = await loadIntegrations();
   let integration: IntegrationData | undefined;
 
-  console.clear();
   printHeader();
 
   if (typeof id === 'string') {

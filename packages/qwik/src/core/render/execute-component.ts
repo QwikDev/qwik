@@ -20,7 +20,7 @@ import { isServerPlatform } from '../platform/platform';
 import { executeSSRTasks } from './dom/notify-render';
 import { logWarn } from '../util/log';
 import { SubscriptionType } from '../state/common';
-import { type HostElement } from '../../server/qwik-types';
+import { type Container2, type HostElement } from '../../server/qwik-types';
 import { vnode_getProp, vnode_isVNode } from '../v2/client/vnode';
 import { isClassAttr } from '../v2/shared/scoped-styles';
 
@@ -252,6 +252,10 @@ const setValueForStyle = (styleName: string, value: any) => {
 
 export const getNextIndex = (ctx: RenderContext) => {
   return intToStr(ctx.$static$.$containerState$.$elementIndex$++);
+};
+
+export const getNextUniqueIndex = (container: Container2) => {
+  return intToStr(container.$currentUniqueId$++);
 };
 
 export const setQId = (rCtx: RenderContext, elCtx: QContext) => {

@@ -21,6 +21,7 @@ export interface Container2 {
   /// Retrieve Object from paused serialized state.
   readonly $getObjectById$: (id: number | string) => any;
   readonly $serverData$: Record<string, any>;
+  $currentUniqueId$: number;
 
   processJsx(host: HostElement, jsx: JSXOutput): ValueOrPromise<void>;
   handleError(err: any, $host$: HostElement): void;

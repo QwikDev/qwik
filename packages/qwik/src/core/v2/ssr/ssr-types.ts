@@ -41,6 +41,7 @@ export interface SSRContainer extends Container2 {
   readonly prefetchResources: PrefetchResource[];
   readonly serializationCtx: SerializationContext;
   readonly symbolToChunkResolver: SymbolToChunkResolver;
+  readonly buildBase: string;
 
   openContainer(): void;
   closeContainer(): void;

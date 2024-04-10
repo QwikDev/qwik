@@ -91,7 +91,7 @@ function diffJsxVNode(received: VNode, expected: JSXNode | string, path: string[
       diffs.push(path.join(' > ') + ' expecting=' + expected.type + ' received=' + receivedTag);
     }
     const allProps: string[] = [];
-    expected.varProps &&  propsAdd(allProps, Object.keys(expected.varProps));
+    expected.varProps && propsAdd(allProps, Object.keys(expected.varProps));
     expected.constProps && propsAdd(allProps, Object.keys(expected.constProps));
     const receivedElement = vnode_isElementVNode(received)
       ? (vnode_getNode(received) as Element)
@@ -417,4 +417,3 @@ function attrsEqual(expectedValue: any, receivedValue: any) {
   // console.log('attrsEqual', expectedValue, receivedValue, isEqual);
   return isEqual;
 }
-

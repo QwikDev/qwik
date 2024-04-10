@@ -803,10 +803,12 @@ export const vnode_applyJournal = (journal: VNodeJournal) => {
           (element as any).value = String(value);
         } else if (key === dangerouslySetInnerHTML) {
           (element as any).innerHTML = value!;
-        } else if (value == null || value === false) {
-          element.removeAttribute(key);
         } else {
-          element.setAttribute(key, String(value));
+          if (value == null || value === false) {
+            element.removeAttribute(key);
+          } else {
+            element.setAttribute(key, String(value));
+          }
         }
         break;
       case VNodeJournalOpCode.HoistStyles:
@@ -878,7 +880,7 @@ export const mapArray_set = <T>(
       elementVNode[indx + 1] = value;
     }
   } else if (value != null) {
-    elementVNode.push(key as any, value);
+    elementVNode.splice(indx ^ -1, 0, key as any, value);
   }
 };
 
@@ -1127,16 +1129,16 @@ const ensureMaterialized = (vnode: ElementVNode): VNode | null => {
   if (vFirstChild === undefined) {
     // need to materialize the vNode.
     const element = vParent[ElementVNodeProps.element];
+
     const containerValue = element.getAttribute(QContainerAttr);
-    if (containerValue === null) {
-      // No container, materialize from DOM
-      vFirstChild = vnode_forceMaterialize(vParent);
-    } else {
-      // We have a container, must ignore the content.
+    if (containerValue === 'html') {
+      // We have a container with html value, must ignore the content.
       vFirstChild =
         vParent[ElementVNodeProps.firstChild] =
         vParent[ElementVNodeProps.lastChild] =
           null;
+    } else {
+      vFirstChild = vnode_forceMaterialize(vParent);
     }
   }
   assertTrue(vParent[ElementVNodeProps.firstChild] !== undefined, 'Did not materialize.');

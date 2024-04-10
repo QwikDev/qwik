@@ -441,7 +441,8 @@ describe('vnode', () => {
         parent.innerHTML = '<div q:container="html"><i>content</i></div>';
         expect(vParent).toMatchVDOM(
           <test>
-            <div dangerouslySetInnerHTML="<i>content</i>" />
+            {/* @ts-ignore-next-line */}
+            <div q:container="html" dangerouslySetInnerHTML="<i>content</i>" />
           </test>
         );
       });
@@ -453,7 +454,8 @@ describe('vnode', () => {
         expect(parent.innerHTML).toBe('<div q:container="html"><b>new content</b></div>');
         expect(vParent).toMatchVDOM(
           <test>
-            <div dangerouslySetInnerHTML="<b>new content</b>" />
+            {/* @ts-ignore-next-line */}
+            <div q:container="html" dangerouslySetInnerHTML="<b>new content</b>" />
           </test>
         );
         expect(vnode_getAttr(div, 'dangerouslySetInnerHTML')).toBe('<b>new content</b>');

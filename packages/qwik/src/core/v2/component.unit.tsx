@@ -245,12 +245,16 @@ describe.each([
       );
     });
     const { document } = await render(<Cmp />, { debug });
-    expect(document.querySelector("#first")).toMatchDOM(<span id="first">vanilla HTML here</span>);
-    expect(document.querySelector("#second")).toMatchDOM(
-      <span id="second" class="after"><h1>I'm an h1!</h1></span>
+    await expect(document.querySelector('#first')).toMatchDOM(
+      <span id="first">vanilla HTML here</span>
+    );
+    await expect(document.querySelector('#second')).toMatchDOM(
+      <span id="second" class="after">
+        <h1>I'm an h1!</h1>
+      </span>
     );
   });
-  
+
   describe('svg', () => {
     it('should render svg', async () => {
       const SvgComp = component$(() => {

@@ -42,10 +42,6 @@ import {
   ElementVNodeProps,
   VNodeFlags,
   VNodeProps,
-
-
-
-
   type ClientAttrKey,
   type ClientAttrs,
   type ClientContainer,
@@ -53,6 +49,7 @@ import {
   type TextVNode,
   type VNode,
   type VirtualVNode,
+  VirtualVNodeProps,
 } from './types';
 import {
   mapApp_findIndx,

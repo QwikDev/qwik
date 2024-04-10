@@ -39,13 +39,13 @@ import {
   type ClientContainer as IClientContainer,
   type QDocument,
   type VirtualVNode,
+  type VNode,
 } from './types';
 import {
   VNodeJournalOpCode,
   mapArray_get,
   mapArray_set,
   vnode_applyJournal,
-  vnode_forceMaterialize,
   vnode_getDOMChildNodes,
   vnode_getDomParent,
   vnode_getParent,
@@ -133,8 +133,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
     // this.containerState = createContainerState(element, this.qBase);
     this.qManifestHash = element.getAttribute('q:manifest-hash')!;
     this.rootVNode = vnode_newUnMaterializedElement(this.element);
-    // TODO: check q:container="html"
-    vnode_forceMaterialize(this.rootVNode);
     // These are here to initialize all properties at once for single class transition
     this.$rawStateData$ = null!;
     this.stateData = null!;

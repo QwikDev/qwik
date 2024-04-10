@@ -578,12 +578,12 @@ describe.each([
         );
       });
       const { document } = await render(<Parent />, { debug });
-      expect(document.querySelector('#first')).toMatchDOM(
+      await expect(document.querySelector('#first')).toMatchDOM(
         <div id="first" q:slot="content-1">
           <strong>A variable here!</strong>
         </div>
       );
-      expect(document.querySelector('#second')).toMatchDOM(
+      await expect(document.querySelector('#second')).toMatchDOM(
         <div q:slot="content-2" id="second" class="after">
           <span>here my raw HTML</span>
         </div>

@@ -6,7 +6,7 @@ describe('PrefetchServiceWorker', () => {
   describe('render', () => {
     it('should render', async () => {
       // eslint-disable-next-line no-console
-      const output = await renderToString(<PrefetchServiceWorker />, { containerTagName: 'div' });
+      await renderToString(<PrefetchServiceWorker />, { containerTagName: 'div' });
       // eslint-disable-next-line no-console
     });
   });

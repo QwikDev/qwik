@@ -19,6 +19,7 @@ import {
   QContainerSelector,
   QCtxAttr,
   QScopedStyle,
+  QSlotParent,
   QStyle,
   QStyleSelector,
 } from '../../util/markers';
@@ -29,6 +30,7 @@ import { convertScopedStyleIdsToArray, convertStyleIdsToString } from '../shared
 import { _SharedContainer } from '../shared/shared-container';
 import { inflateQRL, parseQRL, wrapDeserializerProxy } from '../shared/shared-serialization';
 import type { HostElement } from '../shared/types';
+import { VNodeDataChar, VNodeDataSeparator } from '../shared/vnode-data-types';
 import {
   VNodeFlags,
   VNodeProps,
@@ -60,22 +62,31 @@ import {
 import { vnode_diff } from './vnode-diff';
 
 /** @public */
-export function getDomContainer(element: HTMLElement | ElementVNode): IClientContainer {
-  let htmlElement: HTMLElement | null = Array.isArray(element)
-    ? (vnode_getDomParent(element) as HTMLElement)
-    : element;
-  while (htmlElement && !htmlElement.hasAttribute(QContainerAttr)) {
-    htmlElement = htmlElement.closest(QContainerSelector);
-  }
+export function getDomContainer(element: Element | ElementVNode): IClientContainer {
+  const htmlElement = getHtmlElement(element);
   if (!htmlElement) {
     throwErrorAndStop('Unable to find q:container.');
   }
+  return getDomContainerFromHTMLElement(htmlElement!);
+}
+
+export function getDomContainerFromHTMLElement(htmlElement: Element): IClientContainer {
   const qElement = htmlElement as ContainerElement;
   let container = qElement.qContainer;
   if (!container) {
     qElement.qContainer = container = new DomContainer(qElement);
   }
   return container;
+}
+
+export function getHtmlElement(element: Element | ElementVNode): Element | null {
+  let htmlElement: Element | null = Array.isArray(element)
+    ? (vnode_getDomParent(element) as Element)
+    : element;
+  while (htmlElement && !htmlElement.hasAttribute(QContainerAttr)) {
+    htmlElement = htmlElement.closest(QContainerSelector);
+  }
+  return htmlElement;
 }
 
 export const isDomContainer = (container: any): container is DomContainer => {
@@ -99,6 +110,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
 
   private stateData: unknown[];
   private $styleIds$: Set<string> | null = null;
+  private $vnodeLocate$: (id: string) => VNode = (id) => vnode_locate(this.rootVNode, id);
 
   constructor(element: ContainerElement) {
     super(() => this.scheduleRender(), {}, element.getAttribute('q:locale')!);
@@ -120,7 +132,8 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
     this.qBase = element.getAttribute('q:base')!;
     // this.containerState = createContainerState(element, this.qBase);
     this.qManifestHash = element.getAttribute('q:manifest-hash')!;
-    this.rootVNode = vnode_newUnMaterializedElement(null, this.element);
+    this.rootVNode = vnode_newUnMaterializedElement(this.element);
+    // TODO: check q:container="html"
     vnode_forceMaterialize(this.rootVNode);
     // These are here to initialize all properties at once for single class transition
     this.$rawStateData$ = null!;
@@ -138,6 +151,10 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
       this.stateData = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
     }
     this.$qFuncs$ = element.qFuncs || EMPTY_ARRAY;
+  }
+
+  $setRawState$(id: number, vParent: ElementVNode | VirtualVNode): void {
+    this.stateData[id] = vParent;
   }
 
   parseQRL<T = unknown>(qrl: string): QRL<T> {
@@ -161,7 +178,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
         errorDiv.setAttribute('q:key', '_error_');
         const journal: VNodeJournal = [];
         vnode_getDOMChildNodes(journal, vHost).forEach((child) => errorDiv.appendChild(child));
-        const vErrorDiv = vnode_newElement(vHost, errorDiv, 'error-host');
+        const vErrorDiv = vnode_newElement(errorDiv, 'error-host');
         vnode_insertBefore(journal, vHost, vErrorDiv, null);
         vnode_applyJournal(journal);
       }
@@ -207,8 +224,16 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
   getParentHost(host: HostElement): HostElement | null {
     let vNode = vnode_getParent(host as any);
     while (vNode) {
-      if (vnode_isVirtualVNode(vNode) && vnode_getProp(vNode, OnRenderProp, null) !== null) {
-        return vNode as any as HostElement;
+      if (vnode_isVirtualVNode(vNode)) {
+        if (vnode_getProp(vNode, OnRenderProp, null) !== null) {
+          return vNode as any as HostElement;
+        }
+        // If virtual node, than it could be a slot so we need to read its parent.
+        const parent = vnode_getProp<VNode>(vNode, QSlotParent, this.$vnodeLocate$);
+        if (parent) {
+          vNode = parent;
+          continue;
+        }
       }
       vNode = vnode_getParent(vNode);
     }
@@ -262,7 +287,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
         if (!prop.startsWith('q:')) {
           const value = vNode[i + 1];
           if (typeof value == 'string') {
-            vNode[i + 1] = vnode_locate(this.rootVNode, value);
+            vNode[i + 1] = this.$vnodeLocate$(value);
           }
         }
       }
@@ -345,14 +370,14 @@ export function processVNodeData(document: Document) {
         while (isSeparator((ch = currentVNodeData.charCodeAt(vNodeDataStart)))) {
           // Keep consuming the separators and incrementing the vNodeIndex
           // console.log('ADVANCE', vNodeElementIndex, ch, ch - 33);
-          vNodeElementIndex += 1 << (ch - 33) /*`!`*/;
+          vNodeElementIndex += 1 << (ch - VNodeDataSeparator.SKIP_0);
           vNodeDataStart++;
           if (vNodeDataStart >= currentVNodeDataLength) {
             // we reached the end of the vNodeData stop.
             break;
           }
         }
-        const shouldStoreRef = ch === 126; /*`~` */
+        const shouldStoreRef = ch === VNodeDataSeparator.REFERENCE;
         if (shouldStoreRef) {
           // if we need to store the ref handle it here.
           needsToStoreRef = vNodeElementIndex;
@@ -360,8 +385,8 @@ export function processVNodeData(document: Document) {
           if (vNodeDataStart < currentVNodeDataLength) {
             ch = currentVNodeData.charCodeAt(vNodeDataEnd);
           } else {
-            // assume separator on ond.
-            ch = 33 /* `!` */;
+            // assume separator on end.
+            ch = VNodeDataSeparator.SKIP_0;
           }
         }
         vNodeDataEnd = vNodeDataStart;
@@ -373,9 +398,9 @@ export function processVNodeData(document: Document) {
             if (depth === 0 && isSeparator(ch)) {
               break;
             } else {
-              if (ch === 123 /* `{` */) {
+              if (ch === VNodeDataChar.OPEN) {
                 depth++;
-              } else if (ch === 125 /* `}` */) {
+              } else if (ch === VNodeDataChar.CLOSE) {
                 depth--;
               }
               vNodeDataEnd++;

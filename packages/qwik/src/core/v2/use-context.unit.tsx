@@ -3,6 +3,7 @@ import {
   Fragment,
   Fragment as Projection,
   Fragment as Signal,
+  Fragment as Awaited,
 } from '@builder.io/qwik/jsx-runtime';
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
@@ -12,6 +13,7 @@ import { useSignal } from '../use/use-signal';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
 import { Slot } from '../render/jsx/slot.public';
+import { $ } from '@builder.io/qwik';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -28,67 +30,64 @@ const myFooFnContext = createContextId<MyStore>('mytitle');
 const useFooFn = () => {
   const state = useContext(myFooFnContext);
 
-  return (val: number) => {
+  return $((val: number) => {
     return (state.value + val).toString();
-  };
+  });
 };
 
-[
-  ssrRenderToDom, //
-  domRender, //
-].forEach((render) => {
-  describe(render.name + 'useContext', () => {
-    it('should provide and retrieve a context', async () => {
-      const contextId = createContextId<{ value: string }>('myTest');
-      const Consumer = component$(() => {
-        const ctxValue = useContext(contextId);
-        return <span>{ctxValue.value}</span>;
-      });
-      const Provider = component$(() => {
-        useContextProvider(contextId, { value: 'CONTEXT_VALUE' });
-        return <Consumer />;
-      });
-
-      const { vNode } = await render(<Provider />, { debug });
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <Component>
-            <span>
-              <Signal>CONTEXT_VALUE</Signal>
-            </span>
-          </Component>
-        </Component>
-      );
+describe.each([
+  { render: ssrRenderToDom }, //
+  { render: domRender }, //
+])('$render.name: useContext', ({ render }) => {
+  it('should provide and retrieve a context', async () => {
+    const contextId = createContextId<{ value: string }>('myTest');
+    const Consumer = component$(() => {
+      const ctxValue = useContext(contextId);
+      return <span>{ctxValue.value}</span>;
     });
-    it('should provide and retrieve a context on client change', async () => {
-      const contextId = createContextId<{ value: string }>('myTest');
-      const Consumer = component$(() => {
-        const ctxValue = useContext(contextId);
-        return <span>{ctxValue.value}</span>;
-      });
-      const Provider = component$(() => {
-        useContextProvider(contextId, { value: 'CONTEXT_VALUE' });
-        const show = useSignal(false);
-        return show.value ? <Consumer /> : <button onClick$={() => (show.value = true)} />;
-      });
-
-      const { vNode, document } = await render(<Provider />, { debug });
-      await trigger(document.body, 'button', 'click');
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <Component>
-            <span>
-              <Signal>CONTEXT_VALUE</Signal>
-            </span>
-          </Component>
-        </Component>
-      );
+    const Provider = component$(() => {
+      useContextProvider(contextId, { value: 'CONTEXT_VALUE' });
+      return <Consumer />;
     });
+
+    const { vNode } = await render(<Provider />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Component>
+          <span>
+            <Signal>CONTEXT_VALUE</Signal>
+          </span>
+        </Component>
+      </Component>
+    );
+  });
+  it('should provide and retrieve a context on client change', async () => {
+    const contextId = createContextId<{ value: string }>('myTest');
+    const Consumer = component$(() => {
+      const ctxValue = useContext(contextId);
+      return <span>{ctxValue.value}</span>;
+    });
+    const Provider = component$(() => {
+      useContextProvider(contextId, { value: 'CONTEXT_VALUE' });
+      const show = useSignal(false);
+      return show.value ? <Consumer /> : <button onClick$={() => (show.value = true)} />;
+    });
+
+    const { vNode, document } = await render(<Provider />, { debug });
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Component>
+          <span>
+            <Signal>CONTEXT_VALUE</Signal>
+          </span>
+        </Component>
+      </Component>
+    );
   });
 
-  describe(render.name + 'regression', () => {
-    // TODO: later
-    it.skip('#4038', async () => {
+  describe('regression', () => {
+    it('#4038', async () => {
       interface IMyComponent {
         val: string;
       }
@@ -111,7 +110,9 @@ const useFooFn = () => {
 
         return (
           <div>
-            <MyComponent val={c(1)} />
+            {c(1).then((val) => (
+              <MyComponent val={val} />
+            ))}
           </div>
         );
       });
@@ -133,18 +134,20 @@ const useFooFn = () => {
           <Projection>
             <Component>
               <div>
-                <Component>
-                  <Fragment>
-                    <p>
-                      <Signal>1</Signal>
-                    </p>
-                    <p>0</p>
-                    <p>
-                      <Signal>0</Signal>
-                    </p>
-                    <button>Increment</button>
-                  </Fragment>
-                </Component>
+                <Awaited>
+                  <Component>
+                    <Fragment>
+                      <p>1</p>
+                      <p>
+                        <Awaited>0</Awaited>
+                      </p>
+                      <p>
+                        <Signal>0</Signal>
+                      </p>
+                      <button>Increment</button>
+                    </Fragment>
+                  </Component>
+                </Awaited>
               </div>
             </Component>
           </Projection>
@@ -157,18 +160,20 @@ const useFooFn = () => {
           <Projection>
             <Component>
               <div>
-                <Component>
-                  <Fragment>
-                    <p>
-                      <Signal>1</Signal>
-                    </p>
-                    <p>2</p>
-                    <p>
-                      <Signal>2</Signal>
-                    </p>
-                    <button>Increment</button>
-                  </Fragment>
-                </Component>
+                <Awaited>
+                  <Component>
+                    <Fragment>
+                      <p>1</p>
+                      <p>
+                        <Awaited>2</Awaited>
+                      </p>
+                      <p>
+                        <Signal>2</Signal>
+                      </p>
+                      <button>Increment</button>
+                    </Fragment>
+                  </Component>
+                </Awaited>
               </div>
             </Component>
           </Projection>

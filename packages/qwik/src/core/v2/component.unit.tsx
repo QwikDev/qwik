@@ -4,425 +4,549 @@ import { trigger } from '../../testing/element-fixture';
 import { component$ } from '../component/component.public';
 import type { JSXOutput } from '../render/jsx/types/jsx-node';
 import { useSignal } from '../use/use-signal';
-import type { QDocument } from './client/types';
+import { useStore } from '../use/use-store.public';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
 
-[
-  ssrRenderToDom, //
-  domRender, //
-].forEach((render) => {
-  describe(`${render.name}: component`, () => {
-    it('should render component', async () => {
-      const MyComp = component$(() => {
-        return <>Hello World!</>;
-      });
+describe.each([
+  { render: ssrRenderToDom }, //
+  { render: domRender }, //
+])('$render.name: component', ({ render }) => {
+  it('should render component', async () => {
+    const MyComp = component$(() => {
+      return <>Hello World!</>;
+    });
 
-      const { vNode } = await render(<MyComp />, { debug });
-      expect(vNode).toMatchVDOM(
+    const { vNode } = await render(<MyComp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <>
+        <>Hello World!</>
+      </>
+    );
+  });
+
+  it('should render nested component', async () => {
+    const Child = component$((props: { name: string }) => {
+      return <>{props.name}</>;
+    });
+
+    const Parent = component$((props: { salutation: string; name: string }) => {
+      return (
         <>
-          <>Hello World!</>
+          {props.salutation} <Child name={props.name} />
         </>
       );
     });
-    it('should render nested component', async () => {
-      const Child = component$((props: { name: string }) => {
-        return <>{props.name}</>;
-      });
 
-      const Parent = component$((props: { salutation: string; name: string }) => {
-        return (
-          <>
-            {props.salutation} <Child name={props.name} />
-          </>
-        );
-      });
+    const { vNode } = await render(<Parent salutation="Hello" name="World" />, {
+      debug,
+    });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          {'Hello'}{' '}
+          <Component>
+            <Fragment>World</Fragment>
+          </Component>
+        </Fragment>
+      </Component>
+    );
+  });
 
-      const { vNode } = await render(<Parent salutation="Hello" name="World" />, {
-        debug,
-      });
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
-            {'Hello'}{' '}
-            <Component>
-              <Fragment>World</Fragment>
-            </Component>
-          </Fragment>
-        </Component>
+  it('should handle null as empty string', async () => {
+    const MyComp = component$(() => {
+      return (
+        <div>
+          <span>Hello world</span>
+          {null}
+        </div>
       );
     });
 
-    it('should handle null as empty string', async () => {
-      const MyComp = component$(() => {
-        return (
-          <div>
-            <span>Hello world</span>
-            {null}
-          </div>
-        );
-      });
+    const { vNode } = await render(<MyComp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <span>Hello world</span>
+          {''}
+        </div>
+      </Component>
+    );
+  });
 
-      const { vNode } = await render(<MyComp />, { debug });
-      expect(vNode).toMatchVDOM(
-        <Component>
+  it('should show Child Component', async () => {
+    const Child = component$(() => {
+      return <div>Child</div>;
+    });
+    const Parent = component$(() => {
+      const showChild = useSignal(false);
+      return (
+        <>
+          <div>Parent</div>
           <div>
-            <span>Hello world</span>
+            <button
+              onClick$={() => {
+                showChild.value = !showChild.value;
+              }}
+            >
+              Show child
+            </button>
+            {showChild.value && <Child />}
+          </div>
+        </>
+      );
+    });
+
+    const { vNode, document } = await render(<Parent />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <div>Parent</div>
+          <div>
+            <button>Show child</button>
             {''}
           </div>
-        </Component>
+        </Fragment>
+      </Component>
+    );
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <div>Parent</div>
+          <div>
+            <button>Show child</button>
+            <Component>
+              <div>Child</div>
+            </Component>
+          </div>
+        </Fragment>
+      </Component>
+    );
+  });
+
+  it('should rerender components correctly', async () => {
+    const Component1 = component$(() => {
+      const signal1 = useSignal(1);
+      return (
+        <div>
+          <span>Component 1</span>
+          {signal1.value}
+        </div>
       );
     });
-
-    it('should show Child Component', async () => {
-      const Child = component$(() => {
-        return <div>Child</div>;
-      });
-      const Parent = component$(() => {
-        const showChild = useSignal(false);
-        return (
-          <>
-            <div>Parent</div>
-            <div>
-              <button
-                onClick$={() => {
-                  showChild.value = !showChild.value;
-                }}
-              >
-                Show child
-              </button>
-              {showChild.value && <Child />}
-            </div>
-          </>
-        );
-      });
-
-      const { vNode, document } = await render(<Parent />, { debug });
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
-            <div>Parent</div>
-            <div>
-              <button>Show child</button>
-              {''}
-            </div>
-          </Fragment>
-        </Component>
-      );
-      await trigger(document.body, 'button', 'click');
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
-            <div>Parent</div>
-            <div>
-              <button>Show child</button>
-              <Component>
-                <div>Child</div>
-              </Component>
-            </div>
-          </Fragment>
-        </Component>
+    const Component2 = component$(() => {
+      const signal2 = useSignal(2);
+      return (
+        <div>
+          <span>Component 2</span>
+          {signal2.value}
+        </div>
       );
     });
+    const Parent = component$(() => {
+      const show = useSignal(true);
+      return (
+        <main class="parent" onClick$={() => (show.value = false)}>
+          {show.value && <Component1 />}
+          {show.value && <Component1 />}
+          <Component2 />
+        </main>
+      );
+    });
+    const { vNode, container } = await render(<Parent />, { debug });
+    expect(vNode).toMatchVDOM(
+      <>
+        <main class="parent">
+          <Component>
+            <div>
+              <span>Component 1</span>
+              <Signal>1</Signal>
+            </div>
+          </Component>
+          <Component>
+            <div>
+              <span>Component 1</span>
+              <Signal>1</Signal>
+            </div>
+          </Component>
+          <Component>
+            <div>
+              <span>Component 2</span>
+              <Signal>2</Signal>
+            </div>
+          </Component>
+        </main>
+      </>
+    );
+    await trigger(container.element, 'main.parent', 'click');
+    expect(vNode).toMatchVDOM(
+      <>
+        <main class="parent">
+          {''}
+          {''}
+          <Component>
+            <div>
+              <span>Component 2</span>
+              <Signal>2</Signal>
+            </div>
+          </Component>
+        </main>
+      </>
+    );
+  });
 
-    it('should rerender components correctly', async () => {
-      const Component1 = component$(() => {
-        const signal1 = useSignal(1);
-        return (
+  it('should remove children from component$', async () => {
+    const log: string[] = [];
+    const MyComp = component$((props: any) => {
+      log.push('children' in props ? 'children' : 'no children');
+      return <span>Hello world</span>;
+    });
+
+    const { vNode } = await render(<MyComp>CHILDREN</MyComp>, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <span>Hello world</span>
+      </Component>
+    );
+    expect(log).toEqual(['no children']);
+  });
+
+  it('should NOT remove children from inline component', async () => {
+    const log: string[] = [];
+    const MyComp = (props: any) => {
+      log.push('children' in props ? 'has children' : 'no children');
+      return <span>Hello world</span>;
+    };
+
+    const { vNode } = await render(<MyComp>CHILDREN</MyComp>, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <span>Hello world</span>
+      </Component>
+    );
+    expect(log).toEqual(['has children']);
+  });
+
+  it('should insert dangerouslySetInnerHTML', async () => {
+    const Cmp = component$(() => {
+      return (
+        <div>
           <div>
-            <span>Component 1</span>
-            {signal1.value}
+            <span id="first" dangerouslySetInnerHTML="vanilla HTML here" />
           </div>
+          <div>
+            <span id="second" dangerouslySetInnerHTML="<h1>I'm an h1!</h1>" class="after" />
+          </div>
+        </div>
+      );
+    });
+    const { document } = await render(<Cmp />, { debug });
+    expect(document.querySelector("#first")).toMatchDOM(<span id="first">vanilla HTML here</span>);
+    expect(document.querySelector("#second")).toMatchDOM(
+      <span id="second" class="after"><h1>I'm an h1!</h1></span>
+    );
+  });
+  
+  describe('svg', () => {
+    it('should render svg', async () => {
+      const SvgComp = component$(() => {
+        return (
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" key="ka">
+            <feGaussianBlur></feGaussianBlur>
+            <circle cx="50" cy="50" r="50" />
+          </svg>
         );
       });
-      const Component2 = component$(() => {
-        const signal2 = useSignal(2);
+      const { vNode, container } = await render(<SvgComp />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <feGaussianBlur></feGaussianBlur>
+            <circle cx="50" cy="50" r="50" />
+          </svg>
+        </Component>
+      );
+      await expect(container.document.body.firstChild).toMatchDOM(
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" key="ka">
+          <fegaussianblur></fegaussianblur>
+          <circle cx="50" cy="50" r="50"></circle>
+        </svg>
+      );
+    });
+    it('should write attributes to svg', async () => {
+      const SvgComp = component$((props: { cx: string; cy: string }) => {
         return (
-          <div>
-            <span>Component 2</span>
-            {signal2.value}
-          </div>
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" key="0">
+            {/* <circle cx={props.cx} cy={props.cy} r="50" /> */}
+            <circle {...props} r="50" />
+          </svg>
+        );
+      });
+      const { vNode, container } = await render(<SvgComp cx="10" cy="10" />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="10" cy="10" r="50" />
+          </svg>
+        </Component>
+      );
+      await expect(container.document.querySelector('svg')).toMatchDOM(
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" key="0">
+          <circle cx="10" cy="10" r="50"></circle>
+        </svg>
+      );
+    });
+    it('should rerender svg', async () => {
+      const SvgComp = component$((props: { cx: string; cy: string }) => {
+        return (
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" key="0">
+            <circle cx={props.cx} cy={props.cy} r="50" />
+          </svg>
         );
       });
       const Parent = component$(() => {
-        const show = useSignal(true);
+        const show = useSignal(false);
         return (
-          <div class="parent" onClick$={() => (show.value = false)}>
-            {show.value && <Component1 />}
-            {show.value && <Component1 />}
-            <Component2 />
-          </div>
+          <button onClick$={() => (show.value = !show.value)}>
+            {show.value && <SvgComp cx="10" cy="10" />}
+          </button>
         );
       });
       const { vNode, container } = await render(<Parent />, { debug });
       expect(vNode).toMatchVDOM(
-        <>
-          <div class="parent">
-            <Component>
-              <div>
-                <span>Component 1</span>
-                <Signal>1</Signal>
-              </div>
-            </Component>
-            <Component>
-              <div>
-                <span>Component 1</span>
-                <Signal>1</Signal>
-              </div>
-            </Component>
-            <Component>
-              <div>
-                <span>Component 2</span>
-                <Signal>2</Signal>
-              </div>
-            </Component>
-          </div>
-        </>
-      );
-      await trigger(container.element, 'div.parent', 'click');
-      expect(vNode).toMatchVDOM(
-        <>
-          <div class="parent">
-            {''}
-            {''}
-            <Component>
-              <div>
-                <span>Component 2</span>
-                <Signal>2</Signal>
-              </div>
-            </Component>
-          </div>
-        </>
-      );
-    });
-
-    it('should remove children from component$', async () => {
-      const log: string[] = [];
-      const MyComp = component$((props: any) => {
-        log.push('children' in props ? 'children' : 'no children');
-        return <span>Hello world</span>;
-      });
-
-      const { vNode } = await render(<MyComp>CHILDREN</MyComp>, { debug });
-      expect(vNode).toMatchVDOM(
         <Component>
-          <span>Hello world</span>
+          <button>{''}</button>
         </Component>
       );
-      expect(log).toEqual(['no children']);
-    });
 
-    it('should NOT remove children from inline component', async () => {
-      const log: string[] = [];
-      const MyComp = (props: any) => {
-        log.push('children' in props ? 'has children' : 'no children');
-        return <span>Hello world</span>;
-      };
-
-      const { vNode } = await render(<MyComp>CHILDREN</MyComp>, { debug });
+      await expect(container.document.querySelector('button')).toMatchDOM(<button></button>);
+      await trigger(container.element, 'button', 'click');
       expect(vNode).toMatchVDOM(
         <Component>
-          <span>Hello world</span>
+          <button>
+            <Component>
+              <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" key="0">
+                <circle cx="10" cy="10" r="50" />
+              </svg>
+            </Component>
+          </button>
         </Component>
       );
-      expect(log).toEqual(['has children']);
-    });
 
-    it('should insert dangerouslySetInnerHTML', async () => {
-      const Cmp = component$(() => {
+      await expect(container.document.querySelector('svg')).toMatchDOM(
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" key="0">
+          <circle r="50" cx="10" cy="10"></circle>
+        </svg>
+      );
+
+      await trigger(container.element, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>{''}</button>
+        </Component>
+      );
+
+      await expect(container.document.body.querySelector('button')).toMatchDOM(<button></button>);
+    });
+    it('should rerender svg child elements', async () => {
+      const SvgComp = component$((props: { child: JSXOutput }) => {
         return (
-          <div>
-            <div>
-              <span dangerouslySetInnerHTML="vanilla HTML here" />
-            </div>
-            <div>
-              <span id="before" dangerouslySetInnerHTML="<h1>I'm an h1!</h1>" class="after" />
-            </div>
-          </div>
+          <svg key="hi" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="15" cy="15" r="50" />
+            {props.child}
+          </svg>
         );
       });
-      const { document } = await render(<Cmp />, { debug });
-      const divElement = document.body.children[0];
-      expect(divElement.children[0].innerHTML).toContain('<span>vanilla HTML here</span>');
-      expect(divElement.children[1].innerHTML).toContain(
-        `<span id="before" class="after"><h1>I'm an h1!</h1></span>`
+      const Parent = component$(() => {
+        const show = useSignal(false);
+        return (
+          <button onClick$={() => (show.value = !show.value)}>
+            <SvgComp
+              child={
+                show.value ? <line x1="0" y1="80" x2="100" y2="20" stroke="black" key="1" /> : <></>
+              }
+            />
+          </button>
+        );
+      });
+      const { vNode, container } = await render(<Parent />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            <Component>
+              <svg key="hi" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="15" cy="15" r="50"></circle>
+                <Fragment></Fragment>
+              </svg>
+            </Component>
+          </button>
+        </Component>
       );
-    });
+      await expect(container.document.querySelector('svg')).toMatchDOM(
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" key="hi">
+          <circle cx="15" cy="15" r="50"></circle>
+        </svg>
+      );
 
-    describe('svg', () => {
-      it('should render svg', async () => {
-        const SvgComp = component$(() => {
-          return (
-            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" key="ka">
-              <feGaussianBlur></feGaussianBlur>
-              <circle cx="50" cy="50" r="50" />
-            </svg>
-          );
-        });
-        const { vNode, container } = await render(<SvgComp />, { debug });
-        expect(vNode).toMatchVDOM(
-          <Component>
-            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-              <feGaussianBlur></feGaussianBlur>
-              <circle cx="50" cy="50" r="50" />
-            </svg>
-          </Component>
-        );
-        expect(getCleanupBodyHTML(container.document)).toContain(
-          '<svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" q:key="ka"><fegaussianblur></fegaussianblur><circle cx="50" cy="50" r="50"></circle></svg>'
-        );
-      });
-      it('should write attributes to svg', async () => {
-        const SvgComp = component$((props: { cx: string; cy: string }) => {
-          return (
-            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-              <circle {...props} r="50" />
-            </svg>
-          );
-        });
-        const { vNode, container } = await render(<SvgComp cx="10" cy="10" />, { debug });
-        expect(vNode).toMatchVDOM(
-          <Component>
-            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="10" cy="10" r="50" />
-            </svg>
-          </Component>
-        );
-        expect(getCleanupBodyHTML(container.document)).toContain(
-          '<svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="50"></circle></svg>'
-        );
-      });
-      it('should rerender svg', async () => {
-        const SvgComp = component$((props: { cx: string; cy: string }) => {
-          return (
-            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-              <circle cx={props.cx} cy={props.cy} r="50" />
-            </svg>
-          );
-        });
-        const Parent = component$(() => {
-          const show = useSignal(false);
-          return (
-            <button onClick$={() => (show.value = !show.value)}>
-              {show.value && <SvgComp cx="10" cy="10" />}
-            </button>
-          );
-        });
-        const { vNode, container } = await render(<Parent />, { debug });
-        expect(vNode).toMatchVDOM(
-          <Component>
-            <button>{''}</button>
-          </Component>
-        );
+      await trigger(container.element, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            <Component>
+              <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="15" cy="15" r="50"></circle>
+                <line x1="0" y1="80" x2="100" y2="20" stroke="black" key="1"></line>
+              </svg>
+            </Component>
+          </button>
+        </Component>
+      );
 
-        expect(getCleanupBodyHTML(container.document)).not.toContain(
-          '<svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">'
-        );
-        await trigger(container.element, 'button', 'click');
-        expect(vNode).toMatchVDOM(
-          <Component>
-            <button>
-              <Component>
-                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="10" cy="10" r="50" />
-                </svg>
-              </Component>
-            </button>
-          </Component>
-        );
+      await expect(container.document.querySelector('svg')).toMatchDOM(
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" key="hi">
+          <circle cx="15" cy="15" r="50"></circle>
+          <line x1="0" y1="80" x2="100" y2="20" stroke="black" key="1"></line>
+        </svg>
+      );
 
-        expect(getCleanupBodyHTML(container.document)).toContain(
-          '<svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" q:key="b9_52"><circle r="50" cx="10" cy="10"></circle></svg>'
-        );
-
-        await trigger(container.element, 'button', 'click');
-        expect(vNode).toMatchVDOM(
-          <Component>
-            <button>{''}</button>
-          </Component>
-        );
-
-        expect(getCleanupBodyHTML(container.document)).not.toContain(
-          '<svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" q:key="b9_52">'
-        );
-      });
-      it('should rerender svg child elements', async () => {
-        const SvgComp = component$((props: { child: JSXOutput }) => {
-          return (
-            <svg key="hi" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="15" cy="15" r="50" />
-              {props.child}
-            </svg>
-          );
-        });
-        const Parent = component$(() => {
-          const show = useSignal(false);
-          return (
-            <button onClick$={() => (show.value = !show.value)}>
-              <SvgComp
-                child={show.value ? <line x1="0" y1="80" x2="100" y2="20" stroke="black" /> : <></>}
-              />
-            </button>
-          );
-        });
-        const { vNode, container } = await render(<Parent />, { debug });
-        expect(vNode).toMatchVDOM(
-          <Component>
-            <button>
-              <Component>
-                <svg key="hi" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="15" cy="15" r="50"></circle>
-                  <Fragment></Fragment>
-                </svg>
-              </Component>
-            </button>
-          </Component>
-        );
-        expect(getCleanupBodyHTML(container.document)).toMatch(
-          '<svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" q:key="hi"><circle cx="15" cy="15" r="50"></circle></svg>'
-        );
-
-        await trigger(container.element, 'button', 'click');
-        expect(vNode).toMatchVDOM(
-          <Component>
-            <button>
-              <Component>
-                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="15" cy="15" r="50"></circle>
-                  <line x1="0" y1="80" x2="100" y2="20" stroke="black"></line>
-                </svg>
-              </Component>
-            </button>
-          </Component>
-        );
-        expect(getCleanupBodyHTML(container.document)).toContain(
-          '<svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" q:key="hi"><circle cx="15" cy="15" r="50"></circle><line x1="0" y1="80" x2="100" y2="20" stroke="black" q:key="b9_60"></line></svg>'
-        );
-
-        await trigger(container.element, 'button', 'click');
-        expect(vNode).toMatchVDOM(
-          <Component>
-            <button>
-              <Component>
-                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="15" cy="15" r="50"></circle>
-                  <Fragment></Fragment>
-                </svg>
-              </Component>
-            </button>
-          </Component>
-        );
-        expect(getCleanupBodyHTML(container.document)).toContain(
-          '<svg viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" q:key="hi"><circle cx="15" cy="15" r="50"></circle></svg>'
-        );
-      });      
+      await trigger(container.element, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            <Component>
+              <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="15" cy="15" r="50"></circle>
+                <Fragment></Fragment>
+              </svg>
+            </Component>
+          </button>
+        </Component>
+      );
+      await expect(container.document.querySelector('svg')).toMatchDOM(
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" key="hi">
+          <circle cx="15" cy="15" r="50"></circle>
+        </svg>
+      );
     });
   });
 
-  describe(render.name + ': regression', () => {
+  describe('attributes', () => {
+    it('should render boolean and number attributes', async () => {
+      const AttrComp = component$(() => {
+        const required = useSignal(false);
+        const state = useStore({
+          dataAria: true,
+        });
+
+        return (
+          <>
+            <button id="req" onClick$={() => (required.value = !required.value)}></button>
+            <input
+              id="input"
+              required={required.value}
+              aria-hidden={state.dataAria}
+              aria-required="false"
+              draggable={required.value}
+              spellcheck={required.value}
+              tabIndex={-1}
+            />
+          </>
+        );
+      });
+
+      const { vNode, document } = await render(<AttrComp />, { debug });
+
+      await expect(document.body.querySelector('input')).toMatchDOM(
+        <input
+          id="input"
+          aria-hidden="true"
+          aria-required="false"
+          draggable={false}
+          spellcheck={false}
+          tabIndex={-1}
+        />
+      );
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button id="req"></button>
+            <input
+              id="input"
+              aria-hidden="true"
+              aria-required="false"
+              draggable={false}
+              spellcheck={false}
+              tabIndex={-1}
+            />
+          </Fragment>
+        </Component>
+      );
+
+      await trigger(document.body, '#req', 'click');
+
+      await expect(document.body.querySelector('input')).toMatchDOM(
+        <input
+          id="input"
+          required={true}
+          aria-hidden="true"
+          aria-required="false"
+          draggable={true}
+          spellcheck={true}
+          tabIndex={-1}
+        />
+      );
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button id="req"></button>
+            <input
+              id="input"
+              required={true}
+              aria-hidden="true"
+              aria-required="false"
+              draggable={true}
+              spellcheck={true}
+              tabIndex={-1}
+            />
+          </Fragment>
+        </Component>
+      );
+
+      await trigger(document.body, '#req', 'click');
+
+      await expect(document.body.querySelector('input')).toMatchDOM(
+        <input
+          id="input"
+          aria-hidden="true"
+          aria-required="false"
+          draggable={false}
+          spellcheck={false}
+          tabIndex={-1}
+        />
+      );
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button id="req"></button>
+            <input
+              id="input"
+              aria-hidden="true"
+              aria-required="false"
+              draggable={false}
+              spellcheck={false}
+              tabIndex={-1}
+            />
+          </Fragment>
+        </Component>
+      );
+    });
+  });
+
+  describe('regression', () => {
     it('#5647', async () => {
       const ChildNested = component$(() => {
         return <div>Nested</div>;
@@ -567,10 +691,3 @@ Error.stackTraceLimit = 100;
     });
   });
 });
-function getCleanupBodyHTML(document: QDocument): any {
-  let html = document.body.innerHTML;
-  html = html.toLowerCase();
-  html = html.replace(/ =""/g, '');
-  return html;
-}
-

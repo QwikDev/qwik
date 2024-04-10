@@ -2,17 +2,17 @@ import { isDev } from '@builder.io/qwik/build';
 import { isQwikComponent } from '../../component/component.public';
 import { isQrl } from '../../qrl/qrl-class';
 import type { QRL } from '../../qrl/qrl.public';
-import { dangerouslySetInnerHTML, serializeClass, stringifyStyle } from '../../render/execute-component';
+import { dangerouslySetInnerHTML, serializeAttribute } from '../../render/execute-component';
 import { Fragment } from '../../render/jsx/jsx-runtime';
 import { Slot } from '../../render/jsx/slot.public';
 import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
-import type { ClassList, JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
+import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
 import { SubscriptionType } from '../../state/common';
 import { SignalDerived, isSignal } from '../../state/signal';
 import { trackSignal } from '../../use/use-core';
 import { EMPTY_ARRAY } from '../../util/flyweight';
 import { throwErrorAndStop } from '../../util/log';
-import { ELEMENT_KEY } from '../../util/markers';
+import { ELEMENT_KEY, QSlot } from '../../util/markers';
 import { isPromise } from '../../util/promises';
 import { type ValueOrPromise } from '../../util/types';
 import {
@@ -20,7 +20,6 @@ import {
   getEventNameFromJsxProp,
   isJsxPropertyAnEventName,
 } from '../shared/event-names';
-import { isClassAttr } from '../shared/scoped-styles';
 import { qrlToString, type SerializationContext } from '../shared/shared-serialization';
 import { DEBUG_TYPE, VirtualType, type fixMeAny } from '../shared/types';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
@@ -129,11 +128,12 @@ function processJSXNode(
       if (typeof type === 'string') {
         ssr.openElement(
           type,
-          toSsrAttrs(jsx.varProps, ssr.serializationCtx),
-          toSsrAttrs(jsx.constProps, ssr.serializationCtx, jsx.key)
+          toSsrAttrs(jsx.varProps, ssr.serializationCtx, jsx.key),
+          toSsrAttrs(jsx.constProps, ssr.serializationCtx)
         );
         const rawHTML = jsx.props[dangerouslySetInnerHTML];
         if (rawHTML) {
+          // TODO: handle signal ( eg. rawHTML.value)
           ssr.htmlNode(rawHTML as string);
         }
         enqueue(ssr.closeElement);
@@ -144,15 +144,19 @@ function processJSXNode(
         children != undefined && enqueue(children);
       } else if (typeof type === 'function') {
         if (type === Fragment) {
-          ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.Fragment] : EMPTY_ARRAY);
+          let attrs = jsx.key != null ? [ELEMENT_KEY, jsx.key] : EMPTY_ARRAY;
+          if (isDev) {
+            attrs = [DEBUG_TYPE, VirtualType.Fragment, ...attrs]; // Add debug info.
+          }
+          ssr.openFragment(attrs);
           enqueue(ssr.closeFragment);
           // In theory we could get functions or regexes, but we assume all is well
           const children = jsx.children as JSXOutput;
           children !== undefined && enqueue(children);
         } else if (type === Slot) {
           const componentFrame = ssr.getNearestComponentFrame()!;
+          const projectionAttrs = isDev ? [DEBUG_TYPE, VirtualType.Projection] : [];
           if (componentFrame) {
-            const projectionAttrs = isDev ? [DEBUG_TYPE, VirtualType.Projection] : [];
             const compId = componentFrame.componentNode.id || '';
             projectionAttrs.push(':', compId);
             ssr.openProjection(projectionAttrs);
@@ -173,6 +177,7 @@ function processJSXNode(
               }
             }
             slotName = String(slotName || jsx.props.name || '');
+            projectionAttrs.push(QSlot, slotName);
             enqueue(ssr.closeProjection);
             const slotDefaultChildren = (jsx.props.children || null) as JSXChildren | null;
             const slotChildren =
@@ -249,13 +254,7 @@ export function toSsrAttrs(
       continue;
     }
 
-    if (isClassAttr(key)) {
-      value = serializeClass(value as ClassList);
-    } else if (key === 'style') {
-      value = stringifyStyle(value);
-    } else {
-      value = String(value);
-    }
+    value = serializeAttribute(key, value);
 
     ssrAttrs.push(key, value as string);
   }

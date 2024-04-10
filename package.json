@@ -148,7 +148,7 @@
     "build.clean": "rm -rf packages/qwik/dist/ && rm -rf packages/qwik-city/lib/ && rm -rf packages/qwik-city/lib/ && rm -rf packages/docs/dist/ && rm -rf packages/insights/dist/ && rm -rf packages/qwik-labs/lib/ && rm -rf packages/qwik-labs/lib-types/",
     "build.cli": "tsm scripts/index.ts --cli --dev",
     "build.cli.prod": "tsm scripts/index.ts --cli",
-    "build.core": "tsm scripts/index.ts --tsc --build --qwikcity --api --platform-binding-wasm-copy",
+    "build.core": "tsm scripts/index.ts --tsc --build --qwikcity --api --platform-binding",
     "build.eslint": "tsm scripts/index.ts --eslint",
     "build.full": "tsm scripts/index.ts --tsc --tsc-docs --build --supabaseauthhelpers --api --eslint --qwikcity --qwikworker --qwiklabs --qwikreact --qwikauth --cli --platform-binding --wasm",
     "build.local": "tsm scripts/index.ts --tsc --tsc-docs --build --supabaseauthhelpers --api --eslint --qwikcity --qwikworker --qwiklabs --qwikreact --qwikauth --cli --platform-binding-wasm-copy",

@@ -5,7 +5,7 @@
 ```ts
 
 import * as CSS_2 from 'csstype';
-import { JSXNode as JSXNode_2 } from '@builder.io/qwik/jsx-runtime';
+import { JSXNode as JSXNode_2 } from '@builder.io/qwik';
 import type { StreamWriter as StreamWriter_2 } from '@builder.io/qwik';
 
 // @public
@@ -264,7 +264,7 @@ export const _getContextEvent: () => unknown;
 // Warning: (ae-forgotten-export) The symbol "ClientContainer" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export function getDomContainer(element: HTMLElement | ElementVNode): ClientContainer;
+export function getDomContainer(element: Element | ElementVNode): ClientContainer;
 
 // Warning: (ae-internal-missing-underscore) The name "getLocale" should be prefixed with an underscore because the declaration is marked as @internal
 //
@@ -410,7 +410,7 @@ export { jsx }
 export { jsx as jsxs }
 
 // @internal (undocumented)
-export const _jsxBranch: <T>(input?: T | undefined) => T | undefined;
+export const _jsxBranch: <T>(input?: T) => T | undefined;
 
 // @internal
 export const _jsxC: <T extends string | FunctionComponent<any>>(type: T, varProps: Props | null, constProps: Props | null, flags: number, key: string | number | null, dev?: DevJSX) => JSXNode<T>;

@@ -2200,7 +2200,7 @@ export type FunctionComponent<P = unknown> = {
 
 ```typescript
 export declare function getDomContainer(
-  element: HTMLElement | ElementVNode,
+  element: Element | ElementVNode,
 ): IClientContainer;
 ```
 
@@ -2223,7 +2223,7 @@ element
 
 </td><td>
 
-HTMLElement \| ElementVNode
+Element \| ElementVNode
 
 </td><td>
 
@@ -3534,7 +3534,7 @@ PrefetchGraph: (opts?: {
   base?: string;
   manifestHash?: string;
   manifestURL?: string;
-}) => import("@builder.io/qwik/jsx-runtime").JSXNode<string>;
+}) => import("@builder.io/qwik").JSXNode<string>;
 ```
 
 <table><thead><tr><th>
@@ -3568,7 +3568,7 @@ _(Optional)_ Options for the loading prefetch graph.
 </tbody></table>
 **Returns:**
 
-import("@builder.io/qwik/jsx-runtime").[JSXNode](#jsxnode)&lt;string&gt;
+import("@builder.io/qwik").[JSXNode](#jsxnode)&lt;string&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
 
@@ -3586,7 +3586,7 @@ PrefetchServiceWorker: (opts: {
   path?: string;
   verbose?: boolean;
   fetchBundleGraph?: boolean;
-}) => import("@builder.io/qwik/jsx-runtime").JSXNode<string>;
+}) => import("@builder.io/qwik").JSXNode<string>;
 ```
 
 <table><thead><tr><th>
@@ -3620,7 +3620,7 @@ Options for the prefetch service worker.
 </tbody></table>
 **Returns:**
 
-import("@builder.io/qwik/jsx-runtime").[JSXNode](#jsxnode)&lt;string&gt;
+import("@builder.io/qwik").[JSXNode](#jsxnode)&lt;string&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
 
@@ -3686,26 +3686,21 @@ export type PropFunctionProps<PROPS extends Record<any, any>> = {
 Infers `Props` from the component or tag.
 
 ```typescript
-export type PropsOf<COMP> =
-  IsAny<COMP> extends true
+export type PropsOf<COMP> = COMP extends string
+  ? COMP extends keyof QwikIntrinsicElements
+    ? QwikIntrinsicElements[COMP]
+    : QwikIntrinsicElements["span"]
+  : NonNullable<COMP> extends never
     ? never
-    : unknown extends COMP
-      ? never
-      : COMP extends string
-        ? COMP extends keyof QwikIntrinsicElements
-          ? QwikIntrinsicElements[COMP]
-          : QwikIntrinsicElements["span"]
-        : NonNullable<COMP> extends never
+    : COMP extends FunctionComponent<infer PROPS>
+      ? PROPS extends Record<any, infer V>
+        ? IsAny<V> extends true
           ? never
-          : COMP extends FunctionComponent<infer PROPS>
-            ? PROPS extends Record<any, infer V>
-              ? IsAny<V> extends true
-                ? never
-                : ObjectProps<PROPS>
-              : COMP extends Component<infer OrigProps>
-                ? ObjectProps<OrigProps>
-                : PROPS
-            : never;
+          : ObjectProps<PROPS>
+        : COMP extends Component<infer OrigProps>
+          ? ObjectProps<OrigProps>
+          : PROPS
+      : never;
 ```
 
 **References:** [QwikIntrinsicElements](#qwikintrinsicelements), [FunctionComponent](#functioncomponent), [Component](#component)

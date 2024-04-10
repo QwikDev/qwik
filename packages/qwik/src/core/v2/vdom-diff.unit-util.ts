@@ -22,13 +22,18 @@ import {
 } from './client/vnode';
 import { isStringifiable, type Stringifiable } from './shared-types';
 
+import { format } from 'prettier';
 import { createDocument } from '../../testing/document';
+import { isElement } from '../../testing/html';
+import { serializeBooleanOrNumberAttribute } from '../render/execute-component';
 import type { JSXNode, JSXOutput } from '../render/jsx/types/jsx-node';
+import { isText } from '../util/element';
 import type { VirtualVNode } from './client/types';
 import { isHtmlAttributeAnEventName, isJsxPropertyAnEventName } from './shared/event-names';
 
 interface CustomMatchers<R = unknown> {
   toMatchVDOM(expectedJSX: JSXOutput): R;
+  toMatchDOM(expectedDOM: JSXOutput): Promise<R>;
 }
 
 declare module 'vitest' {
@@ -40,6 +45,21 @@ expect.extend({
   toMatchVDOM(this: { isNot: boolean }, received: VNode, expected: JSXNode) {
     const { isNot } = this;
     const diffs = diffJsxVNode(received, expected);
+    return {
+      pass: isNot ? diffs.length !== 0 : diffs.length === 0,
+      message: () => diffs.join('\n'),
+    };
+  },
+
+  async toMatchDOM(this: { isNot: boolean }, received: HTMLElement, expected: JSXOutput) {
+    const { isNot } = this;
+    if (!received) {
+      return {
+        pass: false,
+        message: () => 'Missing element',
+      };
+    }
+    const diffs = await diffNode(received, expected);
     return {
       pass: isNot ? diffs.length !== 0 : diffs.length === 0,
       message: () => diffs.join('\n'),
@@ -71,22 +91,28 @@ function diffJsxVNode(received: VNode, expected: JSXNode | string, path: string[
       diffs.push(path.join(' > ') + ' expecting=' + expected.type + ' received=' + receivedTag);
     }
     const allProps: string[] = [];
-    propsAdd(allProps, Object.keys(expected.varProps));
+    expected.varProps &&  propsAdd(allProps, Object.keys(expected.varProps));
     expected.constProps && propsAdd(allProps, Object.keys(expected.constProps));
     const receivedElement = vnode_isElementVNode(received)
       ? (vnode_getNode(received) as Element)
       : null;
     propsAdd(allProps, vnode_isElementVNode(received) ? vnode_getAttrKeys(received).sort() : []);
-    receivedElement && propsAdd(allProps, addConstPropsFromElement(receivedElement));
+    receivedElement && propsAdd(allProps, constPropsFromElement(receivedElement));
     allProps.sort();
     allProps.forEach((prop) => {
       if (isJsxPropertyAnEventName(prop) || isHtmlAttributeAnEventName(prop)) {
         return;
       }
-      const receivedValue = vnode_getAttr(received, prop) || receivedElement?.getAttribute(prop);
-      const expectedValue =
+      let receivedValue = vnode_getAttr(received, prop) || receivedElement?.getAttribute(prop);
+      let expectedValue =
         prop === 'key' || prop === 'q:key' ? expected.key ?? receivedValue : expected.props[prop];
-      if (expectedValue !== receivedValue) {
+      if (typeof receivedValue === 'boolean' || typeof receivedValue === 'number') {
+        receivedValue = serializeBooleanOrNumberAttribute(receivedValue);
+      }
+      if (typeof expectedValue === 'number') {
+        expectedValue = serializeBooleanOrNumberAttribute(expectedValue);
+      }
+      if (!attrsEqual(expectedValue, receivedValue)) {
         diffs.push(`${path.join(' > ')}: [${prop}]`);
         diffs.push('  EXPECTED: ' + JSON.stringify(expectedValue));
         diffs.push('  RECEIVED: ' + JSON.stringify(receivedValue));
@@ -205,7 +231,7 @@ export function walkJSX(
     }
     apply.leave(jsx);
   } else {
-    throw new Error('unsupported');
+    throw new Error('unsupported: ' + jsx);
   }
 
   function processChild(child: any) {
@@ -222,17 +248,18 @@ export function walkJSX(
 export function vnode_fromJSX(jsx: JSXOutput) {
   const doc = createDocument() as QDocument;
   doc.qVNodeData = new WeakMap();
-  const vBody = vnode_newUnMaterializedElement(null, doc.body);
+  const vBody = vnode_newUnMaterializedElement(doc.body);
   let vParent: ElementVNode | VirtualVNode = vBody;
   const journal: VNodeJournal = [];
   walkJSX(jsx, {
     enter: (jsx) => {
       const type = jsx.type;
       if (typeof type === 'string') {
-        const child = vnode_newUnMaterializedElement(vParent, doc.createElement(type));
+        const child = vnode_newUnMaterializedElement(doc.createElement(type));
         vnode_insertBefore(journal, vParent, child, null);
 
-        const props = jsx.props;
+        // TODO(hack): jsx.props is an empty object
+        const props = jsx.varProps;
         for (const key in props) {
           if (Object.prototype.hasOwnProperty.call(props, key)) {
             vnode_setAttr(journal, child, key, String(props[key]));
@@ -253,7 +280,7 @@ export function vnode_fromJSX(jsx: JSXOutput) {
       vnode_insertBefore(
         journal,
         vParent,
-        vnode_newText(vParent, doc.createTextNode(String(value)), String(value)),
+        vnode_newText(doc.createTextNode(String(value)), String(value)),
         null
       );
     },
@@ -261,7 +288,7 @@ export function vnode_fromJSX(jsx: JSXOutput) {
   vnode_applyJournal(journal);
   return { vParent, vNode: vnode_getFirstChild(vParent), document: doc };
 }
-function addConstPropsFromElement(element: Element) {
+function constPropsFromElement(element: Element) {
   const props: string[] = [];
   for (let i = 0; i < element.attributes.length; i++) {
     const attr = element.attributes[i];
@@ -288,5 +315,106 @@ function propsAdd(existing: string[], incoming: string[]) {
       }
     }
   }
+}
+
+async function diffNode(received: HTMLElement, expected: JSXOutput): Promise<string[]> {
+  const diffs: string[] = [];
+  const nodePath: (Node | null)[] = [received];
+  const path: string[] = [];
+  walkJSX(expected, {
+    enter: (jsx) => {
+      // console.log('enter', jsx.type);
+      const element = nodePath[nodePath.length - 1] as HTMLElement;
+      if (!element) {
+        diffs.push(path.join(' > ') + ': expecting element');
+        diffs.push('  RECEIVED: nothing ');
+        return;
+      }
+      if (isText(element)) {
+        diffs.push(path.join(' > ') + ': expecting element');
+        diffs.push('  RECEIVED: #text ' + element.textContent);
+        return;
+      }
+      if (!isElement(element)) {
+        diffs.push(path.join(' > ') + ': expecting element');
+        diffs.push('  RECEIVED: ' + String(element));
+        return;
+      }
+      if (jsx.type !== element.tagName.toLowerCase()) {
+        diffs.push(
+          path.join(' > ') + `: expecting=${jsx.type} received=${element.tagName.toLowerCase()}`
+        );
+      }
+      path.push(jsx.type as string);
+      const entries = Object.entries(jsx.varProps);
+      if (jsx.constProps) {
+        entries.push(...Object.entries(jsx.constProps));
+      }
+      if (jsx.key) {
+        entries.push(['q:key', jsx.key]);
+      }
+      entries.forEach(([expectedKey, expectedValue]) => {
+        let receivedValue = element.getAttribute(expectedKey);
+        if (typeof receivedValue === 'boolean' || typeof receivedValue === 'number') {
+          receivedValue = serializeBooleanOrNumberAttribute(receivedValue);
+        }
+        if (typeof expectedValue === 'number') {
+          expectedValue = serializeBooleanOrNumberAttribute(expectedValue);
+        }
+        if (!attrsEqual(expectedValue, receivedValue)) {
+          diffs.push(path.join(' > ') + `: [${expectedKey}]`);
+          diffs.push('  EXPECTED: ' + JSON.stringify(expectedValue));
+          diffs.push('  RECEIVED: ' + JSON.stringify(receivedValue));
+        }
+      });
+      nodePath.push(element.firstChild!);
+    },
+    leave: () => {
+      // console.log('leave');
+      nodePath.pop();
+      const parentNode = nodePath[nodePath.length - 1] as HTMLElement;
+      if (!parentNode) {
+        diffs.push('  EXPECTED: (sibling)');
+        diffs.push('  RECEIVED: (nothing)');
+        return;
+      }
+      nodePath[nodePath.length - 1] = parentNode.nextElementSibling!;
+      path.pop();
+    },
+    text: (expectText) => {
+      // console.log('text', expectText);
+      let node: Node | null = nodePath.pop()!;
+      let receivedText = '';
+      while (node && isText(node)) {
+        receivedText += node.textContent;
+        node = node.nextSibling;
+      }
+      nodePath.push(node);
+
+      if (receivedText !== expectText) {
+        diffs.push(path.join(' > '));
+        diffs.push('EXPECTED', JSON.stringify(expectText));
+        diffs.push('RECEIVED:', JSON.stringify(receivedText));
+      }
+    },
+  });
+  if (diffs.length) {
+    const inputHTML = received.outerHTML.replaceAll(':=""', '');
+    const html = await format(inputHTML, formatOptions);
+    diffs.unshift('\n' + html);
+  }
+  return diffs;
+}
+
+const formatOptions = { parser: 'html', htmlWhitespaceSensitivity: 'ignore' as const };
+function attrsEqual(expectedValue: any, receivedValue: any) {
+  const isEqual =
+    typeof expectedValue == 'boolean'
+      ? expectedValue
+        ? receivedValue !== null
+        : receivedValue === null || receivedValue === 'false'
+      : expectedValue == receivedValue;
+  // console.log('attrsEqual', expectedValue, receivedValue, isEqual);
+  return isEqual;
 }
 

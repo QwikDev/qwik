@@ -4,7 +4,7 @@ import { SERIALIZABLE_STATE } from '../../container/serializers';
 import { assertDefined, assertFalse } from '../../error/assert';
 import type { QRLInternal } from '../../qrl/qrl-class';
 import type { QRL } from '../../qrl/qrl.public';
-import { serializeClass, stringifyStyle } from '../../render/execute-component';
+import { serializeAttribute } from '../../render/execute-component';
 import { Fragment, JSXNodeImpl, isJSXNode } from '../../render/jsx/jsx-runtime';
 import { Slot } from '../../render/jsx/slot.public';
 import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
@@ -13,7 +13,7 @@ import { SubscriptionType } from '../../state/common';
 import { isSignal } from '../../state/signal';
 import { trackSignal } from '../../use/use-core';
 import { destroyTask, isTask, type SubscriberEffect } from '../../use/use-task';
-import { EMPTY_ARRAY, EMPTY_OBJ } from '../../util/flyweight';
+import { EMPTY_OBJ } from '../../util/flyweight';
 import { throwErrorAndStop } from '../../util/log';
 import {
   ELEMENT_KEY,
@@ -34,7 +34,7 @@ import {
   isHtmlAttributeAnEventName,
   isJsxPropertyAnEventName,
 } from '../shared/event-names';
-import { addPrefixForScopedStyleIdsString, isClassAttr } from '../shared/scoped-styles';
+import { addPrefixForScopedStyleIdsString } from '../shared/scoped-styles';
 import type { QElement2, fixMeAny } from '../shared/types';
 import { DEBUG_TYPE, VirtualType } from '../shared/types';
 import type { DomContainer } from './dom-container';
@@ -42,6 +42,10 @@ import {
   ElementVNodeProps,
   VNodeFlags,
   VNodeProps,
+
+
+
+
   type ClientAttrKey,
   type ClientAttrs,
   type ClientContainer,
@@ -98,27 +102,44 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
   //// Traverse state variables
   ////////////////////////////////
   let vParent: VNode = null!;
+
   /// Current node we compare against. (Think of it as a cursor.)
   /// (Node can be null, if we are at the end of the list.)
   let vCurrent: VNode | null = null;
+
   /// When we insert new node we start it here so that we can descend into it.
   /// NOTE: it can't be stored in `vCurrent` because `vNewCurrent` is in journal
   /// and is not connected to the tree.
-  let vNewNode: VNode | null = null;
+  let vNewNode: VNode | null = null; // TODO: delete, because journal is on vNode, the above comment no longer applies
+
   /// When elements have keys they can be consumed out of order and therefore we can't use nextSibling.
   /// In such a case this array will contain the elements after the current location.
   /// The array even indices will contains keys and odd indices the vNode.
   let vSiblings: Array<string | null | VNode> | null = null;
   let vSiblingsIdx = -1;
+
   /// Current set of JSX children.
   let jsxChildren: any[] = null!;
   // Current JSX child.
   let jsxValue: any = null;
   let jsxIdx = 0;
   let jsxCount = 0;
+
   // When we descend into children, we need to skip advance() because we just descended.
   let shouldAdvance = true;
   let scopedStyleIdPrefix: string | null;
+
+  /**
+   * When we are rendering inside a projection we don't want to process child components. Child
+   * components will be processed only if the projection is re-projected with a `<Slot>`.
+   *
+   * Example: <Parent> <div> <Child/> </div> </Parent>
+   *
+   * In the above example, the `Child` component will not be processed because it is inside a
+   * projection. Only if the `<Parent>` projects its content with `<Slot>` will the `Child`
+   * component be processed.
+   */
+  // let inContentProjection = false;
   ////////////////////////////////
 
   diff(jsxNode, vStartNode);
@@ -145,7 +166,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
           if (Array.isArray(jsxValue)) {
             descend(jsxValue, false);
           } else if (isSignal(jsxValue)) {
-            expectVirtual(VirtualType.DerivedSignal);
+            expectVirtual(VirtualType.DerivedSignal, null);
             descend(
               trackSignal(jsxValue, [
                 SubscriptionType.TEXT_MUTABLE,
@@ -156,7 +177,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
               true
             );
           } else if (isPromise(jsxValue)) {
-            expectVirtual(VirtualType.Awaited);
+            expectVirtual(VirtualType.Awaited, null);
             asyncQueue.push(jsxValue, vNewNode || vCurrent);
           } else if (isJSXNode(jsxValue)) {
             const type = jsxValue.type;
@@ -167,7 +188,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
             } else if (typeof type === 'function') {
               if (type === Fragment) {
                 expectNoMoreTextNodes();
-                expectVirtual(VirtualType.Fragment);
+                expectVirtual(VirtualType.Fragment, jsxValue.key);
                 descend(jsxValue.children, true);
               } else if (type === Slot) {
                 expectNoMoreTextNodes();
@@ -321,7 +342,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
 
-  function descendProjection(children: JSXChildren) {
+  function descendContentToProject(children: JSXChildren) {
     if (children == null) {
       return;
     }
@@ -365,11 +386,18 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       (id) => vnode_locate(container.rootVNode, id)
     );
     if (vCurrent == null) {
-      vNewNode = vnode_newVirtual(vParent);
+      vNewNode = vnode_newVirtual();
       isDev && vnode_setProp(vNewNode, DEBUG_TYPE, VirtualType.Projection);
+      isDev && vnode_setProp(vNewNode, 'q:code', 'expectProjection');
       vnode_setProp(vNewNode as VirtualVNode, QSlot, slotName);
       vnode_setProp(vNewNode as VirtualVNode, QSlotParent, vParent);
       vnode_setProp(vParent as VirtualVNode, slotName, vNewNode);
+      // vnode_insertBefore(
+      //   journal,
+      //   vParent as ElementVNode | VirtualVNode,
+      //   vNewNode,
+      //   vCurrent && getInsertBefore()
+      // );
     }
   }
 
@@ -392,10 +420,11 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       vnode_insertBefore(
         journal,
         vParent as ElementVNode | VirtualVNode,
-        (vNewNode = vnode_newVirtual(vParent)),
+        (vNewNode = vnode_newVirtual()),
         vCurrent && getInsertBefore()
       );
       isDev && vnode_setProp(vNewNode, DEBUG_TYPE, VirtualType.Projection);
+      isDev && vnode_setProp(vNewNode, 'q:code', 'expectSlot');
       return false;
     } else if (vProjectedNode === vCurrent) {
       // All is good.
@@ -437,20 +466,16 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     }
   }
 
+  /** Expect no more nodes - Any nodes which are still at cursor, need to be removed. */
   function expectNoMore() {
     assertFalse(vParent === vCurrent, "Parent and current can't be the same");
     if (vCurrent !== null) {
       let vCleanup: VNode | null = vCurrent;
       while (vCleanup) {
         releaseSubscriptions(container, vCleanup);
-        vCleanup = vnode_getNextSibling(vCleanup);
-      }
-      let vChild: VNode | null = vCurrent;
-      while (vChild) {
-        // container.$scheduler$.$drainCleanup$(vChild as fixMeAny);
-        releaseSubscriptions(container, vChild);
-        vnode_remove(journal, vParent as ElementVNode | VirtualVNode, vChild, true);
-        vChild = vnode_getNextSibling(vChild);
+        const next = vnode_getNextSibling(vCleanup);
+        vnode_remove(journal, vParent as ElementVNode | VirtualVNode, vCleanup, true);
+        vCleanup = next;
       }
     }
   }
@@ -458,8 +483,9 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
   function expectNoMoreTextNodes() {
     while (vCurrent !== null && vnode_getType(vCurrent) === 3 /* Text */) {
       releaseSubscriptions(container, vCurrent);
+      const next = vnode_getNextSibling(vCurrent);
       vnode_remove(journal, vParent, vCurrent, true);
-      vCurrent = vnode_getNextSibling(vCurrent);
+      vCurrent = next;
       container.$scheduler$.$drainCleanup$(vCurrent as fixMeAny);
     }
   }
@@ -470,7 +496,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     vnode_insertBefore(
       journal,
       vParent as ElementVNode,
-      (vNewNode = vnode_newElement(vParent, element, tag)),
+      (vNewNode = vnode_newElement(element, tag)),
       vCurrent
     );
     const { constProps } = jsx;
@@ -500,13 +526,16 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
           ]);
         }
 
-        if (isClassAttr(key)) {
-          value = serializeClassWithScopedStyle(value);
-        } else if (key === 'style') {
-          value = stringifyStyle(value);
+        value = serializeAttribute(key, value, scopedStyleIdPrefix || undefined);
+        if (value != null) {
+          element.setAttribute(key, String(value));
         }
-        element.setAttribute(key, String(value));
       }
+    }
+    const key = jsx.key;
+    if (key) {
+      element.setAttribute(ELEMENT_KEY, key);
+      vnode_setProp(vNewNode, ELEMENT_KEY, key);
     }
     return needsQDispatchEventPatch;
   }
@@ -531,35 +560,25 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
         needsQDispatchEventPatch = createNewElement(jsx, tag);
       } else {
         // Existing keyed node
-        vnode_remove(journal, vParent, vNewNode, false);
         vnode_insertBefore(journal, vParent as ElementVNode, vNewNode, vCurrent);
       }
     } else {
       needsQDispatchEventPatch = createNewElement(jsx, tag);
     }
     // reconcile attributes
-    let jsxAttrs = (jsx as unknown as { attrs: ClientAttrs }).attrs;
-    if (jsxAttrs === EMPTY_ARRAY) {
-      const props = Object.entries((jsx as JSXNode).props);
-      props.map(([key, value]) => {
-        if (jsxAttrs === EMPTY_ARRAY) {
-          jsxAttrs = (jsx as unknown as { attrs: ClientAttrs }).attrs = [];
-        }
-        if (isClassAttr(key)) {
-          value = serializeClassWithScopedStyle(value);
-        } else if (key === 'style') {
-          value = stringifyStyle(value);
-        }
+
+    // TODO: attr order
+    const jsxAttrs = [] as ClientAttrs;
+    const props = jsx.varProps;
+    for (const key in props) {
+      let value = props[key];
+      value = serializeAttribute(key, value, scopedStyleIdPrefix || undefined);
+      if (value != null) {
         mapArray_set(jsxAttrs, key, value, 0);
-      });
-      const jsxKey = jsx.key;
-      if (jsxKey !== null) {
-        if (jsxAttrs === EMPTY_ARRAY) {
-          jsxAttrs = (jsx as unknown as { attrs: ClientAttrs }).attrs = [ELEMENT_KEY, jsxKey];
-        } else {
-          mapArray_set(jsxAttrs, ELEMENT_KEY, jsxKey, 0);
-        }
       }
+    }
+    if (jsxKey !== null) {
+      mapArray_set(jsxAttrs, ELEMENT_KEY, jsxKey, 0);
     }
     const vNode = (vNewNode || vCurrent) as ElementVNode;
     needsQDispatchEventPatch = setBulkProps(vNode, jsxAttrs) || needsQDispatchEventPatch;
@@ -585,7 +604,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
           let returnValue = false;
           qrls.flat(2).forEach((qrl) => {
             if (qrl) {
-              const value = qrl(event) as any;
+              const value = qrl(event, element) as any;
               returnValue = returnValue || value === true;
             }
           });
@@ -620,9 +639,9 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     };
 
     while (srcKey !== null || dstKey !== null) {
-      if (dstKey?.startsWith(HANDLER_PREFIX)) {
-        // This is a special key which we use to mark the event handlers as immutable.
-        // we need to ignore them.
+      if (dstKey?.startsWith(HANDLER_PREFIX) || dstKey == ELEMENT_KEY) {
+        // These are a special keys which we use to mark the event handlers as immutable or
+        // element key we need to ignore them.
         dstIdx++; // skip the destination value, we don't care about it.
         dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       } else if (srcKey == null) {
@@ -684,15 +703,6 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     return patchEventDispatch;
   }
 
-  function serializeClassWithScopedStyle(value: any) {
-    const serializedClass = serializeClass(value);
-    value =
-      scopedStyleIdPrefix && serializedClass
-        ? `${scopedStyleIdPrefix} ${serializedClass}`
-        : serializedClass;
-    return value;
-  }
-
   function retrieveScopedStyleIdPrefix() {
     if (vParent && vnode_isVirtualVNode(vParent)) {
       const scopedStyleId = vnode_getProp<string>(vParent, QScopedStyle, null);
@@ -751,17 +761,36 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     return vNodeWithKey;
   }
 
-  function expectVirtual(type: VirtualType) {
-    if (vCurrent && vnode_isVirtualVNode(vCurrent)) {
+  function expectVirtual(type: VirtualType, jsxKey: string | null) {
+    if (
+      vCurrent &&
+      vnode_isVirtualVNode(vCurrent) &&
+      vnode_getProp(vCurrent, ELEMENT_KEY, null) === jsxKey
+    ) {
       // All is good.
-    } else {
-      vnode_insertBefore(
-        journal,
-        vParent as VirtualVNode,
-        (vNewNode = vnode_newVirtual(vParent)),
-        vCurrent && getInsertBefore()
-      );
+      return;
+    } else if (jsxKey !== null) {
+      // We have a key find it
+      vNewNode = retrieveChildWithKey(jsxKey);
+      if (vNewNode != null) {
+        // We found it, move it up.
+        vnode_insertBefore(
+          journal,
+          vParent as VirtualVNode,
+          (vNewNode = vnode_newVirtual()),
+          vCurrent && getInsertBefore()
+        );
+        return;
+      }
     }
+    // Did not find it, insert a new one.
+    vnode_insertBefore(
+      journal,
+      vParent as VirtualVNode,
+      (vNewNode = vnode_newVirtual()),
+      vCurrent && getInsertBefore()
+    );
+    vnode_setProp(vNewNode as VirtualVNode, ELEMENT_KEY, jsxKey);
     isDev && vnode_setProp((vNewNode || vCurrent) as VirtualVNode, DEBUG_TYPE, type);
   }
 
@@ -781,19 +810,19 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
         vNewNode = retrieveChildWithKey(jsxKey);
         if (vNewNode) {
           // We found the component, move it up.
-          vnode_remove(journal, vParent, vNewNode, false);
           vnode_insertBefore(journal, vParent as VirtualVNode, vNewNode, vCurrent);
         } else {
           // We did not find the component, create it.
           vnode_insertBefore(
             journal,
             vParent as VirtualVNode,
-            (vNewNode = vnode_newVirtual(vParent)),
+            (vNewNode = vnode_newVirtual()),
             vCurrent && getInsertBefore()
           );
           isDev && vnode_setProp(vNewNode, DEBUG_TYPE, VirtualType.Component);
           container.setHostProp(vNewNode, OnRenderProp, componentQRL);
           container.setHostProp(vNewNode, ELEMENT_PROPS, jsxProps);
+          container.setHostProp(vNewNode, ELEMENT_KEY, jsxKey);
         }
         host = vNewNode as VirtualVNode;
         shouldRender = true;
@@ -806,7 +835,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
           .$drainComponent$(host);
         asyncQueue.push(jsx, host);
       }
-      descendProjection(jsxValue.children);
+      descendContentToProject(jsxValue.children);
     } else {
       // Inline Component
       if (!host) {
@@ -814,7 +843,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
         vnode_insertBefore(
           journal,
           vParent as VirtualVNode,
-          (vNewNode = vnode_newVirtual(vParent)),
+          (vNewNode = vnode_newVirtual()),
           vCurrent && getInsertBefore()
         );
         host = vNewNode;
@@ -860,7 +889,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     vnode_insertBefore(
       journal,
       vParent as VirtualVNode,
-      (vNewNode = vnode_newText(vParent, container.document.createTextNode(text), text)),
+      (vNewNode = vnode_newText(container.document.createTextNode(text), text)),
       vCurrent
     );
   }
@@ -957,7 +986,12 @@ function removeChildrenKey(keys: string[]): string[] {
 /**
  * If vnode is removed, it is necessary to release all subscriptions associated with it.
  *
- * This function will traverse the vnode and release all subscriptions.
+ * This function will traverse the vnode tree in depth-first order and release all subscriptions.
+ *
+ * The function takes into account:
+ *
+ * - Projection nodes by not recursing into them.
+ * - Component nodes by recursing into the component content nodes (which may be projected).
  */
 export function releaseSubscriptions(container: ClientContainer, vNode: VNode) {
   let vCursor: VNode | null = vNode;
@@ -966,12 +1000,13 @@ export function releaseSubscriptions(container: ClientContainer, vNode: VNode) {
     // Text nodes don't have subscriptions or children;
     return;
   }
+  let vParent: VNode | null = null;
   do {
     const type = vCursor[VNodeProps.flags];
     if (type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) {
       // Only elements and virtual nodes need to be traversed for children
       if (type & VNodeFlags.Virtual) {
-        // ONly virtual nodes need can have subscriptions
+        // Only virtual nodes need can have subscriptions
         container.$subsManager$.$clearSub$(vCursor as fixMeAny);
         const seq = container.getHostProp<Array<any>>(vCursor as fixMeAny, ELEMENT_SEQ);
         if (seq) {
@@ -985,11 +1020,38 @@ export function releaseSubscriptions(container: ClientContainer, vNode: VNode) {
           }
         }
       }
+      if (
+        type & VNodeFlags.Virtual &&
+        vnode_getProp(vCursor as VirtualVNode, OnRenderProp, null) !== null
+      ) {
+        // SPECIAL CASE: If we are a component, we need to descend into the projected content and release the content.
+        const attrs = vCursor as ClientAttrs;
+        for (let i = VirtualVNodeProps.PROPS_OFFSET; i < vCursor.length; i = i + 2) {
+          const key = attrs[i]!;
+          if (!key.startsWith(':') && !key.startsWith('q:')) {
+            // any prop which does not start with `:` or `q:` is a content-projection prop.
+            const value = attrs[i + 1];
+            if (value) {
+              attrs[i + 1] = null; // prevent infinite loop
+              const vNode =
+                typeof value === 'string'
+                  ? vnode_locate(container.rootVNode, value)
+                  : (value as any as VNode);
+              releaseSubscriptions(container, vNode);
+            }
+          }
+        }
+      }
       // Descend into children
-      const vFirstChild = vnode_getFirstChild(vCursor);
-      if (vFirstChild) {
-        vCursor = vFirstChild;
-        continue;
+      if (
+        !(type & VNodeFlags.Virtual && vnode_getProp(vCursor as VirtualVNode, QSlot, null) !== null)
+      ) {
+        // Only if it is not a projection
+        const vFirstChild = vnode_getFirstChild(vCursor);
+        if (vFirstChild) {
+          vCursor = vFirstChild;
+          continue;
+        }
       }
     }
     // Out of children, go to next sibling
@@ -1002,8 +1064,8 @@ export function releaseSubscriptions(container: ClientContainer, vNode: VNode) {
       // we are back where we started, we are done.
       return;
     }
-    // Out of siblings, got to parent
-    let vParent = vnode_getParent(vCursor);
+    // Out of siblings, go to parent
+    vParent = vnode_getParent(vCursor);
     while (vParent) {
       if (vParent === vNode) {
         // We are back where we started, we are done.
@@ -1015,6 +1077,10 @@ export function releaseSubscriptions(container: ClientContainer, vNode: VNode) {
         break;
       }
       vParent = vnode_getParent(vParent);
+    }
+    if (vParent == null) {
+      // We are done.
+      return;
     }
   } while (true as boolean);
 }

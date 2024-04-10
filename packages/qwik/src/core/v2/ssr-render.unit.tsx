@@ -19,14 +19,11 @@ describe('v2 ssr render', () => {
   });
   it('should render void element correctly', async () => {
     const { vNode, container } = await ssrRenderToDom(
-      <meta content="dark light" name="color-scheme" />
+      <meta content="dark light" name="color-scheme" key="0" />
     );
     expect(vNode).toMatchVDOM(<meta content="dark light" name="color-scheme" />);
-    expect(container.document.documentElement.outerHTML).toContain(
-      '<meta :="" content="dark light" name="color-scheme">'
-    );
-    expect(container.document.documentElement.outerHTML).not.toContain(
-      '<meta :="" content="dark light" name="color-scheme"></meta>'
+    expect(container.document.querySelector('meta')).toMatchDOM(
+      <meta content="dark light" name="color-scheme" key="0" />
     );
   });
   describe('component', () => {

@@ -12,7 +12,7 @@ import {
   JSXNodeImpl,
   createPropsProxy,
   isJSXNode,
-  isPropsProxy
+  isPropsProxy,
 } from '../../render/jsx/jsx-runtime';
 import { Slot } from '../../render/jsx/slot.public';
 import {
@@ -39,6 +39,7 @@ import type { ValueOrPromise } from '../../util/types';
 import type { DomContainer } from '../client/dom-container';
 import { vnode_isVNode, vnode_locate } from '../client/vnode';
 import type { SymbolToChunkResolver } from '../ssr/ssr-types';
+import { ELEMENT_ID } from '../../util/markers';
 
 const deserializedProxyMap = new WeakMap<object, unknown>();
 
@@ -530,12 +531,15 @@ export interface SerializationContext {
   $eventNames$: Set<string>;
   $resources$: Set<ResourceReturnInternal<unknown>>;
   $renderSymbols$: Set<string>;
+
+  $setProp$: (obj: any, prop: string, value: any) => void;
 }
 
 export const createSerializationContext = (
   NodeConstructor: SerializationContext['$NodeConstructor$'] | null,
   $proxyMap$: ObjToProxyMap,
   symbolToChunkResolver: SymbolToChunkResolver,
+  setProp: (obj: any, prop: string, value: any) => void,
   writer?: StreamWriter
 ): SerializationContext => {
   if (!writer) {
@@ -625,6 +629,7 @@ export const createSerializationContext = (
     $eventNames$: new Set<string>(),
     $resources$: new Set<ResourceReturnInternal<unknown>>(),
     $renderSymbols$: new Set<string>(),
+    $setProp$: setProp,
   };
 
   function breakCircularDependenciesAndResolvePromises(
@@ -720,7 +725,7 @@ export const createSerializationContext = (
 };
 
 function serialize(serializationContext: SerializationContext): void {
-  const { $writer$, $addRoot$, $NodeConstructor$: $Node$ } = serializationContext;
+  const { $writer$, $addRoot$, $NodeConstructor$, $setProp$ } = serializationContext;
   let depth = -1;
 
   const writeString = (text: string) => {
@@ -735,7 +740,7 @@ function serialize(serializationContext: SerializationContext): void {
     $writer$.write(lastIdx === 0 ? text : text.substring(lastIdx));
   };
 
-  const writeValue = (value: unknown) => {
+  const writeValue = (value: unknown, idx: number) => {
     if (typeof value === 'bigint') {
       return writeString(SerializationConstant.BigInt_CHAR + value.toString());
     } else if (typeof value === 'boolean') {
@@ -762,7 +767,7 @@ function serialize(serializationContext: SerializationContext): void {
       if (value === null) {
         $writer$.write('null');
       } else {
-        writeObjectValue(value);
+        writeObjectValue(value, idx);
       }
       depth--;
     } else if (typeof value === 'string') {
@@ -787,7 +792,7 @@ function serialize(serializationContext: SerializationContext): void {
     }
   };
 
-  const writeObjectValue = (value: unknown) => {
+  const writeObjectValue = (value: unknown, idx: number) => {
     // Objects are the only way to create circular dependencies.
     // So the first thing to to is to see if we have a circular dependency.
     // (NOTE: For root objects we need to serialize them regardless if we have seen
@@ -853,7 +858,8 @@ function serialize(serializationContext: SerializationContext): void {
         value
       );
       writeString(SerializationConstant.Error_CHAR + $addRoot$(errorProps));
-    } else if ($Node$ && value instanceof $Node$) {
+    } else if ($NodeConstructor$ && value instanceof $NodeConstructor$) {
+      $setProp$(value, ELEMENT_ID, String(idx));
       writeString(SerializationConstant.VNode_CHAR + value.id);
     } else if (typeof FormData !== 'undefined' && value instanceof FormData) {
       const array: [string, string][] = [];
@@ -915,7 +921,7 @@ function serialize(serializationContext: SerializationContext): void {
   const serializeObjectLiteral = (
     value: any,
     $writer$: StreamWriter,
-    writeValue: (value: any) => void,
+    writeValue: (value: any, idx: number) => void,
     writeString: (text: string) => void,
     objectMap: ObjToProxyMap,
     $addRoot$: (obj: unknown) => number
@@ -927,7 +933,7 @@ function serialize(serializationContext: SerializationContext): void {
         if (i !== 0) {
           $writer$.write(',');
         }
-        writeValue(value[i]);
+        writeValue(value[i], i);
       }
       $writer$.write(']');
     } else {
@@ -948,7 +954,7 @@ function serialize(serializationContext: SerializationContext): void {
           delimiter && $writer$.write(',');
           writeString(key);
           $writer$.write(':');
-          writeValue(value[key]);
+          writeValue(value[key], -1);
           delimiter = true;
         }
       }
@@ -956,7 +962,7 @@ function serialize(serializationContext: SerializationContext): void {
     }
   };
 
-  writeValue(serializationContext.$roots$);
+  writeValue(serializationContext.$roots$, -1);
 }
 
 function serializeSignalDerived(

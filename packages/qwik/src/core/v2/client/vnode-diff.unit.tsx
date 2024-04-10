@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { vnode_fromJSX } from '../vdom-diff.unit-util';
 import { vnode_applyJournal, vnode_getNode, type VNodeJournal } from './vnode';
 import { vnode_diff } from './vnode-diff';
+import { _jsxQ } from '@builder.io/qwik';
 
 describe('vNode-diff', () => {
   const journal: VNodeJournal = [];
@@ -113,21 +114,54 @@ describe('vNode-diff', () => {
       expect(vNode).toMatchVDOM(test);
     });
     it('should update attributes', () => {
+      // here we need tu "emulate" the var props
       const { vNode, vParent, document } = vnode_fromJSX(
-        <test>
-          <span id="a" about="name"></span>
-        </test>
+        _jsxQ(
+          'test',
+          {},
+          null,
+          [
+            _jsxQ(
+              'span',
+              {
+                id: 'a',
+                about: 'name',
+              },
+              null,
+              [],
+              0,
+              null
+            ),
+          ],
+          0,
+          null
+        )
       );
-      const test = (
-        <test>
-          <span class="B" about="ABOUT"></span>
-        </test>
+      const test = _jsxQ(
+        'test',
+        {},
+        null,
+        [
+          _jsxQ(
+            'span',
+            {
+              class: 'B',
+              about: 'ABOUT',
+            },
+            null,
+            [],
+            0,
+            null
+          ),
+        ],
+        0,
+        null
       );
       vnode_diff({ $journal$: journal, document } as any, test, vParent);
       vnode_applyJournal(journal);
       expect(vNode).toMatchVDOM(test);
     });
-    it('should remove extra text node', () => {
+    it('should remove extra text node', async () => {
       const { vNode, vParent, document } = vnode_fromJSX(
         <test key="0">
           {'before'}
@@ -143,6 +177,7 @@ describe('vNode-diff', () => {
       vnode_diff({ $journal$: journal, $scheduler$: scheduler, document } as any, test, vParent);
       vnode_applyJournal(journal);
       expect(vNode).toMatchVDOM(test);
+      await expect(document.querySelector('test')).toMatchDOM(test);
     });
   });
   describe('keys', () => {

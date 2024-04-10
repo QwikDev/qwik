@@ -13,7 +13,7 @@
       ],
       "kind": "Function",
       "content": "```typescript\nexport declare function staticAdapter(opts: StaticGenerateAdapterOptions): any;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n[StaticGenerateAdapterOptions](#staticgenerateadapteroptions)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nany",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/static/vite/index.ts",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/adapters/static/vite/index.ts",
       "mdFile": "qwik-city.staticadapter.md"
     },
     {
@@ -27,7 +27,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface StaticGenerateAdapterOptions extends Omit<StaticGenerateRenderOptions, 'outDir'> \n```\n**Extends:** Omit&lt;StaticGenerateRenderOptions, 'outDir'&gt;",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/static/vite/index.ts",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/adapters/static/vite/index.ts",
       "mdFile": "qwik-city.staticgenerateadapteroptions.md"
     }
   ]

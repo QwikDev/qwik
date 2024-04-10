@@ -43,7 +43,7 @@ _(Optional)_
 
 string
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/scripts.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/scripts.ts)
 
 ## getQwikPrefetchWorkerScript
 
@@ -86,7 +86,7 @@ _(Optional)_
 
 string
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/scripts.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/scripts.ts)
 
 ## InOrderAuto
 
@@ -156,7 +156,7 @@ _(Optional)_
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
 ## InOrderDisabled
 
@@ -196,7 +196,7 @@ Description
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
 ## InOrderStreaming
 
@@ -206,7 +206,7 @@ export type InOrderStreaming = InOrderAuto | InOrderDisabled | InOrderDirect;
 
 **References:** [InOrderAuto](#inorderauto), [InOrderDisabled](#inorderdisabled)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
 ## PrefetchImplementation
 
@@ -307,7 +307,7 @@ _(Optional)_ `always`: Always include the worker fetch JS runtime.
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
 ## PrefetchResource
 
@@ -360,7 +360,7 @@ string
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
 ## PrefetchStrategy
 
@@ -417,7 +417,7 @@ _(Optional)_
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
 ## QwikLoaderOptions
 
@@ -474,7 +474,7 @@ _(Optional)_
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
 ## Render
 
@@ -484,7 +484,7 @@ export type Render = RenderToString | RenderToStream;
 
 **References:** [RenderToString](#rendertostring), [RenderToStream](#rendertostream)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
 ## RenderOptions
 
@@ -652,7 +652,7 @@ _(Optional)_ Defaults to `true`
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
 ## RenderResult
 
@@ -733,7 +733,7 @@ SnapshotResult \| undefined
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
 ## renderToStream
 
@@ -745,7 +745,7 @@ export type RenderToStream = (
 
 **References:** [RenderToStreamOptions](#rendertostreamoptions), [RenderToStreamResult](#rendertostreamresult)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/render.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/render.ts)
 
 ## RenderToStream
 
@@ -757,7 +757,7 @@ export type RenderToStream = (
 
 **References:** [RenderToStreamOptions](#rendertostreamoptions), [RenderToStreamResult](#rendertostreamresult)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
 ## RenderToStreamOptions
 
@@ -814,7 +814,7 @@ _(Optional)_
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
 ## RenderToStreamResult
 
@@ -882,7 +882,7 @@ number
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
 ## renderToString
 
@@ -894,7 +894,7 @@ export type RenderToString = (
 
 **References:** [RenderToStringOptions](#rendertostringoptions), [RenderToStringResult](#rendertostringresult)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/render.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/render.ts)
 
 ## RenderToString
 
@@ -906,7 +906,7 @@ export type RenderToString = (
 
 **References:** [RenderToStringOptions](#rendertostringoptions), [RenderToStringResult](#rendertostringresult)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
 ## RenderToStringOptions
 
@@ -916,7 +916,7 @@ export interface RenderToStringOptions extends RenderOptions
 
 **Extends:** [RenderOptions](#renderoptions)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
 ## RenderToStringResult
 
@@ -971,7 +971,7 @@ string
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
 ## resolveManifest
 
@@ -1010,7 +1010,7 @@ QwikManifest \| ResolvedManifest \| undefined
 
 ResolvedManifest \| undefined
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/render.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/render.ts)
 
 ## SerializeDocumentOptions
 
@@ -1082,7 +1082,7 @@ _(Optional)_
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
 ## setServerPlatform
 
@@ -1121,7 +1121,7 @@ QwikManifest \| ResolvedManifest \| undefined
 
 Promise&lt;void&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/index.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/index.ts)
 
 ## StreamingOptions
 
@@ -1163,7 +1163,7 @@ _(Optional)_
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
 ## SymbolsToPrefetch
 
@@ -1177,7 +1177,7 @@ export type SymbolsToPrefetch =
 
 **References:** [PrefetchResource](#prefetchresource)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
 ## versions
 
@@ -1188,4 +1188,4 @@ versions: {
 }
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/utils.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/utils.ts)

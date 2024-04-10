@@ -43,7 +43,7 @@ _(Optional)_
 
 any
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/bun-server/vite/index.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/adapters/bun-server/vite/index.ts)
 
 ## bunServerAdapterOptions
 
@@ -89,4 +89,4 @@ string
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/bun-server/vite/index.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/adapters/bun-server/vite/index.ts)

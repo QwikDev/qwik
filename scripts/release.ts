@@ -123,7 +123,7 @@ export async function commitPrepareReleaseVersion(config: BuildConfig) {
   console.log(`Next:`);
   console.log(` - Submit a PR to main with the prepared release updates`);
   console.log(` - Once merged, run the "Qwik CI" release workflow`);
-  console.log(` - https://github.com/BuilderIO/qwik/actions/workflows/ci.yml`);
+  console.log(` - https://github.com/QwikDev/qwik/actions/workflows/ci.yml`);
   console.log(``);
 }
 

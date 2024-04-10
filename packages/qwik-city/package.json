@@ -2,7 +2,7 @@
   "name": "@builder.io/qwik-city",
   "description": "The meta-framework for Qwik.",
   "version": "1.5.2",
-  "bugs": "https://github.com/BuilderIO/qwik/issues",
+  "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
     "@mdx-js/mdx": "^3.0.1",
     "@types/mdx": "^2.0.11",
@@ -140,7 +140,7 @@
   "qwik": "./lib/index.qwik.mjs",
   "repository": {
     "type": "git",
-    "url": "https://github.com/BuilderIO/qwik.git",
+    "url": "https://github.com/QwikDev/qwik.git",
     "directory": "packages/qwik-city"
   },
   "scripts": {

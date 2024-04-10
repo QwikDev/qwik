@@ -17,7 +17,7 @@ async function main(packageDir: string) {
 async function updateDependency(deps: Record<string, string>, repo: Repos) {
   const key = '@builder.io/' + repo;
   const value = deps[key];
-  const prefix = `github:BuilderIo/${repo}-build#`;
+  const prefix = `github:QwikDev/${repo}-build#`;
   if (value && value.startsWith(prefix)) {
     const latestSHA = await getLatestSHA(repo);
     console.log('  ', value, '->', latestSHA);
@@ -27,7 +27,7 @@ async function updateDependency(deps: Record<string, string>, repo: Repos) {
 
 async function getLatestSHA(repo: Repos): Promise<string> {
   const response = await fetch(
-    `https://api.github.com/repos/BuilderIO/${repo}-build/commits/main?per_page=1`
+    `https://api.github.com/repos/QwikDev/${repo}-build/commits/main?per_page=1`
   );
   const json = await response.json();
   if (typeof json.sha !== 'string' && json.sha.length == 0) {

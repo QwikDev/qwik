@@ -94,7 +94,7 @@ export const OnThisPage = component$(() => {
 
   const githubEditRoute = makeEditPageUrl(url.pathname);
 
-  const editUrl = `https://github.com/BuilderIO/qwik/edit/main/packages/docs/src/routes/${githubEditRoute}/index.mdx`;
+  const editUrl = `https://github.com/QwikDev/qwik/edit/main/packages/docs/src/routes/${githubEditRoute}/index.mdx`;
 
   const OnThisPageMore = [
     {
@@ -103,7 +103,7 @@ export const OnThisPage = component$(() => {
       icon: EditIcon,
     },
     {
-      href: 'https://github.com/BuilderIO/qwik/issues/new/choose',
+      href: 'https://github.com/QwikDev/qwik/issues/new/choose',
       text: 'Create an issue',
       icon: AlertIcon,
     },
@@ -113,7 +113,7 @@ export const OnThisPage = component$(() => {
       icon: ChatIcon,
     },
     {
-      href: 'https://github.com/BuilderIO/qwik',
+      href: 'https://github.com/QwikDev/qwik',
       text: 'GitHub',
       icon: GithubLogo,
     },

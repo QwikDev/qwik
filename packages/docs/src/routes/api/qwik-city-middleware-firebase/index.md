@@ -41,7 +41,7 @@ opts
 
 (req: any, res: any) =&gt; Promise&lt;void&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/firebase/index.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/firebase/index.ts)
 
 ## PlatformFirebase
 
@@ -51,7 +51,7 @@ export interface PlatformFirebase extends Object
 
 **Extends:** Object
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/firebase/index.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/firebase/index.ts)
 
 ## QwikCityFirebaseOptions
 
@@ -61,4 +61,4 @@ export interface QwikCityFirebaseOptions extends ServerRenderOptions
 
 **Extends:** ServerRenderOptions
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/firebase/index.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/firebase/index.ts)

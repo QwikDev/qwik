@@ -41,7 +41,7 @@ opts
 
 (request: Request) =&gt; Promise&lt;Response&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/vercel-edge/index.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/vercel-edge/index.ts)
 
 ## PlatformVercel
 
@@ -49,7 +49,7 @@ opts
 export interface PlatformVercel
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/vercel-edge/index.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/vercel-edge/index.ts)
 
 ## QwikCityVercelEdgeOptions
 
@@ -59,4 +59,4 @@ export interface QwikCityVercelEdgeOptions extends ServerRenderOptions
 
 **Extends:** ServerRenderOptions
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/vercel-edge/index.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/vercel-edge/index.ts)

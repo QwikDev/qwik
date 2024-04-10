@@ -2,7 +2,7 @@ import { component$, useStore } from '@builder.io/qwik';
 
 export default component$(() => {
   const github = useStore({
-    org: 'BuilderIO',
+    org: 'QwikDev',
     repos: ['qwik', 'partytown'] as string[] | null,
   });
 

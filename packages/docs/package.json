@@ -3,7 +3,7 @@
   "description": "Qwik Docs Site",
   "version": "0.0.1",
   "author": "Builder.io Team",
-  "bugs": "https://github.com/BuilderIO/qwik",
+  "bugs": "https://github.com/QwikDev/qwik",
   "devDependencies": {
     "@algolia/autocomplete-core": "1.7.4",
     "@algolia/client-search": "4.14.3",

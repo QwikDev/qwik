@@ -43,7 +43,7 @@ _(Optional)_
 
 any
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/netlify-edge/vite/index.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/adapters/netlify-edge/vite/index.ts)
 
 ## NetlifyEdgeAdapterOptions
 
@@ -127,4 +127,4 @@ _(Optional)_ Manually add pathnames that should be treated as static paths and n
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/netlify-edge/vite/index.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/adapters/netlify-edge/vite/index.ts)

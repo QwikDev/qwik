@@ -2,7 +2,7 @@
 
 - [Qwik Docs](https://qwik.dev/)
 - [Discord](https://qwik.dev/chat)
-- [Qwik on GitHub](https://github.com/BuilderIO/qwik)
+- [Qwik on GitHub](https://github.com/QwikDev/qwik)
 - [@QwikDev](https://twitter.com/QwikDev)
 - [Vite](https://vitejs.dev/)
 - [Partytown](https://partytown.builder.io/)

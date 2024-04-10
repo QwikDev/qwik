@@ -1,4 +1,4 @@
-// REMOVE THIS FILE ONCE: https://github.com/BuilderIO/qwik/issues/3719 is fixed
+// REMOVE THIS FILE ONCE: https://github.com/QwikDev/qwik/issues/3719 is fixed
 module.exports = {
   root: true,
   env: {

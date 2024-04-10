@@ -2,7 +2,7 @@
   "name": "@builder.io/qwik-worker",
   "description": "Qwik Worker allows to use Web Worker with worker$. Experimental.",
   "version": "0.0.1",
-  "bugs": "https://github.com/BuilderIO/qwik/issues",
+  "bugs": "https://github.com/QwikDev/qwik/issues",
   "devDependencies": {
     "@builder.io/qwik": "workspace:^",
     "vite": "^5.1.6",
@@ -29,7 +29,7 @@
   "qwik": "./lib/index.qwik.mjs",
   "repository": {
     "type": "git",
-    "url": "https://github.com/BuilderIO/qwik.git",
+    "url": "https://github.com/QwikDev/qwik.git",
     "directory": "packages/qwik-worker"
   },
   "scripts": {

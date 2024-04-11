@@ -9,10 +9,10 @@ import {
 import { verifySerializable } from '../state/common';
 import { Q_CTX, VIRTUAL_SYMBOL } from '../state/constants';
 import { getContext, type QContext } from '../state/context';
-import { fromCamelToKebabCase } from '../util/case';
 import { isComment } from '../util/element';
 import { qDev, qSerialize } from '../util/qdev';
 import { isObject } from '../util/types';
+import { fromCamelToKebabCase } from '../v2/shared/event-names';
 import type { fixMeAny, HostElement } from '../v2/shared/types';
 import { invoke } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';

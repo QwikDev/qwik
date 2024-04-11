@@ -19,6 +19,7 @@ import {
   convertEventNameFromJsxPropToHtmlAttr,
   getEventNameFromJsxProp,
   isJsxPropertyAnEventName,
+  isPreventDefault,
 } from '../shared/event-names';
 import { qrlToString, type SerializationContext } from '../shared/shared-serialization';
 import { DEBUG_TYPE, VirtualType, type fixMeAny } from '../shared/types';
@@ -128,8 +129,8 @@ function processJSXNode(
       if (typeof type === 'string') {
         ssr.openElement(
           type,
-          toSsrAttrs(jsx.varProps, ssr.serializationCtx, jsx.key),
-          toSsrAttrs(jsx.constProps, ssr.serializationCtx)
+          varPropsToSsrAttrs(jsx.varProps, jsx.constProps, ssr.serializationCtx, jsx.key),
+          constPropsToSsrAttrs(jsx.constProps, jsx.varProps, ssr.serializationCtx)
         );
         enqueue(ssr.closeElement);
         if (type === 'head') {
@@ -211,19 +212,42 @@ function processJSXNode(
   }
 }
 
+export function varPropsToSsrAttrs(
+  varProps: Record<string, unknown>,
+  constProps: Record<string, unknown> | null,
+  serializationCtx: SerializationContext,
+  key?: string | null
+): SsrAttrs | null {
+  return toSsrAttrs(varProps, constProps, serializationCtx, true, key);
+}
+
+export function constPropsToSsrAttrs(
+  constProps: Record<string, unknown> | null,
+  varProps: Record<string, unknown>,
+  serializationCtx: SerializationContext
+): SsrAttrs | null {
+  return toSsrAttrs(constProps, varProps, serializationCtx, false);
+}
+
 export function toSsrAttrs(
   record: Record<string, unknown>,
+  anotherRecord: Record<string, unknown>,
   serializationCtx: SerializationContext,
+  pushMergedEventProps: boolean,
   key?: string | null
 ): SsrAttrs;
 export function toSsrAttrs(
   record: Record<string, unknown> | null | undefined,
+  anotherRecord: Record<string, unknown> | null | undefined,
   serializationCtx: SerializationContext,
+  pushMergedEventProps: boolean,
   key?: string | null
 ): SsrAttrs | null;
 export function toSsrAttrs(
   record: Record<string, unknown> | null | undefined,
+  anotherRecord: Record<string, unknown> | null | undefined,
   serializationCtx: SerializationContext,
+  pushMergedEventProps: boolean,
   key?: string | null
 ): SsrAttrs | null {
   if (record == null) {
@@ -236,6 +260,37 @@ export function toSsrAttrs(
     }
     let value = record[key];
     if (isJsxPropertyAnEventName(key)) {
+      if (anotherRecord) {
+        /**
+         * If we have two sources of the same event like this:
+         *
+         * ```tsx
+         * const Counter = component$((props: { initial: number }) => {
+         *  const count = useSignal(props.initial);
+         *  useOnWindow(
+         *    'dblclick',
+         *    $(() => count.value++)
+         *  );
+         *  return <button window:onDblClick$={() => count.value++}>Count: {count.value}!</button>;
+         * });
+         * ```
+         *
+         * Then we can end with the const and var props with the same (doubled) event. We process
+         * the const and var props separately, so:
+         *
+         * - For the var props we need to merge them into the one value (array)
+         * - For the const props we need to just skip, because we will handle this in the var props
+         */
+        const anotherValue = getEventProp(anotherRecord, key);
+        if (anotherValue) {
+          if (pushMergedEventProps) {
+            // merge values from the const props with the var props
+            value = getMergedEventPropValues(value, anotherValue);
+          } else {
+            continue;
+          }
+        }
+      }
       const eventValue = setEvent(serializationCtx, key, value);
       if (eventValue) {
         ssrAttrs.push(convertEventNameFromJsxPropToHtmlAttr(key), eventValue);
@@ -249,6 +304,10 @@ export function toSsrAttrs(
       continue;
     }
 
+    if (isPreventDefault(key)) {
+      addPreventDefaultEventToSerializationContext(serializationCtx, key);
+    }
+
     value = serializeAttribute(key, value);
 
     ssrAttrs.push(key, value as string);
@@ -257,6 +316,36 @@ export function toSsrAttrs(
     ssrAttrs.push(ELEMENT_KEY, key);
   }
   return ssrAttrs;
+}
+
+function getMergedEventPropValues(value: unknown, anotherValue: unknown) {
+  let mergedValue = value;
+  // merge values from the const props with the var props
+  if (Array.isArray(value) && Array.isArray(anotherValue)) {
+    // both values are arrays
+    mergedValue = value.concat(anotherValue);
+  } else if (Array.isArray(mergedValue)) {
+    // only first value is array
+    mergedValue.push(anotherValue);
+  } else if (Array.isArray(anotherValue)) {
+    // only second value is array
+    mergedValue = anotherValue;
+    (mergedValue as unknown[]).push(value);
+  } else {
+    // none of these values are array
+    mergedValue = [value, anotherValue];
+  }
+  return mergedValue;
+}
+
+function getEventProp(record: Record<string, unknown>, propKey: string): unknown | null {
+  const eventProp = propKey.toLowerCase();
+  for (const prop in record) {
+    if (prop.toLowerCase() === eventProp) {
+      return record[prop];
+    }
+  }
+  return null;
 }
 
 function setEvent(serializationCtx: SerializationContext, key: string, rawValue: unknown) {
@@ -291,5 +380,16 @@ function addQwikEventToSerializationContext(
   if (eventName) {
     serializationCtx.$eventNames$.add(eventName);
     serializationCtx.$eventQrls$.add(qrl);
+  }
+}
+
+function addPreventDefaultEventToSerializationContext(
+  serializationCtx: SerializationContext,
+  key: string
+) {
+  // skip first 15 chars, this is length of the `preventdefault:`
+  const eventName = key.substring(15);
+  if (eventName) {
+    serializationCtx.$eventNames$.add(eventName);
   }
 }

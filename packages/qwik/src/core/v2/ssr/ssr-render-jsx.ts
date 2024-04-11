@@ -133,7 +133,6 @@ function processJSXNode(
         );
         const rawHTML = jsx.props[dangerouslySetInnerHTML];
         if (rawHTML) {
-          // TODO: handle signal ( eg. rawHTML.value)
           ssr.htmlNode(rawHTML as string);
         }
         enqueue(ssr.closeElement);

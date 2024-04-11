@@ -64,6 +64,7 @@ import {
   vNodeData_openFragment,
   type VNodeData,
 } from './v2-vnode-data';
+import { QContainerAttr } from '../core/util/markers';
 
 export function ssrCreateContainer(
   opts: {
@@ -278,7 +279,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.write('<');
     this.write(tag);
     if (attrs) {
-      attrs = this.attrs_removeByKey(attrs, dangerouslySetInnerHTML);
       this.writeAttrs(attrs, false);
     }
     if (immutableAttrs) {
@@ -287,11 +287,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
     this.write('>');
     this.lastNode = null;
-  }
-
-  private attrs_removeByKey(attrs: SsrAttrs, key: string) {
-    const idx = attrs.indexOf(key);
-    return idx === -1 ? attrs : attrs.filter((_, i) => i !== idx && i !== idx + 1);
   }
 
   closeElement(): ValueOrPromise<void> {
@@ -905,7 +900,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private writeAttrs(attrs: SsrAttrs, immutable: boolean) {
     if (attrs.length) {
       for (let i = 0; i < attrs.length; i++) {
-        const key = attrs[i++] as SsrAttrKey;
+        let key = attrs[i++] as SsrAttrKey;
         let value = attrs[i] as SsrAttrValue;
 
         if (isSignal(value)) {
@@ -917,6 +912,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             lastNode as fixMeAny,
             key,
           ]);
+        }
+
+        if (key === dangerouslySetInnerHTML) {
+          key = QContainerAttr;
+          value = 'html';
         }
 
         value = serializeAttribute(key, value);

@@ -233,6 +233,7 @@ describe.each([
 
   it('should insert dangerouslySetInnerHTML', async () => {
     const Cmp = component$(() => {
+      const htmlSignal = useSignal("<h2>I'm a signal value!</h2>");
       return (
         <div>
           <div>
@@ -240,6 +241,12 @@ describe.each([
           </div>
           <div>
             <span id="second" dangerouslySetInnerHTML="<h1>I'm an h1!</h1>" class="after" />
+          </div>
+          <div>
+            <span id="third" dangerouslySetInnerHTML={htmlSignal.value} class="after" />
+            <button
+              onClick$={() => (htmlSignal.value = "<h2>I'm a updated signal value!</h2>")}
+            ></button>
           </div>
         </div>
       );
@@ -251,6 +258,17 @@ describe.each([
     await expect(document.querySelector('#second')).toMatchDOM(
       <span id="second" class="after">
         <h1>I'm an h1!</h1>
+      </span>
+    );
+    await expect(document.querySelector('#third')).toMatchDOM(
+      <span id="third" class="after">
+        <h2>I'm a signal value!</h2>
+      </span>
+    );
+    await trigger(document.body, 'button', 'click');
+    await expect(document.querySelector('#third')).toMatchDOM(
+      <span id="third" class="after">
+        <h2>I'm a updated signal value!</h2>
       </span>
     );
   });

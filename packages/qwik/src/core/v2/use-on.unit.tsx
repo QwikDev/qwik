@@ -292,6 +292,35 @@ describe.each([
       );
     });
 
+    it('should update value for window event on element and useOnWindow', async () => {
+      const Counter = component$((props: { initial: number }) => {
+        const count = useSignal(props.initial);
+        useOnWindow(
+          'dblclick',
+          $(() => count.value++)
+        );
+        return <button window:onDblClick$={() => count.value++}>Count: {count.value}!</button>;
+      });
+
+      const { vNode, container } = await render(<Counter initial={123} />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            Count: <Signal>{'123'}</Signal>!
+          </button>
+        </Component>
+      );
+
+      await trigger(container.element, 'button', ':window:dblclick');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            Count: <Signal>{'125'}</Signal>!
+          </button>
+        </Component>
+      );
+    });
+
     it('should update value with multiple useOnWindow', async () => {
       const Counter = component$((props: { initial: number }) => {
         const count = useSignal(props.initial);

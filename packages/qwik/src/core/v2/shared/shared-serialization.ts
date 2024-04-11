@@ -675,7 +675,11 @@ export const createSerializationContext = (
               discoveredValues.push(obj.untrackedValue);
               const manager = getSubscriptionManager(obj);
               manager?.$subs$.forEach((sub) => {
-                discoveredValues.push(sub[SubscriptionProp.HOST], sub[SubscriptionProp.SIGNAL]);
+                discoveredValues.push(sub[SubscriptionProp.HOST]);
+                // prevent infinity loop, don't add the same object as the current one
+                if (obj !== sub[SubscriptionProp.SIGNAL]) {
+                  discoveredValues.push(sub[SubscriptionProp.SIGNAL]);
+                }
               });
             }
             // const manager = obj[QObjectManagerSymbol];

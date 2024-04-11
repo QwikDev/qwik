@@ -17,7 +17,7 @@ import { type SSRContainer } from './ssr/ssr-types';
 import './vdom-diff.unit-util';
 import { walkJSX } from './vdom-diff.unit-util';
 import { SsrNode } from '../../server/v2-node';
-import { toSsrAttrs } from './ssr/ssr-render-jsx';
+import { constPropsToSsrAttrs, varPropsToSsrAttrs } from './ssr/ssr-render-jsx';
 
 describe('serializer v2', () => {
   describe('rendering', () => {
@@ -495,8 +495,13 @@ function toHTML(jsx: JSXOutput): string {
       if (typeof jsx.type === 'string') {
         ssrContainer.openElement(
           jsx.type,
-          toSsrAttrs(jsx.props as any, ssrContainer.serializationCtx),
-          toSsrAttrs(jsx.constProps as any, ssrContainer.serializationCtx)
+          varPropsToSsrAttrs(
+            jsx.varProps as any,
+            jsx.constProps,
+            ssrContainer.serializationCtx,
+            jsx.key
+          ),
+          constPropsToSsrAttrs(jsx.constProps as any, jsx.varProps, ssrContainer.serializationCtx)
         );
       } else {
         ssrContainer.openFragment([]);

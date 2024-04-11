@@ -1,7 +1,7 @@
 import type { QwikSymbolEvent, QwikVisibleEvent } from './core/render/jsx/types/jsx-qwik-events';
 import type { QContainerElement } from './core/container/container';
 import type { QContext } from './core/state/context';
-import type { QElement2 } from './core/v2/shared/types';
+import type { QElement2, QwikLoaderEventScope } from './core/v2/shared/types';
 
 /**
  * Set up event listening for browser.
@@ -29,7 +29,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
     return doc.querySelectorAll(query);
   };
 
-  const broadcast = (infix: string, ev: Event, type = ev.type) => {
+  const broadcast = (infix: QwikLoaderEventScope, ev: Event, type = ev.type) => {
     querySelectorAll('[on' + infix + '\\:' + type + ']')[forEach]((el) =>
       dispatch(el, infix, ev, type)
     );
@@ -56,8 +56,13 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
       detail,
     }) as T;
 
-  const dispatch = async (element: Element, onPrefix: string, ev: Event, eventName = ev.type) => {
-    const attrName = 'on' + onPrefix + ':' + eventName;
+  const dispatch = async (
+    element: Element,
+    scope: QwikLoaderEventScope,
+    ev: Event,
+    eventName = ev.type
+  ) => {
+    const attrName = 'on' + scope + ':' + eventName;
     if (element.hasAttribute('preventdefault:' + eventName)) {
       ev.preventDefault();
     }
@@ -75,7 +80,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
     // </DELETE ME LATER>
     const qDispatchEvent = (element as QElement2)['qDispatchEvent'];
     if (qDispatchEvent) {
-      return qDispatchEvent(ev);
+      return qDispatchEvent(ev, scope);
     }
     const attrValue = element[getAttribute](attrName);
     if (attrValue) {

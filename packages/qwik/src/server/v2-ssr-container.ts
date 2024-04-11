@@ -4,7 +4,6 @@ import { isDev } from '@builder.io/qwik/build';
 import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
 import { getQwikLoaderScript } from '@builder.io/qwik/server';
 import { dangerouslySetInnerHTML } from '../core/render/execute-component';
-import type { SymbolToChunkResolver } from '../core/v2/ssr/ssr-types';
 import { applyPrefetchImplementation2 } from './prefetch-implementation';
 import { getPrefetchResources } from './prefetch-strategy';
 import {
@@ -44,8 +43,9 @@ import type {
   SsrAttrValue,
   SsrAttrs,
   StreamWriter,
+  SymbolToChunkResolver,
   ValueOrPromise,
-  fixMeAny
+  fixMeAny,
 } from './qwik-types';
 import { Q_FUNCS_PREFIX } from './render';
 import type { PrefetchResource, RenderOptions, RenderToStreamResult } from './types';

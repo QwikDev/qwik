@@ -4,7 +4,7 @@ import { SERIALIZABLE_STATE } from '../../container/serializers';
 import { assertDefined, assertFalse } from '../../error/assert';
 import type { QRLInternal } from '../../qrl/qrl-class';
 import type { QRL } from '../../qrl/qrl.public';
-import { serializeAttribute } from '../../render/execute-component';
+import { dangerouslySetInnerHTML, serializeAttribute } from '../../render/execute-component';
 import { Fragment, JSXNodeImpl, isJSXNode } from '../../render/jsx/jsx-runtime';
 import { Slot } from '../../render/jsx/slot.public';
 import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
@@ -20,6 +20,7 @@ import {
   ELEMENT_PROPS,
   ELEMENT_SEQ,
   OnRenderProp,
+  QContainerAttr,
   QScopedStyle,
   QSlot,
   QSlotParent,
@@ -521,6 +522,12 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
             vNewNode as fixMeAny,
             key,
           ]);
+        }
+
+        if (key === dangerouslySetInnerHTML) {
+          element.setAttribute(QContainerAttr, 'html');
+          element.innerHTML = value as string;
+          continue;
         }
 
         value = serializeAttribute(key, value, scopedStyleIdPrefix || undefined);

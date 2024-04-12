@@ -231,6 +231,41 @@ describe.each([
     expect(log).toEqual(['has children']);
   });
 
+  it('should render correctly text node in the middle', async () => {
+    const Cmp = component$(() => {
+      const signal = useSignal<number>(0);
+      return (
+        <p onClick$={() => (signal.value = 123)}>
+          <b>Test</b>xx<span>{signal.value}</span>
+        </p>
+      );
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+    // console.log(document.body.innerHTML);
+    await trigger(document.body, 'p', 'click');
+    // console.log(document.body.innerHTML);
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <p>
+          <b>Test</b>
+          {'xx'}
+          <span>
+            <Signal>123</Signal>
+          </span>
+        </p>
+      </Component>
+    );
+    // await expect(document.body.firstChild).toMatchDOM(
+    //   <p>
+    //     <b>Test</b>xx<span>123</span>
+    //   </p>
+    // );
+    expect((document.body.firstChild as HTMLElement).innerHTML).toEqual(
+      '<b>Test</b>xx<span>123</span>'
+    );
+  });
+
   describe('svg', () => {
     it('should render svg', async () => {
       const SvgComp = component$(() => {

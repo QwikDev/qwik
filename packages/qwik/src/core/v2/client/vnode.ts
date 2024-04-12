@@ -1139,7 +1139,7 @@ const materializeFromDOM = (vParent: ElementVNode, firstChild: ChildNode | null)
     const nodeType = child.nodeType;
     let vNextChild: VNode | null = null;
     if (nodeType === /* Node.TEXT_NODE */ 3) {
-      vNextChild = vnode_newText(child as Text, undefined);
+      vNextChild = vnode_newText(child as Text, child.textContent ?? undefined);
     } else if (nodeType === /* Node.ELEMENT_NODE */ 1) {
       vNextChild = vnode_newUnMaterializedElement(child as Element);
     }

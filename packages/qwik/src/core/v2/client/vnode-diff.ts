@@ -20,7 +20,6 @@ import {
   ELEMENT_PROPS,
   ELEMENT_SEQ,
   OnRenderProp,
-  QContainerAttr,
   QScopedStyle,
   QSlot,
   QSlotParent,
@@ -525,7 +524,6 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
         }
 
         if (key === dangerouslySetInnerHTML) {
-          element.setAttribute(QContainerAttr, 'html');
           element.innerHTML = value as string;
           continue;
         }

@@ -1113,7 +1113,7 @@ export const vnode_getFirstChild = (vnode: VNode): VNode | null => {
   return vFirstChild;
 };
 
-export const vnode_forceMaterialize = (vNode: ElementVNode) => {
+export const vnode_materialize = (vNode: ElementVNode) => {
   const element = vNode[ElementVNodeProps.element];
   const firstChild = element.firstChild;
   const vNodeData = (element.ownerDocument as QDocument)?.qVNodeData?.get(element);
@@ -1130,20 +1130,23 @@ const ensureMaterialized = (vnode: ElementVNode): VNode | null => {
     // need to materialize the vNode.
     const element = vParent[ElementVNodeProps.element];
 
-    const containerValue = element.getAttribute(QContainerAttr);
-    if (containerValue === 'html') {
+    if (isQContainerInnerHTMLElement(element)) {
       // We have a container with html value, must ignore the content.
       vFirstChild =
         vParent[ElementVNodeProps.firstChild] =
         vParent[ElementVNodeProps.lastChild] =
           null;
     } else {
-      vFirstChild = vnode_forceMaterialize(vParent);
+      vFirstChild = vnode_materialize(vParent);
     }
   }
   assertTrue(vParent[ElementVNodeProps.firstChild] !== undefined, 'Did not materialize.');
   assertTrue(vParent[ElementVNodeProps.lastChild] !== undefined, 'Did not materialize.');
   return vFirstChild;
+};
+
+export const isQContainerInnerHTMLElement = (node: Node | null): boolean => {
+  return isElement(node) && node.getAttribute(QContainerAttr) === 'html';
 };
 
 const isQStyleElement = (node: Node | null): node is Element => {

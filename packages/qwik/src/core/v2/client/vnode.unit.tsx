@@ -460,6 +460,16 @@ describe('vnode', () => {
         );
         expect(vnode_getAttr(div, 'dangerouslySetInnerHTML')).toBe('<b>new content</b>');
       });
+      it('should have empty child for dangerouslySetInnerHTML', () => {
+        parent.innerHTML = '<div q:container="html"><i>content</i></div>';
+        const div = vnode_getFirstChild(vParent) as ElementVNode;
+
+        expect(div).toMatchVDOM(
+          // @ts-ignore-next-line
+          <div q:container="html" dangerouslySetInnerHTML="<i>content</i>"></div>
+        );
+        expect(vnode_getFirstChild(div)).toBe(null);
+      });
     });
   });
   describe('journal', () => {

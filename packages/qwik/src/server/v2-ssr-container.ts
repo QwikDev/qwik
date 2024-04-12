@@ -3,10 +3,10 @@ import { _SharedContainer, _walkJSX, isSignal } from '@builder.io/qwik';
 import { isDev } from '@builder.io/qwik/build';
 import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
 import { getQwikLoaderScript } from '@builder.io/qwik/server';
-import { dangerouslySetInnerHTML } from '../core/render/execute-component';
 import { applyPrefetchImplementation2 } from './prefetch-implementation';
 import { getPrefetchResources } from './prefetch-strategy';
 import {
+  dangerouslySetInnerHTML,
   DEBUG_TYPE,
   ELEMENT_ID,
   ELEMENT_KEY,
@@ -19,6 +19,7 @@ import {
   QSlotParent,
   QSlotRef,
   QStyle,
+  QContainerAttr,
   SubscriptionType,
   VNodeDataChar,
   VirtualType,
@@ -64,7 +65,6 @@ import {
   vNodeData_openFragment,
   type VNodeData,
 } from './v2-vnode-data';
-import { QContainerAttr } from '../core/util/markers';
 
 export function ssrCreateContainer(
   opts: {
@@ -243,7 +243,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     const containerAttributes: Record<string, string> = {
       ...this.renderOptions.containerAttributes,
       'q:runtime': '2',
-      'q:container': 'paused',
+      [QContainerAttr]: 'paused',
       'q:version': this.$version$ ?? 'dev',
       'q:render': qRender,
       'q:base': this.buildBase,
@@ -388,8 +388,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   htmlNode(rawHtml: string) {
     this.write(rawHtml);
-    vNodeData_addTextSize(this.currentElementFrame!.vNodeData, rawHtml.length);
-    this.lastNode = null;
   }
 
   addRoot(obj: unknown): number {

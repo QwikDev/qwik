@@ -485,6 +485,10 @@ const vnode_getDomSibling = (
         // If we did not find a sibling, than we are done.
         return null;
       }
+      if (vnode_isTextVNode(sibling) && virtual && vnode_isElementVNode(virtual)) {
+        // sibling to the real element is a text node, this is not a sibling
+        return null;
+      }
     }
     // At this point `sibling` is a next node to look at.
     // Next step is to descend until we find a DOM done.

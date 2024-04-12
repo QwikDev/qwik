@@ -236,33 +236,39 @@ describe.each([
       const signal = useSignal<number>(0);
       return (
         <p onClick$={() => (signal.value = 123)}>
-          <b>Test</b>xx<span>{signal.value}</span>
+          <b>Test</b>
+          {signal.value + 1}xx<span>{signal.value}</span>xxx<a></a>
         </p>
       );
     });
 
     const { vNode, document } = await render(<Cmp />, { debug });
-    // console.log(document.body.innerHTML);
     await trigger(document.body, 'p', 'click');
-    // console.log(document.body.innerHTML);
     expect(vNode).toMatchVDOM(
       <Component>
         <p>
           <b>Test</b>
+          <Signal>124</Signal>
           {'xx'}
           <span>
             <Signal>123</Signal>
           </span>
+          {'xxx'}
+          <a></a>
         </p>
       </Component>
     );
-    // await expect(document.body.firstChild).toMatchDOM(
-    //   <p>
-    //     <b>Test</b>xx<span>123</span>
-    //   </p>
-    // );
+    await expect(document.querySelector('p')).toMatchDOM(
+      <p>
+        <b>Test</b>
+        {'124xx'}
+        <span>123</span>
+        {'xxx'}
+        <a></a>
+      </p>
+    );
     expect((document.body.firstChild as HTMLElement).innerHTML).toEqual(
-      '<b>Test</b>xx<span>123</span>'
+      '<b>Test</b>124xx<span>123</span>xxx<a></a>'
     );
   });
 

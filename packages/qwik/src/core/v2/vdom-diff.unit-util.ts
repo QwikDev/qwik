@@ -378,7 +378,7 @@ async function diffNode(received: HTMLElement, expected: JSXOutput): Promise<str
         diffs.push('  RECEIVED: (nothing)');
         return;
       }
-      nodePath[nodePath.length - 1] = parentNode.nextElementSibling!;
+      nodePath[nodePath.length - 1] = parentNode.nextSibling!;
       path.pop();
     },
     text: (expectText) => {

@@ -22,9 +22,9 @@
     }
   },
   "dependencies": {
-    "@libsql/client": "@latest"
+    "@libsql/client": "latest"
   },
   "devDependencies": {
-    "@builder.io/qwik-city": "@latest"
+    "@builder.io/qwik-city": "latest"
   }
 }

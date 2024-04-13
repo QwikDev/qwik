@@ -189,6 +189,32 @@ test(`isSameOrigin`, () => {
   });
 });
 
+[
+  { props: { href: '#hash' }, expect: '/newbase/#hash' },
+  { props: { href: '?qs=true' }, expect: '/newbase/?qs=true' },
+  { props: { href: '/abs-path' }, expect: '/newbase/abs-path' },
+  { props: { href: './rel-path' }, expect: '/newbase/rel-path' },
+  { props: { href: 'rel-path' }, expect: '/newbase/rel-path' },
+  { props: { href: '/path/../rel-path' }, expect: '/newbase/rel-path' },
+  { props: { href: '/abs-path', target: '_blank' }, expect: null },
+  { props: { href: 'http://qwik.dev/' }, expect: null },
+  { props: { href: 'http://builder.io/' }, expect: null },
+  { props: { href: '       ' }, expect: '/newbase/' },
+  { props: { href: '' }, expect: '/newbase/' },
+  { props: { href: null }, expect: null },
+  { props: {}, expect: null },
+  { props: { reload: true }, expect: '/newbase/' },
+].forEach((t) => {
+  test(`getClientNavPath ${t.props.href} baseurl`, () => {
+    const baseUrl = new URL('https://qwik.dev/newbase/');
+    assert.equal(
+      getClientNavPath(t.props, { url: baseUrl }),
+      t.expect,
+      `${t.props.href} /newbase${t.expect}`
+    );
+  });
+});
+
 test('missing clientNavPath', () => {
   const clientNavPath = null;
   const currentLoc = new URL('https://qwik.builder.io/contact');

@@ -737,6 +737,57 @@ describe.each([
         </Component>
       );
     });
+
+    it('should render preventdefault attribute', async () => {
+      const Cmp = component$(() => {
+        const show = useSignal(false);
+        return (
+          <>
+            <button onClick$={() => (show.value = !show.value)}></button>
+            <span preventdefault:click></span>
+            {show.value && <div preventdefault:click></div>}
+          </>
+        );
+      });
+
+      const { vNode, document } = await render(<Cmp />, { debug });
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button></button>
+            <span preventdefault:click></span>
+            {''}
+          </Fragment>
+        </Component>
+      );
+      await expect(document.querySelector('span')).toMatchDOM(
+        // @ts-ignore-next-line
+        <span preventdefault:click=""></span>
+      );
+
+      await trigger(document.body, 'button', 'click');
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button></button>
+            <span preventdefault:click></span>
+            <div preventdefault:click></div>
+          </Fragment>
+        </Component>
+      );
+
+      await expect(document.querySelector('span')).toMatchDOM(
+        // @ts-ignore-next-line
+        <span preventdefault:click=""></span>
+      );
+
+      await expect(document.querySelector('div')).toMatchDOM(
+        // @ts-ignore-next-line
+        <div preventdefault:click=""></div>
+      );
+    });
   });
 
   describe('regression', () => {

@@ -39,5 +39,6 @@ export interface JSXNode<T extends string | FunctionComponent | unknown = unknow
   children: JSXChildren | null;
   flags: number;
   key: string | null;
+  styleScopedId: string | null;
   dev?: DevJSX;
 }

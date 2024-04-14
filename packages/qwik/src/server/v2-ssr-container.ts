@@ -24,12 +24,11 @@ import {
   VNodeDataChar,
   VirtualType,
   convertStyleIdsToString,
-  getScopedStyleIdsAsPrefix,
-  isClassAttr,
   mapArray_get,
   mapArray_set,
   maybeThen,
   serializeAttribute,
+  isClassAttr,
 } from './qwik-copy';
 import type {
   ContextId,
@@ -331,11 +330,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   openProjection(attrs: SsrAttrs) {
     this.openFragment(attrs);
-    this.getComponentFrame(0)!.projectionDepth++;
+    this.getComponentFrame()!.projectionDepth++;
   }
 
   closeProjection() {
-    this.getComponentFrame(0)!.projectionDepth--;
+    this.getComponentFrame()!.projectionDepth--;
     this.closeFragment();
   }
 
@@ -900,6 +899,13 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       for (let i = 0; i < attrs.length; i++) {
         let key = attrs[i++] as SsrAttrKey;
         let value = attrs[i] as SsrAttrValue;
+        let styleScopedId: string | null = null;
+
+        if (isClassAttr(key) && Array.isArray(value)) {
+          const [signalValue, styleId] = value;
+          value = signalValue;
+          styleScopedId = styleId;
+        }
 
         if (isSignal(value)) {
           const lastNode = this.getLastNode();
@@ -917,7 +923,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           value = 'html';
         }
 
-        value = serializeAttribute(key, value);
+        value = serializeAttribute(key, value, styleScopedId);
 
         if (value != null && value !== false) {
           this.write(' ');
@@ -926,10 +932,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             this.write('="');
             let startIdx = 0;
             let quoteIdx: number;
-            const componentFrame = this.getNearestComponentFrame();
-            if (isClassAttr(key) && componentFrame && componentFrame.scopedStyleIds.size) {
-              this.write(getScopedStyleIdsAsPrefix(componentFrame.scopedStyleIds) + ' ');
-            }
             const strValue = String(value);
             while ((quoteIdx = strValue.indexOf('"', startIdx)) != -1) {
               this.write(strValue.substring(startIdx, quoteIdx));

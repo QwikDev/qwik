@@ -30,11 +30,7 @@ export {
 export { mapApp_remove, mapArray_get, mapArray_set } from '../core/v2/client/vnode';
 export { maybeThen } from '../core/util/promises';
 export { DEBUG_TYPE, VirtualType } from '../core/v2/shared/types';
-export {
-  convertStyleIdsToString,
-  getScopedStyleIdsAsPrefix,
-  isClassAttr,
-} from '../core/v2/shared/scoped-styles';
+export { convertStyleIdsToString, isClassAttr } from '../core/v2/shared/scoped-styles';
 export { SubscriptionType } from '../core/state/common';
 export { serializeAttribute } from '../core/render/execute-component';
 export { VNodeDataChar } from '../core/v2/shared/vnode-data-types';

@@ -6,7 +6,7 @@ import { isQrl, type QRLInternal } from '../../qrl/qrl-class';
 import { verifySerializable } from '../../state/common';
 import { _VAR_PROPS } from '../../state/constants';
 import { isSignal, SignalDerived } from '../../state/signal';
-import { invoke, untrack } from '../../use/use-core';
+import { invoke, tryGetInvokeContext, untrack } from '../../use/use-core';
 import { EMPTY_OBJ } from '../../util/flyweight';
 import { logError, logOnceWarn, logWarn } from '../../util/log';
 import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS } from '../../util/markers';
@@ -18,6 +18,13 @@ import type { DevJSX, FunctionComponent, JSXNode } from './types/jsx-node';
 import type { QwikJSX } from './types/jsx-qwik';
 import type { JSXChildren } from './types/jsx-qwik-attributes';
 import { SkipRender } from './utils.public';
+import type { SSRContainer } from '../../v2/ssr/ssr-types';
+import {
+  addPrefixForScopedStyleIdsString,
+  getScopedStyleIdsAsPrefix,
+} from '../../v2/shared/scoped-styles';
+import { isDomContainer } from '../../v2/client/dom-container';
+import type { fixMeAny } from '../../v2/shared/types';
 
 export type Props = Record<string, unknown>;
 
@@ -41,14 +48,7 @@ export const _jsxQ = <T>(
   dev?: DevJSX
 ): JSXNode<T> => {
   const processed = key == null ? null : String(key);
-  const node = new JSXNodeImpl(
-    type,
-    (varProps as any) || {},
-    constProps,
-    children,
-    flags,
-    processed
-  );
+  const node = new JSXNodeImpl(type, varProps || {}, constProps, children, flags, processed);
   if (qDev && dev) {
     node.dev = {
       stack: new Error().stack,
@@ -120,7 +120,8 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
     public constProps: Props | null,
     public children: JSXChildren,
     public flags: number,
-    public key: string | null = null
+    public key: string | null = null,
+    public styleScopedId: string | null = null
   ) {
     if (qDev) {
       if (typeof varProps !== 'object') {
@@ -130,6 +131,9 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
         throw new Error(`JSXNodeImpl: constProps must be objects: ` + JSON.stringify(constProps));
       }
     }
+
+    // set styleScopedId for this node
+    this.styleScopedId = retrieveStyleScopedIdFromInvokeContext();
   }
 
   private _proxy: typeof this.varProps | null = null;
@@ -140,6 +144,29 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
     }
     return this._proxy! as any;
   }
+}
+
+function retrieveStyleScopedIdFromInvokeContext() {
+  let styleScopedId: string | null = null;
+  const ctx = tryGetInvokeContext();
+  if (ctx && ctx.$container2$) {
+    let scopedStyleIds: Set<string> | undefined;
+    if (isDomContainer(ctx.$container2$)) {
+      const scopedStyleIdsString = ctx.$container2$.getHostProp<string>(
+        ctx.$hostElement$ as fixMeAny,
+        QScopedStyle
+      );
+      if (scopedStyleIdsString) {
+        styleScopedId = addPrefixForScopedStyleIdsString(scopedStyleIdsString);
+      }
+    } else {
+      scopedStyleIds = (ctx.$container2$ as SSRContainer).getComponentFrame(0)?.scopedStyleIds;
+      if (scopedStyleIds) {
+        styleScopedId = getScopedStyleIdsAsPrefix(scopedStyleIds);
+      }
+    }
+  }
+  return styleScopedId;
 }
 
 /** @private */

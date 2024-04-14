@@ -25,6 +25,7 @@ import { qrlToString, type SerializationContext } from '../shared/shared-seriali
 import { DEBUG_TYPE, VirtualType, type fixMeAny } from '../shared/types';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
 import type { SSRContainer, SsrAttrs } from './ssr-types';
+import { hasClassAttr, isClassAttr } from '../shared/scoped-styles';
 
 type StackFn = () => ValueOrPromise<void>;
 type StackValue = JSXOutput | StackFn | Promise<JSXOutput> | typeof Promise;
@@ -127,10 +128,31 @@ function processJSXNode(
       const type = jsx.type;
       // Below, JSXChildren allows functions and regexes, but we assume the dev only uses those as appropriate.
       if (typeof type === 'string') {
+        // append class attribute if styleScopedId exists and there is no class attribute
+        const classAttributeExists =
+          hasClassAttr(jsx.varProps) || (jsx.constProps && hasClassAttr(jsx.constProps));
+        if (!classAttributeExists && jsx.styleScopedId) {
+          if (!jsx.constProps) {
+            jsx.constProps = {};
+          }
+          jsx.constProps['class'] = '';
+        }
+
         ssr.openElement(
           type,
-          varPropsToSsrAttrs(jsx.varProps, jsx.constProps, ssr.serializationCtx, jsx.key),
-          constPropsToSsrAttrs(jsx.constProps, jsx.varProps, ssr.serializationCtx)
+          varPropsToSsrAttrs(
+            jsx.varProps,
+            jsx.constProps,
+            ssr.serializationCtx,
+            jsx.styleScopedId,
+            jsx.key
+          ),
+          constPropsToSsrAttrs(
+            jsx.constProps,
+            jsx.varProps,
+            ssr.serializationCtx,
+            jsx.styleScopedId
+          )
         );
         const rawHTML = jsx.props[dangerouslySetInnerHTML];
         if (rawHTML) {
@@ -220,17 +242,19 @@ export function varPropsToSsrAttrs(
   varProps: Record<string, unknown>,
   constProps: Record<string, unknown> | null,
   serializationCtx: SerializationContext,
+  styleScopedId: string | null,
   key?: string | null
 ): SsrAttrs | null {
-  return toSsrAttrs(varProps, constProps, serializationCtx, true, key);
+  return toSsrAttrs(varProps, constProps, serializationCtx, true, styleScopedId, key);
 }
 
 export function constPropsToSsrAttrs(
   constProps: Record<string, unknown> | null,
   varProps: Record<string, unknown>,
-  serializationCtx: SerializationContext
+  serializationCtx: SerializationContext,
+  styleScopedId: string | null
 ): SsrAttrs | null {
-  return toSsrAttrs(constProps, varProps, serializationCtx, false);
+  return toSsrAttrs(constProps, varProps, serializationCtx, false, styleScopedId);
 }
 
 export function toSsrAttrs(
@@ -238,6 +262,7 @@ export function toSsrAttrs(
   anotherRecord: Record<string, unknown>,
   serializationCtx: SerializationContext,
   pushMergedEventProps: boolean,
+  styleScopedId: string | null,
   key?: string | null
 ): SsrAttrs;
 export function toSsrAttrs(
@@ -245,6 +270,7 @@ export function toSsrAttrs(
   anotherRecord: Record<string, unknown> | null | undefined,
   serializationCtx: SerializationContext,
   pushMergedEventProps: boolean,
+  styleScopedId: string | null,
   key?: string | null
 ): SsrAttrs | null;
 export function toSsrAttrs(
@@ -252,6 +278,7 @@ export function toSsrAttrs(
   anotherRecord: Record<string, unknown> | null | undefined,
   serializationCtx: SerializationContext,
   pushMergedEventProps: boolean,
+  styleScopedId: string | null,
   key?: string | null
 ): SsrAttrs | null {
   if (record == null) {
@@ -304,7 +331,12 @@ export function toSsrAttrs(
 
     if (isSignal(value)) {
       // write signal as is. We will track this signal inside `writeAttrs`
-      ssrAttrs.push(key, value);
+      if (isClassAttr(key)) {
+        // additionally append styleScopedId for class attr
+        ssrAttrs.push(key, [value, styleScopedId]);
+      } else {
+        ssrAttrs.push(key, value);
+      }
       continue;
     }
 
@@ -312,7 +344,7 @@ export function toSsrAttrs(
       addPreventDefaultEventToSerializationContext(serializationCtx, key);
     }
 
-    value = serializeAttribute(key, value);
+    value = serializeAttribute(key, value, styleScopedId);
 
     ssrAttrs.push(key, value as string);
   }

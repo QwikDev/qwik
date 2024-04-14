@@ -543,7 +543,7 @@ function updateNodeProp(
       : host.getProp(QScopedStyle);
   }
 
-  value = serializeAttribute(propKey, value, styleScopedId || undefined);
+  value = serializeAttribute(propKey, value, styleScopedId);
 
   if (!immutable) {
     vnode_setAttr(container.$journal$, target, propKey, value);

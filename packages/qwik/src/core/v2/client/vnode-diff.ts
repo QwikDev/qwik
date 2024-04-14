@@ -20,7 +20,6 @@ import {
   ELEMENT_PROPS,
   ELEMENT_SEQ,
   OnRenderProp,
-  QScopedStyle,
   QSlot,
   QSlotParent,
   QStyle,
@@ -35,7 +34,7 @@ import {
   isHtmlAttributeAnEventName,
   isJsxPropertyAnEventName,
 } from '../shared/event-names';
-import { addPrefixForScopedStyleIdsString } from '../shared/scoped-styles';
+import { hasClassAttr } from '../shared/scoped-styles';
 import type { QElement2, QwikLoaderEventScope, fixMeAny } from '../shared/types';
 import { DEBUG_TYPE, VirtualType } from '../shared/types';
 import type { DomContainer } from './dom-container';
@@ -125,7 +124,6 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
 
   // When we descend into children, we need to skip advance() because we just descended.
   let shouldAdvance = true;
-  let scopedStyleIdPrefix: string | null;
 
   /**
    * When we are rendering inside a projection we don't want to process child components. Child
@@ -151,7 +149,6 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     vParent = vStartNode;
     vNewNode = null;
     vCurrent = vnode_getFirstChild(vStartNode);
-    retrieveScopedStyleIdPrefix();
     stackPush(jsxNode, true);
     while (stack.length) {
       while (jsxIdx < jsxCount) {
@@ -529,7 +526,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
           continue;
         }
 
-        value = serializeAttribute(key, value, scopedStyleIdPrefix || undefined);
+        value = serializeAttribute(key, value, jsx.styleScopedId);
         if (value != null) {
           element.setAttribute(key, String(value));
         }
@@ -540,6 +537,14 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       element.setAttribute(ELEMENT_KEY, key);
       vnode_setProp(vNewNode, ELEMENT_KEY, key);
     }
+
+    // append class attribute if styleScopedId exists and there is no class attribute
+    const classAttributeExists =
+      hasClassAttr(jsx.varProps) || (jsx.constProps && hasClassAttr(jsx.constProps));
+    if (!classAttributeExists && jsx.styleScopedId) {
+      element.setAttribute('class', jsx.styleScopedId);
+    }
+
     return needsQDispatchEventPatch;
   }
 
@@ -574,7 +579,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     const props = jsx.varProps;
     for (const key in props) {
       let value = props[key];
-      value = serializeAttribute(key, value, scopedStyleIdPrefix || undefined);
+      value = serializeAttribute(key, value, jsx.styleScopedId);
       if (value != null) {
         mapArray_set(jsxAttrs, key, value, 0);
       }
@@ -710,13 +715,6 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       }
     }
     return patchEventDispatch;
-  }
-
-  function retrieveScopedStyleIdPrefix() {
-    if (vParent && vnode_isVirtualVNode(vParent)) {
-      const scopedStyleId = vnode_getProp<string>(vParent, QScopedStyle, null);
-      scopedStyleIdPrefix = scopedStyleId ? addPrefixForScopedStyleIdsString(scopedStyleId) : null;
-    }
   }
 
   /**

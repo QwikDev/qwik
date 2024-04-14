@@ -33,12 +33,12 @@ import type { HostElement } from '../shared/types';
 import { VNodeDataChar, VNodeDataSeparator } from '../shared/vnode-data-types';
 import {
   VNodeFlags,
+  VNodeProps,
   type ContainerElement,
   type ElementVNode,
   type ClientContainer as IClientContainer,
   type QDocument,
   type VirtualVNode,
-  VNodeProps,
   type VNode,
 } from './types';
 import {
@@ -50,14 +50,15 @@ import {
   vnode_getDomParent,
   vnode_getParent,
   vnode_getProp,
+  vnode_getPropStartIndex,
   vnode_insertBefore,
   vnode_isVirtualVNode,
+  vnode_locate,
   vnode_newElement,
   vnode_newUnMaterializedElement,
   vnode_setProp,
   type VNodeJournal,
-  vnode_locate,
-  vnode_getPropStartIndex,
+  isQContainerInnerHTMLElement,
 } from './vnode';
 import { vnode_diff } from './vnode-diff';
 
@@ -356,6 +357,9 @@ export function processVNodeData(document: Document) {
   let ch: number;
   let needsToStoreRef = -1;
   for (let node = walker.firstChild(); node !== null; node = walker.nextNode()) {
+    if (isQContainerInnerHTMLElement(node.parentElement)) {
+      continue;
+    }
     elementIdx++;
     if (vNodeElementIndex < elementIdx) {
       // VNodeData needs to catch up with the elementIdx

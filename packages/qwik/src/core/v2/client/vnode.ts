@@ -120,6 +120,8 @@
 import { isDev } from '@builder.io/qwik/build';
 import { assertDefined, assertEqual, assertFalse, assertTrue } from '../../error/assert';
 import { isQrl } from '../../qrl/qrl-class';
+import { dangerouslySetInnerHTML } from '../../render/execute-component';
+import { isText } from '../../util/element';
 import { throwErrorAndStop } from '../../util/log';
 import {
   ELEMENT_ID,
@@ -127,6 +129,7 @@ import {
   ELEMENT_PROPS,
   ELEMENT_SEQ,
   OnRenderProp,
+  QContainerAttr,
   QCtxAttr,
   QScopedStyle,
   QSlot,
@@ -135,7 +138,10 @@ import {
   QStyle,
   QStylesAllSelector,
 } from '../../util/markers';
+import { isHtmlElement } from '../../util/types';
 import { DEBUG_TYPE, VirtualType, VirtualTypeName } from '../shared/types';
+import { VNodeDataChar } from '../shared/vnode-data-types';
+import { getDomContainer, getDomContainerFromHTMLElement, getHtmlElement } from './dom-container';
 import {
   ElementVNodeProps,
   TextVNodeProps,
@@ -143,18 +149,14 @@ import {
   VNodeFlagsIndex,
   VNodeProps,
   VirtualVNodeProps,
+  type ClientContainer,
   type ContainerElement,
   type ElementVNode,
   type QDocument,
   type TextVNode,
   type VNode,
   type VirtualVNode,
-  type ClientContainer,
 } from './types';
-import { isHtmlElement } from '../../util/types';
-import { isText } from '../../util/element';
-import { VNodeDataChar } from '../shared/vnode-data-types';
-import { getDomContainer, getDomContainerFromHTMLElement, getHtmlElement } from './dom-container';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -364,9 +366,18 @@ export const vnode_ensureElementInflated = (vnode: VNode) => {
         // SVG in Domino does not support ':' so it becomes an empty string.
         // all attributes after the ':' are considered immutable, and so we ignore them.
         break;
+      } else if (key.startsWith(QContainerAttr)) {
+        if (attr.value === 'html') {
+          mapArray_set(
+            elementVNode as string[],
+            dangerouslySetInnerHTML,
+            element.innerHTML,
+            ElementVNodeProps.PROPS_OFFSET
+          );
+        }
       } else if (!key.startsWith('on:')) {
         const value = attr.value;
-        mapArray_set(elementVNode as string[], key, value, vnode_getPropStartIndex(vnode));
+        mapArray_set(elementVNode as string[], key, value, ElementVNodeProps.PROPS_OFFSET);
       }
     }
   }
@@ -794,6 +805,8 @@ export const vnode_applyJournal = (journal: VNodeJournal) => {
           (element as any)[key] = parseBoolean(value);
         } else if (key === 'value' && key in element) {
           (element as any).value = String(value);
+        } else if (key === dangerouslySetInnerHTML) {
+          (element as any).innerHTML = value!;
         } else {
           if (value == null || value === false) {
             element.removeAttribute(key);
@@ -1104,21 +1117,40 @@ export const vnode_getFirstChild = (vnode: VNode): VNode | null => {
   return vFirstChild;
 };
 
+export const vnode_materialize = (vNode: ElementVNode) => {
+  const element = vNode[ElementVNodeProps.element];
+  const firstChild = element.firstChild;
+  const vNodeData = (element.ownerDocument as QDocument)?.qVNodeData?.get(element);
+  const vFirstChild = vNodeData
+    ? materializeFromVNodeData(vNode, vNodeData, element, firstChild)
+    : materializeFromDOM(vNode, firstChild);
+  return vFirstChild;
+};
+
 const ensureMaterialized = (vnode: ElementVNode): VNode | null => {
   const vParent = ensureElementVNode(vnode);
   let vFirstChild = vParent[ElementVNodeProps.firstChild];
   if (vFirstChild === undefined) {
     // need to materialize the vNode.
     const element = vParent[ElementVNodeProps.element];
-    const firstChild = element.firstChild;
-    const vNodeData = (element.ownerDocument as QDocument)?.qVNodeData?.get(element);
-    vFirstChild = vNodeData
-      ? materializeFromVNodeData(vParent, vNodeData, element, firstChild)
-      : materializeFromDOM(vParent, firstChild);
+
+    if (isQContainerInnerHTMLElement(element)) {
+      // We have a container with html value, must ignore the content.
+      vFirstChild =
+        vParent[ElementVNodeProps.firstChild] =
+        vParent[ElementVNodeProps.lastChild] =
+          null;
+    } else {
+      vFirstChild = vnode_materialize(vParent);
+    }
   }
   assertTrue(vParent[ElementVNodeProps.firstChild] !== undefined, 'Did not materialize.');
   assertTrue(vParent[ElementVNodeProps.lastChild] !== undefined, 'Did not materialize.');
   return vFirstChild;
+};
+
+export const isQContainerInnerHTMLElement = (node: Node | null): boolean => {
+  return isElement(node) && node.getAttribute(QContainerAttr) === 'html';
 };
 
 const isQStyleElement = (node: Node | null): node is Element => {
@@ -1197,6 +1229,7 @@ export const vnode_setAttr = (
   if ((type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) !== 0) {
     vnode_ensureElementInflated(vnode);
     const idx = mapApp_findIndx(vnode as string[], key, vnode_getPropStartIndex(vnode));
+
     if (idx >= 0) {
       if (vnode[idx + 1] != value && (type & VNodeFlags.Element) !== 0) {
         // Values are different, update DOM

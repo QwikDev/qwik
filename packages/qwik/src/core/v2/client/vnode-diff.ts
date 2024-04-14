@@ -4,7 +4,7 @@ import { SERIALIZABLE_STATE } from '../../container/serializers';
 import { assertDefined, assertFalse } from '../../error/assert';
 import type { QRLInternal } from '../../qrl/qrl-class';
 import type { QRL } from '../../qrl/qrl.public';
-import { serializeAttribute } from '../../render/execute-component';
+import { dangerouslySetInnerHTML, serializeAttribute } from '../../render/execute-component';
 import { Fragment, JSXNodeImpl, isJSXNode } from '../../render/jsx/jsx-runtime';
 import { Slot } from '../../render/jsx/slot.public';
 import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
@@ -43,7 +43,6 @@ import {
   ElementVNodeProps,
   VNodeFlags,
   VNodeProps,
-  VirtualVNodeProps,
   type ClientAttrKey,
   type ClientAttrs,
   type ClientContainer,
@@ -51,6 +50,7 @@ import {
   type TextVNode,
   type VNode,
   type VirtualVNode,
+  VirtualVNodeProps,
 } from './types';
 import {
   mapApp_findIndx,
@@ -524,6 +524,11 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
           ]);
         }
 
+        if (key === dangerouslySetInnerHTML) {
+          element.innerHTML = value as string;
+          continue;
+        }
+
         value = serializeAttribute(key, value, scopedStyleIdPrefix || undefined);
         if (value != null) {
           element.setAttribute(key, String(value));
@@ -564,6 +569,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       needsQDispatchEventPatch = createNewElement(jsx, tag);
     }
     // reconcile attributes
+
     const jsxAttrs = [] as ClientAttrs;
     const props = jsx.varProps;
     for (const key in props) {

@@ -41,6 +41,7 @@ export interface SSRContainer extends Container2 {
   readonly prefetchResources: PrefetchResource[];
   readonly serializationCtx: SerializationContext;
   readonly symbolToChunkResolver: SymbolToChunkResolver;
+  readonly buildBase: string;
 
   openContainer(): void;
   closeContainer(): void;
@@ -60,6 +61,7 @@ export interface SSRContainer extends Container2 {
   closeComponent(): void;
 
   textNode(text: string): void;
+  htmlNode(rawHtml: string): void;
   addRoot(obj: any): number;
   getLastNode(): ISsrNode;
   addUnclaimedProjection(node: ISsrNode, name: string, children: JSXChildren): void;

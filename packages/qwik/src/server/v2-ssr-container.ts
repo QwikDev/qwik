@@ -6,6 +6,7 @@ import { getQwikLoaderScript } from '@builder.io/qwik/server';
 import { applyPrefetchImplementation2 } from './prefetch-implementation';
 import { getPrefetchResources } from './prefetch-strategy';
 import {
+  dangerouslySetInnerHTML,
   DEBUG_TYPE,
   ELEMENT_ID,
   ELEMENT_KEY,
@@ -18,6 +19,9 @@ import {
   QSlotParent,
   QSlotRef,
   QStyle,
+  QContainerAttr,
+  SubscriptionType,
+  VNodeDataChar,
   VirtualType,
   convertStyleIdsToString,
   getScopedStyleIdsAsPrefix,
@@ -25,26 +29,24 @@ import {
   mapArray_get,
   mapArray_set,
   maybeThen,
-  SubscriptionType,
   serializeAttribute,
-  VNodeDataChar,
 } from './qwik-copy';
 import type {
   ContextId,
+  HostElement,
+  SSRContainer as ISSRContainer,
+  ISsrComponentFrame,
   ISsrNode,
   JSXChildren,
   JSXOutput,
   SerializationContext,
-  ValueOrPromise,
-  HostElement,
-  SSRContainer as ISSRContainer,
-  ISsrComponentFrame,
+  SsrAttrKey,
+  SsrAttrValue,
   SsrAttrs,
   StreamWriter,
   SymbolToChunkResolver,
+  ValueOrPromise,
   fixMeAny,
-  SsrAttrKey,
-  SsrAttrValue,
 } from './qwik-types';
 import { Q_FUNCS_PREFIX } from './render';
 import type { PrefetchResource, RenderOptions, RenderToStreamResult } from './types';
@@ -259,7 +261,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     const containerAttributes: Record<string, string> = {
       ...this.renderOptions.containerAttributes,
       'q:runtime': '2',
-      'q:container': 'paused',
+      [QContainerAttr]: 'paused',
       'q:version': this.$version$ ?? 'dev',
       'q:render': qRender,
       'q:base': this.buildBase,
@@ -414,6 +416,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.write(lastIdx === 0 ? text : text.substring(lastIdx));
     vNodeData_addTextSize(this.currentElementFrame!.vNodeData, text.length);
     this.lastNode = null;
+  }
+
+  htmlNode(rawHtml: string) {
+    this.write(rawHtml);
   }
 
   addRoot(obj: unknown): number {
@@ -925,7 +931,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private writeAttrs(attrs: SsrAttrs, immutable: boolean) {
     if (attrs.length) {
       for (let i = 0; i < attrs.length; i++) {
-        const key = attrs[i++] as SsrAttrKey;
+        let key = attrs[i++] as SsrAttrKey;
         let value = attrs[i] as SsrAttrValue;
 
         if (isSignal(value)) {
@@ -942,6 +948,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
               key,
             ]);
           }
+        }
+
+        if (key === dangerouslySetInnerHTML) {
+          key = QContainerAttr;
+          value = 'html';
         }
 
         value = serializeAttribute(key, value);

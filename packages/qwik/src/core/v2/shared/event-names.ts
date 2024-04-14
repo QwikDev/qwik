@@ -106,13 +106,13 @@ export const convertEventNameFromHtmlAttrToJsxProp = (name: string): string | nu
   }
   if (prefix !== null) {
     const eventName = getEventNameFromHtmlAttr(name)!;
-    let kabobCase = fromCamelToKebabCase(eventName);
-    if (isDashAt(kabobCase, 0) && !isDashAt(kabobCase, 1)) {
+    let kebabCase = fromCamelToKebabCase(eventName);
+    if (isDashAt(kebabCase, 0) && !isDashAt(kebabCase, 1)) {
       // special case for events which start with a `-`
       // if we would just append it would be interpreted as a case sensitive event
-      kabobCase = '-' + kabobCase.charAt(1).toUpperCase() + kabobCase.substring(2);
+      kebabCase = '-' + kebabCase.charAt(1).toUpperCase() + kebabCase.substring(2);
     }
-    return prefix + kabobCase + '$';
+    return prefix + kebabCase + '$';
   }
   return null;
 };
@@ -139,6 +139,10 @@ export const convertEventNameFromJsxPropToHtmlAttr = (name: string): string | nu
   return null;
 };
 
-const fromCamelToKebabCase = (text: string): string => {
+export const fromCamelToKebabCase = (text: string): string => {
   return text.replace(/([A-Z-])/g, '-$1').toLowerCase();
 };
+
+export function isPreventDefault(key: string): boolean {
+  return key.startsWith('preventdefault:');
+}

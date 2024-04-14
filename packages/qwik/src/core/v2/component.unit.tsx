@@ -4,9 +4,9 @@ import { trigger } from '../../testing/element-fixture';
 import { component$ } from '../component/component.public';
 import type { JSXOutput } from '../render/jsx/types/jsx-node';
 import { useSignal } from '../use/use-signal';
+import { useStore } from '../use/use-store.public';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
-import { useStore } from '../use/use-store.public';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -229,6 +229,173 @@ describe.each([
       </Component>
     );
     expect(log).toEqual(['has children']);
+  });
+
+  it('should insert dangerouslySetInnerHTML', async () => {
+    const Cmp = component$(() => {
+      const htmlSignal = useSignal("<h2><span>I'm a signal value!</span></h2>");
+      return (
+        <div>
+          <div>
+            <span id="first" dangerouslySetInnerHTML="vanilla HTML here" />
+          </div>
+          <div>
+            <span id="second" dangerouslySetInnerHTML="<h1>I'm an h1!</h1>" class="after" />
+          </div>
+          <div>
+            <span id="third" dangerouslySetInnerHTML={htmlSignal.value} class="after" />
+            <button
+              onClick$={() =>
+                (htmlSignal.value = "<h2><span>I'm a updated signal value!</span></h2>")
+              }
+            ></button>
+          </div>
+        </div>
+      );
+    });
+    const { document } = await render(<Cmp />, { debug });
+    await expect(document.querySelector('#first')).toMatchDOM(
+      <span id="first">vanilla HTML here</span>
+    );
+    await expect(document.querySelector('#second')).toMatchDOM(
+      <span id="second" class="after">
+        <h1>I'm an h1!</h1>
+      </span>
+    );
+    await expect(document.querySelector('#third')).toMatchDOM(
+      <span id="third" class="after">
+        <h2>
+          <span>I'm a signal value!</span>
+        </h2>
+      </span>
+    );
+    await trigger(document.body, 'button', 'click');
+    await expect(document.querySelector('#third')).toMatchDOM(
+      <span id="third" class="after">
+        <h2>
+          <span>I'm a updated signal value!</span>
+        </h2>
+      </span>
+    );
+  });
+
+  it('should insert dangerouslySetInnerHTML via props', async () => {
+    const Child = component$(({ htmlValue, html }: { htmlValue: string; html: string }) => {
+      return (
+        <div>
+          <div>
+            <span id="first" dangerouslySetInnerHTML="vanilla HTML here" />
+          </div>
+          <div>
+            <span id="second" dangerouslySetInnerHTML="<h1>I'm an h1!</h1>" class="after" />
+          </div>
+          <div>
+            <span id="third" dangerouslySetInnerHTML={htmlValue} class="after" />
+          </div>
+          <div>
+            <span id="fourth" dangerouslySetInnerHTML={html} class="after" />
+          </div>
+        </div>
+      );
+    });
+    const Parent = component$(() => {
+      const htmlSignal = useSignal("<h2><span>I'm a signal value!</span></h2>");
+      const html = '<h3>Test content</h3>';
+      return (
+        <>
+          <Child htmlValue={htmlSignal.value} html={html} />
+          <button
+            onClick$={() =>
+              (htmlSignal.value = "<h2><span>I'm a updated signal value!</span></h2>")
+            }
+          ></button>
+        </>
+      );
+    });
+    const { document } = await render(<Parent />, { debug });
+    await expect(document.querySelector('#first')).toMatchDOM(
+      <span id="first">vanilla HTML here</span>
+    );
+    await expect(document.querySelector('#second')).toMatchDOM(
+      <span id="second" class="after">
+        <h1>I'm an h1!</h1>
+      </span>
+    );
+    await expect(document.querySelector('#third')).toMatchDOM(
+      <span id="third" class="after">
+        <h2>
+          <span>I'm a signal value!</span>
+        </h2>
+      </span>
+    );
+    await expect(document.querySelector('#fourth')).toMatchDOM(
+      <span id="fourth" class="after">
+        <h3>Test content</h3>
+      </span>
+    );
+
+    await trigger(document.body, 'button', 'click');
+
+    await expect(document.querySelector('#first')).toMatchDOM(
+      <span id="first">vanilla HTML here</span>
+    );
+    await expect(document.querySelector('#second')).toMatchDOM(
+      <span id="second" class="after">
+        <h1>I'm an h1!</h1>
+      </span>
+    );
+    await expect(document.querySelector('#third')).toMatchDOM(
+      <span id="third" class="after">
+        <h2>
+          <span>I'm a updated signal value!</span>
+        </h2>
+      </span>
+    );
+    await expect(document.querySelector('#fourth')).toMatchDOM(
+      <span id="fourth" class="after">
+        <h3>Test content</h3>
+      </span>
+    );
+  });
+  it('should render correctly text node in the middle', async () => {
+    const Cmp = component$(() => {
+      const signal = useSignal<number>(0);
+      return (
+        <p onClick$={() => (signal.value = 123)}>
+          <b>Test</b>
+          {signal.value + 1}xx<span>{signal.value}</span>xxx<a></a>
+        </p>
+      );
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+    await trigger(document.body, 'p', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <p>
+          <b>Test</b>
+          <Signal>124</Signal>
+          {'xx'}
+          <span>
+            <Signal>123</Signal>
+          </span>
+          {'xxx'}
+          <a></a>
+        </p>
+      </Component>
+    );
+    await expect(document.querySelector('p')).toMatchDOM(
+      <p>
+        <b>Test</b>
+        {'124xx'}
+        <span>123</span>
+        {'xxx'}
+        <a></a>
+      </p>
+    );
+    expect((document.body.firstChild as HTMLElement).innerHTML).toEqual(
+      '<b>Test</b>124xx<span>123</span>xxx<a></a>'
+    );
   });
 
   describe('svg', () => {
@@ -520,6 +687,52 @@ describe.each([
               spellcheck={false}
               tabIndex={-1}
             />
+          </Fragment>
+        </Component>
+      );
+    });
+
+    it('should bind checked attribute', async () => {
+      const BindCmp = component$(() => {
+        const show = useSignal(false);
+        return (
+          <>
+            <label for="toggle">
+              <input type="checkbox" bind:checked={show} />
+              Show conditional
+            </label>
+            <div>{show.value.toString()}</div>
+          </>
+        );
+      });
+
+      const { vNode, document } = await render(<BindCmp />, { debug });
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <label for="toggle">
+              <input type="checkbox" checked={false} />
+              {'Show conditional'}
+            </label>
+            <div>false</div>
+          </Fragment>
+        </Component>
+      );
+
+      // simulate checkbox click
+      const input = document.querySelector('input')!;
+      input.checked = true;
+      await trigger(document.body, 'input', 'input');
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <label for="toggle">
+              <input type="checkbox" checked={true} />
+              {'Show conditional'}
+            </label>
+            <div>true</div>
           </Fragment>
         </Component>
       );

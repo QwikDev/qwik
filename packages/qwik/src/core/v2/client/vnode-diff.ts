@@ -4,7 +4,7 @@ import { SERIALIZABLE_STATE } from '../../container/serializers';
 import { assertDefined, assertFalse, assertTrue } from '../../error/assert';
 import type { QRLInternal } from '../../qrl/qrl-class';
 import type { QRL } from '../../qrl/qrl.public';
-import { serializeAttribute } from '../../render/execute-component';
+import { dangerouslySetInnerHTML, serializeAttribute } from '../../render/execute-component';
 import { Fragment, JSXNodeImpl, isJSXNode } from '../../render/jsx/jsx-runtime';
 import { Slot } from '../../render/jsx/slot.public';
 import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
@@ -29,6 +29,7 @@ import { isPromise } from '../../util/promises';
 import { type ValueOrPromise } from '../../util/types';
 import { executeComponent2 } from '../shared/component-execution';
 import {
+  convertEventNameFromJsxPropToHtmlAttr,
   getEventNameFromJsxProp,
   getEventNameScopeFromJsxProp,
   isHtmlAttributeAnEventName,
@@ -36,14 +37,13 @@ import {
 } from '../shared/event-names';
 import { ChoreType } from '../shared/scheduler';
 import { addPrefixForScopedStyleIdsString } from '../shared/scoped-styles';
-import type { QElement2, fixMeAny } from '../shared/types';
+import type { QElement2, QwikLoaderEventScope, fixMeAny } from '../shared/types';
 import { DEBUG_TYPE, VirtualType } from '../shared/types';
 import type { DomContainer } from './dom-container';
 import {
   ElementVNodeProps,
   VNodeFlags,
   VNodeProps,
-  VirtualVNodeProps,
   type ClientAttrKey,
   type ClientAttrs,
   type ClientContainer,
@@ -51,6 +51,7 @@ import {
   type TextVNode,
   type VNode,
   type VirtualVNode,
+  VirtualVNodeProps,
 } from './types';
 import {
   mapApp_findIndx,
@@ -528,6 +529,11 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
           ]);
         }
 
+        if (key === dangerouslySetInnerHTML) {
+          element.innerHTML = value as string;
+          continue;
+        }
+
         value = serializeAttribute(key, value, scopedStyleIdPrefix || undefined);
         if (value != null) {
           element.setAttribute(key, String(value));
@@ -568,6 +574,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       needsQDispatchEventPatch = createNewElement(jsx, tag);
     }
     // reconcile attributes
+
     const jsxAttrs = [] as ClientAttrs;
     const props = jsx.varProps;
     for (const key in props) {
@@ -586,17 +593,9 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       // Event handler needs to be patched onto the element.
       const element = vnode_getNode(vNode) as QElement2;
       if (!element.qDispatchEvent) {
-        element.qDispatchEvent = (event: Event) => {
-          let eventName = event.type;
-          let scope = '';
-          if (eventName.startsWith(':')) {
-            // :document:event or :window:event
-            const colonIndex = eventName.substring(1).indexOf(':');
-            scope = eventName.substring(1, colonIndex + 1);
-            eventName = eventName.substring(colonIndex + 2);
-          }
-
-          const eventProp = ':' + scope + ':' + eventName;
+        element.qDispatchEvent = (event: Event, scope: QwikLoaderEventScope) => {
+          const eventName = event.type;
+          const eventProp = ':' + scope.substring(1) + ':' + eventName;
           const qrls = [
             vnode_getProp<QRL>(vNode, eventProp, null),
             vnode_getProp<QRL>(vNode, HANDLER_PREFIX + eventProp, null),
@@ -642,6 +641,25 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       }
     };
 
+    const recordJsxEvent = (key: string, value: any) => {
+      const eventName = getEventNameFromJsxProp(key);
+      if (eventName) {
+        const scope = getEventNameScopeFromJsxProp(key);
+        record(':' + scope + ':' + eventName, value);
+      }
+
+      // add an event attr with empty value for qwikloader element selector.
+      // We don't need value here. For ssr this value is a QRL,
+      // but for CSR value should be just empty
+      const htmlEvent = convertEventNameFromJsxPropToHtmlAttr(key);
+      if (htmlEvent) {
+        record(htmlEvent, '');
+      }
+
+      // register an event for qwik loader
+      ((globalThis as fixMeAny).qwikevents ||= []).push(eventName);
+    };
+
     while (srcKey !== null || dstKey !== null) {
       if (dstKey?.startsWith(HANDLER_PREFIX) || dstKey == ELEMENT_KEY) {
         // These are a special keys which we use to mark the event handlers as immutable or
@@ -663,9 +681,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
         if (isEvent) {
           // Special handling for events
           patchEventDispatch = true;
-          const eventName = getEventNameFromJsxProp(srcKey);
-          const scope = getEventNameScopeFromJsxProp(srcKey);
-          record(':' + scope + ':' + eventName, srcAttrs[srcIdx]);
+          recordJsxEvent(srcKey, srcAttrs[srcIdx]);
         } else {
           record(srcKey!, srcAttrs[srcIdx]);
         }
@@ -684,9 +700,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
         if (isJsxPropertyAnEventName(srcKey)) {
           // Special handling for events
           patchEventDispatch = true;
-          const eventName = getEventNameFromJsxProp(srcKey);
-          const scope = getEventNameScopeFromJsxProp(srcKey);
-          record(':' + scope + ':' + eventName, srcAttrs[srcIdx]);
+          recordJsxEvent(srcKey, srcAttrs[srcIdx]);
         } else {
           record(srcKey, srcAttrs[srcIdx]);
         }

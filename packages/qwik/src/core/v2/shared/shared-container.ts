@@ -27,6 +27,7 @@ export abstract class _SharedContainer implements Container2 {
   /// Retrieve Object from paused serialized state.
   readonly $getObjectById$: (id: number | string) => any;
   $serverData$: Record<string, any>;
+  $currentUniqueId$ = 0;
 
   constructor(
     scheduleDrain: () => void,

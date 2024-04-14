@@ -4,12 +4,13 @@ import type { QRLInternal } from '../core/qrl/qrl-class';
 import { tryGetContext, type QContext } from '../core/state/context';
 import { normalizeOnProp } from '../core/state/listeners';
 import { getWrappingContainer, type PossibleEvents } from '../core/use/use-core';
-import { fromCamelToKebabCase } from '../core/util/case';
 import { getDomContainer } from '@builder.io/qwik';
 import { createWindow } from './document';
 import { getTestPlatform } from './platform';
 import type { MockDocument, MockWindow } from './types';
 import { delay } from '../core/util/promises';
+import type { QElement2, QwikLoaderEventScope } from '../core/v2/shared/types';
+import { fromCamelToKebabCase } from '../core/v2/shared/event-names';
 
 /**
  * Creates a simple DOM structure for testing components.
@@ -98,7 +99,18 @@ export async function trigger(
     }
     const kebabEventName = fromCamelToKebabCase(eventNameCamel);
     const isDocumentOrWindow = isDocumentOrWindowEvent(kebabEventName);
-    const event = new Event(kebabEventName, {
+
+    let eventName = kebabEventName;
+    let scope: QwikLoaderEventScope = '';
+    if (eventName.startsWith(':')) {
+      // :document:event or :window:event
+      const colonIndex = eventName.substring(1).indexOf(':');
+      // we need to add `-` for event, because of scope of the qwik loader
+      scope = ('-' + eventName.substring(1, colonIndex + 1)) as '-document' | '-window';
+      eventName = eventName.substring(colonIndex + 2);
+    }
+
+    const event = new Event(eventName, {
       bubbles: true,
       cancelable: true,
     });
@@ -106,7 +118,7 @@ export async function trigger(
     const attrName = isDocumentOrWindow
       ? `on-${kebabEventName.substring(1)}`
       : `on:${kebabEventName}`;
-    await dispatch(element, attrName, event);
+    await dispatch(element, attrName, event, scope);
   }
   await getTestPlatform().flush();
 }
@@ -115,10 +127,6 @@ const PREVENT_DEFAULT = 'preventdefault:';
 const Q_FUNCS_PREFIX = 'document.currentScript.closest("[q\\\\:container]").qFuncs=';
 const QContainerSelector = '[q\\:container]';
 
-interface QElement extends HTMLElement {
-  qDispatchEvent(event: Event): unknown;
-}
-
 /**
  * Dispatch
  *
@@ -126,7 +134,12 @@ interface QElement extends HTMLElement {
  * @param attrName
  * @param event
  */
-export const dispatch = async (element: Element | null, attrName: string, event: Event) => {
+export const dispatch = async (
+  element: Element | null,
+  attrName: string,
+  event: Event,
+  scope: QwikLoaderEventScope
+) => {
   const isDocumentOrWindow = isDocumentOrWindowEvent(event.type);
   const preventAttributeName =
     PREVENT_DEFAULT + (isDocumentOrWindow ? event.type.substring(1) : event.type);
@@ -149,8 +162,8 @@ export const dispatch = async (element: Element | null, attrName: string, event:
           }
         }
       }
-    } else if ('qDispatchEvent' in (element as QElement)) {
-      await (element as QElement).qDispatchEvent!(event);
+    } else if ('qDispatchEvent' in (element as QElement2)) {
+      await (element as QElement2).qDispatchEvent!(event, scope);
       await delay(0); // Unsure why this is needed for tests
       return;
     } else if (element.hasAttribute(attrName)) {

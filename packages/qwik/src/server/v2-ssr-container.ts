@@ -128,6 +128,12 @@ interface ContainerElementFrame {
 
 const EMPTY_OBJ = {};
 
+/**
+ * Stores sequential sequence arrays, which in turn store Tasks which have cleanup functions which
+ * need to be executed at the end of SSR.
+ */
+export type CleanupQueue = any[][];
+
 class SSRContainer extends _SharedContainer implements ISSRContainer {
   public tag: string;
   public writer: StreamWriter;
@@ -156,9 +162,15 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private vNodeData: VNodeData[] = [];
   private componentStack: ISsrComponentFrame[] = [];
   private unclaimedProjections: Array<ISsrNode | string | JSXChildren> = [];
+  private cleanupQueue: CleanupQueue = [];
 
   constructor(opts: Required<Required<Parameters<typeof ssrCreateContainer>>[0]>) {
-    super(() => null, opts.renderOptions.serverData ?? EMPTY_OBJ, opts.locale);
+    super(
+      () => null,
+      () => null,
+      opts.renderOptions.serverData ?? EMPTY_OBJ,
+      opts.locale
+    );
     this.symbolToChunkResolver = (symbol: string): string => {
       const idx = symbol.lastIndexOf('_');
       const chunk = this.resolvedManifest.mapper[idx == -1 ? symbol : symbol.substring(idx + 1)];
@@ -180,7 +192,13 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   ensureProjectionResolved(host: HostElement): void {}
 
-  processJsx(host: HostElement, jsx: JSXOutput): void {}
+  processJsx(host: HostElement, jsx: JSXOutput): void {
+    /**
+     * During SSR the output needs to be streamed. So we should never get here, because we can't
+     * process JSX out of order.
+     */
+    throw new Error('Should not get here.');
+  }
 
   handleError(err: any, $host$: HostElement): void {
     throw err;
@@ -264,7 +282,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   closeContainer(): ValueOrPromise<void> {
-    this.$scheduler$.$drainCleanup$(null);
     return this.closeElement();
   }
 
@@ -281,8 +298,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (attrs) {
       this.writeAttrs(attrs, false);
     }
-    if (immutableAttrs) {
-      this.write(' :');
+    if (immutableAttrs && immutableAttrs.length) {
+      // we have to skip the `ref` prop, so we don't need `:` if there is only this `ref` prop
+      if (immutableAttrs[0] !== 'ref') {
+        this.write(' :');
+      }
       this.writeAttrs(immutableAttrs, true);
     }
     this.write('>');
@@ -295,6 +315,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       (currentFrame.parent === null && currentFrame.tagNesting !== TagNesting.HTML) ||
       currentFrame.tagNesting === TagNesting.BODY
     ) {
+      this.drainCleanupQueue();
       this.timing.render = this.renderTimer();
       const snapshotTimer = createTimer();
       return maybeThen(
@@ -305,6 +326,17 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       );
     }
     this._closeElement();
+  }
+  drainCleanupQueue() {
+    for (let i = 0; i < this.cleanupQueue.length; i++) {
+      const sequences = this.cleanupQueue[i];
+      for (let j = 0; j < sequences.length; j++) {
+        const item = sequences[j];
+        if (hasDestroy(item)) {
+          item.$destroy$();
+        }
+      }
+    }
   }
 
   private _closeElement() {
@@ -400,7 +432,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         this.currentComponentNode,
         this.currentElementFrame!.vNodeData,
         // we start at -1, so we need to add +1
-        this.currentElementFrame!.depthFirstElementIdx + 1
+        this.currentElementFrame!.depthFirstElementIdx + 1,
+        this.cleanupQueue
       );
     }
     return this.lastNode!;
@@ -903,13 +936,18 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
         if (isSignal(value)) {
           const lastNode = this.getLastNode();
-          value = this.trackSignalValue(value, [
-            immutable ? SubscriptionType.PROP_IMMUTABLE : SubscriptionType.PROP_MUTABLE,
-            lastNode as fixMeAny,
-            value,
-            lastNode as fixMeAny,
-            key,
-          ]);
+          if (key === 'ref') {
+            value.value = lastNode;
+            continue;
+          } else {
+            value = this.trackSignalValue(value, [
+              immutable ? SubscriptionType.PROP_IMMUTABLE : SubscriptionType.PROP_MUTABLE,
+              lastNode as fixMeAny,
+              value,
+              lastNode as fixMeAny,
+              key,
+            ]);
+          }
         }
 
         if (key === dangerouslySetInnerHTML) {
@@ -961,3 +999,8 @@ const isQwikStyleElement = (tag: string, attrs: SsrAttrs | null | undefined) => 
 function newTagError(text: string) {
   return new Error('SsrError(tag): ' + text);
 }
+
+function hasDestroy(obj: any): obj is { $destroy$(): void } {
+  return obj && typeof obj === 'object' && typeof obj.$destroy$ === 'function';
+}
+

@@ -26,10 +26,11 @@ import {
 import { maybeThen } from '../../util/promises';
 import { qDev } from '../../util/qdev';
 import type { ValueOrPromise } from '../../util/types';
+import { ChoreType } from '../shared/scheduler';
 import { convertScopedStyleIdsToArray, convertStyleIdsToString } from '../shared/scoped-styles';
 import { _SharedContainer } from '../shared/shared-container';
 import { inflateQRL, parseQRL, wrapDeserializerProxy } from '../shared/shared-serialization';
-import type { HostElement } from '../shared/types';
+import type { HostElement, fixMeAny } from '../shared/types';
 import { VNodeDataChar, VNodeDataSeparator } from '../shared/vnode-data-types';
 import {
   VNodeFlags,
@@ -114,7 +115,12 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
   private $vnodeLocate$: (id: string) => VNode = (id) => vnode_locate(this.rootVNode, id);
 
   constructor(element: ContainerElement) {
-    super(() => this.scheduleRender(), {}, element.getAttribute('q:locale')!);
+    super(
+      () => this.scheduleRender(),
+      () => vnode_applyJournal(this.$journal$),
+      {},
+      element.getAttribute('q:locale')!
+    );
     this.qContainer = element.getAttribute(QContainerAttr)!;
     if (!this.qContainer) {
       throw new Error("Element must have 'q:container' attribute.");
@@ -267,10 +273,9 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
       this.rendering = true;
       this.renderDone = getPlatform().nextTick(() => {
         // console.log('>>>> scheduleRender nextTick', !!this.rendering);
-        return maybeThen(this.$scheduler$.$drainAll$(), () => {
+        return maybeThen(this.$scheduler$(ChoreType.WAIT_FOR_ALL), () => {
+          // console.log('>>>> scheduleRender done', !!this.rendering);
           this.rendering = false;
-          // console.log('>>>> Drain Journal', this.$journal$.length);
-          vnode_applyJournal(this.$journal$);
         });
       });
     }

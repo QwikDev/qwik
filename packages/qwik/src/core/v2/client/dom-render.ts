@@ -3,9 +3,10 @@ import type { RenderOptions, RenderResult } from '../../render/dom/render.public
 import type { FunctionComponent, JSXOutput } from '../../render/jsx/types/jsx-node';
 import { isDocument, isElement } from '../../util/element';
 import { QContainerAttr } from '../../util/markers';
+import { ChoreType } from '../shared/scheduler';
+import type { HostElement, fixMeAny } from '../shared/types';
 import { DomContainer, getDomContainer } from './dom-container';
-import { releaseSubscriptions, vnode_diff } from './vnode-diff';
-import { vnode_applyJournal } from './vnode';
+import { cleanup } from './vnode-diff';
 
 /**
  * Render JSX.
@@ -40,12 +41,12 @@ export const render2 = async (
 
   const container = getDomContainer(parent as HTMLElement) as DomContainer;
   container.$serverData$ = opts.serverData!;
-  await vnode_diff(container, jsxNode as JSXNode, container.rootVNode);
-  vnode_applyJournal(container.$journal$);
-
+  const host: HostElement = container.rootVNode as fixMeAny;
+  container.$scheduler$(ChoreType.NODE_DIFF, host, host, jsxNode as JSXNode);
+  await container.$scheduler$(ChoreType.WAIT_FOR_ALL);
   return {
     cleanup: () => {
-      releaseSubscriptions(container, container.rootVNode);
+      cleanup(container, container.rootVNode);
     },
   };
 };

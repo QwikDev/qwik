@@ -1,17 +1,17 @@
 import { isQwikComponent, type OnRenderFn } from '../../component/component.public';
-import { assertDefined } from '../../error/assert';
+import { assertDefined, assertTrue } from '../../error/assert';
 import { isQrl, type QRLInternal } from '../../qrl/qrl-class';
+import { isJSXNode } from '../../render/jsx/jsx-runtime';
+import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
+import { SubscriptionType } from '../../state/common';
 import { invokeApply, newInvokeContext } from '../../use/use-core';
+import { USE_ON_LOCAL, type UseOnMap } from '../../use/use-on';
+import { SEQ_IDX_LOCAL } from '../../use/use-sequential-scope';
 import { EMPTY_OBJ } from '../../util/flyweight';
 import { ELEMENT_PROPS, OnRenderProp, RenderEvent } from '../../util/markers';
+import { isPromise, safeCall } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
 import type { Container2, HostElement, fixMeAny } from './types';
-import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
-import { isPromise, safeCall } from '../../util/promises';
-import { SEQ_IDX_LOCAL } from '../../use/use-sequential-scope';
-import { SubscriptionType } from '../../state/common';
-import { USE_ON_LOCAL, type UseOnMap } from '../../use/use-on';
-import { isJSXNode } from '../../render/jsx/jsx-runtime';
 
 /**
  * Use `executeComponent2` to execute a component.
@@ -85,8 +85,7 @@ export const executeComponent2 = (
       (jsx) => {
         const useOnEvents = container.getHostProp<UseOnMap>(renderHost, USE_ON_LOCAL);
         useOnEvents && addUseOnEvents(renderHost, jsx, useOnEvents);
-        container.setHostProp(renderHost, JSX_LOCAL, jsx);
-        return container.$scheduler$.$drainComponent$(renderHost);
+        return jsx;
       },
       (err: any) => {
         if (isPromise(err)) {
@@ -110,7 +109,6 @@ export const executeComponent2 = (
  *
  * So when executing a component we only care about its last JSX Output.
  */
-export const JSX_LOCAL = ':jsx';
 
 function addUseOnEvents(host: HostElement, jsx: JSXOutput, useOnEvents: UseOnMap) {
   const jsxElement = findFirstStringJSX(jsx);

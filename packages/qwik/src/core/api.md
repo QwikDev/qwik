@@ -921,6 +921,8 @@ export abstract class _SharedContainer implements Container2 {
     // (undocumented)
     abstract $appendStyle$(content: string, styleId: string, host: HostElement, scoped: boolean): void;
     // (undocumented)
+    $currentUniqueId$: number;
+    // (undocumented)
     readonly $getObjectById$: (id: number | string) => any;
     // (undocumented)
     readonly $locale$: string;

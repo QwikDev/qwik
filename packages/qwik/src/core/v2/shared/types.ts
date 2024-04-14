@@ -21,6 +21,7 @@ export interface Container2 {
   /// Retrieve Object from paused serialized state.
   readonly $getObjectById$: (id: number | string) => any;
   readonly $serverData$: Record<string, any>;
+  $currentUniqueId$: number;
 
   processJsx(host: HostElement, jsx: JSXOutput): ValueOrPromise<void>;
   handleError(err: any, $host$: HostElement): void;
@@ -49,8 +50,10 @@ export interface Container2 {
 export type HostElement = VirtualVNode | ISsrNode;
 
 export interface QElement2 extends HTMLElement {
-  qDispatchEvent?: (event: Event) => boolean;
+  qDispatchEvent?: (event: Event, scope: QwikLoaderEventScope) => boolean;
 }
+
+export type QwikLoaderEventScope = '-document' | '-window' | '';
 
 export const isContainer2 = (container: any): container is Container2 => {
   return container && typeof container === 'object' && typeof container.setHostProp === 'function';

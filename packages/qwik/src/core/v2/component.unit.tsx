@@ -357,6 +357,46 @@ describe.each([
       </span>
     );
   });
+  it('should render correctly text node in the middle', async () => {
+    const Cmp = component$(() => {
+      const signal = useSignal<number>(0);
+      return (
+        <p onClick$={() => (signal.value = 123)}>
+          <b>Test</b>
+          {signal.value + 1}xx<span>{signal.value}</span>xxx<a></a>
+        </p>
+      );
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+    await trigger(document.body, 'p', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <p>
+          <b>Test</b>
+          <Signal>124</Signal>
+          {'xx'}
+          <span>
+            <Signal>123</Signal>
+          </span>
+          {'xxx'}
+          <a></a>
+        </p>
+      </Component>
+    );
+    await expect(document.querySelector('p')).toMatchDOM(
+      <p>
+        <b>Test</b>
+        {'124xx'}
+        <span>123</span>
+        {'xxx'}
+        <a></a>
+      </p>
+    );
+    expect((document.body.firstChild as HTMLElement).innerHTML).toEqual(
+      '<b>Test</b>124xx<span>123</span>xxx<a></a>'
+    );
+  });
 
   describe('svg', () => {
     it('should render svg', async () => {
@@ -647,6 +687,52 @@ describe.each([
               spellcheck={false}
               tabIndex={-1}
             />
+          </Fragment>
+        </Component>
+      );
+    });
+
+    it('should bind checked attribute', async () => {
+      const BindCmp = component$(() => {
+        const show = useSignal(false);
+        return (
+          <>
+            <label for="toggle">
+              <input type="checkbox" bind:checked={show} />
+              Show conditional
+            </label>
+            <div>{show.value.toString()}</div>
+          </>
+        );
+      });
+
+      const { vNode, document } = await render(<BindCmp />, { debug });
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <label for="toggle">
+              <input type="checkbox" checked={false} />
+              {'Show conditional'}
+            </label>
+            <div>false</div>
+          </Fragment>
+        </Component>
+      );
+
+      // simulate checkbox click
+      const input = document.querySelector('input')!;
+      input.checked = true;
+      await trigger(document.body, 'input', 'input');
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <label for="toggle">
+              <input type="checkbox" checked={true} />
+              {'Show conditional'}
+            </label>
+            <div>true</div>
           </Fragment>
         </Component>
       );

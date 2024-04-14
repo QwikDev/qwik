@@ -570,7 +570,6 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     }
     // reconcile attributes
 
-    // TODO: attr order
     const jsxAttrs = [] as ClientAttrs;
     const props = jsx.varProps;
     for (const key in props) {

@@ -2,10 +2,16 @@ import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
 import { component$ } from '../component/component.public';
 import { useSequentialScope } from '../use/use-sequential-scope';
-import { rerenderComponent, ssrRenderToDom } from './rendering.unit-util';
+import { domRender, rerenderComponent, ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
 
-describe('useSequentialScope', () => {
+const debug = false; //true;
+Error.stackTraceLimit = 100;
+
+describe.each([
+  { render: ssrRenderToDom }, //
+  { render: domRender }, //
+])('useSequentialScope', ({ render }) => {
   it('should update value', async () => {
     const MyComp = component$(() => {
       const { set, i, val } = useSequentialScope();
@@ -25,7 +31,7 @@ describe('useSequentialScope', () => {
       );
     });
 
-    const { vNode, container } = await ssrRenderToDom(<MyComp />, { debug: false });
+    const { vNode, container } = await render(<MyComp />, { debug });
     await trigger(container.element, 'button', 'click');
 
     expect(vNode).toMatchVDOM(

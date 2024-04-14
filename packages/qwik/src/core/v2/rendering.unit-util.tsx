@@ -12,7 +12,7 @@ import { ERROR_CONTEXT } from '../render/error-handling';
 import { Slot } from '../render/jsx/slot.public';
 import type { JSXOutput } from '../render/jsx/types/jsx-node';
 import { useContextProvider } from '../use/use-context';
-import { OnRenderProp, QScopedStyle, QStyle } from '../util/markers';
+import { ELEMENT_PROPS, OnRenderProp, QScopedStyle, QStyle } from '../util/markers';
 import { DomContainer, getDomContainer } from './client/dom-container';
 import { render2 } from './client/dom-render';
 import type { ContainerElement, VNode, VirtualVNode } from './client/types';
@@ -28,6 +28,7 @@ import {
 import { codeToName } from './shared/shared-serialization';
 import './vdom-diff.unit-util';
 import { renderToString2 } from '../../server/v2-ssr-render2';
+import { ChoreType } from './shared/scheduler';
 
 export async function domRender(
   jsx: JSXOutput,
@@ -189,15 +190,14 @@ export async function rerenderComponent(element: HTMLElement) {
   const vElement = vnode_locate(container.rootVNode, element);
   const host = getHostVNode(vElement)!;
   const qrl = container.getHostProp<QRL<OnRenderFn<any>>>(host, OnRenderProp)!;
-  const props = container.getHostProp(host, 'props');
-  container.$scheduler$.$scheduleComponent$(host, qrl, props);
-  container.$scheduler$.$drainAll$();
+  const props = container.getHostProp(host, ELEMENT_PROPS);
+  await container.$scheduler$(ChoreType.COMPONENT, host, qrl, props);
   await getTestPlatform().flush();
 }
 
 function getHostVNode(vElement: VNode | null) {
   while (vElement != null) {
-    if (typeof vnode_getAttr(vElement, OnRenderProp) == 'string') {
+    if (vnode_getAttr(vElement, OnRenderProp) != null) {
       return vElement as VirtualVNode;
     }
     vElement = vnode_getParent(vElement);

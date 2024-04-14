@@ -351,7 +351,7 @@ describe.each([
         const count = useSignal(0);
         useVisibleTask$(({ track }) => {
           const _count = track(() => count.value);
-          (globalThis as any).log.push('task: ' + _count);
+          (globalThis as any).log.push('visible task: ' + _count);
           return () => (globalThis as any).log.push('cleanup: ' + _count);
         });
         (globalThis as any).log.push('Counter: ' + count.value);
@@ -370,7 +370,7 @@ describe.each([
       if (render === ssrRenderToDom) {
         await trigger(document.body, 'button', 'qvisible');
       }
-      expect((globalThis as any).log).toEqual(['Counter: 0', 'task: 0']);
+      expect((globalThis as any).log).toEqual(['Counter: 0', 'visible task: 0']);
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
@@ -390,7 +390,7 @@ describe.each([
       );
       (globalThis as any).log = [];
       await trigger(document.body, 'button', 'click');
-      expect((globalThis as any).log).toEqual(['cleanup: 1', 'task: 2', 'Counter: 2']);
+      expect((globalThis as any).log).toEqual(['Counter: 2', 'cleanup: 1', 'visible task: 2']);
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
@@ -499,6 +499,7 @@ describe.each([
       const { vNode, document } = await render(<MyComp />, { debug });
 
       if (render === ssrRenderToDom) {
+        console.log('>>>>>>');
         await trigger(document.body, 'p', 'qvisible');
       }
       expect(vNode).toMatchVDOM(
@@ -506,12 +507,32 @@ describe.each([
           <p>
             Should have a number: "
             <Fragment>
-              <Signal>{render == ssrRenderToDom ? '0' : '2'}</Signal>
+              <Signal>{'2'}</Signal>
             </Fragment>
             "
           </p>
         </Component>
       );
+    });
+  });
+
+  describe('ref', () => {
+    it('should handle ref prop', async () => {
+      const Cmp = component$(() => {
+        const v = useSignal<Element>();
+        useVisibleTask$(() => {
+          v.value!.textContent = 'Abcd';
+        });
+        return <p ref={v}>Hello Qwik</p>;
+      });
+
+      const { document } = await render(<Cmp />, { debug });
+
+      if (render === ssrRenderToDom) {
+        await trigger(document.body, 'p', 'qvisible');
+      }
+
+      await expect(document.querySelector('p')).toMatchDOM(<p>Abcd</p>);
     });
   });
 });

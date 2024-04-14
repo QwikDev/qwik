@@ -36,6 +36,7 @@ import { isContainer2, type Container2, type HostElement, type fixMeAny } from '
 import { invoke, newInvokeContext, untrack, waitAndRun } from './use-core';
 import { useOn, useOnDocument } from './use-on';
 import { useSequentialScope } from './use-sequential-scope';
+import { ChoreType } from '../v2/shared/scheduler';
 
 export const TaskFlagsIsVisibleTask = 1 << 0;
 export const TaskFlagsIsTask = 1 << 1;
@@ -389,7 +390,6 @@ export const runTask2 = (
             }
           });
         });
-        container.$scheduler$.$scheduleCleanup$(task as fixMeAny);
       }
       cleanupFns.push(fn);
     }
@@ -609,7 +609,10 @@ export const useVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions)
     useRunTask(task, eagerness);
     if (!isServerPlatform()) {
       qrl.$resolveLazy$(iCtx.$hostElement$ as fixMeAny);
-      iCtx.$container2$.$scheduler$.$scheduleTask$(task);
+      iCtx.$container2$.$scheduler$(
+        task.$flags$ & TaskFlagsIsVisibleTask ? ChoreType.VISIBLE : ChoreType.TASK,
+        task
+      );
     }
   } else {
     const task = new Task(TaskFlagsIsVisibleTask, i, elCtx.$element$, qrl, undefined, null);

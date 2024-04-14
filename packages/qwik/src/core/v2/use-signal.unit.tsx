@@ -130,7 +130,7 @@ describe.each([
     );
   });
   it('should render promise values', async () => {
-    const MpCmp = component$(() => {
+    const MyCmp = component$(() => {
       const promise = Promise.resolve('const ');
       const signal = useSignal(Promise.resolve(0));
       return (
@@ -141,7 +141,7 @@ describe.each([
       );
     });
 
-    const { vNode, container, document } = await render(<MpCmp />, { debug });
+    const { vNode, container, document } = await render(<MyCmp />, { debug });
     expect(vNode).toMatchVDOM(
       <Component>
         <button key="0">

@@ -21,7 +21,8 @@ describe('v2 client render', () => {
   });
   it('should render void element correctly', async () => {
     const { vNode, container } = await clientRender(
-      <meta content="dark light" name="color-scheme" />
+      <meta content="dark light" name="color-scheme" />,
+      'head'
     );
     expect(vnode_getFirstChild(vNode)).toMatchVDOM(
       <meta content="dark light" name="color-scheme" />
@@ -148,11 +149,12 @@ describe('v2 client render', () => {
   });
 });
 
-async function clientRender(jsx: JSXOutput) {
+async function clientRender(jsx: JSXOutput, rootSelector: string = 'body') {
   const document = createDocument();
-  await render2(document.body, jsx);
+  const root = document.querySelector(rootSelector)!;
+  await render2(root, jsx);
   await getTestPlatform().flush();
-  const containerElement = document.body as ContainerElement;
+  const containerElement = root as ContainerElement;
   const container = containerElement.qContainer!;
   return {
     container,

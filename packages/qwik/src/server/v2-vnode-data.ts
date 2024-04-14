@@ -1,5 +1,6 @@
 import { type ISsrNode, type SsrAttrs } from './qwik-types';
 import { SsrNode, type SsrNodeType } from './v2-node';
+import type { CleanupQueue } from './v2-ssr-container';
 
 /**
  * Array of numbers which describes virtual nodes in the tree.
@@ -88,7 +89,8 @@ export function vNodeData_closeFragment(vNodeData: VNodeData) {
 export function vNodeData_createSsrNodeReference(
   currentComponentNode: ISsrNode | null,
   vNodeData: VNodeData,
-  depthFirstElementIdx: number
+  depthFirstElementIdx: number,
+  cleanupQueue: CleanupQueue
 ): ISsrNode {
   vNodeData[0] |= VNodeDataFlag.REFERENCE;
   if (vNodeData.length == 1) {
@@ -97,7 +99,8 @@ export function vNodeData_createSsrNodeReference(
       currentComponentNode,
       SsrNode.ELEMENT_NODE,
       String(depthFirstElementIdx),
-      EMPTY_ARRAY
+      EMPTY_ARRAY,
+      cleanupQueue
     );
   } else {
     let fragmentAttrs: SsrAttrs = EMPTY_ARRAY;
@@ -133,7 +136,7 @@ export function vNodeData_createSsrNodeReference(
       }
     }
     const type = stack[stack.length - 2] as SsrNodeType;
-    return new SsrNode(currentComponentNode, type, refId, fragmentAttrs);
+    return new SsrNode(currentComponentNode, type, refId, fragmentAttrs, cleanupQueue);
   }
 }
 

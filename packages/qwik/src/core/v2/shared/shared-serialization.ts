@@ -37,7 +37,7 @@ import { throwErrorAndStop } from '../../util/log';
 import { isPromise } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
 import type { DomContainer } from '../client/dom-container';
-import { vnode_isVNode, vnode_locate } from '../client/vnode';
+import { vnode_getNode, vnode_isVNode, vnode_locate } from '../client/vnode';
 import type { SymbolToChunkResolver } from '../ssr/ssr-types';
 import { ELEMENT_ID } from '../../util/markers';
 
@@ -281,9 +281,13 @@ const inflate = (container: DomContainer, target: any, needsInflationData: strin
       const signal = target as SignalImpl<unknown>;
       const semiIdx = rest.indexOf(';');
       const manager = (signal[QObjectManagerSymbol] = container.$subsManager$.$createManager$());
-      signal.untrackedValue = container.$getObjectById$(
+      let signalValue = container.$getObjectById$(
         rest.substring(1, semiIdx === -1 ? rest.length : semiIdx)
       );
+      if (vnode_isVNode(signalValue)) {
+        signalValue = vnode_getNode(signalValue);
+      }
+      signal.untrackedValue = signalValue;
       if (semiIdx > 0) {
         subscriptionManagerFromString(
           manager,

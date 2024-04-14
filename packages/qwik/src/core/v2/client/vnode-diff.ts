@@ -1,7 +1,7 @@
 import { isDev } from '@builder.io/qwik/build';
 import { type OnRenderFn } from '../../component/component.public';
 import { SERIALIZABLE_STATE } from '../../container/serializers';
-import { assertDefined, assertFalse } from '../../error/assert';
+import { assertDefined, assertFalse, assertTrue } from '../../error/assert';
 import type { QRLInternal } from '../../qrl/qrl-class';
 import type { QRL } from '../../qrl/qrl.public';
 import { dangerouslySetInnerHTML, serializeAttribute } from '../../render/execute-component';
@@ -34,6 +34,7 @@ import {
   isHtmlAttributeAnEventName,
   isJsxPropertyAnEventName,
 } from '../shared/event-names';
+import { ChoreType } from '../shared/scheduler';
 import { hasClassAttr } from '../shared/scoped-styles';
 import type { QElement2, QwikLoaderEventScope, fixMeAny } from '../shared/types';
 import { DEBUG_TYPE, VirtualType } from '../shared/types';
@@ -68,6 +69,7 @@ import {
   vnode_insertBefore,
   vnode_isElementVNode,
   vnode_isTextVNode,
+  vnode_isVNode,
   vnode_isVirtualVNode,
   vnode_locate,
   vnode_newElement,
@@ -146,6 +148,8 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
   //////////////////////////////////////////////
 
   function diff(jsxNode: JSXOutput, vStartNode: VNode) {
+    assertFalse(vnode_isVNode(jsxNode), 'JSXNode should not be a VNode');
+    assertTrue(vnode_isVNode(vStartNode), 'vStartNode should be a VNode');
     vParent = vStartNode;
     vNewNode = null;
     vCurrent = vnode_getFirstChild(vStartNode);
@@ -418,8 +422,10 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
         (vNewNode = vnode_newVirtual()),
         vCurrent && getInsertBefore()
       );
+      vnode_setProp(vNewNode, QSlot, slotNameKey);
+      vHost && vnode_setProp(vHost, slotNameKey, vNewNode);
       isDev && vnode_setProp(vNewNode, DEBUG_TYPE, VirtualType.Projection);
-      isDev && vnode_setProp(vNewNode, 'q:code', 'expectSlot');
+      isDev && vnode_setProp(vNewNode, 'q:code', 'expectSlot' + count++);
       return false;
     } else if (vProjectedNode === vCurrent) {
       // All is good.
@@ -455,7 +461,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     if (vChild !== null) {
       vnode_truncate(journal, vCurrent as ElementVNode | VirtualVNode, vChild);
       while (vChild) {
-        container.$scheduler$.$drainCleanup$(vChild as fixMeAny);
+        cleanup(container, vChild);
         vChild = vnode_getNextSibling(vChild);
       }
     }
@@ -467,7 +473,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     if (vCurrent !== null) {
       let vCleanup: VNode | null = vCurrent;
       while (vCleanup) {
-        releaseSubscriptions(container, vCleanup);
+        cleanup(container, vCleanup);
         const next = vnode_getNextSibling(vCleanup);
         vnode_remove(journal, vParent as ElementVNode | VirtualVNode, vCleanup, true);
         vCleanup = next;
@@ -477,11 +483,10 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
 
   function expectNoMoreTextNodes() {
     while (vCurrent !== null && vnode_getType(vCurrent) === 3 /* Text */) {
-      releaseSubscriptions(container, vCurrent);
+      cleanup(container, vCurrent);
       const next = vnode_getNextSibling(vCurrent);
       vnode_remove(journal, vParent, vCurrent, true);
       vCurrent = next;
-      container.$scheduler$.$drainCleanup$(vCurrent as fixMeAny);
     }
   }
 
@@ -628,6 +633,10 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     const record = (key: string, value: any) => {
       if (key.startsWith(':')) {
         vnode_setProp(vnode, key, value);
+        return;
+      }
+      if (key === 'ref') {
+        value.value = vnode_getNode(vnode);
         return;
       }
       vnode_setAttr(journal, vnode, key, value);
@@ -837,10 +846,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       const vNodeProps = vnode_getProp<any>(host, ELEMENT_PROPS, container.$getObjectById$);
       shouldRender = shouldRender || propsDiffer(jsxProps, vNodeProps);
       if (shouldRender) {
-        const jsx = container.$scheduler$
-          .$scheduleComponent$(host, componentQRL, jsxProps)
-          .$drainComponent$(host);
-        asyncQueue.push(jsx, host);
+        container.$scheduler$(ChoreType.COMPONENT, host, componentQRL, jsxProps);
       }
       descendContentToProject(jsxValue.children);
     } else {
@@ -1000,7 +1006,7 @@ function removeChildrenKey(keys: string[]): string[] {
  * - Projection nodes by not recursing into them.
  * - Component nodes by recursing into the component content nodes (which may be projected).
  */
-export function releaseSubscriptions(container: ClientContainer, vNode: VNode) {
+export function cleanup(container: ClientContainer, vNode: VNode) {
   let vCursor: VNode | null = vNode;
   // Depth first traversal
   if (vnode_isTextVNode(vNode)) {
@@ -1044,7 +1050,7 @@ export function releaseSubscriptions(container: ClientContainer, vNode: VNode) {
                 typeof value === 'string'
                   ? vnode_locate(container.rootVNode, value)
                   : (value as any as VNode);
-              releaseSubscriptions(container, vNode);
+              cleanup(container, vNode);
             }
           }
         }
@@ -1097,3 +1103,4 @@ export function releaseSubscriptions(container: ClientContainer, vNode: VNode) {
  * of them. This character must be `:` so that the `vnode_getAttr` can ignore them.
  */
 const HANDLER_PREFIX = ':';
+let count = 0;

@@ -26,6 +26,7 @@ import {
 import { maybeThen } from '../../util/promises';
 import { qDev } from '../../util/qdev';
 import type { ValueOrPromise } from '../../util/types';
+import { ChoreType } from '../shared/scheduler';
 import { convertScopedStyleIdsToArray, convertStyleIdsToString } from '../shared/scoped-styles';
 import { _SharedContainer } from '../shared/shared-container';
 import { inflateQRL, parseQRL, wrapDeserializerProxy } from '../shared/shared-serialization';
@@ -271,7 +272,8 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
       this.rendering = true;
       this.renderDone = getPlatform().nextTick(() => {
         // console.log('>>>> scheduleRender nextTick', !!this.rendering);
-        return maybeThen(this.$scheduler$.$drainAll$(), () => {
+        return maybeThen(this.$scheduler$(ChoreType.WAIT_FOR_ALL), () => {
+          // console.log('>>>> scheduleRender done', !!this.rendering);
           this.rendering = false;
         });
       });

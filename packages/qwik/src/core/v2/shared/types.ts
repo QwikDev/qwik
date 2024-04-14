@@ -22,6 +22,7 @@ export interface Container2 {
   readonly $getObjectById$: (id: number | string) => any;
   readonly $serverData$: Record<string, any>;
 
+  // TODO(misko): I think `processJsx` can be deleted.
   processJsx(host: HostElement, jsx: JSXOutput): ValueOrPromise<void>;
   handleError(err: any, $host$: HostElement): void;
   getParentHost(host: HostElement): HostElement | null;

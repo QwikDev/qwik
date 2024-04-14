@@ -126,6 +126,12 @@ interface ContainerElementFrame {
 
 const EMPTY_OBJ = {};
 
+/**
+ * Stores sequential sequence arrays, which in turn store Tasks which have cleanup functions which
+ * need to be executed at the end of SSR.
+ */
+export type CleanupQueue = any[][];
+
 class SSRContainer extends _SharedContainer implements ISSRContainer {
   public tag: string;
   public writer: StreamWriter;
@@ -154,6 +160,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private vNodeData: VNodeData[] = [];
   private componentStack: ISsrComponentFrame[] = [];
   private unclaimedProjections: Array<ISsrNode | string | JSXChildren> = [];
+  private cleanupQueue: CleanupQueue = [];
 
   constructor(opts: Required<Required<Parameters<typeof ssrCreateContainer>>[0]>) {
     super(
@@ -183,7 +190,13 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   ensureProjectionResolved(host: HostElement): void {}
 
-  processJsx(host: HostElement, jsx: JSXOutput): void {}
+  processJsx(host: HostElement, jsx: JSXOutput): void {
+    /**
+     * During SSR the output needs to be streamed. So we should never get here, because we can't
+     * process JSX out of order.
+     */
+    throw new Error('Should not get here.');
+  }
 
   handleError(err: any, $host$: HostElement): void {
     throw err;
@@ -267,7 +280,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   closeContainer(): ValueOrPromise<void> {
-    this.$scheduler$.$drainCleanup$(null);
     return this.closeElement();
   }
 
@@ -301,6 +313,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       (currentFrame.parent === null && currentFrame.tagNesting !== TagNesting.HTML) ||
       currentFrame.tagNesting === TagNesting.BODY
     ) {
+      this.drainCleanupQueue();
       this.timing.render = this.renderTimer();
       const snapshotTimer = createTimer();
       return maybeThen(
@@ -311,6 +324,17 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       );
     }
     this._closeElement();
+  }
+  drainCleanupQueue() {
+    for (let i = 0; i < this.cleanupQueue.length; i++) {
+      const sequences = this.cleanupQueue[i];
+      for (let j = 0; j < sequences.length; j++) {
+        const item = sequences[j];
+        if (hasDestroy(item)) {
+          item.$destroy$();
+        }
+      }
+    }
   }
 
   private _closeElement() {
@@ -402,7 +426,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         this.currentComponentNode,
         this.currentElementFrame!.vNodeData,
         // we start at -1, so we need to add +1
-        this.currentElementFrame!.depthFirstElementIdx + 1
+        this.currentElementFrame!.depthFirstElementIdx + 1,
+        this.cleanupQueue
       );
     }
     return this.lastNode!;
@@ -963,3 +988,8 @@ const isQwikStyleElement = (tag: string, attrs: SsrAttrs | null | undefined) => 
 function newTagError(text: string) {
   return new Error('SsrError(tag): ' + text);
 }
+
+function hasDestroy(obj: any): obj is { $destroy$(): void } {
+  return obj && typeof obj === 'object' && typeof obj.$destroy$ === 'function';
+}
+

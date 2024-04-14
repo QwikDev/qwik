@@ -13,6 +13,8 @@
  *   file lists code which we are OK to have duplicated.
  */
 
+export { serializeAttribute } from '../core/render/execute-component';
+export { SubscriptionType } from '../core/state/common';
 export {
   ELEMENT_ID,
   ELEMENT_KEY,
@@ -26,14 +28,12 @@ export {
   QSlotRef,
   QStyle,
 } from '../core/util/markers';
-export { mapApp_remove, mapArray_get, mapArray_set } from '../core/v2/client/vnode';
 export { maybeThen } from '../core/util/promises';
-export { DEBUG_TYPE, VirtualType } from '../core/v2/shared/types';
+export { mapApp_remove, mapArray_get, mapArray_set } from '../core/v2/client/vnode';
 export {
   convertStyleIdsToString,
   getScopedStyleIdsAsPrefix,
   isClassAttr,
 } from '../core/v2/shared/scoped-styles';
-export { SubscriptionType } from '../core/state/common';
-export { serializeAttribute } from '../core/render/execute-component';
+export { DEBUG_TYPE, VirtualType } from '../core/v2/shared/types';
 export { VNodeDataChar } from '../core/v2/shared/vnode-data-types';

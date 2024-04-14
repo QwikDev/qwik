@@ -1,7 +1,15 @@
 import { _isJSXNode as isJSXNode } from '@builder.io/qwik';
 import { isDev } from '@builder.io/qwik/build';
-import { QSlot, QSlotParent, mapApp_remove, mapArray_get, mapArray_set } from './qwik-copy';
+import {
+  QSlot,
+  QSlotParent,
+  mapApp_remove,
+  mapArray_get,
+  mapArray_set,
+  ELEMENT_SEQ,
+} from './qwik-copy';
 import type { JSXChildren, SsrAttrs, ISsrNode, ISsrComponentFrame } from './qwik-types';
+import type { CleanupQueue } from './v2-ssr-container';
 
 /**
  * Server has no DOM, so we need to create a fake node to represent the DOM for serialization
@@ -35,7 +43,8 @@ export class SsrNode implements ISsrNode {
     currentComponentNode: ISsrNode | null,
     nodeType: SsrNodeType,
     id: string,
-    private attrs: SsrAttrs
+    private attrs: SsrAttrs,
+    private cleanupQueue: CleanupQueue
   ) {
     this.currentComponentNode = currentComponentNode;
     this.nodeType = nodeType;
@@ -50,6 +59,11 @@ export class SsrNode implements ISsrNode {
       mapArray_set(this.locals || (this.locals = []), name, value, 0);
     } else {
       mapArray_set(this.attrs, name, value, 0);
+    }
+    if (name == ELEMENT_SEQ && value) {
+      // Sequential Arrays contain Tasks. And Tasks contain cleanup functions.
+      // We need to collect these cleanup functions and run them when the rendering is done.
+      this.cleanupQueue.push(value);
     }
   }
 

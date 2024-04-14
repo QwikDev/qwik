@@ -80,43 +80,45 @@
  *   declaration order within component.
  */
 
-import { componentQrl, type OnRenderFn } from '../../component/component.public';
+import { assertEqual } from '../../error/assert';
 import type { QRLInternal } from '../../qrl/qrl-class';
 import type { QRL } from '../../qrl/qrl.public';
 import type { JSXOutput } from '../../render/jsx/types/jsx-node';
 import {
   Task,
   TaskFlagsIsDirty,
-  TaskFlagsIsVisibleTask,
   runComputed2,
   runSubscriber2,
   type TaskFn,
-  type useTaskQrl,
 } from '../../use/use-task';
 import { maybeThen, maybeThenPassError, safeCall } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
 import type { VirtualVNode } from '../client/types';
-import { vnode_documentPosition, vnode_isChildOf, vnode_isVNode } from '../client/vnode';
+import { vnode_documentPosition, vnode_isVNode } from '../client/vnode';
 import { vnode_diff } from '../client/vnode-diff';
-import { JSX_LOCAL, executeComponent2 } from './component-execution';
+import { executeComponent2 } from './component-execution';
 import type { Container2, HostElement, fixMeAny } from './types';
+import { isPromise } from 'util/types';
 
-// eslint-disable-next-line no-console
-const DEBUG: false | ((...args: any[]) => void) = false; // (...args: any) => console.log(...args);
+// Turn this on to get debug output of what the scheduler is doing.
+const DEBUG: boolean = false;
 
 export const enum ChoreType {
   /// MASKS defining three levels of sorting
-  MACRO /* ********* */ = 0xf0,
-  MICRO /* ********* */ = 0x0f,
+  MACRO /* ***************** */ = 0b111_000,
+  /* order of elements (not encoded here) */
+  MICRO /* ***************** */ = 0b000_111,
 
-  COMPUTED /* ****** */ = 0x11,
-  RESOURCE /* ****** */ = 0x12,
-  TASK /* ********** */ = 0x13,
-  NODE_DIFF /* ***** */ = 0x14,
-  COMPONENT /* ***** */ = 0x15,
-  JOURNAL_FLUSH /* * */ = 0x20,
-  VISIBLE /* ******* */ = 0x30,
-  CLEANUP /* ******* */ = 0x90,
+  COMPUTED /* ************** */ = 0b000_001,
+  RESOURCE /* ************** */ = 0b000_010,
+  TASK /* ****************** */ = 0b000_011,
+  NODE_DIFF /* ************* */ = 0b000_100,
+  COMPONENT_SSR /* ********* */ = 0b000_101,
+  COMPONENT /* ************* */ = 0b000_110,
+  WAIT_FOR_COMPONENTS /* *** */ = 0b001_000,
+  JOURNAL_FLUSH /* ********* */ = 0b010_000,
+  VISIBLE /* *************** */ = 0b011_000,
+  WAIT_FOR_ALL /* ********** */ = 0b111_111,
 }
 
 export interface Chore {
@@ -125,6 +127,9 @@ export interface Chore {
   $host$: HostElement;
   $target$: HostElement | QRLInternal<(...args: unknown[]) => unknown> | null;
   $payload$: unknown;
+  $resolve$: (value: any) => void;
+  $promise$: Promise<any>;
+  $returnValue$: any;
 }
 
 export type Scheduler = ReturnType<typeof createScheduler>;
@@ -135,194 +140,128 @@ export const createScheduler = (
   journalFlush: () => void
 ) => {
   const choreQueue: Chore[] = [];
-  const hostElementCleanupQueue: HostElement[] = [];
-  let drainResolve: ((value: void) => void) | null = null;
 
-  const api = {
-    $scheduleTask$: scheduleTask,
-    $scheduleComputed$: scheduleComputed,
-    $scheduleNodeDiff$: scheduleNodeDiff,
-    $scheduleCleanup$: scheduleCleanup,
-    $scheduleComponent$: scheduleComponent,
-    $schedule$: schedule,
-    $drainAll$: drainAll,
-    $drainCleanup$: drainCleanup,
-    $drainComponent$: drainComponent,
-    $empty$: Promise.resolve(),
-  };
-  return api;
+  let currentChore: Chore | null = null;
+  let journalFlushScheduled: boolean = false;
+
+  return schedule;
 
   ////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////
 
-  function scheduleTask(task: Task) {
-    // console.log('scheduleTask', task.$qrl$.$symbol$, task.$flags$ & TaskFlagsIsDirty);
-    task.$flags$ |= TaskFlagsIsDirty;
-    schedule(
-      task.$flags$ & TaskFlagsIsVisibleTask ? ChoreType.VISIBLE : ChoreType.TASK,
-      task.$el$ as fixMeAny,
-      task.$qrl$ as fixMeAny,
-      task.$index$,
-      task
-    );
-    return api;
-  }
-
-  function scheduleComputed(task: Task) {
-    schedule(ChoreType.COMPUTED, task.$el$ as fixMeAny, task.$qrl$ as fixMeAny, task.$index$, task);
-    return api;
-  }
-
-  function scheduleNodeDiff(element: HostElement, target: HostElement, value: JSXOutput) {
-    schedule(ChoreType.NODE_DIFF, element as fixMeAny, target, 0, value);
-    return api;
-  }
-
-  function scheduleCleanup(task: Task) {
-    schedule(ChoreType.CLEANUP, task.$el$ as fixMeAny, task.$qrl$ as fixMeAny, task.$index$, task);
-    return api;
-  }
-
-  function scheduleComponent(
-    hostElement: HostElement,
-    componentQrl: QRL<OnRenderFn<any>>,
-    props: any
-  ) {
-    schedule(ChoreType.COMPONENT, hostElement, componentQrl, Number.MAX_SAFE_INTEGER, props);
-    return api;
-  }
-
-  function schedule(type: ChoreType.JOURNAL_FLUSH): void;
+  function schedule(type: ChoreType.JOURNAL_FLUSH): ValueOrPromise<void>;
+  function schedule(type: ChoreType.WAIT_FOR_ALL): ValueOrPromise<void>;
+  function schedule(type: ChoreType.WAIT_FOR_COMPONENTS): ValueOrPromise<void>;
+  /**
+   * Schedule rendering of a component.
+   *
+   * @param type
+   * @param host - Host element where the component is being rendered.
+   * @param qrl - QRL of the component to render.
+   * @param props- Props to pass to the component.
+   * @param waitForChore? = false
+   */
+  function schedule(type: ChoreType.TASK | ChoreType.VISIBLE, task: Task): ValueOrPromise<void>;
   function schedule(
-    type: ChoreType.TASK | ChoreType.VISIBLE,
+    type: ChoreType.COMPONENT,
     host: HostElement,
-    qrl: Parameters<typeof useTaskQrl>[0],
-    idx: number,
-    task: Task
-  ): void;
+    qrl: QRL,
+    props: any
+  ): ValueOrPromise<JSXOutput>;
+  function schedule(
+    type: ChoreType.COMPONENT_SSR,
+    host: HostElement,
+    qrl: QRL,
+    props: any
+  ): ValueOrPromise<JSXOutput>;
+  function schedule(type: ChoreType.COMPUTED, task: Task): ValueOrPromise<void>;
   function schedule(
     type: ChoreType.NODE_DIFF,
     host: HostElement,
     target: HostElement,
-    idx: 0,
-    value: any
-  ): void;
-  function schedule(
-    type: ChoreType.CLEANUP,
-    host: HostElement,
-    qrl: Parameters<typeof useTaskQrl>[0],
-    idx: number,
-    task: Task
-  ): void;
-  function schedule(
-    type: ChoreType.COMPONENT,
-    host: HostElement,
-    qrl: Parameters<typeof componentQrl>[0],
-    idx: number,
-    props: any
-  ): void;
-  function schedule(
-    type: ChoreType.COMPUTED,
-    host: HostElement,
-    qrl: QRL<OnRenderFn<any>>,
-    idx: number,
-    task: Task
-  ): void;
+    value: JSXOutput
+  ): ValueOrPromise<void>;
+  ///// IMPLEMENTATION /////
   function schedule(
     type: ChoreType,
-    host: HostElement = null!,
-    target: HostElement | QRL<(...args: any[]) => any> | null = null,
-    idx: number | string = 0,
-    payload: unknown = null
-  ) {
-    const chore: Chore = {
-      $type$: type,
-      $idx$: idx,
-      $host$: host,
-      $target$: target as any,
-      $payload$: payload,
-    };
-    if (type == ChoreType.CLEANUP) {
-      let hostChoreQueue = container.getHostProp<Chore[]>(host, CLEANUP_LOCAL);
-      if (!hostChoreQueue) {
-        container.setHostProp(host, CLEANUP_LOCAL, (hostChoreQueue = []));
-      }
-      sortedInsert(hostChoreQueue, chore, intraHostPredicate, choreUpdate);
-      sortedInsert(hostElementCleanupQueue, host, hostElementPredicate);
-    } else {
-      sortedInsert(choreQueue, chore, schedulePredicate, choreUpdate);
+    hostOrTask: HostElement | Task = null!,
+    targetOrQrl: HostElement | QRL<(...args: any[]) => any> | null = null,
+    payload: any = null
+  ): ValueOrPromise<any> {
+    const runLater: boolean =
+      type !== ChoreType.WAIT_FOR_ALL &&
+      type !== ChoreType.WAIT_FOR_COMPONENTS &&
+      type !== ChoreType.COMPONENT_SSR;
+    const isTask =
+      type === ChoreType.TASK || type === ChoreType.VISIBLE || type === ChoreType.COMPUTED;
+    if (isTask) {
+      (hostOrTask as Task).$flags$ |= TaskFlagsIsDirty;
     }
-    DEBUG &&
-      DEBUG('scheduler.schedule', debugChoreToString(chore), choreQueue.map(debugChoreToString));
-    if (!drainResolve) {
-      DEBUG && DEBUG('scheduler.scheduleDrain()');
+    let chore: Chore = {
+      $type$: type,
+      $idx$: isTask ? (hostOrTask as Task).$index$ : 0,
+      $host$: isTask ? ((hostOrTask as Task).$el$ as fixMeAny) : (hostOrTask as HostElement),
+      $target$: targetOrQrl as any,
+      $payload$: isTask ? hostOrTask : payload,
+      $resolve$: null!,
+      $promise$: null!,
+      $returnValue$: null,
+    };
+    chore.$promise$ = new Promise((resolve) => (chore.$resolve$ = resolve));
+    DEBUG && debugTrace('schedule', chore, currentChore, choreQueue);
+    chore = sortedInsert(choreQueue, chore, choreComparator, choreUpdate);
+    if (!journalFlushScheduled && runLater) {
+      // If we are not currently draining, we need to schedule a drain.
+      journalFlushScheduled = true;
+      schedule(ChoreType.JOURNAL_FLUSH);
       scheduleDrain();
     }
+    if (runLater) {
+      return chore.$promise$;
+    } else {
+      return drainUpTo(chore);
+    }
   }
 
-  function drainAll(uptoComponent?: HostElement): ValueOrPromise<void> {
-    DEBUG &&
-      DEBUG(
-        'scheduler.drainAll',
-        String(uptoComponent).replaceAll(/\n.*/gim, ''),
-        choreQueue.map(debugChoreToString)
-      );
-    if (!drainResolve) {
-      api.$empty$ = new Promise<void>((resolve) => (drainResolve = resolve));
+  /**
+   * Execute all of the chores up to and including the given chore.
+   *
+   * @param runUptoChore
+   */
+  function drainUpTo(runUptoChore: Chore): ValueOrPromise<unknown> {
+    if (currentChore) {
+      // Already running chore
+      return runUptoChore.$promise$;
     }
     while (choreQueue.length) {
-      if (uptoComponent && !isComponentInQueue(uptoComponent)) {
+      const nextChore = choreQueue.shift()!;
+      const comp = choreComparator(nextChore, runUptoChore);
+      if (comp > 0) {
+        // we have processed all of the chores up to the given chore.
         break;
       }
-      const chore = choreQueue.shift()!;
-      return maybeThenPassError(executeChore(chore), () => drainAll(uptoComponent));
-    }
-    const resolve = drainResolve!;
-    drainResolve = null;
-    DEBUG && DEBUG('scheduler.drainAll.DONE', choreQueue.map(debugChoreToString));
-    resolve && resolve();
-  }
-
-  function isComponentInQueue(host: HostElement): boolean {
-    for (let i = 0; i < choreQueue.length; i++) {
-      const chore = choreQueue[i];
-      if (chore.$host$ === host) {
-        return true;
+      const returnValue = executeChore(nextChore);
+      if (isPromise(returnValue)) {
+        return returnValue.then(() => drainUpTo(runUptoChore));
       }
     }
-    return false;
+    return runUptoChore.$returnValue$;
   }
 
-  function drainComponent(host: HostElement): ValueOrPromise<JSXOutput> {
-    return maybeThenPassError(drainAll(host), () =>
-      container.getHostProp<JSXOutput>(host, JSX_LOCAL)
-    )!;
-  }
-
-  function drainCleanup(host: HostElement | null) {
-    let idx = host ? sortedFindIndex(hostElementCleanupQueue, host, hostElementPredicate) : 0;
-    if (idx < 0) {
-      idx = ~idx;
-    }
-
-    while (hostElementCleanupQueue.length > idx) {
-      const hostElement = hostElementCleanupQueue[idx];
-      if (host === null || vnode_isChildOf(host as fixMeAny, hostElement as fixMeAny)) {
-        hostElementCleanupQueue.splice(idx, idx + 1);
-        const hostChores = container.getHostProp<Chore[]>(hostElement, CLEANUP_LOCAL);
-        hostChores && hostChores.forEach(executeChore);
-      }
-    }
-  }
-
-  function executeChore(chore: Chore) {
+  function executeChore(chore: Chore): ValueOrPromise<any> {
     const host = chore.$host$;
-    DEBUG && DEBUG('scheduler.EXECUTE', debugChoreToString(chore));
+    DEBUG && debugTrace('execute', chore, currentChore, choreQueue);
+    assertEqual(currentChore, null, 'Chore already running.');
+    currentChore = chore;
+    let returnValue: ValueOrPromise<unknown> | unknown = null;
     switch (chore.$type$) {
       case ChoreType.JOURNAL_FLUSH:
-        return journalFlush();
+        returnValue = journalFlush();
+        journalFlushScheduled = false;
+        break;
       case ChoreType.COMPONENT:
-        return safeCall(
+      case ChoreType.COMPONENT_SSR:
+        returnValue = safeCall(
           () =>
             executeComponent2(
               container,
@@ -331,28 +270,34 @@ export const createScheduler = (
               chore.$target$ as fixMeAny,
               chore.$payload$ as fixMeAny
             ),
-          (jsx) =>
-            maybeThen(container.processJsx(host, jsx), () => schedule(ChoreType.JOURNAL_FLUSH)),
+          (jsx) => {
+            return chore.$type$ === ChoreType.COMPONENT
+              ? maybeThen(container.processJsx(host, jsx), () => jsx)
+              : jsx;
+          },
           (err: any) => container.handleError(err, host)
         );
+        break;
       case ChoreType.COMPUTED:
-        return runComputed2(chore.$payload$ as Task<TaskFn, TaskFn>, container, host);
+        returnValue = runComputed2(chore.$payload$ as Task<TaskFn, TaskFn>, container, host);
+        break;
       case ChoreType.TASK:
       case ChoreType.VISIBLE:
-        return runSubscriber2(chore.$payload$ as Task<TaskFn, TaskFn>, container, host);
+        returnValue = runSubscriber2(chore.$payload$ as Task<TaskFn, TaskFn>, container, host);
+        break;
       case ChoreType.NODE_DIFF: {
         const parentVirtualNode = chore.$target$ as VirtualVNode;
         const jsx = chore.$payload$ as JSXOutput;
-        return maybeThen(vnode_diff(container as fixMeAny, jsx, parentVirtualNode), () => {
-          schedule(ChoreType.JOURNAL_FLUSH);
-        });
-      }
-      case ChoreType.CLEANUP: {
-        const task = chore.$payload$ as Task<TaskFn, TaskFn>;
-        task.$destroy$ && task.$destroy$();
+        returnValue = vnode_diff(container as fixMeAny, jsx, parentVirtualNode);
         break;
       }
     }
+    return maybeThenPassError(returnValue, (value) => {
+      DEBUG && debugTrace('execute.DONE', null, currentChore, choreQueue);
+      currentChore?.$resolve$?.(value);
+      currentChore = null;
+      return (chore.$returnValue$ = value);
+    });
   }
 };
 
@@ -390,7 +335,7 @@ const choreUpdate = (existing: Chore, newChore: Chore): void => {
   }
 };
 
-export const schedulePredicate = (a: Chore, b: Chore): number => {
+export const choreComparator = (a: Chore, b: Chore): number => {
   const macroTypeDiff = (a.$type$ & ChoreType.MACRO) - (b.$type$ & ChoreType.MACRO);
   if (macroTypeDiff !== 0) {
     return macroTypeDiff;
@@ -405,9 +350,6 @@ export const schedulePredicate = (a: Chore, b: Chore): number => {
         // we are running on the client.
         const hostDiff = vnode_documentPosition(aHost, bHost);
         if (hostDiff !== 0) {
-          if (vnode_documentPosition(bHost, aHost) !== -hostDiff) {
-            debugger;
-          }
           return hostDiff;
         }
       } else {
@@ -455,7 +397,6 @@ export const intraHostPredicate = (a: Chore, b: Chore): number => {
   return 0;
 };
 
-const CLEANUP_LOCAL = ':cleanup';
 function sortedFindIndex<T>(
   sortedArray: T[],
   value: T,
@@ -486,31 +427,62 @@ function sortedInsert<T>(
   value: T,
   comparator: (a: T, b: T) => number,
   updater?: (a: T, b: T) => void
-) {
+): T {
   /// We need to ensure that the `queue` is sorted by priority.
   /// 1. Find a place where to insert into.
   const idx = sortedFindIndex(sortedArray, value, comparator);
   if (idx < 0) {
     /// 2. Insert the chore into the queue.
     sortedArray.splice(~idx, 0, value);
-  } else if (updater) {
-    updater(sortedArray[idx], value);
+    return value;
   }
+  const existing = sortedArray[idx];
+  updater && updater(existing, value);
+  return existing;
 }
 
 function debugChoreToString(chore: Chore): string {
-  const type = (
-    {
-      [ChoreType.COMPUTED]: 'COMPUTED',
-      [ChoreType.RESOURCE]: 'RESOURCE',
-      [ChoreType.TASK]: 'TASK',
-      [ChoreType.NODE_DIFF]: 'NODE_DIFF',
-      [ChoreType.COMPONENT]: 'COMPONENT',
-      [ChoreType.JOURNAL_FLUSH]: 'JOURNAL_FLUSH',
-      [ChoreType.VISIBLE]: 'VISIBLE',
-      [ChoreType.CLEANUP]: 'CLEANUP',
-    } as any
-  )[chore.$type$];
+  const type =
+    (
+      {
+        [ChoreType.COMPUTED]: 'COMPUTED',
+        [ChoreType.RESOURCE]: 'RESOURCE',
+        [ChoreType.TASK]: 'TASK',
+        [ChoreType.NODE_DIFF]: 'NODE_DIFF',
+        [ChoreType.COMPONENT]: 'COMPONENT',
+        [ChoreType.COMPONENT_SSR]: 'COMPONENT_SSR',
+        [ChoreType.JOURNAL_FLUSH]: 'JOURNAL_FLUSH',
+        [ChoreType.VISIBLE]: 'VISIBLE',
+        [ChoreType.WAIT_FOR_ALL]: 'WAIT_FOR_ALL',
+        [ChoreType.WAIT_FOR_COMPONENTS]: 'WAIT_FOR_COMPONENTS',
+      } as any
+    )[chore.$type$] || 'UNKNOWN: ' + chore.$type$;
   const host = String(chore.$host$).replaceAll(/\n.*/gim, '');
   return `Chore(${type} ${host} ${chore.$idx$})`;
 }
+
+function debugTrace(
+  action: string,
+  arg?: any | null,
+  currentChore?: Chore | null,
+  queue?: Chore[]
+) {
+  const lines = ['Scheduler: ' + action];
+  if (arg) {
+    lines.push(
+      '    arg: ' +
+        ('$type$' in arg ? debugChoreToString(arg as Chore) : String(arg).replaceAll(/\n.*/gim, ''))
+    );
+  }
+  if (currentChore) {
+    lines.push('running: ' + debugChoreToString(currentChore));
+  }
+  if (queue) {
+    queue.forEach((chore, idx) => {
+      lines.push((idx == 0 ? '  queue: ' : '         ') + debugChoreToString(chore));
+    });
+  }
+  // eslint-disable-next-line no-console
+  console.log(lines.join('\n  ') + '\n');
+}
+

@@ -9,11 +9,13 @@ import type { QwikElement } from '../render/dom/virtual-element';
 import { serializeAttribute } from '../render/execute-component';
 import { untrack } from '../use/use-core';
 import {
+  TaskFlagsIsVisibleTask,
   isComputedTask,
   isSubscriberDescriptor,
   isTask,
   type SubscriberEffect,
   type SubscriberHost,
+  type Task,
 } from '../use/use-task';
 import { isNode } from '../util/element';
 import { logError, throwErrorAndStop } from '../util/log';
@@ -29,7 +31,6 @@ import {
   vnode_isVNode,
   vnode_setAttr,
 } from '../v2/client/vnode';
-import { JSX_LOCAL } from '../v2/shared/component-execution';
 import { ChoreType } from '../v2/shared/scheduler';
 import { isClassAttr } from '../v2/shared/scoped-styles';
 import { isContainer2, type HostElement, type fixMeAny } from '../v2/shared/types';
@@ -482,9 +483,13 @@ export class LocalSubscriptionManager {
         if (type == SubscriptionType.HOST) {
           if (isTask(host)) {
             if (isComputedTask(host)) {
-              scheduler.$scheduleComputed$(host);
+              scheduler(ChoreType.COMPUTED, host);
             } else {
-              scheduler.$scheduleTask$(host);
+              const task = host as Task;
+              scheduler(
+                task.$flags$ & TaskFlagsIsVisibleTask ? ChoreType.VISIBLE : ChoreType.TASK,
+                task
+              );
             }
           } else {
             const componentQrl = this.$containerState$.getHostProp<QRL<OnRenderFn<any>>>(
@@ -492,12 +497,11 @@ export class LocalSubscriptionManager {
               OnRenderProp
             )!;
             assertDefined(componentQrl, 'No Component found at this location');
-            this.$containerState$.setHostProp(host as fixMeAny, JSX_LOCAL, null);
             const componentProps = this.$containerState$.getHostProp<any>(
               host as fixMeAny,
               ELEMENT_PROPS
             );
-            scheduler.$scheduleComponent$(host as fixMeAny, componentQrl, componentProps);
+            scheduler(ChoreType.COMPONENT, host as fixMeAny, componentQrl, componentProps);
           }
         } else {
           const signal = sub[SubscriptionProp.SIGNAL];
@@ -513,7 +517,8 @@ export class LocalSubscriptionManager {
               type == SubscriptionType.PROP_IMMUTABLE
             );
           } else {
-            scheduler.$scheduleNodeDiff$(
+            scheduler(
+              ChoreType.NODE_DIFF,
               host as fixMeAny,
               sub[SubscriptionProp.ELEMENT] as fixMeAny,
               untrack(() => signal.value)
@@ -553,7 +558,7 @@ function updateNodeProp(
     const element = target[ElementVNodeProps.element] as Element;
     container.$journal$.push(VNodeJournalOpCode.SetAttribute, element, propKey, value);
   }
-  container.$scheduler$.$schedule$(ChoreType.JOURNAL_FLUSH);
+  container.$scheduler$(ChoreType.JOURNAL_FLUSH);
 }
 
 let __lastSubscription: Subscriptions | undefined;

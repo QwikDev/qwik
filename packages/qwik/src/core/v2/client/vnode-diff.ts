@@ -25,7 +25,7 @@ import {
   QSlotParent,
   QStyle,
 } from '../../util/markers';
-import { isPromise, maybeThen } from '../../util/promises';
+import { isPromise } from '../../util/promises';
 import { type ValueOrPromise } from '../../util/types';
 import { executeComponent2 } from '../shared/component-execution';
 import {
@@ -34,8 +34,9 @@ import {
   isHtmlAttributeAnEventName,
   isJsxPropertyAnEventName,
 } from '../shared/event-names';
+import { ChoreType } from '../shared/scheduler';
 import { addPrefixForScopedStyleIdsString } from '../shared/scoped-styles';
-import type { HostElement, QElement2, fixMeAny } from '../shared/types';
+import type { QElement2, fixMeAny } from '../shared/types';
 import { DEBUG_TYPE, VirtualType } from '../shared/types';
 import type { DomContainer } from './dom-container';
 import {
@@ -462,7 +463,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     if (vChild !== null) {
       vnode_truncate(journal, vCurrent as ElementVNode | VirtualVNode, vChild);
       while (vChild) {
-        container.$scheduler$.$drainCleanup$(vChild as fixMeAny);
+        cleanup(container, vChild);
         vChild = vnode_getNextSibling(vChild);
       }
     }
@@ -474,7 +475,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     if (vCurrent !== null) {
       let vCleanup: VNode | null = vCurrent;
       while (vCleanup) {
-        releaseSubscriptions(container, vCleanup);
+        cleanup(container, vCleanup);
         const next = vnode_getNextSibling(vCleanup);
         vnode_remove(journal, vParent as ElementVNode | VirtualVNode, vCleanup, true);
         vCleanup = next;
@@ -484,11 +485,10 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
 
   function expectNoMoreTextNodes() {
     while (vCurrent !== null && vnode_getType(vCurrent) === 3 /* Text */) {
-      releaseSubscriptions(container, vCurrent);
+      cleanup(container, vCurrent);
       const next = vnode_getNextSibling(vCurrent);
       vnode_remove(journal, vParent, vCurrent, true);
       vCurrent = next;
-      container.$scheduler$.$drainCleanup$(vCurrent as fixMeAny);
     }
   }
 
@@ -834,9 +834,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       const vNodeProps = vnode_getProp<any>(host, ELEMENT_PROPS, container.$getObjectById$);
       shouldRender = shouldRender || propsDiffer(jsxProps, vNodeProps);
       if (shouldRender) {
-        container.$scheduler$.$scheduleComponent$(host, componentQRL, jsxProps);
-        // const jsx = container.$scheduler$.$drainComponent$(host);
-        // asyncQueue.push(jsx, host);
+        container.$scheduler$(ChoreType.COMPONENT, host, componentQRL, jsxProps);
       }
       descendContentToProject(jsxValue.children);
     } else {
@@ -996,7 +994,7 @@ function removeChildrenKey(keys: string[]): string[] {
  * - Projection nodes by not recursing into them.
  * - Component nodes by recursing into the component content nodes (which may be projected).
  */
-export function releaseSubscriptions(container: ClientContainer, vNode: VNode) {
+export function cleanup(container: ClientContainer, vNode: VNode) {
   let vCursor: VNode | null = vNode;
   // Depth first traversal
   if (vnode_isTextVNode(vNode)) {
@@ -1040,7 +1038,7 @@ export function releaseSubscriptions(container: ClientContainer, vNode: VNode) {
                 typeof value === 'string'
                   ? vnode_locate(container.rootVNode, value)
                   : (value as any as VNode);
-              releaseSubscriptions(container, vNode);
+              cleanup(container, vNode);
             }
           }
         }

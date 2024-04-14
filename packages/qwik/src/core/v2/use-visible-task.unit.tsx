@@ -499,6 +499,7 @@ describe.each([
       const { vNode, document } = await render(<MyComp />, { debug });
 
       if (render === ssrRenderToDom) {
+        console.log('>>>>>>');
         await trigger(document.body, 'p', 'qvisible');
       }
       expect(vNode).toMatchVDOM(
@@ -506,7 +507,7 @@ describe.each([
           <p>
             Should have a number: "
             <Fragment>
-              <Signal>{render == ssrRenderToDom ? '0' : '2'}</Signal>
+              <Signal>{'2'}</Signal>
             </Fragment>
             "
           </p>

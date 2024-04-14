@@ -12,7 +12,7 @@ import {
   vnode_newVirtual,
   vnode_setProp,
 } from '../client/vnode';
-import { createScheduler } from './scheduler';
+import { ChoreType, createScheduler } from './scheduler';
 
 declare global {
   let testLog: string[];
@@ -54,29 +54,33 @@ describe('scheduler', () => {
   });
 
   it('should execute sort tasks', async () => {
-    scheduler.$scheduleTask$(mockTask(vBHost1, { index: 2, qrl: $(() => testLog.push('b1.2')) }));
-    scheduler.$scheduleTask$(mockTask(vAHost, { qrl: $(() => testLog.push('a1')) }));
-    scheduler.$scheduleTask$(mockTask(vBHost1, { qrl: $(() => testLog.push('b1.0')) }));
-    await scheduler.$drainAll$();
+    scheduler(ChoreType.TASK, mockTask(vBHost1, { index: 2, qrl: $(() => testLog.push('b1.2')) }));
+    scheduler(ChoreType.TASK, mockTask(vAHost, { qrl: $(() => testLog.push('a1')) }));
+    scheduler(ChoreType.TASK, mockTask(vBHost1, { qrl: $(() => testLog.push('b1.0')) }));
+    await scheduler(ChoreType.WAIT_FOR_ALL);
     expect(testLog).toEqual([
       'a1', // DepthFirst a host component is before b host component.
       'b1.0', // Same component but smaller index.
       'b1.2', // Same component but larger index.
+      'journalFlush',
     ]);
   });
   it('should execute visible tasks after journal flush', async () => {
-    scheduler.$scheduleTask$(
+    scheduler(
+      ChoreType.TASK,
       mockTask(vBHost2, { index: 2, qrl: $(() => testLog.push('b2.2: Task')) })
     );
-    scheduler.$scheduleTask$(mockTask(vBHost1, { qrl: $(() => testLog.push('b1.0: Task')) }));
-    scheduler.$scheduleTask$(
+    scheduler(ChoreType.TASK, mockTask(vBHost1, { qrl: $(() => testLog.push('b1.0: Task')) }));
+    scheduler(
+      ChoreType.VISIBLE,
       mockTask(vBHost2, {
         index: 2,
         qrl: $(() => testLog.push('b2.2: VisibleTask')),
         visible: true,
       })
     );
-    scheduler.$scheduleTask$(
+    scheduler(
+      ChoreType.VISIBLE,
       mockTask(vBHost1, {
         qrl: $(() => {
           testLog.push('b1.0: VisibleTask');
@@ -84,12 +88,13 @@ describe('scheduler', () => {
         visible: true,
       })
     );
-    scheduler.$scheduleComponent$(
+    scheduler(
+      ChoreType.COMPONENT,
       vBHost1,
       $(() => testLog.push('b1: Render')),
       {}
     );
-    await scheduler.$drainAll$();
+    await scheduler(ChoreType.WAIT_FOR_ALL);
     expect(testLog).toEqual([
       'b1.0: Task',
       'b1: Render',

@@ -1554,85 +1554,52 @@ const isElement = (node: any): node is Element =>
   
 
 /// These global variables are used to avoid creating new arrays for each call to `vnode_getPathToClosestDomNode`.
-type VNodePath = [number, ...(VNode)[]];
-const aPath:VNodePath = [0];
-const bPath:VNodePath = [0];
+const aPath: VNode[] = [];
+const bPath: VNode[] = [];
 export const vnode_documentPosition = (a: VNode, b: VNode): -1 | 0 | 1 => {
   if (a === b) {
     return 0;
   }
 
-  const aNode = vnode_getPathToClosestDomNode(a, aPath)!;
-  const bNode = vnode_getPathToClosestDomNode(b, bPath)!;
-  if (aNode === bNode) {
-    let aDepth = aPath[0];
-    let bDepth = bPath[0];
-    while (aDepth > 0 && bDepth > 0) {
-      const aVNode = aPath[aDepth] as VNode;
-      const bVNode = bPath[bDepth] as VNode;
-      if (aVNode === bVNode) {
-        aDepth--;
-        bDepth--;
-      } else {
-        // We found a difference so we need to scan nodes at this level.
-        let cursor: VNode | null = bVNode;
-        do {
-          cursor = vnode_getNextSibling(cursor);
-          if (cursor === aVNode) {
-            return 1;
-          }
-        } while (cursor);
-        cursor = bVNode;
-        do {
-          cursor = vnode_getPreviousSibling(cursor);
-          if (cursor === aVNode) {
-            return -1;
-          }
-        } while (cursor);
-      }
-    }
-    return aDepth < bDepth ? -1 : 1;
-  } else {
-    if (bNode === null) {
-      return -1;
-    }
-    if (aNode === null) {
+  let aDepth = -1;
+  let bDepth = -1;
+  while (a) {
+    a = (aPath[++aDepth] = a)[VNodeProps.parent]!;
+  }
+  while (b) {
+    b = (bPath[++bDepth] = b)[VNodeProps.parent]!;
+  }
+
+  while (aDepth >= 0 && bDepth >= 0) {
+    a = aPath[aDepth] as VNode;
+    b = bPath[bDepth] as VNode;
+    if (a === b) {
+      // if the nodes are the same, we need to check the next level.
+      aDepth--;
+      bDepth--;
+    } else {
+      // We found a difference so we need to scan nodes at this level.
+      let cursor: VNode | null = b;
+      do {
+        cursor = vnode_getNextSibling(cursor);
+        if (cursor === a) {
+          return 1;
+        }
+      } while (cursor);
+      cursor = b;
+      do {
+        cursor = vnode_getPreviousSibling(cursor);
+        if (cursor === a) {
+          return -1;
+        }
+      } while (cursor);
+      // The node is not in the list of siblings, that means it must be disconnected.
       return 1;
     }
-
-    const DOCUMENT_POSITION_PRECEDING = 2; /// Node.DOCUMENT_POSITION_PRECEDING
-    const DOCUMENT_POSITION_FOLLOWING = 4; /// Node.DOCUMENT_POSITION_FOLLOWING
-    const result = aNode.compareDocumentPosition(bNode);
-    if (result & DOCUMENT_POSITION_PRECEDING) {
-      return 1;
-    } else if (result & DOCUMENT_POSITION_FOLLOWING) {
-      return -1;
-    } else {
-      return 0;
-    }
   }
+  return aDepth < bDepth ? -1 : 1;
 };
 
-const vnode_getPathToClosestDomNode = (vnode: VNode, path: VNodePath): Element | Text | null => {
-  let idx = 0;
-  while (vnode) {
-    path[++idx] = vnode;
-    const flag = vnode[VNodeProps.flags];
-    if (flag & VNodeFlags.Element) {
-      path[0] = idx;
-      return (vnode as ElementVNode)[ElementVNodeProps.element];
-    } else if (flag & VNodeFlags.Text) {
-      path[0] = idx;
-      const text = (vnode as TextVNode)[TextVNodeProps.node]!;
-      assertDefined(text, 'Missing text node.');
-      return text;
-    } else {
-      vnode = vnode[VNodeProps.parent]!;
-    }
-  }
-  path[0] = idx;
-  return null;
-};
 
 /**
  * Use this method to find the parent component for projection.

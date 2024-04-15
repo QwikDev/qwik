@@ -73,10 +73,10 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
     if (attrValue) {
       const container = element.closest('[q\\:container]')!;
       const baseURI = new URL(doc.baseURI);
-      const base = container?.getAttribute('q:base') ?? '/';
+      const base = new URL(container.getAttribute('q:base') ?? baseURI, baseURI);
       for (const qrl of attrValue.split('\n')) {
-        const pathUrl = (base + qrl).replace(/\/+/g, '/');
-        const url = new URL(pathUrl, baseURI.origin);
+        const pathUrl = (base.pathname + qrl).replace(/\/+/g, '/');
+        const url = new URL(pathUrl, base.origin);
         const symbolName = url.hash[replace](/^#?([^?[|]*).*$/, '$1') || 'default';
         const reqTime = performance.now();
         let handler: any;

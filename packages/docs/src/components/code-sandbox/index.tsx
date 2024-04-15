@@ -57,13 +57,13 @@ export default component$<{
               target="_blank"
               class="url-link text-ellipsis overflow-hidden"
             >
-              {new URL(examplePath(exampleUrl), 'https://qwik.builder.io').toString()}
+              {new URL(examplePath(exampleUrl), 'https://qwik.dev').toString()}
             </a>
           </div>
           <ul>
             <li class="edit">
               <a
-                href={'https://github.com/BuilderIO/qwik/blob/main/packages/docs/' + (url || src)}
+                href={'https://github.com/QwikDev/qwik/blob/main/packages/docs/' + (url || src)}
                 rel="noopener"
                 target="_blank"
                 title="edit this snippet"

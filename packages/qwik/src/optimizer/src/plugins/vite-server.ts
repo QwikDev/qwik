@@ -111,7 +111,12 @@ export async function configureDevServer(
               }
 
               const { pathId, query } = parseId(v.url);
-              if (query === '' && ['.css', '.scss', '.sass'].some((ext) => pathId.endsWith(ext))) {
+              if (
+                query === '' &&
+                ['.css', '.scss', '.sass', '.less', '.styl', '.stylus'].some((ext) =>
+                  pathId.endsWith(ext)
+                )
+              ) {
                 added.add(v.url);
                 manifest.injections!.push({
                   tag: 'link',
@@ -175,7 +180,9 @@ export async function configureDevServer(
               if (
                 !added.has(v.url) &&
                 query === '' &&
-                ['.css', '.scss', '.sass'].some((ext) => pathId.endsWith(ext))
+                ['.css', '.scss', '.sass', '.less', '.styl', '.stylus'].some((ext) =>
+                  pathId.endsWith(ext)
+                )
               ) {
                 res.write(`<link rel="stylesheet" href="${opts.base}${v.url}">`);
               }

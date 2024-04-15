@@ -4,7 +4,7 @@
  * It's the entry point for the Bun HTTP server when building for production.
  *
  * Learn more about the Bun integration here:
- * - https://qwik.builder.io/docs/deployments/bun/
+ * - https://qwik.dev/docs/deployments/bun/
  * - https://bun.sh/docs/api/http
  *
  */

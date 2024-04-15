@@ -2,7 +2,7 @@
   "name": "@builder.io/qwik-auth",
   "description": "Qwik Auth is powered by Auth.js, a battle tested library for authentication with 3rd party providers",
   "version": "0.1.3",
-  "bugs": "https://github.com/BuilderIO/qwik/issues",
+  "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
     "@auth/core": "0.21.0"
   },
@@ -26,7 +26,7 @@
   "files": [
     "lib"
   ],
-  "homepage": "https://qwik.builder.io/",
+  "homepage": "https://qwik.dev/",
   "keywords": [
     "auth.js",
     "authentication",
@@ -40,7 +40,7 @@
   "qwik": "./lib/index.qwik.mjs",
   "repository": {
     "type": "git",
-    "url": "https://github.com/BuilderIO/qwik.git",
+    "url": "https://github.com/QwikDev/qwik.git",
     "directory": "packages/qwik-auth"
   },
   "scripts": {

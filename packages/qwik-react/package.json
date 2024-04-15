@@ -2,15 +2,15 @@
   "name": "@builder.io/qwik-react",
   "description": "QwikReact allows adding React components into existing Qwik application",
   "version": "0.5.4",
-  "bugs": "https://github.com/BuilderIO/qwik/issues",
+  "bugs": "https://github.com/QwikDev/qwik/issues",
   "devDependencies": {
     "@builder.io/qwik": "workspace:^",
-    "@types/react": "^18.2.61",
-    "@types/react-dom": "^18.2.19",
+    "@types/react": "^18.2.67",
+    "@types/react-dom": "^18.2.22",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "typescript": "5.3.3",
-    "vite": "^5.1.4"
+    "typescript": "5.4.2",
+    "vite": "^5.1.6"
   },
   "engines": {
     "node": ">=16.8.0 <18.0.0 || >=18.11"
@@ -31,20 +31,20 @@
     "lib",
     "vite"
   ],
-  "homepage": "https://qwik.builder.io/",
+  "homepage": "https://qwik.dev/",
   "license": "MIT",
   "main": "./lib/index.qwik.mjs",
   "peerDependencies": {
     "@builder.io/qwik": "workspace:^",
-    "@types/react": "^18.2.61",
-    "@types/react-dom": "^18.2.19",
+    "@types/react": "^18.2.67",
+    "@types/react-dom": "^18.2.22",
     "react": "18.2.0",
     "react-dom": "18.2.0"
   },
   "qwik": "./lib/index.qwik.mjs",
   "repository": {
     "type": "git",
-    "url": "https://github.com/BuilderIO/qwik.git",
+    "url": "https://github.com/QwikDev/qwik.git",
     "directory": "packages/qwik-react"
   },
   "scripts": {

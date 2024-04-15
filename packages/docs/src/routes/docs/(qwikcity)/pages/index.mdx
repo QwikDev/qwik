@@ -11,7 +11,9 @@ contributors:
   - solamichealolawale
   - mrhoodz
   - VinuB-Dev
-updated_at: '2023-09-19T17:37:26Z'
+  - nhayhoc
+  - gioboa
+updated_at: '2024-03-27T18:37:26Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
 
@@ -142,3 +144,59 @@ export const head: DocumentHead = ({ head }) => {
   };
 };
 ```
+
+### Google Structured Data
+
+This example integrates [Google Structured Data](https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data)
+this helps by providing explicit clues about the meaning of a page to Google.
+If you want to embed custom JavaScript code, it would be ideal to do it lazily with [Partytown](https://partytown.builder.io/).
+Sometimes, however, you are forced to load them immediately, as in the case we see in the example.
+
+```tsx {8} /head/ title="src/routes/about/index.tsx"
+import { component$ } from '@builder.io/qwik';
+import type { DocumentHead } from '@builder.io/qwik-city';
+
+export default component$(() => {
+  return <h1>About page</h1>;
+});
+
+export const head: DocumentHead = {
+  scripts: [
+    {
+      props: {
+        type: "application/ld+json",
+      },
+      script: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+      }),
+    },
+  ],
+};
+```
+The example above sets some [Structured Data Markup](https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data?hl=en).
+
+> **Note**: You need to change `router-head` component to render `head.scripts`.
+
+```tsx {8} /head/ title="src\components\router-head\router-head.tsx"
+import { component$ } from "@builder.io/qwik";
+import { useDocumentHead, useLocation } from "@builder.io/qwik-city";
+
+export const RouterHead = component$(() => {
+  const head = useDocumentHead();
+  const loc = useLocation();
+
+  return (
+    <>
+      <title>{head.title}</title>
+
+      {/* add this  */}
+      {head.scripts.map((s) => (
+        <script key={s.key} {...s.props} dangerouslySetInnerHTML={s.script} />
+      ))}
+    </>
+  );
+});
+
+```
+

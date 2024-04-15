@@ -175,7 +175,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
     for (const eventName of eventNames) {
       if (!events.has(eventName)) {
         addEventListener(doc, eventName, processDocumentEvent, true);
-        addEventListener(win, eventName, processWindowEvent);
+        addEventListener(win, eventName, processWindowEvent, true);
         events.add(eventName);
       }
     }

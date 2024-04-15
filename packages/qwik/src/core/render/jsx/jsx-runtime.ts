@@ -19,12 +19,8 @@ import type { QwikJSX } from './types/jsx-qwik';
 import type { JSXChildren } from './types/jsx-qwik-attributes';
 import { SkipRender } from './utils.public';
 import type { SSRContainer } from '../../v2/ssr/ssr-types';
-import {
-  addPrefixForScopedStyleIdsString,
-  getScopedStyleIdsAsPrefix,
-} from '../../v2/shared/scoped-styles';
+import { getScopedStyleIdsAsPrefix } from '../../v2/shared/scoped-styles';
 import { isDomContainer } from '../../v2/client/dom-container';
-import type { fixMeAny } from '../../v2/shared/types';
 
 export type Props = Record<string, unknown>;
 
@@ -132,7 +128,7 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
       }
     }
 
-    // set styleScopedId for this node
+    // set styleScopedId for this node, this is only done for ssr here
     this.styleScopedId = retrieveStyleScopedIdFromInvokeContext();
   }
 
@@ -151,15 +147,8 @@ function retrieveStyleScopedIdFromInvokeContext() {
   const ctx = tryGetInvokeContext();
   if (ctx && ctx.$container2$) {
     let scopedStyleIds: Set<string> | undefined;
-    if (isDomContainer(ctx.$container2$)) {
-      const scopedStyleIdsString = ctx.$container2$.getHostProp<string>(
-        ctx.$hostElement$ as fixMeAny,
-        QScopedStyle
-      );
-      if (scopedStyleIdsString) {
-        styleScopedId = addPrefixForScopedStyleIdsString(scopedStyleIdsString);
-      }
-    } else {
+    // calculations of styleScopedId for dom container are done inside the vnode-diff, because of optimizations (number of runs)
+    if (!isDomContainer(ctx.$container2$)) {
       scopedStyleIds = (ctx.$container2$ as SSRContainer).getComponentFrame(0)?.scopedStyleIds;
       if (scopedStyleIds) {
         styleScopedId = getScopedStyleIdsAsPrefix(scopedStyleIds);

@@ -195,6 +195,7 @@ function processJSXNode(
                   constValue,
                   node as fixMeAny,
                   'name',
+                  undefined,
                 ]);
               }
             }

@@ -952,6 +952,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
               value,
               lastNode as fixMeAny,
               key,
+              styleScopedId || undefined,
             ]);
           }
         }
@@ -1005,4 +1006,3 @@ function newTagError(text: string) {
 function hasDestroy(obj: any): obj is { $destroy$(): void } {
   return obj && typeof obj === 'object' && typeof obj.$destroy$ === 'function';
 }
-

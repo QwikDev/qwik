@@ -30,7 +30,7 @@ import { ChoreType } from '../shared/scheduler';
 import { convertScopedStyleIdsToArray, convertStyleIdsToString } from '../shared/scoped-styles';
 import { _SharedContainer } from '../shared/shared-container';
 import { inflateQRL, parseQRL, wrapDeserializerProxy } from '../shared/shared-serialization';
-import type { HostElement, fixMeAny } from '../shared/types';
+import type { HostElement } from '../shared/types';
 import { VNodeDataChar, VNodeDataSeparator } from '../shared/vnode-data-types';
 import {
   VNodeFlags,

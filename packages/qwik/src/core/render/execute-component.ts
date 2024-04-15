@@ -228,7 +228,9 @@ export const serializeBooleanOrNumberAttribute = (value: any) => {
 export function serializeAttribute(key: string, value: any, styleScopedId: string | null): string {
   if (isClassAttr(key)) {
     const serializedClass = serializeClass(value as ClassList);
-    value = styleScopedId ? styleScopedId + ' ' + serializedClass : serializedClass;
+    value = styleScopedId
+      ? styleScopedId + (serializedClass.length ? ' ' + serializedClass : serializedClass)
+      : serializedClass;
   } else if (key === 'style') {
     value = stringifyStyle(value);
   } else if (isEnumeratedBooleanAttribute(key) || typeof value === 'number') {

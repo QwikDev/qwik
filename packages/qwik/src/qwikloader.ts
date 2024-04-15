@@ -60,6 +60,9 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
     if (element.hasAttribute('preventdefault:' + eventName)) {
       ev.preventDefault();
     }
+    if (element.hasAttribute('stoppropagation:' + eventName)) {
+      ev.stopPropagation();
+    }
     const ctx = (element as any)['_qc_'] as QContext | undefined;
     const relevantListeners = ctx && ctx.li.filter((li) => li[0] === attrName);
     if (relevantListeners && relevantListeners.length > 0) {

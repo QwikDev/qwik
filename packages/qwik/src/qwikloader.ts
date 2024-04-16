@@ -72,6 +72,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
         if (isPromise(result)) {
           await result;
         }
+        // forcing async with await resets ev.cancelBubble to false
         if (cancelBubble) {
           ev.stopPropagation();
         }
@@ -106,7 +107,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
                 reqTime,
               });
             const results = handler(ev, element);
-            // sync$ may not be async function and e.stopPropagation() won't work unless it's fired immediately
+            // only await if there is a promise returned
             if (isPromise(results)) {
               await results;
             }

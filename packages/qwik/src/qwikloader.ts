@@ -67,10 +67,10 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
     if (relevantListeners && relevantListeners.length > 0) {
       for (const listener of relevantListeners) {
         // listener[1] holds the QRL
-        const result = listener[1].getFn([element, ev], () => element[isConnected])(ev, element);
-        let cancelBubble = ev.cancelBubble;
-        if (isPromise(result)) {
-          await result;
+        const results = listener[1].getFn([element, ev], () => element[isConnected])(ev, element);
+        const cancelBubble = ev.cancelBubble;
+        if (isPromise(results)) {
+          await results;
         }
         // forcing async with await resets ev.cancelBubble to false
         if (cancelBubble) {

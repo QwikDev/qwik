@@ -47,14 +47,7 @@ export const getClientNavPath = (props: Record<string, any>, baseUrl: { url: URL
       const linkUrl = toUrl(href.trim(), baseUrl.url);
       const currentUrl = toUrl('', baseUrl.url)!;
       if (isSameOrigin(linkUrl, currentUrl)) {
-        let base = linkUrl;
-        if (!linkUrl.pathname.includes(currentUrl.pathname)) {
-          base = new URL(
-            (baseUrl.url.pathname + linkUrl.pathname).replace(/\/+/g, '/'),
-            linkUrl.origin
-          );
-        }
-        return toPath(base);
+        return toPath(linkUrl);
       }
     } catch (e) {
       console.error(e);

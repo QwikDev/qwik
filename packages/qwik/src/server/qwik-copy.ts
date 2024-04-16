@@ -28,6 +28,7 @@ export {
   QSlotParent,
   QSlotRef,
   QStyle,
+  QTemplate,
 } from '../core/util/markers';
 export { maybeThen } from '../core/util/promises';
 export { mapApp_remove, mapArray_get, mapArray_set } from '../core/v2/client/vnode';

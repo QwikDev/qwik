@@ -1044,10 +1044,11 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
           }
         }
       }
-      if (
+
+      const isComponent =
         type & VNodeFlags.Virtual &&
-        vnode_getProp(vCursor as VirtualVNode, OnRenderProp, null) !== null
-      ) {
+        vnode_getProp(vCursor as VirtualVNode, OnRenderProp, null) !== null;
+      if (isComponent) {
         // SPECIAL CASE: If we are a component, we need to descend into the projected content and release the content.
         const attrs = vCursor as ClientAttrs;
         for (let i = VirtualVNodeProps.PROPS_OFFSET; i < vCursor.length; i = i + 2) {
@@ -1066,14 +1067,11 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
           }
         }
       }
+
+      const isSlot =
+        type & VNodeFlags.Virtual && vnode_getProp(vCursor as VirtualVNode, QSlot, null) !== null;
       // Descend into children
-      if (
-        !(
-          (type & VNodeFlags.Virtual &&
-            vnode_getProp(vCursor as VirtualVNode, QSlot, null) !== null) ||
-          (type & VNodeFlags.Element && vCursor[ElementVNodeProps.elementName] !== 'q:template')
-        )
-      ) {
+      if (!isSlot) {
         // Only if it is not a projection
         const vFirstChild = vnode_getFirstChild(vCursor);
         if (vFirstChild) {

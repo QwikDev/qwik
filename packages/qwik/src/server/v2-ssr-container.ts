@@ -20,6 +20,7 @@ import {
   QSlotRef,
   QStyle,
   QContainerAttr,
+  QTemplate,
   SubscriptionType,
   VNodeDataChar,
   VirtualType,
@@ -790,7 +791,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (unclaimedProjections.length) {
       const previousCurrentComponentNode = this.currentComponentNode;
       try {
-        this.openElement('q:template', ['style', 'display:none'], null);
+        this.openElement(QTemplate, ['style', 'display:none'], null);
         let idx = 0;
         let ssrComponentNode: ISsrNode | null = null;
         while (idx < unclaimedProjections.length) {
@@ -935,6 +936,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         let styleScopedId: string | null = null;
 
         if (isClassAttr(key) && Array.isArray(value)) {
+          // value is a signal and key is a class, we need to retrieve data first
           const [signalValue, styleId] = value;
           value = signalValue;
           styleScopedId = styleId;

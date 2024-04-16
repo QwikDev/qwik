@@ -148,7 +148,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
       // if another async handler stopPropagation
       cancelBubble =
         cancelBubble || ev.cancelBubble || element.hasAttribute('stoppropagation:' + ev.type);
-      element = ev.bubbles && ev.cancelBubble !== true ? element.parentElement : null;
+      element = ev.bubbles && cancelBubble !== true ? element.parentElement : null;
     }
   };
 

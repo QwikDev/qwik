@@ -28,6 +28,8 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
     return doc.querySelectorAll(query);
   };
 
+  const isPromise = (promise) => promise && typeof promise.then === 'function';
+
   const broadcast = (infix: string, ev: Event, type = ev.type) => {
     querySelectorAll('[on' + infix + '\\:' + type + ']')[forEach]((el) =>
       dispatch(el, infix, ev, type)
@@ -60,15 +62,19 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
     if (element.hasAttribute('preventdefault:' + eventName)) {
       ev.preventDefault();
     }
-    if (element.hasAttribute('stoppropagation:' + eventName)) {
-      ev.stopPropagation();
-    }
     const ctx = (element as any)['_qc_'] as QContext | undefined;
     const relevantListeners = ctx && ctx.li.filter((li) => li[0] === attrName);
     if (relevantListeners && relevantListeners.length > 0) {
       for (const listener of relevantListeners) {
         // listener[1] holds the QRL
-        await listener[1].getFn([element, ev], () => element[isConnected])(ev, element);
+        const results = listener[1].getFn([element, ev], () => element[isConnected])(ev, element);
+        let cancelBubble = ev.cancelBubble;
+        if (isPromise(result)) {
+          await result;
+        }
+        if (cancelBubble) {
+          ev.stopPropagation();
+        }
       }
       return;
     }
@@ -101,7 +107,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
               });
             const results = handler(ev, element);
             // sync$ may not be async function and e.stopPropagation() won't work unless it's fired immediately
-            if (results && typeof results.then === 'function') {
+            if (isPromise(results)) {
               await results;
             }
           } finally {
@@ -133,7 +139,16 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
     broadcast('-document', ev, type);
 
     while (element && element[getAttribute]) {
-      await dispatch(element, '', ev, type);
+      const results = dispatch(element, '', ev, type);
+      let cancelBubble = ev.cancelBubble;
+      if (isPromise(results) {
+        await results;
+      }
+      // if another async handler stopPropagation
+      cancelBubble =
+          cancelBubble ||
+          ev.cancelBubble ||
+          element.hasAttribute("stoppropagation:" + ev.type);
       element = ev.bubbles && ev.cancelBubble !== true ? element.parentElement : null;
     }
   };

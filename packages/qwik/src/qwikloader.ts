@@ -99,7 +99,11 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
                 element: element,
                 reqTime,
               });
-            await handler(ev, element);
+            const results = handler(ev, element);
+            // sync$ may not be async function and e.stopPropagation() won't work unless it's fired immediately
+            if (results && typeof results.then === 'function') {
+              await results;
+            }
           } finally {
             (doc as any)[Q_CONTEXT] = previousCtx;
           }

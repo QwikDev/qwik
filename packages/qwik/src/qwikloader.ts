@@ -28,7 +28,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
     return doc.querySelectorAll(query);
   };
 
-  const isPromise = (promise) => promise && typeof promise.then === 'function';
+  const isPromise = (promise: Promise<any>) => promise && typeof promise.then === 'function';
 
   const broadcast = (infix: string, ev: Event, type = ev.type) => {
     querySelectorAll('[on' + infix + '\\:' + type + ']')[forEach]((el) =>
@@ -67,7 +67,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
     if (relevantListeners && relevantListeners.length > 0) {
       for (const listener of relevantListeners) {
         // listener[1] holds the QRL
-        const results = listener[1].getFn([element, ev], () => element[isConnected])(ev, element);
+        const result = listener[1].getFn([element, ev], () => element[isConnected])(ev, element);
         let cancelBubble = ev.cancelBubble;
         if (isPromise(result)) {
           await result;
@@ -142,14 +142,12 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
     while (element && element[getAttribute]) {
       const results = dispatch(element, '', ev, type);
       let cancelBubble = ev.cancelBubble;
-      if (isPromise(results) {
+      if (isPromise(results)) {
         await results;
       }
       // if another async handler stopPropagation
       cancelBubble =
-          cancelBubble ||
-          ev.cancelBubble ||
-          element.hasAttribute("stoppropagation:" + ev.type);
+        cancelBubble || ev.cancelBubble || element.hasAttribute('stoppropagation:' + ev.type);
       element = ev.bubbles && ev.cancelBubble !== true ? element.parentElement : null;
     }
   };

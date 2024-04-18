@@ -109,12 +109,12 @@ export default component$(() => {
   return (
     <nav class="menu">
       {menu
-        ? menu.items?.map((item) => (
+        ? menu.items?.map((item, index) => (
             <>
               <h5>{item.text}</h5>
               <ul>
-                {item.items?.map((item) => (
-                  <li>
+                {item.items?.map((item, subIndex) => (
+                  <li key={`item-${index}-${subIndex}`}>
                     <a
                       href={item.href}
                       class={{

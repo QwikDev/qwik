@@ -571,7 +571,6 @@ const renderNode = (
             value,
             hostCtx.$element$,
             rawProp,
-            undefined,
           ]);
         } else {
           value = trackSignal(value, [
@@ -580,7 +579,6 @@ const renderNode = (
             value,
             elm,
             rawProp,
-            undefined,
           ]);
         }
         useSignal = true;

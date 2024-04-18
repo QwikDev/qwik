@@ -6,7 +6,7 @@ import { isQrl, type QRLInternal } from '../../qrl/qrl-class';
 import { verifySerializable } from '../../state/common';
 import { _VAR_PROPS } from '../../state/constants';
 import { isSignal, SignalDerived } from '../../state/signal';
-import { invoke, tryGetInvokeContext, untrack } from '../../use/use-core';
+import { invoke, untrack } from '../../use/use-core';
 import { EMPTY_OBJ } from '../../util/flyweight';
 import { logError, logOnceWarn, logWarn } from '../../util/log';
 import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS } from '../../util/markers';
@@ -18,9 +18,6 @@ import type { DevJSX, FunctionComponent, JSXNode } from './types/jsx-node';
 import type { QwikJSX } from './types/jsx-qwik';
 import type { JSXChildren } from './types/jsx-qwik-attributes';
 import { SkipRender } from './utils.public';
-import type { SSRContainer } from '../../v2/ssr/ssr-types';
-import { getScopedStyleIdsAsPrefix } from '../../v2/shared/scoped-styles';
-import { isDomContainer } from '../../v2/client/dom-container';
 
 export type Props = Record<string, unknown>;
 
@@ -116,8 +113,7 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
     public constProps: Props | null,
     public children: JSXChildren,
     public flags: number,
-    public key: string | null = null,
-    public styleScopedId: string | null = null
+    public key: string | null = null
   ) {
     if (qDev) {
       if (typeof varProps !== 'object') {
@@ -127,9 +123,6 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
         throw new Error(`JSXNodeImpl: constProps must be objects: ` + JSON.stringify(constProps));
       }
     }
-
-    // set styleScopedId for this node, this is only done for ssr here
-    this.styleScopedId = retrieveStyleScopedIdFromInvokeContext();
   }
 
   private _proxy: typeof this.varProps | null = null;
@@ -140,22 +133,6 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
     }
     return this._proxy! as any;
   }
-}
-
-function retrieveStyleScopedIdFromInvokeContext() {
-  let styleScopedId: string | null = null;
-  const ctx = tryGetInvokeContext();
-  if (ctx && ctx.$container2$) {
-    let scopedStyleIds: Set<string> | undefined;
-    // calculations of styleScopedId for dom container are done inside the vnode-diff, because of optimizations (number of runs)
-    if (!isDomContainer(ctx.$container2$)) {
-      scopedStyleIds = (ctx.$container2$ as SSRContainer).getComponentFrame(0)?.scopedStyleIds;
-      if (scopedStyleIds) {
-        styleScopedId = getScopedStyleIdsAsPrefix(scopedStyleIds);
-      }
-    }
-  }
-  return styleScopedId;
 }
 
 /** @private */

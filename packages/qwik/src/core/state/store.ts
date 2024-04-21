@@ -74,7 +74,7 @@ export const createProxy = <T extends object>(
   const addSubscriptionsForTarget = (target: object) => {
     const serializedState: string | undefined = (target as any)[SerializationConstant.Store_CHAR];
     if (serializedState) {
-      (target as any)[SerializationConstant.Store_CHAR] = undefined;
+      delete (target as any)[SerializationConstant.Store_CHAR];
       setObjectFlags(target, serializedState.charCodeAt(0) - 48 /*'0'*/);
       subscriptionManagerFromString(
         manager,

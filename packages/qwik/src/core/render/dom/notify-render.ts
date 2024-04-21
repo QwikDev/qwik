@@ -26,7 +26,7 @@ import { getDomContainer, isDomContainer } from '../../v2/client/dom-container';
 import type { VirtualVNode } from '../../v2/client/types';
 import { vnode_isVNode } from '../../v2/client/vnode';
 import { ChoreType } from '../../v2/shared/scheduler';
-import type { Container2, HostElement, fixMeAny } from '../../v2/shared/types';
+import type { Container2, fixMeAny } from '../../v2/shared/types';
 import { createRenderContext } from '../execute-component';
 import { directGetAttribute } from '../fast-calls';
 import type { RenderContext } from '../types';

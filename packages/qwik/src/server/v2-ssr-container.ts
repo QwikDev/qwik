@@ -20,16 +20,16 @@ import {
   QSlotRef,
   QStyle,
   QContainerAttr,
+  QTemplate,
   SubscriptionType,
   VNodeDataChar,
   VirtualType,
   convertStyleIdsToString,
-  getScopedStyleIdsAsPrefix,
-  isClassAttr,
   mapArray_get,
   mapArray_set,
   maybeThen,
   serializeAttribute,
+  isClassAttr,
 } from './qwik-copy';
 import type {
   ContextId,
@@ -363,11 +363,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   openProjection(attrs: SsrAttrs) {
     this.openFragment(attrs);
-    this.getComponentFrame(0)!.projectionDepth++;
+    this.getComponentFrame()!.projectionDepth++;
   }
 
   closeProjection() {
-    this.getComponentFrame(0)!.projectionDepth--;
+    this.getComponentFrame()!.projectionDepth--;
     this.closeFragment();
   }
 
@@ -791,7 +791,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (unclaimedProjections.length) {
       const previousCurrentComponentNode = this.currentComponentNode;
       try {
-        this.openElement('q:template', ['style', 'display:none'], null);
+        this.openElement(QTemplate, ['style', 'display:none'], null);
         let idx = 0;
         let ssrComponentNode: ISsrNode | null = null;
         while (idx < unclaimedProjections.length) {
@@ -933,6 +933,14 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       for (let i = 0; i < attrs.length; i++) {
         let key = attrs[i++] as SsrAttrKey;
         let value = attrs[i] as SsrAttrValue;
+        let styleScopedId: string | null = null;
+
+        if (isClassAttr(key) && Array.isArray(value)) {
+          // value is a signal and key is a class, we need to retrieve data first
+          const [signalValue, styleId] = value;
+          value = signalValue;
+          styleScopedId = styleId;
+        }
 
         if (isSignal(value)) {
           const lastNode = this.getLastNode();
@@ -946,6 +954,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
               value,
               lastNode as fixMeAny,
               key,
+              styleScopedId || undefined,
             ]);
           }
         }
@@ -955,7 +964,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           value = 'html';
         }
 
-        value = serializeAttribute(key, value);
+        value = serializeAttribute(key, value, styleScopedId);
 
         if (value != null && value !== false) {
           this.write(' ');
@@ -964,10 +973,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             this.write('="');
             let startIdx = 0;
             let quoteIdx: number;
-            const componentFrame = this.getNearestComponentFrame();
-            if (isClassAttr(key) && componentFrame && componentFrame.scopedStyleIds.size) {
-              this.write(getScopedStyleIdsAsPrefix(componentFrame.scopedStyleIds) + ' ');
-            }
             const strValue = String(value);
             while ((quoteIdx = strValue.indexOf('"', startIdx)) != -1) {
               this.write(strValue.substring(startIdx, quoteIdx));
@@ -1003,4 +1008,3 @@ function newTagError(text: string) {
 function hasDestroy(obj: any): obj is { $destroy$(): void } {
   return obj && typeof obj === 'object' && typeof obj.$destroy$ === 'function';
 }
-

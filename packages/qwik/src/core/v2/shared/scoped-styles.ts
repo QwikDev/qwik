@@ -1,4 +1,14 @@
+import type { Props } from '../../render/jsx/jsx-runtime';
 import { styleContent } from '../../style/qrl-styles';
+
+export function hasClassAttr(props: Props): boolean {
+  for (const key in props) {
+    if (Object.prototype.hasOwnProperty.call(props, key) && isClassAttr(key)) {
+      return true;
+    }
+  }
+  return false;
+}
 
 export function isClassAttr(key: string): boolean {
   return key === 'class' || key === 'className';

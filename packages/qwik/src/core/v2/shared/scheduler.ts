@@ -91,14 +91,13 @@ import {
   runSubscriber2,
   type TaskFn,
 } from '../../use/use-task';
-import { maybeThen, maybeThenPassError, safeCall } from '../../util/promises';
+import { isPromise, maybeThen, maybeThenPassError, safeCall } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
 import type { VirtualVNode } from '../client/types';
 import { vnode_documentPosition, vnode_isVNode } from '../client/vnode';
 import { vnode_diff } from '../client/vnode-diff';
 import { executeComponent2 } from './component-execution';
 import type { Container2, HostElement, fixMeAny } from './types';
-import { isPromise } from 'util/types';
 
 // Turn this on to get debug output of what the scheduler is doing.
 const DEBUG: boolean = false;
@@ -165,13 +164,13 @@ export const createScheduler = (
   function schedule(
     type: ChoreType.COMPONENT,
     host: HostElement,
-    qrl: QRL,
+    qrl: QRL<(...args: any[]) => any>,
     props: any
   ): ValueOrPromise<JSXOutput>;
   function schedule(
     type: ChoreType.COMPONENT_SSR,
     host: HostElement,
-    qrl: QRL,
+    qrl: QRL<(...args: any[]) => any>,
     props: any
   ): ValueOrPromise<JSXOutput>;
   function schedule(type: ChoreType.COMPUTED, task: Task): ValueOrPromise<void>;
@@ -485,4 +484,3 @@ function debugTrace(
   // eslint-disable-next-line no-console
   console.log(lines.join('\n  ') + '\n');
 }
-

@@ -1588,7 +1588,6 @@ export const vnode_getType = (vnode: VNode): 1 | 3 | 11 => {
 
 const isElement = (node: any): node is Element =>
   node && typeof node == 'object' && node.nodeType === /** Node.ELEMENT_NODE* */ 1;
-  
 
 /// These global variables are used to avoid creating new arrays for each call to `vnode_getPathToClosestDomNode`.
 const aPath: VNode[] = [];
@@ -1636,7 +1635,6 @@ export const vnode_documentPosition = (a: VNode, b: VNode): -1 | 0 | 1 => {
   }
   return aDepth < bDepth ? -1 : 1;
 };
-
 
 /**
  * Use this method to find the parent component for projection.

@@ -23,6 +23,7 @@ import { SubscriptionType } from '../state/common';
 import { type Container2, type HostElement } from '../../server/qwik-types';
 import { vnode_getProp, vnode_isVNode } from '../v2/client/vnode';
 import { isClassAttr } from '../v2/shared/scoped-styles';
+import { isPreventDefault } from '../v2/shared/event-names';
 
 export interface ExecuteComponentOutput {
   node: JSXOutput;
@@ -224,10 +225,12 @@ export const serializeBooleanOrNumberAttribute = (value: any) => {
   return value != null ? String(value) : null;
 };
 
-export function serializeAttribute(key: string, value: any, styleScopedId?: string): string {
+export function serializeAttribute(key: string, value: any, styleScopedId?: string | null): string {
   if (isClassAttr(key)) {
     const serializedClass = serializeClass(value as ClassList);
-    value = styleScopedId ? styleScopedId + ' ' + serializedClass : serializedClass;
+    value = styleScopedId
+      ? styleScopedId + (serializedClass.length ? ' ' + serializedClass : serializedClass)
+      : serializedClass;
   } else if (key === 'style') {
     value = stringifyStyle(value);
   } else if (isEnumeratedBooleanAttribute(key) || typeof value === 'number') {
@@ -235,6 +238,8 @@ export function serializeAttribute(key: string, value: any, styleScopedId?: stri
     value = serializeBooleanOrNumberAttribute(value);
   } else if (value === false || value == null) {
     value = null;
+  } else if (value === true && isPreventDefault(key)) {
+    value = '';
   }
   return value;
 }

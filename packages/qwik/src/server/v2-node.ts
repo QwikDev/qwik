@@ -8,7 +8,7 @@ import {
   mapArray_set,
   ELEMENT_SEQ,
 } from './qwik-copy';
-import type { JSXChildren, SsrAttrs, ISsrNode, ISsrComponentFrame } from './qwik-types';
+import type { SsrAttrs, ISsrNode, ISsrComponentFrame, JSXChildren } from './qwik-types';
 import type { CleanupQueue } from './v2-ssr-container';
 
 /**
@@ -82,9 +82,11 @@ export class SsrComponentFrame implements ISsrComponentFrame {
   public slots = [];
   public projectionDepth = 0;
   public scopedStyleIds = new Set<string>();
+  public childrenScopedStyle: string | null = null;
   constructor(public componentNode: ISsrNode) {}
 
-  distributeChildrenIntoSlots(children: JSXChildren) {
+  distributeChildrenIntoSlots(children: JSXChildren, scopedStyle: string | null) {
+    this.childrenScopedStyle = scopedStyle;
     if (isJSXNode(children)) {
       const slotName = (children.props[QSlot] || '') as string;
       mapArray_set(this.slots, slotName, children, 0);

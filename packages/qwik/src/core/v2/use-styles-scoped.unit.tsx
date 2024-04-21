@@ -1,3 +1,4 @@
+import { createDocument } from '@builder.io/qwik-dom';
 import {
   Fragment as Component,
   Fragment,
@@ -5,19 +6,19 @@ import {
   Fragment as Signal,
 } from '@builder.io/qwik/jsx-runtime';
 import { afterEach, describe, expect, it } from 'vitest';
+import { useStore } from '..';
+import { renderToString2 } from '../../server/v2-ssr-render2';
 import { trigger } from '../../testing/element-fixture';
 import { component$ } from '../component/component.public';
+import { getPlatform, setPlatform } from '../platform/platform';
 import { inlinedQrl } from '../qrl/qrl';
+import { Slot } from '../render/jsx/slot.public';
 import { getScopedStyles } from '../style/scoped-stylesheet';
 import { useSignal } from '../use/use-signal';
 import { useStylesScopedQrl } from '../use/use-styles';
+import { QStyleSelector } from '../util/markers';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
-import { QStyleSelector } from '../util/markers';
-import { Slot } from '../render/jsx/slot.public';
-import { createDocument } from '@builder.io/qwik-dom';
-import { getPlatform, setPlatform } from '../platform/platform';
-import { renderToString2 } from '../../server/v2-ssr-render2';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -55,6 +56,43 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <>
         <div class={(globalThis as any).rawStyleId + ' container'}>Hello world</div>
+      </>
+    );
+  });
+
+  it('should render style', async () => {
+    (globalThis as any).rawStyleId = '';
+
+    const StyledComponent = component$(() => {
+      const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped'));
+      (globalThis as any).rawStyleId = stylesScopedData.scopeId;
+
+      const store = useStore({
+        count: 10,
+      });
+
+      return (
+        <button class={['container', `count-${store.count}`]} onClick$={() => store.count++}>
+          Hello world
+        </button>
+      );
+    });
+
+    const { vNode, getStyles, document } = await render(<StyledComponent />, { debug });
+    const styleId = (globalThis as any).rawStyleId.substring(2);
+    const scopeStyle = getScopedStyles(STYLE_RED, styleId);
+    expect(getStyles()).toEqual({
+      [styleId]: scopeStyle,
+    });
+    expect(vNode).toMatchVDOM(
+      <>
+        <button class={(globalThis as any).rawStyleId + ' container count-10'}>Hello world</button>
+      </>
+    );
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <>
+        <button class={(globalThis as any).rawStyleId + ' container count-11'}>Hello world</button>
       </>
     );
   });
@@ -411,16 +449,20 @@ describe.each([
               <Component>
                 <div class={`${(globalThis as any).rawStyleId2} containerA`}>
                   <Projection>
-                    <div q:slot="one">One</div>
+                    <div class={(globalThis as any).rawStyleId1} q:slot="one">
+                      One
+                    </div>
                   </Projection>
                   <Projection>
-                    <div q:slot="two">Two</div>
+                    <div class={(globalThis as any).rawStyleId1} q:slot="two">
+                      Two
+                    </div>
                   </Projection>
                 </div>
               </Component>
             </Projection>
             <Projection>
-              <div q:slot="four">
+              <div class={(globalThis as any).rawStyleId1} q:slot="four">
                 <span class={`${(globalThis as any).rawStyleId1} container`}>Four</span>
               </div>
             </Projection>
@@ -504,11 +546,11 @@ describe.each([
         <div class="parent">
           <Component>
             <div class={`${(globalThis as any).rawStyleId1} container`}>
-              <span>Hello world 1</span>
+              <span class={(globalThis as any).rawStyleId1}>Hello world 1</span>
               <div class={`${(globalThis as any).rawStyleId1} container`}>Nested 1</div>
               <Component>
                 <div class={`${(globalThis as any).rawStyleId2} container`}>
-                  <span>Hello world 2</span>
+                  <span class={(globalThis as any).rawStyleId2}>Hello world 2</span>
                   <div class={`${(globalThis as any).rawStyleId2} container`}>Nested 2</div>
                 </div>
               </Component>
@@ -528,6 +570,28 @@ describe.each([
           </Component>
         </div>
       </Component>
+    );
+  });
+
+  it('should render style scoped id for element without class attribute', async () => {
+    (globalThis as any).rawStyleId = '';
+
+    const StyledComponent = component$(() => {
+      const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped'));
+      (globalThis as any).rawStyleId = stylesScopedData.scopeId;
+      return <div>Hello world</div>;
+    });
+
+    const { vNode, getStyles } = await render(<StyledComponent />, { debug });
+    const styleId = (globalThis as any).rawStyleId.substring(2);
+    const scopeStyle = getScopedStyles(STYLE_RED, styleId);
+    expect(getStyles()).toEqual({
+      [styleId]: scopeStyle,
+    });
+    expect(vNode).toMatchVDOM(
+      <>
+        <div class={(globalThis as any).rawStyleId}>Hello world</div>
+      </>
     );
   });
 });

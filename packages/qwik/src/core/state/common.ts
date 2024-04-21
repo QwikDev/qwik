@@ -19,21 +19,15 @@ import {
 } from '../use/use-task';
 import { isNode } from '../util/element';
 import { logError, throwErrorAndStop } from '../util/log';
-import { ELEMENT_PROPS, OnRenderProp, QScopedStyle } from '../util/markers';
+import { ELEMENT_PROPS, OnRenderProp } from '../util/markers';
 import { isPromise } from '../util/promises';
 import { seal } from '../util/qdev';
 import { isArray, isFunction, isObject, isSerializableObject } from '../util/types';
 import type { DomContainer } from '../v2/client/dom-container';
 import { ElementVNodeProps, type VNode, type VirtualVNode } from '../v2/client/types';
-import {
-  VNodeJournalOpCode,
-  vnode_getProp,
-  vnode_isVNode,
-  vnode_setAttr,
-} from '../v2/client/vnode';
+import { VNodeJournalOpCode, vnode_setAttr } from '../v2/client/vnode';
 import { ChoreType } from '../v2/shared/scheduler';
-import { isClassAttr } from '../v2/shared/scoped-styles';
-import { isContainer2, type HostElement, type fixMeAny } from '../v2/shared/types';
+import { isContainer2, type fixMeAny } from '../v2/shared/types';
 import { QObjectFlagsSymbol, QObjectManagerSymbol, QOjectTargetSymbol } from './constants';
 import { tryGetContext } from './context';
 import type { Signal } from './signal';
@@ -229,7 +223,7 @@ export const enum SubscriptionProp {
   SIGNAL = 2,
   ELEMENT = 3,
   ELEMENT_PROP = 4,
-  KEY = 5,
+  STYLE_ID = 5,
 }
 
 /** Used with: Host (component) or Task */
@@ -245,6 +239,7 @@ type PropSubscriber = readonly [
   signal: Signal, // Derived Signal
   elm: QwikElement,
   elementProperty: string,
+  styleScopedId: string | undefined,
 ];
 
 /** Used with derived signal on text node: `<span>{signal}</span>` */
@@ -288,7 +283,7 @@ export const serializeSubscription = (sub: Subscriptions, getObjId: GetObjID) =>
       return undefined;
     }
     if (type <= SubscriptionType.PROP_MUTABLE) {
-      key = sub[SubscriptionProp.KEY];
+      key = sub[SubscriptionProp.ELEMENT_PROP];
       base += ` ${signalID} ${must(getObjId(sub[SubscriptionProp.ELEMENT]))} ${
         sub[SubscriptionProp.ELEMENT_PROP]
       }`;
@@ -325,7 +320,7 @@ export const parseSubscription = (sub: string, getObject: GetObject): Subscripti
     assertTrue(parts.length <= 3, 'Max 3 parts');
     return [type, host, parts.length === 3 ? safeDecode(parts[2]) : undefined];
   } else if (type <= 2) {
-    assertTrue(parts.length === 5 || parts.length === 6, 'Type B has 5');
+    assertTrue(parts.length === 6 || parts.length === 7, 'Type B has 5');
     return [
       type as SubscriptionType.PROP_IMMUTABLE,
       host,
@@ -333,6 +328,7 @@ export const parseSubscription = (sub: string, getObject: GetObject): Subscripti
       getObject(parts[3]),
       parts[4],
       safeDecode(parts[5]),
+      safeDecode(parts[6]),
     ];
   }
   assertTrue(type <= 4 && (parts.length === 4 || parts.length === 5), 'Type C has 4');
@@ -508,9 +504,10 @@ export class LocalSubscriptionManager {
           if (type == SubscriptionType.PROP_IMMUTABLE || type == SubscriptionType.PROP_MUTABLE) {
             const target = sub[SubscriptionProp.ELEMENT] as fixMeAny as VirtualVNode;
             const propKey = sub[SubscriptionProp.ELEMENT_PROP];
+            const styleScopedId = sub[SubscriptionProp.STYLE_ID];
             updateNodeProp(
               this.$containerState$ as fixMeAny as DomContainer,
-              host as fixMeAny as HostElement,
+              styleScopedId || null,
               target,
               propKey,
               signal.value,
@@ -534,7 +531,7 @@ export class LocalSubscriptionManager {
 
 function updateNodeProp(
   container: DomContainer,
-  host: HostElement,
+  styleScopedId: string | null,
   target: VNode,
   propKey: string,
   propValue: any,
@@ -542,14 +539,7 @@ function updateNodeProp(
 ) {
   let value = propValue;
 
-  let styleScopedId: string | null = null;
-  if (isClassAttr(propKey)) {
-    styleScopedId = vnode_isVNode(host)
-      ? vnode_getProp(host, QScopedStyle, null)
-      : host.getProp(QScopedStyle);
-  }
-
-  value = serializeAttribute(propKey, value, styleScopedId || undefined);
+  value = serializeAttribute(propKey, value, styleScopedId);
 
   if (!immutable) {
     vnode_setAttr(container.$journal$, target, propKey, value);

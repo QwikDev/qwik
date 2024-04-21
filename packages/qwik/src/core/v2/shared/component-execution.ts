@@ -1,5 +1,5 @@
 import { isQwikComponent, type OnRenderFn } from '../../component/component.public';
-import { assertDefined, assertTrue } from '../../error/assert';
+import { assertDefined } from '../../error/assert';
 import { isQrl, type QRLInternal } from '../../qrl/qrl-class';
 import { isJSXNode } from '../../render/jsx/jsx-runtime';
 import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';

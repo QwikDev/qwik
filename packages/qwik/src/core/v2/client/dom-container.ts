@@ -22,6 +22,7 @@ import {
   QSlotParent,
   QStyle,
   QStyleSelector,
+  addComponentStylePrefix,
 } from '../../util/markers';
 import { maybeThen } from '../../util/promises';
 import { qDev } from '../../util/qdev';
@@ -30,7 +31,7 @@ import { ChoreType } from '../shared/scheduler';
 import { convertScopedStyleIdsToArray, convertStyleIdsToString } from '../shared/scoped-styles';
 import { _SharedContainer } from '../shared/shared-container';
 import { inflateQRL, parseQRL, wrapDeserializerProxy } from '../shared/shared-serialization';
-import type { HostElement, fixMeAny } from '../shared/types';
+import type { HostElement } from '../shared/types';
 import { VNodeDataChar, VNodeDataSeparator } from '../shared/vnode-data-types';
 import {
   VNodeFlags,
@@ -168,7 +169,8 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
 
   processJsx(host: HostElement, jsx: JSXOutput): ValueOrPromise<void> {
     // console.log('>>>> processJsx', String(host), jsx.children);
-    return vnode_diff(this, jsx, host as VirtualVNode);
+    const styleScopedId = this.getHostProp<string>(host, QScopedStyle);
+    return vnode_diff(this, jsx, host as VirtualVNode, addComponentStylePrefix(styleScopedId));
   }
 
   handleError(err: any, host: HostElement): void {

@@ -142,12 +142,17 @@ const _useStyles = (
     const styleId = styleKey(styleQrl, i);
     const host = iCtx.$hostElement$ as fixMeAny;
     set(styleId);
+
     const value = styleQrl.$resolveLazy$(host);
     if (isPromise(value)) {
+      value.then((val) =>
+        iCtx.$container2$.$appendStyle$(transform(val, styleId), styleId, host, scoped)
+      );
       throw value;
+    } else {
+      iCtx.$container2$.$appendStyle$(transform(value, styleId), styleId, host, scoped);
     }
 
-    iCtx.$container2$.$appendStyle$(transform(value, styleId), styleId, host, scoped);
     return styleId;
   } else {
     const styleId = styleKey(styleQrl, i);

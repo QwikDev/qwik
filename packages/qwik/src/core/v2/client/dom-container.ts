@@ -22,6 +22,8 @@ import {
   QSlotParent,
   QStyle,
   QStyleSelector,
+  QTemplate,
+  QUnclaimedProjections,
 } from '../../util/markers';
 import { maybeThen } from '../../util/promises';
 import { qDev } from '../../util/qdev';
@@ -30,7 +32,7 @@ import { ChoreType } from '../shared/scheduler';
 import { convertScopedStyleIdsToArray, convertStyleIdsToString } from '../shared/scoped-styles';
 import { _SharedContainer } from '../shared/shared-container';
 import { inflateQRL, parseQRL, wrapDeserializerProxy } from '../shared/shared-serialization';
-import type { HostElement, fixMeAny } from '../shared/types';
+import type { HostElement } from '../shared/types';
 import { VNodeDataChar, VNodeDataSeparator } from '../shared/vnode-data-types';
 import {
   VNodeFlags,
@@ -60,20 +62,21 @@ import {
   vnode_setProp,
   type VNodeJournal,
   isQContainerInnerHTMLElement,
+  vnode_createQTemplate,
 } from './vnode';
 import { vnode_diff } from './vnode-diff';
 
 /** @public */
 export function getDomContainer(element: Element | ElementVNode): IClientContainer {
-  const htmlElement = getHtmlElement(element);
-  if (!htmlElement) {
+  const qContainerElement = getQContainerElement(element);
+  if (!qContainerElement) {
     throwErrorAndStop('Unable to find q:container.');
   }
-  return getDomContainerFromHTMLElement(htmlElement!);
+  return getDomContainerFromHTMLElement(qContainerElement!);
 }
 
-export function getDomContainerFromHTMLElement(htmlElement: Element): IClientContainer {
-  const qElement = htmlElement as ContainerElement;
+export function getDomContainerFromHTMLElement(qContainerElement: Element): IClientContainer {
+  const qElement = qContainerElement as ContainerElement;
   let container = qElement.qContainer;
   if (!container) {
     qElement.qContainer = container = new DomContainer(qElement);
@@ -81,14 +84,14 @@ export function getDomContainerFromHTMLElement(htmlElement: Element): IClientCon
   return container;
 }
 
-export function getHtmlElement(element: Element | ElementVNode): Element | null {
-  let htmlElement: Element | null = Array.isArray(element)
+export function getQContainerElement(element: Element | ElementVNode): Element | null {
+  let qContainerElement: Element | null = Array.isArray(element)
     ? (vnode_getDomParent(element) as Element)
     : element;
-  while (htmlElement && !htmlElement.hasAttribute(QContainerAttr)) {
-    htmlElement = htmlElement.closest(QContainerSelector);
+  while (qContainerElement && !qContainerElement.hasAttribute(QContainerAttr)) {
+    qContainerElement = qContainerElement.closest(QContainerSelector);
   }
-  return htmlElement;
+  return qContainerElement;
 }
 
 export const isDomContainer = (container: any): container is DomContainer => {
@@ -103,6 +106,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
   public qManifestHash: string;
   public rootVNode: ElementVNode;
   public document: QDocument;
+  public qTemplate: ElementVNode;
   public $journal$: VNodeJournal;
   public renderDone: Promise<void> | null = Promise.resolve();
   public rendering: boolean = false;
@@ -113,6 +117,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
   private stateData: unknown[];
   private $styleIds$: Set<string> | null = null;
   private $vnodeLocate$: (id: string) => VNode = (id) => vnode_locate(this.rootVNode, id);
+  private vNodesWithProjections: Array<VirtualVNode> = [];
 
   constructor(element: ContainerElement) {
     super(
@@ -156,6 +161,13 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
       this.stateData = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
     }
     this.$qFuncs$ = element.qFuncs || EMPTY_ARRAY;
+
+    let qTemplateElement: HTMLElement | null = this.document.body.querySelector('q\\:template');
+
+    if (!qTemplateElement) {
+      qTemplateElement = vnode_createQTemplate(this.$journal$, this.document);
+    }
+    this.qTemplate = vnode_newElement(qTemplateElement, QTemplate);
   }
 
   $setRawState$(id: number, vParent: ElementVNode | VirtualVNode): void {
@@ -293,6 +305,28 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
           if (typeof value == 'string') {
             vNode[i + 1] = this.$vnodeLocate$(value);
           }
+        }
+      }
+    }
+  }
+
+  addVNodeProjection(componentVNodeWithProjection: VirtualVNode): void {
+    this.vNodesWithProjections.push(componentVNodeWithProjection);
+  }
+
+  emitUnclaimedProjection(): ValueOrPromise<void> {
+    const unclaimedProjections = this.vNodesWithProjections.flatMap((component) =>
+      vnode_getProp<(string | VNode)[]>(component, QUnclaimedProjections, null)
+    );
+    // remove slot names
+    for (let i = unclaimedProjections.length - 2; i >= 0; i = i - 2) {
+      unclaimedProjections.splice(i, 1);
+    }
+    if (unclaimedProjections.length) {
+      for (let i = 0; i < unclaimedProjections.length; i++) {
+        const unclaimedProjection = unclaimedProjections[i] as VNode | null;
+        if (unclaimedProjection) {
+          vnode_insertBefore(this.$journal$, this.qTemplate, unclaimedProjection, null);
         }
       }
     }

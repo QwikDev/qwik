@@ -43,6 +43,7 @@ export const render2 = async (
   container.$serverData$ = opts.serverData!;
   const host: HostElement = container.rootVNode as fixMeAny;
   container.$scheduler$(ChoreType.NODE_DIFF, host, host, jsxNode as JSXNode);
+  container.$scheduler$(ChoreType.UNCLAIMED_PROJECTIONS);
   await container.$scheduler$(ChoreType.WAIT_FOR_ALL);
   return {
     cleanup: () => {

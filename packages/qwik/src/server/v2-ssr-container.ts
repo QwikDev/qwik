@@ -1003,4 +1003,3 @@ function newTagError(text: string) {
 function hasDestroy(obj: any): obj is { $destroy$(): void } {
   return obj && typeof obj === 'object' && typeof obj.$destroy$ === 'function';
 }
-

@@ -13,27 +13,28 @@
  *   file lists code which we are OK to have duplicated.
  */
 
-export { dangerouslySetInnerHTML, serializeAttribute, serializeAttribute } from '../core/render/execute-component';
-export { SubscriptionType, SubscriptionType } from '../core/state/common';
+export { dangerouslySetInnerHTML, serializeAttribute } from '../core/render/execute-component';
+export { SubscriptionType } from '../core/state/common';
 export {
   ELEMENT_ID,
   ELEMENT_KEY,
   ELEMENT_PROPS,
   ELEMENT_SEQ,
-  OnRenderProp, QContainerAttr, QCtxAttr,
+  OnRenderProp,
+  QContainerAttr,
+  QCtxAttr,
   QScopedStyle,
   QSlot,
   QSlotParent,
   QSlotRef,
-  QStyle
+  QStyle,
 } from '../core/util/markers';
 export { maybeThen } from '../core/util/promises';
 export { mapApp_remove, mapArray_get, mapArray_set } from '../core/v2/client/vnode';
 export {
   convertStyleIdsToString,
   getScopedStyleIdsAsPrefix,
-  isClassAttr
+  isClassAttr,
 } from '../core/v2/shared/scoped-styles';
 export { DEBUG_TYPE, VirtualType } from '../core/v2/shared/types';
 export { VNodeDataChar } from '../core/v2/shared/vnode-data-types';
-

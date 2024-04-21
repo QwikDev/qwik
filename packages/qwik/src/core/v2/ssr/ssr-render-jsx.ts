@@ -12,7 +12,7 @@ import { SignalDerived, isSignal } from '../../state/signal';
 import { trackSignal } from '../../use/use-core';
 import { EMPTY_ARRAY } from '../../util/flyweight';
 import { throwErrorAndStop } from '../../util/log';
-import { ELEMENT_KEY, QSlot } from '../../util/markers';
+import { ELEMENT_KEY, QScopedStyle, QSlot, addComponentStylePrefix } from '../../util/markers';
 import { isPromise } from '../../util/promises';
 import { type ValueOrPromise } from '../../util/types';
 import {
@@ -21,14 +21,19 @@ import {
   isJsxPropertyAnEventName,
   isPreventDefault,
 } from '../shared/event-names';
+import { hasClassAttr, isClassAttr } from '../shared/scoped-styles';
 import { qrlToString, type SerializationContext } from '../shared/shared-serialization';
 import { DEBUG_TYPE, VirtualType, type fixMeAny } from '../shared/types';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
 import type { SSRContainer, SsrAttrs } from './ssr-types';
-import { hasClassAttr, isClassAttr } from '../shared/scoped-styles';
 
+class SetScopedStyle {
+  constructor(public $scopedStyle$: string | null) {}
+}
 type StackFn = () => ValueOrPromise<void>;
-type StackValue = JSXOutput | StackFn | Promise<JSXOutput> | typeof Promise;
+type StackValue = ValueOrPromise<
+  JSXOutput | StackFn | Promise<JSXOutput> | typeof Promise | SetScopedStyle
+>;
 
 /** @internal */
 export function _walkJSX(
@@ -45,6 +50,7 @@ export function _walkJSX(
   allowPromises: boolean
 ): ValueOrPromise<void> | false {
   const stack: StackValue[] = [value];
+  let currentStyleScoped: string | null = null;
   let resolveDrain: () => void;
   let rejectDrain: (reason: any) => void;
   const drained =
@@ -61,7 +67,10 @@ export function _walkJSX(
   const drain = (): void => {
     while (stack.length) {
       const value = stack.pop();
-      if (typeof value === 'function') {
+      if (value instanceof SetScopedStyle) {
+        currentStyleScoped = value.$scopedStyle$;
+        continue;
+      } else if (typeof value === 'function') {
         if (value === Promise) {
           if (!allowPromises) {
             return throwErrorAndStop('Promises not expected here.');
@@ -79,7 +88,7 @@ export function _walkJSX(
         }
         continue;
       }
-      processJSXNode(ssr, enqueue, value as JSXOutput);
+      processJSXNode(ssr, enqueue, value as JSXOutput, currentStyleScoped);
     }
     if (stack.length === 0 && allowPromises) {
       resolveDrain();
@@ -91,10 +100,9 @@ export function _walkJSX(
 
 function processJSXNode(
   ssr: SSRContainer,
-  enqueue: (
-    value: ValueOrPromise<JSXOutput> | (() => ValueOrPromise<void>) | typeof Promise
-  ) => void,
-  value: JSXOutput
+  enqueue: (value: StackValue) => void,
+  value: JSXOutput,
+  styleScoped: string | null
 ) {
   // console.log('processJSXNode', value);
   if (value === null || value === undefined) {
@@ -131,7 +139,7 @@ function processJSXNode(
         // append class attribute if styleScopedId exists and there is no class attribute
         const classAttributeExists =
           hasClassAttr(jsx.varProps) || (jsx.constProps && hasClassAttr(jsx.constProps));
-        if (!classAttributeExists && jsx.styleScopedId) {
+        if (!classAttributeExists && styleScoped) {
           if (!jsx.constProps) {
             jsx.constProps = {};
           }
@@ -144,15 +152,10 @@ function processJSXNode(
             jsx.varProps,
             jsx.constProps,
             ssr.serializationCtx,
-            jsx.styleScopedId,
+            styleScoped,
             jsx.key
           ),
-          constPropsToSsrAttrs(
-            jsx.constProps,
-            jsx.varProps,
-            ssr.serializationCtx,
-            jsx.styleScopedId
-          )
+          constPropsToSsrAttrs(jsx.constProps, jsx.varProps, ssr.serializationCtx, styleScoped)
         );
         const rawHTML = jsx.props[dangerouslySetInnerHTML];
         if (rawHTML) {
@@ -201,6 +204,7 @@ function processJSXNode(
             }
             slotName = String(slotName || jsx.props.name || '');
             projectionAttrs.push(QSlot, slotName);
+            enqueue(new SetScopedStyle(styleScoped));
             enqueue(ssr.closeProjection);
             const slotDefaultChildren = (jsx.props.children || null) as JSXChildren | null;
             const slotChildren =
@@ -209,6 +213,7 @@ function processJSXNode(
               ssr.addUnclaimedProjection(node, '', slotDefaultChildren);
             }
             enqueue(slotChildren as JSXOutput);
+            enqueue(new SetScopedStyle(componentFrame.childrenScopedStyle));
           } else {
             // Even thought we are not projecting we still need to leave a marker for the slot.
             ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.Projection] : EMPTY_ARRAY);
@@ -216,11 +221,15 @@ function processJSXNode(
           }
         } else if (isQwikComponent(type)) {
           ssr.openComponent(isDev ? [DEBUG_TYPE, VirtualType.Component] : []);
-          enqueue(ssr.closeComponent);
-          ssr.getComponentFrame(0)!.distributeChildrenIntoSlots(jsx.children);
+          const host = ssr.getLastNode();
+          ssr.getComponentFrame(0)!.distributeChildrenIntoSlots(jsx.children, styleScoped);
           const jsxOutput = applyQwikComponentBody(ssr, jsx, type);
+          const compStyleComponentId = addComponentStylePrefix(host.getProp(QScopedStyle));
+          enqueue(new SetScopedStyle(styleScoped));
+          enqueue(ssr.closeComponent);
           enqueue(jsxOutput);
           isPromise(jsxOutput) && enqueue(Promise);
+          enqueue(new SetScopedStyle(compStyleComponentId));
         } else {
           ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.InlineComponent] : EMPTY_ARRAY);
           enqueue(ssr.closeFragment);

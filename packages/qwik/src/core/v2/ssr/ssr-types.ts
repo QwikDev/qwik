@@ -27,10 +27,11 @@ export interface ISsrNode {
 export interface ISsrComponentFrame {
   componentNode: ISsrNode;
   scopedStyleIds: Set<string>;
+  childrenScopedStyle: string | null;
   projectionDepth: number;
   releaseUnclaimedProjections(unclaimedProjections: (ISsrNode | JSXChildren)[]): void;
   consumeChildrenForSlot(projectionNode: ISsrNode, slotName: string): JSXChildren | null;
-  distributeChildrenIntoSlots(children: JSXChildren): void;
+  distributeChildrenIntoSlots(children: JSXChildren, scopedStyle: string | null): void;
 }
 
 export type SymbolToChunkResolver = (symbol: string) => string;

@@ -20,7 +20,6 @@ import {
   ELEMENT_PROPS,
   ELEMENT_SEQ,
   OnRenderProp,
-  QScopedStyle,
   QSlot,
   QSlotParent,
   QStyle,
@@ -36,7 +35,7 @@ import {
   isJsxPropertyAnEventName,
 } from '../shared/event-names';
 import { ChoreType } from '../shared/scheduler';
-import { addPrefixForScopedStyleIdsString, hasClassAttr } from '../shared/scoped-styles';
+import { hasClassAttr } from '../shared/scoped-styles';
 import type { QElement2, QwikLoaderEventScope, fixMeAny } from '../shared/types';
 import { DEBUG_TYPE, VirtualType } from '../shared/types';
 import type { DomContainer } from './dom-container';
@@ -44,6 +43,7 @@ import {
   ElementVNodeProps,
   VNodeFlags,
   VNodeProps,
+  VirtualVNodeProps,
   type ClientAttrKey,
   type ClientAttrs,
   type ClientContainer,
@@ -51,7 +51,6 @@ import {
   type TextVNode,
   type VNode,
   type VirtualVNode,
-  VirtualVNodeProps,
 } from './types';
 import {
   mapApp_findIndx,
@@ -85,7 +84,12 @@ import {
 
 export type ComponentQueue = Array<VNode>;
 
-export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStartNode: VNode) => {
+export const vnode_diff = (
+  container: ClientContainer,
+  jsxNode: JSXOutput,
+  vStartNode: VNode,
+  scopedStyleIdPrefix: string | null
+) => {
   const journal = (container as DomContainer).$journal$;
 
   /**
@@ -127,7 +131,6 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
 
   // When we descend into children, we need to skip advance() because we just descended.
   let shouldAdvance = true;
-  let scopedStyleIdPrefix: string | null;
 
   /**
    * When we are rendering inside a projection we don't want to process child components. Child
@@ -155,7 +158,6 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
     vParent = vStartNode;
     vNewNode = null;
     vCurrent = vnode_getFirstChild(vStartNode);
-    retrieveScopedStyleIdPrefix();
     stackPush(jsxNode, true);
     while (stack.length) {
       while (jsxIdx < jsxCount) {
@@ -728,13 +730,6 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
       }
     }
     return patchEventDispatch;
-  }
-
-  function retrieveScopedStyleIdPrefix() {
-    if (vParent && vnode_isVirtualVNode(vParent)) {
-      const scopedStyleId = vnode_getProp<string>(vParent, QScopedStyle, null);
-      scopedStyleIdPrefix = scopedStyleId ? addPrefixForScopedStyleIdsString(scopedStyleId) : null;
-    }
   }
 
   /**

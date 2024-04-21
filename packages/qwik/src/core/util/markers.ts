@@ -6,6 +6,15 @@ export const ComponentStylesPrefixHost = '💎';
 
 /** Component style content prefix */
 export const ComponentStylesPrefixContent = '⭐️';
+export const addComponentStylePrefix = (styleId?: string | null): string | null => {
+  if (styleId) {
+    let idx = 0;
+    do {
+      styleId = styleId.substring(0, idx) + ComponentStylesPrefixContent + styleId.substring(idx);
+    } while ((idx = styleId.indexOf(' ', idx) + 1) !== 0);
+  }
+  return styleId || null;
+};
 
 /** Prefix used to identify on listeners. */
 export const EventPrefix = 'on:';

@@ -8,10 +8,6 @@ import { logWarn } from '../../util/log';
 import { isNotNullable, isPromise, maybeThen, promiseAll } from '../../util/promises';
 import { qDev, qInspector, seal } from '../../util/qdev';
 import { isArray, isFunction, isObject, isString, type ValueOrPromise } from '../../util/types';
-import { DomContainer, getDomContainer } from '../../v2/client/dom-container';
-import type { ElementVNode } from '../../v2/client/types';
-import { vnode_applyJournal, vnode_isVNode } from '../../v2/client/vnode';
-import { vnode_diff } from '../../v2/client/vnode-diff';
 import { executeComponent, shouldWrapFunctional } from '../execute-component';
 import { _jsxC, isJSXNode, SKIP_RENDER_TYPE, Virtual } from '../jsx/jsx-runtime';
 import type { DevJSX, JSXNode } from '../jsx/types/jsx-node';
@@ -49,28 +45,17 @@ export const renderComponent = (
         }
       }
     }
-    if (vnode_isVNode(hostElement)) {
-      const vHostElement: ElementVNode = hostElement as any;
-      // new vNode code path
-      // TODO(misko): this should be moved to container state
-      const container = getDomContainer(vHostElement);
-      return maybeThen(vnode_diff(container, res.node as JSXNode, vHostElement), () => {
-        // console.log('JOURNAL >>>>', journal);
-        vnode_applyJournal((container as DomContainer).$journal$);
+    const processedJSXNode = processData(res.node, iCtx);
+    return maybeThen(processedJSXNode, (processedJSXNode) => {
+      // Old code path
+      const newVdom = wrapJSX(hostElement, processedJSXNode);
+      // const oldVdom = getVdom(hostElement);
+      const oldVdom = getVdom(elCtx);
+      return maybeThen(smartUpdateChildren(newCtx, oldVdom, newVdom, flags), () => {
+        // setVdom(hostElement, newVdom);
+        elCtx.$vdom$ = newVdom;
       });
-    } else {
-      const processedJSXNode = processData(res.node, iCtx);
-      return maybeThen(processedJSXNode, (processedJSXNode) => {
-        // Old code path
-        const newVdom = wrapJSX(hostElement, processedJSXNode);
-        // const oldVdom = getVdom(hostElement);
-        const oldVdom = getVdom(elCtx);
-        return maybeThen(smartUpdateChildren(newCtx, oldVdom, newVdom, flags), () => {
-          // setVdom(hostElement, newVdom);
-          elCtx.$vdom$ = newVdom;
-        });
-      });
-    }
+    });
   });
 };
 

@@ -22,6 +22,7 @@ import {
   QSlotParent,
   QStyle,
   QStyleSelector,
+  addComponentStylePrefix,
 } from '../../util/markers';
 import { maybeThen } from '../../util/promises';
 import { qDev } from '../../util/qdev';
@@ -168,7 +169,8 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
 
   processJsx(host: HostElement, jsx: JSXOutput): ValueOrPromise<void> {
     // console.log('>>>> processJsx', String(host), jsx.children);
-    return vnode_diff(this, jsx, host as VirtualVNode);
+    const styleScopedId = this.getHostProp<string>(host, QScopedStyle);
+    return vnode_diff(this, jsx, host as VirtualVNode, addComponentStylePrefix(styleScopedId));
   }
 
   handleError(err: any, host: HostElement): void {

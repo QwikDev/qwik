@@ -18,6 +18,7 @@ import './vdom-diff.unit-util';
 import { walkJSX } from './vdom-diff.unit-util';
 import { SsrNode } from '../../server/v2-node';
 import { constPropsToSsrAttrs, varPropsToSsrAttrs } from './ssr/ssr-render-jsx';
+import { hasClassAttr } from './shared/scoped-styles';
 
 describe('serializer v2', () => {
   describe('rendering', () => {
@@ -493,15 +494,29 @@ function toHTML(jsx: JSXOutput): string {
   walkJSX(jsx, {
     enter: (jsx) => {
       if (typeof jsx.type === 'string') {
+        const classAttributeExists =
+          hasClassAttr(jsx.varProps) || (jsx.constProps && hasClassAttr(jsx.constProps));
+        if (!classAttributeExists) {
+          if (!jsx.constProps) {
+            jsx.constProps = {};
+          }
+          jsx.constProps['class'] = '';
+        }
         ssrContainer.openElement(
           jsx.type,
           varPropsToSsrAttrs(
             jsx.varProps as any,
             jsx.constProps,
             ssrContainer.serializationCtx,
+            jsx.styleScopedId,
             jsx.key
           ),
-          constPropsToSsrAttrs(jsx.constProps as any, jsx.varProps, ssrContainer.serializationCtx)
+          constPropsToSsrAttrs(
+            jsx.constProps as any,
+            jsx.varProps,
+            ssrContainer.serializationCtx,
+            jsx.styleScopedId
+          )
         );
       } else {
         ssrContainer.openFragment([]);

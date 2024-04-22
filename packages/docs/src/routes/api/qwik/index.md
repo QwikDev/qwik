@@ -3026,6 +3026,19 @@ T extends [FunctionComponent](#functioncomponent)&lt;infer P&gt; ? P : Record&lt
 </td></tr>
 <tr><td>
 
+[styleScopedId](#)
+
+</td><td>
+
+</td><td>
+
+string \| null
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
 [type](#)
 
 </td><td>

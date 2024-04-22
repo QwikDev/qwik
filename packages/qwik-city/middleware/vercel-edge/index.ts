@@ -54,8 +54,8 @@ export function createQwikCity(opts: QwikCityVercelEdgeOptions) {
         },
         getWritableStream: (status, headers, cookies, resolve) => {
           const { readable, writable } = new TransformStream();
-          if (this.env.get(VERCEL_SKEW_PROTECTION_ENABLED)) {
-            const deploymentId = this.env.get(VERCEL_DEPLOYMENT_ID);
+          if (serverRequestEv.env.get(VERCEL_SKEW_PROTECTION_ENABLED)) {
+            const deploymentId = serverRequestEv.env.get(VERCEL_DEPLOYMENT_ID) || '';
             // TODO: make configurable
             const basePathname = '/';
             // only on document request

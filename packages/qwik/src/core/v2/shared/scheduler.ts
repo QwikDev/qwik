@@ -153,6 +153,7 @@ export const createScheduler = (
   function schedule(type: ChoreType.JOURNAL_FLUSH): ValueOrPromise<void>;
   function schedule(type: ChoreType.WAIT_FOR_ALL): ValueOrPromise<void>;
   function schedule(type: ChoreType.WAIT_FOR_COMPONENTS): ValueOrPromise<void>;
+  function schedule(type: ChoreType.UNCLAIMED_PROJECTIONS): ValueOrPromise<JSXOutput>;
   /**
    * Schedule rendering of a component.
    *
@@ -182,7 +183,6 @@ export const createScheduler = (
     target: HostElement,
     value: JSXOutput
   ): ValueOrPromise<void>;
-  function schedule(type: ChoreType.UNCLAIMED_PROJECTIONS): ValueOrPromise<JSXOutput>;
   ///// IMPLEMENTATION /////
   function schedule(
     type: ChoreType,

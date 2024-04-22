@@ -732,7 +732,7 @@ describe.each([
       const Issue1630 = component$((props) => {
         const store = useStore({ open: true });
         return (
-          <div key="123">
+          <div>
             <button
               onClick$={inlinedQrl(
                 () => {
@@ -762,7 +762,7 @@ describe.each([
       await trigger(document.body, 'button', 'click');
       expect(vNode).toMatchVDOM(
         <Component>
-          <div key="123">
+          <div>
             <button></button>
             <Projection>
               <p q:slot="static"></p>
@@ -777,7 +777,7 @@ describe.each([
       await trigger(document.body, 'button', 'click');
       expect(vNode).toMatchVDOM(
         <Component>
-          <div key="123">
+          <div>
             <button></button>
             <Projection>
               <p q:slot="static"></p>

@@ -295,7 +295,7 @@ export const createScheduler = (
       case ChoreType.NODE_DIFF: {
         const parentVirtualNode = chore.$target$ as VirtualVNode;
         const jsx = chore.$payload$ as JSXOutput;
-        returnValue = vnode_diff(container as fixMeAny, jsx, parentVirtualNode);
+        returnValue = vnode_diff(container as fixMeAny, jsx, parentVirtualNode, null);
         break;
       }
     }

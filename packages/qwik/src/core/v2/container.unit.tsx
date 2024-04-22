@@ -508,14 +508,14 @@ function toHTML(jsx: JSXOutput): string {
             jsx.varProps as any,
             jsx.constProps,
             ssrContainer.serializationCtx,
-            jsx.styleScopedId,
+            null,
             jsx.key
           ),
           constPropsToSsrAttrs(
             jsx.constProps as any,
             jsx.varProps,
             ssrContainer.serializationCtx,
-            jsx.styleScopedId
+            null
           )
         );
       } else {

@@ -35,7 +35,7 @@ const ChildSlotInline = (props: { children: any }) => {
 };
 
 describe.each([
-  // { render: ssrRenderToDom }, //
+  { render: ssrRenderToDom }, //
   { render: domRender }, //
 ])('$render.name: projection', ({ render }) => {
   it('should render basic projection', async () => {

@@ -1634,13 +1634,6 @@ export const vnode_documentPosition = (a: VNode, b: VNode): -1 | 0 | 1 => {
   return aDepth < bDepth ? -1 : 1;
 };
 
-export const vnode_createQTemplate = (journal: VNodeJournal, document: Document): HTMLElement => {
-  const qTemplateElement: HTMLElement = document.createElement(QTemplate);
-  qTemplateElement.style.display = 'none';
-  journal.push(VNodeJournalOpCode.Insert, document.body, null, qTemplateElement);
-  return qTemplateElement;
-};
-
 /**
  * Use this method to find the parent component for projection.
  *

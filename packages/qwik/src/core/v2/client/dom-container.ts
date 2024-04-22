@@ -63,7 +63,6 @@ import {
   vnode_setProp,
   type VNodeJournal,
   isQContainerInnerHTMLElement,
-  vnode_createQTemplate,
 } from './vnode';
 import { vnode_diff } from './vnode-diff';
 
@@ -169,7 +168,9 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
       let qTemplateElement: HTMLElement | null = this.document.body.querySelector('q\\:template');
 
       if (!qTemplateElement) {
-        qTemplateElement = vnode_createQTemplate(this.$journal$, this.document);
+        qTemplateElement = this.document.createElement(QTemplate);
+        qTemplateElement.style.display = 'none';
+        this.$journal$.push(VNodeJournalOpCode.Insert, this.document.body, null, qTemplateElement);
       }
       this._qTemplate = vnode_newElement(qTemplateElement, QTemplate);
     }

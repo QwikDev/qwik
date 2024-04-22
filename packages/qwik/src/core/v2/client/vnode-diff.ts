@@ -1025,7 +1025,7 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
     if (type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) {
       // Only elements and virtual nodes need to be traversed for children
       if (type & VNodeFlags.Virtual) {
-        // Only virtual nodes need can have subscriptions
+        // Only virtual nodes have subscriptions
         container.$subsManager$.$clearSub$(vCursor as fixMeAny);
         const seq = container.getHostProp<Array<any>>(vCursor as fixMeAny, ELEMENT_SEQ);
         if (seq) {
@@ -1053,11 +1053,15 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
             const value = attrs[i + 1];
             if (value) {
               attrs[i + 1] = null; // prevent infinite loop
-              const vNode =
+              const projection =
                 typeof value === 'string'
                   ? vnode_locate(container.rootVNode, value)
                   : (value as any as VNode);
-              cleanup(container, vNode);
+              let projectionChild = vnode_getFirstChild(projection);
+              while (projectionChild) {
+                cleanup(container, projectionChild);
+                projectionChild = vnode_getNextSibling(projectionChild);
+              }
             }
           }
         }

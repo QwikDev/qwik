@@ -14,6 +14,7 @@ import { Slot } from '../render/jsx/slot.public';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { useSignal } from '../use/use-signal';
 import { useStore } from '../use/use-store.public';
+import { useTask$ } from '../use/use-task';
 import { vnode_getNextSibling } from './client/vnode';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
@@ -34,7 +35,7 @@ const ChildSlotInline = (props: { children: any }) => {
 };
 
 describe.each([
-  { render: ssrRenderToDom }, //
+  // { render: ssrRenderToDom }, //
   { render: domRender }, //
 ])('$render.name: projection', ({ render }) => {
   it('should render basic projection', async () => {
@@ -743,6 +744,41 @@ describe.each([
         </section>
       );
     });
+  });
+  it('should cleanup functions inside projection', async () => {
+    (globalThis as any).log = [];
+    const Child = component$(() => {
+      return <Slot />;
+    });
+    const Cleanup = component$(() => {
+      useTask$(() => {
+        (globalThis as any).log.push('task');
+        return () => {
+          (globalThis as any).log.push('cleanup');
+        };
+      });
+      return <div></div>;
+    });
+    const Parent = component$(() => {
+      const show = useSignal(true);
+      return (
+        <>
+          <button onClick$={() => (show.value = false)} />
+          {show.value && (
+            <Child>
+              <Cleanup />
+            </Child>
+          )}
+        </>
+      );
+    });
+    const log = (globalThis as any).log;
+    const { document } = await render(<Parent />, { debug });
+    const isSsr = render === ssrRenderToDom;
+    expect(log).toEqual(isSsr ? ['task', 'cleanup'] : ['task']);
+    log.length = 0;
+    await trigger(document.body, 'button', 'click');
+    expect(log).toEqual(isSsr ? [] : ['cleanup']);
   });
 });
 

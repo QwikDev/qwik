@@ -137,7 +137,6 @@ import {
   QSlotRef,
   QStyle,
   QStylesAllSelector,
-  QTemplate,
 } from '../../util/markers';
 import { isHtmlElement } from '../../util/types';
 import { DEBUG_TYPE, VirtualType, VirtualTypeName } from '../shared/types';

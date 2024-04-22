@@ -1,0 +1,80 @@
+---
+title: Cookbook | Settings
+contributors:
+  - nelsonprsousa
+updated_at: '2024-04-23T00:00:00Z'
+created_at: '2024-04-23T00:00:00Z'
+---
+
+import CodeSandbox, { CodeFile } from '../../../../components/code-sandbox/index.tsx';
+
+Tipically Qwik apps can read environment variables in two main ways: **build-time variables** and **server-side variables**. For **build-time variables**, available in the browser and in the service-side, please refer to [this document](https://qwik.dev/docs/env-variables/). Please use only **public** data here.
+
+If you which to use server-side variables across your Qwik project, you may need to create a singleton design pattern to initialize your environment variables. Server-side variables are safe to use and you can use secrets here.
+
+
+## Create your settings typed file
+
+Let's declare your `appSettings.ts`file. You can safely replace these example fields with the ones you actually need.
+
+```typescript title="src/appSettings.ts"
+type Cache = {
+  version: string;
+  timeToLive: number;
+};
+
+export type AppSettings = {
+  cache: Cache;
+};
+
+let appSettings!: AppSettings;
+
+export const getAppSettings = (): AppSettings => {
+  // eslint-disable-next-line
+  if (!appSettings) {
+    throw new Error('Settings not set');
+  }
+
+  return appSettings;
+};
+
+export function initializeAppSettingsIfNeeded(
+  factory: () => AppSettings,
+): void {
+  // eslint-disable-next-line
+  if (!appSettings) {
+    appSettings = factory();
+  }
+}
+```
+
+## Load your app settings if needed
+
+The first request to your Qwik App will actually read and initialize your settings. After the first load the singleton object will be used directly.
+
+```typescript title="src/routes/plugin@settings.ts"
+import type { RequestHandler } from '@builder.io/qwik-city';
+import type { EnvGetter } from '@builder.io/qwik-city/middleware/request-handler';
+import type { AppSettings } from '~/appSettings';
+import { initializeAppSettingsIfNeeded } from '~/appSettings';
+
+export const onRequest: RequestHandler = async ({ env }) => {
+  initializeAppSettingsIfNeeded(initAppSettings(env));
+};
+
+const initAppSettings = (env: EnvGetter) => () => {
+  const result: AppSettings = {
+    cache: {
+      version: env.get('REDIS_CACHE_VERSION'), // reading and storing from EnvGetter (from qwik-city onRequest middleware)
+      timeToLive: 300, // hard coded setting
+    },
+  };
+
+  return result;
+};
+```
+
+You can now call `getAppSettings()` method and receive an `AppSettings`typed object ready for your to read. You can call this method even outside Qwik middlewares.import CodeSandbox, { CodeFile } from '../../../../components/code-sandbox/index.tsx';import CodeSandbox, { CodeFile } from '../../../../components/code-sandbox/index.tsx';
+import CodeSandbox, { CodeFile } from '../../../../components/code-sandbox/index.tsx';
+import CodeSandbox, { CodeFile } from '../../../../components/code-sandbox/index.tsx';
+

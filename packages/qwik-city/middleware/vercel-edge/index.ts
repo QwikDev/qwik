@@ -59,18 +59,14 @@ export function createQwikCity(opts: QwikCityVercelEdgeOptions) {
             // TODO: make configurable
             const basePathname = '/';
             // only on document request
-            if (request.headers.has("Sec-Fetch-Dest")) {
+            if (request.headers.has('Sec-Fetch-Dest')) {
               // set cookie before creating response
-              cookies.set(
-                '__vdpl',
-                deploymentId,
-                {
-                  path: basePathname,
-                  secure: true,
-                  sameSite: true,
-                  httpOnly: true,
-                }
-              );
+              cookies.set('__vdpl', deploymentId, {
+                path: basePathname,
+                secure: true,
+                sameSite: true,
+                httpOnly: true,
+              });
             }
           }
           const response = new Response(readable, {

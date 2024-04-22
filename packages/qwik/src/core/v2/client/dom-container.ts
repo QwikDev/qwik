@@ -106,7 +106,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
   public qManifestHash: string;
   public rootVNode: ElementVNode;
   public document: QDocument;
-  public qTemplate: ElementVNode;
   public $journal$: VNodeJournal;
   public renderDone: Promise<void> | null = Promise.resolve();
   public rendering: boolean = false;
@@ -118,6 +117,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
   private $styleIds$: Set<string> | null = null;
   private $vnodeLocate$: (id: string) => VNode = (id) => vnode_locate(this.rootVNode, id);
   private vNodesWithProjections: Array<VirtualVNode> = [];
+  private _qTemplate: ElementVNode | null = null;
 
   constructor(element: ContainerElement) {
     super(
@@ -161,13 +161,19 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
       this.stateData = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
     }
     this.$qFuncs$ = element.qFuncs || EMPTY_ARRAY;
+  }
 
-    let qTemplateElement: HTMLElement | null = this.document.body.querySelector('q\\:template');
+  get qTemplate(): ElementVNode {
+    if (this._qTemplate === null) {
+      let qTemplateElement: HTMLElement | null = this.document.body.querySelector('q\\:template');
 
-    if (!qTemplateElement) {
-      qTemplateElement = vnode_createQTemplate(this.$journal$, this.document);
+      if (!qTemplateElement) {
+        qTemplateElement = vnode_createQTemplate(this.$journal$, this.document);
+      }
+      this._qTemplate = vnode_newElement(qTemplateElement, QTemplate);
     }
-    this.qTemplate = vnode_newElement(qTemplateElement, QTemplate);
+
+    return this._qTemplate;
   }
 
   $setRawState$(id: number, vParent: ElementVNode | VirtualVNode): void {
@@ -294,8 +300,8 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
     return this.renderDone;
   }
 
-  ensureProjectionResolved(host: HostElement): void {
-    const vNode: VirtualVNode = host as any;
+  ensureProjectionResolved(vNode: VirtualVNode): void {
+    // console.log('ensureProjectionResolved', String(vNode));
     if ((vNode[VNodeProps.flags] & VNodeFlags.Resolved) === 0) {
       vNode[VNodeProps.flags] |= VNodeFlags.Resolved;
       for (let i = vnode_getPropStartIndex(vNode); i < vNode.length; i = i + 2) {

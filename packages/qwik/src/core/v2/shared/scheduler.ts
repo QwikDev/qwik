@@ -105,21 +105,21 @@ const DEBUG: boolean = false;
 
 export const enum ChoreType {
   /// MASKS defining three levels of sorting
-  MACRO /* ***************** */ = 0b1111_0000,
+  MACRO /* ***************** */ = 0b111_000,
   /* order of elements (not encoded here) */
-  MICRO /* ***************** */ = 0b0000_1111,
+  MICRO /* ***************** */ = 0b000_111,
 
-  COMPUTED /* ************** */ = 0b0000_0001,
-  RESOURCE /* ************** */ = 0b0000_0010,
-  TASK /* ****************** */ = 0b0000_0011,
-  NODE_DIFF /* ************* */ = 0b0000_0100,
-  COMPONENT_SSR /* ********* */ = 0b0000_0101,
-  COMPONENT /* ************* */ = 0b0000_0110,
-  WAIT_FOR_COMPONENTS /* *** */ = 0b0001_0000,
-  UNCLAIMED_PROJECTIONS /* * */ = 0b0010_0000,
-  JOURNAL_FLUSH /* ********* */ = 0b0011_0000,
-  VISIBLE /* *************** */ = 0b0100_0000,
-  WAIT_FOR_ALL /* ********** */ = 0b1111_1111,
+  COMPUTED /* ************** */ = 0b000_001,
+  RESOURCE /* ************** */ = 0b000_010,
+  TASK /* ****************** */ = 0b000_011,
+  NODE_DIFF /* ************* */ = 0b000_100,
+  COMPONENT_SSR /* ********* */ = 0b000_101,
+  COMPONENT /* ************* */ = 0b000_110,
+  WAIT_FOR_COMPONENTS /* *** */ = 0b001_000,
+  UNCLAIMED_PROJECTIONS /* * */ = 0b010_000,
+  JOURNAL_FLUSH /* ********* */ = 0b011_000,
+  VISIBLE /* *************** */ = 0b100_000,
+  WAIT_FOR_ALL /* ********** */ = 0b111_111,
 }
 
 export interface Chore {

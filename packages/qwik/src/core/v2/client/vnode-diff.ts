@@ -67,6 +67,7 @@ import {
   vnode_getParent,
   vnode_getProjectionParentComponent,
   vnode_getProp,
+  vnode_getPropStartIndex,
   vnode_getText,
   vnode_getType,
   vnode_insertBefore,
@@ -130,7 +131,6 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
   // When we descend into children, we need to skip advance() because we just descended.
   let shouldAdvance = true;
   let scopedStyleIdPrefix: string | null;
-  const qTemplate = container.qTemplate;
 
   /**
    * When we are rendering inside a projection we don't want to process child components. Child
@@ -498,7 +498,7 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
           vnode_getProp(vCleanup as VirtualVNode, QSlot, null) !== null
         ) {
           // move projected node to the q:template on remove
-          vnode_insertBefore(journal, qTemplate, vCleanup, null);
+          vnode_insertBefore(journal, container.qTemplate, vCleanup, null);
         } else {
           vnode_remove(journal, vParent as ElementVNode | VirtualVNode, vCleanup, true);
         }
@@ -865,6 +865,17 @@ export const vnode_diff = (container: ClientContainer, jsxNode: JSXOutput, vStar
           container.setHostProp(vNewNode, OnRenderProp, componentQRL);
           container.setHostProp(vNewNode, ELEMENT_PROPS, jsxProps);
           container.setHostProp(vNewNode, ELEMENT_KEY, jsxKey);
+
+          // rewrite slot props to the new node
+          if (host) {
+            for (let i = vnode_getPropStartIndex(host); i < host.length; i = i + 2) {
+              const prop = host[i] as string;
+              if (!prop.startsWith('q:')) {
+                const value = host[i + 1];
+                container.setHostProp(vNewNode, prop, value);
+              }
+            }
+          }
         }
         host = vNewNode as VirtualVNode;
         shouldRender = true;

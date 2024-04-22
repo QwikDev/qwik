@@ -34,7 +34,7 @@ const ChildSlotInline = (props: { children: any }) => {
 };
 
 describe.each([
-  // { render: ssrRenderToDom }, //
+  { render: ssrRenderToDom }, //
   { render: domRender }, //
 ])('$render.name: projection', ({ render }) => {
   it('should render basic projection', async () => {
@@ -397,7 +397,7 @@ describe.each([
           </div>
         </Component>
       );
-      expect(document.querySelector('.parent')).toMatchDOM(
+      await expect(document.querySelector('.parent')).toMatchDOM(
         <div class="parent">
           <span class="child">child-content</span>
         </div>
@@ -416,7 +416,7 @@ describe.each([
           </div>
         </Component>
       );
-      expect(document.querySelector('.parent')).toMatchDOM(
+      await expect(document.querySelector('.parent')).toMatchDOM(
         <div class="parent">
           <span class="child">{''}</span>
         </div>
@@ -435,7 +435,7 @@ describe.each([
           </div>
         </Component>
       );
-      expect(document.querySelector('.parent')).toMatchDOM(
+      await expect(document.querySelector('.parent')).toMatchDOM(
         <div class="parent">
           <span class="child">{''}</span>
         </div>
@@ -458,7 +458,7 @@ describe.each([
           </div>
         </Component>
       );
-      expect(document.querySelector('.parent')).toMatchDOM(
+      await expect(document.querySelector('.parent')).toMatchDOM(
         <div class="parent">
           <span class="child">{''}</span>
         </div>
@@ -609,7 +609,7 @@ describe.each([
       );
 
       await trigger(document.body, 'button', 'click');
-      expect(document.querySelector('q\\:template')).toMatchDOM(<q:template></q:template>);
+      await expect(document.querySelector('q\\:template')).toMatchDOM(<q:template></q:template>);
       expect(vNode).toMatchVDOM(
         <Component>
           <Fragment>
@@ -633,7 +633,7 @@ describe.each([
       );
 
       await trigger(document.body, 'button', 'click');
-      expect(document.querySelector('q\\:template')).toMatchDOM(<q:template></q:template>);
+      await expect(document.querySelector('q\\:template')).toMatchDOM(<q:template></q:template>);
       expect(vNode).toMatchVDOM(
         <Component>
           <Fragment>
@@ -658,9 +658,7 @@ describe.each([
       const content = <span>Some content</span>;
 
       const { document } = await render(<Cmp>{content}</Cmp>, { debug });
-      if (render === ssrRenderToDom) {
-        expect(document.querySelector('q\\:template')).toBeUndefined();
-      }
+      expect(document.querySelector('q\\:template')).toBeUndefined();
 
       await trigger(document.body, 'button', 'click');
       await expect(document.querySelector('q\\:template')).toMatchDOM(
@@ -668,7 +666,7 @@ describe.each([
       );
 
       await trigger(document.body, 'button', 'click');
-      expect(document.querySelector('q\\:template')).toMatchDOM(<q:template></q:template>);
+      await expect(document.querySelector('q\\:template')).toMatchDOM(<q:template></q:template>);
 
       await trigger(document.body, 'button', 'click');
       await expect(document.querySelector('q\\:template')).toMatchDOM(
@@ -676,7 +674,55 @@ describe.each([
       );
 
       await trigger(document.body, 'button', 'click');
-      expect(document.querySelector('q\\:template')).toMatchDOM(<q:template></q:template>);
+      await expect(document.querySelector('q\\:template')).toMatchDOM(<q:template></q:template>);
+    });
+
+    it('should add and delete projection content inside q:template for CSR rerender after SSR', async () => {
+      const Child = component$(() => {
+        const show = useSignal(false);
+        return (
+          <>
+            <button id="slot" onClick$={() => (show.value = !show.value)}></button>
+            {show.value && <Slot />}
+          </>
+        );
+      });
+
+      const content = <span>Some content</span>;
+
+      const Parent = component$(() => {
+        const reload = useSignal(0);
+        return (
+          <>
+            <button id="reload" data-v={reload.value} onClick$={() => reload.value++}>
+              Reload
+            </button>
+            <Child key={reload.value}>{content}</Child>
+          </>
+        );
+      });
+
+      const { document } = await render(<Parent />, { debug });
+      await expect(document.querySelector('q\\:template')).toMatchDOM(
+        <q:template>{content}</q:template>
+      );
+
+      await trigger(document.body, '#reload', 'click');
+      await trigger(document.body, '#slot', 'click');
+      await expect(document.querySelector('q\\:template')).toMatchDOM(<q:template></q:template>);
+
+      await trigger(document.body, '#slot', 'click');
+      await expect(document.querySelector('q\\:template')).toMatchDOM(
+        <q:template>{content}</q:template>
+      );
+
+      await trigger(document.body, '#slot', 'click');
+      await expect(document.querySelector('q\\:template')).toMatchDOM(<q:template></q:template>);
+
+      await trigger(document.body, '#slot', 'click');
+      await expect(document.querySelector('q\\:template')).toMatchDOM(
+        <q:template>{content}</q:template>
+      );
     });
   });
   describe('regression', () => {

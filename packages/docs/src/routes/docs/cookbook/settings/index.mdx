@@ -6,8 +6,6 @@ updated_at: '2024-04-23T00:00:00Z'
 created_at: '2024-04-23T00:00:00Z'
 ---
 
-import CodeSandbox, { CodeFile } from '../../../../components/code-sandbox/index.tsx';
-
 Tipically Qwik apps can read environment variables in two main ways: **build-time variables** and **server-side variables**. For **build-time variables**, available in the browser and in the service-side, please refer to [this document](https://qwik.dev/docs/env-variables/). Please use only **public** data here.
 
 If you which to use server-side variables across your Qwik project, you may need to create a singleton design pattern to initialize your environment variables. Server-side variables are safe to use and you can use secrets here.
@@ -74,7 +72,4 @@ const initAppSettings = (env: EnvGetter) => () => {
 };
 ```
 
-You can now call `getAppSettings()` method and receive an `AppSettings`typed object ready for your to read. You can call this method even outside Qwik middlewares.import CodeSandbox, { CodeFile } from '../../../../components/code-sandbox/index.tsx';import CodeSandbox, { CodeFile } from '../../../../components/code-sandbox/index.tsx';
-import CodeSandbox, { CodeFile } from '../../../../components/code-sandbox/index.tsx';
-import CodeSandbox, { CodeFile } from '../../../../components/code-sandbox/index.tsx';
-
+You can now call `getAppSettings()` method and receive an `AppSettings`typed object ready for your to read. You can call this method even outside Qwik middlewares.

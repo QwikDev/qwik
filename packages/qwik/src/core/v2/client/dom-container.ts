@@ -22,6 +22,8 @@ import {
   QSlotParent,
   QStyle,
   QStyleSelector,
+  QTemplate,
+  QUnclaimedProjections,
   addComponentStylePrefix,
 } from '../../util/markers';
 import { maybeThen } from '../../util/promises';
@@ -66,15 +68,15 @@ import { vnode_diff } from './vnode-diff';
 
 /** @public */
 export function getDomContainer(element: Element | ElementVNode): IClientContainer {
-  const htmlElement = getHtmlElement(element);
-  if (!htmlElement) {
+  const qContainerElement = getQContainerElement(element);
+  if (!qContainerElement) {
     throwErrorAndStop('Unable to find q:container.');
   }
-  return getDomContainerFromHTMLElement(htmlElement!);
+  return getDomContainerFromHTMLElement(qContainerElement!);
 }
 
-export function getDomContainerFromHTMLElement(htmlElement: Element): IClientContainer {
-  const qElement = htmlElement as ContainerElement;
+export function getDomContainerFromHTMLElement(qContainerElement: Element): IClientContainer {
+  const qElement = qContainerElement as ContainerElement;
   let container = qElement.qContainer;
   if (!container) {
     qElement.qContainer = container = new DomContainer(qElement);
@@ -82,14 +84,14 @@ export function getDomContainerFromHTMLElement(htmlElement: Element): IClientCon
   return container;
 }
 
-export function getHtmlElement(element: Element | ElementVNode): Element | null {
-  let htmlElement: Element | null = Array.isArray(element)
+export function getQContainerElement(element: Element | ElementVNode): Element | null {
+  let qContainerElement: Element | null = Array.isArray(element)
     ? (vnode_getDomParent(element) as Element)
     : element;
-  while (htmlElement && !htmlElement.hasAttribute(QContainerAttr)) {
-    htmlElement = htmlElement.closest(QContainerSelector);
+  while (qContainerElement && !qContainerElement.hasAttribute(QContainerAttr)) {
+    qContainerElement = qContainerElement.closest(QContainerSelector);
   }
-  return htmlElement;
+  return qContainerElement;
 }
 
 export const isDomContainer = (container: any): container is DomContainer => {
@@ -114,6 +116,8 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
   private stateData: unknown[];
   private $styleIds$: Set<string> | null = null;
   private $vnodeLocate$: (id: string) => VNode = (id) => vnode_locate(this.rootVNode, id);
+  private vNodesWithProjections: Array<VirtualVNode> = [];
+  private _qTemplate: ElementVNode | null = null;
 
   constructor(element: ContainerElement) {
     super(
@@ -157,6 +161,21 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
       this.stateData = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
     }
     this.$qFuncs$ = element.qFuncs || EMPTY_ARRAY;
+  }
+
+  get qTemplate(): ElementVNode {
+    if (this._qTemplate === null) {
+      let qTemplateElement: HTMLElement | null = this.document.body.querySelector('q\\:template');
+
+      if (!qTemplateElement) {
+        qTemplateElement = this.document.createElement(QTemplate);
+        qTemplateElement.style.display = 'none';
+        this.$journal$.push(VNodeJournalOpCode.Insert, this.document.body, null, qTemplateElement);
+      }
+      this._qTemplate = vnode_newElement(qTemplateElement, QTemplate);
+    }
+
+    return this._qTemplate;
   }
 
   $setRawState$(id: number, vParent: ElementVNode | VirtualVNode): void {
@@ -284,8 +303,8 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
     return this.renderDone;
   }
 
-  ensureProjectionResolved(host: HostElement): void {
-    const vNode: VirtualVNode = host as any;
+  ensureProjectionResolved(vNode: VirtualVNode): void {
+    // console.log('ensureProjectionResolved', String(vNode));
     if ((vNode[VNodeProps.flags] & VNodeFlags.Resolved) === 0) {
       vNode[VNodeProps.flags] |= VNodeFlags.Resolved;
       for (let i = vnode_getPropStartIndex(vNode); i < vNode.length; i = i + 2) {
@@ -295,6 +314,28 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
           if (typeof value == 'string') {
             vNode[i + 1] = this.$vnodeLocate$(value);
           }
+        }
+      }
+    }
+  }
+
+  addVNodeProjection(componentVNodeWithProjection: VirtualVNode): void {
+    this.vNodesWithProjections.push(componentVNodeWithProjection);
+  }
+
+  emitUnclaimedProjection(): ValueOrPromise<void> {
+    const unclaimedProjections = this.vNodesWithProjections.flatMap((component) =>
+      vnode_getProp<(string | VNode)[]>(component, QUnclaimedProjections, null)
+    );
+    // remove slot names
+    for (let i = unclaimedProjections.length - 2; i >= 0; i = i - 2) {
+      unclaimedProjections.splice(i, 1);
+    }
+    if (unclaimedProjections.length) {
+      for (let i = 0; i < unclaimedProjections.length; i++) {
+        const unclaimedProjection = unclaimedProjections[i] as VNode | null;
+        if (unclaimedProjection) {
+          vnode_insertBefore(this.$journal$, this.qTemplate, unclaimedProjection, null);
         }
       }
     }

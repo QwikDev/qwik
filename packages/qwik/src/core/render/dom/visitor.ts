@@ -450,6 +450,7 @@ export const diffVnode = (
             newValue,
             elm,
             prop,
+            undefined,
           ]);
         }
         if (prop === 'class') {
@@ -1088,8 +1089,8 @@ export const setProperties = (
       newValue = trackSignal(
         newValue,
         immutable
-          ? [SubscriptionType.PROP_IMMUTABLE, elm, newValue, hostCtx.$element$, prop]
-          : [SubscriptionType.PROP_MUTABLE, hostCtx.$element$, newValue, elm, prop]
+          ? [SubscriptionType.PROP_IMMUTABLE, elm, newValue, hostCtx.$element$, prop, undefined]
+          : [SubscriptionType.PROP_MUTABLE, hostCtx.$element$, newValue, elm, prop, undefined]
       );
     }
 

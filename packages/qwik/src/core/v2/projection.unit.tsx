@@ -35,7 +35,7 @@ const ChildSlotInline = (props: { children: any }) => {
 };
 
 describe.each([
-  // { render: ssrRenderToDom }, //
+  { render: ssrRenderToDom }, //
   { render: domRender }, //
 ])('$render.name: projection', ({ render }) => {
   it('should render basic projection', async () => {
@@ -398,12 +398,10 @@ describe.each([
           </div>
         </Component>
       );
-      expect(document.body).toMatchDOM(
-        <body>
-          <div class="parent">
-            <span class="child">child-content</span>
-          </div>
-        </body>
+      await expect(document.querySelector('.parent')).toMatchDOM(
+        <div class="parent">
+          <span class="child">child-content</span>
+        </div>
       );
       (globalThis as any).log.length = 0;
       // console.log('--- HIDE PROJECTION ---');
@@ -419,12 +417,10 @@ describe.each([
           </div>
         </Component>
       );
-      expect(document.body).toMatchDOM(
-        <body>
-          <div class="parent">
-            <span class="child">{''}</span>
-          </div>
-        </body>
+      await expect(document.querySelector('.parent')).toMatchDOM(
+        <div class="parent">
+          <span class="child">{''}</span>
+        </div>
       );
       (globalThis as any).log.length = 0;
       // console.log('--- HIDE CONTENT ---');
@@ -440,12 +436,10 @@ describe.each([
           </div>
         </Component>
       );
-      expect(document.body).toMatchDOM(
-        <body>
-          <div class="parent">
-            <span class="child">{''}</span>
-          </div>
-        </body>
+      await expect(document.querySelector('.parent')).toMatchDOM(
+        <div class="parent">
+          <span class="child">{''}</span>
+        </div>
       );
       (globalThis as any).log.length = 0;
       // console.log('--- UN-HIDE PROJECTION (no content) ---');
@@ -465,12 +459,10 @@ describe.each([
           </div>
         </Component>
       );
-      expect(document.body).toMatchDOM(
-        <body>
-          <div class="parent">
-            <span class="child">{''}</span>
-          </div>
-        </body>
+      await expect(document.querySelector('.parent')).toMatchDOM(
+        <div class="parent">
+          <span class="child">{''}</span>
+        </div>
       );
       (globalThis as any).log.length = 0;
       // console.log('--- RE-ADD CONTENT ---');
@@ -590,6 +582,149 @@ describe.each([
         </div>
       );
     });
+
+    it('should add and delete projection content inside q:template if slot is initially not visible', async () => {
+      const Cmp = component$(() => {
+        const show = useSignal(false);
+        return (
+          <>
+            <button onClick$={() => (show.value = !show.value)}></button>
+            {show.value && <Slot />}
+          </>
+        );
+      });
+
+      const content = <span>Some content</span>;
+
+      const { document, vNode } = await render(<Cmp>{content}</Cmp>, { debug });
+      await expect(document.querySelector('q\\:template')).toMatchDOM(
+        <q:template>{content}</q:template>
+      );
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button></button>
+            {''}
+          </Fragment>
+        </Component>
+      );
+
+      await trigger(document.body, 'button', 'click');
+      await expect(document.querySelector('q\\:template')).toMatchDOM(<q:template></q:template>);
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button></button>
+            <Projection>{content}</Projection>
+          </Fragment>
+        </Component>
+      );
+
+      await trigger(document.body, 'button', 'click');
+      await expect(document.querySelector('q\\:template')).toMatchDOM(
+        <q:template>{content}</q:template>
+      );
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button></button>
+            {''}
+          </Fragment>
+        </Component>
+      );
+
+      await trigger(document.body, 'button', 'click');
+      await expect(document.querySelector('q\\:template')).toMatchDOM(<q:template></q:template>);
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button></button>
+            <Projection>{content}</Projection>
+          </Fragment>
+        </Component>
+      );
+    });
+
+    it('should add and delete projection content inside q:template if slot is initially visible', async () => {
+      const Cmp = component$(() => {
+        const show = useSignal(true);
+        return (
+          <>
+            <button onClick$={() => (show.value = !show.value)}></button>
+            {show.value && <Slot />}
+          </>
+        );
+      });
+
+      const content = <span>Some content</span>;
+
+      const { document } = await render(<Cmp>{content}</Cmp>, { debug });
+      expect(document.querySelector('q\\:template')).toBeUndefined();
+
+      await trigger(document.body, 'button', 'click');
+      await expect(document.querySelector('q\\:template')).toMatchDOM(
+        <q:template>{content}</q:template>
+      );
+
+      await trigger(document.body, 'button', 'click');
+      await expect(document.querySelector('q\\:template')).toMatchDOM(<q:template></q:template>);
+
+      await trigger(document.body, 'button', 'click');
+      await expect(document.querySelector('q\\:template')).toMatchDOM(
+        <q:template>{content}</q:template>
+      );
+
+      await trigger(document.body, 'button', 'click');
+      await expect(document.querySelector('q\\:template')).toMatchDOM(<q:template></q:template>);
+    });
+
+    it('should add and delete projection content inside q:template for CSR rerender after SSR', async () => {
+      const Child = component$(() => {
+        const show = useSignal(false);
+        return (
+          <>
+            <button id="slot" onClick$={() => (show.value = !show.value)}></button>
+            {show.value && <Slot />}
+          </>
+        );
+      });
+
+      const content = <span>Some content</span>;
+
+      const Parent = component$(() => {
+        const reload = useSignal(0);
+        return (
+          <>
+            <button id="reload" data-v={reload.value} onClick$={() => reload.value++}>
+              Reload
+            </button>
+            <Child key={reload.value}>{content}</Child>
+          </>
+        );
+      });
+
+      const { document } = await render(<Parent />, { debug });
+      await expect(document.querySelector('q\\:template')).toMatchDOM(
+        <q:template>{content}</q:template>
+      );
+
+      await trigger(document.body, '#reload', 'click');
+      await trigger(document.body, '#slot', 'click');
+      await expect(document.querySelector('q\\:template')).toMatchDOM(<q:template></q:template>);
+
+      await trigger(document.body, '#slot', 'click');
+      await expect(document.querySelector('q\\:template')).toMatchDOM(
+        <q:template>{content}</q:template>
+      );
+
+      await trigger(document.body, '#slot', 'click');
+      await expect(document.querySelector('q\\:template')).toMatchDOM(<q:template></q:template>);
+
+      await trigger(document.body, '#slot', 'click');
+      await expect(document.querySelector('q\\:template')).toMatchDOM(
+        <q:template>{content}</q:template>
+      );
+    });
   });
   describe('regression', () => {
     it('#1630', async () => {
@@ -597,7 +732,7 @@ describe.each([
       const Issue1630 = component$((props) => {
         const store = useStore({ open: true });
         return (
-          <>
+          <div>
             <button
               onClick$={inlinedQrl(
                 () => {
@@ -610,7 +745,7 @@ describe.each([
             ></button>
             <Slot name="static" />
             {store.open && <Slot />}
-          </>
+          </div>
         );
       });
       const { vNode, document } = await render(
@@ -621,24 +756,28 @@ describe.each([
         </Issue1630>,
         { debug }
       );
-      expect(removeKeyAttrs(document.body.innerHTML)).toContain('</p><b>CHILD</b>DYNAMIC');
+      expect(removeKeyAttrs(document.querySelector('div')?.innerHTML || '')).toContain(
+        '</p><b>CHILD</b>DYNAMIC'
+      );
       await trigger(document.body, 'button', 'click');
       expect(vNode).toMatchVDOM(
         <Component>
-          <Fragment>
+          <div>
             <button></button>
             <Projection>
               <p q:slot="static"></p>
             </Projection>
             {''}
-          </Fragment>
+          </div>
         </Component>
       );
-      expect(removeKeyAttrs(document.body.innerHTML)).not.toContain('<b>CHILD</b>DYNAMIC');
+      expect(removeKeyAttrs(document.querySelector('div')?.innerHTML || '')).not.toContain(
+        '<b>CHILD</b>DYNAMIC'
+      );
       await trigger(document.body, 'button', 'click');
       expect(vNode).toMatchVDOM(
         <Component>
-          <Fragment>
+          <div>
             <button></button>
             <Projection>
               <p q:slot="static"></p>
@@ -649,10 +788,12 @@ describe.each([
               </Component>
               {'DYNAMIC'}
             </Projection>
-          </Fragment>
+          </div>
         </Component>
       );
-      expect(removeKeyAttrs(document.body.innerHTML)).toContain('</p><b>CHILD</b>DYNAMIC');
+      expect(removeKeyAttrs(document.querySelector('div')?.innerHTML || '')).toContain(
+        '</p><b>CHILD</b>DYNAMIC'
+      );
     });
 
     it.skip('#2688', async () => {

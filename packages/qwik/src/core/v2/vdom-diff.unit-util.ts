@@ -322,7 +322,7 @@ async function diffNode(received: HTMLElement, expected: JSXOutput): Promise<str
   const nodePath: (Node | null)[] = [received];
   const path: string[] = [];
   walkJSX(expected, {
-    enter: (jsx) => {
+    enter: async (jsx) => {
       // console.log('enter', jsx.type);
       const element = nodePath[nodePath.length - 1] as HTMLElement;
       if (!element) {
@@ -367,7 +367,22 @@ async function diffNode(received: HTMLElement, expected: JSXOutput): Promise<str
           diffs.push('  RECEIVED: ' + JSON.stringify(receivedValue));
         }
       });
-      nodePath.push(element.firstChild!);
+      const expectedChildren = getJSXChildren(jsx);
+
+      const receivedChildren = combineAdjacentTextNodes(
+        Array.from(element.childNodes),
+        expectedChildren.length === 0
+      );
+      if (receivedChildren.length !== expectedChildren.length) {
+        diffs.push(
+          `${path.join(' > ')} expecting ${expectedChildren.length} children but was ${
+            receivedChildren.length
+          }`
+        );
+        diffs.push('EXPECTED', jsxToHTML(jsx, '  '));
+        diffs.push('RECEIVED:', await format(element.outerHTML, formatOptions));
+      }
+      nodePath.push(element.firstChild);
     },
     leave: () => {
       // console.log('leave');
@@ -404,6 +419,42 @@ async function diffNode(received: HTMLElement, expected: JSXOutput): Promise<str
     diffs.unshift('\n' + html);
   }
   return diffs;
+}
+
+function combineAdjacentTextNodes(arr: ChildNode[], removeEmptyTextNode: boolean) {
+  const result: ChildNode[] = [];
+  let textElement: ChildNode | null = null;
+
+  for (let i = 0; i < arr.length; i++) {
+    if (isText(arr[i])) {
+      if (!textElement) {
+        textElement = arr[i].cloneNode() as ChildNode;
+      } else {
+        textElement.textContent = (textElement.textContent || '') + arr[i].textContent;
+      }
+    } else {
+      if (textElement) {
+        result.push(textElement);
+        textElement = null;
+      }
+      result.push(arr[i]);
+    }
+  }
+
+  if (textElement) {
+    result.push(textElement);
+  }
+
+  if (
+    removeEmptyTextNode &&
+    result.length === 1 &&
+    isText(result[0]) &&
+    result[0].textContent === ''
+  ) {
+    return [];
+  }
+
+  return result;
 }
 
 const formatOptions = { parser: 'html', htmlWhitespaceSensitivity: 'ignore' as const };

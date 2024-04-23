@@ -12,6 +12,7 @@ export interface ClientContainer extends Container2 {
   document: QDocument;
   element: ContainerElement;
   qContainer: string;
+  qTemplate: ElementVNode;
   qBase: string;
   $locale$: string;
   qManifestHash: string;
@@ -19,6 +20,8 @@ export interface ClientContainer extends Container2 {
   $journal$: VNodeJournal;
   parseQRL<T = unknown>(qrl: string): QRL<T>;
   $setRawState$(id: number, vParent: ElementVNode | VirtualVNode): void;
+  addVNodeProjection(componentVNodeWithProjection: VirtualVNode): void;
+  emitUnclaimedProjection(): void;
 }
 
 export interface ContainerElement extends HTMLElement {

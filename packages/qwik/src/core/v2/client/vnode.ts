@@ -141,7 +141,11 @@ import {
 import { isHtmlElement } from '../../util/types';
 import { DEBUG_TYPE, VirtualType, VirtualTypeName } from '../shared/types';
 import { VNodeDataChar } from '../shared/vnode-data-types';
-import { getDomContainer, getDomContainerFromHTMLElement, getHtmlElement } from './dom-container';
+import {
+  getDomContainer,
+  getDomContainerFromHTMLElement,
+  getQContainerElement,
+} from './dom-container';
 import {
   ElementVNodeProps,
   TextVNodeProps,
@@ -383,13 +387,6 @@ export const vnode_ensureElementInflated = (vnode: VNode) => {
   }
 };
 
-const vnode_getDOMParent = (vnode: VNode): Element | null => {
-  while (vnode && !vnode_isElementVNode(vnode)) {
-    vnode = vnode[VNodeProps.parent]!;
-  }
-  return (vnode && vnode[ElementVNodeProps.element]) as Element | null;
-};
-
 export const vnode_getDOMChildNodes = (
   journal: VNodeJournal,
   root: VNode,
@@ -519,7 +516,7 @@ const vnode_ensureTextInflated = (journal: VNodeJournal, vnode: TextVNode) => {
   const textVNode = ensureTextVNode(vnode);
   const flags = textVNode[VNodeProps.flags];
   if ((flags & VNodeFlags.Inflated) === 0) {
-    const parentNode = vnode_getDOMParent(vnode)!;
+    const parentNode = vnode_getDomParent(vnode)!;
     const sharedTextNode = textVNode[TextVNodeProps.node] as Text;
     if (sharedTextNode && vnode[TextVNodeProps.text] === '') {
       // Special case. When the VNode is "" than DOM does not actually have the text node in it, so we need to insert it.
@@ -1023,7 +1020,7 @@ export const vnode_remove = (
   vToRemove[VNodeProps.previousSibling] = null;
   vToRemove[VNodeProps.nextSibling] = null;
   if (removeDOM) {
-    const domParent = vnode_getDOMParent(vParent)!;
+    const domParent = vnode_getDomParent(vParent)!;
     const children = vnode_getDOMChildNodes(journal, vToRemove);
     children.length && journal.push(VNodeJournalOpCode.Remove, domParent, ...children);
   }
@@ -1056,7 +1053,7 @@ export const vnode_truncate = (
   vDelete: VNode
 ) => {
   assertDefined(vDelete, 'Missing vDelete.');
-  const parent = vnode_getDOMParent(vParent)!;
+  const parent = vnode_getDomParent(vParent)!;
   const children = vnode_getDOMChildNodes(journal, vDelete);
   children.length && journal.push(VNodeJournalOpCode.Remove, parent, ...children);
   const vPrevious = vDelete[VNodeProps.previousSibling];
@@ -1553,7 +1550,7 @@ function materializeFromVNodeData(
       // we have an empty text node
       if (combinedText === null) {
         if (!container) {
-          const htmlElement = getHtmlElement(element);
+          const htmlElement = getQContainerElement(element);
           if (htmlElement) {
             container = getDomContainerFromHTMLElement(htmlElement);
           }

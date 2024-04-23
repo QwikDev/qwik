@@ -28,6 +28,12 @@ export function convertStyleIdsToString(scopedStyleIds: Set<string>): string {
   return Array.from(scopedStyleIds).join(' ');
 }
 
-export function addPrefixForScopedStyleIdsString(scopedStyleId: string): string {
-  return scopedStyleId.split(' ').map(styleContent).join(' ');
-}
+export const addComponentStylePrefix = (styleId?: string | null): string | null => {
+  if (styleId) {
+    let idx = 0;
+    do {
+      styleId = styleId.substring(0, idx) + styleContent(styleId.substring(idx));
+    } while ((idx = styleId.indexOf(' ', idx) + 1) !== 0);
+  }
+  return styleId || null;
+};

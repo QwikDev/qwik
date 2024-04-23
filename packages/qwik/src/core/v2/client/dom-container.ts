@@ -24,13 +24,16 @@ import {
   QStyleSelector,
   QTemplate,
   QUnclaimedProjections,
-  addComponentStylePrefix,
 } from '../../util/markers';
 import { maybeThen } from '../../util/promises';
 import { qDev } from '../../util/qdev';
 import type { ValueOrPromise } from '../../util/types';
 import { ChoreType } from '../shared/scheduler';
-import { convertScopedStyleIdsToArray, convertStyleIdsToString } from '../shared/scoped-styles';
+import {
+  addComponentStylePrefix,
+  convertScopedStyleIdsToArray,
+  convertStyleIdsToString,
+} from '../shared/scoped-styles';
 import { _SharedContainer } from '../shared/shared-container';
 import { inflateQRL, parseQRL, wrapDeserializerProxy } from '../shared/shared-serialization';
 import type { HostElement } from '../shared/types';
@@ -187,7 +190,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
   }
 
   processJsx(host: HostElement, jsx: JSXOutput): ValueOrPromise<void> {
-    // console.log('>>>> processJsx', String(host), jsx.children);
+    // console.log('>>>> processJsx', String(host));
     const styleScopedId = this.getHostProp<string>(host, QScopedStyle);
     return vnode_diff(this, jsx, host as VirtualVNode, addComponentStylePrefix(styleScopedId));
   }

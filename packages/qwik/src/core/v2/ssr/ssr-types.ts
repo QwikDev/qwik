@@ -29,7 +29,7 @@ export interface ISsrComponentFrame {
   scopedStyleIds: Set<string>;
   childrenScopedStyle: string | null;
   projectionDepth: number;
-  releaseUnclaimedProjections(unclaimedProjections: (ISsrNode | JSXChildren)[]): void;
+  releaseUnclaimedProjections(unclaimedProjections: (ISsrNode | JSXChildren | string)[]): void;
   consumeChildrenForSlot(projectionNode: ISsrNode, slotName: string): JSXChildren | null;
   distributeChildrenIntoSlots(children: JSXChildren, scopedStyle: string | null): void;
 }

@@ -594,6 +594,92 @@ describe.each([
       </>
     );
   });
+
+  describe('regression', () => {
+    it('#1945 - should add styles to conditionally rendered slots', async () => {
+      (globalThis as any).rawStyleId1 = '';
+      (globalThis as any).rawStyleId2 = '';
+
+      const Child = component$(() => {
+        const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_BLUE, 's_stylesScoped2'));
+        (globalThis as any).rawStyleId2 = stylesScopedData.scopeId;
+        const show = useSignal(false);
+        return (
+          <>
+            <button onClick$={() => (show.value = !show.value)}>toggle slot</button>
+            {show.value ? <Slot /> : null}
+          </>
+        );
+      });
+
+      const Parent = component$(() => {
+        const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped'));
+        (globalThis as any).rawStyleId1 = stylesScopedData.scopeId;
+        return (
+          <Child>
+            <span>content</span>
+          </Child>
+        );
+      });
+
+      const { vNode, getStyles, document } = await render(<Parent />, { debug });
+      const styleId1 = (globalThis as any).rawStyleId1.substring(2);
+      const scopeStyle1 = getScopedStyles(STYLE_RED, styleId1);
+      const styleId2 = (globalThis as any).rawStyleId2.substring(2);
+      const scopeStyle2 = getScopedStyles(STYLE_BLUE, styleId2);
+      expect(getStyles()).toEqual({
+        [styleId1]: scopeStyle1,
+        [styleId2]: scopeStyle2,
+      });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Component>
+            <Fragment>
+              <button class={(globalThis as any).rawStyleId2}>toggle slot</button>
+              {''}
+            </Fragment>
+          </Component>
+        </Component>
+      );
+      await trigger(document.body, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Component>
+            <Fragment>
+              <button class={(globalThis as any).rawStyleId2}>toggle slot</button>
+              <Projection>
+                <span class={(globalThis as any).rawStyleId1}>content</span>
+              </Projection>
+            </Fragment>
+          </Component>
+        </Component>
+      );
+      await trigger(document.body, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Component>
+            <Fragment>
+              <button class={(globalThis as any).rawStyleId2}>toggle slot</button>
+              {''}
+            </Fragment>
+          </Component>
+        </Component>
+      );
+      await trigger(document.body, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Component>
+            <Fragment>
+              <button class={(globalThis as any).rawStyleId2}>toggle slot</button>
+              <Projection>
+                <span class={(globalThis as any).rawStyleId1}>content</span>
+              </Projection>
+            </Fragment>
+          </Component>
+        </Component>
+      );
+    });
+  });
 });
 
 describe('html wrapper', () => {

@@ -1,7 +1,7 @@
 import { ComponentStylesPrefixContent } from '../../util/markers';
 import { describe, expect, it } from 'vitest';
 import {
-  addPrefixForScopedStyleIdsString,
+  addComponentStylePrefix,
   convertScopedStyleIdsToArray as convertStyleIdsToArray,
   convertStyleIdsToString,
   getScopedStyleIdsAsPrefix,
@@ -32,10 +32,20 @@ describe('scoped styles utils', () => {
     });
   });
 
-  describe('addPrefixForScopedStyleIdsString', () => {
-    it('should add prefix to style ids', () => {
-      expect(addPrefixForScopedStyleIdsString('abcd dcba test')).toEqual(
-        `${ComponentStylesPrefixContent}abcd ${ComponentStylesPrefixContent}dcba ${ComponentStylesPrefixContent}test`
+  describe('addComponentStylePrefix', () => {
+    it('should ignore falsy values', () => {
+      expect(addComponentStylePrefix(null)).toBe(null);
+      expect(addComponentStylePrefix(undefined)).toBe(null);
+      expect(addComponentStylePrefix('')).toBe(null);
+    });
+
+    it('should append style prefix', () => {
+      expect(addComponentStylePrefix('a')).toBe(ComponentStylesPrefixContent + 'a');
+      expect(addComponentStylePrefix('a b')).toBe(
+        ComponentStylesPrefixContent + 'a ' + ComponentStylesPrefixContent + 'b'
+      );
+      expect(addComponentStylePrefix('long long')).toBe(
+        ComponentStylesPrefixContent + 'long ' + ComponentStylesPrefixContent + 'long'
       );
     });
   });

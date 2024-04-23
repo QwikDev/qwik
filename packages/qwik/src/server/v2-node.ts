@@ -120,9 +120,10 @@ export class SsrComponentFrame implements ISsrComponentFrame {
     return children;
   }
 
-  releaseUnclaimedProjections(unclaimedProjections: (ISsrNode | JSXChildren)[]) {
+  releaseUnclaimedProjections(unclaimedProjections: (ISsrNode | JSXChildren | string)[]) {
     if (this.slots.length) {
       unclaimedProjections.push(this.componentNode);
+      unclaimedProjections.push(this.childrenScopedStyle);
       unclaimedProjections.push.apply(unclaimedProjections, this.slots);
     }
   }

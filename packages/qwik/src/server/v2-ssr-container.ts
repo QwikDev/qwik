@@ -206,7 +206,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   async render(jsx: JSXOutput) {
     this.openContainer();
-    await _walkJSX(this, jsx, true);
+    await _walkJSX(this, jsx, true, null);
     this.closeContainer();
   }
 
@@ -440,7 +440,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   addUnclaimedProjection(node: ISsrNode, name: string, children: JSXChildren): void {
-    this.unclaimedProjections.push(node, name, children);
+    this.unclaimedProjections.push(node, null, name, children);
   }
 
   $appendStyle$(content: string, styleId: string, host: ISsrNode, scoped: boolean): void {
@@ -794,12 +794,15 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         this.openElement(QTemplate, ['style', 'display:none'], null);
         let idx = 0;
         let ssrComponentNode: ISsrNode | null = null;
+        let scopedStyleId: string | null = null;
         while (idx < unclaimedProjections.length) {
           const value = unclaimedProjections[idx++];
           if (value instanceof SsrNode) {
             // It is important to restore the `ssrComponentNode` so that the content
             // can pretend to be inside the component.
             ssrComponentNode = this.currentComponentNode = value;
+            // scopedStyleId is always after ssrComponentNode
+            scopedStyleId = unclaimedProjections[idx++] as string;
           } else if (typeof value === 'string') {
             const children = unclaimedProjections[idx++] as JSXOutput;
             this.openFragment(
@@ -808,7 +811,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
                 : [QSlotParent, ssrComponentNode!.id]
             );
             ssrComponentNode?.setProp(value, this.getLastNode().id);
-            _walkJSX(this, children, false);
+            _walkJSX(this, children, false, scopedStyleId);
             this.closeFragment();
           } else {
             throw Error(); // 'should not get here'

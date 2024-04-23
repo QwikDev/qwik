@@ -334,8 +334,8 @@ importers:
         specifier: ^22.6.0
         version: 22.6.0(typescript@5.4.2)
       qwik-image:
-        specifier: ^0.0.8
-        version: 0.0.8
+        specifier: ^0.0.10
+        version: 0.0.10
       react:
         specifier: 18.2.0
         version: 18.2.0
@@ -14326,8 +14326,8 @@ packages:
     resolution: {integrity: sha512-twwRO/ilhlG/FIgYeKGFqyHhoEhqgnKVkcmqMKi2r524gz3ZbDTcyFt38E9xjJI2vT+KbRNHVbnJ/e0I25Azwg==}
     dev: true
 
-  /qwik-image@0.0.8:
-    resolution: {integrity: sha512-scmrnRVpTWpVESHEkE/9EZ6diy7K8dhRTh4nqEIj9al4PafY8o3sIsV4oxjG+1wn1TIXd1CJmnTCLEJ37gvgAA==}
+  /qwik-image@0.0.10:
+    resolution: {integrity: sha512-+X+EEdFzt5gl48Und3oPf34PLuIl0TKT959/zTQjboL1aYjMX1+1HAvE2OllUclyk8Pf0TFgDRN/YyYORc8mfA==}
     dev: true
 
   /radix3@1.1.1:

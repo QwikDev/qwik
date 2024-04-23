@@ -12,7 +12,7 @@ import { SignalDerived, isSignal } from '../../state/signal';
 import { trackSignal } from '../../use/use-core';
 import { EMPTY_ARRAY } from '../../util/flyweight';
 import { throwErrorAndStop } from '../../util/log';
-import { ELEMENT_KEY, QScopedStyle, QSlot, addComponentStylePrefix } from '../../util/markers';
+import { ELEMENT_KEY, QScopedStyle, QSlot } from '../../util/markers';
 import { isPromise } from '../../util/promises';
 import { type ValueOrPromise } from '../../util/types';
 import {
@@ -21,7 +21,7 @@ import {
   isJsxPropertyAnEventName,
   isPreventDefault,
 } from '../shared/event-names';
-import { hasClassAttr, isClassAttr } from '../shared/scoped-styles';
+import { addComponentStylePrefix, hasClassAttr, isClassAttr } from '../shared/scoped-styles';
 import { qrlToString, type SerializationContext } from '../shared/shared-serialization';
 import { DEBUG_TYPE, VirtualType, type fixMeAny } from '../shared/types';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';

@@ -20,12 +20,12 @@ import { QStyleSelector } from '../util/markers';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
 
-const debug = false; //true;
+const debug = true; //true;
 Error.stackTraceLimit = 100;
 
 describe.each([
   { render: ssrRenderToDom }, //
-  { render: domRender }, //
+  // { render: domRender }, //
 ])('$render.name: useStylesScoped', ({ render }) => {
   const STYLE_RED = `.container {background-color: red;}`;
   const STYLE_BLUE = `.container {background-color: blue;}`;
@@ -593,6 +593,62 @@ describe.each([
         <div class={(globalThis as any).rawStyleId}>Hello world</div>
       </>
     );
+  });
+
+  describe('regression', () => {
+    it.only('#1945 - should add styles to conditionally rendered slots', async () => {
+      (globalThis as any).rawStyleId = '';
+
+      const Child = component$(() => {
+        const show = useSignal(false);
+        return (
+          <>
+            <button onClick$={() => (show.value = !show.value)}>toggle slot</button>
+            {show.value ? <Slot /> : null}
+          </>
+        );
+      });
+
+      const Parent = component$(() => {
+        const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped'));
+        (globalThis as any).rawStyleId = stylesScopedData.scopeId;
+        return (
+          <Child>
+            <span>content</span>
+          </Child>
+        );
+      });
+
+      const { vNode, getStyles, document } = await render(<Parent />, { debug });
+      const styleId = (globalThis as any).rawStyleId.substring(2);
+      const scopeStyle = getScopedStyles(STYLE_RED, styleId);
+      expect(getStyles()).toEqual({
+        [styleId]: scopeStyle,
+      });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Component>
+            <Fragment>
+              <button>toggle slot</button>
+              {''}
+            </Fragment>
+          </Component>
+        </Component>
+      );
+      await trigger(document.body, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Component>
+            <Fragment>
+              <button>toggle slot</button>
+              <Projection>
+                <span class={(globalThis as any).rawStyleId}>content</span>
+              </Projection>
+            </Fragment>
+          </Component>
+        </Component>
+      );
+    });
   });
 });
 

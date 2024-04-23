@@ -17,14 +17,19 @@ describe('vNode-diff', () => {
     expect(vnode_getNode(vNode!)!.ownerDocument!.body.innerHTML).toEqual(
       '<div q:key="KA_0">Hello</div>'
     );
-    vnode_diff({ $journal$: journal, document } as any, <div key="KA_0">Hello</div>, vParent);
+    vnode_diff({ $journal$: journal, document } as any, <div key="KA_0">Hello</div>, vParent, null);
     expect(journal.length).toEqual(0);
   });
 
   describe('text', () => {
     it('should update text', () => {
       const { vNode, vParent, document } = vnode_fromJSX(<div key="KA_0">Hello</div>);
-      vnode_diff({ $journal$: journal, document } as any, <div key="KA_0">World</div>, vParent);
+      vnode_diff(
+        { $journal$: journal, document } as any,
+        <div key="KA_0">World</div>,
+        vParent,
+        null
+      );
       expect(vNode).toMatchVDOM(<div>World</div>);
       expect(journal).not.toEqual([]);
       expect((vnode_getNode(vNode) as Element).outerHTML).toEqual('<div q:key="KA_0">Hello</div>');
@@ -34,7 +39,12 @@ describe('vNode-diff', () => {
 
     it('should add missing text node', () => {
       const { vNode, vParent, document } = vnode_fromJSX(<div key="KA_0"></div>);
-      vnode_diff({ $journal$: journal, document } as any, <div key="KA_0">Hello</div>, vParent);
+      vnode_diff(
+        { $journal$: journal, document } as any,
+        <div key="KA_0">Hello</div>,
+        vParent,
+        null
+      );
       expect(vNode).toMatchVDOM(<div key="KA_0">Hello</div>);
       expect((vnode_getNode(vNode) as Element).outerHTML).toEqual('<div q:key="KA_0"></div>');
       vnode_applyJournal(journal);
@@ -46,7 +56,8 @@ describe('vNode-diff', () => {
       vnode_diff(
         { $journal$: journal, document } as any,
         <div key="KA_6">Hello {'World'}</div>,
-        vParent
+        vParent,
+        null
       );
       vnode_applyJournal(journal);
       expect(vNode).toMatchVDOM(<div key="KA_6">Hello {'World'}</div>);
@@ -57,7 +68,8 @@ describe('vNode-diff', () => {
       vnode_diff(
         { $journal$: journal, $scheduler$: scheduler, document } as any,
         <div key="KA_6">Hello</div>,
-        vParent
+        vParent,
+        null
       );
       vnode_applyJournal(journal);
       expect(vNode).toMatchVDOM(<div key="KA_6">Hello</div>);
@@ -67,7 +79,8 @@ describe('vNode-diff', () => {
       vnode_diff(
         { $journal$: journal, $scheduler$: scheduler, document } as any,
         <div></div>,
-        vParent
+        vParent,
+        null
       );
       vnode_applyJournal(journal);
       expect(vNode).toMatchVDOM(<div></div>);
@@ -77,7 +90,8 @@ describe('vNode-diff', () => {
       vnode_diff(
         { $journal$: journal, $scheduler$: scheduler, document } as any,
         <div>{undefined}</div>,
-        vParent
+        vParent,
+        null
       );
       vnode_applyJournal(journal);
       expect(vNode).toMatchVDOM(<div></div>);
@@ -98,7 +112,7 @@ describe('vNode-diff', () => {
           <b key="KA_2"></b>
         </test>
       );
-      vnode_diff({ $journal$: journal, document } as any, test, vParent);
+      vnode_diff({ $journal$: journal, document } as any, test, vParent, null);
       expect(vNode).toMatchVDOM(test);
       expect(journal.length).toEqual(0);
     });
@@ -109,7 +123,7 @@ describe('vNode-diff', () => {
           <span class="B" about="ABOUT"></span>
         </test>
       );
-      vnode_diff({ $journal$: journal, document } as any, test, vParent);
+      vnode_diff({ $journal$: journal, document } as any, test, vParent, null);
       vnode_applyJournal(journal);
       expect(vNode).toMatchVDOM(test);
     });
@@ -157,7 +171,7 @@ describe('vNode-diff', () => {
         0,
         null
       );
-      vnode_diff({ $journal$: journal, document } as any, test, vParent);
+      vnode_diff({ $journal$: journal, document } as any, test, vParent, null);
       vnode_applyJournal(journal);
       expect(vNode).toMatchVDOM(test);
     });
@@ -174,7 +188,12 @@ describe('vNode-diff', () => {
           <span></span>
         </test>
       );
-      vnode_diff({ $journal$: journal, $scheduler$: scheduler, document } as any, test, vParent);
+      vnode_diff(
+        { $journal$: journal, $scheduler$: scheduler, document } as any,
+        test,
+        vParent,
+        null
+      );
       vnode_applyJournal(journal);
       expect(vNode).toMatchVDOM(test);
       await expect(document.querySelector('test')).toMatchDOM(test);
@@ -193,7 +212,12 @@ describe('vNode-diff', () => {
         </test>
       );
       const bOriginal = document.querySelector('b[key=1]')!;
-      vnode_diff({ $journal$: journal, $scheduler$: scheduler, document } as any, test, vParent);
+      vnode_diff(
+        { $journal$: journal, $scheduler$: scheduler, document } as any,
+        test,
+        vParent,
+        null
+      );
       vnode_applyJournal(journal);
       expect(vNode).toMatchVDOM(test);
       const bSecond = document.querySelector('b')!;
@@ -218,7 +242,7 @@ describe('vNode-diff', () => {
       );
       const b1 = document.querySelector('b[key=1]')!;
       const b2 = document.querySelector('b[key=1]')!;
-      vnode_diff({ $journal$: journal, document } as any, test, vParent);
+      vnode_diff({ $journal$: journal, document } as any, test, vParent, null);
       vnode_applyJournal(journal);
       expect(vNode).toMatchVDOM(test);
       expect(b1).toBe(document.querySelector('b[key=1]')!);

@@ -438,8 +438,6 @@ export interface JSXNode<T extends string | FunctionComponent | unknown = unknow
     // (undocumented)
     props: T extends FunctionComponent<infer P> ? P : Record<any, unknown>;
     // (undocumented)
-    styleScopedId: string | null;
-    // (undocumented)
     type: T;
     // (undocumented)
     varProps: Record<any, unknown>;

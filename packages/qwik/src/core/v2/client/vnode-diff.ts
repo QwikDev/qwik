@@ -23,6 +23,7 @@ import {
   QSlot,
   QSlotParent,
   QStyle,
+  QUnclaimedProjections,
 } from '../../util/markers';
 import { isPromise } from '../../util/promises';
 import { type ValueOrPromise } from '../../util/types';
@@ -54,6 +55,7 @@ import {
 } from './types';
 import {
   mapApp_findIndx,
+  mapApp_remove,
   mapArray_set,
   vnode_ensureElementInflated,
   vnode_getAttr,
@@ -64,6 +66,7 @@ import {
   vnode_getParent,
   vnode_getProjectionParentComponent,
   vnode_getProp,
+  vnode_getPropStartIndex,
   vnode_getText,
   vnode_getType,
   vnode_insertBefore,
@@ -354,17 +357,17 @@ export const vnode_diff = (
       children = [children];
     }
     if (children.length) {
-      const projection: Array<string | JSXNode> = [];
+      const projections: Array<string | JSXNode> = [];
       /// STEP 1: Bucketize the children based on the projection name.
       for (let i = 0; i < children.length; i++) {
         const child = children[i];
         const slotName = String((isJSXNode(child) && child.props[QSlot]) || '');
-        const idx = mapApp_findIndx(projection, slotName, 0);
+        const idx = mapApp_findIndx(projections, slotName, 0);
         let jsxBucket: JSXNodeImpl<typeof Projection>;
         if (idx >= 0) {
-          jsxBucket = projection[idx + 1] as any;
+          jsxBucket = projections[idx + 1] as any;
         } else {
-          projection.splice(
+          projections.splice(
             ~idx,
             0,
             slotName,
@@ -374,10 +377,10 @@ export const vnode_diff = (
         (jsxBucket.children as JSXChildren[]).push(child);
       }
       /// STEP 2: remove the names
-      for (let i = projection.length - 2; i >= 0; i = i - 2) {
-        projection.splice(i, 1);
+      for (let i = projections.length - 2; i >= 0; i = i - 2) {
+        projections.splice(i, 1);
       }
-      descend(projection, true);
+      descend(projections, true);
     }
   }
 
@@ -396,12 +399,11 @@ export const vnode_diff = (
       vnode_setProp(vNewNode as VirtualVNode, QSlot, slotName);
       vnode_setProp(vNewNode as VirtualVNode, QSlotParent, vParent);
       vnode_setProp(vParent as VirtualVNode, slotName, vNewNode);
-      // vnode_insertBefore(
-      //   journal,
-      //   vParent as ElementVNode | VirtualVNode,
-      //   vNewNode,
-      //   vCurrent && getInsertBefore()
-      // );
+
+      const componentProjections =
+        vnode_getProp<(string | VNode)[]>(vParent, QUnclaimedProjections, null) || [];
+      mapArray_set(componentProjections, slotName, vNewNode, 0);
+      vnode_setProp(vParent as VirtualVNode, QUnclaimedProjections, componentProjections);
     }
   }
 
@@ -409,6 +411,14 @@ export const vnode_diff = (
     const slotNameKey: string = jsxValue.props.name || '';
     // console.log('expectSlot', JSON.stringify(slotNameKey));
     const vHost = vnode_getProjectionParentComponent(vParent, container.$getObjectById$);
+
+    if (vHost) {
+      const componentProjections =
+        vnode_getProp<(string | JSXChildren | number)[]>(vHost, QUnclaimedProjections, null) || [];
+      mapApp_remove(componentProjections, slotNameKey, 0);
+      vnode_setProp(vHost, QUnclaimedProjections, componentProjections);
+    }
+
     const vProjectedNode = vHost
       ? vnode_getProp<VirtualVNode | null>(
           vHost,
@@ -436,12 +446,17 @@ export const vnode_diff = (
       // All is good.
       // console.log('  NOOP', String(vCurrent));
     } else {
+      // move from q:template to the target node
       vnode_insertBefore(
         journal,
         vParent as ElementVNode | VirtualVNode,
         (vNewNode = vProjectedNode),
         vCurrent && getInsertBefore()
       );
+      vnode_setProp(vNewNode, QSlot, slotNameKey);
+      vHost && vnode_setProp(vHost, slotNameKey, vNewNode);
+      isDev && vnode_setProp(vNewNode, DEBUG_TYPE, VirtualType.Projection);
+      isDev && vnode_setProp(vNewNode, 'q:code', 'expectSlot' + count++);
     }
     return true;
   }
@@ -480,7 +495,16 @@ export const vnode_diff = (
       while (vCleanup) {
         cleanup(container, vCleanup);
         const next = vnode_getNextSibling(vCleanup);
-        vnode_remove(journal, vParent as ElementVNode | VirtualVNode, vCleanup, true);
+        if (
+          vCleanup[VNodeProps.flags] & VNodeFlags.Virtual &&
+          vnode_getProp(vCleanup as VirtualVNode, QSlot, null) !== null
+        ) {
+          // move projected node to the q:template on remove
+          vnode_insertBefore(journal, container.qTemplate, vCleanup, null);
+        } else {
+          vnode_remove(journal, vParent as ElementVNode | VirtualVNode, vCleanup, true);
+        }
+
         vCleanup = next;
       }
     }
@@ -845,6 +869,17 @@ export const vnode_diff = (
           container.setHostProp(vNewNode, OnRenderProp, componentQRL);
           container.setHostProp(vNewNode, ELEMENT_PROPS, jsxProps);
           container.setHostProp(vNewNode, ELEMENT_KEY, jsxKey);
+
+          // rewrite slot props to the new node
+          if (host) {
+            for (let i = vnode_getPropStartIndex(host); i < host.length; i = i + 2) {
+              const prop = host[i] as string;
+              if (!prop.startsWith('q:')) {
+                const value = host[i + 1];
+                container.setHostProp(vNewNode, prop, value);
+              }
+            }
+          }
         }
         host = vNewNode as VirtualVNode;
         shouldRender = true;
@@ -855,6 +890,7 @@ export const vnode_diff = (
         container.$scheduler$(ChoreType.COMPONENT, host, componentQRL, jsxProps);
       }
       descendContentToProject(jsxValue.children);
+      container.addVNodeProjection(host);
     } else {
       // Inline Component
       if (!host) {
@@ -891,6 +927,7 @@ export const vnode_diff = (
         jsxProps
       );
       asyncQueue.push(jsxOutput, host);
+      container.addVNodeProjection(host);
     }
   }
 

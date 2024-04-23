@@ -393,7 +393,7 @@ describe.each([
         <a></a>
       </p>
     );
-    expect((document.body.firstChild as HTMLElement).innerHTML).toEqual(
+    expect(document.querySelector('p')?.innerHTML).toEqual(
       '<b>Test</b>124xx<span>123</span>xxx<a></a>'
     );
   });
@@ -417,7 +417,7 @@ describe.each([
           </svg>
         </Component>
       );
-      await expect(container.document.body.firstChild).toMatchDOM(
+      await expect(container.document.querySelector('svg')).toMatchDOM(
         <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" key="ka">
           <fegaussianblur></fegaussianblur>
           <circle cx="50" cy="50" r="50"></circle>

@@ -20,12 +20,12 @@ import { QStyleSelector } from '../util/markers';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
 
-const debug = true; //true;
+const debug = false; //true;
 Error.stackTraceLimit = 100;
 
 describe.each([
   { render: ssrRenderToDom }, //
-  // { render: domRender }, //
+  { render: domRender }, //
 ])('$render.name: useStylesScoped', ({ render }) => {
   const STYLE_RED = `.container {background-color: red;}`;
   const STYLE_BLUE = `.container {background-color: blue;}`;
@@ -596,10 +596,13 @@ describe.each([
   });
 
   describe('regression', () => {
-    it.only('#1945 - should add styles to conditionally rendered slots', async () => {
-      (globalThis as any).rawStyleId = '';
+    it('#1945 - should add styles to conditionally rendered slots', async () => {
+      (globalThis as any).rawStyleId1 = '';
+      (globalThis as any).rawStyleId2 = '';
 
       const Child = component$(() => {
+        const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_BLUE, 's_stylesScoped2'));
+        (globalThis as any).rawStyleId2 = stylesScopedData.scopeId;
         const show = useSignal(false);
         return (
           <>
@@ -611,7 +614,7 @@ describe.each([
 
       const Parent = component$(() => {
         const stylesScopedData = useStylesScopedQrl(inlinedQrl(STYLE_RED, 's_stylesScoped'));
-        (globalThis as any).rawStyleId = stylesScopedData.scopeId;
+        (globalThis as any).rawStyleId1 = stylesScopedData.scopeId;
         return (
           <Child>
             <span>content</span>
@@ -620,16 +623,19 @@ describe.each([
       });
 
       const { vNode, getStyles, document } = await render(<Parent />, { debug });
-      const styleId = (globalThis as any).rawStyleId.substring(2);
-      const scopeStyle = getScopedStyles(STYLE_RED, styleId);
+      const styleId1 = (globalThis as any).rawStyleId1.substring(2);
+      const scopeStyle1 = getScopedStyles(STYLE_RED, styleId1);
+      const styleId2 = (globalThis as any).rawStyleId2.substring(2);
+      const scopeStyle2 = getScopedStyles(STYLE_BLUE, styleId2);
       expect(getStyles()).toEqual({
-        [styleId]: scopeStyle,
+        [styleId1]: scopeStyle1,
+        [styleId2]: scopeStyle2,
       });
       expect(vNode).toMatchVDOM(
         <Component>
           <Component>
             <Fragment>
-              <button>toggle slot</button>
+              <button class={(globalThis as any).rawStyleId2}>toggle slot</button>
               {''}
             </Fragment>
           </Component>
@@ -640,9 +646,33 @@ describe.each([
         <Component>
           <Component>
             <Fragment>
-              <button>toggle slot</button>
+              <button class={(globalThis as any).rawStyleId2}>toggle slot</button>
               <Projection>
-                <span class={(globalThis as any).rawStyleId}>content</span>
+                <span class={(globalThis as any).rawStyleId1}>content</span>
+              </Projection>
+            </Fragment>
+          </Component>
+        </Component>
+      );
+      await trigger(document.body, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Component>
+            <Fragment>
+              <button class={(globalThis as any).rawStyleId2}>toggle slot</button>
+              {''}
+            </Fragment>
+          </Component>
+        </Component>
+      );
+      await trigger(document.body, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Component>
+            <Fragment>
+              <button class={(globalThis as any).rawStyleId2}>toggle slot</button>
+              <Projection>
+                <span class={(globalThis as any).rawStyleId1}>content</span>
               </Projection>
             </Fragment>
           </Component>

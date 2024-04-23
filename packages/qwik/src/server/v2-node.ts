@@ -1,4 +1,4 @@
-import { _isJSXNode as isJSXNode } from '@builder.io/qwik';
+import { _isJSXNode as isJSXNode, type JSXNode } from '@builder.io/qwik';
 import { isDev } from '@builder.io/qwik/build';
 import {
   QSlot,
@@ -120,9 +120,10 @@ export class SsrComponentFrame implements ISsrComponentFrame {
     return children;
   }
 
-  releaseUnclaimedProjections(unclaimedProjections: (ISsrNode | JSXChildren)[]) {
+  releaseUnclaimedProjections(unclaimedProjections: (ISsrNode | JSXChildren | string)[]) {
     if (this.slots.length) {
       unclaimedProjections.push(this.componentNode);
+      unclaimedProjections.push(this.childrenScopedStyle);
       unclaimedProjections.push.apply(unclaimedProjections, this.slots);
     }
   }

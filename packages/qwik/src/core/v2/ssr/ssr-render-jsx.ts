@@ -39,18 +39,24 @@ type StackValue = ValueOrPromise<
 export function _walkJSX(
   ssr: SSRContainer,
   value: JSXOutput,
-  allowPromises: true
+  allowPromises: true,
+  currentStyleScoped: string | null
 ): ValueOrPromise<void>;
-/** @internal */
-export function _walkJSX(ssr: SSRContainer, value: JSXOutput, allowPromises: false): false;
 /** @internal */
 export function _walkJSX(
   ssr: SSRContainer,
   value: JSXOutput,
-  allowPromises: boolean
+  allowPromises: false,
+  currentStyleScoped: string | null
+): false;
+/** @internal */
+export function _walkJSX(
+  ssr: SSRContainer,
+  value: JSXOutput,
+  allowPromises: boolean,
+  currentStyleScoped: string | null
 ): ValueOrPromise<void> | false {
   const stack: StackValue[] = [value];
-  let currentStyleScoped: string | null = null;
   let resolveDrain: () => void;
   let rejectDrain: (reason: any) => void;
   const drained =

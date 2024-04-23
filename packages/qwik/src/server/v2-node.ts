@@ -1,4 +1,4 @@
-import { _isJSXNode as isJSXNode, type JSXNode } from '@builder.io/qwik';
+import { _isJSXNode as isJSXNode } from '@builder.io/qwik';
 import { isDev } from '@builder.io/qwik/build';
 import {
   QSlot,

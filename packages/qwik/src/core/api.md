@@ -1820,10 +1820,10 @@ export const _waitUntilRendered: (elm: Element) => Promise<void>;
 // Warning: (ae-forgotten-export) The symbol "SSRContainer" needs to be exported by the entry point index.d.ts
 //
 // @internal (undocumented)
-export function _walkJSX(ssr: SSRContainer, value: JSXOutput, allowPromises: true): ValueOrPromise<void>;
+export function _walkJSX(ssr: SSRContainer, value: JSXOutput, allowPromises: true, currentStyleScoped: string | null): ValueOrPromise<void>;
 
 // @internal (undocumented)
-export function _walkJSX(ssr: SSRContainer, value: JSXOutput, allowPromises: false): false;
+export function _walkJSX(ssr: SSRContainer, value: JSXOutput, allowPromises: false, currentStyleScoped: string | null): false;
 
 // @internal (undocumented)
 export const _weakSerialize: <T extends object>(input: T) => Partial<T>;

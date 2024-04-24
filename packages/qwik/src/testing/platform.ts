@@ -98,8 +98,8 @@ export function setTestPlatform(_setPlatform: Function) {
 export function toUrl(doc: Document, containerEl: Element, url: string | URL): URL {
   const baseURI = new URL(doc.baseURI);
   const base = new URL(containerEl.getAttribute('q:base') ?? baseURI, baseURI);
-  const pathUrl = (base.pathname + url).replace(/\/+/g, '/');
-  return new URL(pathUrl, base.origin);
+  const pathUrl = (base.pathname.endsWith('/') ? base.pathname.slice(0, -1) : base.pathname) + url;
+  return new URL(pathUrl, !base.origin ? base : base.origin);
 }
 
 function toPath(url: URL) {

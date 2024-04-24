@@ -188,6 +188,7 @@ test(`isSameOrigin`, () => {
     );
   });
 });
+
 test('missing clientNavPath', () => {
   const clientNavPath = null;
   const currentLoc = new URL('https://qwik.dev/contact');

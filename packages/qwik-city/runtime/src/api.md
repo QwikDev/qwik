@@ -455,7 +455,7 @@ export type TypedDataValidator<T extends zod.ZodType = zod.ZodType> = {
 export const useContent: () => ContentState;
 
 // @public
-export const useDocumentHead: <FrontMatter extends Record<string, unknown> = Record<string, any>>() => Required<ResolvedDocumentHead<FrontMatter>>;
+export const useDocumentHead: <FrontMatter extends Record<string, unknown> = Record<string, any>>() => Required<Required<DocumentHeadValue<FrontMatter>>>;
 
 // @public (undocumented)
 export const useLocation: () => RouteLocation;

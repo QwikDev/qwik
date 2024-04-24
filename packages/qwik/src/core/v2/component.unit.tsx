@@ -7,6 +7,7 @@ import { useSignal } from '../use/use-signal';
 import { useStore } from '../use/use-store.public';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
+import { $ } from '@builder.io/qwik';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -357,6 +358,7 @@ describe.each([
       </span>
     );
   });
+
   it('should render correctly text node in the middle', async () => {
     const Cmp = component$(() => {
       const signal = useSignal<number>(0);
@@ -395,6 +397,40 @@ describe.each([
     );
     expect(document.querySelector('p')?.innerHTML).toEqual(
       '<b>Test</b>124xx<span>123</span>xxx<a></a>'
+    );
+  });
+
+  it('should execute all QRLs', async () => {
+    const Cmp = component$(() => {
+      const store1 = useStore({ count: 1 });
+      const store2 = useStore({ count: 1 });
+
+      const update = $(() => store2.count++);
+      return (
+        <button onClick$={[$(() => store1.count++), update, undefined, [null, update]]}>
+          {store1.count} / {store2.count}
+        </button>
+      );
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <button>
+          <Signal>{'1'}</Signal> / <Signal>{'1'}</Signal>
+        </button>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <button>
+          <Signal>{'2'}</Signal> / <Signal>{'3'}</Signal>
+        </button>
+      </Component>
     );
   });
 

@@ -297,6 +297,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
       this.rendering = true;
       this.renderDone = getPlatform().nextTick(() => {
         // console.log('>>>> scheduleRender nextTick', !!this.rendering);
+        this.$scheduler$(ChoreType.UNCLAIMED_PROJECTIONS);
         return maybeThen(this.$scheduler$(ChoreType.WAIT_FOR_ALL), () => {
           // console.log('>>>> scheduleRender done', !!this.rendering);
           this.rendering = false;
@@ -330,17 +331,19 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
     const unclaimedProjections = this.vNodesWithProjections.flatMap((component) =>
       vnode_getProp<(string | VNode)[]>(component, QUnclaimedProjections, null)
     );
-    // remove slot names
-    for (let i = unclaimedProjections.length - 2; i >= 0; i = i - 2) {
-      unclaimedProjections.splice(i, 1);
-    }
     if (unclaimedProjections.length) {
+      // remove slot names
+      for (let i = unclaimedProjections.length - 2; i >= 0; i = i - 2) {
+        unclaimedProjections.splice(i, 1);
+      }
+
       for (let i = 0; i < unclaimedProjections.length; i++) {
         const unclaimedProjection = unclaimedProjections[i] as VNode | null;
         if (unclaimedProjection) {
           vnode_insertBefore(this.$journal$, this.qTemplate, unclaimedProjection, null);
         }
       }
+      this.vNodesWithProjections = [];
     }
   }
 

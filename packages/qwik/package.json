@@ -126,6 +126,7 @@
   "files": [
     "bindings/qwik.darwin-x64.node",
     "bindings/qwik.darwin-arm64.node",
+    "bindings/qwik.linux-x64-gnu.node",
     "bindings/qwik.win32-x64-msvc.node",
     "bindings/qwik_wasm_bg.wasm",
     "bindings/qwik.wasm.cjs",
@@ -155,6 +156,7 @@
     "core.prod.mjs",
     "core.d.ts",
     "jsx-dev-runtime/package.json",
+    "jsx-runtime/package.json",
     "jsx-runtime.d.ts",
     "loader/index.cjs",
     "loader/index.mjs",

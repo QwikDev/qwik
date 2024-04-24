@@ -342,7 +342,7 @@ export interface ImgHTMLAttributes<T extends Element> extends Attrs<'img', T> {
 export const _IMMUTABLE: unique symbol;
 
 // @public
-export const implicit$FirstArg: <FIRST, REST extends any[], RET>(fn: (first: QRL<FIRST>, ...rest: REST) => RET) => (first: FIRST, ...rest: REST) => RET;
+export const implicit$FirstArg: <FIRST, REST extends any[], RET>(fn: (first: QRL<FIRST>, ...rest: REST) => RET) => ((first: FIRST, ...rest: REST) => RET);
 
 // Warning: (ae-internal-missing-underscore) The name "inlinedQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
@@ -398,7 +398,7 @@ export { jsx }
 export { jsx as jsxs }
 
 // @internal (undocumented)
-export const _jsxBranch: <T>(input?: T | undefined) => T | undefined;
+export const _jsxBranch: <T>(input?: T) => T | undefined;
 
 // Warning: (ae-forgotten-export) The symbol "JsxDevOpts" needs to be exported by the entry point index.d.ts
 //
@@ -657,8 +657,6 @@ export const qrlDEV: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol:
 // @beta
 export type QRLEventHandlerMulti<EV extends Event, EL> = QRL<EventHandler<EV, EL>> | undefined | null | QRLEventHandlerMulti<EV, EL>[];
 
-// Warning: (ae-forgotten-export) The symbol "SyncQRL" needs to be exported by the entry point index.d.ts
-//
 // @alpha
 export const _qrlSync: <TYPE extends Function>(fn: TYPE, serializedFn?: string) => SyncQRL<TYPE>;
 
@@ -713,27 +711,29 @@ export interface QwikIntrinsicElements extends QwikHTMLElements, QwikSVGElements
 export type QwikInvalidEvent<T = Element> = Event;
 
 // @public (undocumented)
-export namespace QwikJSX {
+namespace QwikJSX {
     // (undocumented)
-    export type Element = JSXOutput;
+    type Element = JSXOutput;
     // (undocumented)
-    export interface ElementChildrenAttribute {
+    interface ElementChildrenAttribute {
         // (undocumented)
         children: JSXChildren;
     }
     // (undocumented)
-    export type ElementType = string | FunctionComponent<Record<any, any>>;
+    type ElementType = string | FunctionComponent<Record<any, any>>;
     // Warning: (ae-forgotten-export) The symbol "QwikIntrinsicAttributes" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    export interface IntrinsicAttributes extends QwikIntrinsicAttributes {
+    interface IntrinsicAttributes extends QwikIntrinsicAttributes {
     }
     // Warning: (ae-forgotten-export) The symbol "LenientQwikElements" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    export interface IntrinsicElements extends LenientQwikElements {
+    interface IntrinsicElements extends LenientQwikElements {
     }
 }
+export { QwikJSX as JSX }
+export { QwikJSX }
 
 // @public @deprecated (undocumented)
 export type QwikKeyboardEvent<T = Element> = NativeKeyboardEvent;
@@ -1549,6 +1549,17 @@ export interface SVGProps<T extends Element> extends SVGAttributes, QwikAttribut
 
 // @alpha
 export const sync$: <T extends Function>(fn: T) => SyncQRL<T>;
+
+// @alpha (undocumented)
+export interface SyncQRL<TYPE extends Function = any> extends QRL<TYPE> {
+    // (undocumented)
+    __brand__SyncQRL__: TYPE;
+    (...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never): TYPE extends (...args: any[]) => infer RETURN ? RETURN : never;
+    // (undocumented)
+    dev: QRLDev | null;
+    // (undocumented)
+    resolved: TYPE;
+}
 
 // @public (undocumented)
 export interface TableHTMLAttributes<T extends Element> extends Attrs<'table', T> {

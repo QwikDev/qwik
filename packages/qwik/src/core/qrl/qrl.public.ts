@@ -273,6 +273,7 @@ export const eventQrl = <T>(qrl: QRL<T>): QRL<T> => {
 /** @public */
 export const event$ = implicit$FirstArg(eventQrl);
 
+/** @alpha */
 export interface SyncQRL<TYPE extends Function = any> extends QRL<TYPE> {
   __brand__SyncQRL__: TYPE;
 

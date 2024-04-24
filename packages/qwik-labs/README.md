@@ -40,7 +40,7 @@ pnpm dev
 
 ## Production
 
-The production build should generate the production build of your component library in (./lib) and the typescript type definitions in (./lib-types).
+The production build should generate the production build of your component library and type definitions in (./lib).
 
 ```
 pnpm build

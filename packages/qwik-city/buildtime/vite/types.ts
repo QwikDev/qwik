@@ -28,7 +28,7 @@ export interface QwikCityVitePluginOptions extends Omit<PluginOptions, 'basePath
 }
 
 /** @public */
-export type MdxOptions = import('@mdx-js/mdx/lib/compile').CompileOptions;
+export type MdxOptions = import('@mdx-js/mdx').CompileOptions;
 
 export interface PluginContext {
   buildCtx: BuildContext | null;

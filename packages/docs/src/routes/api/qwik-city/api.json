@@ -796,7 +796,7 @@
         }
       ],
       "kind": "Function",
-      "content": "Returns the document head for the current page. The generic type describes the front matter.\n\n\n```typescript\nuseDocumentHead: <FrontMatter extends Record<string, unknown> = Record<string, any>>() => Required<Required<import(\"./types\").DocumentHeadValue<FrontMatter>>>\n```\n**Returns:**\n\nRequired&lt;Required&lt;import(\"./types\").[DocumentHeadValue](#documentheadvalue)<!-- -->&lt;FrontMatter&gt;&gt;&gt;",
+      "content": "Returns the document head for the current page. The generic type describes the front matter.\n\n\n```typescript\nuseDocumentHead: <FrontMatter extends Record<string, unknown> = Record<string, any>>() => Required<ResolvedDocumentHead<FrontMatter>>\n```\n**Returns:**\n\nRequired&lt;[ResolvedDocumentHead](#resolveddocumenthead)<!-- -->&lt;FrontMatter&gt;&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/use-functions.ts",
       "mdFile": "qwik-city.usedocumenthead.md"
     },

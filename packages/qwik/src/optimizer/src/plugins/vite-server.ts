@@ -4,7 +4,7 @@ import { magenta } from 'kleur/colors';
 import type { IncomingMessage, ServerResponse } from 'http';
 
 import type { Connect, ViteDevServer } from 'vite';
-import type { OptimizerSystem, Path, QwikManifest } from '../types';
+import type { OptimizerSystem, Path, QwikManifest, SymbolMapper } from '../types';
 import { type NormalizedQwikPluginOptions, parseId } from './plugin';
 import type { QwikViteDevResponse } from './vite';
 import { formatError } from './vite-utils';
@@ -142,7 +142,7 @@ export async function configureDevServer(
             manifest: isClientDevOnly ? undefined : manifest,
             symbolMapper: isClientDevOnly
               ? undefined
-              : (symbolName, mapper) => {
+              : (symbolName: string, mapper: SymbolMapper | undefined) => {
                   if (symbolName === SYNC_QRL) {
                     return [symbolName, ''];
                   }

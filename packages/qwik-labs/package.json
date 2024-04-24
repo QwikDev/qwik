@@ -4,36 +4,35 @@
   "version": "0.0.1",
   "devDependencies": {
     "@builder.io/qwik": "workspace:^",
-    "@types/eslint": "^8.56.6",
-    "@types/node": "^20.11.30",
-    "@typescript-eslint/eslint-plugin": "^7.3.1",
-    "@typescript-eslint/parser": "^7.3.1",
+    "@types/eslint": "^8.56.10",
+    "@types/node": "^20.12.7",
+    "@typescript-eslint/eslint-plugin": "^7.7.1",
+    "@typescript-eslint/parser": "^7.7.1",
     "eslint": "^8.57.0",
     "eslint-plugin-qwik": "workspace:^",
     "np": "^10.0.1",
     "prettier": "^3.2.5",
-    "typescript": "5.4.2",
+    "typescript": "5.4.5",
     "undici": "*",
-    "vite": "^5.1.6"
+    "vite": "^5.2.10"
   },
   "engines": {
     "node": ">=16.8.0 <18.0.0 || >=18.11"
   },
   "exports": {
     ".": {
-      "types": "./lib-types/index.d.ts",
+      "types": "./lib/index.d.ts",
       "import": "./lib/index.qwik.mjs",
       "require": "./lib/index.qwik.cjs"
     },
     "./vite": {
       "types": "./vite/index.d.ts",
       "import": "./vite/index.js",
-      "require": "./vite/index.js"
+      "require": "./vite/index.cjs"
     }
   },
   "files": [
     "lib",
-    "lib-types",
     "vite"
   ],
   "main": "./lib/index.qwik.mjs",
@@ -42,8 +41,7 @@
   "scripts": {
     "build": "pnpm build.vite && qwik build",
     "build.lib": "vite build --mode lib",
-    "build.types": "tsc --emitDeclarationOnly",
-    "build.vite": "tsc -p ./tsconfig-vite.json",
+    "build.vite": "vite -c vite.config-src-vite.mts build",
     "dev": "vite --mode ssr",
     "dev.debug": "node --inspect-brk ./node_modules/vite/bin/vite.js --mode ssr --force",
     "fmt": "prettier --write .",
@@ -52,8 +50,8 @@
     "qwik": "qwik",
     "release": "np",
     "start": "vite --open --mode ssr",
-    "test.unit": "tsm ../../node_modules/uvu/bin.js src unit.ts --tsmconfig tsm.cjs"
+    "test.unit": "vitest"
   },
   "type": "module",
-  "types": "./lib-types/index.d.ts"
+  "types": "./lib/index.d.ts"
 }

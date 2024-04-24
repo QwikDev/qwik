@@ -490,7 +490,7 @@ jobs:
 
       - name: Print QwikLabs Lib Build
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: tree packages/qwik-labs/lib/ packages/qwik-labs/lib-types/ packages/qwik-labs/vite/
+        run: tree packages/qwik-labs/lib/ packages/qwik-labs/vite/
 
       - name: Upload QwikLabs Build Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -499,7 +499,6 @@ jobs:
           name: builderio-qwiklabs-distribution
           path: |
             packages/qwik-labs/lib/
-            packages/qwik-labs/lib-types/
             packages/qwik-labs/vite/
             packages/qwik-labs/package.json
           if-no-files-found: error
@@ -550,8 +549,7 @@ jobs:
           mkdir -p packages/eslint-plugin-qwik/dist/
           mv dist-dev-eslint-plugin-qwik/* packages/eslint-plugin-qwik/dist/
           mv builderio-qwiklabs-distribution/lib packages/qwik-labs/lib
-          mv builderio-qwiklabs-distribution/lib-types packages/qwik-labs/lib-types
-          mv builderio-qwiklabs-distribution/vite/* packages/qwik-labs/vite/
+          mv builderio-qwiklabs-distribution/vite packages/qwik-labs/vite
 
       - name: Install NPM Dependencies
         run: |

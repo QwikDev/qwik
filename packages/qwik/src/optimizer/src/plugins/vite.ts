@@ -135,7 +135,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         }
       }
 
-      const shouldFindVendors = target !== 'lib' || viteCommand === 'serve';
+      const shouldFindVendors =
+        !qwikViteOpts.disableVendorScan && (target !== 'lib' || viteCommand === 'serve');
       const vendorRoots = shouldFindVendors
         ? await findQwikRoots(sys, path.join(sys.cwd(), 'package.json'))
         : [];
@@ -866,6 +867,11 @@ interface QwikVitePluginCommonOptions {
    */
   vendorRoots?: string[];
   /**
+   * Disables the automatic vendor roots scan. This is useful when you want to manually specify the
+   * vendor roots.
+   */
+  disableVendorScan?: boolean;
+  /**
    * Options for the Qwik optimizer.
    *
    * Default `undefined`
@@ -904,6 +910,8 @@ interface QwikVitePluginCommonOptions {
 interface QwikVitePluginCSROptions extends QwikVitePluginCommonOptions {
   /** Client Side Rendering (CSR) mode. It will not support SSR, default to Vite's `index.html` file. */
   csr: true;
+  ssr: never;
+  client: never;
 }
 
 interface QwikVitePluginSSROptions extends QwikVitePluginCommonOptions {

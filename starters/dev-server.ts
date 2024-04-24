@@ -1,6 +1,7 @@
 // DO NOT USE FOR PRODUCTION!!!
 // Internal Testing/Dev Server
 // DO NOT USE FOR PRODUCTION!!!
+
 /* eslint-disable no-console */
 
 import type { NextFunction, Request, Response } from "express";
@@ -43,14 +44,11 @@ const appNames = readdirSync(startersAppsDir).filter(
   (p) => statSync(join(startersAppsDir, p)).isDirectory() && p !== "base",
 );
 
-const packagesDir = resolve(__dirname, "..", "packages");
-const qwikDistDir = join(packagesDir, "qwik", "dist");
-const qwikDistMjs = join(qwikDistDir, "core.mjs");
-const qwikCityDistDir = join(packagesDir, "qwik-city", "lib");
-const qwikDistOptimizerPath = join(qwikDistDir, "optimizer.mjs");
-const qwikCityDistVite = join(qwikCityDistDir, "vite", "index.mjs");
-const qwikCityMjs = join(qwikCityDistDir, "index.qwik.mjs");
+const rootDir = resolve(__dirname, "..");
+const packagesDir = resolve(rootDir, "packages");
+const qwikCityMjs = join(packagesDir, "qwik-city", "lib", "index.qwik.mjs");
 
+/** Used when qwik-city server is enabled */
 const qwikCityVirtualEntry = "@city-ssr-entry";
 const entrySsrFileName = "entry.ssr.tsx";
 const qwikCityNotFoundPaths = "@qwik-city-not-found-paths";
@@ -106,9 +104,7 @@ async function buildApp(
   appName: string,
   enableCityServer: boolean,
 ) {
-  const optimizer: typeof import("@builder.io/qwik/optimizer") = await import(
-    file(qwikDistOptimizerPath)
-  );
+  const optimizer = await import("@builder.io/qwik/optimizer");
   const appSrcDir = join(appDir, "src");
   const appDistDir = join(appDir, "dist");
   const appServerDir = join(appDir, "server");
@@ -162,8 +158,7 @@ export {
         }
       },
     });
-    const qwikCityVite: typeof import("@builder.io/qwik-city/vite") =
-      await import(file(qwikCityDistVite));
+    const qwikCityVite = await import("@builder.io/qwik-city/vite");
 
     plugins.push(
       qwikCityVite.qwikCity({
@@ -187,20 +182,6 @@ export {
     resolve: {
       conditions: ["development"],
       mainFields: [],
-      alias: [
-        {
-          find: /^@builder\.io\/qwik-city/,
-          replacement: qwikCityDistDir,
-        },
-        {
-          find: /^@builder\.io\/qwik$/,
-          replacement: qwikDistMjs,
-        },
-        {
-          find: /^@builder\.io\/qwik/,
-          replacement: qwikDistDir,
-        },
-      ],
     },
   });
 
@@ -218,6 +199,12 @@ export {
       plugins: [
         ...plugins,
         optimizer.qwikVite({
+          /**
+           * normally qwik finds qwik-city via package.json but we don't want that
+           * because it causes it try try to lookup the special qwik city imports
+           * even when we're not actually importing qwik-city
+           */
+          disableVendorScan: true,
           vendorRoots: enableCityServer ? [qwikCityMjs] : [],
           entryStrategy: {
             type: "single",

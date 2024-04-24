@@ -22,7 +22,9 @@ export function patchGlobalThis() {
     globalThis.FormData = FormData as any;
   }
   if (typeof globalThis.TextEncoderStream === 'undefined') {
+    // @ts-ignore
     globalThis.TextEncoderStream = TextEncoderStream;
+    // @ts-ignore
     globalThis.TextDecoderStream = TextDecoderStream;
   }
   if (typeof globalThis.WritableStream === 'undefined') {

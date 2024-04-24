@@ -194,10 +194,11 @@ describe('types', () => {
 
   test('polymorphic component', () => () => {
     const Poly = component$(
-      <C extends string | FunctionComponent = string | FunctionComponent>({
-        as: Cmp = 'div' as C,
+      <C extends string | FunctionComponent = 'div'>({
+        as,
         ...props
       }: { as?: C } & PropsOf<string extends C ? 'div' : C>) => {
+        const Cmp = as || 'div';
         return <Cmp {...props}>hi</Cmp>;
       }
     );

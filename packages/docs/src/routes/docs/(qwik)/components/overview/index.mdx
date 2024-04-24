@@ -380,17 +380,18 @@ bundled with the parent component.
 
 ## Polymorphic components
 
-When you want to output a different type of element depending on props, you can do it using something like this:
+When you want to output a different type of element depending on props but default to a `<div>`, you can do it using something like this:
 
 ```tsx
-export const Poly = component$(
-  <C extends string | FunctionComponent = string | FunctionComponent>({
-    as: Cmp = 'div' as C,
-    ...props
-  }: { as?: C } & PropsOf<string extends C ? 'div' : C>) => {
-    return <Cmp {...props}>hi</Cmp>;
-  }
-);
+    const Poly = component$(
+      <C extends string | FunctionComponent = 'div'>({
+        as,
+        ...props
+      }: { as?: C } & PropsOf<string extends C ? 'div' : C>) => {
+        const Cmp = as || 'div';
+        return <Cmp {...props}>hi</Cmp>;
+      }
+    );
 
 // These all work with correct types
 <>

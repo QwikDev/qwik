@@ -2328,12 +2328,12 @@ Returns the document head for the current page. The generic type describes the f
 ```typescript
 useDocumentHead: <
   FrontMatter extends Record<string, unknown> = Record<string, any>,
->() => Required<Required<import("./types").DocumentHeadValue<FrontMatter>>>;
+>() => Required<ResolvedDocumentHead<FrontMatter>>;
 ```
 
 **Returns:**
 
-Required&lt;Required&lt;import("./types").[DocumentHeadValue](#documentheadvalue)&lt;FrontMatter&gt;&gt;&gt;
+Required&lt;[ResolvedDocumentHead](#resolveddocumenthead)&lt;FrontMatter&gt;&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/use-functions.ts)
 

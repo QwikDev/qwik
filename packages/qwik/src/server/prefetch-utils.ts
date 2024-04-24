@@ -1,4 +1,4 @@
-import type { QPrefetchData } from 'packages/qwik-city/runtime/src/service-worker/types';
+import type { QPrefetchData } from '../../../qwik-city/runtime/src/service-worker/types';
 import type { PrefetchResource } from './types';
 
 export function workerFetchScript() {

@@ -44,7 +44,6 @@ const stringOptions = [
 ] as const;
 const booleanOptions = [
   'api',
-  'build',
   'cli',
   'commit',
   'dev',
@@ -55,6 +54,7 @@ const booleanOptions = [
   'platformBinding',
   'platformBindingWasmCopy',
   'prepareRelease',
+  'qwik',
   'qwikauth',
   'qwikcity',
   'qwiklabs',
@@ -94,11 +94,14 @@ export function loadConfig(args: string[] = []) {
   const kebabOptions = knownOptions.map(kebab);
   // Add _ to known options
   kebabOptions.push('_');
-
+  const alias = Object.fromEntries(knownOptions.map((k, i) => [kebabOptions[i], k]));
+  // rename qwik to build
+  (alias as any).build = 'qwik';
+  kebabOptions.push('build');
   const config = mri<BuildConfig>(args, {
     boolean: [...booleanOptions],
     string: [...stringOptions],
-    alias: Object.fromEntries(knownOptions.map((k, i) => [kebabOptions[i], k])),
+    alias,
     default: {
       rootDir,
       packagesDir,
@@ -120,7 +123,7 @@ export function loadConfig(args: string[] = []) {
   const parseError =
     config._.length > 0
       ? `!!! Extra non-args: ${config._.join(' ')}\n\n`
-      : Object.keys(config).length === 1
+      : process.argv.length === 2
         ? `No args provided. `
         : Object.keys(config).some((k) => !kebabOptions.includes(kebab(k)))
           ? `!!! Unknown args: ${Object.keys(config)
@@ -355,4 +358,19 @@ const IGNORE: { [path: string]: boolean } = {
   'tsconfig.tsbuildinfo': true,
   'yarn.lock': true,
   'pnpm-lock.yaml': true,
+};
+
+export const recursiveChangePrefix = <T>(obj: T, prefix: string, replace: string): T => {
+  if (typeof obj === 'string') {
+    return (obj.startsWith(prefix) ? replace + obj.slice(prefix.length) : obj) as T;
+  }
+  if (Array.isArray(obj)) {
+    return obj.map((v) => recursiveChangePrefix(v, prefix, replace)) as T;
+  }
+  if (obj && typeof obj === 'object') {
+    return Object.fromEntries(
+      Object.entries(obj).map(([k, v]) => [k, recursiveChangePrefix(v, prefix, replace)])
+    ) as T;
+  }
+  return obj;
 };

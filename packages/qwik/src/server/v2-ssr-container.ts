@@ -408,8 +408,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   /** Write a text node with correct escaping. Save the length of the text node in the vNodeData. */
   textNode(text: string) {
     let lastIdx = 0;
-    let openAngleBracketIdx: number;
-    while ((openAngleBracketIdx = text.indexOf('<')) !== -1) {
+    let openAngleBracketIdx: number = -1;
+    while ((openAngleBracketIdx = text.indexOf('<', openAngleBracketIdx + 1)) !== -1) {
       this.write(text.substring(lastIdx, openAngleBracketIdx));
       lastIdx = openAngleBracketIdx;
     }

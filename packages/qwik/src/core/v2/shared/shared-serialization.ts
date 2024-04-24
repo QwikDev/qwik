@@ -31,7 +31,7 @@ import {
   isSignal,
   type Signal,
 } from '../../state/signal';
-import { Store, getOrCreateProxy } from '../../state/store';
+import { getOrCreateProxy, isStore } from '../../state/store';
 import { Task, type ResourceReturnInternal } from '../../use/use-task';
 import { throwErrorAndStop } from '../../util/log';
 import { isPromise } from '../../util/promises';
@@ -624,7 +624,7 @@ export const createSerializationContext = (
       }
       const drain: () => ValueOrPromise<void> = () => {
         if (promises.length) {
-          return Promise.all(promises).then(drain);
+          return Promise.allSettled(promises).then(drain, drain);
         }
       };
       return drain();
@@ -653,11 +653,12 @@ export const createSerializationContext = (
       // if (count-- < 0) {
       //   throw new Error('INFINITE LOOP');
       // }
-      const obj = discoveredValues.pop();
+      let obj = discoveredValues.pop();
       if (shouldTrackObj(obj) || frameworkType(obj)) {
         const isRoot = obj === rootObj;
         // For root objects we pretend we have not seen them to force scan.
         const id = $wasSeen$(obj);
+        obj = unwrapProxy(obj);
         if (id === undefined || isRoot) {
           // Object has not been seen yet, must scan content
           // But not for root.
@@ -706,7 +707,7 @@ export const createSerializationContext = (
           } else if (isPromise(obj)) {
             obj.then(
               (value) => {
-                setSerializableDataRootId($addRoot$, obj, value);
+                setSerializableDataRootId($addRoot$, obj as Promise<any>, value);
                 promises.splice(promises.indexOf(obj as Promise<void>), 1);
               },
               (error) => {
@@ -817,6 +818,8 @@ function serialize(serializationContext: SerializationContext): void {
       const constProps = value[_CONST_PROPS];
       const constId = $addRoot$(constProps);
       writeString(SerializationConstant.PropsProxy_CHAR + varId + ' ' + constId);
+    } else if (isStore(value)) {
+      writeString(SerializationConstant.Store_CHAR + $addRoot$(unwrapProxy(value)));
     } else if (isObjectLiteral(value)) {
       if (isResource(value)) {
         serializationContext.$resources$.add(value);
@@ -848,8 +851,6 @@ function serialize(serializationContext: SerializationContext): void {
       writeString(
         SerializationConstant.SignalWrapper_CHAR + $addRoot$(value.ref) + ' ' + value.prop
       );
-    } else if (value instanceof Store) {
-      writeString(SerializationConstant.Store_CHAR + $addRoot$(unwrapProxy(value)));
     } else if (value instanceof URL) {
       writeString(SerializationConstant.URL_CHAR + value.href);
     } else if (value instanceof Date) {
@@ -1100,7 +1101,7 @@ function isObjectLiteral(obj: unknown): obj is object {
   // - we are an array
   // In all other cases it is a subclass which requires more checks.
   const prototype = Object.getPrototypeOf(obj);
-  return prototype === Object.prototype || prototype === Array.prototype;
+  return prototype == null || prototype === Object.prototype || prototype === Array.prototype;
 }
 
 function isResource<T = unknown>(value: object): value is ResourceReturnInternal<T> {

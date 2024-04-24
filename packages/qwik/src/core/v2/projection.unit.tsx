@@ -582,7 +582,9 @@ describe.each([
         </div>
       );
     });
+  });
 
+  describe('q:template', () => {
     it('should add and delete projection content inside q:template if slot is initially not visible', async () => {
       const Cmp = component$(() => {
         const show = useSignal(false);
@@ -709,6 +711,70 @@ describe.each([
       );
 
       await trigger(document.body, '#reload', 'click');
+      await trigger(document.body, '#slot', 'click');
+      await expect(document.querySelector('q\\:template')).toMatchDOM(<q:template></q:template>);
+
+      await trigger(document.body, '#slot', 'click');
+      await expect(document.querySelector('q\\:template')).toMatchDOM(
+        <q:template>{content}</q:template>
+      );
+
+      await trigger(document.body, '#slot', 'click');
+      await expect(document.querySelector('q\\:template')).toMatchDOM(<q:template></q:template>);
+
+      await trigger(document.body, '#slot', 'click');
+      await expect(document.querySelector('q\\:template')).toMatchDOM(
+        <q:template>{content}</q:template>
+      );
+    });
+
+    it('should add and delete projection content wrapped in component inside q:template', async () => {
+      const content = (
+        <div q:slot="four">
+          <h1>Inside slot 4</h1>
+        </div>
+      );
+
+      const ComponentA = component$(() => {
+        const store = useStore({ show: false });
+
+        return (
+          <div>
+            <button id="slot" onClick$={() => (store.show = !store.show)}>
+              toggle slot 4
+            </button>
+            {store.show ? <Slot name="four" /> : null}
+          </div>
+        );
+      });
+
+      const Wrapper = component$<{ v: number }>(({ v }) => {
+        return (
+          <div class="parent-container">
+            <ComponentA>{content}</ComponentA>
+          </div>
+        );
+      });
+
+      const Parent = component$(() => {
+        const reload = useSignal(0);
+        return (
+          <>
+            <button id="reload" data-v={reload.value} onClick$={() => reload.value++}>
+              Reload
+            </button>
+            <Wrapper v={reload.value} key={reload.value} />
+          </>
+        );
+      });
+
+      const { document } = await render(<Parent />, { debug });
+      await expect(document.querySelector('q\\:template')).toMatchDOM(
+        <q:template>{content}</q:template>
+      );
+
+      await trigger(document.body, '#reload', 'click');
+      await expect(document.querySelector('q\\:template')?.children).toHaveLength(1);
       await trigger(document.body, '#slot', 'click');
       await expect(document.querySelector('q\\:template')).toMatchDOM(<q:template></q:template>);
 

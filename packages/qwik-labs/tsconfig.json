@@ -1,16 +1,15 @@
 {
   "compilerOptions": {
     "allowJs": true,
+    "noEmit": true,
     "target": "ES2021",
     "module": "ES2020",
     "lib": ["es2021", "DOM"],
     "jsx": "react-jsx",
     "jsxImportSource": "@builder.io/qwik",
     "strict": true,
-    "declaration": true,
-    "declarationDir": "lib-types",
     "resolveJsonModule": true,
-    "moduleResolution": "node",
+    "moduleResolution": "Bundler",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "incremental": true,

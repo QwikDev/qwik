@@ -54,6 +54,11 @@ export const getOrCreateProxy = <T extends object>(
   return createProxy(target, storeMgr, undefined);
 };
 
+export const isStore = (target: any): boolean => {
+  const unwrap = unwrapProxy(target);
+  return unwrap !== target;
+};
+
 export const createProxy = <T extends object>(
   target: T,
   storeTracker: StoreTracker,
@@ -116,8 +121,6 @@ export const _restProps = (props: Record<string, any>, omit: string[], target = 
   return target;
 };
 
-export class Store {}
-
 export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
   constructor(
     private $storeTracker$: StoreTracker,
@@ -133,10 +136,6 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     }
     this.$manager$.$notifySubs$(isArray(target) ? undefined : prop);
     return true;
-  }
-
-  getPrototypeOf(target: TargetType): object | null {
-    return Store.prototype;
   }
 
   get(target: TargetType, prop: string | symbol): any {

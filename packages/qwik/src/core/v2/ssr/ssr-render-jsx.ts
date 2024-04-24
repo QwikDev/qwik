@@ -400,16 +400,30 @@ function getEventProp(record: Record<string, unknown>, propKey: string): unknown
   return null;
 }
 
-function setEvent(serializationCtx: SerializationContext, key: string, rawValue: unknown) {
+function setEvent(
+  serializationCtx: SerializationContext,
+  key: string,
+  rawValue: unknown
+): string | null {
   let value: string | null = null;
   const qrls = rawValue;
+
+  const appendToValue = (valueToAppend: string) => {
+    value = (value == null ? '' : value + '\n') + valueToAppend;
+  };
+
   if (Array.isArray(qrls)) {
     for (let i = 0; i <= qrls.length; i++) {
       const qrl: unknown = qrls[i];
       if (isQrl(qrl)) {
-        const first = i === 0;
-        value = (first ? '' : value + '\n') + qrlToString(serializationCtx, qrl);
+        appendToValue(qrlToString(serializationCtx, qrl));
         addQwikEventToSerializationContext(serializationCtx, key, qrl);
+      } else if (qrl != null) {
+        // nested arrays etc.
+        const nestedValue = setEvent(serializationCtx, key, qrl);
+        if (nestedValue) {
+          appendToValue(nestedValue);
+        }
       }
     }
   } else if (isQrl(qrls)) {
@@ -417,10 +431,7 @@ function setEvent(serializationCtx: SerializationContext, key: string, rawValue:
     addQwikEventToSerializationContext(serializationCtx, key, qrls);
   }
 
-  if (isJsxPropertyAnEventName(key)) {
-    return value;
-  }
-  return null;
+  return value;
 }
 
 function addQwikEventToSerializationContext(

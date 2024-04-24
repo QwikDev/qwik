@@ -138,7 +138,7 @@ Quite the opposite.
 
 Qwik does not need to prefetch everything to start running, while other frameworks do need to download the whole critical path to become interactive because of [hydration](https://www.builder.io/blog/hydration-is-pure-overhead).
 
-In fact, thanks to Qwik's ability to [reduce network waterfalls](../../(qwikcity)/advanced/speculative-module-fetching/index.mdx#reducing-network-waterfalls), it is likely that the requested modules have already been downloaded and stored in the browsers's Cache at the time of interaction. And Even if they haven't yet been cached, Qwik can [avoid duplicating the requests](../../(qwikcity)/advanced/speculative-module-fetching/index.mdx#avoiding-duplicate-requests) and can instead keep fetching the modules that are being requested to start executing them as soon as possible. 
+In fact, thanks to Qwik's ability to [reduce network waterfalls](../../(qwikcity)/advanced/speculative-module-fetching/index.mdx#reducing-network-waterfalls), it is likely that the requested modules have already been downloaded and stored in the browser's cache at the time of interaction. And even if they haven't yet been cached, Qwik can [avoid duplicating the requests](../../(qwikcity)/advanced/speculative-module-fetching/index.mdx#avoiding-duplicate-requests) and can instead keep fetching the modules that are being requested to start executing them as soon as possible. 
 
 As a result, Qwik apps get to be responsive much faster, especially on slow networks.
 

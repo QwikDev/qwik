@@ -7,8 +7,8 @@ import {
   useComputed$,
   Fragment as Signal,
 } from '@builder.io/qwik';
-import { domRender, ssrRenderToDom } from './rendering.unit-util';
-import './vdom-diff.unit-util';
+import { domRender, ssrRenderToDom } from '../../testing/rendering.unit-util';
+import '../../testing/vdom-diff.unit-util';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;

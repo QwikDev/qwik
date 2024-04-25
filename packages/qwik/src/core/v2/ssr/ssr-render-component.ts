@@ -1,4 +1,4 @@
-import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
+import type { JSXNode } from '@builder.io/qwik';
 import { type Component, type OnRenderFn } from '../../component/component.public';
 import { SERIALIZABLE_STATE } from '../../container/serializers';
 import type { QRLInternal } from '../../qrl/qrl-class';

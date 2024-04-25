@@ -1,15 +1,25 @@
-import {
-  domRender,
-  ssrRenderToDom,
-} from "packages/qwik/src/core/v2/rendering.unit-util";
+import { domRender, ssrRenderToDom, trigger } from "@builder.io/qwik/testing";
 import { beforeEach, describe, it, expect } from "vitest";
 import { Issue5506, SlotParent } from "./slot";
-import { trigger } from "packages/qwik/src/testing/element-fixture";
 import {
   Fragment as Component,
   Fragment as Projection,
   Fragment,
-} from "@builder.io/qwik/jsx-runtime";
+  type JSXOutput,
+} from "@builder.io/qwik";
+
+//////////////////////////////
+// TODO make this part of qwik/testing somehow
+interface CustomMatchers<R = unknown> {
+  toMatchVDOM(expectedJSX: JSXOutput): R;
+  toMatchDOM(expectedDOM: JSXOutput): Promise<R>;
+}
+
+declare module "vitest" {
+  interface Assertion<T = any> extends CustomMatchers<T> {}
+  interface AsymmetricMatchersContaining extends CustomMatchers {}
+}
+//////////////////////////////
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;

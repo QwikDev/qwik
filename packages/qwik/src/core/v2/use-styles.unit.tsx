@@ -1,12 +1,12 @@
-import { Fragment as Component, Fragment as Signal } from '@builder.io/qwik/jsx-runtime';
+import { Fragment as Component, Fragment as Signal } from '@builder.io/qwik';
 import { afterEach, describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
 import { component$ } from '../component/component.public';
 import { inlinedQrl } from '../qrl/qrl';
 import { useSignal } from '../use/use-signal';
 import { useStylesQrl } from '../use/use-styles';
-import { domRender, ssrRenderToDom } from './rendering.unit-util';
-import './vdom-diff.unit-util';
+import { domRender, ssrRenderToDom } from '../../testing/rendering.unit-util';
+import '../../testing/vdom-diff.unit-util';
 import { QStyleSelector } from '../util/markers';
 import { renderToString2 } from '../../server/v2-ssr-render2';
 import { Slot } from '../render/jsx/slot.public';

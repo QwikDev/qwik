@@ -39,6 +39,8 @@ export { implicit$FirstArg } from './util/implicit_dollar';
 //////////////////////////////////////////////////////////////////////////////////////////
 export { getPlatform, setPlatform } from './platform/platform';
 export type { CorePlatform } from './platform/types';
+export type { ClientContainer } from './v2/client/types';
+export type { DomContainer } from './v2/client/dom-container';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // JSX Runtime

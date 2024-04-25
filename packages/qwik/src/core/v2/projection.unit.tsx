@@ -16,8 +16,8 @@ import { useSignal } from '../use/use-signal';
 import { useStore } from '../use/use-store.public';
 import { useTask$ } from '../use/use-task';
 import { vnode_getNextSibling } from './client/vnode';
-import { domRender, ssrRenderToDom } from './rendering.unit-util';
-import './vdom-diff.unit-util';
+import { domRender, ssrRenderToDom } from '@builder.io/qwik/testing';
+import '../../testing/vdom-diff.unit-util';
 
 const debug = false;
 

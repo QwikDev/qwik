@@ -4,7 +4,7 @@ import {
   Fragment,
   Fragment as Projection,
   Fragment as Signal,
-} from '@builder.io/qwik/jsx-runtime';
+} from '@builder.io/qwik';
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
 import { component$ } from '../component/component.public';
@@ -12,8 +12,8 @@ import { Slot } from '../render/jsx/slot.public';
 import type { Signal as SignalType } from '../state/signal';
 import { untrack } from '../use/use-core';
 import { useSignal } from '../use/use-signal';
-import { domRender, ssrRenderToDom } from './rendering.unit-util';
-import './vdom-diff.unit-util';
+import { domRender, ssrRenderToDom } from '../../testing/rendering.unit-util';
+import '../../testing/vdom-diff.unit-util';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;

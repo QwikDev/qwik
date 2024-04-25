@@ -1,5 +1,5 @@
 import { assert, suite, test } from 'vitest';
-import { createDOM } from '../../testing/library';
+import { createDOM } from '@builder.io/qwik/testing';
 import { sync$ } from '../qrl/qrl.public';
 import { renderToString } from '../../server/render';
 

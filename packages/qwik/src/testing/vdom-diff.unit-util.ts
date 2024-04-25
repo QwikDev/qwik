@@ -1,6 +1,6 @@
 import { expect } from 'vitest';
-import { Fragment, isJSXNode } from '../render/jsx/jsx-runtime';
-import type { ElementVNode, QDocument, TextVNode, VNode } from './client/types';
+import { Fragment, isJSXNode } from '../core/render/jsx/jsx-runtime';
+import type { ElementVNode, QDocument, TextVNode, VNode } from '../core/v2/client/types';
 import {
   vnode_applyJournal,
   vnode_getAttr,
@@ -19,27 +19,20 @@ import {
   vnode_newUnMaterializedElement,
   vnode_setAttr,
   type VNodeJournal,
-} from './client/vnode';
-import { isStringifiable, type Stringifiable } from './shared-types';
+} from '../core/v2/client/vnode';
+import { isStringifiable, type Stringifiable } from '../core/v2/shared-types';
 
 import { format } from 'prettier';
-import { createDocument } from '../../testing/document';
-import { isElement } from '../../testing/html';
-import { serializeBooleanOrNumberAttribute } from '../render/execute-component';
-import type { JSXNode, JSXOutput } from '../render/jsx/types/jsx-node';
-import { isText } from '../util/element';
-import type { VirtualVNode } from './client/types';
-import { isHtmlAttributeAnEventName, isJsxPropertyAnEventName } from './shared/event-names';
-
-interface CustomMatchers<R = unknown> {
-  toMatchVDOM(expectedJSX: JSXOutput): R;
-  toMatchDOM(expectedDOM: JSXOutput): Promise<R>;
-}
-
-declare module 'vitest' {
-  interface Assertion<T = any> extends CustomMatchers<T> {}
-  interface AsymmetricMatchersContaining extends CustomMatchers {}
-}
+import { createDocument } from './document';
+import { isElement } from './html';
+import { serializeBooleanOrNumberAttribute } from '../core/render/execute-component';
+import type { JSXNode, JSXOutput } from '../core/render/jsx/types/jsx-node';
+import { isText } from '../core/util/element';
+import type { VirtualVNode } from '../core/v2/client/types';
+import {
+  isHtmlAttributeAnEventName,
+  isJsxPropertyAnEventName,
+} from '../core/v2/shared/event-names';
 
 expect.extend({
   toMatchVDOM(this: { isNot: boolean }, received: VNode, expected: JSXNode) {
@@ -212,6 +205,7 @@ function shouldSkip(vNode: VNode | null) {
   return false;
 }
 
+/** @public */
 export function walkJSX(
   jsx: JSXOutput,
   apply: {
@@ -245,6 +239,7 @@ export function walkJSX(
   }
 }
 
+/** @public */
 export function vnode_fromJSX(jsx: JSXOutput) {
   const doc = createDocument() as QDocument;
   doc.qVNodeData = new WeakMap();

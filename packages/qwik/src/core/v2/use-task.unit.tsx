@@ -7,8 +7,8 @@ import { useSignal } from '../use/use-signal';
 import { useStore } from '../use/use-store.public';
 import { useTask$ } from '../use/use-task';
 import { delay } from '../util/promises';
-import { ErrorProvider, domRender, ssrRenderToDom } from './rendering.unit-util';
-import './vdom-diff.unit-util';
+import { ErrorProvider, domRender, ssrRenderToDom } from '../../testing/rendering.unit-util';
+import '../../testing/vdom-diff.unit-util';
 import { getTestPlatform } from '../../testing/platform';
 
 const debug = false; //true;

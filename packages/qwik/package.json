@@ -211,6 +211,8 @@
     "url": "https://github.com/QwikDev/qwik.git",
     "directory": "packages/qwik"
   },
-  "sideEffects": false,
+  "sideEffects": [
+    "src/testing/vdom-diff.unit-util.ts"
+  ],
   "type": "module"
 }

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { component$, componentQrl } from '../core/component/component.public';
 import { inlinedQrl } from '../core/qrl/qrl';
 import { useSignal } from '../core/use/use-signal';
-import { ssrRenderToDom } from '../core/v2/rendering.unit-util';
+import { ssrRenderToDom } from '../testing/rendering.unit-util';
 import { encodeAsAlphanumeric } from './v2-vnode-data';
 import { vnode_getProp, vnode_locate } from '../core/v2/client/vnode';
 import { ELEMENT_PROPS, OnRenderProp } from '../core/util/markers';

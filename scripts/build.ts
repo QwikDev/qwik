@@ -88,7 +88,7 @@ export async function build(config: BuildConfig) {
       await Promise.all([submoduleServer(config), submoduleOptimizer(config)]);
     }
 
-    if (config.api) {
+    if (config.api || (config.tsc && config.qwik)) {
       await apiExtractorQwik(config);
     }
 
@@ -110,7 +110,7 @@ export async function build(config: BuildConfig) {
       await buildQwikCity(config);
     }
 
-    if (config.api) {
+    if (config.api || (config.tsc && config.qwikcity)) {
       await apiExtractorQwikCity(config);
     }
 

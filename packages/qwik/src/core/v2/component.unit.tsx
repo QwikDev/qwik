@@ -1,12 +1,11 @@
-import { Fragment as Component, Fragment, Fragment as Signal } from '@builder.io/qwik/jsx-runtime';
+import { Fragment as Component, Fragment, Fragment as Signal } from '@builder.io/qwik';
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
 import { component$ } from '../component/component.public';
 import type { JSXOutput } from '../render/jsx/types/jsx-node';
 import { useSignal } from '../use/use-signal';
 import { useStore } from '../use/use-store.public';
-import { domRender, ssrRenderToDom } from './rendering.unit-util';
-import './vdom-diff.unit-util';
+import { domRender, ssrRenderToDom } from '@builder.io/qwik/testing';
 import { $ } from '@builder.io/qwik';
 
 const debug = false; //true;

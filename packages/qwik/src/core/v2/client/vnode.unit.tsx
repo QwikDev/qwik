@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createDocument } from '../../../testing/document';
 
-import { Fragment } from '@builder.io/qwik/jsx-runtime';
-import '../vdom-diff.unit-util';
+import { Fragment } from '@builder.io/qwik';
+import '../../../testing/vdom-diff.unit-util';
 import type {
   ContainerElement,
   ElementVNode,

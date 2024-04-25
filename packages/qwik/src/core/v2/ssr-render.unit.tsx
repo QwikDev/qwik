@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { component$ } from '../component/component.public';
 import { Fragment, Fragment as InlineComponent } from '../render/jsx/jsx-runtime';
-import { ssrRenderToDom } from './rendering.unit-util';
-import './vdom-diff.unit-util';
+import { ssrRenderToDom } from '@builder.io/qwik/testing';
 
 describe('v2 ssr render', () => {
   it('should render jsx', async () => {

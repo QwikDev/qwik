@@ -8,6 +8,7 @@ export type ClientAttrKey = string;
 export type ClientAttrValue = string | null;
 export type ClientAttrs = Array<ClientAttrKey | ClientAttrValue>;
 
+/** @internal */
 export interface ClientContainer extends Container2 {
   document: QDocument;
   element: ContainerElement;

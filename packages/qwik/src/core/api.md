@@ -5,7 +5,6 @@
 ```ts
 
 import * as CSS_2 from 'csstype';
-import { JSXNode as JSXNode_2 } from '@builder.io/qwik/jsx-runtime';
 import type { StreamWriter as StreamWriter_2 } from '@builder.io/qwik';
 
 // @public
@@ -107,6 +106,49 @@ export interface CanvasHTMLAttributes<T extends Element> extends Attrs<'canvas',
 // @public
 export type ClassList = string | undefined | null | false | Record<string, boolean | string | number | null | undefined> | ClassList[];
 
+// Warning: (ae-forgotten-export) The symbol "Container2" needs to be exported by the entry point index.d.ts
+// Warning: (ae-internal-missing-underscore) The name "ClientContainer" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export interface ClientContainer extends Container2 {
+    // Warning: (ae-forgotten-export) The symbol "VNodeJournal" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    $journal$: VNodeJournal;
+    // (undocumented)
+    $locale$: string;
+    // Warning: (ae-forgotten-export) The symbol "VirtualVNode" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    $setRawState$(id: number, vParent: ElementVNode | VirtualVNode): void;
+    // (undocumented)
+    addVNodeProjection(componentVNodeWithProjection: VirtualVNode): void;
+    // Warning: (ae-forgotten-export) The symbol "QDocument" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    document: QDocument;
+    // Warning: (ae-forgotten-export) The symbol "ContainerElement" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    element: ContainerElement;
+    // (undocumented)
+    emitUnclaimedProjection(): void;
+    // (undocumented)
+    parseQRL<T = unknown>(qrl: string): QRL<T>;
+    // (undocumented)
+    qBase: string;
+    // (undocumented)
+    qContainer: string;
+    // (undocumented)
+    qManifestHash: string;
+    // Warning: (ae-forgotten-export) The symbol "ElementVNode" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    qTemplate: ElementVNode;
+    // (undocumented)
+    rootVNode: ElementVNode;
+}
+
 // @public (undocumented)
 export interface ColgroupHTMLAttributes<T extends Element> extends Attrs<'colgroup', T> {
 }
@@ -206,6 +248,76 @@ export interface DOMAttributes<EL extends Element> extends DOMAttributesBase<EL>
     class?: ClassList | Signal<ClassList> | undefined;
 }
 
+// Warning: (ae-forgotten-export) The symbol "StoreTracker" needs to be exported by the entry point index.d.ts
+// Warning: (ae-internal-missing-underscore) The name "DomContainer" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export class DomContainer extends _SharedContainer implements ClientContainer, StoreTracker {
+    // (undocumented)
+    $appendStyle$(content: string, styleId: string, host: VirtualVNode, scoped: boolean): void;
+    // (undocumented)
+    $getObjectById$: (id: number | string) => unknown;
+    // (undocumented)
+    $journal$: VNodeJournal;
+    // Warning: (ae-forgotten-export) The symbol "ObjToProxyMap" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    $proxyMap$: ObjToProxyMap;
+    // (undocumented)
+    $qFuncs$: Array<(...args: unknown[]) => unknown>;
+    // (undocumented)
+    $rawStateData$: unknown[];
+    // (undocumented)
+    $setRawState$(id: number, vParent: ElementVNode | VirtualVNode): void;
+    constructor(element: ContainerElement);
+    // (undocumented)
+    addVNodeProjection(componentVNodeWithProjection: VirtualVNode): void;
+    // (undocumented)
+    document: QDocument;
+    // (undocumented)
+    element: ContainerElement;
+    // (undocumented)
+    emitUnclaimedProjection(): ValueOrPromise<void>;
+    // (undocumented)
+    ensureProjectionResolved(vNode: VirtualVNode): void;
+    // (undocumented)
+    getHostProp<T>(host: HostElement, name: string): T | null;
+    // (undocumented)
+    getParentHost(host: HostElement): HostElement | null;
+    // (undocumented)
+    getSyncFn(id: number): (...args: unknown[]) => unknown;
+    // (undocumented)
+    handleError(err: any, host: HostElement): void;
+    // (undocumented)
+    parseQRL<T = unknown>(qrl: string): QRL<T>;
+    // Warning: (ae-forgotten-export) The symbol "HostElement" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    processJsx(host: HostElement, jsx: JSXOutput): ValueOrPromise<void>;
+    // (undocumented)
+    qBase: string;
+    // (undocumented)
+    qContainer: string;
+    // (undocumented)
+    qManifestHash: string;
+    // (undocumented)
+    get qTemplate(): ElementVNode;
+    // (undocumented)
+    renderDone: Promise<void> | null;
+    // (undocumented)
+    rendering: boolean;
+    // (undocumented)
+    resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined;
+    // (undocumented)
+    rootVNode: ElementVNode;
+    // (undocumented)
+    scheduleRender(): Promise<void> | null;
+    // (undocumented)
+    setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
+    // (undocumented)
+    setHostProp<T>(host: HostElement, name: string, value: T): void;
+}
+
 // @public (undocumented)
 export type EagernessOptions = 'visible' | 'load' | 'idle';
 
@@ -260,8 +372,7 @@ export const _getContextElement: () => unknown;
 // @internal (undocumented)
 export const _getContextEvent: () => unknown;
 
-// Warning: (ae-forgotten-export) The symbol "ElementVNode" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "ClientContainer" needs to be exported by the entry point index.d.ts
+// Warning: (ae-incompatible-release-tags) The symbol "getDomContainer" is marked as @public, but its signature references "ClientContainer" which is marked as @internal
 //
 // @public (undocumented)
 export function getDomContainer(element: Element | ElementVNode): ClientContainer;
@@ -601,7 +712,7 @@ export const PrefetchGraph: (opts?: {
     base?: string;
     manifestHash?: string;
     manifestURL?: string;
-}) => JSXNode_2<string>;
+}) => JSXNode<string>;
 
 // @alpha
 export const PrefetchServiceWorker: (opts: {
@@ -609,7 +720,7 @@ export const PrefetchServiceWorker: (opts: {
     path?: string;
     verbose?: boolean;
     fetchBundleGraph?: boolean;
-}) => JSXNode_2<string>;
+}) => JSXNode<string>;
 
 // @public (undocumented)
 export interface ProgressHTMLAttributes<T extends Element> extends Attrs<'progress', T> {
@@ -914,8 +1025,6 @@ export const _serializeData: (data: any, pureQRL?: boolean) => Promise<string>;
 // @public
 export const setPlatform: (plt: CorePlatform) => CorePlatform;
 
-// Warning: (ae-forgotten-export) The symbol "Container2" needs to be exported by the entry point index.d.ts
-//
 // @internal (undocumented)
 export abstract class _SharedContainer implements Container2 {
     // (undocumented)
@@ -926,8 +1035,6 @@ export abstract class _SharedContainer implements Container2 {
     readonly $getObjectById$: (id: number | string) => any;
     // (undocumented)
     readonly $locale$: string;
-    // Warning: (ae-forgotten-export) The symbol "ObjToProxyMap" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     readonly $proxyMap$: ObjToProxyMap;
     // Warning: (ae-forgotten-export) The symbol "Scheduler" needs to be exported by the entry point index.d.ts
@@ -943,8 +1050,6 @@ export abstract class _SharedContainer implements Container2 {
     // (undocumented)
     readonly $version$: string;
     constructor(scheduleDrain: () => void, journalFlush: () => void, serverData: Record<string, any>, locale: string);
-    // Warning: (ae-forgotten-export) The symbol "HostElement" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     abstract ensureProjectionResolved(host: HostElement): void;
     // (undocumented)

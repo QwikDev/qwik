@@ -1,10 +1,6 @@
-import {
-  domRender,
-  ssrRenderToDom,
-} from "packages/qwik/src/core/v2/rendering.unit-util";
+import { domRender, ssrRenderToDom, trigger } from "@builder.io/qwik/testing";
 import { beforeEach, describe, expect, it } from "vitest";
 import { RefRoot } from "./ref";
-import { trigger } from "packages/qwik/src/testing/element-fixture";
 
 const debug = true; //true;
 Error.stackTraceLimit = 100;

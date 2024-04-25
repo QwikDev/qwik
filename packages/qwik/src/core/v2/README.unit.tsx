@@ -36,8 +36,7 @@ import {
 import { Slot } from '../render/jsx/slot.public';
 import { useSignal } from '../use/use-signal';
 import { vnode_getNextSibling } from './client/vnode';
-import { domRender, ssrRenderToDom } from './rendering.unit-util';
-import './vdom-diff.unit-util';
+import { domRender, ssrRenderToDom } from '@builder.io/qwik/testing';
 
 // To better understand what is going on in the test, set DEBUG to true and run the test.
 const DEBUG = false;

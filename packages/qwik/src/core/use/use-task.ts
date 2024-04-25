@@ -442,61 +442,34 @@ interface Computed {
 
 /** @public */
 export const useComputedQrl: ComputedQRL = <T>(qrl: QRL<ComputedFn<T>>): Signal<Awaited<T>> => {
-  const { val, set, iCtx, i, elCtx } = useSequentialScope<Signal<Awaited<T>>>();
+  const { val, set, iCtx, i } = useSequentialScope<Signal<Awaited<T>>>();
   if (val) {
     return val;
   }
   assertQrl(qrl);
 
-  if (iCtx.$container2$) {
-    const host = iCtx.$hostElement$ as unknown as HostElement;
-    const signal = _createSignal(
-      undefined as Awaited<T>,
-      iCtx.$container2$.$subsManager$,
-      SIGNAL_UNASSIGNED | SIGNAL_IMMUTABLE,
-      undefined
-    );
-
-    const task = new Task(
-      TaskFlagsIsDirty | TaskFlagsIsTask | TaskFlagsIsComputed,
-      i,
-      iCtx.$hostElement$,
-      qrl,
-      signal,
-      null
-    );
-    const result = runComputed2(task, iCtx.$container2$, host);
-    if (isPromise(result)) {
-      throw result;
-    }
-    qrl.$resolveLazy$(host as fixMeAny);
-    return set(signal);
-  } else {
-    const containerState = iCtx.$renderCtx$.$static$.$containerState$;
-    const signal = _createSignal(
-      undefined as Awaited<T>,
-      containerState.$subsManager$,
-      SIGNAL_UNASSIGNED | SIGNAL_IMMUTABLE,
-      undefined
-    );
-
-    const task = new Task(
-      TaskFlagsIsDirty | TaskFlagsIsTask | TaskFlagsIsComputed,
-      i,
-      elCtx.$element$,
-      qrl,
-      signal,
-      null
-    );
-    qrl.$resolveLazy$(containerState.$containerEl$);
-    if (!elCtx.$tasks$) {
-      elCtx.$tasks$ = [];
-    }
-    elCtx.$tasks$.push(task);
-
-    waitAndRun(iCtx, () => runComputed(task, containerState, iCtx.$renderCtx$));
-    return set(signal);
+  const host = iCtx.$hostElement$ as unknown as HostElement;
+  const signal = _createSignal(
+    undefined as Awaited<T>,
+    iCtx.$container2$.$subsManager$,
+    SIGNAL_UNASSIGNED | SIGNAL_IMMUTABLE,
+    undefined
+  );
+  const task = new Task(
+    TaskFlagsIsDirty | TaskFlagsIsTask | TaskFlagsIsComputed,
+    i,
+    iCtx.$hostElement$,
+    qrl,
+    signal,
+    null
+  );
+  set(signal);
+  qrl.$resolveLazy$(host as fixMeAny);
+  const result = runComputed2(task, iCtx.$container2$, host);
+  if (isPromise(result)) {
+    throw result;
   }
+  return signal;
 };
 
 /** @public */

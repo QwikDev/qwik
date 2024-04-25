@@ -6,6 +6,9 @@ import {
   useStore,
   useComputed$,
   Fragment as Signal,
+  useComputedQrl,
+  useLexicalScope,
+  qrl,
 } from '@builder.io/qwik';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
@@ -17,6 +20,34 @@ describe.each([
   { render: ssrRenderToDom }, //
   { render: domRender }, //
 ])('$render.name: useComputed', ({ render }) => {
+  it('should compute signals synchronously', async () => {
+    const Counter = component$(() => {
+      const count = useSignal(123);
+      const doubleCount = useComputedQrl<number>(
+        qrl(
+          () =>
+            Promise.resolve({
+              lazy: () => {
+                const [count] = useLexicalScope();
+                return count.value * 2;
+              },
+            }),
+          'lazy',
+          [count]
+        )
+      );
+      return <span>{doubleCount.value}</span>;
+    });
+
+    const { vNode } = await render(<Counter />, { debug });
+    expect(vNode).toMatchVDOM(
+      <>
+        <span>
+          <Signal>{'246'}</Signal>
+        </span>
+      </>
+    );
+  });
   it('should update value based on signal', async () => {
     const DoubleCounter = component$((props: { initial: number }) => {
       const count = useSignal(props.initial);

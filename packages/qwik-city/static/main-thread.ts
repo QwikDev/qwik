@@ -236,7 +236,7 @@ function validateOptions(opts: StaticGenerateOptions) {
     throw new Error(`Missing "origin" option`);
   }
   siteOrigin = siteOrigin.trim();
-  if (!siteOrigin.startsWith('https://') && !siteOrigin.startsWith('http://')) {
+  if (!/:\/\//.test(siteOrigin) || siteOrigin.startsWith('://')) {
     throw new Error(
       `"origin" must start with a valid protocol, such as "https://" or "http://", received "${siteOrigin}"`
     );

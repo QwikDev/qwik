@@ -46,14 +46,6 @@ import { z } from 'zod';
 import { isDev, isServer } from '@builder.io/qwik/build';
 import type { FormSubmitCompletedDetail } from './form-component';
 
-import type { RequestEventInternal } from '../../middleware/request-handler/request-event';
-
-// TODO: create single QGlobal type
-type AsyncStore = import('node:async_hooks').AsyncLocalStorage<RequestEventInternal>;
-interface QGlobal extends Global {
-  qcAsyncRequestStore?: AsyncStore;
-}
-
 /** @public */
 export const routeActionQrl = ((
   actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => unknown>,
@@ -156,8 +148,6 @@ Action.run() can only be called on the browser, for example when a user clicks a
   return action satisfies ActionInternal;
 }) as unknown as ActionConstructorQRL;
 
-export type ServerGT = typeof globalThis & { _qwikActionsMap?: Map<string, ActionInternal> };
-
 /** @public */
 export const globalActionQrl = ((
   actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => unknown>,
@@ -165,13 +155,10 @@ export const globalActionQrl = ((
 ) => {
   const action = routeActionQrl(actionQrl, ...(rest as any));
   if (isServer) {
-    if (typeof (globalThis as ServerGT)._qwikActionsMap === 'undefined') {
-      (globalThis as ServerGT)._qwikActionsMap = new Map();
+    if (typeof globalThis._qwikActionsMap === 'undefined') {
+      globalThis._qwikActionsMap = new Map();
     }
-    (globalThis as ServerGT)._qwikActionsMap!.set(
-      (action as ActionInternal).__id,
-      action as ActionInternal
-    );
+    globalThis._qwikActionsMap!.set((action as ActionInternal).__id, action as ActionInternal);
   }
   return action;
 }) as ActionConstructorQRL;
@@ -295,9 +282,7 @@ export const serverQrl = <T extends ServerFunction>(qrl: QRL<T>): ServerQRL<T> =
           : undefined;
       if (isServer) {
         // Running during SSR, we can call the function directly
-        let requestEvent = (globalThis as QGlobal).qcAsyncRequestStore?.getStore() as
-          | RequestEvent
-          | undefined;
+        let requestEvent = globalThis.qcAsyncRequestStore?.getStore() as RequestEvent | undefined;
         if (!requestEvent) {
           const contexts = [useQwikCityEnv()?.ev, this, _getContextEvent()] as RequestEvent[];
           requestEvent = contexts.find(

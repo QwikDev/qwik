@@ -3,7 +3,7 @@ import { component$, useStore, Resource, useResource$ } from '@builder.io/qwik';
 
 export default component$(() => {
   const github = useStore({
-    org: 'BuilderIO',
+    org: 'QwikDev',
   });
 
   const reposResource = useResource$<string[]>(({ track, cleanup }) => {

@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const token = process.env.QWIK_API_TOKEN_GITHUB;
 const root = join(__dirname, '..');
-const srcRepoRef = 'https://github.com/BuilderIO/qwik/commit/';
+const srcRepoRef = 'https://github.com/QwikDev/qwik/commit/';
 
 (async () => {
   // This replaces the `workspace:^` versions with the actual versions.
@@ -41,12 +41,12 @@ async function prepare({ buildRepo, artifactsDir }: { buildRepo: string; artifac
     return () => null;
   }
   console.log(
-    'preparing to save artifacts from ' + artifactsDir + ' into BuilderIO/' + buildRepo + ' repo.'
+    'preparing to save artifacts from ' + artifactsDir + ' into QwikDev/' + buildRepo + ' repo.'
   );
   const buildRepoDir = join(root, 'dist-dev', buildRepo);
   const repo = token
-    ? `https://${token}:x-oauth-basic@github.com/BuilderIO/${buildRepo}.git`
-    : `git@github.com:BuilderIO/${buildRepo}.git`;
+    ? `https://${token}:x-oauth-basic@github.com/QwikDev/${buildRepo}.git`
+    : `git@github.com:QwikDev/${buildRepo}.git`;
 
   await $('rm', '-rf', buildRepoDir);
   const SHA = await $('git', 'rev-parse', 'HEAD');
@@ -101,7 +101,7 @@ async function prepare({ buildRepo, artifactsDir }: { buildRepo: string; artifac
     const dstSHA = await $('git', 'rev-parse', 'HEAD');
     console.log('##############################################################');
     console.log('##############################################################');
-    console.log(`### ${artifactsDir} => BuilderIO/${buildRepo}`);
+    console.log(`### ${artifactsDir} => QwikDev/${buildRepo}`);
     console.log(`### ${srcRepoRef}/${dstSHA}`);
     console.log('##############################################################');
     console.log('##############################################################');

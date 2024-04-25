@@ -153,7 +153,7 @@ export async function getAppInfo(
   return {
     github:
       publicApiKey == '221smyuj5gl'
-        ? 'https://github.com/BuilderIO/qwik/blob/main/packages/docs/src'
+        ? 'https://github.com/QwikDev/qwik/blob/main/packages/docs/src'
         : null,
     ...app!,
   };

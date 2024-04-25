@@ -264,7 +264,7 @@ export const $ = <T>(expression: T): QRL<T> => {
 
   return createQRL<T>(null, 's' + runtimeSymbolId++, expression, null, null, null, null);
 };
-/** @private Use to avoid optimizer replacement */
+/** @private Use To avoid optimizer replacement */
 export const dollar = $;
 
 /** @public */
@@ -275,6 +275,7 @@ export const eventQrl = <T>(qrl: QRL<T>): QRL<T> => {
 /** @public */
 export const event$ = implicit$FirstArg(eventQrl);
 
+/** @alpha */
 export interface SyncQRL<TYPE extends Function = any> extends QRL<TYPE> {
   __brand__SyncQRL__: TYPE;
 

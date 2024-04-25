@@ -151,7 +151,6 @@ export function drainMsgQueue(swState: SWState) {
   if (!swState.$msgQueuePromise$ && swState.$msgQueue$.length) {
     const top = swState.$msgQueue$.shift()!;
     swState.$msgQueuePromise$ = processMessage(swState, top).then(() => {
-      swState.$msgQueuePromise$ = null;
       drainMsgQueue(swState);
     });
   }

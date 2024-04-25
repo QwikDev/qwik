@@ -6,13 +6,13 @@ export default component$(() => {
       <p>
         <label>
           GitHub organization:
-          <input value="BuilderIO" />
+          <input value="QwikDev" />
         </label>
       </p>
       <section>
         <ul>
           <li>
-            <a href="https://github.com/BuilderIO/qwik">Qwik</a>
+            <a href="https://github.com/QwikDev/qwik">Qwik</a>
           </li>
           <li>
             <a href="https://github.com/BuilderIO/partytown">Partytown</a>

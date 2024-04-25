@@ -2,19 +2,19 @@
   "compilerOptions": {
     "allowJs": true,
     "target": "ES2021",
-    "module": "CommonJS",
+    "module": "ES2020",
     "lib": ["es2021", "DOM"],
     "strict": true,
-    "declaration": true,
+    "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "moduleResolution": "node",
+    "moduleResolution": "Bundler",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "incremental": true,
     "isolatedModules": true,
-    "types": ["vite/client"],
     "outDir": "vite",
-    "declarationDir": "vite"
+    "declarationDir": "vite",
+    "types": ["node", "vite/client"]
   },
   "files": ["src-vite/index.ts"]
 }

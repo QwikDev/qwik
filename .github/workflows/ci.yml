@@ -181,28 +181,10 @@ jobs:
 
       - name: Install Rust toolchain
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions-rs/toolchain@v1
+        uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          profile: minimal
+          # additionally install wasm32-unknown-unknown target
           target: wasm32-unknown-unknown
-
-      - name: Cache cargo dependencies
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-          key: cargo-deps-wasm-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
-
-      - name: Cache cargo build
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/cache@v4
-        with:
-          path: packages/qwik/src/wasm/target
-          key: cargo-build-wasm-${{ runner.os }}-${{ hashFiles('./packages/qwik/src/wasm/Cargo.lock') }}
 
       - name: Install NPM Dependencies
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -222,6 +204,7 @@ jobs:
 
       - name: Print WASM Dist Build
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        continue-on-error: true
         run: tree packages/qwik/dist/bindings/
 
       - name: Upload WASM Build Artifacts
@@ -232,25 +215,38 @@ jobs:
           path: packages/qwik/dist/bindings/*
           if-no-files-found: error
 
+      - name: Build Platform Binding
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        run: pnpm tsm scripts/index.ts --platform-binding
+        shell: bash
+
+      - name: Print Packages Dist Build
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        continue-on-error: true
+        run: tree packages/qwik/dist/
+
+      - name: Upload Platform Binding Artifact
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        uses: actions/upload-artifact@v4.3.1
+        with:
+          name: dist-bindings-x86_64-unknown-linux-gnu
+          path: packages/qwik/dist/bindings/*.node
+          if-no-files-found: error
+
   ############ BUILD PLATFORM BINDINGS ############
   build-bindings:
     strategy:
       matrix:
         settings:
-          - host: macos-latest
+          # looks like that's the last intel macos
+          - host: macos-13
             target: x86_64-apple-darwin
-            build: pnpm tsm scripts/index.ts --platform-binding
 
           - host: macos-latest
             target: aarch64-apple-darwin
-            build: |
-              export SDKROOT=$(xcrun -sdk macosx11.1 --show-sdk-path)
-              export MACOSX_DEPLOYMENT_TARGET=$(xcrun -sdk macosx11.1 --show-sdk-platform-version)
-              pnpm tsm scripts/index.ts --platform-binding --platform-target=aarch64-apple-darwin
 
           - host: windows-latest
             target: x86_64-pc-windows-msvc
-            build: pnpm tsm scripts/index.ts --platform-binding
 
     name: Build ${{ matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
@@ -275,14 +271,10 @@ jobs:
 
       - if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: corepack enable
-        shell: bash
 
       - name: Install Rust toolchain
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          target: ${{ matrix.settings.target }}
+        uses: actions-rust-lang/setup-rust-toolchain@v1
 
       - name: Pull Latest Image
         if: ${{ needs.changes.outputs.fullbuild == 'true' && matrix.settings.docker }}
@@ -291,24 +283,6 @@ jobs:
           DOCKER_REGISTRY_URL: ghcr.io
           DOCKER_USERNAME: ${{ github.actor }}
           DOCKER_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Cache cargo dependencies
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-          key: cargo-deps-${{ matrix.settings.target }}-${{ hashFiles('Cargo.lock') }}
-
-      - name: Cache cargo build
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/cache@v4
-        with:
-          path: target
-          key: cargo-build-${{ matrix.settings.target }}-${{ hashFiles('Cargo.lock') }}
 
       - name: Setup Toolchain
         if: ${{ needs.changes.outputs.fullbuild == 'true' && matrix.settings.setup }}
@@ -324,8 +298,13 @@ jobs:
 
       - name: Build Platform Binding
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: ${{ matrix.settings.build }}
+        run: pnpm tsm scripts/index.ts --platform-binding
         shell: bash
+
+      - name: Print Packages Dist Build
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        continue-on-error: true
+        run: ls -lR packages/qwik/dist/
 
       - name: Upload Platform Binding Artifact
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -490,7 +469,7 @@ jobs:
 
       - name: Print QwikLabs Lib Build
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: tree packages/qwik-labs/lib/ packages/qwik-labs/lib-types/ packages/qwik-labs/vite/
+        run: tree packages/qwik-labs/lib/ packages/qwik-labs/vite/
 
       - name: Upload QwikLabs Build Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -499,7 +478,6 @@ jobs:
           name: builderio-qwiklabs-distribution
           path: |
             packages/qwik-labs/lib/
-            packages/qwik-labs/lib-types/
             packages/qwik-labs/vite/
             packages/qwik-labs/package.json
           if-no-files-found: error
@@ -550,8 +528,7 @@ jobs:
           mkdir -p packages/eslint-plugin-qwik/dist/
           mv dist-dev-eslint-plugin-qwik/* packages/eslint-plugin-qwik/dist/
           mv builderio-qwiklabs-distribution/lib packages/qwik-labs/lib
-          mv builderio-qwiklabs-distribution/lib-types packages/qwik-labs/lib-types
-          mv builderio-qwiklabs-distribution/vite/* packages/qwik-labs/vite/
+          mv builderio-qwiklabs-distribution/vite packages/qwik-labs/vite
 
       - name: Install NPM Dependencies
         run: |

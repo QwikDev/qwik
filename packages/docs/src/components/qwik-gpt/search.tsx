@@ -144,7 +144,7 @@ export async function resolveContext(docsData: any[]) {
     for (const result of docsData) {
       const commit_hash = result.commit_hash;
       const file_path = result.file;
-      const url = `https://raw.githubusercontent.com/BuilderIO/qwik/${commit_hash}/${file_path}`;
+      const url = `https://raw.githubusercontent.com/QwikDev/qwik/${commit_hash}/${file_path}`;
       if (!files.has(url)) {
         files.set(
           url,

@@ -41,7 +41,7 @@ _(Optional)_
 
 any
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/cloud-run/vite/index.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/adapters/cloud-run/vite/index.ts)
 
 ## CloudRunAdapterOptions
 
@@ -51,4 +51,4 @@ export interface CloudRunAdapterOptions extends ServerAdapterOptions
 
 **Extends:** ServerAdapterOptions
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/cloud-run/vite/index.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/adapters/cloud-run/vite/index.ts)

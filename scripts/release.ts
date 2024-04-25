@@ -1,6 +1,6 @@
 import { type BuildConfig, panic, run } from './util';
 import { execa } from 'execa';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { Octokit } from '@octokit/action';
 import prompts from 'prompts';
 import { readPackageJson, writePackageJson } from './package-json';
@@ -8,22 +8,32 @@ import semver from 'semver';
 import { validateBuild } from './validate-build';
 import { publishCreateQwikCli } from './create-qwik-cli';
 import { publishEslint } from './eslint';
+import { fileURLToPath } from 'node:url';
 
-export async function setDevVersion(config: BuildConfig) {
-  const distTag = config.setDistTag;
-  const rootPkg = await readPackageJson(config.rootDir);
-  let v = rootPkg.version;
-  if (!distTag || distTag === 'dev') {
-    const d = new Date();
-    v += '-dev';
-    v += String(d.getUTCFullYear());
-    v += String(d.getUTCMonth() + 1).padStart(2, '0');
-    v += String(d.getUTCDate()).padStart(2, '0');
-    v += String(d.getUTCHours()).padStart(2, '0');
-    v += String(d.getUTCMinutes()).padStart(2, '0');
-    v += String(d.getUTCSeconds()).padStart(2, '0');
+let version: string;
+
+export async function getVersion(distTag?: string, rootDir?: string) {
+  if (!version) {
+    const __dirname = fileURLToPath(new URL('.', import.meta.url));
+    rootDir ||= resolve(__dirname, '..');
+    const rootPkg = await readPackageJson(rootDir);
+    let v = rootPkg.version;
+    if (!distTag || distTag === 'dev') {
+      const d = new Date();
+      v += '-dev';
+      v += String(d.getUTCFullYear());
+      v += String(d.getUTCMonth() + 1).padStart(2, '0');
+      v += String(d.getUTCDate()).padStart(2, '0');
+      v += String(d.getUTCHours()).padStart(2, '0');
+      v += String(d.getUTCMinutes()).padStart(2, '0');
+      v += String(d.getUTCSeconds()).padStart(2, '0');
+    }
+    version = v;
   }
-  config.distVersion = v;
+  return version;
+}
+export async function setDevVersion(config: BuildConfig) {
+  config.distVersion = await getVersion(config.setDistTag, config.rootDir);
 }
 
 export async function setReleaseVersion(config: BuildConfig) {
@@ -35,8 +45,7 @@ export async function setReleaseVersion(config: BuildConfig) {
 
   console.log(`💫 Set release npm dist tag: ${distTag}`);
 
-  const rootPkg = await readPackageJson(config.rootDir);
-  config.distVersion = rootPkg.version;
+  config.distVersion = await getVersion('release', config.rootDir);
 
   const validVersion = semver.valid(config.distVersion)!;
   if (!validVersion) {
@@ -123,7 +132,7 @@ export async function commitPrepareReleaseVersion(config: BuildConfig) {
   console.log(`Next:`);
   console.log(` - Submit a PR to main with the prepared release updates`);
   console.log(` - Once merged, run the "Qwik CI" release workflow`);
-  console.log(` - https://github.com/BuilderIO/qwik/actions/workflows/ci.yml`);
+  console.log(` - https://github.com/QwikDev/qwik/actions/workflows/ci.yml`);
   console.log(``);
 }
 

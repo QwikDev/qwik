@@ -10,6 +10,7 @@ import { examplesData, playgroundData, tutorialData } from './vite.repl-apps';
 import { sourceResolver } from './vite.source-resolver';
 
 export const PUBLIC_QWIK_INSIGHT_KEY = loadEnv('', '.', 'PUBLIC').PUBLIC_QWIK_INSIGHTS_KEY;
+const docsDir = new URL(import.meta.url).pathname;
 
 export default defineConfig(async () => {
   const { default: rehypePrettyCode } = await import('rehype-pretty-code');
@@ -118,10 +119,10 @@ export default defineConfig(async () => {
       examplesData(routesDir),
       playgroundData(routesDir),
       tutorialData(routesDir),
-      sourceResolver(resolve('.')),
+      sourceResolver(docsDir),
       qwikReact(),
       Inspect(),
-      qwikInsights({ publicApiKey: loadEnv('', '.', '').PUBLIC_QWIK_INSIGHTS_KEY }),
+      qwikInsights({ publicApiKey: loadEnv('', docsDir, '').PUBLIC_QWIK_INSIGHTS_KEY }),
     ],
     build: {
       sourcemap: true,

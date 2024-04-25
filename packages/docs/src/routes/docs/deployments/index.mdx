@@ -39,11 +39,11 @@ npm run build
 
 The `requestHandler()` utility is what each of the above middleware bundles uses in order to translate their request/response to a standard format for Qwik City to use. This function can be used to provide middleware for specific server frameworks.
 
-If there's middleware missing and you'd like it added, take a look at how the `requestHandler()` utility is used to handle requests for each of the middleware source-code above. Better yet, we'd love to have your middleware contributions! [PR's are welcome](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware)!
+If there's middleware missing and you'd like it added, take a look at how the `requestHandler()` utility is used to handle requests for each of the middleware source-code above. Better yet, we'd love to have your middleware contributions! [PR's are welcome](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware)!
 
 ## Add A New Deployment
 
-Thanks for your interest in adding a deployment integration to Qwik! We're more than happy to help you get started. Before we get too far, if there's already a deployment for what you're looking for, we'd [love to have you contribute to it](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters). If the deployment is not already available, let's add it!
+Thanks for your interest in adding a deployment integration to Qwik! We're more than happy to help you get started. Before we get too far, if there's already a deployment for what you're looking for, we'd [love to have you contribute to it](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/adapters). If the deployment is not already available, let's add it!
 
 To start it's probably best to copy an existing adapters and middleware and modify it to fit your needs. A deployment is made up of a few different parts:
 
@@ -53,7 +53,7 @@ An adapter is the term used to summarize the Vite config that needed for the spe
 
 The adapter is really a Vite config, that's extending the base config. The base config is the same for all adapters, and the adapter config is the unique part for each server.
 
-- [Adapters Source](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters)
+- [Adapters Source](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/adapters)
 
 ### Add Middleware
 
@@ -63,7 +63,7 @@ Luckily Qwik City uses the standardized [Request](https://developer.mozilla.org/
 
 For middleware, you'll notice that each one calls the common `@builder.io/qwik-city/middleware/request-handler` package. The job of each middleware is to translate the request and response to the standardized format that Qwik City request handler package uses.
 
-- [Middleware Source](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware)
+- [Middleware Source](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware)
 
 ### Add To The Starter CLI
 

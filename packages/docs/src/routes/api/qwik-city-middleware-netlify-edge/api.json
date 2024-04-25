@@ -13,7 +13,7 @@
       ],
       "kind": "Function",
       "content": "```typescript\nexport declare function createQwikCity(opts: QwikCityNetlifyOptions): (request: Request, context: Context) => Promise<Response>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n[QwikCityNetlifyOptions](#qwikcitynetlifyoptions)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n(request: Request, context: Context) =&gt; Promise&lt;Response&gt;",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/netlify-edge/index.ts",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/netlify-edge/index.ts",
       "mdFile": "qwik-city.createqwikcity.md"
     },
     {
@@ -27,7 +27,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface PlatformNetlify extends Partial<Omit<Context, 'next' | 'cookies'>> \n```\n**Extends:** Partial&lt;Omit&lt;Context, 'next' \\| 'cookies'&gt;&gt;",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/netlify-edge/index.ts",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/netlify-edge/index.ts",
       "mdFile": "qwik-city.platformnetlify.md"
     },
     {
@@ -41,7 +41,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface QwikCityNetlifyOptions extends ServerRenderOptions \n```\n**Extends:** ServerRenderOptions",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/netlify-edge/index.ts",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/netlify-edge/index.ts",
       "mdFile": "qwik-city.qwikcitynetlifyoptions.md"
     }
   ]

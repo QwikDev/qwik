@@ -10,7 +10,7 @@
         "esModuleInterop": true,
         "skipLibCheck": true
       },
-      "include": ["dist-dev/dts-out/packages/qwik-city/**/*.d.ts"]
+      "include": ["../../dist-dev/dts-out/packages/qwik-city/**/*.d.ts"]
     },
     "skipLibCheck": true
   },

@@ -69,7 +69,7 @@
       ],
       "kind": "TypeAlias",
       "content": "```typescript\nexport type InOrderStreaming = InOrderAuto | InOrderDisabled | InOrderDirect;\n```\n**References:** [InOrderAuto](#inorderauto)<!-- -->, [InOrderDisabled](#inorderdisabled)",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
       "mdFile": "qwik.inorderstreaming.md"
     },
     {
@@ -139,7 +139,7 @@
       ],
       "kind": "TypeAlias",
       "content": "```typescript\nexport type Render = RenderToString | RenderToStream;\n```\n**References:** [RenderToString](#rendertostring)<!-- -->, [RenderToStream](#rendertostream)",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
       "mdFile": "qwik.render.md"
     },
     {
@@ -265,7 +265,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface RenderToStringOptions extends RenderOptions \n```\n**Extends:** [RenderOptions](#renderoptions)",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
       "mdFile": "qwik.rendertostringoptions.md"
     },
     {
@@ -349,7 +349,7 @@
       ],
       "kind": "TypeAlias",
       "content": "Auto: Prefetch all possible QRLs used by the document. Default\n\n\n```typescript\nexport type SymbolsToPrefetch = 'auto' | ((opts: {\n    manifest: QwikManifest;\n}) => PrefetchResource[]);\n```\n**References:** [PrefetchResource](#prefetchresource)",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/types.ts",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
       "mdFile": "qwik.symbolstoprefetch.md"
     },
     {
@@ -363,7 +363,7 @@
       ],
       "kind": "Variable",
       "content": "```typescript\nversions: {\n    readonly qwik: string;\n    readonly qwikDom: string;\n}\n```",
-      "editUrl": "https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/server/utils.ts",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/utils.ts",
       "mdFile": "qwik.versions.md"
     }
   ]

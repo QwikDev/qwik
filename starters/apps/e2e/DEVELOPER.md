@@ -11,7 +11,6 @@ pnpm run serve
 
 navigate to one the the URLs displayed in the console.
 
-
 ## Debugging
 
 In VSCode launch the `e2e.test` configuration under debugger.

@@ -41,7 +41,7 @@ opts
 
 AzureFunction
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/azure-swa/index.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/azure-swa/index.ts)
 
 ## PlatformAzure
 
@@ -51,7 +51,7 @@ export interface PlatformAzure extends Partial<Context>
 
 **Extends:** Partial&lt;Context&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/azure-swa/index.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/azure-swa/index.ts)
 
 ## QwikCityAzureOptions
 
@@ -61,4 +61,4 @@ export interface QwikCityAzureOptions extends ServerRenderOptions
 
 **Extends:** ServerRenderOptions
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/azure-swa/index.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/azure-swa/index.ts)

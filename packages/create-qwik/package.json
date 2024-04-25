@@ -1,10 +1,10 @@
 {
   "name": "create-qwik",
   "description": "Interactive CLI for create Qwik projects and adding features.",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "author": "Builder.io Team",
   "bin": "./create-qwik.cjs",
-  "bugs": "https://github.com/BuilderIO/qwik/issues",
+  "bugs": "https://github.com/QwikDev/qwik/issues",
   "devDependencies": {
     "@clack/prompts": "^0.7.0",
     "@types/yargs": "^17.0.32",
@@ -35,7 +35,7 @@
   "main": "./index.cjs",
   "repository": {
     "type": "git",
-    "url": "https://github.com/BuilderIO/qwik.git",
+    "url": "https://github.com/QwikDev/qwik.git",
     "directory": "packages/create-qwik"
   }
 }

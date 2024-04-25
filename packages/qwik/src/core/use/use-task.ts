@@ -779,10 +779,11 @@ export const runResource = <T>(
   invoke(iCtx, () => {
     resource._state = 'pending';
     resource.loading = !isServerPlatform();
-    resource.value = new Promise((r, re) => {
+    const promise = (resource.value = new Promise((r, re) => {
       resolve = r;
       reject = re;
-    });
+    }));
+    promise.catch(ignoreErrorToPreventNodeFromCrashing);
   });
 
   task.$destroy$ = noSerialize(() => {
@@ -812,6 +813,11 @@ export const runResource = <T>(
     ]);
   }
   return promise;
+};
+
+const ignoreErrorToPreventNodeFromCrashing = (err: unknown) => {
+  // ignore error to prevent node from crashing
+  // node will crash in promise is rejected and no one is listening to the rejection.
 };
 
 export const runTask = (

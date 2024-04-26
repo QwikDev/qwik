@@ -92,6 +92,7 @@ async function workerRender(
     const request = new Request(url);
 
     const requestCtx: ServerRequestEvent<void> = {
+      headersSent: false,
       mode: 'static',
       locale: undefined,
       url,

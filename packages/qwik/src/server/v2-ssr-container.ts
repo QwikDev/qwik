@@ -411,7 +411,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     let openAngleBracketIdx: number = -1;
     while ((openAngleBracketIdx = text.indexOf('<', openAngleBracketIdx + 1)) !== -1) {
       this.write(text.substring(lastIdx, openAngleBracketIdx));
-      lastIdx = openAngleBracketIdx;
+      this.write('&lt;');
+      lastIdx = openAngleBracketIdx + 1;
     }
     this.write(lastIdx === 0 ? text : text.substring(lastIdx));
     vNodeData_addTextSize(this.currentElementFrame!.vNodeData, text.length);
@@ -938,6 +939,13 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         let value = attrs[i] as SsrAttrValue;
         let styleScopedId: string | null = null;
 
+        if (isSSRUnsafeAttr(key)) {
+          if (isDev) {
+            throw new Error('Attribute value is unsafe for SSR');
+          }
+          continue;
+        }
+
         if (isClassAttr(key) && Array.isArray(value)) {
           // value is a signal and key is a class, we need to retrieve data first
           const [signalValue, styleId] = value;
@@ -1010,4 +1018,10 @@ function newTagError(text: string) {
 
 function hasDestroy(obj: any): obj is { $destroy$(): void } {
   return obj && typeof obj === 'object' && typeof obj.$destroy$ === 'function';
+}
+
+// https://html.spec.whatwg.org/multipage/syntax.html#attributes-2
+const unsafeAttrCharRE = /[>/="'\u0009\u000a\u000c\u0020]/; // eslint-disable-line no-control-regex
+function isSSRUnsafeAttr(name: string): boolean {
+  return unsafeAttrCharRE.test(name);
 }

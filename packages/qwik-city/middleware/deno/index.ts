@@ -12,6 +12,7 @@ import { isStaticPath } from '@qwik-city-static-paths';
 import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
 import { setServerPlatform } from '@builder.io/qwik/server';
 import { MIME_TYPES } from '../request-handler/mime-types';
+// @ts-ignore
 import { extname, fromFileUrl, join } from 'https://deno.land/std/path/mod.ts';
 
 // @builder.io/qwik-city/middleware/deno
@@ -49,6 +50,7 @@ export function createQwikCity(opts: QwikCityDenoOptions) {
         mode: 'server',
         locale: undefined,
         url,
+        // @ts-ignore
         env: Deno.env,
         request,
         getWritableStream: (status, headers, cookies, resolve) => {
@@ -127,6 +129,7 @@ export function createQwikCity(opts: QwikCityDenoOptions) {
     }
     return {
       filePath,
+      // @ts-ignore
       content: await Deno.open(filePath, { read: true }),
     };
   };

@@ -27,7 +27,7 @@ export type {
 //////////////////////////////////////////////////////////////////////////////////////////
 // Internal Runtime
 //////////////////////////////////////////////////////////////////////////////////////////
-export { $, sync$, _qrlSync } from './qrl/qrl.public';
+export { $, sync$, _qrlSync, type SyncQRL } from './qrl/qrl.public';
 export { event$, eventQrl } from './qrl/qrl.public';
 
 export { qrl, inlinedQrl, inlinedQrlDEV, qrlDEV } from './qrl/qrl';
@@ -68,7 +68,8 @@ export type {
   QRLEventHandlerMulti,
 } from './render/jsx/types/jsx-qwik-attributes';
 export type { JSXOutput, FunctionComponent, JSXNode, DevJSX } from './render/jsx/types/jsx-node';
-export type { QwikDOMAttributes, QwikJSX } from './render/jsx/types/jsx-qwik';
+export type { QwikDOMAttributes, QwikJSX, QwikJSX as JSX } from './render/jsx/types/jsx-qwik';
+
 export type { QwikIntrinsicElements } from './render/jsx/types/jsx-qwik-elements';
 export type { QwikHTMLElements, QwikSVGElements } from './render/jsx/types/jsx-generated';
 export { render } from './render/dom/render.public';

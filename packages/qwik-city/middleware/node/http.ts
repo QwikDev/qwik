@@ -93,6 +93,12 @@ export async function fromNodeHttp(
 
       return new WritableStream<Uint8Array>({
         write(chunk) {
+          if (res.closed || res.destroyed) {
+            // If the response has already been closed or destroyed (for example the client has disconnected)
+            // then writing into it will cause an error. So just stop writing since no one
+            // is listening.
+            return;
+          }
           // set headers once but allow for dev to add cookie values
           if (!serverRequestEv.headersSent) {
             headers.forEach((value, key) => res.setHeader(key, value));
@@ -101,12 +107,6 @@ export async function fromNodeHttp(
               res.setHeader('Set-Cookie', cookieHeaders);
             }
             serverRequestEv.headersSent = true;
-          }
-          if (res.closed || res.destroyed) {
-            // If the response has already been closed or destroyed (for example the client has disconnected)
-            // then writing into it will cause an error. So just stop writing since no one
-            // is listening.
-            return;
           }
           res.write(chunk, (error) => {
             if (error) {

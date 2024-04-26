@@ -73,6 +73,7 @@ export function createQwikCity(opts: QwikCityBunOptions) {
       const url = new URL(request.url);
 
       const serverRequestEv: ServerRequestEvent<Response> = {
+        headersSent: false,
         mode: 'server',
         locale: undefined,
         url,
@@ -88,6 +89,7 @@ export function createQwikCity(opts: QwikCityBunOptions) {
             status,
             headers: mergeHeadersCookies(headers, cookies),
           });
+          serverRequestEv.headersSent = true;
           resolve(response);
           return writable;
         },

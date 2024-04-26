@@ -59,6 +59,7 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
       }
 
       const serverRequestEv: ServerRequestEvent<Response> = {
+        headersSent: false,
         mode: 'server',
         locale: undefined,
         url,
@@ -74,6 +75,7 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
             status,
             headers: mergeHeadersCookies(headers, cookies),
           });
+          serverRequestEv.headersSent = true;
           resolve(response);
           return writable;
         },

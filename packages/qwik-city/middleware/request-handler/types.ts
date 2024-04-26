@@ -21,7 +21,7 @@ export interface ClientConn {
  * Request event created by the server.
  */
 export interface ServerRequestEvent<T = unknown> {
-  headersSent?: boolean;
+  headersSent: boolean;
   mode: ServerRequestMode;
   url: URL;
   locale: string | undefined;

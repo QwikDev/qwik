@@ -45,6 +45,7 @@ export function createQwikCity(opts: QwikCityVercelEdgeOptions) {
       const p = (() => globalThis.process)();
 
       const serverRequestEv: ServerRequestEvent<Response> = {
+        headersSent: false,
         mode: 'server',
         locale: undefined,
         url,
@@ -74,6 +75,7 @@ export function createQwikCity(opts: QwikCityVercelEdgeOptions) {
             status,
             headers: mergeHeadersCookies(headers, cookies),
           });
+          serverRequestEv.headersSent = true;
           resolve(response);
           return writable;
         },

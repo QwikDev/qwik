@@ -128,7 +128,7 @@ class DeserializationHandler implements ProxyHandler<object> {
       }
       if (
         typeof propValue !== 'string' ||
-        (propValue.length > 0 && typeCode < SerializationConstant.LAST_VALUE)
+        (propValue.length > 0 && propValue.charCodeAt(0) >= SerializationConstant.LAST_VALUE)
       ) {
         /**
          * So we want to cache the value so that we don't have to deserialize it again AND so that

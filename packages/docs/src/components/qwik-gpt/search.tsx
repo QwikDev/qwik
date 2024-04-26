@@ -144,7 +144,7 @@ export async function resolveContext(docsData: any[]) {
     for (const result of docsData) {
       const commit_hash = result.commit_hash;
       const file_path = result.file;
-      const url = `https://raw.githubusercontent.com/BuilderIO/qwik/${commit_hash}/${file_path}`;
+      const url = `https://raw.githubusercontent.com/QwikDev/qwik/${commit_hash}/${file_path}`;
       if (!files.has(url)) {
         files.set(
           url,
@@ -188,7 +188,7 @@ export async function resolveContext(docsData: any[]) {
           .slice(8, -1)
           .filter((a) => !a.startsWith('('))
           .join('/');
-        const docsURL = `https://qwik.builder.io/${parts}/`;
+        const docsURL = `https://qwik.dev/${parts}/`;
         docsLines.push('FROM (' + docsURL + '):\n');
         docsLines.push(...lines);
         docsLines.push('');

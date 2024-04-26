@@ -19,7 +19,6 @@ export const Link = component$<LinkProps>((props) => {
     ...linkProps
   } = (() => props)();
   const clientNavPath = untrack(() => getClientNavPath({ ...linkProps, reload }, loc));
-  linkProps['link:app'] = !!clientNavPath;
   linkProps.href = clientNavPath || originalHref;
 
   const prefetchData = untrack(
@@ -80,6 +79,8 @@ export const Link = component$<LinkProps>((props) => {
     : undefined;
   return (
     <a
+      // Attr 'q:link' is used as a selector for bootstrapping into spa after context loss
+      {...{ 'q:link': !!clientNavPath }}
       {...linkProps}
       onClick$={[preventDefault, onClick$, handleClick]}
       data-prefetch={prefetchData}
@@ -118,7 +119,4 @@ export interface LinkProps extends AnchorAttributes {
   reload?: boolean;
   replaceState?: boolean;
   scroll?: boolean;
-  /// Is this a link to the current app?
-  /// If so than we need to prevent:default (but only if no modifier keys are pressed)
-  'link:app'?: boolean;
 }

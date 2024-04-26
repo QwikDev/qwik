@@ -110,7 +110,7 @@ async function workerRender(
 
         if (!result.ok) {
           // not ok, don't write anything
-          return noopWritableStream;
+          return noopWritableStream as any;
         }
 
         result.contentType = (headers.get('Content-Type') || '').toLowerCase();

@@ -58,7 +58,7 @@ export const _jsxQ = <T extends string>(
 /**
  * @internal
  *
- * Create a JSXNode for a string tag, with the children extracted from the mutableProps
+ * A string tag with dynamic props, possibly containing children
  */
 export const _jsxS = <T extends string>(
   type: T,
@@ -127,7 +127,11 @@ export const _jsxC = <T extends string | FunctionComponent<Record<any, unknown>>
   return node;
 };
 
-/** @public */
+/**
+ * @public
+ * Used by the JSX transpilers to create a JSXNode.
+ * Note that the optimizer will not use this, instead using _jsxQ, _jsxS, and _jsxC directly.
+ */
 export const jsx = <T extends string | FunctionComponent<any>>(
   type: T,
   props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<any, unknown>,
@@ -296,7 +300,7 @@ const validateJSXNode = (node: JSXNode) => {
 In order to disable content escaping use '<style dangerouslySetInnerHTML={content}/>'
 
 However, if the use case is to inject component styleContent, use 'useStyles$()' instead, it will be a lot more efficient.
-See https://qwik.builder.io/docs/components/styles/#usestyles for more information.`);
+See https://qwik.dev/docs/components/styles/#usestyles for more information.`);
           }
         }
         if (type === 'script') {

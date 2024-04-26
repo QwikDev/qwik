@@ -11,7 +11,7 @@
     "priority": 30,
     "displayName": "Adapter: Vercel Edge",
     "docs": [
-      "https://qwik.builder.io/deployments/vercel-edge/",
+      "https://qwik.dev/deployments/vercel-edge/",
       "https://vercel.com/docs/concepts/functions/edge-functions",
       "https://vercel.com/docs"
     ],

@@ -6,7 +6,7 @@ export function denoServerAdapter(opts: DenoServerAdapterOptions = {}): any {
   const env = process?.env;
   return viteAdapter({
     name: opts.name || 'deno-server',
-    origin: env?.ORIGIN ?? env?.URL ?? 'https://yoursitename.qwik.builder.io',
+    origin: env?.ORIGIN ?? env?.URL ?? 'https://yoursitename.qwik.dev',
     ssg: opts.ssg,
     cleanStaticGenerated: true,
 

@@ -261,8 +261,6 @@ export const Link: Component<LinkProps>;
 //
 // @public (undocumented)
 export interface LinkProps extends AnchorAttributes {
-    // (undocumented)
-    'link:app'?: boolean;
     prefetch?: boolean | 'js';
     // (undocumented)
     reload?: boolean;
@@ -457,7 +455,7 @@ export type TypedDataValidator<T extends zod.ZodType = zod.ZodType> = {
 export const useContent: () => ContentState;
 
 // @public
-export const useDocumentHead: <FrontMatter extends Record<string, unknown> = Record<string, any>>() => Required<Required<DocumentHeadValue<FrontMatter>>>;
+export const useDocumentHead: <FrontMatter extends Record<string, unknown> = Record<string, any>>() => Required<ResolvedDocumentHead<FrontMatter>>;
 
 // @public (undocumented)
 export const useLocation: () => RouteLocation;

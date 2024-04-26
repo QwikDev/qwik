@@ -4,7 +4,7 @@ import { magenta } from 'kleur/colors';
 import type { IncomingMessage, ServerResponse } from 'http';
 
 import type { Connect, ViteDevServer } from 'vite';
-import type { OptimizerSystem, Path, QwikManifest } from '../types';
+import type { OptimizerSystem, Path, QwikManifest, SymbolMapper } from '../types';
 import { type NormalizedQwikPluginOptions, parseId } from './plugin';
 import type { QwikViteDevResponse } from './vite';
 import { formatError } from './vite-utils';
@@ -111,7 +111,12 @@ export async function configureDevServer(
               }
 
               const { pathId, query } = parseId(v.url);
-              if (query === '' && ['.css', '.scss', '.sass'].some((ext) => pathId.endsWith(ext))) {
+              if (
+                query === '' &&
+                ['.css', '.scss', '.sass', '.less', '.styl', '.stylus'].some((ext) =>
+                  pathId.endsWith(ext)
+                )
+              ) {
                 added.add(v.url);
                 manifest.injections!.push({
                   tag: 'link',
@@ -137,7 +142,7 @@ export async function configureDevServer(
             manifest: isClientDevOnly ? undefined : manifest,
             symbolMapper: isClientDevOnly
               ? undefined
-              : (symbolName, mapper) => {
+              : (symbolName: string, mapper: SymbolMapper | undefined) => {
                   if (symbolName === SYNC_QRL) {
                     return [symbolName, ''];
                   }
@@ -174,7 +179,9 @@ export async function configureDevServer(
               if (
                 !added.has(v.url) &&
                 query === '' &&
-                ['.css', '.scss', '.sass'].some((ext) => pathId.endsWith(ext))
+                ['.css', '.scss', '.sass', '.less', '.styl', '.stylus'].some((ext) =>
+                  pathId.endsWith(ext)
+                )
               ) {
                 res.write(`<link rel="stylesheet" href="${v.url}">`);
               }

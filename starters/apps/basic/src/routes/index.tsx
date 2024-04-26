@@ -70,7 +70,7 @@ export default component$(() => {
             <ul>
               <li>
                 <span>Questions or just want to say hi? </span>
-                <a href="https://qwik.builder.io/chat" target="_blank">
+                <a href="https://qwik.dev/chat" target="_blank">
                   Chat on discord!
                 </a>
               </li>
@@ -83,13 +83,13 @@ export default component$(() => {
               </li>
               <li>
                 <span>Open issues and contribute on </span>
-                <a href="https://github.com/BuilderIO/qwik" target="_blank">
+                <a href="https://github.com/QwikDev/qwik" target="_blank">
                   GitHub
                 </a>
               </li>
               <li>
                 <span>Watch </span>
-                <a href="https://qwik.builder.io/media/" target="_blank">
+                <a href="https://qwik.dev/media/" target="_blank">
                   Presentations, Podcasts, Videos, etc.
                 </a>
               </li>

@@ -5,8 +5,8 @@ import type { NormalizedPluginOptions } from '../buildtime/types';
 import {
   createFileId,
   getExtension,
-  getPathnameFromDirPath,
   getMenuPathname,
+  getPathnameFromDirPath,
   isGroupedLayoutName,
   isMarkdownExt,
   isMenuFileName,
@@ -107,7 +107,7 @@ test('isMarkdownExt', () => {
 test('isMenuFileName', () => {
   const t = [
     { name: 'menu.md', expect: true },
-    { name: 'menu.msx', expect: false },
+    { name: 'menu.mdx', expect: false },
     { name: 'menu.tsx', expect: false },
     { name: 'menu.ts', expect: false },
   ];
@@ -126,7 +126,7 @@ test('getExtension', () => {
     { name: 'file.d.ts', expect: '.d.ts' },
     { name: 'file.ts', expect: '.ts' },
     { name: 'C:\\path\\to\\file.tsx', expect: '.tsx' },
-    { name: 'http://qwik.builder.io/index.mdx', expect: '.mdx' },
+    { name: 'http://qwik.dev/index.mdx', expect: '.mdx' },
     { name: '?qs', expect: '' },
     { name: '#hash', expect: '' },
     { name: 'file', expect: '' },
@@ -146,7 +146,7 @@ test('removeExtension', () => {
     { name: 'file.d.ts', expect: 'file' },
     { name: 'file.ts', expect: 'file' },
     { name: 'C:\\path\\to\\file.tsx', expect: 'C:\\path\\to\\file' },
-    { name: 'http://qwik.builder.io/index.mdx', expect: 'http://qwik.builder.io/index' },
+    { name: 'http://qwik.dev/index.mdx', expect: 'http://qwik.dev/index' },
     { name: 'file', expect: 'file' },
     { name: '', expect: '' },
     { name: null, expect: '' },

@@ -1,3 +1,4 @@
+/// <reference types="bun" />
 import type {
   ServerRenderOptions,
   ServerRequestEvent,
@@ -53,7 +54,7 @@ class TextEncoderStream {
 
 /** @public */
 export function createQwikCity(opts: QwikCityBunOptions) {
-  (globalThis as any).TextEncoderStream = TextEncoderStream;
+  globalThis.TextEncoderStream ||= TextEncoderStream as any;
 
   const qwikSerializer = {
     _deserializeData,

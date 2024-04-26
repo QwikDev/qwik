@@ -1,5 +1,6 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
+  "mainEntryPointFilePath": "will be set by the configs that import this file",
   "bundledPackages": [],
   "compiler": {
     "overrideTsconfig": {
@@ -8,10 +9,10 @@
         "module": "ES2020",
         "resolveJsonModule": true,
         "isolatedModules": true,
-        "moduleResolution": "node",
+        "moduleResolution": "Bundler",
         "skipLibCheck": true
       },
-      "include": ["dist-dev/dts-out/packages/qwik/src"]
+      "include": ["../../dist-dev/dts-out/packages/qwik/src"]
     }
   },
   "docModel": {

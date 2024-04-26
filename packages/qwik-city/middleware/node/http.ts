@@ -79,6 +79,7 @@ export async function fromNodeHttp(
     controller.abort();
   });
   const serverRequestEv: ServerRequestEvent<boolean> = {
+    headersSent: false,
     mode,
     url,
     request: new Request(url.href, options as any),
@@ -89,18 +90,17 @@ export async function fromNodeHttp(
     },
     getWritableStream: (status, headers, cookies) => {
       res.statusCode = status;
-      (res as any).__once = true;
 
       return new WritableStream<Uint8Array>({
         write(chunk) {
           // set headers once but allow for dev to add cookie values
-          if ((res as any).__once) {
+          if (!serverRequestEv.headersSent) {
             headers.forEach((value, key) => res.setHeader(key, value));
             const cookieHeaders = cookies.headers();
             if (cookieHeaders.length > 0) {
               res.setHeader('Set-Cookie', cookieHeaders);
             }
-            (res as any).__once = false;
+            serverRequestEv.headersSent = true;
           }
           if (res.closed || res.destroyed) {
             // If the response has already been closed or destroyed (for example the client has disconnected)
@@ -115,7 +115,6 @@ export async function fromNodeHttp(
           });
         },
         close() {
-          (res as any).__once = false;
           res.end();
         },
       });

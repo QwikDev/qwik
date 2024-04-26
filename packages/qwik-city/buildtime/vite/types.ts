@@ -7,7 +7,7 @@ import type { BuiltinsWithOptionalParams as SVGOBuiltinPluginsWithOptionalParams
 export interface ImageOptimizationOptions {
   jsxDirectives?: {
     quality?: `${number}`;
-    format?: 'webp' | 'avif' | 'png';
+    format?: string;
     w?: string;
     h?: string;
     [key: string]: string | undefined;

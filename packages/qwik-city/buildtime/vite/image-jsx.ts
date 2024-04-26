@@ -44,7 +44,7 @@ export function imagePlugin(userOpts?: QwikCityVitePluginOptions): PluginOption[
             if (url.searchParams.has('jsx')) {
               const { jsx, ...params } = Object.fromEntries(url.searchParams.entries());
               return new URLSearchParams({
-                format: 'webp',
+                format: 'avif;webp;' + path.extname(url.pathname).slice(1),
                 quality: '75',
                 w: '200;400;600;800;1200',
                 withoutEnlargement: '',

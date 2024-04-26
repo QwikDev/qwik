@@ -78,8 +78,8 @@ export async function fromNodeHttp(
   res.on('close', () => {
     controller.abort();
   });
+  let headersSent = false;
   const serverRequestEv: ServerRequestEvent<boolean> = {
-    headersSent: false,
     mode,
     url,
     request: new Request(url.href, options as any),
@@ -100,13 +100,13 @@ export async function fromNodeHttp(
             return;
           }
           // set headers once but allow for dev to add cookie values
-          if (!serverRequestEv.headersSent) {
+          if (!headersSent) {
             headers.forEach((value, key) => res.setHeader(key, value));
             const cookieHeaders = cookies.headers();
             if (cookieHeaders.length > 0) {
               res.setHeader('Set-Cookie', cookieHeaders);
             }
-            serverRequestEv.headersSent = true;
+            headersSent = true;
           }
           res.write(chunk, (error) => {
             if (error) {

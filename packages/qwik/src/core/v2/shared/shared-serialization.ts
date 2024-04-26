@@ -17,6 +17,7 @@ import {
 import { Slot } from '../../render/jsx/slot.public';
 import {
   SubscriptionProp,
+  fastSkipSerialize,
   getProxyFlags,
   getSubscriptionManager,
   unwrapProxy,
@@ -653,17 +654,34 @@ export const createSerializationContext = (
       // if (count-- < 0) {
       //   throw new Error('INFINITE LOOP');
       // }
-      let obj = discoveredValues.pop();
+      const obj = discoveredValues.pop();
       if (shouldTrackObj(obj) || frameworkType(obj)) {
         const isRoot = obj === rootObj;
         // For root objects we pretend we have not seen them to force scan.
         const id = $wasSeen$(obj);
-        obj = unwrapProxy(obj);
-        if (id === undefined || isRoot) {
+        const unwrapObj = unwrapProxy(obj);
+        if (unwrapObj !== obj) {
+          discoveredValues.push(unwrapObj);
+        } else if (id === undefined || isRoot) {
           // Object has not been seen yet, must scan content
           // But not for root.
           !isRoot && $seen$(obj);
-          if (obj instanceof Set) {
+          if (
+            typeof obj !== 'object' ||
+            obj === null ||
+            obj instanceof URL ||
+            obj instanceof Date ||
+            obj instanceof RegExp ||
+            obj instanceof Error ||
+            obj instanceof Date ||
+            obj instanceof Uint8Array ||
+            obj instanceof URLSearchParams ||
+            (typeof FormData !== 'undefined' && obj instanceof FormData)
+          ) {
+            // skip as these are primitives
+          } else if (fastSkipSerialize(obj as object)) {
+            // Ignore the no serialize objects
+          } else if (obj instanceof Set) {
             const contents = Array.from(obj.values());
             setSerializableDataRootId($addRoot$, obj, contents);
             discoveredValues.push(...contents);
@@ -686,6 +704,8 @@ export const createSerializationContext = (
                   discoveredValues.push(sub[SubscriptionProp.SIGNAL]);
                 }
               });
+            } else if (obj instanceof SignalWrapper) {
+              discoveredValues.push(obj.ref);
             }
             // const manager = obj[QObjectManagerSymbol];
             // discoveredValues.push(...manager.$subs$);
@@ -716,12 +736,14 @@ export const createSerializationContext = (
               }
             );
             promises.push(obj);
-          } else {
+          } else if (isObjectLiteral(obj)) {
             for (const key in obj as object) {
               if (Object.prototype.hasOwnProperty.call(obj, key)) {
                 discoveredValues.push((obj as any)[key]);
               }
             }
+          } else {
+            throw new Error('Unknown type: ' + obj);
           }
         } else if (id === Number.MIN_SAFE_INTEGER) {
           // We are seeing this object second time => promoted it.
@@ -807,7 +829,9 @@ function serialize(serializationContext: SerializationContext): void {
     // (NOTE: For root objects we need to serialize them regardless if we have seen
     //        them before, otherwise the root object reference will point to itself.)
     const seen = depth <= 1 ? undefined : serializationContext.$wasSeen$(value);
-    if (typeof seen === 'number' && seen >= 0) {
+    if (fastSkipSerialize(value as object)) {
+      writeString(SerializationConstant.UNDEFINED_CHAR);
+    } else if (typeof seen === 'number' && seen >= 0) {
       // We have seen this object before, so we can serialize it as a reference.
       // Otherwise serialize as normal
       writeString(SerializationConstant.REFERENCE_CHAR + seen);

@@ -89,18 +89,18 @@ export async function fromNodeHttp(
     },
     getWritableStream: (status, headers, cookies) => {
       res.statusCode = status;
-      let once = true;
-      headers.forEach((value, key) => res.setHeader(key, value));
+      (res as any).__once = true;
 
       return new WritableStream<Uint8Array>({
         write(chunk) {
           // set headers once but allow for dev to add cookie values
-          if (once) {
+          if ((res as any).__once) {
+            headers.forEach((value, key) => res.setHeader(key, value));
             const cookieHeaders = cookies.headers();
             if (cookieHeaders.length > 0) {
               res.setHeader('Set-Cookie', cookieHeaders);
             }
-            once = false;
+            (res as any).__once = false;
           }
           if (res.closed || res.destroyed) {
             // If the response has already been closed or destroyed (for example the client has disconnected)
@@ -115,7 +115,7 @@ export async function fromNodeHttp(
           });
         },
         close() {
-          once = false;
+          (res as any).__once = false;
           res.end();
         },
       });

@@ -434,6 +434,22 @@ describe.each([
     );
   });
 
+  it('should escape html tags', async () => {
+    const Cmp = component$(() => {
+      const b = '<script></script>';
+      return <p>{JSON.stringify(b)}</p>;
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <p>{'"<script></script>"'}</p>
+      </Component>
+    );
+
+    expect(document.querySelector('p')).toMatchDOM(<p>{'"<script></script>"'}</p>);
+  });
+
   describe('svg', () => {
     it('should render svg', async () => {
       const SvgComp = component$(() => {

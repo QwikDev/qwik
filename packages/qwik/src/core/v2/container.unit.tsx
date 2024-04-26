@@ -5,13 +5,13 @@ import { component$ } from '../component/component.public';
 import { SERIALIZABLE_STATE } from '../container/serializers';
 import { inlinedQrl, qrl } from '../qrl/qrl';
 import type { QRLInternal } from '../qrl/qrl-class';
-import { Fragment, JSXNodeImpl } from '../render/jsx/jsx-runtime';
+import { Fragment, JSXNodeImpl, createPropsProxy } from '../render/jsx/jsx-runtime';
 import { Slot } from '../render/jsx/slot.public';
 import type { JSXOutput } from '../render/jsx/types/jsx-node';
 import { getDomContainer } from './client/dom-container';
 import type { ClientContainer, VNode } from './client/types';
 import { vnode_getAttr, vnode_getFirstChild, vnode_getText } from './client/vnode';
-import { isDeserializerProxy } from './shared/shared-serialization';
+import { SerializationConstant, isDeserializerProxy } from './shared/shared-serialization';
 import { ssrCreateContainer } from '../../server/v2-ssr-container';
 import { type SSRContainer } from './ssr/ssr-types';
 import './vdom-diff.unit-util';
@@ -224,7 +224,95 @@ describe('serializer v2', () => {
       expect(container.$getObjectById$(1)).toEqual({ a: str, b: str });
     });
 
-    describe('QRLSerializer, ////////////// \u0002', () => {
+    describe('UndefinedSerializer, ///// ' + SerializationConstant.UNDEFINED_CHAR, () => {
+      it('should serialize and deserialize', () => {
+        const obj = undefined;
+        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
+      });
+    });
+
+    describe('ReferenceSerializer, ///// ' + SerializationConstant.REFERENCE_CHAR, () => {
+      it.todo('should serialize and deserialize', () => {
+        ///
+      });
+    });
+
+    describe('URLSerializer, /////////// ' + SerializationConstant.URL_CHAR, () => {
+      it('should serialize and deserialize', () => {
+        const obj = new URL('http://server/path#hash');
+        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
+      });
+    });
+
+    describe('DateSerializer, ////////// ' + SerializationConstant.Date_CHAR, () => {
+      it('should serialize and deserialize', () => {
+        const obj = new Date();
+        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
+      });
+    });
+
+    describe('RegexSerializer, ///////// ' + SerializationConstant.Regex_CHAR, () => {
+      it('should serialize and deserialize', () => {
+        const obj = /abc/gim;
+        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
+      });
+    });
+
+    describe('StringSerializer, //////// ' + SerializationConstant.String_CHAR, () => {
+      it('should serialize and deserialize', () => {
+        const obj = '\u0010anything';
+        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
+      });
+
+      it('should serialize and deserialize strings in array', () => {
+        const obj = ['\b: backspace'];
+        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
+      });
+    });
+
+    describe('VNodeSerializer, ///////// ' + SerializationConstant.VNode_CHAR, () => {
+      it.todo('should serialize and deserialize', () => {
+        ///
+      });
+    });
+
+    describe('NotFinite, /////////////// ' + SerializationConstant.NotFinite_CHAR, () => {
+      it('should serialize and deserialize', () => {
+        const obj = Number.NaN;
+        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
+      });
+      it('should serialize and deserialize positive', () => {
+        const obj = Infinity;
+        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
+      });
+      it('should serialize and deserialize negative', () => {
+        const obj = -Infinity;
+        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
+      });
+    });
+
+    describe('BigIntSerializer, //////// ' + SerializationConstant.BigInt_CHAR, () => {
+      it('should serialize and deserialize', () => {
+        const obj = BigInt('12345678901234567890');
+        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
+      });
+    });
+
+    describe('URLSearchParamsSerializer, ' + SerializationConstant.URLSearchParams_CHAR, () => {
+      it('should serialize and deserialize', () => {
+        const obj = new URLSearchParams('a=1&b=2');
+        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
+      });
+    });
+
+    describe('ErrorSerializer, ///////// ' + SerializationConstant.Error_CHAR, () => {
+      it('should serialize and deserialize', () => {
+        const obj = Object.assign(new Error('MyError'), { extra: 'property' });
+        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
+      });
+    });
+
+    describe('QRLSerializer, /////////// ' + SerializationConstant.QRL_CHAR, () => {
       it('should serialize and deserialize', () => {
         const testFn = () => 'test';
         const obj: QRLInternal[] = [
@@ -245,48 +333,20 @@ describe('serializer v2', () => {
         expect(qrl2._devOnlySymbolRef).toEqual((obj[2] as any)._devOnlySymbolRef);
       });
     });
-    describe('TaskSerializer, ///////////// \u0003', () => {
+
+    describe('TaskSerializer, ////////// ' + SerializationConstant.Task_CHAR, () => {
       it.todo('should serialize and deserialize', () => {
         ///
       });
     });
-    describe('ResourceSerializer, ///////// \u0004', () => {
+
+    describe('ResourceSerializer, ////// ' + SerializationConstant.Resource_CHAR, () => {
       it.todo('should serialize and deserialize', () => {
         ///
       });
     });
-    describe('URLSerializer, ////////////// \u0005', () => {
-      it('should serialize and deserialize', () => {
-        const obj = new URL('http://server/path#hash');
-        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
-      });
-    });
-    describe('DateSerializer, ///////////// \u0006', () => {
-      it('should serialize and deserialize', () => {
-        const obj = new Date();
-        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
-      });
-    });
-    describe('RegexSerializer, //////////// \u0007', () => {
-      it('should serialize and deserialize', () => {
-        const obj = /abc/gim;
-        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
-      });
-    });
-    describe('ErrorSerializer, //////////// \u000E', () => {
-      it('should serialize and deserialize', () => {
-        const obj = Object.assign(new Error('MyError'), { extra: 'property' });
-        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
-      });
-    });
-    describe('DocumentSerializer, ///////// \u000F', () => {
-      it('should serialize and deserialize', () => {
-        const obj = new SsrNode(null, SsrNode.DOCUMENT_NODE, '', [], []);
-        const container = withContainer((ssr) => ssr.addRoot(obj));
-        expect(container.$getObjectById$(0)).toEqual(container.element.ownerDocument);
-      });
-    });
-    describe('ComponentSerializer, //////// \u0010', () => {
+
+    describe('ComponentSerializer, ///// ' + SerializationConstant.Component_CHAR, () => {
       it('should serialize and deserialize', () => {
         const obj = component$(() => <div />);
         const container = withContainer((ssr) => ssr.addRoot(obj));
@@ -299,41 +359,34 @@ describe('serializer v2', () => {
         expect(dstQrl._devOnlySymbolRef).toEqual((srcQrl as any)._devOnlySymbolRef);
       });
     });
-    describe('DerivedSignalSerializer, //// \u0011', () => {
+
+    describe('DerivedSignalSerializer, / ' + SerializationConstant.DerivedSignal_CHAR, () => {
       it.todo('should serialize and deserialize', () => {
         ///
       });
     });
-    describe('SignalSerializer, /////////// \u0012', () => {
+
+    describe('SignalSerializer, //////// ' + SerializationConstant.Signal_CHAR, () => {
       it.todo('should serialize and deserialize', () => {
         ///
       });
     });
-    describe('SignalWrapperSerializer, //// \u0013', () => {
+
+    describe('SignalWrapperSerializer, / ' + SerializationConstant.SignalWrapper_CHAR, () => {
       it.todo('should serialize and deserialize', () => {
         ///
       });
     });
-    describe('NaN, //////////////////////// \u0014', () => {
-      it('should serialize and deserialize', () => {
-        const obj = Number.NaN;
-        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
-      });
-    });
-    describe('URLSearchParamsSerializer, // \u0015', () => {
-      it('should serialize and deserialize', () => {
-        const obj = new URLSearchParams('a=1&b=2');
-        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
-      });
-    });
-    describe('FormDataSerializer, ///////// \u0016', () => {
+
+    describe('FormDataSerializer, ////// ' + SerializationConstant.FormData_CHAR, () => {
       it('should serialize and deserialize', () => {
         const obj = new FormData();
         obj.append('someKey', 'someValue');
         expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
       });
     });
-    describe('JSXNodeSerializer, ////////// \u0017', () => {
+
+    describe('JSXNodeSerializer, /////// ' + SerializationConstant.JSXNode_CHAR, () => {
       it('should serialize and deserialize', () => {
         const obj = new JSXNodeImpl(
           Fragment,
@@ -349,13 +402,8 @@ describe('serializer v2', () => {
         expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toMatchObject(obj);
       });
     });
-    describe('BigIntSerializer, /////////// \u0018', () => {
-      it('should serialize and deserialize', () => {
-        const obj = BigInt('12345678901234567890');
-        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
-      });
-    });
-    describe('SetSerializer, ////////////// \u0019', () => {
+
+    describe('SetSerializer, /////////// ' + SerializationConstant.Set_CHAR, () => {
       it('should serialize and deserialize', () => {
         const obj = new Set(['a', 'b', 'c']);
         expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
@@ -373,7 +421,8 @@ describe('serializer v2', () => {
         expect(valueC.b).toBe(valueB);
       });
     });
-    describe('MapSerializer, ////////////// \u001a', () => {
+
+    describe('MapSerializer, /////////// ' + SerializationConstant.Map_CHAR, () => {
       it('should serialize and deserialize', () => {
         const obj = new Map([
           ['a', 1],
@@ -399,13 +448,14 @@ describe('serializer v2', () => {
         expect(valueC.b).toBe(valueB);
       });
     });
-    describe('StringSerializer, /////////// \u001b', () => {
-      it('should serialize and deserialize', () => {
-        const obj = '\u0010anything';
-        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
+
+    describe('PromiseSerializer, /////// ' + SerializationConstant.Promise_CHAR, () => {
+      it.todo('should serialize and deserialize', () => {
+        ///
       });
     });
-    describe('Uint8Serializer, //////////// \u001c', () => {
+
+    describe('Uint8Serializer, ///////// ' + SerializationConstant.Uint8Array_CHAR, () => {
       it('should serialize and deserialize', () => {
         const obj = new Uint8Array([1, 2, 3, 4, 5, 0]);
         expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
@@ -414,6 +464,25 @@ describe('serializer v2', () => {
         const obj = new Uint8Array(Math.floor(Math.random() * 65530 + 1));
         crypto.getRandomValues(obj);
         expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
+      });
+    });
+
+    describe('PropsProxySerializer, //// ' + SerializationConstant.PropsProxy_CHAR, () => {
+      it('should serialize and deserialize', () => {
+        const obj = createPropsProxy({ number: 1, text: 'abc' }, { n: 2, t: 'test' });
+        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
+      });
+      it('should serialize and deserialize with null const props', () => {
+        const obj = createPropsProxy({ number: 1, text: 'abc' }, null);
+        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
+      });
+    });
+
+    describe('DocumentSerializer, //////', () => {
+      it('should serialize and deserialize', () => {
+        const obj = new SsrNode(null, SsrNode.DOCUMENT_NODE, '', [], []);
+        const container = withContainer((ssr) => ssr.addRoot(obj));
+        expect(container.$getObjectById$(0)).toEqual(container.element.ownerDocument);
       });
     });
   });
@@ -482,7 +551,7 @@ function withContainer(
   ssrFn(ssrContainer);
   ssrContainer.closeContainer();
   const html = ssrContainer.writer.toString();
-  // console.log(html);
+  console.log(html);
   const container = getDomContainer(toDOM(html));
   // console.log(JSON.stringify((container as any).rawStateData, null, 2));
   return container;

@@ -128,7 +128,7 @@ class DeserializationHandler implements ProxyHandler<object> {
       }
       if (
         typeof propValue !== 'string' ||
-        (propValue.length > 0 && typeCode < SerializationConstant.LAST_VALUE)
+        (propValue.length > 0 && propValue.charCodeAt(0) >= SerializationConstant.LAST_VALUE)
       ) {
         /**
          * So we want to cache the value so that we don't have to deserialize it again AND so that
@@ -340,7 +340,7 @@ const inflate = (container: DomContainer, target: any, needsInflationData: strin
       if (id >= 0) {
         promise[PROMISE_RESOLVE](container.$getObjectById$(id));
       } else {
-        promise[PROMISE_RESOLVE](container.$getObjectById$(~id));
+        promise[PROMISE_REJECT](container.$getObjectById$(~id));
       }
       break;
     case SerializationConstant.Uint8Array_VALUE:
@@ -390,8 +390,15 @@ const allocate = <T>(value: string): any => {
       return new SignalImpl(null!, null!, 0);
     case SerializationConstant.SignalWrapper_VALUE:
       return new SignalWrapper(null!, null!);
-    case SerializationConstant.NaN_VALUE:
-      return Number.NaN;
+    case SerializationConstant.NotFinite_VALUE:
+      const type = value.substring(1);
+      const isNaN = type.length === 0;
+      if (isNaN) {
+        return Number.NaN;
+      } else {
+        const isNegativeInfinity = type === '-';
+        return isNegativeInfinity ? -Infinity : Infinity;
+      }
     case SerializationConstant.URLSearchParams_VALUE:
       return new URLSearchParams(value.substring(1));
     case SerializationConstant.FormData_VALUE:
@@ -789,7 +796,9 @@ function serialize(serializationContext: SerializationContext): void {
       }
     } else if (typeof value === 'number') {
       if (Number.isNaN(value)) {
-        return writeString(SerializationConstant.NaN_CHAR);
+        return writeString(SerializationConstant.NotFinite_CHAR);
+      } else if (!Number.isFinite(value)) {
+        return writeString(SerializationConstant.NotFinite_CHAR + (value > 0 ? '+' : '-'));
       } else {
         $writer$.write(String(value));
       }
@@ -835,7 +844,6 @@ function serialize(serializationContext: SerializationContext): void {
       // We have seen this object before, so we can serialize it as a reference.
       // Otherwise serialize as normal
       writeString(SerializationConstant.REFERENCE_CHAR + seen);
-      // TODO PropsProxy serialization
     } else if (isPropsProxy(value)) {
       const varProps = value[_VAR_PROPS];
       const varId = $addRoot$(varProps);
@@ -1159,8 +1167,8 @@ export const enum SerializationConstant {
   String_VALUE = /* ----------------------- */ 0x5,
   VNode_CHAR = /* --------------------- */ '\u0006',
   VNode_VALUE = /* ------------------------ */ 0x6,
-  NaN_CHAR = /* ----------------------- */ '\u0007',
-  NaN_VALUE = /* -------------------------  */ 0x7,
+  NotFinite_CHAR = /* ----------------- */ '\u0007',
+  NotFinite_VALUE = /* -------------------  */ 0x7,
   BigInt_CHAR = /* -------------------- */ '\u0008',
   BigInt_VALUE = /* ----------------------  */ 0x8,
   UNUSED_HORIZONTAL_TAB_CHAR = /* ----- */ '\u0009',
@@ -1283,8 +1291,8 @@ export const codeToName = (code: number) => {
       return 'Signal';
     case SerializationConstant.SignalWrapper_VALUE:
       return 'SignalWrapper';
-    case SerializationConstant.NaN_VALUE:
-      return 'NaN';
+    case SerializationConstant.NotFinite_VALUE:
+      return 'NotFinite';
     case SerializationConstant.URLSearchParams_VALUE:
       return 'URLSearchParams';
     case SerializationConstant.FormData_VALUE:

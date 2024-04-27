@@ -140,9 +140,7 @@ const _useOn = (
         if (!events) {
           onMap![eventName] = events = [];
         }
-        if (!eventIsInEvents(eventQrl, events)) {
-          events.push(eventQrl);
-        }
+        events.push(eventQrl);
       };
       Array.isArray(eventName2) ? eventName2.forEach(addEvent) : addEvent(eventName2);
     } else {
@@ -160,22 +158,6 @@ const _useOn = (
     }
   }
 };
-
-function eventIsInEvents(eventQrl: EventQRL, events: EventQRL<KnownEventNames>[]) {
-  if (!eventQrl) {
-    return false;
-  }
-  const eventQrlSymbol = eventQrl.getSymbol();
-  for (const event of events) {
-    if (!event) {
-      continue;
-    }
-    if (event.getSymbol() === eventQrlSymbol) {
-      return true;
-    }
-  }
-  return false;
-}
 
 export const USE_ON_LOCAL = ':on';
 export type UseOnMap = Record<string, EventQRL<KnownEventNames>[]>;

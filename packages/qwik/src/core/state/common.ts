@@ -9,7 +9,7 @@ import type { QwikElement } from '../render/dom/virtual-element';
 import { serializeAttribute } from '../render/execute-component';
 import { untrack } from '../use/use-core';
 import {
-  TaskFlagsIsVisibleTask,
+  TaskFlags,
   isComputedTask,
   isSubscriberDescriptor,
   isTask,
@@ -483,7 +483,7 @@ export class LocalSubscriptionManager {
             } else {
               const task = host as Task;
               scheduler(
-                task.$flags$ & TaskFlagsIsVisibleTask ? ChoreType.VISIBLE : ChoreType.TASK,
+                task.$flags$ & TaskFlags.VISIBLE_TASK ? ChoreType.VISIBLE : ChoreType.TASK,
                 task
               );
             }

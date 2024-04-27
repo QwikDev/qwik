@@ -86,7 +86,8 @@ import type { QRL } from '../../qrl/qrl.public';
 import type { JSXOutput } from '../../render/jsx/types/jsx-node';
 import {
   Task,
-  TaskFlagsIsDirty,
+  TaskFlags,
+  cleanupTask,
   runComputed2,
   runSubscriber2,
   type TaskFn,
@@ -119,6 +120,7 @@ export const enum ChoreType {
   UNCLAIMED_PROJECTIONS /* * */ = 0b010_000,
   JOURNAL_FLUSH /* ********* */ = 0b011_000,
   VISIBLE /* *************** */ = 0b100_000,
+  CLEANUP_VISIBLE /* ******* */ = 0b101_000,
   WAIT_FOR_ALL /* ********** */ = 0b111_111,
 }
 
@@ -183,6 +185,7 @@ export const createScheduler = (
     target: HostElement,
     value: JSXOutput
   ): ValueOrPromise<void>;
+  function schedule(type: ChoreType.CLEANUP_VISIBLE, task: Task): ValueOrPromise<JSXOutput>;
   ///// IMPLEMENTATION /////
   function schedule(
     type: ChoreType,
@@ -195,9 +198,12 @@ export const createScheduler = (
       type !== ChoreType.WAIT_FOR_COMPONENTS &&
       type !== ChoreType.COMPONENT_SSR;
     const isTask =
-      type === ChoreType.TASK || type === ChoreType.VISIBLE || type === ChoreType.COMPUTED;
+      type === ChoreType.TASK ||
+      type === ChoreType.VISIBLE ||
+      type === ChoreType.COMPUTED ||
+      type === ChoreType.CLEANUP_VISIBLE;
     if (isTask) {
-      (hostOrTask as Task).$flags$ |= TaskFlagsIsDirty;
+      (hostOrTask as Task).$flags$ |= TaskFlags.DIRTY;
     }
     let chore: Chore = {
       $type$: type,
@@ -291,6 +297,10 @@ export const createScheduler = (
         if (isDomContainer(container)) {
           container.emitUnclaimedProjection();
         }
+        break;
+      case ChoreType.CLEANUP_VISIBLE:
+        const task = chore.$payload$ as Task<TaskFn, TaskFn>;
+        cleanupTask(task);
         break;
       case ChoreType.NODE_DIFF: {
         const parentVirtualNode = chore.$target$ as VirtualVNode;

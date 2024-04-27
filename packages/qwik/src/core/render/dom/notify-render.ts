@@ -7,10 +7,7 @@ import { HOST_FLAG_DIRTY, getContext, type QContext } from '../../state/context'
 import { getWrappingContainer } from '../../use/use-core';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import {
-  TaskFlagsIsDirty,
-  TaskFlagsIsResource,
-  TaskFlagsIsTask,
-  TaskFlagsIsVisibleTask,
+  TaskFlags,
   isSubscriberDescriptor,
   runSubscriber,
   type SubscriberEffect,
@@ -104,10 +101,10 @@ const notifySignalOperation = (op: SubscriberSignal, containerState: ContainerSt
   }
 };
 export const notifyTask = (task: SubscriberEffect, containerState: ContainerState) => {
-  if (task.$flags$ & TaskFlagsIsDirty) {
+  if (task.$flags$ & TaskFlags.DIRTY) {
     return;
   }
-  task.$flags$ |= TaskFlagsIsDirty;
+  task.$flags$ |= TaskFlags.DIRTY;
 
   if (isDomContainer(containerState)) {
     // TODO @mhevery please add $state$ to the ContainerState type if this is correct
@@ -142,7 +139,7 @@ export const _hW = () => {
   if (vnode_isVNode(task.$el$)) {
     const containerElement = getWrappingContainer(task.$el$ as fixMeAny) as HTMLElement;
     const container = getDomContainer(containerElement);
-    const type = task.$flags$ & TaskFlagsIsVisibleTask ? ChoreType.VISIBLE : ChoreType.TASK;
+    const type = task.$flags$ & TaskFlags.VISIBLE_TASK ? ChoreType.VISIBLE : ChoreType.TASK;
     container.$scheduler$(type, task as Task);
   } else {
     notifyTask(task, _getContainerState(getWrappingContainer(task.$el$)!));
@@ -238,7 +235,7 @@ export const postRendering = async (containerState: ContainerState, rCtx: Render
   const hostElements = rCtx.$static$.$hostElements$;
 
   await executeTasksAfter(containerState, rCtx, (task, stage) => {
-    if ((task.$flags$ & TaskFlagsIsVisibleTask) === 0) {
+    if ((task.$flags$ & TaskFlags.VISIBLE_TASK) === 0) {
       return false;
     }
     if (stage) {
@@ -267,8 +264,8 @@ export const postRendering = async (containerState: ContainerState, rCtx: Render
   }
 };
 
-const isTask = (task: SubscriberEffect) => (task.$flags$ & TaskFlagsIsTask) !== 0;
-const isResourceTask = (task: SubscriberEffect) => (task.$flags$ & TaskFlagsIsResource) !== 0;
+const isTask = (task: SubscriberEffect) => (task.$flags$ & TaskFlags.TASK) !== 0;
+const isResourceTask = (task: SubscriberEffect) => (task.$flags$ & TaskFlags.RESOURCE) !== 0;
 const executeTasksBefore = async (containerState: ContainerState, rCtx: RenderContext) => {
   const containerEl = containerState.$containerEl$;
   const resourcesPromises: ValueOrPromise<SubscriberEffect>[] = [];

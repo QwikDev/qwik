@@ -12,6 +12,14 @@ import { useStore } from '../use/use-store.public';
 const debug = false; //true;
 Error.stackTraceLimit = 100;
 
+export function useDelay(value: string) {
+  const ready = useSignal('---');
+  useVisibleTask$(() => {
+    ready.value = value;
+  });
+  return ready;
+}
+
 describe.each([
   { render: ssrRenderToDom }, //
   { render: domRender }, //
@@ -204,6 +212,74 @@ describe.each([
         <span>
           <Signal>AB</Signal>
         </span>
+      </Component>
+    );
+  });
+
+  it('should trigger in empty components', async () => {
+    const Cmp = component$(() => {
+      const signal = useSignal('empty');
+      useVisibleTask$(() => {
+        signal.value = 'run';
+      });
+      return <>{signal.value}</>;
+    });
+    const { vNode, document } = await render(<Cmp />, { debug });
+    if (render === ssrRenderToDom) {
+      await trigger(document.body, 'script', ':document:qinit');
+    }
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <Signal>{'run'}</Signal>
+          <script type="placeholder" hidden></script>
+        </Fragment>
+      </Component>
+    );
+  });
+
+  it('should trigger in empty components array', async () => {
+    const Cmp = component$(() => {
+      const signal = useSignal('empty');
+      useVisibleTask$(() => {
+        signal.value = 'run';
+      });
+      return [<>{signal.value}</>, <>{signal.value}</>];
+    });
+    const { vNode, document } = await render(<Cmp />, { debug });
+    if (render === ssrRenderToDom) {
+      await trigger(document.body, 'script', ':document:qinit');
+    }
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <Signal>{'run'}</Signal>
+          <script type="placeholder" hidden></script>
+        </Fragment>
+        <Fragment>
+          <Signal>{'run'}</Signal>
+        </Fragment>
+      </Component>
+    );
+  });
+
+  it('should trigger in full empty component', async () => {
+    const Cmp = component$(() => {
+      const signal = useSignal('empty');
+      useVisibleTask$(() => {
+        signal.value = 'run';
+      });
+      return <></>;
+    });
+    const { vNode, document } = await render(<Cmp />, { debug });
+    if (render === ssrRenderToDom) {
+      await trigger(document.body, 'script', ':document:qinit');
+    }
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <script type="placeholder" hidden></script>
+        </Fragment>
       </Component>
     );
   });
@@ -532,6 +608,40 @@ describe.each([
       }
 
       await expect(document.querySelector('p')).toMatchDOM(<p>Abcd</p>);
+    });
+  });
+
+  describe('regression', () => {
+    it('#1717 - custom hooks should work', async () => {
+      const Issue1717 = component$(() => {
+        const val1 = useDelay('valueA');
+        const val2 = useDelay('valueB');
+        return (
+          <div>
+            <p>{val1.value}</p>
+            <p>{val2.value}</p>
+          </div>
+        );
+      });
+
+      const { vNode, document } = await render(<Issue1717 />, { debug });
+
+      if (render === ssrRenderToDom) {
+        await trigger(document.body, 'div', 'qvisible');
+      }
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <div>
+            <p>
+              <Signal>{'valueA'}</Signal>
+            </p>
+            <p>
+              <Signal>{'valueB'}</Signal>
+            </p>
+          </div>
+        </Component>
+      );
     });
   });
 });

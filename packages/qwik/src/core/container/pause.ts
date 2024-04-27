@@ -45,8 +45,8 @@ import { groupListeners } from '../state/listeners';
 import { SignalImpl } from '../state/signal';
 import { serializeSStyle } from '../style/qrl-styles';
 import {
-  TaskFlagsIsDirty,
-  destroyTask,
+  TaskFlags,
+  cleanupTask,
   isResourceTask,
   type ResourceReturnInternal,
 } from '../use/use-task';
@@ -225,7 +225,7 @@ export const _pauseFromContexts = async (
     if (ctx.$tasks$) {
       for (const task of ctx.$tasks$) {
         if (qDev) {
-          if (task.$flags$ & TaskFlagsIsDirty) {
+          if (task.$flags$ & TaskFlags.DIRTY) {
             logWarn(
               `Serializing dirty task. Looks like an internal error. 
 Task Symbol: ${task.$qrl$.$symbol$}
@@ -239,7 +239,7 @@ Task Symbol: ${task.$qrl$.$symbol$}
         if (isResourceTask(task)) {
           collector.$resources$.push(task.$state$!);
         }
-        destroyTask(task);
+        cleanupTask(task);
       }
     }
   }

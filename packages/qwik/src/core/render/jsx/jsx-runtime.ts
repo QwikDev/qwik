@@ -41,7 +41,14 @@ export const _jsxQ = <T>(
   dev?: DevJSX
 ): JSXNode<T> => {
   const processed = key == null ? null : String(key);
-  const node = new JSXNodeImpl(type, varProps || {}, constProps, children, flags, processed);
+  const node = new JSXNodeImpl(
+    type,
+    varProps || {},
+    constProps || null,
+    children,
+    flags,
+    processed
+  );
   if (qDev && dev) {
     node.dev = {
       stack: new Error().stack,

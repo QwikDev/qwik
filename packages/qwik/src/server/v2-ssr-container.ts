@@ -257,7 +257,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (this.renderOptions.containerAttributes?.['q:render']) {
       qRender = `${this.renderOptions.containerAttributes['q:render']}-${qRender}`;
     }
-
     const containerAttributes: Record<string, string> = {
       ...this.renderOptions.containerAttributes,
       'q:runtime': '2',
@@ -265,8 +264,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       'q:version': this.$version$ ?? 'dev',
       'q:render': qRender,
       'q:base': this.buildBase,
-      'q:locale':
-        this.$serverData$.locale || this.$locale$ || this.renderOptions.containerAttributes?.locale,
+      'q:locale': this.$locale$,
       'q:manifest-hash': this.resolvedManifest.manifest.manifestHash,
     };
 

@@ -71,7 +71,10 @@ export const renderToStream2: typeof renderToStream = async (
   const buildBase = getBuildBase(opts);
   const resolvedManifest = resolveManifest(opts.manifest);
 
-  const locale = typeof opts.locale === 'function' ? opts.locale(opts) : opts.locale;
+  const locale =
+    typeof opts.locale === 'function'
+      ? opts.locale(opts)
+      : opts.locale || opts.serverData?.locale || opts.containerAttributes?.locale || '';
 
   const { stream, flush, networkFlushes, totalSize } = handleStreaming(opts, timing);
 

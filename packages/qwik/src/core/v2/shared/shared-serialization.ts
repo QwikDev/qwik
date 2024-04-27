@@ -779,7 +779,9 @@ function serialize(serializationContext: SerializationContext): void {
   };
 
   const writeValue = (value: unknown, idx: number) => {
-    if (typeof value === 'bigint') {
+    if (fastSkipSerialize(value as object)) {
+      return writeString(SerializationConstant.UNDEFINED_CHAR);
+    } else if (typeof value === 'bigint') {
       return writeString(SerializationConstant.BigInt_CHAR + value.toString());
     } else if (typeof value === 'boolean') {
       $writer$.write(String(value));
@@ -991,7 +993,7 @@ function serialize(serializationContext: SerializationContext): void {
         delimiter = true;
       }
       for (const key in value) {
-        if (Object.prototype.hasOwnProperty.call(value, key)) {
+        if (Object.prototype.hasOwnProperty.call(value, key) && !fastSkipSerialize(value[key])) {
           delimiter && $writer$.write(',');
           writeString(key);
           $writer$.write(':');

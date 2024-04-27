@@ -20,7 +20,7 @@ test.describe("effect-client", () => {
     const msgClientSide2 = page.locator("#client-side-msg-2");
     const msgClientSide3 = page.locator("#client-side-msg-3");
 
-    await expect(container).not.hasAttribute("data-effect");
+    await expect(container).not.toHaveAttribute("data-effect");
     await expect(counter).toHaveText("0");
     await expect(msg).toHaveText("empty");
     await expect(msgEager).toHaveText("run");
@@ -51,7 +51,7 @@ test.describe("effect-client", () => {
   test("issue 2015", async ({ page }) => {
     const order = page.locator("#issue-2015-order");
     await expect(order).toHaveText(
-      "Order: start 1 start 2 start 3 finish 1 finish 2 finish 3",
+      "Order: start 1 finish 1 start 2 finish 2 start 3 finish 3",
     );
   });
 

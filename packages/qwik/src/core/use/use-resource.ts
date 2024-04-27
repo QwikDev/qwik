@@ -5,8 +5,7 @@ import { Fragment, jsx } from '../render/jsx/jsx-runtime';
 import { untrack, useBindInvokeContext } from './use-core';
 import {
   Task,
-  TaskFlagsIsDirty,
-  TaskFlagsIsResource,
+  TaskFlags,
   runResource,
   type ResourceDescriptor,
   type ResourceFn,
@@ -107,7 +106,7 @@ export const useResourceQrl = <T>(
   const resource = createResourceReturn<T>(containerState, opts);
   const el = iCtx.$hostElement$;
   const task = new Task(
-    TaskFlagsIsDirty | TaskFlagsIsResource,
+    TaskFlags.DIRTY | TaskFlags.RESOURCE,
     i,
     el,
     qrl,

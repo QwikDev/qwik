@@ -1,7 +1,7 @@
 import { $, type QRL } from '@builder.io/qwik';
 import { createDocument } from '@builder.io/qwik-dom';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { TaskFlagsIsVisibleTask, type Task } from '../../use/use-task';
+import { TaskFlags, type Task } from '../../use/use-task';
 import { QContainerAttr } from '../../util/markers';
 import { getDomContainer } from '../client/dom-container';
 import type { ElementVNode, VNode, VirtualVNode } from '../client/types';
@@ -108,7 +108,7 @@ describe('scheduler', () => {
 
 function mockTask(host: VNode, opts: { index?: number; qrl?: QRL; visible?: boolean }): Task {
   return {
-    $flags$: opts.visible ? TaskFlagsIsVisibleTask : 0,
+    $flags$: opts.visible ? TaskFlags.VISIBLE_TASK : 0,
     $index$: opts.index || 0,
     $el$: host as any,
     $qrl$: opts.qrl || ($(() => null) as any),

@@ -1,5 +1,5 @@
 import type { OnRenderFn } from '../component/component.public';
-import { destroyTask, type SubscriberEffect } from '../use/use-task';
+import { cleanupTask, type SubscriberEffect } from '../use/use-task';
 import type { QRLInternal } from '../qrl/qrl-class';
 import type { QRL } from '../qrl/qrl.public';
 import type { StyleAppend } from '../use/use-core';
@@ -189,7 +189,7 @@ export const createContext = (element: Element | VirtualElement): QContext => {
 export const cleanupContext = (elCtx: QContext, subsManager: SubscriptionManager) => {
   elCtx.$tasks$?.forEach((task) => {
     subsManager.$clearSub$(task);
-    destroyTask(task);
+    cleanupTask(task);
   });
   elCtx.$componentQrl$ = null;
   elCtx.$seq$ = null;

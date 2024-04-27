@@ -38,12 +38,13 @@ import { useOn, useOnDocument } from './use-on';
 import { useSequentialScope } from './use-sequential-scope';
 import { ChoreType } from '../v2/shared/scheduler';
 
-export const TaskFlagsIsVisibleTask = 1 << 0;
-export const TaskFlagsIsTask = 1 << 1;
-export const TaskFlagsIsResource = 1 << 2;
-export const TaskFlagsIsComputed = 1 << 3;
-export const TaskFlagsIsDirty = 1 << 4;
-export const TaskFlagsIsCleanup = 1 << 5;
+export const enum TaskFlags {
+  VISIBLE_TASK = 1 << 0,
+  TASK = 1 << 1,
+  RESOURCE = 1 << 2,
+  COMPUTED = 1 << 3,
+  DIRTY = 1 << 4,
+}
 
 // <docs markdown="../readme.md#Tracker">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -302,7 +303,7 @@ export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: UseTaskOptions): void => {
   if (iCtx.$container2$) {
     const host = iCtx.$hostElement$ as unknown as HostElement;
     const task = new Task(
-      TaskFlagsIsDirty | TaskFlagsIsTask,
+      TaskFlags.DIRTY | TaskFlags.TASK,
       i,
       iCtx.$hostElement$,
       qrl,
@@ -324,7 +325,7 @@ export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: UseTaskOptions): void => {
   } else {
     const containerState = iCtx.$renderCtx$.$static$.$containerState$;
     const task = new Task(
-      TaskFlagsIsDirty | TaskFlagsIsTask,
+      TaskFlags.DIRTY | TaskFlags.TASK,
       i,
       elCtx.$element$,
       qrl,
@@ -348,7 +349,7 @@ export const runTask2 = (
   container: Container2,
   host: HostElement
 ) => {
-  task.$flags$ &= ~TaskFlagsIsDirty;
+  task.$flags$ &= ~TaskFlags.DIRTY;
   const iCtx = newInvokeContext(container.$locale$, host as fixMeAny, undefined, TaskEvent);
   const taskFn = task.$qrl$.getFn(iCtx, () => {
     container.$subsManager$.$clearSub$(task);
@@ -396,9 +397,7 @@ export const runTask2 = (
   };
 
   const taskApi: TaskCtx = { track, cleanup };
-  const destroyFn = task.$destroy$;
-  task.$destroy$ = null;
-  destroyFn && destroyFn();
+  cleanupTask(task);
   const result = safeCall(() => taskFn(taskApi), cleanup, handleError);
   return result;
 };
@@ -409,7 +408,7 @@ export const runComputed2 = (
   host: HostElement
 ): ValueOrPromise<void> => {
   assertSignal(task.$state$);
-  task.$flags$ &= ~TaskFlagsIsDirty;
+  task.$flags$ &= ~TaskFlags.DIRTY;
   const iCtx = newInvokeContext(container.$locale$, host as fixMeAny, undefined, ComputedEvent);
   iCtx.$subscriber$ = [SubscriptionType.HOST, task];
 
@@ -456,7 +455,7 @@ export const useComputedQrl: ComputedQRL = <T>(qrl: QRL<ComputedFn<T>>): Signal<
     undefined
   );
   const task = new Task(
-    TaskFlagsIsDirty | TaskFlagsIsTask | TaskFlagsIsComputed,
+    TaskFlags.DIRTY | TaskFlags.TASK | TaskFlags.COMPUTED,
     i,
     iCtx.$hostElement$,
     qrl,
@@ -577,18 +576,18 @@ export const useVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions)
   assertQrl(qrl);
 
   if (iCtx.$container2$) {
-    const task = new Task(TaskFlagsIsVisibleTask, i, iCtx.$hostElement$, qrl, undefined, null);
+    const task = new Task(TaskFlags.VISIBLE_TASK, i, iCtx.$hostElement$, qrl, undefined, null);
     set(task);
     useRunTask(task, eagerness);
     if (!isServerPlatform()) {
       qrl.$resolveLazy$(iCtx.$hostElement$ as fixMeAny);
       iCtx.$container2$.$scheduler$(
-        task.$flags$ & TaskFlagsIsVisibleTask ? ChoreType.VISIBLE : ChoreType.TASK,
+        task.$flags$ & TaskFlags.VISIBLE_TASK ? ChoreType.VISIBLE : ChoreType.TASK,
         task
       );
     }
   } else {
-    const task = new Task(TaskFlagsIsVisibleTask, i, elCtx.$element$, qrl, undefined, null);
+    const task = new Task(TaskFlags.VISIBLE_TASK, i, elCtx.$element$, qrl, undefined, null);
     const containerState = iCtx.$renderCtx$.$static$.$containerState$;
     if (!elCtx.$tasks$) {
       elCtx.$tasks$ = [];
@@ -647,18 +646,18 @@ export type SubscriberEffect =
   | ComputedDescriptor<unknown>;
 
 export const isResourceTask = (task: SubscriberEffect): task is ResourceDescriptor<unknown> => {
-  return (task.$flags$ & TaskFlagsIsResource) !== 0;
+  return (task.$flags$ & TaskFlags.RESOURCE) !== 0;
 };
 
 export const isComputedTask = (task: SubscriberEffect): task is ComputedDescriptor<unknown> => {
-  return (task.$flags$ & TaskFlagsIsComputed) !== 0;
+  return (task.$flags$ & TaskFlags.COMPUTED) !== 0;
 };
 export const runSubscriber = async (
   task: SubscriberEffect,
   containerState: ContainerState,
   rCtx: RenderContext
 ) => {
-  assertEqual(!!(task.$flags$ & TaskFlagsIsDirty), true, 'Resource is not dirty', task);
+  assertEqual(!!(task.$flags$ & TaskFlags.DIRTY), true, 'Resource is not dirty', task);
   if (isResourceTask(task)) {
     return runResource(task, containerState, rCtx);
   } else if (isComputedTask(task)) {
@@ -673,7 +672,7 @@ export const runSubscriber2 = async (
   container: Container2,
   host: HostElement
 ) => {
-  assertEqual(!!(task.$flags$ & TaskFlagsIsDirty), true, 'Resource is not dirty', task);
+  assertEqual(!!(task.$flags$ & TaskFlags.DIRTY), true, 'Task is not dirty', task);
   if (isResourceTask(task)) {
     return runResource(task, container, host as fixMeAny);
   } else if (isComputedTask(task)) {
@@ -689,7 +688,7 @@ export const runResource = <T>(
   rCtx: RenderContext,
   waitOn?: Promise<unknown>
 ): ValueOrPromise<void> => {
-  task.$flags$ &= ~TaskFlagsIsDirty;
+  task.$flags$ &= ~TaskFlags.DIRTY;
   cleanupTask(task);
 
   const el = task.$el$;
@@ -825,7 +824,7 @@ export const runTask = (
   containerState: ContainerState,
   rCtx: RenderContext
 ): ValueOrPromise<void> => {
-  task.$flags$ &= ~TaskFlagsIsDirty;
+  task.$flags$ &= ~TaskFlags.DIRTY;
 
   cleanupTask(task);
   const hostElement = task.$el$;
@@ -885,7 +884,7 @@ export const runComputed = (
   rCtx: RenderContext
 ): ValueOrPromise<void> => {
   assertSignal(task.$state$);
-  task.$flags$ &= ~TaskFlagsIsDirty;
+  task.$flags$ &= ~TaskFlags.DIRTY;
   cleanupTask(task);
   const hostElement = task.$el$;
   const iCtx = newInvokeContext(rCtx.$static$.$locale$, hostElement, undefined, ComputedEvent);
@@ -924,16 +923,6 @@ export const cleanupTask = (task: SubscriberEffect) => {
   }
 };
 
-export const destroyTask = (task: SubscriberEffect) => {
-  if (task.$flags$ & TaskFlagsIsCleanup) {
-    task.$flags$ &= ~TaskFlagsIsCleanup;
-    const cleanup = task.$qrl$;
-    (cleanup as Function)();
-  } else {
-    cleanupTask(task);
-  }
-};
-
 const useRunTask = (
   task: SubscriberEffect,
   eagerness: VisibleTaskStrategy | EagernessOptions | undefined
@@ -959,10 +948,6 @@ const getTaskHandlerQrl = (task: SubscriberEffect): QRL<(ev: Event) => void> => 
     taskQrl.$symbol$
   );
   return taskHandler;
-};
-
-export const isTaskCleanup = (obj: unknown): obj is TaskDescriptor => {
-  return isSubscriberDescriptor(obj) && !!(obj.$flags$ & TaskFlagsIsCleanup);
 };
 
 export const isSubscriberDescriptor = (obj: unknown): obj is SubscriberEffect => {

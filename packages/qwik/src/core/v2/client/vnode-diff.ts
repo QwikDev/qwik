@@ -12,7 +12,7 @@ import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
 import { SubscriptionType } from '../../state/common';
 import { isSignal } from '../../state/signal';
 import { trackSignal } from '../../use/use-core';
-import { destroyTask, isTask, type SubscriberEffect } from '../../use/use-task';
+import { TaskFlags, cleanupTask, isTask, type SubscriberEffect } from '../../use/use-task';
 import { EMPTY_OBJ } from '../../util/flyweight';
 import { throwErrorAndStop } from '../../util/log';
 import {
@@ -1071,7 +1071,11 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
             if (isTask(obj)) {
               const task = obj as SubscriberEffect;
               container.$subsManager$.$clearSub$(task);
-              destroyTask(task);
+              if (obj.$flags$ & TaskFlags.VISIBLE_TASK) {
+                container.$scheduler$(ChoreType.CLEANUP_VISIBLE, obj);
+              } else {
+                cleanupTask(task);
+              }
             }
           }
         }

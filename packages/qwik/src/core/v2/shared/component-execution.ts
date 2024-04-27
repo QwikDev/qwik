@@ -1,7 +1,7 @@
 import { isQwikComponent, type OnRenderFn } from '../../component/component.public';
 import { assertDefined } from '../../error/assert';
 import { isQrl, type QRLInternal } from '../../qrl/qrl-class';
-import { isJSXNode } from '../../render/jsx/jsx-runtime';
+import { JSXNodeImpl, isJSXNode } from '../../render/jsx/jsx-runtime';
 import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
 import { SubscriptionType } from '../../state/common';
 import { invokeApply, newInvokeContext } from '../../use/use-core';
@@ -84,7 +84,7 @@ export const executeComponent2 = (
       },
       (jsx) => {
         const useOnEvents = container.getHostProp<UseOnMap>(renderHost, USE_ON_LOCAL);
-        useOnEvents && addUseOnEvents(renderHost, jsx, useOnEvents);
+        useOnEvents && addUseOnEvents(jsx, useOnEvents);
         return jsx;
       },
       (err: any) => {
@@ -110,10 +110,24 @@ export const executeComponent2 = (
  * So when executing a component we only care about its last JSX Output.
  */
 
-function addUseOnEvents(host: HostElement, jsx: JSXOutput, useOnEvents: UseOnMap) {
-  const jsxElement = findFirstStringJSX(jsx);
+function addUseOnEvents(jsx: JSXOutput, useOnEvents: UseOnMap) {
+  let jsxElement = findFirstStringJSX(jsx);
+  let isInvisibleComponent = false;
   if (!jsxElement) {
-    return;
+    /**
+     * We did not find any jsx node with a string tag. This means that we should append:
+     *
+     * ```html
+     * <script type="placeholder" hidden on-document:qinit="..."></script>
+     * ```
+     *
+     * This is needed because use on events should have a node to attach them to.
+     */
+    isInvisibleComponent = true;
+    jsxElement = addScriptNodeForInvisibleComponents(jsx);
+    if (!jsxElement) {
+      return;
+    }
   }
   for (const key in useOnEvents) {
     if (Object.prototype.hasOwnProperty.call(useOnEvents, key)) {
@@ -128,7 +142,8 @@ function addUseOnEvents(host: HostElement, jsx: JSXOutput, useOnEvents: UseOnMap
         propValue = [propValue];
       }
       propValue.push(...useOnEvents[key]);
-      props[key] = propValue;
+      const eventKey = isInvisibleComponent ? 'document:onQinit$' : key;
+      props[eventKey] = propValue;
     }
   }
 }
@@ -146,5 +161,34 @@ function findFirstStringJSX(jsx: JSXOutput): JSXNode<string> | null {
       queue.push(...jsx);
     }
   }
+  return null;
+}
+
+function addScriptNodeForInvisibleComponents(jsx: JSXOutput): JSXNode<string> | null {
+  if (isJSXNode(jsx)) {
+    const jsxElement = new JSXNodeImpl(
+      'script',
+      {},
+      {
+        type: 'placeholder',
+        hidden: '',
+      },
+      null,
+      3
+    );
+
+    if (jsx.children == null) {
+      jsx.children = jsxElement;
+    } else if (Array.isArray(jsx.children)) {
+      jsx.children.push(jsxElement);
+    } else {
+      jsx.children = [jsx.children, jsxElement];
+    }
+    return jsxElement;
+  } else if (Array.isArray(jsx) && jsx.length) {
+    // get first element
+    return addScriptNodeForInvisibleComponents(jsx[0]);
+  }
+
   return null;
 }

@@ -551,7 +551,7 @@ function withContainer(
   ssrFn(ssrContainer);
   ssrContainer.closeContainer();
   const html = ssrContainer.writer.toString();
-  console.log(html);
+  // console.log(html);
   const container = getDomContainer(toDOM(html));
   // console.log(JSON.stringify((container as any).rawStateData, null, 2));
   return container;

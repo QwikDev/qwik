@@ -457,19 +457,21 @@ const Issue2414 = component$(() => {
         <caption>Hello</caption>
         <colgroup></colgroup>
         <thead>
-          {(["size", "age", "id"] as const).map((c) => {
-            return (
-              <th
-                key={c}
-                id={`issue-2414-${c}`}
-                onClick$={() => {
-                  sort.value = c;
-                }}
-              >
-                {c}
-              </th>
-            );
-          })}
+          <tr>
+            {(["size", "age", "id"] as const).map((c) => {
+              return (
+                <th
+                  key={c}
+                  id={`issue-2414-${c}`}
+                  onClick$={() => {
+                    sort.value = c;
+                  }}
+                >
+                  {c}
+                </th>
+              );
+            })}
+          </tr>
         </thead>
         {showTable.value ? (
           <tbody>

@@ -212,11 +212,7 @@ export const vnode_diff = (
                 expectNoMoreTextNodes();
                 expectComponent(type);
               }
-            } else {
-              throwErrorAndStop(`Unsupported type: ${type}`);
             }
-          } else {
-            throwErrorAndStop(`Unsupported value: ${jsxValue}`);
           }
         } else {
           expectText('');

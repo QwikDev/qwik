@@ -207,7 +207,6 @@ function isInTable(text: string): TagNesting {
     case 'colgroup':
       return TagNesting.TABLE_COLGROUP;
     case 'thead':
-      return TagNesting.TABLE_ROW;
     case 'tbody':
     case 'tfoot':
       return TagNesting.TABLE_BODY;

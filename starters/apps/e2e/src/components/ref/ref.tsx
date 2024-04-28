@@ -11,7 +11,6 @@ export const RefRoot = component$(() => {
     visible: false,
   });
   useVisibleTask$(() => {
-    console.log("parent");
     state.visible = true;
   });
 
@@ -33,7 +32,6 @@ export const Ref = component$((props: { id: string }) => {
   const ref = useSignal<Element>();
   useVisibleTask$(({ track }) => {
     const el = track(() => ref.value);
-    console.log(props.id);
     el!.textContent = `Rendered ${props.id}`;
   });
   return <div id={props.id} ref={ref} />;
@@ -43,7 +41,6 @@ export const Ref2 = component$((props: { id: string }) => {
   const ref = useSignal<Element>();
   useVisibleTask$(({ track }) => {
     const el = track(() => ref.value);
-    console.log(props.id);
     el!.textContent = `Rendered ${props.id}`;
   });
   return <div id={props.id} ref={ref} />;
@@ -56,13 +53,10 @@ export const Ref3 = component$(
     const { as = "div", ...rest } = props;
     const ref = useSignal<HTMLElement>();
 
-    const Cmp = as as any;
+    const Cmp = as as C;
 
     useVisibleTask$(() => {
-      console.log(props.id);
-      console.log(!!ref.value);
-      // TODO
-      // ref.value!.textContent = `Rendered ${props.id}`;
+      ref.value!.textContent = `Rendered ${props.id}`;
     });
 
     return (

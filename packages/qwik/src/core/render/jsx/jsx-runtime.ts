@@ -132,13 +132,13 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
     }
   }
 
-  private _proxy: typeof this.varProps | null = null;
+  private _proxy: Props | null = null;
   get props(): T extends FunctionComponent<infer PROPS> ? PROPS : Props {
     // We use a proxy to merge the constProps if they exist and to evaluate derived signals
     if (!this._proxy) {
       this._proxy = createPropsProxy(this.varProps, this.constProps);
     }
-    return this._proxy! as any;
+    return this._proxy as typeof this.props;
   }
 }
 

@@ -14,7 +14,6 @@ import { isSignal } from '../../state/signal';
 import { trackSignal } from '../../use/use-core';
 import { TaskFlags, cleanupTask, isTask, type SubscriberEffect } from '../../use/use-task';
 import { EMPTY_OBJ } from '../../util/flyweight';
-import { throwErrorAndStop } from '../../util/log';
 import {
   ELEMENT_KEY,
   ELEMENT_PROPS,
@@ -242,15 +241,42 @@ export const vnode_diff = (
       // This means that the next node we should look at is the `vCurrent` so just clear the
       // vNewNode  and try again.
       vNewNode = null;
-    } else if (vSiblings !== null) {
+    } else {
+      advanceToNextSibling();
+    }
+  }
+
+  /**
+   * Advance the `vCurrent` to the next sibling.
+   *
+   * Normally this is just `vCurrent = vnode_getNextSibling(vCurrent)`. However, this gets
+   * complicated if `retrieveChildWithKey` was called, because then we are consuming nodes out of
+   * order and can't rely on `vnode_getNextSibling` and instead we need to go by `vSiblings`.
+   */
+  function peekNextSibling() {
+    if (vSiblings !== null) {
       // We came across a key, and we moved nodes around. This means we can no longer use
       // `vnode_getNextSibling` to look at next node and instead we have to go by `vSiblings`.
-      vSiblingsIdx += 2; // advance;
-      vCurrent = vSiblingsIdx < vSiblings.length ? (vSiblings[vSiblingsIdx + 1] as any) : null;
+      const idx = vSiblingsIdx + 3; // 2 plus 1 for node offset
+      return idx < vSiblings.length ? (vSiblings[idx] as any) : null;
     } else {
       // If we don't have a `vNewNode`, than that means we just reconciled the current node.
       // So advance it.
-      vCurrent = vCurrent ? vnode_getNextSibling(vCurrent) : null;
+      return vCurrent ? vnode_getNextSibling(vCurrent) : null;
+    }
+  }
+
+  /**
+   * Advance the `vCurrent` to the next sibling.
+   *
+   * Normally this is just `vCurrent = vnode_getNextSibling(vCurrent)`. However, this gets
+   * complicated if `retrieveChildWithKey` was called, because then we are consuming nodes out of
+   * order and can't rely on `vnode_getNextSibling` and instead we need to go by `vSiblings`.
+   */
+  function advanceToNextSibling() {
+    vCurrent = peekNextSibling();
+    if (vSiblings !== null) {
+      vSiblingsIdx += 2; // advance;
     }
   }
 
@@ -338,7 +364,7 @@ export const vnode_diff = (
       const nextIdx = vSiblingsIdx + 3; // 2 plus 1 for node offset
       return nextIdx < vSiblings.length ? (vSiblings[nextIdx] as VNode) : null;
     } else {
-      return vCurrent && vnode_getNextSibling(vCurrent);
+      return peekNextSibling();
     }
   }
 
@@ -488,21 +514,19 @@ export const vnode_diff = (
   function expectNoMore() {
     assertFalse(vParent === vCurrent, "Parent and current can't be the same");
     if (vCurrent !== null) {
-      let vCleanup: VNode | null = vCurrent;
-      while (vCleanup) {
-        cleanup(container, vCleanup);
-        const next = vnode_getNextSibling(vCleanup);
+      while (vCurrent) {
+        const toRemove = vCurrent;
+        advanceToNextSibling();
+        cleanup(container, toRemove);
         if (
-          vCleanup[VNodeProps.flags] & VNodeFlags.Virtual &&
-          vnode_getProp(vCleanup as VirtualVNode, QSlot, null) !== null
+          toRemove[VNodeProps.flags] & VNodeFlags.Virtual &&
+          vnode_getProp(toRemove as VirtualVNode, QSlot, null) !== null
         ) {
           // move projected node to the q:template on remove
-          vnode_insertBefore(journal, container.qTemplate, vCleanup, null);
+          vnode_insertBefore(journal, container.qTemplate, toRemove, null);
         } else {
-          vnode_remove(journal, vParent as ElementVNode | VirtualVNode, vCleanup, true);
+          vnode_remove(journal, vParent as ElementVNode | VirtualVNode, toRemove, true);
         }
-
-        vCleanup = next;
       }
     }
   }
@@ -510,9 +534,9 @@ export const vnode_diff = (
   function expectNoMoreTextNodes() {
     while (vCurrent !== null && vnode_getType(vCurrent) === 3 /* Text */) {
       cleanup(container, vCurrent);
-      const next = vnode_getNextSibling(vCurrent);
-      vnode_remove(journal, vParent, vCurrent, true);
-      vCurrent = next;
+      const toRemove = vCurrent;
+      advanceToNextSibling();
+      vnode_remove(journal, vParent, toRemove, true);
     }
   }
 

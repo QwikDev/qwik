@@ -7,7 +7,7 @@ import { useSignal } from '../use/use-signal';
 import { useStore } from '../use/use-store.public';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
-import { $ } from '@builder.io/qwik';
+import { $, useVisibleTask$ } from '@builder.io/qwik';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -841,6 +841,84 @@ describe.each([
       );
     });
   });
+
+  it('should render all components', async () => {
+    const Ref = component$((props: { id: string }) => {
+      return <div id={props.id} />;
+    });
+
+    const Cmp = component$(() => {
+      const state = useStore({
+        visible: false,
+      });
+
+      useVisibleTask$(() => {
+        state.visible = true;
+      });
+      return (
+        <div id="parent">
+          <Ref id="static" key={1}></Ref>
+          {state.visible && <Ref id="dynamic" key={'11'}></Ref>}
+
+          <Ref id="static-2" key={2}></Ref>
+          {state.visible && <Ref id="dynamic-2" key={'22'}></Ref>}
+
+          <Ref id="static-3" key={3}></Ref>
+          {state.visible && <Ref id="dynamic-3" key={'33'}></Ref>}
+        </div>
+      );
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+
+    if (render === ssrRenderToDom) {
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <div id="parent">
+            <Component>
+              <div id="static"></div>
+            </Component>
+            {''}
+            <Component>
+              <div id="static-2"></div>
+            </Component>
+            {''}
+            <Component>
+              <div id="static-3"></div>
+            </Component>
+            {''}
+          </div>
+        </Component>
+      );
+      await trigger(document.body, '#parent', 'qvisible');
+    }
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div id="parent">
+          <Component>
+            <div id="static"></div>
+          </Component>
+          <Component>
+            <div id="dynamic"></div>
+          </Component>
+          <Component>
+            <div id="static-2"></div>
+          </Component>
+          <Component>
+            <div id="dynamic-2"></div>
+          </Component>
+          <Component>
+            <div id="static-3"></div>
+          </Component>
+          <Component>
+            <div id="dynamic-3"></div>
+          </Component>
+        </div>
+      </Component>
+    );
+  });
+
 
   describe('regression', () => {
     it('#5647', async () => {

@@ -102,7 +102,6 @@ export const isDomContainer = (container: any): container is DomContainer => {
 };
 
 export class DomContainer extends _SharedContainer implements IClientContainer, StoreTracker {
-  // public readonly containerState: ContainerState;
   public element: ContainerElement;
   public qContainer: string;
   public qBase: string;

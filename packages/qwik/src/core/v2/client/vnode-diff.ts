@@ -566,7 +566,12 @@ export const vnode_diff = (
           needsQDispatchEventPatch = true;
           continue;
         }
+
         if (isSignal(value)) {
+          if (key === 'ref') {
+            value.value = element;
+            continue;
+          }
           value = trackSignal(value, [
             SubscriptionType.PROP_IMMUTABLE,
             vNewNode as fixMeAny,
@@ -634,6 +639,9 @@ export const vnode_diff = (
     const jsxAttrs = [] as ClientAttrs;
     const props = jsx.varProps;
     for (const key in props) {
+      if (key === 'children') {
+        continue;
+      }
       let value = props[key];
       value = serializeAttribute(key, value, scopedStyleIdPrefix);
       if (value != null) {

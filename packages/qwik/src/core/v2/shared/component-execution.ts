@@ -38,8 +38,8 @@ export const executeComponent2 = (
   container: Container2,
   renderHost: HostElement,
   subscriptionHost: HostElement,
-  componentQRL: OnRenderFn<any> | QRLInternal<OnRenderFn<any>> | null,
-  props: Record<string, any> | null
+  componentQRL: OnRenderFn<unknown> | QRLInternal<OnRenderFn<unknown>> | null,
+  props: Record<string, unknown> | null
 ): ValueOrPromise<JSXOutput> => {
   const iCtx = newInvokeContext(
     container.$locale$,
@@ -63,7 +63,7 @@ export const executeComponent2 = (
     componentFn = componentQRL.getFn(iCtx);
   } else if (isQwikComponent(componentQRL)) {
     const qComponentFn = componentQRL as (
-      pros: Record<string, any>,
+      props: Record<string, unknown>,
       key: string | null,
       flags: number
     ) => JSXNode;
@@ -72,7 +72,7 @@ export const executeComponent2 = (
     }
     componentFn = () => invokeApply(iCtx, qComponentFn, [props || EMPTY_OBJ, null, 0]);
   } else {
-    const inlineComponent = componentQRL as (props: Record<string, any>) => JSXOutput;
+    const inlineComponent = componentQRL as (props: Record<string, unknown>) => JSXOutput;
     componentFn = () => invokeApply(iCtx, inlineComponent, [props || EMPTY_OBJ]);
   }
 

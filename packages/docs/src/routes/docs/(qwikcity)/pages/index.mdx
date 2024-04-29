@@ -13,6 +13,7 @@ contributors:
   - VinuB-Dev
   - nhayhoc
   - gioboa
+  - jemsco
 updated_at: '2024-03-27T18:37:26Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
@@ -30,7 +31,7 @@ export default component$(() => {
 });
 ```
 
-> The only difference between a page and an endpoint is that an endpoint only exports a `onRequest`, `onGet`, `onPost`, `onPut`, `onDelete`, `onPatch`, `onHead` function, which will be used to handle the incoming request.
+> The only difference between a page and an endpoint is that an endpoint only exports an `onRequest`, `onGet`, `onPost`, `onPut`, `onDelete`, `onPatch`, `onHead` function, which will be used to handle the incoming request.
 
 
 ## `head` export
@@ -80,11 +81,11 @@ The example above sets the title, as well as some [Open Graph](https://ogp.me/) 
 
 Look into `useDocumentHead()` to read and consume the `DocumentHead` object from within your component.
 
-### Dynamic head
+### Dynamic Head
 
-You can also export a function that returns a `DocumentHead` object, allowing to programmatically set the `<title>`, `<meta>` or `<link>` tags.
+You can also export a function that returns a `DocumentHead` object, allowing you to programmatically set the `<title>`, `<meta>` or `<link>` tags.
 
-This allows to configure the `<head>`, including the title, meta or links using data from `routeLoader$()` or `routeAction$()`.
+This allows you to configure the `<head>`, including the title, meta or links using data from `routeLoader$()` or `routeAction$()`.
 
 We can use the `resolveValue` method to get the value of a `routeLoader$()` or `routeAction$()` within the `head` function.
 
@@ -120,9 +121,9 @@ export const head: DocumentHead = ({resolveValue, params}) => {
 };
 ```
 
-### Nested layouts and head
+### Nested Layouts and Head
 
-An advanced case is that a [layout](/docs/(qwikcity)/layout/index.mdx) may want to modify the document title of an already resolved document head. In the example below, the page component returns the title of `Foo`. Next, the containing layout component can read the value of the page's document head and modify it. In this example, the layout component is adding `MyCompany - ` to the title, so that when rendered, the title will be `MyCompany - Foo`. Every layout in the stack has the opportunity to return a new value.
+In an advanced case, a [layout](/docs/(qwikcity)/layout/index.mdx) may want to modify the document title of an already resolved document head. In the example below, the page component returns the title of `Foo`. The the containing layout component can read the value of the page's document head and modify it. In this example, the layout component is adding `MyCompany - ` to the title, so that when rendered, the title will be `MyCompany - Foo`. Every layout in the stack has the opportunity to return a new value.
 
 ```bash
 ──src/
@@ -150,7 +151,7 @@ export const head: DocumentHead = ({ head }) => {
 This example integrates [Google Structured Data](https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data)
 this helps by providing explicit clues about the meaning of a page to Google.
 If you want to embed custom JavaScript code, it would be ideal to do it lazily with [Partytown](https://partytown.builder.io/).
-Sometimes, however, you are forced to load them immediately, as in the case we see in the example.
+Sometimes, however, you are forced to load them immediately. The following example illustrates this.
 
 ```tsx {8} /head/ title="src/routes/about/index.tsx"
 import { component$ } from '@builder.io/qwik';

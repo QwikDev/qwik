@@ -9,6 +9,7 @@ contributors:
   - mrhoodz
   - whale2002
   - adamdbradley
+  - jemsco
 updated_at: '2023-09-21T06:23:47Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
@@ -54,7 +55,8 @@ The `src/routes/` directory is a special directory for Qwik City since it's the 
 
 ### `src/components/`
 
-The `src/components/` directory is a directory by convention. All Qwik starters will have this directory, but you can change it if you want. This directory is where you should put your components, ie, reusable pieces of code that can be used in multiple places. They are not routes or layouts, but they can be used inside them.
+The directory named `src/components/` follows a standard convention. It's present in all Qwik starters and you can rename it if you prefer. The `src/components/` directory is where you should put your components, ie, reusable pieces of code that can be used in multiple places. These components are not routes or layouts, but they can be referenced from within your routes or layout code.
+
 
 For example, a `Button` component should be inside `src/components/button/button.tsx`.
 
@@ -66,7 +68,7 @@ Refer to [Vite configuration for more information](https://vitejs.dev/guide/buil
 
 ### `src/entry.ssr.tsx`
 
-SSR entry point, in all cases the application is rendered outside the browser, this entry point will be the common one.
+The SSR entry point is the common entry point in all cases where the application is rendered outside of the browser.
 
 - Server (express, cloudflare...)
 - npm run start
@@ -75,7 +77,7 @@ SSR entry point, in all cases the application is rendered outside the browser, t
 
 ### `src/root.tsx`
 
-The `src/root.tsx` file is the entry point for the application tree. It's the first component that will be rendered. It's the root of the tree.
+The `src/root.tsx` file is the root of the application tree.  It is the entry point and is the first component that will be rendered.
 
 ### `src/global.css`
 

@@ -215,22 +215,37 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
           // client input default
           opts.input = [path.resolve(srcDir, 'root.tsx')];
         } else if (opts.target === 'lib') {
-          // lib input default
-          opts.input = [path.resolve(srcDir, 'index.ts')];
+          if (typeof updatedOpts.input === 'object') {
+            for (const key in updatedOpts.input) {
+              const resolvedPaths: { [key: string]: string } = {};
+              if (Object.hasOwnProperty.call(updatedOpts.input, key)) {
+                const relativePath = updatedOpts.input[key];
+                const absolutePath = path.resolve(opts.rootDir, relativePath);
+                resolvedPaths[key] = absolutePath;
+              }
+
+              opts.input = { ...opts.input, ...resolvedPaths };
+            }
+          } else {
+            // lib input default
+            opts.input = [path.resolve(srcDir, 'index.ts')];
+          }
         } else {
           opts.input = [];
         }
       }
-      opts.input = opts.input.reduce((inputs, i) => {
-        let input = i;
-        if (!i.startsWith('@') && !i.startsWith('~')) {
-          input = normalizePath(path.resolve(opts.rootDir, i));
-        }
-        if (!inputs.includes(input)) {
-          inputs.push(input);
-        }
-        return inputs;
-      }, [] as string[]);
+      opts.input = Array.isArray(opts.input)
+        ? opts.input.reduce((inputs, i) => {
+            let input = i;
+            if (!i.startsWith('@') && !i.startsWith('~')) {
+              input = normalizePath(path.resolve(opts.rootDir, i));
+            }
+            if (!inputs.includes(input)) {
+              inputs.push(input);
+            }
+            return inputs;
+          }, [] as string[])
+        : opts.input;
 
       if (typeof updatedOpts.outDir === 'string') {
         opts.outDir = normalizePath(path.resolve(opts.rootDir, normalizePath(updatedOpts.outDir)));
@@ -299,8 +314,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         if (typeof opts.srcDir === 'string' && !fs.existsSync(opts.srcDir)) {
           throw new Error(`Qwik srcDir "${opts.srcDir}" not found.`);
         }
-        for (const alias in opts.input) {
-          const input = opts.input[alias];
+        for (const [_, input] of Object.entries(opts.input)) {
           const resolved = await resolver(input);
           if (!resolved) {
             throw new Error(`Qwik input "${input}" not found.`);
@@ -437,8 +451,14 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
           moduleSideEffects: false,
         };
       }
+      let firstInput: string;
+      if (Array.isArray(opts.input)) {
+        firstInput = opts.input[0];
+      } else {
+        firstInput = Object.values(opts.input)[0];
+      }
       return {
-        id: normalizePath(getPath().resolve(opts.input[0], QWIK_CLIENT_MANIFEST_ID)),
+        id: normalizePath(getPath().resolve(firstInput, QWIK_CLIENT_MANIFEST_ID)),
         moduleSideEffects: false,
       };
     }
@@ -535,12 +555,18 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       debug(`load()`, 'Found', id);
 
       let code = transformedModule[0].code;
+      let firstInput: string;
+      if (Array.isArray(opts.input)) {
+        firstInput = opts.input[0];
+      } else {
+        firstInput = Object.values(opts.input)[0];
+      }
       if (opts.target === 'ssr') {
         // doing this because vite will not use resolveId() when "noExternal" is false
         // so we need to turn the @qwik-client-manifest import into a relative import
         code = code.replace(
           /@qwik-client-manifest/g,
-          normalizePath(path.resolve(opts.input[0], QWIK_CLIENT_MANIFEST_ID))
+          normalizePath(path.resolve(firstInput, QWIK_CLIENT_MANIFEST_ID))
         );
       }
       return {
@@ -960,7 +986,7 @@ export interface QwikPluginOptions {
 }
 
 export interface NormalizedQwikPluginOptions extends Required<QwikPluginOptions> {
-  input: string[];
+  input: string[] | { [entry: string]: string };
 }
 
 /** @public */

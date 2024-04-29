@@ -103,11 +103,11 @@ export default component$(() => {
 
 Inside the `src/routes` directory, all files named `index` are considered pages/endpoint/middleware, Qwik supports the following extensions: `.ts`, `.tsx`, `.md` and `.mdx`.
 
-Pages/endpoint/middleware are the leaf nodes of the routing tree, ie, **the modules that will handle the request and return an HTTP response**.
+Pages/endpoint/middleware are the leaf nodes of the routing tree, i.e., **the modules that will handle the request and return an HTTP response**.
 
 ### Page `index.tsx`
 
-When `index.tsx` or `index.ts` exports a Qwik component as the default export, Qwik City will render the component and return an HTML response as a webpage.
+When an `index.tsx` or `index.ts` file exports a Qwik component as the default export, Qwik City will render the component and return an HTML response as a webpage.
 
 ```tsx title="src/routes/index.tsx"
 import { component$ } from '@builder.io/qwik';
@@ -119,7 +119,7 @@ export default component$(() => {
 
 ### Endpoint `index.ts`
 
-A `index.ts` can also access the HTTP request directly and return a raw HTTP response without involving any Qwik Component. This is done by exporting an `onRequest` method or `onGet`, `onPost`, `onPut`, `onDelete` depending on if you only want to handle a specific request given its HTTP method.
+An `index.ts` file can access the HTTP request directly and return a raw HTTP response without involving any Qwik Component. This is done by exporting any of the following methods: `onRequest`, `onGet`, `onPost`, `onPut` or `onDelete` depending on how you want to handle a specific HTTP request.
 
 ```tsx title="src/routes/index.ts"
 import type { RequestHandler } from '@builder.io/qwik-city';
@@ -133,7 +133,7 @@ export const onGet: RequestHandler = ({ json }) => {
 
 ### Page + Endpoint
 
-As you can see in Qwik City there is no clear separation between pages and endpoints, in both cases, it's a `index.tsx` file that exports a Qwik component or an `onRequest` method. However, it's possible to combine both approaches. For example, you can export a `onRequest` method that will handle the request, and then render a Qwik component.
+In Qwik City there is no clear separation between pages and endpoints. An `index.tsx` file handles both and exports a Qwik component or an `onRequest` method. However, it's possible to combine both approaches. For example, you can export an `onRequest` method that will handle the request, and then render a Qwik component.
 
 ```tsx title="src/routes/index.tsx"
 import { component$ } from '@builder.io/qwik';
@@ -162,7 +162,7 @@ Usually, different pages need some common request handling and share some UI. Fo
 - **Shared request handling:** The request cookies need to be validated before even rendering the page, otherwise, render a blank 401 page.
 - **Shared UI:** All pages share a common header showing the user's name and profile picture.
 
-Instead of repeating the same code in each route, we can use layouts to automatically reuse common parts, and also to add middleware to the route.
+Instead of repeating the same code in each route, we can use layouts to automatically reuse common parts.  Layouts support adding middleware to the route also.
 
 Take this `src/routes` directory as an example:
 
@@ -176,9 +176,9 @@ src/
     └── index.tsx
 ```
 
-### Middleware layouts
+### Middleware Layouts
 
-Since layouts can implement request handling with `onRequest` or `onGet`, `onPost`, `onPut`, `onDelete`, they can be used to implement middleware, for example, to validate the request cookies before rendering the page.
+Layouts can implement request handling using any of the following methods: `onRequest`, `onGet`, `onPost`, `onPut` or `onDelete`. This means they can be used to implement middleware.  For example, they can be used to validate the request cookies before rendering the page.
 
 For the route `https://example.com/admin`, the `onRequest` methods will be executed in the following order:
 
@@ -189,9 +189,9 @@ For the route `https://example.com/admin`, the `onRequest` methods will be execu
 
 An `onRequest` handler in `src/routes/index.tsx` doesn't get executed.
 
-### Nested layouts
+### Nested Layouts
 
-Layouts also **provide a way to add common UI to the rendered page**. For example, if we want to add a common header to all the routes, we can add a `Header` component to the root layout.
+Layouts also **provide a way to add common UI to the rendered page**. For example, if we want to add a common header to all of the routes, we can add a `Header` component to the root layout.
 
 For the given example, the Qwik components will be rendered in the following order:
 
@@ -239,7 +239,7 @@ export default component$(() => {
 
 ### `<Link reload>`
 
-The `Link` with the `reload` prop can be used to refresh the current page.
+The `Link` component with the `reload` prop can be used together to refresh the current page.
 You can also call the `nav()` function from the `useNavigate()` hook, without arguments.
 
 ```tsx
@@ -281,15 +281,15 @@ By simply adding the `prefetch` prop, your Link component will start prefetching
 
 ### Scroll Restoration
 
-Qwik provides best-in-class scroll restoration for SPA that closely mimics the native browser experience.
-Your users should receive the exact same experience they've come to expect natively from MPA,
-except with all the added benefits of SPA.
+Qwik provides best-in-class scroll restoration for SPA's that closely mimics the native browser experience.
+Your users should receive the exact same experience they've come to expect natively from an MPA,
+except with all the added benefits of an SPA.
 
-After you use one of the above methods to navigate, the user is automatically upgraded to SPA.
+After you use one of the above methods to navigate, the user is automatically upgraded to an SPA.
 This means that the current page, and the page they came from, now have an `SPA` context associated with them.
 
 If a user then clicks a regular `<a>` tag, they will perform a regular navigation. This new page will have no SPA context,
-and is effectively downgraded back to MPA. You can swap between these however you see fit,
+and is effectively downgraded back to an MPA. You can swap between these as necessary,
 and the user's experience will seamlessly switch between MPA and SPA as if it were all the same.
 
 When a user re-visits the SPA-enabled history entries, such as with a refresh, back/forward button, browser session restarts, etc.,
@@ -306,11 +306,11 @@ which rely on things like `sessionStorage`.
 
 Qwik's ability to remember and restore scroll positions is extremely robust
 and will survive everything from browser session restarts to users clearing their browser data,
-which is not the case for these many other frameworks.
+which is not the case for many other frameworks.
 
 > **Notes on using `pushState()` and `replaceState()` during SPA:**
 >
-> On a page with an SPA context, Qwik will patch the `pushState()` and `replaceState()` functions on the `history` global.
+> On a page with an SPA context, Qwik will patch the `pushState()` and `replaceState()` functions on the global `history`.
 > This is to ensure that any custom states you add as a developer, also receive the SPA context.
 >
 > While these are patched, states you `push` or `replace` should always be an actual `Object` type.
@@ -351,7 +351,7 @@ Each request handler, such as `onRequest`, `onGet`, `onPost`, etc., are passed i
 - `text`: Convenience method to send a text body response. The response will be automatically set the `Content-Type` header to`text/plain; charset=utf-8`. A `text()` response can only be called once.
 - `url`: HTTP request [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL).
 
-## Rewrite routes
+## Rewrite Routes
 
 You can rewrite your pathnames in order to reuse one single page component with its own middlewares and layouts for multiple pages.
 This could be useful for SEO purposes or to translate your pages in different languages.
@@ -362,7 +362,7 @@ This could be useful for SEO purposes or to translate your pages in different la
 > or to `/fr/produits` and `/products/product-name` to `/it/prodotti/nome-prodotto` or `/fr/produits/nom-du-produit`
 > without having multiple routes files for each locale but reusing the same page component, layouts, middlewares and so on.
 >
-> Parameters name will not be changed so if the route file is `/products/[slug]/index.tsx` and the url is `/products/product-name`,
+> The parameters name will not be changed so if the route file is `/products/[slug]/index.tsx` and the url is `/products/product-name`,
 > `/it/prodotti/nome-prodotto` or `/fr/produits/nom-du-produit` you will receive the same path parameter `slug` with
 > the values `product-name`, `nome-prodotto` or `nom-du-produit`.
 
@@ -372,8 +372,7 @@ This could be useful for SEO purposes or to translate your pages in different la
 > For example you may want both `/docs` and `/documents` to be rendered from the same page component or
 > you may want to translate `/products` to `/prodotti` without adding the `/it` prefix.
 
-For each folder under the routes one if there are occurrences of the `paths` keys
-in the pathname the route node will be copied replacing all the occurrences of `paths` keys with the related `paths` values.
+In each folder within the routes directory where there are instances of the paths keys in the pathname, the route node will be duplicated, and all occurrences of paths keys will be replaced with their corresponding paths values.
 All path parameters will preserve the same name. If there is a prefix it will be added at the beginning of the rewritten pathname.
 
 You can set the rewrite rules as follows in your `vite.config.ts`:

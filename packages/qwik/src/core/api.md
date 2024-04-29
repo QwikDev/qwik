@@ -5,7 +5,7 @@
 ```ts
 
 import * as CSS_2 from 'csstype';
-import { JSXNode as JSXNode_2 } from '@builder.io/qwik/jsx-runtime';
+import { JSXNode as JSXNode_2 } from '@builder.io/qwik';
 import type { StreamWriter as StreamWriter_2 } from '@builder.io/qwik';
 
 // @public
@@ -410,7 +410,7 @@ export { jsx }
 export { jsx as jsxs }
 
 // @internal (undocumented)
-export const _jsxBranch: <T>(input?: T | undefined) => T | undefined;
+export const _jsxBranch: <T>(input?: T) => T | undefined;
 
 // @internal
 export const _jsxC: <T extends string | FunctionComponent<any>>(type: T, varProps: Props | null, constProps: Props | null, flags: number, key: string | number | null, dev?: DevJSX) => JSXNode<T>;
@@ -1059,9 +1059,6 @@ export const SSRComment: FunctionComponent<{
     data: string;
 }>;
 
-// @public @deprecated (undocumented)
-export const SSRHint: FunctionComponent<SSRHintProps>;
-
 // @public (undocumented)
 export type SSRHintProps = {
     dynamic?: boolean;
@@ -1077,7 +1074,7 @@ export const SSRStream: FunctionComponent<SSRStreamProps>;
 
 // @public (undocumented)
 export const SSRStreamBlock: FunctionComponent<{
-    children?: any;
+    children?: JSXOutput;
 }>;
 
 // @public (undocumented)

@@ -421,6 +421,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.write(rawHtml);
   }
 
+  commentNode(text: string) {
+    this.write('<!--' + text + '-->');
+  }
+
   addRoot(obj: unknown): number {
     return this.serializationCtx.$addRoot$(obj);
   }

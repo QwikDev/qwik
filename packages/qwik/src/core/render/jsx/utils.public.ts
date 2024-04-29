@@ -1,25 +1,25 @@
+import { STREAM_BLOCK_END_COMMENT, STREAM_BLOCK_START_COMMENT } from '../../util/markers';
 import { jsx, RenderOnce } from '../jsx/jsx-runtime';
 import type { StreamWriter } from '../ssr/render-ssr';
-import type { FunctionComponent, JSXNode } from './types/jsx-node';
+import type { FunctionComponent, JSXNode, JSXOutput } from './types/jsx-node';
 import type { JSXChildren } from './types/jsx-qwik-attributes';
 
 /** @public */
 export const SkipRender: JSXNode = Symbol('skip render') as any;
 
 /** @public */
-export const SSRRaw: FunctionComponent<{ data: string }> = (() => null) as any;
+export const SSRRaw: FunctionComponent<{ data: string }> = () => null;
 
 /** @public */
-export const SSRComment: FunctionComponent<{ data: string }> = (props) =>
-  jsx(SSRRaw, { data: `<!--${props.data}-->` }, null) as any;
+export const SSRComment: FunctionComponent<{ data: string }> = () => null;
 
 /** @public */
-export const SSRStreamBlock: FunctionComponent<{ children?: any }> = (props) => {
+export const SSRStreamBlock: FunctionComponent<{ children?: JSXOutput }> = (props) => {
   return [
-    jsx(SSRComment, { data: 'qkssr-pu' }),
+    jsx(SSRComment, { data: STREAM_BLOCK_START_COMMENT }),
     props.children,
-    jsx(SSRComment, { data: 'qkssr-po' }),
-  ] as any;
+    jsx(SSRComment, { data: STREAM_BLOCK_END_COMMENT }),
+  ];
 };
 
 /** @public */
@@ -38,11 +38,5 @@ export const SSRStream: FunctionComponent<SSRStreamProps> = (props, key) =>
 export type SSRHintProps = {
   dynamic?: boolean;
 };
-
-/**
- * @deprecated - It has no effect
- * @public
- */
-export const SSRHint: FunctionComponent<SSRHintProps> = (() => null) as any;
 
 export const InternalSSRStream: FunctionComponent<SSRStreamProps> = () => null;

@@ -53,7 +53,7 @@ export const Streaming = component$(() => {
         <SSRStream>
           {async function (stream: any) {
             for (let i = 0; i < 10; i++) {
-              stream.write(`<li>raw: ${i}</li>`);
+              stream.write(<li>raw: {i}</li>);
               await delay(100);
             }
           }}

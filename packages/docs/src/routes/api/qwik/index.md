@@ -3534,7 +3534,7 @@ PrefetchGraph: (opts?: {
   base?: string;
   manifestHash?: string;
   manifestURL?: string;
-}) => import("@builder.io/qwik/jsx-runtime").JSXNode<string>;
+}) => import("@builder.io/qwik").JSXNode<string>;
 ```
 
 <table><thead><tr><th>
@@ -3568,7 +3568,7 @@ _(Optional)_ Options for the loading prefetch graph.
 </tbody></table>
 **Returns:**
 
-import("@builder.io/qwik/jsx-runtime").[JSXNode](#jsxnode)&lt;string&gt;
+import("@builder.io/qwik").[JSXNode](#jsxnode)&lt;string&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
 
@@ -3586,7 +3586,7 @@ PrefetchServiceWorker: (opts: {
   path?: string;
   verbose?: boolean;
   fetchBundleGraph?: boolean;
-}) => import("@builder.io/qwik/jsx-runtime").JSXNode<string>;
+}) => import("@builder.io/qwik").JSXNode<string>;
 ```
 
 <table><thead><tr><th>
@@ -3620,7 +3620,7 @@ Options for the prefetch service worker.
 </tbody></table>
 **Returns:**
 
-import("@builder.io/qwik/jsx-runtime").[JSXNode](#jsxnode)&lt;string&gt;
+import("@builder.io/qwik").[JSXNode](#jsxnode)&lt;string&gt;
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
 
@@ -5723,18 +5723,6 @@ SSRComment: FunctionComponent<{
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts)
 
-## SSRHint
-
-> Warning: This API is now obsolete.
->
-> - It has no effect
-
-```typescript
-SSRHint: FunctionComponent<SSRHintProps>;
-```
-
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts)
-
 ## SSRHintProps
 
 ```typescript
@@ -5767,7 +5755,7 @@ SSRStream: FunctionComponent<SSRStreamProps>;
 
 ```typescript
 SSRStreamBlock: FunctionComponent<{
-  children?: any;
+  children?: JSXOutput;
 }>;
 ```
 

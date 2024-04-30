@@ -36,42 +36,39 @@ Some("{\"version\":3,\"sources\":[\"/src/project/project/index.tsx\"],\"names\":
 ============================= app_component_kglyfbhvjc0.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
-import { _jsxC } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
 export const App_component_KGLYFBhvJc0 = (props)=>{
-    return /*#__PURE__*/ _jsxC(_Fragment, {
-        children: [
-            /*#__PURE__*/ _jsxC(Cmp, null, null, 3, "stuff", {
-                fileName: "project/index.tsx",
-                lineNumber: 7,
-                columnNumber: 13
-            }),
-            /*#__PURE__*/ _jsxC(Cmp, null, null, 3, "Q6_0", {
-                fileName: "project/index.tsx",
-                lineNumber: 8,
-                columnNumber: 13
-            }),
-            /*#__PURE__*/ _jsxC(Cmp, null, {
-                prop: "23"
-            }, 3, "Q6_1", {
-                fileName: "project/index.tsx",
-                lineNumber: 9,
-                columnNumber: 13
-            }),
-            /*#__PURE__*/ _jsxC(Cmp, null, {
-                prop: "23"
-            }, 3, props.stuff, {
-                fileName: "project/index.tsx",
-                lineNumber: 10,
-                columnNumber: 13
-            }),
-            /*#__PURE__*/ _jsxQ("p", null, null, "Hello Qwik", 3, props.stuff, {
-                fileName: "project/index.tsx",
-                lineNumber: 11,
-                columnNumber: 13
-            })
-        ]
-    }, null, 1, "Q6_2", {
+    return /*#__PURE__*/ _jsxQ(_Fragment, null, null, [
+        /*#__PURE__*/ _jsxQ(Cmp, null, null, null, 3, "stuff", {
+            fileName: "project/index.tsx",
+            lineNumber: 7,
+            columnNumber: 13
+        }),
+        /*#__PURE__*/ _jsxQ(Cmp, null, null, null, 3, "Q6_0", {
+            fileName: "project/index.tsx",
+            lineNumber: 8,
+            columnNumber: 13
+        }),
+        /*#__PURE__*/ _jsxQ(Cmp, null, {
+            prop: "23"
+        }, null, 3, "Q6_1", {
+            fileName: "project/index.tsx",
+            lineNumber: 9,
+            columnNumber: 13
+        }),
+        /*#__PURE__*/ _jsxQ(Cmp, null, {
+            prop: "23"
+        }, null, 3, props.stuff, {
+            fileName: "project/index.tsx",
+            lineNumber: 10,
+            columnNumber: 13
+        }),
+        /*#__PURE__*/ _jsxQ("p", null, null, "Hello Qwik", 3, props.stuff, {
+            fileName: "project/index.tsx",
+            lineNumber: 11,
+            columnNumber: 13
+        })
+    ], 1, "Q6_2", {
         fileName: "project/index.tsx",
         lineNumber: 6,
         columnNumber: 9
@@ -79,7 +76,7 @@ export const App_component_KGLYFBhvJc0 = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/src/project/project/index.tsx\"],\"names\":[],\"mappings\":\";;;yCAG8B,CAAC,QAAiB;IAC5C,qBACI;;0BACI,MAAC,oBAAQ;;;;;0BACT,MAAC;;;;;0BACD,MAAC;gBAAI,MAAK;;;;;;0BACV,MAAC;gBAAI,MAAK;kBAAU,MAAM,KAAK;;;;;0BAC/B,MAAC,iBAAoB,iBAAb,MAAM,KAAK;;;;;;;;;;;AAG/B\"}")
+Some("{\"version\":3,\"sources\":[\"/src/project/project/index.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B,CAAC,QAAiB;IAC5C,qBACI;sBACI,MAAC,0BAAQ;;;;;sBACT,MAAC;;;;;sBACD,MAAC;YAAI,MAAK;;;;;;sBACV,MAAC;YAAI,MAAK;oBAAU,MAAM,KAAK;;;;;sBAC/B,MAAC,iBAAoB,iBAAb,MAAM,KAAK;;;;;;;;;;AAG/B\"}")
 /*
 {
   "origin": "project/index.tsx",

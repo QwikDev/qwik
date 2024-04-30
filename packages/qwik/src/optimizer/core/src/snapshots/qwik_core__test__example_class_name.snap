@@ -38,47 +38,44 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
 import { _fnSignal } from "@builder.io/qwik";
-import { _jsxC } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
 export const App2_component_3yveMqbQ3Fs = ()=>{
     const signal = useSignal();
     const computed = signal.value + 'foo';
-    return /*#__PURE__*/ _jsxC(_Fragment, {
-        children: [
-            /*#__PURE__*/ _jsxQ("div", null, {
-                className: "hola"
-            }, null, 3, null),
-            /*#__PURE__*/ _jsxQ("div", null, {
-                className: _fnSignal((p0)=>p0.value, [
-                    signal
-                ], "p0.value")
-            }, null, 3, null),
-            /*#__PURE__*/ _jsxQ("div", null, {
-                className: signal
-            }, null, 3, null),
-            /*#__PURE__*/ _jsxQ("div", {
-                className: computed
-            }, null, null, 3, null),
-            /*#__PURE__*/ _jsxC(Foo, null, {
-                className: "hola"
-            }, 3, "u6_0"),
-            /*#__PURE__*/ _jsxC(Foo, null, {
-                className: _fnSignal((p0)=>p0.value, [
-                    signal
-                ], "p0.value")
-            }, 3, "u6_1"),
-            /*#__PURE__*/ _jsxC(Foo, null, {
-                className: signal
-            }, 3, "u6_2"),
-            /*#__PURE__*/ _jsxC(Foo, {
-                className: computed
-            }, null, 3, "u6_3")
-        ]
-    }, null, 1, "u6_4");
+    return /*#__PURE__*/ _jsxQ(_Fragment, null, null, [
+        /*#__PURE__*/ _jsxQ("div", null, {
+            className: "hola"
+        }, null, 3, null),
+        /*#__PURE__*/ _jsxQ("div", null, {
+            className: _fnSignal((p0)=>p0.value, [
+                signal
+            ], "p0.value")
+        }, null, 3, null),
+        /*#__PURE__*/ _jsxQ("div", null, {
+            className: signal
+        }, null, 3, null),
+        /*#__PURE__*/ _jsxQ("div", {
+            className: computed
+        }, null, null, 3, null),
+        /*#__PURE__*/ _jsxQ(Foo, null, {
+            className: "hola"
+        }, null, 3, "u6_0"),
+        /*#__PURE__*/ _jsxQ(Foo, null, {
+            className: _fnSignal((p0)=>p0.value, [
+                signal
+            ], "p0.value")
+        }, null, 3, "u6_1"),
+        /*#__PURE__*/ _jsxQ(Foo, null, {
+            className: signal
+        }, null, 3, "u6_2"),
+        /*#__PURE__*/ _jsxQ(Foo, {
+            className: computed
+        }, null, null, 3, "u6_3")
+    ], 1, "u6_4");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;0CAG+B,IAAM;IACjC,MAAM,SAAS;IACf,MAAM,WAAW,OAAO,KAAK,GAAG;IAChC,qBACI;;0BACI,MAAC;gBAAI,WAAU;;0BACf,MAAC;gBAAI,SAAS,kBAAE,GAAO,KAAK;;;;0BAC5B,MAAC;gBAAI,WAAW;;0BAChB,MAAC;gBAAI,WAAW;;0BAEhB,MAAC;gBAAI,WAAU;;0BACf,MAAC;gBAAI,SAAS,kBAAE,GAAO,KAAK;;;;0BAC5B,MAAC;gBAAI,WAAW;;0BAChB,MAAC;gBAAI,WAAW;;;;AAG5B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;0CAG+B,IAAM;IACjC,MAAM,SAAS;IACf,MAAM,WAAW,OAAO,KAAK,GAAG;IAChC,qBACI;sBACI,MAAC;YAAI,WAAU;;sBACf,MAAC;YAAI,SAAS,kBAAE,GAAO,KAAK;;;;sBAC5B,MAAC;YAAI,WAAW;;sBAChB,MAAC;YAAI,WAAW;;sBAEhB,MAAC;YAAI,WAAU;;sBACf,MAAC;YAAI,SAAS,kBAAE,GAAO,KAAK;;;;sBAC5B,MAAC;YAAI,WAAW;;sBAChB,MAAC;YAAI,WAAW;;;AAG5B\"}")
 /*
 {
   "origin": "test.tsx",

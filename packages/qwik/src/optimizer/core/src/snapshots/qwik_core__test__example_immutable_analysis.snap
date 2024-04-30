@@ -122,7 +122,6 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
 import { _fnSignal } from "@builder.io/qwik";
-import { _jsxC } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
 import { _wrapProp } from "@builder.io/qwik";
 import importedValue from "v";
@@ -136,65 +135,62 @@ export const App_component_ckEPmXZlub0 = (props)=>{
     const remove = /*#__PURE__*/ qrl(()=>import("./app_component_remove_pu6yoc5p6sy"), "App_component_remove_pU6yOC5P6sY", [
         state
     ]);
-    return /*#__PURE__*/ _jsxC(_Fragment, {
-        children: [
-            /*#__PURE__*/ _jsxQ("p", {
-                onClick$: props.onClick$
-            }, {
-                class: "stuff"
-            }, "Hello Qwik", 2, null),
-            /*#__PURE__*/ _jsxC(Div, {
-                onClick$: props.onClick$,
-                children: /*#__PURE__*/ _jsxQ("p", null, null, "Hello Qwik", 3, null)
-            }, {
-                class: styles.foo,
-                document: _wrapProp(window, "document"),
-                onEvent$: /*#__PURE__*/ qrl(()=>import("./app_component__fragment_div_onevent_p0vwsfvwp1k"), "App_component__Fragment_Div_onEvent_p0vWsfvWP1k"),
-                transparent$: /*#__PURE__*/ qrl(()=>import("./app_component__fragment_div_transparent_jtd8sctndsg"), "App_component__Fragment_Div_transparent_jTD8SCTNDsg"),
-                immutable1: "stuff",
-                immutable2: {
+    return /*#__PURE__*/ _jsxQ(_Fragment, null, null, [
+        /*#__PURE__*/ _jsxQ("p", {
+            onClick$: props.onClick$
+        }, {
+            class: "stuff"
+        }, "Hello Qwik", 2, null),
+        /*#__PURE__*/ _jsxQ(Div, {
+            onClick$: props.onClick$
+        }, {
+            class: styles.foo,
+            document: _wrapProp(window, "document"),
+            onEvent$: /*#__PURE__*/ qrl(()=>import("./app_component__fragment_div_onevent_p0vwsfvwp1k"), "App_component__Fragment_Div_onEvent_p0vWsfvWP1k"),
+            transparent$: /*#__PURE__*/ qrl(()=>import("./app_component__fragment_div_transparent_jtd8sctndsg"), "App_component__Fragment_Div_transparent_jTD8SCTNDsg"),
+            immutable1: "stuff",
+            immutable2: {
+                foo: 'bar',
+                baz: importedValue ? true : false
+            },
+            immutable3: 2,
+            immutable4$: /*#__PURE__*/ qrl(()=>import("./app_component__fragment_div_immutable4_qt1dno4izxo"), "App_component__Fragment_Div_immutable4_QT1DNo4IZXo", [
+                state
+            ]),
+            immutable5: [
+                1,
+                2,
+                importedValue,
+                null,
+                {}
+            ]
+        }, /*#__PURE__*/ _jsxQ("p", null, null, "Hello Qwik", 3, null), 2, "u6_0"),
+        "[].map(() => (",
+        /*#__PURE__*/ _jsxQ(props.Model, {
+            mutable2: (()=>console.log(state.count))()
+        }, {
+            class: state,
+            remove$: remove,
+            mutable1: _fnSignal((p0)=>({
                     foo: 'bar',
-                    baz: importedValue ? true : false
-                },
-                immutable3: 2,
-                immutable4$: /*#__PURE__*/ qrl(()=>import("./app_component__fragment_div_immutable4_qt1dno4izxo"), "App_component__Fragment_Div_immutable4_QT1DNo4IZXo", [
-                    state
-                ]),
-                immutable5: [
-                    1,
-                    2,
-                    importedValue,
-                    null,
-                    {}
-                ]
-            }, 2, "u6_0"),
-            "[].map(() => (",
-            /*#__PURE__*/ _jsxC(props.Model, {
-                mutable2: (()=>console.log(state.count))()
-            }, {
-                class: state,
-                remove$: remove,
-                mutable1: _fnSignal((p0)=>({
-                        foo: 'bar',
-                        baz: p0.count ? true : false
-                    }), [
-                    state
-                ], '{foo:"bar",baz:p0.count?true:false}'),
-                mutable3: [
-                    1,
-                    2,
-                    state,
-                    null,
-                    {}
-                ]
-            }, 3, "u6_1"),
-            "));"
-        ]
-    }, null, 1, "u6_2");
+                    baz: p0.count ? true : false
+                }), [
+                state
+            ], '{foo:"bar",baz:p0.count?true:false}'),
+            mutable3: [
+                1,
+                2,
+                state,
+                null,
+                {}
+            ]
+        }, null, 3, "u6_1"),
+        "));"
+    ], 1, "u6_2");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;yCAK8B,CAAC,QAAU;IAErC,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAChC,MAAM;;;IAON,qBACI;;0BACI,MAAC;gBAAgB,UAAU,MAAM,QAAQ;;gBAAtC,OAAM;eAAkC;0BAC3C,MAAC;gBAGG,UAAU,MAAM,QAAQ;0BAYxB,cAAA,MAAC,iBAAE;;gBAdH,OAAO,OAAO,GAAG;gBACjB,QAAQ,YAAE;gBAEV,QAAQ;gBACR,YAAY;gBACZ,YAAW;gBACX,YAAY;oBACR,KAAK;oBACL,KAAK,gBAAgB,IAAI,GAAG,KAAK;gBACrC;gBACA,YAAY;gBACZ,WAAW;;;gBACX,YAAY;oBAAC;oBAAG;oBAAG;oBAAe,IAAI;oBAAE,CAAC;iBAAE;;YAGzC;0BAEF,MA9BI,MAAT;gBAqCS,UAAU,AAAC,CAAA,IAAM,QAAQ,GAAG,CAAC,MAAM,KAAK,CAAA;;gBANxC,OAAO;gBACP,SAAS;gBACT,QAAQ,kBAAE,CAAA;wBACN,KAAK;wBACL,KAAK,GAAM,KAAK,GAAG,IAAI,GAAG,KAAK;oBACnC,CAAA;;;gBAEA,UAAU;oBAAC;oBAAG;oBAAG;oBAAO,IAAI;oBAAE,CAAC;iBAAE;;YACnC;;;AAIlB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;yCAK8B,CAAC,QAAU;IAErC,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAChC,MAAM;;;IAON,qBACI;sBACI,MAAC;YAAgB,UAAU,MAAM,QAAQ;;YAAtC,OAAM;WAAkC;sBAC3C,MAAC;YAGG,UAAU,MAAM,QAAQ;;YAFxB,OAAO,OAAO,GAAG;YACjB,QAAQ,YAAE;YAEV,QAAQ;YACR,YAAY;YACZ,YAAW;YACX,YAAY;gBACR,KAAK;gBACL,KAAK,gBAAgB,IAAI,GAAG,KAAK;YACrC;YACA,YAAY;YACZ,WAAW;;;YACX,YAAY;gBAAC;gBAAG;gBAAG;gBAAe,IAAI;gBAAE,CAAC;aAAE;yBAE3C,MAAC,iBAAE;QACD;sBAEF,MA9BI,MAAT;YAqCS,UAAU,AAAC,CAAA,IAAM,QAAQ,GAAG,CAAC,MAAM,KAAK,CAAA;;YANxC,OAAO;YACP,SAAS;YACT,QAAQ,kBAAE,CAAA;oBACN,KAAK;oBACL,KAAK,GAAM,KAAK,GAAG,IAAI,GAAG,KAAK;gBACnC,CAAA;;;YAEA,UAAU;gBAAC;gBAAG;gBAAG;gBAAO,IAAI;gBAAE,CAAC;aAAE;;QACnC;;AAIlB\"}")
 /*
 {
   "origin": "test.tsx",

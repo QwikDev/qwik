@@ -795,6 +795,7 @@ impl<'a> QwikTransform<'a> {
 		o
 	}
 
+	// swc react creates `h(type, propsWithOptionalChildren, key)` and we transform that here
 	fn handle_jsx(&mut self, mut node: ast::CallExpr) -> ast::CallExpr {
 		let node_type = node.args.remove(0);
 		let node_props = node.args.remove(0);
@@ -818,7 +819,7 @@ impl<'a> QwikTransform<'a> {
 		let should_emit_key = is_fn || self.root_jsx_mode;
 		self.root_jsx_mode = false;
 
-		let (has_spread_props, var_props, const_props, children, flags) =
+		let (has_dynamic_children, var_props, const_props, children, flags) =
 			self.handle_jsx_props_obj(node_props, is_fn, is_text_only);
 
 		let key = if node.args.len() == 1 {
@@ -839,7 +840,7 @@ impl<'a> QwikTransform<'a> {
 		};
 
 		// TODO use _restProps or similar to remove const props from spread props
-		let (jsx_func, mut args) = if is_fn || has_spread_props {
+		let (jsx_func, mut args) = if has_dynamic_children {
 			(
 				self.ensure_core_import(&_JSX_C),
 				vec![node_type, var_props, const_props, flags, key],
@@ -1118,6 +1119,7 @@ impl<'a> QwikTransform<'a> {
 		node
 	}
 
+	/// Splits the props object into variable and constant props
 	fn handle_jsx_props_obj(
 		&mut self,
 		expr: ast::ExprOrSpread,
@@ -1130,7 +1132,7 @@ impl<'a> QwikTransform<'a> {
 		ast::ExprOrSpread,
 		ast::ExprOrSpread,
 	) {
-		let (has_spread_props, var_props_raw, const_props_raw, children, flags) =
+		let (has_dynamic_children, var_props_raw, const_props_raw, children, flags) =
 			self.internal_handle_jsx_props_obj(expr, is_fn, is_text_only);
 
 		let var_props = if var_props_raw.is_empty() {
@@ -1174,7 +1176,13 @@ impl<'a> QwikTransform<'a> {
 				raw: None,
 			}))),
 		};
-		(has_spread_props, var_props, const_props, children, flags)
+		(
+			has_dynamic_children,
+			var_props,
+			const_props,
+			children,
+			flags,
+		)
 	}
 
 	#[allow(clippy::cognitive_complexity)]
@@ -1215,13 +1223,14 @@ impl<'a> QwikTransform<'a> {
 					.filter(|prop| !matches!(prop, ast::PropOrSpread::Prop(_)))
 					.count();
 				let has_spread_props = spread_props_count > 0;
+				let mut has_dynamic_children = has_spread_props;
 				let mut static_listeners = !has_spread_props;
 				let mut static_subtree = !has_spread_props;
 
 				for prop in object.props {
 					let mut name_token = false;
 					// If we have spread props, all the props that come before it are variable even if they're static
-					let maybe_static_props = if spread_props_count > 0 {
+					let maybe_const_props = if spread_props_count > 0 {
 						&mut var_props
 					} else {
 						&mut const_props
@@ -1247,6 +1256,7 @@ impl<'a> QwikTransform<'a> {
 									let transformed_children = if let Some(new_children) =
 										self.convert_children(&folded, &const_idents)
 									{
+										// input, textarea etc
 										if is_text_only {
 											self.jsx_mutable = true;
 											folded.fold_with(self)
@@ -1261,7 +1271,8 @@ impl<'a> QwikTransform<'a> {
 									} else {
 										self.jsx_mutable = prev;
 									}
-									if is_fn || spread_props_count > 0 {
+									if spread_props_count > 0 {
+										// e.g. <div children={<div />} {...props} />
 										// self.jsx_mutable = true;
 										// static_subtree = false;
 										var_props.push(ast::PropOrSpread::Prop(Box::new(
@@ -1271,13 +1282,15 @@ impl<'a> QwikTransform<'a> {
 											}),
 										)));
 									} else {
+										has_dynamic_children = false;
 										children = Some(transformed_children);
 									}
 								} else if !is_fn && key_word.starts_with("bind:") {
-									//
+									// TODO: move this into jsx runtime with an inline QRL
+									// right now we can't do it because qwik doesn't get checked for QRLs
 									let folded = node.value.clone().fold_with(self);
 									let prop_name: JsWord = key_word[5..].into();
-									maybe_static_props.push(ast::PropOrSpread::Prop(Box::new(
+									maybe_const_props.push(ast::PropOrSpread::Prop(Box::new(
 										ast::Prop::KeyValue(ast::KeyValueProp {
 											key: ast::PropName::Str(ast::Str {
 												span: DUMMY_SP,
@@ -1379,7 +1392,7 @@ impl<'a> QwikTransform<'a> {
 										));
 										if is_fn {
 											if is_const {
-												maybe_static_props
+												maybe_const_props
 													.push(converted_prop.fold_with(self));
 											} else {
 												var_props.push(converted_prop.fold_with(self));
@@ -1389,7 +1402,7 @@ impl<'a> QwikTransform<'a> {
 												event_handlers.push(converted_prop.fold_with(self));
 											} else {
 												static_listeners = false;
-												maybe_static_props
+												maybe_const_props
 													.push(converted_prop.fold_with(self));
 											}
 										}
@@ -1405,7 +1418,7 @@ impl<'a> QwikTransform<'a> {
 
 										if is_fn || spread_props_count > 0 {
 											if const_prop {
-												maybe_static_props.push(prop.fold_with(self));
+												maybe_const_props.push(prop.fold_with(self));
 											} else {
 												var_props.push(prop.fold_with(self));
 											}
@@ -1418,7 +1431,7 @@ impl<'a> QwikTransform<'a> {
 									&self.options.global_collect,
 									Some(&const_idents),
 								) {
-									maybe_static_props.push(prop.fold_with(self));
+									maybe_const_props.push(prop.fold_with(self));
 								} else if let Some((getter, is_const)) =
 									self.convert_to_getter(&node.value)
 								{
@@ -1430,7 +1443,7 @@ impl<'a> QwikTransform<'a> {
 										}),
 									));
 									if is_fn || is_const {
-										maybe_static_props.push(entry);
+										maybe_const_props.push(entry);
 									} else {
 										var_props.push(entry);
 									}
@@ -1462,7 +1475,13 @@ impl<'a> QwikTransform<'a> {
 				if static_subtree {
 					flags |= 1 << 1;
 				}
-				(has_spread_props, var_props, const_props, children, flags)
+				(
+					has_dynamic_children,
+					var_props,
+					const_props,
+					children,
+					flags,
+				)
 			}
 			_ => (true, vec![], vec![], None, 0),
 		}

@@ -1,5 +1,4 @@
-import { h } from './factory';
-import { isJSXNode, Fragment } from './jsx-runtime';
+import { h, isJSXNode, Fragment } from './jsx-runtime';
 import type { FunctionComponent } from './types/jsx-node';
 import { type ProcessedJSXNode, processNode } from '../dom/render-dom';
 import { test, assert } from 'vitest';

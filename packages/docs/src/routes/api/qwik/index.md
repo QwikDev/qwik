@@ -2253,13 +2253,24 @@ getPlatform: () => CorePlatform;
 
 ## h
 
+The legacy transform, used in special cases like `<div {...props} key="key" />`. Note that the children are spread arguments, instead of a prop like in jsx() calls.
+
+Also note that this disables optimizations.
+
 ```typescript
-export declare namespace h
+export declare function h<
+  TYPE extends string | FunctionComponent<PROPS>,
+  PROPS extends {} = {},
+>(type: TYPE, props?: PROPS | null, ...children: any[]): JSXNode<TYPE>;
 ```
 
 <table><thead><tr><th>
 
-Function
+Parameter
+
+</th><th>
+
+Type
 
 </th><th>
 
@@ -2268,124 +2279,45 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[h(type)](#)
+type
+
+</td><td>
+
+TYPE
 
 </td><td>
 
 </td></tr>
 <tr><td>
 
-[h(type, data)](#)
+props
 
 </td><td>
+
+PROPS \| null
+
+</td><td>
+
+_(Optional)_
 
 </td></tr>
 <tr><td>
 
-[h(type, text)](#)
+children
 
 </td><td>
 
-</td></tr>
-<tr><td>
-
-[h(type, children)](#)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[h(type, data, text)](#)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[h(type, data, children)](#)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[h(sel, data, children)](#)
+any[]
 
 </td><td>
 
 </td></tr>
 </tbody></table>
+**Returns:**
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/factory.ts)
+[JSXNode](#jsxnode)&lt;TYPE&gt;
 
-## h
-
-```typescript
-export declare namespace h
-```
-
-<table><thead><tr><th>
-
-Function
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[h(type)](#)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[h(type, data)](#)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[h(type, text)](#)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[h(type, children)](#)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[h(type, data, text)](#)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[h(type, data, children)](#)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[h(sel, data, children)](#)
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/factory.ts)
+[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts)
 
 ## HrHTMLAttributes
 
@@ -2645,7 +2577,7 @@ A function that should have its first argument automatically `$`.
 </tbody></table>
 **Returns:**
 
-(first: FIRST, ...rest: REST) =&gt; RET
+((first: FIRST, ...rest: REST) =&gt; RET)
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/util/implicit_dollar.ts)
 

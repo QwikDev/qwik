@@ -37,7 +37,7 @@ export const _jsxQ = <T>(
   constProps: Props | null,
   children: JSXChildren | null,
   flags: number,
-  key: string | number | null,
+  key: string | number | null | undefined,
   dev?: DevJSX
 ): JSXNode<T> => {
   const processed = key == null ? null : String(key);
@@ -103,6 +103,40 @@ export const jsx = <T extends string | FunctionComponent<any>>(
   });
   return _jsxQ(type, props, null, children, 0, processed);
 };
+
+/**
+ * The legacy transform, used in special cases like `<div {...props} key="key" />`. Note that the
+ * children are spread arguments, instead of a prop like in jsx() calls.
+ *
+ * Also note that this disables optimizations.
+ *
+ * @public
+ */
+export function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends {} = {}>(
+  type: TYPE,
+  props?: PROPS | null,
+  ...children: any[]
+): JSXNode<TYPE> {
+  const varProps: Record<string, any> = {};
+
+  let key: string | undefined;
+  let k: any;
+
+  for (k in props) {
+    if (k === 'key') {
+      key = String((props as any)[k]);
+    } else if (k === 'children') {
+      // only allow overriding if the JSX had no children
+      if (arguments.length <= 2) {
+        children = (props as any)[k];
+      }
+    } else {
+      varProps[k] = (props as any)[k];
+    }
+  }
+
+  return _jsxQ(type, varProps, null, children, 0, key);
+}
 
 export const SKIP_RENDER_TYPE = ':skipRender';
 

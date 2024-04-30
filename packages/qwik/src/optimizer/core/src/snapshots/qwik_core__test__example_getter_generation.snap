@@ -52,31 +52,28 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
 import { _fnSignal } from "@builder.io/qwik";
-import { _jsxC } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
 export const Cmp_component_4ryKJTOKjWE = (props)=>{
-    return /*#__PURE__*/ _jsxC(_Fragment, {
-        children: [
-            /*#__PURE__*/ _jsxQ("p", null, {
-                "data-value": _fnSignal((p0)=>p0.count, [
-                    props
-                ], "p0.count")
-            }, _fnSignal((p0)=>p0.nested.count, [
+    return /*#__PURE__*/ _jsxQ(_Fragment, null, null, [
+        /*#__PURE__*/ _jsxQ("p", null, {
+            "data-value": _fnSignal((p0)=>p0.count, [
                 props
-            ], "p0.nested.count"), 3, null),
-            /*#__PURE__*/ _jsxQ("p", null, null, [
-                "Value ",
-                _fnSignal((p0)=>p0.count, [
-                    props
-                ], "p0.count"),
-                /*#__PURE__*/ _jsxQ("span", null, null, null, 3, null)
-            ], 3, null)
-        ]
-    }, null, 3, "u6_1");
+            ], "p0.count")
+        }, _fnSignal((p0)=>p0.nested.count, [
+            props
+        ], "p0.nested.count"), 3, null),
+        /*#__PURE__*/ _jsxQ("p", null, null, [
+            "Value ",
+            _fnSignal((p0)=>p0.count, [
+                props
+            ], "p0.count"),
+            /*#__PURE__*/ _jsxQ("span", null, null, null, 3, null)
+        ], 3, null)
+    ], 3, "u6_1");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAyB8B,CAAC,QAAU;IACrC,qBACI;;0BACI,MAAC;gBAAE,YAAU,kBAAE,GAAM,KAAK;;;+BAAG,GAAM,MAAM,CAAC,KAAK;;;0BAC/C,MAAC;gBAAE;gCAAO,GAAM,KAAK;;;8BAAC,MAAC;;;;AAGnC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAyB8B,CAAC,QAAU;IACrC,qBACI;sBACI,MAAC;YAAE,YAAU,kBAAE,GAAM,KAAK;;;2BAAG,GAAM,MAAM,CAAC,KAAK;;;sBAC/C,MAAC;YAAE;4BAAO,GAAM,KAAK;;;0BAAC,MAAC;;;AAGnC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -100,7 +97,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { Cmp } from "./test";
 import { _fnSignal } from "@builder.io/qwik";
-import { _jsxC } from "@builder.io/qwik";
+import { _jsxQ } from "@builder.io/qwik";
 import { useStore } from "@builder.io/qwik";
 export const App_component_ckEPmXZlub0 = ()=>{
     const store = useStore({
@@ -111,7 +108,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
         }
     });
     const signal = useSignal(0);
-    return /*#__PURE__*/ _jsxC(Cmp, null, {
+    return /*#__PURE__*/ _jsxQ(Cmp, null, {
         prop: 'true',
         count: _fnSignal((p0)=>p0.count, [
             store
@@ -126,7 +123,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
         value: _fnSignal((p0)=>p0.formData?.get('username'), [
             signal
         ], 'p0.formData?.get("username")')
-    }, 3, "u6_0");
+    }, null, 3, "u6_0");
 };
 
 

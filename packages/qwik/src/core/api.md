@@ -274,27 +274,8 @@ export function getLocale(defaultLocale?: string): string;
 // @public
 export const getPlatform: () => CorePlatform;
 
-// @public (undocumented)
-function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends {} = {}>(type: TYPE, props: PROPS | null, ...children: any[]): JSXNode<TYPE>;
-
-// @public (undocumented)
-namespace h {
-    // (undocumented)
-    function h(type: any): JSXNode<any>;
-    // (undocumented)
-    function h(type: Node, data: any): JSXNode<any>;
-    // (undocumented)
-    function h(type: any, text: string): JSXNode<any>;
-    // (undocumented)
-    function h(type: any, children: Array<any>): JSXNode<any>;
-    // (undocumented)
-    function h(type: any, data: any, text: string): JSXNode<any>;
-    // (undocumented)
-    function h(type: any, data: any, children: Array<JSXNode<any> | undefined | null>): JSXNode<any>;
-    // (undocumented)
-    function h(sel: any, data: any | null, children: JSXNode<any>): JSXNode<any>;
-        { JSX };
-}
+// @public
+function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends {} = {}>(type: TYPE, props?: PROPS | null, ...children: any[]): JSXNode<TYPE>;
 export { h as createElement }
 export { h }
 
@@ -349,7 +330,7 @@ export interface ImgHTMLAttributes<T extends Element> extends Attrs<'img', T> {
 }
 
 // @public
-export const implicit$FirstArg: <FIRST, REST extends any[], RET>(fn: (first: QRL<FIRST>, ...rest: REST) => RET) => (first: FIRST, ...rest: REST) => RET;
+export const implicit$FirstArg: <FIRST, REST extends any[], RET>(fn: (first: QRL<FIRST>, ...rest: REST) => RET) => ((first: FIRST, ...rest: REST) => RET);
 
 // Warning: (ae-internal-missing-underscore) The name "inlinedQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
@@ -410,7 +391,7 @@ export { jsx }
 export { jsx as jsxs }
 
 // @internal (undocumented)
-export const _jsxBranch: <T>(input?: T | undefined) => T | undefined;
+export const _jsxBranch: <T>(input?: T) => T | undefined;
 
 // @internal
 export const _jsxC: <T extends string | FunctionComponent<any>>(type: T, varProps: Props | null, constProps: Props | null, flags: number, key: string | number | null, dev?: DevJSX) => JSXNode<T>;
@@ -447,7 +428,7 @@ export interface JSXNode<T extends string | FunctionComponent | unknown = unknow
 export type JSXOutput = JSXNode | string | number | boolean | null | undefined | JSXOutput[];
 
 // @internal
-export const _jsxQ: <T>(type: T, varProps: Props | null, constProps: Props | null, children: JSXChildren | null, flags: number, key: string | number | null, dev?: DevJSX) => JSXNode<T>;
+export const _jsxQ: <T>(type: T, varProps: Props | null, constProps: Props | null, children: JSXChildren | null, flags: number, key: string | number | null | undefined, dev?: DevJSX) => JSXNode<T>;
 
 // @public (undocumented)
 export type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLElementTagNameMap>;

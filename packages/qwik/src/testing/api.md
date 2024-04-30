@@ -9,7 +9,7 @@ import { RenderResult } from '@builder.io/qwik';
 
 // @public
 export const createDOM: ({ html }?: {
-    html?: string | undefined;
+    html?: string;
 }) => Promise<{
     render: (jsxElement: JSXOutput) => Promise<RenderResult>;
     screen: HTMLElement;

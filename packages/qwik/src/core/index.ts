@@ -43,7 +43,6 @@ export type { CorePlatform } from './platform/types';
 //////////////////////////////////////////////////////////////////////////////////////////
 // JSX Runtime
 //////////////////////////////////////////////////////////////////////////////////////////
-export { h, h as createElement } from './render/jsx/factory';
 export {
   SSRStreamBlock,
   SSRRaw,
@@ -54,7 +53,16 @@ export {
 } from './render/jsx/utils.public';
 export type { SSRStreamProps, SSRHintProps } from './render/jsx/utils.public';
 export { Slot } from './render/jsx/slot.public';
-export { Fragment, HTMLFragment, RenderOnce, jsx, jsxDEV, jsxs } from './render/jsx/jsx-runtime';
+export {
+  Fragment,
+  HTMLFragment,
+  RenderOnce,
+  jsx,
+  jsxDEV,
+  jsxs,
+  h,
+  h as createElement,
+} from './render/jsx/jsx-runtime';
 export type * from './render/jsx/types/jsx-generated';
 export type {
   DOMAttributes,

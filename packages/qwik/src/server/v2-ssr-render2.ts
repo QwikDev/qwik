@@ -168,11 +168,23 @@ function handleStreaming(opts: RenderToStreamOptions, timing: RenderToStreamResu
   switch (inOrderStreaming.strategy) {
     case 'disabled':
       stream = {
-        write: enqueue,
+        write(chunk: string) {
+          if (shouldSkipChunk(chunk)) {
+            return;
+          }
+          enqueue(chunk);
+        },
       };
       break;
     case 'direct':
-      stream = nativeStream;
+      stream = {
+        write(chunk: string) {
+          if (shouldSkipChunk(chunk)) {
+            return;
+          }
+          nativeStream.write(chunk);
+        },
+      };
       break;
     case 'auto':
       let count = 0;
@@ -212,4 +224,14 @@ function handleStreaming(opts: RenderToStreamOptions, timing: RenderToStreamResu
     networkFlushes,
     totalSize,
   };
+}
+
+function shouldSkipChunk(chunk: string): boolean {
+  return (
+    chunk === undefined ||
+    chunk === null ||
+    chunk === '<!--' + FLUSH_COMMENT + '-->' ||
+    chunk === '<!--' + STREAM_BLOCK_START_COMMENT + '-->' ||
+    chunk === '<!--' + STREAM_BLOCK_END_COMMENT + '-->'
+  );
 }

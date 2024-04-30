@@ -7,7 +7,7 @@ import { useSignal } from '../use/use-signal';
 import { useStore } from '../use/use-store.public';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
-import { $, useVisibleTask$ } from '@builder.io/qwik';
+import { $, SSRComment, useComputed$, useVisibleTask$ } from '@builder.io/qwik';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -448,6 +448,47 @@ describe.each([
     );
 
     expect(document.querySelector('p')).toMatchDOM(<p>{'"<script></script>"'}</p>);
+  });
+
+  it('should render correctly with comment nodes', async () => {
+    const Cmp = component$(() => {
+      const counter = useSignal(0);
+      const doubleCounter = useComputed$(() => counter.value * 2);
+      return (
+        <>
+          <SSRComment data="test comment" />
+          <button onClick$={() => counter.value++}></button>
+          {counter.value}
+          <SSRComment data="test comment 2" />
+          <div>{doubleCounter.value}</div>
+          <SSRComment data="test comment 3" />
+        </>
+      );
+    });
+    const { vNode, document } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <button></button>
+          <Signal>0</Signal>
+          <div>
+            <Signal>0</Signal>
+          </div>
+        </Fragment>
+      </Component>
+    );
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <button></button>
+          <Signal>1</Signal>
+          <div>
+            <Signal>2</Signal>
+          </div>
+        </Fragment>
+      </Component>
+    );
   });
 
   describe('svg', () => {
@@ -918,7 +959,6 @@ describe.each([
       </Component>
     );
   });
-
 
   describe('regression', () => {
     it('#5647', async () => {

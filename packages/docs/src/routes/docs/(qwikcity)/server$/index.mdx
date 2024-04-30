@@ -12,6 +12,7 @@ contributors:
   - mjschwanitz
   - wtlin1228
   - adamdbradley
+  - jemsco
 updated_at: '2023-10-03T18:53:23Z'
 created_at: '2023-03-29T02:35:29Z'
 ---
@@ -26,7 +27,7 @@ Your new function will have the following signature:
 `([AbortSignal, ] ...): Promise<T>`
 
 `AbortSignal` is optional, and allows you to cancel a long running request by terminating the connection.
-Please note that depending on your server runtime, the function on the server may or may not terminate immediately as it depends on how client disconnections are handled by said runtime.
+Please note that depending on your server runtime, the function on the server may not terminate immediately. It depends on how client disconnections are handled by the runtime.
 
 ```tsx
 import { component$, useSignal } from '@builder.io/qwik';
@@ -89,7 +90,7 @@ const addUser = server$(async function(id: number, fullName: string, address: Ad
 > Server$ can accept any number of arguments and return any value that can be serialized by Qwik, that includes primitives, objects, arrays, bigint, JSX nodes and even Promises, just to name a few.
 
 
-## Streaming responses
+## Streaming Responses
 
 `server$` can return a stream of data by using an async generator. This is useful for streaming data from the server to the client.
 

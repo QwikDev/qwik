@@ -210,10 +210,10 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       } else {
         if (opts.target === 'ssr') {
           // ssr input default
-          opts.input = [path.resolve(srcDir, 'entry.ssr.tsx')];
+          opts.input = [path.resolve(srcDir, 'entry.ssr')];
         } else if (opts.target === 'client') {
           // client input default
-          opts.input = [path.resolve(srcDir, 'root.tsx')];
+          opts.input = [path.resolve(srcDir, 'root')];
         } else if (opts.target === 'lib') {
           // lib input default
           opts.input = [path.resolve(srcDir, 'index.ts')];

@@ -831,7 +831,7 @@ export const isNotNullable = <T>(v: T): v is NonNullable<T> => {
 };
 
 const VITE_CLIENT_MODULE = `@builder.io/qwik/vite-client`;
-const CLIENT_DEV_INPUT = 'entry.dev.tsx';
+const CLIENT_DEV_INPUT = 'entry.dev';
 
 interface QwikVitePluginCommonOptions {
   /**

@@ -12,6 +12,7 @@ contributors:
   - thejackshelton
   - wtlin1228
   - hamatoyogi
+  - jemsco
 updated_at: '2023-10-05T21:23:14Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
@@ -26,7 +27,7 @@ For any given route, Qwik City can choose how to best handle the 404 response fo
 
 ### Default 404 Page
 
-Rather than showing a blank page, by default Qwik City provides a generic 404 page for any route that isn't handled. The default 404 page is rendered as a fallback when a custom 404 page was not found. Qwik City's default page is alright and all, but we recommend providing a custom 404 so the user can be given a better experience, such as providing the common header and navigation so the user can find the page they're looking for.
+Rather than showing a blank page, by default Qwik City provides a generic 404 page for any route that isn't handled. The default 404 page is rendered as a fallback when a custom 404 page was not found. We recommend providing a custom 404 page for a better user experience. Including the common header and navigation in a custom 404 page would help the user find the page they're looking for.
 
 ### Custom 404 Page
 
@@ -67,7 +68,7 @@ When rendering a page, the default is to always respond with a [200 HTTP status 
 
 For example, let's say we have a product page with a URL such as `https://example.com/product/abc`. The product page would be handled using `src/routes/product/[id]/index.tsx` directory-based route, and `[id]` is a dynamic param in the URL.
 
-In this example, `id` is used as a key to load the product data from the database. When the product data is found, great, we'll correctly render data. However, if the product data is not found in the database, we can still handle rendering this page, but instead responding with a 404 HTTP status code.
+In this example, `id` is used as a key to load the product data from the database. When the product data is found, great, we'll correctly render data. However, if the product data is not found in the database, we can still handle rendering the page, but instead respond with a 404 HTTP status code.
 
 ```tsx
 import { component$ } from '@builder.io/qwik';
@@ -115,7 +116,7 @@ Common purpose routes are often placed into directories so they can share layout
 
 By surrounding any directory name with parentheses, such as `(name)`, then the directory name itself will not be included in the URL pathname.
 
-For example, let's say an app placed all _account_ routes together in a directory, however, `/account/` could be dropped from the URL for cleaner, shorter URLs. In the example below, notice that the paths are within the `src/routes/(account)/` directory. However, the URL paths exclude `(account)/`.
+For example, let's say an app placed all _account_ routes together in a directory.  `/account/` could be dropped from the URL for cleaner, shorter URLs. In the example below, notice that the paths are within the `src/routes/(account)/` directory, but the URL paths exclude `(account)/`.
 
 ```bash
 src/
@@ -130,7 +131,7 @@ src/
 
 ## Named Layout
 
-At times related routes need to have drastically different layouts from their siblings. It is possible to define multiple layouts for different sibling routes. A single default layout and any number of named layouts. The child route can then request a specific named-layout.
+At times related routes need to have drastically different layouts from their siblings. It is possible to define multiple layouts for different sibling routes by using a single default layout and any number of named layouts. The child route can then request a specific named-layout.
 
 Qwik City defines the convention that layouts are within `src/routes` and the filename starts with `layout`. That's why the default layout is named `layout.tsx`. A named layout also starts with `layout` followed by a dash `-` and a unique name, such as `layout-narrow.tsx`.
 
@@ -171,7 +172,7 @@ src/
 
 ## Nested Layout
 
-Most times it is desirable to nest layouts into each other. A page's content can be nested in numerous wrapping layouts, which is determined by the directory structure.
+Most times it is desirable to nest layouts within each other. A page's content can be nested in numerous wrapping layouts, which is determined by the directory structure.
 
 ```bash
 src/
@@ -187,7 +188,7 @@ In the above example, there are two layouts that apply themselves around the `/a
 1. `src/routes/layout.tsx`
 2. `src/routes/about/layout.tsx`
 
-In this case, the layouts will nest each other with the page enveloped within each of them.
+In this case, the layouts will be nested within eachother on the page.
 
 ```
 ┌────────────────────────────────────────────────┐

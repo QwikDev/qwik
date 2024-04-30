@@ -23,15 +23,16 @@ contributors:
   - wtlin1228
   - adamdbradley
   - gioboa
+  - jemsco
 updated_at: '2023-12-15T11:00:00Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
 
 # `routeAction$()`
 
-Actions allow to handle form submissions, allowing to perform side effects such as writing to a database or sending an email.
+Actions can handle form submissions, allowing you to perform side effects such as writing to a database or sending an email.
 
-Actions can also return data back to the client/browser, allowing to update the UI accordingly, i.e. showing a success message after a form submission.
+Actions can also return data back to the client/browser, allowing you to update the UI accordingly, i.e. showing a success message after a form submission.
 
 Actions can be declared using the `routeAction$()` or `globalAction$()` exported from `@builder.io/qwik-city`.
 
@@ -103,7 +104,7 @@ export default component$(() => {
 
 Under the hood, the `<Form/>` component uses a native HTML `<form>` element, so it will work without JavaScript.
 
-When JS is enabled, the `<Form/>` component will intercept the form submission and trigger the action in SPA mode, allowing to have a full SPA experience.
+When JS is enabled, the `<Form/>` component will intercept the form submission and trigger the action in SPA mode, allowing for a full SPA experience.
 
 > This is to clarify that the server re-renders the whole page and re-executes everything, so if you have any [routeLoader$](/docs/route-loader/) they will be executed too.
 

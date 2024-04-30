@@ -46,7 +46,6 @@ import { componentQrl } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
 import { _fnSignal } from "@builder.io/qwik";
 import { _wrapProp } from "@builder.io/qwik";
-import { _jsxC } from "@builder.io/qwik";
 import { inlinedQrl } from "@builder.io/qwik";
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
 import { useStore, mutable } from '@builder.io/qwik';
@@ -54,104 +53,102 @@ import { dep } from './file';
 const App_component_ckEPmXZlub0 = ()=>{
     const signal = useSignal(0);
     const store = useStore({});
-    return /*#__PURE__*/ _jsxC(_Fragment, {
-        children: [
-            /*#__PURE__*/ _jsxQ("div", null, null, "First text", 3, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, [
-                "First ",
-                `text`
-            ], 3, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, [
-                "First ",
-                1
-            ], 3, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, [
-                "First ",
-                true
-            ], 3, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, [
-                "First ",
-                `text${12}`
-            ], 3, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, [
-                "First ",
-                typeof `text${12}` === 'string' ? 12 : 43
-            ], 3, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, [
-                "First ",
+    return /*#__PURE__*/ _jsxQ(_Fragment, null, null, [
+        /*#__PURE__*/ _jsxQ("div", null, null, "First text", 3, null),
+        /*#__PURE__*/ _jsxQ("div", null, null, [
+            "First ",
+            `text`
+        ], 3, null),
+        /*#__PURE__*/ _jsxQ("div", null, null, [
+            "First ",
+            1
+        ], 3, null),
+        /*#__PURE__*/ _jsxQ("div", null, null, [
+            "First ",
+            true
+        ], 3, null),
+        /*#__PURE__*/ _jsxQ("div", null, null, [
+            "First ",
+            `text${12}`
+        ], 3, null),
+        /*#__PURE__*/ _jsxQ("div", null, null, [
+            "First ",
+            typeof `text${12}` === 'string' ? 12 : 43
+        ], 3, null),
+        /*#__PURE__*/ _jsxQ("div", null, null, [
+            "First ",
+            signal
+        ], 3, null),
+        /*#__PURE__*/ _jsxQ("div", null, null, [
+            "First ",
+            _fnSignal((p0)=>p0.value, [
                 signal
-            ], 3, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, [
-                "First ",
-                _fnSignal((p0)=>p0.value, [
-                    signal
-                ], "p0.value")
-            ], 3, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, [
-                "First ",
-                _fnSignal((p0)=>12 + p0.value, [
-                    signal
-                ], "12+p0.value")
-            ], 3, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, [
-                "First ",
-                _fnSignal((p0)=>p0.address.city.name, [
-                    store
-                ], "p0.address.city.name")
-            ], 3, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, [
-                "First ",
-                _fnSignal((p0)=>p0.address.city.name ? 'true' : 'false', [
-                    store
-                ], 'p0.address.city.name?"true":"false"')
-            ], 3, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, [
-                "First ",
-                dep
-            ], 3, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, [
-                "First ",
-                dep.thing
-            ], 3, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, [
-                "First ",
-                dep.thing + 'stuff'
-            ], 3, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, [
-                "First ",
-                globalThing
-            ], 1, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, [
-                "First ",
-                _wrapProp(globalThing, "thing")
-            ], 1, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, [
-                "First ",
-                globalThing.thing + 'stuff'
-            ], 1, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, [
-                "First ",
-                signal.value()
-            ], 1, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, [
-                "First ",
-                signal.value + unknown()
-            ], 1, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, [
-                "First ",
-                mutable(signal)
-            ], 1, null),
-            /*#__PURE__*/ _jsxQ("div", null, null, [
-                "First ",
-                signal.value + dep
-            ], 1, null)
-        ]
-    }, null, 1, "u6_0");
+            ], "p0.value")
+        ], 3, null),
+        /*#__PURE__*/ _jsxQ("div", null, null, [
+            "First ",
+            _fnSignal((p0)=>12 + p0.value, [
+                signal
+            ], "12+p0.value")
+        ], 3, null),
+        /*#__PURE__*/ _jsxQ("div", null, null, [
+            "First ",
+            _fnSignal((p0)=>p0.address.city.name, [
+                store
+            ], "p0.address.city.name")
+        ], 3, null),
+        /*#__PURE__*/ _jsxQ("div", null, null, [
+            "First ",
+            _fnSignal((p0)=>p0.address.city.name ? 'true' : 'false', [
+                store
+            ], 'p0.address.city.name?"true":"false"')
+        ], 3, null),
+        /*#__PURE__*/ _jsxQ("div", null, null, [
+            "First ",
+            dep
+        ], 3, null),
+        /*#__PURE__*/ _jsxQ("div", null, null, [
+            "First ",
+            dep.thing
+        ], 3, null),
+        /*#__PURE__*/ _jsxQ("div", null, null, [
+            "First ",
+            dep.thing + 'stuff'
+        ], 3, null),
+        /*#__PURE__*/ _jsxQ("div", null, null, [
+            "First ",
+            globalThing
+        ], 1, null),
+        /*#__PURE__*/ _jsxQ("div", null, null, [
+            "First ",
+            _wrapProp(globalThing, "thing")
+        ], 1, null),
+        /*#__PURE__*/ _jsxQ("div", null, null, [
+            "First ",
+            globalThing.thing + 'stuff'
+        ], 1, null),
+        /*#__PURE__*/ _jsxQ("div", null, null, [
+            "First ",
+            signal.value()
+        ], 1, null),
+        /*#__PURE__*/ _jsxQ("div", null, null, [
+            "First ",
+            signal.value + unknown()
+        ], 1, null),
+        /*#__PURE__*/ _jsxQ("div", null, null, [
+            "First ",
+            mutable(signal)
+        ], 1, null),
+        /*#__PURE__*/ _jsxQ("div", null, null, [
+            "First ",
+            signal.value + dep
+        ], 1, null)
+    ], 1, "u6_0");
 };
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;AACA,SAAqB,QAAQ,EAAE,OAAO,QAAQ,mBAAmB;AAEjE,SAAQ,GAAG,QAAO,SAAS;kCAEG,IAAM;IAChC,MAAM,SAAS,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACI;;0BACI,MAAC,mBAAI;0BACL,MAAC;gBAAI;gBAAO,CAAC,IAAI,CAAC;;0BAClB,MAAC;gBAAI;gBAAO;;0BACZ,MAAC;gBAAI;gBAAO,IAAI;;0BAChB,MAAC;gBAAI;gBAAO,CAAC,IAAI,EAAE,GAAG,CAAC;;0BACvB,MAAC;gBAAI;gBAAO,OAAO,CAAC,IAAI,EAAE,GAAG,CAAC,KAAK,WAAW,KAAK,EAAE;;0BACrD,MAAC;gBAAI;gBAAO;;0BACZ,MAAC;gBAAI;gCAAO,GAAO,KAAK;;;;0BACxB,MAAC;gBAAI;gCAAO,KAAK,GAAO,KAAK;;;;0BAC7B,MAAC;gBAAI;gCAAO,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI;;;;0BACnC,MAAC;gBAAI;gCAAO,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS,OAAO;;;;0BACtD,MAAC;gBAAI;gBAAO;;0BACZ,MAAC;gBAAI;gBAAO,IAAI,KAAK;;0BACrB,MAAC;gBAAI;gBAAO,IAAI,KAAK,GAAG;;0BACxB,MAAC;gBAAI;gBAAO;;0BACZ,MAAC;gBAAI;0BAAO;;0BACZ,MAAC;gBAAI;gBAAO,YAAY,KAAK,GAAG;;0BAChC,MAAC;gBAAI;gBAAO,OAAO,KAAK;;0BACxB,MAAC;gBAAI;gBAAO,OAAO,KAAK,GAAG;;0BAC3B,MAAC;gBAAI;gBAAO,QAAQ;;0BACpB,MAAC;gBAAI;gBAAO,OAAO,KAAK,GAAG;;;;AAGvC;AA5BA,OAAO,MAAM,oBAAM,+FA4BhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AACA,SAAqB,QAAQ,EAAE,OAAO,QAAQ,mBAAmB;AAEjE,SAAQ,GAAG,QAAO,SAAS;kCAEG,IAAM;IAChC,MAAM,SAAS,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACI;sBACI,MAAC,mBAAI;sBACL,MAAC;YAAI;YAAO,CAAC,IAAI,CAAC;;sBAClB,MAAC;YAAI;YAAO;;sBACZ,MAAC;YAAI;YAAO,IAAI;;sBAChB,MAAC;YAAI;YAAO,CAAC,IAAI,EAAE,GAAG,CAAC;;sBACvB,MAAC;YAAI;YAAO,OAAO,CAAC,IAAI,EAAE,GAAG,CAAC,KAAK,WAAW,KAAK,EAAE;;sBACrD,MAAC;YAAI;YAAO;;sBACZ,MAAC;YAAI;4BAAO,GAAO,KAAK;;;;sBACxB,MAAC;YAAI;4BAAO,KAAK,GAAO,KAAK;;;;sBAC7B,MAAC;YAAI;4BAAO,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI;;;;sBACnC,MAAC;YAAI;4BAAO,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS,OAAO;;;;sBACtD,MAAC;YAAI;YAAO;;sBACZ,MAAC;YAAI;YAAO,IAAI,KAAK;;sBACrB,MAAC;YAAI;YAAO,IAAI,KAAK,GAAG;;sBACxB,MAAC;YAAI;YAAO;;sBACZ,MAAC;YAAI;sBAAO;;sBACZ,MAAC;YAAI;YAAO,YAAY,KAAK,GAAG;;sBAChC,MAAC;YAAI;YAAO,OAAO,KAAK;;sBACxB,MAAC;YAAI;YAAO,OAAO,KAAK,GAAG;;sBAC3B,MAAC;YAAI;YAAO,QAAQ;;sBACpB,MAAC;YAAI;YAAO,OAAO,KAAK,GAAG;;;AAGvC;AA5BA,OAAO,MAAM,oBAAM,+FA4BhB\"}")
 == DIAGNOSTICS ==
 
 []

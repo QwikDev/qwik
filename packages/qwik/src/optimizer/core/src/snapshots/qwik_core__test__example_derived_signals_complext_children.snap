@@ -30,27 +30,24 @@ export const App = component$(() => {
 
 import { componentQrl } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
-import { _jsxC } from "@builder.io/qwik";
 import { inlinedQrl } from "@builder.io/qwik";
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
 import { useStore } from '@builder.io/qwik';
 const App_component_ckEPmXZlub0 = ()=>{
     useSignal(0);
     const store = useStore({});
-    return /*#__PURE__*/ _jsxC(_Fragment, {
-        children: /*#__PURE__*/ _jsxQ("ul", null, {
-            id: "issue-2800-result"
-        }, Object.entries(store).map(([key, value])=>/*#__PURE__*/ _jsxQ("li", null, null, [
-                key,
-                " - ",
-                value
-            ], 1, "u6_0")), 1, null)
-    }, null, 1, "u6_1");
+    return /*#__PURE__*/ _jsxQ(_Fragment, null, null, /*#__PURE__*/ _jsxQ("ul", null, {
+        id: "issue-2800-result"
+    }, Object.entries(store).map(([key, value])=>/*#__PURE__*/ _jsxQ("li", null, null, [
+            key,
+            " - ",
+            value
+        ], 1, "u6_0")), 1, null), 1, "u6_1");
 };
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AACA,SAAqB,QAAQ,QAAiB,mBAAmB;kCAInC,IAAM;IACjB,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACI;kBACI,cAAA,MAAC;YAAG,IAAG;WACF,OAAO,OAAO,CAAC,OAAO,GAAG,CAAC,CAAC,CAAC,KAAK,MAAM,iBACxC,MAAC;gBACI;gBAAI;gBAAI;;;AAM7B;AAdA,OAAO,MAAM,oBAAM,+FAchB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AACA,SAAqB,QAAQ,QAAiB,mBAAmB;kCAInC,IAAM;IACjB,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACI,2CACI,MAAC;QAAG,IAAG;OACF,OAAO,OAAO,CAAC,OAAO,GAAG,CAAC,CAAC,CAAC,KAAK,MAAM,iBACxC,MAAC;YACI;YAAI;YAAI;;AAM7B;AAdA,OAAO,MAAM,oBAAM,+FAchB\"}")
 == DIAGNOSTICS ==
 
 []

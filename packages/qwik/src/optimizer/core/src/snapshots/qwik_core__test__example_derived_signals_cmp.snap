@@ -52,7 +52,7 @@ export const App = component$(() => {
 import { componentQrl } from "@builder.io/qwik";
 import { _fnSignal } from "@builder.io/qwik";
 import { _wrapProp } from "@builder.io/qwik";
-import { _jsxC } from "@builder.io/qwik";
+import { _jsxQ } from "@builder.io/qwik";
 import { inlinedQrl } from "@builder.io/qwik";
 import { useStore, mutable } from '@builder.io/qwik';
 import { dep } from './file';
@@ -60,7 +60,7 @@ import { Cmp } from './cmp';
 const App_component_ckEPmXZlub0 = ()=>{
     const signal = useSignal(0);
     const store = useStore({});
-    return /*#__PURE__*/ _jsxC(Cmp, {
+    return /*#__PURE__*/ _jsxQ(Cmp, {
         global: globalThing,
         globalComputed: globalThing.thing + 'stuff',
         noInline2: signal.value + unknown(),
@@ -93,7 +93,7 @@ const App_component_ckEPmXZlub0 = ()=>{
         noInline: _fnSignal((p0)=>p0.value(), [
             signal
         ], "p0.value()")
-    }, 3, "u6_0");
+    }, null, 3, "u6_0");
 };
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
 

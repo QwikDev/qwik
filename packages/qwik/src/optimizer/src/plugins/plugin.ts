@@ -237,7 +237,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.input = Array.isArray(opts.input)
         ? opts.input.reduce((inputs, i) => {
             let input = i;
-            if (!i.startsWith('@') && !i.startsWith('~')) {
+            if (!i.startsWith('@') && !i.startsWith('~') && !i.startsWith('#')) {
               input = normalizePath(path.resolve(opts.rootDir, i));
             }
             if (!inputs.includes(input)) {

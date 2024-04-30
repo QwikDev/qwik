@@ -199,6 +199,7 @@ describe('v2 ssr render', () => {
             {'raw: '}
             {'4'}
           </li>
+          {''}
         </ul>
       );
     });

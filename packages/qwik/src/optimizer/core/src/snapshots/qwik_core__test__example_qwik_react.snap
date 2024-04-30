@@ -155,7 +155,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-rea
 import { Fragment } from "@builder.io/qwik/jsx-runtime";
 import { SkipRerender } from "@builder.io/qwik";
 import { _jsxBranch } from "@builder.io/qwik";
-import { _jsxC } from "@builder.io/qwik";
+import { _jsxQ } from "@builder.io/qwik";
 import { _auto_filterProps as filterProps } from "../node_modules/@builder.io/qwik-react/index.qwik.mjs";
 import { isServer } from "@builder.io/qwik/build";
 import { qrl } from "@builder.io/qwik";
@@ -185,24 +185,20 @@ export const qwikifyQrl_component_zH94hIe0Ick = (props)=>{
             import("../node_modules/@builder.io/qwik-react/server-9ac6caad.js")
         ]).then(([Cmp, server])=>{
             const html = server.render(Cmp, filterProps(props));
-            return /*#__PURE__*/ _jsxC(Host, {
+            return /*#__PURE__*/ _jsxQ(Host, {
                 dangerouslySetInnerHTML: html,
                 [_IMMUTABLE]: [
                     "dangerouslySetInnerHTML"
                 ]
-            }, null, 3, "mR_0");
+            }, null, null, 3, "mR_0");
         });
-        return /*#__PURE__*/ _jsxC(Fragment, {
-            children: jsx$1
-        }, null, 1, "mR_1");
+        return /*#__PURE__*/ _jsxQ(Fragment, null, null, jsx$1, 1, "mR_1");
     }
-    return /*#__PURE__*/ _jsxC(Host, {
-        children: /*#__PURE__*/ _jsxC(SkipRerender, null, null, 3, "mR_2")
-    }, null, 1, "mR_3");
+    return /*#__PURE__*/ _jsxQ(Host, null, null, /*#__PURE__*/ _jsxQ(SkipRerender, null, null, null, 3, "mR_2"), 1, "mR_3");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-react/index.qwik.mjs\"],\"names\":[],\"mappings\":\";;;;;;;;;;;gDAMiD,CAAC,QAAQ;;IAClD,MAAM,CAAC,YAAY,GAAG;IACtB,MAAM,cAAc;IACpB,MAAM,QAAQ,SAAS,CAAC;IACxB,IAAI;IACJ,IAAI,KAAK,CAAC,iBAAiB,EAAE,MAAM;SAC9B,IAAI,KAAK,CAAC,cAAc,IAAI,KAAK,CAAC,cAAc,EAAE,MAAM;IAC7D;;;;;QA4BI;QACA;IACJ;IACA,IAAI,YAAY,CAAC,KAAK,CAAC,cAAc,EAAE;QACnC,MAAM,QAAQ,QAAQ,GAAG,CAAC;YACtB,YAAY,OAAO;YACnB,MAAM,CAAC;SACV,EAAE,IAAI,CAAC,CAAC,CAAC,KAAK,OAAO,GAAG;YACrB,MAAM,OAAO,OAAO,MAAM,CAAC,KAAK,YAAY;YAC5C,OAAO,WAAW,GAAG,MAAI;gBACrB,yBAAyB;gBACzB,CAAC,WAAW,EAAE;oBACV;iBACH;;QAET;QACA,OAAO,WAAW,GAAG,MAAI;YACrB,UAAU;;IAElB,CAAC;IACD,OAAO,WAAW,GAAG,MAAI;QACrB,UAAU,WAAW,GAAG,MAAI;;AAEpC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-react/index.qwik.mjs\"],\"names\":[],\"mappings\":\";;;;;;;;;;;gDAMiD,CAAC,QAAQ;;IAClD,MAAM,CAAC,YAAY,GAAG;IACtB,MAAM,cAAc;IACpB,MAAM,QAAQ,SAAS,CAAC;IACxB,IAAI;IACJ,IAAI,KAAK,CAAC,iBAAiB,EAAE,MAAM;SAC9B,IAAI,KAAK,CAAC,cAAc,IAAI,KAAK,CAAC,cAAc,EAAE,MAAM;IAC7D;;;;;QA4BI;QACA;IACJ;IACA,IAAI,YAAY,CAAC,KAAK,CAAC,cAAc,EAAE;QACnC,MAAM,QAAQ,QAAQ,GAAG,CAAC;YACtB,YAAY,OAAO;YACnB,MAAM,CAAC;SACV,EAAE,IAAI,CAAC,CAAC,CAAC,KAAK,OAAO,GAAG;YACrB,MAAM,OAAO,OAAO,MAAM,CAAC,KAAK,YAAY;YAC5C,OAAO,WAAW,GAAG,MAAI;gBACrB,yBAAyB;gBACzB,CAAC,WAAW,EAAE;oBACV;iBACH;;QAET;QACA,OAAO,WAAW,GAAG,MAAI,sBACX;IAElB,CAAC;IACD,OAAO,WAAW,GAAG,MAAI,kBACX,WAAW,GAAG,MAAI;AAEpC\"}")
 /*
 {
   "origin": "../node_modules/@builder.io/qwik-react/index.qwik.mjs",

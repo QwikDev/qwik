@@ -34,7 +34,6 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= test_component_luxexe0dqrg.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
-import { _jsxC } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
 import { _wrapProp } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
@@ -45,29 +44,27 @@ export const test_component_LUXeXe0DQrg = ()=>{
             value: 0
         }
     ]);
-    return /*#__PURE__*/ _jsxC(_Fragment, {
-        children: [
-            /*#__PURE__*/ _jsxQ("button", null, {
-                onClick$: /*#__PURE__*/ qrl(()=>import("./test_component__fragment_button_onclick_p2zpf6rl1l8"), "test_component__Fragment_button_onClick_p2zPf6rl1L8", [
-                    store
-                ])
-            }, "+1", 3, null),
-            store.map(function(v, idx) {
-                return /*#__PURE__*/ _jsxQ("div", null, null, [
-                    "Function: ",
-                    _wrapProp(v, "value")
-                ], 1, "fn_" + idx);
-            }),
-            store.map((v, idx)=>/*#__PURE__*/ _jsxQ("div", null, null, [
-                    "Arrow: ",
-                    _wrapProp(v, "value")
-                ], 1, "arrow_" + idx))
-        ]
-    }, null, 1, "u6_0");
+    return /*#__PURE__*/ _jsxQ(_Fragment, null, null, [
+        /*#__PURE__*/ _jsxQ("button", null, {
+            onClick$: /*#__PURE__*/ qrl(()=>import("./test_component__fragment_button_onclick_p2zpf6rl1l8"), "test_component__Fragment_button_onClick_p2zPf6rl1L8", [
+                store
+            ])
+        }, "+1", 3, null),
+        store.map(function(v, idx) {
+            return /*#__PURE__*/ _jsxQ("div", null, null, [
+                "Function: ",
+                _wrapProp(v, "value")
+            ], 1, "fn_" + idx);
+        }),
+        store.map((v, idx)=>/*#__PURE__*/ _jsxQ("div", null, null, [
+                "Arrow: ",
+                _wrapProp(v, "value")
+            ], 1, "arrow_" + idx))
+    ], 1, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;0CAGkC,IAAM;IAChC,MAAM,QAAQ,SAAS;QAAC;YAAE,OAAO;QAAE;KAAE;IACrC,qBACI;;0BACA,MAAC;gBAAO,QAAQ;;;eAA0B;YACzC,MAAM,GAAG,CAAC,SAAU,CAAC,EAAE,GAAG,EAAE;gBACzB,qBAAO,MAAC;oBAAsB;8BAAW;sBAAxB,QAAQ;YAC7B;YACC,MAAM,GAAG,CAAC,CAAC,GAAG,oBACX,MAAC;oBAAyB;8BAAQ;sBAAxB,WAAW;;;AAI7B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;0CAGkC,IAAM;IAChC,MAAM,QAAQ,SAAS;QAAC;YAAE,OAAO;QAAE;KAAE;IACrC,qBACI;sBACA,MAAC;YAAO,QAAQ;;;WAA0B;QACzC,MAAM,GAAG,CAAC,SAAU,CAAC,EAAE,GAAG,EAAE;YACzB,qBAAO,MAAC;gBAAsB;0BAAW;kBAAxB,QAAQ;QAC7B;QACC,MAAM,GAAG,CAAC,CAAC,GAAG,oBACX,MAAC;gBAAyB;0BAAQ;kBAAxB,WAAW;;AAI7B\"}")
 /*
 {
   "origin": "test.tsx",

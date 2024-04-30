@@ -16,11 +16,10 @@
     "isolatedModules": true,
     "outDir": "tmp",
     "noEmit": true,
-    "types": ["node", "vite/client"],
     "paths": {
       "~/*": ["./src/*"]
     }
   },
   "files": ["./.eslintrc.cjs"],
-  "include": ["src", "./*.d.ts", "./*.config.ts"]
+  "include": ["qwik.env.d.ts", "src", "./*.d.ts", "./*.config.ts"]
 }

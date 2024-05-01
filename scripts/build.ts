@@ -33,6 +33,7 @@ import { buildQwikWorker } from './qwik-worker';
 import { buildQwikLabs } from './qwik-labs';
 import { watch, copyFile } from 'fs/promises';
 import { join } from 'path';
+import { rmSync } from 'fs';
 
 /**
  * Complete a full build for all of the package's submodules. Passed in config has all the correct
@@ -60,6 +61,8 @@ export async function build(config: BuildConfig) {
     );
 
     if (config.tsc) {
+      rmSync(config.tscDir, { recursive: true, force: true });
+      rmSync(config.dtsDir, { recursive: true, force: true });
       await tscQwik(config);
     }
 
@@ -89,6 +92,11 @@ export async function build(config: BuildConfig) {
     }
 
     if (config.api) {
+      rmSync(join(config.rootDir, 'dist-dev', 'api'), { recursive: true, force: true });
+      rmSync(join(config.rootDir, 'dist-dev', 'api-docs'), { recursive: true, force: true });
+      rmSync(join(config.rootDir, 'dist-dev', 'api-extractor'), { recursive: true, force: true });
+    }
+    if (config.api || (config.tsc && config.qwik)) {
       await apiExtractorQwik(config);
     }
 
@@ -110,7 +118,7 @@ export async function build(config: BuildConfig) {
       await buildQwikCity(config);
     }
 
-    if (config.api) {
+    if (config.api || (config.tsc && config.qwikcity)) {
       await apiExtractorQwikCity(config);
     }
 

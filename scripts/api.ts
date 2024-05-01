@@ -1,5 +1,5 @@
 import { Extractor, ExtractorConfig } from '@microsoft/api-extractor';
-import { readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { generateQwikApiMarkdownDocs, generateQwikCityApiMarkdownDocs } from './api-docs';
 import { type BuildConfig, panic, copyFile } from './util';
@@ -51,7 +51,6 @@ export async function apiExtractorQwik(config: BuildConfig) {
   generateServerReferenceModules(config);
 
   const apiJsonInputDir = join(config.rootDir, 'dist-dev', 'api');
-  rmSync(apiJsonInputDir, { recursive: true, force: true });
   await generateQwikApiMarkdownDocs(config, apiJsonInputDir);
 
   console.log('🥶', 'qwik d.ts API files generated');

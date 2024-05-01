@@ -199,7 +199,7 @@ In addition to the two ways of creating computed values described above, there i
 
 ### `useComputed$()`
 
-Use `useComputed$` allows to memoize a value derived synchronously from other state.
+Use `useComputed$` to memoize a value derived synchronously from other state.
 
 It is similar to `memo` in other frameworks, since it will only recompute the value when one of the input signals changes.
 
@@ -231,7 +231,7 @@ export default component$(() => {
 
 Use `useResource$()` to create a computed value that is derived asynchronously. It's the asynchronous version of `useComputed$()`, which includes the `state` of the resource (loading, resolved, rejected) on top of the value.
 
-A common use case for `useResource$()` is to fetch data from an external API within the component itself, this means that the execution might happen in the server or the client.
+A common use of `useResource$()` is to fetch data from an external API within the component, which can occur either on the server or the client.
 
 The `useResource$` hook is meant to be used with `<Resource />`. The `<Resource />` component is a convenient way to render different UI based on the state of the resource.
 
@@ -275,7 +275,7 @@ export default component$(() => {
 
 
 
-> **Note:** The important thing to understand about `useResource$` is that it executes on the initial component render (just like `useTask$`). Often time it is desirable to start fetching the data on the server as part of the initial HTTP request before the component is rendered. Fetching data as part of SSR is a more common and preferred way of loading data and is done through [`routeLoader$`](/docs/(qwikcity)/route-loader/index.mdx) API instead. `useResource$` is more of a low-level API that is useful when you want to fetch data in the browser.
+> **Note:** The important thing to understand about `useResource$` is that it executes on the initial component render (just like `useTask$`). Often times it is desirable to start fetching the data on the server as part of the initial HTTP request before the component is rendered. Fetching data as part of Server-Side Rendering (SSR) is a common and preferred method of data loading, typically handled by the [`routeLoader$`](/docs/(qwikcity)/route-loader/index.mdx) API. `useResource$` is more of a low-level API that is useful when you want to fetch data in the browser.
 >
 >
 > In many ways `useResource$` is similar to `useTask$`. The big differences are:
@@ -514,11 +514,10 @@ export const Child = component$(() => {
 
 Qwik ensures that all application state is always serializable. This is important to ensure that Qwik applications have a [resumability](/docs/(qwik)/concepts/resumable/index.mdx) property.
 
-At times it is necessary to store data that can't be serialized, `noSerialize()` tells Qwik not even bother trying to serialize the marked value.
-
+Sometimes, it's necessary to store data that can't be serialized; `noSerialize()` instructs Qwik not to attempt serializing the marked value.
 For example a reference to a third-party library such as [Monaco editor](https://microsoft.github.io/monaco-editor/) will always need `noSerialize()`, as it is not serializable.
 
-If a value is marked as non-serializable then that value will not survive serialization events such as resuming the application on the client from server SSR. In such a situation the value will be set to `undefined` and it is up to the developer to re-initialize the value on the client.
+If a value is marked as non-serializable then that value will not survive serialization events such as resuming the application on the client from SSR. In this situation the value will be set to `undefined` and it is up to the developer to re-initialize the value on the client.
 
 <CodeSandbox src="/src/routes/demo/state/no-serialize/index.tsx" style={{ height: '8em' }}>
 ```tsx /noSerialize/

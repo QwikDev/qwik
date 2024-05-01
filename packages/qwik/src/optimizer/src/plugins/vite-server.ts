@@ -84,7 +84,13 @@ export async function configureDevServer(
           return;
         }
 
-        const ssrModule = await server.ssrLoadModule(opts.input[0]);
+        let firstInput: string;
+        if (Array.isArray(opts.input)) {
+          firstInput = opts.input[0];
+        } else {
+          firstInput = Object.values(opts.input)[0];
+        }
+        const ssrModule = await server.ssrLoadModule(firstInput);
 
         const render: Render = ssrModule.default ?? ssrModule.render;
 

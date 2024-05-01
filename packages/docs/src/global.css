@@ -196,6 +196,16 @@ html {
   overflow: auto;
 }
 
+.uwu-logo {
+  display: none;
+}
+html.uwu .qwik-logo {
+  display: none;
+}
+html.uwu .uwu-logo {
+  display: block !important;
+}
+
 a,
 button,
 textarea,

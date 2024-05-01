@@ -5,7 +5,7 @@
 ```ts
 
 import type { JSXOutput } from '@builder.io/qwik';
-import { RenderResult } from '@builder.io/qwik/jsx-runtime';
+import { RenderResult } from '@builder.io/qwik';
 
 // @public
 export const createDOM: ({ html }?: {

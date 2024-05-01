@@ -18,7 +18,8 @@
     "noEmit": true,
     "types": ["node", "vite/client"],
     "paths": {
-      "~/*": ["./src/*"]
+      "~/*": ["./src/*"],
+      "@qwik-client-manifest": ["../../qwik/src/server/server-modules.d.ts"]
     }
   },
   "exclude": ["./dist"]

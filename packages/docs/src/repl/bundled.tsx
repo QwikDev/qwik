@@ -1,4 +1,4 @@
-import { version as qwikVersion } from '../../../qwik';
+import { version as qwikVersion } from '@builder.io/qwik';
 import type { PkgUrls } from './types';
 
 import prettierPkgJson from 'prettier/package.json';

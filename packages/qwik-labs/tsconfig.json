@@ -14,7 +14,10 @@
     "skipLibCheck": true,
     "incremental": true,
     "isolatedModules": true,
-    "types": ["vite/client"]
+    "types": ["vite/client"],
+    "paths": {
+      "@qwik-client-manifest": ["../../qwik/src/server/server-modules.d.ts"]
+    }
   },
   "include": ["src"]
 }

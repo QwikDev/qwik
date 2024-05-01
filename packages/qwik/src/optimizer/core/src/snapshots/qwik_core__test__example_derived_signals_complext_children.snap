@@ -11,19 +11,19 @@ import { component$, useStore, mutable } from '@builder.io/qwik';
 import {dep} from './file';
 
 export const App = component$(() => {
-    const signal = useSignal(0);
-    const store = useStore({});
-    return (
-        <>
-            <ul id="issue-2800-result">
-                {Object.entries(store).map(([key, value]) => (
-                <li>
-                    {key} - {value}
-                </li>
-                ))}
-            </ul>
-        </>
-    );
+	const signal = useSignal(0);
+	const store = useStore({});
+	return (
+		<>
+			<ul id="issue-2800-result">
+				{Object.entries(store).map(([key, value]) => (
+				<li>
+					{key} - {value}
+				</li>
+				))}
+			</ul>
+		</>
+	);
 });
 
 ============================= test.js ==
@@ -47,7 +47,7 @@ const App_component_ckEPmXZlub0 = ()=>{
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AACA,SAAqB,QAAQ,QAAiB,mBAAmB;kCAInC,IAAM;IACjB,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACI,2CACI,MAAC;QAAG,IAAG;OACF,OAAO,OAAO,CAAC,OAAO,GAAG,CAAC,CAAC,CAAC,KAAK,MAAM,iBACxC,MAAC;YACI;YAAI;YAAI;;AAM7B;AAdA,OAAO,MAAM,oBAAM,+FAchB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AACA,SAAqB,QAAQ,QAAiB,mBAAmB;kCAInC,IAAM;IACpB,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACC,2CACC,MAAC;QAAG,IAAG;OACL,OAAO,OAAO,CAAC,OAAO,GAAG,CAAC,CAAC,CAAC,KAAK,MAAM,iBACxC,MAAC;YACC;YAAI;YAAI;;AAMd;AAdA,OAAO,MAAM,oBAAM,+FAchB\"}")
 == DIAGNOSTICS ==
 
 []

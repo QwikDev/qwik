@@ -9,13 +9,13 @@ expression: output
 import { $, component, onRender } from '@builder.io/qwik';
 
 export const renderHeader = $(() => {
-    return (
-        <div onClick={$((ctx) => console.log(ctx))}/>
-    );
+	return (
+		<div onClick={$((ctx) => console.log(ctx))}/>
+	);
 });
 const renderHeader = component($(() => {
-  console.log("mount");
-  return render;
+	console.log("mount");
+	return render;
 }));
 
 ============================= renderheader_zbbhwn4e8cg.tsx (ENTRY POINT)==
@@ -27,7 +27,7 @@ export const renderHeader_zBbHWn4e8Cg = ()=>{
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";wCAG8B,IAAM;IAChC,QACK,IAAI;AAEb\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";wCAG8B,IAAM;IACnC,QACE,IAAI;AAEP\"}")
 /*
 {
   "origin": "test.tsx",
@@ -43,7 +43,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     92,
-    175
+    163
   ]
 }
 */
@@ -56,7 +56,7 @@ export const renderHeader_component_U6Kkv07sbpQ = ()=>{
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"kDAQiC,IAAM;IACrC,QAAQ,GAAG,CAAC;IACZ,OAAO;AACT\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"kDAQiC,IAAM;IACtC,QAAQ,GAAG,CAAC;IACZ,OAAO;AACR\"}")
 /*
 {
   "origin": "test.tsx",
@@ -71,8 +71,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": false,
   "loc": [
-    211,
-    261
+    199,
+    247
   ]
 }
 */
@@ -91,7 +91,7 @@ export const renderHeader_div_onClick_fV2uzAL99u4 = (ctx)=>console.log(ctx);
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"oDAKwB,CAAC,MAAQ,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"oDAKkB,CAAC,MAAQ,QAAQ,GAAG,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -106,8 +106,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": false,
   "loc": [
-    137,
-    162
+    128,
+    153
   ]
 }
 */

@@ -11,33 +11,33 @@ import { component$, useStore, mutable } from '@builder.io/qwik';
 import {dep} from './file';
 
 export const App = component$(() => {
-    const signal = useSignal(0);
-    const store = useStore({});
-    return (
-        <>
-            <div>First text</div>
-            <div>First {`text`}</div>
-            <div>First {1}</div>
-            <div>First {true}</div>
-            <div>First {`text${12}`}</div>
-            <div>First {typeof `text${12}` === 'string' ? 12 : 43}</div>
-            <div>First {signal}</div>
-            <div>First {signal.value}</div>
-            <div>First {12 + signal.value}</div>
-            <div>First {store.address.city.name}</div>
-            <div>First {store.address.city.name ? 'true' : 'false'}</div>
-            <div>First {dep}</div>
-            <div>First {dep.thing}</div>
-            <div>First {dep.thing + 'stuff'}</div>
-            <div>First {globalThing}</div>
-            <div>First {globalThing.thing}</div>
-            <div>First {globalThing.thing + 'stuff'}</div>
-            <div>First {signal.value()}</div>
-            <div>First {signal.value + unknown()}</div>
-            <div>First {mutable(signal)}</div>
-            <div>First {signal.value + dep}</div>
-        </>
-    );
+	const signal = useSignal(0);
+	const store = useStore({});
+	return (
+		<>
+			<div>First text</div>
+			<div>First {`text`}</div>
+			<div>First {1}</div>
+			<div>First {true}</div>
+			<div>First {`text${12}`}</div>
+			<div>First {typeof `text${12}` === 'string' ? 12 : 43}</div>
+			<div>First {signal}</div>
+			<div>First {signal.value}</div>
+			<div>First {12 + signal.value}</div>
+			<div>First {store.address.city.name}</div>
+			<div>First {store.address.city.name ? 'true' : 'false'}</div>
+			<div>First {dep}</div>
+			<div>First {dep.thing}</div>
+			<div>First {dep.thing + 'stuff'}</div>
+			<div>First {globalThing}</div>
+			<div>First {globalThing.thing}</div>
+			<div>First {globalThing.thing + 'stuff'}</div>
+			<div>First {signal.value()}</div>
+			<div>First {signal.value + unknown()}</div>
+			<div>First {mutable(signal)}</div>
+			<div>First {signal.value + dep}</div>
+		</>
+	);
 });
 
 ============================= test.js ==
@@ -148,7 +148,7 @@ const App_component_ckEPmXZlub0 = ()=>{
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AACA,SAAqB,QAAQ,EAAE,OAAO,QAAQ,mBAAmB;AAEjE,SAAQ,GAAG,QAAO,SAAS;kCAEG,IAAM;IAChC,MAAM,SAAS,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACI;sBACI,MAAC,mBAAI;sBACL,MAAC;YAAI;YAAO,CAAC,IAAI,CAAC;;sBAClB,MAAC;YAAI;YAAO;;sBACZ,MAAC;YAAI;YAAO,IAAI;;sBAChB,MAAC;YAAI;YAAO,CAAC,IAAI,EAAE,GAAG,CAAC;;sBACvB,MAAC;YAAI;YAAO,OAAO,CAAC,IAAI,EAAE,GAAG,CAAC,KAAK,WAAW,KAAK,EAAE;;sBACrD,MAAC;YAAI;YAAO;;sBACZ,MAAC;YAAI;4BAAO,GAAO,KAAK;;;;sBACxB,MAAC;YAAI;4BAAO,KAAK,GAAO,KAAK;;;;sBAC7B,MAAC;YAAI;4BAAO,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI;;;;sBACnC,MAAC;YAAI;4BAAO,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS,OAAO;;;;sBACtD,MAAC;YAAI;YAAO;;sBACZ,MAAC;YAAI;YAAO,IAAI,KAAK;;sBACrB,MAAC;YAAI;YAAO,IAAI,KAAK,GAAG;;sBACxB,MAAC;YAAI;YAAO;;sBACZ,MAAC;YAAI;sBAAO;;sBACZ,MAAC;YAAI;YAAO,YAAY,KAAK,GAAG;;sBAChC,MAAC;YAAI;YAAO,OAAO,KAAK;;sBACxB,MAAC;YAAI;YAAO,OAAO,KAAK,GAAG;;sBAC3B,MAAC;YAAI;YAAO,QAAQ;;sBACpB,MAAC;YAAI;YAAO,OAAO,KAAK,GAAG;;;AAGvC;AA5BA,OAAO,MAAM,oBAAM,+FA4BhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AACA,SAAqB,QAAQ,EAAE,OAAO,QAAQ,mBAAmB;AAEjE,SAAQ,GAAG,QAAO,SAAS;kCAEG,IAAM;IACnC,MAAM,SAAS,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACC;sBACC,MAAC,mBAAI;sBACL,MAAC;YAAI;YAAO,CAAC,IAAI,CAAC;;sBAClB,MAAC;YAAI;YAAO;;sBACZ,MAAC;YAAI;YAAO,IAAI;;sBAChB,MAAC;YAAI;YAAO,CAAC,IAAI,EAAE,GAAG,CAAC;;sBACvB,MAAC;YAAI;YAAO,OAAO,CAAC,IAAI,EAAE,GAAG,CAAC,KAAK,WAAW,KAAK,EAAE;;sBACrD,MAAC;YAAI;YAAO;;sBACZ,MAAC;YAAI;4BAAO,GAAO,KAAK;;;;sBACxB,MAAC;YAAI;4BAAO,KAAK,GAAO,KAAK;;;;sBAC7B,MAAC;YAAI;4BAAO,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI;;;;sBACnC,MAAC;YAAI;4BAAO,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS,OAAO;;;;sBACtD,MAAC;YAAI;YAAO;;sBACZ,MAAC;YAAI;YAAO,IAAI,KAAK;;sBACrB,MAAC;YAAI;YAAO,IAAI,KAAK,GAAG;;sBACxB,MAAC;YAAI;YAAO;;sBACZ,MAAC;YAAI;sBAAO;;sBACZ,MAAC;YAAI;YAAO,YAAY,KAAK,GAAG;;sBAChC,MAAC;YAAI;YAAO,OAAO,KAAK;;sBACxB,MAAC;YAAI;YAAO,OAAO,KAAK,GAAG;;sBAC3B,MAAC;YAAI;YAAO,QAAQ;;sBACpB,MAAC;YAAI;YAAO,OAAO,KAAK,GAAG;;;AAG9B;AA5BA,OAAO,MAAM,oBAAM,+FA4BhB\"}")
 == DIAGNOSTICS ==
 
 []

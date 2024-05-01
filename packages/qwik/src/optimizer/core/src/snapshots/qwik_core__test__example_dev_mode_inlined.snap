@@ -9,11 +9,11 @@ expression: output
 import { component$, useStore } from '@builder.io/qwik';
 
 export const App = component$(() => {
-    return (
-        <Cmp>
-            <p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
-        </Cmp>
-    );
+	return (
+		<Cmp>
+			<p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
+		</Cmp>
+	);
 });
 
 ============================= test.js ==
@@ -26,28 +26,28 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrlDEV(()=>{
         class: "stuff",
         onClick$: /*#__PURE__*/ inlinedQrlDEV(()=>console.log('warn'), "App_component_Cmp_p_onClick_vuXzfUTkpto", {
             file: "/user/qwik/src/test.tsx",
-            lo: 164,
-            hi: 189,
+            lo: 146,
+            hi: 171,
             displayName: "App_component_Cmp_p_onClick"
         })
     }, "Hello Qwik", 3, null, {
         fileName: "test.tsx",
         lineNumber: 7,
-        columnNumber: 13
+        columnNumber: 4
     }), 3, "u6_0", {
         fileName: "test.tsx",
         lineNumber: 6,
-        columnNumber: 9
+        columnNumber: 3
     });
 }, "App_component_ckEPmXZlub0", {
     file: "/user/qwik/src/test.tsx",
     lo: 90,
-    hi: 229,
+    hi: 202,
     displayName: "App_component"
 }));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,oBAAM,yCAAW,IAAM;IAChC,qBACI,MAAC,+BACG,MAAC;QAAE,OAAM;QAAQ,QAAQ,8BAAE,IAAM,QAAQ,GAAG,CAAC;;;;;;OAAS;;;;;;;;;AAGlE;;;;;IAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,oBAAM,yCAAW,IAAM;IACnC,qBACC,MAAC,+BACA,MAAC;QAAE,OAAM;QAAQ,QAAQ,8BAAE,IAAM,QAAQ,GAAG,CAAC;;;;;;OAAS;;;;;;;;;AAGzD;;;;;IAAG\"}")
 == DIAGNOSTICS ==
 
 []

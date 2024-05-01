@@ -11,14 +11,14 @@ import css1 from './global.css';
 import css2 from './style.css';
 
 export const App = component$(() => {
-    const style = `${css1}${css2}`;
-    useStyles$(style);
-    const render = () => {
-        return (
-            <div></div>
-        )
-    };
-    return $(render);
+	const style = `${css1}${css2}`;
+	useStyles$(style);
+	const render = () => {
+		return (
+			<div></div>
+		)
+	};
+	return $(render);
 })
 
 ============================= test.js ==
@@ -34,7 +34,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 export const App_component_useStyles_t35nSa5UV7U = style;
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"mDAOe\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"mDAOY\"}")
 /*
 {
   "origin": "test.tsx",
@@ -49,8 +49,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "useStyles$",
   "captures": false,
   "loc": [
-    219,
-    224
+    213,
+    218
   ]
 }
 */
@@ -64,7 +64,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAK8B,IAAM;IAEhC;IAMA;AACJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAK8B,IAAM;IAEnC;IAMA;AACD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -80,7 +80,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     160,
-    335
+    299
   ]
 }
 */
@@ -90,7 +90,7 @@ export const App_component_1_w0t0o3QMovU = render;
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"2CAaa\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"2CAaU\"}")
 /*
 {
   "origin": "test.tsx",
@@ -105,8 +105,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": false,
   "loc": [
-    325,
-    331
+    289,
+    295
   ]
 }
 */
@@ -120,8 +120,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
     "message": "Qrl($) scope is not a function, but it's capturing local identifiers: style",
     "highlights": [
       {
-        "lo": 219,
-        "hi": 224,
+        "lo": 213,
+        "hi": 218,
         "startLine": 8,
         "startCol": 16,
         "endLine": 8,
@@ -138,8 +138,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
     "message": "Qrl($) scope is not a function, but it's capturing local identifiers: render",
     "highlights": [
       {
-        "lo": 325,
-        "hi": 331,
+        "lo": 289,
+        "hi": 295,
         "startLine": 14,
         "startCol": 14,
         "endLine": 14,

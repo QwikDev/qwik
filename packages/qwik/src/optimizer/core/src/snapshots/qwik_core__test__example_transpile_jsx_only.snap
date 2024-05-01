@@ -9,11 +9,11 @@ expression: output
 import { component$, useStore } from '@builder.io/qwik';
 
 export const App = component$((props: Stuff) => {
-    return (
-        <Cmp>
-            <p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
-        </Cmp>
-    );
+	return (
+		<Cmp>
+			<p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
+		</Cmp>
+	);
 });
 
 ============================= app_component_ckepmxzlub0.ts (ENTRY POINT)==
@@ -28,7 +28,7 @@ export const App_component_ckEPmXZlub0 = (props: Stuff)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B,CAAC,OAAO,QAAU;IAC5C,qBACI,MAAC,+BACG,MAAC;QAAE,OAAM;QAAQ,QAAQ;OAA6B;AAGlE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B,CAAC,OAAO,QAAU;IAC/C,qBACC,MAAC,+BACA,MAAC;QAAE,OAAM;QAAQ,QAAQ;OAA6B;AAGzD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -44,7 +44,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     90,
-    241
+    214
   ]
 }
 */
@@ -53,7 +53,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 export const App_component_Cmp_p_onClick_vuXzfUTkpto = ()=>console.log('warn');
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"uDAMuC,IAAM,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"uDAM8B,IAAM,QAAQ,GAAG,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -68,8 +68,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
-    176,
-    201
+    158,
+    183
   ]
 }
 */

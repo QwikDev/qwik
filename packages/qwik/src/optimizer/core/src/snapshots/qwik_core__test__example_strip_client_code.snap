@@ -15,32 +15,32 @@ import { b } from '../keep2';
 import { c } from '../../remove';
 
 export const Parent = component$(() => {
-    const state = useStore({
-        text: ''
-    });
+	const state = useStore({
+		text: ''
+	});
 
-    // Double count watch
-    useClientMount$(async () => {
-        state.text = await mongo.users();
-        redis.set(state.text, a, b, c);
-    });
+	// Double count watch
+	useClientMount$(async () => {
+		state.text = await mongo.users();
+		redis.set(state.text, a, b, c);
+	});
 
-    useTask$(() => {
-        // Code
-    });
+	useTask$(() => {
+		// Code
+	});
 
-    return (
-        <div
-            shouldRemove$={() => state.text}
-            onClick$={() => console.log('parent', state, threejs)}
-        >
-            <Div
-                onClick$={() => console.log('keep')}
-                render$={() => state.text}
-            />
-            {state.text}
-        </div>
-    );
+	return (
+		<div
+			shouldRemove$={() => state.text}
+			onClick$={() => console.log('parent', state, threejs)}
+		>
+			<Div
+				onClick$={() => console.log('keep')}
+				render$={() => state.text}
+			/>
+			{state.text}
+		</div>
+	);
 });
 
 ============================= components/component.js ==
@@ -91,7 +91,7 @@ export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
 }, "Parent_component_t6Wy3C0Q0XM"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/components/component.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;AACA,SAAsC,QAAQ,QAAkB,mBAAmB;AAQnF,OAAO,MAAM,uBAAS,sCAAW,IAAM;IACnC,MAAM,QAAQ,SAAS;QACnB,MAAM;IACV;IAEA,qBAAqB;IACrB;;;IAKA,oCAAS,IAAM;IACX,OAAO;IACX;IAEA,qBACI,MAAC;QACG,aAAa;;;QACb,QAAQ;;;;sBAER,MAAC;YACG,QAAQ,2BAAE,IAAM,QAAQ,GAAG,CAAC;YAC5B,OAAO,2BAAE;;uBAAM,MAAM,IAAI;;;;;wBAE5B,GAAM,IAAI;;;;AAGvB,oCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/components/component.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;AACA,SAAsC,QAAQ,QAAkB,mBAAmB;AAQnF,OAAO,MAAM,uBAAS,sCAAW,IAAM;IACtC,MAAM,QAAQ,SAAS;QACtB,MAAM;IACP;IAEA,qBAAqB;IACrB;;;IAKA,oCAAS,IAAM;IACd,OAAO;IACR;IAEA,qBACC,MAAC;QACA,aAAa;;;QACb,QAAQ;;;;sBAER,MAAC;YACA,QAAQ,2BAAE,IAAM,QAAQ,GAAG,CAAC;YAC5B,OAAO,2BAAE;;uBAAM,MAAM,IAAI;;;;;wBAEzB,GAAM,IAAI;;;;AAGd,oCAAG\"}")
 == DIAGNOSTICS ==
 
 []

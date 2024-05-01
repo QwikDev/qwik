@@ -9,17 +9,17 @@ expression: output
 import { component$, useStore } from '@builder.io/qwik';
 
 export enum Thing {
-    A,
-    B
+	A,
+	B
 }
 
 export const App = component$(() => {
-    console.log(Thing.A);
-    return (
-        <>
-            <p class="stuff">Hello Qwik</p>
-        </>
-    );
+	console.log(Thing.A);
+	return (
+		<>
+			<p class="stuff">Hello Qwik</p>
+		</>
+	);
 });
 
 ============================= test.js ==
@@ -34,7 +34,7 @@ export let Thing;
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;WAGO;UAAK,KAAK;IAAL,MAAA,MACR,OAAA,KAAA;IADQ,MAAA,MAER,OAAA,KAAA;GAFQ,UAAA;AAKZ,OAAO,MAAM,oBAAM,wGAOhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;WAGO;UAAK,KAAK;IAAL,MAAA,MACX,OAAA,KAAA;IADW,MAAA,MAEX,OAAA,KAAA;GAFW,UAAA;AAKZ,OAAO,MAAM,oBAAM,wGAOhB\"}")
 ============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
 
 import { Thing } from "./test";
@@ -48,7 +48,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAQ8B,IAAM;IAChC,QAAQ,GAAG,CAAC,MAAM,CAAC;IACnB,qBACI,2CACI,MAAC;QAAE,OAAM;OAAQ;AAG7B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAQ8B,IAAM;IACnC,QAAQ,GAAG,CAAC,MAAM,CAAC;IACnB,qBACC,2CACC,MAAC;QAAE,OAAM;OAAQ;AAGpB\"}")
 /*
 {
   "origin": "test.tsx",
@@ -63,8 +63,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    126,
-    248
+    120,
+    212
   ]
 }
 */

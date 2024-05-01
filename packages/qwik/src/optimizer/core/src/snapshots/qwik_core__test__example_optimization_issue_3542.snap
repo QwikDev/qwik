@@ -9,16 +9,16 @@ expression: output
 import { component$ } from '@builder.io/qwik';
 
 export const AtomStatus = component$(({ctx,atom})=>{
-    let status = atom.status;
-    if(!atom.real) {
-        status="WILL-VANISH"
-    } else if (JSON.stringify(atom.atom)==JSON.stringify(atom.real)) {
-        status="WTFED"
-    }
-    return (
-        <span title={atom.ID} onClick$={(ev)=>atomStatusClick(ctx,ev,[atom])} class={["atom",status,ctx.store[atom.ID]?"selected":null]}>
-        </span>
-    );
+	let status = atom.status;
+	if(!atom.real) {
+		status="WILL-VANISH"
+	} else if (JSON.stringify(atom.atom)==JSON.stringify(atom.real)) {
+		status="WTFED"
+	}
+	return (
+		<span title={atom.ID} onClick$={(ev)=>atomStatusClick(ctx,ev,[atom])} class={["atom",status,ctx.store[atom.ID]?"selected":null]}>
+		</span>
+	);
 })
 
 ============================= test.jsx ==
@@ -43,11 +43,11 @@ export const AtomStatus = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((p
         props.ctx.store[props.atom.ID] ? "selected" : null
     ]}>
 
-        </span>;
+		</span>;
 }, "AtomStatus_component_hdwpoUtydSA"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,2BAAa,sCAAW,SAAc;IAC/C,IAAI,SAAS,MAD0B,KACrB,MAAM;IACxB,IAAG,CAAC,MAFmC,KAE9B,IAAI,EACT,SAAO;SACJ,IAAI,KAAK,SAAS,CAAC,MAJa,KAIR,IAAI,KAAG,KAAK,SAAS,CAAC,MAJd,KAImB,IAAI,GAC1D,SAAO;IAEX,QACK,KAAK,OAAO,MARsB,KAQjB,EAAE,EAAE,mCAAU,CAAC;;eAAK,sBARP,KAQ2B,IAAG;kBAR1B;SAQgC;;;QAAG,OAAO;QAAC;QAAO;QAAO,MAR7D,IAQiE,KAAK,CAAC,MARnE,KAQwE,EAAE,CAAC,GAAC,aAAW,IAAI;KAAC,EAAE;;QACjI,EAAE;AAEV,wCAAE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,2BAAa,sCAAW,SAAc;IAClD,IAAI,SAAS,MAD6B,KACxB,MAAM;IACxB,IAAG,CAAC,MAFsC,KAEjC,IAAI,EACZ,SAAO;SACD,IAAI,KAAK,SAAS,CAAC,MAJgB,KAIX,IAAI,KAAG,KAAK,SAAS,CAAC,MAJX,KAIgB,IAAI,GAC7D,SAAO;IAER,QACE,KAAK,OAAO,MAR4B,KAQvB,EAAE,EAAE,mCAAU,CAAC;;eAAK,sBARD,KAQqB,IAAG;kBARpB;SAQ0B;;;QAAG,OAAO;QAAC;QAAO;QAAO,MARvD,IAQ2D,KAAK,CAAC,MAR7D,KAQkE,EAAE,CAAC,GAAC,aAAW,IAAI;KAAC,EAAE;;EACjI,EAAE;AAEJ,wCAAE\"}")
 == DIAGNOSTICS ==
 
 []

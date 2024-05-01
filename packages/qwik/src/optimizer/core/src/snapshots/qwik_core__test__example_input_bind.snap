@@ -9,19 +9,19 @@ expression: output
 import { component$, $ } from '@builder.io/qwik';
 
 export const Greeter = component$(() => {
-    const value = useSignal(0);
-    const checked = useSignal(false);
-    const stuff = useSignal();
-    return (
-        <>
-            <input bind:value={value} />
-            <input bind:checked={checked} />
-            <input bind:stuff={stuff} />
-            <div>{value}</div>
-            <div>{value.value}</div>
-        </>
+	const value = useSignal(0);
+	const checked = useSignal(false);
+	const stuff = useSignal();
+	return (
+		<>
+			<input bind:value={value} />
+			<input bind:checked={checked} />
+			<input bind:stuff={stuff} />
+			<div>{value}</div>
+			<div>{value.value}</div>
+		</>
 
-    )
+	)
 });
 
 ============================= test.js ==
@@ -72,7 +72,7 @@ export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
 }, "s_n7HuG2hhU0Q"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AAGA,OAAO,MAAM,wBAAU,sCAAW,IAAM;IACpC,MAAM,QAAQ,UAAU;IACxB,MAAM,UAAU,UAAU,KAAK;IAC/B,MAAM,QAAQ;IACd,qBACI;sBACI,MAAC;qBAAkB;;;uBAAA;;;;;sBACnB,MAAC;uBAAoB;;;uBAAA;;;;;sBACrB,MAAC;qBAAkB;;;uBAAA;;;;;sBACnB,MAAC,mBAAK;sBACN,MAAC,mCAAK,GAAM,KAAK;;;;AAI7B,qBAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AAGA,OAAO,MAAM,wBAAU,sCAAW,IAAM;IACvC,MAAM,QAAQ,UAAU;IACxB,MAAM,UAAU,UAAU,KAAK;IAC/B,MAAM,QAAQ;IACd,qBACC;sBACC,MAAC;qBAAkB;;;uBAAA;;;;;sBACnB,MAAC;uBAAoB;;;uBAAA;;;;;sBACrB,MAAC;qBAAkB;;;uBAAA;;;;;sBACnB,MAAC,mBAAK;sBACN,MAAC,mCAAK,GAAM,KAAK;;;;AAIpB,qBAAG\"}")
 == DIAGNOSTICS ==
 
 []

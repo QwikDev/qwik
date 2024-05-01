@@ -9,26 +9,26 @@ expression: output
 import { $, component$ } from '@builder.io/qwik';
 
 export const Foo = component$(({color}) => {
-    return (
-        <div>
-            <Button {...props} />
-            <ButtonArrow {...props} />
-        </div>
-    );
+	return (
+		<div>
+			<Button {...props} />
+			<ButtonArrow {...props} />
+		</div>
+	);
 }, {
-    tagName: "my-foo",
+	tagName: "my-foo",
 });
 
 export function Button({text, color}) {
-    return (
-        <button onColor$={color} onClick$={()=>console.log(text, color)}>{text}</button>
-    );
+	return (
+		<button onColor$={color} onClick$={()=>console.log(text, color)}>{text}</button>
+	);
 }
 
 export const ButtonArrow = ({text, color}) => {
-    return (
-        <button onColor$={color} onClick$={()=>console.log(text, color)}>{text}</button>
-    );
+	return (
+		<button onColor$={color} onClick$={()=>console.log(text, color)}>{text}</button>
+	);
 }
 
 ============================= foo_component_htdrsvublie.tsx (ENTRY POINT)==
@@ -38,15 +38,15 @@ import { ButtonArrow } from "./test";
 export const Foo_component_HTDRsvUbLiE = (props1)=>{
     return <div>
 
-            <Button {...props}/>
+			<Button {...props}/>
 
-            <ButtonArrow {...props}/>
+			<ButtonArrow {...props}/>
 
-        </div>;
+		</div>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B,UAAa;IACvC,QACK,IAAI;;YACD,CAAC,QAAQ,GAAG,KAAK,GAAI;;YACrB,CAAC,aAAa,GAAG,KAAK,GAAI;;QAC9B,EAAE;AAEV\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B,UAAa;IAC1C,QACE,IAAI;;GACJ,CAAC,QAAQ,GAAG,KAAK,GAAI;;GACrB,CAAC,aAAa,GAAG,KAAK,GAAI;;EAC3B,EAAE;AAEJ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -62,7 +62,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     83,
-    221
+    185
   ]
 }
 */
@@ -75,7 +75,7 @@ export const ButtonArrow_button_onClick_9npo43fIGik = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";sDAsB2C;;WAAI,QAAQ,GAAG,CAAC,MAAM\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";sDAsBqC;;WAAI,QAAQ,GAAG,CAAC,MAAM\"}")
 /*
 {
   "origin": "test.tsx",
@@ -90,8 +90,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    509,
-    537
+    449,
+    477
   ]
 }
 */
@@ -104,7 +104,7 @@ export const Button_button_onClick_NsM0JYV00Jw = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";iDAgB2C;;WAAI,QAAQ,GAAG,CAAC,MAAM\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";iDAgBqC;;WAAI,QAAQ,GAAG,CAAC,MAAM\"}")
 /*
 {
   "origin": "test.tsx",
@@ -119,8 +119,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    349,
-    377
+    301,
+    329
   ]
 }
 */
@@ -145,7 +145,7 @@ export const ButtonArrow = ({ text , color  })=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,wGAOhB;IACC,SAAS;AACb,GAAG;AAEH,OAAO,SAAS,OAAO,EAAC,KAAI,EAAE,MAAK,EAAC,EAAE;IAClC,QACK,OAAO,UAAU,OAAO;;;SAAyC,OAAO;AAEjF,CAAC;AAED,OAAO,MAAM,cAAc,CAAC,EAAC,KAAI,EAAE,MAAK,EAAC,GAAK;IAC1C,QACK,OAAO,UAAU,OAAO;;;SAAyC,OAAO;AAEjF,EAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,wGAOhB;IACF,SAAS;AACV,GAAG;AAEH,OAAO,SAAS,OAAO,EAAC,KAAI,EAAE,MAAK,EAAC,EAAE;IACrC,QACE,OAAO,UAAU,OAAO;;;SAAyC,OAAO;AAE3E,CAAC;AAED,OAAO,MAAM,cAAc,CAAC,EAAC,KAAI,EAAE,MAAK,EAAC,GAAK;IAC7C,QACE,OAAO,UAAU,OAAO;;;SAAyC,OAAO;AAE3E,EAAC\"}")
 == DIAGNOSTICS ==
 
 []

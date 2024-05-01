@@ -9,11 +9,11 @@ expression: output
 import { component$, useStore } from '@builder.io/qwik';
 
 export const App = component$(() => {
-    return (
-        <Cmp>
-            <p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
-        </Cmp>
-    );
+	return (
+		<Cmp>
+			<p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
+		</Cmp>
+	);
 });
 
 ============================= test.js ==
@@ -23,7 +23,7 @@ import { qrlDEV } from "@builder.io/qwik";
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0", {
     file: "/user/qwik/src/test.tsx",
     lo: 90,
-    hi: 229,
+    hi: 202,
     displayName: "App_component"
 }));
 
@@ -38,23 +38,23 @@ export const App_component_ckEPmXZlub0 = ()=>{
         class: "stuff",
         onClick$: /*#__PURE__*/ qrlDEV(()=>import("./app_component_cmp_p_onclick_vuxzfutkpto"), "App_component_Cmp_p_onClick_vuXzfUTkpto", {
             file: "/user/qwik/src/test.tsx",
-            lo: 164,
-            hi: 189,
+            lo: 146,
+            hi: 171,
             displayName: "App_component_Cmp_p_onClick"
         })
     }, "Hello Qwik", 3, null, {
         fileName: "test.tsx",
         lineNumber: 7,
-        columnNumber: 13
+        columnNumber: 4
     }), 3, "u6_0", {
         fileName: "test.tsx",
         lineNumber: 6,
-        columnNumber: 9
+        columnNumber: 3
     });
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B,IAAM;IAChC,qBACI,MAAC,+BACG,MAAC;QAAE,OAAM;QAAQ,QAAQ;;;;;;OAA6B;;;;;;;;;AAGlE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B,IAAM;IACnC,qBACC,MAAC,+BACA,MAAC;QAAE,OAAM;QAAQ,QAAQ;;;;;;OAA6B;;;;;;;;;AAGzD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -70,7 +70,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     90,
-    229
+    202
   ]
 }
 */
@@ -79,7 +79,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 export const App_component_Cmp_p_onClick_vuXzfUTkpto = ()=>console.log('warn');
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"uDAMuC,IAAM,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"uDAM8B,IAAM,QAAQ,GAAG,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -94,8 +94,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
-    164,
-    189
+    146,
+    171
   ]
 }
 */

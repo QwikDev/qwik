@@ -9,25 +9,25 @@ expression: output
 import { $, component$ } from '@builder.io/qwik';
 
 export const Foo = component$(({foo}) => {
-    const arg0 = 20;
-    return $(() => {
-        const fn = ({aaa}) => aaa;
-        return (
-            <div>
-              {foo}{fn()}{arg0}
-            </div>
-        )
-    });
+	const arg0 = 20;
+	return $(() => {
+		const fn = ({aaa}) => aaa;
+		return (
+			<div>
+				{foo}{fn()}{arg0}
+			</div>
+		)
+	});
 })
 
 export const Bar = component$(({bar}) => {
-    return $(() => {
-        return (
-            <div>
-              {bar}
-            </div>
-        )
-    });
+	return $(() => {
+		return (
+			<div>
+				{bar}
+			</div>
+		)
+	});
 })
 
 ============================= foo_component_htdrsvublie.jsx (ENTRY POINT)==
@@ -40,7 +40,7 @@ export const Foo_component_HTDRsvUbLiE = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAG8B,SAAW;IAErC;;;AAQJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAG8B,SAAW;IAExC;;;AAQD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -56,7 +56,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     83,
-    278
+    223
   ]
 }
 */
@@ -79,7 +79,7 @@ export const Bar_component_L80pS8Hxf1Y = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAe8B,SAAW;IACrC;;;AAOJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAe8B,SAAW;IACxC;;;AAOD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -94,8 +94,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    311,
-    438
+    256,
+    337
   ]
 }
 */
@@ -107,14 +107,14 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
     const fn = ({ aaa  })=>aaa;
     return <div>
 
-              {props.foo}{fn()}{20}
+				{props.foo}{fn()}{20}
 
-            </div>;
+			</div>;
 };
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAKa;;IACL,MAAM,KAAK,CAAC,EAAC,IAAG,EAAC,GAAK;IACtB,QACK,IAAI;;cACH,OANkB,KAMZ,MALH,GAKc;;YACnB,EAAE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAKU;;IACR,MAAM,KAAK,CAAC,EAAC,IAAG,EAAC,GAAK;IACtB,QACE,IAAI;;IACJ,OAN4B,KAMtB,MALI,GAKO;;GAClB,EAAE\"}")
 /*
 {
   "origin": "test.tsx",
@@ -129,8 +129,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": true,
   "loc": [
-    130,
-    274
+    124,
+    219
   ]
 }
 */
@@ -141,14 +141,14 @@ export const Bar_component_1_0xSyNSnVu3k = ()=>{
     const [props] = useLexicalScope();
     return <div>
 
-              {props.bar}
+				{props.bar}
 
-            </div>;
+			</div>;
 };
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAgBa;;IACL,QACK,IAAI;;cACH,OAJkB,IAIb;;YACP,EAAE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAgBU;;IACR,QACE,IAAI;;IACJ,OAJ4B,IAIvB;;GACN,EAAE\"}")
 /*
 {
   "origin": "test.tsx",
@@ -163,8 +163,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": true,
   "loc": [
-    337,
-    434
+    279,
+    333
   ]
 }
 */

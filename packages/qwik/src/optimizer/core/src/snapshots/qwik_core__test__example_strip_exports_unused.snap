@@ -10,16 +10,16 @@ import { component$ } from '@builder.io/qwik';
 import mongodb from 'mongodb';
 
 export const onGet = () => {
-    const data = mongodb.collection.whatever;
-    return {
-        body: {
-        data
-        }
-    }
+	const data = mongodb.collection.whatever;
+	return {
+		body: {
+		data
+		}
+	}
 };
 
 export default component$(()=> {
-    return <div>cmp</div>
+	return <div>cmp</div>
 });
 
 ============================= test.tsx ==
@@ -40,7 +40,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"0CAa0B,IAAK;IAC3B,QAAQ,IAAI,GAAG,EAAE;AACrB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"0CAa0B,IAAK;IAC9B,QAAQ,IAAI,GAAG,EAAE;AAClB\"}")
 /*
 {
   "origin": "test.tsx",
@@ -55,8 +55,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    244,
-    278
+    217,
+    248
   ]
 }
 */

@@ -8,10 +8,10 @@ expression: output
 
 import { $, component$ } from '@builder.io/qwik';
 export const Header = component$(() => {
-    console.log("mount");
-    return (
-        <div onClick={$((ctx) => console.log(ctx))}/>
-    );
+	console.log("mount");
+	return (
+		<div onClick={$((ctx) => console.log(ctx))}/>
+	);
 });
 
 ============================= header_component_j4uyihabnr4.tsx (ENTRY POINT)==
@@ -23,7 +23,7 @@ export const Header_component_J4uyIhaBNR4 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAEiC,IAAM;IACnC,QAAQ,GAAG,CAAC;IACZ,QACK,IAAI;AAEb\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAEiC,IAAM;IACtC,QAAQ,GAAG,CAAC;IACZ,QACE,IAAI;AAEP\"}")
 /*
 {
   "origin": "test.tsx",
@@ -39,7 +39,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     85,
-    194
+    179
   ]
 }
 */
@@ -57,7 +57,7 @@ export const Header_component_div_onClick_i7ekvWH3674 = (ctx)=>console.log(ctx);
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"wDAKwB,CAAC,MAAQ,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"wDAKkB,CAAC,MAAQ,QAAQ,GAAG,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -72,8 +72,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": false,
   "loc": [
-    156,
-    181
+    144,
+    169
   ]
 }
 */

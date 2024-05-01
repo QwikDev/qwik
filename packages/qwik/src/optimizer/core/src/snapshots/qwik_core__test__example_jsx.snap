@@ -9,41 +9,41 @@ expression: output
 import { $, component$, h, Fragment } from '@builder.io/qwik';
 
 export const Lightweight = (props) => {
-    return (
-        <div>
-            <>
-                <div/>
-                <button {...props}/>
-            </>
-        </div>
-    )
+	return (
+		<div>
+			<>
+				<div/>
+				<button {...props}/>
+			</>
+		</div>
+	)
 };
 
 export const Foo = component$((props) => {
-    return $(() => {
-        return (
-            <div>
-                <>
-                    <div class="class"/>
-                    <div class="class"></div>
-                    <div class="class">12</div>
-                </>
-                <div class="class">
-                    <Lightweight {...props}/>
-                </div>
-                <div class="class">
-                    <div/>
-                    <div/>
-                    <div/>
-                </div>
-                <div class="class">
-                    {children}
-                </div>
-            </div>
-        )
-    });
+	return $(() => {
+		return (
+			<div>
+				<>
+					<div class="class"/>
+					<div class="class"></div>
+					<div class="class">12</div>
+				</>
+				<div class="class">
+					<Lightweight {...props}/>
+				</div>
+				<div class="class">
+					<div/>
+					<div/>
+					<div/>
+				</div>
+				<div class="class">
+					{children}
+				</div>
+			</div>
+		)
+	});
 }, {
-    tagName: "my-foo",
+	tagName: "my-foo",
 });
 
 ============================= test.js ==
@@ -66,7 +66,7 @@ export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./fo
 });
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,cAAc,CAAC,QAAU;IAClC,qBACI,MAAC,iCACG;sBACI,MAAC;sBACD,MAAC;YAAQ,GAAG,KAAK;;;AAIjC,EAAE;AAEF,OAAO,MAAM,oBAAM,wGAuBhB;IACC,SAAS;AACb,GAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,cAAc,CAAC,QAAU;IACrC,qBACC,MAAC,iCACA;sBACC,MAAC;sBACD,MAAC;YAAQ,GAAG,KAAK;;;AAIrB,EAAE;AAEF,OAAO,MAAM,oBAAM,wGAuBhB;IACF,SAAS;AACV,GAAG\"}")
 ============================= foo_component_htdrsvublie.js (ENTRY POINT)==
 
 import { qrl } from "@builder.io/qwik";
@@ -77,7 +77,7 @@ export const Foo_component_HTDRsvUbLiE = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAc8B,CAAC,QAAU;IACrC;;;AAsBJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAc8B,CAAC,QAAU;IACxC;;;AAsBD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -92,8 +92,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    279,
-    895
+    219,
+    583
   ]
 }
 */
@@ -138,7 +138,7 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;2CAea;;IACL,qBACI,MAAC;sBACG;0BACI,MAAC;gBAAI,OAAM;;0BACX,MAAC;gBAAI,OAAM;;0BACX,MAAC;gBAAI,OAAM;eAAQ;;sBAEvB,MAAC;YAAI,OAAM;yBACP,MAAC;YAAa,GAAG,KAAK;;sBAE1B,MAAC;YAAI,OAAM;;0BACP,MAAC;0BACD,MAAC;0BACD,MAAC;;sBAEL,MAAC;YAAI,OAAM;WACN\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;2CAeU;;IACR,qBACC,MAAC;sBACA;0BACC,MAAC;gBAAI,OAAM;;0BACX,MAAC;gBAAI,OAAM;;0BACX,MAAC;gBAAI,OAAM;eAAQ;;sBAEpB,MAAC;YAAI,OAAM;yBACV,MAAC;YAAa,GAAG,KAAK;;sBAEvB,MAAC;YAAI,OAAM;;0BACV,MAAC;0BACD,MAAC;0BACD,MAAC;;sBAEF,MAAC;YAAI,OAAM;WACT\"}")
 /*
 {
   "origin": "test.tsx",
@@ -153,8 +153,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": true,
   "loc": [
-    305,
-    891
+    242,
+    579
   ]
 }
 */

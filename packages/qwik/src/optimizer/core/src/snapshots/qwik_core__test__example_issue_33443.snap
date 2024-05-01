@@ -9,19 +9,19 @@ expression: output
 import { component$, useSignal } from '@builder.io/qwik';
 
 export const Issue3742 = component$(({description = '', other}: any) => {
-    const counter = useSignal(0);
-    return (
-      <div
-        title={(description && 'description' in other) ? `Hello ${counter.value}` : `Bye ${counter.value}`}
-      >
-        Issue3742
-        <button onClick$={() => counter.value++}>
-          Increment
-        </button>
-      </div>
-    )
-  });
-  
+	const counter = useSignal(0);
+	return (
+		<div
+		title={(description && 'description' in other) ? `Hello ${counter.value}` : `Bye ${counter.value}`}
+		>
+		Issue3742
+		<button onClick$={() => counter.value++}>
+			Increment
+		</button>
+		</div>
+	)
+	});
+	
 ============================= test.js ==
 
 import { componentQrl } from "@builder.io/qwik";
@@ -49,7 +49,7 @@ const Issue3742_component_svSy0PlWTAw = (props)=>{
 export const Issue3742 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(Issue3742_component_svSy0PlWTAw, "Issue3742_component_svSy0PlWTAw"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AACA,SAAqB,SAAS,QAAQ,mBAAmB;2DAS/B;;WAAM,QAAQ,KAAK;;wCAPT,SAAoC;IACpE,MAAM,UAAU,UAAU;IAC1B,qBACE,MAAC;QACC,OAAO,AAAC,OAJsB,eAAc,OAIrB,uBAJyB,QAIC,CAAC,MAAM,EAAE,QAAQ,KAAK,CAAC,CAAC,GAAG,CAAC,IAAI,EAAE,QAAQ,KAAK,CAAC,CAAC;;QACnG;sBAEC,MAAC;YAAO,QAAQ;;;WAAyB;;AAK/C;AAZF,OAAO,MAAM,0BAAY,2GAYpB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AACA,SAAqB,SAAS,QAAQ,mBAAmB;2DASrC;;WAAM,QAAQ,KAAK;;wCAPH,SAAoC;IACvE,MAAM,UAAU,UAAU;IAC1B,qBACC,MAAC;QACD,OAAO,AAAC,OAJ4B,eAAc,OAI3B,uBAJ+B,QAIL,CAAC,MAAM,EAAE,QAAQ,KAAK,CAAC,CAAC,GAAG,CAAC,IAAI,EAAE,QAAQ,KAAK,CAAC,CAAC;;QACjG;sBAED,MAAC;YAAO,QAAQ;;;WAAyB;;AAK1C;AAZD,OAAO,MAAM,0BAAY,2GAYrB\"}")
 == DIAGNOSTICS ==
 
 []

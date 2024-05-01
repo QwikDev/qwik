@@ -8,13 +8,13 @@ expression: output
 
 import { $, component$ } from '@builder.io/qwik';
 export const App = () => {
-    const Header = component$(() => {
-        console.log("mount");
-        return (
-            <div onClick={$((ctx) => console.log(ctx))}/>
-        );
-    });
-    return Header;
+	const Header = component$(() => {
+		console.log("mount");
+		return (
+			<div onClick={$((ctx) => console.log(ctx))}/>
+		);
+	});
+	return Header;
 });
 
 ============================= app_header_component_b9f3yeqco1w.tsx (ENTRY POINT)==
@@ -26,7 +26,7 @@ export const App_Header_component_B9F3YeqcO1w = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";gDAG8B,IAAM;IAC5B,QAAQ,GAAG,CAAC;IACZ,QACK,IAAI;AAEb\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";gDAG2B,IAAM;IAC/B,QAAQ,GAAG,CAAC;IACZ,QACE,IAAI;AAEP\"}")
 /*
 {
   "origin": "test.tsx",
@@ -41,8 +41,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    109,
-    238
+    106,
+    205
   ]
 }
 */
@@ -52,7 +52,7 @@ export const App_Header_component_div_onClick_aO7uI7Iw6oQ = (ctx)=>console.log(c
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"4DAM4B,CAAC,MAAQ,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"4DAMmB,CAAC,MAAQ,QAAQ,GAAG,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -67,8 +67,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": false,
   "loc": [
-    192,
-    217
+    168,
+    193
   ]
 }
 */
@@ -82,7 +82,7 @@ export const App = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAEA,OAAO,MAAM,MAAM,IAAM;IACrB,MAAM,uBAAS;IAMf,OAAO;AACX,EAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAEA,OAAO,MAAM,MAAM,IAAM;IACxB,MAAM,uBAAS;IAMf,OAAO;AACR,EAAG\"}")
 == DIAGNOSTICS ==
 
 []

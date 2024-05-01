@@ -10,7 +10,7 @@ import { component$, $ } from '@builder.io/qwik';
 import json from "./foo.json" assert { type: "json" };
 
 export const Greeter = component$(() => {
-    return json;
+	return json;
 });
 
 ============================= test.js ==
@@ -31,7 +31,7 @@ export const Greeter_component_n7HuG2hhU0Q = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"qCAEqC;IAAE,MAAM;AAAO;6CAElB,IAAM;IACpC,OAAO;AACX\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"qCAEqC;IAAE,MAAM;AAAO;6CAElB,IAAM;IACvC,OAAO;AACR\"}")
 /*
 {
   "origin": "test.tsx",
@@ -47,7 +47,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     142,
-    168
+    165
   ]
 }
 */

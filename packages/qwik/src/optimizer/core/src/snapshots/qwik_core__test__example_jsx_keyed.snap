@@ -9,15 +9,15 @@ expression: output
 import { component$, useStore } from '@builder.io/qwik';
 
 export const App = component$((props: Stuff) => {
-    return (
-        <>
-            <Cmp key="stuff"></Cmp>
-            <Cmp></Cmp>
-            <Cmp prop="23"></Cmp>
-            <Cmp prop="23" key={props.stuff}></Cmp>
-            <p key={props.stuff}>Hello Qwik</p>
-        </>
-    );
+	return (
+		<>
+			<Cmp key="stuff"></Cmp>
+			<Cmp></Cmp>
+			<Cmp prop="23"></Cmp>
+			<Cmp prop="23" key={props.stuff}></Cmp>
+			<p key={props.stuff}>Hello Qwik</p>
+		</>
+	);
 });
 
 ============================= test.js ==
@@ -47,7 +47,7 @@ export const App_component_ckEPmXZlub0 = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B,CAAC,QAAiB;IAC5C,qBACI;sBACI,MAAC,0BAAQ;sBACT,MAAC;sBACD,MAAC;YAAI,MAAK;;sBACV,MAAC;YAAI,MAAK;oBAAU,MAAM,KAAK;sBAC/B,MAAC,iBAAoB,iBAAb,MAAM,KAAK;;AAG/B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B,CAAC,QAAiB;IAC/C,qBACC;sBACC,MAAC,0BAAQ;sBACT,MAAC;sBACD,MAAC;YAAI,MAAK;;sBACV,MAAC;YAAI,MAAK;oBAAU,MAAM,KAAK;sBAC/B,MAAC,iBAAoB,iBAAb,MAAM,KAAK;;AAGtB\"}")
 /*
 {
   "origin": "test.tsx",
@@ -63,7 +63,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     90,
-    348
+    285
   ]
 }
 */

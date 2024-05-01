@@ -10,95 +10,95 @@ import { component$, useStore, Slot, Fragment } from '@builder.io/qwik';
 import Image from './image.jpg?jsx';
 
 export function Fn1(props: Stuff) {
-    return (
-        <>
-            <div>{prop < 2 ? <p>1</p> : <Stuff>2</Stuff>}</div>
-        </>
-    );
+	return (
+		<>
+			<div>{prop < 2 ? <p>1</p> : <Stuff>2</Stuff>}</div>
+		</>
+	);
 }
 
 export function Fn2(props: Stuff) {
-    return (
-        <div>{prop.value && <Stuff></Stuff>}<div></div></div>
-    );
+	return (
+		<div>{prop.value && <Stuff></Stuff>}<div></div></div>
+	);
 }
 
 export function Fn3(props: Stuff) {
-    if (prop.value) {
-        return (
-            <Stuff></Stuff>
-        );
-    }
-    return (
-        <div></div>
-    );
+	if (prop.value) {
+		return (
+			<Stuff></Stuff>
+		);
+	}
+	return (
+		<div></div>
+	);
 }
 
 export function Fn4(props: Stuff) {
-    if (prop.value) {
-        return (
-            <div></div>
-        );
-    }
-    return (
-        <Stuff></Stuff>
-    );
+	if (prop.value) {
+		return (
+			<div></div>
+		);
+	}
+	return (
+		<Stuff></Stuff>
+	);
 }
 
 export const Arrow = (props: Stuff) => <div>{prop < 2 ? <p>1</p> : <Stuff>2</Stuff>}</div>;
 
 export const AppDynamic1 = component$((props: Stuff) => {
-    return (
-        <>
-            <div>{prop < 2 ? <p>1</p> : <Stuff>2</Stuff>}</div>
-        </>
-    );
+	return (
+		<>
+			<div>{prop < 2 ? <p>1</p> : <Stuff>2</Stuff>}</div>
+		</>
+	);
 });
 export const AppDynamic2 = component$((props: Stuff) => {
-    return (
-        <div>{prop.value && <Stuff></Stuff>}<div></div></div>
-    );
+	return (
+		<div>{prop.value && <Stuff></Stuff>}<div></div></div>
+	);
 });
 
 export const AppDynamic3 = component$((props: Stuff) => {
-    if (prop.value) {
-        return (
-            <Stuff></Stuff>
-        );
-    }
-    return (
-        <div></div>
-    );
+	if (prop.value) {
+		return (
+			<Stuff></Stuff>
+		);
+	}
+	return (
+		<div></div>
+	);
 });
 
 export const AppDynamic4 = component$((props: Stuff) => {
-    if (prop.value) {
-        return (
-            <div></div>
-        );
-    }
-    return (
-        <Stuff></Stuff>
-    );
+	if (prop.value) {
+		return (
+			<div></div>
+		);
+	}
+	return (
+		<Stuff></Stuff>
+	);
 });
 
 export const AppStatic = component$((props: Stuff) => {
-    return (
-        <>
-            <div>Static {f ? 1 : 3}</div>
-            <div>{prop < 2 ? <p>1</p> : <p>2</p>}</div>
+	return (
+		<>
+			<div>Static {f ? 1 : 3}</div>
+			<div>{prop < 2 ? <p>1</p> : <p>2</p>}</div>
 
-            <div>{prop.value && <div></div>}</div>
-            <div>{prop.value && <Fragment><Slot></Slot></Fragment>}</div>
-            <div>{prop.value && <><div></div></>}</div>
-            <div>{prop.value && <Image/>}</div>
-            <div>Static {f ? 1 : 3}</div>
-            <div>Static</div>
-            <div>Static {props.value}</div>
-            <div>Static {stuff()}</div>
-            <div>Static {stuff()}</div>
-        </>
-    );
+			<div>{prop.value && <div></div>}</div>
+			<div>{prop.value && <Fragment><Slot></Slot></Fragment>}</div>
+			<div>{prop.value && <><div></div></>}</div>
+			<div>{prop.value && <Image/>}</div>
+			<div>Static {f ? 1 : 3}</div>
+			<div>Static</div>
+			<div>Static {props.value}</div>
+			<div>Static {stuff()}</div>
+			<div>Static {stuff()}</div>
+		</>
+	);
 });
 
 ============================= test.js ==
@@ -194,7 +194,7 @@ const AppStatic_component_gYRXqF3G5nE = (props)=>{
 export const AppStatic = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(AppStatic_component_gYRXqF3G5nE, "AppStatic_component_gYRXqF3G5nE"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AACA,SAA+B,IAAI,EAAE,QAAQ,QAAQ,mBAAmB;AACxE,OAAO,WAAW,kBAAkB;AAEpC,OAAO,SAAS,IAAI,KAAY,EAAE;;IAC9B,qBACI,2CACI,MAAC,mBAAK,OAAO,kBAAI,MAAC,iBAAE,gCAAQ,MAAC,mBAAM,eAAS;AAGxD,CAAC;AAED,OAAO,SAAS,IAAI,KAAY,EAAE;;IAC9B,qBACI,MAAC;QAAK,KAAK,KAAK,kBAAI,MAAC;sBAAe,MAAC;;AAE7C,CAAC;AAED,OAAO,SAAS,IAAI,KAAY,EAAE;;IAC9B,IAAI,KAAK,KAAK,EACV,qBACI,MAAC;IAGT,qBACI,MAAC;AAET,CAAC;AAED,OAAO,SAAS,IAAI,KAAY,EAAE;;IAC9B,IAAI,KAAK,KAAK,EACV,qBACI,MAAC;IAGT,qBACI,MAAC;AAET,CAAC;AAED,OAAO,MAAM,QAAQ,CAAC,+CAAiB,MAAC,mBAAK,OAAO,kBAAI,MAAC,iBAAE,gCAAQ,MAAC,mBAAM,gBAAS,eAAQ;0CAErD,CAAC,QAAiB;;IACpD,qBACI,2CACI,MAAC,mBAAK,OAAO,kBAAI,MAAC,iBAAE,iCAAQ,MAAC,mBAAM,gBAAS;AAGxD;AANA,OAAO,MAAM,4BAAc,+GAMxB;0CACmC,CAAC,QAAiB;;IACpD,qBACI,MAAC;QAAK,KAAK,KAAK,kBAAI,MAAC;sBAAe,MAAC;;AAE7C;AAJA,OAAO,MAAM,4BAAc,+GAIxB;0CAEmC,CAAC,QAAiB;;IACpD,IAAI,KAAK,KAAK,EACV,qBACI,MAAC;IAGT,qBACI,MAAC;AAET;AATA,OAAO,MAAM,4BAAc,+GASxB;0CAEmC,CAAC,QAAiB;;IACpD,IAAI,KAAK,KAAK,EACV,qBACI,MAAC;IAGT,qBACI,MAAC;AAET;AATA,OAAO,MAAM,4BAAc,+GASxB;wCAEiC,CAAC,QAAiB;;IAClD,qBACI;sBACI,MAAC;YAAI;YAAQ,IAAI,IAAI,CAAC;;sBACtB,MAAC,mBAAK,OAAO,kBAAI,MAAC,iBAAE,iCAAQ,MAAC,iBAAE,aAAK;sBAEpC,MAAC,mBAAK,KAAK,KAAK,kBAAI,MAAC;sBACrB,MAAC,mBAAK,KAAK,KAAK,kBAAI,MAAC,oCAAS,MAAC;sBAC/B,MAAC,mBAAK,KAAK,KAAK,kBAAI,2CAAE,MAAC;sBACvB,MAAC,mBAAK,KAAK,KAAK,kBAAI,MAAC;sBACrB,MAAC;YAAI;YAAQ,IAAI,IAAI,CAAC;;sBACtB,MAAC,mBAAI;sBACL,MAAC;YAAI;4BAAQ,GAAM,KAAK;;;;sBACxB,MAAC;YAAI;YAAQ;;sBACb,MAAC;YAAI;YAAQ;;;AAGzB;AAjBA,OAAO,MAAM,0BAAY,2GAiBtB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AACA,SAA+B,IAAI,EAAE,QAAQ,QAAQ,mBAAmB;AACxE,OAAO,WAAW,kBAAkB;AAEpC,OAAO,SAAS,IAAI,KAAY,EAAE;;IACjC,qBACC,2CACC,MAAC,mBAAK,OAAO,kBAAI,MAAC,iBAAE,gCAAQ,MAAC,mBAAM,eAAS;AAG/C,CAAC;AAED,OAAO,SAAS,IAAI,KAAY,EAAE;;IACjC,qBACC,MAAC;QAAK,KAAK,KAAK,kBAAI,MAAC;sBAAe,MAAC;;AAEvC,CAAC;AAED,OAAO,SAAS,IAAI,KAAY,EAAE;;IACjC,IAAI,KAAK,KAAK,EACb,qBACC,MAAC;IAGH,qBACC,MAAC;AAEH,CAAC;AAED,OAAO,SAAS,IAAI,KAAY,EAAE;;IACjC,IAAI,KAAK,KAAK,EACb,qBACC,MAAC;IAGH,qBACC,MAAC;AAEH,CAAC;AAED,OAAO,MAAM,QAAQ,CAAC,+CAAiB,MAAC,mBAAK,OAAO,kBAAI,MAAC,iBAAE,gCAAQ,MAAC,mBAAM,gBAAS,eAAQ;0CAErD,CAAC,QAAiB;;IACvD,qBACC,2CACC,MAAC,mBAAK,OAAO,kBAAI,MAAC,iBAAE,iCAAQ,MAAC,mBAAM,gBAAS;AAG/C;AANA,OAAO,MAAM,4BAAc,+GAMxB;0CACmC,CAAC,QAAiB;;IACvD,qBACC,MAAC;QAAK,KAAK,KAAK,kBAAI,MAAC;sBAAe,MAAC;;AAEvC;AAJA,OAAO,MAAM,4BAAc,+GAIxB;0CAEmC,CAAC,QAAiB;;IACvD,IAAI,KAAK,KAAK,EACb,qBACC,MAAC;IAGH,qBACC,MAAC;AAEH;AATA,OAAO,MAAM,4BAAc,+GASxB;0CAEmC,CAAC,QAAiB;;IACvD,IAAI,KAAK,KAAK,EACb,qBACC,MAAC;IAGH,qBACC,MAAC;AAEH;AATA,OAAO,MAAM,4BAAc,+GASxB;wCAEiC,CAAC,QAAiB;;IACrD,qBACC;sBACC,MAAC;YAAI;YAAQ,IAAI,IAAI,CAAC;;sBACtB,MAAC,mBAAK,OAAO,kBAAI,MAAC,iBAAE,iCAAQ,MAAC,iBAAE,aAAK;sBAEpC,MAAC,mBAAK,KAAK,KAAK,kBAAI,MAAC;sBACrB,MAAC,mBAAK,KAAK,KAAK,kBAAI,MAAC,oCAAS,MAAC;sBAC/B,MAAC,mBAAK,KAAK,KAAK,kBAAI,2CAAE,MAAC;sBACvB,MAAC,mBAAK,KAAK,KAAK,kBAAI,MAAC;sBACrB,MAAC;YAAI;YAAQ,IAAI,IAAI,CAAC;;sBACtB,MAAC,mBAAI;sBACL,MAAC;YAAI;4BAAQ,GAAM,KAAK;;;;sBACxB,MAAC;YAAI;YAAQ;;sBACb,MAAC;YAAI;YAAQ;;;AAGhB;AAjBA,OAAO,MAAM,0BAAY,2GAiBtB\"}")
 == DIAGNOSTICS ==
 
 []

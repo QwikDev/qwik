@@ -10,17 +10,17 @@ import { component$ as Component, $ as onRender, useStore, wrap, useEffect } fro
 
 
 export const useMemo$ = (qrt) => {
-    useEffect(qrt);
+	useEffect(qrt);
 };
 
 export const App = component$((props) => {
-    const state = useStore({count: 0});
-    useMemo$(() => {
-        console.log(state.count);
-    });
-    return $(() => (
-        <div>{state.count}</div>
-    ));
+	const state = useStore({count: 0});
+	useMemo$(() => {
+		console.log(state.count);
+	});
+	return $(() => (
+		<div>{state.count}</div>
+	));
 });
 
 ============================= test.js ==
@@ -44,7 +44,7 @@ export const App = component$((props)=>{
 });
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAiD,QAAQ,EAAQ,SAAS,QAAQ,mBAAmB;AAGrG,OAAO,MAAM,WAAW,CAAC,MAAQ;IAC7B,UAAU;AACd,EAAE;AAEF,OAAO,MAAM,MAAM,WAAW,CAAC,QAAU;IACrC,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAChC,SAAS,IAAM;QACX,QAAQ,GAAG,CAAC,MAAM,KAAK;IAC3B;IACA,OAAO,EAAE,kBACL,MAAC,mCAAK,GAAM,KAAK;;;AAEzB,GAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAiD,QAAQ,EAAQ,SAAS,QAAQ,mBAAmB;AAGrG,OAAO,MAAM,WAAW,CAAC,MAAQ;IAChC,UAAU;AACX,EAAE;AAEF,OAAO,MAAM,MAAM,WAAW,CAAC,QAAU;IACxC,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAChC,SAAS,IAAM;QACd,QAAQ,GAAG,CAAC,MAAM,KAAK;IACxB;IACA,OAAO,EAAE,kBACR,MAAC,mCAAK,GAAM,KAAK;;;AAEnB,GAAG\"}")
 == DIAGNOSTICS ==
 
 [
@@ -55,8 +55,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
     "message": "Found 'useMemo$' but did not find the corresponding 'useMemoQrl' exported in the same file. Please check that it is exported and spelled correctly",
     "highlights": [
       {
-        "lo": 252,
-        "hi": 260,
+        "lo": 243,
+        "hi": 251,
         "startLine": 11,
         "startCol": 5,
         "endLine": 11,

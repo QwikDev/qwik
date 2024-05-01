@@ -11,10 +11,10 @@ import { component$ as Component, $ as onRender } from '@builder.io/qwik';
 export const handler = $(()=>console.log('hola'));
 
 export const App = component$((props) => {
-    useStyles$('hola');
-    return $(() => (
-        <div>{state.thing}</div>
-    ));
+	useStyles$('hola');
+	return $(() => (
+		<div>{state.thing}</div>
+	));
 });
 
 ============================= test.js ==
@@ -28,7 +28,7 @@ export const App = component$((props)=>{
 });
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,UAAU,EAAE,IAAI,QAAQ,GAAG,CAAC,SAAS;AAElD,OAAO,MAAM,MAAM,WAAW,CAAC,QAAU;IACrC,WAAW;IACX,OAAO,EAAE,kBACL,MAAC,6BAAK;AAEd,GAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,UAAU,EAAE,IAAI,QAAQ,GAAG,CAAC,SAAS;AAElD,OAAO,MAAM,MAAM,WAAW,CAAC,QAAU;IACxC,WAAW;IACX,OAAO,EAAE,kBACR,MAAC,6BAAK;AAER,GAAG\"}")
 == DIAGNOSTICS ==
 
 []

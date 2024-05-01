@@ -12,38 +12,38 @@ import redis from 'redis';
 import { handler } from 'serverless';
 
 export const Parent = component$(() => {
-    const state = useStore({
-        text: ''
-    });
+	const state = useStore({
+		text: ''
+	});
 
-    // Double count watch
-    useServerMount$(async () => {
-        state.text = await mongo.users();
-        redis.set(state.text);
-    });
+	// Double count watch
+	useServerMount$(async () => {
+		state.text = await mongo.users();
+		redis.set(state.text);
+	});
 
-    serverStuff$(async () => {
-        // should be removed too
-        const a = $(() => {
-            // from $(), should not be removed
-        });
-        const b = client$(() => {
-            // from clien$(), should not be removed
-        });
-        return [a,b];
-    })
+	serverStuff$(async () => {
+		// should be removed too
+		const a = $(() => {
+			// from $(), should not be removed
+		});
+		const b = client$(() => {
+			// from clien$(), should not be removed
+		});
+		return [a,b];
+	})
 
-    serverLoader$(handler);
+	serverLoader$(handler);
 
-    useTask$(() => {
-        // Code
-    });
+	useTask$(() => {
+		// Code
+	});
 
-    return (
-        <div onClick$={() => console.log('parent')}>
-            {state.text}
-        </div>
-    );
+	return (
+		<div onClick$={() => console.log('parent')}>
+			{state.text}
+		</div>
+	);
 });
 
 ============================= parent_component_usetask_gdh1etuwqbu.js (ENTRY POINT)==
@@ -54,7 +54,7 @@ export const Parent_component_useTask_gDH1EtUWqBU = ()=>{
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"oDA8Ba,IAAM;AACX,OAAO;AACX\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"oDA8BU,IAAM;AACd,OAAO;AACR\"}")
 /*
 {
   "origin": "test.tsx",
@@ -69,8 +69,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "useTask$",
   "captures": false,
   "loc": [
-    781,
-    810
+    682,
+    702
   ]
 }
 */
@@ -90,7 +90,7 @@ export const Parent_component_serverStuff_a_2ca3HLDC7yc = ()=>{
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"0DAmBoB,IAAM;AACd,kCAAkC;AACtC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"0DAmBc,IAAM;AACjB,kCAAkC;AACnC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -105,8 +105,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": false,
   "loc": [
-    544,
-    608
+    496,
+    545
   ]
 }
 */
@@ -117,7 +117,7 @@ export const Parent_component_serverStuff_b_client_v9qawr2Inkk = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"iEAsB0B,IAAM;AACpB,uCAAuC;AAC3C\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"iEAsBoB,IAAM;AACvB,uCAAuC;AACxC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -132,8 +132,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "client$",
   "captures": false,
   "loc": [
-    637,
-    706
+    568,
+    622
   ]
 }
 */
@@ -167,7 +167,7 @@ export const Parent_component_0TaiDayHrlo = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;4CAMiC,IAAM;IACnC,MAAM,QAAQ,SAAS;QACnB,MAAM;IACV;IAEA,qBAAqB;IACrB;;;IAKA;IAWA;IAEA;IAIA,qBACI,MAAC;QAAI,QAAQ;uBACR,GAAM,IAAI;;;AAGvB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;4CAMiC,IAAM;IACtC,MAAM,QAAQ,SAAS;QACtB,MAAM;IACP;IAEA,qBAAqB;IACrB;;;IAKA;IAWA;IAEA;IAIA,qBACC,MAAC;QAAI,QAAQ;uBACX,GAAM,IAAI;;;AAGd\"}")
 /*
 {
   "origin": "test.tsx",
@@ -183,7 +183,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     255,
-    928
+    793
   ]
 }
 */
@@ -192,7 +192,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 export const Parent_component_div_onClick_C5XE49Nqd3A = ()=>console.log('parent');
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"wDAmCuB,IAAM,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"wDAmCiB,IAAM,QAAQ,GAAG,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -207,8 +207,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
-    850,
-    877
+    733,
+    760
   ]
 }
 */

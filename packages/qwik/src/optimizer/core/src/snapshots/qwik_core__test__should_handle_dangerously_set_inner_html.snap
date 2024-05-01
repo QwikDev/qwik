@@ -1,0 +1,126 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 3511
+expression: output
+---
+==INPUT==
+
+
+		import { component$ } from "@builder.io/qwik";
+		const Cmp = component$(() => {
+			const htmlSignal = useSignal("<h2><span>I'm a signal value!</span></h2>");
+			return (
+				<div>
+					<div>
+						<span id="first" dangerouslySetInnerHTML="vanilla HTML here" />
+					</div>
+					<div>
+						<span id="second" dangerouslySetInnerHTML="<h1>I'm an h1!</h1>" class="after" />
+					</div>
+					<div>
+						<span id="third" dangerouslySetInnerHTML={htmlSignal.value} class="after" />
+						<button
+							onClick$={() =>
+								(htmlSignal.value = "<h2><span>I'm a updated signal value!</span></h2>")
+							}
+						></button>
+					</div>
+				</div>
+			);
+		});
+		
+============================= test.js ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+/*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./cmp_component_4rykjtokjwe"), "Cmp_component_4ryKJTOKjWE"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;cAEc\"}")
+============================= cmp_component_div_div_button_onclick_3ra5dio0esa.js (ENTRY POINT)==
+
+import { useLexicalScope } from "@builder.io/qwik";
+export const Cmp_component_div_div_button_onClick_3Ra5dio0eSA = ()=>{
+    const [htmlSignal] = useLexicalScope();
+    return htmlSignal.value = "<h2><span>I'm a updated signal value!</span></h2>";
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";gEAeiB;;WACR,WAAW,KAAK,GAAG\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_div_div_button_onClick_3Ra5dio0eSA",
+  "entry": null,
+  "displayName": "Cmp_component_div_div_button_onClick",
+  "hash": "3Ra5dio0eSA",
+  "canonicalFilename": "cmp_component_div_div_button_onclick_3ra5dio0esa",
+  "extension": "js",
+  "parent": "Cmp_component_4ryKJTOKjWE",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    512,
+    598
+  ]
+}
+*/
+============================= cmp_component_4rykjtokjwe.js (ENTRY POINT)==
+
+import { _fnSignal } from "@builder.io/qwik";
+import { _jsxQ } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export const Cmp_component_4ryKJTOKjWE = ()=>{
+    const htmlSignal = useSignal("<h2><span>I'm a signal value!</span></h2>");
+    return /*#__PURE__*/ _jsxQ("div", null, null, [
+        /*#__PURE__*/ _jsxQ("div", null, null, /*#__PURE__*/ _jsxQ("span", null, {
+            id: "first",
+            dangerouslySetInnerHTML: "vanilla HTML here"
+        }, null, 3, null), 3, null),
+        /*#__PURE__*/ _jsxQ("div", null, null, /*#__PURE__*/ _jsxQ("span", null, {
+            id: "second",
+            dangerouslySetInnerHTML: "<h1>I'm an h1!</h1>",
+            class: "after"
+        }, null, 3, null), 3, null),
+        /*#__PURE__*/ _jsxQ("div", null, null, [
+            /*#__PURE__*/ _jsxQ("span", null, {
+                id: "third",
+                dangerouslySetInnerHTML: _fnSignal((p0)=>p0.value, [
+                    htmlSignal
+                ], "p0.value"),
+                class: "after"
+            }, null, 3, null),
+            /*#__PURE__*/ _jsxQ("button", null, {
+                onClick$: /*#__PURE__*/ qrl(()=>import("./cmp_component_div_div_button_onclick_3ra5dio0esa"), "Cmp_component_div_div_button_onClick_3Ra5dio0eSA", [
+                    htmlSignal
+                ])
+            }, null, 3, null)
+        ], 3, null)
+    ], 3, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAEyB,IAAM;IAC5B,MAAM,aAAa,UAAU;IAC7B,qBACC,MAAC;sBACA,MAAC,iCACA,MAAC;YAAK,IAAG;YAAQ,yBAAwB;;sBAE1C,MAAC,iCACA,MAAC;YAAK,IAAG;YAAS,yBAAwB;YAAsB,OAAM;;sBAEvE,MAAC;0BACA,MAAC;gBAAK,IAAG;gBAAQ,uBAAuB,kBAAE,GAAW,KAAK;;;gBAAE,OAAM;;0BAClE,MAAC;gBACA,QAAQ;;;;;;AAOb\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_4ryKJTOKjWE",
+  "entry": null,
+  "displayName": "Cmp_component",
+  "hash": "4ryKJTOKjWE",
+  "canonicalFilename": "cmp_component_4rykjtokjwe",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    76,
+    657
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

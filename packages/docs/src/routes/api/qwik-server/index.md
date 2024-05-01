@@ -113,7 +113,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[maximunChunk?](#)
+[maximumChunk?](#)
 
 </td><td>
 
@@ -128,7 +128,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[maximunInitialChunk?](#)
+[maximumInitialChunk?](#)
 
 </td><td>
 
@@ -743,9 +743,7 @@ Creates a server-side `document`, renders to root node to the document, then ser
 renderToStream2: typeof renderToStream;
 ```
 
-**References:** [RenderToStreamOptions](#rendertostreamoptions), [RenderToStreamResult](#rendertostreamresult)
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/render.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/v2-ssr-render2.ts)
 
 ## RenderToStream
 
@@ -754,8 +752,6 @@ Creates a server-side `document`, renders to root node to the document, then ser
 ```typescript
 renderToStream2: typeof renderToStream;
 ```
-
-**References:** [RenderToStreamOptions](#rendertostreamoptions), [RenderToStreamResult](#rendertostreamresult)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
@@ -892,9 +888,7 @@ Creates a server-side `document`, renders to root node to the document, then ser
 renderToString2: typeof renderToString;
 ```
 
-**References:** [RenderToStringOptions](#rendertostringoptions), [RenderToStringResult](#rendertostringresult)
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/render.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/v2-ssr-render2.ts)
 
 ## RenderToString
 
@@ -903,8 +897,6 @@ Creates a server-side `document`, renders to root node to the document, then ser
 ```typescript
 renderToString2: typeof renderToString;
 ```
-
-**References:** [RenderToStringOptions](#rendertostringoptions), [RenderToStringResult](#rendertostringresult)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
@@ -964,7 +956,7 @@ string
 
 </td><td>
 
-{ render: number; snapshot: number; }
+{ firstFlush: number; render: number; snapshot: number; }
 
 </td><td>
 

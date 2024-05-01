@@ -200,6 +200,6 @@ export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(obj: T,
           new SignalWrapper(obj, prop);
     }
   }
-  // We need to forward the access to the original object
-  return new SignalDerived(getProp, [obj, prop as string], 'wrapProp');
+    // We need to forward the access to the original object
+    return new SignalDerived(getProp, [obj, prop as string], 'wrapProp');
 };

@@ -2958,6 +2958,19 @@ T extends [FunctionComponent](#functioncomponent)&lt;infer P&gt; ? P : Record&lt
 </td></tr>
 <tr><td>
 
+[propsC](#)
+
+</td><td>
+
+</td><td>
+
+T extends [FunctionComponent](#functioncomponent)&lt;infer P&gt; ? P : Record&lt;any, unknown&gt;
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
 [type](#)
 
 </td><td>

@@ -60,7 +60,8 @@ export default component$(() => {
 ```
 </CodeSandbox>
 
-> The reason for appending `$` to `component$` is to allow the [Optimizer](/docs/advanced/dollar/) to break the components into an application tree. Each separate chunk in the tree can then be independently loaded as needed. Without the `$` the component would always load if the parent component needs to be loaded.
+> The `component$` function, marked by the trailing `$`, enables the Optimizer to split components into separate chunks.
+This allows each chunk to be loaded independently as needed, rather than loading all components whenever the parent component is loaded.
 
 ### Composing Components
 

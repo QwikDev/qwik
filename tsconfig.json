@@ -18,7 +18,7 @@
     "assumeChangesOnlyAffectDirectDependencies": true,
     "noUnusedLocals": true,
     "paths": {
-      "@qwik-client-manifest": ["packages/qwik/src/server/server-modules.d.ts"],
+      "@qwik-client-manifest": ["packages/qwik/dist/server-modules.d.ts"],
       "@qwik-city-plan": ["packages/qwik-city/runtime/src/qwik-city-plan.ts"],
       "@qwik-city-sw-register-build": [
         "packages/qwik-city/buildtime/runtime-generation/sw-register-build.ts"
@@ -59,8 +59,8 @@
   ],
   "exclude": [
     "packages/create-qwik/dist",
-    "**/lib",
-    "packages/qwik/**/*.d.ts",
+    "packages/qwik/src",
+    "packages/*/lib",
     "scripts/eslint-docs.ts"
   ]
 }

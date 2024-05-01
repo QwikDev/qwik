@@ -43,8 +43,8 @@ export async function generatePackageJson(config: BuildConfig) {
   console.log(config.distQwikPkgDir);
 
   await generateLegacyCjsSubmodule(config, 'core');
-  await generateLegacyCjsSubmodule(config, 'jsx-runtime');
-  await generateLegacyCjsSubmodule(config, 'jsx-dev-runtime', 'jsx-runtime');
+  await generateLegacyCjsSubmodule(config, 'jsx-runtime', 'core');
+  await generateLegacyCjsSubmodule(config, 'jsx-dev-runtime', 'core', 'jsx-runtime');
   await generateLegacyCjsSubmodule(config, 'optimizer');
   await generateLegacyCjsSubmodule(config, 'server');
 
@@ -54,7 +54,8 @@ export async function generatePackageJson(config: BuildConfig) {
 export async function generateLegacyCjsSubmodule(
   config: BuildConfig,
   pkgName: string,
-  index = pkgName
+  index = pkgName,
+  types = pkgName
 ) {
   // Modern Node.js will resolve the submodule packages using "exports": https://nodejs.org/api/packages.html#subpath-exports
   // however, legacy Node.js still needs a directory and its own package.json
@@ -64,12 +65,12 @@ export async function generateLegacyCjsSubmodule(
     version: config.distVersion,
     main: `../${index}.mjs`,
     module: `../${index}.mjs`,
-    types: `../${index}.d.ts`,
+    types: `../${types}.d.ts`,
     type: 'module',
     private: true,
     exports: {
       '.': {
-        types: `../${index}.d.ts`,
+        types: `../${types}.d.ts`,
         require: `../${index}.cjs`,
         import: `../${index}.mjs`,
       },

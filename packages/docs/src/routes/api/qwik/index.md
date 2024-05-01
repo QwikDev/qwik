@@ -59,7 +59,7 @@ _(Optional)_ Serialized function in string form.
 </tbody></table>
 **Returns:**
 
-SyncQRL&lt;TYPE&gt;
+[SyncQRL](#syncqrl)&lt;TYPE&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
 
@@ -2606,7 +2606,7 @@ A function that should have its first argument automatically `$`.
 </tbody></table>
 **Returns:**
 
-(first: FIRST, ...rest: REST) =&gt; RET
+((first: FIRST, ...rest: REST) =&gt; RET)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/util/implicit_dollar.ts)
 
@@ -3520,7 +3520,7 @@ _(Optional)_ Options for the loading prefetch graph.
 </tbody></table>
 **Returns:**
 
-import("@builder.io/qwik/jsx-runtime").JSXNode&lt;"script"&gt;
+import("@builder.io/qwik/jsx-runtime").[JSXNode](#jsxnode)&lt;"script"&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
 
@@ -3572,7 +3572,7 @@ Options for the prefetch service worker.
 </tbody></table>
 **Returns:**
 
-import("@builder.io/qwik/jsx-runtime").JSXNode&lt;"script"&gt;
+import("@builder.io/qwik/jsx-runtime").[JSXNode](#jsxnode)&lt;"script"&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
 
@@ -9705,7 +9705,83 @@ Function to extract.
 </tbody></table>
 **Returns:**
 
-SyncQRL&lt;T&gt;
+[SyncQRL](#syncqrl)&lt;T&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
+
+## SyncQRL
+
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+
+```typescript
+export interface SyncQRL<TYPE extends Function = any> extends QRL<TYPE>
+```
+
+**Extends:** [QRL](#qrl)&lt;TYPE&gt;
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[\_\_brand\_\_SyncQRL\_\_](#)
+
+</td><td>
+
+</td><td>
+
+TYPE
+
+</td><td>
+
+**_(ALPHA)_**
+
+</td></tr>
+<tr><td>
+
+[dev](#)
+
+</td><td>
+
+</td><td>
+
+QRLDev \| null
+
+</td><td>
+
+**_(ALPHA)_**
+
+</td></tr>
+<tr><td>
+
+[resolved](#)
+
+</td><td>
+
+</td><td>
+
+TYPE
+
+</td><td>
+
+**_(ALPHA)_**
+
+</td></tr>
+</tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
 

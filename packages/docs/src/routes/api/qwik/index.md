@@ -5668,18 +5668,6 @@ SSRComment: FunctionComponent<{
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts)
 
-## SSRHint
-
-> Warning: This API is now obsolete.
->
-> - It has no effect
-
-```typescript
-SSRHint: FunctionComponent<SSRHintProps>;
-```
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts)
-
 ## SSRHintProps
 
 ```typescript

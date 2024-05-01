@@ -391,7 +391,7 @@ export { jsx }
 export { jsx as jsxs }
 
 // @internal (undocumented)
-export const _jsxBranch: <T>(input?: T | undefined) => T | undefined;
+export const _jsxBranch: <T>(input?: T) => T | undefined;
 
 // @internal
 export const _jsxC: <T extends string | FunctionComponent<any>>(type: T, varProps: Props | null, constProps: Props | null, flags: number, key: string | number | null, dev?: DevJSX) => JSXNode<T>;
@@ -418,6 +418,8 @@ export interface JSXNode<T extends string | FunctionComponent | unknown = unknow
     key: string | null;
     // (undocumented)
     props: T extends FunctionComponent<infer P> ? P : Record<any, unknown>;
+    // (undocumented)
+    propsC: T extends FunctionComponent<infer P> ? P : Record<any, unknown>;
     // (undocumented)
     type: T;
     // (undocumented)

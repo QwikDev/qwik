@@ -433,7 +433,7 @@ const filterStack = (stack: string, offset: number = 0) => {
 export function createPropsProxy(
   varProps: Props,
   constProps: Props | null,
-  children: JSXChildren | undefined
+  children?: JSXChildren | undefined
 ): Props {
   return new Proxy<any>({}, new PropsProxyHandler(varProps, constProps, children));
 }

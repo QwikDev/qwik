@@ -16,7 +16,8 @@ contributors:
   - adamdbradley
   - hamatoyogi
   - aendel
-updated_at: '2023-10-03T18:53:23Z'
+  - maiieul
+updated_at: '2024-04-02T18:53:23Z'
 created_at: '2023-03-30T19:49:50Z'
 ---
 # Qwik in a nutshell
@@ -665,10 +666,6 @@ This API will declare a VisibleTask that is ensured to run only on the client/br
 
 JSX handlers such as `onClick$` and `onInput$` are only executed on the client. This is because they are DOM events, since there is no DOM on the server, they will not be executed on the server.
 
-### `isBrowser` conditional
-
-Qwik provides an `isBrowser` boolean exported from `@builder.io/qwik/build`. You can use this to ensure that code only runs in the browser.
-
 ## Run code only on the server
 
 Sometimes you need to run code only on the server, such as fetching data or accessing a database. To solve this problem, Qwik provides a few APIs to run code only on the server.
@@ -736,6 +733,18 @@ The `routeLoader$()` is a special component that is only executed on the server.
 
 The `server$()` is a special way to declare functions that only run on the server. If called from the client, they will behave like an RPC call, and will be executed on the server. They can take any serializable arguments, and return any serializable value.
 
-### `isServer` conditional
+### `isServer` & `isBrowser` conditionals
 
-Qwik provides a `isServer` boolean exported from `@builder.io/qwik/build`. You can use this to ensure that code only runs on the server.
+Instead of `if(typeof window !== 'undefined')`, it is recommended to use the `isServer` and `isBrowser` boolean helpers exported from `@builder.io/qwik/build` to ensure your code only runs in the browser. They contain slightly more robust checks to better detect the browser environment.
+
+Here is the source code for reference:
+
+```tsx
+export const isBrowser: boolean = /*#__PURE__*/ (() =>
+  typeof window !== 'undefined' &&
+  typeof HTMLElement !== 'undefined' &&
+  !!window.document &&
+  String(HTMLElement).includes('[native code]'))();
+
+export const isServer: boolean = !isBrowser;
+```

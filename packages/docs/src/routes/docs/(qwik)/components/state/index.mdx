@@ -231,7 +231,7 @@ export default component$(() => {
 
 Use `useResource$()` to create a computed value that is derived asynchronously. It's the asynchronous version of `useComputed$()`, which includes the `state` of the resource (loading, resolved, rejected) on top of the value.
 
-A typical use of `useResource$()` is to retrieve data from an external API directly within the component, which can occur either on the server or the client.
+A common use of `useResource$()` is to fetch data from an external API within the component, which can occur either on the server or the client.
 
 The `useResource$` hook is meant to be used with `<Resource />`. The `<Resource />` component is a convenient way to render different UI based on the state of the resource.
 

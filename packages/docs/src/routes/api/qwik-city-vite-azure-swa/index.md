@@ -41,7 +41,7 @@ _(Optional)_
 
 any
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/azure-swa/vite/index.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/adapters/azure-swa/vite/index.ts)
 
 ## AzureSwaAdapterOptions
 
@@ -51,4 +51,4 @@ export interface AzureSwaAdapterOptions extends ServerAdapterOptions
 
 **Extends:** ServerAdapterOptions
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/azure-swa/vite/index.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/adapters/azure-swa/vite/index.ts)

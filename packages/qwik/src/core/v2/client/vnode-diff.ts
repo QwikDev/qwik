@@ -876,8 +876,8 @@ export const vnode_diff = (
     // expectVirtual(VirtualType.Component);
     const componentMeta = (component as any)[SERIALIZABLE_STATE] as [QRLInternal<OnRenderFn<any>>];
     let host = (vNewNode || vCurrent) as VirtualVNode;
-    const jsxProps = jsxValue.props;
     if (componentMeta) {
+      const jsxProps = jsxValue.props;
       // QComponent
       let shouldRender = false;
       const [componentQRL] = componentMeta;
@@ -959,7 +959,7 @@ export const vnode_diff = (
         host,
         (component$Host || container.rootVNode) as fixMeAny,
         component as OnRenderFn<any>,
-        jsxProps
+        jsxValue.propsC
       );
       asyncQueue.push(jsxOutput, host);
       container.addVNodeProjection(host);

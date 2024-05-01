@@ -59,9 +59,9 @@ _(Optional)_ Serialized function in string form.
 </tbody></table>
 **Returns:**
 
-SyncQRL&lt;TYPE&gt;
+[SyncQRL](#syncqrl)&lt;TYPE&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
 
 ## "q:slot"
 
@@ -176,7 +176,7 @@ Expression which should be lazy loaded
 
 [QRL](#qrl)&lt;T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
 
 ## AnchorHTMLAttributes
 
@@ -186,7 +186,7 @@ export interface AnchorHTMLAttributes<T extends Element> extends Attrs<'a', T>
 
 **Extends:** Attrs&lt;'a', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## AreaHTMLAttributes
 
@@ -196,7 +196,7 @@ export interface AreaHTMLAttributes<T extends Element> extends Attrs<'area', T>
 
 **Extends:** Attrs&lt;'area', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## AriaAttributes
 
@@ -945,7 +945,7 @@ _(Optional)_ Defines the human readable text alternative of aria-valuenow for a 
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## AriaRole
 
@@ -1023,7 +1023,7 @@ export type AriaRole =
   | (string & {});
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## AudioHTMLAttributes
 
@@ -1033,7 +1033,7 @@ export interface AudioHTMLAttributes<T extends Element> extends Attrs<'audio', T
 
 **Extends:** Attrs&lt;'audio', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## BaseHTMLAttributes
 
@@ -1043,7 +1043,7 @@ export interface BaseHTMLAttributes<T extends Element> extends Attrs<'base', T>
 
 **Extends:** Attrs&lt;'base', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## BlockquoteHTMLAttributes
 
@@ -1053,7 +1053,7 @@ export interface BlockquoteHTMLAttributes<T extends Element> extends Attrs<'bloc
 
 **Extends:** Attrs&lt;'blockquote', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## Booleanish
 
@@ -1061,7 +1061,7 @@ export interface BlockquoteHTMLAttributes<T extends Element> extends Attrs<'bloc
 export type Booleanish = boolean | `${boolean}`;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## ButtonHTMLAttributes
 
@@ -1071,7 +1071,7 @@ export interface ButtonHTMLAttributes<T extends Element> extends Attrs<'button',
 
 **Extends:** Attrs&lt;'button', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## cache
 
@@ -1116,7 +1116,7 @@ export interface CanvasHTMLAttributes<T extends Element> extends Attrs<'canvas',
 
 **Extends:** Attrs&lt;'canvas', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## ClassList
 
@@ -1138,7 +1138,7 @@ export type ClassList =
 
 **References:** [ClassList](#classlist)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts)
 
 ## cleanup
 
@@ -1158,7 +1158,7 @@ export interface ColgroupHTMLAttributes<T extends Element> extends Attrs<'colgro
 
 **Extends:** Attrs&lt;'colgroup', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## ColHTMLAttributes
 
@@ -1168,7 +1168,7 @@ export interface ColHTMLAttributes<T extends Element> extends Attrs<'col', T>
 
 **Extends:** Attrs&lt;'col', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## Component
 
@@ -1193,7 +1193,7 @@ export type Component<PROPS = unknown> = FunctionComponent<PublicProps<PROPS>>;
 
 **References:** [FunctionComponent](#functioncomponent), [PublicProps](#publicprops)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/component/component.public.ts)
 
 ## component$
 
@@ -1270,7 +1270,7 @@ onMount
 
 [Component](#component)&lt;PROPS&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/component/component.public.ts)
 
 ## ComponentBaseProps
 
@@ -1327,7 +1327,7 @@ _(Optional)_
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts)
 
 ## componentQrl
 
@@ -1406,7 +1406,7 @@ componentQrl
 
 [Component](#component)&lt;PROPS&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/component/component.public.ts)
 
 ## ContextId
 
@@ -1509,7 +1509,7 @@ A unique ID for the context.
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-context.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-context.ts)
 
 ## CorePlatform
 
@@ -1625,7 +1625,7 @@ Perform operation on next request-animation-frame.
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/platform/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/platform/types.ts)
 
 ## CorrectedToggleEvent
 
@@ -1686,7 +1686,7 @@ Description
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts)
 
 ## createContextId
 
@@ -1767,7 +1767,7 @@ The name of the context.
 
 [ContextId](#contextid)&lt;STATE&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-context.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-context.ts)
 
 ## CSSProperties
 
@@ -1777,7 +1777,7 @@ export interface CSSProperties extends CSS.Properties<string | number>, CSS.Prop
 
 **Extends:** CSS.Properties&lt;string \| number&gt;, CSS.PropertiesHyphen&lt;string \| number&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## DataHTMLAttributes
 
@@ -1787,7 +1787,7 @@ export interface DataHTMLAttributes<T extends Element> extends Attrs<'data', T>
 
 **Extends:** Attrs&lt;'data', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## DelHTMLAttributes
 
@@ -1797,7 +1797,7 @@ export interface DelHTMLAttributes<T extends Element> extends Attrs<'del', T>
 
 **Extends:** Attrs&lt;'del', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## DetailsHTMLAttributes
 
@@ -1807,7 +1807,7 @@ export interface DetailsHTMLAttributes<T extends Element> extends Attrs<'details
 
 **Extends:** Attrs&lt;'details', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## DevJSX
 
@@ -1888,7 +1888,7 @@ _(Optional)_
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-node.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-node.ts)
 
 ## DialogHTMLAttributes
 
@@ -1898,7 +1898,7 @@ export interface DialogHTMLAttributes<T extends Element> extends Attrs<'dialog',
 
 **Extends:** Attrs&lt;'dialog', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## DOMAttributes
 
@@ -1944,7 +1944,7 @@ _(Optional)_
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts)
 
 ## EagernessOptions
 
@@ -1952,7 +1952,7 @@ _(Optional)_
 export type EagernessOptions = "visible" | "load" | "idle";
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
 ## Element
 
@@ -2016,7 +2016,7 @@ export interface EmbedHTMLAttributes<T extends Element> extends Attrs<'embed', T
 
 **Extends:** Attrs&lt;'embed', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## ErrorBoundaryStore
 
@@ -2056,7 +2056,7 @@ any \| undefined
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/error-handling.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/error-handling.ts)
 
 ## event$
 
@@ -2093,7 +2093,7 @@ T
 
 [QRL](#qrl)&lt;T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
 
 ## EventHandler
 
@@ -2105,7 +2105,7 @@ export type EventHandler<EV = Event, EL = Element> = {
 }["bivarianceHack"];
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts)
 
 ## eventQrl
 
@@ -2142,7 +2142,7 @@ qrl
 
 [QRL](#qrl)&lt;T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
 
 ## FieldsetHTMLAttributes
 
@@ -2152,7 +2152,7 @@ export interface FieldsetHTMLAttributes<T extends Element> extends Attrs<'fields
 
 **Extends:** Attrs&lt;'fieldset', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## FormHTMLAttributes
 
@@ -2162,7 +2162,7 @@ export interface FormHTMLAttributes<T extends Element> extends Attrs<'form', T>
 
 **Extends:** Attrs&lt;'form', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## Fragment
 
@@ -2173,7 +2173,7 @@ Fragment: FunctionComponent<{
 }>;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts)
 
 ## FunctionComponent
 
@@ -2194,7 +2194,7 @@ export type FunctionComponent<P = unknown> = {
 
 **References:** [DevJSX](#devjsx), [JSXOutput](#jsxoutput)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-node.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-node.ts)
 
 ## getDomContainer
 
@@ -2233,7 +2233,7 @@ Element \| ElementVNode
 
 IClientContainer
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/v2/client/dom-container.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/client/dom-container.ts)
 
 ## getPlatform
 
@@ -2249,17 +2249,28 @@ getPlatform: () => CorePlatform;
 
 [CorePlatform](#coreplatform)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/platform/platform.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/platform/platform.ts)
 
 ## h
 
+The legacy transform, used in special cases like `<div {...props} key="key" />`. Note that the children are spread arguments, instead of a prop like in jsx() calls.
+
+Also note that this disables optimizations.
+
 ```typescript
-export declare namespace h
+export declare function h<
+  TYPE extends string | FunctionComponent<PROPS>,
+  PROPS extends {} = {},
+>(type: TYPE, props?: PROPS | null, ...children: any[]): JSXNode<TYPE>;
 ```
 
 <table><thead><tr><th>
 
-Function
+Parameter
+
+</th><th>
+
+Type
 
 </th><th>
 
@@ -2268,124 +2279,45 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[h(type)](#)
+type
+
+</td><td>
+
+TYPE
 
 </td><td>
 
 </td></tr>
 <tr><td>
 
-[h(type, data)](#)
+props
 
 </td><td>
+
+PROPS \| null
+
+</td><td>
+
+_(Optional)_
 
 </td></tr>
 <tr><td>
 
-[h(type, text)](#)
+children
 
 </td><td>
 
-</td></tr>
-<tr><td>
-
-[h(type, children)](#)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[h(type, data, text)](#)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[h(type, data, children)](#)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[h(sel, data, children)](#)
+any[]
 
 </td><td>
 
 </td></tr>
 </tbody></table>
+**Returns:**
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/factory.ts)
+[JSXNode](#jsxnode)&lt;TYPE&gt;
 
-## h
-
-```typescript
-export declare namespace h
-```
-
-<table><thead><tr><th>
-
-Function
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[h(type)](#)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[h(type, data)](#)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[h(type, text)](#)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[h(type, children)](#)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[h(type, data, text)](#)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[h(type, data, children)](#)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[h(sel, data, children)](#)
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/factory.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts)
 
 ## HrHTMLAttributes
 
@@ -2395,7 +2327,7 @@ export interface HrHTMLAttributes<T extends Element> extends Attrs<'hr', T>
 
 **Extends:** Attrs&lt;'hr', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## HTMLAttributeAnchorTarget
 
@@ -2408,7 +2340,7 @@ export type HTMLAttributeAnchorTarget =
   | (string & {});
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## HTMLAttributeReferrerPolicy
 
@@ -2416,7 +2348,7 @@ export type HTMLAttributeAnchorTarget =
 export type HTMLAttributeReferrerPolicy = ReferrerPolicy;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## HTMLAttributes
 
@@ -2426,7 +2358,7 @@ export interface HTMLAttributes<E extends Element> extends HTMLElementAttrs, DOM
 
 **Extends:** [HTMLElementAttrs](#htmlelementattrs), [DOMAttributes](#domattributes)&lt;E&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## HTMLCrossOriginAttribute
 
@@ -2438,7 +2370,7 @@ export type HTMLCrossOriginAttribute =
   | undefined;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## HTMLElementAttrs
 
@@ -2448,7 +2380,7 @@ export interface HTMLElementAttrs extends HTMLAttributesBase, FilterBase<HTMLEle
 
 **Extends:** HTMLAttributesBase, FilterBase&lt;HTMLElement&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## HTMLFragment
 
@@ -2458,7 +2390,7 @@ HTMLFragment: FunctionComponent<{
 }>;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts)
 
 ## HtmlHTMLAttributes
 
@@ -2468,7 +2400,7 @@ export interface HtmlHTMLAttributes<T extends Element> extends Attrs<'html', T>
 
 **Extends:** Attrs&lt;'html', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## HTMLInputAutocompleteAttribute
 
@@ -2524,7 +2456,7 @@ export type HTMLInputAutocompleteAttribute =
   | "photo";
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## HTMLInputTypeAttribute
 
@@ -2555,7 +2487,7 @@ export type HTMLInputTypeAttribute =
   | (string & {});
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## IframeHTMLAttributes
 
@@ -2565,7 +2497,7 @@ export interface IframeHTMLAttributes<T extends Element> extends Attrs<'iframe',
 
 **Extends:** Attrs&lt;'iframe', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## ImgHTMLAttributes
 
@@ -2575,7 +2507,7 @@ export interface ImgHTMLAttributes<T extends Element> extends Attrs<'img', T>
 
 **Extends:** Attrs&lt;'img', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## implicit$FirstArg
 
@@ -2645,9 +2577,9 @@ A function that should have its first argument automatically `$`.
 </tbody></table>
 **Returns:**
 
-(first: FIRST, ...rest: REST) =&gt; RET
+((first: FIRST, ...rest: REST) =&gt; RET)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/util/implicit_dollar.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/util/implicit_dollar.ts)
 
 ## InputHTMLAttributes
 
@@ -2659,7 +2591,7 @@ export type InputHTMLAttributes<T extends Element> = Attrs<
 >;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## InsHTMLAttributes
 
@@ -2669,7 +2601,7 @@ export interface InsHTMLAttributes<T extends Element> extends Attrs<'ins', T>
 
 **Extends:** Attrs&lt;'ins', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## IntrinsicAttributes
 
@@ -2687,7 +2619,7 @@ export interface IntrinsicElements extends IntrinsicHTMLElements, IntrinsicSVGEl
 
 **Extends:** IntrinsicHTMLElements, IntrinsicSVGElements
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## isSignal
 
@@ -2730,7 +2662,7 @@ obj is [Signal](#signal)&lt;T&gt;
 
 Boolean - True if the object is a `Signal`.
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/state/signal.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/state/signal.ts)
 
 ## jsx
 
@@ -2797,7 +2729,7 @@ _(Optional)_
 
 [JSXNode](#jsxnode)&lt;T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts)
 
 ## JSXChildren
 
@@ -2818,7 +2750,7 @@ export type JSXChildren =
 
 **References:** [JSXChildren](#jsxchildren), [Signal](#signal), [JSXNode](#jsxnode)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts)
 
 ## jsxDEV
 
@@ -2917,7 +2849,7 @@ unknown
 
 [JSXNode](#jsxnode)&lt;T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts)
 
 ## JSXNode
 
@@ -3026,6 +2958,19 @@ T extends [FunctionComponent](#functioncomponent)&lt;infer P&gt; ? P : Record&lt
 </td></tr>
 <tr><td>
 
+[propsC](#)
+
+</td><td>
+
+</td><td>
+
+T extends [FunctionComponent](#functioncomponent)&lt;infer P&gt; ? P : Record&lt;any, unknown&gt;
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
 [type](#)
 
 </td><td>
@@ -3052,7 +2997,7 @@ Record&lt;any, unknown&gt;
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-node.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-node.ts)
 
 ## JSXOutput
 
@@ -3071,7 +3016,7 @@ export type JSXOutput =
 
 **References:** [JSXNode](#jsxnode), [JSXOutput](#jsxoutput)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-node.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-node.ts)
 
 ## JSXTagName
 
@@ -3081,7 +3026,7 @@ export type JSXTagName =
   | Omit<string, keyof HTMLElementTagNameMap>;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts)
 
 ## KeygenHTMLAttributes
 
@@ -3095,7 +3040,7 @@ export interface KeygenHTMLAttributes<T extends Element> extends Attrs<'base', T
 
 **Extends:** Attrs&lt;'base', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## KnownEventNames
 
@@ -3105,7 +3050,7 @@ The names of events that Qwik knows about. They are all lowercase, but on the JS
 export type KnownEventNames = LiteralUnion<AllEventKeys, string>;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## LabelHTMLAttributes
 
@@ -3115,7 +3060,7 @@ export interface LabelHTMLAttributes<T extends Element> extends Attrs<'label', T
 
 **Extends:** Attrs&lt;'label', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## LiHTMLAttributes
 
@@ -3125,7 +3070,7 @@ export interface LiHTMLAttributes<T extends Element> extends Attrs<'li', T>
 
 **Extends:** Attrs&lt;'li', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## LinkHTMLAttributes
 
@@ -3135,7 +3080,7 @@ export interface LinkHTMLAttributes<T extends Element> extends Attrs<'link', T>
 
 **Extends:** Attrs&lt;'link', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## MapHTMLAttributes
 
@@ -3145,7 +3090,7 @@ export interface MapHTMLAttributes<T extends Element> extends Attrs<'map', T>
 
 **Extends:** Attrs&lt;'map', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## MediaHTMLAttributes
 
@@ -3191,7 +3136,7 @@ _(Optional)_
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## MenuHTMLAttributes
 
@@ -3201,7 +3146,7 @@ export interface MenuHTMLAttributes<T extends Element> extends Attrs<'menu', T>
 
 **Extends:** Attrs&lt;'menu', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## MetaHTMLAttributes
 
@@ -3211,7 +3156,7 @@ export interface MetaHTMLAttributes<T extends Element> extends Attrs<'meta', T>
 
 **Extends:** Attrs&lt;'meta', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## MeterHTMLAttributes
 
@@ -3221,7 +3166,7 @@ export interface MeterHTMLAttributes<T extends Element> extends Attrs<'meter', T
 
 **Extends:** Attrs&lt;'meter', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## NativeAnimationEvent
 
@@ -3233,7 +3178,7 @@ export interface MeterHTMLAttributes<T extends Element> extends Attrs<'meter', T
 export type NativeAnimationEvent = AnimationEvent;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## NativeClipboardEvent
 
@@ -3245,7 +3190,7 @@ export type NativeAnimationEvent = AnimationEvent;
 export type NativeClipboardEvent = ClipboardEvent;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## NativeCompositionEvent
 
@@ -3257,7 +3202,7 @@ export type NativeClipboardEvent = ClipboardEvent;
 export type NativeCompositionEvent = CompositionEvent;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## NativeDragEvent
 
@@ -3269,7 +3214,7 @@ export type NativeCompositionEvent = CompositionEvent;
 export type NativeDragEvent = DragEvent;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## NativeFocusEvent
 
@@ -3281,7 +3226,7 @@ export type NativeDragEvent = DragEvent;
 export type NativeFocusEvent = FocusEvent;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## NativeKeyboardEvent
 
@@ -3293,7 +3238,7 @@ export type NativeFocusEvent = FocusEvent;
 export type NativeKeyboardEvent = KeyboardEvent;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## NativeMouseEvent
 
@@ -3305,7 +3250,7 @@ export type NativeKeyboardEvent = KeyboardEvent;
 export type NativeMouseEvent = MouseEvent;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## NativePointerEvent
 
@@ -3317,7 +3262,7 @@ export type NativeMouseEvent = MouseEvent;
 export type NativePointerEvent = PointerEvent;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## NativeTouchEvent
 
@@ -3329,7 +3274,7 @@ export type NativePointerEvent = PointerEvent;
 export type NativeTouchEvent = TouchEvent;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## NativeTransitionEvent
 
@@ -3341,7 +3286,7 @@ export type NativeTouchEvent = TouchEvent;
 export type NativeTransitionEvent = TransitionEvent;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## NativeUIEvent
 
@@ -3353,7 +3298,7 @@ export type NativeTransitionEvent = TransitionEvent;
 export type NativeUIEvent = UIEvent;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## NativeWheelEvent
 
@@ -3365,7 +3310,7 @@ export type NativeUIEvent = UIEvent;
 export type NativeWheelEvent = WheelEvent;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## noSerialize
 
@@ -3379,7 +3324,7 @@ export type NoSerialize<T> =
   | undefined;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/state/common.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/state/common.ts)
 
 ## NoSerialize
 
@@ -3393,7 +3338,7 @@ export type NoSerialize<T> =
   | undefined;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/state/common.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/state/common.ts)
 
 ## Numberish
 
@@ -3401,7 +3346,7 @@ export type NoSerialize<T> =
 export type Numberish = number | `${number}`;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## ObjectHTMLAttributes
 
@@ -3411,7 +3356,7 @@ export interface ObjectHTMLAttributes<T extends Element> extends Attrs<'object',
 
 **Extends:** Attrs&lt;'object', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## OlHTMLAttributes
 
@@ -3421,7 +3366,7 @@ export interface OlHTMLAttributes<T extends Element> extends Attrs<'ol', T>
 
 **Extends:** Attrs&lt;'ol', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## OnRenderFn
 
@@ -3431,7 +3376,7 @@ export type OnRenderFn<PROPS> = (props: PROPS) => JSXOutput;
 
 **References:** [JSXOutput](#jsxoutput)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/component/component.public.ts)
 
 ## OnVisibleTaskOptions
 
@@ -3475,7 +3420,7 @@ _(Optional)_ The strategy to use to determine when the "VisibleTask" should firs
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
 ## OptgroupHTMLAttributes
 
@@ -3485,7 +3430,7 @@ export interface OptgroupHTMLAttributes<T extends Element> extends Attrs<'optgro
 
 **Extends:** Attrs&lt;'optgroup', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## OptionHTMLAttributes
 
@@ -3495,7 +3440,7 @@ export interface OptionHTMLAttributes<T extends Element> extends Attrs<'option',
 
 **Extends:** Attrs&lt;'option', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## OutputHTMLAttributes
 
@@ -3505,7 +3450,7 @@ export interface OutputHTMLAttributes<T extends Element> extends Attrs<'output',
 
 **Extends:** Attrs&lt;'output', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## ParamHTMLAttributes
 
@@ -3519,7 +3464,7 @@ export interface ParamHTMLAttributes<T extends Element> extends Attrs<'base', T,
 
 **Extends:** Attrs&lt;'base', T, HTMLParamElement&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## PrefetchGraph
 
@@ -3534,7 +3479,7 @@ PrefetchGraph: (opts?: {
   base?: string;
   manifestHash?: string;
   manifestURL?: string;
-}) => import("@builder.io/qwik").JSXNode<string>;
+}) => import("..").JSXNode<string>;
 ```
 
 <table><thead><tr><th>
@@ -3568,9 +3513,9 @@ _(Optional)_ Options for the loading prefetch graph.
 </tbody></table>
 **Returns:**
 
-import("@builder.io/qwik").[JSXNode](#jsxnode)&lt;string&gt;
+import("..").[JSXNode](#jsxnode)&lt;string&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
 
 ## PrefetchServiceWorker
 
@@ -3586,7 +3531,7 @@ PrefetchServiceWorker: (opts: {
   path?: string;
   verbose?: boolean;
   fetchBundleGraph?: boolean;
-}) => import("@builder.io/qwik").JSXNode<string>;
+}) => import("..").JSXNode<string>;
 ```
 
 <table><thead><tr><th>
@@ -3620,9 +3565,9 @@ Options for the prefetch service worker.
 </tbody></table>
 **Returns:**
 
-import("@builder.io/qwik").[JSXNode](#jsxnode)&lt;string&gt;
+import("..").[JSXNode](#jsxnode)&lt;string&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
 
 ## ProgressHTMLAttributes
 
@@ -3632,7 +3577,7 @@ export interface ProgressHTMLAttributes<T extends Element> extends Attrs<'progre
 
 **Extends:** Attrs&lt;'progress', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## PropFnInterface
 
@@ -3647,7 +3592,7 @@ export type PropFnInterface<ARGS extends any[], RET> = {
 };
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
 
 ## PropFunction
 
@@ -3659,7 +3604,7 @@ export type PropFunction<T> = QRL<T>;
 
 **References:** [QRL](#qrl)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
 
 ## PropFunctionProps
 
@@ -3679,7 +3624,7 @@ export type PropFunctionProps<PROPS extends Record<any, any>> = {
 
 **References:** [PropFnInterface](#propfninterface)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/component/component.public.ts)
 
 ## PropsOf
 
@@ -3723,7 +3668,7 @@ const TitleBox = component$(
 );
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/component/component.public.ts)
 
 ## PublicProps
 
@@ -3741,7 +3686,7 @@ export type PublicProps<PROPS> = (PROPS extends Record<any, any>
 
 **References:** [ComponentBaseProps](#componentbaseprops)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/component/component.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/component/component.public.ts)
 
 ## qrl
 
@@ -3849,7 +3794,7 @@ export type QRL<TYPE = unknown> = {
 } & BivariantQrlFn<QrlArgs<TYPE>, QrlReturn<TYPE>>;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/qrl/qrl.ts)
 
 ## QRL
 
@@ -3957,7 +3902,7 @@ export type QRL<TYPE = unknown> = {
 } & BivariantQrlFn<QrlArgs<TYPE>, QrlReturn<TYPE>>;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
 
 ## QRLEventHandlerMulti
 
@@ -3975,7 +3920,7 @@ export type QRLEventHandlerMulti<EV extends Event, EL> =
 
 **References:** [QRL](#qrl), [EventHandler](#eventhandler), [QRLEventHandlerMulti](#qrleventhandlermulti)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts)
 
 ## QuoteHTMLAttributes
 
@@ -3985,7 +3930,7 @@ export interface QuoteHTMLAttributes<T extends Element> extends Attrs<'q', T>
 
 **Extends:** Attrs&lt;'q', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## QwikAnimationEvent
 
@@ -3999,7 +3944,7 @@ export type QwikAnimationEvent<T = Element> = NativeAnimationEvent;
 
 **References:** [NativeAnimationEvent](#nativeanimationevent)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## QwikAttributes
 
@@ -4045,7 +3990,7 @@ _(Optional)_
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts)
 
 ## QwikChangeEvent
 
@@ -4057,7 +4002,7 @@ _(Optional)_
 export type QwikChangeEvent<T = Element> = Event;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## QwikClipboardEvent
 
@@ -4071,7 +4016,7 @@ export type QwikClipboardEvent<T = Element> = NativeClipboardEvent;
 
 **References:** [NativeClipboardEvent](#nativeclipboardevent)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## QwikCompositionEvent
 
@@ -4085,7 +4030,7 @@ export type QwikCompositionEvent<T = Element> = NativeCompositionEvent;
 
 **References:** [NativeCompositionEvent](#nativecompositionevent)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## QwikDOMAttributes
 
@@ -4095,7 +4040,7 @@ export interface QwikDOMAttributes extends DOMAttributes<Element>
 
 **Extends:** [DOMAttributes](#domattributes)&lt;Element&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik.ts)
 
 ## QwikDragEvent
 
@@ -4109,7 +4054,7 @@ export type QwikDragEvent<T = Element> = NativeDragEvent;
 
 **References:** [NativeDragEvent](#nativedragevent)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## QwikFocusEvent
 
@@ -4123,7 +4068,7 @@ export type QwikFocusEvent<T = Element> = NativeFocusEvent;
 
 **References:** [NativeFocusEvent](#nativefocusevent)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## QwikHTMLElements
 
@@ -4142,7 +4087,7 @@ export type QwikHTMLElements = {
 
 **References:** [HTMLElementAttrs](#htmlelementattrs), [QwikAttributes](#qwikattributes)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## QwikIdleEvent
 
@@ -4152,7 +4097,7 @@ Emitted by qwik-loader on document when the document first becomes idle
 export type QwikIdleEvent = CustomEvent<{}>;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## QwikInitEvent
 
@@ -4162,7 +4107,7 @@ Emitted by qwik-loader on document when the document first becomes interactive
 export type QwikInitEvent = CustomEvent<{}>;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## QwikIntrinsicElements
 
@@ -4192,7 +4137,7 @@ export interface QwikIntrinsicElements extends QwikHTMLElements, QwikSVGElements
 
 **Extends:** [QwikHTMLElements](#qwikhtmlelements), [QwikSVGElements](#qwiksvgelements)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-elements.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-elements.ts)
 
 ## QwikInvalidEvent
 
@@ -4204,7 +4149,7 @@ export interface QwikIntrinsicElements extends QwikHTMLElements, QwikSVGElements
 export type QwikInvalidEvent<T = Element> = Event;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## QwikJSX
 
@@ -4269,7 +4214,7 @@ Description
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik.ts)
 
 ## QwikKeyboardEvent
 
@@ -4283,7 +4228,7 @@ export type QwikKeyboardEvent<T = Element> = NativeKeyboardEvent;
 
 **References:** [NativeKeyboardEvent](#nativekeyboardevent)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## QwikMouseEvent
 
@@ -4297,7 +4242,7 @@ export type QwikMouseEvent<T = Element, E = NativeMouseEvent> = E;
 
 **References:** [NativeMouseEvent](#nativemouseevent)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## QwikPointerEvent
 
@@ -4311,7 +4256,7 @@ export type QwikPointerEvent<T = Element> = NativePointerEvent;
 
 **References:** [NativePointerEvent](#nativepointerevent)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## QwikSubmitEvent
 
@@ -4323,7 +4268,7 @@ export type QwikPointerEvent<T = Element> = NativePointerEvent;
 export type QwikSubmitEvent<T = Element> = SubmitEvent;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## QwikSVGElements
 
@@ -4340,7 +4285,7 @@ export type QwikSVGElements = {
 
 **References:** [SVGProps](#svgprops)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## QwikSymbolEvent
 
@@ -4354,7 +4299,7 @@ export type QwikSymbolEvent = CustomEvent<{
 }>;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## QwikTouchEvent
 
@@ -4368,7 +4313,7 @@ export type QwikTouchEvent<T = Element> = NativeTouchEvent;
 
 **References:** [NativeTouchEvent](#nativetouchevent)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## QwikTransitionEvent
 
@@ -4382,7 +4327,7 @@ export type QwikTransitionEvent<T = Element> = NativeTransitionEvent;
 
 **References:** [NativeTransitionEvent](#nativetransitionevent)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## QwikUIEvent
 
@@ -4396,7 +4341,7 @@ export type QwikUIEvent<T = Element> = NativeUIEvent;
 
 **References:** [NativeUIEvent](#nativeuievent)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## QwikVisibleEvent
 
@@ -4406,7 +4351,7 @@ Emitted by qwik-loader when an element becomes visible. Used by `useVisibleTask$
 export type QwikVisibleEvent = CustomEvent<IntersectionObserverEntry>;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## QwikWheelEvent
 
@@ -4420,7 +4365,7 @@ export type QwikWheelEvent<T = Element> = NativeWheelEvent;
 
 **References:** [NativeWheelEvent](#nativewheelevent)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
 
 ## ReadonlySignal
 
@@ -4430,7 +4375,7 @@ export type ReadonlySignal<T = unknown> = Readonly<Signal<T>>;
 
 **References:** [Signal](#signal)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/state/signal.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/state/signal.ts)
 
 ## render
 
@@ -4505,7 +4450,7 @@ Promise&lt;[RenderResult](#renderresult)&gt;
 
 An object containing a cleanup function.
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/v2/client/dom-render.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/client/dom-render.ts)
 
 ## RenderOnce
 
@@ -4516,7 +4461,7 @@ RenderOnce: FunctionComponent<{
 }>;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts)
 
 ## RenderOptions
 
@@ -4558,7 +4503,7 @@ _(Optional)_
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/dom/render.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/dom/render.public.ts)
 
 ## RenderResult
 
@@ -4584,7 +4529,7 @@ Description
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/dom/render.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/dom/render.public.ts)
 
 ## RenderSSROptions
 
@@ -4723,7 +4668,7 @@ _(Optional)_
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/ssr/render-ssr.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/ssr/render-ssr.ts)
 
 ## Resource
 
@@ -4801,7 +4746,7 @@ props
 
 [JSXOutput](#jsxoutput)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
 
 ## ResourceCtx
 
@@ -4883,7 +4828,7 @@ Description
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
 ## ResourceFn
 
@@ -4893,7 +4838,7 @@ export type ResourceFn<T> = (ctx: ResourceCtx<unknown>) => ValueOrPromise<T>;
 
 **References:** [ResourceCtx](#resourcectx), [ValueOrPromise](#valueorpromise)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
 ## ResourceOptions
 
@@ -4937,7 +4882,7 @@ _(Optional)_ Timeout in milliseconds. If the resource takes more than the specif
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
 
 ## ResourcePending
 
@@ -4994,7 +4939,7 @@ Promise&lt;T&gt;
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
 ## ResourceProps
 
@@ -5079,7 +5024,7 @@ _(Optional)_
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
 
 ## ResourceRejected
 
@@ -5136,7 +5081,7 @@ Promise&lt;T&gt;
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
 ## ResourceResolved
 
@@ -5193,7 +5138,7 @@ Promise&lt;T&gt;
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
 ## ResourceReturn
 
@@ -5206,7 +5151,7 @@ export type ResourceReturn<T> =
 
 **References:** [ResourcePending](#resourcepending), [ResourceResolved](#resourceresolved), [ResourceRejected](#resourcerejected)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
 ## ScriptHTMLAttributes
 
@@ -5216,7 +5161,7 @@ export interface ScriptHTMLAttributes<T extends Element> extends Attrs<'script',
 
 **Extends:** Attrs&lt;'script', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## SelectHTMLAttributes
 
@@ -5226,7 +5171,7 @@ export interface SelectHTMLAttributes<T extends Element> extends Attrs<'select',
 
 **Extends:** Attrs&lt;'select', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## setPlatform
 
@@ -5267,7 +5212,7 @@ plt
 
 [CorePlatform](#coreplatform)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/platform/platform.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/platform/platform.ts)
 
 ## Signal
 
@@ -5307,7 +5252,7 @@ T
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/state/signal.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/state/signal.ts)
 
 ## Size
 
@@ -5315,7 +5260,7 @@ T
 export type Size = number | string;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## SkipRender
 
@@ -5323,7 +5268,7 @@ export type Size = number | string;
 SkipRender: JSXNode;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts)
 
 ## Slot
 
@@ -5336,7 +5281,7 @@ Slot: FunctionComponent<{
 }>;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/slot.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/slot.public.ts)
 
 ## SlotHTMLAttributes
 
@@ -5346,7 +5291,7 @@ export interface SlotHTMLAttributes<T extends Element> extends Attrs<'slot', T>
 
 **Extends:** Attrs&lt;'slot', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## SnapshotListener
 
@@ -5412,7 +5357,7 @@ string
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/container/container.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/container/container.ts)
 
 ## SnapshotMeta
 
@@ -5422,7 +5367,7 @@ export type SnapshotMeta = Record<string, SnapshotMetaValue>;
 
 **References:** [SnapshotMetaValue](#snapshotmetavalue)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/container/container.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/container/container.ts)
 
 ## SnapshotMetaValue
 
@@ -5509,7 +5454,7 @@ _(Optional)_
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/container/container.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/container/container.ts)
 
 ## SnapshotResult
 
@@ -5618,7 +5563,7 @@ _(Optional)_
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/container/container.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/container/container.ts)
 
 ## SnapshotState
 
@@ -5701,7 +5646,7 @@ any[]
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/container/container.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/container/container.ts)
 
 ## SourceHTMLAttributes
 
@@ -5711,7 +5656,7 @@ export interface SourceHTMLAttributes<T extends Element> extends Attrs<'source',
 
 **Extends:** Attrs&lt;'source', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## SSRComment
 
@@ -5721,7 +5666,19 @@ SSRComment: FunctionComponent<{
 }>;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts)
+
+## SSRHint
+
+> Warning: This API is now obsolete.
+>
+> - It has no effect
+
+```typescript
+SSRHint: FunctionComponent<SSRHintProps>;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts)
 
 ## SSRHintProps
 
@@ -5731,7 +5688,7 @@ export type SSRHintProps = {
 };
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts)
 
 ## SSRRaw
 
@@ -5741,7 +5698,7 @@ SSRRaw: FunctionComponent<{
 }>;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts)
 
 ## SSRStream
 
@@ -5749,7 +5706,7 @@ SSRRaw: FunctionComponent<{
 SSRStream: FunctionComponent<SSRStreamProps>;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts)
 
 ## SSRStreamBlock
 
@@ -5759,7 +5716,7 @@ SSRStreamBlock: FunctionComponent<{
 }>;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts)
 
 ## SSRStreamProps
 
@@ -5774,7 +5731,7 @@ export type SSRStreamProps = {
 
 **References:** [JSXChildren](#jsxchildren), [StreamWriter](#streamwriter)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts)
 
 ## StreamWriter
 
@@ -5784,7 +5741,7 @@ export type StreamWriter = {
 };
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/ssr/render-ssr.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/ssr/render-ssr.ts)
 
 ## StyleHTMLAttributes
 
@@ -5794,7 +5751,7 @@ export interface StyleHTMLAttributes<T extends Element> extends Attrs<'style', T
 
 **Extends:** Attrs&lt;'style', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## SVGAttributes
 
@@ -9697,7 +9654,7 @@ _(Optional)_
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## SVGProps
 
@@ -9707,7 +9664,7 @@ export interface SVGProps<T extends Element> extends SVGAttributes, QwikAttribut
 
 **Extends:** [SVGAttributes](#svgattributes), [QwikAttributes](#qwikattributes)&lt;T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## sync$
 
@@ -9750,9 +9707,85 @@ Function to extract.
 </tbody></table>
 **Returns:**
 
-SyncQRL&lt;T&gt;
+[SyncQRL](#syncqrl)&lt;T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
+
+## SyncQRL
+
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+
+```typescript
+export interface SyncQRL<TYPE extends Function = any> extends QRL<TYPE>
+```
+
+**Extends:** [QRL](#qrl)&lt;TYPE&gt;
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[\_\_brand\_\_SyncQRL\_\_](#)
+
+</td><td>
+
+</td><td>
+
+TYPE
+
+</td><td>
+
+**_(ALPHA)_**
+
+</td></tr>
+<tr><td>
+
+[dev](#)
+
+</td><td>
+
+</td><td>
+
+QRLDev \| null
+
+</td><td>
+
+**_(ALPHA)_**
+
+</td></tr>
+<tr><td>
+
+[resolved](#)
+
+</td><td>
+
+</td><td>
+
+TYPE
+
+</td><td>
+
+**_(ALPHA)_**
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
 
 ## TableHTMLAttributes
 
@@ -9762,7 +9795,7 @@ export interface TableHTMLAttributes<T extends Element> extends Attrs<'table', T
 
 **Extends:** Attrs&lt;'table', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## TaskCtx
 
@@ -9820,7 +9853,7 @@ Description
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
 ## TaskFn
 
@@ -9830,7 +9863,7 @@ export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => void)>;
 
 **References:** [TaskCtx](#taskctx), [ValueOrPromise](#valueorpromise)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
 ## TdHTMLAttributes
 
@@ -9840,7 +9873,7 @@ export interface TdHTMLAttributes<T extends Element> extends Attrs<'td', T>
 
 **Extends:** Attrs&lt;'td', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## TextareaHTMLAttributes
 
@@ -9850,7 +9883,7 @@ export interface TextareaHTMLAttributes<T extends Element> extends Attrs<'textar
 
 **Extends:** Attrs&lt;'textarea', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## ThHTMLAttributes
 
@@ -9860,7 +9893,7 @@ export interface ThHTMLAttributes<T extends Element> extends Attrs<'tr', T>
 
 **Extends:** Attrs&lt;'tr', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## TimeHTMLAttributes
 
@@ -9870,7 +9903,7 @@ export interface TimeHTMLAttributes<T extends Element> extends Attrs<'time', T>
 
 **Extends:** Attrs&lt;'time', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## TitleHTMLAttributes
 
@@ -9880,7 +9913,7 @@ export interface TitleHTMLAttributes<T extends Element> extends Attrs<'title', T
 
 **Extends:** Attrs&lt;'title', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## Tracker
 
@@ -9925,7 +9958,7 @@ const Cmp = component$(() => {
 export interface Tracker
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
 ## TrackHTMLAttributes
 
@@ -9935,7 +9968,7 @@ export interface TrackHTMLAttributes<T extends Element> extends Attrs<'track', T
 
 **Extends:** Attrs&lt;'track', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## untrack
 
@@ -9974,7 +10007,7 @@ fn
 
 T
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-core.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-core.ts)
 
 ## useComputed$
 
@@ -9982,7 +10015,7 @@ T
 useComputed$: Computed;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
 ## useComputedQrl
 
@@ -9990,7 +10023,7 @@ useComputed$: Computed;
 useComputedQrl: ComputedQRL;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
 ## useContext
 
@@ -10038,7 +10071,7 @@ export const Items = component$(() => {
 useContext: UseContext;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-context.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-context.ts)
 
 ## useContextProvider
 
@@ -10130,7 +10163,7 @@ STATE
 
 void
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-context.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-context.ts)
 
 ## useErrorBoundary
 
@@ -10142,7 +10175,7 @@ useErrorBoundary: () => Readonly<ErrorBoundaryStore>;
 
 Readonly&lt;[ErrorBoundaryStore](#errorboundarystore)&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-error-boundary.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-error-boundary.ts)
 
 ## useId
 
@@ -10154,7 +10187,7 @@ useId: () => string;
 
 string
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-id.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-id.ts)
 
 ## useOn
 
@@ -10206,7 +10239,7 @@ EventQRL&lt;T&gt;
 
 void
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-on.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-on.ts)
 
 ## useOnDocument
 
@@ -10258,7 +10291,7 @@ EventQRL&lt;T&gt;
 
 void
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-on.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-on.ts)
 
 ## useOnWindow
 
@@ -10310,7 +10343,7 @@ EventQRL&lt;T&gt;
 
 void
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-on.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-on.ts)
 
 ## useResource$
 
@@ -10402,7 +10435,7 @@ _(Optional)_
 
 [ResourceReturn](#resourcereturn)&lt;T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
 
 ## useResourceQrl
 
@@ -10494,7 +10527,7 @@ _(Optional)_
 
 [ResourceReturn](#resourcereturn)&lt;T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
 
 ## useServerData
 
@@ -10531,7 +10564,7 @@ string
 
 T \| undefined
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-env-data.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-env-data.ts)
 
 ## useSignal
 
@@ -10539,7 +10572,7 @@ T \| undefined
 useSignal: UseSignal;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-signal.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-signal.ts)
 
 ## UseSignal
 
@@ -10547,7 +10580,7 @@ useSignal: UseSignal;
 useSignal: UseSignal;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-signal.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-signal.ts)
 
 ## useStore
 
@@ -10655,7 +10688,7 @@ _(Optional)_
 
 STATE
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-store.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-store.public.ts)
 
 ## UseStoreOptions
 
@@ -10712,7 +10745,7 @@ _(Optional)_ If `false` then the object will not be tracked for changes. Default
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-store.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-store.public.ts)
 
 ## useStyles$
 
@@ -10763,7 +10796,7 @@ string
 
 UseStyles
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts)
 
 ## useStylesQrl
 
@@ -10814,7 +10847,7 @@ styles
 
 UseStyles
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts)
 
 ## UseStylesScoped
 
@@ -10854,7 +10887,7 @@ string
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts)
 
 ## useStylesScoped$
 
@@ -10905,7 +10938,7 @@ string
 
 [UseStylesScoped](#usestylesscoped)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts)
 
 ## useStylesScopedQrl
 
@@ -10956,7 +10989,7 @@ styles
 
 [UseStylesScoped](#usestylesscoped)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts)
 
 ## useTask$
 
@@ -11012,7 +11045,7 @@ _(Optional)_
 
 void
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
 ## UseTaskOptions
 
@@ -11054,7 +11087,7 @@ _(Optional)_ - `visible`: run the effect when the element is visible. - `load`: 
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
 ## useTaskQrl
 
@@ -11110,7 +11143,7 @@ _(Optional)_
 
 void
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
 ## useVisibleTask$
 
@@ -11180,7 +11213,7 @@ _(Optional)_
 
 void
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
 ## useVisibleTaskQrl
 
@@ -11250,7 +11283,7 @@ _(Optional)_
 
 void
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
 ## ValueOrPromise
 
@@ -11260,7 +11293,7 @@ Type representing a value which is either resolve or a promise.
 export type ValueOrPromise<T> = T | Promise<T>;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/util/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/util/types.ts)
 
 ## version
 
@@ -11270,7 +11303,7 @@ QWIK_VERSION
 version: string;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/version.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/version.ts)
 
 ## VideoHTMLAttributes
 
@@ -11280,7 +11313,7 @@ export interface VideoHTMLAttributes<T extends Element> extends Attrs<'video', T
 
 **Extends:** Attrs&lt;'video', T&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## VisibleTaskStrategy
 
@@ -11291,7 +11324,7 @@ export type VisibleTaskStrategy =
   | "document-idle";
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
 ## WebViewHTMLAttributes
 
@@ -11579,4 +11612,4 @@ _(Optional)_
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)

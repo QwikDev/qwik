@@ -1,14 +1,12 @@
-import {
-  domRender,
-  ssrRenderToDom,
-} from "packages/qwik/src/core/v2/rendering.unit-util";
+import { domRender, ssrRenderToDom, trigger } from "@builder.io/qwik/testing";
 import { beforeEach, describe, expect, it } from "vitest";
 import { Issue3948 } from "./events";
-import { trigger } from "packages/qwik/src/testing/element-fixture";
-import type { ClientContainer } from "packages/qwik/src/core/v2/client/types";
+import type { ClientContainer, DomContainer } from "@builder.io/qwik";
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
+
+type fixMeAny = any;
 
 describe.each([
   { render: ssrRenderToDom }, //
@@ -17,14 +15,14 @@ describe.each([
   describe("<Issue3948/>", () => {
     let document: Document;
     // let vNode: VNode;
-    let container: ClientContainer;
+    let container: ClientContainer | DomContainer;
     // let getStyles: () => Record<string, string | string[]>;
 
     beforeEach(async () => {
       const result = await render(<Issue3948 />, { debug });
       document = result.document;
       // vNode = result.vNode!;
-      container = result.container;
+      container = result.container as fixMeAny;
       // getStyles = result.getStyles;
     });
 

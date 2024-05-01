@@ -11,11 +11,11 @@ expression: output
 import { qwikify$ } from './qwikfy';
 
 export const App = () => (
-    <div onClick$={()=>console.log('App')}></div>
+	<div onClick$={()=>console.log('App')}></div>
 );
 
 export const App2 = qwikify$(() => (
-    <div onClick$={()=>console.log('App2')}></div>
+	<div onClick$={()=>console.log('App2')}></div>
 ));
 
 ============================= test.js ==
@@ -29,7 +29,7 @@ export const App = ()=>/*#__PURE__*/ _jsx("div", {
 export const App2 = qwikifyQrl(/*#__PURE__*/ qrl(()=>import("./app2_qwikify_rkjw7ocmds4.js"), "App2_qwikify_RKJW7oCMdS4"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA,0BAA0B;;;AAI1B,OAAO,MAAM,MAAM,kBACf,KAAC;QAAI,UAAU,IAAI,QAAQ,GAAG,CAAC;OACjC;AAEF,OAAO,MAAM,OAAO,uGAEjB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA,0BAA0B;;;AAI1B,OAAO,MAAM,MAAM,kBAClB,KAAC;QAAI,UAAU,IAAI,QAAQ,GAAG,CAAC;OAC9B;AAEF,OAAO,MAAM,OAAO,uGAEjB\"}")
 ============================= app2_qwikify_rkjw7ocmds4.js (ENTRY POINT)==
 
 import { jsx as _jsx } from "react/jsx-runtime";
@@ -38,7 +38,7 @@ export const App2_qwikify_RKJW7oCMdS4 = ()=>/*#__PURE__*/ _jsx("div", {
     });
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";wCAS6B,kBACzB,KAAC;QAAI,UAAU,IAAI,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";wCAS6B,kBAC5B,KAAC;QAAI,UAAU,IAAI,QAAQ,GAAG,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -53,8 +53,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "qwikify$",
   "captures": false,
   "loc": [
-    180,
-    240
+    177,
+    234
   ]
 }
 */

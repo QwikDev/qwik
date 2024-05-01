@@ -300,7 +300,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
         if (isBrowser) {
           if (props.viewTransition !== false) {
             // mark next DOM render to use startViewTransition API
-            document.__q_view_transition__ = true;
+            (document as any).__q_view_transition__ = true;
           }
 
           let scrollState: ScrollState | undefined;
@@ -316,7 +316,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
             (navType === 'form' && !isSamePath(trackUrl, prevUrl))
           ) {
             // Mark next DOM render to scroll.
-            document.__q_scroll_restore__ = () =>
+            (document as any).__q_scroll_restore__ = () =>
               restoreScroll(navType, trackUrl, prevUrl, scrollState);
           }
 

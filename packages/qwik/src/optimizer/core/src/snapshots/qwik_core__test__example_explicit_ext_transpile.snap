@@ -9,10 +9,10 @@ expression: output
 import { component$, $, useStyles$ } from '@builder.io/qwik';
 
 export const App = component$((props) => {
-    useStyles$('hola');
-    return $(() => (
-        <div></div>
-    ));
+	useStyles$('hola');
+	return $(() => (
+		<div></div>
+	));
 });
 
 ============================= test.js ==
@@ -28,7 +28,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 export const App_component_useStyles_t35nSa5UV7U = 'hola';
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"mDAIe\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"mDAIY\"}")
 /*
 {
   "origin": "test.tsx",
@@ -43,8 +43,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "useStyles$",
   "captures": false,
   "loc": [
-    123,
-    129
+    120,
+    126
   ]
 }
 */
@@ -58,7 +58,7 @@ export const App_component_ckEPmXZlub0 = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B,CAAC,QAAU;IACrC;IACA;AAGJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B,CAAC,QAAU;IACxC;IACA;AAGD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -74,7 +74,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     95,
-    182
+    167
   ]
 }
 */
@@ -85,7 +85,7 @@ export const App_component_1_w0t0o3QMovU = ()=>/*#__PURE__*/ _jsxQ("div", null, 
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAKa,kBACL,MAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAKU,kBACR,MAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -100,8 +100,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": false,
   "loc": [
-    145,
-    178
+    139,
+    163
   ]
 }
 */

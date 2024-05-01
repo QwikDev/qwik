@@ -51,7 +51,7 @@ jobs:
         run: cargo +nightly-2021-09-30 bench --workspace | tee output.txt
 
       - name: Download previous benchmark results
-        run: mkdir raw-data && curl -o raw-data/benchmark-data.json https://raw.githubusercontent.com/BuilderIO/qwik-raw-data/gh-pages/benchmark-data.json
+        run: mkdir raw-data && curl -o raw-data/benchmark-data.json https://raw.githubusercontent.com/QwikDev/qwik-raw-data/gh-pages/benchmark-data.json
 
       - name: Analyze benchmark result
         uses: benchmark-action/github-action-benchmark@v1
@@ -102,5 +102,5 @@ jobs:
           clean: false
           single-commit: false
           git-config-email: github-bot@builder.io
-          repository-name: BuilderIO/qwik-raw-data
+          repository-name: QwikDev/qwik-raw-data
           commit-message: 'Update'

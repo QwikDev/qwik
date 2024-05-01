@@ -5,7 +5,6 @@
 ```ts
 
 import * as CSS_2 from 'csstype';
-import { JSXNode as JSXNode_2 } from '@builder.io/qwik';
 import type { StreamWriter as StreamWriter_2 } from '@builder.io/qwik';
 
 // @public
@@ -107,6 +106,49 @@ export interface CanvasHTMLAttributes<T extends Element> extends Attrs<'canvas',
 // @public
 export type ClassList = string | undefined | null | false | Record<string, boolean | string | number | null | undefined> | ClassList[];
 
+// Warning: (ae-forgotten-export) The symbol "Container2" needs to be exported by the entry point index.d.ts
+// Warning: (ae-internal-missing-underscore) The name "ClientContainer" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export interface ClientContainer extends Container2 {
+    // Warning: (ae-forgotten-export) The symbol "VNodeJournal" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    $journal$: VNodeJournal;
+    // (undocumented)
+    $locale$: string;
+    // Warning: (ae-forgotten-export) The symbol "VirtualVNode" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    $setRawState$(id: number, vParent: ElementVNode | VirtualVNode): void;
+    // (undocumented)
+    addVNodeProjection(componentVNodeWithProjection: VirtualVNode): void;
+    // Warning: (ae-forgotten-export) The symbol "QDocument" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    document: QDocument;
+    // Warning: (ae-forgotten-export) The symbol "ContainerElement" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    element: ContainerElement;
+    // (undocumented)
+    emitUnclaimedProjection(): void;
+    // (undocumented)
+    parseQRL<T = unknown>(qrl: string): QRL<T>;
+    // (undocumented)
+    qBase: string;
+    // (undocumented)
+    qContainer: string;
+    // (undocumented)
+    qManifestHash: string;
+    // Warning: (ae-forgotten-export) The symbol "ElementVNode" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    qTemplate: ElementVNode;
+    // (undocumented)
+    rootVNode: ElementVNode;
+}
+
 // @public (undocumented)
 export interface ColgroupHTMLAttributes<T extends Element> extends Attrs<'colgroup', T> {
 }
@@ -206,6 +248,76 @@ export interface DOMAttributes<EL extends Element> extends DOMAttributesBase<EL>
     class?: ClassList | Signal<ClassList> | undefined;
 }
 
+// Warning: (ae-forgotten-export) The symbol "StoreTracker" needs to be exported by the entry point index.d.ts
+// Warning: (ae-internal-missing-underscore) The name "DomContainer" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export class DomContainer extends _SharedContainer implements ClientContainer, StoreTracker {
+    // (undocumented)
+    $appendStyle$(content: string, styleId: string, host: VirtualVNode, scoped: boolean): void;
+    // (undocumented)
+    $getObjectById$: (id: number | string) => unknown;
+    // (undocumented)
+    $journal$: VNodeJournal;
+    // Warning: (ae-forgotten-export) The symbol "ObjToProxyMap" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    $proxyMap$: ObjToProxyMap;
+    // (undocumented)
+    $qFuncs$: Array<(...args: unknown[]) => unknown>;
+    // (undocumented)
+    $rawStateData$: unknown[];
+    // (undocumented)
+    $setRawState$(id: number, vParent: ElementVNode | VirtualVNode): void;
+    constructor(element: ContainerElement);
+    // (undocumented)
+    addVNodeProjection(componentVNodeWithProjection: VirtualVNode): void;
+    // (undocumented)
+    document: QDocument;
+    // (undocumented)
+    element: ContainerElement;
+    // (undocumented)
+    emitUnclaimedProjection(): ValueOrPromise<void>;
+    // (undocumented)
+    ensureProjectionResolved(vNode: VirtualVNode): void;
+    // (undocumented)
+    getHostProp<T>(host: HostElement, name: string): T | null;
+    // (undocumented)
+    getParentHost(host: HostElement): HostElement | null;
+    // (undocumented)
+    getSyncFn(id: number): (...args: unknown[]) => unknown;
+    // (undocumented)
+    handleError(err: any, host: HostElement): void;
+    // (undocumented)
+    parseQRL<T = unknown>(qrl: string): QRL<T>;
+    // Warning: (ae-forgotten-export) The symbol "HostElement" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    processJsx(host: HostElement, jsx: JSXOutput): ValueOrPromise<void>;
+    // (undocumented)
+    qBase: string;
+    // (undocumented)
+    qContainer: string;
+    // (undocumented)
+    qManifestHash: string;
+    // (undocumented)
+    get qTemplate(): ElementVNode;
+    // (undocumented)
+    renderDone: Promise<void> | null;
+    // (undocumented)
+    rendering: boolean;
+    // (undocumented)
+    resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined;
+    // (undocumented)
+    rootVNode: ElementVNode;
+    // (undocumented)
+    scheduleRender(): Promise<void> | null;
+    // (undocumented)
+    setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
+    // (undocumented)
+    setHostProp<T>(host: HostElement, name: string, value: T): void;
+}
+
 // @public (undocumented)
 export type EagernessOptions = 'visible' | 'load' | 'idle';
 
@@ -260,8 +372,7 @@ export const _getContextElement: () => unknown;
 // @internal (undocumented)
 export const _getContextEvent: () => unknown;
 
-// Warning: (ae-forgotten-export) The symbol "ElementVNode" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "ClientContainer" needs to be exported by the entry point index.d.ts
+// Warning: (ae-incompatible-release-tags) The symbol "getDomContainer" is marked as @public, but its signature references "ClientContainer" which is marked as @internal
 //
 // @public (undocumented)
 export function getDomContainer(element: Element | ElementVNode): ClientContainer;
@@ -274,27 +385,8 @@ export function getLocale(defaultLocale?: string): string;
 // @public
 export const getPlatform: () => CorePlatform;
 
-// @public (undocumented)
-function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends {} = {}>(type: TYPE, props: PROPS | null, ...children: any[]): JSXNode<TYPE>;
-
-// @public (undocumented)
-namespace h {
-    // (undocumented)
-    function h(type: any): JSXNode<any>;
-    // (undocumented)
-    function h(type: Node, data: any): JSXNode<any>;
-    // (undocumented)
-    function h(type: any, text: string): JSXNode<any>;
-    // (undocumented)
-    function h(type: any, children: Array<any>): JSXNode<any>;
-    // (undocumented)
-    function h(type: any, data: any, text: string): JSXNode<any>;
-    // (undocumented)
-    function h(type: any, data: any, children: Array<JSXNode<any> | undefined | null>): JSXNode<any>;
-    // (undocumented)
-    function h(sel: any, data: any | null, children: JSXNode<any>): JSXNode<any>;
-        { JSX };
-}
+// @public
+function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends {} = {}>(type: TYPE, props?: PROPS | null, ...children: any[]): JSXNode<TYPE>;
 export { h as createElement }
 export { h }
 
@@ -349,7 +441,7 @@ export interface ImgHTMLAttributes<T extends Element> extends Attrs<'img', T> {
 }
 
 // @public
-export const implicit$FirstArg: <FIRST, REST extends any[], RET>(fn: (first: QRL<FIRST>, ...rest: REST) => RET) => (first: FIRST, ...rest: REST) => RET;
+export const implicit$FirstArg: <FIRST, REST extends any[], RET>(fn: (first: QRL<FIRST>, ...rest: REST) => RET) => ((first: FIRST, ...rest: REST) => RET);
 
 // Warning: (ae-internal-missing-underscore) The name "inlinedQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
@@ -438,6 +530,8 @@ export interface JSXNode<T extends string | FunctionComponent | unknown = unknow
     // (undocumented)
     props: T extends FunctionComponent<infer P> ? P : Record<any, unknown>;
     // (undocumented)
+    propsC: T extends FunctionComponent<infer P> ? P : Record<any, unknown>;
+    // (undocumented)
     type: T;
     // (undocumented)
     varProps: Record<any, unknown>;
@@ -447,7 +541,7 @@ export interface JSXNode<T extends string | FunctionComponent | unknown = unknow
 export type JSXOutput = JSXNode | string | number | boolean | null | undefined | JSXOutput[];
 
 // @internal
-export const _jsxQ: <T>(type: T, varProps: Props | null, constProps: Props | null, children: JSXChildren | null, flags: number, key: string | number | null, dev?: DevJSX) => JSXNode<T>;
+export const _jsxQ: <T>(type: T, varProps: Props | null, constProps: Props | null, children: JSXChildren | null, flags: number, key: string | number | null | undefined, dev?: DevJSX) => JSXNode<T>;
 
 // @public (undocumented)
 export type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLElementTagNameMap>;
@@ -601,7 +695,7 @@ export const PrefetchGraph: (opts?: {
     base?: string;
     manifestHash?: string;
     manifestURL?: string;
-}) => JSXNode_2<string>;
+}) => JSXNode<string>;
 
 // @alpha
 export const PrefetchServiceWorker: (opts: {
@@ -609,7 +703,7 @@ export const PrefetchServiceWorker: (opts: {
     path?: string;
     verbose?: boolean;
     fetchBundleGraph?: boolean;
-}) => JSXNode_2<string>;
+}) => JSXNode<string>;
 
 // @public (undocumented)
 export interface ProgressHTMLAttributes<T extends Element> extends Attrs<'progress', T> {
@@ -668,8 +762,6 @@ export const qrlDEV: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol:
 // @beta
 export type QRLEventHandlerMulti<EV extends Event, EL> = QRL<EventHandler<EV, EL>> | undefined | null | QRLEventHandlerMulti<EV, EL>[];
 
-// Warning: (ae-forgotten-export) The symbol "SyncQRL" needs to be exported by the entry point index.d.ts
-//
 // @alpha
 export const _qrlSync: <TYPE extends Function>(fn: TYPE, serializedFn?: string) => SyncQRL<TYPE>;
 
@@ -724,27 +816,29 @@ export interface QwikIntrinsicElements extends QwikHTMLElements, QwikSVGElements
 export type QwikInvalidEvent<T = Element> = Event;
 
 // @public (undocumented)
-export namespace QwikJSX {
+namespace QwikJSX {
     // (undocumented)
-    export type Element = JSXOutput;
+    type Element = JSXOutput;
     // (undocumented)
-    export interface ElementChildrenAttribute {
+    interface ElementChildrenAttribute {
         // (undocumented)
         children: JSXChildren;
     }
     // (undocumented)
-    export type ElementType = string | FunctionComponent<Record<any, any>>;
+    type ElementType = string | FunctionComponent<Record<any, any>>;
     // Warning: (ae-forgotten-export) The symbol "QwikIntrinsicAttributes" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    export interface IntrinsicAttributes extends QwikIntrinsicAttributes {
+    interface IntrinsicAttributes extends QwikIntrinsicAttributes {
     }
     // Warning: (ae-forgotten-export) The symbol "LenientQwikElements" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    export interface IntrinsicElements extends LenientQwikElements {
+    interface IntrinsicElements extends LenientQwikElements {
     }
 }
+export { QwikJSX as JSX }
+export { QwikJSX }
 
 // @public @deprecated (undocumented)
 export type QwikKeyboardEvent<T = Element> = NativeKeyboardEvent;
@@ -914,8 +1008,6 @@ export const _serializeData: (data: any, pureQRL?: boolean) => Promise<string>;
 // @public
 export const setPlatform: (plt: CorePlatform) => CorePlatform;
 
-// Warning: (ae-forgotten-export) The symbol "Container2" needs to be exported by the entry point index.d.ts
-//
 // @internal (undocumented)
 export abstract class _SharedContainer implements Container2 {
     // (undocumented)
@@ -926,8 +1018,6 @@ export abstract class _SharedContainer implements Container2 {
     readonly $getObjectById$: (id: number | string) => any;
     // (undocumented)
     readonly $locale$: string;
-    // Warning: (ae-forgotten-export) The symbol "ObjToProxyMap" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     readonly $proxyMap$: ObjToProxyMap;
     // Warning: (ae-forgotten-export) The symbol "Scheduler" needs to be exported by the entry point index.d.ts
@@ -943,8 +1033,6 @@ export abstract class _SharedContainer implements Container2 {
     // (undocumented)
     readonly $version$: string;
     constructor(scheduleDrain: () => void, journalFlush: () => void, serverData: Record<string, any>, locale: string);
-    // Warning: (ae-forgotten-export) The symbol "HostElement" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     abstract ensureProjectionResolved(host: HostElement): void;
     // (undocumented)
@@ -1633,6 +1721,17 @@ export interface SVGProps<T extends Element> extends SVGAttributes, QwikAttribut
 
 // @alpha
 export const sync$: <T extends Function>(fn: T) => SyncQRL<T>;
+
+// @alpha (undocumented)
+export interface SyncQRL<TYPE extends Function = any> extends QRL<TYPE> {
+    // (undocumented)
+    __brand__SyncQRL__: TYPE;
+    (...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never): TYPE extends (...args: any[]) => infer RETURN ? RETURN : never;
+    // (undocumented)
+    dev: QRLDev | null;
+    // (undocumented)
+    resolved: TYPE;
+}
 
 // @public (undocumented)
 export interface TableHTMLAttributes<T extends Element> extends Attrs<'table', T> {

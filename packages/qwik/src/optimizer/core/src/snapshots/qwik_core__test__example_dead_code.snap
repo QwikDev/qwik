@@ -10,14 +10,14 @@ import { component$ } from '@builder.io/qwik';
 import { deps } from 'deps';
 
 export const Foo = component$(({foo}) => {
-    useMount$(() => {
-        if (false) {
-            deps();
-        }
-    });
-    return (
-        <div />
-    );
+	useMount$(() => {
+		if (false) {
+			deps();
+		}
+	});
+	return (
+		<div />
+	);
 })
 
 ============================= foo_component_htdrsvublie.tsx (ENTRY POINT)==
@@ -28,7 +28,7 @@ export const Foo_component_HTDRsvUbLiE = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"yCAI8B,SAAW;IACrC,UAAU,IAAM,CAIhB;IACA,QACK;AAET\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"yCAI8B,SAAW;IACxC,UAAU,IAAM,CAIhB;IACA,QACE;AAEH\"}")
 /*
 {
   "origin": "test.tsx",
@@ -44,7 +44,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     109,
-    240
+    201
   ]
 }
 */

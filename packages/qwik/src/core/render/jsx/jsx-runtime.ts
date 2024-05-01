@@ -37,7 +37,7 @@ export const _jsxQ = <T>(
   constProps: Props | null,
   children: JSXChildren | null,
   flags: number,
-  key: string | number | null,
+  key: string | number | null | undefined,
   dev?: DevJSX
 ): JSXNode<T> => {
   const processed = key == null ? null : String(key);
@@ -104,6 +104,40 @@ export const jsx = <T extends string | FunctionComponent<any>>(
   return _jsxQ(type, props, null, children, 0, processed);
 };
 
+/**
+ * The legacy transform, used in special cases like `<div {...props} key="key" />`. Note that the
+ * children are spread arguments, instead of a prop like in jsx() calls.
+ *
+ * Also note that this disables optimizations.
+ *
+ * @public
+ */
+export function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends {} = {}>(
+  type: TYPE,
+  props?: PROPS | null,
+  ...children: any[]
+): JSXNode<TYPE> {
+  const varProps: Record<string, any> = {};
+
+  let key: string | undefined;
+  let k: any;
+
+  for (k in props) {
+    if (k === 'key') {
+      key = String((props as any)[k]);
+    } else if (k === 'children') {
+      // only allow overriding if the JSX had no children
+      if (arguments.length <= 2) {
+        children = (props as any)[k];
+      }
+    } else {
+      varProps[k] = (props as any)[k];
+    }
+  }
+
+  return _jsxQ(type, varProps, null, children, 0, key);
+}
+
 export const SKIP_RENDER_TYPE = ':skipRender';
 
 export const isPropsProxy = (
@@ -136,7 +170,14 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
   get props(): T extends FunctionComponent<infer PROPS> ? PROPS : Props {
     // We use a proxy to merge the constProps if they exist and to evaluate derived signals
     if (!this._proxy) {
-      this._proxy = createPropsProxy(this.varProps, this.constProps);
+      this._proxy = createPropsProxy(this.varProps, this.constProps, undefined);
+    }
+    return this._proxy as typeof this.props;
+  }
+  get propsC(): T extends FunctionComponent<infer PROPS> ? PROPS : Props {
+    // We use a proxy to merge the constProps if they exist and to evaluate derived signals
+    if (!this._proxy) {
+      this._proxy = createPropsProxy(this.varProps, this.constProps, this.children);
     }
     return this._proxy as typeof this.props;
   }
@@ -389,14 +430,19 @@ const filterStack = (stack: string, offset: number = 0) => {
   return stack.split('\n').slice(offset).join('\n');
 };
 
-export function createPropsProxy(varProps: Props, constProps: Props | null): Props {
-  return new Proxy<any>({}, new PropsProxyHandler(varProps, constProps));
+export function createPropsProxy(
+  varProps: Props,
+  constProps: Props | null,
+  children?: JSXChildren | undefined
+): Props {
+  return new Proxy<any>({}, new PropsProxyHandler(varProps, constProps, children));
 }
 
 class PropsProxyHandler implements ProxyHandler<any> {
   constructor(
     private $varProps$: Props,
-    private $constProps$: Props | null
+    private $constProps$: Props | null,
+    private $children$: JSXChildren | undefined
   ) {}
   get(_: any, prop: string | symbol) {
     // escape hatch to get the separated props from a component
@@ -405,6 +451,9 @@ class PropsProxyHandler implements ProxyHandler<any> {
     }
     if (prop === _VAR_PROPS) {
       return this.$varProps$;
+    }
+    if (this.$children$ !== undefined && prop === 'children') {
+      return this.$children$;
     }
     const value =
       this.$constProps$ && prop in this.$constProps$
@@ -441,6 +490,7 @@ class PropsProxyHandler implements ProxyHandler<any> {
   }
   has(_: any, prop: string | symbol) {
     const hasProp =
+      (prop === 'children' && this.$children$ !== undefined) ||
       prop === _CONST_PROPS ||
       prop === _VAR_PROPS ||
       prop in this.$varProps$ ||
@@ -448,14 +498,23 @@ class PropsProxyHandler implements ProxyHandler<any> {
     return hasProp;
   }
   getOwnPropertyDescriptor(target: any, p: string | symbol): PropertyDescriptor | undefined {
+    const value =
+      p === 'children' && this.$children$ !== undefined
+        ? this.$children$
+        : this.$constProps$ && p in this.$constProps$
+          ? this.$constProps$[p as string]
+          : this.$varProps$[p as string];
     return {
       configurable: true,
       enumerable: true,
-      value: this.get(target, p),
+      value: value,
     };
   }
   ownKeys() {
     const out = Object.keys(this.$varProps$);
+    if (this.$children$ !== undefined) {
+      out.push('children');
+    }
     if (this.$constProps$) {
       for (const key in this.$constProps$) {
         if (out.indexOf(key) === -1) {

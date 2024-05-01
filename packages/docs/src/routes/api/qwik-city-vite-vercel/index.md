@@ -41,7 +41,7 @@ _(Optional)_
 
 any
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/vercel-edge/vite/index.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/adapters/vercel-edge/vite/index.ts)
 
 ## VercelEdgeAdapterOptions
 
@@ -153,4 +153,4 @@ Defaults to `undefined`.
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/vercel-edge/vite/index.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/adapters/vercel-edge/vite/index.ts)

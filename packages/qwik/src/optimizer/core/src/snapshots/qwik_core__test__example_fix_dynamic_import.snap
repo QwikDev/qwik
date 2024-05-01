@@ -10,16 +10,16 @@ import { $, component$ } from '@builder.io/qwik';
 import thing from "../state";
 
 export function foo() {
-    return import("../state")
+	return import("../state")
 }
 
 export const Header = component$(() => {
-    return (
-        <div>
-            {import("../state")}
-            {thing}
-        </div>
-    );
+	return (
+		<div>
+			{import("../state")}
+			{thing}
+		</div>
+	);
 });
 
 ============================= header_component_rggm7ks9qwi.tsx ==
@@ -28,15 +28,15 @@ import thing from "./project/state";
 export const Header_component_RGgm7Ks9QWI = ()=>{
     return <div>
 
-            {import("./project/state")}
+			{import("./project/state")}
 
-            {thing}
+			{thing}
 
-        </div>;
+		</div>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/folder/test.tsx\"],\"names\":[],\"mappings\":\";4CAQiC,IAAM;IACnC,QACK,IAAI;;YACD,CAAC,MAAM,CAAC,mBAAY;;YACpB,CAAC,MAAM;;QACX,EAAE;AAEV\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/folder/test.tsx\"],\"names\":[],\"mappings\":\";4CAQiC,IAAM;IACtC,QACE,IAAI;;GACJ,CAAC,MAAM,CAAC,mBAAY;;GACpB,CAAC,MAAM;;EACR,EAAE;AAEJ\"}")
 /*
 {
   "origin": "project/folder/test.tsx",
@@ -51,8 +51,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/folder/test.tsx\"],\"
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    173,
-    284
+    170,
+    245
   ]
 }
 */
@@ -66,7 +66,7 @@ export function foo() {
 export const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("../../entry_hooks"), "Header_component_RGgm7Ks9QWI"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/folder/test.tsx\"],\"names\":[],\"mappings\":\";;AAIA,OAAO,SAAS,MAAM;IAClB,OAAO,MAAM,CAAC;AAClB,CAAC;AAED,OAAO,MAAM,uBAAS,iGAOnB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/folder/test.tsx\"],\"names\":[],\"mappings\":\";;AAIA,OAAO,SAAS,MAAM;IACrB,OAAO,MAAM,CAAC;AACf,CAAC;AAED,OAAO,MAAM,uBAAS,iGAOnB\"}")
 ============================= entry_hooks.js (ENTRY POINT)==
 
 export { Header_component_RGgm7Ks9QWI } from "./header_component_rggm7ks9qwi";

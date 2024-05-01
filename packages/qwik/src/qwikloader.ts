@@ -29,6 +29,8 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
     return doc.querySelectorAll(query);
   };
 
+  const isPromise = (promise: Promise<any>) => promise && typeof promise.then === 'function';
+
   const broadcast = (infix: QwikLoaderEventScope, ev: Event, type = ev.type) => {
     querySelectorAll('[on' + infix + '\\:' + type + ']')[forEach]((el) =>
       dispatch(el, infix, ev, type)
@@ -73,7 +75,15 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
     if (relevantListeners && relevantListeners.length > 0) {
       for (const listener of relevantListeners) {
         // listener[1] holds the QRL
-        await listener[1].getFn([element, ev], () => element[isConnected])(ev, element);
+        const results = listener[1].getFn([element, ev], () => element[isConnected])(ev, element);
+        const cancelBubble = ev.cancelBubble;
+        if (isPromise(results)) {
+          await results;
+        }
+        // forcing async with await resets ev.cancelBubble to false
+        if (cancelBubble) {
+          ev.stopPropagation();
+        }
       }
       return;
     }
@@ -109,7 +119,11 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
                 element: element,
                 reqTime,
               });
-            await handler(ev, element);
+            const results = handler(ev, element);
+            // only await if there is a promise returned
+            if (isPromise(results)) {
+              await results;
+            }
           } finally {
             (doc as any)[Q_CONTEXT] = previousCtx;
           }
@@ -139,8 +153,15 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
     broadcast('-document', ev, type);
 
     while (element && element[getAttribute]) {
-      await dispatch(element, '', ev, type);
-      element = ev.bubbles && ev.cancelBubble !== true ? element.parentElement : null;
+      const results = dispatch(element, '', ev, type);
+      let cancelBubble = ev.cancelBubble;
+      if (isPromise(results)) {
+        await results;
+      }
+      // if another async handler stopPropagation
+      cancelBubble =
+        cancelBubble || ev.cancelBubble || element.hasAttribute('stoppropagation:' + ev.type);
+      element = ev.bubbles && cancelBubble !== true ? element.parentElement : null;
     }
   };
 
@@ -186,7 +207,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
     for (const eventName of eventNames) {
       if (!events.has(eventName)) {
         addEventListener(doc, eventName, processDocumentEvent, true);
-        addEventListener(win, eventName, processWindowEvent);
+        addEventListener(win, eventName, processWindowEvent, true);
         events.add(eventName);
       }
     }

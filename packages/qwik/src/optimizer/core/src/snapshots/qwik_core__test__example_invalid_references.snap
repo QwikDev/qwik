@@ -14,13 +14,13 @@ function I9() {}
 class I10 {}
 
 export const App = component$(({count}) => {
-    console.log(I1, I2, I3, I4, I5, I6, I7, I8, I9);
-    console.log(itsok, v1, v2, v3, obj);
-    return $(() => {
-        return (
-            <I10></I10>
-        )
-    });
+	console.log(I1, I2, I3, I4, I5, I6, I7, I8, I9);
+	console.log(itsok, v1, v2, v3, obj);
+	return $(() => {
+		return (
+			<I10></I10>
+		)
+	});
 })
 
 ============================= test.js ==
@@ -65,7 +65,7 @@ export const App_component_ckEPmXZlub0 = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;yCAQ8B,SAAa;IACvC,QAAQ,GAAG,CAAC,IAAI,IAAI,IAAI,IAAI,IAAI,IAAI,IAAI,IAAI;IAC5C,QAAQ,GAAG,CAAC,OAAO,IAAI,IAAI,IAAI;IAC/B;AAKJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;yCAQ8B,SAAa;IAC1C,QAAQ,GAAG,CAAC,IAAI,IAAI,IAAI,IAAI,IAAI,IAAI,IAAI,IAAI;IAC5C,QAAQ,GAAG,CAAC,OAAO,IAAI,IAAI,IAAI;IAC/B;AAKD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -81,21 +81,21 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     191,
-    381
+    348
   ]
 }
 */
 ============================= app_component_1_w0t0o3qmovu.js (ENTRY POINT)==
 
 import { _auto_I10 as I10 } from "./test";
-import { _jsxC } from "@builder.io/qwik";
+import { _jsxQ } from "@builder.io/qwik";
 export const App_component_1_w0t0o3QMovU = ()=>{
-    return /*#__PURE__*/ _jsxC(I10, null, null, 3, "u6_0");
+    return /*#__PURE__*/ _jsxQ(I10, null, null, null, 3, "u6_0");
 };
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;2CAWa,IAAM;IACX,qBACI,MAAC;AAET\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;2CAWU,IAAM;IACd,qBACC,MAAC;AAEH\"}")
 /*
 {
   "origin": "test.tsx",
@@ -110,8 +110,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": false,
   "loc": [
-    313,
-    377
+    304,
+    344
   ]
 }
 */

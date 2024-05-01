@@ -9,14 +9,14 @@ expression: output
 import { $, component$ } from '@builder.io/qwik';
 
 export const Foo = component$(() => {
-    return $(() => {
-        return (
-            <div>
-            </div>
-        )
-    });
+	return $(() => {
+		return (
+			<div>
+			</div>
+		)
+	});
 }, {
-    tagName: "my-foo",
+	tagName: "my-foo",
 });
 
 ============================= foo_component_htdrsvublie.tsx (ENTRY POINT)==
@@ -27,7 +27,7 @@ export const Foo_component_HTDRsvUbLiE = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAG8B,IAAM;IAChC;AAMJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAG8B,IAAM;IACnC;AAMD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -43,7 +43,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     83,
-    185
+    149
   ]
 }
 */
@@ -52,12 +52,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 export const Foo_component_1_DvU6FitWglY = ()=>{
     return <div>
 
-            </div>;
+			</div>;
 };
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"2CAIa,IAAM;IACX,QACK,IAAI;;YACL,EAAE;AAEV\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"2CAIU,IAAM;IACd,QACE,IAAI;;GACL,EAAE;AAEJ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -72,8 +72,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": false,
   "loc": [
-    104,
-    181
+    101,
+    145
   ]
 }
 */
@@ -86,7 +86,7 @@ export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./fo
 });
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,wGAOhB;IACC,SAAS;AACb,GAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,wGAOhB;IACF,SAAS;AACV,GAAG\"}")
 == DIAGNOSTICS ==
 
 []

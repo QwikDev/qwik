@@ -13,7 +13,7 @@ import {
 import { render2 } from './client/dom-render';
 import type { ContainerElement } from './client/types';
 import { vnode_getFirstChild } from './client/vnode';
-import './vdom-diff.unit-util';
+import '@builder.io/qwik/testing';
 import { getTestPlatform } from '../../testing/platform';
 
 describe('v2 client render', () => {

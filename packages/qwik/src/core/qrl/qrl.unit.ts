@@ -120,7 +120,7 @@ describe('serialization', () => {
     );
   });
 
-  // See https://github.com/BuilderIO/qwik/issues/5087#issuecomment-1707185010
+  // See https://github.com/QwikDev/qwik/issues/5087#issuecomment-1707185010
   test.skip('should parse self-reference', () => {});
 
   test('should store resolved value', async () => {

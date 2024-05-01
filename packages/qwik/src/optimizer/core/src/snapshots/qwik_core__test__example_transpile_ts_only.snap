@@ -9,11 +9,11 @@ expression: output
 import { component$, useStore } from '@builder.io/qwik';
 
 export const App = component$((props: Stuff) => {
-    return (
-        <Cmp>
-            <p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
-        </Cmp>
-    );
+	return (
+		<Cmp>
+			<p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
+		</Cmp>
+	);
 });
 
 ============================= test.jsx ==
@@ -23,13 +23,13 @@ import { inlinedQrl } from "@builder.io/qwik";
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
     return <Cmp>
 
-            <p class="stuff" onClick$={/*#__PURE__*/ inlinedQrl(()=>console.log('warn'), "App_component_Cmp_p_onClick_vuXzfUTkpto")}>Hello Qwik</p>
+			<p class="stuff" onClick$={/*#__PURE__*/ inlinedQrl(()=>console.log('warn'), "App_component_Cmp_p_onClick_vuXzfUTkpto")}>Hello Qwik</p>
 
-        </Cmp>;
+		</Cmp>;
 }, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,sCAAW,CAAC,QAAiB;IAC5C,QACK,IAAI;;YACD,CAAC,EAAE,MAAM,QAAQ,mCAAU,IAAM,QAAQ,GAAG,CAAC,qDAAS,UAAU,EAAE,EAAE;;QACxE,EAAE;AAEV,iCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,sCAAW,CAAC,QAAiB;IAC/C,QACE,IAAI;;GACJ,CAAC,EAAE,MAAM,QAAQ,mCAAU,IAAM,QAAQ,GAAG,CAAC,qDAAS,UAAU,EAAE,EAAE;;EACrE,EAAE;AAEJ,iCAAG\"}")
 == DIAGNOSTICS ==
 
 []

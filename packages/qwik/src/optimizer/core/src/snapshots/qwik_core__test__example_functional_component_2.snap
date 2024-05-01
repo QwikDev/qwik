@@ -8,31 +8,31 @@ expression: output
 
 import { $, component$, useStore } from '@builder.io/qwik';
 export const useCounter = () => {
-    return useStore({count: 0});
+	return useStore({count: 0});
 }
 
 export const STEP = 1;
 
 export const App = component$((props) => {
-    const state = useCounter();
-    const thing = useStore({thing: 0});
-    const STEP_2 = 2;
+	const state = useCounter();
+	const thing = useStore({thing: 0});
+	const STEP_2 = 2;
 
-    const count2 = state.count * 2;
-    return (
-        <div onClick$={() => state.count+=count2 }>
-            <span>{state.count}</span>
-            {buttons.map(btn => (
-                <button
-                    onClick$={() => state.count += btn.offset + thing + STEP + STEP_2 + props.step}
-                >
-                    {btn.name}
-                </button>
-            ))}
+	const count2 = state.count * 2;
+	return (
+		<div onClick$={() => state.count+=count2 }>
+			<span>{state.count}</span>
+			{buttons.map(btn => (
+				<button
+					onClick$={() => state.count += btn.offset + thing + STEP + STEP_2 + props.step}
+				>
+					{btn.name}
+				</button>
+			))}
 
-        </div>
+		</div>
 
-    );
+	);
 })
 
 ============================= test.js ==
@@ -49,7 +49,7 @@ export const STEP = 1;
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAwB,QAAQ,QAAQ,mBAAmB;AAC3D,OAAO,MAAM,aAAa,IAAM;IAC5B,OAAO,SAAS;QAAC,OAAO;IAAC;AAC7B,EAAC;AAED,OAAO,MAAM,OAAO,EAAE;AAEtB,OAAO,MAAM,oBAAM,wGAoBjB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAwB,QAAQ,QAAQ,mBAAmB;AAC3D,OAAO,MAAM,aAAa,IAAM;IAC/B,OAAO,SAAS;QAAC,OAAO;IAAC;AAC1B,EAAC;AAED,OAAO,MAAM,OAAO,EAAE;AAEtB,OAAO,MAAM,oBAAM,wGAoBjB\"}")
 ============================= app_component_div_onclick_1cgetmfzx0g.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
@@ -59,7 +59,7 @@ export const App_component_div_onClick_1CGetmFZx0g = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";qDAeuB;;WAAM,MAAM,KAAK,IAAE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";qDAeiB;;WAAM,MAAM,KAAK,IAAE\"}")
 /*
 {
   "origin": "test.tsx",
@@ -74,8 +74,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    366,
-    391
+    342,
+    367
   ]
 }
 */
@@ -89,7 +89,7 @@ export const App_component_div_button_onClick_f5NwW9e63a4 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;4DAmB8B;;WAAM,MAAM,KAAK,IAAI,IAAI,MAAM,GAAG,QAAQ,OARrD,IAQqE,MAAM,IAAI\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;4DAmBe;;WAAM,MAAM,KAAK,IAAI,IAAI,MAAM,GAAG,QAAQ,OARzC,IAQyD,MAAM,IAAI\"}")
 /*
 {
   "origin": "test.tsx",
@@ -104,8 +104,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    522,
-    590
+    453,
+    521
   ]
 }
 */
@@ -144,7 +144,7 @@ export const App_component_ckEPmXZlub0 = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;yCAQ8B,CAAC,QAAU;IACrC,MAAM,QAAQ;IACd,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAGhC,MAAM,SAAS,MAAM,KAAK,GAAG;IAC7B,qBACI,MAAC;QAAI,QAAQ;;;;;sBACT,MAAC,oCAAM,GAAM,KAAK;;;QACjB,QAAQ,GAAG,CAAC,CAAA,oBACT,MAAC;gBACG,QAAQ;;;;;;yBAEP;;AAOrB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;yCAQ8B,CAAC,QAAU;IACxC,MAAM,QAAQ;IACd,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAGhC,MAAM,SAAS,MAAM,KAAK,GAAG;IAC7B,qBACC,MAAC;QAAI,QAAQ;;;;;sBACZ,MAAC,oCAAM,GAAM,KAAK;;;QACjB,QAAQ,GAAG,CAAC,CAAA,oBACZ,MAAC;gBACA,QAAQ;;;;;;yBAEP;;AAON\"}")
 /*
 {
   "origin": "test.tsx",
@@ -159,8 +159,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    186,
-    708
+    183,
+    582
   ]
 }
 */

@@ -9,16 +9,16 @@ expression: output
 import { $, component$, useTask$ } from '@builder.io/qwik';
 import { CONST } from 'const';
 export const Works = component$((props) => {
-    const {countNested} = useStore({value:{count:0}}).value;
-    const countNested2 = countNested;
-    const {hello} = countNested2;
-    const bye = hello.bye;
-    const {ciao} = bye.italian;
+	const {countNested} = useStore({value:{count:0}}).value;
+	const countNested2 = countNested;
+	const {hello} = countNested2;
+	const bye = hello.bye;
+	const {ciao} = bye.italian;
 
 
-    return (
-        <div ciao={ciao} >{foo}</div>
-    );
+	return (
+		<div ciao={ciao} >{foo}</div>
+	);
 });
 
 ============================= test.jsx ==
@@ -35,7 +35,7 @@ export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)
 }, "Works_component_t45qL4vNGv0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,sBAAQ,sCAAW,CAAC,QAAU;IACvC,MAAM,QAAgB,SAAS;QAAC,OAAM;YAAC,OAAM;QAAC;IAAC;IAO/C,QACK,IAAI,MAJM,AADH,MAHsC,MAA3C,YAEA,MACW,GAAG,CACF,OAAO,CAAnB,OAIgB,MAAM;AAEjC,mCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,sBAAQ,sCAAW,CAAC,QAAU;IAC1C,MAAM,QAAgB,SAAS;QAAC,OAAM;YAAC,OAAM;QAAC;IAAC;IAO/C,QACE,IAAI,MAJS,AADH,MAHsC,MAA3C,YAEA,MACW,GAAG,CACF,OAAO,CAAnB,OAIa,MAAM;AAE3B,mCAAG\"}")
 == DIAGNOSTICS ==
 
 []

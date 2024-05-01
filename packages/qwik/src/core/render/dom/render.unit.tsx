@@ -1,5 +1,10 @@
-import { ElementFixture, trigger } from '../../../testing/element-fixture';
-import { expectDOM } from '../../../testing/expect-dom';
+import {
+  ElementFixture,
+  trigger,
+  expectDOM,
+  createDOM,
+  createDocument,
+} from '@builder.io/qwik/testing';
 import { component$ } from '../../component/component.public';
 import { inlinedQrl } from '../../qrl/qrl';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
@@ -12,9 +17,7 @@ import { useStylesQrl, useStylesScopedQrl } from '../../use/use-styles';
 import { pauseContainer } from '../../container/pause';
 import { useSignal } from '../../use/use-signal';
 import { assert, test, suite } from 'vitest';
-import { createDOM } from '../../../testing/library';
 import { renderToString } from '../../../server/render';
-import { createDocument } from '../../../testing/document';
 
 test('should render basic content', async () => {
   const fixture = new ElementFixture();

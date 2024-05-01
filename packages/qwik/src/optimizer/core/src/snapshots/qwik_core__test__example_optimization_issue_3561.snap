@@ -9,23 +9,23 @@ expression: output
 import { component$ } from '@builder.io/qwik';
 
 export const Issue3561 = component$(() => {
-    const props = useStore({
-      product: {
-        currentVariant: {
-          variantImage: 'image',
-          variantNumber: 'number',
-          setContents: 'contents',
-        },
-      },
-    });
-    const {
-      currentVariant: { variantImage, variantNumber, setContents } = {},
-    } = props.product;
+	const props = useStore({
+		product: {
+		currentVariant: {
+			variantImage: 'image',
+			variantNumber: 'number',
+			setContents: 'contents',
+		},
+		},
+	});
+	const {
+		currentVariant: { variantImage, variantNumber, setContents } = {},
+	} = props.product;
 
-    console.log(variantImage, variantNumber, setContents)
+	console.log(variantImage, variantNumber, setContents)
 
-    return <p></p>;
-  });
+	return <p></p>;
+	});
 
 ============================= test.jsx ==
 
@@ -47,7 +47,7 @@ export const Issue3561 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=
 }, "Issue3561_component_hHTw654BZB8"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,0BAAY,sCAAW,IAAM;IACtC,MAAM,QAAQ,SAAS;QACrB,SAAS;YACP,gBAAgB;gBACd,cAAc;gBACd,eAAe;gBACf,aAAa;YACf;QACF;IACF;IACA,MAAM,EACJ,gBAAgB,EAAE,aAAY,EAAE,cAAa,EAAE,YAAW,EAAE,GAAG,CAAC,CAAC,CAAA,EAClE,GAAG,MAAM,OAAO;IAEjB,QAAQ,GAAG,CAAC,cAAc,eAAe;IAEzC,QAAQ,IAAI;AACd,uCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,0BAAY,sCAAW,IAAM;IACzC,MAAM,QAAQ,SAAS;QACtB,SAAS;YACT,gBAAgB;gBACf,cAAc;gBACd,eAAe;gBACf,aAAa;YACd;QACA;IACD;IACA,MAAM,EACL,gBAAgB,EAAE,aAAY,EAAE,cAAa,EAAE,YAAW,EAAE,GAAG,CAAC,CAAC,CAAA,EACjE,GAAG,MAAM,OAAO;IAEjB,QAAQ,GAAG,CAAC,cAAc,eAAe;IAEzC,QAAQ,IAAI;AACZ,uCAAG\"}")
 == DIAGNOSTICS ==
 
 []

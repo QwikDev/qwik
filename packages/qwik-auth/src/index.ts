@@ -51,6 +51,11 @@ export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikA
 
       const data = await authAction(body, req, signInUrl, auth);
 
+      // set authjs.callback-url cookie. Fix for https://github.com/QwikDev/qwik/issues/5227
+      req.cookie.set('authjs.callback-url', callbackUrl, {
+        path: '/',
+      });
+
       if (data.url) {
         throw req.redirect(301, data.url);
       }

@@ -30,9 +30,6 @@ export interface RenderStaticContext {
   readonly $rmSlots$: QwikElement[];
 }
 
-/** @public */
-export interface RenderContext2 {}
-
 // Polyfills for ViewTransition API & scroll restoration
 declare global {
   interface ViewTransition {

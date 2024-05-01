@@ -9,19 +9,19 @@ expression: output
 import { $, component$ } from '@builder.io/qwik';
 
 export const App = component$(() => {
-    function hola() {
-      console.log('hola');
-    }
-    class Thing {}
-    class Other {}
+	function hola() {
+		console.log('hola');
+	}
+	class Thing {}
+	class Other {}
 
-    return $(() => {
-      hola();
-      new Thing();
-      return (
-          <div></div>
-      )
-    });
+	return $(() => {
+		hola();
+		new Thing();
+		return (
+			<div></div>
+		)
+	});
 })
 
 ============================= test.js ==
@@ -40,7 +40,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAG8B,IAAM;IAOhC;AAOJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAG8B,IAAM;IAOnC;AAOD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -56,7 +56,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     83,
-    293
+    248
   ]
 }
 */
@@ -71,7 +71,7 @@ export const App_component_1_w0t0o3QMovU = ()=>{
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAUa,IAAM;IACb;IACA,IAAI;IACJ,qBACI,MAAC;AAEP\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAUU,IAAM;IACd;IACA,IAAI;IACJ,qBACC,MAAC;AAEH\"}")
 /*
 {
   "origin": "test.tsx",
@@ -86,8 +86,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": false,
   "loc": [
-    198,
-    289
+    179,
+    244
   ]
 }
 */

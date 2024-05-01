@@ -9,11 +9,11 @@ expression: output
 import { component$ } from '@builder.io/qwik';
 
 export const App = component$(() => {
-    console.log(function*(lo: any, t: any) {
-    console.log(yield (yield lo)(t.href).then((r) => r.json()));
-    });
+	console.log(function*(lo: any, t: any) {
+	console.log(yield (yield lo)(t.href).then((r) => r.json()));
+	});
 
-    return <p>Hello Qwik</p>;
+	return <p>Hello Qwik</p>;
 });
 
 ============================= test.js ==
@@ -35,7 +35,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAG8B,IAAM;IAChC,QAAQ,GAAG,CAAC,UAAU,EAAO,EAAE,CAAM,EAAE;QACvC,QAAQ,GAAG,CAAC,CAAA,MAAM,AAAC,CAAA,MAAM,EAAC,EAAG,EAAE,IAAI,EAAE,IAAI,CAAC,CAAC,IAAM,EAAE,IAAI,GAAE;IACzD;IAEA,qBAAO,MAAC,iBAAE;AACd\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAG8B,IAAM;IACnC,QAAQ,GAAG,CAAC,UAAU,EAAO,EAAE,CAAM,EAAE;QACvC,QAAQ,GAAG,CAAC,CAAA,MAAM,AAAC,CAAA,MAAM,EAAC,EAAG,EAAE,IAAI,EAAE,IAAI,CAAC,CAAC,IAAM,EAAE,IAAI,GAAE;IACzD;IAEA,qBAAO,MAAC,iBAAE;AACX\"}")
 /*
 {
   "origin": "test.tsx",
@@ -51,7 +51,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     80,
-    238
+    226
   ]
 }
 */

@@ -9,14 +9,14 @@ expression: output
 import { $, component$ } from '@builder.io/qwik';
 
 export const Header = component$(() => {
-    return $((hola) => {
-        const hola = this;
-        const {something, styff} = hola;
-        const hello = hola.nothere.stuff[global];
-        return (
-            <Header/>
-        );
-    });
+	return $((hola) => {
+		const hola = this;
+		const {something, styff} = hola;
+		const hello = hola.nothere.stuff[global];
+		return (
+			<Header/>
+		);
+	});
 });
 
 ============================= header_component_j4uyihabnr4.tsx (ENTRY POINT)==
@@ -27,7 +27,7 @@ export const Header_component_J4uyIhaBNR4 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAGiC,IAAM;IACnC;AAQJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAGiC,IAAM;IACtC;AAQD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -43,7 +43,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     86,
-    296
+    251
   ]
 }
 */
@@ -59,7 +59,7 @@ export const Header_component_1_2B8d0oH9ZWc = (hola)=>{
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";8CAIa,CAAC,OAAS;IACf,MAAM,OAAO,IAAI;IACjB,MAAM,EAAC,UAAS,EAAE,MAAK,EAAC,GAAG;IACb,KAAK,OAAO,CAAC,KAAK,CAAC,OAAO;IACxC,QACK;AAET\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";8CAIU,CAAC,OAAS;IAClB,MAAM,OAAO,IAAI;IACjB,MAAM,EAAC,UAAS,EAAE,MAAK,EAAC,GAAG;IACb,KAAK,OAAO,CAAC,KAAK,CAAC,OAAO;IACxC,QACE;AAEH\"}")
 /*
 {
   "origin": "test.tsx",
@@ -74,8 +74,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": false,
   "loc": [
-    107,
-    292
+    104,
+    247
   ]
 }
 */

@@ -9,16 +9,16 @@ expression: output
 import { component$ } from '@builder.io/qwik';
 
 const App = component$(() => {
-    return (
-        <div>hola</div>
-    );
+	return (
+		<div>hola</div>
+	);
 });
 
 
 export const Root = component$((props: Stuff) => {
-    return (
-        <App/>
-    );
+	return (
+		<App/>
+	);
 });
 
 const Other = 12;
@@ -48,7 +48,7 @@ export const Root_component_royhjYaCbYE = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;0CAU+B,CAAC,QAAiB;IAC7C,qBACI,MAAC;AAET\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;0CAU+B,CAAC,QAAiB;IAChD,qBACC,MAAC;AAEH\"}")
 /*
 {
   "origin": "test.tsx",
@@ -63,8 +63,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    162,
-    218
+    150,
+    194
   ]
 }
 */
@@ -76,7 +76,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAGuB,IAAM;IACzB,qBACI,MAAC,mBAAI;AAEb\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAGuB,IAAM;IAC5B,qBACC,MAAC,mBAAI;AAEP\"}")
 /*
 {
   "origin": "test.tsx",
@@ -92,7 +92,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     73,
-    126
+    114
   ]
 }
 */

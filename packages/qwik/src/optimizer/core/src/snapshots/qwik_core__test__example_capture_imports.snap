@@ -12,8 +12,8 @@ import css2 from './style.css';
 import css3 from './style.css';
 
 export const App = component$(() => {
-    useStyles$(`${css1}${css2}`);
-    useStyles$(css3);
+	useStyles$(`${css1}${css2}`);
+	useStyles$(css3);
 })
 
 ============================= test.js ==
@@ -31,7 +31,7 @@ import css2 from "./style.css";
 export const App_component_useStyles_t35nSa5UV7U = `${css1}${css2}`;
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;mDAOe,CAAC,EAAE,KAAK,EAAE,KAAK,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;mDAOY,CAAC,EAAE,KAAK,EAAE,KAAK,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -46,8 +46,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "useStyles$",
   "captures": false,
   "loc": [
-    212,
-    228
+    209,
+    225
   ]
 }
 */
@@ -61,7 +61,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAM8B,IAAM;IAChC;IACA;AACJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAM8B,IAAM;IACnC;IACA;AACD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -77,7 +77,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     189,
-    254
+    248
   ]
 }
 */
@@ -87,7 +87,7 @@ import css3 from "./style.css";
 export const App_component_useStyles_1_xBK4W0ZKWe8 = css3;
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";qDAQe\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";qDAQY\"}")
 /*
 {
   "origin": "test.tsx",
@@ -102,8 +102,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "useStyles$",
   "captures": false,
   "loc": [
-    246,
-    250
+    240,
+    244
   ]
 }
 */

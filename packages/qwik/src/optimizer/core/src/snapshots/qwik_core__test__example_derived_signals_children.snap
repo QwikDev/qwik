@@ -11,42 +11,42 @@ import { component$, useStore, mutable } from '@builder.io/qwik';
 import {dep} from './file';
 
 export const TextContent = component$((props) => {
-    return (
-        <>
-            <div>data-nu: {props['data-nu']}</div>
-            <div>class: {props.class}</div>
-        </>
-    );
+	return (
+		<>
+			<div>data-nu: {props['data-nu']}</div>
+			<div>class: {props.class}</div>
+		</>
+	);
 });
 
 export const App = component$(() => {
-    const signal = useSignal(0);
-    const store = useStore({});
-    return (
-        <>
-            <div>text</div>
-            <div>{`text`}</div>
-            <div>{1}</div>
-            <div>{true}</div>
-            <div>{`text${12}`}</div>
-            <div>{typeof `text${12}` === 'string' ? 12 : 43}</div>
-            <div>{signal}</div>
-            <div>{signal.value}</div>
-            <div>{12 + signal.value}</div>
-            <div>{store.address.city.name}</div>
-            <div>{store.address.city.name ? 'true' : 'false'}</div>
-            <div>{dep}</div>
-            <div>{dep.thing}</div>
-            <div>{dep.thing + 'stuff'}</div>
-            <div>{globalThing}</div>
-            <div>{globalThing.thing}</div>
-            <div>{globalThing.thing + 'stuff'}</div>
-            <div>{signal.value()}</div>
-            <div>{signal.value + unknown()}</div>
-            <div>{mutable(signal)}</div>
-            <div>{signal.value + dep}</div>
-        </>
-    );
+	const signal = useSignal(0);
+	const store = useStore({});
+	return (
+		<>
+			<div>text</div>
+			<div>{`text`}</div>
+			<div>{1}</div>
+			<div>{true}</div>
+			<div>{`text${12}`}</div>
+			<div>{typeof `text${12}` === 'string' ? 12 : 43}</div>
+			<div>{signal}</div>
+			<div>{signal.value}</div>
+			<div>{12 + signal.value}</div>
+			<div>{store.address.city.name}</div>
+			<div>{store.address.city.name ? 'true' : 'false'}</div>
+			<div>{dep}</div>
+			<div>{dep.thing}</div>
+			<div>{dep.thing + 'stuff'}</div>
+			<div>{globalThing}</div>
+			<div>{globalThing.thing}</div>
+			<div>{globalThing.thing + 'stuff'}</div>
+			<div>{signal.value()}</div>
+			<div>{signal.value + unknown()}</div>
+			<div>{mutable(signal)}</div>
+			<div>{signal.value + dep}</div>
+		</>
+	);
 });
 
 ============================= test.js ==
@@ -114,7 +114,7 @@ const App_component_ckEPmXZlub0 = ()=>{
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AACA,SAAqB,QAAQ,EAAE,OAAO,QAAQ,mBAAmB;AAEjE,SAAQ,GAAG,QAAO,SAAS;0CAEW,CAAC,QAAU;IAC7C,qBACI;sBACI,MAAC;YAAI;4BAAU,EAAK,CAAC,UAAU;;;;sBAC/B,MAAC;YAAI;4BAAQ,GAAM,KAAK;;;;;AAGpC;AAPA,OAAO,MAAM,4BAAc,+GAOxB;kCAE2B,IAAM;IAChC,MAAM,SAAS,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACI;sBACI,MAAC,mBAAI;sBACL,MAAC,mBAAK,CAAC,IAAI,CAAC;sBACZ,MAAC,mBAAK;sBACN,MAAC,mBAAK,IAAI;sBACV,MAAC,mBAAK,CAAC,IAAI,EAAE,GAAG,CAAC;sBACjB,MAAC,mBAAK,OAAO,CAAC,IAAI,EAAE,GAAG,CAAC,KAAK,WAAW,KAAK,EAAE;sBAC/C,MAAC,mBAAK;sBACN,MAAC,mCAAK,GAAO,KAAK;;;sBAClB,MAAC,mCAAK,KAAK,GAAO,KAAK;;;sBACvB,MAAC,mCAAK,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI;;;sBAC7B,MAAC,mCAAK,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS,OAAO;;;sBAChD,MAAC,mBAAK;sBACN,MAAC,mBAAK,IAAI,KAAK;sBACf,MAAC,mBAAK,IAAI,KAAK,GAAG;sBAClB,MAAC,mBAAK;sBACN,MAAC,6BAAK;sBACN,MAAC,mBAAK,YAAY,KAAK,GAAG;sBAC1B,MAAC,mBAAK,OAAO,KAAK;sBAClB,MAAC,mBAAK,OAAO,KAAK,GAAG;sBACrB,MAAC,mBAAK,QAAQ;sBACd,MAAC,mBAAK,OAAO,KAAK,GAAG;;AAGjC;AA5BA,OAAO,MAAM,oBAAM,+FA4BhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AACA,SAAqB,QAAQ,EAAE,OAAO,QAAQ,mBAAmB;AAEjE,SAAQ,GAAG,QAAO,SAAS;0CAEW,CAAC,QAAU;IAChD,qBACC;sBACC,MAAC;YAAI;4BAAU,EAAK,CAAC,UAAU;;;;sBAC/B,MAAC;YAAI;4BAAQ,GAAM,KAAK;;;;;AAG3B;AAPA,OAAO,MAAM,4BAAc,+GAOxB;kCAE2B,IAAM;IACnC,MAAM,SAAS,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACC;sBACC,MAAC,mBAAI;sBACL,MAAC,mBAAK,CAAC,IAAI,CAAC;sBACZ,MAAC,mBAAK;sBACN,MAAC,mBAAK,IAAI;sBACV,MAAC,mBAAK,CAAC,IAAI,EAAE,GAAG,CAAC;sBACjB,MAAC,mBAAK,OAAO,CAAC,IAAI,EAAE,GAAG,CAAC,KAAK,WAAW,KAAK,EAAE;sBAC/C,MAAC,mBAAK;sBACN,MAAC,mCAAK,GAAO,KAAK;;;sBAClB,MAAC,mCAAK,KAAK,GAAO,KAAK;;;sBACvB,MAAC,mCAAK,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI;;;sBAC7B,MAAC,mCAAK,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS,OAAO;;;sBAChD,MAAC,mBAAK;sBACN,MAAC,mBAAK,IAAI,KAAK;sBACf,MAAC,mBAAK,IAAI,KAAK,GAAG;sBAClB,MAAC,mBAAK;sBACN,MAAC,6BAAK;sBACN,MAAC,mBAAK,YAAY,KAAK,GAAG;sBAC1B,MAAC,mBAAK,OAAO,KAAK;sBAClB,MAAC,mBAAK,OAAO,KAAK,GAAG;sBACrB,MAAC,mBAAK,QAAQ;sBACd,MAAC,mBAAK,OAAO,KAAK,GAAG;;AAGxB;AA5BA,OAAO,MAAM,oBAAM,+FA4BhB\"}")
 == DIAGNOSTICS ==
 
 []

@@ -6,23 +6,23 @@ expression: output
 ==INPUT==
 
 
-        import { sync$, component$ } from "@builder.io/qwik";
+		import { sync$, component$ } from "@builder.io/qwik";
 
-        export default component$(() => {
-        return (
-            <>
-                <input onClick$={sync$(function(event, target) {
-                    // comment should be removed
-                    event.preventDefault();
-                })}/>
-                <input onClick$={sync$((event, target) => {
-                    event.preventDefault();
-                })}/>
-                <input onClick$={sync$((event, target) => event.preventDefault())}/>
-            </>
-        );
-        });
-        
+		export default component$(() => {
+		return (
+			<>
+				<input onClick$={sync$(function(event, target) {
+					// comment should be removed
+					event.preventDefault();
+				})}/>
+				<input onClick$={sync$((event, target) => {
+					event.preventDefault();
+				})}/>
+				<input onClick$={sync$((event, target) => event.preventDefault())}/>
+			</>
+		);
+		});
+		
 ============================= test.js ==
 
 import { componentQrl } from "@builder.io/qwik";
@@ -30,7 +30,7 @@ import { qrl } from "@builder.io/qwik";
 export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test_component_luxexe0dqrg"), "test_component_LUXeXe0DQrg"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGQ,6BAAe,0GAaZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGE,6BAAe,0GAaZ\"}")
 ============================= test_component_luxexe0dqrg.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
@@ -56,7 +56,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;0CAGkC,IAAM;IAChC,qBACI;sBACI,MAAC;YAAM,QAAQ,WAAQ,SAAS,KAAK,EAAE,MAAM,EAAE;gBAC3C,4BAA4B;gBAC5B,MAAM,cAAc;YACxB;;sBACA,MAAC;YAAM,QAAQ,WAAQ,CAAC,OAAO,SAAW;gBACtC,MAAM,cAAc;YACxB;;sBACA,MAAC;YAAM,QAAQ,WAAQ,CAAC,OAAO,SAAW,MAAM,cAAc;;;AAGtE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;0CAG4B,IAAM;IAChC,qBACC;sBACC,MAAC;YAAM,QAAQ,WAAQ,SAAS,KAAK,EAAE,MAAM,EAAE;gBAC9C,4BAA4B;gBAC5B,MAAM,cAAc;YACrB;;sBACA,MAAC;YAAM,QAAQ,WAAQ,CAAC,OAAO,SAAW;gBACzC,MAAM,cAAc;YACrB;;sBACA,MAAC;YAAM,QAAQ,WAAQ,CAAC,OAAO,SAAW,MAAM,cAAc;;;AAGhE\"}")
 /*
 {
   "origin": "test.tsx",
@@ -71,8 +71,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    99,
-    566
+    87,
+    413
   ]
 }
 */

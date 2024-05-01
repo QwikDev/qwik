@@ -9,21 +9,21 @@ expression: output
 import { component$ } from '@builder.io/qwik';
 
 export const App2 = component$(() => {
-    const signal = useSignal();
-    const computed = signal.value + 'foo';
-    return (
-        <>
-            <div className="hola"></div>
-            <div className={signal.value}></div>
-            <div className={signal}></div>
-            <div className={computed}></div>
+	const signal = useSignal();
+	const computed = signal.value + 'foo';
+	return (
+		<>
+			<div className="hola"></div>
+			<div className={signal.value}></div>
+			<div className={signal}></div>
+			<div className={computed}></div>
 
-            <Foo className="hola"></Foo>
-            <Foo className={signal.value}></Foo>
-            <Foo className={signal}></Foo>
-            <Foo className={computed}></Foo>
-        </>
-    );
+			<Foo className="hola"></Foo>
+			<Foo className={signal.value}></Foo>
+			<Foo className={signal}></Foo>
+			<Foo className={computed}></Foo>
+		</>
+	);
 });
 
 ============================= test.js ==
@@ -75,7 +75,7 @@ export const App2_component_3yveMqbQ3Fs = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;0CAG+B,IAAM;IACjC,MAAM,SAAS;IACf,MAAM,WAAW,OAAO,KAAK,GAAG;IAChC,qBACI;sBACI,MAAC;YAAI,WAAU;;sBACf,MAAC;YAAI,SAAS,kBAAE,GAAO,KAAK;;;;sBAC5B,MAAC;YAAI,WAAW;;sBAChB,MAAC;YAAI,WAAW;;sBAEhB,MAAC;YAAI,WAAU;;sBACf,MAAC;YAAI,SAAS,kBAAE,GAAO,KAAK;;;;sBAC5B,MAAC;YAAI,WAAW;;sBAChB,MAAC;YAAI,WAAW;;;AAG5B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;0CAG+B,IAAM;IACpC,MAAM,SAAS;IACf,MAAM,WAAW,OAAO,KAAK,GAAG;IAChC,qBACC;sBACC,MAAC;YAAI,WAAU;;sBACf,MAAC;YAAI,SAAS,kBAAE,GAAO,KAAK;;;;sBAC5B,MAAC;YAAI,WAAW;;sBAChB,MAAC;YAAI,WAAW;;sBAEhB,MAAC;YAAI,WAAU;;sBACf,MAAC;YAAI,SAAS,kBAAE,GAAO,KAAK;;;;sBAC5B,MAAC;YAAI,WAAW;;sBAChB,MAAC;YAAI,WAAW;;;AAGnB\"}")
 /*
 {
   "origin": "test.tsx",
@@ -91,7 +91,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     81,
-    565
+    469
   ]
 }
 */

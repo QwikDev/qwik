@@ -8,15 +8,15 @@ expression: output
 
 import { $, component$ } from '@builder.io/qwik';
 const Header = $((decl1, {decl2}, [decl3]) => {
-    const {decl4, key: decl5} = this;
-    let [decl6, ...decl7] = stuff;
-    const decl8 = 1, decl9;
-    function decl10(decl11, {decl12}, [decl13]) {}
-    class decl14 {
-        method(decl15, {decl16}, [decl17]) {}
-    }
-    try{}catch(decl18){}
-    try{}catch({decl19}){}
+	const {decl4, key: decl5} = this;
+	let [decl6, ...decl7] = stuff;
+	const decl8 = 1, decl9;
+	function decl10(decl11, {decl12}, [decl13]) {}
+	class decl14 {
+		method(decl15, {decl16}, [decl17]) {}
+	}
+	try{}catch(decl18){}
+	try{}catch({decl19}){}
 });
 
 ============================= header_wjuauqn7oxg.tsx (ENTRY POINT)==
@@ -28,7 +28,7 @@ export const Header_WjUaUQN7Oxg = (decl1, { decl2  }, [decl3])=>{
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"kCAEiB,CAAC,OAAO,EAAC,MAAK,EAAC,EAAE,CAAC,MAAM,GAAK;IAC1C,MAAM,EAAC,MAAK,EAAE,KAAK,MAAK,EAAC,GAAG,IAAI;IAChC,IAAI,CAAC,OAAO,GAAG,MAAM,GAAG;AAQ5B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"kCAEiB,CAAC,OAAO,EAAC,MAAK,EAAC,EAAE,CAAC,MAAM,GAAK;IAC7C,MAAM,EAAC,MAAK,EAAE,KAAK,MAAK,EAAC,GAAG,IAAI;IAChC,IAAI,CAAC,OAAO,GAAG,MAAM,GAAG;AAQzB\"}")
 /*
 {
   "origin": "test.tsx",
@@ -44,7 +44,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     69,
-    376
+    346
   ]
 }
 */

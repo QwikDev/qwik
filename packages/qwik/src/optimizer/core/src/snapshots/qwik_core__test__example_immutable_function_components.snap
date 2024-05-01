@@ -9,11 +9,11 @@ expression: output
 import { component$, useStore, Slot } from '@builder.io/qwik';
 
 export const App = component$((props: Stuff) => {
-    return (
-        <div>
-            <Slot/>
-        </div>
-    );
+	return (
+		<div>
+			<Slot/>
+		</div>
+	);
 });
 
 ============================= test.js ==
@@ -28,7 +28,7 @@ const App_component_ckEPmXZlub0 = (props)=>{
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AACA,SAA+B,IAAI,QAAQ,mBAAmB;kCAEhC,CAAC,QAAiB;IAC5C,qBACI,MAAC,iCACG,MAAC;AAGb;AANA,OAAO,MAAM,oBAAM,+FAMhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AACA,SAA+B,IAAI,QAAQ,mBAAmB;kCAEhC,CAAC,QAAiB;IAC/C,qBACC,MAAC,iCACA,MAAC;AAGJ;AANA,OAAO,MAAM,oBAAM,+FAMhB\"}")
 == DIAGNOSTICS ==
 
 []

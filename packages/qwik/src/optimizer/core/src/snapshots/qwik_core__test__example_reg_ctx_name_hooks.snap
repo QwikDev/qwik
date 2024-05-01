@@ -9,13 +9,13 @@ expression: output
 import { $, component$, server$ } from '@builder.io/qwik';
 import { foo } from './foo';
 export const Works = component$((props) => {
-    const text = 'hola';
-    return (
-        <>
-        <div onClick$={server$(() => console.log('in server', text))}></div>
-        <div onClick$={() => foo()}></div>
-        </>
-    );
+	const text = 'hola';
+	return (
+		<>
+		<div onClick$={server$(() => console.log('in server', text))}></div>
+		<div onClick$={() => foo()}></div>
+		</>
+	);
 });
 
 ============================= test.js ==
@@ -40,7 +40,7 @@ export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)
 }, "Works_component_t45qL4vNGv0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;AAGA,OAAO,MAAM,sBAAQ,sCAAW,CAAC,QAAU;IAEvC,qBACI;sBACA,MAAC;YAAI,UAAU,4DAAQ,IAAM,QAAQ,GAAG,CAAC,aAHhC;;sBAIT,MAAC;YAAI,QAAQ;;;AAGrB,mCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;AAGA,OAAO,MAAM,sBAAQ,sCAAW,CAAC,QAAU;IAE1C,qBACC;sBACA,MAAC;YAAI,UAAU,4DAAQ,IAAM,QAAQ,GAAG,CAAC,aAH7B;;sBAIZ,MAAC;YAAI,QAAQ;;;AAGf,mCAAG\"}")
 == DIAGNOSTICS ==
 
 []

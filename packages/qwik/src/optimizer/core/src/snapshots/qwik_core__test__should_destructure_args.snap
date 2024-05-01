@@ -1,0 +1,98 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 3481
+expression: output
+---
+==INPUT==
+
+
+		import { component$ } from "@builder.io/qwik";
+
+		// the count results in _fnSignal because of the rename
+		// would be nice to consider it a prop too
+		export default component$(({ message, id, count: c, ...rest }: Record<string, any>) => {
+			const renders = useStore({ renders: 0 }, { reactive: false });
+			renders.renders++;
+			const rerenders = renders.renders + 0;
+			return (
+				<div id={id}>
+					<span {...rest}>
+					{message} {c}
+					</span>
+					<div class="renders">{rerenders}</div>
+				</div>
+			);
+		}
+		);
+	
+============================= test.js ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+// the count results in _fnSignal because of the rename
+// would be nice to consider it a prop too
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test_component_luxexe0dqrg"), "test_component_LUXeXe0DQrg"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGE,uDAAuD;AACvD,0CAA0C;AAC1C,6BAAe,0GAab\"}")
+============================= test_component_luxexe0dqrg.js (ENTRY POINT)==
+
+import { _fnSignal } from "@builder.io/qwik";
+import { _jsxQ } from "@builder.io/qwik";
+import { _restProps } from "@builder.io/qwik";
+import { _wrapProp } from "@builder.io/qwik";
+export const test_component_LUXeXe0DQrg = (props)=>{
+    const rest = _restProps(props, [
+        "message",
+        "id",
+        "count"
+    ]);
+    const renders = useStore({
+        renders: 0
+    }, {
+        reactive: false
+    });
+    renders.renders++;
+    const rerenders = renders.renders + 0;
+    return /*#__PURE__*/ _jsxQ("div", {
+        id: _wrapProp(props, "id")
+    }, null, [
+        /*#__PURE__*/ _jsxQ("span", {
+            ...rest
+        }, null, [
+            _wrapProp(props, "message"),
+            " ",
+            _fnSignal((p0)=>p0.count, [
+                props
+            ], "p0.count")
+        ], 0, null),
+        /*#__PURE__*/ _jsxQ("div", null, {
+            class: "renders"
+        }, rerenders, 1, null)
+    ], 1, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;0CAK4B,SAA6D;;;;;;IACtF,MAAM,UAAU,SAAS;QAAE,SAAS;IAAE,GAAG;QAAE,UAAU,KAAK;IAAC;IAC3D,QAAQ,OAAO;IACf,MAAM,YAAY,QAAQ,OAAO,GAAG;IACpC,qBACC,MAAC;QAAI,EAAE;;sBACN,MAAC;YAAM,GAAG,IAAI;;;YACL;+BAP8B;;;;sBASvC,MAAC;YAAI,OAAM;WAAW;;AAGzB\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_LUXeXe0DQrg",
+  "entry": null,
+  "displayName": "test_component",
+  "hash": "LUXeXe0DQrg",
+  "canonicalFilename": "test_component_luxexe0dqrg",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    183,
+    524
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

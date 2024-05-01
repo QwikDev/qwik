@@ -8,10 +8,10 @@ expression: output
 
 import { $, component$, server$ } from '@builder.io/qwik';
 export const Works = component$((props) => {
-    const text = 'hola';
-    return (
-        <div onClick$={server$(() => console.log('in server', text))}></div>
-    );
+	const text = 'hola';
+	return (
+		<div onClick$={server$(() => console.log('in server', text))}></div>
+	);
 });
 
 ============================= test.js ==
@@ -28,7 +28,7 @@ export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)
 }, "Works_component_t45qL4vNGv0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAEA,OAAO,MAAM,sBAAQ,sCAAW,CAAC,QAAU;IAEvC,qBACI,MAAC;QAAI,UAAU,4DAAQ,IAAM,QAAQ,GAAG,CAAC,aAFhC;;AAIjB,mCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAEA,OAAO,MAAM,sBAAQ,sCAAW,CAAC,QAAU;IAE1C,qBACC,MAAC;QAAI,UAAU,4DAAQ,IAAM,QAAQ,GAAG,CAAC,aAF7B;;AAId,mCAAG\"}")
 == DIAGNOSTICS ==
 
 []

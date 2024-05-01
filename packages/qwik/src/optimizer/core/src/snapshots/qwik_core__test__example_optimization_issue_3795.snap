@@ -9,14 +9,14 @@ expression: output
 import { component$ } from '@builder.io/qwik';
 
 export const Issue3795 = component$(() => {
-    let base = "foo";
-    const firstAssignment = base;
-    base += "bar";
-    const secondAssignment = base;
-    return (
-      <div id='issue-3795-result'>{firstAssignment} {secondAssignment}</div>
-    )
-  });
+	let base = "foo";
+	const firstAssignment = base;
+	base += "bar";
+	const secondAssignment = base;
+	return (
+		<div id='issue-3795-result'>{firstAssignment} {secondAssignment}</div>
+	)
+	});
 
 ============================= test.js ==
 
@@ -38,7 +38,7 @@ export const Issue3795 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=
 }, "Issue3795_component_wsE8beycatI"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,0BAAY,sCAAW,IAAM;IACtC,IAAI,OAAO;IACX,MAAM,kBAAkB;IACxB,QAAQ;IACR,MAAM,mBAAmB;IACzB,qBACE,MAAC;QAAI,IAAG;;QAAqB;QAAgB;QAAE;;AAEnD,uCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,0BAAY,sCAAW,IAAM;IACzC,IAAI,OAAO;IACX,MAAM,kBAAkB;IACxB,QAAQ;IACR,MAAM,mBAAmB;IACzB,qBACC,MAAC;QAAI,IAAG;;QAAqB;QAAgB;QAAE;;AAEhD,uCAAG\"}")
 == DIAGNOSTICS ==
 
 []

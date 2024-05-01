@@ -9,11 +9,11 @@ expression: output
 import { component$ as Component, $ as onRender, useStore } from '@builder.io/qwik';
 
 export const App = Component((props) => {
-    const state = useStore({thing: 0});
+	const state = useStore({thing: 0});
 
-    return onRender(() => (
-        <div>{state.thing}</div>
-    ));
+	return onRender(() => (
+		<div>{state.thing}</div>
+	));
 });
 
 ============================= test.js ==
@@ -38,7 +38,7 @@ export const App_Component_1_A08tXHb9pEk = ()=>{
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;2CAMoB;;yBACZ,MAAC,mCAAK,GAAM,KAAK\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;2CAMiB;;yBACf,MAAC,mCAAK,GAAM,KAAK\"}")
 /*
 {
   "origin": "test.tsx",
@@ -53,8 +53,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": true,
   "loc": [
-    191,
-    237
+    185,
+    222
   ]
 }
 */
@@ -72,7 +72,7 @@ export const App_Component_NuXFTHRjvXE = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG6B,CAAC,QAAU;IACpC,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAEhC;;;AAGJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG6B,CAAC,QAAU;IACvC,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAEhC;;;AAGD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -88,7 +88,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     117,
-    241
+    226
   ]
 }
 */

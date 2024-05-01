@@ -9,42 +9,42 @@ expression: output
 import { $, component$, useTask$ } from '@builder.io/qwik';
 import { CONST } from 'const';
 export const Works = component$(({
-    count,
-    some = 1+2,
-    hello = CONST,
-    stuff: hey,
-    stuffDefault: hey2 = 123,
-    ...rest}) => {
-    console.log(hey, some);
-    useTask$(({track}) => {
-        track(() => count);
-        console.log(count, rest, hey, some, hey2);
-    });
-    return (
-        <div some={some} params={{ some }} class={count} {...rest} override>{count}</div>
-    );
+	count,
+	some = 1+2,
+	hello = CONST,
+	stuff: hey,
+	stuffDefault: hey2 = 123,
+	...rest}) => {
+	console.log(hey, some);
+	useTask$(({track}) => {
+		track(() => count);
+		console.log(count, rest, hey, some, hey2);
+	});
+	return (
+		<div some={some} params={{ some }} class={count} {...rest} override>{count}</div>
+	);
 });
 
 export const NoWorks2 = component$(({count, stuff: {hey}}) => {
-    console.log(hey);
-    useTask$(({track}) => {
-        track(() => count);
-        console.log(count);
-    });
-    return (
-        <div class={count}>{count}</div>
-    );
+	console.log(hey);
+	useTask$(({track}) => {
+		track(() => count);
+		console.log(count);
+	});
+	return (
+		<div class={count}>{count}</div>
+	);
 });
 
 export const NoWorks3 = component$(({count, stuff = hola()}) => {
-    console.log(stuff);
-    useTask$(({track}) => {
-        track(() => count);
-        console.log(count);
-    });
-    return (
-        <div class={count}>{count}</div>
-    );
+	console.log(stuff);
+	useTask$(({track}) => {
+		track(() => count);
+		console.log(count);
+	});
+	return (
+		<div class={count}>{count}</div>
+	);
 });
 
 ============================= test.js ==
@@ -112,7 +112,7 @@ export const NoWorks3 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(({ c
 }, "NoWorks3_component_fc13h5yYn14"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;AAGA,OAAO,MAAM,sBAAQ,sCAAW,SAMf;;;;;;;;IACb,QAAQ,GAAG,OAHX,aAFA,QAAO;IAMP,oCAAS,CAAC,EAAC,MAAK,EAAC;;QACb,MAAM,UARV;QASI,QAAQ,GAAG,OATf,OASuB,YANvB,aAFA,QAAO,SAGP,gBAAqB;;;;;IAOrB,qBACI,MAAC;QAAI,IAAI,QAXb,QAAO;QAWc,QAAQ;YAAE,IAAI,QAXnC,QAAO;QAW6B;QAAG,KAAK;QAAU,GAAG,IAAI;;QAAE,QAAQ;;AAE3E,mCAAG;AAEH,OAAO,MAAM,yBAAW,sCAAW,CAAC,EAAC,MAAK,EAAE,OAAO,EAAC,IAAG,EAAC,CAAA,EAAC,GAAK;IAC1D,QAAQ,GAAG,CAAC;IACZ,oCAAS,CAAC,EAAC,MAAK,EAAC;;QACb,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEhB,qBACI,MAAC;QAAI,OAAO;aAAQ;AAE5B,sCAAG;AAEH,OAAO,MAAM,yBAAW,sCAAW,CAAC,EAAC,MAAK,EAAE,OAAQ,OAAM,EAAC,GAAK;IAC5D,QAAQ,GAAG,CAAC;IACZ,oCAAS,CAAC,EAAC,MAAK,EAAC;;QACb,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEhB,qBACI,MAAC;QAAI,OAAO;aAAQ;AAE5B,sCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;AAGA,OAAO,MAAM,sBAAQ,sCAAW,SAMlB;;;;;;;;IACb,QAAQ,GAAG,OAHX,aAFA,QAAO;IAMP,oCAAS,CAAC,EAAC,MAAK,EAAC;;QAChB,MAAM,UARP;QASC,QAAQ,GAAG,OATZ,OASoB,YANpB,aAFA,QAAO,SAGP,gBAAqB;;;;;IAOrB,qBACC,MAAC;QAAI,IAAI,QAXV,QAAO;QAWW,QAAQ;YAAE,IAAI,QAXhC,QAAO;QAW0B;QAAG,KAAK;QAAU,GAAG,IAAI;;QAAE,QAAQ;;AAErE,mCAAG;AAEH,OAAO,MAAM,yBAAW,sCAAW,CAAC,EAAC,MAAK,EAAE,OAAO,EAAC,IAAG,EAAC,CAAA,EAAC,GAAK;IAC7D,QAAQ,GAAG,CAAC;IACZ,oCAAS,CAAC,EAAC,MAAK,EAAC;;QAChB,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEb,qBACC,MAAC;QAAI,OAAO;aAAQ;AAEtB,sCAAG;AAEH,OAAO,MAAM,yBAAW,sCAAW,CAAC,EAAC,MAAK,EAAE,OAAQ,OAAM,EAAC,GAAK;IAC/D,QAAQ,GAAG,CAAC;IACZ,oCAAS,CAAC,EAAC,MAAK,EAAC;;QAChB,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEb,qBACC,MAAC;QAAI,OAAO;aAAQ;AAEtB,sCAAG\"}")
 == DIAGNOSTICS ==
 
 []

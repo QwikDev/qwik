@@ -9,34 +9,34 @@ expression: output
 import { component$, useStore } from '@builder.io/qwik';
 
 export const App = component$(() => {
-    const store = useStore({
-        count: 0,
-        stuff: 0,
-        nested: {
-            count: 0
-        }
-    });
-    const signal = useSignal(0);
-    return (
-        <Cmp
-            prop={'true' + 1 ? 'true' : ''}
-            count={store.count}
-            nested={store.nested.count}
-            signal={signal}
-            store={store.stuff + 12}
-            value={signal.formData?.get('username')}
-        >
-        </Cmp>
-    );
+	const store = useStore({
+		count: 0,
+		stuff: 0,
+		nested: {
+			count: 0
+		}
+	});
+	const signal = useSignal(0);
+	return (
+		<Cmp
+			prop={'true' + 1 ? 'true' : ''}
+			count={store.count}
+			nested={store.nested.count}
+			signal={signal}
+			store={store.stuff + 12}
+			value={signal.formData?.get('username')}
+		>
+		</Cmp>
+	);
 });
 
 export const Cmp = component$((props) => {
-    return (
-        <>
-            <p data-value={props.count}>{props.nested.count}</p>
-            <p>Value {props.count}<span></span></p>
-        </>
-    );
+	return (
+		<>
+			<p data-value={props.count}>{props.nested.count}</p>
+			<p>Value {props.count}<span></span></p>
+		</>
+	);
 });
 
 ============================= test.js ==
@@ -73,7 +73,7 @@ export const Cmp_component_4ryKJTOKjWE = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAyB8B,CAAC,QAAU;IACrC,qBACI;sBACI,MAAC;YAAE,YAAU,kBAAE,GAAM,KAAK;;;2BAAG,GAAM,MAAM,CAAC,KAAK;;;sBAC/C,MAAC;YAAE;4BAAO,GAAM,KAAK;;;0BAAC,MAAC;;;AAGnC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAyB8B,CAAC,QAAU;IACxC,qBACC;sBACC,MAAC;YAAE,YAAU,kBAAE,GAAM,KAAK;;;2BAAG,GAAM,MAAM,CAAC,KAAK;;;sBAC/C,MAAC;YAAE;4BAAO,GAAM,KAAK;;;0BAAC,MAAC;;;AAG1B\"}")
 /*
 {
   "origin": "test.tsx",
@@ -88,8 +88,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    580,
-    754
+    460,
+    598
   ]
 }
 */
@@ -127,7 +127,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAG8B,IAAM;IAChC,MAAM,QAAQ,SAAS;QACnB,OAAO;QACP,OAAO;QACP,QAAQ;YACJ,OAAO;QACX;IACJ;IACA,MAAM,SAAS,UAAU;IACzB,qBACI,MAAC;QACG,MAAmB;QACnB,KAAK,kBAAE,GAAM,KAAK;;;QAClB,MAAM,kBAAE,GAAM,MAAM,CAAC,KAAK;;;QAC1B,QAAQ;QACR,KAAK,kBAAE,GAAM,KAAK,GAAG;;;QACrB,KAAK,kBAAE,GAAO,QAAQ,EAAE,IAAI;;;;AAIxC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAG8B,IAAM;IACnC,MAAM,QAAQ,SAAS;QACtB,OAAO;QACP,OAAO;QACP,QAAQ;YACP,OAAO;QACR;IACD;IACA,MAAM,SAAS,UAAU;IACzB,qBACC,MAAC;QACA,MAAmB;QACnB,KAAK,kBAAE,GAAM,KAAK;;;QAClB,MAAM,kBAAE,GAAM,MAAM,CAAC,KAAK;;;QAC1B,QAAQ;QACR,KAAK,kBAAE,GAAM,KAAK,GAAG;;;QACrB,KAAK,kBAAE,GAAO,QAAQ,EAAE,IAAI;;;;AAI/B\"}")
 /*
 {
   "origin": "test.tsx",
@@ -143,7 +143,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     90,
-    546
+    426
   ]
 }
 */

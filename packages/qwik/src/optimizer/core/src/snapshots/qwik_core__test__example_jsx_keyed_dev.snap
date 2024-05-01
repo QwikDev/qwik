@@ -9,15 +9,15 @@ expression: output
 import { component$, useStore } from '@builder.io/qwik';
 
 export const App = component$((props: Stuff) => {
-    return (
-        <>
-            <Cmp key="stuff"></Cmp>
-            <Cmp></Cmp>
-            <Cmp prop="23"></Cmp>
-            <Cmp prop="23" key={props.stuff}></Cmp>
-            <p key={props.stuff}>Hello Qwik</p>
-        </>
-    );
+	return (
+		<>
+			<Cmp key="stuff"></Cmp>
+			<Cmp></Cmp>
+			<Cmp prop="23"></Cmp>
+			<Cmp prop="23" key={props.stuff}></Cmp>
+			<p key={props.stuff}>Hello Qwik</p>
+		</>
+	);
 });
 
 ============================= project/index.js ==
@@ -27,7 +27,7 @@ import { qrlDEV } from "@builder.io/qwik";
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(()=>import("../app_component_kglyfbhvjc0.js"), "App_component_KGLYFBhvJc0", {
     file: "/src/project/project/index.tsx",
     lo: 90,
-    hi: 348,
+    hi: 285,
     displayName: "App_component"
 }));
 
@@ -42,41 +42,41 @@ export const App_component_KGLYFBhvJc0 = (props)=>{
         /*#__PURE__*/ _jsxQ(Cmp, null, null, null, 3, "stuff", {
             fileName: "project/index.tsx",
             lineNumber: 7,
-            columnNumber: 13
+            columnNumber: 4
         }),
         /*#__PURE__*/ _jsxQ(Cmp, null, null, null, 3, "Q6_0", {
             fileName: "project/index.tsx",
             lineNumber: 8,
-            columnNumber: 13
+            columnNumber: 4
         }),
         /*#__PURE__*/ _jsxQ(Cmp, null, {
             prop: "23"
         }, null, 3, "Q6_1", {
             fileName: "project/index.tsx",
             lineNumber: 9,
-            columnNumber: 13
+            columnNumber: 4
         }),
         /*#__PURE__*/ _jsxQ(Cmp, null, {
             prop: "23"
         }, null, 3, props.stuff, {
             fileName: "project/index.tsx",
             lineNumber: 10,
-            columnNumber: 13
+            columnNumber: 4
         }),
         /*#__PURE__*/ _jsxQ("p", null, null, "Hello Qwik", 3, props.stuff, {
             fileName: "project/index.tsx",
             lineNumber: 11,
-            columnNumber: 13
+            columnNumber: 4
         })
     ], 1, "Q6_2", {
         fileName: "project/index.tsx",
         lineNumber: 6,
-        columnNumber: 9
+        columnNumber: 3
     });
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/src/project/project/index.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B,CAAC,QAAiB;IAC5C,qBACI;sBACI,MAAC,0BAAQ;;;;;sBACT,MAAC;;;;;sBACD,MAAC;YAAI,MAAK;;;;;;sBACV,MAAC;YAAI,MAAK;oBAAU,MAAM,KAAK;;;;;sBAC/B,MAAC,iBAAoB,iBAAb,MAAM,KAAK;;;;;;;;;;AAG/B\"}")
+Some("{\"version\":3,\"sources\":[\"/src/project/project/index.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B,CAAC,QAAiB;IAC/C,qBACC;sBACC,MAAC,0BAAQ;;;;;sBACT,MAAC;;;;;sBACD,MAAC;YAAI,MAAK;;;;;;sBACV,MAAC;YAAI,MAAK;oBAAU,MAAM,KAAK;;;;;sBAC/B,MAAC,iBAAoB,iBAAb,MAAM,KAAK;;;;;;;;;;AAGtB\"}")
 /*
 {
   "origin": "project/index.tsx",
@@ -92,7 +92,7 @@ Some("{\"version\":3,\"sources\":[\"/src/project/project/index.tsx\"],\"names\":
   "captures": false,
   "loc": [
     90,
-    348
+    285
   ]
 }
 */

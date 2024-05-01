@@ -11,49 +11,49 @@ import importedValue from 'v';
 import styles from './styles.module.css';
 
 export const App = component$((props) => {
-    const {Model} = props;
-    const state = useStore({count: 0});
-    const remove = $((id: number) => {
-        const d = state.data;
-        d.splice(
-          d.findIndex((d) => d.id === id),
-          1
-        )
-      });
-    return (
-        <>
-            <p class="stuff" onClick$={props.onClick$}>Hello Qwik</p>
-            <Div
-                class={styles.foo}
-                document={window.document}
-                onClick$={props.onClick$}
-                onEvent$={() => console.log('stuff')}
-                transparent$={() => {console.log('stuff')}}
-                immutable1="stuff"
-                immutable2={{
-                    foo: 'bar',
-                    baz: importedValue ? true : false,
-                }}
-                immutable3={2}
-                immutable4$={(ev) => console.log(state.count)}
-                immutable5={[1, 2, importedValue, null, {}]}
-            >
-                <p>Hello Qwik</p>
-            </Div>
-            [].map(() => (
-                <Model
-                    class={state}
-                    remove$={remove}
-                    mutable1={{
-                        foo: 'bar',
-                        baz: state.count ? true : false,
-                    }}
-                    mutable2={(() => console.log(state.count))()}
-                    mutable3={[1, 2, state, null, {}]}
-                />
-            ));
-        </>
-    );
+	const {Model} = props;
+	const state = useStore({count: 0});
+	const remove = $((id: number) => {
+		const d = state.data;
+		d.splice(
+			d.findIndex((d) => d.id === id),
+			1
+		)
+		});
+	return (
+		<>
+			<p class="stuff" onClick$={props.onClick$}>Hello Qwik</p>
+			<Div
+				class={styles.foo}
+				document={window.document}
+				onClick$={props.onClick$}
+				onEvent$={() => console.log('stuff')}
+				transparent$={() => {console.log('stuff')}}
+				immutable1="stuff"
+				immutable2={{
+					foo: 'bar',
+					baz: importedValue ? true : false,
+				}}
+				immutable3={2}
+				immutable4$={(ev) => console.log(state.count)}
+				immutable5={[1, 2, importedValue, null, {}]}
+			>
+				<p>Hello Qwik</p>
+			</Div>
+			[].map(() => (
+				<Model
+					class={state}
+					remove$={remove}
+					mutable1={{
+						foo: 'bar',
+						baz: state.count ? true : false,
+					}}
+					mutable2={(() => console.log(state.count))()}
+					mutable3={[1, 2, state, null, {}]}
+				/>
+			));
+		</>
+	);
 });
 
 ============================= test.js ==
@@ -69,7 +69,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 export const App_component__Fragment_Div_onEvent_p0vWsfvWP1k = ()=>console.log('stuff');
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"+DAsB0B,IAAM,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"+DAsBc,IAAM,QAAQ,GAAG,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -84,8 +84,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onEvent$",
   "captures": false,
   "loc": [
-    665,
-    691
+    545,
+    571
   ]
 }
 */
@@ -98,7 +98,7 @@ export const App_component__Fragment_Div_immutable4_QT1DNo4IZXo = (ev)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";kEA8B6B,CAAC;;WAAO,QAAQ,GAAG,CAAC,MAAM,KAAK\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";kEA8BiB,CAAC;;WAAO,QAAQ,GAAG,CAAC,MAAM,KAAK\"}")
 /*
 {
   "origin": "test.tsx",
@@ -113,8 +113,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "immutable4$",
   "captures": true,
   "loc": [
-    984,
-    1016
+    762,
+    794
   ]
 }
 */
@@ -190,7 +190,7 @@ export const App_component_ckEPmXZlub0 = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;yCAK8B,CAAC,QAAU;IAErC,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAChC,MAAM;;;IAON,qBACI;sBACI,MAAC;YAAgB,UAAU,MAAM,QAAQ;;YAAtC,OAAM;WAAkC;sBAC3C,MAAC;YAGG,UAAU,MAAM,QAAQ;;YAFxB,OAAO,OAAO,GAAG;YACjB,QAAQ,YAAE;YAEV,QAAQ;YACR,YAAY;YACZ,YAAW;YACX,YAAY;gBACR,KAAK;gBACL,KAAK,gBAAgB,IAAI,GAAG,KAAK;YACrC;YACA,YAAY;YACZ,WAAW;;;YACX,YAAY;gBAAC;gBAAG;gBAAG;gBAAe,IAAI;gBAAE,CAAC;aAAE;yBAE3C,MAAC,iBAAE;QACD;sBAEF,MA9BI,MAAT;YAqCS,UAAU,AAAC,CAAA,IAAM,QAAQ,GAAG,CAAC,MAAM,KAAK,CAAA;;YANxC,OAAO;YACP,SAAS;YACT,QAAQ,kBAAE,CAAA;oBACN,KAAK;oBACL,KAAK,GAAM,KAAK,GAAG,IAAI,GAAG,KAAK;gBACnC,CAAA;;;YAEA,UAAU;gBAAC;gBAAG;gBAAG;gBAAO,IAAI;gBAAE,CAAC;aAAE;;QACnC;;AAIlB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;yCAK8B,CAAC,QAAU;IAExC,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAChC,MAAM;;;IAON,qBACC;sBACC,MAAC;YAAgB,UAAU,MAAM,QAAQ;;YAAtC,OAAM;WAAkC;sBAC3C,MAAC;YAGA,UAAU,MAAM,QAAQ;;YAFxB,OAAO,OAAO,GAAG;YACjB,QAAQ,YAAE;YAEV,QAAQ;YACR,YAAY;YACZ,YAAW;YACX,YAAY;gBACX,KAAK;gBACL,KAAK,gBAAgB,IAAI,GAAG,KAAK;YAClC;YACA,YAAY;YACZ,WAAW;;;YACX,YAAY;gBAAC;gBAAG;gBAAG;gBAAe,IAAI;gBAAE,CAAC;aAAE;yBAE3C,MAAC,iBAAE;QACE;sBAEL,MA9Ba,MAAT;YAqCH,UAAU,AAAC,CAAA,IAAM,QAAQ,GAAG,CAAC,MAAM,KAAK,CAAA;;YANxC,OAAO;YACP,SAAS;YACT,QAAQ,kBAAE,CAAA;oBACT,KAAK;oBACL,KAAK,GAAM,KAAK,GAAG,IAAI,GAAG,KAAK;gBAChC,CAAA;;;YAEA,UAAU;gBAAC;gBAAG;gBAAG;gBAAO,IAAI;gBAAE,CAAC;aAAE;;QAChC;;AAIN\"}")
 /*
 {
   "origin": "test.tsx",
@@ -206,7 +206,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     166,
-    1591
+    1150
   ]
 }
 */
@@ -221,7 +221,7 @@ export const App_component_remove_pU6yOC5P6sY = (id)=>{
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";gDAQqB,CAAC;;IACd,MAAM,IAAI,MAAM,IAAI;IACpB,EAAE,MAAM,CACN,EAAE,SAAS,CAAC,CAAC,IAAM,EAAE,EAAE,KAAK,KAC5B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";gDAQkB,CAAC;;IACjB,MAAM,IAAI,MAAM,IAAI;IACpB,EAAE,MAAM,CACP,EAAE,SAAS,CAAC,CAAC,IAAM,EAAE,EAAE,KAAK,KAC5B\"}")
 /*
 {
   "origin": "test.tsx",
@@ -236,8 +236,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": true,
   "loc": [
-    267,
-    405
+    258,
+    360
   ]
 }
 */
@@ -248,7 +248,7 @@ export const App_component__Fragment_Div_transparent_jTD8SCTNDsg = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"mEAuB8B,IAAM;IAAC,QAAQ,GAAG,CAAC;AAAQ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"mEAuBkB,IAAM;IAAC,QAAQ,GAAG,CAAC;AAAQ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -263,8 +263,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "transparent$",
   "captures": false,
   "loc": [
-    723,
-    751
+    591,
+    619
   ]
 }
 */

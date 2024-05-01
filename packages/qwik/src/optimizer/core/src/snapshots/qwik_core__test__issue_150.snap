@@ -10,18 +10,18 @@ import { component$, $ } from '@builder.io/qwik';
 import { hola } from 'sdfds';
 
 export const Greeter = component$(() => {
-    const stuff = useStore();
-    return $(() => {
-        return (
-            <div
-                class={{
-                    'foo': true,
-                    'bar': stuff.condition,
-                    'baz': hola ? 'true' : 'false',
-                }}
-            />
-        )
-    });
+	const stuff = useStore();
+	return $(() => {
+		return (
+			<div
+				class={{
+					'foo': true,
+					'bar': stuff.condition,
+					'baz': hola ? 'true' : 'false',
+				}}
+			/>
+		)
+	});
 });
 
 const d = $(()=>console.log('thing'));
@@ -56,8 +56,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": false,
   "loc": [
-    433,
-    457
+    325,
+    349
   ]
 }
 */
@@ -79,7 +79,7 @@ export const Greeter_component_1_krCndSwhX4U = ()=>{
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;+CAMa;;IACL,qBACI,MAAC;QACG,OAAO;YACH,OAAO,IAAI;YACX,OAAO,MAAM,SAAS;YACtB,OAAO,OAAO,SAAS,OAAO;QAClC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;+CAMU;;IACR,qBACC,MAAC;QACA,OAAO;YACN,OAAO,IAAI;YACX,OAAO,MAAM,SAAS;YACtB,OAAO,OAAO,SAAS,OAAO;QAC/B\"}")
 /*
 {
   "origin": "test.tsx",
@@ -94,8 +94,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": true,
   "loc": [
-    168,
-    413
+    162,
+    305
   ]
 }
 */
@@ -110,7 +110,7 @@ export const Greeter_component_n7HuG2hhU0Q = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6CAIkC,IAAM;IACpC,MAAM,QAAQ;IACd;;;AAWJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6CAIkC,IAAM;IACvC,MAAM,QAAQ;IACd;;;AAWD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -126,7 +126,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     117,
-    417
+    309
   ]
 }
 */

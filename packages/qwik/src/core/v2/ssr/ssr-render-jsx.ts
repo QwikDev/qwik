@@ -172,7 +172,7 @@ function processJSXNode(
           enqueue(ssr.$appendHeadNodes$);
         }
         const children = jsx.children as JSXOutput;
-        children != undefined && enqueue(children);
+        children != null && enqueue(children);
       } else if (typeof type === 'function') {
         if (type === Fragment) {
           let attrs = jsx.key != null ? [ELEMENT_KEY, jsx.key] : EMPTY_ARRAY;
@@ -183,7 +183,7 @@ function processJSXNode(
           enqueue(ssr.closeFragment);
           // In theory we could get functions or regexes, but we assume all is well
           const children = jsx.children as JSXOutput;
-          children !== undefined && enqueue(children);
+          children != null && enqueue(children);
         } else if (type === Slot) {
           const componentFrame = ssr.getNearestComponentFrame()!;
           const projectionAttrs = isDev ? [DEBUG_TYPE, VirtualType.Projection] : [];
@@ -212,7 +212,7 @@ function processJSXNode(
             projectionAttrs.push(QSlot, slotName);
             enqueue(new SetScopedStyle(styleScoped));
             enqueue(ssr.closeProjection);
-            const slotDefaultChildren = (jsx.props.children || null) as JSXChildren | null;
+            const slotDefaultChildren = (jsx.children || null) as JSXChildren | null;
             const slotChildren =
               componentFrame.consumeChildrenForSlot(node, slotName) || slotDefaultChildren;
             if (slotDefaultChildren && slotChildren !== slotDefaultChildren) {

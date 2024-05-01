@@ -1,13 +1,12 @@
 import { Fragment as Component, Fragment, Fragment as Signal } from '@builder.io/qwik/jsx-runtime';
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
-import { component$ } from '../component/component.public';
 import type { JSXOutput } from '../render/jsx/types/jsx-node';
 import { useSignal } from '../use/use-signal';
 import { useStore } from '../use/use-store.public';
 import { domRender, ssrRenderToDom } from './rendering.unit-util';
 import './vdom-diff.unit-util';
-import { $, useVisibleTask$ } from '@builder.io/qwik';
+import { $, useVisibleTask$, component$ } from '@builder.io/qwik';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -48,9 +47,11 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component>
         <Fragment>
-          {'Hello'}{' '}
+          <Signal>Hello</Signal>{' '}
           <Component>
-            <Fragment>World</Fragment>
+            <Fragment>
+              <Signal>World</Signal>
+            </Fragment>
           </Component>
         </Fragment>
       </Component>
@@ -579,7 +580,9 @@ describe.each([
             <Component>
               <svg key="hi" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="15" cy="15" r="50"></circle>
-                <Fragment></Fragment>
+                <Signal>
+                  <Fragment></Fragment>
+                </Signal>
               </svg>
             </Component>
           </button>
@@ -598,7 +601,9 @@ describe.each([
             <Component>
               <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="15" cy="15" r="50"></circle>
-                <line x1="0" y1="80" x2="100" y2="20" stroke="black" key="1"></line>
+                <Signal>
+                  <line x1="0" y1="80" x2="100" y2="20" stroke="black" key="1"></line>
+                </Signal>
               </svg>
             </Component>
           </button>
@@ -619,7 +624,9 @@ describe.each([
             <Component>
               <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="15" cy="15" r="50"></circle>
-                <Fragment></Fragment>
+                <Signal>
+                  <Fragment></Fragment>
+                </Signal>
               </svg>
             </Component>
           </button>
@@ -919,6 +926,85 @@ describe.each([
     );
   });
 
+  it('should destructure arguments', async () => {
+    const PropsDestructuring = component$(
+      ({ message, id, count: c, ...rest }: Record<string, any>) => {
+        const renders = useStore(
+          { renders: 0 },
+          {
+            reactive: false,
+          }
+        );
+        renders.renders++;
+        const rerenders = renders.renders + 0;
+        return (
+          <div id={id}>
+            <span {...rest}>
+              {message} {c}
+            </span>
+            <div class="renders">{rerenders}</div>
+          </div>
+        );
+      }
+    );
+
+    const MyComp = component$(() => {
+      const state = useSignal(0);
+      return (
+        <>
+          <button
+            id="increment"
+            onClick$={() => {
+              state.value++;
+            }}
+          >
+            Increment
+          </button>
+          <PropsDestructuring
+            message="Hello"
+            count={state.value}
+            id="props-destructuring"
+            aria-hidden="true"
+          />
+        </>
+      );
+    });
+    const { vNode, document } = await render(<MyComp />, { debug });
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <button id="increment">Increment</button>
+          <Component>
+            <div id="props-destructuring">
+              <span aria-hidden="true">
+                {'Hello'} <Signal>0</Signal>
+              </span>
+              <div class="renders">1</div>
+            </div>
+          </Component>
+        </Fragment>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <button id="increment">Increment</button>
+          <Component>
+            <div id="props-destructuring">
+              <span aria-hidden="true">
+                {'Hello'} <Signal>1</Signal>
+              </span>
+              <div class="renders">1</div>
+            </div>
+          </Component>
+        </Fragment>
+      </Component>
+    );
+  });
 
   describe('regression', () => {
     it('#5647', async () => {
@@ -956,7 +1042,9 @@ describe.each([
           <Fragment>
             <Component>
               <div>
-                <span>Hi, this doesn't work...</span>
+                <Signal>
+                  <span>Hi, this doesn't work...</span>
+                </Signal>
                 <p>
                   {'isShow value: '}
                   <Signal>{'true'}</Signal>
@@ -966,9 +1054,11 @@ describe.each([
             </Component>
             <Component>
               <div>
-                <Component>
-                  <div>Nested</div>
-                </Component>
+                <Signal>
+                  <Component>
+                    <div>Nested</div>
+                  </Component>
+                </Signal>
                 <p>
                   {'isShow value: '}
                   <Signal>{'true'}</Signal>
@@ -985,7 +1075,7 @@ describe.each([
           <Fragment>
             <Component>
               <div>
-                {''}
+                <Signal>{''}</Signal>
                 <p>
                   {'isShow value: '}
                   <Signal>{'false'}</Signal>
@@ -995,9 +1085,11 @@ describe.each([
             </Component>
             <Component>
               <div>
-                <Component>
-                  <div>Nested</div>
-                </Component>
+                <Signal>
+                  <Component>
+                    <div>Nested</div>
+                  </Component>
+                </Signal>
                 <p>
                   {'isShow value: '}
                   <Signal>{'true'}</Signal>
@@ -1014,7 +1106,7 @@ describe.each([
           <Fragment>
             <Component>
               <div>
-                {''}
+                <Signal>{''}</Signal>
                 <p>
                   {'isShow value: '}
                   <Signal>{'false'}</Signal>
@@ -1024,7 +1116,7 @@ describe.each([
             </Component>
             <Component>
               <div>
-                {''}
+                <Signal>{''}</Signal>
                 <p>
                   {'isShow value: '}
                   <Signal>{'false'}</Signal>
@@ -1041,7 +1133,9 @@ describe.each([
           <Fragment>
             <Component>
               <div>
-                <span>Hi, this doesn't work...</span>
+                <Signal>
+                  <span>Hi, this doesn't work...</span>
+                </Signal>
                 <p>
                   {'isShow value: '}
                   <Signal>{'true'}</Signal>
@@ -1051,7 +1145,7 @@ describe.each([
             </Component>
             <Component>
               <div>
-                {''}
+                <Signal>{''}</Signal>
                 <p>
                   {'isShow value: '}
                   <Signal>{'false'}</Signal>
@@ -1065,3 +1159,4 @@ describe.each([
     });
   });
 });
+

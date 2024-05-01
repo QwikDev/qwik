@@ -1,5 +1,4 @@
-import { createDOM } from '../../testing/library';
-import { expectDOM } from '../../testing/expect-dom';
+import { createDOM, expectDOM } from '@builder.io/qwik/testing';
 import { inlinedQrl } from '../qrl/qrl';
 import { useStylesQrl } from '../use/use-styles';
 import { type PropsOf, component$, type Component } from './component.public';
@@ -11,11 +10,6 @@ import type { QwikIntrinsicElements } from '../render/jsx/types/jsx-qwik-element
 import type { PropFunction, QRL } from '../qrl/qrl.public';
 
 describe('q-component', () => {
-  /**
-   * Applying new unit test library/layer
-   *
-   * `@builder.io/qwik/testing` ==> ../../testing/library
-   */
   test('should declare and render basic component', async () => {
     const { screen, render } = await createDOM();
     await render(<HelloWorld />);

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { vnode_fromJSX } from '../vdom-diff.unit-util';
+import { vnode_fromJSX } from '@builder.io/qwik/testing';
 import { vnode_applyJournal, vnode_getNode, type VNodeJournal } from './vnode';
 import { vnode_diff } from './vnode-diff';
 import { _jsxQ } from '@builder.io/qwik';

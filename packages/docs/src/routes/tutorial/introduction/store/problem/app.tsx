@@ -4,7 +4,7 @@ export default component$(() => {
   // `github` is just a constant object.
   // Convert it to a Store that can be serialized to JSON on application pause.
   const github = {
-    org: 'BuilderIO',
+    org: 'QwikDev',
     repos: ['qwik', 'partytown'] as string[] | null,
   };
 

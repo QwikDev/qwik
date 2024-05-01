@@ -1,7 +1,6 @@
 import { assert, suite, test } from 'vitest';
 import { renderToString } from '../../server/render';
-import { createDocument } from '../../testing/document';
-import { createDOM } from '../../testing/library';
+import { createDocument, createDOM } from '@builder.io/qwik/testing';
 import { component$ } from '../component/component.public';
 import { _fnSignal } from '../internal';
 import { useSignal } from '../use/use-signal';

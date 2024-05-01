@@ -37,7 +37,7 @@ import { serializeDerivedSignalFunc } from '../qrl/inlined-fn';
 import type { QwikElement } from '../render/dom/virtual-element';
 import { assertString, assertTrue } from '../error/assert';
 import { Fragment, JSXNodeImpl, isJSXNode } from '../render/jsx/jsx-runtime';
-import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
+import type { JSXNode } from '@builder.io/qwik';
 import { Slot } from '../render/jsx/slot.public';
 
 /**

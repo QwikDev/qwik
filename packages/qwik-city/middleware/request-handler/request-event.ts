@@ -27,12 +27,6 @@ import type { QwikManifest, ResolvedManifest } from '@builder.io/qwik/optimizer'
 import { IsQData, QDATA_JSON, QDATA_JSON_LEN } from './user-response';
 import { isPromise } from './../../runtime/src/utils';
 
-// TODO: create single QGlobal type
-type AsyncStore = import('node:async_hooks').AsyncLocalStorage<RequestEventInternal>;
-interface QGlobal extends Global {
-  qcAsyncRequestStore?: AsyncStore;
-}
-
 const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvMode = Symbol('RequestEvMode');
 const RequestEvRoute = Symbol('RequestEvRoute');
@@ -79,7 +73,7 @@ export function createRequestEvent(
 
     while (routeModuleIndex < requestHandlers.length) {
       const moduleRequestHandler = requestHandlers[routeModuleIndex];
-      const asyncStore = (globalThis as QGlobal).qcAsyncRequestStore;
+      const asyncStore = globalThis.qcAsyncRequestStore;
       const result = asyncStore?.run
         ? asyncStore.run(requestEv, moduleRequestHandler, requestEv)
         : moduleRequestHandler(requestEv);

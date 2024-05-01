@@ -5,15 +5,15 @@
  *   these tests call the internal JSX methods directly instead of relying on the JSX syntax.
  */
 
-import { Fragment as Component, Fragment as Signal } from '@builder.io/qwik/jsx-runtime';
+import { Fragment as Component, Fragment as Signal } from '@builder.io/qwik';
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
 import { component$ } from '../component/component.public';
 import { _CONST_PROPS, _jsxC } from '../internal';
 import { useSignal } from '../use/use-signal';
-import { domRender, ssrRenderToDom } from './rendering.unit-util';
+import { domRender, ssrRenderToDom } from '@builder.io/qwik/testing';
 import type { fixMeAny } from './shared/types';
-import './vdom-diff.unit-util';
+import '../../testing/vdom-diff.unit-util';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;

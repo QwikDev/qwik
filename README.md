@@ -1,19 +1,19 @@
 <br>
 <p align="center">
-  <img alt="Qwik Logo" width="400" src="https://raw.githubusercontent.com/BuilderIO/qwik/main/.github/assets/qwik-logo.svg" />
+  <img alt="Qwik Logo" width="400" src="https://raw.githubusercontent.com/QwikDev/qwik/main/.github/assets/qwik-logo.svg" />
 </p>
 <br>
 <p align="center">
-   <a href="https://github.com/BuilderIO/qwik/actions/workflows/ci.yml"><img src="https://github.com/BuilderIO/qwik/actions/workflows/ci.yml/badge.svg?event=push" alt="Qwik CI"></a>
-   <a href="https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/azure.yml"><img src="https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/azure.yml/badge.svg" alt="Azure SWA Server"></a>
-   <a href="https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/cloudflare.yml"><img src="https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/cloudflare.yml/badge.svg" alt="Cloudflare Pages Server"></a>
-   <a href="https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/netlify.yml"><img src="https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/netlify.yml/badge.svg" alt="Netlify Server"></a>
-   <a href="https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/node.yml"><img src="https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/node.yml/badge.svg" alt="Node Servers"></a>
-   <a href="https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/vercel-edge.yml"><img src="https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/vercel-edge.yml/badge.svg" alt="Vercel Edge"></a>
-   <a href="https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/vercel-serverless.yml"><img src="https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/vercel-serverless.yml/badge.svg" alt="Vercel Serverless"></a>
-   <a href="https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/cli.yml"><img src="https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/cli.yml/badge.svg" alt="Create Qwik CLI"></a>
-   <a href="https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/deno.yml"><img src="https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/deno.yml/badge.svg" alt="Deno Server"></a>
-   <a href="https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/aws.yml"><img src="https://github.com/BuilderIO/qwik-city-e2e/actions/workflows/aws.yml/badge.svg" alt="AWS Server"></a>
+   <a href="https://github.com/QwikDev/qwik/actions/workflows/ci.yml"><img src="https://github.com/QwikDev/qwik/actions/workflows/ci.yml/badge.svg?event=push" alt="Qwik CI"></a>
+   <a href="https://github.com/QwikDev/qwik-city-e2e/actions/workflows/azure.yml"><img src="https://github.com/QwikDev/qwik-city-e2e/actions/workflows/azure.yml/badge.svg" alt="Azure SWA Server"></a>
+   <a href="https://github.com/QwikDev/qwik-city-e2e/actions/workflows/cloudflare.yml"><img src="https://github.com/QwikDev/qwik-city-e2e/actions/workflows/cloudflare.yml/badge.svg" alt="Cloudflare Pages Server"></a>
+   <a href="https://github.com/QwikDev/qwik-city-e2e/actions/workflows/netlify.yml"><img src="https://github.com/QwikDev/qwik-city-e2e/actions/workflows/netlify.yml/badge.svg" alt="Netlify Server"></a>
+   <a href="https://github.com/QwikDev/qwik-city-e2e/actions/workflows/node.yml"><img src="https://github.com/QwikDev/qwik-city-e2e/actions/workflows/node.yml/badge.svg" alt="Node Servers"></a>
+   <a href="https://github.com/QwikDev/qwik-city-e2e/actions/workflows/vercel-edge.yml"><img src="https://github.com/QwikDev/qwik-city-e2e/actions/workflows/vercel-edge.yml/badge.svg" alt="Vercel Edge"></a>
+   <a href="https://github.com/QwikDev/qwik-city-e2e/actions/workflows/vercel-serverless.yml"><img src="https://github.com/QwikDev/qwik-city-e2e/actions/workflows/vercel-serverless.yml/badge.svg" alt="Vercel Serverless"></a>
+   <a href="https://github.com/QwikDev/qwik-city-e2e/actions/workflows/cli.yml"><img src="https://github.com/QwikDev/qwik-city-e2e/actions/workflows/cli.yml/badge.svg" alt="Create Qwik CLI"></a>
+   <a href="https://github.com/QwikDev/qwik-city-e2e/actions/workflows/deno.yml"><img src="https://github.com/QwikDev/qwik-city-e2e/actions/workflows/deno.yml/badge.svg" alt="Deno Server"></a>
+   <a href="https://github.com/QwikDev/qwik-city-e2e/actions/workflows/aws.yml"><img src="https://github.com/QwikDev/qwik-city-e2e/actions/workflows/aws.yml/badge.svg" alt="AWS Server"></a>
 </p>
 <br>
 <br>
@@ -57,7 +57,7 @@ bun create qwik@latest
 
 ## Development
 
-- See [Contributing.md](https://github.com/BuilderIO/qwik/blob/main/CONTRIBUTING.md) for more information on how to build Qwik from the source and contribute!
+- See [Contributing.md](https://github.com/QwikDev/qwik/blob/main/CONTRIBUTING.md) for more information on how to build Qwik from the source and contribute!
 
 ## Related
 

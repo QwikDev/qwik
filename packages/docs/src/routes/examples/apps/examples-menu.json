@@ -12,7 +12,7 @@
       {
         "id": "runtime-less",
         "title": "Runtime-less",
-        "description": "An app interactive app without runtime.",
+        "description": "An interactive app without runtime.",
         "icon": "🪶"
       }
     ]

@@ -4,17 +4,109 @@
 
 ```ts
 
+import { ClientContainer } from '@builder.io/qwik';
+import type { CorePlatform } from '@builder.io/qwik';
 import type { JSXOutput } from '@builder.io/qwik';
 import { RenderResult } from '@builder.io/qwik';
+import type { StreamWriter } from '@builder.io/qwik';
+
+// Warning: (ae-forgotten-export) The symbol "MockDocumentOptions" needs to be exported by the entry point index.d.ts
+//
+// @public
+export function createDocument(opts?: MockDocumentOptions): Document;
 
 // @public
 export const createDOM: ({ html }?: {
-    html?: string | undefined;
+    html?: string;
 }) => Promise<{
     render: (jsxElement: JSXOutput) => Promise<RenderResult>;
     screen: HTMLElement;
     userEvent: (queryOrElement: string | Element | keyof HTMLElementTagNameMap | null, eventNameCamel: string | keyof WindowEventMap, eventPayload?: any) => Promise<void>;
 }>;
+
+// @public (undocumented)
+export function domRender(jsx: JSXOutput, opts?: {
+    debug?: boolean;
+    oldSSR?: boolean;
+}): Promise<{
+    document: Document;
+    container: ClientContainer;
+    vNode: VNode | null;
+    getStyles: () => Record<string, string | string[]>;
+}>;
+
+// @public
+export class ElementFixture {
+    // Warning: (ae-forgotten-export) The symbol "ElementFixtureOptions" needs to be exported by the entry point index.d.ts
+    constructor(options?: ElementFixtureOptions);
+    // (undocumented)
+    child: HTMLElement;
+    // Warning: (ae-forgotten-export) The symbol "MockDocument" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    document: MockDocument;
+    // (undocumented)
+    host: HTMLElement;
+    // (undocumented)
+    parent: HTMLElement;
+    // (undocumented)
+    superParent: HTMLElement;
+    // Warning: (ae-forgotten-export) The symbol "MockWindow" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    window: MockWindow;
+}
+
+// @public (undocumented)
+export function emulateExecutionOfQwikFuncs(document: Document): void;
+
+// @public (undocumented)
+export function expectDOM(actual: Element, expected: string): Promise<void>;
+
+// Warning: (ae-forgotten-export) The symbol "TestPlatform" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export function getTestPlatform(): TestPlatform;
+
+// @public (undocumented)
+export function ssrRenderToDom(jsx: JSXOutput, opts?: {
+    debug?: boolean;
+    oldSSR?: boolean;
+    raw?: boolean;
+}): Promise<{
+    container: DomContainer;
+    document: Document;
+    vNode: VNode;
+    getStyles: () => Record<string, string | string[]>;
+}>;
+
+// @public
+export function trigger(root: Element, queryOrElement: string | Element | keyof HTMLElementTagNameMap | null, eventNameCamel: string, eventPayload?: any): Promise<void>;
+
+// Warning: (ae-forgotten-export) The symbol "JSXOutput_2" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export function vnode_fromJSX(jsx: JSXOutput_2): {
+    vParent: ElementVNode;
+    vNode: VNode | null;
+    document: QDocument;
+};
+
+// @public (undocumented)
+export function walkJSX(jsx: JSXOutput_2, apply: {
+    enter: (jsx: JSXNode) => void;
+    leave: (jsx: JSXNode) => void;
+    text: (text: Stringifiable) => void;
+}): void;
+
+// Warnings were encountered during analysis:
+//
+// /home/wmertens/Projects/qwik/dist-dev/dts-out/packages/qwik/src/testing/rendering.unit-util.d.ts:12:5 - (ae-forgotten-export) The symbol "VNode" needs to be exported by the entry point index.d.ts
+// /home/wmertens/Projects/qwik/dist-dev/dts-out/packages/qwik/src/testing/rendering.unit-util.d.ts:21:5 - (ae-forgotten-export) The symbol "DomContainer" needs to be exported by the entry point index.d.ts
+// /home/wmertens/Projects/qwik/dist-dev/dts-out/packages/qwik/src/testing/vdom-diff.unit-util.d.ts:8:5 - (ae-forgotten-export) The symbol "JSXNode" needs to be exported by the entry point index.d.ts
+// /home/wmertens/Projects/qwik/dist-dev/dts-out/packages/qwik/src/testing/vdom-diff.unit-util.d.ts:10:5 - (ae-forgotten-export) The symbol "Stringifiable" needs to be exported by the entry point index.d.ts
+// /home/wmertens/Projects/qwik/dist-dev/dts-out/packages/qwik/src/testing/vdom-diff.unit-util.d.ts:14:5 - (ae-forgotten-export) The symbol "ElementVNode" needs to be exported by the entry point index.d.ts
+// /home/wmertens/Projects/qwik/dist-dev/dts-out/packages/qwik/src/testing/vdom-diff.unit-util.d.ts:16:5 - (ae-forgotten-export) The symbol "QDocument" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

@@ -1,3 +1,4 @@
 import { defineWorkspace } from 'vitest/config';
 
-export default defineWorkspace(['./vitest.config.ts']);
+// needed by the vscode vitest integration but it also speeds up vitest cli
+export default defineWorkspace(['./vitest.config.mts']);

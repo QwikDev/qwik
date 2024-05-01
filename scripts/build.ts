@@ -1,5 +1,5 @@
 import { type BuildConfig, ensureDir, panic } from './util';
-import { apiExtractor } from './api';
+import { apiExtractorQwik, apiExtractorQwikCity } from './api';
 import { buildCreateQwikCli } from './create-qwik-cli';
 import { buildEslint } from './eslint';
 import { buildPlatformBinding, copyPlatformBindingWasm } from './binding-platform';
@@ -19,13 +19,12 @@ import {
 import { submoduleBuild } from './submodule-build';
 import { submoduleCli } from './submodule-cli';
 import { submoduleCore } from './submodule-core';
-import { submoduleJsxRuntime } from './submodule-jsx-runtime';
 import { submoduleOptimizer } from './submodule-optimizer';
 import { submoduleQwikLoader } from './submodule-qwikloader';
 import { submoduleQwikPrefetch } from './submodule-qwikprefetch';
 import { submoduleServer } from './submodule-server';
 import { submoduleTesting } from './submodule-testing';
-import { tsc } from './tsc';
+import { tsc, tscQwik, tscQwikCity } from './tsc';
 import { tscDocs } from './tsc-docs';
 import { validateBuild } from './validate-build';
 import { buildQwikAuth } from './qwik-auth';
@@ -61,10 +60,10 @@ export async function build(config: BuildConfig) {
     );
 
     if (config.tsc) {
-      await tsc(config);
+      await tscQwik(config);
     }
 
-    if (config.build) {
+    if (config.qwik) {
       if (config.dev) {
         ensureDir(config.distQwikPkgDir);
       } else {
@@ -76,7 +75,6 @@ export async function build(config: BuildConfig) {
 
       await Promise.all([
         submoduleCore(config),
-        submoduleJsxRuntime(config),
         submoduleQwikLoader(config),
         submoduleQwikPrefetch(config),
         submoduleBuild(config),
@@ -90,8 +88,8 @@ export async function build(config: BuildConfig) {
       await Promise.all([submoduleServer(config), submoduleOptimizer(config)]);
     }
 
-    if (config.eslint) {
-      await buildEslint(config);
+    if (config.api || (config.tsc && config.qwik)) {
+      await apiExtractorQwik(config);
     }
 
     if (config.platformBinding) {
@@ -104,8 +102,24 @@ export async function build(config: BuildConfig) {
       await buildWasmBinding(config);
     }
 
+    if (config.tsc) {
+      await tscQwikCity(config);
+    }
+
     if (config.qwikcity) {
       await buildQwikCity(config);
+    }
+
+    if (config.api || (config.tsc && config.qwikcity)) {
+      await apiExtractorQwikCity(config);
+    }
+
+    if (config.tsc) {
+      await tsc(config);
+    }
+
+    if (config.eslint) {
+      await buildEslint(config);
     }
 
     if (config.qwikreact) {
@@ -118,10 +132,6 @@ export async function build(config: BuildConfig) {
 
     if (config.qwikworker) {
       await buildQwikWorker(config);
-    }
-
-    if (config.api) {
-      await apiExtractor(config);
     }
 
     if (config.qwiklabs) {

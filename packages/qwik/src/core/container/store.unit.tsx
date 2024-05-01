@@ -1,4 +1,3 @@
-import { createDocument } from '../../testing/document';
 import { useStore } from '../use/use-store.public';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { component$ } from '../component/component.public';
@@ -6,7 +5,7 @@ import { $ } from '../qrl/qrl.public';
 import { logDebug } from '../util/log';
 import { inlinedQrl } from '../qrl/qrl';
 import { render } from '../render/dom/render.public';
-import { expectDOM } from '../../testing/expect-dom';
+import { expectDOM, createDocument } from '@builder.io/qwik/testing';
 import { pauseContainer } from './pause';
 import { noSerialize } from '../state/common';
 import { useSignal } from '../use/use-signal';

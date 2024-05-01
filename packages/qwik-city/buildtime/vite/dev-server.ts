@@ -521,6 +521,9 @@ const SKIP_SRC_EXTS: { [ext: string]: boolean } = {
   '.css': true,
   '.scss': true,
   '.sass': true,
+  '.less': true,
+  '.styl': true,
+  '.stylus': true,
 };
 
 const STATIC_CONTENT_TYPES: { [ext: string]: string } = {

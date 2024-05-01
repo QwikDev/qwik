@@ -369,7 +369,7 @@ export const Counter = (() => {
 ```
 <p class="code-description">`use*` methods can only be used in `component$` functions or inside `use*` hooks (e.g. `useCounter`).</p>
 </div>
-<div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/useMethodUsage.ts" target="_blank" class="edit-btn">Edit examples</a></div>
+<div class="edit-examples-wrapper"><a href="https://github.com/QwikDev/qwik/edit/main/packages/eslint-plugin-qwik/src/useMethodUsage.ts" target="_blank" class="edit-btn">Edit examples</a></div>
 
     </div>
   
@@ -418,7 +418,7 @@ export const HelloWorld = component$(() => {
 ```
 <p class="code-description">Since Expressions are not serializable, they must be wrapped with `$( ... )` so that the optimizer can split the code into small chunks.</p>
 </div>
-<div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/validLexicalScope.ts" target="_blank" class="edit-btn">Edit examples</a></div>
+<div class="edit-examples-wrapper"><a href="https://github.com/QwikDev/qwik/edit/main/packages/eslint-plugin-qwik/src/validLexicalScope.ts" target="_blank" class="edit-btn">Edit examples</a></div>
 <h4>invalidJsxDollar</h4>
 <p>Examples of <b>correct</b> code for this rule:</p>
 <div class="code-wrapper">
@@ -449,7 +449,7 @@ export const HelloWorld = component$(() => {
 ```
 <p class="code-description">Event handler must be wrapped with `${ ... }`.</p>
 </div>
-<div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/validLexicalScope.ts" target="_blank" class="edit-btn">Edit examples</a></div>
+<div class="edit-examples-wrapper"><a href="https://github.com/QwikDev/qwik/edit/main/packages/eslint-plugin-qwik/src/validLexicalScope.ts" target="_blank" class="edit-btn">Edit examples</a></div>
 <h4>mutableIdentifier</h4>
 <p>Examples of <b>correct</b> code for this rule:</p>
 <div class="code-wrapper">
@@ -490,7 +490,7 @@ export const HelloWorld = component$(() => {
 ```
 <p class="code-description">Simple values are not allowed to be mutated. Use an Object instead and edit one of its property.</p>
 </div>
-<div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/validLexicalScope.ts" target="_blank" class="edit-btn">Edit examples</a></div>
+<div class="edit-examples-wrapper"><a href="https://github.com/QwikDev/qwik/edit/main/packages/eslint-plugin-qwik/src/validLexicalScope.ts" target="_blank" class="edit-btn">Edit examples</a></div>
 
     </div>
   
@@ -527,7 +527,7 @@ export const useProductDetails = routeLoader$(async (requestEvent) => {
 ```
 <p class="code-description">This is not a valid location for a route loader. It only can be used inside the `src/routes` folder, in a `layout.tsx` or `index.tsx` file.</p>
 </div>
-<div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/loaderLocation.ts" target="_blank" class="edit-btn">Edit examples</a></div>
+<div class="edit-examples-wrapper"><a href="https://github.com/QwikDev/qwik/edit/main/packages/eslint-plugin-qwik/src/loaderLocation.ts" target="_blank" class="edit-btn">Edit examples</a></div>
 <h4>missingExport</h4>
 <p>Examples of <b>correct</b> code for this rule:</p>
 <div class="code-wrapper">
@@ -556,7 +556,7 @@ const useProductDetails = routeLoader$(async (requestEvent) => {
 ```
 <p class="code-description">The route loader function must be exported.</p>
 </div>
-<div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/loaderLocation.ts" target="_blank" class="edit-btn">Edit examples</a></div>
+<div class="edit-examples-wrapper"><a href="https://github.com/QwikDev/qwik/edit/main/packages/eslint-plugin-qwik/src/loaderLocation.ts" target="_blank" class="edit-btn">Edit examples</a></div>
 <h4>wrongName</h4>
 <p>Examples of <b>correct</b> code for this rule:</p>
 <div class="code-wrapper">
@@ -585,7 +585,7 @@ export const getProductDetails = routeLoader$(async (requestEvent) => {
 ```
 <p class="code-description">The route loader function name must start with `use`.</p>
 </div>
-<div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/loaderLocation.ts" target="_blank" class="edit-btn">Edit examples</a></div>
+<div class="edit-examples-wrapper"><a href="https://github.com/QwikDev/qwik/edit/main/packages/eslint-plugin-qwik/src/loaderLocation.ts" target="_blank" class="edit-btn">Edit examples</a></div>
 <h4>recommendedValue</h4>
 <p>Examples of <b>correct</b> code for this rule:</p>
 <div class="code-wrapper">
@@ -616,7 +616,7 @@ export const useProductDetails = routeLoader$(fetcher);
 ```
 <p class="code-description">It is recommended to inline the arrow function. This will help the optimizer make sure that no server code is leaked to the client build.</p>
 </div>
-<div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/loaderLocation.ts" target="_blank" class="edit-btn">Edit examples</a></div>
+<div class="edit-examples-wrapper"><a href="https://github.com/QwikDev/qwik/edit/main/packages/eslint-plugin-qwik/src/loaderLocation.ts" target="_blank" class="edit-btn">Edit examples</a></div>
 
     </div>
   
@@ -641,7 +641,7 @@ export const useProductDetails = routeLoader$(fetcher);
 ```
 <p class="code-description">Prefer `class` and `for` props over `className` and `htmlFor`.</p>
 </div>
-<div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/noReactProps.ts" target="_blank" class="edit-btn">Edit examples</a></div>
+<div class="edit-examples-wrapper"><a href="https://github.com/QwikDev/qwik/edit/main/packages/eslint-plugin-qwik/src/noReactProps.ts" target="_blank" class="edit-btn">Edit examples</a></div>
 
     </div>
   
@@ -697,7 +697,7 @@ export default component$((props) => {
 ```
 <p class="code-description">The class prop should be used instead of any 3rd party lib to efficiently set classes based on an object.</p>
 </div>
-<div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/preferClasslist.ts" target="_blank" class="edit-btn">Edit examples</a></div>
+<div class="edit-examples-wrapper"><a href="https://github.com/QwikDev/qwik/edit/main/packages/eslint-plugin-qwik/src/preferClasslist.ts" target="_blank" class="edit-btn">Edit examples</a></div>
 
     </div>
   
@@ -721,7 +721,7 @@ export default component$((props) => {
 <button onClick$="javascript:alert('open the door please')">ring</button>
 ```
 </div>
-<div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/jsxNoScriptUrl.ts" target="_blank" class="edit-btn">Edit examples</a></div>
+<div class="edit-examples-wrapper"><a href="https://github.com/QwikDev/qwik/edit/main/packages/eslint-plugin-qwik/src/jsxNoScriptUrl.ts" target="_blank" class="edit-btn">Edit examples</a></div>
 
     </div>
   
@@ -778,7 +778,7 @@ export const Person = component$(() => {
 ```
 <p class="code-description">Missing `key` prop for element in iterator.</p>
 </div>
-<div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/jsxKey.ts" target="_blank" class="edit-btn">Edit examples</a></div>
+<div class="edit-examples-wrapper"><a href="https://github.com/QwikDev/qwik/edit/main/packages/eslint-plugin-qwik/src/jsxKey.ts" target="_blank" class="edit-btn">Edit examples</a></div>
 <h4>missingIterKeyUsePrag</h4>
 <p>Examples of <b>correct</b> code for this rule:</p>
 <div class="code-wrapper">
@@ -833,7 +833,7 @@ export const Person = component$(() => {
 ```
 <p class="code-description">Missing `key` prop for element in iterator. The key prop allows for improved rendering performance. Shorthand fragment syntax does not support providing keys. Use `<Fragment>` instead</p>
 </div>
-<div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/jsxKey.ts" target="_blank" class="edit-btn">Edit examples</a></div>
+<div class="edit-examples-wrapper"><a href="https://github.com/QwikDev/qwik/edit/main/packages/eslint-plugin-qwik/src/jsxKey.ts" target="_blank" class="edit-btn">Edit examples</a></div>
 <h4>missingArrayKey</h4>
 <p>Examples of <b>correct</b> code for this rule:</p>
 <div class="code-wrapper">
@@ -874,7 +874,7 @@ export const ColorList = component$(() => {
 ```
 <p class="code-description">Missing `key` prop for element in array. The key prop allows for improved rendering performance.</p>
 </div>
-<div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/jsxKey.ts" target="_blank" class="edit-btn">Edit examples</a></div>
+<div class="edit-examples-wrapper"><a href="https://github.com/QwikDev/qwik/edit/main/packages/eslint-plugin-qwik/src/jsxKey.ts" target="_blank" class="edit-btn">Edit examples</a></div>
 <h4>missingArrayKeyUsePrag</h4>
 <p>Examples of <b>correct</b> code for this rule:</p>
 <div class="code-wrapper">
@@ -917,7 +917,7 @@ export const ColorList = component$(() => {
 ```
 <p class="code-description">Missing `key` prop for element in array. The key prop allows for improved rendering performance. Shorthand fragment syntax does not support providing keys. Use `<Fragment>` instead</p>
 </div>
-<div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/jsxKey.ts" target="_blank" class="edit-btn">Edit examples</a></div>
+<div class="edit-examples-wrapper"><a href="https://github.com/QwikDev/qwik/edit/main/packages/eslint-plugin-qwik/src/jsxKey.ts" target="_blank" class="edit-btn">Edit examples</a></div>
 <h4>nonUniqueKeys</h4>
 <p>Examples of <b>correct</b> code for this rule:</p>
 <div class="code-wrapper">
@@ -958,7 +958,7 @@ export const ColorList = component$(() => {
 ```
 <p class="code-description">The `key` prop must be unique.</p>
 </div>
-<div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/jsxKey.ts" target="_blank" class="edit-btn">Edit examples</a></div>
+<div class="edit-examples-wrapper"><a href="https://github.com/QwikDev/qwik/edit/main/packages/eslint-plugin-qwik/src/jsxKey.ts" target="_blank" class="edit-btn">Edit examples</a></div>
 
     </div>
   
@@ -1019,7 +1019,7 @@ export default component$(() => (
 ```
 <p class="code-description">A `server$` function is declared, but never used.</p>
 </div>
-<div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/unusedServer.ts" target="_blank" class="edit-btn">Edit examples</a></div>
+<div class="edit-examples-wrapper"><a href="https://github.com/QwikDev/qwik/edit/main/packages/eslint-plugin-qwik/src/unusedServer.ts" target="_blank" class="edit-btn">Edit examples</a></div>
 
     </div>
   
@@ -1045,7 +1045,7 @@ import Image from '~/media/image.png';
 ```
 <p class="code-description">Serving images from public are not optimized, nor cached. Import images using ESM instead.</p>
 </div>
-<div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/jsxImg.ts" target="_blank" class="edit-btn">Edit examples</a></div>
+<div class="edit-examples-wrapper"><a href="https://github.com/QwikDev/qwik/edit/main/packages/eslint-plugin-qwik/src/jsxImg.ts" target="_blank" class="edit-btn">Edit examples</a></div>
 <h4>noWidthHeight</h4>
 <p>Examples of <b>correct</b> code for this rule:</p>
 <div class="code-wrapper">
@@ -1062,7 +1062,7 @@ import Image from '~/media/image.png';
 ```
 <p class="code-description">For performance reasons, always provide width and height attributes for `<img>` elements, it will help to prevent layout shifts.</p>
 </div>
-<div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/jsxImg.ts" target="_blank" class="edit-btn">Edit examples</a></div>
+<div class="edit-examples-wrapper"><a href="https://github.com/QwikDev/qwik/edit/main/packages/eslint-plugin-qwik/src/jsxImg.ts" target="_blank" class="edit-btn">Edit examples</a></div>
 
     </div>
   
@@ -1072,7 +1072,7 @@ import Image from '~/media/image.png';
       <span>For a perfect SEO score, always provide href attribute for &lt;a&gt; elements.</span>
   
 <h4>noHref</h4>
-<div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/jsxA.ts" target="_blank" class="edit-btn">Edit examples</a></div>
+<div class="edit-examples-wrapper"><a href="https://github.com/QwikDev/qwik/edit/main/packages/eslint-plugin-qwik/src/jsxA.ts" target="_blank" class="edit-btn">Edit examples</a></div>
 
     </div>
   
@@ -1082,7 +1082,7 @@ import Image from '~/media/image.png';
       <span>Detect useVisibleTask$() functions.</span>
   
 <h4>noUseVisibleTask</h4>
-<div class="edit-examples-wrapper"><a href="https://github.com/BuilderIO/qwik/edit/main/packages/eslint-plugin-qwik/src/noUseVisibleTask.ts" target="_blank" class="edit-btn">Edit examples</a></div>
+<div class="edit-examples-wrapper"><a href="https://github.com/QwikDev/qwik/edit/main/packages/eslint-plugin-qwik/src/noUseVisibleTask.ts" target="_blank" class="edit-btn">Edit examples</a></div>
 
     </div>
   

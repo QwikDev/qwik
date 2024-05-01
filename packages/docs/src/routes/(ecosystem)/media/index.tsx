@@ -573,7 +573,7 @@ export default component$(() => {
         <p>This page missing any great resources or in need of an update?</p>
         <p>
           <a
-            href="https://github.com/BuilderIO/qwik/edit/main/packages/docs/src/routes/(ecosystem)/media/index.tsx"
+            href="https://github.com/QwikDev/qwik/edit/main/packages/docs/src/routes/(ecosystem)/media/index.tsx"
             target="_blank"
             class="edit-page"
           >

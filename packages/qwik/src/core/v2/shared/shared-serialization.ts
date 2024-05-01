@@ -1,4 +1,4 @@
-import type { FunctionComponent } from '@builder.io/qwik/jsx-runtime';
+import type { FunctionComponent } from '@builder.io/qwik';
 import { isDev } from '../../../build/index.dev';
 import type { StreamWriter } from '../../../server/types';
 import { componentQrl, isQwikComponent } from '../../component/component.public';

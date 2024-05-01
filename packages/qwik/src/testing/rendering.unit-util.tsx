@@ -1,21 +1,21 @@
 /* eslint-disable no-console */
 // TODO remove console statements
 import { expect } from 'vitest';
-import { Q_FUNCS_PREFIX, renderToString } from '../../server/render';
-import { createDocument } from '../../testing/document';
-import { getTestPlatform } from '../../testing/platform';
-import { componentQrl, type OnRenderFn } from '../component/component.public';
-import { getPlatform, setPlatform } from '../platform/platform';
-import { inlinedQrl } from '../qrl/qrl';
-import type { QRL } from '../qrl/qrl.public';
-import { ERROR_CONTEXT } from '../render/error-handling';
-import { Slot } from '../render/jsx/slot.public';
-import type { JSXOutput } from '../render/jsx/types/jsx-node';
-import { useContextProvider } from '../use/use-context';
-import { ELEMENT_PROPS, OnRenderProp, QScopedStyle, QStyle } from '../util/markers';
-import { DomContainer, getDomContainer } from './client/dom-container';
-import { render2 } from './client/dom-render';
-import type { ContainerElement, VNode, VirtualVNode } from './client/types';
+import { Q_FUNCS_PREFIX, renderToString } from '../server/render';
+import { createDocument } from './document';
+import { getTestPlatform } from './platform';
+import { componentQrl, type OnRenderFn } from '@builder.io/qwik';
+import { getPlatform, setPlatform } from '../core/platform/platform';
+import { inlinedQrl } from '../core/qrl/qrl';
+import type { QRL } from '../core/qrl/qrl.public';
+import { ERROR_CONTEXT } from '../core/render/error-handling';
+import { Slot } from '../core/render/jsx/slot.public';
+import type { JSXOutput } from '@builder.io/qwik';
+import { useContextProvider } from '../core/use/use-context';
+import { ELEMENT_PROPS, OnRenderProp, QScopedStyle, QStyle } from '../core/util/markers';
+import { DomContainer, getDomContainer } from '../core/v2/client/dom-container';
+import { render2 } from '../core/v2/client/dom-render';
+import type { ContainerElement, VNode, VirtualVNode } from '../core/v2/client/types';
 import {
   vnode_getAttr,
   vnode_getFirstChild,
@@ -24,12 +24,13 @@ import {
   vnode_isVNode,
   vnode_locate,
   vnode_toString,
-} from './client/vnode';
-import { codeToName } from './shared/shared-serialization';
+} from '../core/v2/client/vnode';
+import { codeToName } from '../core/v2/shared/shared-serialization';
 import './vdom-diff.unit-util';
-import { renderToString2 } from '../../server/v2-ssr-render2';
-import { ChoreType } from './shared/scheduler';
+import { renderToString2 } from '../server/v2-ssr-render2';
+import { ChoreType } from '../core/v2/shared/scheduler';
 
+/** @public */
 export async function domRender(
   jsx: JSXOutput,
   opts: {
@@ -82,6 +83,7 @@ function getStylesFactory(document: Document) {
   };
 }
 
+/** @public */
 export async function ssrRenderToDom(
   jsx: JSXOutput,
   opts: {
@@ -162,6 +164,7 @@ export async function ssrRenderToDom(
   return { container, document, vNode: vnode_getFirstChild(containerVNode)!, getStyles };
 }
 
+/** @public */
 export function emulateExecutionOfQwikFuncs(document: Document) {
   const qFuncs = document.body.querySelector('[q\\:func]');
   const containerElement = document.querySelector('[q\\:container]') as ContainerElement;

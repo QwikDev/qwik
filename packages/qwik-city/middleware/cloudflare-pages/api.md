@@ -7,7 +7,7 @@
 import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
 
 // @public (undocumented)
-export function createQwikCity(opts: QwikCityCloudflarePagesOptions): (request: PlatformCloudflarePages['request'], env: Record<string, any> & {
+export function createQwikCity(opts: QwikCityCloudflarePagesOptions): (request: PlatformCloudflarePages['request'], env: PlatformCloudflarePages['env'] & {
     ASSETS: {
         fetch: (req: Request) => Response;
     };

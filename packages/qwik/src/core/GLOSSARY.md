@@ -8,7 +8,7 @@ Component refers to `component$()` or just inline-component. Usually unless spec
 
 ## Host
 
-A host refers to a vNode of the  `component$()`. Typically host is used in the context of signals. For example if a signal changes, which component should be re-rendered.
+A host refers to a vNode of the `component$()`. Typically host is used in the context of signals. For example if a signal changes, which component should be re-rendered.
 
 ## Logical vs Render Tree
 
@@ -16,6 +16,7 @@ A host refers to a vNode of the  `component$()`. Typically host is used in the c
 - Render Tree: The actual DOM render representation taking projection into account.
 
 Logical description:
+
 ```typescript
 const Child = component$(()=> {
   return (
@@ -33,7 +34,9 @@ const Parent = component$(()=> {
     </div>
 })
 ```
+
 Render Tree:
+
 ```html
 <div>
   <p>
@@ -42,13 +45,13 @@ Render Tree:
 </div>
 ```
 
-Notice that from `Parent`'s point of view `<span>` is a child of `<Child/>` but from the render tree point of view `<span>` is a child of `<p>`. The render tree is interleaved results of the logical tree.  
+Notice that from `Parent`'s point of view `<span>` is a child of `<Child/>` but from the render tree point of view `<span>` is a child of `<p>`. The render tree is interleaved results of the logical tree.
 
 ## Inline-Component
 
 Inline-component is a function that represents a component. However unlike a `component$()` the inline-component host is not the component itself but rather the closest `component$` parent.
 
-## VNode 
+## VNode
 
 > Should really be called vDOM, but that term is already taken.
 
@@ -57,6 +60,5 @@ Here is the basic flow of data: JSX -> vDOM -> `vnode_diff` -> VNode -> DOM
 - JSX: The actual source code that is written by the developer. ie. `<div>hello</div>`
 - vDOM: The runtime representation of the JSX. vDOM follows the logic tree.
 - `vnode_diff`: The algorithm that compares two vDOMs and produces a list of changes.
-- VNode: A layer on top of DOM which can be deserialized from SSR, and which understands Virtual Nodes and properties on those nodes. 
+- VNode: A layer on top of DOM which can be deserialized from SSR, and which understands Virtual Nodes and properties on those nodes.
 - DOM: The actual browser DOM.
-

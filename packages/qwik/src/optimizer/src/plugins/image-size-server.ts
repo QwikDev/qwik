@@ -14,6 +14,7 @@ import psd_1 from 'image-size/dist/types/psd.js';
 import svg_1 from 'image-size/dist/types/svg.js';
 import tga_1 from 'image-size/dist/types/tga.js';
 import webp_1 from 'image-size/dist/types/webp.js';
+import heif_1 from 'image-size/dist/types/heif.js';
 
 import type { Connect } from 'vite';
 import type { OptimizerSystem } from '../types';
@@ -37,6 +38,7 @@ const types = {
   png: png_1.PNG,
   svg: svg_1.SVG,
   gif: gif_1.GIF,
+  avif: heif_1.HEIF,
   bmp: bmp_1.BMP,
   cur: cur_1.CUR,
   dds: dds_1.DDS,

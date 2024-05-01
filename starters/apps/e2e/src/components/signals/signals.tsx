@@ -1072,10 +1072,10 @@ export const Issue4228 = component$(() => {
   });
   useTask$(() => {
     if (isBrowser) {
-      (window as any).countA = -1;
-      (window as any).countB = -1;
-      (window as any).countC = -1;
-      (window as any).countD = -1;
+      (window as any).countA = 0;
+      (window as any).countB = 0;
+      (window as any).countC = 0;
+      (window as any).countD = 0;
     }
   });
   useVisibleTask$(

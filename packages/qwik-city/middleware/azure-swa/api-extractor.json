@@ -1,19 +1,19 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
   "extends": "../../api-extractor.json",
-  "mainEntryPointFilePath": "<projectFolder>/dist-dev/dts-out/packages/qwik-city/middleware/azure-swa/index.d.ts",
+  "mainEntryPointFilePath": "<projectFolder>/../../dist-dev/dts-out/packages/qwik-city/middleware/azure-swa/index.d.ts",
   "apiReport": {
     "enabled": true,
     "reportFileName": "api.md",
-    "reportFolder": "<projectFolder>/packages/qwik-city/middleware/azure-swa/",
-    "reportTempFolder": "<projectFolder>/dist-dev/api-extractor/qwik-city/middleware/azure-swa"
+    "reportFolder": "<projectFolder>/middleware/azure-swa/",
+    "reportTempFolder": "<projectFolder>/../../dist-dev/api-extractor/qwik-city/middleware/azure-swa"
   },
   "dtsRollup": {
     "enabled": true,
-    "untrimmedFilePath": "<projectFolder>/packages/qwik-city/lib/middleware/azure-swa/index.d.ts"
+    "untrimmedFilePath": "<projectFolder>/lib/middleware/azure-swa/index.d.ts"
   },
   "docModel": {
     "enabled": true,
-    "apiJsonFilePath": "<projectFolder>/dist-dev/api/qwik-city/middleware/azure-swa/docs.api.json"
+    "apiJsonFilePath": "<projectFolder>/../../dist-dev/api/qwik-city/middleware/azure-swa/docs.api.json"
   }
 }

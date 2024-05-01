@@ -39,7 +39,7 @@ opts
 
 any
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/static/vite/index.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/adapters/static/vite/index.ts)
 
 ## StaticGenerateAdapterOptions
 
@@ -49,4 +49,4 @@ export interface StaticGenerateAdapterOptions extends Omit<StaticGenerateRenderO
 
 **Extends:** Omit&lt;StaticGenerateRenderOptions, 'outDir'&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/static/vite/index.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/adapters/static/vite/index.ts)

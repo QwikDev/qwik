@@ -101,6 +101,7 @@ export const isDomContainer = (container: any): container is DomContainer => {
   return container instanceof DomContainer;
 };
 
+/** @internal */
 export class DomContainer extends _SharedContainer implements IClientContainer, StoreTracker {
   public element: ContainerElement;
   public qContainer: string;

@@ -1,4 +1,4 @@
-import { Fragment as Component, Fragment, Fragment as Signal } from '@builder.io/qwik/jsx-runtime';
+import { Fragment as Component, Fragment, Fragment as Signal } from '@builder.io/qwik';
 import { describe, expect, it, vi } from 'vitest';
 import { advanceToNextTimerAndFlush, trigger } from '../../testing/element-fixture';
 import { component$ } from '../component/component.public';
@@ -7,8 +7,8 @@ import { untrack } from '../use/use-core';
 import { useSignal } from '../use/use-signal';
 import { useStore } from '../use/use-store.public';
 import { useTask$ } from '../use/use-task';
-import { domRender, ssrRenderToDom } from './rendering.unit-util';
-import './vdom-diff.unit-util';
+import { domRender, ssrRenderToDom } from '../../testing/rendering.unit-util';
+import '../../testing/vdom-diff.unit-util';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;

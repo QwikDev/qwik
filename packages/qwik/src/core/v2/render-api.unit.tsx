@@ -10,13 +10,11 @@ import { inlinedQrl } from '../qrl/qrl';
 import { createDocument } from '@builder.io/qwik-dom';
 import { getDomContainer } from './client/dom-container';
 import { vnode_getFirstChild } from './client/vnode';
-import { Fragment as Component, Fragment as Signal } from '@builder.io/qwik/jsx-runtime';
-import './vdom-diff.unit-util';
-import { trigger } from '../../testing/element-fixture';
+import { Fragment as Component, Fragment as Signal } from '@builder.io/qwik';
 import { useServerData } from '../use/use-env-data';
 import { useTask$ } from '../use/use-task';
 import { getPlatform, setPlatform } from '../platform/platform';
-import { getTestPlatform } from '../../testing/platform';
+import { getTestPlatform, emulateExecutionOfQwikFuncs, trigger } from '@builder.io/qwik/testing';
 import { Resource, useResource$, useResourceQrl } from '../use/use-resource';
 import { _fnSignal } from '../internal';
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
@@ -30,7 +28,6 @@ import type {
   StreamingOptions,
 } from '../../server/types';
 import type { JSXOutput } from '../../server/qwik-types';
-import { emulateExecutionOfQwikFuncs } from './rendering.unit-util';
 
 vi.hoisted(() => {
   vi.stubGlobal('QWIK_LOADER_DEFAULT_MINIFIED', 'min');

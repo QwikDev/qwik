@@ -14,8 +14,7 @@ import { vnode_getAttr, vnode_getFirstChild, vnode_getText } from './client/vnod
 import { SerializationConstant, isDeserializerProxy } from './shared/shared-serialization';
 import { ssrCreateContainer } from '../../server/v2-ssr-container';
 import { type SSRContainer } from './ssr/ssr-types';
-import './vdom-diff.unit-util';
-import { walkJSX } from './vdom-diff.unit-util';
+import { walkJSX } from '@builder.io/qwik/testing';
 import { SsrNode } from '../../server/v2-node';
 import { constPropsToSsrAttrs, varPropsToSsrAttrs } from './ssr/ssr-render-jsx';
 import { hasClassAttr } from './shared/scoped-styles';

@@ -109,7 +109,9 @@ const getRuntimeBundle = (runtimeBundle: string) => {
 
 export const replCss = (options: ReplInputOptions): Plugin => {
   const isStylesheet = (id: string) =>
-    ['.css', '.scss', '.sass'].some((ext) => id.endsWith(`${ext}?inline`));
+    ['.css', '.scss', '.sass', '.less', '.styl', '.stylus'].some((ext) =>
+      id.endsWith(`${ext}?inline`)
+    );
 
   return {
     name: 'repl-css',

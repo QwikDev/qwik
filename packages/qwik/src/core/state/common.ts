@@ -457,7 +457,10 @@ export class LocalSubscriptionManager {
     const group = sub[SubscriptionProp.HOST];
     if (
       sub[SubscriptionProp.TYPE] === SubscriptionType.HOST &&
-      subs.some(([_type, _group, _key]) => _type === 0 && _group === group && _key === key)
+      subs.some(
+        ([_type, _group, _key]) =>
+          _type === SubscriptionType.HOST && _group === group && _key === key
+      )
     ) {
       return;
     }

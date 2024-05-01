@@ -2577,7 +2577,7 @@ A function that should have its first argument automatically `$`.
 </tbody></table>
 **Returns:**
 
-((first: FIRST, ...rest: REST) =&gt; RET)
+(first: FIRST, ...rest: REST) =&gt; RET
 
 [Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/core/util/implicit_dollar.ts)
 

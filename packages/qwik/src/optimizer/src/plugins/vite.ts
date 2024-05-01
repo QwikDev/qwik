@@ -37,7 +37,7 @@ import { VITE_DEV_CLIENT_QS, configureDevServer, configurePreviewServer } from '
 
 const DEDUPE = [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID, QWIK_JSX_DEV_RUNTIME_ID];
 
-const STYLING = ['.css', '.scss', '.sass', '.less'];
+const STYLING = ['.css', '.scss', '.sass', '.less', '.styl', '.stylus'];
 const FONTS = ['.woff', '.woff2', '.ttf'];
 
 /** @public */
@@ -135,7 +135,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         }
       }
 
-      const shouldFindVendors = target !== 'lib' || viteCommand === 'serve';
+      const shouldFindVendors =
+        !qwikViteOpts.disableVendorScan && (target !== 'lib' || viteCommand === 'serve');
       const vendorRoots = shouldFindVendors
         ? await findQwikRoots(sys, path.join(sys.cwd(), 'package.json'))
         : [];
@@ -865,6 +866,11 @@ interface QwikVitePluginCommonOptions {
    * Default `[]`
    */
   vendorRoots?: string[];
+  /**
+   * Disables the automatic vendor roots scan. This is useful when you want to manually specify the
+   * vendor roots.
+   */
+  disableVendorScan?: boolean;
   /**
    * Options for the Qwik optimizer.
    *

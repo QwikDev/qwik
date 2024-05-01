@@ -36,8 +36,7 @@ import {
 import { Slot } from '../render/jsx/slot.public';
 import { useSignal } from '../use/use-signal';
 import { vnode_getNextSibling } from './client/vnode';
-import { domRender, ssrRenderToDom } from './rendering.unit-util';
-import './vdom-diff.unit-util';
+import { domRender, ssrRenderToDom } from '@builder.io/qwik/testing';
 
 // To better understand what is going on in the test, set DEBUG to true and run the test.
 const DEBUG = false;
@@ -60,22 +59,22 @@ describe.each([
    *
    * VnodeData is additional information placed on HTML which allows Qwik to recover the
    * VirtualVNode information such as `<Component>`, `<Fragment>`, Signal locations etc... raw
-   * HTML/DOM is hard to read and so all of the test assertion and display output in the VNode
-   * space to make it easier to understand what is going on.
+   * HTML/DOM is hard to read and so all of the test assertion and display output in the VNode space
+   * to make it easier to understand what is going on.
    *
    * ## `<Component q:seq q:props q:renderFn>`
    *
-   * A key to resumability is that Qwik needs to be able to recover all information about
-   * component. This is done by placing additional information on the component. If the value of
-   * the property is a number than it points into `SERIALIZED STATE` described later.
+   * A key to resumability is that Qwik needs to be able to recover all information about component.
+   * This is done by placing additional information on the component. If the value of the property
+   * is a number than it points into `SERIALIZED STATE` described later.
    *
    * - Properties starting with `q:` are reserved for Qwik.
    *
    *   - `q:renderFn` - QRL pointing to the render function of the component.
    *   - `q:props` - Serialized props of the component.
    *   - `q:seq` - Sequence number of the component: This is used to recover hook values.
-   * - Properties starting with `:` are local values which don't get serialized and get reset on
-   *   each component invocation
+   * - Properties starting with `:` are local values which don't get serialized and get reset on each
+   *   component invocation
    *
    *   - `:seqIdx` - Sequence index of hook currently being processed. See `q:seq` for related
    *       information.
@@ -97,8 +96,8 @@ describe.each([
    * mechanism:
    *
    * - `<number>` - `3` - Third depth first element in the output HTML.
-   * - `<number><character>` - `3A` - First find `3` than find the first virtual child of `3`.
-   *   (First because `A` is the first letter of the alphabet.)
+   * - `<number><character>` - `3A` - First find `3` than find the first virtual child of `3`. (First
+   *   because `A` is the first letter of the alphabet.)
    * - `<number><character><character>` - `3AB`
    *
    *   - First find `3`
@@ -159,8 +158,8 @@ describe.each([
   /**
    * This example demonstrates how the projection portals work and serialize.
    *
-   * See the SSR output and look for where different parts of the projection are serialized into
-   * to get an understanding of how the projection works.
+   * See the SSR output and look for where different parts of the projection are serialized into to
+   * get an understanding of how the projection works.
    */
   it('projection serialization example', async () => {
     const Child = componentQrl(

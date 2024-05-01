@@ -13,6 +13,8 @@ contributors:
   - AnthonyPAlicea
   - mrhoodz
   - hamatoyogi
+  - dejurin
+  - gioboa
 updated_at: '2023-06-25T19:43:33Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
@@ -109,12 +111,12 @@ export default component$(() => {
   return (
     <nav class="menu">
       {menu
-        ? menu.items?.map((item) => (
-            <>
+        ? menu.items?.map((item, index) => (
+            <div key={index}>
               <h5>{item.text}</h5>
               <ul>
-                {item.items?.map((item) => (
-                  <li>
+                {item.items?.map((item, subIndex) => (
+                  <li key={`item-${index}-${subIndex}`}>
                     <a
                       href={item.href}
                       class={{
@@ -126,7 +128,7 @@ export default component$(() => {
                   </li>
                 ))}
               </ul>
-            </>
+            </div>
           ))
         : null}
     </nav>

@@ -66,7 +66,7 @@ export interface BuildServerPlugin {
 export interface ParsedPathname {
   routeName: string;
   pattern: RegExp; // TODO(misko): duplicate information from `routeName` refactor to normalize
-  paramNames: string[]; // TODO(misko): duplicate information from `routeName` refactor to normalizehttps://github.com/BuilderIO/qwik/pull/4954
+  paramNames: string[]; // TODO(misko): duplicate information from `routeName` refactor to normalizehttps://github.com/QwikDev/qwik/pull/4954
   segments: PathnameSegment[];
 }
 

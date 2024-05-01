@@ -105,7 +105,7 @@ _(Optional)_
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
 ## createOptimizer
 
@@ -144,7 +144,7 @@ _(Optional)_
 
 Promise&lt;[Optimizer](#optimizer)&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/optimizer.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/optimizer.ts)
 
 ## Diagnostic
 
@@ -262,7 +262,7 @@ string[] \| null
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
 ## DiagnosticCategory
 
@@ -270,7 +270,7 @@ string[] \| null
 export type DiagnosticCategory = "error" | "warning" | "sourceError";
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
 ## dirname
 
@@ -321,7 +321,7 @@ export type EntryStrategy =
 
 **References:** [InlineEntryStrategy](#inlineentrystrategy), [SingleEntryStrategy](#singleentrystrategy), [HookEntryStrategy](#hookentrystrategy), [ComponentEntryStrategy](#componententrystrategy), [SmartEntryStrategy](#smartentrystrategy)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
 ## extname
 
@@ -465,7 +465,7 @@ string
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
 ## HookAnalysis
 
@@ -648,7 +648,7 @@ string \| null
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
 ## HookEntryStrategy
 
@@ -703,7 +703,7 @@ _(Optional)_
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
 ## InlineEntryStrategy
 
@@ -743,7 +743,7 @@ Description
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
 ## InsightManifest
 
@@ -809,7 +809,7 @@ Record&lt;string, string&gt;
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
 ## isAbsolute
 
@@ -887,7 +887,7 @@ string
 export type MinifyMode = "simplify" | "none";
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
 ## normalize
 
@@ -1011,7 +1011,7 @@ Transforms the input code string, does not access the file system.
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
 ## OptimizerOptions
 
@@ -1098,7 +1098,7 @@ _(Optional)_
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
 ## OptimizerSystem
 
@@ -1218,7 +1218,7 @@ string
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
 ## parse
 
@@ -1427,7 +1427,7 @@ Description
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
 ## QwikBuildMode
 
@@ -1435,7 +1435,7 @@ Description
 export type QwikBuildMode = "production" | "development";
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/plugin.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/plugin.ts)
 
 ## QwikBuildTarget
 
@@ -1443,7 +1443,7 @@ export type QwikBuildMode = "production" | "development";
 export type QwikBuildTarget = "client" | "ssr" | "lib" | "test";
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/plugin.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/plugin.ts)
 
 ## QwikBundle
 
@@ -1543,7 +1543,7 @@ _(Optional)_
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
 ## QwikManifest
 
@@ -1680,7 +1680,7 @@ string
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
 ## qwikRollup
 
@@ -1721,7 +1721,7 @@ _(Optional)_
 
 any
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/rollup.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/rollup.ts)
 
 ## QwikRollupPluginOptions
 
@@ -1961,7 +1961,7 @@ _(Optional)_ Hook that's called after the build and provides all of the transfor
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/rollup.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/rollup.ts)
 
 ## QwikSymbol
 
@@ -2105,7 +2105,7 @@ string \| null
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
 ## qwikVite
 
@@ -2144,7 +2144,7 @@ _(Optional)_
 
 any
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts)
 
 ## QwikViteDevResponse
 
@@ -2201,7 +2201,7 @@ _(Optional)_
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts)
 
 ## QwikVitePlugin
 
@@ -2254,7 +2254,7 @@ Description
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts)
 
 ## QwikVitePluginApi
 
@@ -2372,7 +2372,7 @@ Description
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts)
 
 ## QwikVitePluginOptions
 
@@ -2382,7 +2382,7 @@ export type QwikVitePluginOptions =
   | QwikVitePluginSSROptions;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts)
 
 ## relative
 
@@ -2516,7 +2516,7 @@ Description
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
 ## SingleEntryStrategy
 
@@ -2571,7 +2571,7 @@ _(Optional)_
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
 ## SmartEntryStrategy
 
@@ -2626,7 +2626,7 @@ _(Optional)_
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
 ## SourceLocation
 
@@ -2731,7 +2731,7 @@ number
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
 ## SourceMapsOption
 
@@ -2739,7 +2739,7 @@ number
 export type SourceMapsOption = "external" | "inline" | undefined | null;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
 ## SymbolMapper
 
@@ -2750,7 +2750,7 @@ export type SymbolMapper = Record<
 >;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
 ## SymbolMapperFn
 
@@ -2763,7 +2763,7 @@ export type SymbolMapperFn = (
 
 **References:** [SymbolMapper](#symbolmapper)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
 ## SystemEnvironment
 
@@ -2777,7 +2777,7 @@ export type SystemEnvironment =
   | "unknown";
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
 ## transformFs
 
@@ -2856,7 +2856,7 @@ string[]
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
 ## transformFsSync
 
@@ -2998,7 +2998,7 @@ string
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
 ## TransformModuleInput
 
@@ -3051,7 +3051,7 @@ string
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
 ## transformModules
 
@@ -3130,7 +3130,7 @@ Description
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
 ## transformModulesSync
 
@@ -3432,7 +3432,7 @@ _(Optional)_
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
 ## TransformOutput
 
@@ -3511,7 +3511,7 @@ boolean
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
 ## TranspileOption
 
@@ -3519,7 +3519,7 @@ boolean
 export type TranspileOption = boolean | undefined | null;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
 ## versions
 
@@ -3529,4 +3529,4 @@ versions: {
 }
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik/src/optimizer/src/versions.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/versions.ts)

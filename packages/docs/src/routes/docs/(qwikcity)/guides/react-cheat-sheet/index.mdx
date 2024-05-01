@@ -226,7 +226,7 @@ export const Clock = component$(() => {
 
 ```tsx
 export function Fetch() {
-  const [url, setUrl] = useState('https://api.github.com/repos/BuilderIO/qwik');
+  const [url, setUrl] = useState('https://api.github.com/repos/QwikDev/qwik');
   const [responseJson, setResponseJson] = useState(undefined);
 
   useEffect(() => {
@@ -248,7 +248,7 @@ export function Fetch() {
 
 ```tsx
 export const Fetch = component$(() => {
-  const url = useSignal('https://api.github.com/repos/BuilderIO/qwik');
+  const url = useSignal('https://api.github.com/repos/QwikDev/qwik');
   const responseJson = useSignal(undefined);
 
   useTask$(async ({ track }) => {

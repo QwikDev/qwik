@@ -71,6 +71,7 @@ async function generateTestingPackageJson(config: BuildConfig) {
     types: 'index.d.ts',
     private: true,
     type: 'module',
+    sideEffects: true,
   };
   const testingDistDir = join(config.distQwikPkgDir, 'testing');
   await writePackageJson(testingDistDir, pkg);

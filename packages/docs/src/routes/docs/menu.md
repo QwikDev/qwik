@@ -149,7 +149,7 @@
 
 ## Community
 
-- [GitHub](https://github.com/BuilderIO/qwik)
+- [GitHub](https://github.com/QwikDev/qwik)
 - [@QwikDev](https://twitter.com/QwikDev)
 - [Discord](https://qwik.dev/chat)
 - [Community Projects](/community/projects/index.mdx)

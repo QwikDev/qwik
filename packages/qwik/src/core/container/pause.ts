@@ -374,7 +374,7 @@ Task Symbol: ${task.$qrl$.$symbol$}
     const key = getObjId(obj);
     if (key === null) {
       // TODO(mhevery): this is a hack as we should never get here.
-      // This as a workaround for https://github.com/BuilderIO/qwik/issues/4979
+      // This as a workaround for https://github.com/QwikDev/qwik/issues/4979
       if (isQrl(obj)) {
         const id = intToStr(objToId.size);
         objToId.set(obj, id);
@@ -773,7 +773,7 @@ export const collectValue = (obj: unknown, collector: Collector, leaks: boolean 
           // but that would not work as it is possible for the `target` object
           // to already be in `seen` set if it was passed in directly, so
           // we can't short circuit and need to do the work.
-          // Issue: https://github.com/BuilderIO/qwik/issues/5001
+          // Issue: https://github.com/QwikDev/qwik/issues/5001
           const mutable = (getProxyFlags(obj)! & QObjectImmutable) === 0;
           if (leaks && mutable) {
             collectSubscriptions(getSubscriptionManager(input)!, collector, leaks);

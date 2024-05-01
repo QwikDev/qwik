@@ -1,4 +1,4 @@
-import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
+import type { JSXNode } from '@builder.io/qwik';
 import type { RenderOptions, RenderResult } from '../../render/dom/render.public';
 import type { FunctionComponent, JSXOutput } from '../../render/jsx/types/jsx-node';
 import { isDocument, isElement } from '../../util/element';

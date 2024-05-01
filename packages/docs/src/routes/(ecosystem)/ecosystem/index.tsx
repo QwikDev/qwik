@@ -143,7 +143,7 @@ export default component$(() => {
               ))}
               <AddIntegrationItem
                 title="Add A Course"
-                href="https://github.com/BuilderIO/qwik/blob/main/packages/docs/src/routes/(ecosystem)/media/index.tsx"
+                href="https://github.com/QwikDev/qwik/blob/main/packages/docs/src/routes/(ecosystem)/media/index.tsx"
               />
             </ul>
           </section>
@@ -200,7 +200,7 @@ export default component$(() => {
               ))}
               <AddIntegrationItem
                 title="Add A Podcast"
-                href="https://github.com/BuilderIO/qwik/blob/main/packages/docs/src/routes/(ecosystem)/media/index.tsx"
+                href="https://github.com/QwikDev/qwik/blob/main/packages/docs/src/routes/(ecosystem)/media/index.tsx"
               />
             </ul>
           </section>
@@ -229,7 +229,7 @@ export default component$(() => {
               ))}
               <AddIntegrationItem
                 title="Add A Showcase"
-                href="https://github.com/BuilderIO/qwik/edit/main/packages/docs/scripts/pages.json"
+                href="https://github.com/QwikDev/qwik/edit/main/packages/docs/scripts/pages.json"
               />
             </ul>
           </section>
@@ -258,7 +258,7 @@ export default component$(() => {
               ))}
               <AddIntegrationItem
                 title="Add A Presentation"
-                href="https://github.com/BuilderIO/qwik/blob/main/packages/docs/src/routes/(ecosystem)/media/index.tsx"
+                href="https://github.com/QwikDev/qwik/blob/main/packages/docs/src/routes/(ecosystem)/media/index.tsx"
               />
             </ul>
           </section>

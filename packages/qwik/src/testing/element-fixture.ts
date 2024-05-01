@@ -77,10 +77,6 @@ function isDocumentOrWindowEvent(eventName: string): boolean {
  *
  * Future deprecation candidate.
  *
- * @param element
- * @param selector
- * @param event
- * @returns
  * @public
  */
 export async function trigger(
@@ -124,6 +120,7 @@ export async function trigger(
 }
 
 const PREVENT_DEFAULT = 'preventdefault:';
+const STOP_PROPAGATION = 'stoppropagation:';
 const Q_FUNCS_PREFIX = 'document.currentScript.closest("[q\\\\:container]").qFuncs=';
 const QContainerSelector = '[q\\:container]';
 
@@ -143,11 +140,16 @@ export const dispatch = async (
   const isDocumentOrWindow = isDocumentOrWindowEvent(event.type);
   const preventAttributeName =
     PREVENT_DEFAULT + (isDocumentOrWindow ? event.type.substring(1) : event.type);
+  const stopPropagationName = STOP_PROPAGATION + event.type;
   const collectListeners: { element: Element; qrl: QRLInternal }[] = [];
   while (element) {
     const preventDefault = element.hasAttribute(preventAttributeName);
+    const stopPropagation = element.hasAttribute(stopPropagationName);
     if (preventDefault) {
       event.preventDefault();
+    }
+    if (stopPropagation) {
+      event.stopPropagation();
     }
     const ctx = tryGetContext(element);
     if (ctx) {

@@ -550,14 +550,14 @@ Creating a raw endpoint is as simple as calling the `send(Response)` method. The
 ```tsx
 import type { RequestHandler } from '@builder.io/qwik-city';
 
-export const onGet: RequestHandler = async (requestEvent) => {
+export const onGet: RequestHandler = async ({send}) => {
   const response = new Response('Hello World', {
     status: 200,
     headers: {
       'Content-Type': 'text/plain',
     },
   });
-  requestEvent.send(response);
+  send(response);
 };
 ```
 </CodeSandbox>

@@ -102,6 +102,10 @@ type PreventDefault = {
   [K in keyof HTMLElementEventMap as `preventdefault:${K}`]?: boolean;
 };
 
+type StopPropagation = {
+  [K in keyof HTMLElementEventMap as `stoppropagation:${K}`]?: boolean;
+};
+
 type AllEventMapRaw = HTMLElementEventMap &
   DocumentEventMap &
   WindowEventHandlersEventMap & {
@@ -254,6 +258,7 @@ interface RefAttr<EL extends Element> {
 interface DOMAttributesBase<EL extends Element>
   extends QwikIntrinsicAttributes,
     PreventDefault,
+    StopPropagation,
     RefAttr<EL> {
   dangerouslySetInnerHTML?: string | undefined;
 }

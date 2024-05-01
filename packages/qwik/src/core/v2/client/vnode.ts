@@ -512,6 +512,12 @@ const vnode_getDomSibling = (
   return null;
 };
 
+const vnode_ensureInflatedIfText = (journal: VNodeJournal, vNode: VNode): void => {
+  if (vnode_isTextVNode(vNode)) {
+    vnode_ensureTextInflated(journal, vNode);
+  }
+};
+
 const vnode_ensureTextInflated = (journal: VNodeJournal, vnode: TextVNode) => {
   const textVNode = ensureTextVNode(vnode);
   const flags = textVNode[VNodeProps.flags];
@@ -941,6 +947,7 @@ export const vnode_insertBefore = (
   } else {
     adjustedInsertBefore = insertBefore;
   }
+  adjustedInsertBefore && vnode_ensureInflatedIfText(journal, adjustedInsertBefore);
   // If `insertBefore` is null, than we need to insert at the end of the list.
   // Well, not quite. If the parent is a virtual node, our "last node" is not the same
   // as the DOM "last node". So in that case we need to look for the "next node" from

@@ -16,7 +16,7 @@ export const applyInlineComponent = (
   jsx: JSXNode
 ) => {
   const host = ssr.getLastNode();
-  return executeComponent2(ssr, host, component$Host, component, jsx.props);
+  return executeComponent2(ssr, host, component$Host, component, jsx.propsC);
 };
 
 export const applyQwikComponentBody = (

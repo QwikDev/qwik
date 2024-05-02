@@ -26,7 +26,7 @@ import { qrlToString, type SerializationContext } from '../shared/shared-seriali
 import { DEBUG_TYPE, VirtualType, type fixMeAny } from '../shared/types';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
 import type { SSRContainer, SsrAttrs } from './ssr-types';
-import { SSRComment, SSRStream, type SSRStreamProps } from '../../render/jsx/utils.public';
+import { SSRComment, SSRStream, type SSRStreamChildren } from '../../render/jsx/utils.public';
 import { isAsyncGenerator } from '../../util/async-generator';
 
 class SetScopedStyle {
@@ -238,8 +238,7 @@ function processJSXNode(
           ssr.commentNode((jsx.props.data as string) || '');
         } else if (type === SSRStream) {
           ssr.commentNode(FLUSH_COMMENT);
-          const props = jsx.props as SSRStreamProps;
-          const generator = props.children;
+          const generator = jsx.children as SSRStreamChildren;
           let value: AsyncGenerator | Promise<void>;
           if (isFunction(generator)) {
             value = generator({

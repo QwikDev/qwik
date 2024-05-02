@@ -24,11 +24,14 @@ export const SSRStreamBlock: FunctionComponent<{ children?: JSXOutput }> = (prop
 
 /** @public */
 export type SSRStreamProps = {
-  children:
-    | AsyncGenerator<JSXChildren, void, any>
-    | ((stream: StreamWriter) => Promise<void>)
-    | (() => AsyncGenerator<JSXChildren, void, any>);
+  children: SSRStreamChildren;
 };
+
+/** @public */
+export type SSRStreamChildren =
+  | AsyncGenerator<JSXChildren, void, any>
+  | ((stream: StreamWriter) => Promise<void>)
+  | (() => AsyncGenerator<JSXChildren, void, any>);
 
 /** @public */
 export const SSRStream: FunctionComponent<SSRStreamProps> = (props, key) =>

@@ -1515,9 +1515,9 @@ A unique ID for the context.
 
 Low-level API for platform abstraction.
 
-Different platforms (browser, node, service workers) may have different ways of handling things such as `requestAnimationFrame` and imports. To make Qwik platform-independent Qwik uses the `CorePlatform` API to access the platform API.
+Different platforms (browser, node, service workers) may have different ways of handling things such as `requestAnimationFrame` and imports. To make Qwik platform independent, the `CorePlatform` API is used to access platform specific APIs.
 
-`CorePlatform` also is responsible for importing symbols. The import map is different on the client (browser) then on the server. For this reason, the server has a manifest that is used to map symbols to javascript chunks. The manifest is encapsulated in `CorePlatform`, for this reason, the `CorePlatform` can't be global as there may be multiple applications running at server concurrently.
+`CorePlatform` is also responsible for importing symbols. Because the import map is different on the client (browser) than on the server, the server uses a manifest to map symbols to javascript chunks. Since this manifest is encapsulated in `CorePlatform`, `CorePlatform` cannot be global as there may be multiple applications running on the server concurrently.
 
 This is a low-level API and there should not be a need for you to access this.
 
@@ -1694,7 +1694,7 @@ Create a context ID to be used in your application. The name should be written w
 
 Context is a way to pass stores to the child components without prop-drilling.
 
-Use `createContextId()` to create a `ContextId`. A `ContextId` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.
+Use `createContextId()` to create a `ContextId`. A `ContextId` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that it can track context providers and consumers in a way that survives resumability.
 
 ### Example
 
@@ -3520,7 +3520,7 @@ _(Optional)_ Options for the loading prefetch graph.
 </tbody></table>
 **Returns:**
 
-import("@builder.io/qwik/jsx-runtime").[JSXNode](#jsxnode)&lt;"script"&gt;
+import("@builder.io/qwik/jsx-runtime").JSXNode&lt;"script"&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
 
@@ -3572,7 +3572,7 @@ Options for the prefetch service worker.
 </tbody></table>
 **Returns:**
 
-import("@builder.io/qwik/jsx-runtime").[JSXNode](#jsxnode)&lt;"script"&gt;
+import("@builder.io/qwik/jsx-runtime").JSXNode&lt;"script"&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
 

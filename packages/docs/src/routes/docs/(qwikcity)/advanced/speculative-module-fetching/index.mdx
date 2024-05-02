@@ -27,13 +27,11 @@ Qwik's goal is to optimize loading by caching only the necessary parts of the ap
 - [Caching Request and Response Pairs](#caching-request-and-response-pairs)
 - [Parallelizing Network Requests](#parallelizing-network-requests)
 
-### Pre-populating the Cache Per Page
+### Pre-populating the Cache
 
-Each page load will pre-populate the cache with bundles that _could_ be executed on the page by the user at that moment. For example, let's say that the page has a click listener on a button. When the page loads, the service worker's first task is ensure the bundle for that click listener is already in the [cache](#cache-api). When the user clicks the button and Qwik makes a request to the event listener's bundle, the goal is for the bundle to already be wiating in the [browser's cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache) ready to execute.
+Each page load will pre-populate the cache with bundles that _could_ be executed on the page by the user at that moment. For example, let's say that the page has a click listener on a button. When the page loads, the service worker's first job is to ensure the code for that click listener is already in the [cache](#cache-api). When the user clicks the button, Qwik makes a request to the event listener's function and any code dependencies to execute that function. The goal is for the code to already be in the [browser's cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache) ready to execute.
 
-### Pre-populating the Per Interaction
-
-You can think of the page load as the first user interaction, which pre-populates the cache with what the next user interaction _could_ be. When a follow-up interaction happens, such as opening a modal or menu, Qwik will emit another event with additional bundles that could be used since the last interaction. Pre-populating the cache happens continuously as users interact with the application, not just on page load.
+The initial page load prepares the cache for the next probable interaction and also downloads other necessary code incrementally in a separate thread. When a follow-up interaction happens, such as opening a modal or menu, Qwik will emit another event with additional code that could be used since the last interaction. Pre-populating the cache happens continuously as users interact with the application.
 
 ### Pre-populate Cache Event
 

@@ -52,10 +52,10 @@ export const App = component$(() => {
 ============================= test.js ==
 
 import { componentQrl } from "@builder.io/qwik";
-import { _fnSignal } from "@builder.io/qwik";
+import { _wrapProp } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
 import { inlinedQrl } from "@builder.io/qwik";
-import { _wrapProp } from "@builder.io/qwik";
+import { _fnSignal } from "@builder.io/qwik";
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
 import { useStore, mutable } from '@builder.io/qwik';
 import { dep } from './file';
@@ -63,15 +63,11 @@ const TextContent_component_puSwpKXO7Kg = (props)=>{
     return /*#__PURE__*/ _jsxQ(_Fragment, null, null, [
         /*#__PURE__*/ _jsxQ("div", null, null, [
             "data-nu: ",
-            _fnSignal((p0)=>p0['data-nu'], [
-                props
-            ], 'p0["data-nu"]')
+            _wrapProp(props, "data-nu")
         ], 3, null),
         /*#__PURE__*/ _jsxQ("div", null, null, [
             "class: ",
-            _fnSignal((p0)=>p0.class, [
-                props
-            ], "p0.class")
+            _wrapProp(props, "class")
         ], 3, null)
     ], 3, "u6_0");
 };
@@ -87,9 +83,7 @@ const App_component_ckEPmXZlub0 = ()=>{
         /*#__PURE__*/ _jsxQ("div", null, null, `text${12}`, 3, null),
         /*#__PURE__*/ _jsxQ("div", null, null, typeof `text${12}` === 'string' ? 12 : 43, 3, null),
         /*#__PURE__*/ _jsxQ("div", null, null, signal, 3, null),
-        /*#__PURE__*/ _jsxQ("div", null, null, _fnSignal((p0)=>p0.value, [
-            signal
-        ], "p0.value"), 3, null),
+        /*#__PURE__*/ _jsxQ("div", null, null, _wrapProp(signal, "value"), 3, null),
         /*#__PURE__*/ _jsxQ("div", null, null, _fnSignal((p0)=>12 + p0.value, [
             signal
         ], "12+p0.value"), 3, null),
@@ -103,7 +97,7 @@ const App_component_ckEPmXZlub0 = ()=>{
         /*#__PURE__*/ _jsxQ("div", null, null, dep.thing, 3, null),
         /*#__PURE__*/ _jsxQ("div", null, null, dep.thing + 'stuff', 3, null),
         /*#__PURE__*/ _jsxQ("div", null, null, globalThing, 1, null),
-        /*#__PURE__*/ _jsxQ("div", null, null, _wrapProp(globalThing, "thing"), 1, null),
+        /*#__PURE__*/ _jsxQ("div", null, null, globalThing.thing, 1, null),
         /*#__PURE__*/ _jsxQ("div", null, null, globalThing.thing + 'stuff', 1, null),
         /*#__PURE__*/ _jsxQ("div", null, null, signal.value(), 1, null),
         /*#__PURE__*/ _jsxQ("div", null, null, signal.value + unknown(), 1, null),
@@ -114,7 +108,7 @@ const App_component_ckEPmXZlub0 = ()=>{
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AACA,SAAqB,QAAQ,EAAE,OAAO,QAAQ,mBAAmB;AAEjE,SAAQ,GAAG,QAAO,SAAS;0CAEW,CAAC,QAAU;IAChD,qBACC;sBACC,MAAC;YAAI;4BAAU,EAAK,CAAC,UAAU;;;;sBAC/B,MAAC;YAAI;4BAAQ,GAAM,KAAK;;;;;AAG3B;AAPA,OAAO,MAAM,4BAAc,+GAOxB;kCAE2B,IAAM;IACnC,MAAM,SAAS,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACC;sBACC,MAAC,mBAAI;sBACL,MAAC,mBAAK,CAAC,IAAI,CAAC;sBACZ,MAAC,mBAAK;sBACN,MAAC,mBAAK,IAAI;sBACV,MAAC,mBAAK,CAAC,IAAI,EAAE,GAAG,CAAC;sBACjB,MAAC,mBAAK,OAAO,CAAC,IAAI,EAAE,GAAG,CAAC,KAAK,WAAW,KAAK,EAAE;sBAC/C,MAAC,mBAAK;sBACN,MAAC,mCAAK,GAAO,KAAK;;;sBAClB,MAAC,mCAAK,KAAK,GAAO,KAAK;;;sBACvB,MAAC,mCAAK,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI;;;sBAC7B,MAAC,mCAAK,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS,OAAO;;;sBAChD,MAAC,mBAAK;sBACN,MAAC,mBAAK,IAAI,KAAK;sBACf,MAAC,mBAAK,IAAI,KAAK,GAAG;sBAClB,MAAC,mBAAK;sBACN,MAAC,6BAAK;sBACN,MAAC,mBAAK,YAAY,KAAK,GAAG;sBAC1B,MAAC,mBAAK,OAAO,KAAK;sBAClB,MAAC,mBAAK,OAAO,KAAK,GAAG;sBACrB,MAAC,mBAAK,QAAQ;sBACd,MAAC,mBAAK,OAAO,KAAK,GAAG;;AAGxB;AA5BA,OAAO,MAAM,oBAAM,+FA4BhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AACA,SAAqB,QAAQ,EAAE,OAAO,QAAQ,mBAAmB;AAEjE,SAAQ,GAAG,QAAO,SAAS;0CAEW,CAAC,QAAU;IAChD,qBACC;sBACC,MAAC;YAAI;sBAAU;;sBACf,MAAC;YAAI;sBAAQ;;;AAGhB;AAPA,OAAO,MAAM,4BAAc,+GAOxB;kCAE2B,IAAM;IACnC,MAAM,SAAS,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACC;sBACC,MAAC,mBAAI;sBACL,MAAC,mBAAK,CAAC,IAAI,CAAC;sBACZ,MAAC,mBAAK;sBACN,MAAC,mBAAK,IAAI;sBACV,MAAC,mBAAK,CAAC,IAAI,EAAE,GAAG,CAAC;sBACjB,MAAC,mBAAK,OAAO,CAAC,IAAI,EAAE,GAAG,CAAC,KAAK,WAAW,KAAK,EAAE;sBAC/C,MAAC,mBAAK;sBACN,MAAC,6BAAK;sBACN,MAAC,mCAAK,KAAK,GAAO,KAAK;;;sBACvB,MAAC,mCAAK,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI;;;sBAC7B,MAAC,mCAAK,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS,OAAO;;;sBAChD,MAAC,mBAAK;sBACN,MAAC,mBAAK,IAAI,KAAK;sBACf,MAAC,mBAAK,IAAI,KAAK,GAAG;sBAClB,MAAC,mBAAK;sBACN,MAAC,mBAAK,YAAY,KAAK;sBACvB,MAAC,mBAAK,YAAY,KAAK,GAAG;sBAC1B,MAAC,mBAAK,OAAO,KAAK;sBAClB,MAAC,mBAAK,OAAO,KAAK,GAAG;sBACrB,MAAC,mBAAK,QAAQ;sBACd,MAAC,mBAAK,OAAO,KAAK,GAAG;;AAGxB;AA5BA,OAAO,MAAM,oBAAM,+FA4BhB\"}")
 == DIAGNOSTICS ==
 
 []

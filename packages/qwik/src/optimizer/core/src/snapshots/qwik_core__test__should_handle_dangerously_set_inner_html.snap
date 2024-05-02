@@ -68,8 +68,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= cmp_component_4rykjtokjwe.js (ENTRY POINT)==
 
-import { _fnSignal } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
+import { _wrapProp } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 export const Cmp_component_4ryKJTOKjWE = ()=>{
     const htmlSignal = useSignal("<h2><span>I'm a signal value!</span></h2>");
@@ -86,9 +86,7 @@ export const Cmp_component_4ryKJTOKjWE = ()=>{
         /*#__PURE__*/ _jsxQ("div", null, null, [
             /*#__PURE__*/ _jsxQ("span", null, {
                 id: "third",
-                dangerouslySetInnerHTML: _fnSignal((p0)=>p0.value, [
-                    htmlSignal
-                ], "p0.value"),
+                dangerouslySetInnerHTML: _wrapProp(htmlSignal, "value"),
                 class: "after"
             }, null, 3, null),
             /*#__PURE__*/ _jsxQ("button", null, {
@@ -101,7 +99,7 @@ export const Cmp_component_4ryKJTOKjWE = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAEyB,IAAM;IAC5B,MAAM,aAAa,UAAU;IAC7B,qBACC,MAAC;sBACA,MAAC,iCACA,MAAC;YAAK,IAAG;YAAQ,yBAAwB;;sBAE1C,MAAC,iCACA,MAAC;YAAK,IAAG;YAAS,yBAAwB;YAAsB,OAAM;;sBAEvE,MAAC;0BACA,MAAC;gBAAK,IAAG;gBAAQ,uBAAuB,kBAAE,GAAW,KAAK;;;gBAAE,OAAM;;0BAClE,MAAC;gBACA,QAAQ;;;;;;AAOb\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAEyB,IAAM;IAC5B,MAAM,aAAa,UAAU;IAC7B,qBACC,MAAC;sBACA,MAAC,iCACA,MAAC;YAAK,IAAG;YAAQ,yBAAwB;;sBAE1C,MAAC,iCACA,MAAC;YAAK,IAAG;YAAS,yBAAwB;YAAsB,OAAM;;sBAEvE,MAAC;0BACA,MAAC;gBAAK,IAAG;gBAAQ,uBAAuB,YAAE;gBAAkB,OAAM;;0BAClE,MAAC;gBACA,QAAQ;;;;;;AAOb\"}")
 /*
 {
   "origin": "test.tsx",

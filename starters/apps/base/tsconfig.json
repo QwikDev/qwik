@@ -9,14 +9,13 @@
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "moduleResolution": "node",
+    "moduleResolution": "Bundler",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "incremental": true,
     "isolatedModules": true,
     "outDir": "tmp",
     "noEmit": true,
-    "types": ["node", "vite/client"],
     "paths": {
       "~/*": ["./src/*"]
     }

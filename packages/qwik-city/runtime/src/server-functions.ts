@@ -5,12 +5,12 @@ import {
   type QRL,
   useContext,
   type ValueOrPromise,
-  _wrapSignal,
   useStore,
   _serializeData,
   _deserializeData,
   _getContextElement,
   _getContextEvent,
+  _wrapProp,
 } from '@builder.io/qwik';
 
 import type { RequestEventLoader } from '../../middleware/request-handler/types';
@@ -45,14 +45,6 @@ import { useAction, useLocation, useQwikCityEnv } from './use-functions';
 import { z } from 'zod';
 import { isDev, isServer } from '@builder.io/qwik/build';
 import type { FormSubmitCompletedDetail } from './form-component';
-
-import type { RequestEventInternal } from '../../middleware/request-handler/request-event';
-
-// TODO: create single QGlobal type
-type AsyncStore = import('node:async_hooks').AsyncLocalStorage<RequestEventInternal>;
-interface QGlobal extends Global {
-  qcAsyncRequestStore?: AsyncStore;
-}
 
 /** @public */
 export const routeActionQrl = ((
@@ -156,8 +148,6 @@ Action.run() can only be called on the browser, for example when a user clicks a
   return action satisfies ActionInternal;
 }) as unknown as ActionConstructorQRL;
 
-export type ServerGT = typeof globalThis & { _qwikActionsMap?: Map<string, ActionInternal> };
-
 /** @public */
 export const globalActionQrl = ((
   actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => unknown>,
@@ -165,13 +155,10 @@ export const globalActionQrl = ((
 ) => {
   const action = routeActionQrl(actionQrl, ...(rest as any));
   if (isServer) {
-    if (typeof (globalThis as ServerGT)._qwikActionsMap === 'undefined') {
-      (globalThis as ServerGT)._qwikActionsMap = new Map();
+    if (typeof globalThis._qwikActionsMap === 'undefined') {
+      globalThis._qwikActionsMap = new Map();
     }
-    (globalThis as ServerGT)._qwikActionsMap!.set(
-      (action as ActionInternal).__id,
-      action as ActionInternal
-    );
+    globalThis._qwikActionsMap!.set((action as ActionInternal).__id, action as ActionInternal);
   }
   return action;
 }) as ActionConstructorQRL;
@@ -202,7 +189,7 @@ export const routeLoaderQrl = ((
     If your are managing reusable logic or a library it is essential that this function is re-exported from within 'layout.tsx' or 'index.tsx file of the existing route otherwise it will not run or throw exception.
     For more information check: https://qwik.dev/docs/cookbook/re-exporting-loaders/`);
       }
-      return _wrapSignal(state, id);
+      return _wrapProp(state, id);
     });
   }
   loader.__brand = 'server_loader' as const;
@@ -295,9 +282,7 @@ export const serverQrl = <T extends ServerFunction>(qrl: QRL<T>): ServerQRL<T> =
           : undefined;
       if (isServer) {
         // Running during SSR, we can call the function directly
-        let requestEvent = (globalThis as QGlobal).qcAsyncRequestStore?.getStore() as
-          | RequestEvent
-          | undefined;
+        let requestEvent = globalThis.qcAsyncRequestStore?.getStore() as RequestEvent | undefined;
         if (!requestEvent) {
           const contexts = [useQwikCityEnv()?.ev, this, _getContextEvent()] as RequestEvent[];
           requestEvent = contexts.find(

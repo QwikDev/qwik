@@ -59,7 +59,7 @@ _(Optional)_ Serialized function in string form.
 </tbody></table>
 **Returns:**
 
-SyncQRL&lt;TYPE&gt;
+[SyncQRL](#syncqrl)&lt;TYPE&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
 
@@ -1515,9 +1515,9 @@ A unique ID for the context.
 
 Low-level API for platform abstraction.
 
-Different platforms (browser, node, service workers) may have different ways of handling things such as `requestAnimationFrame` and imports. To make Qwik platform-independent Qwik uses the `CorePlatform` API to access the platform API.
+Different platforms (browser, node, service workers) may have different ways of handling things such as `requestAnimationFrame` and imports. To make Qwik platform independent, the `CorePlatform` API is used to access platform specific APIs.
 
-`CorePlatform` also is responsible for importing symbols. The import map is different on the client (browser) then on the server. For this reason, the server has a manifest that is used to map symbols to javascript chunks. The manifest is encapsulated in `CorePlatform`, for this reason, the `CorePlatform` can't be global as there may be multiple applications running at server concurrently.
+`CorePlatform` is also responsible for importing symbols. Because the import map is different on the client (browser) than on the server, the server uses a manifest to map symbols to javascript chunks. Since this manifest is encapsulated in `CorePlatform`, `CorePlatform` cannot be global as there may be multiple applications running on the server concurrently.
 
 This is a low-level API and there should not be a need for you to access this.
 
@@ -1694,7 +1694,7 @@ Create a context ID to be used in your application. The name should be written w
 
 Context is a way to pass stores to the child components without prop-drilling.
 
-Use `createContextId()` to create a `ContextId`. A `ContextId` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.
+Use `createContextId()` to create a `ContextId`. A `ContextId` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that it can track context providers and consumers in a way that survives resumability.
 
 ### Example
 
@@ -2606,7 +2606,7 @@ A function that should have its first argument automatically `$`.
 </tbody></table>
 **Returns:**
 
-(first: FIRST, ...rest: REST) =&gt; RET
+((first: FIRST, ...rest: REST) =&gt; RET)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/util/implicit_dollar.ts)
 
@@ -9705,7 +9705,83 @@ Function to extract.
 </tbody></table>
 **Returns:**
 
-SyncQRL&lt;T&gt;
+[SyncQRL](#syncqrl)&lt;T&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
+
+## SyncQRL
+
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+
+```typescript
+export interface SyncQRL<TYPE extends Function = any> extends QRL<TYPE>
+```
+
+**Extends:** [QRL](#qrl)&lt;TYPE&gt;
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[\_\_brand\_\_SyncQRL\_\_](#)
+
+</td><td>
+
+</td><td>
+
+TYPE
+
+</td><td>
+
+**_(ALPHA)_**
+
+</td></tr>
+<tr><td>
+
+[dev](#)
+
+</td><td>
+
+</td><td>
+
+QRLDev \| null
+
+</td><td>
+
+**_(ALPHA)_**
+
+</td></tr>
+<tr><td>
+
+[resolved](#)
+
+</td><td>
+
+</td><td>
+
+TYPE
+
+</td><td>
+
+**_(ALPHA)_**
+
+</td></tr>
+</tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
 

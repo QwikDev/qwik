@@ -1,17 +1,14 @@
 import { Extractor, ExtractorConfig } from '@microsoft/api-extractor';
-import { readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { generateApiMarkdownDocs } from './api-docs';
-import { type BuildConfig, panic, ensureDir, copyFile } from './util';
+import { generateQwikApiMarkdownDocs, generateQwikCityApiMarkdownDocs } from './api-docs';
+import { type BuildConfig, panic, copyFile } from './util';
 
 /**
  * Create each submodule's bundled dts file, and ensure the public API has not changed for a
  * production build.
  */
-export async function apiExtractor(config: BuildConfig) {
-  const apiJsonInputDir = join(config.rootDir, 'dist-dev', 'api');
-  rmSync(apiJsonInputDir, { recursive: true, force: true });
-
+export async function apiExtractorQwik(config: BuildConfig) {
   // core
   // Run the api extractor for each of the submodules
   createTypesApi(
@@ -22,14 +19,9 @@ export async function apiExtractor(config: BuildConfig) {
   );
   // Special case for jsx-runtime:
   // It only re-exports JSX. Don't duplicate the types
-  const jsxContent = readFileSync(join(config.srcQwikDir, 'jsx-runtime', 'index.ts'), 'utf-8');
+  const jsxContent = readFileSync(join(config.srcQwikDir, 'jsx-runtime.ts'), 'utf-8');
   writeFileSync(
     join(config.distQwikPkgDir, 'jsx-runtime.d.ts'),
-    `// re-export to make TS happy when not using nodenext import resolution\n${jsxContent}`
-  );
-  ensureDir(join(config.distQwikPkgDir, 'jsx-runtime'));
-  writeFileSync(
-    join(config.distQwikPkgDir, 'jsx-runtime', 'index.d.ts'),
     `// re-export to make TS happy when not using nodenext import resolution\n${jsxContent}`
   );
   createTypesApi(
@@ -58,6 +50,13 @@ export async function apiExtractor(config: BuildConfig) {
   );
   generateServerReferenceModules(config);
 
+  const apiJsonInputDir = join(config.rootDir, 'dist-dev', 'api');
+  await generateQwikApiMarkdownDocs(config, apiJsonInputDir);
+
+  console.log('🥶', 'qwik d.ts API files generated');
+}
+
+export async function apiExtractorQwikCity(config: BuildConfig) {
   // qwik-city
   createTypesApi(
     config,
@@ -189,9 +188,10 @@ export async function apiExtractor(config: BuildConfig) {
   );
   generateQwikCityReferenceModules(config);
 
-  await generateApiMarkdownDocs(config, apiJsonInputDir);
+  const apiJsonInputDir = join(config.rootDir, 'dist-dev', 'api');
+  await generateQwikCityApiMarkdownDocs(config, apiJsonInputDir);
 
-  console.log('🥶', 'submodule d.ts API files generated');
+  console.log('🥶', 'qwik-city d.ts API files generated');
 }
 
 function createTypesApi(

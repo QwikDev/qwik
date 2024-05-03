@@ -1,7 +1,7 @@
 module.exports = {
   extends: '../../../../.eslintrc.cjs',
   plugins: ['import'],
-  ignorePatterns: ['**/*.unit.*'],
+  ignorePatterns: ['**/*.unit.*', '**/*.test.*'],
   rules: {
     '@typescript-eslint/no-restricted-imports': [
       'error',

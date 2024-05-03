@@ -582,8 +582,19 @@ export const vnode_diff = (
           ]);
         }
 
-        if (key === dangerouslySetInnerHTML || (tag === 'textarea' && key === 'value')) {
+        if (key === dangerouslySetInnerHTML) {
           element.innerHTML = value as string;
+          continue;
+        }
+
+        if (tag === 'textarea' && key === 'value') {
+          if (typeof value !== 'string') {
+            if (isDev) {
+              throw new Error('The value of the textarea must be a string');
+            }
+            continue;
+          }
+          element.textContent = value as string;
           continue;
         }
 

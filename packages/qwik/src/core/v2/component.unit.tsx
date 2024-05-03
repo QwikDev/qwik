@@ -6,6 +6,7 @@ import { useSignal } from '../use/use-signal';
 import { useStore } from '../use/use-store.public';
 import { domRender, ssrRenderToDom } from '@builder.io/qwik/testing';
 import { $, useVisibleTask$, component$ } from '@builder.io/qwik';
+import { ErrorProvider } from '../../testing/rendering.unit-util';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -377,6 +378,44 @@ describe.each([
       expect(document.querySelector('textarea')?.outerHTML).toEqual(
         `<textarea>value 123</textarea>`
       );
+    }
+    await trigger(document.body, 'button', 'click');
+    if (render === ssrRenderToDom) {
+      expect(document.querySelector('textarea')?.outerHTML).toEqual(
+        `<textarea :="" q:container="textarea">value 123!</textarea>`
+      );
+    } else {
+      expect(document.querySelector('textarea')?.outerHTML).toEqual(
+        `<textarea>value 123!</textarea>`
+      );
+    }
+  });
+
+  it('should not render textarea value for non-text value', async () => {
+    const Cmp = component$(() => {
+      const signal = useSignal(<h1>header</h1>);
+      return (
+        <>
+          {/* @ts-ignore-next-line */}
+          <textarea value={signal.value}></textarea>
+        </>
+      );
+    });
+    try {
+      await render(
+        <ErrorProvider>
+          <div>
+            <Cmp />
+          </div>
+        </ErrorProvider>,
+        { debug }
+      );
+      expect(ErrorProvider.error.message).toBe(
+        render === domRender ? 'The value of the textarea must be a string' : null
+      );
+    } catch (e) {
+      expect(render).toBe(ssrRenderToDom);
+      expect((e as Error).message).toBe('The value of the textarea must be a string');
     }
   });
 

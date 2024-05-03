@@ -474,7 +474,7 @@ describe('vnode', () => {
     });
 
     describe('textarea value', () => {
-      it('should materialize without innerHTML children', () => {
+      it('should materialize without textContent', () => {
         parent.innerHTML = '<textarea q:container="textarea">content</textarea>';
         expect(vParent).toMatchVDOM(
           <test>
@@ -483,7 +483,7 @@ describe('vnode', () => {
           </test>
         );
       });
-      it('should update innerHTML', () => {
+      it('should update textContent', () => {
         parent.innerHTML = '<textarea q:container="textarea">content</textarea>';
         const textarea = vnode_getFirstChild(vParent) as ElementVNode;
         vnode_setAttr(journal, textarea, 'value', 'new content');

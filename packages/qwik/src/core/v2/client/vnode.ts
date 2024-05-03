@@ -382,7 +382,7 @@ export const vnode_ensureElementInflated = (vnode: VNode) => {
           mapArray_set(
             elementVNode as string[],
             'value',
-            element.innerHTML,
+            element.textContent,
             ElementVNodeProps.PROPS_OFFSET
           );
         }
@@ -814,10 +814,12 @@ export const vnode_applyJournal = (journal: VNodeJournal) => {
         const tag = element.tagName.toLowerCase();
         if (isBooleanAttr(element, key)) {
           (element as any)[key] = parseBoolean(value);
-        } else if (key === dangerouslySetInnerHTML || (tag === 'textarea' && key === 'value')) {
-          (element as any).innerHTML = value!;
+        } else if (tag === 'textarea' && key === 'value') {
+          (element as any).textContent = value!;
         } else if (key === 'value' && key in element) {
           (element as any).value = String(value);
+        } else if (key === dangerouslySetInnerHTML) {
+          (element as any).innerHTML = value!;
         } else {
           if (value == null || value === false) {
             element.removeAttribute(key);

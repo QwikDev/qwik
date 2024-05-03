@@ -583,7 +583,7 @@ impl<'a> QwikTransform<'a> {
 		let (scoped_idents, is_const) = compute_scoped_idents(&descendent_idents, &decl_collect);
 
 		// simple variable expression, no need to inline
-		if let ast::Expr::Ident(_) = folded.clone() {
+		if let ast::Expr::Ident(_) = folded {
 			return (None, is_const);
 		}
 
@@ -593,7 +593,7 @@ impl<'a> QwikTransform<'a> {
 				let prop_sym = prop_to_string(&member.prop);
 				if let Some(prop_sym) = prop_sym {
 					let id = self.ensure_core_import(&_WRAP_PROP);
-					return (Some(make_wrap(&id, member.obj.clone(), prop_sym)), is_const);
+					return (Some(make_wrap(&id, member.obj, prop_sym)), is_const);
 				}
 			}
 		}
@@ -1418,14 +1418,11 @@ impl<'a> QwikTransform<'a> {
 											} else {
 												var_props.push(converted_prop.fold_with(self));
 											}
+										} else if is_const {
+											event_handlers.push(converted_prop.fold_with(self));
 										} else {
-											if is_const {
-												event_handlers.push(converted_prop.fold_with(self));
-											} else {
-												static_listeners = false;
-												maybe_const_props
-													.push(converted_prop.fold_with(self));
-											}
+											static_listeners = false;
+											maybe_const_props.push(converted_prop.fold_with(self));
 										}
 									} else {
 										let const_prop = is_const_expr(

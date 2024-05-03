@@ -1,6 +1,13 @@
-import type { SnapshotResult } from '@builder.io/qwik';
-import { Fragment, _pauseFromContexts, _renderSSR, jsx, type JSXNode } from '@builder.io/qwik';
+import {
+  Fragment,
+  _pauseFromContexts,
+  _renderSSR,
+  jsx,
+  type JSXNode,
+  type SnapshotResult,
+} from '@builder.io/qwik';
 import { isDev } from '@builder.io/qwik/build';
+// eslint-disable-next-line @typescript-eslint/no-restricted-imports
 import { getValidManifest } from '../optimizer/src/manifest';
 import { getSymbolHash, setServerPlatform } from './platform';
 import { applyPrefetchImplementation } from './prefetch-implementation';

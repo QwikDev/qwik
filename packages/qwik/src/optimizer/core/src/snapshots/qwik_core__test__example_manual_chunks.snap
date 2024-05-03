@@ -118,8 +118,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= parent_component_0taidayhrlo.js ==
 
-import { _fnSignal } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
+import { _wrapProp } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 import { useStore } from "@builder.io/qwik";
 import { useTaskQrl } from "@builder.io/qwik";
@@ -133,13 +133,11 @@ export const Parent_component_0TaiDayHrlo = ()=>{
     ]));
     return /*#__PURE__*/ _jsxQ("div", null, {
         onClick$: /*#__PURE__*/ qrl(()=>import("./parent_component_div_onclick_c5xe49nqd3a"), "Parent_component_div_onClick_C5XE49Nqd3A")
-    }, _fnSignal((p0)=>p0.text, [
-        state
-    ], "p0.text"), 3, "u6_0");
+    }, _wrapProp(state, "text"), 3, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;4CAKiC,IAAM;IACtC,MAAM,QAAQ,SAAS;QACtB,MAAM;IACP;IAEA,qBAAqB;IACrB;;;IAKA,qBACC,MAAC;QAAI,QAAQ;uBACX,GAAM,IAAI;;;AAGd\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;4CAKiC,IAAM;IACtC,MAAM,QAAQ,SAAS;QACtB,MAAM;IACP;IAEA,qBAAqB;IACrB;;;IAKA,qBACC,MAAC;QAAI,QAAQ;iBACX;AAGJ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -186,8 +184,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= child_component_9gyf01gdkqw.js ==
 
-import { _fnSignal } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
+import { _wrapProp } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 import { useStore } from "@builder.io/qwik";
 import { useTaskQrl } from "@builder.io/qwik";
@@ -201,13 +199,11 @@ export const Child_component_9GyF01GDKqw = ()=>{
     ]));
     return /*#__PURE__*/ _jsxQ("div", null, {
         onClick$: /*#__PURE__*/ qrl(()=>import("./child_component_div_onclick_ellivsnaioq"), "Child_component_div_onClick_elliVSnAiOQ")
-    }, _fnSignal((p0)=>p0.text, [
-        state
-    ], "p0.text"), 3, "u6_1");
+    }, _wrapProp(state, "text"), 3, "u6_1");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;2CAuBgC,IAAM;IACrC,MAAM,QAAQ,SAAS;QACtB,MAAM;IACP;IAEA,qBAAqB;IACrB;;;IAIA,qBACC,MAAC;QAAI,QAAQ;uBACX,GAAM,IAAI;;;AAGd\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;2CAuBgC,IAAM;IACrC,MAAM,QAAQ,SAAS;QACtB,MAAM;IACP;IAEA,qBAAqB;IACrB;;;IAIA,qBACC,MAAC;QAAI,QAAQ;iBACX;AAGJ\"}")
 /*
 {
   "origin": "test.tsx",

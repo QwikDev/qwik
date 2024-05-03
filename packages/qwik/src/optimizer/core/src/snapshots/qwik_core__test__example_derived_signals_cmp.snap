@@ -50,8 +50,8 @@ export const App = component$(() => {
 ============================= test.js ==
 
 import { componentQrl } from "@builder.io/qwik";
-import { _fnSignal } from "@builder.io/qwik";
 import { _wrapProp } from "@builder.io/qwik";
+import { _fnSignal } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
 import { inlinedQrl } from "@builder.io/qwik";
 import { useStore, mutable } from '@builder.io/qwik';
@@ -62,6 +62,7 @@ const App_component_ckEPmXZlub0 = ()=>{
     const store = useStore({});
     return /*#__PURE__*/ _jsxQ(Cmp, {
         global: globalThing,
+        globalAccess: globalThing.thing,
         globalComputed: globalThing.thing + 'stuff',
         noInline2: signal.value + unknown(),
         noInline3: mutable(signal),
@@ -74,9 +75,7 @@ const App_component_ckEPmXZlub0 = ()=>{
         staticExpr: `text${12}`,
         staticExpr2: typeof `text${12}` === 'string' ? 12 : 43,
         signal: signal,
-        signalValue: _fnSignal((p0)=>p0.value, [
-            signal
-        ], "p0.value"),
+        signalValue: _wrapProp(signal, "value"),
         signalComputedValue: _fnSignal((p0)=>12 + p0.value, [
             signal
         ], "12+p0.value"),
@@ -89,7 +88,6 @@ const App_component_ckEPmXZlub0 = ()=>{
         dep: dep,
         depAccess: dep.thing,
         depComputed: dep.thing + 'stuff',
-        globalAccess: _wrapProp(globalThing, "thing"),
         noInline: _fnSignal((p0)=>p0.value(), [
             signal
         ], "p0.value()")
@@ -98,7 +96,7 @@ const App_component_ckEPmXZlub0 = ()=>{
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AACA,SAAqB,QAAQ,EAAE,OAAO,QAAQ,mBAAmB;AAEjE,SAAQ,GAAG,QAAO,SAAS;AAC3B,SAAQ,GAAG,QAAO,QAAQ;kCAEI,IAAM;IACnC,MAAM,SAAS,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACC,MAAC;QAmBA,QAAQ;QAER,gBAAgB,YAAY,KAAK,GAAG;QAIpC,WAAW,OAAO,KAAK,GAAG;QAC1B,WAAW,QAAQ;QACnB,WAAW,OAAO,KAAK,GAAG;;QA1B1B,YAAW;QACX,aAAa,CAAC,IAAI,CAAC;QACnB,cAAc;QACd,eAAe,IAAI;QACnB,YAAY,CAAC,IAAI,EAAE,GAAG,CAAC;QACvB,aAAa,OAAO,CAAC,IAAI,EAAE,GAAG,CAAC,KAAK,WAAW,KAAK,EAAE;QAEtD,QAAQ;QACR,WAAW,kBAAE,GAAO,KAAK;;;QACzB,mBAAmB,kBAAE,KAAK,GAAO,KAAK;;;QAEtC,KAAK,kBAAE,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI;;;QAC9B,aAAa,kBAAE,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS,OAAO;;;QAEzD,KAAK;QACL,WAAW,IAAI,KAAK;QACpB,aAAa,IAAI,KAAK,GAAG;QAGzB,YAAY,YAAE;QAId,QAAQ,kBAAE,GAAO,KAAK;;;;AAMzB;AAlCA,OAAO,MAAM,oBAAM,+FAkChB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AACA,SAAqB,QAAQ,EAAE,OAAO,QAAQ,mBAAmB;AAEjE,SAAQ,GAAG,QAAO,SAAS;AAC3B,SAAQ,GAAG,QAAO,QAAQ;kCAEI,IAAM;IACnC,MAAM,SAAS,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACC,MAAC;QAmBA,QAAQ;QACR,cAAc,YAAY,KAAK;QAC/B,gBAAgB,YAAY,KAAK,GAAG;QAIpC,WAAW,OAAO,KAAK,GAAG;QAC1B,WAAW,QAAQ;QACnB,WAAW,OAAO,KAAK,GAAG;;QA1B1B,YAAW;QACX,aAAa,CAAC,IAAI,CAAC;QACnB,cAAc;QACd,eAAe,IAAI;QACnB,YAAY,CAAC,IAAI,EAAE,GAAG,CAAC;QACvB,aAAa,OAAO,CAAC,IAAI,EAAE,GAAG,CAAC,KAAK,WAAW,KAAK,EAAE;QAEtD,QAAQ;QACR,WAAW,YAAE;QACb,mBAAmB,kBAAE,KAAK,GAAO,KAAK;;;QAEtC,KAAK,kBAAE,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI;;;QAC9B,aAAa,kBAAE,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS,OAAO;;;QAEzD,KAAK;QACL,WAAW,IAAI,KAAK;QACpB,aAAa,IAAI,KAAK,GAAG;QAOzB,QAAQ,kBAAE,GAAO,KAAK;;;;AAMzB;AAlCA,OAAO,MAAM,oBAAM,+FAkChB\"}")
 == DIAGNOSTICS ==
 
 []

@@ -54,6 +54,7 @@ import { componentQrl } from "@builder.io/qwik";
 import { useTaskQrl } from "@builder.io/qwik";
 import { useLexicalScope } from "@builder.io/qwik";
 import { inlinedQrl } from "@builder.io/qwik";
+import { _fnSignal } from "@builder.io/qwik";
 import { _wrapProp } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
 export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
@@ -74,10 +75,14 @@ export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)
         rest
     ]));
     return /*#__PURE__*/ _jsxQ("div", {
-        some: props.some ?? 3,
-        params: {
-            some: props.some ?? 3
-        },
+        some: _fnSignal((p0)=>p0.some ?? 3, [
+            props
+        ], "p0.some??1+2"),
+        params: _fnSignal((p0)=>({
+                some: p0.some ?? 3
+            }), [
+            props
+        ], "{some:p0.some??1+2}"),
         class: _wrapProp(props, "count"),
         ...rest
     }, {
@@ -112,7 +117,7 @@ export const NoWorks3 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(({ c
 }, "NoWorks3_component_fc13h5yYn14"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;AAGA,OAAO,MAAM,sBAAQ,sCAAW,SAMlB;;;;;;;;IACb,QAAQ,GAAG,OAHX,aAFA,QAAO;IAMP,oCAAS,CAAC,EAAC,MAAK,EAAC;;QAChB,MAAM,UARP;QASC,QAAQ,GAAG,OATZ,OASoB,YANpB,aAFA,QAAO,SAGP,gBAAqB;;;;;IAOrB,qBACC,MAAC;QAAI,IAAI,QAXV,QAAO;QAWW,QAAQ;YAAE,IAAI,QAXhC,QAAO;QAW0B;QAAG,KAAK;QAAU,GAAG,IAAI;;QAAE,QAAQ;;AAErE,mCAAG;AAEH,OAAO,MAAM,yBAAW,sCAAW,CAAC,EAAC,MAAK,EAAE,OAAO,EAAC,IAAG,EAAC,CAAA,EAAC,GAAK;IAC7D,QAAQ,GAAG,CAAC;IACZ,oCAAS,CAAC,EAAC,MAAK,EAAC;;QAChB,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEb,qBACC,MAAC;QAAI,OAAO;aAAQ;AAEtB,sCAAG;AAEH,OAAO,MAAM,yBAAW,sCAAW,CAAC,EAAC,MAAK,EAAE,OAAQ,OAAM,EAAC,GAAK;IAC/D,QAAQ,GAAG,CAAC;IACZ,oCAAS,CAAC,EAAC,MAAK,EAAC;;QAChB,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEb,qBACC,MAAC;QAAI,OAAO;aAAQ;AAEtB,sCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;AAGA,OAAO,MAAM,sBAAQ,sCAAW,SAMlB;;;;;;;;IACb,QAAQ,GAAG,OAHX,aAFA,QAAO;IAMP,oCAAS,CAAC,EAAC,MAAK,EAAC;;QAChB,MAAM,UARP;QASC,QAAQ,GAAG,OATZ,OASoB,YANpB,aAFA,QAAO,SAGP,gBAAqB;;;;;IAOrB,qBACC,MAAC;QAAI,IAAI,qBAXV,QAAO;;;QAWW,MAAM,kBAAE,CAAA;gBAAE,IAAI,KAXhC,QAAO;YAW0B,CAAA;;;QAAG,KAAK;QAAU,GAAG,IAAI;;QAAE,QAAQ;;AAErE,mCAAG;AAEH,OAAO,MAAM,yBAAW,sCAAW,CAAC,EAAC,MAAK,EAAE,OAAO,EAAC,IAAG,EAAC,CAAA,EAAC,GAAK;IAC7D,QAAQ,GAAG,CAAC;IACZ,oCAAS,CAAC,EAAC,MAAK,EAAC;;QAChB,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEb,qBACC,MAAC;QAAI,OAAO;aAAQ;AAEtB,sCAAG;AAEH,OAAO,MAAM,yBAAW,sCAAW,CAAC,EAAC,MAAK,EAAE,OAAQ,OAAM,EAAC,GAAK;IAC/D,QAAQ,GAAG,CAAC;IACZ,oCAAS,CAAC,EAAC,MAAK,EAAC;;QAChB,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEb,qBACC,MAAC;QAAI,OAAO;aAAQ;AAEtB,sCAAG\"}")
 == DIAGNOSTICS ==
 
 []

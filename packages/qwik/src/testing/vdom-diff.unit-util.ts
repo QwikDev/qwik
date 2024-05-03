@@ -1,6 +1,15 @@
 import { expect } from 'vitest';
-import { Fragment, isJSXNode } from '../core/render/jsx/jsx-runtime';
-import type { ElementVNode, QDocument, TextVNode, VNode } from '../core/v2/client/types';
+import { Fragment, _isJSXNode, _isStringifiable, isSignal } from '@builder.io/qwik';
+import type {
+  JSXNode,
+  JSXOutput,
+  _ElementVNode,
+  _QDocument,
+  _Stringifiable,
+  _TextVNode,
+  _VNode,
+  _VirtualVNode,
+} from '@builder.io/qwik';
 import {
   vnode_applyJournal,
   vnode_getAttr,
@@ -20,14 +29,10 @@ import {
   vnode_setAttr,
   type VNodeJournal,
 } from '../core/v2/client/vnode';
-import { isStringifiable, type Stringifiable } from '../core/v2/shared-types';
 
-import { isSignal } from '@builder.io/qwik';
 import { format } from 'prettier';
 import { serializeBooleanOrNumberAttribute } from '../core/render/execute-component';
-import type { JSXNode, JSXOutput } from '../core/render/jsx/types/jsx-node';
 import { isText } from '../core/util/element';
-import type { VirtualVNode } from '../core/v2/client/types';
 import {
   isHtmlAttributeAnEventName,
   isJsxPropertyAnEventName,
@@ -36,7 +41,7 @@ import { createDocument } from './document';
 import { isElement } from './html';
 
 expect.extend({
-  toMatchVDOM(this: { isNot: boolean }, received: VNode, expected: JSXNode) {
+  toMatchVDOM(this: { isNot: boolean }, received: _VNode, expected: JSXNode) {
     const { isNot } = this;
     const diffs = diffJsxVNode(received, expected);
     return {
@@ -61,13 +66,13 @@ expect.extend({
   },
 });
 
-function diffJsxVNode(received: VNode, expected: JSXNode | string, path: string[] = []): string[] {
+function diffJsxVNode(received: _VNode, expected: JSXNode | string, path: string[] = []): string[] {
   if (!received) {
     return [path.join(' > ') + ' missing'];
   }
   const diffs: string[] = [];
   if (typeof expected === 'string') {
-    const receivedText = vnode_isTextVNode(received) ? vnode_getText(received as TextVNode) : null;
+    const receivedText = vnode_isTextVNode(received) ? vnode_getText(received as _TextVNode) : null;
     if (expected !== receivedText) {
       diffs.push(path.join(' > '));
       diffs.push('EXPECTED', JSON.stringify(expected));
@@ -76,7 +81,7 @@ function diffJsxVNode(received: VNode, expected: JSXNode | string, path: string[
   } else {
     path.push(tagToString(expected.type));
     const receivedTag = vnode_isElementVNode(received)
-      ? vnode_getElementName(received as ElementVNode)
+      ? vnode_getElementName(received as _ElementVNode)
       : vnode_isVirtualVNode(received)
         ? Fragment
         : undefined;
@@ -143,8 +148,8 @@ function getJSXChildren(jsx: JSXNode): JSXNode[] {
   return [];
 }
 
-function getVNodeChildren(vNode: VNode): VNode[] {
-  const children: VNode[] = [];
+function getVNodeChildren(vNode: _VNode): _VNode[] {
+  const children: _VNode[] = [];
   let child = vnode_getFirstChild(vNode);
   while (child) {
     if (!shouldSkip(child)) {
@@ -168,7 +173,7 @@ export function jsxToHTML(jsx: JSXNode, pad: string = ''): string {
   return html.join('');
 }
 
-export function vnodeToHTML(vNode: VNode | null, pad: string = ''): string {
+export function vnodeToHTML(vNode: _VNode | null, pad: string = ''): string {
   const html: string[] = [];
   while (vNode) {
     html.push(
@@ -192,7 +197,7 @@ function tagToString(tag: any): string {
   return String(tag);
 }
 
-function shouldSkip(vNode: VNode | null) {
+function shouldSkip(vNode: _VNode | null) {
   if (vNode && vnode_isElementVNode(vNode)) {
     const tag = vnode_getElementName(vNode);
     if (
@@ -212,10 +217,10 @@ export function walkJSX(
   apply: {
     enter: (jsx: JSXNode) => void;
     leave: (jsx: JSXNode) => void;
-    text: (text: Stringifiable) => void;
+    text: (text: _Stringifiable) => void;
   }
 ) {
-  if (isJSXNode(jsx)) {
+  if (_isJSXNode(jsx)) {
     apply.enter(jsx);
     if (Array.isArray(jsx.children)) {
       for (const child of jsx.children) {
@@ -233,9 +238,9 @@ export function walkJSX(
     if (isSignal(child)) {
       child = child.value;
     }
-    if (isStringifiable(child)) {
+    if (_isStringifiable(child)) {
       apply.text(child);
-    } else if (isJSXNode(child)) {
+    } else if (_isJSXNode(child)) {
       walkJSX(child, apply);
     } else {
       throw new Error('Unknown type: ' + child);
@@ -245,10 +250,10 @@ export function walkJSX(
 
 /** @public */
 export function vnode_fromJSX(jsx: JSXOutput) {
-  const doc = createDocument() as QDocument;
+  const doc = createDocument() as _QDocument;
   doc.qVNodeData = new WeakMap();
   const vBody = vnode_newUnMaterializedElement(doc.body);
-  let vParent: ElementVNode | VirtualVNode = vBody;
+  let vParent: _ElementVNode | _VirtualVNode = vBody;
   const journal: VNodeJournal = [];
   walkJSX(jsx, {
     enter: (jsx) => {

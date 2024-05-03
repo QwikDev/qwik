@@ -5,7 +5,6 @@
 ```ts
 
 import * as CSS_2 from 'csstype';
-import { JSXNode as JSXNode_2 } from '@builder.io/qwik';
 import type { StreamWriter as StreamWriter_2 } from '@builder.io/qwik';
 
 // @public
@@ -118,20 +117,14 @@ export interface ClientContainer extends Container2 {
     $journal$: VNodeJournal;
     // (undocumented)
     $locale$: string;
-    // Warning: (ae-forgotten-export) The symbol "VirtualVNode" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
-    $setRawState$(id: number, vParent: ElementVNode | VirtualVNode): void;
+    $setRawState$(id: number, vParent: _ElementVNode | _VirtualVNode): void;
     // (undocumented)
-    addVNodeProjection(componentVNodeWithProjection: VirtualVNode): void;
-    // Warning: (ae-forgotten-export) The symbol "QDocument" needs to be exported by the entry point index.d.ts
-    //
+    addVNodeProjection(componentVNodeWithProjection: _VirtualVNode): void;
     // (undocumented)
-    document: QDocument;
-    // Warning: (ae-forgotten-export) The symbol "ContainerElement" needs to be exported by the entry point index.d.ts
-    //
+    document: _QDocument;
     // (undocumented)
-    element: ContainerElement;
+    element: _ContainerElement;
     // (undocumented)
     emitUnclaimedProjection(): void;
     // (undocumented)
@@ -142,12 +135,10 @@ export interface ClientContainer extends Container2 {
     qContainer: string;
     // (undocumented)
     qManifestHash: string;
-    // Warning: (ae-forgotten-export) The symbol "ElementVNode" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
-    qTemplate: ElementVNode;
+    qTemplate: _ElementVNode;
     // (undocumented)
-    rootVNode: ElementVNode;
+    rootVNode: _ElementVNode;
 }
 
 // @public (undocumented)
@@ -177,6 +168,14 @@ export const componentQrl: <PROPS extends Record<any, any>>(componentQrl: QRL<On
 
 // @internal (undocumented)
 export const _CONST_PROPS: unique symbol;
+
+// @internal (undocumented)
+export interface _ContainerElement extends HTMLElement {
+    // (undocumented)
+    qContainer?: ClientContainer;
+    qFuncs?: Array<Function>;
+    qVNodeRefs: Map<number, Element | _ElementVNode>;
+}
 
 // @public
 export interface ContextId<STATE> {
@@ -250,12 +249,11 @@ export interface DOMAttributes<EL extends Element> extends DOMAttributesBase<EL>
 }
 
 // Warning: (ae-forgotten-export) The symbol "StoreTracker" needs to be exported by the entry point index.d.ts
-// Warning: (ae-internal-missing-underscore) The name "DomContainer" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export class DomContainer extends _SharedContainer implements ClientContainer, StoreTracker {
+class DomContainer extends _SharedContainer implements ClientContainer, StoreTracker {
     // (undocumented)
-    $appendStyle$(content: string, styleId: string, host: VirtualVNode, scoped: boolean): void;
+    $appendStyle$(content: string, styleId: string, host: _VirtualVNode, scoped: boolean): void;
     // (undocumented)
     $getObjectById$: (id: number | string) => unknown;
     // (undocumented)
@@ -269,18 +267,18 @@ export class DomContainer extends _SharedContainer implements ClientContainer, S
     // (undocumented)
     $rawStateData$: unknown[];
     // (undocumented)
-    $setRawState$(id: number, vParent: ElementVNode | VirtualVNode): void;
-    constructor(element: ContainerElement);
+    $setRawState$(id: number, vParent: _ElementVNode | _VirtualVNode): void;
+    constructor(element: _ContainerElement);
     // (undocumented)
-    addVNodeProjection(componentVNodeWithProjection: VirtualVNode): void;
+    addVNodeProjection(componentVNodeWithProjection: _VirtualVNode): void;
     // (undocumented)
-    document: QDocument;
+    document: _QDocument;
     // (undocumented)
-    element: ContainerElement;
+    element: _ContainerElement;
     // (undocumented)
     emitUnclaimedProjection(): ValueOrPromise<void>;
     // (undocumented)
-    ensureProjectionResolved(vNode: VirtualVNode): void;
+    ensureProjectionResolved(vNode: _VirtualVNode): void;
     // (undocumented)
     getHostProp<T>(host: HostElement, name: string): T | null;
     // (undocumented)
@@ -302,7 +300,7 @@ export class DomContainer extends _SharedContainer implements ClientContainer, S
     // (undocumented)
     qManifestHash: string;
     // (undocumented)
-    get qTemplate(): ElementVNode;
+    get qTemplate(): _ElementVNode;
     // (undocumented)
     renderDone: Promise<void> | null;
     // (undocumented)
@@ -310,7 +308,7 @@ export class DomContainer extends _SharedContainer implements ClientContainer, S
     // (undocumented)
     resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined;
     // (undocumented)
-    rootVNode: ElementVNode;
+    rootVNode: _ElementVNode;
     // (undocumented)
     scheduleRender(): Promise<void> | null;
     // (undocumented)
@@ -319,8 +317,33 @@ export class DomContainer extends _SharedContainer implements ClientContainer, S
     setHostProp<T>(host: HostElement, name: string, value: T): void;
 }
 
+// Warning: (ae-internal-missing-underscore) The name "DomContainer" should be prefixed with an underscore because the declaration is marked as @internal
+export { DomContainer }
+export { DomContainer as _DomContainer }
+
 // @public (undocumented)
 export type EagernessOptions = 'visible' | 'load' | 'idle';
+
+// @internal (undocumented)
+export type _ElementVNode = [
+_VNodeFlags.Element,
+////////////// 0 - Flags
+_VNode | null,
+/////////////// 1 - Parent
+_VNode | null,
+/////////////// 2 - Previous sibling
+_VNode | null,
+/////////////// 3 - Next sibling
+_VNode | null | undefined,
+/// 4 - First child - undefined if children need to be materialize
+_VNode | null | undefined,
+Element,
+//////////////////// 6 - Element
+string | undefined,
+...(string | null)[]
+] & {
+    __brand__: 'ElementVNode';
+};
 
 // @public (undocumented)
 export interface EmbedHTMLAttributes<T extends Element> extends Attrs<'embed', T> {
@@ -373,10 +396,13 @@ export const _getContextElement: () => unknown;
 // @internal (undocumented)
 export const _getContextEvent: () => unknown;
 
+// Warning: (ae-incompatible-release-tags) The symbol "getDomContainer" is marked as @public, but its signature references "_ElementVNode" which is marked as @internal
 // Warning: (ae-incompatible-release-tags) The symbol "getDomContainer" is marked as @public, but its signature references "ClientContainer" which is marked as @internal
 //
 // @public (undocumented)
-export function getDomContainer(element: Element | ElementVNode): ClientContainer;
+function getDomContainer(element: Element | _ElementVNode): ClientContainer;
+export { getDomContainer as _getDomContainer }
+export { getDomContainer }
 
 // Warning: (ae-internal-missing-underscore) The name "getLocale" should be prefixed with an underscore because the declaration is marked as @internal
 //
@@ -442,7 +468,7 @@ export interface ImgHTMLAttributes<T extends Element> extends Attrs<'img', T> {
 }
 
 // @public
-export const implicit$FirstArg: <FIRST, REST extends any[], RET>(fn: (first: QRL<FIRST>, ...rest: REST) => RET) => (first: FIRST, ...rest: REST) => RET;
+export const implicit$FirstArg: <FIRST, REST extends any[], RET>(fn: (first: QRL<FIRST>, ...rest: REST) => RET) => ((first: FIRST, ...rest: REST) => RET);
 
 // Warning: (ae-internal-missing-underscore) The name "inlinedQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
@@ -494,6 +520,9 @@ export const _isJSXNode: <T>(n: unknown) => n is JSXNode<T>;
 
 // @public
 export const isSignal: <T = unknown>(obj: any) => obj is Signal<T>;
+
+// @internal (undocumented)
+export function _isStringifiable(value: unknown): value is _Stringifiable;
 
 // Warning: (ae-forgotten-export) The symbol "Props" needs to be exported by the entry point index.d.ts
 //
@@ -696,7 +725,7 @@ export const PrefetchGraph: (opts?: {
     base?: string;
     manifestHash?: string;
     manifestURL?: string;
-}) => JSXNode_2<string>;
+}) => JSXNode<string>;
 
 // @alpha
 export const PrefetchServiceWorker: (opts: {
@@ -704,7 +733,7 @@ export const PrefetchServiceWorker: (opts: {
     path?: string;
     verbose?: boolean;
     fetchBundleGraph?: boolean;
-}) => JSXNode_2<string>;
+}) => JSXNode<string>;
 
 // @public (undocumented)
 export interface ProgressHTMLAttributes<T extends Element> extends Attrs<'progress', T> {
@@ -735,6 +764,12 @@ export type PropsOf<COMP> = COMP extends string ? COMP extends keyof QwikIntrins
 //
 // @public
 export type PublicProps<PROPS> = (PROPS extends Record<any, any> ? Omit<PROPS, `${string}$`> & _Only$<PROPS> : unknown extends PROPS ? {} : PROPS) & ComponentBaseProps & ComponentChildren<PROPS>;
+
+// @internal (undocumented)
+export interface _QDocument extends Document {
+    // (undocumented)
+    qVNodeData: WeakMap<Element, string>;
+}
 
 // Warning: (ae-forgotten-export) The symbol "BivariantQrlFn" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "QrlArgs" needs to be exported by the entry point index.d.ts
@@ -1175,6 +1210,9 @@ export type SSRStreamProps = {
 export type StreamWriter = {
     write: (chunk: string) => void;
 };
+
+// @internal (undocumented)
+export type _Stringifiable = string | boolean | number | null;
 
 // @public (undocumented)
 export interface StyleHTMLAttributes<T extends Element> extends Attrs<'style', T> {
@@ -1757,6 +1795,22 @@ export interface TdHTMLAttributes<T extends Element> extends Attrs<'td', T> {
 export interface TextareaHTMLAttributes<T extends Element> extends Attrs<'textarea', T> {
 }
 
+// @internal (undocumented)
+export type _TextVNode = [
+_VNodeFlags.Text | _VNodeFlags.Inflated,
+// 0 - Flags
+_VNode | null,
+///////////////// 1 - Parent
+_VNode | null,
+///////////////// 2 - Previous sibling
+_VNode | null,
+///////////////// 3 - Next sibling
+Text | null | undefined,
+string
+] & {
+    __brand__: 'TextVNode';
+};
+
 // @public (undocumented)
 export interface ThHTMLAttributes<T extends Element> extends Attrs<'tr', T> {
 }
@@ -1908,8 +1962,51 @@ export const version: string;
 export interface VideoHTMLAttributes<T extends Element> extends Attrs<'video', T> {
 }
 
+// @internal (undocumented)
+export type _VirtualVNode = [
+_VNodeFlags.Virtual,
+///////////// 0 - Flags
+_VNode | null,
+/////////////// 1 - Parent
+_VNode | null,
+/////////////// 2 - Previous sibling
+_VNode | null,
+/////////////// 3 - Next sibling
+_VNode | null,
+/////////////// 4 - First child
+_VNode | null,
+...(string | null)[]
+] & {
+    __brand__: 'FragmentNode' & 'HostElement';
+};
+
 // @public (undocumented)
 export type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | 'document-idle';
+
+// @internal (undocumented)
+export type _VNode = _ElementVNode | _TextVNode | _VirtualVNode;
+
+// @internal
+export const enum _VNodeFlags {
+    // (undocumented)
+    Element = 1,
+    // (undocumented)
+    ELEMENT_OR_TEXT_MASK = 5,
+    // (undocumented)
+    ELEMENT_OR_VIRTUAL_MASK = 3,
+    // (undocumented)
+    Inflated = 8,
+    // (undocumented)
+    INFLATED_TYPE_MASK = 15,
+    // (undocumented)
+    Resolved = 16,
+    // (undocumented)
+    Text = 4,
+    // (undocumented)
+    TYPE_MASK = 7,
+    // (undocumented)
+    Virtual = 2
+}
 
 // @internal (undocumented)
 export const _waitUntilRendered: (elm: Element) => Promise<void>;

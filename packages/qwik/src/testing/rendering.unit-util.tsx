@@ -1,21 +1,24 @@
 /* eslint-disable no-console */
-// TODO remove console statements
 import { expect } from 'vitest';
 import { Q_FUNCS_PREFIX, renderToString } from '../server/render';
 import { createDocument } from './document';
 import { getTestPlatform } from './platform';
-import { componentQrl, type OnRenderFn } from '@builder.io/qwik';
+import { _getDomContainer, componentQrl, type OnRenderFn } from '@builder.io/qwik';
+import type {
+  JSXOutput,
+  _DomContainer,
+  _ContainerElement,
+  _VNode,
+  _VirtualVNode,
+} from '@builder.io/qwik';
 import { getPlatform, setPlatform } from '../core/platform/platform';
 import { inlinedQrl } from '../core/qrl/qrl';
 import type { QRL } from '../core/qrl/qrl.public';
 import { ERROR_CONTEXT } from '../core/render/error-handling';
 import { Slot } from '../core/render/jsx/slot.public';
-import type { JSXOutput } from '@builder.io/qwik';
 import { useContextProvider } from '../core/use/use-context';
 import { ELEMENT_PROPS, OnRenderProp, QScopedStyle, QStyle } from '../core/util/markers';
-import { DomContainer, getDomContainer } from '../core/v2/client/dom-container';
 import { render2 } from '../core/v2/client/dom-render';
-import type { ContainerElement, VNode, VirtualVNode } from '../core/v2/client/types';
 import {
   vnode_getAttr,
   vnode_getFirstChild,
@@ -44,7 +47,7 @@ export async function domRender(
   await render2(document.body, jsx);
   await getTestPlatform().flush();
   const getStyles = getStylesFactory(document);
-  const container = getDomContainer(document.body);
+  const container = _getDomContainer(document.body);
   if (opts.debug) {
     console.log('========================================================');
     console.log('------------------------- CSR --------------------------');
@@ -129,9 +132,9 @@ export async function ssrRenderToDom(
   }
 
   const document = createDocument({ html });
-  const containerElement = document.querySelector('[q\\:container]') as ContainerElement;
+  const containerElement = document.querySelector('[q\\:container]') as _ContainerElement;
   emulateExecutionOfQwikFuncs(document);
-  const container = getDomContainer(containerElement) as DomContainer;
+  const container = _getDomContainer(containerElement) as _DomContainer;
   const getStyles = getStylesFactory(document);
   if (opts.debug) {
     console.log('========================================================');
@@ -167,7 +170,7 @@ export async function ssrRenderToDom(
 /** @public */
 export function emulateExecutionOfQwikFuncs(document: Document) {
   const qFuncs = document.body.querySelector('[q\\:func]');
-  const containerElement = document.querySelector('[q\\:container]') as ContainerElement;
+  const containerElement = document.querySelector('[q\\:container]') as _ContainerElement;
   if (qFuncs) {
     let code = qFuncs.textContent || '';
     code = code.replace(Q_FUNCS_PREFIX, '');
@@ -189,7 +192,7 @@ function renderStyles(getStyles: () => Record<string, string | string[]>) {
 }
 
 export async function rerenderComponent(element: HTMLElement) {
-  const container = getDomContainer(element);
+  const container = _getDomContainer(element);
   const vElement = vnode_locate(container.rootVNode, element);
   const host = getHostVNode(vElement)!;
   const qrl = container.getHostProp<QRL<OnRenderFn<any>>>(host, OnRenderProp)!;
@@ -198,10 +201,10 @@ export async function rerenderComponent(element: HTMLElement) {
   await getTestPlatform().flush();
 }
 
-function getHostVNode(vElement: VNode | null) {
+function getHostVNode(vElement: _VNode | null) {
   while (vElement != null) {
     if (vnode_getAttr(vElement, OnRenderProp) != null) {
-      return vElement as VirtualVNode;
+      return vElement as _VirtualVNode;
     }
     vElement = vnode_getParent(vElement);
   }

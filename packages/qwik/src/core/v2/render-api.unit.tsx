@@ -1042,7 +1042,7 @@ describe('render api', () => {
           stream,
           streaming,
         });
-        expect(stream.write).toHaveBeenCalledTimes(5);
+        expect(stream.write).toHaveBeenCalledTimes(6);
       });
     });
   });

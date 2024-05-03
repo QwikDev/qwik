@@ -25,6 +25,7 @@ export interface ClientContainer extends Container2 {
   emitUnclaimedProjection(): void;
 }
 
+/** @internal */
 export interface ContainerElement extends HTMLElement {
   qContainer?: ClientContainer;
   /**
@@ -44,6 +45,7 @@ export interface ContainerElement extends HTMLElement {
   qFuncs?: Array<Function>;
 }
 
+/** @internal */
 export interface QDocument extends Document {
   /*
    * Map of Element to VNodeData.
@@ -73,6 +75,8 @@ export interface QNode extends Node {
  *   - If Element: It means that the element tag attributes have not yet been read from the DOM.
  *
  * Inflation and materialization are not the same, they are two independent things.
+ *
+ * @internal
  */
 export const enum VNodeFlags {
   Element /* ****************** */ = 0b00001,
@@ -109,6 +113,7 @@ export const enum ElementVNodeProps {
   PROPS_OFFSET = 8,
 }
 
+/** @internal */
 export type ElementVNode = [
   /// COMMON: VNodeProps
   VNodeFlags.Element, ////////////// 0 - Flags
@@ -129,6 +134,7 @@ export const enum TextVNodeProps {
   text = 5,
 }
 
+/** @internal */
 export type TextVNode = [
   /// COMMON: VNodeProps
   VNodeFlags.Text | VNodeFlags.Inflated, // 0 - Flags
@@ -146,6 +152,7 @@ export const enum VirtualVNodeProps {
   PROPS_OFFSET = 6,
 }
 
+/** @internal */
 export type VirtualVNode = [
   /// COMMON: VNodeProps
   VNodeFlags.Virtual, ///////////// 0 - Flags
@@ -159,4 +166,5 @@ export type VirtualVNode = [
   ...(string | null)[], /////// 6 - attrs
 ] & { __brand__: 'FragmentNode' & 'HostElement' };
 
+/** @internal */
 export type VNode = ElementVNode | TextVNode | VirtualVNode;

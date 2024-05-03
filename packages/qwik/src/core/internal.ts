@@ -18,3 +18,20 @@ export {
 } from './use/use-core';
 export { _jsxQ, _jsxC, isJSXNode as _isJSXNode } from './render/jsx/jsx-runtime';
 export { _fnSignal } from './qrl/inlined-fn';
+export type {
+  ContainerElement as _ContainerElement,
+  VNode as _VNode,
+  VNodeFlags as _VNodeFlags,
+  VirtualVNode as _VirtualVNode,
+  TextVNode as _TextVNode,
+  QDocument as _QDocument,
+  ElementVNode as _ElementVNode,
+} from './v2/client/types';
+export {
+  isStringifiable as _isStringifiable,
+  type Stringifiable as _Stringifiable,
+} from './v2/shared-types';
+export {
+  DomContainer as _DomContainer,
+  getDomContainer as _getDomContainer,
+} from './v2/client/dom-container';

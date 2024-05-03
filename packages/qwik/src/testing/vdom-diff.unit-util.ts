@@ -22,9 +22,8 @@ import {
 } from '../core/v2/client/vnode';
 import { isStringifiable, type Stringifiable } from '../core/v2/shared-types';
 
+import { isSignal } from '@builder.io/qwik';
 import { format } from 'prettier';
-import { createDocument } from './document';
-import { isElement } from './html';
 import { serializeBooleanOrNumberAttribute } from '../core/render/execute-component';
 import type { JSXNode, JSXOutput } from '../core/render/jsx/types/jsx-node';
 import { isText } from '../core/util/element';
@@ -33,6 +32,8 @@ import {
   isHtmlAttributeAnEventName,
   isJsxPropertyAnEventName,
 } from '../core/v2/shared/event-names';
+import { createDocument } from './document';
+import { isElement } from './html';
 
 expect.extend({
   toMatchVDOM(this: { isNot: boolean }, received: VNode, expected: JSXNode) {
@@ -229,6 +230,9 @@ export function walkJSX(
   }
 
   function processChild(child: any) {
+    if (isSignal(child)) {
+      child = child.value;
+    }
     if (isStringifiable(child)) {
       apply.text(child);
     } else if (isJSXNode(child)) {

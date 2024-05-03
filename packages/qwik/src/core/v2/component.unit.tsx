@@ -46,11 +46,9 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component>
         <Fragment>
-          <Signal>Hello</Signal>{' '}
+          {'Hello'}{' '}
           <Component>
-            <Fragment>
-              <Signal>World</Signal>
-            </Fragment>
+            <Fragment>World</Fragment>
           </Component>
         </Fragment>
       </Component>

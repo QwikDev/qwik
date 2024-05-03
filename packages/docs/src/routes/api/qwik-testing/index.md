@@ -56,7 +56,7 @@ Document
 CreatePlatform and CreateDocument
 
 ```typescript
-createDOM: ({ html }?: { html?: string }) =>
+createDOM: ({ html }?: { html?: string | undefined }) =>
   Promise<{
     render: (
       jsxElement: JSXOutput,
@@ -89,7 +89,7 @@ Description
 
 </td><td>
 
-{ html?: string; }
+{ html?: string \| undefined; }
 
 </td><td>
 

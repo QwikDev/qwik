@@ -30,7 +30,7 @@ import { componentQrl } from "@builder.io/qwik";
 import { useLexicalScope } from "@builder.io/qwik";
 import { inlinedQrl } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
-import { _fnSignal } from "@builder.io/qwik";
+import { _wrapProp } from "@builder.io/qwik";
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
 export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
     const value = useSignal(0);
@@ -65,14 +65,12 @@ export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
             ])
         }, null, 3, null),
         /*#__PURE__*/ _jsxQ("div", null, null, value, 3, null),
-        /*#__PURE__*/ _jsxQ("div", null, null, _fnSignal((p0)=>p0.value, [
-            value
-        ], "p0.value"), 3, null)
+        /*#__PURE__*/ _jsxQ("div", null, null, _wrapProp(value, "value"), 3, null)
     ], 3, "u6_0");
 }, "s_n7HuG2hhU0Q"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AAGA,OAAO,MAAM,wBAAU,sCAAW,IAAM;IACvC,MAAM,QAAQ,UAAU;IACxB,MAAM,UAAU,UAAU,KAAK;IAC/B,MAAM,QAAQ;IACd,qBACC;sBACC,MAAC;qBAAkB;;;uBAAA;;;;;sBACnB,MAAC;uBAAoB;;;uBAAA;;;;;sBACrB,MAAC;qBAAkB;;;uBAAA;;;;;sBACnB,MAAC,mBAAK;sBACN,MAAC,mCAAK,GAAM,KAAK;;;;AAIpB,qBAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AAGA,OAAO,MAAM,wBAAU,sCAAW,IAAM;IACvC,MAAM,QAAQ,UAAU;IACxB,MAAM,UAAU,UAAU,KAAK;IAC/B,MAAM,QAAQ;IACd,qBACC;sBACC,MAAC;qBAAkB;;;uBAAA;;;;;sBACnB,MAAC;uBAAoB;;;uBAAA;;;;;sBACrB,MAAC;qBAAkB;;;uBAAA;;;;;sBACnB,MAAC,mBAAK;sBACN,MAAC,6BAAK;;AAIT,qBAAG\"}")
 == DIAGNOSTICS ==
 
 []

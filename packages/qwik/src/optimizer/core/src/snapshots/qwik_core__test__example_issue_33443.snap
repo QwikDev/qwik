@@ -25,6 +25,7 @@ export const Issue3742 = component$(({description = '', other}: any) => {
 ============================= test.js ==
 
 import { componentQrl } from "@builder.io/qwik";
+import { _fnSignal } from "@builder.io/qwik";
 import { useLexicalScope } from "@builder.io/qwik";
 import { inlinedQrl } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
@@ -35,9 +36,12 @@ const Issue3742_component_div_button_onClick_a504K2BCEXg = ()=>{
 };
 const Issue3742_component_svSy0PlWTAw = (props)=>{
     const counter = useSignal(0);
-    return /*#__PURE__*/ _jsxQ("div", {
-        title: (props.description ?? '') && 'description' in props.other ? `Hello ${counter.value}` : `Bye ${counter.value}`
-    }, null, [
+    return /*#__PURE__*/ _jsxQ("div", null, {
+        title: _fnSignal((p0, p1)=>(p1.description ?? '') && 'description' in p1.other ? `Hello ${p0.value}` : `Bye ${p0.value}`, [
+            counter,
+            props
+        ], '(p1.description??"")&&"description"in p1.other?`Hello ${p0.value}`:`Bye ${p0.value}`')
+    }, [
         "Issue3742",
         /*#__PURE__*/ _jsxQ("button", null, {
             onClick$: /*#__PURE__*/ inlinedQrl(Issue3742_component_div_button_onClick_a504K2BCEXg, "Issue3742_component_div_button_onClick_a504K2BCEXg", [
@@ -49,7 +53,7 @@ const Issue3742_component_svSy0PlWTAw = (props)=>{
 export const Issue3742 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(Issue3742_component_svSy0PlWTAw, "Issue3742_component_svSy0PlWTAw"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AACA,SAAqB,SAAS,QAAQ,mBAAmB;2DASrC;;WAAM,QAAQ,KAAK;;wCAPH,SAAoC;IACvE,MAAM,UAAU,UAAU;IAC1B,qBACC,MAAC;QACD,OAAO,AAAC,OAJ4B,eAAc,OAI3B,uBAJ+B,QAIL,CAAC,MAAM,EAAE,QAAQ,KAAK,CAAC,CAAC,GAAG,CAAC,IAAI,EAAE,QAAQ,KAAK,CAAC,CAAC;;QACjG;sBAED,MAAC;YAAO,QAAQ;;;WAAyB;;AAK1C;AAZD,OAAO,MAAM,0BAAY,2GAYrB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AACA,SAAqB,SAAS,QAAQ,mBAAmB;2DASrC;;WAAM,QAAQ,KAAK;;wCAPH,SAAoC;IACvE,MAAM,UAAU,UAAU;IAC1B,qBACC,MAAC;QACD,KAAK,sBAAE,AAAC,IAJ4B,eAAc,OAI3B,oBAJ+B,QAIL,CAAC,MAAM,EAAE,GAAQ,KAAK,CAAC,CAAC,GAAG,CAAC,IAAI,EAAE,GAAQ,KAAK,CAAC,CAAC;;;;;QACjG;sBAED,MAAC;YAAO,QAAQ;;;WAAyB;;AAK1C;AAZD,OAAO,MAAM,0BAAY,2GAYrB\"}")
 == DIAGNOSTICS ==
 
 []

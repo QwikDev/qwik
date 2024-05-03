@@ -52,7 +52,7 @@ import { useClientMountQrl } from "@builder.io/qwik";
 import { _noopQrl } from "@builder.io/qwik";
 import { useTaskQrl } from "@builder.io/qwik";
 import { inlinedQrl } from "@builder.io/qwik";
-import { _fnSignal } from "@builder.io/qwik";
+import { _wrapProp } from "@builder.io/qwik";
 import { useLexicalScope } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
 import { useStore } from '@builder.io/qwik';
@@ -84,14 +84,12 @@ export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
                 state
             ])
         }, null, 3, "7R_0"),
-        _fnSignal((p0)=>p0.text, [
-            state
-        ], "p0.text")
+        _wrapProp(state, "text")
     ], 1, "7R_1");
 }, "Parent_component_t6Wy3C0Q0XM"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/components/component.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;AACA,SAAsC,QAAQ,QAAkB,mBAAmB;AAQnF,OAAO,MAAM,uBAAS,sCAAW,IAAM;IACtC,MAAM,QAAQ,SAAS;QACtB,MAAM;IACP;IAEA,qBAAqB;IACrB;;;IAKA,oCAAS,IAAM;IACd,OAAO;IACR;IAEA,qBACC,MAAC;QACA,aAAa;;;QACb,QAAQ;;;;sBAER,MAAC;YACA,QAAQ,2BAAE,IAAM,QAAQ,GAAG,CAAC;YAC5B,OAAO,2BAAE;;uBAAM,MAAM,IAAI;;;;;wBAEzB,GAAM,IAAI;;;;AAGd,oCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/components/component.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;AACA,SAAsC,QAAQ,QAAkB,mBAAmB;AAQnF,OAAO,MAAM,uBAAS,sCAAW,IAAM;IACtC,MAAM,QAAQ,SAAS;QACtB,MAAM;IACP;IAEA,qBAAqB;IACrB;;;IAKA,oCAAS,IAAM;IACd,OAAO;IACR;IAEA,qBACC,MAAC;QACA,aAAa;;;QACb,QAAQ;;;;sBAER,MAAC;YACA,QAAQ,2BAAE,IAAM,QAAQ,GAAG,CAAC;YAC5B,OAAO,2BAAE;;uBAAM,MAAM,IAAI;;;;;kBAEzB;;AAGJ,oCAAG\"}")
 == DIAGNOSTICS ==
 
 []

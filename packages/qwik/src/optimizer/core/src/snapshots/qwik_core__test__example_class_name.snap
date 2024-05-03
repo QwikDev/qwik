@@ -37,8 +37,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= app2_component_3yvemqbq3fs.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
-import { _fnSignal } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
+import { _wrapProp } from "@builder.io/qwik";
 export const App2_component_3yveMqbQ3Fs = ()=>{
     const signal = useSignal();
     const computed = signal.value + 'foo';
@@ -47,9 +47,7 @@ export const App2_component_3yveMqbQ3Fs = ()=>{
             className: "hola"
         }, null, 3, null),
         /*#__PURE__*/ _jsxQ("div", null, {
-            className: _fnSignal((p0)=>p0.value, [
-                signal
-            ], "p0.value")
+            className: _wrapProp(signal, "value")
         }, null, 3, null),
         /*#__PURE__*/ _jsxQ("div", null, {
             className: signal
@@ -61,9 +59,7 @@ export const App2_component_3yveMqbQ3Fs = ()=>{
             className: "hola"
         }, null, 3, "u6_0"),
         /*#__PURE__*/ _jsxQ(Foo, null, {
-            className: _fnSignal((p0)=>p0.value, [
-                signal
-            ], "p0.value")
+            className: _wrapProp(signal, "value")
         }, null, 3, "u6_1"),
         /*#__PURE__*/ _jsxQ(Foo, null, {
             className: signal
@@ -75,7 +71,7 @@ export const App2_component_3yveMqbQ3Fs = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;0CAG+B,IAAM;IACpC,MAAM,SAAS;IACf,MAAM,WAAW,OAAO,KAAK,GAAG;IAChC,qBACC;sBACC,MAAC;YAAI,WAAU;;sBACf,MAAC;YAAI,SAAS,kBAAE,GAAO,KAAK;;;;sBAC5B,MAAC;YAAI,WAAW;;sBAChB,MAAC;YAAI,WAAW;;sBAEhB,MAAC;YAAI,WAAU;;sBACf,MAAC;YAAI,SAAS,kBAAE,GAAO,KAAK;;;;sBAC5B,MAAC;YAAI,WAAW;;sBAChB,MAAC;YAAI,WAAW;;;AAGnB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;0CAG+B,IAAM;IACpC,MAAM,SAAS;IACf,MAAM,WAAW,OAAO,KAAK,GAAG;IAChC,qBACC;sBACC,MAAC;YAAI,WAAU;;sBACf,MAAC;YAAI,SAAS,YAAE;;sBAChB,MAAC;YAAI,WAAW;;sBAChB,MAAC;YAAI,WAAW;;sBAEhB,MAAC;YAAI,WAAU;;sBACf,MAAC;YAAI,SAAS,YAAE;;sBAChB,MAAC;YAAI,WAAW;;sBAChB,MAAC;YAAI,WAAW;;;AAGnB\"}")
 /*
 {
   "origin": "test.tsx",

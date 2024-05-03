@@ -118,7 +118,7 @@ class DeserializationHandler implements ProxyHandler<object> {
         };
         propValue = getOrCreateProxy(target, container);
       } else if (typeCode === SerializationConstant.DerivedSignal_VALUE && !Array.isArray(target)) {
-        // Special case of derived signal. We need to create an [_IMMUTABLE] property.
+        // Special case of derived signal. We need to create a [_CONST_PROPS] property.
         return wrapDeserializerProxy(
           container,
           upgradePropsWithDerivedSignal(container, target, property)
@@ -159,7 +159,7 @@ class DeserializationHandler implements ProxyHandler<object> {
 }
 
 /**
- * Convert an object (which is a component prop) to have derived signals (_IMMUTABLE).
+ * Convert an object (which is a component prop) to have derived signals (_CONST_PROPS).
  *
  * Input:
  *
@@ -175,13 +175,13 @@ class DeserializationHandler implements ProxyHandler<object> {
  * ```
  * {
  *   get prop1 {
- *     return this[_IMMUTABLE].prop1.value;
+ *     return this[_CONST_PROPS].prop1.value;
  *   },
  *   get prop2 {
- *     return this[_IMMUTABLE].prop2.value;
+ *     return this[_CONST_PROPS].prop2.value;
  *   },
  *   prop2: 'DerivedSignal: ..',
- *   [_IMMUTABLE]: {
+ *   [_CONST_PROPS]: {
  *     prop1: _fnSignal(p0=>p0.value, [prop1], 'p0.value'),
  *     prop2: _fnSignal(p0=>p0.value, [prop1], 'p0.value')
  *   }

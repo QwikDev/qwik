@@ -47,11 +47,9 @@ describe('v2 client render', () => {
     expect(vnode_getFirstChild(vNode)).toMatchVDOM(
       <Component>
         <span>
-          <Signal>{'Hello'}</Signal>{' '}
+          {'Hello'}{' '}
           <Component>
-            <b>
-              <Signal>World</Signal>
-            </b>
+            <b>World</b>
           </Component>
           {'!'}
         </span>

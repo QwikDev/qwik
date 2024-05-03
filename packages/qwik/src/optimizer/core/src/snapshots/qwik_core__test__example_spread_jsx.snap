@@ -52,9 +52,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
 import { createElement as _createElement } from "@builder.io/qwik";
-import { _fnSignal } from "@builder.io/qwik";
 import { _jsxC } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
+import { _wrapProp } from "@builder.io/qwik";
 import { useDocumentHead } from "@builder.io/qwik-city";
 import { useLocation } from "@builder.io/qwik-city";
 export const RouterHead_component_DPA76mgIou0 = ()=>{
@@ -64,9 +64,7 @@ export const RouterHead_component_DPA76mgIou0 = ()=>{
         /*#__PURE__*/ _jsxQ("title", null, null, head.title, 1, null),
         /*#__PURE__*/ _jsxQ("link", null, {
             rel: "canonical",
-            href: _fnSignal((p0)=>p0.href, [
-                loc
-            ], "p0.href")
+            href: _wrapProp(loc, "href")
         }, null, 3, null),
         /*#__PURE__*/ _jsxQ("meta", null, {
             name: "viewport",
@@ -93,7 +91,7 @@ export const RouterHead_component_DPA76mgIou0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;gDAOqC,IAAM;IAC1C,MAAM,OAAO;IACb,MAAM,MAAM;IAEZ,qBACA;sBACC,MAAC,qBAAO,KAAK,KAAK;sBAElB,MAAC;YAAK,KAAI;YAAY,IAAI,kBAAE,GAAI,IAAI;;;;sBACpC,MAAC;YAAK,MAAK;YAAW,SAAQ;;sBAC9B,MAAC;YAAK,KAAI;YAAO,MAAK;YAAgB,MAAK;;QAE1C,KAAK,IAAI,CAAC,GAAG,CAAC,CAAC,kBACf,MAAC;gBAAM,GAAG,CAAC;;QAGX,KAAK,KAAK,CAAC,GAAG,CAAC,CAAC,kBAChB,eAAC;gBAAM,GAAG,CAAC;gBAAE,KAAK,EAAE,GAAG;;QAGvB,KAAK,MAAM,CAAC,GAAG,CAAC,CAAC,kBACjB,eAAC;gBAAO,GAAG,EAAE,KAAK;gBAAE,yBAAyB,EAAE,KAAK;gBAAE,KAAK,EAAE,GAAG;;;AAInE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;gDAOqC,IAAM;IAC1C,MAAM,OAAO;IACb,MAAM,MAAM;IAEZ,qBACA;sBACC,MAAC,qBAAO,KAAK,KAAK;sBAElB,MAAC;YAAK,KAAI;YAAY,IAAI,YAAE;;sBAC5B,MAAC;YAAK,MAAK;YAAW,SAAQ;;sBAC9B,MAAC;YAAK,KAAI;YAAO,MAAK;YAAgB,MAAK;;QAE1C,KAAK,IAAI,CAAC,GAAG,CAAC,CAAC,kBACf,MAAC;gBAAM,GAAG,CAAC;;QAGX,KAAK,KAAK,CAAC,GAAG,CAAC,CAAC,kBAChB,eAAC;gBAAM,GAAG,CAAC;gBAAE,KAAK,EAAE,GAAG;;QAGvB,KAAK,MAAM,CAAC,GAAG,CAAC,CAAC,kBACjB,eAAC;gBAAO,GAAG,EAAE,KAAK;gBAAE,yBAAyB,EAAE,KAAK;gBAAE,KAAK,EAAE,GAAG;;;AAInE\"}")
 /*
 {
   "origin": "test.tsx",

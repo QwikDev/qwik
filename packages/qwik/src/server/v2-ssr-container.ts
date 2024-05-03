@@ -30,6 +30,7 @@ import {
   maybeThen,
   serializeAttribute,
   isClassAttr,
+  QContainerValue,
 } from './qwik-copy';
 import type {
   ContextId,
@@ -299,14 +300,14 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.write('<');
     this.write(tag);
     if (attrs) {
-      innerHTML = this.writeAttrs(attrs, false);
+      innerHTML = this.writeAttrs(tag, attrs, false);
     }
     if (immutableAttrs && immutableAttrs.length) {
       // we have to skip the `ref` prop, so we don't need `:` if there is only this `ref` prop
       if (immutableAttrs[0] !== 'ref') {
         this.write(' :');
       }
-      innerHTML = this.writeAttrs(immutableAttrs, true) || innerHTML;
+      innerHTML = this.writeAttrs(tag, immutableAttrs, true) || innerHTML;
     }
     this.write('>');
     this.lastNode = null;
@@ -936,7 +937,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
   }
 
-  private writeAttrs(attrs: SsrAttrs, immutable: boolean): string | undefined {
+  private writeAttrs(tag: string, attrs: SsrAttrs, immutable: boolean): string | undefined {
     let innerHTML: string | undefined = undefined;
     if (attrs.length) {
       for (let i = 0; i < attrs.length; i++) {
@@ -978,7 +979,19 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         if (key === dangerouslySetInnerHTML) {
           innerHTML = String(value);
           key = QContainerAttr;
-          value = 'html';
+          value = QContainerValue.HTML;
+        }
+
+        if (tag === 'textarea' && key === 'value') {
+          if (typeof value !== 'string') {
+            if (isDev) {
+              throw new Error('The value of the textarea must be a string');
+            }
+            continue;
+          }
+          innerHTML = value;
+          key = QContainerAttr;
+          value = QContainerValue.TEXTAREA;
         }
 
         value = serializeAttribute(key, value, styleScopedId);

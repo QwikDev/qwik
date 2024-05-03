@@ -357,6 +357,29 @@ describe.each([
     );
   });
 
+  it('should render textarea value', async () => {
+    const Cmp = component$(() => {
+      const signal = useSignal('value 123');
+      return (
+        <>
+          <button onClick$={() => (signal.value += '!')}></button>
+          <textarea value={signal.value}></textarea>
+        </>
+      );
+    });
+
+    const { document } = await render(<Cmp />, { debug });
+    if (render === ssrRenderToDom) {
+      expect(document.querySelector('textarea')?.outerHTML).toEqual(
+        `<textarea :="" q:container="textarea">value 123</textarea>`
+      );
+    } else {
+      expect(document.querySelector('textarea')?.outerHTML).toEqual(
+        `<textarea>value 123</textarea>`
+      );
+    }
+  });
+
   it('should render correctly text node in the middle', async () => {
     const Cmp = component$(() => {
       const signal = useSignal<number>(0);

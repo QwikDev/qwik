@@ -301,9 +301,6 @@ export function toSsrAttrs(
   }
   const ssrAttrs: SsrAttrs = [];
   for (const key in record) {
-    if (key === 'children') {
-      continue;
-    }
     let value = record[key];
     if (isJsxPropertyAnEventName(key)) {
       if (anotherRecord) {

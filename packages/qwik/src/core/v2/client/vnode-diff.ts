@@ -582,7 +582,7 @@ export const vnode_diff = (
           ]);
         }
 
-        if (key === dangerouslySetInnerHTML) {
+        if (key === dangerouslySetInnerHTML || (tag === 'textarea' && key === 'value')) {
           element.innerHTML = value as string;
           continue;
         }
@@ -639,9 +639,6 @@ export const vnode_diff = (
     const jsxAttrs = [] as ClientAttrs;
     const props = jsx.varProps;
     for (const key in props) {
-      if (key === 'children') {
-        continue;
-      }
       let value = props[key];
       value = serializeAttribute(key, value, scopedStyleIdPrefix);
       if (value != null) {

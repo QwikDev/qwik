@@ -472,6 +472,42 @@ describe('vnode', () => {
         expect(vnode_getFirstChild(div)).toBe(null);
       });
     });
+
+    describe('textarea value', () => {
+      it('should materialize without textContent', () => {
+        parent.innerHTML = '<textarea q:container="text">content</textarea>';
+        expect(vParent).toMatchVDOM(
+          <test>
+            {/* @ts-ignore-next-line */}
+            <textarea q:container="text" value="content" />
+          </test>
+        );
+      });
+      it('should update textContent', () => {
+        parent.innerHTML = '<textarea q:container="text">content</textarea>';
+        const textarea = vnode_getFirstChild(vParent) as ElementVNode;
+        vnode_setAttr(journal, textarea, 'value', 'new content');
+        vnode_applyJournal(journal);
+        expect(parent.innerHTML).toBe('<textarea q:container="text">new content</textarea>');
+        expect(vParent).toMatchVDOM(
+          <test>
+            {/* @ts-ignore-next-line */}
+            <textarea q:container="text" value="new content" />
+          </test>
+        );
+        expect(vnode_getAttr(textarea, 'value')).toBe('new content');
+      });
+      it('should have empty child for value', () => {
+        parent.innerHTML = '<textarea q:container="text">content</textarea>';
+        const textarea = vnode_getFirstChild(vParent) as ElementVNode;
+
+        expect(textarea).toMatchVDOM(
+          // @ts-ignore-next-line
+          <textarea q:container="text" value="content"></textarea>
+        );
+        expect(vnode_getFirstChild(textarea)).toBe(null);
+      });
+    });
   });
   describe('journal', () => {
     describe('vnode_insertBefore', () => {

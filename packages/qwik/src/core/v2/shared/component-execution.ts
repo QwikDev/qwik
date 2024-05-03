@@ -57,9 +57,6 @@ export const executeComponent2 = (
   }
   if (isQrl(componentQRL)) {
     props = props || container.getHostProp(renderHost, ELEMENT_PROPS) || EMPTY_OBJ;
-    if (props && 'children' in props) {
-      delete props.children;
-    }
     componentFn = componentQRL.getFn(iCtx);
   } else if (isQwikComponent(componentQRL)) {
     const qComponentFn = componentQRL as (
@@ -67,9 +64,6 @@ export const executeComponent2 = (
       key: string | null,
       flags: number
     ) => JSXNode;
-    if (props && 'children' in props) {
-      delete props.children;
-    }
     componentFn = () => invokeApply(iCtx, qComponentFn, [props || EMPTY_OBJ, null, 0]);
   } else {
     const inlineComponent = componentQRL as (props: Record<string, unknown>) => JSXOutput;

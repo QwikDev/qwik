@@ -534,24 +534,28 @@ impl<'a> QwikTransform<'a> {
 	}
 
 	/// Converts inline expressions into QRLs. Returns (expr?, true) if succeeded.
+	/// the second value is true if the expression is a constant
 	fn create_synthetic_qqhook(
 		&mut self,
 		first_arg: ast::Expr,
 		accept_call_expr: bool,
 	) -> (Option<ast::Expr>, bool) {
-		// Collect all values used
+		// dbg!(first_arg.clone());
+		// all variables used in the expression
 		let descendent_idents = {
 			let mut collector = IdentCollector::new();
 			first_arg.visit_with(&mut collector);
 			collector.get_words()
 		};
+		// dbg!(descendent_idents.clone());
 
+		// (all scope variables, all other declartions)
 		let (decl_collect, invalid_decl): (_, Vec<_>) = self
 			.decl_stack
 			.iter()
 			.flat_map(|v| v.iter())
 			.cloned()
-			.partition(|(_, t)| matches!(t, IdentType::Var(true)));
+			.partition(|(_, t)| matches!(t, IdentType::Var(_)));
 
 		let folded = first_arg;
 
@@ -576,8 +580,25 @@ impl<'a> QwikTransform<'a> {
 		}
 		scoped_idents.sort();
 
+		let (scoped_idents, is_const) = compute_scoped_idents(&descendent_idents, &decl_collect);
+
+		// simple variable expression, no need to inline
+		if let ast::Expr::Ident(_) = folded {
+			return (None, is_const);
+		}
+
+		// Handle `obj.prop` case
+		if let ast::Expr::Member(member) = folded.clone() {
+			if let ast::Expr::Ident(_) = *member.obj {
+				let prop_sym = prop_to_string(&member.prop);
+				if let Some(prop_sym) = prop_sym {
+					let id = self.ensure_core_import(&_WRAP_PROP);
+					return (Some(make_wrap(&id, member.obj, prop_sym)), is_const);
+				}
+			}
+		}
+
 		let serialize_fn = matches!(self.options.is_server, None | Some(true));
-		let (scoped_idents, _) = compute_scoped_idents(&descendent_idents, &decl_collect);
 		let inlined_fn = self.ensure_core_import(&_INLINED_FN);
 		convert_inlined_fn(
 			folded,
@@ -1397,14 +1418,11 @@ impl<'a> QwikTransform<'a> {
 											} else {
 												var_props.push(converted_prop.fold_with(self));
 											}
+										} else if is_const {
+											event_handlers.push(converted_prop.fold_with(self));
 										} else {
-											if is_const {
-												event_handlers.push(converted_prop.fold_with(self));
-											} else {
-												static_listeners = false;
-												maybe_const_props
-													.push(converted_prop.fold_with(self));
-											}
+											static_listeners = false;
+											maybe_const_props.push(converted_prop.fold_with(self));
 										}
 									} else {
 										let const_prop = is_const_expr(
@@ -1534,19 +1552,11 @@ impl<'a> QwikTransform<'a> {
 	/// Convert an expression to a QRL or a getter. Returns (expr, isConst)
 	/// This is needed to make sure signals aren't read unless they're used by the component
 	fn convert_to_getter(&mut self, expr: &ast::Expr) -> Option<(ast::Expr, bool)> {
-		let inlined = self.create_synthetic_qqhook(expr.clone(), true);
-		if let Some(expr) = inlined.0 {
-			return Some((expr, inlined.1));
-		}
-		if inlined.1 {
+		let (inlined_expr, is_const) = self.create_synthetic_qqhook(expr.clone(), true);
+		if let Some(expr) = inlined_expr {
+			return Some((expr, is_const));
+		} else if is_const {
 			return Some((expr.clone(), true));
-		}
-		if let ast::Expr::Member(member) = expr {
-			let prop_sym = prop_to_string(&member.prop);
-			if let Some(prop_sym) = prop_sym {
-				let id = self.ensure_core_import(&_WRAP_PROP);
-				return Some((make_wrap(&id, member.obj.clone(), prop_sym), false));
-			}
 		}
 		None
 	}
@@ -1581,17 +1591,6 @@ impl<'a> QwikTransform<'a> {
 		} else if is_const {
 			return None;
 		}
-		if let ast::Expr::Member(member) = expr {
-			let prop_sym = prop_to_string(&member.prop);
-			if let Some(prop_sym) = prop_sym {
-				let id = self.ensure_core_import(&_WRAP_PROP);
-				return Some(make_wrap(&id, member.obj.clone(), prop_sym));
-			}
-		}
-		// let inlined = self.create_synthetic_qqhook(expr.clone(), false);
-		// if let Some((expr, _)) = inlined {
-		//     return Some(expr);
-		// }
 		None
 	}
 

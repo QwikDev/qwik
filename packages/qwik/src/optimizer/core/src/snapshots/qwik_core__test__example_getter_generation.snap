@@ -53,27 +53,24 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
 import { _fnSignal } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
+import { _wrapProp } from "@builder.io/qwik";
 export const Cmp_component_4ryKJTOKjWE = (props)=>{
     return /*#__PURE__*/ _jsxQ(_Fragment, null, null, [
         /*#__PURE__*/ _jsxQ("p", null, {
-            "data-value": _fnSignal((p0)=>p0.count, [
-                props
-            ], "p0.count")
+            "data-value": _wrapProp(props, "count")
         }, _fnSignal((p0)=>p0.nested.count, [
             props
         ], "p0.nested.count"), 3, null),
         /*#__PURE__*/ _jsxQ("p", null, null, [
             "Value ",
-            _fnSignal((p0)=>p0.count, [
-                props
-            ], "p0.count"),
+            _wrapProp(props, "count"),
             /*#__PURE__*/ _jsxQ("span", null, null, null, 3, null)
         ], 3, null)
     ], 3, "u6_1");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAyB8B,CAAC,QAAU;IACxC,qBACC;sBACC,MAAC;YAAE,YAAU,kBAAE,GAAM,KAAK;;;2BAAG,GAAM,MAAM,CAAC,KAAK;;;sBAC/C,MAAC;YAAE;4BAAO,GAAM,KAAK;;;0BAAC,MAAC;;;AAG1B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAyB8B,CAAC,QAAU;IACxC,qBACC;sBACC,MAAC;YAAE,YAAU,YAAE;2BAAc,GAAM,MAAM,CAAC,KAAK;;;sBAC/C,MAAC;YAAE;sBAAO;0BAAY,MAAC;;;AAG1B\"}")
 /*
 {
   "origin": "test.tsx",
@@ -98,6 +95,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { Cmp } from "./test";
 import { _fnSignal } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
+import { _wrapProp } from "@builder.io/qwik";
 import { useStore } from "@builder.io/qwik";
 export const App_component_ckEPmXZlub0 = ()=>{
     const store = useStore({
@@ -110,9 +108,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
     const signal = useSignal(0);
     return /*#__PURE__*/ _jsxQ(Cmp, null, {
         prop: 'true',
-        count: _fnSignal((p0)=>p0.count, [
-            store
-        ], "p0.count"),
+        count: _wrapProp(store, "count"),
         nested: _fnSignal((p0)=>p0.nested.count, [
             store
         ], "p0.nested.count"),
@@ -127,7 +123,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAG8B,IAAM;IACnC,MAAM,QAAQ,SAAS;QACtB,OAAO;QACP,OAAO;QACP,QAAQ;YACP,OAAO;QACR;IACD;IACA,MAAM,SAAS,UAAU;IACzB,qBACC,MAAC;QACA,MAAmB;QACnB,KAAK,kBAAE,GAAM,KAAK;;;QAClB,MAAM,kBAAE,GAAM,MAAM,CAAC,KAAK;;;QAC1B,QAAQ;QACR,KAAK,kBAAE,GAAM,KAAK,GAAG;;;QACrB,KAAK,kBAAE,GAAO,QAAQ,EAAE,IAAI;;;;AAI/B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAG8B,IAAM;IACnC,MAAM,QAAQ,SAAS;QACtB,OAAO;QACP,OAAO;QACP,QAAQ;YACP,OAAO;QACR;IACD;IACA,MAAM,SAAS,UAAU;IACzB,qBACC,MAAC;QACA,MAAmB;QACnB,KAAK,YAAE;QACP,MAAM,kBAAE,GAAM,MAAM,CAAC,KAAK;;;QAC1B,QAAQ;QACR,KAAK,kBAAE,GAAM,KAAK,GAAG;;;QACrB,KAAK,kBAAE,GAAO,QAAQ,EAAE,IAAI;;;;AAI/B\"}")
 /*
 {
   "origin": "test.tsx",

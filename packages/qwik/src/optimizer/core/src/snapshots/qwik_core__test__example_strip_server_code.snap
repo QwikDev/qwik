@@ -139,9 +139,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= parent_component_0taidayhrlo.js (ENTRY POINT)==
 
-import { _fnSignal } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
 import { _noopQrl } from "@builder.io/qwik";
+import { _wrapProp } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 import { serverLoaderQrl } from "@builder.io/qwik";
 import { serverStuffQrl } from "@builder.io/qwik";
@@ -161,13 +161,11 @@ export const Parent_component_0TaiDayHrlo = ()=>{
     useTaskQrl(/*#__PURE__*/ qrl(()=>import("./parent_component_usetask_gdh1etuwqbu"), "Parent_component_useTask_gDH1EtUWqBU"));
     return /*#__PURE__*/ _jsxQ("div", null, {
         onClick$: /*#__PURE__*/ qrl(()=>import("./parent_component_div_onclick_c5xe49nqd3a"), "Parent_component_div_onClick_C5XE49Nqd3A")
-    }, _fnSignal((p0)=>p0.text, [
-        state
-    ], "p0.text"), 3, "u6_0");
+    }, _wrapProp(state, "text"), 3, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;4CAMiC,IAAM;IACtC,MAAM,QAAQ,SAAS;QACtB,MAAM;IACP;IAEA,qBAAqB;IACrB;;;IAKA;IAWA;IAEA;IAIA,qBACC,MAAC;QAAI,QAAQ;uBACX,GAAM,IAAI;;;AAGd\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;4CAMiC,IAAM;IACtC,MAAM,QAAQ,SAAS;QACtB,MAAM;IACP;IAEA,qBAAqB;IACrB;;;IAKA;IAWA;IAEA;IAIA,qBACC,MAAC;QAAI,QAAQ;iBACX;AAGJ\"}")
 /*
 {
   "origin": "test.tsx",

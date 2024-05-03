@@ -143,18 +143,16 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= app_component_1_w0t0o3qmovu.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
-import { _fnSignal } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
+import { _wrapProp } from "@builder.io/qwik";
 export const App_component_1_w0t0o3QMovU = ()=>{
     const [state] = useLexicalScope();
-    return /*#__PURE__*/ _jsxQ("div", null, null, _fnSignal((p0)=>p0.count, [
-        state
-    ], "p0.count"), 3, "u6_0");
+    return /*#__PURE__*/ _jsxQ("div", null, null, _wrapProp(state, "count"), 3, "u6_0");
 };
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;2CAcU;;yBACR,MAAC,mCAAK,GAAM,KAAK\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;2CAcU;;yBACR,MAAC,6BAAK\"}")
 /*
 {
   "origin": "test.tsx",

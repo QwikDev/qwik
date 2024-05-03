@@ -283,7 +283,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     return this.closeElement();
   }
 
-  openElement(tag: string, attrs: SsrAttrs | null, immutableAttrs?: SsrAttrs | null) {
+  openElement(
+    tag: string,
+    attrs: SsrAttrs | null,
+    immutableAttrs?: SsrAttrs | null
+  ): string | undefined {
+    let innerHTML: string | undefined = undefined;
     this.lastNode = null;
     const isQwikStyle = isQwikStyleElement(tag, attrs) || isQwikStyleElement(tag, immutableAttrs);
     if (!isQwikStyle && this.currentElementFrame) {
@@ -294,17 +299,18 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.write('<');
     this.write(tag);
     if (attrs) {
-      this.writeAttrs(attrs, false);
+      innerHTML = this.writeAttrs(attrs, false);
     }
     if (immutableAttrs && immutableAttrs.length) {
       // we have to skip the `ref` prop, so we don't need `:` if there is only this `ref` prop
       if (immutableAttrs[0] !== 'ref') {
         this.write(' :');
       }
-      this.writeAttrs(immutableAttrs, true);
+      innerHTML = this.writeAttrs(immutableAttrs, true) || innerHTML;
     }
     this.write('>');
     this.lastNode = null;
+    return innerHTML;
   }
 
   closeElement(): ValueOrPromise<void> {
@@ -934,7 +940,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
   }
 
-  private writeAttrs(attrs: SsrAttrs, immutable: boolean) {
+  private writeAttrs(attrs: SsrAttrs, immutable: boolean): string | undefined {
+    let innerHTML: string | undefined = undefined;
     if (attrs.length) {
       for (let i = 0; i < attrs.length; i++) {
         let key = attrs[i++] as SsrAttrKey;
@@ -973,6 +980,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         }
 
         if (key === dangerouslySetInnerHTML) {
+          innerHTML = String(value);
           key = QContainerAttr;
           value = 'html';
         }
@@ -999,6 +1007,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         }
       }
     }
+    return innerHTML;
   }
 }
 

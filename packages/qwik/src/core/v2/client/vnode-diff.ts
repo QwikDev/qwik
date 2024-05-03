@@ -1049,8 +1049,8 @@ function propsDiffer(src: Record<string, any>, dst: Record<string, any>): boolea
   if (!src || !dst) {
     return true;
   }
-  let srcKeys = removeChildrenKey(Object.keys(src));
-  let dstKeys = removeChildrenKey(Object.keys(dst));
+  let srcKeys = Object.keys(src);
+  let dstKeys = Object.keys(dst);
   if (srcKeys.length !== dstKeys.length) {
     return true;
   }
@@ -1064,14 +1064,6 @@ function propsDiffer(src: Record<string, any>, dst: Record<string, any>): boolea
     }
   }
   return false;
-}
-
-function removeChildrenKey(keys: string[]): string[] {
-  const childrenIdx = keys.indexOf('children');
-  if (childrenIdx !== -1) {
-    keys.splice(childrenIdx, 1);
-  }
-  return keys;
 }
 
 /**

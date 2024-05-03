@@ -46,11 +46,9 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component>
         <Fragment>
-          <Signal>Hello</Signal>{' '}
+          {'Hello'}{' '}
           <Component>
-            <Fragment>
-              <Signal>World</Signal>
-            </Fragment>
+            <Fragment>World</Fragment>
           </Component>
         </Fragment>
       </Component>
@@ -487,6 +485,95 @@ describe.each([
             <Signal>2</Signal>
           </div>
         </Fragment>
+      </Component>
+    );
+  });
+
+  it('should rerender components with the same key and different props', async () => {
+    const Child = component$<{ value: number; active: boolean }>((props) => {
+      return (
+        <div>
+          Child {props.value}, active: {props.active ? 'true' : 'false'}
+        </div>
+      );
+    });
+
+    const Cmp = component$(() => {
+      const signal = useSignal(1);
+
+      const children = [1, 2];
+
+      return (
+        <div>
+          <button id="button-1" onClick$={() => (signal.value = 1)}>
+            1
+          </button>
+          <button id="button-2" onClick$={() => (signal.value = 2)}>
+            2
+          </button>
+
+          <>
+            {children.map((value) => {
+              return <Child key={value} value={value} active={signal.value === value} />;
+            })}
+          </>
+        </div>
+      );
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+    await trigger(document.body, '#button-2', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <button id="button-1">1</button>
+          <button id="button-2">2</button>
+          <Fragment>
+            <Component>
+              <div>
+                {'Child '}
+                <Signal>{'1'}</Signal>
+                {', active: '}
+                <Signal>{'false'}</Signal>
+              </div>
+            </Component>
+            <Component>
+              <div>
+                {'Child '}
+                <Signal>{'2'}</Signal>
+                {', active: '}
+                <Signal>{'true'}</Signal>
+              </div>
+            </Component>
+          </Fragment>
+        </div>
+      </Component>
+    );
+    await trigger(document.body, '#button-1', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <button id="button-1">1</button>
+          <button id="button-2">2</button>
+          <Fragment>
+            <Component>
+              <div>
+                {'Child '}
+                <Signal>{'1'}</Signal>
+                {', active: '}
+                <Signal>{'true'}</Signal>
+              </div>
+            </Component>
+            <Component>
+              <div>
+                {'Child '}
+                <Signal>{'2'}</Signal>
+                {', active: '}
+                <Signal>{'false'}</Signal>
+              </div>
+            </Component>
+          </Fragment>
+        </div>
       </Component>
     );
   });

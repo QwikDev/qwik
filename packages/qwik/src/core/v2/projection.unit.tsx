@@ -291,7 +291,9 @@ describe.each([
       <InlineComponent>
         <span>
           <Projection />
-          {'('}render-content{')'}
+          {'('}
+          <Signal>render-content</Signal>
+          {')'}
         </span>
       </InlineComponent>
     );
@@ -306,7 +308,9 @@ describe.each([
         <InlineComponent>
           <span>
             <Projection>{'parent-content'}</Projection>
-            {'('}child-content{')'}
+            {'('}
+            <Signal>child-content</Signal>
+            {')'}
           </span>
         </InlineComponent>
       </Component>

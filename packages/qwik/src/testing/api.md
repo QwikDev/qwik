@@ -17,7 +17,7 @@ export function createDocument(opts?: MockDocumentOptions): Document;
 
 // @public
 export const createDOM: ({ html }?: {
-    html?: string;
+    html?: string | undefined;
 }) => Promise<{
     render: (jsxElement: JSXOutput) => Promise<RenderResult>;
     screen: HTMLElement;
@@ -101,12 +101,12 @@ export function walkJSX(jsx: JSXOutput_2, apply: {
 
 // Warnings were encountered during analysis:
 //
-// G:/qwik/dist-dev/dts-out/packages/qwik/src/testing/rendering.unit-util.d.ts:12:5 - (ae-forgotten-export) The symbol "VNode" needs to be exported by the entry point index.d.ts
-// G:/qwik/dist-dev/dts-out/packages/qwik/src/testing/rendering.unit-util.d.ts:21:5 - (ae-forgotten-export) The symbol "DomContainer" needs to be exported by the entry point index.d.ts
-// G:/qwik/dist-dev/dts-out/packages/qwik/src/testing/vdom-diff.unit-util.d.ts:8:5 - (ae-forgotten-export) The symbol "JSXNode" needs to be exported by the entry point index.d.ts
-// G:/qwik/dist-dev/dts-out/packages/qwik/src/testing/vdom-diff.unit-util.d.ts:10:5 - (ae-forgotten-export) The symbol "Stringifiable" needs to be exported by the entry point index.d.ts
-// G:/qwik/dist-dev/dts-out/packages/qwik/src/testing/vdom-diff.unit-util.d.ts:14:5 - (ae-forgotten-export) The symbol "ElementVNode" needs to be exported by the entry point index.d.ts
-// G:/qwik/dist-dev/dts-out/packages/qwik/src/testing/vdom-diff.unit-util.d.ts:16:5 - (ae-forgotten-export) The symbol "QDocument" needs to be exported by the entry point index.d.ts
+// /Users/misko/work/ws/serialize-v2/dist-dev/dts-out/packages/qwik/src/testing/rendering.unit-util.d.ts:12:5 - (ae-forgotten-export) The symbol "VNode" needs to be exported by the entry point index.d.ts
+// /Users/misko/work/ws/serialize-v2/dist-dev/dts-out/packages/qwik/src/testing/rendering.unit-util.d.ts:21:5 - (ae-forgotten-export) The symbol "DomContainer" needs to be exported by the entry point index.d.ts
+// /Users/misko/work/ws/serialize-v2/dist-dev/dts-out/packages/qwik/src/testing/vdom-diff.unit-util.d.ts:8:5 - (ae-forgotten-export) The symbol "JSXNode" needs to be exported by the entry point index.d.ts
+// /Users/misko/work/ws/serialize-v2/dist-dev/dts-out/packages/qwik/src/testing/vdom-diff.unit-util.d.ts:10:5 - (ae-forgotten-export) The symbol "Stringifiable" needs to be exported by the entry point index.d.ts
+// /Users/misko/work/ws/serialize-v2/dist-dev/dts-out/packages/qwik/src/testing/vdom-diff.unit-util.d.ts:14:5 - (ae-forgotten-export) The symbol "ElementVNode" needs to be exported by the entry point index.d.ts
+// /Users/misko/work/ws/serialize-v2/dist-dev/dts-out/packages/qwik/src/testing/vdom-diff.unit-util.d.ts:16:5 - (ae-forgotten-export) The symbol "QDocument" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

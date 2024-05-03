@@ -724,7 +724,7 @@ type SpecialAttrs = {
     form?: string | undefined;
     value?: string | ReadonlyArray<string> | number | undefined;
     'bind:value'?: Signal<string | undefined>;
-    children?: undefined;
+    children?: string;
   };
   track: {
     children?: undefined;

@@ -370,25 +370,9 @@ describe.each([
     });
 
     const { document } = await render(<Cmp />, { debug });
-    if (render === ssrRenderToDom) {
-      expect(document.querySelector('textarea')?.outerHTML).toEqual(
-        `<textarea :="" q:container="text">value 123</textarea>`
-      );
-    } else {
-      expect(document.querySelector('textarea')?.outerHTML).toEqual(
-        `<textarea>value 123</textarea>`
-      );
-    }
+    await expect(document.querySelector('textarea')).toMatchDOM(<textarea>value 123</textarea>);
     await trigger(document.body, 'button', 'click');
-    if (render === ssrRenderToDom) {
-      expect(document.querySelector('textarea')?.outerHTML).toEqual(
-        `<textarea :="" q:container="text">value 123!</textarea>`
-      );
-    } else {
-      expect(document.querySelector('textarea')?.outerHTML).toEqual(
-        `<textarea>value 123!</textarea>`
-      );
-    }
+    await expect(document.querySelector('textarea')).toMatchDOM(<textarea>value 123!</textarea>);
   });
 
   it('should not render textarea value for non-text value', async () => {

@@ -139,7 +139,7 @@
     "yarn": "please-use-pnpm",
     "pnpm": ">=8.6.12"
   },
-  "packageManager": "^pnpm@9.0.0",
+  "packageManager": "pnpm@9.0.6",
   "pnpm": {
     "overrides": {
       "typescript": "5.4.5",

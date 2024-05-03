@@ -6,9 +6,14 @@
 
 import { ClientContainer } from '@builder.io/qwik';
 import type { CorePlatform } from '@builder.io/qwik';
+import type { _DomContainer } from '@builder.io/qwik';
+import type { _ElementVNode } from '@builder.io/qwik';
+import type { JSXNode } from '@builder.io/qwik';
 import type { JSXOutput } from '@builder.io/qwik';
+import type { _QDocument } from '@builder.io/qwik';
 import { RenderResult } from '@builder.io/qwik';
-import type { StreamWriter } from '@builder.io/qwik';
+import type { _Stringifiable } from '@builder.io/qwik';
+import type { _VNode } from '@builder.io/qwik';
 
 // Warning: (ae-forgotten-export) The symbol "MockDocumentOptions" needs to be exported by the entry point index.d.ts
 //
@@ -17,7 +22,7 @@ export function createDocument(opts?: MockDocumentOptions): Document;
 
 // @public
 export const createDOM: ({ html }?: {
-    html?: string | undefined;
+    html?: string;
 }) => Promise<{
     render: (jsxElement: JSXOutput) => Promise<RenderResult>;
     screen: HTMLElement;
@@ -31,7 +36,7 @@ export function domRender(jsx: JSXOutput, opts?: {
 }): Promise<{
     document: Document;
     container: ClientContainer;
-    vNode: VNode | null;
+    vNode: _VNode | null;
     getStyles: () => Record<string, string | string[]>;
 }>;
 
@@ -74,39 +79,28 @@ export function ssrRenderToDom(jsx: JSXOutput, opts?: {
     oldSSR?: boolean;
     raw?: boolean;
 }): Promise<{
-    container: DomContainer;
+    container: _DomContainer;
     document: Document;
-    vNode: VNode;
+    vNode: _VNode;
     getStyles: () => Record<string, string | string[]>;
 }>;
 
 // @public
 export function trigger(root: Element, queryOrElement: string | Element | keyof HTMLElementTagNameMap | null, eventNameCamel: string, eventPayload?: any): Promise<void>;
 
-// Warning: (ae-forgotten-export) The symbol "JSXOutput_2" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
-export function vnode_fromJSX(jsx: JSXOutput_2): {
-    vParent: ElementVNode;
-    vNode: VNode | null;
-    document: QDocument;
+export function vnode_fromJSX(jsx: JSXOutput): {
+    vParent: _ElementVNode;
+    vNode: _VNode | null;
+    document: _QDocument;
 };
 
 // @public (undocumented)
-export function walkJSX(jsx: JSXOutput_2, apply: {
+export function walkJSX(jsx: JSXOutput, apply: {
     enter: (jsx: JSXNode) => void;
     leave: (jsx: JSXNode) => void;
-    text: (text: Stringifiable) => void;
+    text: (text: _Stringifiable) => void;
 }): void;
-
-// Warnings were encountered during analysis:
-//
-// /Users/misko/work/ws/serialize-v2/dist-dev/dts-out/packages/qwik/src/testing/rendering.unit-util.d.ts:12:5 - (ae-forgotten-export) The symbol "VNode" needs to be exported by the entry point index.d.ts
-// /Users/misko/work/ws/serialize-v2/dist-dev/dts-out/packages/qwik/src/testing/rendering.unit-util.d.ts:21:5 - (ae-forgotten-export) The symbol "DomContainer" needs to be exported by the entry point index.d.ts
-// /Users/misko/work/ws/serialize-v2/dist-dev/dts-out/packages/qwik/src/testing/vdom-diff.unit-util.d.ts:8:5 - (ae-forgotten-export) The symbol "JSXNode" needs to be exported by the entry point index.d.ts
-// /Users/misko/work/ws/serialize-v2/dist-dev/dts-out/packages/qwik/src/testing/vdom-diff.unit-util.d.ts:10:5 - (ae-forgotten-export) The symbol "Stringifiable" needs to be exported by the entry point index.d.ts
-// /Users/misko/work/ws/serialize-v2/dist-dev/dts-out/packages/qwik/src/testing/vdom-diff.unit-util.d.ts:14:5 - (ae-forgotten-export) The symbol "ElementVNode" needs to be exported by the entry point index.d.ts
-// /Users/misko/work/ws/serialize-v2/dist-dev/dts-out/packages/qwik/src/testing/vdom-diff.unit-util.d.ts:16:5 - (ae-forgotten-export) The symbol "QDocument" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

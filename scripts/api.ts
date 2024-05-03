@@ -1,4 +1,4 @@
-import { Extractor, ExtractorConfig, ExtractorLogLevel } from '@microsoft/api-extractor';
+import { Extractor, ExtractorConfig } from '@microsoft/api-extractor';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { generateQwikApiMarkdownDocs, generateQwikCityApiMarkdownDocs } from './api-docs';
@@ -209,19 +209,19 @@ function createTypesApi(
     showDiagnostics: true,
     messageCallback(msg) {
       msg.handled = true;
-      if (
-        msg.messageId === 'ae-wrong-input-file-type' &&
-        msg.sourceFilePath?.endsWith('implicit_dollar.ts')
-      ) {
-        // I don't know how the API Extractor is getting the implicit_dollar.d.ts file, so disabling this error for now.
-        console.warn(`🤔 API Extractor, submodule: "${inPath}"\n${extractorConfigPath}\n`, msg);
-        msg.logLevel = ExtractorLogLevel.None;
-        return;
-      }
-      if (msg.logLevel === 'verbose' || msg.logLevel === 'warning') {
+      if (msg.logLevel === 'verbose') {
         return;
       }
       if (msg.text.includes('Analysis will use')) {
+        return;
+      }
+      if (msg.messageId === 'console-api-report-copied') {
+        if (config.dev) {
+          return;
+        }
+        console.error(
+          `❌ API Extractor, submodule: "${inPath}"\n${extractorConfigPath} has API changes.\n`
+        );
         return;
       }
       if (
@@ -234,6 +234,14 @@ function createTypesApi(
     },
   });
   if (!result.succeeded) {
+    console.log(
+      'API build results: API changed',
+      result.apiReportChanged,
+      'errors',
+      result.errorCount,
+      'warnings',
+      result.warningCount
+    );
     panic(
       `Use "pnpm api.update" to automatically update the .md files if the api changes were expected`
     );

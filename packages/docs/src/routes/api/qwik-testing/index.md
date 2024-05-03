@@ -56,7 +56,7 @@ Document
 CreatePlatform and CreateDocument
 
 ```typescript
-createDOM: ({ html }?: { html?: string | undefined }) =>
+createDOM: ({ html }?: { html?: string }) =>
   Promise<{
     render: (
       jsxElement: JSXOutput,
@@ -89,7 +89,7 @@ Description
 
 </td><td>
 
-{ html?: string \| undefined; }
+{ html?: string; }
 
 </td><td>
 
@@ -121,7 +121,7 @@ export declare function domRender(
 ): Promise<{
   document: Document;
   container: import("@builder.io/qwik").ClientContainer;
-  vNode: VNode | null;
+  vNode: _VNode | null;
   getStyles: () => Record<string, string | string[]>;
 }>;
 ```
@@ -166,7 +166,7 @@ _(Optional)_
 </tbody></table>
 **Returns:**
 
-Promise&lt;{ document: Document; container: import("@builder.io/qwik").ClientContainer; vNode: VNode \| null; getStyles: () =&gt; Record&lt;string, string \| string[]&gt;; }&gt;
+Promise&lt;{ document: Document; container: import("@builder.io/qwik").ClientContainer; vNode: \_VNode \| null; getStyles: () =&gt; Record&lt;string, string \| string[]&gt;; }&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/rendering.unit-util.tsx)
 
@@ -434,9 +434,9 @@ export declare function ssrRenderToDom(
     raw?: boolean;
   },
 ): Promise<{
-  container: DomContainer;
+  container: _DomContainer;
   document: Document;
-  vNode: VNode;
+  vNode: _VNode;
   getStyles: () => Record<string, string | string[]>;
 }>;
 ```
@@ -481,7 +481,7 @@ _(Optional)_
 </tbody></table>
 **Returns:**
 
-Promise&lt;{ container: DomContainer; document: Document; vNode: VNode; getStyles: () =&gt; Record&lt;string, string \| string[]&gt;; }&gt;
+Promise&lt;{ container: \_DomContainer; document: Document; vNode: \_VNode; getStyles: () =&gt; Record&lt;string, string \| string[]&gt;; }&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/rendering.unit-util.tsx)
 
@@ -576,9 +576,9 @@ Promise&lt;void&gt;
 
 ```typescript
 export declare function vnode_fromJSX(jsx: JSXOutput): {
-  vParent: ElementVNode;
-  vNode: VNode | null;
-  document: QDocument;
+  vParent: _ElementVNode;
+  vNode: _VNode | null;
+  document: _QDocument;
 };
 ```
 
@@ -609,7 +609,7 @@ JSXOutput
 </tbody></table>
 **Returns:**
 
-{ vParent: ElementVNode; vNode: VNode \| null; document: QDocument; }
+{ vParent: \_ElementVNode; vNode: \_VNode \| null; document: \_QDocument; }
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/vdom-diff.unit-util.ts)
 
@@ -621,7 +621,7 @@ export declare function walkJSX(
   apply: {
     enter: (jsx: JSXNode) => void;
     leave: (jsx: JSXNode) => void;
-    text: (text: Stringifiable) => void;
+    text: (text: _Stringifiable) => void;
   },
 ): void;
 ```
@@ -656,7 +656,7 @@ apply
 
 </td><td>
 
-{ enter: (jsx: JSXNode) =&gt; void; leave: (jsx: JSXNode) =&gt; void; text: (text: Stringifiable) =&gt; void; }
+{ enter: (jsx: JSXNode) =&gt; void; leave: (jsx: JSXNode) =&gt; void; text: (text: \_Stringifiable) =&gt; void; }
 
 </td><td>
 

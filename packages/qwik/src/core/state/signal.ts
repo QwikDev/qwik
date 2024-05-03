@@ -188,7 +188,7 @@ export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(obj: T,
     const constProps = (obj as any)[_CONST_PROPS];
     if (constProps && prop in constProps) {
       // Const props don't need wrapping
-      return obj[prop];
+      return constProps[prop];
     }
   } else {
     const target = getProxyTarget(obj);

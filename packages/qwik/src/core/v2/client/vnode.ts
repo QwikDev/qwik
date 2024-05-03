@@ -139,7 +139,7 @@ import {
   QStylesAllSelector,
 } from '../../util/markers';
 import { isHtmlElement } from '../../util/types';
-import { DEBUG_TYPE, VirtualType, VirtualTypeName } from '../shared/types';
+import { DEBUG_TYPE, QContainerValue, VirtualType, VirtualTypeName } from '../shared/types';
 import { VNodeDataChar } from '../shared/vnode-data-types';
 import {
   getDomContainer,
@@ -371,11 +371,18 @@ export const vnode_ensureElementInflated = (vnode: VNode) => {
         // all attributes after the ':' are considered immutable, and so we ignore them.
         break;
       } else if (key.startsWith(QContainerAttr)) {
-        if (attr.value === 'html') {
+        if (attr.value === QContainerValue.HTML) {
           mapArray_set(
             elementVNode as string[],
             dangerouslySetInnerHTML,
             element.innerHTML,
+            ElementVNodeProps.PROPS_OFFSET
+          );
+        } else if (attr.value === QContainerValue.TEXT) {
+          mapArray_set(
+            elementVNode as string[],
+            'value',
+            element.textContent,
             ElementVNodeProps.PROPS_OFFSET
           );
         }
@@ -804,8 +811,11 @@ export const vnode_applyJournal = (journal: VNodeJournal) => {
           key = 'class';
         }
         const value = journal[idx++] as string | null | boolean;
+        const tag = element.tagName.toLowerCase();
         if (isBooleanAttr(element, key)) {
           (element as any)[key] = parseBoolean(value);
+        } else if (tag === 'textarea' && key === 'value') {
+          (element as any).textContent = value!;
         } else if (key === 'value' && key in element) {
           (element as any).value = String(value);
         } else if (key === dangerouslySetInnerHTML) {
@@ -1154,7 +1164,11 @@ const ensureMaterialized = (vnode: ElementVNode): VNode | null => {
 };
 
 export const isQContainerInnerHTMLElement = (node: Node | null): boolean => {
-  return isElement(node) && node.getAttribute(QContainerAttr) === 'html';
+  if (isElement(node)) {
+    const qContainer = node.getAttribute(QContainerAttr);
+    return qContainer === QContainerValue.HTML || qContainer === QContainerValue.TEXT;
+  }
+  return false;
 };
 
 const isQStyleElement = (node: Node | null): node is Element => {

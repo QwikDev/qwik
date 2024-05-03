@@ -33,8 +33,5 @@ export const applyQwikComponentBody = (
   if (jsx.key !== null) {
     host.setProp(ELEMENT_KEY, jsx.key);
   }
-  if ('children' in srcProps) {
-    delete srcProps.children;
-  }
   return scheduler(ChoreType.COMPONENT_SSR, host, componentQrl, srcProps);
 };

@@ -91,3 +91,8 @@ export const VirtualTypeName: Record<string, string> = {
   [VirtualType.InlineComponent]: /* * */ START + 'InlineComponent' + END, //
   [VirtualType.Projection]: /* ****** */ START + 'Projection' + END, //
 };
+
+export const enum QContainerValue {
+  HTML = 'html',
+  TEXT = 'text',
+}

@@ -56,7 +56,9 @@ The `<Slot>` component is a placeholder for the children of the component. The `
 
 > **Note**: Slots in Qwik are declarative, allowing Qwik to render parents and children in isolation. Because slots are declarative, the children can NOT be read, or transformed by the components.
 >
-> Why? Because Qwik needs to be able to render parent and child components independently from each other. In an imperative  approach, there are countless ways a child component can modify the `children`. If a child component relied on its `children`, it would be forced to re-render every time the parent component re-rendered to reapply the changes. This additional rendering contradicts Qwik's goal of having components render in isolation.
+> Slots in Qwik act like designated placeholders for content, allowing components to stay independent and avoid unnecessary re-renders. This setup keeps things flexible and easy to manage, unlike the direct children approach where parent changes can lead to frequent and complex child updates. Slots help maintain a smooth and efficient component structure.
+>
+> In unique situations where some work needs to be done based on children, and the drawbacks of parents and children being lazy loaded together are understood, then an inline component is another choice.
 
 ### Named Slots
 

@@ -80,6 +80,7 @@ export const executeComponent2 = (
     safeCall<JSXOutput, JSXOutput, JSXOutput>(
       () => {
         container.setHostProp(renderHost, SEQ_IDX_LOCAL, null);
+        container.setHostProp(renderHost, ELEMENT_PROPS, props);
         return componentFn(props);
       },
       (jsx) => {

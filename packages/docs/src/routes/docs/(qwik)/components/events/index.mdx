@@ -21,6 +21,7 @@ contributors:
   - julianobrasil
   - maiieul
   - Balastrong
+  - Jemsco
 updated_at: '2024-01-09T20:55:11Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
@@ -35,7 +36,7 @@ For a web application to be interactive, there needs to be a way to respond to u
 <button onClick$={() => alert('CLICKED!')}>click me!</button>
 ```
 
-## Inline handler
+## Inline Handler
 
 In the following example, the `onClick$` attribute of the `<button>` element is used to let Qwik know that a callback `() => store.count++` should be executed whenever the `click` event is fired by the `<button>`.
 
@@ -57,11 +58,11 @@ export default component$(() => {
 
 You can also use `bind:propertyName` to conveniently have a [two-way binding](/docs/(qwik)/components/rendering/index.mdx#bind-attribute) between a signal and an input element.
 
-Notice that `onClick$` ends with [`$`](/docs/(qwik)/advanced/dollar/index.mdx). This is a hint to both the [Optimizer](/docs/(qwik)/advanced/optimizer/index.mdx) and the developer that a special transformation occurs at this location. The presence of the `$` suffix implies a lazy-loaded boundary here. The code associated with the `click` handler will not be loaded into the JavaScript VM until the user triggers the `click` event, however, it will be [loaded into the browser cache](/docs/advanced/speculative-module-fetching/) eagerly so as not to cause delays on first interactions.
+Notice that `onClick$` ends with [`$`](/docs/(qwik)/advanced/dollar/index.mdx). This is a hint to both the [Optimizer](/docs/(qwik)/advanced/optimizer/index.mdx) and the developer that a special transformation occurs at this location. The presence of the `$` suffix implies a lazy-loaded boundary here. The code associated with the `click` handler is not loaded into the JavaScript Virtual Machine (VM) until the user activates the click event. However, to avoid delays during the first interaction, it is eagerly loaded into the browser cache.
 
 > In real-world applications, the listener may refer to complex code. By creating a lazy-loaded boundary (with the `$`), Qwik can tree-shake all of the code behind the click listener and delay its loading until the user clicks the button.
 
-## Reusing event handlers
+## Reusing Event Handlers
 
 If we want to reuse the same event handler for multiple elements or events, we need to wrap the event handler into the `$()` function exported by `@builder.io/qwik` to transform it into a [`QRL`](/docs/advanced/qrl/).
 
@@ -83,7 +84,7 @@ export default component$(() => {
 </CodeSandbox>
 
 
-> **Note:** If you extract the event handler then you must manually wrap the event handler in the `$(...handler...)` so that it can be lazy attached.
+> **Note:** If you extract the event handler, you must manually wrap it in the `$(...handler...)`. This ensures that it is lazily attached.
 
 ## Multiple event handlers
 
@@ -110,7 +111,7 @@ export default component$(() => {
 });
 ```
 
-## Event object
+## Event Object
 
 The first argument of the event handler is the `Event` object. This object contains information about the event that triggered the handler. For example, the `Event` object for a `click` event contains information about the mouse position and the element that was clicked. You can check out the [MDN docs to know more details about each DOM event](https://developer.mozilla.org/en-US/docs/Web/API/Event).
 
@@ -141,7 +142,7 @@ Because of the async nature of Qwik, an event's handler execution might be delay
 - `event.preventDefault()`
 - `event.currentTarget`
 
-### Prevent default
+### Prevent Default
 
 Because event handling is asynchronous, you can't use `event.preventDefault()`. To solve this Qwik introduces a declarative way to prevent default through `preventdefault:{eventName}` attribute.
 
@@ -166,7 +167,7 @@ export default component$(() => {
 ```
 </CodeSandbox>
 
-### Event target
+### Event Target
 
 Because event handling is asynchronous, you can't use `event.currentTarget`. To solve this Qwik handlers provide a `currentTarget` as a second argument.
 
@@ -199,7 +200,7 @@ export default component$(() => {
 
 > **Note:** `currentTarget` in the DOM points to the element that the event listener was attached to. In the example above it will always be the `<SECTION>` element.
 
-### Synchronous event handling
+### Synchronous Event Handling
 
 In some cases, it is necessary to handle an event traditionally, because some APIs need to be used synchronously. For example, `dragstart` event must be processed synchronously and therefore it can't be combined with Qwik's lazy code execution.
 
@@ -240,11 +241,11 @@ export default component$(() => {
 ```
 </CodeSandbox>
 
-> **NOTE** Using `VisibleTask` to listen for events is an anti-pattern in Qwik because it causes eager execution of code in the browser defeating [resumability](/docs/(qwik)/concepts/resumable/index.mdx). Only use it when you have no other choice. Most of the time, you should use JSX to listen for events: `<div onClick$={...}>` or `useOn(...)` event methods if you need to listen programmatically.
+> **NOTE** Using `VisibleTask` to listen for events is an anti-pattern in Qwik because it causes eager execution of code in the browser defeating [resumability](/docs/(qwik)/concepts/resumable/index.mdx). Only use it when you have no other choice. You should use JSX to listen for events, for example: `<div onClick$={...}>`. Alternatively, if you need to listen to events programmatically, consider using the `useOn(...)` event methods.
 
-## Custom event props
+## Custom Event Props
 
-When creating your components it is often useful to pass custom event props that look like event handlers, (even though they are not DOM events, only callbacks). Component boundaries in Qwik must be serializable for the optimizer to split them up into separate chunks, and functions are not serializable unless they are converted to a QRL.
+When creating your components, it is often useful to pass custom event props that resemble event handlers, even though they are just callbacks and not actual DOM events. Component boundaries in Qwik must be serializable for the optimizer to split them up into separate chunks. Functions are not serializable unless they are converted to a QRL.
 
 For example, listening for triple click events, which html cannot do by default, would require creating an `onTripleClick$` custom event prop.
 <CodeSandbox src="/src/routes/demo/events/custom-event/index.tsx" style={{ height: '10em' }}>
@@ -295,11 +296,11 @@ export const Button = component$<ButtonProps>(({ onTripleClick$ }) => {
 
 > Notice the use of the `QRL` type in `onTripleClick$: QRL<() => void>;`. It is like wrapping a function in `$()` but at the type level. If you had `const greet = $(() => "hi 👋");` and hovered over 'greet', you would see that 'greet' is of type `QRL<() => "hi 👋">`
 
-## Window and Document events
+## Window and Document Events
 
-So far, we have discussed how to listen to events that originate from elements. There are events (for example, `scroll` and `mousemove`) that require that we listen to them on the `window` or `document`. For this reason, Qwik allows for the `document:on` and `window:on` prefixes when listening for events.
+So far, we have discussed how to listen to events that originate from elements. There are events such as `scroll` and `mousemove` that need to be listened to on the `window` or `document`. Qwik allows this by providing the `document:on` and `window:on` prefixes when listening for events.
 
-The purpose of the `window:on`/`document:` is to register an event at a current DOM location of the component but have it receive events from the `window`/`document`. There are two advantages to this:
+The `window:on`/`document:` prefixes are used to register an event at the current DOM location of the component while allowing it to receive events from the `window`/`document`. There are two advantages to this:
 
 1. The events can be registered declaratively in your JSX.
 2. The events get automatically cleaned up when the component is destroyed (No explicit bookkeeping and cleanup is needed).

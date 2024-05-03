@@ -378,7 +378,7 @@ export const vnode_ensureElementInflated = (vnode: VNode) => {
             element.innerHTML,
             ElementVNodeProps.PROPS_OFFSET
           );
-        } else if (attr.value === QContainerValue.TEXTAREA) {
+        } else if (attr.value === QContainerValue.TEXT) {
           mapArray_set(
             elementVNode as string[],
             'value',
@@ -1166,7 +1166,7 @@ const ensureMaterialized = (vnode: ElementVNode): VNode | null => {
 export const isQContainerInnerHTMLElement = (node: Node | null): boolean => {
   if (isElement(node)) {
     const qContainer = node.getAttribute(QContainerAttr);
-    return qContainer === QContainerValue.HTML || qContainer === QContainerValue.TEXTAREA;
+    return qContainer === QContainerValue.HTML || qContainer === QContainerValue.TEXT;
   }
   return false;
 };

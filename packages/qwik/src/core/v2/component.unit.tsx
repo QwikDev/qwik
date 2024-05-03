@@ -372,7 +372,7 @@ describe.each([
     const { document } = await render(<Cmp />, { debug });
     if (render === ssrRenderToDom) {
       expect(document.querySelector('textarea')?.outerHTML).toEqual(
-        `<textarea :="" q:container="textarea">value 123</textarea>`
+        `<textarea :="" q:container="text">value 123</textarea>`
       );
     } else {
       expect(document.querySelector('textarea')?.outerHTML).toEqual(
@@ -382,7 +382,7 @@ describe.each([
     await trigger(document.body, 'button', 'click');
     if (render === ssrRenderToDom) {
       expect(document.querySelector('textarea')?.outerHTML).toEqual(
-        `<textarea :="" q:container="textarea">value 123!</textarea>`
+        `<textarea :="" q:container="text">value 123!</textarea>`
       );
     } else {
       expect(document.querySelector('textarea')?.outerHTML).toEqual(

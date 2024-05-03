@@ -991,7 +991,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           }
           innerHTML = value;
           key = QContainerAttr;
-          value = QContainerValue.TEXTAREA;
+          value = QContainerValue.TEXT;
         }
 
         value = serializeAttribute(key, value, styleScopedId);

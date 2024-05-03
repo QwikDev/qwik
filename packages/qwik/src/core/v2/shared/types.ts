@@ -94,5 +94,5 @@ export const VirtualTypeName: Record<string, string> = {
 
 export const enum QContainerValue {
   HTML = 'html',
-  TEXTAREA = 'textarea',
+  TEXT = 'text',
 }

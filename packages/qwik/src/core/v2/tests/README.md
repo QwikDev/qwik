@@ -32,7 +32,7 @@ So this started as a rewrite of the serialization mechanism of Qwik. But then it
 
 As of right now, the code base is mostly separate from the v1 codebase. There is no way to just run the application in v2 mode. Instead, we are focusing on creating featured base tests which will be used to drive the development of the v2 codebase.
 
-In the current directory, you will find files such as `projection.unit.tsx`, `use-signal.uint.tsx`, and so on. Each of these tests is meant to fully describe a feature of the framework. These tests typically run in both pure CSR as well as SSR -> CSR resume mode to demonstrate that the feature works in both modes.
+In the current directory, you will find files such as `projection.test.tsx`, `use-signal.test.tsx`, and so on. Each of these tests is meant to fully describe a feature of the framework. These tests typically run in both pure CSR as well as SSR -> CSR resume mode to demonstrate that the feature works in both modes.
 
 ### How to contribute
 
@@ -43,7 +43,7 @@ Here are ways to contribute in the order of time commitment:
 3. Add missing tests to the `build/v2` branch showcasing the missing features.
 4. Attempt to implement the features in the `build/v2` branch.
 
-**IMPORTANT START HERE:** We have created a special unit test: [`README.unit.tsx`](./README.unit.tsx). The purpose of this unit test is to:
+**IMPORTANT START HERE:** We have created a special unit test: [`README.test.tsx`](./README.test.tsx). The purpose of this unit test is to:
 
 1. Explain how to run tests
 2. Explain how to debug tests
@@ -62,7 +62,7 @@ npm run vitest packages/qwik/src/core/v2
 To run specific test:
 
 ```bash
-npm run vitest packages/qwik/src/core/v2/README.unit.tsx
+npm run vitest packages/qwik/src/core/v2/README.test.tsx
 ```
 
 ## Architecture

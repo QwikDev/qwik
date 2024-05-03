@@ -181,8 +181,7 @@ export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(obj: T,
   }
   if (isSignal(obj)) {
     assertEqual(prop, 'value', 'Left side is a signal, prop must be value');
-    // TODO should this be SignalDerived instead?
-    return new SignalWrapper(obj, prop);
+    return new SignalDerived(getProp, [obj, prop as string]);
   }
   if (_CONST_PROPS in obj) {
     const constProps = (obj as any)[_CONST_PROPS];
@@ -194,12 +193,9 @@ export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(obj: T,
     const target = getProxyTarget(obj);
     if (target) {
       const signal = target[prop];
-      return isSignal(signal)
-        ? signal
-        : // TODO should this be SignalDerived instead?
-          new SignalWrapper(obj, prop);
+      return isSignal(signal) ? signal : new SignalDerived(getProp, [obj, prop as string]);
     }
   }
-    // We need to forward the access to the original object
-    return new SignalDerived(getProp, [obj, prop as string], 'wrapProp');
+  // We need to forward the access to the original object
+  return new SignalDerived(getProp, [obj, prop as string]);
 };

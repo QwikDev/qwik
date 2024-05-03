@@ -590,6 +590,17 @@ export const vnode_diff = (
           continue;
         }
 
+        if (tag === 'textarea' && key === 'value') {
+          if (typeof value !== 'string') {
+            if (isDev) {
+              throw new Error('The value of the textarea must be a string');
+            }
+            continue;
+          }
+          element.textContent = value as string;
+          continue;
+        }
+
         value = serializeAttribute(key, value, scopedStyleIdPrefix);
         if (value != null) {
           element.setAttribute(key, String(value));
@@ -642,9 +653,6 @@ export const vnode_diff = (
     const jsxAttrs = [] as ClientAttrs;
     const props = jsx.varProps;
     for (const key in props) {
-      if (key === 'children') {
-        continue;
-      }
       let value = props[key];
       value = serializeAttribute(key, value, scopedStyleIdPrefix);
       if (value != null) {

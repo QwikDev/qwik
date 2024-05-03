@@ -20,7 +20,7 @@ import {
   vnode_setAttr,
   type VNodeJournal,
 } from '../core/v2/client/vnode';
-import { isStringifiable, type Stringifiable } from '../core/v2/shared-types';
+import { isStringifiable, type Stringifiable } from '../core/v2/tests/shared-test-types';
 
 import { isSignal } from '@builder.io/qwik';
 import { format } from 'prettier';

@@ -1,12 +1,18 @@
-import { Fragment as Component, Fragment, Fragment as Signal } from '@builder.io/qwik';
-import { describe, expect, it } from 'vitest';
-import { trigger } from '../../testing/element-fixture';
-import type { JSXOutput } from '../render/jsx/types/jsx-node';
-import { useSignal } from '../use/use-signal';
-import { useStore } from '../use/use-store.public';
+import {
+  $,
+  Fragment as Component,
+  Fragment,
+  Fragment as Signal,
+  component$,
+  useVisibleTask$,
+} from '@builder.io/qwik';
 import { domRender, ssrRenderToDom } from '@builder.io/qwik/testing';
-import { $, useVisibleTask$, component$ } from '@builder.io/qwik';
-import { ErrorProvider } from '../../testing/rendering.unit-util';
+import { describe, expect, it } from 'vitest';
+import { trigger } from '../../../testing/element-fixture';
+import { ErrorProvider } from '../../../testing/rendering.unit-util';
+import type { JSXOutput } from '../../render/jsx/types/jsx-node';
+import { useSignal } from '../../use/use-signal';
+import { useStore } from '../../use/use-store.public';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;

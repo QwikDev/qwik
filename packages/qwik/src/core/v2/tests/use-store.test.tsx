@@ -1,14 +1,14 @@
 import { Fragment as Component, Fragment, Fragment as Signal } from '@builder.io/qwik';
 import { describe, expect, it, vi } from 'vitest';
-import { advanceToNextTimerAndFlush, trigger } from '../../testing/element-fixture';
-import { component$ } from '../component/component.public';
-import type { Signal as SignalType } from '../state/signal';
-import { untrack } from '../use/use-core';
-import { useSignal } from '../use/use-signal';
-import { useStore } from '../use/use-store.public';
-import { useTask$ } from '../use/use-task';
-import { domRender, ssrRenderToDom } from '../../testing/rendering.unit-util';
-import '../../testing/vdom-diff.unit-util';
+import { advanceToNextTimerAndFlush, trigger } from '../../../testing/element-fixture';
+import { domRender, ssrRenderToDom } from '../../../testing/rendering.unit-util';
+import '../../../testing/vdom-diff.unit-util';
+import { component$ } from '../../component/component.public';
+import type { Signal as SignalType } from '../../state/signal';
+import { untrack } from '../../use/use-core';
+import { useSignal } from '../../use/use-signal';
+import { useStore } from '../../use/use-store.public';
+import { useTask$ } from '../../use/use-task';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;

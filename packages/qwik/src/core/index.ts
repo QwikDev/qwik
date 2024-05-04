@@ -50,7 +50,6 @@ export {
   SSRRaw,
   SSRStream,
   SSRComment,
-  SSRHint,
   SkipRender,
 } from './render/jsx/utils.public';
 export type { SSRStreamProps, SSRHintProps } from './render/jsx/utils.public';

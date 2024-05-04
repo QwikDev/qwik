@@ -29,6 +29,9 @@ export {
   QSlotRef,
   QStyle,
   QTemplate,
+  FLUSH_COMMENT,
+  STREAM_BLOCK_END_COMMENT,
+  STREAM_BLOCK_START_COMMENT,
 } from '../core/util/markers';
 export { maybeThen } from '../core/util/promises';
 export { mapApp_remove, mapArray_get, mapArray_set } from '../core/v2/client/vnode';

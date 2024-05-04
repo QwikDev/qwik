@@ -52,7 +52,7 @@ export {
   SSRComment,
   SkipRender,
 } from './render/jsx/utils.public';
-export type { SSRStreamProps, SSRHintProps } from './render/jsx/utils.public';
+export type { SSRStreamProps, SSRHintProps, SSRStreamChildren } from './render/jsx/utils.public';
 export { Slot } from './render/jsx/slot.public';
 export {
   Fragment,
@@ -175,7 +175,6 @@ export type {
   QwikWheelEvent,
   QwikTransitionEvent,
 } from './render/jsx/types/jsx-qwik-events';
-export type { SSRStreamChildren } from './render/jsx/utils.public';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Components

@@ -21,6 +21,7 @@ import {
   QObjectSignalFlags,
   SIGNAL_IMMUTABLE,
   SIGNAL_UNASSIGNED,
+  SignalDerived,
   _createSignal,
   isSignal,
   type ReadonlySignal,
@@ -714,6 +715,14 @@ export const runResource = <T>(
       ctx.$renderCtx$ = rCtx;
       ctx.$subscriber$ = [SubscriptionType.HOST, task];
       return invoke(ctx, obj);
+    }
+    if (obj instanceof SignalDerived) {
+      // Unwrap SignalDerived
+      const args = obj.$args$;
+      if (args.length === 2 && typeof args) {
+        obj = args[0];
+        prop = args[1];
+      }
     }
     const manager = getSubscriptionManager(obj);
     if (manager) {

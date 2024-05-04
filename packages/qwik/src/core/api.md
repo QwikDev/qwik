@@ -1183,9 +1183,6 @@ export const SSRComment: FunctionComponent<{
     data: string;
 }>;
 
-// @public @deprecated (undocumented)
-export const SSRHint: FunctionComponent<SSRHintProps>;
-
 // @public (undocumented)
 export type SSRHintProps = {
     dynamic?: boolean;
@@ -1201,7 +1198,7 @@ export const SSRStream: FunctionComponent<SSRStreamProps>;
 
 // @public (undocumented)
 export const SSRStreamBlock: FunctionComponent<{
-    children?: any;
+    children?: JSXOutput;
 }>;
 
 // @public (undocumented)

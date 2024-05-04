@@ -1,4 +1,5 @@
 import { setServerPlatform } from './platform';
+import { FLUSH_COMMENT, STREAM_BLOCK_END_COMMENT, STREAM_BLOCK_START_COMMENT } from './qwik-copy';
 import type { JSXOutput, SSRContainer } from './qwik-types';
 import { renderToStream, resolveManifest, type renderToString } from './render';
 import type {
@@ -167,13 +168,27 @@ function handleStreaming(opts: RenderToStreamOptions, timing: RenderToStreamResu
   switch (inOrderStreaming.strategy) {
     case 'disabled':
       stream = {
-        write: enqueue,
+        write(chunk: string) {
+          if (shouldSkipChunk(chunk)) {
+            return;
+          }
+          enqueue(chunk);
+        },
       };
       break;
     case 'direct':
-      stream = nativeStream;
+      stream = {
+        write(chunk: string) {
+          if (shouldSkipChunk(chunk)) {
+            return;
+          }
+          nativeStream.write(chunk);
+        },
+      };
       break;
     case 'auto':
+      let count = 0;
+      let forceFlush = false;
       const minimumChunkSize = inOrderStreaming.maximumChunk ?? 0;
       const initialChunkSize = inOrderStreaming.maximumInitialChunk ?? 0;
       stream = {
@@ -181,9 +196,21 @@ function handleStreaming(opts: RenderToStreamOptions, timing: RenderToStreamResu
           if (chunk === undefined || chunk === null) {
             return;
           }
-          enqueue(chunk);
+          if (chunk === '<!--' + FLUSH_COMMENT + '-->') {
+            forceFlush = true;
+          } else if (chunk === '<!--' + STREAM_BLOCK_START_COMMENT + '-->') {
+            count++;
+          } else if (chunk === '<!--' + STREAM_BLOCK_END_COMMENT + '-->') {
+            count--;
+            if (count === 0) {
+              forceFlush = true;
+            }
+          } else {
+            enqueue(chunk);
+          }
           const chunkSize = networkFlushes === 0 ? initialChunkSize : minimumChunkSize;
-          if (bufferSize >= chunkSize) {
+          if (forceFlush || bufferSize >= chunkSize) {
+            forceFlush = false;
             flush();
           }
         },
@@ -197,4 +224,14 @@ function handleStreaming(opts: RenderToStreamOptions, timing: RenderToStreamResu
     networkFlushes,
     totalSize,
   };
+}
+
+function shouldSkipChunk(chunk: string): boolean {
+  return (
+    chunk === undefined ||
+    chunk === null ||
+    chunk === '<!--' + FLUSH_COMMENT + '-->' ||
+    chunk === '<!--' + STREAM_BLOCK_START_COMMENT + '-->' ||
+    chunk === '<!--' + STREAM_BLOCK_END_COMMENT + '-->'
+  );
 }

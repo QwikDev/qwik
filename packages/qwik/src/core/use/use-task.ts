@@ -1,4 +1,3 @@
-import { isPromise } from '../util/promises';
 import { intToStr, strToInt, type ContainerState, type MustGetObjID } from '../container/container';
 import { assertDefined, assertEqual } from '../error/assert';
 import { QError_trackUseStore, codeToText } from '../error/error';
@@ -21,7 +20,6 @@ import {
   QObjectSignalFlags,
   SIGNAL_IMMUTABLE,
   SIGNAL_UNASSIGNED,
-  SignalDerived,
   _createSignal,
   isSignal,
   type ReadonlySignal,
@@ -31,13 +29,13 @@ import {
 import { implicit$FirstArg } from '../util/implicit_dollar';
 import { logError, logErrorAndStop } from '../util/log';
 import { ComputedEvent, TaskEvent } from '../util/markers';
-import { delay, maybeThen, safeCall } from '../util/promises';
+import { delay, isPromise, maybeThen, safeCall } from '../util/promises';
 import { isFunction, isObject, type ValueOrPromise } from '../util/types';
+import { ChoreType } from '../v2/shared/scheduler';
 import { isContainer2, type Container2, type HostElement, type fixMeAny } from '../v2/shared/types';
 import { invoke, newInvokeContext, untrack, waitAndRun } from './use-core';
 import { useOn, useOnDocument } from './use-on';
 import { useSequentialScope } from './use-sequential-scope';
-import { ChoreType } from '../v2/shared/scheduler';
 
 export const enum TaskFlags {
   VISIBLE_TASK = 1 << 0,
@@ -715,14 +713,6 @@ export const runResource = <T>(
       ctx.$renderCtx$ = rCtx;
       ctx.$subscriber$ = [SubscriptionType.HOST, task];
       return invoke(ctx, obj);
-    }
-    if (obj instanceof SignalDerived) {
-      // Unwrap SignalDerived
-      const args = obj.$args$;
-      if (args.length === 2 && typeof args) {
-        obj = args[0];
-        prop = args[1];
-      }
     }
     const manager = getSubscriptionManager(obj);
     if (manager) {

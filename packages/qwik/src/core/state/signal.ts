@@ -1,19 +1,19 @@
 import { assertEqual } from '../error/assert';
 import { tryGetInvokeContext } from '../use/use-core';
 import { logWarn } from '../util/log';
-import { qDev, qSerialize } from '../util/qdev';
 import { ComputedEvent, RenderEvent, ResourceEvent } from '../util/markers';
+import { qDev, qSerialize } from '../util/qdev';
 import { isObject } from '../util/types';
 import {
-  getSubscriptionManager,
-  getProxyTarget,
   LocalSubscriptionManager,
-  type Subscriptions,
+  getProxyTarget,
+  getSubscriptionManager,
   verifySerializable,
+  type Subscriber,
   type SubscriptionManager,
+  type Subscriptions,
 } from './common';
 import { QObjectManagerSymbol, _CONST_PROPS } from './constants';
-import { _fnSignal } from '../qrl/inlined-fn';
 
 /** @public */
 export interface Signal<T = any> {
@@ -138,6 +138,34 @@ export class SignalDerived<RETURN = unknown, ARGS extends any[] = unknown[]> ext
   get value(): RETURN {
     return this.$func$.apply(undefined, this.$args$);
   }
+  get [QObjectManagerSymbol]() {
+    const args = this.$args$;
+    if (args?.length >= 2 && typeof args[0] === 'object' && typeof args[1] === 'string') {
+      const subMgr = getSubscriptionManager(args[0]);
+      if (subMgr) {
+        return new DerivedSubscriptionManager(subMgr, args[1]);
+      }
+    }
+    return undefined;
+  }
+}
+
+const notImplemented = () => {
+  throw new Error();
+};
+class DerivedSubscriptionManager implements Omit<LocalSubscriptionManager, '$subs$'> {
+  constructor(
+    private $delegate$: LocalSubscriptionManager,
+    private $prop$: string
+  ) {}
+  $addSub$(sub: Subscriber, key?: string | undefined): void {
+    this.$delegate$.$addSub$(sub, this.$prop$);
+  }
+  $addSubs$ = notImplemented;
+  $addToGroup$ = notImplemented;
+  $unsubGroup$ = notImplemented;
+  $unsubEntry$ = notImplemented;
+  $notifySubs$ = notImplemented;
 }
 
 export class SignalWrapper<T extends Record<string, any>, P extends keyof T> extends SignalBase {

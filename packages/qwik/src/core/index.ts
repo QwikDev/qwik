@@ -141,7 +141,7 @@ export { version } from './version';
 // Qwik Events
 //////////////////////////////////////////////////////////////////////////////////////////
 export type {
-  KnownEventNames as KnownEventNames,
+  KnownEventNames,
   QwikSymbolEvent,
   QwikVisibleEvent,
   QwikIdleEvent,
@@ -175,6 +175,7 @@ export type {
   QwikWheelEvent,
   QwikTransitionEvent,
 } from './render/jsx/types/jsx-qwik-events';
+export type { SSRStreamChildren } from './render/jsx/utils.public';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Components

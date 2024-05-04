@@ -22,7 +22,7 @@ export function createDocument(opts?: MockDocumentOptions): Document;
 
 // @public
 export const createDOM: ({ html }?: {
-    html?: string;
+    html?: string | undefined;
 }) => Promise<{
     render: (jsxElement: JSXOutput) => Promise<RenderResult>;
     screen: HTMLElement;

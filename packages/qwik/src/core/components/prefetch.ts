@@ -1,5 +1,6 @@
 import { isDev } from '@builder.io/qwik/build';
 import { _jsxQ } from '../internal';
+import type { JSXNode } from '../render/jsx/types/jsx-node';
 
 /**
  * Install a service worker which will prefetch the bundles.
@@ -94,7 +95,7 @@ const PREFETCH_CODE = /*#__PURE__*/ ((
  */
 export const PrefetchGraph = (
   opts: { base?: string; manifestHash?: string; manifestURL?: string } = {}
-) => {
+): JSXNode<string> => {
   const resolvedOpts = {
     base: '/build/',
     manifestHash: null,

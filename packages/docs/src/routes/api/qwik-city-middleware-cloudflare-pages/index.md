@@ -9,7 +9,7 @@ title: \@builder.io/qwik-city/middleware/cloudflare-pages API Reference
 ```typescript
 export declare function createQwikCity(opts: QwikCityCloudflarePagesOptions): (
   request: PlatformCloudflarePages["request"],
-  env: Record<string, any> & {
+  env: PlatformCloudflarePages["env"] & {
     ASSETS: {
       fetch: (req: Request) => Response;
     };
@@ -45,7 +45,7 @@ opts
 </tbody></table>
 **Returns:**
 
-(request: [PlatformCloudflarePages](#platformcloudflarepages)['request'], env: Record&lt;string, any&gt; &amp; { ASSETS: { fetch: (req: Request) =&gt; Response; }; }, ctx: [PlatformCloudflarePages](#platformcloudflarepages)['ctx']) =&gt; Promise&lt;Response&gt;
+(request: [PlatformCloudflarePages](#platformcloudflarepages)['request'], env: [PlatformCloudflarePages](#platformcloudflarepages)['env'] &amp; { ASSETS: { fetch: (req: Request) =&gt; Response; }; }, ctx: [PlatformCloudflarePages](#platformcloudflarepages)['ctx']) =&gt; Promise&lt;Response&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/cloudflare-pages/index.ts)
 

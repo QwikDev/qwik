@@ -564,7 +564,6 @@ export const NoWorks3 = component$(({count, stuff = hola()}) => {
 
 #[test]
 fn example_props_wrapping() {
-
 	test_input!(TestInput {
 		code: r#"
 import { $, component$, useSignal } from '@builder.io/qwik';
@@ -592,7 +591,6 @@ export const Works = component$(({fromProps}) => {
 
 #[test]
 fn example_props_wrapping_children() {
-
 	test_input!(TestInput {
 		code: r#"
 import { $, component$, useSignal } from '@builder.io/qwik';

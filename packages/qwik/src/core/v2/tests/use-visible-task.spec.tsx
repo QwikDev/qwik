@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { trigger } from '../../testing/element-fixture';
-import { component$ } from '../component/component.public';
-import { Fragment as Component, Fragment, Fragment as Signal } from '../render/jsx/jsx-runtime';
-import { useSignal } from '../use/use-signal';
-import { useVisibleTask$ } from '../use/use-task';
-import { ErrorProvider, domRender, ssrRenderToDom } from '../../testing/rendering.unit-util';
-import '../../testing/vdom-diff.unit-util';
-import { delay } from '../util/promises';
-import { useStore } from '../use/use-store.public';
+import { trigger } from '../../../testing/element-fixture';
+import { ErrorProvider, domRender, ssrRenderToDom } from '../../../testing/rendering.unit-util';
+import '../../../testing/vdom-diff.unit-util';
+import { component$ } from '../../component/component.public';
+import { Fragment as Component, Fragment, Fragment as Signal } from '../../render/jsx/jsx-runtime';
+import { useSignal } from '../../use/use-signal';
+import { useStore } from '../../use/use-store.public';
+import { useVisibleTask$ } from '../../use/use-task';
+import { delay } from '../../util/promises';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;

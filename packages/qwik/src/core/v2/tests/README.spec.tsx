@@ -23,20 +23,20 @@
  *   https://around.co/playback/370fe7fd-46f6-4768-a016-95e92e6ce521?sharedKey=dd856234-7619-4974-902b-f8be743249d7
  */
 
+import { domRender, ssrRenderToDom } from '@builder.io/qwik/testing';
 import { describe, expect, it } from 'vitest';
-import { trigger } from '../../testing/element-fixture';
-import { component$, componentQrl } from '../component/component.public';
-import { inlinedQrl } from '../qrl/qrl';
+import { trigger } from '../../../testing/element-fixture';
+import { component$, componentQrl } from '../../component/component.public';
+import { inlinedQrl } from '../../qrl/qrl';
 import {
   Fragment as Component,
   Fragment,
   Fragment as Projection,
   Fragment as SignalTarget,
-} from '../render/jsx/jsx-runtime';
-import { Slot } from '../render/jsx/slot.public';
-import { useSignal } from '../use/use-signal';
-import { vnode_getNextSibling } from './client/vnode';
-import { domRender, ssrRenderToDom } from '@builder.io/qwik/testing';
+} from '../../render/jsx/jsx-runtime';
+import { Slot } from '../../render/jsx/slot.public';
+import { useSignal } from '../../use/use-signal';
+import { vnode_getNextSibling } from '../client/vnode';
 
 // To better understand what is going on in the test, set DEBUG to true and run the test.
 const DEBUG = false;

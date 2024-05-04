@@ -5710,14 +5710,9 @@ SSRStreamBlock: FunctionComponent<{
 
 ```typescript
 export type SSRStreamProps = {
-  children:
-    | AsyncGenerator<JSXChildren, void, any>
-    | ((stream: StreamWriter) => Promise<void>)
-    | (() => AsyncGenerator<JSXChildren, void, any>);
+  children: SSRStreamChildren;
 };
 ```
-
-**References:** [JSXChildren](#jsxchildren), [StreamWriter](#streamwriter)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts)
 

@@ -1,7 +1,7 @@
+import { component$, componentQrl, inlinedQrl, useId } from '@builder.io/qwik';
 import { describe, expect, it } from 'vitest';
-import { component$, useId, inlinedQrl, componentQrl } from '@builder.io/qwik';
-import { domRender, ssrRenderToDom } from '../../testing/rendering.unit-util';
-import '../../testing/vdom-diff.unit-util';
+import { domRender, ssrRenderToDom } from '../../../testing/rendering.unit-util';
+import '../../../testing/vdom-diff.unit-util';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;

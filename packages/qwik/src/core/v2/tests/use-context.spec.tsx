@@ -1,19 +1,19 @@
 import {
+  $,
+  Fragment as Awaited,
   Fragment as Component,
   Fragment,
   Fragment as Projection,
   Fragment as Signal,
-  Fragment as Awaited,
 } from '@builder.io/qwik';
 import { describe, expect, it } from 'vitest';
-import { trigger } from '../../testing/element-fixture';
-import { component$ } from '../component/component.public';
-import { createContextId, useContext, useContextProvider } from '../use/use-context';
-import { useSignal } from '../use/use-signal';
-import { domRender, ssrRenderToDom } from '../../testing/rendering.unit-util';
-import '../../testing/vdom-diff.unit-util';
-import { Slot } from '../render/jsx/slot.public';
-import { $ } from '@builder.io/qwik';
+import { trigger } from '../../../testing/element-fixture';
+import { domRender, ssrRenderToDom } from '../../../testing/rendering.unit-util';
+import '../../../testing/vdom-diff.unit-util';
+import { component$ } from '../../component/component.public';
+import { Slot } from '../../render/jsx/slot.public';
+import { createContextId, useContext, useContextProvider } from '../../use/use-context';
+import { useSignal } from '../../use/use-signal';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;

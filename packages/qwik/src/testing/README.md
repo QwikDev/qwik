@@ -19,7 +19,7 @@ export default defineConfig(() => {
 ```
 
 ```jsx
-// card.test.tsx
+// card.spec.tsx
 
 import { createDOM } from '@builder.io/qwik/testing';
 import { test, expect } from 'vitest';

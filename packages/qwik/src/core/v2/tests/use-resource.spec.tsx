@@ -1,18 +1,18 @@
-import { describe, expect, it } from 'vitest';
 import {
-  component$,
   Fragment as Awaited,
   Fragment as Component,
   Fragment,
   Fragment as InlineComponent,
   Resource,
+  component$,
   useResource$,
   useSignal,
 } from '@builder.io/qwik';
-import { domRender, ssrRenderToDom } from '../../testing/rendering.unit-util';
-import '../../testing/vdom-diff.unit-util';
-import { delay } from '../util/promises';
-import { trigger } from '../../testing/element-fixture';
+import { describe, expect, it } from 'vitest';
+import { trigger } from '../../../testing/element-fixture';
+import { domRender, ssrRenderToDom } from '../../../testing/rendering.unit-util';
+import '../../../testing/vdom-diff.unit-util';
+import { delay } from '../../util/promises';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;

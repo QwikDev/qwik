@@ -2698,7 +2698,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type SSRStreamProps = {\n    children: AsyncGenerator<JSXChildren, void, any> | ((stream: StreamWriter) => Promise<void>) | (() => AsyncGenerator<JSXChildren, void, any>);\n};\n```\n**References:** [JSXChildren](#jsxchildren)<!-- -->, [StreamWriter](#streamwriter)",
+      "content": "```typescript\nexport type SSRStreamProps = {\n    children: SSRStreamChildren;\n};\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts",
       "mdFile": "qwik.ssrstreamprops.md"
     },

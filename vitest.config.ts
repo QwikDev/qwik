@@ -12,7 +12,7 @@ export default defineConfig({
   ],
   test: {
     include: [
-      'packages/**/*.test.?(c|m)[jt]s?(x)',
+      'packages/**/*.spec.?(c|m)[jt]s?(x)',
       'packages/**/*.unit.?(c|m)[jt]s?(x)',
       '!packages/qwik/dist',
       '!packages/*/lib',

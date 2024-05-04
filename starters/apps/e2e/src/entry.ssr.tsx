@@ -36,6 +36,7 @@ import { UseId } from "./components/useid/useid";
 import { Watch } from "./components/watch/watch";
 import { Root } from "./root";
 import { SyncQRL } from "./components/resuming/sync-qrl";
+import { RenderExceptions, UseTaskExceptions } from "./components/exceptions";
 
 /**
  * Entry point for server-side pre-rendering.
@@ -77,6 +78,8 @@ export default function (opts: RenderToStreamOptions) {
     "/e2e/sync-qrl": () => <SyncQRL />,
     "/e2e/computed": () => <ComputedRoot />,
     "/e2e/build-variables": () => <BuildVariables />,
+    "/e2e/exception/render": () => <RenderExceptions />,
+    "/e2e/exception/use-task": () => <UseTaskExceptions />,
   };
 
   const url = new URL(opts.serverData!.url);

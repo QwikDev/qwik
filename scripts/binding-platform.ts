@@ -50,6 +50,7 @@ export async function buildPlatformBinding(config: BuildConfig) {
   console.log('🐯 native binding');
 }
 
+// TODO only download current target and wasm
 export async function copyPlatformBindingWasm(config: BuildConfig) {
   ensureDir(config.distQwikPkgDir);
   ensureDir(config.distBindingsDir);

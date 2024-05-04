@@ -12,9 +12,9 @@ import { SignalDerived, isSignal } from '../../state/signal';
 import { trackSignal } from '../../use/use-core';
 import { EMPTY_ARRAY } from '../../util/flyweight';
 import { throwErrorAndStop } from '../../util/log';
-import { ELEMENT_KEY, QScopedStyle, QSlot } from '../../util/markers';
+import { ELEMENT_KEY, FLUSH_COMMENT, QScopedStyle, QSlot } from '../../util/markers';
 import { isPromise } from '../../util/promises';
-import { type ValueOrPromise } from '../../util/types';
+import { isFunction, type ValueOrPromise } from '../../util/types';
 import {
   convertEventNameFromJsxPropToHtmlAttr,
   getEventNameFromJsxProp,
@@ -26,13 +26,15 @@ import { qrlToString, type SerializationContext } from '../shared/shared-seriali
 import { DEBUG_TYPE, VirtualType, type fixMeAny } from '../shared/types';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
 import type { SSRContainer, SsrAttrs } from './ssr-types';
+import { SSRComment, SSRStream, type SSRStreamChildren } from '../../render/jsx/utils.public';
+import { isAsyncGenerator } from '../../util/async-generator';
 
 class SetScopedStyle {
   constructor(public $scopedStyle$: string | null) {}
 }
 type StackFn = () => ValueOrPromise<void>;
 type StackValue = ValueOrPromise<
-  JSXOutput | StackFn | Promise<JSXOutput> | typeof Promise | SetScopedStyle
+  JSXOutput | StackFn | Promise<JSXOutput> | typeof Promise | SetScopedStyle | AsyncGenerator
 >;
 
 /** @internal */
@@ -137,6 +139,13 @@ function processJSXNode(
       enqueue(ssr.closeFragment);
       enqueue(value);
       enqueue(Promise);
+    } else if (isAsyncGenerator(value)) {
+      enqueue(async () => {
+        for await (const chunk of value) {
+          await _walkJSX(ssr, chunk as JSXOutput, true, styleScoped);
+          ssr.commentNode(FLUSH_COMMENT);
+        }
+      });
     } else {
       const jsx = value as JSXNode;
       const type = jsx.type;
@@ -172,7 +181,7 @@ function processJSXNode(
         }
         const children = jsx.children as JSXOutput;
         children != null && enqueue(children);
-      } else if (typeof type === 'function') {
+      } else if (isFunction(type)) {
         if (type === Fragment) {
           let attrs = jsx.key != null ? [ELEMENT_KEY, jsx.key] : EMPTY_ARRAY;
           if (isDev) {
@@ -224,6 +233,25 @@ function processJSXNode(
             ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.Projection] : EMPTY_ARRAY);
             ssr.closeFragment();
           }
+        } else if (type === SSRComment) {
+          ssr.commentNode((jsx.props.data as string) || '');
+        } else if (type === SSRStream) {
+          ssr.commentNode(FLUSH_COMMENT);
+          const generator = jsx.children as SSRStreamChildren;
+          let value: AsyncGenerator | Promise<void>;
+          if (isFunction(generator)) {
+            value = generator({
+              async write(chunk) {
+                await _walkJSX(ssr, chunk as JSXOutput, true, styleScoped);
+                ssr.commentNode(FLUSH_COMMENT);
+              },
+            });
+          } else {
+            value = generator;
+          }
+
+          enqueue(value as StackValue);
+          isPromise(value) && enqueue(Promise);
         } else if (isQwikComponent(type)) {
           ssr.openComponent(isDev ? [DEBUG_TYPE, VirtualType.Component] : []);
           const host = ssr.getLastNode();

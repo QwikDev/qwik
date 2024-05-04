@@ -84,6 +84,7 @@ import {
   vnode_truncate,
   type VNodeJournal,
 } from './vnode';
+import { SSRComment } from '../../render/jsx/utils.public';
 
 export type ComponentQueue = Array<VNode>;
 
@@ -206,6 +207,8 @@ export const vnode_diff = (
               } else if (type === Projection) {
                 expectProjection();
                 descend(jsxValue.children, true);
+              } else if (type === SSRComment) {
+                expectNoMore();
               } else {
                 // Must be a component
                 expectNoMoreTextNodes();

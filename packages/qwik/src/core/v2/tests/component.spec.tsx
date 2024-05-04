@@ -2,8 +2,10 @@ import {
   $,
   Fragment as Component,
   Fragment,
+  SSRComment,
   Fragment as Signal,
   component$,
+  useComputed$,
   useVisibleTask$,
 } from '@builder.io/qwik';
 import { domRender, ssrRenderToDom } from '@builder.io/qwik/testing';
@@ -498,6 +500,47 @@ describe.each([
     );
 
     expect(document.querySelector('p')).toMatchDOM(<p>{'"<script></script>"'}</p>);
+  });
+
+  it('should render correctly with comment nodes', async () => {
+    const Cmp = component$(() => {
+      const counter = useSignal(0);
+      const doubleCounter = useComputed$(() => counter.value * 2);
+      return (
+        <>
+          <SSRComment data="test comment" />
+          <button onClick$={() => counter.value++}></button>
+          {counter.value}
+          <SSRComment data="test comment 2" />
+          <div>{doubleCounter.value}</div>
+          <SSRComment data="test comment 3" />
+        </>
+      );
+    });
+    const { vNode, document } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <button></button>
+          <Signal>0</Signal>
+          <div>
+            <Signal>0</Signal>
+          </div>
+        </Fragment>
+      </Component>
+    );
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <button></button>
+          <Signal>1</Signal>
+          <div>
+            <Signal>2</Signal>
+          </div>
+        </Fragment>
+      </Component>
+    );
   });
 
   it('should rerender components with the same key and different props', async () => {

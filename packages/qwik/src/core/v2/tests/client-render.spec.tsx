@@ -1,5 +1,7 @@
 import {
   Fragment as Component,
+  SSRComment,
+  SSRStreamBlock,
   Fragment as Signal,
   component$,
   useSignal,
@@ -144,6 +146,39 @@ describe('v2 client render', () => {
         </>
       </Component>
     );
+  });
+
+  describe('stream', () => {
+    it('should not render comment', async () => {
+      const CommentCmp = component$(() => {
+        return <SSRComment data="foo" />;
+      });
+
+      const { vNode, container } = await clientRender(<CommentCmp />);
+      expect(vnode_getFirstChild(vNode)).toMatchVDOM(<Component></Component>);
+      expect(container.document.body.innerHTML).toEqual('');
+    });
+
+    it('should render SSRStreamBlock', async () => {
+      const { vNode, container } = await clientRender(
+        <div id="stream-block">
+          <SSRStreamBlock>
+            <div>stream content</div>
+          </SSRStreamBlock>
+        </div>
+      );
+      expect(vnode_getFirstChild(vNode)).toMatchVDOM(
+        <div id="stream-block">
+          <Component>
+            <div>stream content</div>
+          </Component>
+        </div>
+      );
+      // we should not stream the comment nodes of the SSRStreamBlock
+      expect(container.document.querySelector('#stream-block')?.innerHTML).toEqual(
+        '<div>stream content</div>'
+      );
+    });
   });
 });
 

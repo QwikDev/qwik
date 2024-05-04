@@ -56,3 +56,8 @@ export const ELEMENT_SELF_ID = -1;
 export const ELEMENT_ID_SELECTOR = '[q\\:id]';
 export const ELEMENT_ID_PREFIX = '#';
 export const INLINE_FN_PREFIX = '@';
+
+// comment nodes
+export const FLUSH_COMMENT = 'qkssr-f';
+export const STREAM_BLOCK_START_COMMENT = 'qkssr-pu';
+export const STREAM_BLOCK_END_COMMENT = 'qkssr-po';

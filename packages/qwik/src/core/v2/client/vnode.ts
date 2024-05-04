@@ -378,11 +378,11 @@ export const vnode_ensureElementInflated = (vnode: VNode) => {
             element.innerHTML,
             ElementVNodeProps.PROPS_OFFSET
           );
-        } else if (attr.value === QContainerValue.TEXT) {
+        } else if (attr.value === QContainerValue.TEXT && 'value' in element) {
           mapArray_set(
             elementVNode as string[],
             'value',
-            element.textContent,
+            element.value,
             ElementVNodeProps.PROPS_OFFSET
           );
         }
@@ -812,11 +812,8 @@ export const vnode_applyJournal = (journal: VNodeJournal) => {
           key = 'class';
         }
         const value = journal[idx++] as string | null | boolean;
-        const tag = element.tagName.toLowerCase();
         if (isBooleanAttr(element, key)) {
           (element as any)[key] = parseBoolean(value);
-        } else if (tag === 'textarea' && key === 'value') {
-          (element as any).textContent = value!;
         } else if (key === 'value' && key in element) {
           (element as any).value = String(value);
         } else if (key === dangerouslySetInnerHTML) {
@@ -1149,7 +1146,7 @@ const ensureMaterialized = (vnode: ElementVNode): VNode | null => {
     // need to materialize the vNode.
     const element = vParent[ElementVNodeProps.element];
 
-    if (isQContainerInnerHTMLElement(element)) {
+    if (isQContainerElementWithValue(element)) {
       // We have a container with html value, must ignore the content.
       vFirstChild =
         vParent[ElementVNodeProps.firstChild] =
@@ -1164,7 +1161,7 @@ const ensureMaterialized = (vnode: ElementVNode): VNode | null => {
   return vFirstChild;
 };
 
-export const isQContainerInnerHTMLElement = (node: Node | null): boolean => {
+export const isQContainerElementWithValue = (node: Node | null): boolean => {
   if (isElement(node)) {
     const qContainer = node.getAttribute(QContainerAttr);
     return qContainer === QContainerValue.HTML || qContainer === QContainerValue.TEXT;

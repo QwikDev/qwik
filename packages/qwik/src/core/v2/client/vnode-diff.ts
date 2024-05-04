@@ -597,7 +597,7 @@ export const vnode_diff = (
             }
             continue;
           }
-          element.textContent = value as string;
+          (element as HTMLTextAreaElement).value = value as string;
           continue;
         }
 

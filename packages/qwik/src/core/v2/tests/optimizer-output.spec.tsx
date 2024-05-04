@@ -6,14 +6,14 @@
  */
 
 import { Fragment as Component, Fragment as Signal } from '@builder.io/qwik';
-import { describe, expect, it } from 'vitest';
-import { trigger } from '../../testing/element-fixture';
-import { component$ } from '../component/component.public';
-import { _CONST_PROPS, _jsxC } from '../internal';
-import { useSignal } from '../use/use-signal';
 import { domRender, ssrRenderToDom } from '@builder.io/qwik/testing';
-import type { fixMeAny } from './shared/types';
-import '../../testing/vdom-diff.unit-util';
+import { describe, expect, it } from 'vitest';
+import { trigger } from '../../../testing/element-fixture';
+import '../../../testing/vdom-diff.unit-util';
+import { component$ } from '../../component/component.public';
+import { _jsxC } from '../../internal';
+import { useSignal } from '../../use/use-signal';
+import type { fixMeAny } from '../shared/types';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;

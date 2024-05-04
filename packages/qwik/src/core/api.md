@@ -1203,7 +1203,7 @@ export const SSRStreamBlock: FunctionComponent<{
 
 // @public (undocumented)
 export type SSRStreamProps = {
-    children: AsyncGenerator<JSXChildren, void, any> | ((stream: StreamWriter) => Promise<void>) | (() => AsyncGenerator<JSXChildren, void, any>);
+    children: SSRStreamChildren;
 };
 
 // @public (undocumented)
@@ -2067,6 +2067,10 @@ export function withLocale<T>(locale: string, fn: () => T): T;
 
 // @internal (undocumented)
 export const _wrapProp: <T extends Record<any, any>, P extends keyof T>(obj: T, prop: P) => any;
+
+// Warnings were encountered during analysis:
+//
+// /home/shairez/dev/open-source/qwik/dist-dev/dts-out/packages/qwik/src/core/render/jsx/utils.public.d.ts:20:5 - (ae-forgotten-export) The symbol "SSRStreamChildren" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

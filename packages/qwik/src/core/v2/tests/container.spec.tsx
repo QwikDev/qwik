@@ -1,23 +1,23 @@
+import { walkJSX } from '@builder.io/qwik/testing';
 import crypto from 'node:crypto';
 import { describe, expect, it } from 'vitest';
-import { createDocument } from '../../testing/document';
-import { component$ } from '../component/component.public';
-import { SERIALIZABLE_STATE } from '../container/serializers';
-import { inlinedQrl, qrl } from '../qrl/qrl';
-import type { QRLInternal } from '../qrl/qrl-class';
-import { Fragment, JSXNodeImpl, createPropsProxy } from '../render/jsx/jsx-runtime';
-import { Slot } from '../render/jsx/slot.public';
-import type { JSXOutput } from '../render/jsx/types/jsx-node';
-import { getDomContainer } from './client/dom-container';
-import type { ClientContainer, VNode } from './client/types';
-import { vnode_getAttr, vnode_getFirstChild, vnode_getText } from './client/vnode';
-import { SerializationConstant, isDeserializerProxy } from './shared/shared-serialization';
-import { ssrCreateContainer } from '../../server/v2-ssr-container';
-import { type SSRContainer } from './ssr/ssr-types';
-import { walkJSX } from '@builder.io/qwik/testing';
-import { SsrNode } from '../../server/v2-node';
-import { constPropsToSsrAttrs, varPropsToSsrAttrs } from './ssr/ssr-render-jsx';
-import { hasClassAttr } from './shared/scoped-styles';
+import { SsrNode } from '../../../server/v2-node';
+import { ssrCreateContainer } from '../../../server/v2-ssr-container';
+import { createDocument } from '../../../testing/document';
+import { component$ } from '../../component/component.public';
+import { SERIALIZABLE_STATE } from '../../container/serializers';
+import { inlinedQrl, qrl } from '../../qrl/qrl';
+import type { QRLInternal } from '../../qrl/qrl-class';
+import { Fragment, JSXNodeImpl, createPropsProxy } from '../../render/jsx/jsx-runtime';
+import { Slot } from '../../render/jsx/slot.public';
+import type { JSXOutput } from '../../render/jsx/types/jsx-node';
+import { getDomContainer } from '../client/dom-container';
+import type { ClientContainer, VNode } from '../client/types';
+import { vnode_getAttr, vnode_getFirstChild, vnode_getText } from '../client/vnode';
+import { hasClassAttr } from '../shared/scoped-styles';
+import { SerializationConstant, isDeserializerProxy } from '../shared/shared-serialization';
+import { constPropsToSsrAttrs, varPropsToSsrAttrs } from '../ssr/ssr-render-jsx';
+import { type SSRContainer } from '../ssr/ssr-types';
 
 describe('serializer v2', () => {
   describe('rendering', () => {

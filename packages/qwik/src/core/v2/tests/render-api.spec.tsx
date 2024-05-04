@@ -1,24 +1,10 @@
-import { describe, it, expect, expectTypeOf, beforeEach, vi, afterEach } from 'vitest';
-import { render2 } from './client/dom-render';
-import { render } from '../render/dom/render.public';
-import { renderToStream, renderToString } from '@builder.io/qwik/server';
-import { renderToStream2, renderToString2 } from '../../server/v2-ssr-render2';
-import { component$, componentQrl } from '../component/component.public';
-import { useSignal } from '../use/use-signal';
-import { useLexicalScope } from '../use/use-lexical-scope.public';
-import { inlinedQrl } from '../qrl/qrl';
-import { createDocument } from '@builder.io/qwik-dom';
-import { getDomContainer } from './client/dom-container';
-import { vnode_getFirstChild } from './client/vnode';
 import { Fragment as Component, Fragment as Signal } from '@builder.io/qwik';
-import { useServerData } from '../use/use-env-data';
-import { useTask$ } from '../use/use-task';
-import { getPlatform, setPlatform } from '../platform/platform';
-import { getTestPlatform, emulateExecutionOfQwikFuncs, trigger } from '@builder.io/qwik/testing';
-import { Resource, useResource$, useResourceQrl } from '../use/use-resource';
-import { _fnSignal } from '../internal';
+import { createDocument } from '@builder.io/qwik-dom';
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
-import { useOn } from '../use/use-on';
+import { renderToStream, renderToString } from '@builder.io/qwik/server';
+import { emulateExecutionOfQwikFuncs, getTestPlatform, trigger } from '@builder.io/qwik/testing';
+import { afterEach, beforeEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
+import type { JSXOutput } from '../../../server/qwik-types';
 import type {
   RenderToStreamOptions,
   RenderToStreamResult,
@@ -26,8 +12,22 @@ import type {
   RenderToStringResult,
   StreamWriter,
   StreamingOptions,
-} from '../../server/types';
-import type { JSXOutput } from '../../server/qwik-types';
+} from '../../../server/types';
+import { renderToStream2, renderToString2 } from '../../../server/v2-ssr-render2';
+import { component$, componentQrl } from '../../component/component.public';
+import { _fnSignal } from '../../internal';
+import { getPlatform, setPlatform } from '../../platform/platform';
+import { inlinedQrl } from '../../qrl/qrl';
+import { render } from '../../render/dom/render.public';
+import { useServerData } from '../../use/use-env-data';
+import { useLexicalScope } from '../../use/use-lexical-scope.public';
+import { useOn } from '../../use/use-on';
+import { Resource, useResource$, useResourceQrl } from '../../use/use-resource';
+import { useSignal } from '../../use/use-signal';
+import { useTask$ } from '../../use/use-task';
+import { getDomContainer } from '../client/dom-container';
+import { render2 } from '../client/dom-render';
+import { vnode_getFirstChild } from '../client/vnode';
 
 vi.hoisted(() => {
   vi.stubGlobal('QWIK_LOADER_DEFAULT_MINIFIED', 'min');
@@ -272,13 +272,13 @@ describe('render api', () => {
     describe('version', () => {
       afterEach(async () => {
         // restore default value
-        const version = await import('./../version');
+        const version = await import('../../version');
         vi.spyOn(version, 'version', 'get').mockReturnValue('dev');
       });
 
       it('should render', async () => {
         const testVersion = 'qwik-v-test123';
-        const version = await import('./../version');
+        const version = await import('../../version');
         vi.spyOn(version, 'version', 'get').mockReturnValue(testVersion);
         const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: 'div',
@@ -663,7 +663,7 @@ describe('render api', () => {
       describe('qRender', () => {
         afterEach(async () => {
           // restore default value
-          const qDev = await import('./../util/qdev');
+          const qDev = await import('../../util/qdev');
           vi.spyOn(qDev, 'qDev', 'get').mockReturnValue(true);
         });
         it('should render qRender with "ssr-dev" value in dev mode', async () => {
@@ -673,7 +673,7 @@ describe('render api', () => {
           expect(result.html.includes('q:render="ssr-dev"')).toBeTruthy();
         });
         it('should render qRender with "ssr" value in prod mode', async () => {
-          const qDev = await import('./../util/qdev');
+          const qDev = await import('../../util/qdev');
           vi.spyOn(qDev, 'qDev', 'get').mockReturnValue(false);
 
           const result = await renderToStringAndSetPlatform(<Counter />, {
@@ -692,7 +692,7 @@ describe('render api', () => {
           expect(result.html.includes(`q:render="${testRender}-ssr-dev"`)).toBeTruthy();
         });
         it('should render qRender with custom value in prod mode', async () => {
-          const qDev = await import('./../util/qdev');
+          const qDev = await import('../../util/qdev');
           vi.spyOn(qDev, 'qDev', 'get').mockReturnValue(false);
 
           const testRender = 'ssr-test';

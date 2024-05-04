@@ -1,5 +1,3 @@
-import { expect } from 'vitest';
-import { Fragment, _isJSXNode, _isStringifiable, isSignal } from '@builder.io/qwik';
 import type {
   JSXNode,
   JSXOutput,
@@ -10,6 +8,8 @@ import type {
   _VNode,
   _VirtualVNode,
 } from '@builder.io/qwik';
+import { Fragment, _isJSXNode, _isStringifiable, isSignal } from '@builder.io/qwik';
+import { expect } from 'vitest';
 import {
   vnode_applyJournal,
   vnode_getAttr,

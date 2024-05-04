@@ -1,20 +1,20 @@
-import { createDocument } from '../../testing/document';
-import { describe, expect, it } from 'vitest';
-import { trigger } from '../../testing/element-fixture';
 import {
   Fragment as Component,
-  Fragment as Signal,
-  component$,
-  type JSXOutput,
-  useSignal,
   SSRComment,
   SSRStreamBlock,
+  Fragment as Signal,
+  component$,
+  useSignal,
+  type JSXOutput,
 } from '@builder.io/qwik';
-import { render2 } from './client/dom-render';
-import type { ContainerElement } from './client/types';
-import { vnode_getFirstChild } from './client/vnode';
 import '@builder.io/qwik/testing';
-import { getTestPlatform } from '../../testing/platform';
+import { describe, expect, it } from 'vitest';
+import { createDocument } from '../../../testing/document';
+import { trigger } from '../../../testing/element-fixture';
+import { getTestPlatform } from '../../../testing/platform';
+import { render2 } from '../client/dom-render';
+import type { ContainerElement } from '../client/types';
+import { vnode_getFirstChild } from '../client/vnode';
 
 describe('v2 client render', () => {
   it('should render jsx', async () => {

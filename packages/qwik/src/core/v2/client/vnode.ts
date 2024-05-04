@@ -490,11 +490,12 @@ const vnode_getDomSibling = (
         return null;
       }
       while (virtual && !(sibling = virtual[siblingProp])) {
-        if (!vnode_isVirtualVNode(virtual)) {
+        virtual = virtual[VNodeProps.parent];
+
+        if (virtual && !vnode_isVirtualVNode(virtual)) {
           // the parent node is not virtual, so we are done here.
           return null;
         }
-        virtual = virtual[VNodeProps.parent];
       }
       if (!sibling) {
         // If we did not find a sibling, than we are done.
@@ -966,7 +967,7 @@ export const vnode_insertBefore = (
   // const insertBeforeNode = shouldWeUseParentVirtual
   //   ? vnode_getDomSibling(parent, true)
   //   : insertBefore;
-  const parentNode = vnode_getDomParent(parent)!;
+  const parentNode = vnode_getDomParent(parent);
   if (parentNode) {
     const children = vnode_getDOMChildNodes(journal, newChild);
     children.length &&

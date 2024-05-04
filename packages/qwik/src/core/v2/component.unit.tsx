@@ -624,6 +624,35 @@ describe.each([
     );
   });
 
+  it('should render correctly component only with text node and node sibling', async () => {
+    const Child = component$(() => {
+      return <>0</>;
+    });
+    const Parent = component$(() => {
+      return (
+        <>
+          <div>
+            <Child />
+          </div>
+          <span>test</span>
+        </>
+      );
+    });
+    const { vNode } = await render(<Parent />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <div>
+            <Component>
+              <Fragment>0</Fragment>
+            </Component>
+          </div>
+          <span>test</span>
+        </Fragment>
+      </Component>
+    );
+  });
+
   describe('svg', () => {
     it('should render svg', async () => {
       const SvgComp = component$(() => {

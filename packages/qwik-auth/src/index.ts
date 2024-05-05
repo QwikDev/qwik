@@ -1,6 +1,6 @@
 import { Auth, skipCSRFCheck } from '@auth/core';
 import type { AuthAction, Session } from '@auth/core/types';
-import type { AuthConfig } from '@auth/core/index';
+import type { AuthConfig } from '@auth/core';
 import { implicit$FirstArg, type QRL } from '@builder.io/qwik';
 import {
   globalAction$,

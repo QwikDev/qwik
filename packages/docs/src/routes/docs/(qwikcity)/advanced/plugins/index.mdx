@@ -1,0 +1,31 @@
+---
+title: Plugins | Qwik City
+description: Learn about advanced routing in Qwik City, including 404 page handling, grouped layouts, named layouts, nested layouts, and plugin.ts files.
+contributors:
+  - patrickjs
+updated_at: '2024-05-05T16:20:00Z'
+created_at: '2024-05-05T16:20:00Z'
+---
+
+# Plugins with `plugin@<name>.ts`
+
+`plugin.ts` and `plugin@<name>.ts` files can be created in the root of the `src/routes` directory to handle any incoming request before even the root layout executes.
+
+You can have multiple `plugin.ts` files, each with a different name. For example, `plugin@auth.ts` and `plugin@security.ts`. The `@<name>` is optional and it's only used for developers to help identify the plugin.
+
+Requests handlers like `onRequest`, `onGet`, `onPost`, etc. are called before `server$` functions are executed.
+
+### The order of execution of `plugin.ts` files
+
+ If `plugin.ts` file exists and if it has exported request handlers, then they are executed first.
+
+Then exported request handlers from `plugin@<name>.ts` files are executed in alphabetical order of the file names. For example, `onGet` from `plugin@auth.ts` is executed before `onGet` from `plugin@security.ts` because `auth` is alphabetically before `security`.
+
+Finally, if a `server$` function exists, it's executed last.
+
+## Middleware and `server$`
+
+When using `server$`, it's important to understand how [middleware functions](/docs/middleware/#middleware-function) are executed. Middleware functions defined in `layout` files do not run for `server$` requests. This can lead to confusion, especially when developers expect certain middleware to be executed for both page requests and `server$` requests.
+
+To ensure that a middleware function runs for both types of requests, it should be defined in the `plugin.ts` file. This ensures that the middleware is executed consistently for all incoming requests, regardless of whether they are normal page requests or `server$` requests.
+

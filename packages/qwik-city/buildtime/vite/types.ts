@@ -1,3 +1,4 @@
+import type { CompileOptions } from '@mdx-js/mdx';
 import type { MdxTransform } from '../markdown/mdx';
 import type { BuildContext, BuildEntry, BuildRoute, PluginOptions, MdxPlugins } from '../types';
 import type { Config as SVGOConfig } from 'svgo';
@@ -28,7 +29,8 @@ export interface QwikCityVitePluginOptions extends Omit<PluginOptions, 'basePath
 }
 
 /** @public */
-export type MdxOptions = import('@mdx-js/mdx').CompileOptions;
+
+export type MdxOptions = CompileOptions;
 
 export interface PluginContext {
   buildCtx: BuildContext | null;

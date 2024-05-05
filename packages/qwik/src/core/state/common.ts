@@ -366,7 +366,7 @@ export const createSubscriptionManager = (containerState: ContainerState): Subsc
       }
     },
     $clearSignal$: (signal: SubscriberSignal) => {
-      const managers = groupToManagers.get(signal[1]);
+      const managers = groupToManagers.get(signal[SubscriptionProp.HOST]);
       if (managers) {
         for (const manager of managers) {
           manager.$unsubEntry$(signal);
@@ -397,7 +397,7 @@ export class LocalSubscriptionManager {
   $addSubs$(subs: Subscriptions[]) {
     this.$subs$.push(...subs);
     for (const sub of this.$subs$) {
-      this.$addToGroup$(sub[1], this);
+      this.$addToGroup$(sub[SubscriptionProp.HOST], this);
     }
   }
 
@@ -425,25 +425,29 @@ export class LocalSubscriptionManager {
   $unsubEntry$(entry: SubscriberSignal) {
     const [type, group, signal, elm] = entry;
     const subs = this.$subs$;
-    if (type === 1 || type === 2) {
-      const prop = entry[4];
+    if (type === SubscriptionType.PROP_IMMUTABLE || type === SubscriptionType.PROP_MUTABLE) {
+      const prop = entry[SubscriptionProp.ELEMENT_PROP];
       for (let i = 0; i < subs.length; i++) {
         const sub = subs[i];
         const match =
-          sub[0] === type &&
-          sub[1] === group &&
-          sub[2] === signal &&
-          sub[3] === elm &&
-          sub[4] === prop;
+          sub[SubscriptionProp.TYPE] === type &&
+          sub[SubscriptionProp.HOST] === group &&
+          sub[SubscriptionProp.SIGNAL] === signal &&
+          sub[SubscriptionProp.ELEMENT] === elm &&
+          sub[SubscriptionProp.ELEMENT_PROP] === prop;
         if (match) {
           subs.splice(i, 1);
           i--;
         }
       }
-    } else if (type === 3 || type === 4) {
+    } else if (type === SubscriptionType.TEXT_IMMUTABLE || type === SubscriptionType.TEXT_MUTABLE) {
       for (let i = 0; i < subs.length; i++) {
         const sub = subs[i];
-        const match = sub[0] === type && sub[1] === group && sub[2] === signal && sub[3] === elm;
+        const match =
+          sub[SubscriptionProp.TYPE] === type &&
+          sub[SubscriptionProp.HOST] === group &&
+          sub[SubscriptionProp.SIGNAL] === signal &&
+          sub[SubscriptionProp.ELEMENT] === elm;
         if (match) {
           subs.splice(i, 1);
           i--;

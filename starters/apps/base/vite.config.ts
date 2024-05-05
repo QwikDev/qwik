@@ -82,5 +82,7 @@ function errorOnDuplicatesPkgDeps(
   `;
 
   // Throw an error with the constructed message.
-  throw new Error(msg);
+  if (duplicateDeps.length > 0) {
+    throw new Error(msg);
+  }
 }

@@ -1,6 +1,5 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 3425
 expression: output
 ---
 ==INPUT==
@@ -35,7 +34,6 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
 import { _jsxQ } from "@builder.io/qwik";
-import { _wrapProp } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 import { useStore } from "@builder.io/qwik";
 export const test_component_LUXeXe0DQrg = ()=>{
@@ -53,18 +51,18 @@ export const test_component_LUXeXe0DQrg = ()=>{
         store.map(function(v, idx) {
             return /*#__PURE__*/ _jsxQ("div", null, null, [
                 "Function: ",
-                _wrapProp(v, "value")
+                v.value
             ], 1, "fn_" + idx);
         }),
         store.map((v, idx)=>/*#__PURE__*/ _jsxQ("div", null, null, [
                 "Arrow: ",
-                _wrapProp(v, "value")
+                v.value
             ], 1, "arrow_" + idx))
     ], 1, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;0CAG4B,IAAM;IAChC,MAAM,QAAQ,SAAS;QAAC;YAAE,OAAO;QAAE;KAAE;IACrC,qBACC;sBACA,MAAC;YAAO,QAAQ;;;WAA0B;QACzC,MAAM,GAAG,CAAC,SAAU,CAAC,EAAE,GAAG,EAAE;YAC5B,qBAAO,MAAC;gBAAsB;0BAAW;kBAAxB,QAAQ;QAC1B;QACC,MAAM,GAAG,CAAC,CAAC,GAAG,oBACd,MAAC;gBAAyB;0BAAQ;kBAAxB,WAAW;;AAIvB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;0CAG4B,IAAM;IAChC,MAAM,QAAQ,SAAS;QAAC;YAAE,OAAO;QAAE;KAAE;IACrC,qBACC;sBACA,MAAC;YAAO,QAAQ;;;WAA0B;QACzC,MAAM,GAAG,CAAC,SAAU,CAAC,EAAE,GAAG,EAAE;YAC5B,qBAAO,MAAC;gBAAsB;gBAAW,EAAE,KAAK;kBAA/B,QAAQ;QAC1B;QACC,MAAM,GAAG,CAAC,CAAC,GAAG,oBACd,MAAC;gBAAyB;gBAAQ,EAAE,KAAK;kBAA/B,WAAW;;AAIvB\"}")
 /*
 {
   "origin": "test.tsx",

@@ -8,11 +8,13 @@ import { qwikCity } from "@builder.io/qwik-city/vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 import pkg from "./package.json";
 
+type PkgDep = Record<string, string>;
 const { dependencies = {}, devDependencies = {} } = pkg as any as {
-  dependencies: Record<string, string>;
-  devDependencies: Record<string, string>;
+  dependencies: PkgDep;
+  devDependencies: PkgDep;
   [key: string]: unknown;
 };
+errorOnDuplicatesPkgDeps(devDependencies, dependencies);
 
 /**
  * Note that Vite normally starts from `index.html` but the qwikCity plugin makes start at `src/entry.ssr.tsx` instead.
@@ -54,3 +56,31 @@ export default defineConfig(({ command, mode }): UserConfig => {
     },
   };
 });
+
+// *** utils ***
+
+/**
+ * Function to identify duplicate dependencies and throw an error
+ * @param {Object} devDependencies - List of development dependencies
+ * @param {Object} dependencies - List of production dependencies
+ */
+function errorOnDuplicatesPkgDeps(
+  devDependencies: PkgDep,
+  dependencies: PkgDep,
+) {
+  // Create an array 'duplicateDeps' by filtering devDependencies.
+  // If a dependency also exists in dependencies, it is considered a duplicate.
+  const duplicateDeps = Object.keys(devDependencies).filter(
+    (dep) => dependencies[dep],
+  );
+
+  // Format the error message with the duplicates list.
+  // The `join` function is used to represent the elements of the 'duplicateDeps' array as a comma-separated string.
+  const msg = `
+    Warning: The dependency "${duplicateDeps.join(", ")}" is listed in both "devDependencies" and "dependencies".
+    Please move the duplicated dependencies to "devDependencies" only and remove it from "dependencies"
+  `;
+
+  // Throw an error with the constructed message.
+  throw new Error(msg);
+}

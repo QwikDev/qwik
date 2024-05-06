@@ -213,10 +213,17 @@ importers:
         version: 6.2.9(rollup@4.17.2)
       vite-plugin-dts:
         specifier: ^3.9.0
+<<<<<<< HEAD
         version: 3.9.0(@types/node@20.12.8)(rollup@4.17.2)(typescript@5.4.5)(vite@5.2.11)
       vite-tsconfig-paths:
         specifier: ^4.3.2
         version: 4.3.2(typescript@5.4.5)(vite@5.2.11)
+=======
+        version: 3.9.0(@types/node@20.12.7)(rollup@4.17.2)(typescript@5.4.5)(vite@5.2.10)
+      vite-tsconfig-paths:
+        specifier: ^4.3.2
+        version: 4.3.2(typescript@5.4.5)(vite@5.2.10)
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
       vitest:
         specifier: ^1.5.0
         version: 1.6.0(@types/node@20.12.8)(terser@5.31.0)
@@ -285,13 +292,21 @@ importers:
         version: 0.23.1(@builder.io/qwik-city@packages+qwik-city)(@builder.io/qwik@packages+qwik)
       '@mui/material':
         specifier: ^5.15.14
+<<<<<<< HEAD
         version: 5.15.16(@emotion/react@11.11.4)(@emotion/styled@11.11.5)(@types/react@18.3.1)(react-dom@18.2.0)(react@18.2.0)
+=======
+        version: 5.15.15(@emotion/react@11.11.4)(@emotion/styled@11.11.5)(@types/react@18.3.1)(react-dom@18.2.0)(react@18.2.0)
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
       '@mui/system':
         specifier: ^5.15.14
         version: 5.15.15(@emotion/react@11.11.4)(@emotion/styled@11.11.5)(@types/react@18.3.1)(react@18.2.0)
       '@mui/x-data-grid':
         specifier: ^6.19.6
+<<<<<<< HEAD
         version: 6.19.11(@mui/material@5.15.16)(@mui/system@5.15.15)(@types/react@18.3.1)(react-dom@18.2.0)(react@18.2.0)
+=======
+        version: 6.19.11(@mui/material@5.15.15)(@mui/system@5.15.15)(@types/react@18.3.1)(react-dom@18.2.0)(react@18.2.0)
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
       '@supabase/supabase-js':
         specifier: ^2.39.8
         version: 2.43.1
@@ -384,10 +399,17 @@ importers:
         version: 5.2.11(@types/node@20.12.8)(terser@5.31.0)
       vite-plugin-inspect:
         specifier: ^0.8.4
+<<<<<<< HEAD
         version: 0.8.4(rollup@4.17.2)(vite@5.2.11)
       wrangler:
         specifier: ^3.30.1
         version: 3.53.1
+=======
+        version: 0.8.4(rollup@4.17.2)(vite@5.2.10)
+      wrangler:
+        specifier: ^3.30.1
+        version: 3.53.0
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
 
   packages/eslint-plugin-qwik:
     dependencies:
@@ -494,7 +516,11 @@ importers:
         version: link:../eslint-plugin-qwik
       netlify-cli:
         specifier: ^17.19.5
+<<<<<<< HEAD
         version: 17.23.1(@types/express@4.17.21)(@types/node@20.12.8)
+=======
+        version: 17.23.1(@types/express@4.17.21)(@types/node@20.12.7)
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
       postcss:
         specifier: ^8.4.37
         version: 8.4.38
@@ -518,7 +544,11 @@ importers:
         version: 5.2.11(@types/node@20.12.8)(terser@5.31.0)
       vite-tsconfig-paths:
         specifier: ^4.3.2
+<<<<<<< HEAD
         version: 4.3.2(typescript@5.4.5)(vite@5.2.11)
+=======
+        version: 4.3.2(typescript@5.4.5)(vite@5.2.10)
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
       vitest:
         specifier: ^1.5.0
         version: 1.6.0(@types/node@20.12.8)(terser@5.31.0)
@@ -748,7 +778,11 @@ importers:
         version: 5.2.11(@types/node@20.12.8)(terser@5.31.0)
       vite-plugin-static-copy:
         specifier: ^1.0.3
+<<<<<<< HEAD
         version: 1.0.4(vite@5.2.11)
+=======
+        version: 1.0.3(vite@5.2.10)
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
 
   packages/supabase-auth-helpers-qwik:
     dependencies:
@@ -5585,15 +5619,27 @@ packages:
 
   /ajv-formats@2.1.1:
     resolution: {integrity: sha512-Wx0Kx52hxE7C18hkMEggYlEifqWZtYaRgouJor+WMdPnQyEK13vgEWyVNup7SoeeoLMsr4kf5h6dOW11I15MUA==}
+<<<<<<< HEAD
     dependencies:
       ajv: 8.13.0
     dev: true
+=======
+    peerDependenciesMeta:
+      ajv:
+        optional: true
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
 
   /ajv-formats@3.0.1:
     resolution: {integrity: sha512-8iUql50EUR+uUcdRQ3HDqa6EVyo3docL8g5WJ3FNcWmu62IbkGUue/pEyLBW8VGKKucTPgqeks4fIU1DA4yowQ==}
+<<<<<<< HEAD
     dependencies:
       ajv: 8.13.0
     dev: true
+=======
+    peerDependenciesMeta:
+      ajv:
+        optional: true
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
 
   /ajv@6.12.6:
     resolution: {integrity: sha512-j3fVLgvTo527anyYyJOGTYJbG+vnnQYvE0m5mmkc1TK+nxAppkCLMIL0aZ4dblVCNoGShhm+kzE4ZUykBoMg4g==}
@@ -17981,7 +18027,7 @@ snapshots:
       '@commitlint/types': 19.0.3
       chalk: 5.3.0
       cosmiconfig: 9.0.0(typescript@5.4.5)
-      cosmiconfig-typescript-loader: 5.0.0(@types/node@20.12.7)(cosmiconfig@9.0.0(typescript@5.4.5))(typescript@5.4.5)
+      cosmiconfig-typescript-loader: 5.0.0(@types/node@20.12.7)(cosmiconfig@9.0.0)(typescript@5.4.5)
       lodash.isplainobject: 4.0.6
       lodash.merge: 4.6.2
       lodash.uniq: 4.5.0
@@ -18061,11 +18107,17 @@ snapshots:
       '@emotion/use-insertion-effect-with-fallbacks': 1.0.1(react@18.2.0)
       '@emotion/utils': 1.2.1
       '@emotion/weak-memoize': 0.3.1
+      '@types/react': 18.3.1
       hoist-non-react-statics: 3.3.2
       react: 18.2.0
+<<<<<<< HEAD
     optionalDependencies:
       '@types/react': 18.2.79
   '@emotion/serialize@1.1.3':
+=======
+
+  '@emotion/serialize@1.1.4':
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
     dependencies:
       '@emotion/hash': 0.9.1
       '@emotion/memoize': 0.8.1
@@ -18073,7 +18125,12 @@ snapshots:
       '@emotion/utils': 1.2.1
       csstype: 3.1.3
   '@emotion/sheet@1.2.2': {}
+<<<<<<< HEAD
   '@emotion/styled@11.11.0(@emotion/react@11.11.4(@types/react@18.2.79)(react@18.2.0))(@types/react@18.2.79)(react@18.2.0)':
+=======
+
+  '@emotion/styled@11.11.5(@emotion/react@11.11.4)(@types/react@18.3.1)(react@18.2.0)':
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
     dependencies:
       '@babel/runtime': 7.24.1
       '@emotion/babel-plugin': 11.11.0
@@ -18082,9 +18139,15 @@ snapshots:
       '@emotion/serialize': 1.1.3
       '@emotion/use-insertion-effect-with-fallbacks': 1.0.1(react@18.2.0)
       '@emotion/utils': 1.2.1
+<<<<<<< HEAD
       react: 18.2.0
     optionalDependencies:
       '@types/react': 18.2.79
+=======
+      '@types/react': 18.3.1
+      react: 18.2.0
+
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
   '@emotion/unitless@0.8.1': {}
   '@emotion/use-insertion-effect-with-fallbacks@1.0.1(react@18.2.0)':
     dependencies:
@@ -18450,9 +18513,16 @@ snapshots:
       '@floating-ui/utils': 0.2.1
   '@floating-ui/dom@1.6.3':
     dependencies:
+<<<<<<< HEAD
       '@floating-ui/core': 1.6.0
       '@floating-ui/utils': 0.2.1
   '@floating-ui/react-dom@2.0.8(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
+=======
+      '@floating-ui/core': 1.6.1
+      '@floating-ui/utils': 0.2.2
+
+  '@floating-ui/react-dom@2.0.9(react-dom@18.2.0)(react@18.2.0)':
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
     dependencies:
       '@floating-ui/dom': 1.6.3
       react: 18.2.0
@@ -18581,9 +18651,14 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.4.15
+<<<<<<< HEAD
     dev: true
   /@libsql/client@0.5.6:
     resolution: {integrity: sha512-UBjmDoxz75Z2sHdP+ETCROpeLA/77VMesiff8R4UWK1rnaWbh6/YoCLDILMJL3Rh0udQeKxjL8MjXthqohax+g==}
+=======
+
+  '@libsql/client@0.5.6':
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
     dependencies:
       '@libsql/core': 0.5.6
       '@libsql/hrana-client': 0.5.6
@@ -18603,8 +18678,13 @@ snapshots:
     optional: true
   '@libsql/darwin-x64@0.3.10':
     optional: true
+<<<<<<< HEAD
   /@libsql/hrana-client@0.5.6:
     resolution: {integrity: sha512-mjQoAmejZ1atG+M3YR2ZW+rg6ceBByH/S/h17ZoYZkqbWrvohFhXyz2LFxj++ARMoY9m6w3RJJIRdJdmnEUlFg==}
+=======
+
+  '@libsql/hrana-client@0.5.6':
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
     dependencies:
       '@libsql/isomorphic-fetch': 0.1.12
       '@libsql/isomorphic-ws': 0.1.5
@@ -18622,12 +18702,20 @@ snapshots:
       node-fetch: 2.7.0
     transitivePeerDependencies:
       - encoding
+<<<<<<< HEAD
     dev: false
   /@libsql/isomorphic-ws@0.1.5:
     resolution: {integrity: sha512-DtLWIH29onUYR00i0GlQ3UdcTRC6EP4u9w/h9LxpUZJWRMARk6dQwZ6Jkd+QdwVpuAOrdxt18v0K2uIYR3fwFg==}
     dependencies:
       '@types/ws': 8.5.10
       ws: 8.16.0(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+=======
+
+  '@libsql/isomorphic-ws@0.1.5':
+    dependencies:
+      '@types/ws': 8.5.10
+      ws: 8.17.0
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -18788,6 +18876,7 @@ snapshots:
     dependencies:
       '@builder.io/qwik': link:packages/qwik
       '@builder.io/qwik-city': link:packages/qwik-city
+<<<<<<< HEAD
   '@mui/base@5.0.0-beta.40(@types/react@18.2.79)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
     dependencies:
       '@babel/runtime': 7.24.1
@@ -18810,12 +18899,51 @@ snapshots:
       '@mui/system': 5.15.14(@emotion/react@11.11.4(@types/react@18.2.79)(react@18.2.0))(@emotion/styled@11.11.0(@emotion/react@11.11.4(@types/react@18.2.79)(react@18.2.0))(@types/react@18.2.79)(react@18.2.0))(@types/react@18.2.79)(react@18.2.0)
       '@mui/types': 7.2.14(@types/react@18.2.79)
       '@mui/utils': 5.15.14(@types/react@18.2.79)(react@18.2.0)
+=======
+
+  '@mswjs/interceptors@0.27.2':
+    dependencies:
+      '@open-draft/deferred-promise': 2.2.0
+      '@open-draft/logger': 0.3.0
+      '@open-draft/until': 2.1.0
+      is-node-process: 1.2.0
+      outvariant: 1.4.2
+      strict-event-emitter: 0.5.1
+
+  '@mui/base@5.0.0-beta.40(@types/react@18.3.1)(react-dom@18.2.0)(react@18.2.0)':
+    dependencies:
+      '@babel/runtime': 7.24.5
+      '@floating-ui/react-dom': 2.0.9(react-dom@18.2.0)(react@18.2.0)
+      '@mui/types': 7.2.14(@types/react@18.3.1)
+      '@mui/utils': 5.15.14(@types/react@18.3.1)(react@18.2.0)
+      '@popperjs/core': 2.11.8
+      '@types/react': 18.3.1
+      clsx: 2.1.1
+      prop-types: 15.8.1
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+
+  '@mui/core-downloads-tracker@5.15.15': {}
+
+  '@mui/material@5.15.15(@emotion/react@11.11.4)(@emotion/styled@11.11.5)(@types/react@18.3.1)(react-dom@18.2.0)(react@18.2.0)':
+    dependencies:
+      '@babel/runtime': 7.24.5
+      '@emotion/react': 11.11.4(@types/react@18.3.1)(react@18.2.0)
+      '@emotion/styled': 11.11.5(@emotion/react@11.11.4)(@types/react@18.3.1)(react@18.2.0)
+      '@mui/base': 5.0.0-beta.40(@types/react@18.3.1)(react-dom@18.2.0)(react@18.2.0)
+      '@mui/core-downloads-tracker': 5.15.15
+      '@mui/system': 5.15.15(@emotion/react@11.11.4)(@emotion/styled@11.11.5)(@types/react@18.3.1)(react@18.2.0)
+      '@mui/types': 7.2.14(@types/react@18.3.1)
+      '@mui/utils': 5.15.14(@types/react@18.3.1)(react@18.2.0)
+      '@types/react': 18.3.1
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
       '@types/react-transition-group': 4.4.10
       clsx: 2.1.1
       csstype: 3.1.3
       prop-types: 15.8.1
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
+<<<<<<< HEAD
       react-is: 18.2.0
       react-transition-group: 4.4.5(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
     optionalDependencies:
@@ -18876,6 +19004,64 @@ snapshots:
       '@mui/system': 5.15.14(@emotion/react@11.11.4(@types/react@18.2.79)(react@18.2.0))(@emotion/styled@11.11.0(@emotion/react@11.11.4(@types/react@18.2.79)(react@18.2.0))(@types/react@18.2.79)(react@18.2.0))(@types/react@18.2.79)(react@18.2.0)
       '@mui/utils': 5.15.14(@types/react@18.2.79)(react@18.2.0)
       clsx: 2.1.0
+=======
+      react-is: 18.3.1
+      react-transition-group: 4.4.5(react-dom@18.2.0)(react@18.2.0)
+
+  '@mui/private-theming@5.15.14(@types/react@18.3.1)(react@18.2.0)':
+    dependencies:
+      '@babel/runtime': 7.24.5
+      '@mui/utils': 5.15.14(@types/react@18.3.1)(react@18.2.0)
+      '@types/react': 18.3.1
+      prop-types: 15.8.1
+      react: 18.2.0
+
+  '@mui/styled-engine@5.15.14(@emotion/react@11.11.4)(@emotion/styled@11.11.5)(react@18.2.0)':
+    dependencies:
+      '@babel/runtime': 7.24.5
+      '@emotion/cache': 11.11.0
+      '@emotion/react': 11.11.4(@types/react@18.3.1)(react@18.2.0)
+      '@emotion/styled': 11.11.5(@emotion/react@11.11.4)(@types/react@18.3.1)(react@18.2.0)
+      csstype: 3.1.3
+      prop-types: 15.8.1
+      react: 18.2.0
+
+  '@mui/system@5.15.15(@emotion/react@11.11.4)(@emotion/styled@11.11.5)(@types/react@18.3.1)(react@18.2.0)':
+    dependencies:
+      '@babel/runtime': 7.24.5
+      '@emotion/react': 11.11.4(@types/react@18.3.1)(react@18.2.0)
+      '@emotion/styled': 11.11.5(@emotion/react@11.11.4)(@types/react@18.3.1)(react@18.2.0)
+      '@mui/private-theming': 5.15.14(@types/react@18.3.1)(react@18.2.0)
+      '@mui/styled-engine': 5.15.14(@emotion/react@11.11.4)(@emotion/styled@11.11.5)(react@18.2.0)
+      '@mui/types': 7.2.14(@types/react@18.3.1)
+      '@mui/utils': 5.15.14(@types/react@18.3.1)(react@18.2.0)
+      '@types/react': 18.3.1
+      clsx: 2.1.1
+      csstype: 3.1.3
+      prop-types: 15.8.1
+      react: 18.2.0
+
+  '@mui/types@7.2.14(@types/react@18.3.1)':
+    dependencies:
+      '@types/react': 18.3.1
+
+  '@mui/utils@5.15.14(@types/react@18.3.1)(react@18.2.0)':
+    dependencies:
+      '@babel/runtime': 7.24.5
+      '@types/prop-types': 15.7.12
+      '@types/react': 18.3.1
+      prop-types: 15.8.1
+      react: 18.2.0
+      react-is: 18.3.1
+
+  '@mui/x-data-grid@6.19.11(@mui/material@5.15.15)(@mui/system@5.15.15)(@types/react@18.3.1)(react-dom@18.2.0)(react@18.2.0)':
+    dependencies:
+      '@babel/runtime': 7.24.5
+      '@mui/material': 5.15.15(@emotion/react@11.11.4)(@emotion/styled@11.11.5)(@types/react@18.3.1)(react-dom@18.2.0)(react@18.2.0)
+      '@mui/system': 5.15.15(@emotion/react@11.11.4)(@emotion/styled@11.11.5)(@types/react@18.3.1)(react@18.2.0)
+      '@mui/utils': 5.15.14(@types/react@18.3.1)(react@18.2.0)
+      clsx: 2.1.1
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
       prop-types: 15.8.1
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
@@ -18899,8 +19085,13 @@ snapshots:
       semver: 7.6.0
       yaml: 2.4.2
       yargs: 17.7.2
+<<<<<<< HEAD
     dev: true
   '@netlify/build@29.36.3(@types/node@20.12.7)(picomatch@3.0.1)':
+=======
+
+  '@netlify/build@29.41.2(@opentelemetry/api@1.8.0)(@types/node@20.12.7)':
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
     dependencies:
       '@bugsnag/js': 7.22.7
       '@netlify/blobs': 7.3.0
@@ -19664,9 +19855,15 @@ snapshots:
       '@types/estree': 1.0.5
       estree-walker: 2.0.2
       picomatch: 2.3.1
+<<<<<<< HEAD
     optionalDependencies:
       rollup: 4.16.4
   '@rollup/rollup-android-arm-eabi@4.16.4':
+=======
+      rollup: 4.17.2
+
+  '@rollup/rollup-android-arm-eabi@4.17.2':
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
     optional: true
   '@rollup/rollup-android-arm64@4.16.4':
     optional: true
@@ -19707,6 +19904,7 @@ snapshots:
       resolve: 1.22.8
       semver: 7.5.4
       z-schema: 5.0.5
+<<<<<<< HEAD
     dev: true
   /@rushstack/node-core-library@4.1.0(@types/node@20.12.7):
     resolution: {integrity: sha512-qz4JFBZJCf1YN5cAXa1dP6Mki/HrsQxc/oYGAGx29dF2cwF2YMxHoly0FBhMw3IEnxo5fMj0boVfoHVBkpkx/w==}
@@ -19715,6 +19913,10 @@ snapshots:
     peerDependenciesMeta:
       '@types/node':
         optional: true
+=======
+
+  '@rushstack/node-core-library@4.1.0(@types/node@20.12.7)':
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
     dependencies:
       '@types/node': 20.12.7
       fs-extra: 7.0.1
@@ -19723,9 +19925,14 @@ snapshots:
       resolve: 1.22.8
       semver: 7.5.4
       z-schema: 5.0.5
+<<<<<<< HEAD
     dev: true
   /@rushstack/rig-package@0.5.2:
     resolution: {integrity: sha512-mUDecIJeH3yYGZs2a48k+pbhM6JYwWlgjs2Ca5f2n1G2/kgdgP9D/07oglEGf6mRyXEnazhEENeYTSNDRCwdqA==}
+=======
+
+  '@rushstack/rig-package@0.5.2':
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
     dependencies:
       resolve: 1.22.8
       strip-json-comments: 3.1.1
@@ -19741,6 +19948,7 @@ snapshots:
       '@rushstack/node-core-library': 4.0.2(@types/node@20.12.7)
       '@types/node': 20.12.7
       supports-color: 8.1.1
+<<<<<<< HEAD
     dev: true
   /@rushstack/terminal@0.10.1(@types/node@20.12.7):
     resolution: {integrity: sha512-C6Vi/m/84IYJTkfzmXr1+W8Wi3MmBjVF/q3za91Gb3VYjKbpALHVxY6FgH625AnDe5Z0Kh4MHKWA3Z7bqgAezA==}
@@ -19749,13 +19957,22 @@ snapshots:
     peerDependenciesMeta:
       '@types/node':
         optional: true
+=======
+
+  '@rushstack/terminal@0.10.1(@types/node@20.12.7)':
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
     dependencies:
       '@rushstack/node-core-library': 4.1.0(@types/node@20.12.7)
       '@types/node': 20.12.7
       supports-color: 8.1.1
+<<<<<<< HEAD
     dev: true
   /@rushstack/ts-command-line@4.19.1(@types/node@20.12.7):
     resolution: {integrity: sha512-J7H768dgcpG60d7skZ5uSSwyCZs/S2HrWP1Ds8d1qYAyaaeJmpmmLr9BVw97RjFzmQPOYnoXcKA4GkqDCkduQg==}
+=======
+
+  '@rushstack/ts-command-line@4.19.1(@types/node@20.12.7)':
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
     dependencies:
       '@rushstack/terminal': 0.10.0(@types/node@20.12.7)
       '@types/argparse': 1.0.38
@@ -20124,7 +20341,12 @@ snapshots:
       '@types/node': 20.12.7
     dev: true
     optional: true
+<<<<<<< HEAD
   '@typescript-eslint/eslint-plugin@7.7.1(@typescript-eslint/parser@7.7.1(eslint@8.57.0)(typescript@5.4.5))(eslint@8.57.0)(typescript@5.4.5)':
+=======
+
+  '@typescript-eslint/eslint-plugin@7.8.0(@typescript-eslint/parser@7.8.0)(eslint@8.57.0)(typescript@5.4.5)':
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
     dependencies:
       '@eslint-community/regexpp': 4.10.0
       '@typescript-eslint/parser': 7.8.0(eslint@8.57.0)(typescript@5.4.5)
@@ -20381,11 +20603,18 @@ snapshots:
       path-browserify: 1.0.1
       typescript: 5.4.5
       vue-template-compiler: 2.7.16
+<<<<<<< HEAD
     dev: true
   '@vue/shared@3.4.25': {}
   /@xhmikosr/archive-type@6.0.1:
     resolution: {integrity: sha512-PB3NeJL8xARZt52yDBupK0dNPn8uIVQDe15qNehUpoeeLWCZyAOam4vGXnoZGz2N9D1VXtjievJuCsXam2TmbQ==}
     engines: {node: ^14.14.0 || >=16.0.0}
+=======
+
+  '@vue/shared@3.4.26': {}
+
+  '@xhmikosr/archive-type@6.0.1':
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
     dependencies:
       file-type: 18.7.0
     dev: true
@@ -20660,6 +20889,7 @@ snapshots:
     hasBin: true
     dependencies:
       entities: 2.2.0
+<<<<<<< HEAD
     dev: true
   /any-observable@0.3.0(rxjs@6.6.7):
     resolution: {integrity: sha512-/FQM1EDkTsf63Ub2C6O7GuYFDsSXUwsaZDurV0np41ocwq0jthUAYCmhBX9f+KwlaCgIuWyr/4WlUQUBfKfZog==}
@@ -20672,6 +20902,10 @@ snapshots:
         optional: true
       zenObservable:
         optional: true
+=======
+
+  any-observable@0.3.0(rxjs@6.6.7):
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
     dependencies:
       rxjs: 6.6.7
     dev: true
@@ -21701,6 +21935,7 @@ snapshots:
       run-parallel: 1.2.0
     transitivePeerDependencies:
       - supports-color
+<<<<<<< HEAD
     dev: true
   /core-util-is@1.0.3:
     resolution: {integrity: sha512-ZQBvi1DcpJ4GDqanjucZ2Hj3wEO5pZDS89BWbkcrvdxksJorwUDDZamX9ldFkp9aw2lmBDLgkObEA4DWNJ9FYQ==}
@@ -21713,6 +21948,12 @@ snapshots:
       '@types/node': '*'
       cosmiconfig: '>=8.2'
       typescript: 5.4.5
+=======
+
+  core-util-is@1.0.3: {}
+
+  cosmiconfig-typescript-loader@5.0.0(@types/node@20.12.7)(cosmiconfig@9.0.0)(typescript@5.4.5):
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
     dependencies:
       '@types/node': 20.12.7
       cosmiconfig: 9.0.0(typescript@5.4.5)
@@ -22275,6 +22516,7 @@ snapshots:
       zod: 3.23.5
     transitivePeerDependencies:
       - supports-color
+<<<<<<< HEAD
     dev: false
   drizzle-orm@0.29.4(@libsql/client@0.5.6(bufferutil@4.0.8)(utf-8-validate@5.0.10))(@opentelemetry/api@1.7.0)(@types/react@18.2.79)(better-sqlite3@9.4.3)(bun-types@1.1.0)(react@18.2.0):
     optionalDependencies:
@@ -22289,6 +22531,18 @@ snapshots:
     dev: true
   /ecdsa-sig-formatter@1.0.11:
     resolution: {integrity: sha512-nagl3RYrbNv6kQkeJIpt6NJZy8twLB/2vtz6yN9Z4vRKHN4/QZJIEbqohALSgwKdnksuY3k5Addp5lg8sVoVcQ==}
+=======
+
+  drizzle-orm@0.29.4(@libsql/client@0.5.6)(@types/react@18.3.1)(better-sqlite3@9.6.0):
+    dependencies:
+      '@libsql/client': 0.5.6
+      '@types/react': 18.3.1
+      better-sqlite3: 9.6.0
+
+  eastasianwidth@0.2.0: {}
+
+  ecdsa-sig-formatter@1.0.11:
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
     dependencies:
       safe-buffer: 5.2.1
     dev: true
@@ -23381,6 +23635,7 @@ snapshots:
     resolution: {integrity: sha512-cE1qsB/VwyQozZ+q1dGxR8LBYNZeofhEdUNGSMbQD3Gw2lAzX9Zb3uIU6Ebc/Fmyjo9AWWfnn0AUCHqtevs/8g==}
     dependencies:
       pend: 1.2.0
+<<<<<<< HEAD
     dev: true
   /fdir@6.1.1:
     resolution: {integrity: sha512-QfKBVg453Dyn3mr0Q0O+Tkr1r79lOTAKSi9f/Ot4+qVEwxWhav2Z+SudrG9vQjM2aYRMQQZ2/Q1zdA8ACM1pDg==}
@@ -23396,6 +23651,14 @@ snapshots:
   /fetch-blob@3.2.0:
     resolution: {integrity: sha512-7yAQpD2UMJzLi1Dqv7qFYnPbaPx7ZfFK6PiIxQ4PfkGPyNyl2Ugx+a/umUonmKqjhM4DnfbMvdX6otXq83soQQ==}
     engines: {node: ^12.20 || >= 14.13}
+=======
+
+  fdir@6.1.1: {}
+
+  fecha@4.2.3: {}
+
+  fetch-blob@3.2.0:
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
     dependencies:
       node-domexception: 1.0.0
       web-streams-polyfill: 3.3.3
@@ -23585,6 +23848,7 @@ snapshots:
     resolution: {integrity: sha512-VjAQdSLsl6AkpZNyrQJfO7BXLo4chnStqb055bumZMbRUPpVuPN3a4ktsnRCmrFZjtMlYLkyXiR5rAs4WOpC4Q==}
     dependencies:
       from2: 2.3.0
+<<<<<<< HEAD
     dev: true
   /follow-redirects@1.15.6(debug@4.3.4):
     resolution: {integrity: sha512-wWN62YITEaOpSK584EZXJafH1AGpO8RVgElfkuXbTOrPX4fIfOyEpW/CsiNd8JdYrAoOvafRTOEnvsO++qCqFA==}
@@ -23594,6 +23858,10 @@ snapshots:
     peerDependenciesMeta:
       debug:
         optional: true
+=======
+
+  follow-redirects@1.15.6(debug@4.3.4):
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
     dependencies:
       debug: 4.3.4(supports-color@9.4.0)
     dev: true
@@ -26230,7 +26498,12 @@ snapshots:
     engines: {node: '>=10'}
   mimic-response@4.0.0: {}
   min-indent@1.0.1: {}
+<<<<<<< HEAD
   miniflare@3.20240223.0(bufferutil@4.0.8)(utf-8-validate@5.0.10):
+=======
+
+  miniflare@3.20240419.0:
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
       acorn: 8.11.3
@@ -26239,9 +26512,15 @@ snapshots:
       exit-hook: 2.2.1
       glob-to-regexp: 0.4.1
       stoppable: 1.1.0
+<<<<<<< HEAD
       undici: 5.28.3
       workerd: 1.20240223.1
       ws: 8.16.0(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+=======
+      undici: 5.28.4
+      workerd: 1.20240419.0
+      ws: 8.17.0
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
       youch: 3.3.3
       zod: 3.23.5
     transitivePeerDependencies:
@@ -26440,6 +26719,7 @@ snapshots:
   natural-compare@1.4.0: {}
   negotiator@0.6.3: {}
   nested-error-stacks@2.1.1: {}
+<<<<<<< HEAD
   netlify-cli@17.19.5(@types/express@4.17.21)(@types/node@20.12.7)(bufferutil@4.0.8)(picomatch@3.0.1)(utf-8-validate@5.0.10):
     dependencies:
       '@bugsnag/js': 7.20.2
@@ -26449,6 +26729,19 @@ snapshots:
       '@netlify/build-info': 7.13.0
       '@netlify/config': 20.12.1
       '@netlify/edge-bundler': 11.3.0(supports-color@9.4.0)
+=======
+
+  netlify-cli@17.23.1(@types/express@4.17.21)(@types/node@20.12.7):
+    dependencies:
+      '@bugsnag/js': 7.22.7
+      '@fastify/static': 6.12.0
+      '@netlify/blobs': 7.3.0
+      '@netlify/build': 29.41.2(@opentelemetry/api@1.8.0)(@types/node@20.12.7)
+      '@netlify/build-info': 7.13.2
+      '@netlify/config': 20.12.3
+      '@netlify/edge-bundler': 12.0.0(supports-color@9.4.0)
+      '@netlify/edge-functions': 2.5.1
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
       '@netlify/local-functions-proxy': 1.1.1
       '@netlify/zip-it-and-ship-it': 9.32.1(@opentelemetry/api@1.8.0)(supports-color@9.4.0)
       '@octokit/rest': 19.0.13
@@ -27421,6 +27714,7 @@ snapshots:
       postcss: ^8.4.21
     dependencies:
       camelcase-css: 2.0.1
+<<<<<<< HEAD
       postcss: 8.4.37
     dev: true
   /postcss-load-config@4.0.2(postcss@8.4.37):
@@ -27445,6 +27739,17 @@ snapshots:
     engines: {node: '>=12.0'}
     peerDependencies:
       postcss: ^8.2.14
+=======
+      postcss: 8.4.38
+
+  postcss-load-config@4.0.2(postcss@8.4.38):
+    dependencies:
+      lilconfig: 3.1.1
+      postcss: 8.4.38
+      yaml: 2.4.2
+
+  postcss-nested@6.0.1(postcss@8.4.38):
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
     dependencies:
       postcss: 8.4.38
       postcss-selector-parser: 6.0.15
@@ -27550,8 +27855,13 @@ snapshots:
       prettier: 3.2.5
     transitivePeerDependencies:
       - supports-color
+<<<<<<< HEAD
     dev: true
   prettier-plugin-tailwindcss@0.5.12(prettier-plugin-jsdoc@1.3.0(prettier@3.2.5))(prettier@3.2.5):
+=======
+
+  prettier-plugin-tailwindcss@0.5.14(prettier-plugin-jsdoc@1.3.0)(prettier@3.2.5):
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
     dependencies:
       prettier: 3.2.5
       prettier-plugin-jsdoc: 1.3.0(prettier@3.2.5)
@@ -27713,18 +28023,29 @@ snapshots:
     engines: {node: '>=12.20'}
     dependencies:
       escape-goat: 4.0.0
+<<<<<<< HEAD
     dev: true
   puppeteer-core@22.6.0(bufferutil@4.0.8)(utf-8-validate@5.0.10):
+=======
+
+  puppeteer-core@22.7.1:
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
     dependencies:
       '@puppeteer/browsers': 2.2.3
       chromium-bidi: 0.5.19(devtools-protocol@0.0.1273771)
       debug: 4.3.4(supports-color@9.4.0)
+<<<<<<< HEAD
       devtools-protocol: 0.0.1262051
       ws: 8.16.0(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+=======
+      devtools-protocol: 0.0.1273771
+      ws: 8.16.0
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
     transitivePeerDependencies:
       - bufferutil
       - supports-color
       - utf-8-validate
+<<<<<<< HEAD
     dev: true
   puppeteer@22.6.0(bufferutil@4.0.8)(typescript@5.4.5)(utf-8-validate@5.0.10):
     dependencies:
@@ -27732,6 +28053,15 @@ snapshots:
       cosmiconfig: 9.0.0(typescript@5.4.5)
       devtools-protocol: 0.0.1262051
       puppeteer-core: 22.6.0(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+=======
+
+  puppeteer@22.7.1(typescript@5.4.5):
+    dependencies:
+      '@puppeteer/browsers': 2.2.3
+      cosmiconfig: 9.0.0(typescript@5.4.5)
+      devtools-protocol: 0.0.1273771
+      puppeteer-core: 22.7.1
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
     transitivePeerDependencies:
       - bufferutil
       - supports-color
@@ -27816,8 +28146,15 @@ snapshots:
       scheduler: 0.23.0
   react-is@16.13.1: {}
   react-is@17.0.2: {}
+<<<<<<< HEAD
   react-is@18.2.0: {}
   react-transition-group@4.4.5(react-dom@18.2.0(react@18.2.0))(react@18.2.0):
+=======
+
+  react-is@18.3.1: {}
+
+  react-transition-group@4.4.5(react-dom@18.2.0)(react@18.2.0):
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
     dependencies:
       '@babel/runtime': 7.24.5
       dom-helpers: 5.2.1
@@ -29072,8 +29409,13 @@ snapshots:
       untildify: 3.0.3
     transitivePeerDependencies:
       - supports-color
+<<<<<<< HEAD
     dev: true
   tailwindcss@3.4.1(ts-node@10.9.2(@types/node@20.12.7)(typescript@5.4.5)):
+=======
+
+  tailwindcss@3.4.3:
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
     dependencies:
       '@alloc/quick-lru': 5.2.0
       arg: 5.0.2
@@ -29092,7 +29434,7 @@ snapshots:
       postcss: 8.4.38
       postcss-import: 15.1.0(postcss@8.4.38)
       postcss-js: 4.0.1(postcss@8.4.38)
-      postcss-load-config: 4.0.2(postcss@8.4.38)(ts-node@10.9.2(@types/node@20.12.7)(typescript@5.4.5))
+      postcss-load-config: 4.0.2(postcss@8.4.38)
       postcss-nested: 6.0.1(postcss@8.4.38)
       postcss-selector-parser: 6.0.15
       resolve: 1.22.8
@@ -29373,6 +29715,7 @@ snapshots:
       typescript: 5.4.5
       v8-compile-cache-lib: 3.0.1
       yn: 3.1.1
+<<<<<<< HEAD
     dev: true
   /ts-toolbelt@9.6.0:
     resolution: {integrity: sha512-nsZd8ZeNUzukXPlJmTBwUAuABDe/9qtVDelJeT/qW0ow3ZS3BsQJtNkan1802aM9Uf68/Y8ljw86Hu0h5IUW3w==}
@@ -29382,6 +29725,13 @@ snapshots:
     engines: {node: ^18 || >=20}
     hasBin: true
     peerDependencies:
+=======
+
+  ts-toolbelt@9.6.0: {}
+
+  tsconfck@3.0.3(typescript@5.4.5):
+    dependencies:
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
       typescript: 5.4.5
     peerDependenciesMeta:
       typescript:
@@ -29646,7 +29996,11 @@ snapshots:
     dev: true
   unstorage@1.10.2(@netlify/blobs@7.0.1):
     dependencies:
+<<<<<<< HEAD
       '@netlify/blobs': 7.0.1
+=======
+      '@netlify/blobs': 7.3.0
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
       anymatch: 3.1.3
       chokidar: 3.6.0
       destr: 2.0.3
@@ -29654,11 +30008,17 @@ snapshots:
       listhen: 1.7.2
       lru-cache: 10.2.2
       mri: 1.2.0
+<<<<<<< HEAD
       node-fetch-native: 1.6.2
       ofetch: 1.3.3
       ufo: 1.5.2
     optionalDependencies:
       '@netlify/blobs': 7.0.1
+=======
+      node-fetch-native: 1.6.4
+      ofetch: 1.3.4
+      ufo: 1.5.3
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
     transitivePeerDependencies:
       - uWebSockets.js
     dev: true
@@ -29857,8 +30217,13 @@ snapshots:
       - sugarss
       - supports-color
       - terser
+<<<<<<< HEAD
     dev: true
   vite-plugin-dts@3.9.0(@types/node@20.12.7)(rollup@4.16.4)(typescript@5.4.5)(vite@5.2.10(@types/node@20.12.7)(terser@5.30.4)):
+=======
+
+  vite-plugin-dts@3.9.0(@types/node@20.12.7)(rollup@4.17.2)(typescript@5.4.5)(vite@5.2.10):
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
     dependencies:
       '@microsoft/api-extractor': 7.43.0(@types/node@20.12.7)
       '@rollup/pluginutils': 5.1.0(rollup@4.16.4)
@@ -29867,16 +30232,26 @@ snapshots:
       kolorist: 1.8.0
       magic-string: 0.30.10
       typescript: 5.4.5
+<<<<<<< HEAD
       vite: 5.2.10(@types/node@20.12.7)(terser@5.29.2)
       vue-tsc: 1.8.27(typescript@5.4.5)
     optionalDependencies:
       vite: 5.2.10(@types/node@20.12.7)(terser@5.30.4)
+=======
+      vite: 5.2.10(@types/node@20.12.7)(terser@5.31.0)
+      vue-tsc: 1.8.27(typescript@5.4.5)
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
     transitivePeerDependencies:
       - '@types/node'
       - rollup
       - supports-color
+<<<<<<< HEAD
     dev: true
   vite-plugin-inspect@0.8.4(rollup@4.16.4)(vite@5.2.10(@types/node@20.12.7)(terser@5.30.4)):
+=======
+
+  vite-plugin-inspect@0.8.4(rollup@4.17.2)(vite@5.2.10):
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
     dependencies:
       '@antfu/utils': 0.7.7
       '@rollup/pluginutils': 5.1.0(rollup@4.16.4)
@@ -29891,21 +30266,36 @@ snapshots:
     transitivePeerDependencies:
       - rollup
       - supports-color
+<<<<<<< HEAD
     dev: true
   vite-plugin-static-copy@1.0.3(vite@5.2.10(@types/node@20.12.7)(terser@5.30.4)):
+=======
+
+  vite-plugin-static-copy@1.0.3(vite@5.2.10):
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
     dependencies:
       chokidar: 3.6.0
       fast-glob: 3.3.2
       fs-extra: 11.2.0
       picocolors: 1.0.0
+<<<<<<< HEAD
       vite: 5.2.10(@types/node@20.12.7)(terser@5.30.4)
   vite-tsconfig-paths@4.3.2(typescript@5.4.5)(vite@5.2.10(@types/node@20.12.7)(terser@5.30.4)):
+=======
+      vite: 5.2.10(@types/node@20.12.7)(terser@5.31.0)
+
+  vite-tsconfig-paths@4.3.2(typescript@5.4.5)(vite@5.2.10):
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
     dependencies:
       debug: 4.3.4(supports-color@9.4.0)
       globrex: 0.1.2
       tsconfck: 3.0.3(typescript@5.4.5)
+<<<<<<< HEAD
     optionalDependencies:
       vite: 5.2.10(@types/node@20.12.7)(terser@5.30.4)
+=======
+      vite: 5.2.10(@types/node@20.12.7)(terser@5.31.0)
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
     transitivePeerDependencies:
       - supports-color
       - typescript
@@ -29916,15 +30306,24 @@ snapshots:
       esbuild: 0.18.20
       postcss: 8.4.37
       rollup: 3.29.4
+<<<<<<< HEAD
       terser: 5.29.2
     optionalDependencies:
       fsevents: 2.3.3
       terser: 5.30.4
   vite@5.2.10(@types/node@20.12.7)(terser@5.30.4):
+=======
+      terser: 5.31.0
+    optionalDependencies:
+      fsevents: 2.3.3
+
+  vite@5.2.10(@types/node@20.12.7)(terser@5.31.0):
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
     dependencies:
       '@types/node': 20.12.7
       esbuild: 0.20.2
       postcss: 8.4.38
+<<<<<<< HEAD
       rollup: 4.16.4
     optionalDependencies:
       fsevents: 2.3.3
@@ -29936,6 +30335,21 @@ snapshots:
       '@vitest/snapshot': 1.5.1
       '@vitest/spy': 1.5.1
       '@vitest/utils': 1.5.1
+=======
+      rollup: 4.17.2
+      terser: 5.31.0
+    optionalDependencies:
+      fsevents: 2.3.3
+
+  vitest@1.5.3(@types/node@20.12.7)(terser@5.31.0):
+    dependencies:
+      '@types/node': 20.12.7
+      '@vitest/expect': 1.5.3
+      '@vitest/runner': 1.5.3
+      '@vitest/snapshot': 1.5.3
+      '@vitest/spy': 1.5.3
+      '@vitest/utils': 1.5.3
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
       acorn-walk: 8.3.2
       chai: 4.4.1
       debug: 4.3.4(supports-color@9.4.0)
@@ -30122,12 +30536,22 @@ snapshots:
   wordwrap@1.0.0: {}
   workerd@1.20240223.1:
     optionalDependencies:
+<<<<<<< HEAD
       '@cloudflare/workerd-darwin-64': 1.20240223.1
       '@cloudflare/workerd-darwin-arm64': 1.20240223.1
       '@cloudflare/workerd-linux-64': 1.20240223.1
       '@cloudflare/workerd-linux-arm64': 1.20240223.1
       '@cloudflare/workerd-windows-64': 1.20240223.1
   wrangler@3.30.1(bufferutil@4.0.8)(utf-8-validate@5.0.10):
+=======
+      '@cloudflare/workerd-darwin-64': 1.20240419.0
+      '@cloudflare/workerd-darwin-arm64': 1.20240419.0
+      '@cloudflare/workerd-linux-64': 1.20240419.0
+      '@cloudflare/workerd-linux-arm64': 1.20240419.0
+      '@cloudflare/workerd-windows-64': 1.20240419.0
+
+  wrangler@3.53.0:
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
     dependencies:
       '@cloudflare/kv-asset-handler': 0.3.2
       '@esbuild-plugins/node-globals-polyfill': 0.2.3(esbuild@0.17.19)
@@ -30135,7 +30559,11 @@ snapshots:
       blake3-wasm: 2.1.5
       chokidar: 3.6.0
       esbuild: 0.17.19
+<<<<<<< HEAD
       miniflare: 3.20240223.0(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+=======
+      miniflare: 3.20240419.0
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
       nanoid: 3.3.7
       path-to-regexp: 6.2.2
       resolve: 1.22.8
@@ -30203,6 +30631,7 @@ snapshots:
     dependencies:
       imurmurhash: 0.1.4
       signal-exit: 4.1.0
+<<<<<<< HEAD
     dev: true
   /ws@8.14.2:
     resolution: {integrity: sha512-wEBG1ftX4jcglPxgFCMJmZ2PLtSbJ2Peg6TmpJFTbe9GZYOQCDPdMYu/Tm0/bGZkw8paZnJY45J4K2PZrLYq8g==}
@@ -30220,6 +30649,15 @@ snapshots:
     optionalDependencies:
       bufferutil: 4.0.8
       utf-8-validate: 5.0.10
+=======
+
+  ws@8.14.2: {}
+
+  ws@8.16.0: {}
+
+  ws@8.17.0: {}
+
+>>>>>>> ea0bc7d19df5aa499a80ed89b58c7a86efb615fa
   xdg-basedir@5.1.0: {}
   xss@1.0.15:
     dependencies:

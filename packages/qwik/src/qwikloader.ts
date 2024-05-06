@@ -85,32 +85,30 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
       const base = new URL(container[getAttribute]('q:base')!, doc.baseURI);
       for (const qrl of attrValue.split('\n')) {
         const url = new URL(qrl, base);
-        const symbolName = url.hash[replace](/^#?([^?[|]*).*$/, '$1') || 'default';
+        const symbol = url.hash[replace](/^#?([^?[|]*).*$/, '$1') || 'default';
         const reqTime = performance.now();
         let handler: any;
         const isSync = qrl.startsWith('#');
         if (isSync) {
-          handler = ((container as QContainerElement).qFuncs || [])[Number.parseInt(symbolName)];
+          handler = ((container as QContainerElement).qFuncs || [])[Number.parseInt(symbol)];
         } else {
           const module = import(/* @vite-ignore */ url.href.split('#')[0]);
           resolveContainer(container);
-          handler = (await module)[symbolName];
+          handler = (await module)[symbol];
         }
         const previousCtx = (doc as any)[Q_CONTEXT];
         if (element[isConnected]) {
+          const eventData = { symbol, error, element };
           try {
             (doc as any)[Q_CONTEXT] = [element, ev, url];
-            isSync ||
-              emitEvent<QwikSymbolEvent>('qsymbol', {
-                symbol: symbolName,
-                element: element,
-                reqTime,
-              });
+            isSync || emitEvent<QwikSymbolEvent>('qsymbol', eventData);
             const results = handler(ev, element);
             // only await if there is a promise returned
             if (isPromise(results)) {
               await results;
             }
+          } catch (error) {
+            emitEvent('qerror', eventData);
           } finally {
             (doc as any)[Q_CONTEXT] = previousCtx;
           }

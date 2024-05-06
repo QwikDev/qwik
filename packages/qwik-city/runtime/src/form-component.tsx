@@ -69,6 +69,19 @@ export const Form = <O, I>(
         onSubmit$: [
           !reloadDocument ? action.submit : undefined,
           ...(Array.isArray(onSubmit$) ? onSubmit$ : [onSubmit$]),
+          (_: SubmitEvent, form: HTMLFormElement) => {
+            if (form.getAttribute('data-spa-reset') === 'true') {
+              form.reset();
+            }
+            form.dispatchEvent(
+              new CustomEvent('submitcompleted', {
+                bubbles: false,
+                cancelable: false,
+                composed: false,
+                detail: {},
+              })
+            );
+          },
         ],
         method: 'post',
         ['data-spa-reset']: spaReset ? 'true' : undefined,

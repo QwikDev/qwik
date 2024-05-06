@@ -91,33 +91,33 @@ const _verifySerializable = <T>(value: T, seen: Set<any>, ctx: string, preMessag
       message += ` in ${ctx},`;
     }
     if (typeObj === 'object') {
-      message += ` because it's an instance of "${value?.constructor.name}". You might need to use 'noSerialize()' or use an object literal instead. Check out https://qwik.builder.io/docs/advanced/dollar/`;
+      message += ` because it's an instance of "${value?.constructor.name}". You might need to use 'noSerialize()' or use an object literal instead. Check out https://qwik.dev/docs/advanced/dollar/`;
     } else if (typeObj === 'function') {
       const fnName = (value as Function).name;
       message += ` because it's a function named "${fnName}". You might need to convert it to a QRL using $(fn):\n\nconst ${fnName} = $(${String(
         value
-      )});\n\nPlease check out https://qwik.builder.io/docs/advanced/qrl/ for more information.`;
+      )});\n\nPlease check out https://qwik.dev/docs/advanced/qrl/ for more information.`;
     }
     console.error('Trying to serialize', value);
     throwErrorAndStop(message);
   }
   return value;
 };
-const noSerializeSet = /*#__PURE__*/ new WeakSet<any>();
-const weakSerializeSet = /*#__PURE__*/ new WeakSet<any>();
+const noSerializeSet = /*#__PURE__*/ new WeakSet<object>();
+const weakSerializeSet = /*#__PURE__*/ new WeakSet<object>();
 
-export const shouldSerialize = (obj: any): boolean => {
+export const shouldSerialize = (obj: unknown): boolean => {
   if (isObject(obj) || isFunction(obj)) {
     return !noSerializeSet.has(obj);
   }
   return true;
 };
 
-export const fastSkipSerialize = (obj: any): boolean => {
+export const fastSkipSerialize = (obj: object): boolean => {
   return noSerializeSet.has(obj);
 };
 
-export const fastWeakSerialize = (obj: any): boolean => {
+export const fastWeakSerialize = (obj: object): boolean => {
   return weakSerializeSet.has(obj);
 };
 
@@ -144,7 +144,7 @@ export type NoSerialize<T> = (T & { __no_serialize__: true }) | undefined;
  * resumed, the value of this object will be `undefined`. You will be responsible for recovering
  * from this.
  *
- * See: [noSerialize Tutorial](http://qwik.builder.io/tutorial/store/no-serialize)
+ * See: [noSerialize Tutorial](http://qwik.dev/tutorial/store/no-serialize)
  *
  * @public
  */

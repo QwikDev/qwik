@@ -5,7 +5,14 @@ contributors:
   - manucorporat
   - mhevery
   - CoralWombat
+  - EamonHeffernan
+  - lollyxsrinand
+  - gparlakov
+  - mrhoodz
   - harishkrishnan24
+  - jemsco
+updated_at: '2023-09-18T19:04:44Z'
+created_at: '2023-06-13T06:46:09Z'
 ---
 
 import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
@@ -46,7 +53,7 @@ export const onDelete: RequestHandler = async (requestEvent) => { ... }
 Each middleware function is passed a [`RequestEvent`](#requestevent) object which allows the middleware to control the response.
 
 
-## Order of invocation
+## Order of Invocation
 
 The order of middleware function chain is determined by their location. Starting from the topmost `layout.tsx` and ending at the `index.tsx` for a given route. (Same resolution logic as the order of layout and route component as defined by the route path.)
 
@@ -130,7 +137,7 @@ export const onGet: RequestHandler = async ({ next, sharedMap }) => {
 ```
 </CodeSandbox>
 
-In general, a normal (non-exception) return of a function will execute the next function in the chain. However, throwing an error from the function will stop the execution chain. This is typically used for authentication or authorization and returning a `401` or `403` HTTP status code. Because the `next()` is implicit, to prevent calling the next middleware function in the chain it is necessary to `throw`.
+In general, a normal (non-exception) return of a function will execute the next function in the chain. However, throwing an error from the function will stop the execution chain. This is typically used for authentication or authorization and returning a `401` or `403` HTTP status code. Because the `next()` is implicit, it is necessary to `throw` an error to prevent calling the next middleware function in the chain.
 
 <CodeSandbox src="/src/routes/demo/qwikcity/middleware/throw/index.tsx">
 ```tsx /next()/
@@ -360,7 +367,7 @@ export const onGet: RequestHandler = async ({ html }) => {
     `
       <form id="myForm" method="POST">
         <input type="text" name="project" value="Qwik"/>
-        <input type="text" name="url" value="http://qwik.builder.io"/>
+        <input type="text" name="url" value="http://qwik.dev"/>
       </form>
       <script>myForm.submit()</script>`
   );
@@ -544,14 +551,14 @@ Creating a raw endpoint is as simple as calling the `send(Response)` method. The
 ```tsx
 import type { RequestHandler } from '@builder.io/qwik-city';
 
-export const onGet: RequestHandler = async (requestEvent) => {
+export const onGet: RequestHandler = async ({send}) => {
   const response = new Response('Hello World', {
     status: 200,
     headers: {
       'Content-Type': 'text/plain',
     },
   });
-  requestEvent.send(response);
+  send(response);
 };
 ```
 </CodeSandbox>

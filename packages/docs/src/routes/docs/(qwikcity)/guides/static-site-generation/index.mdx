@@ -5,7 +5,14 @@ contributors:
   - adamdbradley
   - AnthonyPAlicea
   - mhevery
+  - ibousfiha
+  - Kocal
+  - eric-burel
+  - julianobrasil
+  - mrhoodz
   - hamatoyogi
+updated_at: '2023-10-04T10:27:27Z'
+created_at: '2023-03-20T23:45:13Z'
 ---
 
 # Static Site Generation (SSG) Overview
@@ -50,7 +57,7 @@ Your build files will be generated into the `dist` folder.
 You can build your static site using:
 
 ```shell
-npm run build
+npm run build.server
 ```
 
 ### SSG Config
@@ -59,7 +66,7 @@ The `adapters/static/vite.config.ts` file also includes the SSG config, which wo
 
 #### `origin`
 
-The URL `origin`, which is a combination of the scheme (protocol) and hostname (domain). For example, `https://qwik.builder.io` has the protocol `https://` and domain `qwik.builder.io`. However, the `origin` does _not_ include a `pathname`.
+The URL `origin`, which is a combination of the scheme (protocol) and hostname (domain). For example, `https://qwik.dev` has the protocol `https://` and domain `qwik.dev`. However, the `origin` does _not_ include a `pathname`.
 
 The `origin` is used to provide a full URL during Static Site Generation (SSG), and to simulate a complete URL rather than just the `pathname`. For example, in order to render a correct canonical tag URL or URLs within the `sitemap.xml`, the `origin` must be provided too.
 

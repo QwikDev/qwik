@@ -49,8 +49,7 @@ test.skip('should serialize content', async () => {
         <!--/qv-->
       </div>
       <script>
-        window.qwikevents ||= [];
-        window.qwikevents.push("click");
+        (window.qwikevents ||= []).push("click");
       </script>
     </body>`
   );
@@ -120,7 +119,7 @@ export const LexicalScope_render = () => {
       <p>{JSON.stringify(g)}</p>
       <p>{JSON.stringify(h)}</p>
       <p>{noserialize.text}</p>
-      <button onDocumentClick$={() => state.count++}>Rerender {state.count}</button>
+      <button document:onClick$={() => state.count++}>Rerender {state.count}</button>
     </section>
   );
 };

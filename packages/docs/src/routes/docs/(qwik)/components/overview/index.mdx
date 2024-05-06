@@ -21,6 +21,17 @@ contributors:
   - AnthonyPAlicea
   - khalilou88
   - n8sabes
+  - fabian-hiller
+  - gioboa
+  - mrhoodz
+  - eecopa
+  - drumnistnakano
+  - maiieul
+  - wmertens
+  - aendel
+  - jemsco
+updated_at: '2023-12-14T18:38:38Z'
+created_at: '2023-03-20T23:45:13Z'
 ---
 
 import CodeSandbox from '../../../../../components/code-sandbox/index.tsx';
@@ -49,7 +60,8 @@ export default component$(() => {
 ```
 </CodeSandbox>
 
-> The reason for the `component$` is that the trailing `$` allows the [Optimizer](/docs/advanced/dollar/) to break the components into an application tree into a separate chunk so that each chunk can be loaded (or not loaded if it is not needed) independently. Without the `$` the component would be always loaded if the parent component needs to be loaded.
+> The `component$` function, marked by the trailing `$`, enables the Optimizer to split components into separate chunks.
+This allows each chunk to be loaded independently as needed, rather than loading all components whenever the parent component is loaded.
 
 ### Composing Components
 
@@ -100,7 +112,7 @@ export default component$(() => {
 
 ## Props
 
-Props are used to pass data from the parent into the component. Props are accesible via the `props` argument to the component$ function.
+Props are used to pass data from the parent into the component. Props are accessible via the `props` argument to the component$ function.
 
 In this example a component `Item` declares optional `name`, `quantity`, `description`, and `price`.
 
@@ -164,7 +176,7 @@ Qwik components are reactive. This means that they automatically update on a sta
 1. A state is bound to a DOM text or attribute. Such changes usually directly update the DOM and do not require component function re-execute.
 2. A state causes a structural change to the DOM (elements are created and or removed). Such changes require component function to re-execute.
 
-The thing to keep in mind is that when state changes your component function may execute zero or more times depending on what the state is bound to. For this reason, the function should be idempotent and you should not rely on the number of times it executes.
+The thing to keep in mind is that when state changes, your component function may execute zero or more times depending on what the state is bound to. For this reason, the function should be idempotent and you should not rely on the number of times it executes.
 
 A state change causes the component to get invalidated. When components get invalidated, they are added to the invalidation queue, which is flushed (rendered) on the next `requestAnimationFrame`. This acts as a form of coalescing for component rendering.
 
@@ -368,6 +380,31 @@ As the name implies, inline components are best used sparingly for
 lightweight pieces of markup since they offer the convenience of being
 bundled with the parent component.
 
+## Polymorphic components
+
+When you want to output a different type of element depending on props but default to a `<div>`, you can do it using something like this:
+
+```tsx
+    const Poly = component$(
+      <C extends string | FunctionComponent = 'div'>({
+        as,
+        ...props
+      }: { as?: C } & PropsOf<string extends C ? 'div' : C>) => {
+        const Cmp = as || 'div';
+        return <Cmp {...props}>hi</Cmp>;
+      }
+    );
+
+// These all work with correct types
+<>
+  <Poly>Hello from a div</Poly>
+  <Poly as="a" href="/blog">Blog</Poly>
+  <Poly as="input" onInput$={(ev, el) => console.log(el.value)} />
+  <Poly as={OtherComponent} someProp />
+</>
+```
+
+Note the `string extends C`, this is only true when TypeScript cannot infer the type from the `as` prop allowing you to specify the default type.
 
 ## API Overview
 
@@ -386,9 +423,9 @@ bundled with the parent component.
 
 ### Events
 
-- [`useOn()`](../events/index.mdx) - appends a listener to the current component programmatically
-- [`useOnWindow()`](../events/index.mdx) - appends a listener to the window object programmatically
-- [`useOnDocument()`](../events/index.mdx) - appends a listener to the document object programmatically
+- [`useOn()`](../events/index.mdx#useonwindowdocument-hook) - appends a listener to the current component programmatically
+- [`useOnWindow()`](../events/index.mdx#useonwindowdocument-hook) - appends a listener to the window object programmatically
+- [`useOnDocument()`](../events/index.mdx#useonwindowdocument-hook) - appends a listener to the document object programmatically
 
 ### Tasks/Lifecycle
 

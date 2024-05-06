@@ -72,4 +72,6 @@ export type {
   ActionReturn,
   StrictUnion,
   ValidatorReturn,
+  ServerQRL,
+  ServerFunction,
 } from './types';

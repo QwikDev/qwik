@@ -1,14 +1,16 @@
+import type { QContainerElement } from '../container/container';
+import { assertDefined } from '../error/assert';
 import { qError, QError_qrlIsNotFunction } from '../error/error';
 import { getPlatform, isServerPlatform } from '../platform/platform';
 import { verifySerializable } from '../state/common';
 import { isSignal, type SignalInternal } from '../state/signal';
 import {
-  type InvokeContext,
-  newInvokeContext,
   invoke,
-  type InvokeTuple,
+  newInvokeContext,
   newInvokeContextFromTuple,
   tryGetInvokeContext,
+  type InvokeContext,
+  type InvokeTuple,
 } from '../use/use-core';
 import { maybeThen } from '../util/promises';
 import { qDev, qSerialize, qTest, seal } from '../util/qdev';
@@ -18,6 +20,14 @@ import type { QRL, QrlArgs, QrlReturn } from './qrl.public';
 
 export const isQrl = <T = unknown>(value: unknown): value is QRLInternal<T> => {
   return typeof value === 'function' && typeof (value as any).getSymbol === 'function';
+};
+
+// Make sure this value is same as value in `platform.ts`
+export const SYNC_QRL = '<sync>';
+
+/** Sync QRL is a function which is serialized into `<script q:func="qwik/json">` tag. */
+export const isSyncQrl = (value: any): value is QRLInternal => {
+  return isQrl(value) && value.$symbol$ == SYNC_QRL;
 };
 
 export type QRLInternalMethods<TYPE> = {
@@ -85,6 +95,12 @@ export const createQRL = <TYPE>(
   const resolve = async (containerEl?: Element): Promise<TYPE> => {
     if (containerEl) {
       setContainer(containerEl);
+    }
+    if (chunk == '') {
+      // Sync QRL
+      assertDefined(_containerEl, 'Sync QRL must have container element');
+      const qFuncs = (_containerEl as QContainerElement).qFuncs || [];
+      qrl.resolved = symbolRef = qFuncs[Number(symbol)] as TYPE;
     }
     if (symbolRef !== null) {
       return symbolRef;
@@ -165,7 +181,12 @@ export const createQRL = <TYPE>(
     dev: null,
     resolved: undefined,
   });
-  seal(qrl);
+  if (symbolRef) {
+    maybeThen(symbolRef, (resolved) => (qrl.resolved = symbolRef = resolved));
+  }
+  if (qDev) {
+    seal(qrl);
+  }
   return qrl;
 };
 

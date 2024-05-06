@@ -1099,3 +1099,17 @@ suite('should properly render styles from style prop', () => {
     assert.equal(main.innerHTML, resultHTML);
   });
 });
+
+test('should render value="" on option', async () => {
+  const { screen, render } = await createDOM();
+
+  await render(
+    <select>
+      <option value="">Empty</option>
+    </select>
+  );
+  const option = screen.querySelector('option')!;
+  assert.isTrue(option.hasAttribute('value'));
+  assert.equal(option.getAttribute('value'), '');
+  assert.equal(option.outerHTML, '<option value="">Empty</option>');
+});

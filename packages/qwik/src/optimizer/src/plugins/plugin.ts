@@ -88,6 +88,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     entryStrategy: null as any,
     srcDir: null as any,
     srcInputs: null as any,
+    sourcemap: !!optimizerOptions.sourcemap,
     manifestInput: null,
     insightsManifest: null,
     manifestOutput: null,
@@ -98,6 +99,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       clickToSource: ['Alt'],
     },
     inlineStylesUpToBytes: null as any,
+    lint: true,
   };
 
   const init = async () => {
@@ -123,6 +125,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     return optimizer.sys.path;
   };
 
+  /** Note that as a side-effect this updates the internal plugin `opts` */
   const normalizeOptions = (inputOpts?: QwikPluginOptions) => {
     const updatedOpts: QwikPluginOptions = Object.assign({}, inputOpts);
 
@@ -207,27 +210,42 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       } else {
         if (opts.target === 'ssr') {
           // ssr input default
-          opts.input = [path.resolve(srcDir, 'entry.ssr.tsx')];
+          opts.input = [path.resolve(srcDir, 'entry.ssr')];
         } else if (opts.target === 'client') {
           // client input default
-          opts.input = [path.resolve(srcDir, 'root.tsx')];
+          opts.input = [path.resolve(srcDir, 'root')];
         } else if (opts.target === 'lib') {
-          // lib input default
-          opts.input = [path.resolve(srcDir, 'index.ts')];
+          if (typeof updatedOpts.input === 'object') {
+            for (const key in updatedOpts.input) {
+              const resolvedPaths: { [key: string]: string } = {};
+              if (Object.hasOwnProperty.call(updatedOpts.input, key)) {
+                const relativePath = updatedOpts.input[key];
+                const absolutePath = path.resolve(opts.rootDir, relativePath);
+                resolvedPaths[key] = absolutePath;
+              }
+
+              opts.input = { ...opts.input, ...resolvedPaths };
+            }
+          } else {
+            // lib input default
+            opts.input = [path.resolve(srcDir, 'index.ts')];
+          }
         } else {
           opts.input = [];
         }
       }
-      opts.input = opts.input.reduce((inputs, i) => {
-        let input = i;
-        if (!i.startsWith('@') && !i.startsWith('~')) {
-          input = normalizePath(path.resolve(opts.rootDir, i));
-        }
-        if (!inputs.includes(input)) {
-          inputs.push(input);
-        }
-        return inputs;
-      }, [] as string[]);
+      opts.input = Array.isArray(opts.input)
+        ? opts.input.reduce((inputs, i) => {
+            let input = i;
+            if (!i.startsWith('@') && !i.startsWith('~') && !i.startsWith('#')) {
+              input = normalizePath(path.resolve(opts.rootDir, i));
+            }
+            if (!inputs.includes(input)) {
+              inputs.push(input);
+            }
+            return inputs;
+          }, [] as string[])
+        : opts.input;
 
       if (typeof updatedOpts.outDir === 'string') {
         opts.outDir = normalizePath(path.resolve(opts.rootDir, normalizePath(updatedOpts.outDir)));
@@ -274,6 +292,10 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.inlineStylesUpToBytes = 0;
     }
 
+    if (typeof updatedOpts.lint === 'boolean') {
+      opts.lint = updatedOpts.lint;
+    }
+
     return { ...opts };
   };
 
@@ -292,8 +314,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         if (typeof opts.srcDir === 'string' && !fs.existsSync(opts.srcDir)) {
           throw new Error(`Qwik srcDir "${opts.srcDir}" not found.`);
         }
-        for (const alias in opts.input) {
-          const input = opts.input[alias];
+        for (const [_, input] of Object.entries(opts.input)) {
           const resolved = await resolver(input);
           if (!resolved) {
             throw new Error(`Qwik input "${input}" not found.`);
@@ -307,7 +328,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     debug(`buildStart()`, opts.buildMode, opts.scope);
     const optimizer = getOptimizer();
 
-    if (optimizer.sys.env === 'node' && opts.target === 'ssr') {
+    if (optimizer.sys.env === 'node' && opts.target === 'ssr' && opts.lint) {
       try {
         linter = await createLinter(optimizer.sys, opts.rootDir, opts.tsconfigFileNames);
       } catch (err) {
@@ -356,6 +377,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         preserveFilenames: true,
         mode,
         scope: opts.scope ? opts.scope : undefined,
+        sourceMaps: opts.sourcemap,
       };
 
       if (opts.target === 'client') {
@@ -429,8 +451,14 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
           moduleSideEffects: false,
         };
       }
+      let firstInput: string;
+      if (Array.isArray(opts.input)) {
+        firstInput = opts.input[0];
+      } else {
+        firstInput = Object.values(opts.input)[0];
+      }
       return {
-        id: normalizePath(getPath().resolve(opts.input[0], QWIK_CLIENT_MANIFEST_ID)),
+        id: normalizePath(getPath().resolve(firstInput, QWIK_CLIENT_MANIFEST_ID)),
         moduleSideEffects: false,
       };
     }
@@ -527,12 +555,18 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       debug(`load()`, 'Found', id);
 
       let code = transformedModule[0].code;
+      let firstInput: string;
+      if (Array.isArray(opts.input)) {
+        firstInput = opts.input[0];
+      } else {
+        firstInput = Object.values(opts.input)[0];
+      }
       if (opts.target === 'ssr') {
         // doing this because vite will not use resolveId() when "noExternal" is false
         // so we need to turn the @qwik-client-manifest import into a relative import
         code = code.replace(
           /@qwik-client-manifest/g,
-          normalizePath(path.resolve(opts.input[0], QWIK_CLIENT_MANIFEST_ID))
+          normalizePath(path.resolve(firstInput, QWIK_CLIENT_MANIFEST_ID))
         );
       }
       return {
@@ -602,7 +636,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         ],
         entryStrategy,
         minify: 'simplify',
-        sourceMaps: 'development' === opts.buildMode,
+        // Always enable sourcemaps in dev for click-to-source
+        sourceMaps: opts.sourcemap || 'development' === opts.buildMode,
         transpileTs: true,
         transpileJsx: true,
         explicitExtensions: true,
@@ -658,7 +693,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
           ],
           entryStrategy: opts.entryStrategy,
           minify: 'simplify',
-          sourceMaps: 'development' === opts.buildMode,
+          sourceMaps: opts.sourcemap || 'development' === opts.buildMode,
           transpileTs: true,
           transpileJsx: true,
           explicitExtensions: true,
@@ -814,6 +849,10 @@ export const isDev = ${JSON.stringify(isDev)};
 export const manifest = ${JSON.stringify(manifest)};\n`;
   }
 
+  function setSourceMapSupport(sourcemap: boolean) {
+    opts.sourcemap = sourcemap;
+  }
+
   return {
     buildStart,
     createOutputAnalyzer,
@@ -833,6 +872,7 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
     resolveId,
     transform,
     validateSource,
+    setSourceMapSupport,
   };
 }
 
@@ -925,6 +965,7 @@ export interface QwikPluginOptions {
   srcDir?: string | null;
   scope?: string | null;
   srcInputs?: TransformModuleInput[] | null;
+  sourcemap?: boolean;
   resolveQwikBuild?: boolean;
   target?: QwikBuildTarget;
   transformedModuleOutput?:
@@ -937,10 +978,15 @@ export interface QwikPluginOptions {
    * Default: 20kb (20,000bytes)
    */
   inlineStylesUpToBytes?: number;
+  /**
+   * Run eslint on the source files for the ssr build or dev server. This can slow down startup on
+   * large projects. Defaults to `true`
+   */
+  lint?: boolean;
 }
 
 export interface NormalizedQwikPluginOptions extends Required<QwikPluginOptions> {
-  input: string[];
+  input: string[] | { [entry: string]: string };
 }
 
 /** @public */

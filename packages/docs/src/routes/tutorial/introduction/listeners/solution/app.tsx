@@ -2,7 +2,7 @@ import { component$, useStore } from '@builder.io/qwik';
 
 export default component$(() => {
   const github = useStore({
-    org: 'BuilderIO',
+    org: 'QwikDev',
     repos: ['qwik', 'partytown'] as string[] | null,
   });
 
@@ -11,10 +11,7 @@ export default component$(() => {
       <p>
         <label>
           GitHub username:
-          <input
-            value={github.org}
-            onInput$={(ev) => (github.org = (ev.target as HTMLInputElement).value)}
-          />
+          <input value={github.org} onInput$={(ev, el) => (github.org = el.value)} />
         </label>
       </p>
       <section>

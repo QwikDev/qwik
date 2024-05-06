@@ -9,6 +9,8 @@ export type {
   Component,
   PublicProps,
   PropFunctionProps,
+  _AllowPlainQrl,
+  _Only$,
 } from './component/component.public';
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -25,7 +27,7 @@ export type {
 //////////////////////////////////////////////////////////////////////////////////////////
 // Internal Runtime
 //////////////////////////////////////////////////////////////////////////////////////////
-export { $ } from './qrl/qrl.public';
+export { $, sync$, _qrlSync, type SyncQRL } from './qrl/qrl.public';
 export { event$, eventQrl } from './qrl/qrl.public';
 
 export { qrl, inlinedQrl, inlinedQrlDEV, qrlDEV } from './qrl/qrl';
@@ -56,14 +58,20 @@ export { Fragment, HTMLFragment, RenderOnce, jsx, jsxDEV, jsxs } from './render/
 export type * from './render/jsx/types/jsx-generated';
 export type {
   DOMAttributes,
+  QwikAttributes,
   JSXTagName,
   JSXChildren,
   ComponentBaseProps,
   ClassList,
+  CorrectedToggleEvent,
+  EventHandler,
+  QRLEventHandlerMulti,
 } from './render/jsx/types/jsx-qwik-attributes';
-export type { FunctionComponent, JSXNode, DevJSX } from './render/jsx/types/jsx-node';
-export type { QwikDOMAttributes, QwikJSX } from './render/jsx/types/jsx-qwik';
+export type { JSXOutput, FunctionComponent, JSXNode, DevJSX } from './render/jsx/types/jsx-node';
+export type { QwikDOMAttributes, QwikJSX, QwikJSX as JSX } from './render/jsx/types/jsx-qwik';
+
 export type { QwikIntrinsicElements } from './render/jsx/types/jsx-qwik-elements';
+export type { QwikHTMLElements, QwikSVGElements } from './render/jsx/types/jsx-generated';
 export { render } from './render/dom/render.public';
 export type { RenderSSROptions, StreamWriter } from './render/ssr/render-ssr';
 export type { RenderOptions, RenderResult } from './render/dom/render.public';
@@ -123,8 +131,11 @@ export { version } from './version';
 // Qwik Events
 //////////////////////////////////////////////////////////////////////////////////////////
 export type {
+  KnownEventNames as KnownEventNames,
   QwikSymbolEvent,
   QwikVisibleEvent,
+  QwikIdleEvent,
+  QwikInitEvent,
   // old
   NativeAnimationEvent,
   NativeClipboardEvent,
@@ -154,6 +165,11 @@ export type {
   QwikWheelEvent,
   QwikTransitionEvent,
 } from './render/jsx/types/jsx-qwik-events';
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Components
+//////////////////////////////////////////////////////////////////////////////////////////
+export { PrefetchServiceWorker, PrefetchGraph } from './components/prefetch';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // INTERNAL

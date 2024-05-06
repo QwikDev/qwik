@@ -26,7 +26,6 @@ import type { Render, RenderToStringResult } from '@builder.io/qwik/server';
 import type { QRL, _deserializeData, _serializeData } from '@builder.io/qwik';
 import { getQwikCityServerData } from './response-page';
 import { RedirectMessage } from './redirect-handler';
-import type { ServerGT } from 'packages/qwik-city/runtime/src/server-functions';
 
 export const resolveRequestHandlers = (
   serverPlugins: RouteModule[] | undefined,
@@ -178,7 +177,7 @@ export function actionsMiddleware(routeLoaders: LoaderInternal[], routeActions: 
     if (method === 'POST') {
       const selectedAction = requestEv.query.get(QACTION_KEY);
       if (selectedAction) {
-        const serverActionsMap = (globalThis as ServerGT)._qwikActionsMap as
+        const serverActionsMap = globalThis._qwikActionsMap as
           | Map<string, ActionInternal>
           | undefined;
         const action =

@@ -8,7 +8,7 @@ import type { Action } from '@builder.io/qwik-city';
 import type { _deserializeData } from '@builder.io/qwik';
 import type { EnvGetter as EnvGetter_2 } from '@builder.io/qwik-city/middleware/request-handler';
 import type { FailReturn } from '@builder.io/qwik-city';
-import type { Loader } from '@builder.io/qwik-city';
+import type { Loader as Loader_2 } from '@builder.io/qwik-city';
 import type { QwikCityPlan } from '@builder.io/qwik-city';
 import type { QwikIntrinsicElements } from '@builder.io/qwik';
 import type { Render } from '@builder.io/qwik/server';
@@ -39,7 +39,7 @@ export interface ClientConn {
 
 // @public (undocumented)
 export interface Cookie {
-    delete(name: string, options?: Pick<CookieOptions, 'path' | 'domain'>): void;
+    delete(name: string, options?: Pick<CookieOptions, 'path' | 'domain' | 'sameSite'>): void;
     get(name: string): CookieValue | null;
     getAll(): Record<string, CookieValue>;
     has(name: string): boolean;
@@ -54,7 +54,7 @@ export interface CookieOptions {
     httpOnly?: boolean;
     maxAge?: number | [number, 'seconds' | 'minutes' | 'hours' | 'days' | 'weeks'];
     path?: string;
-    sameSite?: 'strict' | 'lax' | 'none' | boolean;
+    sameSite?: 'strict' | 'lax' | 'none' | 'Strict' | 'Lax' | 'None' | boolean;
     secure?: boolean;
 }
 
@@ -161,7 +161,7 @@ export function requestHandler<T = unknown>(serverRequestEv: ServerRequestEvent<
 // @public (undocumented)
 export interface ResolveSyncValue {
     // (undocumented)
-    <T>(loader: Loader<T>): Awaited<T> extends () => any ? never : Awaited<T>;
+    <T>(loader: Loader_2<T>): Awaited<T> extends () => any ? never : Awaited<T>;
     // (undocumented)
     <T>(action: Action<T>): Awaited<T> | undefined;
 }
@@ -169,7 +169,7 @@ export interface ResolveSyncValue {
 // @public (undocumented)
 export interface ResolveValue {
     // (undocumented)
-    <T>(loader: Loader<T>): Awaited<T> extends () => any ? never : Promise<T>;
+    <T>(loader: Loader_2<T>): Awaited<T> extends () => any ? never : Promise<T>;
     // (undocumented)
     <T>(action: Action<T>): Promise<T | undefined>;
 }

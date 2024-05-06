@@ -5,12 +5,12 @@ import {
   type QRL,
   useContext,
   type ValueOrPromise,
-  _wrapSignal,
   useStore,
   _serializeData,
   _deserializeData,
   _getContextElement,
   _getContextEvent,
+  _wrapProp,
 } from '@builder.io/qwik';
 
 import type { RequestEventLoader } from '../../middleware/request-handler/types';
@@ -148,8 +148,6 @@ Action.run() can only be called on the browser, for example when a user clicks a
   return action satisfies ActionInternal;
 }) as unknown as ActionConstructorQRL;
 
-export type ServerGT = typeof globalThis & { _qwikActionsMap?: Map<string, ActionInternal> };
-
 /** @public */
 export const globalActionQrl = ((
   actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => unknown>,
@@ -157,13 +155,10 @@ export const globalActionQrl = ((
 ) => {
   const action = routeActionQrl(actionQrl, ...(rest as any));
   if (isServer) {
-    if (typeof (globalThis as ServerGT)._qwikActionsMap === 'undefined') {
-      (globalThis as ServerGT)._qwikActionsMap = new Map();
+    if (typeof globalThis._qwikActionsMap === 'undefined') {
+      globalThis._qwikActionsMap = new Map();
     }
-    (globalThis as ServerGT)._qwikActionsMap!.set(
-      (action as ActionInternal).__id,
-      action as ActionInternal
-    );
+    globalThis._qwikActionsMap!.set((action as ActionInternal).__id, action as ActionInternal);
   }
   return action;
 }) as ActionConstructorQRL;
@@ -189,9 +184,12 @@ export const routeLoaderQrl = ((
       if (!(id in state)) {
         throw new Error(`routeLoader$ "${loaderQrl.getSymbol()}" was invoked in a route where it was not declared.
     This is because the routeLoader$ was not exported in a 'layout.tsx' or 'index.tsx' file of the existing route.
-    For more information check: https://qwik.builder.io/qwikcity/route-loader/`);
+    For more information check: https://qwik.dev/qwikcity/route-loader/
+
+    If your are managing reusable logic or a library it is essential that this function is re-exported from within 'layout.tsx' or 'index.tsx file of the existing route otherwise it will not run or throw exception.
+    For more information check: https://qwik.dev/docs/cookbook/re-exporting-loaders/`);
       }
-      return _wrapSignal(state, id);
+      return _wrapProp(state, id);
     });
   }
   loader.__brand = 'server_loader' as const;
@@ -284,17 +282,21 @@ export const serverQrl = <T extends ServerFunction>(qrl: QRL<T>): ServerQRL<T> =
           : undefined;
       if (isServer) {
         // Running during SSR, we can call the function directly
-        const requestEvent = [useQwikCityEnv()?.ev, this, _getContextEvent()].find(
-          (v) =>
-            v &&
-            Object.prototype.hasOwnProperty.call(v, 'sharedMap') &&
-            Object.prototype.hasOwnProperty.call(v, 'cookie')
-        );
+        let requestEvent = globalThis.qcAsyncRequestStore?.getStore() as RequestEvent | undefined;
+        if (!requestEvent) {
+          const contexts = [useQwikCityEnv()?.ev, this, _getContextEvent()] as RequestEvent[];
+          requestEvent = contexts.find(
+            (v) =>
+              v &&
+              Object.prototype.hasOwnProperty.call(v, 'sharedMap') &&
+              Object.prototype.hasOwnProperty.call(v, 'cookie')
+          );
+        }
         return qrl.apply(requestEvent, args);
       } else {
         // Running on the client, we need to call the function via HTTP
         const ctxElm = _getContextElement();
-        const filtered = args.map((arg) => {
+        const filtered = args.map((arg: unknown) => {
           if (arg instanceof SubmitEvent && arg.target instanceof HTMLFormElement) {
             return new FormData(arg.target);
           } else if (arg instanceof Event) {

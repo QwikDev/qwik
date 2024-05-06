@@ -2,7 +2,7 @@ import { isPromise, maybeThen } from '../../util/promises';
 import { type InvokeContext, newInvokeContext, invoke, trackSignal } from '../../use/use-core';
 import { Virtual, _jsxC, _jsxQ, createJSXError, isJSXNode } from '../jsx/jsx-runtime';
 import { isArray, isFunction, isString, type ValueOrPromise } from '../../util/types';
-import type { JSXNode } from '../jsx/types/jsx-node';
+import type { FunctionComponent, JSXNode, JSXOutput } from '../jsx/types/jsx-node';
 import {
   createRenderContext,
   executeComponent,
@@ -51,7 +51,7 @@ import {
 } from '../../state/context';
 import { createPropsState, createProxy } from '../../state/store';
 import { Q_CTX, _IMMUTABLE, _IMMUTABLE_PREFIX } from '../../state/constants';
-import type { JSXChildren } from '../jsx/types/jsx-qwik-attributes';
+import type { ClassList, JSXChildren } from '../jsx/types/jsx-qwik-attributes';
 
 const FLUSH_COMMENT = '<!--qkssr-f-->';
 
@@ -114,7 +114,7 @@ const createDocument = () => {
 };
 
 /** @internal */
-export const _renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
+export const _renderSSR = async (node: JSXOutput, opts: RenderSSROptions) => {
   const root = opts.containerTagName;
   const containerEl = createMockQContext(1).$element$;
   const containerState = createContainerState(containerEl as Element, opts.base ?? '/');
@@ -170,7 +170,7 @@ export const _renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
     containerState.$serverData$ = opts.serverData;
   }
 
-  node = _jsxQ(
+  const rootNode = _jsxQ(
     root,
     null,
     containerAttributes,
@@ -180,7 +180,7 @@ export const _renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
   );
   containerState.$hostsRendering$ = new Set();
   await Promise.resolve().then(() =>
-    renderRoot(node, rCtx, ssrCtx, opts.stream, containerState, opts)
+    renderRoot(rootNode, rCtx, ssrCtx, opts.stream, containerState, opts)
   );
 };
 
@@ -374,6 +374,7 @@ const renderNodeElementSync = (
   stream.write(`</${tagName}>`);
 };
 
+/** Render a component$ */
 const renderSSRComponent = (
   rCtx: RenderContext,
   ssrCtx: SSRContext,
@@ -460,7 +461,11 @@ const renderSSRComponent = (
           const groups = groupListeners(listeners);
           for (const listener of groups) {
             const eventName = normalizeInvisibleEvents(listener[0]);
-            attributes[eventName] = serializeQRLs(listener[1], placeholderCtx);
+            attributes[eventName] = serializeQRLs(
+              listener[1],
+              rCtx.$static$.$containerState$,
+              placeholderCtx
+            );
             registerQwikEvent(eventName, rCtx.$static$.$containerState$);
           }
           renderNodeElementSync('script', attributes, stream);
@@ -474,7 +479,7 @@ const renderSSRComponent = (
             if (content) {
               return _jsxQ(
                 'q:template',
-                { [QSlot]: slotName, hidden: '', 'aria-hidden': 'true' },
+                { [QSlot]: slotName || true, hidden: true, 'aria-hidden': 'true' },
                 null,
                 content,
                 0,
@@ -530,7 +535,7 @@ const renderNode = (
   if (typeof tagName === 'string') {
     const key = node.key;
     const props = node.props;
-    const immutable = node.immutableProps;
+    const immutable = node.immutableProps || EMPTY_OBJ;
     const elCtx = createMockQContext(1);
     const elm = elCtx.$element$ as Element;
     const isHead = tagName === 'head';
@@ -539,86 +544,82 @@ const renderNode = (
     let hasRef = false;
     let classStr = '';
     let htmlStr = null;
-    if (qDev && props.class && props.className) {
-      throw new TypeError('Can only have one of class or className');
-    }
-    if (immutable) {
-      for (const prop in immutable) {
-        let value = immutable[prop];
-        if (isOnProp(prop)) {
-          setEvent(elCtx.li, prop, value, undefined);
-          continue;
-        }
-        const attrName = processPropKey(prop);
-        if (isSignal(value)) {
-          assertDefined(hostCtx, 'Signals can not be used outside the root');
-          value = trackSignal(value, [1, elm, value, hostCtx.$element$, attrName]);
-          useSignal = true;
-        }
-        if (prop === dangerouslySetInnerHTML) {
-          htmlStr = value;
-          continue;
-        }
-        if (prop.startsWith(PREVENT_DEFAULT)) {
-          registerQwikEvent(prop.slice(PREVENT_DEFAULT.length), rCtx.$static$.$containerState$);
-        }
-        const attrValue = processPropValue(attrName, value);
-        if (attrValue != null) {
-          if (attrName === 'class') {
-            classStr = attrValue;
-          } else if (attrName === 'value' && tagName === 'textarea') {
-            htmlStr = escapeHtml(attrValue);
-          } else if (isSSRUnsafeAttr(attrName)) {
-            if (qDev) {
-              logError('Attribute value is unsafe for SSR');
-            }
-          } else {
-            openingElement +=
-              ' ' + (value === '' ? attrName : attrName + '="' + escapeAttr(attrValue) + '"');
-          }
-        }
-      }
-    }
-    for (const prop in props) {
-      let value = props[prop];
-      if (prop === 'ref') {
+    const handleProp = (rawProp: string, value: unknown, isImmutable: boolean) => {
+      if (rawProp === 'ref') {
         if (value !== undefined) {
           setRef(value, elm);
           hasRef = true;
         }
-        continue;
+        return;
       }
-      if (isOnProp(prop)) {
-        setEvent(elCtx.li, prop, value, undefined);
-        continue;
+      if (isOnProp(rawProp)) {
+        setEvent(elCtx.li, rawProp, value, undefined);
+        return;
       }
-      const attrName = processPropKey(prop);
       if (isSignal(value)) {
         assertDefined(hostCtx, 'Signals can not be used outside the root');
-        value = trackSignal(value, [2, hostCtx.$element$, value, elm, attrName]);
+        if (isImmutable) {
+          value = trackSignal(value, [1, elm, value, hostCtx.$element$, rawProp]);
+        } else {
+          value = trackSignal(value, [2, hostCtx.$element$, value, elm, rawProp]);
+        }
         useSignal = true;
       }
-      if (prop === dangerouslySetInnerHTML) {
+      if (rawProp === dangerouslySetInnerHTML) {
         htmlStr = value;
-        continue;
+        return;
       }
-      if (prop.startsWith(PREVENT_DEFAULT)) {
-        registerQwikEvent(prop.slice(PREVENT_DEFAULT.length), rCtx.$static$.$containerState$);
+      if (rawProp.startsWith(PREVENT_DEFAULT)) {
+        registerQwikEvent(rawProp.slice(PREVENT_DEFAULT.length), rCtx.$static$.$containerState$);
       }
-      const attrValue = processPropValue(attrName, value);
+      let attrValue;
+      const prop = rawProp === 'htmlFor' ? 'for' : rawProp;
+      if (prop === 'class' || prop === 'className') {
+        classStr = serializeClass(value as ClassList);
+      } else if (prop === 'style') {
+        attrValue = stringifyStyle(value);
+      } else if (isAriaAttribute(prop) || prop === 'draggable' || prop === 'spellcheck') {
+        attrValue = value != null ? String(value) : null;
+        value = attrValue;
+      } else if (value === false || value == null) {
+        attrValue = null;
+      } else {
+        attrValue = String(value);
+      }
       if (attrValue != null) {
-        if (attrName === 'class') {
-          classStr = attrValue;
-        } else if (attrName === 'value' && tagName === 'textarea') {
+        if (prop === 'value' && tagName === 'textarea') {
           htmlStr = escapeHtml(attrValue);
-        } else if (isSSRUnsafeAttr(attrName)) {
+        } else if (isSSRUnsafeAttr(prop)) {
           if (qDev) {
             logError('Attribute value is unsafe for SSR');
           }
         } else {
           openingElement +=
-            ' ' + (value === '' ? attrName : attrName + '="' + escapeAttr(attrValue) + '"');
+            ' ' + (value === true ? prop : prop + '="' + escapeAttr(attrValue) + '"');
         }
+      }
+    };
+    for (const prop in props) {
+      let isImmutable = false;
+      let value;
+      if (prop in immutable) {
+        isImmutable = true;
+        value = immutable[prop];
+        if (value === _IMMUTABLE) {
+          value = props[prop];
+        }
+      } else {
+        value = props[prop];
+      }
+      handleProp(prop, value, isImmutable);
+    }
+    for (const prop in immutable) {
+      if (prop in props) {
+        continue;
+      }
+      const value = immutable[prop];
+      if (value !== _IMMUTABLE) {
+        handleProp(prop, value, true);
       }
     }
     const listeners = elCtx.li;
@@ -731,7 +732,12 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
       const isInvisible = (flags & IS_INVISIBLE) !== 0;
       for (const listener of groups) {
         const eventName = isInvisible ? normalizeInvisibleEvents(listener[0]) : listener[0];
-        openingElement += ' ' + eventName + '="' + serializeQRLs(listener[1], elCtx) + '"';
+        openingElement +=
+          ' ' +
+          eventName +
+          '="' +
+          serializeQRLs(listener[1], rCtx.$static$.$containerState$, elCtx) +
+          '"';
         registerQwikEvent(eventName, rCtx.$static$.$containerState$);
       }
     }
@@ -801,7 +807,12 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
 
   if (tagName === Virtual) {
     const elCtx = createMockQContext(111);
-    elCtx.$parentCtx$ = rCtx.$slotCtx$ || rCtx.$cmpCtx$;
+    if (rCtx.$slotCtx$) {
+      elCtx.$parentCtx$ = rCtx.$slotCtx$;
+      elCtx.$realParentCtx$ = rCtx.$cmpCtx$!;
+    } else {
+      elCtx.$parentCtx$ = rCtx.$cmpCtx$;
+    }
     if (hostCtx && hostCtx.$flags$ & HOST_FLAG_DYNAMIC) {
       addDynamicSlot(hostCtx, elCtx);
     }
@@ -827,7 +838,7 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
   // Inline component
   const res = invoke(
     ssrCtx.$invocationContext$,
-    tagName,
+    tagName as FunctionComponent,
     node.props,
     node.key,
     node.flags,
@@ -901,7 +912,7 @@ const processData = (
 };
 
 const walkChildren = (
-  children: any,
+  children: unknown,
   rCtx: RenderContext,
   ssrContext: SSRContext,
   stream: StreamWriter,
@@ -923,7 +934,7 @@ const walkChildren = (
 
   let currentIndex = 0;
   const buffers: string[][] = [];
-  return children.reduce((prevPromise, child, index) => {
+  return children.reduce((prevPromise: Promise<void> | undefined, child, index) => {
     const buffer: string[] = [];
     buffers.push(buffer);
     const localStream: StreamWriter = prevPromise
@@ -939,18 +950,21 @@ const walkChildren = (
       : stream;
 
     const rendered = processData(child, rCtx, ssrContext, localStream, flags);
-    const next = () => {
-      currentIndex++;
-      if (buffers.length > currentIndex) {
-        buffers[currentIndex].forEach((chunk) => stream.write(chunk));
+    if (prevPromise || isPromise(rendered)) {
+      const next = () => {
+        currentIndex++;
+        if (buffers.length > currentIndex) {
+          buffers[currentIndex].forEach((chunk) => stream.write(chunk));
+        }
+      };
+      if (isPromise(rendered)) {
+        if (prevPromise) {
+          return Promise.all([rendered, prevPromise]).then(next);
+        } else {
+          return rendered.then(next);
+        }
       }
-    };
-    if (isPromise(rendered) && prevPromise) {
-      return Promise.all([rendered, prevPromise]).then(next);
-    } else if (isPromise(rendered)) {
-      return rendered.then(next);
-    } else if (prevPromise) {
-      return prevPromise.then(next);
+      return prevPromise!.then(next);
     } else {
       currentIndex++;
       return undefined;
@@ -1020,32 +1034,6 @@ const setComponentProps = (
       target[prop] = expectProps[prop];
     }
   }
-};
-
-const processPropKey = (prop: string) => {
-  if (prop === 'htmlFor') {
-    return 'for';
-  }
-  return prop;
-};
-
-const processPropValue = (prop: string, value: any): string | null => {
-  if (prop === 'class') {
-    return serializeClass(value);
-  }
-  if (prop === 'style') {
-    return stringifyStyle(value);
-  }
-  if (isAriaAttribute(prop) || prop === 'draggable' || prop === 'spellcheck') {
-    return value != null ? String(value) : value;
-  }
-  if (value === false || value == null) {
-    return null;
-  }
-  if (value === true) {
-    return '';
-  }
-  return String(value);
 };
 
 const invisibleElements: Record<string, true | undefined> = {

@@ -4,6 +4,7 @@ import {
   component$,
   useStore,
   useSignal,
+  $,
   type NoSerialize,
 } from '@builder.io/qwik';
 import { CloseIcon } from '../icons/close';
@@ -31,7 +32,7 @@ export const PopupManager = component$(() => {
               bubbles: false,
               detail: {
                 show<T extends {}>(component: Component<T>, props: T) {
-                  // TODO: Remove cast once https://github.com/BuilderIO/qwik/issues/4794 is fixed
+                  // TODO: Remove cast once https://github.com/QwikDev/qwik/issues/4794 is fixed
                   (popup as { Component: any }).Component = component;
                   popup.props = props;
                   popup.currentTarget = target;
@@ -72,7 +73,10 @@ export const PopupManager = component$(() => {
             left: popup.x + 4 + 'px',
           }}
         >
-          <CloseIcon onClick$={() => (popup.currentTarget = null)} class="absolute right-0 m-0" />
+          <CloseIcon
+            onClick$={$(() => (popup.currentTarget = null))}
+            class="absolute right-0 m-0"
+          />
           <popup.Component {...popup.props} />
         </div>
       ) : null}

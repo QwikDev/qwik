@@ -1,7 +1,5 @@
 import {
   component$,
-  type JSXNode,
-  type PropFunction,
   useSignal,
   useStore,
   useStylesScoped$,
@@ -12,8 +10,10 @@ import {
   SkipRender,
   SSRRaw,
   HTMLFragment,
-  type QwikIntrinsicElements,
+  type PropsOf,
   Slot,
+  type QRL,
+  type JSXOutput,
 } from "@builder.io/qwik";
 import { delay } from "../streaming/demo";
 import { isServer } from "@builder.io/qwik/build";
@@ -64,27 +64,23 @@ export const RenderChildren = component$<{ v: number }>(({ v }) => {
       <Issue2889 />
       <Issue3116 />
       <CounterToggle />
-
       <PropsDestructuring
         message="Hello"
         count={state.count}
         id="props-destructuring"
         aria-hidden="true"
       />
-
       <PropsDestructuringNo
         count={state.count}
         id="props-destructuring-no"
         aria-hidden="true"
       />
-
       <PropsDestructuring
         message="Count"
         count={state.count}
         id="props-destructuring-count"
         aria-count={state.count}
       />
-
       <IssueReorder />
       <Issue2414 />
       <Issue3178 />
@@ -109,6 +105,7 @@ export const RenderChildren = component$<{ v: number }>(({ v }) => {
       <Issue4386 />
       <Issue4455 />
       <Issue5266 />
+      <DynamicButton id="dynamic-button" />;
     </>
   );
 });
@@ -376,7 +373,7 @@ export const Issue2889 = component$(() => {
 type Product = string;
 
 export type ProductRelationProps = {
-  render$: PropFunction<(products: Product[]) => JSXNode>;
+  render$: QRL<(products: Product[]) => JSXOutput>;
 };
 
 export const ProductRelations = component$((props: ProductRelationProps) => {
@@ -465,7 +462,7 @@ const Issue2414 = component$(() => {
               <th
                 key={c}
                 id={`issue-2414-${c}`}
-                onClick$={(e) => {
+                onClick$={() => {
                   sort.value = c;
                 }}
               >
@@ -836,7 +833,7 @@ export const HTMLFragmentTest = component$(() => {
   );
 });
 
-type A = QwikIntrinsicElements["button"];
+type A = PropsOf<"button">;
 
 export interface TestAProps extends A {}
 
@@ -955,3 +952,21 @@ export const Issue5266 = component$(() => {
     </div>
   );
 });
+
+// needs to be a variable outside component scope to trigger the bug
+const buttonStyle = "btn";
+export const DynamicButton = component$<any>(
+  ({ isWhite, href, onClick$, id }: any) => {
+    const ComponentName = href ? "a" : "button";
+    return (
+      <ComponentName
+        id={id}
+        class={[buttonStyle, { white: isWhite }]}
+        href={href}
+        onClick$={onClick$}
+      >
+        <Slot />
+      </ComponentName>
+    );
+  },
+);

@@ -18,7 +18,7 @@ export type Action<
 
 **References:** [ActionStore](#actionstore)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
 ## ActionConstructor
 
@@ -138,7 +138,7 @@ export type ActionConstructor = {
 
 **References:** [TypedDataValidator](#typeddatavalidator), [DataValidator](#datavalidator), [GetValidatorType](#getvalidatortype), [Action](#action), [StrictUnion](#strictunion), [FailReturn](#failreturn), [FailOfRest](#failofrest), [JSONObject](#jsonobject)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
 ## ActionReturn
 
@@ -149,7 +149,7 @@ export type ActionReturn<RETURN> = {
 };
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
 ## ActionStore
 
@@ -170,7 +170,7 @@ export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> = {
 
 **References:** [ActionReturn](#actionreturn)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
 ## ContentHeading
 
@@ -178,13 +178,71 @@ export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> = {
 export interface ContentHeading
 ```
 
-| Property   | Modifiers             | Type   | Description |
-| ---------- | --------------------- | ------ | ----------- |
-| [id](#)    | <code>readonly</code> | string |             |
-| [level](#) | <code>readonly</code> | number |             |
-| [text](#)  | <code>readonly</code> | string |             |
+<table><thead><tr><th>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[id](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[level](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+number
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[text](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
 ## ContentMenu
 
@@ -192,13 +250,75 @@ export interface ContentHeading
 export interface ContentMenu
 ```
 
-| Property    | Modifiers             | Type                          | Description  |
-| ----------- | --------------------- | ----------------------------- | ------------ |
-| [href?](#)  | <code>readonly</code> | string                        | _(Optional)_ |
-| [items?](#) | <code>readonly</code> | [ContentMenu](#contentmenu)[] | _(Optional)_ |
-| [text](#)   | <code>readonly</code> | string                        |              |
+<table><thead><tr><th>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[href?](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[items?](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+[ContentMenu](#contentmenu)[]
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[text](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
 ## DataValidator
 
@@ -210,7 +330,7 @@ export type DataValidator<T extends Record<string, any> = {}> = {
 
 **References:** [ValidatorReturn](#validatorreturn)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
 ## DocumentHead
 
@@ -222,7 +342,7 @@ export type DocumentHead =
 
 **References:** [DocumentHeadValue](#documentheadvalue), [DocumentHeadProps](#documentheadprops)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
 ## DocumentHeadProps
 
@@ -232,13 +352,71 @@ export interface DocumentHeadProps extends RouteLocation
 
 **Extends:** [RouteLocation](#routelocation)
 
-| Property          | Modifiers             | Type                                          | Description |
-| ----------------- | --------------------- | --------------------------------------------- | ----------- |
-| [head](#)         | <code>readonly</code> | [ResolvedDocumentHead](#resolveddocumenthead) |             |
-| [resolveValue](#) | <code>readonly</code> | ResolveSyncValue                              |             |
-| [withLocale](#)   | <code>readonly</code> | &lt;T&gt;(fn: () =&gt; T) =&gt; T             |             |
+<table><thead><tr><th>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[head](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+[ResolvedDocumentHead](#resolveddocumenthead)
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[resolveValue](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+ResolveSyncValue
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[withLocale](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+&lt;T&gt;(fn: () =&gt; T) =&gt; T
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
 ## DocumentHeadValue
 
@@ -246,16 +424,128 @@ export interface DocumentHeadProps extends RouteLocation
 export interface DocumentHeadValue<FrontMatter extends Record<string, any> = Record<string, unknown>>
 ```
 
-| Property          | Modifiers             | Type                                         | Description                                                                                                                                                                                                                                                           |
-| ----------------- | --------------------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [frontmatter?](#) | <code>readonly</code> | Readonly&lt;FrontMatter&gt;                  | _(Optional)_ Arbitrary object containing custom data. When the document head is created from markdown files, the frontmatter attributes that are not recognized as a well-known meta names (such as title, description, author, etc...), are stored in this property. |
-| [links?](#)       | <code>readonly</code> | readonly [DocumentLink](#documentlink)[]     | _(Optional)_ Used to manually append <code>&lt;link&gt;</code> elements to the <code>&lt;head&gt;</code>.                                                                                                                                                             |
-| [meta?](#)        | <code>readonly</code> | readonly [DocumentMeta](#documentmeta)[]     | _(Optional)_ Used to manually set meta tags in the head. Additionally, the <code>data</code> property could be used to set arbitrary data which the <code>&lt;head&gt;</code> component could later use to generate <code>&lt;meta&gt;</code> tags.                   |
-| [scripts?](#)     | <code>readonly</code> | readonly [DocumentScript](#documentscript)[] | _(Optional)_ Used to manually append <code>&lt;script&gt;</code> elements to the <code>&lt;head&gt;</code>.                                                                                                                                                           |
-| [styles?](#)      | <code>readonly</code> | readonly [DocumentStyle](#documentstyle)[]   | _(Optional)_ Used to manually append <code>&lt;style&gt;</code> elements to the <code>&lt;head&gt;</code>.                                                                                                                                                            |
-| [title?](#)       | <code>readonly</code> | string                                       | _(Optional)_ Sets <code>document.title</code>.                                                                                                                                                                                                                        |
+<table><thead><tr><th>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[frontmatter?](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+Readonly&lt;FrontMatter&gt;
+
+</td><td>
+
+_(Optional)_ Arbitrary object containing custom data. When the document head is created from markdown files, the frontmatter attributes that are not recognized as a well-known meta names (such as title, description, author, etc...), are stored in this property.
+
+</td></tr>
+<tr><td>
+
+[links?](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+readonly [DocumentLink](#documentlink)[]
+
+</td><td>
+
+_(Optional)_ Used to manually append `<link>` elements to the `<head>`.
+
+</td></tr>
+<tr><td>
+
+[meta?](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+readonly [DocumentMeta](#documentmeta)[]
+
+</td><td>
+
+_(Optional)_ Used to manually set meta tags in the head. Additionally, the `data` property could be used to set arbitrary data which the `<head>` component could later use to generate `<meta>` tags.
+
+</td></tr>
+<tr><td>
+
+[scripts?](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+readonly [DocumentScript](#documentscript)[]
+
+</td><td>
+
+_(Optional)_ Used to manually append `<script>` elements to the `<head>`.
+
+</td></tr>
+<tr><td>
+
+[styles?](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+readonly [DocumentStyle](#documentstyle)[]
+
+</td><td>
+
+_(Optional)_ Used to manually append `<style>` elements to the `<head>`.
+
+</td></tr>
+<tr><td>
+
+[title?](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_ Sets `document.title`.
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
 ## DocumentLink
 
@@ -263,27 +553,281 @@ export interface DocumentHeadValue<FrontMatter extends Record<string, any> = Rec
 export interface DocumentLink
 ```
 
-| Property             | Modifiers | Type    | Description  |
-| -------------------- | --------- | ------- | ------------ |
-| [as?](#)             |           | string  | _(Optional)_ |
-| [crossorigin?](#)    |           | string  | _(Optional)_ |
-| [disabled?](#)       |           | boolean | _(Optional)_ |
-| [href?](#)           |           | string  | _(Optional)_ |
-| [hreflang?](#)       |           | string  | _(Optional)_ |
-| [id?](#)             |           | string  | _(Optional)_ |
-| [imagesizes?](#)     |           | string  | _(Optional)_ |
-| [imagesrcset?](#)    |           | string  | _(Optional)_ |
-| [integrity?](#)      |           | string  | _(Optional)_ |
-| [key?](#)            |           | string  | _(Optional)_ |
-| [media?](#)          |           | string  | _(Optional)_ |
-| [prefetch?](#)       |           | string  | _(Optional)_ |
-| [referrerpolicy?](#) |           | string  | _(Optional)_ |
-| [rel?](#)            |           | string  | _(Optional)_ |
-| [sizes?](#)          |           | string  | _(Optional)_ |
-| [title?](#)          |           | string  | _(Optional)_ |
-| [type?](#)           |           | string  | _(Optional)_ |
+<table><thead><tr><th>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[as?](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[crossorigin?](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[disabled?](#)
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[href?](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[hreflang?](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[id?](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[imagesizes?](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[imagesrcset?](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[integrity?](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[key?](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[media?](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[prefetch?](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[referrerpolicy?](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[rel?](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[sizes?](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[title?](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[type?](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
 ## DocumentMeta
 
@@ -291,17 +835,145 @@ export interface DocumentLink
 export interface DocumentMeta
 ```
 
-| Property        | Modifiers             | Type   | Description  |
-| --------------- | --------------------- | ------ | ------------ |
-| [content?](#)   | <code>readonly</code> | string | _(Optional)_ |
-| [httpEquiv?](#) | <code>readonly</code> | string | _(Optional)_ |
-| [itemprop?](#)  | <code>readonly</code> | string | _(Optional)_ |
-| [key?](#)       | <code>readonly</code> | string | _(Optional)_ |
-| [media?](#)     | <code>readonly</code> | string | _(Optional)_ |
-| [name?](#)      | <code>readonly</code> | string | _(Optional)_ |
-| [property?](#)  | <code>readonly</code> | string | _(Optional)_ |
+<table><thead><tr><th>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[content?](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[httpEquiv?](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[itemprop?](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[key?](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[media?](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[name?](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[property?](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
 ## DocumentScript
 
@@ -311,13 +983,77 @@ export interface DocumentMeta
 export interface DocumentScript
 ```
 
-| Property     | Modifiers             | Type                                            | Description                |
-| ------------ | --------------------- | ----------------------------------------------- | -------------------------- |
-| [key?](#)    | <code>readonly</code> | string                                          | **_(ALPHA)_** _(Optional)_ |
-| [props?](#)  | <code>readonly</code> | Readonly&lt;QwikIntrinsicElements['script']&gt; | **_(ALPHA)_** _(Optional)_ |
-| [script?](#) | <code>readonly</code> | string                                          | **_(ALPHA)_** _(Optional)_ |
+<table><thead><tr><th>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[key?](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+string
+
+</td><td>
+
+**_(ALPHA)_** _(Optional)_
+
+</td></tr>
+<tr><td>
+
+[props?](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+Readonly&lt;QwikIntrinsicElements['script']&gt;
+
+</td><td>
+
+**_(ALPHA)_** _(Optional)_
+
+</td></tr>
+<tr><td>
+
+[script?](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+string
+
+</td><td>
+
+**_(ALPHA)_** _(Optional)_
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
 ## DocumentStyle
 
@@ -325,13 +1061,75 @@ export interface DocumentScript
 export interface DocumentStyle
 ```
 
-| Property    | Modifiers             | Type                                           | Description  |
-| ----------- | --------------------- | ---------------------------------------------- | ------------ |
-| [key?](#)   | <code>readonly</code> | string                                         | _(Optional)_ |
-| [props?](#) | <code>readonly</code> | Readonly&lt;QwikIntrinsicElements['style']&gt; | _(Optional)_ |
-| [style](#)  | <code>readonly</code> | string                                         |              |
+<table><thead><tr><th>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[key?](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[props?](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+Readonly&lt;QwikIntrinsicElements['style']&gt;
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[style](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
 ## FailOfRest
 
@@ -342,7 +1140,7 @@ export type FailOfRest<REST extends readonly DataValidator[]> =
 
 **References:** [DataValidator](#datavalidator)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
 ## FailReturn
 
@@ -350,7 +1148,7 @@ export type FailOfRest<REST extends readonly DataValidator[]> =
 export type FailReturn<T> = T & Failed;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
 ## Form
 
@@ -358,10 +1156,50 @@ export type FailReturn<T> = T & Failed;
 Form: <O, I>(
   { action, spaReset, reloadDocument, onSubmit$, ...rest }: FormProps<O, I>,
   key: string | null,
-) => QwikJSX.Element;
+) => import("@builder.io/qwik").JSXOutput;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/form-component.tsx)
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+{ action, spaReset, reloadDocument, onSubmit$, ...rest }
+
+</td><td>
+
+[FormProps](#formprops)&lt;O, I&gt;
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+key
+
+</td><td>
+
+string \| null
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+**Returns:**
+
+import("@builder.io/qwik").JSXOutput
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/form-component.tsx)
 
 ## FormProps
 
@@ -371,16 +1209,118 @@ export interface FormProps<O, I> extends Omit<QwikJSX.IntrinsicElements['form'],
 
 **Extends:** Omit&lt;QwikJSX.IntrinsicElements['form'], 'action' \| 'method'&gt;
 
-| Property                 | Modifiers | Type                                                                                                                                               | Description                                                                                                                                                                      |
-| ------------------------ | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [action?](#)             |           | [ActionStore](#actionstore)&lt;O, I, true \| false&gt;                                                                                             | _(Optional)_ Reference to the action returned by <code>action()</code>.                                                                                                          |
-| [key?](#)                |           | string \| number \| null                                                                                                                           | _(Optional)_                                                                                                                                                                     |
-| [onSubmit$?](#)          |           | (event: Event, form: HTMLFormElement) =&gt; ValueOrPromise&lt;void&gt;                                                                             | _(Optional)_ Event handler executed right when the form is submitted.                                                                                                            |
-| [onSubmitCompleted$?](#) |           | (event: CustomEvent&lt;[FormSubmitCompletedDetail](#formsubmitsuccessdetail)&lt;O&gt;&gt;, form: HTMLFormElement) =&gt; ValueOrPromise&lt;void&gt; | _(Optional)_ Event handler executed right after the action is executed successfully and returns some data.                                                                       |
-| [reloadDocument?](#)     |           | boolean                                                                                                                                            | _(Optional)_ When <code>true</code> the form submission will cause a full page reload, even if SPA mode is enabled and JS is available.                                          |
-| [spaReset?](#)           |           | boolean                                                                                                                                            | <p>_(Optional)_ When <code>true</code> all the form inputs will be reset in SPA mode, just like happens in a full page form submission.</p><p>Defaults to <code>false</code></p> |
+<table><thead><tr><th>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/form-component.tsx)
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[action?](#)
+
+</td><td>
+
+</td><td>
+
+[ActionStore](#actionstore)&lt;O, I, true \| false&gt;
+
+</td><td>
+
+_(Optional)_ Reference to the action returned by `action()`.
+
+</td></tr>
+<tr><td>
+
+[key?](#)
+
+</td><td>
+
+</td><td>
+
+string \| number \| null
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[onSubmit$?](#)
+
+</td><td>
+
+</td><td>
+
+(event: Event, form: HTMLFormElement) =&gt; ValueOrPromise&lt;void&gt;
+
+</td><td>
+
+_(Optional)_ Event handler executed right when the form is submitted.
+
+</td></tr>
+<tr><td>
+
+[onSubmitCompleted$?](#)
+
+</td><td>
+
+</td><td>
+
+(event: CustomEvent&lt;[FormSubmitCompletedDetail](#formsubmitsuccessdetail)&lt;O&gt;&gt;, form: HTMLFormElement) =&gt; ValueOrPromise&lt;void&gt;
+
+</td><td>
+
+_(Optional)_ Event handler executed right after the action is executed successfully and returns some data.
+
+</td></tr>
+<tr><td>
+
+[reloadDocument?](#)
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_ When `true` the form submission will cause a full page reload, even if SPA mode is enabled and JS is available.
+
+</td></tr>
+<tr><td>
+
+[spaReset?](#)
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_ When `true` all the form inputs will be reset in SPA mode, just like happens in a full page form submission.
+
+Defaults to `false`
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/form-component.tsx)
 
 ## FormSubmitSuccessDetail
 
@@ -388,12 +1328,52 @@ export interface FormProps<O, I> extends Omit<QwikJSX.IntrinsicElements['form'],
 export interface FormSubmitCompletedDetail<T>
 ```
 
-| Property    | Modifiers | Type   | Description |
-| ----------- | --------- | ------ | ----------- |
-| [status](#) |           | number |             |
-| [value](#)  |           | T      |             |
+<table><thead><tr><th>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/form-component.tsx)
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[status](#)
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[value](#)
+
+</td><td>
+
+</td><td>
+
+T
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/form-component.tsx)
 
 ## GetValidatorType
 
@@ -404,7 +1384,7 @@ export type GetValidatorType<VALIDATOR extends TypedDataValidator> =
 
 **References:** [TypedDataValidator](#typeddatavalidator)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
 ## globalAction$
 
@@ -412,7 +1392,7 @@ export type GetValidatorType<VALIDATOR extends TypedDataValidator> =
 globalAction$: ActionConstructor;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts)
 
 ## globalActionQrl
 
@@ -420,7 +1400,7 @@ globalAction$: ActionConstructor;
 globalActionQrl: ActionConstructorQRL;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts)
 
 ## JSONObject
 
@@ -432,7 +1412,7 @@ export type JSONObject = {
 
 **References:** [JSONValue](#jsonvalue)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
 ## JSONValue
 
@@ -449,17 +1429,15 @@ export type JSONValue =
 
 **References:** [JSONValue](#jsonvalue)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
 ## Link
 
 ```typescript
-Link: import("@builder.io/qwik").Component<
-  import("@builder.io/qwik").PropFunctionProps<LinkProps>
->;
+Link: import("@builder.io/qwik").Component<LinkProps>;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/link-component.tsx)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/link-component.tsx)
 
 ## LinkProps
 
@@ -469,16 +1447,98 @@ export interface LinkProps extends AnchorAttributes
 
 **Extends:** AnchorAttributes
 
-| Property           | Modifiers | Type    | Description  |
-| ------------------ | --------- | ------- | ------------ |
-| [prefetch?](#)     |           | boolean | _(Optional)_ |
-| [reload?](#)       |           | boolean | _(Optional)_ |
-| [replaceState?](#) |           | boolean | _(Optional)_ |
-| [scroll?](#)       |           | boolean | _(Optional)_ |
+<table><thead><tr><th>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/link-component.tsx)
+Property
 
-## Loader
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[prefetch?](#)
+
+</td><td>
+
+</td><td>
+
+boolean \| 'js'
+
+</td><td>
+
+_(Optional)_ \*\*Defaults to \_true\_.\*\*
+
+Whether Qwik should prefetch and cache the target page of this \*\*`Link`\*\*, this includes invoking any \*\*`routeLoader$`\*\*, \*\*`onGet`\*\*, etc.
+
+This \*\*improves UX performance\*\* for client-side (\*\*SPA\*\*) navigations.
+
+Prefetching occurs when a the Link enters the viewport in production (\*\*`on:qvisibile`\*\*), or with \*\*`mouseover`/`focus`\*\* during dev.
+
+Prefetching will not occur if the user has the \*\*data saver\*\* setting enabled.
+
+Setting this value to \*\*`"js"`\*\* will prefetch only javascript bundles required to render this page on the client, \*\*`false`\*\* will disable prefetching altogether.
+
+</td></tr>
+<tr><td>
+
+[reload?](#)
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[replaceState?](#)
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[scroll?](#)
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/link-component.tsx)
+
+## Loader_2
 
 ```typescript
 export type Loader<RETURN> = {
@@ -488,7 +1548,7 @@ export type Loader<RETURN> = {
 
 **References:** [LoaderSignal](#loadersignal)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
 ## LoaderSignal
 
@@ -500,7 +1560,7 @@ export type LoaderSignal<TYPE> = TYPE extends () => ValueOrPromise<
   : ReadonlySignal<TYPE>;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
 ## MenuData
 
@@ -508,7 +1568,7 @@ export type LoaderSignal<TYPE> = TYPE extends () => ValueOrPromise<
 export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
 ## NavigationType
 
@@ -516,7 +1576,7 @@ export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
 export type NavigationType = "initial" | "form" | "link" | "popstate";
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
 ## PageModule
 
@@ -526,14 +1586,92 @@ export interface PageModule extends RouteModule
 
 **Extends:** RouteModule
 
-| Property               | Modifiers             | Type                                            | Description  |
-| ---------------------- | --------------------- | ----------------------------------------------- | ------------ |
-| [default](#)           | <code>readonly</code> | unknown                                         |              |
-| [head?](#)             | <code>readonly</code> | ContentModuleHead                               | _(Optional)_ |
-| [headings?](#)         | <code>readonly</code> | [ContentHeading](#contentheading)[]             | _(Optional)_ |
-| [onStaticGenerate?](#) | <code>readonly</code> | [StaticGenerateHandler](#staticgeneratehandler) | _(Optional)_ |
+<table><thead><tr><th>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[default](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+unknown
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[head?](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+ContentModuleHead
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[headings?](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+[ContentHeading](#contentheading)[]
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[onStaticGenerate?](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+[StaticGenerateHandler](#staticgeneratehandler)
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
 ## PathParams
 
@@ -541,7 +1679,7 @@ export interface PageModule extends RouteModule
 export declare type PathParams = Record<string, string>;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
 ## QwikCityMockProps
 
@@ -549,22 +1687,79 @@ export declare type PathParams = Record<string, string>;
 export interface QwikCityMockProps
 ```
 
-| Property     | Modifiers | Type                         | Description  |
-| ------------ | --------- | ---------------------------- | ------------ |
-| [params?](#) |           | Record&lt;string, string&gt; | _(Optional)_ |
-| [url?](#)    |           | string                       | _(Optional)_ |
+<table><thead><tr><th>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/qwik-city-component.tsx)
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[goto?](#)
+
+</td><td>
+
+</td><td>
+
+[RouteNavigate](#routenavigate)
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[params?](#)
+
+</td><td>
+
+</td><td>
+
+Record&lt;string, string&gt;
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[url?](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/qwik-city-component.tsx)
 
 ## QwikCityMockProvider
 
 ```typescript
-QwikCityMockProvider: import("@builder.io/qwik").Component<
-  import("@builder.io/qwik").PropFunctionProps<QwikCityMockProps>
->;
+QwikCityMockProvider: import("@builder.io/qwik").Component<QwikCityMockProps>;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/qwik-city-component.tsx)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/qwik-city-component.tsx)
 
 ## QwikCityPlan
 
@@ -572,16 +1767,126 @@ QwikCityMockProvider: import("@builder.io/qwik").Component<
 export interface QwikCityPlan
 ```
 
-| Property            | Modifiers             | Type                      | Description  |
-| ------------------- | --------------------- | ------------------------- | ------------ |
-| [basePathname?](#)  | <code>readonly</code> | string                    | _(Optional)_ |
-| [cacheModules?](#)  | <code>readonly</code> | boolean                   | _(Optional)_ |
-| [menus?](#)         | <code>readonly</code> | [MenuData](#menudata)[]   | _(Optional)_ |
-| [routes](#)         | <code>readonly</code> | [RouteData](#routedata)[] |              |
-| [serverPlugins?](#) | <code>readonly</code> | RouteModule[]             | _(Optional)_ |
-| [trailingSlash?](#) | <code>readonly</code> | boolean                   | _(Optional)_ |
+<table><thead><tr><th>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[basePathname?](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[cacheModules?](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[menus?](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+[MenuData](#menudata)[]
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[routes](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+[RouteData](#routedata)[]
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[serverPlugins?](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+RouteModule[]
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[trailingSlash?](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
 ## QwikCityProps
 
@@ -589,21 +1894,51 @@ export interface QwikCityPlan
 export interface QwikCityProps
 ```
 
-| Property             | Modifiers | Type    | Description                                                                        |
-| -------------------- | --------- | ------- | ---------------------------------------------------------------------------------- |
-| [viewTransition?](#) |           | boolean | <p>_(Optional)_ Enable the ViewTransition API</p><p>Default: <code>true</code></p> |
+<table><thead><tr><th>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/qwik-city-component.tsx)
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[viewTransition?](#)
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_ Enable the ViewTransition API
+
+Default: `true`
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/qwik-city-component.tsx)
 
 ## QwikCityProvider
 
 ```typescript
-QwikCityProvider: import("@builder.io/qwik").Component<
-  import("@builder.io/qwik").PropFunctionProps<QwikCityProps>
->;
+QwikCityProvider: import("@builder.io/qwik").Component<QwikCityProps>;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/qwik-city-component.tsx)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/qwik-city-component.tsx)
 
 ## ResolvedDocumentHead
 
@@ -615,7 +1950,7 @@ export type ResolvedDocumentHead<
 
 **References:** [DocumentHeadValue](#documentheadvalue)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
 ## routeAction$
 
@@ -623,7 +1958,7 @@ export type ResolvedDocumentHead<
 routeAction$: ActionConstructor;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts)
 
 ## routeActionQrl
 
@@ -631,7 +1966,7 @@ routeAction$: ActionConstructor;
 routeActionQrl: ActionConstructorQRL;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts)
 
 ## RouteData
 
@@ -646,7 +1981,7 @@ export type RouteData =
     ];
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
 ## routeLoader$
 
@@ -654,7 +1989,7 @@ export type RouteData =
 routeLoader$: LoaderConstructor;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts)
 
 ## routeLoaderQrl
 
@@ -662,7 +1997,7 @@ routeLoader$: LoaderConstructor;
 routeLoaderQrl: LoaderConstructorQRL;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts)
 
 ## RouteLocation
 
@@ -670,14 +2005,86 @@ routeLoaderQrl: LoaderConstructorQRL;
 export interface RouteLocation
 ```
 
-| Property          | Modifiers             | Type                                         | Description |
-| ----------------- | --------------------- | -------------------------------------------- | ----------- |
-| [isNavigating](#) | <code>readonly</code> | boolean                                      |             |
-| [params](#)       | <code>readonly</code> | Readonly&lt;Record&lt;string, string&gt;&gt; |             |
-| [prevUrl](#)      | <code>readonly</code> | URL \| undefined                             |             |
-| [url](#)          | <code>readonly</code> | URL                                          |             |
+<table><thead><tr><th>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[isNavigating](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+boolean
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[params](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+Readonly&lt;Record&lt;string, string&gt;&gt;
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[prevUrl](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+URL \| undefined
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[url](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+URL
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
 ## RouteNavigate
 
@@ -699,17 +2106,15 @@ export type RouteNavigate = QRL<
 
 **References:** [NavigationType](#navigationtype)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
 ## RouterOutlet
 
 ```typescript
-RouterOutlet: import("@builder.io/qwik").Component<
-  import("@builder.io/qwik").PropFunctionProps<Record<any, any>>
->;
+RouterOutlet: import("@builder.io/qwik").Component<unknown>;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/router-outlet-component.tsx)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/router-outlet-component.tsx)
 
 ## server$
 
@@ -717,15 +2122,76 @@ RouterOutlet: import("@builder.io/qwik").Component<
 server$: <T extends ServerFunction>(first: T) => ServerQRL<T>;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts)
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+first
+
+</td><td>
+
+T
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+**Returns:**
+
+[ServerQRL](#serverqrl)&lt;T&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts)
+
+## ServerFunction
+
+```typescript
+export type ServerFunction = {
+  (this: RequestEventBase, ...args: any[]): any;
+};
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
 ## serverQrl
 
+You can pass an AbortSignal as the first argument of a `server$` function and it will use it to abort the fetch when fired.
+
 ```typescript
-serverQrl: <T extends ServerFunction>(qrl: QRL<T>) => ServerQRL<T>;
+export type ServerQRL<T extends ServerFunction> = QRL<
+  | ((abort: AbortSignal, ...args: Parameters<T>) => ReturnType<T>)
+  | ((...args: Parameters<T>) => ReturnType<T>)
+>;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts)
+**References:** [ServerFunction](#serverfunction)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts)
+
+## ServerQRL
+
+You can pass an AbortSignal as the first argument of a `server$` function and it will use it to abort the fetch when fired.
+
+```typescript
+export type ServerQRL<T extends ServerFunction> = QRL<
+  | ((abort: AbortSignal, ...args: Parameters<T>) => ReturnType<T>)
+  | ((...args: Parameters<T>) => ReturnType<T>)
+>;
+```
+
+**References:** [ServerFunction](#serverfunction)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
 ## ServiceWorkerRegister
 
@@ -734,7 +2200,36 @@ ServiceWorkerRegister: (props: { nonce?: string }) =>
   import("@builder.io/qwik").JSXNode<"script">;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/sw-component.tsx)
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+props
+
+</td><td>
+
+{ nonce?: string; }
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+**Returns:**
+
+import("@builder.io/qwik").JSXNode&lt;"script"&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/sw-component.tsx)
 
 ## StaticGenerate
 
@@ -742,11 +2237,41 @@ ServiceWorkerRegister: (props: { nonce?: string }) =>
 export interface StaticGenerate
 ```
 
-| Property     | Modifiers | Type                        | Description  |
-| ------------ | --------- | --------------------------- | ------------ |
-| [params?](#) |           | [PathParams](#pathparams)[] | _(Optional)_ |
+<table><thead><tr><th>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[params?](#)
+
+</td><td>
+
+</td><td>
+
+[PathParams](#pathparams)[]
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
 ## StaticGenerateHandler
 
@@ -760,7 +2285,7 @@ export type StaticGenerateHandler = ({
 
 **References:** [StaticGenerate](#staticgenerate)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
 ## StrictUnion
 
@@ -768,7 +2293,7 @@ export type StaticGenerateHandler = ({
 export type StrictUnion<T> = Prettify<StrictUnionHelper<T, T>>;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
 ## TypedDataValidator
 
@@ -782,7 +2307,7 @@ export type TypedDataValidator<T extends zod.ZodType = zod.ZodType> = {
 };
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
 ## useContent
 
@@ -790,7 +2315,11 @@ export type TypedDataValidator<T extends zod.ZodType = zod.ZodType> = {
 useContent: () => import("./types").ContentState;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/use-functions.ts)
+**Returns:**
+
+import("./types").ContentState
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/use-functions.ts)
 
 ## useDocumentHead
 
@@ -799,10 +2328,14 @@ Returns the document head for the current page. The generic type describes the f
 ```typescript
 useDocumentHead: <
   FrontMatter extends Record<string, unknown> = Record<string, any>,
->() => Required<Required<import("./types").DocumentHeadValue<FrontMatter>>>;
+>() => Required<ResolvedDocumentHead<FrontMatter>>;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/use-functions.ts)
+**Returns:**
+
+Required&lt;[ResolvedDocumentHead](#resolveddocumenthead)&lt;FrontMatter&gt;&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/use-functions.ts)
 
 ## useLocation
 
@@ -810,7 +2343,11 @@ useDocumentHead: <
 useLocation: () => RouteLocation;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/use-functions.ts)
+**Returns:**
+
+[RouteLocation](#routelocation)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/use-functions.ts)
 
 ## useNavigate
 
@@ -818,7 +2355,11 @@ useLocation: () => RouteLocation;
 useNavigate: () => RouteNavigate;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/use-functions.ts)
+**Returns:**
+
+[RouteNavigate](#routenavigate)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/use-functions.ts)
 
 ## validator$
 
@@ -826,7 +2367,7 @@ useNavigate: () => RouteNavigate;
 validator$: ValidatorConstructor;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts)
 
 ## validatorQrl
 
@@ -834,7 +2375,7 @@ validator$: ValidatorConstructor;
 validatorQrl: ValidatorConstructorQRL;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts)
 
 ## ValidatorReturn
 
@@ -844,7 +2385,7 @@ export type ValidatorReturn<T extends Record<string, any> = {}> =
   | ValidatorReturnFail<T>;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
 ## zod$
 
@@ -852,7 +2393,7 @@ export type ValidatorReturn<T extends Record<string, any> = {}> =
 zod$: ZodConstructor;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts)
 
 ## ZodConstructor
 
@@ -871,7 +2412,7 @@ export type ZodConstructor = {
 
 **References:** [TypedDataValidator](#typeddatavalidator)
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
 ## zodQrl
 
@@ -879,4 +2420,4 @@ export type ZodConstructor = {
 zodQrl: ZodConstructorQRL;
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts)

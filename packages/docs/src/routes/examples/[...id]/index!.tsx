@@ -126,7 +126,7 @@ export default component$(() => {
             </article>
           ))}
           <a
-            href="https://github.com/BuilderIO/qwik/tree/main/packages/docs/src/routes/examples/apps/"
+            href="https://github.com/QwikDev/qwik/tree/main/packages/docs/src/routes/examples/apps/"
             class="example-button-new"
             target="_blank"
           >

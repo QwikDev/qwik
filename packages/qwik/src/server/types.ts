@@ -102,8 +102,29 @@ export interface RenderResult {
 
 /** @public */
 export interface QwikLoaderOptions {
-  events?: string[];
   include?: 'always' | 'never' | 'auto';
+  position?: 'top' | 'bottom';
+}
+
+/**
+ * Options which determine how the Qwik Prefetch Service Worker is added to the document.
+ *
+ * Qwik Prefetch Service Worker is used to prefetch resources so that the QwikLoader will always
+ * have a cache hit. This will ensure that there will not be any delays for the end user while
+ * interacting with the application.
+ *
+ * @public
+ */
+export interface QwikPrefetchServiceWorkerOptions {
+  /**
+   * Should the Qwik Prefetch Service Worker be added to the container. Defaults to `false` until
+   * the QwikCity Service Worker is deprecated.
+   */
+  include?: boolean;
+  /**
+   * Where should the Qwik Prefetch Service Worker be added to the container. Defaults to `top` to
+   * get prefetching going as fast as possible.
+   */
   position?: 'top' | 'bottom';
 }
 
@@ -127,6 +148,13 @@ export interface RenderOptions extends SerializeDocumentOptions {
    * Defaults to `{ include: true }`.
    */
   qwikLoader?: QwikLoaderOptions;
+
+  /**
+   * Specifies if the Qwik Prefetch Service Worker script is added to the document or not.
+   *
+   * Defaults to `{ include: false }`. NOTE: This may be change in the future.
+   */
+  qwikPrefetchServiceWorker?: QwikPrefetchServiceWorkerOptions;
 
   prefetchStrategy?: PrefetchStrategy | null;
 

@@ -1,39 +1,18 @@
-import { fromCamelToKebabCase } from './../core/util/case';
-import { ElementFixture, dispatch } from './element-fixture';
-import { setTestPlatform, getTestPlatform } from './platform';
-import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
-
-/**
- * @param root
- * @param selector
- * @param eventNameCamel
- */
-async function triggerUserEvent(
-  root: Element,
-  selector: string,
-  eventNameCamel: string,
-  eventPayload: any = {}
-): Promise<void> {
-  for (const element of Array.from(root.querySelectorAll(selector))) {
-    const kebabEventName = fromCamelToKebabCase(eventNameCamel);
-    const event = { type: kebabEventName, ...eventPayload };
-    const attrName = 'on:' + kebabEventName;
-    await dispatch(element, attrName, event);
-  }
-  await getTestPlatform().flush();
-}
+import { ElementFixture, trigger } from './element-fixture';
+import { setTestPlatform } from './platform';
+import type { JSXOutput } from '@builder.io/qwik';
 
 /**
  * CreatePlatform and CreateDocument
  *
  * @public
  */
-export const createDOM = async function () {
+export const createDOM = async function ({ html }: { html?: string } = {}) {
   const qwik = await getQwik();
   setTestPlatform(qwik.setPlatform);
-  const host = new ElementFixture().host;
+  const host = new ElementFixture({ html }).host;
   return {
-    render: function (jsxElement: JSXNode) {
+    render: function (jsxElement: JSXOutput) {
       return qwik.render(host, jsxElement);
     },
     screen: host,
@@ -42,14 +21,7 @@ export const createDOM = async function () {
       eventNameCamel: string | keyof WindowEventMap,
       eventPayload: any = {}
     ) {
-      if (typeof queryOrElement === 'string') {
-        return triggerUserEvent(host, queryOrElement, eventNameCamel, eventPayload);
-      }
-      const kebabEventName = fromCamelToKebabCase(eventNameCamel);
-      const event = { type: kebabEventName, ...eventPayload };
-      const attrName = 'on:' + kebabEventName;
-      await dispatch(queryOrElement, attrName, event);
-      await getTestPlatform().flush();
+      return trigger(host, queryOrElement, eventNameCamel, eventPayload);
     },
   };
 };

@@ -11,7 +11,7 @@ import { CookieValue } from '@builder.io/qwik-city/middleware/request-handler';
 import { DeferReturn } from '@builder.io/qwik-city/middleware/request-handler';
 import type { EnvGetter } from '@builder.io/qwik-city/middleware/request-handler';
 import { JSXNode } from '@builder.io/qwik';
-import { PropFunctionProps } from '@builder.io/qwik';
+import { JSXOutput } from '@builder.io/qwik';
 import { QRL } from '@builder.io/qwik';
 import { QwikIntrinsicElements } from '@builder.io/qwik';
 import { QwikJSX } from '@builder.io/qwik';
@@ -212,7 +212,7 @@ export type FailOfRest<REST extends readonly DataValidator[]> = REST extends rea
 export type FailReturn<T> = T & Failed;
 
 // @public (undocumented)
-export const Form: <O, I>({ action, spaReset, reloadDocument, onSubmit$, ...rest }: FormProps<O, I>, key: string | null) => QwikJSX.Element;
+export const Form: <O, I>({ action, spaReset, reloadDocument, onSubmit$, ...rest }: FormProps<O, I>, key: string | null) => JSXOutput;
 
 // @public (undocumented)
 export interface FormProps<O, I> extends Omit<QwikJSX.IntrinsicElements['form'], 'action' | 'method'> {
@@ -255,14 +255,13 @@ export type JSONValue = string | number | boolean | {
 } | Array<JSONValue>;
 
 // @public (undocumented)
-export const Link: Component<PropFunctionProps<LinkProps>>;
+export const Link: Component<LinkProps>;
 
 // Warning: (ae-forgotten-export) The symbol "AnchorAttributes" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
 export interface LinkProps extends AnchorAttributes {
-    // (undocumented)
-    prefetch?: boolean;
+    prefetch?: boolean | 'js';
     // (undocumented)
     reload?: boolean;
     // (undocumented)
@@ -272,9 +271,10 @@ export interface LinkProps extends AnchorAttributes {
 }
 
 // @public (undocumented)
-export type Loader<RETURN> = {
+type Loader_2<RETURN> = {
     (): LoaderSignal<RETURN>;
 };
+export { Loader_2 as Loader }
 
 // @public (undocumented)
 export type LoaderSignal<TYPE> = TYPE extends () => ValueOrPromise<infer VALIDATOR> ? ReadonlySignal<ValueOrPromise<VALIDATOR>> : ReadonlySignal<TYPE>;
@@ -309,13 +309,15 @@ export type PathParams = Record<string, string>;
 // @public (undocumented)
 export interface QwikCityMockProps {
     // (undocumented)
+    goto?: RouteNavigate;
+    // (undocumented)
     params?: Record<string, string>;
     // (undocumented)
     url?: string;
 }
 
 // @public (undocumented)
-export const QwikCityMockProvider: Component<PropFunctionProps<QwikCityMockProps>>;
+export const QwikCityMockProvider: Component<QwikCityMockProps>;
 
 // @public (undocumented)
 export interface QwikCityPlan {
@@ -339,7 +341,7 @@ export interface QwikCityProps {
 }
 
 // @public (undocumented)
-export const QwikCityProvider: Component<PropFunctionProps<QwikCityProps>>;
+export const QwikCityProvider: Component<QwikCityProps>;
 
 export { RequestEvent }
 
@@ -403,13 +405,18 @@ export type RouteNavigate = QRL<(path?: string, options?: {
 } | boolean) => Promise<void>>;
 
 // @public (undocumented)
-export const RouterOutlet: Component<PropFunctionProps<Record<any, any>>>;
+export const RouterOutlet: Component<unknown>;
 
-// Warning: (ae-forgotten-export) The symbol "ServerFunction" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "ServerQRL" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
 export const server$: <T extends ServerFunction>(first: T) => ServerQRL<T>;
+
+// @public (undocumented)
+export type ServerFunction = {
+    (this: RequestEventBase, ...args: any[]): any;
+};
+
+// @public
+export type ServerQRL<T extends ServerFunction> = QRL<((abort: AbortSignal, ...args: Parameters<T>) => ReturnType<T>) | ((...args: Parameters<T>) => ReturnType<T>)>;
 
 // @public (undocumented)
 export const serverQrl: <T extends ServerFunction>(qrl: QRL<T>) => ServerQRL<T>;
@@ -448,7 +455,7 @@ export type TypedDataValidator<T extends zod.ZodType = zod.ZodType> = {
 export const useContent: () => ContentState;
 
 // @public
-export const useDocumentHead: <FrontMatter extends Record<string, unknown> = Record<string, any>>() => Required<Required<DocumentHeadValue<FrontMatter>>>;
+export const useDocumentHead: <FrontMatter extends Record<string, unknown> = Record<string, any>>() => Required<ResolvedDocumentHead<FrontMatter>>;
 
 // @public (undocumented)
 export const useLocation: () => RouteLocation;

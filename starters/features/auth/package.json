@@ -4,7 +4,7 @@
     "displayName": "Integration: Auth.js (authentication)",
     "priority": -10,
     "docs": [
-      "https://qwik.builder.io/docs/integrations/authjs/",
+      "https://qwik.dev/docs/integrations/authjs/",
       "https://authjs.dev/"
     ],
     "nextSteps": {
@@ -12,12 +12,12 @@
         " Please add `optimizeDeps: { include: ['@auth/core'] }`",
         " to your vite.config.ts file.",
         " Have a look at the docs for more info: ",
-        " https://qwik.builder.io/docs/integrations/authjs/"
+        " https://qwik.dev/docs/integrations/authjs/"
       ]
     }
   },
   "devDependencies": {
-    "@auth/core": "^0.13.0",
+    "@auth/core": "^0.30.0",
     "@builder.io/qwik-auth": "0.1.1"
   }
 }

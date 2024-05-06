@@ -12,15 +12,38 @@ title: \@builder.io/qwik-city/vite/node-server API Reference
 export declare function nodeServerAdapter(opts?: NodeServerAdapterOptions): any;
 ```
 
-| Parameter | Type                                                  | Description  |
-| --------- | ----------------------------------------------------- | ------------ |
-| opts      | [NodeServerAdapterOptions](#nodeserveradapteroptions) | _(Optional)_ |
+<table><thead><tr><th>
 
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+opts
+
+</td><td>
+
+[NodeServerAdapterOptions](#nodeserveradapteroptions)
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
 **Returns:**
 
 any
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/node-server/vite/index.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/adapters/node-server/vite/index.ts)
 
 ## NodeServerAdapterOptions
 
@@ -32,8 +55,38 @@ export interface NodeServerAdapterOptions extends ServerAdapterOptions
 
 **Extends:** ServerAdapterOptions
 
-| Property   | Modifiers | Type   | Description                |
-| ---------- | --------- | ------ | -------------------------- |
-| [name?](#) |           | string | **_(ALPHA)_** _(Optional)_ |
+<table><thead><tr><th>
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/adapters/node-server/vite/index.ts)
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[name?](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+**_(ALPHA)_** _(Optional)_
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/adapters/node-server/vite/index.ts)

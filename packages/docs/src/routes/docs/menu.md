@@ -38,9 +38,19 @@
 ## Cookbook
 
 - [Overview](/docs/cookbook/index.mdx)
+- [Algolia Search](/docs/cookbook/algolia-search/index.mdx)
+- [Combine Handlers](/docs/cookbook/combine-request-handlers/index.mdx)
+- [Debouncer](/docs/cookbook/debouncer/index.mdx)
+- [Fonts](/docs/cookbook/fonts/index.mdx)
 - [Glob Import](/docs/cookbook/glob-import/index.mdx)
 - [Media Controller](/docs/cookbook/mediaController/index.mdx)
-- [Portal](/docs/cookbook/portal/index.mdx)
+- [NavLink](/docs/cookbook/nav-link/index.mdx)
+- [Node Docker deploy](/docs/cookbook/node-docker-deploy/index.mdx)
+- [Portals](/docs/cookbook/portals/index.mdx)
+- [Re-exporting loaders](/docs/cookbook/re-exporting-loaders/index.mdx)
+- [Streaming loaders](/docs/cookbook/streaming-deferred-loaders/index.mdx)
+- [Sync events w state](/docs/cookbook/sync-events/index.mdx)
+- [Theme Managment](/docs/cookbook/theme-management/index.mdx)
 
 ## Integrations
 
@@ -50,12 +60,14 @@
 - [Bootstrap](integrations/bootstrap/index.mdx)
 - [Builder.io](integrations/builderio/index.mdx)
 - [Cypress](integrations/cypress/index.mdx)
+- [Drizzle](integrations/drizzle/index.mdx)
+- [i18n](integrations/i18n/index.mdx)
 - [Icons](integrations/icons/index.mdx)
 - [Image Optimization](integrations/image-optimization/index.mdx)
-- [i18n](integrations/i18n/index.mdx)
 - [Leaflet Map](integrations/leaflet-map/index.mdx)
 - [Modular Forms](integrations/modular-forms/index.mdx)
 - [Nx Monorepos](integrations/nx/index.mdx)
+- [OG Image](integrations/og-img/index.mdx)
 - [Orama](integrations/orama/index.mdx)
 - [Panda CSS](integrations/panda-css/index.mdx)
 - [Partytown](integrations/partytown/index.mdx)
@@ -114,6 +126,7 @@
 - [Build Directory](</docs/(qwik)/advanced/custom-build-dir/index.mdx>)
 - [Vite](</docs/(qwik)/advanced/vite/index.mdx>)
 - [Advanced Routing](</docs/(qwikcity)/advanced/routing/index.mdx>)
+- [Qwik Plugins](</docs/(qwikcity)/advanced/plugins/index.mdx>)
 - [Request Handling](</docs/(qwikcity)/advanced/request-handling/index.mdx>)
 - [Speculative Module Fetching](</docs/(qwikcity)/advanced/speculative-module-fetching/index.mdx>)
 - [Menus](</docs/(qwikcity)/advanced/menu/index.mdx>)
@@ -137,8 +150,8 @@
 
 ## Community
 
-- [GitHub](https://github.com/BuilderIO/qwik)
+- [GitHub](https://github.com/QwikDev/qwik)
 - [@QwikDev](https://twitter.com/QwikDev)
-- [Discord](https://qwik.builder.io/chat)
+- [Discord](https://qwik.dev/chat)
 - [Community Projects](/community/projects/index.mdx)
 - [Values](/community/values/index.mdx)

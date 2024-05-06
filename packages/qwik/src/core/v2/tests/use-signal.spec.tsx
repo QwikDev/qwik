@@ -15,7 +15,7 @@ import type { Signal as SignalType } from '../../state/signal';
 import { untrack } from '../../use/use-core';
 import { useSignal } from '../../use/use-signal';
 
-const debug = true; //true;
+const debug = false; //true;
 Error.stackTraceLimit = 100;
 
 describe.each([

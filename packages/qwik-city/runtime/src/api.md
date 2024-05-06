@@ -13,6 +13,7 @@ import type { EnvGetter } from '@builder.io/qwik-city/middleware/request-handler
 import { JSXNode } from '@builder.io/qwik';
 import { JSXOutput } from '@builder.io/qwik';
 import { QRL } from '@builder.io/qwik';
+import { QRLEventHandlerMulti } from '@builder.io/qwik';
 import { QwikIntrinsicElements } from '@builder.io/qwik';
 import { QwikJSX } from '@builder.io/qwik';
 import type { ReadonlySignal } from '@builder.io/qwik';
@@ -219,8 +220,8 @@ export interface FormProps<O, I> extends Omit<QwikJSX.IntrinsicElements['form'],
     action?: ActionStore<O, I, true | false>;
     // (undocumented)
     key?: string | number | null;
-    onSubmit$?: (event: Event, form: HTMLFormElement) => ValueOrPromise<void>;
-    onSubmitCompleted$?: (event: CustomEvent<FormSubmitSuccessDetail<O>>, form: HTMLFormElement) => ValueOrPromise<void>;
+    onSubmit$?: ((event: Event, element: HTMLFormElement) => any) | QRLEventHandlerMulti<Event, HTMLFormElement> | undefined;
+    onSubmitCompleted$?: ((event: CustomEvent<FormSubmitSuccessDetail<O>>, element: HTMLFormElement) => ValueOrPromise<void>) | QRLEventHandlerMulti<CustomEvent<FormSubmitSuccessDetail<O>>, HTMLFormElement> | undefined;
     reloadDocument?: boolean;
     spaReset?: boolean;
 }

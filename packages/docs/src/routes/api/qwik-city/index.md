@@ -1264,7 +1264,7 @@ _(Optional)_
 
 </td><td>
 
-(event: Event, form: HTMLFormElement) =&gt; ValueOrPromise&lt;void&gt;
+((event: Event, element: HTMLFormElement) =&gt; any) \| QRLEventHandlerMulti&lt;Event, HTMLFormElement&gt; \| undefined
 
 </td><td>
 
@@ -1279,7 +1279,7 @@ _(Optional)_ Event handler executed right when the form is submitted.
 
 </td><td>
 
-(event: CustomEvent&lt;[FormSubmitCompletedDetail](#formsubmitsuccessdetail)&lt;O&gt;&gt;, form: HTMLFormElement) =&gt; ValueOrPromise&lt;void&gt;
+((event: CustomEvent&lt;[FormSubmitCompletedDetail](#formsubmitsuccessdetail)&lt;O&gt;&gt;, element: HTMLFormElement) =&gt; ValueOrPromise&lt;void&gt;) \| QRLEventHandlerMulti&lt;CustomEvent&lt;[FormSubmitCompletedDetail](#formsubmitsuccessdetail)&lt;O&gt;&gt;, HTMLFormElement&gt; \| undefined
 
 </td><td>
 

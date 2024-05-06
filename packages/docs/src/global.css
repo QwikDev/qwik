@@ -277,13 +277,16 @@ body {
   }
 }
 @media (min-width: 1024px) {
-  .menu {
-    padding-left: 1rem;
-    padding-right: 1rem;
+  #qwik-sidebar.menu {
+      width: 17rem;
+    }
+  }
+  
+  @media (min-width: 1300px) {
+    #qwik-sidebar.menu {
     width: 20rem;
   }
 }
-
 /* Builder */
 :root[data-theme='dark'] .builder .dark-mode {
   filter: invert(90%) hue-rotate(180deg);

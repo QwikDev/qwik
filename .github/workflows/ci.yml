@@ -7,6 +7,12 @@
 
 name: Qwik CI
 
+# TODO fix e2e tests hanging and not cancelling
+# # We only need one instance of the workflow running at a time, per branch
+# concurrency:
+#   group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+#   cancel-in-progress: true
+
 on:
   pull_request:
   push:
@@ -48,15 +54,9 @@ jobs:
       # TEMP v2: disable docs build until we have v2 deps building (qwik-ui, qwik-sdk)
       # build-docs: ${{ steps.cache-docs.outputs.cache-hit != 'true' }}
       build-docs: false
-      # Build insights whenever anything changes as an extra test
-      build-insights: ${{ steps.cache-insights.outputs.cache-hit != 'true' || steps.cache-qwik.outputs.cache-hit != 'true' || steps.cache-others.outputs.cache-hit != 'true' || steps.cache-rust.outputs.cache-hit != 'true' }}
+      build-insights: ${{ steps.cache-insights.outputs.cache-hit != 'true' }}
 
     steps:
-      - name: Cancel Previous Runs
-        uses: styfle/cancel-workflow-action@0.11.0
-        if: github.event_name == 'pull_request'
-        with:
-          access_token: ${{ secrets.GITHUB_TOKEN }}
       - name: Branch
         run: echo "${{ github.ref }}"
       - name: NPM Dist Tag
@@ -65,7 +65,7 @@ jobs:
         run: echo event_name=${{ github.event_name }}
 
       - name: Checkout
-        uses: actions/checkout@v4.1.1
+        uses: actions/checkout@v4
 
       - name: 'cache: qwik'
         id: cache-qwik
@@ -93,7 +93,9 @@ jobs:
             packages/qwik-react/lib
             packages/qwik-react/vite
             packages/eslint-plugin-qwik/dist
-          key: ${{ hashfiles('pnpm-lock.yaml', 'packages/qwik-city/**/*', 'packages/qwik-labs/**/*', 'packages/qwik-react/**/*', 'packages/eslint-plugin-qwik/**/*') }}
+            packages/create-qwik/dist
+          # note that all inputs need to be listed here, including qwik, for correct cache invalidation
+          key: ${{ hashfiles('pnpm-lock.yaml', 'packages/qwik/**/*', 'rust-toolchain', '**/Cargo.toml', '**/Cargo.lock', '**/*.rs', 'packages/qwik-city/**/*', 'packages/qwik-labs/**/*', 'packages/qwik-react/**/*', 'packages/eslint-plugin-qwik/**/*', 'packages/create-qwik/**/*') }}
       - name: 'cache: docs'
         id: cache-docs
         uses: actions/cache/restore@v4
@@ -102,13 +104,13 @@ jobs:
           path: |
             packages/docs/dist
             packages/docs/server
-          key: ${{ hashfiles('pnpm-lock.yaml', 'packages/qwik-docs/**/*') }}
+          key: ${{ hashfiles('pnpm-lock.yaml', 'packages/qwik/**/*', 'rust-toolchain', '**/Cargo.toml', '**/Cargo.lock', '**/*.rs', 'packages/qwik-city/**/*', 'packages/qwik-labs/**/*', 'packages/qwik-react/**/*', 'packages/qwik-docs/**/*') }}
       - name: 'cache: insights'
         id: cache-insights
         uses: actions/cache/restore@v4
         with:
           path: cache-insights
-          key: ${{ hashfiles('pnpm-lock.yaml', 'packages/qwik-insights/**/*') }}
+          key: ${{ hashfiles('pnpm-lock.yaml', 'packages/qwik/**/*', 'rust-toolchain', '**/Cargo.toml', '**/Cargo.lock', '**/*.rs', 'packages/qwik-city/**/*', 'packages/qwik-labs/**/*', 'packages/qwik-insights/**/*') }}
 
   ############ BUILD Qwik ############
   build-qwik:
@@ -118,11 +120,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.1.1
+        uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v3
       - name: Setup Node
-        uses: actions/setup-node@v4.0.2
+        uses: actions/setup-node@v4
         with:
           node-version: 20.x
           cache: 'pnpm'
@@ -148,7 +150,7 @@ jobs:
           key: ${{ needs.changes.outputs.hash-qwik }}
 
       - name: Save artifacts
-        uses: actions/upload-artifact@v4.3.1
+        uses: actions/upload-artifact@v4
         with:
           name: dist-qwik-no-optimizer
           path: packages/qwik/dist/
@@ -199,7 +201,7 @@ jobs:
           key: ${{ needs.changes.outputs.hash-rust }}
 
       - name: Upload Qwik artifact
-        uses: actions/upload-artifact@v4.3.1
+        uses: actions/upload-artifact@v4
         with:
           name: dist-qwik
           path: packages/qwik/dist/
@@ -216,13 +218,13 @@ jobs:
     steps:
       - name: Checkout
         if: needs.changes.outputs.build-others == 'true'
-        uses: actions/checkout@v4.1.1
+        uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v3
         if: needs.changes.outputs.build-others == 'true'
       - name: Setup Node
         if: needs.changes.outputs.build-others == 'true'
-        uses: actions/setup-node@v4.0.2
+        uses: actions/setup-node@v4
         with:
           node-version: 20.x
           cache: 'pnpm'
@@ -253,13 +255,14 @@ jobs:
             packages/qwik-react/lib
             packages/qwik-react/vite
             packages/eslint-plugin-qwik/dist
+            packages/create-qwik/dist
           key: ${{ needs.changes.outputs.hash-others }}
 
       - name: Print QwikCity Lib Build
         run: tree packages/qwik-city/lib/
 
       - name: Upload QwikCity Build Artifacts
-        uses: actions/upload-artifact@v4.3.1
+        uses: actions/upload-artifact@v4
         with:
           name: dist-qwikcity
           path: packages/qwik-city/lib/
@@ -269,7 +272,7 @@ jobs:
         run: tree packages/qwik-labs/lib/ packages/qwik-labs/vite/
 
       - name: Upload QwikLabs+React Build Artifacts
-        uses: actions/upload-artifact@v4.3.1
+        uses: actions/upload-artifact@v4
         with:
           name: dist-qwiklabs
           path: |
@@ -282,7 +285,7 @@ jobs:
         run: tree packages/qwik-react/lib/ packages/qwik-react/vite/
 
       - name: Upload qwik-react Build Artifacts
-        uses: actions/upload-artifact@v4.3.1
+        uses: actions/upload-artifact@v4
         with:
           name: dist-qwikreact
           path: |
@@ -295,7 +298,7 @@ jobs:
         run: tree packages/create-qwik/dist/
 
       - name: Upload Create Qwik CLI Build Artifacts
-        uses: actions/upload-artifact@v4.3.1
+        uses: actions/upload-artifact@v4
         with:
           name: dist-create-qwik
           path: packages/create-qwik/dist/
@@ -305,11 +308,26 @@ jobs:
         run: tree packages/eslint-plugin-qwik/dist/
 
       - name: Upload Eslint rules Build Artifacts
-        uses: actions/upload-artifact@v4.3.1
+        uses: actions/upload-artifact@v4
         with:
           name: dist-eslint-plugin-qwik
           path: packages/eslint-plugin-qwik/dist/
           if-no-files-found: error
+
+      - name: 'save cache: others'
+        id: cache-others
+        if: needs.changes.outputs.build-others == 'true'
+        uses: actions/cache/save@v4
+        with:
+          key: ${{ needs.changes.outputs.hash-others }}
+          path: |
+            packages/qwik-city/lib
+            packages/qwik-labs/lib
+            packages/qwik-labs/vite
+            packages/qwik-react/lib
+            packages/qwik-react/vite
+            packages/eslint-plugin-qwik/dist
+            packages/create-qwik/dist
 
   ############ BUILD RUST ############
   build-rust:
@@ -319,23 +337,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.1.1
+        uses: actions/checkout@v4
 
       - name: Install Rust toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           # additionally install wasm32-unknown-unknown target
           target: wasm32-unknown-unknown
-      - uses: jetli/wasm-pack-action@v0.4.0
 
       - uses: pnpm/action-setup@v3
       - name: Setup Node
-        uses: actions/setup-node@v4.0.2
+        uses: actions/setup-node@v4
         with:
           node-version: 20.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
-      - run: pnpm install --frozen-lockfile
+      # This installs everything + the latest wasm-pack binary
+      - run: pnpm install wasm-pack
 
       - name: Build x86 Platform Binding
         run: pnpm build --platform-binding
@@ -348,7 +366,7 @@ jobs:
         run: ls -lR packages/qwik/dist/bindings/
 
       - name: Upload Platform Binding Artifact
-        uses: actions/upload-artifact@v4.3.1
+        uses: actions/upload-artifact@v4
         with:
           name: dist-bindings-wasm
           path: packages/qwik/dist/bindings/*
@@ -377,14 +395,14 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.1.1
+        uses: actions/checkout@v4
 
       - name: Install Rust toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
 
       - uses: pnpm/action-setup@v3
       - name: Setup Node
-        uses: actions/setup-node@v4.0.2
+        uses: actions/setup-node@v4
         with:
           node-version: 20.x
           cache: 'pnpm'
@@ -399,7 +417,7 @@ jobs:
         run: ls -lR packages/qwik/dist/bindings/
 
       - name: Upload Platform Binding Artifact
-        uses: actions/upload-artifact@v4.3.1
+        uses: actions/upload-artifact@v4
         with:
           name: dist-bindings-${{ matrix.settings.target }}
           path: packages/qwik/dist/bindings/*.node
@@ -407,6 +425,7 @@ jobs:
 
   ############ BUILD INSIGHTS ############
   build-insights:
+    # it seems that skipped grandparents cause the children to be skipped as well
     if: always() && needs.changes.outputs.build-insights == 'true' && needs.build-package.result == 'success'
     name: Build Insights
     needs:
@@ -416,18 +435,18 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.1.1
+        uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v3
       - name: Setup Node
-        uses: actions/setup-node@v4.0.2
+        uses: actions/setup-node@v4
         with:
           node-version: 20.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
       - name: Download Build Artifacts
-        uses: actions/download-artifact@v4.1.2
+        uses: actions/download-artifact@v4
 
       - name: Move Distribution Artifacts
         run: |
@@ -457,18 +476,18 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.1.1
+        uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v3
       - name: Setup Node
-        uses: actions/setup-node@v4.0.2
+        uses: actions/setup-node@v4
         with:
           node-version: 20.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
       - name: Download Build Artifacts
-        uses: actions/download-artifact@v4.1.2
+        uses: actions/download-artifact@v4
 
       - name: Move Distribution Artifacts
         run: |
@@ -501,11 +520,11 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.1.1
+        uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v3
       - name: Setup Node
-        uses: actions/setup-node@v4.0.2
+        uses: actions/setup-node@v4
         with:
           node-version: 20.x
           cache: 'pnpm'
@@ -513,7 +532,7 @@ jobs:
       - run: corepack enable
 
       - name: Download Build Artifacts
-        uses: actions/download-artifact@v4.1.2
+        uses: actions/download-artifact@v4
 
       - name: Move Distribution Artifacts
         run: |
@@ -554,6 +573,8 @@ jobs:
 
   ############ E2E TEST ############
   test-e2e:
+    # Sometimes the tests just hang
+    timeout-minutes: 10
     name: E2E Tests
     if: always() && (needs.changes.outputs.build-qwik == 'true' || needs.changes.outputs.build-others == 'true' || needs.changes.outputs.build-rust == 'true') && needs.build-package.result == 'success'
     needs:
@@ -572,11 +593,11 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.1.1
+        uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v3
       - name: Setup Node
-        uses: actions/setup-node@v4.0.2
+        uses: actions/setup-node@v4
         with:
           node-version: 20.x
           cache: 'pnpm'
@@ -584,7 +605,7 @@ jobs:
       - run: corepack enable
 
       - name: Download Build Artifacts
-        uses: actions/download-artifact@v4.1.2
+        uses: actions/download-artifact@v4
 
       - name: Move Distribution Artifacts
         run: |
@@ -619,11 +640,11 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.1.1
+        uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v3
       - name: Setup Node
-        uses: actions/setup-node@v4.0.2
+        uses: actions/setup-node@v4
         with:
           node-version: 20.x
           cache: 'pnpm'
@@ -631,7 +652,7 @@ jobs:
       - run: corepack enable
 
       - name: Download Build Artifacts
-        uses: actions/download-artifact@v4.1.2
+        uses: actions/download-artifact@v4
 
       - name: Move Distribution Artifacts
         run: |
@@ -659,7 +680,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.1.1
+        uses: actions/checkout@v4
 
       - name: Install Rust toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -682,11 +703,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.1.1
+        uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v3
       - name: Setup Node
-        uses: actions/setup-node@v4.0.2
+        uses: actions/setup-node@v4
         with:
           node-version: 20.x
           cache: 'pnpm'

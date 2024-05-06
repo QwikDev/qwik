@@ -90,7 +90,9 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
   useStyles$(`:root{view-transition-name:none}`);
   const env = useQwikCityEnv();
   if (!env?.params) {
-    throw new Error(`Missing Qwik City Env Data`);
+    throw new Error(
+      `Missing Qwik City Env Data for help visit https://github.com/QwikDev/qwik/issues/6237`
+    );
   }
 
   const urlEnv = useServerData<string>('url');

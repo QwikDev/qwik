@@ -503,13 +503,14 @@ export const vnode_diff = (
   }
 
   function expectNoChildren() {
-    let vChild = vCurrent && vnode_getFirstChild(vCurrent);
-    if (vChild !== null) {
-      vnode_truncate(journal, vCurrent as ElementVNode | VirtualVNode, vChild);
+    const vFirstChild = vCurrent && vnode_getFirstChild(vCurrent);
+    if (vFirstChild !== null) {
+      let vChild: VNode | null = vFirstChild;
       while (vChild) {
         cleanup(container, vChild);
         vChild = vnode_getNextSibling(vChild);
       }
+      vnode_truncate(journal, vCurrent as ElementVNode | VirtualVNode, vFirstChild);
     }
   }
 

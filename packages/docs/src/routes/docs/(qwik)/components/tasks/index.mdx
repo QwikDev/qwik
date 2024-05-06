@@ -405,7 +405,10 @@ const Clock = component$<{ isRunning: Signal<boolean> }>(({ isRunning }) => {
 ```
 </CodeSandbox>
 
-> Notice how the clock's `useVisibleTask$()` does not run until the `<Clock>` component becomes visible. The default behavior of `useVisibleTask$()` is to run the task when the component becomes visible. This behavior is implemented through [intersection observers](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API).
+> Notice how the clock's `useVisibleTask$()` does not run until the `<Clock>` component becomes visible. The default behavior of `useVisibleTask$()` is to run the task when the component becomes visible.  This behavior is implemented through [intersection observers](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API).
+
+> **Note**: 
+> The [intersection observers](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API) will not run on components that are not considered visible such as `<audio />`.
 
 ### Option `eagerness`
 

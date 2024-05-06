@@ -478,4 +478,104 @@ describe.each([
       );
     });
   });
+
+  describe('regression', () => {
+    it('#4249 - should render signal text with double condition', async () => {
+      const Issue4249 = component$(() => {
+        const first = useSignal('');
+        const second = useSignal('');
+
+        return (
+          <>
+            <button
+              onClick$={() => {
+                first.value = 'foo';
+                second.value = 'foo';
+              }}
+            ></button>
+            <div>
+              {first.value && second.value && first.value === second.value ? 'equal' : 'not-equal'}
+            </div>
+          </>
+        );
+      });
+
+      const { vNode, document } = await render(<Issue4249 />, { debug });
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button></button>
+            <div>
+              <Signal>not-equal</Signal>
+            </div>
+          </Fragment>
+        </Component>
+      );
+
+      await trigger(document.body, 'button', 'click');
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button></button>
+            <div>
+              <Signal>equal</Signal>
+            </div>
+          </Fragment>
+        </Component>
+      );
+    });
+
+    it('#4249 - should render signal value with double condition', async () => {
+      const Issue4249 = component$(() => {
+        const first = useSignal('');
+        const second = useSignal('');
+
+        return (
+          <>
+            <button
+              onClick$={() => {
+                first.value = 'foo';
+                second.value = 'foo';
+              }}
+            ></button>
+            <div
+              data-value={
+                first.value && second.value && first.value === second.value ? 'equal' : 'not-equal'
+              }
+            >
+              {first.value && second.value && first.value === second.value ? 'equal' : 'not-equal'}
+            </div>
+          </>
+        );
+      });
+
+      const { vNode, document } = await render(<Issue4249 />, { debug });
+
+      // expect(vNode).toMatchVDOM(
+      //   <Component>
+      //     <Fragment>
+      //       <button></button>
+      //       <div data-value="not-equal">
+      //         <Signal>not-equal</Signal>
+      //       </div>
+      //     </Fragment>
+      //   </Component>
+      // );
+
+      await trigger(document.body, 'button', 'click');
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button></button>
+            <div data-value="equal">
+              <Signal>equal</Signal>
+            </div>
+          </Fragment>
+        </Component>
+      );
+    });
+  });
 });

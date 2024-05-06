@@ -7,7 +7,7 @@ import type { QRL } from '../qrl/qrl.public';
 import { notifyChange } from '../render/dom/notify-render';
 import type { QwikElement } from '../render/dom/virtual-element';
 import { serializeAttribute } from '../render/execute-component';
-import { untrack } from '../use/use-core';
+import { trackSignal } from '../use/use-core';
 import {
   TaskFlags,
   isComputedTask,
@@ -473,7 +473,9 @@ export class LocalSubscriptionManager {
   }
 
   $notifySubs$(key?: string | undefined) {
-    const subs = this.$subs$;
+    // TODO(HACK): we are resubscribing to the signal, so we are removing a sub, we need to iterate over a copy of subs
+    const subs = [...this.$subs$];
+
     for (const sub of subs) {
       const compare = sub[sub.length - 1];
       if (key && compare && compare !== key) {
@@ -508,6 +510,37 @@ export class LocalSubscriptionManager {
           }
         } else {
           const signal = sub[SubscriptionProp.SIGNAL];
+          /**
+           * TODO(HACK): we need to resubscribe to the value. Example:
+           *
+           * ```
+           * component$(() => {
+           *  const first = useSignal('');
+           *  const second = useSignal('');
+           *
+           *  return (
+           *  <>
+           *     <button
+           *       onClick$={() => {
+           *         first.value = 'foo';
+           *         second.value = 'foo';
+           *       }}
+           *     ></button>
+           *     <div>
+           *       {first.value && second.value && first.value === second.value ? 'equal' : 'not-equal'}
+           *      </div>
+           *   </>
+           *  );
+           * });
+           * ```
+           *
+           * If the first value is falsy then the `second.value` is never executing, so the
+           * subscription is not created.
+           */
+          this.$containerState$.$subsManager$.$clearSignal$(sub);
+          const value = trackSignal<fixMeAny>(signal, sub as fixMeAny);
+          // end HACK
+
           if (type == SubscriptionType.PROP_IMMUTABLE || type == SubscriptionType.PROP_MUTABLE) {
             const target = sub[SubscriptionProp.ELEMENT] as fixMeAny as VirtualVNode;
             const propKey = sub[SubscriptionProp.ELEMENT_PROP];
@@ -517,7 +550,8 @@ export class LocalSubscriptionManager {
               styleScopedId || null,
               target,
               propKey,
-              signal.value,
+              // untrack(() => signal.value),
+              value,
               type == SubscriptionType.PROP_IMMUTABLE
             );
           } else {
@@ -525,7 +559,8 @@ export class LocalSubscriptionManager {
               ChoreType.NODE_DIFF,
               host as fixMeAny,
               sub[SubscriptionProp.ELEMENT] as fixMeAny,
-              untrack(() => signal.value)
+              // untrack(() => signal.value)
+              value
             );
           }
         }

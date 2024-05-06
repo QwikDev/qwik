@@ -292,7 +292,7 @@ const validateJSXNode = (node: JSXNode<any>) => {
       }
       if (isString(type)) {
         const hasSetInnerHTML = allProps.some((a) => a[0] === 'dangerouslySetInnerHTML');
-        if (hasSetInnerHTML && children) {
+        if (hasSetInnerHTML && children && (Array.isArray(children) ? children.length > 0 : true)) {
           const err = createJSXError(
             `The JSX element <${type}> can not have both 'dangerouslySetInnerHTML' and children.`,
             node

@@ -1,4 +1,4 @@
-import { component$, useContext, useStyles$ } from '@builder.io/qwik';
+import { component$, sync$, useContext, useOnDocument, useStyles$ } from '@builder.io/qwik';
 import { type ContentMenu, useContent, useLocation, routeLoader$ } from '@builder.io/qwik-city';
 import { GlobalStore } from '../../context';
 import { CloseIcon } from '../svgs/close-icon';
@@ -67,9 +67,19 @@ export const SideBar = component$((props: { allOpen?: boolean }) => {
   const markdownItems = useMarkdownItems();
   const allOpen = url.pathname.startsWith('/qwikcity/') || props.allOpen;
 
+  useOnDocument(
+    'DOMContentLoaded',
+    sync$(() => {
+      const val = sessionStorage.getItem('qwik-sidebar');
+      const savedScroll = !val || /null|NaN/.test(val) ? 0 : +val;
+      if (savedScroll) {
+        document.getElementById('qwik-sidebar')!.scrollTop = savedScroll;
+      }
+    })
+  );
   return (
     <aside class="sidebar">
-      <nav class="menu">
+      <nav id="qwik-sidebar" class="menu">
         <button
           class="menu-close lg:hidden"
           onClick$={() => (globalStore.sideMenuOpen = !globalStore.sideMenuOpen)}
@@ -82,6 +92,10 @@ export const SideBar = component$((props: { allOpen?: boolean }) => {
           pathname={url.pathname}
           allOpen={allOpen}
           markdownItems={markdownItems.value}
+          onClick$={sync$(() => {
+            const scrollTop = document.getElementById('qwik-sidebar')!.scrollTop;
+            sessionStorage.setItem('qwik-sidebar', String(scrollTop));
+          })}
         />
       </nav>
     </aside>
@@ -93,11 +107,13 @@ export function Items({
   pathname,
   allOpen,
   markdownItems,
+  onClick$,
 }: {
   items?: ContentMenu[];
   pathname: string;
   allOpen?: boolean;
   markdownItems: MarkdownItems;
+  onClick$?: any;
 }) {
   return (
     <ul>
@@ -111,7 +127,12 @@ export function Items({
                 <summary>
                   <h5>{item.text}</h5>
                 </summary>
-                <Items items={item.items} pathname={pathname} markdownItems={markdownItems} />
+                <Items
+                  items={item.items}
+                  pathname={pathname}
+                  markdownItems={markdownItems}
+                  onClick$={onClick$}
+                />
               </details>
             ) : (
               <a
@@ -119,6 +140,7 @@ export function Items({
                 class={{
                   'is-active': pathname === item.href,
                 }}
+                onClick$={onClick$}
                 style={{ display: 'flex', position: 'relative' }}
               >
                 <>

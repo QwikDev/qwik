@@ -590,6 +590,33 @@ export const Works = component$(({fromProps}) => {
 }
 
 #[test]
+fn example_props_wrapping2() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useSignal } from '@builder.io/qwik';
+export const Works = component$((props: { fromProps: number }) => {
+	let fromLocal = useSignal(0);
+	return (
+		<div 
+			computed={fromLocal + props.fromProps}
+			local={fromLocal} 
+			props-wrap={props.fromProps}
+			props-only={{props: props.fromProps}}
+			props={{props: props.fromProps, local: fromLocal}}
+				>
+		</div>
+	);
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		entry_strategy: EntryStrategy::Inline,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn example_props_wrapping_children() {
 	test_input!(TestInput {
 		code: r#"
@@ -606,6 +633,52 @@ export const Works = component$(({fromProps}) => {
 			{{props: fromProps, local: fromLocal}}
 		</div>
 	);
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		entry_strategy: EntryStrategy::Inline,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn example_props_wrapping_children2() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useSignal } from '@builder.io/qwik';
+export const Works = component$((props) => {
+	let fromLocal = useSignal(0);
+	return (
+		<div>
+		  before-
+			{fromLocal}
+			{props.fromProps}
+			{fromLocal + props.fromProps}
+			{{props: props.fromProps}}
+			{{local: fromLocal}}
+			{{props: props.fromProps, local: fromLocal}}
+			-after
+		</div>
+	);
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		entry_strategy: EntryStrategy::Inline,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn example_props_wrapping_children3() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useSignal } from '@builder.io/qwik';
+const Display2 = component$((props: { displayValue: number }) => {
+  return <>Count: {props.displayValue}!</>;
 });
 "#
 		.to_string(),

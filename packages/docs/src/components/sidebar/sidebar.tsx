@@ -72,14 +72,17 @@ export const SideBar = component$((props: { allOpen?: boolean }) => {
     sync$(() => {
       const val = sessionStorage.getItem('qwik-sidebar');
       const savedScroll = !val || /null|NaN/.test(val) ? 0 : +val;
-      if (savedScroll) {
-        document.getElementById('qwik-sidebar')!.scrollTop = savedScroll;
+      const el = document.getElementById('qwik-sidebar');
+      if (el) {
+        el.scrollTop = savedScroll;
+        el.style.visibility = 'visible';
       }
     })
   );
+
   return (
     <aside class="sidebar">
-      <nav id="qwik-sidebar" class="menu">
+      <nav id="qwik-sidebar" class="menu" style="visibility: hidden">
         <button
           class="menu-close lg:hidden"
           onClick$={() => (globalStore.sideMenuOpen = !globalStore.sideMenuOpen)}
@@ -140,6 +143,37 @@ export function Items({
                 class={{
                   'is-active': pathname === item.href,
                 }}
+                // Prefetch server request on hover
+                onMouseOver$={sync$(
+                  (_evt: Event, target: HTMLAnchorElement & { __prefetchLink: number }): void => {
+                    // Constants
+                    const fiveMinutesInMilliseconds = 5 * 60 * 1000;
+                    const dateNow = Date.now();
+
+                    // Check valid target
+                    if (!target?.href) {
+                      console.error('Invalid target or target.href');
+                      return;
+                    }
+
+                    // Calculate timeGap
+                    const timeGap = dateNow - (target.__prefetchLink || 0);
+
+                    if (timeGap < fiveMinutesInMilliseconds) {
+                      console.log('NO Prefetching... Wait for 5 minutes since the last one');
+                      return;
+                    }
+
+                    console.log('Prefetching...');
+                    // Prefetch & Update '__prefetchLink'
+                    const prefetchLink = document.createElement('link');
+                    prefetchLink.href = target.href;
+                    prefetchLink.rel = 'prefetch';
+                    document.head.appendChild(prefetchLink);
+
+                    target.__prefetchLink = dateNow; // Update prefetch timestamp
+                  }
+                )}
                 onClick$={onClick$}
                 style={{ display: 'flex', position: 'relative' }}
               >

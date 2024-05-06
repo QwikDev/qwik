@@ -103,7 +103,7 @@ export async function fromNodeHttp(
             return;
           }
           res.write(chunk, (error) => {
-            if (error) {
+            if (error && !/ERR_HTTP2_INVALID_STREAM/.test(error.message)) {
               console.error(error);
             }
           });

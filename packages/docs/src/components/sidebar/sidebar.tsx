@@ -150,6 +150,13 @@ export function Items({
                     const fiveMinutesInMilliseconds = 5 * 60 * 1000;
                     const dateNow = Date.now();
 
+                    // Check if hover is possible in the current environment
+                    const canHover = window.matchMedia('(hover: hover)').matches;
+                    if (!canHover) {
+                      console.log('Skipping prefetch because hover is not supported');
+                      return;
+                    }
+
                     // Check valid target
                     if (!target?.href) {
                       console.error('Invalid target or target.href');
@@ -160,11 +167,14 @@ export function Items({
                     const timeGap = dateNow - (target.__prefetchLink || 0);
 
                     if (timeGap < fiveMinutesInMilliseconds) {
-                      console.log('NO Prefetching... Wait for 5 minutes since the last one');
+                      console.log(
+                        'NO Prefetching... Wait for 5 minutes since the last one',
+                        target.href
+                      );
                       return;
                     }
 
-                    console.log('Prefetching...');
+                    console.log('Prefetching...', target.href);
                     // Prefetch & Update '__prefetchLink'
                     const prefetchLink = document.createElement('link');
                     prefetchLink.href = target.href;

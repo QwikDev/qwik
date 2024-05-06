@@ -4,7 +4,7 @@ import { component$ } from '../../component/component.public';
 import { Fragment as Component, Fragment } from '../../render/jsx/jsx-runtime';
 import { useStore } from '../../use/use-store.public';
 
-const debug = true; //true;
+const debug = false; //true;
 Error.stackTraceLimit = 100;
 
 describe.each([

@@ -126,6 +126,7 @@
 - [Build Directory](</docs/(qwik)/advanced/custom-build-dir/index.mdx>)
 - [Vite](</docs/(qwik)/advanced/vite/index.mdx>)
 - [Advanced Routing](</docs/(qwikcity)/advanced/routing/index.mdx>)
+- [Qwik Plugins](</docs/(qwikcity)/advanced/plugins/index.mdx>)
 - [Request Handling](</docs/(qwikcity)/advanced/request-handling/index.mdx>)
 - [Speculative Module Fetching](</docs/(qwikcity)/advanced/speculative-module-fetching/index.mdx>)
 - [Menus](</docs/(qwikcity)/advanced/menu/index.mdx>)

@@ -278,12 +278,12 @@ body {
 }
 @media (min-width: 1024px) {
   #qwik-sidebar.menu {
-      width: 17rem;
-    }
+    width: 17rem;
   }
-  
-  @media (min-width: 1300px) {
-    #qwik-sidebar.menu {
+}
+
+@media (min-width: 1300px) {
+  #qwik-sidebar.menu {
     width: 20rem;
   }
 }

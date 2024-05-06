@@ -68,7 +68,9 @@ export const Form = <O, I>(
         'preventdefault:submit': !reloadDocument,
         onSubmit$: [
           !reloadDocument ? action.submit : undefined,
+          // TODO: v2 this should fire before the action.submit
           ...(Array.isArray(onSubmit$) ? onSubmit$ : [onSubmit$]),
+          // fire "submitcompleted" event for onSubmitCompleted$ events
           (_: SubmitEvent, form: HTMLFormElement) => {
             if (form.getAttribute('data-spa-reset') === 'true') {
               form.reset();

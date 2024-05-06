@@ -98,7 +98,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
         }
         const previousCtx = (doc as any)[Q_CONTEXT];
         if (element[isConnected]) {
-          const eventData = { symbol, error, element };
+          const eventData = { symbol, error, element, reqTime };
           try {
             (doc as any)[Q_CONTEXT] = [element, ev, url];
             isSync || emitEvent<QwikSymbolEvent>('qsymbol', eventData);

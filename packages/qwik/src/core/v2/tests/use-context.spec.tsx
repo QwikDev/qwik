@@ -137,9 +137,7 @@ describe.each([
                 <Awaited>
                   <Component>
                     <Fragment>
-                      <p>
-                        <Signal>1</Signal>
-                      </p>
+                      <p>1</p>
                       <p>
                         <Awaited>0</Awaited>
                       </p>
@@ -165,9 +163,7 @@ describe.each([
                 <Awaited>
                   <Component>
                     <Fragment>
-                      <p>
-                        <Signal>1</Signal>
-                      </p>
+                      <p>1</p>
                       <p>
                         <Awaited>2</Awaited>
                       </p>

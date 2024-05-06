@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { advanceToNextTimerAndFlush, trigger } from '../../../testing/element-fixture';
 import { domRender, ssrRenderToDom } from '../../../testing/rendering.unit-util';
 import '../../../testing/vdom-diff.unit-util';
-import { component$ } from '../../component/component.public';
+import { component$ } from '@builder.io/qwik';
 import type { Signal as SignalType } from '../../state/signal';
 import { untrack } from '../../use/use-core';
 import { useSignal } from '../../use/use-signal';
@@ -33,9 +33,7 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component>
         <Fragment>
-          <div key="0">
-            <Signal>0</Signal>
-          </div>
+          <div key="0">0</div>
         </Fragment>
       </Component>
     );
@@ -295,9 +293,7 @@ describe.each([
               <Signal>{(globalThis as any).clicks}</Signal>
               {'!'}
             </button>
-            <div key="0">
-              <Signal>{(globalThis as any).clicks}</Signal>
-            </div>
+            <div key="0">{(globalThis as any).clicks}</div>
           </Fragment>
         </Component>
       );
@@ -313,9 +309,7 @@ describe.each([
               <Signal>{(globalThis as any).clicks}</Signal>
               {'!'}
             </button>
-            <div key="0">
-              <Signal>{(globalThis as any).clicks}</Signal>
-            </div>
+            <div key="0">{(globalThis as any).clicks}</div>
           </Fragment>
         </Component>
       );
@@ -358,9 +352,7 @@ describe.each([
               <Signal>{'0'}</Signal>
               {'!'}
             </div>
-            <div key="0">
-              <Signal>0</Signal>
-            </div>
+            <div key="0">0</div>
           </Fragment>
         </Component>
       );
@@ -373,9 +365,7 @@ describe.each([
               <Signal>{'1'}</Signal>
               {'!'}
             </div>
-            <div key="0">
-              <Signal>1</Signal>
-            </div>
+            <div key="0">1</div>
           </Fragment>
         </Component>
       );
@@ -388,9 +378,7 @@ describe.each([
               <Signal>{'2'}</Signal>
               {'!'}
             </div>
-            <div key="0">
-              <Signal>2</Signal>
-            </div>
+            <div key="0">2</div>
           </Fragment>
         </Component>
       );

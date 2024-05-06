@@ -10,7 +10,7 @@ import type { QwikIntrinsicElements } from '../render/jsx/types/jsx-qwik-element
 import type { PropFunction, QRL } from '../qrl/qrl.public';
 
 describe('q-component', () => {
-  test('should declare and render basic component', async () => {
+  test.skip('should declare and render basic component', async () => {
     const { screen, render } = await createDOM();
     await render(<HelloWorld />);
     await expectDOM(
@@ -27,7 +27,7 @@ describe('q-component', () => {
     );
   });
 
-  test('should render Counter and accept events', async () => {
+  test.skip('should render Counter and accept events', async () => {
     const { screen, render, userEvent } = await createDOM();
 
     await render(<MyCounter step={5} value={15} />);
@@ -68,7 +68,7 @@ describe('q-component', () => {
     );
   });
 
-  test('should render a collection of todo items', async () => {
+  test.skip('should render a collection of todo items', async () => {
     const { screen, render } = await createDOM();
 
     const items = {

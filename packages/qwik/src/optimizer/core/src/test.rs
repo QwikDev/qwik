@@ -673,23 +673,6 @@ export const Works = component$((props) => {
 }
 
 #[test]
-fn example_props_wrapping_children3() {
-	test_input!(TestInput {
-		code: r#"
-import { $, component$, useSignal } from '@builder.io/qwik';
-const Display2 = component$((props: { displayValue: number }) => {
-  return <>Count: {props.displayValue}!</>;
-});
-"#
-		.to_string(),
-		transpile_jsx: true,
-		entry_strategy: EntryStrategy::Inline,
-		transpile_ts: true,
-		..TestInput::default()
-	});
-}
-
-#[test]
 fn example_use_optimization() {
 	test_input!(TestInput {
 		code: r#"

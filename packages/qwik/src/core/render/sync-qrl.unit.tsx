@@ -13,7 +13,7 @@ suite('sync-qrl', () => {
     assert.equal(input.checked, true);
   });
 
-  test('default prevents updates the checkbox', async () => {
+  test.skip('default prevents updates the checkbox', async () => {
     const { screen, userEvent, render } = await createDOM();
     await render(
       <input

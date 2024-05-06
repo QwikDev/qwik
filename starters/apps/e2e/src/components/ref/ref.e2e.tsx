@@ -2,7 +2,7 @@ import { domRender, ssrRenderToDom, trigger } from "@builder.io/qwik/testing";
 import { beforeEach, describe, expect, it } from "vitest";
 import { RefRoot } from "./ref";
 
-const debug = true; //true;
+const debug = false; //true;
 Error.stackTraceLimit = 100;
 
 describe.each([

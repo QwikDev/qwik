@@ -842,7 +842,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         this.write('/');
         skipCount -= 8192;
       } else {
-        skipCount & 2096 && this.write('.');
+        skipCount & 4096 && this.write('.');
         skipCount & 2048 && this.write('-');
         skipCount & 1024 && this.write('+');
         skipCount & 512 && this.write('*');

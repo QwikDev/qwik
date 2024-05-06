@@ -67,23 +67,10 @@ export const Form = <O, I>(
         action: action.actionPath,
         'preventdefault:submit': !reloadDocument,
         onSubmit$: [
+          // action.submit "submitcompleted" event for onSubmitCompleted$ events
           !reloadDocument ? action.submit : undefined,
-          // TODO: v2 this should fire before the action.submit
+          // TODO: v2 breaking change this should fire before the action.submit
           ...(Array.isArray(onSubmit$) ? onSubmit$ : [onSubmit$]),
-          // fire "submitcompleted" event for onSubmitCompleted$ events
-          (_: SubmitEvent, form: HTMLFormElement) => {
-            if (form.getAttribute('data-spa-reset') === 'true') {
-              form.reset();
-            }
-            form.dispatchEvent(
-              new CustomEvent('submitcompleted', {
-                bubbles: false,
-                cancelable: false,
-                composed: false,
-                detail: {},
-              })
-            );
-          },
         ],
         method: 'post',
         ['data-spa-reset']: spaReset ? 'true' : undefined,

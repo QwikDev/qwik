@@ -6,29 +6,63 @@ contributors:
   - the-r3aper7
   - mrhoodz
   - wtlin1228
-updated_at: '2023-06-25T19:43:33Z'
+  - RumNCodeDev
+updated_at: '2024-05-07T00:00:01Z'
 created_at: '2023-04-16T21:57:42Z'
 ---
 
 # Environment variables
 
-Qwik apps can read environment variables in two main ways: **build-time variables** and **server-side variables**.
+Environment variables are a way to store configuration values or sensitive data that should not be included directly in your application code. These variables are typically used for things like API keys, database connection strings, or other environment-specific settings.
 
+## Types of Environment Variables
+### Build-time
+  - Environment variables which are prepended with  `PUBLIC_` and are available both on the `client` and the `server`.
+### Server-side
+  - Environment Variables that are only accessible on the `server`.
+
+
+
+> **IMPORTANT! DO NOT** use `build-time` environment variables, (ie. variables that start with `PUBLIC_`) to store any sensitive information, such as API keys, secrets, passwords, etc. These variables are accessible in the browser **ONLY PUBLIC DATA**.
+
+
+```ini title=".env.local"
+# This will only be available when run on the server
+API_KEY=secretApiKeyHere
+# This will be available everywhere
+PUBLIC_API_URL=https://api.example.com
+```
+
+
+## Default environment variables
+QwikCity includes a few environment variables out of the box
+ - `BASE_URL`: `string` -  Returns the base url for the page,
+ - `MODE`: `string` -  Returns the rendering mode,
+ - `DEV`: `boolean` -  Returns if you are in development mode,
+ - `PROD`: `boolean` -  Returns if you are in production mode,
+ - `SSR`: `boolean` -  Returns whether if this was rendered with ssr or not
+
+
+The preferred method for accessing environment variables in QwikCity is via `import.meta.env.*` (client side) or through the Request object when run server side.
 > `process.env` is a Node.js only API, and should be avoided at all costs.
 
 ## Build-time variables
 
 Build-time variables are powered by [Vite](https://vitejs.dev/guide/env-and-mode.html). They are defined in `.env` files and are available **in the browser and in the server-side code**.
 
-> **IMPORTANT! DO NOT** use `import.meta.env.PUBLIC_*` to store any sensitive information, such as API keys, secrets, passwords, etc. **Only public data**.
+
 
 Notice that build-time variables should be considered as **public**, since they will be hardcoded in the browser build, which can be easily read by anyone.
 
 Build-time variables are prefixed by default with `PUBLIC_` and can be accessed with with `import.meta.env.PUBLIC_*`.
 
-```tsx title=".env" /PUBLIC_API_URL/#a
+### Defining variables
+
+```ini title=".env.local" /PUBLIC_API_URL/#a
 PUBLIC_API_URL=https://api.example.com
 ```
+
+### Usage
 
 ```tsx {4} /PUBLIC_API_URL/#a title="src/routes/index.tsx"
 import { component$ } from '@builder.io/qwik';
@@ -46,6 +80,19 @@ export default component$(() => {
 Server-side variables are fundamentally runtime variables that are only available in the server-side code.
 
 They are not known at build-time and are not available in the browser, so they can be considered as **private**.
+
+During production, **setting server-side variables is very platform specific**. Most of the platforms allow you to set environment variables from their dashboard, or CLI. Please, refer to your platform (cloudflare, vercel, netlify) documentation for more information.
+
+### Defining variables
+
+```ini title=".env.local"
+DB_PRIVATE_KEY=123456789
+```
+
+> Make sure you never commit `.env.local` files to git.
+
+
+### Usage Examples
 
 Server-side variables can only be accessed in server-only APIs that expose the `RequestEvent` object, such as `routeLoader$()`, `routeAction$()`, `server$()` and endpoint handlers such as `onGet`, `onPost`, `onRequest` etc.
 
@@ -79,19 +126,9 @@ export const serverFunction = server$(function () {
 });
 ```
 
-### Defining server-side variables
 
-During development server-side variables can be defined in the `.env.local` file, this file is ignored by git by default, so it is safe to put sensitive information in it.
 
-```env title=".env.local"
-DB_PRIVATE_KEY=123456789
-```
-
-> Make sure you never commit `.env.local` files to git.
-
-During production, **setting server-side variables is very platform specific**. Most of the platforms allow you to set environment variables from their dashboard, or CLI. Please, refer to your platform (cloudflare, vercel, netlify) documentation for more information.
-
-### Accessing the environment variables in serverfull architecture (Example:Express)
+### Usage in serverfull architecture (Example:Express)
 
 For accessing the .env variables in serverfull architecture we need to use singleton design pattern, initialize the db in a plugin and access it with getDB wherever it is needed
 
@@ -121,5 +158,3 @@ export const onRequest: RequestHandler = async ({ env }) => {
   await initializeDbIfNeeded(initLibSql(url, authToken));
 };
 ```
-
-

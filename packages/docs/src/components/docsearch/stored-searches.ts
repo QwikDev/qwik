@@ -34,8 +34,8 @@ function createStorage<TItem>(key: string) {
     getItem(): TItem[] {
       let item = [];
       try {
-        item = window.localStorage.getItem(key);
-        item = JSON.parse(item);
+        const value = window.localStorage.getItem(key) || '[]';
+        item = JSON.parse(value);
       } catch (err) {
         //
       }

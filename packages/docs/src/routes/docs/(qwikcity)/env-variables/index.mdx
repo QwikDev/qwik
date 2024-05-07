@@ -7,11 +7,12 @@ contributors:
   - mrhoodz
   - wtlin1228
   - RumNCodeDev
+  - Jemsco
 updated_at: '2024-05-07T00:00:01Z'
 created_at: '2023-04-16T21:57:42Z'
 ---
 
-# Environment variables
+# Environment Variables
 
 Environment variables are a way to store configuration values or sensitive data that should not be included directly in your application code. These variables are typically used for things like API keys, database connection strings, or other environment-specific settings.
 
@@ -34,7 +35,7 @@ PUBLIC_API_URL=https://api.example.com
 ```
 
 
-## Default environment variables
+## Default Environment Variables
 QwikCity includes a few environment variables out of the box
  - `BASE_URL`: `string` -  Returns the base url for the page,
  - `MODE`: `string` -  Returns the rendering mode,
@@ -56,7 +57,7 @@ Notice that build-time variables should be considered as **public**, since they 
 
 Build-time variables are prefixed by default with `PUBLIC_` and can be accessed with with `import.meta.env.PUBLIC_*`.
 
-### Defining variables
+### Defining Variables
 
 ```ini title=".env.local" /PUBLIC_API_URL/#a
 PUBLIC_API_URL=https://api.example.com
@@ -75,7 +76,7 @@ export default component$(() => {
 
 > `import.meta.env.PUBLIC_*` variables can be read anywhere, but do not put any sensitive information in them, since they will be visible to the client.
 
-## Server-side variables
+## Server-side Variables
 
 Server-side variables are fundamentally runtime variables that are only available in the server-side code.
 
@@ -83,7 +84,20 @@ They are not known at build-time and are not available in the browser, so they c
 
 During production, **setting server-side variables is very platform specific**. Most of the platforms allow you to set environment variables from their dashboard, or CLI. Please, refer to your platform (cloudflare, vercel, netlify) documentation for more information.
 
-### Defining variables
+> **Special Considerations for Docker and Fastify**:
+> - **Docker:** While Docker allows the inclusion of environment variables directly in the Dockerfile, this method can expose sensitive data.  A more secure practice is to manage these variables at runtime using Docker Compose. For example:
+> ```ini title="docker-compose.yml"
+> version: '3.8'
+> services:
+>  your-service:
+>    image: your-image-name
+>    environment:
+>      - FOO=BAR
+> ```
+>
+> - **Fastify within Docker:** Environment variables placed in `.env` or `.env.local` files may not be automatically recognized in production environments when using Fastify.  For these settings to take effect it may be necessary to explicitly load them within your Fastify application or pass them through Docker's environment management system (Docker Compose) as shown above
+
+### Defining Variables
 
 ```ini title=".env.local"
 DB_PRIVATE_KEY=123456789

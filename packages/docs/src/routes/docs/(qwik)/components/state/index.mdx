@@ -33,6 +33,7 @@ contributors:
   - julianobrasil
   - aivarsliepa
   - Balastrong
+  - Jemsco
 updated_at: '2023-10-04T21:48:45Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
@@ -159,7 +160,16 @@ const shallowStore = useStore(
   { deep: false }
 );
 ```
-
+> **Handling Dynamic Object Mutations**
+>
+> When dynamically manipulating object properties, such as deleting them while they are being rendered somewhere in the app, you may encounter issues.  This could happen if the component renders values dependent on an object's property that is currently being removed.  To prevent this situation, use optional chaining when accessing properties.  For example, if attempting to remove a property:
+> ```tsx
+> delete store.propertyName;
+> ```
+> Be sure to access this property cautiously in the componet by using optional chaining ( ?. ):
+> ```tsx
+> const propertyValue = store.propertyName?.value;
+> ```
 ### Methods
 
 To provide methods on the store, you must make them into QRLs and refer to the store with `this`, like so:

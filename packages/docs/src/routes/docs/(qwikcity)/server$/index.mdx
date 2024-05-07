@@ -139,6 +139,13 @@ On the client, the proxy function invokes the wrapped function via an HTTP reque
 
 > Note: The `server$()` function must ensure that the server and client have the same version of the code executing. If there is a version skew the behavior is undefined and may result in an error. If version skew is a common problem then a more formal RPC mechanism should be used such as a tRPC or other library.
 
+> **Important Gotcha**
+> When defining and calling `server$()` inside an `onClick$`, be aware that this can lead to potential errors. To avoid them, make sure the events have `$` wrapped around them.  
+> Don't do this  
+> `onClick$={() => server$(() => // some server code!)}`  
+> Do this  
+> `onClick$={$(() => server$(() => // some server code!))}`
+
 ## Middleware and `server$`
 
 When using `server$`, it's important to understand how [middleware functions](/docs/middleware/#middleware-function) are executed. Middleware functions defined in `layout` files do not run for `server$` requests. This can lead to confusion, especially when developers expect certain middleware to be executed for both page requests and `server$` requests.

@@ -30,26 +30,30 @@ import type { QPrefetchData, QPrefetchMessage } from './service-worker/types';
     }
   });
 
-  navigator.serviceWorker
-    .register('__url')
-    .then((reg) => {
-      initServiceWorker = () => {
-        swReg = reg;
-        queuedEventDetails.forEach(sendPrefetch!);
-        sendPrefetch!({ bundles: queuedEventDetails });
-      };
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker
+      .register('__url')
+      .then((reg) => {
+        initServiceWorker = () => {
+          swReg = reg;
+          queuedEventDetails.forEach(sendPrefetch!);
+          sendPrefetch!({ bundles: queuedEventDetails });
+        };
 
-      if (reg.installing) {
-        reg.installing.addEventListener('statechange', (ev: any) => {
-          if (ev.target.state == 'activated') {
-            initServiceWorker!();
-          }
-        });
-      } else if (reg.active) {
-        initServiceWorker!();
-      }
-    })
-    .catch((e) => console.error(e));
+        if (reg.installing) {
+          reg.installing.addEventListener('statechange', (ev: any) => {
+            if (ev.target.state == 'activated') {
+              initServiceWorker!();
+            }
+          });
+        } else if (reg.active) {
+          initServiceWorker!();
+        }
+      })
+      .catch((e) => console.error(e));
+  } else {
+    console.log('Service worker not supported in this browser.');
+  }
 })([]);
 
 interface QwikServiceWorker extends ServiceWorker {

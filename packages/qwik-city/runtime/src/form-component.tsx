@@ -99,35 +99,42 @@ export const GetForm = component$<FormProps<undefined, undefined>>(
         preventdefault:submit={!reloadDocument}
         data-spa-reset={spaReset ? 'true' : undefined}
         {...rest}
-        onSubmit$={
-          [
-            ...(Array.isArray(onSubmit$) ? onSubmit$ : [onSubmit$]),
-            async (_, form) => {
-              const formData = new FormData(form);
-              const params = new URLSearchParams();
-              formData.forEach((value, key) => {
-                if (typeof value === 'string') {
-                  params.append(key, value);
+        onSubmit$={async (evt, form) => {
+          if (onSubmit$) {
+            // Execute the onSubmit$ event handler(s)
+            if (Array.isArray(onSubmit$)) {
+              for (const handler of onSubmit$) {
+                if (typeof handler === 'function') {
+                  await handler(evt, form);
                 }
-              });
-              nav('?' + params.toString(), { type: 'form', forceReload: true }).then(() => {
-                if (form.getAttribute('data-spa-reset') === 'true') {
-                  form.reset();
-                }
-                form.dispatchEvent(
-                  new CustomEvent('submitcompleted', {
-                    bubbles: false,
-                    cancelable: false,
-                    composed: false,
-                    detail: {
-                      status: 200,
-                    },
-                  })
-                );
-              });
-            },
-          ] as QRLEventHandlerMulti<SubmitEvent, HTMLFormElement>[]
-        }
+              }
+            } else {
+              await onSubmit$(evt, form);
+            }
+          }
+          const formData = new FormData(form);
+          const params = new URLSearchParams();
+          formData.forEach((value, key) => {
+            if (typeof value === 'string') {
+              params.append(key, value);
+            }
+          });
+          nav('?' + params.toString(), { type: 'form', forceReload: true }).then(() => {
+            if (form.getAttribute('data-spa-reset') === 'true') {
+              form.reset();
+            }
+            form.dispatchEvent(
+              new CustomEvent('submitcompleted', {
+                bubbles: false,
+                cancelable: false,
+                composed: false,
+                detail: {
+                  status: 200,
+                },
+              })
+            );
+          });
+        }}
       >
         <Slot />
       </form>

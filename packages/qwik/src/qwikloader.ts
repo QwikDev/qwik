@@ -108,7 +108,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
               await results;
             }
           } catch (error) {
-            emitEvent('qerror', {error, ...eventData);
+            emitEvent('qerror', {error, ...eventData});
           } finally {
             (doc as any)[Q_CONTEXT] = previousCtx;
           }

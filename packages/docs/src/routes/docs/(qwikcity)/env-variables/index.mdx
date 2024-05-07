@@ -172,3 +172,18 @@ export const onRequest: RequestHandler = async ({ env }) => {
   await initializeDbIfNeeded(initLibSql(url, authToken));
 };
 ```
+
+### Managing Environment Variables Throughout the Application Lifecycle
+
+In modern applications, environment variables play a crucial role in managing application settings and configurations across various environments without hardcoding sensitive data into the source code.
+
+Qwik City adaptors use the following:
+- Azure, Cloud Run, Netlify Edge, Node Server, use ORIGIN or URL
+- Cloudflare Pages uses CF_PAGES_URL or ORIGIN
+- Vercel uses VERCEL_URL
+
+> Note:
+> This is not a comprehensive guide on environment variables, nor does it cover all of the 3rd-Party hosting scenarios. It is meant to give insight that can be applied across various environments. 
+> 
+> See this video for a detailed explanation:
+> https://youtu.be/NPf39RWc8LM

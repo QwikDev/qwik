@@ -47,7 +47,7 @@ Tasks can also be used to perform work when a component state changes. In this c
 
 Sometimes a task needs to run only on the browser and after rendering, in that case, you should use [`useVisibleTask$()`](#usevisibletask).
 
-Sometimes a task should fetch data asynchronously and produce a signal (and not block rendering), in that case, you should use [`useResource$()`](/docs/components/state/#useresource).
+> **Note**: If you need to fetch data asynchronously and not block rendering, you should use [`useResource$()`](/docs/components/state/#useresource).  [`useResource$()`](/docs/components/state/#useresource) does not block rendering while the resource is being resolved.
 
 ## Lifecycle
 Resumability is "Lazy execution", it's the ability to build the "framework state" (component boundaries, etc) on the server, and have it exist on the client without re-executing the framework again.

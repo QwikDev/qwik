@@ -79,7 +79,10 @@ export const _serializeData = async (data: any, pureQRL?: boolean) => {
   let promises: Promise<any>[];
   while ((promises = collector.$promises$).length > 0) {
     collector.$promises$ = [];
-    await Promise.all(promises);
+    const results = await Promise.allSettled(promises);
+    for (const result of results) {
+      if (result.status === 'rejected') console.error(result.reason);
+    }
   }
 
   const objs = Array.from(collector.$objSet$.keys());

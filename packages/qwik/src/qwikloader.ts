@@ -85,8 +85,14 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
       const baseURI = new URL(doc.baseURI);
       const base = new URL(container.getAttribute('q:base') ?? baseURI, baseURI);
       for (const qrl of attrValue.split('\n')) {
+        const isStartSlash = qrl.toString().startsWith('/');
+        const isEndslash = base.pathname.endsWith('/');
         const pathUrl =
-          (base.pathname.endsWith('/') ? base.pathname.slice(0, -1) : base.pathname) + qrl;
+          (isEndslash && !isStartSlash
+            ? base.pathname
+            : isEndslash
+              ? base.pathname.slice(0, -1)
+              : base.pathname) + qrl;
         const url = new URL(pathUrl, !base.origin ? base : base.origin);
         const symbolName = url.hash[replace](/^#?([^?[|]*).*$/, '$1') || 'default';
         const reqTime = performance.now();

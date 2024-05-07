@@ -96,9 +96,15 @@ export function setTestPlatform(_setPlatform: Function) {
  * @returns Fully qualified URL.
  */
 export function toUrl(doc: Document, containerEl: Element, url: string | URL): URL {
-  const baseURI = new URL(doc.baseURI);
-  const base = new URL(containerEl.getAttribute('q:base') ?? baseURI, baseURI);
-  const pathUrl = (base.pathname.endsWith('/') ? base.pathname.slice(0, -1) : base.pathname) + url;
+  const base = new URL(containerEl.getAttribute('q:base') ?? doc.baseURI, doc.baseURI);
+  const isStartSlash = url.toString().startsWith('/');
+  const isEndslash = base.pathname.endsWith('/');
+  const pathUrl =
+    (isEndslash && !isStartSlash
+      ? base.pathname
+      : isEndslash
+        ? base.pathname.slice(0, -1)
+        : base.pathname) + url;
   return new URL(pathUrl, !base.origin ? base : base.origin);
 }
 

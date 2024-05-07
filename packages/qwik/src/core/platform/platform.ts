@@ -66,7 +66,14 @@ export const createPlatform = (): CorePlatform => {
  */
 export const toUrl = (doc: Document, containerEl: QwikElement, url: string | URL): URL => {
   const base = new URL(containerEl.getAttribute('q:base') ?? doc.baseURI, doc.baseURI);
-  const pathUrl = (base.pathname.endsWith('/') ? base.pathname.slice(0, -1) : base.pathname) + url;
+  const isStartSlash = url.toString().startsWith('/');
+  const isEndslash = base.pathname.endsWith('/');
+  const pathUrl =
+    (isEndslash && !isStartSlash
+      ? base.pathname
+      : isEndslash
+        ? base.pathname.slice(0, -1)
+        : base.pathname) + url;
   return new URL(pathUrl, !base.origin ? base : base.origin);
 };
 

@@ -29,7 +29,12 @@ function createStorage<TItem>(key: string) {
       return window.localStorage.setItem(key, JSON.stringify(item));
     },
     getItem(): TItem[] {
-      const item = window.localStorage.getItem(key);
+      let item;
+      try {
+        window.localStorage.getItem(key);
+      } catch (err) {
+        //
+      }
 
       return item ? JSON.parse(item) : [];
     },

@@ -81,7 +81,9 @@ export const _serializeData = async (data: any, pureQRL?: boolean) => {
     collector.$promises$ = [];
     const results = await Promise.allSettled(promises);
     for (const result of results) {
-      if (result.status === 'rejected') console.error(result.reason);
+      if (result.status === 'rejected') {
+        console.error(result.reason);
+      }
     }
   }
 

@@ -278,6 +278,10 @@ The Link component's `prefetch` prop can be used to improve the perceived perfor
 ```
 
 By simply adding the `prefetch` prop, your Link component will start prefetching the page as soon as the user hovers over the link. If the application is done prefetching when the user clicks on the link, the following page will appear instantly.
+If prefetching is not desired, you can set the prefetch value to false.
+```tsx
+<Link prefetch={false} href="/about">About</Link>
+```
 
 ### Scroll Restoration
 

@@ -7,7 +7,6 @@ function isLocalStorageSupported() {
   try {
     localStorage.setItem(key, '');
     localStorage.removeItem(key);
-
     return true;
   } catch (error) {
     return false;
@@ -26,17 +25,21 @@ function createStorage<TItem>(key: string) {
 
   return {
     setItem(item: TItem[]) {
-      return window.localStorage.setItem(key, JSON.stringify(item));
-    },
-    getItem(): TItem[] {
-      let item;
       try {
-        window.localStorage.getItem(key);
+        return window.localStorage.setItem(key, JSON.stringify(item));
       } catch (err) {
         //
       }
-
-      return item ? JSON.parse(item) : [];
+    },
+    getItem(): TItem[] {
+      let item = [];
+      try {
+        item = window.localStorage.getItem(key);
+        item = JSON.parse(item);
+      } catch (err) {
+        //
+      }
+      return item;
     },
   };
 }

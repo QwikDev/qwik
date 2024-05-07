@@ -196,6 +196,8 @@ export default component$(() => {
 });
 ```
 
+> Do you know why you should use a regular `function(){}` instead of an arrow function in `useStore()`? This is because [arrow functions don't have their own bindings to `this`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions) in javascript. This means that if you try to access `this` using an arrow function, `this.count` could point to another object's `count` 😱.
+
 ## Computed state
 
 In Qwik there are two ways to create computed values, each with a different use case (in order of preference):

@@ -271,16 +271,11 @@ export default component$(() => {
 
 ### `<Link prefetch>`
 
-The Link component's `prefetch` prop can be used to improve the perceived performance of the application. Although Qwik pages excel at lazy loading javascript, this feature can come in handy for content-heavy pages or SSR pages that need to wait for database or API calls.
+By default, a `Link` component will start prefetching the next page as soon as the user hovers over the corresponding link in the UI. So if the application is done prefetching when the user clicks on the link, the next page will appear instantly. Although Qwik applications already excel at lazy loading javascript, this behavior can come in handy for content-heavy pages or SSR pages that need to wait for database or API calls.
 
+If this is not your desired behavior, you can set the `prefetch` prop to false.
 ```tsx
-<Link prefetch href="/about">About</Link>
-```
-
-By simply adding the `prefetch` prop, your Link component will start prefetching the page as soon as the user hovers over the link. If the application is done prefetching when the user clicks on the link, the following page will appear instantly.
-If prefetching is not desired, you can set the prefetch value to false.
-```tsx
-<Link prefetch={false} href="/about">About</Link>
+ <Link prefetch={false} href="/about">About</Link>
 ```
 
 ### Scroll Restoration

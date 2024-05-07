@@ -376,8 +376,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
                   }
                 }
 
-                state._qCityScroll =
-                  state._qCityScroll || currentScrollState(scroller);
+                state._qCityScroll = state._qCityScroll || currentScrollState(scroller);
                 return state;
               };
 

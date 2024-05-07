@@ -6,7 +6,7 @@ export const restoreScroll = (
   toUrl: URL,
   fromUrl: URL,
   scroller: Element,
-  scrollState?: ScrollState,
+  scrollState?: ScrollState
 ) => {
   if (type === 'popstate' && scrollState) {
     scroller.scrollTo(scrollState.x, scrollState.y);

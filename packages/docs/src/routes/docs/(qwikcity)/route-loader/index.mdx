@@ -178,7 +178,7 @@ export const useProductRecommendations = routeLoader$(async (requestEvent) => {
 
 ## Failed values with `routeLoader$`
 
-`routeLoader$s` can use the `fail` method to return a failed value, which is a special value that indicates that the loader didn't succeed loading the expected data.
+`routeLoader$`s can use the `fail` method to return a failed value, which is a special value that indicates that the loader didn't succeed loading the expected data.
 
 In addition, the `fail` function allows `routeLoader$` to override the HTTP status code, for example retuning 404.
 

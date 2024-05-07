@@ -26,7 +26,7 @@ function createStorage<TItem>(key: string) {
   return {
     setItem(item: TItem[]) {
       try {
-        return window.localStorage.setItem(key, JSON.stringify(item));  
+        return window.localStorage.setItem(key, JSON.stringify(item));
       } catch (err) {
         //
       }
@@ -35,7 +35,7 @@ function createStorage<TItem>(key: string) {
       let item = [];
       try {
         item = window.localStorage.getItem(key);
-        item = JSON.parse(item)
+        item = JSON.parse(item);
       } catch (err) {
         //
       }

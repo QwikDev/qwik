@@ -132,8 +132,10 @@
           if (target) {
             event.preventDefault();
             const inspectUrl = target.getAttribute(inspectAttribute);
-            body.style.setProperty('cursor', 'progress');
-            qwikOpenInEditor(inspectUrl);
+            if (inspectUrl !== 'false') {
+              body.style.setProperty('cursor', 'progress');
+              qwikOpenInEditor(inspectUrl);
+            }
           }
         }
       },

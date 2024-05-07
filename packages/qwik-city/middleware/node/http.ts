@@ -32,6 +32,16 @@ export function getUrl(req: IncomingMessage | Http2ServerRequest, origin: string
 
 const DOUBLE_SLASH_REG = /\/\/|\\\\/g;
 
+// when the user refreshes or cancels the stream there will be an error
+function isIgnoredError(message = '') {
+  const ignoredErrors = [
+    'The stream has been destroyed',
+    'write after end'
+  ];
+  return ignoredErrors.some(ignored => message.includes(ignored));
+}
+
+
 export function normalizeUrl(url: string, base: string) {
   // do not allow the url to have a relative protocol url
   // which could bypass of CSRF protections
@@ -103,7 +113,7 @@ export async function fromNodeHttp(
             return;
           }
           res.write(chunk, (error) => {
-            if (error && !/ERR_HTTP2_INVALID_STREAM/.test(error.message)) {
+            if (error && !isIgnoredError(error.message)) {
               console.error(error);
             }
           });

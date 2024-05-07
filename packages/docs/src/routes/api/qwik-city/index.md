@@ -1681,6 +1681,14 @@ export declare type PathParams = Record<string, string>;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
+## QWIK_CITY_SCROLLER
+
+```typescript
+QWIK_CITY_SCROLLER = "_qCityScroller";
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/qwik-city-component.tsx)
+
 ## QwikCityMockProps
 
 ```typescript

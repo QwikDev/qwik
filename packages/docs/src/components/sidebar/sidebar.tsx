@@ -78,7 +78,9 @@ export const SideBar = component$((props: { allOpen?: boolean }) => {
           el.scrollTop = savedScroll;
           el.style.visibility = 'visible';
         }
-      } catch (err) {}
+      } catch (err) {
+        //
+      }
     })
   );
 
@@ -101,7 +103,9 @@ export const SideBar = component$((props: { allOpen?: boolean }) => {
             try {
               const scrollTop = document.getElementById('qwik-sidebar')!.scrollTop;
               sessionStorage.setItem('qwik-sidebar', String(scrollTop));
-            } catch (err) {}
+            } catch (err) {
+              //
+            }
           })}
         />
       </nav>

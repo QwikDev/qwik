@@ -32,7 +32,9 @@ function createStorage<TItem>(key: string) {
       let item;
       try {
         window.localStorage.getItem(key);
-      } catch (err) {}
+      } catch (err) {
+        //
+      }
 
       return item ? JSON.parse(item) : [];
     },

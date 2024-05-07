@@ -31,7 +31,9 @@ export const getColorPreference = (): ThemePreference => {
   let theme;
   try {
     theme = localStorage.getItem(themeStorageKey);
-  } catch (err) {}
+  } catch (err) {
+    //
+  }
   if (theme) {
     return theme as ThemePreference;
   } else {

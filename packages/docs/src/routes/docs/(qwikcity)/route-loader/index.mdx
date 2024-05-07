@@ -127,7 +127,7 @@ The above example shows two `routeLoader$s` being used in the same file. A gener
 
 ## RequestEvent
 
-Just like [middleware](/docs/middleware/) or [endpoint](/docs/endpoints/) `onRequest` and `onGet`, `routeLoader$s` have access to the [`RequestEvent`](/docs/middleware#requestevent) API which includes information about the current HTTP request.
+Just like [middleware](/docs/middleware/) or [endpoint](/docs/endpoints/) `onRequest` and `onGet`, `routeLoader$`s have access to the [`RequestEvent`](/docs/middleware#requestevent) API which includes information about the current HTTP request.
 
 This information comes in handy when the loader needs to conditionally return data based on the request, or it needs to override the response status, headers or body manually.
 

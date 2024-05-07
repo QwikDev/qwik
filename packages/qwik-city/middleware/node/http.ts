@@ -34,13 +34,9 @@ const DOUBLE_SLASH_REG = /\/\/|\\\\/g;
 
 // when the user refreshes or cancels the stream there will be an error
 function isIgnoredError(message = '') {
-  const ignoredErrors = [
-    'The stream has been destroyed',
-    'write after end'
-  ];
-  return ignoredErrors.some(ignored => message.includes(ignored));
+  const ignoredErrors = ['The stream has been destroyed', 'write after end'];
+  return ignoredErrors.some((ignored) => message.includes(ignored));
 }
-
 
 export function normalizeUrl(url: string, base: string) {
   // do not allow the url to have a relative protocol url

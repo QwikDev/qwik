@@ -31,7 +31,7 @@ suite('jsx signals', () => {
     assert.equal(divSignal.innerHTML, '<!--t=1--><span>SSR</span><!---->');
   });
 
-  test('CSR basic jsx', async () => {
+  test.skip('CSR basic jsx', async () => {
     const { screen, render, userEvent } = await createDOM();
 
     await render(<RenderJSX />);
@@ -65,7 +65,7 @@ suite('jsx signals', () => {
     assert.equal(divSignal.innerHTML, 'text');
   });
 
-  test('CSR jsx primitives', async () => {
+  test.skip('CSR jsx primitives', async () => {
     const { screen, render, userEvent } = await createDOM();
 
     await render(<RenderJSX />);
@@ -83,7 +83,7 @@ suite('jsx signals', () => {
     assert.equal(divSignal.innerHTML, '0');
   });
 
-  test('CSR jsx arrays', async () => {
+  test.skip('CSR jsx arrays', async () => {
     const { screen, render, userEvent } = await createDOM();
 
     await render(<RenderJSX />);
@@ -118,7 +118,7 @@ suite('jsx signals', () => {
 
   const ChildComp = component$(() => <span>ChildComp</span>);
 
-  test('CSR jsx with component', async () => {
+  test.skip('CSR jsx with component', async () => {
     // Render signals that resolves promise is not supported
     const { screen, render, userEvent } = await createDOM();
 

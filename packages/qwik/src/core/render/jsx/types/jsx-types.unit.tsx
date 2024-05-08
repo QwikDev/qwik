@@ -8,6 +8,8 @@ import { component$, type PropsOf, type PublicProps } from '../../../component/c
 import type { QwikHTMLElements, QwikSVGElements, Size } from './jsx-generated';
 import type { JSX } from '../jsx-runtime';
 
+const Fn = () => <div />;
+
 describe('types', () => {
   // Note, these type checks happen at compile time. We don't need to call anything, so we do ()=>()=>. We just need to
   // make sure the type check runs.
@@ -42,7 +44,6 @@ describe('types', () => {
       );
     });
 
-    const Fn = () => <div />;
     expectTypeOf<PropsOf<typeof Fn>>().toEqualTypeOf<never>();
     const Cmp = component$(Fn);
     expectTypeOf(Cmp).toEqualTypeOf<FunctionComponent<PublicProps<unknown>>>();
@@ -292,17 +293,10 @@ describe('types', () => {
     expectTypeOf<PropsOf<'not-exist'>>().toEqualTypeOf<QwikHTMLElements['span']>();
 
     // functions
-    const NoProps = () => <div />;
     expectTypeOf<PropsOf<typeof NoProps>>().toEqualTypeOf<never>();
-    const UnknownProps = (p: unknown) => <div />;
     expectTypeOf<PropsOf<typeof UnknownProps>>().toEqualTypeOf<never>();
-    const AnyProps = (p: any) => <div />;
     expectTypeOf<PropsOf<typeof AnyProps>>().toEqualTypeOf<any>();
-    const DefProps = (props: { foo: string }) => <div />;
     expectTypeOf<PropsOf<typeof DefProps>>().toEqualTypeOf<{ foo: string }>();
-    const PolyProps = <C extends string = ''>(
-      p: { as?: C; b: boolean } & (C extends 'hi' ? { foo: boolean } : never)
-    ) => <div />;
     expectTypeOf<PropsOf<typeof PolyProps<'hi'>>>().toMatchTypeOf<{
       as?: 'hi';
       b: boolean;
@@ -310,15 +304,10 @@ describe('types', () => {
     }>();
 
     // components
-    const NoProps$ = component$(NoProps);
     expectTypeOf<PropsOf<typeof NoProps$>>().toEqualTypeOf<never>();
-    const UnknownProps$ = component$(UnknownProps);
     expectTypeOf<PropsOf<typeof UnknownProps$>>().toEqualTypeOf<never>();
-    const AnyProps$ = component$(AnyProps);
     expectTypeOf<PropsOf<typeof AnyProps$>>().toEqualTypeOf<any>();
-    const DefProps$ = component$(DefProps);
     expectTypeOf<PropsOf<typeof DefProps$>>().toEqualTypeOf<{ foo: string }>();
-    const PolyProps$ = component$(PolyProps);
     expectTypeOf<PropsOf<typeof PolyProps$<'hi'>>>().toMatchTypeOf<{
       as?: 'hi';
       b: boolean;
@@ -331,3 +320,17 @@ describe('types', () => {
     expectTypeOf<PropsOf<17>>().toEqualTypeOf<never>();
   });
 });
+
+const NoProps = () => <div />;
+const UnknownProps = (p: unknown) => <div />;
+const AnyProps = (p: any) => <div />;
+const DefProps = (props: { foo: string }) => <div />;
+const PolyProps = <C extends string = ''>(
+  p: { as?: C; b: boolean } & (C extends 'hi' ? { foo: boolean } : never)
+) => <div />;
+
+const NoProps$ = component$(NoProps);
+const UnknownProps$ = component$(UnknownProps);
+const AnyProps$ = component$(AnyProps);
+const DefProps$ = component$(DefProps);
+const PolyProps$ = component$(PolyProps);

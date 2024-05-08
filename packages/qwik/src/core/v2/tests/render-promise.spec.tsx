@@ -1,7 +1,7 @@
-import { describe, expect, it } from 'vitest';
-import { component$ } from '../component/component.public';
-import { Fragment as Component, Fragment } from '../render/jsx/jsx-runtime';
 import { domRender, ssrRenderToDom } from '@builder.io/qwik/testing';
+import { describe, expect, it } from 'vitest';
+import { component$ } from '../../component/component.public';
+import { Fragment as Component, Fragment } from '../../render/jsx/jsx-runtime';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;

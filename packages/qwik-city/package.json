@@ -10,9 +10,9 @@
     "svgo": "^3.2.0",
     "undici": "*",
     "vfile": "^6.0.1",
-    "vite": "^5.2.10",
+    "vite": "^5.2.11",
     "vite-imagetools": "^6.2.9",
-    "zod": "^3.22.4"
+    "zod": "^3.23.6"
   },
   "devDependencies": {
     "@azure/functions": "^3.5.1",
@@ -20,15 +20,15 @@
     "@microsoft/api-extractor": "^7.43.1",
     "@netlify/edge-functions": "^2.3.1",
     "@types/mdast": "^4.0.1",
-    "@types/node": "^20.12.7",
+    "@types/node": "^20.12.8",
     "@types/refractor": "^3.4.1",
     "@types/set-cookie-parser": "^2.4.7",
-    "estree-util-value-to-estree": "3.0.1",
+    "estree-util-value-to-estree": "3.1.1",
     "github-slugger": "2.0.0",
     "hast-util-heading-rank": "2.1.1",
     "hast-util-to-string": "2.0.0",
     "kleur": "4.1.5",
-    "marked": "^12.0.1",
+    "marked": "^12.0.2",
     "mdast-util-mdx": "^3.0.0",
     "refractor": "4.8.1",
     "rehype-autolink-headings": "7.1.0",
@@ -40,7 +40,7 @@
     "unified": "11.0.4",
     "unist-util-visit": "5.0.0",
     "uvu": "0.5.6",
-    "yaml": "^2.4.1"
+    "yaml": "^2.4.2"
   },
   "engines": {
     "node": ">=16.8.0 <18.0.0 || >=18.11"

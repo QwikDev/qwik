@@ -563,6 +563,116 @@ export const NoWorks3 = component$(({count, stuff = hola()}) => {
 }
 
 #[test]
+fn example_props_wrapping() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useSignal } from '@builder.io/qwik';
+export const Works = component$(({fromProps}) => {
+	let fromLocal = useSignal(0);
+	return (
+		<div 
+			computed={fromLocal + fromProps}
+			local={fromLocal} 
+			props-wrap={fromProps}
+			props-only={{props: fromProps}}
+			props={{props: fromProps, local: fromLocal}}
+				>
+		</div>
+	);
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		entry_strategy: EntryStrategy::Inline,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn example_props_wrapping2() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useSignal } from '@builder.io/qwik';
+export const Works = component$((props: { fromProps: number }) => {
+	let fromLocal = useSignal(0);
+	return (
+		<div 
+			computed={fromLocal + props.fromProps}
+			local={fromLocal} 
+			props-wrap={props.fromProps}
+			props-only={{props: props.fromProps}}
+			props={{props: props.fromProps, local: fromLocal}}
+				>
+		</div>
+	);
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		entry_strategy: EntryStrategy::Inline,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn example_props_wrapping_children() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useSignal } from '@builder.io/qwik';
+export const Works = component$(({fromProps}) => {
+	let fromLocal = useSignal(0);
+	return (
+		<div>
+			{fromLocal}
+			{fromProps}
+			{fromLocal + fromProps}
+			{{props: fromProps}}
+			{{local: fromLocal}}
+			{{props: fromProps, local: fromLocal}}
+		</div>
+	);
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		entry_strategy: EntryStrategy::Inline,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn example_props_wrapping_children2() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useSignal } from '@builder.io/qwik';
+export const Works = component$((props) => {
+	let fromLocal = useSignal(0);
+	return (
+		<div>
+		  before-
+			{fromLocal}
+			{props.fromProps}
+			{fromLocal + props.fromProps}
+			{{props: props.fromProps}}
+			{{local: fromLocal}}
+			{{props: props.fromProps, local: fromLocal}}
+			-after
+		</div>
+	);
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		entry_strategy: EntryStrategy::Inline,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn example_use_optimization() {
 	test_input!(TestInput {
 		code: r#"

@@ -1,15 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { trigger } from '../../testing/element-fixture';
-import { component$ } from '../component/component.public';
-import { Fragment, Fragment as Component, Fragment as Signal } from '../render/jsx/jsx-runtime';
-import type { Signal as SignalType } from '../state/signal';
-import { useSignal } from '../use/use-signal';
-import { useStore } from '../use/use-store.public';
-import { useTask$ } from '../use/use-task';
-import { delay } from '../util/promises';
-import { ErrorProvider, domRender, ssrRenderToDom } from '../../testing/rendering.unit-util';
-import '../../testing/vdom-diff.unit-util';
-import { getTestPlatform } from '../../testing/platform';
+import { trigger } from '../../../testing/element-fixture';
+import { getTestPlatform } from '../../../testing/platform';
+import { ErrorProvider, domRender, ssrRenderToDom } from '../../../testing/rendering.unit-util';
+import '../../../testing/vdom-diff.unit-util';
+import { component$ } from '../../component/component.public';
+import { Fragment as Component, Fragment, Fragment as Signal } from '../../render/jsx/jsx-runtime';
+import { SignalDerived, type Signal as SignalType } from '../../state/signal';
+import { useSignal } from '../../use/use-signal';
+import { useStore } from '../../use/use-store.public';
+import { useTask$ } from '../../use/use-task';
+import { delay } from '../../util/promises';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -157,6 +157,35 @@ describe.each([
           double.value = 2 * track(() => count.value);
         });
         return <button onClick$={() => count.value++}>{double.value}</button>;
+      });
+
+      const { vNode, document } = await render(<Counter />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            <Signal>20</Signal>
+          </button>
+        </Component>
+      );
+      await trigger(document.body, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            <Signal>22</Signal>
+          </button>
+        </Component>
+      );
+      await getTestPlatform().flush();
+    });
+    it('should rerun on track derived signal', async () => {
+      const Counter = component$(() => {
+        const countRaw = useStore({ count: 10 });
+        const count = new SignalDerived((o: any, prop: string) => o[prop], [countRaw, 'count']);
+        const double = useSignal(0);
+        useTask$(({ track }) => {
+          double.value = 2 * track(() => count.value);
+        });
+        return <button onClick$={() => countRaw.count++}>{double.value}</button>;
       });
 
       const { vNode, document } = await render(<Counter />, { debug });

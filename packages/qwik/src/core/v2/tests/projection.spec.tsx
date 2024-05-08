@@ -1,23 +1,23 @@
+import { domRender, ssrRenderToDom } from '@builder.io/qwik/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { trigger } from '../../testing/element-fixture';
-import { component$, componentQrl } from '../component/component.public';
-import { _fnSignal, _jsxC, _jsxQ } from '../internal';
-import { inlinedQrl } from '../qrl/qrl';
+import { trigger } from '../../../testing/element-fixture';
+import '../../../testing/vdom-diff.unit-util';
+import { component$, componentQrl } from '../../component/component.public';
+import { _fnSignal, _jsxC, _jsxQ } from '../../internal';
+import { inlinedQrl } from '../../qrl/qrl';
 import {
   Fragment as Component,
   Fragment,
   Fragment as InlineComponent,
   Fragment as Projection,
   Fragment as Signal,
-} from '../render/jsx/jsx-runtime';
-import { Slot } from '../render/jsx/slot.public';
-import { useLexicalScope } from '../use/use-lexical-scope.public';
-import { useSignal } from '../use/use-signal';
-import { useStore } from '../use/use-store.public';
-import { useTask$ } from '../use/use-task';
-import { vnode_getNextSibling } from './client/vnode';
-import { domRender, ssrRenderToDom } from '@builder.io/qwik/testing';
-import '../../testing/vdom-diff.unit-util';
+} from '../../render/jsx/jsx-runtime';
+import { Slot } from '../../render/jsx/slot.public';
+import { useLexicalScope } from '../../use/use-lexical-scope.public';
+import { useSignal } from '../../use/use-signal';
+import { useStore } from '../../use/use-store.public';
+import { useTask$ } from '../../use/use-task';
+import { vnode_getNextSibling } from '../client/vnode';
 
 const debug = false;
 
@@ -292,7 +292,7 @@ describe.each([
         <span>
           <Projection />
           {'('}
-          <Signal>render-content</Signal>
+          render-content
           {')'}
         </span>
       </InlineComponent>
@@ -309,7 +309,7 @@ describe.each([
           <span>
             <Projection>{'parent-content'}</Projection>
             {'('}
-            <Signal>child-content</Signal>
+            child-content
             {')'}
           </span>
         </InlineComponent>

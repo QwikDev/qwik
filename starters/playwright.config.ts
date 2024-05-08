@@ -1,5 +1,5 @@
-import { expect } from "@playwright/test";
 import type { Locator, PlaywrightTestConfig } from "@playwright/test";
+import { expect } from "@playwright/test";
 
 expect.extend({
   async hasAttribute(recieved: Locator, attribute: string) {
@@ -22,6 +22,7 @@ const config: PlaywrightTestConfig = {
       height: 600,
     },
   },
+  testMatch: "*.e2e.ts",
   testIgnore: /.*example.spec.tsx?$/,
   retries: 0,
   webServer: {

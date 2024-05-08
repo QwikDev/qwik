@@ -2577,7 +2577,7 @@ A function that should have its first argument automatically `$`.
 </tbody></table>
 **Returns:**
 
-((first: FIRST, ...rest: REST) =&gt; RET)
+(first: FIRST, ...rest: REST) =&gt; RET
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/util/implicit_dollar.ts)
 
@@ -3479,7 +3479,7 @@ PrefetchGraph: (opts?: {
   base?: string;
   manifestHash?: string;
   manifestURL?: string;
-}) => import("..").JSXNode<string>;
+}) => JSXNode<string>;
 ```
 
 <table><thead><tr><th>
@@ -3513,7 +3513,7 @@ _(Optional)_ Options for the loading prefetch graph.
 </tbody></table>
 **Returns:**
 
-import("..").[JSXNode](#jsxnode)&lt;string&gt;
+[JSXNode](#jsxnode)&lt;string&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
 
@@ -3531,7 +3531,7 @@ PrefetchServiceWorker: (opts: {
   path?: string;
   verbose?: boolean;
   fetchBundleGraph?: boolean;
-}) => import("..").JSXNode<string>;
+}) => JSXNode<string>;
 ```
 
 <table><thead><tr><th>
@@ -3565,7 +3565,7 @@ Options for the prefetch service worker.
 </tbody></table>
 **Returns:**
 
-import("..").[JSXNode](#jsxnode)&lt;string&gt;
+[JSXNode](#jsxnode)&lt;string&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
 
@@ -5706,18 +5706,28 @@ SSRStreamBlock: FunctionComponent<{
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts)
 
+## SSRStreamChildren
+
+```typescript
+export type SSRStreamChildren =
+  | AsyncGenerator<JSXChildren, void, any>
+  | ((stream: StreamWriter) => Promise<void>)
+  | (() => AsyncGenerator<JSXChildren, void, any>);
+```
+
+**References:** [JSXChildren](#jsxchildren), [StreamWriter](#streamwriter)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts)
+
 ## SSRStreamProps
 
 ```typescript
 export type SSRStreamProps = {
-  children:
-    | AsyncGenerator<JSXChildren, void, any>
-    | ((stream: StreamWriter) => Promise<void>)
-    | (() => AsyncGenerator<JSXChildren, void, any>);
+  children: SSRStreamChildren;
 };
 ```
 
-**References:** [JSXChildren](#jsxchildren), [StreamWriter](#streamwriter)
+**References:** [SSRStreamChildren](#ssrstreamchildren)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts)
 

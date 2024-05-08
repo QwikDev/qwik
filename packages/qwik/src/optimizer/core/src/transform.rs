@@ -582,6 +582,12 @@ impl<'a> QwikTransform<'a> {
 
 		let (scoped_idents, is_const) = compute_scoped_idents(&descendent_idents, &decl_collect);
 
+		if !is_const {
+			// if the inputs to the expression are not constant (meaning at least one input is outside of props),
+			//  we can't turn it into `_fnSignal`
+			return (None, is_const);
+		}
+
 		// simple variable expression, no need to inline
 		if let ast::Expr::Ident(_) = folded {
 			return (None, is_const);

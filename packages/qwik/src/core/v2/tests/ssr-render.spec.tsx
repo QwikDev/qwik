@@ -1,13 +1,13 @@
+import { ssrRenderToDom } from '@builder.io/qwik/testing';
 import { describe, expect, it } from 'vitest';
-import { component$ } from '../component/component.public';
+import { component$ } from '../../component/component.public';
 import {
+  Fragment as Component,
   Fragment,
   Fragment as InlineComponent,
-  Fragment as Component,
-} from '../render/jsx/jsx-runtime';
-import { ssrRenderToDom } from '@builder.io/qwik/testing';
-import { SSRComment, SSRStream, SSRStreamBlock } from '../render/jsx/utils.public';
-import { delay } from '../util/promises';
+} from '../../render/jsx/jsx-runtime';
+import { SSRComment, SSRStream, SSRStreamBlock } from '../../render/jsx/utils.public';
+import { delay } from '../../util/promises';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;

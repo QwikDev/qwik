@@ -19,6 +19,7 @@ macro_rules! id {
 	};
 }
 
+// This generates the `_fnSignal` function call in JSX
 pub fn convert_inlined_fn(
 	mut expr: ast::Expr,
 	scoped_idents: Vec<Id>,

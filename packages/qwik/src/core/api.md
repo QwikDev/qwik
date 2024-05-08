@@ -468,7 +468,7 @@ export interface ImgHTMLAttributes<T extends Element> extends Attrs<'img', T> {
 }
 
 // @public
-export const implicit$FirstArg: <FIRST, REST extends any[], RET>(fn: (first: QRL<FIRST>, ...rest: REST) => RET) => ((first: FIRST, ...rest: REST) => RET);
+export const implicit$FirstArg: <FIRST, REST extends any[], RET>(fn: (first: QRL<FIRST>, ...rest: REST) => RET) => (first: FIRST, ...rest: REST) => RET;
 
 // Warning: (ae-internal-missing-underscore) The name "inlinedQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
@@ -1202,8 +1202,11 @@ export const SSRStreamBlock: FunctionComponent<{
 }>;
 
 // @public (undocumented)
+export type SSRStreamChildren = AsyncGenerator<JSXChildren, void, any> | ((stream: StreamWriter) => Promise<void>) | (() => AsyncGenerator<JSXChildren, void, any>);
+
+// @public (undocumented)
 export type SSRStreamProps = {
-    children: AsyncGenerator<JSXChildren, void, any> | ((stream: StreamWriter) => Promise<void>) | (() => AsyncGenerator<JSXChildren, void, any>);
+    children: SSRStreamChildren;
 };
 
 // @public (undocumented)

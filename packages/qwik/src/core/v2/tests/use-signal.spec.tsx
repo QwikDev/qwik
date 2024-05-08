@@ -553,16 +553,16 @@ describe.each([
 
       const { vNode, document } = await render(<Issue4249 />, { debug });
 
-      // expect(vNode).toMatchVDOM(
-      //   <Component>
-      //     <Fragment>
-      //       <button></button>
-      //       <div data-value="not-equal">
-      //         <Signal>not-equal</Signal>
-      //       </div>
-      //     </Fragment>
-      //   </Component>
-      // );
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button></button>
+            <div data-value="not-equal">
+              <Signal>not-equal</Signal>
+            </div>
+          </Fragment>
+        </Component>
+      );
 
       await trigger(document.body, 'button', 'click');
 

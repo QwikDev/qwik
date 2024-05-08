@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1301
+assertion_line: 1411
 expression: output
 ---
 ==INPUT==

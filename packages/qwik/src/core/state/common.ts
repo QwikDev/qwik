@@ -28,7 +28,7 @@ import { ElementVNodeProps, type VNode, type VirtualVNode } from '../v2/client/t
 import { VNodeJournalOpCode, vnode_setAttr } from '../v2/client/vnode';
 import { ChoreType } from '../v2/shared/scheduler';
 import { isContainer2, type fixMeAny } from '../v2/shared/types';
-import { QObjectFlagsSymbol, QObjectManagerSymbol, QOjectTargetSymbol } from './constants';
+import { QObjectFlagsSymbol, QObjectManagerSymbol, QObjectTargetSymbol } from './constants';
 import { tryGetContext } from './context';
 import type { Signal } from './signal';
 
@@ -197,7 +197,7 @@ export const unwrapProxy = <T>(proxy: T): T => {
 };
 
 export const getProxyTarget = <T extends object>(obj: T): T | undefined => {
-  return (obj as any)[QOjectTargetSymbol];
+  return (obj as any)[QObjectTargetSymbol];
 };
 
 export const getSubscriptionManager = (obj: object): LocalSubscriptionManager | undefined => {

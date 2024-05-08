@@ -10,9 +10,9 @@ created_at: '2023-08-23T23:06:42Z'
 
 # HTML attributes
 
-Sometimes we need to add attributes to set some functionalities in the website, be it to control the theme of the application, decide the direction of text (`dir` attribute), or set up the language of (`lang` attribute). More often than not, it is practical to add these attributes to the `html` tag as it's usually the [container](../../(qwik)/advanced/containers/index.mdx) of the application.
+Occasionally, it is necessary to add attributes to a website to enable specific functionalities, such as controlling the application's theme, determining text direction with the `﻿dir` attribute, or setting the page language with the `﻿lang` attribute. Typically, adding these attributes to the HTML tag is practical since it generally serves as the application's container.
 
-To do this with Qwik city, go to `src/entry.ssr.tsx` and add them to `containerAttributes` like so:
+To apply these attributes in Qwik city, add them to `containerAttributes` in the `src/entry.ssr.tsx` file:
 
 ```tsx
 export default function (opts: RenderToStreamOptions) {
@@ -28,8 +28,7 @@ export default function (opts: RenderToStreamOptions) {
 }
 ```
 
-In addition to that, from the `opts.serverData` object (and nested objects) you can get information about the request, like `request headers`, `url`, `route params`, etc. 
-By leveraging this information, now we can do the following:
+In addition, the `opts.serverData` object and nested objects allow you to access information about the request, including ﻿`request headers`, `url`, `route params`, and more. Leveraging this information enables you to do the following:
 
 ```tsx
 export default function (opts: RenderToStreamOptions) {

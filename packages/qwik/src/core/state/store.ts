@@ -25,7 +25,7 @@ import {
   QObjectImmutable,
   QObjectManagerSymbol,
   QObjectRecursive,
-  QOjectTargetSymbol,
+  QObjectTargetSymbol,
   _CONST_PROPS,
 } from './constants';
 import { isSignal } from './signal';
@@ -73,30 +73,53 @@ export const createProxy = <T extends object>(
   );
 
   const manager = storeTracker.$subsManager$.$createManager$(subs);
-  const proxy = new Proxy(target, new ReadWriteProxyHandler(storeTracker, manager)) as any as T;
-  storeTracker.$proxyMap$.set(target, proxy);
 
-  const addSubscriptionsForTarget = (target: object) => {
-    const serializedState: string | undefined = (target as any)[SerializationConstant.Store_CHAR];
-    if (serializedState) {
-      delete (target as any)[SerializationConstant.Store_CHAR];
-      setObjectFlags(target, serializedState.charCodeAt(0) - 48 /*'0'*/);
-      subscriptionManagerFromString(
-        manager,
-        serializedState.substring(1),
-        storeTracker.$getObjectById$
-      );
-    }
+  const getSerializedState = (target: object): string | undefined => {
+    return (target as any)[SerializationConstant.Store_CHAR];
+  };
+  const removeSerializedState = (target: object) => {
+    delete (target as any)[SerializationConstant.Store_CHAR];
+  };
+  const addSubscriptions = (
+    serializedState: string,
+    serializedStateObject: object,
+    target: object
+  ) => {
+    removeSerializedState(serializedStateObject);
+    setObjectFlags(target, serializedState.charCodeAt(0) - 48 /*'0'*/);
+    subscriptionManagerFromString(
+      manager,
+      serializedState.substring(1),
+      storeTracker.$getObjectById$
+    );
   };
 
-  if (Array.isArray(target)) {
-    target.forEach((data) => {
-      addSubscriptionsForTarget(data);
-    });
+  /**
+   * If we have an `SerializationConstant.UNDEFINED_CHAR` as a prop, then this means that this is
+   * serialized store with an array as a value. We need to handle this separately, because the proxy
+   * target is now the value of the `SerializationConstant.UNDEFINED_CHAR` prop
+   */
+  const serializedArrayTarget = (target as any)[SerializationConstant.UNDEFINED_CHAR];
+  if (serializedArrayTarget) {
+    const proxy = new Proxy(
+      serializedArrayTarget,
+      new ReadWriteProxyHandler(storeTracker, manager)
+    ) as T;
+    storeTracker.$proxyMap$.set(serializedArrayTarget, proxy);
+    const serializedState = getSerializedState(target);
+    if (serializedState) {
+      addSubscriptions(serializedState, target, serializedArrayTarget);
+    }
+    return proxy;
   } else {
-    addSubscriptionsForTarget(target);
+    const proxy = new Proxy(target, new ReadWriteProxyHandler(storeTracker, manager)) as T;
+    storeTracker.$proxyMap$.set(target, proxy);
+    const serializedState = getSerializedState(target);
+    if (serializedState) {
+      addSubscriptions(serializedState, target, target);
+    }
+    return proxy;
   }
-  return proxy;
 };
 
 export const createPropsState = (): Record<string, any> => {
@@ -140,7 +163,7 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
 
   get(target: TargetType, prop: string | symbol): any {
     if (typeof prop === 'symbol') {
-      if (prop === QOjectTargetSymbol) {
+      if (prop === QObjectTargetSymbol) {
         return target;
       }
       if (prop === QObjectManagerSymbol) {
@@ -236,7 +259,7 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
   }
 
   has(target: TargetType, property: string | symbol): boolean {
-    if (property === QOjectTargetSymbol) {
+    if (property === QObjectTargetSymbol) {
       return true;
     }
     const hasOwnProperty = Object.prototype.hasOwnProperty;

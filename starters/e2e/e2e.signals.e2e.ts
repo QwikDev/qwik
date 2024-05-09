@@ -347,7 +347,7 @@ test.describe("signals", () => {
       await expect(text2).toHaveText("Value: from1");
 
       await input.clear();
-      await textarea.type("from2");
+      await textarea.fill("from2");
       await expect(input).toHaveValue("from2");
       await expect(textarea).toHaveValue("from2");
       await expect(text1).toHaveText("Value: from2");

@@ -92,6 +92,7 @@ export const VirtualTypeName: Record<string, string> = {
   [VirtualType.Projection]: /* ****** */ START + 'Projection' + END, //
 };
 
+// these values are used in the qwik loader as a plain text for the q:container selector
 export const enum QContainerValue {
   HTML = 'html',
   TEXT = 'text',

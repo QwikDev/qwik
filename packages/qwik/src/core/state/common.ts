@@ -7,7 +7,7 @@ import type { QRL } from '../qrl/qrl.public';
 import { notifyChange } from '../render/dom/notify-render';
 import type { QwikElement } from '../render/dom/virtual-element';
 import { serializeAttribute } from '../render/execute-component';
-import { untrack } from '../use/use-core';
+import { trackSignal } from '../use/use-core';
 import {
   TaskFlags,
   isComputedTask,
@@ -28,7 +28,7 @@ import { ElementVNodeProps, type VNode, type VirtualVNode } from '../v2/client/t
 import { VNodeJournalOpCode, vnode_setAttr } from '../v2/client/vnode';
 import { ChoreType } from '../v2/shared/scheduler';
 import { isContainer2, type fixMeAny } from '../v2/shared/types';
-import { QObjectFlagsSymbol, QObjectManagerSymbol, QOjectTargetSymbol } from './constants';
+import { QObjectFlagsSymbol, QObjectManagerSymbol, QObjectTargetSymbol } from './constants';
 import { tryGetContext } from './context';
 import type { Signal } from './signal';
 
@@ -197,7 +197,7 @@ export const unwrapProxy = <T>(proxy: T): T => {
 };
 
 export const getProxyTarget = <T extends object>(obj: T): T | undefined => {
-  return (obj as any)[QOjectTargetSymbol];
+  return (obj as any)[QObjectTargetSymbol];
 };
 
 export const getSubscriptionManager = (obj: object): LocalSubscriptionManager | undefined => {
@@ -366,7 +366,7 @@ export const createSubscriptionManager = (containerState: ContainerState): Subsc
       }
     },
     $clearSignal$: (signal: SubscriberSignal) => {
-      const managers = groupToManagers.get(signal[1]);
+      const managers = groupToManagers.get(signal[SubscriptionProp.HOST]);
       if (managers) {
         for (const manager of managers) {
           manager.$unsubEntry$(signal);
@@ -397,7 +397,7 @@ export class LocalSubscriptionManager {
   $addSubs$(subs: Subscriptions[]) {
     this.$subs$.push(...subs);
     for (const sub of this.$subs$) {
-      this.$addToGroup$(sub[1], this);
+      this.$addToGroup$(sub[SubscriptionProp.HOST], this);
     }
   }
 
@@ -425,25 +425,29 @@ export class LocalSubscriptionManager {
   $unsubEntry$(entry: SubscriberSignal) {
     const [type, group, signal, elm] = entry;
     const subs = this.$subs$;
-    if (type === 1 || type === 2) {
-      const prop = entry[4];
+    if (type === SubscriptionType.PROP_IMMUTABLE || type === SubscriptionType.PROP_MUTABLE) {
+      const prop = entry[SubscriptionProp.ELEMENT_PROP];
       for (let i = 0; i < subs.length; i++) {
         const sub = subs[i];
         const match =
-          sub[0] === type &&
-          sub[1] === group &&
-          sub[2] === signal &&
-          sub[3] === elm &&
-          sub[4] === prop;
+          sub[SubscriptionProp.TYPE] === type &&
+          sub[SubscriptionProp.HOST] === group &&
+          sub[SubscriptionProp.SIGNAL] === signal &&
+          sub[SubscriptionProp.ELEMENT] === elm &&
+          sub[SubscriptionProp.ELEMENT_PROP] === prop;
         if (match) {
           subs.splice(i, 1);
           i--;
         }
       }
-    } else if (type === 3 || type === 4) {
+    } else if (type === SubscriptionType.TEXT_IMMUTABLE || type === SubscriptionType.TEXT_MUTABLE) {
       for (let i = 0; i < subs.length; i++) {
         const sub = subs[i];
-        const match = sub[0] === type && sub[1] === group && sub[2] === signal && sub[3] === elm;
+        const match =
+          sub[SubscriptionProp.TYPE] === type &&
+          sub[SubscriptionProp.HOST] === group &&
+          sub[SubscriptionProp.SIGNAL] === signal &&
+          sub[SubscriptionProp.ELEMENT] === elm;
         if (match) {
           subs.splice(i, 1);
           i--;
@@ -469,7 +473,9 @@ export class LocalSubscriptionManager {
   }
 
   $notifySubs$(key?: string | undefined) {
-    const subs = this.$subs$;
+    // TODO(HACK): we are resubscribing to the signal, so we are removing a sub, we need to iterate over a copy of subs
+    const subs = [...this.$subs$];
+
     for (const sub of subs) {
       const compare = sub[sub.length - 1];
       if (key && compare && compare !== key) {
@@ -504,6 +510,37 @@ export class LocalSubscriptionManager {
           }
         } else {
           const signal = sub[SubscriptionProp.SIGNAL];
+          /**
+           * TODO(HACK): we need to resubscribe to the value. Example:
+           *
+           * ```
+           * component$(() => {
+           *  const first = useSignal('');
+           *  const second = useSignal('');
+           *
+           *  return (
+           *  <>
+           *     <button
+           *       onClick$={() => {
+           *         first.value = 'foo';
+           *         second.value = 'foo';
+           *       }}
+           *     ></button>
+           *     <div>
+           *       {first.value && second.value && first.value === second.value ? 'equal' : 'not-equal'}
+           *      </div>
+           *   </>
+           *  );
+           * });
+           * ```
+           *
+           * If the first value is falsy then the `second.value` is never executing, so the
+           * subscription is not created.
+           */
+          this.$containerState$.$subsManager$.$clearSignal$(sub);
+          const value = trackSignal<fixMeAny>(signal, sub as fixMeAny);
+          // end HACK
+
           if (type == SubscriptionType.PROP_IMMUTABLE || type == SubscriptionType.PROP_MUTABLE) {
             const target = sub[SubscriptionProp.ELEMENT] as fixMeAny as VirtualVNode;
             const propKey = sub[SubscriptionProp.ELEMENT_PROP];
@@ -513,7 +550,8 @@ export class LocalSubscriptionManager {
               styleScopedId || null,
               target,
               propKey,
-              signal.value,
+              // untrack(() => signal.value),
+              value,
               type == SubscriptionType.PROP_IMMUTABLE
             );
           } else {
@@ -521,7 +559,8 @@ export class LocalSubscriptionManager {
               ChoreType.NODE_DIFF,
               host as fixMeAny,
               sub[SubscriptionProp.ELEMENT] as fixMeAny,
-              untrack(() => signal.value)
+              // untrack(() => signal.value)
+              value
             );
           }
         }

@@ -94,7 +94,9 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
     }
     const attrValue = element[getAttribute](attrName);
     if (attrValue) {
-      const container = element.closest('[q\\:container]')!;
+      const container = element.closest(
+        '[q\\:container]:not([q\\:container=html]):not([q\\:container=text])'
+      )!;
       const base = new URL(container[getAttribute]('q:base')!, doc.baseURI);
       for (const qrl of attrValue.split('\n')) {
         const url = new URL(qrl, base);

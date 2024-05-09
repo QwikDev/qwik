@@ -24,7 +24,7 @@ import { RequestEventCommon } from '@builder.io/qwik-city/middleware/request-han
 import { RequestEventLoader } from '@builder.io/qwik-city/middleware/request-handler';
 import { RequestHandler } from '@builder.io/qwik-city/middleware/request-handler';
 import type { ResolveSyncValue } from '@builder.io/qwik-city/middleware/request-handler';
-import { ValueOrPromise } from '@builder.io/qwik';
+import type { ValueOrPromise } from '@builder.io/qwik';
 import { z } from 'zod';
 import type * as zod from 'zod';
 
@@ -220,8 +220,8 @@ export interface FormProps<O, I> extends Omit<QwikJSX.IntrinsicElements['form'],
     action?: ActionStore<O, I, true | false>;
     // (undocumented)
     key?: string | number | null;
-    onSubmit$?: ((event: Event, element: HTMLFormElement) => any) | QRLEventHandlerMulti<Event, HTMLFormElement> | undefined;
-    onSubmitCompleted$?: ((event: CustomEvent<FormSubmitSuccessDetail<O>>, element: HTMLFormElement) => ValueOrPromise<void>) | QRLEventHandlerMulti<CustomEvent<FormSubmitSuccessDetail<O>>, HTMLFormElement> | undefined;
+    onSubmit$?: QRLEventHandlerMulti<Event, HTMLFormElement> | undefined;
+    onSubmitCompleted$?: QRLEventHandlerMulti<CustomEvent<FormSubmitSuccessDetail<O>>, HTMLFormElement> | undefined;
     reloadDocument?: boolean;
     spaReset?: boolean;
 }

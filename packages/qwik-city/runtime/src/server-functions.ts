@@ -40,6 +40,7 @@ import type {
   ServerFunction,
   ServerQRL,
   RequestEventBase,
+  ServerConfig,
 } from './types';
 import { useAction, useLocation, useQwikCityEnv } from './use-functions';
 import { z } from 'zod';
@@ -267,20 +268,6 @@ export const zodQrl = ((
 /** @public */
 export const zod$ = /*#__PURE__*/ implicit$FirstArg(zodQrl) as ZodConstructor;
 
-/** @public */
-export interface ServerConfig {
-  // TODO: create id registry
-  // id?: string;
-  origin?: string;
-  // only support "get" and "post" for now
-  method?: 'get' | 'post'; // | 'patch' | 'delete';
-  headers?: Record<string, string>;
-  // TODO: add cache interface
-  // cache?: any,
-  // TODO: cancel with signal
-  // signal?: Signal<boolean>;
-  fetchOptions?: any;
-}
 
 /** @public */
 export const serverQrl = <T extends ServerFunction>(

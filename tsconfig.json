@@ -57,5 +57,10 @@
     "@types/bun.d.ts",
     "types.d.ts"
   ],
-  "exclude": ["packages/create-qwik/dist", "packages/qwik/src", "*/lib", "scripts/eslint-docs.ts"]
+  "exclude": [
+    "packages/create-qwik/dist",
+    "packages/qwik/src",
+    "packages/*/lib",
+    "scripts/eslint-docs.ts"
+  ]
 }

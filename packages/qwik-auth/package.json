@@ -4,10 +4,10 @@
   "version": "0.1.3",
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
-    "@auth/core": "0.21.0"
+    "@auth/core": "0.30.0"
   },
   "devDependencies": {
-    "@auth/core": "0.21.0",
+    "@auth/core": "0.30.0",
     "@builder.io/qwik": "workspace:^",
     "@builder.io/qwik-city": "workspace:^",
     "@types/set-cookie-parser": "^2.4.7",

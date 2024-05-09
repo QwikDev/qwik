@@ -276,7 +276,17 @@ body {
     color: rgb(241 245 249 / var(--tw-text-opacity)) !important;
   }
 }
+@media (min-width: 1024px) {
+  #qwik-sidebar.menu {
+    width: 17rem;
+  }
+}
 
+@media (min-width: 1300px) {
+  #qwik-sidebar.menu {
+    width: 20rem;
+  }
+}
 /* Builder */
 :root[data-theme='dark'] .builder .dark-mode {
   filter: invert(90%) hue-rotate(180deg);

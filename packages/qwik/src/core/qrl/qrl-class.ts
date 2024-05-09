@@ -101,7 +101,7 @@ export const createQRL = <TYPE>(
       // Sync QRL
       assertDefined(_containerEl, 'Sync QRL must have container element');
       const qFuncs = (_containerEl as QContainerElement).qFuncs || [];
-      symbolRef = qFuncs[Number(symbol)] as TYPE;
+      qrl.resolved = symbolRef = qFuncs[Number(symbol)] as TYPE;
     }
     if (symbolRef !== null) {
       return symbolRef;
@@ -180,8 +180,11 @@ export const createQRL = <TYPE>(
     $capture$: capture,
     $captureRef$: captureRef,
     dev: null,
-    resolved: symbol == SYNC_QRL ? symbolRef : undefined,
+    resolved: undefined,
   });
+  if (symbolRef) {
+    maybeThen(symbolRef, (resolved) => (qrl.resolved = symbolRef = resolved));
+  }
   if (isDev) {
     (qrl as any)._devOnlySymbolRef = symbolRef;
   }

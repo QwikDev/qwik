@@ -10,6 +10,7 @@ contributors:
   - mhevery
   - chsanch
   - hamatoyogi
+  - Jemsco
 updated_at: '2023-10-03T18:53:23Z'
 created_at: '2023-05-24T03:52:24Z'
 ---
@@ -44,7 +45,7 @@ export default component$(() => {
 });
 ```
 
-With the above setup we will not only have better performance (pages are always served instantly from cache), but can have significantly decreased hosting costs, as our server (or edge functions) only need to run max once every 5 seconds per page.
+With the above setup we will not only have better performance (pages are always served instantly from cache), but can have significantly decreased hosting costs, as our server or edge functions only need to run max once every 5 seconds per page.
 
 ## `cacheControl`
 
@@ -63,7 +64,7 @@ export const onGet: RequestHandler = async ({ cacheControl }) => {
 };
 ```
 
-You can also override this as well. For instance, perhaps you have a default caching at the root, but want to disable caching for a specific page, you can override this with nested layouts
+If you have default caching set at the root, but want to disable caching for a specific page, you can override this setting using nested layouts.  The below example overrides caching for dashboard pages.
 
 ```tsx title="src/routes/dashboard/layout.tsx"
 import type { RequestHandler } from "@builder.io/qwik-city";
@@ -84,9 +85,9 @@ You can see the full [API reference](https://qwik.dev/api/qwik-city-middleware-r
 
 ## When not to cache
 
-Caching is a good default, but not right for every page all the time. If you have URLs on your site that will show different content to different people - such as pages only for logged in users, or pages that show different content based on the user's location, you should not cache those pages using cache-control headers in the response, and on server side render the contents of those pages on a per-visitor basis.
+Caching is generally beneficial, but not right for every page all the time. If your site has URLs that will show different content to different people — for example, pages exclusive to logged-in users or pages that show content based on a user's location — you should avoid using cache-control headers to cache these pages. Instead, render the content of these pages on the server side on a per-visitor basis.
 
-For high traffic pages that look the same to everyone, such as a homepage, caching is the best thing to do for performance and cost. But for pages only for logged in users, and as a result probably have some degree less traffic, disabling caching may be wise.
+For high traffic pages that look the same to everyone, such as a homepage, caching is great for enhancing performance and reducing cost. For pages specifically for logged in users that may have less traffic, it may advisable to disable caching.
 
 You can conditionally change cache behaviors with any logic you like:
 
@@ -118,14 +119,14 @@ cacheControl({
 }, "CDN-Cache-Control");
 ```
 
-### Missing controls
+### Missing Controls
 
 Some CDNs (such as Vercel Edge) may strip some of your "Cache-Control" headers.
 
 [On Vercel's documentation:](https://vercel.com/docs/edge-network/caching#cdn-cache-control)
 > If you set Cache-Control without a CDN-Cache-Control, the Vercel Edge Network strips s-maxage and stale-while-revalidate from the response before sending it to the browser. To determine if the response was served from the cache, check the [x-vercel-cache](https://vercel.com/docs/edge-network/caching#x-vercel-cache) header in the response.
 
-So if your CDN strips some cache control headers away by default (like Vercel Edge) and you want the browser to use "stale-while-revalidate" or "s-maxage", you can add another `cacheControl`:
+If your CDN, such as Vercel Edge, automatically removes certain cache control headers and you wish to implement caching strategies like "stale-while-revalidate" or "s-maxage" in the browser, you can specify an additional cacheControl:
 
 ```tsx title="src/routes/layout.tsx"
 import type { RequestHandler } from "@builder.io/qwik-city";

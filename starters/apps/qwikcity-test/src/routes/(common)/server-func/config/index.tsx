@@ -6,7 +6,7 @@ const customHeader = "X-Custom-Header";
 
 const serverFunctionA = server$(
   async function a() {
-    return this.headers.get(customHeader) || "";
+    return this.request.headers.get(customHeader) || "";
   },
   {
     method: "get",

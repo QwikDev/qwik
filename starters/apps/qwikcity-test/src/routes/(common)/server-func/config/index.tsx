@@ -7,9 +7,11 @@ const customHeader = "X-Custom-Header";
 const serverFunctionA = server$(
   async function a() {
     return (
-      this.request.headers.get("x-custom-header") ||
-      this.request.headers.get(customHeader) ||
-      "N/A"
+      this.method +
+      "-" +
+      (this.request.headers.get("x-custom-header") ||
+        this.request.headers.get(customHeader) ||
+        "N/A")
     );
   },
   {
@@ -31,9 +33,10 @@ const serverFunctionB = server$(
   },
 );
 
-export const MultipleServerFunctionsInvokedInTask = component$(() => {
+export const MultipleServerFunctionsWithConfig = component$(() => {
   const serverValA = useSignal("");
   const serverValB = useSignal("");
+
   useTask$(async () => {
     serverValA.value = await serverFunctionA();
     await delay(1);
@@ -41,9 +44,8 @@ export const MultipleServerFunctionsInvokedInTask = component$(() => {
   });
 
   return (
-    <div id="configs">
-      {serverValA.value}
-      {serverValB.value}
+    <div id="server-configs">
+      {serverValA.value}-{serverValB.value}
     </div>
   );
 });
@@ -51,7 +53,7 @@ export const MultipleServerFunctionsInvokedInTask = component$(() => {
 export default component$(() => {
   return (
     <>
-      <MultipleServerFunctionsInvokedInTask />
+      <MultipleServerFunctionsWithConfig />
     </>
   );
 });

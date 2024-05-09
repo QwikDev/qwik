@@ -57,14 +57,6 @@ test.describe("server$", () => {
   });
 
   test.describe("Multiple server$", () => {
-    test("should work with config GET and custom header", async ({ page }) => {
-      await page.goto("/qwikcity-test/server-func/config");
-      const methodsContainer = page.locator("#configs");
-      await expect(methodsContainer).toContainText(
-        "MyCustomValueMyCustomValue",
-      );
-    });
-
     test("should use the same context when invoked from useTask$ with resource", async ({
       page,
     }) => {
@@ -109,6 +101,13 @@ test.describe("server$", () => {
       ]);
       await expect(usersContainer1).toContainText("user1user1");
       await expect(usersContainer2).toContainText("user2user2");
+    });
+    test("should work with config GET and custom header", async ({ page }) => {
+      await page.goto("/qwikcity-test/server-func/config");
+      const methodsContainer = page.locator("#server-configs");
+      await expect(methodsContainer).toContainText(
+        "GET-MyCustomValue-MyCustomValue",
+      );
     });
   });
 });

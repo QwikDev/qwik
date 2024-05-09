@@ -451,6 +451,20 @@
       "mdFile": "qwik-city.pathparams.md"
     },
     {
+      "name": "QWIK_CITY_SCROLLER",
+      "id": "qwik_city_scroller",
+      "hierarchy": [
+        {
+          "name": "QWIK_CITY_SCROLLER",
+          "id": "qwik_city_scroller"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nQWIK_CITY_SCROLLER = \"_qCityScroller\"\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/qwik-city-component.tsx",
+      "mdFile": "qwik-city.qwik_city_scroller.md"
+    },
+    {
       "name": "QwikCityMockProps",
       "id": "qwikcitymockprops",
       "hierarchy": [

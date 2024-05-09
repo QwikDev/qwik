@@ -14,6 +14,7 @@ contributors:
   - AnthonyPAlicea
   - steve8708
   - mrhoodz
+  - Jemsco
 updated_at: '2023-06-25T19:43:33Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
@@ -21,7 +22,7 @@ import CodeSandbox from '../../../../../components/code-sandbox/index.tsx';
 
 # Context
 
-Qwik provides a context API, which solves the problem of props drilling and it is very similar to React's functional `useContext()`. In fact, Qwik's context API is the most efficient way to pass down the data to different components, reducing overhead, generating less code, and allowing Qwik to [treeshake](https://developer.mozilla.org/en-US/docs/Glossary/Tree_shaking) unused data more heavily.
+Qwik provides a context API, which solves the problem of props drilling and it is very similar to React's functional `useContext()`. In fact, Qwik's context API is the most efficient way to pass down data to different components, reducing overhead, generating less code, and allowing Qwik to more effectively [treeshake](https://developer.mozilla.org/en-US/docs/Glossary/Tree_shaking) unused data.
 
 Qwik's context API is made of 3 methods, importable from `@builder.io/qwik`:
 
@@ -67,7 +68,7 @@ const Child = component$(() => {
 </CodeSandbox>
 
 
-In the above example, we are creating a `ContextId` with the name `docs.theme-context` and then using it to provide a `useSignal` to the `default` component. The `Child` component is then using the `useContext` method to get the `useSignal` and render its value.
+In the above example, a `ContextId` named `docs.theme-context` is created and used to provide a `useSignal` to the `default` component. The `Child` component uses the `useContext` method to get the `useSignal` and render its value.
 
 ## `createContextId()`
 
@@ -83,13 +84,11 @@ export const QwikCityContext = createContextId<GenericType>(name: string): Conte
 
 ### Parameters
 
-- `name`: it is a unique string given to `createContextId` as an identifier of context. This will avoid conflicts when there are multiple contexts. It is advised to use a naming convention like `io.builder.qwik.city`.
+- `name`: is a unique string given to `createContextId` as an identifier of the context. This will avoid conflicts when there are multiple contexts. It is advised to use a naming convention like `io.builder.qwik.city`.
 
 ### Returns
 
-Notice that the value returned by `createContextId()` does not hold any state, it is an immutable ID object i.e. `{ id: 'io.builder.qwik.city' }`. It's only used to describe the name and type of the context, like an address or an identifier.
-
-Since it does not hold any state, it's ok to call it and make it a singleton, and export it in some shared module.
+Notice that the value returned by `createContextId()` does not hold any state, it is an immutable ID object i.e. `{ id: 'io.builder.qwik.city' }`. It's only used to describe the name and type of the context, like an address or an identifier.  Since it doesn't hold any state, it can be initialized as a singleton and exported from a shared module.
 
 ## `useContextProvider()`
 
@@ -116,14 +115,14 @@ export const Parent = component$(() => {
 
 ### Parameters
 
-- `ContextId`: A previously created Context must be supplied which will serve as an identifier for the data being provided (second parameter).
+- `ContextId`: A previously created Context must be supplied, serving as an identifier for the data being provided as the second parameter.
 
-- `data`: you can provide any data type like Qwik's useSignal, useStore, Array, Objects.
+- `data`: You can provide any data type, such as Qwik's ﻿useSignal, ﻿useStore, arrays, or objects.
 
 ### Caveats
 
 - The provided value will not be globally available across the whole render tree, but only to descendant components in the tree.
-- If the context isn't used during SSR, it will not be serialized. So if you want to have the context available in the client even though you don't use it during SSR, you can call `useContext()` in the parent component to force it to be serialized.
+- If the context isn't used during Server-Side Rendering (SSR), it will not be serialized. If you need the context available on the client, even though it's not used during SSR, you should call `useContext()` in the parent component.  This will force it to be serialized.
 
 ## `useContext()`
 

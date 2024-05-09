@@ -711,5 +711,21 @@
     },
     "href": "https://finallyweb.com/",
     "tags": "stock market education"
+  },
+  {
+    "title": "Numeia — AI powered end-to-end platform for marketing.",
+    "imgSrc": "/showcases/numeia_com.webp",
+    "perf": {
+      "score": 0.99,
+      "fcpDisplay": "1.3 s",
+      "fcpScore": 0.98,
+      "lcpDisplay": "2.1 s",
+      "lcpScore": 0.96,
+      "ttiDisplay": "1.6 s",
+      "ttiScore": 1,
+      "ttiTime": 1573
+    },
+    "href": "https://numeia.com",
+    "tags": "saas, marketing, ai"
   }
 ]

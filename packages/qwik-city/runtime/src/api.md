@@ -307,6 +307,9 @@ export interface PageModule extends RouteModule {
 export type PathParams = Record<string, string>;
 
 // @public (undocumented)
+export const QWIK_CITY_SCROLLER = "_qCityScroller";
+
+// @public (undocumented)
 export interface QwikCityMockProps {
     // (undocumented)
     goto?: RouteNavigate;

@@ -670,7 +670,7 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\nserver$: <T extends ServerFunction>(first: T) => ServerQRL<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfirst\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n[ServerQRL](#serverqrl)<!-- -->&lt;T&gt;",
+      "content": "```typescript\nserver$: <T extends ServerFunction>(first: T, options?: ServerConfig | undefined) => ServerQRL<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfirst\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\nServerConfig \\| undefined\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n[ServerQRL](#serverqrl)<!-- -->&lt;T&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
       "mdFile": "qwik-city.server_.md"
     },
@@ -684,7 +684,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type ServerFunction = {\n    (this: RequestEventBase, ...args: any[]): any;\n};\n```",
+      "content": "```typescript\nexport type ServerFunction = {\n    (this: RequestEventBase, ...args: any[]): any;\n    options?: ServerConfig;\n};\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik-city.serverfunction.md"
     },

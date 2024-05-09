@@ -2128,7 +2128,10 @@ RouterOutlet: import("@builder.io/qwik").Component<unknown>;
 ## server$
 
 ```typescript
-server$: <T extends ServerFunction>(first: T) => ServerQRL<T>;
+server$: <T extends ServerFunction>(
+  first: T,
+  options?: ServerConfig | undefined,
+) => ServerQRL<T>;
 ```
 
 <table><thead><tr><th>
@@ -2155,6 +2158,19 @@ T
 </td><td>
 
 </td></tr>
+<tr><td>
+
+options
+
+</td><td>
+
+ServerConfig \| undefined
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
 </tbody></table>
 **Returns:**
 
@@ -2167,6 +2183,7 @@ T
 ```typescript
 export type ServerFunction = {
   (this: RequestEventBase, ...args: any[]): any;
+  options?: ServerConfig;
 };
 ```
 

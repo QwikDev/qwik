@@ -1,10 +1,11 @@
 import {
   jsx,
   _wrapSignal,
-  type QwikJSX,
-  type ValueOrPromise,
   component$,
   Slot,
+  $,
+  type QwikJSX,
+  type ValueOrPromise,
   type QRLEventHandlerMulti,
 } from '@builder.io/qwik';
 import type { ActionStore } from './types';
@@ -37,17 +38,10 @@ export interface FormProps<O, I>
   spaReset?: boolean;
 
   /** Event handler executed right when the form is submitted. */
-  onSubmit$?:
-    | ((event: Event, element: HTMLFormElement) => any)
-    | QRLEventHandlerMulti<Event, HTMLFormElement>
-    | undefined;
+  onSubmit$?: QRLEventHandlerMulti<Event, HTMLFormElement> | undefined;
 
   /** Event handler executed right after the action is executed successfully and returns some data. */
   onSubmitCompleted$?:
-    | ((
-        event: CustomEvent<FormSubmitCompletedDetail<O>>,
-        element: HTMLFormElement
-      ) => ValueOrPromise<void>)
     | QRLEventHandlerMulti<CustomEvent<FormSubmitCompletedDetail<O>>, HTMLFormElement>
     | undefined;
 
@@ -60,6 +54,27 @@ export const Form = <O, I>(
   key: string | null
 ) => {
   if (action) {
+    const isArrayApi = Array.isArray(onSubmit$);
+    // if you pass an array you can choose where you want action.submit in it
+    if (isArrayApi) {
+      const actionInArray = Array.isArray(onSubmit$) && onSubmit$.includes(action.submit as any);
+      return jsx(
+        'form',
+        {
+          ...rest,
+          action: action.actionPath,
+          'preventdefault:submit': !reloadDocument,
+          onSubmit$: [
+            ...onSubmit$,
+            // action.submit "submitcompleted" event for onSubmitCompleted$ events
+            !reloadDocument && !actionInArray ? action.submit : undefined,
+          ],
+          method: 'post',
+          ['data-spa-reset']: spaReset ? 'true' : undefined,
+        },
+        key
+      );
+    }
     return jsx(
       'form',
       {
@@ -70,7 +85,7 @@ export const Form = <O, I>(
           // action.submit "submitcompleted" event for onSubmitCompleted$ events
           !reloadDocument ? action.submit : undefined,
           // TODO: v2 breaking change this should fire before the action.submit
-          ...(Array.isArray(onSubmit$) ? onSubmit$ : [onSubmit$]),
+          onSubmit$,
         ],
         method: 'post',
         ['data-spa-reset']: spaReset ? 'true' : undefined,
@@ -99,27 +114,19 @@ export const GetForm = component$<FormProps<undefined, undefined>>(
         preventdefault:submit={!reloadDocument}
         data-spa-reset={spaReset ? 'true' : undefined}
         {...rest}
-        onSubmit$={async (evt, form) => {
-          if (onSubmit$) {
-            // Execute the onSubmit$ event handler(s)
-            if (Array.isArray(onSubmit$)) {
-              for (const handler of onSubmit$) {
-                if (typeof handler === 'function') {
-                  await handler(evt, form);
-                }
+        onSubmit$={[
+          ...(Array.isArray(onSubmit$) ? onSubmit$ : [onSubmit$]),
+          $(async (_evt, form) => {
+            const formData = new FormData(form);
+            const params = new URLSearchParams();
+            formData.forEach((value, key) => {
+              if (typeof value === 'string') {
+                params.append(key, value);
               }
-            } else {
-              await onSubmit$(evt, form);
-            }
-          }
-          const formData = new FormData(form);
-          const params = new URLSearchParams();
-          formData.forEach((value, key) => {
-            if (typeof value === 'string') {
-              params.append(key, value);
-            }
-          });
-          nav('?' + params.toString(), { type: 'form', forceReload: true }).then(() => {
+            });
+            await nav('?' + params.toString(), { type: 'form', forceReload: true });
+          }),
+          $((_evt, form) => {
             if (form.getAttribute('data-spa-reset') === 'true') {
               form.reset();
             }
@@ -133,8 +140,10 @@ export const GetForm = component$<FormProps<undefined, undefined>>(
                 },
               })
             );
-          });
-        }}
+            //
+          }),
+          // end of array
+        ]}
       >
         <Slot />
       </form>

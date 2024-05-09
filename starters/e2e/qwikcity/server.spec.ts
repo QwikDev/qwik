@@ -57,6 +57,14 @@ test.describe("server$", () => {
   });
 
   test.describe("Multiple server$", () => {
+    test("should work with config GET and custom header", async ({ page }) => {
+      await page.goto("/qwikcity-test/server-func/config");
+      const methodsContainer = page.locator("#configs");
+      await expect(methodsContainer).toContainText(
+        "MyCustomValueMyCustomValue",
+      );
+    });
+
     test("should use the same context when invoked from useTask$ with resource", async ({
       page,
     }) => {

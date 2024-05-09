@@ -36,7 +36,7 @@ import {
 } from '../shared/scoped-styles';
 import { _SharedContainer } from '../shared/shared-container';
 import { inflateQRL, parseQRL, wrapDeserializerProxy } from '../shared/shared-serialization';
-import type { HostElement } from '../shared/types';
+import { type HostElement } from '../shared/types';
 import { VNodeDataChar, VNodeDataSeparator } from '../shared/vnode-data-types';
 import {
   VNodeFlags,
@@ -65,7 +65,7 @@ import {
   vnode_newUnMaterializedElement,
   vnode_setProp,
   type VNodeJournal,
-  isQContainerInnerHTMLElement,
+  isQContainerElementWithValue,
 } from './vnode';
 import { vnode_diff } from './vnode-diff';
 
@@ -91,7 +91,11 @@ export function getQContainerElement(element: Element | ElementVNode): Element |
   let qContainerElement: Element | null = Array.isArray(element)
     ? (vnode_getDomParent(element) as Element)
     : element;
-  while (qContainerElement && !qContainerElement.hasAttribute(QContainerAttr)) {
+  while (
+    qContainerElement &&
+    (!qContainerElement.hasAttribute(QContainerAttr) ||
+      isQContainerElementWithValue(qContainerElement))
+  ) {
     qContainerElement = qContainerElement.closest(QContainerSelector);
   }
   return qContainerElement;
@@ -411,7 +415,7 @@ export function processVNodeData(document: Document) {
   let ch: number;
   let needsToStoreRef = -1;
   for (let node = walker.firstChild(); node !== null; node = walker.nextNode()) {
-    if (isQContainerInnerHTMLElement(node.parentElement)) {
+    if (isQContainerElementWithValue(node.parentElement)) {
       continue;
     }
     elementIdx++;

@@ -1,3 +1,5 @@
+import { QContainerValue } from '../v2/shared/types';
+
 /** State factory of the component. */
 export const OnRenderProp = 'q:renderFn';
 
@@ -30,7 +32,13 @@ export const QContainerAttr = 'q:container';
 
 export const QTemplate = 'q:template';
 
-export const QContainerSelector = '[q\\:container]';
+// the same selector should be inside the qwik loader
+export const QContainerSelector =
+  '[q\\:container]:not([q\\:container=' +
+  QContainerValue.HTML +
+  ']):not([q\\:container=' +
+  QContainerValue.TEXT +
+  '])';
 
 export const ResourceEvent = 'qResource';
 export const ComputedEvent = 'qComputed';

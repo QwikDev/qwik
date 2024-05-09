@@ -85,6 +85,30 @@ describe.each([
     );
   });
 
+  it('should update array value', async () => {
+    const Counter = component$(() => {
+      const count = useStore([123]);
+      return <button onClick$={() => count[0]++}>Count: {count[0]}!</button>;
+    });
+
+    const { vNode, container } = await render(<Counter />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <button>
+          Count: <Signal>{'123'}</Signal>!
+        </button>
+      </Component>
+    );
+    await trigger(container.element, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <button>
+          Count: <Signal>{'124'}</Signal>!
+        </button>
+      </Component>
+    );
+  });
+
   it('should rerender child', async () => {
     const log: string[] = [];
     const Display = component$((props: { dValue: number }) => {
@@ -495,6 +519,74 @@ describe.each([
               </div>
             </Component>
           </Fragment>
+        </Component>
+      );
+    });
+
+    it('#5001 - should serialize naked value', async () => {
+      const Button = component$<{ unusedValue?: [number]; state: [number] }>(({ state }) => {
+        return <button onClick$={() => state[0]++}>+1</button>;
+      });
+      const Parent = component$<{ nakedState: [number] }>(({ nakedState }) => {
+        // STEP 2
+        // We wrap the `nakedState` into `state`.
+        // This means that Qwik needs to serialize the Proxy for the `nakedState`.
+        const state = useStore(nakedState);
+        // const signal = useSignal(0);
+        return (
+          <>
+            <Button
+              // STEP 3
+              // Uncommenting the next line breaks the code. (UI no longer updates)
+              // This seems te be because Qwik somehow gets confused between the two
+              // objects and assumes that `state` is no longer a proxy hence no
+              // subscription
+              //
+              unusedValue={nakedState}
+              state={state}
+            />
+            {'Count: '}
+            {/* <>{'0'}</> */}
+            {state[0]}
+            {/* {signal.value} */}
+          </>
+        );
+      });
+      const Issue5001 = component$(() => {
+        const nakedState: [number] = [0];
+        // STEP 1
+        // By passing the `nakedState` into a child component, we force
+        // Qwik to serialize `nakedState` into `qwik/json`
+        return <Parent nakedState={nakedState} />;
+      });
+
+      const { vNode, document } = await render(<Issue5001 />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Component>
+            <Fragment>
+              <Component>
+                <button>+1</button>
+              </Component>
+              {'Count: '}
+              <Signal>0</Signal>
+            </Fragment>
+          </Component>
+        </Component>
+      );
+
+      await trigger(document.body, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Component>
+            <Fragment>
+              <Component>
+                <button>+1</button>
+              </Component>
+              {'Count: '}
+              <Signal>1</Signal>
+            </Fragment>
+          </Component>
         </Component>
       );
     });

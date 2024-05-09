@@ -398,4 +398,184 @@ describe.each([
       );
     });
   });
+
+  describe('binding', () => {
+    it('should bind checked attribute', async () => {
+      const BindCmp = component$(() => {
+        const show = useSignal(false);
+        return (
+          <>
+            <label for="toggle">
+              <input type="checkbox" bind:checked={show} />
+              Show conditional
+            </label>
+            <div>{show.value.toString()}</div>
+          </>
+        );
+      });
+
+      const { vNode, document } = await render(<BindCmp />, { debug });
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <label for="toggle">
+              <input type="checkbox" checked={false} />
+              {'Show conditional'}
+            </label>
+            <div>false</div>
+          </Fragment>
+        </Component>
+      );
+
+      // simulate checkbox click
+      const input = document.querySelector('input')!;
+      input.checked = true;
+      await trigger(document.body, 'input', 'input');
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <label for="toggle">
+              <input type="checkbox" checked={true} />
+              {'Show conditional'}
+            </label>
+            <div>true</div>
+          </Fragment>
+        </Component>
+      );
+    });
+
+    it('should bind textarea value', async () => {
+      const Cmp = component$(() => {
+        const value = useSignal('123');
+        return (
+          <div>
+            <textarea bind:value={value} />
+            <input bind:value={value} />
+          </div>
+        );
+      });
+      const { document } = await render(<Cmp />, { debug });
+
+      await expect(document.querySelector('div')).toMatchDOM(
+        <div>
+          <textarea>123</textarea>
+          <input value="123" />
+        </div>
+      );
+
+      // simulate input
+      const textarea = document.querySelector('textarea')!;
+      textarea.value = 'abcd';
+      await trigger(document.body, textarea, 'input');
+
+      await expect(document.querySelector('div')).toMatchDOM(
+        <div>
+          <textarea>abcd</textarea>
+          <input value="abcd" />
+        </div>
+      );
+    });
+  });
+
+  describe('regression', () => {
+    it('#4249 - should render signal text with double condition', async () => {
+      const Issue4249 = component$(() => {
+        const first = useSignal('');
+        const second = useSignal('');
+
+        return (
+          <>
+            <button
+              onClick$={() => {
+                first.value = 'foo';
+                second.value = 'foo';
+              }}
+            ></button>
+            <div>
+              {first.value && second.value && first.value === second.value ? 'equal' : 'not-equal'}
+            </div>
+          </>
+        );
+      });
+
+      const { vNode, document } = await render(<Issue4249 />, { debug });
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button></button>
+            <div>
+              <Signal>not-equal</Signal>
+            </div>
+          </Fragment>
+        </Component>
+      );
+
+      await trigger(document.body, 'button', 'click');
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button></button>
+            <div>
+              <Signal>equal</Signal>
+            </div>
+          </Fragment>
+        </Component>
+      );
+    });
+
+    it('#4249 - should render signal value with double condition', async () => {
+      const Issue4249 = component$(() => {
+        const first = useSignal('');
+        const second = useSignal('');
+
+        return (
+          <>
+            <button
+              onClick$={() => {
+                first.value = 'foo';
+                second.value = 'foo';
+              }}
+            ></button>
+            <div
+              data-value={
+                first.value && second.value && first.value === second.value ? 'equal' : 'not-equal'
+              }
+            >
+              {first.value && second.value && first.value === second.value ? 'equal' : 'not-equal'}
+            </div>
+          </>
+        );
+      });
+
+      const { vNode, document } = await render(<Issue4249 />, { debug });
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button></button>
+            <div data-value="not-equal">
+              <Signal>not-equal</Signal>
+            </div>
+          </Fragment>
+        </Component>
+      );
+
+      await trigger(document.body, 'button', 'click');
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button></button>
+            <div data-value="equal">
+              <Signal>equal</Signal>
+            </div>
+          </Fragment>
+        </Component>
+      );
+    });
+  });
 });

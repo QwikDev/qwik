@@ -970,42 +970,83 @@ function serialize(serializationContext: SerializationContext): void {
     $addRoot$: (obj: unknown) => number
   ) => {
     if (Array.isArray(value)) {
-      // Serialize as array.
-      $writer$.write('[');
-      for (let i = 0; i < value.length; i++) {
-        if (i !== 0) {
-          $writer$.write(',');
-        }
-        writeValue(value[i], i);
+      const proxy = objectMap.get(value);
+      if (proxy !== undefined) {
+        $writer$.write('{');
+        serializeProxy(value, proxy, $writer$, writeString, $addRoot$);
+        $writer$.write(',');
+        // for an array we have to add property key (undefined)
+        writeString(SerializationConstant.UNDEFINED_CHAR);
+        $writer$.write(':');
       }
-      $writer$.write(']');
+
+      // Serialize as array.
+      serializeArray(value, $writer$, writeValue);
+
+      if (proxy !== undefined) {
+        $writer$.write('}');
+      }
     } else {
       // Serialize as object.
-      let delimiter = false;
       $writer$.write('{');
       const proxy = objectMap.get(value);
       if (proxy !== undefined) {
-        const flags = getProxyFlags(value) || 0;
-        writeString(SerializationConstant.Store_CHAR);
-        $writer$.write(':');
-        const manager = getSubscriptionManager(proxy)!;
-        writeString(String(flags) + subscriptionManagerToString(manager, $addRoot$));
-        delimiter = true;
+        serializeProxy(value, proxy, $writer$, writeString, $addRoot$);
       }
-      for (const key in value) {
-        if (Object.prototype.hasOwnProperty.call(value, key) && !fastSkipSerialize(value[key])) {
-          delimiter && $writer$.write(',');
-          writeString(key);
-          $writer$.write(':');
-          writeValue(value[key], -1);
-          delimiter = true;
-        }
-      }
+      serializeObjectProperties(value, $writer$, writeValue, writeString, proxy !== undefined);
       $writer$.write('}');
     }
   };
 
   writeValue(serializationContext.$roots$, -1);
+}
+
+function serializeProxy(
+  value: any,
+  proxy: any,
+  $writer$: StreamWriter,
+  writeString: (text: string) => void,
+  $addRoot$: (obj: unknown) => number
+) {
+  const flags = getProxyFlags(value) || 0;
+  writeString(SerializationConstant.Store_CHAR);
+  $writer$.write(':');
+  const manager = getSubscriptionManager(proxy)!;
+  writeString(String(flags) + subscriptionManagerToString(manager, $addRoot$));
+}
+
+function serializeArray(
+  value: any,
+  $writer$: StreamWriter,
+  writeValue: (value: any, idx: number) => void
+) {
+  $writer$.write('[');
+  for (let i = 0; i < value.length; i++) {
+    if (i !== 0) {
+      $writer$.write(',');
+    }
+    writeValue(value[i], i);
+  }
+  $writer$.write(']');
+}
+
+function serializeObjectProperties(
+  value: any,
+  $writer$: StreamWriter,
+  writeValue: (value: any, idx: number) => void,
+  writeString: (text: string) => void,
+  startWithDelimiter: boolean
+) {
+  let delimiter = startWithDelimiter;
+  for (const key in value) {
+    if (Object.prototype.hasOwnProperty.call(value, key) && !fastSkipSerialize(value[key])) {
+      delimiter && $writer$.write(',');
+      writeString(key);
+      $writer$.write(':');
+      writeValue(value[key], -1);
+      delimiter = true;
+    }
+  }
 }
 
 function serializeSignalDerived(

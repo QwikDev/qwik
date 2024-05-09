@@ -315,7 +315,7 @@ export const serverQrl = <T extends ServerFunction>(
         });
         const hash = qrl.getHash();
         const method = options?.method?.toUpperCase?.() || 'POST';
-        const headers = options?.headers;
+        const headers = options?.headers || {};
         const origin = options?.origin || '';
         const fetchOptions = options?.fetchOptions || {};
         // Handled by `pureServerFunction` middleware

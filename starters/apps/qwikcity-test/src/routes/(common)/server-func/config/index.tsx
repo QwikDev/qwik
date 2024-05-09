@@ -24,7 +24,11 @@ const serverFunctionA = server$(
 
 const serverFunctionB = server$(
   async function b() {
-    return this.headers.get(customHeader) || "N/A";
+    return (
+      this.headers.get(customHeader) ||
+      this.request.headers.get(customHeader) ||
+      "N/A"
+    );
   },
   {
     headers: {

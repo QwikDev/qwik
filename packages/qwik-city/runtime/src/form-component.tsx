@@ -5,7 +5,6 @@ import {
   Slot,
   $,
   type QwikJSX,
-  type ValueOrPromise,
   type QRLEventHandlerMulti,
 } from '@builder.io/qwik';
 import type { ActionStore } from './types';

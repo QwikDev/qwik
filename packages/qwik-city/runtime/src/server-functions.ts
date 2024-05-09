@@ -268,7 +268,25 @@ export const zodQrl = ((
 export const zod$ = /*#__PURE__*/ implicit$FirstArg(zodQrl) as ZodConstructor;
 
 /** @public */
-export const serverQrl = <T extends ServerFunction>(qrl: QRL<T>): ServerQRL<T> => {
+export interface ServerConfig {
+  // TODO: create id registry
+  // id?: string;
+  origin?: string;
+  // only support "get" and "post" for now
+  method?: 'get' | 'post'; // | 'patch' | 'delete';
+  headers?: Record<string, string>;
+  // TODO: add cache interface
+  // cache?: any,
+  // TODO: cancel with signal
+  // signal?: Signal<boolean>;
+  fetchOptions?: any;
+}
+
+/** @public */
+export const serverQrl = <T extends ServerFunction>(
+  qrl: QRL<T>,
+  options?: ServerConfig
+): ServerQRL<T> => {
   if (isServer) {
     const captured = qrl.getCaptured();
     if (captured && captured.length > 0 && !_getContextElement()) {
@@ -276,8 +294,9 @@ export const serverQrl = <T extends ServerFunction>(qrl: QRL<T>): ServerQRL<T> =
     }
   }
 
-  function stuff() {
+  function rpc() {
     return $(async function (this: RequestEventBase, ...args: Parameters<T>) {
+      // move to ServerConfig
       const signal =
         args.length > 0 && args[0] instanceof AbortSignal
           ? (args.shift() as AbortSignal)
@@ -309,10 +328,16 @@ export const serverQrl = <T extends ServerFunction>(qrl: QRL<T>): ServerQRL<T> =
           return arg;
         });
         const hash = qrl.getHash();
+        const method = options?.method?.toUpperCase?.() || 'POST';
+        const headers = options?.headers;
+        const origin = options?.origin || '';
+        const fetchOptions = options?.fetchOptions || {};
         // Handled by `pureServerFunction` middleware
-        const res = await fetch(`?${QFN_KEY}=${hash}`, {
-          method: 'POST',
+        const res = await fetch(`${origin}?${QFN_KEY}=${hash}`, {
+          ...fetchOptions,
+          method,
           headers: {
+            ...headers,
             'Content-Type': 'application/qwik-json',
             // Required so we don't call accidentally
             'X-QRL': hash,
@@ -349,7 +374,7 @@ export const serverQrl = <T extends ServerFunction>(qrl: QRL<T>): ServerQRL<T> =
       }
     }) as ServerQRL<T>;
   }
-  return stuff();
+  return rpc();
 };
 
 /** @public */

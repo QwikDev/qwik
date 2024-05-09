@@ -59,9 +59,11 @@ export const resolveRequestHandlers = (
       requestHandlers.unshift(csrfCheckMiddleware);
     }
     if (isPageRoute) {
-      if (method === 'POST') {
+      // server$
+      if (method === 'GET' || method === 'POST') {
         requestHandlers.push(pureServerFunction);
       }
+
       requestHandlers.push(fixTrailingSlash);
       requestHandlers.push(renderQData);
     }

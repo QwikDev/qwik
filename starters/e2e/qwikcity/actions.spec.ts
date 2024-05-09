@@ -147,7 +147,7 @@ test.describe("actions", () => {
       });
     });
 
-    test.describe("isue3497", () => {
+    test.describe("issue3497", () => {
       test("should parse formdata", async ({ page }) => {
         await page.goto("/qwikcity-test/actions/issue3497/");
         const success = page.locator("#issue3497-success");

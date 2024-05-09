@@ -56,7 +56,7 @@ export const Form = <O, I>(
     const isArrayApi = Array.isArray(onSubmit$);
     // if you pass an array you can choose where you want action.submit in it
     if (isArrayApi) {
-      const actionInArray = Array.isArray(onSubmit$) && onSubmit$.includes(action.submit as any);
+      const actionInArray = onSubmit$.includes(action.submit as any);
       return jsx(
         'form',
         {

@@ -56,7 +56,6 @@ export const Form = <O, I>(
     const isArrayApi = Array.isArray(onSubmit$);
     // if you pass an array you can choose where you want action.submit in it
     if (isArrayApi) {
-      const actionInArray = onSubmit$.includes(action.submit as any);
       return jsx(
         'form',
         {
@@ -66,7 +65,14 @@ export const Form = <O, I>(
           onSubmit$: [
             ...onSubmit$,
             // action.submit "submitcompleted" event for onSubmitCompleted$ events
-            !reloadDocument && !actionInArray ? action.submit : undefined,
+            !reloadDocument
+              ? function (_evt: Event, form: HTMLFormElement) {
+                  if (!action.submitted) {
+                    // TODO: fix types
+                    return (action.submit as any)(_evt, form);
+                  }
+                }
+              : undefined,
           ],
           method: 'post',
           ['data-spa-reset']: spaReset ? 'true' : undefined,

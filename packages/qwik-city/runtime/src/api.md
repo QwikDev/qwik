@@ -69,6 +69,7 @@ export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> = {
     readonly formData: FormData | undefined;
     readonly value: RETURN | undefined;
     readonly submit: QRL<OPTIONAL extends true ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>> : (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>>;
+    readonly submitted: boolean;
 };
 
 // @public (undocumented)

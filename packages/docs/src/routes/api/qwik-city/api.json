@@ -54,7 +54,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> = {\n    readonly actionPath: string;\n    readonly isRunning: boolean;\n    readonly status?: number;\n    readonly formData: FormData | undefined;\n    readonly value: RETURN | undefined;\n    readonly submit: QRL<OPTIONAL extends true ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>> : (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>>;\n};\n```\n**References:** [ActionReturn](#actionreturn)",
+      "content": "```typescript\nexport type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> = {\n    readonly actionPath: string;\n    readonly isRunning: boolean;\n    readonly status?: number;\n    readonly formData: FormData | undefined;\n    readonly value: RETURN | undefined;\n    readonly submit: QRL<OPTIONAL extends true ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>> : (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>>;\n    readonly submitted: boolean;\n};\n```\n**References:** [ActionReturn](#actionreturn)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik-city.actionstore.md"
     },

@@ -175,5 +175,18 @@ test.describe("actions", () => {
         );
       });
     });
+
+    test.describe("multiple-handlers", () => {
+      test("should allow multiple handlers", async ({ page }) => {
+        await page.goto("/qwikcity-test/actions/issue3183/");
+        const success = page.locator("#multiple-handlers-success");
+
+        await expect(success).toBeHidden();
+        await page.locator("#multiple-handlers-button").click();
+        await expect(success).toHaveText(
+          '{"arrayOld":["0","1"],"arrayNew":["0","1"],"people":[{"name":"Fred"},{"name":"Sam"}]}',
+        );
+      });
+    });
   }
 });

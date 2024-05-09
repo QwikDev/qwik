@@ -165,6 +165,7 @@ export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> = {
       ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>
       : (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>
   >;
+  readonly submitted: boolean;
 };
 ```
 

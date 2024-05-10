@@ -30,8 +30,6 @@ export function getUrl(req: IncomingMessage | Http2ServerRequest, origin: string
   return normalizeUrl((req as any).originalUrl || req.url || '/', origin);
 }
 
-const DOUBLE_SLASH_REG = /\/\/|\\\\/g;
-
 // when the user refreshes or cancels the stream there will be an error
 function isIgnoredError(message = '') {
   const ignoredErrors = ['The stream has been destroyed', 'write after end'];
@@ -42,6 +40,9 @@ function isIgnoredError(message = '') {
 const invalidHeadersPattern = /^:(method|scheme|authority|path)$/i;
 
 export function normalizeUrl(url: string, base: string) {
+  // defined in function because of lastIndex gotcha with /g
+  const DOUBLE_SLASH_REG = /\/\/|\\\\/g;
+  
   // do not allow the url to have a relative protocol url
   // which could bypass of CSRF protections
   // for example: new URL("//attacker.com", "https://qwik.build.io")

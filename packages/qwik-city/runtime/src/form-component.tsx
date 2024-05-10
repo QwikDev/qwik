@@ -66,12 +66,11 @@ export const Form = <O, I>(
             ...onSubmit$,
             // action.submit "submitcompleted" event for onSubmitCompleted$ events
             !reloadDocument
-              ? function (_evt: Event, form: HTMLFormElement) {
+              ? $((evt: SubmitEvent) => {
                   if (!action.submitted) {
-                    // TODO: fix types
-                    return (action.submit as any)(_evt, form);
+                    return action.submit(evt);
                   }
-                }
+                })
               : undefined,
           ],
           method: 'post',

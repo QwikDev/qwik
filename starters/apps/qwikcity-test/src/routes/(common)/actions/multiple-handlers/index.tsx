@@ -18,7 +18,9 @@ export default component$(() => {
       <Form
         action={dotNotation}
         onSubmit$={[
-          $(() => {}),
+          $(() => {
+            console.log("loading false");
+          }),
           $((evt) => dotNotation.submit(evt)),
           $(() => {
             finished.value = dotNotation.submitted;
@@ -42,7 +44,7 @@ export default component$(() => {
           {JSON.stringify(dotNotation.value.payload)}
         </div>
       )}
-      <div id="multiple-handlers-finished">{finished.value}</div>
+      <div id="multiple-handlers-finished">{String(finished.value)}</div>
     </>
   );
 });

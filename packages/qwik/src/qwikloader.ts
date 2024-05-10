@@ -92,9 +92,14 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
         if (isSync) {
           handler = ((container as QContainerElement).qFuncs || [])[Number.parseInt(symbol)];
         } else {
-          const module = import(/* @vite-ignore */ url.href.split('#')[0]);
-          resolveContainer(container);
-          handler = (await module)[symbol];
+          const uri = url.href.split('#')[0];
+          try {
+            const module = import(/* @vite-ignore */ uri);
+            resolveContainer(container);
+            handler = (await module)[symbol];
+          } catch (error) {
+            emitEvent('qerror', { importError: true, error, symbol, uri });
+          }
         }
         const previousCtx = (doc as any)[Q_CONTEXT];
         if (element[isConnected]) {

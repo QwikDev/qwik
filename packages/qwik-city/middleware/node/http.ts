@@ -60,12 +60,12 @@ export async function fromNodeHttp(
   const requestHeaders = new Headers();
   const nodeRequestHeaders = req.headers;
 
-  for (const key in nodeRequestHeaders) {
-    if (invalidHeadersPattern.test(key)) {
-      continue;
-    }
-    const value = nodeRequestHeaders[key];
-    try {
+  try {
+    for (const key in nodeRequestHeaders) {
+      if (invalidHeadersPattern.test(key)) {
+        continue;
+      }
+      const value = nodeRequestHeaders[key];
       if (typeof value === 'string') {
         requestHeaders.set(key, value);
       } else if (Array.isArray(value)) {
@@ -73,9 +73,9 @@ export async function fromNodeHttp(
           requestHeaders.append(key, v);
         }
       }
-    } catch (err) {
-      console.error(err);
     }
+  } catch (err) {
+    console.error(err);
   }
 
   const getRequestBody = async function* () {
@@ -107,19 +107,23 @@ export async function fromNodeHttp(
     },
     getWritableStream: (status, headers, cookies) => {
       res.statusCode = status;
-      headers.forEach((value, key) => {
-        try {
-          if (!invalidHeadersPattern.test(key)) {
-            res.setHeader(key, value);
+
+      try {
+        for (const key in headers) {
+          if (invalidHeadersPattern.test(key)) {
+            continue;
           }
-        } catch (err) {
-          console.error(err);
+          const value = headers[key];
+          res.setHeader(key, value);
         }
-      });
-      const cookieHeaders = cookies.headers();
-      if (cookieHeaders.length > 0) {
-        res.setHeader('Set-Cookie', cookieHeaders);
+        const cookieHeaders = cookies.headers();
+        if (cookieHeaders.length > 0) {
+          res.setHeader('Set-Cookie', cookieHeaders);
+        }
+      } catch (err) {
+        console.error(err);
       }
+
       return new WritableStream<Uint8Array>({
         write(chunk) {
           if (res.closed || res.destroyed) {

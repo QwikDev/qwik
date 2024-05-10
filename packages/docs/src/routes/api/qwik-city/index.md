@@ -1265,7 +1265,7 @@ _(Optional)_
 
 </td><td>
 
-QRLEventHandlerMulti&lt;Event, HTMLFormElement&gt; \| undefined
+QRLEventHandlerMulti&lt;SubmitEvent, HTMLFormElement&gt; \| undefined
 
 </td><td>
 

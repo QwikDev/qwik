@@ -19,9 +19,7 @@ export default component$(() => {
         action={dotNotation}
         onSubmit$={[
           $(() => {}),
-          $((_e, form) => {
-            return dotNotation.submit(form);
-          }),
+          $((evt) => dotNotation.submit(evt)),
           $(() => {
             finished.value = dotNotation.submitted;
           }),

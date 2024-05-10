@@ -221,7 +221,7 @@ export interface FormProps<O, I> extends Omit<QwikJSX.IntrinsicElements['form'],
     action?: ActionStore<O, I, true | false>;
     // (undocumented)
     key?: string | number | null;
-    onSubmit$?: QRLEventHandlerMulti<Event, HTMLFormElement> | undefined;
+    onSubmit$?: QRLEventHandlerMulti<SubmitEvent, HTMLFormElement> | undefined;
     onSubmitCompleted$?: QRLEventHandlerMulti<CustomEvent<FormSubmitSuccessDetail<O>>, HTMLFormElement> | undefined;
     reloadDocument?: boolean;
     spaReset?: boolean;
